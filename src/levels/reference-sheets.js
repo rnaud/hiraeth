@@ -6,16 +6,18 @@
 
 export const SHEET_SITE = 'https://memento.alexandria-rnaud.workers.dev/';
 const APP_HOST = '127.0.0.1:41730';
+const XBOX_HOST = 'hiraeth.example';   // (the Xbox app's virtual host: src/xbox.js XBOX_HOST)
 
 /**
  * Is this page a game carried by a device (the APK or one of its over-the-air bundles, the Deck's package or
- * its downloaded game), rather than the site or the dev server? GeckoView's loopback server (127.0.0.1:41730),
+ * its downloaded game, the Xbox app), rather than the site or the dev server? GeckoView's loopback server (127.0.0.1:41730),
+ * the Xbox app's https://hiraeth.example,
  * the Deck's moebius://game, any other non-http page, and the Android WebView fallback (Capacitor's
  * https://localhost, no port).
  */
 export function bundledGame(here = globalThis.location) {
   if (!here) return false;
-  return !/^https?:$/.test(here.protocol) || here.host === APP_HOST || (here.protocol === 'https:' && here.host === 'localhost');
+  return !/^https?:$/.test(here.protocol) || here.host === APP_HOST || here.host === XBOX_HOST || (here.protocol === 'https:' && here.host === 'localhost');
 }
 
 /** Where a sheet's image is read from: its own URL on the site and the dev server, the site's in a bundle. */

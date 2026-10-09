@@ -11,6 +11,7 @@ import { setMotion } from './feel.js';
 import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
 import { glyph } from './pad-glyphs.js';
+import { onXbox, qualityChoices } from './xbox.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -23,9 +24,11 @@ export const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart'
 export const isNativeApp = !!globalThis.Capacitor?.isNativePlatform?.();
 /** The Steam Deck's app (Electron, desktop/main.mjs): the game at moebius://game, always fullscreen. */
 export const isDeckApp = globalThis.location?.protocol === 'moebius:';
+/** The Xbox app (xbox/, a UWP app with WebView2: src/xbox.js), always fullscreen; Auto is its own preset there. */
+export const isXboxApp = onXbox();
 
 const DEFAULTS = {
-  quality: isNativeApp ? 'handheld' : isDeckApp || isTouch ? 'auto' : 'high',   // auto | handheld | deck | low | medium | high
+  quality: isNativeApp ? 'handheld' : isXboxApp || isDeckApp || isTouch ? 'auto' : 'high',   // auto | handheld | deck | xbox | low | medium | high
   sensitivity: 1,
   invertY: false,
   invertFlight: false,  // the jets (player.js JET): off, the stick forward tips the nose down as a plane's; on, forward climbs
@@ -279,10 +282,10 @@ export class SettingsMenu {
         </aside>
         <section class="panel" data-page="settings">
           <h1>${t('set.title')} <span>v${VERSION}</span></h1>
-          ${isNativeApp || isDeckApp ? '<section class="updates" hidden></section>' : ''}
+          ${isNativeApp || isDeckApp || isXboxApp ? '<section class="updates" hidden></section>' : ''}
           <h2>${t('set.group.screen')}</h2>
           ${row(t('set.lang'), `<select data-k="lang" data-pad="open">${Object.entries(LANGUAGES).map(([id, l]) => `<option value="${id}">${l.name}</option>`).join('')}</select>`)}
-          ${row(t('set.quality'), opts('quality', ['auto', 'handheld', 'deck', 'low', 'medium', 'high']))}
+          ${row(t('set.quality'), opts('quality', qualityChoices(isXboxApp)))}
           ${row(t('set.textSize'), opts('textSize', Object.keys(TEXT_SIZES)))}
           ${row(t('set.speechBg'), `<input data-k="speechBg" type="checkbox">`)}
           ${row(t('set.showFps'), `<input data-k="showFps" type="checkbox">`)}
@@ -313,7 +316,7 @@ export class SettingsMenu {
             <div class="ask" hidden><span>${t('set.resetAsk')}</span>
               <button data-a="reset-yes">${glyph('ok', { focus: true })}${t('set.resetYes')}</button><button data-a="reset-no">${glyph('back', { key: 'Esc' })}${t('set.resetNo')}</button></div>
           </div>` : ''}
-          ${isNativeApp || isDeckApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
+          ${isNativeApp || isDeckApp || isXboxApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
         </section>
         <section class="panel controls" data-page="controls" hidden></section>
       </div>`;

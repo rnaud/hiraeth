@@ -379,6 +379,10 @@ export const QUALITY_PRESETS = {
   deck:     { label: 'Steam Deck', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
     shadow: { fine: 1024, near: 2048, far: 2048 }, nearExtent: 180, nearEvery: 2, farEvery: 4, taps: 4,
     ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5 },
+  // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
+  // reports a pixel ratio of 2 at 1080p, where High renders 1× as well), adapting down to 0.6 when a scene is too
+  // much: the console's first measurements (docs/systems/xbox.md) will say what to trim
+  xbox:     { ...FULL, label: 'Xbox (High, adapts)', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40 } },
   medium:   { ...FULL, label: 'Medium', scale: 1 },
   high:     { ...FULL, label: 'High (smooth lines)', scale: 1.5 },
 };
@@ -458,6 +462,8 @@ function judgeProbe(s, fps, missed, D, scale) {
 export function engineLabel(ua = '', search = '', app = null) {
   const forced = new URLSearchParams(search).get('engine');
   if (forced) return forced.toUpperCase();
+  // the Xbox app (src/xbox.js): the platform first, then its WebView2's engine ("XBOX EDGE 141")
+  if (/\bHiraethXbox\//.test(ua) || new URLSearchParams(search).get('platform') === 'xbox') return `XBOX ${engineLabel(ua.replace(/\s*\bHiraethXbox\/\d+/, ''), '', app)}`;
   const v = (re) => ua.match(re)?.[1];
   if (v(/Firefox\/(\d+)/)) return `${app?.engine === 'gecko' ? 'GECKO' : 'FIREFOX'} ${v(/Firefox\/(\d+)/)}`;
   if (v(/Electron\/(\d+)/)) return `ELECTRON ${v(/Electron\/(\d+)/)}`;
@@ -487,15 +493,15 @@ export function detectHandheld({ native = false, touch = false, gpu = '' } = {})
 }
 
 /**
- * The preset to run for a Graphics setting: Auto is the handheld recipe on a handheld and the
- * full one elsewhere (adapting its resolution either way). High renders 1.5× unless the
+ * The preset to run for a Graphics setting: Auto is the handheld recipe on a handheld, the Deck's on the
+ * Steam Deck, the Xbox's in the Xbox app, and the full one elsewhere (adapting its resolution either way). High renders 1.5× unless the
  * screen is already HiDPI.
  */
-export function resolveQuality(name, { handheld = false, deck = false, hiDPI = false } = {}) {
-  const key = name === 'auto' && deck ? 'deck' : name === 'auto' && handheld ? 'handheld' : QUALITY_PRESETS[name] ? name : 'medium';
+export function resolveQuality(name, { handheld = false, deck = false, xbox = false, hiDPI = false } = {}) {
+  const key = name === 'auto' && xbox ? 'xbox' : name === 'auto' && deck ? 'deck' : name === 'auto' && handheld ? 'handheld' : QUALITY_PRESETS[name] ? name : 'medium';
   const p = { ...QUALITY_PRESETS[key], key, setting: name };
   if (key === 'high' && hiDPI) p.scale = 1;
-  if (name === 'auto' && (key === 'handheld' || key === 'deck')) p.label = `Auto: ${QUALITY_PRESETS[key].label}`;
+  if (name === 'auto' && (key === 'handheld' || key === 'deck' || key === 'xbox')) p.label = `Auto: ${QUALITY_PRESETS[key].label}`;
   return p;
 }
 

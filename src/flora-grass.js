@@ -29,6 +29,8 @@ export const GRASS_QUALITY = {
   handheld: { radius: 14, density: 3, far: { radius: 36, density: 0.16 } },
   // (the Deck's had been Low's: widened the same way, its GPU has the room; perf.js QUALITY_PRESETS.deck)
   deck: { radius: 16, density: 3.4, far: { radius: 40, density: 0.2 } },
+  // (the Xbox app's: High's, as its preset is: perf.js QUALITY_PRESETS.xbox)
+  xbox: { radius: 22, density: 4.5, far: { radius: 58, density: 0.3 } },
 };
 
 /** The far layer's tuft: two broader blades. */

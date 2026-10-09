@@ -23,7 +23,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [story-audit.md](story-audit.md) | the October 2026 story audit: every world's beat against what you can do, what was thin, pacing, what was fixed, proposals for the author |
 | [fun-and-story-review.md](fun-and-story-review.md) | the October 2026 review of the experience's shape: the ending before the peak, the unanswered light, choices, pacing; ranked recommendations |
 | [what-makes-a-great-game.md](what-makes-a-great-game.md) | research: what makes a great (exploration) game, in twelve themes with audit questions and sources |
-| [audits/](audits/) | the audits, one file per kind and version: the game against those twelve themes ([game, v0.97](audits/game-v0.97.md), [game, v1.0](audits/game-v1.0.md)), performance ([v1.0](audits/perf-v1.0.md)), visual quality ([v1.0](audits/visual-v1.0.md), [v1.4: the probes](audits/visual-v1.4.md)), the dialogue ([v1.0](audits/dialogue-v1.0.md)) and the combat ([v1.4](audits/combat-v1.4.md)); run them with the `game-audit`, `perf-audit`, `visual-audit`, `dialogue-review` and `combat-review` skills (`.claude/skills/`) |
+| [audits/](audits/) | the audits, one file per kind and version: the game against those twelve themes ([game, v0.97](audits/game-v0.97.md), [game, v1.0](audits/game-v1.0.md)), performance ([v1.0](audits/perf-v1.0.md)), visual quality ([v1.0](audits/visual-v1.0.md), [v1.4: the probes](audits/visual-v1.4.md)), the dialogue ([v1.0](audits/dialogue-v1.0.md)), the combat ([v1.4](audits/combat-v1.4.md)), the worlds' level design ([v1.5](audits/level-design-v1.5.md)) and the temples' design ([v1.5](audits/temple-design-v1.5.md)); run them with the `game-audit`, `perf-audit`, `visual-audit`, `dialogue-review`, `combat-review`, `level-design-qc` and `temple-design-qc` skills (`.claude/skills/`) |
 | [world-principles.md](world-principles.md) | the fundamental world principles: the world notices you, living things, connection, restraint |
 | [../lore/README.md](../lore/README.md), [../LORE.md](../LORE.md) | the writing room and the lore |
 
@@ -66,6 +66,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
+| [xbox.md](systems/xbox.md) | the Xbox Dev Mode package: the UWP app, its updates and saves, signing, CI, deploying and measuring on the console |
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [minigames.md](systems/minigames.md) | the minigames: the runner (start card, 3-2-1, HUD, pause, results, the best in the save), the Games row and the arcade sign, how to add a game (options, a best per difficulty, games on foot), Dune skiing, Sky steps, the Canyon run, Fishing, the Ring race, the Wing drop, the shooting gallery, Ink tide, the Drum circle, the Sketch hunt |

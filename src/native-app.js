@@ -18,18 +18,20 @@
 
 import { nativePad } from './native-pad.js';
 import { audioGuard, audioAway } from './audio-guard.js';
+import { xboxShell } from './xbox.js';
 
-// The app around the page: Android's AppShell plugin, or the Steam Deck's runtime, which answers
-// the same calls at moebius://game/__app/<method> (desktop/main.mjs, desktop/deck-updates.mjs).
+// The app around the page: Android's AppShell plugin, the Xbox app (WebView2's web messages, src/xbox.js),
+// or the Steam Deck's runtime, which answers the same calls at moebius://game/__app/<method>
+// (desktop/main.mjs, desktop/deck-updates.mjs).
 const desktop = (win) => (win?.location?.protocol === 'moebius:' && typeof win.fetch === 'function' ? {
   call: (method) => win.fetch(`/__app/${method}`, { method: 'POST', cache: 'no-store' })
     .then((r) => (r.ok ? r.json() : r.text().then((t) => Promise.reject(new Error(t || `HTTP ${r.status}`))))),
 } : null);
 const shell = (win) => (win?.Capacitor?.isNativePlatform?.() && win.Capacitor.nativePromise
-  ? { call: (method) => win.Capacitor.nativePromise('AppShell', method) } : desktop(win));
+  ? { call: (method) => win.Capacitor.nativePromise('AppShell', method) } : xboxShell(win) ?? desktop(win));
 const ask = (win, method) => shell(win)?.call(method).catch(() => null) ?? Promise.resolve(null);
 
-/** Whether the page runs in an app that updates it: Android's (its AppShell plugin) or the Steam Deck's. */
+/** Whether the page runs in an app that updates it: Android's (its AppShell plugin), the Xbox's or the Steam Deck's. */
 export const inApp = (win = globalThis.window) => !!shell(win);
 
 /** Ask the app (AppShellPlugin, or the Deck's runtime): rejects with the app's message, or when not in an app. */

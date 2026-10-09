@@ -55,11 +55,14 @@ test('handheld detection: the Android app, mobile and software GPUs', () => {
   assert.equal(detectHandheld({ gpu: 'ANGLE (Intel, Intel(R) HD Graphics 520 Direct3D11)', touch: true }), true);
 });
 
-test('the settings menu offers every preset', () => {
+test('the settings menu offers every preset', async () => {
   const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
-  const sel = ui.match(/opts\('quality', \[(.*?)\]\)/)[1];   // (each one's words: src/i18n/en.js set.quality.<id>)
-  const values = [...sel.matchAll(/'(\w+)'/g)].map((m) => m[1]).sort();
-  assert.deepEqual(values, Object.keys(QUALITY_PRESETS).sort());
+  assert.match(ui, /opts\('quality', qualityChoices\(isXboxApp\)\)/);   // (each one's words: src/i18n/en.js set.quality.<id>)
+  const { qualityChoices } = await import('../src/xbox.js');
+  assert.deepEqual([...qualityChoices(true)].sort(), Object.keys(QUALITY_PRESETS).sort(), 'every preset in the Xbox app');
+  assert.deepEqual([...qualityChoices(false)].sort(), Object.keys(QUALITY_PRESETS).filter((k) => k !== 'xbox').sort(), 'all but the Xbox\'s elsewhere');
+  const { EN } = await import('../src/i18n/en.js');
+  for (const k of qualityChoices(true)) assert.ok(EN[`set.quality.${k}`], k);
 });
 
 // ------------------------------------------------------------------ dynamic resolution (adaptScale)
@@ -183,8 +186,8 @@ test('the Steam Deck has its own preset, between Handheld and Medium, and Auto p
   assert.equal(detectDeck({ gpu: 'ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Pro)' }), false);
   const { GRASS_QUALITY } = await import('../src/flora-grass.js');
   assert.ok(GRASS_QUALITY.deck, 'the grass has the preset too');
-  const ui = readFileSync(new URL('../src/ui.js', import.meta.url), 'utf8');
-  assert.match(ui, /opts\('quality', \[[^\]]*'deck'/);
+  const { qualityChoices } = await import('../src/xbox.js');
+  assert.ok(qualityChoices(false).includes('deck'), 'in the menu');
   const { EN } = await import('../src/i18n/en.js');
   assert.equal(EN['set.quality.deck'], 'Steam Deck');
 });

@@ -64,7 +64,8 @@ import { updateHands } from './hands.js';
 import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js';
 import { buildTravellerLod } from './characters/traveller-lod.js';
 import { Changelog, VERSION } from './changelog.js';
-import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
+import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
+import { xboxReadout } from './xbox.js';
 import { InputMode } from './input-mode.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
@@ -189,7 +190,7 @@ const gpuName = (() => {
 })();
 const handheld = detectHandheld({ native: isNativeApp, touch: isTouch, gpu: gpuName });
 const deck = detectDeck({ app: isDeckApp, gpu: gpuName });   // (Auto runs the Steam Deck recipe there)
-let preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
+let preset = resolveQuality(settings.quality, { handheld, deck, xbox: isXboxApp, hiDPI: pixelRatio >= 2 });   // (the Xbox app: its own preset, src/xbox.js)
 const quality = { renderScale: preset.scale };
 const composeRT = createComposeTarget();
 const blit = createBlit(composeRT.texture);
@@ -962,7 +963,7 @@ const baseAO = U.uAO.value, baseCloudSh = sharedUniforms.uCloudShadows.value;
 const crowdRange = crowd ? { ...crowd.range } : null;
 const adapt = { slow: 0, fast: 0, hold: 0, dropped: false };
 // low detail: the preset's, or a desktop Auto once it has had to drop resolution
-const lowDetail = () => preset.lowDetail || (preset.key === 'auto' && adapt.dropped);
+const lowDetail = () => preset.lowDetail || ((preset.key === 'auto' || preset.key === 'xbox') && adapt.dropped);
 function applyDetail() {
   const low = lowDetail();
   U.uAO.value = preset.ao && !low ? baseAO : 0;
@@ -979,7 +980,7 @@ function applyDetail() {
   }
 }
 function applyQuality() {
-  preset = resolveQuality(settings.quality, { handheld, deck, hiDPI: pixelRatio >= 2 });
+  preset = resolveQuality(settings.quality, { handheld, deck, xbox: isXboxApp, hiDPI: pixelRatio >= 2 });
   quality.renderScale = preset.scale;
   adapt.slow = adapt.fast = adapt.hold = adapt.noProbe = 0; adapt.probe = null; adapt.dropped = false;
   const S = preset.shadow;
@@ -1544,7 +1545,8 @@ const ENGINE = window.__fpsEngine = engineLabel(navigator.userAgent, location.se
 function frameReadout(fps) {
   const n = Math.max(frameStats.n, 1), gpu = gpuTimer.take();
   return `${ENGINE}${window.__benchLabel ? ` ${window.__benchLabel}` : ''} · ${Math.round(fps)} fps · ${(1000 / fps).toFixed(1)} ms (cpu ${(cpuMs / fpsN).toFixed(1)}${gpu !== null ? ` gpu ${gpu.toFixed(1)}` : ''})`
-    + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`;
+    + ` · ${quality.renderScale}× · ${Math.round(frameStats.calls / n)} calls · ${Math.round(frameStats.tris / n / 1000)}k tris · ${preset.key}`
+    + xboxReadout();   // (the Xbox app only: whether the JIT is on, the JS heap; '' elsewhere)
 }
 function frame(ts) {
   const tFrame = performance.now();

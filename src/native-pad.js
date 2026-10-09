@@ -35,6 +35,7 @@
 import { installPadMaps } from './pad-maps.js';
 import { padRename, keyRename, onControlPrefs } from './remap.js';
 import { onLanguage } from './i18n.js';
+import { onXbox } from './xbox.js';
 
 let native = null;
 
@@ -137,11 +138,14 @@ export function onSteam(win = globalThis.window) {
 /** The platform's own family when no pad is known (see above): never ''. */
 export function platformFamily(win = globalThis.window) {
   if (padLayout(win) === 'android') return 'handheld';
+  if (onXbox(win)) return 'xbox';   // (the Xbox app: src/xbox.js)
   if (onSteam(win)) return 'xbox';
   return 'xbox';
 }
-/** The family the page's prompts are drawn for: the listed pad's, else the remembered one, else the platform's. Never ''. */
+/** The family the page's prompts are drawn for: the listed pad's, else the remembered one, else the platform's. Never ''.
+ *  In the Xbox app always Xbox's: the console's pads are Xbox pads, whatever id its WebView2 gives them. */
 export function pageFamily(win = globalThis.window) {
+  if (onXbox(win)) return 'xbox';
   return padFamily(win) || rememberedFamily(win) || platformFamily(win);
 }
 
@@ -286,7 +290,7 @@ export function watchLabels(win = globalThis.window) {
   labelFaces = padFaces(win).faces;
   const listed = padFamily(win);
   if (listed) rememberFamily(listed, win);
-  labelFamily = listed || rememberedFamily(win) || platformFamily(win);
+  labelFamily = onXbox(win) ? 'xbox' : listed || rememberedFamily(win) || platformFamily(win);
   for (const fn of labelHooks) { try { fn(labelState()); } catch (e) { console.warn('labels', e); } }
   if (observer) { rewrite(win.document.body); return; }
   // (always: every prompt is written as a pair, "A / ×", and the page shows one half)

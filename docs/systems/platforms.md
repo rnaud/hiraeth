@@ -1,5 +1,7 @@
 # iPhone and the Steam Deck
 
+(The Xbox, a package for consoles in Developer Mode: [xbox.md](xbox.md).)
+
 Installing on iPhone as a web app; the Steam Deck package (full guide: docs/steam-deck.md).
 
 ## Install on iPhone

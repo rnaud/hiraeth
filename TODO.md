@@ -84,7 +84,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Xbox (queued 2026-10-09)
 
-- [ ] **An Xbox Dev Mode package** (decided 2026-10-09: the packaged web game, not the Unity build): the web
+- [ ] **An Xbox Dev Mode package** — built, waiting for the console (docs/systems/xbox.md). Done: the UWP app
+  (`xbox/`: WebView2 at https://hiraeth.example, the packaged game as the fallback, the site's web bundles over the
+  air with `minXbox`, the boot watch, Back kept, pause when away, no mouse mode, the update section), the game side
+  (`src/xbox.js`: the Xbox prompts, the Xbox preset, the TV's safe area, XBOX and a JIT probe on the frame readout),
+  the workflow (`xbox.yml` → the prerelease `xbox`), `scripts/xbox-cert.sh`. Needs: the first Windows run (the runner's
+  UWP tools), the signing secrets (`scripts/xbox-cert.sh`), then on the console: Dev Mode, deploy, set to Game, and the
+  first-run checklist (frame readout, JIT, GPU share App vs Game, controller, memory). The decision, kept:
+  (decided 2026-10-09: the packaged web game, not the Unity build): the web
   game in a UWP app with WebView2 (like the Android app's wrapper: the same web bundle and over-the-air
   updates), x64, set to the **Game** app type after deploying (Dev Home / Device Portal: ~5 GB and the full
   GPU instead of an App's 1 GB and 45 %), built on GitHub (a Windows runner) and published to a prerelease;
@@ -100,9 +107,71 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] **No attack drawn on the ground.** Every foe's and guardian's attack is telegraphed by the body itself
   (wind-up pose, a coil, a glow building on the striking part, a sound), never by discs, fans or lanes filled
   on the floor (src/temples/boss.js "telegraphed on the floor first"; the foes' warning zones; the 100 world
-  enemies' ground zones). The guardians get richer, staged fights: more attacks than the shared three, combos
+  enemies' ground zones). Exception: lobbed shots and thrown projectiles keep a landing mark on the ground
+  (where it will fall), since the thrower's wind-up can't show where it lands. The guardians get richer, staged fights: more attacks than the shared three, combos
   and phase changes that change the moves, openings read from the body. Keep fairness: wind-ups long enough
   to read, the off-screen warning marker for foes behind you. Re-score with the combat-review skill.
+
+# Level design (audit) (docs/audits/level-design-v1.5.md, 2026-10-09)
+
+Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
+
+- [ ] **Every way home passes something new** (10 of 11 worlds walk back to the ship past nothing new): bring the
+  last stage nearer the ship, or another way back past an optional place, or the temple's change as the reason.
+  Loops +1-2.
+- [ ] **A weenie on every main-quest leg** (6 worlds guide under half their long legs; the drone does it): a tall,
+  unique, lit silhouette in sight from each leg's start, or a leading line. Wayfinding +1-2.
+- [ ] **Desert: the Hearth ride** (1.55 km, nothing within 40 m, (71, −12) → (1568, −417)): a camp with a person,
+  a salt-bloom field, a wreck; and a different way back by the canyon or the observatory. Density 2→4, loops 1→3.
+- [ ] **Desert: landing → Qanat is blind** (391 m): smoke over the camps or the dark tree's crown in the landing's
+  sightline; the dry channel as a leading line to the Givers' House; Oum nearer the path. Wayfinding 2→3.
+- [ ] **Vael: frame the quest by the tower** (legs 20 % guided): Oïa's stone on the landing–tower line, menhirs to
+  the Aerie; the trial, the hand or the remote box on the 445 m plain. Wayfinding 1→3, density 3→4.
+- [ ] **City-Shaft: a stop on each 470-560 m drop**, a "go"/"do" between the three talks in a row, lamps down
+  each terrace's stair. Density 2→3, pacing +1.
+- [ ] **Sky Stones: Ondine onto the clapper's return arc** (490 m from anything), a lit marker at the clapper.
+  Loops 2→4.
+- [ ] **Lorn II: lamp-lit stakes** to the light across the water and Hollin's cave; a place by the landing.
+  Wayfinding 2→4.
+- [ ] **Pull the remote loners into 30-150 m of the path**: Oum, Ondine, Vael's box, Perrine, Wren, Gaspard, the
+  pyramid seed, Emrys. Optional pull +1.
+- [ ] **One high place per flat world** (Lorn 8 m, Lorn II 17 m, Spheres 25 m of height): a climbable viewpoint
+  with a box. Verticality +1-2.
+- [ ] Smaller: the Signal Market's tower seen down two more avenues and a second way back from Madame Sel's; Lorn's
+  Crystal ↔ Saba ping-pong merged; a weenie in each of the Hangar's far zones; answering spheres along the Garden's
+  572 m blind leg; a pipe leading to the Buried Machine's wheel. See the report.
+
+# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09)
+
+All eleven are one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
+with an older verb). Ranked; each re-runs `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js
+passing (skill: temple-design-qc). The fights themselves: "Combat telegraphs" above.
+
+- [ ] **A twist room in every temple** after the gadget's test: the gadget plus the temple's pre-gadget verb in one
+  lock (keys of two kinds). Combination 1→3, teach→test→twist 3→4.
+- [ ] **One key per temple out of its lock's room**, in sight from it but reached from elsewhere (a shortcut that
+  opens from the far side, a disc mid-ride). Decoupling 1→3, structure 1→2.
+- [ ] **No gadget door beside the chest**: the chest room's way out teaches the gadget somewhere failure is cheap;
+  its next use a room later. Non-obvious +1.
+- [ ] **Break the shared opening** (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
+  Garage = the Engine-House, 100 %): each first room from its world's own idea. Identity → 3-4.
+- [ ] **Founders' Belfry (1.44)**: the bell stones stay down only while it rings, a ball pushed across mid-ring
+  holds them (bell + push); the Stone Stair a hub with `d1`'s two balls in two side rooms; `e3` rung from a disc.
+- [ ] **Hush-House (1.67)**: a stilled pendulum as a step to `j2`'s ledge; the choir's order by pitch (sung in the
+  Threshold), not by height; `d2`'s jaws stilled from the passing disc.
+- [ ] **Lamp-House (1.67)**: the moss bridge shows only in light, pushed ahead on a glowing ball; `s3` behind the
+  root wall, a shortcut back; the Lampless lured to pools lit earlier.
+- [ ] **Undertower (1.67)**: `br1` stands only while the high note is held, so the one-note rule bites twice (a
+  catch, then a second high stone); teach the stones before the shell.
+- [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
+  outside door); the ball pushed twice in a breath onto the swinging disc.
+- [ ] **Greenhouse (1.89)**: `seed1` on the far side, seen after a vine grows; `seed2` a seed-ball rolled into the
+  light before it blooms; the Gardener's back reached by a vine grown mid-fight.
+- [ ] **Aerie, Warden's Well, Engine-House, Footprint, Givers' House (1.89-2.11)**: shots carried by gusts; a ball
+  that switches the updraft on; jets against a gust in the Lamp Gallery; `s1` seen only mid-ride; `k2` on pistons
+  in turn; false lens stones with the clue a room back; a burning tar ball pushed into `b3`; `b2` a room back. See
+  the report for each.
+- [ ] **The guardian's last phase asks for the twist** (with "Combat telegraphs"). Guardian exam 2→3-4.
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 

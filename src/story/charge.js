@@ -97,7 +97,7 @@ export function chargeJournalHtml(st) {
 // clear of the toasts at the top and the subtitles at the bottom, and goes in five seconds.
 const CARD_MS = 5000;
 const CSS = `
-#charge-card { position: fixed; left: 0; right: 0; bottom: calc(6vh + env(safe-area-inset-bottom, 0px)); z-index: 8050; pointer-events: none;
+#charge-card { position: fixed; left: 0; right: 0; bottom: calc(6vh + var(--safe-bottom, env(safe-area-inset-bottom, 0px))); z-index: 8050; pointer-events: none;
   display: flex; justify-content: center; opacity: 0; transition: opacity .8s; }
 #charge-card.on { opacity: 1; }
 #charge-card.off { opacity: 0; transition: opacity 1.1s; }

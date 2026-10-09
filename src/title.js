@@ -1,9 +1,16 @@
-// The title screen: the game's name (Hiraeth) over a live view of the land above the clouds
-// (src/title-vista.js, faded in once it is ready; the drawn backdrop below when WebGL
-// can't), then Continue (the
-// save played last), Saves (five slots: continue one, start a new game in an empty one,
-// delete one) and Settings. It runs before the game's modules load (src/boot.js), so
-// the slot chosen here is the one every store reads (src/save-slots.js).
+// The title screen: the game's name (Hiraeth, lettered in src/title-logo.js) over one of the
+// worlds, seen from a fixed camera framed like one of the covers it was designed from (a
+// different shot each time the game opens: src/title-shots.js, drawn by src/title-world.js).
+// The name and the menu show at once over the paper; the world fades in when it is ready (the
+// drawn backdrop below when WebGL can't). Then Continue (the save played last), Saves (the
+// slots: continue one, start a new game in an empty one, delete one), Settings, What's new.
+// It runs before the game's modules load (src/boot.js), so the slot chosen here is the one
+// every store reads (src/save-slots.js). The world's modules read the game state as they load:
+// the slots are sandboxed meanwhile, and once a save is chosen the game starts in a fresh page
+// (?start), so nothing of the title's world reaches the game.
+//
+// Layout: src/title-layout.js places the name and the menu for the screen's shape (a column under
+// the name, two or three columns on a short screen, the menu at the bottom on a phone held upright).
 //
 // Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a controller
 // (d-pad or stick to move, A confirm, B back) through the same menuNavigate as the
@@ -25,6 +32,9 @@ import { THEME_FILES } from './soundtracks.js';
 import { VERSION } from './changelog.js';
 import { devMode } from './dev-gate.js';
 import { padConfirm } from './menu-pad.js';
+import { logoSvg } from './title-logo.js';
+import { titleLayout, layoutVars } from './title-layout.js';
+import { chooseShot } from './title-shots.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -79,22 +89,8 @@ export const BACKDROP = `
   </g>
 </svg>`;
 
-/** The name, light and airy: thin capitals spaced wide, cream with a hairline of ink and a soft glow. */
-export const LOGO = `
-<svg class="logo" viewBox="0 0 1000 250" role="img" aria-label="Hiraeth">
-  <defs>
-    <filter id="logo-glow" x="-10%" y="-40%" width="120%" height="180%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="7" result="b"/>
-      <feFlood flood-color="#2b211f" flood-opacity="0.22"/><feComposite in2="b" operator="in" result="s"/>
-      <feMerge><feMergeNode in="s"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <g font-family="'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', 'Roboto', sans-serif" font-weight="200" font-size="128" text-anchor="middle" filter="url(#logo-glow)">
-    <text x="500" y="170" textLength="820" lengthAdjust="spacing" fill="#fffaf0" stroke="#2b211f" stroke-width="1.4" stroke-opacity="0.75" paint-order="stroke">HIRAETH</text>
-  </g>
-  <path d="M330 206 L670 206" fill="none" stroke="#fffaf0" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
-  <circle cx="500" cy="206" r="3" fill="#f2c54b" stroke="#2b211f" stroke-width="0.8"/>
-</svg>`;
+/** The name: HIRAETH in ivory block capitals, an ink line and a vermilion shadow (src/title-logo.js). */
+export const LOGO = logoSvg();
 
 function slotHtml(s) {
   if (s.empty) {
@@ -110,15 +106,36 @@ function slotHtml(s) {
     <button class="del" data-del="${s.n}" aria-label="${t('title.deleteSave', { n: s.n })}">${glyph('x', { key: 'Del' })}${t('title.delete')}</button></li>`;
 }
 
+/** The safe-area insets (a phone's notch and rounded corners), read off a probe, in CSS px. */
+function safeInsets(doc, win) {
+  const el = doc.createElement('div');
+  el.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)';
+  doc.body.appendChild(el);
+  const cs = win.getComputedStyle?.(el);
+  const v = (k) => parseFloat(cs?.[k]) || 0;
+  const out = { top: v('paddingTop'), right: v('paddingRight'), bottom: v('paddingBottom'), left: v('paddingLeft') };
+  el.remove();
+  return out;
+}
+
 /**
  * Show the title screen; resolves with the chosen slot ({ slot, fresh }) once the player
- * picks one (it is already the active slot then), after the title has faded out.
+ * picks one (it is already the active slot then), after the title has faded out. When the
+ * world behind it was started, the game opens in a fresh page instead (?start: the world's
+ * modules read the sandboxed save, not the chosen one) and this never resolves.
  */
 export function showTitle({ store = slots, doc = document, win = window, vista: wantVista = true } = {}) {
   return new Promise((resolve) => {
     const settings = new Settings();
     const sound = new Sound('title', { score: false });
-    let vista = null, vistaQuality = settings.quality;
+    let vista = null, vistaQuality = settings.quality, worldStarted = false;
+    // (a different world each opening, never the last one shown: src/title-shots.js)
+    let ls = null;
+    try { ls = win.localStorage; } catch { /* private mode */ }
+    const shot = wantVista ? chooseShot({ storage: ls, search: win.location?.search ?? '', saves: (() => { try { return store.list(); } catch { return []; } })() }) : null;
+    // (the boot's timings: the name on the screen, the world faded in; window.title.timing)
+    const now = () => win.performance?.now?.() ?? Date.now();
+    const timing = { shot: shot?.id ?? null, shown: null, world: null, stages: {} };
     settings.on(() => {
       sound.setVolumes(settings.music, settings.effects); setFaces(settings.padFaces);
       if (vista && settings.quality !== vistaQuality) vista.setQuality((vistaQuality = settings.quality));
@@ -127,9 +144,10 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
 
     const root = doc.createElement('div');
     root.id = 'title';
-    root.className = wantVista ? 'vista-wait' : '';   // (a warm sky colour until the 3D view fades in)
+    root.className = shot ? 'vista-wait' : '';   // (the paper until the world fades in)
+    if (shot) root.dataset.shot = shot.id;
     const fullscreen = !isNativeApp && !isDeckApp && doc.fullscreenEnabled;   // (the Deck's app is fullscreen already)
-    root.innerHTML = `${BACKDROP}<div class="veil" aria-hidden="true"></div>
+    root.innerHTML = `${BACKDROP}<div class="paper" aria-hidden="true"></div>
       <div class="front">
         <header>${LOGO}</header>
         <nav class="screen main-menu" data-screen="main"></nav>
@@ -167,7 +185,19 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         <button data-a="news">${lbl(t('title.news'))}</button>
         ${devMode({ settings }) ? `<button data-a="debug">${lbl(t('title.debug'))}</button>` : ''}
         ${fullscreen ? `<button data-a="fullscreen">${lbl(t(doc.fullscreenElement ? 'title.leaveFullscreen' : 'title.fullscreen'))}</button>` : ''}`;
+      relayout();
     };
+    // the name and the menu placed for this screen (src/title-layout.js), as CSS variables
+    let insets = null;
+    const relayout = () => {
+      insets ??= safeInsets(doc, win);
+      const L = titleLayout({ w: win.innerWidth, h: win.innerHeight, buttons: mainNav.querySelectorAll('button').length, safe: insets });
+      for (const [k, v] of Object.entries(layoutVars(L))) root.style.setProperty(k, v);
+      root.dataset.layout = L.mode;
+      for (const g of root.querySelectorAll('header .logo g[stroke-width]')) g.setAttribute('stroke-width', L.ink.toFixed(1));
+    };
+    const onResize = () => { insets = null; relayout(); };
+    win.addEventListener('resize', onResize);
     const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
     const show = (name, focus) => {
       screen = name;
@@ -203,7 +233,12 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       root.classList.add('leaving');
       cleanup();
       vistaAbort.abort(); vista?.stop();   // (its last frame fades out with the title)
-      setTimeout(() => { vista?.dispose(); vista = null; sound.dispose(); root.remove(); resolve({ slot: n, fresh }); }, 450);
+      setTimeout(() => {
+        vista?.dispose(); vista = null; sound.dispose();
+        // the world's modules were loaded on the sandboxed save: the game starts in a fresh page, in the chosen slot
+        if (worldStarted) { win.location.replace(`${win.location.pathname}?start`); return; }
+        root.remove(); resolve({ slot: n, fresh });
+      }, 450);
     };
 
     const back = () => {
@@ -322,32 +357,39 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       win.removeEventListener('keydown', onKey);
       for (const ev of ['keydown', 'pointerdown', 'touchstart']) win.removeEventListener(ev, onInput, { capture: true });
       doc.removeEventListener('fullscreenchange', onFullscreen);
+      win.removeEventListener('resize', onResize);
     }
 
     show('main');
+    // the name and the menu are on the screen: the first thing the player sees (the world follows)
+    win.requestAnimationFrame?.(() => { timing.shown = now(); });
     // the app's heartbeat: this build is up (src/native-app.js; the game marks it again after its first frame)
     markBooted(win);
     // on a device: the recorded themes it hasn't got yet, in the background once the title has settled (src/music-store.js)
     startThemeDownload(THEME_FILES);
 
-    // the live view behind the menu, once the menu has painted: built in small steps, faded in on its
+    // the world behind the menu, once the menu has painted: built in small steps, faded in on its
     // first frame; without WebGL (or on a software GPU) the drawn backdrop shows instead
     const vistaAbort = new AbortController();
     const drawn = () => root.classList.remove('vista-wait', 'vista-on');
-    if (wantVista) win.requestAnimationFrame(() => setTimeout(() => {
+    if (shot) win.requestAnimationFrame(() => setTimeout(() => {
       if (done) return;
       const still = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
-      import('./title-vista.js')
-        .then(({ startVista }) => startVista({ parent: root, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win }))
+      // (the world's modules read the game state as they load: an in-memory save, past the prologue, meanwhile: src/save-slots.js)
+      slots.sandbox({ 'moebius.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }) });
+      worldStarted = true;
+      import('./title-world.js')
+        .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win,
+          onStage: (name) => { timing.stages[name] = Math.round(now()); } }))
         .then((v) => {
           if (!v) { if (!done) drawn(); return; }
           if (done) { v.dispose(); return; }
           vista = v;
           v.onLost = () => { drawn(); v.dispose(); if (vista === v) vista = null; };
-          win.requestAnimationFrame(() => root.classList.replace('vista-wait', 'vista-on'));
+          win.requestAnimationFrame(() => { root.classList.replace('vista-wait', 'vista-on'); timing.world = now(); });
         })
-        .catch((e) => { console.warn('title vista unavailable', e); if (!done) drawn(); });
+        .catch((e) => { console.warn('title world unavailable', e); if (!done) drawn(); });
     }, 0));
-    Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, get vista() { return vista; } } });
+    Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, shot, timing, relayout, get vista() { return vista; } } });
   });
 }

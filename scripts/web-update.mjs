@@ -2,7 +2,8 @@
 //   dist/updates/web-<build>.zip  the built game (dist/ without updates/), the same files the APK and the Deck carry
 //                                 (without the site's own files and the themes fetched on demand: SHEET_FILE, MEDIA_FILE, onDemand)
 //   dist/updates/web.json         its manifest (release-info.mjs webJson): build, sha256, zip URL, minNative, minDesktop…
-// read by the Android app (WebBundles.MANIFEST) and the Steam Deck updater (deck.py CONTENT_MANIFEST_URL).
+// read by the Android app (WebBundles.MANIFEST), the Steam Deck updater (deck.py CONTENT_MANIFEST_URL) and the
+// Xbox app (xbox/Hiraeth/WebBundles.cs Manifest).
 //
 //   npm run build && node scripts/web-update.mjs [--live <site url>] [--no-previous]
 // --live: the site the update is published on (default SITE): the zip URL in web.json, and where
@@ -18,7 +19,7 @@ import { deflateRawSync, crc32 } from 'node:zlib';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { CHANGELOG } from '../src/changelog.js';
-import { desktopApi, gameBuild, webJson } from './release-info.mjs';
+import { desktopApi, gameBuild, webJson, xboxApi } from './release-info.mjs';
 import { ON_DEVICE_THEMES } from '../src/music-store.js';
 
 export const SITE = 'https://memento.alexandria-rnaud.workers.dev/';
@@ -169,7 +170,7 @@ export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site 
   const file = join(out, `web-${build}.zip`);
   await writeFile(file, zip);
 
-  const manifest = webJson({ build, version, file, zip: new URL(`${UPDATES}/web-${build}.zip`, site).href, desktop: desktopApi() });
+  const manifest = webJson({ build, version, file, zip: new URL(`${UPDATES}/web-${build}.zip`, site).href, desktop: desktopApi(), xbox: xboxApi() });
   await rm(file);
   await writeArchive(out, `web-${build}.zip`, zip, partSize);
   if (previous) await writeArchive(out, previous.name, previous.zip, partSize);

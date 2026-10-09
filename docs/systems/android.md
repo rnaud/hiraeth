@@ -83,7 +83,7 @@ updates now come from the Cloudflare site that serves the web game:
   private. The launch's APK check then fails, quietly: the settings add *Couldn't check for a new
   app* (`apkCheck` in `AppShell.info`), and *Check for updates* goes on working for the game.
 - **The Steam Deck** takes the same `web.json` (`deck.py`'s `CONTENT_MANIFEST_URL`, see
-  `docs/steam-deck.md`).
+  `docs/steam-deck.md`), and so does **the Xbox app** (`minXbox`, docs/systems/xbox.md).
 - Tests: `tests/web-update.test.js`, `tests/android-ota.test.js`, `tests/updates.test.js`,
   `UpdateRulesTest.java`, `tests/test_steam_deck.py`. The flip itself: `docs/cloudflare.md`.
 

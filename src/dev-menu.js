@@ -13,7 +13,7 @@ import { items, ITEMS } from './items.js';
 const CSS = `
 #devmenu { position: fixed; inset: 0; z-index: 9000; display: none; align-items: flex-start; justify-content: flex-end; pointer-events: none; }
 #devmenu.open { display: flex; }
-#devmenu .panel { pointer-events: auto; margin: calc(12px + env(safe-area-inset-top, 0px)) calc(12px + env(safe-area-inset-right, 0px)) 0 0; width: min(380px, calc(100vw - 24px));
+#devmenu .panel { pointer-events: auto; margin: calc(12px + var(--safe-top, env(safe-area-inset-top, 0px))) calc(12px + var(--safe-right, env(safe-area-inset-right, 0px))) 0 0; width: min(380px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px); overflow: auto; box-sizing: border-box; padding: 14px 16px 16px; background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f;
   font: 13px ui-monospace, Menlo, monospace; color: #2b211f; transform: rotate(.3deg); }
 #devmenu h1 { margin: 0 0 4px; font-size: 16px; letter-spacing: .16em; display: flex; justify-content: space-between; align-items: center; }

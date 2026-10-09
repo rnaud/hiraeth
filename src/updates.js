@@ -65,7 +65,7 @@ const vb = (version, build) => [version && `v${version}`, build && `build ${buil
 export function updateView(info, { version = '', now = Date.now(), armed = false, restarting = false, failed = '', maxNotes = 4 } = {}) {
   if (!info?.web) return null;
   const deck = info.platform === 'deck';   // (the Steam Deck's runtime: every one has the buttons)
-  const legacy = !deck && !(info.native >= SETTINGS_NATIVE);
+  const legacy = !deck && info.platform !== 'xbox' && !(info.native >= SETTINGS_NATIVE);   // (the Xbox app's too: its own levels, xbox/)
   const running = `${vb(version, info.web)}${info.bundle ? '' : ' (built in)'} · ${deck ? 'runtime' : 'app'} ${info.app}`;
   const state = STATES.includes(info.check) ? info.check : 'idle';
   const latest = vb(info.latestVersion, info.latest);

@@ -18,7 +18,7 @@ import { TITLES } from './levels/names.js';
 //   list.attach({ foes, player, physics, sound, notice, scene, kind })   (main.js, once the foes are up)
 
 const CSS = `
-#foe-tab { position: fixed; left: calc(10px + env(safe-area-inset-left, 0px)); top: 14%; z-index: 30; display: grid; justify-items: start; gap: 4px;
+#foe-tab { position: fixed; left: calc(10px + var(--safe-left, env(safe-area-inset-left, 0px))); top: 14%; z-index: 30; display: grid; justify-items: start; gap: 4px;
   font: 12px ui-monospace, Menlo, monospace; color: #2b211f; }
 #foe-tab button { font: 700 12px/1 ui-monospace, Menlo, monospace; letter-spacing: .2em; padding: 10px 7px; writing-mode: vertical-rl; cursor: pointer;
   background: #fffaf0; color: #2b211f; border: 2px solid #2b211f; box-shadow: 2px 2px 0 #2b211f; border-radius: 3px; }

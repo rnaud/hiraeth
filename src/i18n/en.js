@@ -31,6 +31,7 @@ export const EN = {
   'set.quality.auto': 'Auto (adapts to keep it smooth)',
   'set.quality.handheld': 'Handheld (Retroid, phones)',
   'set.quality.deck': 'Steam Deck',
+  'set.quality.xbox': 'Xbox (High, adapts)',
   'set.quality.low': 'Low (fast)',
   'set.quality.medium': 'Medium',
   'set.quality.high': 'High (smooth lines)',

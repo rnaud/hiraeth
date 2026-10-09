@@ -35,7 +35,7 @@ each choice to what uses it:
   paper behind the words).
 - **Reduce motion** (`html.reduce-motion`, src/feel.js `setMotion`): no hit-stop, no slow motion,
   no camera kick (the foes', the blade's, the gadgets', the minigames'), no shake in the ship's
-  scenes (`shakeScale`), a still title view (title-vista `still`), and the CSS animations that the
+  scenes (`shakeScale`), a still title view (title-world `still`: one frame), and the CSS animations that the
   `prefers-reduced-motion` queries already stopped. Not chosen yet (`null`), it follows
   `prefers-reduced-motion`. The camera has no walking bob to turn off. *Camera shake* scales the
   kicks when motion is not reduced.
@@ -141,13 +141,14 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   `?level=<id>` (the ship's arrivals, the dev shortcut), `?prologue=1`, `?ending=1`, and
   `?start` (a save started over from the Start menu; the URL is cleaned so a reload goes
   back to the title). Quit to title is just a load of the bare page.
-- **Title screen**: the name in comic lettering over a live view of the land above the
-  clouds (below), then Continue (the slot played last),
-  Saves, Settings (the same settings, `SettingsMenu({ el, title: true })`) and, in a desktop
-  browser, Full screen. Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a
-  controller through `Controller` + `menuNavigate` (the save list moves by rows, left /
-  right reaches a save's Delete). It imports nothing that loads the game state, and marks
-  the Android boot heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
+- **Title screen**: the name (Hiraeth, lettered: below) over one of the worlds, seen from a fixed
+  camera framed like one of the covers it was designed from, then Continue (the slot played last), New
+  game, Saves, Settings (the same settings, `SettingsMenu({ el, title: true })`), What's new, Debug and,
+  in a desktop browser, Full screen. Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a
+  controller through `Controller` + `menuNavigate` (the entries are a grid on a short screen; the save
+  list moves by rows, left / right reaches a save's Delete); the confirm glyph sits inside the focused
+  entry (src/pad-glyphs.js). It imports nothing that loads the game state, and marks the Android boot
+  heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
 - **The debug entries are the author's** (`src/dev-gate.js` `devMode()`): the title's Debug
   button (the worlds list) and the Start menu's "Debug: worlds" show only with the same switch as
   the in-game Developer panel (Settings → Developer panel, `settings.devPanel`), in a dev build
@@ -167,28 +168,57 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   opened: playtest 2026-10-08, holding → from the menu's last button stepped onto it (the first setting)
   and the same push, repeating, turned every menu French. Nothing reads the device's language: English
   unless chosen. `tests/menus-settings.test.js`.
-- **The title's vista** (`src/title-vista.js`): a golden-hour view over a sea of cloud, drawn
-  by the game's own pipeline (G-buffer materials, the ink pass of `post.js` in the 'Moebius
-  print' style, the sky with two pale moons). Mushroom tables, needle spires, balanced stacks
-  and bobbing floating stones from the Sky Stones' rock builders (`src/levels/sky-stones-kit.js`,
-  shared with `arzach2.js`) stand to either side of the menu, rose mesas close the horizon, a
-  few birds circle (`life.js` Flock). The camera (`vistaCamera(t)`, pure) sweeps slowly round
-  the great table and back every 4 minutes, high over the cloud, the sun to one side.
-  - *Boot*: the menu shows at once over a CSS sky gradient; the module is imported after the
-    menu has painted, builds in small steps (`buildVista`, yielding so input keeps working),
-    compiles its shaders (`compileAsync`), and fades its canvas in on the first frame. The
-    heartbeat doesn't wait for it. Picking a save before it is ready aborts the build.
-  - *Light*: the sun's shadow map is drawn once (one wide cascade; nothing in it moves);
-    resolution follows the Graphics preset, never above 1×, capped at 2.1 MP (1 MP on a touch
-    screen, 0.5 MP and 30 fps on a handheld, with fewer puffs and coarser rock there), and drops
-    by steps if frames come slowly. Reduced motion draws one still frame.
-  - *Fallback*: no WebGL, a software GPU (SwiftShader / llvmpipe) or a lost context shows the
-    drawn SVG backdrop (`BACKDROP`) instead.
-  - *Clean hand-over*: it touches no save. On continue it stops drawing (its last frame fades
-    out with the title), then frees its renderer and GPU context (`forceContextLoss`) and puts
-    the shared surface uniforms (sun, shadow maps, hatching style) back as they were, before
-    `main.js` makes its own renderer. `tests/title-vista.test.js` checks the imports, the
-    resolution caps, the camera path and the build budget.
+- **The title's lettering** (`src/title-logo.js`): HIRAETH after the masthead of the waterfall-city
+  cover (`references/Title Screen/H1-waterfall-city.jpg`): monumental ivory block capitals, a fine ink
+  line, a muted vermilion shadow offset down and to the right. Drawn, not set in a font: each letter is a
+  few contours on a cap height of 1000 units measured off the cover (stems a third of the cap height, the
+  H's narrow slits, the R's small D-shaped counter and its leg meeting the A's foot, the A's flat apex and
+  small triangular counter), corners rounded and long edges bowed a hair by a seeded hand. One SVG, crisp at
+  every size, the same in every language (`aria-label="Hiraeth"`); the layout thickens the ink line on a
+  small screen so it never falls under 1.5 px. The Steam art uses it too (`scripts/steam-art.mjs`).
+- **Layout** (`src/title-layout.js` `titleLayout`, pure; set as CSS variables on `#title`): the name across
+  the upper part (at most 27 % of the height, 86 % of the width), the menu in the quiet space under it,
+  lower middle, as the covers leave it. A short screen (a phone on its side, 812 × 375; a Retroid) sets the
+  entries in two or three columns; a screen held upright puts the name at the top and the menu at the
+  bottom in two columns, the world between; safe-area insets are kept clear. `tests/title-layout.test.js`
+  checks 16:9, 21:9, the Deck's 16:10, 4:3, a phone both ways, a tall Android phone and a Retroid: on the
+  screen, never overlapping, readable.
+- **The title's shots** (`src/title-shots.js` `SHOTS`): one per cover in `references/Title Screen/`
+  whose world is in the game: a level, the hour, a camera (`eye`, `target`, vertical `fov` at 16:9), the
+  traveller's spot and heading, and, when the cover's world is built the other way round, `mirror` (the
+  Underside's); `clock` starts the level's own motion where the cover has it (the underwater mantas).
+  `shotCamera(shot, aspect)` keeps the cover's height on wider screens and its width down to 4:3, and on a
+  screen held upright turns the view toward the traveller, a little wider, slid up between the name and
+  the menu (a shot may give its own `portrait`). Each opening shows a different one: `chooseShot` never
+  repeats the last (`localStorage` `moebius.title.shot`, a global key), the worlds the saves are in come
+  three times as often, a new player may see any (`?shot=<id>` asks for one). `node
+  scripts/title-shots.mjs [ids] [--sizes]` renders each shot (its own Vite on 5345, one headless Chrome)
+  and writes it beside its cover into `docs/title-shots/<id>-compare.jpg`; `CAMS='[…]'` tries several poses
+  on one load (a contact sheet with the cover).
+- **The world behind it** (`src/title-world.js`): the shot's level built by its own code (loaded on demand:
+  `TITLE_LEVELS`, not `levels/index.js`), its collision as a static BVH (for the plants and the traveller's
+  feet), its water, flora and grass, its flocks and its own motion (`level.update`), drawn by the game's
+  pipeline (G-buffer materials, the near and wide shadow maps once, the traveller's fine one each frame,
+  bloom, the ink pass in the world's preset and look, the water's sparkle or its under-water haze, FXAA).
+  The traveller is the game's own (the Player, his generated body, cape and flask, idling). No people,
+  wildlife, foes, ship, story, weather or sound: the title's menu music plays on.
+  - *Boot*: the name and the menu show at once over the paper (a cream page with a printed grain); the
+    module is imported after the menu has painted, builds in slices (input keeps working), compiles its
+    shaders (`compileAsync`) and the world fades in over the paper on its first frame. `window.title.timing`
+    has the times: in a dev server on the Mac, the title on the screen at 130–360 ms, the world in at
+    1.6–2.3 s.
+  - *Saves*: the world's modules (the Player, the flask, some levels' temples) read the game state as they
+    load, so the slots are sandboxed first (`slots.sandbox(seed)`: the slot view reads and writes an
+    in-memory save, past the prologue; the selector still reads the real ones), and once a save is chosen
+    the game starts in a fresh page (`?start`), never with the title's modules. Without WebGL, on a
+    software GPU or a lost context, the drawn backdrop (`BACKDROP`) shows and the game starts in the same
+    page as before.
+  - *Light*: resolution follows the Graphics preset, never above 1×, capped at 2.1 MP (1 MP on a touch
+    screen, 0.5 MP and 30 fps on a handheld) and drops by steps if frames come slowly. Reduced motion
+    draws one still frame. On continue it stops drawing (its last frame fades out with the title), frees its
+    renderer and GPU context and puts the shared uniforms back. `tests/title-world.test.js` checks the
+    imports, the sandbox, the hand-over and that the menu still wires up; `tests/title-shots.test.js` the
+    shots and the choice.
 - **Save slots** (`src/save-slots.js`): `slotStorage` is a localStorage look-alike that files
   each progress key under the active slot (`moebius.game.v1` in slot 2 is
   `moebius.s2.game.v1`): the game state, the sketchbook, the saved position and the reactive
