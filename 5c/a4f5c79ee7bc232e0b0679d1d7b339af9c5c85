@@ -1,0 +1,21 @@
+DONE.md
+  s_9ca76055a220ed::t_c7359aefb73c12 1234
+docs/systems/animation.md
+  s_9ca76055a220ed::t_537852dd058af7 361
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5ca4f5c79ee7bc232e0b0679d1d7b339af9c5c85",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
