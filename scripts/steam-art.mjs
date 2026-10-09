@@ -1,5 +1,5 @@
 // Steam's library artwork for the Deck's shortcut, from captures of the game itself (References
-// views, docs/systems/app-icon.md) and the title's own lettering (LOGO in src/title.js):
+// views, docs/systems/app-icon.md) and the title's own lettering (src/title-logo.js):
 //
 //   node scripts/steam-art.mjs capture [--only hero]       → docs/steam/capture-<art>.png (committed)
 //   node scripts/steam-art.mjs build                        → desktop/steam/{portrait,wide,hero,logo}.png
@@ -14,6 +14,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { logoSvg as letterLogo, LOGO_BOX } from '../src/title-logo.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CAPTURES = join(ROOT, 'docs/steam');
@@ -30,11 +31,10 @@ export const ART = {
   wide: { view: '3784-cliff-monastery', size: [920, 430], zoom: 1.5, lift: -6, pan: 0, logo: { x: 0.5, y: 0.17, width: 0.56 } },
   portrait: { view: '3786-island', size: [600, 900], zoom: 1, lift: 0, pan: 0, logo: { x: 0.5, y: 0.15, width: 0.9 } },
 };
-/** The transparent logo Steam lays over the hero: the same lettering inked (cream letters vanish on
- *  the sand, where Steam puts it by default). */
+/** The transparent logo Steam lays over the hero: the lettering carries its own ink line and shadow,
+ *  so it reads on the sand where Steam puts it by default. */
 export const LOGO_SIZE = [1280, 320];
-export const inked = (svg) => svg.replace('fill="#fffaf0" stroke="#2b211f" stroke-width="1.4" stroke-opacity="0.75"', 'fill="#2b211f" stroke="#fffaf0" stroke-width="3" stroke-opacity="0.9"')
-  .replace('stroke="#fffaf0" stroke-width="1.6"', 'stroke="#2b211f" stroke-width="2"');
+export const inked = (svg) => svg;
 export const RENDER_SCALE = 2;
 /** Steam's names in config/grid/, after the shortcut's app id: the package's files (resources/app/), as deck.py STEAM_ART. */
 export const GRID = { 'p.png': 'steam/portrait.png', '.png': 'steam/wide.png', '_hero.png': 'steam/hero.png', '_logo.png': 'steam/logo.png', '_icon.png': 'game/icons/icon-512.png' };
@@ -43,8 +43,7 @@ const arg = (name, fallback) => { const i = process.argv.indexOf(`--${name}`); r
 const out = (path, data) => { mkdirSync(dirname(path), { recursive: true }); writeFileSync(path, data); console.log(path.startsWith(ROOT) ? path.slice(ROOT.length + 1) : path); };
 const png = (dataUrl) => Buffer.from(dataUrl.split(',')[1], 'base64');
 /** The title's lettering, as the title screen draws it. */
-export const logoSvg = () => /export const LOGO = `([\s\S]*?)`;/.exec(readFileSync(join(ROOT, 'src/title.js'), 'utf8'))[1].trim()
-  .replace('<svg class="logo"', '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="250"');
+export const logoSvg = () => letterLogo({ ink: 16 }).replace('<svg class="logo"', `<svg width="1000" height="${Math.round((1000 * LOGO_BOX.h) / LOGO_BOX.w)}"`);
 
 async function browser(gpu) {
   const { chromium } = await import(process.env.PLAYWRIGHT ?? 'playwright-core');
@@ -141,7 +140,6 @@ async function build() {
   try {
     const page = await b.newPage();
     await page.setContent(`<!doctype html><script>${PAGE}</script>`);
-    // (the lettering's fonts are the system's, as on the title screen: Avenir Next on the Mac)
     const captures = Object.fromEntries(Object.keys(ART).map((name) => [name, `data:image/png;base64,${readFileSync(join(CAPTURES, `capture-${name}.png`)).toString('base64')}`]));
     const r = await page.evaluate((J) => window.artBuild(J), { art: ART, captures, svg: logoSvg(), inked: inked(logoSvg()), logoSize: LOGO_SIZE });
     for (const [name, data] of Object.entries(r)) out(join(OUT, `${name}.png`), png(data));

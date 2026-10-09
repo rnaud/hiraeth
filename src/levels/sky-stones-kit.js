@@ -3,9 +3,8 @@ import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createNoise2D, mulberry32, lerp } from '../noise.js';
 
 // The Sky Stones' rock builders (Vael II, src/levels/arzach2.js): mushroom tables,
-// needle spires, boulders, all as position-only geometry ready to merge. Shared with
-// the title screen's vista (src/title-vista.js), which raises a few of them out of
-// its own sea of cloud. Pure geometry: no materials, no scene.
+// needle spires, boulders, all as position-only geometry ready to merge. Pure geometry:
+// no materials, no scene.
 
 export const TAU = Math.PI * 2;
 export const nA = createNoise2D(1975), nB = createNoise2D(2112), nC = createNoise2D(77);

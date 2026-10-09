@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.5 — 2026-10-09
 
+- A new title screen: HIRAETH in big ivory letters with an ink outline and a red shadow, and behind the menu one of the worlds itself, seen as on its cover: the city behind the waterfall, the Sky Stones over the cloud, the Salt Harbour’s beached ships, the eclipse over the city and a dozen more, with you standing in it. Each time you open the game it shows a different one, more often the worlds you have reached. The name and the menu come up at once on the paper and the world fades in behind them; on a phone held upright the menu sits at the bottom in two columns.
 - Your chimes show beside your hearts and potion whenever they change, counting up as they ring in, and on the menu’s Items page by your gear. Finishing a makers’ run for the first time adds fifteen. Shops to spend them in are coming.
 - Foes now leave chimes when they fall: small brass discs with a square hole that pop out, glint and ring as they land. Walk over them, or just come near and they fly to you; left lying, they blink and are gone after half a minute. Small foes leave one or two, heavy ones more, and a temple’s guardian leaves a purse of forty the first time it is calmed or broken. Nothing drops in the Ink tide.
 - Spines and flames now bite a quarter heart at a time, and stepping straight back into spines no longer pricks you again at once. In the Arena, Second wind gives all your hearts back and mends them slowly, and the tank boons lengthen and quicken the magic bar.
