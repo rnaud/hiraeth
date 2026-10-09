@@ -132,6 +132,17 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   `reed` (Lorn's mossy rise: twice the breath under water, `player.breathK`, read
   by `src/swim.js`) and `scarf` (Vael II's balanced stack: the wings sink slower,
   `player.sinkK`).
+- **Held bells** (the Founders' Belfry, reworked from the temple design audit): a `bell` element with
+  `hold: s` is not latched. Its `BellEar` rings it for s seconds (rung again, the note starts over; at
+  2.5 s left it says `fading` and rumbles), then calls `logic.quiet(id)`: a door it holds shuts (but
+  not on whoever stands in the doorway: it waits for them to step through) and stones from `'above'`
+  fall up again, far ones first. Nothing of a held bell is saved; the marker only points at one a shut
+  door waits for (`logic.awaited`). A `Ball` may roll farther (`friction`, 1.6 by default; its plate's
+  dip always holds it), cross a bridge (`gap: { bridge, from, to }`: it stops at the lip while the
+  bridge is up, and drops if the bridge goes from under it, a new one rolling out where its groove
+  starts) and stay put once home (`lock`). The Belfry's bridge opens on `{ any: [the held bell, the
+  ball on the far plate] }`, so the ball's weight holds it for good. The audit reads a held bell as a
+  timing and as a state that changes back (`scripts/temple-design/lib.mjs`).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets

@@ -36,6 +36,12 @@ test('a condition names its keys, a ball on a plate is a push, and a latched pla
   assert.deepEqual(mechanicOf('p1', E.p1, { elements: E }), ['weight']);
   assert.deepEqual(mechanicOf('k1', { type: 'switch', needs: ['magic:4'] }, { piece: { cls: 'Bank' } }), ['gadget:cell', 'volley']);
   assert.deepEqual(mechanicOf('c2', { type: 'switch', after: 'c1' }), ['sequence']);
+  // a held bell (it rings a while, then falls quiet): the door it holds is a timing, and a state that changes back
+  const H = { e1: { type: 'bell', needs: ['bell'], hold: 8 }, e2: { type: 'bell', needs: ['bell'] } };
+  assert.deepEqual(mechanicOf('e1', H.e1, { elements: H }), ['gadget:bell', 'timed']);
+  assert.equal(reversible({ lit: 'e1' }, H), true, 'held: the door shuts when the note fades');
+  assert.equal(reversible({ lit: 'e2' }, H), false, 'latched: rung once, open for good');
+  assert.ok(obviousness({ keys: [{ rooms: 0, visible: true, metres: 5 }], mechanics: ['gadget:bell', 'timed'] }).why.some((w) => /while it rings/.test(w)));
   assert.deepEqual(piecePos({ a: [0, 0, 0], b: [0, 0, 10] }), [0, 0, 5]);
   assert.deepEqual(piecePos({ eyes: [{ at: [0, 2, 0] }, { at: [2, 2, 0] }] }), [1, 2, 0]);
 });

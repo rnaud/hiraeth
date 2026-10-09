@@ -29,6 +29,8 @@ import { SITE as SITE_EDENA } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
+import { HOLD as BELFRY_HOLD } from '../src/temples/arzach2.js';
+const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones;
 import { TempleKit } from '../src/temples/kit.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -590,7 +592,7 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
 });
 
 // ------------------------------------------------------------------ on foot: Vael II's belfry, room by room
-test('the Founders’ Belfry on foot: two balls on two plates, the riding stair, the bell, the bell-tuned doors, the stones that come down, the Cloud-Mother calmed, the stones come down outside', () => {
+test('the Founders’ Belfry on foot: two balls in the two stores, the riding stair and the eye under the landing, the bell, the held door, the held stones and the ball rolled across them, the Cloud-Mother calmed, the stones come down outside', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('arzach2');
@@ -611,20 +613,27 @@ test('the Founders’ Belfry on foot: two balls on two plates, the riding stair,
   const ring = () => game.emit('bell', { pos: P.pos.clone() });   // (the whistle: src/boxes/effects.js ring())
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), 'in the belfry');
-  // ---- the Hall of Stones: both balls onto both plates
-  for (const id of ['ball1', 'ball2']) {
+  const via = (...pts) => pts.every((q) => walk(L(...q)));
+  // ---- the Hall of Stones, a hub: the door's two lamps want the two balls in the two stores off the hall
+  const roll = (id, plate) => {
     const ball = rt.piece(id);
-    for (let k = 0; k < 10 && !rt.logic.drumOn(id, ball === rt.piece('ball1') ? 'p1' : 'p2'); k++) {
+    for (let k = 0; k < 10 && !rt.logic.drumOn(id, plate); k++) {
       walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
       ball.hit('push', ball.dir.clone(), { strength: 1 });
       wait(2.6);
     }
-  }
-  assert.ok(rt.logic.drumOn('ball1', 'p1') && rt.logic.drumOn('ball2', 'p2'), 'both balls on their plates');
+    return rt.logic.drumOn(id, plate);
+  };
+  assert.equal(via([-6, 0, 23], [-13, 0, 23]), true, `into the west store (${where()})`);
+  assert.equal(roll('ball1', 'p1'), true, `the west ball home (${rt.piece('ball1').t.toFixed(2)})`);
+  wait(1);
+  assert.equal(rt.logic.isOpen('d1'), false, 'one lamp of two');
+  assert.equal(via([-13, 0, 23], [-6, 0, 23], [6, 0, 23], [12.6, 0, 23]), true, `into the east store (${where()})`);
+  assert.equal(roll('ball2', 'p2'), true, `the east ball home (${rt.piece('ball2').t.toFixed(2)})`);
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true);
-  // ---- the Stone Stair: ride the first disc up to the ledge, the second to the landing
-  assert.equal(walk(L(0, 0, 46.5)), true, `into the well (${where()})`);
+  // ---- the Stone Stair: ride the first disc up to the ledge; the high door's eye is on the landing's face
+  assert.equal(via([12.6, 0, 23], [4, 0, 30], [0, 0, 40], [0, 0, 46.5]), true, `into the well (${where()})`);
   const [discA, discB] = rt.pieces.filter((p) => p.path);
   const ride = (disc, off, label) => {
     for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
@@ -633,10 +642,18 @@ test('the Founders’ Belfry on foot: two balls on two plates, the riding stair,
     assert.equal(walk(off, { tol: 0.7, max: 4 }), true, `off the ${label} (${where()})`);
   };
   ride(discA, L(0, 8, 56.4 - 0.6), 'first disc');
+  assert.equal(rt.logic.isOpen('d2'), false, 'the high door is shut');
+  // from the ledge the eye is in plain sight; from the landing above it, it is under your feet
+  const eye = rt.piece('s1').center, seen = (from) => { const d = eye.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
+  assert.ok(seen(P.pos.clone().add(V(0, 1.6, 0))), 'the eye seen from the ledge');
+  assert.ok(!seen(L(0, 17.8, 56.4 + 7.2)), 'and not from the landing');
+  rt.piece('s1').hit('shoot');
+  wait(2);
+  assert.equal(rt.logic.isOpen('d2'), true, 'the eye wakes the high door');
   ride(discB, L(0, 16, 56.4 + 7.4), 'second disc');
-  // ---- the Bell Chamber: the chest, and a door that only the bell opens
+  // ---- the Bell Chamber: the chest; the door on is held by the bell in the oculus, only while it rings
   assert.equal(walk(L(0, 16, 72)), true, `into the bell chamber (${where()})`);
-  assert.equal(walk(L(0, 16, 91.5), { max: 5 }), false, 'the bell-tuned door is shut');
+  assert.equal(walk(L(0, 16, 91.5), { max: 5 }), false, 'the held door is shut');
   ring();
   wait(0.2);
   assert.equal(rt.logic.isLit('e1'), false, 'without the whistle nothing answers (whoever rang it)');
@@ -644,12 +661,43 @@ test('the Founders’ Belfry on foot: two balls on two plates, the riding stair,
   ring();
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true, 'the door answers the bell');
-  // ---- the Hall of Echoes: the stones of the bridge hang high; the bell brings them down
-  assert.equal(walk(L(0, 16, 94)), true, `to the chasm (${where()})`);
+  wait(HOLD_DOOR - 1);
+  assert.equal(rt.logic.isOpen('d3'), false, 'and rises again when the note fades');
+  assert.ok(notes.some((s) => /fading/i.test(s)), 'it says the note is fading');
   ring();
-  wait(5);
-  assert.equal(rt.logic.isOpen('br1'), true);
-  assert.equal(walk(L(0, 16, 120)), true, `over the stones (${where()})`);
+  assert.equal(walk(L(0, 16, 93)), true, `through while it rings (${where()})`);
+  // ---- the Hall of Echoes: a ball at the near edge, its groove over the chasm to the far door's plate
+  const ball = rt.piece('ball3'), gap = ball.o.gap;
+  wait(HOLD_STONES + 0.5);
+  assert.equal(rt.logic.isOpen('br1'), false, 'the stones hang');
+  walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
+  ball.hit('push', ball.dir.clone(), { strength: 1 });
+  wait(3);
+  assert.ok(ball.t <= gap.from + 1e-3, `while they hang the ball stops at the lip (${ball.t.toFixed(3)})`);
+  // the catch: rung, the stones come down, but only while it rings; a ball still on them when they rise drops
+  ring();
+  wait(0.3);
+  assert.equal(rt.logic.isOpen('br1'), true, 'the bell brings the stones down');
+  wait(HOLD_STONES - 1.2);
+  walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5, max: 3 });
+  ball.hit('push', ball.dir.clone(), { strength: 0.4 });
+  wait(1.5);
+  assert.equal(rt.logic.isOpen('br1'), false, 'the note faded: the stones rise');
+  wait(4);
+  assert.ok(ball.t < 1e-3 && !ball.drop, `the ball dropped, and a new one waits at the near edge (${ball.t.toFixed(3)})`);
+  // the revelation: ring, then roll the ball across at once; on its plate its weight holds the stones for good
+  walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
+  ring();
+  wait(0.2);
+  ball.hit('push', ball.dir.clone(), { strength: 1 });
+  for (let i = 0; i < 12 / DT && !rt.logic.drumOn('ball3', 'p3'); i++) frame();
+  assert.equal(rt.logic.drumOn('ball3', 'p3'), true, `the ball across, on the far plate (${ball.t.toFixed(3)})`);
+  wait(HOLD_STONES + 1);
+  assert.equal(rt.logic.isOpen('br1'), true, 'the stones stay down');
+  ball.hit('push', ball.dir.clone().negate(), { strength: 1 });
+  wait(1);
+  assert.equal(rt.logic.drumOn('ball3', 'p3'), true, 'settled in its socket: no pushing it back');
+  assert.equal(walk(L(-1.5, 16, 120)), true, `over the stones (${where()})`);
   assert.ok(P.pos.y > L(0, 15, 0).y, 'on the bridge, not in the chasm');
   ring();
   wait(2.2);

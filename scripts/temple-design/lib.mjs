@@ -47,20 +47,22 @@ export function conditionKeys(c, out = []) {
   if (c.gadget) out.push({ id: 'gadget', how: 'gadget' });
   return out;
 }
-/** A condition that can go false again once met (a plate stood on, not a ball resting on it; an `any`, a `not`). */
+/** A condition that can go false again once met (a plate stood on, not a ball resting on it; a held bell; an `any`, a `not`). */
 export function reversible(c, el = {}) {
   if (c == null) return false;
   if (Array.isArray(c)) return c.some((x) => reversible(x, el));
   if (c.not || c.any) return true;
   if (c.all) return c.all.some((x) => reversible(x, el));
   if (c.pressed) return !Object.values(el).some((e) => e.type === 'drum' && e.plate === c.pressed);
+  if (c.lit) return !!el[c.lit]?.hold;   // (a bell that rings a while, then falls quiet: logic.js `hold`)
   return false;
 }
 
 /** The traversal a piece asks for (it stands in a room and you must get past it): null for the puzzle's own parts. */
 export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Pit: 'pit', Glass: 'glass', JetGuide: 'jets' };
-/** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath). */
-export const MODIFIERS = ['reveal', 'volley'];
+/** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath), a
+ * timed hold (a held bell: what it opens stays only while it rings). */
+export const MODIFIERS = ['reveal', 'volley', 'timed'];
 const baseOf = (mechs) => mechs.filter((m) => !MODIFIERS.includes(m));
 /** A gadget item's verb, for the reports. */
 export const GADGET_VERB = { fire: 'ember', jetpack: 'jets', glider: 'wings', bell: 'bell', cell: 'fourth unit (volley)', 'magic:4': 'fourth unit (volley)', lens: 'lens (reveal)', lantern: 'lantern (reveal)', stun: 'stilling', coil: 'quick coil (volley)', bloom: 'bloom', echo: 'echo shell' };
@@ -83,6 +85,7 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   else if (el.type === 'brazier' || el.type === 'bramble') { if (!item) tags.push('ember'); }
   else if (el.type === 'bell' && !item) tags.push('bell');
   if (piece?.o?.hidden) tags.push('reveal');
+  if (el.hold) tags.push('timed');
   return [...new Set(tags)];
 }
 
@@ -236,7 +239,7 @@ export function obviousness(lock, { decoys = 0 } = {}) {
   if (Math.max(0, ...lock.keys.map((k) => k.metres ?? 0)) > 20) { s -= 0.5; why.push('key over 20 m from the lock'); }
   const base = baseOf(lock.mechanics);
   if (base.length >= 2) { s -= 1; why.push(`combines ${base.join(' + ')}`); }
-  if (lock.sequence || lock.mechanics.includes('volley')) { s -= 0.5; why.push(lock.sequence ? 'an order to find' : 'a timing (one breath)'); }
+  if (lock.sequence || lock.mechanics.includes('volley') || lock.mechanics.includes('timed')) { s -= 0.5; why.push(lock.sequence ? 'an order to find' : lock.mechanics.includes('volley') ? 'a timing (one breath)' : 'a timing (only while it rings)'); }
   if (lock.mechanics.includes('reveal') || lock.keys.some((k) => k.hidden)) { s -= 0.5; why.push('hidden until revealed'); }
   if (decoys > 0) { s -= 0.5; why.push(`${decoys} thing${decoys > 1 ? 's' : ''} in the room that are not its key`); }
   return { score: Math.max(1, Math.min(5, +s.toFixed(2))), why };
@@ -268,10 +271,10 @@ export function templeMetrics(g, { guardian = null } = {}) {
   const E = g.elements;
   // the steps a player solves, in order, with how obvious each is
   const steps = puzzles.map((l) => {
-    const keyIds = new Set(l.keys.map((k) => k.id));
-    const decoys = Object.entries(E).filter(([id, e]) => e.room === l.a && ['plate', 'switch', 'brazier', 'bramble', 'bell', 'drum'].includes(e.type) && !keyIds.has(id) && !puzzles.some((p) => p !== l && p.keys.some((k) => k.id === id))).length;
+    const keyIds = new Set(l.keys.flatMap((k) => [k.id, k.plate].filter(Boolean)));   // (a ball's plate is part of its key)
+    const decoys = Object.entries(E).filter(([id, e]) => e.room === l.a && ['plate', 'switch', 'brazier', 'bramble', 'bell', 'drum'].includes(e.type) && !keyIds.has(id) && !puzzles.some((p) => p !== l && p.keys.some((k) => k.id === id || k.plate === id))).length;
     const o = obviousness(l, { decoys });
-    const complexity = baseOf(l.mechanics).length + Math.max(0, l.keys.length - 1) * 0.5 + Math.max(0, ...l.keys.map((k) => k.rooms)) + (l.sequence ? 0.5 : 0) + (l.mechanics.includes('volley') ? 0.5 : 0) + (l.mechanics.includes('reveal') ? 0.5 : 0) + 0.25 * l.traversalHere.filter((t) => t !== 'pit').length;
+    const complexity = baseOf(l.mechanics).length + Math.max(0, l.keys.length - 1) * 0.5 + Math.max(0, ...l.keys.map((k) => k.rooms)) + (l.sequence ? 0.5 : 0) + (l.mechanics.includes('volley') || l.mechanics.includes('timed') ? 0.5 : 0) + (l.mechanics.includes('reveal') ? 0.5 : 0) + 0.25 * l.traversalHere.filter((t) => t !== 'pit').length;
     return { lock: l.id, from: l.a, to: l.b, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, metres: k.metres, rooms: k.rooms, visible: k.visible })), obvious: o.score, why: o.why, complexity: +complexity.toFixed(2), traversal: l.traversalHere, afterGadget: g.roomOrder.indexOf(l.a) >= g.roomOrder.indexOf(g.chestRoom) };
   });
   // teach, test, twist: every mechanic's first use, its second, and its first use in a combination (or in the fight)

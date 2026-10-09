@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Plate, Ball, Platform, Bridge, BellEar, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Platform, Bridge, BellEar, Switch, Mark, Pit } from './pieces.js';
 import { whaleModel } from './guardians.js';
 
 // Vael II's temple: the Founders' Belfry, a tower of bone-white stone that
@@ -12,15 +12,25 @@ import { whaleModel } from './guardians.js';
 // stones stayed where they were put. The bells stopped; the stones fell up.
 // Something swims in the top of the tower, and cries.
 //
-// Inside (built far overhead, through its door):
+// Inside (built far overhead, through its door). The temple's one idea: a founders' bell holds things only
+// while it rings; a stone's weight holds them for good.
 //   the Threshold          the first mark, the way out
-//   the Hall of Stones     two stone balls in two grooves: roll both onto their plates (the push)
-//   the Stone Stair        a round well with two discs that ride up and down: ride one to a ledge,
-//                          the next to the top
+//   the Hall of Stones     a hub: the door on has two lamps, and two archways open off the hall, west and
+//                          east, into the two stone stores. A ball in each, a plate at its groove's end: roll
+//                          both home (the push) and the door sinks. You find the path, in your own order.
+//   the Stone Stair        a round well with two discs that ride up and down: ride one to a ledge, the next
+//                          to the top. The high door's eye is on the landing's face, under your feet once
+//                          you are up: seen (and splashed) from the ledge or the second disc
 //   the Bell Chamber       the makers' chest: the BELL-NOTE WHISTLE (src/items.js 'bell'). The door on is
-//                          bell-tuned: sound the whistle by it
-//   the Hall of Echoes     a chasm, the stones of its bridge hanging high over it (they fell up): sound the
-//                          bell at its edge and they come down into place; a second bell door beyond
+//                          held by the clapperless bell in the oculus: it stands open only while the bell
+//                          rings (about eight seconds). Ring, walk through; too slow, ring again (taught
+//                          where failing costs nothing)
+//   the Hall of Echoes     a chasm, the stones of its bridge hanging high over it (they fell up): the bell
+//                          brings them down only while it rings, ten seconds, enough to run across. But the
+//                          far door wants a ball on its plate too, and the ball waits at the near edge in a
+//                          groove that runs over the bridge: ring, then roll the ball across while the
+//                          stones are down (it stops at the lip while they hang, and drops if they rise
+//                          under it). On its plate its weight holds the stones down for good.
 //   the Cloud-Mother's Hall the guardian (organic: you calm her). She swims high and fearful, gusts and dives;
 //                          each time she cries, low, her mouth open, sound the bell near her; worn out, she
 //                          lies down: lay a hand on her brow
@@ -40,33 +50,42 @@ export const PALETTE = {
 
 export const LOGIC = {
   id: 'arzach2', entry: 'threshold', gadget: 'bell',
-  rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, stair: { checkpoint: true }, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, hall: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, storeW: {}, storeE: {}, stair: { checkpoint: true }, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'stones' },
+    { a: 'stones', b: 'storeW' },
+    { a: 'stones', b: 'storeE' },
     { a: 'stones', b: 'stair', door: 'd1' },
-    { a: 'stair', b: 'bell' },
+    { a: 'stair', b: 'bell', door: 'd2' },
     { a: 'bell', b: 'echoes', door: 'd3' },
     { a: 'echoes', b: 'echoesFar', door: 'br1' },
     { a: 'echoesFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
-    p1: { type: 'plate', room: 'stones' },
-    p2: { type: 'plate', room: 'stones' },
-    ball1: { type: 'drum', room: 'stones', plate: 'p1', plateAt: 1, start: 0 },
-    ball2: { type: 'drum', room: 'stones', plate: 'p2', plateAt: 1, start: 0 },
+    p1: { type: 'plate', room: 'storeW' },
+    p2: { type: 'plate', room: 'storeE' },
+    ball1: { type: 'drum', room: 'storeW', plate: 'p1', plateAt: 1, start: 0 },
+    ball2: { type: 'drum', room: 'storeE', plate: 'p2', plateAt: 1, start: 0 },
     d1: { type: 'door', opens: { all: [{ pressed: 'p1' }, { pressed: 'p2' }] }, latch: true },
+    s1: { type: 'switch', room: 'stair' },
+    d2: { type: 'door', opens: { lit: 's1' }, latch: true },
     chest: { type: 'gadget', room: 'bell', item: 'bell' },
-    e1: { type: 'bell', room: 'bell', needs: ['bell'] },
-    d3: { type: 'door', opens: { lit: 'e1' }, latch: true },
-    e2: { type: 'bell', room: 'echoes', needs: ['bell'] },
-    br1: { type: 'bridge', opens: { lit: 'e2' }, latch: true },
+    e1: { type: 'bell', room: 'bell', needs: ['bell'], hold: 8 },
+    d3: { type: 'door', opens: { lit: 'e1' } },
+    e2: { type: 'bell', room: 'echoes', needs: ['bell'], hold: 10 },
+    ball3: { type: 'drum', room: 'echoes', plate: 'p3', plateAt: 1, start: 0 },
+    p3: { type: 'plate', room: 'echoesFar' },
+    br1: { type: 'bridge', opens: { any: [{ lit: 'e2' }, { drumOn: ['ball3', 'p3'] }] } },
     e3: { type: 'bell', room: 'echoesFar', needs: ['bell'] },
-    d4: { type: 'door', opens: { lit: 'e3' }, latch: true },
+    d4: { type: 'door', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
     mother: { type: 'boss', room: 'hall', needs: ['backpack', 'bell'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
+
+/** The held notes: how long the founders' bells hold their door and their stones (s). */
+export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold };
 
 export const MOTHER = {
   kind: 'organic', name: 'the Cloud-Mother', final: 'touch', touch: 'lay a hand on her brow',
@@ -123,20 +142,37 @@ function layout(rt) {
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
   K.wall(-12.2, 12.6, 12.2, 12.6, 0, 13, { t: 1.2, holes: [{ at: 12.2, w: 6, h: 7 }] });
 
-  // ---- the Hall of Stones (z 12.6..44): two balls, two grooves, two plates before the door
-  K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: 'oculus', oculus: 0.25, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.6 }] });
-  for (const [x, z0] of [[-5, 17], [5, 21]]) {
-    K.add(M.dark, box(1.0, 0.04, 39 - z0, x, 0.02, (z0 + 39) / 2));
-    for (const s of [-1, 1]) K.both(M.trim, box(0.25, 0.12, 39 - z0, x + s * 0.75, 0.06, (z0 + 39) / 2));
-  }
-  add(Ball, { id: 'ball1', a: [-5, 0.04, 17], b: [-5, 0.04, 39], r: 1.0 });
-  add(Ball, { id: 'ball2', a: [5, 0.04, 21], b: [5, 0.04, 39], r: 1.3 });
-  add(Plate, { id: 'p1', at: [-5, 0, 39], r: 1.2 });
-  add(Plate, { id: 'p2', at: [5, 0, 39], r: 1.5 });
+  // ---- the Hall of Stones (z 12.6..44): a hub. The door on has two lamps; two archways, west and east, open
+  // into the stone stores, a ball and its plate in each (out of sight of the door: you go and find them)
+  K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: 'oculus', oculus: 0.25, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.6 }, { side: 'w', at: -5.3, w: 4, h: 5.5 }, { side: 'e', at: -5.3, w: 4, h: 5.5 }] });
   add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.6, lamps: [{ pressed: 'p1' }, { pressed: 'p2' }] });
   add(Mark, { room: 'stones', at: [-7.5, 0, 15.5], yaw: Math.PI / 2 });
   // stones that once fell up, heaped in the corners where somebody brought them back down
   [[-9, 0.6, 42, 0.9], [-8.2, 0.5, 40.6, 0.7], [9.1, 0.6, 15, 0.8], [8.4, 1.4, 15.6, 0.6]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i));
+  // a dark line inlaid from each archway to the door's foot: the two lamps' two ways
+  const inlay = (a, b, w, y, mat = M.dark) => {
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), yaw = Math.atan2(b[0] - a[0], b[1] - a[1]);
+    K.add(mat, T(new THREE.BoxGeometry(w, 0.04, L), [(a[0] + b[0]) / 2, y, (a[1] + b[1]) / 2], [0, yaw, 0]));
+    return { L, yaw, c: [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] };
+  };
+  for (const sx of [-1, 1]) inlay([sx * 10.6, 23], [sx * 2.2, 43.2], 0.5, 0.02);
+  // the stone stores: low rooms off the hall's sides, a groove, a ball and a plate in each
+  const groove = (a, b) => {
+    const { L, yaw, c } = inlay(a, b, 1.0, 0.02);
+    for (const sd of [-1, 1]) K.both(M.trim, T(new THREE.BoxGeometry(0.25, 0.12, L), [c[0] + Math.cos(yaw) * sd * 0.75, 0.06, c[1] - Math.sin(yaw) * sd * 0.75], [0, yaw, 0]));
+  };
+  K.hall({ x: -17.7, z: 23, w: 11, d: 12, y: 0, h: 8, roof: 'oculus', oculus: 0.3, omit: ['e'], frieze: false });
+  groove([-17.7, 19.6], [-17.7, 27]);
+  add(Ball, { id: 'ball1', a: [-17.7, 0.04, 19.6], b: [-17.7, 0.04, 27], r: 1.0 });
+  add(Plate, { id: 'p1', at: [-17.7, 0, 27], r: 1.2 });
+  K.glyph([-23.15, 4.6, 23], 1.3, Math.PI / 2);
+  [[-22, 0.6, 18.4, 0.8], [-21.4, 0.5, 19.6, 0.6]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 4));
+  K.hall({ x: 17.7, z: 23, w: 11, d: 12, y: 0, h: 8, roof: 'oculus', oculus: 0.3, omit: ['w'], frieze: false });
+  groove([15.4, 19.8], [21.2, 19.8]);
+  add(Ball, { id: 'ball2', a: [15.4, 0.04, 19.8], b: [21.2, 0.04, 19.8], r: 1.3 });
+  add(Plate, { id: 'p2', at: [21.2, 0, 19.8], r: 1.5 });
+  K.glyph([23.15, 4.6, 25], 1.3, -Math.PI / 2);
+  [[21.6, 0.6, 27.6, 0.9], [20.4, 0.5, 28.1, 0.6]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 6));
 
   // ---- the corridor and the Stone Stair (a round well: two riding discs, a ledge between them)
   K.slab(-3.2, 44, 3.2, 46.4, 0, 0.8);
@@ -151,6 +187,9 @@ function layout(rt) {
   K.both(M.floor, box(7.2, 16, 3.2, 0, 8, C2 + 7.2));                    // the top landing, by the high door
   K.both(M.trim, box(7.4, 0.3, 3.4, 0, 16.05, C2 + 7.2));
   add(Mark, { room: 'stair', at: [5, 0, C2 - 3], yaw: -Math.PI / 2 });
+  // the high door, and its eye on the landing's face: under your feet once you are up, seen from the ledge
+  add(Door, { id: 'd2', at: [0, 16.2, C2 + 9.7], w: 5, h: 6, lamps: [{ lit: 's1' }] });
+  add(Switch, { id: 's1', at: [2.6, 12, C2 + 5.4], yaw: Math.PI, size: 1.0 });
 
   // ---- the corridor and the Bell Chamber (floor 16): the chest, and the bell-tuned door
   K.slab(-3.2, C2 + 9.6, 3.2, C2 + 12.4, 16, 0.8);
@@ -163,8 +202,9 @@ function layout(rt) {
   const bell = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);
   K.add(M.stone, T(bell, [0, 26, C3]));
   K.add(M.trim, box(0.2, 4, 0.2, 0, 31.5, C3));
+  // the door on is held by the bell in the oculus: open while it rings
   add(Door, { id: 'd3', at: [0, 16, C3 + 10.7], w: 5, h: 6.4, bell: true, lamps: [{ lit: 'e1' }] });
-  add(BellEar, { id: 'e1', at: [0, 16, C3 + 7], reach: 26 });
+  add(BellEar, { id: 'e1', at: [0, 26, C3], reach: 26, heard: 'The bell in the oculus hums with your note, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
   add(Mark, { room: 'bell', at: [6.2, 16, C3 - 5], yaw: -Math.PI * 0.75 });
 
   // ---- the Hall of Echoes (z 90..124): a chasm under a bridge of stones that fell up
@@ -175,10 +215,19 @@ function layout(rt) {
   K.slab(-11, E0 + 26, 11, E0 + 34.4, 16, 10);
   K.both(M.dark, box(22, 1, 20, 0, 5.5, E0 + 16));
   add(Pit, { room: 'echoes', min: [-12, 2, E0 + 6], max: [12, 12.5, E0 + 26] });
-  add(Bridge, { id: 'br1', a: [0, 16, E0 + 5.9], b: [0, 16, E0 + 26.1], w: 4, n: 8, from: 'above' });
-  add(BellEar, { id: 'e2', at: [0, 16, E0 + 4], reach: 24 });
-  add(Door, { id: 'd4', at: [0, 16, E0 + 35], w: 5, h: 6.4, bell: true, lamps: [{ lit: 'e3' }] });
-  add(BellEar, { id: 'e3', at: [0, 16, E0 + 32], reach: 9 });
+  // the stones come down while the bell rings, and fall up again when it stops; a ball's weight on the far
+  // plate holds them down for good. The ball's groove runs from the near edge over the bridge to that plate.
+  add(Bridge, { id: 'br1', a: [0, 16, E0 + 5.9], b: [0, 16, E0 + 26.1], w: 6, n: 8, from: 'above' });
+  add(BellEar, { id: 'e2', at: [0, 16, E0 + 4], reach: 32, heard: 'The hanging stones answer the note and come down into a bridge. They stay only while it sounds.', heardKey: 'e2.heard', fading: 'The note is fading: the stones begin to tremble.' });
+  const BA = [1.6, 16.04, E0 + 2.6], BB = [1.6, 16.04, E0 + 30.5], BL = BB[2] - BA[2];
+  add(Ball, { id: 'ball3', a: BA, b: BB, r: 1.0, friction: 0.2, lock: true, gap: { bridge: 'br1', from: (E0 + 5.9 - BA[2]) / BL, to: (E0 + 26.1 - BA[2]) / BL } });
+  add(Plate, { id: 'p3', at: [1.6, 16, E0 + 30.5], r: 1.2 });
+  for (const [z0, z1] of [[BA[2] - 1.2, E0 + 5.9], [E0 + 26.1, BB[2]]]) {
+    K.add(M.dark, box(1.0, 0.04, z1 - z0, 1.6, 16.02, (z0 + z1) / 2));
+    for (const sd of [-1, 1]) K.both(M.trim, box(0.25, 0.12, z1 - z0, 1.6 + sd * 0.75, 16.06, (z0 + z1) / 2));
+  }
+  add(Door, { id: 'd4', at: [0, 16, E0 + 35], w: 5, h: 6.4, bell: true, lamps: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] });
+  add(BellEar, { id: 'e3', at: [-1.8, 16, E0 + 32], reach: 9 });
   add(Mark, { room: 'echoes', at: [-7, 16, E0 + 3], yaw: 0 });
   for (let i = 0; i < 4; i++) K.glyph([-10.95, 22 + (i % 2) * 2, E0 + 6 + i * 6], 1.3, Math.PI / 2);
 
@@ -210,10 +259,10 @@ function layout(rt) {
   const W = (x, y, z) => K.world(x, y, z);
   return {
     arrival: { pos: W(0, 0.05, 3.6), heading: K.heading(0) },
-    bounds: new THREE.Box3(V(-24, -2, -3), V(24, 60, CH + HR + 12)),
+    bounds: new THREE.Box3(V(-26, -2, -3), V(26, 60, CH + HR + 12)),
     gadget: { at: W(0, 16.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 16.5, CH + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [0, 8, C2, 16], [0, 20, C3, 16], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
+    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [-17.7, 5, 23, 11], [17.7, 5, 23, 11], [0, 8, C2, 16], [0, 20, C3, 16], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
     guardian: { def: { ...MOTHER, onHit: motherHit }, model, arena },
   };
 }

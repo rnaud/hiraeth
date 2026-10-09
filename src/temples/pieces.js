@@ -118,8 +118,16 @@ export class Door {
     this.apply();
   }
   init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  /** Someone stands in the doorway (a held door waits for them to step through before it shuts). */
+  inDoorway(p = this.rt.player) {
+    if (!p?.pos) return false;
+    const l = this.group.worldToLocal(_dl.copy(p.pos));
+    return Math.abs(l.x) < this.w / 2 + 0.6 && Math.abs(l.z) < 1.4 && l.y > -1 && l.y < this.h;
+  }
   setOpen(open, instant = false) {
+    this.wantShut = false;
     if (open === this.open) return;
+    if (!open && !instant && this.inDoorway()) { this.wantShut = true; return; }
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
@@ -131,6 +139,7 @@ export class Door {
     this.slab.visible = this.k < 0.999;
   }
   update(dt, t) {
+    if (this.wantShut && !this.inDoorway()) this.setOpen(false);
     const want = this.open ? 1 : 0;
     if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.8 : -dt / 0.9), 0, 1); this.apply(); }
     // a shut door is not a wall to climb (up it and over the lintel is out of the temple's rooms): you slip off
@@ -190,9 +199,13 @@ export class Plate {
 
 // ---------------------------------------------------------------------------------------- balls
 export class Ball {
-  /** o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r } */
+  /**
+   * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
+   * rolls farther), gap: { bridge, from, to } (the groove crosses a bridge between those t: the ball only
+   * passes while it stands, and drops if it goes from under it), lock (at rest on its plate it stays there) }
+   */
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id; this.r = o.r ?? 1.1;
+    this.rt = rt; this.id = o.id; this.o = o; this.r = o.r ?? 1.1;
     const K = rt.kit, M = rt.M;
     this.a = K.world(...o.a); this.b = K.world(...o.b);
     this.len = this.a.distanceTo(this.b);
@@ -239,6 +252,8 @@ export class Ball {
   }
   hit(mode, dir, info = {}) {
     if (!dir) return false;
+    if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate)) { this.wobble = 0.4; return true; }   // (settled in its socket)
+    if (this.drop) return true;
     const along = dir.x * this.dir.x + dir.z * this.dir.z;
     const k = mode === 'push' ? 4.2 + 4.5 * (info.strength ?? 1) : 1.2;   // m/s: a push rolls it a few metres, a splash nudges it
     if (Math.abs(along) < 0.25) { this.wobble = 0.4; return true; }
@@ -249,14 +264,22 @@ export class Ball {
   }
   update(dt) {
     if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.spin.rotation.z = Math.sin(this.wobble * 30) * this.wobble * 0.1; }
+    if (this.drop) { this.falling(dt); return; }
+    const G = this.o.gap;
+    if (G && this.t > G.from + 1e-3 && this.t < G.to - 1e-3 && !this.rt.logic.isOpen(G.bridge)) { this.startDrop(); return; }
     if (this.rest) { this.solid.vel.set(0, 0, 0); return; }
     // rolling friction, and a gentle settle into the plate's dip when it is slow and close
     const L = this.rt.logic, e = L.el(this.id), at = e?.plateAt ?? 1;
     const near = Math.abs(this.t - at) * this.len;
     if (Math.abs(this.v) < 1.2 && near < 1.6) this.v += Math.sign(at - this.t) * 3.5 * dt * Math.min(1, near);
-    this.v *= Math.exp(-1.6 * dt);
+    this.v *= Math.exp(-(near < 1.6 ? 1.6 : this.o.friction ?? 1.6) * dt);   // (the plate's dip holds it, whatever the groove)
     let t = this.t + (this.v * dt) / this.len;
     if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -this.v * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
+    // a groove over a bridge: the stones are up, so the ball stops at the lip; or they went from under it
+    if (G && !L.isOpen(G.bridge)) {
+      if (this.t <= G.from + 1e-3 && t > G.from) { t = G.from; this.v = -Math.abs(this.v) * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
+      else if (this.t >= G.to - 1e-3 && t < G.to) { t = G.to; this.v = Math.abs(this.v) * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
+    }
     const moved = (t - this.t) * this.len;
     this.t = t;
     this.spin.rotateOnWorldAxis(this.axis, moved / this.r);
@@ -266,6 +289,27 @@ export class Ball {
       this.v = 0; this.rest = true;
       if (L.moveDrum(this.id, this.t) && L.drumOn(this.id, e?.plate)) this.rt.sound?.chime?.();
     }
+  }
+  /** The stones went from under it: it falls into the chasm, and a new one rolls out where the groove starts. */
+  startDrop() {
+    this.drop = { y: 0, v: 0, back: 0 };
+    this.v = 0; this.solid.vel.set(0, 0, 0);
+    this.rt.sound?.critter?.('clack', 0.7);
+    this.rt.notice?.(this.o.dropped ?? 'The ball drops into the chasm. Another rolls out of the wall where the groove begins.', `${this.id}.dropped`);
+  }
+  falling(dt) {
+    const D = this.drop;
+    if (D.back > 0) {
+      // the new ball, rolling out of its niche
+      D.back = Math.max(0, D.back - dt);
+      this.spin.scale.setScalar(1 - D.back / 1.2 * 0.9);
+      if (D.back === 0) { this.drop = null; this.spin.scale.setScalar(1); this.rest = true; }
+      return;
+    }
+    D.v += 18 * dt; D.y += D.v * dt;
+    this.group.position.y -= D.v * dt;
+    this.solid.bottom = this.solid.top = -1e6;   // (gone: nothing to stand on)
+    if (D.y > 14) { this.t = 0; this.rt.logic.moveDrum(this.id, 0); this.place(); D.back = 1.2; this.spin.scale.setScalar(0.1); }
   }
   dispose() { this.off?.(); }
 }
@@ -485,16 +529,31 @@ export class Bank {
 }
 
 /** Bell-tuned: the bell-note whistle sounded within reach rings element `id` (a 'bell' element: needs the bell).
- * o: { id, at, reach, heard (what it says when it answers), heardKey (say it once) } */
+ * o: { id, at, reach, heard (what it says when it answers), heardKey (say it once), fading (said as a held note fades) }
+ * A held bell (its element has `hold: s`, logic.js) rings for s seconds and falls quiet: what it holds lets go
+ * (a held door shuts, held stones rise). Sounded again while it rings, the note starts over. */
 export class BellEar {
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 40;
+    this.rt = rt; this.id = o.id; this.o = o; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 40;
+    this.hold = rt.logic.el?.(o.id)?.hold ?? 0;
+    this.left = 0;
     this.off = rt.game?.on?.('bell', ({ pos, soft } = {}) => {
       if (!pos || soft || pos.distanceTo(this.at) > this.reach) return;   // (soft: the listening shell's hum, not a bell)
-      if (rt.logic.light(this.id)) { rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'The door answers the bell’s note.', o.heardKey ?? null); rt.onLit?.(this.id); }
+      if (this.hold && rt.logic.isLit(this.id)) { this.left = this.hold; this.warned = false; return; }   // (rung again: the note starts over)
+      if (rt.logic.light(this.id)) {
+        if (this.hold) { this.left = this.hold; this.warned = false; }
+        rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'The door answers the bell’s note.', o.heardKey ?? null); rt.onLit?.(this.id);
+      }
     });
   }
-  update() {}
+  /** Seconds left of a held note (0: quiet). */
+  get ringing() { return this.left; }
+  update(dt) {
+    if (!this.hold || this.left <= 0) return;
+    this.left -= dt;
+    if (this.left < 2.5 && !this.warned) { this.warned = true; this.rt.rumble?.(0.8, 0.2); if (this.o.fading) this.rt.notice?.(this.o.fading, `${this.o.heardKey ?? this.id}.fading`); }
+    if (this.left <= 0) { this.left = 0; this.rt.logic.quiet(this.id); }
+  }
   dispose() { this.off?.(); }
 }
 
@@ -952,8 +1011,16 @@ export class Bud {
     this.rt.notice?.(this.o.wet ?? 'The water beads on the petals and runs off. The bud stays shut: it is waiting to be told to grow.', 'bud.wet');
     return true;
   }
+  /** Someone stands in the doorway (a held door waits for them to step through before it shuts). */
+  inDoorway(p = this.rt.player) {
+    if (!p?.pos) return false;
+    const l = this.group.worldToLocal(_dl.copy(p.pos));
+    return Math.abs(l.x) < this.w / 2 + 0.6 && Math.abs(l.z) < 1.4 && l.y > -1 && l.y < this.h;
+  }
   setOpen(open, instant = false) {
+    this.wantShut = false;
     if (open === this.open) return;
+    if (!open && !instant && this.inDoorway()) { this.wantShut = true; return; }
     this.open = open;
     if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
     if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
@@ -1240,6 +1307,8 @@ export class Bridge {
   init(physics) { this.physics = physics; if (this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
   setOpen(open, instant = false) {
     if (open === this.open) return;
+    // (stones that were down and rise again, held ones let go: they start from where they are)
+    this.rise = !open && !instant && this.from === 'above' ? 0 : null;
     this.open = open;
     this.time = instant ? 99 : 0;
     if (open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
@@ -1258,8 +1327,11 @@ export class Bridge {
       } else if (above) {
         // hanging up there, each at its own height, bobbing; then down into the walkway
         const hang = 9 + (i % 3) * 1.6 + Math.sin(t * 0.6 + i * 1.7) * 0.5;
-        s.g.position.y = s.y + (1 - k) * hang;
-        s.g.rotation.z = (1 - k) * Math.sin(i * 2.3) * 0.25;
+        // let go: they fall up again, slowly, the far ones first
+        const up = this.rise != null ? ease(THREE.MathUtils.clamp((this.rise - (this.stones.length - 1 - i) * 0.08) / 1.6, 0, 1)) : 1;
+        const kk = this.open ? k : 1 - up;
+        s.g.position.y = s.y + (1 - kk) * hang;
+        s.g.rotation.z = (1 - kk) * Math.sin(i * 2.3) * 0.25;
         s.g.visible = true;
       } else {
         s.g.position.y = s.y - (1 - k) * 14;
@@ -1269,7 +1341,7 @@ export class Bridge {
   }
   update(dt, t) {
     if (this.open && this.time < 6) { this.time += dt; this.apply(t); }
-    else if (!this.open && this.from === 'above') this.apply(t);
+    else if (!this.open && this.from === 'above') { if (this.rise != null) this.rise += dt; this.apply(t); }
   }
 }
 
