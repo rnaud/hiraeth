@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_757d9cc6b45cad 7-8
+docs/systems/temples.md
+  s_9ca76055a220ed::t_e9eab61407a393 148-152
+src/changelog.js
+  s_9ca76055a220ed::t_b3e6d7f9a5f410 33-35
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_1e74dc94cfd733 5,15-16,18-19,24-27,46,49,58,65-68,122-133,136-137,175,182-192
+src/temples/pieces.js
+  s_9ca76055a220ed::t_f7a64e2eae5a54 205-208,223-224,259,271,298-321,591-592,606
+tests/temples.test.js
+  s_9ca76055a220ed::t_2927252666dae5 830-831,922,927-928,942-955,958-959,985-1004,1008
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bfecbed39092de78d54e1ef00bcc196f78bd05f8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
