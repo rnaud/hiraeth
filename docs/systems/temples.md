@@ -145,6 +145,11 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   starts) and stay put once home (`lock`). The Belfry's bridge opens on `{ any: [the held bell, the
   ball on the far plate] }`, so the ball's weight holds it for good. The audit reads a held bell as a
   timing and as a state that changes back (`scripts/temple-design/lib.mjs`).
+- **The pool-orb** (the Lamp-House, from the same audit): a `Ball` with `lamp: { id }` is a glass orb of
+  pool water. Stood by at rest with the lantern for `hold` s it glows for `lasts` s; at rest on its plate
+  while it glows it lights element `id` (a lantern `switch`, shown by a `LightEar` with `reach: 0`, which
+  only glows once something else has lit it). Rolled in dark it lights nothing and is tipped back out (no
+  dead state), and it only locks in its socket once its lamp is lit.
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets

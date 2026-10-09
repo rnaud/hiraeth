@@ -202,7 +202,10 @@ export class Ball {
   /**
    * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
    * rolls farther), gap: { bridge, from, to } (the groove crosses a bridge between those t: the ball only
-   * passes while it stands, and drops if it goes from under it), lock (at rest on its plate it stays there) }
+   * passes while it stands, and drops if it goes from under it), lock (at rest on its plate it stays there),
+   * lamp: { id, reach, hold, lasts, caught, dark, woke } (a pool-orb: stand by it at rest with the lantern `hold` s
+   * and it glows for `lasts` s; at rest on its plate while it glows it wakes element `id`, a 'switch' that
+   * needs the lantern; dark, it wakes nothing) }
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o; this.r = o.r ?? 1.1;
@@ -217,7 +220,8 @@ export class Ball {
     rt.root.add(this.group);
     this.spin = new THREE.Group();
     this.group.add(this.spin);
-    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], M.stoneMat));
+    if (o.lamp) { this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0; }
+    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? M.stoneMat));
     this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
     noCollide(this.group);
@@ -252,7 +256,7 @@ export class Ball {
   }
   hit(mode, dir, info = {}) {
     if (!dir) return false;
-    if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate)) { this.wobble = 0.4; return true; }   // (settled in its socket)
+    if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
     const along = dir.x * this.dir.x + dir.z * this.dir.z;
     const k = mode === 'push' ? 4.2 + 4.5 * (info.strength ?? 1) : 1.2;   // m/s: a push rolls it a few metres, a splash nudges it
@@ -264,6 +268,7 @@ export class Ball {
   }
   update(dt) {
     if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.spin.rotation.z = Math.sin(this.wobble * 30) * this.wobble * 0.1; }
+    if (this.o.lamp) this.lamp(dt);
     if (this.drop) { this.falling(dt); return; }
     const G = this.o.gap;
     if (G && this.t > G.from + 1e-3 && this.t < G.to - 1e-3 && !this.rt.logic.isOpen(G.bridge)) { this.startDrop(); return; }
@@ -289,6 +294,30 @@ export class Ball {
       this.v = 0; this.rest = true;
       if (L.moveDrum(this.id, this.t) && L.drumOn(this.id, e?.plate)) this.rt.sound?.chime?.();
     }
+  }
+  /** A pool-orb: it catches the lantern's light, glows a while, and on its plate, glowing, wakes its lamp. */
+  lamp(dt) {
+    const o = this.o.lamp, L = this.rt.logic, P = this.rt.player;
+    const by = !!P && this.rest && L.has('lantern') && P.pos.distanceTo(this.center) < (o.reach ?? 2.8);   // (at rest: a quick push doesn't light it)
+    this.near = by ? this.near + dt : 0;
+    if (this.near > (o.hold ?? 2) && this.charge < (o.lasts ?? 25) - 0.5) {
+      if (this.charge <= 0) { this.rt.sound?.chime?.(); this.rt.notice?.(o.caught ?? 'The orb drinks your lantern’s light and glows, for a while.', `${this.id}.caught`); }
+      this.charge = o.lasts ?? 25;
+    }
+    this.charge = Math.max(0, this.charge - dt);
+    const home = this.rest && L.drumOn(this.id, L.el(this.id)?.plate);
+    if (home && !L.isLit(o.id)) {
+      if (this.charge > 0) { if (L.light(o.id)) { this.rt.sound?.chime?.(); this.rt.onLit?.(o.id); this.rt.notice?.(o.woke ?? 'The glowing orb settles under the lamp, and the lamp catches.', `${o.id}.woke`); } }
+      else {
+        // dark: it wakes nothing, and the niche tips it back out the way it came
+        if (!this.toldDark) { this.toldDark = true; this.back = 1.6; this.rt.notice?.(o.dark ?? 'The orb settles under the lamp, dark, and the niche tips it back out. The lamp wants light.', `${this.id}.dark`); }
+        this.back -= dt;
+        if (this.back <= 0) { this.v = -this.len * 1.6 * 0.85; this.rest = false; this.rt.sound?.critter?.('creak', 0.6); }
+      }
+    }
+    if (!home) this.toldDark = false;
+    const lit = L.isLit(o.id), k = lit ? 1 : Math.min(1, this.charge / 4) * (0.85 + 0.15 * Math.sin(this.rt.time * 4));
+    this.orb.uniforms.uGlow.value = 0.08 + 0.85 * k + (by ? 0.25 * Math.min(1, this.near / (o.hold ?? 2)) : 0);
   }
   /** The stones went from under it: it falls into the chasm, and a new one rolls out where the groove starts. */
   startDrop() {
@@ -559,7 +588,8 @@ export class BellEar {
 
 /**
  * Wakes to the lantern charm's light: stand by it (within `reach`) with the lantern a moment (`hold` s), and
- * element `id` (a 'switch' that needs the lantern) is lit for good. o: { id, at, reach, hold }
+ * element `id` (a 'switch' that needs the lantern) is lit for good. o: { id, at, reach, hold }. reach 0: only
+ * something else wakes it (a Ball's `lamp`, the pool-orb); it glows once its element is lit.
  */
 export class LightEar {
   constructor(rt, o) {
@@ -573,6 +603,7 @@ export class LightEar {
     this.lit = rt.logic.isLit(o.id);
   }
   update(dt, t) {
+    this.lit ||= this.rt.logic.isLit(this.id);   // (woken some other way: a glowing pool-orb, reach 0)
     const P = this.rt.player, has = this.rt.logic.has('lantern');
     const near = P && has && P.pos.distanceTo(this.at) < this.reach;
     this.t = near ? this.t + dt : 0;

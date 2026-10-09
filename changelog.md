@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.8 — 2026-10-09
 
+- In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.
+- The Lamp-House’s Hall of Dark Pools has two pools on its floor now; the door’s third lamp waits on a pool up on a loft of roots against the west wall, hidden from the floor by its edge. Climb its face to find it.
 - In the Hush-House’s Pendulum Gallery the far gate of jaws is gone: the far door wants the three pendulums’ notes, and a stilled pendulum’s note only rings true in turn, smallest crystal first, as the Choir taught. They hang out of that order, so stilling them to cross gets it wrong: from the far side, still them again, in turn.
 - The Hush-House’s first crystal now stands by the door, in the Threshold: the Choir’s three ring flat until it has sung, and say where the first note was. The Bog Well’s way up has a door at the top of the root-wall, and its eye is on the wall’s face, in sight from the climbing disc but not from the top.
 - In the Founders’ Belfry the door out of the Bell Chamber now stands open only while the bell rings, and the hanging stones in the Hall of Echoes come down only for as long as the note lasts. The far door wants the ball waiting at the near edge: ring, roll it across while the stones are down (it stops at the edge while they hang, and drops if they rise under it), and its weight on the far plate keeps the bridge down for good.

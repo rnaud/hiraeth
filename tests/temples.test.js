@@ -827,7 +827,8 @@ test('the Engine-House on foot: the valve and the pistons, the counterweight, th
   own('backpack');
   const { level, physics, rt } = world('buried');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
-  rt.connect({ player: P, toast: () => {} });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -918,12 +919,13 @@ test('the Engine-House on foot: the valve and the pistons, the counterweight, th
 });
 
 // ------------------------------------------------------------------ on foot: Lorn II's Lamp-House, room by room
-test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the lantern, the lamps that wake to it, the stones only its light shows, the Lampless fed, the lamp lit', () => {
+test('the Lamp-House on foot: three dark pools (the third up the roots, out of sight), the disc and the root-wall, the lantern, the lamps that wake to it, the stones only its light shows, the pool-orb lit and rolled to the niche, the Lampless fed, the lamp lit', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('perdide2');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
-  rt.connect({ player: P, toast: () => {} });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -937,10 +939,24 @@ test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the 
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   wait(0.5);
   assert.equal(P.inDark, true, 'a dark house: the lantern charm glows in it');
-  // ---- the Hall of Dark Pools
-  for (const id of ['s1', 's2', 's3']) rt.piece(id).hit('shoot');
+  // ---- the Hall of Dark Pools: two pools on the floor; the third up on the loft, hidden from the floor
+  const seen = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
+  const eye3 = rt.piece('s3').center;
+  for (const [x, z] of [[-3, 22], [6, 30], [0, 40]]) assert.ok(!seen(L(x, 1.7, z), eye3), `the loft's pool hidden from the floor (${x}, ${z})`);
+  for (const id of ['s1', 's2']) rt.piece(id).hit('shoot');
+  wait(1);
+  assert.equal(rt.logic.isOpen('d1'), false, 'two lamps of three');
+  // up the west roots to the loft
+  assert.equal(walk(L(0, 0, 16)) && walk(L(-4.6, 0, 20)), true, `to the loft's foot (${where()})`);
+  let loft = false;
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-9, 8, 20))); if (P.onGround && rt.kit.local(P.pos).y > 7.6) { loft = true; break; } }
+  assert.ok(loft, `up onto the loft (${where()})`);
+  assert.ok(seen(P.pos.clone().add(V(0, 1.6, 0)), eye3), 'there it is');
+  rt.piece('s3').hit('shoot');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true);
+  P.teleport(L(0, 0.05, 40), V(0, 1, 0), V(0, 0, 1));
+  wait(0.5);
   // ---- the Root Stair: the disc over the dark pool, then up the root-wall
   assert.equal(walk(L(0, 0, 49)), true, `to the stair (${where()})`);
   const disc = rt.pieces.find((p) => p.path);
@@ -966,12 +982,30 @@ test('the Lamp-House on foot: three dark pools, the disc and the root-wall, the 
   assert.equal(walk(L(0, 9, 118)), true, `over the moss-stones (${where()})`);
   assert.ok(P.pos.y > L(0, 8, 0).y, 'on them, not in the chasm');
   rt.piece('s4').hit('shoot');
-  assert.equal(walk(L(-2.6, 9, 123.5), { tol: 0.8 }), true);
-  wait(2.5);
+  // the pool-orb: rolled into the niche dark, it wakes nothing
+  const orb = rt.piece('orb');
+  const behind = () => orb.center.clone().addScaledVector(orb.dir, -(orb.r + 1.3)).setY(L(0, 9, 0).y);
+  const roll = () => { for (let k = 0; k < 6 && !rt.logic.drumOn('orb', 'p4'); k++) { walk(behind(), { tol: 0.5, max: 4 }); orb.hit('push', orb.dir.clone(), { strength: 1 }); wait(2.4); } };
+  assert.ok(P.pos.distanceTo(orb.center) > 4, 'not standing by the orb yet');
+  roll();
+  assert.equal(rt.logic.drumOn('orb', 'p4'), true, `the orb in the niche (${orb.t.toFixed(2)})`);
+  wait(1);
+  assert.equal(rt.logic.isLit('l2'), false, 'dark, it wakes nothing');
+  assert.ok(notes.some((s) => /dark/.test(s)), 'it says the lamp wants light');
+  assert.equal(rt.logic.isOpen('d4'), false);
+  // the niche tips it back out; lit by the lantern first, then rolled in again
+  wait(7);
+  assert.ok(orb.t < 0.4 && orb.rest, `rolled back out (${orb.t.toFixed(2)})`);
+  assert.equal(walk(orb.center.clone().setY(L(0, 9, 0).y).add(V(1.6, 0, 0)), { tol: 0.6 }), true, `by the orb (${where()})`);
+  wait(2.4);
+  assert.ok(orb.charge > 0, 'it caught the lantern’s light');
+  roll();
+  wait(1);
+  assert.equal(rt.logic.isLit('l2'), true, 'glowing, it wakes the niche’s lamp');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d4'), true);
   // ---- the Lamp-Room: stand still by the Lampless while it searches
-  assert.equal(walk(L(0, 9, 132)), true, `into the lamp-room (${where()})`);
+  assert.equal(walk(L(0, 9, 123)) && walk(L(0, 9, 132)), true, `into the lamp-room (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep');

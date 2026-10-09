@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Switch, LightEar, Platform, Bridge, Mark, Pit } from './pieces.js';
+import { Door, Switch, LightEar, Platform, Bridge, Ball, Plate, Mark, Pit } from './pieces.js';
 import { mothModel } from './guardians.js';
 
 // Lorn II's temple: the Lamp-House, a dark tower of the makers standing in the
@@ -12,14 +12,19 @@ import { mothModel } from './guardians.js';
 // pools lit for forty years without knowing there had been a greater lamp.
 // Something with wings is still up in its lamp-room, in the dark.
 //
-// Inside (built far overhead, through its door; dark: the lantern charm glows in it):
+// Inside (built far overhead, through its door; dark: the lantern charm glows in it). The temple's one idea:
+// light wakes what waits for it, and light can be carried.
 //   the Threshold           the first mark, the way out
-//   the Hall of Dark Pools  three pool-lamps: splash each, and the door opens (the pools take your colours)
+//   the Hall of Dark Pools  three pool-lamps for the door's three lamps: two on the floor, the third up on a
+//                           loft at the top of the west roots, out of sight from the floor (climb to find it)
 //   the Root Stair          a riding disc over a dark pool, a root-wall to climb
 //   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'). The door on is a
 //                           lamp that wakes when you stand by it with the lantern
 //   the Dark Gallery        a chasm crossed by moss-stones that only the lantern's light shows; an eye only it
-//                           shows; a second lamp-door
+//                           shows; and the far door's lamp, in a niche low in the west wall, wakes only to the
+//                           light of a pool-orb: stand by the orb with the lantern till it glows, then roll it
+//                           (the push) down its groove into the niche before its glow fades. Rolled in dark,
+//                           it wakes nothing (the lantern with the push: light carried where you cannot go)
 //   the Lamp-Room           the guardian (organic: you calm it): the Lampless, a great moth. When it hangs low,
 //                           searching for light, stand still by it with the lantern lit, and let it drink
 // After: the Lamp-House's lamp burns again, its beam turning over the wood at night (the world change).
@@ -38,9 +43,10 @@ export const PALETTE = {
 
 export const LOGIC = {
   id: 'perdide2', entry: 'threshold', gadget: 'lantern',
-  rooms: { threshold: { checkpoint: true }, pools: { checkpoint: true }, roots: { checkpoint: true }, lantern: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: {}, lamp: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, pools: { checkpoint: true }, loft: {}, roots: { checkpoint: true }, lantern: { checkpoint: true }, gallery: { checkpoint: true }, galleryFar: {}, lamp: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'pools' },
+    { a: 'pools', b: 'loft' },                                        // up the west roots
     { a: 'pools', b: 'roots', door: 'd1' },
     { a: 'roots', b: 'lantern' },
     { a: 'lantern', b: 'gallery', door: 'd2' },
@@ -49,15 +55,17 @@ export const LOGIC = {
     { a: 'lamp', b: 'out', door: 'd5' },
   ],
   elements: {
-    s1: { type: 'switch', room: 'pools' }, s2: { type: 'switch', room: 'pools' }, s3: { type: 'switch', room: 'pools' },
+    s1: { type: 'switch', room: 'pools' }, s2: { type: 'switch', room: 'pools' }, s3: { type: 'switch', room: 'loft' },
     d1: { type: 'door', opens: { all: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] }, latch: true },
     chest: { type: 'gadget', room: 'lantern', item: 'lantern' },
     l1: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // a lamp that wakes to the lantern
     d2: { type: 'door', opens: { lit: 'l1' }, latch: true },
     br1: { type: 'bridge', opens: { item: 'lantern' } },             // moss-stones only its light shows
     s4: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },  // an eye only its light shows
-    l2: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },
-    d4: { type: 'door', opens: { all: [{ lit: 's4' }, { lit: 'l2' }] }, latch: true },
+    orb: { type: 'drum', room: 'galleryFar', plate: 'p4', plateAt: 1, start: 0 },   // a pool-orb, rolled into the niche
+    p4: { type: 'plate', room: 'galleryFar' },
+    l2: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },  // the niche's lamp: it wakes to the glowing orb
+    d4: { type: 'door', opens: { all: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] }, latch: true },
     moth: { type: 'boss', room: 'lamp', needs: ['backpack', 'lantern'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
@@ -111,14 +119,22 @@ function layout(rt) {
   // ---- the Hall of Dark Pools (z 12.6..44): three pool-lamps, dark; splash each
   K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: true, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }] });
   const poolM = makeMaterial({ color: '#2f3560', glow: 0.1, flat: true, key: 'temple.p2.pools' });
-  for (const [i, [x, z]] of [[-5, 22], [5, 28], [-5, 35]].entries()) {
-    K.both(M.trim, T(annulus(2.0, 2.6, 0.5, 32), [x, 0.5, z]));
-    K.both(poolM, T(new THREE.CylinderGeometry(2.0, 2.0, 0.1, 28), [x, 0.3, z]));
-    add(Switch, { id: `s${i + 1}`, at: [x, 0.9, z], yaw: 0, size: 0.9 });
-  }
+  const pool = (id, x, y, z, r = 2.0) => {
+    K.both(M.trim, T(annulus(r, r + 0.6, 0.5, 32), [x, y + 0.5, z]));
+    K.both(poolM, T(new THREE.CylinderGeometry(r, r, 0.1, 28), [x, y + 0.3, z]));
+    add(Switch, { id, at: [x, y + 0.9, z], yaw: 0, size: 0.9 });
+  };
+  pool('s1', 5, 0, 26); pool('s2', -4, 0, 34);
+  // the third pool, up on a loft of roots against the west wall (climb its face): its edge hides it from the floor
+  K.both(M.wallGlyph, box(5, 8, 13.2, -8.5, 4, 19.4));
+  K.both(M.trim, box(5.2, 0.3, 13.4, -8.5, 8.05, 19.4));
+  root([[-6.1, 8, 24.5], [-5.8, 5, 23.6], [-6.2, 2, 24.6], [-5.9, 0, 23.8]], 0.4);
+  root([[-6.1, 8, 15.2], [-5.7, 4, 16.4], [-6.1, 0, 15.6]], 0.35);
+  pool('s3', -8.8, 8.2, 21.2, 1.5);
   add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ lit: 's1' }, { lit: 's2' }, { lit: 's3' }] });
   add(Mark, { room: 'pools', at: [7.5, 0, 16], yaw: -Math.PI / 2 });
-  root([[-11, 12, 14], [-9, 9, 20], [-10.5, 4, 26], [-10.8, 0, 30]], 0.8);
+  root([[-11, 12.5, 13.4], [-10, 10, 14.5], [-10.6, 8.2, 15.6]], 0.8);          // (over the loft's back, clear of its pool)
+  root([[-10.6, 8.1, 25.4], [-10.5, 4, 27], [-10.8, 0, 30]], 0.8);
   root([[11, 12, 40], [9.5, 8, 36], [10.6, 3, 32], [10.8, 0, 26]], 0.7);
 
   // ---- the Root Stair (a rotunda, floor 0): a disc over a dark pool, then a root-wall to the landing at 9
@@ -156,15 +172,24 @@ function layout(rt) {
   // ---- the Dark Gallery (z 91..125): a chasm, moss-stones only the lantern shows, an eye only it shows
   const G0 = C3 + 10.9;
   K.slab(-3.2, C3 + 10.1, 3.2, G0 + 0.6, 9, 0.8);
-  K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 24, floor: false, roof: true, doors: [{ side: 's', w: 5, h: 6.4, y0: 12 }, { side: 'n', w: 5, h: 6.4, y0: 12 }] });
+  K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 24, floor: false, roof: true, doors: [{ side: 's', w: 5, h: 6.4, y0: 12 }, { side: 'n', w: 5, h: 6.4, y0: 12 }, { side: 'w', at: 12.8, w: 2.8, h: 2.8, y0: 12 }] });
   K.slab(-11, G0, 11, G0 + 6, 9, 12);
   K.slab(-11, G0 + 26, 11, G0 + 34.4, 9, 12);
   K.both(M.dark, box(22, 1, 20, 0, -3.5, G0 + 16));
   add(Pit, { room: 'gallery', min: [-12, -6, G0 + 6], max: [12, 4, G0 + 26] });
   add(Bridge, { id: 'br1', a: [0, 9, G0 + 5.9], b: [0, 9, G0 + 26.1], w: 3.4, n: 9, hidden: 'lantern' });
   add(Switch, { id: 's4', at: [10.8, 12, G0 + 30], yaw: -Math.PI / 2, size: 1.0, hidden: 'lantern' });
-  add(LightEar, { id: 'l2', at: [-2.6, 9, G0 + 32.6], reach: 3.6 });
-  add(Door, { id: 'd4', at: [0, 9, G0 + 35], w: 5, h: 6.4, lamps: [{ lit: 's4' }, { lit: 'l2' }] });
+  // the far door's lamp, in a niche low in the west wall: only a pool-orb's light wakes it. The orb waits at
+  // the near end of its groove; held by your lantern it glows a while; rolled into the niche glowing, it wakes it
+  const NZ = G0 + 30;
+  K.slab(-14.4, NZ - 1.6, -11, NZ + 1.6, 9, 0.8);
+  K.both(M.wall, box(0.8, 3.2, 4, -14.6, 10.6, NZ), box(3.6, 0.8, 4, -12.8, 12.6, NZ), box(3.6, 3.2, 0.6, -12.8, 10.6, NZ - 1.9), box(3.6, 3.2, 0.6, -12.8, 10.6, NZ + 1.9));
+  add(LightEar, { id: 'l2', at: [-13.7, 8.7, NZ], reach: 0 });   // (reach 0: your lantern can't wake it; the orb does)
+  K.add(M.dark, box(10.6, 0.04, 1.0, -7.2, 9.02, NZ));
+  for (const sd of [-1, 1]) K.both(M.trim, box(10.6, 0.12, 0.25, -7.2, 9.06, NZ + sd * 0.75));
+  add(Ball, { id: 'orb', a: [-2.2, 9.04, NZ], b: [-12.6, 9.04, NZ], r: 0.9, lock: true, lamp: { id: 'l2', reach: 2.8, hold: 2, lasts: 25 } });
+  add(Plate, { id: 'p4', at: [-12.6, 9, NZ], r: 1.0 });
+  add(Door, { id: 'd4', at: [0, 9, G0 + 35], w: 5, h: 6.4, lamps: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] });
   add(Mark, { room: 'gallery', at: [-7, 9, G0 + 3], yaw: 0 });
 
   // ---- the corridor, and the Lamp-Room (floor 9): a round hall, the great lamp dark in its cradle overhead

@@ -30,6 +30,9 @@ export const CHANGELOG = [
     // the Hush-House
     'The Hush-House’s first crystal now stands by the door, in the Threshold: the Choir’s three ring flat until it has sung, and say where the first note was. The Bog Well’s way up has a door at the top of the root-wall, and its eye is on the wall’s face, in sight from the climbing disc but not from the top.',
     'In the Hush-House’s Pendulum Gallery the far gate of jaws is gone: the far door wants the three pendulums’ notes, and a stilled pendulum’s note only rings true in turn, smallest crystal first, as the Choir taught. They hang out of that order, so stilling them to cross gets it wrong: from the far side, still them again, in turn.',
+    // the Lamp-House
+    'The Lamp-House’s Hall of Dark Pools has two pools on its floor now; the door’s third lamp waits on a pool up on a loft of roots against the west wall, hidden from the floor by its edge. Climb its face to find it.',
+    'In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.',
   ] },
   { v: '1.7', date: '2026-10-09', items: [
     { text: 'Cinematic previews start and replay silently, including dialogue and the trailer.', see: 'Open Debug → Cinematics and replay any scene. Sound stays off until you enable it.' },
