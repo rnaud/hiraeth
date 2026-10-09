@@ -349,6 +349,16 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   its `beacons` (the camps' smoke or the tree's column, the Hearth's chimney), and the bike stage's `ends`
   (`bikeHollow`: the stage is done at the hollow, not at Marrow).
 
+## Vael's layout, from the level design audit (v1.9)
+
+- **The plain** between the landing and the lone tower (445 m with nothing on it): Senn (`src/levels/content.js`) listens
+  at the foot of the capped spire at (170, −282), on the line to the tower; the hush-cloth's box
+  (`src/boxes/placements.js` `arzach.hush`) is on that spire's cap, beside the shed feather already there
+  (`FEATHER_SPIRES`). It was on a spire 240 m north of the landing, the world's one remote dead end.
+- **Standing stones** up the slope west of the landing (`src/levels/arzach.js`, no rng): the landing is a hollow that
+  shows nothing to the west; the stones lead up to the plateau's edge, where the Aerie shows.
+- **The tower as a beacon** (`level.beacons`): the audit's height grid kept the floating ruins and dropped the tower.
+
 ## Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning

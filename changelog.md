@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.10 — 2026-10-09
 
+- In Vael, Senn now listens at the foot of the capped needle spire out on the plain, halfway from the landing to the lone tower, and the makers’ box with the hush-cloth waits on that spire’s cap beside one of the shed feathers: one long climb, two finds. A line of standing stones leads up the slope from the landing toward the Aerie.
 - The long ride out to the Givers’ Hearth has company: Yara the salt-carrier rests under her sunshade a third of the way, and a sand-skiff’s wreck lies on its side two thirds of the way, its mast still up. Coming home, the marked stones lead you back to Qanat past the keepers’ bowl and their cold camp.
 - While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke going for whoever fell behind, so from the moment you land you can see where the city lies beyond the dune. Old Oum now waits on a dune in sight of the way in, and a dry, stone-lined channel runs from Qanat’s east side to the Givers’ House.
 - The ink blot is a glossy drop now, round below and drawn up into a splashing point, with big cream eyes and dark pupils, violet light on its ink and a ragged rim of the ground’s colour where it pools; winding up a lunge, it sinks into a stack of rings. In the Sealed Hangar it is gunmetal, its rim rust and oily teal, with metal shavings stuck in it.

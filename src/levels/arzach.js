@@ -318,6 +318,19 @@ export function* buildArzach(scene) {
     }
   }
 
+  // a line of standing stones up the slope from the landing toward the Aerie: the landing sits in a hollow and
+  // shows nothing to the west, so the stones lead the eye up to the plateau's edge, where the white house comes
+  // into view (level design audit v1.9: the first leg was blind). No rng: the world round them stays as it was.
+  {
+    const mat = makeMaterial({ color: BONE[0][0], color2: BONE[0][1], color3: BONE[0][2], mode: MODE_STRATA, strataSize: 2, flat: true }), geos = [];
+    [[-24, 5, 4.2], [-42, 3, 5.4], [-60, 1, 4.6], [-78, -1, 6.0]].forEach(([x, z, h], i) => {
+      const g = new THREE.CylinderGeometry(0.7, 1.15, h, 5, 2).translate(0, h / 2, 0).rotateZ((i % 2 ? 1 : -1) * 0.05).rotateY(i * 1.3);
+      jitter(g, 0.12, 0.05, 70 + i);
+      geos.push(g.translate(x, terrain.baseAt(x, z, 1.2) - 0.5, z));
+    });
+    scene.add(new THREE.Mesh(mergeGeometries(geos.map((g) => (g.index ? g.toNonIndexed() : g))), mat));
+  }
+
   // the Aerie on the plain west of the landing, and its rooms far overhead (src/temples/arzach.js)
   yield;
   // sand banked against what stands on the sand: every collided mesh built so far (sand-drifts.js)
@@ -334,6 +347,9 @@ export function* buildArzach(scene) {
     features: { mount: true, wind: true, jetpack: false, climb: true },
     // the story's places (src/story/arzach.js): the tower's balcony, steps and window, the hand's knuckles
     arzach: { tower: towerInfo, hand: handInfo, colossus, spires, menhirs },
+    // the lone tower is the weenie, but the audit's height grid ranks it out behind the floating ruins
+    // (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks): its spire's tip
+    beacons: [{ name: 'the lone tower', top: [towerInfo.x, towerInfo.base - 2 + towerInfo.H + 49, towerInfo.z], height: 60 }],
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
     // (v0.95: the cast shadows on the open sand lifted halfway, as the sheets leave them pale or out)

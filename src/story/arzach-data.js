@@ -148,7 +148,7 @@ export const LOCALS = [
       { if: { not: { quest: 'arzach.hand', done: true } }, say: ['~scared~ (You glance at the tower. He shakes his head hard and hugs himself: too high, too cold.)', '~playful~ (Then he points at the stone hand out on the plain and taps his own knuckles, the smallest first, up to the tallest, and grins.)'] },
       "~playful~ (He opens his mouth wide. An impressive amount of nothing comes out.)",
       '~angry~ (He turns his back on you, folds his arms and becomes a spire. The spire would like you to go away.)',
-      { if: { not: { flag: 'box.arzach.hush' } }, say: '~curious~ (He draws a square in the sand with a star on top, points north at the needle spire, and mimes climbing it. He falls off on purpose.)' },
+      { if: { not: { flag: 'box.arzach.hush' } }, say: '~curious~ (He draws a square in the sand with a star on top, points out at the needle spire on the plain, halfway to the tower, and mimes climbing it. He falls off on purpose.)' },
       { after: { flag: 'world.arzach.done' }, say: '~happy~ (He flaps his arms, points at the sky, then at you, and bows so low his hair sweeps the sand.)' },
       { after: { flag: 'temple.arzach.done' }, say: '~surprised~ (He points west, at the white house with the stone wings, then up, where the great birds wheel again, and spins until he sits down.)' },
     ] },
@@ -159,7 +159,7 @@ export const LOCALS = [
       entry: [{ if: { quest: 'arzach.feathers', done: true }, node: 'after' }, { if: { flag: 'met.senn' }, node: 'again' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ['~whisper~ Shh.', "~whisper~ (Her ear rests against a standing stone. One raised finger asks you to wait.)", "~whisper~ Listen. The stones have hummed since the light passed."],
+          say: ['~whisper~ Shh.', "~whisper~ (Her ear rests against the foot of a needle spire. One raised finger asks you to wait.)", "~whisper~ Listen. The stones have hummed since the light passed."],
           choices: [
             { text: '~curious~ What light?', goto: 'light' },
             { text: '~curious~ The bird over the haze?', goto: 'bird' },
@@ -172,7 +172,7 @@ export const LOCALS = [
         },
         ship: { say: ["~solemn~ (She studies you.) You heard it too.", '~neutral~ (She puts her ear back to the stone.)'], choices: [{ text: '~curious~ The bird cried?', goto: 'cried' }, { text: '~neutral~ (leave her to listen)', end: true }] },
         cried: {
-          say: ["~sad~ She shook all night. Lost feathers. (Senn plucks at her sleeve.)", "~neutral~ *Two spires. Their flat tops.* (She points.) The third feather is in *the stone hand*."],
+          say: ["~sad~ She shook all night. Lost feathers. (Senn plucks at her sleeve.)", "~neutral~ *Two spires. Their flat tops.* (She points straight up the spire at her back, then far off past the tower.) The third feather is in *the stone hand*."],
           do: { start: 'arzach.feathers' },
           choices: [{ text: '~happy~ I’ll find them for her.', end: true }],
         },

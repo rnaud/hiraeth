@@ -312,7 +312,8 @@ export const CONTENT = {
     npcs: [
       // (Tam, who copies you: a boy of seven, src/story/arzach-data.js LOCALS)
       { at: [40, 44], palette: pal('#f4efe2', { cloth: '#8a7a66' }), lines: ['~tired~ …'], shy: true, kind: 'm', age: 'child', years: 7, scale: 0.72 },
-      { at: [-60, -40], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
+      // Senn, out on the plain at the foot of the capped spire halfway to the tower (v1.9: she stood by the landing)
+      { at: [163, -271], palette: pal('#d8c7a6'), lines: ["~solemn~ The wind climbs the tower. Wings climb with it.", "~sad~ Her rider left. She keeps to the sky now."] },
       { at: [-130, -183], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say.", "~tired~ Small to tall. Always.", "~solemn~ (He taps his knuckles, little finger first, and listens.)"] },
     ],
   },

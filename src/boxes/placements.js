@@ -60,12 +60,14 @@ export const PLACEMENTS = {
       note: 'In the makers’ court on the plateau beyond the rim behind the landing: towers across a gap, a rise to a lamp. The pen spans the shaft’s terraces too.' },
   ],
   arzach: [
-    // the nearest capped needle spire, 240 m north: a long climb or a landing on the bird
+    // the capped needle spire out on the plain, halfway from the landing to the lone tower (Senn listens at its foot,
+    // a shed feather lies on its cap): a long climb or a landing on the bird. (v1.9, the level design audit: it was on a
+    // spire 240 m north, a trip there and back with nothing else on it.)
     // It held the bell-note whistle until the Founders' Belfry was built (src/temples/arzach2.js): the bell belongs
     // to the bell world, and is the belfry's key now. The spire keeps the hush-cloth, a gift in the open
-    { id: 'arzach.hush', item: 'hush', at: [17.9, 59.5, 239.9], toward: [0, 0],
-      hint: 'A makers’ box sits on the flat cap of the needle spire north of the landing. Climb it, or land the bird on top',
-      note: 'The flat cap of the needle spire north of the spawn; climb it or land the bird on it.' },
+    { id: 'arzach.hush', item: 'hush', at: [172.5, 86.2, -278], toward: [0, 0],
+      hint: 'A makers’ box sits on the flat cap of the needle spire out on the plain, halfway to the lone tower. Climb it, or land the bird on top',
+      note: 'The flat cap of the needle spire on the plain halfway from the landing to the lone tower, where Senn listens; climb it or land the bird on it.' },
     // the Aerie (src/temples/arzach.js): in its round chamber over the feather stair. The wings are the key to the
     // rest: the gulf, the wind well, the Elder, who will not fly alone
     { id: 'arzach.temple.glider', item: 'glider', temple: 'arzach', site: (level) => level.temple?.gadgetSite,
