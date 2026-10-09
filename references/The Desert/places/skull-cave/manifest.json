@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a vast cave inside the chest of a fallen giant, reached through its skull's mouth: great curved ribs of bleached bone form the vaulted walls and ceiling like a cathedral, sand and rock filling the spaces between them, shafts of light falling through cracks in the bone. In the middle a round stone pool that should hold water lies dry, damp dark stains and a pale tide line on its sides; the pale roots of a giant tree hang down from the ceiling into the empty pool like curtains. Along the floor a carved channel runs from a crack in the far wall toward the pool, blocked by one huge fallen bone lying across it, a trickle of turquoise water glinting behind the bone. Faint wavering reflections of water play over the ribs even though the pool is dry. A small cloaked human traveller with a round jade fluid backpack stands at the pool's edge for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory bone, warm sand, cool turquoise light, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/desert-places-prompts.md#skull-cave",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-20-25-4c9a",
+      "candidate": "openai/2",
+      "sha256": "68a18e8d4a11fbbebc2912055ffdee6ff0039915bc6c97b1ea07efe6f40f7ebe",
+      "bytes": 296396,
+      "costUSD": 0.041
+    }
+  ]
+}

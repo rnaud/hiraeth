@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the skull of a fallen giant lying half sunk in golden dunes beyond the back gate of an old desert city, seen from the path that leads to it in late afternoon light. The skull is enormous, the size of a temple, bleached bone weathered smooth with cracks and wind-carved grooves, tilted slightly as if the giant fell face first; its two great eye sockets are marked with painted turquoise and ochre glyph rings by pilgrims, cloth ribbons and small offerings tied below them; its jaw hangs open and the open mouth is a dark doorway at ground level, worn steps of sand and stone leading in, a faint cool glow and damp darkness inside. A low line of the city's mud-brick wall and its back gate in the distance behind, a long shadow across the sand, a few small cairns marking the path. A small cloaked human traveller with a round jade fluid backpack walks toward the mouth, tiny against the skull. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, golden sand, rose and ochre rock, turquoise accents, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/desert-places-prompts.md#skull",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-19-53-847a",
+      "candidate": "openai/1",
+      "sha256": "e4b5a927245ce9e70405f42f428a1c2e49f6c1b428d79b3d31aa9d92aa1d8344",
+      "bytes": 266854,
+      "costUSD": 0.041
+    }
+  ]
+}

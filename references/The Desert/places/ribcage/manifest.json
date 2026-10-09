@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the skeleton of a fallen giant stretched across golden dunes, its spine a long ridge of vertebrae half buried in the sand and its huge curved ribs rising like the arches of a ruined hall, a pair of long tusks at the head end. Wind has piled sand against one side; long shadows of the ribs stripe the dunes in low morning light; a small drum and a scrap of cloth lie in the shade under one rib, a faint track of footprints leading to it. Distant rose canyon walls and a pale lavender sky on the horizon. A small cloaked human traveller with a round jade fluid backpack walks between the ribs for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory bone, golden sand, rose rock, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/desert-places-prompts.md#ribcage",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-21-30-fe2b",
+      "candidate": "openai/1",
+      "sha256": "1b528fbad5f917fa848cf4c50ff75935f88f4bb790d165107fb9fbc3b2743186",
+      "bytes": 264653,
+      "costUSD": 0.041
+    }
+  ]
+}
