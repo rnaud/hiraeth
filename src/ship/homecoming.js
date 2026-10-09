@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { game } from '../game-state.js';
-import { polar } from './geo.js';
-import { R, DECK, HATCH_A } from './hull.js';
+import { DECK, HATCH_A } from './hull.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
@@ -388,7 +387,7 @@ export class HomecomingDirector {
         pk.group.position.copy(s.restPos);
         break;
       case 'walk': {
-        s.placePlayer(s.world(pk, polar(9.0, HATCH_A, DECK)), s.site.heading, true);
+        s.placePlayer(s.world(pk, pk.interior.points.threshold), s.site.heading, true);
         const meet = HOME_SPOTS.meet, st = this.standAt();
         s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), this.at(meet.x, 0, meet.z - 6), this.at(st.x * 0.5, 0, st.z - 2.2), st]);
         // Lou runs down to meet you (and the dog with her)
@@ -541,7 +540,7 @@ export class HomecomingDirector {
         const dive = id === 'dive' ? smooth(t / 2.6) : 0;
         if (s.spaceCopy) s.spaceCopy.space.rotation.x = 0.12 * k + 0.5 * dive;
         const back = id === 'cargo' ? 0.6 : 0;
-        s.shot({ pos: this.W(V(-0.5 - back * 0.6, DECK + 1.8, -7.6 + (1 - k) * 1.2 + back)), look: this.W(V(0.4, DECK + 1.3 - dive * 0.5, -14)), fov: 60 - k * 4 });
+        s.shot({ pos: this.W(V(-0.4 - back * 0.6, DECK + 1.8, -7.3 + (1 - k) * 1.0 + back)), look: this.W(V(0.4, DECK + 1.3 - dive * 0.5, -16)), fov: 60 - k * 4 });
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
           if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { game } from '../game-state.js';
-import { polar } from './geo.js';
-import { R, DECK, HATCH_A } from './hull.js';
+import { DECK, HATCH_A, CENTRE_Z, LENGTH, HALF_W, BELLY, LIFT } from './hull.js';
 import { CONSOLE_R } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
 import { callTimeline, NUDGE, nudgeText, nudgeDue, PAUSE, PAUSE_THEME_AT, PROLOGUE_STAGES } from './prologue.js';
@@ -37,6 +36,16 @@ const FIRE = ['#ffd27a', '#ff9a4a', '#f2c54b', '#e6503a'];
 const LIGHT = ['#fff6d8', '#bff4ff', '#f7e08a', '#9fe6f0', '#ffffff'];
 const VAPOUR = ['#eef2f2', '#e2e8ea', '#f6f1e6'];
 const pickOf = (a) => a[Math.floor(Math.random() * a.length)];
+/**
+ * The cockpit's frame for the recordings' cameras (ship-local): where he stands at the dash (`me`), the projector (`p`),
+ * the way he faces it (`f`, level) and his right (`r`). at(right, up, back): a point off where he stands.
+ */
+function cockpitFrame(model) {
+  const P = model.interior.points, me = P.cockpit, p = P.projector;
+  const f = V(p.x - me.x, 0, p.z - me.z).normalize(), r = V(-f.z, 0, f.x);
+  const at = (right, y, back) => me.clone().addScaledVector(r, right).addScaledVector(f, -back).setY(DECK + y);
+  return { me, p, f, r, at };
+}
 
 /** The hologram's size over the projector (1: life size): busts a little under life size, their faces near his. */
 export const HOLO_SCALE = 0.9;
@@ -61,12 +70,12 @@ export function travellerHead(ship, model, out = new THREE.Vector3()) {
  * clear of the subtitles.
  */
 export function callShot(ship, model, t = 0, close = 0) {
-  const p = model.interior.points.projector ?? polar(7.95, Math.PI, DECK + 1.07);
+  const { p, r, at } = cockpitFrame(model);
   const push = Math.min(t * 0.03, 0.3);
   const k = smooth(close), L = THREE.MathUtils.lerp;
   return {
-    pos: ship.world(model, V(L(1.3, 0.95, k), DECK + L(1.95, 1.88, k), L(-4.8, -5.45, k) - push)),
-    look: ship.world(model, V(p.x - L(0.12, 0.2, k), L(DECK + 1.82, p.y + CALL_FACE - 0.12, k), p.z)),
+    pos: ship.world(model, at(L(1.05, 0.85, k), L(1.95, 1.88, k), L(1.6, 1.0, k) - push)),
+    look: ship.world(model, p.clone().addScaledVector(r, -L(0.12, 0.2, k)).setY(L(DECK + 1.82, p.y + CALL_FACE - 0.12, k))),
     fov: L(48, 36, k),
   };
 }
@@ -79,19 +88,17 @@ export function callShot(ship, model, t = 0, close = 0) {
  * ('over', the shot behind his right shoulder, is callShot itself.)
  */
 export function callAngle(ship, model, angle, u = 0) {
-  const p = model.interior.points.projector ?? polar(7.95, Math.PI, DECK + 1.07);
-  const me = model.interior.points.cockpit ?? polar(6.55, Math.PI, DECK);
-  const push = Math.min(u * 0.04, 0.3), L = (x, y, z) => ship.world(model, V(x, y, z));
+  const { me, p, f, r, at } = cockpitFrame(model);
+  const push = Math.min(u * 0.04, 0.3), W = (v) => ship.world(model, v);
   if (angle === 'bust') {
-    return { pos: L(-0.72 + 0.1 * push, DECK + 1.74, me.z + 0.42 - push), look: L(p.x - 0.05, p.y + CALL_FACE - 0.1, p.z), fov: 30 - 3 * push };
+    return { pos: W(at(-0.62 + 0.1 * push, 1.74, 0.42 - push)), look: W(p.clone().addScaledVector(r, -0.05).setY(p.y + CALL_FACE - 0.1)), fov: 30 - 3 * push };
   }
   if (angle === 'listen') {
-    const at = polar(7.4, Math.PI + 0.13, DECK + 1.5);
-    return { pos: L(at.x, at.y, at.z + push), look: L(me.x, DECK + 1.56, me.z), fov: 34 - 4 * push };
+    // from over the dash beside the projector (clear of the pilot's seat, on his left), back at his face
+    return { pos: W(at(-0.7, 1.5, -0.8 - push)), look: W(me.clone().setY(DECK + 1.56)), fov: 34 - 4 * push };
   }
   if (angle === 'window') {
-    const at = polar(6.85, Math.PI - 0.42, DECK + 1.45);
-    return { pos: L(at.x - 0.6 * push, at.y, at.z), look: L(p.x - 0.5, DECK + 1.55, p.z + 0.2), fov: 52 - 4 * push };
+    return { pos: W(at(1.85 - 0.6 * push, 1.45, 0.3)), look: W(p.clone().addScaledVector(r, -0.5).addScaledVector(f, -0.2).setY(DECK + 1.55)), fov: 52 - 4 * push };
   }
   return null;
 }
@@ -149,8 +156,8 @@ export function cutAt(cuts, t) {
  */
 export function tableShot(ship, model, t = 0) {
   const tp = model.interior.points.table;
-  const me = ship.local(model, ship.player.pos).setY(0);
-  const away = me.lengthSq() > 0.01 ? me.normalize().negate() : V(0, 0, -1);
+  const me = ship.local(model, ship.player.pos).sub(tp).setY(0);
+  const away = me.lengthSq() > 0.01 ? me.normalize().negate() : V(1, 0, 0);
   const d = 3.4 - Math.min(t * 0.2, 0.4);
   return { pos: ship.world(model, V(tp.x + away.x * d, tp.y + 0.55, tp.z + away.z * d)), look: ship.world(model, V(tp.x - away.x * 0.6, tp.y + 0.05, tp.z - away.z * 0.6)), fov: 50 };
 }
@@ -160,7 +167,8 @@ const CLOSE_IN = 2.4, CLOSE_OUT = 1.6;
 
 /** Facing the recording: the traveller turned to the console (ship-local heading PI). */
 export function faceRecording(ship, model) {
-  ship.player.heading = ship.worldHeading(model, Math.PI);
+  const { me, p } = cockpitFrame(model);
+  ship.player.heading = ship.worldHeading(model, Math.atan2(p.x - me.x, p.z - me.z));
 }
 
 /**
@@ -203,16 +211,17 @@ export class PrologueDirector {
     this.cues = lightCues(this.call); this.cueI = 0;
     this.passDur = PROLOGUE_STAGES.find((x) => x.id === 'pass')?.dur ?? 5.4;
     if (ship.sound?.ctx) void loadCue(ship.sound, 'singing-light');
-    // the light's way past the ship (ship-local): out of the dark ahead, close past the cockpit's right, away behind
-    this.LM = polar(22, 2.75, DECK + 4);                      // nearest: a few metres off the hull, at the window's height
-    this.LD = V(0.45, -0.08, 0.89).normalize();               // the way it goes
+    // the light's way past the ship (ship-local): out of the dark ahead, close past the cockpit's left (the hatch's
+    // side, where it leaves its mark on the hull), away behind
+    this.LM = V(-HALF_W - 5, DECK + 2.4, -7.5);               // nearest: a few metres off the hull, at the window's height
+    this.LD = V(-0.45, -0.08, 0.89).normalize();              // the way it goes
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
     this.T = V(Math.sin(c.travel), 0, Math.cos(c.travel));
     this.N = V(this.T.z, 0, -this.T.x);
     const rest = ship.restPos;
     this.touch = rest.clone().addScaledVector(this.T, -(c.length - 16));
-    this.touch.y = ship.groundAt(this.touch.x, this.touch.z) + R - 4.2;
+    this.touch.y = ship.groundAt(this.touch.x, this.touch.z) + LIFT - 1.0;   // (its belly just in the sand)
     this.S0 = this.touch.clone().addScaledVector(this.T, -1250).addScaledVector(this.N, 160).add(V(0, 620, 0));
     this.S1 = this.touch.clone().addScaledVector(this.T, -430).addScaledVector(this.N, 25).add(V(0, 95, 0));
     this.look = new THREE.Vector3();
@@ -320,7 +329,7 @@ export class PrologueDirector {
         }
         break;
       case 'stepout': {
-        const thr = this.P(polar(9.0, HATCH_A, DECK));
+        const thr = this.P(pk.interior.points.threshold);
         s.placePlayer(thr, s.site.heading, true);
         s.autopilot([s.hinge.clone().addScaledVector(s.outDir, 0.6), s.rampFoot.clone(), s.rampFoot.clone().addScaledVector(s.outDir, 2.2)]);
         break;
@@ -347,7 +356,7 @@ export class PrologueDirector {
         const eye = this.pt('wakeEye'), look = this.pt('wakeLook');
         const up = id === 'wake' ? smooth(seg(t, 4.6, 6.8)) : 0;
         const sit = eye.clone().lerp(eye.clone().add(V(0, 0.4, 0)).lerp(this.pt('bunkStand'), 0.35).setY(DECK + 1.25), up);
-        const lk = look.clone().lerp(polar(3.4, 0.05, DECK + 1.4), up);
+        const lk = look.clone().lerp(this.pt('wakeRoom'), up);
         s.shot({ pos: this.W(sit), look: this.W(lk), fov: 62, roll: (1 - up) * 0.12 });
         if (id === 'wake') {
           // eyes: half open, a blink, then open
@@ -421,10 +430,10 @@ export class PrologueDirector {
         const nearAt = 2.9, cut = 2.55;
         if (t < cut) {
           const k = smooth(t / cut);
-          s.shot({ pos: this.W(V(0.9, DECK + 1.95, -4.6 - 0.3 * k)), look: this.W(V(3.0 + 2 * k, DECK + 1.7, -22)), fov: 56 });
+          s.shot({ pos: this.W(V(0.55, DECK + 1.95, -5.9 - 0.3 * k)), look: this.W(V(-2.6 - 2 * k, DECK + 1.75, -22)), fov: 56 });
         } else {
           const k = smooth((t - cut) / (this.passDur - cut));
-          s.shot({ pos: this.W(V(44, 3 + 2 * k, 4 + 4 * k)), look: this.W(V(4 + 6 * k, -6, -8 + 10 * k)), fov: 56 });
+          s.shot({ pos: this.W(V(-34, DECK + 2 + 2 * k, 3 + 4 * k)), look: this.W(V(-3 - 5 * k, DECK + 1.2, -6 + 9 * k)), fov: 56 });
         }
         const pos = this.lightFrame(nearAt - t, dt);
         // everything in the cockpit is lit by it as it nears; the father's picture shivers
@@ -437,7 +446,7 @@ export class PrologueDirector {
       case 'drain': {
         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit
         const k = smooth(seg(t, 1.6, 4.8));
-        s.shot({ pos: this.W(V(-1.3, DECK + 1.7, -3.7)), look: this.W(V(0.2, DECK + 1.9 - k * 0.7, -10)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });
+        s.shot({ pos: this.W(V(-0.9, DECK + 1.75, -5.6)), look: this.W(V(0.2, DECK + 1.9 - k * 0.7, -12)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
         if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }
@@ -452,15 +461,16 @@ export class PrologueDirector {
         const u = Math.min(1, t / 5.2);
         const p = this.bez(u);
         pk.group.position.copy(p);
-        const spin = new THREE.Quaternion().setFromAxisAngle(this.T, Math.sin(t * 0.9) * 0.12);
-        pk.group.quaternion.copy(spin.multiply(s.restQuat));
         const vel = this.bez(Math.min(1, u + 0.01)).sub(p).normalize();
+        // nose first along its fall (the bow is local -z), a little nose down, rocking about its way
+        const yawN = Math.atan2(vel.x, vel.z) - Math.PI, pitch = Math.asin(THREE.MathUtils.clamp(-vel.y, -1, 1)) * 0.6;
+        pk.group.quaternion.setFromEuler(new THREE.Euler(-pitch, yawN, Math.sin(t * 0.9) * 0.12, 'YXZ'));
         if (u < 0.75 && Math.random() < 0.8) {
           const g = new THREE.Color(pickOf(VAPOUR));
-          s.smoke.emit(p.clone().addScaledVector(vel, -R * 0.8).add(V((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5)), V(0, 2, 0), 2 + Math.random() * 1.5, 1.6 + Math.random(), g);
+          s.smoke.emit(p.clone().addScaledVector(vel, -LENGTH * 0.6).add(V((Math.random() - 0.5) * 4, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 4)), V(0, 2, 0), 2 + Math.random() * 1.5, 1.6 + Math.random(), g);
         }
         if (u > 0.82) for (let i = 0; i < 2; i++) {
-          const under = p.clone().add(V((Math.random() - 0.5) * R, -R * 0.85, (Math.random() - 0.5) * R));
+          const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.4, CENTRE_Z + (Math.random() - 0.5) * 16));
           s.flame.emit(under, V(0, -14, 0), 1.2 + Math.random(), 0.3, pickOf(FIRE));
         }
         const cam = s.restPos.clone().addScaledVector(this.N, -82).addScaledVector(this.T, 46).add(V(0, 9, 0));
@@ -481,7 +491,7 @@ export class PrologueDirector {
         const n = Math.round((1 - p) * 3 + 1);
         for (let i = 0; i < n; i++) {
           const side = Math.random() < 0.5 ? -1 : 1;
-          const at = pos.clone().addScaledVector(this.T, R * 0.6).addScaledVector(this.N, side * R * (0.5 + Math.random() * 0.5));
+          const at = pos.clone().addScaledVector(this.T, 7).addScaledVector(this.N, side * (5 + Math.random() * 5));
           at.y = s.groundAt(at.x, at.z) + 1;
           const v = this.N.clone().multiplyScalar(side * (4 + Math.random() * 7)).addScaledVector(this.T, 6 * (1 - p)).add(V(0, 3 + Math.random() * 4, 0));
           s.dust.emit(at, v, 1 + Math.random() * 1.3 * (1 - p * 0.5), 1.2 + Math.random(), new THREE.Color(pickOf(SAND)));
@@ -752,8 +762,8 @@ export class ArrivalDirector extends Sequence {
     const side = V(-ship.outDir.z, 0, ship.outDir.x);
     const look = new THREE.Vector3();
     const dust = () => ship.dustColors();
-    // the approach: the ship flies along `fwd` (toward the site, coming in over the ramp's side), the planet ahead and below
-    const fwd = ship.outDir.clone().negate(), up = V(0, 1, 0), across = V(-fwd.z, 0, fwd.x);
+    // the approach: the ship flies nose first along `fwd` (its bow's way as it will stand), the planet ahead and below
+    const fwd = V(0, 0, -1).applyQuaternion(ship.restQuat).setY(0).normalize(), up = V(0, 1, 0), across = V(-fwd.z, 0, fwd.x);
     const cam = new THREE.Vector3(), pl = new THREE.Vector3(), q = new THREE.Quaternion(), tilt = new THREE.Quaternion();
     const fog0 = () => { const U = ship.post?.uniforms; if (U) U.uFogMul.value = 0; };   // no haze in space
     // the planet `D` m off, `drop` rad below the ship's course, `ang` rad its angular radius (so it grows as it nears)
@@ -812,7 +822,7 @@ export class ArrivalDirector extends Sequence {
           // vapour: a few pale wisps streaming back off the rim, no fire
           if (Math.random() < dt * 6 * e) {
             const u = Math.random() * Math.PI * 2;
-            ship.smoke.emit(ship.world(m, V(Math.sin(u) * R, -R * 0.2, Math.cos(u) * R)), pl.clone().multiplyScalar(-6).addScaledVector(fwd, -4), 0.8 + Math.random() * 0.8, 0.9, new THREE.Color('#f7f3ea'));
+            ship.smoke.emit(ship.world(m, V(Math.sin(u) * HALF_W, 1, CENTRE_Z + Math.cos(u) * LENGTH * 0.5)), pl.clone().multiplyScalar(-6).addScaledVector(fwd, -4), 0.8 + Math.random() * 0.8, 0.9, new THREE.Color('#f7f3ea'));
           }
           ship.shot({ pos: cam.clone(), look: m.group.position.clone().addScaledVector(pl, 18), fov: 50 });
           if (t > APPROACH.entry - 0.7 && !this.clouded) { this.clouded = true; C.fade(1, true, 0.6); }
@@ -883,7 +893,7 @@ export class ArrivalDirector extends Sequence {
       {
         until: () => !ship.auto,
         enter: () => {
-          ship.placePlayer(ship.world(m, polar(9.0, HATCH_A, DECK)), ship.site.heading, true);
+          ship.placePlayer(ship.world(m, m.interior.points.threshold), ship.site.heading, true);
           ship.autopilot([ship.hinge.clone().addScaledVector(ship.outDir, 0.6), ship.rampFoot.clone(), ship.rampFoot.clone().addScaledVector(ship.outDir, 2)]);
         },
         frame: (t, dt) => {

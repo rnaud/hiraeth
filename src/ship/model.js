@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
-import { Batch, shell, polar, sector } from './geo.js';
-import { buildHull, doorGeometry, rampGeometry, R, RI, DECK, HATCH, HATCH_A, HINGE_R, WINDOW } from './hull.js';
+import { Batch, polar } from './geo.js';
+import { buildHull, doorGeometry, rampGeometry, R, DECK, HATCH, HATCH_A, HINGE_R, HALF_W } from './hull.js';
 import { buildInterior, BLOCK_H } from './interior.js';
 import { CallScreen } from './portrait.js';
 
@@ -13,13 +13,21 @@ export const SKIRT = BLOCK_H;
 
 export function shipMaterials(tag, { space = false } = {}) {
   const o = {
-    hull: { color: '#f1e8d4', grid: 2.6, plates: true, metal: 'painted' },
+    // the outside, from the selected reference: worn cream enamel, muted lavender panels, one coral stripe,
+    // a khaki lower hull in two chamfers, a dark belly, dark blue glass
+    hull: { color: '#eee4cb', grid: 2.2, plates: true, metal: 'painted' },
+    lav: { color: '#b9a8cc', grid: 1.3, plates: true, metal: 'painted' },
+    stripe: { color: '#ef9479', flat: true, metal: 'painted' },
+    skirt: { color: '#c9bf9f', grid: 2.2, plates: true, metal: 'painted' },
+    skirtDark: { color: '#a99f84', flat: true, metal: 'painted' },
+    belly: { color: '#4a5550', flat: true, metal: 'painted' },
+    glass: { color: space ? '#1d2a52' : '#43577a', flat: true, glow: 0.2 },
     wallIn: { color: '#efe2c4', grid: 1.25 },
     trim: { color: '#d9c7a6', flat: true, metal: 'painted' },
     teal: { color: '#5fb7ad', flat: true, metal: 'painted' },
     dark: { color: '#355955', flat: true, metal: 'painted' },
     band: { color: '#d9643a', metal: 'painted' },
-    seam: { color: '#c9b8a0' },
+    seam: { color: '#8f8676', flat: true },
     glowRed: { color: '#e6503a', glow: 1 },
     glowTeal: { color: '#9fe0d6', glow: 1, tag: `${tag}-glowTeal` },
     thrust: { color: '#ffd27a', glow: 0, tag: `${tag}-thrust` },
@@ -28,8 +36,8 @@ export function shipMaterials(tag, { space = false } = {}) {
     scorch: { color: '#9a7458', flat: true },
     soot: { color: '#54433b', flat: true },
     ink: { color: '#2b211f', flat: true },
-    floor: { color: '#d68d73', grid: 0, flat: true },
-    floorDark: { color: '#a66e55', flat: true, grid: 0 },
+    floor: { color: '#e2d3b4', grid: 0, flat: true },
+    floorDark: { color: '#b48667', flat: true, grid: 0 },
     ceiling: { color: '#e9dcc0', flat: true, grid: 1.6 },
     wall: { color: '#efe2c4', flat: true, grid: 1.2 },
     core: { color: '#4a6a78', glow: 0.15, tag: `${tag}-core` },
@@ -40,8 +48,8 @@ export function shipMaterials(tag, { space = false } = {}) {
     cushion: { color: '#c8483a', flat: true },
     toy: { color: '#e9998a', flat: true },
     crate: { color: '#c9a27a', flat: true, grid: 0.35 },
-    rug: { color: '#c8483a', flat: true },
-    rugInner: { color: '#f2c54b', flat: true },
+    rug: { color: '#b9573f', flat: true },
+    rugInner: { color: '#e3826a', flat: true },
     fruitA: { color: '#e6875f' },
     fruitB: { color: '#7fa86a' },
     panel: { color: '#5a7a8a', flat: true, grid: 0.5, metal: 'painted' },
@@ -65,7 +73,7 @@ export function shipMaterials(tag, { space = false } = {}) {
 const INTERIOR = ['wallIn', 'floor', 'floorDark', 'ceiling', 'wall', 'wood', 'cream', 'blanket', 'pillow', 'cushion', 'toy', 'crate', 'rug', 'rugInner', 'fruitA', 'fruitB', 'panel', 'locker', 'metal', 'pot', 'leaf'];
 
 // thin, small or decorative: drawn, not collided with
-const NO_COLLIDE = ['seam', 'glowRed', 'glowTeal', 'thrust', 'portGlass', 'portIn', 'scorch', 'soot', 'ink', 'teal', 'rug', 'rugInner', 'fruitA', 'fruitB', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'lamp', 'toy', 'leaf'];
+const NO_COLLIDE = ['seam', 'stripe', 'glowRed', 'glowTeal', 'thrust', 'portGlass', 'portIn', 'scorch', 'soot', 'ink', 'teal', 'rug', 'rugInner', 'fruitA', 'fruitB', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'lamp', 'toy', 'leaf'];
 
 /**
  * @param o { space: in orbit (portholes dark, hatch shut), legs: 'down' | 'up' | 'broken',
@@ -79,29 +87,19 @@ export function buildShipModel(o = {}) {
   const batch = new Batch(mats);
   const hull = buildHull(batch, { legs: o.legs ?? 'down', footY: o.footY });
   const interior = buildInterior(batch, group, { tag });
-  // glass you can't walk through: an invisible skin over the cockpit window
-  batch.add('collider', shell({ r: RI + 0.12, patch: { a0: WINDOW.a0, a1: WINDOW.a1, y0: WINDOW.y0 - 0.1, y1: WINDOW.y1 + 0.1 }, tSeg: 60 }));
-  // and an invisible skirting round the floor's edge, where the inner hull curves up like a bowl: without it
-  // the step-up walked you up the curve of the wall (open at the hatch)
-  {
-    const r1 = Math.sqrt(RI * RI - DECK * DECK), gap = 0.03;
-    batch.add('collider', sector({ r0: r1 - 0.25, r1: r1 + 0.1, a0: HATCH.a1 + gap, a1: HATCH.a0 - gap + Math.PI * 2, y0: DECK - 0.05, y1: DECK + SKIRT, seg: 72 }));
-  }
   const flags = Object.fromEntries(NO_COLLIDE.map((k) => [k, { noCollide: true }]));
   flags.collider = { visible: false };
   const meshes = batch.build(group, flags);
 
-  // the hatch door: slides up the hull (a rotation about the ship's z axis)
+  // the hatch door: pops out of its frame and slides aft along the hull (Ship.setDoor)
   const door = new THREE.Group();
   {
     const { out, inn } = doorGeometry();
     door.add(new THREE.Mesh(out, mats.hull), new THREE.Mesh(inn, mats.wallIn));
-    const hp = polar(R + 0.12, HATCH_A, HATCH.y0 + 1.3);
-    const handle = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 0.12).translate(hp.x, hp.y, hp.z - 0.55), mats.dark);
-    door.add(handle);
-    // a teal stripe across the door, so it reads as a door from outside
-    const stripe = shell({ r: R + 0.08, patch: { a0: HATCH.a0 + 0.004, a1: HATCH.a1 - 0.004, y0: HATCH.y0 + 1.8, y1: HATCH.y0 + 2.05 }, tSeg: 120 });
-    door.add(new THREE.Mesh(stripe, mats.teal));
+    const zc = (HATCH.z0 + HATCH.z1) / 2, x = -HALF_W - 0.125;
+    door.add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.08).translate(x, HATCH.y0 + 1.05, HATCH.z1 - 0.18), mats.dark));   // the handle
+    door.add(new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.1, 0.34).translate(x, HATCH.y0 + 1.35, zc - 0.12), mats.glass));         // its dark window
+    door.add(new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.12, HATCH.z1 - HATCH.z0 + 0.1).translate(x, HATCH.y0 + 0.3, zc), mats.stripe));
   }
   door.userData.noCollide = !o.space;   // shut in orbit (part of the walls), open when parked
   door.userData.dynamic = true;
@@ -114,10 +112,12 @@ export function buildShipModel(o = {}) {
     const L = o.ramp.length, n = rampSections(L), step = L / n;
     ramp = new THREE.Group();
     ramp.position.copy(polar(HINGE_R, HATCH_A, DECK));
+    const axis = Math.sign(Math.sin(HATCH_A)) || 1;   // the plank runs out along local ±x, through the hatch
     const sections = [];
     for (let i = 0; i < n; i++) {
       const len = i < n - 1 ? step + RAMP_OVERLAP : step;
-      const r = rampGeometry(len, 1.9 - 0.1 * i);
+      const r = rampGeometry(len, 1.25 - 0.06 * i);
+      if (axis < 0) for (const g of [r.plank, ...r.rails, ...r.stripes]) g.rotateY(Math.PI);
       const sec = new THREE.Group();
       sec.position.y = -0.035 * i;
       const plank = new THREE.Mesh(r.plank, mats.trim);
@@ -134,6 +134,7 @@ export function buildShipModel(o = {}) {
     // hatch's plane (the ship's x-y plane), so the minimal rotation has no roll
     ramp.userData.deployed = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(Math.sin(HATCH_A), 0, Math.cos(HATCH_A)), o.ramp.dir.clone().normalize());
     ramp.userData.length = L;
+    ramp.userData.axis = axis;
     ramp.userData.sections = sections;
     ramp.userData.stow = step + RAMP_OVERLAP;   // the nested stack's length
     ramp.userData.hinge = ramp.position.clone();
@@ -209,7 +210,7 @@ export function poseRamp(ramp, k) {
   let x = 0;
   for (let i = 1; i < n; i++) {
     x += (secs[i].userData.reach - secs[i - 1].userData.reach) * ext[i - 1];
-    secs[i].position.x = x;
+    secs[i].position.x = x * (U.axis ?? 1);
   }
   ramp.updateMatrix();
 }

@@ -4,8 +4,9 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { Player, CameraRig } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
-import { DECK } from '../src/ship/hull.js';
+import { DECK, WALL_IN } from '../src/ship/hull.js';
 import { SKIRT } from '../src/ship/model.js';
+import { inRooms, ROOMS } from '../src/ship/interior.js';
 
 // The close camera in the ship's rooms (players: "the camera clips into everything, and bugs out
 // when I'm moving around"): turning round on the spot anywhere aboard, the lens stays clear of the
@@ -39,14 +40,15 @@ function lensClipped(physics, camera) {
   return false;
 }
 
-const SPOTS = { bunk: 'bunkStand', hall: 'hatchIn', cockpit: 'cockpit', corridor: [2.4, 0.3], corridor2: [2.4, 2.2], galley: [6.5, 4.7], bunkroom: [6.0, 0.3] };
+// (ship-local x, z: the angular hull's rooms, docs/systems/ship.md)
+const SPOTS = { bunk: 'bunkStand', hall: 'hatchIn', cockpit: 'cockpit', table: [0.9, -1.4], galley: [1.8, -4.4], frame: [0, -5.8], cabinDoor: [0, 2.0], cabin: [0.6, 4.2], hold: [0, 7.6] };
 
 test('turning round anywhere in the ship: the lens never cuts into walls or furniture, and the view does not jump', () => {
   const { physics, ship, rig, camera } = shipWorld();
   const m = ship.parked, dt = 1 / 60;
   const report = [];
   for (const [name, at] of Object.entries(SPOTS)) {
-    const l = typeof at === 'string' ? m.interior.points[at].clone() : v(Math.sin(at[1]) * at[0], DECK, Math.cos(at[1]) * at[0]);
+    const l = typeof at === 'string' ? m.interior.points[at].clone() : v(at[0], DECK, at[1]);
     const p = ship.world(m, l);
     rig.target.copy(p);
     rig.snapTight(p);
@@ -68,19 +70,19 @@ test('turning round anywhere in the ship: the lens never cuts into walls or furn
   }
 });
 
-test('the floor stops at the foot of the curved hull: you cannot walk up the wall of the rooms', () => {
+test('walking into the walls anywhere aboard: you stay on the floor and in the rooms', () => {
   const { physics, ship } = shipWorld();
   const m = ship.parked;
   const player = new Player(physics, { climb: false });
-  for (const a of [0.3, 2.0, 3.6, 5.2]) {
-    const start = ship.world(m, v(Math.sin(a) * 7.2, DECK + 0.05, Math.cos(a) * 7.2));
-    player.respawn(start);
+  // (from open floor, straight at a wall: the cockpit's narrowing sides and the windshield, the cabin, the hold's aft wall, the frame)
+  for (const [x, z, a] of [[0.3, -7.6, Math.PI], [0.8, -7.2, Math.PI * 0.75], [-0.8, 4.0, -Math.PI / 2], [0, 8.0, 0], [0, 4.0, Math.PI / 2], [-1.0, -5.0, Math.PI]]) {
+    player.respawn(ship.world(m, v(x, DECK + 0.05, z)));
     const dir = v(Math.sin(a), 0, Math.cos(a)).applyQuaternion(m.group.quaternion);
     const yaw = Math.atan2(-dir.x, -dir.z);   // the camera behind, the stick forward walks outward
     for (let i = 0; i < 4 * 60; i++) player.update(1 / 60, { KeyW: true }, yaw);
     const l = ship.local(m, player.pos);
-    assert.ok(l.y < DECK + 0.25, `at ${a}: still on the floor (${(l.y - DECK).toFixed(2)} m up)`);
-    assert.ok(Math.hypot(l.x, l.z) < 8.9, `at ${a}: not out into the hull`);
+    assert.ok(l.y < DECK + 0.25, `from ${x}, ${z}: still on the floor (${(l.y - DECK).toFixed(2)} m up)`);
+    assert.ok(inRooms(l, { margin: 0 }) && Math.abs(l.x) < WALL_IN && l.z > ROOMS.cockpit.z0 && l.z < ROOMS.hold.z1, `from ${x}, ${z}: not out into the hull (${l.toArray().map((n) => n.toFixed(2))})`);
   }
   assert.ok(SKIRT > 0.6 && SKIRT < 1.4, 'the skirting is over a step and under the camera');
 });

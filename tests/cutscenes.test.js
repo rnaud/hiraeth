@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship, doorPhases } from '../src/ship/ship.js';
-import { R, HATCH, doorGeometry } from '../src/ship/hull.js';
+import { HALF_W, HATCH, doorGeometry } from '../src/ship/hull.js';
 import { buildSpace, rampPhases, rampSections, poseRamp } from '../src/ship/model.js';
 import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
@@ -50,11 +50,11 @@ test('the ground under the ship is found from below the hull, not on top of it',
   }
 });
 
-test('landing: the jets come out of the three bells, and the dust blows out along the ground from under them', () => {
+test('landing: the jets come out of the lift jets under the belly, and the dust blows out along the ground from under them', () => {
   const { ship } = flatWorld();
   const m = ship.parked;
   const bells = THRUSTERS.map((p) => ship.world(m, p));
-  for (const b of bells) assert.ok(b.y - ship.floorAt(b.x, b.z) < 0.6, 'the bells hang just over the ground when parked');
+  for (const b of bells) assert.ok(b.y - ship.floorAt(b.x, b.z) < 0.8, 'the bells hang just over the ground when parked');
   // hovering 6 m up on its jets
   m.group.position.copy(ship.restPos).add(v(0, 6, 0));
   const dust = [], flame = [];
@@ -69,7 +69,8 @@ test('landing: the jets come out of the three bells, and the dust blows out alon
   }
   for (const d of dust) {
     const r = Math.hypot(d.p.x - ship.restPos.x, d.p.z - ship.restPos.z);
-    assert.ok(r < 6, `the dust starts under the bells (${r.toFixed(1)} m from the centre), not on a ring round the ship`);
+    const nearBell = Math.min(...THRUSTERS.map((p) => { const b = ship.world(m, p); return Math.hypot(d.p.x - b.x, d.p.z - b.z); }));
+    assert.ok(r < 12 && nearBell < 4, `the dust starts under the bells (${nearBell.toFixed(1)} m from one), not on a ring round the ship`);
     assert.ok(d.p.y < 0.8, `on the ground (${d.p.y.toFixed(2)}), not on the hull`);
     assert.ok(Math.hypot(d.v.x, d.v.z) > 3 * Math.abs(d.v.y), 'blown flat along the ground');
   }
@@ -81,26 +82,26 @@ test('landing: the jets come out of the three bells, and the dust blows out alon
   assert.ok(blast(0) === 1 && blast(BLAST_H) === 0 && blast(10) > blast(20));
 });
 
-test('the hatch door pops out of its frame and slides up over the hull, never through it', () => {
+test('the hatch door pops out of its frame and slides along the hull, never through it', () => {
   const { ship } = flatWorld();
   const m = ship.parked;
   const { out } = doorGeometry();
   const P = out.attributes.position;
-  let lastY = -Infinity;
+  let lastZ = Infinity;
   for (let i = 0; i <= 20; i++) {
     const k = i / 20;
     ship.setDoor(m, k);
     m.door.updateMatrix();
-    let minR = Infinity, minY = Infinity;
-    for (let j = 0; j < P.count; j += 7) {
+    let inner = -Infinity, maxZ = -Infinity;
+    for (let j = 0; j < P.count; j++) {
       const p = v(P.getX(j), P.getY(j), P.getZ(j)).applyMatrix4(m.door.matrix);
-      minR = Math.min(minR, p.length()); minY = Math.min(minY, p.y);
+      inner = Math.max(inner, p.x); maxZ = Math.max(maxZ, p.z);
     }
-    assert.ok(minR > R + 0.03, `k ${k}: outside the hull (${minR.toFixed(3)} vs ${R})`);
-    assert.ok(minY >= lastY - 1e-6, `k ${k}: it only ever goes up`);
-    lastY = minY;
+    assert.ok(inner < -HALF_W - 0.005, `k ${k}: outside the hull's side (${inner.toFixed(3)} vs ${-HALF_W})`);
+    assert.ok(maxZ <= lastZ + 1e-6, `k ${k}: it only ever slides one way, forward`);
+    lastZ = maxZ;
   }
-  assert.ok(lastY > HATCH.y1, 'open: clear of the doorway');
+  assert.ok(lastZ < HATCH.z0, 'open: clear of the doorway');
   assert.deepEqual(doorPhases(0), { pop: 0, slide: 0 });
   assert.ok(doorPhases(0.25).pop === 1 && doorPhases(0.25).slide < 0.05, 'it pops out before it slides');
 });
@@ -114,7 +115,7 @@ test('the ramp slides out of the doorway, tips down, then telescopes to the grou
     r.updateMatrixWorld(true);
     const last = r.userData.sections[n - 1];
     const L = r.userData.length - last.userData.reach;   // the last section's length
-    return ship.world(m, v(0, 0, 0)).copy(v(L, 0, 0).applyMatrix4(last.matrixWorld));
+    return ship.world(m, v(0, 0, 0)).copy(v(L * (r.userData.axis ?? 1), 0, 0).applyMatrix4(last.matrixWorld));
   };
   poseRamp(r, 0); assert.equal(r.visible, false, 'stowed: out of sight');
   // slid out: level, nested, its tip just past the sill

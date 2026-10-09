@@ -1,18 +1,18 @@
 import * as THREE from 'three';
-import { polar } from './geo.js';
+import { BELLS } from './hull.js';
 
 // The ship's engines as seen from outside, for landing and take-off: a jet of
-// flame out of each of the three bells under the hull, and where the jets hit
+// flame out of each of the four lift jets under the belly, and where the jets hit
 // the ground, dust blown flat out along it from under the ship (more the lower
 // it is); a puff from under each foot as it touches down or lifts off.
 //
 // Everything comes from the ship's own parts (src/ship/hull.js): the bells at
-// THRUSTERS, the feet at the leg angles. The ground under the ship is found
+// BELLS (THRUSTERS here), the feet where the legs stand. The ground under the ship is found
 // from beneath the hull (Ship.floorAt), not from above, where the parked
 // ship's own collider would be.
 
-/** The bells' mouths (ship-local): three round the hull's base, just under the thrust ring. */
-export const THRUSTERS = [0, 1, 2].map((k) => polar(2.6, (k / 3) * Math.PI * 2 + 1.0, -13.85));
+/** The bells' mouths (ship-local): the four lift jets under the belly, two forward, two aft. */
+export const THRUSTERS = BELLS;
 /** How high (m above the ground) the jets still raise dust. */
 export const BLAST_H = 30;
 

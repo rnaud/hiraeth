@@ -49,7 +49,8 @@ function heapMaterial(src, C) {
 }
 
 /**
- * @param o { heightAt(x, z), centre: Vector3 (hull centre at rest), travel: heading it moved along,
+ * @param o { heightAt(x, z), centre: Vector3 (the middle of the hull's plan, at deck height, at rest), travel: heading it moved along,
+ *            reach(a, dy): how far the hull's side is from the centre along world heading a at dy over the deck (src/ship/hull.js reachAt),
  *            length, sandMat (the terrain's own material), protect: [{ a, y, w }] azimuth / height / half-width
  *            to keep clear (hatch, window), rampA (azimuth of the ramp) }
  */
@@ -77,8 +78,9 @@ export function buildCrashSite(o) {
   for (let i = 0; i < AZ; i++) {
     const a = (i / AZ) * Math.PI * 2;
     const front = Math.pow((1 + Math.cos(a - travel)) / 2, 1.6);
-    const top = C.y + THREE.MathUtils.lerp(-8.6, -3.4, front) + (hash(i * 3.1) - 0.5) * 0.8;
-    tops.push({ a, top: Math.min(top, allowed(a)), span: THREE.MathUtils.lerp(8, 18, front) });
+    // (deck-relative: heaped to the lower hull at the sides, up the bow's flank where it ploughed in)
+    const top = C.y + THREE.MathUtils.lerp(-1.5, 0.8, front) + (hash(i * 3.1) - 0.5) * 0.4;
+    tops.push({ a, top: Math.min(top, allowed(a)), span: THREE.MathUtils.lerp(6, 13, front) });
   }
   // soften the profile round the hull, then make sure the openings stay clear
   for (let pass = 0; pass < 4; pass++) {
@@ -88,8 +90,7 @@ export function buildCrashSite(o) {
   for (const t of tops) t.top = Math.min(t.top, allowed(t.a));
   const bermAt = (i, j) => {
     const { a, top, span } = tops[i % AZ];
-    const dy = THREE.MathUtils.clamp(top - C.y, -R + 0.05, R - 0.05);
-    const r0 = Math.sqrt(R * R - dy * dy) + 0.06;
+    const r0 = o.reach(a, top - C.y) + 0.06;
     const k = j / (RAD - 1);
     const r = r0 + span * k;
     const x = C.x + Math.sin(a) * r, z = C.z + Math.cos(a) * r;
@@ -155,8 +156,9 @@ export function buildCrashSite(o) {
 
   // ---- pieces of the ship along the way
   const debris = new THREE.Group();
-  const hullMat = makeMaterial({ color: '#f1e8d4', flat: true }), bandMat = makeMaterial({ color: '#d9643a', flat: true }), dark = makeMaterial({ color: '#34405e', flat: true });
-  const bits = [[0.25, 6, hullMat, [2.4, 0.18, 1.6]], [0.35, -7, bandMat, [1.6, 0.3, 0.9]], [0.5, 9.5, hullMat, [1.5, 0.16, 1.1]], [0.62, -4, dark, [0.5, 0.5, 3.6]], [0.78, 3, hullMat, [1.0, 0.14, 0.8]], [0.9, -3, bandMat, [0.7, 0.2, 0.5]]];
+  // (the angular hull's panels: cream enamel, the coral stripe, a lavender plate, a dark strut)
+  const hullMat = makeMaterial({ color: '#eee4cb', flat: true }), bandMat = makeMaterial({ color: '#ef9479', flat: true }), lavMat = makeMaterial({ color: '#b9a8cc', flat: true }), dark = makeMaterial({ color: '#4a5550', flat: true });
+  const bits = [[0.25, 6, hullMat, [2.2, 0.12, 1.4]], [0.35, -7, bandMat, [1.6, 0.1, 0.3]], [0.5, 9.5, lavMat, [1.3, 0.1, 1.2]], [0.62, -4, dark, [0.3, 0.3, 2.4]], [0.78, 3, hullMat, [1.0, 0.1, 0.8]], [0.9, -3, lavMat, [0.7, 0.1, 0.5]]];
   for (const [s, u, mat, [w, h, d]] of bits) {
     const dd = sStart + (length - sStart) * s;
     const x = C.x - T.x * dd + N.x * u, z = C.z - T.z * dd + N.z * u;
@@ -170,10 +172,10 @@ export function buildCrashSite(o) {
   {
     const dd = sStart + (length - sStart) * 0.45, x = C.x - T.x * dd - N.x * 9, z = C.z - T.z * dd - N.z * 9;
     const leg = new THREE.Group();
-    leg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.42, 4.2, 7).rotateZ(Math.PI / 2).translate(1.6, 0, 0), dark));
-    leg.add(new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), bandMat));
-    leg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 3.4, 7).rotateZ(1.0).translate(-1.3, 0.9, 0), dark));
-    leg.add(new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.3, 0.35, 12).rotateZ(1.0).translate(-2.7, 1.8, 0), dark));
+    leg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 1.6, 7).rotateZ(Math.PI / 2).translate(0.8, 0, 0), dark));
+    leg.add(new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 6), dark));
+    leg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 1.3, 7).rotateZ(1.0).translate(-0.55, 0.38, 0), dark));
+    leg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.6, 0.22, 12).rotateZ(1.0).translate(-1.1, 0.75, 0), dark));
     leg.position.set(x, H(x, z) + 0.1, z);
     leg.rotation.set(0.2, 0.7, 0.15);
     leg.userData.s = 0.45;

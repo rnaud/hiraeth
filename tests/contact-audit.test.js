@@ -11,7 +11,7 @@ import { Physics } from '../src/physics.js';
 import { auditContact, formatContact, drawnSurfaces } from '../src/contact-audit.js';
 import { standGround } from '../src/carriers.js';
 import { StepLag } from '../src/locomotion.js';
-import { builtWorld } from './built-worlds.js';
+import { builtWorld, quiet } from './built-worlds.js';
 import { Player } from '../src/player.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -305,4 +305,76 @@ test('in every world, in the open air and in every room off the map, the push’
     }
   }
   assert.ok(seen.filter((s) => s.includes('room')).length >= 10, `rooms checked: ${seen.length}`);
+});
+
+// The angular ship lands in every world (docs/systems/ship.md): built where the game builds it, its hull's
+// volume is clear of the world (nothing through the rooms, the belly over the ground on its legs, open sky over
+// the roof and its pods), its four feet on the ground, its ramp down to walkable ground. Run last: the ship is
+// added to each shared world and taken away again.
+test('the ship lands in every world: hull clear, feet and ramp on the ground', async () => {
+  const { Ship } = await import('../src/ship/ship.js');
+  const { LEVELS } = await import('../src/levels/index.js');
+  const { CONTENT } = await import('../src/levels/content.js');
+  const { ROOF, LIFT, DECK, undersideAt, LEGS } = await import('../src/ship/hull.js');
+  globalThis.window ??= { addEventListener() {} };
+  const report = [], failed = [];
+  const skipped = [];
+  for (const { id } of LEVELS) {
+    let built;
+    // (a world whose build waits on a promise, the References' sheets, is not built in node: checked in the browser)
+    try { built = builtWorld(id); } catch (e) { if (/runStepsAsync/.test(e.message)) { skipped.push(id); continue; } throw e; }
+    const { scene, level, physics } = built;
+    const lights = level.lights, noShadow = level.noShadow;
+    const ship = quiet(() => new Ship({ scene, physics, level, levelId: id, content: CONTENT[id] ?? { npcs: [], relics: { spots: [] } } }));
+    try {
+      const m = ship.parked, crash = ship.crashed;
+      // the world without the ship: its own colliders out while we look
+      for (const c of ship.colliders) physics.removeCollider(c);
+      m.group.updateMatrixWorld(true);
+      const W = (x, y, z) => ship.world(m, V(x, y, z));
+      const down = V(0, -1, 0).applyQuaternion(m.group.quaternion), up = down.clone().negate();
+      const bad = [];
+      for (let x = -3.3; x <= 3.31; x += 0.825) for (let z = -9.4; z <= 11.8; z += 0.8) {
+        const u = undersideAt(x, z);
+        if (u === null) continue;
+        // nothing between the roof and the belly (crashed: down to the deck's underside, where the sand is heaped)
+        const floorY = crash ? DECK - 0.4 : u;
+        const top = W(x, ROOF + 0.3, z), span = ROOF + 0.3 - floorY;
+        const d = physics.rayDistance(top, down, span);
+        if (d < span - 0.02) bad.push(`(${x.toFixed(1)}, ${z.toFixed(1)}) hit ${(ROOF + 0.3 - d).toFixed(2)} m over the deck`);
+        // open sky over the roof and the pods (6 m: the pods reach 3.8 m over it)
+        if (Math.abs(x) < 3 && physics.rayDistance(top, up, 6) < 6) bad.push(`(${x.toFixed(1)}, ${z.toFixed(1)}) something over the roof`);
+      }
+      // the feet stand on the ground, the legs reaching it without stretching far (a parked ship)
+      if (!crash) {
+        for (const f of m.hull.feet) {
+          const p = ship.world(m, f), g = ship.groundAt(p.x, p.z, p.y + 3);
+          if (Math.abs(g - p.y) > 0.15) bad.push(`a foot ${(p.y - g).toFixed(2)} m off the ground`);
+          if (f.y < -LIFT - 2.5) bad.push(`a leg stretched ${(-LIFT - f.y).toFixed(2)} m`);
+        }
+        if (m.hull.feet.length !== LEGS.length) bad.push('a foot missing');
+      }
+      // the ramp: down to the ground at a walkable slope, nothing across its way
+      const run = Math.hypot(ship.rampFoot.x - ship.hinge.x, ship.rampFoot.z - ship.hinge.z);
+      const slope = Math.atan2(ship.hinge.y - ship.rampFoot.y, Math.max(0.01, run - 1.6)) * 180 / Math.PI;
+      if (slope > 29) bad.push(`the ramp at ${slope.toFixed(0)}°`);
+      if (run > 22) bad.push(`the ramp ${run.toFixed(1)} m long`);
+      const a = ship.hinge.clone().add(V(0, 1.2, 0)), b = ship.rampFoot.clone().add(V(0, 1.2, 0)), dir = b.clone().sub(a);
+      const len = dir.length();
+      if (physics.rayDistance(a, dir.normalize(), len) < len - 0.05) bad.push('something across the ramp');
+      report.push(`${id}: ${bad.length ? bad.slice(0, 3).join('; ') : 'ok'}${crash ? ' (the crash)' : ''}`);
+      if (bad.length) failed.push(`${id}: ${bad.slice(0, 4).join('; ')}`);
+    } finally {
+      // the world as it was found
+      for (const g of [ship.parked.group, ship.crashSite?.group, ship.smoke?.mesh, ship.flame?.mesh, ship.dust?.mesh]) g?.removeFromParent();
+      for (const c of ship.colliders) physics.removeCollider(c);
+      for (const list of [lights, noShadow]) {
+        if (!list) continue;
+        const mine = new Set([...(ship.parked.lightVecs ?? []), ship.parked.vmailLight, ship.parked.holoTable?.object, ship.smoke?.mesh, ship.flame?.mesh, ship.dust?.mesh]);
+        for (let i = list.length - 1; i >= 0; i--) if (mine.has(list[i])) list.splice(i, 1);
+      }
+    }
+  }
+  assert.deepEqual(failed, [], failed.join('\n'));
+  assert.ok(report.length >= 25 && skipped.length <= 2, `${report.join('\n')}\nskipped: ${skipped.join(', ')}`);
 });

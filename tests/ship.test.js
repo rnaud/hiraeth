@@ -5,9 +5,8 @@ import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { GameState } from '../src/game-state.js';
 import { Ship } from '../src/ship/ship.js';
-import { DECK, R } from '../src/ship/hull.js';
-import { polar } from '../src/ship/geo.js';
-import { CONSOLE_R } from '../src/ship/interior.js';
+import { DECK, R, LIFT, WINDOW } from '../src/ship/hull.js';
+import { CONSOLE_R, inRooms } from '../src/ship/interior.js';
 import { findShipSite, siteAvoid, probeSite, SITE_OVERRIDES } from '../src/ship/sites.js';
 import { consoleAction, mapEntries, chartLayout, boxRect } from '../src/ship/starmap.js';
 import { pendingCall, callLines, completedWorlds, applyCall, CALL_COUNT, ILEN_CALL, PROLOGUE_CALL, AGE, REEL, REEL_FROM, recordingLabel, recordingSpan, onHologram } from '../src/story/calls.js';
@@ -36,33 +35,32 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   const { physics, ship } = flatWorld();
   const m = ship.parked;
   const deckY = ship.world(m, v(0, DECK, 0)).y;
-  assert.ok(deckY > 3 && deckY < 6, `the deck stands a few metres up on its legs: ${deckY.toFixed(2)}`);
+  assert.ok(Math.abs(deckY - LIFT) < 0.05, `the deck stands ${LIFT} m up on its legs: ${deckY.toFixed(2)}`);
   // every room has floor under it
-  for (const [name, p] of Object.entries({ bunk: m.interior.points.bunkStand, cockpit: m.interior.points.cockpit, hatch: m.interior.points.hatchIn, corridor: polar(2.4, 1, DECK), galley: polar(6, Math.PI * 1.5 + 0.6, DECK) })) {
+  for (const [name, p] of Object.entries({ bunk: m.interior.points.bunkStand, cockpit: m.interior.points.cockpit, hatch: m.interior.points.hatchIn, table: v(1.2, DECK, -2.6), galley: v(1.9, DECK, -4.4), cabin: v(0.4, DECK, 4.4), hold: v(0, DECK, 7.4) })) {
     const w = ship.world(m, p);
     const g = physics.groundAt(w.x, w.y + 1.5, w.z, 4);
     assert.ok(Math.abs(g - deckY) < 0.05, `floor under the ${name}: ${g.toFixed(2)} vs ${deckY.toFixed(2)}`);
   }
   // the cockpit: the console is solid, and the window is glass (you can't walk out of it)
   const stand = ship.world(m, m.interior.points.cockpit).add(v(0, 0.6, 0));
-  const fwd = ship.world(m, polar(9, Math.PI, DECK + 0.6)).sub(stand).normalize();
+  const fwd = ship.world(m, m.interior.points.projector).setY(stand.y).sub(stand).normalize();
   assert.ok(physics.rayDistance(stand, fwd, 6) < 1.6, 'the console is in front of the pilot');
-  const high = ship.world(m, polar(8.6, Math.PI, DECK + 2.2));
-  const out = ship.world(m, polar(14, Math.PI, DECK + 2.2)).sub(high).normalize();
-  assert.ok(physics.rayDistance(high, out, 6) < 3, 'the cockpit window stops you');
-  // the hull is closed except at the hatch: a ray outward from the bunk room hits it
+  const high = ship.world(m, v(0.6, DECK + 2.1, -7.4));
+  const out = ship.world(m, v(0.6, WINDOW.y1, WINDOW.z0)).sub(high).normalize();
+  assert.ok(physics.rayDistance(high, out, 6) < 2.5, 'the cockpit window stops you');
+  // the hull is closed except at the hatch: rays outward from the cabin hit it
   const bunk = ship.world(m, m.interior.points.bunkStand).add(v(0, 1.2, 0));
-  const away = bunk.clone().sub(ship.world(m, v(0, DECK + 1.2, 0))).setY(0).normalize();
-  assert.ok(physics.rayDistance(bunk, away, 12) < 4, 'the hull wall behind the bunk');
+  for (const d of [v(1, 0, 0), v(-1, 0, 0), v(0, 1, 0)]) assert.ok(physics.rayDistance(bunk, d.applyQuaternion(m.group.quaternion), 12) < 4.5, 'the walls round the cabin');
   // a walk at the wall: the traveller stays inside
   const P = new Player(physics);
   P.opts.climb = false;   // (the ship turns climbing off indoors)
-  P.pos.copy(ship.world(m, polar(6, -0.2, DECK + 0.05)));
-  for (let i = 0; i < 180; i++) P.update(1 / 60, { KeyW: true }, -0.2 + Math.PI);   // walk outward (heading -0.2), into the hull
+  P.pos.copy(ship.world(m, v(1.0, DECK + 0.05, 4.0)));
+  const h = Math.atan2(1, 0) + m.group.rotation.y;   // starboard, into the hull
+  for (let i = 0; i < 180; i++) P.update(1 / 60, { KeyW: true }, h + Math.PI);
   assert.ok(ship.isInside(m, P.pos), `still inside after walking into the wall: ${P.pos.toArray().map((n) => n.toFixed(2))}`);
-  // (the hull curves up from the floor like a bowl, so you can lean a little way up it, never through it)
-  assert.ok(P.pos.y > deckY - 0.1 && P.pos.y < deckY + 3, `on the floor or the foot of the wall: ${P.pos.y.toFixed(2)} vs ${deckY.toFixed(2)}`);
-  assert.ok(Math.hypot(P.pos.x, P.pos.z) < R, 'within the hull');
+  assert.ok(Math.abs(P.pos.y - deckY) < 0.05, `on the floor: ${P.pos.y.toFixed(2)} vs ${deckY.toFixed(2)}`);
+  assert.ok(inRooms(ship.local(m, P.pos), { margin: 0 }), 'within the rooms');
 });
 
 test('walking straight from the corridor at the console gets you to it (the pilot seat stands in the way)', () => {
@@ -71,7 +69,7 @@ test('walking straight from the corridor at the console gets you to it (the pilo
   ship.player = new Player(physics);
   const P = ship.player;
   P.opts.climb = false;
-  P.pos.copy(ship.world(m, polar(2.4, Math.PI - 0.3, DECK + 0.05)));
+  P.pos.copy(ship.world(m, v(0.6, DECK + 0.05, -4.4)));   // (from the main room, by the holo table)
   const target = ship.world(m, m.interior.points.cockpit);
   for (let i = 0; i < 60 * 8 && !ship.atConsole(); i++) {
     const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z);
@@ -108,7 +106,7 @@ test('the holo table in the middle of the deck opens the galactic map; the dash 
   const said = [];
   ship.cinema.say = (l) => said.push(l?.text ?? null);
   // beside the table: the map's prompt; E opens it (locked without power)
-  ship.placePlayer(ship.world(m, polar(1.2, 0.4, DECK)), 0, true);
+  ship.placePlayer(ship.world(m, m.interior.points.tableFoot.clone().add(v(1.1, 0, 0.3))), 0, true);
   assert.ok(ship.atTable() && !ship.atConsole());
   assert.match(ship.hud(), /^E galactic map/);
   ship.use();
@@ -129,7 +127,7 @@ test('the ramp reaches the ground and the hatch is open to walk through', () => 
   // walk from the foot of the ramp, up, through the hatch, into the hall
   const P = new Player(physics);
   P.pos.copy(ship.rampFoot).add(v(0, 0.05, 0));
-  const target = ship.world(ship.parked, polar(5.5, Math.PI / 2, DECK));
+  const target = ship.world(ship.parked, ship.parked.interior.points.aboard);
   for (let i = 0; i < 60 * 8 && P.pos.distanceTo(target) > 0.8; i++) {
     const h = Math.atan2(target.x - P.pos.x, target.z - P.pos.z);
     P.update(1 / 60, { KeyW: true }, h + Math.PI);
@@ -193,7 +191,7 @@ test('the floor is continuous from the entry hall over the threshold onto the ra
   const h = ship.hinge, out = ship.rampFoot.clone().sub(h).setY(0).normalize(), side = v(-out.z, 0, out.x);
   const run = ship.rampFoot.clone().sub(h).setY(0).length(), slope = (h.y - ship.rampFoot.y) / run;
   // from 1.5 m inside the hinge to 1 m down the ramp, across the doorway's width
-  for (let d = -1.5; d <= 1.0; d += 0.05) for (let w = -0.8; w <= 0.8; w += 0.2) {
+  for (let d = -1.5; d <= 1.0; d += 0.05) for (let w = -0.5; w <= 0.5; w += 0.125) {
     const p = h.clone().addScaledVector(out, d).addScaledVector(side, w);
     const g = physics.groundAt(p.x, h.y + 1, p.z, 30);
     const want = h.y - Math.max(0, d) * slope;   // the deck and threshold are level; the ramp descends from the hinge

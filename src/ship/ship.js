@@ -2,9 +2,9 @@ import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp } from './model.js';
-import { R, RI, DECK, CEIL, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEG_A, SCAR } from './hull.js';
+import { R, DECK, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt } from './hull.js';
 import { polar } from './geo.js';
-import { CONSOLE_R, TABLE_R } from './interior.js';
+import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
 import { findShipSite, siteAvoid, decorAvoid } from './sites.js';
 import { buildCrashSite } from './crash.js';
 import { buildApproach } from './approach.js';
@@ -26,13 +26,13 @@ import { Prologue } from './prologue.js';
 import { ReboardGate } from './landing.js';
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
-// The traveller's ship: a big round ball, home between worlds.
+// The traveller's ship: the angular family ship, home between worlds (src/ship/hull.js, docs/systems/ship.md).
 //
 //  - It stands at each world's arrival point (src/ship/sites.js). In the
 //    desert, until it first flies again, it lies where it came down when the singing light drained it:
 //    on its belly, dug into a dune at the end of a short skid.
-//  - Walk up the ramp and in: bunk room, ring corridor, galley, entry hall,
-//    cockpit. All of it collides (physics.addCollider).
+//  - Walk up the ramp and in: the main room (galley, entry, the holo table), the cockpit,
+//    the sleeping cabin, the hold. All of it collides (physics.addCollider).
 //  - E at the cockpit console: the voicemail button (it blinks while a message waits): the
 //    parents' message, as a hologram over the dash (src/story/calls.js, src/ship/hologram.js).
 //  - E at the holo table in the middle of the deck: the galactic map (locked until
@@ -47,10 +47,9 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 // tool:enable { on } to put the fluid tool away indoors and during its scenes.
 
 const Y = new THREE.Vector3(0, 1, 0);
-const rAt = (r, y) => Math.sqrt(Math.max(r * r - y * y, 0));
 const SPACE_Y = 2600;
 const DOOR_POP = 0.14;       // m the door comes out of its frame before it slides
-const DOOR_TRAVEL = 0.27;    // rad up the hull: clear of the opening
+const DOOR_TRAVEL = 1.5;     // m forward along the hull: clear of the opening
 const ease = (t) => { t = Math.min(Math.max(t, 0), 1); return t * t * (3 - 2 * t); };
 /** The door's motion for k 0 (shut) .. 1 (open): it pops out (0 .. 0.25), then slides up (0.2 .. 1), easing. */
 export function doorPhases(k) { return { pop: ease(k / 0.25), slide: ease((k - 0.2) / 0.8) }; }
@@ -102,15 +101,17 @@ export class Ship {
   floorAt(x, z) {
     const r = Math.hypot(x - this.restPos.x, z - this.restPos.z);
     if (r > R + 4) return this.groundAt(x, z);
-    // from just under the hull's belly and the thrust ring (or a little above the ground near its rim)
-    const from = this.restPos.y - Math.max(r < R ? rAt(R, r) + 0.15 : 0, r < 4.4 ? 13.05 : 0, LIFT - 2.5);
+    // from just under the hull's belly, its bells and its legs' pads (or a little above the ground round it)
+    const l = _p.set(x - this.restPos.x, 0, z - this.restPos.z).applyQuaternion(_q.copy(this.restQuat).invert());
+    const u = undersideAt(l.x, l.z);
+    const from = this.restPos.y + (u !== null ? Math.min(u - 0.55, -1.85) : -LIFT + 0.6);
     const g = this.physics.groundAt(x, from, z, 60);
     return Number.isFinite(g) ? g : this.heightAt?.(x, z) ?? this.groundAt(x, z);
   }
 
   place() {
     const s = this.site, crash = this.crashed ? s.crash : null;
-    const yaw = s.heading - Math.PI / 2;      // the hatch (local +x) faces site.heading
+    const yaw = s.heading - HATCH_A;          // the hatch (local -x, heading HATCH_A) faces site.heading
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(crash?.pitch ?? 0, yaw, crash?.roll ?? 0, 'YXZ'));
     const base = new THREE.Vector3(s.x, 0, s.z);
     const toW = (v, cy) => v.clone().applyQuaternion(q).add(base).setY(v.clone().applyQuaternion(q).y + cy);
@@ -119,18 +120,23 @@ export class Ship {
       cy = this.groundAt(s.x, s.z) + LIFT - crash.sink;   // sunk below its parked height over the spot itself
       // keep the deck and the hatch sill clear of the sand
       let need = -Infinity;
-      for (const r of [0, 3, 6, 8.2, 9.3]) for (let k = 0; k < 16; k++) {
-        const w = toW(polar(r, (k / 16) * Math.PI * 2, DECK - 0.35), cy);
+      for (let z = ROOMS.cockpit.z0; z <= ROOMS.hold.z1 + 1e-6; z += 1.2) for (const f of [-1, -0.5, 0, 0.5, 1]) {
+        const w = toW(new THREE.Vector3(f * (z < ROOMS.main.z0 ? cockpitHalf(z) : WALL_IN), DECK - 0.35, z), cy);
         need = Math.max(need, this.groundAt(w.x, w.z, w.y + 40) + 0.05 - w.y);
       }
       const h = toW(polar(HINGE_R, HATCH_A, DECK), cy);
       need = Math.max(need, this.groundAt(h.x, h.z, h.y + 40) + 0.3 - h.y);
       if (need > 0) cy += need;
     } else {
+      // on its legs, the belly clear of the ground everywhere under it
       cy = s.ground + LIFT;
-      for (const r of [0, 4, 8, 11]) for (let k = 0; k < 12; k++) {
-        const p = polar(r, (k / 12) * Math.PI * 2, 0).applyQuaternion(q).add(base);
-        cy = Math.max(cy, this.groundAt(p.x, p.z) + rAt(R, r) + 0.4);
+      for (let z = -9.5; z <= 12; z += 1.5) for (const x of [-2.6, -1.4, 0, 1.4, 2.6]) {
+        const u = undersideAt(x, z);
+        if (u === null) continue;
+        const p = new THREE.Vector3(x, 0, z).applyQuaternion(q).add(base);
+        // (the terrain itself where the level has one: a prop under the hull, a bush or a bone, never lifts it on stilts)
+        const g = Math.min(this.heightAt?.(p.x, p.z) ?? this.groundAt(p.x, p.z), s.ground + 2.6);
+        cy = Math.max(cy, g - u + 0.45);
       }
     }
     this.restPos = new THREE.Vector3(s.x, cy, s.z);
@@ -139,8 +145,8 @@ export class Ship {
     const m = new THREE.Matrix4().compose(this.restPos, q, new THREE.Vector3(1, 1, 1));
     const W = (v) => v.clone().applyMatrix4(m);
     // the feet find the ground; the ramp reaches it at a walkable slope
-    const footY = (a) => {
-      const f = W(polar(R + 3, a, -LIFT));
+    const footY = (leg) => {
+      const fo = footOf(leg), f = W(new THREE.Vector3(fo.x, -LIFT, fo.z));
       return this.groundAt(f.x, f.z) - cy;
     };
     const hinge = W(polar(HINGE_R, HATCH_A, DECK));
@@ -171,19 +177,20 @@ export class Ship {
     this.syncLights(model);
     // the furrow and the heaped sand
     if (crash && this.heightAt) {
-      const C = this.restPos;
+      const C = W(new THREE.Vector3(0, 0, CENTRE_Z));   // the middle of the hull's plan, at deck height
       const az = (p) => Math.atan2(p.x - C.x, p.z - C.z);
       const protect = [];
-      for (let k = 0; k <= 12; k++) {
-        const p = W(polar(R, WINDOW.a0 + ((WINDOW.a1 - WINDOW.a0) * k) / 12, WINDOW.y0));
+      for (let k = 0; k <= 6; k++) {
+        const p = W(new THREE.Vector3(0, WINDOW.y0, WINDOW.z0 - 0.4 + k * 0.1));
         protect.push({ a: az(p), y: p.y - 0.9, w: 0.1 });
       }
       for (let k = 0; k <= 4; k++) {
-        const p = W(polar(R, HATCH.a0 - 0.1 + ((HATCH.a1 - HATCH.a0 + 0.2) * k) / 4, HATCH.y0));
+        const p = W(new THREE.Vector3(-HINGE_R, HATCH.y0, HATCH.z0 - 0.3 + ((HATCH.z1 - HATCH.z0 + 0.6) * k) / 4));
         protect.push({ a: az(p), y: p.y - 0.8, w: 0.14 });
       }
       protect.push({ a: s.heading, y: this.groundAt(foot.x, foot.z) - 0.6, w: 0.42 });
-      this.crashSite = buildCrashSite({ heightAt: this.heightAt, centre: C, travel: s.crash.travel, length: s.crash.length, sandMat: this.level.ground.mesh?.material, protect });
+      const reach = (a, dy) => reachAt(a - yaw, dy);   // (a world heading into the ship's frame)
+      this.crashSite = buildCrashSite({ heightAt: this.heightAt, centre: C, reach, travel: s.crash.travel, length: s.crash.length, sandMat: this.level.ground.mesh?.material, protect });
       this.scene.add(this.crashSite.group);
     }
     this.colliders = [this.physics.addCollider(model.group)];
@@ -301,15 +308,13 @@ export class Ship {
   }
 
   /**
-   * k = 0 shut .. 1 open. The door first unseals, popping a hand's width out of the frame
-   * (its inner skin then sits inside the hull's thickness), then slides up over the curve of
-   * the hull on its track (a turn about the ship's axis, so it never passes through the hull).
+   * k = 0 shut .. 1 open. The door first unseals, popping a hand's width out of its frame, then slides forward
+   * along the outside of the hull on its track, clear of the doorway (it never passes through the hull).
    */
   setDoor(model, k) {
     const { pop, slide } = doorPhases(k);
-    const a = DOOR_TRAVEL * slide, out = DOOR_POP * pop;
-    model.door.rotation.z = a;
-    model.door.position.set(Math.cos(a) * out, Math.sin(a) * out, 0);
+    model.door.rotation.set(0, 0, 0);
+    model.door.position.set(Math.sin(HATCH_A) * DOOR_POP * pop, 0, -DOOR_TRAVEL * slide);
     model.doorK = k;
   }
 
@@ -389,10 +394,7 @@ export class Ship {
     return Math.atan2(d.x, d.z);
   }
 
-  isInside(model, p) {
-    const l = this.local(model, p);
-    return l.y > DECK - 0.8 && l.y < CEIL && Math.hypot(l.x, l.z) < rAt(RI, Math.max(l.y, DECK)) + 0.3;
-  }
+  isInside(model, p) { return inRooms(this.local(model, p)); }
 
   /** Which ship the player is in (the parked one or the one in orbit), or null. */
   modelOf(p) {
@@ -412,8 +414,8 @@ export class Ship {
   atTable() {
     const m = this.modelOf(this.player.pos);
     if (!m) return false;
-    const l = this.local(m, this.player.pos);
-    return Math.hypot(l.x, l.z) < TABLE_R;
+    const l = this.local(m, this.player.pos), c = m.interior.points.table;
+    return Math.hypot(l.x - c.x, l.z - c.z) < TABLE_R;
   }
 
   atHatchInside() {
@@ -499,7 +501,7 @@ export class Ship {
     }
     if (this.atRampFoot()) {
       sfx.hatch(this.sound);
-      return this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, polar(5.5, HATCH_A, DECK))]);
+      return this.autopilot([this.rampFoot.clone().lerp(this.hinge, 0.3), this.hinge.clone(), this.world(this.parked, this.parked.interior.points.hatchIn), this.world(this.parked, this.parked.interior.points.aboard)]);
     }
   }
 
@@ -687,7 +689,7 @@ export class Ship {
     // rooms are only drawn when the camera is near enough to see in
     for (const m of [this.parked, this.spaceCopy?.model]) {
       if (!m) continue;
-      const near = this.camera.position.distanceTo(m.group.position) < 48;
+      const near = this.camera.position.distanceTo(this.world(m, _c.set(0, 1, CENTRE_Z))) < 48;
       if (near !== m.indoorShown) {
         m.indoorShown = near;
         for (const o of m.indoor) o.visible = near;
@@ -713,8 +715,8 @@ export class Ship {
       if ((this.smokeT -= dt) <= 0) {
         this.smokeT = 0.3;
         const m = this.parked;
-        const src = this.world(m, polar(R + 0.5, SCAR.a, SCAR.y + 1));
-        const top = this.world(m, new THREE.Vector3(1.5, R - 0.6, 3));
+        const src = this.world(m, new THREE.Vector3(SCAR.x - 0.4, SCAR.y + 1, SCAR.z));
+        const top = this.world(m, new THREE.Vector3(1.0, ROOF + 0.3, 2.5));
         const at = Math.random() < 0.6 ? src : top;
         this.smoke.emit(at.add(new THREE.Vector3((Math.random() - 0.5) * 2, 0, (Math.random() - 0.5) * 2)), new THREE.Vector3(0.8 + Math.random(), 3.2 + Math.random() * 1.5, 0.3), 0.6 + Math.random() * 0.6, 7 + Math.random() * 2, new THREE.Color(SMOKE[Math.floor(Math.random() * SMOKE.length)]));
       }
@@ -728,7 +730,7 @@ export class Ship {
   }
 }
 
-const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector3(), _d = new THREE.Vector3();
+const _p = new THREE.Vector3(), _l = new THREE.Vector3(), _l2 = new THREE.Vector3(), _d = new THREE.Vector3(), _c = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _warm = new THREE.Color('#fff1c4'), _glowC = new THREE.Color('#ff9a66');
 /** The ship's answer to the voicemail button when nothing waits. */
 export const NO_MESSAGES = { who: 'ship', text: 'No new messages.', tone: 'neutral' };
@@ -741,4 +743,4 @@ function padSkip() {
   return false;
 }
 
-export { SPACE_Y, LEG_A };
+export { SPACE_Y, LEGS };
