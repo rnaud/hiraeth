@@ -1267,3 +1267,23 @@ tests/sound-mix.test.js holds them.
   and the PAUSED title overflowed its column on tall narrow screens (sized by width too); the journal's and
   the title's smallest words (7-9 px) have a 9-10 px floor. Bigger findings are in TODO.md.)
 
+## Playtest notes (2026-10-08): gameplay
+
+- [x] No invisible enemies. (src/foe-presence.js measures what of a foe is drawn over its footing: at least
+  0.4 m tall (or wide and flat), 0.4 m across, with a light part (pale, glowing or white-outlined) 0.2 m
+  across; tests/foe-presence.test.js walks every kind through every state. It found the running shadow
+  hound (a flat black pool and two 4 cm eyes: now a hump of shadow with a white outline, a glowing rim and
+  lit eyes, its body white-lined as the shade's) and the tiny swarm and splinters (bigger eyes, bigger
+  shards). A buried dune ray winding up its burst sank its fin and came up from nowhere: it now swims to
+  its ring with the fin high (Foe.swimTo, SWIM). A foe winding up on the screen but behind a wall got no
+  marker: warnSpot / hiddenFromCamera. Guards, waves and spawnKind fell back to a guessed height inside
+  rocks: roomAt / openSpot (packs too). The hound's bite after stepping behind you waits 0.45 s, was 0.32.
+  Checked in headless Chrome: the hound in the Eclipse, the ray in the Desert.)
+- [x] The knuckles riddle is unclear. (The order is smallest finger to tallest: little, first, ring, middle.
+  But the fingers were nearly the same length, the four stones the same size, every hit rang its bell
+  right or wrong, and the one hint was a toast once. Now (src/story/knuckle-riddle.js): fingers clearly
+  graded, stones graded 3.5-4.7 m, one to four dots cut on each knuckle, right hits stay lit and ring a
+  rising scale, a miss knocks and flashes all four rust and resets; after two misses Kesh calls the order
+  and the journal spells it (flag arzach.hand.hint), after three the next knuckle glints. The hand's and
+  Kesh's lines mention the dots. tests/knuckle-riddle.test.js, tests/story-arzach.test.js. Checked in
+  headless Chrome from in front of the palm.)

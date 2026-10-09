@@ -15,6 +15,13 @@ export const CHANGELOG = [
     'Heading to space now opens onto the night: the jump’s streaks fly across a dark sky instead of a blank white page, and the next world’s loading screen keeps that dark.',
     // screens at every size
     'The pause menu fits on a phone held sideways (every button shows, down to Quit to title) and takes less of the screen on a phone held upright; the smallest words in the journal and on the title screen are a little larger.',
+    // foes you can see, from the playtest
+    'No more invisible shadow hounds: running, a hound is now a low hump of shadow with a glowing rim and lit eyes, and its body has a white outline, so it shows on the Eclipse’s dark streets.',
+    'A dune ray about to burst up under you now swims at you with its fin held high, throwing sand, instead of sinking out of sight first. Its fin has a white outline and the sand it turns is darker.',
+    'A foe winding up behind a wall or a rock now gets the round warning marker too, and foes never appear inside rocks or walls. A shadow hound that steps out behind you waits a little longer before it bites.',
+    'Blot swarms have bigger eyes and glass splinters are a little bigger, so both are easier to spot.',
+    // the stone hand, from the playtest
+    'The stone hand on Vael is fairer: its fingers clearly rise from little to middle, each knuckle has one to four dots cut in it, a right knuckle stays lit and rings the next note up, and a wrong one knocks and flashes rust. After two misses Kesh calls the order out and the journal writes it down; after three the next knuckle glints.',
     // small fixes (made before v1.0, without a line then)
     { text: 'In the References world, the Moon Foundry’s views no longer stretch tall after the window changes size.', see: 'Debug → References, go to a Moon Foundry view, then resize the window or turn the device.' },
     { text: 'While you play a game (the shooting gallery, the drum circle, a race…), the gadget’s card, aiming mark and wheel no longer stay on the screen.', see: 'Hold a gadget, then play the shooting gallery at its stall in the Signal Market: only the game’s own display shows.' },

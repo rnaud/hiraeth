@@ -652,3 +652,17 @@ world holds one more.
 - Tests: `tests/sightings.test.js` (every route sighting is keyed on a real line or flag; written down
   once, with a word, and kept in the save; an old save written quietly; the page), and
   `tests/detour-traces.test.js` (one trace a detour world, each set by its own line).
+
+## Vael's stone hand: the knuckle riddle (`src/story/knuckle-riddle.js`, v1.1)
+
+Shoot the four knuckles smallest finger to tallest: little, first (index), ring, middle (`KNUCKLE_ORDER`
+[3, 0, 2, 1], from the thumb side). After the 2026-10-08 playtest found it unclear, it is readable by looking:
+- the fingers are clearly graded (src/levels/arzach.js: knuckles at 8, 14, 17, 20 m up the finger) and the
+  knuckle stones with them (`RIDDLE.radius` 3.5-4.7 m, every one wider than the finger's 3 m);
+- one to four dots are cut on each knuckle's palm side, its place in the order (`dots`);
+- a right knuckle rings its note (a rising scale) and stays lit, so the chain shows; a miss gives a dull
+  knock, all four flash rust and go dark, and the chain starts again (from that knuckle if it is the first);
+- the second miss: Kesh calls the order out (`KNUCKLE_LINES.call`) and the journal's step spells it
+  (`KNUCKLE_HINT_STEP`, flag `arzach.hand.hint`); from the third, the next right knuckle glints.
+The hand's own text and Kesh's repeat both point at the dots. `strikeKnuckle` is the pure state machine
+(tests/knuckle-riddle.test.js); arzach.js draws and sounds it (tests/story-arzach.test.js).
