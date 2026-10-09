@@ -1,0 +1,149 @@
+.agents/skills/moebius-ai-characters/SKILL.md
+  s_9ca76055a220ed::t_d044c9c0ce1725 3,6,12-13
+.agents/skills/moebius-ai-characters/agents/openai.yaml
+  s_9ca76055a220ed::t_8ed1a96ddca1d5 2-4
+.agents/skills/moebius-ai-characters/references/procedural-quality.md
+  s_9ca76055a220ed::t_ccb78381373d52 1-42
+changelog.md
+  s_9ca76055a220ed::t_59af8b6c5db15a 5-12
+docs/systems/characters.md
+  s_9ca76055a220ed::t_35794416a88adc 645-690
+docs/systems/foes.md
+  s_9ca76055a220ed::t_6b3a0b3fe806dc 438,592-619
+enemies.html
+  s_9ca76055a220ed::t_63fc46e0d8a5b9 1-7
+references/ENEMIES.md
+  s_9ca76055a220ed::t_a27632c905d69a 1-21
+references/Home/enemies/sources.json
+  s_9ca76055a220ed::t_c1ae3a7ca3d838 1-65
+"references/Lorn II The Deep Wood/enemies/sources.json"
+  s_9ca76055a220ed::t_34baaf4182ca91 1-65
+references/Lorn/enemies/sources.json
+  s_9ca76055a220ed::t_92a25a4cbd87ac 1-65
+"references/The Atelier/enemies/sources.json"
+  s_9ca76055a220ed::t_6c2045178ad55d 1-65
+"references/The Buried Machine/enemies/sources.json"
+  s_9ca76055a220ed::t_1b97c22634ce34 1-65
+"references/The City Behind the Waterfall/enemies/sources.json"
+  s_9ca76055a220ed::t_4a6ca6d32c2e17 1-65
+"references/The City During the Eclipse/enemies/sources.json"
+  s_9ca76055a220ed::t_cd06a67d76f01d 1-65
+"references/The City Floating in Space/enemies/sources.json"
+  s_9ca76055a220ed::t_a339c5a0f5fb42 1-65
+"references/The City-Shaft/enemies/sources.json"
+  s_9ca76055a220ed::t_851fc2d6176fad 1-65
+"references/The Desert/enemies/sources.json"
+  s_9ca76055a220ed::t_a0ac80de48f3ea 1-65
+"references/The Fallen Ring/enemies/sources.json"
+  s_9ca76055a220ed::t_c661b8c9740183 1-65
+"references/The Forest of Antennas/enemies/sources.json"
+  s_9ca76055a220ed::t_f8eb9a4cf46f48 1-65
+"references/The Garden of Spheres/enemies/sources.json"
+  s_9ca76055a220ed::t_d5ac4c1b5ad8d7 1-65
+"references/The Glass Dunes/enemies/sources.json"
+  s_9ca76055a220ed::t_30e5adf1ef7897 1-65
+"references/The Moon Foundry/enemies/sources.json"
+  s_9ca76055a220ed::t_47e4f578090c4e 1-65
+"references/The Overnight Train/enemies/sources.json"
+  s_9ca76055a220ed::t_253b66af64b0f2 1-65
+"references/The Salt Harbour/enemies/sources.json"
+  s_9ca76055a220ed::t_6edfe2d79a26c9 1-65
+"references/The Sealed Hangar/enemies/sources.json"
+  s_9ca76055a220ed::t_56757891fdb86a 1-65
+"references/The Signal Market/enemies/sources.json"
+  s_9ca76055a220ed::t_c7981bd78770ff 1-65
+"references/The Underside/enemies/sources.json"
+  s_9ca76055a220ed::t_ca5b294a9d2136 1-65
+"references/The Underwater City/enemies/sources.json"
+  s_9ca76055a220ed::t_ec502492ed7cb6 1-65
+"references/The White Mangrove/enemies/sources.json"
+  s_9ca76055a220ed::t_871072d5f84d7f 1-65
+"references/Vael II- The Sky Stones/enemies/sources.json"
+  s_9ca76055a220ed::t_5090a4dd7aeb38 1-65
+references/Vael/enemies/sources.json
+  s_9ca76055a220ed::t_e2b1f025dac8b9 1-65
+references/Viridel/enemies/sources.json
+  s_9ca76055a220ed::t_15fb95e5ffa2df 1-65
+references/enemy-atlas.html
+  s_9ca76055a220ed::t_953d70e9bd5040 1-26
+references/enemy-roster.json
+  s_9ca76055a220ed::t_e778a72ffbd13f 1-1665
+scripts/character-quality-shots.mjs
+  s_9ca76055a220ed::t_7298438e1b3f59 1-83
+scripts/enemy-quality-shots.mjs
+  s_9ca76055a220ed::t_feea830d6059c3 1-85
+scripts/world-enemy-shots.mjs
+  s_9ca76055a220ed::t_6910ba14929f0f 1-64
+scripts/world-enemy-smoke.mjs
+  s_9ca76055a220ed::t_6d4ff07da2936f 1-73
+src/changelog.js
+  s_9ca76055a220ed::t_bf3bd6299ba84e 11-20
+src/characters/quest-looks.js
+  s_9ca76055a220ed::t_b23a34285c4862 1-79
+src/characters/quest-pieces.js
+  s_9ca76055a220ed::t_eec47e9c413fd8 1-230
+src/costumes.js
+  s_9ca76055a220ed::t_e3d9c89e622b08 2,688-692,1797
+src/enemies/attacks.js
+  s_9ca76055a220ed::t_d4be6a758c8e5f 1-57
+src/enemies/models.js
+  s_9ca76055a220ed::t_042fa2c634cb25 1-205
+src/enemies/page.js
+  s_9ca76055a220ed::t_910025fbef58ff 1-82
+src/enemies/roster.js
+  s_9ca76055a220ed::t_0cfa85937defc4 1-1915
+src/foes.js
+  s_9ca76055a220ed::t_9dffcc263b897c 2,16-18,213-222,249-256,269-274,292,409,437-438,453-458,477,945,950,968-969,975-979,993,1004,1221-1222,1227-1231,1249-1253,1273,1311,1349-1350,1357,1460,1472-1477,1528,1551-1552,1566,1570,1674,1868,1877,1883-1884,1931-1934,1942-1950,1959,2011
+src/humanoid.js
+  s_9ca76055a220ed::t_ad150f5b40420b 4,931-934,1051,1091,1114
+src/levels/arena.js
+  s_9ca76055a220ed::t_a240ef1a3daee5 8,21-23,62
+src/npc.js
+  s_9ca76055a220ed::t_2c334fa1f37f37 1,126,241-250
+src/story/incal.js
+  s_9ca76055a220ed::t_3e7031bb55d8fe 99
+src/story/index.js
+  s_9ca76055a220ed::t_7d8c5f4a2b9ec7 157-158
+src/studio/main.js
+  s_9ca76055a220ed::t_49d8972cf4ae91 667,669-686,1031
+src/studio/people.js
+  s_9ca76055a220ed::t_5fa2d1ca30ed1b 35-36,38
+src/taxi.js
+  s_9ca76055a220ed::t_b8df58876ee290 197-216,231,247-248,333,338
+src/temples/guardians.js
+  s_9ca76055a220ed::t_4550731411dbe6 3,582,865
+src/world-picker.js
+  s_9ca76055a220ed::t_201a0e8b906bbb 16
+tests/cape.test.js
+  s_9ca76055a220ed::t_931a866e66a58b 161-173,246,249,251,274
+tests/costumes.test.js
+  s_9ca76055a220ed::t_810a6d1dba7c6e 120-121
+tests/foe-appearance.test.js
+  s_9ca76055a220ed::t_f93960e488c986 1-62
+tests/hair.test.js
+  s_9ca76055a220ed::t_674f5fe43262f7 62,64
+tests/makehuman-worlds.test.js
+  s_9ca76055a220ed::t_88ca87778375d7 242,246,249,312,318,321,327,345,348
+tests/quest-references.test.js
+  s_9ca76055a220ed::t_975b972e497ea7 1-92
+tests/world-enemies.test.js
+  s_9ca76055a220ed::t_5db4e376a0f394 1-65
+vite.config.js
+  s_9ca76055a220ed::t_3e0a6c4a9118cd 12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7de7565285fbf6428520bd96f0fe95fe181aa9d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
