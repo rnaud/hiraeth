@@ -26,7 +26,8 @@ import { crystalGeometry } from './chimes.js';
 //   const shop = buildInterior(scene, {
 //     id: 'qanat.shop', label: 'Haddu’s Chimes & Cures' (the cue's place name inside), doorLabel: 'shop door', slot: 0,
 //     door: { at: Vector3 (the threshold, on the ground), heading (out of the door) },
-//     front: { w, d, h, wall, trim, dome, awning: [c1, c2], sign: 'CHIMES AND CURES', emblem: 'chime' },
+//     front: { w, d, h, wall, trim, dome, awning: [c1, c2], sign: 'CHIMES AND CURES', emblem: 'chime' }
+//            (or { build: buildStyledFront, style }: a world's own front, src/shop-fronts.js),
 //     room: { w, d, h, windows, wall, floor, ... }   (src/interiors.js buildRoom's options)
 //   });
 //   level.portals.push(...shop.portals); level.lights.push(...shop.lights);
@@ -223,7 +224,8 @@ export function buildShopfront(scene, {
  */
 export function buildInterior(scene, { id, label = 'the shop', doorLabel = 'door', slot = 0, door, front = {}, room = {} }) {
   const at = door.at.clone(), heading = door.heading ?? 0;
-  const shopfront = front ? buildShopfront(scene, { at, heading, ...front }) : null;
+  // (front.build: a front of the world's own instead of the plastered house, src/shop-fronts.js buildStyledFront)
+  const shopfront = front ? (front.build ?? buildShopfront)(scene, { at, heading, ...front }) : null;
   const R = { w: 8, d: 7, h: 4.2, ...room };
   const built = buildRoom(scene, { ...R, pos: interiorSlot(slot), rot: 0 });
   // what you see out of the door from inside: the street's daylight (a self-lit sheet beyond the doorstep,

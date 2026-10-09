@@ -8,6 +8,8 @@ import { Terrain } from '../world.js';
 import { Bird, STAND } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { rockKnobs } from './greeble-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -813,10 +815,18 @@ export function* buildArzach2(scene) {
   const spawn = new THREE.Vector3(0, 0, 22);
   spawn.y = topAt(spawn.x, spawn.z);
 
+  // Sister Perpetue's Almonry (src/shop-world.js, src/shop-fronts.js 'almonry'): the monastery's gatehouse with its
+  // hatch, on the cliff-top in front of the white monastery, facing the start plateau the bird comes in from
+  const shop = placeShop(scene, { def: SHOPS.almonry, at: new THREE.Vector3(-224, topAt(-224, -197), -197), heading: 0.85 });
+
   // the Founders' Belfry out of the cloud west of the plateau, and its rooms far overhead (src/temples/arzach2.js)
   yield;
   return attachTemple('arzach2', scene, {
     id: 'arzach2',
+    portals: [...shop.portals],
+    lights: [...shop.lights],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    floraAvoid: shop.avoid(),
     ground: terrain,
     spawn,
     spawnHeading: Math.PI,

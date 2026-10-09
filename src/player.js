@@ -1502,7 +1502,9 @@ export class Player {
     this._pushedStep = false;
     this.pos.addScaledVector(this.vel, dt);
     // the world's edge: held there, the outward speed taken away (sliding along it, not running on the spot: src/edge.js)
-    if (keepInside(this.pos, this.vel, this.opts.limit, _edgeN)) { this._edgeStep = true; this._edgeN.copy(_edgeN); }
+    // (not in a room built off the map, a shop's at its slot far out over the edge: src/interior-kit.js)
+    if (Number.isFinite(this.opts.limit) && Math.max(Math.abs(this.pos.x), Math.abs(this.pos.z)) > this.opts.limit - 2 && !inTightRoom(this.pos, 0.3)
+      && keepInside(this.pos, this.vel, this.opts.limit, _edgeN)) { this._edgeStep = true; this._edgeN.copy(_edgeN); }
 
     // Walls and ceilings: a capsule from just above step height to the head.
     // Anything lower than STEP is stepped onto by the ground ray below.

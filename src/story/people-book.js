@@ -194,6 +194,10 @@ export const BOOK = {
     P('tam', 'Tam', 'A boy who copies you', [
       'A boy who copies whatever you do and says nothing at all. He mimes directions: the stone hand, the needle spire, the white house with the stone wings.',
     ], ['Out on Vael’s plain.']),
+    P('brin', 'Brin', 'Keeps the Wind-Shelf in a hoodoo’s foot', [
+      'Brin keeps a shop carved into the foot of a hoodoo on the way to the lone tower: cures, a heart, wares hung on cords that turn in the wind. She says one word at a time, as Vael does, and draws her prices in a tray of sand.',
+      [f('arzach.brin.words'), 'Few words go far, she says: the wind carries them.'],
+    ], ['At the Wind-Shelf, behind its curved stone counter.']),
   ],
   arzach2: [
     P('aube', 'Sister Aube', 'Hermit of the edge, watches the cloud', [
@@ -225,6 +229,10 @@ export const BOOK = {
       'A novice whose cairn fell up the night the light went over: the bell hummed and three stones landed on the little sky stones.',
       [done('arzach2.cairn'), 'You brought the stones back and the cairn stands, widest first. It hums.'],
     ], ['By the stone table at the monastery.']),
+    P('perpetue', 'Sister Perpetue', 'The almoner, at the gatehouse hatch', [
+      'Sister Perpetue keeps the monastery’s almonry, a hatch in the gatehouse on the cliff. She sells cures sealed in wax with the Three Notes, and now and then a heart the cloud brings up.',
+      [f('arzach2.perpetue.bells'), 'She rings one of her seven little bells for every sale, one for each founder, so they know something was given away and not kept.'],
+    ], ['At the almonry hatch in the monastery’s gatehouse.']),
   ],
   perdide: [
     P('wendel', 'Wendel', 'Egg-warden at Lorn’s landing', [
@@ -255,6 +263,10 @@ export const BOOK = {
       'Ivo watches the fireflies cross the water every dusk and wants to know where they go. Ysse brings Ivo over in her boat.',
       [done('perdide.fireflies'), 'You followed them: they hatch from Wendel’s glowing eggs. Ivo gave you a jar of fireflies.'],
     ], ['On the cave island, watching the water.']),
+    P('nettle', 'Nettle', 'Keeps a shop on a raft in the reeds', [
+      'Nettle keeps a floating shop moored in the reeds near the landing. She sells cures for the bites, a heart, a little more room in your tank, and keeps her accounts as knots on the cords at her belt.',
+      [f('perdide.nettle.hush'), 'The Hush is painted on her door, three drops over a closed mouth, so the snappers leave her be.'],
+    ], ['On her float in the reeds, behind the plank counter.']),
   ],
   perdide2: [
     P('hollin.perdide2', 'Hollin', 'Keeper of the lamps in the deep wood', [
@@ -286,6 +298,10 @@ export const BOOK = {
       [f('clue.perdide2.edena'), 'Odile drew a garden with white pyramids inside the saucer, so as not to forget it.'],
       [f('perdide2.skiff.home'), 'You brought the skiff home under his old lamp. He will keep it lit this time.'],
     ], ['In the far dome, on the deep water.']),
+    P('rowan', 'Rowan', 'Keeps the Welcome-Shelf on the lit path', [
+      'Rowan, Hollin’s cousin, has kept a shop stocked for travellers in a moss dome on the lit path for thirty years. You were his first customer. Everything is dusted daily.',
+      [f('perdide2.rowan.welcome'), 'Three lamps over a door are the Welcome: a traveller may knock. He never took them down, though nobody came.'],
+    ], ['In the Welcome-Shelf, his moss dome on the lit path.']),
   ],
   edena: [
     P('mira', 'Mira', 'Keeps Viridel’s water clock', [
@@ -320,6 +336,10 @@ export const BOOK = {
       [failed('edena.terraces'), 'At what is left of her terraces, south-east of the landing.'],
       'At her tea terraces, south-east of the landing.',
     ]),
+    P('clover', 'Clover', 'Pots what the garden gives', [
+      'Clover keeps a potting house of wood and glass against a fallen builders’ slab under an umbrella tree. She sells only what the garden gives: cures from the red-leaf, a heart when one ripens.',
+      [f('edena.clover.hearts'), 'Once a season a red heart grows in the moss under the umbrella trees. She takes one and leaves the rest, and digs up nothing.'],
+    ], ['In her potting house under the umbrella tree.']),
   ],
   incal: [
     P('nima', 'Nima', 'Sweeps the high terrace', [
@@ -364,6 +384,10 @@ export const BOOK = {
     P('wren', 'Wren', 'The old cab that still stops', [
       'Public cab nine-nine-one. Wren’s first fare was a mother going to a doctor at night; the palace’s update never arrived, so Wren still stops at the bottom’s call-lamp.',
     ], ['Round the City-Shaft, coming back to the call-lamp at the bottom.']),
+    P('fausta', 'Fausta', 'Sells to every level by a basket on a rope', [
+      'Fausta keeps a narrow shop on the middle terraces by the cab stop. She sells cures, hearts and more room in your tank to every level of the shaft, by a basket on a rope over the void.',
+      [f('incal.fausta.basket'), 'Rim prices on the way up, bottom prices on the way down: the same cure. Nobody has ever compared baskets.'],
+    ], ['In her basket-shop on the middle terraces.']),
   ],
   garage: [
     P('ambroise', 'Ambroise', 'Clerk of the round', [
@@ -394,6 +418,10 @@ export const BOOK = {
     P('ferrol', 'Gaspard', 'Walked round the ring', [
       'Gaspard walked the whole ring once and came back to his own footprints.',
     ], ['Resting on the ring.']),
+    P('odo', 'Odo', 'The Major’s quartermaster', [
+      'Odo keeps the quartermaster’s hatch on the plateau under the keep and issues everything against requisitions Major Brask signed long ago, stamping each one.',
+      [f('garage.odo.stamps'), 'The Major signed a crate of blank requisitions “for whatever the people need” before he went up into the keep. Odo has three thousand and six left.'],
+    ], ['At the quartermaster’s hatch on the plateau.']),
   ],
   buried: [
     P('wen', 'Wen', 'Counts the teeth', [
@@ -423,6 +451,10 @@ export const BOOK = {
       'Jot was nine teeth old and waiting to be ten. Ten-teeth-olds are allowed down the ramp.',
       [f('world.buried.done'), 'The wheel turned: Jot is ten teeth old now.'],
     ], ['Among the domes in the sand.']),
+    P('mott', 'Mott', 'Keeps the Tooth-Counter among the domes', [
+      'Mott keeps a small dome-shop among the domes and counts on an abacus of gear teeth: cures, hearts, more room in your tank.',
+      [f('buried.mott.teeth'), 'She dates every sale by the great wheel’s tooth, as her mother and grandmother did. This is tooth nine hundred and twelve.'],
+    ], ['At the Tooth-Counter, her dome among the domes.']),
   ],
   spheres: [
     P('aube.spheres', 'Linnet', 'Listens to the spheres', [
@@ -446,6 +478,10 @@ export const BOOK = {
     P('ivo', 'Emrys', 'Climbs the white hill', [
       'Emrys climbs everything, and looks under spheres, where a mark is pressed into the ground like a footprint.',
     ], ['Near the white hill.']),
+    P('hale', 'Hale', 'Listens to every cure before he sells it', [
+      'Hale keeps the Listening Stall, a round white pavilion by the cypress avenue. He listens to every ware before he sells it.',
+      [f('spheres.hale.listen'), 'He strikes a tuning fork and holds the flask to it: a good cure hums back the same note, and one that hums flat is poured away.'],
+    ], ['At the Listening Stall by the cypress avenue.']),
   ],
   bazaar: [
     P('sel', 'Madame Sel', 'Kept the broadcast tower', [
@@ -478,6 +514,10 @@ export const BOOK = {
     P('teb', 'Teb', 'A cab tout', [
       'Teb waves at the cabs circling the tower. The quiet ones, Teb says, don’t talk: they listen.',
     ], ['By the cabs in the market.']),
+    P('pashka', 'Pashka', 'The loudest cure-seller on the avenue', [
+      'Pashka keeps a cure-stall in a tower’s foot on the market avenue, with a voice that carries and an illustrated board of a heart and a flask over the stall.',
+      [f('bazaar.pashka.board'), 'In a market of signals a stall without one is a stall nobody hears, he says. The bulbs cost more than the cures.'],
+    ], ['At his cure-stall on the market avenue.']),
   ],
   lantern: [
     P('ilen', 'Ilen', 'Keeps the Lantern', [

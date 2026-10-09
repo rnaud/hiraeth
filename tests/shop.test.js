@@ -271,3 +271,94 @@ test('the wiring: main.js opens the panel on shop:open, it takes the controller 
     assert.ok(src('src/i18n/en.js').includes(`'${k}'`) && src('src/i18n/fr.js').includes(`'${k}'`), k);
   }
 });
+
+// ------------------------------------------------------------------ a shop in every route world (batch 4)
+
+test('a shop in every route world: one each, its keeper, its style, its wares (potions everywhere)', async () => {
+  const { ORDER } = await import('../src/levels/names.js');
+  const { STOCK_TOTAL, shopOf } = await import('../src/shop.js');
+  const { FRONTS } = await import('../src/shop-fronts.js');
+  const { SHOP_STYLES } = await import('../src/shop-world.js');
+  const { BOOK } = await import('../src/story/people-book.js');
+  const all = Object.values(SHOPS);
+  assert.deepEqual([...new Set(all.map((s) => s.world))].sort(), [...ORDER].sort(), 'a shop in each route world, none elsewhere');
+  for (const world of ORDER) {
+    const list = all.filter((s) => s.world === world);
+    assert.equal(list.length, 1, `${world}: exactly one shop`);
+    const s = list[0];
+    assert.equal(shopOf(world), s);
+    assert.ok(s.name && s.id && SHOPKEEPERS[s.keeper], `${s.id}: a name and a keeper`);
+    assert.ok(s.style === 'qanat' || (FRONTS[s.style] && SHOP_STYLES[s.style]), `${s.id}: its own front and room (${s.style})`);
+    assert.ok(s.wares.some((w) => w.id === 'potion'), `${s.id}: sells potions`);
+    assert.ok((s.wares.find((w) => w.id === 'heart')?.stock ?? 0) >= 1, `${s.id}: a heart container or more`);
+    assert.ok(BOOK[world].some((p) => p.id === s.keeper), `${s.keeper}: on the People page under ${world}`);
+  }
+  assert.equal(new Set(all.map((s) => s.keeper)).size, all.length, 'a keeper a shop');
+  assert.equal(new Set(all.map((s) => s.style)).size, all.length, 'a style a shop');
+  // the totals, under the caps
+  const { MAGIC } = await import('../src/resources.js');
+  assert.ok(STOCK_TOTAL.heart <= HEARTS.cap - HEARTS.start, `every heart bought stays under the cap (${HEARTS.start + STOCK_TOTAL.heart} of ${HEARTS.cap})`);
+  assert.ok(STOCK_TOTAL.heart >= 10, `enough hearts to matter (${STOCK_TOTAL.heart})`);
+  assert.equal(STOCK_TOTAL.magic, MAGIC.cap - MAGIC.start, 'every expansion bought fills the bar to its cap');
+  // later worlds a little more: the second half of the route holds at least as many as the first
+  const stockOf = (w) => shopOf(w).wares.filter((x) => x.id !== 'potion').reduce((a, x) => a + x.stock, 0);
+  const half = Math.ceil(ORDER.length / 2);
+  const early = ORDER.slice(1, half).reduce((a, w) => a + stockOf(w), 0) / (half - 1), late = ORDER.slice(half).reduce((a, w) => a + stockOf(w), 0) / (ORDER.length - half);
+  assert.ok(late > early, `the later shops hold more (${late.toFixed(1)} a shop against ${early.toFixed(1)})`);
+});
+
+test('the prices up the route: every container a few dozen packs of its own world\'s foes at most, never a handful', async () => {
+  const { ORDER } = await import('../src/levels/names.js');
+  const { shopOf } = await import('../src/shop.js');
+  const { rosterOf, BUDGET } = await import('../src/foe-worlds.js');
+  // a pack of the world's foes: its wild kinds' drops (src/chimes.js, the tiers only change how they look), the
+  // pack's size by the world's stage (src/foe-worlds.js BUDGET)
+  const pack = (w) => {
+    const R = rosterOf(w), e = Object.entries(R.wild), tot = e.reduce((a, [, x]) => a + x, 0);
+    const [lo, hi] = BUDGET[R.stage];
+    return e.reduce((a, [k, x]) => a + (DROP_OF[k] ?? 1) * x, 0) / tot * (lo + hi) / 2;
+  };
+  const bought = { heart: 0, magic: 0 };
+  for (const w of ORDER) for (const ware of shopOf(w).wares) {
+    if (ware.id === 'potion') { assert.ok(PRICES.potion <= pack(w) * 3.5, `${w}: a potion a few packs at most`); continue; }
+    for (let i = 0; i < ware.stock; i++) {
+      const price = stepPrice(ware.id, bought[ware.id]++), packs = price / pack(w);
+      assert.ok(packs >= (ware.id === 'magic' ? 5 : 8) && packs <= 35, `${w}: a ${ware.id} at ${price} is ${packs.toFixed(1)} packs`);   // (an expansion a little less than a heart)
+    }
+  }
+});
+
+test('every keeper: a look, a voice, a conversation that opens their own shop, and every line toned', () => {
+  for (const s of Object.values(SHOPS)) {
+    const K = SHOPKEEPERS[s.keeper], L = SHOP_LINES[s.keeper];
+    assert.ok(K.name && K.palette && K.head && K.look && Number.isFinite(K.voice) && ['m', 'f'].includes(K.kind), `${s.keeper}: look and voice`);
+    const choices = Object.values(K.talk.nodes).flatMap((n) => n.choices ?? []);
+    const opens = choices.filter((c) => c.do?.emit?.[0] === 'shop:open');
+    assert.ok(opens.length >= 3 && opens.every((c) => c.do.emit[1].shop === s.id && c.end), `${s.keeper}: "Show me what you have" opens ${s.id}`);
+    for (const e of K.talk.entry) assert.ok(K.talk.nodes[e.node], `${s.keeper}: ${e.node}`);
+    for (const c of choices) if (c.goto) assert.ok(K.talk.nodes[c.goto], `${s.keeper}: ${c.goto}`);
+    const said = [...(K.lines ?? []), ...Object.values(K.talk.nodes).flatMap((n) => [...(Array.isArray(n.say) ? n.say : [n.say]), ...(n.choices ?? []).map((c) => c.text)])];
+    for (const l of said) assert.ok(parseLine(typeof l === 'string' ? l : l.text).explicit, `${s.keeper}: "${typeof l === 'string' ? l : l.text}" has a tone`);
+    for (const k of ['open', 'potion', 'heart', 'magic', 'short', 'soldOut', 'full', 'bye']) {
+      assert.ok(L?.[k]?.length >= 2, `${s.keeper}: ${k} lines`);
+      for (const l of L[k]) assert.ok(parseLine(l).explicit, `${s.keeper} ${k}: "${l}" has a tone`);
+    }
+  }
+});
+
+test('every world\'s shop room: its counter with the wares, the keeper behind it, the display kept to the stock', () => {
+  let slot = 20;
+  for (const def of Object.values(SHOPS)) {
+    const scene = new THREE.Scene();
+    const s = buildShop(scene, { def, slot: slot++, door: { at: new THREE.Vector3(10, 0, 10), heading: 0.4 } });
+    assert.equal(interiorAt(s.keeper.at), s.interior, `${def.id}: the keeper in the shop`);
+    assert.equal(interiorAt(s.counter.at), s.interior);
+    assert.ok(s.keeper.at.z < s.counter.at.z - 1.5, `${def.id}: behind the counter`);
+    assert.equal(s.interior.label, def.name, 'the cue names it as you step in');
+    const shown = (id) => s.display[id].filter((m) => m.visible).length;
+    const stock = (id) => def.wares.find((w) => w.id === id)?.stock ?? 0;
+    assert.deepEqual([shown('potion'), shown('heart'), shown('magic')], [SHELF.potions, stock('heart'), stock('magic')], `${def.id}: the wares on its counter`);
+    s.show([{ id: 'heart', stock: 0 }]);
+    assert.equal(shown('heart'), 0, 'what is sold goes from the counter');
+  }
+});

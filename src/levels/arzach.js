@@ -7,6 +7,8 @@ import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 
 // ---------------------------------------------------------------------------
 // Vael: a silent, bone-white world of needle spires,
@@ -338,8 +340,16 @@ export function* buildArzach(scene) {
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
+  // Brin's Wind-Shelf (src/shop-world.js, src/shop-fronts.js 'hoodoo'): carved into a hoodoo's foot on the long walk
+  // from the landing to the lone tower (its emptiest stretch, docs/audits/level-design-v1.9.md), 11 m off the
+  // straight line, its door turned to the walkers coming from the landing
+  const shop = placeShop(scene, { def: SHOPS.windshelf, at: new THREE.Vector3(52, terrain.heightAt(52, -104), -104), heading: 0.55 });
   return attachTemple('arzach', scene, {
     id: 'arzach',
+    portals: [...shop.portals],
+    lights: [...shop.lights],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    floraAvoid: shop.avoid(),
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

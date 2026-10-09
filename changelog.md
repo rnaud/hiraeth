@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.14 — 2026-10-09
+
+- In Vael II, Sister Perpetue keeps the Almonry, the monastery’s gatehouse on the cliff-top between two round towers under slate roofs: seven little bells over its hatch, one rung for every sale, and every cure sealed in wax with the Three Notes.
+- In Vael, Brin keeps the Wind-Shelf, a shelter carved into the foot of a hoodoo on the long walk to the lone tower: an ochre sail on a pole, her wares turning on cords in the wind, a white feather for a sign and her prices drawn in a tray of sand. She says one word at a time.
+- Every world on the way home now has a shop of its own, built the way its people build and kept by someone who lives there. Walk in through its door, talk to the keeper or look at the wares on the counter, and buy healing potions, heart containers and magic expansions with your chimes; each keeper has their own words at the counter, and you will find them on the People page once you have met them.
+
 ## v1.13 — 2026-10-09
 
 - The roster’s foes take less to draw: the tapering parts of their bodies (legs, toes, claws, horns, rootlets) are one piece each instead of a stack of small ones, so a crab, a lizard or a hound costs about half the draw calls it did, with nothing changed in how it looks.

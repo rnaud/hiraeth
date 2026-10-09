@@ -40,12 +40,35 @@ export const WARES = {
 };
 
 /**
- * Every shop: its id (the save's), its keeper (src/story/shop-data.js), its world, and its wares with the stock
- * of the limited ones. Batch 4 adds a shop to every world here.
+ * Every shop, one in each route world (batch 4): its id (the save's), its keeper (src/story/shop-data.js), its
+ * world (the level id), its name (the cue's place name inside), its style (its front, src/shop-fronts.js, and its
+ * room, src/shop-world.js SHOP_STYLES), and its wares with the stock of the limited ones. Potions everywhere; the
+ * heart containers and the magic expansions a few a shop, a little more in the later worlds, so that every one
+ * of them bought makes 18 hearts of the 20 (HEARTS.cap) and a bar of 9 (MAGIC.cap: with the Engine-House's cell
+ * the last expansion is never needed). STOCK_TOTAL sums them (tests/shop.test.js holds them under the caps).
  */
 export const SHOPS = {
-  qanat: { id: 'qanat', keeper: 'haddu', world: 'desert', name: 'Haddu’s Chimes & Cures', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 2 }] },
+  qanat: { id: 'qanat', keeper: 'haddu', world: 'desert', style: 'qanat', name: 'Haddu’s Chimes & Cures', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 2 }] },
+  windshelf: { id: 'windshelf', keeper: 'brin', world: 'arzach', style: 'hoodoo', name: 'The Wind-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  almonry: { id: 'almonry', keeper: 'perpetue', world: 'arzach2', style: 'almonry', name: 'The Almonry', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  float: { id: 'float', keeper: 'nettle', world: 'perdide', style: 'raft', name: 'Nettle’s Float', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }, { id: 'magic', stock: 1 }] },
+  welcome: { id: 'welcome', keeper: 'rowan', world: 'perdide2', style: 'mossdome', name: 'The Welcome-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  potting: { id: 'potting', keeper: 'clover', world: 'edena', style: 'potting', name: 'Clover’s Potting House', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  basket: { id: 'basket', keeper: 'fausta', world: 'incal', style: 'basket', name: 'Fausta’s Basket-Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
+  hatch: { id: 'hatch', keeper: 'odo', world: 'garage', style: 'kiosk', name: 'The Quartermaster’s Hatch', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  toothcounter: { id: 'toothcounter', keeper: 'mott', world: 'buried', style: 'rivetdome', name: 'Mott’s Tooth-Counter', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
+  listening: { id: 'listening', keeper: 'hale', world: 'spheres', style: 'pavilion', name: 'The Listening Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  curestall: { id: 'curestall', keeper: 'pashka', world: 'bazaar', style: 'stall', name: 'Pashka’s Cure-Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
 };
+
+/** How many heart containers and magic expansions all the shops hold together. */
+export const STOCK_TOTAL = Object.values(SHOPS).reduce((t, s) => {
+  for (const w of s.wares) if (w.id !== 'potion') t[w.id] = (t[w.id] ?? 0) + (w.stock ?? 0);
+  return t;
+}, { heart: 0, magic: 0 });
+
+/** A world's shop (its level id), or null. */
+export const shopOf = (world) => Object.values(SHOPS).find((s) => s.world === world) ?? null;
 
 const num = (v, d = 0) => (Number.isFinite(+v) && v !== null && v !== undefined && v !== '' ? +v : d);
 
