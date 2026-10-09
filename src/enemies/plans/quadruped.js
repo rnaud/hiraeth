@@ -129,7 +129,7 @@ export function houndModel(skin) {
   // its ink is drawn with a white contour, as the shade's: black on the Eclipse's dark streets it would be only a
   // hole (playtest 2026-10-08, no invisible foes: src/foe-presence.js)
   const inkM = M.mat('ink', P.ink, { flat: true, lineWhite: true }), rimM = M.mat('rim', P.rim, { flat: true, lineWhite: true });
-  const antlerM = M.mat('antler', P.antler, { flat: !props.has('bleached') }), eyeM = M.own('eye', P.eye, { glow: 0.95 });
+  const antlerM = M.mat('antler', P.antler, { flat: true, lineWhite: true }), eyeM = M.own('eye', P.eye, { glow: 0.95 });
   const Q = quadBody(g, { name: 'hound', hipY: 0.78, hips: [0.4, -0.4], halfWidth: 0.15, feet: [0.18, 0.44, -0.44], legR: 0.04, mats: { joint: inkM, thigh: inkM, shin: inkM, foot: rimM } });
   const { body, torso, legs, rig } = Q;
   const chest = pivot(torso, 0, 0.04, 0.24, 'chest');
@@ -161,8 +161,8 @@ export function houndModel(skin) {
   const crownTip = pivot(crown, 0, 0.5, 0.1);
   // smoke on its back on a chain (it lags as it runs)
   const smokeRoot = pivot(torso, 0, 0.22, 0.1, 'smoke root');
-  const smoke = new VerletChain({ n: 6, length: 0.17, stiffness: 0.12, damping: 0.82, gravity: -1.5, curl: 0.1 });
-  const puffs = chainBeads(g, 6, 0.11, 0.05, rimM);
+  const smoke = new VerletChain({ n: 5, length: 0.2, stiffness: 0.15, damping: 0.82, gravity: -0.6, curl: 0.12 });
+  const puffs = chainBeads(g, 5, 0.16, 0.07, rimM);
   // its shadow form: a dark pool sliding along the ground, a low hump of shadow with a glowing rim, the two eyes over it
   const pool = add(g, new THREE.CircleGeometry(0.55, 16).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), inkM, 0, 0.03, 0);
   const hump = add(g, new THREE.SphereGeometry(0.42, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.75, 1.2, 1.5), inkM);
@@ -202,9 +202,9 @@ export function houndModel(skin) {
       rig.write();
       // the smoke trails off its back, lagging as it runs
       smokeRoot.getWorldPosition(sw);
-      sd.set(-Math.sin(f.heading) * 0.6, 1, -Math.cos(f.heading) * 0.6);
+      sd.set(-Math.sin(f.heading), 0.35, -Math.cos(f.heading));   // (it streams back off its shoulders, lifting)
       placeBeads(puffs, smoke.update(dt, sw, sd), g);
-      puffs.forEach((p, i) => { p.visible = body.visible; p.scale.setScalar(lerp(0.11, 0.05, i / 5) * (1 + Math.sin(c.now / 160 + i) * 0.15)); });
+      puffs.forEach((p, i) => { p.visible = body.visible; p.scale.set(1.4, 0.8, 1.6).multiplyScalar(lerp(0.16, 0.07, i / 4) * (1 + Math.sin(c.now / 160 + i) * 0.15)); });
       eyeM.uniforms.uColor.value.set(eyeColor(f, f.lit > 0 ? '#ffe2a8' : P.eye, '#ff6a8a'));
       if (solid > 0.5 && Math.random() < 0.12) c.drip(f, P.ink);
     },

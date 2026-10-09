@@ -339,6 +339,29 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
   '1.8': [
+    { match: 'The hundred look-alike world enemies are gone', shots: [
+      { name: 'roster-crab', caption: 'Before: the salt crab. After: the shellback crab (its Vael II skin, the cliff crab) on six jointed legs, its pincers raised', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each walking, before (the old foe) and after' },
+      { name: 'roster-tripod', caption: 'Before: a possessed inspection tripod, one of the look-alike machines with a blob of smoke on its shoulder. After: the lamp tripod, its searchlight sweeping, the face at its porthole', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each walking, before (the old foe) and after' },
+    ] },
+    { match: 'The shellback crab: a low wide shell', shots: [
+      { name: 'roster-skins-crab', only: 'after', caption: 'The shellback crab in its seven worlds: the cliff crab, the oil beetle, the stall crab under its awning, the anchor crab, the glass crab, the coral crab, the copper beetle', from: 'headless Chrome, the creatures gallery, each skin walking (node scripts/enemy-roster/skins.mjs)' },
+    ] },
+    { match: 'The horn lizard: long and low', shots: [
+      { name: 'roster-lizard', caption: 'Before: the coin lizard, one of the world enemies. After: the horn lizard in the Signal Market’s skin, its trumpet hung with coins, its tail curled up on a chain', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each walking, before (the old foe) and after' },
+      { name: 'roster-skins-lizard', only: 'after', caption: 'The horn lizard in its worlds: pipe, ash, coin, night, ember, and the Atelier’s ink lizard (the Arena only)', from: 'headless Chrome, the creatures gallery, each skin walking' },
+    ] },
+    { match: 'The antler hound: a lean shadow', shots: [
+      { name: 'roster-hound', caption: 'Before: the shadow hound. After: the antler hound (the Eclipse’s night hound), its crown of antlers, smoke trailing off its back', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each walking, before (the old foe) and after' },
+      { name: 'roster-skins-hound', only: 'after', caption: 'The antler hound in its worlds: the night hound’s crescent, the driftwood hound’s bleached antlers, the halo hound with a ring caught in them, the alley hound’s tangle of wire', from: 'headless Chrome, the creatures gallery, each skin walking' },
+    ] },
+    { match: 'The lamp tripod: a tall boiler', shots: [
+      { name: 'roster-skins-tripod', only: 'after', caption: 'The lamp tripod in its worlds: the City-Shaft’s inspection tripod, the mining tripod, the diving bell, the gyroscope tripod, the Desert’s cistern pump', from: 'headless Chrome, the creatures gallery, each skin walking' },
+    ] },
+    { match: 'The ink blot hops now', shots: [
+      { name: 'roster-blot', caption: 'Before and after: the ink blot, squat now, hopping, a rim of the ground’s colour at its foot (the Desert’s sand)', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each walking, before (the old foe) and after' },
+      { name: 'roster-skins-blot', only: 'after', caption: 'The ink blot in eight worlds, its edge each world’s ground', from: 'headless Chrome, the creatures gallery, each skin walking' },
+    ] },
+    { match: 'Out in the worlds, creatures keep to themselves', see: 'In the Signal Market or the City-Shaft, walk past a pair of horn lizards basking on their stones without going near: they let you be. Step within a few metres, or cut one, and both come for you. A crab in Vael II backs away as you come near.' },
     { match: 'The traveller’s ship is the family’s angular ship now', shots: [
       { name: 'ship-ref34', caption: 'From the front left, as in the selected reference: the round ship on its four legs before; after, the angular ship, its wedge nose and windshield, the coral stripe, the lavender panels, the pods and the stair-ramp', from: 'headless Chrome against a dev server (the Glass Dunes, High, 10:00), the same view from the ship’s site before and after' },
       { name: 'ship-side', caption: 'The port side, square on: the hatch, the slot window, the scorch the light left', from: 'headless Chrome against a dev server (the Glass Dunes, High, 10:00), the same view from the ship’s site before and after' },

@@ -1,6 +1,6 @@
-# Enemy roster: 21 archetypes (proposal, awaiting the author's approval)
+# Enemy roster: 21 archetypes (approved 2026-10-09; framework and batch 1 built)
 
-2026-10-09. A design only: no game code changes yet. It replaces the 100 world enemies (src/enemies/roster.js) and
+2026-10-09. Approved (see "Decisions"); the framework and batch 1 are built (see "Status"). It replaces the 100 world enemies (src/enemies/roster.js) and
 the 15 old kinds (src/foes.js, src/foe-kinds.js) with **21 archetypes**. Each one has its own silhouette, body plan,
 way of moving and job in a fight, and each appears in several worlds with that world's skin.
 
@@ -864,6 +864,45 @@ About 12–13 sessions alongside the kit's 8–11. Phases 2–4 put the whole fi
   (prompts: docs/design/enemy-roster-prompts.md).
 - Not yet answered, so the proposal's defaults stand: the marionette's tone as written; working names for now;
   the side worlds' tables are set as each world is vetted.
+
+## Status (the build, 2026-10-09)
+
+The framework (build plan step 2) is in the game: `src/enemies/archetypes.js` (`ARCHETYPES`, each with its status),
+`src/enemies/skins.js` (`SKINS[archetype][world]`), the world table as `src/foe-worlds.js` `WORLDS` (wired into the
+wild packs, the relics' guards, the Arena's waves and FOES list, and the gallery, enemies.html), one body builder per
+plan in `src/enemies/plans/`. The 100 world enemies are retired (their attack patterns kept: `fromPattern`), and the
+glass splinter with them. docs/systems/foes.md, "The enemy roster", says how it all works.
+
+**Art match pending its sheet:** none of the fresh Midjourney sheets (docs/design/enemy-roster-prompts.md;
+`references/enemy-archetypes/<id>/`) is drawn yet. Every built body follows this doc's description and the best
+existing references listed under it; each wants a pass against its own sheet once it is picked (`art: 'pending'` in
+src/enemies/archetypes.js until then).
+
+| # | Archetype | Status | Body now | Notes |
+|---|---|---|---|---|
+| 1 | Shellback crab | **built** (batch 1) | `plans/walker.js`, plan 1, 7 skins | snap, shell spin, burrow (Salt Harbour, Underwater); scuttles sideways in bursts; calm, shy. Art match pending its sheet |
+| 2 | Skitter swarm | stand-in | the blot swarm | batch 4 |
+| 3 | Ring centipede | planned | none: not spawned yet | batch 2 |
+| 4 | Bellows toad | stand-in | the spitting blot | batch 4 |
+| 5 | Horn lizard | **built** (batch 1) | `plans/quadruped.js`, plan 6, 5 skins + the Atelier's (Arena) | blare (shoves you to its partner), flank bite (from behind you), tail whip (at its back, the `tail` pattern); pairs. Art match pending its sheet |
+| 6 | Stilt heron | planned | none | batch 4 |
+| 7 | Pearl roller | planned | none | batch 6 |
+| 8 | Root knot | stand-in | the root stalker | batch 4 |
+| 9 | Lantern jelly | planned | none | batch 2 |
+| 10 | Signal moth | stand-in | the sign moth | batch 2 |
+| 11 | Sky ray | stand-in | the winged blot | batch 2 |
+| 12 | Mound worm | stand-in | the dune ray | batch 2 |
+| 13 | Lamp tripod | **built** (batch 1) | `plans/piston.js`, plan 18, 5 skins | beam and bolt (the searchlight follows then locks; a parry sends it back), stamp (the `stomp` pattern), steam vent; the porthole face, black steam, a leg's possessed twitch. The Desert's cistern pump is not placed yet. Art match pending its sheet |
+| 14 | Crucible cart | stand-in | the slag walker | batch 5 |
+| 15 | Bell walker | planned | none | batch 5 (the Signal Market, the Salt Harbour, the Underside; none in Vael II) |
+| 16 | Ring drone | stand-in | the rust drone | batch 5 |
+| 17 | Furnace brute | stand-in | the glass golem | batch 5 (Lorn II's wood cutter not placed yet) |
+| 18 | Ink blot | **built** (batch 1) | `plans/blob.js`, plan 20, a skin per world (its edge the ground's colour) | lunge, lunge combo, spit (folded in; a lob, once you keep away); hops by distance; lies pooled. Art match pending its sheet |
+| 19 | Shade | stand-in | the shade (as before) | batch 6 rework |
+| 20 | Antler hound | **built** (batch 1) | `plans/quadruped.js` (the lizard's rig), 4 skins | pounce (0.8 s), step behind, antler rake (under two thirds); a shadow while it runs; not every one hunts. Art match pending its sheet |
+| 21 | Marionette | planned | none | batch 6 (the Garden's glass puppet not placed yet) |
+
+Measured: docs/audits/combat-v1.8.md (scores 3.7–4.5, motion on the kit: no foot slide, the right gait groups).
 
 ## Open questions for the author
 

@@ -1873,3 +1873,13 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   drawing and the lines that called it round, the trailer scenes, the Unity export's data (the C# port's cameras:
   TODO.md). A quarter of the round ship's triangles; a far level of detail.
 
+
+## Enemy roster: the framework and batch 1 (2026-10-09, v1.8)
+
+- [x] The archetypes and skins tables (src/enemies/archetypes.js, src/enemies/skins.js), the world table
+  (src/foe-worlds.js `WORLDS`) wired into the packs, the relics' guards, the Arena's waves and FOES list and the
+  gallery; old kinds stand in for the archetypes not built yet; wildlife calm until provoked.
+- [x] The 100 world enemies retired (their 15 attack patterns kept as a library: `fromPattern`), the glass splinter
+  retired, the spitting blot's spit on the ink blot.
+- [x] Batch 1 on the locomotion kit (src/enemies/plans/): the shellback crab, the horn lizard and the antler hound
+  (one quadruped rig), the lamp tripod, the ink blot; a verlet chain for tails; scored in docs/audits/combat-v1.8.md.

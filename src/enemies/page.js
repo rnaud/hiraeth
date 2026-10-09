@@ -2,7 +2,7 @@ import * as T from 'three';
 import { ItemViewer, dragOrbit, zoomOrbit } from '../items-page/viewer.js';
 import { Foes, FOES } from '../foes.js';
 import { GameState } from '../game-state.js';
-import { ARCHETYPES, ARCHETYPE_IDS, parseKind, skinned } from './archetypes.js';
+import { ARCHETYPES, ARCHETYPE_IDS, archetypeOfKind, parseKind, skinned } from './archetypes.js';
 import { SKINS, HOME_SKIN, skinOf } from './skins.js';
 import { WORLDS, worldArchetypes } from '../foe-worlds.js';
 import { TITLES } from '../levels/names.js';
@@ -54,7 +54,7 @@ class EnemyViewer extends ItemViewer {
     this.fitShadow(m);
     m.holder.position.set(0, 0, 0); m.owner.group.position.set(0, 0, 0); m.holder.updateMatrixWorld(true);
     const f = m.f, dt = this.fixed ? 0 : 1 / 60, P = m.owner.player;
-    f.heading = 0; f.stunned = 0; f.dist = 4;
+    f.heading = 0; f.stunned = 0; f.dist = 2;   // (close by: a hound is solid, a tripod aims its lamp at you)
     // walking, it really walks (its feet are planted by the locomotion kit: src/motion-kit/), and the view follows it
     const walking = this.mode === 'walk' && !this.fixed; m.walkZ = walking ? (m.walkZ ?? 0) + f.def.speed * dt : 0; f.pos.set(0, 0, m.walkZ);
     let phase = this.fixed?.state ?? this.mode, k = this.fixed?.k ?? 0, a = null;
@@ -91,7 +91,11 @@ function choose(id, w = null) {
   if (w) world = w;
   if (!rowsOf(world).some((r) => r.id === id)) world = WORLD_LIST.find((x) => rowsOf(x).some((r) => r.id === id)) ?? 'roster';
   chosen = id; $('world').value = world;
-  const rows = rowsOf(world), row = rows.find((r) => r.id === id), A = ARCHETYPES[row.archetype], { kind, skin } = parseKind(id);
+  const { kind, skin } = parseKind(id), rows = rowsOf(world);
+  // (a skin met only in the Arena, the ink lizard of the Atelier: shown on its own)
+  let row = rows.find((r) => r.id === id);
+  if (!row) { row = { id, archetype: archetypeOfKind(kind), name: id }; rows.push(row); }
+  const A = ARCHETYPES[row.archetype];
   $('enemy').innerHTML = rows.map((r) => `<option value="${r.id}">${r.name}</option>`).join(''); $('enemy').value = id;
   const S = skin ? skinOf(row.archetype, skin) : null;
   $('name').textContent = S?.name ?? A.name;

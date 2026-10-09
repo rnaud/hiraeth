@@ -574,16 +574,90 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
+## The enemy roster (v1.8, `src/enemies/`)
+
+The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
+each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
+
+- **The archetypes** (`src/enemies/archetypes.js` `ARCHETYPES`): family, body plan (the kit's), role, tier, ranged,
+  the moves by name, the answers that beat it, how it lives when nobody fights it, its sound family, its chimes
+  (`drop`, read by src/chimes.js), what it replaces (`was`), and `art: 'pending'` (its fresh Midjourney sheet is not
+  drawn yet: docs/design/enemy-roster-prompts.md). `status` says how far it is:
+  - `built`: on its own body, its tuning (`def`, a foe kind's, added to `FOES`) here. Batch 1: the **shellback crab**
+    (`crab`), the **horn lizard** (`lizard`), the **antler hound** (`hound`), the **lamp tripod** (`tripod`), the
+    **ink blot** (`blot`);
+  - `stand-in`: not built yet, an old kind runs as its body meanwhile (the skitter swarm on the blot swarm, the
+    bellows toad on the spitting blot, the root knot on the root stalker, the signal moth on the sign moth, the sky
+    ray on the winged blot, the mound worm on the dune ray, the crucible cart on the slag walker, the ring drone on
+    the rust drone, the furnace brute on the glass golem, the shade on the shade);
+  - `planned`: nothing stands in (the ring centipede, the stilt heron, the pearl roller, the lantern jelly, the bell
+    walker, the marionette): the world tables list them, spawning passes them over until they land.
+- **Skins** (`src/enemies/skins.js` `SKINS[archetype][world]`): a name, a palette, props (lichen, a beetle's
+  antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
+  crescent, driftwood, halo or wire antlers; a drill lamp, a diving bell, gyroscope rings, a cistern pump), and
+  skin-only moves (`moves`: the crab's burrow in the Salt Harbour and Underwater). The first world listed is the
+  archetype's own skin (the Arena's, `HOME_SKIN`). The blot's are made from each world's ground colour, its edge.
+  A kind is written `kind@skin` where the skin matters (`crab@saltharbour`: `parseKind`, `skinned`); in a world
+  without a skin given, an archetype wears that world's (`skinFor`; its own where the world has none).
+- **The world tables** (`src/foe-worlds.js` `WORLDS`, the doc's table): each world's stage on the difficulty curve,
+  its lead, its archetypes by weight, the late ones (from the third pack), the placed ones (the Desert's cistern
+  pump, Lorn II's wood cutter, the Garden's glass puppet: placement in the worlds is still to do) and its temple
+  rooms. `ROSTERS` turns them into what spawning reads (kinds: each archetype's own or its stand-in's): `wild`,
+  `fill`, `first` (the lead alone), `guards`, `temple`. Packs are sized by stage (`BUDGET`: 1–2, 2–3, 3–4, 4–5),
+  group kinds come as a group (`GROUP`: the lizards and the hounds in pairs, moths in threes, the swarm in six),
+  and the first half of the route holds at most one ranged kind a pack.
+- **Bodies** (`src/enemies/plans/`, one builder per plan, `archetypeModel(kind, skin)`): `walker.js` (plan 1: the
+  crab), `quadruped.js` (plan 6: the lizard and the hound, one rig), `piston.js` (plan 18: the tripod), `blob.js`
+  (plan 20: the blot). Each rides the locomotion kit (src/motion-kit/: the rig, the gait, the poses), its loose parts
+  on a verlet chain (`src/motion-kit/chain.js`: the lizard's tail, the hound's smoke); a leg may lift on its own
+  (`leg.lift`: the lizard rearing, the tripod's stamp and its possessed twitch).
+- **Calm until provoked** (`def.calm`): out in the wilds (a pack: `Foes.add(kind, at, { calm: true })`) a kind with
+  a calm keeps to it. Wildlife (`wild`) grazes, basks or lies about and fights only when provoked: you come within
+  `provoke` m in sight, you hurt it, or one of its own near it is roused (`Foes.alarm`, `alarm` m); a shy one (the
+  crab) backs away as you come near; home again it calms down. The tripod patrols its round and comes for you at
+  20 m; the blot lies pooled until you are 9 m off; of the hounds, not every one hunts (`hunts`: the others stand up
+  and watch you go). Anywhere else (the Arena, a relic's guards, a temple, the tests) every kind comes for you.
+- **The archetypes' attack fields** (beside those in src/foe-kinds.js's header): `skins` (only in those skins),
+  `below` (only under a share of its health: the hound's antler rake), `rear` / `back` (the lizard's tail whip: only
+  with you behind it, its area behind it), `flank` (the lizard's bite: only from behind you, out of your sight),
+  `far` (begun from beyond its reach once it has chased you that long: the blot's spit), `shove` (the blare: shoved
+  toward its partner), a lane's `track` (the tripod's searchlight follows you, then locks), `onParry: 'reflect'` (a
+  perfect parry sends the bolt back into the lamp: 2). The `burst` of a kind ([go, stop] s: the crab's scuttle) and
+  `flanks` (a pair: the second circles behind you). Every move carries its `tell` and its `counter` (the gallery
+  says them). The attack-pattern library (`src/enemies/attacks.js` `ATTACKS`, the world enemies' fifteen) stays:
+  `fromPattern(id, o)` makes one an archetype's attack (the lizard's whip from `tail`, the tripod's stamp from `stomp`).
+- **Batch 1:**
+
+  | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
+  |---|---|---|---|---|
+  | shellback crab (`crab`) | a low wide dome, two raised pincers, six legs splayed like a table | snap (0.75 s; a parry chips it), shell spin (1.1 s; guarded, it flips), burrow and pinch (1.2 s; Salt Harbour and Underwater only) | parry, dash cut to its side, bombs, ember; the shell glances the blade from the front | grazes, backs away, fights at 3.2 m or cornered |
+  | horn lizard (`lizard`) | long and low, a curled tail, a brass trumpet for a snout | blare (1.0 s; shoves you toward its partner), flank bite (0.8 s; only from behind you), tail whip (1.15 s; only at its back) | parry and riposte on the bite, dash cut past the blarer, split the pair | basks on its stones; territorial within 6 m |
+  | antler hound (`hound`) | lean, tall, a crown of antlers wider than its body; running, a shadow | pounce (0.8 s), step behind (0.9 s) then bite, antler rake (1.0 s; under two thirds of its health) | ember (solid, 2), parry; the blade passes through its running shadow | lies as a shadow; some only watch |
+  | lamp tripod (`tripod`) | a lighthouse on stilts, 3.5 m: a boiler, a searchlight, three piston legs; a face at the porthole | beam and bolt (1.4 s; the light follows, then locks), stamp (1.35 s), steam vent (1.0 s) | cover breaks the beam, dash under it, the magnet glove, a perfect parry sends the bolt back | patrols sweeping its lamp; always hostile |
+  | ink blot (`blot`) | a squat ink drop with two white eyes, a rim of the ground's colour | lunge (0.7 s), lunge combo, spit (1.2 s; a lob with its landing mark, once you keep away) | everything: it teaches the combo, the guard and the shot | lies pooled, stands up as you come near |
+
+- **Retired:** the 100 world enemies (src/enemies/roster.js, models.js, their tests and capture scripts: gone from
+  spawning, the Arena, the FOES list and the gallery) and the glass splinter. The spitting blot's spit is the blot's.
+  Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and
+  the kept kinds kept their ids.
+- **Tests:** `tests/archetypes.test.js` (the tables, every world's roster valid and diverse, the curve, each batch-1
+  archetype's attacks, telegraphs, counterplay, calm and drops, spawning by world, the retirement, old saves, the
+  chain), `tests/foe-presence.test.js` (every built archetype in every skin, calm or fighting, shows itself),
+  `tests/motion-plans.test.js` (their legs on the kit), `tests/hitboxes.test.js`, `tests/arena.test.js`.
+- **Pictures:** `node scripts/enemy-roster/skins.mjs --out <dir>` draws each built archetype in each of its skins
+  and its own skin winding up each attack, from the gallery (`enemies.html`: World, then the archetype in that
+  world's skin; its moves with their tells and answers; Fight it in the Arena).
+
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
 `Foes` send the Arena's cycle round you, whatever the setting, `WAVE.rest` s after the last one falls (`ARENA_WAVES`,
 `arenaWave(n)`, v1.5): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine, a shade,
-flyers, … then each world's own kinds and a mixed wave), then each of the 100 world enemies alone in world order
-(the roster's order: the Desert, Vael, Vael II … the Atelier), then each world's in pairs (its first creature with
-its possessed machine, its second creature with its spirit), then each world's four together; then round again.
-A wave says what and from where ("Wave 20 · The Desert: dune skitter."; `waveText`). `?enemy=` and `?enemyWorld=`
-(the Creatures & spirits page's links) still run one enemy, or one world's roster, instead.
+flyers, … then each world's own kinds and a mixed wave), then (v1.8) each built archetype alone in each of its
+skins, then each world's own (`worldWaves`: each of its archetypes alone in its skin, then two of its packs); then
+round again. A wave says what and from where ("Wave 40 · The Signal Market: 2 coin lizards."; `waveText`).
+`?enemy=lizard@bazaar` and `?enemyWorld=bazaar` (the Creatures & spirits page's links) run one archetype in a skin,
+or one world's waves, instead.
 
 **The tool is lent** (`lendTool: { mode: null }` on the level, main.js → `lendTool`, src/minigames/kit/onfoot.js):
 the backpack (so the blade and the shield) on any save, a brand-new one or one that has not found it, with the
@@ -594,13 +668,13 @@ lending puts the Arena's back.
 **The FOES list** (`src/foe-spawner.js` `FoeList`, v1.5): the level's quick menu (`level.quickMenu`, as the
 Arcade's board), so main.js routes the pad to it. Opened from the FOES ▸ tab on the left edge (under it, how: K on
 the keyboard, D-pad ↓ on a pad, the mount's call, free here), K or D-pad ↓ again; B / ○ or Esc closes. Grouped
-(`foeSections`): the ink and the worlds' kinds, then a section per world with its four enemies (each with its kind and
-its two moves, and a "Waves from here" that runs the cycle from that world's first enemy: `Foes.startWaves(world)`),
-then the temple guardians. A search (a name, a world, a kind, a move: every word must match) and a world filter
-(chips: All, Ink, each world, Guardians; LB / RB or Page Up / Down turn it) narrow it (`filterSections`). Choosing a
-foe stops the waves (`Foes.setPractice(kind)`, a world enemy by its id too): it comes in 9 m ahead of you, and again
+(`foeSections`): the roster (each archetype in its own skin, an old kind standing in for one not built, then the old
+kinds no archetype uses), then a section per world with its archetypes in its skin (each with its role and moves,
+and a "Waves from here" that runs that world's waves: `Foes.startWaves(world)`), then the temple guardians. A search (a name, a world, a kind, a move: every word must match) and a world filter
+(chips: All, Roster, each world, Guardians; LB / RB or Page Up / Down turn it) narrow it (`filterSections`). Choosing a
+foe stops the waves (`Foes.setPractice(kind)`, a kind in a skin too: `tripod@underwater`): it comes in 9 m ahead of you, and again
 each time it falls. "Waves again" brings the waves back where they were, "Clear the field" leaves it empty.
-`?level=arena&foe=crab` (or a world enemy's id) starts on one kind; in any world the console can call
+`?level=arena&foe=crab` (or `crab@saltharbour`) starts on one kind; in any world the console can call
 `foes.spawnKind('golem')`. Tests: `tests/arena.test.js` (the cycle's order, the waves in a running Arena, the
 sections, the search and filter, the choices), `tests/foe-kinds.test.js` (practice).
 
@@ -823,30 +897,13 @@ A debug overlay of what the fight actually tests, for tuning and for learning th
 Flyer wings pivot at their embedded roots; machine arms have overlapping shoulder sockets. The temple sentinel and First Sign use endpoint-defined hip-to-knee links so the upper struts meet the shins. Each normal foe owns and releases its mutable warning-eye/core material; immutable hull materials stay shared. `tests/foe-appearance.test.js` checks wing-root overlap, shoulder sockets, warning-colour isolation and cache lifetime. The enemy screenshot tool sets emerged shades and floating guardian altitude explicitly before inspection.
 
 
-### World enemy reference atlas
+### World enemy reference atlas (retired)
 
-`references/enemy-atlas.html` presents Midjourney concepts for all 25 playable worlds; `references/enemy-roster.json` records the roster and each world's `enemies/sources.json` preserves jobs and exported variants. Each world has two local creatures, one possessed ancient machine and one dark humanoid spirit: 100 design slots, 50 corrupted-machine/spirit slots. Four alternative lineup sheets are saved per world (100 image files total). Keep the Moebius science-fiction ink contours, pastel wildlife, aged ivory/brass machinery and violet-black spirits. Some studies show alternate views of the same creature; the notes explain those selections.
+`references/enemy-atlas.html` presents the Midjourney concepts of the 100 world enemies (two creatures, a possessed
+machine and a spirit for each of 25 worlds; `references/enemy-roster.json`, each world's `enemies/sources.json`).
+Their game models and kinds are retired (v1.8: "The enemy roster" above); their best pictures stay as the
+archetypes' skin references (docs/design/enemy-roster.md) until each archetype's fresh sheet is drawn.
 
-The 100 roster entries now have procedural game models and attacks. Home, Atelier and Overnight Train remain peaceful during exploration; their enemies can be fought in the Arena. Development worlds (Lab, Arena, Gadget Yard and References) are excluded from the playable-world concept roster.
-
-The runtime quality pass and its sampling limits are recorded in [characters.md](characters.md#reference-quality-review). Guardian screenshots use representative real pose identifiers and open states; they are not coverage of every attack.
-
-
-### Reference-based world enemies
-
-See [the enemy reference guide](../../references/ENEMIES.md) for source art, provenance and the model/attack editing workflow.
-
-`src/enemies/roster.js` maps all 100 reference slots to model settings and two alternating attacks. `models.js` builds articulated creatures, possessed ancient machines and upright humanoid shadows using the game materials. These are procedural interpretations with shared rigs, not exact reproductions of the Midjourney sheets. Machine fittings, creature proportions, colours and spirit garments distinguish worlds.
-
-`attacks.js` implements 15 reusable patterns: pincers, rush, peck, tail, sweep, stomp, lob, volley, jet, beam, pulse, pull, dive, gust and sting. On commitment, target zones lock their direction/position. Ground warnings and hit checks use those same zones; every contact can fire once, with line-of-sight checks, parries, recovery and Gentle scaling. Lunges and dives move the body; volleys and jets have staggered contacts. `foes.js` selects the reference roster for wilderness packs and optional Arena rosters. The newer authored relic guards and temple encounters keep their specialized kinds and mechanics. `templeOnly` is separate from machine anatomy, so possessed machines can pursue outdoors.
-
-Open `enemies.html` (Worlds → Creatures & spirits) to rotate models, inspect locomotion and both moves, then fight an individual or a world roster. Arena accepts validated `enemyWorld` or `enemy` query parameters. Normal Arena and development-world legacy waves remain supported.
-
-Static geometry is batched by material inside each animated joint. Each instance owns its mutable materials. Machine debris keeps its materials until its last fragment expires; removal/disposal tests cover this lifetime.
-
-With tonight's foe systems (v1.5): a world enemy keeps its family's height navigation (`src/foe-height.js`: a creature of the blot family clambers, a possessed machine takes the ramp; `attacksAt(d, dy)` offers its one current attack only within reach and, out of a blow's height, only if it is a lob), is swept away in deep water and held by a stilled crystal (tests/foe-height.test.js). It meets the presence rule in every state (tests/foe-presence.test.js walks all 100 through 20 s of a fight): its eyes glow 0.8 (were 0.45, so the orange of a wind-up read as dark on a dark creature), and a spirit's ink and violet, and the spirit inside a possessed machine, have white contours (`lineWhite`), as the shades do. The hitbox overlay (src/hitboxes.js) draws each of its contact zones where `speciesContact` checks it, telegraph → active → spent per zone.
-
-Validation: `tests/world-enemies.test.js` covers roster completeness, posed finite geometry, material release, attack commitment/contact timing, range, walls, dodging, parries, Gentle/off modes, spawning and debris cleanup. `scripts/world-enemy-shots.mjs` captures all 100 entries in idle, side locomotion, first strike and second wind-up (400 screenshots). Idle and both attack contact sheets were inspected; selected wing/pincer models were rechecked after repairs. This does not establish artifact-free motion at every frame or reference-exact geometry. `scripts/world-enemy-smoke.mjs` checks actual Arena spawning/chasing and gallery controls using the game renderer, with no browser errors. Retroid performance and touch interaction remain unmeasured.
 ## No invisible foes (`src/foe-presence.js`, v1.1)
 
 From the 2026-10-08 playtest. Every foe, in every state, must be seen:

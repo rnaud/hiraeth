@@ -12,7 +12,7 @@ import { materials, add, pivot, pair, lerp, ease, eyeColor, finish, V } from './
 //   spit           it rears up tall and thin, and lobs a glob (the one move with a landing mark: it is thrown)
 // Art match pending its sheet (docs/design/enemy-roster-prompts.md, `blot`).
 
-const STRIDE = 0.9, HOP = 0.28;
+const STRIDE = 1.2, HOP = 0.3;
 
 export function blotModel(skin) {
   const P = skin.palette, M = materials('blot', skin.id);
@@ -20,7 +20,7 @@ export function blotModel(skin) {
   const inkM = M.mat('ink', P.ink, { flat: true }), edgeM = M.mat('edge', P.edge, { flat: true });
   const eyeM = M.own('eye', P.eye, { glow: 0.6 });
   const body = pivot(g, 0, 0, 0, 'drop');
-  const drop = add(body, new THREE.IcosahedronGeometry(0.55, 2), inkM, 0, 0.55, 0);
+  const drop = add(body, new THREE.IcosahedronGeometry(0.55, 2).scale(1.18, 0.8, 1.18), inkM, 0, 0.46, 0);   // (squat: wider than it is tall)
   // drips and spikes of ink off it, never the same twice
   const drips = [];
   for (let i = 0; i < 8; i++) {
@@ -33,7 +33,7 @@ export function blotModel(skin) {
   const rim = add(body, new THREE.TorusGeometry(0.5, 0.09, 6, 22).rotateX(Math.PI / 2), edgeM, 0, 0.1, 0);
   rim.scale.set(1, 1, 0.5);
   const flecks = Array.from({ length: 5 }, (_, i) => { const a = i * 1.3; return add(body, new THREE.SphereGeometry(0.06, 6, 4), edgeM, Math.sin(a) * 0.48, 0.22 + (i % 2) * 0.12, Math.cos(a) * 0.48); });
-  const eyes = pair((s) => add(body, new THREE.SphereGeometry(0.075, 8, 6), eyeM, s * 0.17, 0.72, 0.46));
+  const eyes = pair((s) => add(body, new THREE.SphereGeometry(0.08, 8, 6), eyeM, s * 0.19, 0.64, 0.5));
   const mouth = pivot(body, 0, 0.6, 0.55);   // (where the spit gathers)
   finish(g);
   let phase = Math.random(), up = 1, last = null, coil = 0, rear = 0;
@@ -55,7 +55,7 @@ export function blotModel(skin) {
       const stretch = strike && f.atk?.lunge ? Math.sin(Math.PI * f.k) : 0;
       const land = hopping ? Math.max(0, 1 - phase * 5) + Math.max(0, phase * 5 - 4) : 0;   // (squashed as it lands and takes off)
       const wob = Math.sin(c.now / 160 + f.home.x) * 0.05;
-      const sy = lerp(0.42, 1, up) * (1 - coil * 0.42 - land * 0.14 + h * 0.12 + rear * 0.55 - stretch * 0.12) - wob;
+      const sy = lerp(0.5, 1, up) * (1 - coil * 0.42 - land * 0.14 + h * 0.12 + rear * 0.55 - stretch * 0.12) - wob;
       const sxz = lerp(1.45, 1, up) * (1 + coil * 0.32 + land * 0.12 - rear * 0.28 - stretch * 0.1) + wob;
       body.scale.set(sxz, sy, sxz * (1 + stretch * 0.6));
       body.position.y = h * HOP + (strike && f.atk?.lunge ? Math.sin(Math.PI * f.k) * 0.25 : 0);

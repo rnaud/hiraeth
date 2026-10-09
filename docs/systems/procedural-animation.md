@@ -503,6 +503,18 @@ the kit's offsets. `scripts/motion-audit/walk.mjs dogSubject` leads him behind a
 
 `tests/family.test.js` holds these and the sit, lie, sniff and wag poses.
 
+### The enemy roster's batch 1 on the kit (2026-10-09)
+
+The archetypes (docs/design/enemy-roster.md; docs/systems/foes.md, "The enemy roster") ride the kit through one
+builder per plan in `src/enemies/plans/`: the shellback crab (plan 1, `walker.js`), the horn lizard and the antler
+hound (plan 6, one rig: `quadruped.js`), the lamp tripod (plan 18, `piston.js`), the ink blot (plan 20, `blob.js`:
+hops by distance). New in the kit: `src/motion-kit/chain.js` `VerletChain` (a pinned chain with a rest shape, a curl
+and a stiffness: the lizard's tail, the hound's smoke; the start of phase 4), and a leg's own `lift` in `rig.js`
+(that foot hangs from the body while the others stay planted: the lizard rearing for its blare, the tripod's stamp
+and its possessed twitch). Measured (`node scripts/motion-audit/run.mjs --pack`, `--skins` for every skin): slide
+0.00–0.01 m/m, reach span 21–36 %, lift 17–22 %, cadence halving at half speed, the right groups, packs out of step
+(docs/audits/combat-v1.8.md, "Motion"); `tests/motion-plans.test.js` holds each archetype in two skins.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of

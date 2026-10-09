@@ -76,7 +76,7 @@ export function tripodModel(skin) {
   if (props.has('enamel')) for (const s of [-1, 1]) add(hull, new THREE.BoxGeometry(0.06, 0.7, 0.02), accentM, s * 0.25, 2.12, 0.48);
   // the light: a short cone of it always (sweeping as it patrols), a shaft to you as it aims, and the bolt
   const light = pivot(lamp, 0, 0, 0.22, 'light');
-  const glowCone = add(light, new THREE.ConeGeometry(0.5, 1.7, 16, 1, true).rotateX(-Math.PI / 2).translate(0, 0, 0.85), beamM);
+  const glowCone = add(light, new THREE.ConeGeometry(0.3, 1.1, 14, 1, true).rotateX(-Math.PI / 2).translate(0, 0, 0.55), beamM);
   const shaft = add(light, new THREE.CylinderGeometry(1, 1, 1, 8, 1, true).rotateX(Math.PI / 2).translate(0, 0, 0.5), beamM); shaft.visible = false;
   const bolt = pivot(light, 0, 0, 0, 'bolt');
   add(bolt, new THREE.ConeGeometry(0.06, 0.3, 6).rotateX(Math.PI / 2), brassM, 0, 0, 0.5); rod(bolt, [0, 0, -0.1], [0, 0, 0.36], 0.018, darkM); bolt.visible = false;

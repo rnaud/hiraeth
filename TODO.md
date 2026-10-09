@@ -53,28 +53,36 @@ rather than mixing the earlier inconsistent exploration sheets.
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
-# Enemy roster (approved 2026-10-09: 21 archetypes, the bell walker in the Market; fresh Midjourney sheets first)
+# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batch 1 built, v1.8)
 
-docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. Do not build until approved.
+docs/design/enemy-roster.md ("Status": each archetype's), docs/systems/foes.md "The enemy roster". Done: the
+framework (src/enemies/archetypes.js, skins.js, plans/; src/foe-worlds.js WORLDS wired into packs, guards, the
+Arena and the gallery; the 100 world enemies and the glass splinter retired) and batch 1 (the shellback crab, the horn
+lizard, the antler hound, the lamp tripod, the ink blot), scored in docs/audits/combat-v1.8.md.
 
-- [ ] **Fresh reference sheets first**: run the 21 Midjourney prompts in docs/design/enemy-roster-prompts.md (one
+- [ ] **Fresh reference sheets**: run the 21 Midjourney prompts in docs/design/enemy-roster-prompts.md (one
   main sheet per archetype in its first world's skin, plus one alternate skin), save each to
   `references/enemy-archetypes/<id>/sheet-N.jpg` with a `manifest.json`, pick by silhouette first, then rebuild the
   contact sheet.
-
-- [ ] **Approve the roster**: 21 archetypes (12 creatures, 5 possessed machines, 4 spirits), each with its own
-  silhouette, body plan and role; no two machines or spirits share a body plan, and each shows its possession its
-  own way. It replaces the 100 world enemies (src/enemies/roster.js: the machines and the shades all looked alike)
-  and folds in the 15 old kinds (kept: salt crab, sign moth, blot; rebuilt: dune ray → mound worm, rust drone →
-  ring drone, root stalker → root knot, slag walker → crucible cart, shadow hound → antler hound, shade reworked;
-  retired: spitting blot, blot swarm, winged blot, glass splinter, glass golem, makers' machine). The doc's open
-  questions: 21 or 20, the Vael II bell, the marionette possessing wildlife, names, fresh references, side worlds.
-- [ ] Once approved, build in the doc's order (with the procedural animation kit below): the framework
-  (archetypes + skins tables, rosters), then crab / lizard + hound / tripod / blot, then worm / ray / moth /
-  centipede / jelly, then toad / heron / swarm / root knot, then drone / cart / brute / bell, then shade / roller /
-  marionette; then the rosters, difficulty and sounds per archetype, re-scored with the combat-review skill.
-  This supersedes the per-kind items below where they overlap (the hound's pounce, the shade's second attack,
-  the soft end of the route, a sound per kind).
+- [ ] **Art match pending its sheet** (batch 1, once each sheet is picked): the shellback crab, the horn lizard, the
+  antler hound, the lamp tripod, the ink blot were built from the doc's descriptions and the old references; match
+  each body and its skins to its own sheet, then set `art` in src/enemies/archetypes.js.
+- [ ] **Batch 2** (kit phase 4, chains): the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
+  jelly; the Desert, Vael and Vael II then run fully on the new roster.
+- [ ] **Batch 3**: the bellows toad, the stilt heron (`StiltMotor` generalised), the skitter swarm (mid tier), the root
+  knot (FABRIK arms); Lorn, Lorn II and Viridel follow.
+- [ ] **Batch 4** (the doc's step 6): the ring drone, the crucible cart (tracks), the furnace brute, the bell walker,
+  each with its possession effect.
+- [ ] **Batch 5** (the doc's step 7): the shade rework (feint, shadow step), the pearl roller, the marionette (strings,
+  a host's `possessed` state).
+- [ ] **Batch 6** (the doc's step 8): balance and sound: the pack budgets per world played through, the hurt/burst
+  sound families (`sound` per archetype), re-scored with the combat-review skill; retire each old kind as its
+  archetype lands (src/foe-kinds.js says which stands in for which).
+- [ ] The placed ones (`placed` in src/foe-worlds.js): the Desert's cistern pump (a lamp tripod by the deep cistern),
+  Lorn II's wood cutter (a furnace brute), the Garden's glass puppet (a marionette): a spot each in their worlds.
+- [ ] Play the horn lizards' pair with a pad (combat-v1.8 rec. 1): the flanker's circle and its hiss read before the
+  bite? The blare's shove toward the partner fair? The antler hound's threat on a still player is the highest (4.6
+  bars a minute, rec. 2): lengthen its `cool` if the playtest agrees.
 
 # Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
 
