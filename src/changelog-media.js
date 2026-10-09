@@ -339,6 +339,7 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
   '1.9': [
+    { match: 'An 8BitDo SN30 Pro (and the other 8BitDo pads', see: 'Connect an 8BitDo SN30 Pro to a computer (Bluetooth, its D-input mode) and open the game: the title screen\'s prompts read B at the bottom and A on the right, as printed on the pad, and A (the right button) confirms.' },
     // the temples, reworked from the temple design audit (docs/audits/temple-design-v1.8.md)
     { match: 'The Founders’ Belfry is rebuilt round one idea', shots: [
       { name: 'belfry-hub', caption: 'The Hall of Stones from its south end: before, the two balls in their grooves in the hall itself, beside the door; after, two archways into the stone stores and a line inlaid from each to the door', commit: 'b3647461',

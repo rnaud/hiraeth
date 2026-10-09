@@ -18,6 +18,8 @@ export const CHANGELOG = [
     // the Lamp-House
     'The Lamp-House’s Hall of Dark Pools has two pools on its floor now; the door’s third lamp waits on a pool up on a loft of roots against the west wall, hidden from the floor by its edge. Climb its face to find it.',
     'In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.',
+    // controllers
+    'An 8BitDo SN30 Pro (and the other 8BitDo pads printed with Nintendo letters) now shows its own buttons in every prompt, the title screen included: B at the bottom, A on the right, the way they are printed on it, and A confirms in the menus, as on a Switch pad.',
   ] },
   { v: '1.8', date: '2026-10-09', items: [
     // the family ship, redrawn

@@ -19,11 +19,15 @@ test('the controller\'s family, from the Gamepad id', () => {
   assert.equal(familyOf('Xbox 360 Controller (XInput STANDARD GAMEPAD)'), 'xbox');
   assert.equal(familyOf('DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'), 'playstation');
   assert.equal(familyOf('Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 09cc)'), 'playstation', 'a DualShock 4 on Windows');
+  assert.equal(familyOf('8Bitdo SN30 Pro (Vendor: 2dc8 Product: 6101)'), 'nintendo', 'an 8BitDo SN30 Pro over Bluetooth on a Mac: Nintendo letters');
+  assert.equal(familyOf('2dc8-6101-8Bitdo SN30 Pro'), 'nintendo', 'the same in Firefox');
+  assert.equal(familyOf('8BitDo Ultimate Wireless (Vendor: 2dc8 Product: 3012)'), 'xbox', 'an 8BitDo with Xbox letters');
   assert.equal(familyOf('054c-0ce6-DualSense Wireless Controller'), 'playstation', 'Firefox\'s form');
   assert.equal(familyOf('Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)'), 'nintendo');
   assert.equal(familyOf('Joy-Con L+R (STANDARD GAMEPAD Vendor: 057e Product: 200e)'), 'nintendo');
   assert.equal(familyOf('Retroid Pocket Controller'), 'handheld');
-  assert.equal(familyOf('8BitDo SN30 Pro (STANDARD GAMEPAD Vendor: 2dc8)'), 'xbox', 'a pad we do not know: the standard\'s own names');
+  assert.equal(familyOf('8BitDo SN30 Pro (STANDARD GAMEPAD Vendor: 2dc8)'), 'nintendo', 'an SN30 Pro the browser maps itself: still Nintendo letters printed');
+  assert.equal(familyOf('Generic USB Joystick (STANDARD GAMEPAD Vendor: 0079 Product: 0006)'), 'xbox', 'a pad we do not know: the standard\'s own names');
   assert.equal(familyOf(''), '');
   // on the page: the first pad listed; the Android layout is always the handheld's
   assert.equal(padFamily(fakeWin(['DualSense Wireless Controller (Vendor: 054c)'])), 'playstation');

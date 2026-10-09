@@ -32,7 +32,7 @@
 // rewrite() renames those too (padRename: "A / ×" is the button now bound to jump; keyRename: an "E" key badge
 // the key now bound to use), except under .pad-raw (the menus' own confirm / back, which never move).
 
-import { installPadMaps } from './pad-maps.js';
+import { installPadMaps, eightBitDoLetters } from './pad-maps.js';
 import { padRename, keyRename, onControlPrefs } from './remap.js';
 import { onLanguage } from './i18n.js';
 import { onXbox } from './xbox.js';
@@ -79,7 +79,8 @@ const XBOX_LIKE = /xbox|x-box|microsoft|playstation|dualsense|dualshock|sony|wir
 // Vendor: 045e …)", "DualSense Wireless Controller (… Vendor: 054c …)", "Pro Controller (… 057e …)"):
 //   'xbox'         A B X Y · LB RB LT RT · View Menu (also any pad we don't know: the standard's own names)
 //   'playstation'  × ○ □ △ · L1 R1 L2 R2 · Create Options
-//   'nintendo'     a Switch pad on a computer: B at the bottom, A on the right · L R ZL ZR · − +
+//   'nintendo'     a Switch pad (or an 8BitDo with Nintendo letters, the SN30 Pro) on a computer: B at the
+//                  bottom, A on the right · L R ZL ZR · − +
 //   'handheld'     the Android app or a Retroid: the handheld's own names (padText's 'android' layout)
 const IS_XBOX = /xbox|x-box|xinput|microsoft|045e/i;
 const IS_PLAYSTATION = /playstation|dualsense|dualshock|sony|054c|\bps[345]\b|^wireless controller/i;
@@ -98,6 +99,8 @@ export function familyOf(id) {
   if (IS_XBOX.test(s)) return 'xbox';
   if (IS_PLAYSTATION.test(s)) return 'playstation';
   if (IS_NINTENDO.test(s)) return 'nintendo';
+  // an 8BitDo in D-input (Chrome on a Mac: "8Bitdo SN30 Pro (Vendor: 2dc8 Product: 6101)"): the letters it prints
+  if (eightBitDoLetters(s) === 'nintendo') return 'nintendo';
   return 'xbox';
 }
 

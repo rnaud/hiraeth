@@ -115,6 +115,15 @@ const BY_ID = {
   '0810:e501': 'snes', '081f:e401': 'snes', '0079:0011': 'snes', '12bd:d015': 'snes', '0583:2060': 'snes',
 };
 
+/** An 8BitDo pad's printed letters from its id: 'nintendo' (the default: SN30 Pro…), 'xbox' (Ultimate…), null if not one. */
+export function eightBitDoLetters(id = '') {
+  const { vendor, product, name } = parsePadId(id);
+  if (vendor !== '2dc8' && !/8bitdo|8bit do/i.test(name ?? '') && !/8bitdo/i.test(id)) return null;
+  if (product && EIGHTBITDO_XBOX.has(product)) return 'xbox';
+  if (/ultimate|adapter|\bm30\b|\b64\b|neogeo|\bp30\b|\bs30\b/i.test(name ?? '')) return 'xbox';
+  return 'nintendo';
+}
+
 /** Which profile reads this pad. */
 export function pickProfile(pad) {
   if (!pad || pad.mapping === 'standard') return PROFILES.standard;
