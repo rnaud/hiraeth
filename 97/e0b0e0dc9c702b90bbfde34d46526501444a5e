@@ -1,0 +1,47 @@
+.githooks/pre-commit
+  s_9ca76055a220ed::t_b523c5dd3bf82f 2-4,7,9-10,13-29
+.github/workflows/android.yml
+  s_636e79c9ee751a::t_1fe1bafa976f42 32-34,36
+.github/workflows/cloudflare.yml
+  s_636e79c9ee751a::t_212c8847a29615 6-7,24-26,29
+.github/workflows/deploy.yml
+  s_636e79c9ee751a::t_f146e8afbe5130 22-24,26
+.github/workflows/steam-deck.yml
+  s_636e79c9ee751a::t_d6c67388e63a73 16-18,20
+.github/workflows/tests.yml
+  s_636e79c9ee751a::t_cc6c77fff181de 1-27
+CLAUDE.md
+  s_9ca76055a220ed::t_b298b8fc26dbb8 39-44
+README.md
+  s_9ca76055a220ed::t_e724d82aaccec4 54
+docs/systems/testing.md
+  s_9ca76055a220ed::t_c11d149b12c398 4-11
+scripts/affected-tests.mjs
+  s_9ca76055a220ed::t_6e3623d886ee8f 1-79
+tests/pre-commit.test.js
+  s_9ca76055a220ed::t_e770d10906f395 1-2,6,10,12-14,20-24,26-27,30-69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97e0b0e0dc9c702b90bbfde34d46526501444a5e",
+  "prompts": {},
+  "sessions": {
+    "s_636e79c9ee751a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11db2-8eba-7d92-a417-5ca567fe4057",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
