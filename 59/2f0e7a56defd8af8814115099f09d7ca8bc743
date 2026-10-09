@@ -1,0 +1,41 @@
+DONE.md
+  s_9ca76055a220ed::t_5d2005a50a7969 1542,1561-1568
+TODO.md
+  s_9ca76055a220ed::t_3b06a192cb3324 42,44-49
+changelog.md
+  s_9ca76055a220ed::t_965cefd7a3ea4e 7
+docs/README.md
+  s_9ca76055a220ed::t_0ec044e1319622 72
+docs/systems/challenges.md
+  s_9ca76055a220ed::t_f6aeb1f15dbd5b 80-88,99,117-120,153-156,164
+src/changelog-media.js
+  s_9ca76055a220ed::t_14f2a1eb357440 253-261,327-335
+src/changelog.js
+  s_9ca76055a220ed::t_135ce13601365d 26-27
+src/temples/pieces.js
+  s_9ca76055a220ed::t_0e7ac1257a8dd8 486-487,493
+src/trials/index.js
+  s_9ca76055a220ed::t_206bfe2babe7ac 47-48
+src/trials/kit-courses.js
+  s_9ca76055a220ed::t_e034127b89711f 3,13,29-30,37,176-230,599-638,657-658,684
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_8bffb4b3313f6f 11,25,155-171
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_e654bd2ec0c62c 34,107-108,120-121,724-795
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "592f0e7a56defd8af8814115099f09d7ca8bc743",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
