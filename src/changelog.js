@@ -8,6 +8,14 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.11', date: '2026-10-09', items: [
+    // the worlds, reworked from the level design audit: the desert
+    'While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke going for whoever fell behind, so from the moment you land you can see where the city lies beyond the dune. Old Oum now waits on a dune in sight of the way in, and a dry, stone-lined channel runs from Qanat’s east side to the Givers’ House.',
+    'The long ride out to the Givers’ Hearth has company: Yara the salt-carrier rests under her sunshade a third of the way, and a sand-skiff’s wreck lies on its side two thirds of the way, its mast still up. Coming home, the marked stones lead you back to Qanat past the keepers’ bowl and their cold camp.',
+    // Vael
+    'In Vael, Senn now listens at the foot of the capped needle spire out on the plain, halfway from the landing to the lone tower, and the makers’ box with the hush-cloth waits on that spire’s cap beside one of the shed feathers: one long climb, two finds. A line of standing stones leads up the slope from the landing toward the Aerie.',
+    'The doorway in the sand before the desert’s masked head is a short passage into the dark now, with a little warm light on its floor, so it no longer looks like a shut door.',
+  ] },
   { v: '1.10', date: '2026-10-09', items: [
     // the enemy roster, part two: five more foes, each its own
     'Five more foes of the new roster, each with its own shape, way of moving and job in a fight, in every world it lives in. They take over from the dune ray, the old sign moth and the winged blots; Vael II now meets only the new foes. Left alone they keep their own ways: rays circle in the thermals, moths round their lamps, jellies drift with the wind, centipedes lie coiled on warm rocks, and a worm’s mound wanders the dunes.',
@@ -25,12 +33,6 @@ export const CHANGELOG = [
     'The antler hound stands taller, on long lean legs with a deep chest, a narrow waist and a long muzzle, under a much bigger branching crown, and smoke streams off its back like a mane. In the Garden of Spheres it is ink-black, its black antlers glinting gold with a thin gold halo caught in them; in the White Mangrove its antlers are bleached driftwood, it drips like wet ink and its smoke is sage and lilac. Lying in wait, its head and crown rise out of a ragged pool of shadow.',
     'The lamp tripod stands on three long ivory legs, nearly upright, under a taller riveted boiler with a slate-blue band, two smokestacks, a bigger porthole and a searchlight as wide as the boiler with a grid over its lens; as it aims at you, a harpoon gun slides out under the boiler. Underwater it is a coral-copper diving bell with a turquoise band, portholes all round, a wind-up key and bubbles.',
     'The ink blot is a glossy drop now, round below and drawn up into a splashing point, with big cream eyes and dark pupils, violet light on its ink and a ragged rim of the ground’s colour where it pools; winding up a lunge, it sinks into a stack of rings. In the Sealed Hangar it is gunmetal, its rim rust and oily teal, with metal shavings stuck in it.',
-    // the worlds, reworked from the level design audit: the desert
-    'While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke going for whoever fell behind, so from the moment you land you can see where the city lies beyond the dune. Old Oum now waits on a dune in sight of the way in, and a dry, stone-lined channel runs from Qanat’s east side to the Givers’ House.',
-    'The long ride out to the Givers’ Hearth has company: Yara the salt-carrier rests under her sunshade a third of the way, and a sand-skiff’s wreck lies on its side two thirds of the way, its mast still up. Coming home, the marked stones lead you back to Qanat past the keepers’ bowl and their cold camp.',
-    // Vael
-    'In Vael, Senn now listens at the foot of the capped needle spire out on the plain, halfway from the landing to the lone tower, and the makers’ box with the hush-cloth waits on that spire’s cap beside one of the shed feathers: one long climb, two finds. A line of standing stones leads up the slope from the landing toward the Aerie.',
-    'The doorway in the sand before the desert’s masked head is a short passage into the dark now, with a little warm light on its floor, so it no longer looks like a shut door.',
   ] },
   { v: '1.9', date: '2026-10-09', items: [
     // the temples, reworked from the temple design audit: the Founders' Belfry

@@ -347,6 +347,31 @@ const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot'
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
+  '1.11': [
+    { match: 'While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke', shots: [
+      { name: 'desert-landing-smoke', caption: 'The desert from the landing, toward Qanat: before, a dune and nothing over it; after, the camps’ smoke rising beyond it', commit: 'b5786bb4',
+        view: { level: 'desert', player: [0, 1.8, 0], eye: [-2.5, 4.2, -4.3], target: [195, 31.2, 339], fov: 60 } },
+      { name: 'desert-dry-channel', caption: 'From Qanat’s east side: after, the Givers’ dry channel running up the dune to the Givers’ House', commit: 'b5786bb4',
+        view: { level: 'desert', player: [300, 1.2, 395], eye: [296, 5.2, 395.3], target: [517, 37.6, 378], fov: 60 } },
+    ] },
+    { match: 'The long ride out to the Givers’ Hearth has company', shots: [
+      { name: 'desert-ride-shade', caption: 'A third of the way to the Hearth: after, Yara under her sunshade, its red pennant up', commit: 'b5786bb4',
+        view: { level: 'desert', player: [580.7, 17.4, -14.6], eye: [580.7, 20.4, -14.6], target: [590.7, 21.6, -21.6], fov: 60 } },
+      { name: 'desert-ride-wreck', caption: 'Two thirds of the way: after, the sand-skiff on its side, its mast and a rag of sail, the Hearth’s chimney beyond', commit: 'b5786bb4',
+        view: { level: 'desert', player: [1037.6, -5, -218.2], eye: [1037.6, -0.5, -218.2], target: [1053.6, -2.4, -227.2], fov: 60 } },
+    ], see: 'Once Nour has sent you for the spark-stone, ride from Marrow’s hollow straight for the Hearth’s chimney: the pennant and the wreck’s mast come up ahead, and each is named as you near it. Ride home to Qanat along the marked stones.' },
+    // Vael
+    { match: 'In Vael, Senn now listens at the foot of the capped needle spire', shots: [
+      { name: 'vael-senn-spire', caption: 'Out on the plain, halfway to the lone tower: after, Senn with her ear to the capped spire’s foot (the box and a feather on its cap, far overhead)', commit: 'c573fa1b',
+        view: { level: 'arzach', player: [150, 17.5, -250], eye: [146, 21, -244], target: [166, 22, -276], fov: 60, hour: 12 } },
+      { name: 'vael-stones', caption: 'From the landing, west up the slope: after, a line of standing stones climbing toward the Aerie on the plateau', commit: 'c573fa1b',
+        view: { level: 'arzach', player: [6, 0, 1], eye: [10, 3.5, 2], target: [-80, 16, -2], fov: 60, hour: 12 } },
+    ] },
+    { match: 'The doorway in the sand before the desert’s masked head', shots: [
+      { name: 'desert-mask-doorway', caption: 'The doorway before the masked head: before, a flat dark panel in its frame; after, a short passage into the dark', commit: 'ced314df',
+        view: { level: 'desert', player: [9, 9, -360], eye: [10, 11.5, -357], target: [7, 10.5, -371], fov: 50 } },
+    ] },
+  ],
   '1.10': [
     { match: 'Five more foes of the new roster', shots: [
       { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
@@ -394,29 +419,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'art-blot-alt', caption: 'The Sealed Hangar’s rust-edged blot against its sheet, before and after', from: FROM_ART },
     ] },
     // the worlds, reworked from the level design audit (docs/audits/level-design-v1.9.md): the desert
-    { match: 'While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke', shots: [
-      { name: 'desert-landing-smoke', caption: 'The desert from the landing, toward Qanat: before, a dune and nothing over it; after, the camps’ smoke rising beyond it', commit: 'b5786bb4',
-        view: { level: 'desert', player: [0, 1.8, 0], eye: [-2.5, 4.2, -4.3], target: [195, 31.2, 339], fov: 60 } },
-      { name: 'desert-dry-channel', caption: 'From Qanat’s east side: after, the Givers’ dry channel running up the dune to the Givers’ House', commit: 'b5786bb4',
-        view: { level: 'desert', player: [300, 1.2, 395], eye: [296, 5.2, 395.3], target: [517, 37.6, 378], fov: 60 } },
-    ] },
-    { match: 'The long ride out to the Givers’ Hearth has company', shots: [
-      { name: 'desert-ride-shade', caption: 'A third of the way to the Hearth: after, Yara under her sunshade, its red pennant up', commit: 'b5786bb4',
-        view: { level: 'desert', player: [580.7, 17.4, -14.6], eye: [580.7, 20.4, -14.6], target: [590.7, 21.6, -21.6], fov: 60 } },
-      { name: 'desert-ride-wreck', caption: 'Two thirds of the way: after, the sand-skiff on its side, its mast and a rag of sail, the Hearth’s chimney beyond', commit: 'b5786bb4',
-        view: { level: 'desert', player: [1037.6, -5, -218.2], eye: [1037.6, -0.5, -218.2], target: [1053.6, -2.4, -227.2], fov: 60 } },
-    ], see: 'Once Nour has sent you for the spark-stone, ride from Marrow’s hollow straight for the Hearth’s chimney: the pennant and the wreck’s mast come up ahead, and each is named as you near it. Ride home to Qanat along the marked stones.' },
-    // Vael
-    { match: 'In Vael, Senn now listens at the foot of the capped needle spire', shots: [
-      { name: 'vael-senn-spire', caption: 'Out on the plain, halfway to the lone tower: after, Senn with her ear to the capped spire’s foot (the box and a feather on its cap, far overhead)', commit: 'c573fa1b',
-        view: { level: 'arzach', player: [150, 17.5, -250], eye: [146, 21, -244], target: [166, 22, -276], fov: 60, hour: 12 } },
-      { name: 'vael-stones', caption: 'From the landing, west up the slope: after, a line of standing stones climbing toward the Aerie on the plateau', commit: 'c573fa1b',
-        view: { level: 'arzach', player: [6, 0, 1], eye: [10, 3.5, 2], target: [-80, 16, -2], fov: 60, hour: 12 } },
-    ] },
-    { match: 'The doorway in the sand before the desert’s masked head', shots: [
-      { name: 'desert-mask-doorway', caption: 'The doorway before the masked head: before, a flat dark panel in its frame; after, a short passage into the dark', commit: 'ced314df',
-        view: { level: 'desert', player: [9, 9, -360], eye: [10, 11.5, -357], target: [7, 10.5, -371], fov: 50 } },
-    ] },
+
   ],
   '1.9': [
     { match: 'An 8BitDo SN30 Pro (and the other 8BitDo pads', see: 'Connect an 8BitDo SN30 Pro to a computer (Bluetooth, its D-input mode) and open the game: the title screen\'s prompts read B at the bottom and A on the right, as printed on the pad, and A (the right button) confirms.' },
