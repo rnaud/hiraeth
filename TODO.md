@@ -35,6 +35,11 @@ rather than mixing the earlier inconsistent exploration sheets.
   (the user's `0_2 (53).jpeg` download). Match the broad turquoise liquid blade, wrapped grip,
   brass fittings and trailing fluid details, preserving the design in hand and during combat.
 
+- [ ] **Remove the cable from the backpack's tank to the glove** (the author, 2026-10-09): accurate to the
+  references but impractical in play and it bends poorly. Take it out of the traveller's model and any code
+  that animates or attaches it (the hose/cable between tank and glove), and check the backpack and glove
+  still read as connected (the glove's own fittings, the fluid's glow) in the studio, the title and in play.
+
 # Singing light soundtrack follow-up
 
 - [ ] **Generate the singing light theme with Suno** using the brief in
