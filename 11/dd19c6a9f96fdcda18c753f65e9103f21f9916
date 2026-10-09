@@ -1,0 +1,23 @@
+docs/design/desert-places-prompts.md
+  s_9ca76055a220ed::t_9678574a94f609 1-45
+scripts/reference-lab/prompts.mjs
+  s_9ca76055a220ed::t_57f7b8cd661313 70-76,110,124-125,130
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_973cb03ced2d73 99-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "11dd19c6a9f96fdcda18c753f65e9103f21f9916",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
