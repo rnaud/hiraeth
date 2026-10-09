@@ -28,7 +28,7 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
-# Enemy roster (proposal, awaiting the author's approval)
+# Enemy roster (approved 2026-10-09: 21 archetypes, the bell walker in the Market; fresh Midjourney sheets first)
 
 docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. Do not build until approved.
 

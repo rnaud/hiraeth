@@ -856,6 +856,15 @@ Everything is built on the procedural locomotion kit (docs/systems/procedural-an
 
 About 12–13 sessions alongside the kit's 8–11. Phases 2–4 put the whole first half of the route on the new roster.
 
+## Decisions (the author, 2026-10-09)
+
+- **Approved: all 21 archetypes** (keep the pearl roller and the horn lizard).
+- **The bell walker is saved for the Signal Market**; none is placed in Vael II.
+- **Fresh Midjourney sheets per archetype**, drawn to match each body plan, replace the borrowed reference crops
+  (prompts: docs/design/enemy-roster-prompts.md).
+- Not yet answered, so the proposal's defaults stand: the marionette's tone as written; working names for now;
+  the side worlds' tables are set as each world is vetted.
+
 ## Open questions for the author
 
 1. **21 or 20?** If one must go, the pearl roller (the newest idea; its role partly overlaps the crab's guard-flip)
