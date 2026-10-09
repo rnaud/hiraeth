@@ -42,6 +42,7 @@ const npcs = [];
 const rt = createStory({ levelId: 'desert', scene, physics, level, player, npcs, crowd, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete: () => { storyDone = true; } },
   capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
 const { quests } = rt;
+const wellEntry = INTERACT.allInteractables().find((x) => x.id === 'well');   // (the well's prompt: the last test looks into it)
 // people: also walk the story people (main.js does it every frame; most tests don't need them to move)
 const step = (n = 1, dt = 1 / 30, { people = false } = {}) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); crowd.update(dt, i * dt, player, camera); if (people) for (const p of npcs) p.update(dt, player, camera); } };
 const talk = (person, choices) => {
@@ -751,3 +752,21 @@ test('the water let out before anyone sent you down: the steps that lead there p
   clearInteractables();
 });
 
+test('looking into the well: he turns to the shaft, not to the spot on the terrace he was asked from', () => {
+  const C = Q.city, e = wellEntry;   // (taken as the story set it up: later tests clear the prompts)
+  assert.ok(e, 'the well can be looked into');
+  // between the rim and the place the prompt is asked from (city.wellLook, 3.4 m out from the middle), a little to the side
+  const p = C.well.clone().lerp(C.wellLook, 0.85); p.x += 0.6;
+  at(p); facing(C.well);
+  assert.ok(e.distance(player) < e.range, 'the prompt answers there');
+  e.use(player);
+  assert.ok(rt.dialogue.open, 'the well speaks');
+  step(1);
+  const to = player.faceToward;
+  assert.ok(to, 'he turns to something');
+  const dir = (a) => { const d = a.clone().sub(player.pos); d.y = 0; return d.normalize(); };
+  assert.ok(dir(to).dot(dir(C.well)) > 0.99, `toward the well (${dir(to).dot(dir(C.well)).toFixed(2)}; it was -0.62: his back to it)`);
+  assert.ok(flat(to, C.well) < 0.01 && to.y > C.well.y && to.y < C.well.y + 1.15, 'down into the shaft, under the rim');
+  rt.dialogue.close();
+  step(1);
+});

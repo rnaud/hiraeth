@@ -80,6 +80,9 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
 const CATCH_UP = ['elder', 'ask', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
 
+/** Where the traveller looks when he looks into the well: down the shaft, under the rim (the rim stands 1.15 m). */
+export function wellInside(city) { return city.well.clone().add(V(0, 0.45, 0)); }
+
 /**
  * Old saves. v < 2: the stages before the cave moved (the box is in the city
  * now, then Nour): an old stage goes where STAGE_MIGRATION says; the steps
@@ -302,7 +305,9 @@ export function setupDesert(ctx) {
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < 4 ? flat(p.pos, at) : Infinity),
     use: use ?? (() => dialogue.start(def, null, at, look)),
   });
-  thing(THINGS.well, city.wellLook, { range: 3.4, prompt: 'look into the well' });
+  // (asked from the terrace beside it, city.wellLook; he turns to the shaft itself and looks down into it, not
+  // at the spot he was asked from: standing between that spot and the rim, he turned his back on the well)
+  thing(THINGS.well, city.wellLook, { range: 3.4, prompt: 'look into the well', look: wellInside(city) });
   thing(THINGS.stele, city.stele, { range: 3.2, prompt: 'read the stele', look: city.stele.clone().add(V(0, 2.4, 0)) });
   const browAt = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 3, 0, Math.cos(Q.giant.yaw) * 3));
   thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
