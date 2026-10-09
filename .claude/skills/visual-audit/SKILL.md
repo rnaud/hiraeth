@@ -109,7 +109,7 @@ node .claude/skills/visual-audit/probes.mjs <scratch>/probes [--worlds …] [--p
 ```
 
 One headless Chrome (muted, the real GPU) and one dev server (PORT, default 5333; Chrome's debugging port CDP, default
-5338, as another agent's tools may hold PORT + 1), world after world with a rest between; it never leaves a Chrome
+5391: other agents' tools hold the ports near PORT and have attached to a Chrome on 5338 before), world after world with a rest between; it never leaves a Chrome
 behind. By default it covers every route world (`ORDER` in src/levels/names.js) at **Handheld and High** (Handheld's 4
 spot taps are where the blocks showed): about 10 minutes a world and preset. Per world it takes the **known spots** of
 past bugs (`KNOWN` in the script: the Qanat tree's stairs, the cave under the giant, the Givers' Hearth; add each new
@@ -126,11 +126,13 @@ the same masks once more with nobody moving (the world's own motion, left out). 
 him in a dark mask, over 5 % of his own size or 300 px, is the white shadow; a **dark** one over 30 % of his size, the
 halo before it. Tuned on the bug: the Qanat stairs at Handheld, 0.11 of him before 620c4384 and 0.003 after; the
 Hearth 703 px before, 0 after. Look at the pictures it saves (`<spot>-ghost-d9with.png`, `…-d9without.png`, `…-d10…`)
-before calling it: a person very close to the camera can leave every tap of a pixel beside him on him.
+before calling it. A person over a tenth of the frame (the camera on top of him in a small room) is reported `close`,
+not judged; both cameras are pulled in front of any wall between them and the spot.
 
 **4. Orbit stability** (bug 2). The camera orbits the spot's point ±32° in 8° steps, the traveller hidden; the same
 surface points (raycast once from the first view, projected again in each, left out where something stands in front)
-are read in masks 10 and 9. `stability` and `unstable`: flagged when the frame-to-frame step's 95th percentile is over
+are read in masks 10 and 9, and kept only where the albedo (debug 2) still matches the first view's (the same surface:
+not a person, a drone or a prop the collision doesn't hold, not a pixel off an edge). `stability` and `unstable`: flagged when the frame-to-frame step's 95th percentile is over
 0.3 (a mask that jumps on and off the same surface). Tuned on the bug, the build before c58cbcaa against main: the
 stairs 0.60 before, 0.20-0.23 after; the Hearth 0.54 / 0.25 before, 0.03-0.24 after. `drift` (most dark points change,
 in small steps) is a picture to look at, not a verdict: screen-space masks still slide a little with the view.
@@ -139,8 +141,9 @@ in small steps) is a picture to look at, not a verdict: screen-space masks still
 ceiling): level rays at the foot of the walls (6 cm up) and a metre up, all round (`floorSlits`: where the wall stands a
 metre up but the foot ray goes through, there is a gap under it; the Hearth before c58cbcaa: 6 of 24 directions, after:
 0); and the light term (debug **5**) looking round six ways at the floor's edge (`litRidges`: a thin line brighter than
-both sides; the sky seen through a slit is 1.0 there). A run of 70 px is flagged (the Hearth's seam was 63-152 px);
-30-70 px is saved as a picture to look at (bone markers and lit props pass the test too).
+both sides, sky-white: the sky seen through a slit is 1.0 there, a lamp-lit surface rarely is). A run of 60 px is
+flagged (the Hearth's seam was 62-149 px before c58cbcaa); 30-60 px is saved as a picture to look at (bone markers,
+the glowing kind, pass the test too).
 
 **The geometry, as unit tests.** `tests/shell-seams.test.js` runs every displacement helper the worlds roughen shells
 with (desert-city and desert-hearth `rough`, sky-stones `lumpy`, world.js `jitter` and `soften`) on a dome, a low dome,

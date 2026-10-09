@@ -15,7 +15,7 @@
 //
 //   node .claude/skills/visual-audit/probes.mjs <out-dir> [--worlds desert,incal] [--presets handheld,high]
 //        [--hour 9.5] [--auto 4] [--interiors 4] [--only known] [--root <checkout to serve>] [--rest 20]
-//   PORT (default 5333), CDP (Chrome's debugging port, default 5338). Never 5173 (the author's own dev server).
+//   PORT (default 5333), CDP (Chrome's debugging port, default 5391). Never 5173 (the author's own dev server).
 // Writes <out-dir>/report.json and, for every flagged probe, its debug pictures (<world>/<preset>/...png).
 import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -31,7 +31,7 @@ const L = await import(join(HERE, 'scripts/visual-probes/lib.mjs'));
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'visual-probes'));
 const PRESETS = arg('presets', 'handheld,high').split(','), HOUR = +arg('hour', 9.5), AUTO = +arg('auto', 4), MAXI = +arg('interiors', 4);
 const SAVE_ALL = args.includes('--save-all'), ONLY = arg('only', 'all'), SPOTS = arg('spots', '').split(',').filter(Boolean), SKIP = arg('skip', '').split(','), REST = +arg('rest', 20) * 1000, W = 1280, H = 720;
-const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5338);
+const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5391);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const names = await import(join(HERE, 'src/levels/names.js'));
@@ -86,6 +86,9 @@ const PAGE = `(() => {
     hide(on) { const o = player.object ?? player.char?.root; if (!o) return false; if (!o.__probeVis) { let v = o.visible; Object.defineProperty(o, 'visible', { get() { return window.__hideP ? false : v; }, set(x) { v = x; }, configurable: true }); o.__probeVis = true; } window.__hideP = !!on; return true; },
     place(pos, heading) { player.teleport?.(V(pos), up, new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading))); player.heading = heading; player.vel?.set(0, 0, 0); return true; },
     debug(n) { params.debug = n; return true; },
+    // an eye pulled in front of any wall between it and what it looks at (a small room: the orbit and the ghost camera)
+    clampEye(target, eye) { const t = V(target), e = V(eye), d = e.clone().sub(t), len = d.length(); d.normalize();
+      const h = physics.rayHit(t.clone().addScaledVector(d, 0.3), d, len); return h ? t.clone().addScaledVector(d, Math.max(1.5, h.distance - 0.1)).toArray() : eye; },
     ground(x, y, z) { const g = physics.groundAt(x, y + 1.5, z, 30); return Number.isFinite(g) ? g : null; },
     hit(o, d, far = 80) { const h = physics.rayHit(V(o), V(d).normalize(), far); return h ? { d: h.distance, p: h.point.toArray(), n: h.normal.toArray() } : null; },
     // surface points round the middle of the view: a grid of pixels raycast once (faces seen square enough)
@@ -146,14 +149,24 @@ const valueAt = (img, px) => (px ? img.data[Math.min(img.h - 1, Math.max(0, px[1
 
 async function orbit(spot, dir) {
   await ev(`__probe.hide(true)`);
+  spot.eye = await ev(`__probe.clampEye(${JSON.stringify(spot.target)}, ${JSON.stringify(spot.eye)})`);
   await ev(`__probe.pin(${JSON.stringify(spot.eye)}, ${JSON.stringify(spot.target)})`); await settle(500);
   const c = await ev(`__probe.screen(${JSON.stringify(spot.target)})`);
   const pts = await ev(`__probe.points(${Math.round(c[0])}, ${Math.round(c[1])})`);
   const series = { spot: pts.map(() => []), encl: pts.map(() => []) };
   let firstSpot = null, worstPng = null;
+  let albedo0 = null;
   for (const yaw of L.ORBIT.yaw) {
-    await ev(`__probe.pin(${JSON.stringify(orbitEye(spot.eye, spot.target, yaw))}, ${JSON.stringify(spot.target)})`); await settle();
-    const px = await ev(`__probe.project(${JSON.stringify(pts)})`);
+    const eye = await ev(`__probe.clampEye(${JSON.stringify(spot.target)}, ${JSON.stringify(orbitEye(spot.eye, spot.target, yaw))})`);
+    await ev(`__probe.pin(${JSON.stringify(eye)}, ${JSON.stringify(spot.target)})`); await settle();
+    let px = await ev(`__probe.project(${JSON.stringify(pts)})`);
+    // the same surface: its albedo (debug 2) as in the first view, or left out (a person or a prop walked in front,
+    // something the collision doesn't hold, a pixel off an edge)
+    await ev(`__probe.debug(2)`); await settle(120);
+    const alb = await grab(), at = (p) => { const i = (p[1] * alb.width + p[0]) * alb.channels; return [alb.pixels[i], alb.pixels[i + 1], alb.pixels[i + 2]]; };
+    const cols = px.map((p) => (p ? at(p) : null));
+    albedo0 ??= cols;
+    px = px.map((p, i) => (p && albedo0[i] && cols[i] && Math.max(...cols[i].map((c, k) => Math.abs(c - albedo0[i][k]))) <= 24 ? p : null));
     await ev(`__probe.debug(10)`); await settle(120); const rawS = await grabRaw(); const s = L.maskOf(decodePNG(rawS), L.spotPick);
     await ev(`__probe.debug(9)`); await settle(120); const e = L.maskOf(await grab(), L.enclosurePick);
     px.forEach((p, i) => { series.spot[i].push(valueAt(s, p)); series.encl[i].push(valueAt(e, p)); });
@@ -176,7 +189,7 @@ async function ghost(spot, dir) {
     const foot = add(spot.target, mul(n, 1.3)), g = await ev(`__probe.ground(${foot[0]}, ${foot[1] + 1}, ${foot[2]})`);
     if (g === null) return { skipped: 'no ground in front of the surface' };
     player = [foot[0], g, foot[2]]; heading = Math.atan2(n[0], n[2]);
-    eye = add(add(spot.target, mul(n, 5)), [0, 1.2, 0]);
+    eye = await ev(`__probe.clampEye(${JSON.stringify(add(player, [0, 0.9, 0]))}, ${JSON.stringify(add(add(spot.target, mul(n, 5)), [0, 1.2, 0]))})`);
   }
   await ev(`__probe.place(${JSON.stringify(player)}, ${heading})`);
   await ev(`__probe.pin(${JSON.stringify(eye)}, ${JSON.stringify(add(player, [0, 0.9, 0]))})`); await settle(700);
@@ -194,16 +207,18 @@ async function ghost(spot, dir) {
   const m = (k, pick) => L.maskOf(P[k], pick);
   const r9 = L.ghostCheck(m('9+', L.enclosurePick), m('9-', L.enclosurePick), sil, { noise: L.noiseOf(m('9-', L.enclosurePick), m('9=', L.enclosurePick)) });
   const r10 = L.ghostCheck(m('10+', L.spotPick), m('10-', L.spotPick), sil, { noise: L.noiseOf(m('10-', L.spotPick), m('10=', L.spotPick)) });
-  const flagged = [...r9.flags, ...r10.flags].some((f) => !/hardly in view/.test(f));
+  // (a person over a tenth of the frame: the camera is on top of him, the taps' reach is all him; not this probe's case)
+  const close = r9.person > W * H * 0.1;
+  const flagged = !close && [...r9.flags, ...r10.flags].some((f) => !/hardly in view/.test(f));
   if (flagged) for (const k of ['9+', '9-', '10+', '10-']) writeFileSync(join(dir, `${spot.name}-ghost-d${k.replace('+', 'with').replace('-', 'without')}.png`), shots[k]);
   const pick = (r) => ({ person: r.person, mass: r.mass, biggestPale: r.biggestPale, biggestDark: r.biggestDark, paleShare: +r.paleShare.toFixed(3), darkShare: +r.darkShare.toFixed(3), flags: r.flags });
-  return { enclosure: pick(r9), spot: pick(r10), flagged };
+  return { enclosure: pick(r9), spot: pick(r10), flagged, ...(close ? { close: true } : {}) };
 }
 
-// a lit line this long (px at 1280 x 720) in the light term inside is flagged; 30 up to it is a picture to look at
-// (the Hearth's seam before c58cbcaa: 63-152 px in its six looks; after, at most 52, its bone markers and a short
-// line to check: docs/audits/visual-v1.4.md)
-const LIT_LINE = 70;
+// a lit line this long (px at 1280 x 720, sky-white in the light term) inside is flagged; 30 up to it is a picture to
+// look at (the Hearth's seam before c58cbcaa: 62-149 px in its six looks; after, a hairline of 44-72 px is left by its
+// floor, and bone markers pass the test at 30-46: docs/audits/visual-v1.4.md)
+const LIT_LINE = 60;
 async function seams(where, dir, name) {
   const g = await ev(`__probe.ground(${where[0]}, ${where[1] + 1}, ${where[2]})`);
   if (g === null) return { name, skipped: 'no floor' };

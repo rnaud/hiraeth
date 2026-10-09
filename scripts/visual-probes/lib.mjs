@@ -173,12 +173,13 @@ export const unstable = (r, T = STABLE) => r.dark >= T.minDark && r.p95Step > T.
 export const drifting = (r, T = STABLE) => r.dark >= T.manyDark && r.flipOfDark > T.drift && r.p95Step <= T.p95Step;
 
 /**
- * Thin lit lines in a picture of the light term: a pixel brighter than `bright` and brighter by `contrast` than the
+ * Thin lit lines in a picture of the light term: a pixel brighter than `bright` (0.97: the sky seen through a slit is
+ * 1.0 in debug 5, a lit surface rarely is; lamps' pools and lit plates were what passed at 0.75) and brighter by `contrast` than the
  * pixels `gap` above and below it (or left and right of it). Runs of at least `minRun` such pixels along a row (or a
  * column) are the lines; a floor/wall seam lit by a slit is one long run (the cave seam of c58cbcaa: the sky, 1.0 in
  * debug 5, seen through it as a white line 4-8 px thick between the wall's 0.2-0.4 and the floor's 0.4).
  */
-export function litRidges(img, { bright = 0.75, contrast = 0.3, gap = 6, minRun = 24, skipTop = 0 } = {}) {
+export function litRidges(img, { bright = 0.97, contrast = 0.3, gap = 6, minRun = 24, skipTop = 0 } = {}) {
   const { data: L, w, h } = img;
   const ridge = (x, y, dx, dy) => {
     const v = L[y * w + x];

@@ -32,7 +32,7 @@ no game code (it calls `foes.setPractice`, `foes.hurt` and reads state, nothing 
 node .claude/skills/combat-review/arena.mjs <scratch>/combat [--kinds blot,crab] [--watch 24] [--version 1.4]
 ```
 
-PORT (default 5333) and CDP (Chrome's debugging port, default 5338). For each kind, in the Arena (`?level=arena`):
+PORT (default 5333) and CDP (Chrome's debugging port, default 5391). For each kind, in the Arena (`?level=arena`):
 - **watch**: it is called in (`foes.setPractice`), locked on, and fights a scripted player standing still (his health
   topped up, every hurt counted) for `--watch` s: the **wind-ups as seen** (its state `wind`, per attack: median s), the
   **attacks a minute**, the **health a minute** a still player loses (a threat measure: 1.0 is a full bar a minute);

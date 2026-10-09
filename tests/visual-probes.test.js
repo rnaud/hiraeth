@@ -52,13 +52,15 @@ test('stability: surface points whose mask comes and goes as the camera orbits a
 });
 
 test('litRidges: a thin lit line along a dark floor/wall join is found; a lit patch is not a line', () => {
-  const seam = img((x, y) => (y === 60 && x > 10 && x < 110 ? 0.9 : 0.1));
+  const seam = img((x, y) => (y === 60 && x > 10 && x < 110 ? 1 : 0.1));
   const r = litRidges(seam);
   assert.ok(r.longest >= 90, JSON.stringify(r.runs[0]));
   assert.equal(r.runs[0].dir, 'row');
-  const slanted = img((x, y) => (Math.abs(y - (20 + x * 0.3)) < 1 ? 0.85 : 0.1));   // a seam seen at a slant: short runs
+  const slanted = img((x, y) => (Math.abs(y - (20 + x * 0.3)) < 1 ? 1 : 0.1));   // a seam seen at a slant: short runs
   assert.ok(litRidges(slanted, { minRun: 3 }).px > 50);
-  const patch = img((x, y) => (x > 30 && x < 90 && y > 30 && y < 60 ? 0.9 : 0.1));
+  const patch = img((x, y) => (x > 30 && x < 90 && y > 30 && y < 60 ? 1 : 0.1));
+  const lamp = img((x, y) => (y === 60 && x > 10 && x < 110 ? 0.9 : 0.1));   // (a lamp-lit edge, not the sky)
+  assert.equal(litRidges(lamp).longest, 0);
   assert.ok(litRidges(patch).longest < 24, JSON.stringify(litRidges(patch).runs[0]));
   const dark = img(() => 0.1);
   assert.equal(litRidges(dark).px, 0);

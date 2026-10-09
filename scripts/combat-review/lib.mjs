@@ -89,12 +89,15 @@ export function scoreKind(F, run = {}, worlds = 0, roleCount = 1) {
   const readability = band(wind, [0.35, 0.5, 0.7, 0.95]);
   const counterplay = clamp5(1 + F.ways.length * 0.6 + (F.attacks.length - 1) * 0.6);
   const space = clamp5(1 + F.space.length * 0.8);
-  // threat: how fast it hurts a player who does nothing; fair: the time it gives to answer. Good is a real threat
-  // with a readable telegraph; too much threat on a short telegraph, or no threat at all, scores low
+  // threat: how fast it hurts a player who does nothing (a still player in the Arena loses 1-3.5 bars a minute: v1.4);
+  // fair: the time it gives to answer. A threat above what its telegraph lets you read costs fairness; no threat at
+  // all is dull
   const dpm = run.damagePerMin ?? null;
-  const threat = dpm === null ? 3 : band(dpm, [0.15, 0.4, 0.8, 1.4]);
-  const fairness = dpm === null ? 3 : clamp5(threat >= 4 && readability <= 2 ? 1.5 : threat <= 1 ? 2 : (threat + readability) / 2 + 0.5);
-  const identity = clamp5(2 + (F.tone ? 1 : 0) + (F.sound ? 1 : 0) + (F.attacks.length >= 2 ? 0.5 : 0));
+  const threat = dpm === null ? 3 : band(dpm, [0.8, 1.4, 2.0, 2.8]);
+  const fairness = dpm === null ? 3 : threat <= 1 ? 2 : clamp5(5 - Math.max(0, threat - readability));
+  // identity: its own tone and more than one attack; the sounds are judged by ear (src/audio.js foeHurt / foeBurst
+  // have two sets in v1.4: 'machine' and the ink's), the shape on the contact sheet
+  const identity = clamp5(2 + (F.tone ? 1 : 0) + (F.attacks.length >= 2 ? 0.5 : 0) + (F.sound ? 0.5 : 0));
   const combines = clamp5(1 + Math.min(3, worlds) * 0.7 + (roleCount <= 2 ? 1 : 0.4));
   const total = +((readability + counterplay + space + fairness + identity + combines) / 6).toFixed(1);
   return {
@@ -104,7 +107,7 @@ export function scoreKind(F, run = {}, worlds = 0, roleCount = 1) {
       counterplay: `${F.ways.length} answers (${F.ways.join(', ') || 'the blade only'}), ${F.attacks.length} attacks`,
       space: F.space.join(', ') || 'flat ground only',
       fairness: dpm === null ? 'not measured' : `${dpm.toFixed(2)} health/min on a still player, threat ${threat}`,
-      identity: `${F.tone ? 'own tone' : 'ink tone'}, ${F.sound ? 'own sound' : 'shared sound'} (confirm on the contact sheet)`,
+      identity: `${F.tone ? 'own tone' : 'ink tone'}, ${F.sound ? `the ${F.sound} sound set` : 'the ink sound set'} (confirm on the contact sheet and by ear)`,
       combines: `${worlds} world rosters, role ${F.role}`,
     },
   };

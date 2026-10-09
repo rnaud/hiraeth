@@ -45,9 +45,9 @@ test('every kind the game has gets facts and six scores in 1..5, whatever the ro
   const F = kindFacts('newcomer', { name: 'new', hp: 3, attacks: [{ id: 'a', wind: 0.3, damage: 0.2 }] });
   assert.equal(F.role, 'melee');
   // a big threat on a short telegraph is unfair; no threat at all is dull
-  assert.ok(scoreKind(F, { windSeen: 0.3, damagePerMin: 2 }).fairness <= 2);
+  assert.ok(scoreKind(F, { windSeen: 0.3, damagePerMin: 3 }).fairness <= 2);
   assert.ok(scoreKind(F, { windSeen: 0.9, damagePerMin: 0 }).fairness <= 2);
-  assert.ok(scoreKind(F, { windSeen: 0.9, damagePerMin: 0.6 }).fairness >= 3);
+  assert.ok(scoreKind(F, { windSeen: 0.9, damagePerMin: 1.6 }).fairness >= 3);
 });
 
 test('a guardian gets facts and scores from its temple\'s def', () => {

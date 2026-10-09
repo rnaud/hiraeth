@@ -8,6 +8,44 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Redo the character's face to match the references more closely and feel less cartoony / anime.
   Pay particular attention to the eyes as a possible cause of the style mismatch.
 
+# Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
+
+- [ ] A dark copy of the traveller on the wall behind him in room corners (Handheld): post.js `enclosure`'s look past
+  a person (twice as far) lands on the other wall of the corner, nearer than the point. Stop the look at the person's
+  depth, or leave the tap out; a test twin with a corner in tests/occlusion-taps.test.js.
+- [ ] A hairline of sky still shows at the Givers' Hearth's floor edge (44-73 px, debug 5, both presets): find it with
+  foot rays from more points than the centre (the door cut is the first suspect) and close it with a skirt ring.
+- [ ] Hovering makers' drones in the temple halls draw a jagged spot-black halo on the wall behind them, moving with
+  them: give them (and other moving props near walls) the figure flag, or leave them out of the enclosure as people are.
+- [ ] Small square steps in the spot mass at the temple halls' pillar feet (Edena, High): check with the motion check's
+  swing on a hall.
+- [ ] A spot-black blob in the traveller's own cast shadow on open sand by the ship: check `notPerson` for the taps
+  round his feet.
+- [ ] The probes: an orbit amplitude that shrinks when the eye has to be pulled in front of a wall (small rooms flag
+  on the camera's distance changing, not the masks); a ghost check that takes several noise frames, or freezes the
+  world's movers, so drones and passers-by don't flag; foot rays that ignore furniture (a ray at 0.3 m too); place
+  other people (Marrow) in front of dark areas, not only the traveller; run the side worlds.
+- [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
+  tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
+
+# Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
+
+- [ ] The full charged cut kills 11 of the 15 kinds fastest of any move: give the light combo, the air cut and the
+  dash cut a reason (a staggering third swing, heavy foes resisting an uncharged release, a longer full charge).
+- [ ] A hurt and a burst sound per kind: src/audio.js `foeHurt` / `foeBurst` have two sets (the machine's and the
+  ink's) for the whole roster; glass, shell, paper, roots, slag and shadow each want their own.
+- [ ] The route's difficulty falls at the end: the Garden of Spheres and the Signal Market field the softest kinds (the
+  sign moth: 1.0 bar a minute, one blow). Bring a late kind or a mixed lead to them.
+- [ ] The shadow hound's pounce (0.60 s wind-up, the highest threat: 3.35 bars a minute on a still player) wants a
+  floor telegraph or ~0.75 s; the shade (one cut, 3.0 a minute, only the blade answers it) wants a second attack and
+  another answer.
+- [ ] The eleven guardians share one template (three attacks, two phases, 1.4-1.7 s telegraphs): vary it down the
+  route (a third phase or a combined attack later on, telegraphs tightening toward the Signal Market).
+- [ ] A shot that does nothing (machine, ray, golem, drone, crab, hound) should say so: a glance spark and the armour's
+  thunk.
+- [ ] The combat-review script: frame each kind side-on for the contact sheet; drive guard, parry and evade timing
+  against each attack; batch and group the report when the larger roster lands.
+
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
 
 - [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the

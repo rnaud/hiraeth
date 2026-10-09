@@ -13,7 +13,7 @@
 // from their tuning; they are reviewed by playing their temples (the Arena has no ring for them).
 //
 //   node .claude/skills/combat-review/arena.mjs <out-dir> [--kinds blot,crab] [--watch 24] [--version 1.4]
-//   PORT (default 5333; never 5173), CDP (Chrome's debugging port, default 5338)
+//   PORT (default 5333; never 5173), CDP (Chrome's debugging port, default 5391)
 // Writes <out-dir>/combat.json, <out-dir>/telegraphs.png (and .webp if cwebp is there) and <out-dir>/combat.md (the
 // scored tables, ready to paste into docs/audits/combat-v<version>.md).
 import { spawn, spawnSync } from 'node:child_process';
@@ -27,13 +27,42 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'combat-review'));
 const WATCH = +arg('watch', 24), W = 1280, H = 720;
-const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5338);
+const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5391);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { decodePNG } = await import(join(ROOT, 'scripts/png.mjs'));
 const L = await import(join(ROOT, 'scripts/combat-review/lib.mjs'));
 const VERSION = arg('version', (await import(join(ROOT, 'src/changelog.js'))).CHANGELOG?.[0]?.v ?? 'x');
+
+/** The scored tables (combat.md), from the scored foes and guardians. */
+function report(scored, gScored, MOVES, WATCH) {
+  const s = (x) => (x === null || x === undefined ? '-' : x);
+  return [
+    `## Foes (${scored.length} kinds, the Arena, a still player, ${WATCH} s each)`, '',
+    L.table(['kind', 'read', 'counter', 'space', 'fair', 'identity', 'combines', '**total**', 'wind seen (s)', 'attacks/min', 'health/min', ...MOVES.map((m) => `ttk ${m.id}`)],
+      scored.map((r) => [r.name, r.score.readability, r.score.counterplay, r.score.space, r.score.fairness, r.score.identity, r.score.combines, `**${r.score.total}**`,
+        s(r.windSeen?.toFixed(2)), r.attacksPerMin, r.damagePerMin, ...MOVES.map((m) => (r.ttk[m.id]?.dead ? `${r.ttk[m.id].s}${r.ttk[m.id].from === 'behind' ? ' (behind)' : ''}` : r.ttk[m.id] ? '∞' : '-'))])), '',
+    `## Guardians (${gScored.length}, from their tuning)`, '',
+    L.table(['guardian', 'world', 'read', 'counter', 'space', 'fair', 'phases', '**total**', 'why'],
+      gScored.map((g) => [g.name, g.world, g.score.readability, g.score.counterplay, g.score.space, g.score.fairness, g.score.phases, `**${g.score.total}**`, g.score.why])), '',
+    '## Why each foe scored as it did', '',
+    ...scored.map((r) => `- **${r.name}**: ${Object.entries(r.score.why).map(([k, v]) => `${k}: ${v}`).join('; ')}.`),
+  ].join('\n');
+}
+
+// --rescore <combat.json>: the scores and the tables again from a run's numbers (after the rubric changed), no browser
+if (arg('rescore')) {
+  const { readFileSync } = await import('node:fs');
+  const J = JSON.parse(readFileSync(resolve(arg('rescore')), 'utf8'));
+  const roles = {}; for (const f of J.foes) roles[f.facts.role] = (roles[f.facts.role] ?? 0) + 1;
+  J.foes = J.foes.map((r) => ({ ...r, score: L.scoreKind(r.facts, r, r.worlds ?? 0, roles[r.facts.role]) }));
+  J.guardians = J.guardians.map((g) => ({ ...g, score: L.scoreGuardian(g) }));
+  writeFileSync(join(OUT, 'combat.json'), JSON.stringify(J, null, 2));
+  writeFileSync(join(OUT, 'combat.md'), report(J.foes, J.guardians, J.moves, J.watch));
+  console.log(`rescored into ${OUT}`);
+  process.exit(0);
+}
 
 // ---------------------------------------------------------------- the guardians, from their temples (node)
 const guardians = [];
@@ -95,7 +124,10 @@ const setup = await ev(`(async () => {
   P.hurt = (d, why) => { window.__dmg.push({ t: performance.now(), d, why }); return hurt(d, why); };
   window.__keep = setInterval(() => { if (P.health < 0.7) P.health = 1; }, 50);
   const plain = (o) => JSON.parse(JSON.stringify(o, (k, v) => (typeof v === 'function' ? undefined : v)));
-  const worlds = {}; for (const [w, R] of Object.entries(ROSTERS)) for (const k of new Set([R.first, ...Object.keys(R.wild ?? {}), ...(R.guards ?? []), ...(R.temple ?? [])])) (worlds[k] ??= []).push(w);
+  const { rosterOf } = await import('/src/foe-worlds.js');
+  const worlds = {}; for (const w of Object.keys(ROSTERS)) { const R = rosterOf(w); for (const k of new Set([R.first, ...Object.keys(R.wild ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])])) (worlds[k] ??= []).push(w); }
+  // a kind that only comes out of another (a golem's splinters) fights where its parent does
+  for (const [k, D] of Object.entries(FOES)) if (D.splits?.kind) worlds[D.splits.kind] = [...new Set([...(worlds[D.splits.kind] ?? []), ...(worlds[k] ?? [])])];
   return { kinds: SPAWN_KINDS.filter((k) => FOES[k]), defs: plain(Object.fromEntries(SPAWN_KINDS.map((k) => [k, FOES[k]]))), worlds,
     tuning: plain({ BLADE: blade.BLADE, SWINGS: blade.SWINGS, CHARGE: blade.CHARGE, AIR: blade.AIR, RIPOSTE: blade.RIPOSTE, DASH: blade.DASH, FLUID: tool.FLUID, MODES: kit.MODES }),
     extra: plain({ GUARD: blade.GUARD, EVADE: blade.EVADE, LOCK: (await import('/src/foes.js')).LOCK }) };
@@ -139,10 +171,12 @@ for (const kind of KINDS) {
     const r = await ev(`(async () => {
       foes.setPractice(${JSON.stringify(kind)}); await new Promise((r) => setTimeout(r, 250));
       const f = foes.list.find((x) => x.alive && x.kind === ${JSON.stringify(kind)}); if (!f) return null;
-      let landed = 0, wasted = 0, hits = 0, dead = false;
+      let landed = 0, wasted = 0, hits = 0, dead = false, from = 'front';
       for (let i = 0; i < 40 && !dead; i++) {
         hits++;
-        const dir = f.pos.clone().sub(player.pos).setY(0).normalize();
+        // from in front; if six blows in a row do nothing (a shell, a shadow), from behind, as a player would flank it
+        if (from === 'front' && landed === 0 && wasted >= 6) from = 'behind';
+        const dir = from === 'front' ? f.pos.clone().sub(player.pos).setY(0).normalize() : new THREE.Vector3(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0));
         ${m.stunned ? 'f.stunned = Math.max(f.stunned ?? 0, 1);' : ''}
         const hp = f.hp, r = foes.hurt(f, ${JSON.stringify(m.mode)}, dir, { damage: ${m.hits ? `[${m.hits}][i % ${m.hits.length}]` : m.damage}, source: ${JSON.stringify(m.source)}, breaks: ${!!m.breaks} });
         if (!f.alive) { dead = true; break; }
@@ -150,10 +184,10 @@ for (const kind of KINDS) {
         await new Promise((r) => setTimeout(r, 30));
       }
       foes.list.slice().forEach((x) => foes.remove(x));
-      return { hits, landed: landed + (dead ? 1 : 0), wasted, dead };
+      return { hits, landed: landed + (dead ? 1 : 0), wasted, dead, from };
     })()`);
     const cycle = winds.length ? (span * 60) / winds.length : 3;
-    ttk[m.id] = r ? { ...r, s: L.timeToKill(r, m, cycle) } : null;
+    ttk[m.id] = r ? { ...r, s: L.timeToKill({ ...r, hits: r.landed + (r.from === 'behind' ? 0 : r.wasted) }, m, cycle) } : null;   // (a flank costs no blows: only the ones that land, from behind)
   }
   const row = {
     kind, name: setup.defs[kind].name,
@@ -195,20 +229,9 @@ if (shots.length) {
 const roles = {};
 const facts = Object.fromEntries(KINDS.map((k) => [k, L.kindFacts(k, setup.defs[k])]));
 for (const F of Object.values(facts)) roles[F.role] = (roles[F.role] ?? 0) + 1;
-const scored = results.map((r) => ({ ...r, facts: facts[r.kind], score: L.scoreKind(facts[r.kind], r, (setup.worlds[r.kind] ?? []).length, roles[facts[r.kind].role]) }));
+const scored = results.map((r) => ({ ...r, facts: facts[r.kind], worlds: (setup.worlds[r.kind] ?? []).length, score: L.scoreKind(facts[r.kind], r, (setup.worlds[r.kind] ?? []).length, roles[facts[r.kind].role]) }));
 const gScored = guardians.filter((g) => !g.error).map((g) => ({ ...g, score: L.scoreGuardian(g) }));
-const s = (x) => (x === null || x === undefined ? '-' : x);
-const md = [
-  `## Foes (${scored.length} kinds, the Arena, a still player, ${WATCH} s each)`, '',
-  L.table(['kind', 'read', 'counter', 'space', 'fair', 'identity', 'combines', '**total**', 'wind seen (s)', 'attacks/min', 'health/min', ...MOVES.map((m) => `ttk ${m.id}`)],
-    scored.map((r) => [r.name, r.score.readability, r.score.counterplay, r.score.space, r.score.fairness, r.score.identity, r.score.combines, `**${r.score.total}**`,
-      s(r.windSeen?.toFixed(2)), r.attacksPerMin, r.damagePerMin, ...MOVES.map((m) => (r.ttk[m.id]?.dead ? r.ttk[m.id].s : r.ttk[m.id] ? '∞' : '-'))])), '',
-  `## Guardians (${gScored.length}, from their tuning)`, '',
-  L.table(['guardian', 'world', 'read', 'counter', 'space', 'fair', 'phases', '**total**', 'why'],
-    gScored.map((g) => [g.name, g.world, g.score.readability, g.score.counterplay, g.score.space, g.score.fairness, g.score.phases, `**${g.score.total}**`, g.score.why])), '',
-  '## Why each foe scored as it did', '',
-  ...scored.map((r) => `- **${r.name}**: ${Object.entries(r.score.why).map(([k, v]) => `${k}: ${v}`).join('; ')}.`),
-].join('\n');
+const md = report(scored, gScored, MOVES, WATCH);
 writeFileSync(join(OUT, 'combat.md'), md);
 writeFileSync(join(OUT, 'combat.json'), JSON.stringify({ version: VERSION, date: new Date().toISOString(), watch: WATCH, moves: MOVES, extra: setup.extra, foes: scored, guardians: gScored, guardianErrors: guardians.filter((g) => g.error), errors: errors.slice(0, 8), contact: shots.map((x) => x.kind) }, null, 2));
 console.log(`combat.md, combat.json and the contact sheet in ${OUT}`);
