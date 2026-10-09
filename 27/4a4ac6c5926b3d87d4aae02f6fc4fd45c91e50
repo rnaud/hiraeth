@@ -1,0 +1,49 @@
+DONE.md
+  s_9ca76055a220ed::t_5b74c7cba9e230 1270-1289
+changelog.md
+  s_9ca76055a220ed::t_da3f357287ee32 11-15
+docs/systems/foes.md
+  s_9ca76055a220ed::t_704e7e0ec0e6a7 469-489
+docs/systems/story.md
+  s_9ca76055a220ed::t_93ea385a79efc8 655-668
+src/changelog-media.js
+  s_9ca76055a220ed::t_8d5ab8481bf485 172-192,205-218
+src/changelog.js
+  s_9ca76055a220ed::t_fe9842bd29b544 18-24
+src/foe-kinds.js
+  s_9ca76055a220ed::t_857d852d9e183a 118,155,162-165,167,177-179,190,248,467-469,479-481,483-485,493-495
+src/foe-presence.js
+  s_9ca76055a220ed::t_30440013446eaa 1-66
+src/foes.js
+  s_9ca76055a220ed::t_86e9f65f20f78d 142-157,273-285,390,786,1067-1097,1108,1125-1126,1140,1373-1379,1387-1395,1597-1599
+src/levels/arzach.js
+  s_9ca76055a220ed::t_3a0a4696b21449 228-230
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_89fe4c0bb0fafd 209,242,247,258-268
+src/story/arzach.js
+  s_9ca76055a220ed::t_a7c2ab9cb024b3 7-9,337-340,342,344,348-355,368-374,389,392-395,397-398,400-411,543-544,546-550
+src/story/knuckle-riddle.js
+  s_9ca76055a220ed::t_62e1560de35d7a 1-50
+tests/foe-presence.test.js
+  s_9ca76055a220ed::t_7665c675234595 1-121
+tests/knuckle-riddle.test.js
+  s_9ca76055a220ed::t_545118978ec854 1-67
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_cab884ab3265b9 247-253,256-257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "274a4ac6c5926b3d87d4aae02f6fc4fd45c91e50",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
