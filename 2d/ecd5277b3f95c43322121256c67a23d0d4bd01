@@ -1,0 +1,19 @@
+TODO.md
+  s_8c562b1b29fe08::t_2eb01b195b3431 28-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2decd5277b3f95c43322121256c67a23d0d4bd01",
+  "prompts": {},
+  "sessions": {
+    "s_8c562b1b29fe08": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a00480dfa51d1fcd4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
