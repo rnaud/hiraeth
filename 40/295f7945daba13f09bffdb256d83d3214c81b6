@@ -1,0 +1,45 @@
+DONE.md
+  s_9ca76055a220ed::t_e3e50e886ec23c 1427-1442
+changelog.md
+  s_9ca76055a220ed::t_d4bf1fd99f8d7c 5-10
+docs/systems/story.md
+  s_9ca76055a220ed::t_ba11ee5238cbdd 123-132,466-471,484-485
+src/changelog.js
+  s_9ca76055a220ed::t_d44e1c0e252b91 11-20
+src/game-state.js
+  s_9ca76055a220ed::t_50ca2e26777fcf 78
+src/save-migrate.js
+  s_9ca76055a220ed::t_e2582be50ed97c 13-16,64-68,74-75,81
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_6d1d4364e5c59d 155-176
+src/story/desert-data.js
+  s_9ca76055a220ed::t_0346e386dbdcbf 179-180,194-199,617-630,930-932
+src/story/desert.js
+  s_9ca76055a220ed::t_c56bcc0885f148 116-129,825,827,833,836,840,847,858-860,990-993,1090
+src/story/incal-data.js
+  s_9ca76055a220ed::t_0ab2cd018b2e2c 458-459
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_2fe63e5744efe4 162,169-181
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_3cd56a6ef59f9c 319-362
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_1618c2966d9395 80
+tests/route-ilen.test.js
+  s_9ca76055a220ed::t_f4de73a1837d70 1-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40295f7945daba13f09bffdb256d83d3214c81b6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
