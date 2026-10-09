@@ -1,7 +1,25 @@
 {
   "archetype": "moth",
   "created": "2026-10-09",
-  "sheets": [],
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one signal moth, an alien creature that hovers upright in the air, drawn four times side by side at the same scale on a plain cream background: wings folded into a tall tent, side view, three-quarter view, and its flash wind-up with both wings snapped wide open like two signal panels and their eye-spots blazing white. Beneath the open-wing view its solid black silhouette, a broad triangle. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the open wings span 1.8 metres. Body plan: not an insect from a natural history book but an otherworldly lamp creature: its body is a slender upright paper-lantern shape, ribbed and translucent, with a warm light burning inside it; two pairs of wings made of thin stretched membrane on fine rods, like the sails of a kite or the slats of a signal lamp, hinged at the shoulder; two long antennae ending in small glowing bulbs; six long thin dangling legs with clear knee joints and hooked feet, folded under it like a hanging lantern's fringe; a small hooded face with two dark eyes. Lorn II palette: dusty grey-lilac membrane wings lit from behind so their rods glow amber, two round red eye-spots, the lantern body warm honey-gold, deep teal shadows. Strange, delicate, mysterious. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, realistic insect, specimen plate, entomology.",
+      "from": "docs/design/enemy-roster-prompts.md#moth",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-52-56-61e5",
+      "candidate": "openai/2",
+      "sha256": "031d6d3dfbdb58d3f1efc2242efd3ca53c5ca52899e7b14ece461e1d75d3fb01",
+      "bytes": 165867,
+      "costUSD": 0.041
+    }
+  ],
   "rejected": [
     {
       "batch": "2026-10-09-18-42-47-1d2c",
