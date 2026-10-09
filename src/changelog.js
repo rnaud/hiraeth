@@ -8,6 +8,17 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.9', date: '2026-10-09', items: [
+    // the temples, reworked from the temple design audit: the Founders' Belfry
+    'The Founders’ Belfry is rebuilt round one idea: the founders’ bells hold things only while they ring. The Hall of Stones is now a crossroads: two archways open off it into two stone stores, a ball to roll home in each, in whichever order you like, and the door’s two lamps wait for both. The Stone Stair’s high door is shut, and its eye hides on the landing’s face, seen from the ledge on the way up.',
+    'In the Founders’ Belfry the door out of the Bell Chamber now stands open only while the bell rings, and the hanging stones in the Hall of Echoes come down only for as long as the note lasts. The far door wants the ball waiting at the near edge: ring, roll it across while the stones are down (it stops at the edge while they hang, and drops if they rise under it), and its weight on the far plate keeps the bridge down for good.',
+    // the Hush-House
+    'The Hush-House’s first crystal now stands by the door, in the Threshold: the Choir’s three ring flat until it has sung, and say where the first note was. The Bog Well’s way up has a door at the top of the root-wall, and its eye is on the wall’s face, in sight from the climbing disc but not from the top.',
+    'In the Hush-House’s Pendulum Gallery the far gate of jaws is gone: the far door wants the three pendulums’ notes, and a stilled pendulum’s note only rings true in turn, smallest crystal first, as the Choir taught. They hang out of that order, so stilling them to cross gets it wrong: from the far side, still them again, in turn.',
+    // the Lamp-House
+    'The Lamp-House’s Hall of Dark Pools has two pools on its floor now; the door’s third lamp waits on a pool up on a loft of roots against the west wall, hidden from the floor by its edge. Climb its face to find it.',
+    'In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.',
+  ] },
   { v: '1.8', date: '2026-10-09', items: [
     // the family ship, redrawn
     'The traveller’s ship is the family’s angular ship now: a long faceted hull in worn cream enamel with one coral stripe at the windows and muted lavender panels at the back, a wedge nose under a wide windshield, two slender pods raked up off the stern, four short legs and a side door with a railed stair-ramp. It stands in every world where the round ship stood.',
@@ -24,15 +35,6 @@ export const CHANGELOG = [
     'The lamp tripod: a tall boiler on three thin piston legs with a searchlight on top, a dark face pressed against its porthole and black steam from its vents. It keeps its distance: its light finds you and follows, then holds and narrows, and a harpoon bolt flies down the beam. Step behind something, guard it, or parry it back into the lamp; get under it and it stamps.',
     'The ink blot hops now, squashing and stretching as it goes, and lies pooled as a stain until you come near; at its edge it takes the colour of the ground. Keep away from one and it rears up and spits a glob at you (its landing spot marked), as the spitting blots did.',
     'Out in the worlds, creatures keep to themselves until provoked: a crab picks along and backs away as you pass, lizards bask on their stones. Come too close, corner one or hit one, and it fights, and its neighbours with it. The machines and the spirits still come for you.',
-    // the temples, reworked from the temple design audit: the Founders' Belfry
-    'The Founders’ Belfry is rebuilt round one idea: the founders’ bells hold things only while they ring. The Hall of Stones is now a crossroads: two archways open off it into two stone stores, a ball to roll home in each, in whichever order you like, and the door’s two lamps wait for both. The Stone Stair’s high door is shut, and its eye hides on the landing’s face, seen from the ledge on the way up.',
-    'In the Founders’ Belfry the door out of the Bell Chamber now stands open only while the bell rings, and the hanging stones in the Hall of Echoes come down only for as long as the note lasts. The far door wants the ball waiting at the near edge: ring, roll it across while the stones are down (it stops at the edge while they hang, and drops if they rise under it), and its weight on the far plate keeps the bridge down for good.',
-    // the Hush-House
-    'The Hush-House’s first crystal now stands by the door, in the Threshold: the Choir’s three ring flat until it has sung, and say where the first note was. The Bog Well’s way up has a door at the top of the root-wall, and its eye is on the wall’s face, in sight from the climbing disc but not from the top.',
-    'In the Hush-House’s Pendulum Gallery the far gate of jaws is gone: the far door wants the three pendulums’ notes, and a stilled pendulum’s note only rings true in turn, smallest crystal first, as the Choir taught. They hang out of that order, so stilling them to cross gets it wrong: from the far side, still them again, in turn.',
-    // the Lamp-House
-    'The Lamp-House’s Hall of Dark Pools has two pools on its floor now; the door’s third lamp waits on a pool up on a loft of roots against the west wall, hidden from the floor by its edge. Climb its face to find it.',
-    'In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.',
   ] },
   { v: '1.7', date: '2026-10-09', items: [
     { text: 'Cinematic previews start and replay silently, including dialogue and the trailer.', see: 'Open Debug → Cinematics and replay any scene. Sound stays off until you enable it.' },

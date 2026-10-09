@@ -338,6 +338,39 @@ const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot'
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
+  '1.9': [
+    // the temples, reworked from the temple design audit (docs/audits/temple-design-v1.8.md)
+    { match: 'The Founders’ Belfry is rebuilt round one idea', shots: [
+      { name: 'belfry-hub', caption: 'The Hall of Stones from its south end: before, the two balls in their grooves in the hall itself, beside the door; after, two archways into the stone stores and a line inlaid from each to the door', commit: 'b3647461',
+        view: { level: 'arzach2', player: [80, 1600, 158], eye: [80, 1610, 163], target: [80, 1600, 180], fov: 70 } },
+      { name: 'belfry-store', caption: 'Through the hall’s west wall: before, plain wall; after, the archway into the west store, its ball and plate inside', commit: 'b3647461',
+        view: { level: 'arzach2', player: [82, 1600, 173], eye: [76, 1603.5, 173], target: [60, 1601, 173], fov: 70 } },
+      { name: 'belfry-stair-eye', caption: 'From the Stone Stair’s ledge: after, the high door shut, its eye on the landing’s face below it', commit: 'b3647461',
+        view: { level: 'arzach2', player: [80, 1608, 203.5], eye: [80, 1609.7, 204.9], target: [82.6, 1612, 211.8], fov: 70 } },
+    ] },
+    { match: 'In the Founders’ Belfry the door out of the Bell Chamber', shots: [
+      { name: 'belfry-echoes', caption: 'The Hall of Echoes from its near edge, the stones hanging: after, the ball waiting in its groove that runs over the bridge to the far door’s plate', commit: 'b3647461',
+        view: { level: 'arzach2', player: [78, 1616, 238.5], eye: [78, 1619.5, 240.7], target: [81, 1616, 260.2], fov: 70 } },
+    ], see: 'In the Founders’ Belfry, take the bell from the chest and ring by the door: it sinks, then rises again after about eight seconds. In the Hall of Echoes ring at the edge: the stones come down for ten seconds. Push the ball first and it stops at the edge; ring, then push it at once, and it rolls across onto the far plate and the bridge stays.' },
+    { match: 'The Hush-House’s first crystal now stands by the door', shots: [
+      { name: 'hush-threshold', caption: 'The Hush-House’s Threshold, looking toward the Choir: after, the smallest crystal on its ring by the way in', commit: '8fd3e8c9',
+        view: { level: 'perdide', player: [-105, 1700, 301], eye: [-103, 1703, 301.5], target: [-96, 1701, 308], fov: 70 } },
+      { name: 'hush-well', caption: 'The Bog Well from its near landing: after, the eye on the root-wall’s face and the shut door at its top', commit: '8fd3e8c9',
+        view: { level: 'perdide', player: [-100, 1700, 346.5], eye: [-100, 1702.5, 348.2], target: [-102.6, 1704.5, 360], fov: 70 } },
+    ] },
+    { match: 'In the Hush-House’s Pendulum Gallery', shots: [
+      { name: 'hush-gallery', caption: 'The Pendulum Gallery from its near ledge: before, three alike pendulums and a gate of jaws at the end; after, three crystals of three sizes and a door with three lamps', commit: '8fd3e8c9',
+        view: { level: 'perdide', player: [-100, 1709, 390], eye: [-100, 1712, 391.7], target: [-100, 1714, 410], fov: 70 } },
+    ], see: 'In the Hush-House, take the stilling mode and still the three pendulums as you cross: only the smallest one’s note takes, the others ring flat. From the far side still the middle-sized one, then the biggest: the door’s three lamps wake and it opens.' },
+    { match: 'The Lamp-House’s Hall of Dark Pools has two pools', shots: [
+      { name: 'lamp-loft', caption: 'The Hall of Dark Pools from its east side: before, three pools on the floor; after, two on the floor and the loft of roots against the west wall, its pool hidden behind its edge', commit: 'bfecbed3',
+        view: { level: 'perdide2', player: [-136, 1800, -268], eye: [-136, 1804, -270], target: [-149, 1806, -280], fov: 70 } },
+    ] },
+    { match: 'In the Lamp-House’s Dark Gallery the far door’s lamp', shots: [
+      { name: 'lamp-niche', caption: 'The Dark Gallery’s far ledge: after, the pool-orb in its groove and the niche in the west wall with its dark lamp', commit: 'bfecbed3',
+        view: { level: 'perdide2', player: [-139, 1809, -185], eye: [-138, 1811.5, -183], target: [-153, 1809.5, -179.3], fov: 70 } },
+    ], see: 'In the Lamp-House, cross the Dark Gallery with the lantern. Push the orb straight into the niche: it settles dark and is tipped back out. Stand still beside it until it glows, then push it in: the niche’s lamp catches and the far door opens.' },
+  ],
   '1.8': [
     { match: 'The hundred look-alike world enemies are gone', shots: [
       { name: 'roster-crab', caption: 'Before: the salt crab. After: the shellback crab (its Vael II skin, the cliff crab) on six jointed legs, its pincers raised', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each walking, before (the old foe) and after' },
@@ -395,37 +428,6 @@ export const CHANGELOG_MEDIA = {
         rows: [{ where: 'the G-buffer pass (ones, fives, glints: instanced)', before: 3, after: 3 }, { where: 'the two near shadow maps', before: 4, after: 0 }],
         source: 'a crystal gives light rather than blocking it: they are left out of the shadow passes, where, drawn unculled, they were drawn in each' },
     ], see: 'Cut down a foe (in the Arena, call one from the FOES list): its chimes pop out and hover, crystals as big as the old coins, turning slowly; walk round them to see the lines inside shift and a facet flash as it catches the sun. At night or indoors they keep their colour and glow softly.' },
-    // the temples, reworked from the temple design audit (docs/audits/temple-design-v1.8.md)
-    { match: 'The Founders’ Belfry is rebuilt round one idea', shots: [
-      { name: 'belfry-hub', caption: 'The Hall of Stones from its south end: before, the two balls in their grooves in the hall itself, beside the door; after, two archways into the stone stores and a line inlaid from each to the door', commit: 'b3647461',
-        view: { level: 'arzach2', player: [80, 1600, 158], eye: [80, 1610, 163], target: [80, 1600, 180], fov: 70 } },
-      { name: 'belfry-store', caption: 'Through the hall’s west wall: before, plain wall; after, the archway into the west store, its ball and plate inside', commit: 'b3647461',
-        view: { level: 'arzach2', player: [82, 1600, 173], eye: [76, 1603.5, 173], target: [60, 1601, 173], fov: 70 } },
-      { name: 'belfry-stair-eye', caption: 'From the Stone Stair’s ledge: after, the high door shut, its eye on the landing’s face below it', commit: 'b3647461',
-        view: { level: 'arzach2', player: [80, 1608, 203.5], eye: [80, 1609.7, 204.9], target: [82.6, 1612, 211.8], fov: 70 } },
-    ] },
-    { match: 'In the Founders’ Belfry the door out of the Bell Chamber', shots: [
-      { name: 'belfry-echoes', caption: 'The Hall of Echoes from its near edge, the stones hanging: after, the ball waiting in its groove that runs over the bridge to the far door’s plate', commit: 'b3647461',
-        view: { level: 'arzach2', player: [78, 1616, 238.5], eye: [78, 1619.5, 240.7], target: [81, 1616, 260.2], fov: 70 } },
-    ], see: 'In the Founders’ Belfry, take the bell from the chest and ring by the door: it sinks, then rises again after about eight seconds. In the Hall of Echoes ring at the edge: the stones come down for ten seconds. Push the ball first and it stops at the edge; ring, then push it at once, and it rolls across onto the far plate and the bridge stays.' },
-    { match: 'The Hush-House’s first crystal now stands by the door', shots: [
-      { name: 'hush-threshold', caption: 'The Hush-House’s Threshold, looking toward the Choir: after, the smallest crystal on its ring by the way in', commit: '8fd3e8c9',
-        view: { level: 'perdide', player: [-105, 1700, 301], eye: [-103, 1703, 301.5], target: [-96, 1701, 308], fov: 70 } },
-      { name: 'hush-well', caption: 'The Bog Well from its near landing: after, the eye on the root-wall’s face and the shut door at its top', commit: '8fd3e8c9',
-        view: { level: 'perdide', player: [-100, 1700, 346.5], eye: [-100, 1702.5, 348.2], target: [-102.6, 1704.5, 360], fov: 70 } },
-    ] },
-    { match: 'In the Hush-House’s Pendulum Gallery', shots: [
-      { name: 'hush-gallery', caption: 'The Pendulum Gallery from its near ledge: before, three alike pendulums and a gate of jaws at the end; after, three crystals of three sizes and a door with three lamps', commit: '8fd3e8c9',
-        view: { level: 'perdide', player: [-100, 1709, 390], eye: [-100, 1712, 391.7], target: [-100, 1714, 410], fov: 70 } },
-    ], see: 'In the Hush-House, take the stilling mode and still the three pendulums as you cross: only the smallest one’s note takes, the others ring flat. From the far side still the middle-sized one, then the biggest: the door’s three lamps wake and it opens.' },
-    { match: 'The Lamp-House’s Hall of Dark Pools has two pools', shots: [
-      { name: 'lamp-loft', caption: 'The Hall of Dark Pools from its east side: before, three pools on the floor; after, two on the floor and the loft of roots against the west wall, its pool hidden behind its edge', commit: 'bfecbed3',
-        view: { level: 'perdide2', player: [-136, 1800, -268], eye: [-136, 1804, -270], target: [-149, 1806, -280], fov: 70 } },
-    ] },
-    { match: 'In the Lamp-House’s Dark Gallery the far door’s lamp', shots: [
-      { name: 'lamp-niche', caption: 'The Dark Gallery’s far ledge: after, the pool-orb in its groove and the niche in the west wall with its dark lamp', commit: 'bfecbed3',
-        view: { level: 'perdide2', player: [-139, 1809, -185], eye: [-138, 1811.5, -183], target: [-153, 1809.5, -179.3], fov: 70 } },
-    ], see: 'In the Lamp-House, cross the Dark Gallery with the lantern. Push the orb straight into the niche: it settles dark and is tipped back out. Stand still beside it until it glows, then push it in: the niche’s lamp catches and the far door opens.' },
   ],
   '1.7': [
     { match: 'Your father’s recordings now use', see: 'Open Debug → Cinematics → Recording 1 · Home to see the new father in the ship’s projector.' },
