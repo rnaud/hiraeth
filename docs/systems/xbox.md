@@ -75,7 +75,8 @@ the session). Nothing changes elsewhere.
 - **The frame readout** (F3, or *Show FPS* in the settings): `XBOX EDGE <n>` first, and at the end
   ` · jit on 1.1 ns · js 240 MB`: a JIT probe (an integer loop, run once: about a nanosecond a turn with the JIT, ten
   to forty interpreted; `jitVerdict`) and the JS heap. `?jit=1` shows the probe anywhere.
-- No fullscreen button: the app is full screen already. The settings show the update section.
+- The settings show the update section. (The title's *Full screen* entry still shows: the app is full screen
+  already, so it does nothing there; left alone while the title screen is being redesigned.)
 
 ## Signing
 
