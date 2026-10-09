@@ -80,6 +80,10 @@ so the shot's rays saw straight through them and Ama, walking round the main cam
 through a wall of flame. Every `Flames` (`src/story/flames.js`) registers itself; `flameVeils(near)`
 gives each tongue as an upright column, and `sightOf(physics, { veils })` scores a line of sight that
 passes through one (or within `VEIL_PAD` = 0.15 m of it) as blocked, so the two-shot goes round the fire.
+The eye itself is kept away too (`veilNear`): within `VEIL_CLOSE` = 0.8 m of a flame's edge it is blocked
+whichever way it looks, and a flame in front of it closer than `VEIL_NEAR` = 4 m costs more the closer it
+is (checked in the running game: the first fix still put the camera a metre from the camp fire, the
+flames filling a third of the frame).
 Looking at a thing (`pickLookShot`) ignores them: the thing is often the fire itself.
 
 **Balloons only for something new** (`src/story/balloons.js`). Walking up to someone used to put their

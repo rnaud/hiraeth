@@ -13,7 +13,7 @@ import { PEOPLE } from '../src/story/desert-data.js';
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { stripTone } from '../src/story/tone.js';
-import { pickTwoShot, sightOf, VEIL_PAD } from '../src/story/shot.js';
+import { pickTwoShot, sightOf, VEIL_PAD, VEIL_CLOSE } from '../src/story/shot.js';
 import { Flames, flameVeils } from '../src/story/flames.js';
 import { balloonReason, hasBalloon } from '../src/story/balloons.js';
 
@@ -108,6 +108,11 @@ test('a fire between the camera and the face counts as blocked, and the two-shot
   const shot = pickTwoShot({ a, b, from: V(0.7, 2, 5), sight });
   assert.equal(shot.blocked ?? 0, 0, 'a clear shot found');
   for (const face of [V(1.45, 1.55, 0), V(0, 1.55, 0)]) assert.equal(sight.veil(shot.eye, face), 0, 'nothing of the fire between the camera and either face');
+  assert.ok(sight.veilNear(shot.eye, shot.look) < 1, 'the camera not standing in the fire');
+  // the camera standing in the flames (or a step from them) is blocked whichever way it looks; one beside a fire behind it is not
+  assert.equal(sight.veilNear(V(0.9, 2, 2.2 + VEIL_CLOSE), V(0.9, 1.5, 10)), 1);
+  assert.equal(sight.veilNear(V(0.9, 2, 5.5), V(0.9, 1.5, 10)), 0, 'the fire behind the camera, out of the frame');
+  assert.ok(sight.veilNear(V(0.9, 2, 5.5), V(0.9, 1.5, 0)) > 0, 'the same fire in front of it, filling the frame: a cost');
   // a fire put out (or a level taken down) is no veil
   f.intensity = 0;
   assert.equal(flameVeils(V(), 30).length, 0);

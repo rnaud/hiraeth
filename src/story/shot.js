@@ -24,6 +24,10 @@ const UPY = new THREE.Vector3(0, 1, 0);
 
 /** How far past a veil's edge counts (m): a face just beside a flame's edge is still half lost in its glow. */
 export const VEIL_PAD = 0.15;
+/** An eye closer than this to a veil's edge (m), the veil in front of it, has it filling a side of the frame: it costs, more the closer. */
+export const VEIL_NEAR = 4;
+/** An eye this close to a veil's edge (m) is in it: blocked, whichever way it looks. */
+export const VEIL_CLOSE = 0.8;
 
 /**
  * The level's line of sight: the collision BVH plus the heightfield (dunes).
@@ -55,6 +59,24 @@ export function sightOf(physics, { veils = null } = {}) {
         if (d < reach) deep = Math.max(deep, 1 - d / reach);
       }
       return deep;
+    },
+    /**
+     * How close the eye stands to a veil in front of it (within about 60° of the way to `toward`): 0 clear of them
+     * all (VEIL_NEAR past VEIL_CLOSE), 1 within VEIL_CLOSE of one's edge (that one counts wherever it is).
+     */
+    veilNear(eye, toward = null) {
+      if (!veils) return 0;
+      const t = now();
+      if (t - at > 300) { at = t; list = veils(eye) ?? []; }
+      let k = 0;
+      if (toward) dir.subVectors(toward, eye).setY(0).normalize();
+      for (const v of list) {
+        const d = segDist(eye, eye, v.base, v.top) - v.r - VEIL_PAD;
+        if (d <= VEIL_CLOSE) { k = 1; continue; }   // (in it, or so close the tongues lick round the lens: whichever way it looks)
+        if (toward && probe.subVectors(v.base, eye).setY(0).normalize().dot(dir) < 0.5) continue;   // (behind or well off to the side: out of the frame)
+        k = Math.max(k, Math.max(0, 1 - (d - VEIL_CLOSE) / VEIL_NEAR));
+      }
+      return k;
     },
     /** Free length from `from` toward `to` (the full length when nothing is in the way). */
     ray(from, to) {
@@ -126,7 +148,7 @@ function crowdOn(from, to, people, up) {
  * itself), and must not pass through the bodies (feet positions) of the people
  * in the shot (the traveller's back hiding the other's face, or the thing).
  */
-function score(eye, sees, { sight, people, up }) {
+function score(eye, sees, { sight, people, up }, look = null) {
   let cost = 0, blocked = 0;
   const why = [];
   for (const [p, margin = 0.15, bodies = null, reach = null, heads = null] of sees) {
@@ -154,6 +176,9 @@ function score(eye, sees, { sight, people, up }) {
     cost += hidden;
     why.push([+free.toFixed(2), +len.toFixed(2), +hidden.toFixed(2)]);
   }
+  // (the camera standing in a fire, or so near it the flames fill a side of the frame)
+  const near = sight?.veilNear ? sight.veilNear(eye, look ?? sees[0]?.[0] ?? null) : 0;
+  if (near >= 1) { blocked++; cost += 8; } else cost += 5 * near;
   const room = !sight || sight.room(eye, 0.28);
   if (!room) cost += 4;
   return { cost, blocked, why, room };
@@ -308,7 +333,7 @@ export function pickSingle({ fa, fb, b = null, radius = 0.3, up = UPY, aspect = 
  */
 export function pickLookShot({ a, head = null, target, up = UPY, aspect = 1.6, fov = 50, from = null, sight: seen = null, people = [], prefer = null, facing = null }) {
   // (a thing is often the fire itself, a brazier, a burning tree: its flames are what you look at, not a veil)
-  const sight = seen?.veil ? { ...seen, veil: null } : seen;
+  const sight = seen?.veil ? { ...seen, veil: null, veilNear: null } : seen;
   const hd = head ?? a.clone().addScaledVector(up, 1.6);
   const fwd = new THREE.Vector3().subVectors(target, a); fwd.addScaledVector(up, -fwd.dot(up));
   if (fwd.lengthSq() < 0.04) {
@@ -365,7 +390,7 @@ export function pickLookShot({ a, head = null, target, up = UPY, aspect = 1.6, f
 function best(cands, seesOf, o, anchor) {
   let pick = null;
   for (const c of cands) {
-    const r = score(c.eye, seesOf(c), o);
+    const r = score(c.eye, seesOf(c), o, c.look);
     c.cost = r.cost + c.pref;
     c.blocked = r.blocked;
     c.why = r.why; c.room = r.room;
