@@ -3,7 +3,7 @@
 // The worlds open up one by one, in ORDER (src/levels/content.js), instead of
 // all being on the chart from the start:
 //
-//  - the first world (the desert, where the ship crashes) is always known;
+//  - the first world (the desert, where the drained ship comes down) is always known;
 //  - after it, the next AHEAD (2) worlds that are not done yet are known, so
 //    there is always a choice of two places to go;
 //  - finishing a world (its `world.<id>.done` flag or its story page) takes it

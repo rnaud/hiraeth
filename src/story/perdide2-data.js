@@ -288,7 +288,7 @@ export const PEOPLE = {
         night: {
           say: ["~whisper~ I was filling my bucket when the singing light came over the wood. Low enough to light the leaves from underneath.", "~scared~ Three pools went out as it passed. One, two, three. Then the light climbed away."],
           do: { set: { 'perdide2.rumour.light': true } },
-          choices: [{ text: '~solemn~ Something like that hit my ship.', goto: 'ship' }, { text: '~neutral~ I’ll light it again.', end: true }],
+          choices: [{ text: '~solemn~ Something like that passed my ship.', goto: 'ship' }, { text: '~neutral~ I’ll light it again.', end: true }],
         },
         ship: { say: ["~playful~ You heard it sing too? Good. Tell Hollin. He’s very certain about things he slept through."], choices: [{ text: '~solemn~ It sang.', end: true }] },
         after: { say: ["~happy~ Every pool lit. Hollin walked down to the root cave faster than I’ve ever seen him walk.", "~playful~ He says he wasn’t hurrying. He was."], choices: [{ text: '~happy~ Goodbye, Robin.', end: true }] },

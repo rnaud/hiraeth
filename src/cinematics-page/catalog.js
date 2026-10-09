@@ -3,7 +3,7 @@ import { WORLD_MOMENTS } from '../story/film.js';
 import { TITLES, ORDER, SIDE } from '../levels/names.js';
 import { CALL_COUNT, recordingLabel } from '../story/calls.js';
 export const CINEMATICS = [
-  { id: 'prologue', world: 'desert', group: 'Story', title: 'The crash · prologue', query: { prologue: '1' } },
+  { id: 'prologue', world: 'desert', group: 'Story', title: 'The landing · prologue', query: { prologue: '1' } },
   ...Object.entries(WORLD_MOMENTS).flatMap(([world, moments]) => moments.map(m => ({ ...m, world, group: 'World moments', title: m.beat }))),
   { id: 'lantern.arrive', world: 'lantern', group: 'World moments', title: 'The light returns to the Lantern' },
   ...['first', 'final'].map((kind, i) => ({ id: `homecoming.${kind}`, world: 'home', group: 'Story', title: `${kind === 'first' ? 'First' : 'Final'} homecoming`, query: { ending: String(i + 1) } })),

@@ -23,7 +23,8 @@ third, about four seconds, about -34 dB at vol 1 (a footstep's loudness, under t
 `makersHumRise(dur)` is the same voice growing in threes over `dur` and returns `{ stop() }`.
 When it plays (`src/story/hum.js`, pure):
 - the prologue: it rises under the father's charge (`callHum`, `callHumLevel`) while the picture
-  breaks up, and the strike cuts it; it sounds once more, faintly, with the ship's line about the
+  breaks up, under the singing light's theme (below), carries on through the pause and the pass, and
+  winds down with the ship's power; it sounds once more, faintly, with the ship's line about the
   magnetic signature (`src/ship/cinematics.js`);
 - an unopened makers' box within `HUM.reach` (45 m) sings it every 8–12 s, louder near
   (`Sound.boxHum(k, far)`, from `src/boxes/index.js`);
@@ -31,6 +32,53 @@ When it plays (`src/story/hum.js`, pure):
   `src/story/dialogue.js`; a subtitle or toast, `Cinema.onWords`; the balloon up) plays it at 0.7,
   at most once every `HUM.gap` (24 s: `HumCue`, main.js).
 `tests/hum.test.js` renders it on engine/webaudio.js: heard (over -48 dB) and subtle (under -30).
+
+## The singing light's theme (October 2026)
+
+The light has a few notes of its own, so a player who heard it in the prologue knows it again. Pure in
+`src/story/light-theme.js` (`LIGHT_THEME`, `lightThemeNotes`, `lightCues`, `lightEnvelope`), sung by
+`Sound.lightTheme({ vol, transpose, bend, pan })` (`src/audio.js`).
+
+- **The motif**: five notes in D lydian at 66 a minute, about six seconds:
+  `A4 (1 beat) · D5 E5 (½ + ½) · G♯5 (2, glided into from a quarter tone under) · F♯5 (3, held, fading)`.
+  It starts on A, the note the makers' hum lifts to on its third swell (D3 up a fifth), so the two are kin:
+  the hum is the light's low breath, the theme its voice. It climbs through the raised fourth (G♯, the
+  lydian note), and settles on F♯, the major third, unresolved. The father's theme (`FATHER_THEME`) is the
+  same key and another shape: the light sings his key, not his tune (Ilen sang his message into it).
+- **The voice**: one wordless high voice, legato, sliding between notes (a sine and a soft triangle a
+  breath apart, an "oo" band-pass, a vibrato that opens on the long notes), a glass partial an octave over
+  it, a lot of room. About -25 dB at the charge's volume (the score's level), the hum under it.
+- **Where**: the prologue only for now (docs/systems/cinematics.md, "The restaged opening"): three times
+  under the voicemail, nearer each time; once alone in the pause; once in the pass, loud, its pitch falling
+  two semitones as it goes by (`bend`), panned left to right.
+- **A recording replaces it without code changes**: `src/soundtracks.js` `CUES['singing-light']` is the
+  slot (`public/music/singing-light.mp3`, packaged on devices: `ON_DEVICE_THEMES`). If the file is there it
+  is loaded when the prologue starts (`loadCue`) and played once from the voicemail's start (`playCue`),
+  its gain following the synth's rise (`lightEnvelope`: faint, nearer, nearest, alone, loudest in the pass),
+  and the synth stays quiet. Add its record to `public/music/manifest.json` `cues` (`source`: the Suno
+  link). `tests/soundtracks.test.js`, `tests/hum.test.js`, `tests/prologue-call.test.js`.
+
+### The Suno brief
+
+- **Title**: Hiraeth - The Singing Light. **File**: `public/music/singing-light.mp3`.
+- **Length**: about 45 s, instrumental, not a loop (the opening plays it once: the voicemail 29 s, the
+  pause 7 s, the pass 5 s, then out). Trim silence at the head to under 0.5 s.
+- **Key and tempo**: D lydian, 66 BPM, free and floating (no drums, no pulse but the drone's).
+- **Style** (the soundtrack's direction, as in `manifest.json`): `D lydian, 66 BPM; wordless high voice,
+  glass harmonica, very quiet low D drone swelling in threes; a five-note call, distant then near,
+  otherworldly and tender, Moebius dream sci-fi`.
+- **Prompt**: "Instrumental, about 45 seconds, D lydian, 66 BPM, no drums, no lyrics. A single wordless
+  high voice, a soft 'oo' like a wet finger round the rim of a glass, sings one five-note phrase: A4, then
+  D5 and E5 quickly, a slow glide up into G sharp 5, settling on a long F sharp 5 that fades. Under it a very
+  quiet low D drone that swells three times and lifts a fifth. The phrase comes three times, each nearer and
+  louder (far and high, nearer, close), then once alone and clear over near silence, then a last time loud
+  and bright as it rushes past, its pitch bending down, and fades to nothing. Lots of air and reverb;
+  strange and tender, never menacing."
+- **Timing to aim for** (seconds from the start; the game's envelope rides on top): first statement
+  ~4.5 (faint, an octave up), second ~15, third ~21 (the charge), alone ~30 (the pause), the pass ~38,
+  silent by ~45.
+- **Check**: drop it in, replay the opening (`?level=desert&prologue=1`): the theme's statements should
+  land under the father's lines and the pass should peak as the light goes by the window.
 
 ## Musicians' solos (v0.39)
 

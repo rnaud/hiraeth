@@ -20,9 +20,9 @@ export const SITE_OVERRIDES = {
     x: 20, z: 120, heading: Math.atan2(230 - 20, 400 - 120),
     crash: {
       travel: Math.PI,    // the direction it was moving (heading): -z, sliding on its side away from the city
-      length: 118,        // furrow length behind it (m)
+      length: 52,         // the skid behind it (m): a forced landing on its belly, not a crash (it was 118 m)
       // it came to rest upright: a tilted hull tilts the deck, and walking it the traveller went up and down
-      // (players: "the floor on the ship must be flat"). The furrow, the heaped sand and the sink say "crashed"
+      // (players: "the floor on the ship must be flat"). The skid, the heaped sand and the sink say "came down hard"
       pitch: 0,           // (rad: the cockpit side up)
       roll: 0,            // (rad: the hatch side down)
       sink: 6,            // how far below its parked height it is dug in (clamped so the deck stays clear of the sand)

@@ -4,12 +4,14 @@ import { polar } from './geo.js';
 import { R, DECK, HATCH_A } from './hull.js';
 import { CONSOLE_R } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
-import { callTimeline, NUDGE, nudgeText, nudgeDue } from './prologue.js';
+import { callTimeline, NUDGE, nudgeText, nudgeDue, PAUSE, PAUSE_THEME_AT, PROLOGUE_STAGES } from './prologue.js';
+import { lightCues, lightEnvelope, lightBeat } from '../story/light-theme.js';
+import { loadCue } from '../soundtracks.js';
 import { callHum, callHumLevel } from '../story/hum.js';
 import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
-import { CRASH_LINE, arrivalLine } from '../story/signature.js';
+import { LANDING_LINE, FOLLOW_LINE, arrivalLine } from '../story/signature.js';
 import { showChargeCard, GIVEN as CHARGE_GIVEN, CARD as CHARGE_CARD, CHARGE_CARD_MS } from '../story/charge.js';
 import { BUST } from './hologram.js';
 import { rumblePlay } from '../rumble.js';
@@ -31,6 +33,9 @@ const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 
 const seg = (t, a, b) => THREE.MathUtils.clamp((t - a) / (b - a), 0, 1);
 const SAND = ['#e3c58f', '#d8b884', '#efd29b', '#cfa877'];
 const FIRE = ['#ffd27a', '#ff9a4a', '#f2c54b', '#e6503a'];
+/** The singing light: pale gold and the makers' cyan (the glyph's colour). */
+const LIGHT = ['#fff6d8', '#bff4ff', '#f7e08a', '#9fe6f0', '#ffffff'];
+const VAPOUR = ['#eef2f2', '#e2e8ea', '#f6f1e6'];
 const pickOf = (a) => a[Math.floor(Math.random() * a.length)];
 
 /** The hologram's size over the projector (1: life size): busts a little under life size, their faces near his. */
@@ -192,7 +197,15 @@ export class PrologueDirector {
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.call = callTimeline(PROLOGUE_CALL);
-    this.humAt = callHum(this.call);   // the hum under his last words, until the strike (src/story/hum.js)
+    this.humAt = callHum(this.call);   // the hum under the charge, until the power goes (src/story/hum.js)
+    // the singing light's theme over the message, nearer each time (src/story/light-theme.js), and the recorded
+    // version if it is there (src/soundtracks.js CUES: it replaces the synth's statements, the same envelope)
+    this.cues = lightCues(this.call); this.cueI = 0;
+    this.passDur = PROLOGUE_STAGES.find((x) => x.id === 'pass')?.dur ?? 5.4;
+    if (ship.sound?.ctx) void loadCue(ship.sound, 'singing-light');
+    // the light's way past the ship (ship-local): out of the dark ahead, close past the cockpit's right, away behind
+    this.LM = polar(22, 2.75, DECK + 4);                      // nearest: a few metres off the hull, at the window's height
+    this.LD = V(0.45, -0.08, 0.89).normalize();               // the way it goes
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
     this.T = V(Math.sin(c.travel), 0, Math.cos(c.travel));
@@ -248,52 +261,62 @@ export class PrologueDirector {
         sp.callScreen?.set({ who: 'tape', statik: 1, label: this.rec.label });
         break;
       }
-      case 'impact':
-        this.humming?.stop(); this.humming = null;   // (the strike cuts the hum off with his words)
-        sfx.impact(s.sound); sfx.staticBurst(s.sound, 1.6); sfx.alarm(s.sound, 1); sfx.hum(s.sound, 0.25);
-        s.shake(2.2);
-        s.setPower('alarm', sp);
-        sp.callScreen?.set({ statik: 1, crack: 1, talk: 0 });
-        s.holo?.speak(null); s.holo?.glitch(1);   // the picture tears apart
-        C.say({ who: 'ship', text: 'Impact. Hull breach.' });
-        C.fade(1, true, 0); setTimeout(() => C.fade(0, true, 0.35), 60);
+      case 'pause':
+        // he stops the recording, mid-word, and listens: the father still over the dash, the theme alone
+        sfx.beep(s.sound);
+        C.say(null);
+        s.holo?.speak(null);
+        sp.callScreen?.set({ talk: 0, paused: true, statik: 0.1 });
+        sfx.hum(s.sound, 0.6);
+        this.light = { on: false, vec: null };
         break;
-      case 'fall':
-        C.say({ who: 'ship', text: 'Emergency descent.' });   // (after "Main power lost.": a new line, not an echo)
+      case 'pass':
+        // the singing light goes by the window, close: everything in the cockpit turns to it
+        this.lightOn();
+        if (!this.cueRec) s.sound?.lightTheme?.({ vol: 1.2, bend: -2, pan: { from: -0.8, to: 0.9 }, spb: lightBeat() * 0.85 });
         break;
-      case 'streak':
-        C.say(null); C.red(0);
+      case 'drain':
+        // the power goes with it: the hum winds down, the lamps and the core are dark, then the amber reserve
+        this.humming?.stop(); this.humming = null;
+        this.lightOff();
+        sfx.hum(s.sound, 0);
+        s.setPower('dead', sp);
+        sp.callScreen?.set({ who: 'off', paused: false, statik: 0 });
+        s.holo?.hide();
+        C.say({ who: 'ship', text: 'Main power drained. Emergency reserve only.' });
+        break;
+      case 'glide':
+        C.say(null); C.red(0);   // (the white fade from the drain's end lifts: C.fade below)
         s.holo?.clear();
-        sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.roar(s.sound, 4.8);
+        sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0); sfx.roar(s.sound, 4.2);
         s.removeSpaceCopy();
-        // the player waits, hidden, inside the parked ship; the ship itself flies in
+        // the player waits, hidden, inside the parked ship; the ship itself glides in, dark
         s.placePlayer(this.P(pk.interior.points.hatchIn), s.worldHeading(pk, HATCH_A), false);
         pk.group.visible = true;
         s.crashSite && (s.crashSite.group.visible = true, s.crashSite.berm.visible = false);
         s.setPower('dead', pk);
         C.fade(0, true, 0.5);
         break;
-      case 'plough':
-        sfx.impact(s.sound); sfx.rumble(s.sound, 3.6, 0.8);
-        s.shake(2.6);
+      case 'land':
+        sfx.rumble(s.sound, 3.2, 0.7);
+        rumblePlay('land', { speed: 44 });   // (on a pad: the belly touching down; src/rumble.js)
+        s.shake(1.4);
         break;
       case 'settle':
         pk.group.position.copy(s.restPos); pk.group.quaternion.copy(s.restQuat);
         s.crashSite?.reveal(1);
         if (s.crashSite) s.crashSite.berm.visible = true;
-        s.startSmoke = true;
-        this.giveCharge();   // as the dust clears: his last words, lettered over the crash (src/story/charge.js)
+        this.giveCharge();   // as the dust clears: his charge, lettered over the landing site (src/story/charge.js)
         break;
       case 'hatch':
         pk.lightsOff = false;
         s.setPower('emergency', pk);
         {
-          // what struck the ship left a signature (src/story/signature.js): said once the father's card has gone
+          // what passed the ship left its signature on the hull (src/story/signature.js), and he chooses to follow it:
+          // said once the father's card has gone (and the pulse it tracks is heard, faintly: the hum again, from the mark)
           const wait = Math.max(0, (this.cardUntil ?? 0) - (typeof performance !== 'undefined' ? performance.now() : 0));
-          // (and the pulse it tracks is heard, faintly: the hum again, from the scar)
-          const pulse = () => { C.say(CRASH_LINE, { secs: 6 }); s.sound?.makersHum?.({ vol: 0.55 }); };
-          if (wait > 0) setTimeout(() => { if (!this.done) pulse(); }, wait + 300);
-          else pulse();
+          if (wait > 0) setTimeout(() => this.landingLines(), wait + 300);
+          else this.landingLines();
         }
         break;
       case 'stepout': {
@@ -316,7 +339,7 @@ export class PrologueDirector {
   frame(id, t, dt) {
     const s = this.s, C = s.cinema, sp = this.sp, pk = this.pk;
     const U = s.post?.uniforms;
-    if (U && sp && ['black', 'wake', 'rise', 'walk', 'call', 'impact', 'fall'].includes(id)) U.uFogMul.value = 0;   // no haze in space
+    if (U && sp && ['black', 'wake', 'rise', 'walk', 'call', 'pause', 'pass', 'drain'].includes(id)) U.uFogMul.value = 0;   // no haze in space
     switch (id) {
       case 'black':
       case 'wake': {
@@ -366,77 +389,109 @@ export class PrologueDirector {
         s.shot(callShot(s, sp, t, this.rec.close ?? 0));
         // under his last words something sings, nearer and nearer: the hum, and the picture starts to break up
         const hum = callHumLevel(t, this.humAt);
-        if (hum > 0 && !this.humming) this.humming = s.sound?.makersHumRise?.(this.humAt.to - t + 0.4) ?? { stop() {} };
+        if (hum > 0 && !this.humming) this.humming = s.sound?.makersHumRise?.(this.humAt.to - t + PAUSE + this.passDur) ?? { stop() {} };
+        // the singing light's theme, nearer each time (or the recorded cue, once, from the start)
+        if (t < 0.1 && this.cueRec === undefined) this.cueRec = s.sound?.playCue?.('singing-light', lightEnvelope(this.call, { pause: PAUSE, pass: this.passDur })) ?? null;
+        while (!this.cueRec && this.cueI < this.cues.length && t >= this.cues[this.cueI].t) {
+          const c = this.cues[this.cueI++];
+          s.sound?.lightTheme?.({ vol: c.vol, transpose: c.transpose, pan: -0.5 + this.cueI * 0.2 });
+        }
         sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8, 0.45 * hum) });
         playLines(s, sp, this.call, t, this.rec);
         if (hum > 0) s.holo?.glitch(0.35 * hum);
         faceRecording(s, sp);
         break;
       }
-      case 'impact': {
-        // a hand-held view of the cockpit, the red light pulsing, the planet starting to swing
-        const k = smooth(seg(t, 1.2, 4.4));
-        s.shot({ pos: this.W(V(-1.3, DECK + 1.7, -3.7)), look: this.W(V(0.2, DECK + 1.9 - k * 0.5, -10)), fov: 58, roll: Math.sin(t * 1.7) * 0.06 + k * 0.1 });
-        C.red(0.55 + 0.35 * Math.sin(t * 6.5));
-        if (Math.random() < dt * 2.2) s.shake(0.8);
-        if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Main power lost.' }); }
-        if (t > 0.5 && !this.torn) { this.torn = true; s.holo?.hide(); }
-        this.s.spaceCopy && (this.s.spaceCopy.space.rotation.x = 0.14 * k);
-        // the core and the lamps stutter
-        sp.mats.core.uniforms.uGlow.value = Math.random() < 0.5 ? 0 : 0.6 * (1 - k);
+      case 'pause': {
+        // the father held still mid-word over the dash; his son's face, lit by it, listening; then wide: him, the
+        // frozen bust and the window, where the light comes out of the dark
+        if (t < 2.2) s.shot(callAngle(s, sp, 'bust', t));
+        else if (t < 4.4) s.shot(callAngle(s, sp, 'listen', t - 2.2));
+        else s.shot(callAngle(s, sp, 'window', t - 4.4));
+        if (t >= PAUSE_THEME_AT && !this.pauseSung) { this.pauseSung = true; if (!this.cueRec) s.sound?.lightTheme?.({ vol: 0.95, pan: { from: -0.4, to: 0.1 } }); }
+        s.holo?.speak(null);
+        faceRecording(s, sp);
+        this.lightFrame(PAUSE + 2.9 - t, dt);   // (far ahead, a speck in the window at the end)
         break;
       }
-      case 'fall': {
-        const k = smooth(seg(t, 0, 2.6));
-        s.shot({ pos: this.W(V(0.2, DECK + 1.75, -7.4)), look: this.W(V(0, DECK + 1.2 - k * 0.6, -14)), fov: 64, roll: 0.1 + Math.sin(t * 2.3) * 0.08 });
-        if (this.s.spaceCopy) this.s.spaceCopy.space.rotation.x = 0.14 + 0.62 * k;
-        C.red(0.6 + 0.3 * Math.sin(t * 6.5));
-        s.shake(0.5);
-        if (t > 2.15 && !this.white) { this.white = true; C.fade(1, true, 0.4); }
+      case 'pass': {
+        // A: over his shoulder, out of the window: it comes out of the dark ahead, growing, and goes by on the right
+        // B: outside, wide: the ship against the planet, the light brushing past its hull and away behind it;
+        //    its lamps go out as it passes
+        const nearAt = 2.9, cut = 2.55;
+        if (t < cut) {
+          const k = smooth(t / cut);
+          s.shot({ pos: this.W(V(0.9, DECK + 1.95, -4.6 - 0.3 * k)), look: this.W(V(3.0 + 2 * k, DECK + 1.7, -22)), fov: 56 });
+        } else {
+          const k = smooth((t - cut) / (this.passDur - cut));
+          s.shot({ pos: this.W(V(44, 3 + 2 * k, 4 + 4 * k)), look: this.W(V(4 + 6 * k, -6, -8 + 10 * k)), fov: 56 });
+        }
+        const pos = this.lightFrame(nearAt - t, dt);
+        // everything in the cockpit is lit by it as it nears; the father's picture shivers
+        if (pos && t < nearAt + 0.4) s.holo?.glitch(0.25 * smooth(t / nearAt));
+        if (t > nearAt && !this.drained) { this.drained = true; rumblePlay('found'); s.setPower('dead', sp); sp.callScreen?.set({ statik: 1, talk: 0 }); s.holo?.glitch(1); C.fade(0.3, false, 0.5); }
+        if (t > nearAt - 0.6) sp.mats.core.uniforms.uGlow.value = Math.max(0, 0.6 * (1 - (t - nearAt + 0.6) / 1.2));
+        if (t > 3.6 && !this.saidPass) { this.saidPass = true; C.say({ who: 'ship', text: 'Power draining.' }); }
         break;
       }
-      case 'streak': {
-        const u = Math.min(1, t / 4.8);
+      case 'drain': {
+        // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit
+        const k = smooth(seg(t, 1.6, 4.8));
+        s.shot({ pos: this.W(V(-1.3, DECK + 1.7, -3.7)), look: this.W(V(0.2, DECK + 1.9 - k * 0.7, -10)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });
+        if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
+        if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
+        if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }
+        if (this.s.spaceCopy) this.s.spaceCopy.space.rotation.x = 0.76 * k;
+        sp.mats.core.uniforms.uGlow.value = 0;
+        if (t > 4.35 && !this.white) { this.white = true; C.fade(1, true, 0.4); }
+        break;
+      }
+      case 'glide': {
+        // dark, no fire: a long shallow fall on what reserve is left, a thin vapour behind it; the reserve's jets
+        // only at the very end, to bring it in
+        const u = Math.min(1, t / 5.2);
         const p = this.bez(u);
         pk.group.position.copy(p);
-        const spin = new THREE.Quaternion().setFromAxisAngle(this.T, Math.sin(t * 1.1) * 0.35);
+        const spin = new THREE.Quaternion().setFromAxisAngle(this.T, Math.sin(t * 0.9) * 0.12);
         pk.group.quaternion.copy(spin.multiply(s.restQuat));
         const vel = this.bez(Math.min(1, u + 0.01)).sub(p).normalize();
-        for (let i = 0; i < (u < 0.82 ? 3 : 0); i++) {
-          const g = 0.55 + Math.random() * 0.25;
-          s.smoke.emit(p.clone().addScaledVector(vel, -R * 0.6).add(V((Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8, (Math.random() - 0.5) * 8)), V(0, 5, 0), 3 + Math.random() * 2.5, 2.4 + Math.random() * 1.2, new THREE.Color(g, g * 0.96, g * 0.93));
-          s.flame.emit(p.clone().addScaledVector(vel, R * 0.75 + Math.random() * 3).add(V((Math.random() - 0.5) * 9, (Math.random() - 0.5) * 9, (Math.random() - 0.5) * 9)), vel.clone().multiplyScalar(-30), 3 + Math.random() * 3, 0.35 + Math.random() * 0.25, pickOf(FIRE));
+        if (u < 0.75 && Math.random() < 0.8) {
+          const g = new THREE.Color(pickOf(VAPOUR));
+          s.smoke.emit(p.clone().addScaledVector(vel, -R * 0.8).add(V((Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5)), V(0, 2, 0), 2 + Math.random() * 1.5, 1.6 + Math.random(), g);
+        }
+        if (u > 0.82) for (let i = 0; i < 2; i++) {
+          const under = p.clone().add(V((Math.random() - 0.5) * R, -R * 0.85, (Math.random() - 0.5) * R));
+          s.flame.emit(under, V(0, -14, 0), 1.2 + Math.random(), 0.3, pickOf(FIRE));
         }
         const cam = s.restPos.clone().addScaledVector(this.N, -82).addScaledVector(this.T, 46).add(V(0, 9, 0));
         if (t < dt * 1.5) this.look.copy(p);
         this.look.lerp(p, 1 - Math.exp(-6 * dt));
         s.shot({ pos: cam, look: this.look, fov: 40 });
-        if (u > 0.8) s.shake(0.3);
         break;
       }
-      case 'plough': {
-        const u = Math.min(1, t / 3.8), p = 1 - Math.pow(1 - u, 2.4);
+      case 'land': {
+        // down on its belly, a short skid through the sand, and still
+        const u = Math.min(1, t / 3.6), p = 1 - Math.pow(1 - u, 2.6);
         const pos = this.touch.clone().lerp(s.restPos, p);
-        pos.y += Math.sin(p * Math.PI * 3) * (1 - p) * 1.4;
+        pos.y += Math.sin(p * Math.PI * 2) * (1 - p) * 0.6;
         pk.group.position.copy(pos);
         if (!this.qTouch) this.qTouch = pk.group.quaternion.clone();
-        pk.group.quaternion.copy(this.qTouch).slerp(s.restQuat, smooth(p * 1.15));
+        pk.group.quaternion.copy(this.qTouch).slerp(s.restQuat, smooth(p * 1.2));
         s.crashSite?.reveal(p);
-        const n = Math.round((1 - p) * 4 + 1);
+        const n = Math.round((1 - p) * 3 + 1);
         for (let i = 0; i < n; i++) {
           const side = Math.random() < 0.5 ? -1 : 1;
           const at = pos.clone().addScaledVector(this.T, R * 0.6).addScaledVector(this.N, side * R * (0.5 + Math.random() * 0.5));
           at.y = s.groundAt(at.x, at.z) + 1;
-          const v = this.N.clone().multiplyScalar(side * (6 + Math.random() * 10)).addScaledVector(this.T, 8 * (1 - p)).add(V(0, 5 + Math.random() * 6, 0));
-          s.dust.emit(at, v, 1 + Math.random() * 1.6 * (1 - p * 0.5), 1.2 + Math.random(), new THREE.Color(pickOf(SAND)));
+          const v = this.N.clone().multiplyScalar(side * (4 + Math.random() * 7)).addScaledVector(this.T, 6 * (1 - p)).add(V(0, 3 + Math.random() * 4, 0));
+          s.dust.emit(at, v, 1 + Math.random() * 1.3 * (1 - p * 0.5), 1.2 + Math.random(), new THREE.Color(pickOf(SAND)));
         }
-        if (s.wind && Math.random() < 0.7) for (let i = 0; i < 6; i++) s.wind.emit(pos.x + (Math.random() - 0.5) * 30, pos.z + (Math.random() - 0.5) * 30, this.N.x * (Math.random() - 0.5) * 30, this.N.z * (Math.random() - 0.5) * 30);
-        if (u < 0.5 && Math.random() < 0.4) s.flame.emit(pos.clone().addScaledVector(this.T, R * 0.7).add(V(0, -R * 0.4, 0)), V(0, 3, 0), 2 + Math.random() * 2, 0.4, pickOf(FIRE));
+        if (s.wind && Math.random() < 0.5) for (let i = 0; i < 4; i++) s.wind.emit(pos.x + (Math.random() - 0.5) * 30, pos.z + (Math.random() - 0.5) * 30, this.N.x * (Math.random() - 0.5) * 20, this.N.z * (Math.random() - 0.5) * 20);
         const cam = s.restPos.clone().addScaledVector(this.N, -40).addScaledVector(this.T, -26).add(V(0, 5, 0));
         cam.y = Math.max(cam.y, s.groundAt(cam.x, cam.z) + 2.5);
         this.look.lerp(pos, 1 - Math.exp(-5 * dt));
         s.shot({ pos: cam, look: this.look, fov: 52 });
-        s.shake(0.6 * (1 - p));
+        s.shake(0.35 * (1 - p));
         break;
       }
       case 'settle': {
@@ -469,6 +524,48 @@ export class PrologueDirector {
     }
   }
 
+  /**
+   * The singing light, `dt0` s before (positive) or after (negative) its nearest pass, drawn as a cluster of
+   * glowing puffs and a trail (src/ship/ship.js flame), lighting what is near it. Far off it is a speck; it is
+   * only drawn within ~450 m. Returns where it is (world), or null when it isn't drawn.
+   */
+  lightFrame(dt0, dt) {
+    const s = this.s;
+    if (!s.spaceCopy) return null;
+    const x = -dt0 / 2.5;
+    if (x < -1.35 || x > 1.15) return null;
+    const along = 165 * x * x * x + 25 * x;
+    const local = this.LM.clone().addScaledVector(this.LD, along);
+    const at = this.W(local), d = Math.abs(along);
+    const core = 0.75 + d * 0.012;
+    for (let i = 0; i < 2; i++) {
+      const j = V((Math.random() - 0.5), (Math.random() - 0.5), (Math.random() - 0.5)).multiplyScalar(core * 0.5);
+      s.flame.emit(at.clone().add(j), V(0, 0, 0), core * (0.8 + Math.random() * 0.4), 0.1 + Math.random() * 0.06, pickOf(LIGHT));
+    }
+    // its trail, thin, behind it along its way
+    const back = this.W(local.clone().addScaledVector(this.LD, -1.5 - Math.random() * 5)).sub(at);
+    if (d < 160) s.flame.emit(at.clone().add(back), back.clone().multiplyScalar(0.8), 0.35 + Math.random() * 0.4, 0.45 + Math.random() * 0.3, pickOf(LIGHT));
+    if (this.light?.vec) this.light.vec.set(at.x, at.y, at.z, Math.max(0, 30 - d * 0.6));
+    return at;
+  }
+
+  /** The light lights what is near it (one of the level's point lights, while it passes). */
+  lightOn() {
+    const s = this.s;
+    this.light ??= { on: false, vec: null };
+    if (this.light.vec || !s.lights) return;
+    this.light.vec = new THREE.Vector4(0, -1e5, 0, 0);
+    s.lights.push(this.light.vec);
+  }
+
+  lightOff() {
+    const v = this.light?.vec, L = this.s.lights;
+    if (!v || !L) return;
+    const i = L.indexOf(v);
+    if (i >= 0) L.splice(i, 1);
+    this.light.vec = null;
+  }
+
   /** At the cockpit console, in the orbiting ship (the prologue's walk). */
   atConsole() {
     const s = this.s;
@@ -491,6 +588,18 @@ export class PrologueDirector {
     return true;
   }
 
+  /**
+   * The ship's word on what passed it, and his answer: he will follow the light (said once; they play on past
+   * the hand-back, and after a skip too, so the choice is never lost).
+   */
+  landingLines() {
+    if (this.landingSaid) return;
+    this.landingSaid = true;
+    const C = this.s.cinema;
+    C.say(LANDING_LINE, { secs: 6 }); C.say(FOLLOW_LINE, { secs: 4.5, queue: true });
+    this.s.sound?.makersHum?.({ vol: 0.55 });
+  }
+
   /** The father's charge, given once: its title card and its sound. */
   giveCharge() {
     if (game.flag(CHARGE_CARD)) return;
@@ -502,6 +611,8 @@ export class PrologueDirector {
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
     this.humming?.stop(); this.humming = null;
+    this.lightOff();
+    if (skipped) this.cueRec?.stop?.();
     s.holo?.clear();
     // skipped before the dust cleared: the charge is still given, and the objective waits for its card
     if (skipped) this.giveCharge();
@@ -517,7 +628,6 @@ export class PrologueDirector {
       s.setDoor(pk, 1); s.setRamp(pk, 1);
       pk.lightsOff = false;
       s.setPower('emergency', pk);
-      s.startSmoke = true;
       sfx.alarm(s.sound, 0); sfx.hum(s.sound, 0);
       const a = s.arrivalSpot();
       s.placePlayer(a.pos, a.heading, true);
@@ -526,8 +636,10 @@ export class PrologueDirector {
       s.rig.target.copy(a.pos);
       s.cam = null; s.blend = null;
       if (wait > 0) setTimeout(() => C.objective(stepOutObjective()), wait - 500); else C.objective(stepOutObjective());
+      setTimeout(() => this.landingLines(), Math.max(0, wait) + 1200);
     } else {
-      C.say(null); C.hint(null); C.hud(true); C.bars(false);
+      if (!this.landingSaid) C.say(null);   // (the ship's word and his answer play on as he walks out)
+      C.hint(null); C.hud(true); C.bars(false);
     }
     game.set('objective', OBJECTIVE);
     game.set('ship.level', 'desert');
@@ -660,7 +772,7 @@ export class ArrivalDirector extends Sequence {
           C.hud(false); C.bars(true);
           ship.placePlayer(ship.world(m, m.interior.points.hatchIn), ship.worldHeading(m, HATCH_A), false);
           ship.setDoor(m, 0); ship.setRamp(m, 0);
-          // the first time here: the ship reads the strike's signature (src/story/signature.js)
+          // the first time here: the ship reads the light's signature (src/story/signature.js)
           const sig = arrivalLine(ship.levelId, (k) => game.flag(k));
           if (sig) { C.say(sig, { secs: 5.2 }); for (const [k, v] of Object.entries(sig.set)) game.set(k, v); }
           const a = ship.buildApproach();

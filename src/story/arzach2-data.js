@@ -205,7 +205,7 @@ export const LOCALS = [
         mark: {
           say: ["~solemn~ We call this mark *the Three Notes*. {glyph} The founders put it on their bells. We’ve forgotten the notes. We kept the name.", "~whisper~ But the night the singing light passed, this bell hummed without a clapper. One long note, answering the sky.", "~solemn~ The blue chest *on the balanced stones* answered too. A founders’ bell-chest, with a pale star on top. They say it opens for travellers from beyond the reach of our bells."],
           do: { set: { 'arzach2.rumour.light': true } },
-          choices: [{ text: '~surprised~ A light that sang? That was the night my ship was struck.', goto: 'light' }, { text: '~neutral~ I’ll bring the clapper back.', goto: 'bring' }],
+          choices: [{ text: '~surprised~ A light that sang? That was the night it passed my ship.', goto: 'light' }, { text: '~neutral~ I’ll bring the clapper back.', goto: 'bring' }],
         },
         light: { say: ["~solemn~ Then we heard the same light. *Bring back the clapper.* Perhaps the bell has more to say."], choices: [{ text: '~neutral~ I’ll bring it.', goto: 'bring' }] },
         bring: { say: ["~neutral~ Fly *east to the floating island*. Look for *the church with two towers*. The bronze clapper is outside its door. Mind the edge; the island tilts."], choices: [{ text: '~neutral~ I’ll be back.', end: true }] },

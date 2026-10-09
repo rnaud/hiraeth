@@ -37,8 +37,9 @@ Object.assign(SOLVERS, {
     W.at(H.shelfFront.clone().add(V(0, 0, -1.6)));
     A.useHere(W, 'hearth.stone');
   },
-  // back to the ship: its hatch says so (src/ship/ship.js emits ship:enter)
-  'desert.power:ship': (W) => { W.at(W.level.ship.pos); game.emit('ship:enter', { level: 'desert' }); W.step(2); },
+  // back to the ship (its hatch says so: src/ship/ship.js emits ship:enter), where Qanat waits with its gift:
+  // one by one they pour what they brought into it (src/story/desert-repay.js), and the ship wakes
+  'desert.power:ship': (W) => { W.at(W.level.ship.pos); game.emit('ship:enter', { level: 'desert' }); W.step(30 * 26); },
 });
 Object.assign(CHECKS, {
   // the spark-stone goes into the pack, and nothing floats about him

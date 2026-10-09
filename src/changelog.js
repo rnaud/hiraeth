@@ -17,6 +17,14 @@ export const CHANGELOG = [
     // the title screen
     'The title screen’s menu is much smaller and sits low at the left, so the world behind the name shows: Continue (or New game) and Saves as two small buttons, and under them a row of little ink icons for Settings (a gear), What’s new (a star), Debug (a beetle) and Full screen (corner brackets), each named when you point at it or reach it with the controller. Full screen no longer shows in the Xbox app.',
     'On the title screen the traveller now stands still, upright, his arms straight down at his sides and his back to you, looking out over the world as on the covers; only his breath and his coat move.',
+    // the opening, the singing light and the father's message
+    'Your father’s first message now makes the years away plain: “We haven’t heard from you for so long.” He misses you, he is still disappointed in you, and you are not to come home until you bring back something of value. Those words, the game’s own, are now written in gold with their ✦ wherever anyone says them: on his message, on the later recordings and in conversations.',
+    'The singing light has a song of its own: five high, wordless notes, first far off under your father’s message, then nearer, then nearest under his last words.',
+    'The opening is restaged: you pause the message to listen, and the singing light passes close by the ship, singing, and drains its power as it goes. The lights go out, the reserve comes on, and the ship comes down in the desert on its belly, a hard landing rather than a crash, with no fire and no smoke.',
+    'As the emergency power comes on, the ship says it can follow the light’s signature, and you tell it to: when the ship can fly again, you follow the light, because you want to hear it again.',
+    'Nobody talks about your ship being struck any more: Marrow and Nour in the desert, the witnesses in every world, the People page, the Sightings, the map’s note and Ilen at the Lantern now speak of the light passing your ship and draining it.',
+    // Qanat repays you
+    'In the desert, Qanat now repays you for its tree: once the tree burns, the villagers come down to your ship, each with what their house can spare (the camps’ share of the Drinking, a street’s lamps, the well’s first water), and pour it in together, Nour last. That is what wakes the ship, not your jar alone.',
   ] },
   { v: '1.5', date: '2026-10-09', items: [
     'A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.',

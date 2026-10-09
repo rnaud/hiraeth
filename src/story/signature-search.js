@@ -1,6 +1,6 @@
 // The signature search: how a new world gets onto the ship's galactic map (v1.6).
 //
-// The route still opens in ORDER (src/story/route.js knownWorlds: the crash site, then the next two
+// The route still opens in ORDER (src/story/route.js knownWorlds: where the ship came down, then the next two
 // worlds not done yet). What changed is how a newly opened world shows on the map: the ship reads the
 // singing light's signature out there (the three slow pulses, src/story/signature.js), but not where.
 // Such a world is "findable": the map draws an uncharted region somewhere round it and no name, and
@@ -9,7 +9,7 @@
 // louder, the pad rumbles in threes (src/rumble.js 'search'). Held over it for a moment, the planet
 // resolves and is charted (flag `map.found.<id>`), and the ship says so.
 //
-// A world is charted (no search) when it is the first one (the crash site), you have been there or
+// A world is charted (no search) when it is the first one (where the ship came down), you have been there or
 // stand in it, it is done, or it was found. Old saves keep every world they had charted: the
 // migration (src/save-migrate.js step 6) marks the worlds they knew as found. The detours
 // (CHARTED_SIDE), the Lantern and home are charted outright; the worlds still being made (WIP)

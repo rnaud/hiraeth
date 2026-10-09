@@ -5,7 +5,7 @@
 //
 //  - Only the worlds you know of are named and can be chosen; the rest are
 //    faint dots further along the route (the unlock rule: src/story/route.js).
-//  - Every world on the chart carries the strike's signature (src/story/signature.js):
+//  - Every world on the chart carries the singing light's signature (src/story/signature.js):
 //    a small glyph mark on its disc, its reading in the panel, and a line beside the
 //    chart saying why these worlds and no others.
 //  - The detours (names.js SIDE: worlds off the route, with no story to finish) are charted after
@@ -91,7 +91,7 @@ export function worldBox(s = 1) {
   return { disc, font, w: Math.max(84, Math.round(108 * s)), h: disc + 10 + 2 * line + line * 0.95 };
 }
 
-/** The strike's signature as the ship draws it: the glyph, three dots over an upward arc. */
+/** The light's signature as the ship draws it: the glyph, three dots over an upward arc. */
 export const SIG_GLYPH = '<svg class="glyph" viewBox="0 0 20 16" aria-hidden="true"><circle cx="4.5" cy="2.2" r="1.7"/><circle cx="10" cy="2.2" r="1.7"/><circle cx="15.5" cy="2.2" r="1.7"/><path d="M3 15 Q10 4.5 17 15" fill="none" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
 const HEADER = 62;   // the title and the count, top left of the field

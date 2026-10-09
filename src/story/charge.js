@@ -1,5 +1,5 @@
 // The father's charge: "Bring back something of value." The last thing he says on
-// the prologue's recording before the impact cuts him off (src/story/calls.js
+// the prologue's recording before the traveller pauses it to listen (src/story/calls.js
 // PROLOGUE_CALL), and the journey's own quest: every world's quest is a way of
 // answering it, the keepsakes are what you carry, and the ending at the stone on
 // the hill (src/story/ending.js) is where it closes.
@@ -17,7 +17,7 @@
 //     waiting: six worlds done, the last recording not heard yet (it waits on the ship's voicemail)
 //   chargeHud(state)          the HUD's line for it: '✦ …' (main.js shows it in its own colour)
 //   chargeJournalHtml(state)  the card pinned at the top of the sketchbook
-//   showChargeCard({ sound }) the title card when it is given (after the crash, or once on an
+//   showChargeCard({ sound }) the title card when it is given (after the landing, or once on an
 //                             older save), with its own sound (audio.js charge())
 //
 // Flags: charge.given (the father's words have been heard), charge.card (its title card shown).
@@ -89,7 +89,7 @@ export function chargeJournalHtml(st) {
 }
 
 // ---------------------------------------------------------------------------
-// The title card: the father's words lettered over the crash site, the way a comic opens its
+// The title card: the father's words lettered over the landing site, the way a comic opens its
 // first chapter: thin airy capitals like the title screen's (src/title.js LOGO) on a band of paper, a pen line drawn
 // under them, the gold star of the charge. It asks nothing of you and leaves by itself.
 

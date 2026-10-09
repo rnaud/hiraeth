@@ -127,7 +127,7 @@ export function finaleEntry({ open, current, flag = () => undefined }) {
     source: 'where the singing light comes from',
     blurb: met
       ? 'A small island in a still sea of light, and the makers’ lantern on it. Ilen kept it for thirty years. It can keep itself a while.'
-      : 'Past the Signal Market, off every chart: the trace of the light that struck the ship runs back to one small world, and stops there.',
+      : 'Past the Signal Market, off every chart: the trace of the light that drained the ship runs back to one small world, and stops there.',
   };
 }
 
@@ -285,7 +285,7 @@ export function lightOver(ctx = {}) {
     S('~solemn~ (You take out the reel to set it beside them. Then, over the hill, something starts to sing.)', { light: 'come' }),
     S('~solemn~ (A light comes in low over the valley, singing one long, thin note that you feel in your teeth. It dips over the round house.)', { light: 'dip' }),
     ctx.lou ? LOU('~surprised~ The singing star! It comes over sometimes. Grandpa used to stand at the window for it.') : S('~solemn~ (The round window catches it. Nobody stands there now.)'),
-    YOU('~solemn~ That’s what struck my ship.'),
+    YOU('~solemn~ That’s the light that passed my ship. I followed it all this way.'),
     S('~solemn~ (It turns the way everyone said it turns, as if it is looking for something. Then it climbs away, out along the route.)', { light: 'go' }),
     ...(ctx.ilenTold ? [YOU('~whisper~ Mum said the last sound from Ilen’s ship was singing.')] : []),
     spoken('you', '~solemn~ (You keep the reel. Not yet. Not until you know what that was.)', { keep: true }),

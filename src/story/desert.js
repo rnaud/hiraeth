@@ -7,7 +7,7 @@ import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { COOL_FIRE, SMOKE_COOL, Embers } from './flames.js';
 import { setMagic } from './magic-water.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, DESERT_QUEST_V, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS } from './desert-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, STAGE_MIGRATION, STAGE_MERGE, DESERT_QUEST_V, SPARK_STAGES, VILLAGERS, MURMURS, VILLAGER_TALK, CALLS, REPAY, REPAY_CALL } from './desert-data.js';
 import { setupDesertMoments } from './desert-moments.js';
 import { verbKey, inputKind } from '../prompt-keys.js';
 import { items } from '../items.js';
@@ -16,6 +16,7 @@ import { setupDrum, setupMask } from './desert-errands.js';
 import { setupHearth } from './desert-spark.js';
 import { setupWay } from './desert-way.js';
 import { bystanderSpot } from '../ship/landing.js';
+import { setupRepay } from './desert-repay.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -159,7 +160,7 @@ export function setupDesert(ctx) {
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = ITEMS;
   // the main quest: power for the ship (unless the ship already has it). It doesn't just appear: Marrow,
-  // poking at your hull when you step out, tells you where the only fire that could wake a ship is, and
+  // poking at your hull when you step out, tells you the ship is drained and only Qanat ever held that much, and
   // the quest starts in that talk (src/story/quests.js opensWith); or Ama, the Speaker, Nour or Hessa, if
   // you walk past him. Until then the scout finds Marrow.
   const opening = () => !quests.isStarted('desert.power') && !game.flag('ship.powered');
@@ -200,7 +201,7 @@ export function setupDesert(ctx) {
   people.ilo = spawn(PEOPLE.ilo, { route: iloRoute, speed: 2.4 });
   const marrowAt = camps.spot(-19, -14);
   const marrowHome = loop(marrowAt, 1.6, 3);
-  // a new game: he is at your ship when you step out, looking over the scar on its hull (then home to his crates)
+  // a new game: he is at your ship when you step out, looking over the mark on its hull (then home to his crates)
   const ramp = ctx.ship?.arrivalSpot?.() ?? null;
   const rampAt = ramp?.pos ?? (level.ship?.pos ?? level.spawn).clone();
   const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0));
@@ -575,19 +576,25 @@ export function setupDesert(ctx) {
     const s = level.ship?.pos ?? level.shipSite ?? level.spawn;
     return s.isVector3 ? s : V(s.x, s.y ?? level.ground.heightAt(s.x, s.z), s.z);
   };
-  // the jar's water wakes the ship once it has taken the spark (it caught with the tree)
+  // Qanat repays you: once the tree burns, its people bring what they can spare to the ship and fill it
+  // together (src/story/desert-repay.js). Your own jar alone would never have been enough; before the tree
+  // burns it is dull water.
   let stillT = -1e9;
   const feedShip = () => {
-    if (!quests.has('water') || game.flag('desert.ship.fed')) return false;
-    if (!lit()) {
-      if (st.clock - stillT > 30) { stillT = st.clock; toast('You tip the jar to the ship’s intake. The water lies still and dull in it: nothing in it wants to burn. Not yet.'); }
-      return false;
-    }
-    quests.take('water');
-    game.set('desert.ship.fed', true);
-    return true;
+    if (!quests.has('water') || game.flag('desert.ship.fed') || lit()) return false;
+    if (st.clock - stillT > 30) { stillT = st.clock; toast('You tip the jar to the ship’s intake. The water lies still and dull in it: nothing in it wants to burn. Not yet.'); }
+    return false;
   };
-  game.on('ship:enter', () => feedShip());
+  const repay = setupRepay(ctx, {
+    people: { ...people, ...Object.fromEntries(villagers.map((n, i) => [VILLAGERS[i].id, n])) },
+    gifts: REPAY, call: REPAY_CALL,
+    ramp: () => onGround((ctx.ship?.arrivalSpot?.()?.pos ?? shipPos()).clone()),
+    hull: () => (ctx.ship?.restPos?.clone() ?? shipPos().clone()),
+    onGround,
+    lit, fed: () => !!game.flag('desert.ship.fed'),
+    feed: () => { if (quests.has('water')) quests.take('water'); game.set('desert.ship.fed', true); },
+  });
+  game.on('ship:enter', () => { feedShip(); repay.enter(); });
   // the backpack found: its tank is empty but for the makers' dregs, one shot of old fluid (tool.dregs,
   // src/fluid-tool.js), so the shot is felt at once; the giant's pool fills it for good (a new save;
   // an older one carried a full tank already)
@@ -1002,8 +1009,9 @@ export function setupDesert(ctx) {
     if (pp.distanceTo(cave.origin) < 80 && !game.flag('desert.cave.seen')) game.set('desert.cave.seen', true);
     updateFollowers(dt);
     wade();
-    // the ship: walk up with the living water (or enter it: 'ship:enter')
+    // the ship: walk up with the jar before the tree burns (it won't take); after, Qanat brings its gift
     if (quests.has('water') && flat(pp, shipPos()) < 10) feedShip();
+    repay.update(dt, pp);
 
     // the tree: once it burns, it flares when you first come near and glows warmer the closer you are;
     // cold, it gives no light at all (only the plaza's lamps, a little, at night)
@@ -1087,7 +1095,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, repay, gatherSpots, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;

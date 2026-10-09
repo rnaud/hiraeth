@@ -31,6 +31,37 @@ export const SOUNDTRACKS = {
   arzach2: 'arzach2.mp3',
 };
 
+/**
+ * Short recorded cues, not a world's theme: played once at a moment, not looped (src/audio.js playCue). A cue's
+ * file may not be there yet: the game sings its synth version until it is (the singing light's theme:
+ * src/story/light-theme.js; its Suno brief is in docs/systems/audio.md). Dropping the file into public/music/
+ * (and its entry into manifest.json) is all a recording needs.
+ */
+export const CUES = {
+  'singing-light': 'singing-light.mp3',
+};
+
+/**
+ * Load a cue into `sound.cues[id]` if its file is there (the bundle, else a copy a device kept): true when it
+ * decoded. Never throws; a missing file (a dev server answers with its page) is simply false.
+ */
+export async function loadCue(sound, id, fetcher = globalThis.fetch, { here = globalThis.location, store } = {}) {
+  const file = CUES[id];
+  if (!file || !sound?.ctx || !fetcher) return false;
+  if (sound.cues?.[id]) return true;
+  if (store === undefined) store = bundledGame(here) ? pageThemeStore() : null;
+  try {
+    for await (const { blob } of themeSources(file, { here, store, fetcher })) {
+      try {
+        const buf = await sound.ctx.decodeAudioData(await blob.arrayBuffer());
+        (sound.cues ??= {})[id] = buf;
+        return true;
+      } catch { /* not audio: try the next */ }
+    }
+  } catch { /* offline, or no store today */ }
+  return false;
+}
+
 /** Join the last two seconds to the opening and balance the score beneath speech. */
 export function prepareSoundtrack(ctx, original) {
   const fade = Math.min(Math.floor(original.sampleRate * 2), Math.floor(original.length / 4));

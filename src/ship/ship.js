@@ -29,8 +29,8 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 // The traveller's ship: a big round ball, home between worlds.
 //
 //  - It stands at each world's arrival point (src/ship/sites.js). In the
-//    desert, until it first flies again, it lies where it crashed: tilted,
-//    dug into a dune at the end of its furrow.
+//    desert, until it first flies again, it lies where it came down when the singing light drained it:
+//    on its belly, dug into a dune at the end of a short skid.
 //  - Walk up the ramp and in: bunk room, ring corridor, galley, entry hall,
 //    cockpit. All of it collides (physics.addCollider).
 //  - E at the cockpit console: the voicemail button (it blinks while a message waits): the
@@ -361,7 +361,7 @@ export class Ship {
     }
     this.removeSpaceCopy();
     if (this.crashSite) this.crashSite.reveal(1);
-    if (this.crashed) this.startSmoke = true;
+    // (no smoke: the singing light drained it and it came down on its belly; nothing on it burns)
     if (via === 'ship') {
       this.cinematic = new ArrivalDirector(this);
       this.cinematic.start();

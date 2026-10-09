@@ -8,6 +8,7 @@ import { scriptOf, lineChunks, chunkSvg } from './scripts.js';
 import { syllableOpen, syllableEnvelope } from '../talk-face.js';
 import { confirmKey } from '../native-pad.js';
 import { keyBadge, keyText, keySig, hasKeys, inputKind } from '../prompt-keys.js';
+import { markKeyPhrase } from './key-phrase.js';
 const _ac = new THREE.Vector3(), _bq = new THREE.Vector3(), _cv = new THREE.Vector3();
 
 // Conversations. People are data:
@@ -50,6 +51,8 @@ export function formatText(text, html = true, kind = inputKind()) {
   let s = String(stripTone(text ?? ''));   // (a line may be { text, tone })
   if (html) s = s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
   s = s.replace(/\{(\w+)\}/g, (m, k) => MOTIFS[k] ? (html ? MOTIFS[k].html : MOTIFS[k].plain) : m);
+  // the key phrase, "something of value", lettered as itself wherever it is said (src/story/key-phrase.js)
+  s = markKeyPhrase(s, html);
   // a short span is a highlight (a place to go, a thing to do); a long one is a quotation (a letter, a recording)
   s = s.replace(/\*([^*]+)\*/g, (m, w) => !html ? w : isQuote(w) ? `<em class="quote">${w}</em>` : `<em>${w}</em>`);
   // {key:aim}: the verb's input for the hands on the game, as they are now (src/prompt-keys.js keyText)

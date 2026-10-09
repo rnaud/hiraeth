@@ -156,9 +156,9 @@ export const PEOPLE = {
         light: {
           say: ["~whisper~ I was beside the turbine when the singing light crossed the slit. Low and slow. The metal sang back to it.", "~scared~ Then the light turned. Deliberately, it seemed. By morning, our turbine and Ottla’s other two machines had stopped."],
           do: { set: { 'garage.rumour.light': true } },
-          choices: [{ text: '~neutral~ My ship was struck that night.', goto: 'ship' }, { text: '~neutral~ (look up at the slit)', end: true }],
+          choices: [{ text: '~neutral~ It passed my ship that night. Took all its power.', goto: 'ship' }, { text: '~neutral~ (look up at the slit)', end: true }],
         },
-        ship: { say: ["~curious~ It struck you that night? Then the turn mattered. Looking for you, or changing course after it hit you? I can’t tell.", "~curious~ The slit’s rim still pulls at our compasses. Your ship’s scar has the same pull. I checked. Hard evidence; comforting stuff."], choices: [{ text: '~neutral~ (look up at the slit)', end: true }] },
+        ship: { say: ["~curious~ It found you that night? Then the turn mattered. Looking for you, or changing course after it passed you? I can’t tell.", "~curious~ The slit’s rim still pulls at our compasses. Your ship’s scar has the same pull. I checked. Hard evidence; comforting stuff."], choices: [{ text: '~neutral~ (look up at the slit)', end: true }] },
         unstamped: { say: ["~surprised~ The signal needs its stamp first. *Use the relay in the upside-down.* Then bring it back to me. The stamp opens the holes the light shines through."], choices: [{ text: '~tired~ Back to the upside-down, then.', end: true }] },
         signal: {
           say: ["~surprised~ You carried it all the way here? Good. Let’s finally see what we’ve been passing around.", "~solemn~ (Lune holds the tube to the slit. Nine dots of light fall on the floor between you.)", "~curious~ These are a reference. Numbers pointing to a place. The Major left his working notes somewhere."],

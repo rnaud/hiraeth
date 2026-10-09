@@ -18,7 +18,7 @@ Contents
 2. The traveller and the family
 3. The recordings
 4. The makers, the glyph and the singing light
-5. The strike's signature (why these worlds)
+5. The light's signature (why these worlds)
 6. The worlds, in travel order
 7. Home and the ending
 8. Recurring motifs
@@ -33,10 +33,12 @@ Contents
 "My son, make us proud. Bring back something of value."
 
 A young traveller sets out in his father's old ship, a big round ball, to
-bring back "something of value". On the way out, in the cockpit, he plays a
-message from his father; something singing strikes the ship mid-sentence, the
-picture tears apart, and the ship falls, without power, into a desert. From
-there he walks, then flies, from world to world. Every world offers him
+bring back "something of value". Years out, in the cockpit, he plays a
+message from his father ("We haven't heard from you for so long"); under it
+something sings, nearer and nearer, and he pauses the recording to listen. A
+singing light passes the ship, close, and drains its power as it goes; the ship
+comes down on its last reserve in a desert, a hard landing, not a crash. He
+chooses to follow the light. From there he walks, then flies, from world to world. Every world offers him
 something impressive and something quieter, and he collects both as
 **keepsakes**. Little by little the game lets him (and the player) find out
 that the message was a recording, that every message he plays is old, and at
@@ -160,13 +162,18 @@ when they made it. It fits loosely, never answers. He holds his newest
 keepsake up to the projector "where they would see it", and the recording
 happens to hold what his father once said about such things.
 
-### The prologue recording (the day he left)
-"Is it on? The little light is on. Right. There you are." Nobody out there owes
-you anything. Keep the translator at your ear. "You leave everything here half
-done. The boat. The school. Your mother." "My son, make us proud. Bring back
-something of value." "We will be waiting for you at the—" (the impact cuts it
-off). Under his last words something starts to hum, louder until the strike: the
-singing light, finding his voice on the reel. The player takes it for a call from home.
+### The prologue recording (years after he left)
+"Is it on? Right. There you are. We haven't heard from you for so long." "Your
+mother still lays your place at the table. We miss you. Both of us." "And I'm
+still disappointed in you. The boat, the school. You leave everything half
+done." "My son, make us proud. Bring back *something of value*. Until then,
+don't come home." "Keep the translator at your ear. Nobody out there talks
+like—" and the traveller pauses it. The key phrase is lettered as itself on the
+screen (gold, with the charge's ✦) here and wherever the story echoes it. Under
+his words the singing light's theme (five notes, `src/story/light-theme.js`)
+comes nearer each time, the makers' hum under the charge; in the pause it sings
+alone, then the light passes the ship and the power goes with it: the light,
+finding his voice on the reel. The player takes it for a call from home.
 
 ### What he asks the reel for, world by world
 | World | Word | What the reel finds | What he makes of it |
@@ -210,7 +217,7 @@ time"; "Someone who wants you back. I understand that better than you think").
 
 ### Things the reel cannot have known (each once)
 - **The singing light** (after two worlds' witnesses): "If you ever hear something singing out there, you turn the ship around." Later the mother: "Your father stood at the window last night a long time. He said he heard something singing."
-- **Struck ships** (after Odile and Talo's ship): "Ships get struck out there. That is all it is."
+- **Ships that go dark** (after Odile and Talo's ship): "Ships go dark out there. It happens."
 - **The glyph** (after the Buried Machine or Lorn): "You have drawn those three dots on the landing ring again. Over an arc." He: "I drew that before I knew what it was."
 - **The bell** (after Vael II): the harbour bell behind them, rung when a ship comes in.
 - **The bird** (after Vael): "A bird made you a promise? You and your stories."
@@ -272,14 +279,15 @@ Crystal's violet, the market's lantern. By the end the tank is a record of the j
 
 ### The glyph
 Three dots over an arc that bows upward (∩), never a smile. Scorched into the
-ship's hull by the impact. It recurs on the reactive scenery's three apertures,
+ship's hull where the singing light brushed past it. It recurs on the reactive scenery's three apertures,
 the giants' brows, the Lodestar's lower facets, the Major's machines, the
 android ruins, the bell, the great wheel, the Great Crystal's root stone, the
 oldest market sign. As a boy the traveller drew it on the landing ring at home
 before he knew what it was.
 
 ### The singing light
-Whatever struck the ship. Every world has a witness (usually several): a light
+What passed the ship and drained it (it never touched it but for the scorch).
+Every world has a witness (usually several): a light
 that came over low and slow, singing like a wet finger round the rim of a
 glass; something answered it (the chest, the Lodestar, the stones, the bell,
 the wheel, the pole, the crystal, the antenna); then **it turned**, "like it
@@ -288,47 +296,50 @@ never fell: it dipped low (behind the desert's dunes, over Lorn II's pools) and
 climbed again.
 
 **One night everywhere.** Every world saw it pass on the same night: the night
-the traveller's ship was struck. In the desert, where the ship came down the
-next morning, people say "the night before your ball came down"; everywhere
+before it found the traveller's ship. In the desert, where the ship came down the
+next morning, people say "the night before you came down"; everywhere
 else, "the night the light passed" or the local name ("the night the sky
-rang"), and the traveller says "that was the night my ship was struck". No
+rang"), and the traveller says "that was the night it passed my ship". No
 witness dates it from the traveller's arrival (no "three nights ago").
 How one light crossed worlds a journey apart in one night is not explained; it
 is part of what it is. Local names: the singing light
 (desert), the night the sky rang (City-Shaft, Lorn II, market), the Tuning
 Star (Buried Machine), the Singer (Viridel, Talo's word), an Answerer
-(Spheres). It struck Odile and Talo's ship before his, forty-odd years ago, and
+(Spheres). It brought down Odile and Talo's ship before his, forty-odd years ago, and
 then their saucer too, over Lorn II's deep wood, when they went looking for it.
 The Great Crystal on Lorn is a piece of the same light, fallen long ago (that
 piece fell; the light itself never has). Ilen's ship sent back a
 sound like singing. What it is, and why it turns, is never said.
 
-The questions the game asks (was it a makers' thing too, "whatever struck you
-knew their sign", Nour? Did the chests open for Ilen?) are answered at the end,
+The questions the game asks (was it a makers' thing too, "whatever brought you
+down knew their sign", Nour? Did the chests open for Ilen?) are answered at the end,
 at the Lantern (section 7): yes, and yes. It is a makers' light, and the one
-that struck the ship was Ilen's answer to the father's broadcast. The other
+that passed the ship was Ilen's answer to the father's broadcast. (They drink
+what a ship runs on as they pass, Ilen says; it was never trying to bring him
+down. And he followed it of his own accord: "A light can't make anyone do that.") The other
 sightings stay as they were: the lights are older than her (Odile and Talo were
 brought in by one forty-odd years ago); how one crossed worlds a journey apart in
 one night is still part of what it is.
 
-## 5. The strike's signature (why these worlds)
+## 5. The light's signature (why these worlds)
 
 *Built in this pass (`src/story/signature.js`).*
 
-Whatever struck the ship left more than a scorch: **the scar on the hull is
+The singing light left more than a scorch where it brushed the hull: **the scar is
 magnetised**, and its field beats slowly in threes, like the glyph's three
 dots. The ship's instruments read that beat. **The galactic map charts only the
 worlds whose own field carries the same signature**: the worlds the singing
 light passed through. From each world the traveller finishes, the ship reads the
 trace a little further on, which is why the worlds open one or two at a time.
-Home does not carry it: the ship knows that way by heart.
+Home does not carry it: the ship knows that way by heart. Following it is the
+traveller's own choice, said as he steps out.
 
 Where it shows in the game:
-- **After the crash**, as the emergency power comes on: "Emergency power. The scar on the hull is magnetised: whatever hit us left a signature. Logging it."
-- **The first time the map opens with power**: "Charting by the scar's signature. These worlds carry the same pulse as whatever struck us. No others do."
+- **After the landing**, as the emergency power comes on: "Emergency power online. Whatever passed us drained the core and left a magnetic signature on the hull. I can track its pulse." He: "Then track it. When we can fly, we follow it. I want to hear it again."
+- **The first time the map opens with power**: "These worlds carry the same magnetic signature as our scar. You asked me to follow the singing light: it went this way."
 - **On the map**: a small glyph badge on every signature world; in the panel, "SIGNATURE · (reading) · matches the scar", and once visited, where it is strongest; a dashed box beside the chart explains it.
-- **When a world is finished**: "New on the ship's map: X. The ship reads the strike's signature there too."
-- **Out of the jump, the first time at each world**: "Signature confirmed: the same pulse as the scar. Strongest (place)."
+- **When a world is finished**: "New on the ship's map: X. The ship reads the light's signature there too."
+- **Out of the jump, the first time at each world**: "The singing light's signature, here too. Strongest (place)."
 
 The readings, world by world (editable in `SIGNATURE_WORLDS`):
 | World | Reading from orbit | Strongest |
@@ -443,9 +454,15 @@ Main quest (`desert.power`), in order:
     the crown in the cool colours of the drinking, the smoke column climbs from it, the
     procession sings ("It burns!"), the bands play the feast. The water in Ama's jar catches
     the glow with it.
-12. Bring the jar to the ship: "The ship hums awake. The galaxy is open." (Before the tree burns
-    the ship won't take it: the water lies still and dull in the jar, "nothing in it wants to
-    burn".)
+12. **Qanat repays him.** He put the tree right for the city's sake; because he did, the city
+    chooses to help him in return. Nour: "You gave us back our light, child, and asked for
+    nothing. Qanat pays its debts." A little after the tree catches, the ones with something to
+    give go down to his ship and wait by the ramp; when he comes, they step up one by one and
+    pour in what their houses can spare: Ama the camps' share of the Drinking, Idris the lamps of
+    his street, Hessa the well's first water, Lula her oven's fire-water, Marrow a cell he was
+    saving, and Nour last ("So Qanat gives your ship its own. Now go and follow yours."). The ship
+    hums awake: "The galaxy is open." (`src/story/desert-repay.js`. Before the tree burns his jar
+    alone won't take: the water lies still and dull in it, "nothing in it wants to burn".)
 
 Side quests: Teo's drum (in the great ribcage, south: pinned against a rib by a
 knuckle of spine; shove the knuckle from the side, by hand or with the fluid, and the drum rolls out like a
@@ -459,7 +476,7 @@ carried the water; the tree drinks what they left); *song* "Teo's walking
 rhythm". Chests: the backpack, the pale star (ember mode waits in the Givers' House, §11).
 
 Ties: the giants "came down from the swamp of lights" (Lorn); the light was
-seen the night before the crash, and the tree went out under it; the glyph is "the Givers' mark", "even you,
+seen the night before the ship came down, and the tree went out under it; the glyph is "the Givers' mark", "even you,
 now, it seems". The stele by the well shows, behind the giants, a small figure carrying something round and bright: the
 fire-bearer. Errands start here (a jar of singing sand for the City-Shaft).
 
@@ -480,8 +497,11 @@ fire-bearer. Errands start here (a jar of singing sand for the City-Shaft).
 - *Ember mode and the tree*: the Givers' House can be done before the tree is lit, but ember
   fire is the tank's own water set alight, and living water does not take it: only the spark
   it was first lit with. So ember mode lights braziers, brambles and lamps, never the tree.
-- *The ship's power*: still the jar of living water, but only once it has caught the spark with
-  the tree (so the desert can't be left with its tree cold).
+- *The ship's power*: Qanat's gift, not the tree's by itself (October 2026, the third clarity
+  item): the ship came down drained, and only the whole city, round its burning tree, ever held
+  that much. Marrow says so at the ship ("burning or cold, Qanat doesn't hand its fire to
+  strangers"), Nour promises it ("Do that, and Qanat will not let you leave in the dark"), and
+  the city pays it once the tree burns (step 12), so the desert still can't be left cold.
 - *The Hearth's place*: on a hilltop in the red rocks south-east of Qanat, about 1.6 km off
   (well past the scattered props' 1.5 km), chosen so its chimney shows over the dunes from the
   way; nine marked stones every 150 m from just past the procession's circuit.
@@ -769,12 +789,12 @@ under where they flew").
 A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs,
 crossed by skiff. The Great Crystal sings in the rain and the plants fall
 silent. It fell out of the sky long ago, singing, and stuck point-first in the
-mud. It is a piece of the same light that struck the ship.
+mud. It is a piece of the same light that passed the ship.
 
 People:
 - **Wendel**, egg-warden: thirty years keeping eggs warm, never having seen them hatch until the firefly quest; "The patient are never eaten."
 - **Sedge**, reed-cutter, shy: saw the light pass over the reeds the night it passed everywhere, and the crystal sang back; then it climbed and was gone.
-- **Saba**, the Listener: forty years at the crystal's foot, knows its 212 phrases; "Whatever struck your ship sang the same song as this." Her first spring there, two strangers came across the swamp in a borrowed skiff and asked the crystal where the light had gone (Odile and Talo); they went on east, and the skiff came home on its own.
+- **Saba**, the Listener: forty years at the crystal's foot, knows its 212 phrases; "The thing that passed you sang this? Then I think the crystal is a piece of it." Her first spring there, two strangers came across the swamp in a borrowed skiff and asked the crystal where the light had gone (Odile and Talo); they went on east, and the skiff came home on its own.
 - **Ivo**, who watches the fireflies: "Everything goes home at dusk."
 - **Corm**, who feeds the plants (Margit, Big Ollo): "The sky lost a tooth and it landed here."
 - **Ysse**, keeper of the crystal cave: points to the lamp-keepers of the deep wood.
@@ -820,7 +840,7 @@ the glow-moss pin on the first root arch (the lantern charm waits in the
 Lamp-House, §11; the fourth chamber went to the Buried Machine).
 
 Ties: the saucer is Odile and Talo's ship's little round boat; it carries the
-glyph scorch: the light found them again over the wood and struck them a second
+glyph scorch: the light found them again over the wood and brought them down a second
 time. They waited a season for it to come back ("keep a light for us"), then
 crossed the swamp in Fen's skiff toward the Great Crystal, to ask the piece of
 the light that fell there; the skiff came back to the root cave on its own. The
@@ -895,7 +915,7 @@ so the credits come after the story's peak). He takes out the reel to set it
 down, and the singing light comes in low over the valley, singing, dips over the
 round house, turns the way every witness said it turns, and climbs away out
 along the route. Lou: "The singing star! It comes over sometimes. Grandpa used
-to stand at the window for it." He: "That's what struck my ship." He keeps the
+to stand at the window for it." He: "That's the light that passed my ship. I followed it all this way." He keeps the
 reel ("Not yet. Not until you know what that was."). Lou: "You're going again."
 "Once more. Then I'm staying." "Promise on the stone. Hand flat. That's how it
 works here." "I promise." Closing line: "Not home yet. Not all the way." No end
@@ -916,8 +936,10 @@ reached her she sang his own message into a light, put the makers' sign on it
 (three dots over an arc, which Odile worked out means *we heard you*), and sent
 it home. It sang over the round house, nobody called back ("A light can't
 knock"), and it went looking for the voice that had called her: his voice, on
-the reel, playing in the cockpit the night of the strike. "It wasn't trying to
-bring you down. It was trying to bring him here." Odile and Talo got to the
+the reel, playing in the cockpit the morning it passed him (he had stopped the
+reel to listen). It drained the ship in passing ("They drink what a ship runs on
+as they pass"): "It wasn't trying to bring you down. It was trying to bring him
+here." And: "You came after it, all this way. A light can't make anyone do that." Odile and Talo got to the
 lantern first, long before her, kept it and her, and lie on the point. She asks
 what he brought, hears what he chose (below), and comes home with him.
 
@@ -1025,6 +1047,19 @@ ATAN" (old names) and now says ODILE and TALO; Talo's lookout note was signed
   the glyph.
 - **"Something worth the trip"** in the broadcast is now "something of value",
   the father's words everywhere.
+- **The restaged opening (2026-10-09, the author's story-clarity items)**: the
+  prologue's recording is no longer from the day he left but from years after
+  ("We haven't heard from you for so long"; he misses him, is still disappointed,
+  and is not to come home without *something of value*, the key phrase, now
+  lettered in gold wherever it is said). Nothing strikes the ship: the singing
+  light's theme is heard over the message, he pauses it to listen, the light
+  passes close and drains the ship, and it comes down on its reserve (a short
+  skid, no fire, no smoke). He tells the ship to follow it. Changed with it:
+  the ship's lines, the map's legend ("LIGHT SIGNATURE"), Marrow, Nour, Ama,
+  Oum, the witnesses' "struck my ship" answers in every world (now drained or
+  passed), the people book, the sightings, the Lantern's explanation, the
+  homecoming's "That's the light that passed my ship". And Qanat repays him:
+  the city fills his ship, not the tree's fire by itself (section 6, step 12).
 - **Recording 4** is recast as an old recording made for him at ten, the summer
   he was at his grandfather's ("Report, then. Like a pilot."; the ship: "You
   were ten, and away for the summer"). **Numbering**: the story bible now

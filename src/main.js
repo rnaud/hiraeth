@@ -1659,7 +1659,9 @@ function frame(ts) {
   scout.flare.eye = camera.position;
   scout.update(dt, busy() || photo.on);
   // flocks circle the player (also in photo mode, so you can fly up to them)
-  for (const f of flocks) f.update(dt, t, player.pos, camera.position);
+  // (none in orbit: the prologue's ship and a homecoming's are high above the map, and birds would circle it there)
+  const orbit = !!ship.spaceCopy && player.pos.y > (level.ground.heightAt?.(player.pos.x, player.pos.z) ?? 0) + 1000;
+  for (const f of flocks) { for (const m of [...f.wings, f.bodies]) m.visible = !orbit; if (!orbit) f.update(dt, t, player.pos, camera.position); }
   motes?.update(dt, t, camera.position);
   footprints?.update(dt);
   jumpShadow.update(player, physics);

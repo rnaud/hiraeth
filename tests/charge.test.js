@@ -1,4 +1,5 @@
 // The father's charge: "Bring back something of value", the journey's own quest (src/story/charge.js).
+import { markKeyPhrase } from '../src/story/key-phrase.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { chargeState, chargeHud, chargeJournalHtml, chargeStep, showChargeCard, CHARGE, GIVEN } from '../src/story/charge.js';
@@ -10,7 +11,7 @@ const flags = (o) => (f) => o[f];
 const K = [{ id: 'desert.song', name: 'Teo’s walking rhythm' }, { id: 'incal.word', name: 'Look up once a day' }];
 
 test('the charge is the father’s own words on the prologue’s recording', () => {
-  assert.ok(PROLOGUE_CALL.some((l) => l.who === 'father' && l.text.includes(CHARGE.words)), 'he says it before the impact');
+  assert.ok(PROLOGUE_CALL.some((l) => l.who === 'father' && markKeyPhrase(l.text, false).includes(CHARGE.words)), 'he says it before the traveller pauses the recording');
   assert.ok(CHARGE.quote.endsWith(CHARGE.words));
 });
 

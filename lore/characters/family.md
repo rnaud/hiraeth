@@ -56,7 +56,7 @@ Left roughly thirty years ago. Her ship’s final transmission contained
 singing: the light that brought her in. The market receives the father’s
 message intended for her. The finale settles her fate: she has kept the makers’
 lantern for thirty years, grounded, first with Odile and Talo, then alone. The
-father’s message reached her there; she sang it back into a light, which struck
+father’s message reached her there; she sang it back into a light, which passed and drained
 her brother’s ship. She meets him at the lantern and, in the true ending, comes
 home and lives in the round house. About fifty, grey coming into her hair, the
 mother’s teal and coral; speaks the home tongue.
@@ -69,7 +69,7 @@ minutes of meeting her brother: let her grieve before she explains anything.
 **Voice:** she has dialogue now, at the Lantern (`src/story/lantern-data.js`)
 and at home after the true ending. Plain, a little wry, practical about small
 things (“Mind the third stone. It rocks.”). What the lantern is and why the
-light struck are her account, and partly Talo’s and Odile’s readings: she
+light came to his ship are her account, and partly Talo’s and Odile’s readings: she
 reports what she saw and says whose reading the rest is (“Talo said…”, “Odile
 read it as…”, “I think”). She does not read her brother’s mind and does not
 forgive what he did to Esk on Esk’s behalf. Outside the Lantern and home, no
@@ -118,7 +118,7 @@ stone. He does not need translated thoughts or supernatural understanding.
 ## The ship
 
 **Established:** the father’s old round ship. Plays archived recordings,
-recognises the impact’s magnetic signature, and knows the route home.
+recognises the singing light’s magnetic signature (left on the hull as it passed), and knows the route home.
 
 **Writing premise:** a reliable household appliance on a cosmic journey. Its
 ordinary accuracy creates the poignancy. It does not manipulate the son by

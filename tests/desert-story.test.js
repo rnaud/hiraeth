@@ -625,9 +625,17 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(talk(PEOPLE.ama, []).nodeId, 'drinking');
   step(2);
   assert.equal(quests.stage('desert.power'), 'ship');
-  // back to the ship (the ship's own hatch emits ship:enter; walking up works too)
+  // back to the ship (the ship's own hatch emits ship:enter; walking up works too): Qanat repays you. Its people
+  // come down to the ship with what they can spare and pour it in, one by one (src/story/desert-repay.js)
+  const R = rt.world.repay;
+  at(R.ramp().clone().add(V(0, 0, 0))); step(2);
   game.emit('ship:enter');
   step(2);
+  assert.equal(quests.isDone('desert.power'), false, 'not the jar alone: Qanat brings its gift first');
+  assert.ok(R.state.placed && R.party.length >= 5, `they came (${R.party.map((g) => g.who).join(', ')})`);
+  step(30 * 26, 1 / 30, { people: true });
+  const hull = rt.world.repay.state.spots[0].pour;
+  assert.ok(R.party.every((g) => g.n.pos.distanceTo(hull) < 30), 'all of them down at the ship');
   assert.equal(quests.isDone('desert.power'), true);
   assert.equal(game.flag('ship.powered'), true);
   assert.equal(game.flag('world.desert.done'), true);

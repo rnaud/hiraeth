@@ -12,21 +12,29 @@
 - The finale (the Lantern) settles Ilen's fate: a makers' light brought her in
   to the lantern thirty years ago and her ship never flew again. She lived
   there since, with Odile and Talo. The father's message reached her only
-  there, thirty years late; the singing light that struck his ship was her
-  answer. In the true ending she comes home. The Lantern is optional, so
+  there, thirty years late; the singing light that passed his ship and drained
+  it was her answer. In the true ending she comes home. The Lantern is optional, so
   nothing before it may settle her fate: other worlds can hold traces (a mark,
   a woman who passed through) but must not contradict this, and no one but Ilen
   explains the light. Her account of what the lantern is and why the light
-  struck is hers, and partly Talo's and Odile's readings, told as such.
+  came to his ship is hers, and partly Talo's and Odile's readings, told as such.
 - Lou is seven and a half. He brought her to Tove at two and did not knock on
   his parents' door. His postcards have reached her. Tove finished the small
   house; Lou, Tove, and Moustache live there. The parents' round house is dark.
 - Home becomes available after six worlds. The market and Ilen revelation are
   optional under the current rules. Do not assume the player has heard them.
-- The recent singing light passed the worlds on the night of the collision.
+- The opening (restaged October 2026): the father's recording is from years
+  after he left ("We haven't heard from you for so long"; he misses him, is
+  still disappointed, and he is not to come home without *something of value*).
+  The singing light's theme is heard over it; the traveller pauses the reel to
+  listen; the light passes the ship close and drains its power (nothing strikes
+  it: the glyph is scorched where it brushed by); the ship comes down on its
+  reserve near Qanat, a forced landing, not a crash. He chooses to follow the
+  light ("When we can fly, we follow it"): no line should say it was forced on him.
+- The recent singing light passed the worlds the night before it found his ship.
   It turned and climbed away. The Great Crystal fell long before that night.
-- Odile and Talo were struck over Viridel forty years ago, left in their
-  saucer, were struck again over the deep wood, waited a season, borrowed
+- Odile and Talo were brought down over Viridel forty years ago, left in their
+  saucer, were brought down again over the deep wood, waited a season, borrowed
   Fen's skiff, visited the Crystal, and went east. Hollin has kept a light for
   them for forty years. The finale settles the rest: they reached the Lantern,
   kept it and kept Ilen, and are buried on its point (Talo first, then Odile,
@@ -54,7 +62,10 @@ water fills the pool, backpack, and jar. Back at Qanat the well fills, but the
 tree still needs the spark-stone. Nour sends the traveller to Marrow's hidden
 hoverbike and the marked route to the Givers' Hearth in the south-east. Move
 the stone ball to lift the grille, take the spark-stone, and bring it to the
-well. Only then does the glowing jar power the ship.
+well. Then Qanat repays him: because he gave the city back its light, its
+people choose to fill his drained ship, each bringing what their house can spare
+to the ramp (src/story/desert-repay.js). The ship's power is their gift, not the
+tree's fire by itself, nor his jar alone.
 
 This pass states these actions more clearly. It does not rearrange them or
 change what the game accepts.

@@ -133,6 +133,25 @@ the plan, and a gadget's box wobbles three quick times, a charm's or tank part's
   for the boxes with `try`, `wear`, `fit`, `point`, `play`, 4 for the charms' `keep`. Lengths in the table:
   measured for the six sampled boxes, the earlier ones otherwise.
 
+### The restaged opening (v1.6)
+
+The author's story-clarity items (TODO, 9 October 2026) restaged the prologue: nothing strikes the ship. The
+singing light's theme is heard under the voicemail, he pauses it, the light passes and drains the ship, it
+comes down on its belly (docs/systems/cinematics.md, "The restaged opening"). `scripts/cinematics-qc.mjs`
+can't press the voicemail button for the walk, so the pass was judged from frames taken by a small headless
+Chrome driver (the same rules: muted, its own Vite port, High, 1280 × 720), every 0.5–1 s from the voicemail
+to the step out, five runs with a fix between each:
+- **Framing**: the message keeps its four angles; the pause is three shots of ~2.3 s (bust, listen, window),
+  the pass two (over his shoulder out of the window, then outside), the drain one held hand-held shot, then
+  the glide, the landing, the settle and the hatch as before. Longest hold 5.2 s (the glide, a moving
+  subject).
+- **Pacing**: 29.4 s message, 7.2 s pause (the theme sung once alone, 6.4 s), 5.4 s pass, 4.8 s drain,
+  5.2 s glide, 3.6 s landing; about ten seconds longer than the crash it replaces.
+- **The pause beat**: the call screen reads PAUSED with its spools stopped, the father held mid-word, the
+  traveller's face; then the light comes out of the dark in the window as the shot widens.
+- Found and fixed: see the table's row. Left: the light is drawn with the ship's puffs (no glow pass of its
+  own); his head doesn't turn to follow it in the pass (the shot does the looking).
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score
@@ -142,7 +161,7 @@ intent, a beat. Creative rework is in `TODO.md`, "Cinematics (QC pass)".
 <!-- table -->
 | Cinematic | Length | Cuts+1 | Tech /5 (script, first run → after) | Interest /5 | Problems found | Fixed |
 |---|---|---|---|---|---|---|
-| `prologue` · The crash · prologue | 150.2 s | 4 | 3 → 3 | 4 | Long and played (the crash, then a walk through the ship): no letterbox in the walking parts by design; the script can only time it out | Judged by hand (TODO) |
+| `prologue` · The landing · prologue | 150.2 s → the scenes from the voicemail to the step out 66 s | 4 → 12 | 3 → 4 | 4 → 5 | Restaged (October 2026): the crash became the light's pass, a drain and a forced landing. Judged from headless frames (the script waits at the walk): the first pass's light was a row of huge discs filling the window, the outside shot lost it behind the hull, birds circled the ship in orbit, the drained cockpit looked as lit as before, and the ship's answer was cut by the hand-back | Smaller puffs and a thin trail, nearest 9 m off the hull; the outside shot from the ship's right side (it brushes past and rushes by the lens); no flocks in orbit; the view dims as the power goes and the amber reserve comes on; the landing lines play on past the hand-back (and after a skip); the pause in three shots (the frozen father, his face, the window where the light appears) |
 | `desert.flow` · the water runs for the first time | 11.5 s | 5 | 5 → 5 | 4 | Panel B frames the gutter from very close, the wall filling half the frame; the face held 3 s | — |
 | `desert.fill` · the empty tank fills | 11.2 s | 3 | 4 → 5 | 4 | The tank’s gauge showed over the letterbox; panel C was shot from just behind his head, his hair a black blob filling half the frame, the glove and the glob unseen | Gauge hidden in cinematics; panel C reframed from his side with the pool |
 | `arzach.bird` · the bird comes down out of the haze and bows | 10.2 s | 4 | 3.5 → 5 | 5 | Panel A shot from 3 m inside a dune on a slope (107 frames); B was 2 s of plain sky; the pale star floated by his face in C | Lens kept above the terrain; A takes the lower side; star on the lapel; v1.2: B keeps the horizon and the haze’s towers at its foot (riseLook), she starts 90 m up |

@@ -1590,3 +1590,44 @@ tests/sound-mix.test.js holds them.
   NATIVE_API 8, the VIBRATE permission). Settings > Controls: Controller rumble (on) and Rumble strength
   (medium), greyed out without a pad that can shake. Every rumbling cue has its picture and sound too.
   tests/rumble.test.js.
+
+## Story clarity: the first voicemail, the singing light's theme, Qanat's repayment (done 9 October, v1.6)
+
+- [x] **Make the years away clear in the first voicemail.** src/story/calls.js `PROLOGUE_CALL`: four lines and
+  the cut, 29.4 s: "Is it on? Right. There you are. We haven't heard from you for so long." / "Your mother still
+  lays your place at the table. We miss you. Both of us." / "And I'm still disappointed in you. The boat, the
+  school. You leave everything half done." / "My son, make us proud. Bring back *something of value*. Until
+  then, don't come home." / "Keep the translator at your ear. Nobody out there talks like—" (he pauses it).
+  The key phrase is lettered as itself everywhere it is said (src/story/key-phrase.js: bold, the charge's gold,
+  its ✦; dialogue.js `formatText` for the panel, choices and balloons, src/ship/cinema.js for subtitles; starred
+  it is also stressed by the voice): the voicemail, the last recording, the mother's recording about Ilen, the
+  market's broadcast, the Lantern, the answers "I'm looking for something of value". tests/prologue-call.test.js.
+- [x] **Give the singing light a distinctive few-note theme, and restage the opening.** The theme
+  (src/story/light-theme.js, `Sound.lightTheme`): five notes in D lydian at 66 a minute, A4 · D5 E5 · G♯5 ~ F♯5
+  (1, ½ ½, 2 glided into from a quarter tone under, 3), one wordless high voice with a glass partial; it starts
+  on the note the makers' hum lifts to. Suno can't be driven from here: the synth sings it now, and a recording
+  drops into the slot without code changes (src/soundtracks.js `CUES['singing-light']`, `loadCue`, `playCue`
+  with the synth's envelope; public/music/manifest.json `cues`; packaged on devices). The Suno brief (prompt,
+  ~45 s, D lydian, 66 BPM, the timing to aim for) is in docs/systems/audio.md, "The singing light's theme".
+  The opening (src/ship/prologue.js `OPENING_ORDER`, src/ship/cinematics.js): the theme three times under the
+  voicemail, nearer each time; `pause` (he stops the reel: PAUSED on the screen, the father held mid-word, his
+  face, the light appearing in the window, the theme alone); `pass` (it goes by the window, then outside past
+  the hull; the ship goes dark); `drain` (the reserve, "Not enough to hold orbit"); `glide` (no fire);
+  `land` (on its belly, a 52 m skid, was a 118 m furrow; no smoke after); at the hatch the ship's line and
+  his: "Then track it. When we can fly, we follow it. I want to hear it again." (`LANDING_LINE`,
+  `FOLLOW_LINE`). Reconciled: the ship's lines and the map's legend (LIGHT SIGNATURE), Marrow, Nour, Ama, Oum,
+  Dalia, every world's "it struck my ship" answer (the City-Shaft, the Hangar, the Buried Machine, the
+  Spheres, Vael II, Lorn, Lorn II, Viridel), the father's beat ("Ships go dark out there"), the people book,
+  the sightings, the homecoming ("That's the light that passed my ship. I followed it all this way."), the
+  relay, the Lantern (Ilen: "They drink what a ship runs on as they pass", "you came after it, all this way.
+  A light can't make anyone do that"), the story bible, LORE.md, the game brief, lore/continuity.md and the
+  characters' notes. Checked in headless Chrome frames (five runs; docs/systems/cinematics-qc.md, "The
+  restaged opening"); no birds circle the ship in orbit any more.
+- [x] **Have Qanat repay the traveller's help by repowering his ship.** src/story/desert-repay.js: once the
+  tree burns, Ama, Idris, Hessa, Lula, Marrow and Nour go down to the ship and wait by the ramp; when he comes,
+  each steps up in turn and pours in what their house can spare (REPAY in desert-data.js, a balloon each),
+  Nour last ("You gave us back our light, child. So Qanat gives your ship its own. Now go and follow yours."),
+  then `desert.ship.fed` and the ship wakes. Marrow now says the ship is drained and only Qanat ever held that
+  much ("burning or cold, Qanat doesn't hand its fire to strangers"), Nour promises it ("Qanat will not let you
+  leave in the dark"), Ama and the quest's texts follow; the jar alone no longer wakes it.
+  tests/desert-repay.test.js, the desert story, the spark test and the playthrough.

@@ -219,9 +219,9 @@ export const PEOPLE = {
         strange: {
           say: ["~whisper~ The night the light passed, it hummed after dark. A singing light crossed above us, matching its note. The old listeners called such a thing *an Answerer*.", "~scared~ It turned directly over this plaza. As though it had heard a reply. Then it flew on. I still catch myself looking up at night."],
           do: { set: { 'spheres.rumour.light': true } },
-          choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ I’ll bring the pole three sounds.', end: true }],
+          choices: [{ text: '~neutral~ It drained my ship.', goto: 'struck' }, { text: '~neutral~ I’ll bring the pole three sounds.', end: true }],
         },
-        struck: { say: ["~scared~ It hit your ship? I’m sorry. Then it can do more than answer. I don’t know what it wanted."], choices: [{ text: '~neutral~ I’ll bring it three sounds.', end: true }] },
+        struck: { say: ["~scared~ It took your ship’s power? I’m sorry. Then it can do more than answer. I don’t know what it wanted."], choices: [{ text: '~neutral~ I’ll bring it three sounds.', end: true }] },
         again: { say: ["~neutral~ *Splash and hear three spheres*: the lake pearl, the one west of the arch, and the large one among the eastern pillars. Then return here."], choices: [{ text: '~neutral~ I will.', end: true }] },
         ready: { say: ["~happy~ You’ve heard them all. Now *stand close and splash the pole*. Let it play the three sounds together."], choices: [{ text: '~whisper~ (splash the pole)', end: true }] },
         chord: {

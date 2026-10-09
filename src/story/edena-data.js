@@ -228,9 +228,9 @@ export const PEOPLE = {
         strange: {
           say: ["~whisper~ The light passed again that night. High overhead, singing. Every flower turned to follow it. In the dark. I couldn’t call that ordinary gardening.", "~playful~ Talo called it the Singer. Never fondly. More like a neighbour who’d put a hole in his roof."],
           do: { set: { 'edena.rumour.light': true } },
-          choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Goodbye, Sol.', end: true }],
+          choices: [{ text: '~neutral~ It brought my ship down too.', goto: 'struck' }, { text: '~neutral~ Goodbye, Sol.', end: true }],
         },
-        struck: { say: ["~curious~ It struck you too? Then there’s something to ask Talo, if he returns. I hope he does."], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
+        struck: { say: ["~curious~ You too? Then there’s something to ask Talo, if he returns. I hope he does."], choices: [{ text: '~neutral~ Goodbye, Sol.', end: true }] },
         again: { say: ['~tired~ Any sign of them? No. Tea keeps.'], choices: [{ text: '~curious~ Tell me about the light again.', goto: 'strange' }, { text: '~curious~ Where does the tea come from?', goto: 'tea', if: { quest: 'edena.terraces', started: false } }, { text: '~neutral~ Goodbye, Sol.', end: true }] },
         after: { say: ["~sad~ You know why they went now. I knew they’d leave, and I still hope they’ll come back. It’s a tiring arrangement."], choices: [{ text: '~solemn~ Both can be true.', end: true }] },
       },
