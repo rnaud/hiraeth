@@ -1,0 +1,47 @@
+DONE.md
+  s_9ca76055a220ed::t_e88f275c2ef915 1359-1372
+TODO.md
+  s_9ca76055a220ed::t_8401d9bc0174da 18-20
+changelog.md
+  s_9ca76055a220ed::t_ddae432f879bf2 8-10
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_da3c12c407d414 35-41
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_efe0abf5e3784f 76-77,81-82,95-97,100-102,105-107,110-112,115-117,120-122,125-127,130-132,135-137,140-142,145-147,150-152,155-157,160-162,296-297,300-302,305-307,310-312,315-317,320-322,325-327,330-332,335-337,340-342,346-347,350-352,356-357,361-362,366-367,370-372,375-377,380-382,385-387,391-392,395-397,400-402,405-406,410-412,415-417,420-422,425-427,430-432,435-437,441-442,446-447,450-452
+docs/systems/story.md
+  s_9ca76055a220ed::t_1868a0cf08286a 353-357,366-368
+src/boxes/scene.js
+  s_9ca76055a220ed::t_e0e3c612ae84a6 46-67,120,124-138,307,309,312,314,316,319,321-326,328
+src/changelog-media.js
+  s_9ca76055a220ed::t_65f7c9f029b1ee 222-230
+src/changelog.js
+  s_9ca76055a220ed::t_587a85e8c93ee7 24-26
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_2f02b7018df58b 67-139,576,587-588
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_1cadec66407c8a 118-154,415,623-627
+tests/boxes.test.js
+  s_9ca76055a220ed::t_f8fff05485c7ed 463-500
+tests/ending.test.js
+  s_9ca76055a220ed::t_5c1dbcf30afcf9 394-422
+tests/ship.test.js
+  s_9ca76055a220ed::t_2ade878d3f54db 503-546
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_7d8e4154dfe2ad 88-109,133-134,137-150,177-208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aaa6d68b7b8f3df9c87bac173297958e0b481bd9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
