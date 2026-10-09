@@ -9,7 +9,7 @@ An enemy is right when, set beside its sheet at the same view, it reads as the s
 and proportions against the traveller, the same parts, **the same painted surface** (the patterns, colour zones,
 glow and gloss the sheet draws), the same palette per skin, and it moves and winds up its attacks the way the design
 says. A flat colour per part is never enough: the batch-1 art pass matched the shapes and still looked far from the
-sheets until the surfaces were painted (v1.10).
+sheets until the surfaces were painted (v1.11).
 
 Read first: `docs/design/enemy-roster.md` (the archetype: role, attacks, answers, calm, worlds and skins; "Status"),
 `docs/systems/foes.md` ("The enemy roster", "Procedural surfaces", "Telegraphs: the body, not the floor"),

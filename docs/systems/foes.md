@@ -690,7 +690,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   them as its own picture (docs/systems/changelog.md, "Enemies"). The routine for a rework:
   `.claude/skills/enemy-rework/SKILL.md`.
 
-### Procedural surfaces (v1.10, `src/foe-surface.js`, `src/enemies/surfaces.js`)
+### Procedural surfaces (v1.11, `src/foe-surface.js`, `src/enemies/surfaces.js`)
 
 The sheets paint their creatures: lichen stars on a slate dome, barnacle rosettes, mottled bands and rosettes on a
 lizard, rust streaks under a boiler's rivets, a blot's wet violet gloss, glowing paper lanterns. A flat colour per

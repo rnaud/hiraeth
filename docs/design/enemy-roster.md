@@ -891,7 +891,7 @@ silhouette and proportions, the parts, then **the procedural surface, mandatory*
 patterns, colour zones, glow and gloss the sheet paints, drawn by src/foe-surface.js; docs/systems/foes.md
 "Procedural surfaces"), each skin's palette, motion, wind-ups and telegraphs, the combat review, the cost, and the
 changelog's pictures (the body alone before and after, the sheet as its own picture). **Batches 1 and 2 wear their
-surfaces** (v1.10): the cliff crab's lichen stars and specks, the anchor crab's barnacle rosettes and ochre stains, the
+surfaces** (v1.11): the cliff crab's lichen stars and specks, the anchor crab's barnacle rosettes and ochre stains, the
 lizards' mottled scales and belly plates (the coin lizard's amber rosettes), the hounds' gold glints, the tripod's
 pink rust streaks and gloss (the diving bell's mottled copper, rust and verdigris), the blot's wet violet gloss, the
 worms' mottled rings and rust specks, the ray's net of veins, the moth's lantern ribs and wing veins, the
