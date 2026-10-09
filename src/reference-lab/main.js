@@ -133,7 +133,7 @@ const zoom = $('#zoom');
 let zoomList = [], zoomAt = 0;
 const zoomOpen = () => zoom.classList.contains('open');
 function openZoom(el) {
-  const seen = new Set();   // (the comparison is in every row: once in the zoom)
+  const seen = new Set();   // (a picture once in the zoom, however often it shows)
   zoomList = [...document.querySelectorAll('#batch figure img')].filter((i) => !seen.has(i.src) && seen.add(i.src))
     .map((i) => ({ src: i.src, cap: i.closest('figure').querySelector('figcaption')?.textContent.trim() ?? '', cand: i.closest('[data-cand]')?.dataset.cand ?? null }));
   zoomAt = Math.max(0, zoomList.findIndex((z) => z.src === el.querySelector('img')?.src));

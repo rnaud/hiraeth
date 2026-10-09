@@ -76,11 +76,13 @@ export function candidateCard(batch, c, est = false, label = '') {
 
 /**
  * A batch: its prompt, each provider's state on one line, then every provider's pictures together in one grid
- * (the comparison first), so the pick is one choice across all of them.
+ * (the references it was drawn from on their own above everything), so the pick is one choice across all of them.
  */
 export function batchHtml(m) {
   if (!m) return '<p class="empty">Generate a batch, or open one from the history.</p>';
-  const cmp = m.comparison ? `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(m.comparison)}"><img src="${esc(fileSrc(m.comparison))}" alt="the comparison"><figcaption><b>reference</b> ${esc(m.comparison.split('/').pop())}</figcaption></figure>` : '';
+  // the reference the batch was drawn from (when there is one): on its own above everything else
+  const refs = m.refs?.length ? m.refs : (m.comparison ? [m.comparison] : []);
+  const cmp = refs.length ? `<div class="refrow">${refs.map((r) => `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(r)}"><img src="${esc(fileSrc(r))}" alt="the reference"><figcaption><b>reference</b> ${esc(r.split('/').pop())}</figcaption></figure>`).join('')}</div>` : '';
   const states = Object.entries(m.providers).map(([id, p]) => {
     const state = p.status === 'running' ? '<span class="spin">generating…</span>'
       : p.status === 'error' ? `<span class="err">${esc(p.kind)}: ${esc(p.error)}</span>`
@@ -90,12 +92,12 @@ export function batchHtml(m) {
   const cards = m.candidates.map((c) => candidateCard(m.batch, c, m.providers[c.provider]?.estimated, m.providers[c.provider]?.label)).join('');
   const total = Object.values(m.providers).reduce((s, p) => s + (p.costUSD ?? 0), 0);
   const picked = m.candidates.find((c) => c.status === 'picked');
-  return `<div class="bhead"><p class="meta"><b>${esc(m.batch)}</b> · ${esc(m.status)} · ${esc(m.ar)} · ${m.n} each · ${m.refs.length} ref(s)${total ? ` · ${esc(money(total, true))} in all` : ''}${m.target ? ` · → ${esc(m.target)}` : ''}</p>
+  return `${cmp}<div class="bhead"><p class="meta"><b>${esc(m.batch)}</b> · ${esc(m.status)} · ${esc(m.ar)} · ${m.n} each · ${m.refs.length} ref(s)${total ? ` · ${esc(money(total, true))} in all` : ''}${m.target ? ` · → ${esc(m.target)}` : ''}</p>
     <p class="prompt">${esc(m.from ? `${m.from}: ` : '')}${esc(m.prompt.length > 320 ? `${m.prompt.slice(0, 320)}…` : m.prompt)}</p>
     <ul class="pstates">${states}</ul>
     <p class="meta">${picked ? `<span class="picked">Kept: ${esc(m.providers[picked.provider]?.label ?? picked.provider)} #${esc(picked.id.split('/').pop())}</span>` : `${m.candidates.filter((c) => c.status !== 'discarded').length} pictures from ${Object.keys(m.providers).length} provider(s): pick the one to keep.`}</p>
     <button type="button" class="btn small" data-discard-batch="${esc(m.batch)}">Discard the batch</button></div>
-    <div class="wall">${cards || m.status === 'running' ? cmp : ''}${cards}</div>`;
+    <div class="wall">${cards}</div>`;
 }
 
 /** Checked at first: one provider a key (fal's other models are a click away, each a bill of its own). */

@@ -67,8 +67,8 @@ other four are a click away).
    the path; click to add or remove. The first one is shown beside the results for comparison (or choose
    another). A provider takes as many as it can (OpenAI 16, Gemini 14, BFL 8, FLUX.2 [dev] 4, Recraft 1).
 3. **Providers, count, aspect ratio**, and a model per provider; **Generate** (G, or Menu on a pad).
-4. The batch shows every provider's pictures together in one grid (the comparison picture first, each card
-   naming its provider, with its time and cost), so the pick is one choice across all of them; a provider that failed says why (no-key, auth, credits, rate-limit, blocked, server…)
+4. The reference pictures the batch was drawn from (if any) sit on their own above everything; below, every
+   provider's pictures together in one grid (each card naming its provider, with its time and cost), so the pick is one choice across all of them; a provider that failed says why (no-key, auth, credits, rate-limit, blocked, server…)
    and the others carry on. Click a picture (or Enter, A) to zoom; ← → (LB / RB) through them.
 5. **Pick** (P, X) asks why (optional) and copies the picture to the target folder; **Discard** (Del, Y)
    deletes a candidate; *Discard the batch* deletes the whole folder. The history lists every batch.

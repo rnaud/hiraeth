@@ -453,7 +453,8 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
     providers: { openai: { status: 'done', label: 'OpenAI', model: 'gpt-image-2', count: 1, ms: 12000, costUSD: 0.041 }, gemini: { status: 'error', kind: 'auth', error: 'refused' } },
     candidates: [{ id: 'openai/1', provider: 'openai', file: 'openai/1.jpg', ms: 12000, costUSD: 0.041, status: 'new' }] };
   const h = batchHtml(m);
-  assert.match(h, /src="\/references\/The%20Desert\/rock\.jpg"/, 'the comparison');
+  assert.match(h, /src="\/references\/The%20Desert\/rock\.jpg"/, 'the reference');
+  assert.ok(h.indexOf('class="refrow"') < h.indexOf('class="bhead"') && !/class="wall">[^]*rock\.jpg/.test(h), 'the reference on its own above everything, not in the grid');
   assert.match(h, /src="\/__reference-lab\/file\/b1\/openai\/1\.jpg"/, 'through the dev server: the store is the main checkout');
   assert.match(h, /data-pick="openai\/1"/);
   assert.match(h, /12\.0 s/);
