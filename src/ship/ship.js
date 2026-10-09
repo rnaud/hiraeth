@@ -474,7 +474,7 @@ export class Ship {
     const c = this.cinematic;
     if (c && !c.done) {
       // nothing to use while a scene plays, unless it hands you the controls and asks for E
-      // (the prologue's walk: the voicemail button on the dash)
+      // (the prologue's walk: the voicemail button on the console)
       if (ctl.KeyE && !this._eHeld && c.interactive?.()) c.use?.();
       this._eHeld = !!ctl.KeyE;
       return { ...ctl, KeyE: false };
@@ -596,7 +596,7 @@ export class Ship {
     const off = this.powerOf(m) === 'dead' ? 0 : 0.3;
     U.uGlow.value = on ? 0.6 + 0.4 * k : off;
     U.uColor.value.set(on ? '#ff7a4a' : '#b8644a').lerp(_warm, 0.75 * k);
-    // the pool of light round it on the dash: the dash's own blue, warming as it pulses
+    // the pool of light round it on the console: the console's own blue, warming as it pulses
     const H = m.mats.vmailHalo?.uniforms;
     if (H) { H.uColor.value.set('#34405e').lerp(_glowC, 0.85 * k); H.uGlow.value = 0.95 * k; }
     if (!m.vmailLight) {

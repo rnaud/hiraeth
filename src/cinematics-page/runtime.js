@@ -55,6 +55,8 @@ export async function startReview(w) {
       w.ship.cinematic = new CallDirector(w.ship, { n: e.n, lines: callLines(e.n, ctx), label: recordingLabel(e.n, ctx), onDone() {} });
       w.ship.cinematic.start();
     } else if (e.id === 'takeoff') {
+      // (where you stand to set a course: at the holo table's open side, in the ship)
+      const m = w.ship.parked; if (m) { w.ship.placePlayer(w.ship.world(m, m.interior.points.tableFoot.clone().add(V(1.2, 0, 0.2))), w.ship.worldHeading(m, -Math.PI / 2), true); await settle(); }
       w.ship.cinematic = new TakeoffDirector(w.ship, { to: 'desert', title: TITLES.desert, onDone() {} }); w.ship.cinematic.start();
     } else if (e.boxId) {
       const box = w.boxes.list.find(b => b.id === e.boxId);

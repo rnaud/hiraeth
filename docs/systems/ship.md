@@ -42,9 +42,13 @@ Read off the picture, in the order you notice it:
 - **Doors**: 2.25 m high (over the capsule); the hatch 1.3 m wide, the doorways between rooms
   1.6 m wide: the camera's tight over-the-shoulder arm (`CameraRig.indoor`) passes through
   behind him without the lens touching a jamb.
-- **Walkways**: at least 1.6 m between furniture fronts, 1.9 m or more round the holo table
-  (its use radius `TABLE_R` 1.6 m must be standable all round).
-- **Furniture**: counter tops 0.92 m deep 0.65 m; the bed 1.6 x 2.1 m; seats 0.45 m; the dash
+- **Walkways**: at least 1.3 m between furniture fronts in the main room (the capsule is 0.9 m across):
+  1.4 m between the galley and the curved console, 1.3 m between the holo table and the bunk's alcove,
+  2 m between the console's tail and the lockers; the holo table is used from its open (starboard) half,
+  inside its use radius `TABLE_R` 1.6 m.
+- **Furniture**: counter tops 0.92 m deep 0.65 m; the console 0.95 m high, 0.4 m deep; the bunk
+  0.98 x 2.15 m, its mattress 0.56 m up, 1.5 m of headroom sitting up under the alcove's 2.05 m hood;
+  seats 0.45 m; the dash
   0.95 m high, 0.75 m deep. Low furniture gets an invisible block 1.1 m tall (`BLOCK_H`) over its
   footprint so walking the deck never lifts you onto it (as on the old deck).
 
@@ -56,14 +60,35 @@ the port side). The bow is at -z, as the old cockpit was.
 
 | Room | z from .. to | Clear width | What is in it |
 |---|---|---|---|
-| Cockpit | -9.0 .. -6.1 | 4.3 m at the nose wall, 6.4 m at the frame | the dash under the windshield, the pilot's seat (left of centre), the voicemail button and the recordings' projector on the dash, the round call screen, a jump seat, the father's cap and a child's drawing |
-| Main room (galley, living, entry) | -6.1 .. 2.55 | 6.4 m | the holo table (front middle), the galley along the starboard wall (counter, stove, sink, kettle, cupboards, a window), the hatch and the entry bench and lockers along the port wall, a sofa aft of the hatch under the slot window, a small table with three mismatched seats (starboard aft) |
-| Sleeping cabin | 2.55 .. 6.75 | 6.4 m | the built-in bed in an alcove (port), a desk and a chest of drawers, clothes on hooks, books under straps, photographs, a round porthole each side |
+| Cockpit | -9.0 .. -6.1 | 4.3 m at the nose wall, 6.4 m at the frame | the dash under the windshield (a scope and two screens in its middle), two seats side by side, the overhead panel between them, the father's cap and a child's drawing |
+| Main room (the picked layout) | -6.1 .. 2.55 | 6.4 m | the holo table in the middle (0.2, -3.1) in the crook of the curved console, the console's tail running aft with the voicemail button, the projector and the little screen on its end; port: the galley forward of the hatch (an L round the frame's corner, stove and kettle, sink, tool board, cupboards), coats and packs on hooks aft of the hatch; starboard: a chest of drawers by the frame, the bunk in its arched alcove under the window, kit on hooks, the lockers; two skylights, pipes along the ceiling |
+| Back room | 2.55 .. 6.75 | 6.4 m | a sofa under the port porthole, a small table with three mismatched seats, a desk and a chest of drawers, clothes on hooks, books under straps, photographs |
 | Hold (storage) | 6.75 .. 9.95 | 6.0 m | lockers both walls, crates strapped down, a tool board, spare parts, the engine room's hatch in the aft wall (shut) |
 | Engine bay | 9.95 .. 12.2 | (closed) | no rooms: machinery behind the aft wall, the pods' roots |
 
 Doorways: the cockpit frame at z -6.1 is open 3.2 m wide (the cockpit is part of the main room, as
-in the Main Interior reference); the cabin and the hold open through 1.6 m doorways on the centre line.
+in the Main Interior reference and the picked sheet); the back room and the hold open through 1.6 m doorways
+on the centre line.
+
+### The picked layout (`references/The Travellers Ship/Interior - Lab/sheet-1.jpg`)
+
+On 2026-10-09 the author picked this reference-lab sheet for its layout ("I love the ship layout but the art
+style is not Moebius enough"), so the main room follows where things stand in it and keeps the game's own look
+(the materials, ink and palette above). The sheet is one wide view from the room's aft end toward the cockpit.
+What differed from the first blockout, and what changed:
+
+| In the sheet | Before | Now |
+|---|---|---|
+| One long room opening straight onto the cockpit, two seats side by side under a wide windscreen, an overhead panel | the frame and windshield as now, one pilot's seat left of centre and a jump seat | two seats at x ±0.95, the overhead panel; the windshield stays the hull's (its panes are set by the bow's slope and the sill) |
+| A curved console wrapped round a round holo table in the middle of the room, its near end coming toward you with the voicemail screen on it | the holo table free-standing at the front of the room; the voicemail button, the projector and the round screen on the cockpit's dash | the table in the middle, the console round its port half (a J), its tail aft with the button, the projector and a boxy little screen; he stands behind the tail facing forward, so the recordings play with the room and the windshield beyond the busts |
+| The galley along the left (port) wall between the door and the cockpit, an L at its forward end, a tool board and cupboards over it | the galley along the starboard wall under its window | the galley along the port wall forward of the hatch, the L along the frame's wall, a pegboard of tools and a shelf of jars over it |
+| The door at the near left with a porthole in it, coats and packs on hooks beside it | entry lockers and a bench forward of the hatch, a sofa aft of it | coats and packs on hooks aft of the hatch, a pack on the floor, boots; the door's window is a round porthole |
+| A sleeping bunk in an arched alcove in the right (starboard) wall, books, photographs, jackets on a hook | the bed in the separate sleeping cabin aft | the bunk in an arched alcove at z -4.55 .. -2.0, under the hull's starboard window; the wake-up is in the main room |
+| A wooden chest by the cockpit on the right; lockers and hanging kit near you on the right | the galley, a small table with three seats | the chest of drawers by the frame, a net bag and a coil of rope on hooks, five lockers aft |
+| Pipes and skylights in the ceiling | conduits at the walls | two fat pipes along the middle, two skylights |
+
+Kept from before: the hull, the hatch and every opening in it, the ceiling height and the doorways; the sofa
+and the small table moved into the back room (once the sleeping cabin), with the desk, books and clothes.
 
 ### The hull round the rooms
 
@@ -118,23 +143,25 @@ of the loft. The bow and the stern are the same seven points at fewer stations, 
 - **The rooms** (`buildInterior`): the floor is one flat plane, an invisible slab under the drawn boards;
   the cockpit's floor narrows with the bow. The rooms' walls are flat panels at x = ±3.2 round the same
   openings; the cockpit's skin is an inner loft under the windshield. Partitions: the cockpit frame (3.2 m
-  open, the bulkhead over it follows the cockpit's roof), the cabin's and the hold's doorways (1.6 x 2.28 m),
+  open, the bulkhead over it follows the cockpit's roof), the back room's and the hold's doorways (1.6 x 2.28 m),
   the hold's aft wall with the engine room's shut hatch. Low furniture gets an invisible block `BLOCK_H` tall.
   The small things are one vertex-coloured mesh (`Paint`); everything else is merged by material (`Batch`).
   The atmosphere is the three interior references: cream enamel, faded teal fittings, coral textiles and a
   coral rug, warm wood, brass switches, the father's cap and a child's drawing on the dash, the kettle and
-  two cups in the galley, the rust-red blanket, books under straps, patched clothes on hooks.
+  two cups in the galley, the coral blanket, books under straps, patched clothes on hooks. The curved console is
+  a ring sector extruded up (`ring`), the alcove's arched front a wall panel with a rounded opening cut through it
+  (`archPanel`).
 
 ### The interaction points (`interior.points`, ship-local)
 
 | Point | Where | Used by |
 |---|---|---|
-| `cockpit` (heading PI) | (0.25, 0, -6.95), at the dash | the voicemail (`atConsole`, `CONSOLE_R` 1.5 m), the recordings |
-| `projector`, `voicemail` | on the dash, (0, 1.07, -8.25) and (0.8, 1.14, -8.2) | the hologram, the blinking button |
-| `seat` | the pilot's seat, left of centre | |
-| `table`, `tableFoot` | the holo table at (0, -2.6) | the galactic map (`atTable`, `TABLE_R` 1.6 m), the course-set shot |
-| `hatchIn`, `threshold`, `aboard` | 0.9 m in from the hatch; in the doorway; a few steps in | stepping out (E), the step-out scenes, boarding (E at the ramp's foot) |
-| `bunkStand`, `wakeEye`, `wakeLook`, `wakeRoom` | beside the bed; on the pillow; up at the hood; the doorway | the prologue's waking |
+| `cockpit` (heading PI) | (0.28, 0, 0.15) (`VOICE_STAND`), behind the console's tail, facing forward (the name is the old one) | the voicemail (`atConsole`, `CONSOLE_R` 1.5 m), the recordings (`cockpitFrame`) |
+| `projector`, `voicemail` | on the console's tail, (0.28, 1.02, -1.1) and (0.4, 1.09, -0.8) | the hologram, the blinking button |
+| `seat` | the pilot's seat (the left of the two) | |
+| `table`, `tableFoot` | the holo table at (0.2, -3.1) | the galactic map (`atTable`, `TABLE_R` 1.6 m), the course-set shot |
+| `hatchIn`, `threshold`, `aboard` | 0.9 m in from the hatch; in the doorway; a few steps in (-1.4, 0.45), out of the voicemail's reach | stepping out (E), the step-out scenes, boarding (E at the ramp's foot) |
+| `bunkStand`, `wakeEye`, `wakeLook`, `wakeSit`, `wakeRoom` | out of the alcove at the pillow's end (out of the table's reach); on the pillow; up at the arch; sitting up, still in the alcove; across the room to the table and the galley | the prologue's waking |
 
 `tests/ship.test.js` walks to the console and the table and uses them, `tests/ship-deck.test.js` checks
 the deck is one plane and walks across it at one height, `tests/ship-camera.test.js` turns the tight

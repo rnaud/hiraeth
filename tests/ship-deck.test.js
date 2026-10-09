@@ -5,7 +5,7 @@ import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
 import { DECK, HATCH, HALF_W, WALL_IN, halfWidthAt } from '../src/ship/hull.js';
-import { TABLE, BLOCK_H, ROOMS, inRooms, GALLEY_X } from '../src/ship/interior.js';
+import { TABLE, BLOCK_H, ROOMS, inRooms, GALLEY_X, CONSOLE } from '../src/ship/interior.js';
 import { PLANETS } from '../src/ship/planets.js';
 
 // The ship's deck, from player feedback: "the floor on the ship must be flat: the traveller moves up
@@ -49,8 +49,8 @@ test('walking across the deck keeps the traveller at one height: no bobbing over
   const { physics, ship } = world();
   const m = ship.parked, deckY = ship.world(m, v(0, DECK, 0)).y, P0 = m.interior.points;
   const walks = [
-    [P0.cockpit, P0.bunkStand],                 // the cockpit to the bed, past the table and through the cabin's doorway
-    [P0.hatchIn, v(GALLEY_X - 0.6, DECK, -3.0)], // the hatch to the galley counter
+    [P0.cockpit, P0.bunkStand],                 // the voicemail to the bed, round the console's tail
+    [P0.hatchIn, v(GALLEY_X + 0.6, DECK, -3.0)], // the hatch to the galley counter
     [v(-1.2, DECK, -4.5), v(0, DECK, 8.6)],      // the main room to the hold, into its crates
     [v(-0.6, DECK, -0.4), v(2.0, DECK, 1.35)],   // into the small table and its seats
     [P0.hatchIn, v(-2.8, DECK, 1.6)],            // into the sofa
@@ -73,12 +73,14 @@ test('walking across the deck keeps the traveller at one height: no bobbing over
   }
 });
 
-test('the main room is open round a small holo table', () => {
+test('the main room is open round a small holo table, the curved console round its port half', () => {
   const { physics, ship } = world();
   const m = ship.parked, tp = m.interior.points.table;
-  // from beside the table, chest-high rays go out a good way in every direction
+  // from beside the table, chest-high rays go out a good way in every direction (over the console, which is
+  // lower), but for the console's tail aft, where the little screen stands
   for (let k = 0; k < 16; k++) {
     const a = (k / 16) * Math.PI * 2, d = v(Math.sin(a), 0, Math.cos(a));
+    if (Math.abs(Math.atan2(d.x, d.z)) < 0.5) continue;
     const from = ship.world(m, v(tp.x, DECK + 1.3, tp.z).addScaledVector(d, 1.0));
     const dir = d.clone().applyQuaternion(m.group.quaternion);
     assert.ok(physics.rayDistance(from, dir, 0.9) >= 0.9 - 1e-6, `open at ${a.toFixed(2)}`);
@@ -88,9 +90,14 @@ test('the main room is open round a small holo table', () => {
   const top = physics.groundAt(over.x, over.y, over.z, 3) - deckY;
   assert.ok(top > TABLE.h - 0.05 && top < BLOCK_H + 0.01, `the table (or its block) is solid: ${top.toFixed(2)} m`);
   assert.ok(TABLE.r < 0.8);
-  // the galley counter stands along the starboard wall, before the hull
-  const out = ship.world(m, v(1.0, DECK + 0.8, -4.2)), dir = v(1, 0, 0).applyQuaternion(m.group.quaternion);
-  assert.ok(Math.abs(physics.rayDistance(out, dir, 4) - (GALLEY_X - 1.0)) < 0.08, `the galley counter: ${physics.rayDistance(out, dir, 4).toFixed(2)}`);
+  // the console stands round the table's port half, waist high: knee-high rays from beside the table hit it to port, not to starboard
+  for (const [x, hit] of [[-1, true], [1, false]]) {
+    const from = ship.world(m, v(tp.x + x * (TABLE.r + 0.15), DECK + 0.5, tp.z)), dir = v(x, 0, 0).applyQuaternion(m.group.quaternion);
+    assert.equal(physics.rayDistance(from, dir, CONSOLE.ri - TABLE.r) < CONSOLE.ri - TABLE.r - 0.1, hit, `the console ${hit ? 'to port' : 'not to starboard'}`);
+  }
+  // the galley counter stands along the port wall, before the hull
+  const out = ship.world(m, v(-1.0, DECK + 0.8, -4.2)), dir = v(-1, 0, 0).applyQuaternion(m.group.quaternion);
+  assert.ok(Math.abs(physics.rayDistance(out, dir, 4) - (-1.0 - GALLEY_X)) < 0.08, `the galley counter: ${physics.rayDistance(out, dir, 4).toFixed(2)}`);
 });
 
 test('the holo table shows the planet the ship is at, in the galactic map\'s colours', () => {

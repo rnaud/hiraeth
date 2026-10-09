@@ -43,7 +43,7 @@ import { isCharted, searchStep, cues, regionFor, lockRadius, signatureNotes, SEA
 import { rumblePlay } from '../rumble.js';
 
 /**
- * What E does at the ship's two consoles. `at`: 'dash' (the cockpit's voicemail button: the
+ * What E does at the ship's two consoles. `at`: 'dash' (the voicemail button on the console's tail: the
  * waiting message, else 'empty') or 'table' (the holo table in the middle of the deck: the
  * galactic map, which needs power, else 'locked').
  */

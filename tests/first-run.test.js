@@ -88,7 +88,7 @@ test('the ship’s walk: one quiet nudge after 20 s with the message unplayed, t
   assert.equal(nudgeDue(40, { shown: true }), false, 'once');
   const keys = (v) => verbKey(v, 'pad');
   assert.equal(nudgeText({ moved: false, keys }), 'Look around: move with the left stick, look with the right stick');
-  assert.match(nudgeText({ moved: true, keys }), /message blinks on the cockpit dash/);
+  assert.match(nudgeText({ moved: true, keys }), /message blinks on the console by the holo table/);
   assert.equal(nudgeText({ moved: false, keys: (v) => verbKey(v, 'keys') }), 'Look around: move with WASD, look with the mouse');
   const c = src('src/ship/cinematics.js');
   assert.match(c, /nudgeDue\(this\.walkT/);

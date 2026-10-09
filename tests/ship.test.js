@@ -37,7 +37,7 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   const deckY = ship.world(m, v(0, DECK, 0)).y;
   assert.ok(Math.abs(deckY - LIFT) < 0.05, `the deck stands ${LIFT} m up on its legs: ${deckY.toFixed(2)}`);
   // every room has floor under it
-  for (const [name, p] of Object.entries({ bunk: m.interior.points.bunkStand, cockpit: m.interior.points.cockpit, hatch: m.interior.points.hatchIn, table: v(1.2, DECK, -2.6), galley: v(1.9, DECK, -4.4), cabin: v(0.4, DECK, 4.4), hold: v(0, DECK, 7.4) })) {
+  for (const [name, p] of Object.entries({ bunk: m.interior.points.bunkStand, cockpit: m.interior.points.cockpit, hatch: m.interior.points.hatchIn, table: v(1.4, DECK, -3.1), galley: v(-1.9, DECK, -4.4), cabin: v(0.4, DECK, 4.4), hold: v(0, DECK, 7.4) })) {
     const w = ship.world(m, p);
     const g = physics.groundAt(w.x, w.y + 1.5, w.z, 4);
     assert.ok(Math.abs(g - deckY) < 0.05, `floor under the ${name}: ${g.toFixed(2)} vs ${deckY.toFixed(2)}`);
@@ -45,7 +45,7 @@ test('the ship builds, with a walkable floor, a solid hull and a cockpit you can
   // the cockpit: the console is solid, and the window is glass (you can't walk out of it)
   const stand = ship.world(m, m.interior.points.cockpit).add(v(0, 0.6, 0));
   const fwd = ship.world(m, m.interior.points.projector).setY(stand.y).sub(stand).normalize();
-  assert.ok(physics.rayDistance(stand, fwd, 6) < 1.6, 'the console is in front of the pilot');
+  assert.ok(physics.rayDistance(stand, fwd, 6) < 1.6, 'the console is in front of him');
   const high = ship.world(m, v(0.6, DECK + 2.1, -7.4));
   const out = ship.world(m, v(0.6, WINDOW.y1, WINDOW.z0)).sub(high).normalize();
   assert.ok(physics.rayDistance(high, out, 6) < 2.5, 'the cockpit window stops you');
@@ -523,7 +523,7 @@ test('a recording cuts between angles at its lines, its words and timing untouch
     assert.equal(cutAt(cuts, 0).angle, 'over');
   }
   assert.deepEqual(callCuts({ lines: [{ line: { who: 'ship' }, t0: 0.9, t1: 3 }], total: 3 }, null), [{ t: 0, angle: 'over' }], 'no busts: one angle');
-  // the angles themselves: inside the cockpit, clear of the dash and the racks, him or the busts in frame
+  // the angles themselves: inside the main room, clear of the console and the lockers, him or the busts in frame
   const scene = new THREE.Scene();
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
   const physics = new Physics(scene);

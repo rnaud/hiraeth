@@ -22,6 +22,12 @@ rather than mixing the earlier inconsistent exploration sheets.
   cameras, the step-out point and the smoke for the ball (`Polar(9.0, HATCH_A, DECK)`, `R * 0.6`, the call camera at
   `(-1.3, DECK + 1.95, -4.8)`, three thrusters in `WorldsTests.cs`). Re-derive them from the exported points (as
   `src/ship/cinematics.js` `cockpitFrame` does) and regenerate the export.
+  Since the rooms were laid out as the picked reference-lab sheet (docs/systems/ship.md, "The picked layout"),
+  `shipOut.points` moved: `cockpit` (where he stands for the voicemail) is now behind the console's tail amidships
+  at (0.28, 0, 0.15), still facing forward; `projector` and `voicemail` are on the console (z -1.1 / -0.8), not the
+  dash; `table`/`tableFoot` at (0.2, -3.1); the bunk is in the main room's starboard alcove (`bunkStand`, `wakeEye`,
+  `wakeLook`, `wakeRoom`) and there is a new `wakeSit` (sitting up, inside the alcove); `aboard` is (-1.4, 0, 0.45);
+  `seat` is the left of two seats. The Unity scene's call camera and wake-up need re-deriving from these.
 # Singing light soundtrack follow-up
 
 - [ ] **Generate the singing light theme with Suno** using the brief in

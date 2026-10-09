@@ -37,7 +37,7 @@ const LIGHT = ['#fff6d8', '#bff4ff', '#f7e08a', '#9fe6f0', '#ffffff'];
 const VAPOUR = ['#eef2f2', '#e2e8ea', '#f6f1e6'];
 const pickOf = (a) => a[Math.floor(Math.random() * a.length)];
 /**
- * The cockpit's frame for the recordings' cameras (ship-local): where he stands at the dash (`me`), the projector (`p`),
+ * The voicemail's frame for the recordings' cameras (ship-local): where he stands behind the console's tail (`me`), the projector (`p`),
  * the way he faces it (`f`, level) and his right (`r`). at(right, up, back): a point off where he stands.
  */
 function cockpitFrame(model) {
@@ -49,7 +49,7 @@ function cockpitFrame(model) {
 
 /** The hologram's size over the projector (1: life size): busts a little under life size, their faces near his. */
 export const HOLO_SCALE = 0.9;
-/** The projector's lens on the dash (m, src/ship/interior.js). */
+/** The projector's lens on the console (m, src/ship/interior.js). */
 export const HOLO_LENS = 0.16;
 /** How high the busts' faces are over the lens (m): their eyes (hologram.js BUST, FACE), scaled. */
 export const CALL_FACE = HOLO_SCALE * (BUST.lift + FACE.m[0] - BUST.m.bottom);
@@ -65,7 +65,7 @@ export function travellerHead(ship, model, out = new THREE.Vector3()) {
 /**
  * The view while a recording plays, in ship-local space: from behind the traveller's right
  * shoulder, so he stands at the left of the frame facing the recording, the hologram over the
- * dash in front of him and the screen with its date stamp above it. `close` (0 .. 1) pushes in
+ * console in front of him, the little screen with its date stamp behind it and the room beyond, out to the windshield. `close` (0 .. 1) pushes in
  * on the busts while the hologram is up: their faces (CALL_FACE over the lens) just over the middle,
  * clear of the subtitles.
  */
@@ -80,11 +80,11 @@ export function callShot(ship, model, t = 0, close = 0) {
   };
 }
 /**
- * The recordings' other angles while the busts are up (ship-local frames; the dash and the projector
- * ahead of him at -z, the pilot's seat behind him), each pushing in a little over `u` seconds:
+ * The recordings' other angles while the busts are up (ship-local frames; the console's tail and the projector
+ * ahead of him at -z, the holo table and the cockpit beyond, the lockers on his right), each pushing in a little over `u` seconds:
  *   bust    from beside his left shoulder, tight on the two faces in the light
- *   listen  from over the dash beside the projector, back at his face, lit by the hologram
- *   window  wide from the right side: him in profile, the busts, the window and the world beyond
+ *   listen  from over the console beside the projector, back at his face, lit by the hologram
+ *   window  wide and low from behind his right: him, the busts, the room and the windshield far ahead, where the light comes
  * ('over', the shot behind his right shoulder, is callShot itself.)
  */
 export function callAngle(ship, model, angle, u = 0) {
@@ -94,11 +94,11 @@ export function callAngle(ship, model, angle, u = 0) {
     return { pos: W(at(-0.62 + 0.1 * push, 1.74, 0.42 - push)), look: W(p.clone().addScaledVector(r, -0.05).setY(p.y + CALL_FACE - 0.1)), fov: 30 - 3 * push };
   }
   if (angle === 'listen') {
-    // from over the dash beside the projector (clear of the pilot's seat, on his left), back at his face
+    // from over the console beside the projector (on his left), back at his face
     return { pos: W(at(-0.7, 1.5, -0.8 - push)), look: W(me.clone().setY(DECK + 1.56)), fov: 34 - 4 * push };
   }
   if (angle === 'window') {
-    return { pos: W(at(1.85 - 0.6 * push, 1.45, 0.3)), look: W(p.clone().addScaledVector(r, -0.5).addScaledVector(f, -0.2).setY(DECK + 1.55)), fov: 52 - 4 * push };
+    return { pos: W(at(1.1 - 0.2 * push, 1.3, 1.3 - push)), look: W(p.clone().addScaledVector(r, -0.55).addScaledVector(f, 3).setY(DECK + 1.6)), fov: 50 - 4 * push };
   }
   return null;
 }
@@ -156,9 +156,9 @@ export function cutAt(cuts, t) {
  */
 export function tableShot(ship, model, t = 0) {
   const tp = model.interior.points.table;
-  // two angles inside the main room, over the galley's end or from the lockers' side: the one across the table from him
+  // two angles inside the main room, from over the curved console (port, forward) or from the alcove's end (starboard, aft): the one across the table from him
   const me = ship.local(model, ship.player.pos);
-  const sides = [V(1.0, 0, 0.95), V(-0.85, 0, -1.0)].map((d) => d.normalize());
+  const sides = [V(0.95, 0, 0.9), V(-1.0, 0, -0.45)].map((d) => d.normalize());
   const away = sides.reduce((a, b) => (me.distanceToSquared(tp.clone().add(a)) > me.distanceToSquared(tp.clone().add(b)) ? a : b));
   const d = 2.5 - Math.min(t * 0.2, 0.4);
   return { pos: ship.world(model, V(tp.x + away.x * d, tp.y + 0.38, tp.z + away.z * d)), look: ship.world(model, V(tp.x - away.x * 0.6, tp.y, tp.z - away.z * 0.6)), fov: 54 };
@@ -255,7 +255,7 @@ export class PrologueDirector {
       case 'wake': C.fade(0, false, 1.4); break;
       case 'rise': C.fade(1, false, 0.25); break;
       case 'walk':
-        // no lights on the floor, no hint: the voicemail button blinks on the dash, and at the
+        // no lights on the floor, no hint: the voicemail button blinks on the console, and at the
         // console the prompt says what E does (Ship.hud via prompt())
         C.bars(false);      // (yours to walk: the letterbox lifts, and the use prompt can show)
         C.controls(true);   // (on a phone: the stick and buttons, to walk there; the use prompt)
@@ -273,7 +273,7 @@ export class PrologueDirector {
         break;
       }
       case 'pause':
-        // he stops the recording, mid-word, and listens: the father still over the dash, the theme alone
+        // he stops the recording, mid-word, and listens: the father still over the console, the theme alone
         sfx.beep(s.sound);
         C.say(null);
         s.holo?.speak(null);
@@ -357,7 +357,7 @@ export class PrologueDirector {
         // lying in bed, looking up at the ceiling, then sitting up
         const eye = this.pt('wakeEye'), look = this.pt('wakeLook');
         const up = id === 'wake' ? smooth(seg(t, 4.6, 6.8)) : 0;
-        const sit = eye.clone().lerp(eye.clone().add(V(0, 0.4, 0)).lerp(this.pt('bunkStand'), 0.35).setY(DECK + 1.25), up);
+        const sit = eye.clone().lerp(this.pt('wakeSit') ?? eye.clone().add(V(0, 0.4, 0)).lerp(this.pt('bunkStand'), 0.35).setY(DECK + 1.25), up);   // (sitting up, still in the alcove)
         const lk = look.clone().lerp(this.pt('wakeRoom'), up);
         s.shot({ pos: this.W(sit), look: this.W(lk), fov: 62, roll: (1 - up) * 0.12 });
         if (id === 'wake') {
@@ -414,7 +414,7 @@ export class PrologueDirector {
         break;
       }
       case 'pause': {
-        // the father held still mid-word over the dash; his son's face, lit by it, listening; then wide: him, the
+        // the father held still mid-word over the console; his son's face, lit by it, listening; then wide: him, the
         // frozen bust and the window, where the light comes out of the dark
         if (t < 2.2) s.shot(callAngle(s, sp, 'bust', t));
         else if (t < 4.4) s.shot(callAngle(s, sp, 'listen', t - 2.2));

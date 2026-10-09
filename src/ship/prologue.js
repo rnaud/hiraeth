@@ -66,7 +66,7 @@ export const PROLOGUE_STAGES = [
 export const SKIP_HOLD = 0.9;
 
 /**
- * The walk teaches by the room (the dash's blinking button, its chime, the use prompt at the console),
+ * The walk teaches by the room (the console's blinking button, its chime, the use prompt at the console),
  * and says one quiet line only if that wasn't enough: `after` s into the walk with the message
  * unplayed, for `show` s, once (docs/systems/ui.md, "Nothing on the screen").
  */
@@ -77,7 +77,7 @@ export const NUDGE = { after: 20, show: 6 };
  */
 export function nudgeText({ moved, keys }) {
   if (!moved) return `Look around: move with ${keys('move')}, look with ${keys('look')}`;
-  return 'A message blinks on the cockpit dash, at the front of the ship';
+  return 'A message blinks on the console by the holo table, in the middle of the ship';
 }
 /** Whether the nudge shows at time t of the walk (s), and if it has shown already, it stays gone. */
 export const nudgeDue = (t, { played = false, shown = false } = {}) => !played && !shown && t >= NUDGE.after;

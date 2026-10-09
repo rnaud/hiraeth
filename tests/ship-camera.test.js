@@ -41,7 +41,7 @@ function lensClipped(physics, camera) {
 }
 
 // (ship-local x, z: the angular hull's rooms, docs/systems/ship.md)
-const SPOTS = { bunk: 'bunkStand', hall: 'hatchIn', cockpit: 'cockpit', table: [0.9, -1.4], galley: [1.8, -4.4], frame: [0, -5.8], cabinDoor: [0, 2.0], cabin: [0.6, 4.2], hold: [0, 7.6] };
+const SPOTS = { bunk: 'bunkStand', hall: 'hatchIn', cockpit: 'cockpit', table: [1.4, -3.1], galley: [-1.85, -4.4], console: [-1.6, -2.6], lockers: [1.9, 0.9], frame: [0, -5.8], cabinDoor: [0, 2.0], cabin: [0.6, 4.2], hold: [0, 7.6] };
 
 test('turning round anywhere in the ship: the lens never cuts into walls or furniture, and the view does not jump', () => {
   const { physics, ship, rig, camera } = shipWorld();

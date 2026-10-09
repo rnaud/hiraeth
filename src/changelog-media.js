@@ -394,6 +394,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'gun-wheel', caption: 'D-pad ↑ held in the Arena, the left stick on the grappling hook and the right stick down to the left: before, the gadgets alone (the right stick turned the camera); after, the gun modes on an inner ring in their colours, the one in the tool ringed, and the right stick on Ember', ...PADS,
         view: PAD_VIEW(`set(12, true); await wait(700); pad.axes = [0.95, 0.3, -0.95, 0.3]; pad.timestamp++; await wait(400);`) },
     ], see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
+    { match: 'Inside the ship the main room is laid out anew', see: 'Go aboard your ship and stand at the back of the main room, by the lockers: the cockpit straight ahead, the galley on the left, the holo table and its curved console in the middle, the bunk’s arched alcove on the right. Debug → Cinematics → Recording 1 plays a recording at the console’s end.' },
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")

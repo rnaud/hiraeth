@@ -59,7 +59,7 @@ export function shipMaterials(tag, { space = false } = {}) {
     btnB: { color: '#5fd0c6', glow: 1, tag: `${tag}-btnB` },
     btnC: { color: '#e6503a', glow: 1, tag: `${tag}-btnC` },
     vmail: { color: '#ff8a5c', glow: 0.3, tag: `${tag}-vmail` },   // the voicemail button (src/ship/ship.js blinks it)
-    vmailHalo: { color: '#34405e', flat: true, metal: 'painted', glow: 0, tag: `${tag}-vmailHalo` },   // its light on the dash
+    vmailHalo: { color: '#34405e', flat: true, metal: 'painted', glow: 0, tag: `${tag}-vmailHalo` },   // its light on the console
     pot: { color: '#c8673f', flat: true },
     leaf: { color: '#4f6b34', flat: true },
     lamp: { color: '#fff1c8', glow: 1, tag: `${tag}-lamp` },
@@ -98,7 +98,10 @@ export function buildShipModel(o = {}) {
     door.add(new THREE.Mesh(out, mats.hull), new THREE.Mesh(inn, mats.wallIn));
     const zc = (HATCH.z0 + HATCH.z1) / 2, x = -HALF_W - 0.125;
     door.add(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 0.08).translate(x, HATCH.y0 + 1.05, HATCH.z1 - 0.18), mats.dark));   // the handle
-    door.add(new THREE.Mesh(new THREE.BoxGeometry(0.02, 1.1, 0.34).translate(x, HATCH.y0 + 1.35, zc - 0.12), mats.glass));         // its dark window
+    // its round porthole (the picked interior: a porthole in the door), dark glass outside, a ring and the sky's pane inside
+    door.add(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.02, 24).rotateZ(Math.PI / 2).translate(x, HATCH.y0 + 1.45, zc - 0.05), mats.glass));
+    door.add(new THREE.Mesh(new THREE.TorusGeometry(0.24, 0.035, 6, 24).rotateY(Math.PI / 2).translate(-HALF_W - 0.02, HATCH.y0 + 1.45, zc - 0.05), mats.dark));
+    door.add(new THREE.Mesh(new THREE.CircleGeometry(0.22, 24).rotateY(Math.PI / 2).translate(-HALF_W - 0.006, HATCH.y0 + 1.45, zc - 0.05), mats.portIn));
     door.add(new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.12, HATCH.z1 - HATCH.z0 + 0.1).translate(x, HATCH.y0 + 0.3, zc), mats.stripe));
   }
   door.userData.noCollide = !o.space;   // shut in orbit (part of the walls), open when parked

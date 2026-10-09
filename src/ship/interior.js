@@ -4,14 +4,17 @@ import { Paint } from '../vehicle-kit.js';
 import { DECK, CEIL, HALF_W, WALL_IN, HATCH, HATCH_A, OPENINGS, STATIONS, sectionAt, Quads, holedPatch, reveal, addShape } from './hull.js';
 import { familyDrawing, motherNote, homePhoto, starChart } from './art.js';
 
-// The ship's rooms, inside the angular hull (docs/systems/ship.md, "The blockout"). One deck, from the bow:
-//   - the cockpit (z -9 .. -6.1): the dash under the windshield, the pilot's seat left of centre, the
-//     recordings' projector and the voicemail button on the dash, the round call screen on its stalk;
-//   - the main room (-6.1 .. 2.55), open to the cockpit through a wide frame: the holo table at the front,
-//     the galley along the starboard wall under its window, the hatch, the entry bench and lockers on the
-//     port wall, a sofa under the slot window, a small table with three mismatched seats;
-//   - the sleeping cabin (2.55 .. 6.75) through a doorway: the bed in its alcove, the desk, the chest of
-//     drawers, clothes on hooks, books under straps, the portholes;
+// The ship's rooms, inside the angular hull (docs/systems/ship.md, "The blockout"). The main room follows the
+// layout the author picked in the reference lab (references/The Travellers Ship/Interior - Lab/sheet-1.jpg):
+// one long room open onto the cockpit, seen from its aft end. One deck, from the bow:
+//   - the cockpit (z -9 .. -6.1): the dash under the windshield, two seats side by side, an overhead panel;
+//   - the main room (-6.1 .. 2.55), open to the cockpit through a wide frame: the holo table in the middle,
+//     in the crook of the curved console whose tail runs aft to the voicemail (the button, the projector, the
+//     little screen); the galley along the port wall forward of the hatch, an L round the frame's corner, a
+//     tool board over it; coats and packs on hooks aft of the hatch; along the starboard wall a chest of
+//     drawers by the frame, the bunk in its arched alcove (under the window), kit on hooks, the lockers;
+//   - the back room (2.55 .. 6.75) through a doorway: the sofa, a small table with three mismatched seats,
+//     the desk, the chest of drawers, clothes on hooks, books under straps, the portholes;
 //   - the hold (6.75 .. 9.95): lockers, crates strapped down, the tool board, the engine room's hatch.
 // Doorways are 1.6 m wide and 2.28 m high, the ceiling 2.35 m: the traveller's capsule (2.2 m) and the
 // camera's tight arm pass. The deck is one flat plane at y = DECK (an invisible collider under the drawn
@@ -34,18 +37,29 @@ export const FRAME_HALF = 1.6;
 export const CONSOLE_R = 1.5;
 /** The dash: its front edge (z), top (y over the deck) and how far it reaches across (x half width). */
 export const DASH = { z0: -8.95, z1: -8.05, h: 1.0, half: 2.6 };
-/** The recordings' projector on the dash (ship-local): the parents rise over it. */
-export const PROJECTOR = new THREE.Vector3(0, DECK + 1.07, -8.25);
-/** The voicemail button, at the dash's front edge right of the pilot's seat (it blinks while a message waits). */
-export const VOICEMAIL = new THREE.Vector3(0.8, DECK + 1.14, -8.2);
 /** The holo table: where it stands, its radius and height, the planet's size and height over the deck. */
-export const TABLE = { x: 0, z: -2.6, r: 0.62, h: 0.92, planetR: 0.3, planetY: 1.58 };
+export const TABLE = { x: 0.2, z: -3.1, r: 0.58, h: 0.92, planetR: 0.3, planetY: 1.58 };
+/**
+ * The curved console round the holo table (the reference's "J"): a ring from `ri` to `ro` round the table's port
+ * half (from its aft side, round the port side, to its forward side), `h` high, and its tail running aft from the
+ * ring's aft end to `tailZ`, `tailHalf` either side of the table's line, rounded at the end. The voicemail sits on
+ * the tail's end.
+ */
+export const CONSOLE = { ri: 0.95, ro: 1.35, h: 0.95, tailZ: -0.95, tailHalf: 0.36 };
+/** The recordings' projector on the console's tail (ship-local): the parents rise over it. */
+export const PROJECTOR = new THREE.Vector3(TABLE.x + 0.08, DECK + CONSOLE.h + 0.07, -1.1);
+/** The voicemail button, on the rounded end of the console's tail, at his right hand (it blinks while a message waits). */
+export const VOICEMAIL = new THREE.Vector3(TABLE.x + 0.2, DECK + CONSOLE.h + 0.14, -0.8);
+/** Where he stands to play the recordings: behind the console's tail, facing forward over it (heading PI). */
+export const VOICE_STAND = new THREE.Vector3(PROJECTOR.x, DECK, 0.15);
 /** How near the holo table counts as "at the table" (it opens the galactic map). */
 export const TABLE_R = 1.6;
 /** Height of the invisible blocks over low furniture: over the step, under the camera's line of sight. */
 export const BLOCK_H = 1.1;
-/** The galley counter's front (x) and the entry furniture's front (x): the open deck is between. */
-export const GALLEY_X = WALL_IN - 0.65, ENTRY_X = -(WALL_IN - 0.45);
+/** The galley counter's front (x, along the port wall: the open deck is between it and the console). */
+export const GALLEY_X = -(WALL_IN - 0.65);
+/** The bunk's alcove in the starboard wall: its arched front at x, from z0 to z1 (the window over the bed). */
+export const ALCOVE = { x: WALL_IN - 1.08, z0: -4.55, z1: -2.0, top: 2.05 };
 
 const H = (h) => DECK + h;
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -61,6 +75,35 @@ const pivoted = (g, x, y, z) => {
 const box = (w, h, d, x = 0, y = 0, z = 0) => pivoted(new THREE.BoxGeometry(w, h, d).translate(x, y + h / 2, z), x, y + h / 2, z);
 const cyl = (r0, r1, h, x = 0, y = 0, z = 0, seg = 12) => pivoted(new THREE.CylinderGeometry(r1, r0, h, seg).translate(x, y + h / 2, z), x, y + h / 2, z);
 const tube = (pts, r, seg = 16) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), seg, r, 5, false);
+/** A ring's sector on the deck: round (cx, cz) from radius r0 to r1, angles a0 .. a1 (x = cos, z = sin), from y up hgt. */
+function ring(cx, cz, r0, r1, a0, a1, y, hgt, seg = 28) {
+  const sh = new THREE.Shape(), pt = (r, a) => [cx + Math.cos(a) * r, -(cz + Math.sin(a) * r)];
+  sh.moveTo(...pt(r1, a0));
+  for (let i = 1; i <= seg; i++) sh.lineTo(...pt(r1, a0 + ((a1 - a0) * i) / seg));
+  for (let i = seg; i >= 0; i--) sh.lineTo(...pt(r0, a0 + ((a1 - a0) * i) / seg));
+  sh.closePath();
+  // (the shape's (x, y) is the deck's (x, -z); extruded up)
+  return new THREE.ExtrudeGeometry(sh, { depth: hgt, bevelEnabled: false }).rotateX(-PI / 2).translate(0, y, 0);
+}
+/** An opening's outline in a wall's (z, y) plane: rounded top corners (r), small bottom ones, grown by `grow`. */
+function roundedRect({ z0, z1, y0, y1 }, r, grow = 0) {
+  const out = [], rb = 0.1 + grow, rt = r + grow;
+  const a = z0 - grow, b = z1 + grow, lo = y0 - grow, hi = y1 + grow;
+  const corner = (cz, cy, rr, from) => { for (let i = 0; i <= 6; i++) { const t = from + (i / 6) * (PI / 2); out.push([cz + Math.cos(t) * rr, cy + Math.sin(t) * rr]); } };
+  corner(b - rb, lo + rb, rb, -PI / 2); corner(b - rt, hi - rt, rt, 0); corner(a + rt, hi - rt, rt, PI / 2); corner(a + rb, lo + rb, rb, PI);
+  return out;
+}
+/**
+ * A panel in a side wall's plane at x (depth into +x), its outline `outer` ([z0, z1, y0, y1], or a list of (z, y)),
+ * with the rounded opening `open` (roundedRect) cut through it: the bunk alcove's arched front.
+ */
+function archPanel(x, depth, outer, open, r) {
+  const pts = outer.length === 4 && typeof outer[0] === 'number' ? [[outer[0], outer[2]], [outer[1], outer[2]], [outer[1], outer[3]], [outer[0], outer[3]]] : outer;
+  const sh = new THREE.Shape(pts.map(([u, v]) => new THREE.Vector2(u, v)));
+  sh.holes.push(new THREE.Path(roundedRect(open, r).map(([u, v]) => new THREE.Vector2(u, v))));
+  // (the shape's (u, v) is the wall's (z, y); extruded along -x by the turn, then moved to x .. x + depth)
+  return new THREE.ExtrudeGeometry(sh, { depth, bevelEnabled: false }).rotateY(-PI / 2).translate(x + depth, DECK, 0);
+}
 
 // the props' flat colours (one vertex-coloured mesh, src/vehicle-kit.js Paint)
 const C = {
@@ -249,7 +292,7 @@ export function buildInterior(batch, group, o = {}) {
     const cols = ['btnA', 'btnB', 'btnC'];
     for (let row = 0; row < 2; row++) for (let k = 0; k < 15; k++) {
       const x = -b + 0.3 + (k / 14) * (b * 2 - 0.6), z = dz1 - 0.12 - row * 0.22;
-      if (Math.abs(x - PROJECTOR.x) < 0.42 || (Math.abs(x - VOICEMAIL.x) < 0.3 && row === 0) || (k * 5 + row * 3) % 7 === 0) continue;
+      if (Math.abs(x) < 0.36 || (k * 5 + row * 3) % 7 === 0) continue;
       batch.add(cols[(k + row) % 3], box(0.08, 0.04, 0.08, x, H(h), z));
     }
     for (const x of [-1.9, -1.3, 1.5, 2.0]) {
@@ -267,46 +310,34 @@ export function buildInterior(batch, group, o = {}) {
     P(cyl(0.05, 0.035, 0.14, 2.25, h, dz1 - 0.55, 8), C.red);
     P(new THREE.SphereGeometry(0.045, 8, 6).translate(2.25, h + 0.18, dz1 - 0.55), C.yellow);
   }
-  // the voicemail at the front of the dash: a small dark box with a big round lamp on it in a brass ring
-  // (its own material, 'vmail': it blinks while a message waits, src/ship/ship.js)
-  batch.add('vmailHalo', cyl(0.34, 0.34, 0.006, VOICEMAIL.x, H(DASH.h), VOICEMAIL.z, 28));   // the pool of light it throws on the dash
-  batch.add('dark', box(0.32, 0.09, 0.28, VOICEMAIL.x, H(DASH.h), VOICEMAIL.z));
-  batch.add('band', new THREE.TorusGeometry(0.125, 0.024, 6, 24).rotateX(PI / 2).translate(VOICEMAIL.x, H(DASH.h + 0.095), VOICEMAIL.z));
-  batch.add('vmail', new THREE.SphereGeometry(0.11, 18, 9, 0, TAU, 0, PI / 2).scale(1, 0.75, 1).translate(VOICEMAIL.x, H(DASH.h + 0.09), VOICEMAIL.z));
-  // the recordings' projector in the middle of the dash: a dark drum, a brass rim, a lens
+  // the middle of the dash: a round scope in a brass ring, a dark screen either side
   {
-    const p = V(PROJECTOR.x, H(DASH.h), PROJECTOR.z);
-    batch.add('dark', cyl(0.3, 0.26, 0.06, p.x, p.y, p.z, 24));
-    batch.add('band', new THREE.TorusGeometry(0.26, 0.022, 6, 28).rotateX(PI / 2).translate(p.x, p.y + 0.06, p.z));
-    batch.add('glowTeal', cyl(0.16, 0.16, 0.02, p.x, p.y + 0.06, p.z, 20));
+    const z = DASH.z1 - 0.32;
+    batch.add('dark', cyl(0.25, 0.22, 0.05, 0, H(DASH.h), z, 24));
+    batch.add('band', new THREE.TorusGeometry(0.22, 0.02, 6, 28).rotateX(PI / 2).translate(0, H(DASH.h + 0.05), z));
+    batch.add('btnB', cyl(0.15, 0.15, 0.012, 0, H(DASH.h + 0.05), z, 20));
+    for (const s of [-1, 1]) batch.add('btnB', box(0.34, 0.2, 0.02, s * 0.5, H(DASH.h + 0.02), z - 0.12).rotateX(-0.5));
   }
-  // the pilot's seat, left of centre, turned a little toward the middle
-  const seatM = new THREE.Matrix4().makeRotationY(-0.15).setPosition(-1.15, DECK, -7.35);
-  {
+  // two seats side by side, turned a little toward the middle (the picked layout: pilot and a second seat)
+  const seatMs = [-1, 1].map((s) => new THREE.Matrix4().makeRotationY(s * 0.08).setPosition(s * 0.95, DECK, -7.35));
+  for (const [i, seatM] of seatMs.entries()) {
     const S = (g) => g.applyMatrix4(seatM);
     batch.add('dark', S(cyl(0.16, 0.26, 0.42, 0, 0, 0, 10)));
-    batch.add('cushion', S(box(0.66, 0.16, 0.64, 0, 0.42)));
-    batch.add('cushion', S(box(0.66, 0.9, 0.16, 0, 0.55, 0.34).rotateX(0.12)));
-    batch.add('cushion', S(box(0.42, 0.24, 0.12, 0, 1.38, 0.44)));                 // the headrest
-    for (const s of [-1, 1]) batch.add('dark', S(box(0.07, 0.07, 0.5, s * 0.37, 0.72, 0.02)));
-    block(S(box(0.76, BLOCK_H, 0.76, 0, 0, 0.05)));
-    P(S(box(0.42, 0.07, 0.28, 0.05, 0.58, 0.0).rotateY(0.2)), C.paper);         // a flight log left on it
+    batch.add('cushion', S(box(0.62, 0.16, 0.6, 0, 0.42)));
+    batch.add('cushion', S(box(0.62, 0.86, 0.16, 0, 0.55, 0.32).rotateX(0.12)));
+    batch.add('cushion', S(box(0.4, 0.24, 0.12, 0, 1.36, 0.42)));                 // the headrest
+    for (const s of [-1, 1]) batch.add('dark', S(box(0.07, 0.07, 0.48, s * 0.35, 0.72, 0.02)));
+    block(S(box(0.72, BLOCK_H, 0.72, 0, 0, 0.05)));
+    if (i === 0) P(S(box(0.42, 0.07, 0.28, 0.05, 0.58, 0.0).rotateY(0.2)), C.paper);   // a flight log left on the pilot's
   }
-  // the jump seat, folded against the starboard wall
-  batch.add('dark', box(0.08, 0.5, 0.5, cockpitHalf(-6.7) - 0.06, H(0.45), -6.7));
-  batch.add('cushion', box(0.12, 0.48, 0.44, cockpitHalf(-6.7) - 0.15, H(0.5), -6.7));
-  // the round call screen on its stalk at the right of the dash, turned to the pilot: the map, the reel's date stamp
-  const scr = { c: V(1.6, H(1.68), -7.95), r: 0.36 };
-  const cockpitPt = V(0.25, DECK, -6.95);
-  const screenNormal = V(cockpitPt.x - scr.c.x, 0.25, cockpitPt.z - scr.c.z).normalize();
+  // the overhead panel hanging from the cockpit's roof between the seats: switches, two small dials
   {
-    batch.add('dark', box(0.08, scr.c.y - H(DASH.h), 0.08, scr.c.x, H(DASH.h), scr.c.z));
-    const look = new THREE.Matrix4().lookAt(V(0, 0, 0), screenNormal, V(0, 1, 0));
-    const bez = new THREE.TorusGeometry(scr.r + 0.04, 0.06, 6, 32).applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), screenNormal)));
-    batch.add('dark', bez.translate(scr.c.x, scr.c.y, scr.c.z));
-    const back = new THREE.CylinderGeometry(scr.r + 0.06, scr.r + 0.06, 0.07, 32).rotateX(PI / 2).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), screenNormal));
-    batch.add('dark', back.translate(scr.c.x - screenNormal.x * 0.05, scr.c.y - screenNormal.y * 0.05, scr.c.z - screenNormal.z * 0.05));
-    void look;
+    const y = H(2.42), z0p = -7.75, z1p = -6.55;
+    batch.add('cream', box(0.9, 0.16, z1p - z0p, 0, y, (z0p + z1p) / 2));
+    batch.add('dark', box(0.92, 0.03, z1p - z0p + 0.02, 0, y - 0.03, (z0p + z1p) / 2));
+    for (const x of [-0.3, 0.3]) batch.add('dark', box(0.05, 0.9, 0.05, x, y + 0.16, (z0p + z1p) / 2));
+    for (let k = 0; k < 8; k++) batch.add(['btnA', 'btnC', 'btnB'][k % 3], box(0.05, 0.02, 0.05, -0.32 + (k % 4) * 0.21, y - 0.04, z0p + 0.25 + Math.floor(k / 4) * 0.5));
+    for (const x of [-0.2, 0.2]) P(cyl(0.07, 0.07, 0.02, x, 2.38, z1p - 0.25, 12), C.cream);
   }
   // the instrument racks either side of the cockpit, by the frame: screens, dials, switches
   for (const s of [-1, 1]) {
@@ -319,12 +350,17 @@ export function buildInterior(batch, group, o = {}) {
   picture(deco, familyDrawing(), wallFrame(V(-1.95, H(1.35), DASH.z0 + 0.12), V(0.25, 0.5, 1).normalize(), 0.08), 0.36, 0.27);   // tucked by the instruments
 
   // ------------------------------------------------------------ the main room
+  // The layout of the picked sheet (references/The Travellers Ship/Interior - Lab/sheet-1.jpg), seen from the aft
+  // end: the cockpit straight ahead through the frame; on the left (port) the galley forward of the hatch, coats
+  // and packs aft of it; in the middle the holo table in the crook of the curved console, its tail coming aft
+  // with the voicemail on it; on the right (starboard) a chest of drawers, the bunk's arched alcove, kit on hooks,
+  // the lockers.
   // the holo table: a foot, a column, a drum flaring out to the rim, glass lit with the ship's power
   {
     const { x, z, r, h } = TABLE;
     batch.add('dark', cyl(0.46, 0.4, 0.08, x, DECK, z, 24));
     batch.add('dark', cyl(0.2, 0.2, 0.66, x, H(0.08), z, 14));
-    batch.add('metal', cyl(0.36, r, 0.18, x, H(h - 0.18), z, 32));
+    batch.add('metal', cyl(0.34, r, 0.18, x, H(h - 0.18), z, 32));
     batch.add('cream', new THREE.TorusGeometry(r - 0.02, 0.07, 6, 36).rotateX(PI / 2).translate(x, H(h), z));
     batch.add('core', cyl(r - 0.06, r - 0.06, 0.012, x, H(h - 0.01), z, 32));     // the glass (src/ship/ship.js lights it)
     batch.add('dark', cyl(0.11, 0.09, 0.05, x, H(h), z, 14));
@@ -335,99 +371,256 @@ export function buildInterior(batch, group, o = {}) {
       batch.add('glowTeal', tube([p, p.clone().lerp(pt, 0.5).add(V(Math.sin(a) * 0.02, 0, Math.cos(a) * 0.02)), pt], 0.006, 6));
     }
     for (let k = 0; k < 6; k++) {
-      const a = 2.6 + k * 0.16;
-      batch.add(['btnA', 'btnB', 'btnC'][k % 3], box(0.05, 0.02, 0.05, x + Math.sin(a) * (r - 0.12), H(h), z + Math.cos(a) * (r - 0.12)).rotateY(0));
+      const a = 1.2 + k * 0.16;   // (on the open side, where you stand)
+      batch.add(['btnA', 'btnB', 'btnC'][k % 3], box(0.05, 0.02, 0.05, x + Math.sin(a) * (r - 0.12), H(h), z + Math.cos(a) * (r - 0.12)));
     }
     block(cyl(r + 0.03, r + 0.03, BLOCK_H, x, DECK, z, 20));
-    // the rug under it, coral with a cream border (the Main Interior reference)
-    batch.add('rug', box(2.4, 0.012, 4.6, 0, DECK, -1.3));
-    batch.add('rugInner', box(2.1, 0.014, 4.3, 0, DECK, -1.3));
+    // the round rug under it, coral with a cream border (the sheet's coral disc round the table's foot)
+    batch.add('rug', cyl(1.75, 1.75, 0.012, x, DECK, z, 40));
+    batch.add('rugInner', cyl(1.6, 1.6, 0.014, x, DECK, z, 40));
   }
-  // the galley along the starboard wall: the counter (cupboards, drawers), the stove, the sink, the kettle and
-  // cups, the cupboards over it either side of its window, a pantry at the forward end
+  // the curved console: a ring round the table's port half, the tail running aft from its aft end to the
+  // voicemail; cream sides, a dark top with instruments, a teal kick strip
   {
-    const x0 = GALLEY_X, xw = WALL_IN, gz0 = -5.6, gz1 = -1.0, h = 0.92;
-    batch.add('locker', box(xw - x0, h - 0.05, gz1 - gz0, (x0 + xw) / 2, DECK, (gz0 + gz1) / 2));
-    batch.add('wood', box(xw - x0 + 0.05, 0.05, gz1 - gz0 + 0.04, (x0 + xw) / 2 - 0.025, H(h - 0.05), (gz0 + gz1) / 2));
-    for (let k = 0; k <= 7; k++) P(box(0.02, h - 0.14, 0.02, x0 - 0.01, 0.06, gz0 + ((gz1 - gz0) * k) / 7), C.ink);
+    const { x: cx, z: cz } = TABLE, { ri, ro, h, tailZ, tailHalf: th } = CONSOLE;
+    const a0 = PI / 2, a1 = PI * 1.5;   // (from the table's aft side round the port side to its forward side)
+    batch.add('locker', ring(cx, cz, ri, ro, a0, a1, DECK, h - 0.06));
+    batch.add('dark', ring(cx, cz, ri - 0.03, ro + 0.04, a0, a1, H(h - 0.06), 0.06));
+    batch.add('panel', ring(cx, cz, ri + 0.03, ro - 0.03, a0, a1, H(h), 0.006));
+    batch.add('teal', ring(cx, cz, ro - 0.01, ro + 0.012, a0, a1, DECK, 0.12));
+    batch.add('teal', box(0.02, h - 0.14, ro - ri - 0.06, cx + 0.01, H(0.04), cz - (ri + ro) / 2));   // the forward end's panel
+    // the tail: a straight run aft from the ring's aft end, rounded at its end
+    const tz0 = cz + ri, tl = tailZ - tz0;
+    batch.add('locker', box(th * 2, h - 0.06, tl, cx, DECK, tz0 + tl / 2));
+    batch.add('locker', new THREE.CylinderGeometry(th, th, h - 0.06, 20, 1, false, -PI / 2, PI).translate(cx, H((h - 0.06) / 2), tailZ));
+    batch.add('dark', box(th * 2 + 0.07, 0.06, tl, cx, H(h - 0.06), tz0 + tl / 2));
+    batch.add('dark', new THREE.CylinderGeometry(th + 0.035, th + 0.035, 0.06, 20, 1, false, -PI / 2, PI).translate(cx, H(h - 0.03), tailZ));
+    batch.add('panel', box(th * 2 - 0.06, 0.006, tl, cx, H(h), tz0 + tl / 2));
+    batch.add('teal', box(th * 2 + 0.024, 0.12, tl, cx, DECK, tz0 + tl / 2));
+    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) P(box(0.02, h - 0.24, 0.02, cx + s * (th + 0.005), 0.14, tz0 + 0.2 + k * (tl - 0.3) / 2), C.ink);   // its doors
+    for (const s of [-1, 1]) P(box(0.03, 0.03, 0.14, cx + s * (th + 0.02), h - 0.2, tz0 + tl / 2), C.steel);
+    // instruments along the ring's top: buttons, little tilted screens facing the table, dials
+    for (let k = 0; k < 14; k++) {
+      const a = a0 + 0.12 + (k / 13) * (a1 - a0 - 0.24), rr = ri + 0.12 + (k % 2) * 0.16;
+      const x = cx + Math.cos(a) * rr, z = cz + Math.sin(a) * rr;
+      if (k % 4 === 1) { batch.add('btnB', box(0.26, 0.16, 0.02, 0, 0, 0).rotateX(-0.6).rotateY(-a - PI / 2).translate(x, H(h + 0.08), z)); continue; }
+      if (k % 4 === 3) { P(cyl(0.07, 0.07, 0.03, x, h, z, 12), C.cream); P(cyl(0.08, 0.08, 0.02, x, h - 0.005, z, 12), C.brass); continue; }
+      batch.add(['btnA', 'btnC'][k % 2], box(0.06, 0.025, 0.06, x, H(h), z).rotateY(-a));
+    }
+    // a lamp on a gooseneck over the forward end, a mug and a log on the ring
+    {
+      const a = a1 - 0.25, x = cx + Math.cos(a) * (ro - 0.12), z = cz + Math.sin(a) * (ro - 0.12);
+      P(tube([V(x, h, z), V(x, h + 0.35, z + 0.05), V(x + 0.15, h + 0.5, z + 0.15)], 0.012, 8), C.dark);
+      P(cyl(0.1, 0.05, 0.12, x + 0.17, h + 0.42, z + 0.17, 10), C.yellow);
+    }
+    P(cyl(0.04, 0.045, 0.09, cx - ri - 0.2, h, cz - 0.3, 10), C.teal);
+    P(box(0.3, 0.012, 0.22, cx - ri - 0.18, h, cz + 0.35).rotateY(0.3), C.paper);
+    // on the tail: the voicemail and the projector at its end, the little screen by them, papers, a handset on its cable
+    batch.add('vmailHalo', cyl(0.3, 0.3, 0.006, VOICEMAIL.x, H(h), VOICEMAIL.z, 28));   // the pool of light it throws on the console
+    batch.add('dark', box(0.26, 0.09, 0.24, VOICEMAIL.x, H(h), VOICEMAIL.z));
+    batch.add('band', new THREE.TorusGeometry(0.11, 0.022, 6, 24).rotateX(PI / 2).translate(VOICEMAIL.x, H(h + 0.095), VOICEMAIL.z));
+    batch.add('vmail', new THREE.SphereGeometry(0.095, 18, 9, 0, TAU, 0, PI / 2).scale(1, 0.75, 1).translate(VOICEMAIL.x, H(h + 0.09), VOICEMAIL.z));
+    {
+      const p = V(PROJECTOR.x, H(h), PROJECTOR.z);
+      batch.add('dark', cyl(0.27, 0.24, 0.06, p.x, p.y, p.z, 24));
+      batch.add('band', new THREE.TorusGeometry(0.24, 0.02, 6, 28).rotateX(PI / 2).translate(p.x, p.y + 0.06, p.z));
+      batch.add('glowTeal', cyl(0.15, 0.15, 0.02, p.x, p.y + 0.06, p.z, 20));
+    }
+    P(box(0.24, 0.006, 0.32, cx - 0.16, h + 0.003, tz0 + 0.25).rotateY(0.25), C.paper);
+    P(box(0.2, 0.006, 0.28, cx - 0.1, h + 0.01, tz0 + 0.4).rotateY(-0.2), C.cream);
+    P(box(0.16, 0.05, 0.08, cx + 0.22, h, tz0 + 0.2).rotateY(0.4), C.orange);
+    P(tube([V(cx + 0.22, h + 0.03, tz0 + 0.2), V(cx + th + 0.06, h - 0.1, tz0 + 0.35), V(cx + th + 0.04, h - 0.4, tz0 + 0.55), V(cx + th - 0.02, h - 0.2, tz0 + 0.75)], 0.008, 12), C.ink);
+  }
+  // the little screen on the console's tail, turned to where he stands: the map, the reel's date stamp
+  const scr = { c: V(TABLE.x - 0.24, H(CONSOLE.h + 0.29), -1.8), r: 0.2 };   // (low and to one side: the busts' faces stand clear over it)
+  const standPt = VOICE_STAND.clone();
+  const screenNormal = V(standPt.x - scr.c.x, 0.35, standPt.z - scr.c.z).normalize();
+  {
+    const q = new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), screenNormal);
+    const at = (g, back = 0) => g.applyQuaternion(q).translate(scr.c.x - screenNormal.x * back, scr.c.y - screenNormal.y * back, scr.c.z - screenNormal.z * back);
+    batch.add('cream', at(new THREE.BoxGeometry(0.56, 0.48, 0.18), 0.07));                  // the set: a boxy cream front,
+    batch.add('cream', at(new THREE.BoxGeometry(0.38, 0.32, 0.22), 0.26));                  // the tube's back tapering behind it
+    for (let k = 0; k < 4; k++) P(at(new THREE.BoxGeometry(0.26, 0.012, 0.01).translate(0, -0.09 + k * 0.06, 0), 0.375), C.ink);   // its vents
+    batch.add('dark', at(new THREE.TorusGeometry(scr.r + 0.03, 0.04, 6, 32)));
+    batch.add('dark', at(new THREE.BoxGeometry(0.46, 0.4, 0.02), 0.03));
+    batch.add('dark', cyl(0.11, 0.14, 0.05, scr.c.x, H(CONSOLE.h), scr.c.z + 0.04, 12));     // its swivel
+    for (const s of [-1, 1]) P(at(new THREE.CylinderGeometry(0.025, 0.025, 0.03, 8).rotateX(PI / 2).translate(s * 0.17, -0.2, 0)), C.brass);   // two knobs under the screen
+  }
+  // the galley along the port wall forward of the hatch, an L round the frame's corner: cupboards with coral doors,
+  // the stove with the kettle on it, the sink, cups and a teapot; the tool board over it, cupboards either side
+  {
+    const xw = -WALL_IN, x0 = GALLEY_X, gz0 = -5.38, gz1 = -1.05, h = 0.92, zf = ROOMS.main.z0 + 0.08, xr = -1.9;
+    batch.add('locker', box(x0 - xw, h - 0.05, gz1 - gz0, (x0 + xw) / 2, DECK, (gz0 + gz1) / 2));
+    batch.add('wood', box(x0 - xw + 0.05, 0.05, gz1 - gz0 + 0.04, (x0 + xw) / 2 + 0.025, H(h - 0.05), (gz0 + gz1) / 2));
+    // the L: along the frame's wall, as far as the frame's post
+    batch.add('locker', box(xr - xw, h - 0.05, gz0 - zf, (xr + xw) / 2, DECK, (zf + gz0) / 2));
+    batch.add('wood', box(xr - xw + 0.04, 0.05, gz0 - zf + 0.05, (xr + xw) / 2 + 0.02, H(h - 0.05), (zf + gz0) / 2 + 0.025));
+    for (let k = 0; k <= 7; k++) P(box(0.02, h - 0.14, 0.02, x0 + 0.01, 0.06, gz0 + ((gz1 - gz0) * k) / 7), C.ink);
     for (let k = 0; k < 7; k++) {
       const z = gz0 + ((gz1 - gz0) * (k + 0.5)) / 7;
-      if (k % 3 === 1) batch.add('cushion', box(0.02, 0.5, 0.5, x0 - 0.01, H(0.18), z));     // the coral doors
-      P(box(0.04, 0.04, 0.16, x0 - 0.03, 0.72, z), C.steel);
+      if (k % 3 !== 1) batch.add('cushion', box(0.02, 0.5, 0.46, x0 + 0.01, H(0.18), z));     // the coral doors
+      P(box(0.04, 0.04, 0.16, x0 + 0.03, 0.72, z), C.steel);
     }
-    // the stove: a dark plate, two rings, the kettle
-    batch.add('dark', box(0.5, 0.03, 0.6, x0 + 0.3, H(h), -4.6));
-    for (const z of [-4.75, -4.45]) P(cyl(0.1, 0.1, 0.012, x0 + 0.28, h + 0.03, z, 14), C.red);
-    P(cyl(0.11, 0.09, 0.18, x0 + 0.28, h + 0.04, -4.75, 12), C.steel);
-    P(tube([V(x0 + 0.18, h + 0.16, -4.75), V(x0 + 0.08, h + 0.2, -4.75), V(x0 + 0.04, h + 0.24, -4.75)], 0.015, 6), C.steel);
-    // the sink under the window, a tap
-    batch.add('metal', box(0.4, 0.03, 0.55, x0 + 0.3, H(h), -3.0));
-    P(tube([V(xw - 0.05, h + 0.02, -3.0), V(xw - 0.1, h + 0.3, -3.0), V(xw - 0.3, h + 0.28, -3.0)], 0.02, 6), C.steel);
-    // two cups, a teapot, bread, plates, a jar of herbs
-    for (const [z, c] of [[-2.0, C.cream], [-1.75, C.teal]]) P(cyl(0.04, 0.045, 0.09, x0 + 0.22, h, z, 10), c);
-    P(cyl(0.08, 0.1, 0.14, x0 + 0.35, h, -2.4, 12), C.coral);
-    P(box(0.24, 0.1, 0.12, x0 + 0.35, h, -3.75).rotateY(0.2), C.khaki);
-    for (let k = 0; k < 3; k++) P(cyl(0.12, 0.12, 0.012, x0 + 0.4, h + k * 0.014, -1.4, 16), C.paper);
-    P(cyl(0.06, 0.06, 0.16, x0 + 0.5, h, -5.2, 10), C.green);
-    // the cupboards over the counter, either side of the window (rounded doors, the Main Interior reference)
-    for (const [za, zb] of [[gz0, -3.9], [-2.1, gz1]]) {
-      batch.add('locker', box(0.42, 0.62, zb - za, xw - 0.21, H(1.55), (za + zb) / 2));
-      for (let z = za + 0.35; z < zb - 0.1; z += 0.6) P(box(0.03, 0.03, 0.12, xw - 0.435, 1.62, z), C.steel);
-      P(box(0.02, 0.56, 0.02, xw - 0.425, 1.58, (za + zb) / 2), C.ink);
+    for (let k = 0; k < 2; k++) {
+      const x = xw + 0.42 + k * 0.66;
+      batch.add('cushion', box(0.5, 0.5, 0.02, x, H(0.18), gz0 + 0.01));
+      P(box(0.16, 0.04, 0.04, x, 0.72, gz0 + 0.03), C.steel);
     }
-    // herbs drying under the window's head, a shelf of jars
-    for (let k = 0; k < 4; k++) P(new THREE.ConeGeometry(0.06, 0.22, 5).rotateX(PI).translate(xw - 0.2, 1.88, -3.5 + k * 0.33), C.leaf);
-    picture(deco, motherNote(), sideFrame(1, -1.55, 1.55, 0.01, 0.04), 0.36, 0.3);
-    // the pantry at the forward end, by the cockpit frame: tall, with notes on it
-    batch.add('locker', box(0.62, 2.2, 0.5, xw - 0.31, DECK, -5.85));
-    P(box(0.02, 2.0, 0.02, xw - 0.62, 0.1, -5.85), C.ink);
-    P(box(0.2, 0.24, 0.004, 0, -0.12, 0), C.yellow, wallFrame(V(xw - 0.625, H(1.6), -5.75), V(-1, 0, 0), 0.08));
+    // the stove: a dark plate, two rings, the kettle on one
+    batch.add('dark', box(0.5, 0.03, 0.6, x0 - 0.3, H(h), -4.55));
+    for (const z of [-4.7, -4.4]) P(cyl(0.1, 0.1, 0.012, x0 - 0.28, h + 0.03, z, 14), C.red);
+    P(new THREE.SphereGeometry(0.13, 12, 8, 0, TAU, 0, PI / 2).scale(1, 1.1, 1).translate(x0 - 0.28, h + 0.04, -4.7), C.steel);
+    P(tube([V(x0 - 0.18, h + 0.08, -4.7), V(x0 - 0.06, h + 0.14, -4.7), V(x0 - 0.02, h + 0.2, -4.7)], 0.016, 6), C.steel);
+    P(tube([V(x0 - 0.38, h + 0.16, -4.7), V(x0 - 0.28, h + 0.3, -4.7), V(x0 - 0.18, h + 0.16, -4.7)], 0.01, 8), C.ink);
+    // the sink, a tap
+    batch.add('metal', box(0.4, 0.03, 0.55, x0 - 0.3, H(h), -3.15));
+    P(tube([V(xw + 0.05, h + 0.02, -3.15), V(xw + 0.1, h + 0.3, -3.15), V(xw + 0.3, h + 0.28, -3.15)], 0.02, 6), C.steel);
+    // two cups, a teapot, bread, plates, a jar of herbs, a pot of utensils
+    for (const [z, c] of [[-2.1, C.cream], [-1.85, C.teal]]) P(cyl(0.04, 0.045, 0.09, x0 - 0.22, h, z, 10), c);
+    P(cyl(0.08, 0.1, 0.14, x0 - 0.35, h, -2.45, 12), C.coral);
+    P(box(0.24, 0.1, 0.12, x0 - 0.35, h, -3.8).rotateY(0.2), C.khaki);
+    for (let k = 0; k < 3; k++) P(cyl(0.12, 0.12, 0.012, x0 - 0.4, h + k * 0.014, -1.45, 16), C.paper);
+    P(cyl(0.06, 0.06, 0.16, xw + 0.5, h, zf + 0.3, 10), C.green);
+    P(cyl(0.06, 0.05, 0.14, x0 - 0.45, h, -4.05, 10), C.orange);
+    for (let k = 0; k < 3; k++) P(cyl(0.008, 0.008, 0.22, x0 - 0.45 + (k - 1) * 0.02, h + 0.06, -4.05, 4).rotateZ((k - 1) * 0.2), C.steel);
+    // the tool board over the counter: pegboard, tools on their outlines, a shelf of jars
+    const bz0 = -4.25, bz1 = -2.65;
+    batch.add('panel', box(0.03, 0.62, bz1 - bz0, xw + 0.03, H(1.12), (bz0 + bz1) / 2));
+    for (let k = 0; k < 7; k++) P(box(0.03, 0.22 + (k % 3) * 0.07, 0.04, xw + 0.06, 1.3 - (k % 3) * 0.04, bz0 + 0.15 + k * 0.21).rotateX((k % 2 ? 0.25 : -0.2)), [C.red, C.steel, C.yellow, C.dark][k % 4]);
+    batch.add('wood', box(0.2, 0.03, bz1 - bz0, xw + 0.1, H(1.8), (bz0 + bz1) / 2));
+    for (let k = 0; k < 6; k++) P(cyl(0.045, 0.045, 0.12, xw + 0.1, 1.83, bz0 + 0.15 + k * 0.26, 8), [C.yellow, C.leaf, C.orange, C.cream][k % 4]);
+    // herbs drying under the shelf
+    for (let k = 0; k < 3; k++) P(new THREE.ConeGeometry(0.05, 0.2, 5).rotateX(PI).translate(xw + 0.18, 1.68, bz0 + 0.4 + k * 0.4), C.leaf);
+    // the cupboards over the counter either side of the board, and over the L (rounded doors, the Main Interior reference)
+    for (const [za, zb] of [[zf, bz0 - 0.05], [bz1 + 0.05, gz1]]) {
+      batch.add('locker', box(0.42, 0.62, zb - za, xw + 0.21, H(1.55), (za + zb) / 2));
+      for (let z = za + 0.35; z < zb - 0.1; z += 0.6) P(box(0.03, 0.03, 0.12, xw + 0.435, 1.62, z), C.steel);
+      P(box(0.02, 0.56, 0.02, xw + 0.425, 1.58, (za + zb) / 2), C.ink);
+    }
+    batch.add('locker', box(xr - xw - 0.42, 0.62, 0.42, (xr + xw + 0.42) / 2, H(1.55), zf + 0.21));
+    P(box(0.02, 0.56, 0.02, (xr + xw + 0.42) / 2, 1.58, zf + 0.425), C.ink);
+    picture(deco, motherNote(), sideFrame(-1, -1.5, 1.32, 0.01, 0.04), 0.3, 0.25);
   }
-  // the small table with three mismatched seats, starboard aft (block: you walk round it)
+  // aft of the hatch on the port wall: coats and a pack on hooks, a second pack on the floor, boots
   {
-    const tx = 2.0, tz = 1.35;
-    batch.add('wood', cyl(0.5, 0.5, 0.04, tx, H(0.74), tz, 18));
-    batch.add('dark', cyl(0.05, 0.05, 0.72, tx, DECK, tz, 8));
-    batch.add('dark', cyl(0.3, 0.3, 0.03, tx, DECK, tz, 14));
-    const seats = [[tx - 0.75, tz - 0.25, 'cushion'], [tx - 0.1, tz + 0.78, 'wood'], [tx + 0.62, tz - 0.55, 'blanket']];
-    for (const [x, z, k] of seats) {
-      batch.add(k, cyl(0.2, 0.2, 0.06, x, H(0.44), z, 12));
-      for (let l = 0; l < 3; l++) { const a = (l / 3) * TAU; batch.add('dark', cyl(0.02, 0.02, 0.44, x + Math.sin(a) * 0.14, DECK, z + Math.cos(a) * 0.14, 5)); }
-    }
-    batch.add('wood', box(0.36, 0.5, 0.05, tx - 0.1, H(0.5), tz + 0.98));          // one with a back
-    P(cyl(0.04, 0.045, 0.09, tx + 0.1, 0.78, tz - 0.1, 10), C.yellow);             // a cup left on it
-    P(box(0.22, 0.01, 0.3, tx - 0.15, 0.78, tz + 0.1).rotateY(0.4), C.paper);
-    block(cyl(1.25, 1.25, BLOCK_H, tx, DECK, tz, 18));
+    const xw = -WALL_IN;
+    P(box(0.05, 0.05, 0.95, xw + 0.04, 1.85, 1.95), C.wood);
+    P(box(0.14, 0.95, 0.36, xw + 0.1, 0.9, 1.62).rotateX(0.04), C.green);
+    P(box(0.165, 0.12, 0.12, xw + 0.1, 1.35, 1.66), C.paper);                         // a patch
+    P(box(0.26, 0.5, 0.38, xw + 0.16, 1.25, 2.12), C.orange);                         // the pack on its hook
+    P(box(0.28, 0.16, 0.4, xw + 0.18, 1.62, 2.12), C.rust);
+    P(box(0.06, 0.4, 0.06, xw + 0.31, 1.3, 2.0), C.khaki);
+    for (const z of [1.62, 2.12]) P(cyl(0.02, 0.02, 0.06, xw + 0.06, 1.85, z, 5).rotateZ(PI / 2), C.brass);
+    P(box(0.34, 0.44, 0.3, xw + 0.3, 0, 2.15).rotateY(0.25), C.khaki);                // the pack on the floor
+    P(box(0.36, 0.14, 0.32, xw + 0.3, 0.42, 2.15).rotateY(0.25), C.woodDark);
+    for (const z of [0.95, 1.12]) P(box(0.28, 0.14, 0.1, xw + 0.35, 0, z), C.woodDark);   // boots by the hatch
+    block(box(0.62, BLOCK_H, 0.95, xw + 0.31, DECK, 1.95));
   }
-  // the entry along the port wall: lockers forward of the hatch, the worn bench beside it, coats on hooks, boots
+  // starboard, by the frame: a chest of drawers with a lamp, a box and a book on it
   {
-    const xw = -WALL_IN, lz0 = -5.6, lz1 = -3.0;
-    batch.add('locker', box(0.6, 2.2, lz1 - lz0, xw + 0.3, DECK, (lz0 + lz1) / 2));
-    for (let k = 0; k <= 4; k++) P(box(0.02, 2.05, 0.02, xw + 0.605, 0.08, lz0 + ((lz1 - lz0) * k) / 4), C.ink);
-    for (let k = 0; k < 4; k++) {
-      const z = lz0 + ((lz1 - lz0) * (k + 0.5)) / 4;
-      P(box(0.04, 0.2, 0.04, xw + 0.63, 1.1, z + 0.18), C.steel);
-      for (let v = 0; v < 3; v++) P(box(0.02, 0.025, 0.3, xw + 0.61, 1.85 + v * 0.06, z), C.ink);
-    }
-    batch.add('teal', box(0.02, 0.5, 0.4, xw + 0.61, H(0.3), -3.4));
-    // the bench: a worn cushion on a wooden box, a bag on it
-    const bz0 = -2.75, bz1 = -1.05;
-    batch.add('wood', box(0.5, 0.42, bz1 - bz0, xw + 0.25, DECK, (bz0 + bz1) / 2));
-    batch.add('cushion', box(0.48, 0.08, bz1 - bz0 - 0.08, xw + 0.25, H(0.42), (bz0 + bz1) / 2));
-    P(box(0.3, 0.26, 0.4, xw + 0.28, 0.5, -2.2).rotateY(0.2), C.khaki);
-    block(box(0.62, BLOCK_H, bz1 - bz0 + 0.1, xw + 0.31, DECK, (bz0 + bz1) / 2));
-    // coats on hooks over it
-    P(box(0.04, 0.05, 1.5, xw + 0.04, 1.8, -1.9), C.wood);
-    for (const [z, c] of [[-2.5, C.rust], [-2.0, C.teal], [-1.45, C.khaki]]) {
-      P(box(0.14, 0.95, 0.36, xw + 0.1, 0.88, z).rotateX(0.04), c);
-      P(cyl(0.02, 0.02, 0.06, xw + 0.06, 1.8, z, 5).rotateZ(PI / 2), C.brass);
-    }
-    for (const z of [-2.55, -2.35]) P(box(0.28, 0.14, 0.1, xw + 0.65, 0, z), C.woodDark);   // boots by the bench
-    picture(deco, homePhoto(), sideFrame(-1, -1.85, 2.08, 0.06, -0.03), 0.42, 0.31);
+    const xw = WALL_IN, z = -5.45;
+    batch.add('wood', box(0.55, 0.82, 0.9, xw - 0.28, DECK, z));
+    for (let d = 1; d < 3; d++) P(box(0.02, 0.02, 0.84, xw - 0.555, (0.82 * d) / 3, z), C.woodDark);
+    for (let d = 0; d < 3; d++) P(box(0.04, 0.035, 0.14, xw - 0.57, 0.82 * (d + 0.5) / 3, z), C.brass);
+    block(box(0.6, BLOCK_H, 0.95, xw - 0.3, DECK, z));
+    P(cyl(0.08, 0.1, 0.05, xw - 0.25, 0.82, z - 0.25, 10), C.dark);
+    P(cyl(0.012, 0.012, 0.3, xw - 0.25, 0.86, z - 0.25, 4), C.dark);
+    P(cyl(0.13, 0.07, 0.15, xw - 0.25, 1.12, z - 0.25, 10), C.yellow);
+    P(box(0.3, 0.2, 0.26, xw - 0.3, 0.82, z + 0.18).rotateY(0.2), C.woodDark);
+    P(box(0.22, 0.05, 0.3, xw - 0.3, 1.02, z + 0.18).rotateY(-0.1), C.blue);
+    picture(deco, starChart(), crossFrame(ROOMS.main.z0 + 0.08, 1, 2.35, 1.6, 0.0, 0.02), 0.72, 0.54);
   }
-  // the sofa aft of the hatch, under the slot window: low, deep, a blanket over its arm
+  // the bunk in its arched alcove in the starboard wall, head aft, the window over it (the hull's starboard
+  // window): a wooden frame with drawers under, a thick mattress, the coral blanket rumpled, pillows; inside the
+  // alcove teal, a shelf of books, photographs pinned up, a reading lamp, jackets on a hook at its foot
+  const bed = { x0: ALCOVE.x + 0.1, x1: WALL_IN, z0: ALCOVE.z0 + 0.1, z1: ALCOVE.z1 - 0.1 };
   {
-    const xw = -WALL_IN, sz0 = 0.85, sz1 = 2.35;
+    const { x: ax, z0: az0, z1: az1, top } = ALCOVE, w = WALL_IN - ax;
+    // the arched front: a wall with a rounded opening, a teal rim round it
+    const open = { z0: az0 + 0.1, z1: az1 - 0.1, y0: 0.34, y1: top };
+    batch.add('wall', archPanel(ax, 0.1, [az0, az1, 0, CEIL], open, 0.5));
+    batch.add('teal', archPanel(ax - 0.012, 0.012, roundedRect(open, 0.5, 0.07), open, 0.5));
+    // the cheeks and the hood inside, lined teal
+    for (const z of [az0 + 0.05, az1 - 0.05]) batch.add('wall', box(w, CEIL, 0.1, ax + w / 2, DECK, z));
+    batch.add('cream', box(w, CEIL - top, az1 - az0, ax + w / 2, H(top), (az0 + az1) / 2));
+    for (const [z, d] of [[az0 + 0.105, 1], [az1 - 0.105, -1]]) batch.add('teal', box(w - 0.12, top - 0.6, 0.01, ax + 0.06 + w / 2, H(0.58), z + d * 0.0));
+    batch.add('teal', box(0.01, 0.6, az1 - az0 - 0.2, WALL_IN - 0.012, H(0.58), (az0 + az1) / 2));
+    // the bed
+    const bx = (bed.x0 + bed.x1) / 2, bz = (bed.z0 + bed.z1) / 2, bw = bed.x1 - bed.x0, bl = bed.z1 - bed.z0;
+    batch.add('wood', box(bw, 0.36, bl, bx, DECK, bz));
+    for (const z of [bz - bl / 4, bz + bl / 4]) { batch.add('wood', box(0.02, 0.2, bl / 2 - 0.1, ax - 0.012, H(0.07), z)); P(box(0.03, 0.04, 0.16, ax - 0.03, 0.17, z), C.brass); }   // drawers under it
+    batch.add('cream', box(bw - 0.06, 0.2, bl - 0.08, bx, H(0.36), bz));
+    batch.add('rugInner', box(bw - 0.02, 0.12, 1.25, bx - 0.02, H(0.54), bz - 0.3).rotateY(0.03));
+    batch.add('rugInner', box(bw - 0.12, 0.15, 0.5, bx - 0.05, H(0.56), bed.z0 + 0.35).rotateX(0.1));   // kicked-off end
+    batch.add('rug', box(0.55, 0.13, 0.5, bx - 0.15, H(0.6), bz + 0.25).rotateY(-0.4).rotateX(0.06));
+    batch.add('pillow', box(bw - 0.25, 0.15, 0.42, bx, H(0.58), bed.z1 - 0.3).rotateY(0.04));
+    batch.add('cream', box(0.5, 0.13, 0.36, bx + 0.12, H(0.68), bed.z1 - 0.32).rotateY(-0.12));
+    block(box(bw, BLOCK_H, bl, bx, DECK, bz));
+    // a shelf of books on the back wall forward of the window
+    batch.add('wood', box(0.24, 0.03, 0.62, WALL_IN - 0.12, H(1.42), az0 + 0.46));
+    batch.add('wood', box(0.24, 0.03, 0.62, WALL_IN - 0.12, H(1.78), az0 + 0.46));
+    const bookC = [C.red, C.blue, C.khaki, C.green, C.plum, C.orange, C.teal, C.paper];
+    for (let k = 0; k < 11; k++) P(box(0.17, 0.2 + ((k * 7) % 5) * 0.025, 0.05, WALL_IN - 0.12, k < 6 ? 1.45 : 1.81, az0 + 0.2 + (k % 6) * 0.095).rotateX(k % 6 === 5 ? 0.25 : 0), bookC[k % bookC.length]);
+    // photographs pinned on the aft cheek over the pillow, a reading lamp
+    for (const [x, h, t, c] of [[ax + 0.35, 1.3, 0.06, C.paper], [ax + 0.62, 1.45, -0.08, C.sky], [ax + 0.85, 1.22, 0.05, C.yellow]]) {
+      P(box(0.18, 0.22, 0.004, 0, -0.11, 0), c, crossFrame(az1 - 0.1, -1, x, h, 0.006, t));
+      P(box(0.13, 0.12, 0.003, 0, -0.1, 0.003), C.blue, crossFrame(az1 - 0.1, -1, x, h, 0.006, t));
+    }
+    picture(deco, homePhoto(), crossFrame(az1 - 0.1, -1, ax + 0.6, 1.78, 0.008, 0.03), 0.34, 0.26);
+    P(cyl(0.012, 0.012, 0.25, WALL_IN - 0.1, 1.55, az1 - 0.3, 4).rotateX(-0.5), C.dark);
+    P(cyl(0.1, 0.05, 0.12, WALL_IN - 0.12, 1.62, az1 - 0.42, 10), C.yellow);
+    // jackets on a hook at its foot
+    P(box(0.6, 0.05, 0.05, ax + 0.6, 1.92, az0 + 0.14), C.wood);
+    for (const [x, c] of [[ax + 0.42, C.teal], [ax + 0.72, C.rust]]) {
+      P(box(0.3, 0.85, 0.12, x, 1.06, az0 + 0.2).rotateZ(0.03), c);
+      P(box(0.12, 0.12, 0.125, x + 0.05, 1.4, az0 + 0.2), C.paper);                   // a patch
+    }
+    // slippers by it
+    P(box(0.28, 0.07, 0.12, ax - 0.3, 0, az1 - 0.4).rotateY(0.3), C.red);
+    P(box(0.28, 0.07, 0.12, ax - 0.36, 0, az1 - 0.6).rotateY(-0.2), C.red);
+  }
+  const bedC = V((bed.x0 + bed.x1) / 2, DECK, (bed.z0 + bed.z1) / 2);
+  // kit on hooks between the alcove and the lockers: a net bag, a coil of rope, a lantern
+  {
+    const xw = WALL_IN;
+    P(box(0.05, 0.05, 0.75, xw - 0.04, 1.9, -1.45), C.wood);
+    P(box(0.3, 0.55, 0.3, xw - 0.18, 1.18, -1.7).rotateX(0.05), C.khaki);
+    for (let k = 0; k < 4; k++) P(box(0.31, 0.012, 0.31, xw - 0.18, 1.25 + k * 0.12, -1.7), C.woodDark);   // its net
+    P(new THREE.TorusGeometry(0.17, 0.045, 6, 14).rotateY(PI / 2).translate(xw - 0.08, 1.55, -1.25), C.orange);
+    P(cyl(0.07, 0.08, 0.2, xw - 0.14, 1.55, -1.05, 8), C.brass);
+    block(box(0.38, BLOCK_H, 0.9, xw - 0.19, DECK, -1.45));
+  }
+  // the lockers along the starboard wall aft, a pack hanging on one
+  {
+    const x = WALL_IN - 0.3, lz0 = -0.95, lz1 = 2.4;
+    batch.add('locker', box(0.6, 2.2, lz1 - lz0, x, DECK, (lz0 + lz1) / 2));
+    for (let k = 0; k <= 5; k++) P(box(0.02, 2.05, 0.02, x - 0.305, 0.08, lz0 + ((lz1 - lz0) * k) / 5), C.ink);
+    for (let k = 0; k < 5; k++) {
+      const z = lz0 + ((lz1 - lz0) * (k + 0.5)) / 5;
+      P(box(0.04, 0.2, 0.04, x - 0.33, 1.1, z + 0.22), C.steel);
+      for (let v = 0; v < 3; v++) P(box(0.02, 0.025, 0.3, x - 0.31, 1.85 + v * 0.06, z), C.ink);
+    }
+    batch.add('teal', box(0.02, 0.5, 0.4, x - 0.31, H(0.3), lz0 + 0.33));
+    P(box(0.24, 0.5, 0.36, x - 0.45, 1.1, 1.15), C.steel);                           // a grey pack on a door's hook
+    P(box(0.26, 0.16, 0.38, x - 0.46, 1.5, 1.15), C.dark);
+  }
+  // pipes and skylights over the main room (the sheet's ceiling): two fat pipes along the middle, two panes
+  {
+    for (const x of [-0.55, -0.35]) {
+      P(new THREE.CylinderGeometry(0.05, 0.05, ROOMS.cabin.z0 - ROOMS.main.z0 - 0.3, 8).rotateX(PI / 2).translate(x, CEIL - 0.09, (ROOMS.cabin.z0 + ROOMS.main.z0) / 2), x < -0.4 ? C.steel : C.coral);
+    }
+    for (let z = ROOMS.main.z0 + 0.8; z < ROOMS.cabin.z0; z += 1.7) P(box(0.32, 0.03, 0.05, -0.45, 2.27, z), C.steel);
+    for (const [x, z] of [[1.0, -5.2], [1.0, -0.4]]) {
+      batch.add('dark', box(0.92, 0.04, 0.72, x, H(CEIL - 0.04), z));
+      batch.add('portIn', new THREE.PlaneGeometry(0.78, 0.58).rotateX(PI / 2).translate(x, H(CEIL - 0.045), z));
+      batch.add('dark', box(0.03, 0.03, 0.58, x, H(CEIL - 0.07), z));
+    }
+  }
+
+  // ------------------------------------------------------------ the back room
+  // the sofa along the port wall under its porthole: low, deep, a blanket over its arm
+  {
+    const xw = -WALL_IN, sz0 = 2.95, sz1 = 4.45;
     batch.add('wood', box(0.78, 0.3, sz1 - sz0, xw + 0.39, DECK, (sz0 + sz1) / 2));
     batch.add('cushion', box(0.72, 0.16, sz1 - sz0 - 0.1, xw + 0.42, H(0.3), (sz0 + sz1) / 2));
     batch.add('cushion', box(0.2, 0.62, sz1 - sz0, xw + 0.1, H(0.3), (sz0 + sz1) / 2));
@@ -435,43 +628,25 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('blanket', box(0.8, 0.05, 0.5, xw + 0.4, H(0.6), sz1 - 0.3).rotateY(0.04));
     batch.add('pillow', box(0.14, 0.4, 0.4, xw + 0.25, H(0.46), sz0 + 0.4).rotateY(0.3));
     block(box(0.86, BLOCK_H, sz1 - sz0, xw + 0.43, DECK, (sz0 + sz1) / 2));
-    P(box(0.24, 0.04, 0.3, xw + 0.5, 0.47, 1.9).rotateY(0.5), C.blue);           // a book left open on it
+    P(box(0.24, 0.04, 0.3, xw + 0.5, 0.47, 3.9).rotateY(0.5), C.blue);           // a book left open on it
   }
-  // a pot plant by the cockpit frame, the star chart on the frame's back
-  potPlant(batch, V(-2.6, DECK, -5.75), 0.8);
-  picture(deco, starChart(), crossFrame(ROOMS.main.z0 + 0.08, 1, -2.4, 1.6, 0.0, 0.02), 0.72, 0.54);
-
-  // ------------------------------------------------------------ the sleeping cabin
-  // the bed in its alcove along the port wall, head aft: a wooden frame, a thick mattress, the rust-red
-  // blanket rumpled, two pillows; an arched hood over it (the Living Quarters reference)
-  const bed = { x0: -WALL_IN, x1: -WALL_IN + 1.62, z0: 4.4, z1: 6.62 };
+  // the small table with three mismatched seats (block: you walk round it)
   {
-    const bx = (bed.x0 + bed.x1) / 2, bz = (bed.z0 + bed.z1) / 2, bw = bed.x1 - bed.x0, bl = bed.z1 - bed.z0;
-    batch.add('wood', box(bw, 0.36, bl, bx, DECK, bz));
-    batch.add('cream', box(bw - 0.1, 0.22, bl - 0.12, bx, H(0.36), bz - 0.02));
-    batch.add('blanket', box(bw - 0.04, 0.12, 1.3, bx + 0.02, H(0.56), bz - 0.32).rotateY(0.03));
-    batch.add('blanket', box(bw - 0.2, 0.16, 0.5, bx + 0.1, H(0.58), bed.z0 + 0.35).rotateX(0.1));   // kicked-off end
-    batch.add('blanket', box(0.6, 0.14, 0.55, bx + 0.25, H(0.62), bz + 0.2).rotateY(-0.4).rotateX(0.06));
-    batch.add('pillow', box(0.62, 0.15, 0.45, bx - 0.35, H(0.6), bed.z1 - 0.35));
-    batch.add('pillow', box(0.62, 0.15, 0.45, bx + 0.38, H(0.6), bed.z1 - 0.38).rotateY(0.05));
-    batch.add('cream', box(0.9, 0.06, 0.7, bx, H(0.58), bz + 0.3).rotateY(0.25));
-    batch.add('wood', box(bw + 0.04, 1.0, 0.1, bx, DECK, bed.z1 - 0.02));           // the headboard
-    block(box(bw + 0.08, BLOCK_H, bl + 0.06, bx, DECK, bz));
-    // the hood: a cream cheek at the foot and an arched canopy over it, the alcove's inside teal
-    batch.add('cream', box(bw + 0.08, 0.1, bl + 0.1, bx, H(1.92), bz));
-    batch.add('teal', box(0.04, 1.4, bl, bed.x0 + 0.02, H(0.5), bz));
-    batch.add('cream', box(0.3, 1.92, 0.12, bed.x1 - 0.1, DECK, bed.z0 - 0.06));
-    // slippers by it, a reading lamp, photographs pinned in the alcove
-    P(box(0.12, 0.07, 0.28, bed.x1 + 0.3, 0, bed.z1 - 0.7).rotateY(0.3), C.red);
-    P(box(0.12, 0.07, 0.28, bed.x1 + 0.48, 0, bed.z1 - 0.62).rotateY(-0.2), C.red);
-    P(cyl(0.012, 0.012, 0.3, bed.x0 + 0.12, 1.5, bed.z1 - 0.3, 4).rotateZ(0.5), C.dark);
-    P(cyl(0.1, 0.05, 0.12, bed.x0 + 0.28, 1.58, bed.z1 - 0.3, 10), C.yellow);
-    for (const [z, h, t, c] of [[4.95, 1.25, 0.06, C.paper], [5.35, 1.38, -0.08, C.sky], [5.95, 1.2, 0.05, C.paper], [4.6, 1.42, -0.04, C.yellow]]) {
-      P(box(0.18, 0.22, 0.004, 0, -0.11, 0), c, sideFrame(-1, z, h, 0.06, t));
-      P(box(0.13, 0.12, 0.003, 0, -0.1, 0.003), C.blue, sideFrame(-1, z, h, 0.06, t));
+    const tx = -1.35, tz = 5.65;
+    batch.add('wood', cyl(0.45, 0.45, 0.04, tx, H(0.74), tz, 18));
+    batch.add('dark', cyl(0.05, 0.05, 0.72, tx, DECK, tz, 8));
+    batch.add('dark', cyl(0.3, 0.3, 0.03, tx, DECK, tz, 14));
+    const seats = [[tx - 0.62, tz - 0.2, 'cushion'], [tx + 0.1, tz + 0.66, 'wood'], [tx + 0.6, tz - 0.3, 'blanket']];
+    for (const [x, z, k] of seats) {
+      batch.add(k, cyl(0.2, 0.2, 0.06, x, H(0.44), z, 12));
+      for (let l = 0; l < 3; l++) { const a = (l / 3) * TAU; batch.add('dark', cyl(0.02, 0.02, 0.44, x + Math.sin(a) * 0.14, DECK, z + Math.cos(a) * 0.14, 5)); }
     }
+    batch.add('wood', box(0.36, 0.5, 0.05, tx + 0.1, H(0.5), tz + 0.86));          // one with a back
+    P(cyl(0.04, 0.045, 0.09, tx + 0.1, 0.78, tz - 0.1, 10), C.yellow);             // a cup left on it
+    P(box(0.22, 0.01, 0.3, tx - 0.15, 0.78, tz + 0.1).rotateY(0.4), C.paper);
+    block(cyl(0.95, 0.95, BLOCK_H, tx, DECK, tz, 18));
   }
-  const bedC = V((bed.x0 + bed.x1) / 2, DECK, (bed.z0 + bed.z1) / 2);
+  potPlant(batch, V(-2.75, DECK, 6.35), 0.8);
   // the desk and the chest of drawers along the starboard wall, books held under elastic straps over them
   {
     const xw = WALL_IN;
@@ -545,8 +720,8 @@ export function buildInterior(batch, group, o = {}) {
     for (let z = ROOMS.main.z0 + 0.6; z < zEnd; z += 1.6) P(box(0.08, 0.1, 0.08, 2.6, CEIL - 0.16, z), C.ink);
   }
   const lampSpots = [
-    ['cockpit', V(0, CEIL - 0.25, ROOMS.main.z0 - 0.2), 6], ['table', V(0, CEIL - 0.25, -3.2), 7], ['galley', V(2.2, CEIL - 0.25, -4.2), 5.5],
-    ['entry', V(-2.0, CEIL - 0.25, -0.6), 6], ['cabin', V(-0.6, CEIL - 0.25, 4.7), 6], ['hold', V(0, CEIL - 0.25, 8.3), 5.5],
+    ['cockpit', V(-1.0, CEIL - 0.25, ROOMS.main.z0 + 0.35), 6], ['table', V(TABLE.x - 0.2, CEIL - 0.25, TABLE.z - 0.75), 6.5], ['galley', V(-2.1, CEIL - 0.25, -3.0), 5.5],
+    ['aft', V(-1.3, CEIL - 0.25, 1.2), 6], ['cabin', V(-0.6, CEIL - 0.25, 4.7), 6], ['hold', V(0, CEIL - 0.25, 8.3), 5.5],
   ];
   const lamps = [];
   for (const [name, p, r] of lampSpots) {
@@ -567,22 +742,23 @@ export function buildInterior(batch, group, o = {}) {
     deco, lamps, props,
     screen: { centre: scr.c, normal: screenNormal, radius: scr.r - 0.03 },
     points: {
-      wakeEye: V(bedC.x - 0.1, H(0.86), bed.z1 - 0.42),
-      wakeLook: V(bedC.x + 0.9, H(1.7), bed.z0 - 0.2),     // (up at the alcove's hood and the cabin, from the pillow)
-      wakeRoom: V(0.2, H(1.4), ROOMS.cabin.z0 - 0.5),      // where he looks sitting up: the doorway, the main room beyond
-      bunkStand: V(bed.x1 + 0.65, DECK, 5.2),
-      bunkStandHeading: Math.atan2(0 - (bed.x1 + 0.65), ROOMS.cabin.z0 - 5.2),   // toward the doorway
-      cockpit: cockpitPt.clone(),
+      wakeEye: V(bedC.x - 0.05, H(0.86), bed.z1 - 0.4),
+      wakeLook: V(ALCOVE.x - 0.4, H(1.75), ALCOVE.z0 + 0.7),   // (up at the alcove's arch and out, from the pillow)
+      wakeSit: V(bedC.x - 0.1, H(1.25), bed.z1 - 0.55),         // sitting up on the bed, still inside the alcove
+      wakeRoom: V(-0.6, H(1.4), TABLE.z - 0.4),                // where he looks sitting up: the holo table, the galley beyond
+      bunkStand: V(ALCOVE.x - 0.62, DECK, ALCOVE.z1 + 0.2),    // out of the alcove at the pillow's end
+      bunkStandHeading: PI,                                    // facing forward: the room, the table, the console's tail at the left
+      cockpit: standPt.clone(),                                // (the voicemail: behind the console's tail, facing forward)
       cockpitHeading: PI,
       projector: PROJECTOR.clone(),                       // where the recordings' hologram stands
-      seat: V(0, 0.45, 0).applyMatrix4(seatM),
+      seat: V(0, 0.45, 0).applyMatrix4(seatMs[0]),
       table: V(TABLE.x, H(TABLE.planetY), TABLE.z),       // the holo table's planet (src/ship/holotable.js)
       tableFoot: tableC,
       hatchIn: V(-(WALL_IN - 0.9), DECK, (HATCH.z0 + HATCH.z1) / 2),
       hatchHeading: HATCH_A,
       threshold: V(-(WALL_IN + HALF_W) / 2, DECK, (HATCH.z0 + HATCH.z1) / 2),   // in the doorway (stepping out)
-      aboard: V(-0.9, DECK, 0.2),                         // a few steps in from the hatch
-      voicemail: VOICEMAIL.clone(),                       // the voicemail button on the dash (it blinks while a message waits)
+      aboard: V(-1.4, DECK, 0.45),                        // a few steps in from the hatch (clear of the voicemail's reach)
+      voicemail: VOICEMAIL.clone(),                       // the voicemail button on the console (it blinks while a message waits)
     },
   };
 }
