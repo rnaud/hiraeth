@@ -1,10 +1,14 @@
 # Testing: the unit tests and the play-through
 
 `node --test tests/*.test.js` runs every test (about a thousand, under a minute); `npx vite build`
-must pass too. The tests run on this machine only: `.githooks/pre-commit` runs them before every
-commit that touches code (`npm install` sets `core.hooksPath`; `SKIP_TESTS=1` or `--no-verify` skips them in an
-emergency). GitHub's workflows only build and ship (October 2026: the four test shards there took minutes
-before every deploy). Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
+must pass too. `.githooks/pre-commit` runs the tests a commit's changes reach before every commit that
+touches code: `scripts/affected-tests.mjs` follows each test's relative imports (and the files it reads
+by a literal path, or names) and keeps those that reach a changed file; a change to `package.json`, the
+lock, a test helper or the hook, or more than 40 files, runs them all (`FULL_TESTS=1` too; `npm install`
+sets `core.hooksPath`; `SKIP_TESTS=1` or `--no-verify` skips them in an emergency). The whole suite runs on
+GitHub (`.github/workflows/tests.yml`, called first by deploy.yml, cloudflare.yml, android.yml and
+steam-deck.yml), and no deploy starts until it passes. (Until 2026-10-08 the hook ran every test and
+GitHub none: with several agents committing at once on this Mac each commit waited 20+ minutes.) Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
 which plays that world alone from a new game. The play-through plays them all, one after the other.
 
 ## The play-through (`tests/playthrough*.js`, `scripts/playthrough-browser.mjs`)

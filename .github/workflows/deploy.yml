@@ -19,7 +19,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
+
   build:
+    needs: tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

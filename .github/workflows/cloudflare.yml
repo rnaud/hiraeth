@@ -3,8 +3,8 @@ name: Deploy to Cloudflare Workers
 # The game's site, and its content updates next to it: /updates/web.json and
 # /updates/web-<build>.zip (scripts/web-update.mjs), which the Android app
 # (WebBundles.MANIFEST) and the Steam Deck updater (deck.py) read. This is the only
-# workflow that deploys the Worker: a deploy replaces every asset. The unit tests run locally
-# before each commit (.githooks/pre-commit), not here. The Steam Deck runtime
+# workflow that deploys the Worker: a deploy replaces every asset. It waits for the whole
+# unit suite (tests.yml) before it builds. The Steam Deck runtime
 # (Electron and the launcher, /updates/steam-deck.json and its parts) is on it too.
 
 on:
@@ -21,8 +21,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
+
   deploy:
     if: github.ref == 'refs/heads/main'
+    needs: tests
     runs-on: ubuntu-latest
     timeout-minutes: 30   # (a new Deck runtime: Electron packaged and 150 MB uploaded and checked)
     steps:

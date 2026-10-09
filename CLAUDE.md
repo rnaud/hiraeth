@@ -36,10 +36,12 @@ running, testing, shipping.
 
 ## Working rules
 
-- The unit tests run locally, not on GitHub: `.githooks/pre-commit` runs
-  `node --test tests/*.test.js` before every commit that touches code (enabled by
-  `npm install`, or `git config core.hooksPath .githooks`). Run `npx vite build` too
-  before committing; both must pass. Add tests for new systems and for bug fixes.
+- Before every commit that touches code, `.githooks/pre-commit` runs the unit tests
+  the change reaches (`scripts/affected-tests.mjs`; `FULL_TESTS=1` runs them all;
+  enabled by `npm install`, or `git config core.hooksPath .githooks`). The whole suite
+  runs on GitHub (`.github/workflows/tests.yml`) and every deploy waits for it, so a
+  red test on `main` stops the release. Run `npx vite build` too before committing;
+  both must pass. Add tests for new systems and for bug fixes.
 - Check visual changes in the running game (headless Chrome screenshots against
   a dev server). Never touch port 5173: that is the user's own dev server.
 - Document new systems in a short section of the right `docs/systems/<topic>.md`

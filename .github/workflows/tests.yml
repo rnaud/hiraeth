@@ -1,0 +1,27 @@
+name: Tests
+
+# The whole unit suite (node --test tests/*.test.js), on pull requests and by hand. On a push to
+# main every deploy calls it first and waits for it (deploy.yml, cloudflare.yml, android.yml,
+# steam-deck.yml: `uses: ./.github/workflows/tests.yml`), so a failing test never reaches
+# players. The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
+
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/*.test.js
