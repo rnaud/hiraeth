@@ -261,6 +261,13 @@ const SAVE_BELL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item
 const SAVE_BLOOM ={ flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
 
 export const CHANGELOG_MEDIA = {
+  '1.5': [
+    { match: 'A People page in the menu', shots: [
+      { name: 'people-cards', only: 'after', caption: 'The menu’s new People page partway through the route: a card for everyone met, world by world, each with the portrait their last conversation took (the desert’s people here; the others not yet talked to since the portraits began show their initial)', from: 'headless Chrome against this branch’s dev server, 1440 × 900, a save at the City-Shaft (9 October)' },
+      { name: 'people-page', only: 'after', caption: 'Dov’s page on the Steam Deck’s screen: what you know of him (each part only once heard), where he is now, the token you gave back, and the quests and the ration tin between you; ◀ ▶ to the people either side', from: 'headless Chrome against this branch’s dev server, 1280 × 800 (9 October)' },
+      { name: 'people-phone', only: 'after', caption: 'The same page on a phone held upright (375 × 812): the portrait beside the name, one column to scroll', from: 'headless Chrome against this branch’s dev server, 375 × 812 (9 October)' },
+    ], see: 'Open the menu (View, or J) and turn to People with RB / R1: the D-pad moves over the cards, A / × opens one, B / ○ goes back.' },
+  ],
   '1.4': [
     { match: 'A perfect parry now opens a moment for a riposte', shots: [
       { name: 'blade-riposte', caption: 'A blot’s lunge parried with a fresh guard, then the blade button a moment later in the Arena: before, he is only stepping out of the guard (the light swing barely begun); after, the riposte’s overhead chop coming down on the stunned blot, a gold ring round him', commit: 'dc9642b2',

@@ -8,6 +8,9 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.5', date: '2026-10-09', items: [
+    'A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.',
+  ] },
   { v: '1.4', date: '2026-10-09', items: [
     { text: 'Creatures and spirits: 100 reference-based enemies across 25 worlds, each with two attacks. Half are possessed old machines or dark humanoid spirits.', see: 'Open Worlds → Creatures & spirits to inspect them and try their attacks in the Arena.' },
     { text: 'Character fittings: lanterns hang from their poles, padded seams follow the suit, and enemy wings flap from attached roots. Machines and walking guardians have connected joints, shades stay upright through turns and recoil, and each enemy flashes its own warning eyes.', see: 'Watch a winged blot flap and two machines attack at different times. In the Character Studio, inspect the Buried Machine suits and the lantern poles from the side.' },

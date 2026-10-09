@@ -78,6 +78,7 @@ import { BodyFoley } from './foley.js';
 import { items, ITEMS } from './items.js';
 import { menuSources } from './game-menu-data.js';
 import { ItemIcons } from './item-icons.js';
+import { PortraitCache } from './portrait-cache.js';
 import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { Chemistry } from './chemistry.js';
@@ -604,8 +605,35 @@ const itemIcons = new ItemIcons({ scene, build: buildItemModel,
   capture: (...a) => { const h = sky.hour; sky.hour = 10.5; updateSky(); try { return captureView(...a); } finally { sky.hour = h; updateSky(); } },
   place: () => ({ at: player.pos.clone().addScaledVector(player.frame.up, 140), up: player.frame.up.clone() }),
   onReady: (id, url) => journal.menu.iconReady(id, url) });
+// the People page's portraits (src/portrait-cache.js): each conversation's portrait of the person, kept small;
+// and how many times you have talked to each (talks.<id>: the page's "between you")
+const portraits = new PortraitCache();
+portraits.onChange = (id, shot) => journal.menu.portraitReady(id, shot);
+game.on('dialogue:start', ({ id }) => {
+  if (!id) return;
+  game.set(`talks.${id}`, (+game.flag(`talks.${id}`) || 0) + 1);
+  // (the conversation takes its portrait just after it says it started)
+  queueMicrotask(() => { const d = storyRt.dialogue; if (d.person?.id === id && d.shot) portraits.put(id, d.shot); });
+});
+// someone met before the portraits were kept, here in this world: drawn while the People page is open, one a frame
+const portraitTried = new Set();
+function pumpPortraits() {
+  if (journal.menu.panel !== 'people') return;
+  for (const n of npcs) {
+    const id = n.def?.id;
+    if (!id || portraitTried.has(id) || portraits.has(id) || !game.flag(`met.${id}`)) continue;
+    portraitTried.add(id);
+    // (near enough to be drawn in full, and shown)
+    if (!n.object?.visible || n.pos.distanceTo(player.pos) > 60) continue;
+    let shot = null;
+    try { shot = storyRt.portrait(n, n.def); } catch { shot = null; }
+    if (shot) portraits.put(id, shot);
+    return;
+  }
+}
+window.portraits = portraits;   // (the console, the shot scripts)
 Object.assign(journal.menu, {
-  sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game,
+  sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game, portrait: (id) => portraits.get(id),
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     icon: (id) => itemIcons.get(id) }),
@@ -1106,7 +1134,7 @@ const closeControllerMenu = () => {
   if (changelog.open) changelog.toggle(false);
   else if (menu.open) menu.back();
   else if (quickMenu?.open) quickMenu.toggle(false);
-  else if (journal.open) journal.toggle(false);
+  else if (journal.open) { if (!journal.menu.back()) journal.toggle(false); }   // (a person's page, a sketch held up: back first)
   else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
   else if (boxes.busy()) boxes.skip();
   else if (picker.classList.contains('open')) showPicker(false);
@@ -1681,6 +1709,7 @@ function frame(ts) {
 function pausedFrame() {
   tapped.clear();
   if (journal.open) itemIcons.pump();
+  if (journal.open) pumpPortraits();
   wasBusy = true;
   sound.update(CALM);
 }

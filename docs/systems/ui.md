@@ -279,7 +279,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   form), the keyboard and touch, the one in your hands first; H opens the menu there. B / ○ or
   Esc on a page goes back to the settings, then out. The title's settings have Controls too.
 
-## The game menu: Items, Quests, Sketchbook, Worlds (October 2026)
+## The game menu: Items, Quests, Sketchbook, Worlds, People (October 2026)
 
 The author's call: the sketchbook becomes a game menu after Ocarina of Time's pause screen, with
 distinct panels and clear controller navigation, an Items panel and a Quests panel, in the game's own
@@ -299,7 +299,7 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   "and n more"), **Sketchbook** (first the Sightings, below; then a row per world you know: its story
   page, its relics, a ? until found; then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
   their picture from `thumbs/`, ✓ story, relics and makers' boxes found, "you are here").
-- **Look**: the panel's name in the Start menu's comic lettering among four tabs at the top; the sheet
+- **Look**: the panel's name in the Start menu's comic lettering among five tabs at the top (four until v1.5); the sheet
   of ruled paper between two side tabs naming the neighbours (their LB / RB glyphs inside them, Q / E with
   the keys; the ✕ carries B / Esc: v1.2, below); the cursor a gold cell in a pulsing red ring; the strip
   at the bottom: the picked thing's name, kind and words, and what the confirm button does here
@@ -334,6 +334,40 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   makers' box and open it", else its title. `Quests.summary()` gives each active quest's goal and
   current step and the ended ones by title; `journalHtml()` is the same as text. The steps already done
   are never shown, in the menu or in play.
+
+### People (v1.5)
+
+The fifth panel, after Worlds: who the named people of the route are, as far as the traveller knows them.
+Code: `src/story/people-book.js` (the book and the rules), `peopleData` in `src/game-menu-data.js`,
+`peoplePanel` and the page handling in `src/game-menu.js`, `src/portrait-cache.js`, the People section of
+`src/game-menu.css`; tests: `tests/people-page.test.js`.
+
+- **Spoiler-safe by construction.** A person is listed only once you have talked to them (`met.<id>`, set by
+  the conversation panel); nobody unmet, no silhouettes. Each part of their story (`BOOK[world]`: `story`, a
+  list of `'text'` known once met or `[cond, 'text']`) shows only once the save holds what unlocks it: a flag
+  their conversation sets, a quest stage (`{ quest, past: stage }`, `done`, `failed`), a once-only answer
+  (`said.<id>.<node>.<i>`). The conditions read the save's flags only (`test`), so the page works in any
+  world. The text retells what they say in their own conversations, shortened; no new lore. `now` (the first
+  that holds): where they are and how they are doing. English only for now, like the dialogue (TODO fr); the
+  page's own words are in `src/i18n` (en, fr).
+- **The cards**: grouped by world in the route's order (`WORLD_ORDER`: `ORDER`, then home and the Lantern);
+  each the person's portrait, name and a one-line role. As many a row as fit (`auto-fill`); the D-pad moves
+  by where the cards are drawn (`data-grid-nav` → `GameMenu.gridMove` → `gridStep`, `src/menu-pad.js`); past a
+  row's end the side tab, as on the other panels; the strip says where they are now.
+- **A person's page** (A / ×, or a click / second tap): Back (with the B / Esc glyph), the portrait large,
+  name, role and world; "What you know", "Now", "What you chose" (Dov's token, Hollin's promise, Esk's hill,
+  what Ilo was told: `CHOICES`), "Between you" (`interactions`: how many conversations, `talks.<id>`, counted
+  since v1.5 and 1 for someone met earlier; their quests and how they stand, `QUESTS_OF`; things given either
+  way, `GIFTS`; errands, `ERRAND_PEOPLE`; keepsakes, `KEEPSAKE_FROM`). ← → (or the ◀ ▶ buttons) go to the
+  person before / after, ↑ ↓ scroll the page, B / ○ or Esc back to the cards (`GameMenu.back()`, before
+  closing the menu: main.js `closeControllerMenu`, `Journal`'s Esc), on the card just read. LB / RB still
+  turn the panels. One column under 720 px wide (the portrait beside the name).
+- **Portraits** (`PortraitCache`): the portrait each conversation takes (`dialogue.shot`, just them against
+  their world's flat colour) shrunk to 128 px WebP and kept in `localStorage` (`moebius.portraits.v1`, not
+  per slot: a portrait is not progress), the latest replacing the one before so a new costume shows.
+  Someone met before v1.5 gets theirs at the next conversation, or while the page is open in their world
+  (`pumpPortraits` in main.js, one a frame, people within 60 m); until then their initial on their world's
+  colour.
 
 ## Notices and the quest card (playtest 2026-10-08)
 

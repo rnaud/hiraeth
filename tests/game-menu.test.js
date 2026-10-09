@@ -27,15 +27,16 @@ function questsWorld() {
   return { q, flags };
 }
 
-test('the panels: Items, Quests, Sketchbook, Worlds, side by side; the shoulder buttons turn them round', () => {
-  assert.deepEqual(PANELS.map((p) => p.name), ['Items', 'Quests', 'Sketchbook', 'Worlds']);
+test('the panels: Items, Quests, Sketchbook, Worlds, People, side by side; the shoulder buttons turn them round', () => {
+  assert.deepEqual(PANELS.map((p) => p.name), ['Items', 'Quests', 'Sketchbook', 'Worlds', 'People']);
   const s = new MenuState();
   assert.equal(s.panel.id, 'items');
-  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['Worlds', 'Quests'], 'the neighbours named at the sides');
+  assert.deepEqual([s.neighbours().prev.name, s.neighbours().next.name], ['People', 'Quests'], 'the neighbours named at the sides');
   s.turn(1); assert.equal(s.panel.id, 'quests');
   s.turn(1); s.turn(1); assert.equal(s.panel.id, 'worlds');
+  s.turn(1); assert.equal(s.panel.id, 'people');
   s.turn(1); assert.equal(s.panel.id, 'items', 'round again');
-  s.turn(-1); assert.equal(s.panel.id, 'worlds');
+  s.turn(-1); assert.equal(s.panel.id, 'people');
   s.show('sketches'); assert.equal(s.panel.id, 'sketches');
   // each panel keeps its own cursor
   s.at.sketches = { r: 1, c: 2 }; s.turn(1); s.turn(-1);
@@ -99,7 +100,7 @@ test('the menu without a page: open on a panel, move, turn with the shoulders, A
   m.turn(-1); assert.equal(m.panel, 'items');
   m.state.at.items = { r: 0, c: 0 }; m.navigate(-1, 0);
   assert.equal(m.state.cursor().edge, -1);
-  m.confirm(); assert.equal(m.panel, 'worlds', 'A / × on a side tab turns to it');
+  m.confirm(); assert.equal(m.panel, 'people', 'A / × on a side tab turns to it');
 });
 
 test('the keyboard in the menu: Q / E and [ ] turn the panels, the arrows and WASD move, Enter uses', () => {
@@ -113,7 +114,7 @@ test('the keyboard in the menu: Q / E and [ ] turn the panels, the arrows and WA
   key('KeyA'); assert.equal(m.state.cell(m.rows).id, 'backpack');
   assert.equal(key('KeyZ'), false, 'not the menu\'s');
   const quest = src('src/quest.js');
-  assert.match(quest, /else if \(e\.code === 'Escape' && this\.open\) \{ e\.stopImmediatePropagation\(\); this\.toggle\(false\); \}/, 'Esc closes it');
+  assert.match(quest, /else if \(e\.code === 'Escape' && this\.open\) \{ e\.stopImmediatePropagation\(\); if \(!this\.menu\.back\(\)\) this\.toggle\(false\); \}/, 'Esc closes it (a person\'s page first)');
   assert.match(quest, /this\.open && !e\.repeat && this\.menu\.key\(e\)\) \{ e\.preventDefault\(\); e\.stopImmediatePropagation\(\); \}/, 'its keys go no further (Q is not the scout\'s, E not the use)');
 });
 
@@ -133,7 +134,7 @@ test('a controller: LB / L1 and RB / R1 turn the panels in a menu, B / ○ close
   assert.match(main, /else if \(root === journal\.el\) journal\.menu\.navigate\(x, y\)/, 'the stick and D-pad move its cursor');
   assert.match(main, /else if \(root === journal\.el\) journal\.menu\.confirm\(\);/, 'A / × uses or looks');
   const close = main.slice(main.indexOf('const closeControllerMenu'), main.indexOf('const controller = new Controller'));
-  assert.match(close, /else if \(journal\.open\) journal\.toggle\(false\);/, 'B / ○ closes the whole menu, from any panel');
+  assert.match(close, /else if \(journal\.open\) \{ if \(!journal\.menu\.back\(\)\) journal\.toggle\(false\); \}/, 'B / ○ closes the whole menu, from any panel (a person\'s page first)');
   // the prompts are in the buttons (src/pad-glyphs.js): the side tabs carry LB / RB (Q / E), the ✕ carries B (Esc);
   // the strip only says what the confirm button does here, with its glyph
   assert.match(menuPrompts('track', 'pad'), /^<span class="gm-act"><span class="glyph" data-glyph="ok"[^>]*><\/span>track<\/span>$/);

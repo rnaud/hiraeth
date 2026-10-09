@@ -10,6 +10,9 @@ import { ITEMS } from './items.js';
 import { CHARGE, chargeStep } from './story/charge.js';
 import { ALL_QUESTS } from './story/all-quests.js';
 import { sightingsData } from './story/sightings.js';
+import { metPeople, personStory, personNow, interactions, PERSON } from './story/people-book.js';
+import { backdropFor } from './story/portrait-bg.js';
+import { TITLES } from './levels/names.js';
 
 const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 /** Each gun mode's item (the backpack shoots plain fluid). */
@@ -89,10 +92,33 @@ export function worldsData({ data = {}, levels = [], order = [], known = () => t
   });
 }
 
-/** The four panels' sources, from the running game's parts (main.js). */
+/**
+ * People (src/story/people-book.js): the cards of everyone met (`flags` met.<id>), grouped by world in the
+ * route's order, and with `open` (a person's id) that person's page: the parts of their story heard, where they
+ * are now, what passed between you (`errands`: the journal's; `keepsakes`: game.keepsakes()), and the people
+ * before and after them for ← →. `portrait(id)` → { src, background } | null (src/portrait-cache.js).
+ */
+export function peopleData({ flags = {}, errands = {}, keepsakes = [], titles = {}, portrait = () => null, open = null } = {}) {
+  const title = (w) => titles[w] ?? TITLES[w] ?? w;
+  const groups = metPeople(flags).map((g) => ({ world: g.world, title: title(g.world), people: g.people.map((p) => ({
+    id: p.id, name: p.name, role: p.role, world: g.world, worldTitle: title(g.world), portrait: portrait(p.id) ?? null, color: backdropFor({}, g.world), now: personNow(p, flags),
+  })) }));
+  const all = groups.flatMap((g) => g.people);
+  const i = open ? all.findIndex((p) => p.id === open) : -1;
+  let person = null;
+  if (i >= 0) {
+    const p = PERSON.get(open), card = all[i];
+    person = { ...card, story: personStory(p, flags), ...interactions(p, { flags, errands, keepsakes }),
+      prevId: all[i - 1]?.id ?? null, prev: all[i - 1]?.name ?? null, nextId: all[i + 1]?.id ?? null, next: all[i + 1]?.name ?? null };
+  }
+  return { groups, person };
+}
+
+/** The panels' sources, from the running game's parts (main.js). */
 export function menuSources(o) {
   const titles = o.titles ?? Object.fromEntries((o.levels ?? []).map((L) => [L.id, L.title]));
   return {
+    people: (open = null) => peopleData({ flags: o.game?.data?.flags ?? {}, errands: o.journal?.data?.errands ?? {}, keepsakes: o.game?.keepsakes?.() ?? [], titles, portrait: o.portrait ?? (() => null), open }),
     items: () => itemsData({ owned: o.items.owned(), ...(o.mode?.() ?? {}), carried: o.quests?.carried?.() ?? [], keepsakes: o.keepsakes?.() ?? [], icon: o.icon, titles }),
     quests: () => questsData({ quests: o.quests, charge: o.charge?.(), errands: o.journal?.data?.errands, defs: o.errandDefs ?? [], titles }),
     sketches: () => sketchesData({ data: o.journal?.data ?? {}, levels: o.levels ?? [], known: o.known ?? (() => true),

@@ -1,6 +1,6 @@
 // The game menu (View / Select, J, the touch ❏; the Start menu's Items and Quests): since October
 // 2026 it takes the sketchbook's place. After the pause screen of Ocarina of Time, drawn in the
-// game's own ink and paper: four panels side by side, turned with the shoulder buttons (LB / L1,
+// game's own ink and paper: five panels side by side, turned with the shoulder buttons (LB / L1,
 // RB / R1; Q / E or [ ] on a keyboard; the tabs and the side arrows with a mouse or a finger), the
 // neighbours' names at the sheet's sides; inside a panel a cursor moves over a grid of cells with the
 // stick, the D-pad or the arrows; the cell's name and what it is in the strip at the bottom, with the
@@ -16,16 +16,23 @@
 //               met so far, a ? for each still to find), every world's story page and relics, the errands'
 //               and the observatory's sketches
 //   Worlds      the worlds you know, in the route's order: their picture, story, relics and boxes
+//   People      everyone you have talked to, a card each grouped by world (their portrait, name, role); A / ×
+//               opens one: what you know of them, where they are now, what passed between you; B / ○ back
+//               to the cards (src/story/people-book.js). The cards' grid moves by where the cards are on the
+//               screen (gridStep, src/menu-pad.js: data-grid-nav), so it is right at any width.
 //
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
 // the panels are plain state (MenuState, moveCursor) so tests can drive them without a page.
 
 import { escapeHtml, inputKind, keyText } from './prompt-keys.js';
 import { glyph } from './pad-glyphs.js';
+import { gridStep } from './menu-pad.js';
 import { t, onLanguage } from './i18n.js';
 
 // (the names in the language now: src/i18n.js)
-export const PANELS = ['items', 'quests', 'sketches', 'worlds'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+export const PANELS = ['items', 'quests', 'sketches', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
+/** The people's cards: this many a row (as the cursor counts them without a page; on one, where they are drawn). */
+export const PEOPLE_COLS = 4;
 /** The gear's grid: this many slots a row. */
 export const GEAR_COLS = 8;
 /** The Sightings' notes: this many a row. */
@@ -254,10 +261,58 @@ export function worldsPanel(list = []) {
   return { html, rows };
 }
 
-const BUILDERS = { items: itemsPanel, quests: questsPanel, sketches: sketchesPanel, worlds: worldsPanel };
+/** A person's picture: their portrait from a conversation (src/portrait-cache.js), or their initial on their colour. */
+const face = (p) => `<span class="pic" data-portrait="${esc(p.id)}" style="--bg:${esc(p.portrait?.background || p.color || '#e2d3ae')}">${p.portrait?.src
+  ? `<img src="${esc(p.portrait.src)}" alt="">` : `<i>${esc((p.name || '?').replace(/^(The|Madame|Mother|Brother|Sister|Aunt) /, '')[0] ?? '?')}</i>`}</span>`;
+
+/**
+ * People: { groups: [{ world, title, people: [{ id, name, role, worldTitle, portrait, color, now }]}], person: detail | null }.
+ * The cards (PEOPLE_COLS a row in the cursor's count, a block a world in the route's order), or, with `person`
+ * (peopleData's detail: { id, name, role, worldTitle, portrait, story, now, talks, quests, things, choices, prev, next }),
+ * that one's page: a Back button (B / ○), what you know, where they are now, what passed between you, the people
+ * before and after (← →).
+ */
+export function peoplePanel({ groups = [], person = null } = {}) {
+  if (person) {
+    const p = person;
+    const rows = [[{ col: 0, kind: 'back', id: 'back', name: p.name, sub: [p.role, p.worldTitle].filter(Boolean).join(' · '), desc: p.now ?? '', act: 'back' }]];
+    const list = (items) => `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>`;
+    const between = [
+      p.talks ? esc(p.talks > 1 ? t('gm.p.talksN', { n: p.talks }) : t('gm.p.talks1')) : '',
+      ...(p.quests ?? []).map((q) => `<i class="q ${esc(q.state)}">${q.state === 'done' ? '✓' : q.state === 'failed' ? '·' : '◇'}</i>${esc(q.title)} <small>${esc(t(`gm.p.quest.${q.state}`))}</small>`),
+      ...(p.things ?? []).map(esc),
+    ].filter(Boolean);
+    const html = `<div class="gm-person" data-person="${esc(p.id)}">
+      <button class="pback" ${cellAttrs(0, 0)}>${glyph('back', { key: 'Esc' })}<span>${t('gm.back')}</span></button>
+      <header class="phead">${face(p)}<div class="pname"><h2>${esc(p.name)}</h2><span class="role">${esc(p.role ?? '')}</span><span class="pworld">${esc(p.worldTitle ?? '')}</span></div></header>
+      <div class="ptext">
+        <section class="pstory"><h3>${t('gm.p.story')}</h3>${(p.story ?? []).map((s) => `<p>${esc(s)}</p>`).join('')}</section>
+        ${p.now ? `<section class="pnow"><h3>${t('gm.p.now')}</h3><p>${esc(p.now)}</p></section>` : ''}
+        ${p.choices?.length ? `<section class="pchoice"><h3>${t('gm.p.choice')}</h3>${p.choices.map((s) => `<p>${esc(s)}</p>`).join('')}</section>` : ''}
+        <section class="pwith"><h3>${t('gm.p.between')}</h3>${between.length ? list(between) : `<p class="none">${t('gm.p.nothing')}</p>`}</section>
+      </div>
+      <nav class="pstep">${p.prev ? `<button data-step="-1"><span class="arrow">◀</span>${esc(p.prev)}</button>` : '<span></span>'}${glyph('dpad')}${p.next ? `<button data-step="1">${esc(p.next)}<span class="arrow">▶</span></button>` : '<span></span>'}</nav>
+    </div>`;
+    return { html, rows };
+  }
+  const rows = [];
+  const blocks = groups.map((g) => {
+    const base = rows.length;
+    const cards = g.people.map((p, i) => {
+      const r = base + Math.floor(i / PEOPLE_COLS), c = i % PEOPLE_COLS;
+      (rows[r] ??= []).push({ col: c, kind: 'person', id: p.id, name: p.name, sub: [p.role, g.title].filter(Boolean).join(' · '), desc: p.now ?? '', act: 'open' });
+      return `<button class="pcard" ${cellAttrs(r, c)} data-person="${esc(p.id)}">${face(p)}<span class="pname"><b>${esc(p.name)}</b><small>${esc(p.role ?? '')}</small></span></button>`;
+    });
+    return `<section class="pworld"><h2>${esc(g.title)} <span>${g.people.length}</span></h2><div class="pgrid">${cards.join('')}</div></section>`;
+  });
+  const html = `<div class="gm-people" data-grid-nav>${blocks.join('') || `<p class="none">${t('gm.p.none')}</p>`}</div>`;
+  return { html, rows };
+}
+
+const BUILDERS = { items: itemsPanel, quests: questsPanel, sketches: sketchesPanel, worlds: worldsPanel, people: peoplePanel };
 
 /** The verb A / × does on a cell ('' if nothing). */
-export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
+export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn', 'open', 'back'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
  * What the confirm button does on the picked cell, in the info strip: its glyph (a pad's printed A, the
@@ -284,6 +339,9 @@ export class GameMenu {
     this.state = new MenuState();
     this.rows = [];
     this.looking = null;
+    this.person = null;     // the People panel: the person whose page is open (null: the cards)
+    this.detail = null;     // (that page's data: its neighbours for ← →)
+    this.gridAt = null;     // (the cards' cursor while a page is open)
     if (!el) return;
     el.classList.add('gamemenu');
     el.innerHTML = `
@@ -306,12 +364,14 @@ export class GameMenu {
     });
     this.lookEl = el.querySelector('.gm-look');
     el.addEventListener('click', (e) => {
-      const t = e.target.closest?.('[data-at], [data-go], [data-panel], .gm-close, .gm-look');
+      const t = e.target.closest?.('[data-at], [data-go], [data-panel], [data-step], .gm-close, .gm-look');
       if (!t) return;
       if (t.classList.contains('gm-close')) { this.onClose?.(); return; }
       if (t.classList.contains('gm-look')) { this.look(false); return; }
       if (t.dataset.go) { this.turn(+t.dataset.go); return; }
       if (t.dataset.panel) { this.show(t.dataset.panel); return; }
+      if (t.dataset.step) { this.stepPerson(+t.dataset.step); return; }
+      if (t.classList.contains('pback')) { this.back(); return; }   // (a person's page: Back goes back at once)
       const [r, c] = t.dataset.at.split(',').map(Number);
       const at = this.state.cursor();
       // a tap (or click) picks a cell and says what it is; on the one picked, it does what A / × does
@@ -334,7 +394,10 @@ export class GameMenu {
   render() {
     const id = this.panel;
     let data = null;
-    try { data = this.sources[id]?.() ?? null; } catch (e) { console.warn('game menu', id, e); }
+    // (the People panel: its source is asked for the open person's page too)
+    try { data = this.sources[id]?.(id === 'people' ? this.person : undefined) ?? null; } catch (e) { console.warn('game menu', id, e); }
+    if (id === 'people' && this.person && !data?.person) { this.person = null; if (this.gridAt) this.state.at.people = this.gridAt; }
+    this.detail = id === 'people' ? data?.person ?? null : null;
     const { html, rows, start } = BUILDERS[id](data ?? undefined);
     this.rows = rows;
     // a panel opened for the first time: where it says to start (the Quests panel: the quest you are on)
@@ -377,17 +440,100 @@ export class GameMenu {
     if (pv) pv.innerHTML = cell?.it ? `<div class="big ${esc(cell.it.kind ?? '')}">${icon(cell.it)}</div><b>${esc(cell.name)}</b><span>${esc(cell.sub)}</span>${cell.it.inUse ? `<em>${t('gm.inUse')}</em>` : ''}` : '';
   }
 
-  open(panel = null) { if (panel) this.state.show(panel); this.render(); }
+  open(panel = null) {
+    this.leavePerson(); if (panel) this.state.show(panel); this.render();
+    // (drawn while the menu was still hidden: once it shows, the cursor's cell scrolled into view)
+    if (this.el && typeof requestAnimationFrame === 'function') requestAnimationFrame(() => this.paint());
+  }
   close() { this.look(false); }
-  show(panel) { this.state.show(panel); this.render(); }
-  turn(d) { this.state.turn(d); this.render(); }
+  show(panel) { this.leavePerson(); this.state.show(panel); this.render(); }
+  turn(d) { this.leavePerson(); this.state.turn(d); this.render(); }
   select(r, c, scroll = true) { this.state.at[this.panel] = { r, c }; this.look(false); this.paint(scroll); }
 
   /** The stick, the D-pad, the arrows. */
   navigate(dx, dy) {
     if (this.looking) { this.look(false); if (!dx && !dy) return; }
+    // a person's page: ← → the one before / after, ↑ ↓ read on down it
+    if (this.panel === 'people' && this.person) {
+      if (dx) this.stepPerson(Math.sign(dx));
+      else if (dy && this.body) this.body.scrollTop += Math.sign(dy) * Math.max(40, this.body.clientHeight * 0.35);
+      return;
+    }
+    if (this.gridMove(dx, dy)) return;
     if (this.state.move(this.rows, Math.sign(dx), Math.sign(dy)) === 'turn') this.render();
     else this.paint();
+  }
+
+  /**
+   * A grid that moves by where its cells are drawn (data-grid-nav: the People cards, as many a row as fit):
+   * the cell that way on the screen (gridStep, src/menu-pad.js); past a row's end the side tab, as moveCursor
+   * does. False without a page or such a grid (moveCursor then).
+   */
+  gridMove(dx, dy) {
+    const root = this.el ? this.body.querySelector('[data-grid-nav]') : null;
+    const at = this.state.cursor();
+    if (!root || at.edge) return false;
+    const nodes = [...root.querySelectorAll('[data-at]')];
+    const i = nodes.findIndex((n) => n.dataset.at === `${at.r},${at.c}`);
+    if (i < 0) return false;
+    const j = gridStep(nodes.map((n) => n.getBoundingClientRect()), i, Math.sign(dx), Math.sign(dy));
+    if (j === i) {
+      if (dx) { this.state.at[this.panel] = { edge: Math.sign(dx), r: at.r }; this.paint(); }
+      return true;
+    }
+    const [r, c] = nodes[j].dataset.at.split(',').map(Number);
+    this.select(r, c);
+    return true;
+  }
+
+  /** Open a person's page (the People panel), the cards' cursor kept for coming back. */
+  openPerson(id) {
+    if (!this.person) this.gridAt = { ...this.state.cursor() };
+    this.person = id;
+    this.state.at.people = { r: 0, c: 0 };
+    this.render();
+  }
+
+  /** ← → on a person's page: the one before or after (in the cards' order). */
+  stepPerson(d) {
+    const to = d < 0 ? this.detail?.prevId : this.detail?.nextId;
+    if (!to) return;
+    this.person = to;
+    this.state.at.people = { r: 0, c: 0 };
+    this.render();
+  }
+
+  /** (turning away from the People panel: its cards when you come back) */
+  leavePerson() {
+    if (!this.person) return;
+    const id = this.person;
+    this.person = null; this.detail = null;
+    this.state.at.people = this.gridAt ?? { r: 0, c: 0 };
+    this._backTo = id;
+  }
+
+  /** B / ○, Esc: put a held-up sketch down, or close a person's page. True if it did (else the menu closes). */
+  back() {
+    if (this.looking) { this.look(false); return true; }
+    if (this.panel === 'people' && this.person) {
+      this.leavePerson();
+      this.render();
+      // the cursor on the card of the person just read (← → may have moved on from the one opened)
+      const id = this._backTo; this._backTo = null;
+      const r = this.rows.findIndex((row) => row.some((x) => x.id === id));
+      if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === id));
+      return true;
+    }
+    return false;
+  }
+
+  /** A person's portrait is ready (src/portrait-cache.js): put it on their card and page. */
+  portraitReady(id, shot) {
+    if (!this.el || !shot?.src) return;
+    for (const pic of this.el.querySelectorAll(`.pic[data-portrait="${CSS.escape?.(id) ?? id}"]`)) {
+      pic.innerHTML = `<img src="${esc(shot.src)}" alt="">`;
+      if (shot.background) pic.style.setProperty('--bg', shot.background);
+    }
   }
 
   /** A / ×, Enter: what the cell does (a quest tracked, a gun mode taken, a sketch held up), or the tab's turn. */
@@ -403,6 +549,8 @@ export class GameMenu {
       if (r >= 0) this.select(r, this.rows[r].findIndex((x) => x.id === cell.id));
     }
     else if (cell.act === 'use') { this.onUse?.(cell.id); this.render(); }
+    else if (cell.act === 'open') this.openPerson(cell.id);
+    else if (cell.act === 'back') this.back();
     else if (cell.act === 'look') this.look(this.looking === cell.id ? false : cell);
   }
 

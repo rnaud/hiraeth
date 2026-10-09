@@ -62,7 +62,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [boxes.md](systems/boxes.md) | the makers' boxes (the v0.63 redesign): the model, the scene, the placements |
 | [changelog.md](systems/changelog.md) | the interactive changelog: before / after pictures, numbers and how to see each change; the capture tool; why its pictures stay off the devices |
 | [localisation.md](systems/localisation.md) | the game's words in the player's language (`t()`, English as the source, French): what is covered, adding a language, how to bring the dialogue in |
-| [ui.md](systems/ui.md) | playing and settings (and accessibility: text size, speech background, reduced motion, hold or toggle, not by colour alone), the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds) |
+| [ui.md](systems/ui.md) | playing and settings (and accessibility: text size, speech background, reduced motion, hold or toggle, not by colour alone), the changelog page, a quieter screen, the title screen and saves, nothing on the screen, the game menu (items, quests, sketchbook, worlds, people) |
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |

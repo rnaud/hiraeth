@@ -30,7 +30,7 @@ export class Journal {
     this.menu = new GameMenu(this.el, { onClose: () => this.toggle(false) });
     window.addEventListener('keydown', (e) => {
       if (e.code === 'KeyJ') this.toggle();
-      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); this.toggle(false); }   // (not also opening the Start menu)
+      else if (e.code === 'Escape' && this.open) { e.stopImmediatePropagation(); if (!this.menu.back()) this.toggle(false); }   // (a person's page: back to the cards first)   // (not also opening the Start menu)
       else if (this.open && !e.repeat && this.menu.key(e)) { e.preventDefault(); e.stopImmediatePropagation(); }
       else if (this.open && e.repeat && /^(Arrow|Key[WASD]$)/.test(e.code)) { e.preventDefault(); this.menu.key(e); }
     });

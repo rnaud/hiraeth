@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.5 — 2026-10-09
+
+- A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.
+
 ## v1.4 — 2026-10-09
 
 - Button prompts now always name one button, the one on the controller in your hands, never two names for the same button side by side. Before your first press in a world, and on the Steam Deck, they use the controller you last played with, or the Deck’s own letters.
