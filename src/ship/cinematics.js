@@ -156,9 +156,10 @@ export function cutAt(cuts, t) {
  */
 export function tableShot(ship, model, t = 0) {
   const tp = model.interior.points.table;
-  // two angles inside the main room, from over the curved console (port, forward) or from the alcove's end (starboard, aft): the one across the table from him
+  // two angles inside the main room, from beyond the curved console's forward end (port, forward) or from the alcove's end
+  // (starboard, aft): the one across the table from him, a little off his line so the planet doesn't hide him
   const me = ship.local(model, ship.player.pos);
-  const sides = [V(0.95, 0, 0.9), V(-1.0, 0, -0.45)].map((d) => d.normalize());
+  const sides = [V(0.95, 0, 0.9), V(-0.75, 0, -1.0)].map((d) => d.normalize());
   const away = sides.reduce((a, b) => (me.distanceToSquared(tp.clone().add(a)) > me.distanceToSquared(tp.clone().add(b)) ? a : b));
   const d = 2.5 - Math.min(t * 0.2, 0.4);
   return { pos: ship.world(model, V(tp.x + away.x * d, tp.y + 0.38, tp.z + away.z * d)), look: ship.world(model, V(tp.x - away.x * 0.6, tp.y, tp.z - away.z * 0.6)), fov: 54 };
@@ -189,6 +190,8 @@ function playLines(ship, model, timeline, t, st = {}) {
   const t0 = timeline.lines[span[0]].t0 - 0.9, t1 = timeline.lines[span[1]].t1 + 0.15;
   // the shot pushes in on the busts as they rise, and eases back out once they fold away
   st.close = seg(t, t0, t0 + CLOSE_IN) * (1 - seg(t, t1, t1 + CLOSE_OUT));
+  // the holo table's planet, behind the busts from where he stands, folds away while they are up (one hologram at a time)
+  model.holoTable?.group.scale.setScalar(Math.max(0.001, 1 - st.close));
   if (!st.shown && t >= t0 && t < t1) {
     st.shown = true;
     const head = new THREE.Vector3();
@@ -721,6 +724,7 @@ export class CallDirector extends Sequence {
         C.say(null); C.bars(false); C.hud(true);
         ship._line = null;
         if (skipped) ship.holo?.clear(); else ship.holo?.hide();
+        m.holoTable?.group.scale.setScalar(1);
         m.callScreen?.set({ who: 'idle', talk: 0, statik: 0, label: '' });
         sfx.staticBurst(ship.sound, 0.4);
         ship.rig.yaw = ship.player.heading + Math.PI;

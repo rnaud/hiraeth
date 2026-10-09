@@ -397,6 +397,7 @@ test('a recording at the console: the traveller faces the projector, the camera 
   ship.sound = {};
   ship.rig = { yaw: 0, pitch: 0.2, indoor: false, indoorK: 0, target: v() };
   ship.player.heading = 2.5;   // looking anywhere else
+  ship.holo = { show() {}, hide() {}, speak() {}, clear() {}, glitch() {} };   // (no hologram renderer in node)
   const lines = callLines(3, { flag: () => undefined, completed: ['desert'], lastWorld: 'desert' });
   const dir = new CallDirector(ship, { n: 3, lines, label: recordingLabel(3) });
   ship.cinematic = dir;
@@ -411,6 +412,12 @@ test('a recording at the console: the traveller faces the projector, the camera 
   const camToHim = P.pos.clone().sub(shot.pos).setY(0).normalize(), facing = v(Math.sin(P.heading), 0, Math.cos(P.heading));
   assert.ok(camToHim.dot(facing) > 0.5, 'the camera is behind him, looking the way he looks');
   assert.ok(shot.pos.distanceTo(proj) > P.pos.distanceTo(proj), 'he stands between the camera and the hologram');
+  // the holo table stands beyond the busts from where he is: its planet folds away while they are up, and comes back
+  assert.ok(m.holoTable, 'a holo table');
+  for (let i = 0; i < 30 * 20 && !(dir.rec.close > 0.95); i++) dir.update(1 / 30, false);
+  assert.ok(dir.rec.close > 0.95 && m.holoTable.group.scale.x < 0.1, `the planet folded away while the busts are up (${m.holoTable.group.scale.x.toFixed(2)})`);
+  dir.finish(true);
+  assert.equal(m.holoTable.group.scale.x, 1, 'and back once the recording ends');
 });
 
 test('the prologue plays through to the end and sets prologue.done', () => {

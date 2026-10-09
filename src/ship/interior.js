@@ -45,7 +45,7 @@ export const TABLE = { x: 0.2, z: -3.1, r: 0.58, h: 0.92, planetR: 0.3, planetY:
  * ring's aft end to `tailZ`, `tailHalf` either side of the table's line, rounded at the end. The voicemail sits on
  * the tail's end.
  */
-export const CONSOLE = { ri: 0.95, ro: 1.35, h: 0.95, tailZ: -0.95, tailHalf: 0.36 };
+export const CONSOLE = { ri: 0.95, ro: 1.35, h: 0.95, tailZ: -0.95, tailHalf: 0.42 };
 /** The recordings' projector on the console's tail (ship-local): the parents rise over it. */
 export const PROJECTOR = new THREE.Vector3(TABLE.x + 0.08, DECK + CONSOLE.h + 0.07, -1.1);
 /** The voicemail button, on the rounded end of the console's tail, at his right hand (it blinks while a message waits). */
@@ -432,7 +432,7 @@ export function buildInterior(batch, group, o = {}) {
     P(tube([V(cx + 0.22, h + 0.03, tz0 + 0.2), V(cx + th + 0.06, h - 0.1, tz0 + 0.35), V(cx + th + 0.04, h - 0.4, tz0 + 0.55), V(cx + th - 0.02, h - 0.2, tz0 + 0.75)], 0.008, 12), C.ink);
   }
   // the little screen on the console's tail, turned to where he stands: the map, the reel's date stamp
-  const scr = { c: V(TABLE.x - 0.24, H(CONSOLE.h + 0.29), -1.8), r: 0.2 };   // (low and to one side: the busts' faces stand clear over it)
+  const scr = { c: V(TABLE.x - 0.26, H(CONSOLE.h + 0.29), -1.55), r: 0.2 };   // (low, at his left of the projector: clear of the busts' faces)
   const standPt = VOICE_STAND.clone();
   const screenNormal = V(standPt.x - scr.c.x, 0.35, standPt.z - scr.c.z).normalize();
   {
@@ -553,8 +553,7 @@ export function buildInterior(batch, group, o = {}) {
     batch.add('rugInner', box(bw - 0.02, 0.12, 1.25, bx - 0.02, H(0.54), bz - 0.3).rotateY(0.03));
     batch.add('rugInner', box(bw - 0.12, 0.15, 0.5, bx - 0.05, H(0.56), bed.z0 + 0.35).rotateX(0.1));   // kicked-off end
     batch.add('rug', box(0.55, 0.13, 0.5, bx - 0.15, H(0.6), bz + 0.25).rotateY(-0.4).rotateX(0.06));
-    batch.add('pillow', box(bw - 0.25, 0.15, 0.42, bx, H(0.58), bed.z1 - 0.3).rotateY(0.04));
-    batch.add('cream', box(0.5, 0.13, 0.36, bx + 0.12, H(0.68), bed.z1 - 0.32).rotateY(-0.12));
+    batch.add('pillow', new THREE.SphereGeometry(1, 16, 8).scale(0.36, 0.07, 0.2).rotateY(0.06).translate(bx - 0.04, H(0.61), bed.z1 - 0.27));
     block(box(bw, BLOCK_H, bl, bx, DECK, bz));
     // a shelf of books on the back wall forward of the window
     batch.add('wood', box(0.24, 0.03, 0.62, WALL_IN - 0.12, H(1.42), az0 + 0.46));
