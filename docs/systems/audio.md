@@ -170,21 +170,52 @@ A level that carries you on a train says so with `level.rails(pos)` → `{ speed
 
 ## Recorded soundtracks (v0.94)
 
-`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the desert's is
+`src/soundtracks.js` maps completed worlds to local MP3s in `public/music/` (on a device only the desert's and the title's are
 local; the others are downloaded once: "The themes on a device" below).
 `manifest.json` records each Suno source and musical direction. Only the current
 world loads after audio starts. Decode/download failures retain the procedural
-score, including on engine bridges without an audio decoder. The title keeps its
-own music. Recordings are balanced to -27 dB RMS (with a peak cap), with the last
+score, including on engine bridges without an audio decoder. The title has its
+own recording (below). Recordings are balanced to -27 dB RMS (with a peak cap), with the last
 two seconds crossfaded into the opening for looping, then faded in over two seconds.
 They use the existing music bus: volume, mute, menu hush, musician ducking,
 underwater filtering and background suspension still apply. Ambience, bands and
 combat continue independently. Disposing a world cancels its outstanding download.
 
+## The title's music (October 2026)
+
+The title screen plays its own recording, **Hiraeth - Distant Home** (`public/music/title.mp3`, `TITLE_THEME` in
+`src/soundtracks.js`; `manifest.json` "title": made in Suno by the author, no song link, so `source` is null).
+Direction: D lydian, 72 BPM, instrumental, no drums, meant to loop; glass harmonica and celesta carrying a slow
+five-note call, warm low strings, a soft distant wordless voice, nylon guitar, hand bells, a quiet low D drone.
+The file: 2 min 52 s, 48 kHz stereo VBR MP3 at about 164 kb/s (3.6 MB), as Suno gave it, less 0.6 s of
+near-silence at the start (whole MP3 frames dropped, its Xing/LAME header fixed, not re-encoded). About
+-18 dB RMS and -5 dB peak; it opens on a fade-in (full by 3 s) and ends on a fade-out over its last 3 s.
+
+- **Start**: `new Sound('title', { score: false, titleTheme: true })` (`src/title.js`). The procedural menu
+  music (`MENU_SCORE`, `menuMusic`) plays from the title's first sound; `Sound.start` also calls
+  `loadTitleTheme`, which reads `music/title.mp3` (`themeSources`: the bundle's file, on the web the site's),
+  decodes it and balances and joins it like a world's theme (`prepareSoundtrack`: -27 dB RMS with a peak cap,
+  the last two seconds crossfaded into the opening).
+- **Takeover** (`Sound.playTitleTheme`): the recording loops on the menu bus, faded in over two seconds while the
+  procedural tune (its own gain, `menuSynth`, and its small room) fades out under it; its scheduler stops once
+  the last notes have faded and doesn't come back. The recording goes into the bus dry. The menu bus keeps the
+  music volume (`setVolumes`), mute and the guard (master), so the settings work as before.
+- **Leaving**: `choose()` turns the menu music off (the bus fades out, ~1 s) and disposes the title's sound;
+  the world's own sound (its theme, or the opening) starts in the game. Back on the title (a new page), it loads
+  again.
+- **Fallback**: a failed download, a file that doesn't decode, an engine bridge without a decoder
+  (`engine/webaudio.js`), or the title gone before it arrives: the procedural tune simply goes on.
+- **On a device** it is in the package (`ON_DEVICE_THEMES`), as the desert's is: it is the first thing a launch
+  plays, so it must not wait for the background download.
+- Level on the menu bus (measured in headless Chrome, music at 0.8): the procedural tune about -27 dBFS, the
+  recording about -34, the same level as a world's recording on the music bus.
+  Tests: `tests/soundtracks.test.js`.
+
 ## The themes on a device (October 2026)
 
-The APK and the Steam Deck package carry one recorded theme, the desert's (`ON_DEVICE_THEMES`,
-`src/music-store.js`): the first world has its music offline from the very first session. The other 24
+The APK and the Steam Deck package carry one recorded world theme, the desert's (`ON_DEVICE_THEMES`,
+`src/music-store.js`): the first world has its music offline from the very first session. They carry the
+title's music too (above) and the singing light's cue. The other 24
 (99 MB) stay on the site (`scripts/site-only.mjs` `leftOff`, the over-the-air zip too; the web build is
 unchanged, it reads its own `music/`).
 

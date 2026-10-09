@@ -6,7 +6,7 @@
 // package (scripts/package-steam-deck.mjs) leave them out through this.
 //
 // A second kind stays off the devices too, for another reason: the recorded themes fetched on demand
-// (onDemand, scripts/web-update.mjs: every music/*.mp3 but the desert's). A device does need them, one world
+// (onDemand, scripts/web-update.mjs: every music/*.mp3 but the desert's and the title's). A device does need them, one world
 // at a time: it fetches each from the site the first time and keeps it for good (src/music-store.js).
 // leftOff() is both: what the APK, the Deck package and the over-the-air zip never carry.
 //

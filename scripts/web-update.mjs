@@ -143,7 +143,7 @@ export const AUDIT_FILE = /^audits\//;
 /** The site's own configuration (public/_headers: Cloudflare's headers by path, the themes' CORS). */
 export const SITE_CONFIG = /^_headers$/;
 /** The recorded themes a device fetches from the site the first time it needs one, and keeps (src/music-store.js):
- * every music/*.mp3 but ON_DEVICE_THEMES (the desert's). The zip, the APK and the Deck leave them out (about
+ * every music/*.mp3 but ON_DEVICE_THEMES (the desert's, the title's). The zip, the APK and the Deck leave them out (about
  * 99 MB); the site serves them. OTA_MUSIC=1 puts them back in the zip, for a hand-over update: a game that finds
  * them in its bundle keeps them (adoptBundledThemes), so an install from before keeps its soundtrack for good. */
 export const onDemand = (name) => /^music\/[^/]+\.mp3$/.test(name) && !ON_DEVICE_THEMES.includes(name.slice('music/'.length));

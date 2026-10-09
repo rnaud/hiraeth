@@ -31,6 +31,9 @@ export const CHANGELOG = [
     'An 8BitDo SN30 Pro (and the other 8BitDo pads printed with Nintendo letters) now shows its own buttons in every prompt, the title screen included: B at the bottom, A on the right, the way they are printed on it, and A confirms in the menus, as on a Switch pad.',
     // the chimes
     'Chimes float now: every crystal hovers well clear of the ground, a five as high as a one, with a soft patch of shade on the ground under it that shrinks and fades as it bobs up, so you can see they are floating rather than lying in the sand.',
+    // the title's own music
+    { text: 'The title screen has its own recorded music now, “Distant Home”: glass harmonica and celesta carrying a slow five-note call over warm low strings, a soft far-off voice, nylon guitar and hand bells, looping gently for as long as you stay. It fades in over the old music box tune within a moment of the title opening, follows your music volume and mute, and fades out as you start playing. On Android and the Steam Deck it comes with the game, so it plays offline from the first launch.',
+      see: 'With the sound on, open the game and wait on the title: the music box tune gives way, over two seconds, to the recording. Turn the music volume down in Settings and it follows; choose Continue and it fades out as the world comes in.' },
   ] },
   { v: '1.8', date: '2026-10-09', items: [
     // the family ship, redrawn

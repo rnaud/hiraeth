@@ -14,7 +14,7 @@ import { bindVoice, languageOf } from './story/voice.js';
 import { scoreFor, scoreBeat, chordAt, CALM_ACT, fatherIn } from './score.js';
 import { playVoice, playColour, hit } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
-import { loadSoundtrack } from './soundtracks.js';
+import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
@@ -178,9 +178,13 @@ export function renderSyllable(ctx, dest, s, t, noise) {
 export const CRYSTAL_PARTIALS = [[1, 1, 1], [1.006, 0.55, 0.9], [2.32, 0.42, 0.62], [4.25, 0.2, 0.4], [6.63, 0.1, 0.25]];
 
 export class Sound {
-  /** score: false plays no world music (the title screen: only the menu music). */
-  constructor(levelId, { score = true, muted = store.get('moebius.muted') === '1' } = {}) {
+  /**
+   * score: false plays no world music (the title screen: only the menu music). titleTheme: the title's recording
+   * (src/soundtracks.js TITLE_THEME) takes over from the procedural menu music once it has loaded (playTitleTheme).
+   */
+  constructor(levelId, { score = true, titleTheme = false, muted = store.get('moebius.muted') === '1' } = {}) {
     this.score = score;
+    this.titleTheme = titleTheme;
     this.menuOn = false;
     // the world's score (src/score.js): the unknown (the title, the Lab) play the desert's
     this.scoreId = scoreFor(levelId) === scoreFor('desert') ? 'desert' : levelId;
@@ -341,6 +345,7 @@ export class Sound {
     this.chord = 0;
     if (this.score) this.scheduler = setInterval(() => this.schedule(), 100);
     if (this.score) void loadSoundtrack(this);
+    if (this.titleTheme) void loadTitleTheme(this);
     this.moments = new MusicMoments({ mode: this.musicModeSetting, now: ctx.currentTime });
     // the recorded effects (src/sfx.js): fetched a moment after the start, the synth stands in until then
     this.bank = new SampleBank(ctx);
@@ -450,23 +455,62 @@ export class Sound {
     if (!ctx) return;   // (start() applies it)
     const t = ctx.currentTime;
     this.world.gain.setTargetAtTime(on ? MENU_HUSH : 1, t, on ? 0.3 : 0.5);
-    if (!this.menuBus) {
-      this.menuBus = ctx.createGain(); this.menuBus.gain.value = 0;
-      this.menuBus.connect(this.master);
-      // its own small room (the world's is hushed with it)
-      const verb = ctx.createConvolver(); verb.buffer = this.reverb.buffer;
-      const send = ctx.createGain(); send.gain.value = 0.6;
-      this.menuBus.connect(send).connect(verb).connect(this.master);
-    }
+    this.menuBusEnsure();
     this.menuBus.gain.setTargetAtTime(on ? 0.62 * this.musicVol * MENU_LEVEL : 0, t, on ? 0.7 : 0.35);
     clearTimeout(this._menuStop);
-    if (on && !this.menuTimer) {
+    // (the procedural tune plays unless the title's recording has taken over: playTitleTheme)
+    const synth = on && !this.titleTrack;
+    if (synth && !this.menuTimer) {
       this.menuBeatN = 0; this.menuNext = t + 0.15;
       this.menuTimer = setInterval(() => this.menuSchedule(), 100);
-    } else if (!on && this.menuTimer) {
+    } else if (!synth && this.menuTimer) {
       // let the last notes ring out under the fade, then stop scheduling
-      this._menuStop = setTimeout(() => { if (!this.menuOn) { clearInterval(this.menuTimer); this.menuTimer = null; } }, 2500);
+      this._menuStop = setTimeout(() => { if (!this.menuOn || this.titleTrack) { clearInterval(this.menuTimer); this.menuTimer = null; } }, 2500);
     }
+  }
+
+  /**
+   * The menu bus (its level: the music volume, while a menu is up) and, into it, the procedural tune's own gain
+   * (menuSynth) with its small room (the world's is hushed under a menu). The title's recording joins the bus dry.
+   */
+  menuBusEnsure() {
+    if (this.menuBus) return this.menuBus;
+    const ctx = this.ctx;
+    this.menuBus = ctx.createGain(); this.menuBus.gain.value = 0;
+    this.menuBus.connect(this.master);
+    this.menuSynth = ctx.createGain(); this.menuSynth.gain.value = this.titleTrack ? 0 : 1;
+    this.menuSynth.connect(this.menuBus);
+    const verb = ctx.createConvolver(); verb.buffer = this.reverb.buffer;
+    const send = ctx.createGain(); send.gain.value = 0.6;
+    this.menuSynth.connect(send).connect(verb).connect(this.menuBus);
+    return this.menuBus;
+  }
+
+  /**
+   * The title's recording (src/soundtracks.js loadTitleTheme: balanced, its tail joined to its opening) takes over
+   * from the procedural menu music: looped on the menu bus, faded in over two seconds while the tune fades out
+   * under it and stops. The bus keeps the music volume, mute and the fade out as the title hands over to the game.
+   * False (nothing changes) once the sound is gone, the title is leaving, or a recording already plays.
+   */
+  playTitleTheme(buffer) {
+    const ctx = this.ctx;
+    if (!ctx || !buffer || this._disposed || !this.menuOn || this.titleTrack || ctx.state === 'closed') return false;
+    this.menuBusEnsure();
+    const t = ctx.currentTime;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(1, t + 2);
+    gain.connect(this.menuBus);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+    source.connect(gain);
+    source.start(t);
+    this.titleTrack = source; this.titleTrackGain = gain;
+    const g = this.menuSynth.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(0, t + 2);
+    this.menuMusic(this.menuOn);   // (stops scheduling the tune once its last notes have faded)
+    return true;
   }
 
   menuSchedule() {
@@ -477,7 +521,7 @@ export class Sound {
         const f = menuFreq(e.degree, e.octave), t = t0 + e.at * spb, dur = e.beats * spb;
         if (e.kind === 'pad') this.menuPad(f, t, dur, e.vol);
         else if (e.kind === 'bass') this.menuPad(f, t, dur, e.vol, 'sine');
-        else this.instrument(e.kind, f, t, dur, e.vol, this.menuBus);
+        else this.instrument(e.kind, f, t, dur, e.vol, this.menuSynth);
       }
       this.menuBeatN++;
       this.menuNext += spb;
@@ -488,7 +532,7 @@ export class Sound {
   menuPad(f, t, dur, vol, type = 'triangle') {
     const ctx = this.ctx, g = ctx.createGain(), flt = ctx.createBiquadFilter();
     flt.type = 'lowpass'; flt.frequency.value = 1500;
-    g.connect(flt).connect(this.menuBus);
+    g.connect(flt).connect(this.menuSynth);
     for (const det of type === 'sine' ? [0] : [-5, 5]) {
       const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = det;
       o.connect(g); o.start(t); o.stop(t + dur + 3);
@@ -503,7 +547,7 @@ export class Sound {
   dispose() {
     this._unlisten?.();
     this._disposed = true;
-    this.trackAbort?.abort();
+    this.trackAbort?.abort(); this.titleAbort?.abort();
     clearInterval(this.scheduler); clearInterval(this.menuTimer); clearTimeout(this._menuStop); clearTimeout(this._preload); clearTimeout(this._trackStop);
     this.scheduler = this.menuTimer = null;
     const ctx = this.ctx;

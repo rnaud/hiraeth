@@ -13,6 +13,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.9 — 2026-10-09
 
+- The title screen has its own recorded music now, “Distant Home”: glass harmonica and celesta carrying a slow five-note call over warm low strings, a soft far-off voice, nylon guitar and hand bells, looping gently for as long as you stay. It fades in over the old music box tune within a moment of the title opening, follows your music volume and mute, and fades out as you start playing. On Android and the Steam Deck it comes with the game, so it plays offline from the first launch.
 - Chimes float now: every crystal hovers well clear of the ground, a five as high as a one, with a soft patch of shade on the ground under it that shrinks and fades as it bobs up, so you can see they are floating rather than lying in the sand.
 - An 8BitDo SN30 Pro (and the other 8BitDo pads printed with Nintendo letters) now shows its own buttons in every prompt, the title screen included: B at the bottom, A on the right, the way they are printed on it, and A confirms in the menus, as on a Switch pad.
 - In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.

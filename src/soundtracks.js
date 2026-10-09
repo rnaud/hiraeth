@@ -1,4 +1,4 @@
-// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the desert's
+// Downloaded Suno originals; provenance is recorded in public/music/manifest.json. On a device only the desert's (and the title's)
 // is in the bundle; the others are downloaded from the site in the background and kept (src/music-store.js).
 import { bundledGame } from './levels/reference-sheets.js';
 import { keepTheme, pageThemeStore, startThemeDownload, themeSources } from './music-store.js';
@@ -84,6 +84,36 @@ export function prepareSoundtrack(ctx, original) {
     for (let i = 0; i < data.length; i++) data[i] *= gain;
   }
   return buffer;
+}
+
+/**
+ * The title screen's own recording (manifest.json "title"; carried by the devices: src/music-store.js
+ * ON_DEVICE_THEMES, since it is the first thing the game plays). Not a world's theme: the title's Sound plays it
+ * on the menu bus in place of the procedural menu music (src/audio.js playTitleTheme).
+ */
+export const TITLE_THEME = 'title.mp3';
+
+/**
+ * Load the title's recording and hand it, balanced and joined for looping (prepareSoundtrack), to
+ * sound.playTitleTheme. Until then, and for good when it can't (a failed download, a file that doesn't decode, an
+ * engine bridge without a decoder), the procedural menu music plays. Never throws; true when it is playing.
+ */
+export async function loadTitleTheme(sound, fetcher = globalThis.fetch, { here = globalThis.location } = {}) {
+  const ctx = sound?.ctx;
+  if (!ctx || !fetcher || typeof ctx.decodeAudioData !== 'function' || sound._disposed) return false;
+  const abort = sound.titleAbort = typeof AbortController === 'function' ? new AbortController() : null;
+  let lastError = null;
+  try {
+    for await (const { blob } of themeSources(TITLE_THEME, { here, store: null, fetcher, signal: abort?.signal })) {
+      let decoded;
+      try { decoded = await ctx.decodeAudioData(await blob.arrayBuffer()); }
+      catch (error) { lastError = error; continue; }
+      if (sound._disposed || ctx.state === 'closed') return false;
+      return !!sound.playTitleTheme?.(prepareSoundtrack(ctx, decoded));
+    }
+  } catch (error) { lastError = error; }
+  if (!sound._disposed) console.warn('Recorded title music unavailable; keeping the procedural menu music.', lastError ?? TITLE_THEME);
+  return false;
 }
 
 /** The theme files, once each (home and the Lantern share one). */

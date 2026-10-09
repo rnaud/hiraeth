@@ -2,6 +2,14 @@
   "generator": "Suno",
   "model": "v6",
   "created": "2026-10-08",
+  "title": {
+    "title": "Hiraeth - Distant Home",
+    "source": null,
+    "file": "title.mp3",
+    "created": "2026-10-09",
+    "note": "The title screen's music (src/soundtracks.js TITLE_THEME). Made in Suno by the author; no song link was given. Trimmed by 0.6 s of near-silence at the start (whole MP3 frames, not re-encoded).",
+    "direction": "D lydian, 72 BPM, instrumental, no drums, meant to loop; glass harmonica and celesta carrying a slow five-note call, warm low strings, soft distant wordless voice, nylon guitar, hand bells, quiet low D drone"
+  },
   "tracks": [
     {
       "level": "desert",

@@ -66,7 +66,7 @@ test('a theme is kept under its file name, for good: the database and the key ne
   assert.equal(themeKey('music/incal.mp3'), 'incal.mp3');
   assert.equal(siteThemeUrl('incal.mp3'), `${SHEET_SITE}music/incal.mp3`);
   assert.equal(localThemeUrl('incal.mp3', './'), './music/incal.mp3');
-  assert.deepEqual(ON_DEVICE_THEMES, ['desert.mp3', 'singing-light.mp3'], 'the desert\'s theme, and the singing light\'s cue (the prologue)');
+  assert.deepEqual(ON_DEVICE_THEMES, ['desert.mp3', 'singing-light.mp3', 'title.mp3'], 'the desert\'s theme, the singing light\'s cue (the prologue) and the title\'s music');
   assert.equal(THEME_FILES.length, 25, 'home and the Lantern share one');
 });
 

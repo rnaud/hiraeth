@@ -15,7 +15,7 @@
 //
 // Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a controller
 // (d-pad or stick to move, A confirm, B back): the main menu by its own mainNavigate (down the
-// column into the row, along it), the rest through the same menuNavigate as the game's menus. The menu music plays under it (src/audio.js menuMusic).
+// column into the row, along it), the rest through the same menuNavigate as the game's menus. The menu music plays under it (src/audio.js menuMusic), the title's recording once it has loaded (playTitleTheme).
 //
 // Imports nothing that loads the game state: the summaries come from the raw saves.
 
@@ -142,7 +142,8 @@ function safeInsets(doc, win) {
 export function showTitle({ store = slots, doc = document, win = window, vista: wantVista = true } = {}) {
   return new Promise((resolve) => {
     const settings = new Settings();
-    const sound = new Sound('title', { score: false });
+    // (the title's own recording takes over from the procedural menu music once it has loaded: src/soundtracks.js TITLE_THEME)
+    const sound = new Sound('title', { score: false, titleTheme: true });
     let vista = null, vistaQuality = settings.quality, worldStarted = false;
     // (a different world each opening, never the last one shown: src/title-shots.js)
     let ls = null;
