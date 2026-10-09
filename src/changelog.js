@@ -11,6 +11,11 @@ export const CHANGELOG = [
   { v: '1.7', date: '2026-10-09', items: [
     // the audits page
     'Debug: an Audits page gathers every review of the game (the look, the fights, the worlds, the temples, the dialogue, the speed, the cinematics) with their scores as tables and bars, their findings with pictures, the edits they ranked and the to-do items they led to, and shows how the scores changed between two reviews of the same kind; it works with a controller.',
+    // foes walk on jointed legs (the locomotion kit)
+    'Crabs, the salt crab and the other six-legged creatures now walk on real legs: each leg bends at a high knee, every foot stays where it lands until it steps, and the legs step in two alternating threes instead of all the left ones and then all the right. The shell rides on its feet and dips a little as they lift.',
+    'Shadow hounds and the lizards trot on four jointed legs, the front knees forward and the hind ones bent back, the diagonal legs stepping together; the lizards now stand on four legs instead of two. A pouncing hound stretches its legs out fore and aft through the leap.',
+    'The makers’ machines and the possessed machines walk on jointed piston legs, one foot at a time in hard, straight moves (lift, swing, set down), with a piston sliding at each knee and a puff of dust where a foot lands.',
+    'Foes step quicker when they run and slower when they walk, so their feet no longer skate over the ground, and two of a kind no longer step in time with each other. Winding up an attack, a foe on legs plants its feet wide and sits back away from you, holds, then lunges through.',
   ] },
   { v: '1.6', date: '2026-10-09', items: [
     // the galactic map's signature search

@@ -4,7 +4,8 @@ The author: "the walking animations for all the enemies feel very stiff, like th
 covers four things: what the field knows (with sources), why our foes look stiff (measured), a small locomotion
 kit for Hiraeth, and a phased plan. The plan is written for the coming roster of **about 20 distinct body plans**,
 which replaces the 100 near-identical world enemies; each plan is reused across worlds with that world's skin.
-Nothing here is built yet: the queue is in `TODO.md`, "Procedural animation (queued)". The review rubric and
+Phases 1–3 are built (section 6, "What was built": the kit in `src/motion-kit/` and the first three body
+plans on real foes); the rest of the queue is in `TODO.md`, "Procedural animation". The review rubric and
 the measuring script are in the `procedural-animation` skill (`.claude/skills/procedural-animation/SKILL.md`).
 
 ## 1. What the field knows
@@ -277,9 +278,11 @@ But:
 - the ragdoll's position-based dynamics;
 - the people's LOD schedule.
 
-## 3. The recommended architecture: a small locomotion kit (`src/motion/`)
+## 3. The recommended architecture: a small locomotion kit (built as `src/motion-kit/`)
 
-The kit is pure logic over plain vectors, tested in node like `Foe`. It writes into whatever the model exposes:
+(Built in `src/motion-kit/`, not `src/motion/`: that folder is the Motion page's, motion.html. The sketch below
+is the plan as written; section 6 says what was built and how it differs.) The kit is pure logic over plain
+vectors, tested in node like `Foe`. It writes into whatever the model exposes:
 rigid `Object3D` joints, or instanced bone matrices as `StiltMotor` does. It never decides where the foe goes:
 the mind (`Foe.update`) stays as it is, and the kit only draws the body following `f.pos` and `f.heading`.
 
@@ -415,6 +418,77 @@ Costs are rough working sessions for one agent, including tests and docs.
 
 **Total:** about 8–11 sessions, of which phases 1–3 (3–4 sessions) remove the stiffness for most of the roster.
 
+## 6. What was built (phases 1–3, 2026-10-09)
+
+### The kit: `src/motion-kit/`
+
+| module | what it does |
+|---|---|
+| `spring.js` | `SecondOrder` (t3ssel8r's f / ζ / r with the k2 stability clamp), `SecondOrderAngle`, `SecondOrder3`, `expDamp`, `quantise`, `deadband` |
+| `ik.js` | `twoBone(hip, target, lenA, lenB, pole, outKnee, outEnd)`: the pole is fixed to the body, so a straight leg never flips; out of reach it stops just short on the line to the target. `fabrik` for 3+ joints; `aim` points a segment modelled along +Y from joint to joint |
+| `gait.js` | `layoutLegs` sorts feet into sides and rows and gives the groups (alternate: a tripod on 6, tetrapods on 8, diagonals on 4; wave: one at a time on 3; lateral) and each foot's neighbours. `GaitPlanner`: homes in the body's frame, drift and stance-time triggers, a group lifts only when every other foot is down (most urgent first, groups take turns), the swing shortened so no waiting foot is dragged past its reach, landings a part of a stride past home (re-aimed in the first 60 % of the swing), organic (rise, then smootherstep) or machine (lift, translate, drop) arcs, one ground ray per step, touchdown events, a seeded per-foe phase and stride, the wind-up's brace and lock (`setStance`), and the far tier's canned cycle by distance walked |
+| `body.js` | `BodyFromFeet`: height from the feet on the ground, pitch and roll from their plane, a dip while a group is up (deepest mid-swing), sway over the planted feet, lean into acceleration, bank into turns, all through springs |
+| `pose.js` | `PoseBlend`: a plan's rest / coil / strike / recover / hurt poses (and `coil:<attack>`, `strike:<attack>`); the coil builds with the telegraph's own timing (`coilK`: complete at `POSE_DONE` of src/telegraph.js, then held); the wind-up locks the feet and widens their homes; the strike is on a fast underdamped spring (overshoot), the recovery on a soft one; machines' yaw is quantised |
+| `rig.js` | `jointedLeg` / `planLeg` build a leg as a hip pivot on the body and a chain (thigh, shin, foot, an optional telescoping piston) hung from the model's root, so the feet stay planted while the body moves. `Rig`: one `update(f, dt, ctx)` per foe (pose, planner, body; returns the body's offsets) and `write()` (IK from the drawn hip to the planted foot, segments aimed; the feet hang or tuck from the body when `ctx.air`). Tiers by distance (near ≤ 25 m; mid ≤ 60 m: the planner every 2nd frame; far: the canned cycle), held 30 frames (`TierHold`); the stepped clock (`stepped: 12`, off by default) |
+| `plans.js` | the tables: `walker` (plan 1), `quadruped` (plan 6), `machine` (plan 18); lengths as shares of the leg |
+
+The mind never calls the kit: a model's `anim` / `animate` asks its rig for the body's offsets, adds its own
+wind-up moves, and calls `rig.write()` last. `Foes.animKit` hands it `ground` (the physics' ray), `touch` (a
+puff where a foot lands) and `eye` (the traveller, for the tiers). The hook from the telegraphs: a wind-up
+brace-steps the feet to homes 12–18 % wider (quick steps, done before the pose holds), locks them, and the coil
+sits the body back and down against the strike; the strike snaps through, unlocked if it lunges.
+
+### The first three plans on real foes
+
+- **Walker (plan 1):** the salt crab (src/foe-kinds.js) and the 13 six-legged world enemies (forms crab,
+  mantis, grub, shell, pearl: src/enemies/models.js). Knees out and up, a tripod. The crab's legs tuck for its
+  spin and wave in the air when it is flipped (`ctx.air`).
+- **Quadruped (plan 6):** the shadow hound (its legs hidden with its body when it sinks into its shadow,
+  stretched fore and aft through the pounce) and the four newts, which now stand on four legs instead of two
+  legs and two hanging arms (the horn lizard's shape). Front knees forward, hocks back, a trot.
+- **Machine (plan 18):** the makers' machine (src/foes.js `machineModel`, now a hull riding on three legs) and
+  the 25 possessed machines (two or three legs). Steps in three straight moves, a wave on three legs, a piston
+  from the hull to each thigh.
+
+World-enemy legs on the kit are built after the body (`kitLegs`), their feet's rest a little wider than drawn
+(×1.05 walkers, ×1.3 newts, ×1.9 machines) so the knees bend. (Noticed, not changed: `animate` resets the
+machines' `proportions` body scale on its first frame, so they were never drawn with it.) The enemies viewer
+now really walks a foe in Moving, the view following it, so the planted feet read.
+
+### Measured (`node scripts/motion-audit/run.mjs --pack`; `--pace=0.5` for the cadence)
+
+| subject | slide/m before → after | worst contact (m) | reach span, % of leg | lift, % of leg | steps/s full → half | groups | pack unison before → after |
+|---|---|---|---|---|---|---|---|
+| salt crab | 1.02 → 0.00 | 12.31 → 0.00 | 0 → 19 % | 23 % | 2.75 → 1.50 | [0,2,4] [1,3,5] (was pairs by row) | 0.97 → −0.27 |
+| dune skitter | 0.42 → 0.00 | 0.74 → 0.00 | 0.03 m → 21 % | 23 % | 2.63 → 1.38 | a tripod (was all left / all right) | 0.99 → −0.35 |
+| shadow hound | 0.30 → 0.00 | 0.70 → 0.00 | 0 → 30 % | 20 % | 7.50 → 4.25 | diagonals | 0.96 → −0.01 |
+| coin lizard | 0.60 → 0.00 | 1.43 → 0.00 | 0.11 m → 29 % | 22 % | 3.00 → 1.63 | diagonals (was 2 legs) | 1.00 → −0.15 |
+| makers' machine | 0.60 → 0.00 | 0.86 → 0.00 | 0 → 18 % | 17 % | 2.50 → 1.25 | each alone | 1.00 → −0.28 |
+| inspection tripod | 0.57 → 0.00 | 0.77 → 0.00 | 0.03 m → 27 % | 17 % | 1.67 → 0.92 | each alone (was two together) | 1.00 → −0.07 |
+
+Before, the cadence did not follow the speed (the crab's feet never left the ground; the machine kept 1.83
+steps a second at half speed). Every target is met: slide < 0.05 m/m, reach span > 15 %, lift ≥ 6 %, the
+right groups, cadence by speed, packs out of step. `tests/motion-plans.test.js` holds them, and checks that a
+wind-up braces and then holds the feet while the body sits back. The hound's 7.5 steps a second at a run is
+high: its legs are short for 5.6 m/s (a gallop with a flight phase would be phase 5's).
+
+**Cost** (`node scripts/motion-audit/cost.mjs`, M4, node, after a warm-up; Rig.update + Rig.write): about
+**0.5 µs a leg** near (0.75 on the machines, whose pistons are aimed too): 3.1 µs per crab, 2.1 per hound, 2.3
+per machine; a mixed scene of 10 foes near and 30 far costs 0.1 ms a frame. The rigid legs before cost next
+to nothing. On the Retroid (5–8× slower) that is an estimated 0.15–0.25 ms for 10 foes near and 0.5–0.8 ms
+for 40: within the 1 ms budget. The far tier still solves and draws the legs (only the planning and the rays
+are skipped); skipping its drawing is phase 7's.
+
+**Strips** (`node scripts/motion-audit/strips.mjs`: 8 frames over 2 s, three-quarters from above, from the
+enemies viewer through the game's own models and `Foes.look`, the same drawing as the Arena):
+`changelog-media/1.7/walk-{crab,skitter,hound,lizard,machine,tripod}-{before,after}.webp`. The Arena itself was
+checked in headless Chrome (`?level=arena&enemy=desert/dune-skitter`): no errors, the skitter standing on its
+jointed legs on the sand.
+
+Left for later phases: chains (4: tails, antennae, cloaks), the other body plans (5), the guardians (6), the
+far tier's cheaper drawing, on-screen tiers and the Retroid measurement (7); the stepped clock is built but no
+plan turns it on yet.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of
@@ -423,4 +497,6 @@ Costs are rough working sessions for one agent, including tests and docs.
   cadence, reach span, joint angle, gait groups by fore-aft correlation, and travel.
 - `tests/motion-metrics.test.js` checks them on hand-made gaits: a planted foot, a dragged stick, a tripod
   against both sides in phase.
-- A model on the kit adds its subject to the script's `OLD` / `GUARDIANS` tables: where its legs are.
+- A model on the kit adds its subject to the script's `OLD` / `GUARDIANS` tables (now in `walk.mjs`): where its legs are.
+- `--pack` walks two of a kind side by side (unison: 1 is in step), `--cost` times the kit per foe;
+  `cost.mjs` is the proper benchmark, `strips.mjs` the motion strips (one Vite on 5357, one muted Chrome on 5407).

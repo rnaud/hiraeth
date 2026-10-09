@@ -322,6 +322,15 @@ What changed per family:
 | shadow hound · step | 0.9 | light (0.5) | sinks into its own shadow pool |
 | shadow hound · bite | 0.55 | chain (0.4) | (behind you; the screen-edge marker) |
 
+### Legs on the locomotion kit (v1.7, `src/motion-kit/`)
+
+The salt crab, the shadow hound, the makers' machine, and the world enemies with six legs, four (the newts) or
+pistons (every possessed machine) walk on jointed legs planted by the kit (docs/systems/procedural-animation.md,
+§6). Its pose blend is the body's half of a wind-up: as the wind-up starts the feet brace-step wide and lock,
+the body sits back and down against the strike with the telegraph's own timing (complete at `POSE_DONE`, then
+held still), and the strike snaps through on an underdamped spring; a lunge unlocks the feet. The models' own
+wind-up moves (claws up, a crouch, an arm raised) go on top, so each attack still reads apart.
+
 ## The guardians' staged fights (v1.6, `src/temples/boss.js`)
 
 All eleven shared one template before (three attacks, two phases, 1.4-1.7 s floor telegraphs). Each is now a fight

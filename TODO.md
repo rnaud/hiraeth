@@ -150,26 +150,28 @@ docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. D
   V8 port or QuickJS without a JIT, several times slower on a frame the script limits), for at most ~0.9 ms
   of gain measured on the Mac (docs/systems/engine-bridge.md).
 
-# Procedural animation (queued 2026-10-09, after the combat telegraphs)
+# Procedural animation (2026-10-09; phases 1–3 done: the kit is `src/motion-kit/`)
 
 The foes walk like toys on sticks: rigid legs swung by a shared clock, feet sliding 0.3–1.4 m per metre walked,
 six-legged crabs waddling all-left / all-right, bodies that ignore their feet (measured:
-docs/systems/procedural-animation.md, "The audit"). Build a small locomotion kit (`src/motion/`) and move the
+docs/systems/procedural-animation.md, "The audit"). Build a small locomotion kit (`src/motion-kit/`) and move the
 new ~20 body plans and the guardians onto it. Review every step with the `procedural-animation` skill
 (`node scripts/motion-audit/run.mjs`, the rubric). Sessions are rough estimates.
 
-- [ ] **1. Kit core** (1 session): `spring.js` (second-order f/ζ/r with the stability clamp, expDamp,
+- [x] **1. Kit core** (1 session): `spring.js` (second-order f/ζ/r with the stability clamp, expDamp,
   quantise), `ik.js` (two-bone with a stable pole, replacing `kneeOf`; FABRIK for 3+ joints), `gait.js`
   (rest targets, groups that lift only when the others are down, distance/time/turn triggers, smootherstep +
   sine arc, one ground ray per step, touchdown events for dust / sound / rumble). Tests: IK clamp and pole
   through a straight leg, springs stable at 10–240 fps, a planted foot never moves, tripod and tetrapod form.
-- [ ] **2. Body and poses** (1 session): `body.js` (ride height over planted feet, pitch/roll from the foot
+- [x] **2. Body and poses** (1 session): `body.js` (ride height over planted feet, pitch/roll from the foot
   plane, bob per lift, lean into acceleration and turns), `pose.js` (a plan's key poses blended by the mind's
   state; wind-up locks stepping, plants wide, counter-moves via r < 0; strike snaps with overshoot; recover
   settles). Ties into the body telegraphs.
-- [ ] **3. First three plans end to end** (1–2 sessions): multi-legged walker, quadruped beast, piston-legged
+- [x] **3. First three plans end to end** (1–2 sessions): multi-legged walker, quadruped beast, piston-legged
   machine in the enemies viewer and the Arena; targets slide/m < 0.05, reach span > 15 % of leg length, lift
-  ≥ 6 %, right groups, cadence following speed; before/after motion strips for the changelog.
+  ≥ 6 %, right groups, cadence following speed; before/after motion strips for the changelog. Done
+  (procedural-animation.md §6): the salt crab and the six-legged world enemies, the shadow hound and the newts,
+  the makers' machine and the possessed machines; every target met (tests/motion-plans.test.js).
 - [ ] **4. Chains** (1 session): `chain.js` (follow-the-leader with angle limits, short verlet with a pinned
   root, travelling waves on a phase accumulator) for serpents, centipedes, jellies, flyers, gliders, and
   tails / cloaks / cables on the plans above.
@@ -178,8 +180,9 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
 - [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
   bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
   each fight's new attacks.
-- [ ] **7. LOD and style** (1 session): near / mid / far tiers held 30 frames, the stepped-output clock
-  (12–15 fps per foe) as a per-plan style; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
+- [ ] **7. LOD and style** (1 session): the tiers (held 30 frames) and the stepped clock are built in
+  `src/motion-kit/rig.js`; left: on-screen as well as distance, a far tier that skips drawing the legs, the
+  stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
   the motion check for ink shimmer.
 
 # Level design (audit) (docs/audits/level-design-v1.5.md, 2026-10-09)

@@ -270,6 +270,14 @@ either way: the title and the sky draw before the world is built.
 The same measurements on the handheld are still to take: `scripts/bench/android-run.sh` wants a
 device over USB, and none has been attached since this was written.
 
+## Foes' legs: the locomotion kit (`src/motion-kit/`, v1.7)
+
+The traveller's and the people's feet are planted by `plantFeet` (above); the foes' by the locomotion kit, the
+same idea for any number of legs: a gait planner (homes, step triggers, gait groups, one ground ray per step),
+two-bone IK with a body-fixed pole, the body riding on its feet through second-order springs, key poses blended
+by the foe's state, and detail tiers by distance. The crabs, the hounds, the newts and the machines are on it;
+how it works, the body plans and the measurements are in docs/systems/procedural-animation.md, §6.
+
 ## Vael's bird: standing, folding, flying (`src/bird.js`)
 
 She stands tall on long wading legs (drumstick, hock, tarsus, three toes and a back one), as the Sky Stones'

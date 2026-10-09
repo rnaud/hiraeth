@@ -6,7 +6,7 @@ description: Building or reviewing how Hiraeth's creatures, enemies, guardians a
 # Procedural animation: building and reviewing creature motion
 
 Read first: `docs/systems/procedural-animation.md`. It has the research with sources, the audit of October 2026
-(why the foes looked stiff), the locomotion kit's architecture (`src/motion/`, once built), the ~20 body plans
+(why the foes looked stiff), the locomotion kit (`src/motion-kit/`: section 6, "What was built", lists its modules and the plans on it), the ~20 body plans
 with the techniques each needs, and the phased plan. For the traveller's and people's feet, see
 `docs/systems/animation.md`, "Locomotion". In-game prior art to copy from:
 
