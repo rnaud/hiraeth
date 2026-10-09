@@ -79,7 +79,8 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] **No attack drawn on the ground.** Every foe's and guardian's attack is telegraphed by the body itself
   (wind-up pose, a coil, a glow building on the striking part, a sound), never by discs, fans or lanes filled
   on the floor (src/temples/boss.js "telegraphed on the floor first"; the foes' warning zones; the 100 world
-  enemies' ground zones). The guardians get richer, staged fights: more attacks than the shared three, combos
+  enemies' ground zones). Exception: lobbed shots and thrown projectiles keep a landing mark on the ground
+  (where it will fall), since the thrower's wind-up can't show where it lands. The guardians get richer, staged fights: more attacks than the shared three, combos
   and phase changes that change the moves, openings read from the body. Keep fairness: wind-ups long enough
   to read, the off-screen warning marker for foes behind you. Re-score with the combat-review skill.
 
