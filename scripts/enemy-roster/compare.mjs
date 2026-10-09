@@ -35,13 +35,14 @@ if (PORT === 5173) throw new Error('5173 is the author’s own dev server');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // the wind-ups each sheet draws (attack ids), and the yaw of each view (0: from the front; π/2: side, facing left)
-const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'] };
+const WINDUPS = { crab: ['spin'], lizard: ['blare'], hound: ['pounce'], tripod: ['beam'], blot: ['lunge', 'spit'], worm: ['spit'], ray: ['skim'], moth: ['flash'], centipede: ['lunge'], jelly: ['ward'],
+  toad: ['lob'], heron: ['spear'], skitter: ['rush'], rootknot: ['grip'] };
 // (the flyers are shown flying: 'walk' in the gallery is the creature moving)
 const MOVING = new Set(['ray', 'moth', 'jelly']);
 // (from above for a flat flyer: its back is what the sheet draws and what you see of it)
 const PITCH = { ray: 0.75 };
 // (how far into a wind-up the held pose is: the worm's spit before its stones come out of its mouth)
-const AT = { worm: 0.35 };
+const AT = { worm: 0.35, toad: 0.6 };   // (the toad's: the glob still in its swollen throat)
 const VIEWS = [['front', 0], ['side', Math.PI / 2], ['three-quarter', 0.75]];
 
 // (the sheets' skins: art { main, alt }; batch 2's art 'sheet-1': its own skin, the first listed, and sheet-2's from the skins' notes)

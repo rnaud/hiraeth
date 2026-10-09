@@ -53,11 +53,10 @@ export const kitLegs = (M) => M.rig?.legs.map((l) => l.root);
 export const OLD = {
   machine: (M) => M.legs,
   golem: (M) => M.parts.slice(5, 7),
-  stalker: (M) => M.parts.slice(2, 6),
   slag: (M) => M.parts.slice(-2),
 };
 // The built archetypes (src/enemies/archetypes.js), each on the kit: a kind or a kind in a skin ('lizard@bazaar')
-export const ARCHETYPE_SUBJECTS = { crab: kitLegs, lizard: kitLegs, hound: kitLegs, tripod: kitLegs, centipede: kitLegs };
+export const ARCHETYPE_SUBJECTS = { crab: kitLegs, lizard: kitLegs, hound: kitLegs, tripod: kitLegs, centipede: kitLegs, toad: kitLegs, heron: kitLegs, skitter: kitLegs, rootknot: kitLegs };
 /** The legs of any subject id: an old kind's, or an archetype's (in any skin). */
 export const legsFor = (id) => OLD[id] ?? (ARCHETYPE_SUBJECTS[id.split('@')[0]] ? kitLegs : null);
 

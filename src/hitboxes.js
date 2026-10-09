@@ -42,7 +42,7 @@ export const HITBOX_COLORS = {
   spent: '#a05050',       // a strike already checked
   sight: '#7d8dff',       // a foe's sight (aggro)
   reach: '#3fe0c0',       // a foe's reach (it winds up inside it)
-  keep: '#9fd0ff',        // a spitter's keep-away
+  keep: '#9fd0ff',        // a lobber's keep-away (the toad's)
   shot: '#00ffd5',        // a glob in flight
   bomb: '#ff7a00',        // a bomb's blast
   hook: '#b8ff3a',        // the grappling hook's line and head

@@ -26,7 +26,7 @@ const seeded = (s = 7) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
 
 test('drop amounts: every foe kind has one, small ones a little, heavy ones more; each built archetype its own', () => {
   for (const kind of Object.keys(FOES)) assert.ok(DROP_OF[kind] > 0, `${kind} drops something`);
-  assert.ok(DROP_OF.swarm < 1, 'the swarm\'s blots: a chance of one');
+  assert.ok(DROP_OF.skitter < 1, 'a swarm\'s skitters: a chance of one each');
   assert.ok(DROP_OF.blot < DROP_OF.machine && DROP_OF.machine < DROP_OF.golem, 'by weight');
   for (const a of BUILT) assert.equal(DROP_OF[ARCHETYPES[a].kind], ARCHETYPES[a].drop, `${a}: its drop (src/enemies/archetypes.js)`);
   assert.ok(DROP_OF.blot < DROP_OF.lizard && DROP_OF.lizard < DROP_OF.tripod, 'the teacher least, a sniper machine more');
@@ -39,9 +39,9 @@ test('drop amounts: every foe kind has one, small ones a little, heavy ones more
       assert.ok(n >= 1 && n >= Math.round(base * (1 - SPREAD)) && n <= Math.round(base * (1 + SPREAD)), `${kind} at ${r}: ${n}`);
     }
   }
-  assert.equal(dropAmount({ kind: 'swarm' }, () => 0.2), 1); assert.equal(dropAmount({ kind: 'swarm' }, () => 0.8), 0);
+  assert.equal(dropAmount({ kind: 'skitter' }, () => 0.2), 1); assert.equal(dropAmount({ kind: 'skitter' }, () => 0.8), 0);
   // on average, about the base
-  const rng = seeded(3); let sum = 0; for (let i = 0; i < 2000; i++) sum += dropAmount({ kind: 'swarm' }, rng);
+  const rng = seeded(3); let sum = 0; for (let i = 0; i < 2000; i++) sum += dropAmount({ kind: 'skitter' }, rng);
   assert.ok(Math.abs(sum / 2000 - 0.5) < 0.05);
 });
 

@@ -23,11 +23,13 @@ export const SKINS = {
     antennas: { name: 'copper beetle', palette: { shell: '#b0683c', shell2: '#c98a54', under: '#e8d9b8', leg: '#c98a54', joint: '#3a2a22', claw: '#7fb59a', dark: '#3a2a22', eye: '#e8f07a', accent: '#6fbf9a' }, props: ['antennae', 'patina'] },
   },
   skitter: {
-    desert: { name: 'dune skitter', palette: { body: '#d7af72', accent: '#a96f3d' } },
-    perdide: { name: 'spore mite', palette: { body: '#c8b6dc', accent: '#8f7fb0' } },
-    buried: { name: 'ash grub', palette: { body: '#8d8a86', accent: '#ff8a4c' } },
-    moonfoundry: { name: 'furnace beetle', palette: { body: '#5a4038', accent: '#ff7a2e' } },
-    underside: { name: 'bridge crawler', palette: { body: '#4c566a', accent: '#a7b6c9' } },
+    // (sheet-1: sand-gold domes with an ochre band round them, ivory legs, tiny black eyes with turquoise glints;
+    // sheet-2: dark iron-grey domes with a glowing ember-orange seam down the back, cream enamel legs)
+    desert: { name: 'dune skitter', palette: { dome: '#e0b25a', dome2: '#ecc878', band: '#d98a3c', leg: '#efe4cc', joint: '#e2d4b4', eye: '#1e2a2a', glint: '#5fd0c0', seam: '#ff7a2e', dark: '#6a4a2a' }, props: ['band'] },
+    perdide: { name: 'spore mite', palette: { dome: '#c8b6dc', dome2: '#ddd0ea', band: '#8f7fb0', leg: '#efe8f0', joint: '#d8cce4', eye: '#2a2030', glint: '#9fe8d8', dark: '#4a3c60' }, props: ['band', 'dust'] },
+    buried: { name: 'ash grub', palette: { dome: '#8d8a86', dome2: '#a8a49c', band: '#6a6660', leg: '#cfc8bc', joint: '#b0a898', eye: '#2a2420', glint: '#ff9a5a', seam: '#ff8a4c', dark: '#2e2a28' }, props: ['seam'] },
+    moonfoundry: { name: 'furnace beetle', palette: { dome: '#4a4a4e', dome2: '#5e5e62', band: '#38383c', leg: '#efe4cc', joint: '#ddd0b4', eye: '#2a2020', glint: '#ff9a3e', seam: '#ff7a2e', dark: '#1e1c1e' }, props: ['seam'] },
+    underside: { name: 'bridge crawler', palette: { dome: '#4c566a', dome2: '#5f6a80', band: '#a7b6c9', leg: '#c9d2dc', joint: '#8a96a8', eye: '#1a1e28', glint: '#bfe9ff', dark: '#22283a' }, props: ['rivets'] },
   },
   centipede: {
     buried: { name: 'drill-head centipede', palette: { plate: '#9a968c', plate2: '#b4b0a4', under: '#c8c2b4', leg: '#8a867c', head: '#a49e92', accent: '#d8743a', dark: '#3a3632', eye: '#ffb86a' }, props: ['bands', 'drill'] },
@@ -38,10 +40,13 @@ export const SKINS = {
     antennas: { name: 'wire-wound centipede', palette: { plate: '#6a5848', plate2: '#86705a', under: '#d8c8a8', leg: '#4a3a2e', head: '#5a4a3c', accent: '#c98a54', dark: '#2a2018', eye: '#e8f07a' }, props: ['wire'] },
   },
   toad: {
-    perdide: { name: 'spore toad', palette: { body: '#7d9a5c', accent: '#c8b6dc' } },
-    incal: { name: 'pressure toad', palette: { body: '#6f8fae', accent: '#b39464' } },
-    waterfall: { name: 'pressure-jet toad', palette: { body: '#ef9a8a', accent: '#f2e3c4' } },
-    home: { name: 'bulb toad', palette: { body: '#9bbf6a', accent: '#f2a4c0' }, arena: true },
+    // (sheet-1: mottled moss-green skin with pale lilac spots and warts, a cream belly, the throat sac pale lilac, violet
+    // shadows, heavy-lidded golden eyes; sheet-2: slate-blue skin with lilac spots, an ivory belly, pink lids and toe
+    // tips, a brass valve and a pressure gauge growing from its back, the swollen sac holding hot water and steam)
+    perdide: { name: 'spore toad', palette: { skin: '#8d9b5f', skin2: '#a6ae74', spots: '#b9a6d2', belly: '#efe4c4', sac: '#c4b1d9', dark: '#4c4060', eye: '#d6b450', lid: '#8d9b5f', toe: '#b4a8c4', glob: '#9a7fb8', dots: '#5a4878' }, props: [] },
+    incal: { name: 'pressure toad', palette: { skin: '#6c84a6', skin2: '#8498b8', spots: '#ab9cc8', belly: '#efe6cf', sac: '#c8b2da', dark: '#363c5a', eye: '#2a2024', lid: '#e4a6b4', toe: '#e2a8b6', glob: '#f0a078', dots: '#ffd8a0', brass: '#c49a52' }, props: ['valve', 'gauge', 'steam'], moves: ['volley'] },
+    waterfall: { name: 'pressure-jet toad', palette: { skin: '#e8907e', skin2: '#f2ad9a', spots: '#f6e6c8', belly: '#f7ecd8', sac: '#f4c6b4', dark: '#6a3a40', eye: '#2a2024', lid: '#e8907e', toe: '#f2c0b0', glob: '#9fd8e8', dots: '#e8f8ff', brass: '#c49a52' }, props: ['jet'], moves: ['volley'] },
+    home: { name: 'bulb toad', palette: { skin: '#9bbf6a', skin2: '#b4d488', spots: '#f2a4c0', belly: '#f4ecd0', sac: '#f2c4d8', dark: '#3f5a3a', eye: '#2a2024', lid: '#9bbf6a', toe: '#c8dca8', glob: '#f2a4c0', dots: '#fff0f6', flower: '#f2a4c0' }, props: ['flower'], arena: true },
   },
   lizard: {
     // (sheet-1: dusty terracotta and rose scales mottled with darker bands, ivory belly plates, a tarnished brass horn
@@ -54,10 +59,13 @@ export const SKINS = {
     atelier: { name: 'ink lizard', palette: { hide: '#2b2534', hide2: '#463d52', belly: '#efe4c8', horn: '#b39464', dark: '#141018', eye: '#f8e8bb', accent: '#76617d', verd: '#76617d' }, arena: true },
   },
   heron: {
-    desert: { name: 'cistern heron', palette: { body: '#e9dfbb', accent: '#c98d4f' } },
-    arzach: { name: 'ridge runner', palette: { body: '#8caeb1', accent: '#d7af72' } },
-    perdide: { name: 'marsh snapper', palette: { body: '#c8b6dc', accent: '#7d9a5c' } },
-    mangrove: { name: 'root wader', palette: { body: '#efeae0', accent: '#b8ab92' } },
+    // (sheet-1: a cream glazed clay jug with ochre painted bands and little ochre marks between them, a cream neck and
+    // head, sand-gold legs and toes, a sand bill tipped turquoise; sheet-2: a slim feathered pale blue body with folded
+    // wings and a fan of tail feathers, a pale neck, a hooked ivory bill, a crest of rust-red feathers, ivory legs)
+    desert: { name: 'cistern heron', palette: { body: '#efe6cc', body2: '#f7f0dc', band: '#d9a050', neck: '#ece2c6', bill: '#d9bc7c', tip: '#5fbfb0', leg: '#d9bc7c', joint: '#c49a5a', eye: '#2a2018', crest: '#ece2c6', dark: '#6a5a40' }, props: ['jug'] },
+    arzach: { name: 'ridge runner', palette: { body: '#a2c8de', body2: '#c8e0ec', band: '#7ea8c6', neck: '#d4e6ee', bill: '#ebe0c6', tip: '#c6b48e', leg: '#e8dec8', joint: '#cbbb96', eye: '#2a2018', crest: '#d2603e', dark: '#3a5466' }, props: ['feathers', 'wings', 'crest', 'hook'] },
+    perdide: { name: 'marsh snapper', palette: { body: '#9aa874', body2: '#b4bf8e', band: '#7d8a5a', neck: '#c4caa2', bill: '#d8cfb0', tip: '#7d9a5c', leg: '#d6d0b4', joint: '#b4a8c4', eye: '#2a2030', crest: '#c8b6dc', dark: '#4a4060' }, props: ['feathers', 'cap'] },
+    mangrove: { name: 'root wader', palette: { body: '#efeae0', body2: '#f8f5ee', band: '#d8d0c0', neck: '#f2eee6', bill: '#b8ab92', tip: '#6a6050', leg: '#e2dccd', joint: '#b8ab92', eye: '#2a2820', crest: '#efeae0', dark: '#5a5040' }, props: ['feathers', 'roots'] },
   },
   roller: {
     spheres: { name: 'pearl roller', palette: { body: '#f2ece2', accent: '#c8b8d8' } },
@@ -67,11 +75,14 @@ export const SKINS = {
     mangrove: { name: 'salt mollusk', palette: { body: '#f4f1ea', accent: '#b8ab92' } },
   },
   rootknot: {
-    perdide: { name: 'reed knot', palette: { body: '#c8b6dc', accent: '#7d9a5c' } },
-    perdide2: { name: 'root crawler', palette: { body: '#3f8f8a', accent: '#9fe8d8' } },
-    edena: { name: 'topiary knot', palette: { body: '#6fa85c', accent: '#d8e8a8' } },
-    mangrove: { name: 'mangrove knot', palette: { body: '#e8e2d0', accent: '#9fe8d8' } },
-    waterfall: { name: 'weed knot', palette: { body: '#2f3a3c', accent: '#6fa8a0' } },
+    // (sheet-1: a pale lilac cap with cream gills and a few pale warts, a reed-green bulb ribbed top to bottom with small
+    // pale dots, ochre root-arms, lilac tendrils, two pale glowing eyes, violet shadows; sheet-2: a deep teal cap over
+    // softly glowing turquoise gills, a red-brown bulb, dark bark-brown roots, brass spores drifting)
+    perdide: { name: 'reed knot', palette: { cap: '#c6b2d8', cap2: '#d8c8e6', gill: '#efe2c8', bulb: '#a4bea6', bulb2: '#bcd0bc', root: '#d8b468', root2: '#c09650', tendril: '#bca8d4', eye: '#fff4c8', dark: '#55466c', spore: '#e8d8f0' }, props: [] },
+    perdide2: { name: 'root crawler', palette: { cap: '#2f6f72', cap2: '#3f8486', gill: '#5fe8d8', bulb: '#a8473c', bulb2: '#bd5c4c', root: '#6a4a30', root2: '#553a24', tendril: '#9a4a3c', eye: '#7ff0e8', dark: '#2a1e18', spore: '#d8b048' }, props: ['glow', 'spores'], moves: ['puff'] },
+    edena: { name: 'topiary knot', palette: { cap: '#6fa85c', cap2: '#88bf72', gill: '#d8e8a8', bulb: '#5a8a4a', bulb2: '#6f9f5c', root: '#8a6a48', root2: '#6a503a', tendril: '#4a7a3c', eye: '#f8f0c0', dark: '#2a3a24', spore: '#f0f4d0' }, props: ['clipped'] },
+    mangrove: { name: 'mangrove knot', palette: { cap: '#d8d0c0', cap2: '#e8e2d4', gill: '#b8ab92', bulb: '#c8bfa8', bulb2: '#d8d0bc', root: '#efeae0', root2: '#d8d0c0', tendril: '#b8ab92', eye: '#9fe8d8', dark: '#5a5040', spore: '#f4f0e8' }, props: [] },
+    waterfall: { name: 'weed knot', palette: { cap: '#2f3a3c', cap2: '#46575a', gill: '#6fa8a0', bulb: '#3a4a48', bulb2: '#4a5c5a', root: '#2a3432', root2: '#1e2826', tendril: '#5a7a70', eye: '#bff0e8', dark: '#121718', spore: '#bff0e8' }, props: ['slick'] },
   },
   jelly: {
     arzach2: { name: 'cloud jelly', palette: { bell: '#efc4d4', bell2: '#f8dce6', under: '#a8c8e0', thread: '#d8e4ec', lantern: '#b39464', light: '#ffc27a', eye: '#1a1420', dark: '#8a6a78' }, props: ['paper', 'puffy'] },

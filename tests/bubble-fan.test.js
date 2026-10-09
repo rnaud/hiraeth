@@ -230,13 +230,13 @@ test('a gust is strong near the fan and gone past its reach; on foot it goes alo
 
 // ------------------------------------------------------------------ the fan's behaviour
 
-test('a gust shoves a crate, knocks a blot back, blows a swarm apart, rolls a bomb and blows a bubble along', () => {
+test('a gust shoves a crate, knocks a blot back, blows a skitter away, rolls a bomb and blows a bubble along', () => {
   clearTargets();
   const ph = physicsOf(), P = player(v(0, 0, 0));
   const world = new GadgetWorld({ physics: ph, player: P });
   const box = new THREE.Group(); box.position.set(0.5, 0.45, -3);
   const crate = world.addProp({ object: box, r: 0.55, h: 0.45 });
-  const blot = new Foe('blot', v(-0.8, 0, -4)), swarm = new Foe('swarm', v(0.3, 0, -5)), far = new Foe('blot', v(0, 0, -20));
+  const blot = new Foe('blot', v(-0.8, 0, -4)), swarm = new Foe('skitter', v(0.3, 0, -5)), far = new Foe('blot', v(0, 0, -20));
   for (const f of [blot, swarm, far]) registerTarget({ kind: 'foe', foe: f, radius: f.def.radius + 0.15, position: () => f.chest, enabled: () => f.alive, onHit: (m, p, d, i) => f.hit(m, d, i) });
   const ctx = ctxOf(P, ph, { world });
   const B = bomb.create(ctx), F = fan.create(ctx), W = bubble.create(ctx);
@@ -249,7 +249,7 @@ test('a gust shoves a crate, knocks a blot back, blows a swarm apart, rolls a bo
   const res = F.gust(v(0, 1.2, 0), v(0, 0, -1));
   assert.ok(crate.vel.z < -5, `the crate slides away (${crate.vel.z.toFixed(1)} m/s)`);
   assert.ok(blot.alive && blot.vel.z < -4 && blot.stunned > 0, 'the blot is knocked back, reeling');
-  assert.equal(swarm.alive, false, 'the swarm blot is blown apart');
+  assert.equal(swarm.alive, false, 'the skitter is blown away');
   assert.equal(far.vel.length(), 0, 'past its reach, nothing');
   assert.ok(bb.vel.z < -4, 'the bomb rolls');
   assert.ok(W.bubble.vel.z < -1, 'the bubble drifts on');

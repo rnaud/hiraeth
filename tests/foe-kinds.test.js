@@ -36,7 +36,7 @@ function only(kind, id, at = v(), o = {}) {
 
 test('the worlds’ old kinds (stand-ins for archetypes not built yet), each with two or three telegraphed attacks, a note and a look of its own', () => {
   const fresh = Object.keys(KINDS);
-  assert.ok(fresh.length >= 4, `${fresh.length} kinds`);
+  assert.ok(fresh.length >= 3, `${fresh.length} kinds`);   // (the golem, the drone, the slag walker: batch 4 takes them)
   for (const k of fresh) {
     const D = FOES[k];
     assert.ok(D.hp > 0 && D.radius > 0 && D.speed > 0 && D.name, k);
@@ -176,25 +176,26 @@ test('the rust drone: its harpoon line pulls you in until it is cut; guarded, th
   foes.dispose(); clearTargets();
 });
 
-test('the root stalker: roots along the ground grab and drag you in, then it lashes; a cut breaks the hold; a bloom puts it to sleep; embers burn it', () => {
-  const s = only('stalker', 'grab'), P = player(v(0, 0, 5));
-  assert.ok(untilWind(s, P, 'grab'));
-  assert.ok(!groundMark(s.atk), 'its roots read from its reared arms, nothing on the floor');
-  const ev = runFor(s, P, attackOf('stalker', 'grab').wind + 0.4);
+test('the root knot (the root stalker’s mind): roots along the ground grip and drag you in, then it lashes; a cut breaks the hold; a bloom puts it to sleep; embers burn it', () => {
+  const s = only('rootknot', 'grip'), P = player(v(0, 0, 5));
+  assert.ok(untilWind(s, P, 'grip'));
+  assert.ok(!groundMark(s.atk), 'its roots read from its plunged arms, nothing on the floor');
+  const ev = runFor(s, P, attackOf('rootknot', 'grip').wind + attackOf('rootknot', 'grip').strike + 0.1);
   assert.equal(strikes(ev)[0]?.hit, true);
-  assert.equal(s.state, 'wind'); assert.equal(s.atk.id, 'lash', 'the grab runs straight into a lash');
+  assert.equal(s.state, 'wind'); assert.equal(s.atk.id, 'lash', 'the grip runs straight into a lash');
   clearTargets();
-  const Q = player(v(0, 0, 0)), foes = world(Q), t = foes.add('stalker', v(0, 0, 5));
-  foes.strike(t, attackOf('stalker', 'grab'));
+  const Q = player(v(0, 0, 0)), foes = world(Q), t = foes.add('rootknot', v(0, 0, 5));
+  foes.strike(t, attackOf('rootknot', 'grip'));
   assert.equal(foes.hold?.kind, 'grab');
   foes.hurt(t, 'blade', v(0, 0, 1), { damage: 1 }); foes.updateHold(DT);
   assert.equal(foes.hold, null, 'cut free');
-  const b = new Foe('stalker', v());
+  const b = new Foe('rootknot', v());
   b.hit('bloom', v(0, 0, 1));
   assert.ok(b.sleep > 2 && b.stunned > 2, 'asleep in flower');
-  assert.equal(b.hit('blade', v(0, 0, 1), { damage: 1 }), true); assert.equal(b.hp, FOES.stalker.hp - 2, 'and cut twice as deep');
-  const c = new Foe('stalker', v()); c.hit('fire', v(0, 0, 1));
-  assert.equal(c.hp, FOES.stalker.hp - 2, 'an ember burns it');
+  assert.equal(b.hit('blade', v(0, 0, 1), { damage: 1 }), true); assert.equal(b.hp, FOES.rootknot.hp - 2, 'and cut twice as deep');
+  assert.ok(b.sleep > 0 && b.stunned > 0, 'and it sleeps on through the cuts');
+  const c = new Foe('rootknot', v()); c.hit('fire', v(0, 0, 1));
+  assert.equal(c.hp, FOES.rootknot.hp - 2, 'an ember burns it');
   foes.dispose(); clearTargets();
 });
 
@@ -273,7 +274,7 @@ test('the antler hound: running it is a shadow the blade passes through; an embe
   assert.ok(Math.abs(Math.atan2(Math.sin(s.attackH - Math.PI), Math.cos(s.attackH - Math.PI))) < 0.1, 'facing you');
 });
 
-test('old foes, new attacks: the blot’s lunge-combo (stopped by a guard), the spitter’s arc volley, the machine’s ground slam (jump the shockwave)', () => {
+test('old foes, new attacks: the blot’s lunge-combo (stopped by a guard), the arc volley (the bellows toad’s now), the machine’s ground slam (jump the shockwave)', () => {
   // the combo: two lunges; a guarded first one ends it
   const b = only('blot', 'combo'), P = player(v(0, 0, 2.2));
   assert.ok(untilWind(b, P, 'combo'));
@@ -288,7 +289,7 @@ test('old foes, new attacks: the blot’s lunge-combo (stopped by a guard), the 
   for (let i = 0; i < 6 / DT && !blocked; i++) { foes.update(DT); blocked = c.state === 'recover' && c.flash > 0; again ||= c.atk.id === 'again'; }
   assert.ok(blocked && !again, 'blocked: no second lunge');
   // the volley: three rings in a row across your way
-  const s = only('spitter', 'volley', v(0, 0, 0)), R = player(v(0, 0, 9));
+  const s = only('toad', 'volley', v(0, 0, 0)), R = player(v(0, 0, 9));
   assert.ok(untilWind(s, R, 'volley'));
   assert.equal(s.attackPts.length, 3);
   const xs = s.attackPts.map((p) => p.x).sort((a, b) => a - b);
@@ -314,10 +315,10 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
-  const d = foes.add('drone', v(0, 0, 6)), bl = foes.add('blot', v(3, 0, 1)), sp = foes.add('spitter', v(-6, 0, 0));
+  const d = foes.add('drone', v(0, 0, 6)), bl = foes.add('blot', v(3, 0, 1)), sp = foes.add('toad', v(-6, 0, 0));
   d.attacksAt = () => [attackOf('drone', 'harpoon')];
   bl.attacksAt = () => [attackOf('blot', 'lunge')];
-  sp.attacksAt = () => [attackOf('spitter', 'lob')];
+  sp.attacksAt = () => [attackOf('toad', 'lob')];
   let droneDrawn = false, blotDrawn = false, lobDrawn = false, droneGlow = false;
   for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && d.tele.group.visible; droneGlow ||= d.state === 'wind' && d.k > 0.5 && !!d.glow?.visible; blotDrawn ||= bl.state === 'wind' && bl.tele.group.visible; lobDrawn ||= sp.state === 'wind' && sp.tele.group.visible; }
   assert.equal(droneDrawn, false, 'the harpoon’s lane is not drawn: the gun tips at you, its tip glowing');
@@ -335,8 +336,8 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   gentle.addWave(k, attackOf('machine', 'quake')); G.pos.set(0, 0, 8);
   for (let i = 0; i < 1.5 / DT; i++) gentle.updateHazards(DT);
   assert.ok(Math.abs(G.hurts[0] - attackOf('machine', 'quake').wave.damage * GENTLE.harm) < 1e-9, 'half the harm');
-  gentle.strike(k, attackOf('stalker', 'grab'));
-  assert.ok(gentle.hold.t <= attackOf('stalker', 'grab').grab.time * 0.6 + 1e-9, 'a shorter hold');
+  gentle.strike(k, attackOf('rootknot', 'grip'));
+  assert.ok(gentle.hold.t <= attackOf('rootknot', 'grip').grab.time * 0.6 + 1e-9, 'a shorter hold');
   gentle.dispose(); clearTargets();
 });
 

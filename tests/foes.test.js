@@ -272,10 +272,10 @@ test('a relic out in the wilds is guarded: its blots gather as you come near, an
   foes.dispose(); clearTargets();
 });
 
-test('more foes: the spitter keeps its distance and lobs at where you stand, the flyer hovers out of reach and dives low, the swarm falls to a push; a stilled foe takes the blade double', async () => {
+test('more foes: the bellows toad keeps its distance and lobs at where you stand, the flyer hovers out of reach and dives low, a skitter falls to a push; a stilled foe takes the blade double', async () => {
   const { packKinds, waveWords } = await import('../src/foes.js');
-  // the spitter: it backs off when you come close, and its ring lands where you stood
-  const s = new Foe('spitter', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 4));
+  // the toad: it backs off when you come close, and its ring lands where you stood
+  const s = new Foe('toad', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 4));
   run(s, P, 0.5);
   assert.ok(s.pos.distanceTo(P.pos) > 4.2, 'backs off');
   let warned = false; for (let i = 0; i < 6 / DT && !warned; i++) warned = s.update(DT, P, env).includes('warn');
@@ -287,8 +287,8 @@ test('more foes: the spitter keeps its distance and lobs at where you stand, the
   let dove = false; for (let i = 0; i < 8 / DT && !dove; i++) dove = f.update(DT, Q, env).some((e) => e.type === 'strike');
   run(f, Q, 0.6);
   assert.ok(dove && f.alt < 1, 'dove, and low');
-  // the swarm: a push ends one; a stilled blot takes a cut double
-  const w = new Foe('swarm', v());
+  // a skitter: a push ends one; a stilled blot takes a cut double
+  const w = new Foe('skitter', v());
   assert.equal(w.hit('push', v(0, 0, 1), { shove: 2 }), 'burst');
   const b = new Foe('blot', v()); b.hit('stun');
   assert.equal(b.hit('blade', v(0, 0, 1), { damage: 1 }), 'burst', 'stilled: one cut is two');

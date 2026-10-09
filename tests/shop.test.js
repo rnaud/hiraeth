@@ -116,8 +116,8 @@ test('the potion switch: finite since the first shop; a save from before gets a 
 });
 
 test('the prices, against the drop table: a heart in a few fights, never a grind; a potion about one fight', () => {
-  // a desert fight: three or four of its foes (ink blots, spitters, a dune ray)
-  const fight = DROP_OF.blot * 2 + DROP_OF.spitter + DROP_OF.ray;
+  // an early fight: three or four foes (ink blots, a stilt heron, a sky ray)
+  const fight = DROP_OF.blot * 2 + DROP_OF.heron + DROP_OF.ray;
   assert.ok(fight >= 8 && fight <= 16, `a fight: ${fight} chimes`);
   const fights = (n) => n / fight;
   assert.ok(fights(PRICES.potion) <= 1.2, 'a potion: about one fight');

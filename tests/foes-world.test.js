@@ -250,7 +250,7 @@ test('a swinging pendulum knocks a foe away hard (a cut, a stun); off a bridge, 
   F.dispose(); off(); fresh();
 });
 
-test('a temple plate: a machine on it presses it, stilled it still weighs; a swarm blot or a flyer in the air does not', () => {
+test('a temple plate: a machine on it presses it, stilled it still weighs; a skitter or a flyer in the air does not', () => {
   fresh();
   const pressed = new Set();
   const plate = { id: 'p1', pos: v(0, 0, 0), r: 1.3, solid: {}, weighed: () => false };
@@ -260,7 +260,7 @@ test('a temple plate: a machine on it presses it, stilled it still weighs; a swa
   assert.ok(on('machine'));
   assert.ok(on('machine', (f) => f.hit('stun')), 'stilled, it still weighs');
   assert.ok(on('blot'), 'a blot weighs too');
-  assert.equal(on('swarm'), false, 'a swarm blot is too light');
+  assert.equal(on('skitter'), false, 'a skitter is too light');
   assert.equal(on('drone'), false, 'a drone in the air does not');
   assert.ok(on('drone', (f) => { f.alt = 0.3; }), 'stilled and fallen onto it, it does');
   assert.equal(on('machine', (f) => { f.air = { vy: 2, top: 0, base: 0 }; }), false, 'thrown, it is off it');

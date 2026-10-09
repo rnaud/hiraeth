@@ -290,3 +290,52 @@ test('the rig plants its drawn feet: the foot meshes stay put while down, and th
   assert.ok(slid / 6 / 6 < 0.03, `drawn feet slide ${(slid / 36).toFixed(3)} m per m walked`);
   assert.ok((maxD - minD) / rig.length > 0.15, `hip-to-foot changes ${((maxD - minD) / rig.length * 100).toFixed(0)} % of the leg`);
 });
+
+// ---------------------------------------------------------------- phase 5 (the roster's batch 3)
+test('a three-segment arm (the root knot’s): FABRIK keeps its three lengths, ends on its planted foot, and its two bends stay on their side frame to frame', () => {
+  const g = new THREE.Group(), body = new THREE.Group(); body.position.y = 1.3; g.add(body);
+  const legs = [0, 1, 2, 3, 4].map((k) => { const a = Math.PI / 5 + (k / 5) * Math.PI * 2; return jointedLeg({ group: g, body, hip: { x: Math.sin(a) * 0.5, y: 0, z: Math.cos(a) * 0.5 }, foot: { x: Math.sin(a) * 1.4, z: Math.cos(a) * 1.4 }, lenA: 0.7, lenB: 0.7, lenC: 0.55, pole: poleFor('out-up', { x: Math.sin(a), z: Math.cos(a) }), radius: 0.1, pad: 'point', mats: { joint: new THREE.MeshBasicMaterial() } }); });
+  assert.ok(legs.every((l) => l.chain && l.tip), 'a third segment and its chain');
+  const rig = new Rig({ plan: PLANS.tentacled, group: g, body, legs });
+  assert.ok(Math.abs(rig.length - (0.7 + 0.7 + 0.55)) < 1e-9, 'the leg length counts all three');
+  const f = { pos: v(), heading: 0, state: 'chase' }, first = [];
+  for (let i = 0; i < 180; i++) {
+    f.pos.z += 1.6 / 60;
+    rig.update(f, 1 / 60, { ground: () => 0 }); g.position.copy(f.pos); rig.write();
+    for (const [k, L] of legs.entries()) {
+      const P = L.chain;
+      assert.ok(Math.abs(P[0].distanceTo(P[1]) - 0.7) < 2e-3 && Math.abs(P[1].distanceTo(P[2]) - 0.7) < 2e-3 && Math.abs(P[2].distanceTo(P[3]) - 0.55) < 2e-3, `arm ${k}: its lengths at ${i}`);
+      // (the first bend out from the body, beyond its hip and its foot's line: never folded back under it)
+      const out = Math.hypot(P[1].x, P[1].z) - Math.hypot(P[0].x, P[0].z);
+      if (i === 0) first[k] = Math.sign(out);
+      assert.equal(Math.sign(out), first[k], `arm ${k}: its first bend keeps its side at ${i}`);
+    }
+  }
+  const P = legs[0].chain, foot = rig.planner.feet[0].pos.clone().sub(g.position);
+  assert.ok(P[3].distanceTo(foot.setY(foot.y + legs[0].ankle)) < 0.02, 'its tip on its planted foot');
+});
+
+test('a bird’s leg (the stilt plan’s `back` pole) bends its joint behind the line from hip to foot; a swarm’s rig plans at the mid tier at most (plan.tier)', () => {
+  const knee = v();
+  twoBone(v(0, 2.5, 0), v(0, 0, 0.1), 0.95, 1.8, new THREE.Vector3(...Object.values(poleFor('back', { x: 0.3, z: 0 }))).normalize(), knee);
+  assert.ok(knee.z < -0.05, `the joint points back (${knee.z.toFixed(2)})`);
+  assert.equal(PLANS.skitterers.tier, 'mid');
+  const { rig, g } = hexRig({ tier: 'mid' });
+  const f = { pos: v(), heading: 0, state: 'chase' };
+  let calls = 0; const update = rig.planner.update.bind(rig.planner); rig.planner.update = (...a) => { calls++; return update(...a); };
+  for (let i = 0; i < 60; i++) { f.pos.z += 0.04; rig.update(f, 1 / 60, { eye: v(0, 0, f.pos.z - 2), ground: () => 0 }); g.position.copy(f.pos); rig.write(); }
+  assert.equal(rig.tier, 'mid', 'close by, still mid');
+  assert.ok(calls >= 28 && calls <= 32, `planned every 2nd frame (${calls} of 60)`);
+});
+
+test('a hopper lands with its feet at their homes, not spread over a stride (ctx.landHome)', () => {
+  const { rig, g } = hexRig();
+  const f = { pos: v(), heading: 0, state: 'chase' };
+  rig.update(f, 1 / 60, { ground: () => 0 });
+  rig.update(f, 1 / 60, { ground: () => 0, air: 1.5 });
+  f.pos.z = 1.2;
+  rig.update(f, 1 / 60, { ground: () => 0, landHome: true });
+  const h = v();
+  rig.planner.feet.forEach((foot) => { rig.planner.homeOf(foot, f.pos, 0, h); assert.ok(foot.pos.distanceTo(h) < 1e-9 && foot.planted, 'at its home, planted'); });
+  assert.ok(g);
+});

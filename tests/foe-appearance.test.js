@@ -7,10 +7,10 @@ const make=()=>new Foes({scene:new THREE.Scene(),level:{},levelId:'arena',physic
 test('enemy warning colours belong to each enemy and are released with it',()=>{
  const foes=make();
  // Warm shared, immutable materials before measuring ownership.
- for(const k of ['blot','spitter','machine'])foes.add(k,new THREE.Vector3());
+ for(const k of ['blot','toad','machine'])foes.add(k,new THREE.Vector3());
  for(const f of [...foes.list])foes.remove(f);
  const baseline=materialCount();
- for(const kind of ['blot','spitter','machine']){
+ for(const kind of ['blot','toad','machine']){
   const a=foes.add(kind,new THREE.Vector3()),b=foes.add(kind,new THREE.Vector3());
   assert.notEqual(a.model.eyeMat,b.model.eyeMat);
   const original=b.model.eyeMat.uniforms.uColor.value.clone();

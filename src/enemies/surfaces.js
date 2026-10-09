@@ -141,6 +141,111 @@ export const SURFACES = {
   },
 };
 
+// batch 3 (v1.12): the bellows toad, the stilt heron, the skitter swarm, the root knot
+Object.assign(SURFACES, {
+  toad: {
+    '*': {
+      // (sheet-1: round lilac spots of every size and warts over mottled moss-green, the spots inked; sheet-2 the same on slate)
+      skin: {
+        spots: { color: 'spots', scale: 0.2, share: 0.75, size: 0.8, jitter: 1, soft: 0.22 },
+        spots2: { color: 'spots+0.2', scale: 0.1, share: 0.45, size: 0.55, amount: 0.9, soft: 0.15 },
+        mottle: { color: 'skin2', scale: 0.24, amount: 0.38, soft: 0.16, detail: 0.5, strength: 0.6 },
+      },
+      // (the belly's folds across it, and its pale stipple)
+      belly: { bands: { color: 'belly*0.9', axis: 1, period: 0.1, width: 0.06, ink: 0.18 }, ...SPECKS('dark', 0.2, 0.05) },
+      // (the sac: folds down its length, a light through it as it swells)
+      sac: { stripes: { color: 'sac*0.88', axis: 0, period: 0.12, width: 0.1, ink: 0.25 }, glow: { color: 'sac+0.35', amount: 0.3, rim: 0.5, core: 1.5, emit: 0.15 } },
+      glob: { spots: { color: 'dots', scale: 0.11, share: 0.6, size: 0.65, soft: 0.05 } },
+      toe: { mottle: { color: 'skin', scale: 0.08, amount: 0.3, soft: 0.1, strength: 0.5 } },
+      web: { stripes: { color: 'toe*0.85', axis: 0, period: 0.09, width: 0.1, ink: 0.3 } },
+    },
+    incal: {
+      // (sheet-2: denser smaller lilac-pink spots and a scatter of pale dots over the slate)
+      skin: {
+        spots: { color: 'spots', scale: 0.16, share: 0.75, size: 0.78, jitter: 1, soft: 0.22 },
+        spots2: { color: 'toe', scale: 0.09, share: 0.45, size: 0.5, amount: 0.85, soft: 0.15 },
+        mottle: { color: 'skin2', scale: 0.2, amount: 0.35, soft: 0.16, detail: 0.5, strength: 0.6 },
+      },
+      brass: { gloss: { size: 0.03, sky: 0.5 } },
+    },
+    waterfall: { brass: { gloss: { size: 0.03, sky: 0.5 } } },
+  },
+  heron: {
+    '*': {
+      // (the legs: bony segments, fine lines along them; the bill tipped another colour toward its point)
+      leg: { grain: { color: 'leg*0.88', spacing: 0.04, ink: 0.12, warp: 0.25, amount: 0.25 }, ...SPECKS('dark', 0.18, 0.04) },
+      joint: { ...SPECKS('dark', 0.4, 0.04) },
+      bill: { fade: { color: 'tip', axis: 2, from: 0.5, to: 0.86 } },
+      neck: { ...SPECKS('dark', 0.2, 0.05) },
+    },
+    desert: {
+      // (sheet-1: glazed cream clay, two ochre lines round its belly, a crackle of fine lines in the glaze, a gloss)
+      body: {
+        bands: { color: 'band', axis: 1, period: 1, width: 0.045, offset: -0.05, ink: 0 },
+        stripes: { color: 'band', axis: 1, period: 1, width: 0.045, offset: -0.22, ink: 0 },
+        scales: { color: 'dark', size: 0.2, ink: 0.18, tone: 0.025, amount: 0.08, mode: 1 },
+        gloss: { size: 0.045, sky: 0.6, amount: 0.8 },
+      },
+    },
+    arzach: {
+      // (sheet-2: overlapping pale blue feathers, darker at their edges; a pale neck; rust-red crest)
+      body: { scales: { color: 'band', size: 0.1, ink: 0.18, tone: 0.06, amount: 0.25 }, mottle: { color: 'body2', scale: 0.25, amount: 0.3, soft: 0.2, strength: 0.5 } },
+      wing: { scales: { color: 'band', size: 0.12, ink: 0.2, tone: 0.06, amount: 0.28 } },
+      crest: { fade: { color: 'crest*0.7', axis: 1, from: 0.0, to: 0.3 } },
+    },
+    perdide: { body: { scales: { color: 'band', size: 0.08, ink: 0.3, tone: 0.06, amount: 0.25 } }, crest: { spots: { color: 'crest+0.4', scale: 0.08, share: 0.45, size: 0.55 } } },
+    mangrove: { body: { scales: { color: 'band', size: 0.08, ink: 0.25, tone: 0.05, amount: 0.2 } }, leg: { grain: { color: 'joint', spacing: 0.035, ink: 0.4, warp: 0.6, amount: 0.5 } } },
+  },
+  skitter: {
+    '*': {
+      // (sheet-1: a smooth gold dome with one ochre band round it, fine stipple, a soft sheen)
+      dome: {
+        bands: { color: 'band', axis: 1, period: 1, width: 0.045, offset: -0.1, ink: 0.15 },
+        mottle: { color: 'dome2', scale: 0.12, amount: 0.3, soft: 0.2, strength: 0.5 },
+        ...SPECKS('dark', 0.3, 0.035),
+        gloss: { size: 0.02, sky: 0.3, amount: 0.3 },
+      },
+      leg: { ...SPECKS('dark', 0.35, 0.025) },
+      joint: { bands: { color: 'joint*0.8', axis: 1, period: 0.05, width: 0.15, ink: 0.4 } },
+    },
+    moonfoundry: {
+      // (sheet-2: dark iron, pitted and stippled, a glowing seam down the back; no band)
+      dome: { bands: null, rust: { color: 'dome2', color2: 'band', amount: 0.25, amount2: 0.1, scale: 0.06, down: 0.3, pits: 0.6 }, ...SPECKS('#18161a', 0.6, 0.03), gloss: { size: 0.025, sky: 0.3, amount: 0.6 } },
+      seam: { glow: { color: 'seam', amount: 0.6, rim: 0.2, core: 1.4, pulse: 2.2, emit: 0.8 } },
+    },
+    buried: {
+      dome: { bands: { color: 'band', axis: 2, period: 0.09, width: 0.25, ink: 0.4 }, ...SPECKS('dark', 0.5, 0.03) },
+      seam: { glow: { color: 'seam', amount: 0.55, rim: 0.2, core: 1.4, pulse: 1.8, emit: 0.7 } },
+    },
+    underside: { dome: { bands: null, spots: { color: 'band', scale: 0.08, share: 0.5, size: 0.35, ring: 0.4 }, gloss: { size: 0.03, sky: 0.5 } } },
+  },
+  rootknot: {
+    '*': {
+      // (sheet-1: a lilac cap freckled with pale raised warts; cream gills fanning out under it; a bulb ribbed top to
+      // bottom with small pale dots; ochre roots with lines along them)
+      cap: {
+        spots: { color: 'cap2+0.3', scale: 0.26, share: 0.4, size: 0.55, soft: 0.04 },
+        spots2: { color: 'cap*0.82', scale: 0.08, share: 0.3, size: 0.4, amount: 0.6 },
+        mottle: { color: 'cap*0.88', scale: 0.4, amount: 0.35, soft: 0.2, strength: 0.6 },
+      },
+      gill: { stripes: { color: 'gill*0.72', axis: 4, period: 0.045, width: 0.3, ink: 0.45 } },
+      bulb: {
+        stripes: { color: 'bulb*0.82', axis: 4, period: 0.16, width: 0.06, ink: 0.3 },
+        spots2: { color: 'bulb2+0.4', scale: 0.13, share: 0.35, size: 0.32 },
+        mottle: { color: 'bulb2', scale: 0.3, amount: 0.3, soft: 0.2, strength: 0.4 },
+      },
+      root: { grain: { color: 'root2', spacing: 0.045, ink: 0.35, warp: 0.5, amount: 0.5 }, ...SPECKS('dark', 0.3, 0.05) },
+      tendril: { fade: { color: 'tendril*0.7', axis: 1, from: -0.1, to: -0.5 } },
+    },
+    perdide2: {
+      // (sheet-2: the turquoise gills glow softly under the deep teal cap)
+      gill: { stripes: { color: 'gill*0.7', axis: 4, period: 0.045, width: 0.3, ink: 0.35 }, glow: { color: 'gill', amount: 0.55, rim: 0.3, core: 1.2, pulse: 1.1, emit: 0.7 } },
+    },
+    edena: { cap: { spots: null, spots2: null, scales: { color: 'cap*0.8', size: 0.12, ink: 0.3, tone: 0.08, amount: 0.3 } } },
+    waterfall: { cap: { gloss: { size: 0.05, sky: 0.7 } }, bulb: { gloss: { size: 0.05, sky: 0.6 } } },
+  },
+});
+
 /** A colour of the table: '#rrggbb', a palette key, darker 'key*0.7', paler 'key+0.3'. */
 export function surfaceColor(c, palette = {}) {
   if (typeof c !== 'string' || c.startsWith('#')) return c;

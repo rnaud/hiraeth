@@ -40,8 +40,8 @@ test('what a walker can cross: steps it walks, ledges a climber clambers, drops 
   assert.equal(linkOf(-4, reachOf(FOES.blot)), 'drop');
   assert.equal(linkOf(-4, reachOf(FOES.machine)), null, 'a machine drops less far');
   assert.equal(linkOf(-2, reachOf(FOES.worm)), null, 'a worm under the sand only walks');
-  for (const k of ['blot', 'shade', 'stalker', 'hound']) assert.ok(FOES[k].clamber, `${k} clambers`);
-  assert.ok(FOES.spitter.perch, 'the spitter takes the high ground');
+  for (const k of ['blot', 'shade', 'hound']) assert.ok(FOES[k].clamber, `${k} clambers`);
+  assert.ok(FOES.toad.perch, 'the bellows toad takes the high ground');
   // a hop arcs over the higher end, and ends where it was going
   const a = hopAt({ x: 0, y: 0, z: 0 }, { x: 1, y: 2, z: 0 }, 0.5), b = hopAt({ x: 0, y: 0, z: 0 }, { x: 1, y: 2, z: 0 }, 1);
   assert.ok(a.y >= 2 * 0.7 && a.x === 0.5, 'half way over, already near the top');
@@ -124,12 +124,12 @@ test('a blot hops down off the ledge after you; one that cannot reach you holds 
   }
 });
 
-test('a spitting blot climbs the ramp to the high ground, lobs down from there, and keeps its perch while you are below', () => {
+test('a bellows toad climbs the ramp to the high ground, lobs down from there, and keeps its perch while you are below', () => {
   fresh();
   const env = { ground: groundOf(arena()), seen: () => true };
   const P = player(v(2, 0, -30));
-  assert.ok(findPerch(v(-4, 0, -33), P.pos, env, { keep: FOES.spitter.keep, reach: FOES.spitter.reach }), 'there is a perch near');
-  const s = new Foe('spitter', v(-4, 0, -33), { rng: () => 0.5 }); s.state = 'chase'; s.cool = 4;
+  assert.ok(findPerch(v(-4, 0, -33), P.pos, env, { keep: FOES.toad.keep, reach: FOES.toad.reach }), 'there is a perch near');
+  const s = new Foe('toad', v(-4, 0, -33), { rng: () => 0.5 }); s.state = 'chase'; s.cool = 4;
   const ev = run(s, P, env, 9, (f) => { P.health = 1; });
   assert.ok(s.pos.y - P.pos.y >= PERCH.rise - 0.3 && s.pos.y - P.pos.y > STRIKE_RISE, `up the ramp, out of a blow's reach (y ${s.pos.y.toFixed(2)})`);
   assert.ok(s.perched != null, 'perched');
@@ -140,7 +140,7 @@ test('a spitting blot climbs the ramp to the high ground, lobs down from there, 
   s.cool = 2;
   run(s, P, env, 3, () => { P.health = 1; });
   assert.ok(s.pos.y >= top - 0.5, `it kept the high ground (y ${s.pos.y.toFixed(2)})`);
-  // you go off out of its reach: it comes down after you, as any spitter
+  // you go off out of its reach: it comes down after you, as any lobber
   P.pos.set(s.pos.x + 14, 0, s.pos.z + 12);
   run(s, P, env, 8, () => { P.health = 1; });
   assert.equal(s.perched, null);

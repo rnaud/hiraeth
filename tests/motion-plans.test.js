@@ -5,6 +5,9 @@
 //   quadruped  the horn lizard and the antler hound (one rig, two archetypes; a second skin of each)
 //   machine    the makers' machine (three legs), the lamp tripod (in its own skin and as the diving bell)
 //   centipede  the ring centipede: 24 legs in a metachronal wave on its path (kit phase 4)
+//   batch 3    (kit phase 5) the skitter (a quick tripod at the mid tier), the stilt heron (two stilts one at a time),
+//              the root knot (five three-segment arms on FABRIK, one at a time), the bellows toad (hop by hop: its
+//              feet still between hops, tucked in the air; the hop's rate follows its speed)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -22,6 +25,12 @@ const SUBJECTS = [
   { id: 'tripod@underwater', legs: kitLegs, n: 3, groups: [[0], [1], [2]] },
   { id: 'centipede', legs: kitLegs, n: 24, groups: 'wave' },             // (a metachronal wave: a pair's two legs never together)
   { id: 'centipede@eclipse', legs: kitLegs, n: 24, groups: 'wave' },
+  { id: 'skitter', legs: kitLegs, n: 6, groups: [[0, 2, 4], [1, 3, 5]] },
+  { id: 'heron', legs: kitLegs, n: 2, groups: [[0], [1]] },
+  { id: 'heron@arzach', legs: kitLegs, n: 2, groups: [[0], [1]] },
+  { id: 'rootknot', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] },
+  { id: 'toad', legs: kitLegs, n: 4, groups: [[0, 1], [2, 3]] },          // (a hop lifts all four: arms and legs)
+  { id: 'toad@incal', legs: kitLegs, n: 4, groups: [[0, 1], [2, 3]] },
 ];
 
 const sys = foeSystem();

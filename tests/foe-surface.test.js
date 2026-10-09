@@ -27,6 +27,10 @@ test('a foe surface compiles only the features it names, with their uniforms', (
     assert.match(FOE_SURFACE_GLSL, new RegExp(`#ifdef FS_${f.toUpperCase()}\\b`), `${f}: drawn`);
     assert.match(FOE_SURFACE_PARS, new RegExp(`#ifdef FS_${f.toUpperCase()}\\b`), `${f}: its uniforms`);
   }
+  // bands and stripes across x, y, z, rings round y (3) and lines out from it by angle (4: a bulb's ribs, a cap's gills)
+  assert.match(FOE_SURFACE_GLSL, /a < 3\.5 \? length\(p\.xz\) : atan\(p\.z, p\.x\)/);
+  const ribs = makeMaterial({ color: '#93ad98', foeSurface: { stripes: { color: '#5a7060', axis: 4, period: 0.18, width: 0.07 } }, key: 'test.foe-surface.ribs' });
+  assert.equal(ribs.uniforms.uFs_stripes.value.x, 4, 'the angle axis');
   // hooked into the surface shader additively: its patterns in the albedo stage, its gloss once the light is known
   assert.match(m.fragmentShader, /foeSurface\(albedo, emit, n\)/);
   assert.match(m.fragmentShader, /foeGloss\(albedo, L, n\)/);
@@ -44,7 +48,7 @@ test('the table’s colours: hex, a palette key, darker or paler', () => {
 test('every skin’s surfaces resolve from its palette, on parts its body really makes', () => {
   for (const a of BUILT) {
     assert.ok(SKINS[a], `${a}: an archetype with skins`);
-    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater' }[a]}.js`, import.meta.url), 'utf8');
+    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater', toad: 'hopper', heron: 'stilt', skitter: 'skitterers', rootknot: 'tentacled' }[a]}.js`, import.meta.url), 'utf8');
     const parts = new Set([...src.matchAll(/M\.(?:mat|own)\([`'"]([a-z0-9]+)/g)].map((m) => m[1]));
     for (const [skin, table] of Object.entries(SURFACES[a])) {
       if (skin !== '*') assert.ok(SKINS[a][skin], `${a}: a skin ${skin}`);

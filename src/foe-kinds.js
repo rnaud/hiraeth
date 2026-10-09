@@ -3,9 +3,10 @@ import { makeMaterial } from './materials.js';
 
 // The worlds' old kinds (docs/systems/foes.md, "Each world's foes"): since the enemy roster (docs/design/enemy-roster.md,
 // src/enemies/archetypes.js) they run as the stand-in bodies of archetypes not built yet (the glass golem for the
-// furnace brute, the rust drone for the ring drone, the root stalker for the root knot, the slag walker for the
-// crucible cart); each goes when its archetype lands (the dune ray, the sign moth and the winged blot went with batch 2:
-// the mound worm, the signal moth and the sky ray). Their tuning (KINDS, merged into foes.js FOES), what the game says
+// furnace brute, the rust drone for the ring drone, the slag walker for the crucible cart); each goes when its
+// archetype lands (the dune ray, the sign moth and the winged blot went with batch 2: the mound worm, the signal moth
+// and the sky ray; the root stalker with batch 3: the root knot, as the spitting blot and the blot swarm in foes.js
+// went for the bellows toad and the skitters). Their tuning (KINDS, merged into foes.js FOES), what the game says
 // the first time you meet each (NOTES), and how each looks and moves (kindModel: a model with its own anim(f, c),
 // called by Foes.look). The built archetypes' own are in src/enemies/archetypes.js and src/enemies/plans/.
 //
@@ -56,16 +57,6 @@ export const KINDS = {
     ],
     recover: 1.4, cool: [1.6, 2.6], hit: 0.35,
   }),
-  // the White Mangrove, Lorn: a walking knot of white roots; its roots run along the ground and drag you in
-  stalker: S({
-    name: 'root stalker', hp: 4, radius: 0.65, height: 1.3, speed: 2.7, sight: 16, giveUp: 35, reach: 6.5, breaks: true, clamber: true,
-    tone: '#7fcfc0', takes: { shoot: 1, fire: 2, bloom: 'hold' },
-    attacks: [
-      { id: 'grab', shape: 'lane', width: 1.2, range: 6.5, damage: 0.25, wind: 1.0, strike: 0.35, contact: 0.7, grab: { time: 1.1, pull: 6 }, then: 'lash', min: 2.6, max: 6.5, weight: 1.5, onParry: 'cut' },
-      { id: 'lash', shape: 'cone', range: 2.8, angle: 1.0, damage: 0.5, wind: 0.75, strike: 0.26, contact: 0.5, max: 2.6 },
-    ],
-    recover: 1.3,
-  }),
   // the Moon Foundry: a hunched walker of cooling slag, leaving burning patches where it treads
   slag: S({
     name: 'slag walker', hp: 5, radius: 0.8, height: 1.35, speed: 2.0, sight: 15, giveUp: 30, reach: 4.4, heavy: true, pack: 2, breaks: true,
@@ -83,7 +74,6 @@ export const KINDS = {
 export const NOTES = {
   golem: 'A glass golem: slow and hard, glass turns a fluid shot. A bomb cracks it twice as deep, and a perfect parry chips it.',
   drone: 'A rust drone hangs out of the blade’s reach. Guard (LB / L1) its harpoon to cut the line and stun it; stilled, or pulled down with the magnet glove, it can be cut.',
-  stalker: 'A root stalker: when it rears its root-arms back, they are about to shoot along the ground to grab you. Step out of their line, or cut it to break the hold. Embers burn it; a bloom glob puts it to sleep.',
   slag: 'A slag walker leaves burning slag where it treads: keep off the glow. A plain fluid shot cools its crust, and cooled it cuts twice as deep.',
 };
 
@@ -190,55 +180,6 @@ const MODELS = {
         harpoon.position.set(0, 0.05, 0.4 + reach);
         line.visible = reach > 0.2; line.scale.set(1, 1, Math.max(0.01, reach));
         lens.uniforms.uColor.value.set(eyeColor(f, '#ffb347', '#ff4a2a'));
-      },
-    };
-  },
-
-  stalker() {
-    // a knot of bone-white roots on four arching root-legs, two long root-arms, a pale lamp of an eye
-    const g = new THREE.Group();
-    const bone = M_('stalker-bone', { color: '#e8e2d0', color2: '#d4ccb4' }), dark = M_('stalker-dark', { color: '#3a332c' }), lamp = M_('stalker-lamp', { color: '#9fe8d8', glow: 0.9 });
-    const knot = add(g, new THREE.DodecahedronGeometry(0.45, 0).scale(1, 1.15, 0.9), bone, 0, 1.25, 0);
-    const eye = add(g, new THREE.SphereGeometry(0.11, 10, 8), lamp, 0, 1.35, 0.38);
-    add(g, new THREE.TorusGeometry(0.14, 0.03, 4, 12), dark, 0, 1.35, 0.36);
-    const root = (pts, r = 0.06) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p))), 14, r, 5, false);
-    const legs = [0, 1, 2, 3].map((k) => {
-      const a = (k / 4) * Math.PI * 2 + Math.PI / 4, l = new THREE.Group(); l.position.set(0, 1.1, 0); l.rotation.y = a; g.add(l);
-      add(l, root([[0, 0, 0], [0, 0.35, 0.45], [0, 0.1, 0.95], [0, -1.1, 1.15]], 0.055), bone);
-      return l;
-    });
-    const arms = pair((s) => {
-      const a = new THREE.Group(); a.position.set(s * 0.38, 1.4, 0.15); g.add(a);
-      add(a, root([[0, 0, 0], [s * 0.3, 0.1, 0.3], [s * 0.25, -0.3, 0.8], [s * 0.1, -0.6, 1.1]], 0.045), bone);
-      for (let i = 0; i < 3; i++) add(a, new THREE.ConeGeometry(0.025, 0.3, 3).rotateX(Math.PI / 2 + 0.6), dark, s * 0.1 + (i - 1) * 0.06, -0.65, 1.2);
-      const tip = new THREE.Object3D(); tip.position.set(s * 0.1, -0.65, 1.25); a.add(tip); a.userData.tip = tip;
-      return a;
-    });
-    // the grab: roots running out along the ground toward you
-    const reach = new THREE.Group(); g.add(reach);
-    const tendrils = [-0.25, 0, 0.25].map((x) => add(reach, root([[0, 0, 0], [x * 0.5, 0.15, 0.33], [x, 0.05, 0.66], [x * 0.6, 0.1, 1]], 0.04), bone));
-    reach.visible = false;
-    return {
-      group: g, parts: [knot, eye, ...legs, ...arms], eyeMat: lamp, base: '#9fe8d8', size: 1, tell: (id) => (id === 'grab' ? arms[0].userData.tip : arms[1].userData.tip),
-      anim(f, c) {
-        const id = f.atk?.id;
-        legs.forEach((l, k) => { l.rotation.x = c.moving ? Math.sin(c.t * 6 + k * Math.PI / 2) * 0.22 : 0; });
-        g.position.y += c.moving ? Math.abs(Math.sin(c.t * 6)) * 0.06 : 0;
-        const sweep = id === 'lash' ? (f.state === 'wind' ? -1.1 * c.wind : f.state === 'strike' ? lerp(-1.1, 1.2, c.release) : 0) : 0;
-        arms[0].rotation.y = sweep; arms[1].rotation.y = sweep;
-        const grabWind = id === 'grab' && f.state === 'wind' ? c.wind : 0;
-        arms.forEach((a, i) => { a.rotation.x = -grabWind * 1.5 + (id === 'grab' && f.state === 'strike' ? 0.5 : 0); });   // (both root-arms reared high back over it)
-        g.rotation.x = -grabWind * 0.18;
-        knot.scale.set(1 + grabWind * 0.12, 1 - grabWind * 0.1, 1);
-        // the roots run out along the drawn lane while it strikes, and stay round you while it holds
-        let len = 0;
-        if (id === 'grab' && f.state === 'strike') len = (f.atk.range ?? 6) * Math.min(1, f.k / 0.7);
-        const held = c.tethered(f);
-        if (held) len = held;
-        reach.visible = len > 0.2; reach.position.y = 0.05; reach.scale.set(1, 1, Math.max(0.01, len));
-        tendrils.forEach((t, i) => { t.rotation.z = Math.sin(c.now / 120 + i) * 0.1; });
-        lamp.uniforms.uColor.value.set(eyeColor(f, f.sleep > 0 ? '#f2b8d8' : '#9fe8d8', '#e8ff7a'));
-        if (f.sleep > 0) { g.rotation.x = 0.25; knot.scale.set(1.05, 0.95, 1.05); }
       },
     };
   },

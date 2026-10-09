@@ -63,6 +63,79 @@ export const PLANS = {
     },
     style: 'machine',
   },
+  // ---------------------------------------------------------------- phase 5: the roster's batch 3
+  // plan 2: the tiny skitterers (a swarm of 6 to 12): six short legs each, knees high over the dome, a quick tripod;
+  // the planner runs at the mid tier at most (every 2nd frame: `tier`), each member out of step with the next so a
+  // flock reads as a ripple; a light body that twitches (fast, underdamped springs)
+  skitterers: {
+    gait: { gait: 'alternate', drift: 0.32, stepTime: [0.05, 0.16], height: 0.3, arc: 'organic', duty: 0.55, reach: 0.55 },
+    knee: { lenA: 1.22, lenB: 1.42, pole: 'out-up' },                   // (long for the short hip-to-foot span: the knees ride up level with the dome)
+    body: { bob: 0.06, lean: 0.03, bank: 0.04, sway: 0.12, tilt: 0.35, spring: { f: 7, z: 0.42, r: 0 }, height: { f: 8, z: 0.45, r: 0 } },
+    tier: 'mid',
+    poses: {
+      coil: { y: 0.3, z: -0.2, pitch: -1.05, spread: 1.1 },           // (the rush: reared up on its back legs, front legs raised)
+      strike: { y: -0.02, z: 0.5, pitch: 0.2 },
+      recover: { y: -0.05, pitch: 0.1 },
+      hurt: { y: -0.05, roll: 0.3 },
+      'coil:pile': { y: -0.1, z: 0, pitch: 0.05, spread: 1.3 },     // (the heap's foot: braced wide under the others)
+      'strike:pile': { y: -0.15, z: 0.3, pitch: 0.4 },
+    },
+    style: 'organic',
+  },
+  // plan 5: the hopper (the bellows toad): ballistic hops: crouch, launch, a tuck in the air, a squashed landing with
+  // a puff of dust. Its drawn root goes hop by hop (src/enemies/plans/hopper.js), so between hops it stands still on
+  // planted feet and the rig only settles them (turning on the spot steps them round); in the air they tuck.
+  hopper: {
+    hop: { length: 1.15, air: 0.36, height: 0.5, crouch: 0.14, squash: 0.2, gap: 0.1, catchUp: 0.62 },   // (m, s; catchUp: m it lags before it hops, so a slower toad hops less often)
+    gait: { gait: 'alternate', drift: 0.3, stepTime: [0.14, 0.32], height: 0.16, arc: 'organic', duty: 0.6, reach: 0.6 },
+    knee: { lenA: 0.6, lenB: 0.62, pole: 'beast' },
+    body: { bob: 0.02, lean: 0.02, bank: 0.02, sway: 0.06, tilt: 0.2, spring: { f: 3.2, z: 0.45, r: 0 } },
+    poses: {
+      coil: { y: 0.04, z: -0.12, pitch: -0.32 },                      // (the lob: it rears back, the swollen throat high)
+      strike: { y: 0, z: 0.1, pitch: 0.15 },
+      recover: { y: -0.06, pitch: 0.06 },
+      hurt: { y: -0.08, roll: 0.15 },
+      'coil:flop': { y: -0.3, z: -0.05, pitch: 0.12, spread: 1.15 },  // (the belly flop: a deep crouch, legs shaking)
+      'strike:flop': { y: 0, z: 0, pitch: 0 },                         // (in the air: the arc is the hop's, src/enemies/plans/hopper.js)
+    },
+    style: 'organic',
+  },
+  // plan 7: the stilt-walker (the stilt heron; StiltMotor's rules, src/aliens/alien.js, as a table of the kit): two
+  // long legs stepping one at a time (a wave on two), a long slow swing and a high lift, the bird's joint halfway down
+  // bending back (pole 'back'); the high body on a soft spring that sways over the planted foot and lags a push
+  stilt: {
+    gait: { gait: 'alternate', drift: 0.5, stepTime: [0.3, 0.62], height: 0.13, arc: 'organic', duty: 0.7, reach: 0.62 },
+    knee: { lenA: 0.37, lenB: 0.71, pole: 'back' },                     // (a short thigh, a long shank: the joint two thirds up)
+    body: { bob: 0.035, lean: 0.06, bank: 0.05, sway: 0.4, tilt: 0.18, spring: { f: 1.5, z: 0.38, r: 0 }, height: { f: 2.4, z: 0.5, r: 0 } },
+    sway: { f: 1.1, z: 0.3, push: 0.5 },                               // (the high body's own pendulum: StiltMotor's hub)
+    poses: {
+      coil: { y: 0.02, z: -0.12, pitch: -0.16, spread: 1.12 },        // (the spear: leaning back, the neck drawn into an S)
+      strike: { y: -0.12, z: 0.16, pitch: 0.3 },                       // (all at once: it dips and pitches into the thrust)
+      recover: { y: -0.03, z: 0.05, pitch: 0.08 },
+      hurt: { y: -0.08, roll: 0.12 },
+      'coil:sweep': { y: 0.03, z: 0, pitch: 0, roll: 0.1, spread: 1 },  // (one foot raised high: its weight on the other)
+      'coil:buffet': { y: 0.02, z: -0.08, pitch: -0.1 },
+    },
+    style: 'organic',
+  },
+  // plan 12: the tentacled (the root knot): five root-arms, each three segments with two bends solved by FABRIK
+  // (src/motion-kit/ik.js) from a curled guess, their tips planted as feet; the body carried between them, slow and
+  // heavy, stepping one arm at a time round the ring
+  tentacled: {
+    gait: { gait: 'wave', drift: 0.36, stepTime: [0.28, 0.6], height: 0.14, arc: 'organic', duty: 0.75, reach: 0.6 },
+    knee: { lenA: 0.4, lenB: 0.4, lenC: 0.31, pole: 'out-up' },
+    body: { bob: 0.04, lean: 0.03, bank: 0.03, sway: 0.25, tilt: 0.16, spring: { f: 1.6, z: 0.55, r: 0 }, height: { f: 1.8, z: 0.6, r: 0 } },
+    poses: {
+      coil: { y: -0.12, z: -0.04, pitch: 0.28, spread: 1.05 },        // (the grip: two arms plunged in front, the cap tipped to you)
+      strike: { y: -0.05, z: 0.08, pitch: 0.18 },
+      recover: { y: -0.06, pitch: 0.06 },
+      hurt: { y: -0.1, roll: 0.1 },
+      'coil:lash': { y: 0.04, z: -0.12, pitch: -0.18 },               // (the lash: two arms coiled back high)
+      'strike:lash': { y: 0, z: 0.14, pitch: 0.22 },
+      'coil:puff': { y: -0.18, z: 0, pitch: 0 },                        // (the puff: it squats and its cap shudders)
+    },
+    style: 'organic',
+  },
   // ---------------------------------------------------------------- the chain plans (kit phase 4: src/motion-kit/chain.js)
   // plan 3: the centipede: a follow-the-leader spine on the head's own path (PathTrail), a pair of legs per segment
   // stepping in a metachronal wave on distance (src/motion-kit/wave-legs.js), knees out and up
@@ -142,6 +215,7 @@ export function poleFor(rule, foot) {
   const side = Math.sign(foot.x) || 1;
   if (rule === 'beast') return { x: 0, y: 0.15, z: foot.z >= 0 ? 0.6 : -1 };   // (front knees forward, hocks back)
   if (rule === 'forward') return { x: 0, y: 0.1, z: 1 };
+  if (rule === 'back') return { x: Math.sign(foot.x) * 0.08, y: 0.05, z: -1 };   // (a bird's: the joint halfway down bends back)
   // out and up, away from the body's centre
   const r = Math.hypot(foot.x, foot.z) || 1;
   return { x: (foot.x / r) * 1 + side * 0.001, y: 1.1, z: foot.z / r };

@@ -55,6 +55,19 @@ import { fromPattern } from './attacks.js';
 //                   the boomerang pops one: takes.shoot 'pop'); escort: what comes with it alone in the Arena
 //   calm.joins      it joins any fight near it, not only its own kind's (the jelly never starts one: provoke 0)
 //   attack.tell / attack.counter   what the body does in the wind-up, and what answers it (the gallery says them)
+// batch 3 (v1.12):
+//   hops            it moves hop by hop (the toad: its body lands each hop, src/enemies/plans/hopper.js)
+//   attack.choke    a shot while it winds this up (its throat swollen) bursts it early: it chokes, stunned (the toad)
+//   attack.leave 'spores'   a lob leaves a patch of spores where it lands that slows you (Foes.updateHazards)
+//   attack.leap     { height }: the strike is a leap onto where you stood (placed there, within `range`); the air
+//                   cut meets it in the air: double, and it lands on its back (the toad's belly flop)
+//   onParry 'open'  any guard knocks it aside and leaves it open a while, longer on a perfect one (the heron's bill)
+//   topples         a charged cut at its legs topples it: down a while, cuts double, its head in reach (the heron)
+//   flock           { ring, one }: it rings you at `ring` m between darts and only one of its kind strikes at a
+//                   time (the skitters); attack.pile: n of its flock climb onto it into a heap that topples onto
+//                   you (the push scatters it: Foes.pile); calm.linger: s you must stay within `provoke` m
+//   rooted          it can't be knocked back (the root knot); attack.ground: only on your feet (a jump clears it);
+//                   attack.blur: s your sight is blurred by spores, whichever way you look
 
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
 
@@ -84,9 +97,24 @@ export const ARCHETYPES = {
   },
   skitter: {
     name: 'skitter swarm', family: 'creature', plan: 'skitterers', planNo: 2, role: 'swarm', tier: 1, ranged: false,
-    status: 'stand-in', kind: 'swarm', was: ['blot swarm'], sound: 'chitin', drop: 0.5, art: 'pending',
+    status: 'built', kind: 'skitter', was: ['blot swarm'], sound: 'chitin', drop: 0.5, art: { main: 'desert', alt: 'moonfoundry' },
     moves: ['ripple rush', 'pile'], answers: ['push', 'ember', 'the combo’s sweeping third swing'],
-    idle: 'grazes in a loose flock; scatters in a ripple when you run at it, and comes back',
+    idle: 'grazes in a loose flock; scatters in a ripple when you run at it, and comes back; fights only if you stay in the middle of it',
+    def: S({
+      name: 'skitter', hp: 1, radius: 0.32, height: 0.22, speed: 5.4, sight: 16, giveUp: 40, reach: 4.6, light: true, group: 8,
+      flock: { ring: 4, one: true },   // (it rings you at 4 m and only one darts in at a time)
+      tone: '#e0a64e', takes: { shoot: 1, fire: 1, push: 1 },
+      calm: { mode: 'flock', wild: true, provoke: 3.2, linger: 2.2, shy: 6, alarm: 9 },
+      attacks: [
+        { id: 'rush', name: 'ripple rush', shape: 'lane', width: 1.1, range: 4.6, damage: 0.25, wind: 0.6, strike: 0.32, contact: 0.05, lunge: 4.4, sweep: true, min: 2.2, max: 4.6, weight: 3,
+          tell: 'it rears up on its back legs, its front legs raised, and clicks', counter: 'a light swing ends it; the push ends one' },
+        // the pile: three or four climb onto each other into a wobbling heap, then it topples onto you (Foes.pile)
+        { id: 'pile', name: 'pile', shape: 'ring', radius: 1.7, ahead: 1.5, damage: 0.5, wind: 1.2, strike: 0.36, contact: 0.6, lunge: 1.6, pile: 3, min: 1, max: 3.6, weight: 1,
+          tell: 'three or four climb onto each other into a wobbling heap', counter: 'evade, or the push scatters the heap' },
+      ],
+      recover: 0.8, cool: [0.9, 1.9], hit: 0.2,
+    }),
+    note: 'Skitters graze in a flock and run from you if you charge them; stand in the middle of one and they ring you, darting in one at a time. One cut, one shot or a push ends each; when three climb into a heap, push it apart or step aside.',
   },
   centipede: {
     name: 'ring centipede', family: 'creature', plan: 'centipede', planNo: 3, role: 'trapper', tier: 3, ranged: false,
@@ -97,7 +125,7 @@ export const ARCHETYPES = {
       name: 'ring centipede', hp: 6, radius: 0.75, height: 0.55, speed: 4.4, sight: 18, giveUp: 40, reach: 6, heavy: true, segmented: true, breaks: true,
       tone: '#d8b048', takes: { shoot: 0, fire: 1, push: 0 }, weak: { bomb: 1.5 },
       calm: { mode: 'coil', wild: true, provoke: 6, alarm: 10 },
-      shed: { kind: 'swarm', n: 2, below: 0.67, segments: 2 },
+      shed: { kind: 'skitter', n: 2, below: 0.67, segments: 2 },
       attacks: [
         // the ring: it spirals round you, its body a wall closing behind it, and tightens; out over its back with the
         // wings or the jets, or break it (the push, a cut on its head as it turns in)
@@ -112,9 +140,27 @@ export const ARCHETYPES = {
   },
   toad: {
     name: 'bellows toad', family: 'creature', plan: 'hopper', planNo: 5, role: 'lobber', tier: 1, ranged: true,
-    status: 'stand-in', kind: 'spitter', was: ['spitting blot (its lobber role)'], sound: 'soft', drop: 3, art: 'pending',
+    status: 'built', kind: 'toad', was: ['spitting blot (its lobber role)'], sound: 'soft', drop: 3, art: { main: 'perdide', alt: 'incal' },
     moves: ['spore lob', 'volley', 'belly flop'], answers: ['a shot in the swollen throat', 'air cut', 'closing in'],
-    idle: 'sits by water with its throat pulsing, croaking in chorus; fights only within 4 m',
+    idle: 'sits by water with its throat pulsing, croaking in chorus; fights only within 4 m or if one near it is hurt',
+    def: S({
+      name: 'bellows toad', hp: 3, radius: 0.85, height: 1.1, speed: 2.4, sight: 18, giveUp: 38, reach: 11, keep: 6.5, perch: true, hops: true,
+      tone: '#b49ad6', takes: { shoot: 1, fire: 1 },
+      calm: { mode: 'sit', wild: true, provoke: 4, alarm: 10 },
+      attacks: [
+        // its throat swells see-through with the glob inside, it rears back and lobs it (a landing mark: the one
+        // exception); the glob leaves spores that slow you; a shot in the swollen throat bursts it early (choke)
+        { id: 'lob', name: 'spore lob', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.5, damage: 0.5, wind: 1.2, track: 0.45, choke: true, leave: 'spores', min: 3, max: 11, weight: 2,
+          tell: 'its throat swells to twice its size and turns see-through, the glob showing inside; it rears back', counter: 'walk out of the mark; a shot in the swollen throat bursts it early and it chokes' },
+        { id: 'volley', name: 'volley', shape: 'ring', at: 'target', instant: true, lob: true, spread: [-3, 0, 3], radius: 1.2, damage: 0.5, wind: 1.45, choke: true, leave: 'spores', min: 4, max: 11, weight: 1.5, skins: ['incal', 'waterfall'],
+          tell: 'its throat swells fuller still, three globs crowding in it', counter: 'step out of the row of marks, or shoot the throat' },
+        // the belly flop: a deep crouch, legs shaking, then a leap onto where you stood; landing, a ring of shock
+        { id: 'flop', name: 'belly flop', shape: 'ring', radius: 1.7, damage: 0.75, wind: 0.95, strike: 0.62, contact: 0.95, leap: { height: 2.6 }, range: 6, track: 0.55, wave: { speed: 7, reach: 6, damage: 0.5, width: 0.55 }, min: 1.4, max: 6, weight: 1.5,
+          tell: 'a deep crouch, its legs shaking', counter: 'jump the shockwave; in the air the air cut meets it (double, and it lands on its back)' },
+      ],
+      recover: 1.3, cool: [1.5, 2.5], hit: 0.35,
+    }),
+    note: 'A bellows toad keeps its distance and lobs: when its throat swells see-through, walk out of the mark, or shoot the throat and it chokes on its own glob. When it crouches deep and shakes, it is about to flop onto you: jump the ring, or meet it in the air with the air cut.',
   },
   lizard: {
     name: 'horn lizard', family: 'creature', plan: 'quadruped', planNo: 6, role: 'flanker', tier: 2, ranged: false,
@@ -140,9 +186,26 @@ export const ARCHETYPES = {
   },
   heron: {
     name: 'stilt heron', family: 'creature', plan: 'stilt', planNo: 7, role: 'reach', tier: 1, ranged: false,
-    status: 'planned', kind: null, was: [], sound: 'soft', drop: 3, art: 'pending',
-    moves: ['spear', 'sweep', 'wing buffet'], answers: ['dash cut inside its reach', 'charged cut at a leg topples it'],
-    idle: 'wades and fishes; walks off if you come near, flies off if you run',
+    status: 'built', kind: 'heron', was: [], sound: 'soft', drop: 3, art: { main: 'desert', alt: 'arzach' },
+    moves: ['spear', 'sweep', 'wing buffet'], answers: ['dash cut inside its reach', 'charged cut at a leg topples it', 'parry the spear'],
+    idle: 'wades and fishes, stabbing at the water; walks off if you come near; fights only if you corner it',
+    def: S({
+      name: 'stilt heron', hp: 4, radius: 0.6, height: 1.3, speed: 2.6, sight: 18, giveUp: 34, reach: 5.2, topples: true,
+      tone: '#5fbfb0', takes: { shoot: 1, fire: 1 },
+      calm: { mode: 'wade', wild: true, provoke: 2.8, shy: 7, alarm: 8 },
+      attacks: [
+        // the spear: the neck drawn back into a tight S, the body leaning back; then it straightens all at once
+        { id: 'spear', name: 'spear', shape: 'lane', width: 0.9, range: 5.2, damage: 0.5, wind: 0.9, strike: 0.2, contact: 0.6, lunge: 1.0, track: 0.35, min: 2.2, max: 5.2, weight: 2, onParry: 'open',
+          tell: 'the neck draws back into a tight S, the bill pointed at you, the body leaning back', counter: 'evade to the side; a parry knocks the bill aside and leaves its head open' },
+        // under it: one foot lifted high, then a stamp as the other leg turns it round
+        { id: 'sweep', name: 'sweep', shape: 'ring', at: 'self', radius: 2.3, damage: 0.5, knock: 4, wind: 1.0, strike: 0.3, contact: 0.55, max: 2.2, weight: 1.5,
+          tell: 'one foot lifts high, its weight on the other', counter: 'get out from under it; the charged cut at a leg topples it' },
+        { id: 'buffet', name: 'wing buffet', shape: 'cone', range: 3.6, angle: 0.8, damage: 0.25, shove: 8, wind: 0.8, strike: 0.3, contact: 0.45, max: 3.6, weight: 1.5, skins: ['arzach'],
+          tell: 'its folded wings flare wide and draw back', counter: 'guard, or ride it out on the wings' },
+      ],
+      recover: 1.3, cool: [1.4, 2.4], hit: 0.4,
+    }),
+    note: 'A stilt heron holds a space with its bill: when its neck draws back into an S, step to the side, or guard and knock the bill away. Get in under it and cut its legs; a charged cut at a leg topples it.',
   },
   roller: {
     name: 'pearl roller', family: 'creature', plan: 'roller', planNo: 16, role: 'charger', tier: 2, ranged: false,
@@ -152,9 +215,26 @@ export const ARCHETYPES = {
   },
   rootknot: {
     name: 'root knot', family: 'creature', plan: 'tentacled', planNo: 12, role: 'grappler', tier: 2, ranged: false,
-    status: 'stand-in', kind: 'stalker', was: ['root stalker'], sound: 'roots', drop: 5, art: 'pending',
-    moves: ['grip', 'lash', 'spore puff'], answers: ['bloom glob (asleep, cuts double)', 'ember ×2', 'parry on the lash'],
+    status: 'built', kind: 'rootknot', was: ['root stalker'], sound: 'roots', drop: 5, art: { main: 'perdide', alt: 'perdide2' },
+    moves: ['grip', 'lash', 'spore puff'], answers: ['bloom glob (asleep, cuts double)', 'ember ×2', 'parry on the lash', 'jump the roots'],
     idle: 'stands rooted among the mushrooms and stumps; its cap turns to follow you',
+    def: S({
+      name: 'root knot', hp: 5, radius: 0.95, height: 1.5, speed: 1.6, sight: 16, giveUp: 30, reach: 6.5, heavy: true, rooted: true, breaks: true,
+      tone: '#9fd86a', takes: { shoot: 1, fire: 2, push: 0, bloom: 'hold' },
+      calm: { mode: 'root', wild: true, provoke: 3.6, alarm: 8 },
+      attacks: [
+        // two arms plunged into the soil, the cap tipped at you; then the soil heaves along the ground (a root running
+        // under it, its body) and bursts up under you: caught, you are dragged in to the lash
+        { id: 'grip', name: 'grip', shape: 'lane', width: 1.2, range: 6.5, damage: 0.25, wind: 1.0, strike: 0.45, contact: 0.85, grab: { time: 1.1, pull: 6 }, ground: true, then: 'lash', track: 0.3, min: 2.4, max: 6.5, weight: 2, onParry: 'cut',
+          tell: 'it sinks two arms into the soil in front of it, its cap tipping toward you', counter: 'jump or evade sideways as the soil heaves at you; caught, a cut or stilling frees you' },
+        { id: 'lash', name: 'lash', shape: 'cone', range: 2.9, angle: 1.0, damage: 0.5, wind: 0.75, strike: 0.26, contact: 0.5, max: 2.8, weight: 1.5, onParry: 'chip',
+          tell: 'two arms coil back high', counter: 'guard; a parry cuts the arm' },
+        { id: 'puff', name: 'spore puff', shape: 'ring', at: 'self', radius: 3.4, damage: 0, blur: 2, instant: true, wind: 1.0, max: 3.2, weight: 1, skins: ['perdide2'],
+          tell: 'it squats and its cap shudders, the gills swelling', counter: 'step back out of the cloud' },
+      ],
+      recover: 1.5, cool: [1.6, 2.6], hit: 0.5,
+    }),
+    note: 'A root knot holds you for the others: when it plunges two arms into the ground, jump or step aside as the soil heaves at you, or its roots drag you in. It can’t be knocked back; a bloom glob puts it to sleep (cuts land double) and embers burn it.',
   },
   jelly: {
     name: 'lantern jelly', family: 'creature', plan: 'floater', planNo: 11, role: 'support', tier: 2, ranged: true,

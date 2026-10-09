@@ -34,7 +34,7 @@ function insideShape(s, p) {
 const attackShape = (f) => foeHitboxes(f).find((s) => s.tag.startsWith('foe.attack.'));
 
 test('a foe\'s strike is drawn where, and as big as, the combat code tests it: telegraph, then active, then spent', () => {
-  for (const kind of ['blot', 'machine', 'swarm', 'shade']) {
+  for (const kind of ['blot', 'machine', 'skitter', 'shade']) {
     const f = new Foe(kind, v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0; f.heading = 0.7;
     const P = { pos: v(Math.sin(0.7) * (f.def.reach - 0.2), 0, Math.cos(0.7) * (f.def.reach - 0.2)) };
     f.update(dt, P, env);
@@ -125,12 +125,12 @@ test('a charge (a sky ray\'s skim, a crab\'s spin): its lane while it winds up; 
   }
 });
 
-test('a spitter\'s lobbed glob: the ring where you stood, telegraphed, checked as its wind-up ends', () => {
-  const f = new Foe('spitter', v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0;
+test('a bellows toad\'s lobbed glob: the ring where you stood, telegraphed, checked as its wind-up ends', () => {
+  const f = new Foe('toad', v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0;
   const P = { pos: v(0, 0, 8) };
   f.update(dt, P, env);
   const s = attackShape(f);
-  assert.equal(s.kind, 'circle'); assert.equal(s.r, FOES.spitter.attack.radius);
+  assert.equal(s.kind, 'circle'); assert.equal(s.r, FOES.toad.attack.radius);
   assert.ok(s.c.distanceTo(v(0, 0, 8)) < 1e-9, 'where the traveller stood');
 });
 

@@ -23,7 +23,8 @@ import * as THREE from 'three';
 //   rust     two-tone patches (rust, color2 verdigris), denser low on the part (down 0..1): scale, amount,
 //            amount2, pits (dark specks in them)
 //   grain    wood grain: lines along the part's y axis, warped by noise: spacing, ink, warp, amount
-//   bands    rings across an axis (segment bands; axis 3: round the y axis, as a dome's rings): period, width
+//   bands    rings across an axis (segment bands; axis 3: round the y axis, as a dome's rings; axis 4: lines out from
+//            the y axis, by angle, a unit half a radian: a bulb's ribs, a cap's gills): period, width
 //            (share), ink (a pen line at each edge), offset
 //   stripes  the same again (painted stripes over bands)
 //   scales   scales (mode 0), staggered plates (1): size, ink (the outline), tone (each one's own shade), edge
@@ -127,7 +128,7 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
   }
   // how much of a pattern of cells this many metres across still shows (1 near, 0 once a cell is a few pixels)
   float fsNear(float cell, float px) { return 1.0 - smoothstep(${(1 / FOE_SURFACE.far[1]).toFixed(4)}, ${(1 / FOE_SURFACE.far[0]).toFixed(4)}, px / max(cell, 1e-4)); }
-  float fsAxis(vec3 p, float a) { return a < 0.5 ? p.x : a < 1.5 ? p.y : a < 2.5 ? p.z : length(p.xz); }
+  float fsAxis(vec3 p, float a) { return a < 0.5 ? p.x : a < 1.5 ? p.y : a < 2.5 ? p.z : a < 3.5 ? length(p.xz) : atan(p.z, p.x) * 0.5; }   // (4: the angle round y, half a radian a unit: ribs, gills)
   // a band across an axis: x its coverage (0..1, soft over aa), y the ink at its edges
   vec2 fsBand(vec3 p, vec4 b, float off, float px) {
     float u = fsAxis(p, b.x) / max(b.y, 1e-4) + off, f = fract(u);

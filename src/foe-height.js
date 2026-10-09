@@ -2,7 +2,7 @@
 //
 // - **The way up and down** (`findRoute`): a walker that can't walk straight to you (you are up a ledge or
 //   down off one, or something stands between) looks over a small grid round itself for a way: steps it can
-//   walk (≤ CLIMB.step), ledges it can clamber (a blot, a shade, a stalker, a hound: ≤ CLIMB.clamber) and drops it
+//   walk (≤ CLIMB.step), ledges it can clamber (a blot, a shade, a hound: ≤ CLIMB.clamber) and drops it
 //   can hop down (≤ CLIMB.drop, a heavy one ≤ CLIMB.heavyDrop). Each clamber and drop is a hop with a crouch
 //   first (HOP), so you see it coming. No way: it holds off below, in sight (Foe.holdOff), never pressed
 //   against the wall.

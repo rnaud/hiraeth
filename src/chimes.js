@@ -23,13 +23,11 @@ import { ARCHETYPES, BUILT } from './enemies/archetypes.js';
 //                                         drawn-in pieces' trails, the shade patches; the crystal shader:
 //                                         src/crystal-shader.js)
 
-/** What a foe of each kind leaves, in chimes (a fraction is a chance of one: the swarm's six blots, the splinters). */
+/** What a foe of each kind leaves, in chimes (a fraction is a chance of one: a swarm's skitters). */
 export const DROP_OF = {
-  swarm: 0.5, moth: 1,                                 // the small ones, that come in groups
-  blot: 2, spitter: 3, drone: 4,
-  stalker: 5, machine: 6,
+  drone: 4, machine: 6,
   shade: 8, golem: 8, slag: 8,                         // the heavy ones
-  // the built archetypes: the shellback crab 5, the horn lizard 4, the lamp tripod 6, the antler hound 4 (the blot's 2 as ever)
+  // the built archetypes (their `drop`): the skitter ½, the moth 1, the blot 2, the toad and the heron 3, the root knot 5…
   ...Object.fromEntries(BUILT.map((a) => [ARCHETYPES[a].kind, ARCHETYPES[a].drop])),
 };
 /** The one-time purses: each temple's guardian resolved (and each sparring bout in the Arena's ring), a makers' run's first finish. */

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { twoBone, aim } from './ik.js';
+import { twoBone, fabrik, aim } from './ik.js';
 import { GaitPlanner } from './gait.js';
 import { BodyFromFeet } from './body.js';
 import { PoseBlend } from './pose.js';
@@ -59,8 +59,9 @@ export function matrixTo(obj, ancestor, out) {
  *   radius, mats    { joint, thigh, shin, foot } materials; pad: 'pad' | 'disc' | 'point'; ankle: pad height
  *   piston          { at } (body frame): a telescoping rod from the body to the thigh's middle (machines)
  *   air             where the foot hangs when the body is off the ground ({x, y, z} added to its rest, body frame)
+ *   lenC            a third segment (a root-arm's tip: two bends), solved by FABRIK from a guess curled toward the pole
  */
-export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, lenB, pole, radius = 0.05, mats, pad = 'pad', ankle = null, piston = null, air = null, name = 'leg' }) {
+export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, lenB, lenC = 0, pole, radius = 0.05, mats, pad = 'pad', ankle = null, piston = null, air = null, name = 'leg' }) {
   const H = new THREE.Object3D(); H.name = `${name} hip`; H.position.set(hip.x, hip.y, hip.z); hipParent.add(H);
   const root = new THREE.Group(); root.name = name; group.add(root);
   const r = radius, j = mats.joint ?? mats.thigh;
@@ -71,7 +72,8 @@ export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, len
     return g;
   };
   const thigh = seg(lenA, r, r * 0.85, mats.thigh ?? j, r * 1.45);
-  const shin = seg(lenB, r * 0.85, r * 0.6, mats.shin ?? j, r * 1.35);
+  const shin = seg(lenB, r * 0.85, lenC ? r * 0.7 : r * 0.6, mats.shin ?? j, r * 1.35);
+  const tip = lenC ? seg(lenC, r * 0.7, r * 0.42, mats.tip ?? mats.shin ?? j, r * 1.1) : null;
   const f = new THREE.Group(); root.add(f);
   const ah = ankle ?? (pad === 'point' ? r * 0.6 : pad === 'disc' ? r * 0.9 : r * 0.8);
   if (pad === 'disc') f.add(new THREE.Mesh(new THREE.CylinderGeometry(r * 2.1, r * 2.4, ah * 1.4, 10).translate(0, ah * 0.7, 0), mats.foot ?? j));
@@ -83,7 +85,8 @@ export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, len
     rod = seg(lenA * 0.6, r * 0.38, r * 0.38, mats.rod ?? mats.shin ?? j, 0);
   }
   return {
-    hip: H, root, thigh, shin, foot: f, lenA, lenB, ankle: ah,
+    hip: H, root, thigh, shin, tip, foot: f, lenA, lenB, lenC, ankle: ah,
+    chain: lenC ? [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] : null,
     pole: new THREE.Vector3(pole.x, pole.y, pole.z).normalize(),
     home: new THREE.Vector3(foot.x, 0, foot.z),
     piston: piston ? new THREE.Vector3(piston.at.x, piston.at.y, piston.at.z) : null, sleeve, rod,
@@ -102,9 +105,9 @@ export function planLeg(plan, o) {
   const hip = new THREE.Vector3(o.hip.x, o.hip.y, o.hip.z).applyMatrix4(m);
   const r = o.radius ?? 0.05, ankle = o.ankle ?? (o.pad === 'point' ? r * 0.6 : o.pad === 'disc' ? r * 0.9 : r * 0.8);
   const d = hip.distanceTo(new THREE.Vector3(o.foot.x, ankle, o.foot.z));
-  const lenA = d * plan.knee.lenA, lenB = d * plan.knee.lenB, L = lenA + lenB;
+  const lenA = d * plan.knee.lenA, lenB = d * plan.knee.lenB, lenC = d * (plan.knee.lenC ?? 0), L = lenA + lenB + lenC;
   const a = plan.air ? (o.foot.z >= 0 ? plan.air.front : plan.air.hind) : null;
-  return jointedLeg({ ...o, ankle, lenA, lenB, pole: o.pole ?? poleFor(plan.knee.pole, o.foot), air: o.air ?? (a ? { x: 0, y: a.y * L, z: a.z * L } : null) });
+  return jointedLeg({ ...o, ankle, lenA, lenB, lenC, pole: o.pole ?? poleFor(plan.knee.pole, o.foot), air: o.air ?? (a ? { x: 0, y: a.y * L, z: a.z * L } : null) });
 }
 
 let serial = 1;
@@ -113,11 +116,12 @@ export class Rig {
   /**
    * plan: a body plan (src/motion-kit/plans.js). group: the model's root (at the foe's feet, turned to its
    * heading); body: what rides on the feet; legs: jointedLeg bindings; scale: the group's scale (world m per
-   * group unit). stepped: fps of the stepped clock (0: off).
+   * group unit). stepped: fps of the stepped clock (0: off). tier: the nearest detail tier it runs at ('mid': a
+   * swarm's members plan every 2nd frame even close by: plan.tier).
    */
-  constructor({ plan, group, body, legs, scale = 1, seed = serial++, stepped = plan.stepped ?? 0 }) {
-    this.plan = plan; this.group = group; this.body = body; this.legs = legs; this.scale = scale;
-    this.length = legs.reduce((s, l) => s + l.lenA + l.lenB, 0) / Math.max(1, legs.length) * scale;   // (a leg, m)
+  constructor({ plan, group, body, legs, scale = 1, seed = serial++, stepped = plan.stepped ?? 0, tier = plan.tier ?? 'near' }) {
+    this.plan = plan; this.group = group; this.body = body; this.legs = legs; this.scale = scale; this.minTier = tier;
+    this.length = legs.reduce((s, l) => s + l.lenA + l.lenB + (l.lenC ?? 0), 0) / Math.max(1, legs.length) * scale;   // (a leg, m)
     const L = this.length, G = plan.gait;
     this.planner = new GaitPlanner({
       homes: legs.map((l) => ({ x: l.home.x * scale, y: 0, z: l.home.z * scale })),
@@ -165,11 +169,21 @@ export class Rig {
     }
     this.prev.copy(p);
     this.tier = ctx.eye ? this.tiers.update(Math.hypot(ctx.eye.x - p.x, ctx.eye.z - p.z)) : 'near';
+    if (this.minTier === 'mid' && this.tier === 'near') this.tier = 'mid';   // (a swarm's members: every 2nd frame)
     const pose = this.pose.update(dt, { state: f.state, k: f.k, atk: f.atk, recovery: ctx.recovery, stunned: f.stunned });
     this.planner.setStance(pose.lock, pose.spread);
     const air = ctx.air ?? 0;
     if (air > 0.01) { this.air = air; this.planner.ready = false; }
-    else if (this.air > 0) { this.air = 0; this.planner.ready = false; }
+    else if (this.air > 0) {
+      this.air = 0; this.planner.ready = false;
+      // (a hopper lands with its feet where they hang, at their homes, not spread over a stride: ctx.landHome)
+      if (ctx.landHome) {
+        const PL = this.planner;
+        for (const foot of PL.feet) PL.homeOf(foot, p, f.heading, foot.pos);
+        PL.replant(PL.feet.map((x) => x.pos), p);
+        PL.heading = f.heading;
+      }
+    }
     else if (this.tier === 'far') this.planner.canned(p, f.heading, this.walked, this.plan.gait.duty ?? 0.6);
     else {
       this.acc += dt;
@@ -222,6 +236,7 @@ export class Rig {
         _b.lerp(_hip, Math.max(0, air - 1) * 0.6);   // (air above 1: tucked up under the body)
         _foot.lerp(_b, Math.min(1, air));
       }
+      if (L.chain) { this.solveChain(L, _hip, _foot, _pole); continue; }
       twoBone(_hip, _foot, L.lenA, L.lenB, _pole, _knee, _end);
       L.root.position.copy(_hip);
       _knee.sub(_hip); _end.sub(_hip);
@@ -236,6 +251,29 @@ export class Rig {
         aim(L.rod, _b, _a);
       }
     }
+  }
+
+  /**
+   * A three-segment arm (jointedLeg's lenC: a root knot's): FABRIK from a guess curled toward the pole (the first
+   * joint up and out, the second over the tip), so its two bends keep their side and never flip; hip, foot and pole
+   * in the group's frame.
+   */
+  solveChain(L, hip, foot, pole) {
+    const P = L.chain, A = L.lenA, B = L.lenB, C = L.lenC;
+    _a.subVectors(foot, hip).setY(0);
+    const flat = _a.length() || 1;
+    _a.divideScalar(flat);
+    P[0].copy(hip);
+    P[1].copy(hip).addScaledVector(_a, A * 0.45).addScaledVector(pole, A * 0.55); P[1].y = Math.max(P[1].y, hip.y + A * 0.35);
+    P[2].copy(foot).addScaledVector(_a, -C * 0.35); P[2].y = foot.y + C * 0.9;
+    P[3].copy(P[2]); P[3].y -= C;   // (a guess off the target: FABRIK stops at once on a chain already ending there)
+    fabrik(P, [A, B, C], foot, 10, 1e-3);
+    L.root.position.copy(hip);
+    _knee.subVectors(P[1], hip); _end.subVectors(P[2], hip); _b.subVectors(P[3], hip);
+    aim(L.thigh, _zero, _knee);
+    aim(L.shin, _knee, _end);
+    aim(L.tip, _end, _b);
+    L.foot.position.copy(_b); L.foot.position.y -= L.ankle;
   }
 
   /** Show or hide the legs with the body (a shadow that sinks, a buried foe). */

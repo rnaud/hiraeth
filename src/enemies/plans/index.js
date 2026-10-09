@@ -9,6 +9,10 @@ import { wormModel } from './burrower.js';
 import { rayModel } from './glider.js';
 import { mothModel } from './flyer.js';
 import { jellyModel } from './floater.js';
+import { toadModel } from './hopper.js';
+import { heronModel } from './stilt.js';
+import { skitterModel } from './skitterers.js';
+import { rootknotModel } from './tentacled.js';
 
 // One body builder per body plan (docs/design/enemy-roster.md, "Build plan"): each exposes its joints to the
 // locomotion kit (src/motion-kit/) and draws the archetype in a world's skin (src/enemies/skins.js); a skin only
@@ -16,16 +20,21 @@ import { jellyModel } from './floater.js';
 // dispose() }, drawn by src/foes.js Foes.look like the old kinds' (src/foe-kinds.js).
 //
 //   walker.js     plan 1   the shellback crab
+//   skitterers.js plan 2   the skitter swarm (a flock of tiny tripods at the mid tier)
 //   centipede.js  plan 3   the ring centipede (a spine on its own path, legs in a metachronal wave)
+//   hopper.js     plan 5   the bellows toad (hop by hop: its body lands each hop on planted feet)
 //   quadruped.js  plan 6   the horn lizard and the antler hound (one rig, two archetypes)
+//   stilt.js      plan 7   the stilt heron (two stilts one at a time, an S-neck of segments)
 //   floater.js    plan 11  the lantern jelly
+//   tentacled.js  plan 12  the root knot (five three-segment root-arms on FABRIK)
 //   flyer.js      plan 13  the signal moth
 //   glider.js     plan 14  the sky ray
 //   burrower.js   plan 15  the mound worm
 //   piston.js     plan 18  the lamp tripod
 //   blob.js       plan 20  the ink blot
 
-const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel };
+const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel,
+  toad: toadModel, heron: heronModel, skitter: skitterModel, rootknot: rootknotModel };
 
 /** The body of a built archetype's kind in a world's skin, or null (not one: an old kind draws itself). */
 export function archetypeModel(kind, world) {

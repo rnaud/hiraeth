@@ -45,8 +45,8 @@ test('led past its leash it stays while you are still fighting there; it goes ho
   assert.ok(runFor(f, P, 0.5).includes('home'), 'you left: home it goes');
 });
 
-test('a spitter backs off a step, then stands its ground and fights instead of running from you', () => {
-  const s = new Foe('spitter', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 3));
+test('a lobber (the bellows toad) backs off a step, then stands its ground and fights instead of running from you', () => {
+  const s = new Foe('toad', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 3));
   s.cool = 99;   // (no strike yet: only the backing off)
   runFor(s, P, PRESSURE.retreat + 0.1);
   const after = s.pos.distanceTo(P.pos);

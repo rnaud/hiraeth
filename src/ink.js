@@ -16,7 +16,7 @@ export const UPGRADES = [
   { id: 'lunge', at: 40, text: 'The glove is dark with ink: swing the blade while running and you lunge into the cut.' },
 ];
 /** What each foe leaves. */
-export const INK_OF = { blot: 1, spitter: 2, swarm: 0.34, machine: 3, shade: 4, ray: 2, worm: 2, centipede: 3, jelly: 2, golem: 4, splinter: 0.34, moth: 0.5, drone: 2, stalker: 3, crab: 3, slag: 4, hound: 2 };
+export const INK_OF = { blot: 1, toad: 2, skitter: 0.34, machine: 3, shade: 4, ray: 2, worm: 2, centipede: 3, jelly: 2, golem: 4, splinter: 0.34, moth: 0.5, drone: 2, rootknot: 3, heron: 2, crab: 3, slag: 4, hound: 2 };
 
 export const inkOf = (game = sharedGame) => game.flag('ink') ?? 0;
 export const hasUpgrade = (id, game = sharedGame) => inkOf(game) >= (UPGRADES.find((u) => u.id === id)?.at ?? Infinity);

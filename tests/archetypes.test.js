@@ -8,7 +8,7 @@ import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spa
 import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
 import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, rangedKind, worldArchetypes } from '../src/foe-worlds.js';
-import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, RING, GROUNDED, BURROW } from '../src/foes.js';
+import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile } from '../src/telegraph.js';
@@ -61,7 +61,7 @@ test('the roster: 21 archetypes, 12 creatures, 5 machines and 4 spirits, each it
     const plans = fam(f).map((a) => ARCHETYPES[a].planNo + ARCHETYPES[a].plan);
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
-  assert.deepEqual(BUILT.sort(), ['blot', 'centipede', 'crab', 'hound', 'jelly', 'lizard', 'moth', 'ray', 'tripod', 'worm'], 'batches 1 and 2 are built');
+  assert.deepEqual(BUILT.sort(), ['blot', 'centipede', 'crab', 'heron', 'hound', 'jelly', 'lizard', 'moth', 'ray', 'rootknot', 'skitter', 'toad', 'tripod', 'worm'], 'batches 1 to 3 are built');
   for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
@@ -496,7 +496,7 @@ test('the ring centipede: it spirals round where you stood into a ring and close
   const n = G.list.length;
   G.hurt(s, 'blade', v(Math.sin(s.heading), 0, Math.cos(s.heading)), { damage: 1 });
   assert.equal(G.list.length, n + 2, 'two skitterers off its tail');
-  assert.ok(G.list.slice(-2).every((x) => x.kind === 'swarm'));
+  assert.ok(G.list.slice(-2).every((x) => x.kind === 'skitter'));
   G.hurt(s, 'blade', v(Math.sin(s.heading), 0, Math.cos(s.heading)), { damage: 1 });
   assert.equal(G.list.length, n + 2, 'only once');
   G.dispose(); clearTargets();
@@ -550,4 +550,192 @@ test('the lantern jelly: it never starts a fight but joins one; it wards a neigh
   const C = new Foe('jelly', v(0, 0, 0), { rng: () => 0.5 }); C.beginWind(attackOf('jelly', 'curtain'), player(v(0.5, 0, 0)));
   const ev = run(C, player(v(0.5, 0, 0)), 1.4);
   assert.ok(ev.some((e) => e.type === 'strike' && e.hit), 'under it: stung');
+});
+
+// ------------------------------------------------------------------------------------------- batch 3
+const BATCH3 = ['toad', 'heron', 'skitter', 'rootknot'];
+
+test('batch 3: the bellows toad, the stilt heron, the skitter swarm and the root knot are built in every skin, drawn to both their sheets; the stand-ins they replace are retired; the Desert, Vael and Lorn run wholly on the new roster', () => {
+  for (const a of BATCH3) {
+    const A = ARCHETYPES[a];
+    assert.equal(A.status, 'built', a); assert.equal(A.kind, a);
+    assert.ok(A.art.main && A.art.alt, `${a}: drawn to both its sheets`);
+    for (const n of [1, 2]) assert.ok(existsSync(new URL(`../references/enemy-archetypes/${a}/sheet-${n}.jpg`, import.meta.url)), `${a}: sheet-${n}`);
+    for (const w of skinWorlds(a)) { const f = new Foe(skinned(a, w), v()); assert.equal(f.archetype, a); }
+  }
+  assert.deepEqual([ARCHETYPES.toad.art, ARCHETYPES.heron.art, ARCHETYPES.skitter.art, ARCHETYPES.rootknot.art].map((x) => `${x.main}/${x.alt}`), ['perdide/incal', 'desert/arzach', 'desert/moonfoundry', 'perdide/perdide2']);
+  // the spitting blot, the blot swarm and the root stalker are gone (the toad, the skitters and the root knot took them)
+  for (const k of ['spitter', 'swarm', 'stalker']) {
+    assert.ok(!FOES[k], `${k} retired`);
+    assert.throws(() => new Foe(k, v()), /Unknown enemy/);
+    assert.ok(ARENA_WAVES.flat().every((x) => parseKind(x).kind !== k), `${k}: not in the Arena`);
+  }
+  for (const k of BATCH3) assert.ok(WAVES.some((w) => w.includes(k)), `${k}: in the Arena's old waves, where the stand-ins came`);
+  assert.equal(FOES.centipede.shed.kind, 'skitter', 'the centipede sheds skitters');
+  // the early worlds wholly on the new roster: every kind they spawn is a built archetype's own
+  for (const w of ['desert', 'arzach', 'arzach2', 'perdide']) {
+    const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards, ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
+    for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)].status, 'built', `${w}: ${k}`);
+  }
+  assert.deepEqual(aloneWave('skitter', 'desert'), Array(8).fill('skitter@desert'), 'a flock of eight');
+  assert.equal(waveWords([...Array(8).fill('skitter@desert'), 'blot']), '1 ink blot and a swarm of dune skitters');
+});
+
+test('the bellows toad: it keeps its distance and lobs a glob that leaves spores that slow you; a shot in its swollen throat makes it choke; the volley only in the City-Shaft and the Waterfall; its belly flop leaps onto where you stood, a ring of shock as it lands; the air cut in the leap turns it on its back, double', () => {
+  // the lob: a mark where you stand; spores there that slow you
+  clearTargets();
+  const P = player(v(0, 0, 0)), foes = world(P); foes.waveRest = 1e9;
+  const t = foes.add('toad', v(0, 0, 7)); t.attacksAt = () => [attackOf('toad', 'lob')]; t.state = 'chase'; t.cool = 0; t.retreat = 0;
+  let landed = false;
+  for (let i = 0; i < 4 / DT && !landed; i++) { foes.update(DT); P.health = 1; P.down = null; landed = (foes.patches ?? []).some((p) => p.kind === 'spores'); }
+  assert.ok(landed, 'spores where the glob landed');
+  const patch = foes.patches.find((p) => p.kind === 'spores');
+  assert.ok(Math.hypot(patch.pos.x, patch.pos.z) < 0.6 && Math.abs(patch.life - SPORES.life) < 0.2, 'where you stood, for a while');
+  P.pos.copy(patch.pos); P.vel.set(4, 0, 0);
+  foes.updateHazards(0.1);
+  assert.ok(P.vel.x < 4 * 0.6, `wading through them slows you (${P.vel.x.toFixed(2)} m/s)`);
+  foes.dispose(); clearTargets();
+  // the choke: a shot while its throat is swollen
+  const c = new Foe('toad', v(0, 0, 0), { rng: () => 0.5 }); c.beginWind(attackOf('toad', 'lob'), player(v(0, 0, 8))); c.k = 0.5;
+  assert.equal(c.hit('shoot', v(0, 0, -1), {}), 'choked');
+  assert.ok(c.stunned >= CHOKE - 1e-9 && c.state === 'chase' && c.hp === FOES.toad.hp - 1, 'it chokes on its glob, stunned, the lob lost');
+  // the volley: only the pressure toads
+  assert.ok(!new Foe('toad@perdide', v()).attacksAt(8).some((a) => a.id === 'volley'), 'the spore toad lobs one');
+  assert.ok(new Foe('toad@incal', v()).attacksAt(8).some((a) => a.id === 'volley'), 'the pressure toad lobs three');
+  // the belly flop: a leap onto where you stood, up in the air, a ring of shock as it lands
+  clearTargets();
+  const Q = player(v(0, 0, 0)), F = world(Q); F.waveRest = 1e9;
+  const b = F.add('toad', v(0, 0, 4)); b.attacksAt = () => [attackOf('toad', 'flop')]; b.state = 'chase'; b.cool = 0; b.retreat = 0;
+  let high = 0, wave = false;
+  for (let i = 0; i < 3 / DT && !wave; i++) { F.update(DT); Q.health = 1; Q.down = null; high = Math.max(high, b.alt); wave = (F.shocks ?? []).length > 0; }
+  assert.ok(high > 2, `up in the air (${high.toFixed(2)} m)`);
+  assert.ok(wave && b.pos.distanceTo(v(0, 0, 0)) < 0.6, 'it came down where you stood, a ring of shock running out');
+  for (let i = 0; i < 30 && b.state === 'strike'; i++) F.update(DT);
+  assert.equal(b.alt, 0, 'down again');
+  F.dispose(); clearTargets();
+  const L = new Foe('toad', v(0, 0, 4), { rng: () => 0.5 }); L.beginWind(attackOf('toad', 'flop'), player(v())); L.state = 'strike'; L.k = 0.5; L.alt = 2;
+  assert.equal(L.hit('blade', v(0, 0, 1), { damage: 1, air: true }), true);
+  assert.ok(L.flipped >= LEAP_FLIP - 1e-9 && L.hp === FOES.toad.hp - 2 && L.alt === 0, 'met in the air: on its back, the cut double');
+  // calm: it sits by the water; within 4 m it fights
+  const s = new Foe('toad', v(0, 0, 0), { rng: () => 0.5, calm: true });
+  run(s, player(v(0, 0, 6)), 1);
+  assert.equal(s.state, 'idle', 'at 6 m it sits on');
+  assert.ok(run(s, player(v(0, 0, 3.5)), 0.1).includes('notice'), 'at 3.5 m it fights');
+});
+
+test('the stilt heron: the spear reaches 5 m along its line; a guard knocks the bill aside and leaves it open; a charged cut at its legs topples it (down, cuts double, it stays down); the sweep only under it; the buffet only Vael’s, straight back', () => {
+  const h = new Foe('heron', v(0, 0, 0), { rng: () => 0.5 }); h.heading = 0;
+  assert.deepEqual(h.attacksAt(4.8).map((a) => a.id), ['spear'], 'at 5 m: the spear');
+  assert.deepEqual(h.attacksAt(1.5).map((a) => a.id), ['sweep'], 'under it: the sweep');
+  const S = new Foe('heron', v(0, 0, 0), { rng: () => 0.5 }); S.attacksAt = () => [attackOf('heron', 'spear')]; S.state = 'chase'; S.cool = 0;
+  const ev = run(S, player(v(0, 0, 4.8)), 1.5);
+  assert.equal(ev.find((e) => e.type === 'strike')?.hit, true, 'the bill reaches you at 4.8 m');
+  // guarded: open
+  clearTargets();
+  const P = player(v(0, 0, 0), { guard: () => true }), foes = world(P);
+  const g = foes.add('heron', v(0, 0, 4));
+  foes.strike(g, attackOf('heron', 'spear'));
+  assert.ok(g.open >= OPEN.guard - 1e-9 && g.stunned >= OPEN.guard - 1e-9, 'a plain guard knocks the bill aside: open');
+  P.guard = () => 'perfect'; const g2 = foes.add('heron', v(2, 0, 4)); foes.strike(g2, attackOf('heron', 'spear'));
+  assert.ok(g2.open >= OPEN.perfect - 1e-9, 'a perfect parry: open longer');
+  foes.dispose(); clearTargets();
+  // toppled by a charged cut; it stays down for the cuts, double
+  const T = new Foe('heron', v(), { rng: () => 0.5 });
+  assert.equal(T.hit('blade', v(0, 0, 1), { damage: 1, breaks: true }), 'toppled');
+  assert.ok(T.toppled >= TOPPLE - 1e-9 && T.stunned >= TOPPLE - 1e-9, 'down');
+  T.hit('blade', v(0, 0, 1), { damage: 1 });
+  assert.equal(T.hp, FOES.heron.hp - 3, 'the next cut lands double');
+  assert.ok(T.toppled > 0 && T.stunned > 0, 'and it stays down');
+  // the buffet: Vael's alone, and it shoves you straight back (no partner to shove you to)
+  assert.ok(!new Foe('heron@desert', v()).attacksAt(2).some((a) => a.id === 'buffet'));
+  clearTargets();
+  const Q = player(v(0, 0, 2)), F = world(Q); const r = F.add('heron@arzach', v(0, 0, 0)); F.add('heron@arzach', v(-3, 0, 5));
+  F.strike(r, attackOf('heron', 'buffet'));
+  assert.ok(Q.vel.z > 5 && Math.abs(Q.vel.x) < 0.5, `straight back (${Q.vel.x.toFixed(1)}, ${Q.vel.z.toFixed(1)})`);
+  F.dispose(); clearTargets();
+  // calm: it wades, walks off as you come near, fights cornered
+  const c = new Foe('heron', v(0, 0, 0), { rng: () => 0.5, calm: true });
+  run(c, player(v(0, 0, 5)), 1.5);
+  assert.ok(c.state === 'idle' && c.pos.z < -0.2, `it walks off (${c.pos.z.toFixed(2)})`);
+  assert.ok(run(c, player(v(c.pos.x, 0, c.pos.z + 2.2)), 0.1).includes('notice'), 'cornered at 2.2 m, it fights');
+});
+
+test('the skitter swarm: a flock of eight rings you and darts in one at a time; three climb into a heap that topples onto you; the push scatters the heap, an ember the flock; calm, it scatters when you run at it and fights only if you stay in the middle of it', () => {
+  assert.equal(FOES.skitter.group, 8);
+  clearTargets();
+  const P = player(v(0, 0, 0)), foes = world(P); foes.waveRest = 1e9;
+  const flock = foes.spawnKind('skitter', { dist: 5 });
+  let most = 0, near = Infinity, far = 0;
+  for (let i = 0; i < 6 / DT; i++) {
+    foes.update(DT); P.health = 1; P.down = null;
+    most = Math.max(most, flock.filter((f) => f.alive && !f.riding && (f.state === 'wind' || f.state === 'strike')).length);
+    if (i > 2 / DT) for (const f of flock) if (f.alive && f.state === 'chase' && !f.riding && f.cool === 0) { const d = f.pos.distanceTo(P.pos); near = Math.min(near, d); far = Math.max(far, d); }   // (waiting their turn)
+  }
+  assert.equal(most, 1, 'one at a time');
+  assert.ok(near > 2 && far < 6.5, `between darts they ring you at about ${FOES.skitter.flock.ring} m (${near.toFixed(1)}-${far.toFixed(1)})`);
+  foes.dispose(); clearTargets();
+  // the pile: its flock climbs on as it winds up; the push on any of the heap breaks it
+  const Q = player(v(0, 0, 0)), F = world(Q); F.waveRest = 1e9;
+  const base = F.add('skitter', v(0, 0, 2.5)), m = [F.add('skitter', v(1, 0, 3)), F.add('skitter', v(-1, 0, 3)), F.add('skitter', v(0, 0, 4))];
+  for (const x of [base, ...m]) x.cool = 99;
+  for (let i = 0; i < 3; i++) F.update(DT);
+  assert.ok(base.mates >= 2 && base.attacksAt(2.5).some((a) => a.id === 'pile'), 'with its flock near it may pile');
+  base.beginWind(attackOf('skitter', 'pile'), Q); F.pile(base);
+  assert.equal(m.filter((x) => x.riding?.on === base).length, 3, 'three climb on');
+  for (let i = 0; i < 0.6 / DT; i++) { F.update(DT); Q.health = 1; Q.down = null; }
+  assert.ok(m.every((x) => x.pos.distanceTo(base.pos) < 0.5), 'onto it');
+  F.hurt(m[0], 'push', v(0, 0, 1), { shove: 2 });
+  F.update(DT);
+  assert.equal(base.state, 'recover', 'the push on the heap scatters it');
+  assert.ok(m.slice(1).every((x) => !x.riding), 'they tumble off');
+  F.dispose(); clearTargets();
+  // an ember into the flock sends the others running
+  const R = player(v(0, 0, 0)), G = world(R); const e = [G.add('skitter', v(0, 0, 4)), G.add('skitter', v(1, 0, 4)), G.add('skitter', v(-1, 0, 4))];
+  G.hurt(e[0], 'fire', v(0, 0, 1), {});
+  assert.ok(e.slice(1).every((x) => x.scatter > 1), 'the rest run from the ember');
+  G.dispose(); clearTargets();
+  // calm: run at it and it scatters; stand in the middle of it and it fights
+  const k = new Foe('skitter', v(0, 0, 0), { rng: () => 0.5, calm: true });
+  run(k, player(v(0, 0, 4), { vel: v(0, 0, -5) }), 0.3);
+  assert.ok(k.scatter > 0 && k.pos.z < -0.5, 'it scatters from you running at it');
+  const j = new Foe('skitter', v(0, 0, 0), { rng: () => 0.5, calm: true }), Y = player(v(0, 0, 0.5));
+  assert.ok(!run(j, Y, 1).includes('notice'), 'a moment among them: nothing');
+  assert.ok(run(j, Y, 2).includes('notice'), 'stay in the middle of the flock and it fights');
+});
+
+test('the root knot: it can’t be knocked back; its grip runs along the ground (a jump clears it); the spore puff only in Lorn II, a blur and no harm; calm, it stands rooted', () => {
+  const r = new Foe('rootknot', v(), { rng: () => 0.5 });
+  r.hit('blade', v(0, 0, 1), { damage: 1, combo: 2 }); r.hit('push', v(0, 0, 1), { shove: 3 });
+  assert.equal(r.vel.length(), 0, 'rooted: neither the third swing nor the push moves it');
+  r.staggered(true);
+  assert.equal(r.vel.length(), 0, 'nor a parry');
+  clearTargets();
+  const J = player(v(0, 0, 0), { onGround: false }), F = world(J), g = F.add('rootknot', v(0, 0, 5));
+  assert.equal(F.strike(g, attackOf('rootknot', 'grip')), false, 'in the air: the roots pass under you');
+  assert.equal(F.hold ?? null, null);
+  J.onGround = true;
+  F.strike(g, attackOf('rootknot', 'grip'));
+  assert.equal(F.hold?.kind, 'grab', 'on your feet: caught');
+  F.dispose(); clearTargets();
+  assert.ok(!new Foe('rootknot@perdide', v()).attacksAt(2).some((a) => a.id === 'puff'), 'the reed knot never puffs');
+  assert.ok(new Foe('rootknot@perdide2', v()).attacksAt(2).some((a) => a.id === 'puff'), 'the root crawler does');
+  const Q = player(v(0, 0, 0)), G = world(Q), p = G.add('rootknot@perdide2', v(0, 0, 2));
+  G.strike(p, attackOf('rootknot', 'puff'));
+  assert.ok(G.blinded > 1.5 && Q.hurts.length === 0, 'a blur of spores, no harm');
+  G.dispose(); clearTargets();
+  // calm: rooted where it stands
+  const c = new Foe('rootknot', v(0, 0, 0), { rng: () => 0.5, calm: true });
+  run(c, player(v(0, 0, 6)), 2);
+  assert.ok(c.state === 'idle' && c.pos.length() < 1e-9, 'it stands rooted');
+  assert.ok(run(c, player(v(0, 0, 3)), 0.1).includes('notice'), 'pass close and it takes you');
+});
+
+test('batch 3: drops; each new move winds up at least its minimum, only the toad’s lobs mark the ground', () => {
+  for (const a of BATCH3) {
+    assert.equal(DROP_OF[a], ARCHETYPES[a].drop);
+    for (const x of FOES[a].attacks) {
+      assert.ok(x.wind >= windMin(x) - 1e-9, `${a}.${x.id}`);
+      assert.equal(groundMark(x), a === 'toad' && (x.id === 'lob' || x.id === 'volley'), `${a}.${x.id}: a mark only for a lob`);
+    }
+  }
 });

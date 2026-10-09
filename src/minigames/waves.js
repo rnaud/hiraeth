@@ -1,8 +1,8 @@
 // Ink tide (docs/systems/minigames.md): a round basin of sand in a sea of ink, and the ink keeps coming.
 // Played on foot with the blade (attack RB / R1, guard LB / L1, evade B / ○) and the fluid gun (aim LT / L2,
-// fire RT / R2): endless waves of the game's foes (src/foes.js: ink blots, spitters, swarms, winged blots,
-// shades, the makers' machines; from wave 7 the worlds' own, src/foe-kinds.js: sign moths, dune rays, root
-// stalkers, salt crabs, rust drones, slag walkers, glass golems, shadow hounds) out of the ink springs round
+// fire RT / R2): endless waves of the game's foes (src/foes.js: ink blots, bellows toads, skitters, sky rays,
+// shades, the makers' machines; from wave 7 the worlds' own, the roster's and the old kinds: signal moths, mound
+// worms, root knots, stilt herons, crabs, rust drones, slag walkers, glass golems, hounds) out of the ink springs round
 // the rim, more of them and more kinds as the waves go on. Between two waves a breather: some health back, and three small boons on the sigil in the
 // middle (a longer blade, a deeper tank, quicker refills…): walk onto the one you want. The score is the
 // waves cleared and the style of the fight (cuts in quick succession, perfect parries and dodges, a wave untouched).
@@ -38,17 +38,17 @@ export const TIDE = {
 };
 /**
  * What each foe costs a wave's budget, and the wave it first comes in. Some come as a group for one cost (GROUP:
- * a swarm is five little blots, sign moths three, shadow hounds two). After the shade (wave 6) one of the worlds'
+ * a swarm is five skitters, signal moths three, shadow hounds two). After the shade (wave 6) one of the worlds'
  * own kinds comes in every wave or two, the plain ones first: all of them work on the basin's sand (a worm swims
  * under it), drones hover over it, and the hounds run as shadows between the pillars' long evening ones.
  */
-export const COST = { blot: 1, spitter: 1.5, swarm: 2, ray: 2, shade: 3, machine: 3.5, moth: 2.4, worm: 2, stalker: 2.5, crab: 2.5, drone: 2.5, lizard: 2.6, slag: 3.5, golem: 4, tripod: 3.2, hound: 3, centipede: 3.5, jelly: 2.5 };
-export const FIRST = { blot: 1, spitter: 2, swarm: 3, machine: 4, ray: 5, shade: 6, moth: 7, worm: 8, stalker: 9, crab: 11, drone: 12, lizard: 13, slag: 14, golem: 15, tripod: 16, hound: 17, centipede: 18, jelly: 19 };
-export const GROUP = { swarm: 5, moth: 3, hound: 2, lizard: 2 };
+export const COST = { blot: 1, toad: 1.5, skitter: 2, ray: 2, shade: 3, machine: 3.5, moth: 2.4, worm: 2, rootknot: 2.5, heron: 2.4, crab: 2.5, drone: 2.5, lizard: 2.6, slag: 3.5, golem: 4, tripod: 3.2, hound: 3, centipede: 3.5, jelly: 2.5 };
+export const FIRST = { blot: 1, toad: 2, skitter: 3, machine: 4, ray: 5, shade: 6, moth: 7, worm: 8, rootknot: 9, crab: 11, drone: 12, lizard: 13, slag: 14, golem: 15, tripod: 16, hound: 17, centipede: 18, jelly: 19, heron: 20 };
+export const GROUP = { skitter: 5, moth: 3, hound: 2, lizard: 2 };
 /** Style points for each foe cut down (before the chain's multiplier). */
-export const KILL = { blot: 10, spitter: 15, swarm: 4, ray: 20, shade: 30, machine: 40, moth: 8, worm: 25, stalker: 25, crab: 30, drone: 30, lizard: 22, slag: 35, golem: 45, tripod: 35, hound: 18, centipede: 35, jelly: 20 };
-/** How many a foe puts on the floor, for the crowd's cap (a swarm's little blots don't count). */
-export const heads = (k) => (k === 'swarm' ? 0 : 1);
+export const KILL = { blot: 10, toad: 15, skitter: 4, ray: 20, shade: 30, machine: 40, moth: 8, worm: 25, rootknot: 25, heron: 22, crab: 30, drone: 30, lizard: 22, slag: 35, golem: 45, tripod: 35, hound: 18, centipede: 35, jelly: 20 };
+/** How many a foe puts on the floor, for the crowd's cap (a swarm's little skitters don't count). */
+export const heads = (k) => (k === 'skitter' ? 0 : 1);
 
 /** How much a wave may hold: grows by one and a half blots a wave (gentle: seven tenths). */
 export const waveBudget = (n, gentle = false) => (2 + 1.6 * (n - 1)) * (gentle ? 0.7 : 1);
@@ -60,7 +60,7 @@ export const waveCap = (n, gentle = false) => (gentle ? 5 + Math.floor(n / 4) : 
  * The foes of wave n (1, 2, …): the kind that is new this wave first, then picked at random among those
  * come in so far, the bigger ones more likely the further on (one of the worlds' kinds come in within the last
  * two waves a little likelier still), until the budget is spent or the crowd is full (waveCap: heads). A list of
- * kinds, a group kind as many times as GROUP says (a swarm is five 'swarm'). Gentle: smaller waves, at first
+ * kinds, a group kind as many times as GROUP says (a swarm is five 'skitter'). Gentle: smaller waves, at first
  * never more than five foes standing at once (bar a swarm; a golem counts as its splinters).
  */
 export function waveKinds(n, { gentle = false, rng = Math.random } = {}) {
@@ -102,7 +102,7 @@ export const BOONS = [
   { id: 'mend', name: 'Second wind', text: 'all your hearts back now, and they mend slowly', max: 3, color: '#83cf71' },
   { id: 'feet', name: 'Light feet', text: 'evade sooner and further', max: 2, color: '#f6c84e' },
   { id: 'parry', name: 'Keen guard', text: 'a wider moment to parry', max: 2, color: '#ed80b0' },
-  // (only once the moths are about, and the drones and stalkers to come: from the moths' wave)
+  // (only once the moths are about, and the drones and root knots to come: from the moths' wave)
   { id: 'eyes', name: 'Steady eyes', text: 'flashes blind you less, lines and roots let go sooner', max: 2, color: '#f2f0e4', from: 7 },
 ];
 export const boonById = (id) => BOONS.find((b) => b.id === id) ?? null;
@@ -430,7 +430,7 @@ function start(ctx) {
 export default {
   id: 'waves', order: 8,
   name: 'Ink tide',
-  blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, spitters, swarms, shades and machines, and further on the worlds’ own foes: moths, rays, crabs, drones, golems, hounds…',
+  blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, bellows toads, skitters, shades and machines, and further on the worlds’ own foes: moths, rays, herons, crabs, drones, golems, hounds…',
   rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, perfect dodges, a wave untouched). It ends when the tide knocks you out.',
   drives: false,
   controls: {
