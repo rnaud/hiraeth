@@ -7,6 +7,9 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const BUILTINS = ['Math', 'Object', 'Array', 'Number', 'String', 'Boolean', 'Symbol', 'JSON', 'Reflect', 'Promise', 'Map', 'Set', 'WeakMap', 'WeakSet', 'Date', 'RegExp', 'Error', 'TypeError', 'RangeError',
+  'ArrayBuffer', 'DataView', 'Float32Array', 'Float64Array', 'Int8Array', 'Int16Array', 'Int32Array', 'Uint8Array', 'Uint8ClampedArray', 'Uint16Array', 'Uint32Array', 'BigInt64Array', 'BigUint64Array',
+  'isFinite', 'isNaN', 'parseFloat', 'parseInt', 'console'];
 
 /**
  * Load a bundle into a fresh context. host: the engine host's members (engine/platform.js);
@@ -22,7 +25,11 @@ export function loadBundle(file, host = {}, globals = {}) {
   const readFile = (p) => { try { const b = readFileSync(resolve(ROOT, 'public', p)); const U8 = vm.runInContext('Uint8Array', ctx); return new U8(b).buffer; } catch { return null; } };
   ctx.__MEMENTO_HOST__ = { engine: 'node-vm', readFile, ...host };
   const module = { exports: {} };
-  const fn = vm.runInContext(`(function (module, exports, require) {${code}\n})`, ctx, { filename: file });
+  // (the context's built-ins handed to the bundle as locals, the same objects: a free name in a context made from an
+  // object is looked up through its interceptor on every read, which made a world's build 15-20 times slower than
+  // in Node: tests/pose-exact.test.js built the desert in 17 s instead of 1. An engine's own VM has no interceptor.)
+  const names = BUILTINS.filter((n) => vm.runInContext(`typeof ${n} !== 'undefined'`, ctx));
+  const fn = vm.runInContext(`(function (${names.join(', ')}) { return function (module, exports, require) {${code}\n}; })(${names.join(', ')})`, ctx, { filename: file });
   fn(module, module.exports, (n) => { throw new Error(`the bundle asked for '${n}'`); });
   return { exports: module.exports, ctx, readFile };
 }
