@@ -1,0 +1,81 @@
+.claude/skills/cinematics-qc/SKILL.md
+  s_9ca76055a220ed::t_599cde613906c1 50,53-60,123-126
+DONE.md
+  s_9ca76055a220ed::t_15bc9bb4de7a32 1329-1358
+changelog.md
+  s_9ca76055a220ed::t_272fd3d1d9397c 7-12
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_201605075ccd0f 2,21-22,45-47,71-72,90-92,406-407,460
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_f718b4fddd9c8e 100,105,110,114,177
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_7d72902645de6e 80-81,133-135,173-178
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_9333a321d65cf4 17-18,289-290,343-344,367
+src/boxes/effects.js
+  s_9ca76055a220ed::t_9905e1b3df678c 17,68
+src/changelog-media.js
+  s_9ca76055a220ed::t_eca5404e0fc805 209-224
+src/changelog.js
+  s_9ca76055a220ed::t_25d84df430bc8b 18-24
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_e841c021fec8fb 90-96
+src/items.js
+  s_9ca76055a220ed::t_3657602e558958 198
+src/story/arzach-moments.js
+  s_9ca76055a220ed::t_859eb1dfd9207b 1,10,30,77-79
+src/story/ending.js
+  s_9ca76055a220ed::t_f81553c310754c 184
+src/story/film.js
+  s_9ca76055a220ed::t_38a0a0ae040b8f 86-103
+src/story/home.js
+  s_9ca76055a220ed::t_f64fbabfeadb77 85-100,350-358
+src/story/incal-moments.js
+  s_9ca76055a220ed::t_027df469e9cdc0 78-80,83-84
+src/story/lantern.js
+  s_9ca76055a220ed::t_ec8c885bf77f8b 21-39,78,87-93,99-102,115-120
+src/story/moment.js
+  s_9ca76055a220ed::t_5b36529c96a986 95,193-195,214-221,255
+src/temples/perdide.js
+  s_9ca76055a220ed::t_96a814425d6fcd 175-178
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_8f27c2e4142ab3 141-144
+src/temples/spheres.js
+  s_9ca76055a220ed::t_dceac41d0a71d6 185-188
+tests/finale.test.js
+  s_9ca76055a220ed::t_caae2120cd1e96 198-220
+tests/home.test.js
+  s_9ca76055a220ed::t_c4c6b90b34e453 133-149
+tests/world-moments.test.js
+  s_9ca76055a220ed::t_b5c42f9f16d28a 56-72
+tests/item-star.test.js
+  s_135273ed848c60::t_2d0c6bdd341d0c 34-42
+tests/moment.test.js
+  s_135273ed848c60::t_484ed377647eee 87-113
+tests/temples.test.js
+  s_135273ed848c60::t_f19799d0975d47 312-317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7d2c3820eee3a54a5a6d08727d25bb94e6030122",
+  "prompts": {},
+  "sessions": {
+    "s_135273ed848c60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a02bcb6affcf46897",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
