@@ -1,0 +1,95 @@
+AGENTS.md
+  s_9ca76055a220ed::t_55eff2322b6d82 1-12
+"references/Core Objects/Currency/Small Floating Crystal/prompt.txt"
+  s_dea9cd5a610a8f::t_b8d1611e7042d1 1
+"references/Core Objects/Currency/Small Floating Crystal/review.txt"
+  s_dea9cd5a610a8f::t_7c9bccbe3732b5 1-2
+"references/Core Objects/Currency/Small Floating Crystal/source.txt"
+  s_dea9cd5a610a8f::t_7f823f2e3f2361 1-3
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/review.txt"
+  s_dea9cd5a610a8f::t_9daae026e134b7 1
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/source.txt"
+  s_dea9cd5a610a8f::t_64a989df5053c7 1-3
+"references/Home/characters/Aunt Tove/prompt.txt"
+  s_dea9cd5a610a8f::t_c3348c47010244 1
+"references/Home/characters/Aunt Tove/review.txt"
+  s_dea9cd5a610a8f::t_65c72e62fcef0e 1-2
+"references/Home/characters/Aunt Tove/source.txt"
+  s_dea9cd5a610a8f::t_73ca965483e807 1-3
+references/Home/characters/Father/prompt.txt
+  s_dea9cd5a610a8f::t_a3809abf18bbae 1
+references/Home/characters/Father/review.txt
+  s_dea9cd5a610a8f::t_41b3c8c1afb63f 1-2
+references/Home/characters/Father/source.txt
+  s_dea9cd5a610a8f::t_946d29cb724afd 1-3
+references/Home/characters/Ilen/prompt.txt
+  s_dea9cd5a610a8f::t_fb4a0ebe2bbc37 1
+references/Home/characters/Ilen/review.txt
+  s_dea9cd5a610a8f::t_e4faee45190cdb 1-2
+references/Home/characters/Ilen/source.txt
+  s_dea9cd5a610a8f::t_3a9d8261742d2d 1-3
+references/Home/characters/Lou/prompt.txt
+  s_dea9cd5a610a8f::t_d60051a58ec909 1
+references/Home/characters/Lou/review.txt
+  s_dea9cd5a610a8f::t_cc1a66413cf77a 1-2
+references/Home/characters/Lou/source.txt
+  s_dea9cd5a610a8f::t_926a8f2120f6ab 1-3
+references/Home/characters/Mother/prompt.txt
+  s_dea9cd5a610a8f::t_f9b5562b7a4882 1
+references/Home/characters/Mother/review.txt
+  s_dea9cd5a610a8f::t_b6a1c44f41523e 1-2
+references/Home/characters/Mother/source.txt
+  s_dea9cd5a610a8f::t_5fe7dc01257533 1-3
+references/Home/characters/Moustache/prompt.txt
+  s_dea9cd5a610a8f::t_356ecd681ebbac 1
+references/Home/characters/Moustache/review.txt
+  s_dea9cd5a610a8f::t_3082bafc11422d 1-2
+references/Home/characters/Moustache/source.txt
+  s_dea9cd5a610a8f::t_50451d0761f62e 1-3
+"references/The Travellers Ship/Angular Exterior - Selected/prompt.txt"
+  s_dea9cd5a610a8f::t_69f36ede08c58e 1
+"references/The Travellers Ship/Angular Exterior - Selected/review.txt"
+  s_dea9cd5a610a8f::t_1fc8cea5ad7f20 1-2
+"references/The Travellers Ship/Angular Exterior - Selected/source.txt"
+  s_dea9cd5a610a8f::t_dd593db72de53c 1-3
+references/batches/2026-10-09-selected-family-currency-ship-sword.json
+  s_dea9cd5a610a8f::t_94fe5096e73947 1-96
+CLAUDE.md
+  s_855f1b00a0d1c5::t_44acf798fe9436 39-41
+DONE.md
+  s_855f1b00a0d1c5::t_031aeeeca8170c 1569-1684
+TODO.md
+  s_855f1b00a0d1c5::t_defd7d27210daf 11-37,230-231,235-238,242-244
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6d22564089c253011752068092348e64065bb02d",
+  "prompts": {},
+  "sessions": {
+    "s_855f1b00a0d1c5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a44bd98fa6750bb27",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_dea9cd5a610a8f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a120b8-776c-71e1-b9e3-6142fe20bbd0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
