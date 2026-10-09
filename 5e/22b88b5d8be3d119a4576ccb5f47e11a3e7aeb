@@ -1,0 +1,61 @@
+DONE.md
+  s_9ca76055a220ed::t_8e73330f8b3264 1117-1135
+changelog.md
+  s_9ca76055a220ed::t_f5499c6f7fe272 7-9
+docs/systems/localisation.md
+  s_9ca76055a220ed::t_061432b25dde45 5
+docs/systems/story.md
+  s_9ca76055a220ed::t_5b75c0eb20b9f1 268-273
+docs/systems/ui.md
+  s_9ca76055a220ed::t_422207a2c63667 137-149
+src/changelog-media.js
+  s_9ca76055a220ed::t_bee5e29a8e67c3 183-185
+src/changelog.js
+  s_9ca76055a220ed::t_5f47656373842e 36-39
+src/controller.js
+  s_9ca76055a220ed::t_b4f79ee0a58962 27,119,235-240,245-248
+src/levels/names.js
+  s_9ca76055a220ed::t_49e2692477e160 40-48
+src/main.js
+  s_9ca76055a220ed::t_c2f51184839e3a 7,1121,1141
+src/menu-pad.js
+  s_9ca76055a220ed::t_44e9e9517b1dc5 1-93
+src/menus.css
+  s_9ca76055a220ed::t_fe6ce71e2834bc 158-161
+src/ship/ship.js
+  s_9ca76055a220ed::t_3e2b9c39cb2638 1,332
+src/story/sightings.js
+  s_9ca76055a220ed::t_31ec7b3ee8ee8e 19,114-115,117,119-120
+src/title.js
+  s_9ca76055a220ed::t_facb692d7952aa 25,260,289
+src/ui.js
+  s_9ca76055a220ed::t_9267d87d944478 11,280,355,360,376
+src/world-picker.js
+  s_636e79c9ee751a::t_82dbea4ee49fb4 110
+tests/menus-settings.test.js
+  s_636e79c9ee751a::t_4d7fbfaebad861 1-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5e22b88b5d8be3d119a4576ccb5f47e11a3e7aeb",
+  "prompts": {},
+  "sessions": {
+    "s_636e79c9ee751a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11db2-8eba-7d92-a417-5ca567fe4057",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
