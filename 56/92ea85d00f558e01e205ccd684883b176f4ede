@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_f6520fccc0a6f3 7-8
+docs/systems/temples.md
+  s_9ca76055a220ed::t_e7b105f2e6ec58 135-145
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_7d0de2c60fe6ed 50,57,63-65,88,242,274-275,277
+src/changelog.js
+  s_9ca76055a220ed::t_c1024f5688e361 19-21
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_5e6f7ca96ba51c 5,15-16,18-23,25-33,53,56-57,59,66-69,71-72,74-79,81,87-89,145-147,152-175,190-192,205,207,218-230,262,265
+src/temples/logic.js
+  s_9ca76055a220ed::t_16dfd2ae0e195c 26-27,55,100,105-107,197,202,205-206
+src/temples/pieces.js
+  s_9ca76055a220ed::t_10170878c9b228 121-126,128,130,142,202-206,208,255-256,267-269,275,278-282,293-313,532-534,537-539,542-546,549-556,1014-1019,1021,1023,1310-1311,1330-1334,1344
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_b7b4ad5aa465f9 39-44
+tests/temples.test.js
+  s_9ca76055a220ed::t_7b86132d5e78b9 32-33,595,616-618,620,625-632,635-636,645-652,654,656,664-677,679-700
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5692ea85d00f558e01e205ccd684883b176f4ede",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
