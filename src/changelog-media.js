@@ -228,6 +228,21 @@ const ROLL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = w
   await wait(2600);`;
 
 export const CHANGELOG_MEDIA = {
+  '1.4': [
+    { match: 'A perfect parry now opens a moment for a riposte', shots: [
+      { name: 'blade-riposte', caption: 'A blot’s lunge parried with a fresh guard, then the blade button a moment later in the Arena: before, he is only stepping out of the guard (the light swing barely begun); after, the riposte’s overhead chop coming down on the stunned blot, a gold ring round him', commit: 'dc9642b2',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyZ = true; ${sleepJs(120)} foes.strike(f); ${sleepJs(150)} input.KeyZ = false; input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(150)}`) } },
+    ], numbers: [
+      { title: 'The traveller’s captured moves (moves.glb), with the Sword and Shield pack’s slash 4 (the riposte) and attack 2 (the dash cut) added', unit: 'KB', better: 'lower', device: 'any (downloaded once, after the game starts)', rows: [
+        { where: 'the file', before: 607.1, after: 630.8 },
+        { where: 'gzipped, as the site serves it', before: 403.2, after: 417.1 },
+      ], source: 'public/anim/moves.glb before and after (621 644 → 645 908 bytes; gzip -9c: 412 874 → 427 094); the two clips trimmed to the 1.8 s and 1.05 s the game plays' },
+    ], see: 'In the Arena, raise the guard (LB / L1) just as a blot lunges, then press RB / R1 straight away: he turns into an overhead chop.' },
+    { match: 'Press the blade button during an evade', shots: [
+      { name: 'blade-dash-cut', caption: 'An evade back from a blot with the blade button pressed during it: before, a light swing on the spot where the evade ended; after, the dash cut carrying him past the blot’s side, the sweep crossing it', commit: 'dc9642b2',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.AltLeft = true; ${sleepJs(60)} input.AltLeft = false; ${sleepJs(80)} input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(310)}`, { side: 6, h: 2.4, ty: 1.2 }) } },
+    ], see: 'In the Arena, evade (B / ○) away from a blot and press RB / R1 while you slide: he springs back in past it with a sweep.' },
+  ],
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [
       { name: 'wind-hall', caption: 'The Wind hall on the dune crest west of the desert’s landing, its sign by the steps: gusts blow down it, four screens to shelter behind, three eyes under the porch at its far end', commit: '33271faa',
