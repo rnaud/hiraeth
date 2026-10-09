@@ -4,7 +4,7 @@
 // frame's callbacks, the GPU time where EXT_disjoint_timer_query_webgl2 allows, renderer.info's draw calls).
 //
 //   node scripts/enemy-roster/bench.mjs [--commit <sha>] [--quality high|deck|low] [--size 1280x720] [--seconds 8]
-//     [--pack crab@arzach2,crab@saltharbour,lizard@incal,…] [--shot file.png]
+//     [--pack crab@arzach2,crab@saltharbour,lizard@incal,…] [--shot file.png] [--level arzach2: in a world, for its look]
 // --commit measures that commit (extracted with git archive into $TMPDIR, this checkout's node_modules linked in,
 // deleted after); without it, this checkout. One Vite (PORT, default 5480; never 5173), one Chrome (CDP: PORT + 1).
 // Headless timings are for comparing a before with an after on one machine, not absolute numbers.
@@ -45,7 +45,7 @@ try {
   await c.ev(`localStorage.clear(); localStorage.setItem('moebius.muted', '1');
     localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
     localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${QUALITY}', showFps: false, music: 0, effects: 0, voices: 0 })); true`);
-  await c.send('Page.navigate', { url: `${base}?level=arena` });
+  await c.send('Page.navigate', { url: `${base}?level=${arg('level', 'arena')}` });
   for (let i = 0; i < 400; i++) { try { if (await c.ev('!!window.__moebiusBooted && !!window.foes && !!window.player')) break; } catch { /* loading */ } await sleep(250); }
   await sleep(3000);
   const info = await c.ev(`(() => {
