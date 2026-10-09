@@ -334,6 +334,11 @@ export const CHANGELOG_MEDIA = {
       { name: 'qanat-gift', only: 'after', caption: 'At the ship once the tree burns: Nour last at the hull, “You gave us back our light, child. So Qanat gives your ship its own.”, the others in a half ring by the ramp', from: 'headless Chrome against this branch’s own dev server, a save at the desert’s last stage, at High, 1280 × 720, the camera held (9 October)' },
       { name: 'qanat-well', only: 'after', caption: 'Hessa pours the well’s first water into the ship', from: 'headless Chrome against this branch’s own dev server, a save at the desert’s last stage, at High, 1280 × 720, the camera held (9 October)' },
     ], see: 'Light Qanat’s tree with the spark-stone, then walk back to your ship: the villagers are waiting by the ramp. Each steps up in turn and says what they pour in; then the ship hums awake.' },
+    // the creatures' gallery
+    { match: 'In the creatures and spirits gallery, the creatures’ shadows', shots: [
+      { name: 'gallery-shadow', caption: 'The dune skitter in the gallery, standing (shown at 2×): before, its shadow’s edge torn and speckled, pale streaks between the legs; after, one smooth shadow, each leg’s outline clear', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the creature held at one moment, cropped round it' },
+      { name: 'gallery-shadow-motion', caption: 'Eight frames over two seconds of its idle: before, the edges crawl from frame to frame; after, they hold still', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the page’s own animation stepped a quarter of a second between frames' },
+    ], see: 'Open the creatures and spirits gallery (enemies.html), pick the Desert’s dune skitter, and watch its shadow while it stands, moves and attacks, dragging to turn it.' },
   ],
   '1.5': [
     // the first shop

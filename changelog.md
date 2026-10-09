@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.6 — 2026-10-09
 
+- In the creatures and spirits gallery, the creatures’ shadows are clean again: they were torn into ragged, streaky shapes that crawled as the creature moved or the view turned. Now each one casts one smooth ink shadow that holds still, drawn as in the game, and thin parts like a ray’s tail cast theirs too. The game itself was not affected.
 - In the desert, Qanat now repays you for its tree: once the tree burns, the villagers come down to your ship, each with what their house can spare (the camps’ share of the Drinking, a street’s lamps, the well’s first water), and pour it in together, Nour last. That is what wakes the ship, not your jar alone.
 - Nobody talks about your ship being struck any more: Marrow and Nour in the desert, the witnesses in every world, the People page, the Sightings, the map’s note and Ilen at the Lantern now speak of the light passing your ship and draining it.
 - As the emergency power comes on, the ship says it can follow the light’s signature, and you tell it to: when the ship can fly again, you follow the light, because you want to hear it again.
