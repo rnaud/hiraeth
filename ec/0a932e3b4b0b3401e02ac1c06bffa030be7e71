@@ -1,0 +1,61 @@
+DONE.md
+  s_9ca76055a220ed::t_38d0cbbdc3f1bf 1784-1800
+changelog.md
+  s_9ca76055a220ed::t_41d07378a7b727 7-9
+docs/systems/items.md
+  s_9ca76055a220ed::t_431b400d5d585f 103-112,142-147,150-166,204
+docs/systems/ui.md
+  s_9ca76055a220ed::t_25c70bdfbdf451 454
+index.html
+  s_9ca76055a220ed::t_295e7ff198a1ba 80,84,525
+src/audio.js
+  s_dea9cd5a610a8f::t_b00bc403e5c87e 174-179,1632,1644-1661,1667-1669,1671,1675,1685,1689
+src/changelog.js
+  s_9ca76055a220ed::t_ad8f022bc17a7b 23-26
+src/chime-icon.js
+  s_9ca76055a220ed::t_fe55110f3a92e0 1-16
+src/chimes.js
+  s_9ca76055a220ed::t_cec52aaabe6629 2,5-6,19,65,190-194,196-247,250-258,260,266-269,272-278,282,285,287-292,294,296,300-302,305,308
+src/game-menu.css
+  s_9ca76055a220ed::t_b4689a0b67374c 103,105
+src/game-menu.js
+  s_9ca76055a220ed::t_85d43bef5ed119 31,149
+src/interior-kit.js
+  s_9ca76055a220ed::t_883761a5dc148b 6,110,113-114,185,200
+src/shop-panel.js
+  s_9ca76055a220ed::t_c282d9ecc3cf5b 7,28-29
+src/shop-world.js
+  s_9ca76055a220ed::t_bd77024a56ea08 6,10-11,61,70-71,74,76,78,91
+src/story/people-book.js
+  s_9ca76055a220ed::t_b5f5987a83ed3b 172
+src/story/shop-data.js
+  s_9ca76055a220ed::t_6c667c5d588e8c 6-7,45,74
+tests/chime-sound.test.js
+  s_9ca76055a220ed::t_69802d2e462ae6 1-73
+tests/chimes.test.js
+  s_9ca76055a220ed::t_d0f2aff49aa0d7 7-10,250-252,258,263-275,278-305
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ec0a932e3b4b0b3401e02ac1c06bffa030be7e71",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_dea9cd5a610a8f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a120b8-776c-71e1-b9e3-6142fe20bbd0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
