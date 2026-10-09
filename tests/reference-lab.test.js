@@ -222,6 +222,14 @@ test('fal: data-URI references, the queue polled with the key only on fal hosts,
   assert.ok(!evil.calls.some((c) => c.url.includes('evil')), 'never called with the key');
 });
 
+test('Recraft: a long prompt cut at a clause to its 1000 characters', async () => {
+  const { fitPrompt } = await import('../scripts/reference-lab/providers/fal.mjs');
+  const long = Array.from({ length: 80 }, (_, i) => `clause number ${i}`).join(', ');
+  const cut = fitPrompt(long, 1000);
+  assert.ok(cut.length <= 1000 && long.startsWith(cut) && /\d$/.test(cut));
+  assert.equal(fitPrompt('short', 1000), 'short');
+});
+
 test('BFL: input_image, input_image_2…, x-key header, the polling URL checked, the cost from the answer', async () => {
   const p = providerById('bfl');
   const { url, init } = p.buildRequest({ prompt: 'a rock', refs: Array(10).fill(REF), ar: '16:9' }, KEY);

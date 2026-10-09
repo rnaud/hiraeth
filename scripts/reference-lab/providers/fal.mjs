@@ -39,9 +39,17 @@ const VARIANTS = [
     body: (o) => ({ image_size: sizeFor(o.ar, 2560, 16) }) },
   { id: 'fal-ideogram', label: 'fal · Ideogram 3 (style refs)', text: 'fal-ai/ideogram/v3', edit: 'fal-ai/ideogram/v3', maxRefs: 4, batch: true, cost: 0.06,
     body: (o) => ({ image_size: falImageSize(o.ar), rendering_speed: 'BALANCED' }) },
-  { id: 'fal-recraft', label: 'fal · Recraft V3 (one ref)', text: 'fal-ai/recraft/v3/text-to-image', edit: 'fal-ai/recraft/v3/image-to-image', maxRefs: 1, batch: false, cost: 0.04,
+  { id: 'fal-recraft', label: 'fal · Recraft V3 (one ref)', text: 'fal-ai/recraft/v3/text-to-image', edit: 'fal-ai/recraft/v3/image-to-image', maxRefs: 1, batch: false, cost: 0.04, maxPrompt: 1000,
     body: (o, refs) => (refs.length ? { strength: 0.6, style: 'digital_illustration' } : { image_size: falImageSize(o.ar), style: 'digital_illustration' }) },
 ];
+
+/** A prompt cut to `max` characters at the last clause that fits (Recraft takes 1000 at most). */
+export function fitPrompt(prompt, max) {
+  if (!max || prompt.length <= max) return prompt;
+  const head = prompt.slice(0, max);
+  const cut = Math.max(head.lastIndexOf('. '), head.lastIndexOf(', '), head.lastIndexOf('; '));
+  return (cut > max / 2 ? head.slice(0, cut) : head.slice(0, head.lastIndexOf(' '))).trim();
+}
 
 const dataUri = (r) => `data:${r.mime};base64,${r.base64}`;
 
@@ -66,7 +74,7 @@ function falProvider(v) {
     /** One submit's request (pure). `perCall`: pictures in this call. */
     buildRequest({ prompt, refs = [], ar = '1:1', perCall = 1 }, key) {
       const use = refs.slice(0, v.maxRefs);
-      const body = { prompt, ...v.body({ ar }, use) };
+      const body = { prompt: fitPrompt(prompt, v.maxPrompt), ...v.body({ ar }, use) };
       if (use.length) {
         if (v.id === 'fal-recraft') body.image_url = dataUri(use[0]);
         else body.image_urls = use.map(dataUri);
