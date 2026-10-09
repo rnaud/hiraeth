@@ -43,14 +43,40 @@
       #cue.quest .goal { display: block; font: italic 500 calc(clamp(10px, 1.7vh, 12px) * var(--ts, 1))/1.3 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.06em; opacity: 0.75; }
       #cue.quest .step { display: block; font-weight: bold; }
       body.talking #cue, body.cine-on #cue { visibility: hidden; }
-      /* health: a small inked bar, only while you're hurt (src/main.js) */
-      #health { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(14px + var(--safe-top, 0px)); width: 150px; height: 11px; z-index: 30;
-        border: 2px solid #2b211f; background: #f7ecd2; box-shadow: 2px 2px 0 #2b211f; border-radius: 6px; overflow: hidden;
+      /* hearts, the magic bar and the potion, top left: only while a heart is missing, the bar spends or refills,
+         or a fight is on (src/main.js updateHealth, src/hud.js heartsSvg / magicHud) */
+      #health { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
+        --hh: calc(clamp(15px, 2.7vh, 22px) * var(--ts, 1));
+        display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--hh) * 0.22);
         opacity: 0; transition: opacity .5s; pointer-events: none; }
       #health.on { opacity: 1; }
-      #health i { display: block; height: 100%; width: 100%; background: #d9503f; border-right: 2px solid #2b211f; transition: width .25s; }
-      #health.low i { animation: hpulse .8s ease-in-out infinite; }
-      @keyframes hpulse { 50% { background: #f2c54b; } }
+      #health .row { display: flex; align-items: center; gap: calc(var(--hh) * 0.35); }
+      #health .hearts svg { display: block; height: var(--hh); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #health .he { fill: #f7ecd2; }
+      #health .hf { fill: #d9503f; }
+      #health .hq { fill: none; stroke: #2b211f; stroke-width: 0.9; opacity: 0.55; }
+      #health .hl { fill: none; stroke: #fff4dc; stroke-width: 1.4; stroke-linecap: round; opacity: 0.85; }
+      #health .ho { fill: none; stroke: #2b211f; stroke-width: 2.1; stroke-linejoin: round; }
+      #health .h.empty .hl { opacity: 0; }
+      #health .h.low { animation: hpulse .8s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 60%; }
+      @keyframes hpulse { 50% { transform: scale(1.14); } }
+      #health .h.low .hf { fill: #e8643c; }
+      /* the healing potion: a little corked flask, its stock beside it (∞ until the shops); on a touch screen it is the button */
+      #health .potion { position: relative; display: flex; align-items: center; gap: 2px; padding: 0; margin: 0; border: 0; background: none; color: #2b211f;
+        font: 700 calc(var(--hh) * 0.62)/1 ui-monospace, Menlo, monospace; pointer-events: none; }
+      #health .potion svg { display: block; height: calc(var(--hh) * 1.15); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
+      #health .potion b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; }
+      #health .potion.none { opacity: 0.4; }
+      #health.drink .potion svg { animation: pdrink .9s ease-in-out; }
+      @keyframes pdrink { 30% { transform: rotate(-35deg) translateY(-2px); } 60% { transform: rotate(-35deg) translateY(-2px); } }
+      body.touch #health.on .potion { pointer-events: auto; padding: 6px; margin: -6px; }
+      /* the magic bar: a unit is a third of the starting bar (its ticks); it grows with expansions; short of a unit, hatched */
+      #health .magic { position: relative; height: calc(var(--hh) * 0.5); width: calc(var(--hh) * 2.35 * var(--units, 3)); box-sizing: border-box;
+        border: 2px solid #2b211f; background: #f7ecd2; box-shadow: 1.5px 1.5px 0 #2b211f; border-radius: 6px; overflow: hidden; }
+      #health .magic i { position: absolute; left: 0; top: 0; bottom: 0; width: 100%; background: #3fae9a; border-right: 2px solid #2b211f; }
+      #health .magic.short i { background-color: #8fb9ad; background-image: repeating-linear-gradient(-45deg, transparent 0 4px, rgba(43, 33, 31, 0.35) 4px 6px); }
+      #health .magic u { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(100% / var(--units, 3) - 1.5px), rgba(43, 33, 31, 0.75) calc(100% / var(--units, 3) - 1.5px) calc(100% / var(--units, 3))); }
+      #health .magic.none { display: none; }
       body.talking #health { opacity: 0; }
       /* stamina: a small inked wheel beside the traveller, only while it isn't full (src/main.js updateStamina, src/stamina.js) */
       #stamina { position: fixed; left: 0; top: 0; width: 34px; height: 34px; z-index: 29; pointer-events: none; opacity: 0; transition: opacity .35s;
@@ -162,8 +188,8 @@
       #touch { display: none; }
       body.touch #touch { display: block; }
       /* a phone: the buttons fill the bottom, the cue goes up top (the toasts make room for it: src/ship/cinema.js) */
-      /* (below the health bar's line: it shows the moment you are hurt, top left) */
-      @media (max-width: 700px) { body.touch #cue { bottom: auto; top: calc(40px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
+      /* (below the hearts and the magic bar: they show the moment you are hurt, top left) */
+      @media (max-width: 700px) { body.touch #cue { bottom: auto; top: calc(62px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
       #touch .stick { position: fixed; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(43, 33, 31, 0.5); background: rgba(255, 250, 240, 0.25); display: none; z-index: 35; pointer-events: none; }
       #touch .stick.on { display: block; }
       #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
@@ -445,7 +471,7 @@
       html.reduce-motion #dialogue { transform: translate(-50%, 0); transition: opacity 0.25s; }
       html.reduce-motion #page.open, html.reduce-motion #dialogue .dlg-more, html.reduce-motion #dialogue .dlg-caret { animation: none; }
       /* not by colour alone: low health is hatched as well as red and pulsing, winded stamina dashed as well as red */
-      #health.low i { background-image: repeating-linear-gradient(-45deg, transparent 0 4px, rgba(43, 33, 31, 0.45) 4px 6px); }
+      #health .h.low .hf { stroke: #2b211f; stroke-width: 0.8; stroke-dasharray: 1.5 1.5; }
       #stamina.winded::after { content: '!'; position: absolute; left: 100%; top: -4px; margin-left: 1px; font: bold 15px/1 ui-monospace, Menlo, monospace; color: #c8483a; text-shadow: 1px 1px 0 #2b211f; }
     </style>
   </head>
@@ -478,7 +504,7 @@
       <div class="cards"></div>
     </div>
     <div id="cue" aria-live="polite"></div>
-    <div id="health"><i></i></div>
+    <div id="health" role="group" aria-label="Hearts" data-t-aria="hud.hearts"><div class="row"><span class="hearts"></span><button type="button" class="potion" aria-label="Drink a potion" data-t-aria="hud.potion"><svg viewBox="0 0 14 18" aria-hidden="true"><path d="M5 1.2h4v1.6H5z" fill="#b07a45" stroke="#2b211f" stroke-width="1.2"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="#f7ecd2"/><path d="M1.4 10.6c1.6-0.9 3.4-0.2 5.6 0.2s3.9-0.2 5.6-0.7c0.3 3.4-2.4 6.1-5.6 6.1s-5.9-2.4-5.6-5.6z" fill="#d9503f"/><path d="M5.3 2.8h3.4v3.1c2.6 0.8 4.3 3 4.3 5.7 0 3.4-2.7 5.6-6 5.6s-6-2.2-6-5.6c0-2.7 1.7-4.9 4.3-5.7z" fill="none" stroke="#2b211f" stroke-width="1.5" stroke-linejoin="round"/><path d="M3.6 9.6c-0.6 0.8-0.8 1.7-0.6 2.6" fill="none" stroke="#fff4dc" stroke-width="1.1" stroke-linecap="round"/></svg><b>∞</b></button></div><div class="magic"><i></i><u></u></div></div>
     <div id="stamina" aria-hidden="true"><svg viewBox="-20 -20 40 40">
       <circle r="16" cx="1.8" cy="1.8" fill="#2b211f" />
       <circle r="16" fill="#f7ecd2" stroke="#2b211f" stroke-width="2.2" />

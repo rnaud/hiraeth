@@ -84,9 +84,9 @@ export const WARDEN = {
       openHint: 'The hatch on its crown swings up, glowing: its sides stay shut. Get above it, and shoot down into it.' },
   ],
   attacks: {
-    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 0.22, knock: 10, recover: 0.8, open: 2.8 },
-    mortar: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.2, knock: 8, recover: 0.6 },
-    slam: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 0.25, knock: 13, recover: 1.0, open: 3.0 },
+    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 1, knock: 10, recover: 0.8, open: 2.8 },
+    mortar: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6 },
+    slam: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
   },
 };
 

@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
-import { registerHazard } from '../hazards.js';
+import { registerHazard, HAZARD_DPS } from '../hazards.js';
 import { screened } from '../wind-screens.js';
 import { registerWorking } from '../workings.js';
 import { Flames } from '../story/flames.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { T, box, lathe, prep, annulus } from './kit.js';
+import { sparing, heartsOf, DAMAGE } from '../resources.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -347,7 +348,7 @@ export class Bramble {
     this.group.updateMatrixWorld(true); inv.copy(this.group.matrixWorld).invert();
     const back = V(0, 0, -1).applyQuaternion(this.group.getWorldQuaternion(new THREE.Quaternion()));
     this.offHazard = registerHazard({
-      kind: 'spikes', dps: 0.04,
+      kind: 'spikes', dps: HAZARD_DPS.spikeRow,
       test: (p) => { if (this.burnt) return false; _l.copy(p).applyMatrix4(inv); return Math.abs(_l.x) < w / 2 + 0.2 && _l.y > -1.6 && _l.y < h && Math.abs(_l.z) < 1.4; },
       push: (p, out) => out.copy(back),
     });
@@ -573,7 +574,7 @@ export class Jaw {
     this.group.updateMatrixWorld(true);
     const inv = this.group.matrixWorld.clone().invert(), _l = V(), _o = V();
     this.offHazard = registerHazard({
-      kind: 'spikes', dps: 0.05,
+      kind: 'spikes', dps: HAZARD_DPS.spikeRow,
       test: (p) => { if (this.open) return false; _l.copy(p).applyMatrix4(inv); return Math.abs(_l.x) < w / 2 && _l.y > -1.6 && _l.y < h && Math.abs(_l.z) < 1.5; },
       push: (p, out) => { _l.copy(p).applyMatrix4(inv); return out.copy(_o.set(0, 0, Math.sign(_l.z) || -1).transformDirection(this.group.matrixWorld)); },
     });
@@ -689,7 +690,7 @@ export class Swing {
       this.cool = 1.5;
       const out = V(this.way, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(9).addScaledVector(UP, 4);
       P.knockDown?.(out, { why: 'guardian' });
-      P.hurt?.(Math.min(0.12, Math.max(0, (P.health ?? 1) - 0.1)), 'guardian');
+      P.hurt?.(sparing(heartsOf(P), DAMAGE.blow), 'guardian');
       this.rt.rumble?.(0.4, 0.4);
     }
   }

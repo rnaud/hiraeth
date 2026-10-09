@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
+import { HIT, strikeDamage, heartsOf, quarters, DAMAGE } from '../resources.js';
 
 // The thing at the heart of every temple. The makers were gentle: what waits
 // in their temples was left to keep them. Two kinds:
@@ -29,7 +30,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 //
 // def: { kind, name, phases: [{ to: 0.4, attacks: ['stamp', …], hint, openHint? (this phase's, else def.openHint) }],
 //        attacks: { id: { shape: 'ring' | 'cone' | 'lane', at: 'player' | 'self', radius, range, angle,
-//                          width, telegraph: s, damage: 0..1, knock: m/s, open?: s (vulnerable after),
+//                          width, telegraph: s, damage: hearts, knock: m/s, open?: s (vulnerable after),
 //                          recover: s } },
 //        onHit(g, part ('mouth' | 'body' | 'vent'), mode, info) -> handled, final: 'touch' | 'break',
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
@@ -52,14 +53,8 @@ export function guardianBar(def, meter) {
   return { label: `${def?.name ?? ''} · ${robot ? 'health' : 'unrest'}`, fill, color: robot ? '#d9503f' : '#f0a04b' };
 }
 
-/** Strikes never empty a healthy bar: what is left after a hit, at least. */
-export const HIT = { floor: 0.08, low: 0.22, airborne: 1.3 };
-
-/** The damage a strike does to a bar at `health`: the full bite when low, else capped to leave HIT.floor. */
-export function strikeDamage(health, damage) {
-  if (health <= HIT.low) return damage;   // already low: this one can knock you out
-  return Math.min(damage, Math.max(0, health - HIT.floor));
-}
+// Strikes never take you from more than a heart to nothing (src/resources.js HIT, strikeDamage: in hearts).
+export { HIT, strikeDamage };
 
 /** Is point p (the traveller's feet) inside an attack's area? shape at origin o, facing heading h. */
 export function inArea(a, o, h, p) {
@@ -354,7 +349,7 @@ export class Guardian {
     if (P.dead || P.down) return false;
     if (P.pos.y - this.arena.y > (a.shape === 'lane' ? 3.5 : HIT.airborne)) return false;   // jumped clear (a beam reaches a little higher)
     if (!inArea(a, this.attackAt, this.attackH, P.pos)) return false;
-    const dmg = strikeDamage(P.health ?? 1, a.damage ?? 0.25);
+    const dmg = strikeDamage(heartsOf(P), quarters(a.damage ?? DAMAGE.heavy));
     _a.subVectors(P.pos, a.shape === 'ring' ? this.attackAt : this.model.pos).setY(0);
     if (_a.lengthSq() < 1e-4) _a.set(Math.sin(this.model.heading), 0, Math.cos(this.model.heading));
     _a.normalize().multiplyScalar(a.knock ?? 9).addScaledVector(UP, 4);

@@ -7,6 +7,7 @@ import { gameMarkerModel, signPlate } from '../minigames/kit/marker.js';
 import { standAt } from '../minigames/kit/onfoot.js';
 import { formatTime, bestScore } from '../minigames/kit/scores.js';
 import { ITEMS } from '../items.js';
+import { Resources } from '../resources.js';
 import { TRIALS } from './data.js';
 import { CourseRun, lacks, inMode, parTime, MODES } from './course.js';
 import { gatePoints, startPoint } from './check.js';
@@ -172,7 +173,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
     trial: T, gates, start, par, sign, winds, course, running: null,
     game: null,
     /** What the traveller lacks for it now ('' if nothing). */
-    lacks: () => lacks(T, { has: (id) => items.has(id), mount: player?.mount ?? null }),
+    lacks: () => lacks(T, { has: (id) => new Resources(game, items).meets(id), mount: player?.mount ?? null }),   // ('magic:4': src/resources.js)
     best: () => bestScore(game, { id: T.id }),
     done: () => !!game.flag(doneKey),
     /** The interact button at the sign. */

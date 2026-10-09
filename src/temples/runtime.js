@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items as sharedItems } from '../items.js';
+import { Resources, sparing, heartsOf, DAMAGE } from '../resources.js';
 import { addIndoors } from '../shelter.js';
 import { rumble } from '../ship/sfx.js';
 import { TempleKit, templeMaterials } from './kit.js';
@@ -37,7 +38,8 @@ export class TempleRuntime {
     this.root.name = `Temple: ${def.name}`;
     scene.add(this.root);
     this.lights = level.lights ?? (level.lights = []);
-    this.logic = new TempleLogic(def.logic, { store: flagStore(game, def.id), has: (it) => items.has(it) });
+    const res = new Resources(game, items);
+    this.logic = new TempleLogic(def.logic, { store: flagStore(game, def.id), has: (it) => res.meets(it) });   // ('magic:4': a bar of four units, src/resources.js)
     this.kit = new TempleKit(this.root, def.name, V(...def.origin), def.yaw ?? 0, this.M);
     this.pieces = []; this.byId = new Map(); this.marks = []; this.pits = []; this.portals = [];
     this.checkpoint = null;
@@ -136,7 +138,7 @@ export class TempleRuntime {
     setTimeout(() => this.fade(0, 0.8), 160);
     P.teleport?.(m.spot.clone(), V(0, 1, 0), V(0, 0, 1));
     P.heading = m.heading;
-    if (hurt) P.hurt?.(Math.min(hurt, Math.max(0, (P.health ?? 1) - 0.1)), 'fall');
+    if (hurt) P.hurt?.(sparing(heartsOf(P), hurt), 'fall');   // (hearts; never the last quarter)
   }
 
   solids() {
@@ -189,9 +191,9 @@ export class TempleRuntime {
     // knocked out anywhere inside: wake at the last mark (restart() goes back to lastSafe)
     if (P?.dead && inside) { const m = this.checkpoint ?? this.marks[0]; if (m) P.lastSafe.copy(m.spot); }
     // fell out of the temple altogether (it hangs far over the world): back to the last mark
-    if (P && !P.dead && !inside && this.below(P.pos)) { this.toCheckpoint({ hurt: 0.08 }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); }
+    if (P && !P.dead && !inside && this.below(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); }
     // fell into a pit
-    if (P && !P.dead && inside) for (const pit of this.pits) if (pit.contains(P.pos)) { this.toCheckpoint({ hurt: 0.08 }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); break; }
+    if (P && !P.dead && inside) for (const pit of this.pits) if (pit.contains(P.pos)) { this.toCheckpoint({ hurt: DAMAGE.graze }); this.notice(this.def.pitLine ?? 'You climb back up to the last mark.', 'pit'); break; }
     this.change?.update?.(dt, t);
   }
 

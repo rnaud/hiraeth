@@ -1,14 +1,19 @@
 import * as THREE from 'three';
 
 // Things that hurt while you touch them: the burning tree's flame, cactus spines, and anything
-// else a world registers. Each is a simple volume with a kind and a damage rate (share of the
-// health bar per second). While the traveller is inside one, it takes that rate (in small bites,
-// so the hurt thud isn't every frame), and spines push you back out. The first touch of a kind
+// else a world registers. Each is a simple volume with a kind and a damage rate (hearts a second).
+// While the traveller is inside one, it takes that rate in quarter-heart bites (so the hurt thud
+// isn't every frame; the first touch bites at once), and spines push you back out. The first touch of a kind
 // says what it is ("It burns!"). Health is src/player.js hurt() / heal().
 //
-//   const off = registerHazard({ kind: 'fire', dps: 0.3, test: (p) => bool })
-//   registerHazard(cylinderHazard({ kind: 'spikes', x, z, y0, y1, r, dps: 0.12 }))
+//   const off = registerHazard({ kind: 'fire', dps: 1, test: (p) => bool })
+//   registerHazard(cylinderHazard({ kind: 'spikes', x, z, y0, y1, r, dps: 0.5 }))
 //   updateHazards(dt, player, { notice })   once a frame (main.js)
+
+/** The rates the world's hazards use (hearts a second): a flame, the cacti's spines, a temple's spike rows. */
+export const HAZARD_DPS = { fire: 1, spikes: 0.5, spikeRow: 0.25, embers: 0.75 };
+/** Hazards bite a quarter heart at a time; a fresh touch bites at once, but not again within REBITE s. */
+const BITE = 0.25, REBITE = 0.75;
 
 const list = [];
 
@@ -36,7 +41,7 @@ export function cylinderHazard({ kind, x, z, y0, y1, r, dps, push = kind === 'sp
  * A flame's volume: a round-bellied shape over an axis (x, z), from y0 to y1, widest (rMax) at
  * `belly` of the way up, narrowing toward the tip. Climb into it and it burns.
  */
-export function flameHazard({ x, z, y0, y1, rMax, belly = 0.5, dps = 0.3 }) {
+export function flameHazard({ x, z, y0, y1, rMax, belly = 0.5, dps = HAZARD_DPS.fire }) {
   return {
     kind: 'fire', dps, x, z,
     test: (p) => {
@@ -51,7 +56,7 @@ export function flameHazard({ x, z, y0, y1, rMax, belly = 0.5, dps = 0.3 }) {
 }
 
 const NOTES = { fire: 'It burns! Get out of the flames.', spikes: 'Ouch: spines.' };
-const state = { acc: 0, kind: null, told: new Set() };
+const state = { acc: 0, kind: null, cool: 0, told: new Set() };
 const _push = new THREE.Vector3();
 
 /**
@@ -59,20 +64,26 @@ const _push = new THREE.Vector3();
  * what it is the first time; returns the kind touched (or null).
  */
 export function updateHazards(dt, player, { notice = () => {} } = {}) {
+  state.cool = Math.max(0, state.cool - dt);
   if (!player || player.ride || player.hidden || !list.length) { state.acc = 0; state.kind = null; return null; }
   let worst = null;
   for (const h of list) if (h.test(player.pos) && (!worst || h.dps > worst.dps)) worst = h;
   if (!worst) { state.acc = 0; state.kind = null; return null; }
   let first = false;
   if (state.kind !== worst.kind) {
-    // just touched it: a first bite at once, so you feel it
-    first = true;
+    // just touched it: a first bite at once, so you feel it (not again for a moment: spines that push you out
+    // and a step back in don't bite on every touch)
+    first = state.cool <= 0;
     state.kind = worst.kind;
-    state.acc = Math.max(state.acc, worst.dps * 0.25);
     if (!state.told.has(worst.kind)) { state.told.add(worst.kind); notice(NOTES[worst.kind] ?? 'That hurts.'); }
   }
   state.acc += worst.dps * dt;
-  if (first || state.acc >= 0.05) { player.hurt?.(state.acc, worst.kind); state.acc = 0; }
+  if (first || state.acc >= BITE - 1e-9) {
+    const q = first ? BITE : Math.floor(state.acc / BITE + 1e-9) * BITE;
+    player.hurt?.(q, worst.kind);
+    state.acc = first ? 0 : Math.max(0, state.acc - q);
+    state.cool = REBITE;
+  }
   // spines push you back out (and off the plant if you were climbing it)
   if (worst.push) {
     const d = worst.push(player.pos, _push);
@@ -86,4 +97,4 @@ export function updateHazards(dt, player, { notice = () => {} } = {}) {
 }
 
 /** (tests) forget what has been said */
-export const resetHazardNotes = () => { state.told.clear(); state.acc = 0; state.kind = null; };
+export const resetHazardNotes = () => { state.told.clear(); state.acc = 0; state.kind = null; state.cool = 0; };

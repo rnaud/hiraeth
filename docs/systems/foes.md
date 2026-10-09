@@ -169,9 +169,49 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
   - the push: shoves them.
 
   A cut breaks a blot's wind-up, and a machine's in its first two thirds.
-- **What they do to you:** `strikeDamage` (as the guardians): a hit never takes a healthy bar below
-  `HIT.floor`. A blot shoves you; a machine knocks you down.
-- **The reward:** each foe cut down gives the tank a charge back (glowing drops fly to the flask).
+- **What they do to you:** hearts (October 2026, v1.5; `src/resources.js`), every attack's `damage` in
+  hearts, counted in quarters. The table below. A blot shoves you; a machine knocks you down.
+- **The reward:** each foe cut down gives a unit of the magic bar back, a third of the starting bar
+  (glowing drops fly to the flask).
+
+### The damage table (hearts; v1.5)
+
+The traveller starts with **three hearts** (`HEARTS.start`). Every hurt is counted in **quarter hearts**
+(`quarters()`: rounded to the nearest quarter, a tie down, never less than one quarter for any hurt).
+They never come back by themselves (`FALL.regen` 0): a healing potion gives two back (`POTION`).
+The baseline is **an ordinary foe's blow: half a heart** (`DAMAGE.blow`); heavier ones scale from it. The
+values were the old bar's shares times four, to the nearest quarter (a few world foes' pecks and stings
+brought down to the baseline), so an ordinary blow (12–15 % of the old bar) now takes a sixth of a fresh
+traveller instead of an eighth: a little harder, as asked.
+
+| What | Hearts | Where |
+|---|---|---|
+| A swarm's nip, a moth's flash, a dart, a root's grab, a crab's lunge; each contact of a world foe's multi-contact attack (pincers, a scythe, a barrage, a jet) | ¼ | `FOES.swarm`, `foe-kinds.js`, `enemies/attacks.js` |
+| Burning slag underfoot, a first touch of spines (a bite) | ¼ | `foes.js` (`DAMAGE.graze`), `hazards.js` |
+| **An ordinary blow**: an ink blot's lunge, each hit of its combo, a spitter's lob, each glob of a volley, a machine's quake wave, a harpoon, a ram, a lash, a snap, a pounce, a bite, a shards ring; a world foe's peck, sting, lob, pull, buffet | **½** | `FOES.blot`, `foe-kinds.js`, `enemies/attacks.js` |
+| A heavy blow: a winged blot's dive, a shade's sword, a machine's quake slam, an erupting ray, a glass golem's slam or hurl, a crab's spin, a slag walker's stomp or pour; a world foe's rush, tail, beam, pulse, dive | ¾ | same |
+| A crushing blow: a machine's slam; a world foe's groundbreaker | 1 | `FOES.machine`, `enemies/attacks.js` |
+| A guardian's strike: the fans, the cries and the trackers | ¾ | each temple's `attacks` (`telegraph:` lines) |
+| A guardian's heaviest: the stamps, the slams, the dives, the beams of the Tooth-Warden and the sentinel | 1 | same |
+| A temple's swinging guardian piece; a fall into a temple's pit | ½; ¼ | `temples/pieces.js`, `temples/runtime.js` |
+| Fire (the burning tree), a fan's embers, spines (cacti), a temple's spike row | 1, ¾, ½, ¼ a second, in quarter bites | `HAZARD_DPS` (`hazards.js`) |
+| Out of air under water | ¼ every 1.2 s, never the last quarter | `SWIM.bite` |
+| A hard landing (a drop of 16–36 m) | ¼ to 2 (`FALL.worst`), never the last quarter | `fallDamage` (`player.js`) |
+| A fatal fall (36 m and more) | all of them | `FALL.lethal` |
+
+- **Gentle** (the Enemies setting) still halves the foes' harm (`GENTLE.harm`), then counts it in quarters,
+  never under one: a heart's blow takes half, half a heart a quarter, a quarter still a quarter.
+  The guardians and the world's hazards don't change with it (as before).
+- **The forgiving rule, kept:** a single blow never takes you from **more than one heart to nothing**
+  (`strikeDamage`, `HIT`: above one heart it leaves at least a quarter; at one heart or less, a blow can knock
+  you out). With three hearts and nothing over a heart a blow it only matters at the end of a fight, which
+  is where it mattered before (the old bar's floor was 8 %, about a quarter heart, above 22 %, about two
+  thirds of one); kept so a heavy guardian strike or a machine's slam always leaves you the chance to drink.
+  Falls, drowning and a temple's pit never take the last quarter; a fatal fall, fire and spines can.
+- Knockouts and the Restart panel are as they were (`player.restart()`: back where you last stood, whole).
+
+Tests: `tests/resources.test.js` (the table, quarters, Gentle, the rule), `tests/health.test.js`,
+`tests/foes.test.js`.
 - **Ink blots, in the wilds:**
   - `wild(p)` is this far from every person (placed and spawned, `WILD.people` 45 m) and from the ship's
     landing (`WILD.spawn` 55 m), not in the temple, not on `level.unsafe` ground, not riding or swimming.

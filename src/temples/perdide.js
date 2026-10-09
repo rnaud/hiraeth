@@ -83,9 +83,9 @@ export const MOTHER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    lunge: { shape: 'lane', range: 13.5, width: 3.4, telegraph: 1.5, damage: 0.22, knock: 11, recover: 0.6, open: 3.6 },
-    sweep: { shape: 'cone', range: 9.5, angle: 0.95, telegraph: 1.3, damage: 0.18, knock: 12, recover: 0.7 },
-    seed: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.7, track: 0.55, damage: 0.18, knock: 8, recover: 0.8 },
+    lunge: { shape: 'lane', range: 13.5, width: 3.4, telegraph: 1.5, damage: 1, knock: 11, recover: 0.6, open: 3.6 },
+    sweep: { shape: 'cone', range: 9.5, angle: 0.95, telegraph: 1.3, damage: 0.75, knock: 12, recover: 0.7 },
+    seed: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.7, track: 0.55, damage: 0.75, knock: 8, recover: 0.8 },
   },
 };
 

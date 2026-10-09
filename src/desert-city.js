@@ -8,7 +8,7 @@ import { STORY, processionLoop } from './desert-sites.js';
 import { cityFloor } from './desert-landmarks.js';
 import { Banner } from './life.js';
 import { Flames, FlameBody, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from './story/flames.js';
-import { registerHazard, flameHazard } from './hazards.js';
+import { registerHazard, flameHazard, HAZARD_DPS } from './hazards.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 
@@ -436,7 +436,7 @@ export function buildDesertCity(scene, terrain) {
     // climb into it and it burns (src/hazards.js): its volume, from just over the fork to the tip
     // (only while it burns: the tree stands cold until it is lit, src/story/desert.js)
     { const lo = city.world(TREE.x, top + 14 * S, TREE.z), hi = city.world(TREE.x, top + 62 * S, TREE.z);
-      const h = flameHazard({ x: lo.x, z: lo.z, y0: lo.y, y1: hi.y, rMax: 15 * S, belly: 0.4, dps: 0.3 }), test = h.test;
+      const h = flameHazard({ x: lo.x, z: lo.z, y0: lo.y, y1: hi.y, rMax: 15 * S, belly: 0.4, dps: HAZARD_DPS.fire }), test = h.test;
       h.test = (p) => (out.city?.lit ?? 1) > 0.5 && test(p);
       registerHazard(h); }
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);

@@ -51,7 +51,8 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
 - **`boss.js`**: `Guardian`: sleep, wake, fight, open, weary, resolved; a meter in
   phases (`calm` for an organic guardian, `damage` for a robot); attacks
   telegraphed on the floor (`ring`, `cone`, `lane`) then struck: `knockDown` +
-  `hurt`, never emptying a healthy bar (`strikeDamage`); a knockout puts the keeper
+  `hurt` in hearts (¾ or 1: docs/systems/foes.md, the damage table), never taking you from more than a
+  heart to nothing (`strikeDamage`); a knockout puts the keeper
   back to its phase's start. `final: 'touch'` (an interactable: a hand on its brow)
   or `'break'`. **`guardians.js`**: the Keeper's and the warden's bodies.
 - **`runtime.js`**: one temple alive: builds the rooms (the world's `layout`),
@@ -143,9 +144,10 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   worlds, and plays each temple on foot with a real `Player` in the real level
   geometry: pushing the ball, riding the discs, climbing, lighting, flying, the
   keeper calmed or broken, the way out and the world change. The First Garage's
-  banks are shot at a real tank's pace (`Reserve`: three charges, a refill five
-  seconds after the last shot, three with the coil), so the test proves six
-  eyes in 4.6 s want the coil; the Hangar's portals are checked to still send
+  banks are shot at the real magic bar's pace (`Reserve`, `resources.magicPace`: three units, refilling
+  1 s after the last shot and full in 4 s; 0.5 s and 2 s with the coil), so the test proves six
+  eyes in 4.6 s want the coil (and the Engine-House's four in 2.6 s want the fourth chamber's unit:
+  `needs: ['magic:4']`, a capacity, not an item, `tests/resources.test.js`); the Hangar's portals are checked to still send
   you through; the echo shell and bloom mode have tests of their own.
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.

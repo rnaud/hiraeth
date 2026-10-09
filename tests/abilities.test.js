@@ -122,8 +122,11 @@ test('the jets: only with the item; thrust burns the tank as a smooth gauge that
   for (let i = 0; i < 400 && !p.onGround; i++) step(1);
   assert.equal(p.onGround, true);
   assert.ok(tool.reserve.level < 3, 'not refilled in the air');
-  step(Math.ceil(FLUID.refillDelay / DT) + 2);
-  assert.equal(tool.reserve.level, 3, 'full again two seconds after landing');
+  const landed = tool.reserve.level;
+  step(Math.ceil(FLUID.refillDelay / DT) - 2);
+  assert.ok(Math.abs(tool.reserve.level - landed) < 1e-9, 'landed: the bar waits its moment first');
+  step(Math.ceil((3 - landed) / tool.reserve.rate / DT) + 4);
+  assert.equal(tool.reserve.level, 3, 'then refills like stamina, full again at the bar\'s pace');
   // burnt dry it stops (and drops), a whole charge left still shoots
   tool.reserve.drain(2.95); p.pos.set(0, 30, 0); p.onGround = false; step(1);
   step(1, { Space: true }); step(30, { Space: true });

@@ -81,9 +81,9 @@ export const FIRST_SIGN = {
     { to: 1.0, attacks: ['static', 'cry', 'beam'], pause: 1.2, hint: 'It has a new word now. Catch it, and give it back.' },
   ],
   attacks: {
-    cry: { shape: 'ring', at: 'self', radius: 9, telegraph: 1.6, damage: 0.2, knock: 12, recover: 0.9, open: 4.4 },
-    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 0.2, knock: 10, recover: 0.8 },
-    static: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.18, knock: 8, recover: 0.6, open: 4.4 },
+    cry: { shape: 'ring', at: 'self', radius: 9, telegraph: 1.6, damage: 0.75, knock: 12, recover: 0.9, open: 4.4 },
+    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 0.75, knock: 10, recover: 0.8 },
+    static: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6, open: 4.4 },
   },
 };
 

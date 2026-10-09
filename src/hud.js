@@ -4,8 +4,9 @@
 //     right here when it has no person or thing to float over (the ship's hatch and console, a
 //     lens), and a region's name as you cross into it; nothing while riding (no list of a
 //     vehicle's buttons as you get on: the settings' Controls page has them);
-//   - the health bar while hurt or healing, the stamina wheel while not full, the tank's gauge
-//     while it is short (main.js, ui.js ToolHud), each lingering a moment (Fader);
+//   - the hearts, the magic bar and the potion (index.html #health: heartsSvg, magicHud) while a heart is
+//     missing, the bar is spending or refilling, or a fight is on; the stamina wheel while not full
+//     (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
 import { badgeLine, escapeHtml, keysHtml } from './prompt-keys.js';
@@ -68,14 +69,55 @@ export class Fader {
 }
 
 /**
- * The health bar's state this frame (index.html #health; an engine draws it from platform.js screen):
- * shown while hurt or down and the fader's linger after, or null. `hurt`: a hurt or a knockdown just
- * now (shows it at once).
+ * The hearts' state this frame (index.html #health: the hearts, the magic bar, the potion; an engine draws it
+ * from platform.js screen): shown while a heart is missing, the magic bar is not full, a fight is on (`combat`)
+ * or you are down, and the fader's linger after, or null. `hurt`: a hurt, a knockdown or a potion just now
+ * (shows it at once). value: the hearts as a share (the old bar's), low: one heart or less left.
+ * Without `hearts` (an old caller) the share `health` counts as HEARTS.start hearts.
  */
-export function healthHud({ health = 1, down = false, hurt = false, quiet = false } = {}, fader, dt) {
+export function healthHud({ health = 1, hearts = null, max = 3, magic = null, magicMax = 3, potions = null, infinite = true, combat = false, down = false, hurt = false, quiet = false } = {}, fader, dt) {
+  const h = hearts ?? health * max, share = max > 0 ? h / max : 0;
+  const spending = magic !== null && magic < magicMax - 1e-3;
   if (hurt) fader.update(0, true);
-  const on = fader.update(dt, health < 0.999 || !!down) && !quiet;
-  return on ? { value: +health.toFixed(3), low: health < 0.3 } : null;
+  const on = fader.update(dt, share < 0.999 || !!down || spending || !!combat) && !quiet;
+  if (!on) return null;
+  const out = { value: +share.toFixed(3), low: h <= 1 + 1e-9 && h < max, hearts: +h.toFixed(2), max };
+  if (magic !== null) Object.assign(out, { magic: +magic.toFixed(2), magicMax });
+  if (potions !== null) Object.assign(out, { potions, infinite: !!infinite });
+  return out;
+}
+
+/** Each heart's quarters filled (0..4), for `hearts` (counted in quarters) out of `max` containers. */
+export function heartQuarters(hearts, max) {
+  const q = Math.max(0, Math.round((hearts ?? 0) * 4));
+  return Array.from({ length: Math.max(0, Math.round(max)) }, (_, i) => Math.max(0, Math.min(4, q - i * 4)));
+}
+
+// One inked heart (a 20 x 18 box): the outline drawn thick in the ink, the fill in quarters (the quadrants
+// round the middle: bottom left, top left, top right, bottom right, as a clock fills), a cream highlight.
+const HEART = 'M10 17.2 C 6.2 14.1 1.4 10.6 1.4 6.1 C 1.4 3.2 3.6 1.2 6.1 1.2 C 7.8 1.2 9.2 2.2 10 3.6 C 10.8 2.2 12.2 1.2 13.9 1.2 C 16.4 1.2 18.6 3.2 18.6 6.1 C 18.6 10.6 13.8 14.1 10 17.2 Z';
+const QUAD = ['M0 9H10V18H0Z', 'M0 0H10V9H0Z', 'M10 0H20V9H10Z', 'M10 9H20V18H10Z'];
+/**
+ * The hearts as one inline SVG (DOM-free: main.js puts it into #health .hearts, the tests read it): a heart
+ * per container, each filled by its quarters; the last one pulses when `low`. Part-filled hearts show their
+ * quarter lines, so a quarter reads at any size.
+ */
+export function heartsSvg(hearts, max, { low = false } = {}) {
+  const qs = heartQuarters(hearts, max), W = 22;
+  const body = qs.map((n, i) => {
+    const id = `hq${i}`;
+    const fill = n >= 4 ? `<path d="${HEART}" class="hf"/>` : n > 0 ? `<clipPath id="${id}"><path d="${QUAD.slice(0, n).join('')}"/></clipPath><path d="${HEART}" class="hf" clip-path="url(#${id})"/>` : '';
+    const ticks = n > 0 && n < 4 ? '<path d="M10 3.6V17.2M1.6 9H18.4" class="hq"/>' : '';
+    const last = low && n > 0 && (i === qs.length - 1 || qs[i + 1] === 0);
+    return `<g transform="translate(${i * W} 0)" class="h${n === 0 ? ' empty' : ''}${last ? ' low' : ''}" data-q="${n}"><path d="${HEART}" class="he"/>${fill}${ticks}<path d="M5.2 4.4 C 4 4.9 3.4 6 3.5 7.2" class="hl"/><path d="${HEART}" class="ho"/></g>`;
+  }).join('');
+  return `<svg viewBox="-1 -1 ${qs.length * W} 20" width="${qs.length * W}" height="20" aria-hidden="true">${body}</svg>`;
+}
+
+/** The magic bar's fill and look: { fill 0..1, units (its length), short: can't pay for a shot (under one unit) }. */
+export function magicHud(level, max) {
+  const m = Math.max(0, max ?? 0);
+  return { fill: m > 0 ? Math.min(1, Math.max(0, (level ?? 0) / m)) : 0, units: m, short: (level ?? 0) < 1 - 1e-6 };
 }
 
 /**

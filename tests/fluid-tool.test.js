@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FluidTool, FLUID, FLUID_TONES, Glob, Reserve, boostVelocity, clearLine, fluidTones, shotDir, toolInput, traceShot } from '../src/fluid-tool.js';
+import { MAGIC } from '../src/resources.js';
 import { clearTargets, hitTarget, registerTarget, targetsInCone } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { ReactiveWorld } from '../src/reactive-world.js';
@@ -52,22 +53,42 @@ const frames = (tool, n, ctl = {}) => { for (let i = 0; i < n; i++) tool.update(
 /** A push: the gun's push mode, fired once (the quick shot needs no aim), then back to the fluid. */
 const pushOnce = (tool, n = 10) => { tool.setMode('push'); tool.update(DT, { TouchFire: true }); frames(tool, n); tool.setMode('shoot'); };
 
-test('the shared reserve: three uses, then none, then all three back exactly 2 s after the last use', () => {
+test('the magic bar: three uses, then none; it refills like stamina, 1 s after the last spend, empty to full in 4 s', () => {
   const r = new Reserve();
   assert.equal(r.charges, 3);
+  assert.equal(FLUID.charges, MAGIC.start); assert.equal(FLUID.refillDelay, MAGIC.delay);
+  assert.equal(MAGIC.start, 3, 'the starting bar: three units, one per old chamber');
+  assert.equal(MAGIC.delay, 1); assert.equal(MAGIC.fill, 4);
   assert.ok(r.use() && r.use());
-  r.update(1.5);                      // a wait shorter than the delay…
-  assert.equal(r.charges, 1);
+  r.update(0.5);                      // a wait shorter than the delay…
+  assert.equal(r.level, 1, 'nothing back yet');
   assert.ok(r.use());                 // …and the last use restarts the clock
   assert.equal(r.use(), false, 'empty');
   assert.equal(r.charges, 0);
-  for (let i = 0; i < Math.round(2 / DT) - 1; i++) assert.equal(r.update(DT), false);
-  assert.equal(r.charges, 0, 'still empty just before 2 s');
-  assert.ok(Math.abs(r.refillIn - DT) < 1e-6);
-  assert.equal(r.update(DT), true, 'refilled at 2 s');
-  assert.equal(r.charges, 3, 'all three at once');
+  for (let i = 0; i < Math.round(MAGIC.delay / DT) - 1; i++) assert.equal(r.update(DT), false);
+  assert.equal(r.level, 0, 'still empty just before 1 s');
+  r.update(DT); r.update(DT);
+  assert.ok(r.level > 0 && r.level < 0.05, `then it starts to fill (${r.level.toFixed(3)})`);
+  let t = 2 * DT, full = false;
+  while (!full && t < 10) { full = r.update(DT); t += DT; }
+  assert.ok(Math.abs(t - MAGIC.fill) < 2 * DT, `empty to full in ${t.toFixed(2)} s after the wait`);
+  assert.equal(r.level, 3, 'full');
   assert.equal(r.update(10), false, 'nothing more to do when full');
-  assert.equal(FLUID.charges, 3); assert.equal(FLUID.refillDelay, 2);
+  // a cost of its own (a costlier use later): only with that much left
+  assert.equal(r.use(2), true); assert.equal(r.use(2), false); assert.equal(r.level, 1);
+  // spending part of the bar puts the wait back, and a part-full bar refills at the same pace
+  r.update(MAGIC.delay); r.update(1);
+  assert.ok(Math.abs(r.level - (1 + MAGIC.start / MAGIC.fill)) < 1e-9, 'a unit back in about 1.3 s, after the wait');
+  assert.ok(Math.abs(r.refillIn - (3 - r.level) / r.rate) < 1e-9, 'refillIn: the seconds until full');
+});
+
+test('the quick coil and the fourth chamber: a longer bar and a quicker refill (src/resources.js)', () => {
+  const R = new Reserve(4, MAGIC.coil.delay, MAGIC.start / MAGIC.coil.fill);
+  for (let i = 0; i < 4; i++) assert.ok(R.use(), `use ${i + 1} of four`);
+  assert.equal(R.use(), false);
+  let t = 0;
+  while (R.level < 1 && t < 10) { R.update(DT); t += DT; }
+  assert.ok(t < MAGIC.delay + MAGIC.fill / 3, `a unit back sooner with the coil (${t.toFixed(2)} s)`);
 });
 
 test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot only while aiming', () => {
@@ -113,11 +134,11 @@ test('each ability spends a charge from the one reserve; empty, nothing fires un
   assert.equal(tool.globs.filter((g) => g.state === 'fly').length <= 1, true);
   assert.equal(fired.length, 3);
   assert.equal(player.onAirJump(1), false);
-  // 2 s after the last use, the tank is full again
+  // a moment after the last use the bar starts to fill, and is full again at its pace
   const until = FLUID.refillDelay - tool.reserve.since;
   frames(tool, Math.floor(until / DT) - 2);
-  assert.equal(tool.charges, 0);
-  frames(tool, 4);
+  assert.equal(tool.reserve.level, 0);
+  frames(tool, Math.ceil(MAGIC.fill / DT) + 4);
   assert.equal(tool.charges, 3);
   // disabled (the ship prologue): nothing comes out
   tool.enabled = false;

@@ -81,9 +81,9 @@ export const MOTHER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    gust: { shape: 'cone', range: 14, angle: 0.55, telegraph: 1.4, damage: 0.18, knock: 12, recover: 0.9 },
-    dive: { shape: 'ring', at: 'player', radius: 4.6, telegraph: 1.7, track: 0.55, damage: 0.22, knock: 9, recover: 1.0, open: 3.0 },
-    wail: { shape: 'ring', at: 'self', radius: 9, telegraph: 1.5, damage: 0.2, knock: 11, recover: 0.8, open: 2.6 },
+    gust: { shape: 'cone', range: 14, angle: 0.55, telegraph: 1.4, damage: 0.75, knock: 12, recover: 0.9 },
+    dive: { shape: 'ring', at: 'player', radius: 4.6, telegraph: 1.7, track: 0.55, damage: 1, knock: 9, recover: 1.0, open: 3.0 },
+    wail: { shape: 'ring', at: 'self', radius: 9, telegraph: 1.5, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
   },
 };
 

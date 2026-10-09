@@ -231,9 +231,11 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
     backpack slotting in), nothing while riding (a ride's controls are in the settings), what the scout
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
     the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
-  - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
-  - **the tank**: the crosshair while aiming; no pips any more (the tank's level shows on the
-    backpack itself, October 2026), only an "empty" notice for 3 s when it runs dry.
+  - **hearts, magic, potion** (`#health`, v1.5): while a heart is missing, the magic bar is spending or
+    refilling, a fight is on (`body.combat`) or you are down (`Fader(3)`), then fades; **stamina** as
+    before. See "Hearts, the magic bar and the potion" below.
+  - **the tank**: the crosshair while aiming; the level is the HUD's magic bar (and the tank's glass on the
+    backpack), and an "empty" notice for 3 s when the tank runs dry (the desert's).
   - **the frame readout** is off by default (`showFps: false`; settings saved before `hudV: 1`
     lose the old default once, `migrateSettings`); F, the settings or `?fps=1` (this session
     only) turn it on. `scripts/handheld-perf` sets it.
@@ -369,16 +371,43 @@ Code: `src/story/people-book.js` (the book and the rules), `peopleData` in `src/
   (`pumpPortraits` in main.js, one a frame, people within 60 m); until then their initial on their world's
   colour.
 
+## Hearts, the magic bar and the potion (v1.5)
+
+Where the health bar was (top left, `#health` in index.html; `updateHealth` in main.js, `healthHud`,
+`heartsSvg`, `magicHud` in `src/hud.js`; the numbers in `src/resources.js`):
+
+- **The hearts**: one inline SVG, a Moebius heart per container: a thick ink outline (`.ho`, 2.1 of 20
+  units), cream inside, the red fill clipped to its quarters (the quadrants round the middle, filled as a
+  clock goes from bottom left), a cream highlight, a hard ink drop shadow. A part-filled heart shows its
+  quarter lines, so a quarter reads even at the smallest size; the last heart pulses (and its fill is
+  dashed: not by colour alone) at one heart or less. Their height is `--hh`: `clamp(15px, 2.7vh, 22px)`
+  times the text size (19 px at 720 px tall, 15 px on a phone held sideways). Redrawn only when the hearts change.
+- **The potion** beside them: a corked flask with red in it and its stock (`∞` until the shops; a count
+  later, faded at none). It tilts as you drink. On a touch screen it is the potion button (`pointer-events`
+  only while shown).
+- **The magic bar** under them: an inked bar `2.35 × --hh` wide per unit (three units at the start, longer
+  with expansions), a tick per unit (a unit is what a shot costs), teal fill; short of one unit it is pale
+  and hatched. Hidden without the backpack (and for the desert's dry tank).
+- **When**: `healthHud` returns null at rest (the rule "nothing on the screen"): shown while a heart is
+  missing, the bar is not full, a fight is on or you are down, and 3 s after; at once on a hurt, a
+  knockdown or a drink. `screen.health` (platform.js) carries `{ value, low, hearts, max, magic, magicMax,
+  potions, infinite }` (an engine draws it; the Unity bridge still draws the share as a bar).
+- **Notices** never cover it: `#health` heads `OBSTACLES` (src/ship/cinema.js), the whole block, potion
+  and bar included.
+- Checked at 1280 × 720, the Deck's 1280 × 800 and a phone's 812 × 375 (changelog pictures, v1.5).
+
+Tests: `tests/resources.test.js` (the SVG's quarters and lines, the bar, the markup), `tests/hud.test.js`.
+
 ## Notices and the quest card (playtest 2026-10-08)
 
 - **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are quiet: translucent paper,
   a 1 px line, no shadow, 12 px, at most 560 px wide (60 % of a phone held sideways). The cue and the
   scenes' hint got the same lighter frame.
-- **Never on the health bar**: `#health` is one of the layout's `OBSTACLES` whether it shows or not
+- **Never on the hearts**: `#health` (the hearts, the potion and the magic bar) is one of the layout's `OBSTACLES` whether it shows or not
   (it comes the moment you are hurt). `layoutCinema` places a top item centred when it can, else slides
   it sideways along its row to the free span nearest the centre (`slide`: a phone's buttons down the
   right), else the next row down; `Cinema.layout` sets its `left` as well as its `top`. On a narrow
-  portrait phone the cue sits below the health bar's line. Tests: `tests/hints.test.js`.
+  portrait phone the cue sits below the hearts and the magic bar (62 px down). Tests: `tests/hints.test.js`.
 - **A quest's start looks different**: `Quests.startToast` (and the villagers' errands, `Errands`) call
   the toast with `{ kind: 'quest', head, title, step }`; the queue keeps it, and the toast is drawn as
   `questToastHtml`: an ink card with a gold rule, "◆ New quest" (or New errand) in gold capitals over

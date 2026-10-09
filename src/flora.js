@@ -1,4 +1,4 @@
-import { registerHazard, cylinderHazard } from './hazards.js';
+import { registerHazard, cylinderHazard, HAZARD_DPS } from './hazards.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
@@ -392,7 +392,7 @@ export class Flora {
       if (!p.sp.large) continue;
       const k = p.height / p.sp.h, [r, h] = p.sp.collide;
       cols.push(new THREE.CylinderGeometry(r * k, r * k * 1.1, h * k, 7, 1).translate(p.x, p.y + (h * k) / 2 - 0.3, p.z));
-      if (p.sp.hurts) this.hazards.push(registerHazard(cylinderHazard({ kind: p.sp.hurts, x: p.x, z: p.z, y0: p.y - 0.3, y1: p.y + h * k * 1.1, r: r * k * 1.1 + 0.55, dps: 0.12 })));
+      if (p.sp.hurts) this.hazards.push(registerHazard(cylinderHazard({ kind: p.sp.hurts, x: p.x, z: p.z, y0: p.y - 0.3, y1: p.y + h * k * 1.1, r: r * k * 1.1 + 0.55, dps: HAZARD_DPS.spikes })));
     }
     this.collider = null;
     if (cols.length) {

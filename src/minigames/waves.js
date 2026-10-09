@@ -17,6 +17,7 @@ import { Terrain } from '../world.js';
 import { waveWords } from '../foes.js';
 import { BLADE, EVADE, GUARD } from '../fluid-blade.js';
 import { FALL } from '../player.js';
+import { MAGIC } from '../resources.js';
 import { arenaLevel } from './kit/world.js';
 import { lendTool, standAt, tune } from './kit/onfoot.js';
 import { WorldLabels } from './kit/labels.js';
@@ -31,7 +32,8 @@ export const TIDE = {
   chainStep: 0.25, chainMax: 3,
   breather: 14,          // s at most to pick a boon before the next wave comes anyway
   after: 2.6,            // s from a boon taken to the next wave
-  heal: 0.35,            // health back at each wave's end
+  heal: 1,               // hearts back at each wave's end
+  mend: 0.1,             // hearts a second each Second wind lends back (FALL.regen: none in the world)
   arena: 17,             // m: the basin's floor; the springs a little in from its rim
 };
 /**
@@ -94,10 +96,10 @@ export const tideScore = ({ waves = 0, style = 0 } = {}, T = TIDE) => waves * T.
 /** The boons: each can be taken a few times (max); `text` says what it does. */
 export const BOONS = [
   { id: 'reach', name: 'Longer blade', text: 'cuts reach a fifth further', max: 3, color: '#71d7cf' },
-  { id: 'ink', name: 'Deeper tank', text: 'one more charge of fluid', max: 3, color: '#52c8cf' },
-  { id: 'refill', name: 'Quick refill', text: 'the tank fills sooner', max: 3, color: '#966ede' },
+  { id: 'ink', name: 'Deeper well', text: 'a longer magic bar', max: 3, color: '#52c8cf' },
+  { id: 'refill', name: 'Quick refill', text: 'the magic bar fills sooner', max: 3, color: '#966ede' },
   { id: 'heavy', name: 'Heavy hand', text: 'every cut hits harder', max: 2, color: '#ef7e62' },
-  { id: 'mend', name: 'Second wind', text: 'health back now, and sooner', max: 3, color: '#83cf71' },
+  { id: 'mend', name: 'Second wind', text: 'all your hearts back now, and they mend slowly', max: 3, color: '#83cf71' },
   { id: 'feet', name: 'Light feet', text: 'evade sooner and further', max: 2, color: '#f6c84e' },
   { id: 'parry', name: 'Keen guard', text: 'a wider moment to parry', max: 2, color: '#ed80b0' },
   // (only once the moths are about, and the drones and stalkers to come: from the moths' wave)
@@ -117,13 +119,13 @@ export function boonChoice(taken = {}, rng = Math.random, n = 3, wave = Infinity
 }
 
 /** What the boons taken make of the tunings (base: the game's own, src/fluid-blade.js, src/player.js, src/fluid-tool.js). */
-export function boonTunings(taken = {}, base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage, charges: 3, delay: 2, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect, blind: 1, hold: 1 }) {
+export function boonTunings(taken = {}, base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage, charges: MAGIC.start, delay: MAGIC.delay, rate: MAGIC.start / MAGIC.fill, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect, blind: 1, hold: 1 }) {
   const n = (id) => taken[id] ?? 0;
   return {
     reach: base.reach * 1.2 ** n('reach'), length: base.length * 1.15 ** n('reach'),
     damage: base.damage.map((d) => d + 0.5 * n('heavy')),
-    charges: base.charges + n('ink'), delay: base.delay * 0.7 ** n('refill'),
-    regen: base.regen * (1 + 0.8 * n('mend')), wait: base.wait / (1 + 0.5 * n('mend')),
+    charges: base.charges + n('ink'), delay: base.delay * 0.7 ** n('refill'), rate: (base.rate ?? MAGIC.start / MAGIC.fill) * 1.3 ** n('refill'),
+    regen: base.regen + TIDE.mend * n('mend'), wait: base.wait / (1 + 0.5 * n('mend')),
     cooldown: base.cooldown * 0.75 ** n('feet'), speed: base.speed * (1 + 0.12 * n('feet')),
     perfect: base.perfect * (1 + 0.5 * n('parry')),
     blind: (base.blind ?? 1) * 0.55 ** n('eyes'), hold: (base.hold ?? 1) * 0.6 ** n('eyes'),   // (shares of a flash's white, of a hold's time)
@@ -211,12 +213,12 @@ function boonModel(def) {
 
 function start(ctx) {
   const { player, camera, level, sfx, sound, tool, foes, rig } = ctx;
-  const giveBack = lendTool(tool, { max: 3, delay: 2, mode: null });
+  const giveBack = lendTool(tool, { max: MAGIC.start, delay: MAGIC.delay, rate: MAGIC.start / MAGIC.fill, mode: null });
   standAt(player, new THREE.Vector3(0, 0, 4), Math.PI, rig, 0);
   const words = new WorldLabels(camera);
   const gentle = foes?.difficulty !== 'normal';
   const run = { wave: 0, cleared: 0, style: 0, kills: 0, chain: 0, lastKill: -99, bestChain: 0, parries: 0, untouched: 0, taken: {}, hurtAt: player.hurtAt ?? -1e9 };
-  const base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage.slice(), charges: 3, delay: 2, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect, blind: 1, hold: 1 };
+  const base = { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage.slice(), charges: MAGIC.start, delay: MAGIC.delay, rate: MAGIC.start / MAGIC.fill, regen: FALL.regen, wait: FALL.wait, cooldown: EVADE.cooldown, speed: EVADE.speed, perfect: GUARD.perfect, blind: 1, hold: 1 };
   // (the tunings as they were: put back at the end, whatever the boons did)
   const keep = [tune(BLADE, { reach: BLADE.reach, length: BLADE.length, damage: BLADE.damage }), tune(EVADE, { cooldown: EVADE.cooldown, speed: EVADE.speed }), tune(GUARD, { perfect: GUARD.perfect }), tune(FALL, { regen: FALL.regen, wait: FALL.wait })];
   let phase = 'rest', restT = 1.2, t = 0, mine = [], boons = [], deadT = 0, over = false;
@@ -229,7 +231,7 @@ function start(ctx) {
     BLADE.reach = T.reach; BLADE.length = T.length; BLADE.damage = T.damage;
     EVADE.cooldown = T.cooldown; EVADE.speed = T.speed; GUARD.perfect = T.perfect;
     FALL.regen = T.regen; FALL.wait = T.wait;
-    giveBack.set({ max: T.charges, delay: T.delay }); tool?.reserve?.fill();
+    giveBack.set({ max: T.charges, delay: T.delay, rate: T.rate }); tool?.reserve?.fill();
   }
   apply();
 
@@ -305,7 +307,7 @@ function start(ctx) {
     ctx.setScore(tideScore({ waves: run.cleared, style: run.style }));
     ctx.flash(clean ? `Wave ${run.wave} cleared · untouched +${TIDE.untouched}` : `Wave ${run.wave} cleared`, 'good big', 1.8);
     sfx.checkpoint();
-    player.health = Math.min(1, (player.health ?? 1) + TIDE.heal);
+    if (player.restore) player.restore(TIDE.heal); else player.health = Math.min(1, (player.health ?? 1) + TIDE.heal / 3);
     phase = 'rest'; restT = TIDE.breather;
     offerBoons();
   }

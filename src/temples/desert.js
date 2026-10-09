@@ -95,9 +95,9 @@ export const KEEPER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    stamp: { shape: 'ring', at: 'player', radius: 4.2, telegraph: 1.5, track: 0.5, damage: 0.22, knock: 8, recover: 0.9, open: 2.6 },
-    sweep: { shape: 'cone', range: 12, angle: 0.62, telegraph: 1.4, damage: 0.18, knock: 10, recover: 1.0, open: 2.2 },
-    burrow: { shape: 'ring', at: 'player', radius: 3.4, telegraph: 2.1, track: 0.7, damage: 0.25, knock: 11, recover: 1.4, open: 3.2 },
+    stamp: { shape: 'ring', at: 'player', radius: 4.2, telegraph: 1.5, track: 0.5, damage: 1, knock: 8, recover: 0.9, open: 2.6 },
+    sweep: { shape: 'cone', range: 12, angle: 0.62, telegraph: 1.4, damage: 0.75, knock: 10, recover: 1.0, open: 2.2 },
+    burrow: { shape: 'ring', at: 'player', radius: 3.4, telegraph: 2.1, track: 0.7, damage: 1, knock: 11, recover: 1.4, open: 3.2 },
   },
 };
 

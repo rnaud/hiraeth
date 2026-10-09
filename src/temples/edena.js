@@ -90,9 +90,9 @@ export const GARDENER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    sweep: { shape: 'cone', range: 11, angle: 0.75, telegraph: 1.4, damage: 0.18, knock: 11, recover: 0.9 },
-    stamp: { shape: 'ring', at: 'self', radius: 7.5, telegraph: 1.5, damage: 0.22, knock: 10, recover: 1.0, open: 3.2 },
-    roots: { shape: 'ring', at: 'player', radius: 3.8, telegraph: 1.8, track: 0.6, damage: 0.2, knock: 9, recover: 1.0, open: 3.2 },
+    sweep: { shape: 'cone', range: 11, angle: 0.75, telegraph: 1.4, damage: 0.75, knock: 11, recover: 0.9 },
+    stamp: { shape: 'ring', at: 'self', radius: 7.5, telegraph: 1.5, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
+    roots: { shape: 'ring', at: 'player', radius: 3.8, telegraph: 1.8, track: 0.6, damage: 0.75, knock: 9, recover: 1.0, open: 3.2 },
   },
 };
 

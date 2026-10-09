@@ -76,9 +76,9 @@ export const LAMPLESS = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    swoop: { shape: 'ring', at: 'player', radius: 4.2, telegraph: 1.6, track: 0.6, damage: 0.2, knock: 9, recover: 0.9, open: 4.0 },
-    gust: { shape: 'cone', range: 14, angle: 0.6, telegraph: 1.4, damage: 0.18, knock: 12, recover: 0.8 },
-    dust: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.5, damage: 0.2, knock: 10, recover: 0.8, open: 3.4 },
+    swoop: { shape: 'ring', at: 'player', radius: 4.2, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 9, recover: 0.9, open: 4.0 },
+    gust: { shape: 'cone', range: 14, angle: 0.6, telegraph: 1.4, damage: 0.75, knock: 12, recover: 0.8 },
+    dust: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.5, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
   },
 };
 

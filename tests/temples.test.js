@@ -24,6 +24,7 @@ import { updateHazards } from '../src/hazards.js';
 import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY } from '../src/temples/garage.js';
+import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
@@ -142,11 +143,13 @@ test('every built temple is solvable through its state machine, its gadget found
 });
 
 // ------------------------------------------------------------------ the guardians
-test('a guardian’s strike knocks you down but never empties a healthy bar', () => {
-  assert.equal(strikeDamage(1, 0.25), 0.25);
-  assert.ok(1 - strikeDamage(1, 2) >= HIT.floor - 1e-9, 'a huge strike leaves the floor');
-  assert.ok(0.3 - strikeDamage(0.3, 0.25) >= HIT.floor - 1e-9);
-  assert.equal(strikeDamage(0.2, 0.25), 0.25, 'already low: this one can knock you out');
+test('a guardian’s strike knocks you down but never takes you from more than a heart to nothing', () => {
+  assert.equal(strikeDamage(3, 1), 1, 'a full heart off three');
+  assert.ok(3 - strikeDamage(3, 5) >= HIT.floor - 1e-9, 'a huge strike leaves the floor (a quarter heart)');
+  assert.equal(HIT.floor, 0.25);
+  assert.ok(1.5 - strikeDamage(1.5, 2) >= HIT.floor - 1e-9, 'from a heart and a half: still standing');
+  assert.equal(strikeDamage(1, 1), 1, 'one heart left: this one can knock you out');
+  assert.equal(strikeDamage(0.5, 0.75), 0.75, 'already low: the full blow');
   // the areas: a disc, a fan, a lane
   const o = V(0, 0, 0);
   assert.ok(inArea({ shape: 'ring', radius: 4 }, o, 0, V(3, 0, 0)));
@@ -1220,17 +1223,18 @@ test('the Aerie on foot: the gusts waited out behind the screens, the wall and t
   own();
 });
 
-// ------------------------------------------------------------------ a real tank's pace (src/fluid-tool.js Reserve, src/boxes/effects.js)
+// ------------------------------------------------------------------ a real bar's pace (src/fluid-tool.js Reserve, src/resources.js)
 /**
- * Shoot `n` times as fast as a real tank lets you (three charges, four with the fourth chamber; a refill five
- * seconds after the last shot, three with the quick coil; a shot every 0.28 s), running frames between, and
- * call hit(i) for each. Returns the seconds from the first shot to the last.
+ * Shoot `n` times as fast as the real magic bar lets you (three units, four with the fourth chamber; it refills
+ * like stamina, 1 s after the last shot, empty to full in 4 s; with the quick coil 0.5 s and 2 s; a shot every
+ * 0.28 s), running frames between, and call hit(i) for each. Returns the seconds from the first shot to the last.
  */
 function tankShots(frame, n, hit) {
-  const R = new Reserve(3, 5);
+  const R = new Reserve(3);
   let shots = 0, cool = 0, t = 0, first = -1;
   for (let i = 0; i < 20 / DT && shots < n; i++) {
-    R.max = items.has('cell') ? 4 : 3; R.delay = items.has('coil') ? 3 : 5;
+    const pace = resources.magicPace;
+    R.max = resources.maxMagic; R.delay = pace.delay; R.rate = pace.rate;
     if (cool <= 0 && R.use()) { if (first < 0) first = t; hit(shots++); cool = 0.28; }
     cool -= DT; t += DT; R.update(DT); frame();
   }
@@ -1309,7 +1313,7 @@ test('the First Garage on foot: the escapement’s disc, the climb and the count
   assert.ok(rt.logic.drumOn('ball1', 'p1'), `the ball on its plate (${ball.t.toFixed(2)})`);
   wait(2.2);
   assert.equal(rt.logic.isOpen('d2'), true);
-  // ---- the Coil Chamber: six eyes in one breath. One tank (or four charges) and a five-second refill can't
+  // ---- the Coil Chamber: six eyes in one breath. The starting bar (or four units) and its refill can't
   assert.equal(walk(L(0, 9, 79)), true, `into the chamber (${where()})`);
   const bank = rt.piece('k1');
   const slow = tankShots(frame, 6, (i) => bank.hit(i));

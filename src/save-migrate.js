@@ -14,7 +14,16 @@
 // that has the token among its keepsakes but no `incal.token` kept it (step 3): the Lantern, Dov and the
 // stone then read it as kept (src/story/ending.js choicesMade).
 //
+// The health bar became hearts and the backpack's three chambers a magic bar (October 2026, src/resources.js):
+// step 4 stamps the resources' format (`res.v`). Nothing else needs moving: the fourth chamber ('cell')
+// lengthens the bar from its own item flag, so a save that had it has a bar of four units (and passes the
+// 'magic:4' doors of the Engine-House and the Furnace steps), the quick coil quickens the refill from its own;
+// the hearts are not saved (a load starts whole, as the bar did) and potions start infinite (no flag: true).
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
+
+/** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
+export const RES_VERSION = 1;
 
 export const RENAMED_PEOPLE = [
   { from: 'hask', to: 'hask.buried', world: 'buried' },
@@ -65,6 +74,10 @@ const STEPS = [
   // alone isn't: a newer save may have stopped between feeding him and choosing)
   (flags, keepsakes) => {
     if (flags['incal.token'] === undefined && keepsakes?.some((k) => k.id === 'incal.token')) flags['incal.token'] = 'kept';
+  },
+  // 4: hearts and the magic bar (src/resources.js): the format stamped; the chamber items read as bar length
+  (flags) => {
+    if (flags['res.v'] === undefined) flags['res.v'] = RES_VERSION;
   },
 ];
 

@@ -15,6 +15,7 @@ import { JumpLayer } from './jump.js';
 import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
 import { standGround, moverCarrier } from './carriers.js';
+import { HEARTS, POTION, DAMAGE, quarters, sparing } from './resources.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -152,15 +153,17 @@ export function jetPose(speed, pitch) {
 const JET_DRAIN = 0.1;     // fuel per second (~10 s of thrust), when no backpack tool burns its fluid (tests)
 const JET_REFILL = 0.55;
 /**
- * Health and falls (speeds in m/s into the ground: a drop of h m lands at
+ * Hearts and falls (speeds in m/s into the ground: a drop of h m lands at
  * about √(64 h)). Up to
  * FALL.tumble (~16 m) a landing costs nothing; harder ones knock you over into
- * a ragdoll tumble (src/ragdoll.js), you lie a moment and get up, and the bar
- * takes a little (fallDamage, never all of it). Only FALL.lethal (~36 m) or
- * more is fatal: you lie there and the game asks to restart. After FALL.wait s
- * without a hurt the bar comes back at FALL.regen a second.
+ * a ragdoll tumble (src/ragdoll.js), you lie a moment and get up, and you lose
+ * hearts (fallDamage, up to FALL.worst, never the last quarter). Only FALL.lethal
+ * (~36 m) or more is fatal: you lie there and the game asks to restart. Hearts
+ * never come back by themselves (a potion heals: src/resources.js POTION): FALL.regen
+ * is 0 in the world; a game may lend some back (hearts a second, after FALL.wait s
+ * without a hurt: the Arena's Second wind, src/minigames/waves.js).
  */
-export const FALL = { tumble: 32, lethal: 48, worst: 0.6, wait: 4, regen: 0.12 };
+export const FALL = { tumble: 32, lethal: 48, worst: DAMAGE.fall, wait: 4, regen: 0 };
 /** Wedged in mid-air (Player.unhang): never more than `reach` m from where it began for `time` s, while nothing held you up. */
 export const HANG = { time: 1.0, reach: 0.35 };
 /**
@@ -172,8 +175,8 @@ export const HANG = { time: 1.0, reach: 0.35 };
  * and catches you (bird.js flyCatch).
  */
 export const JUMP_OFF = { hop: 7, keep: 0.85, moving: 6, air: 3, catchAfter: 0.7 };
-/** The share of the health bar a landing at `speed` (m/s into the ground) takes: nothing short of a tumble, up to FALL.worst, all of it at FALL.lethal. */
-export const fallDamage = (speed) => speed >= FALL.lethal ? 1 : FALL.worst * Math.max(0, (speed - FALL.tumble) / (FALL.lethal - FALL.tumble)) ** 2;
+/** The hearts a landing at `speed` (m/s into the ground) takes: nothing short of a tumble, up to FALL.worst, all of them (Infinity) at FALL.lethal. */
+export const fallDamage = (speed) => speed >= FALL.lethal ? Infinity : FALL.worst * Math.max(0, (speed - FALL.tumble) / (FALL.lethal - FALL.tumble)) ** 2;
 
 function part(geo, color, opts = {}) {
   return new THREE.Mesh(geo, makeMaterial({ color, ...opts }));
@@ -541,7 +544,9 @@ export class Player {
     this.invertFlight = false;  // Settings: push forward to climb on the jets
     this.stamina = 1;
     this.winded = false;   // (run dry: no sprint until it's back: src/stamina.js)
-    this.health = 1;          // 0..1 (hurt / heal; falls: FALL)
+    this.maxHearts = this.opts.maxHearts ?? HEARTS.start;   // (main.js keeps it to src/resources.js maxHearts)
+    this.hearts = this.maxHearts;   // in hearts, counted in quarters (hurt / restore; falls: FALL); health: the share 0..1
+    this.drinking = null;     // { t, healed } the potion on its way to the lips (drinkPotion)
     this.climbing = false;
     this.wallN = new THREE.Vector3();
     this._press = 0;
@@ -577,6 +582,51 @@ export class Player {
 
   get riding() {
     return !!this.ride;
+  }
+
+  /** The hearts as a share of the whole, 0..1 (the old health bar's value; setting it sets the hearts). */
+  get health() { return this.maxHearts > 0 ? this.hearts / this.maxHearts : 0; }
+  set health(k) { this.hearts = Math.min(Math.max(+k || 0, 0), 1) * this.maxHearts; }
+  /** A different number of heart containers: full ones stay full, a hurt keeps what it took. */
+  setMaxHearts(n) {
+    if (!(n > 0) || n === this.maxHearts) return;
+    const full = this.hearts >= this.maxHearts - 1e-9;
+    this.maxHearts = n;
+    this.hearts = full ? n : Math.min(this.hearts, n);
+  }
+  /** Hearts back (a potion): up to the containers, never for the knocked out. Returns what was healed. */
+  restore(h) {
+    if (!(h > 0) || this.down?.dead) return 0;
+    const was = this.hearts;
+    this.hearts = Math.min(this.maxHearts, this.hearts + h);
+    return this.hearts - was;
+  }
+  /**
+   * Drink a potion (src/resources.js POTION): the flask comes up, the hearts come back POTION.at s in, it is
+   * done at POTION.time. Not while knocked down, riding, swimming or already drinking, nor at full hearts
+   * (`why` says which). Returns true when the drink starts; the caller takes the potion from the stock.
+   */
+  drinkPotion() {
+    const why = this.cantDrink();
+    if (why) return false;
+    this.drinking = { t: 0, healed: false };
+    return true;
+  }
+  /** Why a potion can't be drunk now ('' when it can): 'full', 'down', 'busy'. */
+  cantDrink() {
+    if (this.down || this.dead) return 'down';
+    if (this.drinking || this.ride || this.boarding || this.swim) return 'busy';
+    if (this.hearts >= this.maxHearts - 1e-9) return 'full';
+    return '';
+  }
+  /** Per frame: the drink goes on (the hearts come back half-way through). */
+  updateDrink(dt) {
+    const D = this.drinking;
+    if (!D) return;
+    if (this.down) { this.drinking = null; return; }
+    D.t += dt;
+    if (!D.healed && D.t >= POTION.at) { D.healed = true; const got = this.restore(POTION.heal); this.opts.onDrink?.(got); }
+    if (D.t >= POTION.time) this.drinking = null;
   }
 
   /** Owns an item (src/items.js). */
@@ -713,7 +763,7 @@ export class Player {
   }
 
   /**
-   * Take a hurt (0..1 of the bar). At nothing left you are knocked out: you
+   * Take a hurt, in hearts (counted in quarters: src/resources.js quarters; Infinity takes them all). At nothing left you are knocked out: you
    * go limp where you are (a ragdoll, src/ragdoll.js) and stay down until
    * restart() (the game asks: main.js), which puts you back where you last
    * stood safely, whole again. opts.onHurt(amount, why) hears every hurt,
@@ -721,10 +771,12 @@ export class Player {
    */
   hurt(amount, why = 'hit') {
     if (!(amount > 0) || this.opts.health === false || this.down?.dead) return;
-    this.health = Math.max(0, (this.health ?? 1) - amount);
+    const q = amount === Infinity ? this.hearts : quarters(amount);
+    this.hearts = Math.max(0, this.hearts - q);
+    if (this.hearts < 1e-9) this.hearts = 0;
     this.hurtAt = this._clock ?? 0;
-    this.opts.onHurt?.(amount, why);
-    if (this.health <= 0) {
+    this.opts.onHurt?.(q, why);
+    if (this.hearts <= 0) {
       if (this.down) { this.down.dead = true; this.opts.onKnockout?.(why); }
       else this._knockout = why;   // (handled at the start of the next frame, not mid-landing)
     }
@@ -764,7 +816,8 @@ export class Player {
   restart() {
     this._knockout = null;
     this.down = null;
-    this.health = 1;
+    this.hearts = this.maxHearts;
+    this.drinking = null;
     this.hurtAt = -1e9;
     this.respawn(this.lastSafe.lengthSq() || !this.opts.spawn ? this.lastSafe.clone() : undefined);
     this.opts.onRestart?.();
@@ -773,11 +826,12 @@ export class Player {
   /** (the old name) */
   wake() { this.restart(); }
 
-  /** Per frame: health comes back once you have not been hurt for a while (not while knocked out). */
+  /** Per frame: the clock, the potion being drunk; hearts come back by themselves only where a game lends FALL.regen (never in the world). */
   heal(dt) {
     this._clock = (this._clock ?? 0) + dt;
     if (this.down?.dead) return;
-    if ((this.health ?? 1) < 1 && this._clock - (this.hurtAt ?? -1e9) > FALL.wait) this.health = Math.min(1, this.health + FALL.regen * dt);
+    this.updateDrink(dt);
+    if (FALL.regen > 0 && this.hearts < this.maxHearts && this._clock - (this.hurtAt ?? -1e9) > FALL.wait) this.hearts = Math.min(this.maxHearts, this.hearts + FALL.regen * dt);
   }
 
   /**
@@ -1520,8 +1574,8 @@ export class Player {
 
   /**
    * Landing at `speed` m/s, faster than FALL.tumble: a knockdown (after this
-   * sub-step loop) and a little hurt (fallDamage), which never takes the last
-   * of the bar unless the fall was fatal (FALL.lethal).
+   * sub-step loop) and a hurt (fallDamage), which never takes the last quarter
+   * heart unless the fall was fatal (FALL.lethal).
    */
   landHard(speed) {
     if (this.opts.health === false || this._landing) return;
@@ -1529,11 +1583,11 @@ export class Player {
     this.fallHurt(speed);
   }
 
-  /** A landing's hurt at `speed` m/s (fallDamage): never the last of the bar unless it was fatal. */
+  /** A landing's hurt at `speed` m/s (fallDamage, in hearts): never the last quarter unless it was fatal. */
   fallHurt(speed) {
     if (this.opts.health === false) return;
     const fatal = speed >= FALL.lethal;
-    this.hurt(fatal ? 1 : Math.min(fallDamage(speed), Math.max(0, (this.health ?? 1) - 0.1)), 'fall');
+    this.hurt(fatal ? Infinity : sparing(this.hearts, quarters(fallDamage(speed))), 'fall');
   }
 
   /**

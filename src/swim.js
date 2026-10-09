@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { CAPSULE } from './player.js';
 import { STAMINA, spendStamina, restStamina, canSprint } from './stamina.js';
+import { sparing, heartsOf } from './resources.js';
 
 // ---------------------------------------------------------------------------
 // Swimming. The traveller walks into water; past wading depth they float and
@@ -54,7 +55,7 @@ export const SWIM = {
   breath: 22,        // s of air
   refill: 2.2,       // s to breathe back to full at the surface
   every: 1.2,        // s between hurts once out of air
-  bite: 0.07,        // each hurt (of the bar), never the last of it
+  bite: 0.25,        // each hurt (hearts: a quarter), never the last quarter
   hop: 7.5,          // m/s: Space at the surface kicks you up (onto a low ledge, out of the water)
   stroke: { tread: 0.55, breast: 0.85, crawl: 1.05 },   // strokes per second
 };
@@ -102,7 +103,7 @@ export const wadeFactor = (w) => (w && w.over > SWIM.wade ? lerp(1, SWIM.wadeSlo
 
 /**
  * The breath: under water it runs out over SWIM.breath s; at the surface it comes back.
- * Out of air, every SWIM.every s a hurt that never takes the last of the bar.
+ * Out of air, every SWIM.every s a quarter heart, never the last one.
  * Returns 'gasp' on the frame the head comes up after being under, 'hurt' on a hurt.
  */
 export function breathe(P, dt, under) {
@@ -114,7 +115,7 @@ export function breathe(P, dt, under) {
     P._drownT = (P._drownT ?? 0) + dt;
     if (P._drownT < SWIM.every) return null;
     P._drownT = 0;
-    const bite = Math.min(SWIM.bite, Math.max(0, (P.health ?? 1) - 0.1));
+    const bite = sparing(heartsOf(P), SWIM.bite);
     if (bite > 0) P.hurt(bite, 'drown');
     return 'hurt';
   }

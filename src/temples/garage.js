@@ -86,9 +86,9 @@ export const FOREMAN = {
     { to: 1.0, attacks: ['cog', 'hammer', 'chime'], pause: 1.2, hint: 'It throws its cogs now, and strikes faster. Six numerals, one breath.' },
   ],
   attacks: {
-    hammer: { shape: 'cone', range: 10, angle: 0.7, telegraph: 1.4, damage: 0.2, knock: 11, recover: 0.8, open: 5.6 },
-    chime: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.5, damage: 0.22, knock: 12, recover: 1.0, open: 5.6 },
-    cog: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.18, knock: 8, recover: 0.6 },
+    hammer: { shape: 'cone', range: 10, angle: 0.7, telegraph: 1.4, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
+    chime: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.5, damage: 1, knock: 12, recover: 1.0, open: 5.6 },
+    cog: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6 },
   },
 };
 

@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { MAGIC_COST } from '../src/resources.js';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
@@ -82,19 +83,19 @@ test('a bomb that falls off the world is gone once it is well under where it was
 
 // ------------------------------------------------------------------ the boomerang
 
-test('the boomerang carrying an ember spends a charge of the tank; with none left it flies plain', () => {
+test('the boomerang carrying an ember spends a unit of the magic bar; with none left it flies plain', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), reserve = new Reserve(3), tool = { mode: 'fire', reserve };
   const camera = cameraLooking(v(0, 2, 4), v(0, 1.5, -20));
   const B = boomerang.create(ctxOf(P, physicsOf(), { tool, camera }));
   B.press(); B.release();
   assert.equal(B.flight.mode, 'fire');
-  assert.equal(reserve.charges, 2, 'one charge spent');
+  assert.equal(reserve.level, 3 - MAGIC_COST.gadget, 'a unit spent (a third of the starting bar)');
   B.flight = null; B.cool = 0;
   reserve.level = 0;
   B.press(); B.release();
-  assert.equal(B.flight.mode, null, 'an empty tank: plain');
-  assert.ok(B.ctx.notes.some((n) => n.includes('empty')));
+  assert.equal(B.flight.mode, null, 'no magic: plain');
+  assert.ok(B.ctx.notes.some((n) => n.includes('magic')));
   B.flight = null; B.cool = 0;
   tool.mode = 'shoot'; reserve.fill();
   B.press(); B.release();

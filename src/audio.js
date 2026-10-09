@@ -1510,14 +1510,32 @@ export class Sound {
     if (sigh) this.vocal('sigh', { vol: 1, at: 0.3, gap: 2, pos });
   }
 
-  /** Hurt (Player onHurt: `amount` of the bar, why: 'foe', 'fall'…): a grunt or a sharp breath, and the blow on the body. */
-  hurt(amount = 0.1, why = 'hit') {
+  /** Hurt (Player onHurt: `amount` in hearts, why: 'foe', 'fall'…): a grunt or a sharp breath, and the blow on the body. */
+  hurt(amount = 0.25, why = 'hit') {
     if (!this.ctx || this.muted) return;
-    const k = Math.min(1, Math.max(0, amount) * 3);
+    const k = Math.min(1, Math.max(0, amount) / 1.5);
     if (why !== 'fall') this.sample('land', { vol: 0.35 + 0.5 * k, rate: 1.2 });
     if (!this.vocal('hurt', { vol: 0.7 + 0.4 * k })) {
       if (this.bank?.state('hurt') !== 'ready') this.burst(this.ctx.currentTime, { dur: 0.18, type: 'bandpass', freq: 850, q: 1.6, vol: 0.04 + 0.04 * k, rate: 0.9 });
     }
+  }
+
+  /**
+   * A healing potion (src/resources.js POTION): `phase` 'open' as the flask comes up (a cork's pop, the glass), 'heal'
+   * as the hearts come back (two swallows and a warm rising chord), 'no' when it can't be drunk (full: a soft tap).
+   */
+  potion(phase = 'open') {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    if (phase === 'no') { this.burst(t, { dur: 0.05, type: 'bandpass', freq: 2400, q: 3, vol: 0.03 }); return; }
+    if (phase === 'open') {
+      this.sweep(t, 900, 260, 0.06, 0.05, 'triangle');   // the cork
+      this.burst(t, { dur: 0.05, type: 'bandpass', freq: 3200, q: 2.5, vol: 0.05, rate: 1.4 });
+      this.sample('cloth', { vol: 0.35, at: 0.05 });
+      return;
+    }
+    for (let i = 0; i < 2; i++) this.sweep(t + i * 0.16, 420, 180, 0.09, 0.05);   // two swallows
+    [0, 4, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.28 + i * 0.06, 0.06, 'sine', this.fx));
   }
 
   /** Picking something up: a hand on it, the bag. */

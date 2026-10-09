@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items } from '../items.js';
+import { resources } from '../resources.js';
 import { makeMaterial } from '../materials.js';
 import { starShape, BOX_COLORS } from './model.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -9,8 +10,8 @@ import { createEchoShell } from '../echo-shell.js';
 // What the boxes' special items do (src/items.js documents them). Kept cheap
 // and from the outside: nothing here edits the tool or the player.
 //
-//   cell     the tank's reserve holds 4 charges (tool.reserve.max)
-//   coil     it refills 3 s after the last use (tool.reserve.delay)
+//   cell     the glass reservoir (once the fourth chamber): the magic bar is a unit longer (src/resources.js maxMagic → tool.reserve.max)
+//   coil     the bar refills sooner and faster (src/resources.js magicPace → tool.reserve.delay, rate)
 //   lantern  after dusk a little paper lantern glows on the tank and lights the ground
 //   lens     unopened boxes show a pale column from afar (src/boxes/index.js reads it)
 //   bell     V sounds a bell note; unopened boxes within 90 m answer (game event 'bell' { pos })
@@ -32,7 +33,6 @@ import { createEchoShell } from '../echo-shell.js';
 //   const fx = createItemEffects({ player, tool, level, sound, isNight: () => bool });
 //   fx.update(dt, t)   per frame
 
-const BASE = { charges: 3, delay: 5 };
 export const LANTERN_AT = new THREE.Vector3(0.225, 0.37, -0.3);   // the lantern off the flask's left stave, beside the rucksack, in the chest anchor's frame
 /** The makers' star pinned to the coral lapel (chest-anchor frame). */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
@@ -45,9 +45,9 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   const applyTank = () => {
     const R = tool?.reserve;
     if (!R) return;
-    const max = BASE.charges + (items.has('cell') ? 1 : 0);
-    if (R.max !== max) { const wasFull = R.charges >= R.max; R.max = max; R.charges = wasFull ? max : Math.min(R.charges, max); }
-    R.delay = items.has('coil') ? 3 : BASE.delay;
+    const max = resources.maxMagic, pace = resources.magicPace;
+    if (R.max !== max) { const wasFull = R.level >= R.max - 1e-6; R.max = max; R.level = wasFull ? max : Math.min(R.level, max); }
+    R.delay = pace.delay; R.rate = pace.rate;
   };
   // ---- the lantern: a paper lantern on the tank (or the hip, without one) and a light at night
   let lantern = null;

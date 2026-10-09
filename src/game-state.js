@@ -38,8 +38,12 @@
 //                         ilo.following / ilo.atSkull / ilo.told, oum.following / oum.home,
 //                         stele.read, mural.read, brow.seen, rumour.light, quest.v; clue.desert.perdide
 //   minigame.<id>.best    a minigame's best score (minigame.<id>.plays: runs finished; src/minigames/kit/scores.js)
-//   tool.empty            the backpack's tank has never been filled (src/fluid-tool.js: no charges,
+//   tool.empty            the backpack's tank has never been filled (src/fluid-tool.js: no magic,
 //                         no refill); the first magical water clears it
+//   res.*                 hearts, the magic bar, potions (src/resources.js): res.v the format,
+//                         res.hearts.extra / res.magic.extra containers and expansions gained,
+//                         res.potions the stock, res.potions.infinite (unset: true, until the shops)
+//   hint.potion           the "drink a potion" hint has been shown (main.js)
 //
 // Well-known events:
 //   'ship:enter' / 'ship:exit' { level }  the player walks into / out of the ship
@@ -49,7 +53,7 @@
 //   'quest' { id, stage }          a quest advanced
 //   'tool:fire' { mode, point }    the fluid tool was used (mode: 'shoot' | 'boost' | 'push')
 //   'item' { item, n }             an item was given (n > 0) or taken (n < 0)
-//   'tool:refilled' { charges, colours, added }   the tank filled up (after the 5 s wait, or refill());
+//   'tool:refilled' { charges, colours, added }   the magic bar is full again (it refills by itself, or refill());
 //                                  added: a colour band was added (magical water)
 // Requests the fluid tool listens for (fluid-tool.js; same as calling the tool directly):
 //   'tool:refill' { addColour, tone }  fill the tank now; addColour: true adds a colour band for good
@@ -60,7 +64,7 @@
 //                                  inside the ship before the player first steps outside
 
 import { slotStorage } from './save-slots.js';
-import { migrateFlags, MIGRATED } from './save-migrate.js';
+import { migrateFlags, MIGRATED, RES_VERSION } from './save-migrate.js';
 
 const KEY = 'moebius.game.v1';   // per save slot (src/save-slots.js)
 
@@ -103,7 +107,7 @@ class GameState {
     return true;
   }
   /** Forget everything (new game). */
-  reset() { this.data = { flags: { 'save.migrated': MIGRATED() }, keepsakes: [] }; this.save(); this.emit('reset'); }
+  reset() { this.data = { flags: { 'save.migrated': MIGRATED(), 'res.v': RES_VERSION }, keepsakes: [] }; this.save(); this.emit('reset'); }
 }
 
 export const game = new GameState();

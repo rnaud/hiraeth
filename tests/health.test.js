@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Player, FALL, fallDamage } from '../src/player.js';
+import { HEARTS, POTION } from '../src/resources.js';
 
 const flat = { heightAbove: (p) => p.y, groundAt: () => 0, rayDistance: () => Infinity, pushCapsule: () => false, groundNormal: () => new THREE.Vector3(0, 1, 0) };
 const drop = (p, h) => { p.pos.set(0, h, 0); p.vel.set(0, 0, 0); p.onGround = false; for (let i = 0; i < 400 && !p.onGround && !p.down; i++) p.update(1 / 60, {}, 0); };
@@ -11,10 +12,11 @@ const metres = (h) => Math.sqrt(2 * 32 * h);   // landing speed after a drop of 
 test('falls: a short drop costs nothing; a hard landing knocks you over, you lie a moment and get up, a little hurt', () => {
   assert.equal(fallDamage(metres(8)), 0, 'an 8 m drop costs nothing');
   assert.equal(fallDamage(metres(15)), 0, 'nor a 15 m one');
-  assert.ok(fallDamage(metres(20)) < 0.08, 'a 20 m drop hardly anything');
+  assert.ok(fallDamage(metres(20)) < 0.25, 'a 20 m drop hardly anything (counted, a quarter heart)');
   assert.ok(FALL.tumble > metres(15) && FALL.tumble < metres(17), 'the tumble starts at ~16 m (it used to be ~10 m)');
-  assert.ok(fallDamage(metres(33)) <= FALL.worst, 'even 33 m is not all of it');
-  assert.equal(fallDamage(FALL.lethal), 1);
+  assert.ok(fallDamage(metres(33)) <= FALL.worst && FALL.worst === 2, 'even 33 m is not all of it: two hearts at the very worst');
+  assert.ok(fallDamage(metres(30)) >= 1, 'a long fall takes a heart or more');
+  assert.equal(fallDamage(FALL.lethal), Infinity, 'a fatal one takes them all');
   assert.ok(FALL.lethal > metres(34) && FALL.lethal < metres(40), 'only ~35-40 m and more is fatal');
   const downs = [], hurts = [];
   const p = new Player(flat, { onHurt: (a) => hurts.push(a), onKnockdown: (dead) => downs.push(dead) });
@@ -28,6 +30,7 @@ test('falls: a short drop costs nothing; a hard landing knocks you over, you lie
   assert.ok(p.down, 'a 20 m drop knocks you over');
   assert.deepEqual(downs, [false]);
   assert.ok(p.health > 0.9, `and hardly hurts: ${p.health.toFixed(2)}`);
+  assert.equal(p.hearts, 2.75, 'a quarter heart');
   // no control while down: the stick does nothing
   const at = p.pos.clone();
   run(p, 0.5, { KeyW: true });
@@ -65,7 +68,8 @@ test('a burn or a prick that takes the last of the bar knocks you out too (no tu
   p.hurt(0.05, 'fire');
   run(p, 0.1);
   assert.ok(!p.down, 'a small hurt is no knockdown');
-  p.hurt(1, 'spikes');
+  assert.equal(p.hearts, 2.75, 'any hurt is at least a quarter heart');
+  p.hurt(p.hearts, 'spikes');
   run(p, 0.1);
   assert.ok(p.dead, 'out');
   p.restart();
@@ -78,11 +82,46 @@ test('without health (physics tests) a long fall is only a landing', () => {
   assert.ok(!p.down && p.onGround);
 });
 
-test('health comes back after a while without a hurt', () => {
+test('hearts: three to start, hurts counted in quarters, and they never come back by themselves', () => {
   const p = new Player(flat);
+  assert.equal(p.hearts, HEARTS.start); assert.equal(HEARTS.start, 3); assert.equal(p.health, 1);
   p.hurt(0.5);
-  for (let i = 0; i < 60 * (FALL.wait - 0.5); i++) p.update(1 / 60, {}, 0);
-  assert.equal(p.health, 0.5, 'not yet');
-  for (let i = 0; i < 60 * 6; i++) p.update(1 / 60, {}, 0);
-  assert.equal(p.health, 1, 'healed');
+  assert.equal(p.hearts, 2.5, 'half a heart');
+  p.hurt(0.3);
+  assert.equal(p.hearts, 2.25, 'rounded to the nearest quarter');
+  p.hurt(0.6);
+  assert.equal(p.hearts, 1.75);
+  for (let i = 0; i < 60 * 30; i++) p.update(1 / 60, {}, 0);
+  assert.equal(p.hearts, 1.75, 'thirty seconds later: still hurt (no regeneration)');
+  assert.equal(FALL.regen, 0);
+  p.health = 1;
+  assert.equal(p.hearts, 3, 'the share sets the hearts (the old callers: a game\'s retry)');
+});
+
+test('a healing potion: two hearts back half-way through a short drink; not at full hearts, not while down', () => {
+  const drunk = [];
+  const p = new Player(flat, { onDrink: (h) => drunk.push(h) });
+  run(p, 0.1);
+  assert.equal(p.cantDrink(), 'full');
+  assert.equal(p.drinkPotion(), false, 'full hearts: kept');
+  p.hurt(2.5);
+  assert.equal(p.hearts, 0.5);
+  assert.equal(p.drinkPotion(), true);
+  assert.equal(p.cantDrink(), 'busy', 'one at a time');
+  run(p, POTION.at - 0.1);
+  assert.equal(p.hearts, 0.5, 'the flask still on its way up');
+  run(p, 0.2);
+  assert.equal(p.hearts, 0.5 + POTION.heal, `${POTION.heal} hearts back`);
+  assert.deepEqual(drunk, [POTION.heal]);
+  run(p, POTION.time);
+  assert.equal(p.drinking, null, 'done');
+  p.drinkPotion(); run(p, POTION.time + 0.1);
+  assert.equal(p.hearts, 3, 'never past the containers');
+  p.hurt(p.hearts); run(p, 0.1);
+  assert.equal(p.cantDrink(), 'down', 'knocked out: no drinking');
+  p.restart();
+  p.setMaxHearts(4);
+  assert.equal(p.hearts, 4, 'a new container: full hearts stay full');
+  p.hurt(1); p.setMaxHearts(5);
+  assert.equal(p.hearts, 3, 'a hurt keeps what it took');
 });

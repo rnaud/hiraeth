@@ -79,7 +79,7 @@ export const KIT_TRIALS = {
     rules: 'Jump from pillar to pillar across the furnace to the landing at its end; down on the grate, and the run is over. Then wake the door’s four eyes in one breath.',
     origin: [40, 11, 66], yaw: 0,
     marker: [4.8, -6], start: [0, 1.5], heading: 0, par: 34,
-    needs: ['backpack', 'cell'], lacks: 'The door at its end has four eyes to wake in one breath: it wants the fourth chamber.',
+    needs: ['backpack', 'magic:4'], lacks: 'The door at its end has four eyes to wake in one breath: it wants a longer magic bar (the fourth chamber).',
     onFoot: true, offFeet: 'This one is jumped: no jets.',
     fall: { after: 0, below: -2.5, from: 6, words: 'Down on the grate' },
     voice: {

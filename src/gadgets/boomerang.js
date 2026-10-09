@@ -3,6 +3,7 @@ import { inkMat, INK, PAPER, aimRay, assistPick } from './kit.js';
 import { rayWorld } from '../fluid-tool.js';
 import { allTargets, modeFor } from '../targets.js';
 import { hitStop, kick } from '../feel.js';
+import { MAGIC_COST } from '../resources.js';
 
 // The boomerang (docs/systems/gadgets.md, "The boomerang"): a brass-and-ink crescent. Hold the use button to
 // aim: a curved path of dots shows its flight, and whatever the reticle passes over while it is held is
@@ -288,7 +289,7 @@ class Boomerang {
     const curve = this.plan(from, pts, this.aimEnd(new THREE.Vector3()));
     // (a mode carried spends a charge of the tank, as a glob of it would; none left, it flies plain)
     let mode = CARRY.includes(tool?.mode) ? tool.mode : null;
-    if (mode && tool.reserve && !tool.reserve.use()) { mode = null; this.ctx.notice?.('The tank is empty: the boomerang flies plain.', 'boom-dry'); }
+    if (mode && tool.reserve && !tool.reserve.use(MAGIC_COST.gadget)) { mode = null; this.ctx.notice?.('Out of magic: the boomerang flies plain.', 'boom-dry'); }
     this.flight = {
       pos: from.clone(), vel: new THREE.Vector3(), curve, len: curve.getLength(), s: 0, phase: 'out', t: 0,
       pending: this.locks.map((l, i) => ({ ...l, at: pts[i] })), hit: new Set(), carry: [], mode, bounces: 0, spin: 0,

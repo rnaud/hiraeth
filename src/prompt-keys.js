@@ -61,15 +61,15 @@ const VERB_KEYS = {
     aim: () => `${remapKey('aim')} or the right mouse button`, fire: () => `${remapKey('fire')} or a left click`, mode: () => remapKey('mode'),
     blade: () => `${remapKey('blade')} or a left click`, guard: () => remapKey('guard'), evade: () => remapKey('evade'), lock: () => remapKey('lock'),
     call: () => remapKey('interact'), gadget: () => remapKey('gadget'), run: () => remapKey('run'), scout: () => remapKey('scout'),
-    whistle: () => remapKey('whistle'), thrust: () => `${remapKey('jump')} held in the air` },
+    whistle: () => remapKey('whistle'), thrust: () => `${remapKey('jump')} held in the air`, potion: () => remapKey('potion') },
   pad: { move: 'the left stick', look: 'the right stick', jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
     mode: () => { const a = verbButton('modePrev'), b = verbButton('modeNext'); return a === 'D-pad ←' && b === 'D-pad →' ? PAD.mode : `${a} / ${b}`; },
     blade: () => verbButton('blade'), guard: () => verbButton('guard'), evade: () => verbButton('evade'), lock: () => verbButton('lock'),
     call: () => verbButton('call'), gadget: () => verbButton('gadget'), run: () => verbButton('run'), scout: () => verbButton('lock'),
-    whistle: () => `${verbButton('gadget')} with no gadget in hand`, thrust: () => verbButton('fire') },
+    whistle: () => `${verbButton('gadget')} with no gadget in hand`, thrust: () => verbButton('fire'), potion: PAD.potion },
   touch: { move: 'the stick on the left', look: 'a drag on the right', jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',
     blade: '⚔', guard: '◇', evade: '↶', lock: '◉', call: 'E', gadget: '◆', run: 'run', scout: 'ping',
-    whistle: '◆ with no gadget in hand', thrust: '⤒ held in the air' },
+    whistle: '◆ with no gadget in hand', thrust: '⤒ held in the air', potion: 'the flask by your hearts' },
 };
 /**
  * The input for a verb (move, look, jump, interact, aim, fire, mode, blade, guard, evade, lock, call, gadget, whistle, thrust,

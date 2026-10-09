@@ -30,7 +30,7 @@ export const PAD_VERBS = {
 /** The button names the prompts use for each verb (Xbox / PlayStation form), from PAD_VERBS. */
 export const PAD = {
   ...Object.fromEntries(Object.entries(PAD_VERBS).filter(([v]) => !v.startsWith('mode')).map(([v, b]) => [v, BUTTON_NAME[b]])),
-  mode: 'D-pad ← / →', journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
+  mode: 'D-pad ← / →', journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑', potion: 'View + D-pad ↓',
 };
 
 /**
@@ -41,7 +41,7 @@ export const KEYS = {
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', jump: 'Space', interact: 'KeyE',
   blade: 'KeyF', guard: 'ControlLeft', evade: 'AltLeft', lock: 'Tab', aim: 'KeyR', fire: 'KeyG', mode: 'KeyX',
   scout: 'KeyQ', gadget: 'KeyT', gadgetNext: 'KeyB', whistle: 'KeyV', journal: 'KeyJ', menu: 'KeyO', controls: 'KeyH',
-  photo: 'KeyP', mute: 'KeyM',
+  photo: 'KeyP', mute: 'KeyM', potion: 'KeyC',
 };
 
 /**
@@ -68,7 +68,7 @@ export const BINDINGS = {
     ['View', 'the sketchbook (items, quests, worlds)'],
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
-    ['View + ↓', 'free'],
+    ['View + ↓', 'drink a healing potion'],
     ['View + ←', 'free · the Arena: the input display (F6)'],
     ['View + →', 'free'],
     ['L3 + R3', 'debug: the hitbox overlay (F4)'],
@@ -116,8 +116,8 @@ export const BINDINGS = {
   ],
 };
 
-/** The chords nothing uses yet: the controller sends `padchord` events for them (main.js). */
-export const FREE = ['View + ↓', 'View + ←', 'View + →'];
+/** The chords nothing uses yet: the controller sends `padchord` events for them (main.js). (View + ↓ drinks a potion: 'viewDown'.) */
+export const FREE = ['View + ←', 'View + →'];
 
 /** The layout's version, kept on the device so a player from before is told once what moved (main.js). */
 export const PAD_SCHEME = 2;

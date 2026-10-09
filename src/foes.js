@@ -4,7 +4,8 @@ import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
 import { workingsAt } from './workings.js';
-import { Telegraph, strikeDamage, inArea } from './temples/boss.js';
+import { Telegraph, inArea } from './temples/boss.js';
+import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
 import { ShadeBody, ShadePools } from './shade.js';
@@ -23,12 +24,13 @@ import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, 
 // - **Ink blots** gather in the wilds: loose ink and scribble that drift in from the margins of the
 //   drawing, away from people, the ship and the cities. They compress, then lunge through a visible
 //   strike and recover. The fluid blade cuts them back into ink; a shot or an ember
-//   glob washes them too, stilling freezes them. Each one cut gives the tank a charge back.
+//   glob washes them too, stilling freezes them. Each one cut gives a third of the magic bar back (one unit).
 // - **The makers' machines** stand in the temples' rooms: old constructs gone wrong, heavier, slower,
 //   planting their feet and raising their arms before a committed slam. The blade breaks them (fluid and ember only stagger
 //   them, stilling freezes them); broken, they stay broken (a flag per save).
 //
-// Nothing here can take a healthy bar to nothing in one blow (strikeDamage, as the guardians). The
+// Their blows take hearts (an ordinary one half a heart: each attack's `damage`, docs/systems/foes.md), and
+// none takes you from more than a heart to nothing in one blow (strikeDamage, as the guardians). The
 // Enemies setting turns them all off; Home, the Lab, the References and the Atelier never have any.
 //
 //   const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, notice })
@@ -41,10 +43,10 @@ export const FOES = {
   blot: {
     name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true, clamber: true,
     attacks: [
-      { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.15, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
+      { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.5, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
       // the lunge-combo: a longer coil, a lunge, and a second quick one straight after (unless the first was blocked)
-      { id: 'combo', shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.12, wind: 0.8, strike: 0.22, contact: 0.55, lunge: 1.6, then: 'again', min: 0.8 },
-      { id: 'again', chain: true, shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.12, wind: 0.32, strike: 0.22, contact: 0.55, lunge: 1.8 },
+      { id: 'combo', shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.8, strike: 0.22, contact: 0.55, lunge: 1.6, then: 'again', min: 0.8 },
+      { id: 'again', chain: true, shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.32, strike: 0.22, contact: 0.55, lunge: 1.8 },
     ],
     recover: 1.0, cool: [1.1, 2.2], hit: 0.35,
   },
@@ -52,9 +54,9 @@ export const FOES = {
     name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6, heavy: true, metal: true, breaks: true,
     tone: '#e0703a', sound: 'machine', takes: { shoot: 0, fire: 0 },
     attacks: [
-      { id: 'slam', shape: 'cone', range: 3.3, angle: 0.8, damage: 0.22, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7, weight: 1.6 },
+      { id: 'slam', shape: 'cone', range: 3.3, angle: 0.8, damage: 1, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7, weight: 1.6 },
       // the ground slam: both arms high and a longer hold, then a ring of shock runs out over the floor (jump it)
-      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, tele: true, damage: 0.18, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.12, width: 0.55 } },
+      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, tele: true, damage: 0.75, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   },
@@ -62,28 +64,28 @@ export const FOES = {
   spitter: {
     name: 'spitting blot', hp: 2, radius: 0.55, height: 0.6, speed: 2.6, sight: 20, giveUp: 40, reach: 11, keep: 6.5, perch: true, tone: '#7f9a2e',
     attacks: [
-      { id: 'lob', shape: 'ring', at: 'target', instant: true, radius: 1.6, damage: 0.14, wind: 1.25, weight: 2 },
+      { id: 'lob', shape: 'ring', at: 'target', instant: true, radius: 1.6, damage: 0.5, wind: 1.25, weight: 2 },
       // the arc volley: three globs, three rings across your way (step between them, or out of the row)
-      { id: 'volley', shape: 'ring', at: 'target', instant: true, spread: [-3, 0, 3], radius: 1.2, damage: 0.12, wind: 1.45, min: 4 },
+      { id: 'volley', shape: 'ring', at: 'target', instant: true, spread: [-3, 0, 3], radius: 1.2, damage: 0.5, wind: 1.45, min: 4 },
     ],
     recover: 1.3, cool: [1.6, 2.6], hit: 0.35,
   },
   // tiny and quick, five or six at once: one cut, or a push, and each is gone
   swarm: {
     name: 'blot swarm', hp: 1, radius: 0.28, height: 0.28, speed: 5.2, sight: 16, giveUp: 40, reach: 1.3, light: true, takes: { shoot: 1, fire: 1, push: 1 },
-    attack: { shape: 'ring', radius: 1.0, ahead: 0.6, damage: 0.05, wind: 0.5, strike: 0.24, contact: 0.55, lunge: 1.0 },
+    attack: { shape: 'ring', radius: 1.0, ahead: 0.6, damage: 0.25, wind: 0.5, strike: 0.24, contact: 0.55, lunge: 1.0 },
     recover: 0.7, cool: [0.6, 1.4], hit: 0.2,
   },
   // hovers out of the blade's reach and dives along a lane drawn on the ground; low after its dive, it can be cut
   flyer: {
     name: 'winged blot', hp: 2, radius: 0.6, height: 0.5, hover: 3.6, speed: 3.8, sight: 22, giveUp: 45, reach: 6,
-    attack: { shape: 'lane', width: 1.7, range: 9, damage: 0.17, wind: 1.0, strike: 0.4, contact: 0.85, dive: true },
+    attack: { shape: 'lane', width: 1.7, range: 9, damage: 0.75, wind: 1.0, strike: 0.4, contact: 0.85, dive: true },
     recover: 1.7, cool: [1.8, 2.8], hit: 0.3,
   },
   // a person made of living shadow (src/shade.js): it walks up and cuts with a sword's swing, dripping as it goes
   shade: {
     name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3, clamber: true, tone: '#3b2a5c',
-    attack: { shape: 'cone', range: 2.9, angle: 0.9, damage: 0.2, wind: 0.95, strike: 0.24, contact: 0.55 },
+    attack: { shape: 'cone', range: 2.9, angle: 0.9, damage: 0.75, wind: 0.95, strike: 0.24, contact: 0.55 },
     recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
   },
   ...KINDS,   // each world's own (src/foe-kinds.js)
@@ -1524,7 +1526,7 @@ export class Foes {
     return true;
   }
 
-  /** Done: a blot bursts back into ink, a machine comes apart; the tank gets a charge back. */
+  /** Done: a blot bursts back into ink, a machine comes apart; the magic bar gets a unit back. */
   burst(f) {
     this.sound?.foeBurst?.(f.def.sound ?? f.kind);
     // the blow that ends one lands harder (a longer freeze, a bigger kick); the last of a fight, a moment of
@@ -1719,10 +1721,10 @@ export class Foes {
     const fwd = this.camera ? this.camera.getWorldDirection(_v).setY(0).normalize() : _v.set(Math.sin(P.heading ?? 0), 0, Math.cos(P.heading ?? 0));
     return fwd.dot(d) > 0.45;
   }
-  /** A strike's damage for this setting (Gentle: half). */
-  harmOf(d) { return d * (this.difficulty === 'gentle' ? GENTLE.harm : 1); }
-  /** A bite of the bar (never all of a healthy one). */
-  harm(d) { const P = this.player; P.hurt?.(strikeDamage(P.health ?? 1, d), 'foe'); }
+  /** A strike's damage in hearts for this setting (Gentle: half), counted in quarters. */
+  harmOf(d) { return quarters(d * (this.difficulty === 'gentle' ? GENTLE.harm : 1)); }
+  /** Hearts off the traveller (a blow never takes him from more than a heart to nothing: strikeDamage). */
+  harm(d) { const P = this.player; P.hurt?.(strikeDamage(heartsOf(P), d), 'foe'); }
 
   /**
    * A cut that landed and didn't stop it (Foe.shrugged): a dull thunk instead of the splat, sparks off where it struck
@@ -1846,7 +1848,7 @@ export class Foes {
       p.mesh.scale.setScalar(p.r * Math.min(1, p.life / 0.8, (p.max - p.life) / 0.25 + 0.3));
       // (an evade's i-frames carry you over it unburnt; standing in it after, it burns)
       if (this.burnCool === 0 && ground && !P.dead && !P.down && Math.hypot(P.pos.x - p.pos.x, P.pos.z - p.pos.z) < p.r && Math.abs(P.pos.y - p.pos.y) < 0.8 && !P.dodge?.(p.pos, 'burn', this.gentle)) {
-        this.burnCool = 0.7; this.harm(this.harmOf(0.05)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
+        this.burnCool = 0.7; this.harm(this.harmOf(DAMAGE.graze)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
         this.sound?.foeHurt?.('blot');
       }
       if (p.life <= 0) p.mesh.removeFromParent();

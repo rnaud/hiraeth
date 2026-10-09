@@ -27,7 +27,7 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass tank with a hose to a leather glove: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
-    use: 'Aim with {key:aim} and shoot bursts of fluid with {key:fire}; switch the gun’s mode with {key:mode} to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: {key:blade} swings it, {key:guard} held guards, {key:evade} evades. Three charges; they refill two seconds after the last use. It also powers vehicles.'
+    use: 'Aim with {key:aim} and shoot bursts of fluid with {key:fire}; switch the gun’s mode with {key:mode} to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: {key:blade} swings it, {key:guard} held guards, {key:evade} evades. Everything it does spends the magic bar (a shot, a push or a boost: a third of it), which refills by itself a moment after the last use. It also powers vehicles.'
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
@@ -58,12 +58,12 @@ export const ITEMS = {
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
     text: "An extra glass chamber for the tank. More room, without having to grow a larger back.",
-    use: 'The backpack holds four charges instead of three.',
+    use: 'The magic bar grows by a third: four shots in a row instead of three.',
   },
   coil: {
     name: 'Quick coil', kind: 'upgrade', needs: 'backpack',
     text: "A warm copper coil that helps the tank refill faster. Still warm after centuries in a box.",
-    use: 'The tank refills three seconds after the last use instead of five.',
+    use: 'The magic bar starts refilling half a second after the last use instead of one, and fills twice as fast.',
   },
   lantern: {
     name: 'Lantern charm', kind: 'charm',

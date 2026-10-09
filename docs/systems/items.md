@@ -31,7 +31,7 @@ What the traveller carries and the boxes that give it.
 - **Backpack-powered abilities** (`src/fluid-tool.js`, `src/fluid-kit.js`,
   `src/flammable.js`):
   - With no backpack there is no tool, and vehicles won't start.
-  - The jets drain the same reserve (0.3 charges per second at full throttle, less
+  - The jets drain the same magic bar (0.3 units a second at full throttle, less
     on a light squeeze; they fly like a plane: docs/systems/movement-and-camera.md)
     and work in any world. The wings bloom from the tank and are needed to glide.
   - X cycles through the modes you own: shoot, stilling (freezes), ember
@@ -49,6 +49,50 @@ What the traveller carries and the boxes that give it.
   mastery trial, not found in a box (docs/systems/minigames.md, "Trials in the worlds").
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
+
+## Hearts, magic and potions (v1.5)
+
+`src/resources.js` holds the traveller's resources, so the shops to come (heart containers, magic
+expansions, potions for sale) and the currency plug in without touching what spends them.
+
+- **Hearts** (`HEARTS.start` 3, at most `HEARTS.cap` 20): the health, counted in quarter hearts. The
+  current hearts are the player's (`player.hearts`, `player.maxHearts`; `player.health` the share 0..1);
+  the containers are the save's (`resources.maxHearts`, main.js keeps the player to it). They never come back
+  by themselves. What takes them: the damage table in docs/systems/foes.md.
+- **The healing potion** (`POTION`: two hearts, a 0.9 s drink, the hearts at 0.45 s): **C** on the keyboard
+  (`KEYS.potion`, movable on the Controls page), **View + D-pad ↓** on a controller (the free chord;
+  `PAD.potion`), the **flask beside the hearts** on a touch screen. `player.drinkPotion()` starts the drink
+  (not at full hearts, knocked down, riding, swimming or drinking already: `cantDrink()` says which; full,
+  a notice says so); main.js takes one from the stock (`resources.takePotion()`), plays the cork and the two
+  swallows (`sound.potion`), tilts the HUD's flask and raises a warm glow round the traveller as the hearts
+  come back (`opts.onDrink`). The first hurt that leaves you a heart short says how, once (`hint.potion`).
+  Potions are a count with an infinite flag: infinite until the shops (`res.potions.infinite` unset = true).
+- **The magic bar** replaced the backpack's three charges (the tank's chambers): `MAGIC.start` 3 units,
+  one unit = one old chamber = a third of the starting bar, so every cost kept its feel
+  (`MAGIC_COST`): a shot (any gun mode), a push, a boost, a shield that breaks (src/fluid-blade.js), a gadget
+  that carries the fluid (the boomerang's ember): **1 unit** each; the jets **0.3 units a second** at full
+  throttle (ten seconds on the starting bar); the wings cost nothing (as before). It refills by itself like
+  stamina: **1 s** after the last spend it starts (`MAGIC.delay`), and the starting bar goes from empty to
+  full in **4 s** (`MAGIC.fill`: 0.75 units a second; a longer bar takes longer). After a jet burn it waits for
+  the ground first (no endless flight). A foe cut down gives a unit back. `src/fluid-tool.js` `Reserve` is
+  the bar (`use(cost)`, `drain`, `update`: the wait, then the fill); `src/boxes/effects.js` sets its length
+  and pace from `resources.maxMagic` and `resources.magicPace` every frame; the HUD draws it under the hearts
+  (docs/systems/ui.md), the backpack's glass still shows the level.
+- **Upgrades**: the **fourth chamber** (item `cell`, the Engine-House's chest) lengthens the bar by one unit
+  (`MAGIC_ITEMS`); the **quick coil** (item `coil`) quickens the refill (0.5 s wait, the starting bar full in
+  2 s: `MAGIC.coil`). Expansions from elsewhere (`resources.addMagic`, the shops) add units the same way.
+  What wanted the fourth chamber now wants a **capacity**: `'magic:4'` (`resources.meets`, and the temple
+  solver's `meetsWith`): the Engine-House's banks of four eyes and its warden (`src/temples/buried.js`) and
+  the Furnace steps makers' run (`src/trials/kit-data.js`). Four shots inside 2.6 s need four units; six in
+  4.6 s need the coil (tests/resources.test.js, tests/temples.test.js).
+- **The save** (game flags, so the format grows): `res.v` (the format, `RES_VERSION`), `res.hearts.extra`
+  (containers), `res.magic.extra` (expansions), `res.potions` (the stock), `res.potions.infinite`. Old saves
+  (src/save-migrate.js, step 4): the format is stamped; the fourth chamber and the coil are read from their own
+  item flags, so a save that had them keeps a bar of four and the quick refill, and the doors that wanted the
+  chamber still open; hearts are not saved (a load starts whole, as the bar did); potions start infinite.
+- **The Arena** (src/minigames/waves.js): a wave cleared gives a heart back (`TIDE.heal`); Second wind gives
+  all of them back and lends a slow mend (`TIDE.mend`, 0.1 hearts a second per pick, through `FALL.regen`);
+  Deeper well lengthens the bar a unit, Quick refill shortens the wait and quickens the fill.
 
 ## The makers' boxes, Android controls and updates (v0.36)
 - **The boxes** are artifacts of the makers, the people of the glyph (see "The

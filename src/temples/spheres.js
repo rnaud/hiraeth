@@ -80,9 +80,9 @@ export const ECHO = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    note: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.5, track: 0.6, damage: 0.2, knock: 8, recover: 0.8, open: 3.2 },
-    pulse: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 0.22, knock: 12, recover: 0.8 },
-    chord: { shape: 'lane', range: 26, width: 3, telegraph: 1.6, damage: 0.2, knock: 10, recover: 0.9, open: 2.8 },
+    note: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.5, track: 0.6, damage: 0.75, knock: 8, recover: 0.8, open: 3.2 },
+    pulse: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 1, knock: 12, recover: 0.8 },
+    chord: { shape: 'lane', range: 26, width: 3, telegraph: 1.6, damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
   },
 };
 

@@ -202,5 +202,5 @@ test('the traveller: tumbling off a ledge down a long drop stays limp all the wa
   q.knockDown(new THREE.Vector3(12, -2, 0));
   for (t = 0; t < 12 && q.down; t += 1 / 60) q.update(1 / 60, {}, 0);
   assert.ok(!q.down && q.pos.y < -24, `up at the bottom (${q.pos.y.toFixed(1)} m)`);
-  assert.ok(q.health < 1 && q.health > 1 - FALL.worst - 0.01, `a little hurt (${q.health.toFixed(2)})`);
+  assert.ok(q.hearts < q.maxHearts && q.hearts >= q.maxHearts - FALL.worst, `a little hurt (${q.hearts} hearts)`);
 });

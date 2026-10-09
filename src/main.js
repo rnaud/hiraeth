@@ -13,9 +13,10 @@ import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
 import { guardianHint } from './temples/hints.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary } from './hud.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud } from './hud.js';
+import { resources } from './resources.js';
 import { screen } from './platform.js';
-import { inputKind } from './prompt-keys.js';
+import { inputKind, keyText } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
@@ -296,16 +297,54 @@ const player = new Player(physics, {
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
   // knocked out: the screen dims and asks to restart (updateRestart below)
-  onHurt: (k, why) => { shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(k, why); hpShown = 3; if (why === 'foe') kick(0.45 + k); },
+  // (k: hearts, in quarters: a quarter is a tap, a heart and a half and more the heaviest)
+  onHurt: (h, why) => { const k = Math.min(1, h / 1.5); shipSfx.rumble(sound, 0.35 + k * 0.4, 0.25 + k * 0.5); sound.hurt(h, why); hpShown = 3; if (why === 'foe') kick(0.45 + k * 0.5); potionHint(); },
+  onDrink: (got) => { sound.potion('heal'); hpShown = 3; potionGlow(got); },
   onKnockdown: (dead) => { shipSfx.rumble(sound, dead ? 0.95 : 0.6, dead ? 0.9 : 0.45); hpShown = 3; },
   onKnockout: (why) => { knockedOut = why; },
   onWhistle: (kind) => (kind === 'mount' && level.mountName === 'bird' ? sound.tune(RIDER_CALL, RIDER_CALL_BEAT) : sound.whistle(kind)),   // calling the bike, the bird (the rider's call, on the flute) or a taxi
   onRestart: () => { ship.cinema?.fade(1, true, 0.05); setTimeout(() => ship.cinema?.fade(0, true, 0.9), 120); },
 });
-// the health bar (index.html #health): only while you're hurt, and a moment after
-const hpEl = document.getElementById('health'), hpFill = hpEl?.firstElementChild;
-let hpShown = 0;
-const hpFade = new Fader(3);   // (src/hud.js: while hurt or healing, and 3 s after)
+// the hearts, the magic bar and the potion (index.html #health): while a heart is missing, the bar spends or
+// refills, or a fight is on, and a moment after (src/hud.js healthHud, heartsSvg, magicHud; src/resources.js)
+const hpEl = document.getElementById('health');
+const hpHearts = hpEl?.querySelector?.('.hearts'), hpMagic = hpEl?.querySelector?.('.magic'), hpMagicFill = hpMagic?.firstElementChild;
+const hpPotion = hpEl?.querySelector?.('.potion'), hpPotionN = hpPotion?.querySelector?.('b');
+let hpShown = 0, hpKey = '', hpMagicKey = '', hpPotionKey = '';
+const hpFade = new Fader(3);   // (src/hud.js: while hurt, spending or fighting, and 3 s after)
+player.setMaxHearts(resources.maxHearts);
+/**
+ * The potion button (KEYS.potion C, View + D-pad ↓, the flask beside the hearts on a touch screen): the drink
+ * starts (src/player.js drinkPotion: the hearts come back half-way through it), the stock gives one (infinite
+ * until the shops), or a word says why not.
+ */
+function drinkPotion() {
+  if (busy() || photo.on || ship.playing || !player.object?.visible) return false;
+  const why = player.cantDrink();
+  if (why === 'full') { sound.potion('no'); showToast(tr('potion.full')); hpShown = 3; return false; }
+  if (why) return false;
+  if (!resources.takePotion()) { sound.potion('no'); showToast(tr('potion.none')); return false; }
+  player.drinkPotion();
+  sound.potion('open'); hpShown = 3;
+  hpEl?.classList.remove('drink'); void hpEl?.offsetWidth; hpEl?.classList.add('drink');
+  return true;
+}
+/** The hearts coming back: a warm glow rising round the traveller. */
+function potionGlow(got) {
+  if (!(got > 0) || !player.object?.visible) return;
+  const U = player.frame.up;
+  for (let i = 0; i < 26; i++) tool.glow?.add({ pos: _potP.copy(player.pos).addScaledVector(U, 0.3 + Math.random() * 1.2).add(_potV.randomDirection().multiplyScalar(0.45)), vel: _potV.copy(U).multiplyScalar(0.8 + Math.random() * 1.4), drag: 1.5, size: 0.05 + Math.random() * 0.04, life: 0.7 + Math.random() * 0.5, color: i % 3 ? '#e8643c' : '#f6c84e', grow: true });
+}
+const _potP = new THREE.Vector3(), _potV = new THREE.Vector3();
+/** Once per save, the first time a hurt leaves you short: how to drink. */
+function potionHint() {
+  if (game.flag('hint.potion') || player.hearts > player.maxHearts - 1 || player.dead) return;
+  game.set('hint.potion', true);
+  setTimeout(() => showToast(keyText(tr('potion.hint'))), 900);
+}
+window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
+window.addEventListener('padchord', (e) => { if (e.detail?.name === 'viewDown') drinkPotion(); });   // View + D-pad ↓
+hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
 // Knocked out (a fatal fall, or the bar run out): you lie there a moment, then the screen
 // dims and a small panel asks to restart, from where you last stood safely. Its button is
 // the one thing in focus: Enter (or Space, E), A / × on a pad (the panel counts as a menu:
@@ -367,14 +406,22 @@ function updateHealth(dt) {
   updateRestart(dt);
   updateStamina(dt);
   if (!hpEl) return;
-  const h = player.health ?? 1;
-  // (a hurt, a knockdown: at once; the state goes to platform.js screen.health as it is drawn)
-  const hp = healthHud({ health: h, down: player.down, hurt: hpShown > 0, quiet: ship.playing || photo.on }, hpFade, dt);
+  player.setMaxHearts(resources.maxHearts);
+  const h = player.health ?? 1, R = tool.owned && !tool.dry ? tool.reserve : null, pot = resources.potions;
+  // (a hurt, a knockdown, a potion: at once; the state goes to platform.js screen.health as it is drawn)
+  const hp = healthHud({ health: h, hearts: player.hearts, max: player.maxHearts, magic: R ? R.level : null, magicMax: R?.max ?? 3, potions: pot.count, infinite: pot.infinite,
+    combat: document.body.classList.contains('combat'), down: player.down, hurt: hpShown > 0, quiet: ship.playing || photo.on }, hpFade, dt);
   hpShown = 0;
   screen.set('health', hp);
   hpEl.classList.toggle('on', !!hp);
-  hpEl.classList.toggle('low', h < 0.3);
-  hpFill.style.width = `${(h * 100).toFixed(1)}%`;
+  if (!hp) return;
+  const key = `${hp.hearts}|${hp.max}|${hp.low}`;
+  if (key !== hpKey) { hpKey = key; hpHearts.innerHTML = heartsSvg(hp.hearts, hp.max, { low: hp.low }); }
+  const M = magicHud(R?.level, R?.max), mk = R ? `${M.units}|${M.short}` : 'none';
+  if (mk !== hpMagicKey) { hpMagicKey = mk; hpMagic.classList.toggle('none', !R); hpMagic.classList.toggle('short', M.short); hpMagic.style.setProperty('--units', M.units); }
+  if (R) hpMagicFill.style.width = `${(M.fill * 100).toFixed(1)}%`;
+  const pk = `${pot.infinite}|${pot.count}`;
+  if (pk !== hpPotionKey) { hpPotionKey = pk; hpPotionN.textContent = pot.infinite ? '∞' : `${pot.count}`; hpPotion.classList.toggle('none', !pot.infinite && pot.count <= 0); }
 }
 player.vehicles.push(...(level.vehicles ?? []));
 // rooms off the map, reached through doorways (the desert's chambers and the cave in the

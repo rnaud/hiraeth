@@ -76,13 +76,19 @@ test('the health bar and the stamina wheel show while it matters and fade a mome
   const main = src('src/main.js');
   assert.match(main, /const hpFade = new Fader\(3\)/);
   // (the rule in hud.js healthHud, which main.js draws and an engine reads: platform.js screen.health)
-  assert.match(main, /healthHud\(\{ health: h, down: player\.down, hurt: hpShown > 0/, 'main.js shows the bar by healthHud');
+  assert.match(main, /healthHud\(\{ health: h, hearts: player\.hearts, max: player\.maxHearts, magic: R \? R\.level : null/, 'main.js shows the hearts by healthHud');
+  assert.match(main, /down: player\.down, hurt: hpShown > 0/);
   const g = new Fader(3);
   assert.equal(healthHud({ health: 1 }, g, 0.1), null, 'unhurt: nothing');
-  assert.deepEqual(healthHud({ health: 0.6 }, g, 0.1), { value: 0.6, low: false }, 'hurt or healing (health below full)');
-  assert.deepEqual(healthHud({ health: 0.2 }, g, 0.1), { value: 0.2, low: true }, 'low');
+  assert.deepEqual(healthHud({ hearts: 2.25, max: 3 }, g, 0.1), { value: 0.75, low: false, hearts: 2.25, max: 3 }, 'a heart missing: the hearts show');
+  assert.deepEqual(healthHud({ hearts: 0.75, max: 3 }, g, 0.1), { value: 0.25, low: true, hearts: 0.75, max: 3 }, 'one heart or less: low');
+  assert.deepEqual(healthHud({ health: 0.5 }, new Fader(3), 0.1), { value: 0.5, low: false, hearts: 1.5, max: 3 }, 'an old caller\'s share: as three hearts');
   assert.ok(healthHud({ health: 1, down: true }, new Fader(3), 0.1), 'knocked down');
-  assert.equal(healthHud({ health: 0.5, quiet: true }, new Fader(3), 0.1), null, 'not over a scene or photo mode');
+  assert.equal(healthHud({ hearts: 2, quiet: true }, new Fader(3), 0.1), null, 'not over a scene or photo mode');
+  assert.equal(healthHud({ hearts: 3, magic: 3, magicMax: 3 }, new Fader(3), 0.1), null, 'whole, the bar full: nothing');
+  assert.deepEqual(healthHud({ hearts: 3, magic: 1.4, magicMax: 3, potions: 0, infinite: true }, new Fader(3), 0.1),
+    { value: 1, low: false, hearts: 3, max: 3, magic: 1.4, magicMax: 3, potions: 0, infinite: true }, 'the magic bar spending or refilling: shown, with the potion');
+  assert.ok(healthHud({ hearts: 3, combat: true }, new Fader(3), 0.1), 'a fight on: shown');
   assert.equal(staminaHud({ stamina: 0.5 }, 0), null, 'the wheel: only while it has time left');
   assert.deepEqual(staminaHud({ stamina: 0.5, winded: true }, 0.9), { value: 0.5, winded: true });
 });

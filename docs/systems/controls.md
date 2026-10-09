@@ -18,7 +18,8 @@ Controls page. **E** interacts: get on, get off, talk, use; with nothing near it
 mount (or hails a taxi). **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after five seconds; ping again
 to refresh it. The guide follows quest progress and portal routes, with local obstacle avoidance. **V**
-sounds the bell-note whistle (and the echo shell). **P** photo mode. **L** opens the level picker. Each
+sounds the bell-note whistle (and the echo shell). **C** drinks a healing potion (View + D-pad ↓ on a pad,
+the flask beside the hearts on touch: docs/systems/items.md). **P** photo mode. **L** opens the level picker. Each
 level's controls are listed in [worlds.md](worlds.md), "Levels".
 
 **The tool:** hold right mouse (or **R**) to aim, left click (or **G**) to fire while aiming, and **X** to
@@ -253,7 +254,8 @@ Conflicts and oddities:
 | D-pad ← → | gun mode | | | | | | navigate | |
 | View (on release) | the sketchbook | | | | the sketchbook | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
-| View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
+| View + D-pad ↓ | **drink a healing potion** (v1.5; the `padchord` 'viewDown') | | | | | | | |
+| View + D-pad ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
 | L3 + R3 | debug: the hitbox overlay (F4) | | | | | | | |
 | Menu | the Start menu | | | | the Start menu | | close | leave |
 

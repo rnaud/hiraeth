@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { DAMAGE } from '../src/resources.js';
 import assert from 'node:assert/strict';
 import { keyText } from '../src/prompt-keys.js';
 import * as THREE from 'three';
@@ -18,9 +19,10 @@ const env = { ground: () => 0, seen: () => true };
 
 function player(at = v()) {
   const frame = { up: v(0, 1, 0), fwd: v(0, 0, 1), right: v(1, 0, 0), dir: (h, out) => out.set(Math.sin(h), 0, Math.cos(h)) };
-  const P = { pos: at, vel: v(), heading: 0, frame, vehicles: [], object: { visible: true }, ride: null, onGround: true, aim: null, opts: {}, health: 1, down: null, dead: false,
+  const P = { pos: at, vel: v(), heading: 0, frame, vehicles: [], object: { visible: true }, ride: null, onGround: true, aim: null, opts: {}, hearts: 3, maxHearts: 3, down: null, dead: false,
     hurts: [], knocks: 0,
-    hurt(a) { this.health = Math.max(0, this.health - a); this.hurts.push(a); },
+    get health() { return this.hearts / this.maxHearts; }, set health(k) { this.hearts = k * this.maxHearts; },
+    hurt(a) { this.hearts = Math.max(0, this.hearts - a); this.hurts.push(a); },
     knockDown() { this.knocks++; return true; } };
   return P;
 }
@@ -100,9 +102,17 @@ test('out in the wilds a pack of ink blots comes in (the first time one), out of
   assert.ok(d >= PACK.near - 0.01 && d <= PACK.far + 0.01, `it comes in ${d.toFixed(1)} m out`);
   assert.equal(notes.length, 1, 'and the game says what they are, once');
   assert.match(keyText(notes[0], { kind: 'pad' }), /LB \/ L1/, 'with a pad in hand: its guard button (a {key:guard}, src/prompt-keys.js keyText)');
-  // a strike at full health leaves at least the floor
-  foes.strike(foes.list[0]);
-  assert.ok(P.health >= HIT.floor - 1e-9, 'never all of a healthy bar');
+  // an ordinary blow: half a heart; and none takes you from more than a heart to nothing
+  const first = foes.list[0], dmg = (first.atk ?? first.def.attack).damage;
+  foes.strike(first);
+  assert.ok(dmg >= 0.25 && dmg <= 0.5, `an ordinary foe's blow (or one contact of it): half a heart at most (${dmg})`);
+  assert.equal(P.hearts, 3 - dmg, 'off three hearts');
+  assert.equal(FOES.blot.attacks[0].damage, DAMAGE.blow, 'an ink blot\'s lunge: half a heart, the baseline');
+  P.hearts = 1.5; foes.harm(5);
+  assert.equal(P.hearts, HIT.floor, 'a huge blow from a heart and a half leaves a quarter');
+  P.hearts = 1; foes.harm(1);
+  assert.equal(P.hearts, 0, 'from one heart, a blow can knock you out');
+  P.hearts = 3;
   // its target: the blade and the soft lock find it, people's targets don't count
   assert.ok(allTargets().some((t) => t.kind === 'foe' && t.lock && t.accepts.includes('blade')));
   // near the ship there are none

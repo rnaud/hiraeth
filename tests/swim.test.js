@@ -126,14 +126,15 @@ test('diving: hold Z to go under, the breath runs out, and comes back at the sur
 });
 
 test('the breath meter: out of air hurts in small bites, pushes you up, and is never fatal', () => {
-  const q = { breath: 1, health: 1, hurts: [], hurt(k) { this.health -= k; this.hurts.push(k); } };
+  const q = { breath: 1, hearts: 3, hurts: [], hurt(k) { this.hearts -= k; this.hurts.push(k); } };
   breathe(q, SWIM.breath * 0.5, true);
   assert.ok(Math.abs(q.breath - 0.5) < 1e-6, 'half gone in half the time');
   breathe(q, SWIM.breath * 0.6, true);
   assert.equal(q.breath, 0);
   for (let i = 0; i < 2000; i++) breathe(q, 0.1, true);
   assert.ok(q.hurts.length > 3 && q.hurts.every((k) => k <= SWIM.bite + 1e-9), 'small bites');
-  assert.ok(q.health >= 0.1 - 1e-9, `never the last of it: ${q.health}`);
+  assert.ok(q.hurts.every((k) => k === 0.25), 'a quarter heart at a time');
+  assert.ok(Math.abs(q.hearts - 0.25) < 1e-9, `never the last quarter: ${q.hearts}`);
   breathe(q, SWIM.refill * 1.01, false);
   assert.equal(q.breath, 1, `back at the surface in ${SWIM.refill} s`);
   // in the pool: held under with no air, you are pushed up even holding Z, hurt but alive

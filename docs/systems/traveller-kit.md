@@ -26,7 +26,7 @@ the rucksack's outer face. The look and its reasons:
 - **Its fluid** (`materials.js flaskFluid`, kind 0) is jade green and alive. `uFluidBase` is
   `TANK.base`, or a gun mode's first tone: stilling's blue, ember's orange, bloom's leaf green.
   The blend's tones turn through it in slow, domain-warped streams with a core of the next tone,
-  and pen-width dark veins mark where they meet the green. It stands at the charges (a third of
+  and pen-width dark veins mark where they meet the green. It stands at the magic bar's level (a unit, a third of
   the glass each, a short etched mark at each third) under a pale glass edge and a highlight,
   over a thick green glass foot. The lava bands of the old tank are gone (`fluidLava` still draws
   the globs and the wings). `TANK.straps` is empty: no leather band crosses the fluid.
@@ -56,7 +56,7 @@ the rucksack's outer face. The look and its reasons:
   wear it: the people's body (`wearOutfit`) and the coral-shirt one (`createTravellerV1`, on his own
   mesh). `fluid-tool.js` shows it with the tank and only then (`glove.show`: while it is on, the
   skin's triangles under the leather are left out of its index, else they show between the
-  fingers). The knuckles light for the charges left, the plate in the mode's tone; the shot, the push
+  fingers). The knuckles light for the whole units of magic left, the plate in the mode's tone; the shot, the push
   and a dry press leave from `glove.muzzle`, just in front of the knuckles (the aiming fist's front),
   and the hose ends at `glove.inlet` on the cuff. It replaces the old wrist bracer, whose brass
   barrel and lens lay along the back of the hand and read as a phone held in it; the old hero's

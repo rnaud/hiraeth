@@ -6,6 +6,7 @@ import {ENEMY_ROSTER,WORLD_ENEMIES,worldPack} from '../src/enemies/roster.js';
 import {ATTACKS,lockAttack,attackReach} from '../src/enemies/attacks.js';
 import {Foe,Foes,PEACEFUL} from '../src/foes.js';
 import {GameState} from '../src/game-state.js';
+import {quarters} from '../src/resources.js';
 import {materialCount} from '../src/materials.js';
 const v=(x=0,y=0,z=0)=>new T.Vector3(x,y,z), P=()=>({pos:v(0,0,2),health:1,vel:v(),hurt(){}});
 const system=(world='arena',player=P(),extra={})=>new Foes({scene:new T.Scene(),level:{spawn:v(0,0,-200)},levelId:world,physics:{groundAt:()=>0},player,game:new GameState(null),...extra});
@@ -51,7 +52,7 @@ test('custom ranged strikes respect walls and moving out of the locked landing z
 test('a perfect parry interrupts remaining custom contacts; Gentle reduces harm and Off hides warnings',()=>{
  const Q=P(),sys=system('desert',Q,{settings:{enemies:'normal'}}),f=sys.add(WORLD_ENEMIES.desert[0].id,v());let damage=0;
  Q.hurt=d=>damage+=d;Q.guard=()=> 'perfect';sys.strike(f);assert.equal(damage,0);assert.equal(f.state,'recover');assert.ok(f.stunned>0);
- Q.guard=null;f.stunned=0;sys.strike(f);const normal=damage;damage=0;sys.settings.enemies='gentle';sys.strike(f);assert.equal(damage,normal*.5);
+ Q.guard=null;f.stunned=0;sys.strike(f);const normal=damage;damage=0;sys.settings.enemies='gentle';sys.strike(f);assert.equal(damage,quarters(normal*.5),'half, counted in quarters (never under one)');
  f.state='wind';f.k=.5;lockAttack(f,Q);sys.look(f,.01);assert.ok(f.zoneTells.some(t=>t.group.visible));sys.settings.enemies='off';sys.update(.01);assert.ok(f.zoneTells.every(t=>!t.group.visible));sys.dispose();
 });
 test('world packs introduce all four designs and wilderness machines fight without a temple',()=>{

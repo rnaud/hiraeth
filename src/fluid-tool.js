@@ -9,12 +9,13 @@ import { triggers } from './controller.js';
 import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
 import { FluidBlade } from './fluid-blade.js';
+import { MAGIC, MAGIC_COST } from './resources.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
 // shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
 // over the right shoulder and down the arm into the cuff of a glove on the right hand: the glove is
-// what shoots, the fluid leaving from just in front of its knuckles. Three abilities share one reserve
-// of three charges (docs/game-brief.md, working decision 4):
+// what shoots, the fluid leaving from just in front of its knuckles. Three abilities share one magic
+// bar (src/resources.js MAGIC: it was three charges, the tank's chambers; one unit is what a chamber was):
 //   shoot  a glob of fluid, straight from the glove to the crosshair (no arc, no
 //          preview): it splashes on whatever it meets and leaves a short-lived
 //          colourful splat on surfaces (targets: onHit('shoot', point, dir, info)).
@@ -28,36 +29,36 @@ import { FluidBlade } from './fluid-blade.js';
 //          jets on the keyboard's Space, holding jump thrusts instead, and a quick
 //          double tap boosts (a pad's jump never fires the jets: RT does, so any
 //          second press in the air boosts).
-// Two seconds after the last use, all three charges refill at once.
+// Like stamina, the bar refills by itself: MAGIC.delay s (1) after the last spend it starts to fill, the
+// starting bar empty to full in MAGIC.fill s (4); the quick coil quickens both (src/boxes/effects.js).
 //
 // Everything runs on the backpack (src/items.js): without items.has('backpack')
 // the tank, hose and glove are not worn and nothing fires. The other items
 // grow out of it (fluid-kit.js):
-//   jetpack  two nozzles under the tank. Thrust burns the same reserve as a
-//            smooth gauge (FLUID.jet.drain charges a second: a full tank is
-//            ten seconds of flight); a shot needs a whole charge left. The
-//            refill clock waits until you land after a burn, then the usual
-//            two seconds refill everything.
+//   jetpack  two nozzles under the tank. Thrust burns the same bar smoothly
+//            (FLUID.jet.drain units a second: the starting bar is ten seconds
+//            of flight); a shot needs a whole unit left. After a burn the bar
+//            waits until you land, then refills as usual (no endless flight).
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
 //   stun / fire / bloom   gun modes (X, the pad's D-pad left / right, the touch ◐ button): the glob
 //            stills (onHit 'stun'), burns ('fire') or grows ('bloom') instead of splashing; all
-//            modes share the three charges (targets.js: who accepts which mode)
+//            modes share the bar (targets.js: who accepts which mode)
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
 // its socket (the player's boarding / unboarding timers, HANDOFF), and back on when you
 // step off. While it is in a socket the tool is unavailable.
-// The tank shows the fill as three stacked bands of colour; the glove's three
-// knuckles light for the charges left, the plate on its back in the mode's tone. Magical water (the desert's
+// The tank shows the bar's level in its glass (the HUD's magic bar, src/hud.js, says it on the screen);
+// the glove's knuckles light for the whole units left, the plate on its back in the mode's tone. Magical water (the desert's
 // cave) refills it and adds a colour band for good: tool.refill({ addColour: true }).
 // An empty tank (game flag tool.empty: the desert's backpack comes out of its box dry,
-// src/story/desert.js) holds nothing and never refills by itself: no charges, nothing
+// src/story/desert.js) holds nothing and never refills by itself: no magic, nothing
 // fires, a press only sputters (and says so once: 'tool:dry'). The first magical water
 // (any refill()) fills it and clears the flag for good. It may still hold the makers' dregs
-// (flag tool.dregs: whole charges of old fluid, the desert's chest leaves one): those fire as
+// (flag tool.dregs: whole units of old fluid, the desert's chest leaves one): those fire as
 // shots (never a push), are spent for good, and never come back; then it is dry again.
 //
 // Story API (main.js builds one FluidTool, window.tool; story code needs no
 // import and can use the game-state bus instead, see game-state.js):
-//   tool.charges          0..3
+//   tool.charges          the whole units of magic left (0..the bar's length; tool.reserve.level: the exact level)
 //   tool.colours          colour bands added to the fluid (game flag tool.colours, 1 at the start)
 //   tool.tones            the tones in the blend, hex strings
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
@@ -72,13 +73,13 @@ import { FluidBlade } from './fluid-blade.js';
 
 /** Every tuning value in one place. */
 export const FLUID = {
-  charges: 3,             // one reserve shared by shoot, boost and push
-  refillDelay: 2,         // s after the last use (after landing, for the jets), all three come back at once
+  charges: MAGIC.start,   // the magic bar's starting length in units, shared by shoot, boost and push (src/resources.js)
+  refillDelay: MAGIC.delay,   // s after the last spend (after landing, for the jets) before it refills
   maxColours: 5,          // colour bands magical water can add (the blend shows colours + 1 tones)
   shoot: { speed: 34, gravity: 0, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },   // gravity 0: a straight shot
   push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)
   boost: { up: 15, forward: 4, keep: 0.35, doubleTap: 0.35 },              // keep: share of a rising jump's speed kept
-  jet: { drain: 0.3, min: 0.02 },  // charges burnt per second of thrust (3 = 10 s); min: the gauge that still lights them
+  jet: { drain: MAGIC_COST.jets, min: 0.02 },  // units burnt per second of thrust (3 = 10 s); min: the gauge that still lights them
 };
 
 // The fluid's tones, in the order bands are added (written into the shader's uFluidTones).
@@ -120,21 +121,21 @@ export function bindToolMouse(dom, input) {
 }
 
 /**
- * The shared reserve: a gauge of `max` charges. use() spends a whole charge
- * if there is one; drain(amount) burns part of one (the jets); update(dt)
- * counts the time since the last use and refills everything at once after
- * FLUID.refillDelay (returns true on that frame). hold() keeps the clock at 0.
+ * The magic bar: a gauge of `max` units (src/resources.js MAGIC). use(cost) spends `cost` units if there
+ * are that many (a shot, a push, a boost: one); drain(amount) burns part of one (the jets); update(dt)
+ * counts the time since the last spend and, after `delay` s, fills it at `rate` units a second like
+ * stamina (returns true on the frame it is full again). hold() keeps the clock at 0.
  */
 export class Reserve {
-  constructor(max = FLUID.charges, delay = FLUID.refillDelay) {
-    this.max = max; this.delay = delay; this.level = max; this.since = Infinity;
+  constructor(max = FLUID.charges, delay = FLUID.refillDelay, rate = MAGIC.start / MAGIC.fill) {
+    this.max = max; this.delay = delay; this.rate = rate; this.level = max; this.since = Infinity;
   }
-  /** Whole charges left. */
+  /** Whole units left. */
   get charges() { return Math.floor(this.level + 1e-6); }
   set charges(n) { this.level = n; }
-  use() {
-    if (this.level < 1 - 1e-6) return false;
-    this.level = Math.max(0, this.level - 1); this.since = 0;
+  use(cost = 1) {
+    if (this.level < cost - 1e-6) return false;
+    this.level = Math.max(0, this.level - cost); this.since = 0;
     return true;
   }
   /** Burn up to `amount` of the gauge; returns what was burnt. */
@@ -146,14 +147,16 @@ export class Reserve {
   }
   hold() { if (this.level < this.max) this.since = 0; }
   update(dt) {
-    if (this.level >= this.max) return false;
+    if (this.level >= this.max) { if (this.level > this.max) this.level = this.max; return false; }
+    const wait = Math.max(0, this.delay - this.since);
     this.since += dt;
-    if (this.since < this.delay - 1e-9) return false;
-    this.level = this.max;
-    return true;
+    const run = dt - wait;   // (the part of this frame after the wait)
+    if (run <= 0) return false;
+    this.level = Math.min(this.max, this.level + this.rate * run);
+    return this.level >= this.max - 1e-9;
   }
-  /** Seconds until the refill (0 when full). */
-  get refillIn() { return this.level >= this.max ? 0 : Math.max(0, this.delay - this.since); }
+  /** Seconds until it is full again (0 when full). */
+  get refillIn() { return this.level >= this.max ? 0 : Math.max(0, this.delay - this.since) + (this.max - this.level) / Math.max(1e-6, this.rate); }
   fill() { this.level = this.max; this.since = Infinity; }
 }
 
@@ -1268,7 +1271,7 @@ export class FluidTool {
 
   /** Fire a glob at the crosshair now (the arm is assumed to be up): straight from the nozzle to the crosshair's point. */
   shoot() {
-    if (!this.reserve.use()) { this.sputter(); return { kind: 'empty' }; }
+    if (!this.reserve.use(MAGIC_COST.shoot)) { this.sputter(); return { kind: 'empty' }; }
     const from = this.muzzle(_m).clone();
     const dir = shotDir(from, this.aimPoint, this.aimDir, _f);
     if (this.aimFrom) clearLine(this.physics, from, dir, this.aimPoint, this.aimFrom, this.aimDir, this.aimKind);
@@ -1309,7 +1312,7 @@ export class FluidTool {
 
   /** The push: a cone of fluid shock from the hand. Returns the targets it touched. */
   push() {
-    if (this.dry || !this.reserve.use()) { this.sputter(); return []; }   // (an empty tank's dregs don't push)
+    if (this.dry || !this.reserve.use(MAGIC_COST.push)) { this.sputter(); return []; }   // (an empty tank's dregs don't push)
     const p = this.player, U = p.frame.up;
     const origin = _o.copy(p.pos).addScaledVector(U, 1.15);
     // along the aim, flattened toward the ground plane when it's a quick push
@@ -1348,7 +1351,7 @@ export class FluidTool {
     const p = this.player;
     if (!p || !this._enabled || !this.worn || p.climbing || p.mantle || p.object?.visible === false) return false;
     if (this.canJet && jets && since > FLUID.boost.doubleTap) return false;
-    if (!this.reserve.use()) { this.sputter(); return false; }
+    if (!this.reserve.use(MAGIC_COST.boost)) { this.sputter(); return false; }
     const U = p.frame.up, fwd = p.frame.dir(p.heading, _f);
     boostVelocity(p.vel, U, fwd);
     this.used('boost', p.pos);
@@ -1481,11 +1484,11 @@ export class FluidTool {
     this.globs = this.globs.filter((g) => !g.dead);
   }
 
-  /** One line for the HUD while aiming: the mode and the charges (no button list: the settings carry the controls). */
+  /** One line for the HUD while aiming: the mode and the magic left, in units (no button list: the settings carry the controls). */
   hudText() {
-    const pips = '◆'.repeat(this.reserve.charges) + '◇'.repeat(this.reserve.max - this.reserve.charges);
+    const n = Math.round(this.reserve.max), pips = '◆'.repeat(Math.min(n, this.reserve.charges)) + '◇'.repeat(Math.max(0, n - this.reserve.charges));
     if (this.dry) return `empty tank ${pips}`;
-    const wait = this.reserve.level < this.reserve.max ? ` refill ${Math.ceil(this.reserve.refillIn)}s` : '';
+    const wait = this.reserve.level < this.reserve.max ? ` full in ${Math.ceil(this.reserve.refillIn)}s` : '';
     return `${this.modeName} ${pips}${wait}`;
   }
 }

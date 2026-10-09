@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { inkMat, INK, PAPER, aimRay } from './kit.js';
 import { rayWorld } from '../fluid-tool.js';
 import { registerTarget, targetsInCone } from '../targets.js';
-import { registerHazard, flameHazard } from '../hazards.js';
+import { registerHazard, flameHazard, HAZARD_DPS } from '../hazards.js';
 import { Flames } from '../story/flames.js';
 import { thinTube, thinRing } from '../thin.js';
 import { kick } from '../feel.js';
@@ -519,7 +519,7 @@ class Fan {
     this.ctx.fx.add(x.group);
     x.flames = new Flames(x.group, [{ at: new THREE.Vector3(0, 0, 0), h: e.h, r: e.r * 0.62 }, { at: new THREE.Vector3(0.3, 0, 0.1), h: e.h * 0.7, r: e.r * 0.4, phase: 2 }, { at: new THREE.Vector3(-0.28, 0, -0.12), h: e.h * 0.8, r: e.r * 0.45, phase: 4 }], { seed: 5 });
     x.k = 1;
-    const hz = flameHazard({ x: x.at.x, z: x.at.z, y0: x.at.y, y1: x.at.y + e.h + 0.4, rMax: e.r, dps: 0.25 });
+    const hz = flameHazard({ x: x.at.x, z: x.at.z, y0: x.at.y, y1: x.at.y + e.h + 0.4, rMax: e.r, dps: HAZARD_DPS.embers });
     x.offHz = registerHazard({ ...hz, test: (p) => x.lit && x.k > 0.5 && hz.test(p) });   // (it burns only while it burns)
     x.center = x.at.clone().addScaledVector(_Y, e.h * 0.4);
     x.offT = registerTarget({ kind: 'ember', ember: x, radius: e.r, accepts: ['gust', 'fire'], position: () => x.center, burning: () => x.lit,

@@ -77,9 +77,9 @@ export const ELDER = {
     { to: 1.0, weary: true },
   ],
   attacks: {
-    buffet: { shape: 'cone', range: 11, angle: 0.8, telegraph: 1.4, damage: 0.18, knock: 13, recover: 0.7 },
-    stamp: { shape: 'ring', at: 'self', radius: 7, telegraph: 1.5, damage: 0.2, knock: 10, recover: 0.8, open: 4.2 },
-    dive: { shape: 'ring', at: 'player', radius: 4, telegraph: 1.7, track: 0.55, damage: 0.2, knock: 9, recover: 0.9, open: 4.2 },
+    buffet: { shape: 'cone', range: 11, angle: 0.8, telegraph: 1.4, damage: 0.75, knock: 13, recover: 0.7 },
+    stamp: { shape: 'ring', at: 'self', radius: 7, telegraph: 1.5, damage: 0.75, knock: 10, recover: 0.8, open: 4.2 },
+    dive: { shape: 'ring', at: 'player', radius: 4, telegraph: 1.7, track: 0.55, damage: 0.75, knock: 9, recover: 0.9, open: 4.2 },
   },
 };
 

@@ -5,6 +5,7 @@ import { hitStop, kick } from './feel.js';
 import { hasUpgrade } from './ink.js';
 import { fistGrip, carry, fitScale } from './blade-grip.js';
 import { ShieldDevice, SHIELD, shieldArc } from './shield.js';
+import { MAGIC_COST } from './resources.js';
 
 // Three committed cuts: anticipation, release and recovery, with one buffered follow-up.
 // Full-body captured poses on the ground, upper-body in the air. The blade's swept segment
@@ -306,7 +307,7 @@ export class FluidBlade {
     if (!p || !this.guarding || !(arc ? inGuard(p.pos, arc.dir, from, arc.half) : inGuard(p.pos, this.dir, from))) return false;
     this.since = 0;
     const perfect = this.parryLive;
-    if (!perfect && !T.reserve.use()) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
+    if (!perfect && !T.reserve.use(MAGIC_COST.shield)) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
     p.perfectBlock = perfect; this.perfectReady = false;
     if (perfect) this.sinceParry = 0;   // (the riposte's window opens)
     this.guardRearm = GUARD.rearm;

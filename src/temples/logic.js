@@ -1,3 +1,4 @@
+import { meetsWith } from '../resources.js';
 // A temple's puzzle state, without any three.js: which plates are held,
 // which braziers burn, where the drums stand, which doors are open, whether
 // the gadget has been taken and the guardian resolved. The runtime
@@ -213,7 +214,8 @@ const mentions = (c, id) => !!c && (Array.isArray(c) ? c.some((x) => mentions(x,
  */
 export function solve(def, { items = ['backpack'], withhold = [], maxSteps = 400 } = {}) {
   const owned = new Set(items.filter((i) => !withhold.includes(i)));
-  const L = new TempleLogic(def, { has: (i) => owned.has(i) });
+  const has = (i) => meetsWith((x) => owned.has(x), i);   // ('magic:4': the bar the items make, src/resources.js)
+  const L = new TempleLogic(def, { has });
   const log = [], order = [def.entry];
   let gadgetAt = -1;
   const note = (s) => { log.push(s); L.update(); for (const r of L.reachable()) if (!order.includes(r)) order.push(r); };
@@ -229,7 +231,7 @@ export function solve(def, { items = ['backpack'], withhold = [], maxSteps = 400
       }
       if (LATCHED.has(e.type) && !L.isLit(id) && L.canUse(id)) { L.light(id); note(`${e.type} ${id}`); did = true; break; }
       if (e.type === 'drum' && e.plate && !L.drumOn(id, e.plate) && owned.has('backpack')) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
-      if (e.type === 'boss' && !L.resolved && (e.needs ?? []).every((i) => owned.has(i)) && L.check(e.requires)) { L.resolve(); note(`resolve ${id}`); did = true; break; }
+      if (e.type === 'boss' && !L.resolved && (e.needs ?? []).every(has) && L.check(e.requires)) { L.resolve(); note(`resolve ${id}`); did = true; break; }
     }
     if (did) continue;
     // stand on each reachable plate in turn: does a door open, and stay open once you step off?

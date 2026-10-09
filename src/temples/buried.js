@@ -18,9 +18,10 @@ import { sentinelModel } from './guardians.js';
 //   the Piston Hall        pistons that rise and fall out of step, still until you open the valve (an eye):
 //                          ride them up to the gantry
 //   the Counterweight      a stone ball in a groove onto its plate: the door
-//   the Fourth Chamber     the makers' chest: the FOURTH CHAMBER (src/items.js 'cell'). The door on is
-//                          ringed by four eyes that wake only together, inside one breath: four shots, and
-//                          the tank only holds three without it
+//   the Fourth Chamber     the makers' chest: the FOURTH CHAMBER (src/items.js 'cell'): a fourth unit on
+//                          the magic bar. The door on is ringed by four eyes that
+//                          wake only together, inside one breath: four shots, and the starting bar only holds
+//                          three (needs 'magic:4', src/resources.js meets)
 //   the Furnace            a chasm under a bridge that a second bank of four raises
 //   the Tooth-Warden's Hall the guardian (a robot: its meter is damage). When its four vents open, hit all
 //                          four inside a breath
@@ -58,12 +59,12 @@ export const LOGIC = {
     p1: { type: 'plate', room: 'weight' },
     d2: { type: 'door', opens: { pressed: 'p1' }, latch: true },
     chest: { type: 'gadget', room: 'cell', item: 'cell' },
-    k1: { type: 'switch', room: 'cell', needs: ['cell'] },        // four eyes in one breath
+    k1: { type: 'switch', room: 'cell', needs: ['magic:4'] },        // four eyes in one breath
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
-    k2: { type: 'switch', room: 'furnace', needs: ['cell'] },
+    k2: { type: 'switch', room: 'furnace', needs: ['magic:4'] },
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', opens: null },                            // the arena's door: shut while the warden fights
-    warden: { type: 'boss', room: 'hall', needs: ['backpack', 'cell'] },
+    warden: { type: 'boss', room: 'hall', needs: ['backpack', 'magic:4'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -78,9 +79,9 @@ export const TOOTH_WARDEN = {
     { to: 1.0, attacks: ['slam', 'beam', 'mortar'], pause: 1.2, hint: 'It is faster now, and it slams. Four vents, one breath.' },
   ],
   attacks: {
-    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 0.22, knock: 10, recover: 0.8, open: 3.2 },
-    mortar: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.2, knock: 8, recover: 0.6 },
-    slam: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 0.25, knock: 13, recover: 1.0, open: 3.0 },
+    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 1, knock: 10, recover: 0.8, open: 3.2 },
+    mortar: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6 },
+    slam: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
   },
 };
 const VOLLEY = 2.6;   // s: the four vents must all be hit inside this
@@ -314,7 +315,7 @@ export const BURIED_TEMPLE = {
         G.add(0.25, 'volley');
         rt.rumble(0.6, 0.45);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
-      } else if (hits.filter((h) => clock - h <= VOLLEY).length === 3 && !rt.logic.has('cell')) rt.notice('Three vents, and the tank is dry. A fourth shot would need a fourth chamber.', 'tw.three');
+      } else if (hits.filter((h) => clock - h <= VOLLEY).length === 3 && !rt.logic.has('magic:4')) rt.notice('Three vents, and the magic bar is spent. A fourth shot would need a longer bar.', 'tw.three');
     };
     for (let i = 0; i < 4; i++) {
       rt.offs.push(registerTarget({ kind: 'sentinel', radius: 0.9, position: () => G.model.vent(i, at[i]), enabled: () => G.state === 'open', onHit: (mode) => { if (mode !== 'push') rt.volley(i); return true; } }));

@@ -274,31 +274,34 @@ when you mount.
 ## Hazards: fire and spines (v0.39)
 
 `src/hazards.js` keeps the things that hurt while you touch them: volumes with a
-kind and a damage rate (share of the health bar a second). `updateHazards` (main.js,
-once a frame) takes that rate from the traveller in small bites through
-`player.hurt`, says what it is the first time ("It burns!"), and spines push you
-back out. The burning tree registers its flame's volume (`flameHazard`, from just
+kind and a damage rate (hearts a second since v1.5, `HAZARD_DPS`: fire 1, a fan's embers ¾, spines ½, a
+temple's spike row ¼). `updateHazards` (main.js, once a frame) takes that rate from the traveller in
+quarter-heart bites through `player.hurt` (a fresh touch bites at once, but not again within 0.75 s, so
+spines that push you out and a step back in don't prick on every touch), says what it is the first time
+("It burns!"), and spines push you back out. The burning tree registers its flame's volume (`flameHazard`, from just
 over the fork to the tip); flora species with `hurts: 'spikes'` (the desert's sand
 candelabra, the Hangar's bolt cactus) register a cylinder round each plant.
 
 ## Health and falls (v0.39)
 
-The traveller has a health bar (`player.health`, 0..1). Landings are judged by
+Since v1.5 the traveller has **hearts** (`player.hearts` of `player.maxHearts`, counted in quarters;
+`player.health` is the same as a share 0..1 for the old callers; docs/systems/items.md "Hearts, magic and
+potions", the damage table in docs/systems/foes.md). `player.hurt(h, why)` takes hearts. Landings are judged by
 their speed into the ground (a drop of h m lands at about √(64 h) m/s); riding,
 gliding and the jets land softly enough not to count. Up to `FALL.tumble`
 (32 m/s, about 16 m; it was 26 m/s, 10 m, until October 2026) a landing costs nothing. Harder ones knock you over
 (`player.knockDown`): the body goes limp into a ragdoll tumble, lies a moment
-and gets up, and `fallDamage(speed)` takes a little of the bar (at most
-`FALL.worst`, and a fall that isn't fatal never takes the last of it). Only
+and gets up, and `fallDamage(speed)` takes hearts (a quarter for a 20 m drop, a heart or more past
+30 m, at most `FALL.worst` = 2, and a fall that isn't fatal never takes the last quarter). Only
 `FALL.lethal` (48 m/s, about 36 m) or more is fatal. `player.hurt(k, why)` is
 the way in for every other hurt (`opts.onHurt`; the desert's fire and spines
 take small bites); whatever empties the bar knocks you out (`opts.onKnockout`):
 you go limp and stay down (`player.dead`), the screen dims and a small panel
 asks to **Restart** (`#restart`, main.js; Enter / Space / E, A / × on a pad,
 a click or a tap), which puts you back where you last stood safely, whole again
-(`player.restart()`, `opts.onRestart`). After `FALL.wait` s without a hurt the
-bar refills (not while knocked out). The bar (`#health`, top left) only shows
-while you are hurt or down. While down you have no control, the fluid tool is
+(`player.restart()`, `opts.onRestart`). Hearts never come back by themselves (`FALL.regen` 0; the
+Arena's Second wind lends some back): a potion heals (`player.drinkPotion`). The hearts (`#health`, top
+left) show while one is missing, the magic bar spends, a fight is on, or you are down. While down you have no control, the fluid tool is
 put away and the camera follows the body on the ground, lower and softer
 (`rig.down`). Physics tests that drop the player from great heights pass
 `health: false` (no hurts, no knockdowns).
