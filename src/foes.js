@@ -18,6 +18,8 @@ import { ENEMY_BY_ID, ENEMY_ROSTER, WORLD_ENEMIES, worldPack } from './enemies/r
 import { TITLES } from './levels/names.js';
 import { rumblePlay } from './rumble.js';
 import { enemyModel } from './enemies/models.js';
+import { Rig, planLeg } from './motion-kit/rig.js';
+import { PLANS } from './motion-kit/plans.js';
 import { speciesAttacks, attackReach, lockAttack, speciesContact, poseAttackEffect } from './enemies/attacks.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 
@@ -1014,35 +1016,38 @@ function blotModel(kind = 'blot') {
 }
 
 function machineModel() {
-  // a makers' construct gone wrong: a round brass shell on three spindly legs, two arms with claws, the
-  // makers' glyph (three dots over an arc) glowing on its face, plates riveted round its belly
-  const g = new THREE.Group();
+  // a makers' construct gone wrong: a round brass shell on three jointed piston legs, two arms with claws, the
+  // makers' glyph (three dots over an arc) glowing on its face, plates riveted round its belly. The shell (the
+  // hull) rides on its feet; the legs are on the locomotion kit (src/motion-kit/: a piston machine, plan 18).
+  const g = new THREE.Group(), hull = new THREE.Group(); hull.name = 'hull'; g.add(hull);
   const brass = makeMaterial({ color: '#b08a4a', metal: 'brass', key: 'foe-brass' });
   const dark = makeMaterial({ color: '#3a3330', flat: true, key: 'foe-dark' });
   const plate = makeMaterial({ color: '#8f6f3e', metal: 'copper', key: 'foe-plate' });
   const core = makeMaterial({ color: '#70e7df', flat: true, glow: 0.9, key: `foe-core.${foeMaterialId++}` });
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.62, 18, 12).scale(1, 0.85, 0.95), brass); body.position.y = 1.35; g.add(body);
-  const belt = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.07, 6, 24).rotateX(Math.PI / 2), plate); belt.position.y = 1.22; g.add(belt);
-  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), dark); cap.position.y = 1.82; g.add(cap);
-  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 4), dark); mast.position.y = 2.1; g.add(mast);
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.62, 18, 12).scale(1, 0.85, 0.95), brass); body.position.y = 1.35; hull.add(body);
+  const belt = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.07, 6, 24).rotateX(Math.PI / 2), plate); belt.position.y = 1.22; hull.add(belt);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), dark); cap.position.y = 1.82; hull.add(cap);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 4), dark); mast.position.y = 2.1; hull.add(mast);
   // the glyph for an eye: three dots over an upturned arc
-  const heart = new THREE.Group(); heart.position.set(0, 1.42, 0.55); g.add(heart);
+  const heart = new THREE.Group(); heart.position.set(0, 1.42, 0.55); hull.add(heart);
   heart.add(new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.025, 4, 16, Math.PI).rotateZ(0), core));
   for (const x of [-0.12, 0, 0.12]) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), core); d.position.set(x, 0.22, 0); heart.add(d); }
   const arms = [-1, 1].map((s) => {
-    const a = new THREE.Group(); a.position.set(s * 0.66, 1.45, 0); g.add(a);
+    const a = new THREE.Group(); a.position.set(s * 0.66, 1.45, 0); hull.add(a);
     a.add(new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), plate));
     const up = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.75, 6).translate(0, -0.37, 0), dark); a.add(up);
     const claw = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.22).translate(0, -0.85, 0.04), brass); a.add(claw);
     return a;
   });
+  // three legs round the belly: a thigh out and up to a brass knee, a shin down to a round foot, and a piston from
+  // the shell to each thigh that slides as the knee bends
   const legs = [0, 1, 2].map((k) => {
-    const ang = (k / 3) * Math.PI * 2 + Math.PI / 6, l = new THREE.Group();
-    l.position.set(Math.sin(ang) * 0.32, 0.95, Math.cos(ang) * 0.32); l.rotation.y = ang; g.add(l);
-    l.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 1.0, 5).translate(0, -0.5, 0).rotateX(-0.28), dark));
-    return l;
+    const ang = (k / 3) * Math.PI * 2 + Math.PI / 6, sx = Math.sin(ang), cz = Math.cos(ang);
+    return planLeg(PLANS.machine, { group: g, body: hull, hip: { x: sx * 0.32, y: 0.95, z: cz * 0.32 }, foot: { x: sx * 0.66, z: cz * 0.66 }, radius: 0.05, pad: 'disc',
+      piston: { at: { x: sx * 0.5, y: 1.2, z: cz * 0.5 } }, mats: { joint: plate, thigh: dark, shin: dark, foot: plate, piston: brass, rod: dark }, name: `machine leg ${k}` });
   });
-  return { group: g, body, head: cap, arms, legs, heart, eyeMat: core, parts: [body, belt, cap, mast, heart, ...arms, ...legs],
+  const rig = new Rig({ plan: PLANS.machine, group: g, body: hull, legs });
+  return { group: g, body, hull, head: cap, arms, legs: legs.map((l) => l.root), rig, heart, eyeMat: core, parts: [body, belt, cap, mast, heart, ...arms, ...legs.map((l) => l.root)],
     tell: (id) => (id === 'quake' ? cap : arms[0].children[2]) };   // (the slam's claw; the quake's crown, both arms over it)
 }
 
@@ -1924,7 +1929,7 @@ export class Foes {
     const strike = f.state === 'strike', recover = f.state === 'recover';
     const recovery = recover ? THREE.MathUtils.clamp(f.timer / f.def.recover, 0, 1) : 0;
     const release = strike ? THREE.MathUtils.smoothstep(f.k, 0, 0.7) : 0;
-    if (f.variant) { M.animate(f,dt,t); }
+    if (f.variant) { M.animate(f, dt, t, this.animKit(f, dt, { recovery })); }
     else if (M.shade) {
       M.shade.melt = Math.max(0, M.shade.melt - dt / 0.8);   // (it pours up out of the ground as it comes)
       M.shade.update(dt, f);
@@ -1960,19 +1965,21 @@ export class Foes {
         }
       }
     } else {
-      const walk = moving ? Math.sin(t * 9) * 0.45 : 0;
-      M.legs.forEach((l, k) => { l.rotation.x = Math.sin(t * 9 + k * Math.PI * 2 / 3) * (moving ? 0.35 : 0) - wind * 0.16; });
+      // the legs: planted by the kit (src/motion-kit/), the hull riding on them; lifted by the magnet glove, they hang
+      const c = this.animKit(f, dt, { recovery });
+      const o = M.rig.update(f, dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery, air: f.alt > 0.05 ? 1 : 0 });
       // the slam: one arm high over its shoulder; the quake: both arms high, crouched low on its legs
       const quake = (f.atk ?? f.def.attack).id === 'quake';
       const arm = wind ? -2.6 * wind : strike ? THREE.MathUtils.lerp(-2.6, -0.45, release) : -0.45 * recovery;
       M.arms[0].rotation.x = arm; M.arms[1].rotation.x = quake || !wind ? arm * 0.85 : -0.3 * wind;
-      if (quake && wind) g.position.y -= 0.22 * wind;
       M.body.rotation.y = wind * 0.3 + (strike ? 0.3 * (1 - release) : 0);
-      g.rotation.x = -wind * 0.15 + (strike ? release * 0.3 : recovery * 0.3);
-      g.position.y += f.alt - wind * 0.1;   // (alt: held up off its feet by the magnet glove, src/gadgets/magnet.js)
+      M.hull.position.set(o.x, o.y - (quake && wind ? 0.22 * wind : 0), o.z);
+      M.hull.rotation.set(o.pitch - wind * 0.1 + (strike ? release * 0.2 : recovery * 0.2), o.yaw, o.roll);
+      g.position.y += f.alt;   // (alt: held up off its feet by the magnet glove, src/gadgets/magnet.js)
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f0a04b' : f.stunned > 0 ? '#bfe9ff' : '#70e7df');
       M.heart.rotation.z = Math.sin(performance.now() / 300) * (f.state === 'chase' ? 0.2 : 0.05);
       g.scale.setScalar(1);
+      M.rig.write();
     }
     // Recoil follows the blow, then settles; a heavy impact also buckles the body.
     const r = Math.sin(f.recoil * Math.PI * 0.5), strength = f.heavyRecoil ? 0.28 : 0.12;
@@ -2045,13 +2052,16 @@ export class Foes {
       spray: (at, colors, n = 10, speed = 4, grav = 9) => { for (let i = 0; i < n; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(speed * (0.4 + Math.random() * 0.6)).addScaledVector(_up, 1.5), drag: 2, grav, size: 0.04 + Math.random() * 0.05, stretch: 2, life: 0.55, color: colors[i % colors.length] }); },
       drip: (foe, color) => { this.shadePools ??= new ShadePools(this.scene ?? this.group); this.shadePools.drops.add({ pos: _w.copy(foe.chest).add(_v.randomDirection().multiplyScalar(0.25)), vel: _v.set(0, -0.5, 0), drag: 1, grav: 6, size: 0.04, stretch: 2.5, life: 0.5, color }); },
       tethered: (foe) => this.held(foe),
+      // for the locomotion kit (src/motion-kit/rig.js): one ground ray per step, a puff where a foot lands
+      ground: (x, y, z) => { const g = this.physics?.groundAt?.(x, y, z, 4); return Number.isFinite(g) ? g : null; },
+      touch: (at, L) => { if (T?.drops && Math.random() < 0.45) this._kit.dust(at, '#cdb89a', 1, 0.12 * L); },
       lob: (foe, u, color = '#d7f3d9') => {
         const gl = (foe.globs ??= [])[0] ?? (foe.globs[0] = this.group.add(new THREE.Mesh(new THREE.IcosahedronGeometry(0.3, 0), makeMaterial({ color, flat: true, glow: 0.3, key: `foe-lob-${color}` }))).children.at(-1));
         gl.visible = u > 0;
         if (u > 0) { gl.position.lerpVectors(foe.chest, foe.attackAt, u); gl.position.y += Math.sin(Math.PI * u) * 4 + (1 - u) * 0.6; gl.rotation.x += 0.2; gl.rotation.y += 0.13; }
       },
     });
-    return Object.assign(kit, o, { dt, now: performance.now() });
+    return Object.assign(kit, o, { dt, now: performance.now(), eye: this.player?.pos });
   }
 
   /**

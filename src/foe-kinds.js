@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
+import { Rig, planLeg } from './motion-kit/rig.js';
+import { PLANS } from './motion-kit/plans.js';
 
 // The worlds' own foes (docs/systems/foes.md, "Each world's foes"): the drawing's loose ink takes the shape of
 // what is round it. Their tuning (KINDS, merged into foes.js FOES), what the game says the first time you meet
@@ -410,19 +412,24 @@ const MODELS = {
       const pin = add(c, new THREE.ConeGeometry(0.07, 0.35, 4).rotateX(Math.PI / 2), dark, s * 0.06, -0.05, 0.8);
       return { c, pin };
     });
+    // six jointed legs on the locomotion kit (src/motion-kit/: a walker, plan 1): a thigh up and out to a high
+    // knee, a shin down to a pointed foot planted on the ground; a tripod gait, the shell riding on the feet
     const legs = [];
     for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
-      const l = new THREE.Group(); l.position.set(s * 0.6, -0.05, 0.2 - k * 0.3); l.rotation.y = s * (Math.PI / 2 - (k - 1) * 0.4); body.add(l);
-      add(l, new THREE.CylinderGeometry(0.035, 0.02, 0.75, 4).translate(0, -0.37, 0).rotateX(0.9), dark);
-      legs.push(l);
+      const z = 0.2 - k * 0.3;
+      legs.push(planLeg(PLANS.walker, { group: g, body, hip: { x: s * 0.6, y: -0.05, z }, foot: { x: s * 1.22, z: z * 1.45 + 0.05 }, radius: 0.035, pad: 'point', mats: { joint: dark }, name: `crab leg ${legs.length}` }));
     }
+    const rig = new Rig({ plan: PLANS.walker, group: g, body, legs });
     return {
-      group: g, parts: [shell, belly, ...crystals, ...eyes, ...claws.map((x) => x.c), ...legs], eyeMat: eye, base: '#f2d34b', size: 1,
+      group: g, parts: [shell, belly, ...crystals, ...eyes, ...claws.map((x) => x.c), ...legs.map((l) => l.root)], eyeMat: eye, base: '#f2d34b', size: 1, rig,
       tell: (id) => (id === 'snap' ? claws[0].pin : shellTop),
       anim(f, c) {
         const id = f.atk?.id;
         const tuck = id === 'spin' ? (f.state === 'wind' ? c.wind : f.state === 'strike' ? 1 : 0) : 0;
-        legs.forEach((l, k) => { l.rotation.z = (c.moving ? Math.sin(c.t * 14 + k) * 0.3 : 0) + (f.flipped > 0 ? Math.sin(c.now / 60 + k) * 0.6 : 0); l.scale.y = 1 - tuck * 0.6; });
+        // the legs: planted by the kit; tucked up for the spin, waving in the air when it is flipped on its back
+        const flipped = f.flipped > 0;
+        const o = rig.update(f, c.dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery: c.recovery, air: flipped ? 1 : tuck > 0.02 ? 1 + tuck : 0 });
+        legs.forEach((l, k) => { l.air.set(0, flipped ? Math.sin(c.now / 60 + k) * 0.18 : 0, flipped ? Math.cos(c.now / 75 + k) * 0.12 : 0); });
         eyes.forEach((e) => { e.scale.y = 1 - tuck * 0.8; });
         claws.forEach(({ c: cl, pin }, i) => {
           const snap = id === 'snap' ? (f.state === 'wind' ? c.wind : f.state === 'strike' ? 1 - c.release : 0) : 0;
@@ -431,10 +438,11 @@ const MODELS = {
         });
         // the spin: tucked into its shell, turning faster and faster through the wind-up, a top along the lane
         f._spin = (f._spin ?? 0) + c.dt * (tuck > 0 ? 4 + tuck * 26 : 0);
-        body.rotation.y = tuck > 0 ? f._spin : 0;
-        body.position.y = 0.55 - tuck * 0.2;
         // flipped by a guard: on its back, legs waving; the shell cracked by a bomb shows what is under it
-        body.rotation.z = lerp(body.rotation.z, f.flipped > 0 ? Math.PI : 0, 1 - Math.exp(-12 * c.dt));
+        f._flip = lerp(f._flip ?? 0, flipped ? Math.PI : 0, 1 - Math.exp(-12 * c.dt));
+        body.position.set(o.x, 0.55 - tuck * 0.2 + o.y, o.z);
+        body.rotation.set(o.pitch, tuck > 0 ? f._spin : o.yaw, f._flip + o.roll);
+        rig.write();
         crystals.forEach((x) => { x.visible = f.shelled; });
         meat.visible = !f.shelled;
         shell.scale.set(f.shelled ? 1 : 0.92, f.shelled ? 1 : 0.7, f.shelled ? 1 : 0.92);
@@ -492,8 +500,11 @@ const MODELS = {
     add(head, new THREE.ConeGeometry(0.09, 0.4, 6).rotateX(Math.PI / 2), ink, 0, -0.04, 0.27);
     pair((s) => add(head, new THREE.ConeGeometry(0.06, 0.22, 4), rim, s * 0.09, 0.17, -0.05));
     const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.035, 6, 4), eye, s * 0.08, 0.04, 0.15));
+    // four jointed legs on the locomotion kit (src/motion-kit/: a quadruped, plan 6): front knees forward, hocks
+    // back, a trot on diagonal pairs; stretched out fore and aft through a pounce
     const legs = [];
-    for (const z of [0.42, -0.42]) for (const s of [-1, 1]) { const l = new THREE.Group(); l.position.set(s * 0.17, 0.5, z); body.add(l); add(l, new THREE.CylinderGeometry(0.05, 0.03, 0.55, 4).translate(0, -0.27, 0), ink); legs.push(l); }
+    for (const z of [0.42, -0.42]) for (const s of [-1, 1]) legs.push(planLeg(PLANS.quadruped, { group: g, body, hip: { x: s * 0.17, y: 0.5, z }, foot: { x: s * 0.19, z: z * 1.05 }, radius: 0.042, pad: 'pad', mats: { joint: ink }, name: `hound leg ${legs.length}` }));
+    const rig = new Rig({ plan: PLANS.quadruped, group: g, body, legs });
     const tail = add(body, new THREE.ConeGeometry(0.05, 0.8, 4).rotateX(-Math.PI / 2 - 0.4).translate(0, 0.1, -0.35), ink, 0, 0.7, -0.6);
     // its shadow form: a dark pool sliding along the ground, a low hump of shadow rising out of it with a
     // lavender glow round its edge, and the two eyes lit over it (before: a flat pool and two 4 cm eyes, all
@@ -503,29 +514,33 @@ const MODELS = {
     const glowRim = add(g, new THREE.RingGeometry(0.62, 0.74, 24).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), M_('hound-glow', { color: '#d6c2ff', glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
     const poolEyes = pair((s) => add(g, new THREE.SphereGeometry(0.07, 8, 6).scale(1, 0.6, 1), eye, s * 0.12, 0.4, 0.42));
     return {
-      group: g, parts: [], eyeMat: eye, base: '#d6c2ff', size: 1, shadowy: true, tell: () => head,
+      group: g, parts: [], eyeMat: eye, base: '#d6c2ff', size: 1, shadowy: true, tell: () => head, rig,
       anim(f, c) {
         // stepping through the shadow (its 'step'): it sinks into its own pool as it winds up, nothing drawn behind you
         const sinking = f.state === 'wind' && f.atk?.blink;
         f._solid = lerp(f._solid ?? 1, f.phased || sinking ? 0 : 1, 1 - Math.exp(-(f.phased || sinking ? 6 : 14) * c.dt));
         const s = f._solid;
-        body.visible = s > 0.08; body.scale.set(1, Math.max(0.05, s), 1); body.position.y = -(1 - s) * 0.3;
+        body.visible = s > 0.08; body.scale.set(1, Math.max(0.05, s), 1);
         pool.visible = s < 0.9; pool.scale.setScalar(1.2 - s * 0.5); poolEyes.forEach((e) => { e.visible = s < 0.6; });
         hump.visible = glowRim.visible = s < 0.6;
         hump.scale.set(1, 1 - s * 0.6 + Math.sin(c.now / 140) * 0.06, 1);
         glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
-        const run = c.moving || f.state === 'strike';
-        legs.forEach((l, k) => { l.rotation.x = run ? Math.sin(c.t * 16 + (k % 2) * Math.PI + (k > 1 ? 0.6 : 0)) * 0.7 : 0; });
+        // the legs: planted by the kit, a trot on diagonals; through a pounce's leap they stretch out fore and aft
+        const leap = f.state === 'strike' && f.atk?.lunge ? Math.min(1, Math.sin(Math.PI * Math.min(1, f.k * 1.4)) * 3) : 0;
+        const o = rig.update(f, c.dt, { eye: c.eye, ground: c.ground, recovery: c.recovery, air: leap });
         // the pounce: it crouches back on its haunches, then stretches out flat through the leap
         const crouch = f.state === 'wind' && f.atk?.id === 'pounce' ? c.wind : 0;
         torso.rotation.x = crouch * 0.25 - (f.state === 'strike' ? 0.15 : 0);
-        body.rotation.x = -crouch * 0.2;
+        body.position.set(o.x, -(1 - s) * 0.3 + o.y, o.z);
+        body.rotation.set(o.pitch - crouch * 0.2, o.yaw, o.roll);
         g.position.y += f.state === 'strike' && f.atk?.lunge ? Math.sin(Math.PI * f.k) * 0.6 : 0;
         head.rotation.x = f.state === 'strike' && f.atk?.id === 'bite' ? -0.4 * Math.sin(Math.PI * f.k) : 0;
         tail.rotation.y = Math.sin(c.now / 110) * 0.5;
         neck.scale.y = 1 + crouch * 0.1;
         eye.uniforms.uColor.value.set(eyeColor(f, f.lit > 0 ? '#ffe2a8' : '#d6c2ff', '#ff6a8a'));
         if (s > 0.5 && Math.random() < 0.15) c.drip(f, '#15121c');
+        rig.visible = body.visible;
+        rig.write();
       },
     };
   },

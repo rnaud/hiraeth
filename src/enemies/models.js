@@ -2,6 +2,8 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, releaseMaterial } from '../materials.js';
 import { poseK } from '../telegraph.js';
+import { Rig, planLeg } from '../motion-kit/rig.js';
+import { PLANS } from '../motion-kit/plans.js';
 
 let serial=0;
 const UP=new T.Vector3(0,1,0), V=(a)=>new T.Vector3(...a);
@@ -28,7 +30,13 @@ export function enemyModel(s) {
   function curve(points,r,m=joint,parent=body){return mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points.map(V)),Math.max(8,points.length*4),r,5,false),m,[0,0,0],parent);}
   function panel(points,m=skin,parent=body){const shape=new T.Shape();points.forEach((p,i)=>i?shape.lineTo(p[0],p[1]):shape.moveTo(p[0],p[1]));shape.closePath();return mesh(new T.ShapeGeometry(shape),m,[0,0,0],parent);}
   function eyes(p,spread=.13,parent=body){if(!head){head=new T.Object3D();head.position.set(p[0],p[1],p[2]+.08);parent.add(head);}for(const side of [-1,1]){const x=p[0]+side*spread;ell([x,p[1],p[2]],[.03,.042,.025],eye,parent);if(s.slot<2)ell([x,p[1],p[2]+.022],[.016,.024,.01],ink,parent);}}
+  // Legs on the locomotion kit (src/motion-kit/, docs/systems/procedural-animation.md): the six-legged creatures
+  // walk as plan 1 (a tripod), the machines on pistons as plan 18, the newts on four legs as plan 6 (a trot). Their
+  // legs are built as jointed chains (thigh, knee, shin, foot) once the body is done; the others keep a rigid leg.
+  const plan=['crab','mantis','grub','shell','pearl'].includes(s.form)?PLANS.walker:s.family==='machine'?PLANS.machine:s.form==='newt'?PLANS.quadruped:null;
+  const kitLegs=[];
   function leg(at,knee,foot,r=.06,parent=body){
+    if(plan){kitLegs.push({at,knee,foot,r,parent});return null;}
     const h=new T.Group();h.position.set(...at);parent.add(h);ell([0,0,0],[r*1.45,r*1.45,r*1.45],joint,h);
     beam([0,0,0],knee,r,joint,h);ell(knee,[r*1.55,r*1.55,r*1.55],joint,h);beam(knee,foot,r*.8,joint,h);ell([foot[0],foot[1],foot[2]+.06],[r*1.5,r*.8,r*2.6],joint,h);limbs.push({o:h,role:'leg',side:Math.sign(at[0])||1});return h;
   }
@@ -163,6 +171,7 @@ export function enemyModel(s) {
     ell([0,y+.45,.22],[newt?.2:.3,.22,.27],skin);eyes([0,y+.5,.46],.18);
     if(beetle){for(const side of [-1,1]){ell([side*.18,y+.08,-.11],[.2,.66,.25],side===1?accent:skin);arm([side*.36,y+.25,0],side,.54);antenna([side*.13,y+.66,.18],s.detail==='antennae'?.65:.3);}beam([0,y-.45,.29],[0,y+.57,.3],.016,dark);}
     if(mollusk) {for(let i=0;i<6;i++)curve([[(i-2.5)*.1,y-.5,0],[(i-2.5)*.12,.2,.12],[(i-2.5)*.19,.05,.22]],.03,accent);ell([0,y,-.13],[.47,.67,.27],accent);}
+    else if(newt)for(const side of [-1,1])for(const z of [.32,-.26])leg([side*.24,y-.2,z],[side*.13,-(y-.2)*.5,.05],[side*.2,-(y-.2)+.02,.06],.065);   // (four legs, a horn lizard's trot)
     else for(const side of [-1,1]){leg([side*.28,y-.2,0],[side*.13,-(y-.2)*.5,.05],[side*.18,-(y-.2)+.02,.24],beetle?.04:.07);if(!beetle)arm([side*.37,y+.15,.1],side,.35,false);}
     if(newt){curve([[0,y-.25,-.3],[0,.3,-.9],[.18,.5,-1.3],[.3,1.1,-1.25],[.18,1.3,-1.05]],.095,skin);if(s.detail==='curl')curve([[.18,1.3,-1.05],[0,1.5,-1.05],[-.2,1.4,-1.07],[-.05,1.3,-1.08]],.035,skin);}
     if(['bulb','ink'].includes(s.detail)){ell([0,y+.88,0],[.28,.43,.25],skin);curve([[0,y+1.1,0],[.1,y+1.55,0],[.05,y+1.8,0]],.05,skin);}
@@ -172,6 +181,15 @@ export function enemyModel(s) {
     if(s.detail==='shell')ell([0,y+.1,-.17],[.5,.57,.38],accent);
     if(s.detail==='luggage'){box([0,y,-.35],[.52,.66,.16],accent);curve([[-.12,y+.35,-.36],[-.12,y+.51,-.36],[.12,y+.51,-.36],[.12,y+.35,-.36]],.022,dark);}
   }
+  // the kit's legs: hung from the body, the feet's rest on the ground a little wider than drawn (so the knees bend)
+  const spread=plan===PLANS.machine?1.9:plan===PLANS.quadruped?1.3:1.05;
+  const legs=kitLegs.map((L,i)=>{
+    const hip=V(L.at), side=Math.sign(L.at[0])||1, foot=V(L.at).add(V(L.foot)), out=new T.Vector3(foot.x-hip.x,0,foot.z-hip.z).multiplyScalar(spread);
+    if(plan===PLANS.machine&&out.length()<.3)out.add(new T.Vector3(hip.x,0,hip.z).setLength(.3-out.length()));
+    const machine=plan===PLANS.machine, bind=planLeg(plan,{group,body,hipParent:L.parent,hip,foot:{x:hip.x+out.x,z:hip.z+out.z},radius:L.r,pad:machine?'disc':'pad',
+      piston:machine?{at:{x:hip.x*1.5,y:hip.y+.32,z:hip.z*1.5+.05}}:null,mats:{joint,foot:joint,piston:brass,rod:dark},name:`${s.name} leg ${i}`});
+    limbs.push({o:bind.root,role:'leg',side,kit:true});return bind;
+  });
   const proportions={sentinel:[.78,1.24,.85],harvester:[1.08,.94,1],cutter:[1.16,.94,1],pruner:[1.12,1,1],welder:[1.08,1.07,1],ring:[.92,.87,.88],sign:[.95,1.15,.87],surveyor:[.8,1.18,.85],furnace:[1.1,1.1,1],winch:[1.05,1.1,1],relay:[.8,1.12,.85],observatory:[1,1,.9],gyro:[1.12,1.03,1],crucible:[1.18,.88,1],crane:[.8,1.24,.87],inspector:[1.06,1.1,1],porter:[1.22,1.05,1],watering:[1.1,.94,1],drawing:[1.12,.87,1]};
   if(s.family==='machine'&&proportions[form])body.scale.set(...proportions[form]);
   // Batch stationary pieces within each joint; keep animated wings, cloth and rotors independent.
@@ -188,10 +206,11 @@ export function enemyModel(s) {
     }
   }
   group.scale.setScalar(s.scale);
+  const rig=legs.length?new Rig({plan,group,body,legs,scale:s.scale}):null;
   group.traverse(o=>{o.userData.noCollide=true;o.userData.dynamic=true;if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   group.updateMatrixWorld(true);
   const bounds=new T.Box3().setFromObject(group), size=bounds.getSize(new T.Vector3());
-  const result={group,body,parts:body.children.filter(o=>!animated.has(o)),size:s.scale,eyeMat:eye,ownedMaterials:mats,reference:s.reference,height:Math.max(.45,size.y*.5),radius:Math.min(.85,Math.max(.35,Math.min(size.x,size.z)*.5)),limbs,wings,
+  const result={group,body,rig,parts:[...body.children.filter(o=>!animated.has(o)),...legs.map(l=>l.root)],size:s.scale,eyeMat:eye,ownedMaterials:mats,reference:s.reference,height:Math.max(.45,size.y*.5),radius:Math.min(.85,Math.max(.35,Math.min(size.x,size.z)*.5)),limbs,wings,
     /** The striking part for a motion: an arm's claw, the head, the core, the nozzle or a wing (src/telegraph.js ChargeGlow). */
     tell(motion){
       const nozzle=limbs.find(l=>l.role==='nozzle')?.o;
@@ -201,17 +220,20 @@ export function enemyModel(s) {
       if(['slam','pulse'].includes(motion))return core;
       return head??core;
     },
-    animate(f,dt,t){
+    animate(f,dt,t,ctx={}){
       // the pose builds over the first three quarters of the wind-up, then holds still until the strike (src/telegraph.js)
       const moving=['chase','home'].includes(f.state),w=f.state==='wind'?poseK(f.k):0,k=f.state==='strike'?Math.sin(f.k*Math.PI):0;
       const motion=f.def.attack.motion,active=f.state==='strike';
       // each motion's own wind-up: a slam rears up tall, a pulse swells, a charge or a peck crouches and draws back,
       // a jet, a beam or a lob rears back to aim, a sweep coils away, a dive or a gust rises
       const rear=motion==='slam'?w*.32-k*.2:motion==='charge'||motion==='peck'||motion==='sting'?-w*.1:motion==='dive'||motion==='gust'?w*.25:0;
-      body.position.y=(moving?Math.abs(Math.sin(t*7))*.06:Math.sin(t*2)*.012)+rear;
-      body.rotation.set(motion==='charge'||motion==='peck'||motion==='sting'?-w*.22+k*.3:motion==='slam'?-w*.25+k*.35:['jet','beam','lob'].includes(motion)?-w*.2+k*.12:0,motion==='sweep'||motion==='claw'?(-w*.6+k*1.0):0,0);
+      // on the kit, the body rides on its planted feet and takes the plan's poses (src/motion-kit/rig.js); the
+      // motion's own wind-up goes on top
+      const o=rig?rig.update(f,dt,{eye:ctx.eye,ground:ctx.ground,touch:ctx.touch,recovery:ctx.recovery,air:f.alt>.05||f.air?1:0}):null;
+      body.position.set(o?o.x:0,(o?o.y:moving?Math.abs(Math.sin(t*7))*.06:Math.sin(t*2)*.012)+rear,o?o.z:0);
+      body.rotation.set((motion==='charge'||motion==='peck'||motion==='sting'?-w*.22+k*.3:motion==='slam'?-w*.25+k*.35:['jet','beam','lob'].includes(motion)?-w*.2+k*.12:0)+(o?o.pitch:0),(motion==='sweep'||motion==='claw'?(-w*.6+k*1.0):0)+(o?o.yaw:0),o?o.roll:0);
       body.scale.setScalar(motion==='pulse'?1+w*.16-k*.1:1);
-      for(const l of limbs){const walk=moving?Math.sin(t*7+(l.side>0?Math.PI:0))*.2:0;
+      for(const l of limbs){if(l.kit)continue;const walk=moving?Math.sin(t*7+(l.side>0?Math.PI:0))*.2:0;
         l.o.rotation.x=l.role==='leg'?walk:l.role==='nozzle'?-w*.12:l.role==='arm'?-w*.9+k*1.05:0;
         l.o.rotation.z=l.role==='arm'?l.side*(motion==='pull'?(w*.5-k*.6):motion==='claw'?w*.35-k*.5:0):0;
       }
@@ -220,6 +242,7 @@ export function enemyModel(s) {
       for(const rotor of rotors)rotor.rotation.y+=dt*(w?7:1.2);
       eye.uniforms.uColor.value.set(w?'#f3a361':f.stunned>0?'#bfe9ff':'#f8e8bb');
       group.scale.setScalar(s.scale);group.position.y+=f.alt;
+      rig?.write();
     },
     dispose(){for(const m of mats)releaseMaterial(m);},
   };

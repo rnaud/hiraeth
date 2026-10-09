@@ -35,7 +35,9 @@ class EnemyViewer extends ItemViewer {
     this.fitShadow(m);
     m.holder.position.set(0,0,0);m.owner.group.position.set(0,0,0);m.holder.updateMatrixWorld(true);
     const f=m.f,dt=this.fixed?0:1/60;
-    f.heading=0;f.pos.set(0,0,0);f.stunned=0;
+    f.heading=0;f.stunned=0;
+    // walking, it really walks (its feet are planted by the locomotion kit: src/motion-kit/), and the view follows it
+    const walking=this.mode==='walk'&&!this.fixed;m.walkZ=walking?(m.walkZ??0)+f.def.speed*dt:0;f.pos.set(0,0,m.walkZ);
     let phase=this.fixed?.state??this.mode,k=this.fixed?.k??0;
     if(this.mode.startsWith('attack')){
       const index=Number(this.mode.slice(-1)),a=f.attacks[index],u=this.time%(a.wind+a.strike+a.recover);
@@ -54,7 +56,7 @@ class EnemyViewer extends ItemViewer {
       else if(a.shape==='cone'){b.expandByPoint(o);for(let i=0;i<=8;i++){const angle=h-a.angle+2*a.angle*i/8;b.expandByPoint(new T.Vector3(o.x+Math.sin(angle)*a.range,0,o.z+Math.cos(angle)*a.range));}}
       else for(const along of [0,a.range])for(const side of [-a.width/2,a.width/2])b.expandByPoint(new T.Vector3(o.x+Math.sin(h)*along+Math.cos(h)*side,0,o.z+Math.cos(h)*along-Math.sin(h)*side));
     }
-    const centre=b.getCenter(new T.Vector3());m.owner.group.position.copy(centre).negate();
+    const centre=b.getCenter(new T.Vector3());if(walking){centre.x=m.centre.x+f.pos.x;centre.z=m.centre.z+f.pos.z;}m.owner.group.position.copy(centre).negate();
     m.r=b.getBoundingSphere(new T.Sphere()).radius;m.height=b.max.y-b.min.y;
     return m;
   }
