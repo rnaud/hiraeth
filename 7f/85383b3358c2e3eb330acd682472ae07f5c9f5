@@ -1,0 +1,167 @@
+DONE.md
+  s_9ca76055a220ed::t_a8998b05a8535f 1593-1633
+LORE.md
+  s_9ca76055a220ed::t_b8c9e5163d87d1 21,36-41,165-176,220,282,289-290,299-300,302,308,314-315,317-319,324,328,334-335,338-339,341-342,457-465,479,500-504,792,797,843,918,939-942,1050-1062
+changelog.md
+  s_9ca76055a220ed::t_b2d26ce0027e3f 7-12
+docs/game-brief.md
+  s_9ca76055a220ed::t_5ad773e7492f64 23-26,28,109,121-122
+docs/story-bible.md
+  s_9ca76055a220ed::t_fd584583f59856 27-28,31,33,40-43,46,50-51,78-79,166-170,200-206,220,312,330,357,363,426-433,456-457,587
+docs/systems/audio.md
+  s_9ca76055a220ed::t_85bf33a8e0d50e 26-27,36-82
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_8ce7ed9048522e 136-154,164
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_8fcc21a5e7b36b 31,47,49-85,88,90
+docs/systems/story.md
+  s_9ca76055a220ed::t_8f008beab3658f 107,155,165-171,182,187-189,266,306-309,313-315,612,614,737-752
+index.html
+  s_9ca76055a220ed::t_0bd6791b996ecc 284-286
+lore/characters/family.md
+  s_9ca76055a220ed::t_d6bdf30b8ebeaa 59,72,121
+lore/characters/worlds.md
+  s_9ca76055a220ed::t_519ff274dd4f11 177
+lore/continuity.md
+  s_9ca76055a220ed::t_d71fa605370f8e 15-16,20,26-34,36-37,65-68
+lore/plot-review.md
+  s_9ca76055a220ed::t_00390506bbeded 106
+lore/voice-guide.md
+  s_9ca76055a220ed::t_24555883a49cb1 52
+public/music/manifest.json
+  s_9ca76055a220ed::t_8e57a1ad91d19c 188-197
+src/audio.js
+  s_9ca76055a220ed::t_5645c83e509d65 21,1102-1103,1128-1211
+src/changelog-media.js
+  s_9ca76055a220ed::t_305ec8f60916f4 316-336
+src/changelog.js
+  s_9ca76055a220ed::t_fab6389b7aff14 20-27
+src/cinematics-page/catalog.js
+  s_9ca76055a220ed::t_40b88f55942da8 6
+src/debug-save.js
+  s_9ca76055a220ed::t_0d70737799f8fb 19
+src/levels/content.js
+  s_9ca76055a220ed::t_d030d57c45fa57 250
+src/levels/perdide.js
+  s_9ca76055a220ed::t_4e6119e819e709 171
+src/main.js
+  s_9ca76055a220ed::t_61ab125b22570c 1662-1664
+src/music-store.js
+  s_9ca76055a220ed::t_eebd636e97003a 20
+src/ship/cinema.js
+  s_9ca76055a220ed::t_4b069997a9aa84 15,31-33,303
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_ad13e060529e76 7-9,14,36-38,200-208,264-271,273-276,278-289,291,293,300-303,309,315-316,318-319,342,392-398,405-414,417-434,437-452,455,458-464,472-474,476,479,481,486-487,489,494,527-568,591-602,614-615,639,641-642,775
+src/ship/hologram.js
+  s_9ca76055a220ed::t_a1051867922d46 33
+src/ship/hull.js
+  s_9ca76055a220ed::t_b856c266c4e464 8
+src/ship/portrait.js
+  s_9ca76055a220ed::t_e73a13595677a7 12,111-113,131-136
+src/ship/prologue.js
+  s_9ca76055a220ed::t_aa4e4ef5fe8663 11-17,41-48,55-59
+src/ship/ship.js
+  s_9ca76055a220ed::t_e223ef8e1255f1 32-33,364
+src/ship/sites.js
+  s_9ca76055a220ed::t_5aae4afb9f9bff 23,25
+src/ship/starmap.js
+  s_9ca76055a220ed::t_ba594660c26fed 8,94
+src/soundtracks.js
+  s_9ca76055a220ed::t_e3f65ec7f75b9b 34-64
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_a872bbbee3466a 208
+src/story/buried-data.js
+  s_9ca76055a220ed::t_cc64d9c63d7dc5 180,182,201
+src/story/calls.js
+  s_9ca76055a220ed::t_2931e529aa9690 69-75,78-83,372,375,453,585
+src/story/charge.js
+  s_9ca76055a220ed::t_c892a5a2255040 2,20,92
+src/story/desert-data.js
+  s_9ca76055a220ed::t_43f36e9adc4743 26-29,79,83,106-107,179,227,242,251,257,445,472,474,524,530,548,556,558,564,620,631,694-695,920-933
+src/story/desert-repay.js
+  s_9ca76055a220ed::t_a63e2bdb27cf04 1-154
+src/story/desert.js
+  s_9ca76055a220ed::t_d2625a91a6248e 10,19,163,204,579-581,584-586,588-597,1012,1014,1098
+src/story/dialogue.js
+  s_9ca76055a220ed::t_e096039618eb8a 11,54-55
+src/story/edena-data.js
+  s_9ca76055a220ed::t_3120724c214bd1 231,233
+src/story/ending.js
+  s_9ca76055a220ed::t_14b424cf927374 130,288
+src/story/garage-data.js
+  s_9ca76055a220ed::t_db607adb745907 159,161
+src/story/hum.js
+  s_9ca76055a220ed::t_3ccda016ac136c 8-12
+src/story/incal-data.js
+  s_9ca76055a220ed::t_e19ee5f35c5ec0 133,137,491
+src/story/key-phrase.js
+  s_9ca76055a220ed::t_4e27779ec05ea3 1-23
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_cad380040aaf50 7-8,16-18,132,135,146,150,159,165,168,176
+src/story/light-theme.js
+  s_9ca76055a220ed::t_e9189f40b3bb44 1-82
+src/story/people-book.js
+  s_9ca76055a220ed::t_ba5f3a8b4ebf1f 79,81,84,119,145,151,158,160-161,235,482
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_48dcecdbf4fce9 10,31,183,299,303,305,476
+src/story/perdide.js
+  s_9ca76055a220ed::t_9f92eda5a41bc3 24,215
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_2dd46de3b7f5c6 291
+src/story/relay.js
+  s_9ca76055a220ed::t_56e43b5986f879 53
+src/story/route.js
+  s_9ca76055a220ed::t_08a9f656fa9e99 6
+src/story/sightings.js
+  s_9ca76055a220ed::t_f05fdda1641c88 22,31,37,51
+src/story/signature-search.js
+  s_9ca76055a220ed::t_458666919f8453 3,12
+src/story/signature.js
+  s_9ca76055a220ed::t_f88cdd20a76272 1,3-5,11-12,15,28,31-32,53,67,70-73,76,82
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_02f92fb328b4e2 222,224
+tests/charge.test.js
+  s_9ca76055a220ed::t_678fdaf369dbd2 2,14
+tests/desert-repay.test.js
+  s_9ca76055a220ed::t_3de8b853c3b834 1-83
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_65c5ae9d4b1eb9 105-106
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_1f47798f7be168 628-631,634-638
+tests/hum.test.js
+  s_9ca76055a220ed::t_4dac55b48799bf 40,42,105-118
+tests/music-store.test.js
+  s_9ca76055a220ed::t_fc1cc67d2fad68 69
+tests/people-page.test.js
+  s_9ca76055a220ed::t_2bae08b459f436 94-95
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_ab1183c8bf64eb 40-42
+tests/prologue-call.test.js
+  s_9ca76055a220ed::t_a8483e110d3c62 1-5,9,11-17,20-21,30-62,64-65,69,75-118
+tests/ship.test.js
+  s_9ca76055a220ed::t_f53179e05dad06 178,285
+tests/sightings.test.js
+  s_9ca76055a220ed::t_3498d37ec4e77e 85
+tests/signature.test.js
+  s_9ca76055a220ed::t_53797210e23cd2 1-2,5,35-36,41-44,55
+tests/site-only.test.js
+  s_9ca76055a220ed::t_850de425bf54a4 37-38
+tests/soundtracks.test.js
+  s_9ca76055a220ed::t_9c7992172405f7 57-77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7f85383b3358c2e3eb330acd682472ae07f5c9f5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
