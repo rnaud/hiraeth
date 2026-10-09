@@ -303,6 +303,16 @@ export const CHANGELOG_MEDIA = {
     { match: 'Controllers rumble:', shots: [
       { name: 'rumble-settings', caption: 'Settings with a controller that can rumble: Controller rumble and Rumble strength under Controls', from: 'headless Chrome against this branch’s own dev server and main before it, a simulated Xbox pad (its dual-rumble actuator), Medium' },
     ], see: 'With a controller (Xbox, PlayStation, a Steam Deck, the Android app on a handheld): take a hit, drink a potion (View + D-pad ↓), let go of a charged cut, pick up chimes, lift off in the ship, or search the galactic map. Settings > Controls has Controller rumble and Rumble strength.' },
+    // the title screen
+    { match: 'The title screen’s menu is much smaller', shots: [
+      { name: 'title-menu-waterfall', caption: 'The city behind the waterfall (1280 × 720): before, six big entries down the middle of the picture; after, two small buttons and four icons low at the left (the menu takes 2.8 % of the screen, was 10.4 %)', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…)' },
+      { name: 'title-menu-desert', caption: 'The desert under the ringed planet: the ribs, the mesa and the planet all clear of the menu now', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…)' },
+      { name: 'title-menu-focus', only: 'after', caption: 'With a controller (shown at 2×): What’s new reached along the row, A in its corner, its name beside the row; Continue says which world it goes back to', from: 'headless Chrome at 2× against this branch’s own dev server, a save in slot 1, the controller’s glyphs shown' },
+      { name: 'title-menu-phone', only: 'after', caption: 'On a phone held upright (375 × 812): the same small menu at the bottom left, every button still a 40 px touch target', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…)' },
+    ], see: 'Open the game: the menu is at the bottom left. Point at an icon (or reach it with the D-pad: down from Saves into the row, then left and right) to see its name; Enter or A opens it.' },
+    { match: 'On the title screen the traveller now stands still', shots: [
+      { name: 'title-stance', caption: 'The Sky Stones, close on the traveller: before, the game’s idle, one arm swung out, the weight on one leg; after, upright, arms at his sides, hands by his thighs', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…), cropped round him' },
+    ], see: 'Open the game a few times and watch him for a while: he no longer looks about or shifts his weight; he breathes, and his coat stirs.' },
   ],
   '1.5': [
     // the first shop

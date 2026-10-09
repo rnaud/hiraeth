@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.6 — 2026-10-09
 
+- On the title screen the traveller now stands still, upright, his arms straight down at his sides and his back to you, looking out over the world as on the covers; only his breath and his coat move.
+- The title screen’s menu is much smaller and sits low at the left, so the world behind the name shows: Continue (or New game) and Saves as two small buttons, and under them a row of little ink icons for Settings (a gear), What’s new (a star), Debug (a beetle) and Full screen (corner brackets), each named when you point at it or reach it with the controller. Full screen no longer shows in the Xbox app.
 - Controllers rumble: a hit (harder the more hearts it costs), a heavy foe’s slam nearby, a hard landing, drinking a potion, letting go of a charged cut, picking up chimes (barely), the ship lifting off, and the signature search, beating in threes as you near a world. In Settings, Controller rumble turns it off and Rumble strength picks low, medium or high; without a controller that can rumble they are greyed out. On Android it comes with the new app, which the game offers.
 - The worlds still open in the same order as before, and saves from before keep every world they had on the map.
 - The galactic map has a signature search: a world newly in reach is no longer named outright. The ship hears the singing light’s three pulses out there and marks uncharted regions on the chart; sweep them with the mouse, the left stick, W A S D or a finger, and the scanner warms, quickens and sings louder as you near a world that carries it, with a signal meter in the corner. Hold it there a moment and the planet appears and is charted.
