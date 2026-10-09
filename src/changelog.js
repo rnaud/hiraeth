@@ -21,6 +21,9 @@ export const CHANGELOG = [
     'In Vael, the bird’s arrival keeps the horizon and the stone towers under her as she comes down, instead of two seconds of empty sky.',
     'The Lantern: the light coming down out of the dusk glows from the first shot, beside the crown, instead of being out of the picture until it is nearly there.',
     'Lou’s window seat at home has a second shot: from beside you, your profile against the round window and the land beyond it.',
+    'The recordings at the ship’s console cut between angles as they play: your parents’ faces close, your own face lit by them as you listen, and wide past you to the window; the words and their timing are as before.',
+    'Opening a makers’ box comes in four ways now, one per box: over either shoulder, from above, or from the box’s side with the item revealed in front of your face.',
+    'At the stone at home, laying everything down cuts between your hands on the slab, your face, Lou as she speaks and over your shoulder, instead of one angle for over a minute.',
     { text: 'The pale star’s description and the line as you lay it on the stone say it is pinned to your overshirt, not a hood.', see: 'Open the journal’s gear page with the pale star found, or lay it on the stone at home.' },
   ] },
   { v: '1.1', date: '2026-10-09', items: [

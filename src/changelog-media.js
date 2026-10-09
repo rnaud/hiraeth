@@ -219,6 +219,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Lantern: the light coming down out of the dusk', shots: [
       { name: 'lantern-dusk', caption: 'Two seconds in, from behind him: before, the light still above the frame (the dark disc is the dusk’s moon); after, the light beside the crown', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
     ], see: 'Debug → Cinematics → The light returns to the Lantern.' },
+    { match: 'The recordings at the ship’s console cut between angles', shots: [
+      { name: 'recording-bust', caption: 'The third recording, 19 s in: before, the same push-in over his shoulder for 40 s; after, the two of them close', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+      { name: 'recording-face', caption: 'The same recording, 27 s in, as he says “I’m listening now”: his face in the hologram’s light', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → any recording (the long last ones show the most angles).' },
+    { match: 'Opening a makers’ box comes in four ways now', shots: [
+      { name: 'box-side', caption: 'The pale star’s box in Qanat, as it rises: before, over his shoulder as for every box; after, from the box’s side', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+      { name: 'box-reveal', caption: 'The same box, the reveal: before, beside him; after, from where the box stood, the star in front of his face', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Open boxes in different worlds (or Debug → Cinematics → Makers’ box ·): four openings, the same one for a box every time.' },
+    { match: 'At the stone at home, laying everything down cuts', see: 'Debug → Cinematics → First homecoming (or Final homecoming), from the moment the tokens go down.' },
     { match: 'Lou’s window seat at home has a second shot', shots: [
       { name: 'window-seat', caption: 'The window seat, six seconds in: before, the same angle from the start; after, beside him, the window and the land beyond', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
     ], see: 'At home, sit in Lou’s window seat (or Debug → Cinematics → The window seat).' },

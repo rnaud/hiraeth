@@ -32,6 +32,13 @@ small squash, a knock (`sound.boxWobble(i)`) and one pass of the ray across it, 
 rests between them and a last still moment before it comes apart with the dissolve. The item
 grows out of the light at its centre as before.
 
+The camera takes one of four plans per box (`BOX_PLANS`, `boxPlan(id)`: a stable hash of the box's id;
+the desert's first box always the first): **shoulder**, low over his right shoulder, then beside him;
+**left**, the same over his left; **side**, from the box's flank at its height with him in profile, then
+a cut to past where the box stood, back at the item and his face; **high**, from above his shoulder down
+on the box, then beside him. Where a plan's lens would stand behind a wall or a cliff (`clearPlan`: rays
+from his chest), the box falls back to the first plan. (The cinematics QC pass: the same shots for all 32.)
+
 ## Nothing before the first
 
 `boxesFound(game)` is true once any `box.*` flag is set (a box opened, a temple's chest, an old

@@ -350,7 +350,11 @@ walkthroughs and local names; each data file's header lists its flags.
   by hand against the G-buffer so the traveller in front still hides it, then lays it over
   the frame, slightly translucent, with a soft bloom of its own colours. `callShot` frames
   it from behind his right shoulder and pushes in on the busts' faces (`CALL_FACE`) while
-  the hologram is up (`st.close`); `faceRecording` keeps him turned to it. At the stone the
+  the hologram is up (`st.close`); `faceRecording` keeps him turned to it. While the busts are
+  up a recording cuts to other angles at the start of a line (`callCuts`, `callAngle`: the two
+  faces close from his left, his face from over the dash, wide from the side with the window;
+  his own lines on his face; each held 4.5 s at least) and goes back behind him as they fold;
+  after the fold his own lines cut to his face again. Words and timing are unchanged. At the stone the
   three busts (`REEL_HOLO`) rise over the reel, looking up at him.
 - **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
   `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
@@ -359,7 +363,9 @@ walkthroughs and local names; each data file's header lists its flags.
   charm, the glyph lens, the bell-note whistle, the listening shell and the echo shell (since the
   second story pass), the pale star; not the backpack, jets or wings). He walks to the parents' stone in the front yard and sets each token on
   the slab (`tombSlots`, `tokenModel`; one short line each, `tombLines`, on a brisk
-  `tombTimeline`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
+  `tombTimeline`; the camera cuts between over his shoulder, his hands along the slab, his face from
+  the headstone and Lou's face as she speaks, at a line's start, 4 s at least each: `tombCuts`,
+  `TOMB_ANGLES`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
   as a hologram of the three of them over the stone. Then the closing line, an end card and
   the credits ("Left on the stone"). `ending.keepsake` is `all`; saves that ended with one
   keepsake chosen keep it. Coming back later, the stone keeps its tokens.

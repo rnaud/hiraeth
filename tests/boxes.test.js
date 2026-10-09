@@ -460,3 +460,41 @@ test('nothing tells of the makers’ boxes before you find your first one', () =
   assert.match(boxes.journalHtml(), /Item boxes/);
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('backpack');
 });
+
+test('box openings vary: a few camera plans, one per box, the first box as it was, a blocked plan falls back (the QC pass)', async () => {
+  const { BOX_PLANS, boxPlan } = await import('../src/boxes/scene.js');
+  const { PLACEMENTS } = await import('../src/boxes/placements.js');
+  const ids = Object.values(PLACEMENTS).flat().map((p) => p.id);
+  assert.equal(boxPlan('desert.backpack'), 'shoulder', 'the first box keeps the first opening');
+  const used = {};
+  for (const id of ids) { const p = boxPlan(id); assert.ok(BOX_PLANS[p], id); assert.equal(boxPlan(id), p, 'the same every time'); used[p] = (used[p] ?? 0) + 1; }
+  assert.ok(Object.keys(used).length >= 3, `three plans or more in use (${JSON.stringify(used)})`);
+  assert.ok(Math.max(...Object.values(used)) <= ids.length * 0.5, 'none takes over');
+  // every plan frames the box and the item from outside it, in front of or beside him, never under the ground
+  for (const [name, plan] of Object.entries(BOX_PLANS)) {
+    for (const [x, y, z] of [plan.A(1, 0), plan.A(0.82, 1), plan.B(1), plan.B(0.88)]) {
+      assert.ok(y > 0.5 && y < 3.5, `${name}: a sensible height (${y})`);
+      assert.ok(Math.abs(x) > (BOX.w / 2) * BOX_SCALE + 0.2 || Math.abs(z) > (BOX.d / 2) * BOX_SCALE + 0.2, `${name}: outside the box`);
+    }
+  }
+  // in a scene: a box whose plan is not the first plays it (or falls back where a wall stands too close)
+  game.reset(); clearInteractables();
+  const { scene, physics, level } = world('desert');
+  const boxes = createBoxes({ levelId: 'desert', scene, physics, level, player: player(V()), sound: {} });
+  const shots = [];
+  const cam = { shot: (s) => shots.push(s), release() {}, hud() {}, bars() {} };
+  const box = boxes.list.find((b) => b.item === 'star');
+  const sc = new BoxScene({ box, def: ITEMS.star, item: 'star', player: player(V()), cam, physics, groundAt: (x, z, y) => physics.groundAt(x, y, z, 6), onGrant() {}, onEnd() {} });
+  sc.start();
+  assert.ok(sc.plan === boxPlan(box.id) || sc.plan === 'shoulder', `a plan (${sc.plan})`);
+  for (let i = 0; i < 30 * 8 && !sc.done; i++) { sc.update(1 / 30); if (sc.phase === 'card') break; }
+  assert.ok(shots.length > 100 && shots.every((s) => Number.isFinite(s.pos.x + s.pos.y + s.pos.z + s.fov)), 'a camera every frame');
+  sc.end?.();
+  // a wall right beside and behind the box: the plan falls back to the first
+  const s2 = new THREE.Scene();
+  const p2 = new Physics(s2, { heightAt: () => 0 });
+  for (const [w, d, x, z] of [[0.3, 8, 1.1, 0], [8, 0.3, 0, -0.75]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(w, 4, d)); m.position.set(x, 2, z); m.updateMatrixWorld(); s2.add(m); p2.addCollider?.(m); }
+  const sc2 = new BoxScene({ box: { id: 'x', pos: V(), yaw: 0, parts: { mats: {} }, scene: null }, def: ITEMS.lens, item: 'lens', player: null, physics: p2, onGrant() {}, onEnd() {} });
+  assert.equal(sc2.clearPlan('side'), 'shoulder', 'side blocked by the wall: back to the first');
+  assert.equal(sc2.clearPlan('shoulder'), 'shoulder');
+});

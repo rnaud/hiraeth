@@ -73,13 +73,13 @@
   },
   "homecoming.first": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 4/5, interest 3/5. Long and partly played; the cargo check waits for a press; the tokens are laid one by one on one held angle for over a minute. Fixed: Script confirms the cargo check; token-laying: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 4/5, interest 4/5. Long and partly played; the cargo check waits for a press; the tokens were laid one by one on one held angle for over a minute; pops at 7.4 and 14.8 s (in space, by design: the cuts of the approach). Fixed: Script confirms the cargo check; v1.2: the setting-down cuts between over his shoulder, his hands along the slab, his face from the headstone and Lou as she speaks (tombCuts), 4 s at least each.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "homecoming.final": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 4/5, interest 3/5. As the first homecoming. Fixed: TODO (as above).",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 4/5, interest 4/5. As the first homecoming. Fixed: As the first homecoming (tombCuts).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "home.homage": {
    "verdict": "Pass",
@@ -92,74 +92,74 @@
    "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.1": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.2": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.3": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.4": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.5": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.6": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.7": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.8": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.9": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.10": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.11": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.ilen": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.ilen.after": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "call.trace": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; angles: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "arrival.desert": {
    "verdict": "Pass",
@@ -293,163 +293,163 @@
   },
   "box.desert.backpack": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.desert.star": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.desert.temple.fire": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.incal.soles": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.incal.temple.jetpack": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.incal.bridge": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.arzach.hush": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.arzach.temple.glider": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.arzach.hook": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.arzach2.scarf": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.arzach2.temple.bell": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.arzach2.springs": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.garage.level": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.garage.temple.coil": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.garage.magnet": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.buried.resin": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.buried.temple.cell": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.buried.monocle": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.edena.pouch": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.edena.temple.bloom": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.edena.bubble": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.spheres.shell": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.spheres.temple.lens": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. As every box; and the box sat sunk into the dais (its lathe had no top a ray lands on), so the camera framed off it was low and cut his head off. Fixed: v1.2: the dais solid as two cylinders (Lorn’s two temples too): the chest on top, his head in frame; variety: TODO.",
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. As every box; and the box sat sunk into the dais (its lathe had no top a ray lands on), so the camera framed off it was low and cut his head off. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face); the dais solid as two cylinders (Lorn’s two temples too): the chest on top, his head in frame.",
    "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.spheres.bomb": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.perdide.reed": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.perdide.temple.stun": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.perdide.fan": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.perdide2.moss": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one side (from the box’s side, then from where it stood at the item and his face).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.perdide2.temple.lantern": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one high (from above his shoulder, down on the box).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.perdide2.boomerang": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.bazaar.temple.echo": {
    "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one shoulder (over his right shoulder, as before).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "box.bazaar.recall": {
-   "verdict": "Needs work",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 3/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; variety: TODO.",
-   "updated": "2026-10-09T12:00:00.000Z"
+   "verdict": "Pass",
+   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest card over the scene; the reveal cut 1.2 m between two near-identical angles (read as a jump); the same scene for all 32 boxes. Fixed: Notices wait; the reveal pushes in; v1.2: one of four camera plans per box, this one left (over his left shoulder).",
+   "updated": "2026-10-09T18:00:00.000Z"
   },
   "trailer": {
    "verdict": "Pass",

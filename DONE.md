@@ -1356,3 +1356,17 @@ tests/sound-mix.test.js holds them.
 - scripts/cinematics-qc.mjs `--probe "<js>"`: evaluates an expression in the page at every screenshot
   (`<out>/<id>/probe.json`): it found both the blank billboard (the text mesh never shown) and the Lantern's
   light (off screen).
+- [x] The recordings were one slow push-in for 25-77 s. (src/ship/cinematics.js `callCuts` / `callAngle`: while
+  the busts are up a recording cuts at the start of a line, at least 4.5 s apart, between the push-in behind
+  his right shoulder, the two faces close from his left, his face from over the dash in the hologram's light
+  (his own lines always there) and wide from the side with the window; back to the push-in as they fold, and
+  after it his own lines on his face again. Words and timing untouched; 3 shots in the shortest recording,
+  9 in the longest. The prologue's call keeps its single angle. tests/ship.test.js.)
+- [x] The homecomings laid the tokens on one held angle for over a minute. (src/ship/homecoming.js `tombCuts`
+  / `TOMB_ANGLES`: over his shoulder, his hands along the slab, his face from the headstone, Lou's face on her
+  lines, at a line's start, 4 s at least each; the light, the reel and the closing line keep their shots.
+  tests/ending.test.js.)
+- [x] (Part of) the box opening being one camera for all 32 boxes. (src/boxes/scene.js `BOX_PLANS` /
+  `boxPlan`: over the right shoulder (the first box, and the fallback), the left, from the box's side with the
+  reveal from where it stood onto the item and his face, or from above; `clearPlan` falls back where a wall
+  would come between. tests/boxes.test.js. A closing beat per kind of item stays in TODO.md.)

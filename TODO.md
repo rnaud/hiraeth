@@ -15,15 +15,9 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
 
-- [ ] The recordings (`call.1`…`call.11`, Ilen, the trace) are one slow push-in over his shoulder onto the
-  hologram for 25–77 s. Give the long ones two or three angles (the father's face in the light, the
-  traveller listening, the window) without changing their words or timing.
-- [ ] The homecomings lay the tokens on the stone one by one, a line each, on one held angle for over a
-  minute (`homecoming.first`, `homecoming.final`). Cut between the stone, his hands and Lou's face, or
-  lay them in small groups.
-- [ ] The box opening is one camera for every box (32 of them, 7–9 s): the same angle, wobbles and
-  reveal whatever the item. Consider a closing beat per kind of item (a gadget tried once, a
-  cosmetic worn), or a shorter opening after the first few boxes.
+- [ ] Box openings now take one of four camera plans per box (v1.2); still the same wobbles and reveal
+  whatever the item. Consider a closing beat per kind of item (a gadget tried once, a cosmetic worn), or a
+  shorter opening after the first few boxes.
 - [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the
   review page (the script confirms the cargo check but can't judge the walk-through parts).
 

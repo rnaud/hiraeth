@@ -391,3 +391,32 @@ test('the true ending: with Ilen, what is new goes down, her message, the reel, 
   const again = quiet(() => meta.create(new THREE.Scene()));
   assert.equal(again.tomb.tokens.children.length, 4, 'the stone keeps them, the reel and her message too');
 });
+
+test('the stone’s setting-down cuts between his hands, his face, Lou and over his shoulder (the QC pass: one angle for a minute)', async () => {
+  const { tombCuts, tombTimeline, TOMB_ANGLES, TOMB_CUTS } = await import('../src/ship/homecoming.js');
+  const tokens = tokenList([GEAR_TOOTH, BAZAAR_WORD, { id: 'x', kind: 'song', name: 's' }, { id: 'y', kind: 'person', name: 'p' }, { id: 'z', kind: 'knowing', name: 'k' }], TOKEN_ITEMS);
+  for (const ctx of [{ lou: true }, { lou: false }, { final: true, lou: true }]) {
+    const tl = tombTimeline(tombLines(tokens, ctx)), cuts = tombCuts(tl, { lou: ctx.lou });
+    assert.equal(cuts[0].angle, 'shoulder');
+    assert.ok(new Set(cuts.map((c) => c.angle)).size >= 3, `three angles or more (${cuts.map((c) => c.angle)})`);
+    for (let i = 1; i < cuts.length; i++) {
+      assert.ok(cuts[i].t - cuts[i - 1].t >= TOMB_CUTS.min - 1e-6, 'each held a while');
+      assert.notEqual(cuts[i].angle, cuts[i - 1].angle);
+      assert.ok(TOMB_ANGLES[cuts[i].angle], cuts[i].angle);
+      const line = tl.lines.find((l) => Math.abs(l.t0 - cuts[i].t) < 1e-9);
+      assert.ok(line, 'on a line’s start');
+      if (cuts[i].angle === 'lou') assert.equal(line.line.who, 'lou', 'Lou’s face as she speaks');
+    }
+    if (!ctx.lou) assert.ok(!cuts.some((c) => c.angle === 'lou'), 'no Lou, no shot of her');
+  }
+  // the angles stand clear of the stone, in front of or beside it, and frame what they are for
+  const scene = new THREE.Scene();
+  const level = quiet(() => LEVELS.find((l) => l.id === 'home').create(scene));
+  const physics = new Physics(scene, level.ground);
+  const T = level.tomb, L = (a) => T.group.localToWorld(new THREE.Vector3(...a));
+  for (const [name, A] of Object.entries(TOMB_ANGLES)) {
+    const pos = L(A.pos), look = L(A.look), d = pos.distanceTo(look);
+    assert.ok(physics.rayDistance(look, pos.clone().sub(look).normalize(), d) >= d - 0.3, `${name}: nothing between the lens and what it frames`);
+    assert.ok(pos.y > level.ground.heightAt(pos.x, pos.z) + 0.5, `${name}: above the ground`);
+  }
+});

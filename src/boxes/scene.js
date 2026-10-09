@@ -43,6 +43,28 @@ export const PUSH_IN = 0.8;
 export const STAND_AT = (BOX.d / 2) * BOX_SCALE + 0.9;   // m from the box centre to where the traveller stands (front side)
 export const LIFT = 0.75;      // m the box rises before it comes apart
 export const CARD_MIN = 0.5;   // s the card is up before a press counts (no accidental dismissals)
+/**
+ * The opening's camera, one of a few plans so the 32 boxes don't all play the same shots (the QC pass):
+ * each is A, before the reveal (box-local x right, y up, z front, `k` its push 1 → 0.82, `lift` the rise),
+ * and B, the item revealed (`k` 1 → 0.88), with their lenses. 'shoulder' is the first one (low over his
+ * right shoulder, then beside him); 'left' the same over his left; 'side' from the box's flank at its
+ * height, him in profile, then from past where the box stood back at the item and his face; 'high' from
+ * above his shoulder looking down on the box, then beside him. boxPlan() picks one per box.
+ */
+export const BOX_PLANS = {
+  shoulder: { A: (k, l) => [1.7 * k, 1.15 + 0.35 * l, STAND_AT + 2.6 * k], fovA: 46, B: (k) => [1.25 * k, 1.45, STAND_AT + 0.9 * k], fovB: 44 },
+  left: { A: (k, l) => [-1.7 * k, 1.15 + 0.35 * l, STAND_AT + 2.6 * k], fovA: 46, B: (k) => [-1.25 * k, 1.45, STAND_AT + 0.9 * k], fovB: 44 },
+  side: { A: (k, l) => [3.3 * k, 0.75 + 0.3 * l, STAND_AT * 0.45], fovA: 44, B: (k) => [0.55, 1.5, -1.9 * k], fovB: 40 },
+  high: { A: (k, l) => [1.1 * k, 2.9 + 0.2 * l, STAND_AT + 1.9 * k], fovA: 48, B: (k) => [1.25 * k, 1.45, STAND_AT + 0.9 * k], fovB: 44 },
+};
+/** The plan for a box: the first box keeps 'shoulder'; the others by a stable hash of the box's id. */
+export function boxPlan(id = '') {
+  if (!id || id === 'desert.backpack') return 'shoulder';
+  let h = 2166136261;
+  for (const c of String(id)) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  const names = Object.keys(BOX_PLANS);
+  return names[h % names.length];
+}
 const TURN = -0.5;             // rad it turns as it floats up (a corner toward the first camera: it reads as a box, not a tile)
 const smooth = (t) => { t = THREE.MathUtils.clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 const easeOut = (t) => 1 - Math.pow(1 - THREE.MathUtils.clamp(t, 0, 1), 3);
@@ -95,7 +117,23 @@ export class BoxScene {
     this.cam?.hud?.(false);
     this.cam?.bars?.(true);
     this.card?.scene(true);
+    this.plan = this.clearPlan(boxPlan(b.id));
     this.enter('approach');
+  }
+
+  /**
+   * The box's plan if its lenses stand clear (a wall or a cliff right behind or beside a box would pull them
+   * in on top of him: the walls' check below), else 'shoulder', which the walls' check has always handled.
+   */
+  clearPlan(name) {
+    const ph = this.physics, plan = BOX_PLANS[name];
+    if (!plan || name === 'shoulder' || !ph?.rayDistance) return plan ? name : 'shoulder';
+    const from = this.P(0, 1.3, STAND_AT);
+    for (const at of [plan.A(1, 0), plan.A(0.82, 1), plan.B(1)]) {
+      const pos = this.P(...at), dir = pos.clone().sub(from), d = dir.length();
+      if (ph.rayDistance(from, dir.divideScalar(d), d + 0.4) < d + 0.3) return 'shoulder';
+    }
+    return name;
   }
 
   /** Where the box hangs at lift k (0..1): its centre, in world space. */
@@ -266,28 +304,28 @@ export class BoxScene {
     if (!cam?.shot || this.phase === 'out') return;
     const at = ORDER.indexOf(this.phase);
     let pos, look, fov;
+    const plan = BOX_PLANS[this.plan] ?? BOX_PLANS.shoulder;
     if (at < ORDER.indexOf('reveal')) {
-      // A: low, over the traveller's right shoulder, tilting up as the box rises and pushing in
+      // A (the plan's): tilting up as the box rises and pushing in
       const since = this.phaseStart('approach') ?? 0;
       const k = 1 - 0.18 * smooth(since / 4.4), lift = this.lift ?? 0;
-      pos = this.P(1.7 * k, 1.15 + 0.35 * lift, STAND_AT + 2.6 * k);
+      pos = this.P(...plan.A(k, lift));
       look = this.heart(lift).add(_d.set(0, -0.15, 0));
-      fov = 46;
+      fov = plan.fovA;
     } else {
-      // B: beside the traveller, closer: the item hanging where the box was, the rays fanning out behind it
+      // B: closer: the item hanging where the box was, the rays fanning out behind it
       const since = this.phaseStart('reveal') ?? 0;
       const k = 1 - 0.12 * smooth(since / 5);
-      pos = this.P(1.25 * k, 1.45, STAND_AT + 0.9 * k);
+      pos = this.P(...plan.B(k));
       look = this.heart(1);
-      fov = 44;
-      // pushed in from where A ended, not cut: the two angles are a metre apart and the cut read as
-      // the camera jumping (the cinematics QC pass, docs/systems/cinematics-qc.md)
-      const b = smooth(since / PUSH_IN);
-      if (b < 1) {
-        const a = 1 - 0.18;   // (A's push, finished by the reveal)
-        pos.lerpVectors(this.P(1.7 * a, 1.5, STAND_AT + 2.6 * a), pos, b);
+      fov = plan.fovB;
+      // moved on from where A ended, not cut, where the two are near (a metre apart, a cut read as the
+      // camera jumping: the cinematics QC pass); a plan whose B is elsewhere ('side') cuts to it
+      const b = smooth(since / PUSH_IN), from = this.P(...plan.A(1 - 0.18, 1));
+      if (b < 1 && from.distanceTo(pos) < 2.2) {
+        pos.lerpVectors(from, pos, b);
         look.y -= 0.15 * (1 - b);
-        fov = 46 + (44 - 46) * b;
+        fov = plan.fovA + (plan.fovB - plan.fovA) * b;
       }
     }
     // a tall phone screen: widen the lens so the traveller, the box and the item still fit across

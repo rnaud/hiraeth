@@ -500,3 +500,47 @@ test('the prologue never walks you: you stand in the bunk room for minutes, then
   assert.equal(ship.messageWaiting(), null, 'and it stops blinking');
   assert.equal(autopilots, 0);
 });
+
+test('a recording cuts between angles at its lines, its words and timing untouched (the QC pass: one push-in for 25–77 s)', async () => {
+  const { callCuts, cutAt, callAngle, callShot, CALL_CUTS } = await import('../src/ship/cinematics.js');
+  const { callTimeline } = await import('../src/ship/prologue.js');
+  const ctx = { flag: () => undefined, completed: ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried'], lastWorld: 'buried' };
+  for (const n of [1, 3, 6, ILEN_CALL]) {
+    const lines = callLines(n, ctx), tl = callTimeline(lines), span = recordingSpan(lines);
+    const cuts = callCuts(tl, span);
+    assert.equal(cuts[0].angle, 'over', `${n}: it opens on the push-in`);
+    const fold = tl.lines[span[1]].t1 + 0.15;
+    assert.equal(cutAt(cuts, fold + 0.01).angle, 'over', `${n}: and folds back into it`);
+    for (let i = 1; i < cuts.length; i++) {
+      assert.notEqual(cuts[i].angle, cuts[i - 1].angle, `${n}: never the same angle twice running`);
+      const gap = cuts[i].t - cuts[i - 1].t;
+      const atFold = Math.abs(cuts[i].t - fold) < 1e-9;
+      if (!atFold) assert.ok(gap >= CALL_CUTS.min - 1e-6, `${n}: each held ${CALL_CUTS.min} s at least (${gap.toFixed(1)})`);
+      if (!atFold) assert.ok(tl.lines.some((l) => Math.abs(l.t0 - cuts[i].t) < 1e-9), `${n}: a cut on a line's start, or the fold`);
+    }
+    const kinds = new Set(cuts.map((c) => c.angle));
+    if (tl.total > 30) assert.ok(kinds.size >= 3, `${n}: a long one (${tl.total.toFixed(0)} s) has three angles or more (${[...kinds]})`);
+    assert.equal(cutAt(cuts, 0).angle, 'over');
+  }
+  assert.deepEqual(callCuts({ lines: [{ line: { who: 'ship' }, t0: 0.9, t1: 3 }], total: 3 }, null), [{ t: 0, angle: 'over' }], 'no busts: one angle');
+  // the angles themselves: inside the cockpit, clear of the dash and the racks, him or the busts in frame
+  const scene = new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(400, 400).rotateX(-Math.PI / 2)));
+  const physics = new Physics(scene);
+  const level = { spawn: v(0, 0, 60), ground: { heightAt: () => 0 }, lights: [], shipSite: { x: 0, z: 0, heading: 1.1 } };
+  const ship = quiet(() => new Ship({ scene, physics, level, levelId: 'test', content: { npcs: [], relics: { spots: [] } } }));
+  const m = ship.parked;
+  const head = ship.world(m, m.interior.points.cockpit).add(v(0, 1.55, 0));
+  const face = ship.world(m, m.interior.points.projector).add(v(0, 0.5, 0));
+  for (const a of ['bust', 'listen', 'window']) {
+    const s = callAngle(ship, m, a, 0), s2 = callAngle(ship, m, a, 6);
+    assert.ok(s && s2.pos.distanceTo(s.pos) < 0.45, `${a}: a slow push, no jump`);
+    const subject = a === 'bust' ? face : head;
+    const to = subject.clone().sub(s.pos), d = to.length();
+    assert.ok(physics.rayDistance(s.pos, to.clone().normalize(), d) >= d - 0.35, `${a}: nothing between the lens and what it frames`);
+    const look = s.look.clone().sub(s.pos).normalize();
+    assert.ok(look.angleTo(to.normalize()) < THREE.MathUtils.degToRad(s.fov * 0.6), `${a}: in frame`);
+    assert.ok(s.pos.distanceTo(callShot(ship, m, 0, 1).pos) > 0.6, `${a}: a different place from the push-in`);
+  }
+  assert.equal(callAngle(ship, m, 'over', 0), null);
+});
