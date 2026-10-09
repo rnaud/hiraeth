@@ -46,7 +46,7 @@
       /* hearts, the magic bar and the potion, top left: only while a heart is missing, the bar spends or refills,
          or a fight is on (src/main.js updateHealth, src/hud.js heartsSvg / magicHud) */
       #health { position: fixed; left: calc(16px + var(--safe-left, 0px)); top: calc(12px + var(--safe-top, 0px)); z-index: 30;
-        --hh: calc(clamp(15px, 2.7vh, 22px) * var(--ts, 1));
+        --hh: calc(clamp(17px, 3vh, 24px) * var(--ts, 1));
         display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--hh) * 0.22);
         opacity: 0; transition: opacity .5s; pointer-events: none; }
       #health.on { opacity: 1; }
@@ -63,7 +63,7 @@
       #health .h.low .hf { fill: #e8643c; }
       /* the healing potion: a little corked flask, its stock beside it (∞ until the shops); on a touch screen it is the button */
       #health .potion { position: relative; display: flex; align-items: center; gap: 2px; padding: 0; margin: 0; border: 0; background: none; color: #2b211f;
-        font: 700 calc(var(--hh) * 0.62)/1 ui-monospace, Menlo, monospace; pointer-events: none; }
+        font: 800 calc(var(--hh) * 0.9)/1 ui-monospace, Menlo, monospace; pointer-events: none; }
       #health .potion svg { display: block; height: calc(var(--hh) * 1.15); width: auto; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 rgba(43, 33, 31, 0.9)); }
       #health .potion b { text-shadow: 0 0 2px #fffaf0, 0 0 5px #fffaf0; }
       #health .potion.none { opacity: 0.4; }

@@ -380,8 +380,8 @@ Where the health bar was (top left, `#health` in index.html; `updateHealth` in m
   units), cream inside, the red fill clipped to its quarters (the quadrants round the middle, filled as a
   clock goes from bottom left), a cream highlight, a hard ink drop shadow. A part-filled heart shows its
   quarter lines, so a quarter reads even at the smallest size; the last heart pulses (and its fill is
-  dashed: not by colour alone) at one heart or less. Their height is `--hh`: `clamp(15px, 2.7vh, 22px)`
-  times the text size (19 px at 720 px tall, 15 px on a phone held sideways). Redrawn only when the hearts change.
+  dashed: not by colour alone) at one heart or less. Their height is `--hh`: `clamp(17px, 3vh, 24px)`
+  times the text size (22 px at 720 px tall, 17 px on a phone held sideways). Redrawn only when the hearts change.
 - **The potion** beside them: a corked flask with red in it and its stock (`∞` until the shops; a count
   later, faded at none). It tilts as you drink. On a touch screen it is the potion button (`pointer-events`
   only while shown).
