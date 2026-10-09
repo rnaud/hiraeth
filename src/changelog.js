@@ -22,6 +22,9 @@ export const CHANGELOG = [
       see: 'The Wind hall stands on the dune crest west of the desert’s landing, near Pell: walk up to the sign by its steps and press X / □ (E). The Hush walk is on Lorn’s south shore, a short walk from the landing.' },
     { text: 'While you are running a trial or a challenge, the game’s other notices wait for the results: only the clock and the goal stay on the screen.',
       see: 'Start the Wind hall or any world’s trial: the box hints and other messages that would have come up during the run show after it.' },
+    // the makers' boxes
+    'Opening a makers’ box now ends with a moment that suits what was inside: a gadget is tried once, the pale star is pinned on and shown worn, a charm is turned over in his hand and pocketed, a part for the tank clicks onto the pack, the glyph lens and the listening shell turn him toward the nearest box still shut, and the whistle and the echo shell play a few notes. It lasts under two seconds, and B / ○ or Esc skips it.',
+    'A box also takes its time from what it holds: a gadget’s box rocks three quick times, a charm’s only twice and opens sooner.',
   ] },
   { v: '1.2', date: '2026-10-09', items: [
     // shadows in caves and rooms

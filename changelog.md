@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.3 — 2026-10-09
 
+- A box also takes its time from what it holds: a gadget’s box rocks three quick times, a charm’s only twice and opens sooner.
+- Opening a makers’ box now ends with a moment that suits what was inside: a gadget is tried once, the pale star is pinned on and shown worn, a charm is turned over in his hand and pocketed, a part for the tank clicks onto the pack, the glyph lens and the listening shell turn him toward the nearest box still shut, and the whistle and the echo shell play a few notes. It lasts under two seconds, and B / ○ or Esc skips it.
 - While you are running a trial or a challenge, the game’s other notices wait for the results: only the clock and the goal stay on the screen.
 - Two new optional challenges built from the temples’ own pieces, out in the open. In the desert, the Wind hall: a roofless hall on a dune crest where gusts shove you back unless you shelter behind its screens, and three eyes to wake in one breath at its end. In Lorn, the Hush walk: a causeway over the lake with crystal pendulums swinging across it, out to the round stone and back without being knocked into the water. Each has a sign that shows the makers’ mark, then your best time, and someone who lives nearby has a word for you when you finish.
 - Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.

@@ -10,9 +10,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
 
-- [ ] Box openings now take one of four camera plans per box (v1.2); still the same wobbles and reveal
-  whatever the item. Consider a closing beat per kind of item (a gadget tried once, a cosmetic worn), or a
-  shorter opening after the first few boxes.
 - [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the
   review page (the script confirms the cargo check but can't judge the walk-through parts).
 

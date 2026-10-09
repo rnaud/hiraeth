@@ -208,6 +208,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'wind-hall-results', only: 'after', caption: 'The Wind hall finished: the time, the makers’ mark, and a word from Pell, who lives at the foot of the dune (his line comes up over his head too)', commit: '33271faa',
         view: { level: 'desert', hud: true, hour: 10, player: [-129, 19.6, -73.5], setup: RUN_THROUGH('kit-desert', 38.4), wait: 600 } },
     ] },
+    { match: 'Opening a makers’ box now ends with a moment', shots: [
+      { name: 'box-beat-try', caption: 'The grappling hook’s box in the plain of Arzach: before, the item flew into his chest; after, he holds it out and fires it once, a spray of light ahead of him', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
+      { name: 'box-beat-wear', caption: 'The pale star in Qanat: before, it flew into his chest; after, it is pinned on, and a close look at it worn on his lapel', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
+      { name: 'box-beat-play', caption: 'The bell-note whistle in the Sky Stones’ temple: after, at his lips, its note playing and notes of light rising', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
+    ], see: 'Open any makers’ box (Debug → Cinematics lists them all) and press A / × on the card: the hook or a gadget is tried, the star worn, a charm pocketed, the coil fitted to the pack, the lens or the shell points the way, the whistle plays.' },
+    { match: 'A box also takes its time from what it holds', see: 'Open a gadget’s box (the grappling hook in Arzach) and a charm’s (the soft-fall soles in the City-Shaft): the first rocks three times, the last the hardest; the second twice, and comes apart sooner.' },
   ],
   '1.2': [
     { match: 'The dark masses in shaded corners', shots: [

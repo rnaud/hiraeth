@@ -306,7 +306,9 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
       if (instant || !player) { grant(); finish(); return true; }
       if (spent(b)) return false;
       sound?.boxHum?.(0);
-      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics,
+      // (the finders' closing beat turns him toward the nearest box still shut)
+      const pointAt = () => list.filter((x) => x !== b && !spent(x)).sort((x, y) => flat(x.pos, b.pos) - flat(y.pos, b.pos))[0]?.pos ?? null;
+      current = new BoxScene({ box: b, def: b.def, item: b.item, player, cam, sound, card, groundAt: ground, physics, pointAt,
         onGrant: grant,
         onEnd: () => { current = null; finish(); } });
       current.start();

@@ -1453,3 +1453,18 @@ tests/sound-mix.test.js holds them.
   reward: the speaker's line on the results and over their head, the sign's plate keeping the best. While a
   run is on, the world's notices wait (src/ship/cinema.js `HOLD_TOASTS`). docs/systems/challenges.md,
   tests/trials-kit.test.js.
+## Cinematics: the box opening's closing beat (done 9 October, v1.3)
+
+- [x] Box openings took one of four camera plans per box (v1.2) but still the same wobbles and reveal and the
+  same ending whatever the item. (src/boxes/beats.js: after the card a closing beat by kind of item,
+  `beatFor` → `ITEM_BEATS` then `KIND_BEATS`: `try` (gadgets, gun modes, jets, wings, backpack: held out and
+  fired once, a spray of light, a kick, its sound), `wear` (the star pinned on, a close look at it worn),
+  `keep` (charms: turned over in his hand, pocketed), `fit` (tank upgrades: onto the pack, a click, shot from
+  behind), `point` (the glyph lens and the listening shell: he turns toward the nearest shut box, a thread
+  of light, a faint answer), `play` (the whistle and the echo shell: a few notes). Each ≤ 2 s, on a closing
+  shot that keeps to the plan (`closingShot`: mirrored, swung to his side, raised); skippable (Esc / B on
+  the card goes past it, in the beat ends it); a cut back to play after it. `timingFor`: a gadget's box
+  wobbles three quick times, a charm's or tank part's twice and opens sooner; the side plan holds its
+  reveal longer. The QC script presses A on the card (so the beat plays) and takes `--query boxPlan=<plan>`;
+  every beat × plan was run. tests/box-beats.test.js, tests/boxes.test.js. The "shorter opening after the
+  first few boxes" idea was not taken: the gentler two-wobble boxes pay for their beat instead.)

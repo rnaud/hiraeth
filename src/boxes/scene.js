@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { buildItemModel, buildSparkles, fluidMaterials, BOX, BOX_SCALE, ITEM_SCALE } from './model.js';
+import { BEATS, beatFor, timingFor, closingShot, beatPath } from './beats.js';
 
 // Opening a box. The makers' boxes are big, and they have no lid: they wake,
 // float up off the ground, wobble a few times like a caught thing deciding, and
@@ -15,17 +16,20 @@ import { buildItemModel, buildSparkles, fluidMaterials, BOX, BOX_SCALE, ITEM_SCA
 //             a burning edge); the item grows out of the light at its centre
 //   reveal    the box is gone; the item hovers, turning, with a little sparkle; fanfare
 //   card      what it is, what it does: E, click or tap to go on
-//   out       the item is granted and flies to the traveller; the camera blends back
+//   beat      the item is granted, and a short closing beat that depends on what it is (beats.js:
+//             a gadget tried once, the star pinned on, a charm turned over and pocketed, a tank part
+//             fitted, a finder pointing the way, a whistle played), on a closing shot in the plan
+//   out       the camera blends back (an item the beat didn't stow flies to the traveller)
 //
 // Esc (or the skip button, or the pad's back button) jumps straight to the card; on the card
-// it dismisses it. Nothing here can trap the player: every way of pressing on
+// it dismisses it, past the beat; in the beat it ends it. Nothing here can trap the player: every way of pressing on
 // ends it, and an error ends it too (the item is still granted).
 //
 // cam: { shot({ pos, look, fov }), release(blend), hud(show), bars(on) } (main.js
 // routes it to the ship's cinematic camera; tests pass nothing).
 
 export const TIMES = { approach: 0.5, wake: 0.7, rise: 1.0, wobble: 2.7, dissolve: 1.5, reveal: 0.9 };
-const ORDER = ['approach', 'wake', 'rise', 'wobble', 'dissolve', 'reveal', 'card', 'out'];
+const ORDER = ['approach', 'wake', 'rise', 'wobble', 'dissolve', 'reveal', 'card', 'beat', 'out'];
 /**
  * The wobbles, in the wobble phase (s): when each starts, how long it rocks, how far (rad), and
  * which way it leans first. A rest between them; after the last, a still moment before it opens.
@@ -117,7 +121,14 @@ export class BoxScene {
     this.cam?.hud?.(false);
     this.cam?.bars?.(true);
     this.card?.scene(true);
-    this.plan = this.clearPlan(boxPlan(b.id));
+    // (?boxPlan=<name> forces a plan: the cinematics QC sees every plan with every closing beat)
+    const forced = typeof location !== 'undefined' ? new URLSearchParams(location.search ?? '').get('boxPlan') : null;
+    this.plan = BOX_PLANS[forced] ? forced : this.clearPlan(boxPlan(b.id));
+    // the closing beat for what it holds, and the timings it asks for (beats.js)
+    this.beat = beatFor(this.item, this.def);
+    const tm = timingFor(this.plan, this.beat, { times: TIMES, wobbles: WOBBLES });
+    this.times = { ...tm.times, beat: BEATS[this.beat].dur };
+    this.wobbles = tm.wobbles;
     this.enter('approach');
   }
 
@@ -154,6 +165,7 @@ export class BoxScene {
   }
 
   enter(phase) {
+    const prev = this.phase;
     this.phase = phase; this.t = 0;
     const s = this.sound;
     if (phase === 'wake') s?.boxCreak?.();
@@ -167,19 +179,35 @@ export class BoxScene {
     if (phase === 'dissolve') { s?.boxBurst?.(); this.model.visible = true; this.sparkles.visible = true; }
     if (phase === 'reveal') { this.setDissolve(1); s?.fanfare?.(); this.fanfared = true; }
     if (phase === 'card') { this.card?.show(this.def); this.cardT = 0; }
-    if (phase === 'out') {
+    if (phase === 'beat') {
       this.card?.hide();
-      this.cam?.release?.(1.2);
+      // granted now: the star is on his lapel for the look at it worn
+      if (!this.granted) { this.granted = true; this.onGrant?.(); }
+      this.beatFrom = this.model.position.clone();
+      this.beatCamFrom = this.camPos.clone(); this.beatFovFrom = this.camFov ?? 44;
+      this.acted = false; this.turn = 0;
+      this.heading0 = this.player?.heading ?? 0;
+      this.pointTurn = this.beat === 'point' ? this.pointAngle() : 0;
+    }
+    if (phase === 'out') {
+      this.beatDone = prev === 'beat';   // (played, or skipped part-way: the lens is on the closing shot)
+      this.card?.hide();
+      // after a beat: its closing shot faces him (or he has turned), and a blend back would swing the lens
+      // through him: a cut back to play, and a short hand-back; 'fit' was shot from behind him, it blends
+      const beatOut = this.beatDone ? (this.beat === 'fit' ? { blend: 0.9, time: 1.0 } : { blend: 0, time: 0.5 }) : { blend: 1.2, time: OUT_TIME };
+      this.outTime = beatOut.time;
+      this.cam?.release?.(beatOut.blend);
       if (!this.granted) { this.granted = true; this.onGrant?.(); }
       this.from = this.model.position.clone();
-      s?.chime?.();
+      if (!this.acted) s?.chime?.();
     }
   }
 
-  /** Esc / skip: straight to the card (on the card: go on). */
+  /** Esc / skip: straight to the card (on the card: go on, past the beat; in the beat: end it). */
   skip() {
     if (this.done) return;
     if (this.phase === 'card') return this.dismiss(true);
+    if (this.phase === 'beat') return this.enter('out');
     if (this.phase === 'out') return;
     if (!this.fanfared) this.sound?.fanfare?.();
     this.fanfared = true;
@@ -190,12 +218,31 @@ export class BoxScene {
     this.cardT = CARD_MIN;   // (a skip already pressed: the next press dismisses)
   }
 
-  /** E / click on the card. force: skip the minimum time. */
+  /** E / click on the card: on to the closing beat. force (a skip): no minimum time, and past the beat. */
   dismiss(force = false) {
     if (this.phase !== 'card') return false;
     if (!force && this.cardT < CARD_MIN) return false;
-    this.enter('out');
+    this.enter(force ? 'out' : 'beat');
     return true;
+  }
+
+  /**
+   * The 'point' beat's turn (rad, + to his right): toward the nearest unopened box (pointAt(), from
+   * index.js), at most ~70° (the shot turns with him); straight ahead with none left.
+   */
+  pointAngle() {
+    const at = this.pointAt?.();
+    if (!at) return 0;
+    const me = this.P(0, 0, STAND_AT), dx = at.x - me.x, dz = at.z - me.z;
+    const lx = dx * this.S.x + dz * this.S.z, lz = dx * this.F.x + dz * this.F.z;
+    if (Math.hypot(lx, lz) < 1) return 0;
+    return THREE.MathUtils.clamp(Math.atan2(lx, -lz), -1.2, 1.2);
+  }
+
+  /** A point near the traveller (x his right, y up from his feet, z behind him), turned with him; box-local [x, y, z]. */
+  near(x, y, z) {
+    const c = Math.cos(this.turn ?? 0), s = Math.sin(this.turn ?? 0);
+    return [x * c - z * s, y + (this.ground - this.box.pos.y), STAND_AT + x * s + z * c];
   }
 
   /** Per frame, after the player's own update. Returns true while it plays. */
@@ -211,7 +258,7 @@ export class BoxScene {
 
   frame(dt) {
     this.t += dt;
-    const T = TIMES, ph = this.phase;
+    const T = this.times ?? TIMES, ph = this.phase, WS = this.wobbles ?? WOBBLES;
     if (ph === 'card') this.cardT += dt;
     if (T[ph] !== undefined && this.t >= T[ph]) this.enter(ORDER[ORDER.indexOf(ph) + 1]);
     const at = ORDER.indexOf(this.phase), t = this.t;
@@ -227,7 +274,7 @@ export class BoxScene {
     // the wobbles (like a caught thing deciding): a rock about its heart, a knock, a ray of light across it
     let lean = 0, pitch = 0, wob = -1;
     if (this.phase === 'wobble') {
-      WOBBLES.forEach((w, i) => {
+      WS.forEach((w, i) => {
         const u = t - w.at;
         if (u >= 0 && u <= w.dur) { lean = wobbleAngle(w, u); pitch = 0.25 * wobbleAngle(w, u - 0.04); wob = i; }
         if (u >= 0 && this.wobbled <= i) { this.wobbled = i + 1; this.sound?.boxWobble?.(i); }
@@ -246,19 +293,20 @@ export class BoxScene {
       _c.set(0, hh, 0).applyQuaternion(_q);
       root.position.set(B.pos.x, B.pos.y + LIFT * lift + bob + hh, B.pos.z).sub(_c);
       // a little squash on each knock
-      const knock = wob >= 0 ? Math.max(0, 1 - (t - WOBBLES[wob].at) / 0.12) : 0;
+      const knock = wob >= 0 ? Math.max(0, 1 - (t - WS[wob].at) / 0.12) : 0;
       root.scale.set(BOX_SCALE * (1 + 0.04 * knock), BOX_SCALE * (1 - 0.05 * knock), BOX_SCALE * (1 + 0.04 * knock));
     }
     if (this.phase === 'dissolve') this.setDissolve(smooth(t / T.dissolve));
     // ---- light: the marks brighten, then it pours out as it comes apart
     const pour = this.phase === 'wake' ? 0.3 * smooth(t / T.wake) : this.phase === 'rise' ? 0.3 + 0.2 * smooth(t / T.rise)
-      : this.phase === 'wobble' ? 0.5 + 0.25 * Math.abs(lean) / 0.29 : this.phase === 'dissolve' ? 0.5 + 0.5 * easeOut(t / 0.6) : this.phase === 'out' ? 1 - smooth(t / OUT_TIME) : after('dissolve') ? 1 : 0;
+      : this.phase === 'wobble' ? 0.5 + 0.25 * Math.abs(lean) / 0.29 : this.phase === 'dissolve' ? 0.5 + 0.5 * easeOut(t / 0.6)
+      : this.phase === 'beat' ? 1 - 0.35 * smooth(t / T.beat) : this.phase === 'out' ? (this.acted ? 0.65 : 1) * (1 - smooth(t / (this.outTime ?? OUT_TIME))) : after('dissolve') ? 1 : 0;
     B.sceneLight = pour;
     // ---- the ray across it: racing as it wakes and rises; one pass with each wobble; then bright
     if (A) {
       if (this.phase === 'wobble') {
         // each wobble sends one pass across it (the clock set so the pass starts with the knock)
-        const w = wob >= 0 ? WOBBLES[wob] : null;
+        const w = wob >= 0 ? WS[wob] : null;
         if (w) A.w = this.rayBase + wob + 0.7 * Math.min(1, (t - w.at) / (w.dur * 0.9));
         else A.w = this.rayBase + this.wobbled - 1 + 0.85;   // (a rest: the ray has crossed, its trail fading)
         A.x = 1;
@@ -276,13 +324,17 @@ export class BoxScene {
         this.model.scale.setScalar(ITEM_SCALE);
       } else if (this.phase === 'out') {
         const u = smooth(t / 0.6), chest = this.P(0, 1.2, STAND_AT);
+        const s0 = this.model.scale.x;
         this.model.position.copy(this.from).lerp(chest, u);
-        this.model.scale.setScalar(Math.max(1e-3, ITEM_SCALE * (1 - u)));
+        this.model.scale.setScalar(Math.max(1e-3, Math.min(s0, ITEM_SCALE * (1 - u))));
         if (u >= 1) this.model.visible = false;
       }
+      for (const m of this.fluid) { m.uniforms.uFluidA.value.set(1, 4, time, 0); }
+    }
+    if (this.phase === 'beat') this.beatFrame(t, time);
+    else if (this.model.visible) {
       this.model.position.y += Math.sin(time * 2.2) * 0.04;
       this.model.rotation.set(0.15 * Math.sin(time * 0.9), time * 1.1, 0);
-      for (const m of this.fluid) { m.uniforms.uFluidA.value.set(1, 4, time, 0); }
       // sparkles orbit and twinkle
       const sp = this.sparkles;
       sp.visible = this.model.visible && this.phase !== 'out';
@@ -296,7 +348,7 @@ export class BoxScene {
     }
     // ---- the camera
     this.camera(dt, time);
-    if (this.phase === 'out' && this.t >= OUT_TIME) this.end();
+    if (this.phase === 'out' && this.t >= (this.outTime ?? OUT_TIME)) this.end();
   }
 
   camera(dt, time) {
@@ -305,7 +357,23 @@ export class BoxScene {
     const at = ORDER.indexOf(this.phase);
     let pos, look, fov;
     const plan = BOX_PLANS[this.plan] ?? BOX_PLANS.shoulder;
-    if (at < ORDER.indexOf('reveal')) {
+    if (this.phase === 'beat') {
+      // the beat's closing shot, in the plan (beats.js closingShot), turned with him for 'point'; a slow push
+      const T = this.times.beat, t = this.t, sh = closingShot(this.beat, this.plan, 0);
+      // (the finder: from the side away from his turn, whatever the plan's side)
+      if (this.beat === 'point' && Math.sign(sh.pos[0]) !== (this.pointTurn < 0 ? 1 : -1)) { sh.pos[0] = -sh.pos[0]; sh.look[0] = -sh.look[0]; }
+      const toNear = (v) => { const r = this.near(v[0], v[1], v[2]); return this.P(r[0], r[1], r[2]); };
+      look = toNear(sh.look);
+      pos = toNear(sh.pos);
+      pos.lerp(look, 0.06 * smooth(t / T));
+      fov = sh.fov;
+      // moved on from the card's shot where the two are near, else a cut (the card's press is the edit)
+      const b = smooth(t / 0.5);
+      if (b < 1 && this.beatCamFrom.lengthSq() > 0 && this.beatCamFrom.distanceTo(pos) < 2.2) {
+        pos.lerpVectors(this.beatCamFrom, pos, b);
+        fov = this.beatFovFrom + (fov - this.beatFovFrom) * b;
+      }
+    } else if (at < ORDER.indexOf('reveal')) {
       // A (the plan's): tilting up as the box rises and pushing in
       const since = this.phaseStart('approach') ?? 0;
       const k = 1 - 0.18 * smooth(since / 4.4), lift = this.lift ?? 0;
@@ -345,6 +413,7 @@ export class BoxScene {
     }
     // a breath of handheld drift
     pos.x += Math.sin(time * 0.7) * 0.012; pos.y += Math.sin(time * 0.9) * 0.01;
+    this.camPos.copy(pos); this.camFov = fov;
     cam.shot({ pos, look, fov });
   }
 
@@ -353,8 +422,109 @@ export class BoxScene {
     const i = ORDER.indexOf(name), j = ORDER.indexOf(this.phase);
     if (j < i) return null;
     let s = this.t;
-    for (let k = i; k < j; k++) s += TIMES[ORDER[k]] ?? 0;
+    for (let k = i; k < j; k++) s += (this.times ?? TIMES)[ORDER[k]] ?? 0;
     return s;
+  }
+
+  /**
+   * The closing beat (beats.js), per frame: the item to his hand (or lapel, lips, shoulder), the act
+   * (a spray of light, a turn in the hand, a click on the pack, a thread toward a box, notes rising),
+   * then away (pocketed, on the pack, worn). 'point' turns him toward where it points.
+   */
+  beatFrame(t, time) {
+    const name = this.beat, B = BEATS[name], { toHold, toStow } = beatPath(name, t), m = this.model, sp = this.sparkles;
+    const P = this.player, s = this.sound;
+    // he turns (the finders): eased, the shot and his hands turning with him
+    if (this.pointTurn) {
+      this.turn = this.pointTurn * smooth((t - 0.3) / 0.65);
+      if (P) {
+        P.heading = this.heading0 - this.turn;
+        if (P.object) P.frame?.quaternion?.(P.heading, P.object.quaternion);
+      }
+    }
+    const hold = this.P(...this.near(...B.hold)), since = t - B.act;
+    const stow = B.stow === 'worn' ? hold : this.P(...this.near(...B.stow));
+    if (m.visible) {
+      m.position.copy(this.beatFrom).lerp(hold, toHold);
+      // (on the way from the hover a little arc up, so it reads as handed over, not slid)
+      m.position.y += Math.sin(Math.PI * toHold) * 0.12 * (1 - toStow);
+      m.position.lerp(stow, toStow);
+      const sc = ITEM_SCALE * (1 + (B.scale - 1) * toHold) * (1 - toStow);
+      m.scale.setScalar(Math.max(1e-3, sc));
+      const face = (this.box.yaw + Math.PI) - this.turn;   // (his heading: the item faces where he does)
+      if (name === 'try') {
+        // held out and fired once: a kick back along his arm
+        const kick = since > 0 ? Math.exp(-since / 0.12) * Math.min(1, since / 0.03) : 0;
+        _d.copy(this.F).multiplyScalar(0.08 * kick);
+        m.position.add(_d);
+        m.rotation.set(-0.25 * kick, face + 0.15 * Math.sin(time * 1.4) * (1 - toHold), 0);
+      } else if (name === 'keep') {
+        // turned over in his fingers, once round, a tilt as he looks at it
+        const k = smooth((t - 0.35) / 0.85);
+        m.rotation.set(0.5 * Math.sin(k * Math.PI), face + k * Math.PI * 2, 0.35 * Math.sin(k * Math.PI * 2));
+      } else if (name === 'point') {
+        m.rotation.set(-0.5 * toHold, face, 0);
+      } else {
+        m.rotation.set(0.1 * Math.sin(time * 1.3), face + (name === 'fit' ? (1 - toHold) * 2 : 0), 0);
+      }
+      if (toStow >= 1) m.visible = false;
+    }
+    // the act, once
+    if (!this.acted && since >= 0) {
+      this.acted = true;
+      if (name === 'try') s?.fluidShoot?.(this.def?.kind === 'mode' ? this.item : 'shoot');
+      else if (name === 'wear') s?.boxAnswer?.(1.4);
+      else if (name === 'fit') s?.fluidMode?.('shoot');
+      else if (name === 'keep') s?.boxAnswer?.(0.6);
+      else if (name === 'point') { s?.boxAnswer?.(0.5); this.answerAt = t + 0.7; }
+      else if (name === 'play') {
+        if (this.item === 'bell') s?.bell?.();
+        else s?.tune?.([[587.3, 1], [784, 1], [698.5, 1], [880, 2]], 0.16, 'flute', 0.1);
+      }
+    }
+    if (this.answerAt && t >= this.answerAt) { this.answerAt = 0; s?.boxAnswer?.(0.35); }   // (far off, the box it points to answers)
+    // the sparkles: each beat's light
+    sp.visible = since > 0 && since < 1.1 || (since <= 0 && m.visible);
+    sp.position.copy(m.visible ? m.position : stow);
+    sp.scale.setScalar(ITEM_SCALE * 0.6);
+    const n = sp.children.length;
+    sp.children.forEach((c, i) => {
+      const u = c.userData, f = i / n;
+      let x = 0, y = 0, z = 0, size = 0;
+      if (since <= 0) {
+        // gathered close round it, twinkling, while it comes to him
+        const a = u.a + time * u.sp * 1.5;
+        x = Math.cos(a) * u.r * 0.6; y = u.y * 0.15; z = Math.sin(a) * u.r * 0.6;
+        size = Math.pow(Math.max(0, Math.sin(time * 3.1 + u.ph)), 3) * 0.8;
+      } else {
+        const k = Math.min(1, since / 0.9), fade = Math.max(0, 1 - since / 1.1);
+        const lx = (v) => v / (ITEM_SCALE * 0.6);   // (metres to the group's units)
+        if (name === 'try' || name === 'point') {
+          // a spray ahead of him (a thread for the finder, further and straighter), from the item
+          const reach = name === 'point' ? 7 : 2.6, spread = name === 'point' ? 0.04 : 0.35;
+          const d = reach * (1 - Math.pow(1 - k, 2)) * (0.55 + 0.45 * ((i * 7) % n) / n);
+          const ax = Math.sin(u.a) * spread, ay = Math.cos(u.a * 1.3) * spread * 0.6 + (name === 'point' ? 0.05 : 0.08);
+          const fw = this.near(ax, 0, -1); const o = this.near(0, 0, 0);   // his forward, box-local
+          const dirx = fw[0] - o[0], dirz = fw[2] - o[2];
+          // box-local to world (no translation)
+          const wx = this.S.x * dirx + this.F.x * dirz, wz = this.S.z * dirx + this.F.z * dirz;
+          x = lx(wx * d); y = lx(ay * d); z = lx(wz * d);
+          size = (name === 'point' ? 2.6 : 3) * fade;
+        } else if (name === 'play') {
+          // notes rising off it, one after another, drifting
+          const k2 = THREE.MathUtils.clamp((since - f * 0.6) / 0.7, 0, 1);
+          x = lx(Math.sin(u.a) * 0.25 * k2); y = lx(0.55 * k2); z = lx(Math.cos(u.a) * 0.25 * k2);
+          size = k2 > 0 && k2 < 1 ? 2.2 * Math.sin(k2 * Math.PI) : 0;
+        } else {
+          // a ring of light opening round where it went (pinned, pocketed, fitted)
+          const r = 0.06 + (name === 'wear' ? 0.12 : 0.3) * easeOut(k);   // (the lapel's close-up: a small one)
+          x = lx(Math.cos(u.a) * r); y = lx(u.y * 0.08); z = lx(Math.sin(u.a) * r);
+          size = 2 * fade;
+        }
+      }
+      c.position.set(x, y, z);
+      c.scale.setScalar(Math.max(1e-3, size));
+    });
   }
 
   end() {
