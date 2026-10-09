@@ -74,7 +74,7 @@ class Kit {
 }
 
 /** Push every vertex out along its normal by a little noise (rough rock), deterministically. */
-function rough(g, amount, freq = 0.3, seed = 0) {
+export function rough(g, amount, freq = 0.3, seed = 0) {
   g = g.index ? g.toNonIndexed() : g;
   g.computeVertexNormals();
   const p = g.attributes.position, n = g.attributes.normal;
@@ -83,7 +83,10 @@ function rough(g, amount, freq = 0.3, seed = 0) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
     const k = Math.sin(x * freq + seed) * Math.cos(z * freq * 1.3 - seed) + 0.5 * Math.sin((x + y + z) * freq * 2.1 + seed * 2);
     const r = Math.hypot(x, z) || 1;
-    p.setXYZ(i, x + (x / r) * k * amount, y + k * amount * 0.25, z + (z / r) * k * amount);
+    // (a dome's foot ring, y = 0, only ever goes down: lifted, it opened a slit between the floor and the wall
+    // that the sun shone through, a lit seam round the hall's floor; down, it stands in the floor)
+    const dy = k * amount * 0.25;
+    p.setXYZ(i, x + (x / r) * k * amount, y + (Math.abs(y) < 0.01 ? -Math.abs(dy) : dy), z + (z / r) * k * amount);
   }
   void n;
   g.computeVertexNormals();

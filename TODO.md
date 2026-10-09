@@ -7,7 +7,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [ ] Redo the character's face to match the references more closely and feel less cartoony / anime.
   Pay particular attention to the eyes as a possible cause of the style mismatch.
-- [ ] Fix shadow artifacts in caves and interiors.
 - [ ] Make the debug menu easier to navigate with a controller: use a grid layout and smaller level cards.
 - [ ] Put button prompts inside the actual buttons in all menus, instead of in hints below them.
 - [ ] Show button prompts that match the connected controller.
@@ -52,10 +51,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
   panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
   the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
-- [ ] The spot blacks (post.js enclosure) are screen-space with fixed taps: on stepped geometry (the tree's
-  stairs, terrace risers) the masses come in blocks that shift as the camera moves, worst on Handheld's 4
-  taps. People no longer leave ghosts in them (DONE.md); the blocks themselves want a steadier estimate
-  (world-space, or a wider threshold for 4 taps) checked against the desert's sheets.
 - [ ] Touch controls on a phone held sideways (812 x 375) cover the right half of the view, the button
   cluster reaching the top edge; scale the cluster with the screen's height. (Resolution audit, 9 October.)
 - [ ] The pause menu's footer ("Your progress is saved as you play.") sits a pixel under the bottom at

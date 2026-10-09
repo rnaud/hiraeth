@@ -207,23 +207,41 @@ Shader "Hidden/Memento/Composite"
         return saturate(ao / max(seen, 1.0) * 2.2);
       }
 
-      // spot blacks: how enclosed a point is at the scale of a pocket (post.js enclosure: fixed directions, no jitter)
+      // spot blacks: how enclosed a point is at the scale of a pocket (post.js enclosure): its taps lie on its surface,
+      // along axes tied to the world (level along its contour and straight up it; the world's x on level ground: post.js SPOT_FRAME),
+      // their size swelling with two slow waves across the world (SPOT_SWELL), each projected to the screen; no jitter
+      float2 spotUv(float3 S, float2 rA, float2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
       float enclosure(float2 uv, float3 nW, float d, float R, int taps)
       {
-        float3 P = viewPos(uv, d);
-        float3 nV = normalize(mul(transpose((float3x3)_CamWorld), nW));
-        float2 s = clamp(R * _Proj11 * 0.5 * _Res.y / d, 4.0, 96.0) * _Res.zw;
+        float2 rB = viewPos(float2(0.0, 0.0), 1.0).xy, rA = viewPos(float2(1.0, 1.0), 1.0).xy - rB;
+        float3 P = float3(uv * rA + rB, -1.0) * d;
+        float3x3 toView = transpose((float3x3)_CamWorld);
+        float3 nV = normalize(mul(toView, nW));
+        float k = _Proj11 * 0.5 * _Res.y;
+        float Rm = clamp(R * k / d, 4.0, 96.0) * d / k;
+        float3 n = normalize(nW);
+        float3 wall = float3(n.z, 0.0, -n.x) * ((n.z < 0.0 ? -1.0 : 1.0) * rsqrt(max(n.x * n.x + n.z * n.z, 1e-8)));
+        float3 lvl = float3(1.0 - n.x * n.x, -n.x * n.y, -n.x * n.z) * rsqrt(max(1.0 - n.x * n.x, 1e-8));
+        float3 t1 = normalize(lerp(wall, lvl, smoothstep(0.995, 0.9995, abs(n.y))));
+        float3 t2 = cross(n, t1);
+        float3 Pw = mul(_CamWorld, float4(P, 1.0)).xyz / (R * 0.8);
+        float swell = 0.5 + 0.25 * (sin(dot(Pw, float3(5.215, 2.576, 2.325))) + sin(dot(Pw, float3(-2.502, 4.573, 6.817))));
+        Rm *= lerp(0.6, 1.4, swell);
+        t1 = mul(toView, t1) * Rm; t2 = mul(toView, t2) * Rm;
         float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0, seen = 0.0;
-        int n = taps == 8 ? 8 : 4;
-        for (int i = 0; i < n; i++)
+        int n8 = taps == 8 ? 8 : 4;
+        for (int i = 0; i < n8; i++)
         {
-          float a = 0.39 + i * 6.2832 / n, rr = (i % 2) ? 0.55 : 1.0;
-          float2 suv = uv + float2(cos(a), sin(a)) * rr * s;
-          float sd = tN(suv).w;
-          if (sd <= 0.0) { seen += 1.0; continue; }   // (the sky: open)
-          // (a tap on a person is left out, neither open nor closed: post.js notPerson / occlusionShare)
+          float a = 0.39 + i * 6.2832 / n8, rr = (i % 2) ? 0.55 : 1.0;
+          float3 o = (cos(a) * t1 + sin(a) * t2) * rr;
+          float2 suv = spotUv(P + o, rA, rB);
+          // (a tap on a person looks past them, twice as far out; still on one, it is left out, neither open nor
+          // closed: post.js notPerson / occlusionShare)
           float np = step(fmod(tH(suv).a, 8.0), 1.5);
-          float3 v = viewPos(suv, sd) - P;
+          if (np < 0.5) { suv = spotUv(P + 2.0 * o, rA, rB); np = step(fmod(tH(suv).a, 8.0), 1.5); }
+          float sd = tN(suv).w;
+          if (sd <= 0.0) { seen += np; continue; }   // (the sky: open)
+          float3 v = float3(suv * rA + rB, -1.0) * sd - P;
           float dist = length(v);
           occ += np * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
           seen += np;

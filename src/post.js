@@ -58,6 +58,40 @@ export const OCCLUSION_TAPS = {
   spot: (n) => Array.from({ length: n }, (_, i) => { const a = 0.39 + (i * 6.2832) / n, r = i % 2 ? 0.55 : 1; return [Math.cos(a) * r, Math.sin(a) * r]; }),
 };
 /**
+ * The spot blacks' taps lie on the surface, in its tangent plane, along axes tied to the world (enclosure): the
+ * first axis is level, along the surface's contour, and the second runs straight up (or down) it, so every wall,
+ * riser and terrace face, whichever way it looks, asks the same places (as many below as above); only on level
+ * ground, where a contour has no direction, the first is the world's x axis laid on the surface (blended in over
+ * |n.y| from `blend[0]` to `blend[1]`: slopes under 6°). The tap patterns are the same turned half a turn
+ * (SPOT_TAPS8, SPOT_TAPS4: tap i and tap i + n/2 are opposite), so an axis's sign doesn't matter. The one place the
+ * frame jumps (a field of contours can't close smoothly over the top of a hill) is inside that blend, on slopes
+ * of 2-6° facing along x, where nothing makes a pocket. tests/occlusion-taps.test.js.
+ */
+export const SPOT_FRAME = { blend: [0.995, 0.9995] };
+/**
+ * The spot taps' slow swell: their radius × `range[0]`…`range[1]`, by two sine waves across the world (`waves`:
+ * their directions × 2π, over a length of `scale` × R), the same at a point whatever the view (enclosure).
+ */
+export const SPOT_SWELL = { range: [0.6, 1.4], scale: 0.8, waves: [[5.215, 2.576, 2.325], [-2.502, 4.573, 6.817]] };
+/** The swell at world point p ([x, y, z]) for a pocket of R metres, as the shader works it out (0..1). */
+export function spotSwell(p, R) {
+  const q = p.map((x) => x / (R * SPOT_SWELL.scale));
+  return 0.5 + 0.25 * (Math.sin(_dot(q, SPOT_SWELL.waves[0])) + Math.sin(_dot(q, SPOT_SWELL.waves[1])));
+}
+const _cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const _dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const _unit = (a) => { const l = Math.max(Math.hypot(...a), 1e-4); return a.map((x) => x / l); };
+/** The tangent axes [t1, t2] of a unit world normal n, as the shader builds them (enclosure's spotFrame). */
+export function spotFrame(n) {
+  const [lo, hi] = SPOT_FRAME.blend;
+  const wall = _unit(_cross([0, 1, 0], n));                                  // level, along the face
+  const flat = _unit([1 - n[0] * n[0], -n[0] * n[1], -n[0] * n[2]]);         // x laid on the surface
+  const s = _dot(wall, flat) < 0 ? -1 : 1;
+  const t = Math.min(1, Math.max(0, (Math.abs(n[1]) - lo) / (hi - lo))), w = t * t * (3 - 2 * t);
+  const t1 = _unit(wall.map((x, i) => x * s * (1 - w) + flat[i] * w));
+  return [t1, _cross(n, t1)];
+}
+/**
  * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js enclosure and
  * creaseAO): taps = [{ c (0..1, how much this one closes in), person }]. A tap on a person is left out (neither
  * open nor closed: the person hides what stands behind); none left: 0 (open).
@@ -68,6 +102,8 @@ export function occlusionShare(taps) {
   return occ / Math.max(seen, 1);
 }
 
+/** A GLSL vec3 literal. */
+export const glslVec3 = ([x, y, z]) => `vec3(${x.toFixed(4)}, ${y.toFixed(4)}, ${z.toFixed(4)})`;
 /** A GLSL constant array of vec2s. */
 export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = vec2[${list.length}](${list.map(([x, y]) => `vec2(${x.toFixed(7)}, ${y.toFixed(7)})`).join(', ')});`;
 
@@ -477,43 +513,69 @@ const fragmentShader = /* glsl */ `
   }
 
   // ---------------------------------------------------------------- spot blacks
-  // How enclosed a point is, at the scale of a pocket (R metres): from fixed directions round it in
-  // screen space (no jitter: the estimate is smooth from pixel to pixel, so a hard threshold of it is a
-  // clean-edged mass), the share of the neighbours standing in front of its face (a person never counts:
-  // notPerson; a tap landing on one looks past them, twice as far out, and is left out of the share if that
-  // lands on a person too: occlusionShare). taps: 8, or 4 (handheld).
-  // The directions are constants (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a
-  // perspective camera: ray(uv) = (uv * rA + rB, -1)), and a tap on the sky weighs 0 instead of a
-  // skip: the same estimate at a fraction of its cost (docs/systems/performance.md).
+  // How enclosed a point is, at the scale of a pocket (R metres): the share of its neighbours standing in front
+  // of its face. The neighbours are looked for at fixed points round it ON ITS SURFACE, in a frame tied to the
+  // world (SPOT_FRAME: level and up the face on a wall, the world's x on level ground), each projected
+  // to the screen where the depth buffer says what stands there. Taps fixed on the screen (before) put every
+  // tap offset's copy of an edge in a different place on the surface as the view turned: on stepped geometry
+  // (the tree's stairs, a terrace's face, a room's corners) the masses came in blocks that slid and changed
+  // shape with every camera move, worst with the handheld's 4 taps. Anchored to the surface, a point asks
+  // the same places whatever the view (the masses stay put; only what the depth buffer can see changes), and
+  // the estimate is still smooth from pixel to pixel (no jitter: a hard threshold of it is a clean-edged mass).
+  // The radius is R metres, kept between 4 and 96 pixels on the screen as before. A person never counts
+  // (notPerson: a tap landing on one looks past them, twice as far out, and is left out of the share if that
+  // lands on a person too: occlusionShare). taps: 8, or 4 (handheld). The in-plane offsets are constants
+  // (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a perspective camera: ray(uv) = (uv * rA + rB, -1),
+  // so a view-space point S is at uv = (S.xy / -S.z - rB) / rA), and a tap on the sky weighs 0 instead of a
+  // skip (docs/systems/performance.md, docs/systems/rendering.md "Spot blacks anchored to the surface").
+  vec2 spotUv(vec3 S, vec2 rA, vec2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
+  float spotTap(vec2 suv, vec3 P, vec3 nV, vec2 rA, vec2 rB, float r1, float r2) {
+    float sd = texture(tNormal, suv).w;
+    vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
+    float dist = length(v);
+    return step(0.0, sd) * sign(sd)   // (the sky: open)
+      * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+  }
   float enclosure(vec2 uv, vec3 nW, float d, float R, int taps) {
     vec2 rB = viewPos(vec2(0.0), 1.0).xy, rA = viewPos(vec2(1.0), 1.0).xy - rB;
     vec3 P = vec3(uv * rA + rB, -1.0) * d;
-    vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
-    vec2 s = clamp(R * uProj11 * 0.5 * uRes.y / d, 4.0, 96.0) / uRes;
+    mat3 toView = transpose(mat3(uCamWorld));
+    vec3 nV = normalize(toView * nW);
+    float k = uProj11 * 0.5 * uRes.y;
+    float Rm = clamp(R * k / d, 4.0, 96.0) * d / k;
+    // the surface's own axes, tied to the world (SPOT_FRAME: level and up a wall, x on level ground, blended
+    // between), in view space, R metres long (4 to 96 px on screen)
+    // (level along a wall: cross(up, n) = (n.z, 0, -n.x); x laid on the ground: x - n n.x; their dot is n.z, so
+    // the wall's axis is turned to agree with the ground's before they blend)
+    vec3 n = normalize(nW);
+    vec3 wall = vec3(n.z, 0.0, -n.x) * ((n.z < 0.0 ? -1.0 : 1.0) * inversesqrt(max(n.x * n.x + n.z * n.z, 1e-8)));
+    vec3 level = vec3(1.0 - n.x * n.x, -n.x * n.y, -n.x * n.z) * inversesqrt(max(1.0 - n.x * n.x, 1e-8));
+    vec3 t1 = normalize(mix(wall, level, smoothstep(${SPOT_FRAME.blend[0].toFixed(4)}, ${SPOT_FRAME.blend[1].toFixed(4)}, abs(n.y))));
+    vec3 t2 = cross(n, t1);
+    // the pattern's size breathes with two slow waves across the world (SPOT_SWELL): the same at a point whatever
+    // the view, continuous over a surface, so the edge a tap's copy of a rib or a jamb draws waves with it instead
+    // of stacking into rectangular blocks with its neighbours' (the directions stay: a riser keeps its taps below)
+    vec3 Pw = (uCamWorld * vec4(P, 1.0)).xyz / (R * ${SPOT_SWELL.scale.toFixed(2)});
+    float swell = 0.5 + 0.25 * (sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[0])})) + sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[1])})));
+    Rm *= mix(${SPOT_SWELL.range[0].toFixed(2)}, ${SPOT_SWELL.range[1].toFixed(2)}, swell);
+    t1 = toView * t1 * Rm; t2 = toView * t2 * Rm;
     float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0, seen = 0.0;
     if (taps == 8) {
       for (int i = 0; i < 8; i++) {
-        vec2 o = SPOT_TAPS8[i] * s, suv = uv + o;
+        vec3 o = SPOT_TAPS8[i].x * t1 + SPOT_TAPS8[i].y * t2;
+        vec2 suv = spotUv(P + o, rA, rB);
         float np = notPerson(suv);
-        if (np < 0.5) { suv = uv + 2.0 * o; np = notPerson(suv); }   // (on a person: look past them)
-        float sd = texture(tNormal, suv).w;
-        vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
-        float dist = length(v);
-        float c = step(0.0, sd) * sign(sd)   // (the sky: open)
-          * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
-        occ += c * np; seen += np;
+        if (np < 0.5) { suv = spotUv(P + 2.0 * o, rA, rB); np = notPerson(suv); }   // (on a person: look past them)
+        occ += spotTap(suv, P, nV, rA, rB, r1, r2) * np; seen += np;
       }
       return occ / max(seen, 1.0);
     }
     for (int i = 0; i < 4; i++) {
-      vec2 o = SPOT_TAPS4[i] * s, suv = uv + o;
+      vec3 o = SPOT_TAPS4[i].x * t1 + SPOT_TAPS4[i].y * t2;
+      vec2 suv = spotUv(P + o, rA, rB);
       float np = notPerson(suv);
-      if (np < 0.5) { suv = uv + 2.0 * o; np = notPerson(suv); }   // (on a person: look past them)
-      float sd = texture(tNormal, suv).w;
-      vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
-      float dist = length(v);
-      float c = step(0.0, sd) * sign(sd) * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
-      occ += c * np; seen += np;
+      if (np < 0.5) { suv = spotUv(P + 2.0 * o, rA, rB); np = notPerson(suv); }   // (on a person: look past them)
+      occ += spotTap(suv, P, nV, rA, rB, r1, r2) * np; seen += np;
     }
     return occ / max(seen, 1.0);
   }

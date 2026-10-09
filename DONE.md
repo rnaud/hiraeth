@@ -1287,3 +1287,25 @@ tests/sound-mix.test.js holds them.
   and the journal spells it (flag arzach.hand.hint), after three the next knuckle glints. The hand's and
   Kesh's lines mention the dots. tests/knuckle-riddle.test.js, tests/story-arzach.test.js. Checked in
   headless Chrome from in front of the palm.)
+
+## Shadows in caves and interiors (2026-10-09)
+
+- [x] Fix shadow artifacts in caves and interiors. (Looked at in headless Chrome with the light term (debug 5)
+  and the spot masks (debug 10): the desert's two caves, the ship's deck, the City-Shaft's villas, the Signal
+  Market's and the Buried Machine's temple halls, the Machine's oculus drum. Two causes. A lit seam round the
+  floor of both desert caves: their domes' roughening (desert-city.js / desert-hearth.js `rough`) lifted the
+  foot ring by up to 0.6 m in places, a slit the sun shone through; the foot now only goes down into the floor
+  (tests/cave-seams.test.js). And dark rectangular blocks on the cave walls, in the rooms' corners and round
+  their furniture, changing shape as the camera moved: the spot blacks' screen-fixed taps (next item). The
+  ship's deck, the villas' and halls' light terms were clean: no acne, no light through walls. Left: a thin lit
+  line under some temple hall doors seen from afar, not reproduced close up.)
+- [x] Steadier spot blacks on stepped geometry. (post.js `enclosure`: its taps now lie on the surface, along
+  axes tied to the world (level along it and straight up it; the world's x on level ground: `SPOT_FRAME`), each
+  projected to the screen, so a point asks the same places whatever the view and every riser has as many taps
+  below as above: the masses stay put as the camera moves, on 4 taps as on 8. Their radius swells 0.6-1.4×
+  with two slow waves across the world (`SPOT_SWELL`), so the copies of a rib's or a jamb's edge the taps draw
+  wave instead of stacking into rectangles. tests/occlusion-taps.test.js: a twin of both estimates on a
+  raycast staircase (a riser at 4 taps went 0.25-0.50 across a 80° swing, crossing the 0.3 threshold; now
+  0.40-0.50), the frame's and the swell's properties. Checked against the desert's sheets in the References
+  (tower, sails, wreck, bridges, ribs, dish city, slot canyon: the same masses). Cost: no measurable change
+  (docs/systems/rendering.md). The Unity composite takes the same estimate.)

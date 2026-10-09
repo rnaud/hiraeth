@@ -504,8 +504,7 @@ the same placed views; the light term, `params.debug` 5, and the spot masks, 10,
   reading the flags for a tap that would close something in or that stands nearer than the point (a person
   hiding what is behind them is nearer), so most taps still skip the read. The Unity port's Composite.shader
   had no person test; it takes the same rule. The shadow maps were checked and are not involved (they follow
-  the player, snapped to texels). What remains: on stepped geometry the spot blacks come in blocks that move
-  with the camera (fixed screen-space taps, 4 on Handheld): TODO.md.
+  the player, snapped to texels). What remained (blocks on stepped geometry that moved with the camera) is the next section.
 - **Shadows popping in after a turn** (shadows.js `VIEW_SLACK`, `viewOf`, `viewLeft`). The caster culling
   drops what can't shade the view, for the view of the frame a map is drawn in; the far map is drawn every
   3rd frame (4th on Handheld) and the near map every 2nd on the handheld presets, and looked at from the next
@@ -526,6 +525,49 @@ shimmered more in a slow pan (the Buried Machine: 26.7 → 30.8).
 `tests/shadows.test.js` (the slack keeps a tower 4° off screen and still drops one 30° off; when a map is
 redrawn), `tests/motion-stable.test.js` (the deep lookup near the terminator), `tests/occlusion-taps.test.js`
 (people close nothing in, for every flag they may carry).
+
+## Spot blacks anchored to the surface; cave seams (October 2026)
+
+The playtest: on the tree's stairs and the terraces the spot blacks came in blocks that shifted as the camera
+moved, worst on Handheld's 4 taps; and "shadow artifacts in caves and interiors". Looked at in headless Chrome
+(the light term, debug 5; the spot masks, debug 10) in the desert's two caves, the ship's deck, the City-Shaft's
+villas, temple halls (the Signal Market's, the Buried Machine's) and the Machine's oculus drum.
+
+- **A lit seam round the caves' floors** (desert-city.js, desert-hearth.js `rough`). Both caves are rough domes
+  on a flat floor; the roughening moved every vertex up or down too, so the dome's foot ring rose up to 0.6 m in
+  places and the sun shone in through the slit: a bright line all round the floor in the dome's shade. The foot
+  ring (y = 0) now only goes down, into the floor. `tests/cave-seams.test.js`.
+- **Blocks that slid with the view** (post.js `enclosure`). The enclosure is the share of a point's neighbours
+  standing in front of its face; the neighbours were read at fixed offsets on the screen. Each tap draws a copy
+  of every edge near it (a rib, a jamb, a riser's foot), offset by the tap; a hard threshold of their sum is a
+  union of such copies, so rectangles and staircases, and since the offsets were screen directions they landed
+  on different places of the surface at every camera angle. A riser at 4 taps had one tap or two below its foot
+  depending on the view: 0.25 to 0.50 over an 80° swing round it, across the 0.3 threshold, so the risers' masses
+  came and went. Now the taps lie **on the surface**, in its tangent plane, along axes tied to the world
+  (`SPOT_FRAME`: level along the surface's contour and straight up it; on level ground, where a contour has no
+  direction, the world's x laid on it, blended in under 6° of slope), each projected to the screen (the view ray
+  is affine in uv, so a view-space point S is at `uv = (S.xy / -S.z - rB) / rA`) where the depth buffer says what
+  stands there; the test of each neighbour is the same as before. A point then asks the same places whatever the
+  view, and every wall and riser has as many taps below as above (the patterns are their own half turn, so an
+  axis's sign doesn't matter): the riser reads 0.40-0.50 from every side, on 4 taps as on 8. The radius is still
+  R metres held between 4 and 96 pixels.
+- **Wavy, not rectangular** (`SPOT_SWELL`). The tap radius swells 0.6-1.4× with two slow sine waves across the
+  world (0.8 R long): the same at a point whatever the view, continuous over a surface, so the copies of an edge
+  wave and the masses on a cave's ribbed dome or round a room's cabinet come out as brushed shapes rather than
+  stacked blocks. (Turning the pattern instead bent them more but cost the risers their taps below.)
+- **People**: unchanged rules (a tap on a person looks past them, twice as far out along its surface offset, and
+  is left out if that lands on one too).
+- **Checked** against the desert's sheets in the References (bones, tower, sails, wreck, bridges, 3774 ribs, dish
+  city, slot canyon; High and Handheld): the same masses, a little less speckle on the sails.
+- **Cost**: per tap one more division (the projection) and a few multiply-adds; per pixel the frame and two
+  sines. Whole frame (synced), `scripts/bench/passes.mjs`, Handheld preset at 2.5× render scale (3200 × 1800,
+  GPU-bound) on the Mac (M4 Pro), old → new build alternated: cave room 6.65 → 6.62 / 7.01 ms, Qanat tree 7.89 →
+  7.51 / 7.85 ms; at the preset's own scale 1.04-1.15 → 1.29-1.37 ms (cave room), 2.46-2.80 → 2.48-2.59 ms (tree),
+  1.16-1.27 → 1.15-1.17 ms (cave passage): within the Mac's noise. Not measured on the Retroid.
+- `tests/occlusion-taps.test.js`: the frame (on the surface, level and up a wall, x on level ground, continuous
+  outside the near-level blend), the patterns' half-turn symmetry and taps below, the swell, the Unity port's
+  constants, and a twin of both estimates on a raycast staircase (the riser steady and above the threshold).
+  The Unity port's Composite.shader takes the same estimate (and the look past a person it lacked).
 
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 
