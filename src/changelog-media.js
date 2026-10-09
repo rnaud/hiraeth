@@ -476,17 +476,17 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Go aboard your ship and stand at the back of the main room, by the lockers: the cockpit straight ahead, the galley on the left, the holo table and its curved console in the middle, the bunk’s arched alcove on the right. Debug → Cinematics → Recording 1 plays a recording at the console’s end.' },
     // the chimes, redrawn
     { match: 'Chimes have a new look: each is a long, blunt crystal', shots: [
-      { name: 'chimes-look-field', caption: 'A scatter of chimes on the desert’s sand from behind the traveller, at play distance: before, 27.5 cm shards leaning well over, the drops of five and more as ones and pale clusters, a dark smudge under each; after, smaller crystals floating upright, lower, each over a small lavender shadow, a jade five, an amber ten and a coral twenty among the cyan ones', commit: '36ec0024',
+      { name: 'chimes-look-field', caption: 'A scatter of chimes on the desert’s sand from behind the traveller, at play distance: before, 27.5 cm shards leaning well over, the drops of five and more as ones and pale clusters, a dark smudge under each; after, knee-high crystals (a one 30 cm long) floating upright, lower, each over a small lavender shadow, a jade five, an amber ten and a coral twenty among the cyan ones', commit: '612e9602', before: '87f6f105',
         view: { level: 'desert', player: CHIME_P, heading: CHIME_H, eye: chimeEye(4.6, 3.3, 0.9), target: CHIME_TGT(7.5, -0.6), fov: 50, save: SAVE_ON, wait: 2500, setup: CHIME_SAND(CHIME_FIELD_DROPS) } },
-      { name: 'chimes-look-close', caption: 'Three ones close up: before, broad leaning six-sided shards with chisel ends, high over a brown smudge; after, the reference’s long blunt crystal, broad uneven facets, a flat little cap, a blunt point, the lavender seam and the warm heart, upright and lower over a small lavender shadow', commit: '36ec0024',
+      { name: 'chimes-look-close', caption: 'Three ones close up: before, broad leaning six-sided shards with chisel ends, high over a brown smudge; after, the reference’s long blunt crystal, broad uneven facets, a flat little cap, a blunt point, the lavender seam and the warm heart, upright and lower over a small lavender shadow', commit: '612e9602', before: '87f6f105',
         view: { level: 'desert', player: chimeAway, heading: CHIME_H, save: SAVE_ON, wait: 2500, setup: CHIME_SAND([[...chimeAt(4, 0), 3]], CHIME_ROW(4.2, -0.32, 1.25, 0.14)) } },
-      { name: 'chimes-look-pull', caption: 'The nearest drawn in (held mid-flight): before, it shoots straight in, spinning fast; after, it drifts in on a curve, glowing, a trail of little lights behind it', commit: '36ec0024',
+      { name: 'chimes-look-pull', caption: 'The nearest drawn in (held mid-flight): before, it shoots straight in, spinning fast; after, it drifts in on a curve, glowing, a trail of little lights behind it', commit: '612e9602', before: '87f6f105',
         view: { level: 'desert', player: CHIME_P, heading: CHIME_H, eye: chimeEye(2.6, 1.9, 1.4), target: CHIME_TGT(1.6, 0.5), fov: 50, save: SAVE_ON, wait: 300,
           setup: CHIME_SAND([[...chimeAt(4.5, 1.5), 1], [...chimeAt(5.5, -1), 1]], `await wait(2500); { const p = chimes.list[0], [x, z] = ${JSON.stringify(chimeAt(1.3, 1.0))}; p.to.set(x, physics.groundAt(x, 60, z, 120), z); }
             await wait(300); who = player.pos; const t0 = performance.now();
             while (!chimes.list.some((q) => q.phase === 'pull' && q.pos.distanceTo(q.to.clone().setY(q.to.y + q.lift)) > 0.4) && performance.now() - t0 < 3000) await wait(2);
             frozen = true;`) } },
-      { name: 'chimes-look-reference', only: 'after', caption: 'The author’s pick (left, references/Core Objects/Currency/Floating Chime/field/sheet-1.jpg) beside the game after the change (right), from behind the traveller at play distance: the same upright crystals over small lavender shadows, a few of other worths among them, at the smaller size the author asked for (the picture draws them about as long as a leg)', from: 'the reference picture and the after picture of chimes-look-field, side by side (ImageMagick), 9 October' },
+      { name: 'chimes-look-reference', only: 'after', caption: 'The author’s pick (left, references/Core Objects/Currency/Floating Chime/field/sheet-1.jpg) beside the game after the change (right), from behind the traveller at play distance: the same upright crystals over small lavender shadows, a few of other worths among them, knee-high, as the author asked (a one 30 cm long, its top at the traveller’s knee)', from: 'the reference picture and the after picture of chimes-look-field, side by side (ImageMagick), 9 October' },
     ], numbers: [
       { title: 'Draw calls a field of chimes adds to a frame (thirty on the desert’s sand)', unit: 'draws', better: 'lower', device: 'MacBook (Apple GPU), headless Chrome, High, 1280 × 720 (each chime mesh counted as it is drawn, every pass)',
         rows: [{ where: 'the G-buffer pass (instanced)', before: 4, after: 3 }, { where: 'the shadow passes', before: 0, after: 0 }],
@@ -497,7 +497,7 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Cut down a few foes on the desert’s sand and walk toward their chimes: they float upright over small lavender shadows; come within a couple of steps and the nearest curves in to you, glowing, with a trail of light.' },
     { match: 'Chimes now come in six worths', shots: [
       { name: 'chimes-tiers', only: 'after', caption: 'The six worths side by side on the sand: cyan 1, jade 5, amber 10, coral 20, violet 50 and pearl 100, each the same crystal, larger and brighter the more it is worth', from: FROM_CHIME_LOOK,
-        view: { level: 'desert', player: chimeAway, heading: CHIME_H, save: SAVE_ON, wait: 2500, setup: CHIME_SAND([1, 5, 10, 20, 50, 100].map((n) => [...chimeAt(4, 0), n]), CHIME_ROW(4.2, -0.36, 2.3, 0.3)) }, commit: '36ec0024' },
+        view: { level: 'desert', player: chimeAway, heading: CHIME_H, save: SAVE_ON, wait: 2500, setup: CHIME_SAND([1, 5, 10, 20, 50, 100].map((n) => [...chimeAt(4, 0), n]), CHIME_ROW(4.2, -0.36, 2.3, 0.3)) }, commit: '612e9602', before: '87f6f105' },
     ], see: 'In the Arena, call a guardian into the ring and calm it: its purse falls as two coral twenties. A foe that leaves eight chimes drops a jade five and three cyan ones; pick up a big one and it rings with more notes.' },
     // the roster painted as on its sheets (src/foe-surface.js): each archetype before and after its surface, the sheet beside it
     { match: 'The foes of the new roster are painted', shots: [
@@ -532,7 +532,7 @@ export const CHANGELOG_MEDIA = {
     ], see: 'On the title, choose Debug (or press L in a world). Type a few letters to filter; on a controller LB / RB jump between sections and Y opens the filter. Open a page and come back with ◀ Debug: the page you opened has the focus.' },
     // the fluid sword, alive
     { match: 'The fluid sword feels alive', shots: [
-      { name: 'blade-alive-idle', caption: 'In the fist between cuts, close up: before and after, nothing stands out of the cup (the blade only shows through a swing), only the bead in it, which now breathes', ...ALIVE,
+      { name: 'blade-alive-idle', caption: 'In the fist between cuts, close up: before and after, nothing stands out of the cup (the blade only shows through a swing), only the bead in it, which now breathes', ...ALIVE, commit: '7d7c5917',
         view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(1500), { dist: 0.5, at: 0.05 }) } },
       { name: 'blade-alive-swing', caption: 'The first swing on its cut, close up: before, flat currents inked in black; after, the fluid bowed back by the swing, fine pale ripples and bubbles drifting up it, a bright line along the cutting edge and its skin wobbling', ...ALIVE,
         view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(250), { dist: 0.85 }) } },
