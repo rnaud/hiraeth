@@ -1,0 +1,21 @@
+changelog.md
+  s_636e79c9ee751a::t_b9736b079d1ddb 30-31
+src/changelog.js
+  s_636e79c9ee751a::t_ec82769ce3f9e3 13-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9b2a708dbd57144a097ba9cfb314b30f4295aa6",
+  "prompts": {},
+  "sessions": {
+    "s_636e79c9ee751a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11db2-8eba-7d92-a417-5ca567fe4057",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
