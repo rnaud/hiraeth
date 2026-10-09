@@ -1,5 +1,11 @@
 # Combat review, v1.6 (2026-10-09)
 
+<!-- audit-scores
+overall: 4.01 / 5
+label: the mean of the 26 totals (15 foe kinds 3.80, 11 guardians 4.29)
+date: 2026-10-09
+-->
+
 The second run of the combat-review skill (`.claude/skills/combat-review/SKILL.md`), after the body-telegraphs work
 (TODO "Combat telegraphs", docs/systems/foes.md "Telegraphs: the body, not the floor" and "The guardians' staged
 fights"). Compared with [v1.4](combat-v1.4.md).

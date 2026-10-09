@@ -14,13 +14,13 @@ import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
 import { installGlyphs } from '../pad-glyphs.js';
 import { InputMode } from '../input-mode.js';
 import { mediaSrc } from '../changelog-page/view.js';
+import { DEBUG_MENU_HREF } from '../debug-back.js';
 import { indexHtml, kindChips, kindsOf, parseRoute, routeHash, tabHtml, tabsHtml, TABS } from './view.js';
 
 /** Where the data is, beside the page (scripts/audits-data.mjs DATA_FILE). */
 export const DATA_PATH = 'audits/audits.json';
-/** Where B goes from the index: the Debug list the page was opened from. (The shared "◀ Debug" button, when it
- * lands in src/, takes over #back: see the note in docs/systems/ui.md.) */
-const DEBUG_HREF = './?worlds=1';
+/** Where B goes from the index: the Debug list the page was opened from (the shared "◀ Debug" button's, src/debug-back.js). */
+const DEBUG_HREF = DEBUG_MENU_HREF;
 
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 installNativePad(); watchLabels(); installGlyphs();
@@ -57,8 +57,7 @@ function setPics(root) {
 function drawIndex() {
   document.body.classList.remove('reading');
   $('#title').innerHTML = `THE AUDITS <span>${index.length} reports</span>`;
-  $('#back').innerHTML = `<span class="glyph" data-glyph="back" aria-hidden="true"></span>◀ Debug`;
-  $('#back').href = DEBUG_HREF;
+  $('#back').hidden = true;   // (the shared ◀ Debug button is the way out from here)
   $('#nav').innerHTML = kindChips(index, state.kind);
   $('#nav').setAttribute('aria-label', 'What kind of audit');
   $('#prev').hidden = $('#next').hidden = true;
@@ -78,7 +77,7 @@ function drawReader() {
   document.body.classList.add('reading');
   $('#title').innerHTML = `${r.kindName.toUpperCase()} <span>v${r.version} · ${r.date}</span>`;
   $('#back').innerHTML = `<span class="glyph" data-glyph="back" aria-hidden="true"></span>◀ Audits`;
-  $('#back').href = '#/';
+  $('#back').hidden = false;
   $('#prev').hidden = $('#next').hidden = false;
   $('#nav').innerHTML = tabsHtml(r, tab);
   $('#nav').setAttribute('aria-label', 'The report’s parts');

@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.7', date: '2026-10-09', items: [
+    // the audits page
+    'Debug: an Audits page gathers every review of the game (the look, the fights, the worlds, the temples, the dialogue, the speed, the cinematics) with their scores as tables and bars, their findings with pictures, the edits they ranked and the to-do items they led to, and shows how the scores changed between two reviews of the same kind; it works with a controller.',
+  ] },
   { v: '1.6', date: '2026-10-09', items: [
     // the galactic map's signature search
     'The galactic map has a signature search: a world newly in reach is no longer named outright. The ship hears the singing light’s three pulses out there and marks uncharted regions on the chart; sweep them with the mouse, the left stick, W A S D or a finger, and the scanner warms, quickens and sings louder as you near a world that carries it, with a signal meter in the corner. Hold it there a moment and the planet appears and is charted.',

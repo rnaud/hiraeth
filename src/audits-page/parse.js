@@ -64,9 +64,16 @@ export function titleDate(title) {
   return '';
 }
 
-/** A cell's score: "3.5", "**3.5**", "2.00 → 1.89" (before 2, now 1.89), "4 ✎3" (the script's 4, 3 by eye); else null. */
+/**
+ * A cell's score: "3.5", "**3.5**", "2.00 → 1.89" (before 2, now 1.89), "4 ✎3" (the script's 4, 3 by eye),
+ * "4 (was 3)", or the criteria and their total in one cell, "4/5/4/5/5 **4.6**" (the total); else null.
+ */
 export function cellScore(raw) {
+  const packed = String(raw ?? '').match(/^\s*\d+(?:\.\d+)?(?:\s*\/\s*\d+(?:\.\d+)?)+\s+\*\*(\d+(?:\.\d+)?)\*\*\s*$/);
+  if (packed) return { value: +packed[1] };
   const t = plain(raw).replace(/\s+/g, ' ');
+  const was = t.match(/^(\d+(?:\.\d+)?)\s*\(was (\d+(?:\.\d+)?)\)$/);
+  if (was) return { value: +was[1], before: +was[2] };
   const m = t.match(/^(\d+(?:\.\d+)?)(?:\s*(?:→|✎)\s*(\d+(?:\.\d+)?))?$/);
   if (!m) return null;
   return m[2] != null ? { value: +m[2], before: +m[1] } : { value: +m[1] };
@@ -85,7 +92,7 @@ export function readTable(lines, version = '') {
   const rows = lines.slice(2).map(splitRow).map((r) => header.map((_, i) => r[i] ?? ''));
   const scoreCols = [];
   header.forEach((h, c) => {
-    if (NOT_SCORE.test(h) && !SCORE_HEADER.test(h)) return;
+    if (NOT_SCORE.test(h) && !SCORE_HEADER.test(h) && !/^v\d/i.test(h)) return;   // (a version's column is one, whatever it says after)
     const cells = rows.map((r) => r[c]).filter((x) => plain(x) && !/^[—–-]$/.test(plain(x)));
     if (!cells.length) return;
     const scores = cells.map(cellScore);
@@ -96,7 +103,7 @@ export function readTable(lines, version = '') {
   const labelCol = header.findIndex((h, c) => !scoreCols.includes(c) && h !== '#' && rows.some((r) => plain(r[c]) && !cellScore(r[c])));
   let primary = scoreCols.find((c) => TOTAL.test(header[c]));
   const versioned = scoreCols.filter((c) => /^v\d/i.test(header[c]));
-  if (primary == null && versioned.length) primary = versioned.find((c) => header[c].slice(1) === String(version)) ?? versioned.at(-1);
+  if (primary == null && versioned.length) primary = versioned.find((c) => header[c].slice(1).split(/\s/)[0] === String(version)) ?? versioned.at(-1);
   if (primary == null && scoreCols.length === 1) primary = scoreCols[0];
   if (primary == null && scoreCols.length) primary = scoreCols.at(-1);
   // the earlier version's column, when a table carries both (the game audit's "v0.97 | v1.0")

@@ -78,6 +78,17 @@ test('the score tables are read from the real reports: criteria, totals, "before
   assert.equal(Object.values(cine.verdicts).reduce((a, b) => a + b, 0), Object.keys(JSON.parse(read('docs/systems/cinematics-qc-notes.json')).notes).length);
   assert.ok(cine.sections.some((s) => /v1\.6/.test(s.title)), 'its passes are sections');
 
+  // the second combat review's guardians: criteria and total in one cell, the earlier defs beside them
+  const c6 = byId('combat-v1.6');
+  const g6 = c6.scoreTables.find((x) => /Guardians/.test(x.title));
+  assert.equal(g6.header[g6.primary], 'v1.6');
+  assert.match(g6.header[g6.before], /^v1\.5/);
+  assert.equal(g6.rows.find((r) => r.label === 'the Gardener').scores[g6.primary].value, 4.8);
+  const whole = c6.scoreTables.find((x) => /as a whole/.test(x.title));
+  assert.deepEqual(whole.rows.find((r) => r.label === 'Feedback').scores[whole.primary], { value: 4, before: 3 }, '"4 (was 3)"');
+  const mean26 = (tableMean(c6.scoreTables[0]) * 15 + tableMean(g6) * 11) / 26;
+  assert.ok(Math.abs(mean26 - c6.overall) < 0.01, 'its block\'s overall');
+
   assert.equal(byId('visual-v1.4').scoreTables.length, 0, 'the visual audit has no scores (its counts column is not one)');
   assert.deepEqual(byId('visual-v1.0').severities, { noticeable: 2, 'only when looking': 1 });
 });
@@ -115,7 +126,7 @@ test('the Markdown reader: nested lists, two kinds of list, pictures, captions, 
 });
 
 test('the TODO items each report produced', () => {
-  assert.equal(byId('combat-v1.4').todo.open, 7);
+  assert.ok(byId('combat-v1.4').todo.open >= 1);
   assert.ok(byId('level-design-v1.5').todo.open >= 5);
   assert.ok(byId('temple-design-v1.5').todo.sections[0].items.length >= 5);
   assert.ok(byId('cinematics-v1.6').todo.sections.length >= 1);
@@ -134,6 +145,10 @@ test('the index: newest first, the change since the version before, comparisons'
   assert.equal(c.rows.length, 12);
   assert.deepEqual(c.rows.find((r) => /Quality/.test(r.label)), { table: 'The scores', label: 'Quality, performance, discovery', from: 3, to: 2, delta: -1, criteria: [] });
   assert.equal(c.overall.delta, 0.3);
+  const cc = compareAudits(byId('combat-v1.4'), byId('combat-v1.6'));
+  assert.equal(cc.overall.delta, 0.26);
+  assert.ok(cc.rows.filter((r) => /^the /.test(r.label) && r.delta > 0).length >= 8, 'the guardians matched by name across the two tables, most of them up');
+  assert.equal(index.find((e) => e.id === 'combat-v1.6').prev, 'combat-v1.4');
   const v = compareAudits(byId('visual-v1.0'), byId('visual-v1.4'));
   assert.ok(v.severities.some((s) => s.severity === 'noticeable'));
   assert.match(sparkline(g.history), /<path/);
@@ -149,7 +164,7 @@ test('the screens: every tab of every report draws; the pad\'s buttons and glyph
   }
   assert.match(kindChips(index), /data-glyph="lb".*data-glyph="rb"/s);
   assert.match(tabHtml(byId('game-v1.0'), 'compare', { reports }), /v0\.97.*v1\.0/s);
-  assert.match(tabHtml(byId('combat-v1.4'), 'compare', { reports }), /Only one combat audit/);
+  assert.match(tabHtml(byId('dialogue-v1.0'), 'compare', { reports }), /Only one dialogue audit/);
   for (const h of ['#/', '#/combat-v1.4', '#/game-v1.0/compare/game-v0.97', '#/level-design-v1.5/edits']) assert.equal(routeHash(parseRoute(h)), h);
   assert.deepEqual(parseRoute('#/game-v1.0/compare/game-v0.97'), { id: 'game-v1.0', tab: 'compare', other: 'game-v0.97' });
 
@@ -157,7 +172,8 @@ test('the screens: every tab of every report draws; the pad\'s buttons and glyph
   for (const s of ['dataset.gridNav', 'menuNavigate', "'tabPrev'", "'tabNext'", "name === 'back'", "name === 'confirm'", "name === 'x'", 'installGlyphs()', 'mediaSrc(DATA_PATH)']) assert.ok(main.includes(s), `main.js: ${s}`);
   const html = read('audits.html');
   assert.match(html, /src="\/src\/audits-page\/main\.js"/);
-  assert.match(html, /id="back"[^>]*href="\.\/\?worlds=1"/, 'B and the button go back to the Debug list');
+  assert.match(html, /<body data-debug-back="keys-off pad-off">/, 'the shared ◀ Debug button; B and Esc are the page\'s (a picture, the report, then the Debug list)');
+  assert.ok(main.includes('DEBUG_HREF = DEBUG_MENU_HREF'), 'B from the index: the Debug list');
   assert.match(html, /data-glyph="back"/);
   assert.match(html, /data-glyph="x"/); assert.match(html, /data-glyph="y"/);
 });

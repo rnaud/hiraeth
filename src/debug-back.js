@@ -32,7 +32,7 @@ export function cameFromDebug(referrer = '', search = '') {
   if (new URLSearchParams(search).get('from') === 'debug') return true;
   try {
     const u = new URL(referrer);
-    return u.searchParams.get('worlds') === '1' || /(motion|studio|items|enemies|cinematics|trailer)\.html$/.test(u.pathname);
+    return u.searchParams.get('worlds') === '1' || /(motion|studio|items|enemies|cinematics|trailer|audits)\.html$/.test(u.pathname);
   } catch { return false; }
 }
 

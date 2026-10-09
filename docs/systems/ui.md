@@ -512,6 +512,7 @@ beside the button.
 | Items | `pad-off`, `data-debug-busy="#full.open"` | its own B already goes back; Esc closes an open item first |
 | What's new | `from-debug keys-off pad-off` | players open it too (the title's star): only when opened from Debug; its own B / Esc go back |
 | Trailer | `fade` | the button fades while the pointer is still: nothing over the film |
+| Audits | `keys-off pad-off` | its own B / Esc step back (a picture, a report, then the Debug list); in a report the button drops its glyph (B is "◀ Audits" there) |
 
 A world opened from the Debug list (`?level=…&debugsave=1`, or from a debug page: the Arena from Creatures
 & spirits) shows the button too, click or tap only and fading (`src/boot.js`): B and Esc are the game's
@@ -519,6 +520,42 @@ there. Cinematics' own "← Worlds" link gave way to it. Esc is caught before th
 capture phase), so a viewer the page closes on Esc counts as open; a B held from the page before doesn't
 count until let go. `tests/debug-back.test.js` checks every page of the worlds list and of the build
 carries it.
+
+## The audits page (v1.7, `audits.html`, `src/audits-page/`)
+
+Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` and the cinematics QC report
+(`docs/systems/cinematics-qc.md`, with the review page's verdicts from `cinematics-qc-notes.json`).
+
+- **The index:** a card a report, newest first: its kind, version and date, the overall score (or, for the
+  reports with none, the visual and performance ones, its headline), a sparkline of the kind's overall
+  scores and the change since the version before (▲ +0.26 since v1.4), its criteria as small bars, how
+  many edits it ranked, its pictures and its open TODO items. Chips filter by kind.
+- **A report**, in tabs: *Scores* (the overall, then each score table with its rows ranked as bars, the
+  criteria's means and the table inked from red to green; "before" values, `2 → 3`, `4 ✎3`, `4 (was 3)`
+  or an earlier version's column, as a dashed ghost bar), *Findings* (the sections that aren't setup,
+  scores or edits, pictures included), *Edits* (the ranked lists), *TODO* (the items of the `TODO.md` and
+  `DONE.md` sections whose `#` heading names the report's file), *Report* (all of it, with a contents
+  line) and *Compare* (two versions of its kind: the overall and every row matched by name, before,
+  after and the change, and the findings' severities).
+- **The data** is built from the reports at build time: `scripts/audits-data.mjs` (parser:
+  `src/audits-page/parse.js`, a small Markdown reader: `markdown.js`). The reports stay the source;
+  each starts with a score block the skills write (`<!-- audit-scores` … `overall: 3.66 / 5`, `label:`,
+  or `overall: none` and `headline:`, `date:`, `version:` … `-->`, hidden on GitHub). Score tables are
+  found by their columns of 1-5 scores (not `#`, units, `ttk`, lengths or counts); the row's total is
+  the column named total, mean or score, else the report's version (`v1.6`), else the last.
+- **Site-only:** the build's `auditsPlugin` (vite.config.js) writes `dist/audits/audits.json` (about
+  330 KB) and the reports' pictures (about 1 MB) beside the page; the over-the-air zip, the APK, the Deck
+  and the Xbox package leave `audits/` out (`scripts/web-update.mjs` `AUDIT_FILE`, `scripts/site-only.mjs`),
+  and a bundled game reads them from the site (`mediaSrc`). The page itself (about 30 KB) ships. A dev
+  server answers the same paths from `docs/`.
+- **Controller:** the D-pad or stick moves by where things are drawn (`data-grid-nav`, `menuNavigate`): the
+  cards, the chips, the tabs, a report's blocks; a block taller than the screen scrolls before the focus
+  leaves it, a wide table scrolls sideways. A opens a card or a picture (full size, LB / RB the others),
+  B steps back (the picture, the report, then the Debug list), LB / RB the kind (index) or the tab
+  (report), X / Y the report before / after, the right stick scrolls. Keys: arrows, Enter, Esc, Q / E,
+  [ / ]. Every control is a button or link for mouse and touch; the header wraps on a phone upright and
+  stays two short rows sideways. Tests: `tests/audits-page.test.js` (the parser on the real reports,
+  that every report in `docs/audits/` appears with its block, the index, comparisons, the wiring).
 
 ## The menus on a controller: grids, glyphs in the buttons, the pad's own names (October 2026, v1.2)
 

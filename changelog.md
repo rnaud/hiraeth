@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.7 — 2026-10-09
+
+- Debug: an Audits page gathers every review of the game (the look, the fights, the worlds, the temples, the dialogue, the speed, the cinematics) with their scores as tables and bars, their findings with pictures, the edits they ranked and the to-do items they led to, and shows how the scores changed between two reviews of the same kind; it works with a controller.
+
 ## v1.6 — 2026-10-09
 
 - On the Motion page, motion matching (which the game does not use) no longer sets off from standing as if already on the move: it chose a jog’s stop and leaned back looking at the sky. Its feet slide about a third less on the test runs, still more than with the game’s own animation; the page now says at the top why the game keeps that.

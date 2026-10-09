@@ -321,6 +321,12 @@ const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot'
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
+  '1.7': [
+    { match: 'Debug: an Audits page gathers every review', shots: [
+      { name: 'audits-page', only: 'after', caption: 'Debug → Audits at the Steam Deck’s size: a card a report, its overall score, the change since the last of its kind and its criteria as small bars', size: [1280, 800], from: 'headless Chrome against a dev server (audits.html)' },
+      { name: 'audits-compare', only: 'after', caption: 'Two combat reviews compared: 3.75 → 4.01, each foe’s total before (the dashed ghost) and after', size: [1280, 800], from: 'headless Chrome against a dev server (audits.html#/combat-v1.6/compare)' },
+    ], see: 'Title → Debug → Audits. With a controller: the D-pad across the cards, A opens a report, LB / RB its tabs (Scores, Findings, Edits, TODO, Report, Compare), X / Y the report before or after, A on a picture shows it full size, B goes back.' },
+  ],
   '1.6': [
     // the fights: told by the body, not the ground
     { match: 'Foes no longer draw their attacks on the ground', shots: [
