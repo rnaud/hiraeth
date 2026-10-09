@@ -1,0 +1,33 @@
+src/foe-presence.js
+  s_9ca76055a220ed::t_5323843969ac34 1-66
+src/story/knuckle-riddle.js
+  s_9ca76055a220ed::t_486e8dcfcaee89 1-47
+src/foe-kinds.js
+  s_6b8abf8ef692f6::t_5f46e5d0007337 118,155,162-165,167,177-179,190,248,467-469,479-481,483-485,493-495
+src/foes.js
+  s_6b8abf8ef692f6::t_3dc31fbd1ba11d 142-157,273-285,390,786,1067-1097,1108,1125-1126,1140,1373-1379,1387-1395,1597-1599
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2eba76b2e0481889e28ae34bfd7a74399d512a1c",
+  "prompts": {},
+  "sessions": {
+    "s_6b8abf8ef692f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a33c1b8922b52386a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
