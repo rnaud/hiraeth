@@ -387,6 +387,7 @@ test('the CLI: arguments, --list without values, a batch from a prompt document,
   assert.deepEqual(parseArgs(['--prompt', 'x', '--refs', 'a.jpg, b.jpg', '--providers', 'openai,gemini', '--n', '2', '--ar', '16:9']),
     { n: 2, refs: ['a.jpg', 'b.jpg'], providers: ['openai', 'gemini'], prompt: 'x', ar: '16:9' });
   assert.throws(() => parseArgs(['--bogus', '1']), /unknown option/);
+  assert.equal(parseArgs(['--into', 'b1']).n, undefined, 'no --n: no count (--into keeps the batch\'s own)');
   const root = fakeRepo();
   const lines = [], log = (l) => lines.push(l);
   await main(['--list'], { root, keys: { OPENAI_API_KEY: KEY }, log });
@@ -401,6 +402,10 @@ test('the CLI: arguments, --list without values, a batch from a prompt document,
   const b = listBatches(root)[0];
   assert.equal(readBatch(root, b.batch).from, 'docs/design/enemy-roster-prompts.md#crab');
   assert.equal(readBatch(root, b.batch).ar, '16:9');
+  // --into without --n: the batch's own count, not 1
+  assert.equal(await main(['--into', b.batch], { root, keys: { OPENAI_API_KEY: KEY }, fetch: f, log }), 0, lines.join('\n'));
+  assert.equal(readBatch(root, b.batch).n, 2);
+  assert.deepEqual(readBatch(root, b.batch).candidates.filter((c) => c.provider === 'openai').map((c) => c.id), ['openai/1', 'openai/2']);
   await main(['--pick', `${b.batch}/openai/1`], { root, keys: {}, log });
   assert.ok(existsSync(join(root, 'references/enemy-archetypes/crab/sheet-1.jpg')));
   assert.equal(await main(['--prompt', 'x'], { root, keys: {}, log }), 1, 'no key: says what to add');

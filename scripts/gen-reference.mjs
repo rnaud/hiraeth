@@ -33,7 +33,7 @@ import tripo, { estimateCredits, CREDIT_USD } from './reference-lab/providers/tr
 
 /** argv → options (pure). */
 export function parseArgs(argv) {
-  const o = { n: 1, refs: [], providers: null };
+  const o = { refs: [], providers: null };   // (no n unless --n: a new batch makes 1 each, --into keeps the batch's own: runBatch)
   const flags = new Set(['list', 'batches', 'help', '3d', 'rig', 'quad', 'no-texture', 'no-pbr']);
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -122,7 +122,7 @@ export async function main(argv = process.argv.slice(2), { root = ROOT, keys = l
   if (!prompt) { log(HELP); return 1; }
   const providers = o.providers ?? PROVIDERS.filter((p) => DEFAULT_PROVIDERS.includes(p.id) && availability([p], keys)[0].available).map((p) => p.id);
   if (!providers.length) { log('no provider has a key: add OPENAI_API_KEY, GEMINI_API_KEY, FAL_KEY or BFL_API_KEY to .env.local (--list)'); return 1; }
-  log(`batch: ${providers.join(', ')} · ${o.n} each · ${ar ?? '1:1'} · ${o.refs.length} reference(s)`);
+  log(`batch: ${providers.join(', ')} · ${o.n ?? (o.into ? 'the batch\'s count' : 1)} each · ${ar ?? '1:1'} · ${o.refs.length} reference(s)`);
   const m = await runBatch({ root, prompt, refs: o.refs, providers, models: o.models, n: o.n, ar: ar ?? '1:1', target, from, comparison: o.comparison, keys, fetch: f, ...(o.into ? { batch: o.into, n: o.n } : {}) });
   for (const [id, p] of Object.entries(m.providers)) {
     log(p.status === 'done'
