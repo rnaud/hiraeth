@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_f9828692afb526 7
+src/changelog.js
+  s_9ca76055a220ed::t_4da045fac1d457 18-19
+src/enemies/plans/hopper.js
+  s_9ca76055a220ed::t_6bc444db47a619 4,77-81,87-89
+src/enemies/plans/kit.js
+  s_9ca76055a220ed::t_d8310c8f3cc97a 2,41-42,44-46,50-51,53,55-67
+src/enemies/plans/stilt.js
+  s_9ca76055a220ed::t_4bf496f94bc394 5,61,64,87,96
+src/enemies/plans/tentacled.js
+  s_9ca76055a220ed::t_44680e5aebb8b5 4,49,52,54,62
+src/enemies/surfaces.js
+  s_9ca76055a220ed::t_da8cb564e23642 245
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_e7233e2431833e 125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "046d3a18f11b985c0ff23e391c2f334a3019c2e7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
