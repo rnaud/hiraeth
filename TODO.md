@@ -44,6 +44,24 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
+# Enemy roster (proposal, awaiting the author's approval)
+
+docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. Do not build until approved.
+
+- [ ] **Approve the roster**: 21 archetypes (12 creatures, 5 possessed machines, 4 spirits), each with its own
+  silhouette, body plan and role; no two machines or spirits share a body plan, and each shows its possession its
+  own way. It replaces the 100 world enemies (src/enemies/roster.js: the machines and the shades all looked alike)
+  and folds in the 15 old kinds (kept: salt crab, sign moth, blot; rebuilt: dune ray → mound worm, rust drone →
+  ring drone, root stalker → root knot, slag walker → crucible cart, shadow hound → antler hound, shade reworked;
+  retired: spitting blot, blot swarm, winged blot, glass splinter, glass golem, makers' machine). The doc's open
+  questions: 21 or 20, the Vael II bell, the marionette possessing wildlife, names, fresh references, side worlds.
+- [ ] Once approved, build in the doc's order (with the procedural animation kit below): the framework
+  (archetypes + skins tables, rosters), then crab / lizard + hound / tripod / blot, then worm / ray / moth /
+  centipede / jelly, then toad / heron / swarm / root knot, then drone / cart / brute / bell, then shade / roller /
+  marionette; then the rosters, difficulty and sounds per archetype, re-scored with the combat-review skill.
+  This supersedes the per-kind items below where they overlap (the hound's pounce, the shade's second attack,
+  the soft end of the route, a sound per kind).
+
 # Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
 
 - [ ] The full charged cut kills 11 of the 15 kinds fastest of any move: give the light combo, the air cut and the
@@ -130,7 +148,7 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
 - [ ] **4. Chains** (1 session): `chain.js` (follow-the-leader with angle limits, short verlet with a pinned
   root, travelling waves on a phase accumulator) for serpents, centipedes, jellies, flyers, gliders, and
   tails / cloaks / cables on the plans above.
-- [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes): each body plan a table entry and
+- [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md, awaiting approval): each body plan a table entry and
   its poses, scored with the rubric (≥ 2 on every row).
 - [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
   bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
