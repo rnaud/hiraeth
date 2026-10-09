@@ -1,12 +1,14 @@
 import { FOES } from './foes.js';
-import { ENEMY_ROSTER, WORLD_ENEMIES } from './enemies/roster.js';
-import { ATTACKS } from './enemies/attacks.js';
+import { ARCHETYPES, ARCHETYPE_IDS, parseKind, skinned } from './enemies/archetypes.js';
+import { HOME_SKIN, skinOf } from './enemies/skins.js';
+import { WORLDS, worldArchetypes } from './foe-worlds.js';
 import { GUARDIANS, ArenaGuardians } from './arena-guardians.js';
 import { TITLES } from './levels/names.js';
 
-// The Arena's FOES list (docs/systems/foes.md, "The Arena"): every foe there is to fight, grouped (the ink and the
-// worlds' kinds; each world's four enemies, src/enemies/roster.js; the temple guardians, src/arena-guardians.js),
-// with a search and a world filter. Choose a foe and the waves stop: it comes in ahead of you, and again each time
+// The Arena's FOES list (docs/systems/foes.md, "The Arena"): every foe there is to fight, grouped (the roster's
+// archetypes, src/enemies/archetypes.js, and the old kinds standing in; each world's archetypes in its skin,
+// src/foe-worlds.js and src/enemies/skins.js; the temple guardians, src/arena-guardians.js), with a search and a
+// world filter. Choose a foe and the waves stop: it comes in ahead of you, and again each time
 // it falls (practice). A world's "waves from here" runs the Arena's cycle (foes.js ARENA_WAVES) from that world's
 // first enemy; a guardian is called into a ring on the sand. Paper and ink, as the Arcade's board.
 //
@@ -52,25 +54,36 @@ body.foe-list #foe-tab { display: none; }
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 /** A world's name as the game writes it (the roster's own titles are its sheets' folder names). */
-const worldName = (w) => TITLES[w] ?? WORLD_ENEMIES[w]?.[0]?.worldTitle ?? w;
-const CATEGORY = { 'local-creature': 'creature', 'possessed-machine': 'possessed machine', 'shadow-spirit': 'shadow spirit' };
+const worldName = (w) => TITLES[w] ?? w;
+const FAMILY = { creature: 'creature', machine: 'possessed machine', spirit: 'spirit' };
 
-/** The ink and the worlds' kinds, in the order they are met (the list's first section). */
+/** Every foe kind there is (the archetypes' and the old ones standing in), in the order they are met (the combat review's list). */
 export const SPAWN_KINDS = Object.keys(FOES);
+
+/** A row for archetype a in world w's skin (null: nothing to fight yet). */
+function archetypeRow(a, w) {
+  const A = ARCHETYPES[a], k = A.kind;
+  if (!k || !FOES[k]) return null;
+  const built = A.status === 'built', skin = built ? skinOf(a, w ?? HOME_SKIN[a]) : null;
+  const name = skin?.name ?? A.name;
+  const sub = `${FAMILY[A.family]} · ${A.role}${built ? '' : ` · stand-in: ${FOES[k].name}`} · ${A.moves.join(', ')}`;
+  return { kind: built ? skinned(k, skin.id) : k, name, sub, search: `${name} ${A.name} ${a} ${k} ${A.role} ${A.family} ${A.moves.join(' ')} ${w ? worldName(w) : ''}` };
+}
 
 /** The list's sections: { id, title, items: [{ kind | guardian, name, sub, search }] }. */
 export function foeSections() {
-  const ink = { id: 'ink', title: 'The ink and the worlds’ kinds', items: SPAWN_KINDS.map((k) => ({ kind: k, name: FOES[k].name, sub: `${FOES[k].hp} hp`, search: `${k} ${FOES[k].name} ink` })) };
-  const worlds = Object.entries(WORLD_ENEMIES).map(([w, r]) => ({ id: w, title: worldName(w), waves: true, items: r.map((e) => {
-    const moves = e.attacks.map((a) => ATTACKS[a]?.name ?? a);
-    return { kind: e.id, name: e.name, sub: `${CATEGORY[e.category] ?? e.category} · ${moves.join(', ')}`, search: `${e.name} ${worldName(w)} ${e.worldTitle} ${w} ${CATEGORY[e.category] ?? ''} ${e.form} ${e.attacks.join(' ')} ${moves.join(' ')}` };
-  }) }));
+  // the roster: each archetype in its own skin (an old kind standing in for one not built yet), then the old kinds no archetype uses
+  const own = ARCHETYPE_IDS.map((a) => archetypeRow(a, null)).filter(Boolean);
+  const used = new Set(ARCHETYPE_IDS.map((a) => ARCHETYPES[a].kind));
+  const old = SPAWN_KINDS.filter((k) => !used.has(k)).map((k) => ({ kind: k, name: FOES[k].name, sub: `${FOES[k].hp} hp · an old kind`, search: `${k} ${FOES[k].name} old` }));
+  const ink = { id: 'roster', title: 'The roster', items: [...own, ...old] };
+  const worlds = Object.keys(WORLDS).map((w) => ({ id: w, title: worldName(w), waves: true, items: worldArchetypes(w).map((a) => archetypeRow(a, w)).filter(Boolean) }));
   const guardians = { id: 'guardians', title: 'Temple guardians', items: GUARDIANS.map((g) => ({ guardian: g.id, name: g.name, sub: `${g.world} · ${g.kind === 'robot' ? 'a machine: shoot it when it opens' : 'living: water when it pants'}`, search: `${g.name} ${g.world} ${g.id} guardian temple boss` })) };
   return [ink, ...worlds, guardians];
 }
 
 /** The world filter's stops, in order: All, the ink, each world, the guardians. */
-export const FILTERS = ['all', 'ink', ...Object.keys(WORLD_ENEMIES), 'guardians'];
+export const FILTERS = ['all', 'roster', ...Object.keys(WORLDS), 'guardians'];
 
 /** The sections kept by a search (every word in an item's name, world, kind or moves) and a world filter. */
 export function filterSections(sections, { q = '', world = 'all' } = {}) {
@@ -99,7 +112,7 @@ export class FoeList {
   attach({ foes, player = foes?.player, physics = foes?.physics, sound = null, notice = () => {}, scene = foes?.scene, kind = null }) {
     this.foes = foes;
     this.guardians = new ArenaGuardians({ scene, player, physics, sound, notice });
-    if (kind && (FOES[kind] || this.sections.some((s) => s.items.some((i) => i.kind === kind)))) foes.setPractice(kind);
+    if (kind && FOES[parseKind(kind).kind]) foes.setPractice(kind);
     this.addTab();
     return this;
   }
@@ -150,7 +163,7 @@ export class FoeList {
       el.setAttribute('role', 'dialog');
       el.setAttribute('aria-label', 'The foes');
       el.innerHTML = `<div class="sheet"><h1>Foes</h1><button class="close" type="button" aria-label="Close">×</button>
-        <input type="search" placeholder="Search: a name, a world, a move (crab, Vael, beam…)" aria-label="Search the foes">
+        <input type="search" placeholder="Search: a name, a world, a move (crab, Vael, blare…)" aria-label="Search the foes">
         <div class="chips"></div><div class="body"></div>
         <footer><button class="row waves" type="button" data-a="waves">Waves again</button><button class="row waves" type="button" data-a="clear">Clear the field</button>
         <span class="kb">arrows choose · Enter fights · K or Esc closes</span><span class="pad">D-pad choose · A / × fights · LB / RB a world · B / ○ closes</span></footer></div>`;
@@ -170,7 +183,7 @@ export class FoeList {
   /** The chips and the sections, as the filter says. */
   render() {
     if (!this.el) return;
-    const title = (id) => (id === 'all' ? 'All' : id === 'ink' ? 'Ink' : id === 'guardians' ? 'Guardians' : worldName(id).replace(/^The /, ''));
+    const title = (id) => (id === 'all' ? 'All' : id === 'roster' ? 'Roster' : id === 'guardians' ? 'Guardians' : worldName(id).replace(/^The /, ''));
     this.el.querySelector('.chips').innerHTML = FILTERS.map((w) => `<button type="button" data-world="${w}" class="${w === this.filter.world ? 'on' : ''}">${esc(title(w))}</button>`).join('');
     for (const b of this.el.querySelectorAll('.chips button')) b.addEventListener('click', (e) => { e.stopPropagation(); this.setWorld(b.dataset.world); });
     const shown = filterSections(this.sections, this.filter);

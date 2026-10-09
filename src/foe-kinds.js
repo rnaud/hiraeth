@@ -1,11 +1,14 @@
 import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
-import { Rig, planLeg } from './motion-kit/rig.js';
-import { PLANS } from './motion-kit/plans.js';
 
-// The worlds' own foes (docs/systems/foes.md, "Each world's foes"): the drawing's loose ink takes the shape of
-// what is round it. Their tuning (KINDS, merged into foes.js FOES), what the game says the first time you meet
-// each (NOTES), and how each looks and moves (kindModel: a model with its own anim(f, c), called by Foes.look).
+// The worlds' old kinds (docs/systems/foes.md, "Each world's foes"): since the enemy roster (docs/design/enemy-roster.md,
+// src/enemies/archetypes.js) they run as the stand-in bodies of archetypes not built yet (the dune ray for the mound
+// worm, the glass golem for the furnace brute, the sign moth for the signal moth, the rust drone for the ring
+// drone, the root stalker for the root knot, the slag walker for the crucible cart); each goes when its archetype
+// lands. Their tuning (KINDS, merged into foes.js FOES), what the game says the first time you meet each (NOTES),
+// and how each looks and moves (kindModel: a model with its own anim(f, c), called by Foes.look). The built
+// archetypes' own (the shellback crab, the horn lizard, the antler hound, the lamp tripod, the ink blot) are in
+// src/enemies/archetypes.js and src/enemies/plans/.
 //
 // An attack (foes.js Foe; src/temples/boss.js inArea for the shapes):
 //   id, shape 'ring' | 'cone' | 'lane', radius / range / angle / width, damage, wind (s), strike (s), contact (0..1)
@@ -22,7 +25,9 @@ import { PLANS } from './motion-kit/plans.js';
 //   knock     knocks you down; tether / grab { time, pull }: pulls you in; blind: s of white; wave: a ground
 //             shockwave running out (jump it); leave: burning slag ('ring' | 'cone'); surface / blink: the foe
 //             comes up at the area / steps through the shadow to it
-//   onParry   'chip' (a perfect parry breaks a piece off), 'cut' (the line is cut), 'flip' (on its back)
+//   onParry   'chip' (a perfect parry breaks a piece off), 'cut' (the line is cut), 'flip' (on its back),
+//             'reflect' (a perfect parry sends the bolt back)
+//   the archetypes' (src/enemies/archetypes.js): skins, below, rear / back, flank, far, shove
 //
 // A kind may say: takes { shoot, fire, push, bloom } (what each glob does: damage, or 'hold'), weak { source: × },
 // heavy (sturdy: light cuts don't stop it, it shoves less), metal (the magnet glove lifts it), light (a gust ends
@@ -43,23 +48,16 @@ export const KINDS = {
     ],
     recover: 1.9, cool: [1.2, 2.2],
   }),
-  // the Glass Dunes: a slow walker of fused green glass; bombs crack it deep, and it breaks into splinters
+  // the Glass Dunes: a slow walker of fused green glass; bombs crack it deep (the furnace brute's stand-in)
   golem: S({
     name: 'glass golem', hp: 6, radius: 0.95, height: 1.5, speed: 1.9, sight: 15, giveUp: 30, reach: 12, heavy: true, breaks: true,
-    tone: '#3f9a72', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 }, splits: { kind: 'splinter', n: 3 }, pack: 2,
+    tone: '#3f9a72', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 }, pack: 2,
     attacks: [
       { id: 'slam', shape: 'cone', range: 3.2, angle: 0.75, damage: 0.75, wind: 1.1, strike: 0.3, contact: 0.55, knock: 6.5, max: 2.9, weight: 1.5, onParry: 'chip' },
       { id: 'shards', shape: 'ring', at: 'self', radius: 3.4, damage: 0.5, wind: 1.3, strike: 0.25, contact: 0.4, max: 3.2 },
       { id: 'hurl', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.6, damage: 0.75, wind: 1.35, min: 4.5, max: 12 },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
-  }),
-  // what a glass golem breaks into: quick little shards that lunge
-  splinter: S({
-    name: 'glass splinter', hp: 1, radius: 0.3, height: 0.3, speed: 5.4, sight: 18, reach: 1.4, flinchy: true, noWild: true, breaks: true,
-    tone: '#5fbf8f', takes: { shoot: 1, fire: 0, push: 1 },
-    attacks: [{ id: 'lunge', shape: 'ring', radius: 0.9, ahead: 0.6, damage: 0.25, wind: 0.5, strike: 0.22, contact: 0.55, lunge: 1.2 }],
-    recover: 0.7, cool: [0.7, 1.5], hit: 0.2,
   }),
   // the Signal Market: moths of neon tube; their wings flare and blind whoever faces them
   moth: S({
@@ -91,16 +89,6 @@ export const KINDS = {
     ],
     recover: 1.3,
   }),
-  // the Salt Harbour, the Underwater City: a shell crusted with salt; the blade glances off its front
-  crab: S({
-    name: 'salt crab', hp: 4, radius: 0.75, height: 0.55, speed: 3.0, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
-    tone: '#b8553a', sound: 'machine', takes: { shoot: 0, fire: 1 }, weak: { bomb: 1.5 },
-    attacks: [
-      { id: 'snap', shape: 'cone', range: 2.3, angle: 0.7, damage: 0.5, wind: 0.7, strike: 0.2, contact: 0.5, max: 2.2, weight: 1.5 },
-      { id: 'spin', shape: 'lane', width: 2.4, range: 8, damage: 0.75, wind: 1.1, strike: 0.7, contact: 0.05, lunge: 8, sweep: true, knock: 5, min: 3, max: 8, onParry: 'flip' },
-    ],
-    recover: 1.4, cool: [1.3, 2.4],
-  }),
   // the Moon Foundry: a hunched walker of cooling slag, leaving burning patches where it treads
   slag: S({
     name: 'slag walker', hp: 5, radius: 0.8, height: 1.35, speed: 2.0, sight: 15, giveUp: 30, reach: 4.4, heavy: true, pack: 2, breaks: true,
@@ -112,29 +100,16 @@ export const KINDS = {
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   }),
-  // the City During the Eclipse: a long dog of shadow; running, it is only a shadow on the ground
-  hound: S({
-    name: 'shadow hound', hp: 3, radius: 0.5, height: 0.55, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
-    tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
-    attacks: [
-      { id: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.5, wind: 0.8, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.5 },
-      { id: 'step', shape: 'ring', at: 'behind', instant: true, radius: 1.3, track: 0.5, damage: 0, blink: true, wind: 0.9, then: 'bite', min: 2.5, max: 7 },
-      { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.5, wind: 0.55, strike: 0.2, contact: 0.5 },
-    ],
-    recover: 1.2, cool: [1.1, 2.0],
-  }),
 };
 
 /** Said once, the first time each kind comes for you (prompts in pad form: src/native-pad.js rewrites them). */
 export const NOTES = {
   ray: 'A dune ray swims under the sand. When its fin stands tall and races at you, glowing, move: it bursts up where the fin stops, and stays up a while to fight. Cut its fin, or drop a bomb or a stomp, to flush it out.',
-  golem: 'A glass golem: slow and hard, glass turns a fluid shot. A bomb cracks it twice as deep, a perfect parry chips it, and when it falls its splinters keep coming.',
+  golem: 'A glass golem: slow and hard, glass turns a fluid shot. A bomb cracks it twice as deep, and a perfect parry chips it.',
   moth: 'Sign moths: when their wings flare, turn away or guard (LB / L1), or the flash blinds you. One cut, one shot or a gust ends each.',
   drone: 'A rust drone hangs out of the blade’s reach. Guard (LB / L1) its harpoon to cut the line and stun it; stilled, or pulled down with the magnet glove, it can be cut.',
   stalker: 'A root stalker: when it rears its root-arms back, they are about to shoot along the ground to grab you. Step out of their line, or cut it to break the hold. Embers burn it; a bloom glob puts it to sleep.',
-  crab: 'A salt crab: its shell turns the blade from the front. Get round it, guard (LB / L1) its spinning charge to flip it on its back, or crack the shell with a bomb.',
   slag: 'A slag walker leaves burning slag where it treads: keep off the glow. A plain fluid shot cools its crust, and cooled it cuts twice as deep.',
-  hound: 'Shadow hounds: running at a distance they are only shadows and the blade passes through; close in, they are solid. Cut when they come near or rise to strike, or light them with an ember. One that sinks into its own shadow is stepping through: it comes up behind you.',
 };
 
 // ------------------------------------------------------------------ how they look
@@ -245,22 +220,6 @@ const MODELS = {
         else c.lob(f, -1);
         if (id === 'shards' && f.state === 'strike' && !f._shardsOut) { f._shardsOut = true; c.spray(f.chest, ['#bfe8c4', '#7fd6a8', '#2d4a3e'], 30, 7); }
         if (f.state !== 'strike') f._shardsOut = false;
-      },
-    };
-  },
-
-  splinter() {
-    const g = new THREE.Group(), glass = M_('golem-glass', { color: '#7fd6a8', color2: '#bfe8c4', glow: 0.15 }), core = M_('splinter-eye', { color: '#d8ff9a', glow: 0.9 });
-    const body = add(g, new THREE.OctahedronGeometry(0.3, 0).scale(0.6, 1.3, 0.6), glass, 0, 0.35, 0);
-    const eye = add(g, new THREE.OctahedronGeometry(0.06, 0), core, 0, 0.42, 0.15);
-    return {
-      group: g, parts: [body, eye], eyeMat: core, base: '#d8ff9a', size: 1.3, tell: () => eye,   // (drawn a little bigger than it was: a shard you can see coming)
-      anim(f, c) {
-        body.rotation.y += c.dt * (f.state === 'wind' ? 14 : 4);
-        body.rotation.z = f.state === 'strike' ? -1.3 : f.state === 'wind' ? -0.5 * c.wind : 0;
-        if (f.state === 'wind') g.position.y -= 0.12 * c.wind;   // (it drops low and spins up before it lunges)
-        g.position.y += 0.1 + Math.abs(Math.sin(c.now / 140 + f.home.x)) * (c.moving ? 0.25 : 0.06);
-        core.uniforms.uColor.value.set(eyeColor(f, '#d8ff9a'));
       },
     };
   },
@@ -393,65 +352,6 @@ const MODELS = {
     };
   },
 
-  crab() {
-    // a wide shell crusted with salt crystals, a rust-brown underside, two great claws, six legs, eyes on stalks
-    const g = new THREE.Group(), body = new THREE.Group(); body.position.y = 0.55; g.add(body);
-    const salt = M_('crab-salt', { color: '#efe9dc', color2: '#d9cdb4' }), under = M_('crab-under', { color: '#9a4f34' });
-    const dark = M_('crab-dark', { color: '#3a2a24' }), eye = M_('crab-eye', { color: '#f2d34b', glow: 0.7 }), flesh = M_('crab-flesh', { color: '#d77a5e' });
-    const shell = add(body, new THREE.SphereGeometry(0.8, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.55, 0.8), salt, 0, 0, 0);
-    const belly = add(body, new THREE.SphereGeometry(0.78, 14, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(1, 0.3, 0.78), under, 0, 0, 0);
-    const crystals = [];
-    for (let i = 0; i < 9; i++) { const a = i * 2.4, r = 0.2 + (i % 3) * 0.17; const cr = add(body, new THREE.BoxGeometry(0.12, 0.16, 0.12), salt, Math.sin(a) * r, 0.36 - r * 0.25, Math.cos(a) * r * 0.8); cr.rotation.set(i, i * 0.7, 0); crystals.push(cr); }
-    const meat = add(body, new THREE.SphereGeometry(0.6, 12, 6).scale(1, 0.35, 0.8), flesh, 0, 0.05, 0); meat.visible = false;
-    const shellTop = new THREE.Object3D(); shellTop.position.set(0, 0.75, 0); body.add(shellTop);   // (the spin's glow rides on its shell, not inside it)
-    const eyes = pair((s) => { const st = add(body, new THREE.CylinderGeometry(0.025, 0.025, 0.3, 4), dark, s * 0.18, 0.4, 0.55); add(st, new THREE.SphereGeometry(0.06, 8, 6), eye, 0, 0.17, 0); return st; });
-    const claws = pair((s) => {
-      const c = new THREE.Group(); c.position.set(s * 0.65, -0.05, 0.5); body.add(c);
-      add(c, new THREE.CylinderGeometry(0.07, 0.06, 0.4, 5).rotateX(Math.PI / 2).translate(0, 0, 0.2), under);
-      add(c, new THREE.SphereGeometry(0.2, 8, 6).scale(0.8, 0.7, 1.2), salt, 0, 0, 0.5);
-      const pin = add(c, new THREE.ConeGeometry(0.07, 0.35, 4).rotateX(Math.PI / 2), dark, s * 0.06, -0.05, 0.8);
-      return { c, pin };
-    });
-    // six jointed legs on the locomotion kit (src/motion-kit/: a walker, plan 1): a thigh up and out to a high
-    // knee, a shin down to a pointed foot planted on the ground; a tripod gait, the shell riding on the feet
-    const legs = [];
-    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
-      const z = 0.2 - k * 0.3;
-      legs.push(planLeg(PLANS.walker, { group: g, body, hip: { x: s * 0.6, y: -0.05, z }, foot: { x: s * 1.22, z: z * 1.45 + 0.05 }, radius: 0.035, pad: 'point', mats: { joint: dark }, name: `crab leg ${legs.length}` }));
-    }
-    const rig = new Rig({ plan: PLANS.walker, group: g, body, legs });
-    return {
-      group: g, parts: [shell, belly, ...crystals, ...eyes, ...claws.map((x) => x.c), ...legs.map((l) => l.root)], eyeMat: eye, base: '#f2d34b', size: 1, rig,
-      tell: (id) => (id === 'snap' ? claws[0].pin : shellTop),
-      anim(f, c) {
-        const id = f.atk?.id;
-        const tuck = id === 'spin' ? (f.state === 'wind' ? c.wind : f.state === 'strike' ? 1 : 0) : 0;
-        // the legs: planted by the kit; tucked up for the spin, waving in the air when it is flipped on its back
-        const flipped = f.flipped > 0;
-        const o = rig.update(f, c.dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery: c.recovery, air: flipped ? 1 : tuck > 0.02 ? 1 + tuck : 0 });
-        legs.forEach((l, k) => { l.air.set(0, flipped ? Math.sin(c.now / 60 + k) * 0.18 : 0, flipped ? Math.cos(c.now / 75 + k) * 0.12 : 0); });
-        eyes.forEach((e) => { e.scale.y = 1 - tuck * 0.8; });
-        claws.forEach(({ c: cl, pin }, i) => {
-          const snap = id === 'snap' ? (f.state === 'wind' ? c.wind : f.state === 'strike' ? 1 - c.release : 0) : 0;
-          cl.rotation.y = (i ? -1 : 1) * (snap * 0.9 - tuck * 0.9); cl.rotation.x = -snap * 0.9;   // (claws raised high and wide before the snap) pin.rotation.y = (i ? 1 : -1) * snap * 0.4;
-          cl.scale.setScalar(1 - tuck * 0.5);
-        });
-        // the spin: tucked into its shell, turning faster and faster through the wind-up, a top along the lane
-        f._spin = (f._spin ?? 0) + c.dt * (tuck > 0 ? 4 + tuck * 26 : 0);
-        // flipped by a guard: on its back, legs waving; the shell cracked by a bomb shows what is under it
-        f._flip = lerp(f._flip ?? 0, flipped ? Math.PI : 0, 1 - Math.exp(-12 * c.dt));
-        body.position.set(o.x, 0.55 - tuck * 0.2 + o.y, o.z);
-        body.rotation.set(o.pitch, tuck > 0 ? f._spin : o.yaw, f._flip + o.roll);
-        rig.write();
-        crystals.forEach((x) => { x.visible = f.shelled; });
-        meat.visible = !f.shelled;
-        shell.scale.set(f.shelled ? 1 : 0.92, f.shelled ? 1 : 0.7, f.shelled ? 1 : 0.92);
-        if (tuck > 0.5 && f.state === 'strike' && Math.random() < 0.6) c.dust(f.pos, '#efe9dc', 2);
-        eye.uniforms.uColor.value.set(eyeColor(f, '#f2d34b'));
-      },
-    };
-  },
-
   slag() {
     // a hunched lump of dark crust on two thick legs, molten orange showing through its cracks, a lip to pour from
     const g = new THREE.Group();
@@ -484,63 +384,6 @@ const MODELS = {
         melt.uniforms.uGlow.value = 0.8 + 0.2 * Math.sin(c.now / 150) + (f.state === 'wind' ? 0.2 * w : 0);
         hot.uniforms.uColor.value.set(eyeColor(f, crusted ? '#a9b6bf' : '#ffd36a', '#ffffff'));
         if (!crusted && Math.random() < 0.08) c.spray(_v.copy(f.pos).setY(f.pos.y + 1.4), ['#ff7a2e'], 1, 1.2, -2);
-      },
-    };
-  },
-
-  hound() {
-    // a long low dog of living shadow, ears up, a whip of a tail; running, it melts into a shadow on the ground
-    const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-    // (its ink is drawn with a white contour, as the shade's: black on the Eclipse's dark streets it would be
-    // only a hole; playtest 2026-10-08, no invisible foes: src/foe-presence.js)
-    const ink = M_('hound-ink', { color: '#15121c', lineWhite: true }), rim = M_('hound-rim', { color: '#3b2a5c', lineWhite: true }), eye = M_('hound-eye', { color: '#d6c2ff', glow: 0.95 });
-    const torso = add(body, new THREE.SphereGeometry(0.4, 12, 8).scale(0.7, 0.75, 1.6), ink, 0, 0.62, 0);
-    const neck = add(body, new THREE.CylinderGeometry(0.12, 0.18, 0.45, 6).rotateX(-0.9), ink, 0, 0.82, 0.55);
-    const head = add(body, new THREE.SphereGeometry(0.17, 10, 8).scale(0.9, 0.85, 1.1), ink, 0, 0.95, 0.78);
-    add(head, new THREE.ConeGeometry(0.09, 0.4, 6).rotateX(Math.PI / 2), ink, 0, -0.04, 0.27);
-    pair((s) => add(head, new THREE.ConeGeometry(0.06, 0.22, 4), rim, s * 0.09, 0.17, -0.05));
-    const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.035, 6, 4), eye, s * 0.08, 0.04, 0.15));
-    // four jointed legs on the locomotion kit (src/motion-kit/: a quadruped, plan 6): front knees forward, hocks
-    // back, a trot on diagonal pairs; stretched out fore and aft through a pounce
-    const legs = [];
-    for (const z of [0.42, -0.42]) for (const s of [-1, 1]) legs.push(planLeg(PLANS.quadruped, { group: g, body, hip: { x: s * 0.17, y: 0.5, z }, foot: { x: s * 0.19, z: z * 1.05 }, radius: 0.042, pad: 'pad', mats: { joint: ink }, name: `hound leg ${legs.length}` }));
-    const rig = new Rig({ plan: PLANS.quadruped, group: g, body, legs });
-    const tail = add(body, new THREE.ConeGeometry(0.05, 0.8, 4).rotateX(-Math.PI / 2 - 0.4).translate(0, 0.1, -0.35), ink, 0, 0.7, -0.6);
-    // its shadow form: a dark pool sliding along the ground, a low hump of shadow rising out of it with a
-    // lavender glow round its edge, and the two eyes lit over it (before: a flat pool and two 4 cm eyes, all
-    // but invisible on a dark street)
-    const pool = add(g, new THREE.CircleGeometry(0.55, 14).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), ink, 0, 0.03, 0);
-    const hump = add(g, new THREE.SphereGeometry(0.4, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.75, 1.15, 1.5), ink, 0, 0, 0);
-    const glowRim = add(g, new THREE.RingGeometry(0.62, 0.74, 24).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), M_('hound-glow', { color: '#d6c2ff', glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
-    const poolEyes = pair((s) => add(g, new THREE.SphereGeometry(0.07, 8, 6).scale(1, 0.6, 1), eye, s * 0.12, 0.4, 0.42));
-    return {
-      group: g, parts: [], eyeMat: eye, base: '#d6c2ff', size: 1, shadowy: true, tell: () => head, rig,
-      anim(f, c) {
-        // stepping through the shadow (its 'step'): it sinks into its own pool as it winds up, nothing drawn behind you
-        const sinking = f.state === 'wind' && f.atk?.blink;
-        f._solid = lerp(f._solid ?? 1, f.phased || sinking ? 0 : 1, 1 - Math.exp(-(f.phased || sinking ? 6 : 14) * c.dt));
-        const s = f._solid;
-        body.visible = s > 0.08; body.scale.set(1, Math.max(0.05, s), 1);
-        pool.visible = s < 0.9; pool.scale.setScalar(1.2 - s * 0.5); poolEyes.forEach((e) => { e.visible = s < 0.6; });
-        hump.visible = glowRim.visible = s < 0.6;
-        hump.scale.set(1, 1 - s * 0.6 + Math.sin(c.now / 140) * 0.06, 1);
-        glowRim.scale.setScalar(1 + Math.sin(c.now / 200) * 0.06);
-        // the legs: planted by the kit, a trot on diagonals; through a pounce's leap they stretch out fore and aft
-        const leap = f.state === 'strike' && f.atk?.lunge ? Math.min(1, Math.sin(Math.PI * Math.min(1, f.k * 1.4)) * 3) : 0;
-        const o = rig.update(f, c.dt, { eye: c.eye, ground: c.ground, recovery: c.recovery, air: leap });
-        // the pounce: it crouches back on its haunches, then stretches out flat through the leap
-        const crouch = f.state === 'wind' && f.atk?.id === 'pounce' ? c.wind : 0;
-        torso.rotation.x = crouch * 0.25 - (f.state === 'strike' ? 0.15 : 0);
-        body.position.set(o.x, -(1 - s) * 0.3 + o.y, o.z);
-        body.rotation.set(o.pitch - crouch * 0.2, o.yaw, o.roll);
-        g.position.y += f.state === 'strike' && f.atk?.lunge ? Math.sin(Math.PI * f.k) * 0.6 : 0;
-        head.rotation.x = f.state === 'strike' && f.atk?.id === 'bite' ? -0.4 * Math.sin(Math.PI * f.k) : 0;
-        tail.rotation.y = Math.sin(c.now / 110) * 0.5;
-        neck.scale.y = 1 + crouch * 0.1;
-        eye.uniforms.uColor.value.set(eyeColor(f, f.lit > 0 ? '#ffe2a8' : '#d6c2ff', '#ff6a8a'));
-        if (s > 0.5 && Math.random() < 0.15) c.drip(f, '#15121c');
-        rig.visible = body.visible;
-        rig.write();
       },
     };
   },

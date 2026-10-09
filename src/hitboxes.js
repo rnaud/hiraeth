@@ -89,17 +89,7 @@ export function foeHitboxes(f, out = [], { player = null, locked = null } = {}) 
   out.push({ kind: 'circle', c: ground, r: D.reach, color: C.reach, tag: 'foe.reach', foe: f, faint: true });
   if (D.keep) out.push({ kind: 'circle', c: ground, r: D.keep, color: C.keep, tag: 'foe.keep', foe: f, faint: true, dashed: true });
   const phase = f.attackPhase, a = f.atk ?? D.attack;   // (the attack it is on: src/foe-kinds.js)
-  if (phase && f.variant && f.zones) {
-    // a world enemy (src/enemies/attacks.js): each contact's zone, locked where it committed, is what is checked (speciesContact)
-    for (const z of f.zones) {
-      const zp = f.state === 'wind' ? 'telegraph' : z.done ? 'spent' : 'active';
-      const color = zp === 'telegraph' ? C.telegraph : zp === 'active' ? C.active : C.spent, za = z.attack;
-      const base = { c: v3(z.at), color, tag: `foe.attack.${zp}`, foe: f, phase: zp, fill: zp === 'active' ? 0.3 : 0.14 };
-      if (za.shape === 'ring') out.push({ kind: 'circle', r: za.radius ?? 4, ...base });
-      else if (za.shape === 'cone') out.push({ kind: 'fan', h: z.heading, range: za.range ?? 12, angle: za.angle ?? 0.6, ...base });
-      else if (za.shape === 'lane') out.push({ kind: 'lane', h: z.heading, range: za.range ?? 20, width: za.width ?? 2.4, back: 1, ...base });
-    }
-  } else if (phase) {
+  if (phase) {
     const color = phase === 'telegraph' ? C.telegraph : phase === 'active' ? C.active : C.spent;
     const o = v3(f.attackOrigin()); o.y = f.level ?? f.pos.y;   // (drawn at the foe’s feet (a hovering foe’s held level, src/foes.js): it reaches the traveller within STRIKE_RISE of that)
     const base = { color, tag: `foe.attack.${phase}`, foe: f, phase, fill: phase === 'active' ? 0.3 : 0.14 };

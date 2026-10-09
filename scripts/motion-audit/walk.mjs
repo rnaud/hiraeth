@@ -48,20 +48,21 @@ export function foeSystem() {
   return new Foes({ scene: new THREE.Scene(), level: { spawn: new THREE.Vector3(0, 0, -200) }, levelId: 'arena', physics: { groundAt: () => 0 }, player: { pos: new THREE.Vector3(0, 0, 50), health: 1, vel: new THREE.Vector3(), hurt() {} }, game: new GameState(null) });
 }
 
-// Where each old kind keeps its legs: on the kit, its rig's chains; before it, by position in `parts`.
-const kitLegs = (M) => M.rig?.legs.map((l) => l.root);
+// Where each kind keeps its legs: on the kit, its rig's chains; before it, by position in `parts`.
+export const kitLegs = (M) => M.rig?.legs.map((l) => l.root);
 export const OLD = {
   machine: (M) => M.legs,
   golem: (M) => M.parts.slice(5, 7),
   stalker: (M) => M.parts.slice(2, 6),
-  crab: (M) => kitLegs(M) ?? M.parts.slice(-6),
   slag: (M) => M.parts.slice(-2),
-  hound: (M) => kitLegs(M) ?? (() => { const out = []; M.group.traverse((o) => { if (o.isGroup && Math.abs(o.position.y - 0.5) < 1e-6 && Math.abs(Math.abs(o.position.z) - 0.42) < 1e-6) out.push(o); }); return out; })(),
 };
-export const worldLegs = (M) => M.limbs.filter((l) => l.role === 'leg').map((l) => l.o);
+// The built archetypes (src/enemies/archetypes.js), each on the kit: a kind or a kind in a skin ('lizard@bazaar')
+export const ARCHETYPE_SUBJECTS = { crab: kitLegs, lizard: kitLegs, hound: kitLegs, tripod: kitLegs };
+/** The legs of any subject id: an old kind's, or an archetype's (in any skin). */
+export const legsFor = (id) => OLD[id] ?? (ARCHETYPE_SUBJECTS[id.split('@')[0]] ? kitLegs : null);
 
 /**
- * A foe of the game (an old kind or a world enemy id) chasing in a straight line at `pace` × its speed.
+ * A foe of the game (an old kind, or an archetype in a skin) chasing in a straight line at `pace` × its speed.
  * pack: a second of its kind walks 3 m to its side, out of step or not (unison). cost: time the kit (µs a frame).
  */
 export function foeSubject(sys, kind, legsOf, { pace = 1, pack = false, cost = false } = {}) {

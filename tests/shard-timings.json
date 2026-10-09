@@ -337,7 +337,7 @@
  "tests/wingdrop-stars.test.js": 0.4,
  "tests/wingdrop.test.js": 0.2,
  "tests/wood-kit.test.js": 0.3,
- "tests/world-enemies.test.js": 0.7,
+ "tests/archetypes.test.js": 1.2,
  "tests/world-moments.test.js": 0.1,
  "tests/xbox.test.js": 0.2
 }

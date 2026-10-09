@@ -1,22 +1,24 @@
 // The first three body plans on the locomotion kit, measured through the game's own models and Foes.look as the
 // motion audit does (scripts/motion-audit/walk.mjs; docs/systems/procedural-animation.md, "What was built"):
 // a regression in foot slide, knee bend, lift, gait groups, cadence or a pack's unison is a bug.
-//   walker     the salt crab (the Arena's), the six-legged world enemies (the dune skitter)
-//   quadruped  the shadow hound, the newts (the coin lizard)
-//   machine    the makers' machine (three legs), a possessed tripod, a two-legged pump
+//   walker     the shellback crab (in its own skin and the stall crab's awning)
+//   quadruped  the horn lizard and the antler hound (one rig, two archetypes; a second skin of each)
+//   machine    the makers' machine (three legs), the lamp tripod (in its own skin and as the diving bell)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { foeSystem, foeSubject, OLD, worldLegs } from '../scripts/motion-audit/walk.mjs';
+import { foeSystem, foeSubject, OLD, kitLegs } from '../scripts/motion-audit/walk.mjs';
 
 const SUBJECTS = [
-  { id: 'crab', legs: OLD.crab, n: 6, groups: [[0, 2, 4], [1, 3, 5]] },
-  { id: 'desert/dune-skitter', legs: worldLegs, n: 6, groups: [[0, 3, 4], [1, 2, 5]] },
-  { id: 'hound', legs: OLD.hound, n: 4, groups: [[0, 3], [1, 2]] },
-  { id: 'bazaar/coin-lizard', legs: worldLegs, n: 4, groups: [[0, 3], [1, 2]] },
+  { id: 'crab', legs: kitLegs, n: 6, groups: [[0, 2, 4], [1, 3, 5]] },
+  { id: 'crab@bazaar', legs: kitLegs, n: 6, groups: [[0, 2, 4], [1, 3, 5]] },
+  { id: 'hound', legs: kitLegs, n: 4, groups: [[0, 3], [1, 2]] },
+  { id: 'hound@mangrove', legs: kitLegs, n: 4, groups: [[0, 3], [1, 2]] },
+  { id: 'lizard', legs: kitLegs, n: 4, groups: [[0, 3], [1, 2]] },
+  { id: 'lizard@bazaar', legs: kitLegs, n: 4, groups: [[0, 3], [1, 2]] },
   { id: 'machine', legs: OLD.machine, n: 3, groups: [[0], [1], [2]] },
-  { id: 'incal/possessed-inspection-tripod', legs: worldLegs, n: 3, groups: [[0], [1], [2]] },
-  { id: 'desert/possessed-cistern-pump', legs: worldLegs, n: 2, groups: [[0], [1]] },
+  { id: 'tripod', legs: kitLegs, n: 3, groups: [[0], [1], [2]] },
+  { id: 'tripod@underwater', legs: kitLegs, n: 3, groups: [[0], [1], [2]] },
 ];
 
 const sys = foeSystem();
@@ -42,9 +44,9 @@ for (const s of SUBJECTS) {
   });
 }
 
-test('a wind-up on the kit: the feet brace and then hold, the body sits back against the strike, then snaps through (the salt crab’s snap, the machine’s slam)', () => {
+test('a wind-up on the kit: the feet brace and then hold, the body sits back against the strike, then snaps through (the crab’s snap, the machine’s slam, the tripod’s beam, the hound’s pounce)', () => {
   const sys = foeSystem();
-  for (const kind of ['crab', 'machine']) {
+  for (const kind of ['crab', 'machine', 'tripod', 'hound']) {
     const f = sys.add(kind, new THREE.Vector3());
     const R = f.model.rig, dt = 1 / 60;
     for (let i = 0; i < 90; i++) { f.state = 'chase'; f.heading = 0; f.dist = 2; f.pos.z += 2 * dt; sys.look(f, dt); }

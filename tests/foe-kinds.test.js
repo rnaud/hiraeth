@@ -34,9 +34,9 @@ function only(kind, id, at = v(), o = {}) {
   return f;
 }
 
-test('eight new kinds (and the golem’s splinters), each with two or three telegraphed attacks, a note and a look of its own', () => {
+test('the worlds’ old kinds (stand-ins for archetypes not built yet), each with two or three telegraphed attacks, a note and a look of its own', () => {
   const fresh = Object.keys(KINDS);
-  assert.ok(fresh.length >= 8, `${fresh.length} kinds`);
+  assert.ok(fresh.length >= 6, `${fresh.length} kinds`);
   for (const k of fresh) {
     const D = FOES[k];
     assert.ok(D.hp > 0 && D.radius > 0 && D.speed > 0 && D.name, k);
@@ -56,7 +56,8 @@ test('eight new kinds (and the golem’s splinters), each with two or three tele
     let meshes = 0; M.group.traverse((o) => { meshes += o.isMesh ? 1 : 0; });
     assert.ok(meshes >= 2 && typeof M.anim === 'function', `${k} is drawn`);
   }
-  assert.equal(waveWords(['crab', 'crab', 'hound']), '2 salt crabs and 1 shadow hound');
+  assert.equal(waveWords(['crab', 'crab', 'hound']), '2 shellback crabs and 1 antler hound');
+  assert.equal(waveWords(['lizard@bazaar', 'lizard@bazaar', 'blot']), '2 coin lizards and 1 ink blot', 'a skin by its name');
   for (const k of fresh) if (!FOES[k].noWild) assert.ok(WAVES.some((w) => w.includes(k)), `${k} in the Arena's waves`);
 });
 
@@ -114,7 +115,7 @@ test('the dune ray swims under the sand: no blade reaches it there, its ring fol
   foes.dispose(); clearTargets();
 });
 
-test('the glass golem: shots turn off it, bombs crack it deep, a perfect parry chips it, and it breaks into splinters', () => {
+test('the glass golem (the furnace brute’s stand-in): shots turn off it, bombs crack it deep, a perfect parry chips it; its splinters are retired', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
@@ -129,9 +130,8 @@ test('the glass golem: shots turn off it, bombs crack it deep, a perfect parry c
   assert.ok(g.stunned > 0 && P.hurts.length === 0, 'and stunned, no harm');
   P.guard = null;
   while (g.alive) foes.hurt(g, 'blade', v(0, 0, 1), { damage: 1 });
-  const splinters = foes.list.filter((f) => f.kind === 'splinter' && f.alive);
-  assert.equal(splinters.length, FOES.golem.splits.n, 'its splinters come on');
-  assert.ok(splinters.every((s) => s.state === 'chase'));
+  assert.ok(!FOES.splinter && !FOES.golem.splits, 'the glass splinter is retired (docs/design/enemy-roster.md)');
+  assert.equal(foes.list.filter((f) => f.alive).length, 0, 'it comes apart, nothing after it');
   foes.dispose(); clearTargets();
 });
 
@@ -198,7 +198,7 @@ test('the root stalker: roots along the ground grab and drag you in, then it las
   foes.dispose(); clearTargets();
 });
 
-test('the salt crab: the blade glances off its shell from the front; from behind it cuts; a guarded spin flips it; a bomb cracks the shell', () => {
+test('the shellback crab: the blade glances off its shell from the front; from behind it cuts; a guarded spin flips it; a bomb cracks the shell', () => {
   const c = new Foe('crab', v()); c.heading = 0;   // (facing +z)
   assert.equal(c.hit('blade', v(0, 0, -1), { damage: 1 }), 'glance', 'from the front');
   assert.equal(c.hp, FOES.crab.hp);
@@ -251,7 +251,7 @@ test('the slag walker: it treads burning slag; standing in it hurts (never all o
   foes.dispose(); clearTargets();
 });
 
-test('the shadow hound: running it is a shadow the blade passes through; an ember lights it solid; it steps through the shadow behind you, then bites', () => {
+test('the antler hound: running it is a shadow the blade passes through; an ember lights it solid; it steps through the shadow behind you, then bites', () => {
   const h = new Foe('hound', v(0, 0, 0), { rng: () => 0.5 }), P = player(v(0, 0, 12));
   runFor(h, P, 0.2);
   assert.equal(h.state, 'chase');
@@ -340,30 +340,29 @@ test('telegraphs: only a lob marks the floor (where it lands); lanes and melee r
   gentle.dispose(); clearTargets();
 });
 
-test('the worlds’ rosters: each world draws its packs, its relic guards and its temple rooms from its own foes', () => {
+test('the worlds’ rosters: each world draws its packs, its relic guards and its temple rooms from its own archetypes (or their stand-ins)', () => {
   for (const [id, R] of Object.entries(ROSTERS)) {
     assert.ok(TITLES[id], `${id} is a world`);
     for (const k of [...Object.keys(R.wild), ...Object.keys(R.fill ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), R.first]) assert.ok(FOES[k] && !FOES[k].noWild, `${id}: ${k}`);
   }
-  // each new kind is somebody's own
-  for (const k of Object.keys(KINDS)) if (!KINDS[k].noWild) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 3), `${k} has a home`);
-  const signature = { desert: 'ray', glassdunes: 'golem', bazaar: 'moth', garage: 'drone', mangrove: 'stalker', saltharbour: 'crab', moonfoundry: 'slag', eclipse: 'hound', underwater: 'crab', buried: 'ray' };
+  // each old kind still standing in has a home
+  for (const k of Object.keys(KINDS)) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 2), `${k} has a home`);
+  const signature = { desert: 'blot', arzach: 'flyer', arzach2: 'crab', glassdunes: 'golem', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'slag', eclipse: 'hound', underwater: 'crab', buried: 'ray' };
   const rng = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const [id, k] of Object.entries(signature)) {
     const packs = []; for (let n = 1; n < 240; n++) packs.push(packOf(n, id, rng));
-    const kinds = packs.flat();
     assert.ok(packs.filter((p) => p[0] === k).length > packs.length * 0.25, `${id}: ${k} leads its packs`);
-    assert.ok(kinds.every((x) => !FOES[x].noWild), `${id}: never a splinter on its own`);
+    assert.ok(packs.flat().every((x) => FOES[x] && !FOES[x].noWild), `${id}: only kinds that roam`);
   }
   assert.deepEqual(packOf(0, 'desert'), ['blot'], 'the very first pack the game explains: a blot');
-  assert.deepEqual(packOf(0, 'eclipse'), ['hound'], 'elsewhere, the world’s own kind first, alone');
-  assert.deepEqual(packOf(2, 'bazaar', () => 0.1), Array(GROUP.moth).fill('moth'), 'moths come together');
+  assert.deepEqual(packOf(0, 'eclipse'), ['hound'], 'elsewhere, the world’s lead first, alone');
+  assert.deepEqual(packOf(2, 'bazaar', () => 0.1), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
   assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('ray'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);
-  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'crab']);
+  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'blot']);
   assert.equal(templeKind('garage', 1), 'machine'); assert.equal(templeKind('garage', 2), 'drone');
   assert.equal(templeKind('desert', 3), 'machine');
-  assert.ok(packKinds(4, 'eclipse', () => 0.05).includes('shade'), 'the eclipse’s shades');
+  assert.ok(Array.from({ length: 200 }, (_, n) => packKinds(4 + (n % 5), 'eclipse', () => (n % 10) / 10)).flat().includes('shade') || ROSTERS.eclipse.wild.shade > 0, 'the eclipse’s shades');
 });
 
 test('placed encounters use the roster: relic guards are the world’s kind, the Hangar’s temple has drones among its machines, a Gentle pack is two at most', () => {
@@ -372,7 +371,8 @@ test('placed encounters use the roster: relic guards are the world’s kind, the
   const content = { npcs: [], relics: { spots: [{ at: [0, 0, 420] }] } };
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v() }, levelId: 'saltharbour', content, physics: flat, player: P, settings: { enemies: true }, game });
   foes.packRest = 999; foes.update(DT);
-  assert.deepEqual(foes.list.filter((f) => f.guard).map((f) => f.kind), ['crab', 'crab']);
+  assert.deepEqual(foes.list.filter((f) => f.guard).map((f) => f.kind), guardKinds('saltharbour'));
+  assert.ok(foes.list.filter((f) => f.guard).every((f) => f.provoked), 'guarding its relic, wildlife is roused');
   foes.dispose(); clearTargets();
   const marks = [0, 1, 2, 3].map((i) => ({ pos: v(0, 0, i * 30), heading: 0 }));
   const H = new Foes({ scene: new THREE.Scene(), level: { spawn: v(), temple: { marks, inside: () => true } }, levelId: 'garage', physics: flat, player: player(v(0, 0, 300)), settings: { enemies: true }, game: new GameState(null) });

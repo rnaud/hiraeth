@@ -322,8 +322,11 @@ test('the shade: a person of living shadow, in later packs and in the Arena, tou
   const { SHADE_STRIKE } = await import('../src/shade.js');
   assert.ok(FOES.shade.hp > FOES.blot.hp && FOES.shade.attack.shape === 'cone');
   assert.ok(SHADE_STRIKE.from < SHADE_STRIKE.cut && SHADE_STRIKE.cut < SHADE_STRIKE.to, 'the clip winds up to its cut, then follows through');
-  assert.deepEqual(packKinds(3, 'desert', () => 0.05), ['shade'], 'a lone shade in a later pack');
-  assert.ok(!packKinds(1, 'desert', () => 0.05).includes('shade'), 'never early on');
+  // (the enemy roster: shades walk only the worlds whose table lists them, from the fourth pack: src/foe-worlds.js)
+  const rng = (() => { let k = 5; return () => ((k = (k * 16807) % 2147483647) / 2147483647); })();
+  assert.ok(Array.from({ length: 300 }, (_, n) => packKinds(4 + (n % 6), 'eclipse', rng)).flat().includes('shade'), 'shades in the Eclipse’s later packs');
+  assert.ok(!Array.from({ length: 100 }, (_, n) => packKinds(1 + (n % 6), 'desert', rng)).flat().includes('shade'), 'none in the Desert');
+  assert.ok(!packKinds(1, 'eclipse', () => 0.05).includes('shade'), 'never early on');
   assert.ok(WAVES.some((w) => w.includes('shade')), 'and in the Arena');
   assert.equal(waveWords(['shade', 'shade', 'blot']), '2 shades and 1 ink blot');
   // without the game's bodies (here, in node) it still fights, drawn as a blot

@@ -2,14 +2,15 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { CRYSTAL_ATTR } from './crystal-shader.js';
+import { ARCHETYPES, BUILT } from './enemies/archetypes.js';
 
 // Chimes, the currency (docs/systems/items.md, "Chimes"): small floating crystals, splinters of the singing
 // mineral that ring like struck glass (brass discs until October 2026). The wallet is
 // src/resources.js (resources.chimes, addChimes, spend, the 'wallet' event); this module is where they come
 // from and how they lie in the world:
 //
-//   dropAmount({ kind, category }, rng)   what a foe cut down leaves (DROP_OF by kind, DROP_CATEGORY for the
-//                                         100 world enemies by their category), a little spread
+//   dropAmount({ kind }, rng)             what a foe cut down leaves (DROP_OF by kind: the old kinds', and each
+//                                         built archetype's own drop, src/enemies/archetypes.js), a little spread
 //   dropPolicy(level)                     'on' | 'training' (the Arena: into the wallet, not counted as earned)
 //                                         | 'off' (a game's own foes: Ink tide; or level.foes.chimes false)
 //   PURSE                                 the one-time purses: a temple's guardian, a makers' run's first finish
@@ -22,21 +23,21 @@ import { CRYSTAL_ATTR } from './crystal-shader.js';
 
 /** What a foe of each kind leaves, in chimes (a fraction is a chance of one: the swarm's six blots, the splinters). */
 export const DROP_OF = {
-  swarm: 0.5, splinter: 0.5, moth: 1,                  // the small ones, that come in groups
-  blot: 2, spitter: 3, flyer: 3, ray: 4, drone: 4, hound: 4,
-  stalker: 5, crab: 5, machine: 6,
+  swarm: 0.5, moth: 1,                                 // the small ones, that come in groups
+  blot: 2, spitter: 3, flyer: 3, ray: 4, drone: 4,
+  stalker: 5, machine: 6,
   shade: 8, golem: 8, slag: 8,                         // the heavy ones
+  // the built archetypes: the shellback crab 5, the horn lizard 4, the lamp tripod 6, the antler hound 4 (the blot's 2 as ever)
+  ...Object.fromEntries(BUILT.map((a) => [ARCHETYPES[a].kind, ARCHETYPES[a].drop])),
 };
-/** The 100 world enemies (src/enemies/roster.js), by their category. */
-export const DROP_CATEGORY = { 'local-creature': 4, 'shadow-spirit': 6, 'possessed-machine': 8 };
 /** The one-time purses: each temple's guardian resolved (and each sparring bout in the Arena's ring), a makers' run's first finish. */
 export const PURSE = { guardian: 40, run: 15 };
 /** The spread round a drop's base (±), never under one. */
 export const SPREAD = 0.25;
 
-/** Chimes a foe cut down leaves: { kind, category } (category: a world enemy's). rng in [0, 1). */
-export function dropAmount({ kind = null, category = null } = {}, rng = Math.random) {
-  const base = category && DROP_CATEGORY[category] != null ? DROP_CATEGORY[category] : DROP_OF[kind] ?? 1;
+/** Chimes a foe cut down leaves: { kind }. rng in [0, 1). */
+export function dropAmount({ kind = null } = {}, rng = Math.random) {
+  const base = DROP_OF[kind] ?? 1;
   if (base < 1) return rng() < base ? 1 : 0;
   return Math.max(1, Math.round(base * (1 - SPREAD + rng() * SPREAD * 2)));
 }

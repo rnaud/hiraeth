@@ -120,19 +120,21 @@ test('no foe comes in inside the world: spots inside a solid are passed over (bu
   foes.dispose(); clearTargets();
 });
 
-test('every one of the 100 world enemies shows itself in every state too (src/enemies: their models over a fight)', async () => {
-  const { ENEMY_ROSTER } = await import('../src/enemies/roster.js');
+test('every built archetype in every one of its skins shows itself in every state too, calm or fighting (src/enemies/plans)', async () => {
+  const { BUILT, ARCHETYPES } = await import('../src/enemies/archetypes.js');
+  const { SKINS } = await import('../src/enemies/skins.js');
   const failed = [], seen = new Set();
-  for (const e of ENEMY_ROSTER) {
+  for (const a of BUILT) for (const skin of Object.keys(SKINS[a])) for (const calm of [false, true]) {
     clearTargets();
     const P = player(v(0, 0, 0)), foes = world(P);
     foes.waveRest = 1e9;
-    const f = foes.add(e.id, v(0, 0, 8));
-    for (let i = 0; i < 20 / DT; i++) {
+    const f = foes.add(`${ARCHETYPES[a].kind}@${skin}`, v(0, 0, calm ? 14 : 8), { calm });
+    for (let i = 0; i < (calm ? 8 : 16) / DT; i++) {
       foes.update(DT); P.health = 1; P.down = null;
       if (i % 300 === 0) P.pos.set(Math.sin(i) * 4, 0, Math.cos(i) * 4);
+      if (calm && i === 4 / DT) P.pos.set(0, 0, 11);   // (it is provoked: comes for you)
       if (!f.alive) break;
-      const tag = `${e.id}:${f.state}${f.state === 'wind' || f.state === 'strike' ? ':' + f.atk.id : ''}`;
+      const tag = `${a}@${skin}:${calm ? 'calm:' : ''}${f.state}${f.state === 'wind' || f.state === 'strike' ? ':' + f.atk.id : ''}${f.phased ? ':phased' : ''}`;
       seen.add(tag);
       const probs = presenceProblems(presenceOf(f.model.group, f.pos.y));
       if (probs.length) { failed.push(`${tag} at ${i}: ${probs.join(', ')}`); break; }
@@ -141,5 +143,6 @@ test('every one of the 100 world enemies shows itself in every state too (src/en
   }
   clearTargets();
   assert.deepEqual(failed, []);
-  assert.ok([...seen].filter((t) => t.includes(':wind:')).length >= 100, 'each winds up an attack');
+  for (const a of BUILT) assert.ok([...seen].some((t) => t.startsWith(`${a}@`) && t.includes(':wind:')), `${a} winds up an attack`);
+  assert.ok([...seen].some((t) => t.includes(':calm:idle')), 'calm ones checked as they keep to themselves');
 });

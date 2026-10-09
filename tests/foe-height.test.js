@@ -109,6 +109,8 @@ test('a blot hops down off the ledge after you; one that cannot reach you holds 
   const tall = { ground: groundOf(arena({ ramp: false, high: 3.2 })) };
   for (const kind of ['machine', 'blot']) {
     const f = new Foe(kind, v(4, 0, -36), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0;
+    // (the blot's spit, the spitting blot's move folded in, is a lob: it goes up over the ledge; tests/archetypes.test.js)
+    const all = f.attacksAt.bind(f); f.attacksAt = (d, dy) => all(d, dy).filter((a) => !a.lob);
     const P = player(v(4, 3.2, -42));
     const fev = run(f, P, tall, 8);
     assert.ok(!fev.includes('warn'), `${kind}: no blow wound up at you out of its reach`);
@@ -295,28 +297,27 @@ test('the debug overlay names a foe waiting, perched, dazed or hopping', () => {
   assert.match(foeStatus(f), /hopping/);
 });
 
-test('the world enemies (src/enemies) go by the same rules: up the ledge after you, no swing out of reach, swept away in deep water, held by a stilled crystal', async () => {
-  const { ENEMY_BY_ID } = await import('../src/enemies/roster.js');
+test('the archetypes (src/enemies/archetypes.js) go by the same rules: up the ledge after you, no swing out of reach, swept away in deep water, held by a stilled crystal', async () => {
   fresh();
-  // a creature of the blot family clambers the ledge; a possessed machine comes round by the ramp
+  // a horn lizard clambers the ledge; a lamp tripod comes round by the ramp
   const P = player(v(5, 2, -44)), env = { ground: groundOf(arena()) };
-  const crab = new Foe('desert/dune-skitter', v(5, 0, -37), { rng: () => 0.5 }); crab.state = 'chase'; crab.cool = 99;
-  const ev = run(crab, P, env, 6);
-  assert.ok(ev.some((e) => e.type === 'hop' && e.how === 'clamber'), 'the skitter clambered up');
-  assert.ok(crab.pos.y === 2, 'up beside you');
-  const pump = new Foe('desert/possessed-cistern-pump', v(5, 0, -37), { rng: () => 0.5 }); pump.state = 'chase'; pump.cool = 99;
-  const pev = run(pump, P, env, 14);
-  assert.ok(!pev.some((e) => e.type === 'hop') && pump.pos.y > 1.5 && Math.hypot(pump.pos.x - P.pos.x, pump.pos.z - P.pos.z) < pump.def.reach + 0.5, `the pump walked up the ramp into its jet's reach (${pump.pos.toArray().map((n) => n.toFixed(1))})`);
-  // out of reach above it, no melee wind-up at air
+  const liz = new Foe('lizard', v(5, 0, -37), { rng: () => 0.5 }); liz.state = 'chase'; liz.cool = 99;
+  const ev = run(liz, P, env, 6);
+  assert.ok(ev.some((e) => e.type === 'hop' && e.how === 'clamber'), 'the lizard clambered up');
+  assert.ok(liz.pos.y === 2, 'up beside you');
+  const tri = new Foe('tripod', v(5, 0, -30), { rng: () => 0.5 }); tri.state = 'chase'; tri.cool = 99;
+  const tev = run(tri, player(v(5, 2, -46)), env, 4);
+  assert.ok(!tev.some((e) => e.type === 'hop'), 'no hops for a machine');
+  // out of reach above it, no melee wind-up at air: a crab can't climb, it waits below
   const tall = { ground: groundOf(arena({ ramp: false, high: 3.2 })) };
-  const beetle = new Foe('garage/oil-beetle', v(4, 0, -36), { rng: () => 0.5 }); beetle.state = 'chase'; beetle.cool = 0;
-  const bev = run(beetle, player(v(4, 3.2, -42)), tall, 8);
-  assert.ok(!bev.includes('warn') && beetle.waiting, 'waiting below, no blow at air');
-  // a stilled crystal's frost holds a world enemy too
+  const crab = new Foe('crab', v(4, 0, -36), { rng: () => 0.5 }); crab.state = 'chase'; crab.cool = 0;
+  const cev = run(crab, player(v(4, 3.2, -42)), tall, 8);
+  assert.ok(!cev.includes('warn') && crab.waiting, 'waiting below, no blow at air');
+  // a stilled crystal's frost holds an archetype too
   const S = { moving: false };
   const off = registerWorking({ kind: 'swing', center: v(0, 1, 0), radius: 1.9, contains: (p) => Math.hypot(p.x, p.z) < 1.9 && Math.abs(p.y + 0.9 - 1) < 2.6, moving: () => S.moving, push: (p, out) => out.set(1, 0, 0) });
-  const lizard = new Foe('incal/pipe-lizard', v(0.4, 0, 0), { rng: () => 0.5 }); lizard.state = 'chase';
-  assert.ok(lizard.update(DT, player(v(0, 0, 12)), { ground: groundOf(() => 0), workings: (p, kind) => workingsAt(p, kind) }).some((e) => e.type === 'frosted'), 'frosted');
+  const hound = new Foe('hound', v(0.4, 0, 0), { rng: () => 0.5 }); hound.state = 'chase';
+  assert.ok(hound.update(DT, player(v(0, 0, 12)), { ground: groundOf(() => 0), workings: (p, kind) => workingsAt(p, kind) }).some((e) => e.type === 'frosted'), 'frosted');
   off();
   // knocked off a bank into deep water: swept away
   const physics = { groundAt: (x, y, z, r = 600) => groundOf((x, z) => (z > -40 ? -0.9 : 0))(x, y, z, r) ?? -Infinity, rayDistance: () => Infinity, rayHit: () => null };
@@ -324,8 +325,8 @@ test('the world enemies (src/enemies) go by the same rules: up the ledge after y
   const F = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: player(v(0, 2, -30)), waters,
     sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
   F.waveRest = 1e9;
-  const crabby = F.add('saltharbour/anchor-crab', v(0, 0, -40.3)); crabby.state = 'chase'; crabby.cool = 5;
-  assert.ok(ENEMY_BY_ID[crabby.species]);
+  const crabby = F.add('crab@saltharbour', v(0, 0, -40.3)); crabby.state = 'chase'; crabby.cool = 5;
+  assert.equal(crabby.skin, 'saltharbour');
   F.hurt(crabby, 'push', v(0, 0, 1), { shove: 3 });
   for (let i = 0; i < 1 / DT; i++) F.update(DT);
   assert.ok(!crabby.alive, 'the anchor crab is swept away');

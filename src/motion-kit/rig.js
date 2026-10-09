@@ -208,9 +208,9 @@ export class Rig {
     _inv.copy(g.matrix).invert();
     const bodyM = matrixTo(this.body, g, _m);
     bodyM.decompose(_a, _q, _s);
-    const air = this.air;
     for (let i = 0; i < this.legs.length; i++) {
       const L = this.legs[i];
+      const air = Math.max(this.air, L.lift || 0);   // (a leg lifted on its own, the others planted: a lizard rearing on its hind legs)
       matrixTo(L.hip, g, _m2);
       _hip.setFromMatrixPosition(_m2);
       _pole.copy(L.pole).applyQuaternion(_q);

@@ -42,13 +42,13 @@ export const TIDE = {
  * own kinds comes in every wave or two, the plain ones first: all of them work on the basin's sand (a ray swims
  * under it), drones hover over it, and the hounds run as shadows between the pillars' long evening ones.
  */
-export const COST = { blot: 1, spitter: 1.5, swarm: 2, flyer: 2, shade: 3, machine: 3.5, moth: 2.4, ray: 2, stalker: 2.5, crab: 2.5, drone: 2.5, slag: 3.5, golem: 4, hound: 3 };
-export const FIRST = { blot: 1, spitter: 2, swarm: 3, machine: 4, flyer: 5, shade: 6, moth: 7, ray: 8, stalker: 9, crab: 11, drone: 12, slag: 14, golem: 15, hound: 17 };
-export const GROUP = { swarm: 5, moth: 3, hound: 2 };
-/** Style points for each foe cut down (before the chain's multiplier; a golem's splinters too). */
-export const KILL = { blot: 10, spitter: 15, swarm: 4, flyer: 20, shade: 30, machine: 40, moth: 8, ray: 25, stalker: 25, crab: 30, drone: 30, slag: 35, golem: 45, splinter: 5, hound: 18 };
-/** How many a foe puts on the floor, for the crowd's cap (a swarm's little blots don't count; a golem counts as the three splinters it breaks into). */
-export const heads = (k) => (k === 'swarm' ? 0 : k === 'golem' ? 3 : 1);
+export const COST = { blot: 1, spitter: 1.5, swarm: 2, flyer: 2, shade: 3, machine: 3.5, moth: 2.4, ray: 2, stalker: 2.5, crab: 2.5, drone: 2.5, lizard: 2.6, slag: 3.5, golem: 4, tripod: 3.2, hound: 3 };
+export const FIRST = { blot: 1, spitter: 2, swarm: 3, machine: 4, flyer: 5, shade: 6, moth: 7, ray: 8, stalker: 9, crab: 11, drone: 12, lizard: 13, slag: 14, golem: 15, tripod: 16, hound: 17 };
+export const GROUP = { swarm: 5, moth: 3, hound: 2, lizard: 2 };
+/** Style points for each foe cut down (before the chain's multiplier). */
+export const KILL = { blot: 10, spitter: 15, swarm: 4, flyer: 20, shade: 30, machine: 40, moth: 8, ray: 25, stalker: 25, crab: 30, drone: 30, lizard: 22, slag: 35, golem: 45, tripod: 35, hound: 18 };
+/** How many a foe puts on the floor, for the crowd's cap (a swarm's little blots don't count). */
+export const heads = (k) => (k === 'swarm' ? 0 : 1);
 
 /** How much a wave may hold: grows by one and a half blots a wave (gentle: seven tenths). */
 export const waveBudget = (n, gentle = false) => (2 + 1.6 * (n - 1)) * (gentle ? 0.7 : 1);

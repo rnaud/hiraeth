@@ -1,11 +1,12 @@
-import * as THREE from 'three';
-import { inArea } from '../temples/boss.js';
-
+// The attack-pattern library (docs/design/enemy-roster.md, "Retired, and why"): the fifteen patterns the 100 world
+// enemies fought with (they are retired as kinds; src/enemies/archetypes.js replaces them). The archetypes draw
+// on these through fromPattern() (src/enemies/archetypes.js): the numbers here are a pattern's shape, timing and
+// harm; an archetype's attack takes them and adds its own (min, max, what answers it).
+//
 // Every pattern uses a locked aim, explicit contact instants and a punishable recovery. The warning is the body's
 // (src/telegraph.js: the motion's pose, a glow on the striking limb, a rising sound); only the lobbed globs (`lob`)
-// mark where they land on the ground. damage: hearts
-// per contact (an ordinary attack half a heart in all: docs/systems/foes.md).
-// The numerical footprint below is also the renderer's footprint; no invisible larger hitbox.
+// mark where they land on the ground. damage: hearts per contact (an ordinary attack half a heart in all:
+// docs/systems/foes.md). contacts: the strike's instants (0..1); offsets: each contact's turn off the aim (rad).
 export const ATTACKS = {
   pincer: { name:'Crossing pincers', shape:'cone', range:2.7, angle:.65, wind:.85, strike:.65, contacts:[.36,.8], offsets:[-.35,.35], damage:0.25, motion:'claw', recover:1.25 },
   rush: { name:'Committed rush', shape:'lane', range:6, width:1.45, wind:1.1, strike:.7, contacts:[.72], lunge:4.6, damage:0.75, motion:'charge', recover:1.65 },
@@ -24,39 +25,15 @@ export const ATTACKS = {
   sting: { name:'Needle thrust', shape:'lane', range:4.5, width:.7, wind:.95, strike:.4, contacts:[.65], lunge:1.3, damage:0.5, motion:'peck', recover:1.25 },
 };
 
-export function speciesAttacks(species) {
-  return species.attacks.map((id,i) => ({...ATTACKS[id], id:`${species.id}/${id}`, label:`${species.name} · ${ATTACKS[id].name}`, color:species.category==='shadow-spirit'?'#82669d':species.category==='possessed-machine'?'#d69156':species.color, index:i}));
-}
-export function attackReach(a) { return a.at==='target'?9:a.shape==='lane'?Math.min(6,a.range*.75):a.range?Math.min(a.range*.7,4):a.radius*.72; }
-
-/** Cache warning/contact zones at commitment: target movement cannot steer a released attack. */
-export function lockAttack(f, player) {
-  const a=f.def.attack, origin=f.pos.clone();
-  f.attackAt.copy(a.at==='target'?player.pos:origin).setY(origin.y); f.attackH=f.heading;
-  f.zones=a.contacts.map((contact,i) => {
-    const at=f.attackAt.clone();
-    if(a.spread) {const side=(i-1)*a.spread;at.x+=Math.cos(f.heading)*side;at.z-=Math.sin(f.heading)*side;}
-    return {attack:a,at,heading:f.heading+(a.offsets?.[i]??0),contact,done:false};
-  });
-  f.contacted=false;
-}
-export function speciesContact(f, zone, player, env, playerOk) {
-  return playerOk && Math.abs(player.pos.y-zone.at.y)<1.6 && inArea(zone.attack,zone.at,zone.heading,player.pos)
-    && (env.seen?.(f.chest,player.pos)??true);
-}
-
-/** The motions whose strike is a thing you can see leave it (a glob, a jet, a beam, a pulse, a slam's shock): a body's blow has none. */
-export const ENERGY = new Set(['lob','jet','beam','pulse','slam']);
-/** Visible projectiles/energy (while it strikes) use the same world-space zones as damage. */
-export function poseAttackEffect(mesh, f, zone, t) {
-  const a=zone.attack, u=THREE.MathUtils.clamp(f.k/zone.contact,0,1);
-  mesh.visible=f.state==='strike' && f.k<=zone.contact+.1 && ENERGY.has(a.motion);
-  if(!mesh.visible)return;
-  if(a.motion==='lob') {
-    mesh.position.lerpVectors(f.chest,zone.at,u);mesh.position.y+=Math.sin(Math.PI*u)*2.8;
-    mesh.scale.setScalar(.18);mesh.rotation.set(0,0,0);
-  } else if(a.shape==='lane') {
-    mesh.position.copy(zone.at).add(new THREE.Vector3(Math.sin(zone.heading),0,Math.cos(zone.heading)).multiplyScalar(a.range*.5));mesh.position.y+=.6;
-    mesh.rotation.set(0,zone.heading,0);mesh.scale.set(a.width*.25,.16,a.range*.5);
-  } else {mesh.position.copy(zone.at);mesh.position.y+=.16;mesh.rotation.set(0,zone.heading,0);mesh.scale.setScalar(.12+u*(a.radius??a.range)*.2);}
+/**
+ * An attack from the library in the foes' own shape (src/foe-kinds.js says what an attack may hold): the pattern's
+ * area, timing, harm and knock, its first contact as the moment it lands; `o` adds or overrides (the id, min, max…).
+ */
+export function fromPattern(id, o = {}) {
+  const p = ATTACKS[id];
+  if (!p) throw new Error(`no attack pattern ${id}`);
+  const a = { pattern: id, shape: p.shape, damage: p.damage, wind: p.wind, strike: p.strike, contact: p.contacts?.[0] ?? 0.55, recover: p.recover };
+  for (const k of ['range', 'angle', 'width', 'radius', 'knock', 'lunge', 'at', 'dive']) if (p[k] !== undefined) a[k] = p[k];
+  if (p.lob) { a.lob = true; a.instant = true; }
+  return { ...a, ...o };
 }

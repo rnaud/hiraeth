@@ -4,14 +4,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { DROP_OF, DROP_CATEGORY, PURSE, SPREAD, PIECE, CRYSTAL, COIN, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry } from '../src/chimes.js';
+import { DROP_OF, PURSE, SPREAD, PIECE, CRYSTAL, COIN, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry } from '../src/chimes.js';
 import { CHIME_ICON_PATHS } from '../src/chime-icon.js';
 import { CHIME_SVG } from '../src/shop-panel.js';
 const view0 = () => new ChimeView(null).crystals;
 import { Resources, CHIMES } from '../src/resources.js';
 import { GameState } from '../src/game-state.js';
 import { Foes, FOES } from '../src/foes.js';
-import { ENEMY_ROSTER } from '../src/enemies/roster.js';
+import { ARCHETYPES, BUILT } from '../src/enemies/archetypes.js';
 import { walletTick, healthHud, Fader } from '../src/hud.js';
 import { itemsPanel } from '../src/game-menu.js';
 import { firstPurse } from '../src/trials/index.js';
@@ -23,13 +23,13 @@ const itemSet = () => ({ has: () => false });
 /** A repeatable rng. */
 const seeded = (s = 7) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
 
-test('drop amounts: every foe kind has one, small ones a little, heavy ones more; world enemies by their category', () => {
+test('drop amounts: every foe kind has one, small ones a little, heavy ones more; each built archetype its own', () => {
   for (const kind of Object.keys(FOES)) assert.ok(DROP_OF[kind] > 0, `${kind} drops something`);
-  assert.ok(DROP_OF.swarm < 1 && DROP_OF.splinter < 1, 'the swarm\'s blots and the splinters: a chance of one');
+  assert.ok(DROP_OF.swarm < 1, 'the swarm\'s blots: a chance of one');
   assert.ok(DROP_OF.blot < DROP_OF.machine && DROP_OF.machine < DROP_OF.golem, 'by weight');
-  for (const c of new Set(ENEMY_ROSTER.map((e) => e.category))) assert.ok(DROP_CATEGORY[c] > 0, `${c} drops something`);
-  assert.ok(DROP_CATEGORY['local-creature'] < DROP_CATEGORY['shadow-spirit'] && DROP_CATEGORY['shadow-spirit'] < DROP_CATEGORY['possessed-machine']);
-  assert.ok(PURSE.guardian > 4 * Math.max(...Object.values(DROP_OF), ...Object.values(DROP_CATEGORY)), 'a guardian\'s purse is a big one');
+  for (const a of BUILT) assert.equal(DROP_OF[ARCHETYPES[a].kind], ARCHETYPES[a].drop, `${a}: its drop (src/enemies/archetypes.js)`);
+  assert.ok(DROP_OF.blot < DROP_OF.lizard && DROP_OF.lizard < DROP_OF.tripod, 'the teacher least, a sniper machine more');
+  assert.ok(PURSE.guardian > 4 * Math.max(...Object.values(DROP_OF)), 'a guardian\'s purse is a big one');
   // the spread: within ±25 %, at least one
   for (const [kind, base] of Object.entries(DROP_OF)) {
     if (base < 1) continue;
@@ -39,7 +39,6 @@ test('drop amounts: every foe kind has one, small ones a little, heavy ones more
     }
   }
   assert.equal(dropAmount({ kind: 'swarm' }, () => 0.2), 1); assert.equal(dropAmount({ kind: 'swarm' }, () => 0.8), 0);
-  assert.equal(dropAmount({ kind: 'blot', category: 'possessed-machine' }, () => 0.5), DROP_CATEGORY['possessed-machine'], 'a world enemy by its category, not its family');
   // on average, about the base
   const rng = seeded(3); let sum = 0; for (let i = 0; i < 2000; i++) sum += dropAmount({ kind: 'swarm' }, rng);
   assert.ok(Math.abs(sum / 2000 - 0.5) < 0.05);
@@ -180,7 +179,7 @@ function arena(level) {
   return { foes, game };
 }
 
-test('a foe cut down scatters its chimes where it fell; a world enemy by its category; a guardian\'s purse once', () => {
+test('a foe cut down scatters its chimes where it fell; an archetype in any skin its own; a guardian\'s purse once', () => {
   const { foes, game } = arena({ foes: {} });
   const F = new ChimeField({ groundAt: () => 0, rng: seeded(11) });
   connectDrops(game, F, { policy: dropPolicy({ foes: {} }), rng: () => 0.5 });
@@ -189,9 +188,8 @@ test('a foe cut down scatters its chimes where it fell; a world enemy by its cat
   assert.equal(F.lying, DROP_OF.machine); assert.ok(F.list.every((p) => !p.training));
   assert.ok(F.list.every((p) => Math.hypot(p.from.x - 3, p.from.z + 30) < 1e-6), 'from where it fell');
   F.clear();
-  const spirit = ENEMY_ROSTER.find((e) => e.category === 'shadow-spirit');
-  foes.burst(foes.add(spirit.id, v(0, 0, -25)));
-  assert.equal(F.lying, DROP_CATEGORY['shadow-spirit']);
+  foes.burst(foes.add('tripod@underwater', v(0, 0, -25)));
+  assert.equal(F.lying, DROP_OF.tripod, 'a diving bell drops as any lamp tripod');
   F.clear();
   // knocked out of the world or into deep water: nothing
   const lost = foes.add('blot', v(0, 0, -20)); lost.lost = true; foes.burst(lost);

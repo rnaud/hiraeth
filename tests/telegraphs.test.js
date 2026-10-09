@@ -5,8 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { FOES } from '../src/foes.js';
-import { ATTACKS, speciesAttacks } from '../src/enemies/attacks.js';
-import { ENEMY_ROSTER } from '../src/enemies/roster.js';
+import { ATTACKS } from '../src/enemies/attacks.js';
 import { GUARDIANS } from '../src/arena-guardians.js';
 import { Guardian, comboOf, windOf, SHIFT } from '../src/temples/boss.js';
 import { WIND_MIN, windMin, guardianWindMin, groundMark, isProjectile, TELL, ChargeGlow, POSE_DONE } from '../src/telegraph.js';
@@ -19,8 +18,7 @@ const DT = 1 / 60;
 function everyAttack() {
   const out = [];
   for (const [k, D] of Object.entries(FOES)) for (const a of D.attacks) out.push([`foe ${k}.${a.id}`, a, 'foe']);
-  for (const [id, a] of Object.entries(ATTACKS)) out.push([`world ${id}`, a, 'foe']);
-  for (const s of ENEMY_ROSTER) for (const a of speciesAttacks(s)) out.push([`species ${a.id}`, a, 'foe']);
+  for (const [id, a] of Object.entries(ATTACKS)) out.push([`pattern ${id}`, a, 'foe']);   // (the attack-pattern library the archetypes draw on)
   for (const G of GUARDIANS) for (const [id, a] of Object.entries(G.def.attacks)) out.push([`guardian ${G.id}.${id}`, a, 'guardian']);
   return out;
 }

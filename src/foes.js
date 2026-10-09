@@ -11,20 +11,25 @@ import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
 import { ShadeBody, ShadePools } from './shade.js';
 import { KINDS, NOTES, kindModel } from './foe-kinds.js';
-import { packOf, guardKinds, templeKind } from './foe-worlds.js';
+import { guardKinds, templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
-import { ENEMY_BY_ID, ENEMY_ROSTER, WORLD_ENEMIES, worldPack } from './enemies/roster.js';
 import { TITLES } from './levels/names.js';
 import { rumblePlay } from './rumble.js';
-import { enemyModel } from './enemies/models.js';
 import { Rig, planLeg } from './motion-kit/rig.js';
 import { PLANS } from './motion-kit/plans.js';
-import { speciesAttacks, attackReach, lockAttack, speciesContact, poseAttackEffect } from './enemies/attacks.js';
+import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, parseKind, skinned } from './enemies/archetypes.js';
+import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
+import { archetypeModel } from './enemies/plans/index.js';
+import { WORLDS, worldArchetypes, packOf } from './foe-worlds.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
+// - **The enemy roster** (docs/design/enemy-roster.md): 21 archetypes, each in its world's skin
+//   (src/enemies/archetypes.js, src/enemies/skins.js; who fights where: src/foe-worlds.js). Built ones run on their
+//   own bodies (src/enemies/plans/), the others on an old kind's meanwhile. Wildlife (the crab, the lizard…) keeps
+//   to itself until provoked (`calm`); the machines and the spirits come for you.
 // - **Ink blots** gather in the wilds: loose ink and scribble that drift in from the margins of the
 //   drawing, away from people, the ship and the cities. They compress, then lunge through a visible
 //   strike and recover. The fluid blade cuts them back into ink; a shot or an ember
@@ -44,16 +49,7 @@ import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, 
 /** Each kind's tuning. attack: its first strike (src/temples/boss.js inArea for the area); attacks: all it has
  *  (src/foe-kinds.js says what an attack may hold: a combo's `then`, a shockwave, a volley…). */
 export const FOES = {
-  blot: {
-    name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true, clamber: true,
-    attacks: [
-      { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.5, wind: 0.7, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
-      // the lunge-combo: a longer coil, a lunge, and a second quick one straight after (unless the first was blocked)
-      { id: 'combo', shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.8, strike: 0.22, contact: 0.55, lunge: 1.6, then: 'again', min: 0.8 },
-      { id: 'again', chain: true, shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.4, strike: 0.22, contact: 0.55, lunge: 1.8 },
-    ],
-    recover: 1.0, cool: [1.1, 2.2], hit: 0.35,
-  },
+  blot: ARCHETYPE_KINDS.blot,   // (the ink blot, the teacher: src/enemies/archetypes.js, the spitting blot's spit folded in)
   machine: {
     name: 'makers’ machine', hp: 4, radius: 0.8, height: 1.0, speed: 2.1, sight: 13, giveUp: 14, reach: 2.6, heavy: true, metal: true, breaks: true,
     tone: '#e0703a', sound: 'machine', takes: { shoot: 0, fire: 0 },
@@ -92,7 +88,8 @@ export const FOES = {
     attack: { shape: 'cone', range: 2.9, angle: 0.9, damage: 0.75, wind: 0.95, strike: 0.24, contact: 0.55 },
     recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
   },
-  ...KINDS,   // each world's own (src/foe-kinds.js)
+  ...KINDS,   // the old kinds, stand-ins for archetypes not built yet (src/foe-kinds.js)
+  ...ARCHETYPE_KINDS,   // the built archetypes (src/enemies/archetypes.js): the shellback crab, the horn lizard, the antler hound, the lamp tripod
 };
 for (const D of Object.values(FOES)) {
   D.attacks ??= [{ id: 'strike', ...D.attack }];
@@ -116,8 +113,8 @@ const STILL = 3.5;   // s a stilling glob holds a foe
 const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
 export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['shade'], ['flyer', 'flyer'], ['spitter', 'spitter', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'flyer'],
-  // then each world's own (src/foe-kinds.js)
-  ['ray'], ['golem'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['stalker', 'blot'], ['crab', 'crab'], ['slag'], ['hound', 'hound'], ['golem', 'crab', 'drone', 'hound']];
+  // then the worlds' (the archetypes and their stand-ins: src/enemies/archetypes.js, src/foe-kinds.js)
+  ['ray'], ['golem'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['stalker', 'blot'], ['crab', 'crab'], ['slag'], ['hound', 'hound'], ['lizard', 'lizard'], ['tripod'], ['tripod', 'lizard', 'lizard'], ['golem', 'crab', 'drone', 'hound']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
 export const TURNS = { strikers: 2, apart: 0.3 };
@@ -217,16 +214,23 @@ export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.7
  * update() returns the events of the frame: 'notice', 'warn', 'strike' { hit }, 'home'.
  */
 export class Foe {
-  constructor(kind, at, { rng = Math.random, id = null, templeOnly } = {}) {
-    this.variant = ENEMY_BY_ID[kind] ?? null;
-    this.species = this.variant?.id ?? null;
-    this.kind = this.variant?.family ?? kind;
+  constructor(kind, at, { rng = Math.random, id = null, templeOnly, skin = null, calm = false } = {}) {
+    // a kind, or a kind in a world's skin ('crab@saltharbour': src/enemies/skins.js)
+    const p = parseKind(kind);
+    this.kind = p.kind; this.skin = p.skin ?? skin;
     if (!FOES[this.kind]) throw new Error(`Unknown enemy: ${kind}`);
-    this.def = this.variant ? { ...FOES[this.kind], name:this.variant.name, giveUp:40 } : FOES[kind];
-    this.templeOnly = templeOnly ?? (this.kind === 'machine' && !this.variant);
-    this.attacks = this.variant ? speciesAttacks(this.variant) : null; this.attackIndex = 0;
-    if (this.attacks) this.selectAttack(0);
+    this.def = FOES[this.kind];
+    this.archetype = archetypeOfKind(this.kind);
+    this.moves = this.skin && this.archetype ? skinOf(this.archetype, this.skin)?.moves ?? [] : [];   // (its skin's own moves)
+    this.templeOnly = templeOnly ?? this.kind === 'machine';
     this.id = id; this.rng = rng;
+    // out in the wilds (calm: a pack, Foes.spawnPack) a kind with a calm (def.calm) keeps to it until provoked:
+    // wildlife grazes, a machine patrols, a blot lies pooled; of a hunting kind, not every one hunts (calm.hunts).
+    // Anywhere else (the Arena, a relic's guards, a temple, a test) it comes for you as it sees you.
+    const C = this.def.calm;
+    this.provoked = !(calm && C); this.wilds = calm;
+    this.watcher = !this.provoked && C.hunts != null && rng() > C.hunts;
+    this.farFor = 0; this.burstT = rng() * 2;
     this.home = at.clone(); this.pos = at.clone(); this.heading = rng() * Math.PI * 2;
     this.hp = this.def.hp; this.state = 'idle'; this.timer = 0; this.cool = 0.6; this.stunned = 0; this.flash = 0;
     this.attackAt = new THREE.Vector3(); this.attackH = 0; this.wander = rng() * 10; this.vel = new THREE.Vector3();
@@ -253,14 +257,6 @@ export class Foe {
     this.hop = null; this.route = null; this.stuck = 0; this.replan = 0; this.perchFor = 0; this.perched = null;   // (perched: the height it holds)
     this.waiting = false; this.holding = null; this.knockedBy = 0; this.dazed = 0;
   }
-  selectAttack(index) {
-    this.attackIndex=index % this.attacks.length;
-    this.def.attack=this.attacks[this.attackIndex];
-    this.atk=this.def.attack;
-    this.def.reach=attackReach(this.def.attack);
-    this.def.keep=this.def.attack.at==='target'?3.5:0;
-    this.def.recover=this.def.attack.recover;
-  }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt); }
   /** The level its strikes and its sight are measured from: a walker's feet; a hovering foe's footing and the height it holds over it. */
@@ -272,8 +268,17 @@ export class Foe {
   /** A shadow hound running: only a shadow, the blade passes through (an ember lights it solid). */
   get phased() { return !!this.def.phase && this.lit <= 0 && this.stunned <= 0 && this.dist > PHASE.near && (this.state === 'idle' || this.state === 'chase' || this.state === 'home'); }
 
-  /** The attacks it may begin at d metres: not a combo's follow-up, d within each one's [min, max]. */
-  attacksAt(d, dy = 0) { const D = this.def; return (this.variant ? [D.attack] : D.attacks).filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6 && (dy < STRIKE_RISE || reachesUp(a))); }
+  /**
+   * The attacks it may begin at d metres: not a combo's follow-up, d within each one's [min, max]; a skin's own
+   * move only in that skin (skins), one kept for when it is hurt (below: a share of its health), a tail whip only
+   * with you behind it (rear), a flank bite only from behind you (flank).
+   */
+  attacksAt(d, dy = 0) {
+    const D = this.def;
+    return D.attacks.filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6 && (dy < STRIKE_RISE || reachesUp(a))
+      && (!a.skins || this.moves.includes(a.id)) && (a.below == null || this.hp <= D.hp * a.below + 1e-9)
+      && (!a.rear || this.behind) && (!a.flank || this.unseen));
+  }
   /** One of them, by weight (the one it just used less likely). dy: your height off its level (m): out of a blow's reach, only a lob. */
   chooseAttack(d, dy = 0) {
     const can = this.attacksAt(d, dy);
@@ -288,10 +293,11 @@ export class Foe {
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false;
     this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
-    this.attackH = this.heading;
+    this.attackH = this.heading + (a.back ? Math.PI : 0);   // (a tail whip: behind it)
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
     if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
-    if(this.variant)lockAttack(this,P); else this.placeArea(a, P);
+    this.farFor = 0;
+    this.placeArea(a, P);
   }
   /** Where attack a lands: a ring ahead (a lunge), round it, under you (lobbed), past you (a step through the shadow). */
   placeArea(a, P) {
@@ -385,6 +391,12 @@ export class Foe {
     if (this.stunned > 0) { this.stunned -= dt; return ev; }
     const dx = P.pos.x - this.pos.x, dz = P.pos.z - this.pos.z, d = Math.hypot(dx, dz);
     this.dist = d;
+    // where it stands to you: you behind it (a tail whip), it behind you, out of your sight (a flank bite)
+    if (d > 1e-4) {
+      this.behind = (dx * Math.sin(this.heading) + dz * Math.cos(this.heading)) / d < -0.35;
+      const ph = P.heading ?? 0;
+      this.unseen = -(dx * Math.sin(ph) + dz * Math.cos(ph)) / d < -0.2;
+    }
     const away = Math.hypot(this.pos.x - this.home.x, this.pos.z - this.home.z);
     // lost: gone where it can't follow (riding, far above or below its level, fallen); down: knocked over, about to rise
     const lost = P.dead || !!P.ride || Math.abs(P.pos.y - this.level) >= 6, down = !lost && !!P.down;
@@ -393,6 +405,9 @@ export class Foe {
     const youLeft = Math.hypot(P.pos.x - this.home.x, P.pos.z - this.home.z) > D.giveUp + PRESSURE.leave;
     switch (this.state) {
       case 'idle': {
+        // its calm (def.calm): wildlife grazes, basks or lies about and fights only when provoked (close in, hurt,
+        // or one of its own provoked near it); a machine patrols its round; a blot lies pooled until you come near
+        if (D.calm && !this.provoked) { if (this.calmly(dt, P, d, env)) { this.state = 'chase'; ev.push('notice'); } break; }
         this.wander += dt * 0.4;
         const tx = this.home.x + Math.sin(this.wander) * 2.5, tz = this.home.z + Math.cos(this.wander * 0.7) * 2.5;
         this.walkTo(tx, tz, D.speed * 0.3, dt, env);
@@ -408,12 +423,22 @@ export class Foe {
         const walker = !D.hover, dy = Math.abs(P.pos.y - this.level), high = dy >= STRIKE_RISE;
         if (walker && D.perch) this.perchUp(P, d, dt, env);   // (a spitter climbs to the high ground, and holds it)
         if (this.route?.perch && !(this.cool === 0 && d <= D.reach && this.attacksAt(d, dy).length)) { this.followRoute(dt, env); break; }
+        // an attack it may begin from beyond its reach once it has chased you a while (the blot's spit)
+        this.farFor = d > D.reach ? this.farFor + dt : 0;
+        if (this.cool === 0 && d > D.reach && this.farFor > 0 && this.farAttack(d, dy) && (env.mayStrike?.(this) ?? true)) { this.beginWind(this.farAttack(d, dy), P); ev.push('warn'); this.route = null; break; }
+        // a pair's flanker circles round behind you first (the lizards)
+        if (D.flanks && this.flanker && walker && !this.unseen && d > 1.5 && d < D.sight) {
+          const ph = P.heading ?? 0, bx = P.pos.x - Math.sin(ph) * 3.4, bz = P.pos.z - Math.cos(ph) * 3.4;
+          this.walkTo(bx, bz, D.speed, dt, env, 0.5); this.face(dx, dz, dt, 6);
+          break;
+        }
         if (D.keep && d < D.keep && d > 1e-4 && this.retreat > 0) {
           // too close: it backs off a little, then stands its ground (PRESSURE.retreat), no endless chase
           this.retreat = Math.max(0, this.retreat - dt);
           this.step(-dx / d * D.speed * 0.7 * dt, -dz / d * D.speed * 0.7 * dt, env); this.face(dx, dz, dt, 8);
         }
         else if (d > D.reach || (high && !this.attacksAt(d, dy).length)) {
+          if (D.burst && this.halted(dt)) break;   // (it moves in bursts, freezing between: the crab's scuttle)
           if (walker) this.approach(P, dt, env, high ? D.radius + 0.6 : D.reach * 0.8);
           else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.reach * 0.8);
         }
@@ -433,11 +458,14 @@ export class Foe {
         const a = this.atk ?? D.attack;
         const wind = a.wind * (env.slow?.() ?? 1);
         this.timer += dt; this.k = Math.min(1, this.timer / wind);
-        if (a.track && this.k < a.track && playerOk) this.placeArea(a, P);   // (the drawn area follows you, then holds)
+        if (a.track && this.k < a.track && playerOk) {
+          // the aim follows you, then holds: a lob's mark, a searchlight's beam (a lane turns the foe with it)
+          if (a.shape === 'lane' && !a.at) this.heading = this.attackH = Math.atan2(dx, dz);
+          this.placeArea(a, P);
+        }
         if (a.surface && this.buried) this.swimTo(this.attackAt, wind, dt, env);   // (its fin is seen coming at you)
         if (this.timer >= wind) {
-          if (this.variant) { this.state='strike';this.timer=0;this.k=0;this.contacted=false; }
-          else if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
+          if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
           else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
         }
         break;
@@ -452,12 +480,7 @@ export class Foe {
           this.step(Math.sin(this.attackH) * d, Math.cos(this.attackH) * d, env);
         }
         if (a.dive) this.alt = THREE.MathUtils.lerp(D.hover, 0.35, this.k);
-        if (this.variant) {
-          for (const zone of this.zones ?? []) if (!zone.done && this.k >= zone.contact) {
-            zone.done=true;
-            ev.push({type:'strike',hit:speciesContact(this,zone,P,env,playerOk),zone});
-          }
-        } else if (a.sweep) {
+        if (a.sweep) {
           // a charge: whatever it runs into on the way is hit, once
           const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < sweepRadius(a, D);
           if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.level) < STRIKE_RISE) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
@@ -476,19 +499,59 @@ export class Foe {
       case 'recover': {
         this.timer -= dt;
         // (a ray dives again only once its time up is over: surfaced, it is there to be fought)
-        if (this.timer <= 0) { if(this.attacks)this.selectAttack(this.attackIndex+1); this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); if (D.burrow && this.upFor <= 0) this.buried = true; }
+        if (this.timer <= 0) { this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); if (D.burrow && this.upFor <= 0) this.buried = true; }
         break;
       }
       case 'home': {
         this.perched = null; this.route = null;
         this.walkTo(this.home.x, this.home.z, D.speed * 0.8, dt, env, 0.5);
         this.hp = Math.min(D.hp, this.hp + dt * 0.5);
-        if (away < 1) this.state = 'idle';
-        else if (playerOk && d < D.sight * 0.6 && away < D.giveUp * 0.8) this.state = 'chase';
+        if (away < 1) { this.state = 'idle'; if (D.calm?.wild && this.wilds) this.provoked = false; }   // (home, wildlife calms down again)
+        else if (playerOk && d < (D.calm && !this.provoked ? D.calm.provoke : D.sight * 0.6) && away < D.giveUp * 0.8) this.state = 'chase';
         break;
       }
     }
     return ev;
+  }
+
+  /**
+   * Idle, calm (def.calm, src/enemies/archetypes.js): grazing or wading about its home, basking or lying still with
+   * a shift now and then, patrolling a wide round (a machine), pooled (a blot). A shy one backs off as you come
+   * near; a watcher (of a kind where not every one hunts) turns to watch you go. True when it is provoked into a
+   * fight: you came within `provoke` m in sight, or it was provoked (hurt, or one of its own near it: Foes.alarm).
+   */
+  calmly(dt, P, d, env) {
+    const D = this.def, C = D.calm, still = C.mode === 'bask' || C.mode === 'lie' || C.mode === 'pool';
+    const lost = P.dead || !!P.ride || Math.abs(P.pos.y - this.level) >= 6 || !!P.down;
+    if (C.shy && !this.provoked && !lost && d < C.shy && d > 1e-4) {
+      // backs away from you, facing you, into its crevice
+      this.step(-(P.pos.x - this.pos.x) / d * D.speed * 0.35 * dt, -(P.pos.z - this.pos.z) / d * D.speed * 0.35 * dt, env);
+      this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 5);
+    } else if (this.watcher && !lost && d < D.sight) this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 3);   // (stands and watches you go)
+    else {
+      this.wander += dt * (still ? 0.12 : C.mode === 'patrol' ? 0.25 : 0.4);
+      const R = C.mode === 'patrol' ? C.round ?? 7 : still ? 0.8 : 2.5;
+      const tx = this.home.x + Math.sin(this.wander) * R, tz = this.home.z + Math.cos(this.wander * (C.mode === 'patrol' ? 1 : 0.7)) * R;
+      this.walkTo(tx, tz, D.speed * (still ? 0.12 : C.mode === 'patrol' ? 0.35 : 0.25), dt, env);
+    }
+    if (lost) return false;
+    if (this.provoked) return true;
+    if (this.watcher) return false;
+    if (d < C.provoke && (env.seen?.(this.chest, P.pos) ?? true)) { this.provoked = true; return true; }
+    return false;
+  }
+
+  /** It moves in bursts (def.burst [go, stop] s): true while it is frozen between two (the crab's scuttle). */
+  halted(dt) {
+    const [go, stop] = this.def.burst;
+    this.burstT = (this.burstT + dt) % (go + stop);
+    return this.burstT > go;
+  }
+
+  /** An attack it may begin from beyond its reach (attack.far: once it has chased you that long, the blot's spit), or null. */
+  farAttack(d, dy) {
+    const can = this.attacksAt(d, dy).filter((a) => a.far && this.farFor >= a.far);
+    return can[0] ?? null;
   }
 
   /** Round you at r m, a slow step to one side, facing you: waiting a turn, or for you to get up. */
@@ -864,6 +927,7 @@ export class Foe {
   hit(mode, dir, info = {}) {
     if (!this.alive) return false;
     this.shrugged = false;
+    this.provoked = true;   // (wildlife hurt fights back)
     const D = this.def, src = info.source;
     if (this.buried) {
       // under the sand a blast, a stomp or a gust throws a ray up, dazed; a cut at its fin flushes it out
@@ -879,7 +943,7 @@ export class Foe {
     if (src === 'bomb' && this.shelled) { this.shelled = false; this.flash = 1; }   // (a bomb cracks a crab's shell for good)
     let dmg = 0;
     if (mode === 'blade') {
-      if (this.shelled && !(this.flipped > 0) && dir && this.frontal(dir)) {
+      if (this.shelled && !(this.flipped > 0) && dir && this.frontal(dir) && src !== 'parry') {
         // the shell turns the blade from the front: a glance, no harm
         this.flash = 0.5; this.recoil = 0.5; this.heavyRecoil = false; this.recoilDir.copy(dir).setY(0).normalize();
         return 'glance';
@@ -926,44 +990,53 @@ export class Foe {
   }
 }
 
-/** A wave said in words: "3 ink blots", "2 machines and 2 ink blots". */
+/** A foe's name for the words of a wave: its skin's (an anchor crab) or its kind's (an ink blot). */
+export function foeName(id) {
+  const { kind, skin } = parseKind(id), a = archetypeOfKind(kind);
+  const own = skin && a && ARCHETYPES[a].status === 'built' ? skinOf(a, skin)?.name : null;
+  return own ?? FOES[kind]?.name ?? kind;
+}
+const pluralOf = (id) => (foeName(id) !== FOES[parseKind(id).kind]?.name ? `${foeName(id)}s` : FOES[parseKind(id).kind]?.plural ?? `${foeName(id)}s`);
+
+/** A wave said in words: "3 ink blots", "2 machines and 2 ink blots", "2 anchor crabs" (a skin by its name). */
 export function waveWords(kinds) {
   const count = (k) => kinds.filter((x) => x === k).length, say = (n, one, many = `${one}s`) => `${n} ${n > 1 ? many : one}`;
-  const parts = [['machine', 'machine'], ['shade', 'shade'], ['spitter', 'spitting blot'], ['flyer', 'winged blot'],
-    ...Object.keys(KINDS).map((k) => [k, FOES[k].name, FOES[k].plural]), ['blot', 'ink blot']].map(([k, w, many]) => count(k) && say(count(k), w, many));
-  if (count('swarm')) parts.push('a swarm');
-  const list = parts.filter(Boolean);
-  return list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0] ?? '';
+  // (the old names first, as they always were, then the worlds' kinds and the archetypes, the ink blot last)
+  const order = ['machine', 'shade', 'spitter', 'flyer', ...Object.keys(KINDS), ...Object.keys(ARCHETYPE_KINDS).filter((k) => k !== 'blot'), 'blot'];
+  const rank = (k) => order.indexOf(parseKind(k).kind) + (parseKind(k).skin ? 0.5 : 0);
+  const ids = [...new Set(kinds)].filter((k) => parseKind(k).kind !== 'swarm').sort((a, b) => rank(a) - rank(b));
+  const words = { machine: 'machine', shade: 'shade', spitter: 'spitting blot', flyer: 'winged blot', blot: 'ink blot' };
+  const parts = ids.map((k) => say(count(k), words[k] ?? foeName(k), words[k] ? undefined : pluralOf(k)));
+  if (kinds.some((k) => parseKind(k).kind === 'swarm')) parts.push('a swarm');
+  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0] ?? '';
 }
 
+const seeded = (s) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
 /**
- * The Arena's whole cycle (v1.5): the ink and the worlds' kinds (WAVES), then each of the 100 world enemies
- * (src/enemies/roster.js) alone, in world order, then each world's in pairs (a creature with its machine, the other
- * creature with its spirit), then each world's four together; then round again.
+ * A world's waves in the Arena (the FOES list's "Waves from here", enemies.html's "Fight this world's roster"): each of
+ * its archetypes alone in its skin (the built ones and the stand-ins: src/foe-worlds.js), then two of its packs.
  */
-export const ARENA_WAVES = [
-  ...WAVES,
-  ...ENEMY_ROSTER.map((e) => [e.id]),
-  ...Object.values(WORLD_ENEMIES).flatMap((r) => [[r[0].id, r[2].id], [r[1].id, r[3].id]]),
-  ...Object.values(WORLD_ENEMIES).map((r) => r.map((e) => e.id)),
-];
+export function worldWaves(world) {
+  const kinds = [...new Set(worldArchetypes(world).map((a) => ARCHETYPES[a].kind).filter(Boolean))];
+  const alone = kinds.map((k) => Array(FOES[k]?.group ?? 1).fill(skinned(k, world)));
+  return [...alone, ...[1, 2].map((n) => packOf(n + 2, world, seeded(n * 7 + world.length)).map((k) => skinned(k, world)))];
+}
+
+/** The built archetypes, each alone in each of its skins (src/enemies/skins.js), a group kind as a group. */
+const SKIN_WAVES = BUILT.flatMap((a) => skinWorlds(a).map((w) => Array(FOES[ARCHETYPES[a].kind].group ?? 1).fill(skinned(ARCHETYPES[a].kind, w))));
+const WORLD_START = {};
+/**
+ * The Arena's whole cycle (v1.8, the enemy roster): the ink and the worlds' kinds (WAVES), then each built archetype
+ * in each of its skins, then each world's own (worldWaves); then round again.
+ */
+export const ARENA_WAVES = [...WAVES, ...SKIN_WAVES];
+for (const w of Object.keys(WORLDS)) { WORLD_START[w] = ARENA_WAVES.length; ARENA_WAVES.push(...worldWaves(w)); }
 /** The n-th wave of the Arena's cycle. */
 export const arenaWave = (n) => ARENA_WAVES[((n % ARENA_WAVES.length) + ARENA_WAVES.length) % ARENA_WAVES.length];
-/** Where a world's enemies start in the cycle (its first one alone); -1 for none. */
-export function arenaWaveOf(world) {
-  const first = WORLD_ENEMIES[world]?.[0]?.id;
-  return first ? ARENA_WAVES.findIndex((w) => w.length === 1 && w[0] === first) : -1;
-}
-/** A wave in words, the world enemies by name: "dune skitter and possessed cistern pump", "2 ink blots". */
-export function waveText(kinds) {
-  const named = [...new Set(kinds.filter((k) => ENEMY_BY_ID[k]))].map((k) => {
-    const n = kinds.filter((x) => x === k).length, name = ENEMY_BY_ID[k].name.toLowerCase();
-    return n > 1 ? `${n} ${name}s` : name;
-  });
-  const ink = waveWords(kinds.filter((k) => !ENEMY_BY_ID[k]));
-  const list = [...named, ...(ink ? [ink] : [])];
-  return list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0] ?? '';
-}
+/** Where a world's waves start in the cycle (its first archetype alone); -1 for none. */
+export const arenaWaveOf = (world) => WORLD_START[world] ?? -1;
+/** A wave in words, a world's skins by name: "2 coin lizards and 1 ink blot". */
+export const waveText = (kinds) => waveWords(kinds);
 
 /** Far enough from people and the ship for the wilds: p { x, z }; people: [{ x, z }]. */
 export function inWilds(p, { people = [], spawn = null } = {}) {
@@ -1062,9 +1135,9 @@ const worldSnd = {
 let _waveGeo, _waveMat, _waveInk, _patchGeo, _patchMat, _rimGeo, _patchRim;   // (shared by every shockwave and slag patch)
 /** The drops a foe bursts into as it falls. */
 const BURST_TONES = {
-  machine: ['#a8824a', '#70e7df', '#3a3330'], golem: ['#7fd6a8', '#d7f3d9', '#2d4a3e'], splinter: ['#7fd6a8', '#bfe8c4', '#2d4a3e'],
+  machine: ['#a8824a', '#70e7df', '#3a3330'], golem: ['#7fd6a8', '#d7f3d9', '#2d4a3e'],
   ray: ['#c98d4f', '#e8c58f', '#2b211f'], moth: ['#ff5fa2', '#5ff0e8', '#241a2e'], drone: ['#8a4b2e', '#ffb347', '#2e2a28'],
-  stalker: ['#e8e2d0', '#9fe8d8', '#3a332c'], crab: ['#efe9dc', '#9a4f34', '#f2d34b'], slag: ['#ff7a2e', '#ffd36a', '#3b2a26'],
+  stalker: ['#e8e2d0', '#9fe8d8', '#3a332c'], slag: ['#ff7a2e', '#ffd36a', '#3b2a26'],
 };
 
 /** Every foe in a world: the packs of ink blots in the wilds, the machines in the temple, their looks and their targets. */
@@ -1252,19 +1325,20 @@ export class Foes {
     return inWilds(p, { people: this._people ?? this.peopleNow(), spawn: L?.spawn });
   }
 
+  /**
+   * A foe of `kind` (a kind, or a kind in a skin: 'crab@saltharbour') at `at`. With no skin, an archetype wears this
+   * world's (src/enemies/skins.js: its own skin where the world has none). o.calm: a wild pack's, calm until provoked.
+   */
   add(kind, at, o = {}) {
-    const f = new Foe(kind, at, { rng: this.rng, ...o });
-    f.model = f.variant ? enemyModel(f.variant) : kind === 'machine' ? machineModel() : kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : kindModel(kind) ?? blotModel(kind);
-    if(f.variant){f.def.height=f.model.height;f.def.radius=f.model.radius;}
+    const p = parseKind(kind), a = archetypeOfKind(p.kind);
+    const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.levelId) : null);
+    const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
+    f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : f.kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : kindModel(f.kind) ?? blotModel(f.kind));
     f.model.group.position.copy(at);
     if (!f.model.shade) this.group.add(f.model.group);
     if (f.model.glob) this.group.add(f.model.glob);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
-    if(f.variant){
-      f.zoneTells=Array.from({length:3},()=>new Telegraph(this.group,f.def.attack.color));
-      f.effectMaterial=makeMaterial({color:f.def.attack.color,flat:true,glow:.7,key:`species-effect.${foeMaterialId++}`});
-      f.effects=Array.from({length:3},()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,10,6),f.effectMaterial);m.visible=false;m.userData.noCollide=true;this.group.add(m);return m;});
-    }
+    if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)
     f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire', 'bloom'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
@@ -1282,11 +1356,8 @@ export class Foes {
     // (each foe's shapes and its warning's glow are its own: let go with it, or every wave of a fight leaves
     // its GPU buffers and materials behind)
     for (const o of [f.model.group, f.model.glob, ...(f.globs ?? [])]) o?.traverse((m) => m.geometry?.dispose());
-    if(f.variant && this.debris?.some(d=>d.owner===f))f.awaitingDebrisDisposal=true;
-    else if(f.model.dispose)f.model.dispose(); else if (f.model.eyeMat) releaseMaterial(f.model.eyeMat);
-    for(const tell of f.zoneTells??[])tell.dispose();
-    for(const effect of f.effects??[]){effect.removeFromParent();effect.geometry.dispose();}
-    if(f.effectMaterial)releaseMaterial(f.effectMaterial);
+    if (f.model.dispose && this.debris?.some((d) => d.owner === f)) f.awaitingDebrisDisposal = true;   // (its pieces still fly: their materials go with the last)
+    else if (f.model.dispose) f.model.dispose(); else if (f.model.eyeMat) releaseMaterial(f.model.eyeMat);
     this.list.splice(this.list.indexOf(f), 1);
   }
 
@@ -1318,7 +1389,7 @@ export class Foes {
    * little over its feet, so a slope it stands on is not counted. No physics (tests): yes.
    */
   roomAt(kind, at) {
-    const phys = this.physics, D = FOES[ENEMY_BY_ID[kind]?.family ?? kind] ?? FOES.blot;
+    const phys = this.physics, D = FOES[parseKind(kind).kind] ?? FOES.blot;
     if (!phys?.pushCapsule) return true;
     const r = Math.max(0.2, Math.min(D.radius ?? 0.5, 0.9)), top = Math.max(1, (D.height ?? 0.6) * 2) + (D.hover ?? 0);
     const push = phys.pushCapsule(_pb.copy(at), r, 0.3, top, _hz);
@@ -1342,9 +1413,12 @@ export class Foes {
     return c.clone();
   }
 
-  /** A pack of ink blots comes in, out of sight round you, where there is footing and room to stand. */
+  /**
+   * A pack comes in, out of sight round you, where there is footing and room to stand: the world's (src/foe-worlds.js
+   * packOf), each in the world's skin. Out here wildlife and the others keep to their calm until provoked.
+   */
   spawnPack() {
-    const P = this.player, phys = this.physics, kinds = (worldPack(this.packs, this.levelId) ?? packKinds(this.packs, this.levelId, this.rng)).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
+    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.levelId, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
     const base = this.rng() * Math.PI * 2;
     let made = 0;
     for (let tries = 0; tries < 24 && made < n; tries++) {
@@ -1354,7 +1428,7 @@ export class Foes {
       if (!Number.isFinite(y) || Math.abs(y - P.pos.y) > 5) continue;
       const at = new THREE.Vector3(x, y, z);
       if (!this.wild(at) || !this.roomAt(kinds[made], at)) continue;
-      this.add(kinds[made], at);
+      this.add(kinds[made], at, { calm: true });
       made++;
     }
     if (made) this.packs++;
@@ -1372,7 +1446,7 @@ export class Foes {
       for (let k = 0; k < GUARDS.size; k++) {
         const at = this.openSpot(kinds[k], g.pos, (k / GUARDS.size) * Math.PI * 2 + 0.7, GUARDS.ring, 4, 12);
         const f = this.add(kinds[k], at);
-        f.guard = g;
+        f.guard = g;   // (guarding its relic: a calm kind is roused already)
       }
     }
   }
@@ -1382,16 +1456,17 @@ export class Foes {
     if (this.list.some((f) => f.alive)) { this.waveRest = WAVE.rest; return; }
     this.waveRest -= dt;
     if (this.waveRest > 0) return;
-    // (enemies.html's links: ?enemy= one world enemy again and again, ?enemyWorld= its world's four, then its packs)
-    const roster = WORLD_ENEMIES[this.level?.foes?.roster], single = ENEMY_BY_ID[this.level?.foes?.species];
-    const P = this.player, kinds = single ? [single.id] : roster ? (this.wave < 4 ? [roster[this.wave].id] : worldPack(this.wave - 3, this.level.foes.roster)) : arenaWave(this.wave), base = this.rng() * Math.PI * 2;
+    // (enemies.html's links: ?enemy= one archetype in a skin again and again, ?enemyWorld= that world's waves round)
+    const world = WORLDS[this.level?.foes?.world] ? this.level.foes.world : null, single = this.level?.foes?.kind && FOES[parseKind(this.level.foes.kind).kind] ? this.level.foes.kind : null;
+    const ww = world ? worldWaves(world) : null;
+    const P = this.player, kinds = single ? Array(FOES[parseKind(single).kind].group ?? 1).fill(single) : ww ? ww[this.wave % ww.length] : arenaWave(this.wave), base = this.rng() * Math.PI * 2;
     kinds.forEach((kind, i) => {
       const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
       this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40));
     });
     this.wave++;
     this.waveRest = WAVE.rest;
-    const e0 = ENEMY_BY_ID[kinds[0]], from = e0 && (TITLES[e0.world] ?? e0.worldTitle);
+    const skin = parseKind(kinds[0]).skin, from = skin && (TITLES[skin] ?? skin);
     this.notice?.(`Wave ${this.wave}${from ? ` · ${from}` : ''}: ${waveText(kinds)}.`);
   }
   /** The Arena's waves again, from a world's first enemy (the FOES list), or on from where they were; the field cleared. */
@@ -1545,7 +1620,7 @@ export class Foes {
     hitStop(last ? 0.12 : 0.09); kick(last ? 0.6 : 0.35);
     if (last) slowMo(0.45, 0.35);
     const T = this.tool, at = f.chest.clone();
-    const tones = BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];
+    const tones = f.model.tones ?? BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];   // (an archetype's from its skin)
     for (let i = 0; i < 46; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
     if (T?.reserve) {
       T.reserve.level = Math.min(T.reserve.max, T.reserve.level + 1);
@@ -1566,14 +1641,14 @@ export class Foes {
     if (!this.level?.foes?.noInk) gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it; not from a game's endless waves)
     f.dead = 0.8;   // (the look fades out over this)
     // (src/chimes.js, main.js: what it leaves; `lost` when it went out of the world or into deep water)
-    this.game.emit?.('foe:burst', { kind: f.kind, species: f.species, category: f.variant?.category ?? null, pos: f.pos.clone(), lost: !!f.lost, practice: !!this.practice?.kind, waves: !!this.waves });
+    this.game.emit?.('foe:burst', { kind: f.kind, skin: f.skin, archetype: f.archetype, pos: f.pos.clone(), lost: !!f.lost, practice: !!this.practice?.kind, waves: !!this.waves });
   }
 
   update(dt, paused = false) {
     TELL.slow = this.difficulty === 'gentle' ? GENTLE.wind : 1;   // (the guardians' wind-ups too: src/telegraph.js)
     const P = this.player;
     if (!P) return;
-    if (!this.on) { for (const f of this.list) { f.model.group.visible=false;f.tele.hide();f.glow?.hide();for(const tell of f.zoneTells??[])tell.hide();for(const effect of f.effects??[])effect.visible=false; } return; }
+    if (!this.on) { for (const f of this.list) { f.model.group.visible = false; f.tele.hide(); f.glow?.hide(); } return; }
     if (paused) return;
     if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();
@@ -1596,8 +1671,6 @@ export class Foes {
         if (f.model.shade) { f.model.shade.melt = 1 - f.dead / 0.8; f.model.shade.update(dt, f); }   // (a shade runs away into the ground)
         else f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8));
         f.tele.hide(); f.glow?.hide();
-        for(const tell of f.zoneTells??[])tell.hide();
-        for(const effect of f.effects??[])effect.visible=false;
         if (f.dead <= 0) this.remove(f);
         continue;
       }
@@ -1607,15 +1680,15 @@ export class Foes {
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
         if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow());   // (rising over its whole wind-up)
-        if (e === 'notice') this.meet(f);
+        if (e === 'notice') { this.meet(f); this.alarm(f); }
         if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
         if (f.kind === 'shade') this.slashTrail(f);
-        const a = e.zone?.attack ?? e.atk ?? f.def.attack;
+        const a = e.atk ?? f.def.attack;
         if (a.wave) this.addWave(f, a);
         if (a.leave) this.leaveSlag(f, a);
         if (a.surface || a.blink) this.burstUp(f, a);
-        if (e.hit) { this.strike(f, a); if(f.variant && f.stunned>0)break; }
+        if (e.hit) this.strike(f, a);
       }
       if (f.def.trail && f.alive && inTemple) this.trailSlag(f);
       this.look(f, dt);
@@ -1700,13 +1773,15 @@ export class Foes {
     if (guarded) {
       const perfect = guarded === 'perfect';
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
-      if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }
+      if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
       f.staggered(perfect); this.sound?.foeHurt?.(f.def.sound ?? f.kind);
       if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
       // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
       // cut (the drone, the stalker dazed)
       if (a.onParry === 'flip') { f.flipped = f.stunned = Math.max(f.stunned, 2.6); f.vel.multiplyScalar(0.3); }
       else if (a.onParry === 'cut') { f.stunned = Math.max(f.stunned, perfect ? PARRY_STUN : 1); this.sparks(f, P.chest ?? P.pos); }
+      // a perfect parry sends a tripod's bolt back down its beam, into its lamp
+      else if (a.onParry === 'reflect' && perfect && f.alive) { this.hurt(f, 'world', null, { damage: 2, source: 'parry' }); this.sparks(f, f.chest); }
       return false;
     }
     this.harm(this.harmOf(a.damage));
@@ -1719,7 +1794,12 @@ export class Foes {
       const h = a.tether ?? a.grab;
       this.hold = { f, kind: a.tether ? 'tether' : 'grab', t: h.time * g, pull: h.pull, d: f.pos.distanceTo(P.pos) };
       f.letGo = false; P.flinch?.();
-    } else if(a.pull) { P.vel?.addScaledVector(_v,-a.pull);P.flinch?.(); } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
+    } else if (a.shove) {
+      // a horn lizard's blare: you are shoved a few metres, toward its partner when it has one
+      const mate = this.list.find((x) => x !== f && x.alive && x.dead === undefined && x.kind === f.kind && x.pos.distanceTo(P.pos) < 16);
+      if (mate) { _w.subVectors(mate.pos, P.pos).setY(0); if (_w.lengthSq() > 1e-4) _v.copy(_w.normalize()); }
+      P.vel?.addScaledVector(_v, a.shove).addScaledVector(_up, 2); P.flinch?.();
+    } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
     else { P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5); P.flinch?.(); }   // (a flinch from motion capture: player.js)
     if (a.blind) this.blind(a.blind * g, f.def.tone);
     return true;
@@ -1873,9 +1953,22 @@ export class Foes {
     } else if (this.blindEl) this.blindEl.style.opacity = '0';
   }
 
-  /** The first time each kind comes for you: what it is and how to beat it, once (NOTES, src/foe-kinds.js). */
+  /**
+   * One provoked (it noticed you, or you hurt it): those of its own kind near it that keep a calm are provoked too
+   * (def.calm.alarm m: a lizard's partner, a crab's neighbours, the hounds of a pair).
+   */
+  alarm(f) {
+    for (const x of this.list) {
+      if (x === f || !x.alive || x.dead !== undefined || x.provoked || x.kind !== f.kind || !x.def.calm?.alarm) continue;
+      if (x.pos.distanceTo(f.pos) > x.def.calm.alarm) continue;
+      x.provoked = true; x.watcher = false;
+      if (x.state === 'idle') x.state = 'chase';
+    }
+  }
+
+  /** The first time each kind comes for you: what it is and how to beat it, once (NOTES, src/foe-kinds.js; the archetypes', src/enemies/archetypes.js). */
   meet(f) {
-    const note = NOTES[f.kind];
+    const note = ARCHETYPE_NOTES[f.kind] ?? NOTES[f.kind];
     if (!note || this.own) return;
     const id = `foes.met.${f.kind}`;
     if (this.game.flag(id)) return;
@@ -1884,10 +1977,10 @@ export class Foes {
   }
 
   // ------------------------------------------------------------------ the Arena's practice (src/foe-spawner.js)
-  /** A foe of `kind` comes in ahead of you (the Arena's spawner, tests, the console: foes.spawnKind('crab')). */
-  spawnKind(kind, { n = ENEMY_BY_ID[kind] ? 1 : FOES[kind]?.group ?? 1, dist = 9 } = {}) {
+  /** A foe of `kind` comes in ahead of you (the Arena's spawner, tests, the console: foes.spawnKind('crab'), foes.spawnKind('lizard@bazaar')). */
+  spawnKind(kind, { n = FOES[parseKind(kind).kind]?.group ?? 1, dist = 9 } = {}) {
     const P = this.player;
-    if (!FOES[ENEMY_BY_ID[kind]?.family ?? kind] || !P) return [];   // (a world enemy by its id: src/enemies/roster.js)
+    if (!FOES[parseKind(kind).kind] || !P) return [];
     const h = P.heading ?? 0, out = [];
     for (let i = 0; i < n; i++) {
       const at = this.openSpot(kind, P.pos, h + (i - (n - 1) / 2) * 0.35, dist, 20, 40);
@@ -1929,8 +2022,7 @@ export class Foes {
     const strike = f.state === 'strike', recover = f.state === 'recover';
     const recovery = recover ? THREE.MathUtils.clamp(f.timer / f.def.recover, 0, 1) : 0;
     const release = strike ? THREE.MathUtils.smoothstep(f.k, 0, 0.7) : 0;
-    if (f.variant) { M.animate(f, dt, t, this.animKit(f, dt, { recovery })); }
-    else if (M.shade) {
+    if (M.shade) {
       M.shade.melt = Math.max(0, M.shade.melt - dt / 0.8);   // (it pours up out of the ground as it comes)
       M.shade.update(dt, f);
     } else if (M.anim) {
@@ -1995,17 +2087,7 @@ export class Foes {
       g.scale.x *= 1 + 0.12 * c - up * 0.5; g.scale.z *= 1 + 0.12 * c - up * 0.5; g.scale.y *= 1 - 0.15 * c + up;
     }
     this.daze(f, dt);
-    if(f.variant){
-      f.tele.hide();
-      for(let i=0;i<f.zoneTells.length;i++){
-        const z=f.zones?.[i],tell=f.zoneTells[i],effect=f.effects[i];
-        const live=z&&!f.stunned&&['wind','strike'].includes(f.state);
-        // (only a lobbed glob marks where it lands, until it lands: every other attack is read from the body)
-        if(live&&!z.done&&groundMark(z.attack)){tell.show(z.attack,z.at,z.heading,z.at.y);tell.set(f.state==='wind'?f.k:1,t);tell.fillM.uniforms.uColor.value.set(z.attack.color);}
-        else tell.hide();
-        if(live)poseAttackEffect(effect,f,z,t); else effect.visible=false;
-      }
-    } else {
+    {
     // The body is the tell (src/telegraph.js); only a lobbed shot's landing mark is drawn on the floor.
     const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
     const drawn = f.state === 'wind' && groundMark(a);
@@ -2023,8 +2105,8 @@ export class Foes {
     const winding = f.state === 'wind' && !f.stunned, striking = f.state === 'strike' && !f.contacted;
     if (!winding && !striking) { f.glow?.hide(); return; }
     const M = f.model;
-    f.glow ??= new ChargeGlow(this.group, f.variant ? f.def.attack.color : f.def.tone ?? '#f05a3c', Math.max(0.22, Math.min(0.5, f.def.radius * 0.45)));
-    const a = f.atk ?? f.def.attack, part = M.tell?.(f.variant ? a.motion : a.id, f) ?? null;
+    f.glow ??= new ChargeGlow(this.group, f.def.tone ?? '#f05a3c', Math.max(0.22, Math.min(0.5, f.def.radius * 0.45)));
+    const a = f.atk ?? f.def.attack, part = M.tell?.(a.id, f) ?? null;
     if (part) { M.group.updateMatrixWorld(true); part.getWorldPosition(_gl); }
     else _gl.copy(f.chest).add(_gf.set(Math.sin(f.heading), 0, Math.cos(f.heading)).multiplyScalar(f.def.radius * 0.9));
     f.glow.set(winding ? f.k : 1, _gl, performance.now() / 1000);

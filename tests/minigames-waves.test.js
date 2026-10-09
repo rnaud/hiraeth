@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import waves, { TIDE, COST, FIRST, GROUP, KILL, heads, waveCap, waveKinds, waveBudget, chainMult, killPoints, tideScore, BOONS, boonChoice, boonTunings, basinHeight, SPRINGS } from '../src/minigames/waves.js';
 import { FOES, Foes, Foe, waveWords } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
+import { ARCHETYPE_KINDS } from '../src/enemies/archetypes.js';
 import { BLADE, EVADE, GUARD } from '../src/fluid-blade.js';
 import { checkGame } from '../src/minigames/index.js';
 import { mulberry32 } from '../src/noise.js';
@@ -17,7 +18,6 @@ test('ink tide is a complete game, played on foot', () => {
   assert.equal(waves.drives, false);
   for (const k of Object.keys(COST)) assert.ok(FOES[k], `${k} is one of the game's foes`);
   for (const k of Object.keys(FIRST)) assert.ok(COST[k] && KILL[k], `${k} has a cost and points`);
-  assert.ok(KILL.splinter, 'a golem’s splinters score too');
   for (const b of ['RB / R1', 'LB / L1', 'B / ○']) assert.ok(waves.controls.pad.some(([x]) => x === b), b);
 });
 
@@ -43,7 +43,8 @@ test('the waves grow in size and in mix; each new kind comes in on its own wave'
 
 test('the worlds’ own foes come in after the shade, one every wave or two, mixed in with the old ones', () => {
   const late = Object.keys(FIRST).filter((k) => FIRST[k] > 6).sort((a, b) => FIRST[a] - FIRST[b]);
-  assert.deepEqual(late.slice().sort(), Object.keys(KINDS).filter((k) => !KINDS[k].noWild).sort(), 'every kind of the worlds that roams comes in (a splinter only out of a golem)');
+  const worlds = [...Object.keys(KINDS), ...Object.keys(ARCHETYPE_KINDS).filter((k) => k !== 'blot')];
+  assert.deepEqual(late.slice().sort(), worlds.filter((k) => !FOES[k].noWild).sort(), 'every kind of the worlds that roams comes in, the built archetypes too');
   assert.equal(FIRST[late[0]], 7);
   for (let i = 1; i < late.length; i++) assert.ok(FIRST[late[i]] - FIRST[late[i - 1]] <= 2 && FIRST[late[i]] > FIRST[late[i - 1]], `${late[i]} a wave or two after ${late[i - 1]}`);
   for (const k of late) {
@@ -91,7 +92,7 @@ test('gentle: smaller waves, never a crowd', () => {
     assert.ok(standing(N) <= waveCap(n), `wave ${n}: ${N}`);
   }
   assert.equal(waveCap(1, true), 5);
-  assert.equal(heads('swarm'), 0); assert.equal(heads('golem'), 3, 'a golem counts as the splinters it breaks into');
+  assert.equal(heads('swarm'), 0); assert.equal(heads('golem'), 1, 'a golem is one (its splinters are retired)');
   assert.ok(waveBudget(6, true) < waveBudget(6));
 });
 
@@ -152,7 +153,7 @@ test('foes made and let go leave no materials behind (200 over a long Ink tide, 
   const { materialCount } = await import('../src/materials.js');
   const level = { foes: { own: true, wild: false, noInk: true } };
   const F = new Foes({ scene: new THREE.Scene(), level, levelId: 'arena', physics: null, player: { pos: { x: 0, y: 0, z: 0 } }, settings: { enemies: 'off' } });
-  const kinds = Object.keys(FIRST).concat('splinter');
+  const kinds = Object.keys(FIRST).concat('crab@saltharbour', 'lizard@bazaar', 'tripod@underwater', 'hound@spheres');
   const wave = (n) => { const fs = []; for (let i = 0; i < n; i++) fs.push(F.add(kinds[i % kinds.length], new THREE.Vector3(i, 0, 0))); for (const f of fs) F.remove(f); };
   wave(kinds.length);   // the shared ones made once
   const before = materialCount();

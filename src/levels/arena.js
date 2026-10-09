@@ -5,7 +5,9 @@ import { Terrain } from '../world.js';
 import { stepped } from '../load-steps.js';
 import { DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
-import { WORLD_ENEMIES, ENEMY_BY_ID } from '../enemies/roster.js';
+import { WORLDS } from '../foe-worlds.js';
+import { parseKind } from '../enemies/archetypes.js';
+import { FOES } from '../foes.js';
 import { FoeList } from '../foe-spawner.js';
 import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
 import { placeHitboxBoard } from './arena-hitbox-board.js';
@@ -20,8 +22,9 @@ import { placeHitboxBoard } from './arena-hitbox-board.js';
 
 export function* buildArena(scene) {
   const query=new URLSearchParams(typeof location==='undefined'?'':location.search);
-  const roster=WORLD_ENEMIES[query.get('enemyWorld')]?query.get('enemyWorld'):null;
-  const species=ENEMY_BY_ID[query.get('enemy')]?query.get('enemy'):null;
+  // (enemies.html's links: ?enemy=lizard@bazaar one archetype in a skin, again and again; ?enemyWorld=bazaar that world's waves)
+  const world = WORLDS[query.get('enemyWorld')] ? query.get('enemyWorld') : null;
+  const kind = FOES[parseKind(query.get('enemy')).kind] ? query.get('enemy') : null;
   // the FOES list (src/foe-spawner.js): a menu of the level's, as the Arcade's board (D-pad ↓, K), and the guardians' ring
   const foeList = new FoeList();
   const terrain = yield* Terrain.make({
@@ -62,7 +65,7 @@ export function* buildArena(scene) {
     features: { mount: false, wind: false, jetpack: true, climb: true },
     defaults: { hour: 9.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },   // (the desert's print: bright sand, a blue sky)
     killY: -Infinity,
-    foes: { waves: true, chimes: 'training', ...(roster?{roster}:{}), ...(species?{species}:{}) },   // (chimes: into the wallet, not counted as earned: src/chimes.js)
+    foes: { waves: true, chimes: 'training', ...(world ? { world } : {}), ...(kind ? { kind } : {}) },   // (chimes: into the wallet, not counted as earned: src/chimes.js)
     lendTool: { mode: null },   // (main.js: the backpack lent for the visit, so the blade and the shield are there on any save; nothing written to it)
     // the desert's print: a flat cerulean sky over cream sand
     sky: {
