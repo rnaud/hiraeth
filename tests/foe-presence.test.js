@@ -52,7 +52,7 @@ test('every kind shows itself in every state: tall enough, wide enough, with a l
   // the states that used to hide are among those checked
   assert.ok(Object.keys(states).some((t) => t.startsWith('hound:chase') && t.endsWith(':phased')), 'a running hound');
   assert.ok(Object.keys(states).some((t) => t.startsWith('ray:') && t.includes(':buried')), 'a buried ray');
-  assert.ok(states['ray:wind:erupt:buried'], 'a ray winding up under the sand');
+  // (a ray winding up under the sand: its own test below, as which attack it picks here is random)
   clearTargets();
 });
 
