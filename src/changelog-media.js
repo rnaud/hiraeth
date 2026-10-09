@@ -431,6 +431,51 @@ const PAD_VIEW = (setup) => ({ level: 'arena', hud: true, save: PAD_SAVE, wait: 
 const PADS = { commit: 'cc087bd4' };
 
 export const CHANGELOG_MEDIA = {
+  '1.12': [
+    // the temples, reworked from the temple design audit (docs/audits/temple-design-v1.12.md)
+    { match: 'The Undertower is rebuilt round one idea', shots: [
+      { name: 'ut-dishes', caption: 'The Hall of Dishes from the near landing: before, a ball in its groove by the pit; after, the singing ball, the great dish on the west wall with its footstone, and its twin over the horn across the pit', commit: 'b393ea6b',
+        view: { level: 'bazaar', player: [-196, 1600.2, -504], eye: [-194, 1603.5, -506], target: [-208, 1602.5, -492], fov: 75 } },
+      { name: 'ut-well', caption: 'The Cable Well: after, the horn on the ledge (its ring the low note’s colour) that wakes the second disc, the high stone on the floor below', commit: 'b393ea6b',
+        view: { level: 'bazaar', player: [-198, 1612.2, -451], eye: [-195, 1609, -465.8], target: [-197, 1603, -452.8], fov: 75 } },
+    ], see: 'In the Undertower’s Hall of Dishes, splash the singing ball where it lies: it sings, and nothing answers. Roll it onto the footstone under the great dish and splash it again: a moment later the far dish says its note and the disc over the pit wakes.' },
+    { match: 'In the Undertower no stone sings the low note', shots: [
+      { name: 'ut-gallery', caption: 'The Gallery of Voices from the way in: before, two stones and a horn by the edge; after, three singing eggs, the great horn at the chasm’s edge, the ball under the dish on the east wall, and the far door with its two lamps under the dish that listens for it', commit: 'b393ea6b',
+        view: { level: 'bazaar', player: [-197, 1612.2, -423.5], eye: [-195, 1616, -424.5], target: [-204, 1613, -405.3], fov: 75 },
+        reference: { sheet: 'references/temples/undertower/sheet-1.jpg', caption: 'The picked reference for the Gallery of Voices' } },
+    ], see: 'In the Gallery of Voices, roll the ball onto the footstone under the dish on the east wall, catch the middle egg’s note in the shell and play it under the dish: the far door sinks across the chasm. Then catch the high note and play it at the great horn: the pillars stand for twelve seconds, and wait while you are on them. Crossing first works too, but the far door needs the middle note: the horn on the far side brings the pillars back.' },
+    { match: 'The Gallery of Voices is redrawn', shots: [
+      { name: 'ut-eggs', caption: 'The near side of the Gallery of Voices: after, the three singing eggs on their stepped plinths and the great horn on its stand, the market’s coloured light through the roof', commit: 'b393ea6b',
+        view: { level: 'bazaar', player: [-196, 1612.2, -423], eye: [-194, 1614.5, -423.8], target: [-206, 1614, -417.3], fov: 70 } },
+      { name: 'ut-entrance', caption: 'The Undertower’s doorway behind the silent tower at dusk: before, two jambs and a lintel; after, the stepped monolith, the doorway framed three times and the round dish-face over it', commit: 'b393ea6b',
+        view: { level: 'bazaar', player: [1.5, 0.3, -280], eye: [3, 2.2, -292], target: [0, 6, -268], fov: 60, hour: 18 },
+        reference: { sheet: 'references/temples/undertower/sheet-2.jpg', caption: 'The picked reference for the Undertower’s doorway' } },
+    ] },
+    { match: 'The First Garage is rebuilt round one idea', shots: [
+      { name: 'fg-escapement', caption: 'The Escapement’s far wall: before, one eye over the door; after, the dial with its hand at eight and three eyes round it, at twelve, four and eight', commit: '25237a34',
+        view: { level: 'garage', player: [-298, 1800.2, -405], eye: [-297, 1803, -404], target: [-300, 1809, -372.3], fov: 70 } },
+      { name: 'fg-well', caption: 'Into the Winding Well: after, the counterweight’s groove running in from the escapement’s landing to its socket at the foot of the wall', commit: '25237a34',
+        view: { level: 'garage', player: [-302, 1800.2, -372.5], eye: [-301.5, 1802.6, -371], target: [-298.8, 1800.5, -358], fov: 70 } },
+    ], see: 'In the First Garage’s Escapement, splash the eye at twelve first: it only ticks. Splash eight (where the hand points), then twelve, then four, and the disc starts to swing. In the Winding Well the door at the top stays shut until the ball from the escapement’s landing is rolled into the socket at the wall’s foot.' },
+    { match: 'In the First Garage’s Clock Gallery the great clock face', shots: [
+      { name: 'fg-gallery', caption: 'The Clock Gallery: before, six eyes inside a stopped clock face; after, the face without its hands, a ring of brass round its six eyes, round windows high on the walls and the pendulums’ niches', commit: '25237a34',
+        view: { level: 'garage', player: [-298, 1809.2, -324], eye: [-297, 1813, -324.3], target: [-300, 1819, -291.3], fov: 75 },
+        reference: { sheet: 'references/temples/first-garage/sheet-1.jpg', caption: 'The picked reference for the Clock Gallery' } },
+      { name: 'fg-entrance', caption: 'The First Garage from the plateau: after, a round arch ringed in brass over the door and a second brass frame round the clock, which still says four', commit: '25237a34',
+        view: { level: 'garage', player: [-160, 0.5, 104], eye: [-155.6, 4, 104.7], target: [-177.5, 8, 102.5], fov: 60 },
+        reference: { sheet: 'references/temples/first-garage/sheet-2.jpg', caption: 'The picked reference for the First Garage' } },
+    ], see: 'With the quick coil, splash the six eyes round the great clock from twelve: they all go dark. Turn round: the little clock over the way in says four. Splash four, six, eight, ten, twelve and two inside one breath and the bridge rises.' },
+    { match: 'In the Lamp-House the disc over the Root Stair', shots: [
+      { name: 'lh-pools', caption: 'The Hall of Dark Pools by its door: after, a small pool and the pool-orb beside it, its groove running through the doorway', commit: '5681f40c',
+        view: { level: 'perdide2', player: [-143, 1800.2, -271], eye: [-144, 1804, -270], target: [-138, 1801, -256], fov: 70 } },
+      { name: 'lh-socket', caption: 'The Root Stair’s near landing: after, the groove’s end at the disc’s socket and its dark lamp', commit: '5681f40c',
+        view: { level: 'perdide2', player: [-143, 1800.2, -256], eye: [-142.4, 1802.6, -254.6], target: [-138.4, 1800.6, -249], fov: 70 } },
+    ], see: 'In the Lamp-House, roll the orb through to the Root Stair’s socket dark: it is tipped back out. Splash the small pool by the door, wait by it until the orb glows, then roll it through: the disc’s lamp catches and the disc rides.' },
+    { match: 'In the Hush-House’s Pendulum Gallery a keeper’s ledge', shots: [
+      { name: 'hh-ledge', caption: 'The Pendulum Gallery from its near landing: after, the keeper’s ledge along the east wall, its gate by the near landing and the footstone behind it', commit: '5681f40c',
+        view: { level: 'perdide', player: [-105, 1709.2, 392.5], eye: [-106, 1713, 392.7], target: [-91, 1710, 406.7], fov: 70 } },
+    ], see: 'In the Hush-House, try the gate on the ledge from the near landing: it holds. Cross the pendulums, walk back along the ledge to the footstone behind the gate, and it sinks for good.' },
+  ],
   '1.11': [
     { match: 'While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke', shots: [
       { name: 'desert-landing-smoke', caption: 'The desert from the landing, toward Qanat: before, a dune and nothing over it; after, the camps’ smoke rising beyond it', commit: 'b5786bb4',
