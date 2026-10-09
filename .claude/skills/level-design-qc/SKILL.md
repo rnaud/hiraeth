@@ -117,7 +117,13 @@ quests stage by stage (`tests/playthrough-worlds.js` `ROUTE`; the temple's door 
 to the ship; through portals where that is shorter (the Hangar's gravity zones, the desert's caves:
 `viaPortals`). The **landmarks**: a height grid of the collision seen from above, blobs standing 25 m over
 their surroundings (`landmarksFrom`). **Sight**: a ray through the collision and over the terrain (grass and
-foliage you walk through don't block it). The pure logic is `scripts/level-design/lib.mjs`
+foliage you walk through don't block it). Since v1.9 it also reads three hints a level or quest may give:
+a level's **`sights`** (`[{ name, at }]`: things to stop for that are neither people nor quests, a bowl to fill,
+a wreck: counted as optional places), its **`beacons`** (`[{ name, top, height }]`: tall see-through markers
+the collision doesn't make tall, a smoke column, a chimney past the map's edge: aimed at as landmarks), and a
+quest stage's **`ends`** (a locator: where a stage whose marker moves on is done, "ask Marrow, then find his
+bike in the hollow"). And a leg over 200 m between two stops on the ground is **draped** over the ground under
+it (up to 70 m down), so a ride across a basin is measured down in the basin, not in the air over it. The pure logic is `scripts/level-design/lib.mjs`
 (`tests/level-design.test.js`).
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`

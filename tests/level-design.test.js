@@ -52,6 +52,19 @@ test('a portal hop: the leg goes through it when that is much shorter, and the h
   assert.ok(samplePath(p, 10).every((s) => s.pos[0] < 20 || s.pos[0] > 2990), 'nothing sampled in the void between');
 });
 
+test('a leg draped over a basin: the points laid on the ground under the straight line, its length the straight one', () => {
+  const stops = [S('a', 0, 0, 'go', 40), S('b', 400, 0, 'go', 40)];
+  const basin = (pos) => [pos[0], Math.min(pos[1], 40 - 30 * Math.sin(Math.PI * pos[0] / 400)), pos[2]];
+  const straight = samplePath(stops, 10), draped = samplePath(stops, 10, basin);
+  assert.equal(draped.length, straight.length);
+  assert.equal(draped.at(-1).at, straight.at(-1).at);
+  assert.ok(Math.abs(draped[20].pos[1] - 10) < 0.1, 'down in the basin halfway');
+  // something at the basin's bottom is on the draped path, not on the straight one
+  const pois = [P('wreck', 200, 0, { y: 10, optional: true })];
+  assert.equal(interestGaps(straight, pois, 15).gaps.length > 0, true);
+  assert.equal(interestGaps(draped, pois, 15).longest.metres < interestGaps(straight, pois, 15).longest.metres, true);
+});
+
 test('optional places: remote dead ends, and their pull from the path', () => {
   const samples = samplePath([S('a', 0, 0), S('b', 200, 0)], 10);
   const pois = [P('on', 100, 10, { optional: true }), P('tempting', 100, 90, { optional: true }), P('nowhere', 100, 600, { optional: true }), P('main', 200, 0)];

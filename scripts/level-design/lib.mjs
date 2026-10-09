@@ -6,7 +6,7 @@
 //
 //   dedupe(pois, r)                       points of interest closer than r merged (their kinds kept)
 //   spacing(pois)                         each one's nearest neighbour, and the spread
-//   samplePath(stops, step)               points every `step` m along the critical path
+//   samplePath(stops, step, drape)        points every `step` m along the critical path (drape: laid on the ground where it rides over a dip)
 //   interestGaps(samples, pois, r)        the stretches of the path with nothing within r: the empty walks
 //   returnLegs(stops, pois)               legs that come back the way you went, and whether anything new is on them
 //   remote(pois, samples, far)            optional places far from the path and from everything else (dead ends)
@@ -83,8 +83,12 @@ export function portalRoute(a, b, portals) {
   return via.length ? { cost: cost[1], via } : null;
 }
 
-/** Points every `step` m along the path through the stops: { pos, at (m from the start), leg }. A stop marked `jump` is reached by a hop (nothing between). */
-export function samplePath(stops, step = 10) {
+/**
+ * Points every `step` m along the path through the stops: { pos, at (m from the start), leg }. A stop marked `jump` is
+ * reached by a hop (nothing between). `drape(pos, a, b)`, when given, may move a point between stops a and b (to the
+ * ground under a straight line that rides high over a basin: audit.mjs); distances along the path stay the straight ones.
+ */
+export function samplePath(stops, step = 10, drape = null) {
   const out = [];
   let run = 0;
   for (let i = 0; i + 1 < stops.length; i++) {
@@ -92,7 +96,8 @@ export function samplePath(stops, step = 10) {
     const a = stops[i].pos, b = stops[i + 1].pos, d = dist(a, b), n = Math.max(1, Math.ceil(d / step));
     for (let k = i === 0 ? 0 : 1; k <= n; k++) {
       const t = k / n;
-      out.push({ pos: [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t], at: +(run + d * t).toFixed(1), leg: i });
+      const pos = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+      out.push({ pos: drape ? drape(pos, stops[i], stops[i + 1]) : pos, at: +(run + d * t).toFixed(1), leg: i });
     }
     run += d;
   }
@@ -129,15 +134,15 @@ export const TRAVEL = { foot: RUN, bike: 20, bird: 18, skiff: 12 };
  * the leg over `long` m): the walk back. `fresh` counts the places on it not passed before (within
  * `corridor` m of the leg, and not within it of the path walked so far).
  */
-export function returnLegs(stops, pois, { near = 40, long = 80, corridor = 35 } = {}) {
+export function returnLegs(stops, pois, { near = 40, long = 80, corridor = 35, drape = null } = {}) {
   const out = [];
   for (let i = 1; i + 1 < stops.length; i++) {
     const a = stops[i].pos, b = stops[i + 1].pos, d = dist(a, b);
     if (d < long || stops[i + 1].jump) continue;
     const back = stops.slice(0, i).findIndex((s) => dist(s.pos, b) < near);
     if (back < 0) continue;
-    const before = samplePath(stops.slice(0, i + 1), 10);
-    const leg = samplePath([stops[i], stops[i + 1]], 10);
+    const before = samplePath(stops.slice(0, i + 1), 10, drape);
+    const leg = samplePath([stops[i], stops[i + 1]], 10, drape);
     const fresh = pois.filter((p) => leg.some((s) => dist(s.pos, p.pos) < corridor) && !before.some((s) => dist(s.pos, p.pos) < corridor));
     out.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seconds: Math.round(d / RUN), backTo: stops[back].label, fresh: fresh.length, empty: fresh.length === 0 });
   }

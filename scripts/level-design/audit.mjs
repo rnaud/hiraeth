@@ -60,6 +60,8 @@ for (const id of worlds) {
   for (const T of kitTrialsFor(id)) put('trial', `makers' run: ${T.name}`, T.origin, { optional: true });
   for (const pt of level.portals ?? []) if (!pt.temple && pt.at) put('door', pt.label ?? 'a way in', pt.at, { optional: true });
   if (level.finds?.court) put('court', "the makers' court", level.finds.court.at ?? level.finds.court.box ?? level.finds.court.frame?.origin, { optional: true });
+  // things to stop for that are neither people nor quests (a bowl to fill, a cold camp, a wreck: a level's `sights`)
+  for (const s of (typeof level.sights === 'function' ? level.sights() : level.sights) ?? []) put('sight', s.name, s.at, { optional: true });
   for (const p of pois) if (p.kind === 'trial') p.optional = true;
   const places = L.dedupe(pois, 6);
 
@@ -71,7 +73,11 @@ for (const id of worlds) {
     if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); continue; }
     if (typeof p !== 'string') continue;
     const q = W.quests.def(p);
-    for (const s of q?.stages ?? []) { const w = arr(W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w }); }
+    for (const s of q?.stages ?? []) {
+      const w = arr(W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w });
+      // (a stage whose marker moves on as you go, ask Marrow, then find his bike in the hollow: `ends` names where it is done)
+      const e = s.ends && arr(W.quests.resolve(s.ends)); if (e && !inTemple(e)) stops.push({ label: `${s.label ?? s.id} (done)`, kind: 'do', pos: e });
+    }
   }
   stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn });
   const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal' })).filter((p) => p.at && p.to);
@@ -90,7 +96,10 @@ for (const id of worlds) {
   const top = new Float32Array(nx * nz);
   for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { const g = ground(x0 + (i + 0.5) * cell, z0 + (j + 0.5) * cell); top[j * nx + i] = Number.isFinite(g) && g > -2000 ? g : -Infinity; }
   const grid = { x0, z0, cell, nx, nz, top };
-  const landmarks = L.landmarksFrom(grid, { min: 25, win: Math.max(3, Math.round(60 / cell)) });
+  // (and the level's `beacons`: tall things seen over everything that the collision doesn't make tall, a smoke
+  // column, a mast with its pennant: { name, top: [x, y, z], height }, aimed at as a landmark is)
+  const beacons = ((typeof level.beacons === 'function' ? level.beacons() : level.beacons) ?? []).map((b) => ({ pos: arr(b.top), height: b.height, area: 0, beacon: b.name })).filter((b) => b.pos);
+  const landmarks = [...L.landmarksFrom(grid, { min: 25, win: Math.max(3, Math.round(60 / cell)) }), ...beacons];
 
   // ---- sight: the collision, and the terrain under the ray
   const base = level.ground?.heightAt ? (x, z) => level.ground.heightAt(x, z) : null;
@@ -108,7 +117,16 @@ for (const id of worlds) {
   };
 
   // ---- the measures
-  const samples = L.samplePath(path, 10);
+  // (between two stops on the ground, a straight line rides high over a basin you'd cross down in it: the points of a leg
+  // over 200 m are laid on the ground where it lies under them, up to 70 m down; not over a deep drop, a shaft or the sky)
+  const below = (x, y, z, d) => physics.groundAt(x, y, z, d);   // (the first surface under a point, not the highest at x, z: a porch roof)
+  const onFoot = (p) => { const g = below(p[0], p[1] + 2, p[2], 6); return Number.isFinite(g) && Math.abs(p[1] - g) < 3; };
+  const drape = (pos, a, b) => {
+    if (b.jump || L.flat(a.pos, b.pos) < 200 || !onFoot(a.pos) || !onFoot(b.pos)) return pos;
+    const g = below(pos[0], pos[1], pos[2], 70);
+    return Number.isFinite(g) && g < pos[1] ? [pos[0], g + 1, pos[2]] : pos;
+  };
+  const samples = L.samplePath(path, 10, drape);
   const metres = L.pathLength(path);
   const gaps = L.interestGaps(samples, places.filter((p) => p.kind !== 'ship' || true), 40);
   const seen = L.visibleCount(samples.filter((_, i) => i % 3 === 0).map((s) => s.pos), landmarks, los);
@@ -121,7 +139,7 @@ for (const id of worlds) {
     spacing: L.spacing(places),
     path: { stops: path.length, metres: Math.round(metres), seconds: Math.round(metres / L.RUN) },
     gaps,
-    returns: L.returnLegs(path, places),
+    returns: L.returnLegs(path, places, { drape }),
     remote: L.remote(places, samples),
     gravity: L.gravity(places, samples),
     landmarks: { count: landmarks.length, fromSpawn, seenShare: seen.length ? +(seen.filter((n) => n > 0).length / seen.length).toFixed(2) : 0, meanSeen: seen.length ? +(seen.reduce((a, b) => a + b, 0) / seen.length).toFixed(1) : 0 },
