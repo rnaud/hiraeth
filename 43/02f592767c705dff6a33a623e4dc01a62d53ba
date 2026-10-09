@@ -1,0 +1,26 @@
+src/ship/cinema.js
+  s_9ca76055a220ed::t_46a4c22cdc124a 459-481,491,503-514,518,522
+tests/cinema.test.js
+  s_9ca76055a220ed::t_6920b012c4666f 3-4,121-146
+  s_9ca76055a220ed::t_ba4d4398a4485b 147
+index.html
+  s_9ca76055a220ed::t_7f35868bf17f11 177-180,468
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_a2af9c327fd88a 249-260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4302f592767c705dff6a33a623e4dc01a62d53ba",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
