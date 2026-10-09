@@ -20,7 +20,9 @@ import { applyReadyUpdate } from './native-app.js';
 import { audioGuard } from './audio-guard.js';
 import { installKeyRemap } from './remap.js';
 import { translatePage } from './i18n.js';
+import { installXbox } from './xbox.js';
 
+installXbox();        // (the Xbox app only: the TV's safe area, the Back button; a no-op elsewhere: src/xbox.js)
 audioGuard();         // (before any sound: silent while the app is away, from the title screen on)
 installKeyRemap();    // (the player's own keys, first of every key listener: src/remap.js)
 translatePage();      // (index.html's own words in the player's language: src/i18n.js)

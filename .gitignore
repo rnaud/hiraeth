@@ -42,3 +42,12 @@ output/trailer/
 
 # cinematics QC runs (scripts/cinematics-qc.mjs)
 output/cinematics-qc/
+
+# the Xbox app (xbox/, docs/systems/xbox.md): the staged game, the build output, the signing certificate
+/xbox/Hiraeth/game/
+/xbox/Hiraeth/bin/
+/xbox/Hiraeth/obj/
+/xbox/Hiraeth/BundleArtifacts/
+/xbox/out/
+/xbox/*.pfx
+/xbox/*.cer

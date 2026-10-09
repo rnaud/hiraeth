@@ -1,0 +1,223 @@
+name: Xbox release (Developer Mode)
+
+# Hiraeth for Xbox (xbox/, docs/systems/xbox.md): the web game in a UWP app with WebView2, x64, sideloaded on a
+# console in Developer Mode through the Device Portal. Builds the web game, stages it into the app
+# (scripts/xbox-package.mjs prepare: the fallback the app always has), builds and packages the app with msbuild
+# (Release, .NET Native), signs it, and publishes it to the GitHub release `xbox`: a prerelease of its own, never
+# the latest (the Android app's updater and the players read the vX.Y releases).
+#   hiraeth-xbox.msix   the app
+#   hiraeth-xbox.cer    its certificate (Device Portal installs it first, once per certificate)
+#   *.appx              the dependencies (x64): WinUI 2, .NET Native, VCLibs
+#   hiraeth-xbox.zip    all of it in one download
+# Once installed the app updates the game by itself, from the site's web bundles (xbox/Hiraeth/WebBundles.cs).
+#
+# Signing: the repository secrets XBOX_PFX_BASE64 (a .pfx, base64) and XBOX_PFX_PASSWORD, made once with
+# scripts/xbox-cert.sh (its backup in .local-tools/xbox-signing/, git-ignored). Without them each run makes a
+# throwaway certificate and says so: it installs, but every new package then needs the app removed first.
+#
+# When: a push that touches the app (xbox/, its scripts, this file), by hand, and every night when the game moved
+# since the last package (the game itself reaches installed apps over the air; the nightly package only freshens
+# the game it falls back on). The unit tests first (tests.yml), as every deploy.
+# The runner: windows-latest, or the repository variable XBOX_RUNNER (e.g. windows-2022) if an image lacks the
+# Visual Studio UWP tools (the "Visual Studio and the UWP tools" step says so).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'xbox/**'
+      - 'scripts/xbox-*'
+      - '.github/workflows/xbox.yml'
+  schedule:
+    - cron: '41 3 * * *'   # (nightly; skipped when the game hasn't moved since the last package)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# (one at a time, never cancelled once started: a newer trigger waits)
+concurrency:
+  group: xbox-release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      build: ${{ steps.changed.outputs.build }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Anything new since the last package?
+        id: changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          # (a push or a run by hand always builds; the nightly one only when the package's inputs moved)
+          if [ "$EVENT" != schedule ]; then echo "build=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          last=$(gh release view xbox --json body --jq .body 2>/dev/null | sed -n 's/.*Built from commit `\([0-9a-f]*\)`.*/\1/p' | head -1)
+          if [ -n "$last" ] && git cat-file -e "$last^{commit}" 2>/dev/null \
+            && git diff --quiet "$last" HEAD -- xbox src public index.html vite.config.js package.json scripts .github/workflows/xbox.yml; then
+            echo "Nothing new since $last: no package tonight"; echo "build=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes since ${last:-the start}: building"; echo "build=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  tests:
+    needs: check
+    if: needs.check.outputs.build == 'true'
+    uses: ./.github/workflows/tests.yml   # the whole unit suite first: a failing test never ships
+
+  package:
+    needs: [check, tests]
+    if: needs.check.outputs.build == 'true'
+    runs-on: ${{ vars.XBOX_RUNNER || 'windows-latest' }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # the whole history: the build number counts its commits (release-info.mjs build)
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      # msbuild, the UWP build tools (Microsoft.Windows.UI.Xaml.CSharp.targets) and the newest Windows SDK on the image
+      - name: Visual Studio and the UWP tools
+        id: tools
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vs = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+          $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          Write-Host "Visual Studio: $vs"
+          Write-Host "MSBuild: $msbuild"
+          if (-not $msbuild) { Write-Host "::error title=No MSBuild::vswhere found no MSBuild on this runner image."; exit 1 }
+          $xaml = Get-ChildItem "$vs\MSBuild\Microsoft\WindowsXaml" -Recurse -Filter 'Microsoft.Windows.UI.Xaml.CSharp.targets' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $xaml) {
+            Write-Host "::error title=No UWP tools::This image's Visual Studio has no UWP build tools (Microsoft.Windows.UI.Xaml.CSharp.targets). Set the repository variable XBOX_RUNNER to an image that has them (e.g. windows-2022) and run again."
+            exit 1
+          }
+          Write-Host "UWP tools: $($xaml.FullName)"
+          $sdks = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Platforms\UAP" -Directory | Where-Object { $_.Name -match '^10\.0\.\d+\.0$' } | Sort-Object { [version]$_.Name } -Descending
+          Write-Host "Windows SDKs (UAP): $($sdks.Name -join ', ')"
+          $sdk = $sdks | Select-Object -First 1
+          if (-not $sdk) { Write-Host "::error title=No Windows SDK::No Windows 10/11 SDK (UAP platform) on this image."; exit 1 }
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Where-Object { $_.FullName -match '\\x64\\' } | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { Write-Host "::error title=No signtool::signtool.exe (x64) not found in the Windows SDK."; exit 1 }
+          Write-Host "signtool: $($signtool.FullName)"
+          "msbuild=$msbuild" >> $env:GITHUB_OUTPUT
+          "sdk=$($sdk.Name)" >> $env:GITHUB_OUTPUT
+          "signtool=$($signtool.FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Build the web game
+        run: |
+          npm ci
+          if ($LASTEXITCODE) { throw "npm ci failed ($LASTEXITCODE)" }
+          npm run build
+          if ($LASTEXITCODE) { throw "the web build failed ($LASTEXITCODE)" }
+
+      # the secret's certificate, or a throwaway one (said so in the run's summary); its subject is the manifest's Publisher
+      - name: Signing certificate
+        id: cert
+        env:
+          XBOX_PFX_BASE64: ${{ secrets.XBOX_PFX_BASE64 }}
+          XBOX_PFX_PASSWORD: ${{ secrets.XBOX_PFX_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'hiraeth-xbox.pfx'
+          if ($env:XBOX_PFX_BASE64) {
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:XBOX_PFX_BASE64))
+            $password = $env:XBOX_PFX_PASSWORD
+            Write-Host "Signing with the repository's certificate (XBOX_PFX_BASE64)"
+          } else {
+            $password = [Guid]::NewGuid().ToString('N')
+            $made = New-SelfSignedCertificate -Type Custom -Subject 'CN=Hiraeth Xbox Dev' -KeyUsage DigitalSignature -FriendlyName 'Hiraeth Xbox (throwaway, CI)' `
+              -CertStoreLocation 'Cert:\CurrentUser\My' -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}') -NotAfter (Get-Date).AddYears(2)
+            Export-PfxCertificate -Cert $made -FilePath $pfx -Password (ConvertTo-SecureString $password -AsPlainText -Force) | Out-Null
+            $msg = 'No XBOX_PFX_BASE64 secret: signed with a throwaway certificate. It installs, but the next package (another certificate) needs the app removed first, and its saves with it. Make one with scripts/xbox-cert.sh (docs/systems/xbox.md).'
+            Write-Host "::warning title=Throwaway signing certificate::$msg"
+            "### Throwaway signing certificate`n`n$msg" >> $env:GITHUB_STEP_SUMMARY
+          }
+          Write-Host "::add-mask::$password"
+          "XBOX_SIGN_PASSWORD=$password" >> $env:GITHUB_ENV
+          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($pfx, $password)
+          Write-Host "Certificate: $($cert.Subject), thumbprint $($cert.Thumbprint), valid until $($cert.NotAfter)"
+          New-Item -ItemType Directory -Force xbox\out\release | Out-Null
+          [IO.File]::WriteAllBytes((Resolve-Path xbox\out\release).Path + '\hiraeth-xbox.cer', $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+          "pfx=$pfx" >> $env:GITHUB_OUTPUT
+          "publisher=$($cert.Subject)" >> $env:GITHUB_OUTPUT
+
+      - name: Stage the game into the app, version the package
+        id: meta
+        env:
+          XBOX_PUBLISHER: ${{ steps.cert.outputs.publisher }}
+        run: |
+          node scripts/xbox-package.mjs prepare | Tee-Object -Variable lines
+          if ($LASTEXITCODE) { throw "xbox-package.mjs prepare failed ($LASTEXITCODE)" }
+          $lines >> $env:GITHUB_OUTPUT
+          Select-String -Path xbox\Hiraeth\Package.appxmanifest -Pattern '<Identity'
+
+      - name: Build and package the app (msbuild, Release x64, .NET Native)
+        env:
+          MSBUILD: ${{ steps.tools.outputs.msbuild }}
+          SDK: ${{ steps.tools.outputs.sdk }}
+        run: |
+          & $env:MSBUILD xbox\Hiraeth\Hiraeth.csproj -restore -m -nologo -v:minimal `
+            -p:Configuration=Release -p:Platform=x64 -p:TargetPlatformVersion=$env:SDK `
+            -p:AppxPackageSigningEnabled=false -p:AppxBundle=Never -p:UapAppxPackageBuildMode=SideloadOnly `
+            -bl:xbox\out\msbuild.binlog
+          if ($LASTEXITCODE) { throw "msbuild failed ($LASTEXITCODE): see the errors above, or msbuild.binlog in the run's artifact" }
+          Get-ChildItem xbox\out -Recurse -Include *.msix, *.appx | ForEach-Object { Write-Host ("{0} ({1:N1} MB)" -f $_.FullName, ($_.Length / 1MB)) }
+
+      - name: Sign the package
+        env:
+          SIGNTOOL: ${{ steps.tools.outputs.signtool }}
+          PFX: ${{ steps.cert.outputs.pfx }}
+        run: |
+          $msix = Get-ChildItem xbox\out -Recurse -Include *.msix, *.appx | Where-Object { $_.FullName -notmatch '\\Dependencies\\' -and $_.Name -like 'Hiraeth_*' } | Select-Object -First 1
+          if (-not $msix) { throw 'msbuild made no Hiraeth_*.msix under xbox\out' }
+          & $env:SIGNTOOL sign /fd SHA256 /f $env:PFX /p $env:XBOX_SIGN_PASSWORD $msix.FullName
+          if ($LASTEXITCODE) { throw "signtool failed ($LASTEXITCODE): the certificate's subject must be the manifest's Publisher" }
+          Get-AuthenticodeSignature $msix.FullName | Format-List Status, StatusMessage, SignerCertificate
+          Copy-Item $msix.FullName xbox\out\release\hiraeth-xbox.msix
+          Get-ChildItem ($msix.Directory.FullName + '\Dependencies\x64') -Filter *.appx -ErrorAction SilentlyContinue | Copy-Item -Destination xbox\out\release
+          node scripts/xbox-package.mjs notes $env:GITHUB_SHA "GitHub Actions (run $env:GITHUB_RUN_NUMBER)" | Out-File -Encoding utf8 xbox\out\notes.md
+          Compress-Archive -Path xbox\out\release\* -DestinationPath xbox\out\hiraeth-xbox.zip -Force
+          Move-Item xbox\out\hiraeth-xbox.zip xbox\out\release\
+          Get-ChildItem xbox\out\release | Format-Table Name, Length
+
+      - name: Forget the key
+        if: always()
+        run: Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'hiraeth-xbox.pfx')
+
+      # (kept with the run too, a week, with msbuild's log: also when the build failed)
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: hiraeth-xbox
+          path: |
+            xbox/out/release/
+            xbox/out/msbuild.binlog
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Publish to the prerelease xbox
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view xbox --json tagName 2>$null | Out-Null
+          if ($LASTEXITCODE) {
+            gh release create xbox --target $env:GITHUB_SHA --title 'Hiraeth for Xbox (Developer Mode)' --prerelease --latest=false --notes-file xbox\out\notes.md
+          } else {
+            gh release edit xbox --prerelease --latest=false --notes-file xbox\out\notes.md
+          }
+          if ($LASTEXITCODE) { throw "couldn't create or edit the release xbox ($LASTEXITCODE)" }
+          gh release upload xbox (Get-ChildItem xbox\out\release).FullName --clobber
+          if ($LASTEXITCODE) { throw "couldn't upload to the release xbox ($LASTEXITCODE)" }
+          Write-Host "Published: $((gh release view xbox --json url --jq .url))"

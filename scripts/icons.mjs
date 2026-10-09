@@ -21,6 +21,9 @@
 //            mipmap-anydpi-v26/ic_launcher{,_round}.xml, drawable*/splash.png (before Android 12)
 //   web      favicon.ico (16/32/48), icons/icon-{180,192,512}.png (apple-touch, "any", the
 //            Play-style 512 that the Steam Deck and Electron use too), icons/maskable-{192,512}.png
+//
+//   node scripts/icons.mjs xbox [--from docs/icon/capture.png]                → xbox/Hiraeth/Assets/ (the Xbox app's
+//            tiles, store logo and splash screen at scale 100 and 200: XBOX below; docs/systems/xbox.md)
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,6 +62,18 @@ export const SPLASH = {
 export const WEB = { 'icon-180.png': [180, 'full'], 'icon-192.png': [192, 'full'], 'icon-512.png': [512, 'full'],
   'maskable-192.png': [192, 'maskable'], 'maskable-512.png': [512, 'maskable'] };
 export const FAVICON = [16, 32, 48];
+/** The Xbox app's images (xbox/Hiraeth/Assets/, named for Windows' resource qualifiers): [width, height, kind].
+ *  'icon' the capture's launcher view, full bleed; 'card' the rounded icon on the paper, at `k` of the height. */
+export const XBOX_ASSETS = join(ROOT, 'xbox/Hiraeth/Assets');
+export const XBOX = {
+  'Square44x44Logo.scale-100.png': [44, 44, 'icon'], 'Square44x44Logo.scale-200.png': [88, 88, 'icon'],
+  'Square44x44Logo.targetsize-24_altform-unplated.png': [24, 24, 'icon'], 'Square44x44Logo.targetsize-48_altform-unplated.png': [48, 48, 'icon'],
+  'Square44x44Logo.targetsize-256_altform-unplated.png': [256, 256, 'icon'],
+  'Square150x150Logo.scale-100.png': [150, 150, 'icon'], 'Square150x150Logo.scale-200.png': [300, 300, 'icon'],
+  'StoreLogo.scale-100.png': [50, 50, 'icon'], 'StoreLogo.scale-200.png': [100, 100, 'icon'],
+  'Wide310x150Logo.scale-100.png': [310, 150, 'card', 0.8], 'Wide310x150Logo.scale-200.png': [620, 300, 'card', 0.8],
+  'SplashScreen.scale-100.png': [620, 300, 'card', 0.5], 'SplashScreen.scale-200.png': [1240, 600, 'card', 0.5],
+};
 export const ADAPTIVE = `<?xml version="1.0" encoding="utf-8"?>
 <!-- Written by scripts/icons.mjs from docs/icon/capture.png -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
@@ -240,6 +255,17 @@ function split(img, monoKeep) {
   const mono = canvas(S), go = mono.getContext('2d'); go.drawImage(ms, 0, 0); go.globalCompositeOperation = 'source-in'; go.fillStyle = '#fff'; go.fillRect(0, 0, S, S);
   return { fg, bg, mono, skyShare: sky.reduce((a, v) => a + v, 0) / (S * S) };
 }
+window.xboxBuild = async (src, J) => {
+  const img = await load(src), r = {};
+  for (const [name, [w, h, kind, k]] of Object.entries(J.XBOX)) {
+    if (kind === 'icon') { r[name] = cut(img, J.VIEW.full, w).toDataURL('image/png'); continue; }
+    const s = Math.round(h * k), c = canvas(w, h), g = c.getContext('2d');
+    g.fillStyle = J.PAPER; g.fillRect(0, 0, w, h);
+    g.drawImage(shape(cut(img, J.VIEW.full, s), 'rounded'), (w - s) >> 1, (h - s) >> 1);
+    r[name] = c.toDataURL('image/png');
+  }
+  return r;
+};
 window.iconBuild = async (src, J) => {
   const img = await load(src), u = (c) => c.toDataURL('image/png');
   const { fg, bg, mono, skyShare } = split(img, J.mono);
@@ -280,7 +306,22 @@ async function build(from = CAPTURE, mono = ICON.mono) {
   }
 }
 
+/** The Xbox app's images (XBOX), from the same capture. */
+async function buildXbox(from = CAPTURE) {
+  const b = await browser(false);
+  try {
+    const page = await b.newPage();
+    await page.setContent(`<!doctype html><script>${PAGE}</script>`);
+    const src = `data:image/png;base64,${readFileSync(from).toString('base64')}`;
+    const r = await page.evaluate(([src, J]) => window.xboxBuild(src, J), [src, { XBOX, VIEW, PAPER }]);
+    for (const [name, data] of Object.entries(r)) out(join(XBOX_ASSETS, name), png(data));
+  } finally {
+    await b.close();
+  }
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] === 'xbox') { await buildXbox(arg('from') ? resolve(arg('from')) : CAPTURE); process.exit(0); }
   const step = ['capture', 'build', 'all'].includes(process.argv[2]) ? process.argv[2] : 'build';
   const box = arg('box') ? arg('box').split(',').map(Number) : undefined;
   const num = (name) => (arg(name) !== undefined ? Number(arg(name)) : undefined);

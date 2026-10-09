@@ -1,0 +1,11 @@
+<!-- RequiresPointerMode WhenRequested: no mouse-mode cursor on the console (the game reads the pad itself). -->
+<Application
+    x:Class="Hiraeth.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    RequiresPointerMode="WhenRequested">
+    <Application.Resources>
+        <controls:XamlControlsResources />
+    </Application.Resources>
+</Application>

@@ -14,7 +14,7 @@ import { gameHref } from '../minigames/index.js';
 import { ARCADE } from '../minigames/kit/arcade.js';
 
 const CSS = `
-  #arcade-board-btn { position: fixed; left: calc(14px + env(safe-area-inset-left, 0px)); top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 6;
+  #arcade-board-btn { position: fixed; left: calc(14px + var(--safe-left, env(safe-area-inset-left, 0px))); top: calc(14px + var(--safe-top, env(safe-area-inset-top, 0px))); z-index: 6;
     font: 700 11px/1 ui-monospace, Menlo, monospace; letter-spacing: 0.2em; text-transform: uppercase; color: #2b211f; padding: 8px 12px;
     background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; border-radius: 4px; cursor: pointer; }
   #arcade-board-btn:hover, #arcade-board-btn:focus { outline: none; background: #ffd866; }

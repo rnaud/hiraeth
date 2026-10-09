@@ -6,6 +6,7 @@ import { createPost, PRESETS } from './post.js';
 import { applyTimeOfDay } from './timeofday.js';
 import { Cascade, shadowDirection } from './shadows.js';
 import { detectDeck, detectHandheld, resolveQuality } from './perf.js';
+import { onXbox } from './xbox.js';
 import { Flock } from './life.js';
 import { mulberry32 } from './noise.js';
 import { TAU, nB, clean, place, lumpy, table, needle, boulder } from './levels/sky-stones-kit.js';
@@ -336,8 +337,8 @@ export async function startVista({ parent, settings, native = false, touch = fal
   for (const [k, v] of Object.entries(PRESETS['Moebius print'])) if (U[k]) U[k].value = v;
   U.uCumulus.value = 0;   // (the sea of cloud is the horizon's cloud bank here)
   U.uAlbedoEdges.value = 0.4;   // (fewer lines inside the puffs, where their lit and shaded tones meet)
-  const onDeck = detectDeck({ app: win.location?.protocol === 'moebius:', gpu });
-  let preset = resolveQuality(settings?.quality ?? 'auto', { handheld, deck: onDeck, hiDPI: (win.devicePixelRatio ?? 1) >= 2 });
+  const onDeck = detectDeck({ app: win.location?.protocol === 'moebius:', gpu }), xbox = onXbox(win);
+  let preset = resolveQuality(settings?.quality ?? 'auto', { handheld, deck: onDeck, xbox, hiDPI: (win.devicePixelRatio ?? 1) >= 2 });
   const applyDetail = () => {
     U.uAO.value = preset.ao ? 1 : 0;
     U.uPostLite.value = preset.postLite ? 1 : 0;
@@ -517,7 +518,7 @@ export async function startVista({ parent, settings, native = false, touch = fal
     stop() { cancelAnimationFrame(raf); raf = 0; },
     /** The Graphics setting changed in the title's settings. */
     setQuality(name) {
-      preset = resolveQuality(name, { handheld, deck: onDeck, hiDPI: (win.devicePixelRatio ?? 1) >= 2 });
+      preset = resolveQuality(name, { handheld, deck: onDeck, xbox, hiDPI: (win.devicePixelRatio ?? 1) >= 2 });
       size.drop = 1;
       applyDetail();
       resize();

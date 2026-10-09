@@ -17,6 +17,7 @@ import { CHANGELOG, lineText, newestFirst } from '../src/changelog.js';
 
 const BUNDLES_JAVA = fileURLToPath(new URL('../android/app/src/main/java/com/rnaud/moebius/WebBundles.java', import.meta.url));
 const DESKTOP_MAIN = fileURLToPath(new URL('../desktop/main.mjs', import.meta.url));
+const XBOX_BUNDLES = fileURLToPath(new URL('../xbox/Hiraeth/WebBundles.cs', import.meta.url));
 const REPO = fileURLToPath(new URL('..', import.meta.url));
 
 const constant = (source, re, what) => {
@@ -40,6 +41,10 @@ export const webMinNative = (source = readFileSync(BUNDLES_JAVA, 'utf8')) =>
 /** DESKTOP_API from desktop/main.mjs: the Steam Deck runtime's level (web.json's minDesktop). */
 export const desktopApi = (source = readFileSync(DESKTOP_MAIN, 'utf8')) =>
   constant(source, /export const DESKTOP_API = (\d+);/, 'DESKTOP_API in desktop/main.mjs');
+
+/** XboxApi from xbox/Hiraeth/WebBundles.cs: the Xbox app's level (web.json's minXbox, docs/systems/xbox.md). */
+export const xboxApi = (source = readFileSync(XBOX_BUNDLES, 'utf8')) =>
+  constant(source, /public const int XboxApi = (\d+);/, 'XboxApi in xbox/Hiraeth/WebBundles.cs');
 
 /**
  * Builds up to 117 were numbered by the Android workflow's run (versionCode = run number).
@@ -78,14 +83,15 @@ export const releaseNotes = (entry = CHANGELOG[0], max = 12) => newestFirst(entr
 
 /**
  * The web bundle manifest. `minNative`: the Android bridge the bundle needs (WEB_MIN_NATIVE);
- * `minDesktop` (with `desktop`): the Steam Deck runtime it needs (DESKTOP_API).
+ * `minDesktop` (with `desktop`): the Steam Deck runtime it needs (DESKTOP_API); `minXbox` (with `xbox`): the
+ * Xbox app it needs (XboxApi).
  * `size`, `notes` and `page` are for the settings (apps from before NATIVE_API 4 ignore them).
  */
-export function webJson({ build, version, zip, file, native = webMinNative(), desktop, notes = releaseNotes() }) {
+export function webJson({ build, version, zip, file, native = webMinNative(), desktop, xbox, notes = releaseNotes() }) {
   const sha256 = createHash('sha256').update(readFileSync(file)).digest('hex');
   const page = releasePage(zip);
   return {
-    version, build, sha256, zip, minNative: native, ...(desktop ? { minDesktop: desktop } : {}),
+    version, build, sha256, zip, minNative: native, ...(desktop ? { minDesktop: desktop } : {}), ...(xbox ? { minXbox: xbox } : {}),
     size: statSync(file).size, notes, ...(page ? { page } : {}),
   };
 }
@@ -108,6 +114,18 @@ export function staleWebZips(names, keep = 2) {
  */
 export function webDecision(manifest, { native, current, bad = [] }) {
   if ((manifest.minNative ?? native) > native) return 'apk';
+  if (bad.includes(manifest.build) || manifest.build <= current) return 'skip';
+  return 'stage';
+}
+
+/**
+ * What the Xbox app does with web.json (mirrors WebBundles.Decide in xbox/Hiraeth/WebBundles.cs): 'app' when the
+ * bundle needs a newer Xbox app (minXbox; a web.json without it runs on every one), 'skip' when it is not newer
+ * than the newest build on the console (packaged, running or downloaded) or failed to start before, else 'stage'.
+ */
+export function xboxDecision(manifest, { xbox, current, bad = [] }) {
+  if (!Number.isSafeInteger(manifest?.build) || manifest.build <= 0 || !/^[0-9a-f]{64}$/.test(manifest.sha256 ?? '')) return 'skip';
+  if ((manifest.minXbox ?? 1) > xbox) return 'app';
   if (bad.includes(manifest.build) || manifest.build <= current) return 'skip';
   return 'stage';
 }

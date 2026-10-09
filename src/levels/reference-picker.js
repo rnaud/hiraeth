@@ -58,7 +58,7 @@ export function drawThumb(ctx, img, crop, w, h) {
 }
 
 const CSS = `
-  #ref-picker-btn { position: fixed; left: calc(14px + env(safe-area-inset-left, 0px)); top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 6;
+  #ref-picker-btn { position: fixed; left: calc(14px + var(--safe-left, env(safe-area-inset-left, 0px))); top: calc(14px + var(--safe-top, env(safe-area-inset-top, 0px))); z-index: 6;
     font: 400 11px/1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
     color: #2b211f; padding: 8px 10px 8px 12px; background: rgba(251, 246, 234, 0.78); border: 1px solid rgba(43, 33, 31, 0.35);
     border-radius: 4px; box-shadow: 0 4px 16px rgba(43, 33, 31, 0.12); cursor: pointer; backdrop-filter: blur(3px); }
