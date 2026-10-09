@@ -1,0 +1,59 @@
+scripts/motion-audit/run.mjs
+  s_9ca76055a220ed::t_2012f128b84a80 9-10,12-13,15,19,22,30,32-34,39,41-42,44-45
+scripts/motion-audit/strips.mjs
+  s_9ca76055a220ed::t_3faa3e6607f3ee 1-76
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_126d9a9cfeb303 1-106
+src/enemies/models.js
+  s_9ca76055a220ed::t_726acf533d2657 5-6,33-37,39,174,184-192,209,213,223,230-234,236,245
+src/enemies/page.js
+  s_9ca76055a220ed::t_815094023749a0 38-40,59
+src/foe-kinds.js
+  s_9ca76055a220ed::t_d2b94802d6faea 3-4,415-416,419-420,422,424,429-432,442-445,503-504,506-507,517,523,528-530,534-535,542-543
+src/foes.js
+  s_9ca76055a220ed::t_03f8818e1adce7 21-22,1019-1022,1027-1030,1032,1036,1042-1043,1045-1047,1049-1050,1932,1968-1970,1976-1978,1982,2055-2057,2064
+src/motion-kit/body.js
+  s_9ca76055a220ed::t_6bd8cddba15b5c 1-79
+src/motion-kit/gait.js
+  s_9ca76055a220ed::t_db166bc3e579cd 1-288
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_f786391ea4b1ec 1-66
+src/motion-kit/pose.js
+  s_9ca76055a220ed::t_0e1967c4874415 1-70
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_f480e007780361 1-244
+tests/motion-kit.test.js
+  s_9ca76055a220ed::t_7e5b764b7e924f 1-292
+tests/motion-plans.test.js
+  s_9ca76055a220ed::t_5a7638d7e6f390 1-70
+src/motion-kit/ik.js
+  s_1690a8369a6d35::t_51d0d46ae5bb7a 1-88
+src/motion-kit/spring.js
+  s_1690a8369a6d35::t_4233d802f426ad 1-76
+scripts/motion-audit/cost.mjs
+  s_9ca76055a220ed::t_3f242e1a519306 1-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e4dfa9a8305e4aa541ac4d835cd652b6f0ee805e",
+  "prompts": {},
+  "sessions": {
+    "s_1690a8369a6d35": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a959ef3fd9ca321a4",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
