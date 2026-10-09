@@ -18,6 +18,25 @@
       "sha256": "c09fed769f9de4281742da521e63f61fa60322c3b62f6c8a2adf4256ff0c59d7",
       "bytes": 183035,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (a clear glass puppet with faint prism reflections, fine silver threads, pearl ball joints, the smoke knot ink-black and violet) may remain. The same marionette, same jointed puppet hanging off the ground on four strings rising into a knot of black smoke, redrawn as the Signal Market's parcel puppet: its limbs and body made of brown paper parcels tied with string, a paper-bag head, teal and brass wax seals, amber accents. Front, side and three-quarter views and the arms-lifted strings wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage, feet on ground.",
+      "from": "docs/design/enemy-roster-prompts.md#marionette/alt",
+      "refs": [
+        "references/enemy-archetypes/marionette/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-08-41-2866",
+      "candidate": "openai/1",
+      "sha256": "8d4f784d3199006ef93b992c9a6237bcf01d2faa91656a6c5759d962cd3657af",
+      "bytes": 201017,
+      "costUSD": 0.041
     }
   ]
 }
