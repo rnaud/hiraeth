@@ -1,0 +1,35 @@
+references/enemy-archetypes/blot/manifest.json
+  s_9ca76055a220ed::t_025ac273e005bf 21-39
+references/enemy-archetypes/centipede/manifest.json
+  s_9ca76055a220ed::t_81cb09f061d632 21-39
+references/enemy-archetypes/crab/manifest.json
+  s_9ca76055a220ed::t_f2402e8dc8b915 21-39
+references/enemy-archetypes/heron/manifest.json
+  s_9ca76055a220ed::t_675443e747c934 21-39
+references/enemy-archetypes/hound/manifest.json
+  s_9ca76055a220ed::t_4a7725fa4cf74d 21-39
+references/enemy-archetypes/lizard/manifest.json
+  s_9ca76055a220ed::t_0b914b808be542 21-39
+references/enemy-archetypes/skitter/manifest.json
+  s_9ca76055a220ed::t_aed5cc548cc527 21-39
+references/enemy-archetypes/toad/manifest.json
+  s_9ca76055a220ed::t_8f253ed8de0ffe 21-39
+references/enemy-archetypes/tripod/manifest.json
+  s_9ca76055a220ed::t_bf76618d583042 21-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d0a5e9463192c322ac3c3faa8972409c220b9d08",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
