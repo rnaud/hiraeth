@@ -25,6 +25,8 @@ import { fromPattern } from './attacks.js';
 //   art       'pending': its fresh reference sheet (docs/design/enemy-roster-prompts.md) is not matched yet; the
 //             built body follows the doc's description and the best existing references until it is
 //             'sheet-N': the built body is drawn to its picked sheet, references/enemy-archetypes/<id>/sheet-N.jpg
+//             { main, alt }: drawn to both its sheets, sheet-1.jpg in the main skin's world (main), sheet-2.jpg in
+//             the alternate's (alt): its palettes too (scripts/enemy-roster/compare.mjs sets them side by side)
 //
 // A built archetype's def is a foe kind's tuning (src/foe-kinds.js says what a kind and an attack may hold), with
 // the archetype's additions:
@@ -60,7 +62,7 @@ export const ARCHETYPES = {
   // ----------------------------------------------------------------------------- creatures (wildlife)
   crab: {
     name: 'shellback crab', family: 'creature', plan: 'walker', planNo: 1, role: 'tank', tier: 2, ranged: false,
-    status: 'built', kind: 'crab', was: ['salt crab'], sound: 'shell', drop: 5, art: 'pending',
+    status: 'built', kind: 'crab', was: ['salt crab'], sound: 'shell', drop: 5, art: { main: 'arzach2', alt: 'saltharbour' },
     moves: ['snap', 'shell spin', 'burrow and pinch'],
     answers: ['parry (the spin flips it)', 'dash cut to its side', 'bombs crack the shell', 'ember'],
     idle: 'picks along the tide line pinching at weed; backs away when you come near; fights only if you corner it',
@@ -116,7 +118,7 @@ export const ARCHETYPES = {
   },
   lizard: {
     name: 'horn lizard', family: 'creature', plan: 'quadruped', planNo: 6, role: 'flanker', tier: 2, ranged: false,
-    status: 'built', kind: 'lizard', was: [], sound: 'soft', drop: 4, art: 'pending',
+    status: 'built', kind: 'lizard', was: [], sound: 'soft', drop: 4, art: { main: 'incal', alt: 'bazaar' },
     moves: ['blare', 'flank bite', 'tail whip'],
     answers: ['parry and riposte on the bite', 'dash cut past the blarer', 'split the pair (the hook)'],
     idle: 'basks on warm stones and blares at the others in turn; territorial near its stones, harmless away from them',
@@ -241,7 +243,7 @@ export const ARCHETYPES = {
   // ----------------------------------------------------------------------------- possessed machines (always hostile)
   tripod: {
     name: 'lamp tripod', family: 'machine', plan: 'machine', planNo: 18, role: 'sniper', tier: 2, ranged: true,
-    status: 'built', kind: 'tripod', was: ['makers’ machine (its sentinel role)'], sound: 'metal', drop: 6, art: 'pending',
+    status: 'built', kind: 'tripod', was: ['makers’ machine (its sentinel role)'], sound: 'metal', drop: 6, art: { main: 'incal', alt: 'underwater' },
     possession: 'a face at the porthole: the dark presses against the boiler’s window from inside, its steam comes out black',
     moves: ['beam and bolt', 'stamp', 'steam vent'],
     answers: ['cover breaks the beam', 'dash under it', 'magnet glove (it is metal)', 'parry sends the bolt back'],
@@ -293,7 +295,7 @@ export const ARCHETYPES = {
   // ----------------------------------------------------------------------------- spirits (the dark itself)
   blot: {
     name: 'ink blot', family: 'spirit', plan: 'blob', planNo: 20, role: 'rusher', tier: 1, ranged: true,
-    status: 'built', kind: 'blot', was: ['ink blot', 'spitting blot (its spit)'], sound: 'ink', drop: 2, art: 'pending',
+    status: 'built', kind: 'blot', was: ['ink blot', 'spitting blot (its spit)'], sound: 'ink', drop: 2, art: { main: 'desert', alt: 'garage' },
     manifestation: 'loose ink: no body borrowed; it splashes and pools',
     moves: ['lunge', 'lunge combo', 'spit'], answers: ['a cut breaks its coil (it teaches the combo)', 'the guard ends its combo', 'a shot washes it'],
     idle: 'pools in shade and under arches, a stain until you come near; then the stain stands up',
@@ -323,12 +325,12 @@ export const ARCHETYPES = {
   },
   hound: {
     name: 'antler hound', family: 'spirit', plan: 'quadruped', planNo: 6, role: 'stalker', tier: 4, ranged: false,
-    status: 'built', kind: 'hound', was: ['shadow hound'], sound: 'ink', drop: 4, art: 'pending',
+    status: 'built', kind: 'hound', was: ['shadow hound'], sound: 'ink', drop: 4, art: { main: 'spheres', alt: 'mangrove' },
     manifestation: 'a shadow cast by nothing: it runs as a flat shadow and rises out of it into a body',
     moves: ['pounce', 'step behind', 'antler rake'], answers: ['ember (solid, and it burns: 2)', 'the lantern', 'parry'],
     idle: 'shadows lie under trees and arches where there shouldn’t be any; one stands up and watches you go; not every one hunts',
     def: S({
-      name: 'antler hound', hp: 3, radius: 0.55, height: 0.8, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
+      name: 'antler hound', hp: 3, radius: 0.55, height: 1.15, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
       tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
       calm: { mode: 'lie', provoke: 11, hunts: 0.7, alarm: 12 },
       attacks: [

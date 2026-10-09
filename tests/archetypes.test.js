@@ -43,7 +43,15 @@ test('the roster: 21 archetypes, 12 creatures, 5 machines and 4 spirits, each it
     assert.ok(A.moves.length >= 2 && A.moves.length <= 3, `${a}: two or three attacks`);
     assert.ok(A.answers.length >= 2 && !A.answers.every((x) => /charged cut/.test(x)), `${a}: answered by more than the charged cut`);
     assert.ok(A.idle && A.drop > 0 && A.sound, `${a}: idle, drop, sound`);
-    assert.ok(A.art === 'pending' || /^sheet-\d+$/.test(A.art), `${a}: art pending its sheet, or matched to one (${A.art})`);
+    assert.ok(A.art === 'pending' || /^sheet-\d+$/.test(A.art) || (A.art.main && A.art.alt), `${a}: art pending its sheet, or matched to one or to both (${A.art})`);
+    if (A.art.main) {
+      // drawn to its sheets: the main skin's world on sheet-1, the alternate's on sheet-2, both its own skins
+      assert.ok(A.status === 'built' && A.art.main && A.art.alt && A.art.main !== A.art.alt, `${a}: art { main, alt }`);
+      for (const [n, w] of [[1, A.art.main], [2, A.art.alt]]) {
+        assert.ok(SKINS[a][w], `${a}: sheet-${n}'s world (${w}) is one of its skins`);
+        assert.ok(existsSync(new URL(`../references/enemy-archetypes/${a}/sheet-${n}.jpg`, import.meta.url)), `${a}: sheet-${n}.jpg`);
+      }
+    }
     if (A.status === 'planned') assert.equal(A.kind, null);
     else assert.ok(FOES[A.kind], `${a}: its kind (${A.kind}) is a foe kind`);
     if (A.family === 'machine') assert.ok(A.possession, `${a}: how its possession shows`);
@@ -54,6 +62,7 @@ test('the roster: 21 archetypes, 12 creatures, 5 machines and 4 spirits, each it
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
   assert.deepEqual(BUILT.sort(), ['blot', 'centipede', 'crab', 'hound', 'jelly', 'lizard', 'moth', 'ray', 'tripod', 'worm'], 'batches 1 and 2 are built');
+  for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');
 });

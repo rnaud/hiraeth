@@ -12,13 +12,15 @@ import { ARCHETYPES } from './archetypes.js';
 
 export const SKINS = {
   crab: {
-    arzach2: { name: 'cliff crab', palette: { shell: '#7d93a6', shell2: '#9aaebd', under: '#efe4c8', claw: '#e8a07a', dark: '#2e3540', eye: '#f2d34b', accent: '#d7e0b4' }, props: ['lichen'] },
-    garage: { name: 'oil beetle', palette: { shell: '#1f3b3d', shell2: '#2f5a5a', under: '#9fb3a8', claw: '#3b6d6a', dark: '#141c1d', eye: '#e8f07a', accent: '#7fd1c4' }, props: ['antennae', 'sheen'] },
-    bazaar: { name: 'stall crab', palette: { shell: '#c98a5c', shell2: '#e0a878', under: '#f2e3c4', claw: '#d0603e', dark: '#3a2a24', eye: '#f2d34b', accent: '#5aa39b', cloth: '#d35d6e', cloth2: '#f2c54b' }, props: ['awning'] },
-    saltharbour: { name: 'anchor crab', palette: { shell: '#4f7fa8', shell2: '#6d9cc0', under: '#efe9dc', claw: '#e07a5f', dark: '#26323d', eye: '#f2d34b', accent: '#e9e3d0', rope: '#c9a46a' }, props: ['barnacles', 'rope'], moves: ['burrow'] },
-    glassdunes: { name: 'glass crab', palette: { shell: '#8fd9c0', shell2: '#c9f2e2', under: '#e8f4ea', claw: '#5fbf9f', dark: '#2d4a3e', eye: '#fff4b0', accent: '#ffffff' }, props: ['facets'] },
-    underwater: { name: 'coral crab', palette: { shell: '#e8b9a0', shell2: '#f2d0bc', under: '#f7efe2', claw: '#e0705a', dark: '#4a2e30', eye: '#bff0ff', accent: '#ef6f6c' }, props: ['coral'], moves: ['burrow'] },
-    antennas: { name: 'copper beetle', palette: { shell: '#b0683c', shell2: '#c98a54', under: '#e8d9b8', claw: '#7fb59a', dark: '#3a2a22', eye: '#e8f07a', accent: '#6fbf9a' }, props: ['antennae', 'patina'] },
+    // (sheet-1: slate-blue shell with pale lichen stars, ivory legs, arms and belly, apricot pincer tips, black eyes;
+    // sheet-2: turquoise shell crusted with cream barnacles, cream legs on rusty coral joints and arms, rope and anchor)
+    arzach2: { name: 'cliff crab', palette: { shell: '#7b8697', shell2: '#9ea7b3', under: '#e9dfc8', leg: '#eee5d0', joint: '#d9ccae', claw: '#e9a07a', dark: '#2f3846', eye: '#1e1d24', accent: '#efe5c4' }, props: ['lichen'] },
+    garage: { name: 'oil beetle', palette: { shell: '#1f3b3d', shell2: '#2f5a5a', under: '#9fb3a8', leg: '#2f5a5a', joint: '#141c1d', claw: '#3b6d6a', dark: '#141c1d', eye: '#e8f07a', accent: '#7fd1c4' }, props: ['antennae', 'sheen'] },
+    bazaar: { name: 'stall crab', palette: { shell: '#c98a5c', shell2: '#e0a878', under: '#f2e3c4', leg: '#f2e3c4', joint: '#d0603e', claw: '#d0603e', dark: '#3a2a24', eye: '#2a2024', accent: '#5aa39b', cloth: '#d35d6e', cloth2: '#f2c54b' }, props: ['awning'] },
+    saltharbour: { name: 'anchor crab', palette: { shell: '#76b8aa', shell2: '#a0d2c4', under: '#efe4cc', leg: '#f3e9d4', joint: '#c97d64', arm: '#c97d64', tip: '#d07f66', claw: '#d9785e', dark: '#484a68', eye: '#1e1d24', accent: '#eee2c2', rope: '#b38b58', iron: '#8a4c36' }, props: ['barnacles', 'rope'], moves: ['burrow'] },
+    glassdunes: { name: 'glass crab', palette: { shell: '#8fd9c0', shell2: '#c9f2e2', under: '#e8f4ea', leg: '#c9f2e2', joint: '#5fbf9f', claw: '#5fbf9f', dark: '#2d4a3e', eye: '#fff4b0', accent: '#ffffff' }, props: ['facets'] },
+    underwater: { name: 'coral crab', palette: { shell: '#e8b9a0', shell2: '#f2d0bc', under: '#f7efe2', leg: '#f7efe2', joint: '#e0705a', claw: '#e0705a', dark: '#4a2e30', eye: '#bff0ff', accent: '#ef6f6c' }, props: ['coral'], moves: ['burrow'] },
+    antennas: { name: 'copper beetle', palette: { shell: '#b0683c', shell2: '#c98a54', under: '#e8d9b8', leg: '#c98a54', joint: '#3a2a22', claw: '#7fb59a', dark: '#3a2a22', eye: '#e8f07a', accent: '#6fbf9a' }, props: ['antennae', 'patina'] },
   },
   skitter: {
     desert: { name: 'dune skitter', palette: { body: '#d7af72', accent: '#a96f3d' } },
@@ -42,12 +44,14 @@ export const SKINS = {
     home: { name: 'bulb toad', palette: { body: '#9bbf6a', accent: '#f2a4c0' }, arena: true },
   },
   lizard: {
-    incal: { name: 'pipe lizard', palette: { hide: '#e8a3a0', hide2: '#f2c0b8', belly: '#f4ead2', horn: '#b39464', dark: '#3a2a30', eye: '#f2d34b', accent: '#8a9bb8' }, props: ['elbow'] },
-    buried: { name: 'ash lizard', palette: { hide: '#8d8a86', hide2: '#a8a49c', belly: '#d8d2c4', horn: '#3b3533', dark: '#262224', eye: '#ff9a5a', accent: '#5a5654' }, props: ['soot'] },
-    bazaar: { name: 'coin lizard', palette: { hide: '#4fa39b', hide2: '#79c0b4', belly: '#f2e3c4', horn: '#d8b048', dark: '#1f3a38', eye: '#f2d34b', accent: '#d8b048' }, props: ['coins'] },
-    eclipse: { name: 'night lizard', palette: { hide: '#5b4a86', hide2: '#7a66a8', belly: '#cfc2e8', horn: '#b8a0e8', dark: '#1d1630', eye: '#d6ffb0', accent: '#d6c2ff' }, props: ['glow'] },
-    moonfoundry: { name: 'ember lizard', palette: { hide: '#e0783e', hide2: '#f2a060', belly: '#f7dcb4', horn: '#ffd36a', dark: '#3b2420', eye: '#fff4b0', accent: '#ff7a2e' }, props: ['hot'] },
-    atelier: { name: 'ink lizard', palette: { hide: '#2b2534', hide2: '#463d52', belly: '#efe4c8', horn: '#b39464', dark: '#141018', eye: '#f8e8bb', accent: '#76617d' }, arena: true },
+    // (sheet-1: dusty terracotta and rose scales mottled with darker bands, ivory belly plates, a tarnished brass horn
+    // with verdigris at its seams; sheet-2: teal scales with amber rosettes, cream belly, polished brass hung with coins)
+    incal: { name: 'pipe lizard', palette: { hide: '#d8866a', hide2: '#e8a68a', belly: '#efe1c3', horn: '#c39d55', dark: '#3a2a30', eye: '#f2e2b0', accent: '#8e5a6a', verd: '#5fa59a' } },
+    buried: { name: 'ash lizard', palette: { hide: '#8d8a86', hide2: '#a8a49c', belly: '#d8d2c4', horn: '#3b3533', dark: '#262224', eye: '#ff9a5a', accent: '#5a5654', verd: '#5a5654' }, props: ['soot'] },
+    bazaar: { name: 'coin lizard', palette: { hide: '#55a5a3', hide2: '#84c3bd', belly: '#f1e4c6', horn: '#dcb34c', dark: '#1f3a38', eye: '#f2d34b', accent: '#d9a24a', verd: '#3f8a86' }, props: ['coins', 'key'] },
+    eclipse: { name: 'night lizard', palette: { hide: '#5b4a86', hide2: '#7a66a8', belly: '#cfc2e8', horn: '#b8a0e8', dark: '#1d1630', eye: '#d6ffb0', accent: '#3a2d60', verd: '#d6c2ff' }, props: ['glow'] },
+    moonfoundry: { name: 'ember lizard', palette: { hide: '#e0783e', hide2: '#f2a060', belly: '#f7dcb4', horn: '#ffd36a', dark: '#3b2420', eye: '#fff4b0', accent: '#a8482a', verd: '#ff7a2e' }, props: ['hot'] },
+    atelier: { name: 'ink lizard', palette: { hide: '#2b2534', hide2: '#463d52', belly: '#efe4c8', horn: '#b39464', dark: '#141018', eye: '#f8e8bb', accent: '#76617d', verd: '#76617d' }, arena: true },
   },
   heron: {
     desert: { name: 'cistern heron', palette: { body: '#e9dfbb', accent: '#c98d4f' } },
@@ -97,11 +101,13 @@ export const SKINS = {
     glassdunes: { name: 'glass worm', palette: { body: '#8fd9c0', body2: '#c9f2e2', ring: '#5fbf9f', sand: '#a8d8c8', mouth: '#3f8f8a', teeth: '#ffffff', eye: '#fff4b0', fin: '#e8fff6' }, props: ['crest'] },
   },
   tripod: {
-    incal: { name: 'inspection tripod', palette: { body: '#efe4c8', body2: '#f7efda', brass: '#b8955a', accent: '#7f93b8', dark: '#3a3330', lamp: '#fff2c0', rust: '#d99a8a' }, props: ['enamel'] },
-    buried: { name: 'mining tripod', palette: { body: '#b8a58a', body2: '#cdbb9e', brass: '#8a5a3a', accent: '#b8603a', dark: '#2e2a28', lamp: '#ffd38a', rust: '#a0522d' }, props: ['drill'] },
-    underwater: { name: 'diving bell', palette: { body: '#d8c48a', body2: '#e8d8a8', brass: '#a0784a', accent: '#5f9fb8', dark: '#2a3036', lamp: '#bff0ff', rust: '#6fa8a0' }, props: ['bell', 'portholes'] },
-    fallenring: { name: 'gyroscope tripod', palette: { body: '#e8efe8', body2: '#f4f8f4', brass: '#d8b048', accent: '#3f8f8a', dark: '#24302e', lamp: '#fff4b0', rust: '#7fb59a' }, props: ['gyro'] },
-    desert: { name: 'cistern pump', palette: { body: '#e9dfbb', body2: '#f2ead0', brass: '#b39464', accent: '#cfa2a7', dark: '#3a2f28', lamp: '#fff2c0', rust: '#c98d4f' }, props: ['pump'] },
+    // (sheet-1: ivory enamel, polished brass, slate-blue bands and panels, pink rust; sheet-2: a riveted coral-copper
+    // diving bell with a turquoise band and several portholes, buttery yellow lamp, cream legs, black bubbles rising)
+    incal: { name: 'inspection tripod', palette: { body: '#efe5cd', body2: '#f8f0dd', leg: '#ebe1c9', brass: '#c49a52', accent: '#7088a8', dark: '#3a3330', lamp: '#fff3cc', rust: '#d99a8c' }, props: ['enamel'] },
+    buried: { name: 'mining tripod', palette: { body: '#b8a58a', body2: '#cdbb9e', leg: '#c8b698', brass: '#8a5a3a', accent: '#b8603a', dark: '#2e2a28', lamp: '#ffd38a', rust: '#a0522d' }, props: ['drill'] },
+    underwater: { name: 'diving bell', palette: { body: '#d68e78', body2: '#e6a690', leg: '#ecdcc0', brass: '#c49a52', accent: '#6db2a8', dark: '#2a3036', lamp: '#ffe8a0', rust: '#b06a56' }, props: ['bell', 'portholes', 'key', 'bubbles'] },
+    fallenring: { name: 'gyroscope tripod', palette: { body: '#e8efe8', body2: '#f4f8f4', leg: '#e8efe8', brass: '#d8b048', accent: '#3f8f8a', dark: '#24302e', lamp: '#fff4b0', rust: '#7fb59a' }, props: ['gyro'] },
+    desert: { name: 'cistern pump', palette: { body: '#e9dfbb', body2: '#f2ead0', leg: '#e9dfbb', brass: '#b39464', accent: '#cfa2a7', dark: '#3a2f28', lamp: '#fff2c0', rust: '#c98d4f' }, props: ['pump'] },
   },
   cart: {
     garage: { name: 'welding cart', palette: { body: '#2f4a4a', accent: '#ff9a3e' } },
@@ -138,10 +144,13 @@ export const SKINS = {
     eclipse: { name: 'pilgrim shade', palette: { body: '#15121c', accent: '#d6c2ff' } },
   },
   hound: {
-    eclipse: { name: 'night hound', palette: { ink: '#15121c', rim: '#3b2a5c', antler: '#d6c2ff', eye: '#d6c2ff', glow: '#d6c2ff', smoke: '#3b2a5c' }, props: ['crescent'] },
-    mangrove: { name: 'driftwood hound', palette: { ink: '#1a1820', rim: '#4a4038', antler: '#efe8da', eye: '#f2e8c8', glow: '#efe8da', smoke: '#5a5048' }, props: ['bleached'] },
-    spheres: { name: 'halo hound', palette: { ink: '#15121c', rim: '#4a3e66', antler: '#cfc8e0', eye: '#e8f4ff', glow: '#bfe9ff', smoke: '#4a3e66' }, props: ['halo'] },
-    bazaar: { name: 'alley hound', palette: { ink: '#16141a', rim: '#3a3440', antler: '#b39464', eye: '#ffb8d0', glow: '#ff9ac0', smoke: '#3a3440' }, props: ['wire'] },
+    // (sheet-1, the Garden of Spheres: matte ink-black with violet smoke, black antlers glinting gold, a thin pearl-and-
+    // gold halo caught in them, white eyes; sheet-2, the Mangrove: bone-white driftwood antlers, the black body dripping
+    // like wet ink, sage and lilac smoke, small turquoise eyes)
+    eclipse: { name: 'night hound', palette: { ink: '#15121c', rim: '#3b2a5c', antler: '#d6c2ff', eye: '#d6c2ff', glow: '#d6c2ff', smoke: '#3b2a5c', smoke2: '#5a4686' }, props: ['crescent'] },
+    mangrove: { name: 'driftwood hound', palette: { ink: '#1a1a20', rim: '#3a3a44', antler: '#ebe3d1', eye: '#6fe0d0', glow: '#6fe0d0', smoke: '#a3c1ab', smoke2: '#c2b0dc' }, props: ['bleached', 'drips'] },
+    spheres: { name: 'halo hound', palette: { ink: '#1a1521', rim: '#3a2c4e', antler: '#241c2e', eye: '#f4f0ff', glow: '#dcb860', smoke: '#4a3868', smoke2: '#8676a6' }, props: ['halo', 'glints'] },
+    bazaar: { name: 'alley hound', palette: { ink: '#16141a', rim: '#3a3440', antler: '#b39464', eye: '#ffb8d0', glow: '#ff9ac0', smoke: '#3a3440', smoke2: '#5a4a58' }, props: ['wire'] },
   },
   marionette: {
     bazaar: { name: 'parcel puppet', palette: { body: '#c9a46a', accent: '#15121c' } },
@@ -154,7 +163,7 @@ export const SKINS = {
 // The ink blot is in every world, few and early: it takes the ground's colour at its edge (sand in the Desert, moss in
 // Lorn, rust in the Hangar). Its skins are made from this table of edge colours.
 const BLOT_EDGE = {
-  desert: ['the sand-edged blot', '#c98d4f'], arzach: ['the feather-tufted blot', '#8caeb1'], arzach2: ['the cloud-edged blot', '#b8c8d8'],
+  desert: ['the sand-edged blot', '#c99a48'], arzach: ['the feather-tufted blot', '#8caeb1'], arzach2: ['the cloud-edged blot', '#b8c8d8'],
   perdide: ['the moss-edged blot', '#7d9a5c'], perdide2: ['the root-edged blot', '#3f6a5a'], edena: ['the leaf-edged blot', '#6fa85c'],
   incal: ['the rust-edged blot', '#a0605a'], garage: ['the oil-edged blot', '#3b5a5a'], buried: ['the ash-edged blot', '#8d8a86'],
   spheres: ['the pearl-edged blot', '#c8b8d8'], bazaar: ['the paint-edged blot', '#d35d6e'], mangrove: ['the salt-edged blot', '#d8d0c0'],
@@ -163,7 +172,10 @@ const BLOT_EDGE = {
   fallenring: ['the teal-edged blot', '#3f8f8a'], moonfoundry: ['the ember-edged blot', '#e0783e'], underside: ['the girder blot', '#4c566a'],
   spacecity: ['the star-edged blot', '#5f7fd8'],
 };
-SKINS.blot = Object.fromEntries(Object.entries(BLOT_EDGE).map(([w, [name, edge]]) => [w, { name, palette: { ink: '#1e1a26', edge, eye: '#f4efe0' } }]));
+// Its sheets (references/enemy-archetypes/blot/): sheet-1, the Desert's, deep ink-black with violet light on its gloss and
+// cream eyes; sheet-2, the Hangar's, gunmetal ink with teal light, its edge rust and oily teal, metal shavings stuck in it.
+const BLOT_DRESS = { garage: { palette: { ink: '#1c2125', shine: '#4f7378', edge: '#c06c38', edge2: '#3f8682' }, props: ['shavings'] } };
+SKINS.blot = Object.fromEntries(Object.entries(BLOT_EDGE).map(([w, [name, edge]]) => [w, { name, palette: { ink: '#1e1a26', shine: '#5c4a8e', edge, eye: '#f4efe0', ...BLOT_DRESS[w]?.palette }, props: BLOT_DRESS[w]?.props }]));
 
 /** Each archetype's own skin: the first world it is met in (its skins' first entry). */
 export const HOME_SKIN = Object.fromEntries(Object.entries(SKINS).map(([a, s]) => [a, Object.keys(s)[0]]));
