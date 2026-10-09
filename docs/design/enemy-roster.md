@@ -879,16 +879,20 @@ archetype (the horn lizard's and the signal moth's from their rewritten prompts)
 fin and turquoise toothed mouth on a stack of ochre-banded rings, the ray's red diamond with its pale rim, bulging eyes
 and segmented tail, the moth as an upright paper lantern with a hooded face, glowing-bulb antennae, kite wings on rods
 and six hooked legs, the centipede's grey tube of plates with orange bands and crab-claw jaws round a drill, the
-jelly's broad pink puffy bell with three paper lanterns. Batch 1 follows the doc's description and the older
-references until its pass (`art: 'pending'`).
+jelly's broad pink puffy bell with three paper lanterns. **Batch 1 is drawn to both its sheets** (2026-10-09,
+`art: { main, alt }`: the main skin to sheet-1, the alternate's world skin to sheet-2): silhouette and proportions
+against each sheet's black silhouette and the traveller's scale, then the parts, then each sheet's skin, the other
+skins kept with the new body; checked with `node scripts/enemy-roster/compare.mjs` (the sheet over the game's body in
+the same views) and the motion audit (no foot sliding). Left as it was: the hound's Mangrove sheet keeps a halo ring
+from the main sheet's shape, which the driftwood hound does not wear (the halo is the Garden of Spheres').
 
 | # | Archetype | Status | Body now | Notes |
 |---|---|---|---|---|
-| 1 | Shellback crab | **built** (batch 1) | `plans/walker.js`, plan 1, 7 skins | snap, shell spin, burrow (Salt Harbour, Underwater); scuttles sideways in bursts; calm, shy. Art match pending its sheet |
+| 1 | Shellback crab | **built** (batch 1) | `plans/walker.js`, plan 1, 7 skins | snap, shell spin, burrow (Salt Harbour, Underwater); scuttles sideways in bursts; calm, shy. Drawn to its sheets (Vael II's cliff crab; the Salt Harbour's anchor crab): a deep steep-sided dome over an ivory plated belly, thick legs with hooked tips, tall arms to big upright pincers, black eyes on stalks; lichen stars; barnacles, rope and an anchor |
 | 2 | Skitter swarm | stand-in | the blot swarm | batch 4 |
 | 3 | Ring centipede | **built** (batch 2) | `plans/centipede.js`, plan 3, 6 skins | ring (spirals round you, its body a wall: out over its back, or push it apart), pincer lunge; plated, its head turned in takes double; sheds two skitterers off its tail; coiled at rest. Drawn to its sheet |
 | 4 | Bellows toad | stand-in | the spitting blot | batch 4 |
-| 5 | Horn lizard | **built** (batch 1) | `plans/quadruped.js`, plan 6, 5 skins + the Atelier's (Arena) | blare (shoves you to its partner), flank bite (from behind you), tail whip (at its back, the `tail` pattern); pairs. Art match pending its sheet |
+| 5 | Horn lizard | **built** (batch 1) | `plans/quadruped.js`, plan 6, 5 skins + the Atelier's (Arena) | blare (shoves you to its partner), flank bite (from behind you), tail whip (at its back, the `tail` pattern); pairs. Drawn to its sheets (the City-Shaft's pipe lizard; the Market's coin lizard): a salamander hugging the ground, back at the knee, legs sprawled out with splayed toes, a long low neck, the snout grown into a curved horn, the tail lying behind and coiling into a spiral (a rigid coil on the chain's tip); the blare lifts its front half and swells a throat sac; mottled bands; coins on strings and a wind-up key |
 | 6 | Stilt heron | planned | none | batch 4 |
 | 7 | Pearl roller | planned | none | batch 6 |
 | 8 | Root knot | stand-in | the root stalker | batch 4 |
@@ -896,14 +900,14 @@ references until its pass (`art: 'pending'`).
 | 10 | Signal moth | **built** (batch 2) | `plans/flyer.js`, plan 13, 5 skins | flash (both kite wings snapped open, the eye-spots blazing), dart, dust (the lamp moth and the Antennas' moth: the lock slips); in threes. Drawn to its sheet |
 | 11 | Sky ray | **built** (batch 2) | `plans/glider.js`, plan 14, 6 skins | skim (a perfect parry grounds it), tail lash (at its back), downdraft (Vael, Vael II: breaks the glide); circles in its thermals. Drawn to its sheet |
 | 12 | Mound worm | **built** (batch 2) | `plans/burrower.js`, plan 15, 3 skins | erupt (from under), spit stones and dive (up); the dune ray's mind; the air cut onto the mound double; ignores you off its mound. Drawn to its sheet |
-| 13 | Lamp tripod | **built** (batch 1) | `plans/piston.js`, plan 18, 5 skins | beam and bolt (the searchlight follows then locks; a parry sends it back), stamp (the `stomp` pattern), steam vent; the porthole face, black steam, a leg's possessed twitch. The Desert's cistern pump is not placed yet. Art match pending its sheet |
+| 13 | Lamp tripod | **built** (batch 1) | `plans/piston.js`, plan 18, 5 skins | beam and bolt (the searchlight follows then locks; a parry sends it back), stamp (the `stomp` pattern), steam vent; the porthole face, black steam, a leg's possessed twitch. The Desert's cistern pump is not placed yet. Drawn to its sheets (the City-Shaft's inspection tripod; Underwater's diving bell): a taller barrel boiler with a slate band, two smokestacks, a searchlight as wide as the boiler with a grid on its lens, long ivory legs nearly upright (a straighter knee than the plan's), a harpoon gun sliding out under it as it aims; the bell a coral-copper egg with portholes, a key and bubbles |
 | 14 | Crucible cart | stand-in | the slag walker | batch 5 |
 | 15 | Bell walker | planned | none | batch 5 (the Signal Market, the Salt Harbour, the Underside; none in Vael II) |
 | 16 | Ring drone | stand-in | the rust drone | batch 5 |
 | 17 | Furnace brute | stand-in | the glass golem | batch 5 (Lorn II's wood cutter not placed yet) |
-| 18 | Ink blot | **built** (batch 1) | `plans/blob.js`, plan 20, a skin per world (its edge the ground's colour) | lunge, lunge combo, spit (folded in; a lob, once you keep away); hops by distance; lies pooled. Art match pending its sheet |
+| 18 | Ink blot | **built** (batch 1) | `plans/blob.js`, plan 20, a skin per world (its edge the ground's colour) | lunge, lunge combo, spit (folded in; a lob, once you keep away); hops by distance; lies pooled. Drawn to its sheets (the Desert's; the Hangar's): a glossy drop drawn up into a swept-back splashing point, cream eyes with pupils, violet gloss, a ragged rim of the ground's colour; the lunge coils it into stacked rings; the Hangar's gunmetal with rust and teal at its rim and metal shavings |
 | 19 | Shade | stand-in | the shade (as before) | batch 6 rework |
-| 20 | Antler hound | **built** (batch 1) | `plans/quadruped.js` (the lizard's rig), 4 skins | pounce (0.8 s), step behind, antler rake (under two thirds); a shadow while it runs; not every one hunts. Art match pending its sheet |
+| 20 | Antler hound | **built** (batch 1) | `plans/quadruped.js` (the lizard's rig), 4 skins | pounce (0.8 s), step behind, antler rake (under two thirds); a shadow while it runs; not every one hunts. Drawn to its sheets (the Garden of Spheres' halo hound; the Mangrove's driftwood hound): 1.3 m at the shoulder on long straighter legs, a deep chest and narrow waist, a long muzzle, a bigger branching crown, a mane of streaming smoke; the Garden's inked black with gold glints and a halo, the Mangrove's dripping with bone antlers and sage and lilac smoke; lying in wait, its head and crown rise from a ragged pool |
 | 21 | Marionette | planned | none | batch 6 (the Garden's glass puppet not placed yet) |
 
 Measured: docs/audits/combat-v1.8.md (batch 1: scores 3.7–4.5, motion on the kit: no foot slide, the right gait

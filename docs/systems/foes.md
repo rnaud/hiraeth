@@ -582,8 +582,9 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
 - **The archetypes** (`src/enemies/archetypes.js` `ARCHETYPES`): family, body plan (the kit's), role, tier, ranged,
   the moves by name, the answers that beat it, how it lives when nobody fights it, its sound family, its chimes
   (`drop`, read by src/chimes.js), what it replaces (`was`), and `art`: `'pending'` (not matched to its picked
-  reference sheet yet) or `'sheet-1'` (drawn to `references/enemy-archetypes/<id>/sheet-1.jpg`). `status` says how
-  far it is:
+  reference sheet yet), `'sheet-1'` (drawn to `references/enemy-archetypes/<id>/sheet-1.jpg`) or `{ main, alt }`
+  (drawn to both its sheets: `sheet-1.jpg` in its main skin's world, `sheet-2.jpg` in the alternate's; batch 1).
+  `status` says how far it is:
   - `built`: on its own body, its tuning (`def`, a foe kind's, added to `FOES`) here. Batch 1: the **shellback crab**
     (`crab`), the **horn lizard** (`lizard`), the **antler hound** (`hound`), the **lamp tripod** (`tripod`), the
     **ink blot** (`blot`). Batch 2 (v1.9): the **mound worm** (`worm`), the **sky ray** (`ray`), the **signal moth**
@@ -681,6 +682,9 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
 - **Pictures:** `node scripts/enemy-roster/skins.mjs --out <dir>` draws each built archetype in each of its skins
   and its own skin winding up each attack, from the gallery (`enemies.html`: World, then the archetype in that
   world's skin; its moves with their tells and answers; Fight it in the Arena).
+  `node scripts/enemy-roster/compare.mjs --out <dir> [--tag after] [crab …]` sets the game's body under each of its
+  reference sheets, in the sheet's skin and views (front, side facing left, three-quarter, the wind-up the sheet
+  draws): the contact images the art pass is checked against (`compare-<archetype>-<1|2>.png`).
 
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
