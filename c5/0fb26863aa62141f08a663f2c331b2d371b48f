@@ -1,0 +1,49 @@
+.claude/skills/combat-review/SKILL.md
+  s_9ca76055a220ed::t_cfe7bc4bbbb955 35
+.claude/skills/combat-review/arena.mjs
+  s_9ca76055a220ed::t_901e7edb60c1cb 16,30,38-66,127-130,174,177-179,187,190,232,234
+.claude/skills/visual-audit/SKILL.md
+  s_9ca76055a220ed::t_5357139609b6de 112,129-130,134-135,144-146
+.claude/skills/visual-audit/probes.mjs
+  s_9ca76055a220ed::t_3246ad14f6317d 18,34,89-91,152,158,160-169,192,210-212,215,218-221
+docs/README.md
+  s_9ca76055a220ed::t_a58ec7843b98c6 26
+docs/audits/combat-v1.4.md
+  s_9ca76055a220ed::t_f2e374a09af16d 1-125
+docs/audits/visual-v1.4.md
+  s_9ca76055a220ed::t_3b3daab8d727aa 1-99
+scripts/combat-review/lib.mjs
+  s_9ca76055a220ed::t_edb44dbb670e40 92-94,96-100,110
+scripts/visual-probes/lib.mjs
+  s_9ca76055a220ed::t_aa4efe64c0124b 176-177,182
+tests/combat-review.test.js
+  s_9ca76055a220ed::t_f7316b695360e7 48,50
+tests/visual-probes.test.js
+  s_9ca76055a220ed::t_d38bd360b506d3 55,59,61-63
+TODO.md
+  s_05e8f0b297231a::t_d1dda449e6cb4d 11-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c50fb26863aa62141f08a663f2c331b2d371b48f",
+  "prompts": {},
+  "sessions": {
+    "s_05e8f0b297231a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1206d-f2fb-7580-8e26-273276a8bab9",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
