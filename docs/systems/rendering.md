@@ -569,6 +569,26 @@ villas, temple halls (the Signal Market's, the Buried Machine's) and the Machine
   constants, and a twin of both estimates on a raycast staircase (the riser steady and above the threshold).
   The Unity port's Composite.shader takes the same estimate (and the look past a person it lacked).
 
+## The rule for screen-space passes (October 2026)
+
+The three bugs above (a pale ghost of a person in the spot blacks, blocks that slid with the view, a lit seam that
+only showed in the light term) were each missed by still frames from fixed cameras. So:
+
+- **Every screen-space pass says how it treats people.** Anything that reads neighbouring pixels' depth, normals or
+  G-buffer (occlusion, spot blacks, crease shading, outlines, bloom, screen-space shadows) states whether a tap on a
+  person (gHatch.a's hero and figure flags) closes something in, counts as open, or is left out. A person in front of a
+  dark area must leave it as dark as without them (`occlusionShare`: left out).
+- **And how it behaves under camera motion**: taps and noise tied to the surface or the world, not the screen; a turn
+  of a few degrees must not move a mass across the same surface (`SPOT_FRAME`, `LINE_NOISE`).
+- **A test twin** comes with it, as `tests/occlusion-taps.test.js`: the estimate rebuilt in JS on a raycast scene, a
+  person in front and a camera swinging round a riser.
+- **The visual audit's probes** (`.claude/skills/visual-audit/probes.mjs`, `scripts/visual-probes/lib.mjs`) are run on
+  the known spots at Handheld and High before it merges: the ghost check (debug 9, 10 and 2 with the traveller and
+  without), the orbit (the same surface points in debug 10 and 9 over ±32°), the seams (foot rays and debug 5 inside
+  caves and rooms). Their thresholds were set on the builds before 620c4384 and c58cbcaa (docs/audits/visual-v1.4.md).
+- **A shell standing on a floor** keeps its foot ring at or under it, whatever roughens it: `tests/shell-seams.test.js`
+  runs every displacement helper on domes, drums and mounds, and fails on a new helper it doesn't know.
+
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 
 (Since v0.89 the walls' grime streaks and chips are gone, replaced by sparse hairline cracks: materials.md,
