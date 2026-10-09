@@ -67,8 +67,8 @@ other four are a click away).
    the path; click to add or remove. The first one is shown beside the results for comparison (or choose
    another). A provider takes as many as it can (OpenAI 16, Gemini 14, BFL 8, FLUX.2 [dev] 4, Recraft 1).
 3. **Providers, count, aspect ratio**, and a model per provider; **Generate** (G, or Menu on a pad).
-4. The batch comes in provider by provider, a row each: the comparison picture, then the candidates with
-   their time and cost; a provider that failed says why (no-key, auth, credits, rate-limit, blocked, server…)
+4. The batch shows every provider's pictures together in one grid (the comparison picture first, each card
+   naming its provider, with its time and cost), so the pick is one choice across all of them; a provider that failed says why (no-key, auth, credits, rate-limit, blocked, server…)
    and the others carry on. Click a picture (or Enter, A) to zoom; ← → (LB / RB) through them.
 5. **Pick** (P, X) asks why (optional) and copies the picture to the target folder; **Discard** (Del, Y)
    deletes a candidate; *Discard the batch* deletes the whole folder. The history lists every batch.
@@ -90,7 +90,12 @@ node scripts/gen-reference.mjs --model gemini=gemini-3-pro-image --from …   # 
 node scripts/gen-reference.mjs --batches
 node scripts/gen-reference.mjs --pick 2026-10-10-09-12-03-ab12/openai/2 --why "the clearest silhouette"
 node scripts/gen-reference.mjs --discard 2026-10-10-09-12-03-ab12[/gemini/1]
+node scripts/gen-reference.mjs --into 2026-10-10-09-12-03-ab12 --providers gemini   # retry one in the same batch
+node scripts/gen-reference.mjs --merge <batch>,<batch>,…   # batches of one prompt run apart, joined into the first
 ```
+
+Keep one prompt in one batch: a provider that failed is retried with `--into` (the batch's own prompt and
+references), not in a new batch, so its pictures sit beside the others' for the pick.
 
 `--providers` defaults to every provider with a key (all of fal's five: name them to spend less). `--pick
 latest/openai/1` picks from the newest batch.

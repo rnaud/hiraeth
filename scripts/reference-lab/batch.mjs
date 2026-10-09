@@ -7,7 +7,10 @@
 //
 // A batch runs every provider at once; one failing (no key, a refused key, a rate limit) leaves the others
 // running and is written down in its own entry. candidates.json is rewritten as each provider finishes, so the
-// page can show a batch while it runs.
+// page can show a batch while it runs. Running again into an existing batch (o.batch, CLI --into) adds the
+// providers asked for to it, with the batch's own prompt and references: a provider that failed is retried in
+// the same batch, so every provider's pictures stay side by side for one pick. mergeBatches() joins batches
+// that were run apart.
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, renameSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
@@ -55,6 +58,8 @@ export function checkTarget(root, target) {
  */
 export async function runBatch(o) {
   const { root, keys = {} } = o;
+  const prior = o.batch && existsSync(join(batchDir(root, o.batch), 'candidates.json')) ? readBatch(root, o.batch) : null;
+  if (prior) o = { ...o, prompt: prior.prompt, refs: prior.refs, ar: prior.ar, n: o.n ?? prior.n, target: prior.target, from: prior.from, comparison: prior.comparison };
   const prompt = String(o.prompt ?? '').trim();
   if (!prompt) throw new Error('no prompt');
   const ar = parseAspect(o.ar ?? '1:1').label;
@@ -70,12 +75,16 @@ export async function runBatch(o) {
   const ignore = join(storeRoot(root), CANDIDATES_DIR, '.gitignore');
   if (!existsSync(ignore)) writeFileSync(ignore, '# the reference lab\'s candidates (docs/systems/reference-lab.md): never committed\n*\n');
   const secrets = KEY_NAMES.map((k) => keys[k]).filter(Boolean);
-  const manifest = {
+  const manifest = prior ? { ...prior, status: 'running' } : {
     batch, date: new Date(o.now ? o.now() : Date.now()).toISOString().slice(0, 10), created: new Date(o.now ? o.now() : Date.now()).toISOString(),
     prompt, from: o.from ?? null, refs: refs.map((r) => r.path), ar, n, target, comparison: o.comparison ?? refs[0]?.path ?? null,
     status: 'running', providers: {}, candidates: [],
   };
   for (const p of chosen) {
+    if (prior) {   // (a provider run again: its earlier pictures make way)
+      for (const c of manifest.candidates.filter((x) => x.provider === p.id)) rmSync(join(dir, c.file), { force: true });
+      manifest.candidates = manifest.candidates.filter((x) => x.provider !== p.id);
+    }
     manifest.providers[p.id] = p.missing ? { status: 'error', kind: 'unknown', error: `no provider "${p.id}"` }
       : !keyFor(p, keys) ? { status: 'error', kind: 'no-key', label: p.label, error: `add ${p.keyName} to .env.local` }
         : { status: 'running', label: p.label, model: o.models?.[p.id] || p.model };
@@ -104,6 +113,33 @@ export async function runBatch(o) {
   manifest.candidates.sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
   save();
   return manifest;
+}
+
+/**
+ * Join batches run apart (one provider at a time) into the first: their providers and pictures moved into it,
+ * the others removed. Only batches with the same prompt: a pick is a choice between answers to one question.
+ */
+export function mergeBatches({ root, into, from }) {
+  const m = readBatch(root, into);
+  for (const b of from) {
+    if (b === into) continue;
+    const o = readBatch(root, b);
+    if (o.prompt !== m.prompt) throw new Error(`${b} has another prompt than ${into}`);
+    for (const [id, p] of Object.entries(o.providers)) {
+      if (p.status !== 'done' && m.providers[id]) continue;   // (a failure never replaces what worked)
+      m.candidates = m.candidates.filter((c) => c.provider !== id);
+      for (const c of o.candidates.filter((x) => x.provider === id)) {
+        mkdirSync(join(batchDir(root, into), id), { recursive: true });
+        if (existsSync(join(batchDir(root, b), c.file))) renameSync(join(batchDir(root, b), c.file), join(batchDir(root, into), c.file));
+        m.candidates.push(c);
+      }
+      m.providers[id] = p;
+    }
+    rmSync(batchDir(root, b), { recursive: true, force: true });
+  }
+  m.candidates.sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true }));
+  writeJson(join(batchDir(root, into), 'candidates.json'), m);
+  return m;
 }
 
 /** A batch's manifest. */

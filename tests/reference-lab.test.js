@@ -13,7 +13,7 @@ import { PROVIDERS, providerById } from '../scripts/reference-lab/providers/inde
 import { openaiSize } from '../scripts/reference-lab/providers/openai.mjs';
 import { falImageSize } from '../scripts/reference-lab/providers/fal.mjs';
 import { parseAspect, sizeFor, redact, httpJson, readRef, onHost } from '../scripts/reference-lab/common.mjs';
-import { runBatch, pick, discard, listBatches, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
+import { runBatch, mergeBatches, pick, discard, listBatches, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
 import { referenceLabMiddleware, sameMachine, listRefs, referenceLabPlugin } from '../scripts/reference-lab/server.mjs';
 import { parseArgs, main } from '../scripts/gen-reference.mjs';
 import { batchHtml, providerRow, promptFor, filterRefs, fileSrc } from '../src/reference-lab/view.js';
@@ -317,6 +317,26 @@ test('a batch: every provider at once, one failing without stopping the others, 
   rmSync(root, { recursive: true, force: true });
 });
 
+test('one batch for one pick: a provider run again into the same batch, batches run apart merged', async () => {
+  const root = fakeRepo();
+  const keys = { OPENAI_API_KEY: KEY, GEMINI_API_KEY: 'gm-SECRET-abcdef' };
+  const o = { root, refs: ['references/The Desert/rock.jpg'], n: 2, ar: '16:9', target: 'references/x/', keys, fetch: labFetch(), ...fast };
+  await runBatch({ ...o, prompt: 'a rock', providers: ['openai'], batch: 'm1' });
+  await runBatch({ ...o, prompt: 'a rock', providers: ['gemini'], batch: 'm2' });
+  await runBatch({ ...o, prompt: 'a tree', providers: ['openai'], batch: 'm3' });
+  // run again into m1: its own prompt and references, the openai pictures replaced, nothing doubled
+  const again = await runBatch({ root, providers: ['openai'], batch: 'm1', keys, fetch: labFetch(), ...fast });
+  assert.equal(again.prompt, 'a rock');
+  assert.deepEqual(again.candidates.map((c) => c.id), ['openai/1', 'openai/2']);
+  assert.throws(() => mergeBatches({ root, into: 'm1', from: ['m3'] }), /another prompt/);
+  const m = mergeBatches({ root, into: 'm1', from: ['m2'] });
+  assert.deepEqual(Object.keys(m.providers).sort(), ['gemini', 'openai']);
+  assert.equal(m.providers.gemini.status, 'error');
+  assert.ok(!existsSync(join(root, CANDIDATES_DIR, 'm2')));
+  assert.deepEqual(listBatches(root).map((b) => b.batch), ['m3', 'm1']);
+  rmSync(root, { recursive: true, force: true });
+});
+
 test('the CLI: arguments, --list without values, a batch from a prompt document, then --pick', async () => {
   assert.deepEqual(parseArgs(['--prompt', 'x', '--refs', 'a.jpg, b.jpg', '--providers', 'openai,gemini', '--n', '2', '--ar', '16:9']),
     { n: 2, refs: ['a.jpg', 'b.jpg'], providers: ['openai', 'gemini'], prompt: 'x', ar: '16:9' });
@@ -421,7 +441,7 @@ test('the page: not built, in the Debug menu only on the dev server, with the â—
   assert.doesNotMatch(src, /process\.env|\.env\.local'\)|readFileSync/, 'the page reads no keys: only the server does');
 });
 
-test('the page\'s drawing: a provider without a key greyed with the name to add, a batch by provider beside its reference', () => {
+test('the page\'s drawing: a provider without a key greyed with the name to add, every provider\'s pictures in one grid beside its reference', () => {
   const off = providerRow({ id: 'bfl', label: 'BFL', keyName: 'BFL_API_KEY', available: false, models: ['m'], maxRefs: 8, costPerImage: 0.03 });
   assert.match(off, /class="prov off"/);
   assert.match(off, /add BFL_API_KEY to \.env\.local/);
@@ -438,6 +458,8 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   assert.match(h, /data-pick="openai\/1"/);
   assert.match(h, /12\.0 s/);
   assert.match(h, /auth: refused/);
+  assert.match(h, /class="wall"/, 'every provider\'s pictures in one grid, for one pick across them');
+  assert.match(h, /<b>OpenAI<\/b> #1/, 'each card says which provider made it');
   assert.equal(fileSrc('references/a b/c.jpg'), '/references/a%20b/c.jpg');
   assert.equal(filterRefs([{ path: 'references/The Desert/x.jpg', folder: 'The Desert' }, { path: 'references/Lorn/y.jpg', folder: 'Lorn' }], { query: 'desert' }).length, 1);
   const prompts = { docs: [{ doc: 'd.md', entries: [{ id: 'crab', title: 'Crab', target: 'references/enemy-archetypes/crab/', variants: [{ key: 'main', prompt: 'P', ar: '16:9' }] }] }], manifests: [] };
