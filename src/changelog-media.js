@@ -337,6 +337,27 @@ const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot'
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
+  '1.8': [
+    { match: 'The traveller’s ship is the family’s angular ship now', shots: [
+      { name: 'ship-ref34', caption: 'From the front left, as in the selected reference: the round ship on its four legs before; after, the angular ship, its wedge nose and windshield, the coral stripe, the lavender panels, the pods and the stair-ramp', from: 'headless Chrome against a dev server (the Glass Dunes, High, 10:00), the same view from the ship’s site before and after' },
+      { name: 'ship-side', caption: 'The port side, square on: the hatch, the slot window, the scorch the light left', from: 'headless Chrome against a dev server (the Glass Dunes, High, 10:00), the same view from the ship’s site before and after' },
+      { name: 'ship-rear', caption: 'From behind and above: the stern, the two pods raked up off it, the roof', from: 'headless Chrome against a dev server (the Glass Dunes, High, 10:00), the same view from the ship’s site before and after' },
+    ] },
+    { match: 'Inside, real rooms you walk through', shots: [
+      { name: 'ship-room', caption: 'In from the hatch: the round deck before; after, the main room, the holo table, the galley under its window, the cockpit through its frame', from: "headless Chrome against a dev server (the Glass Dunes, High), from the hatch's inside point toward the holo table, before and after" },
+      { name: 'ship-cockpit', caption: 'Behind the pilot at the dash: the projector, the voicemail button, the round screen, the windshield', from: 'headless Chrome against a dev server, from behind the cockpit point toward the projector, before and after' },
+      { name: 'ship-bunk', caption: 'From beside the bed: the bunk corner before; after, the sleeping cabin, the bed in its alcove', from: 'headless Chrome against a dev server, from the bunk point toward the pillow, before and after' },
+    ] },
+    { match: 'The ship’s scenes are filmed for the new ship', see: 'Start a new game: you wake in the cabin and walk through the main room to the dash; the light passes the cockpit on the left and the ship comes down nose first and slews round in the sand. Then fly anywhere from the holo table and watch it land on its jets and fold the stair-ramp out.' },
+    { match: 'The child’s drawing on the dash shows the striped ship', numbers: [
+      { title: 'The parked ship: meshes drawn (draw calls), outside and with the rooms shown', unit: 'draws', better: 'lower', device: 'the model as built (buildShipModel, node)',
+        rows: [{ where: 'outside, near', before: 23, after: 29 }, { where: 'outside, past 130 m', before: 23, after: 22 }, { where: 'the rooms shown (within 48 m)', before: 61, after: 62 }],
+        source: 'meshes of a parked ship with its ramp, the rooms hidden and shown as Ship.update does (docs/systems/ship.md, "Performance")' },
+      { title: 'The parked ship: triangles', unit: 'triangles', better: 'lower', device: 'the model as built (buildShipModel, node)',
+        rows: [{ where: 'outside', before: 32744, after: 7598 }, { where: 'the rooms shown', before: 59916, after: 15822 }],
+        source: 'the same count' },
+    ] },
+  ],
   '1.7': [
     { match: 'Your father’s recordings now use', see: 'Open Debug → Cinematics → Recording 1 · Home to see the new father in the ship’s projector.' },
     { match: 'Out of a fight the fluid sword now rides on your back', shots: [

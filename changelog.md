@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.8 — 2026-10-09
+
+- The child’s drawing on the dash shows the striped ship, and the people who talk about it call it the striped ship. Far off, the ship draws fewer small details, and it has a quarter of the round ship’s triangles.
+- The ship’s scenes are filmed for the new ship: the recordings from beside the pilot at the dash, the singing light passing the cockpit on the hatch’s side, the forced landing coming in nose first and slewing round in the sand, arrivals flying in nose first, the door sliding along the hull and the stair-ramp folding out.
+- Inside, real rooms you walk through: the cockpit with its dash, the voicemail button and the projector, the pilot’s seat and the round screen; the main room with the holo table, the galley under its window, the entry bench and lockers, a sofa and a little table for three; the sleeping cabin with the bed in its alcove, the desk, books under straps and clothes on hooks; and the hold at the back. The camera follows you close through the doorways.
+- The traveller’s ship is the family’s angular ship now: a long faceted hull in worn cream enamel with one coral stripe at the windows and muted lavender panels at the back, a wedge nose under a wide windshield, two slender pods raked up off the stern, four short legs and a side door with a railed stair-ramp. It stands in every world where the round ship stood.
+
 ## v1.7 — 2026-10-09
 
 - Moustache is an old, lean, long-legged wire terrier now, sandy all over, with a long white moustache and beard, white scruffy brows and one ear folded over. He trots on jointed legs, each paw set down and held where it lands while the diagonal pair steps, faster when he hurries; when he sits his back paws step in under him, he noses about with his head down, wags harder the happier he is, and lies down at the stone with you.

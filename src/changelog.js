@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.8', date: '2026-10-09', items: [
+    // the family ship, redrawn
+    'The traveller’s ship is the family’s angular ship now: a long faceted hull in worn cream enamel with one coral stripe at the windows and muted lavender panels at the back, a wedge nose under a wide windshield, two slender pods raked up off the stern, four short legs and a side door with a railed stair-ramp. It stands in every world where the round ship stood.',
+    'Inside, real rooms you walk through: the cockpit with its dash, the voicemail button and the projector, the pilot’s seat and the round screen; the main room with the holo table, the galley under its window, the entry bench and lockers, a sofa and a little table for three; the sleeping cabin with the bed in its alcove, the desk, books under straps and clothes on hooks; and the hold at the back. The camera follows you close through the doorways.',
+    'The ship’s scenes are filmed for the new ship: the recordings from beside the pilot at the dash, the singing light passing the cockpit on the hatch’s side, the forced landing coming in nose first and slewing round in the sand, arrivals flying in nose first, the door sliding along the hull and the stair-ramp folding out.',
+    'The child’s drawing on the dash shows the striped ship, and the people who talk about it call it the striped ship. Far off, the ship draws fewer small details, and it has a quarter of the round ship’s triangles.',
+  ] },
   { v: '1.7', date: '2026-10-09', items: [
     { text: 'Cinematic previews start and replay silently, including dialogue and the trailer.', see: 'Open Debug → Cinematics and replay any scene. Sound stays off until you enable it.' },
     'Your father’s recordings now use his chosen likeness: silver hair, a slate-blue coat and rust waistcoat, with moving hands and a softly animated face inside the hologram. His shoulders and sleeves bend smoothly, speech leaves his nose and neck still, glances turn his head without pulling his jaw, collar or torso, and his neck keeps its shape through turns, and the recording model is two thirds smaller to download.',
