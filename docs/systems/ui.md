@@ -51,6 +51,16 @@ each choice to what uses it:
 - **Touch:** a floating stick on the left, drag on the right to look, and
   buttons for jump, interact, run and the game menu (❏). Low graphics by
   default.
+- **Touch controls' size:** every button's place and size lives in one table, `src/touch-layout.js`
+  (drawn for a screen 560 px or more on its short side: a tablet, the Deck). `touchScale(w, h)` is the
+  short side over 560, between 0.64 and 1, so a phone held sideways (812 x 375) keeps the cluster in
+  the lower right corner (226 x 235 px with every button showing) and upright leaves the left side
+  free. `touchLayout(k)` scales places and sizes round each button's centre; no button goes under
+  38 px across nor its label under 11 px. ui.js `TouchControls` sets them inline (and `--tk` on
+  `#touch`) on resize and when a button is added later (the gadget's); the stick's ring and travel
+  scale too. index.html only colours and hides the buttons. The HUD keeps clear by measuring them
+  (src/ship/cinema.js `OBSTACLES`). `tests/touch-layout.test.js`: no two buttons touch at any scale,
+  the cluster stays in the corner at the phone sizes.
 - **Ending:** find all seven story pages and all 35 relics for a closing page.
   It unlocks an eighth world, **The Atelier**: a blank page with pencil
   sketches of every landmark and the artist at his table.

@@ -8,6 +8,7 @@ import { devMode } from './dev-gate.js';
 import { t, setLanguage, onLanguage, LANGUAGES } from './i18n.js';
 import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts, padFor, padConflicts, captureKey, capturePad, RESERVED_KEYS } from './remap.js';
 import { setMotion } from './feel.js';
+import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
@@ -423,7 +424,26 @@ export class TouchControls {
       <button data-press="Tab" class="b-lock" aria-label="${t('touch.lock')}">◉</button>`;
     const stick = root.querySelector('.stick'), nub = root.querySelector('.nub');
     let stickId = null, lookId = null, sx = 0, sy = 0, lx = 0, ly = 0;
-    const R = 60;
+    let R = 60, ring = 140;
+    // the cluster scales with the screen's short side (src/touch-layout.js): a phone held sideways keeps
+    // it in the lower right corner; the HUD keeps clear of wherever the buttons end up (src/ship/cinema.js)
+    const place = () => {
+      const k = touchScale(globalThis.innerWidth, globalThis.innerHeight), L = touchLayout(k), S = stickLayout(k);
+      root.style?.setProperty('--tk', String(k));
+      for (const b of root.querySelectorAll('button')) {
+        const p = L[b.className.match(/\bb-(\w+)/)?.[1]];
+        if (!p) continue;
+        Object.assign(b.style, { right: `calc(${p.r}px + var(--safe-right, 0px))`, bottom: `calc(${p.b}px + var(--safe-bottom, 0px))`,
+          width: `${p.d}px`, height: `${p.d}px`, fontSize: `${p.f}px` });
+      }
+      R = S.reach; ring = S.ring;
+      Object.assign(stick.style, { width: `${S.ring}px`, height: `${S.ring}px` });
+      Object.assign(nub.style, { width: `${S.nub}px`, height: `${S.nub}px`, left: `${(S.ring - S.nub) / 2 - 2}px`, top: `${(S.ring - S.nub) / 2 - 2}px` });
+    };
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('orientationchange', place);
+    if (typeof MutationObserver === 'function') new MutationObserver(place).observe(root, { childList: true });   // (a button added later: the gadget's, src/gadgets/hud.js)
     const setStick = (dx, dy) => {
       const l = Math.hypot(dx, dy), k = l > R ? R / l : 1;
       dx *= k; dy *= k;
@@ -439,7 +459,7 @@ export class TouchControls {
         if (t.target.closest?.('button')) continue;
         if (t.clientX < innerWidth * 0.45 && stickId === null) {
           stickId = t.identifier; sx = t.clientX; sy = t.clientY;
-          stick.style.left = `${sx - 70}px`; stick.style.top = `${sy - 70}px`;
+          stick.style.left = `${sx - ring / 2}px`; stick.style.top = `${sy - ring / 2}px`;
           stick.classList.add('on');
           setStick(0, 0);
         } else if (lookId === null) { lookId = t.identifier; lx = t.clientX; ly = t.clientY; }

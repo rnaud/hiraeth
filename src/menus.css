@@ -179,6 +179,12 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   .fullmenu select, .fullmenu input[type=range] { width: 50%; }
 }
 
+/* a 720 px window (1280 x 720) with every entry (the author's Debug too): the side's footer stays on the screen */
+@media (max-height: 760px) and (orientation: landscape) {
+  .fullmenu .side { gap: clamp(8px, 1.6vh, 22px); }
+  .fullmenu .menu-nav { gap: clamp(6px, 1.2vh, 14px); }
+}
+
 /* a phone on its side or a short window (812 x 375): the side's buttons all fit, no scrolling to Quit */
 @media (max-height: 480px) and (orientation: landscape) {
   .fullmenu .side { gap: 6px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }

@@ -163,11 +163,8 @@
         position: fixed; z-index: 36; width: 64px; height: 64px; border-radius: 50%; font: 18px ui-monospace, Menlo, monospace;
         color: #2b211f; background: rgba(255, 250, 240, 0.8); border: 2px solid #2b211f; touch-action: none;
       }
-      #touch .b-jump { right: 24px; bottom: 90px; width: 78px; height: 78px; font-size: 26px; }
-      #touch .b-use { right: 112px; bottom: 40px; }
-      #touch .b-run { right: 24px; bottom: 186px; font-size: 13px; }
+      /* each button's place and size: src/touch-layout.js (ui.js TouchControls sets them, scaled to the screen's short side) */
       #touch .b-run.on { background: #f2c54b; }
-      #touch .b-book { right: 112px; bottom: 120px; }
       body.touch #gear { top: 14px; bottom: auto; }
       #loading {
         position: fixed; inset: 0; z-index: 9000; display: grid; place-content: center; justify-items: center; gap: 18px;
@@ -312,7 +309,7 @@
       body.talking .balloon, body.talking #prompt, body.talking #controller-hint, body.talking #gear { visibility: hidden; }
       /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
       body.talking #touch { visibility: hidden; }
-      #touch .b-use.talk { font-size: 13px; }
+      #touch .b-use.talk { font-size: calc(13px * var(--tk, 1)) !important; }   /* (over the inline size: src/touch-layout.js) */
       /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
 
       /* a notice: quiet paper, a thin rule, no shadow (src/ship/cinema.js places it clear of the health bar) */
@@ -372,17 +369,12 @@
       #fps { right: calc(14px + var(--safe-right)); top: calc(14px + var(--safe-top)); bottom: auto; }
       body.touch #gear { top: calc(12px + var(--safe-top)); bottom: auto; }
       body.touch #fps { top: auto; bottom: calc(14px + var(--safe-bottom)); left: calc(16px + var(--safe-left)); right: auto; }
-      #touch .b-jump { right: calc(24px + var(--safe-right)); bottom: calc(90px + var(--safe-bottom)); }
-      #touch .b-use { right: calc(112px + var(--safe-right)); bottom: calc(40px + var(--safe-bottom)); }
-      #touch .b-run { right: calc(24px + var(--safe-right)); bottom: calc(186px + var(--safe-bottom)); }
-      #touch .b-book { right: calc(112px + var(--safe-right)); bottom: calc(120px + var(--safe-bottom)); }
       #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
       #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
       #picker { padding: calc(24px + var(--safe-top)) calc(20px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
       #picker header { flex-wrap: wrap; gap: 12px; }
       #picker header .hint { font-style: normal; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
-      #touch .b-ping { right: calc(112px + var(--safe-right)); bottom: calc(200px + var(--safe-bottom)); font-size: 13px; }
       #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: 12px monospace; pointer-events: none; }
       body.controller.controller-hint #controller-hint { display: block; }
       /* holding a controller (a Retroid, a pad on a phone): no buttons on the screen at all */
@@ -413,15 +405,8 @@
       #tool .mode { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px;
         font: 11px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
       #tool .mode b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; }
-      #touch .b-aim { right: calc(200px + var(--safe-right)); bottom: calc(150px + var(--safe-bottom)); font-size: 24px; }
       #touch .b-aim.on { background: #9fd6e8; }
-      #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
-      #touch .b-mode { right: calc(282px + var(--safe-right)); bottom: calc(96px + var(--safe-bottom)); width: 50px; height: 50px; font-size: 22px; }
-      #touch .b-guard { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
-      #touch .b-evade { right: calc(206px + var(--safe-right)); bottom: calc(290px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
-      #touch .b-lock { right: calc(282px + var(--safe-right)); bottom: calc(232px + var(--safe-bottom)); width: 40px; height: 40px; font-size: 18px; }
       body:not(.combat) #touch .b-lock { display: none; }   /* (only with a foe near: src/foes.js) */
-      #touch .b-blade { right: calc(282px + var(--safe-right)); bottom: calc(166px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       body:not(.modes) #touch .b-mode { display: none; }
       /* no backpack yet: no tool buttons, no tool hints (ui.js ToolHud sets .no-tool) */
       body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade, body.no-tool #touch .b-guard, body.no-tool #touch .b-evade, body.no-tool #touch .b-lock { display: none; }

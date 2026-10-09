@@ -1309,3 +1309,20 @@ tests/sound-mix.test.js holds them.
   0.40-0.50), the frame's and the swell's properties. Checked against the desert's sheets in the References
   (tower, sails, wreck, bridges, ribs, dish city, slot canyon: the same masses). Cost: no measurable change
   (docs/systems/rendering.md). The Unity composite takes the same estimate.)
+
+## Touch controls at every screen size (2026-10-09)
+
+- [x] Touch controls on a phone held sideways (812 x 375) cover the right half of the view, the button
+  cluster reaching the top edge. (src/touch-layout.js: every button's place and size in one table, scaled
+  by the viewport's short side over 560 px (0.64..1); ui.js TouchControls sets them inline on resize and
+  when the gadget's button is added; a button never below 38 px across, growing round its own centre, its
+  label never below 11 px; the stick's ring and travel scale too. The full combat cluster went from 336 x 344
+  px (top at 31 px on a 375 px screen) to 226 x 235 (top at 140); 844 x 390 and 915 x 412 alike, the tall
+  Android's 923 x 415 CSS px (2400 x 1080 at DPR 2.6) 249 x 259; 1280 x 800 (Deck) unchanged; upright
+  375 x 812, 226 px of 375 across instead of 336. The lock button moved up 12 px and evade 6 px so no two
+  buttons touch at any scale; the gadget's button sat 2 px into ping's and now sits clear. The HUD's layout
+  (src/ship/cinema.js OBSTACLES) measures the buttons where they are, so the notices still keep clear.
+  tests/touch-layout.test.js. Checked in headless Chrome with touch emulation at all six sizes.)
+- [x] The pause menu's footer sat under the bottom at 1280 x 720 with the dev-only Debug entry (31 px, not
+  one). (src/menus.css: below 760 px tall, landscape, the side's and its buttons' gaps are a little
+  tighter; the footer now ends at 706 px. Checked in headless Chrome.)

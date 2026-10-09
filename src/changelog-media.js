@@ -198,6 +198,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'spot-stairs', caption: 'The stairs to the great tree in Qanat, Handheld: the risers and the terrace faces keep the same dark masses from every side (before, they came and went in blocks as the camera swung)', commit: 'c58cbcaa',
         view: { level: 'desert', save: SAVE_DESERT, quality: 'handheld', player: [219.1, 4.6, 382.0], heading: 2.6, eye: [213.62, 8.85, 372.51], target: [219.1, 3.85, 382.04], fov: 55, wait: 3000 } },
     ], see: 'Climb the stairs round the great tree in Qanat, or go down into the cave under the giant, and swing the camera round: the dark masses stay where they are.' },
+    { match: 'On a phone the touch buttons now size themselves', shots: [
+      { name: 'touch-sideways', caption: 'A phone held sideways (812 × 375), every button showing (a foe near, the gun’s modes): before, the cluster reached the top edge and halfway across; after, it keeps to the lower right corner', from: 'headless Chrome with touch emulation (mobile viewport, DPR 3) against this branch’s own dev server, the same view before and after (9 October)' },
+      { name: 'touch-upright', caption: 'The same phone held upright (375 × 812): the buttons used to span the whole width; now the left side is free for the stick', from: 'headless Chrome with touch emulation (mobile viewport, DPR 3) against this branch’s own dev server, the same view before and after (9 October)' },
+    ], see: 'On a phone, hold it sideways in any world: the buttons sit in the lower right corner, clear of the middle of the view. On a tablet or the Steam Deck they are as before.' },
     { match: 'No more bright line of sunlight', shots: [
       { name: 'cave-seam', caption: 'The Givers’ Hearth: before, a line of sunlight round the foot of the cave’s wall; after, the floor is in shade all the way to the wall', commit: 'c58cbcaa',
         view: { level: 'desert', save: SAVE_DESERT, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262], fov: 55, wait: 3000 } },

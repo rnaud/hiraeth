@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.2 — 2026-10-09
 
+- On a phone the touch buttons now size themselves to the screen: held sideways they stay in the lower right corner instead of reaching the top and covering half the view, and the stick under your left thumb needs less travel.
 - No more bright line of sunlight round the floor of the cave under the giant and of the Givers’ Hearth.
 - The dark masses in shaded corners, on stairs and round furniture stay put as the camera moves instead of shifting about in blocks, and come out as brushed shapes rather than stacked rectangles, most of all on Handheld.
 

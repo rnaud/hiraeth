@@ -51,10 +51,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
   panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
   the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
-- [ ] Touch controls on a phone held sideways (812 x 375) cover the right half of the view, the button
-  cluster reaching the top edge; scale the cluster with the screen's height. (Resolution audit, 9 October.)
-- [ ] The pause menu's footer ("Your progress is saved as you play.") sits a pixel under the bottom at
-  1280 x 720 with the dev-only Debug entry; the side scrolls to it. Fine for players; tidy if the side grows.
 
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)

@@ -57,7 +57,7 @@ body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wh
 #gadget-wheel .slot.hi { transform: scale(1.25); background: #f2c54b; }
 #gadget-wheel .name { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 3px 8px; background: #f7ecd2; border: 1.5px solid #2b211f;
   font: 12px/1.4 ui-monospace, Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #2b211f; }
-#touch .b-gadget { right: calc(112px + var(--safe-right)); bottom: calc(262px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; display: none; }
+#touch .b-gadget { display: none; }   /* (its place and size: src/touch-layout.js, set by ui.js TouchControls) */
 body.gadget-on #touch .b-gadget { display: block; }
 body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !important; }   /* (a game, a conversation: nothing to use it on) */
 #gadget-wheel.many { width: 344px; height: 344px; margin: -172px 0 0 -172px; }
