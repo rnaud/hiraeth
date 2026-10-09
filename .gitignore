@@ -39,3 +39,6 @@ godot/gen/
 # Locally rendered trailer videos
 output/trailer/
 .vite-cache/
+
+# cinematics QC runs (scripts/cinematics-qc.mjs)
+output/cinematics-qc/
