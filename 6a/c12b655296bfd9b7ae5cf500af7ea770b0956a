@@ -1,0 +1,71 @@
+DONE.md
+  s_9ca76055a220ed::t_0d7e43b71769a2 1117-1140
+changelog.md
+  s_9ca76055a220ed::t_e8e2b7a62029f6 110-114
+docs/README.md
+  s_9ca76055a220ed::t_66811571609c31 55
+docs/systems/conversations.md
+  s_9ca76055a220ed::t_3968074a181ccb 32,59-91,109-110
+src/animator.js
+  s_9ca76055a220ed::t_7df7b2c4c01555 468-469
+src/changelog-media.js
+  s_9ca76055a220ed::t_eeb3c4084b3d6e 297-309
+src/changelog.js
+  s_9ca76055a220ed::t_fe7fa7470e2ee6 131-135
+src/eyes.js
+  s_9ca76055a220ed::t_2e9ac2b7899c7f 71-77,110,113-116,118-122
+src/humanoid.js
+  s_9ca76055a220ed::t_c5e440448eff81 1216,1228,1230-1231
+src/npc.js
+  s_9ca76055a220ed::t_3732f203bce003 574-575,698-699
+src/player.js
+  s_636e79c9ee751a::t_26cb1fcda38b43 333-351,1630,2250-2253,2325-2326,2349-2350
+src/story/balloons.js
+  s_9ca76055a220ed::t_0489d4bb9e4b97 1-41
+src/story/coverage.js
+  s_9ca76055a220ed::t_9f51a7b798b548 9-10
+src/story/desert-data.js
+  s_9ca76055a220ed::t_2a804309a7cae7 396,529-534
+src/story/dialogue.js
+  s_9ca76055a220ed::t_7002c0b446dade 344-345,367-368,370-371,409-410,476,478,482,490,497,499,501,540,543,548
+src/story/flames.js
+  s_9ca76055a220ed::t_d0d82291b9f00e 25-56,89
+src/story/index.js
+  s_9ca76055a220ed::t_5c347ac9253e9f 8-9,230,247-258,322,324-325,336-337
+src/story/shot.js
+  s_9ca76055a220ed::t_e91b7562d8f4ae 18-19,25-34,36-38,40-58,138-142,309-311
+tests/convo-closeup.test.js
+  s_9ca76055a220ed::t_c00f514af168ef 9,13,169-171,184-185,187-192,194,199,203,211
+tests/dialogue-playtest.test.js
+  s_9ca76055a220ed::t_4e4b93f63d950a 1-156
+tests/platform.test.js
+  s_9ca76055a220ed::t_9c48ee5e0074f5 73,75
+tests/talk-face.test.js
+  s_9ca76055a220ed::t_5806d73868202d 110,112,117
+tests/talk-still.test.js
+  s_9ca76055a220ed::t_994fb81070d7bd 1-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6ac12b655296bfd9b7ae5cf500af7ea770b0956a",
+  "prompts": {},
+  "sessions": {
+    "s_636e79c9ee751a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11db2-8eba-7d92-a417-5ca567fe4057",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
