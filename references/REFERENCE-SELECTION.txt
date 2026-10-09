@@ -1,0 +1,31 @@
+REFERENCE DIRECTION — 2026-10-08
+
+SHIP: Keep the original Main Interior, Cockpit and Message, and Living Quarters sets. User confirmed these are good. The exploratory cutaway generated in Midjourney was not imported or selected.
+
+BACKPACK: Use the existing coral-shirt character sheets for proportions. The initial Living Fluid Flask set is superseded for wearable design: it reads as a loose round bottle. Prefer Fluid Backpack - Assembly v3 for mounting and the slim flat tank, plus Backpack and Glove - In Use v2 for the connection and action. Wearable v2 explores fit but is not a consistent production turnaround; some views omit or change the tank. Colour explorations are pending the user's selection, not a change to gameplay charge/mode colours.
+
+SCOUT: Folding Scout - States v2/reference-4.jpeg is a useful folding concept; do not infer exact hinge trajectories or clearances from generated views. Runtime folding and backpack dock clearance remain authoritative.
+
+CHEST: Makers Chest - Seamless v3/reference-1.jpeg is the preferred shape/scale study. The first pass reads as a huge boulder; Human Scale v2 adds an unwanted lid seam. Seamless v3 variations 2-4 remain scale explorations, not approved dimensions. In game the chest is hip-high, with a four-point star on top and compass emblem on its sides; it opens by dissolving into light.
+
+GIANT ENTRANCE: Walkable Jaw Entrance v2/reference-3.jpeg is preferred for the mouth between upper and lower teeth and the approach ramp. Keep the passage wide enough for camera/player clearance. Earlier side-view holes through cheekbones are not entrance geometry references.
+
+WATER PUZZLE: Blocked Water Puzzle v2/reference-2.jpeg is preferred for channel, movable bone, dry basin and hanging roots. Implementation must make the upstream blockage and dry downstream basin explicit; generated images remain spatial mood studies rather than exact puzzle diagrams.
+
+Practical reference constraints: wearable scale, support and mounting, usable hand/arm range, unbroken functional connections, clear paths and interaction space. Preserve existing gameplay mechanics. Raw variations are retained for comparison.
+
+2026-10-08 — selected and implemented
+Backpack: 03 Ivory and Jade/reference-2.jpeg. Flat rectangular glass, ivory border,
+sage backing, jade base with turquoise and pale lemon currents.
+Scout: ivory outer petals, sage lower shell; retain the proven four-petal fold.
+Ship: original interior studies; warm cream, teal and coral, overhead cupboards,
+oval ceiling light. Preserve existing layout and gameplay interactions.
+Skull: Walkable Jaw Entrance v2/reference-3.jpeg; real toothed mouth, rounded sloping jaw.
+
+Gadget quality control
+Use Core Objects/Reviewed Gadgets only for the new sword/shield/gadget selections.
+Each set includes review.txt naming the accepted use and known limits.
+The sword must read as magical liquid, not green metal. The shield's fist stays
+entirely behind the fluid plane, with a physical support arm crossing the air gap.
+Do not use the earlier sword or shield jobs as construction blueprints.
+Grappling hook jobs 2c91a885 and ffe601b1 rejected: disconnected or doubled cable routes.

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { makeMaterial } from '../materials.js';
 import { Paint, paintMaterial } from '../vehicle-kit.js';
 import { sector, radialWall, polar, placeAt, tangentFrame } from './geo.js';
@@ -138,12 +139,27 @@ export function buildInterior(batch, group, o = {}) {
     }
   };
 
+  // Reference interiors: cream overhead cupboards, teal seams and warm task lights.
+  // These follow the galley's hull, above the worktop and outside the walking area.
+  for (let i = 0; i < 6; i++) {
+    const a = 4.36 + i * 0.125, m = placeAt(8.5, a, DECK);
+    P(new RoundedBoxGeometry(0.98, 0.55, 0.7, 3, 0.07).translate(0, 2.495, 0.2), C.cream, m);
+    P(box(0.85, 0.42, 0.025, 0, 2.28, -0.165), C.teal, m);
+    P(box(0.78, 0.36, 0.03, 0, 2.31, -0.182), C.cream, m);
+    P(box(0.13, 0.04, 0.04, 0.25, 2.35, -0.21), C.woodDark, m);
+    batch.add('lamp', box(0.58, 0.025, 0.17, 0, 2.2, 0).applyMatrix4(m));
+  }
+  // An oval luminous ceiling panel, framed like the reference's round skylight.
+  batch.add('glowTeal', new THREE.CylinderGeometry(2.3, 2.3, 0.025, 48).scale(1, 1, 0.78).translate(0, CEIL - 0.025, 0));
+  batch.add('cream', new THREE.TorusGeometry(2.38, 0.12, 8, 48).rotateX(PI / 2).scale(1, 1, 0.78).translate(0, CEIL - 0.06, 0));
+  batch.add('teal', new THREE.TorusGeometry(2.55, 0.045, 6, 48).rotateX(PI / 2).scale(1, 1, 0.78).translate(0, CEIL - 0.035, 0));
+
   // ---------------------------------------------------------------- the holo table (centre)
   {
     batch.add('dark', cyl(0.46, 0.4, 0.08, 0, DECK, 0, 24));               // the foot
     batch.add('dark', cyl(0.2, 0.2, 0.66, 0, H(0.08), 0, 14));             // the column
     batch.add('metal', cyl(0.36, TABLE.r, 0.18, 0, H(TABLE.h - 0.18), 0, 32));   // the drum, flaring out to the rim
-    batch.add('trim', new THREE.TorusGeometry(TABLE.r - 0.02, 0.035, 6, 36).rotateX(PI / 2).translate(0, H(TABLE.h), 0));
+    batch.add('cream', new THREE.TorusGeometry(TABLE.r - 0.02, 0.07, 6, 36).rotateX(PI / 2).translate(0, H(TABLE.h), 0));
     batch.add('core', cyl(TABLE.r - 0.06, TABLE.r - 0.06, 0.012, 0, H(TABLE.h - 0.01), 0, 32));   // the glass: lit with the ship's power
     batch.add('dark', cyl(0.11, 0.09, 0.05, 0, H(TABLE.h), 0, 14));       // the emitter
     batch.add('glowTeal', cyl(0.06, 0.06, 0.012, 0, H(TABLE.h + 0.05), 0, 12));

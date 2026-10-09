@@ -704,24 +704,41 @@ export function buildDesertCity(scene, terrain) {
   const gy = terrain.baseAt(G.x, G.z, 16);
   const giant = new Kit(root, 'Fallen giant', V(G.x, gy, G.z), G.yaw);
   {
-    // the skull, face down in the sand, looking out over the dunes; its mouth propped open with carved stones
-    const skull = new THREE.SphereGeometry(13, 22, 14).scale(1, 0.82, 1.15);
-    rough(skull, 0.5, 0.25, 3);
-    // (the bone collides as it is drawn: a smaller sphere pulled back into it left the feet up to 2 m inside
-    // the brow and the cheeks; the mouth stays open, its doorway two metres clear of the skull's front)
-    skull.translate(0, 4.5, 0);
+    // Reference: Walkable Jaw Entrance v2. Keep the existing portal at z=15.6,
+    // but build a jaw and a vaulted mouth around the route, instead of a doorway painted on a ball.
+    const skull = new THREE.SphereGeometry(13, 28, 18).scale(1, 0.82, 0.72);
+    rough(skull, 0.35, 0.25, 3);
+    skull.translate(0, 5.8, -1.5);
     giant.both(M.bone, skull);
-    giant.both(M.boneDark, T(new THREE.TorusGeometry(7.4, 1.4, 6, 18, Math.PI), [0, 9.2, 12.4], [0.35, 0, 0], [1, 0.45, 1]));
+    // Deep sockets with thick orbital rims and cheekbones, well above the mouth.
     for (const s of [-1, 1]) {
-      giant.add(M.ink, T(new THREE.SphereGeometry(2.9, 12, 8), [s * 4.6, 7.8, 13.2], [0, 0, 0], [1.1, 0.8, 0.5]));   // (the sockets are hollows: not solid)
-      giant.both(M.boneDark, T(new THREE.SphereGeometry(2.6, 10, 6), [s * 8.8, 3.8, 11.2], [0, s * 0.5, 0], [1.2, 0.7, 0.8]));
+      giant.add(M.ink, T(new THREE.SphereGeometry(3.05, 16, 10), [s * 5.7, 8.8, 8.7], [0, s * 0.16, 0], [1.1, 0.8, 0.3]));
+      giant.both(M.bone, T(new THREE.TorusGeometry(3.05, 0.42, 8, 24), [s * 5.7, 8.8, 9.15], [0, s * 0.16, s * -0.1], [1.15, 0.86, 1]));
+      giant.both(M.boneDark, taper([V(s * 10, 5.5, 7), V(s * 8.5, 4.5, 11), V(s * 5.2, 2.2, 14)], 1.5, 0.9, 12, 8));
+      giant.both(M.bone, taper([V(s * 5.5, -0.2, 12), V(s * 5.5, 0.35, 17), V(s * 3.6, -1.05, 21)], 0.9, 0.5, 14, 8));
     }
-    giant.add(M.ink, T(new THREE.ConeGeometry(1.4, 3.2, 3), [0, 4.6, 14.6], [Math.PI, 0, 0], [1, 1, 0.5]));
-    // teeth along the open jaw, the doorway between them
-    for (let i = -5; i <= 5; i++) if (Math.abs(i) > 1) giant.both(M.bone, T(new THREE.BoxGeometry(1.1, 1.8, 1.2), [i * 1.45, 1.6 + Math.abs(i) * 0.08, 14.1 - Math.abs(i) * 0.25], [0.1, 0, 0]));
-    giant.add(M.ink, T(new THREE.BoxGeometry(3.2, 3.4, 1.2), [0, 1.7, 14.2]));
-    // the glyph on its brow, faintly alight
-    giant.add(M.glyph, T(glyphGeometry(1.35), [0, 8.4, 14.35], [-0.2, 0, 0]));   // between the eyes
+    // A nasal bridge and two narrow nasal cavities, then the upper dental arch.
+    giant.both(M.bone, T(new THREE.SphereGeometry(2, 12, 8), [0, 7.5, 10], [0, 0, 0], [0.8, 1.5, 0.8]));
+    for (const s of [-1, 1]) giant.add(M.ink, T(new THREE.ConeGeometry(0.75, 2.5, 3), [s * 0.65, 7.2, 11.35], [0, 0, s * -0.2], [1, 1, 0.3]));
+    giant.both(M.bone, T(new THREE.TorusGeometry(4.7, 0.8, 8, 24, Math.PI), [0, 1.1, 13.4], [0, 0, 0], [1.12, 1, 1.2]));
+    for (let i = -4; i <= 4; i++) {
+      const y = 1.1 + Math.sqrt(4.7 ** 2 - (i * 1.02) ** 2);
+      giant.both(M.bone, T(new THREE.CapsuleGeometry(0.48, 0.85, 3, 8), [i * 1.13, y - 0.55, 14], [0.08, 0, -i * 0.055]));
+      if (Math.abs(i) > 2) giant.both(M.bone, T(new THREE.CapsuleGeometry(0.4, 0.6, 3, 8), [i * 1.34, 0.65, 17.3 - Math.abs(i) * 0.35], [0, 0, -i * 0.06]));
+    }
+    // A shallow bone tongue meets the sand. Its broad centre remains clear for walking.
+    const jaw = new THREE.Shape();
+    jaw.moveTo(-3.3, -13.8); jaw.lineTo(3.3, -13.8); jaw.quadraticCurveTo(5.2, -17, 4.4, -20.4);
+    jaw.quadraticCurveTo(0, -23.2, -4.4, -20.4); jaw.quadraticCurveTo(-5.2, -17, -3.3, -13.8);
+    const jawGeo = new THREE.ExtrudeGeometry(jaw, { depth: 0.22, bevelEnabled: true, bevelSize: 0.18, bevelThickness: 0.08, bevelSegments: 2, curveSegments: 12 }).rotateX(-Math.PI / 2).translate(0, -0.23, 0);
+    const jawPos = jawGeo.attributes.position;
+    for (let i = 0; i < jawPos.count; i++) jawPos.setY(i, jawPos.getY(i) - Math.max(0, jawPos.getZ(i) - 15) * 0.19);
+    jawGeo.computeVertexNormals();
+    giant.both(M.bone, jawGeo);
+    giant.add(M.ink, T(new THREE.SphereGeometry(3.3, 16, 10), [0, 1.9, 10.1], [0, 0, 0], [1.1, 0.9, 0.1]));
+    // Carved ribs lead the eye into the dark throat without obstructing the portal.
+    for (const z of [10.7, 11.8]) giant.both(M.boneDark, T(new THREE.TorusGeometry(3.8, 0.18, 6, 20, Math.PI), [0, 0.3, z]));
+    giant.add(M.glyph, T(glyphGeometry(1.05), [0, 12.1, 6.3], [-0.6, 0, 0]));
     // one arm reaching out of the sand: shoulder, elbow, a hand spread on the dune
     const sh = V(17, -1, 2), el = V(25, 8, 9), wr = V(31, 1.5, 17);
     const armPts = [[sh, el, 2.2, 1.7], [el, wr, 1.7, 1.2]];
@@ -734,13 +751,10 @@ export function buildDesertCity(scene, terrain) {
       const k1 = wr.clone().addScaledVector(d, 2.5).add(V(0, 0.4, 0)), k2 = wr.clone().addScaledVector(d, 5.2).add(V(0, -0.6, 0));
       giant.both(M.bone, taper([wr, k1, k2], 0.55, 0.32, 6, 6));
     }
-    // carved stones propping the mouth, a lintel: the old people's doorway down
-    giant.both(M.wallGlyph, new THREE.BoxGeometry(5.2, 0.9, 1.4).translate(0, 3.8, 14.9));
-    for (const s of [-1, 1]) giant.both(M.wallGlyph, new THREE.BoxGeometry(0.9, 3.4, 1.3).translate(s * 2.1, 1.7, 14.9));
     giant.flush();
     const door = giant.world(0, 0, 15.6);
     door.y = terrain.heightAt(door.x, door.z) + 0.05;
-    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(0, 11.6, 11.2), hand: giant.world(wr.x, wr.y, wr.z) };
+    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(0, 12.1, 6.3), hand: giant.world(wr.x, wr.y, wr.z) };
   }
 
   // ================================================================ the cave

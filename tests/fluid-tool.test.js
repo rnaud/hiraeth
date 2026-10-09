@@ -392,7 +392,7 @@ test('refill: magical water fills the tank and adds a colour band for good', () 
   const events = [];
   state.on('tool:refilled', (e) => events.push(e));
   assert.equal(tool.colours, 1);
-  assert.deepEqual(tool.tones, ['#52c8cf', '#966ede'], 'two tones at the start');
+  assert.deepEqual(tool.tones, ['#72d5bf', '#e8ef9b'], 'turquoise and pale lemon currents at the start');
   tool.reserve.use(); tool.reserve.use();
   assert.equal(tool.refill({ addColour: true }), 2);
   assert.equal(tool.charges, 3); assert.equal(state.flag('tool.colours'), 2);

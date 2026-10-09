@@ -1,0 +1,1 @@
+Selected 3: small spherical shell, accessible top timer and visible fluid chamber. Open service view is exploratory; keep closed bomb dimensions consistent in implementation. Other variants change volume or resemble cosmetic compacts.

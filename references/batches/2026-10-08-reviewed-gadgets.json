@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-08",
+  "sets": [
+    {
+      "folder": "Core Objects/Reviewed Gadgets/Fluid Sword - Living Liquid v3",
+      "prompt": "A magical sword made entirely from living liquid, single isolated full sword diagonal from lower left hilt to upper right tip. A short worn leather grip and tiny ivory-brass emitter are the only solid parts. Above the emitter the blade is a suspended FLOW of translucent jade water, broad turquoise and pale lemon marbling swirling from base to point, organically rippling double cutting edges, bright thin luminous rim, little liquid tendrils winding around the base and several floating droplets alongside. Clearly sword-shaped with a broad flat tapered blade and sharp point, visibly liquid magic not green metal or gemstone. Soft restrained glow, Moebius fine ink drawing, flat gouache, cream background, practical adventure game reference, no hands, no figure, no lettering --ar 4:3",
+      "job": "794e8c91-e9de-48d5-abfe-7de1cd0e7a75",
+      "downloads": [
+        "/Users/anf/Downloads/0_0 (54).jpeg",
+        "/Users/anf/Downloads/0_1 (53).jpeg",
+        "/Users/anf/Downloads/0_2 (53).jpeg",
+        "/Users/anf/Downloads/0_3 (54).jpeg"
+      ],
+      "selected": [
+        1,
+        4
+      ],
+      "review": "Selected 1 and 4 for visibly flowing liquid blade and readable sword silhouette. Solid grip/emitter only; do not model the blade as green metal. Hand pose deliberately omitted. Earlier sword sheets rejected: inconsistent stowed state and ambiguous/reversed grips."
+    },
+    {
+      "folder": "Core Objects/Reviewed Gadgets/Fluid Shield - Clear Separation v3",
+      "prompt": "Side profile mechanical concept illustration of a magical liquid shield and the left forearm wearing it. Forearm enters horizontally from left, closed gloved fist points right. A small ivory brass device rests on the BACK of glove. A short bent brass support arm reaches forward from the device to a central emitter positioned TWENTY CENTIMETRES beyond the knuckles. From this emitter a broad thin vertical oval plane of swirling translucent jade liquid expands, seen obliquely edge-on on the RIGHT of the fist. Show a large unmistakable EMPTY AIR GAP between all fingers and the shield surface. Entire fist and wrist stay to the LEFT and behind the liquid plane. Thin rippling pale lemon edge, turquoise swirls. Moebius clean ink and gouache, cream background, clear physical construction, no text, no additional views --ar 4:3",
+      "job": "c7abd242-79c0-48fe-b952-4ea41d2daa93",
+      "downloads": [
+        "/Users/anf/Downloads/0_0 (55).jpeg",
+        "/Users/anf/Downloads/0_1 (54).jpeg",
+        "/Users/anf/Downloads/0_2 (54).jpeg",
+        "/Users/anf/Downloads/0_3 (55).jpeg"
+      ],
+      "selected": [
+        1
+      ],
+      "review": "Selected 1 as a separation/mechanism reference: fist stays behind plane, support arm spans the air gap. Shield top is cropped; this is not a full silhouette blueprint. Reject 2: hand intersects liquid. Reject 3 and 4: shield plane turns lengthwise along arm. All v1/v2 shields rejected as construction references: pouch-like storage, hand intersections or ambiguous front/back overlap."
+    },
+    {
+      "folder": "Core Objects/Reviewed Gadgets/Ink Bomb - Reviewed",
+      "prompt": "Palm-sized round reusable ink bomb, ivory ceramic segmented shell, brass twist timer, small jade glass fluid window. Show closed sphere and open service compartment with fluid capsule. A separate small vignette shows colourful harmless ink cloud. Practical handheld prop design sheet for a gentle science-fantasy adventure game, Moebius fine ink lines and flat gouache colours, warm ivory enamel, sage canvas, aged brass and jade fluid with pale lemon and turquoise currents. Show one coherent object in stored and working states, small human hand for scale, clean cream background, restrained wear, readable silhouette, no text, no labels, no weapons other than specified --ar 4:3",
+      "job": "834dd4df-21db-4d59-b384-ed43029c2529",
+      "downloads": [
+        "/Users/anf/Downloads/0_0 (49).jpeg",
+        "/Users/anf/Downloads/0_1 (48).jpeg",
+        "/Users/anf/Downloads/0_2 (48).jpeg",
+        "/Users/anf/Downloads/0_3 (49).jpeg"
+      ],
+      "selected": [
+        3
+      ],
+      "review": "Selected 3: small spherical shell, accessible top timer and visible fluid chamber. Open service view is exploratory; keep closed bomb dimensions consistent in implementation. Other variants change volume or resemble cosmetic compacts."
+    },
+    {
+      "folder": "Core Objects/Reviewed Gadgets/Returning Boomerang - Reviewed",
+      "prompt": "A compact curved returning boomerang 35cm across, ivory enamel arms with brass edging and jade fluid channel, central leather grip. Show in hand and returning along a simple curved trail carrying a tiny orange flame. Practical handheld prop design sheet for a gentle science-fantasy adventure game, Moebius fine ink lines and flat gouache colours, warm ivory enamel, sage canvas, aged brass and jade fluid with pale lemon and turquoise currents. Show one coherent object in stored and working states, small human hand for scale, clean cream background, restrained wear, readable silhouette, no text, no labels, no weapons other than specified --ar 4:3",
+      "job": "8d48053c-0a38-4e82-a911-c7b339871e98",
+      "downloads": [
+        "/Users/anf/Downloads/0_0 (50).jpeg",
+        "/Users/anf/Downloads/0_1 (49).jpeg",
+        "/Users/anf/Downloads/0_2 (49).jpeg",
+        "/Users/anf/Downloads/0_3 (50).jpeg"
+      ],
+      "selected": [
+        3
+      ],
+      "review": "Selected 3 for curved profile, graspable short end and jade channel, plus elemental return trail. Treat as shape/material exploration only: repeated views are not dimensionally exact. Reject 1 and 2 for inconsistent shape between views; 4 has an unnecessary loop handle."
+    },
+    {
+      "folder": "Core Objects/Reviewed Gadgets/Lodestone Glove - Wearable v2",
+      "prompt": "One left hand wearing a simple brown fingerless work glove, BACK OF HAND facing viewer, palm faces away. On the back of the glove sits a small flat ivory plate carrying a horseshoe shaped brass magnet, glowing jade coil at its base. All five fingers visible and free, wrist cuff close fitting. Several tiny metal washers float above the magnet. Single clear view, Moebius fine ink and flat gouache, cream background, small practical adventure gadget, no bag, no pouch, no case, no additional views, no lettering --ar 4:3",
+      "job": "85402363-7964-4bde-8545-ada3525da7a0",
+      "downloads": [
+        "/Users/anf/Downloads/0_0 (57).jpeg",
+        "/Users/anf/Downloads/0_1 (56).jpeg",
+        "/Users/anf/Downloads/0_2 (56).jpeg",
+        "/Users/anf/Downloads/0_3 (57).jpeg"
+      ],
+      "selected": [
+        3
+      ],
+      "review": "Selected 3: compact dorsal plate, five free fingers and snug wrist cuff. Earlier sheets rejected for bag-like stored forms. Reject 1 and 2 for ambiguous palm/dorsal mounting; 4 blurs the magnet construction."
+    }
+  ]
+}

@@ -83,7 +83,7 @@ export const FLUID = {
 
 // The fluid's tones, in the order bands are added (written into the shader's uFluidTones).
 // A world's source can bring its own tone instead: refill({ addColour: true, tone: '#e9a53c' }).
-export const FLUID_TONES = ['#52c8cf', '#966ede', '#ef7e62', '#f6c84e', '#ed80b0', '#83cf71'];
+export const FLUID_TONES = ['#72d5bf', '#e8ef9b', '#ef7e62', '#f6c84e', '#ed80b0', '#83cf71'];
 /** The tones in the blend for a number of colour bands (1 -> cyan and violet); custom[i] overrides tone i. */
 export const fluidTones = (colours = 1, custom = []) => FLUID_TONES.slice(0, THREE.MathUtils.clamp(Math.round(colours), 1, FLUID.maxColours) + 1).map((t, i) => (i >= 2 && custom?.[i]) || t);
 
@@ -486,29 +486,26 @@ class Rings {
 // The tank, in its own frame (y up the glass from its bottom, +z toward the
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
 // 0.74 at the collar, +z forward, the character's right at -x). The glass flask
-// of the reference sheets (lore/characters/traveller-design.md): a squat jar
-// with rounded shoulders on his upper back, a little wider than tall and
-// flattened front to back, its green living fluid standing at the charges
-// (a third of the glass each), a dark collar with a brass rim and a brass
-// neck with a cream stopper, the hose's brass elbow at the right shoulder,
-// leather tabs up over the shoulders, a brass foot ring, and the two slim
-// leather-bound uprights the scout and the lantern ride on.
+// follows the selected Ivory and Jade reference: a flat rounded rectangular reservoir,
+// framed in ivory enamel and brass over a sage pad. Jade living fluid holds turquoise
+// and pale lemon currents; charge height, hose, vehicle socket and scout docks retain
+// their existing frames. The side uprights carry the scout and lantern.
 export const TANK = {
   at: [0, 0.4, -0.283],     // glass bottom: on the upper back, its top under the shoulders
-  scale: 0.8,               // a shoulder-blade-wide jar on the adult body
+  scale: 0.8,               // a shoulder-blade-wide reservoir on the adult body
   height: 0.36,             // glass
   full: 0.34,               // fluid height at three charges (a sliver of air under the collar)
   squash: 1,                // across the back (x), of the round profile
   depth: 0.55,              // front to back (z): a flat flask, not a drum
   straps: [],               // leather bands round the glass (none: the collar and the shoulder tabs hold it)
-  // the jar's half-width up the glass: a rounded foot, straight sides, rounded shoulders into the collar
-  profile: [[0.1, 0], [0.137, 0.012], [0.155, 0.04], [0.1625, 0.09], [0.1625, 0.21], [0.158, 0.262], [0.146, 0.3], [0.127, 0.33], [0.106, 0.352], [0.094, 0.36]],
-  collar: { y: 0.318, h: 0.05, r: [0.141, 0.1] },   // the dark band over the shoulders (bottom y, height, radius bottom, top)
+  // Conservative horizontal envelope for dock clearance: rounded corners, straight sides.
+  profile: [[0.125, 0], [0.15, 0.012], [0.1625, 0.035], [0.1625, 0.09], [0.1625, 0.21], [0.1625, 0.29], [0.16, 0.325], [0.15, 0.35], [0.125, 0.36]],
+  collar: { y: 0.318, h: 0.05 },   // shoulder-tab attachment frame; the glass stays unobscured
   neck: { y: 0.374, h: 0.04, r: 0.046, stopper: 0.034 },
   outlet: [-0.09, 0.39, 0.01],    // where the hose leaves: the brass elbow on the collar, on the wearer's right
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
-  base: '#5fb86a',          // the living fluid's own green (a gun mode tints it its first tone)
+  base: '#49ab83',          // the living fluid's own green (a gun mode tints it its first tone)
 };
 const profileCurve = new THREE.SplineCurve(TANK.profile.map(([r, y]) => new THREE.Vector2(r, y)));
 function radiusAt(y) {
@@ -558,15 +555,33 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat } = {}) {
   g.name = 'Fluid flask';
   // (sq: the part takes the flask's flattening, across and front to back)
   const add = (geo, m, x = 0, y = 0, z = 0, sq = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (sq) { o.scale.x = TANK.squash; o.scale.z = TANK.depth; } g.add(o); return o; };
-  const glass = add(new THREE.LatheGeometry(profileCurve.getPoints(28), 32), glassMat);
+  // A shallow rounded rectangular reservoir: its broad glass face stays readable at play distance.
+  const outline = new THREE.Shape();
+  outline.moveTo(-0.125, 0); outline.lineTo(0.125, 0);
+  outline.quadraticCurveTo(0.1625, 0, 0.1625, 0.0375); outline.lineTo(0.1625, 0.3225);
+  outline.quadraticCurveTo(0.1625, 0.36, 0.125, 0.36); outline.lineTo(-0.125, 0.36);
+  outline.quadraticCurveTo(-0.1625, 0.36, -0.1625, 0.3225); outline.lineTo(-0.1625, 0.0375);
+  outline.quadraticCurveTo(-0.1625, 0, -0.125, 0);
+  const reservoir = new THREE.ExtrudeGeometry(outline, { depth: 0.12, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 3, steps: 1, curveSegments: 8 }).translate(0, 0, -0.06);
+  const glass = add(reservoir, glassMat, 0, 0, 0, false);
   glass.name = 'Fluid glass';
   const C = TANK.collar, N = TANK.neck;
-  // a brass ring round the glass's foot
-  add(new THREE.TorusGeometry(radiusAt(0.01) + 0.006, 0.009, 5, 32).rotateX(Math.PI / 2), mat(BRASS_DARK), 0, 0.01, 0);
-  // the collar over its shoulders: a dark band with a brass rim at its foot and a flat brass lid
-  add(new THREE.CylinderGeometry(C.r[1], C.r[0], C.h, 32), mat(STEEL_DARK), 0, C.y + C.h / 2, 0);
-  add(new THREE.TorusGeometry(C.r[0] + 0.002, 0.008, 5, 32).rotateX(Math.PI / 2), mat(BRASS), 0, C.y + 0.004, 0);
-  add(new THREE.CylinderGeometry(C.r[1] - 0.008, C.r[1], 0.008, 32), mat(BRASS), 0, C.y + C.h + 0.003, 0);
+  // Ivory enamel rims on both faces, edged in aged brass; no band obscures the fluid.
+  const edge = outline.getPoints(12);
+  for (const z of [-0.066, 0.066]) {
+    const path = new THREE.CatmullRomCurve3(edge.slice(0, -1).map(p => new THREE.Vector3(p.x, p.y, z)), true);
+    add(new THREE.TubeGeometry(path, 96, 0.012, 6, true), mat(STOPPER), 0, 0, 0, false);
+    const piping = new THREE.CatmullRomCurve3(edge.slice(0, -1).map(p => new THREE.Vector3(p.x * 1.055, (p.y - 0.18) * 1.045 + 0.18, z)), true);
+    add(new THREE.TubeGeometry(piping, 96, 0.003, 4, true), mat(BRASS), 0, 0, 0, false);
+  }
+  if (worn) {
+    const backing = reservoir.clone().scale(1.1, 1.04, 0.22).translate(0, 0, 0.09);
+    add(backing, mat('#99a987'), 0, 0, 0, false);
+  }
+  add(new THREE.BoxGeometry(0.13, 0.025, 0.11), mat(STOPPER), 0, 0.368, 0, false);
+  // Three etched charge marks on each side of the rear glass.
+  for (const x of [-0.142, 0.142]) for (let i = 1; i <= 3; i++)
+    add(new THREE.BoxGeometry(0.018, 0.003, 0.003), mat(BRASS_DARK), x, i * TANK.full / 3 - 0.02, -0.071, false);
   // the neck, its stopper and a brass bead on it
   add(new THREE.CylinderGeometry(N.r * 0.9, N.r, N.h, 16), mat(BRASS), 0, N.y + N.h / 2, 0, false);
   add(new THREE.TorusGeometry(N.r * 0.92, 0.007, 4, 16).rotateX(Math.PI / 2), mat(INK), 0, N.y + N.h * 0.7, 0, false);

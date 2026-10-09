@@ -32,8 +32,8 @@ export const DRONE = {
   blade: 0.042,         // rotor radius
   eye: { el: -0.32, r: 0.036 },   // lens: elevation (rad, below the waist) and radius
   antenna: { base: 0.055, tip: 0.2 },   // rod from the inner dome to its bead (y), unfolded
-  colors: { hull: '#ece0c2', petal: '#3b6297', petalIn: '#9fb9df', rim: '#2e4b78', foot: '#4a4150',
-    brass: '#e2b552', dark: '#3a3346', blade: '#4a4150', socket: '#2b2433', inner: '#cdbfa4', blur: '#eef3fb' },
+  colors: { hull: '#91ab83', petal: '#f2e9ce', petalIn: '#bed2ad', rim: '#b49860', foot: '#4a4150',
+    brass: '#e2b552', dark: '#3a3346', blade: '#4a4150', socket: '#2b2433', inner: '#e9dfbf', blur: '#eef3fb' },
 };
 const D = DRONE;
 /** Belly: the drone's centre over the surface it rests on (the foot's underside). */

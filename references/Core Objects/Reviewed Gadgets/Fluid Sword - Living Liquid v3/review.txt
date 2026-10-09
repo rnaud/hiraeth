@@ -1,0 +1,1 @@
+Selected 1 and 4 for visibly flowing liquid blade and readable sword silhouette. Solid grip/emitter only; do not model the blade as green metal. Hand pose deliberately omitted. Earlier sword sheets rejected: inconsistent stowed state and ambiguous/reversed grips.

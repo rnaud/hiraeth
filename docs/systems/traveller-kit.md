@@ -15,18 +15,15 @@ the rucksack's outer face. The look and its reasons:
   are `Humanoid.packPocket`; `FluidTool.updateWorn` hides them while the flask is
   on the back (`where === 'back'`) and shows them again when it is not found
   yet or sits in a vehicle's socket. The rucksack itself never hides.
-- **The flask** (2026-10-07, from the reference sheets) is a squat glass jar on the upper back,
-  about 26 cm wide, 29 cm tall and 14 cm front to back. Its lathe profile (`TANK.profile`) has a
-  rounded foot, straight sides and rounded shoulders, and is flattened by `TANK.depth`.
-  `buildFlask` builds the glass and its fittings and is shared by the worn tank and the item's
-  picture (`src/boxes/model.js`, the game menu). The fittings are a dark collar with a brass rim
-  and lid (`TANK.collar`), a brass neck with a cream stopper (`TANK.neck`, where the scout hops
-  when the wings open), the hose's brass elbow on the right of the collar with a pipe from the
-  neck (`TANK.outlet`), a brass foot ring, and, worn, two leather tabs from the collar up over the
-  shoulders. The two leather-bound uprights stay at the jar's sides. Their top and the scout's
-  dock are at the same place on the body as before (`TANK_RAIL.top`, `SCOUT_DOCK_Y`), so the arms
-  still never reach the scout.
-- **Its fluid** (`materials.js flaskFluid`, kind 0) is green and alive. `uFluidBase` is
+- **The flask** (2026-10-08, selected Ivory and Jade study) is a flat rounded rectangular
+  glass reservoir on the upper back, about 26 cm wide and 29 cm high before its fittings.
+  Ivory enamel rims with thin brass piping frame both faces; a sage pad sits against the
+  body. Leather shoulder tabs, brass stopper and right-side hose connection remain practical.
+  `buildFlask` shares the same model between the worn kit and the inventory picture.
+  The fluid face stays clear, with three little etched charge marks at each edge.
+  The upright rails, scout dock, lantern, wing clearance and vehicle handoff retain their
+  existing attachment frames. Source: `references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`.
+- **Its fluid** (`materials.js flaskFluid`, kind 0) is jade green and alive. `uFluidBase` is
   `TANK.base`, or a gun mode's first tone: stilling's blue, ember's orange, bloom's leaf green.
   The blend's tones turn through it in slow, domain-warped streams with a core of the next tone,
   and pen-width dark veins mark where they meet the green. It stands at the charges (a third of
@@ -34,7 +31,7 @@ the rucksack's outer face. The look and its reasons:
   over a thick green glass foot. The lava bands of the old tank are gone (`fluidLava` still draws
   the globs and the wings). `TANK.straps` is empty: no leather band crosses the fluid.
 - **Where it sits**: `Humanoid.tankAt` overrides `TANK.at`. The coral-shirt traveller
-  (`traveller-v1.js TRAVELLER_V1_TANK_AT`) has no rucksack, so the jar sits right on his back.
+  (`traveller-v1.js TRAVELLER_V1_TANK_AT`) has no rucksack, so the reservoir sits right on his back.
   The old body keeps `TANK.at`, half sunk into its rucksack. A vehicle's socket and the hand-off
   keep `TANK.scale` either way.
 - **The scout's dock**: without the flask, on the rucksack's lid (`kit.dock`,
@@ -69,3 +66,12 @@ Tests: `tests/glove.test.js` (worn with the tank only, the skin under it, the mo
 in every aim, the lights), `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
 face), `tests/drone.test.js` (docks and clearance in every clip),
 `tests/abilities.test.js` (the pocket while the flask comes and goes).
+
+The scout now uses ivory outer petals, sage lower hull, pale green inner petals and aged
+brass rims to match the selected kit. Its four-petal deployment, rotor parking, lens wake
+and two-draw-call construction are unchanged. Reference: Folding Scout - States v2.
+
+The ship and skull references are recorded in `references/REFERENCE-SELECTION.txt`.
+The skull's lower jaw slopes into the sand at its front; the approach goes around
+its solid side bones. The ship's overhead storage is decoration outside the walking
+area, so it does not push the traveller onto the galley counter.

@@ -182,9 +182,9 @@ test('feet stand on what is drawn: the terraces round the tree, the plaza, the a
 
 test('you can walk from the camps through the gate, up the stairs to the well, and out of the back gate', () => {
   const path = [Q.camps.center, Q.city.gate, Q.city.plinthStair, Q.city.wellLook];
-  // round the trunk on the top terrace, down the back stairs, out through the back gate
+  // round the trunk, through the back gate, then round the jaw to its open front
   const C = Q.city, top = C.top - C.center.y;
-  const back = [C.wellLook.clone(), C.local(-4, top, 9.6), C.local(-8, top, 4), C.local(-8, top, -6), C.local(0, top, -11), C.local(0, 0, -32), C.backGate, Q.giant.local(-22, 0, -8), Q.giant.local(-18, 0, 17), Q.giant.door];
+  const back = [C.wellLook.clone(), C.local(-4, top, 9.6), C.local(-8, top, 4), C.local(-8, top, -6), C.local(0, top, -11), C.local(0, 0, -32), C.backGate, Q.giant.local(-22, 0, -8), Q.giant.local(-18, 0, 24), Q.giant.local(0, 0, 24), Q.giant.door];
   for (const route of [path, back]) {
     for (let i = 0; i < route.length - 1; i++) {
       const a = route[i], b = route[i + 1], n = Math.ceil(a.distanceTo(b) / 0.5);

@@ -6,18 +6,18 @@ import { makeMaterial } from '../src/materials.js';
 import { buildItemModel } from '../src/boxes/model.js';
 import { TRAVELLER_V1_TANK_AT } from '../src/characters/traveller-v1.js';
 
-// The fluid tank as the reference sheets draw it (src/fluid-tool.js buildFlask): a squat glass jar of green,
-// living fluid with a dark collar, brass fittings, a stoppered neck and leather tabs over the shoulders.
+// The fluid tank as the reference sheets draw it (src/fluid-tool.js buildFlask): a flat framed reservoir of jade
+// fluid with an ivory rim, sage backing, brass fittings and leather shoulder tabs.
 
 const glassMat = () => makeMaterial({ color: '#ffffff', fluid: 'tank', fluidBox: [0, TANK.full, 0.16, 0], fluidBase: TANK.base });
 
-test('a squat jar: about as wide as it is tall, flat front to back, its level a third a charge', () => {
+test('a framed reservoir: about as wide as it is tall, flat front to back, its level a third a charge', () => {
   const R = Math.max(...TANK.profile.map(([r]) => r));
   const w = 2 * R * TANK.squash * TANK.scale, h = TANK.height * TANK.scale, d = 2 * R * TANK.depth * TANK.scale;
   assert.ok(w > 0.8 * h && w < 1.2 * h, `jar proportions (${w.toFixed(2)} × ${h.toFixed(2)} m)`);
   assert.ok(d < 0.6 * w, 'flat front to back');
   // rounded foot and shoulders, straight sides
-  assert.ok(tankRadiusAt(0.005) < R * 0.9 && tankRadiusAt(TANK.height - 0.005) < R * 0.7 && tankRadiusAt(TANK.height / 2) > R * 0.99);
+  assert.ok(tankRadiusAt(0.005) < R * 0.9 && tankRadiusAt(TANK.height - 0.005) < R * 0.9 && tankRadiusAt(TANK.height / 2) > R * 0.99);
   assert.ok(TANK.full < TANK.height && TANK.full > TANK.height * 0.9, 'the fluid fills it at three charges');
   assert.deepEqual(TANK.straps, [], 'no band across the fluid');
 });
