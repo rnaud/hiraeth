@@ -11,7 +11,7 @@
 //     arzach.hand.hint); after RIDDLE.glint misses the next right knuckle glints.
 // This file is the pure part (tested in tests/knuckle-riddle.test.js); arzach.js draws and sounds it.
 
-export const RIDDLE = { hint: 2, glint: 3, radius: [2.5, 3.0, 3.5, 4.0] };
+export const RIDDLE = { hint: 2, glint: 3, radius: [3.5, 3.9, 4.3, 4.7] };
 
 /** A fresh riddle: the chain struck so far (knuckle indices), and the misses. */
 export function riddleState() { return { seq: [], misses: 0, rung: false }; }

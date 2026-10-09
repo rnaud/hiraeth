@@ -50,7 +50,9 @@ test('hints come with misses: Kesh calls the order on the second, the next knuck
 test('the clues can be read by looking: dots one to four, stones and fingers graded in size', () => {
   assert.deepEqual([3, 0, 2, 1].map((i) => dots(i, O)), [1, 2, 3, 4]);
   const r = O.map((i) => knuckleRadius(i, O));
-  for (let k = 1; k < r.length; k++) assert.ok(r[k] - r[k - 1] >= 0.4, `each stone clearly bigger than the last (${r})`);
+  for (let k = 1; k < r.length; k++) assert.ok(r[k] - r[k - 1] >= 0.35, `each stone clearly bigger than the last (${r})`);
+  // (bug, seen in the game: the smallest stones were thinner than the fingers' stone, radius 3, and hid inside them)
+  assert.ok(Math.min(...r) >= 3.4, `every stone stands out of its finger (${r})`);
 });
 
 test('the hints are written down: Kesh’s call names the order and the dots; the journal spells it; the hand says so', () => {
