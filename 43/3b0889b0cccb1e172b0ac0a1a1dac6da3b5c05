@@ -1,0 +1,21 @@
+src/changelog-media.js
+  s_9ca76055a220ed::t_0b677afa80184a 265-271,292-301
+src/game-menu.css
+  s_9ca76055a220ed::t_b90a0f38729e30 104-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "433b0889b0cccb1e172b0ac0a1a1dac6da3b5c05",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
