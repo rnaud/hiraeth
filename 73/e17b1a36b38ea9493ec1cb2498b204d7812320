@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_2bf34eb54153b4 16
+docs/systems/audio.md
+  s_9ca76055a220ed::t_b9c47a2886c043 173,177-178,184-213,216-218
+public/music/manifest.json
+  s_9ca76055a220ed::t_bdc9ba0f7a9890 5-12
+scripts/site-only.mjs
+  s_9ca76055a220ed::t_5340e8bf2fc965 9
+scripts/web-update.mjs
+  s_9ca76055a220ed::t_3c23120f090397 146
+src/audio.js
+  s_9ca76055a220ed::t_5221f39ce25937 17,181-185,187,348,458,461-463,466,468,472-515,524,535,550
+src/changelog.js
+  s_9ca76055a220ed::t_adc1e24d12ef18 34-36
+src/music-store.js
+  s_9ca76055a220ed::t_52b99f0cb0ecce 19-20
+src/soundtracks.js
+  s_9ca76055a220ed::t_2def817e4d5a6c 1,89-118
+src/title.js
+  s_9ca76055a220ed::t_3f57fcbed3dbf2 18,145-146
+tests/music-store.test.js
+  s_9ca76055a220ed::t_1802149814b998 69
+tests/site-only.test.js
+  s_9ca76055a220ed::t_5b1f6c8e8b4e6f 37,39
+tests/soundtracks.test.js
+  s_9ca76055a220ed::t_571b56709c27b8 78-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "73e17b1a36b38ea9493ec1cb2498b204d7812320",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
