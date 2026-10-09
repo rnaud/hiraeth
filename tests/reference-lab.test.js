@@ -502,13 +502,14 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   assert.match(pg, /data-page="5"[^>]*>5</);
   assert.match(pg, /11–15/);
   const list = [{ batch: 'a', picked: 1 }, { batch: 'b', picked: 0, rejected: { why: 'x' } }, { batch: 'c', picked: 0 }, { batch: 'd', picked: 0, status: 'running' }];
-  assert.deepEqual(filterBatches(list).map((b) => b.batch), ['c', 'd'], 'to pick by default: no pick, not turned down');
+  assert.deepEqual(filterBatches(list).map((b) => b.batch), ['c'], 'to pick by default: finished, no pick, not turned down (d still generating)');
+  assert.match(filterHtml(list), /1 generating…/);
   assert.deepEqual(filterBatches(list, 'picked').map((b) => b.batch), ['a']);
   assert.deepEqual(filterBatches(list, 'rejected').map((b) => b.batch), ['b']);
-  assert.equal(filterBatches(list, 'all').length, 4);
+  assert.equal(filterBatches(list, 'all').length, 4, 'All shows the running ones too');
   assert.deepEqual(['openai', 'gemini', 'fal-flux', 'bfl'].map((id) => defaultChecked({ id, available: true })), [true, true, false, false], 'Gemini and OpenAI by default');
   assert.equal(defaultChecked({ id: 'openai', available: false }), false);
-  assert.match(filterHtml(list), /class="btn small on" data-show="open" aria-pressed="true">To pick <small>2<\/small>/);
+  assert.match(filterHtml(list), /class="btn small on" data-show="open" aria-pressed="true">To pick <small>1<\/small>/);
   assert.equal(fileSrc('references/a b/c.jpg'), '/references/a%20b/c.jpg');
   assert.equal(filterRefs([{ path: 'references/The Desert/x.jpg', folder: 'The Desert' }, { path: 'references/Lorn/y.jpg', folder: 'Lorn' }], { query: 'desert' }).length, 1);
   const prompts = { docs: [{ doc: 'd.md', entries: [{ id: 'crab', title: 'Crab', target: 'references/enemy-archetypes/crab/', variants: [{ key: 'main', prompt: 'P', ar: '16:9' }] }] }], manifests: [] };

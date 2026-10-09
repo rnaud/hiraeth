@@ -77,7 +77,8 @@ other four are a click away).
    down and asks why (required): the reason is kept in the batch and in the target's `manifest.json` under
    `rejected` (with the prompt), so the next prompt can learn from it; *Take back* undoes it.
 6. Every batch is on the one page, newest first, five to a page with a pager, filtered: **To pick** (the
-   default: nothing picked, not turned down), Picked, None of them, All (`#show=…&page=N` survives a reload).
+   default: finished, nothing picked, not turned down; batches still generating wait out of the way, counted
+   beside the filters, and join it when done), Picked, None of them, All (`#show=…&page=N` survives a reload).
    Gemini and OpenAI are checked by default (`DEFAULT_PROVIDERS`; the CLI's default too); the others are a
    click (or `--providers`) away.
 

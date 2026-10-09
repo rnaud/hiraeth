@@ -107,16 +107,20 @@ export function batchHtml(m) {
     <div class="wall">${cards}</div></article>`;
 }
 
-/** The batch filter: to pick (the default: nothing picked, not turned down), picked, none of them, all. */
+/** The batch filter: to pick (the default: finished, nothing picked, not turned down: a batch still generating waits
+ * out of the way until it is done), picked, none of them, all (the running ones too). */
 export const FILTERS = [['open', 'To pick'], ['picked', 'Picked'], ['rejected', 'None of them'], ['all', 'All']];
 export function filterBatches(list, show = 'open') {
   if (show === 'all') return list;
   if (show === 'picked') return list.filter((b) => b.picked > 0);
   if (show === 'rejected') return list.filter((b) => b.rejected);
-  return list.filter((b) => !b.picked && !b.rejected);
+  return list.filter((b) => !b.picked && !b.rejected && b.status !== 'running');
 }
+/** How many batches are still generating (said beside the filters; they join To pick when done). */
+export const runningCount = (list) => list.filter((b) => b.status === 'running').length;
 export function filterHtml(list, show = 'open') {
-  return `<nav class="filters">${FILTERS.map(([k, label]) => `<button type="button" class="btn small${k === show ? ' on' : ''}" data-show="${k}"${k === show ? ' aria-pressed="true"' : ''}>${esc(label)} <small>${filterBatches(list, k).length}</small></button>`).join('')}</nav>`;
+  const run = runningCount(list);
+  return `<nav class="filters">${FILTERS.map(([k, label]) => `<button type="button" class="btn small${k === show ? ' on' : ''}" data-show="${k}"${k === show ? ' aria-pressed="true"' : ''}>${esc(label)} <small>${filterBatches(list, k).length}</small></button>`).join('')}${run ? ` <small class="spin">${run} generating…</small>` : ''}</nav>`;
 }
 
 /** Every batch, newest first, a page at a time: the page's numbers, and where it is. */

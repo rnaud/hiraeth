@@ -225,14 +225,15 @@ async function loadPage(page = state.page) {
   const hash = new URLSearchParams({ ...(state.show !== 'open' ? { show: state.show } : {}), ...(state.page > 1 ? { page: state.page } : {}) }).toString();
   history.replaceState(null, '', hash ? `#${hash}` : location.pathname);
   drawBatches();
-  if (state.open.some((m) => m.status === 'running')) state.poll = setTimeout(() => loadPage(), 2000);
+  // (polled while anything runs, shown or not: a finished batch joins To pick by itself)
+  if (state.open.some((m) => m.status === 'running') || state.batches.some((b) => b.status === 'running')) state.poll = setTimeout(() => loadPage(), 2000);
 }
 function drawBatches() {
   const f = document.activeElement?.closest?.('[data-cand]');
   const keep = f && { batch: f.closest('[data-batch-id]')?.dataset.batchId, cand: f.dataset.cand };
   const n = filterBatches(state.batches, state.show).length;
   const pager = pagerHtml(n, state.page);
-  const empty = state.batches.length ? `<p class="empty">${state.show === 'open' ? 'Nothing left to pick.' : 'No batch here.'}</p>` : batchHtml(null);
+  const empty = state.batches.length ? `<p class="empty">${state.show === 'open' ? (state.batches.some((b) => b.status === 'running') ? 'Nothing to pick yet: the rest are still generating.' : 'Nothing left to pick.') : 'No batch here.'}</p>` : batchHtml(null);
   $('#batches').innerHTML = `${filterHtml(state.batches, state.show)}${state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${n > PER_PAGE ? pager : ''}` : empty}`;
   if (keep) document.querySelector(`[data-batch-id="${CSS.escape(keep.batch)}"] [data-cand="${CSS.escape(keep.cand)}"]`)?.focus({ preventScroll: true });
   if (document.querySelector('#batches .viewer[data-model]') || viewer3d) viewers().then((v) => v.mountViewers($('#batches'))).catch((e) => say(`the 3D viewer: ${e.message}`, true));
