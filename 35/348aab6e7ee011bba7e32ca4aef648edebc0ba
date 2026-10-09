@@ -1,0 +1,25 @@
+changelog.md
+  s_9ca76055a220ed::t_fc8493ffeb6a00 7-8
+src/changelog.js
+  s_9ca76055a220ed::t_6b49ee4d52d09f 18-19
+src/levels/edena.js
+  s_9ca76055a220ed::t_ad8f54022fdd1a 10-11,592-597,602,607-608,628
+src/levels/incal.js
+  s_9ca76055a220ed::t_56d8260d4ffc4c 16-17,48-50,308,1115-1120,1125-1127,1129,1132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "35348aab6e7ee011bba7e32ca4aef648edebc0ba",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
