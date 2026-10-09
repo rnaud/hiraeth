@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a quartermaster's store on a paved plateau in a strange pocket universe, seen from the path beneath a keep hung with cables, aerials and pipes with valve wheels, a windmill turning beyond. The store is a cabin of riveted pale green metal plate with rounded corners, a roll-up shutter raised over a service hatch, a little tin awning on struts, a stovepipe; its sign is a stencilled emblem painted on the plate, a cog with a flask inside it. Crates and drums stacked beside it; on the hatch's ledge corked flasks of red cure in a wire rack, a small red heart in a padded steel case with its lid open, a glowing teal vial in a brass cradle. A stocky quartermaster in a faded blue boiler suit with brass buttons and a peaked cap leans on the ledge with a clipboard and a rubber stamp. A glowing round portal stands at the plateau's edge, a ring habitat and an upside-down city faint in the sky. A small cloaked human traveller with a round jade fluid backpack walks up for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale green plate, brass, rust red pipes, cream paving, blue sky, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#hangar",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-28-50-9d6a",
+      "candidate": "openai/1",
+      "sha256": "3e0dd6c92b64bdd90e7013c0b35848118657656a97af0c3a1bf7a5292eeab0b5",
+      "bytes": 330737,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a quartermaster's store, a long cabin of riveted metal plate with a curved ceiling, a hatch open on the bright plateau. A steel counter with a ledger, a rubber stamp, an ink pad and a spike of old requisition slips; behind it steel shelving to the ceiling with stencilled crates, numbered bins and pigeonholes: corked flasks of red cure in wire racks, two small red hearts each in its own padded steel case, glowing teal vials in brass cradles in a locked glass cabinet; a pressure gauge, pipes along the ceiling, a wall clock that has stopped, a calendar of a year long past. A stocky quartermaster in a faded blue boiler suit with brass buttons and a peaked cap stamps a slip with great ceremony. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter facing him. Shared scale: the quartermaster is an adult a little shorter than the traveller and broad, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale green plate, steel grey, brass, rust red, warm bulb light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#hangar/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-46-26-f043",
+      "candidate": "openai/1",
+      "sha256": "3575d61bd4808222eaf15c947a3815a3b152a4a69f522dacd515271bf7df1fb5",
+      "bytes": 296177,
+      "costUSD": 0.041
+    }
+  ]
+}

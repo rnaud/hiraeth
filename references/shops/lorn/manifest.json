@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a small floating swamp shop, a low room of weathered planks and reed-bundle walls under a steep thatch, the floor rocking gently, a hatch in the floor showing dark water. A plank counter on two barrels; behind it nets and shelves crammed with jars of pickled roots, bundles of dried reeds, corked flasks of red cure hanging by their necks on strings, two small red hearts each in its own lidded reed basket, glowing teal vials in brass cradles; long cords of knots hang from a peg like a ledger. A violet crystal lamp and a jar of fireflies light the room; through a round window, glowing fungus caps and humming crystals outside. Behind the counter an old long-armed swamp woman with a wide reed hat and a waxed moss-green cape tying a knot in a cord to count a sale, a snapping plant in a pot beside her, its jaws shut. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter facing her. Shared scale: the swamp woman is an adult as tall as the traveller when she straightens, stooped a little, her arms long, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, weathered grey wood, moss green, violet crystal light, warm firefly gold, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#lorn/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-44-18-7d85",
+      "candidate": "openai/2",
+      "sha256": "6e7b49205387adb3a5a5b3afc60b0d1cb3bacc03ed65a0d53224c42cc12d5d47",
+      "bytes": 363877,
+      "costUSD": 0.041
+    }
+  ]
+}

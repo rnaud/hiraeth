@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a gallery inside the makers' clockwork house, pale stone banded in brass, a deep chasm across its middle with great cogs and an escapement turning slowly in the dark below. On the far wall an enormous stopped clock face of pale stone with brass hands, round it a ring of six carved stone eyes; four glow, two are dark. Retracted bridge stones wait in the chasm's walls. Pendulums and brass gears in recesses, a frieze of three dots over an upward arc, warm light from high round windows. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge, firing quick bright splashes of glowing fluid at the eyes in rapid succession, a coil on the backpack glowing, dwarfed by the clock. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale stone, brass, teal accents, warm window light, deep umber shadows in the chasm, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#first-garage",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-40-47-40d0",
+      "candidate": "openai/2",
+      "sha256": "438442c395ac056e9a69ed664306de80bf53f04727595b7b98d4c710d4e5baf6",
+      "bytes": 247822,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a round stair-house of the makers on the rim of a paved plateau in a pocket universe, pale stone banded in brass under a teal cap, a great clock over its door stopped at a wrong hour. Under it, set into the plateau's cliff, enormous makers' cogs half out of the rock. Beside the door a lean-to porch with an old workbench, tools and a dusty little old car under a sheet. A windmill, a keep hung with cables and aerials, pipes with valve wheels behind; a glowing round portal at the plateau's edge, an upside-down city faint in the sky. By the porch an old man winds a clock on a post, and a cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside him, the old man an adult of the same height as the traveller; the house's door is about twice their height, the workbench at their waists. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale stone, brass, teal cap, rust red pipes, cream paving, blue sky, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#first-garage/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-51-53-b40e",
+      "candidate": "openai/1",
+      "sha256": "a79bc707164987e101db94c739f7cfae11ce8368879dcf698610778137e729f2",
+      "bytes": 295209,
+      "costUSD": 0.041
+    }
+  ]
+}

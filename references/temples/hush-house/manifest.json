@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the choir hall inside a great low ribbed dome of violet stone, the makers' temple in a twilight swamp, lit from within by singing crystals. Four tall crystals of four heights stand in a curved row on the floor like a choir, smallest to biggest, translucent violet and teal; the first and second glow and hum, drawn as faint rings of sound, the others still dark. Swamp crystals grow up through the floor and the ribs; an oculus far above with a crystal crown lets in dusk light; a stone door with lamps on its lintel waits at the far end. On the walls carvings of three drops of rain over a shut mouth. A cloaked adult human traveller of ordinary height with a round jade fluid backpack splashes the third crystal with a stream of glowing fluid, dwarfed by the crystals, the tallest three times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone, teal and violet crystal glow, moss green, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#hush-house",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-38-50-b8f8",
+      "candidate": "openai/2",
+      "sha256": "e368614dbd2224e5789f16bfe034721fb5c43a8aafd7a3502e897bd000b4b355",
+      "bytes": 278524,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a great low dome of ribbed violet stone on a small island in a twilight swamp, seen from a hover-skiff channel at dusk. An oculus at its top crowned with a large crystal, swamp crystals growing up through the dome and around it, a stone porch facing the channel with a carved mark of three drops over a shut mouth above its dark door, flat stepping stones to it through the shallows. Carnivorous plants with closed jaws, glowing eggs in the reeds, giant pale fungus trees with glowing caps, a reed-cutter in a boat keeping his distance. A cloaked adult human traveller of ordinary height with a round jade fluid backpack steps onto the stepping stones, dwarfed by the dome, its porch door twice the traveller's height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone, teal crystal glow, moss green, dusk rose sky, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#hush-house/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-49-54-0253",
+      "candidate": "openai/2",
+      "sha256": "0401852b2ad9e0dd83adbfbf7d4cfd8cadf22c48a32991645c1c061fcfb19e49",
+      "bytes": 291364,
+      "costUSD": 0.041
+    }
+  ]
+}

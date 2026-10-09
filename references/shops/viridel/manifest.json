@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a little gardener's shop built against a fallen white slab of clean gridded stone under a giant umbrella tree, in a bright colourful garden meadow with step pyramids and white android ruins in the distance. A glass-and-timber potting house leans on the white slab, vines and flowers climbing over both, a green and white striped awning; its sign is a painted wooden board cut in the shape of a curling vine with one leaf and a small flask. On staged shelves under the awning, potted seedlings and seed jars beside corked flasks of red cure, a small red heart nestled in moss in a terracotta saucer, a glowing teal vial in a brass cradle among the leaves. A tall gentle woman in a leaf-green smock and wide straw hat, petals in her hair, pruning shears at her belt, waters the pots. A small cloaked human traveller with a round jade fluid backpack walks along the meadow path toward it for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, thin even lines, flat colour, luminous flat pastel gouache colours, white stone, leaf greens, petal pink, sunflower yellow, sky blue, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#viridel",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-27-11-9511",
+      "candidate": "openai/1",
+      "sha256": "941f87436d8240a04dc5cda8c332dea71adf6028896c806680f8827527660fe3",
+      "bytes": 388726,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a small glass potting house leaning on a white stone slab, sun falling through the panes in bright squares, vines grown in through the roof. Long wooden potting benches serve as the counter, covered with soil, trowels, seed packets without words and pots; behind, shelves of glass cloches and jars: corked flasks of red cure set among seedlings, two small red hearts nestled in moss under glass cloches like rare plants, glowing teal vials in brass cradles hung among hanging baskets of ferns; a watering can, bundles of drying herbs, a tea pot. The white slab forms the back wall, its clean grid and a faint carved glyph of three dots over an arc. Behind the bench a tall gentle woman in a leaf-green smock and a wide straw hat, petals in her hair, wrapping a flask in a leaf. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the bench facing her. Shared scale: the gardener is an adult half a head taller than the traveller, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, thin even lines, flat colour, luminous flat pastel gouache colours, leaf greens, petal pink, white stone, sunlit glass, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#viridel/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-45-23-6bff",
+      "candidate": "openai/1",
+      "sha256": "945da6bc445a92aa9bea2f67034ac2578424b95017ce6ecd950d82f31e61a317",
+      "bytes": 342741,
+      "costUSD": 0.041
+    }
+  ]
+}

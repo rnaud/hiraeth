@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a small round white pavilion in the shade of a giant pale sphere half sunk in a green meadow, beside a cypress avenue leading to a round stone plaza, white pyramids and umbrella trees with gill undersides in the distance. The pavilion has slender white columns and a shallow dome, a pale blue cloth awning between two columns; its sign is a round white disc painted with a single circle and a ring, hung beside a row of small glass bells that ring in the breeze. On a white stone counter corked flasks of red cure, a small red heart on a round cushion, a glowing teal vial in a brass cradle, a tuning fork lying beside them. A lean soft-spoken old man in a cream robe holds a flask to his ear, a tuning fork on a cord round his neck. The sphere's crescent of light and its great curve above, a mirror lake glinting behind. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter a pace from him. Shared scale: the old man is an adult of the same height as the traveller, lean, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, meadow yellow-green, cypress green, pale blue sky, peach clouds, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#spheres",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-36-50-768a",
+      "candidate": "openai/1",
+      "sha256": "bbf41f5b4a440c3a0d8a8fccdf3982389c05d3cd162fef73a000a6823c8fc462",
+      "bytes": 248123,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a small round white pavilion, slender columns around a circular room open to a green meadow on one side, the pale curve of a giant half-sunk sphere filling the view outside. A round white stone counter in the middle; around the walls curved shelves: corked flasks of red cure each standing on its own small glass dish, two small red hearts on round cushions, glowing teal vials in brass cradles; tuning forks of many sizes hung on a rack, glass bells along the eaves, a mirrored pebble in a bowl of water. A lean soft-spoken old man in a cream robe strikes a tuning fork and holds it beside a flask, listening with his eyes closed. Soft even daylight, a calm hush. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter facing him. Shared scale: the old man is an adult of the same height as the traveller, lean, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, pale blue, meadow green, peach light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#spheres/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-47-27-c3aa",
+      "candidate": "openai/2",
+      "sha256": "f83e347c82fb35056316a7a29d0d9f294183156a50f9545319c280ae7e0794fa",
+      "bytes": 243951,
+      "costUSD": 0.041
+    }
+  ]
+}

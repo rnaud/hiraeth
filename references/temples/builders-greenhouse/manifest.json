@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a chasm hall inside a great greenhouse of the white builders, clean gridded white stone walls and a ribbed glass roof high above full of bright daylight. Across the chasm a living vine bridge has just grown from a seed at the near edge, leaves and pink blossoms unfurling along it; on the far side a tall wall of smooth greenhouse glass panes with a second vine climbing up it from a seed at its foot, and at its top a great closed flower bud over a doorway, its petals hinged round the rim. Dead sticks in stone pots along the walls; dust in the light. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the chasm's edge, a stream of leaf green and petal pink glowing fluid arcing from the nozzle onto the seed, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, leaf green, petal pink, sunlit glass, sky blue, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#builders-greenhouse",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-39-51-184f",
+      "candidate": "openai/1",
+      "sha256": "ac523db1cd694388f781ce2c85e4e237644f94c41a686b10ee2349b102620514",
+      "bytes": 252083,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a round house of clean gridded white stone under a great ribbed glass dome, several panes broken, standing in a flat meadow hollow of a bright colourful garden world, giant umbrella trees and white step pyramids beyond. Bare sown beds in neat rows round it where nothing has come up; a tall doorway of white stone with a frieze of three dots over an upward arc; a woman in a straw hat kneels by the nearest bed with a bag of seed, and a cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside her; standing she would be the traveller's height. Both are dwarfed by the dome, the doorway about twice their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, glass, meadow yellow-green, leaf greens, petal pink, sky blue, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#builders-greenhouse/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-50-52-296d",
+      "candidate": "openai/2",
+      "sha256": "8ad695321a59dc9de9ed512f1d89823487797a39b6cb929f53d8795dab5f27ac",
+      "bytes": 323172,
+      "costUSD": 0.041
+    }
+  ]
+}

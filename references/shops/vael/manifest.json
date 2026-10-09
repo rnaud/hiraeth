@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a small round room carved out of the foot of a pale hoodoo, smooth bone-white walls with fine ochre bands, a round opening onto a bright peach sand plain, wind blowing a curtain of ochre cloth. A long curved stone shelf is the counter; on it, set far apart with great care, three corked flasks of red cure, one small red heart on a folded peach cloth, one glowing teal vial in a brass cradle; above, cords hang from the ceiling with feathers and small crystals that turn in the draught, a few niches cut in the wall hold more flasks. A shallow tray of raked sand on the counter with a price drawn in it as a few lines and dots. Behind the counter a tall, still woman in layered peach and ochre wraps, a scarf over her mouth, pointing at a flask with one finger. Spare, calm, lots of empty space. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the shelf facing her. Shared scale: the woman is an adult half a head taller than the traveller, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, peach and ochre, aqua light from the door, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#vael/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-43-15-e661",
+      "candidate": "openai/2",
+      "sha256": "2f7c7e421fd195a9eefe201cf947a02601a09b8cf74b365f3df3d9dc5eb864aa",
+      "bytes": 214562,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a tiny silent shop on a bone-white world of needle spires, seen from the path on a warm peach sand plain under an aqua sky. The shop is a shelter carved into the foot of a mushroom-capped hoodoo, a smooth round opening with a stone shelf for a counter, a pale ochre cloth stretched on two poles for an awning snapping in the wind; instead of a sign a long cord hangs from the cap with a single white feather and a small cyan crystal turning on it. Wares hang from cords under the cap and turn slowly in the wind: corked flasks of red cure, a small red heart in a little net, a glowing teal vial in a brass cradle. At the opening a tall quiet woman in layered peach and ochre wraps, a scarf over her mouth, one hand raised in greeting, a tray of raked sand beside her with a stick. Balanced boulders on needles and a lone tower far off in the haze. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the stone shelf, a pace from her. Shared scale: the woman is an adult half a head taller than the traveller, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, warm peach sand, aqua sky, ochre bands, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#vael",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-34-43-cb24",
+      "candidate": "openai/1",
+      "sha256": "29cdb023bbbba88ee1aa338fe0023f0831e8d388bffcf676f3f3b5427fc1dd21",
+      "bytes": 253210,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: the almonry of a cliff-top monastery above a sea of cloud, seen from the end of a stone aqueduct path, bone-white needle rocks and great balanced stones floating in the sky behind. The monastery's gatehouse is rose stone built into an overhanging cliff, round towers with small conical roofs; in its wall a wide arched hatch with a wooden counter-board let down, a short slate canopy over it, and above the hatch a carved beam hung with a row of seven small bronze bells of different sizes, the shop's only sign. On the counter-board clay flasks of red cure sealed with wax, a small red heart in a wooden box lined with cloth, a glowing teal vial in a brass cradle. Leaning out of the hatch a round, brisk nun in a grey habit and a white wimple shaped like a bell, reaching up to ring one of the little bells. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter-board below the hatch, face to face with the nun. Shared scale: the nun is an adult a little shorter than the traveller and round, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose cliffs, bone white stone, peach and pale gold light, white cloud sea, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#vael-ii",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-35-01-a29b",
+      "candidate": "openai/2",
+      "sha256": "cf3b0c62bd40a8d2ae7dc6a54f7d1e9314b34c9e3365b3a5e40c4ca1800689ef",
+      "bytes": 238707,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a monastery almonry, a narrow vaulted room of rose stone with a deep arched hatch open onto bright cloud and sky, a wooden counter-board under it. Along the walls tall shelves in niches: rows of clay flasks of red cure each sealed with a blob of wax, a few small red hearts on cushions in little open wooden boxes like reliquaries, glowing teal vials in brass cradles on a high shelf; a ledger of knotted ribbons, a candle, a stamp and a pot of wax on a writing desk; a row of small bronze bells hangs from a beam over the hatch. A round, brisk nun in a grey habit and a white bell-shaped wimple presses a wax seal onto a flask, sleeves rolled. Light falls through a small round window in a soft cool beam. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter-board facing her. Shared scale: the nun is an adult a little shorter than the traveller and round, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose stone, grey and white cloth, bronze bells, pale gold candle light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#vael-ii/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-43-44-3acb",
+      "candidate": "openai/2",
+      "sha256": "6c553efa24ce9287e36225dd79e9823715f218f74c7cb157e18675b951aab9e2",
+      "bytes": 239019,
+      "costUSD": 0.041
+    }
+  ]
+}

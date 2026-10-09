@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a hall inside a giant pale sphere half sunk in the earth, its curved white walls rising into a dome, a deep chasm splitting the floor. Across the chasm a bridge of pale glass that only shows through a lens: half the picture seen plainly, the chasm empty, and half seen through a round glowing lens, the glass bridge outlined in soft light with the hidden carved eye beside the far door glowing and a frieze of three dots over an upward arc lit up on the wall. Still water in a sunken pool behind, a pale riding disc. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a round makers' lens to one eye at the chasm's edge, dwarfed by the hall, stepping onto the unseen bridge. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white sphere stone, pale glass glow, pale blue, peach light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#footprint",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-41-49-42d3",
+      "candidate": "openai/1",
+      "sha256": "8421ae0c4b1bce9e6deb1ba470af2cee28dfc32e9a55c44f62b22e85a478164b",
+      "bytes": 195531,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: an enormous three-toed footprint pressed into a green meadow, its rim of white stone, as if something walking through the sky had stepped here; at its heel a great pale sphere half sunk in the ground with a round-headed door facing an umbrella grove, seen from a high bank. Umbrella trees with gill undersides, white pyramids, other giant spheres on the horizon, a cypress avenue. A cloaked adult human traveller of ordinary height with a round jade fluid backpack and a woman of the same height walk side by side along the print's white rim toward the sphere's door, which is about twice their height; both are dwarfed by the sphere. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, meadow yellow-green, white stone, pale sphere, cypress green, pale blue sky, peach clouds, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#footprint/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-52-51-dabc",
+      "candidate": "openai/2",
+      "sha256": "db2e1703b5ea43bf9f511b1b07b19755a8eba35fbaecf1f863042dc5add4bf6e",
+      "bytes": 273196,
+      "costUSD": 0.041
+    }
+  ]
+}

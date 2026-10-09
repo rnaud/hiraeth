@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a busy cure-stall in the foot of a coral tower on a crowded alien market avenue, seen from the street among the crowd. Coral and teal towers rise on both sides hung with illustrated billboards, cables, service pipes and skybridges, flying taxis overhead. The stall has a deep coral awning, a counter of teal-painted metal and a big illustrated picture board over it showing a red heart and a red flask in bright drawn panels, with a speaker grille and a ring of small bulbs; strings of goods hang under the awning. On the counter heaps of corked flasks of red cure in a crate, a small red heart in a little glass case, glowing teal vials in brass cradles. Behind it a big round lavender-skinned trader with four arms, holding up a flask in one hand and calling out to the crowd. Lavender inhabitants and other aliens pass. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter in front of the trader, looking up at the board. Shared scale: the trader is an adult a head taller than the traveller and much rounder, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal, cream, lavender, warm bulb light, blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#signal-market",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-37-19-7b0d",
+      "candidate": "openai/1",
+      "sha256": "32b0ff80d4a5c3577b3925c015b02b193e7fb37dd38a47f140e71f9ea9070484",
+      "bytes": 376131,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a crowded market cure-shop under a coral tower, a deep low room behind a stall counter open to a bright busy street. Every surface covered: teal metal shelves and hanging racks, small glowing screens showing drawings of hearts and flasks, a speaker grille, cables along the ceiling, a little fan; corked flasks of red cure in crates and hanging by their necks, two small red hearts each in a lit glass case like jewels, glowing teal vials in brass cradles on a turntable. A big round lavender-skinned trader with four arms works at once: one hand takes chimes, one wraps a flask, one points at the screens, one waves to the street. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter facing the trader. Shared scale: the trader is an adult a head taller than the traveller and much rounder, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral, teal, lavender, screen glow, warm bulb light, blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#signal-market/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-47-58-662e",
+      "candidate": "openai/2",
+      "sha256": "c5757285ef627ad6b0807efaafe30a18dac98b04a3982ef76215f5ea8a65a63d",
+      "bytes": 381236,
+      "costUSD": 0.041
+    }
+  ]
+}

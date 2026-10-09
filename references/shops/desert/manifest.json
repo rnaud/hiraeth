@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a small desert shop beside the sandy way from the pilgrims' camps up to the main gate of an old mud-brick city, seen from the path in late afternoon light. A squat building of rose and ochre mud brick with a low dome and rounded corners, a deep teal and saffron striped cloth awning on poles over its door, a hanging painted sign shaped like a large floating cyan crystal beside a small red flask, strings of small cyan crystals hanging along the awning's edge catching the sun; on a bench under the awning a few corked flasks of red cure, a small red heart on a cushion and a glowing teal vial in a brass cradle. In the shadow of the doorway a broad, slow shopkeeper in a deep teal coat over saffron, a red fez and a brass monocle, a little hand bell in his hand. Behind, the city's wall and gate climbing the slope, a few robed pilgrims on the way, sand banked against the walls. A cloaked adult human traveller of ordinary height with a round jade fluid backpack has just stepped under the awning, a pace from the shopkeeper. Shared scale: the shopkeeper is an adult of the same height as the traveller, only broader, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, golden sand, rose and ochre brick, teal and saffron cloth, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#desert",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-34-12-dd3f",
+      "candidate": "openai/2",
+      "sha256": "6e6bf3bc592c85288bf23132f754c21233305ed0d210195b0ee15ecea213f948",
+      "bytes": 278717,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a small desert shop out of the sun, a cool room of rose plaster under a low dome, light falling through lattice windows in patterns on the floor. Across the room a wooden counter with a teal band, on it a little brass scale weighing a small cyan crystal, a row of corked flasks of red cure, two small red hearts each on its own embroidered cushion, two glowing teal vials in brass cradles; behind it shelves of clay jars and glass bottles, a large floating crystal painted on the back wall, strings of cyan crystals hanging by the door, a woven rug, a bench and big pots. Behind the counter a broad, slow, amused shopkeeper in a deep teal coat over saffron, a red fez, a brass monocle, a hand bell raised to ring a sale. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter facing him. Shared scale: the shopkeeper is an adult of the same height as the traveller, only broader, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose plaster, teal and saffron, warm lamp light, cool lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#desert/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-42-46-12a3",
+      "candidate": "openai/2",
+      "sha256": "afbd87cefe2b44e3190e5c12adefac4894065595e1d86c3618fc49b3d4305818",
+      "bytes": 251698,
+      "costUSD": 0.041
+    }
+  ]
+}

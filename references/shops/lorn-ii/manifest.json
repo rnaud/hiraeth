@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a small shop in a moss dome on a lit path through a deep violet wood under giant pale mushrooms at dusk. The dome is round and green with moss, a round wooden door painted blue, a little porch of flat stones; over the door three small lamps hang from a sagging cord above a carved wooden boat hull, the shop's sign; a striped blue awning on poles, swept clean. On a table under the awning a neat row of corked flasks of red cure, a small red heart under a glass cover, a glowing teal vial in a brass cradle, everything dusted and arranged as if waiting a long time for a guest. A plump flustered man in a quilted dusk-blue coat holds up a lamp on a pole and waves, surprised. Lit pools glowing along the path, violet trunks, crystal reeds, root arches, glowing egg heaps. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, still wet from a lit pool, stands at the table under the awning a pace from him. Shared scale: the man is an adult of the same height as the traveller, plump, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet trunks, pale mushroom cream, moss green, warm lamp gold, coral glow, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#lorn-ii",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-35-49-fcba",
+      "candidate": "openai/1",
+      "sha256": "b1bc8387878b441bdf13fc39a87b3f677ffd59c8388eff47c78293eac4aa79e2",
+      "bytes": 329018,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: inside a small moss dome, a round snug room with curved walls of woven roots and moss, a round window onto the dusk wood, many small lamps lit everywhere. A polished wooden counter curving round one side, a guest book left open, a feather duster; shelves behind full of neatly labelled jars and boxes without words, corked flasks of red cure in perfect rows, two small red hearts each under a glass dome, glowing teal vials in brass cradles, a kettle and three cups set out for guests, a made-up cot in a niche. Everything spotless and slightly old-fashioned, as if kept ready for travellers for thirty years. Behind the counter a plump flustered man in a quilted dusk-blue coat polishing a flask, smiling too widely, a lamp on a pole leaning beside him. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the counter facing him. Shared scale: the man is an adult of the same height as the traveller, plump, the two of them close together at the same distance from the viewer; the door is about 2 metres tall, a little above their heads, the counter at their waists and the shelves at their chests. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, moss green, warm lamp gold, dusk blue, coral accents, soft violet shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/shop-prompts.md#lorn-ii/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-44-51-66ca",
+      "candidate": "openai/2",
+      "sha256": "fb6bfaf65bd4667342679ba3e4688f2bfbb57bd707b607a8c9470f01f05de036",
+      "bytes": 307994,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the cistern hall at the heart of an ancient temple of the makers, a vast round drum of rose stone under a low dome with an oculus letting down a single shaft of dusty light. In the middle a great stone basin lies dry, a pale tide line on its sides; on the far wall a carved stone spout shaped like a long soft muzzle above the basin, dry, the stone under it only faintly damp. Around the walls four tall bronze braziers stand cold; one has just caught, a small cool ember-orange flame leaping from it where a burning splash of fluid struck it. Curled asleep in the dry basin, a great pale beast of the makers: a shell of bone plates carved with dim flickering glyphs, six long folded legs, a swan's neck laid along the basin's rim. Friezes of three dots over an upward arc run round the drum; old channels lead out under the walls. A small cloaked human traveller with a round jade fluid backpack stands on the rim, tiny, a thin stream of glowing fluid arcing from the backpack's nozzle to the brazier. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose and ochre stone, ivory bone, ember orange, turquoise traces, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#givers-house",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-30-37-0d6e",
+      "candidate": "openai/1",
+      "sha256": "c7cd9864949cea92e653bdb84db51094420454ec518236fe0815d7c9fab3144b",
+      "bytes": 279365,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: an ancient temple of the makers half sunk in high golden dunes, seen from the dune crest on the way from an old mud-brick desert city whose walls and burning tree show far behind. A great drum of rose stone with a heavy cornice and vertical fins round it and a low pink dome on top, sand banked high against one side; its door, a tall dark opening framed in carved stone with a frieze of three dots over an upward arc, faces the city, a short stair dug clear of the sand leading down to it. Dry stone channels run out from under the door toward the city and vanish into the sand, the dry outlines of old fields beyond. A cloaked adult human traveller of ordinary height with a round jade fluid backpack walks down the dune toward the door, dwarfed by the drum. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, golden sand, rose stone, pink dome, pale turquoise sky, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#givers-house/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-48-32-9eb7",
+      "candidate": "openai/2",
+      "sha256": "43d1878ea73d4e12133b41547a349976472486254d195f79170041dfc79d8c7f",
+      "bytes": 233595,
+      "costUSD": 0.041
+    }
+  ]
+}

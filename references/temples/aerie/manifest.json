@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the wind well inside an ancient white temple of the makers where great birds were given their wings, a tall round shaft of bone-white stone banded in ochre, open to an aqua sky far above through a crown of tall stone feathers leaning out round the rim. Up the middle rises a column of wind, drawn as pale spiralling streams of dust, feathers and ribbons lifting round and round. Glyph lines run up the walls like the lines on a wing; high up, a small balcony juts from the wall beside a carved stone eye. A cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the column upward on wide translucent wings of glowing fluid spread from the backpack, dwarfed by the shaft, circling toward the balcony; below, the floor and a wall's carved ledges far beneath. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#aerie",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-37-52-60ca",
+      "candidate": "openai/2",
+      "sha256": "e0f5572482d304c091b0d289937f9d150c335d143000887ae7af63e0166fe9b8",
+      "bytes": 238568,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: a great white temple of the makers standing alone on a warm peach plain among bone-white needle spires and mushroom-capped hoodoos, seen from the path in low light. A broad plinth with wide shallow steps, a great drum and a narrower drum on top banded in ochre, glyph lines running up the drums like the lines on a wing, and on the summit a crown of tall stone feathers leaning outward round a perch; a high round doorway at the top of the steps. On the lowest step a quiet woman sweeps sand with a long broom, and a cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside her at the foot of the steps; she is an adult of the same height as the traveller, and both are dwarfed by the temple, the doorway many times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, warm peach sand, ochre bands, aqua sky, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#aerie/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-49-00-6314",
+      "candidate": "openai/2",
+      "sha256": "3be747a96c7ceb016475d4acf199bd01486f39f83b5376ae900d2a81ac06aae1",
+      "bytes": 212225,
+      "costUSD": 0.041
+    }
+  ]
+}

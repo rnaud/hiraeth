@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a gallery deep under a market city in the foundations of the makers, blue-grey stone blocks older than anything above, bundles of ancient cable running along the walls and down into a chasm. On the near side three singing stones of different sizes on plinths, one just splashed and humming, drawn as rings of sound; at the chasm's edge a great brass horn on a stand, its bell turned to the chasm; across the gap a stone door with three lamps over it. Through gaps in the ceiling, faint coloured light from the market's signs far above. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a pale spiral shell, a note visibly flowing out of it as glowing rings toward the horn, the first bridge stones rising out of the chasm, dwarfed by the gallery. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, brass, coral light, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#undertower",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-42-17-5601",
+      "candidate": "openai/2",
+      "sha256": "8fcd71139d1e7fcf1103f3d96ef31d1c9c59d4c1b3078f9afa741d634fb2d20b",
+      "bytes": 274466,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Environment concept art for a science fiction exploration game: an old doorway of blue-grey makers' stone at the foot of a tall silent broadcast tower in a crowded alien market city, seen from the back of the square at dusk, where the bright paving gives way to huge ancient blocks older than any sign. Thick old cables run from the doorway into the ground; the tower rises above, stacked and dark, among coral and teal towers covered in lit illustrated billboards, skybridges and flying taxis. An old man lies on the paving with his ear to the stones, listening, and a cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside him by the doorway, which is about twice the traveller's height; the tower dwarfs them both. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, coral and teal towers, warm sign light, lavender dusk, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#undertower/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-21-53-16-b4db",
+      "candidate": "openai/1",
+      "sha256": "bd0d3e43fc254db5485798dcd717be3699d8bd256588a8c4e042276ea11927cb",
+      "bytes": 318767,
+      "costUSD": 0.041
+    }
+  ]
+}
