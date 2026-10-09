@@ -1,0 +1,35 @@
+tests/cinematics-qc.test.js
+  s_9ca76055a220ed::t_104db235fc26a0 1-86
+.gitignore
+  s_9ca76055a220ed::t_082bc19f7654c8 42-44
+.claude/skills/cinematics-qc/SKILL.md
+  s_9ca76055a220ed::t_6847247cf9b92e 24-34,61-74
+  s_9ca76055a220ed::t_db11cf3bdae6da 1-23,35-60,75-136
+scripts/cinematics-qc.mjs
+  s_6b8abf8ef692f6::t_675de2e11ef005 1-15,17-42,46-101,103-135,137-148,150-175,177-185,187-267,269-271,273-302,304,306-310,313-314,316-339,351-361,363-371,376-380,382-384,386-393
+  s_9ca76055a220ed::t_16435de4b49dc4 16,43-45,102,136,149,176,186,268,272,303,305,311-312,315,340-350,362,372-375,381,385
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b82802be790a58d7f5892e2dfb812f9683c9b688",
+  "prompts": {},
+  "sessions": {
+    "s_6b8abf8ef692f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a33c1b8922b52386a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
