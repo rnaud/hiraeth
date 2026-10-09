@@ -1,0 +1,47 @@
+DONE.md
+  s_9ca76055a220ed::t_92489d1214d9cc 1312-1328
+changelog.md
+  s_9ca76055a220ed::t_389392578ee24d 7
+docs/systems/ui.md
+  s_9ca76055a220ed::t_0cec9c0dd0641d 54-63
+index.html
+  s_9ca76055a220ed::t_70a4613b56485d 166,312
+src/changelog-media.js
+  s_9ca76055a220ed::t_a2c87501cd7115 201-204
+src/changelog.js
+  s_9ca76055a220ed::t_7bb21a1a067eb2 16-17
+src/gadgets/hud.js
+  s_9ca76055a220ed::t_7f2b60951335c7 60
+src/touch-layout.js
+  s_9ca76055a220ed::t_7f5fc19c1a3166 1-67
+src/ui.js
+  s_9ca76055a220ed::t_5ad6cb8fb9129f 11,427-446,462
+tests/touch-layout.test.js
+  s_9ca76055a220ed::t_9a82c5d63b380f 1-66
+src/menus.css
+  s_b56271e77d0699::t_9d4abbbf8fd5f8 182-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bc716cc15ddbc73831000baa37c85e9d2d837cfe",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b56271e77d0699": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a501d6d7c3c0e7fef",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
