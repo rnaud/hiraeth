@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object design reference sheet for a science fiction exploration game: one floating crystal, the game's currency, a splinter of a singing mineral, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and a close-up of its facets catching the light. It is a blunt weathered shard about as long as a forearm, 27 centimetres, translucent cyan with broad uneven flat facets, a pale lavender seam running through it and a soft warm light glowing at its heart, its ends closing in short chisel points, not a jewel, not a rupee, not a coin. It floats upright, tilted slightly, at knee height above the ground, turning slowly, a faint ring of light around it, a small soft round shadow on the ground beneath it with clear air between. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale, the crystal floating at the traveller's knee. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cyan and lavender glass, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, gem, jewellery, rupee, coin.",
+      "from": "docs/design/chime-prompts.md#one",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-55-34-3efb",
+      "candidate": "openai/2",
+      "sha256": "527984bac5df224c1dc76391b2bb444262a34555e7e22ad5c6eafff7c057e652",
+      "bytes": 182311,
+      "costUSD": 0.041,
+      "why": "love the design but they are too big "
+    }
+  ]
+}
