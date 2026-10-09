@@ -19,6 +19,12 @@
 // One more slot, 'debug' (DEBUG_SLOT, keys 'moebius.sdebug.*'), is the worlds list's (src/debug-save.js):
 // a world picked there plays in it, never in the player's own slots. The title never lists it
 // (list, latest, firstEmpty count 1..SLOT_COUNT); choosing a save there leaves it.
+//
+// The title screen draws a world behind its menu with the game's own modules (src/title-world.js),
+// and some of them read the game state as they load. While it does, the slots are sandboxed
+// (sandbox(seed)): every store reads and writes an in-memory save instead of a slot, so nothing is
+// read from the save not yet chosen and nothing is written to any; the title starts the game in a
+// fresh page after the choice (src/title.js).
 
 import { reviewStorage } from './cinematics-page/storage.js';
 const cinematicStorage = reviewStorage();
@@ -46,7 +52,15 @@ export class SlotStore {
     this.storage = storage;
     this._active = null;
     this._migrated = false;
+    this._sandbox = null;
   }
+  /**
+   * Point the slot view (slotStorage) at an in-memory save until the page ends: `seed` is its keys
+   * and values (unprefixed, as the stores ask for them). The selector's own reads (summary, list,
+   * latest, remove, touch) still see the real slots.
+   */
+  sandbox(seed = {}) { this._sandbox = new Map(Object.entries(seed).map(([k, v]) => [k, String(v)])); return this; }
+  get sandboxed() { return !!this._sandbox; }
   get(k) { try { return this.storage?.getItem(k) ?? null; } catch { return null; } }
   put(k, v) { try { this.storage?.setItem(k, v); } catch { /* private mode, full */ } }
   del(k) { try { this.storage?.removeItem(k); } catch { /* ignore */ } }
@@ -87,10 +101,11 @@ export class SlotStore {
   /** A localStorage look-alike for slot n (default: the active slot). */
   view(n = null) {
     const at = () => n ?? this.active;
+    const sb = () => (n === null ? this._sandbox : null);
     return {
-      getItem: (k) => { this.ready(); return this.get(slotKey(k, at())); },
-      setItem: (k, v) => { this.ready(); this.put(slotKey(k, at()), String(v)); },
-      removeItem: (k) => { this.ready(); this.del(slotKey(k, at())); },
+      getItem: (k) => { const m = sb(); if (m) return m.get(k) ?? null; this.ready(); return this.get(slotKey(k, at())); },
+      setItem: (k, v) => { const m = sb(); if (m) { m.set(k, String(v)); return; } this.ready(); this.put(slotKey(k, at()), String(v)); },
+      removeItem: (k) => { const m = sb(); if (m) { m.delete(k); return; } this.ready(); this.del(slotKey(k, at())); },
     };
   }
 

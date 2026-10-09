@@ -299,6 +299,15 @@ export const CHANGELOG_MEDIA = {
       { name: 'chimes-hud', caption: 'Thirty-seven chimes picked up, half the hearts gone, at the top left: before, the hearts, the potion and the magic bar; after, a brass chime and the count beside the potion', commit: 'aa81c3f0',
         view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1800, setup: `${HEARTS_SETUP(0.5)} window.resources?.addChimes?.(37);` } },
     ], see: 'Pick up a few chimes: the hearts come up at the top left with a brass disc and the count beside the potion, counting up. Open the menu (View, or J): the count is by the Gear heading on the Items page.' },
+    // the title screen: before, the drifting view over the cloud and the thin name; after, a cover's world and the drawn name (the same opening forced to one shot with ?shot=)
+    { match: 'A new title screen', shots: [
+      { name: 'title-waterfall', caption: 'The title on a desktop screen: before, thin capitals over a sweep above the clouds; after, the ivory HIRAETH over the city behind the waterfall, framed as its cover', commit: 'b43643dd',
+        view: { query: 'shot=H1', hud: true, ready: "!!window.title?.root?.classList.contains('vista-on')", settle: 600, wait: 2500 } },
+      { name: 'title-sky-stones', caption: 'Another opening: the Sky Stones from a rose ledge, the monastery’s table and its needle over the cloud', commit: 'b43643dd',
+        view: { query: 'shot=E3', hud: true, ready: "!!window.title?.root?.classList.contains('vista-on')", settle: 600, wait: 2500 } },
+      { name: 'title-salt-harbour', caption: 'And the Salt Harbour: the two beached ships and the street between them', commit: 'b43643dd',
+        view: { query: 'shot=G4', hud: true, ready: "!!window.title?.root?.classList.contains('vista-on')", settle: 600, wait: 2500 } },
+    ], see: 'Open the game a few times: each time a different world behind the name. On a phone, turn it upright: the menu moves to the bottom in two columns.' },
     { match: 'Spines and flames now bite a quarter heart', see: 'In the desert, walk into a sand candelabra’s spines: a quarter heart, a shove, and no second prick if you step straight back in. In the Arena, pick Second wind between waves.' },
     { match: 'The Arena’s waves now come round to every foe', shots: [
       { name: 'arena-waves', only: 'after', caption: 'Wave 144 in the Arena: the Glass Dunes’ pair, a glass crab and the possessed furnace walker, the wave said at the top with its world', from: 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the waves started at the Glass Dunes’ pairs (9 October)' },

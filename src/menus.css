@@ -11,17 +11,19 @@
 }
 #title.leaving { opacity: 0; pointer-events: none; }
 #title .land { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity 0.6s; }
-/* the live view (src/title-vista.js): a golden-hour sky until it fades in; the drawn land if it can't */
-#title.vista-wait, #title.vista-on { background: linear-gradient(#9fcbd0 0%, #e9cdb6 46%, #f7d8bd 58%, #f3e9e4 72%, #e2deec 100%); }
+/* the world behind the menu (src/title-world.js): the cover's paper until it fades in; the drawn land if it can't */
+#title.vista-wait, #title.vista-on { background: #efe0bf; }
 #title.vista-wait .land { opacity: 0; }
 #title.vista-on .land { display: none; }
-#title canvas.vista { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.6s ease-out; }
+#title canvas.vista { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 1.4s ease-out; }
 #title.vista-on canvas.vista { opacity: 1; }
-/* a soft paper light behind the menu column, the corners a touch darker, so the menu reads over any view */
-#title .veil { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.6s;
-  background: radial-gradient(ellipse 46% 62% at 50% 56%, rgba(251, 244, 226, 0.34), rgba(251, 244, 226, 0) 70%),
-    radial-gradient(ellipse 120% 110% at 50% 45%, rgba(43, 33, 31, 0) 62%, rgba(43, 33, 31, 0.22) 100%); }
-#title.vista-wait .veil, #title.vista-on .veil { opacity: 1; }
+/* the paper: cream with a printed grain, under the name while the world is made (and faded out over it) */
+#title .paper { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.4s ease-out;
+  background: radial-gradient(ellipse 90% 80% at 50% 40%, #f6ead0, #ead7b1 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .13 0 0 0 0 .1 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-blend-mode: multiply; }
+#title.vista-wait .paper { opacity: 1; }
+#title.vista-on .paper { opacity: 0; }
 #title .clouds { animation: title-clouds 70s linear infinite alternate; }
 @keyframes title-clouds { to { transform: translateX(220px); } }
 #title .planet { animation: title-float 9s ease-in-out infinite alternate; }
@@ -38,7 +40,9 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   box-sizing: border-box;
 }
 #title header { text-align: center; }
-#title .logo { display: block; width: min(86vw, 980px, 92vh); height: auto; margin: 0 auto; filter: drop-shadow(0 0 0 transparent); }
+/* the name (src/title-logo.js), placed by src/title-layout.js: across the upper part, as on the covers */
+#title[data-screen="main"] header { position: absolute; left: 0; right: 0; top: var(--logo-top, 6vh); pointer-events: none; }
+#title .logo { display: block; width: var(--logo-w, min(86vw, 1100px)); height: auto; margin: 0 auto; overflow: visible; }
 #title .tag {
   display: inline-block; margin: clamp(2px, 1vh, 10px) 0 0; padding: 3px 10px; font-size: calc(clamp(11px, min(1.7vh, 3.3vw) * var(--ts, 1)), 15px); letter-spacing: 0.08em;
   background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f;
@@ -196,30 +200,28 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   .fullmenu .saved { display: none; }
 }
 
-/* ------------------------------------------------------------------ the title, light and airy (v0.39)
-   (after the comic-box styles above: the name and its menu are thin capitals over the sky, no boxes) */
-#title .main-menu { align-items: center; gap: clamp(6px, 1.6vh, 14px); width: min(420px, 86vw); }
+/* ------------------------------------------------------------------ the title's menu (v1.5)
+   Labels in the lettering's manner (src/title-logo.js): ivory, an ink line, a vermilion shadow down and to
+   the right, set out by src/title-layout.js in the quiet space under the name (CSS variables on #title:
+   one column, two or three on a short screen, at the bottom on a screen held upright). */
+#title[data-screen="main"] .main-menu {
+  position: absolute; top: var(--menu-top, 52vh); left: 50%; transform: translateX(-50%); width: var(--menu-w, min(420px, 86vw));
+  display: grid; grid-template-columns: repeat(var(--menu-cols, 1), minmax(0, 1fr)); gap: var(--btn-gap, 12px) calc(var(--btn-gap, 12px) * 1.5);
+  padding: 0; margin: 0; background: none; border-radius: 0; align-items: stretch;
+}
 #title .main-menu button {
-  position: relative; text-align: center; background: none; border: 0; box-shadow: none;
-  padding: clamp(4px, 1vh, 10px) 18px; color: #2b211f;
-  font: 400 calc(clamp(16px, 2.6vh, 23px) * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
-  letter-spacing: 0.42em; text-transform: uppercase; text-indent: 0.42em;
-  text-shadow: 0 0 2px #fffaf0, 0 0 6px #fffaf0, 0 0 14px rgba(255, 250, 240, 0.95); transition: opacity 0.2s, letter-spacing 0.25s;
-  opacity: 0.9;
+  position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: var(--btn-h, 48px); box-sizing: border-box;
+  padding: 2px calc(var(--btn-font, 17px) * 1.9); text-align: center; color: #211a17; background: #fbe8c4;
+  border: 2px solid #211a17; border-radius: 3px; box-shadow: 4px 4px 0 #e27c5b, 4px 4px 0 2px #211a17;
+  font: 800 calc(var(--btn-font, 17px) * var(--ts, 1))/1.1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+  letter-spacing: 0.16em; text-transform: uppercase; text-indent: 0.16em; white-space: nowrap;
+  transition: transform 0.08s, box-shadow 0.08s, background 0.12s, color 0.12s;
 }
-#title .main-menu button small { margin-top: 3px; font-size: max(0.55em, 11px); letter-spacing: 0.14em; text-indent: 0; text-transform: none; opacity: 0.8; }
-#title .main-menu button::after {
-  content: ''; position: absolute; left: 50%; bottom: 0; width: 0; height: 1px; background: #2b211f;
-  box-shadow: 0 0 6px rgba(255, 250, 240, 0.9); transform: translateX(-50%); transition: width 0.25s;
-}
-#title .main-menu button::before {
-  content: ''; position: absolute; left: 50%; bottom: -3px; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%;
-  background: #f2c54b; opacity: 0; transition: opacity 0.2s;
-}
-#title .main-menu button:hover, #title .main-menu button:focus { background: none; transform: none; box-shadow: none; opacity: 1; letter-spacing: 0.48em; }
-#title .main-menu button:hover::after, #title .main-menu button:focus::after { width: 60%; }
-#title .main-menu button:focus::before { opacity: 1; }
-#title .main-menu .primary { border: 0; }
+#title .main-menu button small { display: block; margin-top: 2px; font-size: max(0.62em, 10px); font-weight: 600; letter-spacing: 0.06em; text-indent: 0; text-transform: none; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#title .main-menu button:hover, #title .main-menu button:focus { outline: none; background: #fff4dc; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #e27c5b, 6px 6px 0 2px #211a17; }
+#title .main-menu button:focus { background: #e27c5b; color: #fffaf0; box-shadow: 6px 6px 0 #211a17, 6px 6px 0 2px #211a17; }
+#title .main-menu button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #e27c5b, 1px 1px 0 2px #211a17; }
+#title .main-menu .primary { border: 2px solid #211a17; }
 /* a quieter tool entry under Debug (the character studio): smaller, tucked against it */
 /* the saves and the confirm card: translucent paper, hairlines, no hard shadows */
 #title .saves { background: rgba(251, 246, 234, 0.82); border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.18); border-radius: 6px; backdrop-filter: blur(3px); }
@@ -232,8 +234,6 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 }
 #title .slot .del:hover, #title .slot .del:focus { background: #c8483a; color: #fff6dc; transform: none; box-shadow: none; }
 #title .confirm .card { border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.25); border-radius: 6px; }
-#title .main-menu { padding: clamp(10px, 2vh, 20px) clamp(18px, 3vw, 40px); border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 250, 240, 0.7), rgba(255, 250, 240, 0.4) 65%, rgba(255, 250, 240, 0)); }
 
 /* ------------------------------------------------------------------ the game's updates (Android app: src/update-panel.js)
    at the top of the settings: light paper, hairlines, a thin progress line, no hard shadows */
@@ -296,8 +296,8 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 /* ------------------------------------------------------------------ button glyphs (src/pad-glyphs.js)
    The confirm glyph beside the focused title entry (out of the flow: the labels stay centred), B in Back
    and Keep, X on a save's Delete, A on the focused save; in the Start menu B in Resume, A on the focused entry. */
-#title .main-menu .lbl { position: relative; }
-#title .main-menu .lbl .glyph { position: absolute; right: 100%; top: 50%; transform: translateY(-50%); margin: 0 0.9em 0 0; text-shadow: none; }
+#title .main-menu .lbl { position: static; }
+#title .main-menu .lbl .glyph { position: absolute; left: 0.55em; top: 50%; transform: translateY(-50%); margin: 0; text-indent: 0; letter-spacing: 0; text-shadow: none; }
 #title .saves .head button, #title .confirm button, #title .slot .del { display: inline-flex; align-items: center; }
 #title .slot .pick .glyph.on-focus { margin: 0 0 0 auto; font-size: calc(clamp(12px, 2vh, 16px) * var(--ts, 1)); }
 .fullmenu .menu-nav button { display: flex; align-items: center; }
