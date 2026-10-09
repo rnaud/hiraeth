@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 /** The pages built (tests/studio.test.js checks the studio is one, tests/motion-page.test.js the Motion page). */
 export const BUILD_INPUT = {
   cinematics: fileURLToPath(new URL('./cinematics.html', import.meta.url)),
+  enemies: fileURLToPath(new URL('./enemies.html', import.meta.url)),
   main: fileURLToPath(new URL('./index.html', import.meta.url)),
   studio: fileURLToPath(new URL('./studio.html', import.meta.url)),
   trailer: fileURLToPath(new URL('./trailer.html', import.meta.url)),

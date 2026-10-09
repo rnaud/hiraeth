@@ -1,0 +1,65 @@
+{
+  "world": "buried",
+  "title": "The Buried Machine",
+  "types": [
+    {
+      "name": "Drill grub",
+      "category": "local-creature"
+    },
+    {
+      "name": "Ash lizard",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed mining tripod",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Pressure-suited shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "6bc61bb7-10c5-4ef8-a6a1-11298a37cf9f",
+  "jobUrl": "https://www.midjourney.com/jobs/6bc61bb7-10c5-4ef8-a6a1-11298a37cf9f?index=3",
+  "selected": "lineup-04.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/6bc61bb7-10c5-4ef8-a6a1-11298a37cf9f/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/6bc61bb7-10c5-4ef8-a6a1-11298a37cf9f/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/6bc61bb7-10c5-4ef8-a6a1-11298a37cf9f/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/6bc61bb7-10c5-4ef8-a6a1-11298a37cf9f/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Drill grub; Ash lizard; Possessed mining tripod; Pressure-suited shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

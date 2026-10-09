@@ -194,7 +194,26 @@ function figure({ coat, skin, hat }) {
   return p.mesh({ smooth: true });
 }
 
-function buildTaxi(color, { fares = true, scale = 1 } = {}) {
+/** Wren's patched yellow cab, sheet 0: the bent 991 plate and riveted repairs. */
+function wrenTrim() {
+  const p = new Paint();
+  p.add(new THREE.BoxGeometry(.42, .19, .025), CREAM, { at: [0, -.2, 2.17], rot: [0, 0, -.055] });
+  // Seven-segment enamel digits: geometry stays legible without a label texture.
+  const segments = [[0,.046,.045,.009],[-.025,.023,.009,.042],[.025,.023,.009,.042],[0,0,.045,.009],[-.025,-.023,.009,.042],[.025,-.023,.009,.042],[0,-.046,.045,.009]];
+  for (const [i, active] of [[0,[0,1,2,3,5,6]],[1,[0,1,2,3,5,6]],[2,[2,5]]]) for (const j of active) {
+    const [x,y,ww,hh] = segments[j];
+    p.add(new THREE.BoxGeometry(ww,hh,.008), INK, { at: [(i-1)*.105+x,-.2+y,2.188] });
+  }
+  for (const side of [-1,1]) {
+    p.add(new THREE.BoxGeometry(.025,.19,.26), '#d8ae48', { at: [side*.85,.05,-1.03], rot: [.12,0,0] });
+    for (const y of [-.02,.12]) for (const z of [-1.12,-.94]) p.add(new THREE.SphereGeometry(.015,6,4), INK, { at: [side*.867,y,z] });
+  }
+  const mesh = new THREE.Mesh(p.geometry(), paintMaterial({ metal: 'painted' }));
+  mesh.name = 'Wren — 991 and repairs';
+  return mesh;
+}
+
+function buildTaxi(color, { fares = true, scale = 1, reference = null } = {}) {
   const P = cabParts(color);
   const grp = new THREE.Group();
   const body = new THREE.Mesh(P.smooth, paintMaterial({ smooth: true, side: THREE.DoubleSide, metal: 'painted' }));
@@ -209,6 +228,7 @@ function buildTaxi(color, { fares = true, scale = 1 } = {}) {
   seat.scale.setScalar(k);
   seat.position.set(0, SEAT.y, SEAT.z);
   grp.add(body, trim, tail, glow, lamps, seat);
+  if (reference === 'wren') grp.add(wrenTrim());
   const rnd = Math.random;
   // a passenger in the seat, now and then (human-sized whatever the cab's scale: FIGURE_H / scale)
   let pax = null;
@@ -224,8 +244,8 @@ function buildTaxi(color, { fares = true, scale = 1 } = {}) {
 }
 
 /** The cab as a still model (no physics, no lane), at its scale: the References' panels draw the game's own cab. */
-export function cabModel(color, scale = 1, { fares = true } = {}) {
-  const b = buildTaxi(color, { fares, scale });
+export function cabModel(color, scale = 1, { fares = true, reference = null } = {}) {
+  const b = buildTaxi(color, { fares, scale, reference });
   b.root.scale.setScalar(scale);
   return b.root;
 }
@@ -310,12 +330,12 @@ export class Taxi {
    * @param fares false: a cab that never carries anyone but you (Wren)
    * @param free  true: it stops for you with or without a pass (Wren)
    */
-  constructor(physics, color, scale, lane, { fares = true, free = false } = {}) {
+  constructor(physics, color, scale, lane, { fares = true, free = false, reference = null } = {}) {
     this.physics = physics;
     this.kind = 'taxi';
     this.free = free;
     this.color = color;
-    const b = buildTaxi(color, { fares, scale });
+    const b = buildTaxi(color, { fares, scale, reference });
     this.object = b.root;
     this.parts = b;
     this.time = Math.random() * 10;

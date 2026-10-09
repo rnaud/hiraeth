@@ -1,6 +1,7 @@
 import { limbSegments } from './creases.js';
 import { TRAVELLER_PALETTE } from './traveller-style.js';
 import * as THREE from 'three';
+import { questPieces, questCloth } from './characters/quest-pieces.js';
 import { plantFeet, resetFeet } from './feet.js';
 import { POSE, worldPos, worldQuat } from './world-read.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -927,6 +928,10 @@ export class Humanoid {
     this._propBulk = dressed && PROP_BULK[look?.prop] ? { list: PROP_BULK[look.prop], id: look.prop, bone: 'hand_r', frame: () => this.handFrame() } : null;
     this._bodyBulk = dressed && BODY_BULK[look?.body] ? { list: BODY_BULK[look.body], id: look.body, bone: 'spine_03', frame: () => this.chestFrame() } : null;
     this._backBulk = dressed && BACK_BULK[look?.back] ? { list: BACK_BULK[look.back], id: look.back, bone: 'spine_03', frame: () => this.chestFrame() } : null;
+    const referenceCloth = dressed && questCloth(look);
+    if (referenceCloth) for (const [slot, list] of [['_bodyBulk', referenceCloth.body], ['_backBulk', referenceCloth.back]]) {
+      if (list.length) this[slot] = { list: [...(this[slot]?.list ?? []), ...list], id: look.reference, bone: 'spine_03', frame: () => this.chestFrame() };
+    }
     this._propCap = this._bodyCap = this._backCap = null;
     // (the held prop put away on the back while walking: stow)
     this._stowLook = !!(dressed && look?.stow && look.back && look.back !== 'none');
@@ -1043,7 +1048,7 @@ export class Humanoid {
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
     const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
-    const key = `${this.profile?.id ?? this.kind}|${this.build}${this.years ? `@${this.years}` : ''}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${look.back ?? 'none'}${look.stow ? '/stow' : ''}|${look.shins ?? 'none'}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
+    const key = `${look.reference ? `${look.reference}|` : ''}${this.profile?.id ?? this.kind}|${this.build}${this.years ? `@${this.years}` : ''}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${look.back ?? 'none'}${look.stow ? '/stow' : ''}|${look.shins ?? 'none'}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
     const B = this.b, bones = this.body.skeleton.bones;
@@ -1083,7 +1088,7 @@ export class Humanoid {
       (to ?? (role === 'lamp' ? out.glow : out.main)).push({ geo, role, n, edge, seat });
     };
     // (a MakeHuman body draws its own hair and beard, skinned shells: src/makehuman/hair.js)
-    const pieces = this.profile?.lookPieces ? this.profile.lookPieces(look, this) : lookPieces(look, 1);
+    const pieces = questPieces(look, this.profile?.lookPieces ? this.profile.lookPieces(look, this) : lookPieces(look, 1), this);
     for (const [f, list] of Object.entries(pieces)) {
       const F = frames[f], rigid = () => [[F.bone, 0, 0, 0], [1, 0, 0, 0]];
       if (!F) continue;   // (the skinned shells: below)
@@ -1106,7 +1111,7 @@ export class Humanoid {
       }
     }
     for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints, null, part.edge ?? null);
-    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, part.role, part.joints, null, null, part.seated, part.seatGeo);
+    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, look.kit === 'oilApron' && part.role === 'cloth' ? 'cloak' : part.role, part.joints, null, null, part.seated, part.seatGeo);
     const merged = (list) => {
       if (!list.length) return null;
       const roles = [];

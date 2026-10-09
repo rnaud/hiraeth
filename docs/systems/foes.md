@@ -387,7 +387,7 @@ new attacks, Gentle, the rosters and placed foes, the Arena's list.
 - Not measured on the Retroid yet (no device attached): each foe's meshes and its ground telegraph.
 - The packs hold more (deaths, kicks, the great sword's spins and jump attacks): a charged spin could come
   from them.
-- Foes use procedural body animation rather than skeletal clips; machines still use the box model.
+- Foes use procedural body animation rather than skeletal clips; legacy machines retain their box model; reference-based world machines use articulated bodies.
 - The hitbox overlay (`src/hitboxes.js`) still draws a foe's strike area at `f.pos.y`; for a hovering foe holding
   height over a drop it should use `f.level`.
 - Cover is sampled once per strike cycle (16 rays); a foe does not path round obstacles to its hiding place (it
@@ -466,3 +466,31 @@ A debug overlay of what the fight actually tests, for tuning and for learning th
   projectiles) in the same kinds.
 - Tests: `tests/hitboxes.test.js` (every foe's drawn area against `inArea`, the phases, target radii, the
   height window, the guard against `inGuard`, the real traveller's swing red exactly when `strike()` runs).
+
+### Appearance quality
+
+Flyer wings pivot at their embedded roots; machine arms have overlapping shoulder sockets. The temple sentinel and First Sign use endpoint-defined hip-to-knee links so the upper struts meet the shins. Each normal foe owns and releases its mutable warning-eye/core material; immutable hull materials stay shared. `tests/foe-appearance.test.js` checks wing-root overlap, shoulder sockets, warning-colour isolation and cache lifetime. The enemy screenshot tool sets emerged shades and floating guardian altitude explicitly before inspection.
+
+
+### World enemy reference atlas
+
+`references/enemy-atlas.html` presents Midjourney concepts for all 25 playable worlds; `references/enemy-roster.json` records the roster and each world's `enemies/sources.json` preserves jobs and exported variants. Each world has two local creatures, one possessed ancient machine and one dark humanoid spirit: 100 design slots, 50 corrupted-machine/spirit slots. Four alternative lineup sheets are saved per world (100 image files total). Keep the Moebius science-fiction ink contours, pastel wildlife, aged ivory/brass machinery and violet-black spirits. Some studies show alternate views of the same creature; the notes explain those selections.
+
+The 100 roster entries now have procedural game models and attacks. Home, Atelier and Overnight Train remain peaceful during exploration; their enemies can be fought in the Arena. Development worlds (Lab, Arena, Gadget Yard and References) are excluded from the playable-world concept roster.
+
+The runtime quality pass and its sampling limits are recorded in [characters.md](characters.md#reference-quality-review). Guardian screenshots use representative real pose identifiers and open states; they are not coverage of every attack.
+
+
+### Reference-based world enemies (merged in v1.0)
+
+See [the enemy reference guide](../../references/ENEMIES.md) for source art, provenance and the model/attack editing workflow.
+
+`src/enemies/roster.js` maps all 100 reference slots to model settings and two alternating attacks. `models.js` builds articulated creatures, possessed ancient machines and upright humanoid shadows using the game materials. These are procedural interpretations with shared rigs, not exact reproductions of the Midjourney sheets. Machine fittings, creature proportions, colours and spirit garments distinguish worlds.
+
+`attacks.js` implements 15 reusable patterns: pincers, rush, peck, tail, sweep, stomp, lob, volley, jet, beam, pulse, pull, dive, gust and sting. On commitment, target zones lock their direction/position. Ground warnings and hit checks use those same zones; every contact can fire once, with line-of-sight checks, parries, recovery and Gentle scaling. Lunges and dives move the body; volleys and jets have staggered contacts. `foes.js` selects the reference roster for wilderness packs and optional Arena rosters. The newer authored relic guards and temple encounters keep their specialized kinds and mechanics. `templeOnly` is separate from machine anatomy, so possessed machines can pursue outdoors.
+
+Open `enemies.html` (Worlds → Creatures & spirits) to rotate models, inspect locomotion and both moves, then fight an individual or a world roster. Arena accepts validated `enemyWorld` or `enemy` query parameters. Normal Arena and development-world legacy waves remain supported.
+
+Static geometry is batched by material inside each animated joint. Each instance owns its mutable materials. Machine debris keeps its materials until its last fragment expires; removal/disposal tests cover this lifetime.
+
+Validation: `tests/world-enemies.test.js` covers roster completeness, posed finite geometry, material release, attack commitment/contact timing, range, walls, dodging, parries, Gentle/off modes, spawning and debris cleanup. `scripts/world-enemy-shots.mjs` captures all 100 entries in idle, side locomotion, first strike and second wind-up (400 screenshots). Idle and both attack contact sheets were inspected; selected wing/pincer models were rechecked after repairs. This does not establish artifact-free motion at every frame or reference-exact geometry. `scripts/world-enemy-smoke.mjs` checks actual Arena spawning/chasing and gallery controls using the game renderer, with no browser errors. Retroid performance and touch interaction remain unmeasured.

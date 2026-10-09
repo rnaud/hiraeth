@@ -59,9 +59,9 @@ test('each people has its own hairstyles: bare heads, story people\'s too, seede
   const sets = Object.values(styles);
   assert.equal(new Set(sets).size, sets.length, JSON.stringify(styles));
   // a story person with a bare head ('hair') wears their people's: the same on every visit
-  const kip = namedLook({ world: 'bazaar', id: 'kip', head: 'hair', kind: 'f' });
+  const kip = namedLook({ world: 'bazaar', id: 'generic-messenger', head: 'hair', kind: 'f' });
   assert.ok(Object.keys(COSTUMES.bazaar.tribes[0].hair.f).includes(kip.head), kip.head);
-  assert.deepEqual(namedLook({ world: 'bazaar', id: 'kip', head: 'hair', kind: 'f' }), kip);
+  assert.deepEqual(namedLook({ world: 'bazaar', id: 'generic-messenger', head: 'hair', kind: 'f' }), kip);
   const tiv = namedLook({ world: 'arzach2', id: 'tiv', head: 'hair', kind: 'm' });
   assert.ok(['tonsure', 'shaved', 'bald'].includes(tiv.head), `the bell monastery: ${tiv.head}`);
   // and a story override is kept as it is

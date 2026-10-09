@@ -32,10 +32,10 @@ export function peopleIn(mod) {
   const out = [], seen = new Set();
   for (const [key, v] of Object.entries(mod ?? {})) {
     if (key === 'THINGS' || !v || typeof v !== 'object') continue;
-    for (const d of Array.isArray(v) ? v : Object.values(v)) {
-      if (!d || typeof d !== 'object' || !d.id || !d.name || !(d.palette || d.head || d.kind) || d.narrator || seen.has(d.id)) continue;
+    for (const [i, d] of (Array.isArray(v) ? v : Object.values(v)).entries()) {
+      if (!d || typeof d !== 'object' || !d.id || !d.name || !(d.palette || d.head || d.kind || d.look || key === 'LOCALS') || d.narrator || seen.has(d.id)) continue;
       seen.add(d.id);
-      out.push(d);
+      out.push(key === 'LOCALS' ? { kind: i % 2 ? 'f' : 'm', ...d, ...(d.id === 'tam' ? { age: 'child', years: 7, scale: .72 } : {}) } : d);
     }
   }
   return out;

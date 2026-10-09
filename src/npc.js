@@ -1,3 +1,4 @@
+import { questLook } from './characters/quest-looks.js';
 import * as THREE from 'three';
 import { buildCharacter } from './player.js';
 import { Cape, groundField, trianglesGround, SEATED } from './cape.js';
@@ -118,7 +119,7 @@ export class NPC {
       // a story person's hair and beard follow their kind only when the story says it (def.kind)
       palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind, young });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
-    this.char.pack.visible = !pooled && !dress?.robe && Math.random() < 0.5;
+    this.char.pack.visible = !pooled && !dress?.reference && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
     // their height: the look's (seeded), unless the story sets their size (children, elders: def.scale)
     this.object.scale.setScalar((scale ?? (dress?.height ?? 1)) * (dress?.size ?? 1));
@@ -231,6 +232,16 @@ export class NPC {
     this.endDown();
     this.person = null;
     this.hide();
+  }
+
+  /** Older worlds name their already-created locals when the story binds. */
+  identify(def, world) {
+    this.def = def;
+    if (!questLook(world, def.id) || this.look?.reference === `${world}/${def.id}`) return;
+    this.restyle(namedLook({ world, id: def.id, kind: this.kind,
+      palette: def.palette ?? {}, look: def.look ?? {}, pos: this.pos,
+      young: this.humanoid?.profile?.years < 18 }));
+    this.char.pack.visible = false;
   }
 
   /**

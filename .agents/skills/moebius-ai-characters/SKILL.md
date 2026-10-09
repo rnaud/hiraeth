@@ -1,13 +1,15 @@
 ---
 name: moebius-ai-characters
-description: Generate and integrate AI character meshes into the Moebius/Hiraeth repository with MakeHuman-compatible animation, separate clothing, finger articulation and the game's stylized renderer. Use for new generated characters or repairs to this character pipeline.
+description: Create, integrate and quality-check Moebius/Hiraeth characters and enemies against reference art, including procedural costumes, articulated machines and generated meshes. Use for character creation, reference matching, rigging, clothing fit and visual artifact repairs in this repository.
 ---
 
-# AI characters for Moebius / Hiraeth
+# Character creation and quality for Moebius / Hiraeth
 
 Turn reference art into a reviewable animated character, preserving identity and proportions while measuring rig and cloth quality. This workflow grew from the coral-shirt Tripo experiment. Its repairs and fit constants are character-specific starting points, not a universal auto-rigger.
 
 Use the Moebius/Hiraeth checkout containing this skill; resolve implementation paths from the repository root. Read its current instructions before changing files. The repo reserves port 5173 for the user's server; the experiment uses 5174. Keep new prototype assets separate from the live traveller until the user requests integration. The accepted coral-shirt v1 is already the default playable traveller.
+
+For procedural people, enemies, or a roster-wide quality pass, read [procedural-quality.md](references/procedural-quality.md). It covers reference coverage, attachment geometry, motion-state setup and the reusable screenshot tools.
 
 Read [pipeline-and-failures.md](references/pipeline-and-failures.md) when generating, fitting or repairing a character. Read [repo-map.md](references/repo-map.md) for the existing tools and validation commands. Do not duplicate those implementations into the skill.
 

@@ -1,0 +1,65 @@
+{
+  "world": "spacecity",
+  "title": "The City Floating in Space",
+  "types": [
+    {
+      "name": "Magnetic mollusk",
+      "category": "local-creature"
+    },
+    {
+      "name": "Space moth",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed airlock inspector",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Void wanderer shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "61659565-eaaa-4a99-9b12-0fc01198f47e",
+  "jobUrl": "https://www.midjourney.com/jobs/61659565-eaaa-4a99-9b12-0fc01198f47e?index=1",
+  "selected": "lineup-02.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/61659565-eaaa-4a99-9b12-0fc01198f47e/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/61659565-eaaa-4a99-9b12-0fc01198f47e/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/61659565-eaaa-4a99-9b12-0fc01198f47e/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/61659565-eaaa-4a99-9b12-0fc01198f47e/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Magnetic mollusk; Space moth; Possessed airlock inspector; Void wanderer shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

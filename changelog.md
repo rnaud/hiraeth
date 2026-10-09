@@ -29,6 +29,9 @@ The same release notes shown in the game (press **N** or open settings).
 - A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.
 - The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.
 - The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.
+- The quest characters beyond the Desert wear their reference designs: bird-beaked hoods in Vael, rose monastery robes, padded machine suits, gardeners’ tools, mushroom hats and the Signal Market’s radio collars. Each named person has their own colours, headwear and equipment; Wren carries her old 991 plate and riveted repairs.
+- Character fittings: lanterns hang from their poles, padded seams follow the suit, and enemy wings flap from attached roots. Machines and walking guardians have connected joints, shades stay upright through turns and recoil, and each enemy flashes its own warning eyes.
+- Creatures and spirits: 100 reference-based enemies across 25 worlds, each with two attacks. Half are possessed old machines or dark humanoid spirits.
 
 ## v0.99 — 2026-10-08
 

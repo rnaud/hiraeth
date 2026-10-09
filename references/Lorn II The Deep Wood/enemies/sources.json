@@ -1,0 +1,65 @@
+{
+  "world": "perdide2",
+  "title": "Lorn II The Deep Wood",
+  "types": [
+    {
+      "name": "Root crawler",
+      "category": "local-creature"
+    },
+    {
+      "name": "Fungal spitter",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed wood cutter",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Hollow woodsman shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "94bb1b58-3695-4b59-b10d-44ec6c7aa27c",
+  "jobUrl": "https://www.midjourney.com/jobs/94bb1b58-3695-4b59-b10d-44ec6c7aa27c?index=0",
+  "selected": "lineup-01.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.jpeg",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/94bb1b58-3695-4b59-b10d-44ec6c7aa27c/0_0.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/94bb1b58-3695-4b59-b10d-44ec6c7aa27c/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/94bb1b58-3695-4b59-b10d-44ec6c7aa27c/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/94bb1b58-3695-4b59-b10d-44ec6c7aa27c/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Root crawler; Fungal spitter; Possessed wood cutter; Hollow woodsman shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

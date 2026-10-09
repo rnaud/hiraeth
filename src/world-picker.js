@@ -11,6 +11,7 @@ import { scoreDef } from './minigames/kit/flow.js';
 
 /** The game's other pages, at the top of the list (they leave the game). */
 export const PAGES = [
+  { href: 'enemies.html', label: 'Creatures & spirits', hint: 'the enemies of every world, their attacks, and Arena practice' },
   { href: 'studio.html', label: 'Character studio', hint: 'the people alone, to tune them' },
   { href: 'motion.html', label: 'Motion', hint: 'the traveller\'s loops against motion matching' },
   { href: 'trailer.html', label: 'Trailer', hint: 'the in-engine trailer' },

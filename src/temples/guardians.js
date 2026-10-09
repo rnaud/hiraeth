@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
-import { ell, dome, cyl, cone, box, tube, torus, merge } from '../wildlife/geo.js';
+import { ell, dome, cyl, cone, box, tube, torus, merge, leg } from '../wildlife/geo.js';
 import { glyphGeometry } from '../story/sign-text.js';
 
 // The bodies of what waits in the temples, built from the wildlife's little
@@ -579,7 +579,7 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
     hip.position.set(Math.sin(a) * 1.9, -1.7, Math.cos(a) * 1.9);
     hip.rotation.y = a;
     body.add(hip);
-    hip.add(new THREE.Mesh(merge(box([0.5, 0.5, 3.2], hull2, [0, 0, 1.4], [-0.9, 0, 0]), cyl(0.35, 0.25, 3.4, dark, [0, -1.6, 2.6], null, 8), cyl(0.7, 0.8, 0.3, dark, [0, -3.3, 2.6], null, 10)), mat));
+    hip.add(new THREE.Mesh(merge(leg([0, 0, 0], [0, 0.1, 2.6], 0.35, hull2), ell([0.38, 0.38, 0.38], dark, [0, 0.1, 2.6]), cyl(0.35, 0.25, 3.4, dark, [0, -1.6, 2.6], null, 8), cyl(0.7, 0.8, 0.3, dark, [0, -3.3, 2.6], null, 10)), mat));
     legs.push(hip);
   }
   noCollide(group);
@@ -862,7 +862,7 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
   for (let i = 0; i < 3; i++) {
     const a = (i / 3) * Math.PI * 2 + Math.PI / 3;
     const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.8, -0.9, Math.cos(a) * 1.8); hip.rotation.y = a; body.add(hip);
-    hip.add(new THREE.Mesh(merge(box([0.5, 0.5, 2.6], hull2, [0, 0, 1.1], [-0.7, 0, 0]), cyl(0.32, 0.24, 3.0, dark, [0, -1.6, 2.1], null, 8), cyl(0.8, 0.9, 0.3, dark, [0, -3.2, 2.1], null, 10)), mat));
+    hip.add(new THREE.Mesh(merge(leg([0, 0, 0], [0, -0.1, 2.1], 0.35, hull2), ell([0.36, 0.36, 0.36], dark, [0, -0.1, 2.1]), cyl(0.32, 0.24, 3.0, dark, [0, -1.6, 2.1], null, 8), cyl(0.8, 0.9, 0.3, dark, [0, -3.2, 2.1], null, 10)), mat));
     legs.push(hip);
   }
   noCollide(group);

@@ -1,0 +1,65 @@
+{
+  "world": "waterfall",
+  "title": "The City Behind the Waterfall",
+  "types": [
+    {
+      "name": "Drain crawler",
+      "category": "local-creature"
+    },
+    {
+      "name": "Pressure-jet toad",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed turbine guardian",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Aqueduct keeper shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "70126e00-63f8-4f55-92f7-f5b65dfca026",
+  "jobUrl": "https://www.midjourney.com/jobs/70126e00-63f8-4f55-92f7-f5b65dfca026?index=2",
+  "selected": "lineup-03.jpeg",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/70126e00-63f8-4f55-92f7-f5b65dfca026/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.jpeg",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/70126e00-63f8-4f55-92f7-f5b65dfca026/0_1.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-03.jpeg",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/70126e00-63f8-4f55-92f7-f5b65dfca026/0_2.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    },
+    {
+      "file": "lineup-04.jpeg",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/70126e00-63f8-4f55-92f7-f5b65dfca026/0_3.jpeg",
+      "dimensions": [
+        1536,
+        768
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Drain crawler; Pressure-jet toad; Possessed turbine guardian; Aqueduct keeper shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

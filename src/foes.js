@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeMaterial } from './materials.js';
+import { makeMaterial, releaseMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
@@ -12,6 +12,9 @@ import { KINDS, NOTES, kindModel } from './foe-kinds.js';
 import { packOf, guardKinds, templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
+import { ENEMY_BY_ID, WORLD_ENEMIES, worldPack } from './enemies/roster.js';
+import { enemyModel } from './enemies/models.js';
+import { speciesAttacks, attackReach, lockAttack, speciesContact, poseAttackEffect } from './enemies/attacks.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -186,8 +189,16 @@ export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.7
  * update() returns the events of the frame: 'notice', 'warn', 'strike' { hit }, 'home'.
  */
 export class Foe {
-  constructor(kind, at, { rng = Math.random, id = null } = {}) {
-    this.kind = kind; this.def = FOES[kind]; this.id = id; this.rng = rng;
+  constructor(kind, at, { rng = Math.random, id = null, templeOnly } = {}) {
+    this.variant = ENEMY_BY_ID[kind] ?? null;
+    this.species = this.variant?.id ?? null;
+    this.kind = this.variant?.family ?? kind;
+    if (!FOES[this.kind]) throw new Error(`Unknown enemy: ${kind}`);
+    this.def = this.variant ? { ...FOES[this.kind], name:this.variant.name, giveUp:40 } : FOES[kind];
+    this.templeOnly = templeOnly ?? (this.kind === 'machine' && !this.variant);
+    this.attacks = this.variant ? speciesAttacks(this.variant) : null; this.attackIndex = 0;
+    if (this.attacks) this.selectAttack(0);
+    this.id = id; this.rng = rng;
     this.home = at.clone(); this.pos = at.clone(); this.heading = rng() * Math.PI * 2;
     this.hp = this.def.hp; this.state = 'idle'; this.timer = 0; this.cool = 0.6; this.stunned = 0; this.flash = 0;
     this.attackAt = new THREE.Vector3(); this.attackH = 0; this.wander = rng() * 10; this.vel = new THREE.Vector3();
@@ -210,6 +221,14 @@ export class Foe {
     this.air = null; this.tumble = 0; this.tumbleTop = 0;
     this.hazCool = 0; this.workCool = { updraft: 0, swing: 0 };
   }
+  selectAttack(index) {
+    this.attackIndex=index % this.attacks.length;
+    this.def.attack=this.attacks[this.attackIndex];
+    this.atk=this.def.attack;
+    this.def.reach=attackReach(this.def.attack);
+    this.def.keep=this.def.attack.at==='target'?3.5:0;
+    this.def.recover=this.def.attack.recover;
+  }
   get alive() { return this.state !== 'dead'; }
   get chest() { return (this._chest ??= new THREE.Vector3()).copy(this.pos).setY(this.pos.y + this.over + this.def.height + this.alt); }
   /** The level its strikes and its sight are measured from: a walker's feet; a hovering foe's footing and the height it holds over it. */
@@ -225,6 +244,7 @@ export class Foe {
   attacksAt(d) { const D = this.def; return D.attacks.filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6); }
   /** One of them, by weight (the one it just used less likely). */
   chooseAttack(d) {
+    if(this.variant)return d<=this.def.reach?this.def.attack:null;
     const can = this.attacksAt(d);
     if (can.length < 2) return can[0] ?? null;
     const w = can.map((a) => (a.weight ?? 1) * (a.id === this.lastAtk ? 0.4 : 1));
@@ -240,7 +260,7 @@ export class Foe {
     this.attackH = this.heading;
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
     if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
-    this.placeArea(a, P);
+    if(this.variant)lockAttack(this,P); else this.placeArea(a, P);
   }
   /** Where attack a lands: a ring ahead (a lunge), round it, under you (lobbed), past you (a step through the shadow). */
   placeArea(a, P) {
@@ -336,7 +356,7 @@ export class Foe {
         this.face(dx, dz, dt, 8);
         if (down) { this.circle(P, D.reach + PRESSURE.hold, dt, env); break; }   // (you are down: it waits round you, facing you, for you to rise)
         if (D.hover && this.hide(dt, P, d, env)) break;   // (between strikes, a hovering foe hides behind the world: COVER)
-        if (D.keep && d < D.keep && this.retreat > 0) {
+        if (D.keep && d < D.keep && d > 1e-4 && this.retreat > 0) {
           // too close: it backs off a little, then stands its ground (PRESSURE.retreat), no endless chase
           this.retreat = Math.max(0, this.retreat - dt);
           this.step(-dx / d * D.speed * 0.7 * dt, -dz / d * D.speed * 0.7 * dt, env); this.face(dx, dz, dt, 8);
@@ -359,7 +379,8 @@ export class Foe {
         this.timer += dt; this.k = Math.min(1, this.timer / wind);
         if (a.track && this.k < a.track && playerOk) this.placeArea(a, P);   // (the drawn area follows you, then holds)
         if (this.timer >= wind) {
-          if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
+          if (this.variant) { this.state='strike';this.timer=0;this.k=0;this.contacted=false; }
+          else if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
           else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
         }
         break;
@@ -374,7 +395,12 @@ export class Foe {
           this.step(Math.sin(this.attackH) * d, Math.cos(this.attackH) * d, env);
         }
         if (a.dive) this.alt = THREE.MathUtils.lerp(D.hover, 0.35, this.k);
-        if (a.sweep) {
+        if (this.variant) {
+          for (const zone of this.zones ?? []) if (!zone.done && this.k >= zone.contact) {
+            zone.done=true;
+            ev.push({type:'strike',hit:speciesContact(this,zone,P,env,playerOk),zone});
+          }
+        } else if (a.sweep) {
           // a charge: whatever it runs into on the way is hit, once
           const near = Math.hypot(P.pos.x - this.pos.x, P.pos.z - this.pos.z) < sweepRadius(a, D);
           if (!this.contacted && this.k >= (a.contact ?? 0) && playerOk && near && Math.abs(P.pos.y - this.level) < STRIKE_RISE) { this.contacted = true; ev.push({ type: 'strike', hit: true, atk: a }); }
@@ -393,7 +419,7 @@ export class Foe {
       case 'recover': {
         this.timer -= dt;
         // (a ray dives again only once its time up is over: surfaced, it is there to be fought)
-        if (this.timer <= 0) { this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); if (D.burrow && this.upFor <= 0) this.buried = true; }
+        if (this.timer <= 0) { if(this.attacks)this.selectAttack(this.attackIndex+1); this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); if (D.burrow && this.upFor <= 0) this.buried = true; }
         break;
       }
       case 'home': {
@@ -723,11 +749,12 @@ export function inWilds(p, { people = [], spawn = null } = {}) {
 }
 
 // ------------------------------------------------------------------ how they look
+let foeMaterialId = 0;
 const INK = '#1e1a26';
 function blotModel(kind = 'blot') {
   const g = new THREE.Group();
   const ink = makeMaterial({ color: INK, flat: true, key: 'foe-ink' });
-  const eye = makeMaterial({ color: '#f4efe0', flat: true, glow: 0.6, key: 'foe-eye' });
+  const eye = makeMaterial({ color: '#f4efe0', flat: true, glow: 0.6, key: `foe-eye.${foeMaterialId++}` });
   const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 1), ink);
   body.position.y = 0.55; g.add(body);
   // the scribble: drips and spikes of ink off the body, never the same twice
@@ -745,13 +772,18 @@ function blotModel(kind = 'blot') {
     // a snout to lob from, and sickly yellow-green eyes
     const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.18, 0.45, 8).rotateX(Math.PI / 2), ink);
     snout.position.set(0, 0.5, 0.55); g.add(snout);
-    M.eyeMat = makeMaterial({ color: '#d9f05a', flat: true, glow: 0.6, key: 'foe-eye-spit' }); M.base = '#d9f05a';
+    releaseMaterial(eye);
+    M.eyeMat = makeMaterial({ color: '#d9f05a', flat: true, glow: 0.6, key: `foe-eye-spit.${foeMaterialId++}` }); M.base = '#d9f05a';
     for (const e of eyes) e.material = M.eyeMat;
     M.glob = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 1), ink); M.glob.visible = false;
   }
   if (kind === 'flyer') {
     // wings of ink, flapping
-    M.wings = [-1, 1].map((s) => { const w = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 4).rotateZ(s * Math.PI / 2).scale(1, 1, 0.25), ink); w.position.set(s * 0.75, 0.6, -0.05); g.add(w); return w; });
+    M.wings = [-1, 1].map((s) => {
+      // The broad root overlaps the body; only the outboard span flaps.
+      const w = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 4).rotateZ(-s * Math.PI / 2).scale(1, 1, 0.25).translate(s * 0.48, 0, 0), ink);
+      w.position.set(s * 0.38, 0.6, -0.05); g.add(w); return w;
+    });
   }
   if (kind === 'swarm') M.size = 0.45;
   g.scale.setScalar(M.size);
@@ -765,7 +797,7 @@ function machineModel() {
   const brass = makeMaterial({ color: '#b08a4a', metal: 'brass', key: 'foe-brass' });
   const dark = makeMaterial({ color: '#3a3330', flat: true, key: 'foe-dark' });
   const plate = makeMaterial({ color: '#8f6f3e', metal: 'copper', key: 'foe-plate' });
-  const core = makeMaterial({ color: '#70e7df', flat: true, glow: 0.9, key: 'foe-core' });
+  const core = makeMaterial({ color: '#70e7df', flat: true, glow: 0.9, key: `foe-core.${foeMaterialId++}` });
   const body = new THREE.Mesh(new THREE.SphereGeometry(0.62, 18, 12).scale(1, 0.85, 0.95), brass); body.position.y = 1.35; g.add(body);
   const belt = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.07, 6, 24).rotateX(Math.PI / 2), plate); belt.position.y = 1.22; g.add(belt);
   const cap = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), dark); cap.position.y = 1.82; g.add(cap);
@@ -776,6 +808,7 @@ function machineModel() {
   for (const x of [-0.12, 0, 0.12]) { const d = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), core); d.position.set(x, 0.22, 0); heart.add(d); }
   const arms = [-1, 1].map((s) => {
     const a = new THREE.Group(); a.position.set(s * 0.66, 1.45, 0); g.add(a);
+    a.add(new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), plate));
     const up = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.75, 6).translate(0, -0.37, 0), dark); a.add(up);
     const claw = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.22).translate(0, -0.85, 0.04), brass); a.add(claw);
     return a;
@@ -988,11 +1021,17 @@ export class Foes {
 
   add(kind, at, o = {}) {
     const f = new Foe(kind, at, { rng: this.rng, ...o });
-    f.model = kind === 'machine' ? machineModel() : kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : kindModel(kind) ?? blotModel(kind);
+    f.model = f.variant ? enemyModel(f.variant) : kind === 'machine' ? machineModel() : kind === 'shade' && this.lib && this.humans?.[0] ? this.shadeModel() : kindModel(kind) ?? blotModel(kind);
+    if(f.variant){f.def.height=f.model.height;f.def.radius=f.model.radius;}
     f.model.group.position.copy(at);
     if (!f.model.shade) this.group.add(f.model.group);
     if (f.model.glob) this.group.add(f.model.glob);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
+    if(f.variant){
+      f.zoneTells=Array.from({length:3},()=>new Telegraph(this.group,f.def.attack.color));
+      f.effectMaterial=makeMaterial({color:f.def.attack.color,flat:true,glow:.7,key:`species-effect.${foeMaterialId++}`});
+      f.effects=Array.from({length:3},()=>{const m=new THREE.Mesh(new THREE.SphereGeometry(1,10,6),f.effectMaterial);m.visible=false;m.userData.noCollide=true;this.group.add(m);return m;});
+    }
     f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire', 'bloom'],
       position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
       onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
@@ -1009,6 +1048,11 @@ export class Foes {
     // (each foe's shapes and its warning's glow are its own: let go with it, or every wave of a fight leaves
     // its GPU buffers and materials behind)
     for (const o of [f.model.group, f.model.glob, ...(f.globs ?? [])]) o?.traverse((m) => m.geometry?.dispose());
+    if(f.variant && this.debris?.some(d=>d.owner===f))f.awaitingDebrisDisposal=true;
+    else if(f.model.dispose)f.model.dispose(); else if (f.model.eyeMat) releaseMaterial(f.model.eyeMat);
+    for(const tell of f.zoneTells??[])tell.dispose();
+    for(const effect of f.effects??[]){effect.removeFromParent();effect.geometry.dispose();}
+    if(f.effectMaterial)releaseMaterial(f.effectMaterial);
     this.list.splice(this.list.indexOf(f), 1);
   }
 
@@ -1028,7 +1072,7 @@ export class Foes {
         if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
         const from = _v.copy(m.pos).setY(m.pos.y + 1), to = _w.set(x, y + 1, z);
         if (phys.rayDistance?.(from, to.clone().sub(from).normalize(), from.distanceTo(to)) < from.distanceTo(to) - 0.3) continue;
-        this.add(templeKind(this.levelId, i), new THREE.Vector3(x, y, z), { id }).placed = true;   // (the world's own: src/foe-worlds.js)
+        this.add(templeKind(this.levelId, i), new THREE.Vector3(x, y, z), { id }).placed = true;
         break;
       }
     });
@@ -1036,7 +1080,7 @@ export class Foes {
 
   /** A pack of ink blots comes in, out of sight round you, where there is footing and nothing between. */
   spawnPack() {
-    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.levelId, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
+    const P = this.player, phys = this.physics, kinds = (worldPack(this.packs, this.levelId) ?? packKinds(this.packs, this.levelId, this.rng)).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
     const base = this.rng() * Math.PI * 2;
     let made = 0;
     for (let tries = 0; tries < 24 && made < n; tries++) {
@@ -1075,7 +1119,8 @@ export class Foes {
     if (this.list.some((f) => f.alive)) { this.waveRest = WAVE.rest; return; }
     this.waveRest -= dt;
     if (this.waveRest > 0) return;
-    const P = this.player, kinds = WAVES[this.wave % WAVES.length], base = this.rng() * Math.PI * 2;
+    const roster=WORLD_ENEMIES[this.level?.foes?.roster], single=ENEMY_BY_ID[this.level?.foes?.species];
+    const P = this.player, kinds = single?[single.id]:roster?(this.wave<4?[roster[this.wave].id]:worldPack(this.wave-3,this.level.foes.roster)):WAVES[this.wave % WAVES.length], base = this.rng() * Math.PI * 2;
     kinds.forEach((kind, i) => {
       const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
       const x = P.pos.x + Math.sin(a) * r, z = P.pos.z + Math.cos(a) * r;
@@ -1084,7 +1129,7 @@ export class Foes {
     });
     this.wave++;
     this.waveRest = WAVE.rest;
-    this.notice?.(`Wave ${this.wave}: ${waveWords(kinds)}.`);
+    this.notice?.(`Wave ${this.wave}: ${kinds.some(k=>ENEMY_BY_ID[k])?kinds.map(k=>ENEMY_BY_ID[k]?.name??k).join(" and "):waveWords(kinds)}.`);
   }
 
   /** A shade's body (src/shade.js): the game's skinned person in living shadow; the pools and drops shared by all. */
@@ -1159,7 +1204,7 @@ export class Foes {
     const floor = f.pos.y;
     for (const part of f.model.parts) {
       this.group.attach(part);
-      (this.debris ??= []).push({ o: part, floor, t: 0, vel: new THREE.Vector3((this.rng() - 0.5) * 6, 3 + this.rng() * 4, (this.rng() - 0.5) * 6), spin: new THREE.Vector3(this.rng() * 8 - 4, this.rng() * 8 - 4, this.rng() * 8 - 4) });
+      (this.debris ??= []).push({ owner:f, o: part, floor, t: 0, vel: new THREE.Vector3((this.rng() - 0.5) * 6, 3 + this.rng() * 4, (this.rng() - 0.5) * 6), spin: new THREE.Vector3(this.rng() * 8 - 4, this.rng() * 8 - 4, this.rng() * 8 - 4) });
     }
   }
 
@@ -1171,9 +1216,13 @@ export class Foes {
       d.o.rotation.x += d.spin.x * dt; d.o.rotation.y += d.spin.y * dt; d.o.rotation.z += d.spin.z * dt;
       if (d.o.position.y < d.floor + 0.12) { d.o.position.y = d.floor + 0.12; d.vel.y *= -0.3; d.vel.x *= 0.6; d.vel.z *= 0.6; d.spin.multiplyScalar(0.5); }
       if (d.t > 2.4) d.o.scale.multiplyScalar(Math.max(0, 1 - dt * 3));
-      if (d.t > 3.4) d.o.removeFromParent();
+      if (d.t > 3.4) {d.o.removeFromParent();d.o.traverse(o=>o.geometry?.dispose());}
     }
-    if (this.debris) this.debris = this.debris.filter((d) => d.t <= 3.4);
+    if (this.debris) {
+      const expired=new Set(this.debris.filter(d=>d.t>3.4).map(d=>d.owner));
+      this.debris = this.debris.filter((d) => d.t <= 3.4);
+      for(const f of expired)if(f.awaitingDebrisDisposal&&!this.debris.some(d=>d.owner===f)){f.model.dispose();f.awaitingDebrisDisposal=false;}
+    }
   }
 
   /** The fluid tool touched a foe (targets.js): its mind decides; the look, the sound and the reward follow. */
@@ -1223,7 +1272,7 @@ export class Foes {
   update(dt, paused = false) {
     const P = this.player;
     if (!P) return;
-    if (!this.on) { for (const f of this.list) f.model.group.visible = false; return; }
+    if (!this.on) { for (const f of this.list) { f.model.group.visible=false;f.tele.hide();for(const tell of f.zoneTells??[])tell.hide();for(const effect of f.effects??[])effect.visible=false; } return; }
     if (paused) return;
     if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();
@@ -1246,6 +1295,8 @@ export class Foes {
         if (f.model.shade) { f.model.shade.melt = 1 - f.dead / 0.8; f.model.shade.update(dt, f); }   // (a shade runs away into the ground)
         else f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8));
         f.tele.hide();
+        for(const tell of f.zoneTells??[])tell.hide();
+        for(const effect of f.effects??[])effect.visible=false;
         if (f.dead <= 0) this.remove(f);
         continue;
       }
@@ -1259,11 +1310,11 @@ export class Foes {
         if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
         if (f.kind === 'shade') this.slashTrail(f);
-        const a = e.atk ?? f.def.attack;
+        const a = e.zone?.attack ?? e.atk ?? f.def.attack;
         if (a.wave) this.addWave(f, a);
         if (a.leave) this.leaveSlag(f, a);
         if (a.surface || a.blink) this.burstUp(f, a);
-        if (e.hit) this.strike(f, a);
+        if (e.hit) { this.strike(f, a); if(f.variant && f.stunned>0)break; }
       }
       if (f.def.trail && f.alive && inTemple) this.trailSlag(f);
       this.look(f, dt);
@@ -1356,7 +1407,7 @@ export class Foes {
       const h = a.tether ?? a.grab;
       this.hold = { f, kind: a.tether ? 'tether' : 'grab', t: h.time * g, pull: h.pull, d: f.pos.distanceTo(P.pos) };
       f.letGo = false; P.flinch?.();
-    } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
+    } else if(a.pull) { P.vel?.addScaledVector(_v,-a.pull);P.flinch?.(); } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
     else { P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5); P.flinch?.(); }   // (a flinch from motion capture: player.js)
     if (a.blind) this.blind(a.blind * g, f.def.tone);
     return true;
@@ -1551,7 +1602,7 @@ export class Foes {
   firstSeen() {
     if (this.game.flag('foes.seen')) return;
     this.game.set('foes.seen', true);
-    this.notice?.('Ink blots: watch their bodies wind up. {key:blade} cuts; {key:guard} guards; {key:evade} evades. A last-moment guard parries. Each foe cut gives the tank a charge back.');
+    this.notice?.('Creatures, possessed machines and shadow spirits: watch their bodies wind up. {key:blade} cuts; {key:guard} guards; {key:evade} evades. A last-moment guard parries. Each foe cut gives the tank a charge back.');
   }
 
   /** The look follows the mind: a blot wobbles and squashes into its lunge, a machine walks and raises its arms. */
@@ -1560,13 +1611,14 @@ export class Foes {
     g.visible = true;
     g.position.copy(f.pos);
     g.position.y += f.over;   // (a hovering foe's held height over its footing: HOVER)
-    g.rotation.y = f.heading;
+    g.rotation.set(0, f.heading, 0);
     const moving = f.state === 'chase' || f.state === 'home';
     const wind = f.state === 'wind' ? THREE.MathUtils.smoothstep(f.k, 0, 0.72) : 0;
     const strike = f.state === 'strike', recover = f.state === 'recover';
     const recovery = recover ? THREE.MathUtils.clamp(f.timer / f.def.recover, 0, 1) : 0;
     const release = strike ? THREE.MathUtils.smoothstep(f.k, 0, 0.7) : 0;
-    if (M.shade) {
+    if (f.variant) { M.animate(f,dt,t); }
+    else if (M.shade) {
       M.shade.melt = Math.max(0, M.shade.melt - dt / 0.8);   // (it pours up out of the ground as it comes)
       M.shade.update(dt, f);
     } else if (M.anim) {
@@ -1613,9 +1665,20 @@ export class Foes {
     // Recoil follows the blow, then settles; a heavy impact also buckles the body.
     const r = Math.sin(f.recoil * Math.PI * 0.5), strength = f.heavyRecoil ? 0.28 : 0.12;
     g.position.addScaledVector(f.recoilDir, r * strength);
-    g.rotation.x += r * strength * (f.recoilDir.x * Math.sin(f.heading) + f.recoilDir.z * Math.cos(f.heading));
-    g.rotation.z = -r * strength * (f.recoilDir.x * Math.cos(f.heading) - f.recoilDir.z * Math.sin(f.heading));
+    // Compose recoil onto the orientation. Rewriting one Euler component after a
+    // quaternion yaw past 90 degrees can discard its equivalent PI roll and invert a shade.
+    g.rotateX(r * strength * (f.recoilDir.x * Math.sin(f.heading) + f.recoilDir.z * Math.cos(f.heading)));
+    g.rotateZ(-r * strength * (f.recoilDir.x * Math.cos(f.heading) - f.recoilDir.z * Math.sin(f.heading)));
     g.position.y -= f.heavyRecoil ? r * 0.14 : 0;
+    if(f.variant){
+      f.tele.hide();
+      for(let i=0;i<f.zoneTells.length;i++){
+        const z=f.zones?.[i],tell=f.zoneTells[i],effect=f.effects[i];
+        const live=z&&!f.stunned&&['wind','strike'].includes(f.state);
+        if(live){tell.show(z.attack,z.at,z.heading,z.at.y);tell.set(f.state==='wind'?f.k:1,t);tell.fillM.uniforms.uColor.value.set(z.attack.color);poseAttackEffect(effect,f,z,t);}
+        else {tell.hide();effect.visible=false;}
+      }
+    } else {
     // Melee reads from the body; ranged impacts and areas (a lob, a lane, a shockwave's slam) are drawn on the floor.
     const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
     const drawn = f.state === 'wind' && (a.tele || a.at === 'target' || a.at === 'behind');
@@ -1623,6 +1686,7 @@ export class Foes {
       const T = i === 0 ? f.tele : ((f.teles ??= [])[i - 1] ??= new Telegraph(this.group, f.def.tone ?? '#6d4fa8'));
       if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, a.at === 'behind' || a.at === 'target' ? pts[i].y : f.level); T.set(f.k, t); }
       else T.hide();
+    }
     }
   }
 
@@ -1660,5 +1724,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { for (const f of this.list.slice()) this.remove(f); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.shadePools?.dispose(); this.shocks = this.patches = null; this.hold = null; }
+  dispose() { for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.shadePools?.dispose(); this.shocks = this.patches = null; this.hold = null; }
 }

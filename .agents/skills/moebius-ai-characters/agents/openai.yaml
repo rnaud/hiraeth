@@ -1,4 +1,4 @@
 interface:
-  display_name: "Moebius AI Characters"
-  short_description: "Generate, fit and validate AI game characters"
-  default_prompt: "Use $moebius-ai-characters to create or repair an AI character with MakeHuman animation and game-style rendering."
+  display_name: "Moebius Character Creation"
+  short_description: "Create and visually check game characters and enemies"
+  default_prompt: "Use $moebius-ai-characters to create or repair a character, match its reference and verify its clothing, joints and animation in the game renderer."

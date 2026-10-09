@@ -152,7 +152,8 @@ export function createStory(o) {
 
   /** E talks to this person. */
   function talkable(npc, def) {
-    npc.def = def;
+    if (npc.identify) npc.identify(def, levelId);
+    else npc.def = def;
     return registerInteractable({
       id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4, npc,
       prompt: `talk to ${def.name.replace(/^The /, 'the ')}`,

@@ -1,0 +1,65 @@
+{
+  "world": "underside",
+  "title": "The Underside",
+  "types": [
+    {
+      "name": "Bridge crawler",
+      "category": "local-creature"
+    },
+    {
+      "name": "Abyss ray",
+      "category": "local-creature"
+    },
+    {
+      "name": "Possessed cable crane",
+      "category": "possessed-machine"
+    },
+    {
+      "name": "Suspended humanoid shade",
+      "category": "shadow-spirit"
+    }
+  ],
+  "job": "8a2f2cfb-dc52-4712-81df-0a5f3ba1bbf3",
+  "jobUrl": "https://www.midjourney.com/jobs/8a2f2cfb-dc52-4712-81df-0a5f3ba1bbf3?index=1",
+  "selected": "lineup-02.webp",
+  "files": [
+    {
+      "file": "lineup-01.webp",
+      "variant": 1,
+      "source": "https://cdn.midjourney.com/8a2f2cfb-dc52-4712-81df-0a5f3ba1bbf3/0_0_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-02.webp",
+      "variant": 2,
+      "source": "https://cdn.midjourney.com/8a2f2cfb-dc52-4712-81df-0a5f3ba1bbf3/0_1_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-03.webp",
+      "variant": 3,
+      "source": "https://cdn.midjourney.com/8a2f2cfb-dc52-4712-81df-0a5f3ba1bbf3/0_2_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    },
+    {
+      "file": "lineup-04.webp",
+      "variant": 4,
+      "source": "https://cdn.midjourney.com/8a2f2cfb-dc52-4712-81df-0a5f3ba1bbf3/0_3_640_N.webp?method=shortest",
+      "dimensions": [
+        1280,
+        640
+      ]
+    }
+  ],
+  "notes": "Use the four main figures from left to right; incidental marks are not design requirements.",
+  "brief": "Four full-body enemies, two pastel local creatures then one spirit-poisoned ancient ivory/brass machine and one ink-black/violet humanoid shade. Bridge crawler; Abyss ray; Possessed cable crane; Suspended humanoid shade. Moebius science-fiction ligne claire, fine ink contours, warm ivory paper, fully visible bodies, no text, --ar 2:1."
+}

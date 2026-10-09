@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { questLook } from './characters/quest-looks.js';
 import { mulberry32 } from './noise.js';
 import { irisFor } from './eyes.js';
 import { FACE_TYPES, FACE_ODDS } from './morph.js';
@@ -684,7 +685,11 @@ export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null
 
 /** A named person's look: seeded by who they are, so they look the same every visit. */
 export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null, young = false } = {}) {
-  return dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look, pos, kind, named: true, young });
+  const ref = questLook(world, id);
+  const s = dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look: ref ? { ...look, ...ref } : look, pos, kind, named: true, young });
+  // Apply the canonical palette after the seeded draw; unrelated people keep their exact looks.
+  if (ref) Object.assign(s, ref, { reference: `${world}/${id}`, kind: s.kind });
+  return s;
 }
 
 /** The ids a look shows, in a comparable form (tests; a promoted NPC must match its crowd figure). */
@@ -1789,7 +1794,7 @@ export const CROWD_FRAMES = { head: { y: 1.655, z: 0, s: 0.92 }, chest: { y: 0.7
 
 /** The colour of a role for a look. */
 export function roleColor(s, role) {
-  return FIXED[role] ?? { hat: s.hat, accent: s.accent, cloak: s.cloak, cloth: s.cloth, hair: s.hair, skin: s.skin, legs: s.legs }[role] ?? s.cloak;
+  return (role?.startsWith('#') ? role : null) ?? FIXED[role] ?? { hat: s.hat, accent: s.accent, cloak: s.cloak, cloth: s.cloth, hair: s.hair, skin: s.skin, legs: s.legs }[role] ?? s.cloak;
 }
 
 /** Every world with its own costume set (all the game's levels). */

@@ -664,9 +664,26 @@ function sheet({ cols = 4, w = 340, h = 400, view = state.view === 'close' || st
       for (let k = 0; k < 2; k++) {
         const head = p.h.b.Head.getWorldPosition(new THREE.Vector3()), sc = p.root.scale.y;
         p.h.drawnFace?.at(p.h.b.Head, head);
-        head.y += ((view === 'bust' ? -0.13 : view === 'close' && !p.h.drawnFace ? 0.045 : 0) + (p.h.drawnFace ? 0 : faceOffset(p))) * sc;
+        head.y += ((view === 'full' || view === 'far' ? -0.75 : view === 'bust' ? -0.13 : view === 'close' && !p.h.drawnFace ? 0.045 : 0) + (p.h.drawnFace ? 0 : faceOffset(p))) * sc;
         // (the cell is cut from the middle of the picture, its full height: the face view's framing)
-        const dist = V.dist * sc * orbit.zoom * z;
+        let dist = V.dist * sc * orbit.zoom * z;
+        if(view === 'full' || view === 'far') {
+          // Fit the complete posed figure, including long tools and tall hats.
+          // Skinned bounds must be refreshed after posing, not cached at bind.
+          const bounds=new THREE.Box3();
+          for(const root of parts(p)) {
+            root.updateWorldMatrix(true,true);
+            root.traverse(o=>{if(o.isSkinnedMesh)o.computeBoundingBox();});
+            bounds.union(new THREE.Box3().setFromObject(root,true));
+          }
+          if(!bounds.isEmpty()) {
+            bounds.getCenter(head);
+            const size=bounds.getSize(new THREE.Vector3());
+            const radius=size.length()*.5;
+            const halfFov=Math.atan(Math.tan(THREE.MathUtils.degToRad(camera.fov)*.5)*Math.min(1,s0));
+            dist=radius/Math.sin(halfFov)*1.12*z;
+          }
+        }
         camera.position.set(head.x + Math.sin(orbit.yaw) * Math.cos(orbit.pitch) * dist, head.y + Math.sin(orbit.pitch) * dist, head.z + Math.cos(orbit.yaw) * Math.cos(orbit.pitch) * dist);
         camera.lookAt(head);
         camera.updateMatrixWorld();
@@ -1011,5 +1028,5 @@ resize();
 applyLight();
 await rebuild();
 await roomsReady;
-window.studio = { step, sheet, mh: () => mhData, gbuffer, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
+window.studio = { step, sheet, render: renderFrame, assets: {lib, humans}, mh: () => mhData, gbuffer, state: () => state, people: () => people, scene, camera, renderer, post, rebuild, applyLook, applyBody, applyFace, applyLight, updatePanel, set: (s) => { state = cleanState({ ...state, ...s }); saveURL(); updatePanel(); }, NEUTRAL_BODY, cleanMorph, orbit };
 requestAnimationFrame((t) => { last = t; frame(t); });
