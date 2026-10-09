@@ -261,6 +261,7 @@ export class Cinema {
   }
 
   bars(on) {
+    this._bars = on; if (!on) this._walk = false;   // (toasts wait for a letterboxed scene's end, unless you walk through it: dark())
     if (!this.dom) return;
     this.el.classList.toggle('on', on);
     document.body.classList.toggle('cine-on', on);
@@ -314,6 +315,7 @@ export class Cinema {
 
   /** Show only the touch controls and the use prompt (the rest of the HUD stays hidden): a scene you walk through. */
   controls(show) {
+    this._walk = show;
     if (!this.dom) return;
     const t = document.getElementById('touch');
     if (t) t.style.visibility = show ? '' : 'hidden';
@@ -336,7 +338,7 @@ export class Cinema {
     this.skipK = k;
     if (!this.dom) return;
     const txt = label ?? holdToSkip(), node = this.skipEl.firstChild;
-    if (node && node.nodeType === 3 && node.nodeValue !== txt && (show || !label)) node.nodeValue = txt;
+    if (node && node.nodeType === 3 && node.nodeValue !== txt && show) node.nodeValue = txt;   // (only as it shows: swapped while fading out, a moment's tag flashed "hold ESC to skip")
     this.skipEl.classList.toggle('press', !!label && show);
     const was = this.skipEl.classList.contains('show');
     this.skipEl.classList.toggle('show', show);
@@ -378,6 +380,7 @@ export class Cinema {
   dark() {
     if (!this.dom) return false;
     if (this.held) return true;   // (a moment plays: src/story/moment.js; its toasts come after)
+    if (this._bars && !this._walk) return true;   // (a ship's scene, a recording: a quest's toast over it read as clutter, the cinematics QC pass)
     return this._lidK < 0.9 || this.el.classList.contains('lids') || (parseFloat(this.fadeEl.style.opacity) || 0) > 0.5
       || !!document.querySelector(HOLD_TOASTS);
   }

@@ -73,6 +73,25 @@ test('a moment plays once through: letterbox up, beats and lines in order, the c
   assert.equal(ended.n, 1, 'never twice');
 });
 
+test('the lens never goes under the ground, even where the colliders see nothing (the cinematics QC pass)', async () => {
+  const { GROUND_CLEAR } = await import('../src/story/moment.js');
+  const S = fakeStage();
+  S.physics = { rayDistance: () => Infinity, base: { heightAt: (x) => (x < 1 ? 4 : -10) } };   // a dune behind, low ground ahead
+  const m = new Moment({ id: 'g', shots: two, stage: S });
+  m.start(); run(m, 3.2);
+  const under = S.shots.filter((c) => c.pos.x < 1);
+  assert.ok(under.length && under.every((c) => c.pos.y >= 4 + GROUND_CLEAR - 1e-9), 'lifted out of the dune');
+  assert.ok(S.shots.filter((c) => c.pos.x > 1).every((c) => c.pos.y === 0), 'left alone where the ground is below');
+});
+
+test('beats run at their own time even when listed out of order (the Lantern\'s chime came at 4.8 s, the QC pass)', () => {
+  const S = fakeStage(), at = {};
+  const m = new Moment({ id: 'o', shots: two, stage: S, beats: [{ t: 2, run: (mm) => { at.late = mm.t; } }, { t: 0.2, run: (mm) => { at.early = mm.t; } }] });
+  m.start(); run(m, 3);
+  assert.ok(at.early < 0.3, `the early beat at ${at.early}`);
+  assert.ok(at.late >= 2 && at.late < 2.1);
+});
+
 test('skip: not in its first moments (a press mashed through), then on the next frame, to its end', () => {
   const S = fakeStage(), said = [];
   let skipped = null;

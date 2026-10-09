@@ -393,7 +393,7 @@
         opacity: 0; visibility: hidden; transition: opacity 0.4s, visibility 0s 0.4s; }
       body.aiming #tool, body.tool-gauge #tool { opacity: 1; visibility: visible; transition: opacity 0.15s; }
       body:not(.aiming) #tool .cross { visibility: hidden; }
-      body.talking #tool { visibility: hidden; }
+      body.talking #tool, body.cine-on #tool { visibility: hidden; }   /* (a cinematic: the jar's gauge waits too) */
       #tool .cross { position: relative; width: 24px; height: 24px; border: 2px solid #2b211f; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(247, 236, 210, 0.75), inset 0 0 0 1.5px rgba(247, 236, 210, 0.6); transition: transform 0.12s; }
       #tool .cross::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px; border-radius: 50%; background: #2b211f; }
       #tool .cross i { position: absolute; background: #2b211f; box-shadow: 0 0 0 1px rgba(247, 236, 210, 0.7); }

@@ -236,6 +236,10 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.ok(boxes.scene.model.visible && boxes.scene.model.position.distanceTo(box.pos) > LIFT, 'the item hangs where it was');
   assert.ok(box.sceneLight > 0.9, 'light pours out');
   assert.ok(shots.length > 100 && shots.at(-1).pos, 'the camera is the scene’s');
+  // one continuous camera: the reveal pushes in from the first angle, no jump between frames (the cinematics QC pass)
+  const real = shots.filter((o) => o.pos);
+  const step = Math.max(...real.slice(1).map((o, i) => o.pos.distanceTo(real[i].pos)));
+  assert.ok(step < 0.25, `no jump in the camera (largest step ${step.toFixed(2)} m)`);
   assert.equal(items.has('backpack'), false, 'not yours until you press on');
   assert.equal(boxes.dismiss(), true);
   for (let i = 0; i < 60; i++) boxes.update(1 / 30, 9 + i / 30);

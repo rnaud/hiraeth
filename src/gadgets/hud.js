@@ -28,6 +28,7 @@ body.minigame #gadget-chip, body.minigame #gadget-reticle, body.minigame #gadget
 @keyframes gchip { 0% { transform: rotate(-0.6deg) scale(1.25); } 100% { transform: rotate(-0.6deg) scale(1); } }
 body.touch #gadget-chip { pointer-events: auto; bottom: calc(86px + var(--safe-bottom, 0px)); }
 body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
+body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wheel, body.cine-on #gadget-marks { display: none !important; }   /* (a cinematic: its letterbox is up, src/ship/cinema.js) */
 #gadget-reticle { position: fixed; left: 0; top: 0; z-index: 31; pointer-events: none; display: none; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
 #gadget-reticle.on { display: block; }
 #gadget-reticle .r { position: absolute; inset: 0; border: 2.5px solid #2b211f; border-radius: 50%; box-shadow: 0 0 0 2px rgba(247, 236, 210, 0.8); }

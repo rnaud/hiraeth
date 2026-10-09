@@ -38,6 +38,8 @@ export function wobbleAngle(w, u) {
   return w.dir * w.amp * Math.sin(k * Math.PI * 3) * Math.pow(1 - k, 1.3);
 }
 export const OUT_TIME = 1.3;
+/** s the camera takes to push in from A to B at the reveal (a move, not a jump cut). */
+export const PUSH_IN = 0.8;
 export const STAND_AT = (BOX.d / 2) * BOX_SCALE + 0.9;   // m from the box centre to where the traveller stands (front side)
 export const LIFT = 0.75;      // m the box rises before it comes apart
 export const CARD_MIN = 0.5;   // s the card is up before a press counts (no accidental dismissals)
@@ -278,6 +280,15 @@ export class BoxScene {
       pos = this.P(1.25 * k, 1.45, STAND_AT + 0.9 * k);
       look = this.heart(1);
       fov = 44;
+      // pushed in from where A ended, not cut: the two angles are a metre apart and the cut read as
+      // the camera jumping (the cinematics QC pass, docs/systems/cinematics-qc.md)
+      const b = smooth(since / PUSH_IN);
+      if (b < 1) {
+        const a = 1 - 0.18;   // (A's push, finished by the reveal)
+        pos.lerpVectors(this.P(1.7 * a, 1.5, STAND_AT + 2.6 * a), pos, b);
+        look.y -= 0.15 * (1 - b);
+        fov = 46 + (44 - 46) * b;
+      }
     }
     // a tall phone screen: widen the lens so the traveller, the box and the item still fit across
     const aspect = typeof innerWidth === 'number' && innerHeight > 0 ? innerWidth / innerHeight : 1.6;

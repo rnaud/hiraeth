@@ -115,7 +115,8 @@ test('a quiet moment: set in place, kneeling, its lines, then back to you', () =
   const char = buildCharacter();
   const said = [], shots = [];
   const player = { pos: V(1, 0, 1), heading: 0, vel: V(), char, overlay: null };
-  const ship = { cinema: { say: (l) => said.push(l), bars() {}, hud() {} }, shot: (s) => shots.push(s), release() {} };
+  const tags = [];
+  const ship = { cinema: { say: (l) => said.push(l), bars() {}, hud() {}, skip: (k, on, label) => tags.push([on, label]) }, shot: (s) => shots.push(s), release() {} };
   let ended = false;
   const m = new Moment({ player, ship, at: V(3, 0, 3), heading: 1.2, pose: 'kneel', dur: 6, beats: [{ t: 1, line: { who: 'scene', text: 'a' } }, { t: 3, line: { who: 'you', text: 'b' } }],
     shot: () => ({ pos: V(0, 1, 0), look: V(3, 0.5, 3) }), onEnd: () => { ended = true; } });
@@ -128,6 +129,7 @@ test('a quiet moment: set in place, kneeling, its lines, then back to you', () =
   assert.equal(char.body.position.y, 0, 'standing');
   assert.deepEqual(said.filter(Boolean).map((l) => l.text), ['a', 'b']);
   assert.ok(shots.length > 30, 'the camera framed it throughout');
+  assert.ok(tags[0][0] && /skip/.test(tags[0][1]) && tags.at(-1)[0] === false, 'its skip tag shows while it plays (the cinematics QC pass)');
   kneelPose(char, 0);   // (a zero weight changes nothing)
 });
 

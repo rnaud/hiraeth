@@ -14,6 +14,36 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Greatly reduce text in the item debug menu. In fullscreen on the Retroid, keep the text from
   taking over the screen and hiding the item; the item should remain clearly visible.
 
+# Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
+
+- [ ] The City-Shaft's third panel (`incal.moment.lodestar` C) frames a billboard that reads blank: the
+  LOOK UP lettering doesn't show at that distance and lens, so the beat (the city has stopped selling)
+  is lost. Frame a billboard whose words read, closer and squarer, or bring the words up on the panel.
+- [ ] The recordings (`call.1`…`call.11`, Ilen, the trace) are one slow push-in over his shoulder onto the
+  hologram for 25–77 s. Give the long ones two or three angles (the father's face in the light, the
+  traveller listening, the window) without changing their words or timing.
+- [ ] The homecomings lay the tokens on the stone one by one, a line each, on one held angle for over a
+  minute (`homecoming.first`, `homecoming.final`). Cut between the stone, his hands and Lou's face, or
+  lay them in small groups.
+- [ ] The Lantern's light reads as a dark disc while it is far up in the dusk (it only glows close to the
+  crown): give it its glow from the start of the moment.
+- [ ] The pale star is now on his overshirt (he has no hood): the homecoming's token line still says
+  "The pale star from your hood", and the item's text says it is worn on the hood.
+- [ ] The box opening is one camera for every box (32 of them, 7–9 s): the same angle, wobbles and
+  reveal whatever the item. Consider a closing beat per kind of item (a gadget tried once, a
+  cosmetic worn), or a shorter opening after the first few boxes.
+- [ ] Vael's second panel (`arzach.moment.bird` B) is two seconds of plain sky with a speck: keep the
+  horizon or the haze's towers at the frame's foot so the long lens has something to rise from.
+- [ ] The Garden of Spheres' temple box (`box.spheres.temple.lens`) sits sunk into its dais: the opening's
+  camera, framed off the box, is low and cuts the traveller's head off the top of the frame. Raise the box
+  onto the dais (or frame the scene off where he stands).
+- [ ] Home's window seat is one angle for 9.5 s, him facing us with the view behind: a second panel over his
+  shoulder out of the window (the ring, the path to the house) would show what the lines describe.
+- [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the
+  review page (the script confirms the cargo check but can't judge the walk-through parts).
+- [ ] After the City-Shaft's moment control comes back with the follow camera jammed against his head
+  at the palace's crown (seen from the review page's staging): check it from a real playthrough.
+
 # Playtest notes (2026-10-08)
 
 ## Shadows and visuals

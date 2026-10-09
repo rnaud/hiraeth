@@ -64,6 +64,8 @@ export function shotAt(shots, t, base = 50) {
 }
 
 const _d = new THREE.Vector3(), _m4 = new THREE.Matrix4();
+/** m the lens keeps above the terrain (physics.base) in every panel. */
+export const GROUND_CLEAR = 0.45;
 
 /**
  * Where someone's face is and which way it looks, from their head as it is posed now (the idle
@@ -95,6 +97,7 @@ export class Moment {
    */
   constructor(o) {
     Object.assign(this, { beats: [], grace: 0.6, blendOut: 1.2, ...o });
+    this.beats = [...this.beats].sort((a, b) => a.t - b.t);   // (run in time order: one listed late used to wait for the ones before it)
     this.dur = o.dur ?? shotsLength(this.shots ?? []);
     this.t = 0; this.done = false; this.skipped = false; this._next = 0; this.line = null; this.lineT = 0;
   }
@@ -170,6 +173,11 @@ export class Moment {
         if (hit < d) c.pos.copy(c.look).addScaledVector(dir, Math.max(0.6, hit - 0.3));
       }
     }
+    // never under the ground: the terrain is not in the colliders the ray above sees, and a low lens
+    // framed off his position on flat ground ends up inside the dune behind him on a slope (the QC pass:
+    // Vael's first panel was shot from 3 m inside a dune, docs/systems/cinematics-qc.md)
+    const g = ph?.base?.heightAt?.(c.pos.x, c.pos.z);
+    if (Number.isFinite(g) && c.pos.y < g + GROUND_CLEAR) c.pos.y = g + GROUND_CLEAR;
     const aspect = typeof innerWidth === 'number' && innerHeight > 0 ? innerWidth / innerHeight : 1.6;
     if (aspect < 1.2) c.fov = Math.min(80, Math.max(c.fov, THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(c.fov / 2)) * 1.4 / aspect))));
     return c;

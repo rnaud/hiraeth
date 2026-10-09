@@ -54,6 +54,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [dialogue.md](systems/dialogue.md) | conversations and answers, listening, alien voices and the translator, the worlds' scripts, highlights, keys in lines (`{key:aim}`), the conversation camera |
 | [conversations.md](systems/conversations.md) | conversations: the camera's cut, the close shot of the traveller's face, holding still while he talks, fires kept out of the shot, who gets a balloon, the gap between two people, the translator |
 | [cinematics.md](systems/cinematics.md) | the ship's cutscenes and the burning tree, moments (first times, filmed) |
+| [cinematics-qc.md](systems/cinematics-qc.md) | the cinematics' quality control: the script that plays every one headless, the checklist, the scores of the October 2026 pass and what it fixed |
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes |

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { spoken } from './tone.js';
 import { makeMaterial } from '../materials.js';
+import { closeUp } from './film.js';
 import { QUESTS, PEOPLE, KEEPSAKE, ARRIVE_LINES, QUEST_ID as Q } from './lantern-data.js';
 
 // The Lantern, alive (lantern-data.js has the words; src/levels/lantern.js the place).
@@ -15,6 +16,8 @@ import { QUESTS, PEOPLE, KEEPSAKE, ARRIVE_LINES, QUEST_ID as Q } from './lantern
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+/** s per panel of the light's arrival (A: him and the light coming down, B: the crown, C: his face). */
+export const LANTERN_SHOTS = { A: 4.0, B: 4.0, C: 2.0 };
 
 export function setupLantern(ctx) {
   const { level, quests, dialogue, game, spawn, story, sound, player, toast = () => {}, moments = null } = ctx;
@@ -58,18 +61,33 @@ export function setupLantern(ctx) {
     orb.userData.noCollide = true;
     orb.position.copy(from);
     level.lantern.crown.parent?.add(orb);
+    // three panels (the cinematics QC pass, docs/systems/cinematics-qc.md: before, the first framed empty
+    // dusk with the lantern under the subtitle, and the second pulled in against the crown's rail):
+    //   A behind him, wide, the lantern's crown above the caption and the light coming down to it;
+    //   B across from the crown at its height, wide, as the light settles in; C his face, looking up
+    const P = player.pos.clone(), d = V(top.x - P.x, 0, top.z - P.z);
+    if (d.lengthSq() < 1) d.set(0, 0, -1);
+    d.normalize();
+    const r = V(-d.z, 0, d.x);
     const m = moments?.play?.({
-      id: 'lantern.arrive', flag: 'lantern.moment.arrive', dur: 9,
+      id: 'lantern.arrive', flag: 'lantern.moment.arrive', dur: LANTERN_SHOTS.A + LANTERN_SHOTS.B + LANTERN_SHOTS.C,
       shots: [
-        { dur: 4.5, from: { pos: player.pos.clone().add(V(4, 1.6, 6)), look: top.clone().add(V(-10, 14, 20)), fov: 48 }, to: { pos: player.pos.clone().add(V(3, 1.4, 5)), look: top.clone().add(V(-3, 4, 6)), fov: 44 } },
-        { dur: 4.5, from: { pos: top.clone().add(V(9, -8, 22)), look: top.clone(), fov: 40 }, to: { pos: top.clone().add(V(7, -9, 18)), look: top.clone().add(V(0, -1, 0)), fov: 38 } },
+        { dur: LANTERN_SHOTS.A, ease: 'linear', from: (t) => {
+          const k = Math.min(1, t / LANTERN_SHOTS.A), lit = orb.getWorldPosition(V(0, 0, 0));
+          return { pos: P.clone().addScaledVector(d, -9 + 1.2 * k).addScaledVector(r, 2.5 - 0.3 * k).add(V(0, 2.4 - 0.2 * k, 0)), look: top.clone().lerp(lit, 0.3).add(V(0, -4, 0)), fov: 56 - 4 * k };
+        } },
+        { dur: LANTERN_SHOTS.B, clear: false, from: { pos: top.clone().addScaledVector(d, -26).addScaledVector(r, 9).add(V(0, -1, 0)), look: top.clone().add(V(0, 0.5, 0)), fov: 34 },
+          to: { pos: top.clone().addScaledVector(d, -23).addScaledVector(r, 8).add(V(0, -1.5, 0)), look: top.clone(), fov: 32 } },
+        { dur: LANTERN_SHOTS.C, clear: false, from: closeUp(player, { angle: 0.55, dur: LANTERN_SHOTS.C, drop: 0.2 }) },
       ],
+      // (in time order: the moment runs its beats in the order given, so the chime listed last came at 4.8 s)
       beats: [
-        { t: 0.4, line: spoken('scene', ARRIVE_LINES[0]), secs: 4 },
-        { t: 4.8, line: spoken('scene', ARRIVE_LINES[1]), secs: 4 },
         { t: 0.2, run: () => sound?.chime?.() },
+        { t: 0.4, line: spoken('scene', ARRIVE_LINES[0]), secs: 3.6 },
+        { t: LANTERN_SHOTS.A + 0.3, line: spoken('scene', ARRIVE_LINES[1]), secs: 3.8 },
       ],
-      onFrame: (mm, t) => { orb.position.lerpVectors(from, top, Math.min(1, t / 7) ** 0.7); orb.scale.setScalar(1 - Math.min(1, t / 8) * 0.4); },
+      onStart: (mm) => { mm.face = top.clone(); mm.eyes = top.clone(); },
+      onFrame: (mm, t) => { orb.position.lerpVectors(from, top, Math.min(1, t / 7) ** 0.7); orb.scale.setScalar(1 - Math.min(1, t / 8) * 0.4); orb.getWorldPosition(mm.eyes); },
       onEnd: () => { orb.removeFromParent(); game.set('lantern.moment.arrive', true); },
     });
     if (!m) { orb.removeFromParent(); game.set('lantern.moment.arrive', true); }

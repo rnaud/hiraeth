@@ -247,6 +247,10 @@ and Pass / Needs work decisions are stored separately in this browser and export
 Deep links use the cinematic id in the page hash. This is a review tool, not a deterministic video
 exporter: world simulation and interactive beats run live.
 
+The same list is played headless by `scripts/cinematics-qc.mjs` (frames, the HUD, the lens, loudness,
+the skip), with the checklist in `.claude/skills/cinematics-qc/SKILL.md`; the scores and fixes of each
+pass are in [cinematics-qc.md](cinematics-qc.md).
+
 ## The jump to space (src/ship/cinema.js `Warp`, playtest 2026-10-08)
 
 The take-off's last second hands over to the warp, then the page goes to `?level=<id>&via=ship`. The warp

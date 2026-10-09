@@ -8,6 +8,12 @@ The same release notes shown in the game (press **N** or open settings).
 - Updates on Android and the Steam Deck no longer stop partway through the download.
 - While you play a game (the shooting gallery, the drum circle, a race…), the gadget’s card, aiming mark and wheel no longer stay on the screen.
 - In the References world, the Moon Foundry’s views no longer stretch tall after the window changes size.
+- In Vael, the bird’s arrival no longer opens from inside a dune, and opening a makers’ box now pushes in on the item instead of jumping.
+- Filling the tank for the first time in Qanat: the third shot shows you and the pool instead of the back of your head.
+- At home, kneeling at the stone now turns to your face as you lay things down, and the window seat keeps your head in the picture; both show how to skip.
+- The Lantern: the light’s arrival is filmed again, from behind you as it comes down, across from the crown as it settles, then on your face; the camera no longer ends up against the crown’s rail, and its chime rings as it starts.
+- The pale star from the makers’ box is pinned to your overshirt instead of hanging in the air beside your face.
+- Notices no longer pop up over a scene: a quest’s card waits until a recording, an arrival, a box opening or a filmed moment is over, and the gadget badge and the tank’s gauge hide while one plays.
 - The stone hand on Vael is fairer: its fingers clearly rise from little to middle, each knuckle has one to four dots cut in it, a right knuckle stays lit and rings the next note up, and a wrong one knocks and flashes rust. After two misses Kesh calls the order out and the journal writes it down; after three the next knuckle glints.
 - Blot swarms have bigger eyes and glass splinters are a little bigger, so both are easier to spot.
 - A foe winding up behind a wall or a rock now gets the round warning marker too, and foes never appear inside rocks or walls. A shadow hound that steps out behind you waits a little longer before it bites.

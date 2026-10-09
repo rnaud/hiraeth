@@ -540,6 +540,17 @@ export const APPROACH = { space: 2.8, entry: 2.1, sky: 1.9 };
  */
 export function landingK(u) { u = Math.min(1, Math.max(0, u)); return 1 - Math.pow(1 - u, 3); }
 
+/** m the planet's near surface keeps from the camera in the approach: the ship is ~45 m off, in front of it. */
+export const PLANET_NEAR = 110;
+/**
+ * The planet's distance for an angular radius `ang`: at least `D`, and far enough that its near surface
+ * (D·(1 − sin ang) from the camera) stays behind the ship. Close and huge, its face came in front of the
+ * ship's legs as it filled the view (the cinematics QC pass); the size on screen is the same either way.
+ */
+export function planetDistance(D, ang, near = PLANET_NEAR) {
+  return Math.max(D, near / Math.max(0.02, 1 - Math.sin(ang)));
+}
+
 /**
  * Arriving by ship: out of the jump, the destination planet grows ahead (drawn in its own
  * colours, src/ship/approach.js); the ship levels out and brakes into the air, through the
@@ -559,6 +570,7 @@ export class ArrivalDirector extends Sequence {
     const fog0 = () => { const U = ship.post?.uniforms; if (U) U.uFogMul.value = 0; };   // no haze in space
     // the planet `D` m off, `drop` rad below the ship's course, `ang` rad its angular radius (so it grows as it nears)
     const placePlanet = (a, from, D, drop, ang) => {
+      D = planetDistance(D, ang);
       pl.copy(fwd).multiplyScalar(Math.cos(drop)).addScaledVector(up, -Math.sin(drop)).normalize();
       a.planet.position.copy(from).addScaledVector(pl, D).sub(a.group.position);
       a.planet.scale.setScalar(D * Math.sin(ang));

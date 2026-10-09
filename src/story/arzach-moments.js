@@ -51,7 +51,11 @@ export function setupArzachMoments(ctx, { bird, bow, cry, bowNow, tower = null }
     // (the side of him away from the lone tower's room, when he plays it up there: the lens stays out of its walls)
     const flatTo = (p, q) => Math.hypot(p.x - q.x, p.z - q.z);
     const awayFrom = (dir) => { const s = rightOf(dir); return tower && flatTo(P.clone().add(s), tower) < flatTo(P.clone().sub(s), tower) ? s.negate() : s; };
-    const away = awayFrom(out);
+    let away = awayFrom(out);
+    // A is low behind him: on a slope it ended up inside the dune (the QC pass); without the tower to keep
+    // clear of, take the side whose ground lies lower under the lens
+    const eyeY = P.y + 1.6 - 1.2, sink = (s) => (physics?.base?.heightAt?.(P.x + s.x * 5 - out.x * 6.5, P.z + s.z * 5 - out.z * 6.5) ?? -Infinity) - eyeY;
+    if ((!tower || flatTo(P, tower) > 25) && sink(away.clone().negate()) < sink(away) - 0.5) away = away.negate();
     const start = land.clone().addScaledVector(out, BIRD.FROM).addScaledVector(UP, BIRD.UP);
     const eye = P.clone().addScaledVector(UP, 1.6);
     const B0 = BIRD.A, C0 = B0 + BIRD.B, D0 = C0 + BIRD.C;

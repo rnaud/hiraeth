@@ -1,5 +1,6 @@
 import './style.css';
 import { CINEMATICS, reviewURL } from './catalog.js';
+import { mergeNotes } from './storage.js';
 import { TITLES } from '../levels/names.js';
 const $ = id => document.getElementById(id), key = 'hiraeth.cinematics.qc.v1';
 let notes = {}, active = null, frame = null, muted = true, paused = false;
@@ -37,4 +38,11 @@ window.addEventListener('message', e => { if (e.origin === location.origin && e.
 function save() { if (!active) return; notes[active.id] = { verdict: $('verdict').value, text: $('notes').value, updated: new Date().toISOString() }; try { localStorage.setItem(key, JSON.stringify(notes)); } catch { $('status').textContent = 'Notes could not be saved. Export them before leaving.'; } $('badge').textContent = $('verdict').value; list(); }
 $('notes').oninput = save; $('verdict').onchange = save;
 $('export').onclick = () => { const url = URL.createObjectURL(new Blob([JSON.stringify({ exported: new Date().toISOString(), notes }, null, 2)], { type: 'application/json' })); const a = document.createElement('a'); a.href = url; a.download = 'hiraeth-cinematics-qc.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
+$('import').onclick = () => $('import-file').click();
+$('import-file').onchange = async () => {
+  const f = $('import-file').files?.[0]; if (!f) return;
+  try { notes = mergeNotes(notes, JSON.parse(await f.text())); localStorage.setItem(key, JSON.stringify(notes)); $('status').textContent = `Imported notes from ${f.name}.`; }
+  catch { $('status').textContent = 'That file is not an export of QC notes.'; }
+  $('import-file').value = ''; if (active) select(active); else list();
+};
 list(); const initial = CINEMATICS.find(e => e.id === decodeURIComponent(location.hash.slice(1))); if (initial) select(initial);

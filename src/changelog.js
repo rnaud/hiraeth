@@ -22,6 +22,13 @@ export const CHANGELOG = [
     'Blot swarms have bigger eyes and glass splinters are a little bigger, so both are easier to spot.',
     // the stone hand, from the playtest
     'The stone hand on Vael is fairer: its fingers clearly rise from little to middle, each knuckle has one to four dots cut in it, a right knuckle stays lit and rings the next note up, and a wrong one knocks and flashes rust. After two misses Kesh calls the order out and the journal writes it down; after three the next knuckle glints.',
+    // the cinematics, checked one by one
+    'Notices no longer pop up over a scene: a quest’s card waits until a recording, an arrival, a box opening or a filmed moment is over, and the gadget badge and the tank’s gauge hide while one plays.',
+    'The pale star from the makers’ box is pinned to your overshirt instead of hanging in the air beside your face.',
+    'The Lantern: the light’s arrival is filmed again, from behind you as it comes down, across from the crown as it settles, then on your face; the camera no longer ends up against the crown’s rail, and its chime rings as it starts.',
+    'At home, kneeling at the stone now turns to your face as you lay things down, and the window seat keeps your head in the picture; both show how to skip.',
+    'Filling the tank for the first time in Qanat: the third shot shows you and the pool instead of the back of your head.',
+    'In Vael, the bird’s arrival no longer opens from inside a dune, and opening a makers’ box now pushes in on the item instead of jumping.',
     // small fixes (made before v1.0, without a line then)
     { text: 'In the References world, the Moon Foundry’s views no longer stretch tall after the window changes size.', see: 'Debug → References, go to a Moon Foundry view, then resize the window or turn the device.' },
     { text: 'While you play a game (the shooting gallery, the drum circle, a race…), the gadget’s card, aiming mark and wheel no longer stay on the screen.', see: 'Hold a gadget, then play the shooting gallery at its stall in the Signal Market: only the game’s own display shows.' },

@@ -192,6 +192,22 @@ const HAND_VIEW = `const H = level.arzach.hand, n = new THREE.Vector3(H.normal.x
 
 export const CHANGELOG_MEDIA = {
   '1.1': [
+    { match: 'Notices no longer pop up over a scene', shots: [
+      { name: 'scene-notices', caption: 'Opening the makers’ box in Qanat: the desert quest’s card used to sit across the top of the scene', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Start a new game in the desert and open the box on the ledge as the first quest’s card comes up: the card waits until the box is open. The same for the recordings at the ship’s table.' },
+    { match: 'The pale star from the makers’ box is pinned', shots: [
+      { name: 'lapel-star', caption: 'Vael II, the bell’s moment, his face: the star used to float by his head', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'With the pale star found (the desert’s second box), watch any filmed moment’s last shot, or stand close in front of the traveller.' },
+    { match: 'The Lantern: the light’s arrival is filmed again', shots: [
+      { name: 'lantern-light', caption: 'The Lantern, the second shot of the light settling into the crown: before, the camera pressed up against the crown', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → The light returns to the Lantern.' },
+    { match: 'At home, kneeling at the stone', shots: [
+      { name: 'home-stone', caption: 'At the stone at home, six seconds in: from behind him, then from beside the stone', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'At home, pay your respects at the stone, then sit in Lou’s window seat (or Debug → Cinematics → At the stone / The window seat).' },
+    { match: 'Filling the tank for the first time in Qanat', shots: [
+      { name: 'tank-fill', caption: 'The first fill in the giant’s basin, the third shot', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → “the empty tank fills”.' },
+    { match: 'In Vael, the bird’s arrival no longer opens', see: 'Debug → Cinematics → “the bird comes down out of the haze and bows”: the first shot is behind you on the open plain, not inside the sand. Open any makers’ box: the camera moves in smoothly as it comes apart.' },
     { match: 'People no longer leave a pale, person-shaped ghost', shots: [
       { name: 'person-ghost', caption: 'Climbing the stairs to the great tree in Qanat, Handheld, 9:30: before, a pale wedge the shape of him lightens the dark risers below his feet', from: 'headless Chrome against this branch’s own dev server, Handheld preset, the same pinned camera before and after the fix (9 October)' },
     ], see: 'In Qanat, climb the stairs round the great tree with the camera close behind: the risers beside you stay as dark as the rest.' },
