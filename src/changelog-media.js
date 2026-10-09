@@ -331,6 +331,34 @@ const CHIME_FLOAT = (drops) => `const V = THREE.Vector3, wait = (ms) => new Prom
   await wait(600);
   for (const [x, z, n] of ${JSON.stringify(drops)}) { const at = new V(x, 0, z); at.y = physics.groundAt(x, 30, z, 80); chimes.drop(at, n); }`;
 
+// v1.10's chimes redrawn (the author's picks, references/Core Objects/Currency/Floating Chime/): on the desert's sand
+// by the ship, a seeded scatter, no foes, never picked up unless `who` is set; `frozen` holds the field still
+const CHIME_P = [29, 24.456, 132], CHIME_H = 0.6435, CHIME_F = [Math.sin(CHIME_H), Math.cos(CHIME_H)], CHIME_R = [CHIME_F[1], -CHIME_F[0]];
+/** A spot `fw` m ahead of the traveller and `rt` m to the side ([x, z]). */
+const chimeAt = (fw, rt) => [+(CHIME_P[0] + CHIME_F[0] * fw + CHIME_R[0] * rt).toFixed(3), +(CHIME_P[2] + CHIME_F[1] * fw + CHIME_R[1] * rt).toFixed(3)];
+const chimeEye = (back, up, side = 0) => { const [x, z] = chimeAt(-back, side); return [x, CHIME_P[1] + up, z]; };
+const chimeAway = [chimeAt(-6, 0)[0], CHIME_P[1], chimeAt(-6, 0)[1]];
+const CHIME_SAND = (drops, then = '') => `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
+  const U = chimes.update.bind(chimes); let frozen = false, who = null; chimes.update = (dt) => frozen ? [] : U(dt, who);
+  let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646; chimes.clear();
+  await wait(400);
+  for (const [x, z, n] of ${JSON.stringify(drops)}) { const at = new V(x, 0, z); at.y = physics.groundAt(x, 60, z, 120); chimes.drop(at, n); }
+  ${then}`;
+/** The pieces laid in a row across the view, `fw` m ahead, by worth; then the camera pinned `back` m behind the middle one, looking at it. */
+const CHIME_ROW = (fw, gap, back, up, fov = 40) => `await wait(1500);
+  const L = chimes.list.sort((a, b) => a.value - b.value);
+  L.forEach((p, i) => { const k = i - (L.length - 1) / 2, x = ${CHIME_P[0] + CHIME_F[0] * fw} + ${CHIME_R[0]} * k * ${gap}, z = ${CHIME_P[2] + CHIME_F[1] * fw} + ${CHIME_R[1]} * k * ${gap};
+    p.to.set(x, physics.groundAt(x, 60, z, 120), z); });
+  await wait(600);
+  const m = L[Math.floor((L.length - 1) / 2)].pos.clone().lerp(L[Math.ceil((L.length - 1) / 2)].pos, 0.5);
+  const e = m.clone().add(new V(${-CHIME_F[0]} * ${back}, ${up}, ${-CHIME_F[1]} * ${back})), q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(e, m.clone().add(new V(0, -0.05, 0)), new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(e); this.quaternion.copy(q); if (this.fov !== ${fov}) { this.fov = ${fov}; this.updateProjectionMatrix(); } return base.call(this, force); };`;
+const CHIME_FIELD_DROPS = [[...chimeAt(3.2, -1.6), 1], [...chimeAt(4.0, 0.9), 1], [...chimeAt(5.2, -0.5), 5], [...chimeAt(5.8, 2.2), 1], [...chimeAt(6.6, -2.4), 1], [...chimeAt(7.6, 0.4), 10], [...chimeAt(8.2, 2.9), 1], [...chimeAt(9.2, -1.3), 1], [...chimeAt(10.2, 1.5), 1], [...chimeAt(11.4, -0.1), 20], [...chimeAt(12.2, 3.2), 1], [...chimeAt(6.8, -3.8), 1], [...chimeAt(9.6, -3.4), 1]];
+const CHIME_TGT = (fw, up) => [+(CHIME_P[0] + CHIME_F[0] * fw).toFixed(3), CHIME_P[1] + up, +(CHIME_P[2] + CHIME_F[1] * fw).toFixed(3)];
+const FROM_CHIME_LOOK = 'headless Chrome against a dev server, High, 1280 × 720, hour 10, the desert’s sand by the ship: the chimes dropped from a seeded rng (the same scatter before and after), the camera pinned; before at main before the change, after with it (9 October)';
+
 // ------------------------------------------------------------------ v1.6's views: the body telegraphs
 // (a foe held at 85 % of a wind-up, three-quarters on: before, its lane or ring on the floor; after, its pose and its glow)
 const FOE_WIND = (kind, atk) => `foes.setPractice('');
@@ -416,6 +444,31 @@ export const CHANGELOG_MEDIA = {
       { name: 'ship-layout-cockpit', caption: 'Into the cockpit: before, one pilot’s seat, the projector, the voicemail and the round screen on the dash; after, two seats side by side and the panel overhead', commit: 'f64c722a', before: '70309935',
         view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.2, 1.8, -4.8], [0, 1.2, -9.5]) }, from: SHIP_FROM },
     ], see: 'Go aboard your ship and stand at the back of the main room, by the lockers: the cockpit straight ahead, the galley on the left, the holo table and its curved console in the middle, the bunk’s arched alcove on the right. Debug → Cinematics → Recording 1 plays a recording at the console’s end.' },
+    // the chimes, redrawn
+    { match: 'Chimes have a new look: each is a long, blunt crystal', shots: [
+      { name: 'chimes-look-field', caption: 'A scatter of chimes on the desert’s sand from behind the traveller, at play distance: before, 27.5 cm shards leaning well over, the drops of five and more as ones and pale clusters, a dark smudge under each; after, smaller crystals floating upright, lower, each over a small lavender shadow, a jade five, an amber ten and a coral twenty among the cyan ones', commit: '36ec0024',
+        view: { level: 'desert', player: CHIME_P, heading: CHIME_H, eye: chimeEye(4.6, 3.3, 0.9), target: CHIME_TGT(7.5, -0.6), fov: 50, save: SAVE_ON, wait: 2500, setup: CHIME_SAND(CHIME_FIELD_DROPS) } },
+      { name: 'chimes-look-close', caption: 'Three ones close up: before, broad leaning six-sided shards with chisel ends, high over a brown smudge; after, the reference’s long blunt crystal, broad uneven facets, a flat little cap, a blunt point, the lavender seam and the warm heart, upright and lower over a small lavender shadow', commit: '36ec0024',
+        view: { level: 'desert', player: chimeAway, heading: CHIME_H, save: SAVE_ON, wait: 2500, setup: CHIME_SAND([[...chimeAt(4, 0), 3]], CHIME_ROW(4.2, -0.32, 1.25, 0.14)) } },
+      { name: 'chimes-look-pull', caption: 'The nearest drawn in (held mid-flight): before, it shoots straight in, spinning fast; after, it drifts in on a curve, glowing, a trail of little lights behind it', commit: '36ec0024',
+        view: { level: 'desert', player: CHIME_P, heading: CHIME_H, eye: chimeEye(2.6, 1.9, 1.4), target: CHIME_TGT(1.6, 0.5), fov: 50, save: SAVE_ON, wait: 300,
+          setup: CHIME_SAND([[...chimeAt(4.5, 1.5), 1], [...chimeAt(5.5, -1), 1]], `await wait(2500); { const p = chimes.list[0], [x, z] = ${JSON.stringify(chimeAt(1.3, 1.0))}; p.to.set(x, physics.groundAt(x, 60, z, 120), z); }
+            await wait(300); who = player.pos; const t0 = performance.now();
+            while (!chimes.list.some((q) => q.phase === 'pull' && q.pos.distanceTo(q.to.clone().setY(q.to.y + q.lift)) > 0.4) && performance.now() - t0 < 3000) await wait(2);
+            frozen = true;`) } },
+      { name: 'chimes-look-reference', only: 'after', caption: 'The author’s pick (left, references/Core Objects/Currency/Floating Chime/field/sheet-1.jpg) beside the game after the change (right), from behind the traveller at play distance: the same upright crystals over small lavender shadows, a few of other worths among them, at the smaller size the author asked for (the picture draws them about as long as a leg)', from: 'the reference picture and the after picture of chimes-look-field, side by side (ImageMagick), 9 October' },
+    ], numbers: [
+      { title: 'Draw calls a field of chimes adds to a frame (thirty on the desert’s sand)', unit: 'draws', better: 'lower', device: 'MacBook (Apple GPU), headless Chrome, High, 1280 × 720 (each chime mesh counted as it is drawn, every pass)',
+        rows: [{ where: 'the G-buffer pass (instanced)', before: 4, after: 3 }, { where: 'the shadow passes', before: 0, after: 0 }],
+        source: 'before: the ones, the fives’ clusters, the glints and the shade (28 ones and 2 fives); after: every worth in one mesh, the glints (and the trails), the shade (28 ones, a jade, an amber)' },
+      { title: 'Thirty chimes in view: the frame with them and without them (renderFrame timed, synced by a readPixels, median of 8 × 11 × 24 frames)', unit: 'ms added', better: 'lower', device: 'MacBook (Apple GPU), headless Chrome, High, 1280 × 720, a shared machine',
+        rows: [{ where: 'desert’s sand by the ship, play distance', before: 0.31, after: -0.2 }],
+        source: 'both within the run-to-run noise (about ±0.5 ms here): 56 triangles a crystal instead of 28, about 1,700 for the thirty, and one draw fewer' },
+    ], see: 'Cut down a few foes on the desert’s sand and walk toward their chimes: they float upright over small lavender shadows; come within a couple of steps and the nearest curves in to you, glowing, with a trail of light.' },
+    { match: 'Chimes now come in six worths', shots: [
+      { name: 'chimes-tiers', only: 'after', caption: 'The six worths side by side on the sand: cyan 1, jade 5, amber 10, coral 20, violet 50 and pearl 100, each the same crystal, larger and brighter the more it is worth', from: FROM_CHIME_LOOK,
+        view: { level: 'desert', player: chimeAway, heading: CHIME_H, save: SAVE_ON, wait: 2500, setup: CHIME_SAND([1, 5, 10, 20, 50, 100].map((n) => [...chimeAt(4, 0), n]), CHIME_ROW(4.2, -0.36, 2.3, 0.3)) }, commit: '36ec0024' },
+    ], see: 'In the Arena, call a guardian into the ring and calm it: its purse falls as two coral twenties. A foe that leaves eight chimes drops a jade five and three cyan ones; pick up a big one and it rings with more notes.' },
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
