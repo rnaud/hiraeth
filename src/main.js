@@ -705,7 +705,11 @@ tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the
   const look = rig.look.bind(rig);
   rig.look = (dx, dy) => { if (dx || dy) firstSteps?.looked(); if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy); };
 }
-if (level.foes?.waves && !minigameDef) import('./foe-spawner.js').then((m) => m.mountFoeSpawner({ foes, kind: query.get('foe') }));   // (the Arena's list of every foe kind: src/foe-spawner.js)
+if (level.foes?.waves && !minigameDef) {   // (the Arena's FOES list, its guardians' ring: src/foe-spawner.js, the level's quick menu)
+  const attach = { foes, player, physics, sound, scene, notice: (t) => showToast(t), kind: query.get('foe') };
+  if (level.quickMenu?.attach) level.quickMenu.attach(attach);
+  else import('./foe-spawner.js').then((m) => m.mountFoeSpawner(attach));
+}
 await slice();
 ship.attach({ player, rig, camera, sound, journal, post, story, wind, npcs, lib, humans: peopleT, levels: LEVELS, order: ORDER, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])) });
 if (viaShip) {

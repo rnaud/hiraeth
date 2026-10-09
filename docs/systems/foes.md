@@ -357,8 +357,13 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
 A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
-`Foes` send `WAVES` round you, whatever the setting: one blot, three blots, a machine, two machines and two
-blots, a spitter, a swarm, a machine, flyers, spitters with a machine, a mixed wave, then each world's own kinds and a mixed last wave, round and round, `WAVE.rest` s after the last one falls.
+`Foes` send the Arena's cycle round you, whatever the setting, `WAVE.rest` s after the last one falls (`ARENA_WAVES`,
+`arenaWave(n)`, v1.5): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine, a shade,
+flyers, … then each world's own kinds and a mixed wave), then each of the 100 world enemies alone in world order
+(the roster's order: the Desert, Vael, Vael II … the Atelier), then each world's in pairs (its first creature with
+its possessed machine, its second creature with its spirit), then each world's four together; then round again.
+A wave says what and from where ("Wave 20 · The Desert: dune skitter."; `waveText`). `?enemy=` and `?enemyWorld=`
+(the Creatures & spirits page's links) still run one enemy, or one world's roster, instead.
 
 **The tool is lent** (`lendTool: { mode: null }` on the level, main.js → `lendTool`, src/minigames/kit/onfoot.js):
 the backpack (so the blade and the shield) on any save, a brand-new one or one that has not found it, with the
@@ -366,10 +371,30 @@ save's own tank (no size given: its upgrades still apply); nothing is written to
 without the backpack had no blade there: `FluidTool.worn` needs it.) Ink tide lends it again inside, and its
 lending puts the Arena's back.
 
-**The foe list** (`src/foe-spawner.js`): a FOES tab on the left edge opens a list of every kind. Choosing one
-stops the waves (`Foes.setPractice(kind)`): it comes in 9 m ahead of you, and again each time it falls. "Waves
-again" brings the waves back, "Clear the field" leaves it empty. `?level=arena&foe=crab` starts on one kind;
-in any world the console can call `foes.spawnKind('golem')`.
+**The FOES list** (`src/foe-spawner.js` `FoeList`, v1.5): the level's quick menu (`level.quickMenu`, as the
+Arcade's board), so main.js routes the pad to it. Opened from the FOES ▸ tab on the left edge (under it, how: K on
+the keyboard, D-pad ↓ on a pad, the mount's call, free here), K or D-pad ↓ again; B / ○ or Esc closes. Grouped
+(`foeSections`): the ink and the worlds' kinds, then a section per world with its four enemies (each with its kind and
+its two moves, and a "Waves from here" that runs the cycle from that world's first enemy: `Foes.startWaves(world)`),
+then the temple guardians. A search (a name, a world, a kind, a move: every word must match) and a world filter
+(chips: All, Ink, each world, Guardians; LB / RB or Page Up / Down turn it) narrow it (`filterSections`). Choosing a
+foe stops the waves (`Foes.setPractice(kind)`, a world enemy by its id too): it comes in 9 m ahead of you, and again
+each time it falls. "Waves again" brings the waves back where they were, "Clear the field" leaves it empty.
+`?level=arena&foe=crab` (or a world enemy's id) starts on one kind; in any world the console can call
+`foes.spawnKind('golem')`. Tests: `tests/arena.test.js` (the cycle's order, the waves in a running Arena, the
+sections, the search and filter, the choices), `tests/foe-kinds.test.js` (practice).
+
+**The guardians** (`src/arena-guardians.js`, v1.5): the list's Guardians section calls each temple's guardian (the
+Keeper, the City-Shaft's warden, the Elder, the Cloud-Mother, the Mother Snapper, the Lampless, the Gardener, the
+Clockwork Foreman, the Tooth-Warden, the Echo, the First Sign) into a temporary ring on the sand (20 m across, a
+temple hall's size, 12 m ahead of you), the field cleared and the waves held. It is the temple's own `Guardian`
+(src/temples/boss.js) with its body (src/temples/guardians.js) and its temple's attacks and phases, run by a small
+stand-in for the temple runtime; it sleeps until you step into the ring, and is solid (`level.dynamic`). All eleven
+can run outside their temples. What does not come with them is each temple's puzzle (the Keeper's braziers, the
+Echo's resonators, the Tooth-Warden's vents as targets: in the ring its body is), so a sparring rule stands in
+(`sparHit`): when it opens (pants, vents open), a fluid shot counts a step (`RING.step`, water for a living one, a
+shot at a machine), a push frightens a living one back (`RING.fright`); the phase hints say so instead of the
+temple's. Its end is its own: a hand laid on a living one, a machine broken. Choosing anything else sends it back.
 
 ## Each world's foes (v0.93)
 
@@ -594,6 +619,8 @@ See [the enemy reference guide](../../references/ENEMIES.md) for source art, pro
 Open `enemies.html` (Worlds → Creatures & spirits) to rotate models, inspect locomotion and both moves, then fight an individual or a world roster. Arena accepts validated `enemyWorld` or `enemy` query parameters. Normal Arena and development-world legacy waves remain supported.
 
 Static geometry is batched by material inside each animated joint. Each instance owns its mutable materials. Machine debris keeps its materials until its last fragment expires; removal/disposal tests cover this lifetime.
+
+With tonight's foe systems (v1.5): a world enemy keeps its family's height navigation (`src/foe-height.js`: a creature of the blot family clambers, a possessed machine takes the ramp; `attacksAt(d, dy)` offers its one current attack only within reach and, out of a blow's height, only if it is a lob), is swept away in deep water and held by a stilled crystal (tests/foe-height.test.js). It meets the presence rule in every state (tests/foe-presence.test.js walks all 100 through 20 s of a fight): its eyes glow 0.8 (were 0.45, so the orange of a wind-up read as dark on a dark creature), and a spirit's ink and violet, and the spirit inside a possessed machine, have white contours (`lineWhite`), as the shades do. The hitbox overlay (src/hitboxes.js) draws each of its contact zones where `speciesContact` checks it, telegraph → active → spent per zone.
 
 Validation: `tests/world-enemies.test.js` covers roster completeness, posed finite geometry, material release, attack commitment/contact timing, range, walls, dodging, parries, Gentle/off modes, spawning and debris cleanup. `scripts/world-enemy-shots.mjs` captures all 100 entries in idle, side locomotion, first strike and second wind-up (400 screenshots). Idle and both attack contact sheets were inspected; selected wing/pincer models were rechecked after repairs. This does not establish artifact-free motion at every frame or reference-exact geometry. `scripts/world-enemy-smoke.mjs` checks actual Arena spawning/chasing and gallery controls using the game renderer, with no browser errors. Retroid performance and touch interaction remain unmeasured.
 ## No invisible foes (`src/foe-presence.js`, v1.1)

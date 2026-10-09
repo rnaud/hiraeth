@@ -9,9 +9,12 @@ export function enemyModel(s) {
   const group=new T.Group();group.name=s.name;
   const body=new T.Group();group.add(body);
   const mats=[];
-  function material(color,glow=0){const m=makeMaterial({color,flat:false,hatch:.45,patches:0,side:T.DoubleSide,glow,key:`world-enemy.${serial++}`});mats.push(m);return m;}
-  const skin=material(s.color),accent=material(s.accent),ink=material('#171321'),violet=material('#76617d'),cream=material('#eee2be'),brass=material('#b39464'),dark=material('#575653');
-  const eye=material('#f8e8bb',.45), joint=s.family==='machine'?brass:skin;
+  function material(color,glow=0,lineWhite=false){const m=makeMaterial({color,flat:false,hatch:.45,patches:0,side:T.DoubleSide,glow,lineWhite,key:`world-enemy.${serial++}`});mats.push(m);return m;}
+  // No invisible foes (src/foe-presence.js): a spirit's ink, and the spirit inside a machine, are drawn with
+  // white contours like the shades, and the eyes glow (≥ 0.5) so they read through the orange of a wind-up too.
+  const spirit=s.family==='shade'||s.family==='machine';
+  const skin=material(s.color),accent=material(s.accent),ink=material('#171321',0,spirit),violet=material('#76617d',0,spirit),cream=material('#eee2be'),brass=material('#b39464'),dark=material('#575653');
+  const eye=material('#f8e8bb',.8), joint=s.family==='machine'?brass:skin;
   const limbs=[],wings=[],smoke=[],rotors=[];
   function mesh(g,m,p=[0,0,0],parent=body){const o=new T.Mesh(g,m);o.position.set(...p);parent.add(o);return o;}
   function ell(p,r,m=skin,parent=body){return mesh(new T.SphereGeometry(1,12,8).scale(...r),m,p,parent);}

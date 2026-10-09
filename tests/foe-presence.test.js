@@ -119,3 +119,27 @@ test('no foe comes in inside the world: spots inside a solid are passed over (bu
   assert.ok(PRESENCE.height > 0);
   foes.dispose(); clearTargets();
 });
+
+test('every one of the 100 world enemies shows itself in every state too (src/enemies: their models over a fight)', async () => {
+  const { ENEMY_ROSTER } = await import('../src/enemies/roster.js');
+  const failed = [], seen = new Set();
+  for (const e of ENEMY_ROSTER) {
+    clearTargets();
+    const P = player(v(0, 0, 0)), foes = world(P);
+    foes.waveRest = 1e9;
+    const f = foes.add(e.id, v(0, 0, 8));
+    for (let i = 0; i < 20 / DT; i++) {
+      foes.update(DT); P.health = 1; P.down = null;
+      if (i % 300 === 0) P.pos.set(Math.sin(i) * 4, 0, Math.cos(i) * 4);
+      if (!f.alive) break;
+      const tag = `${e.id}:${f.state}${f.state === 'wind' || f.state === 'strike' ? ':' + f.atk.id : ''}`;
+      seen.add(tag);
+      const probs = presenceProblems(presenceOf(f.model.group, f.pos.y));
+      if (probs.length) { failed.push(`${tag} at ${i}: ${probs.join(', ')}`); break; }
+    }
+    foes.dispose();
+  }
+  clearTargets();
+  assert.deepEqual(failed, []);
+  assert.ok([...seen].filter((t) => t.includes(':wind:')).length >= 100, 'each winds up an attack');
+});

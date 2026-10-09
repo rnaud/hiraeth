@@ -12,7 +12,8 @@ import { KINDS, NOTES, kindModel } from './foe-kinds.js';
 import { packOf, guardKinds, templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
-import { ENEMY_BY_ID, WORLD_ENEMIES, worldPack } from './enemies/roster.js';
+import { ENEMY_BY_ID, ENEMY_ROSTER, WORLD_ENEMIES, worldPack } from './enemies/roster.js';
+import { TITLES } from './levels/names.js';
 import { enemyModel } from './enemies/models.js';
 import { speciesAttacks, attackReach, lockAttack, speciesContact, poseAttackEffect } from './enemies/attacks.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
@@ -929,6 +930,35 @@ export function waveWords(kinds) {
   return list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0] ?? '';
 }
 
+/**
+ * The Arena's whole cycle (v1.5): the ink and the worlds' kinds (WAVES), then each of the 100 world enemies
+ * (src/enemies/roster.js) alone, in world order, then each world's in pairs (a creature with its machine, the other
+ * creature with its spirit), then each world's four together; then round again.
+ */
+export const ARENA_WAVES = [
+  ...WAVES,
+  ...ENEMY_ROSTER.map((e) => [e.id]),
+  ...Object.values(WORLD_ENEMIES).flatMap((r) => [[r[0].id, r[2].id], [r[1].id, r[3].id]]),
+  ...Object.values(WORLD_ENEMIES).map((r) => r.map((e) => e.id)),
+];
+/** The n-th wave of the Arena's cycle. */
+export const arenaWave = (n) => ARENA_WAVES[((n % ARENA_WAVES.length) + ARENA_WAVES.length) % ARENA_WAVES.length];
+/** Where a world's enemies start in the cycle (its first one alone); -1 for none. */
+export function arenaWaveOf(world) {
+  const first = WORLD_ENEMIES[world]?.[0]?.id;
+  return first ? ARENA_WAVES.findIndex((w) => w.length === 1 && w[0] === first) : -1;
+}
+/** A wave in words, the world enemies by name: "dune skitter and possessed cistern pump", "2 ink blots". */
+export function waveText(kinds) {
+  const named = [...new Set(kinds.filter((k) => ENEMY_BY_ID[k]))].map((k) => {
+    const n = kinds.filter((x) => x === k).length, name = ENEMY_BY_ID[k].name.toLowerCase();
+    return n > 1 ? `${n} ${name}s` : name;
+  });
+  const ink = waveWords(kinds.filter((k) => !ENEMY_BY_ID[k]));
+  const list = [...named, ...(ink ? [ink] : [])];
+  return list.length > 1 ? `${list.slice(0, -1).join(', ')} and ${list.at(-1)}` : list[0] ?? '';
+}
+
 /** Far enough from people and the ship for the wilds: p { x, z }; people: [{ x, z }]. */
 export function inWilds(p, { people = [], spawn = null } = {}) {
   if (spawn && Math.hypot(p.x - spawn.x, p.z - spawn.z) < WILD.spawn) return false;
@@ -1336,20 +1366,29 @@ export class Foes {
     }
   }
 
-  /** The Arena: once the last wave is down, a short rest, then the next round you (the list, round and round). */
+  /** The Arena: once the last wave is down, a short rest, then the next round you (ARENA_WAVES, round and round). */
   updateWaves(dt) {
     if (this.list.some((f) => f.alive)) { this.waveRest = WAVE.rest; return; }
     this.waveRest -= dt;
     if (this.waveRest > 0) return;
-    const roster=WORLD_ENEMIES[this.level?.foes?.roster], single=ENEMY_BY_ID[this.level?.foes?.species];
-    const P = this.player, kinds = single?[single.id]:roster?(this.wave<4?[roster[this.wave].id]:worldPack(this.wave-3,this.level.foes.roster)):WAVES[this.wave % WAVES.length], base = this.rng() * Math.PI * 2;
+    // (enemies.html's links: ?enemy= one world enemy again and again, ?enemyWorld= its world's four, then its packs)
+    const roster = WORLD_ENEMIES[this.level?.foes?.roster], single = ENEMY_BY_ID[this.level?.foes?.species];
+    const P = this.player, kinds = single ? [single.id] : roster ? (this.wave < 4 ? [roster[this.wave].id] : worldPack(this.wave - 3, this.level.foes.roster)) : arenaWave(this.wave), base = this.rng() * Math.PI * 2;
     kinds.forEach((kind, i) => {
       const a = base + (i / kinds.length) * Math.PI * 2, r = WAVE.near + this.rng() * (WAVE.far - WAVE.near);
       this.add(kind, this.openSpot(kind, P.pos, a, r, 20, 40));
     });
     this.wave++;
     this.waveRest = WAVE.rest;
-    this.notice?.(`Wave ${this.wave}: ${kinds.some(k=>ENEMY_BY_ID[k])?kinds.map(k=>ENEMY_BY_ID[k]?.name??k).join(" and "):waveWords(kinds)}.`);
+    const e0 = ENEMY_BY_ID[kinds[0]], from = e0 && (TITLES[e0.world] ?? e0.worldTitle);
+    this.notice?.(`Wave ${this.wave}${from ? ` · ${from}` : ''}: ${waveText(kinds)}.`);
+  }
+  /** The Arena's waves again, from a world's first enemy (the FOES list), or on from where they were; the field cleared. */
+  startWaves(world = null) {
+    for (const f of this.list.slice()) if (f.dead === undefined) this.remove(f);
+    this.practice = null; this.waveRest = WAVE.rest;
+    const at = world ? arenaWaveOf(world) : -1;
+    if (at >= 0) this.wave = at;
   }
 
   /** A shade's body (src/shade.js): the game's skinned person in living shadow; the pools and drops shared by all. */
@@ -1831,9 +1870,9 @@ export class Foes {
 
   // ------------------------------------------------------------------ the Arena's practice (src/foe-spawner.js)
   /** A foe of `kind` comes in ahead of you (the Arena's spawner, tests, the console: foes.spawnKind('crab')). */
-  spawnKind(kind, { n = FOES[kind]?.group ?? 1, dist = 9 } = {}) {
+  spawnKind(kind, { n = ENEMY_BY_ID[kind] ? 1 : FOES[kind]?.group ?? 1, dist = 9 } = {}) {
     const P = this.player;
-    if (!FOES[kind] || !P) return [];
+    if (!FOES[ENEMY_BY_ID[kind]?.family ?? kind] || !P) return [];   // (a world enemy by its id: src/enemies/roster.js)
     const h = P.heading ?? 0, out = [];
     for (let i = 0; i < n; i++) {
       const at = this.openSpot(kind, P.pos, h + (i - (n - 1) / 2) * 0.35, dist, 20, 40);

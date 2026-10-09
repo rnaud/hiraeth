@@ -6,6 +6,7 @@ import { stepped } from '../load-steps.js';
 import { DESERT_WORLD_LOOK } from '../desert-sites.js';
 import { placeGameMarker } from '../minigames/kit/marker.js';
 import { WORLD_ENEMIES, ENEMY_BY_ID } from '../enemies/roster.js';
+import { FoeList } from '../foe-spawner.js';
 import { gameById } from '../minigames/index.js';   // (none in node's tests: there is no glob there)
 import { placeHitboxBoard } from './arena-hitbox-board.js';
 
@@ -21,6 +22,8 @@ export function* buildArena(scene) {
   const query=new URLSearchParams(typeof location==='undefined'?'':location.search);
   const roster=WORLD_ENEMIES[query.get('enemyWorld')]?query.get('enemyWorld'):null;
   const species=ENEMY_BY_ID[query.get('enemy')]?query.get('enemy'):null;
+  // the FOES list (src/foe-spawner.js): a menu of the level's, as the Arcade's board (D-pad ↓, K), and the guardians' ring
+  const foeList = new FoeList();
   const terrain = yield* Terrain.make({
     size: 900, seg: 90,
     height: (x, z) => { const r = Math.hypot(x, z); return r < 150 ? 0 : (r - 150) * 0.07; },   // flat out to 150 m, a low rise at the edge: the open sky all round
@@ -70,7 +73,9 @@ export function* buildArena(scene) {
       },
     },
     atmo: () => ({ tint: [1, 1, 1], fog: 1.0, name: 'The Arena' }),   // (as the desert's golden dunes)
-    update() {},
+    quickMenu: foeList,   // (main.js: one of its menus; D-pad ↓ opens it, the mount's call: there is none here; main.js attaches the foes)
+    dynamic: () => foeList.solids(),   // (a guardian called into its ring is solid: src/arena-guardians.js)
+    update(dt, t) { foeList.update(dt, t); },
   };
 }
 export const createArena = stepped(buildArena);

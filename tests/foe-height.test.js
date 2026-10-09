@@ -294,3 +294,40 @@ test('the debug overlay names a foe waiting, perched, dazed or hopping', () => {
   f.hop.t = HOP.crouch + 0.1;
   assert.match(foeStatus(f), /hopping/);
 });
+
+test('the world enemies (src/enemies) go by the same rules: up the ledge after you, no swing out of reach, swept away in deep water, held by a stilled crystal', async () => {
+  const { ENEMY_BY_ID } = await import('../src/enemies/roster.js');
+  fresh();
+  // a creature of the blot family clambers the ledge; a possessed machine comes round by the ramp
+  const P = player(v(5, 2, -44)), env = { ground: groundOf(arena()) };
+  const crab = new Foe('desert/dune-skitter', v(5, 0, -37), { rng: () => 0.5 }); crab.state = 'chase'; crab.cool = 99;
+  const ev = run(crab, P, env, 6);
+  assert.ok(ev.some((e) => e.type === 'hop' && e.how === 'clamber'), 'the skitter clambered up');
+  assert.ok(crab.pos.y === 2, 'up beside you');
+  const pump = new Foe('desert/possessed-cistern-pump', v(5, 0, -37), { rng: () => 0.5 }); pump.state = 'chase'; pump.cool = 99;
+  const pev = run(pump, P, env, 14);
+  assert.ok(!pev.some((e) => e.type === 'hop') && pump.pos.y > 1.5 && Math.hypot(pump.pos.x - P.pos.x, pump.pos.z - P.pos.z) < pump.def.reach + 0.5, `the pump walked up the ramp into its jet's reach (${pump.pos.toArray().map((n) => n.toFixed(1))})`);
+  // out of reach above it, no melee wind-up at air
+  const tall = { ground: groundOf(arena({ ramp: false, high: 3.2 })) };
+  const beetle = new Foe('garage/oil-beetle', v(4, 0, -36), { rng: () => 0.5 }); beetle.state = 'chase'; beetle.cool = 0;
+  const bev = run(beetle, player(v(4, 3.2, -42)), tall, 8);
+  assert.ok(!bev.includes('warn') && beetle.waiting, 'waiting below, no blow at air');
+  // a stilled crystal's frost holds a world enemy too
+  const S = { moving: false };
+  const off = registerWorking({ kind: 'swing', center: v(0, 1, 0), radius: 1.9, contains: (p) => Math.hypot(p.x, p.z) < 1.9 && Math.abs(p.y + 0.9 - 1) < 2.6, moving: () => S.moving, push: (p, out) => out.set(1, 0, 0) });
+  const lizard = new Foe('incal/pipe-lizard', v(0.4, 0, 0), { rng: () => 0.5 }); lizard.state = 'chase';
+  assert.ok(lizard.update(DT, player(v(0, 0, 12)), { ground: groundOf(() => 0), workings: (p, kind) => workingsAt(p, kind) }).some((e) => e.type === 'frosted'), 'frosted');
+  off();
+  // knocked off a bank into deep water: swept away
+  const physics = { groundAt: (x, y, z, r = 600) => groundOf((x, z) => (z > -40 ? -0.9 : 0))(x, y, z, r) ?? -Infinity, rayDistance: () => Infinity, rayHit: () => null };
+  const waters = { surfaceAt: (x, z, y) => (z > -40 && 0.5 >= y - 0.6 ? { y: 0.5, body: {} } : null), splash() {} };
+  const F = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics, player: player(v(0, 2, -30)), waters,
+    sound: { foeHurt() {}, foeBurst() {}, foeWarn() {}, combat() {}, whoosh() {} }, settings: { enemies: 'normal' }, game: new GameState(null), notice() {} });
+  F.waveRest = 1e9;
+  const crabby = F.add('saltharbour/anchor-crab', v(0, 0, -40.3)); crabby.state = 'chase'; crabby.cool = 5;
+  assert.ok(ENEMY_BY_ID[crabby.species]);
+  F.hurt(crabby, 'push', v(0, 0, 1), { shove: 3 });
+  for (let i = 0; i < 1 / DT; i++) F.update(DT);
+  assert.ok(!crabby.alive, 'the anchor crab is swept away');
+  F.dispose(); fresh();
+});

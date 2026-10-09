@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.5 — 2026-10-09
 
+- The hundred new enemies can always be seen, as the other foes: their eyes glow brighter, through the orange of a wind-up too, and the dark spirits, and the spirit inside each possessed machine, are drawn with white outlines, so none of them melts into dark ground or the night.
+- The Arena can call the temples’ guardians: from the list’s Guardians, the Keeper, the Elder, the Cloud-Mother, the warden, the First Sign and the rest come into a ring on the sand to fight as they do in their temples. Give a living one water when it pants, shoot a machine when it opens, and it comes to its end as at home.
+- The Arena’s FOES list is easier to find and to use: the FOES tab on the left says how to open it (K, or D-pad ↓ on a controller), and the list is grouped by world, with a search and a row of world filters (LB / RB on a controller). Pick a foe to fight it again and again, or start the waves from any world.
+- The Arena’s waves now come round to every foe there is: after the ink blots and the worlds’ kinds, each of the hundred new enemies alone, world by world from the Desert on, then each world’s in pairs, then all four of a world together. Each wave says what is coming and from which world.
 - A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.
 
 ## v1.4 — 2026-10-09

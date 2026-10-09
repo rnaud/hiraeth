@@ -269,3 +269,26 @@ test('L3 + R3 toggles the hitboxes and does not lock on', () => {
   actions.length = 0; set(11, true); c.update(dt); set(11, false); c.update(dt);
   assert.deepEqual(actions, ['lock'], 'R3 alone still locks on');
 });
+
+test('a world enemy (src/enemies): each contact zone is drawn where speciesContact checks it, telegraph then active then spent', async () => {
+  const { ENEMY_ROSTER } = await import('../src/enemies/roster.js');
+  for (const e of ENEMY_ROSTER.filter((x, i) => i % 7 === 0)) {
+    const f = new Foe(e.id, v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0; f.heading = 0.4;
+    const P = { pos: v(Math.sin(0.4) * (f.def.reach - 0.2), 0, Math.cos(0.4) * (f.def.reach - 0.2)) };
+    f.update(dt, P, env);
+    assert.equal(f.state, 'wind', e.id);
+    const zones = () => foeHitboxes(f).filter((s) => s.tag.startsWith('foe.attack.'));
+    assert.equal(zones().length, f.zones.length, `${e.id}: one shape per contact`);
+    zones().forEach((s, k) => {
+      const z = f.zones[k];
+      assert.equal(s.phase, 'telegraph');
+      for (let i = 0; i < 200; i++) {
+        const p = v(Math.sin(i * 2.4) * (i % 23) * 0.5, 0, Math.cos(i * 2.4) * (i % 23) * 0.5).add(z.at);
+        assert.equal(insideShape(s, p), inArea(z.attack, z.at, z.heading, p), `${e.id} zone ${k}`);
+      }
+    });
+    const phases = new Set();
+    for (let i = 0; i < 400 && f.state !== 'recover'; i++) { f.update(dt, P, env); for (const s of zones()) phases.add(s.phase); }
+    assert.ok(phases.has('active') && phases.has('spent'), `${e.id}: ${[...phases]}`);
+  }
+});
