@@ -355,7 +355,7 @@ const FAKE_PAD = `const pad = { index: 0, id: 'Xbox Wireless Controller (STANDAR
   set(9, true); await wait(150); set(9, false); await wait(300); window.menu.toggle(false); await wait(300);`;
 const PAD_SAVE = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.hook': true, 'item.bomb': true, 'item.fan': true, 'item.lens': true, 'item.magnet': true, 'item.fire': true, 'item.stun': true, 'gadget.equipped': 'hook' }, keepsakes: [] };
 const PAD_VIEW = (setup) => ({ level: 'arena', hud: true, save: PAD_SAVE, wait: 1200, setup: `${FAKE_PAD}\n${setup}` });
-const PADS = { commit: '4784b177' };
+const PADS = { commit: 'ac6ecdf8' };
 
 export const CHANGELOG_MEDIA = {
   '1.11': [
@@ -382,9 +382,6 @@ export const CHANGELOG_MEDIA = {
       { name: 'desert-mask-doorway', caption: 'The doorway before the masked head: before, a flat dark panel in its frame; after, a short passage into the dark', commit: 'ced314df',
         view: { level: 'desert', player: [9, 9, -360], eye: [10, 11.5, -357], target: [7, 10.5, -371], fov: 50 } },
     ] },
-  ],
-  '1.10': [
-    // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
     { match: 'On a controller, D-pad ↓ drinks a healing potion', shots: [
       { name: 'controls-pad-list', caption: 'The Controls page with a controller in hand, at the controller’s list: before, the potion on View + D-pad ↓, the mount on D-pad ↓ and the gun mode on D-pad ← / →; after, the potion on D-pad ↓, the mount on L3 standing still, the gun mode on D-pad ↑ while aiming', ...PADS,
         view: PAD_VIEW(`window.menu.toggle(true, 'controls'); await wait(400); const li = [...document.querySelectorAll('#settings li')].find((e) => /^Gun mode \\(/.test(e.textContent.trim())); li?.scrollIntoView({ block: 'center' }); await wait(300);`) },
@@ -397,6 +394,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'gun-wheel', caption: 'D-pad ↑ held in the Arena, the left stick on the grappling hook and the right stick down to the left: before, the gadgets alone (the right stick turned the camera); after, the gun modes on an inner ring in their colours, the one in the tool ringed, and the right stick on Ember', ...PADS,
         view: PAD_VIEW(`set(12, true); await wait(700); pad.axes = [0.95, 0.3, -0.95, 0.3]; pad.timestamp++; await wait(400);`) },
     ], see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
+  ],
+  '1.10': [
+    // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
     { match: 'Five more foes of the new roster', shots: [
       { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
     ], see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },
