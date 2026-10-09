@@ -31,6 +31,38 @@ const IDLE_GAP = 10;
 const HIP_PIVOT = 0.97;
 const CLIMB = ['climbIdle', 'climbUp', 'climbDown', 'climbLeft', 'climbRight'];
 
+/**
+ * How far the skull may turn on the neck (Animator.apply's headNod; rad, eased toward these past 60 % of them, never past):
+ * `yaw` about the neck, `tilt` any way off its line (a nod, a cock of the head). The clip's head is
+ * read in the world, so it carries the chest's twist and the neck's, which our chest and neck don't
+ * take (they follow only the spine's and the neck's lines): in the looking-around idles (Mixamo's
+ * looking_around, the library's Idle_LookAround_Loop) the whole of it landed on the skull, which
+ * turned 105° on the neck, the jaw into the shoulder and the face stretched over it, and dropped 30°
+ * on a neck already bent 46° down, the chin in the collar.
+ */
+export const HEAD_TURN = { yaw: 1.05, tilt: 0.6 };
+
+const _tw = new THREE.Quaternion(), _sw = new THREE.Quaternion(), _ti = new THREE.Quaternion(), _ax = new THREE.Vector3();
+/** A limit approached smoothly: x itself up to 60 % of `most`, then easing in, never past it. */
+const soft = (x, most) => {
+  const a = Math.abs(x), knee = 0.6 * most;
+  return a <= knee ? x : Math.sign(x) * (knee + (most - knee) * Math.tanh((a - knee) / (most - knee)));
+};
+/** Keep a head's turn on its neck (a quaternion in the neck's frame, y along it) within HEAD_TURN, in place. */
+export function limitHeadTurn(q, L = HEAD_TURN) {
+  // twist about the neck (y) and the swing off it: q = swing * twist
+  _tw.set(0, q.y, 0, q.w);
+  if (_tw.lengthSq() < 1e-12) _tw.identity(); else _tw.normalize();
+  _sw.copy(q).multiply(_ti.copy(_tw).invert());
+  let yaw = 2 * Math.atan2(_tw.y, _tw.w);
+  yaw = Math.atan2(Math.sin(yaw), Math.cos(yaw));
+  _tw.setFromAxisAngle(_ax.set(0, 1, 0), soft(yaw, L.yaw));
+  if (_sw.w < 0) _sw.set(-_sw.x, -_sw.y, -_sw.z, -_sw.w);
+  const tilt = 2 * Math.acos(Math.min(1, _sw.w)), sn = Math.sqrt(Math.max(0, 1 - _sw.w * _sw.w));
+  if (sn > 1e-6) _sw.setFromAxisAngle(_ax.set(_sw.x / sn, _sw.y / sn, _sw.z / sn), soft(tilt, L.tilt));
+  return q.copy(_sw).multiply(_tw);
+}
+
 let libPromise = null;
 /** Load the clip library once; resolves to { scene, clips, native } (native = ground speed per loop). */
 export function loadAnimationLibrary(url = 'anim/ual.glb') {
@@ -753,7 +785,7 @@ export class Animator {
       for (const key of HEAD_NOD) k += this.actions[key]?.getEffectiveWeight() ?? 0;
       k = Math.min(1, k + this.headW);
       const want = worldQuat(this.bone('Head'), _q).multiply(_q2.copy(this.restHead).invert()).premultiply(rootQ);
-      C.headNod.quaternion.copy(worldQuat(C.head, _q2).invert().multiply(want)).slerp(_q.identity(), 1 - k);
+      limitHeadTurn(C.headNod.quaternion.copy(worldQuat(C.head, _q2).invert().multiply(want))).slerp(_q.identity(), 1 - k);
       C.headNod.updateMatrixWorld(true);
     }
   }
