@@ -42,7 +42,7 @@ export const SHOPKEEPERS = {
         },
         chimes: {
           say: [
-            '~neutral~ Little splinters of singing crystal, no longer than your thumb. They float a hand above the sand and ring like glass when you touch them, so you always know when you’ve dropped your fortune.',
+            '~neutral~ Shards of singing crystal, about as long as your hand. They float a little above the sand and ring like glass when you touch them, so you always know when you’ve dropped your fortune.',
             '~playful~ The creatures out in the dunes are full of them. Don’t ask me why. Clear a few of them off the road and bring me what rings.',
           ],
           choices: [{ text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'qanat' }] }, end: true }, { text: '~happy~ I’ll be back.', end: true }],

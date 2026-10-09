@@ -13,6 +13,7 @@ import { BRUSH_GLSL, brushUniforms } from './brush.js';
 import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
 import { DUNE_GLASS_GLSL, DUNE_GLASS_VERT_PARS, DUNE_GLASS_VERT, duneGlassMaterial, dunePoolMaterial } from './dune-glass-shader.js';
+import { CRYSTAL_GLSL, CRYSTAL_VERT_PARS, CRYSTAL_VERT, crystalMaterial } from './crystal-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -506,6 +507,7 @@ const vertexShader = /* glsl */ `
     out vec4 vNight;
   #endif
   ${DUNE_GLASS_VERT_PARS}
+  ${CRYSTAL_VERT_PARS}
   #include <skinning_pars_vertex>
   #include <morphtarget_pars_vertex>
   #ifdef FACE_KEYS
@@ -620,6 +622,7 @@ const vertexShader = /* glsl */ `
       vNight = aNight;
     #endif
     ${DUNE_GLASS_VERT}
+    ${CRYSTAL_VERT}
     vec4 pos = vec4(transformed, 1.0);
     vec3 nrm = objectNormal;
     #ifdef USE_INSTANCING
@@ -1695,6 +1698,7 @@ const fragmentShader = /* glsl */ `
   ${FALL_GLSL}
   #endif
   ${DUNE_GLASS_GLSL}
+  ${CRYSTAL_GLSL}
 
   // ordered 4x4 dither threshold, for print-like dissolves
   float bayer4(vec2 p) {
@@ -2330,6 +2334,9 @@ const fragmentShader = /* glsl */ `
     #ifdef DUNE_POOL
       dunePool(albedo, L);   // (and the light come through it, pooled on the sand)
     #endif
+    #ifdef CHIME_CRYSTAL
+      chimeCrystal(albedo, L, emit, n);   // (crystal-shader.js: the chimes' faceted crystal)
+    #endif
     #ifdef METAL
       float metalInk;
       albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, metalInk);
@@ -2640,6 +2647,11 @@ const fragmentShader = /* glsl */ `
       gHatch.rgb = vec3(1.0, 0.0, 0.0);
       gHatch.a += 8.0;
     #endif
+    #ifdef CHIME_CRYSTAL
+      // the crystal: its outline only (no line between its facets), a pen line most of the way, no hatching
+      gHatch.rgb = vec3(uCrystalDeep.a, 0.0, 0.0);
+      gHatch.a += 8.0;
+    #endif
   }
 `;
 
@@ -2714,6 +2726,9 @@ const cache = new Map();
  * @param {object}  [o.makersBox] a makers' box's shell (src/boxes/model.js; compiles the MAKERS_BOX block): { half: [x, y, z]
  *                              (m, as drawn), center (m over its foot), mark, light (colours), ray, glow (0..1) }. The star and
  *                              the compasses painted on, a ray of light travelling across it (uBoxA.w its clock), outline-only ink
+ * @param {boolean|object} [o.crystal] the chimes' faceted crystal (crystal-shader.js; compiles the CHIME_CRYSTAL block, reads
+ *                              the geometry's aCrystal): flat facets by the sun, bright edges, a pulsing inner glow,
+ *                              refracted inner lines, a rainbow fringe, a rim and a sparkle; outline-only soft ink
  * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
  * @param {boolean} [o.nightPaint] compile the NIGHT_PAINT block: the geometry's aNight attribute (vec4: rgb its colour by
@@ -2829,6 +2844,7 @@ export function makeMaterial(o) {
   if (o.fall) fallMaterial(mat, o);   // a falling sheet of water (waterfall-shader.js)
   if (o.duneGlass) duneGlassMaterial(mat, o);   // the Glass Dunes' glass (dune-glass-shader.js)
   if (o.dunePool) dunePoolMaterial(mat, o);   // the sand that takes its light
+  if (o.crystal) crystalMaterial(mat, o);   // the chimes' crystal (crystal-shader.js)
   if (o.makersBox) {
     const B = o.makersBox;
     mat.defines = { ...mat.defines, MAKERS_BOX: 1 };

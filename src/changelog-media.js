@@ -300,6 +300,7 @@ const BEHIND_RIGHT = `${HIDE('#toast, #cue, #prompt, #objective')}
   const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 45) { this.fov = 45; this.updateProjectionMatrix(); } return base.call(this, force); };`;
 /** Twelve chimes (two fives, two ones) dropped in the Arena's middle, scattered the same way before and after (a seeded rng), the foes away. */
+const FROM_CHIME_SHADER = 'headless Chrome against a dev server, High, 1280 × 720, hour 10: the chimes dropped from a seeded rng and laid out in a ring, the camera pinned (the same scatter before and after); before at main before the change, after with it';
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
@@ -357,6 +358,20 @@ export const CHANGELOG_MEDIA = {
         rows: [{ where: 'outside', before: 32744, after: 7598 }, { where: 'the rooms shown', before: 59916, after: 15822 }],
         source: 'the same count' },
     ] },
+    { match: 'Chimes are as big again as the brass coins were', shots: [
+      { name: 'chimes-shader-arena-play', caption: 'Thirty chimes (28 ones, two fives) lying in the Arena, seen from a play distance, about five metres: before, 3.4 cm splinters, dots of ink with a spark; after, crystals as tall as the coins were, cyan with bright edges and a lavender seam, each one readable', from: FROM_CHIME_SHADER },
+      { name: 'chimes-shader-arena-close', caption: 'Seven of them close up in the Arena: before, thumb-sized splinters; after, the facets lit by the sun, the edges catching the light, the paler heart, the faint inner lines and the rainbow at a grazing rim; the outline drawn clean, no ink between the facets', from: FROM_CHIME_SHADER },
+      { name: 'chimes-shader-arena-five', caption: 'A five close up: before, a 5 cm cluster; after, a cluster as big as the coin’s five, its two small shards at its foot', from: FROM_CHIME_SHADER },
+      { name: 'chimes-shader-desert-play', caption: 'The same thirty on the desert’s sand near the ship, at play distance: before, specks; after, crystals', from: FROM_CHIME_SHADER },
+      { name: 'chimes-shader-desert-close', caption: 'And close up on the sand: before, splinters a few pixels long; after, the crystals', from: FROM_CHIME_SHADER },
+    ], numbers: [
+      { title: 'Thirty chimes in view: the frame with them and without them (renderFrame timed, synced by a readPixels, median of 11 × 24 frames, render scale 2)', unit: 'ms added', better: 'lower', device: 'MacBook (Apple GPU), headless Chrome, High, 1280 × 720',
+        rows: [{ where: 'Arena, play distance', before: 0.025, after: 0.033 }, { where: 'Arena, close (2–3 m)', before: 0.025, after: -0.037 }, { where: 'desert by the ship, play distance', before: -0.021, after: 0.013 }],
+        source: 'both within the run-to-run noise (±0.05 ms): the shader costs nothing measurable on the Mac' },
+      { title: 'Draw calls the thirty chimes add to a frame', unit: 'draws', better: 'lower', device: 'the same runs (renderer.info per pass)',
+        rows: [{ where: 'the G-buffer pass (ones, fives, glints: instanced)', before: 3, after: 3 }, { where: 'the two near shadow maps', before: 4, after: 0 }],
+        source: 'a crystal gives light rather than blocking it: they are left out of the shadow passes, where, drawn unculled, they were drawn in each' },
+    ], see: 'Cut down a foe (in the Arena, call one from the FOES list): its chimes pop out and hover, crystals as big as the old coins, turning slowly; walk round them to see the lines inside shift and a facet flash as it catches the sun. At night or indoors they keep their colour and glow softly.' },
   ],
   '1.7': [
     { match: 'Your father’s recordings now use', see: 'Open Debug → Cinematics → Recording 1 · Home to see the new father in the ship’s projector.' },

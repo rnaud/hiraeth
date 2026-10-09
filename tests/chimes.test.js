@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { DROP_OF, DROP_CATEGORY, PURSE, SPREAD, PIECE, CRYSTAL, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry } from '../src/chimes.js';
+import { DROP_OF, DROP_CATEGORY, PURSE, SPREAD, PIECE, CRYSTAL, COIN, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry } from '../src/chimes.js';
 import { CHIME_ICON_PATHS } from '../src/chime-icon.js';
 import { CHIME_SVG } from '../src/shop-panel.js';
 const view0 = () => new ChimeView(null).crystals;
@@ -263,9 +263,9 @@ test('the view draws each visible piece: the ones as shards, the fives as cluste
   assert.equal(view.crystals.count, 2, 'two ones');
   assert.equal(view.clusters.count, 2, 'two fives');
   assert.equal(view.crystals.material, view.clusters.material, 'one material for both (a draw call each)');
-  assert.equal(view.glints.count, 4, 'each at rest keeps a small spark (its inner light), so a 3 cm crystal is found a few metres off');
+  assert.equal(view.glints.count, 4, 'each at rest keeps a faint spark, swelling into a glint now and then');
   const gm = new THREE.Matrix4(), gs = new THREE.Vector3(); view.glints.getMatrixAt(0, gm); gm.decompose(new THREE.Vector3(), new THREE.Quaternion(), gs);
-  assert.ok(gs.x * CRYSTAL.glint < 0.02, `the spark small at rest (${(gs.x * CRYSTAL.glint * 100).toFixed(1)} cm)`);
+  assert.ok(gs.x * CRYSTAL.glint < 0.02, `the spark faint at rest (${(gs.x * CRYSTAL.glint * 100).toFixed(1)} cm): the crystal reads by itself now`);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), up = new THREE.Vector3();
   view.crystals.getMatrixAt(0, m); m.decompose(new THREE.Vector3(), q, sc);
   assert.ok(Math.abs(sc.x - 1) < 1e-6, 'at rest, its own size');
@@ -279,15 +279,25 @@ test('the view draws each visible piece: the ones as shards, the fives as cluste
   view.dispose(); assert.equal(scene.children.length, 0);
 });
 
-test('a chime is a small crystal at the scale of a palm: about 3 cm, faceted, cyan with a lavender seam, not a coin', () => {
+test('a chime is a crystal as big on screen as the brass coin it replaced, a five as much bigger as the coin\'s five', () => {
   const size = (g) => { g.computeBoundingBox(); return g.boundingBox.getSize(new THREE.Vector3()); };
-  const one = crystalGeometry(), s1 = size(one);
-  assert.ok(s1.y > 0.028 && s1.y < 0.04, `a one is about three centimetres long (${(s1.y * 100).toFixed(1)} cm)`);
+  // as it hovers: tilted by CRYSTAL.tilt (its height and width on screen, seen from the side)
+  const hovering = (g) => size(g.clone().rotateZ(CRYSTAL.tilt));
+  const coin = 2 * (COIN.r + COIN.bevel);   // (the old chimeGeometry before 2ddc8498: a 0.12 m disc, bevelled)
+  const one = crystalGeometry(), s1 = size(one), h1 = hovering(one);
+  assert.equal(CRYSTAL.one, +s1.y.toFixed(3), 'CRYSTAL.one is its length');
+  assert.ok(Math.abs(h1.y / coin - 1) < 0.05, `a one stands as tall as the coin was wide (${(h1.y * 100).toFixed(1)} cm, the coin ${(coin * 100).toFixed(1)} cm)`);
+  assert.ok(h1.y > 7 * 0.034, 'not the 3.4 cm splinter of the first crystals');
   assert.ok(Math.max(s1.x, s1.z) < s1.y * 0.65, 'longer than it is wide: a shard, not a disc');
-  assert.equal(CRYSTAL.one, s1.y.toFixed(3) * 1);
-  const five = clusterGeometry(), s5 = size(five);
-  assert.ok(s5.y > s1.y * 1.2 && s5.y < 0.07, `a five a little larger (${(s5.y * 100).toFixed(1)} cm), still palm-sized`);
+  // the five: as much bigger as the coin's five (1.45 x)
+  const five = clusterGeometry(), h5 = hovering(five);
+  assert.ok(Math.abs(h5.y / h1.y - COIN.five) < 0.08, `a five ${(h5.y / h1.y).toFixed(2)} x a one (the coin's five ${COIN.five} x)`);
+  assert.ok(Math.abs(h5.y / (coin * COIN.five) - 1) < 0.05, `a five as tall as the coin's five was wide (${(h5.y * 100).toFixed(1)} cm)`);
   assert.ok(five.attributes.position.count > one.attributes.position.count * 2.5, 'a cluster of three shards');
+  // they hover clear of the ground at the bottom of their bob
+  assert.ok(PIECE.hover - PIECE.bob[0] - h1.y * 0.5 > 0.12 && PIECE.hover - PIECE.bob[0] - h5.y * 0.5 > 0.08, 'clear of the ground');
+  // picked up and drawn in from the coin's reach (the same size), wider than a five
+  assert.ok(PIECE.take > h5.y && PIECE.magnet > 3 * PIECE.take);
   // flat facets: each triangle's three normals are one
   const N = one.attributes.normal;
   for (let i = 0; i < N.count; i += 3) for (let k = 1; k < 3; k++) assert.ok(Math.abs(N.getX(i) - N.getX(i + k)) + Math.abs(N.getY(i) - N.getY(i + k)) + Math.abs(N.getZ(i) - N.getZ(i + k)) < 1e-6);
@@ -299,10 +309,10 @@ test('a chime is a small crystal at the scale of a palm: about 3 cm, faceted, cy
     assert.ok(n.dot(mid.copy(a).add(b).add(c)) >= 0, 'every face turned outward');
     sum.add(n);
   }
-  assert.ok(sum.length() < 1e-7, `closed (${sum.length().toExponential(1)})`);
+  assert.ok(sum.length() < 1e-7 * (CRYSTAL.one / 0.034) ** 2, `closed (${sum.length().toExponential(1)})`);
   // its colours: mostly cyan (blue and green over red), a few lavender faces (the seam: red and blue over green)
   const K = one.attributes.color; let cyan = 0, lavender = 0;
   for (let i = 0; i < K.count; i += 3) { const r = K.getX(i), g = K.getY(i), bl = K.getZ(i); if (g > r && bl > r) cyan++; if (r > g && bl > g) lavender++; }
   assert.ok(cyan > lavender * 3 && lavender >= 2, `cyan faces (${cyan}) and the seam (${lavender})`);
-  assert.ok(view0().material.uniforms.uGlow.value > 0.3, 'a soft light inside');
+  assert.ok(view0().material.defines.CHIME_CRYSTAL, 'drawn by the crystal shader (tests/crystal-shader.test.js)');
 });
