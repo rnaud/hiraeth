@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_92f0fb2c83194a 7
+src/changelog.js
+  s_9ca76055a220ed::t_c5efe66f1ee733 59-60
+src/load-steps.js
+  s_9ca76055a220ed::t_95892b5ff6b136 87-91,93,98-104,106,109-114,116-118,122,125-152
+src/main.js
+  s_9ca76055a220ed::t_8fa1e0e628a6bc 102,119-121,127,129-130,1771,1775,1778,1784,1794,1848
+tests/gpu-pacer.test.js
+  s_9ca76055a220ed::t_ead5d2709101b5 43-100
+TODO.md
+  s_6b8abf8ef692f6::t_511800756819a3 155-160
+docs/systems/performance.md
+  s_6b8abf8ef692f6::t_8f4027b9c4afe6 607-615
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "53ac1e8016e7485f71e81e76eeba5d1d8cb744e2",
+  "prompts": {},
+  "sessions": {
+    "s_6b8abf8ef692f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a33c1b8922b52386a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
