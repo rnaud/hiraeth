@@ -1,0 +1,64 @@
+src/boxes/index.js
+  s_9ca76055a220ed::t_1393e409112974 10,341,358,384
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_74bc76e0a328d4 8,121,178,219-222,291,293-296,298,301,430
+src/audio.js
+  s_9ca76055a220ed::t_52eda535c33aeb 20,1009-1014,1017,1019-1022,1040-1126
+src/ship/cinema.js
+  s_9ca76055a220ed::t_caa89302851786 292
+  s_9ca76055a220ed::t_9868fa35ad0c43 389
+src/ship/ship.js
+  s_9ca76055a220ed::t_773aa770650f4e 25,73,478,566,666-667
+src/story/dialogue.js
+  s_9ca76055a220ed::t_791c34d1772e05 448-450
+src/crowd.js
+  s_9ca76055a220ed::t_1134941da23fa1 1087
+src/main.js
+  s_9ca76055a220ed::t_4a1e052c73c3be 110-111,538-543,1568,1578-1580,1583-1584,1590
+tests/landing.test.js
+  s_9ca76055a220ed::t_75e09b1a3ad8c7 1-77
+tests/prologue-call.test.js
+  s_9ca76055a220ed::t_9219fe5e858e53 1-32
+src/story/hum.js
+  s_9ca76055a220ed::t_a040cea741421e 1-63
+tests/hum.test.js
+  s_9ca76055a220ed::t_2485e7ca4a8d51 1-104
+src/ship/landing.js
+  s_9ca76055a220ed::t_7a1b2798953d1c 1-60
+src/story/desert.js
+  s_9ca76055a220ed::t_8a13a588cb1039 18,184-188
+src/story/calls.js
+  s_9ca76055a220ed::t_7a6de770ba124d 72-75
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_6d1b8cb8580b1a 291-293
+DONE.md
+  s_9ca76055a220ed::t_0961a031ed0d48 1200-1220
+LORE.md
+  s_9ca76055a220ed::t_8e1779728d05a1 168-169
+changelog.md
+  s_9ca76055a220ed::t_586e4989ac0d90 45-49
+docs/systems/audio.md
+  s_9ca76055a220ed::t_c6a34cd0818d5c 16-34
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_58e00819e46ec3 47-62
+src/changelog-media.js
+  s_9ca76055a220ed::t_8dbcf298931f7f 197-205
+src/changelog.js
+  s_9ca76055a220ed::t_ff586c9065dd3f 13-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de127bfac7bf4227fd94ed663b59f57f8a20c1bb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
