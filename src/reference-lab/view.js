@@ -92,21 +92,31 @@ export function batchHtml(m) {
   const cards = m.candidates.map((c) => candidateCard(m.batch, c, m.providers[c.provider]?.estimated, m.providers[c.provider]?.label)).join('');
   const total = Object.values(m.providers).reduce((s, p) => s + (p.costUSD ?? 0), 0);
   const picked = m.candidates.find((c) => c.status === 'picked');
-  return `${cmp}<div class="bhead"><p class="meta"><b>${esc(m.batch)}</b> · ${esc(m.status)} · ${esc(m.ar)} · ${m.n} each · ${m.refs.length} ref(s)${total ? ` · ${esc(money(total, true))} in all` : ''}${m.target ? ` · → ${esc(m.target)}` : ''}</p>
+  const left = m.candidates.filter((c) => c.status !== 'discarded').length;
+  const verdict = m.rejected
+    ? `<p class="rejected"><b>None of them</b> (${esc(m.rejected.date)}): ${esc(m.rejected.why)} <button type="button" class="btn small" data-unreject>Take back</button></p>`
+    : picked ? `<p class="meta"><span class="picked">Kept: ${esc(m.providers[picked.provider]?.label ?? picked.provider)} #${esc(picked.id.split('/').pop())}</span></p>`
+      : `<p class="meta">${left} pictures from ${Object.keys(m.providers).length} provider(s): pick the one to keep, or say why none works.</p>`;
+  const none = !picked && !m.rejected && m.status !== 'running' ? `<button type="button" class="btn small" data-reject>None of them…</button> ` : '';
+  return `<article class="batch${m.rejected ? ' is-rejected' : ''}" data-batch-id="${esc(m.batch)}">${cmp}<div class="bhead"><p class="meta"><b>${esc(m.batch)}</b> · ${esc(m.status)} · ${esc(m.ar)} · ${m.n} each · ${m.refs.length} ref(s)${total ? ` · ${esc(money(total, true))} in all` : ''}${m.target ? ` · → ${esc(m.target)}` : ''}</p>
     <p class="prompt">${esc(m.from ? `${m.from}: ` : '')}${esc(m.prompt.length > 320 ? `${m.prompt.slice(0, 320)}…` : m.prompt)}</p>
     <ul class="pstates">${states}</ul>
-    <p class="meta">${picked ? `<span class="picked">Kept: ${esc(m.providers[picked.provider]?.label ?? picked.provider)} #${esc(picked.id.split('/').pop())}</span>` : `${m.candidates.filter((c) => c.status !== 'discarded').length} pictures from ${Object.keys(m.providers).length} provider(s): pick the one to keep.`}</p>
-    <button type="button" class="btn small" data-discard-batch="${esc(m.batch)}">Discard the batch</button></div>
-    <div class="wall">${cards}</div>`;
+    ${verdict}
+    ${none}<button type="button" class="btn small" data-discard-batch>Discard the batch</button></div>
+    <div class="wall">${cards}</div></article>`;
 }
 
-/** Checked at first: one provider a key (fal's other models are a click away, each a bill of its own). */
-export const defaultChecked = (p) => p.available && (!p.id.startsWith('fal-') || p.id === 'fal-flux');
-
-/** The history: a button a batch, newest first. */
-export function historyHtml(list, current = '') {
-  if (!list?.length) return '<p class="empty">No batches yet.</p>';
-  return list.map((b) => `<button type="button" class="hist${b.batch === current ? ' on' : ''}" data-batch="${esc(b.batch)}">
-    <b>${esc(b.batch.slice(0, 16).replace(/-(\d\d)-(\d\d)$/, ' $1:$2'))}</b> ${esc(b.count ?? 0)} img${b.picked ? ` · ${b.picked} picked` : ''}${b.status === 'running' ? ' · running' : ''}
-    <small>${esc(String(b.from ?? b.prompt ?? '').slice(0, 80))}</small></button>`).join('');
+/** Every batch, newest first, a page at a time: the page's numbers, and where it is. */
+export const PER_PAGE = 5;
+export const pageCount = (n, per = PER_PAGE) => Math.max(1, Math.ceil(n / per));
+export function pagerHtml(total, page, per = PER_PAGE) {
+  const pages = pageCount(total, per);
+  if (pages < 2) return `<p class="meta">${total} batch${total === 1 ? '' : 'es'}</p>`;
+  const nums = Array.from({ length: pages }, (_, i) => i + 1)
+    .filter((i) => i === 1 || i === pages || Math.abs(i - page) <= 2)
+    .map((i, k, a) => `${k && i - a[k - 1] > 1 ? '<span>…</span>' : ''}<button type="button" class="btn small${i === page ? ' on' : ''}" data-page="${i}"${i === page ? ' aria-current="page"' : ''}>${i}</button>`).join('');
+  return `<nav class="pager"><button type="button" class="btn small" data-page="${page - 1}"${page <= 1 ? ' disabled' : ''}>◀</button>${nums}<button type="button" class="btn small" data-page="${page + 1}"${page >= pages ? ' disabled' : ''}>▶</button> <small>${total} batches · ${(page - 1) * per + 1}–${Math.min(total, page * per)}</small></nav>`;
 }
+
+/** Checked at first: every provider with a key, fal's models all included (the author compares them all). */
+export const defaultChecked = (p) => p.available;

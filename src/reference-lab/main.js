@@ -12,7 +12,7 @@ import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
 import { installGlyphs } from '../pad-glyphs.js';
 import { InputMode } from '../input-mode.js';
 import { DEBUG_MENU_HREF } from '../debug-back.js';
-import { ASPECTS, batchHtml, defaultChecked, esc, fileSrc, filterRefs, historyHtml, promptFor, promptOptions, providerRow, refFolders, refThumb } from './view.js';
+import { ASPECTS, PER_PAGE, batchHtml, defaultChecked, esc, fileSrc, filterRefs, pageCount, pagerHtml, promptFor, promptOptions, providerRow, refFolders, refThumb } from './view.js';
 
 const API = '/__reference-lab/';
 const $ = (s) => document.querySelector(s);
@@ -24,7 +24,7 @@ inputMode.apply(document.body.classList);
 for (const ev of ['keydown', 'pointerdown']) addEventListener(ev, (e) => { inputMode.event(e); inputMode.apply(document.body.classList); }, { capture: true, passive: true });
 document.body.dataset.gridNav = '';
 
-const state = { prompts: { docs: [], manifests: [] }, refs: [], providers: [], picked: [], shown: PAGE, batch: null, batches: [], poll: 0 };
+const state = { prompts: { docs: [], manifests: [] }, refs: [], providers: [], picked: [], shown: PAGE, page: 1, open: [], batches: [], poll: 0 };
 
 async function api(path, body) {
   const res = await fetch(API + path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
@@ -87,54 +87,67 @@ async function generate() {
   try {
     const { batch } = await api('generate', body);
     say(`Batch ${batch}: generating with ${providers.join(', ')}…`);
-    await openBatch(batch);
+    await loadPage(1);
   } catch (e) { say(e.message, true); } finally { $('#go').disabled = false; }
 }
-async function openBatch(id) {
+// Every batch on one page, newest first, PER_PAGE at a time (#page=N); polled while one of them runs.
+async function loadPage(page = state.page) {
   clearTimeout(state.poll);
-  try { state.batch = await api(`batches/${encodeURIComponent(id)}`); } catch (e) { say(e.message, true); return; }
-  history.replaceState(null, '', `#batch=${encodeURIComponent(id)}`);
-  drawBatch();
-  if (state.batch.status === 'running') state.poll = setTimeout(() => openBatch(id), 1500);
-  else { say(`Batch ${id}: done.`); refreshHistory(); }
+  try { state.batches = (await api('batches')).batches; } catch (e) { say(e.message, true); return; }
+  state.page = Math.min(Math.max(1, page), pageCount(state.batches.length));
+  const ids = state.batches.slice((state.page - 1) * PER_PAGE, state.page * PER_PAGE).map((b) => b.batch);
+  state.open = (await Promise.all(ids.map((id) => api(`batches/${encodeURIComponent(id)}`).catch(() => null)))).filter(Boolean);
+  history.replaceState(null, '', state.page > 1 ? `#page=${state.page}` : location.pathname);
+  drawBatches();
+  if (state.open.some((m) => m.status === 'running')) state.poll = setTimeout(() => loadPage(), 2000);
 }
-function drawBatch() {
-  const focused = document.activeElement?.closest?.('[data-cand]')?.dataset.cand;
-  $('#batch').innerHTML = batchHtml(state.batch);
-  if (focused) document.querySelector(`[data-cand="${CSS.escape(focused)}"]`)?.focus({ preventScroll: true });
-  drawHistory();
+function drawBatches() {
+  const f = document.activeElement?.closest?.('[data-cand]');
+  const keep = f && { batch: f.closest('[data-batch-id]')?.dataset.batchId, cand: f.dataset.cand };
+  const pager = pagerHtml(state.batches.length, state.page);
+  $('#batches').innerHTML = state.open.length ? `${pager}${state.open.map(batchHtml).join('')}${state.batches.length > PER_PAGE ? pager : ''}` : batchHtml(null);
+  if (keep) document.querySelector(`[data-batch-id="${CSS.escape(keep.batch)}"] [data-cand="${CSS.escape(keep.cand)}"]`)?.focus({ preventScroll: true });
 }
-async function refreshHistory() { try { state.batches = (await api('batches')).batches; drawHistory(); } catch { /* the server restarted */ } }
-const drawHistory = () => { $('#history').innerHTML = historyHtml(state.batches, state.batch?.batch); };
+const batchOf = (el) => state.open.find((m) => m.batch === el?.closest?.('[data-batch-id]')?.dataset.batchId);
 
-async function pickCand(id) {
-  if (!state.batch) return;
-  const target = state.batch.target || $('#target').value.trim();
+async function pickCand(m, id) {
+  if (!m) return;
+  const target = m.target || $('#target').value.trim();
   if (!target) { say('Give a target folder (references/…/) first.', true); $('#target').focus(); return; }
   const why = prompt(`Pick ${id} into ${target}: why this one? (optional, kept in manifest.json)`, '');
   if (why === null) return;
   try {
-    const r = await api('pick', { batch: state.batch.batch, candidate: id, target, why });
+    const r = await api('pick', { batch: m.batch, candidate: id, target, why });
     say(`Picked: ${r.file} (recorded in ${r.manifest})`);
-    await openBatch(state.batch.batch);
+    await loadPage();
   } catch (e) { say(e.message, true); }
 }
-async function discardCand(id) {
-  if (!state.batch) return;
-  try { await api('discard', { batch: state.batch.batch, candidate: id }); await openBatch(state.batch.batch); say(`Discarded ${id}.`); } catch (e) { say(e.message, true); }
+async function rejectBatch(m) {
+  const why = prompt(`None of these ${m.candidates.length} works: why? (kept with the batch${m.target ? ` and in ${m.target}manifest.json` : ''}, for the next prompt)`, '');
+  if (why === null) return;
+  if (!why.trim()) { say('Say why none of them works.', true); return; }
+  try { await api('reject', { batch: m.batch, why }); say(`${m.batch}: none of them.`); await loadPage(); } catch (e) { say(e.message, true); }
 }
-async function discardBatch(id) {
-  if (!confirm(`Delete batch ${id} and all its pictures?`)) return;
-  try { await api('discard', { batch: id }); state.batch = null; drawBatch(); await refreshHistory(); say(`Removed ${id}.`); } catch (e) { say(e.message, true); }
+async function unreject(m) {
+  try { await api('reject', { batch: m.batch, why: null }); await loadPage(); } catch (e) { say(e.message, true); }
+}
+async function discardCand(m, id) {
+  if (!m) return;
+  try { await api('discard', { batch: m.batch, candidate: id }); await loadPage(); say(`Discarded ${id}.`); } catch (e) { say(e.message, true); }
+}
+async function discardBatch(m) {
+  if (!confirm(`Delete batch ${m.batch} and all its pictures?`)) return;
+  try { await api('discard', { batch: m.batch }); await loadPage(); say(`Removed ${m.batch}.`); } catch (e) { say(e.message, true); }
 }
 
 // ------------------------------------------------------------------ the zoom
 const zoom = $('#zoom');
-let zoomList = [], zoomAt = 0;
+let zoomList = [], zoomAt = 0, zoomBatch = null;
 const zoomOpen = () => zoom.classList.contains('open');
 function openZoom(el) {
   const seen = new Set();   // (a picture once in the zoom, however often it shows)
-  zoomList = [...document.querySelectorAll('#batch figure img')].filter((i) => !seen.has(i.src) && seen.add(i.src))
+  zoomBatch = batchOf(el);
+  zoomList = [...(el.closest('[data-batch-id]') ?? document).querySelectorAll('figure img')].filter((i) => !seen.has(i.src) && seen.add(i.src))
     .map((i) => ({ src: i.src, cap: i.closest('figure').querySelector('figcaption')?.textContent.trim() ?? '', cand: i.closest('[data-cand]')?.dataset.cand ?? null }));
   zoomAt = Math.max(0, zoomList.findIndex((z) => z.src === el.querySelector('img')?.src));
   if (!zoomList.length) return;
@@ -152,7 +165,7 @@ function closeZoom() { zoom.classList.remove('open'); zoom.setAttribute('aria-hi
 zoom.addEventListener('click', (e) => {
   const go = e.target.closest('[data-go]');
   if (go) return stepZoom(+go.dataset.go);
-  if (e.target.closest('[data-zpick]')) { const c = zoomList[zoomAt]?.cand; closeZoom(); if (c) pickCand(c); return; }
+  if (e.target.closest('[data-zpick]')) { const c = zoomList[zoomAt]?.cand; closeZoom(); if (c) pickCand(zoomBatch, c); return; }
   if (e.target.closest('[data-close]') || e.target === zoom) closeZoom();
 });
 
@@ -163,21 +176,24 @@ document.addEventListener('click', (e) => {
   const ref = t.closest('[data-ref]'); if (ref) return toggleRef(ref.dataset.ref);
   const un = t.closest('[data-unpick]'); if (un) return toggleRef(un.dataset.unpick);
   if (t.closest('[data-more]')) { state.shown += PAGE; drawRefs(); return; }
-  const pk = t.closest('[data-pick]'); if (pk) return pickCand(pk.dataset.pick);
-  const dc = t.closest('[data-discard]'); if (dc) return discardCand(dc.dataset.discard);
-  const db = t.closest('[data-discard-batch]'); if (db) return discardBatch(db.dataset.discardBatch);
-  const h = t.closest('[data-batch]'); if (h) return openBatch(h.dataset.batch);
+  const pk = t.closest('[data-pick]'); if (pk) return pickCand(batchOf(pk), pk.dataset.pick);
+  const dc = t.closest('[data-discard]'); if (dc) return discardCand(batchOf(dc), dc.dataset.discard);
+  if (t.closest('[data-discard-batch]')) return discardBatch(batchOf(t));
+  if (t.closest('[data-reject]')) return rejectBatch(batchOf(t));
+  if (t.closest('[data-unreject]')) return unreject(batchOf(t));
+  const pg = t.closest('[data-page]'); if (pg && !pg.disabled) { loadPage(+pg.dataset.page).then(() => $('#batches').scrollIntoView({ block: 'start' })); return; }
   if (t.closest('#go')) return generate();
-  const fig = t.closest('#batch figure'); if (fig && t.tagName === 'IMG') return openZoom(fig);
+  const fig = t.closest('#batches figure'); if (fig && t.tagName === 'IMG') return openZoom(fig);
 });
 const focusedCand = () => (zoomOpen() ? zoomList[zoomAt]?.cand : document.activeElement?.closest?.('[data-cand]')?.dataset.cand);
+const focusedBatch = () => (zoomOpen() ? zoomBatch : batchOf(document.activeElement));
 const typing = (el) => /^(INPUT|TEXTAREA|SELECT)$/.test(el?.tagName ?? '') && !/^(checkbox|button)$/.test(el.type);
 addEventListener('keydown', (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   if (zoomOpen()) {
     if (e.key === 'Escape') { e.preventDefault(); closeZoom(); }
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); stepZoom(e.key === 'ArrowRight' ? 1 : -1); }
-    else if (e.key === 'p' || e.key === 'P') { const c = focusedCand(); if (c) { closeZoom(); pickCand(c); } }
+    else if (e.key === 'p' || e.key === 'P') { const c = focusedCand(), m = focusedBatch(); if (c) { closeZoom(); pickCand(m, c); } }
     return;
   }
   if (typing(e.target)) return;
@@ -185,15 +201,15 @@ addEventListener('keydown', (e) => {
   if (dir) { e.preventDefault(); menuNavigate(document.body, ...dir); return; }
   if (e.key === 'g' || e.key === 'G') { e.preventDefault(); generate(); return; }
   const c = focusedCand();
-  if (c && (e.key === 'p' || e.key === 'P')) pickCand(c);
-  else if (c && (e.key === 'Delete' || e.key === 'Backspace')) discardCand(c);
-  else if (e.key === 'Enter' && document.activeElement?.matches('#batch figure')) openZoom(document.activeElement);
+  if (c && (e.key === 'p' || e.key === 'P')) pickCand(focusedBatch(), c);
+  else if (c && (e.key === 'Delete' || e.key === 'Backspace')) discardCand(focusedBatch(), c);
+  else if (e.key === 'Enter' && document.activeElement?.matches('#batches figure')) openZoom(document.activeElement);
 });
 function confirmPad() {
   const el = document.activeElement;
   if (zoomOpen()) { if (el?.matches('[data-go], [data-zpick], [data-close]')) el.click(); else closeZoom(); return; }
   if (!el || el === document.body) return menuNavigate(document.body, 0, 1);
-  if (el.matches('#batch figure')) return openZoom(el);
+  if (el.matches('#batches figure')) return openZoom(el);
   if (el.matches('input[type="checkbox"]')) { el.click(); el.dispatchEvent(new Event('change', { bubbles: true })); return; }
   if (el.matches('button, a[href], summary')) el.click();
   else el.focus();
@@ -213,8 +229,8 @@ const controller = new Controller({
     else if (name === 'confirm') confirmPad();
     else if (name === 'start') generate();
     else if (name === 'tabPrev' || name === 'tabNext') { if (zoomOpen()) stepZoom(name === 'tabNext' ? 1 : -1); }
-    else if (name === 'x') { const c = focusedCand(); if (c) { if (zoomOpen()) closeZoom(); pickCand(c); } }
-    else if (name === 'y') { const c = focusedCand(); if (c && !zoomOpen()) discardCand(c); }
+    else if (name === 'x') { const c = focusedCand(), m = focusedBatch(); if (c) { if (zoomOpen()) closeZoom(); pickCand(m, c); } }
+    else if (name === 'y') { const c = focusedCand(); if (c && !zoomOpen()) discardCand(focusedBatch(), c); }
   },
 });
 let last = performance.now();
@@ -233,14 +249,11 @@ try {
   state.providers = providers.providers; state.prompts = prompts; state.refs = refs.refs; state.batches = batches.batches;
   $('#source').innerHTML = promptOptions(prompts);
   $('#ref-folder').innerHTML = `<option value="">every folder</option>${refFolders(state.refs).map((f) => `<option>${esc(f)}</option>`).join('')}`;
-  drawProviders(); drawRefs(); drawPicked(); drawHistory();
-  $('#batch').innerHTML = batchHtml(null);
+  drawProviders(); drawRefs(); drawPicked();
   const n = state.providers.filter((p) => p.available).length;
   say(`${n} of ${state.providers.length} providers have a key · ${state.refs.length} reference pictures · ${state.batches.length} batches`);
-  // (everything is on disk: a reload opens the batch it showed, else the newest)
-  const was = new URLSearchParams(location.hash.slice(1)).get('batch');
-  const open = state.batches.find((b) => b.batch === was) ?? state.batches[0];
-  if (open) await openBatch(open.batch);
+  // (everything is on disk: a reload shows the page it showed)
+  await loadPage(+new URLSearchParams(location.hash.slice(1)).get('page') || 1);
 } catch (e) {
   say(`The reference lab needs the dev server (npx vite): ${e.message}`, true);
 }

@@ -156,7 +156,7 @@ export function listBatches(root) {
   return readdirSync(dir).filter((b) => ID.test(b) && existsSync(join(dir, b, 'candidates.json'))).sort().reverse().map((b) => {
     try {
       const m = readBatch(root, b);
-      return { batch: b, created: m.created, prompt: m.prompt, from: m.from, status: m.status, target: m.target, count: m.candidates.filter((c) => c.status !== 'discarded').length, picked: m.candidates.filter((c) => c.status === 'picked').length, providers: Object.keys(m.providers) };
+      return { batch: b, created: m.created, prompt: m.prompt, from: m.from, status: m.status, target: m.target, count: m.candidates.filter((c) => c.status !== 'discarded').length, picked: m.candidates.filter((c) => c.status === 'picked').length, rejected: m.rejected ?? null, providers: Object.keys(m.providers) };
     } catch { return { batch: b, status: 'unreadable' }; }
   });
 }
@@ -186,6 +186,7 @@ export function pick({ root, batch, candidate, target = null, why = '', now = Da
   const c = m.candidates.find((x) => x.id === candidate);
   if (!c) throw new Error(`no candidate ${candidate} in ${batch}`);
   if (c.status === 'discarded') throw new Error(`${candidate} was discarded`);
+  if (m.rejected) throw new Error(`${batch} was turned down (none of them): take that back first`);
   const to = checkTarget(root, target || m.target);
   if (!to) throw new Error('no target folder: give --target references/…/');
   const dir = join(root, to);
@@ -218,6 +219,30 @@ export function pick({ root, batch, candidate, target = null, why = '', now = Da
   c.status = 'picked'; c.pickedAs = `${to}${file}`;
   writeJson(join(batchDir(root, batch), 'candidates.json'), m);
   return { file: `${to}${file}`, manifest: `${to}manifest.json`, entry };
+}
+
+/**
+ * None of them: the batch turned down as a whole, and why (the next prompt learns from it). Written into the
+ * batch and, when it has a target, into the target's manifest.json `rejected` list. why = null takes it back.
+ */
+export function reject({ root, batch, why, now = Date.now }) {
+  const m = readBatch(root, batch);
+  const text = why == null ? null : String(why).trim();
+  if (text === '') throw new Error('say why none of them works');
+  if (m.candidates.some((c) => c.status === 'picked') && text) throw new Error(`${batch} already has a pick`);
+  const date = new Date(now()).toISOString().slice(0, 10);
+  if (text) m.rejected = { why: text, date }; else delete m.rejected;
+  writeJson(join(batchDir(root, batch), 'candidates.json'), m);
+  if (m.target) {
+    const to = checkTarget(root, m.target), dir = join(root, to), mf = join(dir, 'manifest.json');
+    const manifest = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8'))
+      : { ...(to.startsWith('references/enemy-archetypes/') ? { archetype: to.split('/')[2] } : {}), created: date, sheets: [] };
+    manifest.rejected = (manifest.rejected ?? []).filter((r) => r.batch !== batch);
+    if (text) manifest.rejected.push({ batch, why: text, date, prompt: m.prompt, providers: Object.keys(m.providers) });
+    if (!manifest.rejected.length) delete manifest.rejected;
+    if (text || existsSync(mf)) { mkdirSync(dir, { recursive: true }); writeJson(mf, manifest); }
+  }
+  return { batch, rejected: m.rejected ?? null };
 }
 
 /** Discard a candidate (its picture deleted, marked so), or with no candidate the whole batch folder. */

@@ -71,7 +71,11 @@ other four are a click away).
    provider's pictures together in one grid (each card naming its provider, with its time and cost), so the pick is one choice across all of them; a provider that failed says why (no-key, auth, credits, rate-limit, blocked, server…)
    and the others carry on. Click a picture (or Enter, A) to zoom; ← → (LB / RB) through them.
 5. **Pick** (P, X) asks why (optional) and copies the picture to the target folder; **Discard** (Del, Y)
-   deletes a candidate; *Discard the batch* deletes the whole folder. The history lists every batch.
+   deletes a candidate; *Discard the batch* deletes the whole folder. **None of them…** turns the whole batch
+   down and asks why (required): the reason is kept in the batch and in the target's `manifest.json` under
+   `rejected` (with the prompt), so the next prompt can learn from it; *Take back* undoes it.
+6. Every batch is on the one page, newest first, five to a page with a pager (`#page=N` survives a reload).
+   Every provider with a key is checked by default, all of fal's models included.
 
 Mouse, keys and a controller all work: the D-pad and the stick move across the page (`data-grid-nav`), the
 buttons carry their glyphs, B closes the zoom and then goes back to the Debug menu (the shared ◀ Debug button,
@@ -91,6 +95,7 @@ node scripts/gen-reference.mjs --batches
 node scripts/gen-reference.mjs --pick 2026-10-10-09-12-03-ab12/openai/2 --why "the clearest silhouette"
 node scripts/gen-reference.mjs --discard 2026-10-10-09-12-03-ab12[/gemini/1]
 node scripts/gen-reference.mjs --into 2026-10-10-09-12-03-ab12 --providers gemini   # retry one in the same batch
+node scripts/gen-reference.mjs --reject <batch> --why "too cute, not Moebius"   # none of them
 node scripts/gen-reference.mjs --merge <batch>,<batch>,…   # batches of one prompt run apart, joined into the first
 ```
 
@@ -113,7 +118,7 @@ The candidates are kept in the **main checkout** (`/…/moebius/references/_cand
 rev-parse --git-common-dir`) even when the lab runs from a git worktree, so every batch shows on the author's
 own dev server too and outlives the worktree (`REFERENCE_LAB_STORE=<dir>` moves them). The folder carries its own
 `.gitignore` (`*`) besides the root one. Everything is on disk: the page lists every batch on load, newest first,
-reopens the one it showed (`#batch=<id>`), and picks and discards are written straight into `candidates.json`.
+reopens the page it showed (`#page=N`), and picks and discards are written straight into `candidates.json`.
 The page reads the candidates' pictures through the dev server (`/__reference-lab/file/<batch>/<provider>/<n>.jpg`).
 
 `candidates.json`: `{ batch, date, created, prompt, from, refs, ar, n, target, comparison, status, providers: {

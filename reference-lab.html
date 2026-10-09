@@ -78,11 +78,13 @@
   figure.cand:focus { outline: 4px solid var(--red); outline-offset: 2px; }
   .picked { color: var(--green); }
   .acts { display: flex; gap: 6px; }
-  #history { display: flex; flex-direction: column; gap: 5px; max-height: 300px; overflow-y: auto; }
-  .hist { text-align: left; padding: 4px 8px; background: var(--paper); border: 1.5px solid var(--ink); cursor: pointer; }
-  .hist small { display: block; color: var(--soft); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .hist.on { background: var(--ink); color: var(--paper); }
-  .hist.on small { color: var(--rule); }
+  article.batch { padding: 0 0 18px; margin: 0 0 18px; border-bottom: 3px solid var(--ink); }
+  article.batch:last-of-type { border-bottom: 0; }
+  article.batch.is-rejected .wall { opacity: 0.55; }
+  .rejected { margin: 4px 0 6px; padding: 4px 8px; border: 2px dashed var(--red); color: var(--red); font-size: 12.5px; }
+  .pager { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 0 0 12px; }
+  .pager .btn.on { background: var(--ink); color: var(--paper); }
+  .pager small { color: var(--soft); }
   /* the zoom */
   #zoom { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; background: rgba(43, 33, 31, 0.94); padding: 10px; }
   #zoom.open { display: flex; }
@@ -130,8 +132,7 @@
     </section>
   </div>
   <div>
-    <section class="panel"><h2>Batch</h2><div id="batch"></div></section>
-    <section class="panel"><h2>History</h2><div id="history" class="scroll"></div></section>
+    <section class="panel"><h2>Batches <small>newest first; pick one, or say why none of them works</small></h2><div id="batches"></div></section>
   </div>
 </main>
 <div id="zoom" aria-hidden="true">

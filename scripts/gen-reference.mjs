@@ -11,6 +11,7 @@
 //   node scripts/gen-reference.mjs --pick <batch>/<provider>/<n> [--target …] [--why "the clearest silhouette"]
 //   node scripts/gen-reference.mjs --discard <batch>[/<provider>/<n>]
 //   node scripts/gen-reference.mjs --into <batch> --providers gemini      (a provider retried in the same batch)
+//   node scripts/gen-reference.mjs --reject <batch> --why "too cute, not Moebius"   (none of them)
 //   node scripts/gen-reference.mjs --merge <batch>,<batch>,…              (batches run apart, joined into the first)
 //
 // The keys come from .env.local / .env (scripts/reference-lab/env.mjs) and are never printed.
@@ -18,7 +19,7 @@ import { ROOT } from './reference-lab/common.mjs';
 import { availability, loadKeys } from './reference-lab/env.mjs';
 import { PROVIDERS } from './reference-lab/providers/index.mjs';
 import { resolveFrom } from './reference-lab/prompts.mjs';
-import { CANDIDATES_DIR, discard, listBatches, mergeBatches, parseCandidate, pick, readBatch, runBatch } from './reference-lab/batch.mjs';
+import { CANDIDATES_DIR, discard, listBatches, mergeBatches, parseCandidate, pick, readBatch, reject, runBatch } from './reference-lab/batch.mjs';
 
 /** argv → options (pure). */
 export function parseArgs(argv) {
@@ -35,7 +36,7 @@ export function parseArgs(argv) {
     else if (k === 'providers') o.providers = v.split(',').map((s) => s.trim()).filter(Boolean);
     else if (k === 'n') o.n = +v;
     else if (k === 'model') { const [id, m] = v.split('='); (o.models ??= {})[id] = m; }
-    else if (['prompt', 'from', 'ar', 'target', 'pick', 'discard', 'batch', 'why', 'comparison', 'into'].includes(k)) o[k] = v;
+    else if (['prompt', 'from', 'ar', 'target', 'pick', 'discard', 'batch', 'why', 'comparison', 'into', 'reject'].includes(k)) o[k] = v;
     else if (k === 'merge') o.merge = v.split(',').map((s) => s.trim()).filter(Boolean);
     else throw new Error(`unknown option --${k}`);
   }
@@ -49,6 +50,7 @@ const HELP = `node scripts/gen-reference.mjs
   --model gemini=gemini-3-pro-image   another model for one provider (repeatable)
   --n 2  --ar 16:9  --target references/enemy-archetypes/<id>/
   --into <batch>              run the providers into an existing batch (its prompt and references)
+  --reject <batch> --why …    none of them, and why (kept in the batch and the target's manifest.json)
   --merge <batch>,<batch>     join batches run apart into the first, for one pick across them
   --list | --batches | --pick <batch>/<provider>/<n> [--why …] | --discard <batch>[/<provider>/<n>]
 Candidates go to ${CANDIDATES_DIR}/<batch>/ (git-ignored).`;
@@ -74,6 +76,11 @@ export async function main(argv = process.argv.slice(2), { root = ROOT, keys = l
     const parts = o.discard.split('/');
     const r = discard({ root, batch: parts[0], candidate: parts.length > 1 ? parts.slice(1).join('/') : null });
     log(r.removed ? `removed batch ${r.removed}` : `discarded ${r.discarded}`);
+    return 0;
+  }
+  if (o.reject) {
+    reject({ root, batch: o.reject, why: o.why ?? '' });
+    log(`${o.reject}: none of them (${o.why})`);
     return 0;
   }
   if (o.merge) {

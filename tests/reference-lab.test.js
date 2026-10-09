@@ -13,10 +13,10 @@ import { PROVIDERS, providerById } from '../scripts/reference-lab/providers/inde
 import { openaiSize } from '../scripts/reference-lab/providers/openai.mjs';
 import { falImageSize } from '../scripts/reference-lab/providers/fal.mjs';
 import { parseAspect, sizeFor, redact, httpJson, readRef, onHost } from '../scripts/reference-lab/common.mjs';
-import { runBatch, mergeBatches, pick, discard, listBatches, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
+import { runBatch, mergeBatches, reject, pick, discard, listBatches, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
 import { referenceLabMiddleware, sameMachine, listRefs, referenceLabPlugin } from '../scripts/reference-lab/server.mjs';
 import { parseArgs, main } from '../scripts/gen-reference.mjs';
-import { batchHtml, providerRow, promptFor, filterRefs, fileSrc } from '../src/reference-lab/view.js';
+import { batchHtml, pagerHtml, providerRow, promptFor, filterRefs, fileSrc } from '../src/reference-lab/view.js';
 import { DEV_PAGES, pagesHere, PAGES } from '../src/world-picker.js';
 import { cameFromDebug } from '../src/debug-back.js';
 import { BUILD_INPUT } from '../vite.config.js';
@@ -336,6 +336,17 @@ test('one batch for one pick: a provider run again into the same batch, batches 
   assert.equal(m.providers.gemini.status, 'error');
   assert.ok(!existsSync(join(root, CANDIDATES_DIR, 'm2')));
   assert.deepEqual(listBatches(root).map((b) => b.batch), ['m3', 'm1']);
+  // none of them: kept with the batch and in the target's manifest; no pick meanwhile; taken back
+  assert.throws(() => reject({ root, batch: 'm3', why: ' ' }), /say why/);
+  reject({ root, batch: 'm3', why: 'not Moebius enough', now: () => Date.parse('2026-10-09T12:00:00Z') });
+  assert.deepEqual(readBatch(root, 'm3').rejected, { why: 'not Moebius enough', date: '2026-10-09' });
+  assert.equal(listBatches(root)[0].rejected.why, 'not Moebius enough');
+  const mf = JSON.parse(readFileSync(join(root, 'references/x/manifest.json'), 'utf8'));
+  assert.deepEqual(mf.rejected.map((x) => [x.batch, x.why, x.prompt]), [['m3', 'not Moebius enough', 'a tree']]);
+  assert.throws(() => pick({ root, batch: 'm3', candidate: 'openai/1' }), /turned down/);
+  reject({ root, batch: 'm3', why: null });
+  assert.equal(readBatch(root, 'm3').rejected, undefined);
+  assert.equal(JSON.parse(readFileSync(join(root, 'references/x/manifest.json'), 'utf8')).rejected, undefined);
   rmSync(root, { recursive: true, force: true });
 });
 
@@ -463,6 +474,18 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   assert.match(h, /auth: refused/);
   assert.match(h, /class="wall"/, 'every provider\'s pictures in one grid, for one pick across them');
   assert.match(h, /<b>OpenAI<\/b> #1/, 'each card says which provider made it');
+  assert.match(h, /data-batch-id="b1"/);
+  assert.match(h, /data-reject/, 'none of them, when nothing is picked');
+  const r = batchHtml({ ...m, rejected: { why: 'too cute', date: '2026-10-09' } });
+  assert.match(r, /None of them<\/b> \(2026-10-09\): too cute/);
+  assert.match(r, /data-unreject/);
+  assert.doesNotMatch(r, /data-reject[ >]/);
+  assert.match(pagerHtml(3, 1), /3 batches/);
+  const pg = pagerHtml(23, 3);
+  assert.match(pg, /data-page="2"/);
+  assert.match(pg, /aria-current="page">3</);
+  assert.match(pg, /data-page="5"[^>]*>5</);
+  assert.match(pg, /11–15/);
   assert.equal(fileSrc('references/a b/c.jpg'), '/references/a%20b/c.jpg');
   assert.equal(filterRefs([{ path: 'references/The Desert/x.jpg', folder: 'The Desert' }, { path: 'references/Lorn/y.jpg', folder: 'Lorn' }], { query: 'desert' }).length, 1);
   const prompts = { docs: [{ doc: 'd.md', entries: [{ id: 'crab', title: 'Crab', target: 'references/enemy-archetypes/crab/', variants: [{ key: 'main', prompt: 'P', ar: '16:9' }] }] }], manifests: [] };

@@ -9,6 +9,7 @@
 //   POST /__reference-lab/generate         { prompt, refs, providers, models, n, ar, target, from, comparison } → { batch }
 //   POST /__reference-lab/pick             { batch, candidate, target, why }
 //   POST /__reference-lab/discard          { batch, candidate? }
+//   POST /__reference-lab/reject           { batch, why }   none of them, and why (why: null takes it back)
 //
 // The keys are read here, on each generate (so a key added to .env.local works without a restart), and
 // go only into the providers' request headers. Calls that spend money are refused from anything but this
@@ -19,7 +20,7 @@ import { IMAGE_EXT, ROOT, mimeOf } from './common.mjs';
 import { availability, loadKeys } from './env.mjs';
 import { PROVIDERS } from './providers/index.mjs';
 import { listPrompts } from './prompts.mjs';
-import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, pick, readBatch, runBatch } from './batch.mjs';
+import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, pick, readBatch, reject, runBatch } from './batch.mjs';
 
 export const API_BASE = '/__reference-lab/';
 
@@ -95,6 +96,7 @@ export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keys
         return send(202, { batch });
       }
       if (path === 'pick') return send(200, pick({ root, batch: body.batch, candidate: body.candidate, target: body.target, why: body.why }));
+      if (path === 'reject') return send(200, reject({ root, batch: body.batch, why: body.why ?? null }));
       if (path === 'discard') return send(200, discard({ root, batch: body.batch, candidate: body.candidate ?? null }));
       return send(404, { error: 'not found' });
     } catch (e) {
