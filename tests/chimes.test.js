@@ -361,7 +361,8 @@ test('a chime is a long blunt crystal, smaller than the brass coin, floating ove
   const coin = 2 * (COIN.r + COIN.bevel);   // (the old chimeGeometry before 2ddc8498: a 0.12 m disc, bevelled; the 27.5 cm shard after it)
   const one = crystalGeometry(), s1 = size(one), h1 = size(one.clone().rotateZ(CRYSTAL.tilt));
   assert.equal(CRYSTAL.one, +s1.y.toFixed(3), 'CRYSTAL.one is its length');
-  assert.ok(CRYSTAL.one >= 0.15 && CRYSTAL.one <= 0.2 && h1.y < coin * 0.85, `smaller than the coin-sized shard the author found too big (${(CRYSTAL.one * 100).toFixed(0)} cm)`);
+  assert.ok(CRYSTAL.one >= 0.25 && CRYSTAL.one <= 0.35, `a one's length (${(CRYSTAL.one * 100).toFixed(0)} cm)`);
+  assert.ok(PIECE.hover + CRYSTAL.one >= 0.42 && PIECE.hover + CRYSTAL.one <= 0.58, `its top at the traveller's knee, as the author asked (${(PIECE.hover + CRYSTAL.one).toFixed(2)} m)`);
   assert.ok(h1.y > 4 * 0.034, 'not the 3.4 cm splinter of the first crystals');
   assert.ok(s1.y > 2.5 * Math.max(s1.x, s1.z), `a long shard, not a pebble (${(s1.y / Math.max(s1.x, s1.z)).toFixed(1)} × as long as wide)`);
   // its ends: a small flat cap at the top (a face of the cap ring facing straight up), a blunt point below

@@ -56,7 +56,7 @@ export const CRYSTAL_ATTR = 'aCrystal';
 /** The field's per-piece glow (an instance attribute: chimes.js ChimeView). */
 export const CRYSTAL_GLOW_ATTR = 'aChimeGlow';
 /** What a vertex without the attribute reads: no edges, a one's length (chimes.js CRYSTAL.one). */
-export const CRYSTAL_DEFAULT = [1, 1, 1, 0.2];
+export const CRYSTAL_DEFAULT = [1, 1, 1, 0.3];
 
 const col = (c) => new THREE.Color(c);
 

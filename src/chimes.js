@@ -262,7 +262,7 @@ export const COIN = { r: 0.12, bevel: 0.0072, five: 1.45 };
  * `twinkle`: the glint's share lit at rest (a faint spark; it swells to the whole glint now and then, as the light
  * catches an edge).
  */
-export const CRYSTAL = { one: 0.2, girth: 0.18, tilt: 0.12, glint: 0.06, twinkle: 0.1 };
+export const CRYSTAL = { one: 0.3, girth: 0.18, tilt: 0.12, glint: 0.09, twinkle: 0.1 };
 /**
  * The tones (vertex colours: the faces of a shard). CRYSTAL_TONES: cyan with the lavender seam, for the crystals
  * drawn in the plain material (the shop's strings of chimes and its signs); CRYSTAL_NEUTRAL: the field's, pale greys
@@ -347,7 +347,7 @@ export function glintGeometry(r = CRYSTAL.glint) {
  * the piece bobs, bounces or flies up); lift: m off the ground along its slope; far: m from the camera at which it has
  * faded out (a few pixels across, it would only be a smudge).
  */
-export const BLOB = { r: 0.095, dark: 0.6, tint: '#7a66a8', core: 0.55, span: 0.8, lift: 0.015, far: 45 };
+export const BLOB = { r: 0.14, dark: 0.6, tint: '#7a66a8', core: 0.55, span: 0.8, lift: 0.015, far: 45 };
 
 /**
  * Where a piece's patch of shade lies (pure): out.pos (on the ground under it), out.up (the ground's slope), out.r

@@ -101,7 +101,7 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
 ## Chimes, the currency (v1.5)
 
 **Chimes** are floating crystals (since October 2026; brass discs pierced square before): long, blunt,
-weathered shards of translucent mineral, **20 cm** long (at first 3.4 cm, too small to read from a few steps;
+weathered shards of translucent mineral, **30 cm** long, knee-high (at first 3.4 cm, too small to read from a few steps;
 then the coins' size, 27.5 cm, which the author found too big), that float upright over their own small shadow
 and ring like struck glass when touched. They come in six worths, like Zelda's rupees, each the same shard in its
 own colour (**the tiers**, below). The look is the author's picks of 9 October in
@@ -173,7 +173,7 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   or a scene. `ChimeView` draws them all in **one instanced mesh** whatever their worth (`crystalGeometry`: seven
   sides in three bands of broad uneven facets, each ring twisted a little and a little off the axis, the middle
   band long and its sides nearly parallel, closing in a small flat cap above and a blunt point below, `CRYSTAL.one`
-  20 cm long, about 7 × 6 cm across, 56 triangles; flat facets, one column of them the seam), the tier's colour in
+  30 cm long, about 11 × 9 cm across, 56 triangles; flat facets, one column of them the seam), the tier's colour in
   the instance colour, its size in the instance's scale, its glow in an instance attribute (`aChimeGlow`); the
   glints and the trails share a second, the patches of shade a third (until October 2026 a fourth for the fives'
   clusters). None casts a shadow (`userData.castShadow` false: a crystal gives light; unculled, they would be
@@ -199,7 +199,9 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   five 1.45 × as wide; the first crystals as tall as it (27.5 cm, a five's cluster 38 cm). The author found those
   too big, so since October 2026 a one is 20 cm long, picked by eye from the game's own camera (7 m behind the
   traveller, 3 m up) on the desert's sand: 16 cm read as a fleck there and 18 cm barely, 20 cm still as a shard over
-  its shadow. A hundred is 30 cm. The pickup reach (`take` 0.65 m) and the magnet (2.4 m), tuned for the coin,
+  its shadow. Seen in the game the same day, that was too small ("they should go up to his knees"): a one is
+  **30 cm** now, its top at the traveller's knee over 0.2 m of air (`BLOB.r` 0.14 m and the glint scaled with it), a
+  hundred 45 cm. The pickup reach (`take` 0.65 m) and the magnet (2.4 m), tuned for the coin,
   stay.
 - **The crystal's look** (`src/crystal-shader.js`, makeMaterial `{ crystal: true }`, the `CHIME_CRYSTAL` define;
   compiled into the G-buffer shader like the dune glass, `CHIME_CRYSTAL` holds its tones and weights): each facet
