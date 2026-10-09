@@ -1,0 +1,95 @@
+changelog.md
+  s_9ca76055a220ed::t_334f80c07de155 6-12
+scripts/enemy-roster/compare.mjs
+  s_9ca76055a220ed::t_dd8d776b3d77ec 38-39,45
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_81a6b4a6ef69fa 59
+src/changelog.js
+  s_9ca76055a220ed::t_63931478a29957 12-18
+src/chimes.js
+  s_9ca76055a220ed::t_a4fc119ed1b16f 26,28,30
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_e406c7165de79d 58-70,100,102-117,128,143,145-163,189-208,218-219,221-237
+src/enemies/plans/hopper.js
+  s_9ca76055a220ed::t_cc2dede4dd7cad 1-197
+src/enemies/plans/index.js
+  s_9ca76055a220ed::t_b06a1f04549b4a 12-15,23,25,27,29,36-37
+src/enemies/plans/skitterers.js
+  s_9ca76055a220ed::t_2f11a01a1ceadb 1-83
+src/enemies/plans/stilt.js
+  s_9ca76055a220ed::t_9ea15840c385ab 1-168
+src/enemies/plans/tentacled.js
+  s_9ca76055a220ed::t_1de97dc870ddde 1-125
+src/enemies/skins.js
+  s_9ca76055a220ed::t_56acce8a6228ac 26-32,43-49,62-68,78-85
+src/enemies/surfaces.js
+  s_9ca76055a220ed::t_bfde4cea473cfc 144-248
+src/foe-height.js
+  s_9ca76055a220ed::t_7e0ebe02ef4a97 5
+src/foe-kinds.js
+  s_9ca76055a220ed::t_df25eb44e88e59 6-9
+src/foe-surface.js
+  s_9ca76055a220ed::t_8d7e14c72f3f78 26-27,131
+src/foe-worlds.js
+  s_9ca76055a220ed::t_a8f1c8d1fc054f 52-53
+src/foes.js
+  s_9ca76055a220ed::t_b44608ae148622 70,91-93,95,149-155,252-254,278-279,312-319,378,391,418-420,474,491,502-507,546,560-565,607,609-617,622-627,629,634-639,643-662,792,1070-1084,1103-1104,1124-1126,1138-1139,1150,1167,1169-1171,1173,1285-1287,1292,1328-1329,1505,1513,1578,1581-1583,1589,1648,1762-1764,1767,1857-1858,1862,1870-1871,1898,1952-1953,1965,1970-1971,1978-1979,1992,2093,2097,2099,2130-2143,2152,2154-2156,2161,2196-2203,2214,2354,2386-2388,2390
+src/hitboxes.js
+  s_9ca76055a220ed::t_fe7ba45d51075b 45
+src/ink.js
+  s_9ca76055a220ed::t_7d9440f0401a60 19
+src/minigames/waves.js
+  s_9ca76055a220ed::t_c7cfeb0923ac87 3-5,41,45-47,49-51,63,105,433
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_1d610d6e44a956 66-138,218
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_33592ee01c5cd7 2,62,64,75-76,88-89,108,110,119-120,122-124,172,177-186,239,256-278
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_e2f5b1ff250d66 11,64,499,554-741
+tests/bubble-fan.test.js
+  s_9ca76055a220ed::t_f65f9b487359a6 233,239,252
+tests/chimes.test.js
+  s_9ca76055a220ed::t_5a3cee785d59bb 29,42,44
+tests/combat-feel.test.js
+  s_9ca76055a220ed::t_ca789a332df467 48-49
+tests/evade-iframes.test.js
+  s_9ca76055a220ed::t_0d3904b07316c8 83
+tests/foe-appearance.test.js
+  s_9ca76055a220ed::t_abac00984c0a93 10,13
+tests/foe-height.test.js
+  s_9ca76055a220ed::t_48e4f75d26af99 43-44,127,131-132,143
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_f2aede8f6bfe69 39,179-183,185,187-188,192,195-198,277,292,318,321,339-340
+tests/foe-surface.test.js
+  s_9ca76055a220ed::t_383df4aedfd30e 30-33,51
+tests/foes-world.test.js
+  s_9ca76055a220ed::t_d5d45e1f389d8e 253,263
+tests/foes.test.js
+  s_9ca76055a220ed::t_31254d292aa3bc 275,277-278,290-291
+tests/hitboxes.test.js
+  s_9ca76055a220ed::t_5bc9ea11651ed0 37,128-129,133
+tests/minigames-waves.test.js
+  s_9ca76055a220ed::t_de1cf71ff8ca70 95
+tests/motion-kit.test.js
+  s_9ca76055a220ed::t_67c2759e9b6174 293-341
+tests/motion-plans.test.js
+  s_9ca76055a220ed::t_d3ae36e9bacd11 8-10,28-33
+tests/shop.test.js
+  s_9ca76055a220ed::t_02268f4bbec561 119-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a56a55a562aa6ec91b1871d1d3150a1546c71f6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
