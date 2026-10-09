@@ -1,0 +1,53 @@
+.github/workflows/tests.yml
+  s_88886f12bf338d::t_524c7bf9f94209 28
+changelog.md
+  s_88886f12bf338d::t_4b532ec08fc837 7
+docs/systems/controls.md
+  s_88886f12bf338d::t_b42632c83a81c9 159-160
+docs/systems/performance.md
+  s_88886f12bf338d::t_31e446bf9f3092 619-629
+docs/systems/testing.md
+  s_88886f12bf338d::t_f0067e3182edbc 14-28
+docs/systems/ui.md
+  s_88886f12bf338d::t_85ed4e0a65d8a8 390-403
+scripts/load-smoke.mjs
+  s_88886f12bf338d::t_d4ffe2bfe42cae 1-182
+src/changelog-page/main.js
+  s_88886f12bf338d::t_e6162a27161f39 9,19-20
+src/changelog.js
+  s_88886f12bf338d::t_ca2ac15930b6f4 31-33
+src/minigames/drums.js
+  s_88886f12bf338d::t_94987f63df9524 22,249
+src/minigames/sketchhunt.js
+  s_88886f12bf338d::t_b799134e8ff303 17,212-213
+src/native-pad.js
+  s_88886f12bf338d::t_b5b9d695a38a5f 36,87-89,96,110-147,217,226-227,287-289,292
+src/pad-glyphs.js
+  s_88886f12bf338d::t_6fec23aed1949a 20,101
+tests/accessibility.test.js
+  s_88886f12bf338d::t_4aa4c2d0810d90 172-173
+tests/load-awaits.test.js
+  s_88886f12bf338d::t_0408963761e568 1-85
+tests/native-pad.test.js
+  s_88886f12bf338d::t_b58d20f975da5c 19,28,67-68,75
+tests/pad-glyphs.test.js
+  s_88886f12bf338d::t_501a99d23e9a50 30,51
+tests/prompt-pairs.test.js
+  s_88886f12bf338d::t_fab6acd7129df4 1-144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6b79902e1b95e7d4ce51d465ed754aedc1a7a1f9",
+  "prompts": {},
+  "sessions": {
+    "s_88886f12bf338d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11909-5544-7d52-9144-71c79c4a433c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
