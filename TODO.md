@@ -63,7 +63,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Xbox (queued 2026-10-09)
 
-- [ ] **An Xbox Dev Mode package** (decided 2026-10-09: the packaged web game, not the Unity build): the web
+- [ ] **An Xbox Dev Mode package** — built, waiting for the console (docs/systems/xbox.md). Done: the UWP app
+  (`xbox/`: WebView2 at https://hiraeth.example, the packaged game as the fallback, the site's web bundles over the
+  air with `minXbox`, the boot watch, Back kept, pause when away, no mouse mode, the update section), the game side
+  (`src/xbox.js`: the Xbox prompts, the Xbox preset, the TV's safe area, XBOX and a JIT probe on the frame readout),
+  the workflow (`xbox.yml` → the prerelease `xbox`), `scripts/xbox-cert.sh`. Needs: the first Windows run (the runner's
+  UWP tools), the signing secrets (`scripts/xbox-cert.sh`), then on the console: Dev Mode, deploy, set to Game, and the
+  first-run checklist (frame readout, JIT, GPU share App vs Game, controller, memory). The decision, kept:
+  (decided 2026-10-09: the packaged web game, not the Unity build): the web
   game in a UWP app with WebView2 (like the Android app's wrapper: the same web bundle and over-the-air
   updates), x64, set to the **Game** app type after deploying (Dev Home / Device Portal: ~5 GB and the full
   GPU instead of an App's 1 GB and 45 %), built on GitHub (a Windows runner) and published to a prerelease;

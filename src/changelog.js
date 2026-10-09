@@ -24,6 +24,9 @@ export const CHANGELOG = [
     // chimes, the currency
     'Foes now leave chimes when they fall: small brass discs with a square hole that pop out, glint and ring as they land. Walk over them, or just come near and they fly to you; left lying, they blink and are gone after half a minute. Small foes leave one or two, heavy ones more, and a temple’s guardian leaves a purse of forty the first time it is calmed or broken. Nothing drops in the Ink tide.',
     'Your chimes show beside your hearts and potion whenever they change, counting up as they ring in, and on the menu’s Items page by your gear. Finishing a makers’ run for the first time adds fifteen. Shops to spend them in are coming.',
+    // platforms
+    { text: 'Hiraeth on Xbox, for testers with a console in Developer Mode: an app of its own that plays the game full screen on the TV with the controller, the Xbox buttons in every prompt, its menus kept inside the TV’s safe area, and the game’s updates arriving by themselves, saves kept.',
+      see: 'For testers with an Xbox in Developer Mode: download the package from the xbox prerelease, install it through the Device Portal, set it to Game, and open Hiraeth from Dev Home. Press F3 (or open the frame readout from the settings) to see XBOX, the frame time and whether the JIT is on.' },
   ] },
   { v: '1.4', date: '2026-10-09', items: [
     { text: 'Creatures and spirits: 100 reference-based enemies across 25 worlds, each with two attacks. Half are possessed old machines or dark humanoid spirits.', see: 'Open Worlds → Creatures & spirits to inspect them and try their attacks in the Arena.' },

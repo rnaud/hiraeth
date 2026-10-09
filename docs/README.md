@@ -66,6 +66,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [audio.md](systems/audio.md) | sound from the first frame, musicians' solos, the score world by world |
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
+| [xbox.md](systems/xbox.md) | the Xbox Dev Mode package: the UWP app, its updates and saves, signing, CI, deploying and measuring on the console |
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [minigames.md](systems/minigames.md) | the minigames: the runner (start card, 3-2-1, HUD, pause, results, the best in the save), the Games row and the arcade sign, how to add a game (options, a best per difficulty, games on foot), Dune skiing, Sky steps, the Canyon run, Fishing, the Ring race, the Wing drop, the shooting gallery, Ink tide, the Drum circle, the Sketch hunt |
