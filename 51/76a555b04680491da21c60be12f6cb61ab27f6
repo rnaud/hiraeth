@@ -1,0 +1,84 @@
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_1ccb15c3c5a63d 543-553,573
+tests/home-family.test.js
+  s_9ca76055a220ed::t_edc67b2042a6ba 118-119,132
+tests/item-star.test.js
+  s_9ca76055a220ed::t_d29d1223c42d44 1-33
+src/gadgets/hud.js
+  s_9ca76055a220ed::t_580e0432df6193 31
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_c0fbce2f92d59e 13,220-227
+  s_9ca76055a220ed::t_2f9321a87bb71b 228
+tests/moment.test.js
+  s_9ca76055a220ed::t_a084b5f74a7e35 76-94
+src/story/lantern.js
+  s_9ca76055a220ed::t_17e84ade23d437 4,19-20,64-71,73,75-81,83,86-87,89-90
+src/story/desert-moments.js
+  s_9ca76055a220ed::t_b1fccd384c89be 171-173,177
+src/story/moment.js
+  s_9ca76055a220ed::t_33728a4c944052 67-68,176-180
+  s_9ca76055a220ed::t_2e83e1011940d9 100
+index.html
+  s_9ca76055a220ed::t_cd91756016ce4f 396
+src/ship/cinema.js
+  s_9ca76055a220ed::t_2f4d51634bcaba 264,318,341,383
+src/story/arzach-moments.js
+  s_9ca76055a220ed::t_0627d164c2690d 54-58
+src/story/home.js
+  s_9ca76055a220ed::t_ca6777c88b100d 5,83-85,101-104,137-138,307-309,311-314,332-334
+src/boxes/scene.js
+  s_9ca76055a220ed::t_410a214469ed2d 41-42,283-291
+src/boxes/effects.js
+  s_9ca76055a220ed::t_5d98e0d4382496 39-40,75-89,230
+tests/boxes.test.js
+  s_ba3661c50ea890::t_9de9c433ac9abc 239-242
+TODO.md
+  s_9ca76055a220ed::t_e035743013b096 17-34
+  s_9ca76055a220ed::t_f62205b6946a5a 35-46
+changelog.md
+  s_9ca76055a220ed::t_dd8cb438d169d2 11-16
+cinematics.html
+  s_9ca76055a220ed::t_bfee0f8cce2301 5
+docs/README.md
+  s_9ca76055a220ed::t_512a3a737cfde8 57
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_2230effee0e6ed 1-460
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_20dbfe03efdd99 1-188
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_8f2b7a56b2df66 250-253
+src/changelog-media.js
+  s_9ca76055a220ed::t_eef30ec0aa4075 195-210
+src/changelog.js
+  s_9ca76055a220ed::t_05228e57e69cad 25-31
+src/cinematics-page/main.js
+  s_9ca76055a220ed::t_21db8eddc79aec 3,41-47
+src/cinematics-page/storage.js
+  s_9ca76055a220ed::t_4ad980b5e03cc5 7-20
+tests/cinematics-page.test.js
+  s_9ca76055a220ed::t_297b267020a8b1 4-5,24-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5176a555b04680491da21c60be12f6cb61ab27f6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ba3661c50ea890": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adc05082f9e8f8c4a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
