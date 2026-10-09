@@ -22,10 +22,6 @@ rather than mixing the earlier inconsistent exploration sheets.
   cameras, the step-out point and the smoke for the ball (`Polar(9.0, HATCH_A, DECK)`, `R * 0.6`, the call camera at
   `(-1.3, DECK + 1.95, -4.8)`, three thrusters in `WorldsTests.cs`). Re-derive them from the exported points (as
   `src/ship/cinematics.js` `cockpitFrame` does) and regenerate the export.
-- [ ] **Ilen's house is "the top half of her own round ship"** (`src/levels/lantern.js`, the Lantern): the family's
-  ship is angular now. Is hers still a round ship of her own (her line "I know that hull… paint the stripe" still
-  reads), or should her house be a piece of an angular hull? Author's call.
-
 # Singing light soundtrack follow-up
 
 - [ ] **Generate the singing light theme with Suno** using the brief in

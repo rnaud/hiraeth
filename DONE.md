@@ -3,6 +3,12 @@
 What has been built, moved out of TODO.md (2026-10-05). The changelog (src/changelog.js) says when each
 change reached players. Newest sections at the bottom.
 
+## Ilen's round ship stays (2026-10-09)
+
+- Ilen's house in the Lantern stays "the top half of her own round ship" (`src/levels/lantern.js`): the author's call,
+  after the family's ship became angular. Hers is her own ship, not a piece of the family's, so nothing changes;
+  her line "I know that hull… paint the stripe" still reads.
+
 ## Smooth, procedural character animation
 
 Improve the traveller and NPCs with natural, responsive movement and seamless
