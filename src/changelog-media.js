@@ -443,6 +443,9 @@ const SHOP_SHOTS = (w, front, inside, refs) => [
 const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place’s name comes up as you step in), talk to ${who} or stand at the middle of the counter and look at the wares. Walk out of the room’s door to be back where you were.`;
 
 export const CHANGELOG_MEDIA = {
+  '1.15': [
+    { match: 'The antler hound’s smoke mane moves again', see: 'In the Arena (the worlds list, or ?level=arena) open the FOES list (K, or D-pad ↓) and pick a world the antler hound lives in (the Eclipse, the Mangrove, the Signal Market or the Garden of Spheres): the tongues of smoke along its back now sway and stretch, each on its own beat, and lie back flatter when it runs. A still picture shows nothing of it; before, they stood rigid. Its cost: 8 flames turned a frame, about 1.4 µs more per hound (Mac M4 Pro, Node), no new draws.' },
+  ],
   '1.14': [
     { match: 'Every world on the way home now has a shop of its own', shots: [
       { name: 'shops-strip', only: 'after', caption: 'The ten new shopfronts, in the route’s order: Vael’s hoodoo, Vael II’s gatehouse, Lorn’s raft-house, Lorn II’s moss dome, Viridel’s potting house, the City-Shaft’s narrow house, the Hangar’s riveted hatch, the Buried Machine’s dome, the Garden’s pavilion and the Market’s cure-stall', from: `the after pictures of the lines below, laid four by four on one picture in headless Chrome (${FROM_SHOPS})` },

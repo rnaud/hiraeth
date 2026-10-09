@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.15 — 2026-10-09
+
+- The antler hound’s smoke mane moves again: its tongues of smoke stream and flicker off its back, flattening as it runs. They had stood still since the hound was drawn.
+
 ## v1.14 — 2026-10-09
 
 - Heart containers and magic expansions are now sold all along the way: fifteen hearts and six expansions in all, one or two in each shop and a few more in the later worlds. Each costs a little more than the last wherever you buy it, and buying them all takes you to 18 hearts and a full magic bar.

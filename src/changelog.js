@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.15', date: '2026-10-09', items: [
+    // a fix
+    'The antler hound’s smoke mane moves again: its tongues of smoke stream and flicker off its back, flattening as it runs. They had stood still since the hound was drawn.',
+  ] },
   { v: '1.14', date: '2026-10-09', items: [
     // a shop in every world
     'Every world on the way home now has a shop of its own, built the way its people build and kept by someone who lives there. Walk in through its door, talk to the keeper or look at the wares on the counter, and buy healing potions, heart containers and magic expansions with your chimes; each keeper has their own words at the counter, and you will find them on the People page once you have met them.',

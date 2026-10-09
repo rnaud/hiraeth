@@ -257,7 +257,9 @@ export function houndModel(skin) {
   for (let i = 0; i < 8; i++) {
     const t = i / 7, z = lerp(0.5, -0.55, t), size = 0.55 + Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.55;
     const fl = add(torso, new THREE.ShapeGeometry(FLAME).rotateY(-Math.PI / 2), i % 2 ? smoke2M : smokeM, (i % 2 ? 0.03 : -0.03), 0.12 + (i % 2 ? 0.07 : 0) + Math.sin(Math.PI * t) * 0.05, z);
-    fl.scale.setScalar(size * (i % 2 ? 0.85 : 1));   // (the second smoke riding higher among the first) fl.userData.yaw = (i % 2 ? 1 : -1) * (0.18 + (i % 3) * 0.08); mane.push(fl);
+    fl.scale.setScalar(size * (i % 2 ? 0.85 : 1));   // (the second smoke riding higher among the first)
+    fl.userData.yaw = (i % 2 ? 1 : -1) * (0.18 + (i % 3) * 0.08);
+    mane.push(fl);
   }
   // a thin long tail hanging behind
   tube(torso, [[0, 0.06, -0.6], [0, -0.06, -0.8], [0, -0.32, -0.92], [0, -0.58, -0.96]], 0.028, inkM, 0.008);
@@ -273,7 +275,7 @@ export function houndModel(skin) {
   finish(g);
   let solid = 1, crouch = 0, rake = 0;
   return {
-    group: g, body, rig, parts: [], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.rim, P.antler],
+    group: g, body, rig, parts: [], mane, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, shadowy: true, tones: [P.ink, P.rim, P.antler],
     tell: (id) => (id === 'rake' ? tines[0] : head),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
