@@ -23,6 +23,14 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
 
 
+# Xbox (queued 2026-10-09)
+
+- [ ] **An Xbox Dev Mode package**: the web game packaged as a UWP/MSIX app (a WebView2 wrapper like the
+  Android app's, the same web bundle and over-the-air updates), built on GitHub (a Windows runner) and
+  published to a prerelease, deployed by the author through the console's Device Portal (Dev Mode needs a
+  Microsoft Partner Center individual account and the Xbox Dev Mode app on the console). Controller input,
+  10-foot UI and the TV's safe area checked; first try the game in Edge on the Xbox to see how it plays.
+
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.
