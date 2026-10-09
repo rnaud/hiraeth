@@ -1051,12 +1051,13 @@ test('a shut gate of jaws collides as its two halves are drawn, snapping with th
   } finally { if (wasOpen) jaw.setOpen(true, true); }
 });
 
-test('the Hush-House on foot: the crystals sung low to high, the climbing disc and the root-wall, the stilling mode, the gates of jaws, the pendulums, the Mother Snapper stilled, the swamp in flower', () => {
+test('the Hush-House on foot: the crystals sung low to high (the first by the door), the climbing disc and the eye on the root-wall, the stilling mode, the gate of jaws, the pendulums stilled in turn, the Mother Snapper stilled, the swamp in flower', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('perdide');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
-  rt.connect({ player: P, toast: () => {} });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -1068,11 +1069,19 @@ test('the Hush-House on foot: the crystals sung low to high, the climbing disc a
   };
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const seen = (from, to) => { const d = to.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
   wait(0.5);
-  // ---- the Choir: out of turn a crystal rings flat; low to high, the door opens
+  // ---- the Choir: its lowest crystal rings flat, and says where the first note was sung: at the door
+  assert.equal(walk(L(0, 0, 20)), true, `into the Choir (${where()})`);
+  rt.piece('c2').hit('shoot');
+  assert.equal(rt.logic.isLit('c2'), false, 'not before the first note');
+  assert.ok(notes.some((s) => /at the door/.test(s)), 'it says where the first note is');
   rt.piece('c3').hit('shoot');
-  assert.equal(rt.logic.isLit('c3'), false, 'not before the lower ones');
-  for (const id of ['c1', 'c2', 'c3', 'c4']) rt.piece(id).hit('shoot');
+  assert.equal(rt.logic.isLit('c3'), false, 'nor out of turn');
+  assert.equal(walk(L(2.5, 0, 6.5)), true, `back to the door's crystal (${where()})`);
+  rt.piece('c1').hit('shoot');
+  assert.equal(walk(L(0, 0, 30)), true, `into the Choir again (${where()})`);
+  for (const id of ['c2', 'c3', 'c4']) rt.piece(id).hit('shoot');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true);
   // ---- the Bog Well: the disc that climbs over the dark water, then up the root-wall
@@ -1082,9 +1091,17 @@ test('the Hush-House on foot: the crystals sung low to high, the climbing disc a
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.ok(rt.kit.local(P.pos).y > 2.5, `carried up on it (${where()})`);
+  // the door at the top is shut; its eye is on the root-wall's face, in sight from the disc, not from the top
+  const eye = rt.piece('sw').center;
+  assert.ok(seen(P.pos.clone().add(V(0, 1.6, 0)), eye), 'the eye seen from the disc');
+  assert.ok(!seen(L(-0.8, 10.7, 57.2 + 6.7), eye), 'not from the top of the wall');
+  assert.equal(rt.logic.isOpen('dw'), false);
+  rt.piece('sw').hit('shoot');
+  wait(0.2);
   let up = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
   assert.ok(up, `up the root-wall (${where()})`);
+  assert.equal(rt.logic.isOpen('dw'), true, 'the door at the top is open');
   // ---- the Stilling Chamber: the gate of jaws snaps at plain fluid and will not let you by
   assert.equal(walk(L(0, 9, 75)), true, `into the chamber (${where()})`);
   rt.piece('d2').hit('shoot');
@@ -1107,10 +1124,16 @@ test('the Hush-House on foot: the crystals sung low to high, the climbing disc a
   wait(1.5);
   P.teleport(L(0, 9.05, 94.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
+  // stilled near to far to cross: the walk stills them out of turn, and only the smallest's note takes
   for (const s of swings) s.hit('stun');
   assert.equal(walk(L(0, 9, 120), { max: 6 }), true, `over the bridge between the stilled pendulums (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > 8, 'on it, not in the chasm');
-  rt.piece('d3').hit('stun');
+  assert.deepEqual(['w1', 'w2', 'w3'].map((id) => rt.logic.isLit(id)), [true, false, false], 'only the smallest crystal took');
+  assert.ok(notes.some((s) => /smallest crystal first/.test(s)), 'the others rang flat, and say why');
+  wait(1);
+  assert.equal(rt.logic.isOpen('d3'), false, 'the far door wants all three notes');
+  // from the far side, again, in turn: middle-sized, then the biggest
+  for (const id of ['w2', 'w3']) rt.piece(id).hit('stun');
   wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Mother's Hall: still her when she lies spent; later, mid-strike

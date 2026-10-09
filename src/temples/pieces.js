@@ -688,11 +688,13 @@ export class Jaw {
 /**
  * A pendulum of crystal (Lorn's Hush): it hangs from a pivot high over a bridge and swings across it
  * (along the local x), and knocks whoever it meets off into the chasm. A stilling glob stops it dead
- * for `stillFor` seconds. o: { at: the pivot, len, amp (rad), period (s), phase (0..1), yaw }
+ * for `stillFor` seconds. o: { at: the pivot, len, amp (rad), period (s), phase (0..1), yaw, size (its
+ * crystal's scale), id (an element a stilling wakes for good: a 'switch' that needs the stilling mode, which
+ * may come `after` another: still them in turn), heard / wrong (what it says when it takes / rings flat) }
  */
 export class Swing {
   constructor(rt, o) {
-    this.rt = rt; this.o = o;
+    this.rt = rt; this.o = o; this.id = o.id;
     const K = rt.kit, len = this.len = o.len ?? 10;
     this.amp = o.amp ?? 0.9; this.period = o.period ?? 2.8; this.s = (o.phase ?? 0) * this.period; this.stillFor = o.stillFor ?? 6;
     this.group = new THREE.Group();
@@ -703,7 +705,8 @@ export class Swing {
     this.group.add(this.arm);
     this.arm.add(mesh([box(0.18, len - 1.6, 0.18, 0, -(len - 1.6) / 2, 0), new THREE.TorusGeometry(0.45, 0.12, 5, 14)], rt.M.trimMat));
     this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true });
-    this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5, 2.1, 1.5]), T(new THREE.OctahedronGeometry(1, 0), [0.9, -len + 0.6, 0.3], [0, 0, 0.5], [0.6, 1.0, 0.6])], this.mat));
+    const z = o.size ?? 1;
+    this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5 * z, 2.1 * z, 1.5 * z]), T(new THREE.OctahedronGeometry(1, 0), [0.9 * z, -len + 0.6 * z, 0.3 * z], [0, 0, 0.5], [0.6 * z, 1.0 * z, 0.6 * z])], this.mat));
     noCollide(this.group);
     this.center = V(); this.still = 0; this.cool = 0; this.theta = 0; this.way = 1;
     this.place();
@@ -720,6 +723,11 @@ export class Swing {
       if (!this.still) this.rt.sound?.chime?.();
       this.still = this.stillFor;
       this.rt.notice?.(this.o.stilled ?? 'The crystal stops dead mid-swing, frosted over, and hangs there humming.', 'swing.still');
+      // its note: it takes in turn (the element lit for good), or out of turn it rings flat
+      if (this.id) {
+        if (this.rt.logic.light(this.id)) { this.rt.onLit?.(this.id); if (this.o.heard) this.rt.notice?.(this.o.heard, `swing.${this.id}`); }
+        else if (!this.rt.logic.isLit(this.id) && this.o.wrong) { this.flat = 0.8; this.rt.sound?.critter?.('blip', 0.5); this.rt.notice?.(this.o.wrong, `wrong.${this.id}`); }
+      }
       return true;
     }
     this.rt.notice?.(this.o.rings ?? 'The crystal rings under the splash, and swings on.', 'swing.ring');
@@ -739,8 +747,9 @@ export class Swing {
     if (this.theta !== was) this.way = Math.sign(this.theta - was);   // (the way it swings: the way it knocks)
     this.place();
     const k = this.still > 0 ? Math.min(1, this.still) : 0;
+    this.flat = Math.max(0, (this.flat ?? 0) - dt);
     this.mat.uniforms.uColor.value.set(this.rt.P.glow ?? '#a8e6ee').lerp(_frost, k);
-    this.mat.uniforms.uGlow.value = 0.3 + 0.5 * k;
+    this.mat.uniforms.uGlow.value = 0.3 + 0.5 * k + (this.id && this.rt.logic.isLit(this.id) ? 0.3 : 0) - this.flat * 0.25;   // (its note taken: it glows on)
     // it meets you: off the bridge, the way it was swinging
     const P = this.rt.player;
     if (!P || P.dead || P.down || this.still > 0 || this.cool > 0) return;

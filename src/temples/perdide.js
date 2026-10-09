@@ -15,15 +15,21 @@ import { snapperModel } from './guardians.js';
 // rang the house's crystals went out of tune, and she woke, frightened, and
 // has snapped at everything since.
 //
-// Inside (built far overhead, through its door):
-//   the Threshold          the first mark, the way out
-//   the Choir              four crystals, each its own height: splash them low to high and the door opens
-//                          (out of turn, a crystal rings flat and fades: logic.js `after`)
-//   the Bog Well           a riding disc that climbs over dark water, then a wall of roots to climb
+// Inside (built far overhead, through its door). The temple's one idea: the makers sang from low to high;
+// first with the fluid, then with the stilling mode.
+//   the Threshold          the first mark, the way out, and the smallest crystal, by the door
+//   the Choir              three more crystals, each its own height: splash them low to high and the door opens
+//                          (out of turn, a crystal rings flat and fades: logic.js `after`). The lowest note is
+//                          not in the Choir: it was sung at the door (the Threshold's crystal, a room back)
+//   the Bog Well           a riding disc that climbs over dark water, then a wall of roots to climb; the door
+//                          at its top wants the eye on the root-wall's face, seen from the disc (not from the top)
 //   the Stilling Chamber   the makers' chest: the STILLING MODE (src/items.js 'stun'). The way on is a gate of
 //                          jaws that snaps, and snaps: a stilling glob stills it, and it rests open
 //   the Pendulum Gallery   a narrow bridge over a chasm, three crystal pendulums swinging across it (still
-//                          them, one by one); at its end a second gate of jaws
+//                          them, one by one, to cross); the far door wants their notes, and a pendulum's note
+//                          only takes stilled in turn, low to high, smallest crystal first, as the Choir taught.
+//                          They hang out of that order, so the walk across stills them wrong: still them again,
+//                          in turn, from the far side (the gadget with the temple's first verb, the order)
 //   the Mother's Hall      the guardian (organic: you calm her): the Mother Snapper, rooted in the middle of a
 //                          round hall. Her head lunges, sweeps, spits seed; spent after a lunge it lies on the
 //                          floor, agape: a stilling glob in her mouth calms her. Later, still her mid-strike
@@ -47,24 +53,29 @@ export const LOGIC = {
   links: [
     { a: 'threshold', b: 'choir' },
     { a: 'choir', b: 'well', door: 'd1' },
-    { a: 'well', b: 'stilling' },
+    { a: 'well', b: 'stilling', door: 'dw' },
     { a: 'stilling', b: 'gallery', door: 'd2' },
     { a: 'gallery', b: 'galleryFar', needs: ['stun'] },   // the pendulums: still them to cross
     { a: 'galleryFar', b: 'hall', door: 'd3' },
     { a: 'hall', b: 'out', door: 'd5' },
   ],
   elements: {
-    // the four crystals of the Choir, sung low to high
-    c1: { type: 'switch', room: 'choir' },
+    // the four crystals, sung low to high: the lowest by the door, three in the Choir
+    c1: { type: 'switch', room: 'threshold' },
     c2: { type: 'switch', room: 'choir', after: 'c1' },
     c3: { type: 'switch', room: 'choir', after: 'c2' },
     c4: { type: 'switch', room: 'choir', after: 'c3' },
     d1: { type: 'door', opens: { all: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }, { lit: 'c4' }] }, latch: true },
+    sw: { type: 'switch', room: 'well' },                          // the eye on the root-wall's face
+    dw: { type: 'door', opens: { lit: 'sw' }, latch: true },
     chest: { type: 'gadget', room: 'stilling', item: 'stun' },
     j1: { type: 'switch', room: 'stilling', needs: ['stun'] },     // the jaws stilled
     d2: { type: 'door', opens: { lit: 'j1' }, latch: true },
-    j2: { type: 'switch', room: 'galleryFar', needs: ['stun'] },
-    d3: { type: 'door', opens: { lit: 'j2' }, latch: true },
+    // the pendulums' notes, stilled in turn: smallest crystal (lowest) first
+    w1: { type: 'switch', room: 'gallery', needs: ['stun'] },
+    w2: { type: 'switch', room: 'gallery', needs: ['stun'], after: 'w1' },
+    w3: { type: 'switch', room: 'gallery', needs: ['stun'], after: 'w2' },
+    d3: { type: 'door', opens: { all: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] }, latch: true },
     mother: { type: 'boss', room: 'hall', needs: ['backpack', 'stun'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
@@ -141,12 +152,17 @@ function layout(rt) {
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
   K.wall(-12.2, 12.6, 12.2, 12.6, 0, 13, { t: 1.2, holes: [{ at: 12.2, w: 6, h: 7 }] });
   spike(-5.8, 0, 10.5, 3.5, 0.6, 0.2); spike(5.6, 0, 10.8, 2.6, 0.5, -0.25, 1);
+  // the first note, sung at the door: the smallest crystal, by the way in
+  const wrong = 'It rings flat, and fades. The makers sang from low to high, and the first note at the door.';
+  add(Switch, { id: 'c1', at: [4.4, 0, 6.5], crystal: 1.8, size: 0.9, wrong });
+  K.both(M.trim, T(annulus(1.5, 1.9, 0.2, 24), [4.4, 0.1, 6.5]));
 
-  // ---- the Choir (z 12.6..44): four crystals, each its own height; splash them low to high
+  // ---- the Choir (z 12.6..44): three crystals, each its own height; splash them low to high (after the door's)
   K.hall({ x: 0, z: 28.3, w: 24, d: 31.4, y: 0, h: 14, roof: 'oculus', columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.4 }] });
-  const wrong = 'It rings flat, and fades. The makers sang from low to high.';
-  for (const [id, x, z, h] of [['c3', -6, 20, 4.4], ['c1', 6, 23, 1.8], ['c4', -6, 35, 5.6], ['c2', 6, 37, 3.1]])
+  for (const [id, x, z, h] of [['c3', -6, 20, 4.4], ['c4', -6, 35, 5.6], ['c2', 6, 37, 3.1]])
     add(Switch, { id, at: [x, 0, z], crystal: h, size: 0.9, wrong });
+  // where the fourth stood: an empty ring of stone
+  K.both(M.trim, T(annulus(1.0, 1.5, 0.25, 24), [6, 0.12, 23]));
   K.both(M.trim, T(annulus(1.8, 2.4, 0.3, 28), [0, 0.15, 28.3]));
   K.add(M.glyph, T(glyphGeometry(2.6, 0.05).rotateX(-Math.PI / 2), [0, 0.32, 28.3]));
   add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.4, lamps: [{ lit: 'c1' }, { lit: 'c2' }, { lit: 'c3' }, { lit: 'c4' }] });
@@ -171,6 +187,9 @@ function layout(rt) {
   root([[5, 9, C2 + 3.2], [6, 4, C2 + 3.1], [4.8, 0, C2 + 3.15], [5.4, -3, C2 + 3.1]], 0.45);
   K.slab(-6, C2 + 9, 6, C2 + 10.4, 9, 0.6);
   add(Mark, { room: 'well', at: [-3.2, 0, C2 - 8.6], yaw: Math.PI / 2 });
+  // the door at the root-wall's top, and its eye on the wall's face: at eye height on the disc, out of sight above
+  add(Door, { id: 'dw', at: [0, 9, C2 + 10.7], w: 5, h: 6, lamps: [{ lit: 'sw' }] });
+  add(Switch, { id: 'sw', at: [-2.6, 4.5, C2 + 2.8], yaw: Math.PI, size: 1.0 });
   spike(7.5, -2.4, C2 - 3, 5, 0.8, -0.3); spike(-7.2, -2.4, C2 - 1, 4, 0.7, 0.3, 1);
 
   // ---- the corridor and the Stilling Chamber (floor 9, a rotunda): the chest; a gate of jaws
@@ -197,14 +216,17 @@ function layout(rt) {
   K.add(M.trim, box(3.3, 0.25, 20.4, 0, 7.9, G0 + 16));
   K.both(M.dark, box(22, 1, 20, 0, -3.5, G0 + 16));
   add(Pit, { room: 'gallery', min: [-12, -6, G0 + 6], max: [12, 4, G0 + 26] });
-  const SW = [G0 + 10, G0 + 16, G0 + 22];
-  for (const [i, z] of SW.entries()) {
+  // their notes: smallest crystal lowest; they hang middle-sized, biggest, smallest (so the walk across stills
+  // them out of turn: from the far side, still them again in turn)
+  const SW = [['w2', G0 + 10, 0.85], ['w3', G0 + 16, 1.15], ['w1', G0 + 22, 0.6]];
+  const flat = 'Its crystal stops, but its note rings flat. The makers sang from low to high: the smallest crystal first.';
+  for (const [i, [id, z, size]] of SW.entries()) {
     K.add(M.trim, box(22, 0.8, 1.2, 0, 21.6, z));            // the beam it hangs from
-    add(Swing, { at: [0, 21, z], len: 10, amp: 0.95, period: 2.6 + i * 0.3, phase: i * 0.31 });
+    add(Swing, { id, at: [0, 21, z], len: 10, amp: 0.95, period: 2.6 + i * 0.3, phase: i * 0.31, size, wrong: flat, heard: 'The stilled crystal’s note rings true, and a lamp wakes over the far door.' });
   }
   add(Mark, { room: 'gallery', at: [-7, 9, G0 + 3], yaw: 0 });
   add(Mark, { room: 'galleryFar', at: [7, 9, G0 + 31], yaw: Math.PI });
-  add(Jaw, { id: 'd3', still: 'j2', at: [0, 9, G0 + 34.9], w: 5.2, h: 6.4, seed: 2 });
+  add(Door, { id: 'd3', at: [0, 9, G0 + 34.9], w: 5.2, h: 6.4, lamps: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] });
 
   // ---- the corridor, and the Mother's Hall (floor 9): a round hall, the Mother rooted in its middle
   const H0 = G0 + 35;

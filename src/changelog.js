@@ -27,6 +27,9 @@ export const CHANGELOG = [
     // the temples, reworked from the temple design audit: the Founders' Belfry
     'The Founders’ Belfry is rebuilt round one idea: the founders’ bells hold things only while they ring. The Hall of Stones is now a crossroads: two archways open off it into two stone stores, a ball to roll home in each, in whichever order you like, and the door’s two lamps wait for both. The Stone Stair’s high door is shut, and its eye hides on the landing’s face, seen from the ledge on the way up.',
     'In the Founders’ Belfry the door out of the Bell Chamber now stands open only while the bell rings, and the hanging stones in the Hall of Echoes come down only for as long as the note lasts. The far door wants the ball waiting at the near edge: ring, roll it across while the stones are down (it stops at the edge while they hang, and drops if they rise under it), and its weight on the far plate keeps the bridge down for good.',
+    // the Hush-House
+    'The Hush-House’s first crystal now stands by the door, in the Threshold: the Choir’s three ring flat until it has sung, and say where the first note was. The Bog Well’s way up has a door at the top of the root-wall, and its eye is on the wall’s face, in sight from the climbing disc but not from the top.',
+    'In the Hush-House’s Pendulum Gallery the far gate of jaws is gone: the far door wants the three pendulums’ notes, and a stilled pendulum’s note only rings true in turn, smallest crystal first, as the Choir taught. They hang out of that order, so stilling them to cross gets it wrong: from the far side, still them again, in turn.',
   ] },
   { v: '1.7', date: '2026-10-09', items: [
     { text: 'Cinematic previews start and replay silently, including dialogue and the trailer.', see: 'Open Debug → Cinematics and replay any scene. Sound stays off until you enable it.' },

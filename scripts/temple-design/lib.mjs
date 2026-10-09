@@ -81,7 +81,8 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   if (piece?.cls === 'Bank' || item === 'magic:4' || item === 'coil') tags.push('volley');
   if (el.type === 'drum') tags.push('push');
   else if (el.type === 'plate') tags.push(Object.values(elements).some((e) => e.type === 'drum' && e.plate === id) ? 'push' : 'weight');
-  else if (el.type === 'switch' && !item) tags.push(el.after || Object.values(elements).some((e) => e.after === id) ? 'sequence' : 'shot');
+  else if (el.type === 'switch' && (el.after || Object.values(elements).some((e) => e.after === id))) tags.push('sequence');   // (in turn: with a gadget too, the gadget and the order)
+  else if (el.type === 'switch' && !item) tags.push('shot');
   else if (el.type === 'brazier' || el.type === 'bramble') { if (!item) tags.push('ember'); }
   else if (el.type === 'bell' && !item) tags.push('bell');
   if (piece?.o?.hidden) tags.push('reveal');

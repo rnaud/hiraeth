@@ -47,7 +47,9 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   `{ resolved }`…), rooms reachable from the entrance, `next()` for the marker and
   the scout. Saved in the save slot's flags under `temple.<id>.*`. `solve(def)`
   plays a temple through as a player would; `withhold` proves its gadget is the key.
-  A latched element may come `after` another (the Hush-House's crystals, low to high).
+  A latched element may come `after` another (the Hush-House's crystals, low to high, the first by the
+  door; and its pendulums' notes, stilled in turn: a `Swing` with an `id` lights it when stilled, or rings
+  flat out of turn, and still stops either way, so the walk across still works).
 - **`boss.js`**: `Guardian`: sleep, wake, fight, open, shift, weary, resolved; a meter in
   phases (`calm` for an organic guardian, `damage` for a robot), three fighting phases with a shift between
   (it staggers, its marks light, new moves); a staged fight of 4-6 moves, combos and openings read from the
