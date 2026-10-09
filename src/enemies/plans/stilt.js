@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
 import { SecondOrder } from '../../motion-kit/spring.js';
-import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, tubeGeometry, many, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 
 // Plan 7, the stilt-walker (docs/systems/procedural-animation.md §4): the stilt heron (docs/design/enemy-roster.md,
 // archetype 6), drawn to its sheets (references/enemy-archetypes/heron/: sheet-1 the Desert's cistern heron, sheet-2
@@ -58,10 +58,10 @@ export function heronModel(skin) {
     wings = pair((s) => {
       const w = pivot(torso, s * 0.44, 0.46, 0.34, 'wing');
       add(w, new THREE.SphereGeometry(1, 14, 10).scale(0.11, 0.42, 0.96), wingM, 0, -0.1, -0.52);
-      for (let k = 0; k < 5; k++) add(w, new THREE.ConeGeometry(0.08, 0.75, 5).rotateX(-Math.PI / 2 + 0.32).translate(0, -0.12 - k * 0.05, -1.0 - k * 0.05), wingM, s * 0.02, 0, 0).rotation.z = s * k * 0.05;
+      many(w, Array.from({ length: 5 }, (_, k) => new THREE.ConeGeometry(0.08, 0.75, 5).rotateX(-Math.PI / 2 + 0.32).translate(0, -0.12 - k * 0.05, -1.0 - k * 0.05).rotateZ(s * k * 0.05)), wingM, s * 0.02, 0, 0);   // (the long flight feathers)
       return w;
     });
-    for (let k = 0; k < 5; k++) { const t = add(torso, new THREE.ConeGeometry(0.06, 0.5, 5).rotateX(-Math.PI / 2 - 0.35).translate(0, -0.08, -0.82), bodyM, (k - 2) * 0.07, 0.08, 0); t.rotation.y = (k - 2) * 0.12; shell.push(t); }
+    shell.push(many(torso, Array.from({ length: 5 }, (_, k) => new THREE.ConeGeometry(0.06, 0.5, 5).rotateX(-Math.PI / 2 - 0.35).translate(0, -0.08, -0.82).rotateY((k - 2) * 0.12).translate((k - 2) * 0.07, 0.08, 0)), bodyM));
     neckBase = V(0, 0.5, 0.56);
   }
   // the hip joints: round knobs where the legs meet the body (the sheet's discs)
@@ -84,7 +84,7 @@ export function heronModel(skin) {
   add(bill, new THREE.BoxGeometry(0.002, 0.004, billLen * 0.7), darkM, 0, -0.005, billLen * 0.4);   // (the line of its beak)
   const tip = pivot(bill, 0, 0, billLen);
   const crest = [];
-  if (props.has('crest')) for (let k = 0; k < 9; k++) { const l = 0.44 + ((k * 3) % 4) * 0.07; const c = add(head, new THREE.ConeGeometry(0.048, l, 5).translate(0, l / 2, 0), crestM, (k - 4) * 0.012, 0.08, -0.08); c.rotation.set(-0.45 - Math.abs(k - 4) * 0.06, 0, (k - 4) * 0.2); crest.push(c); }
+  if (props.has('crest')) crest.push(many(head, Array.from({ length: 9 }, (_, k) => { const l = 0.44 + ((k * 3) % 4) * 0.07; return new THREE.ConeGeometry(0.048, l, 5).translate(0, l / 2, 0).applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(-0.45 - Math.abs(k - 4) * 0.06, 0, (k - 4) * 0.2))).translate((k - 4) * 0.012, 0.08, -0.08); }), crestM));
   else if (!props.has('cap')) crest.push(add(head, new THREE.ConeGeometry(0.035, 0.16, 5).rotateX(-1.9), crestM, 0, 0.07, -0.18));
   if (props.has('cap')) { const cap = add(head, new THREE.SphereGeometry(0.3, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.42), crestM, 0, -0.02, -0.01); cap.scale.set(1, 0.7, 1); crest.push(cap); add(head, new THREE.CircleGeometry(0.28, 16).rotateX(Math.PI / 2), M.mat('gill', P.body2), 0, 0.05, 0); }
   // the legs on the kit: a short thigh down to the bird's joint two thirds up (bending back), a long shank to the foot
@@ -93,8 +93,7 @@ export function heronModel(skin) {
     const leg = planLeg(PLANS.stilt, { group: g, body, hipParent: torso, hip: { x: s * 0.3, y: -0.14, z: 0 }, foot: { x: s * 0.34, z: 0.06 }, radius: 0.075, pad: 'point', mats: { joint: jointM, thigh: legM, shin: legM, foot: legM }, name: `heron leg ${legs.length}` });
     // wide wading feet: three long toes forward, one back (the Mangrove's like roots, longer and knotted)
     const roots = props.has('roots'), L = roots ? 0.68 : 0.56;
-    for (const a of [-0.5, 0, 0.5]) tube(leg.foot, [[0, 0.04, 0], [Math.sin(a) * L * 0.5, 0.03, Math.cos(a) * L * 0.5], [Math.sin(a) * L, 0.0, Math.cos(a) * L]], roots ? 0.04 : 0.034, legM, 0.01);
-    tube(leg.foot, [[0, 0.04, 0], [0, 0.015, -L * 0.45]], 0.03, legM, 0.01);
+    many(leg.foot, [...[-0.5, 0, 0.5].map((a) => tubeGeometry([[0, 0.04, 0], [Math.sin(a) * L * 0.5, 0.03, Math.cos(a) * L * 0.5], [Math.sin(a) * L, 0.0, Math.cos(a) * L]], roots ? 0.04 : 0.034, 0.01)), tubeGeometry([[0, 0.04, 0], [0, 0.015, -L * 0.45]], 0.03, 0.01)], legM);
     legs.push(leg);
   }
   const rig = new Rig({ plan: PLANS.stilt, group: g, body, legs });

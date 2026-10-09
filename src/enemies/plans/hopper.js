@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, rod, many, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 
 // Plan 5, the hopper (docs/systems/procedural-animation.md §4): the bellows toad (docs/design/enemy-roster.md,
 // archetype 4), drawn to its sheets (references/enemy-archetypes/toad/: sheet-1 Lorn's spore toad, sheet-2 the
@@ -74,13 +74,19 @@ export function toadModel(skin) {
   // the haunches: the folded thighs' great rounded masses at its lower sides (the sheet's lump)
   const haunches = pair((s) => add(trunk, new THREE.SphereGeometry(1, 16, 12).scale(0.4, 0.42, 0.6), skinM, s * 0.66, 0.5, -0.12));
   // the hands: three fat fingers each, splayed forward; the feet: long, webbed, flat, reaching forward past the knee
-  const fingers = (leg, s) => { for (let k = 0; k < 3; k++) { const a = (k - 1) * 0.42 + s * 0.15; const f = add(leg.foot, new THREE.CapsuleGeometry(0.045, 0.2, 3, 6).rotateX(Math.PI / 2).translate(0, 0.03, 0.15), skinM); f.rotation.y = a; add(leg.foot, new THREE.SphereGeometry(0.05, 6, 4), toeM, Math.sin(a) * 0.27, 0.03, Math.cos(a) * 0.27); } };
+  const fingers = (leg, s) => {   // (three fingers in one mesh, their tips in another: two draws a hand)
+    const a = [0, 1, 2].map((k) => (k - 1) * 0.42 + s * 0.15);
+    many(leg.foot, a.map((x) => new THREE.CapsuleGeometry(0.045, 0.2, 3, 6).rotateX(Math.PI / 2).translate(0, 0.03, 0.15).rotateY(x)), skinM);
+    many(leg.foot, a.map((x) => new THREE.SphereGeometry(0.05, 6, 4).translate(Math.sin(x) * 0.27, 0.03, Math.cos(x) * 0.27)), toeM);
+  };
   legs.slice(0, 2).forEach((l, i) => fingers(l, i ? 1 : -1));
   const web = new THREE.Shape(); web.moveTo(0, 0); web.lineTo(-0.3, 0.55); web.quadraticCurveTo(-0.16, 0.5, -0.1, 0.62); web.quadraticCurveTo(0, 0.55, 0.1, 0.66); web.quadraticCurveTo(0.2, 0.55, 0.34, 0.58); web.lineTo(0, 0);
   legs.slice(2).forEach((l, i) => {
     const s = i ? 1 : -1, foot = pivot(l.foot, 0, 0.02, 0, 'web'); foot.rotation.y = s * 0.25;
     add(foot, new THREE.ShapeGeometry(web).rotateX(-Math.PI / 2), M.mat('web', P.toe, { side: THREE.DoubleSide }), 0, 0.01, 0);
-    for (const [x, z] of [[-0.3, 0.55], [-0.1, 0.62], [0.1, 0.66], [0.34, 0.58]]) { rod(foot, [0, 0.03, 0], [x, 0.03, z], 0.035, skinM, 0.02); add(foot, new THREE.SphereGeometry(0.045, 6, 4), toeM, x, 0.03, z); }
+    const toes = [[-0.3, 0.55], [-0.1, 0.62], [0.1, 0.66], [0.34, 0.58]];
+    many(foot, toes.map(([x, z]) => { const d = Math.hypot(x, z); return new THREE.CylinderGeometry(0.02, 0.035, d, 6).translate(0, d / 2, 0).rotateX(Math.PI / 2).rotateY(Math.atan2(x, z)).translate(0, 0.03, 0); }), skinM);
+    many(foot, toes.map(([x, z]) => new THREE.SphereGeometry(0.045, 6, 4).translate(x, 0.03, z)), toeM);
   });
   // the dress: the City-Shaft's brass valve on its head and a pressure gauge on its back with its pipe; the Waterfall's
   // jet; Home's flower

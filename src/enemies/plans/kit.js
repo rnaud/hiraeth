@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { makeMaterial, releaseMaterial } from '../../materials.js';
 import { surfaceFor } from '../surfaces.js';
 
@@ -37,20 +38,33 @@ export function materials(archetype, skin) {
 export function add(parent, geo, mat, x = 0, y = 0, z = 0) {
   const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m;
 }
-/** A tube along points ([x, y, z] or vectors), radius r (tapering to r1 at its end: drawn as a few cylinders). */
-export function tube(parent, points, r, mat, r1 = r) {
+/** A tube along points ([x, y, z] or vectors), radius r (tapering to r1 at its end): its geometry, in the points' frame. */
+export function tubeGeometry(points, r, r1 = r) {
   const pts = points.map((p) => (Array.isArray(p) ? V(...p) : p));
-  if (r1 === r) return add(parent, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), Math.max(8, pts.length * 5), r, 6, false), mat);
-  const g = new THREE.Group(); parent.add(g);
-  const curve = new THREE.CatmullRomCurve3(pts), n = Math.max(4, pts.length * 3);
+  if (r1 === r) return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), Math.max(8, pts.length * 5), r, 6, false);
+  // (tapering: a few cylinders along the curve, merged into one geometry: one draw, not one a cylinder)
+  const curve = new THREE.CatmullRomCurve3(pts), n = Math.max(4, pts.length * 3), parts = [], q = new THREE.Quaternion(), m = new THREE.Matrix4();
   for (let i = 0; i < n; i++) {
     const a = curve.getPoint(i / n), b = curve.getPoint((i + 1) / n), d = b.clone().sub(a), l = d.length();
     const ra = lerp(r, r1, i / n), rb = lerp(r, r1, (i + 1) / n);
-    const m = add(g, new THREE.CylinderGeometry(rb, ra, l * 1.08, 7), mat, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
-    m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize());
+    q.setFromUnitVectors(V(0, 1, 0), d.normalize());
+    parts.push(new THREE.CylinderGeometry(rb, ra, l * 1.08, 7).applyMatrix4(m.compose(a.clone().add(b).multiplyScalar(0.5), q, V(1, 1, 1))));
   }
-  return g;
+  return merged(parts);
 }
+/** A tube along points ([x, y, z] or vectors), radius r (tapering to r1 at its end), as one mesh in parent. */
+export const tube = (parent, points, r, mat, r1 = r) => add(parent, tubeGeometry(points, r, r1), mat);
+/** Geometries merged into one (their own transforms applied: one draw for many small parts of one material). */
+export function merged(geos) {
+  // (indexed when every one is: the fewest vertices; only position, normal and uv kept, so any primitives merge)
+  const indexed = geos.every((g) => g.index);
+  const flat = geos.map((g) => { const x = indexed ? g : g.index ? g.toNonIndexed() : g; for (const k of Object.keys(x.attributes)) if (!['position', 'normal', 'uv'].includes(k)) x.deleteAttribute(k); return x; });
+  const out = mergeGeometries(flat, false);
+  for (const g of geos) g.dispose();
+  return out;
+}
+/** Many small parts of one material (tubes, cones, spheres: each a geometry already placed in parent's frame) as one mesh. */
+export const many = (parent, geos, mat, x = 0, y = 0, z = 0) => add(parent, merged(geos), mat, x, y, z);
 /** A segment (a cylinder) from a to b, radius r (r1 at b). */
 export function rod(parent, a, b, r, mat, r1 = r) {
   const A = Array.isArray(a) ? V(...a) : a, B = Array.isArray(b) ? V(...b) : b, d = B.clone().sub(A);

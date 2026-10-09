@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, rod, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, tubeGeometry, many, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 
 // Plan 12, the tentacled (docs/systems/procedural-animation.md §4): the root knot (docs/design/enemy-roster.md,
 // archetype 8), drawn to its sheets (references/enemy-archetypes/rootknot/: sheet-1 Lorn's reed knot, sheet-2 Lorn II's
@@ -46,11 +46,12 @@ export function rootknotModel(skin) {
   const eyes = pair((s) => add(core, new THREE.SphereGeometry(0.075, 8, 6), eyeM, s * 0.17, 1.0, 0.44));
   // the skirt of tendrils under the bulb: short, drooping, a little sway
   const skirt = pivot(core, 0, -0.3, 0, 'skirt');
-  const tendrils = [];
+  const tendrils = [];   // (geometries, merged into one mesh: one draw for the skirt)
   for (let k = 0; k < 16; k++) {
     const a = (k / 16) * Math.PI * 2 + 0.2, r = 0.22 + (k % 3) * 0.1, l = 0.34 + (k % 4) * 0.12;
-    tendrils.push(tube(skirt, [[Math.sin(a) * r, 0, Math.cos(a) * r], [Math.sin(a) * (r + 0.05), -l * 0.5, Math.cos(a) * (r + 0.05)], [Math.sin(a) * (r + 0.02), -l, Math.cos(a) * (r + 0.02)]], 0.042, tendrilM, 0.01));
+    tendrils.push(tubeGeometry([[Math.sin(a) * r, 0, Math.cos(a) * r], [Math.sin(a) * (r + 0.05), -l * 0.5, Math.cos(a) * (r + 0.05)], [Math.sin(a) * (r + 0.02), -l, Math.cos(a) * (r + 0.02)]], 0.042, 0.01));
   }
+  many(skirt, tendrils, tendrilM);
   // five root-arms round the base: up and out to a first bend, down to a second, the tip down into a fan of rootlets
   const legs = [];
   for (let k = 0; k < 5; k++) {
@@ -58,7 +59,7 @@ export function rootknotModel(skin) {
     const leg = planLeg(PLANS.tentacled, { group: g, body, hipParent: core, hip: { x: sx * 0.5, y: -0.05, z: cz * 0.5 * 0.92 }, foot: { x: sx * 1.4, z: cz * 1.4 }, radius: 0.11, pad: 'point',
       mats: { joint: rootM, thigh: rootM, shin: rootM, tip: rootM, foot: rootM }, name: `root arm ${k}` });
     // the rootlets: a little fan splayed out over the ground from the tip
-    for (let j = 0; j < 6; j++) { const b = a + (j - 2.5) * 0.48; tube(leg.foot, [[0, 0.1, 0], [Math.sin(b) * 0.18, 0.03, Math.cos(b) * 0.18], [Math.sin(b) * 0.4, -0.01, Math.cos(b) * 0.4]], 0.035, rootM, 0.006); }
+    many(leg.foot, Array.from({ length: 6 }, (_, j) => { const b = a + (j - 2.5) * 0.48; return tubeGeometry([[0, 0.1, 0], [Math.sin(b) * 0.18, 0.03, Math.cos(b) * 0.18], [Math.sin(b) * 0.4, -0.01, Math.cos(b) * 0.4]], 0.035, 0.006); }), rootM);
     legs.push(leg);
   }
   const front = [legs[0], legs[4]];   // (±36° off its nose: the grip's and the lash's arms)

@@ -242,7 +242,7 @@ Object.assign(SURFACES, {
       gill: { stripes: { color: 'gill*0.7', axis: 4, period: 0.045, width: 0.3, ink: 0.35 }, glow: { color: 'gill', amount: 0.55, rim: 0.3, core: 1.2, pulse: 1.1, emit: 0.7 } },
     },
     edena: { cap: { spots: null, spots2: null, scales: { color: 'cap*0.8', size: 0.12, ink: 0.3, tone: 0.08, amount: 0.3 } } },
-    waterfall: { cap: { gloss: { size: 0.05, sky: 0.7 } }, bulb: { gloss: { size: 0.05, sky: 0.6 } } },
+    waterfall: { cap: { gloss: { size: 0.018, sky: 0.5, amount: 0.6 } }, bulb: { gloss: { size: 0.02, sky: 0.5, amount: 0.6 } } },
   },
 });
 

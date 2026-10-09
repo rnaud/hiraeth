@@ -122,7 +122,7 @@ export const PLANS = {
   // (src/motion-kit/ik.js) from a curled guess, their tips planted as feet; the body carried between them, slow and
   // heavy, stepping one arm at a time round the ring
   tentacled: {
-    gait: { gait: 'wave', drift: 0.36, stepTime: [0.28, 0.6], height: 0.14, arc: 'organic', duty: 0.75, reach: 0.6 },
+    gait: { gait: 'wave', drift: 0.26, stepTime: [0.28, 0.6], height: 0.14, arc: 'organic', duty: 0.75, reach: 0.5 },
     knee: { lenA: 0.4, lenB: 0.4, lenC: 0.31, pole: 'out-up' },
     body: { bob: 0.04, lean: 0.03, bank: 0.03, sway: 0.25, tilt: 0.16, spring: { f: 1.6, z: 0.55, r: 0 }, height: { f: 1.8, z: 0.6, r: 0 } },
     poses: {
