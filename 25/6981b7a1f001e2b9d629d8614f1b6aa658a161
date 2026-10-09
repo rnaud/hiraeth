@@ -1,0 +1,21 @@
+scripts/reference-lab/batch.mjs
+  s_9ca76055a220ed::t_80404d13baecac 193-201
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_0793c442df8dcf 293-294
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "256981b7a1f001e2b9d629d8614f1b6aa658a161",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
