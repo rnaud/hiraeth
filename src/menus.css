@@ -286,3 +286,14 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .rb li em { grid-column: 1 / -1; font-style: normal; color: #a8392d; font-size: 0.9em; }
 .fullmenu .rb-foot { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin: 8px 0 0; }
 .fullmenu .rb-warn { color: #a8392d; font-weight: bold; }
+
+/* ------------------------------------------------------------------ button glyphs (src/pad-glyphs.js)
+   The confirm glyph beside the focused title entry (out of the flow: the labels stay centred), B in Back
+   and Keep, X on a save's Delete, A on the focused save; in the Start menu B in Resume, A on the focused entry. */
+#title .main-menu .lbl { position: relative; }
+#title .main-menu .lbl .glyph { position: absolute; right: 100%; top: 50%; transform: translateY(-50%); margin: 0 0.9em 0 0; text-shadow: none; }
+#title .saves .head button, #title .confirm button, #title .slot .del { display: inline-flex; align-items: center; }
+#title .slot .pick .glyph.on-focus { margin: 0 0 0 auto; font-size: calc(clamp(12px, 2vh, 16px) * var(--ts, 1)); }
+.fullmenu .menu-nav button { display: flex; align-items: center; }
+.fullmenu .menu-nav button .glyph { margin: 0 0 0 auto; }
+.fullmenu .panel button { display: inline-flex; align-items: center; }

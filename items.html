@@ -30,12 +30,39 @@
   #full { position: fixed; inset: 0; z-index: 20; background: #f3e7cc; display: none; touch-action: none; cursor: grab; }
   #full.open { display: block; }
   #full canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-  #full .bar { position: absolute; left: 0; right: 0; top: 0; display: flex; gap: 8px; align-items: center; padding: 12px 16px; pointer-events: none; }
+  /* (small type and one line: on a handheld's 1920 × 1080 screen, about 730 × 410 CSS px, the item must
+     stay clearly in sight; "more" opens the rest in a column beside it and the item moves over) */
+  #full canvas { transition: left 0.2s, width 0.2s; }
+  #full .bar { position: absolute; left: 0; right: 0; top: 0; z-index: 1; display: flex; gap: 6px; align-items: center; padding: 10px 12px; pointer-events: none; }
   #full .bar > * { pointer-events: auto; }
-  #full .bar h2 { flex: 1; margin: 0; font-size: 20px; letter-spacing: 0.08em; }
-  #full .about { position: absolute; left: 16px; bottom: 16px; max-width: min(560px, 90vw); padding: 10px 14px; background: rgba(251, 244, 226, 0.92); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
-  #full .about p { margin: 0 0 4px; }
-  #full .hint { position: absolute; right: 16px; bottom: 16px; font-size: 12px; opacity: 0.7; }
+  #full .bar .gap { flex: 1; pointer-events: none; }
+  #full .bar h2 { margin: 0 4px; font-size: clamp(14px, 2.2vw, 19px); letter-spacing: 0.08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  #full .btn { display: inline-flex; align-items: center; font: inherit; font-size: 12.5px; line-height: 1.2; cursor: pointer; white-space: nowrap; }
+  #full .about { position: absolute; left: 12px; bottom: 12px; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; box-sizing: border-box;
+    max-width: min(520px, calc(100vw - 24px)); padding: 6px 8px 6px 12px; font-size: 12px; line-height: 1.35; background: rgba(251, 244, 226, 0.88); border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); }
+  #full .about .short { flex: 1 1 200px; margin: 0; }
+  #full .about .short b { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #8a5a3c; font-weight: normal; margin-right: 6px; }
+  #full .about .long { display: none; }
+  #full .about .more { padding: 2px 8px 2px 3px; font-size: 11.5px; }
+  /* more: the words in a column on the left, the item drawn in the rest (src/items-page/viewer.js sizes to its canvas) */
+  #full.more canvas { left: min(380px, 42vw); width: calc(100% - min(380px, 42vw)); }
+  #full.more .about .short .line { display: none; }
+  #full.more .about { top: 54px; bottom: auto; max-height: calc(100% - 66px); left: 12px; width: calc(min(380px, 42vw) - 24px); max-width: none; flex-direction: column; flex-wrap: nowrap; align-items: stretch; overflow-y: auto; padding: 10px 12px; }
+  #full.more .about .short { flex: none; }
+  #full.more .about .long { display: block; }
+  #full.more .about .more { order: 3; align-self: flex-start; }
+  #full .about .long p { margin: 0 0 6px; }
+  #full .about .long .use { font-style: italic; }
+  @media (max-height: 480px) {
+    #full .bar { padding: 6px 8px; gap: 4px; }
+    #full .btn { font-size: 11px; padding: 3px 7px; }
+    #full .about { left: 8px; bottom: 8px; font-size: 11px; max-width: min(460px, calc(100vw - 16px)); }
+    #full.more .about { top: 40px; bottom: auto; max-height: calc(100% - 48px); left: 8px; font-size: 11px; }
+  }
+  /* the cards on a controller: the focused one lifted, red-framed, with A on its picture */
+  article { scroll-margin: 110px 12px 16px; transition: transform 0.12s, box-shadow 0.12s; }
+  article:focus { outline: 4px solid #c8483a; outline-offset: 2px; transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+  .pic .glyph.on-focus { position: absolute; right: 4px; bottom: 4px; margin: 0; z-index: 1; font-size: 15px; }
   .pic.none::after { content: '?'; font-size: 34px; opacity: 0.3; }
   .txt { min-width: 0; flex: 1; }
   h2 { margin: 0 0 2px; font-size: 16px; letter-spacing: 0.04em; }
@@ -57,10 +84,18 @@
   <div class="chips" id="kinds" role="toolbar" aria-label="What kind of item"></div>
 </header>
 <main id="list"></main>
-<div id="full" aria-hidden="true">
-  <div class="bar"><button class="btn" data-go="-1" title="The item before (←)">◀</button><h2></h2><button class="btn" data-spin title="Turn on its own (R)">turn</button><button class="btn" data-reset title="The view it opened with (double click)">reset</button><button class="btn" data-go="1" title="The item after (→)">▶</button><button class="btn" data-close title="Close (Esc)">close ✕</button></div>
-  <div class="about"></div>
-  <div class="hint">drag to turn · wheel or pinch to zoom · ← → the other items · Esc closes</div>
+<div id="full" aria-hidden="true" title="Drag to turn it · wheel or pinch to zoom">
+  <div class="bar">
+    <button class="btn" data-go="-1" title="The item before"><span class="glyph" data-glyph="lb" data-key="←" aria-hidden="true"></span>◀</button>
+    <h2></h2>
+    <button class="btn" data-go="1" title="The item after">▶<span class="glyph end" data-glyph="rb" data-key="→" aria-hidden="true"></span></button>
+    <span class="gap"></span>
+    <button class="btn" data-spin title="Turn on its own"><span class="glyph" data-glyph="y" data-key="R" aria-hidden="true"></span>turn</button>
+    <button class="btn" data-reset title="The view it opened with (double click)"><span class="glyph" data-glyph="x" data-key="0" aria-hidden="true"></span>reset</button>
+    <button class="btn" data-close title="Close"><span class="glyph" data-glyph="back" data-key="Esc" aria-hidden="true"></span>✕</button>
+  </div>
+  <!-- one line under the item; "more" opens the rest beside it (the item moves over: never under the words) -->
+  <div class="about"><p class="short"></p><button class="btn more" data-more><span class="glyph" data-glyph="ok" data-key="I" aria-hidden="true"></span><span class="lbl">more</span></button><div class="long"></div></div>
 </div>
 <script type="module" src="/src/items-page/main.js"></script>
 </body>

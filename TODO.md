@@ -8,11 +8,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] Redo the character's face to match the references more closely and feel less cartoony / anime.
   Pay particular attention to the eyes as a possible cause of the style mismatch.
 - [ ] Fix shadow artifacts in caves and interiors.
-- [ ] Make the debug menu easier to navigate with a controller: use a grid layout and smaller level cards.
-- [ ] Put button prompts inside the actual buttons in all menus, instead of in hints below them.
-- [ ] Show button prompts that match the connected controller.
-- [ ] Greatly reduce text in the item debug menu. In fullscreen on the Retroid, keep the text from
-  taking over the screen and hiding the item; the item should remain clearly visible.
 
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
 

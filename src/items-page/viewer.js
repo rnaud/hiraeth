@@ -134,8 +134,8 @@ export class ItemViewer {
       const dt = Math.min((t - (this._last ?? t)) / 1000, 0.05); this._last = t;
       this.time += dt;
       if (this.spin) this.orbit.yaw += dt * 0.5;
-      const dpr = Math.min(devicePixelRatio || 1, 2);
-      this.setSize(host.clientWidth * dpr, host.clientHeight * dpr);
+      const dpr = Math.min(devicePixelRatio || 1, 2), c = this.renderer.domElement;   // (its canvas's own size: beside the words when they are open)
+      this.setSize((c.clientWidth || host.clientWidth) * dpr, (c.clientHeight || host.clientHeight) * dpr);
       this.render(this.live.id, this.orbit);
       this._raf = requestAnimationFrame(loop);
     };

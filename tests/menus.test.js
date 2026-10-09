@@ -64,7 +64,7 @@ test('the full-screen menus pause the game and bring in the menu music', () => {
   assert.match(main, /onQuit: \(\) => quitToTitle\(\)/);
   assert.doesNotMatch(main, /localStorage\.removeItem\('moebius\.journal\.v1'\)/);
   const ui = src('ui.js');
-  assert.match(ui, /data-a="title">\$\{t\('menu\.quit'\)\}</);   // (the words: src/i18n/en.js)
+  assert.match(ui, /data-a="title">\$\{t\('menu\.quit'\)\}\$\{F\}</);   // (the words: src/i18n/en.js; F the confirm glyph on the focused entry)
   assert.doesNotMatch(ui, /[^.\w]confirm\('/, 'no browser confirm(): a controller cannot answer it');
 });
 
@@ -79,9 +79,10 @@ test('no keyboard-only "J to close" on a controller: every panel says how to clo
   assert.equal(closeHint('J or Esc', 'touch'), '', 'a touch screen: the ✕ says it');
   // the sketchbook, what's new and the worlds picker take theirs when they open; the skip tags too
   assert.doesNotMatch(readFileSync(new URL('../index.html', import.meta.url), 'utf8'), />J to close</);
-  assert.match(src('game-menu.js'), /`\$\{keyBadge\(back\)\} \$\{close\}`/, 'the game menu names the back button for closing');
-  assert.match(src('game-menu.js'), /`\$\{keyBadge\('Esc'\)\} \$\{close\}`/);
-  assert.match(src('changelog.js'), /Close \(\$\{backKey\(\)\}\)/);
+  // (since October 2026 the way out is a glyph inside the close button itself, for the pad in hand or the keys: src/pad-glyphs.js)
+  assert.match(src('game-menu.js'), /\$\{glyph\('back', \{ key: 'Esc' \}\)\}✕/, 'the game menu\'s ✕ carries the back button');
+  assert.match(src('changelog.js'), /\$\{glyph\('back', \{ key: 'N' \}\)\}Close/);
+  assert.match(src('world-picker.js'), /glyph\('back', \{ key: 'Esc' \}\)/, 'and the worlds list\'s close');
   assert.match(src('story/moment.js'), /`\$\{backKey\(\)\} skip`/, 'a moment\'s skip tag names the button printed B');
   const { holdToSkip } = await import('../src/ship/cinema.js');
   assert.match(holdToSkip('pad'), /^hold (B \/ ○|A \/ ×) to skip$/); assert.equal(holdToSkip('keys'), 'hold ESC to skip');

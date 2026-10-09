@@ -20,8 +20,8 @@
 // What fills the panels comes from `sources` (src/game-menu-data.js, wired in main.js). The cursor and
 // the panels are plain state (MenuState, moveCursor) so tests can drive them without a page.
 
-import { escapeHtml, keyBadge, inputKind, keyText } from './prompt-keys.js';
-import { confirmKey, backKey } from './native-pad.js';
+import { escapeHtml, inputKind, keyText } from './prompt-keys.js';
+import { glyph } from './pad-glyphs.js';
 import { t, onLanguage } from './i18n.js';
 
 // (the names in the language now: src/i18n.js)
@@ -260,15 +260,14 @@ const BUILDERS = { items: itemsPanel, quests: questsPanel, sketches: sketchesPan
 export const ACT = Object.defineProperties({}, Object.fromEntries(['use', 'track', 'look', 'turn'].map((k) => [k, { get: () => t(`gm.act.${k}`), enumerable: true }])));
 
 /**
- * The prompts in the info strip, for the hands on the game: a pad's buttons in Xbox / PlayStation form
- * (native-pad.js prints them as the pad does), the keyboard's keys, nothing on a touch screen (the
- * tabs, the arrows and the ✕ are tapped).
+ * What the confirm button does on the picked cell, in the info strip: its glyph (a pad's printed A, the
+ * keyboard's Enter: src/pad-glyphs.js) and the verb; nothing on a touch screen (a second tap uses) or
+ * where it does nothing. Turning the panels and closing are on their own buttons: the side tabs carry
+ * LB / RB (Q / E), the ✕ carries B (Esc).
  */
-export function menuPrompts(act = null, kind = inputKind(), ok = confirmKey(), back = backKey()) {
-  if (kind === 'touch') return '';
-  const panels = t('gm.panels'), close = t('gm.closeKey');
-  if (kind === 'pad') return [`${keyBadge('LB / L1')}${keyBadge('RB / R1')} ${panels}`, act ? `${keyBadge(ok)} ${act}` : '', `${keyBadge(back)} ${close}`].filter(Boolean).join('<i class="sep"></i>');
-  return [`${keyBadge('Q')}${keyBadge('E')} ${panels}`, act ? `${keyBadge('Enter')} ${act}` : '', `${keyBadge('Esc')} ${close}`].filter(Boolean).join('<i class="sep"></i>');
+export function menuPrompts(act = null, kind = inputKind()) {
+  if (kind === 'touch' || !act) return '';
+  return `<span class="gm-act">${glyph('ok')}${escapeHtml(act)}</span>`;
 }
 
 // ------------------------------------------------------------------ the menu on the page
@@ -290,11 +289,11 @@ export class GameMenu {
     el.innerHTML = `
       <div class="gm pad-raw" role="dialog" aria-label="${t('gm.label')}">
         <nav class="gm-tabs">${PANELS.map((p) => `<button class="gm-tab" data-panel="${p.id}">${p.name}</button>`).join('')}</nav>
-        <button class="gm-close close" aria-label="${t('gm.close')}">✕</button>
+        <button class="gm-close close" aria-label="${t('gm.close')}">${glyph('back', { key: 'Esc' })}✕</button>
         <div class="gm-stage">
-          <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span><b class="key">LB / L1</b><span class="nm"></span></button>
+          <button class="gm-side prev" data-go="-1"><span class="arrow">◀</span>${glyph('lb', { key: 'Q' })}<span class="nm"></span></button>
           <div class="gm-sheet"><h1 class="gm-title"></h1><div class="gm-body"></div><div class="gm-look" hidden></div></div>
-          <button class="gm-side next" data-go="1"><span class="arrow">▶</span><b class="key">RB / R1</b><span class="nm"></span></button>
+          <button class="gm-side next" data-go="1"><span class="arrow">▶</span>${glyph('rb', { key: 'E' })}<span class="nm"></span></button>
         </div>
         <footer class="gm-info"><div class="gm-what"><b class="gm-name"></b><span class="gm-sub"></span><p class="gm-desc"></p></div><div class="gm-keys"></div></footer>
       </div>`;

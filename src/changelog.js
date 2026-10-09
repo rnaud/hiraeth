@@ -5,10 +5,19 @@
 // (pictures and numbers for older lines live in src/changelog-media.js).
 
 import { store } from './platform.js';
-import { inputKind } from './prompt-keys.js';
-import { backKey } from './native-pad.js';
+import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.2', date: '2026-10-09', items: [
+    // buttons in the menus
+    'Every menu shows its buttons inside the buttons themselves instead of in a line of hints under them: a small A beside the entry you are on, B on Back and Resume, LB and RB on the journal’s side tabs, X on a save’s Delete, A on Travel and Restart. With the keyboard they show its keys (Enter, Esc, Q, E); on a touch screen they stay out of the way.',
+    'The buttons shown match the controller in your hands: A B X Y and LB RB on an Xbox pad, × ○ □ △ and L1 R1 on a PlayStation pad, a Switch pad’s own letters and L R ZL ZR, a Retroid’s A B X Y and L1 R1. The prompts in conversations and while playing follow it too.',
+    'A Switch Pro Controller or Joy-Cons on a computer now confirm with A on the right and go back with B, as on a Switch.',
+    // debug
+    'Debug: the worlds list is a grid of small cards that the D-pad and stick move through in every direction; the card you are on is lifted in a red frame with A on it, always scrolled into view, and its description shows at the foot of the screen.',
+    'Debug: the Items page works with a controller: move through the cards, A opens one full screen, LB and RB (or left and right) go to the other items, up and down zoom, the right stick tilts it, Y turns it, X resets the view and B closes it.',
+    'Debug: an item full screen shows one short line under it; “more” (A, or I) opens the rest in a column beside it and the item moves over, so on a handheld’s small screen the words never cover the item.',
+  ] },
   { v: '1.1', date: '2026-10-09', items: [
     // shadows and visuals, from the playtest
     'People no longer leave a pale, person-shaped ghost in the dark shading behind them (Marrow by the ship, the traveller on the stairs to the great tree), and the dark masses round them no longer jump about as the camera moves.',
@@ -1287,9 +1296,9 @@ export class Changelog {
     if (!on && this.frame) this.pictures(false);
     this.open = on;
     if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
-    // its button names the way out for the hands on the game: N, a controller's back button, a tap
-    const b = on && this.el.querySelector('[data-a="close"]'), kind = inputKind();
-    if (b) b.textContent = kind === 'keys' ? 'Close (N)' : kind === 'pad' ? `Close (${backKey()})` : 'Close';
+    // its button carries the way out for the hands on the game: N, a controller's back button (src/pad-glyphs.js), a tap
+    const b = on && this.el.querySelector('[data-a="close"]');
+    if (b) b.innerHTML = `${glyph('back', { key: 'N' })}Close`;
     this.el.classList.toggle('open', on);
   }
 }

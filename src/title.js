@@ -18,6 +18,7 @@ import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
 import { InputMode } from './input-mode.js';
 import { setFaces, padFaces } from './native-pad.js';
+import { glyph } from './pad-glyphs.js';
 import { markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
 import { THEME_FILES } from './soundtracks.js';
@@ -98,15 +99,15 @@ export const LOGO = `
 function slotHtml(s) {
   if (s.empty) {
     return `<li class="slot empty"><button class="pick" data-slot="${s.n}"><span class="thumb new" aria-hidden="true">+</span>
-      <span class="txt"><b>${t('title.save', { n: s.n })}</b><span class="world">${t('title.new')}</span><span class="prog">${t('title.startsPrologue')}</span></span></button>
+      <span class="txt"><b>${t('title.save', { n: s.n })}</b><span class="world">${t('title.new')}</span><span class="prog">${t('title.startsPrologue')}</span></span>${glyph('ok', { focus: true })}</button>
     <span class="del spacer" aria-hidden="true">${t('title.delete')}</span></li>`;
   }
   // (a save from before the slots has no playtime yet: only its date)
   const when = [s.playtime >= 60 && t('title.played', { time: formatPlaytime(s.playtime) }), formatDate(s.lastPlayed)].filter(Boolean).join(' · ');
   return `<li class="slot"><button class="pick" data-slot="${s.n}">
       <img class="thumb" src="thumbs/${esc(s.level)}.jpg" alt="" onerror="this.style.visibility='hidden'">
-      <span class="txt"><span class="top"><b>${t('title.save', { n: s.n })}</b><span class="when">${esc(when)}</span></span><span class="world">${esc(s.world)}</span><span class="prog">${esc(progressLine(s))}</span></span></button>
-    <button class="del" data-del="${s.n}" aria-label="${t('title.deleteSave', { n: s.n })}">${t('title.delete')}</button></li>`;
+      <span class="txt"><span class="top"><b>${t('title.save', { n: s.n })}</b><span class="when">${esc(when)}</span></span><span class="world">${esc(s.world)}</span><span class="prog">${esc(progressLine(s))}</span></span>${glyph('ok', { focus: true })}</button>
+    <button class="del" data-del="${s.n}" aria-label="${t('title.deleteSave', { n: s.n })}">${glyph('x', { key: 'Del' })}${t('title.delete')}</button></li>`;
 }
 
 /**
@@ -133,14 +134,14 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         <header>${LOGO}</header>
         <nav class="screen main-menu" data-screen="main"></nav>
         <section class="screen saves" data-screen="saves" hidden>
-          <div class="head"><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back" data-t="title.back">${t('title.back')}</button></div>
+          <div class="head"><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back">${glyph('back', { key: 'Esc' })}<span data-t="title.back">${t('title.back')}</span></button></div>
           <ol class="slots"></ol>
         </section>
         <p class="version">v${VERSION}</p>
       </div>
       <div class="confirm" hidden><div class="card" role="alertdialog" aria-labelledby="title-confirm-q">
         <h3 id="title-confirm-q"></h3><p class="what"></p><p data-t="title.undone">${t('title.undone')}</p>
-        <div class="row"><button data-a="keep" data-t="title.keep">${t('title.keep')}</button><button data-a="delete" class="danger" data-t="title.delete">${t('title.delete')}</button></div>
+        <div class="row"><button data-a="keep">${glyph('back', { key: 'Esc' })}<span data-t="title.keep">${t('title.keep')}</span></button><button data-a="delete" class="danger">${glyph('ok', { focus: true })}<span data-t="title.delete">${t('title.delete')}</span></button></div>
       </div></div>
       <div id="title-settings"></div>`;
     doc.body.appendChild(root);
@@ -156,14 +157,16 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const focusFirst = (el) => el.querySelector('button:not([disabled])')?.focus({ preventScroll: true });
     const renderMain = () => {
       const last = store.latest(), s = last ? store.summary(last) : null;
+      // (each label carries the confirm glyph, shown beside it while it has a pad's focus: src/pad-glyphs.js)
+      const lbl = (text) => `<span class="lbl">${glyph('ok', { focus: true })}${text}</span>`;
       mainNav.innerHTML = `${s
-        ? `<button data-a="continue" class="primary">${t('title.continue')}<small>${esc(s.world)}</small></button>`
-        : `<button data-a="new" class="primary">${t('title.new')}</button>`}
-        <button data-a="saves">${t('title.saves')}</button>
-        <button data-a="settings">${t('title.settings')}</button>
-        <button data-a="news">${t('title.news')}</button>
-        ${devMode({ settings }) ? `<button data-a="debug">${t('title.debug')}</button>` : ''}
-        ${fullscreen ? `<button data-a="fullscreen">${t(doc.fullscreenElement ? 'title.leaveFullscreen' : 'title.fullscreen')}</button>` : ''}`;
+        ? `<button data-a="continue" class="primary">${lbl(t('title.continue'))}<small>${esc(s.world)}</small></button>`
+        : `<button data-a="new" class="primary">${lbl(t('title.new'))}</button>`}
+        <button data-a="saves">${lbl(t('title.saves'))}</button>
+        <button data-a="settings">${lbl(t('title.settings'))}</button>
+        <button data-a="news">${lbl(t('title.news'))}</button>
+        ${devMode({ settings }) ? `<button data-a="debug">${lbl(t('title.debug'))}</button>` : ''}
+        ${fullscreen ? `<button data-a="fullscreen">${lbl(t(doc.fullscreenElement ? 'title.leaveFullscreen' : 'title.fullscreen'))}</button>` : ''}`;
     };
     const renderSaves = () => { root.querySelector('.slots').innerHTML = store.list().map(slotHtml).join(''); };
     const show = (name, focus) => {
@@ -277,18 +280,25 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     win.addEventListener('keydown', onKey);
     // what is in hand, for the world this opens (src/input-mode.js: no touch buttons there while a pad is used)
     const inputMode = new InputMode({ touchDevice: isTouch });
-    const onInput = (e) => inputMode.event(e);
+    // (and the body's classes: the glyphs in the buttons show the pad's buttons, the keys or nothing on a touch screen)
+    const onInput = (e) => { inputMode.event(e); inputMode.apply(doc.body.classList); };
+    inputMode.apply(doc.body.classList);
     for (const ev of ['keydown', 'pointerdown', 'touchstart']) win.addEventListener(ev, onInput, { capture: true, passive: true });
 
     // a controller: d-pad / stick move, A confirm, B back (controller.js, as in the game's menus)
     const controller = new Controller({
       context: () => 'menu',
       look: () => {}, faces: () => padFaces(),
-      activity: () => { inputMode.pad(); sound.start(); root.classList.add('pad'); root.classList.remove('typed'); doc.body.classList.add('controller'); },
+      activity: () => { inputMode.pad(); inputMode.apply(doc.body.classList); sound.start(); root.classList.add('pad'); root.classList.remove('typed'); },
       navigate,
       scroll: (amount) => { const r = navRoot(); (r.querySelector('.panel, .slots') ?? r).scrollTop += amount; },
       action: (name) => {
         if (name === 'back' || name === 'start' || name === 'select') back();
+        // X / □ on a save: delete it (asks first; its Delete button carries the glyph)
+        if (name === 'x' && screen === 'saves' && confirmEl.hidden && !settingsMenu.open) {
+          const n = +(doc.activeElement?.dataset?.slot ?? doc.activeElement?.dataset?.del ?? 0);
+          if (n) askDelete(n);
+        }
         if (name === 'confirm') {
           const r = navRoot(), el = doc.activeElement;
           if (r.contains(el)) { if (!padConfirm(el)) el.click(); }   // (a dropdown opens, then keeps the choice shown: src/menu-pad.js)
@@ -298,6 +308,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     });
     let last = performance.now(), raf = 0;
     const loop = (now) => {
+      const padOn = Array.from(navigator.getGamepads?.() ?? []).some((p) => p?.connected);
+      if ((inputMode.frame(padOn) === 'pad') !== doc.body.classList.contains('controller')) inputMode.apply(doc.body.classList);   // (a Retroid's own controls count from the start)
       controller.update(Math.min((now - last) / 1000, 0.1), !doc.hidden && doc.hasFocus());
       last = now;
       raf = requestAnimationFrame(loop);

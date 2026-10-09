@@ -39,7 +39,8 @@
   background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 var(--ink); cursor: pointer;
 }
 #journal .gm-close:hover { background: var(--red); color: var(--paper); }
-body.controller #journal .gm-close { display: none; }
+/* (with a pad or the keys it carries their back button's glyph, src/pad-glyphs.js: a pill then) */
+body:not(.touch) #journal .gm-close { display: inline-flex; align-items: center; justify-content: center; width: auto; min-width: clamp(28px, 5.4vh, 42px); padding: 0 clamp(8px, 1.4vh, 12px) 0 clamp(4px, 0.8vh, 6px); border-radius: 999px; }
 
 /* the sheet between its two side tabs */
 #journal .gm-stage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; min-height: 0; height: 100%; }
@@ -53,13 +54,12 @@ body.controller #journal .gm-close { display: none; }
 #journal .gm-side .nm { writing-mode: vertical-rl; font: 500 calc(clamp(10px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
 #journal .gm-side.prev .nm { transform: rotate(180deg); }
 #journal .gm-side .arrow { font-size: calc(clamp(10px, 1.6vh, 13px) * var(--ts, 1)); color: var(--red); }
-#journal .gm-side .key { font-size: calc(clamp(9px, 1.35vh, 11px) * var(--ts, 1)); }
+#journal .gm-side .glyph { margin: 0; font-size: calc(clamp(10px, 1.6vh, 13px) * var(--ts, 1)); }
 #journal .gm-side:hover, #journal .gm-side.at { background: var(--gold); }
 #journal .gm-side.at { animation: gm-nudge 0.6s ease-in-out infinite alternate; }
 #journal .gm-side.prev.at { --nudge: -4px; }
 #journal .gm-side.next.at { --nudge: 4px; }
 @keyframes gm-nudge { to { transform: translateX(var(--nudge, 0)); } }
-body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .gm-sheet {
   position: relative; height: 100%; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;
   background: var(--paper); background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.05) 27px 28px);
@@ -207,9 +207,7 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .gm-sub { margin-left: 12px; font-size: calc(clamp(10px, 1.65vh, 12px) * var(--ts, 1)); letter-spacing: 0.06em; color: var(--red); }
 #journal .gm-desc { margin: 2px 0 0; font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 #journal .gm-keys { flex: none; display: flex; align-items: center; font-size: calc(clamp(10px, 1.85vh, 13px) * var(--ts, 1)); white-space: nowrap; }
-#journal .gm-keys .key { margin-right: 6px; }
-#journal .gm-keys .key + .key { margin-left: -3px; }
-#journal .gm-keys .sep { width: 1.5px; height: 1.3em; margin: 0 10px; background: rgba(43, 33, 31, 0.3); }
+#journal .gm-keys .gm-act { display: inline-flex; align-items: center; padding: 3px 10px 3px 4px; border: 2px solid var(--ink); border-radius: 999px; background: var(--paper); box-shadow: 2px 2px 0 var(--ink); }
 #journal .gm-keys:empty { display: none; }
 
 /* a phone held upright, or a narrow window: the column under the grid, two worlds a row */

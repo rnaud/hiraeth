@@ -49,6 +49,7 @@ export function installNativePad(win = globalThis.window) {
     if (first) { memo = null; win.dispatchEvent?.(new Event('nativepadconnected')); applyLayout(win); }
   };
   win.addEventListener?.('gamepadconnected', () => { memo = null; applyLayout(win); });   // (a Retroid's name, an Xbox pad's)
+  win.addEventListener?.('gamepaddisconnected', () => { memo = null; setTimeout(() => applyLayout(win), 0); });   // (its prompts go with it)
   const nav = win.navigator;
   if (!nav) return;
   const original = nav.getGamepads?.bind(nav);
@@ -71,6 +72,37 @@ const padIds = (win) => (safe(() => Array.from(win.navigator.getGamepads?.() ?? 
 // pads that print their letters where Xbox does, even on Android
 const XBOX_LIKE = /xbox|x-box|microsoft|playstation|dualsense|dualshock|sony|wireless controller/i;
 
+// ---- which controller is it (its prompts: src/pad-glyphs.js)
+// The game writes its prompts in Xbox / PlayStation form ("A / ×"); the page shows the half that
+// matches the pad in hand, from the Gamepad's id (Chrome: "Xbox Wireless Controller (STANDARD GAMEPAD
+// Vendor: 045e …)", "DualSense Wireless Controller (… Vendor: 054c …)", "Pro Controller (… 057e …)"):
+//   'xbox'         A B X Y · LB RB LT RT · View Menu (also any pad we don't know: the standard's own names)
+//   'playstation'  × ○ □ △ · L1 R1 L2 R2 · Create Options
+//   'nintendo'     a Switch pad on a computer: B at the bottom, A on the right · L R ZL ZR · − +
+//   'handheld'     the Android app or a Retroid: the handheld's own names (padText's 'android' layout)
+const IS_XBOX = /xbox|x-box|xinput|microsoft|045e/i;
+const IS_PLAYSTATION = /playstation|dualsense|dualshock|sony|054c|\bps[345]\b|^wireless controller/i;
+const IS_NINTENDO = /nintendo|057e|pro controller|joy-?con|switch/i;
+const IS_HANDHELD = /retroid|odin|anbernic|ayn/i;
+
+/** A pad's family from its Gamepad id (see above); '' for no id. */
+export function familyOf(id) {
+  const s = String(id ?? '');
+  if (!s) return '';
+  if (IS_HANDHELD.test(s)) return 'handheld';
+  if (IS_XBOX.test(s)) return 'xbox';
+  if (IS_PLAYSTATION.test(s)) return 'playstation';
+  if (IS_NINTENDO.test(s)) return 'nintendo';
+  return 'xbox';
+}
+
+/** The family of the pad on this page: 'handheld' in the Android layout, else the first listed pad's; '' with none. */
+export function padFamily(win = globalThis.window) {
+  if (padLayout(win) === 'android') return 'handheld';
+  const ids = native ? [native.id] : padIds(win);
+  return ids.length ? familyOf(ids[0]) : '';
+}
+
 let facesSetting = 'auto';
 let memo = null;   // { at, value } for the page's own window: padFaces() is asked every frame
 /** The "Controller buttons" setting: 'auto' | 'xbox' | 'nintendo' | 'nintendo-xbox'. */
@@ -91,7 +123,7 @@ export function padFaces(win = globalThis.window, setting = facesSetting) {
   let faces;
   if (setting === 'xbox') faces = 'xbox';
   else if (setting === 'nintendo' || setting === 'nintendo-xbox') faces = 'nintendo';
-  else if (!android) faces = 'xbox';
+  else if (!android) faces = padIds(win).some((id) => familyOf(id) === 'nintendo') ? 'nintendo' : 'xbox';   // (a Switch pad: A on the right, reported by position)
   else {
     const ids = native ? [native.id] : padIds(win);
     faces = ids.length && ids.every((id) => XBOX_LIKE.test(id)) ? 'xbox' : 'nintendo';   // the Retroid and its kind
@@ -125,12 +157,36 @@ const ANDROID = [
   [/\bView\b(?= (?:gear|sketchbook|journal|compare))/g, 'Select'], [/\bMenu\b(?= (?:settings|menu|options))/g, 'Start'],
 ];
 
-let labelFaces = 'xbox';   // what watchLabels() last found
+// the other buttons, for each family on a computer (Xbox / PlayStation form → the family's own names)
+const SHOULDERS = (lb, rb, lt, rt) => [
+  [/\bLT ?\/ ?L2\b/g, lt], [/\bRT ?\/ ?R2\b/g, rt], [/\bLB ?\/ ?L1\b/g, lb], [/\bRB ?\/ ?R1\b/g, rb], [/\bLB ?\/ ?RB\b/g, `${lb}/${rb}`],
+];
+const VIEW_MENU = (view, menu) => [
+  [/\bView\b(?= (?:gear|sketchbook|journal|compare|\+|held))/g, view], [/\bMenu\b(?= (?:settings|menu|options|\/))/g, menu],
+];
+const FAMILY = {
+  xbox: [...SHOULDERS('LB', 'RB', 'LT', 'RT'), [/\bL3\b/g, 'LS'], [/\bR3\b/g, 'RS']],
+  playstation: [...SHOULDERS('L1', 'R1', 'L2', 'R2'), [/\bLT\b/g, 'L2'], [/\bRT\b/g, 'R2'], [/\bLB\b/g, 'L1'], [/\bRB\b/g, 'R1'], ...VIEW_MENU('Create', 'Options')],
+  nintendo: [...SHOULDERS('L', 'R', 'ZL', 'ZR'), [/\bLT\b/g, 'ZL'], [/\bRT\b/g, 'ZR'], [/\bLB\b/g, 'L'], [/\bRB\b/g, 'R'], [/\bL3\b/g, 'LS'], [/\bR3\b/g, 'RS'], ...VIEW_MENU('−', '+')],
+};
+const SYMBOL = { A: '×', B: '○', X: '□', Y: '△' };
 
-/** A prompt in the given layout's button names ('android': the handheld's) and face letters ('nintendo': B at the bottom). */
-export function padText(text, layout = 'android', faces = labelFaces) {
+let labelFaces = 'xbox';   // what watchLabels() last found
+let labelFamily = '';      // and the pad's family ('' none listed: the prompts stay as written)
+
+/**
+ * A prompt in the given layout's button names ('android': the handheld's) and face letters ('nintendo': B at the bottom).
+ * `family` (on a computer, 'standard'): the half of "A / ×" that matches the pad, and its own shoulder and menu names.
+ */
+export function padText(text, layout = 'android', faces = labelFaces, family = '') {
   if (!text) return text;
   let out = text;
+  if (layout !== 'android' && FAMILY[family]) {
+    const nin = family === 'nintendo' || (faces === 'nintendo' && family !== 'playstation');
+    out = out.replace(FACE, (_, l) => (family === 'playstation' ? SYMBOL[l] : (nin ? LETTER.nintendo : LETTER.xbox)[l]));
+    for (const [re, to] of FAMILY[family]) out = out.replace(re, to);
+    return out;
+  }
   if (faces === 'nintendo' || layout === 'android') {
     const letters = LETTER[faces] ?? LETTER.xbox;
     out = out.replace(FACE, (_, l) => letters[l]);
@@ -144,7 +200,7 @@ export function padText(text, layout = 'android', faces = labelFaces) {
  * A prompt as the page shows it: the player's own buttons (remap: false under .pad-raw), then the pad's names.
  * `keys`: a keyboard key badge's text, renamed whole ("E" → "F") when its verb moved.
  */
-export function promptText(text, { layout: lay = layout, faces = labelFaces, remap = true, key = false } = {}) {
+export function promptText(text, { layout: lay = layout, faces = labelFaces, family = labelFamily, remap = true, key = false } = {}) {
   if (!text) return text;
   if (key) {
     const names = keyRename(), s = text.trim();
@@ -152,14 +208,21 @@ export function promptText(text, { layout: lay = layout, faces = labelFaces, rem
     const pair = s.match(/^([^/\s]+)\/([^/\s]+)$/);   // ("W/S", "A/D")
     if (pair && (names.has(pair[1]) || names.has(pair[2]))) return `${names.get(pair[1]) ?? pair[1]}/${names.get(pair[2]) ?? pair[2]}`;
   }
-  return padText(remap ? padRename(text) : text, lay, faces);
+  return padText(remap ? padRename(text) : text, lay, faces, family);
 }
+
+/** What the page's prompts are drawn for now: { layout, faces, family } (src/pad-glyphs.js reads it). */
+export const labelState = () => ({ layout, faces: labelFaces, family: labelFamily });
+const labelHooks = new Set();
+/** Called whenever the page's labels are worked out again (a pad connected or gone, the setting, a language). */
+export const onLabels = (fn) => { labelHooks.add(fn); return () => labelHooks.delete(fn); };
 
 let observer = null, layout = 'standard';
 const source = new WeakMap();   // text node → [its text as the game wrote it, what we made of it]
 const rawAt = (n) => !!n?.closest?.('.pad-raw');
 function rewrite(node, raw = rawAt(node.nodeType === 3 ? node.parentElement : node)) {
   if (node.nodeType === 3) {
+    if (node.parentElement?.closest?.('[data-glyph]')) return;   // (a button's glyph: drawn for the pad already, src/pad-glyphs.js)
     const seen = source.get(node);
     const src = seen && seen[1] === node.nodeValue ? seen[0] : node.nodeValue;
     const t = promptText(src, { remap: !raw, key: !!node.parentElement?.classList?.contains('key') });
@@ -177,8 +240,10 @@ export function watchLabels(win = globalThis.window) {
   if (!win?.document?.body) return;
   layout = padLayout(win);
   labelFaces = padFaces(win).faces;
+  labelFamily = padFamily(win);
+  for (const fn of labelHooks) { try { fn(labelState()); } catch (e) { console.warn('labels', e); } }
   if (observer) { rewrite(win.document.body); return; }
-  if (layout !== 'android' && labelFaces !== 'nintendo' && !hasRenames()) return;
+  if (layout !== 'android' && labelFaces !== 'nintendo' && !labelFamily && !hasRenames()) return;
   rewrite(win.document.body);
   observer = new win.MutationObserver((list) => {
     for (const m of list) {

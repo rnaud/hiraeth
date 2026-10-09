@@ -14,6 +14,7 @@ if (new URLSearchParams(location.search).has('cinematicReview')) {
 import './menus.css';
 import './game-menu.css';
 import { installNativePad, watchLabels } from './native-pad.js';
+import { installGlyphs } from './pad-glyphs.js';
 import { opensTitle } from './save-slots.js';
 import { applyReadyUpdate } from './native-app.js';
 import { audioGuard } from './audio-guard.js';
@@ -25,6 +26,7 @@ installKeyRemap();    // (the player's own keys, first of every key listener: sr
 translatePage();      // (index.html's own words in the player's language: src/i18n.js)
 installNativePad();   // (the Android handheld's controls, for the title screen too)
 watchLabels();
+installGlyphs();   // (the button glyphs in the menus, for the pad in hand: src/pad-glyphs.js)
 // a brand-new profile (no seen version, no save anywhere) counts this version as seen, before the
 // title writes a save: the "Updated to v…" toast is for players coming from an older version (src/first-run.js)
 try { const [{ quietFirstRun }, { VERSION }] = await Promise.all([import('./first-run.js'), import('./changelog.js')]); quietFirstRun(globalThis.localStorage, VERSION); } catch (e) { console.warn(e); }

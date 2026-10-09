@@ -290,10 +290,10 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   page, its relics, a ? until found; then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
   their picture from `thumbs/`, ✓ story, relics and makers' boxes found, "you are here").
 - **Look**: the panel's name in the Start menu's comic lettering among four tabs at the top; the sheet
-  of ruled paper between two side tabs naming the neighbours (with `LB / L1`, `RB / R1` on a pad); the
-  cursor a gold cell in a pulsing red ring; the strip at the bottom: the picked thing's name, kind and
-  words, and the buttons that do something here (`menuPrompts`: a pad's in Xbox / PlayStation form,
-  which `native-pad.js` renames, the keyboard's keys, none on a touch screen). Sizes follow the viewport
+  of ruled paper between two side tabs naming the neighbours (their LB / RB glyphs inside them, Q / E with
+  the keys; the ✕ carries B / Esc: v1.2, below); the cursor a gold cell in a pulsing red ring; the strip
+  at the bottom: the picked thing's name, kind and words, and what the confirm button does here
+  (`menuPrompts`: its glyph and the verb, none on a touch screen). Sizes follow the viewport
   (`vh` clamps): 1280 × 720 and the Retroid's 730 × 410 CSS px both fit; a long panel scrolls inside
   its sheet with the cursor.
 - **Controls**: LB / L1 and RB / R1 turn the panels (`Controller` sends `tabPrev` / `tabNext` in a
@@ -352,3 +352,51 @@ settings get the screen), and PAUSED is sized by the width too (`min(7vh, 8vw)`:
 tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-10 px floor, and the title's
 "Continue" world name at least 11 px. Still open (TODO.md): the touch controls' size on a phone held sideways.
 
+
+## The menus on a controller: grids, glyphs in the buttons, the pad's own names (October 2026, v1.2)
+
+- **Glyphs in the buttons** (`src/pad-glyphs.js`): a menu's buttons carry their own prompt instead of a hint
+  line under them. `glyph(role, { focus, key })` is an empty `<span class="glyph" data-glyph="…">` put inside
+  the button; its label is CSS, a custom property per role on `:root` (`--g-ok`, `--gc-ok` its colour,
+  `--gz-ok` its size), set by `installGlyphs()` (once per page: `src/boot.js`, the items page) from the pad in
+  hand and refreshed whenever native-pad.js works the labels out again (`onLabels`, a pad connected or gone,
+  the "Controller buttons" setting). So a menu drawn again keeps its glyphs, native-pad.js never rewrites them
+  (it skips `[data-glyph]`), and screen readers skip them (`aria-hidden`). Roles, by position as the prompts
+  are written: `ok` and `back` (the menus' confirm and back, printed A and B whatever the layout), `x`, `y`,
+  `lb`, `rb`, `lt`, `rt`, `view`, `menu`, `l3`, `r3`, `dpad`. `focus: true` shows it only on the button a pad
+  has focused (the entry A would press). With the keyboard (`body:not(.controller)`) a glyph shows its key,
+  `GLYPH_KEYS` (Enter, Esc, Q, E) or its own `data-key`, drawn as a key cap; a role without one hides; on a
+  touch screen (`body.touch`) none show. Where: the title (A beside the focused entry and save, B in Back and
+  Keep, X on a save's Delete: X / □ deletes, the Controller now sends `x` and `y` in menus), the Start menu
+  (B in Resume, A on the focused entry, the reset question), the journal (B in the ✕, LB / RB on the side
+  tabs; the strip keeps the confirm button's verb only, `menuPrompts`), the galactic map (B in close, A in
+  Travel and Yes, B in No), the cargo check, the restart dialog, what's new's Close, the worlds list and the
+  items page. Conversations keep their answer badge (`choiceHtml`), now in the pad's own names (below).
+- **The pad's family** (`src/native-pad.js` `familyOf`, `padFamily`): from the Gamepad id, Xbox (045e,
+  XInput, and any pad we don't know), PlayStation (054c, DualSense, DualShock), Switch (057e, Pro Controller,
+  Joy-Con), or the handheld layout (the Android app, a Retroid, `?pad=android`). `padText(text, layout, faces,
+  family)` keeps the matching half of "A / ×" and the family's own shoulder and menu names (L1 R1 L2 R2,
+  Create / Options; L R ZL ZR, − / +; LS / RS for L3 / R3 on Xbox and Switch); the Android layout is as
+  before. `watchLabels` now rewrites the page whenever a pad is listed, so every prompt follows; with none
+  listed the prompts stay as written. A Switch pad on a computer reports positions with A on the right:
+  `padFaces` auto now says 'nintendo' for it, so it confirms with A (right) and backs out with B (bottom), as
+  on a Switch. `padGlyphs({ family, faces, layout })` (pure) gives each role's label and colour (Xbox's
+  green A, red B…, PlayStation's shapes a little larger). The source's prompts stay in Xbox / PlayStation
+  form.
+- **Grids** (`gridStep` in `src/menu-pad.js`, through `menuNavigate`): a menu whose root (or an ancestor)
+  has `data-grid-nav` moves in 2D, to the card that way on the screen: ← → within the row (by a third of the
+  card at least, so the focused card drawn lifted and larger doesn't count its column as "to the right"),
+  ↑ ↓ to the column's card or else the nearest that way, ↓ past the last row wraps to the first, the column
+  kept. Other menus keep moving in their order. The worlds list (`#picker`, `cardHtml`) is a grid of small
+  cards (a picture with its number, the name, the source, the save it opens in; the blurb and moves in the
+  strip at the foot for the focused card), the focused one lifted in a red frame with A on it; the arrow
+  keys move the same way, LB / RB scroll a page. The items page's cards are a grid too.
+- **The item viewer full screen** (items.html, `src/items-page/`): on a handheld's 1920 × 1080 screen (about
+  730 × 410 CSS px) the words covered the item. Now the bar holds the name and its buttons (◀ ▶ with LB /
+  RB, turn with Y, reset with X, ✕ with B; the keys ← → R 0 Esc with the keyboard) and one short line under
+  the item: its kind and its first sentence (`shortLine`, at most 90 letters). "more" (A, I or Enter) opens
+  the rest in a column on the left and the item's canvas narrows beside it (`ItemViewer.show` sizes to its
+  canvas). Under 480 px high everything is smaller. With a pad: the cards are a grid, A opens, LB / RB or
+  ← → the other items, ↑ ↓ zoom, the right stick tilts, B closes (B on the list: back to the worlds list).
+- Tests: `tests/pad-glyphs.test.js` (families, the names, the glyphs' labels and CSS, the buttons that carry
+  them, `gridStep`, the worlds' cards, X / Y in menus, `shortLine`), `tests/game-menu.test.js`.

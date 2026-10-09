@@ -134,10 +134,16 @@ test('a controller: LB / L1 and RB / R1 turn the panels in a menu, B / ○ close
   assert.match(main, /else if \(root === journal\.el\) journal\.menu\.confirm\(\);/, 'A / × uses or looks');
   const close = main.slice(main.indexOf('const closeControllerMenu'), main.indexOf('const controller = new Controller'));
   assert.match(close, /else if \(journal\.open\) journal\.toggle\(false\);/, 'B / ○ closes the whole menu, from any panel');
-  // the prompts, in Xbox / PlayStation form (native-pad.js prints them as the pad does)
-  assert.equal(menuPrompts('track', 'pad', 'A / ×', 'B / ○').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(), 'LB / L1 RB / R1 panels A / × track B / ○ close');
-  assert.match(menuPrompts(null, 'keys'), /Q.*E.*panels.*Esc.*close/);
-  assert.equal(menuPrompts('look', 'touch'), '', 'a touch screen: its tabs and ✕ say it');
+  // the prompts are in the buttons (src/pad-glyphs.js): the side tabs carry LB / RB (Q / E), the ✕ carries B (Esc);
+  // the strip only says what the confirm button does here, with its glyph
+  assert.match(menuPrompts('track', 'pad'), /^<span class="gm-act"><span class="glyph" data-glyph="ok"[^>]*><\/span>track<\/span>$/);
+  assert.match(menuPrompts('track', 'keys'), /data-glyph="ok"/);
+  assert.equal(menuPrompts(null, 'pad'), '', 'nothing to do here: nothing said');
+  assert.equal(menuPrompts('look', 'touch'), '', 'a touch screen: a second tap uses');
+  const m = src('src/game-menu.js');
+  assert.match(m, /class="gm-side prev"[^`]*\$\{glyph\('lb', \{ key: 'Q' \}\)\}/);
+  assert.match(m, /class="gm-side next"[^`]*\$\{glyph\('rb', \{ key: 'E' \}\)\}/);
+  assert.match(m, /class="gm-close close"[^`]*\$\{glyph\('back', \{ key: 'Esc' \}\)\}✕/);
 });
 
 test('a quest shows only its overall goal and its next step, and both follow the progress', () => {
