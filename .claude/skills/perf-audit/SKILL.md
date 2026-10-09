@@ -91,6 +91,24 @@ Change a budget in this table only when the author decides, and say so in the re
 
 ## 5. Write `docs/audits/perf-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: none
+label: (none: the headline says it)
+date: YYYY-MM-DD
+-->
+```
+
+A performance report has no overall score: write `overall: none` and, instead of `label:`, `headline:` with
+the budgets met and missed in one line.
+Keep the score tables as Markdown tables with one row per world or view and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 - **The setup:** the machine and how quiet it was, the GPU string, the presets, the resolution, the
   commit.
 - **Size:** the table and its changes.

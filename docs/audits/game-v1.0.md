@@ -1,5 +1,11 @@
 # Hiraeth against what makes a great game (October 2026, v1.0)
 
+<!-- audit-scores
+overall: 3.7 / 5
+label: the twelve themes, weighted (themes 3-8 count double)
+date: 2026-10-08
+-->
+
 The second audit against the twelve themes of
 [what-makes-a-great-game.md](../what-makes-a-great-game.md), run with the `game-audit` skill
 (`.claude/skills/game-audit/`). It follows [the v0.97 audit](game-v0.97.md) and the three releases built

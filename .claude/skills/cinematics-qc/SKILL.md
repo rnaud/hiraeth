@@ -131,6 +131,10 @@ One point each, by watching (the frames, then the review page for the timing):
 - Fix straightforward interest problems: trim dead time, rebalance panel lengths, add a cut or a
   push-in. **Don't invent story**: bigger creative rework goes in `TODO.md` under
   "Cinematics (QC pass)".
+- Update the score block under the report's title (`<!-- audit-scores … -->`, read by the audits page,
+  `audits.html`): `overall:` the mean of the tech and interest means after the fixes, `label:` those two means
+  and how many cinematics, `version:` the pass's version, `date:`. Keep the table's `Tech /5` and
+  `Interest /5` columns as they are (the page reads them, and the review page's verdicts by the row's id).
 - Record the pass in `docs/systems/cinematics-qc.md`: one row per cinematic: technical /5, interest
   /5, problems, what was fixed. Optionally mirror the verdicts into the review page's notes (it
   stores them per browser in `localStorage['hiraeth.cinematics.qc.v1']`: `{ [id]: { verdict:

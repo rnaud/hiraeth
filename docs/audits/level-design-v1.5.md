@@ -1,5 +1,11 @@
 # Level design audit, v1.5 (2026-10-09)
 
+<!-- audit-scores
+overall: 3.66 / 5
+label: the average of the eleven route worlds' means
+date: 2026-10-09
+-->
+
 This audit asks: are the worlds well organised, and are they interesting to cross? It applies the
 `level-design-qc` skill (`.claude/skills/level-design-qc/SKILL.md`: the principles, their sources, the rubric) to
 the eleven route worlds.

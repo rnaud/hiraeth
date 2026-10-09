@@ -87,6 +87,22 @@ in an Arena ring, phase by phase, at 85 % of the phase's first move (`--guardian
 
 ## 4. Write `docs/audits/combat-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: the mean of every foe's and guardian's total / 5
+label: what the overall is the mean of
+date: YYYY-MM-DD
+-->
+```
+
+Keep the score tables as Markdown tables with one row per foe kind or guardian and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 - **The setup:** commit, the date, how long each kind was watched, what was played by hand.
 - **The scores:** the foes' table and the guardians' (from `combat.md`, with the scores you changed marked and why), the
   combat-as-a-whole table, and the contact sheet (`docs/audits/combat-v<version>/telegraphs.webp`, under 1 MB).

@@ -1,5 +1,11 @@
 # Visual audit, v1.4: the probes (2026-10-09)
 
+<!-- audit-scores
+overall: none
+headline: 0 breaks the picture, 2 noticeable, 2 only when looking, 1 look; the three old bugs clean
+date: 2026-10-09
+-->
+
 The first run of the visual audit's new probes (`.claude/skills/visual-audit/SKILL.md`, sections 3-5:
 `.claude/skills/visual-audit/probes.mjs`, `scripts/visual-probes/lib.mjs`), made after three bugs got past the still
 frames of [v1.0](visual-v1.0.md): the pale ghost of a person in the spot blacks (620c4384), the blocks that slid with the

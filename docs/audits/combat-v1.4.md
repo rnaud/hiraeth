@@ -1,5 +1,11 @@
 # Combat review, v1.4 (2026-10-09)
 
+<!-- audit-scores
+overall: 3.75 / 5
+label: the mean of the 26 totals (15 foe kinds and 11 guardians, both 3.75)
+date: 2026-10-09
+-->
+
 The first run of the combat-review skill (`.claude/skills/combat-review/SKILL.md`). Scores are 1-5 on the skill's
 rubric; the per-foe numbers come from `.claude/skills/combat-review/arena.mjs` driving the Arena headless, the guardians'
 from their temples' tuning. **The roster is about to grow** (a much larger set of enemies is being restored): this is the

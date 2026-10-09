@@ -1,5 +1,11 @@
 # Hiraeth's performance (October 2026, v1.0)
 
+<!-- audit-scores
+overall: none
+headline: 2 of 4 budgets over (the City-Shaft's frame and load), the devices not measured
+date: 2026-10-08
+-->
+
 The first report of the `perf-audit` skill (`.claude/skills/perf-audit/`). There is no earlier report to
 compare with. The device numbers that exist are in `docs/systems/performance.md`, from before v0.98.
 

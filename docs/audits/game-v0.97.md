@@ -1,5 +1,11 @@
 # Hiraeth against what makes a great game (October 2026, v0.97)
 
+<!-- audit-scores
+overall: 3.4 / 5
+label: the twelve themes, weighted (themes 3-8 count double)
+date: 2026-10-08
+-->
+
 This audit measures Hiraeth against the twelve themes in
 [what-makes-a-great-game.md](../what-makes-a-great-game.md). The evidence comes from four sources:
 

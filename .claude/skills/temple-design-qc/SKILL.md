@@ -161,6 +161,22 @@ temple solved, its gadget mid-way and needed for every later room).
 
 ## 5. Write `docs/audits/temple-design-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: the average of the temples' means / 5
+label: the average of the eleven temples' means
+date: YYYY-MM-DD
+-->
+```
+
+Keep the score tables as Markdown tables with one row per temple and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 - **The setup:** the commit, the date, what ran, what was not checked (climbs, readability, the fights).
 - **The scores:** one row per temple, the nine criteria and the mean; your moves by eye with the reason.
 - **Across the temples:** the skeletons side by side, how alike they are, what repeats.

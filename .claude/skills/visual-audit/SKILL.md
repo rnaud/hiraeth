@@ -188,6 +188,24 @@ Review a pass's change against this list; a pass that can't answer both question
 
 ## 7. Write `docs/audits/visual-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: none
+label: (none: the headline says it)
+date: YYYY-MM-DD
+-->
+```
+
+A visual audit has no overall score: write `overall: none` and, instead of `label:`, `headline:` with the
+findings' counts by severity in one line. Keep the findings table's `severity` column (the page counts it).
+Keep the score tables as Markdown tables with one row per finding and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 - **The setup:** commit, preset, resolution, hours, GPU.
 - **A findings table:** each problem's severity (*breaks the picture*, *noticeable*, or *only when
   looking*), where it is (world, view, hour), the picture's path under

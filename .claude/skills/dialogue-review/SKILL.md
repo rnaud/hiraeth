@@ -97,6 +97,22 @@ too. Most of all, check what can't be measured:
 
 ## 4. Write `docs/audits/dialogue-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: the mean of the areas / 5
+label: the mean of the twelve areas
+date: YYYY-MM-DD
+-->
+```
+
+Keep the score tables as Markdown tables with one row per area and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 - **The setup:** the version, the date, the corpus from `metrics.json`'s totals (lines, pages,
   answers, worlds), and what was read whole and what was sampled.
 - **Scores from 1 to 5,** each with its evidence, for:

@@ -177,6 +177,22 @@ batches, each re-running the audit for its world to show the change.
 
 ## 6. Write `docs/audits/level-design-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: the average of the worlds' means / 5
+label: the average of the eleven route worlds' means
+date: YYYY-MM-DD
+-->
+```
+
+Keep the score tables as Markdown tables with one row per world and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 - **The setup:** the commit, the date, what ran (node audit, capture), what was not checked.
 - **The scores:** a table, one row per world, the nine criteria and the mean; the moves you made by eye, with
   the reason.

@@ -1,5 +1,11 @@
 # Visual audit · v1.0 · 8 October 2026
 
+<!-- audit-scores
+overall: none
+headline: 0 breaks the picture, 2 noticeable, 1 only when looking (the first baseline)
+date: 2026-10-08
+-->
+
 Base: `c4f553ce` (pulled from main). The working tree also contains the cinematic review page;
 no renderer or world-art fixes were made during this audit. This is the first `visual-v*.md`
 report, so it establishes a baseline rather than claiming regressions or verified fixes.

@@ -1,6 +1,7 @@
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import { existsSync, realpathSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { auditsPlugin } from './scripts/audits-data.mjs';
 
 // Relative asset paths so the build works both at a site root and under
 // GitHub Pages' /moebius/ sub-path.
@@ -18,6 +19,8 @@ export const BUILD_INPUT = {
   changelog: fileURLToPath(new URL('./changelog.html', import.meta.url)),
   // the items to review (src/items-page/: each item's picture, what it does, where it is found)
   items: fileURLToPath(new URL('./items.html', import.meta.url)),
+  // the audit reports and their scores (src/audits-page/; the data and the pictures, audits/, are the site's alone)
+  audits: fileURLToPath(new URL('./audits.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**
@@ -37,6 +40,6 @@ export default defineConfig({
   // The game, trailer, character studio (studio.html, src/studio/) and Motion page
   // (motion.html, src/motion/: the traveller's loops against motion matching): they ship with the game
   build: { target: 'es2022', rolldownOptions: { input: BUILD_INPUT } },
-  plugins: [dropMakeHuman()],
+  plugins: [dropMakeHuman(), auditsPlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

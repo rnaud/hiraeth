@@ -20,6 +20,7 @@ export const PAGES = [
   { href: 'changelog.html', label: 'What\'s new', hint: 'every change, with pictures' },
   { href: 'cinematics.html', label: 'Cinematics', hint: 'replay the films and record quality-control notes' },
   { href: 'items.html', label: 'Items', hint: 'every item, its picture, what it does, where it is found' },
+  { href: 'audits.html', label: 'Audits', hint: 'every audit report, its scores and findings, and how they changed' },
 ];
 
 /** A game's best in the save (`state`: flag(name)), as its results show it, or '' (none yet, or no save). */

@@ -1,5 +1,11 @@
 # Temple design audit, v1.5 (2026-10-09)
 
+<!-- audit-scores
+overall: 1.84 / 5
+label: the average of the eleven temples' means
+date: 2026-10-09
+-->
+
 This audit tests the author's note that "the temples so far seem very simplistic, with puzzles that are almost
 painfully obvious." It applies the `temple-design-qc` skill (`.claude/skills/temple-design-qc/SKILL.md`, which
 holds the principles, their sources and the rubric) to all eleven temples.

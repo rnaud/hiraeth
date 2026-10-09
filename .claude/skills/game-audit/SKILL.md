@@ -60,6 +60,22 @@ Judge sound by its code and docs, never by listening.
 
 ## 4. Write `docs/audits/game-v<version>.md`
 
+Start the report with its score block, right under the title (an HTML comment GitHub hides; the audits page,
+`audits.html`, reads it: `src/audits-page/parse.js`, docs/systems/ui.md "The audits page"):
+
+```
+<!-- audit-scores
+overall: the weighted score / 5
+label: the twelve themes, weighted (themes 3-8 count double)
+date: YYYY-MM-DD
+-->
+```
+
+Keep the score tables as Markdown tables with one row per theme (keep the earlier version's column beside this one's, `v0.97 | v1.0`) and the 1-5 scores in their own columns (a
+"total" or "Mean" column for the row's mean; a change by eye as `4 ✎3`, before and after as `2 → 3`): the
+page draws them as bars and compares them with the last report's by the row's name and the column's header,
+so keep both the same from one report to the next. `node --test tests/audits-page.test.js` checks the block.
+
 Use the same shape as the earlier audits:
 
 - **An intro:** the version, the date, where the evidence came from, and what wasn't verified.

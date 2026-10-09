@@ -1,5 +1,12 @@
 # Cinematics QC
 
+<!-- audit-scores
+overall: 4.64 / 5
+label: the mean of tech (4.96) and interest (4.33) over the 91 cinematics, after the fixes
+version: 1.6
+date: 2026-10-09
+-->
+
 Every cinematic on the review page (`cinematics.html`, Debug → Cinematics: 91 of them) is checked for
 **technical quality** (it plays cleanly, the camera is never in a wall, the subject is in frame, the HUD
 and notices are gone, it skips, it hands control back at a sensible spot, its sound is in time and not

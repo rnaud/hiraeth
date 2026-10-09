@@ -1,5 +1,11 @@
 # Hiraeth's dialogue, reviewed (October 2026, v1.0)
 
+<!-- audit-scores
+overall: 3.42 / 5
+label: the mean of the twelve areas
+date: 2026-10-08
+-->
+
 The first dialogue review, run with the `dialogue-review` skill (`.claude/skills/dialogue-review/`).
 It reads against the house style first: `lore/voice-guide.md`, `docs/systems/dialogue.md` and the
 character sheets in `lore/characters/`. The craft of game writing comes second (`craft.md` beside
