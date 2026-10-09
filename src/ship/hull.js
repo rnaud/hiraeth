@@ -17,7 +17,7 @@ import { surfacePoly, surfaceRibbon, blob, arcStroke } from './geo.js';
 
 export const DECK = 0;              // the deck (ship-local y)
 export const CEIL = DECK + 2.35;    // the ceiling: 2.35 m clear, over the traveller's 2.2 m capsule
-export const LIFT = 2.3;            // the deck's height over the ground when parked on its legs
+export const LIFT = 2.6;            // the deck's height over the ground when parked on its legs
 export const HALF_W = 3.6;          // the side walls' plane (|x|) over the main body
 export const WALL_IN = 3.2;         // the rooms' walls (|x|): 0.4 m of hull
 export const NOSE_Z = -10, STERN_Z = 12.2;
@@ -26,8 +26,8 @@ export const LENGTH = STERN_Z - NOSE_Z;
 export const CENTRE_Z = (NOSE_Z + STERN_Z) / 2;
 /** The hull's reach from the ship's origin (m, horizontally): what keeps clear of it must be further. */
 export const R = 12.6;
-export const BELLY = -1.25;         // the belly (ship-local y)
-export const ROOF = 3.35;           // the roof
+export const BELLY = -1.6;          // the belly (ship-local y)
+export const ROOF = 3.85;           // the roof (1.5 m of structure over the ceiling: the reference's tall, chunky hull)
 export const HATCH_A = -Math.PI / 2;   // the hatch faces local -x (a heading: polar(r, HATCH_A, y) is r metres out through it)
 export const HATCH = { z0: -0.65, z1: 0.65, y0: DECK, y1: DECK + 2.25 };
 /** The ramp's hinge: its distance from the centre line, out through the hatch. */
@@ -35,6 +35,8 @@ export const HINGE_R = HALF_W + 0.05;
 /** Where the lavender starts (ship-local z) and where the cream stern section begins. */
 export const LAV_Z = 2.3, LAV_END = 10.6;
 export const STRIPE = { y0: 1.25, y1: 1.55 };
+/** The main body's shoulder: the top of its flat side walls. */
+export const SHOULDER = 3.05;
 /** The four legs (ship-local x, z of their hips' line). */
 export const LEGS = [{ x: -2.75, z: -4.8 }, { x: 2.75, z: -4.8 }, { x: -2.6, z: 8.6 }, { x: 2.6, z: 8.6 }];
 /** Where a leg's foot stands (x, z): out from its hip. */
@@ -44,7 +46,7 @@ export const BELLS = [[-1.0, -3.6], [1.0, -3.6], [-1.0, 6.4], [1.0, 6.4]].map(([
 /** The scorch on the port flank, forward of the hatch: its centre on the wall (the wall's normal is -x). */
 export const SCAR = { x: -HALF_W, y: 0.95, z: -3.75 };
 /** The cockpit's windshield: its sill and head (ship-local), for what must not cover it. */
-export const WINDOW = { z0: -9.3, z1: -7.3, y0: 1.55, y1: 3.22 };
+export const WINDOW = { z0: -9.3, z1: -7.3, y0: 1.55, y1: 3.6 };
 
 /**
  * The side openings of the main body: [{ side (-1 port, 1 starboard), z0, z1, y0, y1, kind }]; portholes are round
@@ -60,16 +62,16 @@ export const OPENINGS = [
 
 // The loft: at each station the seven points of the starboard side from the belly up (x, y), mirrored
 // for port: belly, lower chamfer, chine, stripe bottom, stripe top, shoulder, roof edge.
-const MAIN = [[1.8, -1.25], [3.2, -0.75], [3.6, 0], [3.6, 1.25], [3.6, 1.55], [3.6, 2.75], [2.9, 3.35]];
+const MAIN = [[1.8, -1.6], [3.25, -0.95], [3.6, 0], [3.6, 1.25], [3.6, 1.55], [3.6, 3.05], [2.9, 3.85]];
 export const STATIONS = [
-  { z: NOSE_Z, v: [[0.8, 0.05], [1.1, 0.2], [1.35, 0.5], [1.4, 0.95], [1.4, 1.22], [1.25, 1.28], [0.95, 1.32]] },
-  { z: -9.3, v: [[1.15, -0.45], [1.9, -0.2], [2.35, 0.25], [2.4, 1.05], [2.4, 1.35], [2.25, 1.45], [1.75, 1.55]] },
-  { z: -7.3, v: [[1.7, -1.15], [3.05, -0.7], [3.45, 0], [3.48, 1.25], [3.48, 1.55], [3.45, 2.65], [2.85, 3.22]] },
+  { z: NOSE_Z, v: [[0.8, -0.05], [1.1, 0.12], [1.35, 0.45], [1.4, 0.95], [1.4, 1.22], [1.25, 1.28], [0.95, 1.32]] },
+  { z: -9.3, v: [[1.15, -0.65], [1.9, -0.32], [2.35, 0.2], [2.4, 1.05], [2.4, 1.35], [2.25, 1.45], [1.75, 1.55]] },
+  { z: -7.3, v: [[1.7, -1.48], [3.1, -0.88], [3.45, 0], [3.48, 1.25], [3.48, 1.55], [3.45, 2.95], [2.85, 3.68]] },
   { z: -6.1, v: MAIN },
   { z: LAV_Z, v: MAIN },
   { z: 7.9, v: MAIN },
-  { z: LAV_END, v: [[1.5, -0.95], [2.9, -0.55], [3.3, 0.1], [3.3, 1.25], [3.3, 1.55], [3.3, 2.6], [2.65, 3.15]] },
-  { z: STERN_Z, v: [[1.2, -0.55], [2.4, -0.3], [2.75, 0.2], [2.75, 1.25], [2.75, 1.55], [2.7, 2.45], [2.2, 2.85]] },
+  { z: LAV_END, v: [[1.5, -1.25], [2.95, -0.7], [3.3, 0.1], [3.3, 1.25], [3.3, 1.55], [3.3, 2.9], [2.65, 3.6]] },
+  { z: STERN_Z, v: [[1.2, -0.75], [2.4, -0.4], [2.75, 0.2], [2.75, 1.25], [2.75, 1.55], [2.7, 2.75], [2.2, 3.25]] },
 ];
 /** The main body (constant section, flat side walls) runs between these stations' z. */
 export const BODY = { z0: -6.1, z1: 7.9 };
@@ -193,7 +195,7 @@ const sideOf = (e) => (e <= 5 ? 1 : e >= 7 && e <= 12 ? -1 : 0);
 /** The side panels' colour at z: cream forward, lavender aft, cream again at the stern. */
 const sideKey = (z, y) => (z > LAV_Z && z < LAV_END ? 'lav' : y >= STRIPE.y0 && y <= STRIPE.y1 && z < LAV_Z ? 'stripe' : 'hull');
 const BAND_KEY = ['skirtDark', 'skirt', null, null, null, null, 'hull', 'belly'];
-const MID_Y = { 2: 0.6, 3: 1.4, 4: 2.1, 5: 3 };
+const MID_Y = { 2: 0.6, 3: 1.4, 4: 2.2, 5: 3.4 };
 
 /**
  * Build the exterior into `batch` (materials: hull, lav, stripe, skirt, skirtDark, belly, glass, dark, trim, teal, seam,
@@ -321,18 +323,19 @@ export function buildHull(batch, o = {}) {
   for (const l of LEGS) {
     const s = Math.sign(l.x);
     if (legs === 'up') {
-      batch.add('dark', new THREE.BoxGeometry(0.6, 0.35, 1.0).translate(s * 2.7, -0.95, l.z));   // stowed: the housings
+      batch.add('dark', new THREE.BoxGeometry(0.6, 0.35, 1.0).translate(s * 2.7, undersideAt(s * 2.7, l.z), l.z));   // stowed: the housings
       continue;
     }
     const f = footOf(l);
     const fy = o.footY ? o.footY(l) : -LIFT;
-    const hip = V(s * 2.85, -0.62, l.z), knee = V(s * 3.45, -1.15, l.z - 0.35 * Math.sign(l.z - 2));
+    const uy = undersideAt(s * 2.85, l.z);   // (the hip on the lower chamfer)
+    const hip = V(s * 2.85, uy - 0.05, l.z), knee = V(s * 3.45, uy - 0.6, l.z - 0.35 * Math.sign(l.z - 2));
     const foot = V(f.x, fy + 0.32, f.z);
-    batch.add('trim', new THREE.BoxGeometry(0.7, 0.45, 0.9).translate(s * 2.75, -0.62, l.z));   // the hip housing
+    batch.add('trim', new THREE.BoxGeometry(0.7, 0.45, 0.9).translate(s * 2.75, uy, l.z));   // the hip housing
     batch.add('dark', strut(hip, knee, 0.2, 0.18));
     batch.add('dark', new THREE.SphereGeometry(0.24, 10, 8).translate(knee.x, knee.y, knee.z));
     batch.add('dark', strut(knee, foot, 0.15, 0.13));
-    batch.add('trim', strut(V(s * 2.6, -0.95, l.z), knee.clone().lerp(foot, 0.45), 0.07));      // the piston
+    batch.add('trim', strut(V(s * 2.6, uy - 0.1, l.z), knee.clone().lerp(foot, 0.45), 0.07));      // the piston
     batch.add('dark', new THREE.CylinderGeometry(0.5, 0.6, 0.22, 12).translate(foot.x, fy + 0.11, foot.z));
     feet.push(new THREE.Vector3(foot.x, fy, foot.z));
   }
@@ -369,7 +372,7 @@ const inOpening = (o, z, y) => z > o.z0 && z < o.z1 && y > o.y0 && y < o.y1;
 function sideWall(Q, side) {
   const x = side * HALF_W, n = V(side, 0, 0);
   const ops = OPENINGS.filter((o) => o.side === side);
-  const zs = new Set([BODY.z0, LAV_Z, BODY.z1]), ys = new Set([0, STRIPE.y0, STRIPE.y1, 2.75]);
+  const zs = new Set([BODY.z0, LAV_Z, BODY.z1]), ys = new Set([0, STRIPE.y0, STRIPE.y1, SHOULDER]);
   for (const o of ops) { zs.add(o.z0); zs.add(o.z1); ys.add(o.y0); ys.add(o.y1); }
   const Z = [...zs].sort((a, b) => a - b), Yv = [...ys].sort((a, b) => a - b);
   for (let i = 0; i < Z.length - 1; i++) for (let j = 0; j < Yv.length - 1; j++) {
@@ -442,11 +445,11 @@ function seams(Q) {
   };
   const hline = (side, y, z0, z1) => { const x = side * (HALF_W + lift); q.quad(V(x, y - w, z0), V(x, y - w, z1), V(x, y + w, z1), V(x, y + w, z0), V(side, 0, 0)); };
   for (const side of [-1, 1]) {
-    for (const z of [-4.6, -2.0, 2.3, 3.6, 4.95, 6.3]) vline(side, z, 0.02, 2.73);
+    for (const z of [-4.6, -2.0, 2.3, 3.6, 4.95, 6.3]) vline(side, z, 0.02, SHOULDER - 0.02);
     for (const z of [-5.3, -1.0, 1.8]) vline(side, z, 0.02, STRIPE.y0 - 0.02);
     hline(side, 0.03, BODY.z0, BODY.z1);
-    hline(side, 2.72, BODY.z0, BODY.z1);
-    hline(side, 1.45, LAV_Z, BODY.z1);
+    hline(side, SHOULDER - 0.03, BODY.z0, BODY.z1);
+    hline(side, 2.3, LAV_Z, BODY.z1);
   }
 }
 /** The ship's frame of reference, named, for the docs and tests. */

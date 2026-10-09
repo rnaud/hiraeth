@@ -16,12 +16,15 @@ Use the selected single-view designs as the source of truth; derive further view
 rather than mixing the earlier inconsistent exploration sheets.
 
 - [ ] Extend the generated father beyond the recording bust for full-body walking and clothing motion; the procedural family is integrated (see DONE.md).
-- [ ] **Generate and integrate the angular ship redesign** from
-  `references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg`.
-  Establish one consistent 3D hull and derive all angles from it. Fit a proper walkable cockpit,
-  living space, galley, sleeping area and storage inside that hull, using the existing Main Interior,
-  Cockpit and Message, and Living Quarters references for atmosphere. Establish dimensions from a
-  human-scale blockout; the prompt's 24 m length is a proposal, not a verified measurement.
+- [ ] **The angular ship in the Unity port**: the web game's ship is the angular hull (DONE.md, docs/systems/ship.md)
+  and the export writes its mesh, its new interaction points (`threshold`, `aboard`, `tableFoot`, `wakeRoom`) and its
+  extents (`shipOut.hull`), but `unity/Memento/Assets/Runtime/ShipScene.cs` and `ShipTravel.cs` still place their
+  cameras, the step-out point and the smoke for the ball (`Polar(9.0, HATCH_A, DECK)`, `R * 0.6`, the call camera at
+  `(-1.3, DECK + 1.95, -4.8)`, three thrusters in `WorldsTests.cs`). Re-derive them from the exported points (as
+  `src/ship/cinematics.js` `cockpitFrame` does) and regenerate the export.
+- [ ] **Ilen's house is "the top half of her own round ship"** (`src/levels/lantern.js`, the Lantern): the family's
+  ship is angular now. Is hers still a round ship of her own (her line "I know that hull… paint the stripe" still
+  reads), or should her house be a piece of an angular hull? Author's call.
 
 # Singing light soundtrack follow-up
 

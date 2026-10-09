@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 
-// Geometry helpers for the round ship. Ship-local frame: origin at the centre
-// of the hull sphere, +y up. Azimuth `a` works like a heading: a = 0 points to
-// +z, a = PI/2 to +x. A polar point is (sin a * r, y, cos a * r).
+// Geometry helpers from the round ship's days, still used (polar points, decals on a surface through a
+// tangent frame, the per-material Batch). Azimuth `a` works like a heading: a = 0 points to +z,
+// a = PI/2 to +x. A polar point is (sin a * r, y, cos a * r). The angular hull is src/ship/hull.js.
 
 export const polar = (r, a, y, out = new THREE.Vector3()) => out.set(Math.sin(a) * r, y, Math.cos(a) * r);
 const TAU = Math.PI * 2;

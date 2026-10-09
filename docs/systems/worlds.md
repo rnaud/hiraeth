@@ -353,6 +353,8 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   the channel already open finds it full (`tests/desert-cave.test.js`).
 
 ## The ship's deck: flat, smaller, lived in, a holo table in the middle
+(The round deck below was replaced in October 2026 by the angular hull's rooms: docs/systems/ship.md. What
+still holds: one flat plane, blocks over low furniture, the doorway drawn once, the holo table's planet.)
 Player feedback: the traveller bobbed up and down walking the deck, the hatch's doorway
 shimmered, the reactor column filled the middle, the deck felt too big for one pilot.
 - **One flat plane** (`src/ship/interior.js`): an invisible collider disc at `DECK` lies under

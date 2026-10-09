@@ -1,7 +1,7 @@
 import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
-import { buildShipModel, buildSpace, poseRamp } from './model.js';
+import { buildShipModel, buildSpace, poseRamp, DETAIL_FAR } from './model.js';
 import { R, DECK, LIFT, HATCH_A, HINGE_R, WINDOW, HATCH, LEGS, footOf, SCAR, ROOF, CENTRE_Z, undersideAt, WALL_IN, reachAt } from './hull.js';
 import { polar } from './geo.js';
 import { CONSOLE_R, TABLE_R, ROOMS, inRooms, cockpitHalf } from './interior.js';
@@ -686,15 +686,6 @@ export class Ship {
     // the fluid tool is put away at home and while a scene plays (src/fluid-tool.js listens)
     const toolOn = !this.inside && !(this.cinematic && !this.cinematic.done) && !this.auto;
     if (toolOn !== this._toolOn) { this._toolOn = toolOn; game.emit('tool:enable', { on: toolOn }); }
-    // rooms are only drawn when the camera is near enough to see in
-    for (const m of [this.parked, this.spaceCopy?.model]) {
-      if (!m) continue;
-      const near = this.camera.position.distanceTo(this.world(m, _c.set(0, 1, CENTRE_Z))) < 48;
-      if (near !== m.indoorShown) {
-        m.indoorShown = near;
-        for (const o of m.indoor) o.visible = near;
-      }
-    }
     // the screen, the mobile, the voicemail button
     const waiting = this.messageWaiting();
     for (const m of [this.parked, this.spaceCopy?.model]) {
@@ -725,6 +716,19 @@ export class Ship {
     this.dust.update(dt);
     this.flame.update(dt);
     if (!photo) this.applyCamera(dt);
+    // rooms are only drawn when the camera is near enough to see in (measured once the camera is placed: a scene's
+    // shot inside the ship while you stand far off, as the review page stages the takeoff, drew no walls)
+    for (const m of [this.parked, this.spaceCopy?.model]) {
+      if (!m) continue;
+      const d = this.camera.position.distanceTo(this.world(m, _c.set(0, 1, CENTRE_Z))), near = d < 48;
+      if (near !== m.indoorShown) {
+        m.indoorShown = near;
+        for (const o of m.indoor) o.visible = near;
+      }
+      // and far off, the outside's small things too (seams, the scorch, the lights: src/ship/model.js DETAIL_FAR)
+      const detail = d < DETAIL_FAR;
+      if (detail !== m.detailShown) { m.detailShown = detail; for (const o of m.details ?? []) o.visible = detail; }
+    }
     // (after the camera is placed: the holo table's planet turns its lit face to it, a cinematic's shot too)
     for (const m of [this.parked, this.spaceCopy?.model]) if (m?.indoorShown) m.holoTable?.update(dt, this.camera);
   }

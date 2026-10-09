@@ -195,7 +195,7 @@ export const AGE = {
   5: {
     open: [
       M('~playful~ He is here. He just does not want to start.'),
-      M("~happy~ Found your drawings in the hall cupboard. The round ship, the three of us holding hands. You gave everyone enormous fingers."),
+      M("~happy~ Found your drawings in the hall cupboard. The ship with its stripe, the three of us holding hands. You gave everyone enormous fingers."),
       // Lou, three and a half, a year and a half on the hill (LORE.md §2): never named on the reel
       M("~whisper~ The little one looked through them with me. She has your hands, love. Same grip on a pencil."),
     ],

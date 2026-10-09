@@ -1850,3 +1850,26 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   and integrated the textured model into father holographic recordings with runtime face
   motion and a procedural load-failure fallback. Reviewed unlit, with opposite lights and
   in the ship recording. This is the stationary bust asset; walking and separate cloth remain.
+
+## The angular ship redesign (2026-10-09)
+
+From the selected `references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg` (TODO.md,
+"Selected characters, currency, ship and sword"). How (docs/systems/ship.md):
+
+- **A blockout first**, the traveller as the unit (2.2 m capsule, 2.35 m ceiling, 2.25 m doors, 1.6 m doorways
+  for the camera): cockpit, main room (galley, living, entry), sleeping cabin, hold, engine bay; the hull drawn
+  round them: 22.2 x 7.2 x 5.45 m, the deck 2.6 m up on four legs (the prompt’s 24 x 8 m was a proposal).
+- **One hull, every angle**: `src/ship/hull.js` lofts seven points a side through eight stations (wedge bow and
+  windshield, chin, flat main body, tapering stern) with flat side walls round their openings; cream enamel, the
+  coral stripe, lavender panels, khaki lower hull, two raked pods, the port hatch with its door and stair-ramp,
+  four lift jets, the light's scorch. Compared with the reference from the same three-quarter view, the side,
+  the bow and the stern (docs/systems/ship-reference/).
+- **The rooms** (`src/ship/interior.js`) from the Main Interior, Cockpit and Message and Living Quarters
+  references; every interaction point kept (the voicemail, the projector, the holo table, the hatch, the bed's
+  waking), new ones for the threshold and boarding.
+- **Everywhere**: parked in every world (the site search unchanged; a test lands it in every world and checks
+  the hull's volume, the feet and the ramp), the desert crash's berm hugging the new outline, the prologue,
+  arrivals, takeoff, recordings and homecomings re-aimed for the new cockpit and flown nose first, the child's
+  drawing and the lines that called it round, the trailer scenes, the Unity export's data (the C# port's cameras:
+  TODO.md). A quarter of the round ship's triangles; a far level of detail.
+

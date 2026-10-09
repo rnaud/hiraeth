@@ -27,16 +27,21 @@ const wobblyLine = (g, pts, w = 3) => {
   g.stroke();
 };
 
-/** A child's crayon drawing: a round ship and three people under two moons, signed. */
+/** A child's crayon drawing: the family ship (long, a pointed nose, its stripe, two fins) and three people under two moons, signed. */
 export const familyDrawing = () => canvasTexture(256, 192, (g, w, h) => {
   g.fillStyle = '#fbf4e2'; g.fillRect(0, 0, w, h);
   g.strokeStyle = INK;
-  // the round ship with its belt and legs
-  g.fillStyle = '#f1e8d4'; g.beginPath(); g.arc(70, 78, 42, 0, Math.PI * 2); g.fill(); g.lineWidth = 3; g.stroke();
-  g.fillStyle = '#d9643a'; g.fillRect(28, 74, 84, 8); g.strokeRect(28, 74, 84, 8);
-  wobblyLine(g, [[44, 112], [34, 134]]); wobblyLine(g, [[96, 112], [106, 134]]);
-  wobblyLine(g, [[70, 36], [70, 18]]); g.fillStyle = '#c8483a'; g.beginPath(); g.arc(70, 16, 4, 0, 7); g.fill();
-  g.fillStyle = '#5fb7ad'; for (const x of [56, 84]) { g.beginPath(); g.arc(x, 60, 6, 0, 7); g.fill(); g.stroke(); }
+  // the ship: a long box with a pointed nose to the left, the windows, the coral stripe, the lavender back, legs and two fins
+  const hull = [[14, 92], [34, 62], [118, 58], [126, 70], [126, 104], [30, 110]];
+  g.fillStyle = '#efe4c8'; g.beginPath(); hull.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); g.lineWidth = 3; g.stroke();
+  g.fillStyle = '#b9a8cc'; g.fillRect(88, 60, 37, 46); g.strokeRect(88, 60, 37, 46);
+  g.fillStyle = '#ef9479'; g.fillRect(22, 80, 66, 7); g.strokeRect(22, 80, 66, 7);
+  g.fillStyle = '#43577a'; g.beginPath(); g.moveTo(26, 76); g.lineTo(38, 64); g.lineTo(56, 64); g.lineTo(56, 76); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#34405e'; g.fillRect(64, 88, 9, 18); g.strokeRect(64, 88, 9, 18);   // the door
+  wobblyLine(g, [[100, 58], [112, 30]]); wobblyLine(g, [[114, 58], [126, 32]]);       // the fins
+  wobblyLine(g, [[40, 108], [34, 132]]); wobblyLine(g, [[108, 104], [116, 130]]);
+  wobblyLine(g, [[68, 106], [84, 132]], 2);                                            // the ramp
+  g.fillStyle = '#c8483a'; g.beginPath(); g.arc(126, 30, 4, 0, 7); g.fill();
   // two moons
   g.fillStyle = '#f2c54b'; g.beginPath(); g.arc(214, 30, 14, 0, 7); g.fill(); g.stroke();
   g.fillStyle = '#e9998a'; g.beginPath(); g.arc(186, 22, 7, 0, 7); g.fill(); g.stroke();

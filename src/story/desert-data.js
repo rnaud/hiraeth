@@ -323,7 +323,7 @@ export const PEOPLE = {
     palette: { cloak: '#5fb7ad', lining: '#2b211f', cloth: '#7a4a35', legs: '#3a3a3a', hat: '#f3ead8', hair: '#b0a89a' }, head: 'wrap', cape: 1.45, look: { mask: 'beard', body: 'satchel', prop: 'ney', robe: 0.06, build: 'slim', trim: 'none' },
     lines: ['~tired~ Hm.', '~happy~ Hmmm-hm.', '~neutral~ (he hums)'],
     talk: { listen: [
-      "~neutral~ You’re from the round ship. I saw the burn on its side.",
+      "~neutral~ You’re from the long striped ship. I saw the burn on its side.",
       ['~curious~ Three dots over a curve, on your ball. {glyph} Like between the giant’s eyes, out past the back gate.', '~playful~ Somebody signs their work. If I knew who, I wouldn’t need a flute. Hm-hm.'],
       { say: ["~neutral~ A ney. Cut from an oasis reed. Same tune for years. I change; it politely adjusts.", '~happy~ (He plays it for you.)'], do: { emit: ['music:solo', { who: 'bako' }] } },
       { if: { not: RISEN }, say: '~whisper~ Old keepers’ saying: where the giant’s eyes are marked, its mouth is a door. Hm.' },
@@ -948,7 +948,7 @@ export const CALLS = {
   nour: ['~whisper~ Psst. Child.', '~whisper~ Psst! Over here, child.', '~solemn~ Come here, child. A word with an old woman.'],
   // Ama, while her jar is still to give (src/story/desert.js amaCallsYou): the first is her shout as you come up
   // to the camps, then one more word at most when you pass near her fire
-  ama: ['~shout~ Sky-stranger! Come by my fire before you go up. I’ve a jar that wants carrying.', '~playful~ You, from the ball! One empty jar, and you look like someone who finds water. Come and take it.'],
+  ama: ['~shout~ Sky-stranger! Come by my fire before you go up. I’ve a jar that wants carrying.', '~playful~ You, from the long ship! One empty jar, and you look like someone who finds water. Come and take it.'],
 };
 // (the desert's two first times, filmed, give the traveller no lines: they show it, src/story/desert-moments.js)
 

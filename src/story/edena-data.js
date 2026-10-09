@@ -136,7 +136,7 @@ export const PEOPLE = {
         },
         floodSorry: { say: ["~neutral~ Esk knows you meant to help. Knowing that doesn’t make the loss smaller. Give her time."], choices: [{ text: '~sad~ (nod)', end: true }] },
         hello: {
-          say: ["~surprised~ A person arriving in a round ship. That’s twice now. I’m Mira. I tend the water clock. Mostly, we grow old together.", "~happy~ Welcome to the garden. We keep it alive; it feeds us. Sounds simple until you meet the weeds."],
+          say: ["~surprised~ A person arriving in a striped ship. That’s twice now. I’m Mira. I tend the water clock. Mostly, we grow old together.", "~happy~ Welcome to the garden. We keep it alive; it feeds us. Sounds simple until you meet the weeds."],
           choices: [
             { text: '~surprised~ Twice? Something else fell here?', goto: 'twice' },
             { text: '~neutral~ I’m looking for something of value.', goto: 'value' },

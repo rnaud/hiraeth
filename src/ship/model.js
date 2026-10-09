@@ -158,8 +158,13 @@ export function buildShipModel(o = {}) {
 
   // what only shows from inside (hidden when the camera is far away: fewer draw calls)
   const indoor = [interior.deco, interior.props, screen, ...['core', 'lamp', 'btnA', 'btnB', 'btnC', 'vmail', 'vmailHalo', 'portIn', ...INTERIOR].map((k) => meshes[k]).filter(Boolean)];
-  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor };
+  // the outside's small things (seams, the scorch, the lights, the trim): only drawn near (the far level of detail)
+  const details = FAR_HIDDEN.map((k) => meshes[k]).filter(Boolean);
+  return { tag, group, meshes, mats, door, ramp, interior, hull, screen, callScreen, indoor, details };
 }
+/** How far (m) the outside's small things are drawn; past it the hull is its panels, stripe, glass and legs. */
+export const DETAIL_FAR = 130;
+const FAR_HIDDEN = ['seam', 'scorch', 'soot', 'ink', 'glowRed', 'glowTeal', 'teal'];   // (not the jets: the landings are filmed from far off)
 
 function mergeAll(geos) {
   const out = [];
