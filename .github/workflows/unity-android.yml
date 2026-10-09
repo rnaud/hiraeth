@@ -15,7 +15,9 @@ name: Unity release (testers)
 # When: a push that touches the Unity side (unity/, engine/, the bridge's scripts, this file), by hand, and
 # every night, when the game (src/, public/) moved since the last published build: the game's pushes are too
 # frequent to build each one. Fast when warm: Unity's Library (its imports, shader cache and the IL2CPP build's
-# objects in Library/Bee), Puerts' IL2CPP glue, Gradle's caches and Puerts are all cached between runs.
+# objects in Library/Bee), Puerts' IL2CPP glue, Gradle's caches and Puerts are all cached between runs, each
+# under a key made of what it depends on: saved only when that changed, the entry it replaces then deleted
+# (the repository's caches are limited to 10 GB: new entries every run pushed each other out).
 # No unit suite here: these are testers' builds, not the players' (the players' deploys wait for tests.yml).
 
 on:
@@ -34,6 +36,7 @@ on:
 
 permissions:
   contents: write
+  actions: write   # (scripts/unity-ci-cache-prune.sh deletes the caches a new entry replaces)
 
 # (one build at a time, never cancelled once started: a newer trigger waits, and GitHub keeps only the newest
 # waiting one, cancelling those between: they would have built an older tree)
@@ -123,29 +126,35 @@ jobs:
           node scripts/engine-bundle.mjs unity
 
       # Unity's Library: the imported assets, the shader cache (12 minutes of shaders cold), the IL2CPP build's
-      # objects (Library/Bee: 20 minutes of C++ cold, rebuilt only where the code changed). A new entry each run,
-      # restored from the newest; the IL2CPP symbol backups and stripped copies are left out (rebuilt in seconds).
+      # objects (Library/Bee: 20 minutes of C++ cold, rebuilt only where the code changed). One entry, keyed on
+      # what Unity imports and compiles (the project's committed Assets, its settings, its packages, Puerts' and
+      # Unity's versions; not StreamingAssets, the game's JavaScript, nor the generated Assets/Gen): an exact hit
+      # is not saved again; otherwise restored from the newest and, after the build, saved under the new key and
+      # the older entry deleted. The IL2CPP symbol backups and stripped copies are left out (rebuilt in seconds).
       - name: Unity Library (restore)
         id: library
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-android-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+          key: unity-library-android-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**') }}
           restore-keys: |
-            unity-library-android-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-
             unity-library-android-
 
-      # Gradle's downloads (the container's /root is the runner's home: GameCI mounts it)
-      - name: Gradle (cached)
-        uses: actions/cache@v4
+      # Gradle's downloads (the container's /root is the runner's home: GameCI mounts it), keyed on what picks
+      # Gradle's plugins and libraries: Unity's version (its Gradle templates) and the packages
+      - name: Gradle (restore)
+        id: gradle
+        uses: actions/cache/restore@v4
         with:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: unity-gradle-${{ github.run_id }}
+          key: unity-gradle-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/Assets/Plugins/Android/**') }}
           restore-keys: unity-gradle-
 
-      # Puerts' IL2CPP glue (Assets/Gen) depends on the project's C# and Puerts: made again only when they change
+      # Puerts' IL2CPP glue (Assets/Gen) depends on the project's C# (the bridges for its public signatures, its
+      # extension methods), Puerts and Unity's il2cpp: made again only when they change. The key hashes the
+      # committed C# only (Puerts sits in Packages/, its glue in Assets/Gen: neither is in it).
       - name: Puerts' IL2CPP glue (cached)
         id: glue
         uses: actions/cache@v4
@@ -153,7 +162,7 @@ jobs:
           path: |
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
-          key: puerts-glue-3.0.3-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json') }}
+          key: puerts-glue-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
 
       - name: Version
         id: meta
@@ -228,6 +237,7 @@ jobs:
           allowDirtyBuild: true
 
       - name: The testers' APK (IL2CPP ARM64) (again)
+        id: apkagain
         if: steps.apk.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
@@ -253,17 +263,49 @@ jobs:
         if: always()
         run: rm -f .local-tools/ci-release.p12
 
-      # (saved even when the build failed further on: what was imported and compiled is not lost)
-      - name: Unity Library (trim)
-        if: always() && steps.library.outcome == 'success'
-        run: sudo rm -rf "$PROJECT/Library/Bee/Android/Prj/IL2CPP/Il2CppBackup" "$PROJECT"/Library/Bee/artifacts/objcopy_*
+      # (saved only when its key moved; also when the build failed further on, as "-partial": what was imported
+      # and compiled is not lost, and the next run with the same inputs, missing the exact key, saves it whole)
+      - name: Unity Library (trim, and under which key)
+        id: librarysave
+        if: always() && steps.library.outcome == 'success' && steps.library.outputs.cache-hit != 'true'
+        env:
+          KEY: ${{ steps.library.outputs.cache-primary-key }}
+          BUILT: ${{ steps.apk.outcome == 'success' || steps.apkagain.outcome == 'success' }}
+        run: |
+          sudo rm -rf "$PROJECT/Library/Bee/Android/Prj/IL2CPP/Il2CppBackup" "$PROJECT"/Library/Bee/artifacts/objcopy_*
+          if [ "$BUILT" = true ]; then echo "key=$KEY"; else echo "key=$KEY-partial"; fi >> "$GITHUB_OUTPUT"
 
       - name: Unity Library (save)
-        if: always() && steps.library.outcome == 'success'
+        if: always() && steps.librarysave.outputs.key != ''
         uses: actions/cache/save@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: ${{ steps.library.outputs.cache-primary-key }}
+          key: ${{ steps.librarysave.outputs.key }}
+
+      - name: Unity Library (the older entries deleted)
+        if: always() && steps.librarysave.outputs.key != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.librarysave.outputs.key }}
+        run: scripts/unity-ci-cache-prune.sh unity-library-android- "$KEY"
+
+      # (Gradle's downloads saved when their key moved and the APK was built: Gradle ran to its end)
+      - name: Gradle (save)
+        id: gradlesave
+        if: always() && steps.gradle.outcome == 'success' && steps.gradle.outputs.cache-hit != 'true' && (steps.apk.outcome == 'success' || steps.apkagain.outcome == 'success')
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ steps.gradle.outputs.cache-primary-key }}
+
+      - name: Gradle (the older entries deleted)
+        if: always() && steps.gradlesave.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.gradle.outputs.cache-primary-key }}
+        run: scripts/unity-ci-cache-prune.sh unity-gradle- "$KEY"
 
       # (kept with the run too: a week, in case the release can't be written)
       - uses: actions/upload-artifact@v5
@@ -312,14 +354,14 @@ jobs:
           scripts/unity-js-setup.sh
           node scripts/engine-bundle.mjs unity
 
+      # (as the APK's: one entry, saved when its key moved, the older one deleted)
       - name: Unity Library (restore)
         id: library
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-${{ github.run_id }}
+          key: unity-library-linux-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**') }}
           restore-keys: |
-            unity-library-linux-${{ hashFiles('unity/Memento/Packages/manifest.json', 'unity/Memento/ProjectSettings/ProjectVersion.txt') }}-
             unity-library-linux-
 
       # Puerts checks for its IL2CPP glue in every build, Mono too ("Required file 'Puerts_il2cpp.cpp' not
@@ -331,7 +373,7 @@ jobs:
           path: |
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
-          key: puerts-glue-3.0.3-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json') }}
+          key: puerts-glue-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
 
       - name: The editor image
         run: scripts/unity-ci-docker.sh wait
@@ -389,6 +431,7 @@ jobs:
           allowDirtyBuild: true
 
       - name: The Linux player (x86_64, Vulkan, Mono) (again)
+        id: playeragain
         if: steps.player.outcome == 'failure'
         uses: game-ci/unity-builder@v6
         env:
@@ -404,12 +447,27 @@ jobs:
           customParameters: -mono -out Builds/bridge-linux/memento-js.x86_64
           allowDirtyBuild: true
 
+      - name: Unity Library (under which key)
+        id: librarysave
+        if: always() && steps.library.outcome == 'success' && steps.library.outputs.cache-hit != 'true'
+        env:
+          KEY: ${{ steps.library.outputs.cache-primary-key }}
+          BUILT: ${{ steps.player.outcome == 'success' || steps.playeragain.outcome == 'success' }}
+        run: if [ "$BUILT" = true ]; then echo "key=$KEY"; else echo "key=$KEY-partial"; fi >> "$GITHUB_OUTPUT"
+
       - name: Unity Library (save)
-        if: always() && steps.library.outcome == 'success'
+        if: always() && steps.librarysave.outputs.key != ''
         uses: actions/cache/save@v4
         with:
           path: ${{ env.PROJECT }}/Library
-          key: ${{ steps.library.outputs.cache-primary-key }}
+          key: ${{ steps.librarysave.outputs.key }}
+
+      - name: Unity Library (the older entries deleted)
+        if: always() && steps.librarysave.outputs.key != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.librarysave.outputs.key }}
+        run: scripts/unity-ci-cache-prune.sh unity-library-linux- "$KEY"
 
       - name: Publish to the release unity-linux
         env:

@@ -80,13 +80,30 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
 - **The caches** (a cold APK took 54 minutes: the image 2, the glue's editor run with a first import
   12, shaders 12, the IL2CPP C++ 20, Gradle 4): Unity's `Library` per platform (the imports, the
   shader cache, the IL2CPP build's objects in `Library/Bee`, rebuilt only where the C# changed; the
-  symbol backups and stripped copies left out), a new entry each run restored from the newest and saved
-  even when the build fails further on; Puerts' glue (`Assets/Gen`, keyed on the project's C#: its
-  editor run skipped on a hit); Gradle's downloads (`~/.gradle`: GameCI mounts the runner's home as the
-  container's `/root`); Puerts' release; npm. The editor image (8 GB) is pulled each run, 2 to 6
-  minutes from Docker Hub (too large for an Actions cache): `scripts/unity-ci-docker.sh` frees the
-  runner's disk (these runners have no `/mnt` to put Docker on) and pulls it in the background while
-  the job checks out, bundles and restores.
+  symbol backups and stripped copies left out); Puerts' glue (`Assets/Gen`: its editor run skipped on a
+  hit); Gradle's downloads (`~/.gradle`: GameCI mounts the runner's home as the container's `/root`);
+  Puerts' release; npm. The repository's caches are limited to 10 GB (past it GitHub evicts the oldest,
+  and a cold APK is 54 minutes again), so no key changes every run and each Unity cache keeps one entry:
+  - `unity-library-<android|linux>-<Unity>-puerts-<version>-<hash>`, the hash of what Unity imports and
+    compiles: the committed `Assets` (not `StreamingAssets`, the game's JavaScript, nor `Assets/Gen`),
+    `ProjectSettings` and `Packages/manifest.json`. Restored from the newest entry; an exact hit is not
+    saved again (a push or a nightly run that only moved the JavaScript saves nothing); otherwise saved
+    after the build, as `…-partial` when the build failed (what was imported is kept, and the next run
+    misses and saves it whole), then `scripts/unity-ci-cache-prune.sh` deletes the older entries (the
+    workflow's token with `actions: write`; nothing is deleted unless the new entry is there). About
+    1.4 GB for Android, 0.8 for Linux.
+  - `unity-gradle-<Unity>-<hash of Packages/manifest.json and Assets/Plugins/Android>`, saved when that
+    moved and the APK was built, the older pruned the same way (about 0.9 GB).
+  - `puerts-glue-<Puerts>-<Unity>-<hash>`, the hash of the committed C# and asmdefs (the glue's bridges
+    follow the public signatures and extension methods) and the manifest, never `Assets/Gen` itself;
+    Puerts goes into `Packages/`, out of the hash. Computed when the step runs, before the glue exists.
+    40 KB, a new entry only when the C# moved (any C# edit makes the glue again: 80 seconds).
+  - `puerts-3.0.3` and setup-node's npm cache (`node-cache-…`, keyed on `package-lock.json`, in this
+    and the other workflows; setup-java's Gradle cache in `android.yml` on its Gradle files) are saved
+    only on a miss; their replaced entries go after 7 days unused. Together under 1 GB.
+- **The editor image** (8 GB) is pulled each run, 2 to 6 minutes from Docker Hub (too large for an
+  Actions cache): `scripts/unity-ci-docker.sh` frees the runner's disk (these runners have no `/mnt`
+  to put Docker on) and pulls it in the background while the job checks out, bundles and restores.
 - **Measured** (2026-10-07, the hosted ubuntu runner, 4 cores): cold, no cache, the Android job 57
   minutes (run 37617242382); warm (run 37649246951) the Android job 12 minutes and the Linux one 9: the
   APK's editor run 3.3 minutes, Unity's build in it under 2 (nothing recompiled: the shaders and the
@@ -94,6 +111,10 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   minutes: the disk's cleanup and the pull, beside the other steps) and the caches (1–2). A warm run
   is so bounded by the hosted runner's image pull: a self-hosted runner (this Mac, with Unity
   installed: GameCI's `providerStrategy: local-system`) would bring it to the build's few minutes.
+  On 2026-10-09 a warm Android job took 8 minutes: the image 2.5, the glue 1.3 (its key had moved
+  with a C# edit), the Library's restore 1 and save 0.3, Gradle's save 0.3 (a new entry every run then,
+  the caches at 11 GB and evicting), the APK 2. With one entry per cache, a run that moves no C# skips
+  the glue and both saves: about 6 minutes.
 - **Retries**: the first editor start in a job's container is often killed right after it loads its
   modules (exit 137, in 4 of the last 8 jobs; the same step passes when run again): each editor run has
   `continue-on-error` and goes again once when it failed (20 seconds lost).

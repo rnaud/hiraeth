@@ -25,13 +25,33 @@ test('the workflow runs on pushes that touch the Unity side, nightly when the ga
 });
 
 test('the workflow caches what makes a warm build short', () => {
-  // Unity's Library (imports, shader cache, the IL2CPP build's objects): restored from the newest, saved every run
-  assert.match(workflow, /uses: actions\/cache\/restore@v4[\s\S]*?\$\{\{ env\.PROJECT \}\}\/Library\n[\s\S]*?key: unity-library-android-[^\n]*\$\{\{ github\.run_id \}\}\n {10}restore-keys: \|\n {12}unity-library-android-/);
-  assert.match(workflow, /uses: actions\/cache\/save@v4[\s\S]*?key: \$\{\{ steps\.library\.outputs\.cache-primary-key \}\}/);
-  assert.match(workflow, /key: unity-library-linux-/);
+  // The repository's caches are limited to 10 GB: no key may change every run (a new 1–1.4 GB entry each run
+  // pushed the others out), and the entries a new one replaces are deleted
+  assert.doesNotMatch(workflow, /github\.run_id/);
+  assert.match(workflow, /^permissions:\n {2}contents: write\n {2}actions: write/m);
+  const prune = read('scripts/unity-ci-cache-prune.sh');
+  assert.match(prune, /gh cache list -R "\$REPO" --key "\$PREFIX"/);
+  assert.match(prune, /grep -qxF "\$KEEP"/);   // (nothing deleted unless the new entry is saved)
+  assert.match(prune, /gh cache delete "\$id"/);
+  // Unity's Library (imports, shader cache, the IL2CPP build's objects): one entry per platform, keyed on what
+  // Unity imports and compiles (never the game's JavaScript in StreamingAssets, nor the generated Assets/Gen),
+  // restored from the newest, saved only when its key moved, the older entry then deleted
+  for (const p of ['android', 'linux']) {
+    const libraryHash = "hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**')";
+    assert.ok(workflow.includes(`key: unity-library-${p}-\${{ env.UNITY_VERSION }}-puerts-3.0.3-\${{ ${libraryHash} }}\n          restore-keys: |\n            unity-library-${p}-\n`), p);
+    assert.ok(workflow.includes(`run: scripts/unity-ci-cache-prune.sh unity-library-${p}- "$KEY"`), p);
+  }
+  assert.equal((workflow.match(/id: librarysave\n {8}if: always\(\) && steps\.library\.outcome == 'success' && steps\.library\.outputs\.cache-hit != 'true'/g) || []).length, 2);
+  assert.equal((workflow.match(/uses: actions\/cache\/save@v4\n {8}with:\n {10}path: \$\{\{ env\.PROJECT \}\}\/Library\n {10}key: \$\{\{ steps\.librarysave\.outputs\.key \}\}/g) || []).length, 2);
+  // (a failed build's Library is saved as "-partial": the next run with the same inputs misses and saves it whole)
+  assert.match(workflow, /echo "key=\$KEY-partial"/);
+  // Gradle's downloads: keyed on Unity's version and the packages, saved when that moved, the older deleted
   assert.match(workflow, /~\/\.gradle\/caches/);
-  // Puerts' glue made again only when the C# changes: its editor run skipped on a hit
-  assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs'/);
+  assert.match(workflow, /key: unity-gradle-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\(/);
+  assert.match(workflow, /run: scripts\/unity-ci-cache-prune\.sh unity-gradle- "\$KEY"/);
+  // Puerts' glue made again only when the committed C# changes (never Assets/Gen, the glue itself): its editor
+  // run skipped on a hit
+  assert.match(workflow, /key: puerts-glue-3\.0\.3-\$\{\{ env\.UNITY_VERSION \}\}-\$\{\{ hashFiles\('unity\/Memento\/Assets\/\*\*\/\*\.cs', [^\n]*'!unity\/Memento\/Assets\/Gen\/\*\*'\) \}\}/);
   assert.match(workflow, /id: gluebuild\n {8}if: steps\.glue\.outputs\.cache-hit != 'true'\n[^\n]*\n {8}uses: game-ci\/unity-builder@v6/);
   // (in both jobs: Puerts wants its glue even in the Linux player's Mono build)
   assert.equal((workflow.match(/key: puerts-glue-3\.0\.3-/g) || []).length, 2);
