@@ -309,6 +309,21 @@ const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) =>
   const at = new V(0, 0, 0); at.y = physics.groundAt(0, 30, 0, 80); chimes.drop(at, 12);`;
 
 // v1.9's chimes floating: the same seeded scatter, no foes, never picked up (drops: [x, z, chimes] on the Arena's floor)
+/**
+ * Inside the parked ship (the Glass Dunes, lamps on): the traveller placed at `player` and the camera pinned at `eye`
+ * looking at `look`, all in the ship's own metres (src/ship/hull.js: x to starboard, y over the deck, z aft).
+ */
+const SAVE_SHIP = { flags: { ...SAVE_DESERT.flags, 'ship.powered': true }, keepsakes: [] };
+const SHIP_ROOM = (eye, look, fov = 70, player = [-1.2, 0, 0.9]) => `const s = window.ship, m = s.parked, V = THREE.Vector3;
+  const L = (a) => s.world(m, new V(a[0], a[1], a[2]));
+  s.placePlayer(L(${JSON.stringify(player)}), s.worldHeading(m, 3.1), true);
+  const e = L(${JSON.stringify(eye)}), t = L(${JSON.stringify(look)});
+  const up = new V(0, 1, 0).applyQuaternion(m.group.getWorldQuaternion(new THREE.Quaternion()));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(e, t, up));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (f) { this.position.copy(e); this.quaternion.copy(q); if (this.fov !== ${fov}) { this.fov = ${fov}; this.updateProjectionMatrix(); } return base.call(this, f); };
+  await new Promise((r) => setTimeout(r, 1500))`;
+const SHIP_FROM = 'headless Chrome against a dev server (the Glass Dunes, High, 10:00, the ship powered), the camera pinned at the same spot in the ship before and after';
 const CHIME_FLOAT = (drops) => `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   { const u = chimes.update.bind(chimes); chimes.update = (dt) => u(dt, null); }
@@ -394,7 +409,17 @@ export const CHANGELOG_MEDIA = {
       { name: 'gun-wheel', caption: 'D-pad ↑ held in the Arena, the left stick on the grappling hook and the right stick down to the left: before, the gadgets alone (the right stick turned the camera); after, the gun modes on an inner ring in their colours, the one in the tool ringed, and the right stick on Ember', ...PADS,
         view: PAD_VIEW(`set(12, true); await wait(700); pad.axes = [0.95, 0.3, -0.95, 0.3]; pad.timestamp++; await wait(400);`) },
     ], see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
-    { match: 'Inside the ship the main room is laid out anew', see: 'Go aboard your ship and stand at the back of the main room, by the lockers: the cockpit straight ahead, the galley on the left, the holo table and its curved console in the middle, the bunk’s arched alcove on the right. Debug → Cinematics → Recording 1 plays a recording at the console’s end.' },
+    { match: 'Inside the ship the main room is laid out anew', shots: [
+      { name: 'ship-layout-aft', caption: 'From the back of the main room toward the cockpit, the view of the picked sheet: before, the holo table at the front, the galley on the right, the entry lockers on the left; after, the galley along the left wall, the holo table in the middle in the crook of the curved console with the voicemail on its near end, the bunk’s arched alcove and the lockers on the right, two seats in the cockpit', commit: 'f64c722a', before: '70309935',
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.3, 1.75, 2.3], [0, 1.1, -8], 78) }, from: SHIP_FROM },
+      { name: 'ship-layout-sheet', only: 'after', caption: 'The picked sheet (left: references/The Travellers Ship/Interior - Lab, chosen for its layout) beside the game’s room from the same end, in the game’s own ink and colours', from: 'the reference-lab sheet beside the after picture of the view above, side by side (sips, cwebp)' },
+      { name: 'ship-layout-port', caption: 'Across to the port side: before, the entry bench and lockers by the hatch; after, the galley from the hatch to the cockpit, a board of tools and cupboards over it, the console’s tail with the voicemail button, the projector and the little screen', commit: 'f64c722a', before: '70309935',
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([2.2, 1.65, 0.4], [-3.2, 1.0, -3.4]) }, from: SHIP_FROM },
+      { name: 'ship-layout-starboard', caption: 'Across to the starboard side: before, the galley under its window; after, the bunk in its arched alcove under the window, books and photographs inside, kit on hooks, the lockers', commit: 'f64c722a', before: '70309935',
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([-1.8, 1.65, -0.6], [3.2, 1.0, -3.6]) }, from: SHIP_FROM },
+      { name: 'ship-layout-cockpit', caption: 'Into the cockpit: before, one pilot’s seat, the projector, the voicemail and the round screen on the dash; after, two seats side by side and the panel overhead', commit: 'f64c722a', before: '70309935',
+        view: { level: 'glassdunes', save: SAVE_SHIP, wait: 3000, setup: SHIP_ROOM([0.2, 1.8, -4.8], [0, 1.2, -9.5]) }, from: SHIP_FROM },
+    ], see: 'Go aboard your ship and stand at the back of the main room, by the lockers: the cockpit straight ahead, the galley on the left, the holo table and its curved console in the middle, the bunk’s arched alcove on the right. Debug → Cinematics → Recording 1 plays a recording at the console’s end.' },
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")

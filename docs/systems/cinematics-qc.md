@@ -174,6 +174,21 @@ the cockpit point and presses the button, four runs with a fix between each.
 | `arrival.glassdunes` | 5 → 5 | 4 | — (nose first toward the planet, down on its jets, the door and the stair-ramp, him walking down) | — |
 | `arrival.home`, `homecoming.first` | 3.5 → 3.5 (long, partly played) | 4 | The look out of the windshield was mostly the dash and the middle frame | Raised, through the left pane |
 
+### The picked interior layout (v1.11)
+
+The ship's rooms laid out as the reference-lab sheet the author picked (docs/systems/ship.md, "The picked
+layout"): the voicemail moved from the dash to the curved console's tail amidships, the bunk into the main
+room's alcove. Re-checked with `scripts/cinematics-qc.mjs --only prologue,call.1,call.3,homecoming.first,takeoff,arrival.arzach`
+(port 5591, High, 1280 × 720, muted), then `prologue,call.1,call.3,takeoff` again after the fixes.
+
+| Cinematic | Tech /5 (first run → after) | Interest /5 | Problems found | Fixed |
+|---|---|---|---|---|
+| `prologue` | 3.5 → 3.5 (waits at the walk, by design) | 5 | Sitting up, the old formula (a third of the way to the stand point) would have put the lens in the alcove's arched front; risen, he faced the console and the camera behind him sat over the holo table, its planet filling half the frame | A `wakeSit` point inside the alcove; he rises facing forward, the camera behind him over open floor, the room and the blinking console's tail in view |
+| `call.1`, `call.3` | 5 → 5 | 4 | The close angle (`bust`) had the little screen right behind the father's face; the holo table's planet stood behind the busts in the over-the-shoulder push-in (two holograms at once); the `window` angle looked across at the galley, no window; a ceiling lamp glared at the top of the over-the-shoulder shot | The screen low at his left of the projector; the planet folds away while the busts are up (`tests/ship.test.js`); `window` now wide and low from behind his right, out along the room to the windshield, where the light comes; the lamp moved to port, behind the camera |
+| `takeoff` | 5 → 5 | 4 | Staged with him outside the ship; once at the table, the course-set shot had the planet exactly between the lens and him | The review stages him at the table's open side; the far angle comes from beyond the console's forward end, off his line |
+| `homecoming.first` | 3.5 → 3.5 (long, partly played) | 4 | — (the pops at 7.4 and 14.8 s are the approach's cuts, as before; the look out of the windshield unchanged, the second seat clear of it) | — |
+| `arrival.arzach` | 5 → 5 | 4 | — (the door's round porthole shows as the hatch opens) | — |
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score

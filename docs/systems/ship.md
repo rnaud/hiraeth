@@ -193,11 +193,17 @@ checks the door, the ramp and the jets, and `tests/contact-audit.test.js` lands 
 
 Measured on the model (`buildShipModel`, a parked ship with its ramp; node): outside, 29 meshes, 7,600
 triangles (the ball: 23, 32,700); with the rooms shown (within 48 m), 62 meshes, 15,800 triangles (the
-ball: 61, 59,900). The rooms are drawn only within 48 m, measured once the frame's camera is placed (a scene's
+ball: 61, 59,900). With the picked layout (v1.11: the curved console, the arched alcove, the second seat, the
+CRT, the door's porthole) the same count is 31 meshes, 9,300 triangles outside (the console's dark top and teal
+strips share the hull's materials, so they are counted outside although they are indoors) and 65 meshes, 21,600
+triangles with the rooms shown. The rooms are drawn only within 48 m, measured once the frame's camera is placed (a scene's
 shot inside the ship while the traveller stood far off drew no walls). Past 130 m (`DETAIL_FAR`) the small outside things (seams, the scorch, the running
 lights, the trim's teal) are hidden: 22 meshes far off.
 
 ## Compared with the references
+
+The picked layout beside the game's room from the same end: `changelog-media/1.11/ship-layout-sheet-after.webp` (and
+the before / after pairs of the main room, its two sides and the cockpit in the same folder, `ship-layout-*`).
 
 `docs/systems/ship-reference/`: the selected exterior beside the game from the same front-left three-quarter
 (`exterior-three-quarter.jpg`), the other angles derived from the one hull (`angles.jpg`: the port side, behind
