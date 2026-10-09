@@ -1,0 +1,41 @@
+DONE.md
+  s_9ca76055a220ed::t_916141ea714625 1503-1515
+TODO.md
+  s_9ca76055a220ed::t_c01225bfca32f6 55-57
+changelog.md
+  s_9ca76055a220ed::t_6f87fd37457002 5-9
+docs/systems/animation.md
+  s_9ca76055a220ed::t_6f1014ac89907f 332-337
+docs/systems/foes.md
+  s_9ca76055a220ed::t_3ccbf4ec10800e 24,28,51-69
+scripts/mocap/mixamo-clips.json
+  s_9ca76055a220ed::t_8ce67577b98b00 91,94
+src/audio.js
+  s_9ca76055a220ed::t_83b77194f2481f 1599-1615
+src/changelog.js
+  s_9ca76055a220ed::t_c9832efa01617c 11-15
+src/fluid-blade.js
+  s_9ca76055a220ed::t_9f63b152b87776 132-156,158-160,224,267-268,311,358,365-366,401-406,464-467,516-518,545-546,555-556,569,572-591,628,634-642
+src/foes.js
+  s_9ca76055a220ed::t_4702ce9a61ff2f 731-732
+src/player.js
+  s_9ca76055a220ed::t_99ab4078bd641b 1292,1667
+tests/blade-attacks.test.js
+  s_9ca76055a220ed::t_2b68e005bc09c9 8,168-259
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc9642b27fda7113d65f9a85192e811af5fa6205",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
