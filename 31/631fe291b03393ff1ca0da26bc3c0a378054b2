@@ -1,0 +1,87 @@
+scripts/motion-audit/chains.mjs
+  s_9ca76055a220ed::t_0fabde8f7dc113 1-89
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_e6998693f6c302 60
+src/chimes.js
+  s_9ca76055a220ed::t_acb0c7a1881271 27
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_2e675ea24e1120 25,27,41-54,91-92,94-109,159-160,162-176,180,183-197,201,204-218,222-223,225-239
+src/enemies/plans/burrower.js
+  s_9ca76055a220ed::t_38903a96ea20e5 1-136
+src/enemies/plans/centipede.js
+  s_9ca76055a220ed::t_3c8537ff70f70c 1-204
+src/enemies/plans/floater.js
+  s_9ca76055a220ed::t_021dde2a8a3ee8 1-138
+src/enemies/plans/flyer.js
+  s_9ca76055a220ed::t_7cf3ed933a2f67 1-143
+src/enemies/plans/glider.js
+  s_9ca76055a220ed::t_40b032f277a2ac 1-144
+src/enemies/plans/index.js
+  s_9ca76055a220ed::t_748ffe8fdc2b15 7-11,19,21-24,28
+src/enemies/skins.js
+  s_9ca76055a220ed::t_fbaf035e19311a 31-36,73-77,80-84,87-92,95-97
+src/fluid-blade.js
+  s_9ca76055a220ed::t_dc2543e83b6422 652
+src/foe-kinds.js
+  s_9ca76055a220ed::t_5c36019b16d66a 5-10
+src/foe-worlds.js
+  s_9ca76055a220ed::t_016b4c647f1e74 53,55
+src/foes.js
+  s_9ca76055a220ed::t_4af1a5fd65f4bb 107,109,159-162,245-248,278,280-289,305-306,340-367,372,383-385,413-415,432-434,468-479,511-512,527-528,593-599,996-1003,1025-1032,1034-1037,1063-1068,1094,1097,1110,1114-1118,1120,1293,1325,1695-1696,1704-1714,1781-1782,1787,1801,1890-1891,1894-1895,1914-1915,1967-2008,2115
+src/gadgets/boomerang.js
+  s_9ca76055a220ed::t_ca1e2d79deafb7 323
+src/ink.js
+  s_9ca76055a220ed::t_f3e6e8ff0b1358 19
+src/minigames/waves.js
+  s_9ca76055a220ed::t_dbb6698a7c7d5b 42,45-46,49
+src/motion-kit/chain.js
+  s_9ca76055a220ed::t_4184ad5217e730 75-190
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_e1b92a144311f0 66-137
+src/motion-kit/wave-legs.js
+  s_9ca76055a220ed::t_e228f26ab3151d 1-61
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_a41167d9dc3df4 11-12,45,55,184,335,352-543
+tests/arena.test.js
+  s_9ca76055a220ed::t_11183715c90aa4 27
+tests/combat-feel.test.js
+  s_9ca76055a220ed::t_a4fa825dcb3628 80,110,215
+tests/evade-iframes.test.js
+  s_9ca76055a220ed::t_55ab00fa690af8 83
+tests/foe-appearance.test.js
+  s_9ca76055a220ed::t_30ba843b02194a 25-29,33,35-36
+tests/foe-height.test.js
+  s_9ca76055a220ed::t_480a2627c3f6c9 42
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_0a90802a04d229 39,78,81,84,89,105,110-111,350,360
+tests/foe-presence.test.js
+  s_9ca76055a220ed::t_a7206071521cf8 54,63-64
+tests/foes-world.test.js
+  s_9ca76055a220ed::t_dad17c07840b0b 47,53,61,67,76,94,99,108
+tests/foes.test.js
+  s_9ca76055a220ed::t_04a3222d711729 284,288,297-299
+tests/hitboxes.test.js
+  s_9ca76055a220ed::t_0cd7cd7e4dbb14 37,111,114
+tests/minigames-waves.test.js
+  s_9ca76055a220ed::t_f0e6684e967ffb 47,80
+tests/motion-chains.test.js
+  s_9ca76055a220ed::t_c508c8c227badb 1-94
+tests/motion-plans.test.js
+  s_9ca76055a220ed::t_1277e8cdb06191 7,23-24,43-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31631fe291b03393ff1ca0da26bc3c0a378054b2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
