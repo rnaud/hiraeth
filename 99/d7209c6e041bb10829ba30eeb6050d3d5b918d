@@ -1,0 +1,27 @@
+package-lock.json
+  s_9ca76055a220ed::t_0a33d4ff1940b4 71,2021,2698,3116-3117,3194,3338
+src/npc.js
+  s_9ca76055a220ed::t_503c0350f0c077 21,947-948,974-975
+src/story/desert.js
+  s_9ca76055a220ed::t_138b0bba018269 82-84,305-307
+src/wave.js
+  s_9ca76055a220ed::t_a635e13f9ac146 1-69
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_20f3b569611f7f 100-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "99d7209c6e041bb10829ba30eeb6050d3d5b918d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
