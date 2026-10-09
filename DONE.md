@@ -3,12 +3,6 @@
 What has been built, moved out of TODO.md (2026-10-05). The changelog (src/changelog.js) says when each
 change reached players. Newest sections at the bottom.
 
-## Ilen's round ship stays (2026-10-09)
-
-- Ilen's house in the Lantern stays "the top half of her own round ship" (`src/levels/lantern.js`): the author's call,
-  after the family's ship became angular. Hers is her own ship, not a piece of the family's, so nothing changes;
-  her line "I know that hull… paint the stripe" still reads.
-
 ## Smooth, procedural character animation
 
 Improve the traveller and NPCs with natural, responsive movement and seamless
@@ -1889,3 +1883,9 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   retired, the spitting blot's spit on the ink blot.
 - [x] Batch 1 on the locomotion kit (src/enemies/plans/): the shellback crab, the horn lizard and the antler hound
   (one quadruped rig), the lamp tripod, the ink blot; a verlet chain for tails; scored in docs/audits/combat-v1.8.md.
+
+## Ilen's round ship stays (2026-10-09)
+
+- Ilen's house in the Lantern stays "the top half of her own round ship" (`src/levels/lantern.js`): the author's call,
+  after the family's ship became angular. Hers is her own ship, not a piece of the family's, so nothing changes;
+  her line "I know that hull… paint the stripe" still reads.
