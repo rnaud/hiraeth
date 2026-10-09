@@ -98,17 +98,24 @@ export function errorMessage(body, secrets) {
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/** Transient failures retried before giving up: a dropped connection or a server error (5xx), after these waits (ms). */
+export const RETRY_WAITS = [2000, 6000];
+
 /**
- * One HTTP call that answers JSON. A 429 is retried once after Retry-After (at most `maxWait` ms); any other
- * failure becomes a ProviderError with the provider's own message, redacted.
- * ctx: { fetch, secrets, sleep, maxWait }
+ * One HTTP call that answers JSON. A 429 is retried once after Retry-After (at most `maxWait` ms); a network
+ * failure or a 5xx is retried after each of RETRY_WAITS (a dropped connection mid-generation may, rarely, bill a
+ * picture twice: cheaper than a hole in the batch); any other failure becomes a ProviderError with the provider's
+ * own message, redacted. ctx: { fetch, secrets, sleep, maxWait, retryWaits }
  */
 export async function httpJson(provider, url, init, ctx = {}) {
   const f = ctx.fetch ?? globalThis.fetch, wait = ctx.sleep ?? sleep, secrets = ctx.secrets ?? [];
+  const waits = ctx.retryWaits ?? RETRY_WAITS;
+  let transient = 0;
   for (let attempt = 0; ; attempt++) {
     let res;
     try { res = await f(url, init); } catch (e) {
-      throw new ProviderError(provider, 'network', `${HINT.network} (${redact(e?.message ?? e, secrets)})`);
+      if (transient < waits.length) { await wait(waits[transient++]); continue; }
+      throw new ProviderError(provider, 'network', `${HINT.network} (${redact(e?.message ?? e, secrets)}; tried ${transient + 1} times)`);
     }
     if (res.ok) {
       const text = await res.text();
@@ -118,6 +125,7 @@ export async function httpJson(provider, url, init, ctx = {}) {
     const retryAfter = Math.min(ctx.maxWait ?? 20000, 1000 * (Number(res.headers?.get?.('retry-after')) || 5));
     const body = await res.text().catch(() => '');
     if (kind === 'rate-limit' && attempt === 0) { await wait(retryAfter); continue; }
+    if (kind === 'server' && transient < waits.length) { await wait(waits[transient++]); continue; }
     throw new ProviderError(provider, kind, `${HINT[kind]} (HTTP ${res.status}: ${errorMessage(body, secrets)})`, { status: res.status, retryAfter });
   }
 }

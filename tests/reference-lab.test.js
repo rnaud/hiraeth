@@ -273,6 +273,24 @@ test('errors: a 429 retried once, then a clear kind; the key redacted from what 
   assert.equal(redact(`a ${KEY} b`, [KEY]), 'a [redacted] b');
 });
 
+test('errors: a dropped connection or a 5xx retried twice before giving up; a 4xx never', async () => {
+  const waits = [];
+  const quick = { sleep: async (ms) => { waits.push(ms); } };
+  let n = 0;
+  const flaky = mockFetch(() => { if (++n < 3) throw new TypeError('fetch failed'); return json({ ok: 1 }); });
+  assert.deepEqual(await httpJson('x', 'https://a.b/c', {}, { fetch: flaky, ...quick }), { ok: 1 });
+  assert.deepEqual(waits, [2000, 6000]);
+  const down = mockFetch(() => { throw new TypeError('fetch failed'); });
+  await assert.rejects(httpJson('x', 'https://a.b/c', {}, { fetch: down, ...quick }), (e) => e.kind === 'network' && /tried 3 times/.test(e.message));
+  assert.equal(down.calls.length, 3);
+  let m = 0;
+  const busy = mockFetch(() => (++m === 1 ? json({ error: 'overloaded' }, 503) : json({ ok: 2 })));
+  assert.deepEqual(await httpJson('x', 'https://a.b/c', {}, { fetch: busy, ...quick }), { ok: 2 });
+  const bad = mockFetch(() => json({ error: 'nope' }, 400));
+  await assert.rejects(httpJson('x', 'https://a.b/c', {}, { fetch: bad, ...quick }), (e) => e.kind === 'bad-request');
+  assert.equal(bad.calls.length, 1);
+});
+
 // ------------------------------------------------------------------ batches and picks
 function labFetch() {
   return mockFetch((u) => {
