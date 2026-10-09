@@ -1,0 +1,35 @@
+.claude/skills/procedural-animation/SKILL.md
+  s_9ca76055a220ed::t_b626a70f01cc16 9
+TODO.md
+  s_9ca76055a220ed::t_b7d6f239c52343 153,157,161,166,170,172-174,183-185
+changelog.md
+  s_9ca76055a220ed::t_b8cb90eb61e99f 5-10,12
+docs/systems/animation.md
+  s_9ca76055a220ed::t_fbacb056754244 273-280
+docs/systems/foes.md
+  s_9ca76055a220ed::t_9fd0344fd1166b 325-333
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_3b7b6fcd91fb64 7-8,281,283-285,421-491,500-502
+scripts/motion-audit/strips.mjs
+  s_9ca76055a220ed::t_358af27f348c42 30
+src/changelog-media.js
+  s_9ca76055a220ed::t_516db89fcee5de 324,329-346
+src/changelog.js
+  s_9ca76055a220ed::t_3aae536be0cf89 11,14-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "031e32dcb711e5a3282b69bea5f24080c59646e4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
