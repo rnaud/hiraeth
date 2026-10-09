@@ -466,3 +466,24 @@ A debug overlay of what the fight actually tests, for tuning and for learning th
   projectiles) in the same kinds.
 - Tests: `tests/hitboxes.test.js` (every foe's drawn area against `inArea`, the phases, target radii, the
   height window, the guard against `inGuard`, the real traveller's swing red exactly when `strike()` runs).
+
+## No invisible foes (`src/foe-presence.js`, v1.1)
+
+From the 2026-10-08 playtest. Every foe, in every state, must be seen:
+- **The rule** (`PRESENCE`, `presenceOf`, `presenceProblems`): what is drawn over its footing (meshes visible up
+  the tree, in world space) stands at least 0.4 m (or is 1.5 m wide and 0.3 m tall, a surfaced ray) and 0.4 m
+  across, with a light part 0.2 m across: a pale colour, a glow ≥ 0.5 (an eye, red while winding up) or a white
+  contour (`makeMaterial({ lineWhite })`), so an ink-black foe reads on dark ground. tests/foe-presence.test.js
+  walks every kind through 30 s of a fight, including the running hound and the buried ray.
+- **The shadow hound running** is a low hump of shadow with a glowing lavender rim and lit eyes over its pool
+  (was a flat pool and 4 cm eyes); its ink has white contours, as the shade's. Its bite after the step behind
+  you winds up 0.45 s (was 0.32).
+- **The buried dune ray** has a taller white-lined fin, darker turned sand, and winding up its burst it swims to
+  its ring under the sand (`Foe.swimTo`, `SWIM`: there by 85 % of the wind-up, ≤ 12 m/s, through `step`), the
+  fin high and throwing sand; before, it sank the fin and came up out of nowhere.
+- **The swarm's** eyes are 1.7× and **the splinters** drawn 1.3×.
+- **Behind the world** (`warnSpot`, `Foes.hiddenFromCamera`): a foe winding up on the screen but hidden from the
+  camera by the world (a physics ray) gets the warning marker over where it is.
+- **Never inside the world** (`Foes.roomAt`, `openSpot`): a pack's, a relic's guards', a wave's and `spawnKind`'s
+  spots are checked with a capsule (`physics.pushCapsule`) for its body's column; inside a solid, the next spot
+  round is tried, never a guessed height.

@@ -169,6 +169,27 @@ const MENU = `menu.toggle(true); ${sleepJs(500)}`;
 // the ride to the Hearth's three stops (src/desert-sites.js wayPlaces: by the 2nd, 5th and 8th marked stones)
 const WAY = { bowl: [646.27, 141.38], camp: [1028.02, -97.03], bell: [1442.76, -315.37] };
 
+// ------------------------------------------------------------------ v1.1's views
+// (a foe held still a few steps ahead of the traveller, side on to a camera pinned close: `prep` puts it in the
+// state to see, in the page, with f the foe)
+const FOE_HELD = (kind, prep, { dist = 5, eye = 4, h = 1.6 } = {}) => `const P = player.pos, d = new THREE.Vector3(); camera.getWorldDirection(d); d.y = 0; d.normalize();
+  const f = foes.spawnKind('${kind}', { n: 1, dist: 1 })[0];
+  f.pos.set(P.x + d.x * ${dist}, P.y, P.z + d.z * ${dist}); { const g = physics.groundAt(f.pos.x, P.y + 4, f.pos.z, 12); if (Number.isFinite(g)) f.pos.y = g; }
+  f.heading = Math.atan2(-d.z, d.x); f.home.copy(f.pos);
+  ${prep}
+  const keep = { state: f.state, atk: f.atk, k: f.k, timer: f.timer, buried: f.buried }; f.update = () => { Object.assign(f, keep); f.dist = 10; return []; };
+  const eye = f.pos.clone().addScaledVector(d, -${eye}).add(new THREE.Vector3(-d.z * 1.2, ${h}, d.x * 1.2)), at = f.pos.clone().add(new THREE.Vector3(0, 0.3, 0)), q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new THREE.Vector3(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };`;
+// (the stone hand on Vael from in front of its palm, looking up at the knuckles)
+const HAND_VIEW = `const H = level.arzach.hand, n = new THREE.Vector3(H.normal.x, 0, H.normal.z).normalize();
+  const mid = H.knuckles.reduce((s, k) => s.add(k.pos), new THREE.Vector3()).divideScalar(4);
+  const foot = H.palm.clone().addScaledVector(n, 30); foot.y = physics.groundAt(foot.x, H.palm.y + 20, foot.z, 80);
+  player.teleport(foot.clone(), new THREE.Vector3(0, 1, 0), n.clone().negate());
+  const eye = foot.clone().add(new THREE.Vector3(0, 6, 0)), q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, mid, new THREE.Vector3(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 50) { this.fov = 50; this.updateProjectionMatrix(); } return base.call(this, force); };`;
+
 export const CHANGELOG_MEDIA = {
   '1.1': [
     { match: 'People no longer leave a pale, person-shaped ghost', shots: [
@@ -178,6 +199,20 @@ export const CHANGELOG_MEDIA = {
       { name: 'space-jump', caption: 'The jump to space after take-off, 1280 × 720', from: 'headless Chrome against this branch’s own dev server: the old warp drawing and the new, the same moment of the jump (9 October)' },
     ], see: 'Take off from the ship’s galactic map to any world.' },
     { match: 'The pause menu fits on a phone held sideways', see: 'On a phone, open the pause menu held sideways and upright; checked at 812 × 375, 375 × 812, 1080 × 2400, 1280 × 720, 1280 × 800, 1920 × 1080 and 2560 × 1440.' },
+    { match: 'No more invisible shadow hounds', shots: [
+      { name: 'hound-running', caption: 'A shadow hound running in the City During the Eclipse: before, a flat dark pool and two specks; after, a hump of shadow with a white outline, a glowing rim and lit eyes', commit: 'b9348a44',
+        view: { level: 'eclipse', player: [2, 0, 26], heading: Math.PI, setup: FOE_HELD('hound', `f.state = 'chase'; f.dist = 10;`), wait: 1500 } },
+    ] },
+    { match: 'A dune ray about to burst up', shots: [
+      { name: 'ray-erupt', caption: 'A dune ray winding up its burst under the sand: before, its fin had sunk out of sight; after, the fin stands high with its white outline, the sand thrown up', commit: 'b9348a44',
+        view: { level: 'desert', save: SAVE_DESERT, setup: FOE_HELD('ray', `f.buried = true; f.state = 'wind'; f.atk = f.def.attacks.find((a) => a.id === 'erupt'); f.k = 0.8; f.timer = f.atk.wind * 0.8; f.attackAt.copy(P);`, { dist: 4.5, eye: 3.6, h: 2 }), wait: 1500 } },
+    ] },
+    { match: 'A foe winding up behind a wall', see: 'In a temple or among the Desert’s rocks, let a foe wind up on the other side of a wall while it is on the screen: a round marker fills over where it is. Foes no longer appear inside rocks or walls.' },
+    { match: 'Blot swarms have bigger eyes', see: 'In the Arena (FOES tab), call a blot swarm and a glass golem, and break the golem: the swarm’s eyes and the splinters show from further off.' },
+    { match: 'The stone hand on Vael is fairer', shots: [
+      { name: 'stone-hand', caption: 'The stone hand on Vael from in front of its palm: the fingers now rise clearly from little to middle, the knuckle stones grow with them, and each carries one to four dots', commit: 'd0869704', before: '140c19c7',
+        view: { level: 'arzach', save: SAVE_ON, setup: HAND_VIEW, wait: 1500 } },
+    ], see: 'On Vael, shoot the stone hand’s knuckles in the wrong order twice: the knuckles flash rust, Kesh calls out the order and the journal writes it down; a third miss makes the next knuckle glint.' },
   ],
   '1.0': [
     { match: 'In conversations the traveller holds still', numbers: [
