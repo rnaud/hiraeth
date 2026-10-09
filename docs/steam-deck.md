@@ -11,7 +11,7 @@ Steamworks or the Steam Store.
 In Desktop Mode, sign in to Steam at least once. Open Konsole and run:
 
 ```sh
-curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/moebius/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
+curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/hiraeth/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
 ```
 
 (The repository is private now: this download needs a GitHub login, see "Install by hand" below.)
@@ -94,9 +94,9 @@ package where `gh` is signed in (then copy the folder to the Deck, or run this o
 
 ```sh
 D=~/Downloads/memento
-gh release download steam-deck -R rnaud/moebius -D $D -p steam-deck.json -p install-moebius.py --clobber
+gh release download steam-deck -R rnaud/hiraeth -D $D -p steam-deck.json -p install-moebius.py --clobber
 BUILD=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1]))['build'])" $D/steam-deck.json)
-gh release download steam-deck -R rnaud/moebius -D $D -p "moebius-steam-deck-$BUILD.tar.gz" --clobber
+gh release download steam-deck -R rnaud/hiraeth -D $D -p "moebius-steam-deck-$BUILD.tar.gz" --clobber
 python3 $D/install-moebius.py --from $D
 ```
 

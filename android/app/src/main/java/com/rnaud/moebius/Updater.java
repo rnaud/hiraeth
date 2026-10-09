@@ -36,7 +36,7 @@ import java.net.URL;
 // feed is out of reach, and the settings only say they couldn't check for a new
 // app (WebBundles.apkChecked); the game's own updates go on.
 final class Updater {
-    static final String LATEST = "https://github.com/rnaud/moebius/releases/latest/download/latest.json";
+    static final String LATEST = "https://github.com/rnaud/hiraeth/releases/latest/download/latest.json";
     private final Activity activity;
     private final WebBundles web;
     private final Handler ui = new Handler(Looper.getMainLooper());

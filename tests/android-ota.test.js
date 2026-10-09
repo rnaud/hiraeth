@@ -54,8 +54,8 @@ test('the build number: the commit count, the same in every workflow, above the 
 test('the game\'s updates come from its site; the APK still from GitHub releases', () => {
   const src = java('WebBundles.java'), up = java('Updater.java');
   assert.match(src, /MANIFEST = "https:\/\/memento\.alexandria-rnaud\.workers\.dev\/updates\/web\.json"/);
-  assert.match(src, /RELEASES = "https:\/\/github\.com\/rnaud\/moebius\/releases\/latest"/);
-  assert.match(up, /LATEST = "https:\/\/github\.com\/rnaud\/moebius\/releases\/latest\/download\/latest\.json"/, 'apps up to NATIVE_API 4 read it here too: it brings them this APK');
+  assert.match(src, /RELEASES = "https:\/\/github\.com\/rnaud\/hiraeth\/releases\/latest"/);
+  assert.match(up, /LATEST = "https:\/\/github\.com\/rnaud\/hiraeth\/releases\/latest\/download\/latest\.json"/, 'apps up to NATIVE_API 4 read it here too: it brings them this APK');
   // the APK feed failing is never an update error: only a quiet note in the settings
   assert.match(up, /catch \(Exception e\) \{[^}]*web\.apkChecked\(e\);/);
   assert.match(src, /void apkChecked\(Exception failure\)/);

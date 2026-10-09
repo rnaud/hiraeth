@@ -93,7 +93,7 @@ final class WebBundles {
     /** The game's updates: next to the web game on Cloudflare (cloudflare.yml, scripts/web-update.mjs). */
     static final String MANIFEST = "https://memento.alexandria-rnaud.workers.dev/updates/web.json";
     /** Where a new APK is (GitHub releases; the author's, by hand, once the repository is private). */
-    static final String RELEASES = "https://github.com/rnaud/moebius/releases/latest";
+    static final String RELEASES = "https://github.com/rnaud/hiraeth/releases/latest";
     static final long BOOT_TIMEOUT_MS = 30000;   // (the full game boots in ~7-18 s on a software-GL emulator)
     private static final int MAX_TRIES = 2;
     private static final int ZIP_LIMIT = 300 * 1024 * 1024;

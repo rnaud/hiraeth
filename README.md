@@ -1,14 +1,13 @@
 # Hiraeth
 
-A three.js exploration game in ligne claire, drawn after Moebius and the game *Sable*
-(formerly the Moebius / Sable shader PoC: the repository and internal ids keep the old
-name, `moebius`). A traveller crash-lands in a desert and crosses a dozen small worlds by
+A three.js exploration game in ligne claire, drawn after Moebius (the internal ids keep the
+old name, `moebius`). A traveller crash-lands in a desert and crosses a dozen small worlds by
 ship; its foundation is a world that feels organic, responsive, mysterious and connected
 ([the world principles](docs/world-principles.md)). Design: [the game brief](docs/game-brief.md)
 and [the story bible](docs/story-bible.md); the writing room is [lore/](lore/README.md).
 
 **Play it:** https://memento.alexandria-rnaud.workers.dev/ (Cloudflare Workers; also at
-https://rnaud.github.io/moebius/).
+https://rnaud.github.io/hiraeth/).
 
 **[Interactive changelog](https://memento.alexandria-rnaud.workers.dev/changelog.html):**
 explore each release with before/after pictures, numbers and notes.

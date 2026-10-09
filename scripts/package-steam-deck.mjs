@@ -38,7 +38,7 @@ const [bundle] = await packager({
 const filename = `moebius-steam-deck-${build}.tar.gz`;
 execFileSync('tar', ['-czf', `${output}/${filename}`, '-C', bundle, '.']);
 const archive = await readFile(`${output}/${filename}`);
-const repo = process.env.GITHUB_REPOSITORY ?? 'rnaud/moebius';
+const repo = process.env.GITHUB_REPOSITORY ?? 'rnaud/hiraeth';
 await writeFile(`${output}/steam-deck.json`, JSON.stringify({
   build, version: VERSION, sha256: createHash('sha256').update(archive).digest('hex'),
   url: `https://github.com/${repo}/releases/download/steam-deck/${filename}`,

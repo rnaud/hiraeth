@@ -35,7 +35,7 @@ import zipfile
 import zlib
 
 # The runtime package: the GitHub release (private: by hand with --from), and the game's site
-BASE_URL = 'https://github.com/rnaud/moebius/releases/download/steam-deck/'
+BASE_URL = 'https://github.com/rnaud/hiraeth/releases/download/steam-deck/'
 MANIFEST_URL = BASE_URL + 'steam-deck.json'
 # The game's content updates, next to the web game (scripts/web-update.mjs)
 CONTENT_URL = 'https://memento.alexandria-rnaud.workers.dev/updates/'

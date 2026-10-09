@@ -38,7 +38,7 @@ The Device Portal is a web page served by the console; you install apps through 
 ## 4. Install Hiraeth
 
 1. On the computer, download **`hiraeth-xbox.zip`** from the `xbox` pre-release:
-   <https://github.com/rnaud/moebius/releases/tag/xbox>, and unzip it. It holds `hiraeth-xbox.msix` (the
+   <https://github.com/rnaud/hiraeth/releases/tag/xbox>, and unzip it. It holds `hiraeth-xbox.msix` (the
    game), `hiraeth-xbox.cer` (its certificate) and a few `.appx` files (the parts it depends on).
 2. Open the console's address in the computer's browser. The browser warns that the connection isn't
    private (the console uses its own certificate): continue anyway. Sign in with the Device Portal's user
