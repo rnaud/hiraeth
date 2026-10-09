@@ -1,0 +1,39 @@
+DONE.md
+  s_9ca76055a220ed::t_62c843b4302846 1529-1540
+TODO.md
+  s_9ca76055a220ed::t_26f453ec419f8e 58-59
+changelog.md
+  s_9ca76055a220ed::t_a7d376e0aa69ad 7-8
+docs/systems/foes.md
+  s_9ca76055a220ed::t_5898ca8f47dc2b 481-482,521-532,538-539
+src/changelog-media.js
+  s_9ca76055a220ed::t_6a1d67bfcde166 268-269
+src/changelog.js
+  s_9ca76055a220ed::t_bfd95f92cc262c 19-20
+src/foe-height.js
+  s_9ca76055a220ed::t_83522660cf7a42 13-14,28-30,150-152
+src/foes.js
+  s_9ca76055a220ed::t_70b7679980ecbe 15,179-181,190,348-349,693-699,714-716,731-741,999-1000,1015-1016,1344,1364-1373,1375-1378
+src/hitboxes.js
+  s_9ca76055a220ed::t_c1ad0523d1f476 4,67,70-74
+src/main.js
+  s_9ca76055a220ed::t_83e422f1193c1c 672
+tests/foe-height.test.js
+  s_9ca76055a220ed::t_032c238c23353a 5-7,11,207-296
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a88286bf7876659fd791753521e06310a4bfde97",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
