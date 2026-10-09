@@ -142,6 +142,23 @@ function runnerCtx(player) {
   };
 }
 /** Walk the traveller from where he is to p in small steps, a frame each. */
+/**
+ * Roll a makers' ball home with the fluid's push (src/temples/pieces.js Ball), as a traveller behind it would: a
+ * push whenever it lies still and the tank has a charge (src/fluid-tool.js FLUID: three, all back 2 s after the
+ * last use), until it rests on its plate. tank: carried from one ball to the next. → { t: seconds, pushes }
+ */
+function rollHome(course, R, { strength = 1, wait = 0.4, tank = { charges: 3, since: 9 } } = {}) {
+  const b = R.ball, dir = b.b.clone().sub(b.a).setY(0).normalize();
+  let t = 0, pushes = 0, still = 0;
+  while (!R.home() && t < 90) {
+    still = b.rest ? still + 1 / 60 : 0;
+    tank.since += 1 / 60;
+    if (tank.charges === 0 && tank.since >= 2) tank.charges = 3;
+    if (b.rest && still >= wait && tank.charges > 0) { b.hit('push', dir, { strength }); pushes++; still = 0; tank.charges--; tank.since = 0; }   // (a step up behind it, and aim)
+    course.update(1 / 60, t); t += 1 / 60;
+  }
+  return { t, pushes };
+}
 function walk(sess, ctx, player, p, step = 0.5) {
   const from = player.pos.clone(), d = from.distanceTo(p), n = Math.max(1, Math.ceil(d / step));
   for (let i = 1; i <= n && !ctx.result; i++) { player.pos.lerpVectors(from, p, i / n); ctx.time += step / 5; sess.update(1 / 60, {}, { live: true, phase: 'play' }); }
@@ -211,7 +228,8 @@ for (const T of Object.values(KIT_TRIALS)) {
         assert.equal(ctx.st, `gate 2 / ${W.gates.length}`);
       }
       const under = course.kit.world(0, 0, (course.gulf.from + course.gulf.to) / 2 + 0.7);
-      player.pos.set(under.x, physics.groundAt(under.x, under.y - 1.5, under.z, 30), under.z);
+      const gy = physics.groundAt(under.x, under.y - 1.5, under.z, 30);   // (the shaft: nothing within 30 m, so a few metres down it)
+      player.pos.set(under.x, Number.isFinite(gy) ? gy : under.y - 6, under.z);
       sess.update(1 / 60, {}, { live: true, phase: 'play' });
       assert.equal(ctx.result?.failed, true); assert.equal(ctx.result.title, T.fall.words);
     } else { player.dead = true; sess.update(1 / 60, {}, { live: true, phase: 'play' }); assert.equal(ctx.result?.title, 'Knocked out'); player.dead = false; }
@@ -222,6 +240,7 @@ for (const T of Object.values(KIT_TRIALS)) {
     sess = W.session(ctx);
     sess.update(1 / 60, {}, { live: true, phase: 'play' });
     assert.equal(ctx.st, `gate 1 / ${W.gates.length}`, 'from the first gate again');
+    for (const R of course.rollers) assert.ok(R.ball.t === 0 && !R.home(), 'the balls back at the heads of their grooves');
     // ---- through the gates (the bank does not listen until the last)
     if (course.bank) {
       for (const i of course.bank.eyes.keys()) course.bank.hit(i);
@@ -236,6 +255,16 @@ for (const T of Object.values(KIT_TRIALS)) {
       course.bank.update(0.5, 0);
       for (const i of course.bank.eyes.keys()) { course.bank.hit(i); course.bank.update(0.4, 0); }
       sess.update(1 / 60, {}, { live: true, phase: 'play' });
+    }
+    if (course.rollers.length) {
+      assert.equal(ctx.result, null, 'the gates passed: not yet finished');
+      assert.equal(ctx.st, `${course.task.goal} 0 / ${course.rollers.length}`);
+      assert.ok(ctx.said.some((s) => /plate/.test(s)), 'it says so');
+      for (const [i, R] of course.rollers.entries()) {
+        ctx.time += rollHome(course, R).t;
+        sess.update(1 / 60, {}, { live: true, phase: 'play' });
+        if (i < course.rollers.length - 1) assert.equal(ctx.st, `${course.task.goal} ${i + 1} / ${course.rollers.length}`);
+      }
     }
     // ---- the finish: its lines, the word from nearby, the best kept
     assert.ok(ctx.result && !ctx.result.failed, 'finished');
@@ -257,6 +286,8 @@ for (const T of Object.values(KIT_TRIALS)) {
     assert.equal(course.bank?.done ?? false, false, 'the bank dark again');
     for (const gt of W.gates) { walk(sess, ctx, player, V(gt.x, gt.y - 1, gt.z), 0.1); if (ctx.result) break; }
     if (course.bank) { course.bank.update(0.5, 0); for (const i of course.bank.eyes.keys()) course.bank.hit(i); sess.update(1 / 60, {}, { live: true, phase: 'play' }); }
+    for (const R of course.rollers) { assert.ok(!R.home(), 'the balls rolled back for the new run'); ctx.time += rollHome(course, R).t; }
+    if (course.rollers.length) sess.update(1 / 60, {}, { live: true, phase: 'play' });
     assert.ok(ctx.result && !ctx.result.failed);
     assert.ok(!/First finish/.test(ctx.result.lines.join(' ')));
     assert.ok([T.voice.again, T.voice.beaten].includes(pell.shout?.text));
@@ -390,5 +421,128 @@ test('the furnace steps: every pillar a floor a jump from the last, the grate un
   assert.equal(course.bank.eyes.length, 4);
   assert.ok(course.bank.window <= 2.6);
   for (const e of course.bank.eyes) assert.ok(K.local(e.center).z > 45, 'on the door’s wall');
+  C.dispose();
+});
+
+test('a ball rolled onto a plate (the stand-in runtime’s roller): the push rolls it along its groove, a splash only nudges it, home it holds its plate, a reset rolls it back', () => {
+  const { scene, physics } = world('spheres');
+  const pl = Object.assign(traveller(), { opts: {} });
+  const C = createChallenges({ levelId: 'spheres', scene, physics, player: pl, items: { has: () => true }, game: new GameState(), kits: [KIT_TRIALS['kit-spheres']], trials: {} });
+  const course = C.list[0].course, L = course.rt.logic, [R] = course.rollers, b = R.ball;
+  const along = b.b.clone().sub(b.a).setY(0).normalize(), side = V(along.z, 0, -along.x);
+  assert.equal(L.el(R.id).type, 'drum', 'the temple logic’s own drum…');
+  assert.equal(L.el(L.el(R.id).plate).type, 'plate', '…and its plate');
+  assert.ok(b.t === 0 && !R.home() && !L.pressed(R.plate.id), 'at the head of its groove, the plate up');
+  const settle = () => { for (let i = 0; i < 60 * 20 && !b.rest; i++) course.update(1 / 60, i / 60); };
+  // a push across the groove only rocks it
+  b.hit('push', side, { strength: 1 }); settle();
+  assert.equal(b.t, 0, 'pushed sideways: it rocks in its groove');
+  // a splash nudges it on a little
+  b.hit('shoot', along); settle();
+  const nudged = b.t * b.len;
+  assert.ok(nudged > 0.2 && nudged < 1.5, `a splash nudges it (${nudged.toFixed(2)} m)`);
+  assert.ok(!R.home());
+  // the push rolls it a few metres at a time, and it settles on its plate and holds it down
+  const { pushes } = rollHome(course, R);
+  assert.ok(R.home(), 'home');
+  assert.ok(pushes >= 1 && pushes <= 3, `${pushes} pushes for ${b.len.toFixed(0)} m`);
+  assert.ok(L.pressed(R.plate.id), 'the plate held down by the ball');
+  assert.ok(Math.hypot(b.center.x - R.plate.pos.x, b.center.z - R.plate.pos.z) < 0.1, 'resting on it');
+  // pushed back off it, and home again with a hard push: the stop past the plate throws it back and it settles
+  b.hit('push', along.clone().negate(), { strength: 1 }); settle();
+  assert.ok(!R.home(), 'pushed off');
+  rollHome(course, R, { strength: 2 });
+  assert.ok(R.home(), 'home again after a hard push');
+  // a reset (a new run): back at the head of its groove, the plate up
+  course.reset();
+  assert.ok(b.t === 0 && b.rest && !R.home() && !L.pressed(R.plate.id), 'rolled back, the plate up');
+  // the balls and plates are floors and walls for the traveller, as in a temple (src/player.js opts.dynamic)
+  const solids = pl.opts.dynamic();
+  for (const r of course.rollers) { assert.ok(solids.includes(r.ball), 'the ball'); assert.ok(solids.includes(r.plate), 'its plate'); }
+  assert.ok(Math.abs(b.solid.topAt(b.center.x, b.center.z) - (b.center.y + b.r)) < 0.1, 'stood on, its crown is a floor');
+  C.dispose();
+  assert.equal(pl.opts.dynamic, undefined, 'disposed: the traveller’s solids as they were');
+});
+
+/** A run as a steady traveller plays it: walked at 5 m/s from the start through each point in turn (the gates,
+ * the place behind each ball), each ball pushed home from a step behind it. → its time (s) */
+function scripted(course, legs) {
+  let t = 0, at = course.start.clone();
+  const tank = { charges: 3, since: 9 };
+  for (const leg of legs) {
+    if (leg.roll) { t += rollHome(course, leg.roll, { tank, strength: 0.75 }).t; continue; }   // (pushed from a step behind it: src/fluid-tool.js push)
+    const p = course.kit.world(...leg), dt = Math.hypot(p.x - at.x, p.z - at.z) / 5;
+    t += dt; tank.since += dt;
+    if (tank.charges === 0 && tank.since >= 2) tank.charges = 3;
+    at = p;
+  }
+  return t;
+}
+
+test('the sphere court: a slalom round solid spheres, two white spheres rolled opposite ways home, a fair makers’ mark', () => {
+  const { scene, physics } = world('spheres');
+  const T = KIT_TRIALS['kit-spheres'];
+  const C = createChallenges({ levelId: 'spheres', scene, physics, player: traveller(), items: { has: () => true }, game: new GameState(), kits: [T], trials: {} });
+  const W = C.list[0], course = W.course, K = course.kit, [west, east] = course.rollers;
+  assert.equal(course.rollers.length, 2);
+  // the grooves run opposite ways to the one dais: one sphere rolled from each end
+  const dirOf = (R) => K.local(R.ball.b).z - K.local(R.ball.a).z;
+  assert.ok(dirOf(west) > 0 && dirOf(east) < 0, 'one rolled up the court, one down it');
+  assert.ok(Math.abs(K.local(west.ball.b).z - K.local(east.ball.b).z) < 0.01, 'their plates side by side at the dais');
+  for (const R of course.rollers) assert.ok(Math.abs(K.local(R.ball.a).x) - R.ball.r - 0.45 > 1, 'the middle of the court clear of the grooves');
+  // the slalom: each gate beside a solid stone sphere (its crown a floor over the plinth)
+  for (const [i, g] of W.gates.slice(0, 4).entries()) {
+    const l = K.local(V(g.x, g.y, g.z)), s = K.world(-Math.sign(l.x) * 2.6, 0, l.z);
+    assert.ok(K.local(V(s.x, physics.groundAt(s.x, s.y + 4, s.z, 5), s.z)).y > 2, `gate ${i + 1}: round a solid sphere`);
+  }
+  // balls rolled home before the gates are walked wait there: the last gate finishes the run
+  const pl = traveller(), ctx = runnerCtx(pl);
+  const sess = W.session(ctx);
+  for (const R of course.rollers) rollHome(course, R);
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result, null, 'home early: not finished');
+  for (const gt of W.gates) walk(sess, ctx, pl, V(gt.x, gt.y - 1, gt.z));
+  assert.ok(ctx.result && !ctx.result.failed, 'the last gate, both home: finished');
+  sess.end();
+  // the makers' mark: a steady scripted run plus slack
+  course.reset();
+  const t = scripted(course, [[2.4, 0, 5], [-2.4, 0, 9.5], [2.4, 0, 14], [-2.4, 0, 18.5], [0, 0, 43], [3.2, 0, 42.2], { roll: east }, [-3.2, 0, 17.8], { roll: west }]);
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+test('the long look: three stones out over the shaft, the ball rolled out to the end, down the shaft ends it', () => {
+  const { scene, physics } = world('incal');
+  const T = KIT_TRIALS['kit-incal'];
+  const C = createChallenges({ levelId: 'incal', scene, physics, player: traveller(), items: { has: () => true }, game: new GameState(), kits: [T], trials: {} });
+  const W = C.list[0], course = W.course, K = course.kit, [R] = course.rollers;
+  /** The floor under (x, z) in the course's frame, up to 60 m down (-Infinity: nothing). */
+  const floor = (x, z) => { const p = K.world(x, 1, z), g = physics.groundAt(p.x, p.y, p.z, 60); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  assert.ok(Math.abs(floor(2, 4)) < 0.05, 'the plinth on the rim');
+  for (const z of [17, 26, 34]) for (const x of [-1.6, 1.6]) assert.ok(Math.abs(floor(x, z)) < 0.05, `the stone at ${z}`);
+  assert.equal(course.gaps.length, 2);
+  for (const [z0, z1] of course.gaps) {
+    assert.ok(z1 - z0 > 1.2 && z1 - z0 < 2.4, `a gap a walking jump clears (${(z1 - z0).toFixed(1)} m)`);
+    assert.ok(floor(1.6, (z0 + z1) / 2) < -20, `nothing under the gap but the shaft (${floor(1.6, (z0 + z1) / 2).toFixed(0)} m)`);
+    assert.ok(Math.abs(floor(0, (z0 + z1) / 2)) < 0.05, 'the ball’s rail across it');
+  }
+  assert.ok(floor(-3, 15) < -20 && floor(3, 15) < -20, 'the first stone stands out over the drop');
+  const fwd = K.world(0, 0, 1).sub(K.world(0, 0, 0));
+  for (const x of [-1.4, 1.4]) assert.ok(physics.rayDistance(K.world(x, 1, -2), fwd, 35) >= 35 - 0.01, 'nothing in the way out on either side of the ball');
+  // the falls: fine on the rim and on the stones, over once down the shaft
+  assert.equal(outOfRun(T, {}, { passed: 0, height: -0.4, along: 5 }), '', 'on the rim');
+  assert.equal(outOfRun(T, {}, { passed: 2, height: 0, along: 26 }), '', 'on a stone');
+  assert.equal(outOfRun(T, {}, { passed: 1, height: -4, along: 22 }), 'Down the shaft');
+  // the ball: the push rolls it the whole way out, over the gaps on its rail, onto the plate at the end
+  const y0 = K.local(R.ball.center).y;
+  const { pushes } = rollHome(course, R);
+  assert.ok(R.home(), 'home at the end');
+  assert.ok(pushes >= 4 && pushes <= 9, `${pushes} pushes for ${R.ball.len.toFixed(0)} m`);
+  assert.ok(Math.abs(K.local(R.ball.center).y - y0) < 1e-6, 'level all the way');
+  assert.ok(K.local(R.ball.center).z > 33, 'at the end of the balcony');
+  // the makers' mark: a steady scripted run plus slack (out behind the ball, pushing as it stops)
+  course.reset();
+  const t = scripted(course, [[0, 0, 2.4], { roll: R }, [1.4, 0, 33]]);
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
   C.dispose();
 });

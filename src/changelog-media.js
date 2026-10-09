@@ -219,6 +219,14 @@ const BLADE_VIEW = (go, { side = 3.6, h = 2.0, ty = 1.5 } = {}) => `for (let i =
 const ARENA_BLADE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 400 };
 
 
+/** A makers' run with balls played through for its results card: the gates walked, the balls set on their plates. */
+const ROLL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  window.minigame.clock = ${time};
+  for (const R of w.course.rollers) { R.ball.t = 1; R.ball.place(); w.course.rt.logic.moveDrum(R.id, 1); }
+  await wait(2600);`;
+
 export const CHANGELOG_MEDIA = {
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [
@@ -260,6 +268,14 @@ export const CHANGELOG_MEDIA = {
     ], see: 'In the Arena, jump (A / ×) toward a blot and press RB / R1 (F) at the top: he hangs, lifts the sword and drops onto it.' },
     { match: 'Going from one sword swing into the next', see: 'In the Arena, press RB / R1 three times quickly, then raise the guard (LB / L1) and walk off: each change of pose flows into the next instead of jumping.' },
     { match: 'The blade’s spark trail sweeps through the cut itself', see: 'Swing the blade slowly in the Arena (one press at a time): the sparks only fill the arc where the edge actually cuts.' },
+    { match: 'And two more, with the temples’ stone balls', shots: [
+      { name: 'sphere-court', caption: 'The Sphere court on the meadow south of the Garden of Spheres’ mirror lake: the slalom of stone spheres, the dais with its two plates between the grooves, a white sphere at the head of each, and the arch at the far end', commit: '1274815e',
+        view: { level: 'spheres', player: [136, 1, -27], heading: 1.57, eye: [126, 11, -38], target: [160, 0, -20], fov: 55, wait: 3000 } },
+      { name: 'long-look', caption: 'The Long look in the City-Shaft: a makers’ balcony from the rim out over the shaft, three stones with a gap between each, the ball’s rail across them, and the frame round the view at the far end with the plate', commit: '1274815e',
+        view: { level: 'incal', player: [269.2, 200.5, 65.3], heading: -1.8, eye: [265.7, 209.3, 44.95], target: [244.56, 200.3, 56.49], fov: 55, wait: 3000 } },
+      { name: 'long-look-results', only: 'after', caption: 'The Long look finished: the time, the makers’ mark, and a word from Tobin, who sells views along the rim', commit: '1274815e',
+        view: { level: 'incal', hud: true, hour: 10, player: [269.2, 200.5, 65.3], setup: ROLL_THROUGH('kit-incal', 33.6), wait: 600 } },
+    ] },
   ],
   '1.2': [
     { match: 'The dark masses in shaded corners', shots: [

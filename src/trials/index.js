@@ -138,6 +138,13 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   const offs = [];
   // a makers' run: the temple pieces stood in the open, for good (src/trials/kit-courses.js)
   const course = kitRun ? buildKitCourse(T, { scene, physics, player, notice, sound }) : null;
+  // its moving floors (a ball, a plate) are the traveller's to stand on and be stopped by, as a temple's are
+  if (course?.solids().length && player?.opts) {
+    const was = player.opts.dynamic;
+    player.opts.dynamic = () => { const base = was ? was() : []; return base.length ? [...base, ...course.solids()] : course.solids(); };
+    if (!was) player._feetGround = undefined;   // (src/player.js: it keeps the ground it stands on, once asked)
+    offs.push(() => { player.opts.dynamic = was; });
+  }
   // the wind columns are the world's for good, run or no run (the foes feel them too)
   const winds = (T.winds ?? []).map(([x, z, r, h, lift]) => new WindColumn(scene, { foot: V(x, physics.groundAt(x, 1e4, z, 2e4), z), r, h, lift }));
   const gates = course ? course.gates : T.gates ? gatePoints(T, { physics, surfaceAt }) : [];
@@ -291,7 +298,8 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
    */
   function kitSession(ctx) {
     const P = ctx.player;
-    const run = new KitRun({ gates, bank: course.bank ? course.bank.eyes.length : 0 });
+    const task = course.task;   // (what the gates lead to: the eyes to wake, the balls to roll home)
+    const run = new KitRun({ gates, bank: task?.n ?? 0, words: task?.goal });
     const meshes = [];
     let prev = null, gone = false, off = 0;
     gates.forEach((g, i) => { const m = gateMesh(g, i ? gates[i - 1] : start, M); m.visible = false; ctx.add(m); meshes.push(m); });
@@ -340,10 +348,10 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
         if (prev) {
           const r = run.step(prev, p, ctx.time);
           if (r === 'gate') { ctx.sfx.checkpoint(); show(); }
-          if (r === 'ready') { ctx.sfx.checkpoint(); show(); ctx.flash(`Now the eyes: all ${COUNT[course.bank.eyes.length] ?? course.bank.eyes.length} in one breath`, 'big', 2.2); }
+          if (r === 'ready') { ctx.sfx.checkpoint(); show(); ctx.flash(task.kind === 'eyes' ? `Now the eyes: all ${COUNT[task.n] ?? task.n} in one breath` : task.flash, 'big', 2.2); }
           if (r === 'finish') { gone = true; show(); finish(); return; }
         }
-        if (run.ready && course.bank && run.wake(course.bank.awake(), ctx.time) === 'finish') { gone = true; finish(); return; }
+        if (run.ready && task && run.wake(task.count(), ctx.time) === 'finish') { gone = true; finish(); return; }
         ctx.status(run.goal());
         prev = p;
         // out of the run: knocked out, in the lake, down on the plain, up on the jets for more than a moment

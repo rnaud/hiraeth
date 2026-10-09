@@ -7,7 +7,8 @@
 // Pure data (src/trials/kit-courses.js builds them; tests/trials-kit.test.js checks them in their worlds).
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
-//   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps'
+//   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps',
+//            'spherecourt', 'longlook'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -17,7 +18,7 @@
 //   wet      the run ends in the water (a causeway)
 //   fall     the run ends down on the ground under it: { after: gates passed, below: height in the frame (m),
 //            from: only this far along the frame (m, its z) or further, words } (the feather leap: the plain
-//            under its tower and its gulf; the furnace steps: the grate under the pillars)
+//            under its tower and its gulf; the furnace steps: the grate under the pillars; the long look: the shaft)
 //   onFoot   walked: up on the jets for more than a moment ends it (offFeet: the words on the card)
 //   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
@@ -84,6 +85,37 @@ export const KIT_TRIALS = {
       first: '~surprised~ You jumped ALL the pillars! I only jump the first one. Then I climb down. Wen says that counts.',
       beaten: '~playful~ Faster than the makers! I counted on my teeth. I ran out of teeth.',
       again: '~playful~ Again! Do it nine more times. Then ten.',
+    },
+  },
+  'kit-spheres': {
+    id: 'kit-spheres', world: 'spheres', mode: 'kit', course: 'spherecourt', name: 'Sphere court', color: '#a8e6ee',
+    blurb: 'The Footprint’s hall of spheres stood out on the meadow south of the mirror lake: a slalom of stone spheres, two white ones in their grooves.',
+    rules: 'Weave the slalom of stone spheres to the arch at the far end. Then roll both white spheres onto the plates at the dais with the fluid’s push: one from each end.',
+    origin: [140, 0.4, -22], yaw: Math.PI / 2,
+    marker: [4.4, -3.6], start: [0, -0.4], heading: 0, par: 42,
+    needs: ['backpack'], lacks: 'Its spheres are rolled with the fluid’s push: it wants the fluid gun.',
+    onFoot: true,
+    voice: {
+      who: 'nell', name: 'Nell', from: 'who looks into the lake',
+      first: '~happy~ Both home! In the lake it looked like four spheres rolling. Twice the work, and you did it in no time at all.',
+      beaten: '~surprised~ Quicker than the makers! The reflection could hardly keep up with you.',
+      again: '~playful~ Again? The lake says it’s getting dizzy. It’s smiling, though.',
+    },
+  },
+  'kit-incal': {
+    id: 'kit-incal', world: 'incal', mode: 'kit', course: 'longlook', name: 'Long look', color: '#9fdcef',
+    blurb: 'A makers’ balcony out over the City-Shaft from the rim, three stones over the drop, a stone ball at its head.',
+    rules: 'Roll the stone ball out along the balcony with the fluid’s push, walking (and jumping the gaps) behind it, onto the plate at the far end. There is no parapet: down the shaft, and the run is over.',
+    origin: [266, 200.3, 61.44], yaw: -1.7978,
+    marker: [4.2, -5.6], start: [0, -1.6], heading: 0, par: 40,
+    needs: ['backpack'], lacks: 'Its ball is rolled with the fluid’s push: it wants the fluid gun.',
+    onFoot: true, offFeet: 'This one is walked: no jets.',
+    fall: { after: 0, below: -3, from: 13.5, words: 'Down the shaft' },
+    voice: {
+      who: 'hask', name: 'Tobin', from: 'seller of views',
+      first: '~shout~ Rolled a ball to the end of the world and walked out after it! That’s a view. That’s worth two coins. I’m keeping them.',
+      beaten: '~surprised~ Faster than the makers, over that drop? Don’t do that in front of customers. They’ll want a discount.',
+      again: '~playful~ Back for another look? First one’s free. That was the second. One coin.',
     },
   },
 };
