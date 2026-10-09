@@ -20,6 +20,7 @@ import { loadAnimationLibrary, Animator } from '../animator.js';
 import { loadMotionLibrary, MotionMatcher, MATCH } from '../motion-match.js';
 import { loadHuman, Humanoid } from '../humanoid.js';
 import { Player, buildCharacter } from '../player.js';
+import { playerHands } from '../hands.js';
 import { loadTravellerV1, createTravellerV1 } from '../characters/traveller-v1.js';
 import { loadBody as loadMakeHumanBody } from '../makehuman/body.js';
 import { MakeHumanPeople } from '../makehuman/people.js';
@@ -316,6 +317,9 @@ function stepTraveller(T, input, camYaw, tag) {
   const p = T.p;
   p.update(DT, input, camYaw);
   p.object.updateMatrixWorld(true);
+  // the fingers, as the game drives them (src/hands.js, main.js): relaxed, opening as he runs
+  p.humanoid?.hands?.update(DT, playerHands(p));
+  p.character?.updateHands?.();
   T.prev = sampleFrame(p, T.t, tag, T.prev);
   T.frames.push(T.prev);
   // your own control: the numbers over the last 20 s

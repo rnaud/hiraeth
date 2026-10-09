@@ -82,7 +82,10 @@ carry no finger tracks, so every hand used to hang in the T-pose's flat, straigh
   from the index to the little finger, the thumb in by the index), `open`, `splay`, `grip`, `fist`,
   `reins`, `hook`, `cup`, `flat`, `limp`, and the gestures `talk`, `point`, `pinch`, `claw`,
   `together`, `hold`. The axes come from each bone's rest frame (the palm's facing, the line of the
-  knuckles), so both hands and both bodies take the same numbers.
+  knuckles), so both hands and both bodies take the same numbers. A rig whose finger joints are bent
+  back at rest (the coral-shirt traveller's fitted hand) is straightened first (`J.zero`), so the
+  numbers are each joint's bend from a straight finger; `fingerFlex(h, side)` reads each joint's bend
+  back (+ toward the palm). See [characters.md](characters.md), *His fingers curl toward his palms*.
 - **The context picks them** (`handTargets(ctx)`, pure): walking relaxed, opening as you run
   (`HANDS.runFrom`–`runTo`), gliding and the jets open, falling (after `airAfter` s off the ground)
   splayed, climbing a grip, the mantle flat, the hoverbike / skiff / taxi a grip, the bird the reins,
@@ -99,7 +102,8 @@ carry no finger tracks, so every hand used to hang in the T-pose's flat, straigh
   `main.js`, after the talking faces: the traveller (`playerHands`, his state read only), and the
   people within `HANDS.near` m of the camera (`nearLow` on the Handheld preset; `npcHands`), their tone
   from their talking face (`talkOf`). Further off the hands keep their last pose. The studio drives
-  them from its own state.
+  them from its own state; the title, the Motion page (`playerHands`, as the game) and the trailer
+  (a pose by what the traveller does, the same at any seek) drive the traveller's.
 - **The wrists** (`Humanoid.update`, `Humanoid.turnHand`): the retarget poses each hand at its rest
   turn on the forearm every frame (`wristOf`); a clip then sets the wrist (`poseHands`), aiming turns it
   along the line of fire, and the glide's spread arms (`Player.spreadArms`) turn it with `turnHand`:

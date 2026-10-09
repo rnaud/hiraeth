@@ -109,6 +109,8 @@ export function createActors(scene, level, shots, human, lib, outfit, bird) {
           person.humanoid.update(); person.humanoid.poseHands(animator);
           person.character?.poseWrists(wrists ?? []);
           if (person.character) {
+            // the fingers by what he does (src/hands.js), the same at any seek: a grip on the handlebars, open running, relaxed
+            person.humanoid.hands?.set(mount ? 'grip' : clip === 'jog' ? 'open' : 'relaxed');
             person.character.updateHands(); object.updateMatrixWorld(true);
             if (climber) {
               if (!dt || frame.local < a.lastLocal) climber._wallHolds = undefined;

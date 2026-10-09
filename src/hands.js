@@ -89,6 +89,7 @@ export const HANDS = {
   drift: 0.05,      // rad: the fingers' slow drift at rest (less in a grip)
   lag: 0.006,       // rad of curl per m/s² of the wrist's acceleration across the palm
   lagMax: 0.35,
+  straighten: 5 * Math.PI / 180,   // rad: a finger joint bent back further than this at rest straightens its rig (Hands.rig)
 };
 const TIGHT = new Set(['grip', 'fist', 'reins', 'hook', 'hold']);
 
@@ -188,6 +189,48 @@ export function tightness(weights) {
   return Math.min(1, t);
 }
 
+/**
+ * Each finger joint's bend as it is now, in degrees: + toward the palm, - bent back (hyperextended).
+ * Measured about the hand's own crosswise axis (its knuckles' line, turned as the hand is), from the
+ * segment before the joint to the one after it: the palm's line (wrist -> the finger's knuckle), then
+ * each phalanx (the bone's rest direction turned as the bone has turned, so a rig without fingertip
+ * leaves is measured the same). The same sign on both hands, whatever the rig's mirroring.
+ *   fingerFlex(humanoid, 'r') -> { index: [knuckle, middle, tip], middle, ring, pinky }, or null
+ */
+export function fingerFlex(h, s) {
+  const S = h.hands?.sides.find((x) => x.s === s);
+  if (!S) return null;
+  const R = h.rest, root = h.char?.root ?? h.model;
+  root.updateMatrixWorld(true);
+  const rootQi = root.getWorldQuaternion(new THREE.Quaternion()).invert();
+  const turn = (b) => b.getWorldQuaternion(new THREE.Quaternion()).premultiply(rootQi).multiply(R.get(b).q.clone().invert());
+  const hq = turn(S.hand);
+  const n = S.normal.clone().applyQuaternion(hq), along = S.along.clone().applyQuaternion(hq);
+  const side = new THREE.Vector3().crossVectors(along, n).normalize();   // (+ about it turns along toward the palm)
+  const angle = (d) => Math.atan2(d.dot(n), d.dot(along));
+  const out = {};
+  for (const f of FINGERS) {
+    const segs = [];
+    const k = h.b[`${f}_01_${s}`];
+    if (!k) continue;
+    segs.push(R.get(k).p.clone().sub(R.get(S.hand).p).normalize().applyQuaternion(hq));
+    for (let j = 1; j <= 3; j++) {
+      const J = S.joints.find((x) => x.b === h.b[`${f}_0${j}_${s}`]);
+      if (J) segs.push(J.dir.clone().applyQuaternion(turn(J.b)));
+    }
+    const a = [];
+    for (let j = 1; j < segs.length; j++) {
+      // (each segment flattened onto the plane the fingers curl in)
+      const p0 = segs[j - 1].clone().addScaledVector(side, -segs[j - 1].dot(side)), p1 = segs[j].clone().addScaledVector(side, -segs[j].dot(side));
+      let d = angle(p1) - angle(p0);
+      d = Math.atan2(Math.sin(d), Math.cos(d));
+      a.push(d * 180 / Math.PI);
+    }
+    out[f] = a;
+  }
+  return out;
+}
+
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _qi = new THREE.Quaternion();
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _n = new THREE.Vector3();
 let seeds = 0;
@@ -204,6 +247,9 @@ export class Hands {
     this.air = 0;
     this.targets = null;
     this.live = false;   // (the drift once driven: until then every body's hands are the same)
+    // how much of each pose a body's fingers and thumb take (the coral-shirt traveller's generated thumb
+    // takes less: src/characters/tripo-hands.js). Part of every write (apply), so it never accumulates
+    this.reach = { fingers: 1, thumb: 1 };
     this.apply();
   }
 
@@ -231,16 +277,32 @@ export class Hands {
     if (normal.y > 0) normal.negate();   // (palms face down in the T-pose)
     span.addScaledVector(normal, -span.dot(normal)).normalize();
     const joints = [];
+    // a joint's bend at rest (rad, + toward the palm): each segment flattened onto the plane the fingers curl in
+    const side = new THREE.Vector3().crossVectors(along, normal).normalize();
+    const pitch = (d) => { const p = d.clone().addScaledVector(side, -d.dot(side)); return Math.atan2(p.dot(normal), p.dot(along)); };
     FINGERS.forEach((f, fi) => {
+      let prev = bone(`${f}_01`) ? restP(bone(`${f}_01`)).clone().sub(origin).normalize() : null;
       for (let j = 0; j < 3; j++) {
         const b = bone(`${f}_0${j + 1}`), d = b && dirOf(b);
         if (!d) continue;
         // curl: the finger turns toward the palm; fan: at the knuckle, toward the index's side (the little finger away)
         const curl = new THREE.Vector3().crossVectors(d, normal).normalize();
         const fan = j === 0 ? local(b, new THREE.Vector3().crossVectors(d, span)) : null;
-        joints.push({ b, rest: bindLocal(b), curl: local(b, curl), fan, i: fi * 3 + j, fanK: [1, 0.25, -0.45, -1][fi], tip: [0.6, 1, 0.8][j] });
+        // the bend the rig gives the joint at rest (+ toward the palm), kept to straighten it if need be (below)
+        let zero = 0;
+        if (prev) { const a = pitch(d) - pitch(prev); zero = -Math.atan2(Math.sin(a), Math.cos(a)); }
+        prev = d;
+        joints.push({ b, rest: bindLocal(b), curl: local(b, curl), fan, dir: d.clone(), zero, i: fi * 3 + j, fanK: [1, 0.25, -0.45, -1][fi], tip: [0.6, 1, 0.8][j] });
       }
     });
+    // A rig whose fingers are bent back at rest is straightened before any pose: a fitted rig's knuckles
+    // and joints sit on the generated hand's surface, not on a line (the coral-shirt traveller's are bent
+    // up to 30° either way, and not the same on both hands), so the poses laid on them bent some fingers
+    // back and curled others twice as far. Every pose's numbers are then each joint's bend from a straight
+    // finger, the same on both hands. A rig bent only toward the palm at rest (the MakeHuman people's
+    // natural curl; the Quaternius bodies' are straight, within 3°) keeps its rest, as the poses and
+    // the props they hold were set on it.
+    if (!joints.some((J) => J.zero > HANDS.straighten)) for (const J of joints) J.zero = 0;
     const thumb = [];
     for (let j = 0; j < 3; j++) {
       const b = bone(`thumb_0${j + 1}`), d = b && dirOf(b);
@@ -254,7 +316,7 @@ export class Hands {
       thumb.push({ b, rest: bindLocal(b), roll: local(b, roll), in: toIn.lengthSq() > 1e-8 ? local(b, toIn) : null, bend: local(b, bend), j });
     }
     return {
-      s, hand: bone('hand'), joints, thumb, normal, restHandQ: restQ(bone('hand')).clone(),
+      s, hand: bone('hand'), joints, thumb, normal, along, restHandQ: restQ(bone('hand')).clone(),
       cur: new Float32Array(N_PARAMS), goal: new Float32Array(N_PARAMS),
       lag: 0, lagV: 0, last: null, tight: 0,
     };
@@ -322,20 +384,21 @@ export class Hands {
     const t = this.t;
     for (const S of this.sides) {
       const P = S.cur, loose = this.live ? (1 - S.tight) * (1 - S.tight) : 0, lag = S.lag * (1 - 0.7 * S.tight);
+      const kf = this.reach.fingers, kt = this.reach.thumb;
       for (const J of S.joints) {
         const ph = this.seed * 9 + J.i * 1.7 + (S.s === 'l' ? 3.1 : 0);
         const drift = HANDS.drift * loose * (0.6 * Math.sin(t * 0.43 + ph) + 0.4 * Math.sin(t * 0.91 + ph * 1.3)) * J.tip;
-        const q = J.b.quaternion.copy(J.rest).multiply(_q.setFromAxisAngle(J.curl, P[J.i] + drift + lag * J.tip));
-        if (J.fan) q.multiply(_q2.setFromAxisAngle(J.fan, P[SPREAD] * J.fanK));
+        const q = J.b.quaternion.copy(J.rest).multiply(_q.setFromAxisAngle(J.curl, J.zero + kf * (P[J.i] + drift + lag * J.tip)));
+        if (J.fan) q.multiply(_q2.setFromAxisAngle(J.fan, kf * P[SPREAD] * J.fanK));
       }
       for (const J of S.thumb) {
         const drift = HANDS.drift * 0.6 * loose * Math.sin(t * 0.37 + this.seed * 7 + (S.s === 'l' ? 2 : 0));
         const q = J.b.quaternion.copy(J.rest);
         if (J.j === 0) {
-          q.multiply(_q.setFromAxisAngle(J.roll, P[T_ROLL] + drift));
-          if (J.in) q.multiply(_q.setFromAxisAngle(J.in, P[T_IN]));
-          q.multiply(_q.setFromAxisAngle(J.bend, P[T_BEND] * 0.4));
-        } else q.multiply(_q.setFromAxisAngle(J.bend, P[T_BEND] * (J.j === 1 ? 1 : 0.8) + drift * 0.5));
+          q.multiply(_q.setFromAxisAngle(J.roll, kt * (P[T_ROLL] + drift)));
+          if (J.in) q.multiply(_q.setFromAxisAngle(J.in, kt * P[T_IN]));
+          q.multiply(_q.setFromAxisAngle(J.bend, kt * P[T_BEND] * 0.4));
+        } else q.multiply(_q.setFromAxisAngle(J.bend, kt * (P[T_BEND] * (J.j === 1 ? 1 : 0.8) + drift * 0.5)));
       }
       S.hand.updateMatrixWorld(true);
     }

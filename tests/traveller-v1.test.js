@@ -37,7 +37,12 @@ test('shipped traveller binds the visible character and repairs to the fitted Ma
  }
  char.root.updateMatrixWorld(true);mesh.skeleton.update();
  const p=mesh.geometry.attributes.position;
- for(let i=0;i<p.count;i+=199){const v=new T.Vector3().fromBufferAttribute(p,i);assert.ok(mesh.applyBoneTransform(i,v.clone()).distanceTo(v)<1e-4,'identity skin at arbitrary spawn');}
+ // (all but the fingers: they start relaxed, src/hands.js, not in the rig's rest)
+ const si=mesh.geometry.attributes.skinIndex,sw=mesh.geometry.attributes.skinWeight,digit=/^(index|middle|ring|pinky|thumb)_0[123]_[lr]$/;
+ const onFingers=(i)=>[0,1,2,3].some(k=>sw.getComponent(i,k)>0&&digit.test(mesh.skeleton.bones[si.getComponent(i,k)].name));
+ let fingers=0;
+ for(let i=0;i<p.count;i+=199){const v=new T.Vector3().fromBufferAttribute(p,i),d=mesh.applyBoneTransform(i,v.clone()).distanceTo(v);if(onFingers(i)){fingers++;continue;}assert.ok(d<1e-4,'identity skin at arbitrary spawn');}
+ assert.ok(fingers>0,'the fingers sampled too');
  character.updateCloth(1/60);
  const local=cloth.garment.geometry.attributes.position.array.slice();
  char.root.position.add(new T.Vector3(-330,22,70));char.root.rotateY(1);char.root.updateMatrixWorld(true);

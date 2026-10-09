@@ -58,6 +58,41 @@ bends on the elbow as the upper arm carries it, and takes half the clip's wrist 
 open overshirt (now `beltHook: false` for him). Details and the measures: [animation.md](animation.md),
 *Hands*; `tests/hands-sleeves.test.js`.
 
+### His fingers curl toward his palms (October 2026, v1.7)
+
+After that fix his fingers still looked wrong: by his thighs they bent back from the palm, fanned, the
+tips crossing. Three causes, all on the coral-shirt body alone:
+
+- **His skin slipped off his finger bones.** `createTravellerV1` fitted the MakeHuman template to the
+  generated mesh (`fitDonorToSurface`: bones moved, bind matrices recomputed), but it fitted the
+  *cached* template (`makeBody` caches one per person). Every body cloned from a template shares its
+  bind matrices, so the next traveller built (the game's, after the title's; the Motion page's second)
+  fitted the already fitted template again and rewrote the earlier one's binding under it: the third
+  one's fingers were bound 7.7 cm off their bones. Now `makeBody(data, params, { fresh: true })` gives
+  him a template of his own.
+- **His rig's fingers are bent at rest.** The fitted knuckles and joints sit on the hand's surface,
+  not on a line: bent up to 30° at rest, toward the palm or away, not the same on both hands. The hand
+  poses (`HAND_POSES`, each joint's bend in degrees) were laid over that, so some joints bent back
+  and others curled twice as far. `Hands.rig` now measures each joint's bend at rest and, on a rig
+  with a joint bent back more than `HANDS.straighten` (5°), straightens it first (`J.zero`), so a
+  pose's numbers are each joint's bend from a straight finger, the same on both hands. The Quaternius
+  bodies' fingers are straight at rest and the MakeHuman people's curl only toward the palm: theirs are
+  left as they were, and so are the props they hold.
+- **Undriven pages left his fingers at rest.** `skeleton.pose()` in `createTravellerV1` wiped the
+  relaxed pose, and `softenTripoHands` slerped the fingers 20% toward the rest on every call: once a
+  frame after `Hands.update` in the game, but the only thing writing them on the title, the Motion
+  page and the trailer, where they sank into the bent-back rest. The traveller's smaller thumb is now
+  `Hands.reach` (`TRIPO_REACH`, part of every write, never accumulating), and the title, the Motion
+  page and the trailer drive his hands as the game does.
+
+`fingerFlex(humanoid, side)` (src/hands.js) gives each joint's bend now, + toward the palm, measured
+about the hand's crosswise axis, so a mirrored rig reads the same on both hands.
+`tests/hands-fingers.test.js` checks the bind against the rest after three travellers, the poses
+straight and alike on both hands, every joint's bend over the idle, a walk, a run, talking in every
+tone, the title stance, the blade and shield and the glove's aim (relaxed: never below -2°, curled 30°
+or more a finger; never below -8° or past 125°), and the relaxed fingertips 2–7 cm out on the palm's
+side, nearer the palm than straight and short of a fist.
+
 ### What the traveller costs (October 2026, v1.0)
 
 Measured in Chrome on the M3 Pro (`scripts/bench/traveller.mjs`, the desert, hour 10; the machine was
@@ -559,8 +594,9 @@ volume rather than the rearward donor joint centers, avoiding an inflated back. 
 inner-shirt backing closes missing geometry exposed above the waistband. Front/side/back walking and raised-knee jogging poses were visually checked.
 The rebuilt trousers have simpler detail; sleeves remain skinned and seated poses still
 stretch excessively. The preview's Next pose control advances and settles repeatable poses. Drag-to-orbit, zoom,
-pan, reset and body-part focus controls support inspection. Live hand poses use reduced finger
-and thumb curl because the generated finger anatomy only approximates the donor rig. Jogging
+pan, reset and body-part focus controls support inspection. Live hand poses use a reduced thumb
+(`TRIPO_REACH`) because the generated thumb only approximates the donor rig; the fingers take the
+full poses from their straightened rest (*His fingers curl toward his palms* above). Jogging
 still exposes unnatural hem stretching.
 Cloth is runtime-only; the downloadable GLB has no simulation. `scripts/tripo/audit-cloth.mjs`
 checks numerical stability and collision-capsule clearance, not complete mesh intersection.

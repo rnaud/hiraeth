@@ -37,7 +37,9 @@ export function createTravellerV1(char, { gltf, data, report, colors, head: head
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
     throw new Error('Traveller v1 needs its matching mesh and per-vertex colour data');
-  const template = makeBody(data, report.params), surface = [];
+  // (his own template: the fit below reshapes it, and the cached one is shared by every traveller built,
+  // the title's and the game's, whose bind matrices it would rewrite: his fingers bound off their bones)
+  const template = makeBody(data, report.params, { fresh: true }), surface = [];
   const source = skins[0], p = source.geometry.attributes.position;
   for (let i = 0; i < p.count; i++) surface.push(new T.Vector3().fromBufferAttribute(p, i));
   fitDonorToSurface(template, surface);
@@ -54,7 +56,10 @@ export function createTravellerV1(char, { gltf, data, report, colors, head: head
     mesh.name = 'TravellerV1'; mesh.frustumCulled = false;
     humanoid.body.parent.add(mesh);
     mesh.bind(humanoid.body.skeleton, humanoid.body.bindMatrix);
-    humanoid.body.skeleton.pose(); root.updateMatrixWorld(true);
+    humanoid.body.skeleton.pose();
+    // (the pose above put the fingers back in the fitted rig's rest, bent back: his hands relaxed again)
+    softenTripoHands(humanoid);
+    root.updateMatrixWorld(true);
     markTripoHair(mesh.geometry, colors);
     const cloth = makeTripoCloth(mesh, colors, gpu === undefined ? {} : { gpu });
     const head = headAsset ? makeTripoHead(headAsset, mesh) : null;

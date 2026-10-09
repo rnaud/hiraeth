@@ -335,11 +335,14 @@ function skeletonOf(data, bonePts) {
 
 /**
  * A person as a Humanoid template (cached per person): params from shape.js personParams, o.brows
- * 0 (fine) or 1 (a man's), o.id (the profile's id: costumes are cached per body), o.label.
+ * 0 (fine) or 1 (a man's), o.id (the profile's id: costumes are cached per body), o.label. o.fresh:
+ * a template of its own, not the cached one, for a caller that reshapes it (the coral-shirt traveller's
+ * fit, characters/tripo-fit.js: every body cloned from a template shares its bind matrices, so a second
+ * traveller fitted the first's template again and rewrote the first's binding under it).
  */
-export function makeBody(data, params, { brows = 0, id = null, label = '' } = {}) {
+export function makeBody(data, params, { brows = 0, id = null, label = '', fresh = false } = {}) {
   const key = `body:${paramsKey(params)}|${brows}`;
-  if (data.cache.has(key)) return data.cache.get(key);
+  if (!fresh && data.cache.has(key)) return data.cache.get(key);
   const S = shapeOf(data, params);
   const pos = S.pos, kHead = S.kHead;
   const bodyPts = part(data, pos, 'body'), eyePts = part(data, pos, 'eyes'), browName = `brows${brows}`;
@@ -378,7 +381,7 @@ export function makeBody(data, params, { brows = 0, id = null, label = '' } = {}
     young: years === null ? undefined : Math.max(0, Math.min(1, (20 - years) / 12)),
     data, body: bodyPts, kind: params.gender > 0.5 ? 'm' : 'f',
   };
-  data.cache.set(key, scene);
+  if (!fresh) data.cache.set(key, scene);
   return scene;
 }
 

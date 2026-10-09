@@ -18,6 +18,8 @@ export const CHANGELOG = [
     'Foes step quicker when they run and slower when they walk, so their feet no longer skate over the ground, and two of a kind no longer step in time with each other. Winding up an attack, a foe on legs plants its feet wide and sits back away from you, holds, then lunges through.',
     // the water
     'Little waves lap at whatever stands in the water: round rocks, pillars, tree roots, walls, piers, boats, people and the traveller himself when he wades or swims, a pale band of foam hugging it, breathing out and back, with small moving gaps, a broken inked ripple or two just off it and a few flecks of foam. It reaches the shore too, wherever the water meets the ground. (Graphics: on everywhere but Handheld.)',
+    // the traveller's fingers
+    'The traveller’s fingers curl gently in toward his palms, both hands alike, standing, walking, running, talking and holding the blade or the shield. They used to bend back from the palm and splay: in the game his skin had slipped off the bones of his fingers, and on the title screen his hands were never posed at all.',
   ] },
   { v: '1.6', date: '2026-10-09', items: [
     // the galactic map's signature search

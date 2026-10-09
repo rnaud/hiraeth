@@ -17,6 +17,7 @@ import { wallOpenings } from './wall-openings.js';
 import { slicer, runStepsAsync } from './load-steps.js';
 import { shotCamera } from './title-shots.js';
 import { onXbox } from './xbox.js';
+import { playerHands } from './hands.js';
 
 // ---------------------------------------------------------------------------
 // The title screen's backdrop (src/title.js): one of the worlds, built by the game's own
@@ -325,6 +326,8 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
       try {
         player.update(dt, noInput, Math.atan2(camera.position.x - player.pos.x, camera.position.z - player.pos.z));
         tool?.update(dt, noInput, true);
+        // the fingers (src/hands.js): relaxed, as the game has them (left alone they kept the rig's rest)
+        player.humanoid?.hands?.update(dt, playerHands(player));
         player.character?.updateHands?.();
       } catch (e) { console.warn('title world: traveller', e); player.update = () => {}; }
     }
