@@ -1,0 +1,49 @@
+DONE.md
+  s_9ca76055a220ed::t_4cc827d4299703 1477-1491
+TODO.md
+  s_9ca76055a220ed::t_a1f15fb94dc75f 53-56
+changelog.md
+  s_9ca76055a220ed::t_afee9ad24233dc 7-10
+docs/systems/animation.md
+  s_9ca76055a220ed::t_ae646a7108491d 322-331,388
+docs/systems/foes.md
+  s_9ca76055a220ed::t_f13f958388ad2e 1,19-50,83,212
+scripts/mocap/build-library.mjs
+  s_9ca76055a220ed::t_b84801e64e279b 86,124-125
+scripts/mocap/mixamo-clips.json
+  s_9ca76055a220ed::t_770e3f5cbed969 2,110-112
+src/animator.js
+  s_9ca76055a220ed::t_55daed64ee5e01 357-359,365-366,370,375
+src/audio.js
+  s_9ca76055a220ed::t_f45be9407788e7 1590-1598
+src/changelog.js
+  s_9ca76055a220ed::t_3546138370cbdd 30-34
+src/fluid-blade.js
+  s_9ca76055a220ed::t_11c89c995def48 82,93-99,115-140,263-265,323-327,330-332,347,374-380,382-395,400-403,414,421-426,465,470-471,506,511-515,530-535,541-554,560,565-566,572,592,627-644,646
+src/fluid-tool.js
+  s_9ca76055a220ed::t_445544240f6e45 996
+src/foes.js
+  s_9ca76055a220ed::t_ee70daa5a007af 725-726
+src/player.js
+  s_9ca76055a220ed::t_0f3d0b51c54b5e 1303-1309,2277-2278
+tests/blade-attacks.test.js
+  s_9ca76055a220ed::t_0f8bd46764deda 1-167
+tests/combat.test.js
+  s_9ca76055a220ed::t_f385f0a8c4c48f 67,71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bf70463ab4bf0b1be618ede65df1655af56ebbb0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
