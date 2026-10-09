@@ -395,7 +395,7 @@ layers as they were). Strips of each are made on the Motion page (`motionPage.sh
   the chest's and the neck's twist, which our chest and neck (following only the spine's and neck's
   lines) don't take; in the looking about the whole of it landed on the skull, 105° round on the neck
   (the jaw into the shoulder, the face stretched: "his mouth opens wide and his neck moves strangely"),
-  and 30° down on a neck already bent 46°. `tests/head-turn.test.js` plays all three idles: the face
+  and 30° down on a neck already bent 46°. `tests/idle-legs.test.js` plays all three idles: the face
   stays under 80° from the chest.
 - **Gestures** (`Player.gesture(kind)`; `src/interact.js` `gestureOf`): using something whose prompt
   picks up or takes something under 1.1 m over the feet kneels (Mixamo's kneeling inspection, the

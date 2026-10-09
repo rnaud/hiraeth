@@ -1,7 +1,7 @@
 // The dialogue notes from the playtest of 2026-10-08 (TODO.md "Dialogue"): the traveller calm while he
 // talks, his eyes on the speaker, Nour's answers to "stand in water", the camp fire kept out of Ama's
 // shot, and who gets a balloon over their head. (The answer no longer said back: tests/convo-closeup.test.js;
-// his body held still with the real rig and clips: tests/talk-still.test.js.)
+// his body held still with the real rig and clips: tests/idle-legs.test.js.)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';

@@ -72,7 +72,7 @@ third of a second: the weight shift keeps a fifth of its size (`idleMotion`), th
 nods go, the animator plays no idle variant (`Animator.calm`). His eyes are calm too (`EYE_CALM` in
 `src/eyes.js`): on the speaker's face whenever it is in reach, a tone's own gaze no longer pulling
 them off it, and with nobody in reach a glance every 3–6 s instead of every 1–3 s, less than half as
-far. Measured on the real rig and clips (`tests/talk-still.test.js`, 30 s standing): the head's turn
+far. Measured on the real rig and clips (`tests/idle-legs.test.js`, 30 s standing): the head's turn
 range 133° standing, 0.4° talking; the hips' sway 4.3 cm, 0.9 cm.
 
 **Fires are not looked through.** A camp fire's flames are not in the physics (the stones round it are),
@@ -110,5 +110,5 @@ answers are the lines: the game has only one `speaker: 'player'` node.
 Tests: `tests/talk-spacing.test.js` (the gap, walls, ledges, bystanders, the cut in, out and
 mid-talk), `tests/scripts.test.js` (the translator), `tests/convo-closeup.test.js` (who is framed,
 holds and spacing, no thrash, the close shot's size, angle, side, height, walls and giants, the
-answer not said back, his portrait), `tests/talk-still.test.js` (held still, the real rig),
+answer not said back, his portrait), `tests/idle-legs.test.js` (held still, the real rig),
 `tests/dialogue-playtest.test.js` (calm layer and eyes, Nour's answers, fires, balloons).
