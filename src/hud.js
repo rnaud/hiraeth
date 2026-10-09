@@ -2,8 +2,8 @@
 // to sit in the status box comes only when it matters, then fades:
 //   - the cue (index.html #cue): one short line at the bottom for what the use button does
 //     right here when it has no person or thing to float over (the ship's hatch and console, a
-//     lens), a ride's controls for a few seconds after you get on, and a region's name as you
-//     cross into it;
+//     lens), and a region's name as you cross into it; nothing while riding (no list of a
+//     vehicle's buttons as you get on: the settings' Controls page has them);
 //   - the health bar while hurt or healing, the stamina wheel while not full, the tank's gauge
 //     while it is short (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
@@ -12,25 +12,13 @@ import { badgeLine, escapeHtml, keysHtml } from './prompt-keys.js';
 import { page, screen } from './platform.js';
 import { t, t as tr } from './i18n.js';
 
-/** A ride's controls show for this long after you get on (ms), then go. */
-export const RIDE_HINT_MS = 6000;
-const RIDES = ['taxi', 'taxiRoute', 'bird', 'bike', 'skiff'];
-// (in the language's words: src/i18n/en.js hud.ride.*, hud.pad.*; written with the default keys and buttons,
-// which native-pad.js renames to the player's own)
-const rideLines = (pre) => Object.defineProperties({}, Object.fromEntries(RIDES.map((k) => [k, { get: () => t(`hud.${pre}.${k}`), enumerable: true }])));
-//   taxi: 'SPACE where to · E get out'   a cab drives itself: you choose a stop (src/story/cab.js); taxiRoute: on its way there
-export const RIDE_KEYS = rideLines('ride');
-// a pad rides on the triggers: RT goes, the stick steers (and tilts a flyer: forward dives, back climbs);
-// the bottom button jumps off (player.jumpOff), the left one is the vehicle's own hop / flap / rise
-export const RIDE_PAD = rideLines('pad');
-
 /** The keyboard's names in a prompt (on foot), as a pad's (by position: the bottom button jumps, the left one uses: src/bindings.js). */
 export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', t('hud.leftStick')).replaceAll('A/D', t('hud.leftStick')).replace(/\bE\b/g, 'X / □');
 
 /**
  * The cue's line for this frame ('' = nothing on the screen).
  * @param s.quiet      a menu, a conversation, photo mode: nothing
- * @param s.ride       the vehicle's kind while riding (null on foot); s.rideFor: ms since you got on
+ * @param s.ride       the vehicle's kind while riding (null on foot): nothing (no button hints as you get on)
  * @param s.aiming     the fluid tool's own crosshair speaks
  * @param s.shipHint   ship.hud(): 'E go aboard', 'E galactic map', … (or another line: not a prompt)
  * @param s.shipPlaying one of the ship's scenes has the screen
@@ -42,14 +30,13 @@ export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('S
 export function cueText(s = {}) {
   if (s.quiet) return '';
   let t = '';
-  if (s.ride) t = s.rideFor < RIDE_HINT_MS ? ((s.controller ? RIDE_PAD : RIDE_KEYS)[s.ride] ?? (s.controller ? RIDE_PAD : RIDE_KEYS).bike) : '';
-  else if (s.aiming) t = '';
+  if (s.ride || s.aiming) t = '';
   else if (s.shipHint || s.shipPlaying) t = /^E /.test(s.shipHint ?? '') ? s.shipHint : '';   // (inside and at its ramp, E is the ship's; in its scenes, nothing)
   else if (s.lens) t = s.lens;
   else if (s.prompt && !s.promptAt) t = `E ${s.prompt}`;
   else if (s.boarding) t = tr('hud.boarding');
   if (!t) return '';
-  return s.controller && !s.ride ? padCue(t) : t;
+  return s.controller ? padCue(t) : t;
 }
 
 /**

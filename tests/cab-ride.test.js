@@ -172,12 +172,9 @@ test('the pad in a cab: X / □ is SPACE (where to), B / ○ gets out, A / × ju
   assert.ok(press(0).JumpOff, 'A / ×');
 });
 
-test('the cue: a cab\'s keys, waiting and on the way, keyboard and pad', () => {
-  assert.equal(cueText({ ride: 'taxi', rideFor: 0 }), 'SPACE where to · E get out');
-  assert.equal(cueText({ ride: 'taxiRoute', rideFor: 0 }), 'SPACE another stop · E jump off');
-  assert.equal(cueText({ ride: 'taxi', rideFor: 0, controller: true }), 'X / □ where to · B / ○ get out');
-  assert.equal(cueText({ ride: 'taxiRoute', rideFor: 0, controller: true }), 'X / □ another stop · A / × jump off');
-  assert.doesNotMatch(cueText({ ride: 'taxi', rideFor: 0 }), /throttle|steer/);
+test('the cue: no button hints in a cab (its dash asks where to by itself)', () => {
+  assert.equal(cueText({ ride: 'taxi', rideFor: 0 }), '');
+  assert.equal(cueText({ ride: 'taxi', rideFor: 0, controller: true }), '');
 });
 
 test('the cab\'s words each carry a tone, and none of them is a driver\'s', () => {

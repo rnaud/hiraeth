@@ -247,16 +247,6 @@ export const FR = {
   'touch.run': 'courir',
 
   // ---------------------------------------------------------------- l'interface en jeu
-  'hud.ride.taxi': 'SPACE où aller · E descendre',
-  'hud.ride.taxiRoute': 'SPACE un autre arrêt · E sauter',
-  'hud.ride.bird': 'E sauter · A/D s\'incliner · W piquer · S remonter · SPACE battre des ailes',
-  'hud.ride.bike': 'E descendre (en roulant : sauter) · W/S accélérer · A/D diriger · SHIFT accélération · SPACE bond',
-  'hud.ride.skiff': 'E débarquer (en avançant : sauter) · W/S accélérer · A/D diriger · SHIFT accélération',
-  'hud.pad.taxi': 'X / □ où aller · B / ○ descendre',
-  'hud.pad.taxiRoute': 'X / □ un autre arrêt · A / × sauter',
-  'hud.pad.bird': 'A / × sauter · RT / R2 voler · stick gauche s\'incliner, en avant piquer, en arrière monter · X / □ battre des ailes',
-  'hud.pad.bike': 'A / × sauter · B / ○ descendre · RT / R2 avancer · LT / L2 freiner · stick gauche diriger · RB / R1 accélération · X / □ bond',
-  'hud.pad.skiff': 'A / × sauter · B / ○ débarquer · RT / R2 avancer · LT / L2 freiner · stick gauche diriger · RB / R1 accélération · X / □ bond',
   'hud.leftStick': 'stick gauche',
   'hud.boarding': 'le sac à dos s\'enclenche…',
   'hint.close': '{key} fermer',

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cueText, PlaceName, Fader, Cue, findSummary, padCue, RIDE_HINT_MS, healthHud, staminaHud } from '../src/hud.js';
+import { cueText, PlaceName, Fader, Cue, findSummary, padCue, healthHud, staminaHud } from '../src/hud.js';
 import { Quests } from '../src/story/quests.js';
 import { Controller, menuNavigate } from '../src/controller.js';
 
@@ -46,10 +46,11 @@ test('the cue says nothing at rest, and only what the use button does right here
   assert.equal(cueText({ lens: 'E turn lens 2 · 1/3 beams aligned', prompt: 'turn the lens' }), 'E turn lens 2 · 1/3 beams aligned');
   assert.equal(cueText({ aiming: true, prompt: 'turn the lens' }), '', 'aiming: the crosshair speaks');
   assert.equal(cueText({ quiet: true, prompt: 'turn the lens' }), '', 'a menu, a conversation, photo mode');
-  // a ride's controls for a few seconds after you get on, then nothing
-  assert.match(cueText({ ride: 'bike', rideFor: 100 }), /^E dismount/);
-  assert.match(cueText({ ride: 'bike', rideFor: 100, controller: true }), /^A \/ × jump off · B \/ ○ dismount · RT \/ R2 go/);
-  assert.equal(cueText({ ride: 'bike', rideFor: RIDE_HINT_MS + 1 }), '');
+  // bug (playtest 2026-10-08): getting into a vehicle listed its buttons; riding, the cue says nothing
+  for (const ride of ['bike', 'skiff', 'bird', 'taxi']) {
+    assert.equal(cueText({ ride, rideFor: 0 }), '', `no button hints getting on a ${ride}`);
+    assert.equal(cueText({ ride, rideFor: 0, controller: true, prompt: 'turn the lens' }), '', 'nor a pad\'s, nor a prompt under it');
+  }
   assert.equal(padCue('E go aboard · SPACE hop · SHIFT boost'), 'X / □ go aboard · A / × hop · L3 boost');
 });
 

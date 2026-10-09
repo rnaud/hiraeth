@@ -249,16 +249,6 @@ export const EN = {
   'touch.run': 'run',
 
   // ---------------------------------------------------------------- the HUD
-  'hud.ride.taxi': 'SPACE where to · E get out',
-  'hud.ride.taxiRoute': 'SPACE another stop · E jump off',
-  'hud.ride.bird': 'E jump off · A/D bank · W dive · S pull up · SPACE flap',
-  'hud.ride.bike': 'E dismount (moving: jump off) · W/S throttle · A/D steer · SHIFT boost · SPACE hop',
-  'hud.ride.skiff': 'E step off (moving: jump off) · W/S throttle · A/D steer · SHIFT boost',
-  'hud.pad.taxi': 'X / □ where to · B / ○ get out',
-  'hud.pad.taxiRoute': 'X / □ another stop · A / × jump off',
-  'hud.pad.bird': 'A / × jump off · RT / R2 fly on · left stick bank, forward dive, back climb · X / □ flap',
-  'hud.pad.bike': 'A / × jump off · B / ○ dismount · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
-  'hud.pad.skiff': 'A / × jump off · B / ○ step off · RT / R2 go · LT / L2 brake · left stick steer · RB / R1 boost · X / □ hop',
   'hud.leftStick': 'left stick',
   'hud.boarding': 'slotting the backpack in…',
   'hint.close': '{key} close',

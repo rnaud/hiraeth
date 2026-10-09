@@ -49,13 +49,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] The transition between worlds looks wrong on a white background when heading to space.
 - [ ] Do a visual audit at different screen resolutions.
 
-## HUD and prompts
-
-- [ ] On-screen hints are too obvious and hide the health bar.
-- [ ] Starting a new quest should show a hint that looks different from the others.
-- [ ] Don't show button hints when getting into a vehicle.
-- [ ] Loading a new level shows the touch controls again.
-
 ## Sound
 
 - [ ] The desert wind is far too loud.

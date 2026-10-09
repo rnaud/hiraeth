@@ -62,6 +62,7 @@ import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js
 import { buildTravellerLod } from './characters/traveller-lod.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
+import { InputMode } from './input-mode.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
@@ -512,7 +513,7 @@ registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
-const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
+const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
 await slice();
@@ -530,7 +531,7 @@ const story = new Story(scene, { levelId, def: { ...content.story, next: reveale
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
 await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
-const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
+const showToast = (text, o) => ship.cinema.toast(text, o);   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
@@ -943,6 +944,10 @@ const paused = () => !!window.cinematicReview?.paused || menu.open || journal.op
     };
   }
 }
+// what is in hand (src/input-mode.js), remembered from the world before: the touch buttons stay hidden
+// while a controller or the keyboard is in use, from the first frame of a new world
+const inputMode = new InputMode({ touchDevice: isTouch });
+inputMode.apply(document.body.classList);
 if (isTouch) new TouchControls(input, rig);
 // where the controller's printed letters are (settings), and the Android app: build label, update toast, pause/resume
 settings.on((k) => { if (!k || k === 'padFaces') { setFaces(settings.padFaces); menu.syncControls?.(); } });
@@ -1017,21 +1022,14 @@ const timer = new THREE.Timer();
 let frameNo = 0;
 
 // Nothing on the screen at rest (src/hud.js): no status box. The cue says what the use button does
-// right here when it has nothing to float over (the ship's hatch and console, a lens), a ride's
-// controls for a few seconds after you get on, and a region's name as you cross into it.
+// right here when it has nothing to float over (the ship's hatch and console, a lens) and a region's
+// name as you cross into it; no button hints as you get into a vehicle (src/hud.js cueText).
 const cue = new Cue(), placeName = new PlaceName();
-const rideHint = { kind: null, at: 0 };
 function updateHud() {
   const now = performance.now();
-  // (a cab's cue says what it is doing: waiting for a stop, or on its way; it shows again at each stop it reaches)
-  const rideKind = player.ride ? (player.ride.kind === 'taxi' && player.ride.mode === 'route' ? 'taxiRoute' : player.ride.kind) : null;
-  const rideStamp = player.ride ? `${rideKind}.${player.ride.arrivals ?? 0}` : null;
-  if (player.ride) { if (rideHint.kind !== rideStamp) { rideHint.kind = rideStamp; rideHint.at = now; } }
-  else rideHint.kind = null;
   const quiet = busy() || photo.on || player.dead;
-  if (quiet && player.ride) rideHint.at = now;   // (a ride's cue waits for the cab's question, a menu, to close)
   const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
-  const text = cueText({ quiet, ride: rideKind, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
+  const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
   const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
   const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
@@ -1068,7 +1066,7 @@ const busy = () => restartOpen || story.pageOpen || journal.open || changelog.op
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
 const noInput = {};
-let controllerActive = false;
+let controllerActive = inputMode.controller;
 // The controller's layout changed in v0.93 (src/bindings.js): a player with a save from before is told once,
 // the first time a pad is used (the flag is the device's, like the settings)
 const padSchemeNotice = () => {
@@ -1116,7 +1114,7 @@ const controller = new Controller({
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   look: (x, y) => { if (x || y) rig.look(x, y); },
-  activity: () => { controllerActive = true; screenInput = false; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
+  activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
@@ -1165,9 +1163,8 @@ const controller = new Controller({
 inputDisplay.bind({ context: () => controller.lastContext ?? 'game', index: () => controller.index });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
 // that is connected (the Retroid's own controls) counts as in use until the screen or keys are touched,
-// so a handheld shows no touch buttons from the start.
-let screenInput = false;
-for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; screenInput = true; });
+// so a handheld shows no touch buttons from the start (src/input-mode.js).
+for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, (e) => { inputMode.event(e); controllerActive = inputMode.controller; inputMode.apply(document.body.classList); }, { capture: true, passive: true });
 
 
 // People's eyes, brows and small gear (under 7 cm) cast no visible shadow but cost a draw call
@@ -1454,9 +1451,9 @@ function frame(ts) {
   const dt = feelDt(realDt);   // (a hit-stop slows the world for a few hundredths of a second: src/feel.js)
   const padInput = controller.update(dt, !document.hidden && document.hasFocus());
   inputDisplay.update();   // (off: nothing)
-  if (controller.index === null) controllerActive = false;
-  else if (!screenInput) controllerActive = true;
-  document.body.classList.toggle('controller', controllerActive);
+  inputMode.frame(controller.index !== null);
+  controllerActive = inputMode.controller;
+  inputMode.apply(document.body.classList);
   // No button list on the screen while playing, talking or in menus (the settings list the controls);
   // only photo mode, a tool few find by chance, keeps its own. Set only when it changes (the label rewrite watches the page).
   const hintText = photo.on ? `Left stick fly · right stick look · LB/RB down/up · ${confirmKey()} save · ${backKey()} exit` : '';

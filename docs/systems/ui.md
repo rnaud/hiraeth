@@ -86,7 +86,8 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
 ## A quieter screen: conversations and prompts
 - **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
-  hatch and console, a lens); a ride's controls show for six seconds after you get on.
+  hatch and console, a lens); nothing while riding (no button hints as you get on, playtest
+  2026-10-08: the settings' Controls page lists a ride's buttons).
   The controller's button bar is gone except in photo mode; the full controls live in the
   settings (and H for the keyboard's). Story pages, item cards and toasts that teach name the
   input through a `{key:verb}` placeholder, in the keys and buttons the player holds and bound
@@ -94,6 +95,15 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
 - **A controller means no touch buttons.** `body.controller` hides `#touch` and the gear.
   A connected pad (the Retroid's own controls via `native-pad.js`) counts as in use until
   the screen or the keys are touched, so a handheld starts with a clean screen.
+- **What is in hand** (`src/input-mode.js`, `InputMode`; tests `tests/input-mode.test.js`): `pad`,
+  `keys` or `touch`, from the controller's activity, trusted key presses (not the touch buttons'
+  synthetic ones, nor typing in a field, nor code-less keys a handheld may send), mouse clicks and
+  touches. It sets `body.controller` and `body.touch` (the touch layout and buttons only while the
+  fingers are what is in use: a keyboard on a touch-screen laptop hides them too) and is remembered
+  for the tab in `sessionStorage` (`moebius.input.v1`): a new world is a new page, and a browser
+  lists a pad only after its first press there, so the touch buttons used to come back on every
+  world loaded with a controller. A remembered pad holds until the screen or keys are used, or a
+  pad that was listed goes away. The title screen and the worlds list remember a pad press too.
 - **Round button badges** (`src/prompt-keys.js`): `keyBadge('E')` is
   `<b class="key">E</b>`, a small ink circle (a pill for "X / □"); `badgeLine()` badges the
   button at the start of each " · " part of a status line. The badge holds the plain
@@ -195,7 +205,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
     where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
     here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
-    backpack slotting in), a ride's controls for `RIDE_HINT_MS` after you get on, what the scout
+    backpack slotting in), nothing while riding (a ride's controls are in the settings), what the scout
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
     the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
   - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
@@ -301,3 +311,20 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   makers' box and open it", else its title. `Quests.summary()` gives each active quest's goal and
   current step and the ended ones by title; `journalHtml()` is the same as text. The steps already done
   are never shown, in the menu or in play.
+
+## Notices and the quest card (playtest 2026-10-08)
+
+- **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are quiet: translucent paper,
+  a 1 px line, no shadow, 12 px, at most 560 px wide (60 % of a phone held sideways). The cue and the
+  scenes' hint got the same lighter frame.
+- **Never on the health bar**: `#health` is one of the layout's `OBSTACLES` whether it shows or not
+  (it comes the moment you are hurt). `layoutCinema` places a top item centred when it can, else slides
+  it sideways along its row to the free span nearest the centre (`slide`: a phone's buttons down the
+  right), else the next row down; `Cinema.layout` sets its `left` as well as its `top`. On a narrow
+  portrait phone the cue sits below the health bar's line. Tests: `tests/hints.test.js`.
+- **A quest's start looks different**: `Quests.startToast` (and the villagers' errands, `Errands`) call
+  the toast with `{ kind: 'quest', head, title, step }`; the queue keeps it, and the toast is drawn as
+  `questToastHtml`: an ink card with a gold rule, "◆ New quest" (or New errand) in gold capitals over
+  the title in italics and the first step (`#toast.quest`, index.html). Later steps, endings and every
+  other notice stay plain.
+

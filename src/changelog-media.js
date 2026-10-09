@@ -294,6 +294,19 @@ export const CHANGELOG_MEDIA = {
       ...colourShots('marketnight', 'ae5f14c7', { ref: 'marketnight-1-lane', query: 'world=marketnight', hour: null }, 'The night market’s screen lane (References view 1): the walls and casings a slate blue', 'its first picture'),
     ], see: SEE_COLOURS },
   ],
+  '0.94': [
+    { match: 'Notices are quieter', shots: [
+      { name: 'hud-notices', caption: 'A long notice while hurt, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+      { name: 'hud-notices-phone', caption: 'The same notice on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+    ] },
+    { match: 'Starting a quest or an errand shows its own card', shots: [
+      { name: 'quest-card', caption: 'A quest begins, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+      { name: 'quest-card-phone', caption: 'A quest begins on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+    ] },
+    { match: 'The touch buttons stay as you left them', shots: [
+      { name: 'touch-new-world', caption: 'A new world loads on a phone after playing with a controller (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, the pad remembered from the world before, Low (8 October)' },
+    ] },
+  ],
   '0.93': [
     { match: 'The shade has a new look: a cartoon drawn in negative', shots: [
       { name: 'shade-desert', caption: 'A shade standing in the Arena at 10:00: the violet body with its head and eyes before; after, the black figure in its white outline, its head a black flame of three tips', from: 'headless Chrome against this branch’s own dev server and the commit before the new look, High, 1280 × 720, the camera 3.4 m from it (8 October)' },

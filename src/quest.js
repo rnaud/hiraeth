@@ -304,8 +304,8 @@ export class Story {
 export const errandMenuKey = (kind = inputKind()) => (kind === 'pad' ? 'View' : kind === 'touch' ? 'The book' : 'J');
 
 export class Errands {
-  constructor({ levelId, defs, npcs, journal, titles, capture, sound }) {
-    Object.assign(this, { levelId, defs, npcs, journal, titles, capture, sound });
+  constructor({ levelId, defs, npcs, journal, titles, capture, sound, toast: say = toast }) {
+    Object.assign(this, { levelId, defs, npcs, journal, titles, capture, sound, say });
     this.watch = [];
     for (const d of defs) {
       if (d.from[0] === levelId && npcs[d.from[1]]) this.watch.push({ d, npc: npcs[d.from[1]], role: 'give' });
@@ -325,7 +325,8 @@ export class Errands {
         if (!st) {
           say(d.ask);
           this.journal.setErrand(d.id, { item: d.item, to: d.to[0], toTitle: this.titles[d.to[0]] ?? d.to[0], done: false });
-          toast(`Errand: carry ${d.item} to ${this.titles[d.to[0]] ?? d.to[0]}`);
+          const to = this.titles[d.to[0]] ?? d.to[0];
+          this.say(`Errand: carry ${d.item} to ${to}`, { kind: 'quest', head: 'New errand', title: `Carry ${d.item}`, step: `to ${to}` });
           this.sound?.chime?.();
         } else if (!st.done) say(d.wait);
         else npc.lines = w.base;
@@ -337,7 +338,7 @@ export class Errands {
           img = this.capture(new THREE.Vector3(P.x + Math.sin(h) * 3, P.y + 1.8, P.z + Math.cos(h) * 3), P.clone().add(new THREE.Vector3(0, 1.4, 0)), 240, 180);
         } catch { /* no sketch */ }
         this.journal.setErrand(d.id, { ...st, done: true, img });
-        toast(`Delivered ${d.item} · ${errandMenuKey()} to see it in the Sketchbook`);
+        this.say(`Delivered ${d.item} · ${errandMenuKey()} to see it in the Sketchbook`);
         this.sound?.chime?.();
       } else npc.lines = w.base;
     }

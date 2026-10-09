@@ -107,6 +107,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v0.94 — 2026-10-08
 
+- The touch buttons stay as you left them when a new world loads: hidden while you play with a controller or the keyboard, back as soon as you touch the screen.
+- Getting into a vehicle no longer lists its buttons along the bottom of the screen; the Controls page in the settings still has them.
+- Starting a quest or an errand shows its own card, unlike the other notices: “New quest” in gold over the quest’s name and its first step.
+- Notices are quieter: soft paper and a thin line instead of a heavy inked box, and they always keep clear of the health bar. On a phone held sideways they wrap beside the touch buttons instead of sliding off the bottom of the screen.
 - New instrumental soundtracks accompany the Desert, the City-Shaft, Vael and the Sky Stones, each with its own instruments and mood.
 - New instrumental music fills the Sealed Hangar, the Buried Machine, Viridel and the Garden of Spheres.
 - Lorn, the Deep Wood, the Signal Market and the White Mangrove now have their own instrumental soundtracks.

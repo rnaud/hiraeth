@@ -402,8 +402,7 @@ export function controlsHtml(list = controlsList(), first = 'keyboard', rebind =
  */
 export class TouchControls {
   constructor(input, rig) {
-    this.input = input;
-    document.body.classList.add('touch');
+    this.input = input;   // (body.touch, which shows them, is main.js's: src/input-mode.js)
     const root = document.getElementById('touch');
     root.innerHTML = `
       <div class="stick"><div class="nub"></div></div>
