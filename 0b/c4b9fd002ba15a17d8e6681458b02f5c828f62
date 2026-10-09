@@ -1,0 +1,183 @@
+changelog.md
+  s_636e79c9ee751a::t_939652b6187fa2 122-123
+docs/systems/traveller-kit.md
+  s_636e79c9ee751a::t_960ddd973d71a6 18-26,34,69-77
+"references/Core Objects/Backpack Colour Explorations/01 Turquoise and Coral/prompt.txt"
+  s_636e79c9ee751a::t_9811cd4a5bd2ea 1
+"references/Core Objects/Backpack Colour Explorations/01 Turquoise and Coral/source.txt"
+  s_636e79c9ee751a::t_b87b8b3ae64cc2 1
+"references/Core Objects/Backpack Colour Explorations/02 Cobalt and Amber/prompt.txt"
+  s_636e79c9ee751a::t_b0a88ae1b46f7e 1
+"references/Core Objects/Backpack Colour Explorations/02 Cobalt and Amber/source.txt"
+  s_636e79c9ee751a::t_49a4db239e8fc0 1
+"references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/prompt.txt"
+  s_636e79c9ee751a::t_75ca13dc1043cc 1
+"references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/source.txt"
+  s_636e79c9ee751a::t_e15a03163b592c 1
+"references/Core Objects/Backpack Colour Explorations/04 Plum and Mint/prompt.txt"
+  s_636e79c9ee751a::t_f255fd0925e5a4 1
+"references/Core Objects/Backpack Colour Explorations/04 Plum and Mint/source.txt"
+  s_636e79c9ee751a::t_5ae8cb39202e9c 1
+"references/Core Objects/Backpack Colour Explorations/05 Rust and Ice/prompt.txt"
+  s_636e79c9ee751a::t_6232e11eba2186 1
+"references/Core Objects/Backpack Colour Explorations/05 Rust and Ice/source.txt"
+  s_636e79c9ee751a::t_57e91dcf862a4a 1
+"references/Core Objects/Backpack Colour Explorations/06 Charcoal and Opal/prompt.txt"
+  s_636e79c9ee751a::t_525c65c2da6b74 1
+"references/Core Objects/Backpack Colour Explorations/06 Charcoal and Opal/source.txt"
+  s_636e79c9ee751a::t_ead52ac6a73f1b 1
+"references/Core Objects/Backpack and Glove - In Use v2/prompt.txt"
+  s_636e79c9ee751a::t_2ba02c608f3016 1
+"references/Core Objects/Backpack and Glove - In Use v2/source.txt"
+  s_636e79c9ee751a::t_11fe18cce90ddc 1
+"references/Core Objects/Fluid Backpack - Assembly v3/prompt.txt"
+  s_636e79c9ee751a::t_a413b8f6c97b2f 1
+"references/Core Objects/Fluid Backpack - Assembly v3/source.txt"
+  s_636e79c9ee751a::t_068d940c844134 1
+"references/Core Objects/Fluid Backpack - Wearable v2/prompt.txt"
+  s_636e79c9ee751a::t_a260f4b8f7db15 1
+"references/Core Objects/Fluid Backpack - Wearable v2/source.txt"
+  s_636e79c9ee751a::t_8f31e2bb3b815e 1
+"references/Core Objects/Fluid Glove/prompt.txt"
+  s_636e79c9ee751a::t_8c75dea95f82f8 1
+"references/Core Objects/Fluid Glove/source.txt"
+  s_636e79c9ee751a::t_42cc7e8b994223 1
+"references/Core Objects/Folding Scout - States v2/prompt.txt"
+  s_636e79c9ee751a::t_9843706e4ab47f 1
+"references/Core Objects/Folding Scout - States v2/source.txt"
+  s_636e79c9ee751a::t_2db6a91a771777 1
+"references/Core Objects/Folding Scout/prompt.txt"
+  s_636e79c9ee751a::t_5903cdfc86f440 1
+"references/Core Objects/Folding Scout/source.txt"
+  s_636e79c9ee751a::t_d98028b62628c1 1
+"references/Core Objects/Living Fluid Flask/prompt.txt"
+  s_636e79c9ee751a::t_c322f0c8c6709d 1
+"references/Core Objects/Living Fluid Flask/source.txt"
+  s_636e79c9ee751a::t_8727609dba5b56 1
+"references/Core Objects/Makers Chest - Human Scale v2/prompt.txt"
+  s_636e79c9ee751a::t_8286a8d0fbef61 1
+"references/Core Objects/Makers Chest - Human Scale v2/source.txt"
+  s_636e79c9ee751a::t_ab11c0bc3b0aa5 1
+"references/Core Objects/Makers Chest - Seamless v3/prompt.txt"
+  s_636e79c9ee751a::t_2d818286f6dc66 1
+"references/Core Objects/Makers Chest - Seamless v3/source.txt"
+  s_636e79c9ee751a::t_60ea582678ba9a 1
+"references/Core Objects/Makers Chest/prompt.txt"
+  s_636e79c9ee751a::t_7ae157707ad5fc 1
+"references/Core Objects/Makers Chest/source.txt"
+  s_636e79c9ee751a::t_8cbe564af61ee0 1
+"references/Core Objects/Reviewed Gadgets/Fluid Shield - Clear Separation v3/prompt.txt"
+  s_636e79c9ee751a::t_0fb0b2ff4a60fa 1
+"references/Core Objects/Reviewed Gadgets/Fluid Shield - Clear Separation v3/review.txt"
+  s_636e79c9ee751a::t_d4d909342863b7 1
+"references/Core Objects/Reviewed Gadgets/Fluid Shield - Clear Separation v3/source.txt"
+  s_636e79c9ee751a::t_79526a1c5f4155 1
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Living Liquid v3/prompt.txt"
+  s_636e79c9ee751a::t_d9fff9641c4726 1
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Living Liquid v3/review.txt"
+  s_636e79c9ee751a::t_29cc307cc7ddd2 1
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Living Liquid v3/source.txt"
+  s_636e79c9ee751a::t_e2da21fbba9a70 1
+"references/Core Objects/Reviewed Gadgets/Ink Bomb - Reviewed/prompt.txt"
+  s_636e79c9ee751a::t_20afc80930be41 1
+"references/Core Objects/Reviewed Gadgets/Ink Bomb - Reviewed/review.txt"
+  s_636e79c9ee751a::t_48d4a19039489b 1
+"references/Core Objects/Reviewed Gadgets/Ink Bomb - Reviewed/source.txt"
+  s_636e79c9ee751a::t_40718277926720 1
+"references/Core Objects/Reviewed Gadgets/Lodestone Glove - Wearable v2/prompt.txt"
+  s_636e79c9ee751a::t_a7d8fe4dda5cf4 1
+"references/Core Objects/Reviewed Gadgets/Lodestone Glove - Wearable v2/review.txt"
+  s_636e79c9ee751a::t_1b49c715677593 1
+"references/Core Objects/Reviewed Gadgets/Lodestone Glove - Wearable v2/source.txt"
+  s_636e79c9ee751a::t_73c305b64ca50d 1
+"references/Core Objects/Reviewed Gadgets/Returning Boomerang - Reviewed/prompt.txt"
+  s_636e79c9ee751a::t_30a75a3209a346 1
+"references/Core Objects/Reviewed Gadgets/Returning Boomerang - Reviewed/review.txt"
+  s_636e79c9ee751a::t_43b50584960583 1
+"references/Core Objects/Reviewed Gadgets/Returning Boomerang - Reviewed/source.txt"
+  s_636e79c9ee751a::t_84e12015fe2f49 1
+references/REFERENCE-SELECTION.txt
+  s_636e79c9ee751a::t_5257743c9e6264 1-31
+"references/The Giants Mouth/Blocked Water Puzzle v2/prompt.txt"
+  s_636e79c9ee751a::t_33e1247c1cfe8c 1
+"references/The Giants Mouth/Blocked Water Puzzle v2/source.txt"
+  s_636e79c9ee751a::t_2dd8a60e50ac8d 1
+"references/The Giants Mouth/Entrance/prompt.txt"
+  s_636e79c9ee751a::t_11721519b34396 1
+"references/The Giants Mouth/Entrance/source.txt"
+  s_636e79c9ee751a::t_962279876d6b4c 1
+"references/The Giants Mouth/Heart Chamber/prompt.txt"
+  s_636e79c9ee751a::t_f464d6cc024ab2 1
+"references/The Giants Mouth/Heart Chamber/source.txt"
+  s_636e79c9ee751a::t_b8ba00b353c6e3 1
+"references/The Giants Mouth/Walkable Jaw Entrance v2/prompt.txt"
+  s_636e79c9ee751a::t_455c7ac4bdcad0 1
+"references/The Giants Mouth/Walkable Jaw Entrance v2/source.txt"
+  s_636e79c9ee751a::t_b8b5a26cdae8b6 1
+"references/The Travellers Ship/Cockpit and Message/prompt.txt"
+  s_636e79c9ee751a::t_c1a22afcda377a 1
+"references/The Travellers Ship/Cockpit and Message/source.txt"
+  s_636e79c9ee751a::t_c062f368fe057c 1
+"references/The Travellers Ship/Living Quarters/prompt.txt"
+  s_636e79c9ee751a::t_f7175fdd95414a 1
+"references/The Travellers Ship/Living Quarters/source.txt"
+  s_636e79c9ee751a::t_09d1a878357cd0 1
+"references/The Travellers Ship/Main Interior/prompt.txt"
+  s_636e79c9ee751a::t_9efcc5a839ab33 1
+"references/The Travellers Ship/Main Interior/source.txt"
+  s_636e79c9ee751a::t_5dd3ac65fd5334 1
+references/batches/2026-10-08-backpack-colours.json
+  s_636e79c9ee751a::t_22695e159d1e28 1-77
+references/batches/2026-10-08-practical-revisions.json
+  s_636e79c9ee751a::t_284d34f83f6ffd 1-95
+references/batches/2026-10-08-reviewed-gadgets.json
+  s_636e79c9ee751a::t_41ed79ddb27086 1-81
+references/batches/2026-10-08-ship-giant-objects.json
+  s_636e79c9ee751a::t_b83123e5ff9e77 1-104
+scripts/midjourney-references.py
+  s_636e79c9ee751a::t_f5492b3c4aecf3 1-71
+src/changelog.js
+  s_636e79c9ee751a::t_76d174a064a8de 128-129
+src/desert-city.js
+  s_9ca76055a220ed::t_ec3ac54bdaa01b 707-711,713,715-718,720-741,757
+src/drone.js
+  s_636e79c9ee751a::t_e680ad4221e2e1 35-36
+src/fluid-tool.js
+  s_636e79c9ee751a::t_61ba5c4f8541e9 86,489-492,495,501-503,508,558-566,569-584
+src/ship/interior.js
+  s_636e79c9ee751a::t_f3eb463ed64865 2,142-156,162
+src/ship/model.js
+  s_636e79c9ee751a::t_c30382c20ebfe8 20,31-32,38,48
+tests/desert-story.test.js
+  s_636e79c9ee751a::t_9b28f4ef00c58c 185,187
+tests/flask.test.js
+  s_636e79c9ee751a::t_525871ec86c4e0 9-10,14,20
+tests/fluid-tool.test.js
+  s_636e79c9ee751a::t_3e0afe54c11d50 395
+tests/skull-entrance.test.js
+  s_9ca76055a220ed::t_e2ce07f001066b 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0bc4b9fd002ba15a17d8e6681458b02f5c828f62",
+  "prompts": {},
+  "sessions": {
+    "s_636e79c9ee751a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11db2-8eba-7d92-a417-5ca567fe4057",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
