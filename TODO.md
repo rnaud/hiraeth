@@ -32,6 +32,11 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. Do not build until approved.
 
+- [ ] **Fresh reference sheets first**: run the 21 Midjourney prompts in docs/design/enemy-roster-prompts.md (one
+  main sheet per archetype in its first world's skin, plus one alternate skin), save each to
+  `references/enemy-archetypes/<id>/sheet-N.jpg` with a `manifest.json`, pick by silhouette first, then rebuild the
+  contact sheet.
+
 - [ ] **Approve the roster**: 21 archetypes (12 creatures, 5 possessed machines, 4 spirits), each with its own
   silhouette, body plan and role; no two machines or spirits share a body plan, and each shows its possession its
   own way. It replaces the 100 world enemies (src/enemies/roster.js: the machines and the shades all looked alike)
