@@ -1123,6 +1123,9 @@ export function* buildIncal(scene) {
     vehicles,
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
     shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
+    // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
+    // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
+    beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)
