@@ -1,0 +1,45 @@
+changelog.md
+  s_9ca76055a220ed::t_5519db209c28e7 17
+docs/systems/foes.md
+  s_9ca76055a220ed::t_fff31620adb5b9 148-153
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_a2fdac73e57911 82-83,85-112
+src/changelog-media.js
+  s_9ca76055a220ed::t_8997ad2248818d 342-347
+src/changelog.js
+  s_9ca76055a220ed::t_e1671e677bad45 23
+src/fluid-blade.js
+  s_9ca76055a220ed::t_cbc0b2ae44cbc2 7,217-218,257,277-283,422,548-549,674,678-679,682,689-690,692,694-730,733-737,740-743,745-751,753-755,757-770,774,778,780-781,823,825-828,841
+src/humanoid.js
+  s_9ca76055a220ed::t_ad1b6252abdfb4 1541-1564
+src/player.js
+  s_9ca76055a220ed::t_897e2cab03f89a 1689-1691
+src/studio/main.js
+  s_9ca76055a220ed::t_4d6f355bb9935b 485-491,982
+src/studio/state.js
+  s_9ca76055a220ed::t_f0ecf1902f5591 31
+src/sword-sheath.js
+  s_9ca76055a220ed::t_ba811d08e12ce5 1-168
+tests/blade-attacks.test.js
+  s_9ca76055a220ed::t_594030e6362474 61
+tests/blade-grip.test.js
+  s_9ca76055a220ed::t_4174629427e516 7,119-120,192,197,200-201
+tests/sword-sheath.test.js
+  s_9ca76055a220ed::t_5c1cf79d3d9040 1-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b3a4a737221fbd72e910ed3b4d83be792564594",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
