@@ -1,0 +1,57 @@
+changelog.md
+  s_9ca76055a220ed::t_92f0fb2c83194a 7
+  s_9ca76055a220ed::t_fa5c18777c07d8 8-10
+src/changelog.js
+  s_9ca76055a220ed::t_c5efe66f1ee733 65-66
+  s_9ca76055a220ed::t_fb6c59c317aab0 67-69
+DONE.md
+  s_9ca76055a220ed::t_953168dd2fb66c 1221-1244
+docs/systems/animation.md
+  s_9ca76055a220ed::t_c0ffde75b6cb61 360-366,571-590
+docs/systems/dialogue.md
+  s_9ca76055a220ed::t_3daca59019b264 145-148
+src/animator.js
+  s_9ca76055a220ed::t_cdf72a12953f22 34-62,785
+src/changelog-media.js
+  s_9ca76055a220ed::t_e903d23844758e 229-240
+src/crowd.js
+  s_9ca76055a220ed::t_ea4f04c0a27536 87-98,878,881-889,891,895,899-901,910-912
+src/npc.js
+  s_9ca76055a220ed::t_22df8504cdc31d 2,21-24,583-605,684-686,716-718,979-980,1006-1007
+src/story/desert.js
+  s_9ca76055a220ed::t_20393a119a852c 83-85,308-310
+src/wave.js
+  s_9ca76055a220ed::t_2d5aa348aec610 1-69
+tests/close-contact.test.js
+  s_9ca76055a220ed::t_c386537b010a9e 10,110-145
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_015498505aac95 100-119
+tests/head-turn.test.js
+  s_9ca76055a220ed::t_05697adfd34d85 1-82
+tests/wave.test.js
+  s_6b8abf8ef692f6::t_d61d1efcd2e697 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d2c142c1581687e1f539d0110f34d7cce4111513",
+  "prompts": {},
+  "sessions": {
+    "s_6b8abf8ef692f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a33c1b8922b52386a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
