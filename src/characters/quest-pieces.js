@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { MASKS } from '../costumes.js';
 import { QUEST_LOOKS } from './quest-looks.js';
+import { FAMILY_LOOKS } from './family.js';
+import { familyPieces } from './family-pieces.js';
 
 // Named-only costume geometry, in the same head/chest/right-hand/back frames as
 // costumes.js. Humanoid binds it to the existing bones on BOTH body families.
@@ -213,7 +215,11 @@ function pressureSuit(look,h) {
 
 export function questPieces(look, pieces, humanoid = null) {
  const ref=look.reference;if(!ref)return pieces;
- const [world,id]=ref.split('/'), design=QUEST_LOOKS[world]?.[id];if(!design)return pieces;
+ const [world,id]=ref.split('/');
+ // the traveller's family (src/characters/family.js): their own pieces, laid on the body (family-pieces.js)
+ if(world==='family'){const design=FAMILY_LOOKS[id];if(!design)return pieces;const f=familyPieces(design,look,humanoid);
+   return {...pieces,head:[...pieces.head,...f.head],hand:f.hand??pieces.hand,skinned:[...(pieces.skinned??[]),...f.skinned]};}
+ const design=QUEST_LOOKS[world]?.[id];if(!design)return pieces;
  const extras=wornKit(design.kit), tool=toolKit(design.tool);
  const head=referenceHead(design,look,humanoid)??[...pieces.head,...headKit(design.headKit)];
  return {...pieces,head,chest:[...pieces.chest,...tunic(design,look),...extras.chest],back:[...pieces.back,...extras.back],hand:tool??pieces.hand,skinned:[...(pieces.skinned??[]),...pressureSuit(look,humanoid)]};

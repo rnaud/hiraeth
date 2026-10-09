@@ -20,6 +20,15 @@ New enemy concepts are design targets, not proof that existing models match them
 
 - Preserve quaternion orientation when layering recoil or gestures. Setting a single Euler roll after quaternion yaw can invert a body beyond 90 degrees because the equivalent Euler representation includes a PI pitch and roll. Compose local rotations and test full turns, not only heading zero. This audit caught the shade flipping upside down.
 
+- Lay pieces that must bend with the trunk (vests, lapels, wound scarves, aprons) on the body's own surface with
+  the nearest trunk vertex's weights, not rigid on one bone. The MakeHuman bodies are light (about 70 trunk
+  vertices between belt and neck): sample the surface by casting rays to the trunk's triangles, not by binning its
+  vertices (that left the family's vest half inside the chest), leave the clavicles out (rays at the shoulders
+  stretched lapels over them), and lay every piece at least as finely as the sampled grid, or a coarse piece over
+  a fine one sinks into it between its vertices. The outfit shader paints skin above the neck line, which bares
+  MakeHuman shoulder tops: raise the line (`look.collarUp`) for clothed collars. Implementation:
+  `src/characters/family-pieces.js`.
+
 ## Capture real states, then inspect
 
 Run `node scripts/character-quality-shots.mjs` for the story casts and `node scripts/enemy-quality-shots.mjs` for enemy families and guardians. They use temporary muted Chrome profiles and ports 5488/5489, never the user's 5173 server. Outputs live in ignored `output/character-local/quality-pass/`. The scripts need desktop Chrome, the repo dependencies and write access to their output/cache directories.

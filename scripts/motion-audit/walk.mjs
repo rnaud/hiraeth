@@ -9,6 +9,7 @@ import { Foes } from '../../src/foes.js';
 import { GameState } from '../../src/game-state.js';
 import { keeperModel, sentinelModel, foremanModel, gardenerModel, signModel } from '../../src/temples/guardians.js';
 import { walkReport, correlation } from './metrics.mjs';
+import { Dog } from '../../src/dog.js';
 
 export const DT = 1 / 60, SETTLE = 60, FRAMES = 240;
 const v = new THREE.Vector3();
@@ -104,3 +105,19 @@ export const GUARDIANS = {
   gardener: (pace) => guardianSubject(gardenerModel, (m) => m.legs, 2.4, pace),
   sign: (pace) => guardianSubject(signModel, (m) => m.legs, 2.4, pace),
 };
+
+/**
+ * Moustache (src/dog.js) following someone who walks a straight line at `speed` × pace (m/s): his own legs on the
+ * kit, measured as the foes' are. He settles at the walker's pace behind them.
+ */
+export function dogSubject(speed = 1.6, pace = 1) {
+  speed *= pace;
+  const dog = new Dog(null, { at: new THREE.Vector3(0, 0, 0) });
+  dog.state = 'follow';
+  const leader = { pos: new THREE.Vector3(-1.2, 0, 2.2), heading: 0, vel: new THREE.Vector3(0, 0, speed) };
+  const legs = dog.legs.map((l) => l.root);
+  const run = record({ root: dog.object, legs, torso: dog.body, step: (dt) => { leader.pos.z += speed * dt; dog.update(dt, { leader }); } });
+  const L = dog.rig.length;
+  return { speed, ...run, legLength: L, reachShare: run.reachSpan / L, liftShare: run.lift / L, legsN: legs.length, dog };
+}
+export const DOGS = { moustache: (pace) => dogSubject(1.6, pace), 'moustache-hurry': (pace) => dogSubject(4.2, pace) };

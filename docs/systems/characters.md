@@ -722,6 +722,64 @@ and Wren's trim. Review full-body cast sheets and walking/seated poses in
 `studio.html?lineup=cast&world=buried&source=makehuman` (change the world as needed).
 
 
+## The family (October 2026, v1.7)
+
+The traveller's family wears one canonical look each, from the user's selected single-view designs in
+`references/Home/characters/` (provenance: `references/batches/2026-10-09-selected-family-currency-ship-sword.json`;
+the earlier exploration sheets are not used). `src/characters/family.js` holds them: `FAMILY_LOOKS` (colours
+sampled from the images, hair, robe, boots, face and mood, and the pieces' `kit`), `FAMILY` (the story's body
+fields: kind, age and years, scale, Lou's child morph and face) and `DOG_LOOK` (Moustache's colours).
+
+| who | where | the look |
+|---|---|---|
+| Father | the recordings' hologram (busts), the studio's home cast | slate-blue coat to the knee, open over a rust vest, cream shirt and navy roll-neck; charcoal trousers, brown ankle boots; short grey hair, clean-shaven, a long lined face; his flight cap in his hand |
+| Mother | the recordings, the studio | cream tunic to below the knee, slate trousers, soft brown boots; a long teal scarf lined in coral wound at the throat, its ends down her front; the oval recorder at her belt; silver hair in a low bun |
+| Lou | home (`src/story/home-data.js`), the homecomings | golden-yellow tunic with two coral patch pockets and a striped collar, rust-red trousers, tan mid-calf boots; chestnut hair with a fringe in two messy bunches; a folded drawing in her hand |
+| Ilen | the Lantern (`src/story/lantern-data.js`), home after the true ending (`ILEN_HOME`) | a long faded-teal coat lined in coral, open over a cream shirt; a narrow tool belt, two pouches and a trowel; charcoal trousers, tall boots; dark hair in a low bun |
+| Aunt Tove | home (on the garden bench) | heavy build; a lavender shawl over the shoulders, its point at the front; olive undersleeves, a dusty-blue tunic to the shin under a pale apron; indigo trousers, brown boots; silver bun |
+
+**How it is wired.** The story data spreads `FAMILY[id]` into its people (they keep their words); the hologram's
+`PEOPLE.father` / `.mother` are built from it too (on MakeHuman, the elder body of their years:
+`templateFor`). `namedLook` asks `familyLook(world, id)` first (home and the Lantern only), so the look is the
+same wherever they appear and nothing is drawn at random (no chance beard); the look's `reference` is
+`family/<id>`. `quest-pieces.js questPieces` hands those to `family-pieces.js`.
+
+**The pieces** (`src/characters/family-pieces.js`). The MakeHuman bodies are light (about 70 trunk vertices
+between belt and neck), so a piece laid on the trunk cannot follow its points: `Surface` casts a ray out from the
+trunk's axis at each height and angle (48 × 48) to the farthest trunk triangle (no arm, head or shin corner;
+the clavicles left out, so pieces stay off the shoulders), and `surfacePatch` lays a grid on it a few millimetres
+out, at least as fine as that grid (a coarser piece over a finer one cuts across the folds and sinks into it).
+Each vertex takes the skin weights of the nearest trunk vertex, so the vest, lapels, scarf, shawl, apron bib
+and belt bend with the spine. Held things (the cap, the drawing) are in the hand frame; Lou's bunches in the
+head frame.
+
+**The robes** (`Humanoid.robeGeometry` options, from the look's `robeOpen`, `robeLining`, `robeRole`,
+`robeHem`, `robePanels`): an open front (the legs between the coat's flaps), a lining just inside it, panels laid
+over it (Tove's apron). Linings and panels use the robe's own row heights, so a lining never cuts out through
+it. A robe without these is unchanged (test). **Boots**: `SHINS.ankleboots`, `midboots`, `boots` (a leather shaft
+up the shin, the body's foot in the boot colour, `look.boot`). **Collar** (`look.collarUp`): the outfit shader
+paints skin above the neck line, which on MakeHuman bodies bared the tops of the shoulders; the family's line
+is raised to the neck (the NPC's body material and the hologram's).
+
+**Checks**: `tests/family.test.js` (each look's colours, hair, age and parts; every scene's people use them;
+both body families skinned to the trunk and following it; the open coats' gap and lining; the dog's legs and
+poses). Comparison sheets (reference, front, side, back, walking, talking) are in
+`changelog-media/1.7/family-ref-*.webp`. Known limits: the faces are the game's procedural faces shaped toward
+each drawing (long, lined, strong nose; Lou round with small level eyes), not the drawings themselves; Ilen's
+grey streaks, the mother's slate undersleeves and the father's lapel pockets are not modelled; the hologram
+shows the parents as the elderly designs even in the oldest recordings; robe fronts swing with the thighs, so a
+hand can touch the skirt.
+
+### Moustache, the dog (`src/dog.js`)
+
+The selected design (a lean, long-legged, sandy wire terrier, a long white moustache and beard, white brows,
+one ear folded) is modelled in flat vertex colours; his legs are on the locomotion kit
+(docs/systems/procedural-animation.md, plan 6's `dog` table). Behaviours as before (follow, sniff, sit, bark,
+petted, lie), now posed on the kit: sitting moves the hind feet's homes in under him and tips the body back
+about the shoulders; lying moves the forepaws ahead and the hind paws aside and lowers the body; sniffing drops
+the neck and head; the tail is three links on springs (the root swings with the wag, the tip lags); the ears flop
+on springs. Measured with `node scripts/motion-audit/run.mjs moustache moustache-hurry`.
+
 ### Reference quality review
 
 The character creation skill now includes procedural fit and enemy attachment review in `.agents/skills/moebius-ai-characters/references/procedural-quality.md`. Reproduce the screening captures with `scripts/character-quality-shots.mjs` and `scripts/enemy-quality-shots.mjs`; outputs and coverage are under `output/character-local/quality-pass`. These are review aids, not automated visual acceptance. Full-body sheets fit current posed bounds including tools and headwear. Padded seams follow their torso surface, lantern poles have explicit hangers, local transforms preserve anchors, and replacement headwear retains body-family beard behavior.

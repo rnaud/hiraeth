@@ -348,7 +348,7 @@ test('the hologram: who stands where, and a mouth that only moves while they spe
   assert.equal(HOLO.live(), false, 'nothing drawn until a recording plays');
 });
 
-test('the hologram: coloured busts of who they were, the father bearded', () => {
+test('the hologram: coloured busts of who they were, the father and the mother as their selected designs', () => {
   // busts: cut below the chest, the bottom edge just over the lens
   for (const k of ['m', 'f']) {
     const B = BUST[k];
@@ -357,8 +357,10 @@ test('the hologram: coloured busts of who they were, the father bearded', () => 
   }
   for (const who of ['father', 'both', 'three']) for (const L of holoLayout(who)) assert.ok(L.y >= BUST.lift && L.y < 0.2, 'each bust sits just over the lens');
   // their own colours, not one tint: each mesh's ink material is read as it is
-  assert.equal(PEOPLE.father.look.mask, 'beard', 'the father has a beard');
-  assert.ok(PEOPLE.father.moustache, 'and a moustache over it');
+  // (references/Home/characters: the father clean-shaven, short grey hair; the mother's silver bun)
+  assert.equal(PEOPLE.father.look.mask, 'none', 'the father is clean-shaven');
+  assert.ok(!PEOPLE.father.moustache, 'no moustache');
+  assert.ok(PEOPLE.father.family && PEOPLE.mother.family, 'both wear the family’s looks (src/characters/family.js)');
   assert.notEqual(PEOPLE.father.palette.cloth, PEOPLE.mother.palette.cloth, 'the two dress differently');
   assert.notEqual(PEOPLE.father.look.head, PEOPLE.mother.look.head, 'and wear their hair differently');
   const body = holoLook(makeMaterial({ color: '#b5473a', color2: '#2b2f45', mode: MODE_OUTFIT, skin: '#dba985' }));

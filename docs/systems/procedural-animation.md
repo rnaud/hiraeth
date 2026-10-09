@@ -489,6 +489,20 @@ Left for later phases: chains (4: tails, antennae, cloaks), the other body plans
 far tier's cheaper drawing, on-screen tiers and the Retroid measurement (7); the stepped clock is built but no
 plan turns it on yet.
 
+### Moustache on the kit (src/dog.js)
+
+The dog at home is the first creature outside the foes on the kit: `PLANS.dog` (plan 6, a longer and lower step
+than the hound's, no attack poses). His mind only moves `pos` and `heading`; sitting and lying change the
+planner's foot homes (it steps the feet there) and the body is lowered and pitched about the shoulders on top of
+the kit's offsets. `scripts/motion-audit/walk.mjs dogSubject` leads him behind a walker:
+
+| subject | slide/m before → after | reach span, % of leg | lift, % of leg | steps/s full → half | groups |
+|---|---|---|---|---|---|
+| Moustache, 1.6 m/s | 0.43 → 0.01 | 1–2 cm → 29 % | 17 % | 2.6 → 1.5 | diagonals |
+| Moustache, 4.2 m/s | 0.19 → 0.00 | 2 cm → 26 % | 17 % | 5.9 → 3.3 | diagonals (was each alone) |
+
+`tests/family.test.js` holds these and the sit, lie, sniff and wag poses.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of

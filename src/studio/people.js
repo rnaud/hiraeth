@@ -21,7 +21,9 @@ const DATA = {
   perdide: () => import('../story/perdide-data.js'),
   perdide2: () => import('../story/perdide2-data.js'),
   bazaar: () => import('../story/bazaar-data.js'),
-  home: () => import('../story/home-data.js'),
+  // (home's cast: Lou and Tove, then the rest of the family, src/characters/family.js: the parents, Ilen)
+  home: () => Promise.all([import('../story/home-data.js'), import('../characters/family.js')]).then(([home, fam]) => ({ ...home, FAMILY: fam.FAMILY })),
+  lantern: () => import('../story/lantern-data.js'),
 };
 
 /** The worlds with story people, in the order of the faces lineup (studio: Lineup → every world's faces). */

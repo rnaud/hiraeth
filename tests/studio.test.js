@@ -88,7 +88,8 @@ test('every world\'s faces: the traveller and a story person of each world, a cl
   const s = decodeState(encodeState({ lineup: 'faces', view: 'close', seed: 2 }));
   assert.equal(s.lineup, 'faces');
   assert.equal(s.view, 'close');
-  assert.deepEqual([...STORY_WORLDS].sort(), ['arzach', 'arzach2', 'bazaar', 'buried', 'desert', 'edena', 'garage', 'home', 'incal', 'perdide', 'perdide2', 'spheres']);   // (home: Lou and Aunt Tove)
+  assert.deepEqual([...STORY_WORLDS].sort(), ['arzach', 'arzach2', 'bazaar', 'buried', 'desert', 'edena', 'garage', 'home', 'incal', 'lantern', 'perdide', 'perdide2', 'spheres']);   // (home: Lou, Aunt Tove and the rest of the family; the Lantern: Ilen)
+  assert.deepEqual((await castOf('home')).map((p) => p.id), ['lou', 'tove', 'father', 'mother', 'ilen'], 'the whole family at home');
   for (const w of STORY_WORLDS) assert.ok((await castOf(w)).length > 0, `${w} has story people to show`);
 });
 

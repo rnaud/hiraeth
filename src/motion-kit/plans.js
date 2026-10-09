@@ -40,6 +40,16 @@ export const PLANS = {
     air: { front: { y: 0.18, z: 0.3 }, hind: { y: 0.18, z: -0.3 } },  // (stretched out through a leap, × L)
     style: 'organic',
   },
+  // plan 6 for a dog (src/dog.js: Moustache at home): a trot on diagonal pairs on long legs, hocks back; a longer,
+  // lower step than the hound's, a light body that settles soft; no attacks, so only the rest pose
+  dog: {
+    gait: { gait: 'alternate', drift: 0.44, stepTime: [0.08, 0.3], height: 0.17, arc: 'organic', duty: 0.6, reach: 0.6 },
+    knee: { lenA: 0.6, lenB: 0.6, pole: 'beast' },
+    body: { bob: 0.03, lean: 0.025, bank: 0.05, sway: 0.12, tilt: 0.28, spring: { f: 3.2, z: 0.62, r: 0 } },
+    poses: {},
+    air: { front: { y: 0.12, z: 0.18 }, hind: { y: 0.12, z: -0.18 } },
+    style: 'organic',
+  },
   // plan 18: the makers' machines on pistons, two or three legs: a wave, steps as three straight moves, hard stops
   machine: {
     gait: { gait: (n) => (n === 3 ? 'wave' : 'alternate'), drift: 0.24, stepTime: [0.14, 0.42], height: 0.17, arc: 'machine', duty: 0.7, reach: 0.4 },

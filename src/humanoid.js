@@ -246,6 +246,17 @@ function reshape(scene, kind) {
 }
 
 // ---------------------------------------------------------------------------
+/** A look's robe options for Humanoid.robeGeometry (the family's open coats, linings, aprons: src/characters/family.js). */
+export function robeOptions(look) {
+  const o = {};
+  if (look.robeOpen) o.open = look.robeOpen;
+  if (look.robeLining) o.lining = look.robeLining;
+  if (look.robeRole) o.role = look.robeRole;
+  if (look.robeHem) o.hem = look.robeHem;
+  if (look.robePanels?.length) o.panels = look.robePanels;
+  return o;
+}
+
 // Builds (costumes.js BUILDS) and body morphs (morph.js): the same skeleton, the body
 // mesh made slimmer, broader or heavier around its bones, the way reshape() slims it
 // (weighted, so joints stay smooth). The radial factors per bone are morph.js
@@ -1050,7 +1061,7 @@ export class Humanoid {
 
   /** The costume's merged geometry in this model's bind space (cached per body kind and look; colours added per person). */
   costumeGeometry(look) {
-    const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}` : '-';
+    const robe = look.robe > 0 ? `${look.robe.toFixed(2)}/${(look.flare ?? 0.3).toFixed(2)}${look.robeOpen || look.robeLining || look.robeRole || look.robeHem || look.robePanels ? `/${JSON.stringify(robeOptions(look))}` : ''}` : '-';
     const key = `${look.reference ? `${look.reference}|` : ''}${this.profile?.id ?? this.kind}|${this.build}${this.years ? `@${this.years}` : ''}|${morphKey(this.morph)}|${look.head}|${look.mask}|${look.body}|${look.prop}|${look.back ?? 'none'}${look.stow ? '/stow' : ''}|${look.shins ?? 'none'}|${robe}${this.profile?.lookKey?.(look) ?? ''}`;
     const cache = (this.constructor._costumes ??= new Map());
     if (cache.has(key)) return cache.get(key);
@@ -1114,7 +1125,7 @@ export class Humanoid {
       }
     }
     for (const part of pieces.skinned ?? []) push(part.geo, part.role, part.joints, null, part.edge ?? null);
-    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3)) push(part.geo, look.kit === 'oilApron' && part.role === 'cloth' ? 'cloak' : part.role, part.joints, null, null, part.seated, part.seatGeo);
+    if (look.robe > 0) for (const part of this.robeGeometry(look.robe, look.flare ?? 0.3, robeOptions(look))) push(part.geo, look.kit === 'oilApron' && part.role === 'cloth' ? 'cloak' : part.role, part.joints, null, null, part.seated, part.seatGeo);
     const merged = (list) => {
       if (!list.length) return null;
       const roles = [];
@@ -1150,9 +1161,14 @@ export class Humanoid {
 
   /**
    * A robe from the belt to `hem` (m above the ground), flaring to `flare` (m): kept clear of this
-   * body's hips and legs at rest, the lower part following the thighs as they swing.
+   * body's hips and legs at rest, the lower part following the thighs as they swing. Options (a look's
+   * robeOpen, robeLining, robeRole, robeHem, robePanels: the family's coats, tunics and apron,
+   * src/characters/family.js): `open`, half the gap left down the front (rad: an open coat, the legs
+   * between its flaps); `lining`, a role for its inside (a second skin just within it); `role` and `hem`,
+   * the body's and the hem band's roles; `panels`, pieces laid over it ({ role, a0, a1 (rad round from the
+   * front), t0, t1 (down it, 0 the belt), out (m) }: an apron, patch pockets), weighted as it is.
    */
-  robeGeometry(hem, flare) {
+  robeGeometry(hem, flare, { open = 0, lining = null, role = 'cloth', hem: hemRole = 'accent', panels = [] } = {}) {
     const B = this.b, bones = this.body.skeleton.bones;
     const belt = this.outfitRest[1] - 0.005;
     // the body's extent at each height (bind pose), so the robe never cuts into the hips
@@ -1184,11 +1200,18 @@ export class Humanoid {
       const under = seated ? THREE.MathUtils.smoothstep(hipY - y, S.hip[0], S.hip[1]) * (1 - THREE.MathUtils.smoothstep(kneeY - y, S.knee[0], S.knee[1])) : 0;
       return { y, zc: THREE.MathUtils.lerp(zc, zc - 0.02, t), rx: Math.max(THREE.MathUtils.lerp(0.165, flare, k), e.x + 0.03), rz, rzb: THREE.MathUtils.lerp(rz, rz * S.under, under) };
     };
-    const band = (t0, t1, steps, seated = false) => {
+    // (a0..a1: the angles round it, 0 at the front; out: pushed out (or in) along its radius, m)
+    // (rows at the robe's own heights, `ts`, and at t0 and t1: a lining or a panel between them lies on the
+    // same chords as the robe, so a lining never cuts out through it nor a panel sinks into it)
+    const G = [...ts.map((_, r) => (0.88 * r) / (ts.length - 1)), 1];   // (evenly down to the hem band, as it always was)
+    const band = (t0, t1, seated = false, a0 = open, a1 = Math.PI * 2 - open, out = 0) => {
       const pos = [], idx = [], rows = [];
-      for (let r = 0; r <= steps; r++) rows.push(ring(t0 + (t1 - t0) * (r / steps), seated));
-      rows.forEach((R) => { for (let c = 0; c <= cols; c++) { const a = (c / cols) * Math.PI * 2; pos.push(Math.sin(a) * R.rx, R.y, R.zc + Math.cos(a) * (Math.cos(a) < 0 ? R.rzb : R.rz)); } });
-      for (let r = 0; r < steps; r++) for (let c = 0; c < cols; c++) { const a = r * (cols + 1) + c, b = a + 1, d = a + cols + 1, e = d + 1; idx.push(a, d, b, b, d, e); }
+      const n = Math.max(2, Math.ceil(cols * (a1 - a0) / (Math.PI * 2)));
+      const at = [t0, ...G.filter((t) => t > t0 + 1e-4 && t < t1 - 1e-4), t1];
+      const steps = at.length - 1;
+      for (const t of at) rows.push(ring(t, seated));
+      rows.forEach((R) => { for (let c = 0; c <= n; c++) { const a = a0 + (c / n) * (a1 - a0), rz = (Math.cos(a) < 0 ? R.rzb : R.rz) + out; pos.push(Math.sin(a) * (R.rx + out), R.y, R.zc + Math.cos(a) * rz); } });
+      for (let r = 0; r < steps; r++) for (let c = 0; c < n; c++) { const a = r * (n + 1) + c, b = a + 1, d = a + n + 1, e = d + 1; idx.push(a, d, b, b, d, e); }
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
       g.setIndex(idx);
@@ -1213,8 +1236,15 @@ export class Humanoid {
       return [[jp, jl, jr, 0], [1 - f, f * wl, f * (1 - wl), 0]];
     };
     // (the seated weights are read off the standing shape: the same vertices, in the same order, as the seated one)
-    return [{ geo: band(0, 0.88, ts.length - 1), seatGeo: band(0, 0.88, ts.length - 1, true), role: 'cloth', joints, seated },
-      { geo: band(0.88, 1, 1), seatGeo: band(0.88, 1, 1, true), role: 'accent', joints, seated }];
+    const part = (r, t0, t1, a0, a1, out) => ({ geo: band(t0, t1, false, a0, a1, out), seatGeo: band(t0, t1, true, a0, a1, out), role: r, joints, seated });
+    const A0 = open, A1 = Math.PI * 2 - open;
+    const parts = [part(role, 0, 0.88, A0, A1, 0), part(hemRole, 0.88, 1, A0, A1, 0)];
+    if (lining) parts.push(part(lining, 0, 1, A0, A1, -0.008));
+    for (const P of panels) {
+      const t0 = THREE.MathUtils.clamp(P.t0 ?? 0, 0, 1), t1 = THREE.MathUtils.clamp(P.t1 ?? 1, t0 + 0.02, 1);
+      parts.push(part(P.role ?? 'accent', t0, t1, P.a0 ?? -0.5, P.a1 ?? 0.5, P.out ?? 0.01));
+    }
+    return parts;
   }
 
   /**

@@ -8,11 +8,12 @@
 //   node scripts/motion-audit/run.mjs --pace=0.5      at half their speeds (does the gait follow the speed?)
 //   node scripts/motion-audit/run.mjs --pack          a second of each kind beside it: do they step in unison?
 //   node scripts/motion-audit/run.mjs --cost          the kit's time a frame per foe and per leg (µs, this machine)
+//   node scripts/motion-audit/run.mjs moustache moustache-hurry   the dog at home (src/dog.js), following a walker
 //
 // Columns: reach% and lift% are shares of the leg's length, for the foes on the locomotion kit (src/motion-kit/);
 // unison is the correlation of two pack members' first feet (1: in step). The walking is in walk.mjs.
 import { ENEMY_ROSTER } from '../../src/enemies/roster.js';
-import { foeSystem, foeSubject, OLD, GUARDIANS, worldLegs } from './walk.mjs';
+import { foeSystem, foeSubject, OLD, GUARDIANS, DOGS, worldLegs } from './walk.mjs';
 
 const args = process.argv.slice(2), json = args.includes('--json'), all = args.includes('--all');
 const pace = Number(args.find((a) => a.startsWith('--pace='))?.slice(7) ?? 1);   // (walk at this share of each one's speed)
@@ -25,11 +26,12 @@ for (const form of ['crab', 'mantis', 'shell', 'bird', 'stalker', 'newt', 'beetl
   { const e = ENEMY_ROSTER.find((x) => x.form === form && !sample.includes(x.id)); if (e) sample.push(e.id); }
 const shade = ENEMY_ROSTER.find((x) => x.family === 'shade'); if (shade) sample.push(shade.id);
 
-const ids = picks.length ? picks : [...Object.keys(OLD), ...(all ? ENEMY_ROSTER.map((e) => e.id) : sample), ...Object.keys(GUARDIANS)];
+const ids = picks.length ? picks : [...Object.keys(OLD), ...(all ? ENEMY_ROSTER.map((e) => e.id) : sample), ...Object.keys(GUARDIANS), ...Object.keys(DOGS)];
 const out = {};
 const opts = { pace, pack, cost };
 for (const id of ids) {
   if (GUARDIANS[id]) out[id] = GUARDIANS[id](pace);
+  else if (DOGS[id]) { const { dog, ...r } = DOGS[id](pace); out[id] = r; void dog; }
   else if (OLD[id]) out[id] = foeSubject(sys, id, OLD[id], opts);
   else if (ENEMY_ROSTER.some((e) => e.id === id)) { const e = ENEMY_ROSTER.find((x) => x.id === id); const r = foeSubject(sys, id, worldLegs, opts); out[id] = { form: e.form, ...r }; }
   else console.warn(`unknown subject: ${id}`);

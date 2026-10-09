@@ -16,6 +16,7 @@
 // home.stone (token ids on the stone), home.lou.drawing (her drawing on the
 // stone, from the ending), home.visits.
 
+import { FAMILY } from '../characters/family.js';
 import { ORDER } from '../levels/names.js';
 
 /** How many keepsakes he has brought, as Lou sees it: 0 a few, 1 a good many, 2 lots, 3 everything. */
@@ -51,13 +52,9 @@ export const DRAWING_LINES = {
 
 export const PEOPLE = {
   lou: {
-    // (her body is the people's slighter, flatter one under a child's morph; her voice is a girl's: body vs kind)
-    id: 'lou', name: 'Lou', title: 'your daughter, seven and a half', color: '#f2c54b', voice: 1.6, kind: 'f', body: 'm', age: 'child', years: 7.5, scale: 0.8, brows: '#c9a07e',
-    palette: { cloak: '#f2c54b', lining: '#2b211f', cloth: '#f2c54b', legs: '#c8483a', hat: '#e6875f', hair: '#8a5638' }, head: 'twin', cape: 0, look: { trim: 'dots', body: 'none', prop: 'none', mask: 'none', robe: 0.48, build: 'average' },
-    // a child's body on the people's skeleton (morph.js): a big head on short limbs, a round soft middle, no waist
-    morph: { headSize: 1.3, torsoLength: 0.84, legLength: 0.76, armLength: 0.78, neckLength: 0.42, shoulders: 0.8, chest: 0.8, hips: 0.86, belly: 1.4, arms: 0.92, legs: 1.0, neck: 0.8, handSize: 0.8, footSize: 0.82 },
-    // and a child's face: round, the lower face short, a small nose, big eyes, no lines, soft brows
-    face: { eyeSize: 1.45, eyeHeight: -1, eyeSpacing: 0.35, noseLength: 0.5, noseWidth: 0.76, jaw: 0.8, chin: -1, cheeks: 1, faceLength: 0.82, headWidth: 1.18, browRidge: -1, lines: 0, freckles: 0.6, mouthWidth: 0.8, lidWeight: 0.5 },
+    // her body, face and look: the selected design (src/characters/family.js, references/Home/characters/Lou)
+    ...FAMILY.lou,
+    voice: 1.6,
     // short quick steps, a run that starts early, and never quite still
     gait: { stride: 0.6, pace: 0.62, fidget: 1 },
     rest: { smile: 0.35, brow: 0.5, browTilt: 0.25 },
@@ -131,8 +128,8 @@ export const PEOPLE = {
     },
   },
   tove: {
-    id: 'tove', name: 'Aunt Tove', title: 'your mother’s sister', color: '#8a6fb8', voice: 1.08, kind: 'f', scale: 0.96,
-    palette: { cloak: '#8a6fb8', lining: '#2b211f', cloth: '#5f8fb8', legs: '#34405e', hat: '#e6875f', hair: '#b9b0a8' }, head: 'bun', cape: 0.85, look: { body: 'scarf', trim: 'hem', prop: 'none', mask: 'none' },
+    // her body and look: the selected design (src/characters/family.js, references/Home/characters/Aunt Tove)
+    ...FAMILY.tove, voice: 1.08,
     lines: ["~neutral~ Mind the beans. They’ve taken over the path again.", "~happy~ Soup’s ready. So are the bowls. Sit down.", "~tired~ That dog has very selective hearing."],
     talk: {
       entry: [

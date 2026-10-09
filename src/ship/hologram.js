@@ -3,6 +3,7 @@ import { buildCharacter } from '../player.js';
 import { Humanoid, FACE, LOWER_FACE } from '../humanoid.js';
 import { Animator } from '../animator.js';
 import { namedLook } from '../costumes.js';
+import { FAMILY, FAMILY_LOOKS } from '../characters/family.js';
 import { MODE_OUTFIT, MODE_EYE } from '../materials.js';
 
 // The recordings' hologram (src/story/calls.js): the parents, as they were when
@@ -436,17 +437,18 @@ export function holoLayout(who) {
 }
 
 /**
- * Who they were, when they made the recordings: the father with short brown hair and a full,
- * trimmed beard, a rust-red shirt; the mother with her long dark hair down,
- * a teal scarf over a lilac top; the child (the traveller, small) in yellow.
+ * Who they were, when they made the recordings: the father and the mother as the selected designs draw them
+ * (src/characters/family.js, references/Home/characters/Father and Mother: the grey-haired pilot in his slate
+ * coat and rust vest, the silver-haired mother in her cream tunic and long teal scarf lined in coral); the
+ * child (the traveller, small) in yellow.
  */
+const familyBust = (id) => {
+  const def = FAMILY[id], L = FAMILY_LOOKS[id];
+  return { kind: def.kind, scale: 1, def, skin: L.skin, hair: L.hair, palette: def.palette, look: def.look, family: true };
+};
 export const PEOPLE = {
-  father: { kind: 'm', scale: 1, skin: '#dba985', hair: '#5f3c27', moustache: true,
-    palette: { cloak: '#f3ead8', cloth: '#b5473a', legs: '#2b2f45', hat: '#3d4a80', accent: '#d9a441', hair: '#5f3c27', skin: '#dba985' },
-    look: { head: 'short', mask: 'beard', body: 'none', prop: 'none', trim: 'none', robe: 0 } },
-  mother: { kind: 'f', scale: 1, skin: '#c99272', hair: '#2e1f1b',
-    palette: { cloak: '#277e86', cloth: '#9a6aa8', legs: '#34405e', hat: '#5fb7ad', accent: '#2f9a92', hair: '#2e1f1b', skin: '#c99272' },
-    look: { head: 'flow', mask: 'none', body: 'scarf', prop: 'none', trim: 'none', robe: 0 } },
+  father: familyBust('father'),
+  mother: familyBust('mother'),
   child: { kind: 'm', scale: 0.56, skin: '#e6bf9e', hair: '#8a5638',
     palette: { cloak: '#4f8fa8', cloth: '#f2c54b', legs: '#34405e', hair: '#8a5638', skin: '#e6bf9e', accent: '#4f8fa8' },
     look: { head: 'short', mask: 'none', body: 'none', prop: 'none', trim: 'none', robe: 0 } },
@@ -465,9 +467,16 @@ export class HoloFigure {
     this.char = buildCharacter(P.palette);
     this.object = this.char.root;
     this.object.scale.setScalar(P.scale);
-    this.humanoid = new Humanoid(humans[P.kind === 'm' ? 0 : 1], this.char, P.kind, { skin: P.skin, hair: P.hair });
-    // (their hair on their own skull: costumes.js scalp)
-    this.humanoid.dress(namedLook({ world: 'home', id: `holo-${id}`, palette: P.palette, look: P.look, kind: P.kind }));
+    // (their own look wherever they appear: the family's, src/characters/family.js; the child's seeded)
+    const look = namedLook({ world: 'home', id: P.family ? id : `holo-${id}`, palette: P.palette, look: P.look, kind: P.kind });
+    // (on MakeHuman bodies, their age's body: an elder's, as the people of their age, src/makehuman/people.js)
+    let human = humans[P.kind === 'm' ? 0 : 1];
+    const mh = human?.userData?.mhPeople;
+    if (mh && P.def) human = mh.templateFor({ kind: P.kind, def: P.def, dress: look }) ?? human;
+    this.humanoid = new Humanoid(human, this.char, P.kind, { skin: P.skin, hair: P.hair, build: look.build });
+    // (their hair on their own skull: costumes.js scalp; their own face)
+    if (look.face) { this.humanoid.ownFace = look.face; this.humanoid.setFace(look.face); }
+    this.humanoid.dress(look);
     if (P.moustache) this.addMoustache(P.hair);
     this.animator = lib ? new Animator(lib, this.char) : null;
     if (this.animator) this.animator.phase = Math.random();
@@ -484,6 +493,7 @@ export class HoloFigure {
       const key = `${o.material.uuid}|${vc}`;
       if (!mats.has(key)) {
         const m = figureMaterial({ ...this.u, ...holoLook(o.material, vc) }, o.material.side);
+        if (look.collarUp && m.uniforms.uKind?.value === 2) m.uniforms.uOutfit.value.z += look.collarUp;   // (clothed to the neck, as in the game: src/npc.js restyle)
         m.vertexColors = vc;
         mats.set(key, m);
       }

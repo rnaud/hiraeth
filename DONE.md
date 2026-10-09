@@ -1818,3 +1818,29 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   the hilt, scrubbed swings, from the side) and in the Arena (stance, the combo, charge held and let go, riposte,
   dash cut, air cut, guard) beside the sheet; before/after pictures in the v1.7 changelog.
   docs/systems/foes.md ("The look"), docs/systems/traveller-kit.md ("The fluid sword"), tests/fluid-sword.test.js.
+
+## The family, as their selected designs (v1.7, 2026-10-09)
+
+- [x] **Generate and integrate the family characters** from `references/Home/characters/` (the author's selected
+  single-view designs: Father, Mother, Lou, Ilen, Aunt Tove and Moustache; the earlier exploration sheets not used).
+  One canonical look each in `src/characters/family.js` (colours sampled from the images, hair, age, build, robe,
+  boots, face and mood), worn wherever they appear: home (`home-data.js` spreads `FAMILY.lou` / `.tove`), the
+  Lantern and home again (`lantern-data.js` `PEOPLE.ilen`, `ILEN_HOME`), the recordings' hologram (the father and
+  the mother as busts, on MakeHuman elder bodies), the homecomings (they borrow home's people), the People page
+  (portraits are taken from the people in the game) and the studio's home cast (now the whole family; the Lantern
+  has a cast too). `namedLook` asks `familyLook` first (reference `family/<id>`, no chance beard). The pieces are
+  procedural, on the existing MakeHuman/Quaternius bodies and animation (idle, walk, talk, sit): `family-pieces.js`
+  lays the father's vest, shirt, roll-neck and lapels, the mother's wound scarf and recorder, Lou's collar and
+  pockets, Ilen's shirt, coral lapels and tool belt, Tove's shawl, apron bib and tunic on the body's own surface
+  (rays to the trunk's triangles: the bodies have ~70 trunk vertices) with the nearest trunk vertex's weights;
+  `Humanoid.robeGeometry` gained open fronts, linings and panels (the coats, Tove's apron; a plain robe is unchanged);
+  `SHINS` gained boots; `look.collarUp` keeps the shoulders clothed. Moustache (`src/dog.js`) is remodelled to his
+  design and walks on the locomotion kit (`PLANS.dog`: two-bone legs, front knees forward, hocks back, a trot on
+  diagonals by distance walked) with sit (hind paws step in), lie, sniff and a wagging three-link tail on springs:
+  foot slide 0.43 → 0.01 m/m, the knees bending 29 % of the leg (`node scripts/motion-audit/run.mjs moustache`).
+  Checked side by side with the references (front, side, back, walking, talking: `changelog-media/1.7/family-ref-*`),
+  in the home level, a homecoming, the Lantern, recording 3 and the mother's Ilen recording. Tests:
+  `tests/family.test.js` (looks, scenes, both body families, coats and lining, the dog's gait and poses); hair, ship,
+  studio and home-family tests updated to the designs. docs/systems/characters.md ("The family"),
+  docs/systems/procedural-animation.md ("Moustache on the kit"). Not modelled: Ilen's grey streaks, the mother's
+  slate undersleeves, the father's coat pockets; the faces are the game's procedural faces shaped toward each drawing.

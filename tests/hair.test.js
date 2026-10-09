@@ -83,14 +83,15 @@ test('the crowd packs head ids past 32 with the hair cap, and the figures stay l
   }
 });
 
-test('the parents on the recordings: his short brown hair and beard, her long dark hair down', () => {
+test('the parents on the recordings: his short grey hair, clean-shaven; her silver hair in a low bun', () => {
   assert.equal(PEOPLE.father.look.head, 'short');
-  assert.equal(PEOPLE.father.look.mask, 'beard');
-  assert.equal(PEOPLE.mother.look.head, 'flow');
+  assert.equal(PEOPLE.father.look.mask, 'none');
+  assert.equal(PEOPLE.mother.look.head, 'bun');
   assert.equal(PEOPLE.mother.kind, 'f');
-  const mum = namedLook({ world: 'home', id: 'holo-mother', palette: PEOPLE.mother.palette, look: PEOPLE.mother.look, kind: 'f' });
+  const mum = namedLook({ world: 'home', id: 'mother', palette: PEOPLE.mother.palette, look: PEOPLE.mother.look, kind: 'f' });
+  assert.equal(mum.reference, 'family/mother');
   const hair = lookPieces(mum).head.filter((p) => p.role === 'hair');
   const box = new THREE.Box3();
   for (const p of hair) box.union(new THREE.Box3().setFromBufferAttribute(p.geo.attributes.position));
-  assert.ok(box.min.y < -0.3, `down past her shoulders (${box.min.y.toFixed(2)})`);
+  assert.ok(box.min.y > -0.2 && box.min.z < -0.1, `pinned up at the back of her head, not down her back (${box.min.y.toFixed(2)}, ${box.min.z.toFixed(2)})`);
 });

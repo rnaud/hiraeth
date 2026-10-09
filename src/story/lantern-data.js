@@ -25,6 +25,8 @@
 // Flags: finale.met, finale.hollin (she has asked him to tell Hollin), lantern.moment.arrive,
 // world.lantern.done. Keepsake: lantern.person (Ilen herself: she walks to the stone, NOT_SET_DOWN).
 
+import { FAMILY } from '../characters/family.js';
+
 const Q = 'lantern.ilen';
 export const QUEST_ID = Q;
 
@@ -60,9 +62,9 @@ const MORE = [
 
 export const PEOPLE = {
   ilen: {
-    id: 'ilen', name: 'Ilen', title: 'who keeps the lantern', color: '#5fb7ad', voice: 0.92, kind: 'f', lang: 'home', scale: 1.0,
-    // the mother's colours (her scarf at home is teal and coral), and grey coming into her hair
-    palette: { cloak: '#5fb7ad', lining: '#e6875f', cloth: '#f3ead8', legs: '#465c65', hat: '#e6875f', hair: '#8a7a70' }, head: 'bun', cape: 1.1, look: { body: 'scarf', trim: 'hem', prop: 'none', mask: 'none' },
+    // her body and look (the mother's teal and coral, grey coming into her hair): the selected design
+    // (src/characters/family.js, references/Home/characters/Ilen)
+    ...FAMILY.ilen, voice: 0.92, lang: 'home',
     lines: ['~whisper~ It’s singing again. It does when someone comes.', '~happy~ Mind the third stone. It rocks.', '~solemn~ Thirty years. You get used to the quiet. You never like it.'],
     talk: {
       entry: [

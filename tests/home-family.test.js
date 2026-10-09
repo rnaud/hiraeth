@@ -76,7 +76,8 @@ test('Lou runs to meet you, asks what you brought, and what she says follows how
     for (const [k, v] of Object.entries(m)) assert.equal(c[k], v, `${k} ${v} is within its range (not clamped)`);
   }
   assert.equal(L.face.lines, 0, 'no age lines');
-  assert.ok(L.face.eyeSize > 1.3 && L.face.noseLength <= 0.6 && L.face.faceLength < 0.9, 'big eyes, a small nose, a short lower face');
+  // (her selected design, references/Home/characters/Lou: a child's eyes, but the drawing's small level ones, not a doll's)
+  assert.ok(L.face.eyeSize > 1.1 && L.face.eyeSize <= 1.3 && L.face.noseLength <= 0.6 && L.face.faceLength < 0.9, 'a child’s eyes, a small nose, a short lower face');
   assert.ok(['twin', 'bob', 'curls'].includes(L.head), 'a child’s hairstyle');
   assert.equal(L.kind, 'f'); assert.equal(L.body, 'm');
   assert.equal(voiceOf(L).age, 'child', 'a child’s voice');

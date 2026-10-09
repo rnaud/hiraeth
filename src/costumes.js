@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { questLook } from './characters/quest-looks.js';
+import { familyLook } from './characters/family.js';
 import { mulberry32 } from './noise.js';
 import { irisFor } from './eyes.js';
 import { FACE_TYPES, FACE_ODDS } from './morph.js';
@@ -58,6 +59,8 @@ export const PROP_IDS = ['none', 'staff', 'lantern', 'basket', 'wrench', 'paraso
 /** Cloth patterns printed on the tunic (materials.js outfitTrim, the crowd's fragment hook). */
 export const TRIM_IDS = ['none', 'stripes', 'sash', 'yoke', 'bib', 'diamonds', 'patches', 'dots', 'hem'];
 /** Fixed colours of the material roles that aren't the person's own. */
+/** The boots' colour when a look has none of its own (the body's outfit shader: humanoid.js). */
+export const BOOT = '#6e3f2c';
 export const FIXED = { dark: '#2b211f', metal: '#a9a493', wood: '#8a6040', lamp: '#ffd98a', clay: '#b5562f', linen: '#c2b59b', canvas: '#d9bc8c' };
 
 // ------------------------------------------------------------------ the worlds
@@ -685,6 +688,12 @@ export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null
 
 /** A named person's look: seeded by who they are, so they look the same every visit. */
 export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null, young = false } = {}) {
+  // (the traveller's family: one look wherever they appear, src/characters/family.js)
+  const fam = familyLook(world, id);
+  if (fam) {
+    const s = dressFor(world, mulberry32(hashSeed(`family:${id}`)), { palette, head, cape, look: { ...look, ...fam }, pos, kind, named: true, young });
+    return Object.assign(s, fam, { reference: `family/${id}`, kind: s.kind });
+  }
   const ref = questLook(world, id);
   const s = dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look: ref ? { ...look, ...ref } : look, pos, kind, named: true, young });
   // Apply the canonical palette after the seeded draw; unrelated people keep their exact looks.
@@ -1750,6 +1759,18 @@ export const SHINS = {
     return out;
   },
 };
+// boots up the shin (the family's, src/characters/family.js): a leather shaft from the ankle to `top` of the
+// shin (a share of it from the ankle), a turned cuff; the foot below is the body's own, in the boot colour
+function bootShaft(q, { len, r }, top) {
+  const prof = [[r * 0.92 + 0.01, -len * 1.03], [r * 0.95 + 0.009, -len * 0.92], [r * 1.02 + 0.007, -len * (1 - top * 0.55)], [r * 1.1 + 0.007, -len * (1 - top)]];
+  return [
+    P('boot', new THREE.LatheGeometry(prof.map(([a, y]) => new THREE.Vector2(a, y)), sg(12, q)), true),
+    P('boot', torus(prof[3][0] + 0.002, 0.008, q, 12, 4).rotateX(Math.PI / 2).translate(0, prof[3][1], 0)),
+  ];
+}
+SHINS.ankleboots = (q, o) => bootShaft(q, o, 0.28);
+SHINS.midboots = (q, o) => bootShaft(q, o, 0.45);
+SHINS.boots = (q, o) => bootShaft(q, o, 0.62);
 export const SHIN_IDS = Object.keys(SHINS);
 
 /**
@@ -1794,7 +1815,7 @@ export const CROWD_FRAMES = { head: { y: 1.655, z: 0, s: 0.92 }, chest: { y: 0.7
 
 /** The colour of a role for a look. */
 export function roleColor(s, role) {
-  return (role?.startsWith('#') ? role : null) ?? FIXED[role] ?? { hat: s.hat, accent: s.accent, cloak: s.cloak, cloth: s.cloth, hair: s.hair, skin: s.skin, legs: s.legs }[role] ?? s.cloak;
+  return (role?.startsWith('#') ? role : null) ?? FIXED[role] ?? { hat: s.hat, accent: s.accent, cloak: s.cloak, cloth: s.cloth, hair: s.hair, skin: s.skin, legs: s.legs, boot: s.boot ?? BOOT }[role] ?? s.cloak;
 }
 
 /** Every world with its own costume set (all the game's levels). */

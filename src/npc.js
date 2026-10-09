@@ -8,7 +8,7 @@ import { Humanoid } from './humanoid.js';
 import { makeMaterial, sharedUniforms, MODE_OUTFIT, MODE_EYE } from './materials.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
-import { namedLook, costumeWorld, TRIM_IDS, BUILDS, browColour } from './costumes.js';
+import { namedLook, costumeWorld, TRIM_IDS, BUILDS, browColour, BOOT } from './costumes.js';
 import { ageClassOf } from './makehuman/people.js';
 import { formatText } from './story/dialogue.js';
 import { keySig, hasKeys } from './prompt-keys.js';
@@ -273,6 +273,7 @@ export class NPC {
             const mode = m.uniforms.uMode.value;
             m.userData.role = mode === MODE_OUTFIT ? 'body' : mode === MODE_EYE || m.uniforms.uColor.value.getHex() === ink ? 'eyes' : 'brows';
             m.userData.wrist = m.uniforms.uOutfit.value.w;
+            m.userData.neck = m.uniforms.uOutfit.value.z;
             this._mats.set(o.material, m);
           }
           o.material = this._mats.get(o.material);
@@ -283,10 +284,12 @@ export class NPC {
         const u = m.uniforms;
         if (m.userData.role === 'body') {
           u.uColor.value.set(s.cloth); u.uColor2.value.set(s.legs); u.uSkin.value.set(s.skin); u.uGlove.value.w = 0;   // bare hands, like the crowd figures
+          u.uColor3?.value.set(s.boot ?? c.colors.boot ?? BOOT);   // (their boots: the family's own, src/characters/family.js)
           const t = new THREE.Color(s.accent ?? s.cloak);
           u.uTrim.value.set(t.r, t.g, t.b, trim);
           u.uSuit.value = (s.bulk ?? 0) >= 2 ? 1 : 0;                       // the dome people's padded suits
           u.uOutfit.value.w = s.sleeveless ? 0.2 : m.userData.wrist;      // bare arms in the garden
+          u.uOutfit.value.z = m.userData.neck + (s.collarUp ?? 0);          // (a high collar: the shoulders clothed to the neck, the family's)
         } else if (m.userData.role === 'brows') u.uColor.value.set(this.def?.brows ?? browColour(s.hair, s.skin));   // (the hair's, softened; def.brows: a child's own)
         else if (m.userData.role === 'eyes' && s.eyes) { u.uColor2.value.set(s.eyes); u.uSkin.value.set(s.skin); }   // their own iris; the lids in their skin
       }

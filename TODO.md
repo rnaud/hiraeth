@@ -15,10 +15,6 @@ User-approved Midjourney originals and provenance are indexed in
 Use the selected single-view designs as the source of truth; derive further views from them
 rather than mixing the earlier inconsistent exploration sheets.
 
-- [ ] **Generate and integrate the family characters** from `references/Home/characters/`:
-  Father, Mother, Lou, Ilen, Aunt Tove and Moustache. Preserve each selected face, proportions,
-  outfit and silhouette in models, portraits, recordings and story scenes. Rig and animate the
-  human characters and dog appropriately, keeping their identities consistent across views.
 - [ ] **Generate and integrate the angular ship redesign** from
   `references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg`.
   Establish one consistent 3D hull and derive all angles from it. Fit a proper walkable cockpit,
