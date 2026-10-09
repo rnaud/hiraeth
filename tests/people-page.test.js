@@ -91,8 +91,8 @@ test('the story unlocks part by part as the save hears it, and says where they a
   assert.match(personStory(esk, { 'quest.edena.terraces': 'failed' }).join(' '), /hollow/);
   // Ilen: what the light was, only once she has told it (the talk that ends with her coming home)
   const ilen = PERSON.get('ilen');
-  assert.ok(!personStory(ilen, { 'met.ilen': true }).join(' ').includes('struck'));
-  assert.match(personStory(ilen, { 'met.ilen': true, 'finale.met': true }).join(' '), /struck your ship/);
+  assert.ok(!personStory(ilen, { 'met.ilen': true }).join(' ').includes('drained'));
+  assert.match(personStory(ilen, { 'met.ilen': true, 'finale.met': true }).join(' '), /passed your ship and drained it/);
   // the conditions read the save's own shapes
   assert.equal(holds({ quest: 'desert.drum', done: true }, { 'quest.desert.drum': 'done' }), true);
   assert.equal(holds({ quest: 'desert.drum', past: 'free' }, { 'quest.desert.drum': 'find' }), false);

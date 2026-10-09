@@ -18,6 +18,7 @@ import { loadSoundtrack } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
+import { lightThemeNotes, lightBeat } from './story/light-theme.js';
 
 // Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
 // (0 D, 1 E♭, 4 F♯, 5 G, 7 A, 8 B♭, 10 C) The augmented second (1 -> 4) and the slow falls back to the tonic
@@ -1098,8 +1099,8 @@ export class Sound {
   }
 
   /**
-   * The hum rising over `dur` seconds (the prologue: under the father's charge, until the strike):
-   * pulsing in threes, louder and louder. Returns { stop() } (the strike: cut at once).
+   * The hum rising over `dur` seconds (the prologue: under the father's charge, until the light drains the
+   * ship): pulsing in threes, louder and louder. Returns { stop() } (the power going: cut at once).
    */
   makersHumRise(dur = 6) {
     if (!this.ctx || this.muted) return { stop() {} };
@@ -1121,6 +1122,90 @@ export class Sound {
       v.stop(now + 0.1);
     };
     setTimeout(stop, (dur + 2) * 1000);   // (never left singing)
+    return { stop };
+  }
+
+  // ------------------------------------------------------------------ the singing light's theme (src/story/light-theme.js)
+  /**
+   * The singing light sings its theme once (about six seconds): one wordless high voice, legato, gliding
+   * between its five notes (into the raised fourth from a quarter tone under), an "oo" formant, a vibrato
+   * that opens on the long notes, a glass partial an octave over it, and a lot of room. `transpose`
+   * semitones; `bend` semitones the whole phrase falls over its length (the pass: it goes by, its pitch
+   * dropping); `pan` -1 .. 1 (or a { from, to } sweep); `short`: its first four notes, quicker (the map's
+   * signature search). On the effects bus. Returns its length (s).
+   */
+  lightTheme({ vol = 1, transpose = 0, bend = 0, pan = 0, spb = lightBeat(), short = false } = {}) {
+    if (!this.ctx || this.muted) return 0;
+    const ctx = this.ctx, t0 = ctx.currentTime + 0.05;
+    const notes = lightThemeNotes({ at: t0, transpose, spb, short });
+    if (short) spb *= 0.6;   // (the same quickening as the notes: the vibrato's long notes judged by it)
+    const end = notes.at(-1).t + notes.at(-1).dur, len = end - t0 + 1.6;
+    const g = ctx.createGain(); g.gain.value = 0;
+    const oo = ctx.createBiquadFilter(); oo.type = 'bandpass'; oo.frequency.value = 900; oo.Q.value = 0.7;   // "oo"
+    const air = ctx.createBiquadFilter(); air.type = 'lowpass'; air.frequency.value = 3200;
+    const out = ctx.createGain(); out.gain.value = vol;
+    const pn = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    const from = typeof pan === 'object' ? pan.from : pan, to = typeof pan === 'object' ? pan.to : pan;
+    if (pn) { pn.pan.setValueAtTime(from, t0); pn.pan.linearRampToValueAtTime(to, end); }
+    oo.connect(air).connect(g).connect(out);
+    if (pn) out.connect(pn).connect(this.fx); else out.connect(this.fx);
+    const send = ctx.createGain(); send.gain.value = 0.9; out.connect(send).connect(this.reverb);
+    const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 5.2; vg.gain.value = 0;
+    vib.connect(vg); vib.start(t0); vib.stop(end + 1.7);
+    // the voice (a sine and a soft triangle a breath apart) and the glass over it
+    const oscs = [['sine', 1, 0, 1], ['triangle', 1, 6, 0.45], ['sine', 2, 4, 0.12]].map(([type, m, det, v]) => {
+      const o = ctx.createOscillator(), og = ctx.createGain();
+      o.type = type; o.detune.value = det; og.gain.value = v;
+      vg.connect(o.detune);
+      o.connect(og).connect(oo); o.start(t0); o.stop(end + 1.7);
+      return { o, m };
+    });
+    const peak = 0.05;
+    notes.forEach((n, i) => {
+      for (const { o, m } of oscs) {
+        const f = n.f * m, F = o.frequency;
+        if (i === 0) F.setValueAtTime(n.glide ? f * 0.971 : f, n.t);
+        else F.setTargetAtTime(n.glide ? f * 0.971 : f, n.t, 0.045);   // (a voice, not a keyboard: it slides)
+        if (n.glide) F.setTargetAtTime(f, n.t + 0.12, 0.09);
+      }
+      // each note swells a little; the long ones open their vibrato as they hold
+      const G = g.gain, a = n.t, k = i === notes.length - 1 ? 0.85 : 1;
+      if (i === 0) G.setValueAtTime(0, a);
+      G.linearRampToValueAtTime(peak * k, a + Math.min(0.18, n.dur * 0.4));
+      G.linearRampToValueAtTime(peak * k * (n.dur > spb ? 0.9 : 0.7), a + n.dur);
+      vg.gain.setValueAtTime(n.dur > spb ? 0 : 6, a);
+      vg.gain.linearRampToValueAtTime(n.dur > spb ? 16 : 6, a + n.dur);   // (cents)
+    });
+    g.gain.linearRampToValueAtTime(0.0001, end + 1.5);
+    if (bend) for (const { o } of oscs) o.detune.linearRampToValueAtTime(o.detune.value + bend * 100, end);
+    setTimeout(() => { try { out.disconnect(); send.disconnect(); pn?.disconnect(); } catch { /* gone */ } }, (len + 1) * 1000);
+    return len;
+  }
+
+  /**
+   * A recorded cue (src/soundtracks.js CUES, loaded into `this.cues`): played once from now on the effects bus,
+   * its gain following `points` ([[t, gain]], s from now). Returns { stop() }, or null when it isn't loaded
+   * (the caller sings its synth instead).
+   */
+  playCue(id, points = [[0, 1]], { vol = 1 } = {}) {
+    const buf = this.cues?.[id];
+    if (!this.ctx || this.muted || !buf) return null;
+    const ctx = this.ctx, t = ctx.currentTime + 0.05;
+    const src = ctx.createBufferSource(), g = ctx.createGain();
+    src.buffer = buf;
+    g.gain.setValueAtTime(0, t);
+    for (const [at, v] of points) g.gain.linearRampToValueAtTime(v * vol, t + at);
+    src.connect(g).connect(this.fx);
+    src.start(t);
+    let done = false;
+    const stop = (fade = 0.6) => {
+      if (done || !this.ctx) return;
+      done = true;
+      const now = this.ctx.currentTime;
+      g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(g.gain.value, now); g.gain.linearRampToValueAtTime(0, now + fade);
+      src.stop(now + fade + 0.05);
+    };
+    src.onended = () => { try { g.disconnect(); } catch { /* gone */ } };
     return { stop };
   }
 

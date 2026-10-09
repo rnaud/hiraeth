@@ -21,7 +21,7 @@ import { setupPerdideMoments } from './perdide-moments.js';
 //
 // Flags (game-state.js): perdide.wendel.heard, perdide.saba.heard,
 // perdide.crystal.sung (the quest song: the 213th phrase), perdide.clue.ship
-// (the song is the light that struck the ship), perdide.splinter.taken,
+// (the song is the light that passed the ship), perdide.splinter.taken,
 // perdide.heart.rung (the cave answers; the tank takes a crystal-violet band:
 // perdide.tank.tinted), perdide.patience.kept (the bed let you be: the plants
 // stop snapping at you), perdide.fireflies.home, perdide.nest.seen,
@@ -212,7 +212,7 @@ export function setupPerdide(ctx) {
   };
   game.on('flag:perdide.heart.rung', (v) => { if (v) ringHeart(); });
   // the cave answers, as the heart's page does (its `do`): the keepsake, then the flag (which rings it). Idempotent.
-  const keepSplinter = () => game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that struck your ship.' });
+  const keepSplinter = () => game.addKeepsake({ id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that passed your ship.' });
   const rung = () => {
     if (game.flag('perdide.heart.rung')) return false;
     keepSplinter();

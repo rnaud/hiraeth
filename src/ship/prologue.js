@@ -8,11 +8,13 @@
 //   rise    → standing beside the bunk
 //   walk    → you walk to the cockpit, in your own time (the voicemail button
 //             blinks on the dash; nothing walks you there) and press it
-//   call    → the father's message, over the dash
-//   impact  → the hit: shake, alarms, red light, the screen breaks into static
-//   fall    → the planet swings up into the window
-//   streak  → outside, over the desert: the ship streaks across the sky
-//   plough  → it furrows into the dunes
+//   call    → the father's message, over the dash; the singing light's theme comes nearer under it
+//             (src/story/light-theme.js)
+//   pause   → he pauses the recording, mid-word, to listen: the theme alone, from outside
+//   pass    → the singing light passes the ship, close, singing (its glyph brushed onto the hull)
+//   drain   → the power goes with it: the lamps, the core, the screen; the planet swings up
+//   glide   → outside, over the desert: the dark ship glides down, no fire, on its last reserve
+//   land    → a hard landing on its belly, a short skid through the dunes (a landing, not a crash)
 //   settle  → the dust clears
 //   hatch   → the hatch opens, the ramp comes down
 //   stepout → the traveller walks out
@@ -36,16 +38,25 @@ export function callTimeline(lines) {
   return { lines: out, total: t };
 }
 
+/**
+ * The pause (s): he stops the recording and listens; the theme is sung alone `at` s in (after the click and a breath).
+ */
+export const PAUSE = 7.2;
+export const PAUSE_THEME_AT = 0.9;
+/** The opening's story beats, in the order they play (tests/prologue-call.test.js). */
+export const OPENING_ORDER = ['call', 'pause', 'pass', 'drain', 'glide', 'land'];
+
 export const PROLOGUE_STAGES = [
   { id: 'black', dur: 1.6 },
   { id: 'wake', dur: 7.2 },
   { id: 'rise', dur: 1.1 },
   { id: 'walk', until: true, dur: Infinity, play: true },   // as long as you like: it ends with the voicemail button
   { id: 'call', dur: callTimeline(PROLOGUE_CALL).total },
-  { id: 'impact', dur: 4.4 },
-  { id: 'fall', dur: 2.6 },
-  { id: 'streak', dur: 4.8 },
-  { id: 'plough', dur: 3.8 },
+  { id: 'pause', dur: PAUSE },
+  { id: 'pass', dur: 5.4 },
+  { id: 'drain', dur: 4.8 },
+  { id: 'glide', dur: 5.2 },
+  { id: 'land', dur: 3.6 },
   { id: 'settle', dur: 3.6 },
   { id: 'hatch', dur: 3.4 },
   { id: 'stepout', until: true, dur: 9, play: true },

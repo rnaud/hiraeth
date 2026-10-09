@@ -130,11 +130,11 @@ export const PEOPLE = {
           say: ["~solemn~ A light flew low across the shaft, singing one note so high the lamps rang with it. Every window hummed.",
             "~surprised~ The Lodestar answered. Then a splinter broke off and fell all the way to the bottom. I heard it singing long after I lost sight of it."],
           do: { set: { 'incal.rumour.light': true } },
-          choices: [{ text: '~neutral~ Something struck my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
+          choices: [{ text: '~neutral~ Something drained my ship that night.', goto: 'ship' }, { text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' },
             { text: '~neutral~ I have it. Ossa gave it to me.', if: { all: [{ has: 'splinter' }, { not: EARLY }] }, goto: 'carry' }],
         },
         ship: {
-          say: ["~playful~ Struck your ship too? Whatever passed us has left quite a repair bill.",
+          say: ["~playful~ Your ship too? Whatever passed us has left quite a repair bill.",
             "~angry~ The palace called it fireworks. Apparently fireworks don’t require anyone to check on the people below."],
           choices: [{ text: '~curious~ Where did the piece land?', if: EARLY, goto: 'where' }, { text: '~neutral~ I’ll take it up to the light.', if: { not: EARLY }, end: true }],
         },
@@ -488,7 +488,7 @@ export const WREN = {
       light: {
         say: ["~scared~ The singing light passed right over my canopy. Slow, then a sharp turn. My compass spun for an hour. Worst directions I ever received.",
           "~sad~ It flew over the rim toward the deserts. Afterwards, the Lodestar was dimmer. That’s what I saw.",
-          "~curious~ My compass twitches near your ship too. Whatever struck you left something in the metal."],
+          "~curious~ My compass twitches near your ship too. Whatever passed you left something in the metal."],
         do: { set: { 'incal.rumour.light': true } },
         choices: [{ text: '~neutral~ I need to get to the top.', goto: 'ride' }],
       },

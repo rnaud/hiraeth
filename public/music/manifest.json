@@ -185,5 +185,15 @@
       "file": "home.mp3",
       "direction": "D flat major, 54 BPM; felt piano, cello, harmonium, kalimba, music box; father motif and tender homecoming; reused at the Lantern, where Ilen keeps the light"
     }
+  ],
+  "cues": [
+    {
+      "cue": "singing-light",
+      "title": "Hiraeth - The Singing Light",
+      "source": null,
+      "file": "singing-light.mp3",
+      "status": "to record: the game sings the synth version until this file is here (docs/systems/audio.md, \"The singing light's theme\", has the Suno brief)",
+      "direction": "D lydian, 66 BPM, about 45 s, no drums; one wordless high voice (a soft 'oo', glass-like), a glass harmonica an octave over it, a very quiet low D drone swelling in threes; the five-note call A4, D5 E5, a glide up to G#5, a long F#5: far, nearer, close, alone, then rushing past"
+    }
   ]
 }

@@ -54,3 +54,24 @@ test('an unavailable download keeps the procedural score active', async () => {
     assert.equal(sound.recordedTrack, undefined);
   } finally { console.warn = warn; }
 });
+
+// A cue is not a world's theme: played once at a moment (the singing light's theme in the prologue). Its slot
+// is ready before its recording: the game sings the synth version until the file is there.
+test('the cues: each has its slot and its record; a missing recording keeps the synth', async () => {
+  const { CUES, loadCue } = await import('../src/soundtracks.js');
+  const { readFileSync, existsSync } = await import('node:fs');
+  const manifest = JSON.parse(readFileSync(new URL('../public/music/manifest.json', import.meta.url), 'utf8'));
+  assert.deepEqual(Object.keys(CUES), manifest.cues.map((c) => c.cue));
+  for (const c of manifest.cues) {
+    assert.equal(c.file, CUES[c.cue]);
+    assert.ok(c.direction.length > 20);
+    if (c.source) {
+      assert.match(c.source, /^https:\/\/suno\.com\/song\/[a-f0-9-]{36}$/);
+      assert.ok(existsSync(new URL(`../public/music/${c.file}`, import.meta.url)), `${c.file}: recorded, so packaged`);
+    }
+  }
+  const sound = { ctx: { decodeAudioData: async () => { throw new Error('not audio'); } } };
+  const page = async () => ({ ok: true, headers: { get: () => 'text/html' }, blob: async () => new Blob(['<html>']) });
+  assert.equal(await loadCue(sound, 'singing-light', page, { here: null, store: null }), false, 'a dev server’s page is not the file');
+  assert.equal(sound.cues, undefined);
+});

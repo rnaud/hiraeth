@@ -247,7 +247,7 @@ export const CONTENT = {
         ] } },
       { at: [10, -200], palette: pal('#f3ead8', { cloth: '#7a4a35' }), lines: ['~neutral~ The stones hum when a storm comes.', '~whisper~ Listen. Lower than that. That’s the stones.', '~neutral~ Clear sky today. The stones agree, for once.'],
         id: 'tamsin', name: 'Dalia', title: 'listener to stones', color: '#f3ead8', talk: { listen: [
-          "~curious~ The stones hum before a storm. But that night before your crash, they hummed under clear skies. A light passed, singing their note.",
+          "~curious~ The stones hum before a storm. But the night before you came down, they hummed under clear skies. A light passed, singing their note.",
           '~scared~ Low, then rising, like a question. The stones answered it. I didn’t like the answer, and I don’t speak stone.',
           '~whisper~ Shh. A storm is coming. Or that’s my stomach. One of the two.',
           '~neutral~ When the stones hum, get behind something. The storms come quick off the flats, and the sand gets everywhere. Everywhere.',

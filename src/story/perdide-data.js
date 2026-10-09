@@ -7,7 +7,7 @@
 // forty years, knows its 212 phrases; the traveller's tank makes it hum
 // louder. Bring it rain (wait for a shower, or splash it with the fluid) and
 // it sings a 213th phrase nobody has heard: the song of the light that sang
-// as it struck the ship. A splinter shakes loose; carried to the crystal cave
+// as it passed the ship. A splinter shakes loose; carried to the crystal cave
 // on the western island, it sets the cave's crystals singing and tunes itself
 // to the tank (a new colour band): a crystal splinter that harmonises with
 // the tank.
@@ -28,7 +28,7 @@ export const CRYSTAL_TONE = '#c7a6f2';
 export const QUESTS = [
   {
     id: Q, title: 'The Great Crystal', world: 'perdide', main: true,
-    outro: 'The splinter hums with your tank. The crystal sang a phrase like the one you heard the night your ship was struck.',
+    outro: 'The splinter hums with your tank. The crystal sang a phrase like the one you heard the night the light passed your ship.',
     stages: [
       { id: 'wendel', text: 'Something hums in the east. Ask Wendel, the egg-warden at the landing', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
       { id: 'cross', text: 'Cross to the Great Crystal: south over the hill, then east through the ford', label: 'The Great Crystal', goto: 'crystalFoot', radius: 30 },
@@ -180,7 +180,7 @@ export const LANDING = [
         light: {
           say: ["~whisper~ I was cutting late when the light passed. Low over the reeds, singing one high note, like a reed cut just right. I know what I saw.", "~solemn~ The Great Crystal answered without any rain. Then the light climbed away. The jaws stayed shut till morning."],
           do: { set: { 'perdide.rumour.light': true } },
-          choices: [{ text: '~solemn~ I think something like it hit my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
+          choices: [{ text: '~solemn~ I think something like it drained my ship.', goto: 'ship' }, { text: '~happy~ I believe you.', goto: 'believe' }],
         },
         ship: { say: ['~solemn~ Then it didn’t climb far enough.', "~neutral~ Ask *Saba at the Great Crystal*. She knows its songs better than anyone."], choices: [{ text: '~neutral~ I will.', end: true }] },
         believe: { say: ['~playful~ Mm. Well. That makes one of you.'], choices: [{ text: '~neutral~ Bye, Sedge.', end: true }] },
@@ -296,13 +296,13 @@ export const PEOPLE = {
         new: {
           say: ["~surprised~ Two hundred and thirteen. That last phrase is new. Forty years, and it’s said something new."],
           choices: [
-            { text: '~solemn~ I’ve heard it before. Just before something hit my ship.', goto: 'heard' },
+            { text: '~solemn~ I’ve heard it before. Just before my ship went dark.', goto: 'heard' },
             { text: '~curious~ What does it mean?', goto: 'mean' },
           ],
         },
-        mean: { say: ["~curious~ It learned an answer. Have you heard that phrase before? You stopped breathing for a moment."], choices: [{ text: '~solemn~ Yes. Just before something hit my ship.', goto: 'heard' }] },
+        mean: { say: ["~curious~ It learned an answer. Have you heard that phrase before? You stopped breathing for a moment."], choices: [{ text: '~solemn~ Yes. Just before my ship went dark.', goto: 'heard' }] },
         heard: {
-          say: ["~solemn~ The thing that struck you sang this? Then I think the crystal is a piece of it. Same song, same material.", "~solemn~ This piece fell long ago. The rest is still flying out there. Singing, turning. Perhaps searching.", "~solemn~ The crystal pulls at iron like your ship’s scar does. That may be how your ship found this place. A trace of the same thing in both.", "~neutral~ The song loosened a splinter. Look *at the foot of the spires*. Take it with you."],
+          say: ["~solemn~ The thing that passed you sang this? Then I think the crystal is a piece of it. Same song, same material.", "~solemn~ This piece fell long ago. The rest is still flying out there. Singing, turning. Perhaps searching.", "~solemn~ The crystal pulls at iron like your ship’s scar does. That may be how your ship found this place. A trace of the same thing in both.", "~neutral~ The song loosened a splinter. Look *at the foot of the spires*. Take it with you."],
           do: { set: { 'perdide.clue.ship': true } },
           choices: [{ text: '~curious~ What should I do with it?', goto: 'cave' }],
         },
@@ -473,7 +473,7 @@ export const THINGS = {
         ring: {
           say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet climbs the hose as a new colour band. The splinter warms in your hand."],
           do: [{ set: { 'perdide.heart.rung': true } },
-            { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that struck your ship.' } }],
+            { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that passed your ship.' } }],
           choices: [{ text: '~neutral~ (keep it)', end: true }],
         },
         after: { say: ['~whisper~ The ring hums softly now, and your splinter hums with it.'], choices: [{ text: '~neutral~ (listen)', end: true }] },

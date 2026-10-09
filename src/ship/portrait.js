@@ -9,7 +9,7 @@ import { hasCanvas } from './art.js';
 export class CallScreen {
   constructor(size = 384) {
     this.size = size;
-    this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '', waiting: false, signal: '' };
+    this.state = { who: 'off', talk: 0, statik: 0, t: 0, speaker: 'father', crack: 0, power: 1, label: '', waiting: false, signal: '', paused: false };
     if (!hasCanvas()) { this.texture = null; return; }
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvas.height = size;
@@ -108,7 +108,9 @@ export class CallScreen {
     g.fillStyle = '#16303a'; g.fillRect(0, 0, S, S);
     g.strokeStyle = '#5fd0c6'; g.fillStyle = '#5fd0c6'; g.lineWidth = 3;
     // two spools, turning; the tape between them
-    const spin = s.talk > 0 ? t * 2.2 : t * 0.6;
+    if (s.paused) s.spun = s.spun ?? t;   // (paused: the spools stop where they were)
+    else s.spun = null;
+    const spin = s.paused ? s.spun * 0.6 : s.talk > 0 ? t * 2.2 : t * 0.6;
     for (const [x, r] of [[S * 0.33, S * 0.12], [S * 0.67, S * 0.09]]) {
       g.beginPath(); g.arc(x, S * 0.36, r, 0, 7); g.stroke();
       g.beginPath(); g.arc(x, S * 0.36, r * 0.25, 0, 7); g.stroke();
@@ -126,7 +128,12 @@ export class CallScreen {
     g.textAlign = 'center';
     g.font = `bold ${S * 0.055}px ui-monospace, Menlo, monospace`;
     g.globalAlpha = 0.7 + 0.3 * Math.sin(t * 3);
-    g.fillText('● PLAYBACK', c, S * 0.2);
+    if (s.paused) {
+      // the prologue: he has paused it to listen (two bars, and the word)
+      g.globalAlpha = 1;
+      g.fillRect(c - S * 0.2, S * 0.155, S * 0.022, S * 0.06); g.fillRect(c - S * 0.165, S * 0.155, S * 0.022, S * 0.06);
+      g.fillText('PAUSED', c + S * 0.04, S * 0.2);
+    } else g.fillText('● PLAYBACK', c, S * 0.2);
     g.globalAlpha = 1;
     if (s.label) {
       g.font = `${S * 0.05}px ui-monospace, Menlo, monospace`;

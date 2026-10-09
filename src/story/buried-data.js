@@ -177,9 +177,9 @@ export const PEOPLE = {
         why: {
           say: ["~solemn~ That night, a light crossed the dunes singing the wheel’s note. My grandmother called such things *Tuning Stars*. She never said what they came to tune.", "~whisper~ It turned above the canyon, then climbed away. As if it had stopped to search.", "~scared~ What if it was looking for the wheel? Lighting the Wick might call it back. That is why I stayed up here."],
           do: { set: { 'buried.rumour.light': true } },
-          choices: [{ text: '~neutral~ It struck my ship.', goto: 'struck' }, { text: '~neutral~ Then let me light it.', goto: 'light' }],
+          choices: [{ text: '~neutral~ It drained my ship.', goto: 'struck' }, { text: '~neutral~ Then let me light it.', goto: 'light' }],
         },
-        struck: { say: ["~sad~ It struck your ship? I’m glad it passed us by. I’m sorry it didn’t pass you by too."], choices: [{ text: '~neutral~ Let me light the Wick.', goto: 'light' }] },
+        struck: { say: ["~sad~ It drained your ship? I’m glad it passed us by. I’m sorry it didn’t pass you by too."], choices: [{ text: '~neutral~ Let me light the Wick.', goto: 'light' }] },
         light: {
           say: ["~tired~ You’ll light it? Take *the ramp south of the domes*. Follow the canyon *through two oval doors to the oculus*.", "~neutral~ At the centre, *push the stuck oil valve*. Oil will fill the dish. Then *shoot the Wick* to light it."],
           do: { set: { 'buried.hask.asked': true } },
@@ -198,7 +198,7 @@ export const PEOPLE = {
           do: { set: { 'clue.buried.mark': true } },
           choices: [{ text: '~neutral~ No. Something hit it.', goto: 'hit' }, { text: '~neutral~ I don’t know.', goto: 'hit' }],
         },
-        hit: { say: ["~tired~ Wen says it’s burned on, where you were struck. Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
+        hit: { say: ["~tired~ Wen says it’s burned on, where the light brushed you. Same mark on a gift and a wound. I don’t like that. *Light the Wick.* Let’s learn what happens."], choices: [{ text: '~neutral~ I’m going.', end: true }] },
         felt: {
           say: [{ if: { flag: 'buried.wheel.turned' }, text: "~happy~ It turned. I felt the bench shake. My fifty-third year. And the sky stayed empty." }, { if: { not: { flag: 'buried.wheel.turned' } }, text: "~happy~ The Wick is burning. Go *stand before the wheel*. You’ve earned a view of what you helped wake." }],
           choices: [{ text: '~curious~ Did the light come back?', goto: 'back' }, { text: '~neutral~ Goodbye, Hask.', end: true }],

@@ -28,7 +28,7 @@ The ship's cutscenes and the filmed first times.
   map's colours and mark (a shader writing the G-buffer: flat body, a hatched crescent,
   bands, dunes, craters, continents, windows, a ring or a moon, a rim of air), the ship levels
   out and brakes into the air with a few pale wisps, passes the clouds in a soft white fade and
-  comes down upright on its jets: a landing, not a crash (only the prologue crashes;
+  comes down upright on its jets: a landing, not a crash (the prologue's is a forced landing on its belly;
   docs/systems/ship-consoles.md). Hold to skip, as ever.
 - **The burning tree** (`FlameBody (3D: three nested noise-displaced shells, torn open toward the top; was FlameSheet, a card)` in `src/story/flames.js`): one great flame drawn by a
   fragment shader on a card that turns to the camera: flat bands from a pale core to a red
@@ -44,18 +44,50 @@ The ship's cutscenes and the filmed first times.
   edges and no flipped faces, and casts rays from the terraces, stairs and trunk: every first
   hit is bark seen from outside.
 
-## The prologue's message and the crash landing (v1.0)
+## The prologue's message and the forced landing (v1.0; restaged October 2026)
 
-- **The father's message** (`PROLOGUE_CALL`, `src/story/calls.js`) is four lines and the cut, 25.5 s
-  (it was six, 34.5 s): he checks the little light and greets you as if live, gives the translator and
-  "nobody owes you" in one breath, then what was left half done, then the charge word for word. Under
-  the charge the hum rises and the call screen's static and the hologram's glitch grow with it, until
-  the strike cuts all three (docs/systems/audio.md, "The hum"). `tests/prologue-call.test.js`.
+- **The father's message** (`PROLOGUE_CALL`, `src/story/calls.js`) is four lines and the cut, 29.4 s:
+  made years after he left, it greets him as if live ("There you are. We haven't heard from you for so
+  long."), says they miss him, that he is still a disappointment ("You leave everything half done"),
+  and gives the charge word for word with its condition ("Bring back *something of value*. Until then,
+  don't come home."; the key phrase lettered in gold), then the translator, cut mid-word: the traveller
+  pauses it. `tests/prologue-call.test.js`.
+- **The restaged opening** (`src/ship/prologue.js` `OPENING_ORDER`, `src/ship/cinematics.js`): nothing
+  strikes the ship.
+  - `call`: the singing light's theme (docs/systems/audio.md, "The singing light's theme") is heard
+    three times under his words, each nearer (`lightCues`: faint and an octave up under the greeting,
+    nearer under "still disappointed", nearest under the charge); the makers' hum rises under the
+    charge as before, and the screen's static and the hologram's glitch with it.
+  - `pause` (7.2 s): a click; he has paused it. The call screen reads PAUSED, its spools stopped; three
+    shots: the father held still mid-word (`bust`), his face lit by it, listening (`listen`), then wide
+    (`window`): him, the frozen bust and the window, where the light comes out of the dark. The theme
+    sings once alone (`PAUSE_THEME_AT`).
+  - `pass` (5.4 s): over his shoulder out of the window, the light comes on, growing, and goes by on the
+    right; cut outside, wide from the ship's right side: it brushes past the hull and rushes away past
+    the lens. Sung loud, its pitch falling as it goes (`bend`), panned across. As it passes the ship goes
+    dark (`setPower('dead')`, the core's glow drained, the screen to static, the picture torn) and the
+    view dims; "Power draining."
+  - `drain` (4.8 s): the hum winds down; "Main power drained. Emergency reserve only."; the amber reserve
+    comes on; "Not enough to hold orbit. Taking us down."; the planet swings up into the window; white.
+  - `glide` (5.2 s): over the desert, the dark ship comes down in a long shallow fall with a thin vapour
+    behind it, no fire; the reserve's jets only at the very end.
+  - `land` (3.6 s): down on its belly, a short skid through the dunes (`SITE_OVERRIDES.desert.crash.length`
+    52 m, was 118), dust, still. No smoke after (the ship never burned).
+  - `hatch`: once the charge's card has gone, the ship: "Whatever passed us drained the core and left a
+    magnetic signature on the hull. I can track its pulse." and he answers: "Then track it. When we can
+    fly, we follow it. I want to hear it again." (`LANDING_LINE`, `FOLLOW_LINE`, src/story/signature.js:
+    both play on past the hand-back, and after a skip, so the choice is his and never lost).
+  The light is the ship's own puffs (`flame`, pale gold and cyan), a cluster at its head and a thin trail,
+  lighting what is near (one of the level's point lights); `lightFrame` draws it on its way (ship-local,
+  out of the dark ahead, nearest a few metres off the cockpit's right, away behind), drawn only within
+  ~450 m. Birds no longer circle the ship in orbit (main.js: no flocks while the player is high over the
+  map). Checked with headless Chrome frames from the voicemail to the step out (the cinematics-qc pass:
+  docs/systems/cinematics-qc.md).
 - **Nobody talks over a ship's scene** (`talkAllowed`, `src/ship/landing.js`): while `ship.playing`
   main.js picks no balloon and places no talk prompt, and `crowd.hush` keeps the crowd's shouts down.
-  (The hidden traveller rides in the parked ship during the crash, so Marrow greeted him through it.)
+  (The hidden traveller rides in the parked ship during the landing, so Marrow greeted him through it.)
 - **Marrow at the wreck** stands at `bystanderSpot`: 22 m from the hull's centre (it is 13 m round),
-  the hatch's way turned 0.7 rad to a side, never in the furrow behind the crash's `travel`.
+  the hatch's way turned 0.7 rad to a side, never in the skid behind the landing's `travel`.
 - **Stepping out** (`ReboardGate`): while you are aboard or a scene or the autopilot walks you, the
   ramp's "go aboard" (prompt and E) is held until you have been 7 m from its foot once.
   `tests/landing.test.js`.

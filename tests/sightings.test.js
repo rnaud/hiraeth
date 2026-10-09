@@ -82,7 +82,7 @@ test('a conversation writes it down, once, with a word; the save keeps it', asyn
   assert.equal(toasts.length, 1, 'said once');
   // a listen-only person: the words say which entry it was
   assert.deepEqual(sightingsOf({ id: 'tamsin', node: 'listen', say: '~neutral~ When the stones hum, get behind something.' }), []);
-  assert.deepEqual(sightingsOf({ id: 'tamsin', node: 'listen', say: '~curious~ But that night before your crash, they hummed.' }).map((s) => s.id), ['desert.dalia']);
+  assert.deepEqual(sightingsOf({ id: 'tamsin', node: 'listen', say: '~curious~ But the night before you came down, they hummed.' }).map((s) => s.id), ['desert.dalia']);
   // a line's own effect (a detour's), and a flag the story sets
   game.set(sightingFlag('desert.nour'), true);
   assert.equal(toasts.length, 2, 'a sighting set by a line is said too');

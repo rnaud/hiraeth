@@ -37,9 +37,9 @@ test('words on the screen set it off softly, at most once every HUM.gap seconds'
 test('the prologue: the hum rises under the father’s charge and is loudest at the cut', () => {
   const tl = callTimeline(PROLOGUE_CALL);
   const w = callHum(tl);
-  const charge = tl.lines.find((l) => l.line.text.includes('Bring back something of value'));
+  const charge = tl.lines.find((l) => l.line.text.replace(/\*/g, '').includes('Bring back something of value'));
   assert.equal(w.from, charge.t0, 'it starts with the charge');
-  assert.equal(w.to, tl.total, 'and runs to the strike');
+  assert.equal(w.to, tl.total, 'and runs to the pause (it carries on under it until the light has passed)');
   assert.equal(callHumLevel(w.from - 0.5, w), 0, 'nothing before');
   assert.ok(callHumLevel((w.from + w.to) / 2, w) > 0 && callHumLevel((w.from + w.to) / 2, w) < 0.5, 'creeping in');
   assert.equal(callHumLevel(w.to, w), 1, 'loudest at the cut');
@@ -101,4 +101,18 @@ test('near an unopened box the hum comes back by itself; out of reach it stops',
   const n = heard.length;
   for (let i = 0; i < 20 * 10; i++) { s.boxHum(0, 0); s.ctx.render(4800); }
   assert.equal(heard.length, n, 'out of reach: silent');
+});
+
+test('the singing light’s theme: heard over the voicemail, louder than the hum, never over the music', () => {
+  const s = fresh();
+  const len = s.lightTheme({ vol: 0.75 });
+  assert.ok(len > 5 && len < 9, `about six seconds and its tail (${len.toFixed(1)})`);
+  const out = s.ctx.render(48000 * 9);
+  const loud = dB(peakRms(out));
+  assert.ok(loud > -40, `heard: ${loud.toFixed(1)} dB`);
+  assert.ok(loud < -12, `not over everything: ${loud.toFixed(1)} dB`);
+  const tail = dB(rms(s.ctx.render(48000 * 2)));
+  assert.ok(tail < -50, `and gone after (${tail.toFixed(1)} dB)`);
+  // a recorded cue it isn't yet: the synth sings, and playCue says so
+  assert.equal(s.playCue('singing-light'), null);
 });

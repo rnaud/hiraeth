@@ -76,12 +76,12 @@ const P = (id, name, role, story, now) => ({ id, name, role, story, now });
 export const BOOK = {
   desert: [
     P('marrow', 'Marrow', 'A salvager who sells rumours by the camps', [
-      'A salvager, and by his own account a liar. He was going over your crashed ship when you met, and saw the mark burned into its hull: three dots over an arc.',
+      'A salvager, and by his own account a liar. He was going over your grounded ship when you met, and saw the mark burned into its hull: three dots over an arc.',
       [f('desert.bike.found'), 'He gave you the hoverbike he had hidden under a tarp. It would not run for him; it needed a full tank.'],
-      [f('desert.marrow.hull'), 'Since your crash he checks every wreck for the mark. Most ships that come down just come down. Yours did not.'],
+      [f('desert.marrow.hull'), 'Since your landing he checks every wreck for the mark. Most ships that come down just come down. Yours did not.'],
     ], [
       [f('desert.marrow.bike'), 'At the pilgrims’ camps, claiming the bike’s success from a safe distance.'],
-      'At the pilgrims’ camps near your crash site.',
+      'At the pilgrims’ camps near where your ship came down.',
     ]),
     P('ama', 'Ama', 'Keeps the pilgrims’ fires burning', [
       'Ama keeps the pilgrims fed and the fires burning while they walk round Qanat. At her fire, water comes before questions.',
@@ -116,7 +116,7 @@ export const BOOK = {
     ]),
     P('oum', 'Oum', 'A pilgrim who fell behind', [
       'An old pilgrim who fell behind the procession, then behind the stragglers.',
-      [f('desert.rumour.light'), 'The night before your crash she watched a light cross the dunes singing one long note. It turned over Qanat, the tree went dark, and it climbed away.'],
+      [f('desert.rumour.light'), 'The night before you came down she watched a light cross the dunes singing one long note. It turned over Qanat, the tree went dark, and it climbed away.'],
       [f('desert.oum.thanked'), 'You walked her back to the fire. She gave you a cord with a knot for every circuit she walked, and asked you to find out why the light turned.'],
     ], [
       [f('desert.oum.home'), 'By Ama’s fire, with warm feet.'],
@@ -142,23 +142,23 @@ export const BOOK = {
       'Pell counted the great ribcage south of the camps: forty ribs. The giant under Qanat is harder to count.',
       [done('desert.mask'), 'You cleaned the sleeping mask’s eyes in the south. Pell has only ever counted its teeth.'],
     ], [
-      'Near your crash site in the desert.',
+      'Near where your ship came down in the desert.',
     ]),
     P('ysa', 'Rima', 'A dune walker', [
       'Rima walks the dunes; the wind erases the tracks every night. The old people say Qanat stayed above the sand because its tree’s roots hold it together.',
     ], [
       [f('desert.tree.lit'), 'Out in the dunes; she walks home by the burning tree again.'],
-      'Out in the dunes near your crash site.',
+      'Out in the dunes near where your ship came down.',
     ]),
     P('rook', 'Rook', 'Looking for his bike', [
       'Rook is looking for his bike, which leaves without consulting him.',
     ], ['Wandering the desert near the camps.']),
     P('ennor', 'Ennor', 'A guide to the salt flats', [
       'A guide to the salt flats in the west. Everything here, he says, is measured from the tree.',
-    ], ['In the desert near your crash site.']),
+    ], ['In the desert near where your ship came down.']),
     P('tamsin', 'Dalia', 'Listens to the stones', [
-      'The stones hum before a storm. The night before your crash they hummed under a clear sky: a light passed, singing their note.',
-    ], ['In the desert near your crash site.']),
+      'The stones hum before a storm. The night before you came down they hummed under a clear sky: a light passed, singing their note.',
+    ], ['In the desert near where your ship came down.']),
     P('traveller', 'Naji', 'Sketches the observatory', [
       'Naji has drawn the observatory east of camp a hundred times, always asleep, and would like one picture of it working.',
     ], ['East of the camps, by the sleeping observatory.']),
@@ -232,7 +232,7 @@ export const BOOK = {
     ], ['At the landing, by the glowing eggs.']),
     P('saba', 'Saba', 'The Listener at the Great Crystal', [
       'Saba has sat at the foot of the Great Crystal for forty years and written down two hundred and twelve of its phrases. Rain makes it sing.',
-      [f('perdide.clue.ship'), 'It sang a new phrase, the one you heard before your ship was struck. She thinks the crystal is a piece of the thing that struck you, fallen long ago.'],
+      [f('perdide.clue.ship'), 'It sang a new phrase, the one you heard before your ship went dark. She thinks the crystal is a piece of the thing that passed you, fallen long ago.'],
       [f('said.saba.after.1'), 'Her first spring there, Odile and Talo came by skiff asking where the singing light had gone. They went east; the skiff came back alone.'],
     ], ['At the foot of the Great Crystal, east through the ford.']),
     P('corm', 'Corm', 'Feeds the jaw-plants', [
@@ -479,7 +479,7 @@ export const BOOK = {
   lantern: [
     P('ilen', 'Ilen', 'Keeps the Lantern', [
       'She knew your father’s ship at once: he let her paint the stripe on it when she was nine. Ilen is your sister, who left before you were born and never came home.',
-      [f('finale.met'), 'The makers’ lantern sends a light to bring in anyone a long way from home; one brought her in thirty years ago. When your father’s message reached her, thirty years late, she sang it into a light, put the makers’ sign on it and sent it home. That light was what struck your ship.'],
+      [f('finale.met'), 'The makers’ lantern sends a light to bring in anyone a long way from home; one brought her in thirty years ago. When your father’s message reached her, thirty years late, she sang it into a light, put the makers’ sign on it and sent it home. That light was the one that passed your ship and drained it, and the one you followed.'],
       [f('finale.met'), 'Odile and Talo reached the Lantern before her, kept it and kept her. They lie on the point under two stones.'],
       [f('finale.met'), 'She is coming home with you, to meet Lou.'],
     ], [

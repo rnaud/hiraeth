@@ -313,6 +313,27 @@ export const CHANGELOG_MEDIA = {
     { match: 'On the title screen the traveller now stands still', shots: [
       { name: 'title-stance', caption: 'The Sky Stones, close on the traveller: before, the game’s idle, one arm swung out, the weight on one leg; after, upright, arms at his sides, hands by his thighs', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…), cropped round him' },
     ], see: 'Open the game a few times and watch him for a while: he no longer looks about or shifts his weight; he breathes, and his coat stirs.' },
+    // the opening, the singing light and the father's message
+    { match: 'Your father’s first message now makes the years away plain', shots: [
+      { name: 'voicemail-charge', caption: 'The charge on the voicemail: before, “Bring back something of value.” in plain letters; after, “something of value” in gold with its ✦, and the condition: “Until then, don’t come home.”', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+    ], see: 'Start a new game (or open the game with ?level=desert&prologue=1), walk to the cockpit and press the blinking voicemail button: the father’s four lines, then the cut. The gold words come back on the last recording on the reel, in the mother’s recording about Ilen, at the Lantern, and in the answers “I’m looking for something of value” in Viridel, the Buried Machine and Lorn.' },
+    { match: 'The singing light has a song of its own', see: 'With the sound on, play the opening: the five notes come three times under the father’s message, each nearer, then alone when you pause it, then loud as the light goes by, falling in pitch. The game sings them itself for now; a recorded version will take their place.' },
+    { match: 'The opening is restaged', shots: [
+      { name: 'opening-light', caption: 'Just after the message: before, the strike (“Impact. Hull breach.”, red alarm light); after, the singing light coming past the cockpit window, the father’s picture held still', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'opening-pause', only: 'after', caption: 'The pause: the father held mid-word over the dash, the traveller listening, and the light coming out of the dark in the window', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'opening-pass', only: 'after', caption: 'Outside: the light brushes past the ship’s hull and rushes away; the ship goes dark as it passes', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'opening-landing', caption: 'The arrival: before, ploughing a long furrow through the dunes in a storm of dust and fire; after, down on its belly at the end of a short skid', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+    ], see: 'Start a new game and press the voicemail button: let the message play to the cut (the pause), then watch the light pass, the drain and the landing. Hold Esc (B) to skip as before.' },
+    { match: 'As the emergency power comes on, the ship says', shots: [
+      { name: 'landing-line', caption: 'The hatch opens: before, “The impact left a magnetic signature in our hull”; after, “Whatever passed us drained the core and left a magnetic signature on the hull”', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'follow-line', only: 'after', caption: 'Stepping out: “Then track it. When we can fly, we follow it. I want to hear it again.”', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+    ], see: 'At the end of the opening, as the hatch opens: the ship’s line, then his. Skipping the opening still plays them, once the father’s card has gone.' },
+    { match: 'Nobody talks about your ship being struck any more', see: 'In the desert ask Oum about the light, or Nour why you fell; at the Lantern, ask Ilen why the light came to your ship. The map’s note reads “LIGHT SIGNATURE”.' },
+    // Qanat repays you
+    { match: 'In the desert, Qanat now repays you for its tree', shots: [
+      { name: 'qanat-gift', only: 'after', caption: 'At the ship once the tree burns: Nour last at the hull, “You gave us back our light, child. So Qanat gives your ship its own.”, the others in a half ring by the ramp', from: 'headless Chrome against this branch’s own dev server, a save at the desert’s last stage, at High, 1280 × 720, the camera held (9 October)' },
+      { name: 'qanat-well', only: 'after', caption: 'Hessa pours the well’s first water into the ship', from: 'headless Chrome against this branch’s own dev server, a save at the desert’s last stage, at High, 1280 × 720, the camera held (9 October)' },
+    ], see: 'Light Qanat’s tree with the spark-stone, then walk back to your ship: the villagers are waiting by the ramp. Each steps up in turn and says what they pour in; then the ship hums awake.' },
   ],
   '1.5': [
     // the first shop

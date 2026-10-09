@@ -281,6 +281,9 @@
       #dialogue .dlg-text.player { font-style: italic; color: #34405e; }
       /* *highlights*: the places to go, the things to do (in the panel, the choices and the balloons) */
       #dialogue .dlg-text em, #dialogue .dlg-choices em, .balloon em { font-style: normal; font-weight: bold; color: #b23a2c; background: #f2c54b4d; padding: 0 2px; border-radius: 2px; }
+      /* the key phrase, "something of value" (src/story/key-phrase.js): the charge's gold and its ✦, wherever it is said */
+      #dialogue .dlg-text em.value, #dialogue .dlg-choices em.value, .balloon em.value { font-style: normal; font-weight: bold; color: #8a5a10; background: none; border-bottom: 2px solid #e2b552; padding: 0; white-space: nowrap; }
+      #dialogue .dlg-text em.value::before, #dialogue .dlg-choices em.value::before, .balloon em.value::before { content: '✦'; color: #d9a43a; font-size: 0.8em; margin-right: 3px; }
       #dialogue .dlg-text em.quote, .balloon em.quote { font-weight: normal; color: inherit; background: #f2c54b55; }   /* a quoted letter or recording */
       #dialogue .dlg-caret { animation: blink 0.8s steps(1) infinite; opacity: 0.6; }
       @keyframes blink { 50% { opacity: 0; } }

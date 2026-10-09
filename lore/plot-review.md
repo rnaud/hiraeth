@@ -103,7 +103,7 @@ Talo, the Major, the makers.
 connection; the second strike establishes a pattern; Ilen makes it personal;
 the Crystal establishes recognition. Keep witnesses uncertain about intent.
 For a later chapter, choose one concrete question to answer—what the light
-was trying to do at the collision, for example—while leaving its origin vast.
+was trying to do when it passed his ship, for example—while leaving its origin vast.
 Do not identify every missing person with the same phenomenon just to close
 all the threads. The present ending can resolve the traveller's decision to
 return while the cosmic investigation remains unfinished.

@@ -16,7 +16,7 @@
 //  - its boxes (PLACEMENTS, src/boxes/placements.js): opened, their items owned, the boxes' own quests done;
 //  - the tank's colour bands its magical water adds (TANK_BANDS), the end of its main quest (WORLD_ENDS:
 //    the flags and the keepsake set in code, src/story/<world>.js), `world.<id>.done`, its story page;
-//  - the ship after it: the strike's signature read on arrival (src/story/signature.js), the recordings
+//  - the ship after it: the light's signature read on arrival (src/story/signature.js), the recordings
 //    waiting at the console played in turn (src/story/calls.js, what they set too), and the errands
 //    carried on (ERRANDS, src/levels/content.js: delivered when their world is before this one, still
 //    carried when it is this one or later).

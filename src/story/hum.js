@@ -5,9 +5,11 @@
 // three times and lifts a fifth on the third, so a player who has heard it once knows it again.
 //
 // Where it is heard (docs/systems/audio.md, "The hum"):
-//   - the prologue: it creeps in under the father's charge, louder until the strike cuts it off
-//     (the light found his voice on the reel: story-bible.md, "The glyph"), and once more, faintly,
-//     when the ship says the impact left a pulse in the hull (src/ship/cinematics.js);
+//   - the prologue: it creeps in under the father's charge, under the singing light's own theme
+//     (src/story/light-theme.js: the theme starts on the note the hum lifts to), louder through the
+//     pause until the light passes and the power goes (the light found his voice on the reel:
+//     story-bible.md, "The glyph"), and once more, faintly, when the ship says the light left a pulse in
+//     the hull (src/ship/cinematics.js);
 //   - near a makers' box that hasn't been opened (Nour's chest first), every few seconds
 //     (src/boxes/index.js → Sound.boxHum);
 //   - whenever a line on the screen speaks of humming (a conversation, a shout, a toast, a subtitle):
