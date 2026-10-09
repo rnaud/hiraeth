@@ -253,8 +253,8 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   | Ware | Effect | Price | Stock |
   |---|---|---|---|
   | healing potion | one more potion (two hearts back when drunk) | 10 chimes | the shelf holds 3, one comes back every 3 minutes (`SHELF`); you carry at most 5 |
-  | heart container | +1 heart for good, and the hearts filled | 50, then 80, 110, 140… (+30 each) | a few per shop (Qanat: 2) |
-  | magic expansion | +1 unit on the magic bar for good | 40, then 70, 100, 130… (+30 each) | a few per shop (Qanat: 2) |
+  | heart container | +1 heart for good, and the hearts filled | 50, then 80, 110, 140… (+30 each) | 1 or 2 a shop, 15 in all (below) |
+  | magic expansion | +1 unit on the magic bar for good | 40, then 70, 100, 130… (+30 each) | in five shops, 6 in all (below) |
 
   A container's and an expansion's price rises with every one bought **in any shop** (`shop.bought.heart`,
   `shop.bought.magic`; `stepPrice`), so batch 4's shops in the later worlds go on up the same curve, and buying
@@ -281,6 +281,38 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   low, unhurried voice (0.78). Talking to him ("Show me what you have") or E at his counter opens the shop; his
   lines at the counter (`SHOP_LINES`) greet, thank you for each kind of sale, say when you are short, when it is
   sold out or your pack is full, and see you off. He is on the People page once met.
+- **A shop in every world (v1.14, batch 4)**: one shop in each of the eleven route worlds (`SHOPS`, a keeper and a
+  style each; `shopOf(world)`), built to the author's picks in `references/shops/` (docs/systems/interiors.md, "A shop
+  in every world"). Every one sells potions (the same shelf of 3, the same restock); the containers and expansions
+  are few, a little more in the later worlds:
+
+  | World | Shop | Keeper | Hearts | Magic |
+  |---|---|---|---|---|
+  | The Desert | Haddu's Chimes & Cures | Haddu | 2 | 2 |
+  | Vael | the Wind-Shelf | Brin | 1 | |
+  | Vael II | the Almonry | Sister Perpetue | 1 | |
+  | Lorn | Nettle's Float | Nettle | 1 | 1 |
+  | Lorn II | the Welcome-Shelf | Rowan | 1 | |
+  | Viridel | Clover's Potting House | Clover | 1 | |
+  | The City-Shaft | Fausta's Basket-Shop | Fausta | 2 | 1 |
+  | The Sealed Hangar | the Quartermaster's Hatch | Odo | 1 | |
+  | The Buried Machine | Mott's Tooth-Counter | Mott | 2 | 1 |
+  | The Garden of Spheres | the Listening Stall | Hale | 1 | |
+  | The Signal Market | Pashka's Cure-Stall | Pashka | 2 | 1 |
+  | **All** (`STOCK_TOTAL`) | | | **15** | **6** |
+
+  Everything bought: 3 + 15 = **18 hearts** of the 20 (`HEARTS.cap`; the cap stays above what the shops can give),
+  and 3 + 6 = **a bar of 9** (`MAGIC.cap`; with the Engine-House's cell the last expansion shows "full"). The prices go
+  on up the one curve: the fifteenth heart costs 470, the sixth expansion 190 (4,590 chimes for everything). Against
+  the drops: a **pack** of a world's foes (its wild kinds' drops, src/chimes.js, the pack's size by the world's stage,
+  src/foe-worlds.js `BUDGET`) is about 3–4 chimes in the desert and Vael, 8–10 in the stage-1 worlds, 12–18 in the
+  stage-2 and 15–21 in the last three; the tiered pieces (`TIERS`) only change how a drop looks, not its worth. Bought
+  in the route's order, every container costs **15–31 packs** of the world it is sold in (the desert's first 15,
+  the Market's last two 29–31), so the late ones keep the first one's feel and none is a handful of fights
+  (tests/shop.test.js holds each between 8 and 35 packs, an expansion from 5). A potion stays 10, a pack or two.
+  Each keeper (`SHOPKEEPERS`, `SHOP_LINES` in src/story/shop-data.js) has a conversation of Haddu's shape (hello,
+  again, one thing to ask about that the People page then remembers), their counter lines in their world's voice
+  (Brin's one word at a time, Odo's stamps, Pashka's shouting), every line toned; they are on the People page once met.
 
 ## The makers' boxes, Android controls and updates (v0.36)
 - **The boxes** are artifacts of the makers, the people of the glyph (see "The

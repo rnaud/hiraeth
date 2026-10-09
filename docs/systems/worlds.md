@@ -1216,3 +1216,15 @@ One small island in a still, shallow sea of light at dusk, a big ringed planet l
 
 Built with the Lab's room kit (merged per material), no foes (`PEACEFUL`), no reactions, home's theme for
 music. `tests/finale.test.js` checks the bar stays wadeable and the island's places stand clear of the water.
+
+## A shop in every route world (v1.14)
+
+Each route world has one shop, in its own architecture, by the way the player walks (the level design audit's
+empty stretches where there was one: docs/audits/level-design-v1.9.md): Vael's Wind-Shelf in a hoodoo's foot on the
+walk to the lone tower; Vael II's Almonry, the monastery's gatehouse on the cliff-top; Nettle's Float moored at
+Lorn's landing island; Lorn II's Welcome-Shelf, a moss dome on the lit path; Clover's Potting House halfway from
+Mira's garden to the fallen ship; Fausta's Basket-Shop by the City-Shaft's middle cab stop; the Hangar's
+Quartermaster's Hatch on the way to the keep; Mott's Tooth-Counter among the Buried Machine's domes; Hale's
+Listening Stall by the path to the sphere-arch; Pashka's Cure-Stall on the Market's avenue. Where each stands, its
+front and room and how it was placed: docs/systems/interiors.md, "A shop in every world"; what they sell:
+docs/systems/items.md.

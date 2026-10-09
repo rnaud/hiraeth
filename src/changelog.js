@@ -19,6 +19,10 @@ export const CHANGELOG = [
     'In the City-Shaft, Fausta keeps a narrow three-storey shop on the middle terrace beside the cab stop, with a striped awning over its window, green shutters and a crane that lowers baskets of cures to every level.',
     'In the Sealed Hangar, Odo, the Major’s quartermaster, keeps a riveted hatch beside the way from the landing to the keep, a gear and a flask stencilled on its side, and stamps every sale on a requisition the Major signed long ago.',
     'In the Buried Machine, Mott keeps the Tooth-Counter, a small riveted dome among the domes on the way to Wen, a rusty gear tooth hung for its sign; she counts on an abacus of gear teeth and dates every sale by the great wheel.',
+    'In the Garden of Spheres, Hale keeps the Listening Stall, a round white pavilion beside the path to the sphere-arch, and listens to every cure with a tuning fork before he sells it.',
+    'In the Signal Market, Pashka keeps the loudest cure-stall on the avenue, in a coral tower’s foot under a red awning hung with bulbs, a lit board of a heart and a flask over it.',
+    // what they sell
+    'Heart containers and magic expansions are now sold all along the way: fifteen hearts and six expansions in all, one or two in each shop and a few more in the later worlds. Each costs a little more than the last wherever you buy it, and buying them all takes you to 18 hearts and a full magic bar.',
   ] },
   { v: '1.13', date: '2026-10-09', items: [
     // the enemy roster, part three: four more foes, each its own

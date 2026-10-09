@@ -7,6 +7,8 @@ import { Taxi, cruiseRoutes } from '../taxi.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
 import { Puffs } from '../life.js';
@@ -379,10 +381,16 @@ export function* buildBazaar(scene) {
   // the shooting gallery's sign on the pavement by the lantern market, facing the avenue (src/minigames/gallery.js)
   if (gameById('gallery')) placeGameMarker({ scene, levelId: 'bazaar', lights }, 'gallery', new THREE.Vector3(GALLERY_SIGN.x, .3, GALLERY_SIGN.z), { heading: Math.PI / 2 });
   const vehicles=[];
+  // Pashka's Cure-Stall (src/shop-world.js, src/shop-fronts.js 'stall'): in a tower's foot on the avenue's west pavement,
+  // in the gap between two of the market's stalls, its counter and door turned to the avenue
+  const cureStall = placeShop(scene, { def: SHOPS.curestall, at: new THREE.Vector3(-25, .3, -23.5), heading: Math.PI / 2 });
+  lights.push(...cureStall.lights);
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
   return attachTemple('bazaar', scene, {
-    id:'bazaar', floraAvoid:(x,z,r)=>Math.abs(x)<17+r||z>98-r,   // the flora keeps to the pavements (src/flora.js)
+    portals: [...cureStall.portals],
+    shops: [cureStall],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    id:'bazaar', floraAvoid:cureStall.avoid((x,z,r)=>Math.abs(x)<17+r||z>98-r),   // the flora keeps to the pavements (src/flora.js)
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},

@@ -7,6 +7,8 @@ import { makeMaterial, MODE_TERRAIN, MODE_WATER } from '../materials.js';
 import { Terrain, jitter, soften } from '../world.js';
 import { PEOPLE } from '../story/spheres-data.js';
 import { attachTemple } from '../temples/index.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { leafCrown, layeredCrown, crescentSphere as printedSphere, pillowRock, arcade, robotParts, hedge, paintPaving, pavingSegments } from './garden-kit.js';
 
@@ -963,11 +965,18 @@ export function* buildSpheres(scene) {
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < W - 1.1 && p.y < W + 0.4;
 
   const orb = (x, z) => orbs.find((o) => Math.hypot(o.x - x, o.z - z) < 1);
+  // Hale's Listening Stall (src/shop-world.js, src/shop-fronts.js 'pavilion'): a round white pavilion beside the
+  // path from the grove to the sphere-arch and the cypress avenue (its long empty middle, docs/audits/level-design-v1.9.md),
+  // 11 m off it, its door turned to the path
+  const shop = placeShop(scene, { def: SHOPS.listening, at: new THREE.Vector3(13, terrain.heightAt(13, -175), -175), heading: -Math.PI / 2 + 0.25 });
   // the Footprint north of the grove, and its rooms far overhead (src/temples/spheres.js)
   yield;
   return attachTemple('spheres', scene, {
     id: 'spheres',
-    floraAvoid: (x, z, r) => !clear(x, z, r + 1),   // the flora keeps off the lake, the paths and the stones (src/flora.js)
+    portals: [...shop.portals],
+    lights: [...shop.lights],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {

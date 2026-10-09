@@ -1918,3 +1918,13 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   docs/audits/combat-v1.13.md (4.3–4.8, mean 4.54).
 - [x] Fewer draws: a tapering tube is one merged mesh (src/enemies/plans/kit.js): the crab 145 → 65 meshes, the lizard
   185 → 90, the hound 123 → 48.
+
+## Hearts, potions, magic and shops: batch 4, a shop in every world (2026-10-09, v1.14)
+
+- [x] One shop in each of the eleven route worlds, built to the author's picks in `references/shops/` (src/shop-fronts.js,
+  src/shop-world.js `SHOP_STYLES`, `placeShop`), placed by the way in each world (the level design audit's empty
+  stretches where it had one), its keeper with a conversation, counter lines in the world's voice and a People page
+  entry (src/story/shop-data.js, people-book.js). Potions everywhere; 15 heart containers and 6 magic expansions in
+  all (18 hearts of 20, a bar of 9), a little more in the later worlds, priced up the one curve at 15–31 packs of
+  each world's foes (docs/systems/items.md, "A shop in every world"; docs/systems/interiors.md, "A shop in every
+  world"). The rooms off the map are spared by the world's edge and the Hangar's far-off rule.
