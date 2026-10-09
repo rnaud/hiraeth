@@ -1289,7 +1289,7 @@ export class Player {
       tv.addScaledVector(want.sub(tv), a);
       if (this.onGround && this.combatMotion) {
         const C = this.combatMotion;
-        if (C.evade) tv.copy(C.dir).multiplyScalar(C.speed);
+        if (C.evade || C.dash) tv.copy(C.dir).multiplyScalar(C.speed);   // (the evade, the dash cut: carried at their own speed)
         else tv.addScaledVector(C.dir, C.speed * a);
       }
       // the blade's rising cut (src/fluid-blade.js RISE): a leap up and in to a foe hovering over you
@@ -1664,7 +1664,7 @@ export class Player {
   faceAim(dt, tvel, hs) {
     const F = this.frame;
     let target = F.headingOf(this.aim.dir);
-    if (hs > 0.5) {
+    if (hs > 0.5 && this.aim.lead !== false) {   // (lead: false, the blade's riposte turned into its chop)
       let lead = F.headingOf(tvel) - target;
       lead = Math.atan2(Math.sin(lead), Math.cos(lead));
       if (Math.abs(lead) > Math.PI / 2) lead = Math.atan2(Math.sin(lead + Math.PI), Math.cos(lead + Math.PI));   // backing off: face the aim

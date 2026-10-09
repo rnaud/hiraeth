@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.4 — 2026-10-09
+
+- Press the blade button during an evade (B / ○), or just as it ends, for a dash cut: he springs forward past the foe’s side, sweeping the blade across it as he goes. The evade’s own dodge window is the only protection it gives, and it needs a moment to come back before the next one.
+- A perfect parry now opens a moment for a riposte: press the blade button (RB / R1) within about half a second, even with the guard still up, and the traveller turns into a fast overhead chop that hits as hard as a full charge without the wait, doubled on the stunned foe, and leaves it reeling longer, with a gold flash and a ring of steel. Miss the moment and the blade is as before.
+
 ## v1.3 — 2026-10-09
 
 - The blade’s spark trail sweeps through the cut itself, a full arc along the path the edge travelled, and only glints at the tip while the sword winds up and follows through.

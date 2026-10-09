@@ -1500,3 +1500,16 @@ tests/sound-mix.test.js holds them.
   out over the shaft from the rim, the ball rolled from the rim to its plate at the far end, a jump at each
   gap, no parapet: down the shaft ends it; Tobin, who sells views, has a word). Both played through in the
   game with the real push. tests/trials-kit.test.js.
+
+## The blade's counters (done 9 October, v1.4)
+
+- [x] **The riposte and the dash cut** (TODO "The gameplay loop"). For 0.6 s after a perfect parry the blade
+  button plays **the riposte** (`RIPOSTE`, the Sword and Shield pack's slash 4: a fast overhead chop, cut
+  1.30–1.43 s, 0.54 s in all): damage 3 (6 on the parried foe, which the parry stunned), it staggers anyone and
+  holds them reeling 1.2 s, with a gold ring, a ring of steel as it starts and a bell as it lands. The clip's chop
+  comes down 75° to the body's right (measured on the traveller), so he turns into it at once. A press during
+  an evade, or within 0.15 s of its end, plays **the dash cut** (`DASH`, its attack 2: a running sweep, cut
+  0.49–0.64 s) the moment the evade ends: carried past the foe on its left at up to 16 m/s, the sweep crossing
+  it, damage 2; no i-frames of its own; one every 1.5 s. `moves.glb` +24 KB (621 644 → 645 908 bytes; `until`
+  ships 1.8 s and 1.05 s of the two). The kick was not taken: it never moves the blade, and slash 4's chop is a
+  heavier counter.

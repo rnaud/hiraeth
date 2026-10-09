@@ -728,6 +728,8 @@ export class Foe {
     this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
     if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)
     if (reels) { this.state = 'recover'; this.timer = this.heavyRecoil ? D.hit * 2 : D.hit; this.k = 0; this.reel = this.heavyRecoil ? 'staggered' : 'flinched'; }
+    // (the riposte: held reeling a while longer, src/fluid-blade.js RIPOSTE)
+    if (reels && info.stagger) { this.timer = Math.max(this.timer, info.stagger); this.reel = info.riposte ? 'riposted' : this.reel; }
     else if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
     this.hp -= dmg;
     if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }

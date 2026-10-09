@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { ATTACKS, SWINGS, CHARGE, AIR, LUNGE, BLADE, attackSample, activeRange, chargePose, trailCut } from '../src/fluid-blade.js';
+import { ATTACKS, SWINGS, CHARGE, AIR, LUNGE, RIPOSTE, DASH, BLADE, attackSample, activeRange, chargePose, trailCut, riposteOpen, dashOpen } from '../src/fluid-blade.js';
 import { Foe } from '../src/foes.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { GameState } from '../src/game-state.js';
@@ -164,4 +164,96 @@ test('a swing changing into the charge blends from the pose on screen: no bone j
   assert.ok(A.combatBones.length > 20, `the blend holds every joint (${A.combatBones.length})`);
   assert.ok(worst < 0.8, `the largest turn in a frame ${worst.toFixed(2)} rad`);
   tool.dispose();
+});
+
+test('a perfect parry opens the riposte: a press within RIPOSTE.window plays slash 4, heavy, staggering; missed, a plain swing', async () => {
+  clearTargets();
+  const { p, tool, tick } = await armed();
+  const hits = [];
+  registerTarget({ kind: 'foe', lock: true, accepts: ['blade'], radius: 0.7, position: () => v(0, 0.8, -57.8), onHit: (_m, _p, _d, info) => hits.push(info) });
+  const blade = tool.blade, foeAt = v(0, 0, -57.8);
+  const parry = () => {
+    for (let i = 0; i < 40; i++) tick({});
+    // (the guard up and the shield opened over the foe's way, inside the parry window)
+    let i = 0, r = false;
+    while (!r && i++ < 20) { tick({ KeyZ: true }); if (blade.parryLive) r = blade.block(foeAt); }
+    assert.equal(r, 'perfect', `parried ${i} frames into the guard`);
+  };
+  assert.ok(riposteOpen(0) && riposteOpen(RIPOSTE.window - 0.01) && !riposteOpen(RIPOSTE.window) && !riposteOpen(Infinity));
+  // in the window, the guard still held: the riposte
+  parry();
+  for (let i = 0; i < 12; i++) tick({ KeyZ: true });   // (0.2 s on)
+  tick({ KeyZ: true, KeyF: true });
+  assert.equal(blade.special, RIPOSTE, 'the riposte'); assert.equal(p.swingMove.clip, RIPOSTE.clip);
+  let cut = 0;
+  // (the chop comes down to his right: turned into it, it lands on the line to the foe)
+  let wide = 0;
+  for (let i = 0; i < 50; i++) { tick({}); if (blade.cutting) { cut++; wide = Math.max(wide, Math.abs(blade.bladeSegment().b.x - p.pos.x)); } }
+  assert.ok(wide < 0.5, `the chop on the foe's line (${wide.toFixed(2)} m off it)`);
+  assert.ok(cut >= 4, `it cuts (${cut} frames)`);
+  assert.equal(hits.length, 1); assert.equal(hits[0].damage, RIPOSTE.damage); assert.ok(RIPOSTE.damage > BLADE.damage[0]);
+  assert.ok(hits[0].breaks && hits[0].stagger === RIPOSTE.stagger && hits[0].riposte, 'heavy: it staggers anyone, held reeling');
+  // only once a parry: a second press is the combo's own swing again
+  for (let i = 0; i < 60; i++) tick({});
+  tick({ KeyF: true }); tick({});
+  assert.equal(blade.special, null, 'the window spent: a plain swing');
+  // the window missed: back to normal
+  for (let i = 0; i < 60; i++) tick({});
+  parry();
+  for (let i = 0; i < Math.ceil(RIPOSTE.window / dt) + 2; i++) tick({ KeyZ: true });
+  tick({ KeyZ: true, KeyF: true });
+  assert.ok(!blade.swinging, 'late, the guard held: nothing (as before)');
+  tick({}); tick({ KeyF: true }); tick({});
+  assert.ok(blade.swinging && blade.special === null, 'late: the plain first swing');
+  tool.dispose(); clearTargets();
+});
+
+test('the riposte staggers a parried foe for RIPOSTE.stagger and doubles on its stun', () => {
+  const f = new Foe('shade', v()); f.hp = 99; f.staggered(true); f.stunned = 2;
+  const hp = f.hp;
+  f.hit('blade', v(0, 0, 1), { damage: RIPOSTE.damage, combo: 2, breaks: true, stagger: RIPOSTE.stagger, riposte: true });
+  assert.equal(f.state, 'recover'); assert.ok(f.timer >= RIPOSTE.stagger, `held reeling ${f.timer} s`); assert.equal(f.reel, 'riposted');
+  assert.equal(hp - f.hp, RIPOSTE.damage * 2, 'doubled on the parried (stunned) foe');
+});
+
+test('a press during an evade is a dash cut as it ends: carried through the foe\'s line, no i-frames of its own, once a cooldown', async () => {
+  clearTargets();
+  const { p, tool, tick } = await armed();
+  const hits = [];
+  registerTarget({ kind: 'foe', lock: true, accepts: ['blade'], radius: 0.7, position: () => v(0, 0.8, -57.8), onHit: (_m, _p, _d, info) => hits.push(info) });
+  const blade = tool.blade;
+  assert.ok(dashOpen(0, 0) && dashOpen(DASH.late, 0) && !dashOpen(DASH.late + 0.01, 0) && !dashOpen(0, 0.1));
+  for (let i = 0; i < 40; i++) tick({});
+  const evadeThen = (pressAt) => {
+    tick({ AltLeft: true }); tick({});
+    assert.ok(blade.evadeT > 0, 'evading');
+    let n = 0;
+    while (blade.evadeT > 0 && n++ < 30) tick(n === pressAt ? { KeyF: true } : {});
+  };
+  evadeThen(3);
+  assert.equal(blade.special, DASH, 'the dash cut, as the evade ends'); assert.equal(p.swingMove.clip, DASH.clip);
+  const z0 = p.pos.z;
+  let iframes = 0;
+  for (let i = 0; i < 40; i++) { tick({}); if (blade.iframes()) iframes++; }
+  assert.equal(iframes, 0, 'no i-frames of its own');
+  assert.ok(p.pos.z - z0 > 1.6 && p.pos.z > -57.8, `carried forward ${(p.pos.z - z0).toFixed(2)} m, past the foe's line (${p.pos.z.toFixed(2)})`);
+  assert.ok(Math.abs(p.pos.x) > 0.5 && Math.abs(p.pos.x) < 1.6, `beside it, not through its body (${p.pos.x.toFixed(2)} m)`);
+  assert.equal(hits.length, 1); assert.equal(hits[0].damage, DASH.damage);
+  // back to back: within the cooldown the press out of an evade is a plain swing
+  for (let i = 0; i < 6; i++) tick({});
+  assert.ok(blade.dashCool > 0);
+  evadeThen(12);
+  assert.ok(blade.special !== DASH, 'the cooldown: no second dash cut');
+  for (let i = 0; i < Math.ceil(DASH.cooldown / dt); i++) tick({});
+  // pressed too late after the evade: a plain swing
+  tick({ AltLeft: true }); tick({});
+  while (blade.evadeT > 0) tick({});
+  for (let i = 0; i < Math.ceil(DASH.late / dt) + 2; i++) tick({});
+  tick({ KeyF: true }); tick({});
+  assert.ok(blade.swinging && blade.special !== DASH, 'late: the plain swing');
+  for (let i = 0; i < 60; i++) tick({});
+  // cooled down, right at the evade's end: the dash cut again
+  evadeThen(-1); tick({ KeyF: true });
+  assert.equal(blade.special, DASH, 'pressed right at the end');
+  tool.dispose(); clearTargets();
 });

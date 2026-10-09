@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.4', date: '2026-10-09', items: [
+    // the fluid blade's counters
+    'A perfect parry now opens a moment for a riposte: press the blade button (RB / R1) within about half a second, even with the guard still up, and the traveller turns into a fast overhead chop that hits as hard as a full charge without the wait, doubled on the stunned foe, and leaves it reeling longer, with a gold flash and a ring of steel. Miss the moment and the blade is as before.',
+    'Press the blade button during an evade (B / ○), or just as it ends, for a dash cut: he springs forward past the foe’s side, sweeping the blade across it as he goes. The evade’s own dodge window is the only protection it gives, and it needs a moment to come back before the next one.',
+  ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour
     { text: 'Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.',

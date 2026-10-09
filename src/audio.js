@@ -1596,6 +1596,23 @@ export class Sound {
     [7, 12].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.02 + i * 0.07, 0.06, 'sine', this.fx));
   }
 
+  /** The riposte (src/fluid-blade.js RIPOSTE): as it starts, a bright rising ring of steel; as it lands, a deep bell under the blow. */
+  fluidRiposte(landed = false) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    if (!landed) { this.sweep(t, 1200, 3200, 0.12, 0.06, 'sine'); this.burst(t, { dur: 0.14, type: 'highpass', freq: 3500, q: 0.6, vol: 0.08, rate: 1.4 }); return; }
+    [0, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1), t + i * 0.035, 0.08, 'triangle', this.fx));
+    this.sweep(t, 140, 55, 0.35, 0.12, 'sine');
+  }
+
+  /** The dash cut (src/fluid-blade.js DASH): a low rush of air under the swing. */
+  fluidDash() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.28, type: 'bandpass', freq: 700, q: 0.9, vol: 0.14, rate: 0.8 });
+    this.sweep(t, 180, 420, 0.2, 0.05, 'sawtooth');
+  }
+
   /** The blade lands on something (a foe), or cuts the air. */
   fluidSlashHit(hit = false, heavy = false) {
     if (!this.ctx || !hit) return;

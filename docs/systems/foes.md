@@ -21,11 +21,11 @@ The first things in the game that fight back, and the tool's answer to them.
   blended nothing, `isBone` finding none of the library's plain-node joints; a swing into the next jumped up to
   2.3 rad in a frame). Grounded cuts step forward through Player's normal collision movement and limit
   steering until recovery. Every attack played from a clip is in `ATTACKS` (the three, the whirl, the lunge,
-  the charge, the air cut).
+  the charge, the air cut, the riposte, the dash cut).
 - **On the clip's own swing frames** (v1.3): each attack's cut (`activeRange`: `activeFrom`–`activeTo`, else
   `hit` −0.08/+0.1) is where its clip's blade moves fastest, measured on the traveller (the tip's speed through
   `from`–`to`): the three 47/36/30 m/s at 0.60/0.81/1.13 s, the whirl 27 at 1.06, the charge 22 at 0.66, the air
-  cut 18 at 1.16, each well over its speed round the cut. `tests/blade-attacks.test.js` checks it, so a clip's
+  cut 18 at 1.16, the riposte 33 at 1.39, the dash cut 43 at 0.56, each well over its speed round the cut. `tests/blade-attacks.test.js` checks it, so a clip's
   times can't drift off its swing. The trail follows the same window (`trailCut`): through the cut a sweep of
   sparks over the ground the edge crossed since the last frame (up to 8 steps, 3 along the blade), else one glint
   at the tip; while charging, sparks drawn in to the blade. (The studio's paused `time` is not the clip's: its
@@ -48,6 +48,25 @@ The first things in the game that fight back, and the tool's answer to them.
   stand `ideal` (0.7 m) off its body; as the cut starts (0.98 s) the body is driven down at `plunge` (12 m/s)
   and the overhead cleave (to 1.24 s) lands with it, its cone tipped `down` 0.6 rad. Damage 2, heavy. One an
   airtime (`airUsed`, reset on the ground): a press in the air after it waits for the ground (the buffer).
+- **The riposte** (`RIPOSTE`, v1.4, the Sword and Shield pack's slash 4 `ss_slash_4`): a perfect parry
+  (`block()` → `'perfect'`) opens a `window` of 0.6 s (`riposteOpen(sinceParry)`); a blade press in it (the
+  guard may still be held) plays the clip's overhead chop from 1.05 s (cut 1.30–1.43 s, 0.12/0.12/0.30 s). The
+  chop comes down `turn` (1.3 rad) to his right, so he is turned that much to his left into it at once (and his
+  walking lead is off: `pose.lead`), and the cut's pull brings him to `ideal` (0.5 m) off the foe's body. Damage
+  3, as a full charge (doubled on the foe the parry left stunned: 6, the end of any foe so far but a boss), heavy, `breaks` and `stagger`: Foe.hit holds it reeling
+  1.2 s at least (`reel` `'riposted'`). A gold ring and `sound.fluidRiposte(false)` as it starts; landed, a gold
+  burst off the foe, the hit-stop 0.15 and `fluidRiposte(true)` (a bell under the blow). One a parry; the window
+  missed, a press is what it was (nothing while the guard is held, else the first swing).
+- **The dash cut** (`DASH`, v1.4, its attack 2 `ss_attack_2`): a press during an evade (`dashWant`), or within
+  `late` (0.15 s) of its end (`sinceEvade`), with the dash cut's `cooldown` (1.5 s, `dashCool`) over, plays it
+  the moment the evade ends (`dashOpen`): the clip from 0.3 s, cut 0.49–0.64 s (0.16/0.14/0.26 s), a sweep from
+  his left round to his right (cone half-angle 1.7 rad). Player's controller carries him (`combatMotion.dash`,
+  set like the evade's) toward `past` (1 m) beyond a foe within `pull` (5 m), `side` (1.1 m) to its left, so it
+  passes on his sword side and the sweep crosses it, at what that takes over the wind-up and cut (5.4–16 m/s;
+  no foe: 9 m/s straight on), slowing through the follow-through; still facing the foe. No i-frames of its own:
+  the evade's window is over before it starts. Damage 2, heavy; the cooldown, as after a third swing. Within its
+  cooldown a press out of an evade is the plain buffered swing. `tests/blade-attacks.test.js` checks both
+  (window, damage, stagger, chop on the foe's line, the carry past the foe, no i-frames, the cooldown).
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.

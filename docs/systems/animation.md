@@ -329,6 +329,12 @@ node scripts/mocap/compare-people.mjs      # a person on each captured walk
   `Animator.playCombat` takes a `blend` (s, default 0.09) for a move's way in (the charge's draw: 0.2) and
   `ground` (the air cut); `blendCombat` now holds every joint of the library's skeleton (plain nodes, not
   Bones: it had held none, so nothing blended).
+- **The blade's counters** (v1.4, docs/systems/foes.md): the Sword and Shield pack's slash 4 (`ss_slash_4`, the
+  riposte, `until` 1.8 of its 2.4 s) and attack 2 (`ss_attack_2`, the dash cut, `until` 1.05 of 1.3 s), with
+  `--add ss_slash_4,ss_attack_2`: 621 644 → 645 908 bytes (+24 KB, 3.9 %; gzip 412 874 → 427 094). The blade tip
+  peaks at 33 m/s at 1.39 s (riposte) and 43 at 0.56 (dash cut). Slash 4's chop lands 75° to the body's right,
+  so the riposte turns him into it (`RIPOSTE.turn`; `Player.faceAim` skips its walking lead for an aim with
+  `lead: false`). The pack's kick moves no blade; its slash 2, 5 and attack 3, 4 were measured and left as refs.
 
 **The traveller's moves** (`Animator.play(name, t, w, { full, ground, head })`, `moves.glb`): a
 clip laid over the whole blend for a frame, by its weight; `full` (lying, kneeling, getting up) has

@@ -52,9 +52,9 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   keeps them: docs/systems/story.md, docs/systems/ui.md).
 - [ ] The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the
   Arena), and the blade's attacks are all captured swings (the combo, the guard, the whirl, the lunge, and in
-  v1.3 the charged cut and the air cut from the Great Sword pack, on their clips' own swing frames: DONE.md).
-  Next: a better machine, foes that use the world's height and the temple kit; for the blade, a riposte after
-  a perfect parry (the Sword and Shield pack's kick or slash 4) and a dash cut out of an evade (its attack 2).
+  v1.3 the charged cut and the air cut from the Great Sword pack, in v1.4 the riposte after a perfect parry and
+  the dash cut out of an evade from the Sword and Shield pack, on their clips' own swing frames: DONE.md).
+  Next: a better machine, foes that use the world's height and the temple kit.
 
 # Carried over
 
