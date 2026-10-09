@@ -8,7 +8,7 @@
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
 //   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps',
-//            'spherecourt', 'longlook', 'echorelay'
+//            'spherecourt', 'longlook', 'echorelay', 'vinewalk'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -20,7 +20,9 @@
 //            from: only this far along the frame (m, its z) or further, words } (the feather leap: the plain
 //            under its tower and its gulf; the furnace steps: the grate under the pillars; the long look: the shaft)
 //   onFoot   walked: up on the jets for more than a moment ends it (offFeet: the words on the card)
-//   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash)
+//   noWings  the wings opened end it at once too (the vine walk: a glide would carry you over its gaps)
+//   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash;
+//            'kitwings'; 'kitecho': walk, splash, play the shell back)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
 
@@ -132,6 +134,22 @@ export const KIT_TRIALS = {
       first: '~shout~ Low, high, middle, and every horn answering! I stopped selling to listen. Nobody bought a thing. Worth it.',
       beaten: '~surprised~ Quicker than the makers! I didn’t have time to light a single lantern.',
       again: '~playful~ Again? Play it slower next time. I sell more lanterns when there’s music.',
+    },
+  },
+  'kit-edena': {
+    id: 'kit-edena', world: 'edena', mode: 'kit', course: 'vinewalk', name: 'Vine walk', color: '#7fcfa8',
+    blurb: 'The Greenhouse’s vine gulf stood out on the long slope east of Mira’s water clock: four white decks over the meadow, three gaps, a seed at each, and a flower-door.',
+    rules: 'Cross the three gaps to the arch on the last deck. Switch the gun to bloom and wake the seed at each gap: its vine grows a bridge across. A bloom opens the flower-door too. Down in the meadow, or on your wings, and the run is over.',
+    origin: [57, -3.2, 1], yaw: Math.PI / 2,
+    marker: [4.4, -4.6], start: [0, 0.6], heading: 0, par: 28,
+    needs: ['backpack', 'bloom'], lacks: 'Its seeds and its flower-door want the bloom.',
+    onFoot: true, noWings: true, offFeet: 'Feet only: the vines carry you over, not the wings or the jets.',
+    fall: { after: 0, below: -2, from: 12, words: 'Down in the meadow' },
+    voice: {
+      who: 'mira', name: 'Mira', from: 'who keeps the water clock',
+      first: '~happy~ Three bridges grown and walked before my clock dripped twice. The builders would have liked you.',
+      beaten: '~surprised~ Quicker than the builders! The vines had hardly finished growing under your feet.',
+      again: '~playful~ Again? The vines are getting used to you. Mind the flowers. They mind you.',
     },
   },
 };

@@ -649,3 +649,72 @@ test('the echo relay: stones that sing, horns that listen only in a run, each no
   shell.dispose();
   C.dispose();
 });
+
+test('the vine walk: a bloom grows each seed’s vine bridge over its gap, opens the flower-door; the meadow and the wings end it', () => {
+  const { scene, physics } = world('edena');
+  const T = KIT_TRIALS['kit-edena'];
+  const game = new GameState(), said = [];
+  const pl = traveller();
+  const C = createChallenges({ levelId: 'edena', scene, physics, player: pl, items: { has: () => true }, game, kits: [T], trials: {}, notice: (t) => said.push(t) });
+  const W = C.list[0], course = W.course, K = course.kit, L = course.rt.logic;
+  /** The floor under (x, z) in the course's frame, up to 30 m down (-Infinity: nothing). */
+  const floor = (x, z) => { const p = K.world(x, 1, z), g = physics.groundAt(p.x, p.y, p.z, 30); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  const fwd = K.world(0, 0, 1).sub(K.world(0, 0, 0));
+  const tick = () => course.update(1 / 60, 0);
+  assert.equal(course.vines.length, 3);
+  // the gaps: far wider than a jump, the meadow under them below the fall line, nothing across them yet
+  for (const [z0, z1] of course.gaps) {
+    assert.ok(z1 - z0 > 3 * 3, `a gap no jump crosses (${z1 - z0} m)`);
+    for (const x of [-1.5, 0, 1.5]) assert.ok(floor(x, (z0 + z1) / 2) < T.fall.below, `nothing across the gap at ${(z0 + z1) / 2} yet (${floor(x, (z0 + z1) / 2).toFixed(1)} m)`);
+  }
+  for (const z of [5, 28, 52, 72]) assert.ok(Math.abs(floor(0, z)) < 0.05, `a deck at ${z}`);
+  // the seeds are the temple logic's switches, wanting the bloom; plain fluid only soaks in
+  const [v1, v2, v3] = course.vines;
+  assert.equal(L.el(v1.id).type, 'switch'); assert.deepEqual(L.el(v1.id).needs, ['bloom']);
+  v1.seed.hit('shoot'); tick();
+  assert.ok(!v1.grown(), 'a splash: still a seed');
+  assert.ok(said.some((s) => /stays a seed/.test(s)), 'it says so');
+  // bloomed (no run on: the world's for good), the vine grows a floor across the gap
+  v1.seed.hit('bloom'); tick();
+  assert.ok(v1.grown(), 'the vine grows');
+  assert.ok(Math.abs(floor(0, 17)) < 0.05, `a floor across the first gap (${floor(0, 17).toFixed(2)})`);
+  assert.ok(floor(3, 17) < T.fall.below, 'and only as wide as the vine: off its side is the meadow');
+  // the flower-door: solid while shut, a bloom opens it
+  const door = course.bud;
+  assert.ok(physics.rayDistance(K.world(0, 1.5, 44), fwd, 6) < 3.6, 'the bud shuts the doorway');
+  door.bud.hit('shoot'); tick();
+  assert.ok(!door.open(), 'water only beads on it');
+  door.bud.hit('bloom'); tick();
+  assert.ok(door.open(), 'bloomed: it opens');
+  assert.ok(physics.rayDistance(K.world(0, 1.5, 44), fwd, 6) >= 6 - 0.01, 'the way through is open');
+  // a new run: the vines taken back, the seeds closed, the door shut
+  const ctx = runnerCtx(pl);
+  let sess = W.session(ctx);
+  assert.ok(!v1.grown() && !v1.seed.on && !door.open(), 'all as it was');
+  assert.ok(floor(0, 17) < T.fall.below, 'the first gap open again');
+  assert.ok(physics.rayDistance(K.world(0, 1.5, 44), fwd, 6) < 3.6, 'the door shut again');
+  // the run: down in the meadow ends it (past the first deck's edge), and so do the wings
+  pl.pos.copy(K.world(0, floor(0, 17), 17));
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Down in the meadow');
+  sess.end(); ctx.result = null;
+  sess = W.session(ctx);
+  pl.gliding = true;
+  for (let i = 0; i < 20 && !ctx.result; i++) sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Off your feet', 'the wings opened: over in a moment');
+  pl.gliding = false;
+  sess.end(); ctx.result = null;
+  // played: each seed bloomed, each vine walked, the door bloomed, the arch
+  sess = W.session(ctx);
+  for (const v of course.vines) { v.seed.hit('bloom'); }
+  door.bud.hit('bloom'); tick();
+  for (const gt of W.gates) walk(sess, ctx, pl, V(gt.x, gt.y - 1, gt.z));
+  assert.ok(ctx.result && !ctx.result.failed, 'finished');
+  for (const [z0, z1] of course.gaps) assert.ok(Math.abs(floor(0, (z0 + z1) / 2)) < 0.05, `the vine over ${z0}–${z1}`);
+  sess.end();
+  // the makers' mark: a steady scripted run (walked at 5 m/s; the gun switched to bloom, the first two seeds bloomed
+  // from the start, the door from the first deck, the third seed from behind the door: half a second each) plus slack
+  const t = scripted(course, [[0, 0, 8], [0, 0, 50], [0, 0, 75]]) + 5 * 0.5;
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});

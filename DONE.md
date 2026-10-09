@@ -1528,7 +1528,7 @@ tests/sound-mix.test.js holds them.
   throws 2.2× (as the heavy third). The walkers' wall test now looks over a climbable step (it was at 0.5 m, so no
   foe climbed a step taller than that: a temple's dais stopped a machine at its foot). Not done: crystals, water.
 
-## Challenges: the echo relay in the Signal Market (done 9 October, v1.4)
+## Challenges: the echo relay in the Signal Market and the vine walk in Viridel (done 9 October, v1.4)
 
 - [x] **The echo stones and horns in the open, and the Signal Market's makers' run.** The stand-in runtime
   (src/trials/kit-courses.js `openRuntime`) now carries the game's events, and `addStone` / `rt.ear` stand the
@@ -1539,3 +1539,11 @@ tests/sound-mix.test.js holds them.
   horn, every stone over 30 m from its horn; Oyo, who sells lanterns, has a word). Played through in the game
   with the real gun, shell and key. The runs' test now also keeps them clear of their world's makers' court
   (the first spot, east of the avenue, ran into it). tests/trials-kit.test.js.
+- [x] **The seeds, their vine bridges and the flower-door in the open, and Viridel's makers' run.** `rt.vine`
+  stands the Greenhouse's own `Seed` with a `Bridge` grown from it (`from: 'grow'`) and `rt.bud` its `Bud`; a
+  bloom wakes them, for anyone, run or no run (`rt.free`), and the stand-in drives what the temple runtime
+  would (`links`: a seed on grows its bridge, a bloomed bud opens; a new run takes them back). The **Vine walk**
+  (four white decks in a line down the meadow's slope east of Mira's water clock, higher over the meadow the
+  further they go: three 10 m gaps, a seed at each, a flower-door on the third deck; down in the meadow or the
+  wings opened ends it, `noWings`; Mira has a word). Played through in the game with the real gun in bloom
+  mode. The course's dispose now takes its pieces' colliders back. tests/trials-kit.test.js.

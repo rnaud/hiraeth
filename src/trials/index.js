@@ -360,7 +360,8 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
         const fr = T.fall ? course.kit.local(P.pos) : null;
         const why = outOfRun(T, P, { passed: run.next, height: fr?.y ?? Infinity, along: fr?.z ?? Infinity });
         if (why) { gone = true; ctx.finish({ failed: true, title: why }); return; }
-        off = T.onFoot && P.jetFlight ? off + dt : 0;
+        // (a run with `noWings`: the wings opened end it at once, where a glide would carry you over its gaps)
+        off = T.onFoot && P.jetFlight ? off + dt : T.noWings && P.gliding ? off + 6 * dt : 0;
         if (off > 1.5) { gone = true; ctx.finish({ failed: true, title: 'Off your feet', lines: [T.offFeet ?? 'This one is walked: no jets.'] }); }
       },
       end() {

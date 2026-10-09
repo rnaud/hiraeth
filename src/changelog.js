@@ -19,6 +19,8 @@ export const CHANGELOG = [
     // challenges in the open
     { text: 'A new optional challenge in the Signal Market, the Echo relay, built from the Undertower’s own singing stones and listening horns: walk past three walls hung with old dishes to the arch at the far end, then give each horn its own stone’s note. Splash a stone close enough for the echo shell to catch its song, carry it the length of the street to the horn of its colour and play it back; the shell holds one note at a time. Oyo, who sells lanterns on the avenue, has a word for you when you finish.',
       see: 'The Echo relay is in the first side street west of the avenue, a few steps from where you arrive, behind the lantern stalls. It wants the fluid gun and the echo shell from the Undertower. Walk up to the sign and press X / □ (E); play the shell back with Y / △ with no gadget in hand (V).' },
+    { text: 'And one in Viridel, the Vine walk, from the Greenhouse’s own seeds and flower-doors: four white decks stand in a line down a long slope of the meadow, higher over the meadow the further they go, with a gap between each. Bloom the seed at each gap and its vine grows a bridge across; bloom the flower-door on the third deck to get through. Fall into the meadow, or open your wings, and the run is over. Mira, who keeps the water clock, has a word for you when you finish.',
+      see: 'The Vine walk starts at the top of the long slope just east of Mira and her water clock. It wants the bloom mode from the Greenhouse: switch the gun to it (D-pad ← / →, X) and splash each seed. Walk up to the sign and press X / □ (E).' },
   ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour

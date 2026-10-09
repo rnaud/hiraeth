@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TempleKit, templeMaterials, box, annulus, lathe, paint, T as tf } from '../temples/kit.js';
-import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar } from '../temples/pieces.js';
+import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud } from '../temples/pieces.js';
 import { TempleLogic, memoryStore } from '../temples/logic.js';
 import { PALETTE as DESERT } from '../temples/desert.js';
 import { PALETTE as LORN } from '../temples/perdide.js';
@@ -9,6 +9,7 @@ import { PALETTE as BURIED } from '../temples/buried.js';
 import { PALETTE as SPHERES } from '../temples/spheres.js';
 import { PALETTE as SHAFT } from '../temples/incal.js';
 import { PALETTE as MARKET } from '../temples/bazaar.js';
+import { PALETTE as VIRIDEL } from '../temples/edena.js';
 
 // The makers' runs in the open (docs/systems/challenges.md, src/trials/kit-data.js): the temples' own kit
 // (src/temples/kit.js: halls, slabs, stairs, columns) and moving pieces (src/temples/pieces.js: Gust, Swing,
@@ -23,13 +24,14 @@ import { PALETTE as MARKET } from '../temples/bazaar.js';
 //   course.bank      (the wind-hall's eyes: a Bank) · course.swings · course.gusts · course.updrafts
 //   course.rollers   the balls in their grooves, each with its plate ({ ball, plate, home(), reset() })
 //   course.stones · course.ears   the singing stones and the horns that listen for their notes ({ ear, note, lit(), reset() })
+//   course.vines · course.bud     the seeds with their vine bridges ({ seed, bridge, grown() }) and the flower-door ({ bud, open() })
 //   course.task      what the run asks once its gates are behind you: { kind: 'eyes' | 'roll' | 'ears', n, count(), goal }
 //   course.solids()  the moving floors (the balls, the plates) for the traveller (src/player.js opts.dynamic)
 //   course.listen(fn) the bank's eyes may wake (fn() → true) · course.reset() for a new run
 //   course.update(dt, t) · course.dispose()
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET };
+const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL };
 
 /**
  * What a temple piece asks of its temple (src/temples/runtime.js), for a piece stood in the open. Its logic is
@@ -50,17 +52,22 @@ export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}
     kit, M, P, root, player, sound, game, logic,
     /** What a piece that only answers a run says when it is woken with no run on (by element id). */
     deaf: {},
+    /** The elements that answer anyone, run or no run (a seed grows its vine for whoever blooms it). */
+    free: new Set(),
+    /** What has answered since the last new run (onLit: a seed grown, a bud bloomed; reset() clears it). */
+    lit: new Set(),
     listen(fn) { listening = fn ?? (() => false); },
     notice(text, key = null) {
       if (!text) return;
       if (key) { if (told.has(key)) return; told.add(key); }
       notice(text);
     },
-    rumble() {}, onLit() {},
+    rumble() {},
+    onLit(id) { rt.lit.add(id); },
   };
   /** A bank woke whole, a horn heard its note: lit only while a run is listening (else it goes dark again). */
   logic.light = (id) => {
-    if (listening()) return true;
+    if (rt.free.has(id) || listening()) return true;
     if (rt.deaf[id]) rt.notice(rt.deaf[id], 'deaf');
     return false;
   };
@@ -117,6 +124,50 @@ export function addStone(rt, { note, at, yaw = 0, h = 3.2 }) {
   K.solid(new THREE.CylinderGeometry(0.62, 0.95, h, 10).translate(x, y + h / 2, z));
   K.add(K.M.trim, tf(annulus(1.0, 1.4, 0.06, 28), [x, y + 0.03, z]));
   return stone;
+}
+
+/**
+ * A seed that grows a vine bridge, stood in the open (Viridel's Greenhouse: the temples' Seed and a Bridge grown
+ * from it, `from: 'grow'`): a bloom glob wakes the seed (plain fluid only soaks in), and the vine weaves out from
+ * `a` to `b`, a floor from the moment it starts. It answers anyone, run or no run; a new run takes the vine back
+ * and closes the seed. o: { id, seed: [x, y, z], a, b, w, n, size } → { id, seed, bridge, grown(), update(), reset() }
+ */
+export function addVine(rt, { id, seed: at, a, b, w = 3.6, n = 5, size = 0.9, hue = 0 }) {
+  const L = rt.logic, bid = `${id}.vine`;
+  L.def.elements[id] = { type: 'switch', room: 'open', needs: ['bloom'] };
+  L.def.elements[bid] = { type: 'bridge', opens: { lit: id } };
+  rt.free.add(id);
+  const seed = rt.add(Seed, { id, at, size, seed: hue });
+  rt.kit.solid(new THREE.CylinderGeometry(1.2 * size, 1.25 * size, 0.5 * size, 12).translate(at[0], at[1] + 0.25 * size, at[2]));
+  const bridge = rt.add(Bridge, { id: bid, a, b, w, n, from: 'grow' });
+  return {
+    id, seed, bridge,
+    grown: () => bridge.open,
+    update() { if (seed.on && !bridge.open) bridge.setOpen(true); },
+    reset() {
+      seed.on = false; seed.k = 0; seed.wobble = 0; seed.apply();
+      bridge.setOpen(false, true); bridge.apply();
+    },
+  };
+}
+
+/**
+ * A flower-door stood in the open (the temples' Bud): a great bud shut over a doorway, solid, that a bloom glob
+ * opens (its petals fold back against the wall); answers anyone; a new run shuts it again.
+ * o: { id, at (the doorway's foot), yaw, w, h, color } → { id, bud, open(), update(), reset() }
+ */
+export function addBud(rt, { id, at, yaw = 0, w = 3.4, h = 4.4, color }) {
+  const L = rt.logic, bloom = `${id}.bloom`;
+  L.def.elements[bloom] = { type: 'switch', room: 'open', needs: ['bloom'] };
+  L.def.elements[id] = { type: 'door', opens: { lit: bloom } };
+  rt.free.add(bloom);
+  const bud = rt.add(Bud, { id, bloom, at, yaw, w, h, color });
+  return {
+    id, bud,
+    open: () => bud.open,
+    update() { if (rt.lit.has(bloom) && !bud.open) bud.setOpen(true); },
+    reset() { rt.lit.delete(bloom); bud.setOpen(false, true); bud.curl = 0; bud.apply(0); },
+  };
 }
 
 /** An old receiving dish of the market's (drawn only), facing `yaw` (0: +z), as the Undertower hangs them. */
@@ -445,6 +496,48 @@ export const COURSES = {
       clear: [[-W / 2 - 1, -3], [W / 2 + 1, L + 1]],
     };
   },
+  /**
+   * The vine walk (Viridel): the Greenhouse's Vine Gulf stood out on the meadow's long slope east of Mira's clock,
+   * in the white builders' stone. Four decks in a line, level with the top of the slope, so the further they go
+   * the higher they stand over the meadow (2 m at the steps, 9 at the far end); between them three gaps of 10 m,
+   * each with a seed at its near edge that grows a vine bridge across when a bloom glob tells it to; on the third
+   * deck a wall with a flower-door, whose bud a bloom glob opens. Down in the meadow ends the run, and so do the
+   * wings (src/trials/kit-data.js `noWings`): only the vines carry you over.
+   */
+  vinewalk(K, rt) {
+    const W = 8, decks = [[-1, 12], [22, 34], [44, 58], [68, 78]], depth = 12;
+    for (const [z0, z1] of decks) {
+      K.slab(-W / 2, z0, W / 2, z1, 0, depth, K.M.wall);
+      K.slab(-W / 2 - 0.25, z0 - 0.25, W / 2 + 0.25, z1 + 0.25, 0, 0.4, K.M.floor);
+      for (const s of [-1, 1]) K.add(K.M.trim, box(0.3, 0.06, z1 - z0, s * (W / 2 - 0.2), 0.03, (z0 + z1) / 2));
+      K.glyph([0, -1.6, z1 + 0.27], 1.4, 0);   // (on each deck's face over the gap)
+    }
+    K.stairs([0, -1.7, -6.4], [0, 0, -1.2], 3.6);
+    // the seeds at the gaps' near edges, each with its vine across to the next deck
+    const vines = [
+      rt.vine({ id: 'seed1', seed: [-2.2, 0, 10.6], a: [0, 0, 12], b: [0, 0, 22], hue: 1 }),
+      rt.vine({ id: 'seed2', seed: [2.2, 0, 32.6], a: [0, 0, 34], b: [0, 0, 44], hue: 3 }),
+      rt.vine({ id: 'seed3', seed: [-2.2, 0, 56.6], a: [0, 0, 58], b: [0, 0, 68], hue: 0 }),
+    ];
+    // the third deck's wall and its flower-door (it hides the third seed until it opens)
+    const WZ = 47;
+    K.wall(-W / 2, WZ, W / 2, WZ, 0, 7, { t: 1.0, holes: [{ at: W / 2, w: 3.4, h: 4.4 }] });
+    K.glyph([0, 5.6, WZ - 0.52], 1.0, Math.PI);
+    const bud = rt.bud({ id: 'door', at: [0, 0, WZ], w: 3.4, h: 4.4 });
+    // the far deck: an arch of two columns and a lintel
+    for (const s of [-1, 1]) K.column(s * 2.6, 76, 0, 4.4, 0.4);
+    K.both(K.M.wall, box(6.2, 0.6, 1.0, 0, 4.7, 76));
+    K.glyph([0, 4.7, 75.48], 0.9, Math.PI);
+    return {
+      // the gates: on the second deck (the first vine crossed), behind the flower-door, under the far arch
+      gates: [[0, 1.6, 26, 2.6], [0, 1.6, 50, 2.6], [0, 1.6, 75, 2.4]],
+      bank: null, gusts: [], swings: [], updrafts: [], links: [...vines, bud], vines, bud,
+      bounds: [[-W / 2 - 1, -depth, -7], [W / 2 + 1, 8, 79]],
+      clear: [[-W / 2 - 1, -7], [W / 2 + 1, 79]],
+      // (the tests' measures: the first gap, and every gap)
+      gulf: { from: 12, to: 22 }, gaps: [[12, 22], [34, 44], [58, 68]],
+    };
+  },
 };
 
 /** Build a makers' run in its world (see the top of this file). */
@@ -461,6 +554,8 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   rt.add = (Piece, o) => { const p = new Piece(rt, o); pieces.push(p); return p; };
   rt.roller = (o) => addRoller(rt, o);
   rt.ear = (o) => addEar(rt, o);
+  rt.vine = (o) => addVine(rt, o);
+  rt.bud = (o) => addBud(rt, o);
   const build = COURSES[T.course];
   if (!build) throw new Error(`no makers’ course "${T.course}"`);
   const C = build(kit, rt);
@@ -482,10 +577,11 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
     : ears.length ? { kind: 'ears', n: ears.length, count: () => ears.filter((e) => e.lit()).length, goal: C.earGoal ?? 'wake the horns', flash: C.earFlash ?? 'Now the horns: give each its note back' }
     : null;
   const solids = pieces.filter((p) => p.solid);
+  const links = C.links ?? [];   // (what the stand-in drives for a temple's runtime: a vine grown from its seed, a bud opened)
   return {
     trial: T, kit, rt, gates, start, heading: kit.heading(T.heading ?? 0), markerAt,
     bank: C.bank, swings: C.swings, gusts: C.gusts, updrafts: C.updrafts ?? [], gulf: C.gulf ?? null, pillars: (C.pillars ?? []).map((p) => ({ ...p, at: at(p.x, p.y, p.z) })), pieces,
-    rollers, stones: C.stones ?? [], ears, task, gaps: C.gaps ?? [],
+    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, task, gaps: C.gaps ?? [],
     solids: () => solids,
     /** The ground the world's own props should leave clear (world x, z corners). */
     clear: C.clear.map(([x, z]) => at(x, 0, z)),
@@ -499,13 +595,16 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
       for (const s of C.swings) s.still = 0;
       for (const r of rollers) r.reset();
       for (const e of ears) e.reset();
+      for (const l of links) l.reset();
+      rt.lit.clear();
     },
     update(dt, t) {
       rt.player = player;
+      for (const l of links) l.update();
       for (const p of pieces) p.update?.(dt, t);
     },
     dispose() {
-      for (const p of pieces) p.dispose?.();
+      for (const p of pieces) { p.dispose?.(); if (p.handle) { physics?.removeCollider?.(p.handle); p.handle = null; } }   // (a shut bud's, a grown vine's)
       if (collider) physics.removeCollider?.(collider);
       parent.removeFromParent();
     },
