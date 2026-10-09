@@ -616,6 +616,17 @@ fast and too shared to settle it. Done, at no measured cost in load time:
 - The pen spins on an HTML box of its own (`will-change: transform`; a transform on an SVG root isn't run
   off the main thread by every engine); the drawing is the same.
 - The WebGL canvas is hidden under the loading screen until the first frame.
+- **Guards** (so it can't come back unseen): `tests/gpu-pacer.test.js` (the pacer alone),
+  `tests/load-awaits.test.js` (every `await` between the first stage and `'ready'` in `main.js` must be one
+  of a known list of waits that end: a slice, the pacer, a stage's frame-or-250 ms, a race with a timer, the
+  `pending()` poll with its 2 s cap, the asset loads with their failure caught…; a new one fails until it is
+  bounded and listed), and `scripts/load-smoke.mjs`, run on GitHub before every deploy (`tests.yml`
+  `load-smoke`): the built game in headless Chrome on SwiftShader, the desert, the garage and the Lantern
+  loaded with fences that never signal and with no animation frames at all, each to its first frame within
+  180 s, and the pacer giving up after at most 4 s of waiting. On a Mac (SwiftShader, the low preset) the
+  desert took 55–60 s with the fences broken (the pacer gave up after ~0.75 s of waiting) and 48 s without
+  frames, the small worlds 30–38 s: nearly all of it SwiftShader compiling shaders in "mixing the inks…". With
+  the give-up taken out the Lantern still loaded (46 s, it has few surfaces) but the pacer check failed it.
 Still to measure on the Retroid (it was taken back mid-run): an `adb shell screenrecord` of a desert and a
 City-Shaft load, decoded in Chrome and read with `pen.mjs`'s `angles()`. Also left for the device: the
 speaker's portrait circle (TODO, Dialogue), the game menu's item pictures and the self-driving cab ride.

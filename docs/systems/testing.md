@@ -11,6 +11,20 @@ steam-deck.yml), and no deploy starts until it passes. (Until 2026-10-08 the hoo
 GitHub none: with several agents committing at once on this Mac each commit waited 20+ minutes.) Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
 which plays that world alone from a new game. The play-through plays them all, one after the other.
 
+## The load's smoke test (`scripts/load-smoke.mjs`)
+
+A guard for loads that hang (the Steam Deck's "mixing the inks…", 53ac1e80: fences the driver never
+signalled). It serves the built game (`dist/`, or `--build`) and loads worlds in a headless, muted Chrome on
+SwiftShader with a page script that breaks the driver: `fences` (WebGL2 fences never signal) or `noraf`
+(`requestAnimationFrame` never fires). Each load must log `load: total` (its first frame) within `--limit`
+seconds (default 120), and with the fences broken the GPU pacer must have given up having waited at most 4 s.
+No Chrome found (`$CHROME`, the usual paths) is a failure, not a pass. GitHub runs it before every deploy
+(`tests.yml`, job `load-smoke`: desert ×2, garage, Lantern, about 3 minutes of loads plus the build).
+
+    node scripts/load-smoke.mjs [--build] [--port 6201] [--limit 120] [--runs desert:fences,garage:noraf] [--verbose]
+
+`tests/load-awaits.test.js` checks the same statically: every `await` of `main.js`'s load is one known to end.
+
 ## The play-through (`tests/playthrough*.js`, `scripts/playthrough-browser.mjs`)
 
 Why: the worlds' own tests all passed while nothing played the game from start to finish, across a week

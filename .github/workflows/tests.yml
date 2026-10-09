@@ -1,6 +1,6 @@
 name: Tests
 
-# The whole unit suite (node --test tests/*.test.js), on pull requests and by hand. On a push to
+# The whole unit suite (node --test tests/*.test.js) and the load smoke test (scripts/load-smoke.mjs), on pull requests and by hand. On a push to
 # main every deploy calls it first and waits for it (deploy.yml, cloudflare.yml, android.yml,
 # steam-deck.yml: `uses: ./.github/workflows/tests.yml`), so a failing test never reaches
 # players. The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
@@ -25,3 +25,26 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test tests/*.test.js
+
+  # The load's smoke test (scripts/load-smoke.mjs, docs/systems/testing.md): the built game loaded in headless
+  # Chrome on SwiftShader with WebGL fences that never signal, and with no animation frames at all, each load
+  # reaching its first frame in time and the GPU pacer giving up within its bounds (the Steam Deck's
+  # "mixing the inks…" hang, 53ac1e80). The desert and two small worlds; about 3 minutes of loads.
+  load-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx vite build
+      - name: Chrome
+        run: |
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          if [ -z "$CHROME" ]; then echo "::error::No Chrome on the runner: the load smoke test cannot run"; exit 1; fi
+          "$CHROME" --version
+          echo "CHROME=$CHROME" >> "$GITHUB_ENV"
+      - run: node scripts/load-smoke.mjs --limit 180 --runs desert:fences,desert:noraf,garage:fences,lantern:noraf
