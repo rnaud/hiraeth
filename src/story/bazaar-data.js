@@ -152,7 +152,28 @@ export const PEOPLE = {
           do: { advance: [Q, 'sel2'] },
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],
         },
-        after: { say: ["~happy~ The tower’s back. Messages, noodle adverts, messages. Life requires both, apparently."], choices: [{ text: '~happy~ Keep listening, Sel.', end: true }] },
+        after: {
+          say: ["~happy~ The tower’s back. Messages, noodle adverts, messages. Life requires both, apparently."],
+          choices: [
+            // once he knows who Ilen was (the mother's recording, calls.ilen.told), and once he has found her
+            // (finale.met): Sel had offered two readings, and hears which it was (October 2026)
+            { text: '~sad~ Ilen was my sister. She left before I was born, and never came home.', if: { all: [{ any: [{ flag: 'calls.ilen.told' }, { flag: 'finale.met' }] }, { not: { flag: 'bazaar.sel.ilen' } }] }, goto: 'sister' },
+            { text: '~happy~ Ilen heard it, Sel. Thirty years late. She’s coming home.', if: { all: [{ flag: 'finale.met' }, { not: { flag: 'bazaar.sel.found' } }] }, goto: 'found' },
+            { text: '~happy~ Keep listening, Sel.', end: true },
+          ],
+        },
+        sister: {
+          say: ["~solemn~ Your sister. The first reading, then. I’d hoped it was the hired voice. That one costs nobody anything.",
+            "~sad~ He sent it after her, and it found you. Some messages are poor at addresses and very good at families."],
+          do: { set: { 'bazaar.sel.ilen': true } },
+          choices: [{ text: '~happy~ Ilen heard it, Sel. Thirty years late. She’s coming home.', if: { all: [{ flag: 'finale.met' }, { not: { flag: 'bazaar.sel.found' } }] }, goto: 'found' }, { text: '~neutral~ Keep listening, Sel.', end: true }],
+        },
+        found: {
+          say: ["~surprised~ She heard it? (Sel takes her glasses off, and puts them back on, and takes them off again.)",
+            "~happy~ Forty years of messages, and I never once learned how one ended. I’ll tell the square. They’ll pretend not to cry. Badly."],
+          do: { set: { 'bazaar.sel.found': true, 'bazaar.sel.ilen': true } },
+          choices: [{ text: '~happy~ Keep listening, Sel.', end: true }],
+        },
       },
     },
   },

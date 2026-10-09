@@ -68,6 +68,10 @@ layout" below has it, the audit it came from and why each button is where it is.
   button); `padText()` prints the pad's own letter (a Retroid's bottom button reads "B").
   Menu prompts use `confirmKey()` / `backKey()`, and code reading raw pad buttons (the
   galactic map, the homecoming, skipping a scene) uses `padIndex('ok' | 'back')`.
+  Since v1.2 the page shows the half that matches the pad in hand (`padFamily` from the Gamepad id:
+  "A" on Xbox, "×" on PlayStation, a Switch pad's own letters), and the menus' buttons carry their
+  prompt as a glyph inside them (`src/pad-glyphs.js`; docs/systems/ui.md, "The menus on a controller").
+  A Switch pad on a computer confirms with its A, on the right.
 
 ### Pads without the standard mapping (`src/pad-maps.js`, v0.93)
 

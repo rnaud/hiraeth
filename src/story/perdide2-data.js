@@ -159,13 +159,26 @@ export const KEEPERS = [
           ],
         },
         found: {
+          do: { set: { 'perdide2.hollin.found': true } },
           say: ["~solemn~ (You tell him: the lantern on its island, the woman who kept it with them, the two stones on the point.)", "~sad~ They got there. And kept a light at the end of it. Of course they did.", "~happy~ Then my lamps were lit for travellers who arrived somewhere. That’s all I ever wanted for them."],
           choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }],
         },
         maybe: { say: ["~solemn~ You don’t have to promise. Come if you can. A welcome isn’t a debt."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         after: {
           say: ["~happy~ The lights are on. Whenever you come, they’ll be on."],
-          choices: [{ text: '~neutral~ I will.', end: true }],
+          choices: [
+            // Ilen's news, if he didn't hear it when the promise was kept (or no promise was made): Odile and Talo
+            { text: '~solemn~ I found where Odile and Talo went.', if: { all: [{ any: [{ flag: 'finale.hollin' }, { flag: 'finale.met' }] }, { not: { flag: 'perdide2.hollin.found' } }] }, goto: 'found' },
+            // he knows who Ilen was (the mother's recording) and hasn't found her yet
+            { text: '~sad~ I had a sister. She went out like Odile and Talo, before I was born, and never came home.', if: { all: [{ flag: 'calls.ilen.told' }, { not: { flag: 'finale.met' } }, { not: { flag: 'perdide2.hollin.ilen' } }] }, goto: 'sister' },
+            { text: '~neutral~ I will.', end: true },
+          ],
+        },
+        sister: {
+          say: ["~solemn~ Then someone at home kept a light for her, I expect. People do, long after they say they’ve stopped.",
+            "~happy~ And a light kept for somebody is never quite wasted. I’ve had forty years to check."],
+          do: { set: { 'perdide2.hollin.ilen': true } },
+          choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }],
         },
       },
     },

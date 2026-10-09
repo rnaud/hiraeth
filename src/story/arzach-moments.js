@@ -1,4 +1,4 @@
-import { V, UP, smooth, closeUp, facing, rightOf } from './film.js';
+import { V, UP, smooth, closeUp, facing, rightOf, riseLook } from './film.js';
 
 // Vael's first time, filmed (src/story/moment.js): once per save, skippable, and never in the way
 // (when it can't play, arzach.js does what it always did: she comes down from the far haze).
@@ -7,7 +7,7 @@ import { V, UP, smooth, closeUp, facing, rightOf } from './film.js';
 //         (arzach.moment.bird)
 //         A  wide, low behind him and off his side: him at the edge of the frame by the
 //            room's window, the haze where the call goes; far out a speck answers (her cry) 0.0–2.4
-//         B  a long lens from beside him, up into the haze: she comes down out of it,
+//         B  a long lens from beside him, up into the haze over the horizon's towers: she comes down out of it,
 //            wings wide, growing, the pan following her in (the world's motif swells)    2.4–6.0
 //         C  his face, three-quarter, turned to where she comes down: her cry as she
 //            lands; he watches, and the corner of his mouth goes up                     6.0–8.2
@@ -27,7 +27,7 @@ import { V, UP, smooth, closeUp, facing, rightOf } from './film.js';
 
 // s per panel; FROM: m out (and UP m up) she starts, so she lands near C's start;
 // BOW: her first bow's length (s; else 4.2); SMIRK: s into C before his mouth goes up
-export const BIRD = { A: 2.4, B: 3.6, C: 2.2, D: 2.0, FROM: 200, UP: 120, BOW: 5.6, cryAt: 1.7, swellAt: 2.4, SMIRK: 1.0 };
+export const BIRD = { A: 2.4, B: 3.6, C: 2.2, D: 2.0, FROM: 200, UP: 90, BOW: 5.6, cryAt: 1.7, swellAt: 2.4, SMIRK: 1.0 };
 export const MOMENTS = [{ id: 'arzach.bird', flag: 'arzach.moment.bird', beat: 'the bird comes down out of the haze and bows' }];
 
 export function setupArzachMoments(ctx, { bird, bow, cry, bowNow, tower = null }) {
@@ -51,7 +51,11 @@ export function setupArzachMoments(ctx, { bird, bow, cry, bowNow, tower = null }
     // (the side of him away from the lone tower's room, when he plays it up there: the lens stays out of its walls)
     const flatTo = (p, q) => Math.hypot(p.x - q.x, p.z - q.z);
     const awayFrom = (dir) => { const s = rightOf(dir); return tower && flatTo(P.clone().add(s), tower) < flatTo(P.clone().sub(s), tower) ? s.negate() : s; };
-    const away = awayFrom(out);
+    let away = awayFrom(out);
+    // A is low behind him: on a slope it ended up inside the dune (the QC pass); without the tower to keep
+    // clear of, take the side whose ground lies lower under the lens
+    const eyeY = P.y + 1.6 - 1.2, sink = (s) => (physics?.base?.heightAt?.(P.x + s.x * 5 - out.x * 6.5, P.z + s.z * 5 - out.z * 6.5) ?? -Infinity) - eyeY;
+    if ((!tower || flatTo(P, tower) > 25) && sink(away.clone().negate()) < sink(away) - 0.5) away = away.negate();
     const start = land.clone().addScaledVector(out, BIRD.FROM).addScaledVector(UP, BIRD.UP);
     const eye = P.clone().addScaledVector(UP, 1.6);
     const B0 = BIRD.A, C0 = B0 + BIRD.B, D0 = C0 + BIRD.C;
@@ -70,7 +74,9 @@ export function setupArzachMoments(ctx, { bird, bow, cry, bowNow, tower = null }
             const dt = Math.max(0, t - pan.t); pan.t = t;
             if (!pan.look) pan.look = want; else pan.look.lerp(want, 1 - Math.exp(-6 * dt));
             const k = smooth(t / BIRD.B);
-            return { pos: eye.clone().addScaledVector(out, -2.2).addScaledVector(away, 1.3).addScaledVector(UP, -0.35), look: pan.look.clone(), fov: 30 + 14 * k };
+            const pos = eye.clone().addScaledVector(out, -2.2).addScaledVector(away, 1.3).addScaledVector(UP, -0.35);
+            // the horizon and the haze's towers kept at the frame's foot, her in its upper part (riseLook)
+            return { pos, ...riseLook(pos, pan.look, 30 + 14 * k) };
           } },
         // C: his face, turned to where she comes down
         { dur: BIRD.C, clear: false, from: closeUp(player, { angle: -0.55, dur: BIRD.C }) },

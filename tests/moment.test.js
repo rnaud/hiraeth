@@ -73,6 +73,52 @@ test('a moment plays once through: letterbox up, beats and lines in order, the c
   assert.equal(ended.n, 1, 'never twice');
 });
 
+test('the lens never goes under the ground, even where the colliders see nothing (the cinematics QC pass)', async () => {
+  const { GROUND_CLEAR } = await import('../src/story/moment.js');
+  const S = fakeStage();
+  S.physics = { rayDistance: () => Infinity, base: { heightAt: (x) => (x < 1 ? 4 : -10) } };   // a dune behind, low ground ahead
+  const m = new Moment({ id: 'g', shots: two, stage: S });
+  m.start(); run(m, 3.2);
+  const under = S.shots.filter((c) => c.pos.x < 1);
+  assert.ok(under.length && under.every((c) => c.pos.y >= 4 + GROUND_CLEAR - 1e-9), 'lifted out of the dune');
+  assert.ok(S.shots.filter((c) => c.pos.x > 1).every((c) => c.pos.y === 0), 'left alone where the ground is below');
+});
+
+test('behind: the follow camera goes back behind him, level, before the blend (the City-Shaft left it pitched up: the QC pass)', async () => {
+  const { behindHim } = await import('../src/story/moment.js');
+  const S = fakeStage(), order = [];
+  S.behind = () => order.push('behind');
+  const rel = S.release; S.release = (b) => { order.push('release'); rel(b); };
+  const m = new Moment({ id: 'b', shots: two, stage: S, behind: true });
+  m.start(); run(m, 4);
+  assert.deepEqual(order, ['behind', 'release'], 'put behind him, then blended to');
+  const plain = fakeStage(); let called = false; plain.behind = () => { called = true; };
+  const m2 = new Moment({ id: 'p', shots: two, stage: plain }); m2.start(); run(m2, 4);
+  assert.equal(called, false, 'only when asked');
+  const rig = { yaw: 0, pitch: -0.9, pitch0: 0.13 };
+  assert.ok(behindHim(rig, { heading: 1 }));
+  assert.ok(Math.abs(rig.yaw - (1 + Math.PI)) < 1e-9 && rig.pitch === 0.13, 'behind him at the usual pitch');
+  assert.equal(behindHim(null, { heading: 0 }), false);
+  // through the ship's stage: its rig
+  const ship = fakeShip(); ship.rig = { yaw: 0, pitch: -1, pitch0: 0.2 };
+  const stage = new MomentStage({ ship, game, player: { heading: 0.5, pos: V(0, 0, 0) } });
+  stage.stageFor().behind();
+  assert.equal(ship.rig.pitch, 0.2);
+});
+
+test('the City-Shaft’s moment hands back behind him (it starts looking steeply up)', async () => {
+  const src = (await import('node:fs')).readFileSync(new URL('../src/story/incal-moments.js', import.meta.url), 'utf8');
+  assert.match(src, /behind: true/);
+});
+
+test('beats run at their own time even when listed out of order (the Lantern\'s chime came at 4.8 s, the QC pass)', () => {
+  const S = fakeStage(), at = {};
+  const m = new Moment({ id: 'o', shots: two, stage: S, beats: [{ t: 2, run: (mm) => { at.late = mm.t; } }, { t: 0.2, run: (mm) => { at.early = mm.t; } }] });
+  m.start(); run(m, 3);
+  assert.ok(at.early < 0.3, `the early beat at ${at.early}`);
+  assert.ok(at.late >= 2 && at.late < 2.1);
+});
+
 test('skip: not in its first moments (a press mashed through), then on the next frame, to its end', () => {
   const S = fakeStage(), said = [];
   let skipped = null;

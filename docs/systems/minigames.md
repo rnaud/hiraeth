@@ -411,6 +411,8 @@ avenue, a skybridge from right under it, the old sign, a cab in flight, a shop s
 
 ## Trials in the worlds (v0.98, `src/trials/`)
 
+(With the makers' runs, the temples' kit in the open, they make the challenges: docs/systems/challenges.md.)
+
 One optional **mastery trial** in each route world, built from what that world gives you, played where it stands
 (not on a game page): the Desert's **Dune line** (the hoverbike, down into the basin), Vael's **Wind ladder** (the
 wings up two columns of rising air and through rings between them), the Sky Stones' **Stone circuit** (the bird,

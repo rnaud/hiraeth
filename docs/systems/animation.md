@@ -319,7 +319,22 @@ node scripts/mocap/compare-people.mjs      # a person on each captured walk
   clip less its last frame (`wholeLoop`). A clip of its own (`use: clip`) holds its root still
   (`root: 'fixed'`, or `'end'` for a get-up: where it stands up), so the hips' sway and a get-up's
   rise stay in the pose instead of sliding the feet, and it keeps the head's own turn (`Head`), which
-  the database leaves out. Two uses at once: `mm+clip`.
+  the database leaves out. Two uses at once: `mm+clip`. A row's `until` ships only its first so many seconds
+  (the blade's jump attack: 1.5 of its 2.2 s; the rest is never played).
+- **The blade's attacks** (v1.3, docs/systems/foes.md): the Great Sword pack's slash (`gs_slash_1`, the charged
+  cut, 1.1 s) and jump attack (`gs_jump_attack`, the air cut) joined the Sword and Shield pack's cuts in
+  `moves.glb` (`node scripts/mocap/unpack-packs.mjs && node scripts/mocap/build-library.mjs --add
+  gs_slash_1,gs_jump_attack`): 597 424 → 621 644 bytes (+24 KB, 4 %; gzip 400 686 → 414 522). Their times
+  were read off the traveller in the game (the blade tip's speed through each clip), not off the studio.
+  `Animator.playCombat` takes a `blend` (s, default 0.09) for a move's way in (the charge's draw: 0.2) and
+  `ground` (the air cut); `blendCombat` now holds every joint of the library's skeleton (plain nodes, not
+  Bones: it had held none, so nothing blended).
+- **The blade's counters** (v1.4, docs/systems/foes.md): the Sword and Shield pack's slash 4 (`ss_slash_4`, the
+  riposte, `until` 1.8 of its 2.4 s) and attack 2 (`ss_attack_2`, the dash cut, `until` 1.05 of 1.3 s), with
+  `--add ss_slash_4,ss_attack_2`: 621 644 → 645 908 bytes (+24 KB, 3.9 %; gzip 412 874 → 427 094). The blade tip
+  peaks at 33 m/s at 1.39 s (riposte) and 43 at 0.56 (dash cut). Slash 4's chop lands 75° to the body's right,
+  so the riposte turns him into it (`RIPOSTE.turn`; `Player.faceAim` skips its walking lead for an aim with
+  `lead: false`). The pack's kick moves no blade; its slash 2, 5 and attack 3, 4 were measured and left as refs.
 
 **The traveller's moves** (`Animator.play(name, t, w, { full, ground, head })`, `moves.glb`): a
 clip laid over the whole blend for a frame, by its weight; `full` (lying, kneeling, getting up) has
@@ -357,6 +372,13 @@ layers as they were). Strips of each are made on the Motion page (`motionPage.sh
   then its breathing idle, then the library's look-around, 10 s apart, above the legs (`legs:
   false`), the head's own turn kept and the idle layer's glances eased off meanwhile;
   `tests/idle-legs.test.js` stands him 36 s with them: no twitch, no step, the balls within 3 mm.
+  The head's own turn is held within a neck's reach (`HEAD_TURN`, `limitHeadTurn`: 60° about the
+  neck, 34° off its line, eased in past 60 % of each): the clip's head is read in the world, so it carries
+  the chest's and the neck's twist, which our chest and neck (following only the spine's and neck's
+  lines) don't take; in the looking about the whole of it landed on the skull, 105° round on the neck
+  (the jaw into the shoulder, the face stretched: "his mouth opens wide and his neck moves strangely"),
+  and 30° down on a neck already bent 46°. `tests/head-turn.test.js` plays all three idles: the face
+  stays under 80° from the chest.
 - **Gestures** (`Player.gesture(kind)`; `src/interact.js` `gestureOf`): using something whose prompt
   picks up or takes something under 1.1 m over the feet kneels (Mixamo's kneeling inspection, the
   feet let go to follow it, `play` `free`), *pet* kneels and lays the petting's reaching arm over it
@@ -369,7 +391,7 @@ layers as they were). Strips of each are made on the Motion page (`motionPage.sh
 walking, stopping, turning and jumping for 15 s; `?moves=1` against `?moves=0`, two runs each) the
 player's whole update was 1.43 / 1.71 ms a frame with the moves against 1.64 / 1.76 without, the
 Animator 0.21–0.25 against 0.22–0.26 ms; in Node (the gait harness, the coral-shirt traveller, three
-runs each) 2.26–2.34 against 2.27–2.35 ms. `moves.glb` is 446 KB, loaded after the game starts.
+runs each) 2.26–2.34 against 2.27–2.35 ms. `moves.glb` is 446 KB, loaded after the game starts (607 KB with the blade's attacks, v1.3).
 
 **The people's walks** (`Animator.useWalk`, `locomotion.js walkFor`): a nearby person may walk one
 of twelve captured walks instead of the library's: picked (seeded, like the rest of their gait) among
@@ -561,3 +583,23 @@ last displayed pose over 90 ms when a combat clip changes or releases control. G
 remain upper-body. Clip weights ease in/out and the existing foot contacts place grounded feet. This
 works with default blended locomotion and the optional matcher; it does not change the matcher default
 or claim to fix the speed/database mismatch measured above.
+
+## People greeting you and getting out of your way (October 2026)
+
+- **The wave** (`src/wave.js` `layWave`, from `NPC.pose`): for `WAVE.dur` (2.2 s) after someone greets
+  you, their left arm comes out to the side and a little forward (`lift` 1.95 rad from hanging: the
+  elbow about at the shoulder), the forearm stands up from it and swings side to side across the front
+  (`fore` ± `sway` at `rate` 2.3 Hz), each joint slerped from wherever the clip had it by an eased weight
+  (`waveWeight`: in over 0.35 s, out over 0.45). It used to set the Euler angles outright: the arm up
+  past the head, the forearm bending about its own x, which with the arm raised swung the hand toward
+  the face and back, and a snap to hanging at the first frame. `tests/wave.test.js`.
+- **Stepping aside** (`crowd.js` `ASIDE`, `stepSide`; `NPC.sidestep`): a standing crowd person within
+  1.25 m of their spot steps off it (at most 1 m) at no more than 1.1 m/s, and with you walking past,
+  70 % of the way is out of your path to their side (your movement read from your place frame to
+  frame) rather than straight back from you. Their step in their own frame (`p.stepDir`: left, right,
+  back) has the near tier's body play the traveller's captured sidesteps or step back (`LOCK_MOVE`),
+  their time following the ground covered, under Mixamo's breathing idle above the legs (the steps were
+  captured with sword and shield: their raised arms threw the cape over the shoulders), and the cloth
+  is told the way they really go. They used to slide at up to 2-3 m/s with the forward walk playing.
+  `tests/close-contact.test.js`.
+

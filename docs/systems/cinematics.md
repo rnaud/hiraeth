@@ -44,6 +44,22 @@ The ship's cutscenes and the filmed first times.
   edges and no flipped faces, and casts rays from the terraces, stairs and trunk: every first
   hit is bark seen from outside.
 
+## The prologue's message and the crash landing (v1.0)
+
+- **The father's message** (`PROLOGUE_CALL`, `src/story/calls.js`) is four lines and the cut, 25.5 s
+  (it was six, 34.5 s): he checks the little light and greets you as if live, gives the translator and
+  "nobody owes you" in one breath, then what was left half done, then the charge word for word. Under
+  the charge the hum rises and the call screen's static and the hologram's glitch grow with it, until
+  the strike cuts all three (docs/systems/audio.md, "The hum"). `tests/prologue-call.test.js`.
+- **Nobody talks over a ship's scene** (`talkAllowed`, `src/ship/landing.js`): while `ship.playing`
+  main.js picks no balloon and places no talk prompt, and `crowd.hush` keeps the crowd's shouts down.
+  (The hidden traveller rides in the parked ship during the crash, so Marrow greeted him through it.)
+- **Marrow at the wreck** stands at `bystanderSpot`: 22 m from the hull's centre (it is 13 m round),
+  the hatch's way turned 0.7 rad to a side, never in the furrow behind the crash's `travel`.
+- **Stepping out** (`ReboardGate`): while you are aboard or a scene or the autopilot walks you, the
+  ramp's "go aboard" (prompt and E) is held until you have been 7 m from its foot once.
+  `tests/landing.test.js`.
+
 ## Moments: first times, filmed (`src/story/moment.js`)
 A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
 page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's
@@ -61,7 +77,8 @@ tone, a swell of the world's score, then back to you.
   him and his eyes; `m.look` holds a look on his face **quietly** (src/talk-face.js `look`: the
   expression only, the mouth shut, the hands still; `'smirk'` is a look of its own,
   `TONE_EXPRESSIONS.smirk`, not a dialogue tone); `faceOf(humanoid)` gives where his face
-  is and looks as posed, for close-ups that never catch an ear. While one plays the idle's
+  is and looks as posed, for close-ups that never catch an ear. `behind: true` puts the follow camera
+  back behind him at its usual pitch as it ends (`behindHim`), for a moment started by looking up. While one plays the idle's
   look-around waits, the game's toasts wait (`cinema.held`), input is cut (`storyRt.busy()`).
 - **Once, skippable, never in the way.** Its flag is set as it starts. B / ○, the Menu button,
   Esc or a tap on the corner tag skips it, after a 0.6 s grace (the press that started it,
@@ -113,7 +130,9 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
 
 - **Vael** (`arzach.moment.bird`, 10.2 s), the rider's flute played: A, low behind him and off his
   side, the haze where the call goes, a speck far out answering with a cry; B, a long lens from
-  beside him panning up as she comes down out of the haze, wings wide (the world's motif); C, his
+  beside him panning up as she comes down out of the haze, wings wide (the world's motif), the horizon
+  and the haze's towers kept at the frame's foot (`riseLook` in film.js: the look pitched down from her,
+  the lens widened up to 48° when both can't fit); C, his
   face turned to where she lands; D, the two of them as she lowers her neck and opens her wings (from
   out past her and high when he is on the sill; side-on, the clearer side, on the plain). Her first
   bow is longer (5.6 s, `bow.len`), so control comes back with her still bowed in front of you. She
@@ -151,9 +170,12 @@ skip landing the same, no ship: as before) and `tests/world-moments.test.js` (th
 - **The City-Shaft** (`incal.moment.lodestar`, 9 s), the splinter given back from the palace's crown:
   A, low at his shoulder as it climbs past the needle; B, wide and low from beside the dome as it
   reaches the Lodestar and the light flares (the world's motif); C, across the shaft, a billboard that
-  has stopped selling and says LOOK UP (picked in play, its line of sight clear); D, his face from a
-  little below, the sky behind. The light is still rising, the city still looking up, as control comes
-  back; a skip mid-climb lands the splinter at once. Without the ship, the old slow look up
+  has stopped selling and says LOOK UP (picked in play, its line of sight clear; framed from about 45 m
+  at 22° so the words read); D, his face from a little below, the sky behind. The light is still rising,
+  the city still looking up, as control comes back, the camera behind him (`behind`: it starts pitched
+  steeply up at the light); a skip mid-climb lands the splinter at once. The review page stages it as
+  play does (`giveBack`, on the crown's terrace beside the needle, the camera looking up): calling the
+  film alone never lit the light, so the billboards stayed blank. Without the ship, the old slow look up
   (`st.cine`).
 - **The Sealed Hangar** (`garage.moment.signal`, 10 s), as Lune's talk closes with the stamped signal:
   A, low along the ring's floor, the two of them small in the great drum; B, from by Lune's feet up the
@@ -230,3 +252,19 @@ migrations and slot metadata, so replay cannot overwrite a player's saves or act
 and Pass / Needs work decisions are stored separately in this browser and exported as JSON.
 Deep links use the cinematic id in the page hash. This is a review tool, not a deterministic video
 exporter: world simulation and interactive beats run live.
+
+The same list is played headless by `scripts/cinematics-qc.mjs` (frames, the HUD, the lens, loudness,
+the skip), with the checklist in `.claude/skills/cinematics-qc/SKILL.md`; the scores and fixes of each
+pass are in [cinematics-qc.md](cinematics-qc.md).
+
+## The jump to space (src/ship/cinema.js `Warp`, playtest 2026-10-08)
+
+The take-off's last second hands over to the warp, then the page goes to `?level=<id>&via=ship`. The warp
+drew ink streaks on the paper's cream and the loading screen after it was cream too: a white page between
+the dusty climb and the next world. Now space opens out of the middle of the screen in the night's ink
+(`WARP.space`, #151a2b: a disc with an inked rim growing to the corners over `WARP.open`, 0.9 s, `warpLook`),
+the streaks in cream with a little teal and red, a few fixed stars, the course card still on paper. An inline
+script in index.html gives `#loading` the class `space` (the same ink, the pen in cream) when the URL says
+`via=ship`, so the dark carries on until the arrival. tests/cinema.test.js checks the contrast, the disc's
+growth and both ends.
+

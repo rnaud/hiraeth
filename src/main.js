@@ -4,6 +4,7 @@ import { updateHazards } from './hazards.js';
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
+import { padConfirm } from './menu-pad.js';
 import { PAD_SCHEME, PAD_SCHEME_KEY, PAD_SCHEME_NOTE } from './bindings.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
@@ -14,7 +15,7 @@ import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js'
 import { guardianHint } from './temples/hints.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary } from './hud.js';
 import { screen } from './platform.js';
-import { closeHint, inputKind } from './prompt-keys.js';
+import { inputKind } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
@@ -62,6 +63,7 @@ import { loadTravellerV1, createTravellerV1 } from './characters/traveller-v1.js
 import { buildTravellerLod } from './characters/traveller-lod.js';
 import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, ToolHud } from './ui.js';
+import { InputMode } from './input-mode.js';
 import { FluidTool, bindToolMouse } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
@@ -79,7 +81,7 @@ import { ItemIcons } from './item-icons.js';
 import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { Chemistry } from './chemistry.js';
-import { createTrials } from './trials/index.js';
+import { createChallenges } from './trials/index.js';
 import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
@@ -97,7 +99,7 @@ import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as 
 import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
-import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
+import { slicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -105,6 +107,8 @@ import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
+import { talkAllowed } from './ship/landing.js';
+import { HumCue } from './story/hum.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -114,15 +118,18 @@ watchLabels();
 // so it can paint (its pen animation runs on the compositor meanwhile).
 const loadMsg = document.querySelector('#loading .msg');
 const tLoad = performance.now();
-let tStage = tLoad, lastMsg = 'start';
+let tStage = tLoad, lastMsg = 'start', loadStep = '';
+// (a stage that runs over 15 s says which step it is on: a stalled load says where)
+const loadWatch = loadWatchdog(() => (loadStep ? `${lastMsg} / ${loadStep}` : lastMsg));
 // Between stages, the build gives the main thread back every LOAD_BUDGET ms (src/load-steps.js:
 // await slice() as often as you like; a world's own build yields from inside itself)
 const slice = slicer();
 const stage = (msg) => {
   console.info(`load: ${lastMsg} ${(performance.now() - tStage).toFixed(0)} ms`);
-  tStage = performance.now(); lastMsg = msg;
+  tStage = performance.now(); lastMsg = msg; loadStep = '';
   if (loadMsg) loadMsg.textContent = msg;
-  return new Promise((r) => requestAnimationFrame(() => setTimeout(() => { slice.reset(); r(); }, 0)));
+  // (a frame so the screen paints, or a moment if no frame comes: a window not shown may run none)
+  return nextFrame().then(() => new Promise((r) => setTimeout(() => { slice.reset(); r(); }, 0)));
 };
 
 // We author every colour as a display value and output it untouched.
@@ -312,7 +319,6 @@ function updateRestart(dt) {
   restartEl.classList.toggle('open', want);
   if (want) {
     restartEl.querySelector('p').textContent = tr(knockedOut === 'fall' ? 'restart.fall' : 'restart.out');
-    restartEl.querySelector('small').textContent = controllerActive ? tr('restart.pad', { key: confirmKey() }) : tr(isTouch ? 'restart.tap' : 'restart.enter');
     if (document.pointerLockElement) document.exitPointerLock?.();
     restartEl.querySelector('button').focus({ preventScroll: true });
   }
@@ -512,7 +518,7 @@ registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
-const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
+const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
 await slice();
@@ -530,13 +536,20 @@ const story = new Story(scene, { levelId, def: { ...content.story, next: reveale
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
 await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
-const showToast = (text) => ship.cinema.toast(text);   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
+const showToast = (text, o) => ship.cinema.toast(text, o);   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
+// the hum, when words on the screen speak of it: a toast, a subtitle, a line of a conversation, a balloon (src/story/hum.js)
+const humCue = new HumCue();
+let lastBalloon = null;
+const hearWords = (text) => { if (humCue.hear(text, performance.now() / 1000)) sound.makersHum?.({ vol: 0.7 }); };
+ship.cinema.onWords = hearWords;
+game.on('words', ({ text }) => hearWords(text));
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
   traces: content.traces ?? [],   // (a detour world's trace of the light: src/story/sightings-detours.js)
   isNight: () => sky.hour < 6.4 || sky.hour > 19.3,
   ship, drone: (out) => (scout && scout.phase !== 'docked' ? out.copy(scout.object.position) : null),   // (home: the scenes wait for the ship's; the dog barks at the drone)
+  cue: (text, secs) => scoutSays(text, secs),   // (a line under the view at once, not a toast in the queue: the desert's way calls out what is ahead)
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
@@ -656,7 +669,7 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 // the desert's first steps: the camera and the jump, each said once if you haven't used it yet (src/first-steps.js)
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
 const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
-const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, notice: (t) => showToast(t) });
+const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, waters, notice: (t) => showToast(t) });
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
 const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
@@ -943,6 +956,10 @@ const paused = () => !!window.cinematicReview?.paused || menu.open || journal.op
     };
   }
 }
+// what is in hand (src/input-mode.js), remembered from the world before: the touch buttons stay hidden
+// while a controller or the keyboard is in use, from the first frame of a new world
+const inputMode = new InputMode({ touchDevice: isTouch });
+inputMode.apply(document.body.classList);
 if (isTouch) new TouchControls(input, rig);
 // where the controller's printed letters are (settings), and the Android app: build label, update toast, pause/resume
 settings.on((k) => { if (!k || k === 'padFaces') { setFaces(settings.padFaces); menu.syncControls?.(); } });
@@ -958,7 +975,7 @@ fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.l
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
-  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : closeHint(''); }
+  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : ''; }   // (a pad's back button: in the close button, src/pad-glyphs.js)
 }
 showPicker(query.get('worlds') === '1');   // (?level=<id>&worlds=1: a world with the list up; the title's Debug entry shows the list alone, src/world-picker.js) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
@@ -1017,21 +1034,14 @@ const timer = new THREE.Timer();
 let frameNo = 0;
 
 // Nothing on the screen at rest (src/hud.js): no status box. The cue says what the use button does
-// right here when it has nothing to float over (the ship's hatch and console, a lens), a ride's
-// controls for a few seconds after you get on, and a region's name as you cross into it.
+// right here when it has nothing to float over (the ship's hatch and console, a lens) and a region's
+// name as you cross into it; no button hints as you get into a vehicle (src/hud.js cueText).
 const cue = new Cue(), placeName = new PlaceName();
-const rideHint = { kind: null, at: 0 };
 function updateHud() {
   const now = performance.now();
-  // (a cab's cue says what it is doing: waiting for a stop, or on its way; it shows again at each stop it reaches)
-  const rideKind = player.ride ? (player.ride.kind === 'taxi' && player.ride.mode === 'route' ? 'taxiRoute' : player.ride.kind) : null;
-  const rideStamp = player.ride ? `${rideKind}.${player.ride.arrivals ?? 0}` : null;
-  if (player.ride) { if (rideHint.kind !== rideStamp) { rideHint.kind = rideStamp; rideHint.at = now; } }
-  else rideHint.kind = null;
   const quiet = busy() || photo.on || player.dead;
-  if (quiet && player.ride) rideHint.at = now;   // (a ride's cue waits for the cab's question, a menu, to close)
   const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
-  const text = cueText({ quiet, ride: rideKind, rideFor: now - rideHint.at, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
+  const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
   const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
   const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
@@ -1068,7 +1078,7 @@ const busy = () => restartOpen || story.pageOpen || journal.open || changelog.op
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
 const noInput = {};
-let controllerActive = false;
+let controllerActive = inputMode.controller;
 // The controller's layout changed in v0.93 (src/bindings.js): a player with a save from before is told once,
 // the first time a pad is used (the flag is the device's, like the settings)
 const padSchemeNotice = () => {
@@ -1116,8 +1126,8 @@ const controller = new Controller({
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   look: (x, y) => { if (x || y) rig.look(x, y); },
-  activity: () => { controllerActive = true; screenInput = false; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
+  activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
+  navigate: (x, y, fresh) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
@@ -1137,7 +1147,7 @@ const controller = new Controller({
       else if (root === journal.el) journal.menu.confirm();
       else if (root.contains(document.activeElement)) {
         const el = document.activeElement;
-        if (el.tagName !== 'SELECT' && el.type !== 'range') el.click();
+        if (!padConfirm(el)) el.click();   // (a dropdown opens, then keeps the choice shown: src/menu-pad.js)
       }
       else menuNavigate(root, 0, 1);
     }
@@ -1165,9 +1175,8 @@ const controller = new Controller({
 inputDisplay.bind({ context: () => controller.lastContext ?? 'game', index: () => controller.index });
 // The keyboard, the mouse or a finger takes over from the controller (and back on its next use). A pad
 // that is connected (the Retroid's own controls) counts as in use until the screen or keys are touched,
-// so a handheld shows no touch buttons from the start.
-let screenInput = false;
-for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, () => { controllerActive = false; screenInput = true; });
+// so a handheld shows no touch buttons from the start (src/input-mode.js).
+for (const event of ['keydown', 'pointerdown', 'touchstart']) window.addEventListener(event, (e) => { inputMode.event(e); controllerActive = inputMode.controller; inputMode.apply(document.body.classList); }, { capture: true, passive: true });
 
 
 // People's eyes, brows and small gear (under 7 cm) cast no visible shadow but cost a draw call
@@ -1454,9 +1463,9 @@ function frame(ts) {
   const dt = feelDt(realDt);   // (a hit-stop slows the world for a few hundredths of a second: src/feel.js)
   const padInput = controller.update(dt, !document.hidden && document.hasFocus());
   inputDisplay.update();   // (off: nothing)
-  if (controller.index === null) controllerActive = false;
-  else if (!screenInput) controllerActive = true;
-  document.body.classList.toggle('controller', controllerActive);
+  inputMode.frame(controller.index !== null);
+  controllerActive = inputMode.controller;
+  inputMode.apply(document.body.classList);
   // No button list on the screen while playing, talking or in menus (the settings list the controls);
   // only photo mode, a tool few find by chance, keeps its own. Set only when it changes (the label rewrite watches the page).
   const hintText = photo.on ? `Left stick fly · right stick look · LB/RB down/up · ${confirmKey()} save · ${backKey()} exit` : '';
@@ -1559,6 +1568,7 @@ function frame(ts) {
     }
   }
   if (crowd && level.crowdAway) crowd.away = level.crowdAway();   // (a world's night thins its street: bazaar.js)
+  if (crowd) crowd.hush = !talkAllowed({ shipPlaying: ship.playing });   // (no shouts over the crash or a landing: src/ship/landing.js)
   crowd?.update(dt, t, player, camera);
   for (const n of npcs) n.update(dt, player, camera);
   errands.update();
@@ -1568,15 +1578,19 @@ function frame(ts) {
     let best = null, bd = Infinity;
     // (while a moment is filmed only a shout the moment asked for: an idle bark over a panel reads as a caption, src/story/moment.js)
     const filming = storyRt.moments.playing;
-    for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    // (and nobody at all until the player has the controls: the crash, a landing, a recording: src/ship/landing.js)
+    const talk = talkAllowed({ shipPlaying: ship.playing });
+    if (talk) for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
+    // a balloon that speaks of humming: the hum, softly (src/story/hum.js)
+    if (best?._balloonLine && best._balloonLine !== lastBalloon) { lastBalloon = best._balloonLine; hearWords(best._balloonLine); }
     // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)
     if (best?.humanoid && !best.talkTo && best.object.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
     talkFaces.update(dt);
     updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
     player.character?.updateHands();
-    if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
+    if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
   if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)
@@ -1767,16 +1781,20 @@ console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await slice();
 {
   const t0 = performance.now();
+  loadStep = 'surfaces';
   const n = await warmShadersSliced(scene, camera, gbuffer);
   console.info(`shaders: ${n} kinds of surface, ${renderer.info.programs.length} programs, ${(performance.now() - t0).toFixed(0)} ms`);
 }
+loadStep = 'post';
 await warmShaders(post.scene, post.camera, composeRT);
 await slice();
+loadStep = 'water';
 { const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
 await slice();
 // the shadow passes draw everything with one depth-only material, a program per kind of mesh
 // (instanced, skinned, which attributes): compiled now too, each kind wearing it for the moment
 // (a person or a plant first seen in a shadow had stalled a frame on its compile)
+loadStep = 'shadows';
 await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null, { wear: shadowOverride });
 // The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
 // leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
@@ -1786,6 +1804,7 @@ await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.ena
 const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });
 {
   const t0 = performance.now();
+  loadStep = 'passage';
   scene.updateMatrixWorld();
   rig.update(player.pos, 0, player.frame);   // (the first frame's camera)
   camera.updateMatrixWorld();
@@ -1826,7 +1845,7 @@ if (minigameDef) {
 }
 // this world's mastery trial (src/trials/): a sign in the world opens its start card, played here on foot
 // (the runner as a game page's, but Quit leaves you where the run did: nothing reloads)
-trialsRt = minigameDef ? null : createTrials({ levelId, scene, physics, level, player, items, game, foes, notice: (t) => showToast(t),
+trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, level, player, items, game, foes, npcs, sound, notice: (t) => showToast(t),
   surfaceAt: (x, z, y, below) => waters.surfaceAt(x, z, y, below),
   open: (def) => {
     if (minigame) return false;
@@ -1839,6 +1858,7 @@ trialsRt = minigameDef ? null : createTrials({ levelId, scene, physics, level, p
   } });
 window.trials = trialsRt;
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
+loadWatch.stop();
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   renderer.domElement.style.visibility = '';

@@ -20,11 +20,24 @@ export function itemsPage(items, placements, fallbacks, titles) {
     const whereHtml = where.length
       ? `<ul class="where">${where.map((w) => `<li><b>${esc(w.title)}</b>${w.temple ? ' (its temple)' : ''}: ${esc(w.note)}</li>`).join('')}</ul>`
       : `<ul class="where"><li>${esc(it.where ?? (it.kind === 'quest' || it.kind === 'pass' ? 'Given in a quest.' : 'Not in a box.'))}</li></ul>`;
-    const html = `<article data-id="${esc(id)}" data-kind="${esc(it.kind)}">
-      <div class="pic" title="Drag to turn it; click to see it full screen"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"><canvas></canvas></div>
+    // (focusable, data-nav: a controller moves through the cards in 2D and A opens one, src/items-page/main.js)
+    const html = `<article data-id="${esc(id)}" data-kind="${esc(it.kind)}" tabindex="0" data-nav>
+      <div class="pic" title="Drag to turn it; click to see it full screen"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"><canvas></canvas><span class="glyph on-focus" data-glyph="ok" aria-hidden="true"></span></div>
       <div class="txt"><h2>${esc(it.name)}</h2><div class="meta">${esc(KIND_NAMES[it.kind] ?? it.kind)}${it.needs ? ` · needs ${esc(items[it.needs]?.name ?? it.needs)}` : ''} · ${esc(id)}</div>
       <p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true })}</p>` : ''}${whereHtml}</div>
     </article>`;
     return { id, kind: it.kind, html, search: [it.name, it.text, it.use, id, ...where.map((w) => `${w.title} ${w.note}`)].join(' ').toLowerCase() };
   });
+}
+
+/**
+ * The full-screen view's one line (on a handheld's small screen the item must stay in sight: the
+ * author's playtest, October 2026): the first sentence of what the item is, cut at `max` letters. The
+ * rest (all of it, and what it does) opens on request, beside the item.
+ */
+export function shortLine(text, max = 90) {
+  const s = String(text ?? '').trim();
+  const m = s.match(/^(.+?[.!?])(?:\s|$)/);
+  const first = m ? m[1] : s;
+  return first.length <= max ? first : `${first.slice(0, max - 1).replace(/[\s,;:]+\S*$/, '')}…`;
 }

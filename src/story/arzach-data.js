@@ -206,7 +206,7 @@ export const LOCALS = [
         fluid: { say: ["~playful~ (He points at *the tank on your back*, then the knuckles. Three teeth appear in a very confident grin.)"], choices: [{ text: '~curious~ What happens when it rings?', goto: 'gives' }, { text: '~neutral~ I’ll try.', end: true }] },
         gives: { say: ["~solemn~ (He closes his fist around nothing, then opens it as though offering a gift.)", '~solemn~ Gives.'], choices: [{ text: '~neutral~ I’ll try.', end: true }] },
         again: {
-          say: ["~tired~ (Kesh repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.'],
+          say: ["~tired~ (Kesh repeats the order: *little, first, ring, middle*. He waits for you to copy him.)", '~neutral~ Small to tall.', '~playful~ (He taps one knuckle once, the next twice, and points up at the dots cut in the stone ones.)'],
           choices: [{ text: '~neutral~ (nod)', end: true }],
         },
         after: { say: ["~happy~ (He opens his hand toward you. A gift received, a lesson learned.)", "~happy~ Heard it. At last."], choices: [{ text: '~neutral~ (nod)', end: true }] },
@@ -239,12 +239,12 @@ export const THINGS = {
       entry: [{ if: { flag: 'arzach.hand.rung' }, node: 'open' }, { node: 'look' }],
       nodes: {
         look: {
-          say: ["~solemn~ A stone hand taller than a house. In its palm is the mark from your ship: {glyph}", "~neutral~ Four smooth knuckles rise above you. *A white feather* is caught between the fingers."],
+          say: ["~solemn~ A stone hand taller than a house. In its palm is the mark from your ship: {glyph}", "~neutral~ Four knuckles rise above you, each finger taller than the last. Dots are cut into each knuckle: *one, two, three, four*. *A white feather* is caught between the fingers."],
           do: { start: 'arzach.hand' },
           choices: [{ text: '~curious~ (rap a knuckle)', goto: 'strike' }, { text: '~neutral~ (step back)', end: true }],
         },
         strike: {
-          say: ["~neutral~ Your fist makes no sound. Try your fluid: *aim and shoot a knuckle*.", "~curious~ The four notes need an order. *Kesh, beside the hand*, can show you."],
+          say: ["~neutral~ Your fist makes no sound. Try your fluid: *aim and shoot a knuckle*.", "~curious~ The four notes need an order: the dots may count it out. *Kesh, beside the hand*, can show you."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         open: { say: ["~scared~ The mark glows in the palm. Was that finger always bent?"], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -255,3 +255,14 @@ export const THINGS = {
 
 /** The four knuckles, from the thumb side (index, middle, ring, little), and the order they ring in: smallest to tallest. */
 export const KNUCKLE_ORDER = [3, 0, 2, 1];
+
+/**
+ * The riddle's hints (src/story/knuckle-riddle.js): Kesh's call after the second miss, and the journal's line once
+ * he has called (flag arzach.hand.hint).
+ */
+export const KNUCKLE_LINES = {
+  miss: '~neutral~ A dull knock. The knuckles go dark again. The order is broken.',
+  call: '~playful~ (Kesh, below, holds up his hand and counts on it.) Little. First. Ring. Middle. *Count the dots!*',
+  glint: '~whisper~ (One knuckle catches the light, as if it were waiting to be next.)',
+};
+export const KNUCKLE_HINT_STEP = 'Ring the stone hand’s knuckles smallest to tallest: the little finger’s (one dot), the first finger’s (two), the ring finger’s (three), the middle finger’s (four). Aim with {key:aim} and shoot each with {key:fire}';

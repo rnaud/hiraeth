@@ -6,6 +6,7 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
+import { glyph } from '../pad-glyphs.js';
 import { exhaust, footPuffs } from './exhaust.js';
 import { spoken } from '../story/tone.js';
 import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID } from '../story/ending.js';
@@ -67,7 +68,7 @@ const CSS = `
 #homeward .k .from { display: block; font-size: 10px; opacity: .6; letter-spacing: .06em; margin-top: 1px; }
 #homeward .k .text { display: block; margin-top: 4px; font-size: 12px; }
 #homeward footer { padding: 10px 14px; border-top: 2px solid #2b211f; display: flex; gap: 12px; align-items: center; }
-#homeward footer button { font: inherit; padding: 6px 14px; background: #f2c54b; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; }
+#homeward footer button { display: inline-flex; align-items: center; font: inherit; padding: 6px 14px; background: #f2c54b; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; }
 #homeward footer span { font-size: 11px; opacity: .65; }
 #credits { position: fixed; inset: 0; z-index: 8200; pointer-events: none; opacity: 0; transition: opacity 1.4s; overflow: hidden;
   background: linear-gradient(rgba(43, 33, 31, .55), rgba(43, 33, 31, .35)); }
@@ -115,6 +116,43 @@ export function tombTimeline(lines) {
   return tl;
 }
 
+/**
+ * The stone's angles while the tokens go down (tomb-local: the slab at the origin, its headstone behind,
+ * the traveller standing 1.45 m in front facing it, Lou at his left, a little back):
+ *   shoulder  over his right shoulder onto the slab (the first)
+ *   hands     low from the slab's left end, along it: the tokens landing, his hands
+ *   face      from the headstone's left corner, back up at his face (Ilen, at the right-hand end, clear)
+ *   lou       from beside the slab, on Lou's face, as she speaks
+ */
+export const TOMB_ANGLES = {
+  shoulder: { pos: [2.0, 2.2, 3.5], look: [-0.15, 0.5, 0], fov: 42 },
+  hands: { pos: [-2.15, 1.45, 1.2], look: [0.2, 0.42, 0.05], fov: 42 },   // (higher and further: low, the bare slab filled the frame)
+  face: { pos: [-0.85, 1.2, -0.35], look: [0, 1.45, 1.45], fov: 38 },
+  lou: { pos: [0.55, 1.05, 0.2], look: [-0.95, 0.95, 1.75], fov: 36 },
+};
+/** Shortest the stone holds an angle (s), and their order. */
+export const TOMB_CUTS = { min: 4, order: ['hands', 'face', 'shoulder'] };
+/**
+ * Where the stone's long setting-down cuts (the QC pass: one held angle for over a minute): [{ t, angle }],
+ * from 'shoulder', at the start of a line at least `min` s after the last cut; Lou's lines on her face (when
+ * she is there), the rest in `order`, never the same twice running. The light over the hill, the reel and
+ * the closing line keep their own shots (the caller's).
+ */
+export function tombCuts(timeline, { lou = false, min = TOMB_CUTS.min, order = TOMB_CUTS.order } = {}) {
+  const cuts = [{ t: 0, angle: 'shoulder' }];
+  let last = 0, k = 0;
+  for (const l of timeline.lines) {
+    if (l.t0 - last < min) continue;
+    const prev = cuts.at(-1).angle;
+    let angle = lou && l.line.who === 'lou' ? 'lou' : order[k++ % order.length];
+    if (angle === prev) angle = order[k++ % order.length];
+    if (angle === prev) continue;
+    cuts.push({ t: l.t0, angle });
+    last = l.t0;
+  }
+  return cuts;
+}
+
 const hasDOM = () => typeof document !== 'undefined' && !!document.body;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -131,7 +169,7 @@ class CargoPanel {
       : '<div class="k"><b>Nothing</b><span class="text">The hold is empty. Just you.</span></div>';
     this.el.innerHTML = `<header><h2>CARGO CHECK</h2><p>Before descent. Everything in the hold goes down with you.</p></header>
       <div class="list">${list}</div>
-      <footer><button class="go">Take it all down ▶</button><span>A / × or ENTER</span></footer>`;
+      <footer><button class="go">${glyph('ok')}Take it all down ▶</button></footer>`;
     document.body.appendChild(this.el);
     this.el.querySelector('.go').addEventListener('click', () => this.go());
     this.onKey = (e) => {
@@ -375,6 +413,7 @@ export class HomecomingDirector {
         this.placeLou();
         this.placeIlen();
         this.tl = tombTimeline(this.lines);
+        this.cuts = tombCuts(this.tl, { lou: !!this.family?.lou });
         s.auto = null;
         const st = this.standAt();
         if (s.player.pos.distanceTo(st) > 1.2) s.placePlayer(st, this.faceTomb(), true);
@@ -582,8 +621,11 @@ export class HomecomingDirector {
           const push = Math.min(this.shotT * 0.03, 0.25);
           shot = { pos: L(0.72, 1.2, 2.55 - push), look: L(-0.12, REEL_AT.y + REEL_HOLO * 0.55, REEL_AT.z - 0.05), fov: 36 };
         } else {
-          // setting them down: over his right shoulder, onto the slab
-          shot = { pos: L(2.0, 2.2, 3.5), look: L(-0.15, 0.5, 0), fov: 42 };
+          // setting them down: over his right shoulder onto the slab, cut with his hands, his face and Lou's (tombCuts)
+          let c = this.cuts?.[0];
+          for (const x of this.cuts ?? []) if (x.t <= t) c = x;
+          const A = TOMB_ANGLES[c?.angle] ?? TOMB_ANGLES.shoulder, push = Math.min((t - (c?.t ?? 0)) * 0.03, 0.2);
+          shot = { pos: L(...A.pos).lerp(L(...A.look), push * 0.5), look: L(...A.look), fov: A.fov - 4 * push };
         }
         s.shot(shot);
         break;

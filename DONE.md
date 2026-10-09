@@ -1138,3 +1138,431 @@ tests/sound-mix.test.js holds them.
   turns it into the surface (`footSurface`: built → stone), and steps and landings play it. Sampled over
   a 240 m square round each spawn, the grassy worlds read 0.4–26 % stone, the desert all sand.)
 
+## Playtest notes (2026-10-08): HUD and prompts
+
+- On-screen hints are too obvious and hide the health bar. (2026-10-08: the notices, the cue and the
+  scenes' hint are quieter: translucent paper, a thin line, no shadow, narrower. The health bar is
+  always one of the layout's obstacles (src/ship/cinema.js OBSTACLES), and a notice slides sideways
+  along its row before it moves down, so on a phone held sideways it wraps left of the touch buttons
+  instead of being pushed off the bottom of the screen. tests/hints.test.js.)
+- Starting a new quest should show a hint that looks different from the others. (2026-10-08: a quest's
+  or an errand's start is its own card, ink with a gold rule, "◆ New quest" over the title and the first
+  step (Quests.startToast, questToastHtml); the other notices stay plain.)
+- Don't show button hints when getting into a vehicle. (2026-10-08: the cue says nothing while riding;
+  the ride lines (hud.ride.*, hud.pad.*) are gone; the settings' Controls page still lists them, and the
+  cab's dash asks where to by itself.)
+- Loading a new level shows the touch controls again. (2026-10-08: each world is a new page, which
+  started from nothing, and a browser lists a pad only after it is pressed there. What is in hand is now
+  remembered for the tab (src/input-mode.js, sessionStorage), and a keyboard hides the touch buttons as
+  a controller does. tests/input-mode.test.js.)
+
+## Playtest notes (2026-10-08): menus and settings
+
+- [x] The galactic map lists the WIP levels that were never vetted or finished. (The twelve detours built
+  in October 2026 are listed in `WIP` (src/levels/names.js); the ship's map gets `CHARTED_SIDE`, the
+  detours minus `WIP` (none for now), and the Sightings page leaves their slots out. The worlds list
+  (L, Debug), the dev menu and `?level=` still open them; taking a world out of `WIP` charts it.)
+- [x] Dropdown values in Settings can't be changed with a controller. (src/menu-pad.js: A / × opens a
+  dropdown, the D-pad or stick goes through its choices, A / × keeps one, B / ○ puts the old one back;
+  left / right still step dropdowns and sliders. Checked end to end with a simulated pad on the title.)
+- [x] The language switched to French and the debug menu disappeared. (French: holding → from the
+  menu's last button stepped onto Language, the first setting, and the same push, repeating, changed
+  it; now a control never changes with the push that landed on it, and Language only changes once
+  opened with A. Nothing read the device's language. The debug entries had been hidden
+  from players that same day (src/dev-gate.js: a dev build, ?dev=1 or Settings → Developer panel); with
+  one of those on they stay through a change of language, title and Start menu (tested in a player's
+  build), and they were never keyed on English words. They are shown to everyone for now (ALWAYS_DEV).)
+
+## Playtest notes (2026-10-08): Dialogue
+
+- During dialogue, when the camera points at the player's character, the character moves around.
+  (2026-10-08: `player.talking` while a conversation is open; src/player.js `TALK_CALM`/`idleMotion`
+  keep a fifth of the weight shift and drop the head's glances and nods, and `Animator.calm` plays no
+  captured looking-about or breathing idle. On the real rig: the head's turn range 133° to 0.4°, the
+  hips' sway 4.3 to 0.9 cm over 30 s, tests/talk-still.test.js.)
+- The character looks around too much during dialogue. (2026-10-08: `EYE_CALM` in src/eyes.js: the
+  eyes hold on the speaker whenever in reach, a tone's own gaze no longer pulling them off; with nobody
+  in reach, a glance every 3–6 s, less than half as far. With the head held, above.)
+- Choosing a dialogue option just plays the chosen line back. (2026-10-08: the answer beat is gone from
+  `Dialogue.choose`: no echo in the panel, no mumble, no camera on him; the reply starts at once. The
+  speaker's reply that opened by repeating the question (the swamp of lights) was reworded.)
+- When Nour says to stand in the water, the answers offered don't match the context. (2026-10-08: her
+  `pack` node now answers "Where is there any water, out here?" (a new `water` node: it stopped rising
+  the night the light sang; then the crash or the ship) and "Could living water wake my ship?" (power).)
+- Talking to Ama, the flame is in the way. (2026-10-08: every `Flames` registers itself; `flameVeils`
+  gives its tongues as columns and `sightOf(physics, { veils })` scores a line through one as blocked,
+  so the two-shot goes round any fire. Look shots ignore them.)
+- Not every character should have a bubble over their head. (2026-10-08: src/story/balloons.js: a
+  greeting balloon only for the one the objective points at, the opener of a waiting quest, someone with
+  a conversation you have never had, or a bystander or crowd person with unheard news; shouts always.
+  docs/systems/conversations.md.)
+
+## Playtest notes (2026-10-08): the prologue and the crash landing
+
+- [x] The intro from Dad is boring. (The recording, src/story/calls.js PROLOGUE_CALL: four lines from him
+  and the cut instead of six, 34.5 → 25.5 s. "Is it on? … There you are." makes it sound live; the advice
+  and the translator are one line; the boat, the school, his mother one more; then the charge word for
+  word and the cut. Staged: the hum creeps in under the charge and the picture breaks up until the strike
+  cuts both, so the impact answers the message. tests/prologue-call.test.js.)
+- [x] A character's speech bubble shows up while the ship is still crashing. (Marrow's idle balloon: the
+  hidden player sits in the parked ship near him. No balloon, crowd shout or talk prompt while a ship's
+  scene plays: talkAllowed, src/ship/landing.js, in main.js and crowd.hush. tests/landing.test.js.)
+- [x] A character stands too close to the ship as it crash-lands. (Marrow stood 12 m from the hull's
+  centre, under its 13 m bulge; now bystanderSpot puts him 22 m out, to one side of the hatch and never
+  in the furrow. Checked in headless Chrome through the prologue.)
+- [x] Leaving the ship for the first time shows a prompt to go back into it. (ReboardGate,
+  src/ship/landing.js: armed while aboard or walked by a scene; the ramp's "go aboard" and its E wait
+  until you have been 7 m from the ramp's foot. tests/landing.test.js drives the Ship.)
+- [x] The humming the game talks about is never heard. (src/story/hum.js and Sound.makersHum /
+  makersHumRise: a low sung D that swells three times and lifts a fifth. It rises under the father's
+  charge until the strike, sounds from the scar with the ship's "magnetic signature" line, comes from an
+  unopened makers' box within 45 m every 8–12 s, and plays softly (once per 24 s) when a line, balloon,
+  toast or subtitle mentions humming. About -34 dB, a footstep's loudness. tests/hum.test.js.)
+
+## Playtest notes (2026-10-08): characters and animation
+
+- [x] Characters' waving looks wrong. (src/npc.js set the arm's and forearm's Euler angles outright: the
+  arm shot up past the head, the forearm bent about its own x, which with the arm up swung the hand to
+  the face and back, and the arm snapped from the clip's pose at the start and the end. Now src/wave.js
+  layWave: the upper arm out to the side and a little forward, the elbow about at the shoulder, the
+  forearm up and swinging side to side, every joint slerped from the clip's pose by an eased weight.
+  tests/wave.test.js. Checked in headless Chrome on Qanat's people.)
+- [x] The main character's mouth opens wide and his neck moves strangely. (The captured looking-about
+  idles: Animator.apply turns the rig's head to the clip's Head as read in the world, which carries the
+  chest's and neck's twist our chest doesn't take, so the skull turned 105-107° on the neck, the jaw
+  into the shoulder and the face stretched over it, and dropped 30° on a neck bent 46°, chin in the
+  collar. limitHeadTurn eases the head's turn on the neck under HEAD_TURN (60° about it, 34° off it, eased in past 60 % of each).
+  tests/head-turn.test.js plays the shipped traveller through all three idles.)
+- [x] Brushing past people feels odd: they just shift in place. (Standing crowd people slid off their spot
+  at up to 2-3 m/s, straight back from you, the forward walk playing as the body went sideways. Now
+  crowd.js ASIDE: at most 1.1 m/s, out of your path to their side (from your own movement), and the near
+  tier's body plays the captured sidestep or step back for it (NPC.sidestep) under a calm standing upper
+  body, the cloth told the way they really go. tests/close-contact.test.js. Checked in the Signal Market.)
+- [x] When told to look into the well, the character looks the other way. (The well's prompt is asked
+  from a spot on the terrace 3.4 m from its middle, and with no `look` the traveller turned to that spot:
+  standing between it and the rim, his back to the well. It now looks at wellInside, down the shaft.
+  tests/desert-story.test.js.)
+
+## Shadows and visuals (playtest 2026-10-08, done 9 October)
+
+- [x] Marrow casts a white shadow towards the ship during dialogue; on the stairs to the big tree, shadows
+  move with the camera and the character casts a white shadow. (Not the shadow maps: they follow the player
+  and snap to texels as they should. The "shadows" were the spot blacks, post.js `enclosure`, a screen-space
+  share of taps standing in front of a point; a tap landing on a person counted as open, so wherever a person
+  stood in front of a dark mass (the ship's hull, the stair risers) the mass got a pale hole in their shape,
+  offset by each tap, sliding with the camera. A tap on a person now looks past them, twice as far out, and is
+  left out of the share if that lands on a person too (`occlusionShare`); crease shading (`creaseAO`) leaves
+  person taps out the same way. The Unity port's Composite.shader had no person test at all and got the same
+  rule. tests/occlusion-taps.test.js; checked in Qanat on the stairs, Handheld, debug view 9 before and after.)
+- [x] The transition between worlds looks wrong on a white background when heading to space. (The warp,
+  src/ship/cinema.js `Warp`, drew ink streaks on the paper's cream, then the next world's loading screen was
+  cream too. Space now opens from the middle in the night's ink (`WARP`, `warpLook`), the streaks in cream,
+  teal and red, a few stars; index.html gives the loading screen the same ink when it is reached ?via=ship.
+  tests/cinema.test.js.)
+- [x] Do a visual audit at different screen resolutions. (Title, HUD, pause menu, settings, a conversation,
+  the journal and its Worlds page at 1280 x 720, 1920 x 1080, 2560 x 1440, 1280 x 800, 812 x 375, 375 x 812
+  and 1080 x 2400, headless Chrome, screenshots plus a script listing text off screen, cut or under 10 px.
+  Fixed: the pause menu's buttons ran off the bottom of a phone held sideways (Quit to title only by
+  scrolling: a compact side at max-height 480 px), took two thirds of a phone held upright (smaller buttons),
+  and the PAUSED title overflowed its column on tall narrow screens (sized by width too); the journal's and
+  the title's smallest words (7-9 px) have a 9-10 px floor. Bigger findings are in TODO.md.)
+
+## Playtest notes (2026-10-08): gameplay
+
+- [x] No invisible enemies. (src/foe-presence.js measures what of a foe is drawn over its footing: at least
+  0.4 m tall (or wide and flat), 0.4 m across, with a light part (pale, glowing or white-outlined) 0.2 m
+  across; tests/foe-presence.test.js walks every kind through every state. It found the running shadow
+  hound (a flat black pool and two 4 cm eyes: now a hump of shadow with a white outline, a glowing rim and
+  lit eyes, its body white-lined as the shade's) and the tiny swarm and splinters (bigger eyes, bigger
+  shards). A buried dune ray winding up its burst sank its fin and came up from nowhere: it now swims to
+  its ring with the fin high (Foe.swimTo, SWIM). A foe winding up on the screen but behind a wall got no
+  marker: warnSpot / hiddenFromCamera. Guards, waves and spawnKind fell back to a guessed height inside
+  rocks: roomAt / openSpot (packs too). The hound's bite after stepping behind you waits 0.45 s, was 0.32.
+  Checked in headless Chrome: the hound in the Eclipse, the ray in the Desert.)
+- [x] The knuckles riddle is unclear. (The order is smallest finger to tallest: little, first, ring, middle.
+  But the fingers were nearly the same length, the four stones the same size, every hit rang its bell
+  right or wrong, and the one hint was a toast once. Now (src/story/knuckle-riddle.js): fingers clearly
+  graded, stones graded 3.5-4.7 m, one to four dots cut on each knuckle, right hits stay lit and ring a
+  rising scale, a miss knocks and flashes all four rust and resets; after two misses Kesh calls the order
+  and the journal spells it (flag arzach.hand.hint), after three the next knuckle glints. The hand's and
+  Kesh's lines mention the dots. tests/knuckle-riddle.test.js, tests/story-arzach.test.js. Checked in
+  headless Chrome from in front of the palm.)
+
+## Shadows in caves and interiors (2026-10-09)
+
+- [x] Fix shadow artifacts in caves and interiors. (Looked at in headless Chrome with the light term (debug 5)
+  and the spot masks (debug 10): the desert's two caves, the ship's deck, the City-Shaft's villas, the Signal
+  Market's and the Buried Machine's temple halls, the Machine's oculus drum. Two causes. A lit seam round the
+  floor of both desert caves: their domes' roughening (desert-city.js / desert-hearth.js `rough`) lifted the
+  foot ring by up to 0.6 m in places, a slit the sun shone through; the foot now only goes down into the floor
+  (tests/cave-seams.test.js). And dark rectangular blocks on the cave walls, in the rooms' corners and round
+  their furniture, changing shape as the camera moved: the spot blacks' screen-fixed taps (next item). The
+  ship's deck, the villas' and halls' light terms were clean: no acne, no light through walls. Left: a thin lit
+  line under some temple hall doors seen from afar, not reproduced close up.)
+- [x] Steadier spot blacks on stepped geometry. (post.js `enclosure`: its taps now lie on the surface, along
+  axes tied to the world (level along it and straight up it; the world's x on level ground: `SPOT_FRAME`), each
+  projected to the screen, so a point asks the same places whatever the view and every riser has as many taps
+  below as above: the masses stay put as the camera moves, on 4 taps as on 8. Their radius swells 0.6-1.4×
+  with two slow waves across the world (`SPOT_SWELL`), so the copies of a rib's or a jamb's edge the taps draw
+  wave instead of stacking into rectangles. tests/occlusion-taps.test.js: a twin of both estimates on a
+  raycast staircase (a riser at 4 taps went 0.25-0.50 across a 80° swing, crossing the 0.3 threshold; now
+  0.40-0.50), the frame's and the swell's properties. Checked against the desert's sheets in the References
+  (tower, sails, wreck, bridges, ribs, dish city, slot canyon: the same masses). Cost: no measurable change
+  (docs/systems/rendering.md). The Unity composite takes the same estimate.)
+
+## Touch controls at every screen size (2026-10-09)
+
+- [x] Touch controls on a phone held sideways (812 x 375) cover the right half of the view, the button
+  cluster reaching the top edge. (src/touch-layout.js: every button's place and size in one table, scaled
+  by the viewport's short side over 560 px (0.64..1); ui.js TouchControls sets them inline on resize and
+  when the gadget's button is added; a button never below 38 px across, growing round its own centre, its
+  label never below 11 px; the stick's ring and travel scale too. The full combat cluster went from 336 x 344
+  px (top at 31 px on a 375 px screen) to 226 x 235 (top at 140); 844 x 390 and 915 x 412 alike, the tall
+  Android's 923 x 415 CSS px (2400 x 1080 at DPR 2.6) 249 x 259; 1280 x 800 (Deck) unchanged; upright
+  375 x 812, 226 px of 375 across instead of 336. The lock button moved up 12 px and evade 6 px so no two
+  buttons touch at any scale; the gadget's button sat 2 px into ping's and now sits clear. The HUD's layout
+  (src/ship/cinema.js OBSTACLES) measures the buttons where they are, so the notices still keep clear.
+  tests/touch-layout.test.js. Checked in headless Chrome with touch emulation at all six sizes.)
+- [x] The pause menu's footer sat under the bottom at 1280 x 720 with the dev-only Debug entry (31 px, not
+  one). (src/menus.css: below 760 px tall, landscape, the side's and its buttons' gaps are a little
+  tighter; the footer now ends at 706 px. Checked in headless Chrome.)
+## Visuals and controller menus (October 2026): the menus on a controller (done 9 October, v1.2)
+- [x] Make the debug menu easier to navigate with a controller: use a grid layout and smaller level cards.
+  (The worlds list, src/world-picker.js cardHtml + index.html #picker: small cards in a grid, a picture with
+  its number, the name, the source and the save it opens in; the blurb and moves are the tooltip and, for
+  the focused card, a strip at the foot. menuNavigate (src/controller.js) moves in 2D when the menu opts in
+  with data-grid-nav: gridStep in src/menu-pad.js picks the card that way on the screen (← → stay in the
+  row, ↑ ↓ the column or the nearest, ↓ past the last row wraps to the top), tolerant of the focused card
+  being drawn lifted and larger. The focused card: a red frame, lifted, A on its picture, scrolled into
+  view with a margin. The arrow keys move the same way. tests/pad-glyphs.test.js.)
+- [x] Put button prompts inside the actual buttons in all menus, instead of in hints below them.
+  (src/pad-glyphs.js: glyph(role) is a span inside the button whose label is CSS (a custom property per
+  role), so a menu drawn again keeps it and native-pad.js never rewrites it. The title (A beside the
+  focused entry, B in Back and Keep, X on a save's Delete, which X / □ now presses), the Start menu (B in
+  Resume, A on the focused entry, the reset question), the journal (B in the ✕, now shown with a pad too;
+  LB / RB on the side tabs; the strip keeps only the confirm button's verb), the galactic map (B in close,
+  A in Travel and Yes, B in No; the hint lines gone), the cargo check, the restart dialog, what's new's
+  Close, the worlds list's close. The Controller sends 'x' and 'y' in menus (X / □, Y / △). Keys mode shows
+  the keys (Enter, Esc, Q, E or the glyph's data-key); touch hides them.)
+- [x] Show button prompts that match the connected controller. (native-pad.js familyOf / padFamily from the
+  Gamepad id: Xbox, PlayStation (054c, DualSense, DualShock), Switch (057e, Pro Controller, Joy-Con), the
+  handheld layout (the Android app, a Retroid) as before; an unknown pad reads as Xbox. padText takes the
+  family: the half of "A / ×" that matches, and its shoulders and menu buttons (L1 R1 L2 R2 Create Options;
+  L R ZL ZR − +; LS RS for L3 R3 on Xbox and Switch). watchLabels now rewrites the page whenever a pad is
+  listed, so conversations and prompts follow; the glyphs' labels and colours come from padGlyphs. A Switch
+  pad on a computer now confirms with its A on the right (padFaces auto). The prompts in the source stay in
+  Xbox / PlayStation form. Checked with simulated Xbox, DualSense, Pro Controller and Retroid pads at
+  1280 × 720 and 812 × 375. tests/pad-glyphs.test.js.)
+- [x] Greatly reduce text in the item debug menu; on the Retroid the item stays clearly visible. (items.html
+  and src/items-page/: full screen shows the name in the bar and one short line under the item (its kind
+  and its first sentence, shortLine, at most 90 letters); "more" (A, I, Enter) opens the rest in a column
+  on the left and the item's canvas narrows beside it (the viewer sizes to its canvas); the hint line is
+  gone, the keys and buttons are glyphs in the bar's buttons; smaller still under 480 px high. The page
+  works with a pad too (a grid of cards, A opens, LB / RB or ← → the other items, ↑ ↓ zoom, the right
+  stick tilts, Y turn, X reset, B close). Checked at 730 × 410 (a Retroid's CSS size), 1280 × 720 and
+  1920 × 1080.)
+
+## Fun and story: the desert's first hour shorter (done 9 October, v1.2)
+
+- [x] **The desert's first hour shorter:** the three talk stages in a row, the empty Hearth ride.
+  Already done before (c1d0dc13, the first ten minutes as World 1-1): the well heard with Nour, Ama and
+  the Speaker one stage (`ask`), the dregs shot, and the bowl, camp and bell on the ride; that still left
+  three talks in a row after the chest (Nour, Ama, the Speaker) and the ride's three things blinking past
+  at 34 m/s. Now:
+  - Nour says the Speaker's verse herself (her `quest` node; "Where the giant's eyes are marked, its mouth
+    is a door"), so the `ask` stage is Ama's jar alone (`askedDone`; marker on Ama). The Speaker keeps his
+    whole talk (the giants, the swamp of lights, the clue) for whoever walks with him; Nour and Ama say so.
+  - Ama gives the jar on your way in if you sit at her fire before the chest (`jarEarly`); Nour then says
+    "Ama's jar on your hip already" and the stage passes at once.
+  - The ride: heading toward the bowl, the camp or the bell on the errand (130 m out), or the Hearth (320 m),
+    a line under the view names it once (src/story/desert-way.js `CALLS`, main.js `cue`, the drone's line);
+    not once it is done.
+  - Measured on the game's own modules (a direct player, shortest answers): talks before the way down 4 → 3
+    (after the chest 3 → 2, or 1 with the jar on the way in), pages 24 → 15, answers 10 → 6, from stepping
+    out to the giant's mouth ~275 s → ~210 s (~174 s with the jar on the way in). The ride is unchanged in
+    length (1.6 km, ~48 s each way at top speed) with four things named on the way out.
+  Tests: tests/desert-spark.test.js (the jar alone, the jar on the way in, the call-outs), tests/desert-story.test.js.
+## Cinematics, the QC pass's fixes (2026-10-09)
+- [x] The Garden of Spheres' temple box sat sunk into its dais and the opening cut his head off. (The dais
+  was solid only as its lathe, whose top a ray from above never lands on, so the chest stood on the floor
+  under it, 0.62 m down. src/temples/spheres.js, and perdide.js / perdide2.js, sunk the same way: the dais
+  solid as two cylinders, its two steps. tests/temples.test.js: every temple's chest stands on its dais top.)
+- [x] The pale star's text still said it is worn on the hood. (src/items.js: "Pinned to your overshirt, or
+  over the brow when a hood is up"; src/story/ending.js: "The pale star from your overshirt".
+  tests/item-star.test.js.)
+- [x] The City-Shaft's third panel framed a blank billboard. (The review page called the film alone, so the
+  splinter never landed and LOOK UP was never shown: src/cinematics-page/runtime.js stages it as play does,
+  `giveBack` on the crown's terrace with the camera looking up. Then src/story/incal-moments.js frames the
+  billboard from about 45 m at 22°, so the words read.)
+- [x] After the City-Shaft's moment the camera was jammed against his head. (It starts with the camera
+  pitched steeply up; the moment now ends with `behind: true` (src/story/moment.js `behindHim`): the follow
+  camera behind him at its usual pitch before the blend. tests/moment.test.js.)
+- [x] Vael's second panel was two seconds of plain sky. (src/story/film.js `riseLook`: the long lens pitched
+  down from her until the horizon sits at the frame's foot, never so far she leaves its top, widened up to 48°
+  when both can't fit; she starts 90 m up instead of 120. tests/world-moments.test.js.)
+- [x] Home's window seat had one angle. (src/story/home.js `seatSide`: for the second line, from the room
+  beside the seat, his profile against the round window and the land through it; back to the first as he
+  stands. tests/home.test.js: the lens in the room, clear of walls, him and the window in frame.)
+- [x] The Lantern's light read as a dark disc far off. (The dark disc was the dusk's moon: the light itself
+  was above the frame until 3 s. src/story/lantern.js: it comes from out past the crown as he sees it (a
+  fixed offset could put it behind the lens), panel A frames the crown low and the light high (`frameBoth`),
+  and the light never spans less than 3.2° (`orbScale`). tests/finale.test.js.)
+- scripts/cinematics-qc.mjs `--probe "<js>"`: evaluates an expression in the page at every screenshot
+  (`<out>/<id>/probe.json`): it found both the blank billboard (the text mesh never shown) and the Lantern's
+  light (off screen).
+- [x] The recordings were one slow push-in for 25-77 s. (src/ship/cinematics.js `callCuts` / `callAngle`: while
+  the busts are up a recording cuts at the start of a line, at least 4.5 s apart, between the push-in behind
+  his right shoulder, the two faces close from his left, his face from over the dash in the hologram's light
+  (his own lines always there) and wide from the side with the window; back to the push-in as they fold, and
+  after it his own lines on his face again. Words and timing untouched; 3 shots in the shortest recording,
+  9 in the longest. The prologue's call keeps its single angle. tests/ship.test.js.)
+- [x] The homecomings laid the tokens on one held angle for over a minute. (src/ship/homecoming.js `tombCuts`
+  / `TOMB_ANGLES`: over his shoulder, his hands along the slab, his face from the headstone, Lou's face on her
+  lines, at a line's start, 4 s at least each; the light, the reel and the closing line keep their shots.
+  tests/ending.test.js.)
+- [x] (Part of) the box opening being one camera for all 32 boxes. (src/boxes/scene.js `BOX_PLANS` /
+  `boxPlan`: over the right shoulder (the first box, and the fallback), the left, from the box's side with the
+  reveal from where it stood onto the item and his face, or from above; `clearPlan` falls back where a wall
+  would come between. tests/boxes.test.js. A closing beat per kind of item stays in TODO.md.)
+
+## Story: Ama calls you over for the jar; the route's people hear about Ilen (done 9 October, v1.2)
+
+- [x] **Ama and the jar on the way in** (follow-up to 4c745687): she still waved "To the city!" as you
+  passed, so few stopped for the jar. While she has it for you (`amaCallsYou`: no `desert.jar.given`, the
+  tree cold), her camp shout invites you to her fire about the jar, and she calls once more at most as you
+  pass near (a caller with `max: 2`, src/story/desert.js); her `hello` then asks about it ("You called me
+  over. A jar?", `jarCalled`). With the jar, the old wave on.
+- [x] **More of the route's people hear about Ilen** (TODO "Two or three real choices", later): once
+  `calls.ilen.told`, Madame Sel, Hollin and Nour have one answer each about her; once `finale.met`, Sel hears
+  that she heard it and Hollin's `after` can hear where Odile and Talo went without the promise.
+- [x] **Old saves that kept Dov's token before the choice existed**: src/save-migrate.js step 3 sets
+  `incal.token` 'kept' when the keepsake is there and no choice is recorded (the loader passes the
+  keepsakes), so choicesMade, the Lantern's `tokenKept` and Dov's new line for a kept token see it.
+  Tests: tests/desert-spark.test.js (Ama), tests/route-ilen.test.js (the Ilen lines and the old save).
+
+
+## Fun and story: challenges from the temples' kit in the open (done 9 October, v1.3)
+
+- [x] **Optional mastery challenges, the temple kit's side** (part of the TODO item, which stays open for the
+  other worlds). The trials (a ride or an ability in every route world, v0.98) already had the sign, the start
+  card, the clock, the best and Retry; the makers' runs join them (src/trials/kit-data.js, kit-courses.js,
+  kit-run.js; `createChallenges` makes a world's trial and its runs): the temples' kit and pieces (Gust, Swing,
+  Bank) stood in the open with a stand-in runtime, for good. The desert's **Wind hall** (gusts down a roofless
+  hall, screens to shelter behind, three eyes to wake in one breath; Pell has a word) and Lorn's **Hush walk**
+  (a causeway over the lake under three crystal pendulums, out and back dry; Sedge has a word). The quiet
+  reward: the speaker's line on the results and over their head, the sign's plate keeping the best. While a
+  run is on, the world's notices wait (src/ship/cinema.js `HOLD_TOASTS`). docs/systems/challenges.md,
+  tests/trials-kit.test.js.
+## Cinematics: the box opening's closing beat (done 9 October, v1.3)
+
+- [x] Box openings took one of four camera plans per box (v1.2) but still the same wobbles and reveal and the
+  same ending whatever the item. (src/boxes/beats.js: after the card a closing beat by kind of item,
+  `beatFor` → `ITEM_BEATS` then `KIND_BEATS`: `try` (gadgets, gun modes, jets, wings, backpack: held out and
+  fired once, a spray of light, a kick, its sound), `wear` (the star pinned on, a close look at it worn),
+  `keep` (charms: turned over in his hand, pocketed), `fit` (tank upgrades: onto the pack, a click, shot from
+  behind), `point` (the glyph lens and the listening shell: he turns toward the nearest shut box, a thread
+  of light, a faint answer), `play` (the whistle and the echo shell: a few notes). Each ≤ 2 s, on a closing
+  shot that keeps to the plan (`closingShot`: mirrored, swung to his side, raised); skippable (Esc / B on
+  the card goes past it, in the beat ends it); a cut back to play after it. `timingFor`: a gadget's box
+  wobbles three quick times, a charm's or tank part's twice and opens sooner; the side plan holds its
+  reveal longer. The QC script presses A on the card (so the beat plays) and takes `--query boxPlan=<plan>`;
+  every beat × plan was run. tests/box-beats.test.js, tests/boxes.test.js. The "shorter opening after the
+  first few boxes" idea was not taken: the gentler two-wobble boxes pay for their beat instead.)
+- [x] **Two more makers' runs.** Vael's **Feather leap** (north-west of the landing by the stone hand: a
+  column of rising wind lifts open wings onto a tower's terrace, gusts down it with three screens, then a gulf
+  to glide to a lower ledge; down on the plain ends it; Kesh has a word) and the Buried Machine's **Furnace
+  steps** (east of the landing: eight iron pillars to jump across a glowing grate, then a door of four eyes in
+  one breath, which wants the fourth chamber; Jot has a word). A run can now end on the ground under it
+  (`fall`), name its own controls (`controls: 'kitwings'`) and have a bank of any size.
+
+## The blade's captured attacks (done 9 October, v1.3)
+
+- [x] Captured sword swings for the blade (TODO "The gameplay loop"). The three combo cuts, the guard, the flinch,
+  the strafes, the whirl and the lunge were already the Sword and Shield and Great Sword packs' (v0.88–0.93);
+  this adds the rest of a set: **the charged cut** (the Great Sword pack's slash, `CHARGE`: the button held
+  through the first wind-up draws the sword back over the shoulder and holds it, full after 0.6 s; let go, a
+  wide sweep, damage 2 / 3, staggering any foe) and **the air cut** (its jump attack, `AIR`: held at the top,
+  carried in, driven down into an overhead cleave, one a jump, the whole body). Each attack's cut sits on its
+  clip's fastest blade frames, measured on the traveller (tests/blade-attacks.test.js); the spark trail sweeps
+  through the same window. `Animator.blendCombat` had blended nothing (the library's joints are plain nodes,
+  not Bones): every swing change, the guard and the way back to locomotion now blend from the pose on screen.
+  `moves.glb` +24 KB (597 → 622 KB; `until` trims the jump attack to the 1.5 s played). Not taken: the Sword
+  and Shield pack's jump (no cut in it: the sword stays out to the side), the power-ups (a held pose of the
+  slash itself reads better as the charge), a parry riposte (the guard's parry already opens a foe).
+- [x] **The ball onto its plate, and two more makers' runs.** The stand-in runtime (src/trials/kit-courses.js
+  `openRuntime`) now keeps a temple's own logic in memory (TempleLogic: a drum and its plate), and `rt.roller`
+  stands the temples' Ball and Plate in the open: a ball in a straight groove that the fluid's push rolls
+  along, at rest on its plate it holds it down; a new run rolls it back. The balls and plates are floors and
+  walls for the traveller (the run adds them to `player.opts.dynamic`). A run's task after its gates is now
+  eyes or balls (`course.task`, KitRun's `words`). The Garden of Spheres' **Sphere court** (on the meadow
+  south of the mirror lake: a slalom past four stone spheres, then two white spheres rolled opposite ways
+  onto their plates at a dais; Nell has a word) and the City-Shaft's **Long look** (a balcony of three stones
+  out over the shaft from the rim, the ball rolled from the rim to its plate at the far end, a jump at each
+  gap, no parapet: down the shaft ends it; Tobin, who sells views, has a word). Both played through in the
+  game with the real push. tests/trials-kit.test.js.
+
+## The blade's counters (done 9 October, v1.4)
+
+- [x] **The riposte and the dash cut** (TODO "The gameplay loop"). For 0.6 s after a perfect parry the blade
+  button plays **the riposte** (`RIPOSTE`, the Sword and Shield pack's slash 4: a fast overhead chop, cut
+  1.30–1.43 s, 0.54 s in all): damage 3 (6 on the parried foe, which the parry stunned), it staggers anyone and
+  holds them reeling 1.2 s, with a gold ring, a ring of steel as it starts and a bell as it lands. The clip's chop
+  comes down 75° to the body's right (measured on the traveller), so he turns into it at once. A press during
+  an evade, or within 0.15 s of its end, plays **the dash cut** (`DASH`, its attack 2: a running sweep, cut
+  0.49–0.64 s) the moment the evade ends: carried past the foe on its left at up to 16 m/s, the sweep crossing
+  it, damage 2; no i-frames of its own; one every 1.5 s. `moves.glb` +24 KB (621 644 → 645 908 bytes; `until`
+  ships 1.8 s and 1.05 s of the two). The kick was not taken: it never moves the blade, and slash 4's chop is a
+  heavier counter.
+
+## Foes over the world's height (done 9 October, v1.4)
+
+- [x] **Foes that use the world's height** (TODO "The gameplay loop", src/foe-height.js, docs/systems/foes.md
+  "Foes over height"). A walker that can't walk straight to you plans a way over a small grid (A*, 1 m cells,
+  13 m out, at most 520 cells, at most once a second): steps it walks (1.1 m), ledges a climber (blot, shade,
+  stalker, hound) clambers (2.4 m) and drops it hops down (4.5 m, a heavy one 2.6 m); each clamber and drop is a
+  hop with a 0.32 s crouch first. No way: it holds off 5 m out on its side, watching, and no blow is wound up at
+  you out of its height reach (`STRIKE_RISE`): only a lob or a step behind you. The spitting blot (`perch`) climbs
+  steps and ramps to a spot 1.7 m over you, in its reach and sight, lobs from there and won't step down off it
+  while you are below and in reach. Knocked off a ledge by your cut or push (a blow counts as yours 0.9 s): from
+  1.4 m it lands dazed 3.5 s with stars over it (a cut lands double), from 4.5 m it is over; the charged cut
+  throws 2.2× (as the heavy third). The walkers' wall test now looks over a climbable step (it was at 0.5 m, so no
+  foe climbed a step taller than that: a temple's dais stopped a machine at its foot). Not done: crystals, water
+  (done next, below).
+- [x] **Temple crystals and water on foes** (src/foes.js, src/foe-height.js `KNOCK.deep`, `knockedInto`). A temple's
+  crystal pendulum stilled by a stilling glob (frosted, hanging there humming) is no longer air to a foe: its
+  frost takes one that touches it, held `WORKS.swing.frost` 3 s, no harm, its eyes pale and a puff of frost (a
+  cut lands double), and not again for 4.5 s, so it walks out of it; swinging, it knocks a foe away as before.
+  A foe your cut or push carries into water 1.3 m deep or more (as deep as lifts you off your feet), off a bank
+  or off a ledge from any height, is swept away: a great splash (`Waters.splash`), and it is over; the first
+  time a note. Shallow water it wades; a gust's shove is not yours; a sea whose bed is walked (the Underwater
+  City) is not water to knock into. The hitbox overlay's foe label now says dazed (and how long), perched,
+  waiting (no way to you) and crouched / hopping. Checked in Lorn (a blot pushed off the swamp's bank, a blot
+  walking into the Hush-House's stilled pendulum), headless Chrome. tests/foe-height.test.js.
+
+## Challenges: the echo relay in the Signal Market, the vine walk in Viridel and the bell crossing in the Sky Stones (done 9 October, v1.4)
+
+- [x] **The echo stones and horns in the open, and the Signal Market's makers' run.** The stand-in runtime
+  (src/trials/kit-courses.js `openRuntime`) now carries the game's events, and `addStone` / `rt.ear` stand the
+  Undertower's own `EchoStone` and `EchoEar` in the open (solid, a horn a `switch` of the stand-in's logic that
+  wakes for its own note played back from the echo shell, only while a run listens; with no run on it says to
+  start at the sign). A run's task can now be the horns (`kind: 'ears'`). The **Echo relay** (down the first side
+  street west of the avenue: three walls hung with old dishes, then each note carried from its stone to its
+  horn, every stone over 30 m from its horn; Oyo, who sells lanterns, has a word). Played through in the game
+  with the real gun, shell and key. The runs' test now also keeps them clear of their world's makers' court
+  (the first spot, east of the avenue, ran into it). tests/trials-kit.test.js.
+- [x] **The seeds, their vine bridges and the flower-door in the open, and Viridel's makers' run.** `rt.vine`
+  stands the Greenhouse's own `Seed` with a `Bridge` grown from it (`from: 'grow'`) and `rt.bud` its `Bud`; a
+  bloom wakes them, for anyone, run or no run (`rt.free`), and the stand-in drives what the temple runtime
+  would (`links`: a seed on grows its bridge, a bloomed bud opens; a new run takes them back). The **Vine walk**
+  (four white decks in a line down the meadow's slope east of Mira's water clock, higher over the meadow the
+  further they go: three 10 m gaps, a seed at each, a flower-door on the third deck; down in the meadow or the
+  wings opened ends it, `noWings`; Mira has a word). Played through in the game with the real gun in bloom
+  mode. The course's dispose now takes its pieces' colliders back. tests/trials-kit.test.js.
+- [x] **The bell-tuned bridges and door in the open, and the Sky Stones' makers' run.** `rt.bellBridge` stands
+  the Founders' Belfry's own `Bridge` from 'above' (its stones hang high over the gap: they fell up) with the
+  `BellEar` that brings it down, on a bell post at the gap's edge; `rt.bellDoor` its bell-tuned `Door` with an
+  ear before it. They answer the bell-note whistle within 6 m, for anyone (`rt.free`); a new run sends the
+  stones back up and shuts the door. `BellEar` takes its own words now (`heard`). The **Bell crossing** (four
+  decks out over the sea of cloud from the starting plateau's south rim, three 10 m gaps, a bell-tuned door on
+  the last deck; the cloud or the wings end it; Sister Aube has a word). Mark 28 s over a scripted 17.2 s;
+  played through in the game with the real whistle (V) in 24.8 s. tests/trials-kit.test.js.

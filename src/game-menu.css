@@ -22,7 +22,7 @@
 /* the four panels, as tabs across the top (a click or a tap goes there); the one showing in comic letters */
 #journal .gm-tabs { display: flex; justify-content: center; align-items: center; gap: clamp(4px, 1vw, 14px); padding: 0 clamp(40px, 6vw, 80px); }
 #journal .gm-tab {
-  font: 500 calc(clamp(9px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
+  font: 500 calc(clamp(10px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase;
   color: var(--ink); background: rgba(251, 244, 226, 0.6); border: 2px solid rgba(43, 33, 31, 0.5); border-radius: 999px;
   padding: clamp(4px, 0.9vh, 8px) calc(clamp(9px, 1.4vw, 18px) - 0.3em) clamp(4px, 0.9vh, 8px) clamp(9px, 1.4vw, 18px); cursor: pointer;
   transition: background 0.12s;
@@ -39,7 +39,8 @@
   background: var(--paper); border: 2px solid var(--ink); border-radius: 50%; box-shadow: 2px 2px 0 var(--ink); cursor: pointer;
 }
 #journal .gm-close:hover { background: var(--red); color: var(--paper); }
-body.controller #journal .gm-close { display: none; }
+/* (with a pad or the keys it carries their back button's glyph, src/pad-glyphs.js: a pill then) */
+body:not(.touch) #journal .gm-close { display: inline-flex; align-items: center; justify-content: center; width: auto; min-width: clamp(28px, 5.4vh, 42px); padding: 0 clamp(8px, 1.4vh, 12px) 0 clamp(4px, 0.8vh, 6px); border-radius: 999px; }
 
 /* the sheet between its two side tabs */
 #journal .gm-stage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; min-height: 0; height: 100%; }
@@ -50,16 +51,15 @@ body.controller #journal .gm-close { display: none; }
 }
 #journal .gm-side.prev { border-right: 0; border-radius: 16px 0 0 16px; box-shadow: -3px 4px 0 var(--ink); }
 #journal .gm-side.next { border-left: 0; border-radius: 0 16px 16px 0; box-shadow: 5px 4px 0 var(--ink); }
-#journal .gm-side .nm { writing-mode: vertical-rl; font: 500 calc(clamp(9px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
+#journal .gm-side .nm { writing-mode: vertical-rl; font: 500 calc(clamp(10px, 1.8vh, 13px) * var(--ts, 1))/1 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; }
 #journal .gm-side.prev .nm { transform: rotate(180deg); }
-#journal .gm-side .arrow { font-size: calc(clamp(9px, 1.6vh, 13px) * var(--ts, 1)); color: var(--red); }
-#journal .gm-side .key { font-size: calc(clamp(8px, 1.35vh, 11px) * var(--ts, 1)); }
+#journal .gm-side .arrow { font-size: calc(clamp(10px, 1.6vh, 13px) * var(--ts, 1)); color: var(--red); }
+#journal .gm-side .glyph { margin: 0; font-size: calc(clamp(10px, 1.6vh, 13px) * var(--ts, 1)); }
 #journal .gm-side:hover, #journal .gm-side.at { background: var(--gold); }
 #journal .gm-side.at { animation: gm-nudge 0.6s ease-in-out infinite alternate; }
 #journal .gm-side.prev.at { --nudge: -4px; }
 #journal .gm-side.next.at { --nudge: 4px; }
 @keyframes gm-nudge { to { transform: translateX(var(--nudge, 0)); } }
-body:not(.controller) #journal .gm-side .key { display: none; }
 #journal .gm-sheet {
   position: relative; height: 100%; min-height: 0; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;
   background: var(--paper); background-image: repeating-linear-gradient(0deg, transparent 0 27px, rgba(43, 33, 31, 0.05) 27px 28px);
@@ -67,7 +67,7 @@ body:not(.controller) #journal .gm-side .key { display: none; }
 }
 #journal .gm-title { display: none; }
 #journal .gm-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: clamp(8px, 2.4vh, 26px) clamp(10px, 2.2vw, 32px); scrollbar-width: thin; scrollbar-color: rgba(43, 33, 31, 0.35) transparent; }
-#journal .gm-body h2 { margin: 0 0 clamp(5px, 1.2vh, 12px); font: 500 calc(clamp(9px, 1.75vh, 13px) * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.34em; text-transform: uppercase; }
+#journal .gm-body h2 { margin: 0 0 clamp(5px, 1.2vh, 12px); font: 500 calc(clamp(10px, 1.75vh, 13px) * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.34em; text-transform: uppercase; }
 #journal .gm-body h2 span { margin-left: 0.5em; letter-spacing: 0.06em; opacity: 0.6; font-family: ui-monospace, Menlo, monospace; text-transform: none; }
 #journal .gm-body .none { margin: 0 0 6px; font-style: italic; opacity: 0.6; }
 #journal .gm-body button { font: inherit; color: inherit; cursor: pointer; }
@@ -97,7 +97,7 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .ico.mark { display: grid; place-items: center; font-style: normal; font-size: calc(var(--slot) * 0.42); color: var(--teal); -webkit-text-stroke: 0.6px var(--ink); }
 #journal .slot.inuse { border-color: var(--red); }
 #journal .slot em {
-  position: absolute; left: 50%; bottom: -0.8em; transform: translateX(-50%); padding: 0 5px; font-style: normal; font-size: calc(clamp(7px, 1.25vh, 10px) * var(--ts, 1)); line-height: 1.55;
+  position: absolute; left: 50%; bottom: -0.8em; transform: translateX(-50%); padding: 0 5px; font-style: normal; font-size: calc(clamp(9px, 1.25vh, 10px) * var(--ts, 1)); line-height: 1.55;
   letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
 }
 #journal .gm-carry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 2vw, 28px); min-width: 0; }
@@ -114,8 +114,8 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .gm-preview .big.keepsake .ico.mark { color: var(--gold); -webkit-text-stroke: 1.5px var(--ink); }
 #journal .gm-preview .big.quest .ico.mark { color: var(--red); }
 #journal .gm-preview b { font: 900 calc(clamp(13px, 2.8vh, 22px) * var(--ts, 1))/1.1 Futura, 'Futura PT', 'Avenir Next', Roboto, 'Arial Black', sans-serif; letter-spacing: 0.06em; text-transform: uppercase; max-width: 100%; }
-#journal .gm-preview span { font-size: calc(clamp(9px, 1.7vh, 12px) * var(--ts, 1)); letter-spacing: 0.08em; color: var(--red); }
-#journal .gm-preview em { padding: 0 8px; font-style: normal; font-size: calc(clamp(8px, 1.4vh, 11px) * var(--ts, 1)); line-height: 1.6; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px; }
+#journal .gm-preview span { font-size: calc(clamp(10px, 1.7vh, 12px) * var(--ts, 1)); letter-spacing: 0.08em; color: var(--red); }
+#journal .gm-preview em { padding: 0 8px; font-style: normal; font-size: calc(clamp(9px, 1.4vh, 11px) * var(--ts, 1)); line-height: 1.6; letter-spacing: 0.1em; text-transform: uppercase; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px; }
 #journal .gm-carry .line {
   display: flex; align-items: center; gap: 10px; width: 100%; margin: 0 0 clamp(4px, 0.9vh, 8px); padding: 3px 12px 3px 4px; text-align: left; box-sizing: border-box;
   background: rgba(255, 250, 240, 0.75); border: 2px solid var(--ink); border-radius: 999px;
@@ -146,7 +146,7 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .qcard.errand .qhead .mark { color: var(--teal); }
 #journal .qhead b { font-size: calc(clamp(12px, 2.3vh, 16px) * var(--ts, 1)); letter-spacing: 0.04em; }
 #journal .qhead .tag, #journal .wcard .tag {
-  padding: 0 7px; font-style: normal; font-size: calc(clamp(7px, 1.3vh, 10px) * var(--ts, 1)); line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0 7px; font-style: normal; font-size: calc(clamp(9px, 1.3vh, 10px) * var(--ts, 1)); line-height: 1.6; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
 }
 #journal .qhead .tag { margin-left: auto; align-self: center; }
@@ -189,10 +189,10 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 #journal .wcard { display: flex; flex-direction: column; gap: 3px; padding: clamp(4px, 0.8vh, 7px); text-align: left; background: #fffaf0; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
 #journal .wcard .pic { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #e2d3ae; border: 1.5px solid var(--ink); }
 #journal .wcard .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
-#journal .wcard .num { position: absolute; left: 5px; top: 5px; display: grid; place-items: center; width: 1.9em; height: 1.9em; font-size: calc(clamp(9px, 1.6vh, 12px) * var(--ts, 1)); color: var(--paper); background: var(--ink); border-radius: 50%; }
+#journal .wcard .num { position: absolute; left: 5px; top: 5px; display: grid; place-items: center; width: 1.9em; height: 1.9em; font-size: calc(clamp(10px, 1.6vh, 12px) * var(--ts, 1)); color: var(--paper); background: var(--ink); border-radius: 50%; }
 #journal .wcard .tag { position: absolute; right: 5px; bottom: 5px; }
 #journal .wcard .wname { font-weight: bold; font-size: calc(clamp(11px, 2vh, 14px) * var(--ts, 1)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#journal .wcard .wfacts { display: flex; gap: 10px; font-size: calc(clamp(9px, 1.65vh, 12px) * var(--ts, 1)); opacity: 0.85; }
+#journal .wcard .wfacts { display: flex; gap: 10px; font-size: calc(clamp(10px, 1.65vh, 12px) * var(--ts, 1)); opacity: 0.85; }
 #journal .wcard .wfacts .on { color: var(--green); font-weight: bold; }
 #journal .wcard.here { border-color: var(--red); }
 #journal .wcard.at, #journal .wcard:hover { background: var(--gold); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
@@ -204,12 +204,10 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
 }
 #journal .gm-what { flex: 1; min-width: 0; }
 #journal .gm-name { font-size: calc(clamp(12px, 2.4vh, 17px) * var(--ts, 1)); letter-spacing: 0.1em; text-transform: uppercase; }
-#journal .gm-sub { margin-left: 12px; font-size: calc(clamp(9px, 1.65vh, 12px) * var(--ts, 1)); letter-spacing: 0.06em; color: var(--red); }
+#journal .gm-sub { margin-left: 12px; font-size: calc(clamp(10px, 1.65vh, 12px) * var(--ts, 1)); letter-spacing: 0.06em; color: var(--red); }
 #journal .gm-desc { margin: 2px 0 0; font-size: calc(clamp(10px, 1.9vh, 13px) * var(--ts, 1)); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 #journal .gm-keys { flex: none; display: flex; align-items: center; font-size: calc(clamp(10px, 1.85vh, 13px) * var(--ts, 1)); white-space: nowrap; }
-#journal .gm-keys .key { margin-right: 6px; }
-#journal .gm-keys .key + .key { margin-left: -3px; }
-#journal .gm-keys .sep { width: 1.5px; height: 1.3em; margin: 0 10px; background: rgba(43, 33, 31, 0.3); }
+#journal .gm-keys .gm-act { display: inline-flex; align-items: center; padding: 3px 10px 3px 4px; border: 2px solid var(--ink); border-radius: 999px; background: var(--paper); box-shadow: 2px 2px 0 var(--ink); }
 #journal .gm-keys:empty { display: none; }
 
 /* a phone held upright, or a narrow window: the column under the grid, two worlds a row */

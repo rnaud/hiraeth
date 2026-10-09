@@ -48,6 +48,7 @@ export const MODES = {
   skiff: { needs: ['backpack'], mount: 'skiff', words: 'It wants the skiff.' },
   bird: { needs: [], mount: 'bird', words: 'It wants the bird.' },
   eyes: { needs: ['backpack'], words: 'It wants the backpack.' },
+  kit: { needs: [], words: '' },   // (a makers' run, src/trials/kit-data.js: its own needs)
 };
 
 /** What the traveller lacks to try a trial (a sentence), or '' if he can. has(id), mount: the level's mount or null. */

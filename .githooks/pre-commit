@@ -1,14 +1,32 @@
 #!/bin/sh
-# The unit tests run here, before every commit, not on GitHub (the deploy only builds and ships).
+# Before every commit: the unit tests the staged changes reach (scripts/affected-tests.mjs: the
+# tests that import or read a changed file). The full suite runs on GitHub on every push to main,
+# and the deploys wait for it (.github/workflows/tests.yml).
 # Enabled by `npm install` (package.json "prepare": git config core.hooksPath .githooks).
 # Skipped when the commit touches no code or tests (docs, pictures, the changelog's media only),
-# or with SKIP_TESTS=1 / `git commit --no-verify` in an emergency.
+# or with SKIP_TESTS=1 / `git commit --no-verify` in an emergency. FULL_TESTS=1 runs them all.
 [ -n "$SKIP_TESTS" ] && exit 0
-if ! git diff --cached --name-only --diff-filter=ACMRD | grep -qE '\.(js|mjs|cjs|json|glsl|html|css)$'; then
+staged=$(git diff --cached --name-only --diff-filter=ACMRD)
+if ! printf '%s\n' "$staged" | grep -qE '\.(js|mjs|cjs|json|glsl|html|css)$'; then
   exit 0
 fi
-echo "pre-commit: node --test tests/*.test.js (SKIP_TESTS=1 to skip)"
-out=$(node --test tests/*.test.js 2>&1)
+if [ -n "$FULL_TESTS" ]; then
+  tests=ALL
+else
+  # (the deleted files count too: a test that imported one should fail now)
+  tests=$(printf '%s\n' "$staged" | tr '\n' '\0' | xargs -0 node scripts/affected-tests.mjs) || tests=ALL
+fi
+if [ "$tests" = ALL ]; then
+  set -- tests/*.test.js
+  echo "pre-commit: node --test tests/*.test.js (all; SKIP_TESTS=1 to skip)"
+elif [ -z "$tests" ]; then
+  echo "pre-commit: no test reaches these changes (the full suite runs on GitHub)"
+  exit 0
+else
+  set -- $tests
+  echo "pre-commit: node --test, $# test files these changes reach (FULL_TESTS=1 for all)"
+fi
+out=$(node --test "$@" 2>&1)
 status=$?
 if [ $status -ne 0 ]; then
   printf '%s\n' "$out" | grep -E '^not ok|^ℹ (pass|fail)' | tail -20

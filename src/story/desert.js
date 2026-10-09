@@ -15,6 +15,7 @@ import { setupHoverbike } from './desert-bike.js';
 import { setupDrum, setupMask } from './desert-errands.js';
 import { setupHearth } from './desert-spark.js';
 import { setupWay } from './desert-way.js';
+import { bystanderSpot } from '../ship/landing.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -79,6 +80,9 @@ const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const EARLY = ['city', 'box'];   // the main quest's stages before the chest is open
 const CATCH_UP = ['elder', 'ask', 'down'];   // the stages that lead to the channel (setupDesert caughtUp)
 
+/** Where the traveller looks when he looks into the well: down the shaft, under the rim (the rim stands 1.15 m). */
+export function wellInside(city) { return city.well.clone().add(V(0, 0.45, 0)); }
+
 /**
  * Old saves. v < 2: the stages before the cave moved (the box is in the city
  * now, then Nour): an old stage goes where STAGE_MIGRATION says; the steps
@@ -90,7 +94,8 @@ const CATCH_UP = ['elder', 'ask', 'down'];   // the stages that lead to the chan
  * short of that finds the tree cold and does the new errand; its tank is full
  * already (it was never empty: tool.empty is only set for a chest opened now).
  * v < 4: the four talks in a row (elder, well, ama, speaker) are two now: a save at the
- * well, Ama or the Speaker goes to the merged stage (STAGE_MERGE), keeping what it did.
+ * well, Ama or the Speaker goes to the merged stage (STAGE_MERGE), keeping what it did
+ * (it needs only Ama's jar now: askedDone).
  * Returns the new stage, or null if the stage did not change.
  */
 export function migrateDesertQuest(game) {
@@ -108,9 +113,27 @@ export function migrateDesertQuest(game) {
   return to;
 }
 
-/** Ama's jar and the Speaker's old words, in either order: the merged stage ('ask') is done once both are. */
-export function askedBoth(game) {
-  if (game.flag('desert.asked') || !game.flag('desert.jar.given') || !game.flag('desert.speaker.heard')) return false;
+/**
+ * Ama still has her jar for you: until she has given it (and while the tree is cold), she calls you over to
+ * her fire instead of waving you on to the city ("calling you over", below: twice at most, CALLS.ama).
+ * Her talk gives it on the way in (jarEarly), after Nour (power), or late (lateJar).
+ */
+export function amaCallsYou(game) {
+  return !game.flag('desert.jar.given') && !game.flag('desert.tree.lit');
+}
+
+/** What Ama shouts as you come up to the camps before the chest is open: the jar if she has it for you. */
+export function amaCampShout(game) {
+  return amaCallsYou(game) ? CALLS.ama[0] : '~shout~ To the city, sky-stranger! Up to the tree!';
+}
+
+/**
+ * The stage after Nour ('ask') is done once Ama has given you her jar. Nour says the Speaker's verse herself
+ * now (her `quest` node), so walking with the Speaker is for whoever wants the old words whole (October 2026:
+ * the desert's first hour shorter, three talks in a row became two).
+ */
+export function askedDone(game) {
+  if (game.flag('desert.asked') || !game.flag('desert.jar.given')) return false;
   game.set('desert.asked', true);
   return true;
 }
@@ -155,9 +178,9 @@ export function setupDesert(ctx) {
   caughtUp();
   quests.onChange(({ id }) => { if (id === 'desert.power') { skipSpark(); caughtUp(); } });
   game.on('flag:desert.channel.open', (v) => { if (v) caughtUp(); });
-  // the jar and the Speaker, in either order (the stage 'ask'): its flag once both are done
-  askedBoth(game);
-  for (const f of ['desert.jar.given', 'desert.speaker.heard']) game.on(`flag:${f}`, () => askedBoth(game));
+  // Ama's jar (the stage 'ask'): its flag once she has given it
+  askedDone(game);
+  game.on('flag:desert.jar.given', () => askedDone(game));
 
   const ground = (p, from = 4) => { const g = physics.groundAt(p.x, p.y + from, p.z); return Number.isFinite(g) ? g : p.y; };
   const onGround = (p) => V(p.x, ground(V(p.x, p.y, p.z), 3), p.z);
@@ -180,9 +203,11 @@ export function setupDesert(ctx) {
   // a new game: he is at your ship when you step out, looking over the scar on its hull (then home to his crates)
   const ramp = ctx.ship?.arrivalSpot?.() ?? null;
   const rampAt = ramp?.pos ?? (level.ship?.pos ?? level.spawn).clone();
-  const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0)), side = V(out.z, 0, -out.x);
-  const wreckSpot = onGround(rampAt.clone().addScaledVector(side, 5.2).addScaledVector(out, -2.2));
-  const hull = rampAt.clone().addScaledVector(out, -14);
+  const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0));
+  const hull = ctx.ship?.restPos?.clone() ?? rampAt.clone().addScaledVector(out, -14);
+  // (well clear of where the ship comes down and ploughs in: he watched it land, src/ship/landing.js)
+  const watch = bystanderSpot({ out, hull, travel: ctx.ship?.site?.crash?.travel ?? null });
+  const wreckSpot = onGround(V(watch.x, rampAt.y, watch.z));
   people.marrow = spawn(PEOPLE.marrow, { route: opening() ? [wreckSpot] : marrowHome, speed: 0.6 });
   if (opening()) { people.marrow.facing = Math.atan2(hull.x - wreckSpot.x, hull.z - wreckSpot.z); people.marrow.heading = people.marrow.facing; }
   /** Marrow back to his crates: once the quest is under way and you are well away from him. */
@@ -299,7 +324,9 @@ export function setupDesert(ctx) {
     at: () => at, enabled, distance: (p) => (Math.abs(p.pos.y - at.y) < 4 ? flat(p.pos, at) : Infinity),
     use: use ?? (() => dialogue.start(def, null, at, look)),
   });
-  thing(THINGS.well, city.wellLook, { range: 3.4, prompt: 'look into the well' });
+  // (asked from the terrace beside it, city.wellLook; he turns to the shaft itself and looks down into it, not
+  // at the spot he was asked from: standing between that spot and the rim, he turned his back on the well)
+  thing(THINGS.well, city.wellLook, { range: 3.4, prompt: 'look into the well', look: wellInside(city) });
   thing(THINGS.stele, city.stele, { range: 3.2, prompt: 'read the stele', look: city.stele.clone().add(V(0, 2.4, 0)) });
   const browAt = Q.giant.door.clone().add(V(Math.sin(Q.giant.yaw) * 3, 0, Math.cos(Q.giant.yaw) * 3));
   thing(THINGS.brow, browAt, { range: 4, prompt: 'look up at the skull', look: Q.giant.brow });
@@ -599,8 +626,6 @@ export function setupDesert(ctx) {
   quests.locate('ship', shipPos);
   quests.locate('mask', () => V(-20, level.ground.heightAt(-20, -372), -372));
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
-  // the merged stage: Ama until the jar is yours, then the Speaker
-  quests.locate('askWho', () => (!game.flag('desert.jar.given') ? people.ama.pos : people.speaker.pos));
 
   // ---------------------------------------------------------------- the procession's banners, lanterns and drum
   const props = [];
@@ -797,26 +822,29 @@ export function setupDesert(ctx) {
   // whoever has something for you doesn't start talking by themselves: every few seconds while you're
   // near and haven't come over, a word (a balloon, said in their own voice), Nour a little "psst"
   // (sound.psst), and they turn to you. The talk is yours to start, on the usual prompt.
+  // (`max`: calls at most that many times, then leaves it to you: Ama and her jar)
   const calls = [];
+  const live = (c) => c.when() && !(c.max && (c.calls ?? 0) >= c.max);
   const caller = (n, o) => {
     const c = { n, range: 16, every: 8, wait: 4, t: 4, k: 0, turn: null, ...o };
     calls.push(c);
     // while they call you, the prompt is theirs over anyone standing about them (the gathered villagers)
     const e = allInteractables().find((x) => x.npc === n && x.id?.startsWith('talk.'));
-    if (e) Object.defineProperty(e, 'priority', { get: () => PRIORITY.talk + (c.when() ? 1 : 0), configurable: true });
+    if (e) Object.defineProperty(e, 'priority', { get: () => PRIORITY.talk + (live(c) ? 1 : 0), configurable: true });
     return c;
   };
+  const called = (c) => { c.calls = (c.calls ?? 0) + 1; if (c.flag) game.set(c.flag, true); };
   const updateCalls = (dt, pp) => {
     const busy = dialogue.open || !!moments?.playing || !!ctx.ship?.playing || !!ctx.ship?.busy?.();
     for (const c of calls) {
-      const on = c.when(), d = flat(c.n.pos, pp), near = on && d < c.range && Math.abs(c.n.pos.y - pp.y) < 6;
+      const on = live(c), d = flat(c.n.pos, pp), near = on && d < c.range && Math.abs(c.n.pos.y - pp.y) < 6;
       c.turn?.(near);
       if (!on) { c.t = c.wait; continue; }
       if (busy || !near) { c.t = Math.max(c.t, 1.5); continue; }
       if ((c.t -= dt) > 0) continue;
       c.t = c.every;
       say(c.n, pick(c.lines, c.k++), 2.8);
-      c.calls = (c.calls ?? 0) + 1;
+      called(c);
       if (c.psst) sound.psst?.(V(c.n.pos.x, c.n.pos.y + 1.5 * c.n.object.scale.y, c.n.pos.z));
     }
   };
@@ -827,6 +855,9 @@ export function setupDesert(ctx) {
   const nourHasWord = () => (sh.nour && !sh.nour.talked) || quests.stage('desert.power') === 'spark';
   // (not while you're up on the ledge: she has called you down from there already)
   const nourCall = caller(nour, { lines: CALLS.nour, range: 15, every: 7, wait: 5, psst: true, when: () => nourHasWord() && !sh.up });
+  // Ama, while her jar is still yours to take: she calls you to her fire (twice at most, the shout as you come
+  // up to the camps counts), so the jar on the way in isn't only for whoever happens to stop (October 2026)
+  const amaCall = caller(people.ama, { lines: CALLS.ama, range: 14, every: 12, wait: 3, max: 2, flag: 'desert.ama.called', when: () => amaCallsYou(game) });
 
   // ---------------------------------------------------------------- waved on toward the city
   const early = () => opening() || EARLY.includes(quests.stage('desert.power'));
@@ -956,7 +987,10 @@ export function setupDesert(ctx) {
         if (!p.walk && Math.random() < 0.4 && d < 22) { p.faceUntil = now + 1.5 + Math.random(); p.greetT = now; }
       }
       for (const n of [people.ama, people.ilo]) n.greeted = 0;
-      if (early()) { say(people.ama, '~shout~ To the city, sky-stranger! Up to the tree!', 3.5); later(1.4, () => say(people.ilo, '~shout~ Nour’s chest is humming! Go and see!', 3)); }
+      if (early()) {
+        say(people.ama, amaCampShout(game), 3.5);
+        if (live(amaCall)) { called(amaCall); amaCall.k = 1; amaCall.t = amaCall.every; }
+        later(1.4, () => say(people.ilo, '~shout~ Nour’s chest is humming! Go and see!', 3)); }
     } else if (dCamps > 60) st.campsIn = false;
     // into the city: the walls are round it
     if (!game.flag('desert.city.entered') && flat(pp, city.center) < 60 && Math.abs(pp.y - city.center.y) < 30) game.set('desert.city.entered', true);
@@ -1053,7 +1087,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, gatherSpots, calls: { marrow: marrowCall, nour: nourCall }, hollow, drum, mask, lever, hearth, way, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, gatherSpots, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;

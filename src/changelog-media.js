@@ -169,8 +169,411 @@ const MENU = `menu.toggle(true); ${sleepJs(500)}`;
 // the ride to the Hearth's three stops (src/desert-sites.js wayPlaces: by the 2nd, 5th and 8th marked stones)
 const WAY = { bowl: [646.27, 141.38], camp: [1028.02, -97.03], bell: [1442.76, -315.37] };
 
+// ------------------------------------------------------------------ v1.1's views
+// (a foe held still a few steps ahead of the traveller, side on to a camera pinned close: `prep` puts it in the
+// state to see, in the page, with f the foe)
+const FOE_HELD = (kind, prep, { dist = 5, eye = 4, h = 1.6 } = {}) => `const P = player.pos, d = new THREE.Vector3(); camera.getWorldDirection(d); d.y = 0; d.normalize();
+  const f = foes.spawnKind('${kind}', { n: 1, dist: 1 })[0];
+  f.pos.set(P.x + d.x * ${dist}, P.y, P.z + d.z * ${dist}); { const g = physics.groundAt(f.pos.x, P.y + 4, f.pos.z, 12); if (Number.isFinite(g)) f.pos.y = g; }
+  f.heading = Math.atan2(-d.z, d.x); f.home.copy(f.pos);
+  ${prep}
+  const keep = { state: f.state, atk: f.atk, k: f.k, timer: f.timer, buried: f.buried }; f.update = () => { Object.assign(f, keep); f.dist = 10; return []; };
+  const eye = f.pos.clone().addScaledVector(d, -${eye}).add(new THREE.Vector3(-d.z * 1.2, ${h}, d.x * 1.2)), at = f.pos.clone().add(new THREE.Vector3(0, 0.3, 0)), q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new THREE.Vector3(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };`;
+// (the stone hand on Vael from in front of its palm, looking up at the knuckles)
+const HAND_VIEW = `const H = level.arzach.hand, n = new THREE.Vector3(H.normal.x, 0, H.normal.z).normalize();
+  const mid = H.knuckles.reduce((s, k) => s.add(k.pos), new THREE.Vector3()).divideScalar(4);
+  const foot = H.palm.clone().addScaledVector(n, 30); foot.y = physics.groundAt(foot.x, H.palm.y + 20, foot.z, 80);
+  player.teleport(foot.clone(), new THREE.Vector3(0, 1, 0), n.clone().negate());
+  const eye = foot.clone().add(new THREE.Vector3(0, 6, 0)), q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, mid, new THREE.Vector3(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 50) { this.fov = 50; this.updateProjectionMatrix(); } return base.call(this, force); };`;
+
+/**
+ * A makers' run played through in the page (docs/systems/challenges.md): its card, Start, its gates, (its bank), the results at a
+ * plausible time. (A run with no bank ends at its last gate: the clock is set before it, `last` seconds short of the time.)
+ */
+const RUN_THROUGH = (id, time, last = 0) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const [i, g] of w.gates.entries()) { if (${last} && i === w.gates.length - 1) window.minigame.clock = ${time - last}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  if (!${last}) window.minigame.clock = ${time};
+  const b = w.course.bank; if (b) { b.hit(0); b.hit(1); b.hit(2); }
+  await wait(2600);`;
+// ------------------------------------------------------------------ v1.3's blade views
+// (the Arena's first blot held still 2.4 m ahead of the traveller, the camera pinned at his side `side` m off and
+// `h` m up; then `go` plays the buttons in the page and the game is frozen on that frame: window.cinematicReview.paused)
+const BLADE_VIEW = (go, { side = 3.6, h = 2.0, ty = 1.5 } = {}) => `for (let i = 0; i < 60 && !foes.list.length; i++) ${sleepJs(250)}
+  const V = THREE.Vector3, f = foes.list[0], P = player.pos, d = new V(); camera.getWorldDirection(d); d.y = 0; d.normalize();
+  player.heading = Math.atan2(d.x, d.z);
+  for (const g of foes.list.slice(1)) g.pos.set(P.x + 40, g.pos.y, P.z + 40);
+  f.pos.set(P.x + d.x * 2.4, f.pos.y, P.z + d.z * 2.4); f.heading = Math.atan2(-d.x, -d.z); f.hp = 999; f.update = () => { f.state = 'idle'; return []; };
+  const eye = P.clone().addScaledVector(d, 1.0).add(new V(-d.z * ${side}, ${h}, d.x * ${side})), at = P.clone().addScaledVector(d, 1.2).add(new V(0, ${ty}, 0));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };
+  ${HIDE('#toast, #inputs, #foe-spawner')}
+  ${sleepJs(1500)}
+  ${go}
+  window.cinematicReview = { paused: true };`;
+const ARENA_BLADE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 400 };
+/** The Arena's ledge from its side: the field cleared, the traveller up on the ledge facing out; `go` adds the foe (V: THREE.Vector3). */
+const LEDGE_VIEW = (go) => `for (let i = 0; i < 60 && !foes.list.length; i++) ${sleepJs(250)}
+  const V = THREE.Vector3;
+  foes.setPractice('');
+  player.teleport(new V(4, 2.1, -43.5), new V(0, 1, 0), new V(0, 0, 1)); player.heading = 0;
+  ${HIDE('#toast, #inputs, #foe-spawner')}
+  ${sleepJs(600)}
+  ${go}`;
+const ARENA_LEDGE = { level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, eye: [16, 4.5, -35], target: [3, 1.2, -40], fov: 55 };
+
+
+/** A makers' run with balls played through for its results card: the gates walked, the balls set on their plates. */
+const ROLL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  window.minigame.clock = ${time};
+  for (const R of w.course.rollers) { R.ball.t = 1; R.ball.place(); w.course.rt.logic.moveDrum(R.id, 1); }
+  await wait(2600);`;
+/** The echo relay played through for its results card: the walls walked, then the horns woken (as their notes played back would). */
+const ECHO_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  window.minigame.clock = ${time};
+  for (const e of w.course.ears) e.ear.lit = true;
+  await wait(2600);`;
+/** The vine walk played through for its results card: the seeds and the door bloomed, the decks walked (the clock set before the last gate). */
+const VINE_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const v of w.course.vines) v.seed.hit('bloom');
+  w.course.bud.bud.hit('bloom'); await wait(800);
+  for (const [i, g] of w.gates.entries()) { if (i === w.gates.length - 1) window.minigame.clock = ${time}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(1, 0, 0)); await wait(700); }
+  await wait(2600);`;
+const SAVE_ECHO = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.echo': true, 'items.v': 2 }, keepsakes: [] };
+/** A makers' run with bell-tuned pieces played through: every bridge and the door rung down (rt.lit, as their ears do), the gates walked. */
+const BELL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const b of w.course.bells) w.course.rt.lit.add(b.id);
+  w.course.rt.lit.add(w.course.door.id + '.bell'); await wait(800);
+  for (const [i, g] of w.gates.entries()) { if (i === w.gates.length - 1) window.minigame.clock = ${time}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  await wait(2600);`;
+const SAVE_BELL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.bell': true, 'items.v': 2 }, keepsakes: [] };
+const SAVE_BLOOM ={ flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
+
 export const CHANGELOG_MEDIA = {
+  '1.4': [
+    { match: 'A perfect parry now opens a moment for a riposte', shots: [
+      { name: 'blade-riposte', caption: 'A blot’s lunge parried with a fresh guard, then the blade button a moment later in the Arena: before, he is only stepping out of the guard (the light swing barely begun); after, the riposte’s overhead chop coming down on the stunned blot, a gold ring round him', commit: 'dc9642b2',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyZ = true; ${sleepJs(120)} foes.strike(f); ${sleepJs(150)} input.KeyZ = false; input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(150)}`) } },
+    ], numbers: [
+      { title: 'The traveller’s captured moves (moves.glb), with the Sword and Shield pack’s slash 4 (the riposte) and attack 2 (the dash cut) added', unit: 'KB', better: 'lower', device: 'any (downloaded once, after the game starts)', rows: [
+        { where: 'the file', before: 607.1, after: 630.8 },
+        { where: 'gzipped, as the site serves it', before: 403.2, after: 417.1 },
+      ], source: 'public/anim/moves.glb before and after (621 644 → 645 908 bytes; gzip -9c: 412 874 → 427 094); the two clips trimmed to the 1.8 s and 1.05 s the game plays' },
+    ], see: 'In the Arena, raise the guard (LB / L1) just as a blot lunges, then press RB / R1 straight away: he turns into an overhead chop.' },
+    { match: 'Press the blade button during an evade', shots: [
+      { name: 'blade-dash-cut', caption: 'An evade back from a blot with the blade button pressed during it: before, a light swing on the spot where the evade ended; after, the dash cut carrying him past the blot’s side, the sweep crossing it', commit: 'dc9642b2',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.AltLeft = true; ${sleepJs(60)} input.AltLeft = false; ${sleepJs(80)} input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(310)}`, { side: 6, h: 2.4, ty: 1.2 }) } },
+    ], see: 'In the Arena, evade (B / ○) away from a blot and press RB / R1 while you slide: he springs back in past it with a sweep.' },
+    { match: 'Foes now follow you up and down', shots: [
+      { name: 'foe-climb', caption: 'Up on the Arena’s ledge with an ink blot coming from below: before, it is stuck against the foot of the ledge, pressing at the wall; after, it has leapt up and stands beside him', commit: 'bcdd52a1',
+        view: { ...ARENA_LEDGE, setup: LEDGE_VIEW(`const f = foes.add('blot', new V(4, 0, -35)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50);`), wait: 2600 } },
+      { name: 'foe-dais', caption: 'Standing on the makers’ box on the dais of the desert temple’s third room, its machine woken: before, it stands at the foot of the dais, stopped by its first step; after, it has climbed the dais to him', commit: 'bcdd52a1',
+        view: { level: 'desert', quality: 'high', save: SAVE_ON, eye: [158, 2411.5, -139], target: [150.5, 2408, -146], fov: 55, wait: 3200,
+          setup: `const V = THREE.Vector3, top = foes.env.ground(150, 2412, -144, 12);
+            player.teleport(new V(150, top + 0.1, -144), new V(0, 1, 0), new V(0, 0, 1)); ${sleepJs(800)}
+            const m = foes.list.find((f) => Math.abs(f.pos.z + 150) < 3); m.state = 'chase'; setInterval(() => { m.cool = 99; }, 50);` } },
+    ], see: 'In the Arena, stand on the ledge at the far side (the ramp goes up to it) and pick an ink blot from the FOES list: it crouches at the foot of the ledge and leaps up. A machine from the list comes round by the ramp instead.' },
+    { match: 'A spitting blot now climbs steps and ramps', see: 'In the Arena, pick a spitting blot from the FOES list and lead it near the ledge at the far side, staying on the sand below: it walks up the ramp and lobs down at you from up there. Walk up the ramp after it.' },
+    { match: 'Knock a foe off a ledge', shots: [
+      { name: 'foe-knock-off', caption: 'An ink blot cut off the edge of the Arena’s ledge, a second later: before, it has landed and is already coming on along the foot of the ledge; after, it lies dazed where it fell, pale stars turning over it', commit: 'f544f600', before: '6ecedb75',
+        view: { ...ARENA_LEDGE, eye: [10.5, 3.2, -32.5], target: [5, 0.9, -38.6], setup: LEDGE_VIEW(`const f = foes.add('blot', new V(5, 2, -40.4)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(300)} f.pos.set(5, 2, -40.3); foes.hurt(f, 'blade', new V(0, 0, 1), { damage: 1, combo: 2 });`), wait: 1300 } },
+    ], see: 'In the Arena, get a blot up on the ledge at the far side and cut it toward the edge (the third swing, the charged cut or the push): it lands dazed below, stars over it.' },
+    { match: 'A new optional challenge in the Signal Market, the Echo relay', shots: [
+      { name: 'echo-relay', caption: 'The Echo relay down the first side street west of the Signal Market’s avenue: the low and middle stones at the near end, the three walls hung with old dishes, and the arch at the far end with the high stone and the horns', commit: '59249565',
+        view: { level: 'bazaar', save: SAVE_ECHO, player: [-39.5, 0.4, 78.5], heading: -Math.PI / 2, eye: [-35, 8.5, 71], target: [-68, 1, 76], fov: 55, wait: 3000 } },
+      { name: 'echo-relay-results', only: 'after', caption: 'The Echo relay finished: the time, the makers’ mark, and a word from Oyo, who sells lanterns on the avenue', commit: '59249565',
+        view: { level: 'bazaar', hud: true, hour: 10, save: SAVE_ECHO, player: [-39.5, 0.4, 78.5], setup: ECHO_THROUGH('kit-bazaar', 30.6), wait: 600 } },
+    ] },
+    { match: 'And one in Viridel, the Vine walk', shots: [
+      { name: 'vine-walk', caption: 'The Vine walk on the slope east of Mira’s water clock: four white decks in a line, higher over the meadow the further they go, a seed at the edge of each gap, and the wall with the flower-door on the third deck', commit: '7f245a39',
+        view: { level: 'edena', save: SAVE_BLOOM, player: [55, -3.1, 1], heading: Math.PI / 2, eye: [60, 9, -28], target: [98, -4, 2], fov: 55, wait: 3000 } },
+      { name: 'vine-walk-grown', only: 'after', caption: 'The Vine walk in a run: the first two seeds bloomed from the start and their vines grown across the gaps, the flower-door ahead still shut', commit: '7f245a39',
+        view: { level: 'edena', save: SAVE_BLOOM, player: [55, -3.1, 1], heading: Math.PI / 2, eye: [53, 3.1, 4.5], target: [95, -3.2, 0], fov: 55, wait: 600,
+          setup: `const w = window.trials.byId('kit-edena'), wait = (ms) => new Promise((r) => setTimeout(r, ms)); for (const v of w.course.vines.slice(0, 2)) v.seed.hit('bloom'); await wait(3500);` } },
+      { name: 'vine-walk-results', only: 'after', caption: 'The Vine walk finished: the time, the makers’ mark, and a word from Mira, who keeps the water clock', commit: '7f245a39',
+        view: { level: 'edena', hud: true, hour: 10, save: SAVE_BLOOM, player: [55, -3.1, 1], setup: VINE_THROUGH('kit-edena', 24.9), wait: 600 } },
+    ] },
+    { match: 'Knock a foe into deep water', shots: [
+      { name: 'foe-swept', caption: 'An ink blot pushed off a crystal rock in Lorn’s swamp into water deeper than a man, as it comes down: before, it has gone under without a splash and lies on the bottom out of sight, to wade out again; after, a great splash where it went in, and it is gone', commit: 'a88286bf',
+        view: { level: 'perdide', quality: 'high', save: SAVE_ON, eye: [173, 3.4, 216.5], target: [168.2, -0.6, 208.7], fov: 50, wait: 640,
+          setup: `const V = THREE.Vector3; for (const f of foes.list.slice()) foes.remove(f); foes.packRest = 1e9;
+            player.teleport(new V(176.5, -0.6, 208.7), new V(0, 1, 0), new V(0, 0, 1)); player.heading = -Math.PI / 2;
+            ${HIDE('#toast')} ${sleepJs(1500)}
+            const f = foes.add('blot', new V(171.28, 0.99, 208.72)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(400)}
+            foes.hurt(f, 'push', new V(-1, 0, 0), { shove: 3 });` } },
+    ], see: 'In Lorn, get a stalker or a blot onto the bank of the swamp where it drops into deep water and push it in (or cut it toward the water): it goes under in a big splash and is gone. Push one into the shallows and it only wades.' },
+    { match: 'A temple’s crystal pendulum that you have stilled', shots: [
+      { name: 'foe-crystal', caption: 'The Hush-House’s pendulum bridge with its middle crystal stilled and an ink blot coming along the bridge through it: before, it has passed the frosted crystal as if it were air and is at the traveller; after, it stands held against the crystal, its eyes pale', commit: 'a88286bf',
+        view: { level: 'perdide', quality: 'high', save: SAVE_ON, eye: [-92.5, 1712.6, 403.2], target: [-100, 1710, 407.2], fov: 55, wait: 2200,
+          setup: `const V = THREE.Vector3, sw = level.temple.pieces.filter((p) => p.stillFor != null);
+            for (const s of sw.slice(0, 2)) { s.s = 0; s.update(0); s.hit('stun'); s.stillFor = 60; s.still = 60; }
+            const c = sw[1].center.clone();
+            for (const f of foes.list.slice()) foes.remove(f); foes.packRest = 1e9;
+            player.teleport(new V(c.x, 1709.1, c.z - 3.2), new V(0, 1, 0), new V(0, 0, 1)); player.heading = 0;
+            ${HIDE('#toast')} ${sleepJs(800)}
+            const f = foes.add('blot', new V(c.x, 1709, c.z + 2.6)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50);` } },
+    ], see: 'In Lorn’s Hush-House, still a pendulum over the bridge with a stilling glob and let a foe come at you along the bridge through it: it stops dead against the frosted crystal, its eyes pale, for a few seconds.' },
+    { match: 'And one in the Sky Stones, the Bell crossing', shots: [
+      { name: 'bell-crossing', caption: 'The Bell crossing off the south rim of the Sky Stones’ starting plateau: four stone decks floating in a line over the sea of cloud, a bell on a post at each gap’s edge, the stones of each bridge hanging high over its gap, and the wall with the bell-tuned door on the last deck', commit: 'a443e0fb',
+        view: { level: 'arzach2', save: SAVE_BELL, player: [-3, 40.6, 80], heading: 0, eye: [-34, 50, 98], target: [0, 39, 126], fov: 55, wait: 3000 } },
+      { name: 'bell-crossing-stones', only: 'after', caption: 'The Bell crossing: the whistle sounded by the first bell, and the fallen-up stones coming down into a bridge across the gap', commit: 'a443e0fb',
+        view: { level: 'arzach2', save: SAVE_BELL, player: [-3, 40.6, 80], heading: 0, eye: [5.5, 43.5, 88], target: [0, 41, 104], fov: 55, wait: 400,
+          setup: `const w = window.trials.byId('kit-arzach2'), wait = (ms) => new Promise((r) => setTimeout(r, ms)); await wait(2500); w.course.rt.lit.add('stones1'); await wait(1100);` } },
+      { name: 'bell-crossing-results', only: 'after', caption: 'The Bell crossing finished: the time, the makers’ mark, and a word from Sister Aube, the hermit of the edge', commit: 'a443e0fb',
+        view: { level: 'arzach2', hud: true, hour: 10, save: SAVE_BELL, player: [-3, 40.6, 80], setup: BELL_THROUGH('kit-arzach2', 24.8), wait: 600 } },
+    ] },
+  ],
+  '1.3': [
+    { match: 'Two new optional challenges built from the temples’ own pieces', shots: [
+      { name: 'wind-hall', caption: 'The Wind hall on the dune crest west of the desert’s landing, its sign by the steps: gusts blow down it, four screens to shelter behind, three eyes under the porch at its far end', commit: '33271faa',
+        view: { level: 'desert', player: [-129, 19.6, -73.5], heading: 3.6, eye: [-118, 30, -86], target: [-135, 22, -46], fov: 55, wait: 3000 } },
+      { name: 'hush-walk', caption: 'The Hush walk on Lorn’s south shore: a causeway out over the deep lake under three arches, a crystal of the Hush swinging across from each', commit: '33271faa',
+        view: { level: 'perdide', player: [0, 1.6, 19], heading: 0, eye: [20, 8, 12], target: [3, 3, 48], fov: 55, wait: 3000 } },
+      { name: 'wind-hall-results', only: 'after', caption: 'The Wind hall finished: the time, the makers’ mark, and a word from Pell, who lives at the foot of the dune (his line comes up over his head too)', commit: '33271faa',
+        view: { level: 'desert', hud: true, hour: 10, player: [-129, 19.6, -73.5], setup: RUN_THROUGH('kit-desert', 38.4), wait: 600 } },
+    ] },
+    { match: 'Opening a makers’ box now ends with a moment', shots: [
+      { name: 'box-beat-try', caption: 'The grappling hook’s box in the plain of Arzach: before, the item flew into his chest; after, he holds it out and fires it once, a spray of light ahead of him', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
+      { name: 'box-beat-wear', caption: 'The pale star in Qanat: before, it flew into his chest; after, it is pinned on, and a close look at it worn on his lapel', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
+      { name: 'box-beat-play', caption: 'The bell-note whistle in the Sky Stones’ temple: after, at his lips, its note playing and notes of light rising', from: 'frames from scripts/cinematics-qc.mjs (the review page’s staging, headless Chrome, 960 × 540) before and after on this branch (9 October)' },
+    ], see: 'Open any makers’ box (Debug → Cinematics lists them all) and press A / × on the card: the hook or a gadget is tried, the star worn, a charm pocketed, the coil fitted to the pack, the lens or the shell points the way, the whistle plays.' },
+    { match: 'A box also takes its time from what it holds', see: 'Open a gadget’s box (the grappling hook in Arzach) and a charm’s (the soft-fall soles in the City-Shaft): the first rocks three times, the last the hardest; the second twice, and comes apart sooner.' },
+    { match: 'Two more of them. In Vael, the Feather leap', shots: [
+      { name: 'feather-leap', caption: 'The Feather leap in Vael, north-west of the landing, by the stone hand: the lower ledge across the gulf (left), the tower with its terrace’s screens, and the column of wind rising at its foot beyond', commit: 'f51e0acc',
+        view: { level: 'arzach', player: [-97, 24, -208], heading: 0, eye: [-34, 44, -150], target: [-104, 29, -160], fov: 55, wait: 3000 } },
+      { name: 'furnace-steps', caption: 'The Furnace steps in the Buried Machine, east of the landing: eight iron pillars over the glowing grate, and the door of four eyes at the far end', commit: 'f51e0acc',
+        view: { level: 'buried', player: [45, 6, 59], heading: 0, eye: [60, 18, 72], target: [40, 6, 94], fov: 55, wait: 3000 } },
+      { name: 'feather-leap-results', only: 'after', caption: 'The Feather leap finished: the time, the makers’ mark, and a word from Kesh, who keeps the stone hand nearby', commit: 'f51e0acc',
+        view: { level: 'arzach', hud: true, hour: 10, save: { flags: { 'prologue.done': true, 'item.backpack': true, 'item.glider': true, 'items.v': 2 }, keepsakes: [] }, player: [-97, 24, -208], setup: RUN_THROUGH('kit-arzach', 41.2, 0.1), wait: 600 } },
+    ] },
+    { match: 'Hold the blade button (RB / R1)', shots: [
+      { name: 'blade-charge', caption: 'The blade button held for a second in the Arena: before, one light cut and he is back on guard; after, the sword drawn back over his shoulder and held, the charge full', commit: 'bf70463a',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyF = true; ${sleepJs(1000)}`) } },
+      { name: 'blade-charged-cut', caption: 'A moment after letting go: before, nothing more (the light cut was over); after, the great-sword sweep cutting through the blot, its trail over the arc', commit: 'bf70463a',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyF = true; ${sleepJs(1000)} input.KeyF = false; ${sleepJs(170)}`) } },
+    ], numbers: [
+      { title: 'The traveller’s captured moves (moves.glb), with the Great Sword pack’s slash and jump attack added', unit: 'KB', better: 'lower', device: 'any (downloaded once, after the game starts)', rows: [
+        { where: 'the file', before: 583.4, after: 607.1 },
+        { where: 'gzipped, as the site serves it', before: 391.3, after: 404.8 },
+      ], source: 'public/anim/moves.glb before and after (597 424 → 621 644 bytes; gzip -c: 400 686 → 414 522); the jump attack trimmed to the 1.5 s the game plays' },
+    ], see: 'In the Arena (?level=arena), hold RB / R1 (F) near a blot: he draws the sword back and holds it; wait for the ring and let go. A tap still swings the light cut.' },
+    { match: 'A swing in the air is now a leaping overhead cleave', shots: [
+      { name: 'blade-air-cut', caption: 'A swing a moment after jumping, beside a blot: before, the first light cut with the arms alone; after, the overhead cleave coming down onto it', commit: 'bf70463a',
+        view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.Space = true; ${sleepJs(80)} input.Space = false; ${sleepJs(230)} input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(230)}`, { side: 5, h: 2.4, ty: 1.9 }) } },
+    ], see: 'In the Arena, jump (A / ×) toward a blot and press RB / R1 (F) at the top: he hangs, lifts the sword and drops onto it.' },
+    { match: 'Going from one sword swing into the next', see: 'In the Arena, press RB / R1 three times quickly, then raise the guard (LB / L1) and walk off: each change of pose flows into the next instead of jumping.' },
+    { match: 'The blade’s spark trail sweeps through the cut itself', see: 'Swing the blade slowly in the Arena (one press at a time): the sparks only fill the arc where the edge actually cuts.' },
+    { match: 'And two more, with the temples’ stone balls', shots: [
+      { name: 'sphere-court', caption: 'The Sphere court on the meadow south of the Garden of Spheres’ mirror lake: the slalom of stone spheres, the dais with its two plates between the grooves, a white sphere at the head of each, and the arch at the far end', commit: '1274815e',
+        view: { level: 'spheres', player: [136, 1, -27], heading: 1.57, eye: [126, 11, -38], target: [160, 0, -20], fov: 55, wait: 3000 } },
+      { name: 'long-look', caption: 'The Long look in the City-Shaft: a makers’ balcony from the rim out over the shaft, three stones with a gap between each, the ball’s rail across them, and the frame round the view at the far end with the plate', commit: '1274815e',
+        view: { level: 'incal', player: [269.2, 200.5, 65.3], heading: -1.8, eye: [265.7, 209.3, 44.95], target: [244.56, 200.3, 56.49], fov: 55, wait: 3000 } },
+      { name: 'long-look-results', only: 'after', caption: 'The Long look finished: the time, the makers’ mark, and a word from Tobin, who sells views along the rim', commit: '1274815e',
+        view: { level: 'incal', hud: true, hour: 10, player: [269.2, 200.5, 65.3], setup: ROLL_THROUGH('kit-incal', 33.6), wait: 600 } },
+    ] },
+  ],
+  '1.2': [
+    { match: 'The dark masses in shaded corners', shots: [
+      { name: 'spot-cave', caption: 'The cave under the giant, High: before, the dark masses between the ribs came in stacked rectangles; after, brushed shapes that stay put as you turn', commit: 'c58cbcaa',
+        view: { level: 'desert', save: SAVE_DESERT, player: [-1250, 1000, 1272], heading: Math.PI, eye: [-1249.3, 1001.8, 1274.5], target: [-1250, 999.6, 1250], fov: 55, wait: 3000 } },
+      { name: 'spot-stairs', caption: 'The stairs to the great tree in Qanat, Handheld: the risers and the terrace faces keep the same dark masses from every side (before, they came and went in blocks as the camera swung)', commit: 'c58cbcaa',
+        view: { level: 'desert', save: SAVE_DESERT, quality: 'handheld', player: [219.1, 4.6, 382.0], heading: 2.6, eye: [213.62, 8.85, 372.51], target: [219.1, 3.85, 382.04], fov: 55, wait: 3000 } },
+    ], see: 'Climb the stairs round the great tree in Qanat, or go down into the cave under the giant, and swing the camera round: the dark masses stay where they are.' },
+    { match: 'On a phone the touch buttons now size themselves', shots: [
+      { name: 'touch-sideways', caption: 'A phone held sideways (812 × 375), every button showing (a foe near, the gun’s modes): before, the cluster reached the top edge and halfway across; after, it keeps to the lower right corner', from: 'headless Chrome with touch emulation (mobile viewport, DPR 3) against this branch’s own dev server, the same view before and after (9 October)' },
+      { name: 'touch-upright', caption: 'The same phone held upright (375 × 812): the buttons used to span the whole width; now the left side is free for the stick', from: 'headless Chrome with touch emulation (mobile viewport, DPR 3) against this branch’s own dev server, the same view before and after (9 October)' },
+    ], see: 'On a phone, hold it sideways in any world: the buttons sit in the lower right corner, clear of the middle of the view. On a tablet or the Steam Deck they are as before.' },
+    { match: 'No more bright line of sunlight', shots: [
+      { name: 'cave-seam', caption: 'The Givers’ Hearth: before, a line of sunlight round the foot of the cave’s wall; after, the floor is in shade all the way to the wall', commit: 'c58cbcaa',
+        view: { level: 'desert', save: SAVE_DESERT, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262], fov: 55, wait: 3000 } },
+    ] },
+    { match: 'Every menu shows its buttons inside the buttons themselves', shots: [
+      { name: 'menu-glyphs', caption: 'The journal with an Xbox pad: before, a line of hints at the bottom; after, B in the ✕, LB and RB on the side tabs', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated Xbox pad, 1280 × 720 (9 October)' },
+      { name: 'pause-glyphs', caption: 'The pause menu with an Xbox pad: B in Resume, A beside the entry the pad is on', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated Xbox pad, 1280 × 720 (9 October)' },
+    ], see: 'With a controller, press Menu (the pause menu) or View (the journal); on the title, open Saves. Then press a key on the keyboard: the same buttons show Enter, Esc, Q and E.' },
+    { match: 'The buttons shown match the controller in your hands', shots: [
+      { name: 'ps-glyphs', caption: 'The journal with a DualSense: before, Xbox / PlayStation pairs (“LB / L1”, “A / ×”); after, L1, R1, × and ○ alone', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated DualSense, 1280 × 720 (9 October)' },
+    ], see: 'Connect an Xbox, PlayStation or Switch pad and press a button: every menu, conversation and prompt names that pad’s buttons. On a Retroid, its own letters as before.' },
+    { match: 'A Switch Pro Controller or Joy-Cons on a computer', see: 'On a computer with a Switch Pro Controller, open the title’s Saves: the right button (A) opens a save, the bottom one (B) goes back. Settings → Controller buttons still changes it.' },
+    { match: 'Debug: the worlds list is a grid of small cards', shots: [
+      { name: 'worlds-grid', caption: 'The worlds list with a pad: before, large cards in three columns; after, a grid of small cards, the focused one framed in red with its description at the foot', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated Xbox pad, 1280 × 720 (9 October)' },
+    ], see: 'Title → Debug with a controller: the D-pad moves left, right, up and down across the cards; A opens the world.' },
+    { match: 'Debug: the Items page works with a controller', shots: [
+      { name: 'items-pad', only: 'after', caption: 'The Items page with a pad: the card the pad is on lifted in a red frame, A on its picture', from: 'headless Chrome against this branch’s own dev server, a simulated Xbox pad, 1280 × 720 (9 October)' },
+    ], see: 'Title → Debug → Items with a controller: move to a card and press A, then LB / RB, Y, X and B.' },
+    { match: 'Debug: an item full screen shows one short line', shots: [
+      { name: 'item-viewer', caption: 'An item full screen at 730 × 410 CSS px (a Retroid Pocket’s 1920 × 1080 screen): before, its words covered the item; after, one line under it', from: 'headless Chrome against this branch’s own dev server and the commit before, 730 × 410 (9 October)' },
+    ], see: 'Title → Debug → Items, open any item full screen on a handheld or a small window, then press A (or I) for the rest.' },
+    { match: 'The desert gets you moving sooner', numbers: [
+      { title: 'From stepping out of the ship to the giant’s mouth: talks on the way', unit: 'talks', better: 'lower', device: 'any (the story played in Node, the shortest answers that move it on)', rows: [
+        { where: 'talks before the way down (Marrow, Nour, Ama, the Speaker)', before: 4, after: 3 },
+        { where: 'talks in a row after the chest opens', before: 3, after: 2 },
+        { where: 'pages said', before: 24, after: 15 },
+        { where: 'pages said after the chest opens', before: 20, after: 11 },
+        { where: 'answers to choose', before: 10, after: 6 },
+      ], source: 'the desert story played in Node on the game’s own modules (tests/playthrough-agent.js loadWorld), choosing the answers a player in a hurry would' },
+      { title: 'From stepping out of the ship to the giant’s mouth: time', unit: 's', better: 'lower', device: 'any (estimate: words at the dialogue’s 48 letters a second, 1.2 s a page, 1.5 s an answer; walking 6 m/s in straight lines; the climb and the chest’s scene left out)', rows: [
+        { where: 'talking', before: 102, after: 66 },
+        { where: 'walking (1040 m before, the Speaker at an average place round the walls; 865 m after)', before: 173, after: 144 },
+        { where: 'in all', before: 275, after: 210 },
+      ], source: 'the same play-through; the walk from the map’s positions (ship, gate, ledge, Nour, Ama, the procession’s loop, the skull)' },
+    ], see: 'Start a new game: open the chest on the tree’s ledge and talk to Nour. She says the verse about the giant’s mouth; after Ama’s jar the quest goes straight to the skull beyond the back gate.' },
+    { match: 'Stop at Ama’s fire on your way into Qanat', numbers: [
+      { title: 'Talks after the chest opens, with the jar taken on the way in', unit: 'talks', better: 'lower', device: 'any (the story played in Node)', rows: [
+        { where: 'after the chest: Nour (and before, Ama and the Speaker)', before: 3, after: 1 },
+      ], source: 'the desert story played in Node: Marrow, Ama on the way in, the chest, Nour' },
+      { title: 'From stepping out of the ship to the giant’s mouth, with the jar taken on the way in', unit: 's', better: 'lower', device: 'any (the same estimate as the line above)', rows: [
+        { where: 'walking (1040 m before; 625 m after: the camps lie on the way in, the back gate beside the tree)', before: 173, after: 104 },
+        { where: 'in all', before: 275, after: 174 },
+      ], source: 'the desert story played in Node: Marrow, Ama on the way in, the chest, Nour' },
+    ], see: 'Start a new game and talk to Ama at the camp fires on the way to the city: tell her your ship has no power, then that you’ll go to the city. She gives you the jar, and Nour later sends you straight to the giant’s mouth.' },
+    { match: 'On the ride to the Givers’ Hearth', see: 'Once Nour has sent you for the spark-stone, ride Marrow’s hoverbike along the marked stones: about 130 m before the bronze bowl, the keepers’ camp and the bell (320 m before the Hearth) a line under the view says what is ahead. Each is said once, and not once it is done (the bowl filled, the camp looked at, the bell rung). The ride is 1.6 km, about 48 s each way at the bike’s top speed.' },
+    { match: 'The makers’ boxes in the temples of the Garden of Spheres', shots: [
+      { name: 'temple-box', caption: 'The Footprint’s chest in the Garden of Spheres, two seconds into the opening: before, the box sunk into the dais and his head off the top of the frame', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → Makers’ box · lens (or open the chest in the Footprint’s round chamber).' },
+    { match: 'The City-Shaft: when the Lodestar lights again', shots: [
+      { name: 'look-up', caption: 'The third shot, across the shaft: before, a blank billboard far off; after, LOOK UP in light', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+      { name: 'lodestar-handback', caption: 'A second and a half after the moment ends, on the palace’s crown: before, the camera pressed against his head; after, behind him', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → the Lodestar lights again over the shaft.' },
+    { match: 'In Vael, the bird’s arrival keeps the horizon', shots: [
+      { name: 'vael-sky', caption: 'The second shot, the long lens up at her: before, plain sky and a speck; after, the haze’s towers at its foot', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → the bird comes down out of the haze and bows.' },
+    { match: 'The Lantern: the light coming down out of the dusk', shots: [
+      { name: 'lantern-dusk', caption: 'Two seconds in, from behind him: before, the light still above the frame (the dark disc is the dusk’s moon); after, the light beside the crown', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → The light returns to the Lantern.' },
+    { match: 'The recordings at the ship’s console cut between angles', shots: [
+      { name: 'recording-bust', caption: 'The third recording, 19 s in: before, the same push-in over his shoulder for 40 s; after, the two of them close', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+      { name: 'recording-face', caption: 'The same recording, 27 s in, as he says “I’m listening now”: his face in the hologram’s light', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → any recording (the long last ones show the most angles).' },
+    { match: 'Opening a makers’ box comes in four ways now', shots: [
+      { name: 'box-side', caption: 'The pale star’s box in Qanat, as it rises: before, over his shoulder as for every box; after, from the box’s side', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+      { name: 'box-reveal', caption: 'The same box, the reveal: before, beside him; after, from where the box stood, the star in front of his face', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Open boxes in different worlds (or Debug → Cinematics → Makers’ box ·): four openings, the same one for a box every time.' },
+    { match: 'At the stone at home, laying everything down cuts', see: 'Debug → Cinematics → First homecoming (or Final homecoming), from the moment the tokens go down.' },
+    { match: 'Lou’s window seat at home has a second shot', shots: [
+      { name: 'window-seat', caption: 'The window seat, six seconds in: before, the same angle from the start; after, beside him, the window and the land beyond', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'At home, sit in Lou’s window seat (or Debug → Cinematics → The window seat).' },
+  ],
+  '1.1': [
+    { match: 'Notices no longer pop up over a scene', shots: [
+      { name: 'scene-notices', caption: 'Opening the makers’ box in Qanat: the desert quest’s card used to sit across the top of the scene', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Start a new game in the desert and open the box on the ledge as the first quest’s card comes up: the card waits until the box is open. The same for the recordings at the ship’s table.' },
+    { match: 'The pale star from the makers’ box is pinned', shots: [
+      { name: 'lapel-star', caption: 'Vael II, the bell’s moment, his face: the star used to float by his head', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'With the pale star found (the desert’s second box), watch any filmed moment’s last shot, or stand close in front of the traveller.' },
+    { match: 'The Lantern: the light’s arrival is filmed again', shots: [
+      { name: 'lantern-light', caption: 'The Lantern, the second shot of the light settling into the crown: before, the camera pressed up against the crown', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → The light returns to the Lantern.' },
+    { match: 'At home, kneeling at the stone', shots: [
+      { name: 'home-stone', caption: 'At the stone at home, six seconds in: from behind him, then from beside the stone', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'At home, pay your respects at the stone, then sit in Lou’s window seat (or Debug → Cinematics → At the stone / The window seat).' },
+    { match: 'Filling the tank for the first time in Qanat', shots: [
+      { name: 'tank-fill', caption: 'The first fill in the giant’s basin, the third shot', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → “the empty tank fills”.' },
+    { match: 'In Vael, the bird’s arrival no longer opens', see: 'Debug → Cinematics → “the bird comes down out of the haze and bows”: the first shot is behind you on the open plain, not inside the sand. Open any makers’ box: the camera moves in smoothly as it comes apart.' },
+    { match: 'People no longer leave a pale, person-shaped ghost', shots: [
+      { name: 'person-ghost', caption: 'Climbing the stairs to the great tree in Qanat, Handheld, 9:30: before, a pale wedge the shape of him lightens the dark risers below his feet', from: 'headless Chrome against this branch’s own dev server, Handheld preset, the same pinned camera before and after the fix (9 October)' },
+    ], see: 'In Qanat, climb the stairs round the great tree with the camera close behind: the risers beside you stay as dark as the rest.' },
+    { match: 'Heading to space now opens onto the night', shots: [
+      { name: 'space-jump', caption: 'The jump to space after take-off, 1280 × 720', from: 'headless Chrome against this branch’s own dev server: the old warp drawing and the new, the same moment of the jump (9 October)' },
+    ], see: 'Take off from the ship’s galactic map to any world.' },
+    { match: 'The pause menu fits on a phone held sideways', shots: [
+      { name: 'pause-phone', caption: 'The pause menu on a phone held sideways (812 × 375): Quit to title at the bottom now shows', commit: '140c19c7',
+        view: { level: 'desert', size: [812, 375], hud: true, save: SAVE_ON, setup: `${HIDE('#toast')} ${MENU}`, wait: 1500 } },
+    ], see: 'On a phone, open the pause menu held sideways and upright; checked at 812 × 375, 375 × 812, 1080 × 2400, 1280 × 720, 1280 × 800, 1920 × 1080 and 2560 × 1440.' },
+    { match: 'No more invisible shadow hounds', shots: [
+      { name: 'hound-running', caption: 'A shadow hound running in the City During the Eclipse: before, a flat dark pool and two specks; after, a hump of shadow with a white outline, a glowing rim and lit eyes', commit: 'b9348a44',
+        view: { level: 'eclipse', player: [2, 0, 26], heading: Math.PI, setup: FOE_HELD('hound', `f.state = 'chase'; f.dist = 10;`), wait: 1500 } },
+    ] },
+    { match: 'A dune ray about to burst up', shots: [
+      { name: 'ray-erupt', caption: 'A dune ray winding up its burst under the sand: before, its fin had sunk out of sight; after, the fin stands high with its white outline, the sand thrown up', commit: 'b9348a44',
+        view: { level: 'desert', save: SAVE_DESERT, setup: FOE_HELD('ray', `f.buried = true; f.state = 'wind'; f.atk = f.def.attacks.find((a) => a.id === 'erupt'); f.k = 0.8; f.timer = f.atk.wind * 0.8; f.attackAt.copy(P);`, { dist: 4.5, eye: 3.6, h: 2 }), wait: 1500 } },
+    ] },
+    { match: 'A foe winding up behind a wall', see: 'In a temple or among the Desert’s rocks, let a foe wind up on the other side of a wall while it is on the screen: a round marker fills over where it is. Foes no longer appear inside rocks or walls.' },
+    { match: 'Blot swarms have bigger eyes', see: 'In the Arena (FOES tab), call a blot swarm and a glass golem, and break the golem: the swarm’s eyes and the splinters show from further off.' },
+    { match: 'The stone hand on Vael is fairer', shots: [
+      { name: 'stone-hand', caption: 'The stone hand on Vael from in front of its palm: the fingers now rise clearly from little to middle, the knuckle stones grow with them, and each carries one to four dots', commit: 'd0869704', before: '140c19c7',
+        view: { level: 'arzach', save: SAVE_ON, setup: HAND_VIEW, wait: 1500 } },
+    ], see: 'On Vael, shoot the stone hand’s knuckles in the wrong order twice: the knuckles flash rust, Kesh calls out the order and the journal writes it down; a third miss makes the next knuckle glint.' },
+  ],
   '1.0': [
+    { match: 'In conversations the traveller holds still', numbers: [
+      { title: 'The traveller standing 30 s, idle and in a conversation', better: 'lower', device: 'the real rig and clips in Node (tests/talk-still.test.js)', source: 'tests/talk-still.test.js, 8 October', rows: [
+        { where: 'the head’s turn, widest to widest (°)', before: 133, after: 0.4 },
+        { where: 'the hips’ sway side to side (cm)', before: 4.3, after: 0.9 },
+        { where: 'captured looking-about and breathing idles played', before: 2, after: 0 },
+      ] },
+    ], see: 'Talk to anyone and wait on a long line: when the camera comes in close on the traveller he stays still, his eyes on the one speaking.' },
+    { match: 'Picking an answer in a conversation no longer plays', see: 'In the desert, talk to Nour and pick any answer: her reply starts at once, and your answer is not shown or voiced again.' },
+    { match: 'When Nour tells you to stand in water', see: 'Open the makers’ chest in Qanat, talk to Nour, ask what is on your back: the answers after “Stand in water to fill the backpack” ask where there is water, or whether it could wake the ship.' },
+    { match: 'Talking to Ama by the camp fire', shots: [
+      { name: 'ama-fire', caption: 'Talking to Ama beside the main camp fire: the camera used to stand in the flames', commit: '21bd507b', before: 'e35f5da4',
+        view: { level: 'desert', save: SAVE_DESERT, wait: 2500, setup: `
+  const V = THREE.Vector3, n = npcs.find((x) => x.def?.id === 'ama'), F = level.qanat.fires[0];
+  const gy = (x, z) => { const g = physics.groundAt(x, F.y + 5, z); return Number.isFinite(g) ? g : F.y - 1.5; };
+  const A = new V(F.x + 2.6, 0, F.z); A.y = gy(A.x, A.z);
+  const P = new V(A.x, 0, A.z + 1.5); P.y = gy(P.x, P.z);
+  player.teleport(P, new V(0, 1, 0), new V(0, 0, -1)); player.heading = Math.PI;
+  n.pos.copy(A); ${sleepJs(2500)}
+  n.pos.copy(A); storyRt.dialogue.start(n.def, n); n.pos.copy(A);
+  storyRt.dialogue._side = 1;   // (the fire's side of the line between them: where the camera starts)
+  ${sleepJs(900)}`, wait: 300 } },
+    ] },
+    { match: 'Fewer speech balloons', see: 'Walk through the pilgrims’ camps after talking to everyone there: nobody greets you with a balloon unless your quest points to them or they have news; shouts still show.' },
+    { match: 'Nobody talks while the ship is still crashing', shots: [
+      { name: 'crash-balloon', caption: 'The ship ploughing into the dunes in a new game', from: 'headless Chrome against this branch’s own dev server and the commit before, the prologue from the voicemail on, Medium (8 October)' },
+    ] },
+    { match: 'Marrow no longer stands right under your ship', shots: [
+      { name: 'crash-marrow', caption: 'The dust settling after the crash: Marrow is the small figure by the hull', from: 'headless Chrome against this branch’s own dev server and the commit before, the prologue from the voicemail on, Medium (8 October)' },
+    ] },
+    { match: 'Stepping out of the ship no longer offers', shots: [
+      { name: 'step-out', caption: 'The first second with the controls after stepping out of the ship', from: 'headless Chrome against this branch’s own dev server and the commit before, the prologue from the voicemail on, Medium (8 October)' },
+    ] },
+    { match: 'Notices are quieter', shots: [
+      { name: 'hud-notices', caption: 'A long notice while hurt, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+      { name: 'hud-notices-phone', caption: 'The same notice on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+    ] },
+    { match: 'Starting a quest or an errand shows its ', shots: [
+      { name: 'quest-card', caption: 'A quest begins, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+      { name: 'quest-card-phone', caption: 'A quest begins on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
+    ] },
+    { match: 'The touch buttons stay as you left them ', shots: [
+      { name: 'touch-new-world', caption: 'A new world loads on a phone after playing with a controller (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, the pad remembered from the world before, Low (8 October)' },
+    ] },
+    { match: 'The traveller’s backpack is now a flat', shots: [
+      { name: 'backpack', caption: 'The traveller from behind in the character studio: the reservoir on his back, its ivory frame and jade fluid', commit: '0bc4b9fd', view: studio('backpack=true&view=arms&yaw=2.8&pitch=0.1') },
+    ] },
+    { match: 'The fallen giant has deep eye sockets', shots: [
+      { name: 'giant', caption: 'The fallen giant beyond Qanat’s back gate, from in front of its face: the deep sockets, the teeth and the jaw into its throat', commit: '0bc4b9fd',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(318, 530, { a: Math.atan2(88, 130), dist: 42, h: 7, ty: 5, pd: 30, pa: Math.atan2(88, 130) + 0.25, fov: 55 }), wait: 500 } },
+      { name: 'ship-room', caption: 'The ship’s central room in the prologue: the coral floor and the oval light overhead', commit: '0bc4b9fd',
+        view: { level: 'desert', query: 'prologue=1', hour: null, save: { flags: { 'items.v': 2 }, keepsakes: [] },
+          setup: `for (let i = 0; i < 240 && window.ship?.prologue?.stage !== 'walk'; i++) ${sleepJs(250)} ${sleepJs(1500)}`, wait: 300 } },
+    ] },
+    { match: 'The Debug button is back on the title screen', shots: [
+      { name: 'debug-title', caption: 'The title screen, as a player’s build shows it', commit: 'c31a73b9',
+        view: { prod: true, hud: true, hour: null, weather: '', save: SAVE_ON, ready: '!!document.querySelector(\'[data-a="news"]\')', wait: 2500 } },
+    ] },
+    { match: 'A Cinematics review page gathers', shots: [
+      { name: 'cinematics', only: 'after', caption: 'The Cinematics review page: all 91 films, recordings and journeys, to choose one and play it', commit: 'e35f5da4', view: { page: 'cinematics.html', wait: 2500 } },
+    ] },
+    { match: 'A last, small world at the end of the light’s trace', shots: [
+      { name: 'lantern', only: 'after', caption: 'The last world from the ship’s ramp: the sand bar out to the tower', commit: 'e80fc41d', view: { level: 'lantern', hour: null, save: SAVE_ON, wait: 4000 } },
+    ] },
+    { match: 'Game updates are about 100 MB smaller too', numbers: [{ title: 'An over-the-air update', unit: 'MB', better: 'lower', device: 'the update for Android and the Steam Deck',
+      note: 'after: estimated, the 99 MB of recorded themes taken out of the 129 MB update', rows: [{ where: 'download', before: 129, after: 30 }],
+      source: 'the update zip measured at 129 MB on 8 October (the Worker’s download fix); scripts/web-update.mjs leaves the music out' }] },
     { match: 'The Sketchbook has a Sightings page', shots: [
       { name: 'sightings', caption: 'The game menu’s Sketchbook after the desert’s first talks: the Sightings first, a ? for each still to find', commit: '9ba725ea',
         view: { level: 'desert', hud: true, save: { flags: { ...SAVE_ON.flags, 'world.desert.done': true, 'sight.desert.oum': true, 'sight.desert.dalia': true, 'sight.desert.nour': true, 'sight.desert.hull': true, 'sight.desert.givers': true }, keepsakes: [] },
@@ -179,6 +582,21 @@ export const CHANGELOG_MEDIA = {
     { match: 'Each of the twelve worlds off the route', shots: [
       { name: 'fallenring-mark', caption: 'The Fallen Ring: the makers’ sign burned into the tilted piece’s foot', commit: '9ba725ea',
         view: { level: 'fallenring', save: SAVE_ON, player: [127.5, 0.5, -41], heading: 2.2, eye: [129.6, 3.6, -43.2], target: [139.6, 2.2, -51.85], fov: 55, wait: 3000 } },
+    ] },
+    { match: 'The galactic map charts only finished worlds', see: 'Open the galactic map at the ship’s holo table: the route’s worlds and Home are there, the detours off the route are not. The Debug worlds list still opens them.' },
+    { match: 'Every setting works on a controller', see: 'With a controller, open the Settings (Menu), move down to Graphics and press A / ×: the row turns red and the dropdown yellow; press down twice and A / × to keep it, or B / ○ to leave it as it was.' },
+    { match: 'The language no longer changes by itself', see: 'With a controller, open the Settings and hold right from the menu’s last button: the focus stops on Language and it stays English. Press A / ×, down, A / × to switch it.' },
+    { match: 'People wave properly when they greet you', shots: [
+      { name: 'wave', caption: 'A baker in Qanat waving as you come near, 0.7 to 1.2 s into the greeting', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ] },
+    { match: 'The traveller no longer wrings his neck', shots: [
+      { name: 'head-turn', caption: 'Standing still, the captured looking-about idle at its widest turn (10.9 to 11.7 s)', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ] },
+    { match: 'People standing in a crowd step out of your way', shots: [
+      { name: 'brush-past', caption: 'Walking past a group in the Signal Market, 0.5 m from one of them, at 1.4 m/s', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ], see: 'In the Signal Market, walk straight through a group standing together: each steps aside or back with their feet, and returns.' },
+    { match: 'Looking into the dry well in Qanat', shots: [
+      { name: 'well-look', caption: 'Asking to look into the well from between the rim and the terrace beside it', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
     ] },
   ],
   '0.99': [
@@ -256,7 +674,7 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The lock-on has a new reticle', shots: [
       { name: 'lock-reticle', caption: 'Locked on to a makers’ machine in the Arena', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
-    ] },
+    ], see: 'Lock on to any foe (R3 / Tab), in the Arena or the wilds: the gold chevrons ring it, and the pips over them go out as it is hurt.' },
     { match: 'The reticle reads the foe', shots: [
       { name: 'lock-windup', caption: 'The machine three quarters through winding up its slam: the chevrons red and closing in', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
     ], see: 'Lock on to a foe and parry its strike: the reticle spreads pale blue while it reels. A dune ray under the sand dims it.' },

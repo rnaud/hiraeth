@@ -13,7 +13,7 @@
 // makers' chest that has not opened in living memory ("it opens for one who
 // fell from the sky"). It opens for the traveller: the backpack, its tank
 // empty. Qanat gathers and Nour, the eldest, who has kept the chest for sixty
-// years, sends them on: the well, Ama's jar, the Speaker's old words, the way
+// years, sends them on with the Speaker's old verse: Ama's jar, then the way
 // down. In the giant's chest the rib is far too heavy for arms, and the empty
 // tank pushes nothing: the old keepers' pole levers it off (desert.js). The
 // pool rises, the tank and the jar fill, and the water climbs the roots into
@@ -62,6 +62,8 @@ export const STAGE_MIGRATION = { pack: 'city', camps: 'city', ama: 'elder', spea
  * Speaker's old words are one stage, done in either order (desert.asked: src/story/desert.js). A save
  * at one of the old middle stages goes to that stage; what it already did (the jar, the Speaker) is
  * kept, so it advances at once on its flags. Runs after STAGE_MIGRATION (a v1 save goes to Nour first).
+ * Since the first hour was shortened (October 2026) the merged stage needs only Ama's jar: Nour says
+ * the Speaker's verse herself, and walking with him is optional (askedDone in src/story/desert.js).
  */
 export const STAGE_MERGE = { well: 'ask', ama: 'ask', speaker: 'ask' };
 /** The desert quest's save version (src/story/desert.js migrateDesertQuest). */
@@ -81,9 +83,10 @@ export const QUESTS = [
       // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction); the tank is empty
       // (she has you listen at the dry well beside her, in the same talk: the well's own look is still there)
       { id: 'elder', text: 'The chest opened, and its tank holds only a last swallow of old fluid. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
-      // outside the walls, in either order: the marker goes to whichever is left (src/story/desert.js sets desert.asked)
-      { id: 'ask', text: 'Outside the walls: get the drinking jar from Ama at the camp fires, and ask the Speaker at the procession’s head the way to the water underground', label: 'Ama’s jar, the Speaker’s words', flag: 'desert.asked', at: 'askWho' },
-      { id: 'down', text: 'Find the way beneath the giant, outside the back gate', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
+      // outside the walls: Ama's jar (src/story/desert.js askedDone sets desert.asked). Nour has said the Speaker's verse
+      // herself; walking with him is for the old words whole (October 2026: three talks in a row became two)
+      { id: 'ask', text: 'Outside the walls: get the drinking jar from Ama at the camp fires, to carry the water back in', label: 'Ama’s jar, at the camp fires', flag: 'desert.asked', at: 'ama' },
+      { id: 'down', text: 'Where the giant’s eyes are marked, its mouth is a door. Find the marked skull outside the back gate, and go down through its mouth', label: 'The giant’s skull', flag: 'desert.cave.seen', at: 'caveIn' },
       // the rib is far too heavy for arms and the tank is empty: the keepers' pole levers it off (src/story/desert.js);
       // a full tank (an older save) can still push it
       { id: 'channel', text: "The pool is dry. Find the old keepers’ pole by the mural and use the carved post to lever the fallen rib off the channel", label: 'The blocked channel', flag: 'desert.channel.open', at: 'rib' },
@@ -173,11 +176,26 @@ export const PEOPLE = {
           choices: [
             { text: '~neutral~ My ship has no power. I need to find some.', goto: 'early' },
             { text: '~curious~ What is that great dark tree?', goto: 'tree' },
+            // (she called you over about it: CALLS.ama)
+            { text: '~curious~ You called me over. A jar?', if: { all: [{ flag: 'desert.ama.called' }, { not: { flag: 'desert.jar.given' } }] }, goto: 'jarCalled' },
           ],
         },
         early: {
           say: ["~playful~ Ship power? I’ve got cooking fire. Your ship would need to be a very large kettle.", "~neutral~ Go into *Qanat* and climb *the steps to the great tree*. Find *Nour beneath the chest on its trunk*. That chest started humming when the light passed. She may know why."],
-          choices: [{ text: '~neutral~ I’ll go to the city.', end: true }, { text: '~curious~ Who are all these people?', goto: 'who' }],
+          choices: [{ text: '~neutral~ I’ll go to the city.', if: { not: { flag: 'desert.jar.given' } }, goto: 'jarEarly' }, { text: '~neutral~ I’ll go to the city.', if: { flag: 'desert.jar.given' }, end: true }, { text: '~curious~ Who are all these people?', goto: 'who' }],
+        },
+        // the jar on your way in: whoever sits at her fire before Nour sends them needn't come back out for it
+        // (the stage after Nour, 'ask', is then done at once; October 2026, the first hour shorter)
+        jarEarly: {
+          say: ["~happy~ Then take *the drinking jar* with you. One jar, plenty of thirsty people, and not a drop in it. If you find water, fill it. We need some for the Drinking."],
+          do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
+          choices: [{ text: '~happy~ I’ll bring it back full.', end: true }],
+        },
+        // (the same jar, when she called you over for it)
+        jarCalled: {
+          say: ["~happy~ I did. *The drinking jar*. One jar, plenty of thirsty people, and not a drop in it.", "~neutral~ Take it up with you. If you find water, fill it. We need some for the Drinking."],
+          do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
+          choices: [{ text: '~happy~ I’ll bring it back full.', end: true }, { text: '~neutral~ I need power for my ship.', goto: 'early' }],
         },
         sent: {
           say: ["~surprised~ Nour sent you? She hasn’t dispatched anyone since my wedding. We still discuss that.", "~playful~ And the chest gave you… a glass tank. Empty. A very ancient sort of generosity."],
@@ -202,7 +220,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I need power for my ship.', goto: 'early' }, { text: '~happy~ Thank you, Ama.', end: true }],
         },
         power: {
-          say: ["~neutral~ The tree’s water is the only fuel I know here. Once its fire is restored, perhaps the water will power your ship too.", "~happy~ Take *the drinking jar*. Fill it when you find the water. We need some for the Drinking, and you need some for that ship.", "~neutral~ Find *the Speaker at the procession’s head*. He knows the old route underground."],
+          say: ["~neutral~ The tree’s water is the only fuel I know here. Once its fire is restored, perhaps the water will power your ship too.", "~happy~ Take *the drinking jar*. Fill it when you find the water. We need some for the Drinking, and you need some for that ship.", "~neutral~ *The giant’s skull is beyond the back gate*, if you’re looking for the way underground. The Speaker keeps the old accounts, if you want them whole."],
           do: [{ give: 'jar' }, { set: { 'desert.jar.given': true } }],
           choices: [
             { text: '~curious~ Where is the Speaker?', goto: 'where' },
@@ -393,7 +411,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go and look.', end: true }, { text: '~curious~ The swamp of lights?', goto: 'swamp' }],
         },
         well: { say: ["~neutral~ The well is at the tree’s roots. Its supply lies beneath the giant. The old keepers went down there to tend it."], choices: [{ text: '~curious~ Is there a way down?', goto: 'way' }, { text: '~curious~ The swamp of lights?', goto: 'swamp' }] },
-        swamp: { say: ["~curious~ The swamp of lights: glowing water and singing plants, far beyond this desert. Farther than our feet can take us."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~neutral~ Not yet.', goto: 'well' }] },
+        swamp: { say: ["~curious~ Glowing water and singing plants, far beyond this desert. Farther than our feet can take us."], do: { set: { 'clue.desert.perdide': true } }, choices: [{ text: '~neutral~ Not yet.', goto: 'well' }] },
         never: { say: ["~tired~ Then we must learn something new. Walking is a comfort, but the tree cannot drink footsteps."], choices: [{ text: '~curious~ Where does the water come up?', goto: 'well' }] },
         again: {
           say: ["~neutral~ The well is beneath the tree. The underground entrance is the giant’s mouth, beyond the back gate. May the route be easier than the verse."],
@@ -526,7 +544,12 @@ export const PEOPLE = {
         struck: { say: ["~neutral~ Marrow saw the burn on your ship. Three dots over an arc. The Givers’ sign, left by the thing that struck you.", "~curious~ Perhaps the Singer is one of their machines. Perhaps it copies them. I don’t know, child. Age is not the same as access to the manual."], choices: [{ text: '~curious~ Who are the Givers?', goto: 'givers' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         pack: { say: [{ if: { flag: 'tool.empty' }, text: "~playful~ An empty tank! Sixty years guarding a jar with nothing in it. Hessa must never hear how I described that." },
           { if: { not: { flag: 'tool.empty' } }, text: "~playful~ Living water in Givers’ glass. Like the water the giants carried. I’d wager a tooth. I’m down to four, so take that seriously." },
-          "~neutral~ *Stand in water to fill the backpack.* Its fluid can push things your arms cannot. First, we need to find the water."], choices: [{ text: '~angry~ I didn’t fall. Something struck my ship.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
+          "~neutral~ *Stand in water to fill the backpack.* Its fluid can push things your arms cannot. First, we need to find the water."],
+          // (the answers follow on from "stand in water": where is any, and could it help the ship; playtest, October 2026)
+          choices: [{ text: '~curious~ Stand in water? Where is there any, out here?', goto: 'water' }, { text: '~curious~ Living water… could it wake my ship?', goto: 'power' }] },
+        water: { say: ["~sad~ That is the trouble, child. It used to rise through the tree’s roots and fill the well. The night the light sang, it stopped rising.",
+          "~solemn~ It is still down there. Hessa hears it moving, far below. Someone has to go and find out what is keeping it."],
+        choices: [{ text: '~angry~ That light struck my ship. I didn’t just fall.', goto: 'struck' }, { text: '~scared~ My ship has no power. Can you help me?', goto: 'power' }] },
         power: {
           say: ["~solemn~ To power your ship, we need the tree’s living water and its fire. Both have failed us this year.", "~curious~ Perhaps that is why the chest opened now. We need someone who can go below and put things right. Conveniently, you need fuel."],
           choices: [
@@ -535,25 +558,35 @@ export const PEOPLE = {
           ],
         },
         why: { say: ["~neutral~ You want to get home. I understand. Help us get our water back, and we’ll help you leave.", "~solemn~ Restore the tree’s water and fire. Then take some glowing water to your ship."], choices: [{ text: '~curious~ All right. Where do I start?', goto: 'quest' }] },
+        // (it was three errands, the well, Ama's jar and the Speaker's old words: the well is heard with her, and she
+        // says the Speaker's verse herself, so the jar is the one errand before the way down; October 2026)
         quest: {
-          say: ["~playful~ Three things first. I’ll say them slowly. For you, naturally.", "~neutral~ *Listen at the dry well beside the tree.* Hessa, my granddaughter, keeps it. Ask her about the sound below.", "~neutral~ Then get the drinking jar from Ama at the camp fires. After that, ask *the Speaker at the procession’s head* how to reach the water underground."],
+          say: [
+            { if: { not: { has: 'jar' } }, text: "~playful~ Two things. I’ll say them slowly. For you, naturally." },
+            { if: { not: { has: 'jar' } }, text: "~solemn~ Get *the drinking jar from Ama* at the camp fires. Then go below. The Speaker’s old verse gives the way: *Where the giant’s eyes are marked, its mouth is a door.* The marked skull is *beyond the back gate*." },
+            // (Ama gave you the jar on your way in: her jarEarly)
+            { if: { has: 'jar' }, text: "~playful~ Ama’s jar on your hip already. Good. One thing, then. I’ll say it slowly. For you, naturally." },
+            { if: { has: 'jar' }, text: "~solemn~ Go below. The Speaker’s old verse gives the way: *Where the giant’s eyes are marked, its mouth is a door.* The marked skull is *beyond the back gate*." },
+          ],
           do: [{ set: { 'desert.elder.heard': true } }, { track: Q }],
           choices: [
+            { text: '~happy~ Ama’s jar, then the giant’s mouth. Thank you, Nour.', if: { not: { has: 'jar' } }, end: true },
+            { text: '~happy~ The giant’s mouth. Thank you, Nour.', if: { has: 'jar' }, end: true },
             { text: '~curious~ The well is right here. Listen with me.', goto: 'rim' },
-            { text: '~neutral~ The well, Ama’s jar, the Speaker.', goto: 'go' },
             { text: '~scared~ And if the old words don’t help?', goto: 'down' },
           ],
         },
-        // the well, heard with her (it was a stage of its own: the first of the three is done before you leave her)
+        // the well, heard with her if you like (it was a stage of its own)
         rim: {
-          say: ["~whisper~ Lean over the rim. Hush now. Hear it? Far below, water is moving. It hasn’t reached the roots.", "~solemn~ The carved figures round the rim all *face the back gate*. The keepers carved them looking where the water went. One thing done, child. Two left."],
+          say: ["~whisper~ Lean over the rim. Hush now. Hear it? Far below, water is moving. It hasn’t reached the roots.", "~solemn~ The carved figures round the rim all *face the back gate*. The keepers carved them looking where the water went."],
           do: { set: { 'desert.well.seen': true } },
-          choices: [{ text: '~neutral~ Ama’s jar, then the Speaker.', goto: 'go' }, { text: '~scared~ And if the old words don’t help?', goto: 'down' }],
+          choices: [{ text: '~neutral~ Ama’s jar, then the giant’s mouth.', if: { not: { has: 'jar' } }, goto: 'go' }, { text: '~neutral~ The giant’s mouth, then.', if: { has: 'jar' }, goto: 'go' }, { text: '~scared~ And if the old words don’t help?', goto: 'down' }],
         },
-        go: { say: ["~playful~ That’s it. Well, jar, Speaker. Go on. The city is watching. Walking confidently will satisfy most of them."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
-        down: { say: ["~solemn~ Look for the mark between the giant’s eyes beyond the back gate. Its open mouth leads below. Even the oldest verse should eventually give directions."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
+        go: { say: ["~playful~ That’s it. Go on. The city is watching. Walking confidently will satisfy most of them."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
+        down: { say: ["~solemn~ Look for the mark between the giant’s eyes beyond the back gate. Its open mouth leads below. Even the oldest verse should eventually give directions.", "~neutral~ The Speaker keeps the rest of the old words, if you want them whole. He walks at *the procession’s head*."], choices: [{ text: '~happy~ Thank you, Nour.', end: true }] },
         again: {
-          say: ["~playful~ Listen at the well, get Ama’s jar, then speak to the procession leader. Come back if you need me to say it a third time."],
+          say: [{ if: { not: { has: 'jar' } }, text: "~playful~ Ama’s jar at the camp fires, then down through the giant’s mouth beyond the back gate. Come back if you need me to say it a third time." },
+            { if: { has: 'jar' }, text: "~playful~ Down through the giant’s mouth beyond the back gate. Come back if you need me to say it a third time." }],
           choices: [
             { text: '~neutral~ Tell me about the Givers again.', goto: 'givers' },
             { text: '~neutral~ Goodbye, Nour.', end: true },
@@ -581,7 +614,20 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ (go to the well)', end: true }],
         },
         drinking: { say: ["~happy~ The chest opened, the water rose, the tree burns. I stayed alive long enough. *Take your jar to the ship*, child. Let an old woman have a moment."], choices: [{ text: '~happy~ Goodbye, Nour.', end: true }] },
-        after: { say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."], choices: [{ text: '~happy~ I will, Nour.', end: true }] },
+        after: {
+          say: ["~happy~ When another chest opens for you, think of us. Qanat will be here. Hessa will probably still be sweeping."],
+          choices: [
+            // he knows who Ilen was (the mother's recording, calls.ilen.told), not yet where the light came from
+            { text: '~sad~ My parents heard a singing light once. The night my sister’s ship went quiet.', if: { all: [{ flag: 'calls.ilen.told' }, { not: { flag: 'finale.met' } }, { not: { flag: 'desert.nour.ilen' } }] }, goto: 'sister' },
+            { text: '~happy~ I will, Nour.', end: true },
+          ],
+        },
+        sister: {
+          say: ["~solemn~ Then it sang over your house long before it sang over ours.",
+            "~whisper~ I said whatever struck you knew the Givers’ sign. Perhaps it knew your house as well. Follow it, child, when it comes again."],
+          do: { set: { 'desert.nour.ilen': true } },
+          choices: [{ text: '~happy~ I will, Nour.', end: true }],
+        },
       },
     },
   },
@@ -881,6 +927,9 @@ export const MURMURS = {
 export const CALLS = {
   marrow: ['~shout~ Sky-person! Over here!', '~playful~ Over here, by your hull! I don’t bite. I barely even haggle.', '~whisper~ Psst. Sky-person. A word?'],
   nour: ['~whisper~ Psst. Child.', '~whisper~ Psst! Over here, child.', '~solemn~ Come here, child. A word with an old woman.'],
+  // Ama, while her jar is still to give (src/story/desert.js amaCallsYou): the first is her shout as you come up
+  // to the camps, then one more word at most when you pass near her fire
+  ama: ['~shout~ Sky-stranger! Come by my fire before you go up. I’ve a jar that wants carrying.', '~playful~ You, from the ball! One empty jar, and you look like someone who finds water. Come and take it.'],
 };
 // (the desert's two first times, filmed, give the traveller no lines: they show it, src/story/desert-moments.js)
 

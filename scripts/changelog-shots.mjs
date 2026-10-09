@@ -10,7 +10,7 @@
 //   node scripts/changelog-shots.mjs                     every shot whose pictures are missing
 //   node scripts/changelog-shots.mjs --only 0.79/cloak-arms,0.78/stalls   (version/name, or a name)
 //   node scripts/changelog-shots.mjs --version 0.77,0.76 [--force] [--keep-png] [--dry]
-// PORT (default 5430) is Vite's, PORT+1 Chrome's debugging port; TMP the work folder (default $TMPDIR).
+// PORT (default 5430) is Vite's, CDP (default PORT+1) Chrome's debugging port; TMP the work folder (default $TMPDIR).
 import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, rmSync, statfsSync, symlinkSync, writeFileSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -20,7 +20,7 @@ import { CHANGELOG_MEDIA, MEDIA_DIR, shotFiles } from '../src/changelog-media.js
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
-const PORT = Number(process.env.PORT ?? 5430), CDP = PORT + 1;
+const PORT = Number(process.env.PORT ?? 5430), CDP = Number(process.env.CDP ?? PORT + 1);
 const MIN_FREE = 6 * 2 ** 30;   // never extract a commit with less than 6 GB free on the disk
 /** The WebP the page shows: 1280 px wide at most, quality 72 (a pair is about 100–200 KB). */
 export const WEBP = { width: 1280, quality: 72 };

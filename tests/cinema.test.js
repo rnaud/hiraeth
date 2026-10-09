@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { layoutCinema, overlaps, Subtitles, Cinema, BAR } from '../src/ship/cinema.js';
+import { readFileSync } from 'node:fs';
+import { layoutCinema, overlaps, Subtitles, Cinema, BAR, WARP, warpLook } from '../src/ship/cinema.js';
 
 // what the pieces measure in the browser (px), by screen: a long subtitle wraps to three lines on a phone
 const SCREENS = {
@@ -116,4 +117,31 @@ test('subtitles: one line at a time, replaced at once, timed lines clear, queued
   assert.equal(C.subs.line, a);
   C.update(1.05);
   assert.equal(C.subs.line, b);
+});
+
+// ------------------------------------------------------------------ the jump to space (Warp)
+const lum = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+
+test('heading to space opens on the night’s ink, not a white page (playtest 2026-10-08)', () => {
+  assert.ok(lum(WARP.space) < 0.03, 'space is dark');
+  assert.ok(contrast(WARP.space, WARP.paper) > 12);
+  // every streak reads on it (the old ink streaks were drawn on the paper's cream)
+  for (const c of WARP.streaks) assert.ok(contrast(c, WARP.space) >= 4.5, `${c} on space`);
+  // the disc opens from nothing out to the corners, never shrinking, within WARP.open
+  let last = -1;
+  for (let t = 0; t <= 2; t += 0.05) { const { hole } = warpLook(t); assert.ok(hole >= last - 1e-12 && hole >= 0 && hole <= 1); last = hole; }
+  assert.equal(warpLook(0).hole, 0);
+  assert.equal(warpLook(WARP.open).hole, 1);
+  assert.ok(warpLook(WARP.open / 2).hole > 0.3 && warpLook(WARP.open / 2).hole < 0.7);
+  // and the next world's loading screen, reached ?via=ship, keeps that ink
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.ok(html.includes(`#loading.space { background: ${WARP.space};`));
+  assert.ok(html.includes("<script>if (/[?&]via=ship(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>"));
+  const ship = readFileSync(new URL('../src/ship/ship.js', import.meta.url), 'utf8');
+  assert.ok(ship.includes('location.search = `?level=${to}&via=ship`'), 'the take-off still arrives ?via=ship');
 });

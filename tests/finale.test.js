@@ -195,3 +195,26 @@ test('old saves that ended before: their ending was the first homecoming; the fi
   const g = new GameState({ getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) });
   assert.equal(g.flag('ending.first'), 'old');
 });
+
+test('the Lantern’s light glows from the start: never smaller on screen than its least angle far off (the QC pass)', async () => {
+  const { orbScale, ORB } = await import('../src/story/lantern.js');
+  const span = (d, k) => (2 * Math.atan((ORB.R * orbScale(d, k)) / d) * 180) / Math.PI;
+  for (const d of [40, 80, 120]) assert.ok(span(d, 1) >= ORB.MIN_DEG - 0.01, `${d} m off: ${span(d, 1).toFixed(2)}°`);
+  assert.equal(orbScale(5, 0.6), 0.6, 'its own size close to');
+  assert.equal(orbScale(0, 1), 1);
+});
+
+test('frameBoth: the crown low and the light high, both inside the letterbox (the Lantern’s first panel, the QC pass)', async () => {
+  const THREE = await import('three');
+  const { frameBoth } = await import('../src/story/lantern.js');
+  const V = (x, y, z) => new THREE.Vector3(x, y, z);
+  const cam = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 1000);
+  const pos = V(0, 2, 0), top = V(0, 30, -40);
+  for (const lit of [V(-20, 70, -85), V(-10, 50, -62), V(-2, 33, -44)]) {   // (from out past the crown, down to it)
+    const f = frameBoth(pos, top, lit);
+    cam.fov = f.fov; cam.position.copy(pos); cam.lookAt(f.look); cam.updateProjectionMatrix(); cam.updateMatrixWorld();
+    const yt = top.clone().project(cam).y, yl = lit.clone().project(cam).y;
+    assert.ok(Math.abs(yt) < 0.78 && Math.abs(yl) < 0.78, `both inside the bars (${yt.toFixed(2)}, ${yl.toFixed(2)}, fov ${f.fov.toFixed(1)})`);
+    if (f.fov > 48) assert.ok(yt < yl, 'the crown under the light');
+  }
+});

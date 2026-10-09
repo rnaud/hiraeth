@@ -168,11 +168,13 @@ export function setupDesertMoments(ctx, { cave, st, tool, moments, fillTank, fil
             const side = rightOf(f);
             return { pos: tk.clone().addScaledVector(f, -(1.05 - 0.2 * k)).addScaledVector(side, 0.5 - 0.08 * k).addScaledVector(UP, 0.28), look: tk.clone().addScaledVector(UP, 0.02), fov: 40 };
           } },
-        // C: beside him, along the raised arm and out over the pool where the glob goes
+        // C: beside him, along the raised arm and out over the pool where the glob goes (from behind and well out
+        //    to his side, him at the frame's left: from just behind his head, it filled half the frame in
+        //    silhouette and hid the glove; the cinematics QC pass, docs/systems/cinematics-qc.md)
         { dur: FILL.C, clear: false,
           from: (t) => {
             const k = smooth(t / FILL.C), c = chest(_h), f = facing(_f), side = rightOf(f);
-            return { pos: c.clone().addScaledVector(side, 0.62).addScaledVector(f, -1.05 + 0.15 * k).addScaledVector(UP, 0.32), look: c.clone().addScaledVector(f, 4).addScaledVector(side, 0.2).addScaledVector(UP, 0.05), fov: 48 };
+            return { pos: c.clone().addScaledVector(side, 1.6).addScaledVector(f, -1.7 + 0.2 * k).addScaledVector(UP, 0.15), look: c.clone().addScaledVector(f, 3).addScaledVector(UP, 0.05), fov: 50 };
           } },
         // D: his face
         { dur: FILL.D, clear: false, from: closeUp({ angle: -0.5, dur: FILL.D }) },

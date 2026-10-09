@@ -30,7 +30,8 @@ import { knownWorlds } from '../story/route.js';
 import { RELAY_TEXT } from '../story/relay.js';
 import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
-import { padIndex, confirmKey, backKey } from '../native-pad.js';
+import { padIndex } from '../native-pad.js';
+import { glyph } from '../pad-glyphs.js';
 
 /**
  * What E does at the ship's two consoles. `at`: 'dash' (the cockpit's voicemail button: the
@@ -194,6 +195,7 @@ const CSS = `
 #starmap .panel .src { font-style: italic; opacity: .7; margin-bottom: 6px; font-size: 11px; }
 #starmap .panel p { margin: 0 0 8px; font-size: 12px; clear: right; }
 #starmap .panel .state { font-size: 11px; letter-spacing: .06em; color: #8a5a3c; margin-bottom: 8px; }
+#starmap button.go, #starmap .confirm button, #starmap .close { display: inline-flex; align-items: center; }
 #starmap button.go, #starmap .confirm button { font: inherit; padding: 6px 12px; color: #2b211f; background: #f2c54b; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; }
 #starmap button.go[disabled] { background: #d9c7a6; cursor: default; opacity: .7; }
 #starmap .keys { margin-top: auto; opacity: .65; font-size: 11px; text-align: right; }
@@ -292,12 +294,12 @@ export class StarMap {
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
             <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
-        <button class="close">close ✕</button>
+        <button class="close">${glyph('back', { key: 'Esc' })}close ✕</button>
       </div>
       <div class="side">
         <div class="panel"></div>
         <div class="legend">${SIG_GLYPH}<b>${SIGNATURE}</b> · <span class="long">${SIGNATURE_LEGEND}</span><span class="short">${SIGNATURE_LEGEND_SHORT}</span></div>
-        <div class="keys">${{ touch: 'tap a world, then Travel', pad: `D-pad choose · ${confirmKey()} travel · ${backKey()} close`, keys: '← → choose · Enter travel · Esc close' }[this.hints]}</div>
+        <div class="keys">${{ touch: 'tap a world, then Travel', pad: `${glyph('dpad')}choose a world`, keys: `${glyph('dpad', { key: '← →' })}choose a world` }[this.hints]}</div>
       </div>
       <div class="confirm"><div class="card"></div></div>
       <div class="locked"><div><b>NO POWER</b>The ship cannot fly.<br>Find a new source of power.</div></div>
@@ -359,7 +361,7 @@ export class StarMap {
       ${e.signal === 'trace' ? `<p class="relay">${RELAY_TEXT.trace}</p>` : e.waiting ? '<p class="relay">Ilen is aboard. Home is waiting for both of you.</p>' : e.signal ? `<p class="relay">${RELAY_TEXT.far}</p>` : e.held ? `<p class="relay">${RELAY_TEXT.held}</p>` : e.relayFar ? `<p class="relay">${RELAY_TEXT.farUncharted}</p>` : ''}
       ${sig ? `<div class="sigline">${SIG_GLYPH}<span>SIGNATURE · ${sig}</span></div>` : ''}
       <div class="state">${e.current ? 'THE SHIP IS HERE' : e.home ? 'HOME' : e.finale ? (e.done ? '✦ ILEN IS COMING HOME' : 'THE LAST PLACE, OFF EVERY CHART') : e.side ? 'A DETOUR, OFF THE ROUTE' : e.done ? '✦ DISCOVERY MADE' : e.visited ? 'VISITED' : 'NOT YET VISITED'}</div>
-      <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : 'Travel ▶'}</button>`;
+      <button class="go"${e.current || !this.o.powered?.() ? ' disabled' : ''}>${e.current ? 'you are here' : `${glyph('ok')}Travel ▶`}</button>`;
     p.querySelector('.go').addEventListener('click', () => this.go());
   }
 
@@ -377,8 +379,7 @@ export class StarMap {
     const card = this.el.querySelector('.confirm .card');
     card.innerHTML = `${e.home ? '' : planetSvg(e.id, { cls: 'mini' })}<h3>Travel to ${e.title}?</h3>
       <div class="what">${e.home ? 'The ship will take you home.' : 'The ship will take off and fly there.'}</div>
-      <div class="row"><button class="yes">Yes, fly ▶</button><button class="no">No</button></div>
-      <div class="hint">${{ touch: '', pad: `${confirmKey()} yes · ${backKey()} no`, keys: 'Enter yes · Esc no' }[this.hints]}</div>`;
+      <div class="row"><button class="yes">${glyph('ok', { focus: true })}Yes, fly ▶</button><button class="no">${glyph('back', { key: 'Esc' })}No</button></div>`;
     card.querySelector('.yes').addEventListener('click', () => this.answer(true));
     card.querySelector('.no').addEventListener('click', () => this.answer(false));
     this.el.classList.add('asking');

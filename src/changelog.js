@@ -5,16 +5,133 @@
 // (pictures and numbers for older lines live in src/changelog-media.js).
 
 import { store } from './platform.js';
-import { inputKind } from './prompt-keys.js';
-import { backKey } from './native-pad.js';
+import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
-  { v: '1.0', date: '2026-10-08', items: [
+  { v: '1.4', date: '2026-10-09', items: [
     { text: 'Creatures and spirits: 100 reference-based enemies across 25 worlds, each with two attacks. Half are possessed old machines or dark humanoid spirits.', see: 'Open Worlds → Creatures & spirits to inspect them and try their attacks in the Arena.' },
     { text: 'Character fittings: lanterns hang from their poles, padded seams follow the suit, and enemy wings flap from attached roots. Machines and walking guardians have connected joints, shades stay upright through turns and recoil, and each enemy flashes its own warning eyes.', see: 'Watch a winged blot flap and two machines attack at different times. In the Character Studio, inspect the Buried Machine suits and the lantern poles from the side.' },
     { text: 'The quest characters beyond the Desert wear their reference designs: bird-beaked hoods in Vael, rose monastery robes, padded machine suits, gardeners’ tools, mushroom hats and the Signal Market’s radio collars. Each named person has their own colours, headwear and equipment; Wren carries her old 991 plate and riveted repairs.', see: 'Visit the ten quest worlds from the City-Shaft to the Signal Market, or open the Character Studio and choose a world’s cast. Walk around them and watch their tools follow their hands.' },
+    // the fluid blade's counters
+    'A perfect parry now opens a moment for a riposte: press the blade button (RB / R1) within about half a second, even with the guard still up, and the traveller turns into a fast overhead chop that hits as hard as a full charge without the wait, doubled on the stunned foe, and leaves it reeling longer, with a gold flash and a ring of steel. Miss the moment and the blade is as before.',
+    'Press the blade button during an evade (B / ○), or just as it ends, for a dash cut: he springs forward past the foe’s side, sweeping the blade across it as he goes. The evade’s own dodge window is the only protection it gives, and it needs a moment to come back before the next one.',
+    // foes over the world's height
+    'Foes now follow you up and down. Ink blots, shades, root stalkers and shadow hounds crouch, then leap up a ledge as tall as you, and hop down after you; machines and the other heavy foes climb steps and stairs and come round by a ramp. One that can’t reach you hangs back where it can see you instead of pressing against the wall, and no foe swings at you when you stand out of its reach above it.',
+    'A spitting blot now climbs steps and ramps to the high ground over you and lobs down from there, and keeps its perch while you are below. Go up after it, or walk out of its reach and it comes down.',
+    'Knock a foe off a ledge with a cut or the push and it lands dazed for a few seconds, stars turning over its head: your next cut lands double. From high enough, the fall ends it. The charged cut also throws foes farther.',
+    // challenges in the open
+    { text: 'A new optional challenge in the Signal Market, the Echo relay, built from the Undertower’s own singing stones and listening horns: walk past three walls hung with old dishes to the arch at the far end, then give each horn its own stone’s note. Splash a stone close enough for the echo shell to catch its song, carry it the length of the street to the horn of its colour and play it back; the shell holds one note at a time. Oyo, who sells lanterns on the avenue, has a word for you when you finish.',
+      see: 'The Echo relay is in the first side street west of the avenue, a few steps from where you arrive, behind the lantern stalls. It wants the fluid gun and the echo shell from the Undertower. Walk up to the sign and press X / □ (E); play the shell back with Y / △ with no gadget in hand (V).' },
+    { text: 'And one in Viridel, the Vine walk, from the Greenhouse’s own seeds and flower-doors: four white decks stand in a line down a long slope of the meadow, higher over the meadow the further they go, with a gap between each. Bloom the seed at each gap and its vine grows a bridge across; bloom the flower-door on the third deck to get through. Fall into the meadow, or open your wings, and the run is over. Mira, who keeps the water clock, has a word for you when you finish.',
+      see: 'The Vine walk starts at the top of the long slope just east of Mira and her water clock. It wants the bloom mode from the Greenhouse: switch the gun to it (D-pad ← / →, X) and splash each seed. Walk up to the sign and press X / □ (E).' },
+    'Knock a foe into deep water with a cut or the push, off a bank or a ledge, and it is swept away in a great splash. In the shallows it only wades.',
+    'A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.',
+    { text: 'And one in the Sky Stones, the Bell crossing, from the Founders’ Belfry’s own fallen-up bridges and bell-tuned door: four stone decks float in a line out over the sea of cloud, and the stones of the bridge across each gap hang high above it. Sound the bell-note whistle by the bell at the gap’s edge and they come down into place; the door on the last deck opens to the bell too. Fall into the cloud, or open your wings, and the run is over. Sister Aube, the hermit of the edge, has a word for you when you finish.',
+      see: 'The Bell crossing starts at the south rim of the starting plateau, past Sister Aube’s hermitage. It wants the bell-note whistle from the Founders’ Belfry. Walk up to the sign and press X / □ (E); sound the whistle with Y / △ with no gadget in hand (V).' },
+  ] },
+  { v: '1.3', date: '2026-10-09', items: [
+    // the desert's first hour
+    { text: 'Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.',
+      see: 'Start a new game and walk from the ship to the camp fires outside Qanat without talking to anyone: Ama shouts for you to come by her fire. Talk to her and pick “You called me over. A jar?”.' },
+    // the route's people and Ilen
+    { text: 'Once you know who Ilen was, a few people along the way have a word about her: Madame Sel at the Signal Market, Hollin in the deep wood and Nour in Qanat. Sel also hears how the message ended once you have found her, and Hollin can hear where Odile and Talo went even if you never promised to come back.',
+      see: 'After the mother’s recording about Ilen has played at the console, go back to Madame Sel under the tower, to Hollin on his island or to Nour under the tree, and talk to them: a new answer about your sister. After the Lantern, Sel and Hollin have one more.' },
+    { text: 'Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.',
+      see: 'Load a save that got the lift token from Dov in the City-Shaft before version 0.97 and talk to him at the palace gate after the Lodestar is lit.' },
+    // challenges in the open
+    { text: 'Two new optional challenges built from the temples’ own pieces, out in the open. In the desert, the Wind hall: a roofless hall on a dune crest where gusts shove you back unless you shelter behind its screens, and three eyes to wake in one breath at its end. In Lorn, the Hush walk: a causeway over the lake with crystal pendulums swinging across it, out to the round stone and back without being knocked into the water. Each has a sign that shows the makers’ mark, then your best time, and someone who lives nearby has a word for you when you finish.',
+      see: 'The Wind hall stands on the dune crest west of the desert’s landing, near Pell: walk up to the sign by its steps and press X / □ (E). The Hush walk is on Lorn’s south shore, a short walk from the landing.' },
+    { text: 'Two more of them. In Vael, the Feather leap: open your wings in a column of rising wind to reach a tower’s terrace, cross it through the gusts from screen to screen, then glide over a gap to a lower ledge, without coming down on the plain. In the Buried Machine, the Furnace steps: jump across eight iron pillars over a glowing grate, then wake the four eyes round a sealed door in one breath. Kesh and Jot have a word for you when you finish.',
+      see: 'In Vael, the Feather leap stands north-west of where the ship lands, near Kesh and the stone hand; it wants the fluid wings. In the Buried Machine, the Furnace steps are on the sand east of the landing, past Jot; they want the fourth chamber. Walk up to the sign and press X / □ (E).' },
+    { text: 'And two more, with the temples’ stone balls to roll onto their plates with the fluid’s push. In the Garden of Spheres, the Sphere court: weave a slalom of stone spheres, then roll two white spheres home from either end of the court. In the City-Shaft, the Long look: roll a stone ball out along a makers’ balcony over the shaft, jumping the gaps behind it, with no parapet between you and the drop. Nell and Tobin have a word for you when you finish.',
+      see: 'In the Garden of Spheres, the Sphere court lies on the meadow south of the mirror lake, near Nell. In the City-Shaft, the Long look reaches out from the rim a short walk round from the spawn, near Tobin, who sells views. Both want the fluid gun: switch it to the push (D-pad ← / →, X) and push each ball from behind.' },
+    { text: 'While you are running a trial or a challenge, the game’s other notices wait for the results: only the clock and the goal stay on the screen.',
+      see: 'Start the Wind hall or any world’s trial: the box hints and other messages that would have come up during the run show after it.' },
+    // the makers' boxes
+    'Opening a makers’ box now ends with a moment that suits what was inside: a gadget is tried once, the pale star is pinned on and shown worn, a charm is turned over in his hand and pocketed, a part for the tank clicks onto the pack, the glyph lens and the listening shell turn him toward the nearest box still shut, and the whistle and the echo shell play a few notes. It lasts under two seconds, and B / ○ or Esc skips it.',
+    'A box also takes its time from what it holds: a gadget’s box rocks three quick times, a charm’s only twice and opens sooner.',
+    // the fluid blade
+    'Hold the blade button (RB / R1) and the first swing turns into a charge: the traveller draws the sword back over his shoulder and holds it there, the blade pulsing and gathering sparks, a ring when it is full. Let go for a wide sweep taken from a great-sword swing: it hits harder (harder still when full) and staggers even an armoured foe or one already swinging at you. A quick tap still swings as before.',
+    'A swing in the air is now a leaping overhead cleave: at the top of the jump he lifts the sword over his head, hangs a moment, then drops onto the foe below with it, carried in a little if it is just out of reach. One a jump.',
+    'Going from one sword swing into the next, into the guard, or back to walking now blends smoothly instead of snapping straight to the new pose.',
+    'The blade’s spark trail sweeps through the cut itself, a full arc along the path the edge travelled, and only glints at the tip while the sword winds up and follows through.',
+  ] },
+  { v: '1.2', date: '2026-10-09', items: [
+    // shadows in caves and rooms
+    'The dark masses in shaded corners, on stairs and round furniture stay put as the camera moves instead of shifting about in blocks, and come out as brushed shapes rather than stacked rectangles, most of all on Handheld.',
+    'No more bright line of sunlight round the floor of the cave under the giant and of the Givers’ Hearth.',
+    // screens at every size
+    'On a phone the touch buttons now size themselves to the screen: held sideways they stay in the lower right corner instead of reaching the top and covering half the view, and the stick under your left thumb needs less travel.',
+    // buttons in the menus
+    'Every menu shows its buttons inside the buttons themselves instead of in a line of hints under them: a small A beside the entry you are on, B on Back and Resume, LB and RB on the journal’s side tabs, X on a save’s Delete, A on Travel and Restart. With the keyboard they show its keys (Enter, Esc, Q, E); on a touch screen they stay out of the way.',
+    'The buttons shown match the controller in your hands: A B X Y and LB RB on an Xbox pad, × ○ □ △ and L1 R1 on a PlayStation pad, a Switch pad’s own letters and L R ZL ZR, a Retroid’s A B X Y and L1 R1. The prompts in conversations and while playing follow it too.',
+    'A Switch Pro Controller or Joy-Cons on a computer now confirm with A on the right and go back with B, as on a Switch.',
+    // debug
+    'Debug: the worlds list is a grid of small cards that the D-pad and stick move through in every direction; the card you are on is lifted in a red frame with A on it, always scrolled into view, and its description shows at the foot of the screen.',
+    'Debug: the Items page works with a controller: move through the cards, A opens one full screen, LB and RB (or left and right) go to the other items, up and down zoom, the right stick tilts it, Y turns it, X resets the view and B closes it.',
+    'Debug: an item full screen shows one short line under it; “more” (A, or I) opens the rest in a column beside it and the item moves over, so on a handheld’s small screen the words never cover the item.',
+    // the desert's first hour
+    'The desert gets you moving sooner: after the chest opens, Nour gives you the Speaker’s old verse herself, so Ama’s jar is the only errand before the way down under the giant. Walking with the Speaker is up to you; he still tells the old story whole.',
+    'Stop at Ama’s fire on your way into Qanat and she gives you her jar there, so after the chest you go straight from Nour to the giant’s mouth.',
+    'On the ride to the Givers’ Hearth, the bronze bowl, the keepers’ old camp, the glinting bell and the Hearth itself are pointed out under the view as they come up ahead, while there is still time to stop.',
+    // the cinematics, a second pass
+    'The makers’ boxes in the temples of the Garden of Spheres and of Lorn stand on their dais instead of sunk into it, so opening them no longer cuts your head off the picture.',
+    'The City-Shaft: when the Lodestar lights again, the billboards’ LOOK UP now reads, close and square, and afterwards the camera comes back behind you instead of pressed against your head.',
+    'In Vael, the bird’s arrival keeps the horizon and the stone towers under her as she comes down, instead of two seconds of empty sky.',
+    'The Lantern: the light coming down out of the dusk glows from the first shot, beside the crown, instead of being out of the picture until it is nearly there.',
+    'Lou’s window seat at home has a second shot: from beside you, your profile against the round window and the land beyond it.',
+    'The recordings at the ship’s console cut between angles as they play: your parents’ faces close, your own face lit by them as you listen, and wide past you to the window; the words and their timing are as before.',
+    'Opening a makers’ box comes in four ways now, one per box: over either shoulder, from above, or from the box’s side with the item revealed in front of your face.',
+    'At the stone at home, laying everything down cuts between your hands on the slab, your face, Lou as she speaks and over your shoulder, instead of one angle for over a minute.',
+    { text: 'The pale star’s description and the line as you lay it on the stone say it is pinned to your overshirt, not a hood.', see: 'Open the journal’s gear page with the pale star found, or lay it on the stone at home.' },
+  ] },
+  { v: '1.1', date: '2026-10-09', items: [
+    // shadows and visuals, from the playtest
+    'People no longer leave a pale, person-shaped ghost in the dark shading behind them (Marrow by the ship, the traveller on the stairs to the great tree), and the dark masses round them no longer jump about as the camera moves.',
+    'Heading to space now opens onto the night: the jump’s streaks fly across a dark sky instead of a blank white page, and the next world’s loading screen keeps that dark.',
+    // screens at every size
+    'The pause menu fits on a phone held sideways (every button shows, down to Quit to title) and takes less of the screen on a phone held upright; the smallest words in the journal and on the title screen are a little larger.',
+    // foes you can see, from the playtest
+    'No more invisible shadow hounds: running, a hound is now a low hump of shadow with a glowing rim and lit eyes, and its body has a white outline, so it shows on the Eclipse’s dark streets.',
+    'A dune ray about to burst up under you now swims at you with its fin held high, throwing sand, instead of sinking out of sight first. Its fin has a white outline and the sand it turns is darker.',
+    'A foe winding up behind a wall or a rock now gets the round warning marker too, and foes never appear inside rocks or walls. A shadow hound that steps out behind you waits a little longer before it bites.',
+    'Blot swarms have bigger eyes and glass splinters are a little bigger, so both are easier to spot.',
+    // the stone hand, from the playtest
+    'The stone hand on Vael is fairer: its fingers clearly rise from little to middle, each knuckle has one to four dots cut in it, a right knuckle stays lit and rings the next note up, and a wrong one knocks and flashes rust. After two misses Kesh calls the order out and the journal writes it down; after three the next knuckle glints.',
+    // the cinematics, checked one by one
+    'Notices no longer pop up over a scene: a quest’s card waits until a recording, an arrival, a box opening or a filmed moment is over, and the gadget badge and the tank’s gauge hide while one plays.',
+    'The pale star from the makers’ box is pinned to your overshirt instead of hanging in the air beside your face.',
+    'The Lantern: the light’s arrival is filmed again, from behind you as it comes down, across from the crown as it settles, then on your face; the camera no longer ends up against the crown’s rail, and its chime rings as it starts.',
+    'At home, kneeling at the stone now turns to your face as you lay things down, and the window seat keeps your head in the picture; both show how to skip.',
+    'Filling the tank for the first time in Qanat: the third shot shows you and the pool instead of the back of your head.',
+    'In Vael, the bird’s arrival no longer opens from inside a dune, and opening a makers’ box now pushes in on the item instead of jumping.',
+    // small fixes (made before v1.0, without a line then)
+    { text: 'In the References world, the Moon Foundry’s views no longer stretch tall after the window changes size.', see: 'Debug → References, go to a Moon Foundry view, then resize the window or turn the device.' },
+    { text: 'While you play a game (the shooting gallery, the drum circle, a race…), the gadget’s card, aiming mark and wheel no longer stay on the screen.', see: 'Hold a gadget, then play the shooting gallery at its stall in the Signal Market: only the game’s own display shows.' },
+    { text: 'Updates on Android and the Steam Deck no longer stop partway through the download.', see: 'Settings → Updates → Check for updates on Android or the Steam Deck: the update downloads to the end and installs.' },
+    { text: 'The game can be played at rnaud.github.io/moebius again, as well as on its main site.', see: 'Open https://rnaud.github.io/moebius/ in a browser.' },
+  ] },
+  { v: '1.0', date: '2026-10-08', items: [
+    // the opening, from the playtest
+    { text: 'Your father’s message at the start is shorter and tighter: four lines instead of six, about nine seconds less, and under his last words something starts to hum and the picture begins to break up, just before the impact.', see: 'Start a new game and play the voicemail in the cockpit; listen under “Bring back something of value.”' },
+    { text: 'The hum everyone talks about can now be heard: a low sung note that swells three times. It rises under your father’s message until the impact, sounds again from the scar on the hull after the landing, comes from the makers’ boxes (Nour’s chest first) every few seconds as you come near, and answers softly whenever someone mentions humming.', see: 'In the desert, climb towards the chest on the great tree’s trunk, or listen when Ilo shouts that Nour’s chest is humming.' },
+    'Nobody talks while the ship is still crashing: no speech balloons or talk prompts until you have the controls.',
+    'Marrow no longer stands right under your ship as it crash-lands: he waits a safe distance away, to the side of the hatch.',
+    'Stepping out of the ship no longer offers to take you straight back in: “go aboard” waits until you have walked away from the ramp and come back.',
     { text: 'The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.', see: 'Wear the backpack and launch the scout; the same reservoir appears in the item viewer.' },
     { text: 'The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.', see: 'Approach the giant beyond Qanat’s back gate, then explore the ship’s galley and central room.' },
+    { text: 'The Debug button is back on the title screen and in the Start menu for everyone, for now, so testers can jump to any world.', see: 'Open the game: Debug is on the title screen.' },
+    // conversations, from the playtest
+    'Fewer speech balloons: walking past people, only those with something for you greet you with a balloon over their head (the one your quest points to, someone with a quest to give, someone you have never spoken to, or a bystander with news you have not heard yet). Everyone else still turns, waves and talks to you when you press X / □; calls and shouts still show.',
+    'Talking to Ama by the camp fire, the camera no longer looks at her through the flames: it finds a view round the fire, as it does for every fire in the game.',
+    'When Nour tells you to stand in water to fill the backpack, your answers now follow on from it: ask where there is any water out here (she tells you how it stopped rising the night the light sang), or whether living water could wake your ship.',
+    'Picking an answer in a conversation no longer plays your own words back to you: the person you are talking to replies straight away.',
+    'In conversations the traveller holds still: he no longer shifts his weight about, turns his head or breaks into his looking-around idle while someone talks to him, and his eyes stay on whoever is speaking instead of darting about.',
+    // the HUD, from the playtest
+    'Notices are quieter: soft paper and a thin line instead of a heavy inked box, and they always keep clear of the health bar. On a phone held sideways they wrap beside the touch buttons instead of sliding off the bottom of the screen.',
+    'Starting a quest or an errand shows its own card, unlike the other notices: “New quest” in gold over the quest’s name and its first step.',
+    { text: 'Getting into a vehicle no longer lists its buttons along the bottom of the screen; the Controls page in the settings still has them.', see: 'Get on a bike, a skiff, the bird or a cab: nothing is written at the bottom of the screen. Settings → Controls → Riding lists the buttons.' },
+    'The touch buttons stay as you left them when a new world loads: hidden while you play with a controller or the keyboard, back as soon as you touch the screen.',
     { text: 'A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.', see: 'Debug → Cinematics, or open cinematics.html. Choose a scene; review notes can be exported.' },
     // the ending
     { text: 'Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.', see: 'Fly home after six worlds and stay at the stone until the end.' },
@@ -40,9 +157,20 @@ export const CHANGELOG = [
     { text: 'The traveller is about half the download and far lighter to draw, looking exactly the same: files he never used are gone, his textures are sized to what any screen shows, and away from close-ups he is drawn with fewer triangles (conversations and close shots always use his full model).', numbers: [{ title: 'The traveller', better: 'lower', device: 'the Mac, Chrome; Handheld preset for triangles', rows: [{ where: 'download (MB)', before: 13.3, after: 6.9 }, { where: 'graphics memory (MB)', before: 179, after: 45 }, { where: 'texture upload at load (ms)', before: '350–430', after: '90–100' }, { where: 'triangles a frame, behind him (thousands)', before: 223, after: 64 }], source: 'scripts/bench/traveller.mjs; docs/systems/characters.md, “What the traveller costs”' }], see: 'Play anywhere: he should look just as before, and close-ups are unchanged.' },
     // the sound, from the playtest
     { text: 'Footsteps follow what you walk on: grass or sand on the open ground, stone on rocks, roofs, stairs and the ship. Grassy worlds no longer rustle like leaves on every surface.', see: 'At home, walk off the grass up the ship’s ramp or onto a rock: the rustle turns to a firm step, and back to grass as you step off.' },
-    { text: 'The desert wind is much quieter, and a sandstorm rises to a low roar instead of a hiss over everything.', numbers: [{ title: 'The desert wind, how far under full scale', unit: 'dB', better: 'higher', device: 'any (rendered offline)', rows: [{ where: 'calm', before: 46.7, after: 54.1 }, { where: 'gusting, walking', before: 42.4, after: 47.5 }, { where: 'sandstorm, walking', before: 32.3, after: 40.5 }], source: 'tests/sound-mix.test.js: the game’s Sound rendered by engine/webaudio.js, the loudest 100 ms' }], see: 'Stand in the desert through a sandstorm: the music and your steps still come through.' },
-    { text: 'Water welling up, in the desert’s cave channel and its city well and the Buried Machine’s oil dish, now gurgles and bubbles softly instead of a loud whoosh.', numbers: [{ title: 'The water welling up, how far under full scale', unit: 'dB', better: 'higher', device: 'any (rendered offline)', rows: [{ where: 'loudest moment', before: 22.9, after: 36 }], source: 'tests/sound-mix.test.js: the game’s Sound rendered by engine/webaudio.js, the loudest 100 ms' }], see: 'Clear the rib off the cave’s channel in the desert, or watch the city well rise.' },
-    { text: 'Whistling for your hoverbike or hailing a taxi is far softer, and so is the Overnight Train’s whistle.', numbers: [{ title: 'The whistles, how far under full scale', unit: 'dB', better: 'higher', device: 'any (rendered offline)', rows: [{ where: 'calling the mount', before: 20.8, after: 30.2 }, { where: 'the train', before: 27.1, after: 31.5 }], source: 'tests/sound-mix.test.js: the game’s Sound rendered by engine/webaudio.js, the loudest 100 ms' }], see: 'Call the hoverbike (D-pad ↓) in the desert.' },
+    { text: 'The desert wind is much quieter, and a sandstorm rises to a low roar instead of a hiss over everything.', numbers: [{ title: 'The desert wind: how loud, against before', unit: '%', better: 'lower', note: '100 = as loud as before; 10 dB less sounds about half as loud', device: 'any (rendered offline)', rows: [{ where: 'calm (-46.7 → -54.1 dBFS)', before: 100, after: 60 }, { where: 'gusting, walking (-42.4 → -47.5 dBFS)', before: 100, after: 70 }, { where: 'sandstorm, walking (-32.3 → -40.5 dBFS)', before: 100, after: 57 }], source: 'tests/sound-mix.test.js: the game’s Sound rendered by engine/webaudio.js, the loudest 100 ms' }], see: 'Stand in the desert through a sandstorm: the music and your steps still come through.' },
+    { text: 'Water welling up, in the desert’s cave channel and its city well and the Buried Machine’s oil dish, now gurgles and bubbles softly instead of a loud whoosh.', numbers: [{ title: 'The water welling up: how loud, against before', unit: '%', better: 'lower', note: '100 = as loud as before; 10 dB less sounds about half as loud', device: 'any (rendered offline)', rows: [{ where: 'loudest moment (-22.9 → -36 dBFS)', before: 100, after: 40 }], source: 'tests/sound-mix.test.js: the game’s Sound rendered by engine/webaudio.js, the loudest 100 ms' }], see: 'Clear the rib off the cave’s channel in the desert, or watch the city well rise.' },
+    { text: 'Whistling for your hoverbike or hailing a taxi is far softer, and so is the Overnight Train’s whistle.', numbers: [{ title: 'The whistles: how loud, against before', unit: '%', better: 'lower', note: '100 = as loud as before; 10 dB less sounds about half as loud', device: 'any (rendered offline)', rows: [{ where: 'calling the mount (-20.8 → -30.2 dBFS)', before: 100, after: 52 }, { where: 'the train (-27.1 → -31.5 dBFS)', before: 100, after: 74 }], source: 'tests/sound-mix.test.js: the game’s Sound rendered by engine/webaudio.js, the loudest 100 ms' }], see: 'Call the hoverbike (D-pad ↓) in the desert.' },
+    // menus and settings
+    'The galactic map charts only finished worlds: the detours still being made are off it until they are ready.',
+    'Every setting works on a controller: A / × opens a dropdown, the D-pad or stick goes through its choices, A / × keeps one and B / ○ leaves it as it was; left and right still change dropdowns and sliders.',
+    'The language no longer changes by itself on a controller: holding right into the Settings stops on the first setting, and the Language dropdown changes only once opened with A / ×.',
+    // loading
+    { text: 'The Steam Deck no longer hangs on “mixing the inks…”: a graphics driver that never says when it has finished its work no longer holds the loading screen up, and every world loads in seconds again.', numbers: [{ title: 'Loading the Desert with a driver that never reports its work done', unit: 's', better: 'lower', device: 'a Mac, headless Chrome, the driver’s silence simulated', rows: [{ where: 'Desert', before: 185, after: 3.8 }], source: 'src/load-steps.js gpuPacer; a CDP script overriding getSyncParameter' }], see: 'Start any world on the Steam Deck: the loading screen goes past “mixing the inks…” in a few seconds.' },
+    // characters and animation, from the playtest
+    'People wave properly when they greet you: the arm comes out to the side with the hand up and waving side to side, eased in and out, instead of a stiff arm shot straight up and snapping back.',
+    'The traveller no longer wrings his neck when he looks about while standing: his head turns over his shoulder as far as a neck goes, instead of nearly backwards with his jaw sunk into his shoulder.',
+    'People standing in a crowd step out of your way when you brush past: a step to the side or back, at a walking pace, feet moving, half turned to you, then back to their place, instead of sliding off their spot.',
+    'Looking into the dry well in Qanat, the traveller now faces the well and looks down into it, instead of turning his back on it.',
   ] },
   { v: '0.99', date: '2026-10-08', items: [
     // playing your way
@@ -1235,9 +1363,9 @@ export class Changelog {
     if (!on && this.frame) this.pictures(false);
     this.open = on;
     if (on) { document.exitPointerLock?.(); this.onOpen?.(); this.markSeen(); }
-    // its button names the way out for the hands on the game: N, a controller's back button, a tap
-    const b = on && this.el.querySelector('[data-a="close"]'), kind = inputKind();
-    if (b) b.textContent = kind === 'keys' ? 'Close (N)' : kind === 'pad' ? `Close (${backKey()})` : 'Close';
+    // its button carries the way out for the hands on the game: N, a controller's back button (src/pad-glyphs.js), a tap
+    const b = on && this.el.querySelector('[data-a="close"]');
+    if (b) b.innerHTML = `${glyph('back', { key: 'N' })}Close`;
     this.el.classList.toggle('open', on);
   }
 }

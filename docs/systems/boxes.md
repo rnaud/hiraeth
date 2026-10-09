@@ -25,12 +25,41 @@ Code: `src/boxes/` (model, scene, index, placements), the shader block `MAKERS_B
 
 ## The opening (scene.js)
 
-`approach → wake → rise → wobble → dissolve → reveal → card → out` (`TIMES`). It floats up
+`approach → wake → rise → wobble → dissolve → reveal → card → beat → out` (`TIMES`). It floats up
 `LIFT` m, turning a corner toward the camera, and hangs there breathing; then the **wobbles**
 (`WOBBLES`, like a caught pokéball deciding): three quick rocks about its heart, each with a
 small squash, a knock (`sound.boxWobble(i)`) and one pass of the ray across it, with still
 rests between them and a last still moment before it comes apart with the dissolve. The item
 grows out of the light at its centre as before.
+
+The camera takes one of four plans per box (`BOX_PLANS`, `boxPlan(id)`: a stable hash of the box's id;
+the desert's first box always the first): **shoulder**, low over his right shoulder, then beside him;
+**left**, the same over his left; **side**, from the box's flank at its height with him in profile, then
+a cut to past where the box stood, back at the item and his face; **high**, from above his shoulder down
+on the box, then beside him. Where a plan's lens would stand behind a wall or a cliff (`clearPlan`: rays
+from his chest), the box falls back to the first plan. (The cinematics QC pass: the same shots for all 32.)
+
+**The closing beat** (`beats.js`, v1.3): after the card, a short beat that depends on what the box held
+(`beatFor(id, def)`: `ITEM_BEATS`, then `KIND_BEATS` by the item's kind), on a closing shot that keeps
+to the plan (`closingShot`: mirrored for **left**, swung toward his side for **side**, raised for
+**high**), each at most `MAX_BEAT` (2 s):
+
+| Beat | Items | What happens |
+|---|---|---|
+| `try` | gadgets, gun modes, the jets, the wings, the backpack | held out in his right hand, it fires once: a spray of light ahead, a kick back, its sound (the mode's own shot) |
+| `wear` | cosmetics (the pale star) | pinned on; a close look at it worn on his lapel |
+| `keep` | charms | turned over in his fingers, then pocketed with a soft chime |
+| `fit` | tank upgrades (coil, chamber) | over his shoulder onto the pack, a click; shot from behind him |
+| `point` | the glyph lens, the listening shell | held up, he turns (≤ 70°) toward the nearest box still shut (`pointAt`), a thread of light that way, a faint answer |
+| `play` | the bell-note whistle, the echo shell | to his lips: the bell's note, or a few notes on the shell; notes of light rise |
+
+The item is granted as the beat starts (the star is on him for its look). The item asks for its own
+timing too (`timingFor`): a gadget's box wobbles three quick times, the last the biggest; a charm's or a
+tank part's only twice, gentler, opening 0.7 s sooner (it pays for the beat); the **side** plan holds its
+reveal 1.15 s (it cuts to a new angle there). E / A on the card plays the beat; Esc / B on the card goes
+past it, and in the beat ends it. After a beat the camera cuts back to play (its closing shot faces him,
+and a blend would swing through him) and hands back in 0.5 s; `fit`, shot from behind, blends.
+`?boxPlan=<name>` forces a plan (the QC script's `--query boxPlan=high`).
 
 ## Nothing before the first
 

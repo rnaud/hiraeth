@@ -1,4 +1,4 @@
-# The fluid blade and the foes (v0.89)
+# The fluid blade and the foes (v0.89; captured attacks v1.3)
 
 The first things in the game that fight back, and the tool's answer to them.
 
@@ -16,9 +16,57 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
   0.25/0.17/0.26 for the second, 0.36/0.20/0.34 for the heavy third) onto source time.
-  Grounded swings use the legs and hips; airborne cuts use the upper body. `Animator.playCombat`
-  blends clip changes over 90 ms from the displayed pose, including motion matching when enabled.
-  Grounded cuts step forward through Player's normal collision movement and limit steering until recovery.
+  Grounded swings use the legs and hips. `Animator.playCombat` blends clip changes (and the way back to
+  locomotion) over 90 ms from the displayed pose, including motion matching when enabled (v1.3: it had
+  blended nothing, `isBone` finding none of the library's plain-node joints; a swing into the next jumped up to
+  2.3 rad in a frame). Grounded cuts step forward through Player's normal collision movement and limit
+  steering until recovery. Every attack played from a clip is in `ATTACKS` (the three, the whirl, the lunge,
+  the charge, the air cut, the riposte, the dash cut).
+- **On the clip's own swing frames** (v1.3): each attack's cut (`activeRange`: `activeFrom`–`activeTo`, else
+  `hit` −0.08/+0.1) is where its clip's blade moves fastest, measured on the traveller (the tip's speed through
+  `from`–`to`): the three 47/36/30 m/s at 0.60/0.81/1.13 s, the whirl 27 at 1.06, the charge 22 at 0.66, the air
+  cut 18 at 1.16, the riposte 33 at 1.39, the dash cut 43 at 0.56, each well over its speed round the cut. `tests/blade-attacks.test.js` checks it, so a clip's
+  times can't drift off its swing. The trail follows the same window (`trailCut`): through the cut a sweep of
+  sparks over the ground the edge crossed since the last frame (up to 8 steps, 3 along the blade), else one glint
+  at the tip; while charging, sparks drawn in to the blade. (The studio's paused `time` is not the clip's: its
+  0.4 s is about 0.85 s of the clip. Measure in the game, as the test does.)
+- **The charged cut** (`CHARGE`, v1.3, the Great Sword pack's slash `gs_slash_1`): the blade button still held
+  `CHARGE.after` (0.2 s) into the first swing's wind-up (not chained, on the ground) turns it into a charge
+  (`FluidBlade.charging`): the clip drawn from 0.3 s to its cocked pose (`hold` 0.45 s, the sword back over
+  the right shoulder) over 0.18 s, blended in from the swing over 0.2 s (`playCombat`'s `blend`), and held
+  there with a slow breath (`chargePose`) as long as the button is; a slow step at most (`combatMotion.scale`
+  0.3), turned to the nearest foe; the blade pulses; full after `CHARGE.full` (0.6 s): a white ring and a ping
+  (`sound.fluidCharge`). Let go (or leave the ground): `release()` plays the clip's swing from 0.45 s (cut
+  0.54–0.76 s, 0.07/0.17/0.36 s), cone half-angle 1.5 rad, reach 3.3 m, the cut's pull as a swing's;
+  `CHARGE.damage` [2, 3] (not full / full), heavy (combo 2: the knockback, the hit-stop 0.11, full 0.15), and
+  `breaks`: Foe.hit reels any foe it touches, armoured or committed to its blow. Then the cooldown, as after a
+  third swing (`ENDS`). An evade cancels a charge. A tap is the light swing as before.
+- **The air cut** (`AIR`, v1.3, the Great Sword pack's jump attack `gs_jump_attack`): a swing begun in the air
+  (not the rising cut) plays the clip from 0.72 s (the sword going up) over the whole body, its own rise left
+  out (`swingMove.air`: `playCombat` `full` and `ground` in the air): `player.airKick` holds the body up at
+  the top (`lift` 2 m/s) through the wind-up and carries it in to a foe up to `pull` (3.5 m) out of reach, to
+  stand `ideal` (0.7 m) off its body; as the cut starts (0.98 s) the body is driven down at `plunge` (12 m/s)
+  and the overhead cleave (to 1.24 s) lands with it, its cone tipped `down` 0.6 rad. Damage 2, heavy. One an
+  airtime (`airUsed`, reset on the ground): a press in the air after it waits for the ground (the buffer).
+- **The riposte** (`RIPOSTE`, v1.4, the Sword and Shield pack's slash 4 `ss_slash_4`): a perfect parry
+  (`block()` → `'perfect'`) opens a `window` of 0.6 s (`riposteOpen(sinceParry)`); a blade press in it (the
+  guard may still be held) plays the clip's overhead chop from 1.05 s (cut 1.30–1.43 s, 0.12/0.12/0.30 s). The
+  chop comes down `turn` (1.3 rad) to his right, so he is turned that much to his left into it at once (and his
+  walking lead is off: `pose.lead`), and the cut's pull brings him to `ideal` (0.5 m) off the foe's body. Damage
+  3, as a full charge (doubled on the foe the parry left stunned: 6, the end of any foe so far but a boss), heavy, `breaks` and `stagger`: Foe.hit holds it reeling
+  1.2 s at least (`reel` `'riposted'`). A gold ring and `sound.fluidRiposte(false)` as it starts; landed, a gold
+  burst off the foe, the hit-stop 0.15 and `fluidRiposte(true)` (a bell under the blow). One a parry; the window
+  missed, a press is what it was (nothing while the guard is held, else the first swing).
+- **The dash cut** (`DASH`, v1.4, its attack 2 `ss_attack_2`): a press during an evade (`dashWant`), or within
+  `late` (0.15 s) of its end (`sinceEvade`), with the dash cut's `cooldown` (1.5 s, `dashCool`) over, plays it
+  the moment the evade ends (`dashOpen`): the clip from 0.3 s, cut 0.49–0.64 s (0.16/0.14/0.26 s), a sweep from
+  his left round to his right (cone half-angle 1.7 rad). Player's controller carries him (`combatMotion.dash`,
+  set like the evade's) toward `past` (1 m) beyond a foe within `pull` (5 m), `side` (1.1 m) to its left, so it
+  passes on his sword side and the sweep crosses it, at what that takes over the wind-up and cut (5.4–16 m/s;
+  no foe: 9 m/s straight on), slowing through the follow-through; still facing the foe. No i-frames of its own:
+  the evade's window is over before it starts. Damage 2, heavy; the cooldown, as after a third swing. Within its
+  cooldown a press out of an evade is the plain buffered swing. `tests/blade-attacks.test.js` checks both
+  (window, damage, stagger, chop on the foe's line, the carry past the foe, no i-frames, the cooldown).
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
   `swingArc(n, u)`, so the body turns to the swing. It turns toward the nearest target with `lock: true` within
   `BLADE.lock` (6 m), else where you face.
@@ -51,7 +99,7 @@ The first things in the game that fight back, and the tool's answer to them.
 - **The look:** a sword. A flat two-edged blade (`BLADE.length` 0.85 m, `width` 5 cm, extruded from an
   outline tapering to a point) of the glob's lava material in the tank's tones, its edges bright glowing lines,
   on a hilt: a brass guard, a wrapped grip in the fist and a brass pommel. The blade grows out of the guard as
-  it lights for a swing and fades after, and a fine trail of small sparks follows the edge. (The game's materials
+  it lights for a swing and fades after, and a trail of small sparks sweeps after the edge through the cut. (The game's materials
   draw into the G-buffer: no transparency, so the glow is the bloom's.)
 
 ## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
@@ -180,7 +228,7 @@ The count is said every 5 ink.
 
 ## Controls and the lock-on
 
-- **RB / R1** (a left click, F, ⚔) swings; **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
+- **RB / R1** (a left click, F, ⚔) swings (held, the charged cut; in the air, the air cut); **LB / L1** held (Ctrl or Z on land, 🛡) guards; **B / ○** (Alt, ↶) evades; **R3** (Tab, ◉) locks on, and with no foe in reach sends the scout (docs/systems/controls.md, "The layout").
 - The push is a gun mode (`MODES.push`, always owned with the backpack): fired as a shot, it throws the cone.
 - In a fight (`foes.near(20)`) LB doesn't zoom (`Controller.combat`).
 - **The lock-on:** `Foes.cycleLock()` locks a foe in `LOCK.reach`: those ahead of the camera first, by distance
@@ -393,7 +441,10 @@ new attacks, Gentle, the rosters and placed foes, the Arena's list.
 - Cover is sampled once per strike cycle (16 rays); a foe does not path round obstacles to its hiding place (it
   only takes spots it can fly to straight).
 - Not yet: foes using the open world's own workings beyond the temples' (the trials' updrafts register through
-  `src/workings.js` once they do), nor a foe knocked into water.
+  `src/workings.js` once they do), nor a foe knocked into water, nor stilled or blocked by the Hush's crystals.
+- Over height: the route grid is one level (the highest footing under each cell): under a bridge or an arch a
+  foe plans over the top only; a route is replanned at most once a second, so a fast traveller up and down
+  stairs is followed a step behind.
 
 ## Foes in the world's workings (v0.98)
 
@@ -427,7 +478,8 @@ range)`, `seen`, `canStep`, `hazard(p)` (src/hazards.js `hazardAt`), `workings(p
   to land hard, and tumbles a hovering foe up out of control (`tumble`), stunned (`stun`) as it drops; a blowing gust
   shoves any foe in the open down its hall (× `WORKS.gust`: heavy 0.7, a stilled one 1.1, sliding like a crate,
   hovering 1.2, light 1.25), not behind a screen or a shelter; a swinging pendulum knocks a foe away the way it
-  swings (`WORKS.swing.knock`), a cut and a stun; off a bridge, into the pit, a machine is broken.
+  swings (`WORKS.swing.knock`), a cut and a stun; off a bridge, into the pit, a machine is broken. Stilled, its
+  frost holds a foe that touches it (v1.4: *Foes over height*, "Temple crystals").
 - **Plates** (`Foes.templeKit`): any foe that weighs presses a plate it stands on (not a swarm blot, a flyer in the
   air or one thrown up; stilled it still weighs). A gust piece that is not a registered working still shoves foes
   there (the old path).
@@ -435,6 +487,56 @@ range)`, `seen`, `canStep`, `hazard(p)` (src/hazards.js `hazardAt`), `workings(p
   `'hazard'`, `'fall'`, `'swing'`; its sound (`foeHurt`, and spines, a hiss or a thud), a burst and ink as any blow.
   The first time, the game says the world hurts them too (flag `foes.world`).
 - `tests/foes-world.test.js` checks each of these.
+
+## Foes over height (v1.4, `src/foe-height.js`)
+
+Walkers follow you up and down the world's height, and the world's height is a weapon against them
+(`CLIMB`, `HOP`, `ROUTE`, `PERCH`, `KNOCK`; pure logic, the world asked through `env.ground` and `env.canStep`).
+- **The way** (`findRoute`, `gridSearch`, `Foe.approach`, `followRoute`): on your level (within `ROUTE.flat`,
+  1.15 m) a walker walks straight at you as ever. You up a ledge or down off one, or it getting nowhere for
+  `ROUTE.stuck` (a wall, a gap), it plans a way (A* over 1 m cells round it, `ROUTE.radius` 13 m, at most
+  `ROUTE.budget` 520 cells, at most every `ROUTE.every` 1.1 s): a step it walks (`CLIMB.step` 1.1 m), a ledge a
+  `clamber` kind (blot, shade, stalker, hound) leaps up (`CLIMB.clamber` 2.4 m), a drop it hops down
+  (`CLIMB.drop` 4.5 m, a heavy one `heavyDrop` 2.6 m; a burrowing ray only walks). A route holds while you stay
+  within `ROUTE.drift` of where it led; a cell it can't get into, or finds at another height (an edge), is kept
+  out of its next plans (`badCells`). Steps of more than `CLIMB.step` it never walks down on its own: only hops.
+- **The hop** (`Foe.hop`, `leap`, `hopAt`): crouched `HOP.crouch` 0.32 s (the body squashes: the tell), then an
+  arc over the higher end (`HOP.time` + `perM` a metre), a soft thud and dust as it lands ('hop'). Struck
+  crouched, it stays; struck in the air, it falls from there (`knockOutOfHop`).
+- **Out of reach** (`reachesUp`, `attacksAt(d, dy)`, `Foe.holdOff`): you `STRIKE_RISE` (1.6 m) or more above or
+  below it, it winds up only an attack that reaches (a lob at your feet, a step through the shadow), else it
+  comes for you; with no way, it holds off `ROUTE.hold` 5 m out on the side it came from, swaying, facing you
+  (`Foe.waiting`), and comes on again as soon as you come down or a way opens.
+- **The high ground** (`perch`, `findPerch`, `Foe.perchUp`): the spitting blot looks every `PERCH.every` s for a
+  spot it can walk to (steps and ramps, `PERCH.far` 16 m of way) `PERCH.rise` 1.7 m over you (past a blow's reach),
+  `keep`–`reach` m from you and in sight, and goes up there; perched (you below and in its reach) it won't step
+  down off it (`Foe.perched`: `step` refuses), so it lobs down at you. Go up, or walk out of its reach, and it
+  comes down.
+- **Knocked off** (`KNOCK`, `knockedOff`, `Foes.knockedOff`): a cut or a push marks a foe as knocked by you for
+  `KNOCK.recent` 0.9 s; carried off an edge then, it lands from `KNOCK.min` 1.4 m dazed `KNOCK.stun` 3.5 s
+  (`Foe.dazed`, four pale stars turning over its head: `Foes.daze`; no harm, but stunned, so a cut lands double
+  and wakes it), from `KNOCK.defeat` 4.5 m it is over (a burst, a machine broken). A heavy thud, a hit-stop, a
+  kick, dust, and a note the first time (flag `foes.knocked`). A gust or a pendulum carrying it off is the old
+  fall (`FALL`). The charged cut throws `KNOCK.charged` 2.2× (the heavy third's).
+- **Knocked into water** (`KNOCK.deep`, `knockedInto`, `Foe.sweptBy`, `env.water`): knocked by you into water
+  `KNOCK.deep` 1.3 m deep or more (as deep as lifts you off your feet, `SWIM.float`), off a bank or off a ledge from
+  any height, a foe is swept away ('landed', `knocked: 'swept'`): a great splash on the surface (`Waters.splash`,
+  the Foes' `waters`), a hit-stop, and it is over; a note the first time (flag `foes.swept`). Shallower, it wades;
+  a gust or a pendulum carrying it in is not yours; a sea whose bed is walked (`body.sea`) is not water here.
+- **Temple crystals** (`WORKS.swing.frost`, `Foe.feelWorld`): a crystal pendulum swinging knocks a foe away (the
+  workings, below); stilled by a stilling glob (frosted, hanging there humming: it no longer moves) its frost takes
+  a foe that touches it: held `frost` 3 s ('frosted': a chime, a puff of frost, its eyes pale; stunned, so a cut
+  lands double), then not again for `frost` + `cool` s, so it walks on through. The player passes a stilled
+  crystal; a foe is held by it rather than blocked, so it reads as the same frost the glob put there.
+- **In the hitbox overlay** (`foeStatus`, src/hitboxes.js): a foe's label says `dazed <s>` (instead of stunned),
+  `perched`, `waiting: no way to you`, `crouched to hop` / `hopping`.
+- **Steps** (`env.canStep(from, x, z, radius, lift)`): a walker's way is tested `CLIMB.step` + 0.1 m over its feet,
+  over a stair's riser (before v1.4 it was 0.5 m, so no foe climbed a step taller than that: a temple's dais
+  stopped a machine at its foot); a flyer's at 0.5 m over its body as before.
+- Tests: `tests/foe-height.test.js` (what each kind crosses, routes round by a ramp or straight up, holding off and
+  no blows at air, the spitter's perch, knocked off: dazed, over, a gust not, the charged cut's throw, a hop
+  broken off; knocked into water: swept off a bank or a ledge, not in the shallows, by a gust or on a sea bed; a
+  stilled crystal's frost; the overlay's labels).
 
 ## Combat checks (v0.89)
 
@@ -481,7 +583,7 @@ The 100 roster entries now have procedural game models and attacks. Home, Atelie
 The runtime quality pass and its sampling limits are recorded in [characters.md](characters.md#reference-quality-review). Guardian screenshots use representative real pose identifiers and open states; they are not coverage of every attack.
 
 
-### Reference-based world enemies (merged in v1.0)
+### Reference-based world enemies
 
 See [the enemy reference guide](../../references/ENEMIES.md) for source art, provenance and the model/attack editing workflow.
 
@@ -494,3 +596,23 @@ Open `enemies.html` (Worlds → Creatures & spirits) to rotate models, inspect l
 Static geometry is batched by material inside each animated joint. Each instance owns its mutable materials. Machine debris keeps its materials until its last fragment expires; removal/disposal tests cover this lifetime.
 
 Validation: `tests/world-enemies.test.js` covers roster completeness, posed finite geometry, material release, attack commitment/contact timing, range, walls, dodging, parries, Gentle/off modes, spawning and debris cleanup. `scripts/world-enemy-shots.mjs` captures all 100 entries in idle, side locomotion, first strike and second wind-up (400 screenshots). Idle and both attack contact sheets were inspected; selected wing/pincer models were rechecked after repairs. This does not establish artifact-free motion at every frame or reference-exact geometry. `scripts/world-enemy-smoke.mjs` checks actual Arena spawning/chasing and gallery controls using the game renderer, with no browser errors. Retroid performance and touch interaction remain unmeasured.
+## No invisible foes (`src/foe-presence.js`, v1.1)
+
+From the 2026-10-08 playtest. Every foe, in every state, must be seen:
+- **The rule** (`PRESENCE`, `presenceOf`, `presenceProblems`): what is drawn over its footing (meshes visible up
+  the tree, in world space) stands at least 0.4 m (or is 1.5 m wide and 0.3 m tall, a surfaced ray) and 0.4 m
+  across, with a light part 0.2 m across: a pale colour, a glow ≥ 0.5 (an eye, red while winding up) or a white
+  contour (`makeMaterial({ lineWhite })`), so an ink-black foe reads on dark ground. tests/foe-presence.test.js
+  walks every kind through 30 s of a fight, including the running hound and the buried ray.
+- **The shadow hound running** is a low hump of shadow with a glowing lavender rim and lit eyes over its pool
+  (was a flat pool and 4 cm eyes); its ink has white contours, as the shade's. Its bite after the step behind
+  you winds up 0.45 s (was 0.32).
+- **The buried dune ray** has a taller white-lined fin, darker turned sand, and winding up its burst it swims to
+  its ring under the sand (`Foe.swimTo`, `SWIM`: there by 85 % of the wind-up, ≤ 12 m/s, through `step`), the
+  fin high and throwing sand; before, it sank the fin and came up out of nowhere.
+- **The swarm's** eyes are 1.7× and **the splinters** drawn 1.3×.
+- **Behind the world** (`warnSpot`, `Foes.hiddenFromCamera`): a foe winding up on the screen but hidden from the
+  camera by the world (a physics ray) gets the warning marker over where it is.
+- **Never inside the world** (`Foes.roomAt`, `openSpot`): a pack's, a relic's guards', a wave's and `spawnKind`'s
+  spots are checked with a capsule (`physics.pushCapsule`) for its body's column; inside a solid, the next spot
+  round is tried, never a guessed height.

@@ -14,7 +14,7 @@ import { createEchoShell } from '../echo-shell.js';
 //   lantern  after dusk a little paper lantern glows on the tank and lights the ground
 //   lens     unopened boxes show a pale column from afar (src/boxes/index.js reads it)
 //   bell     V sounds a bell note; unopened boxes within 90 m answer (game event 'bell' { pos })
-//   star     a pale enamel star on the hood, over the brow
+//   star     a pale enamel star on the overshirt's lapel (over the brow when a hood is up)
 //   resin    climbing tires you half as fast (player.climbK)
 //   soles    a hard landing counts as a slower one (player.fallGuard: the drop it takes to tumble grows by a third)
 //   hush     creatures don't hear you walk up (player.hush: src/wildlife.js reads it)
@@ -36,6 +36,8 @@ const BASE = { charges: 3, delay: 5 };
 export const LANTERN_AT = new THREE.Vector3(0.225, 0.37, -0.3);   // the lantern off the flask's left stave, beside the rucksack, in the chest anchor's frame
 /** The makers' star pinned to the coral lapel (chest-anchor frame). */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
+/** The same on the game's traveller (TravellerV1: no outfit flag; its chest anchor sits lower): measured on its overshirt's left lapel. */
+export const LAPEL_STAR = { at: new THREE.Vector3(-0.075, 0.62, 0.12), tilt: -0.12, scale: 0.55 };
 
 export function createItemEffects({ player, tool = null, level = null, sound = null, camera = null, isNight = () => false, game: g = sharedGame, keys = typeof window !== 'undefined' ? window : null, toast = () => {} }) {
   const H = player?.humanoid;
@@ -63,18 +65,28 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     H.chestAnchor.add(grp);
     lantern = { grp, paper };
   }
-  // ---- the star on the hood
+  // ---- the star on the lapel (or the hood)
   let star = null;
   if (H?.headAnchor) {
     star = new THREE.Mesh(new THREE.ExtrudeGeometry(starShape(0.045, 0.015), { depth: 0.008, bevelEnabled: false }),
       makeMaterial({ color: BOX_COLORS.star, flat: true, glow: 0.3 }));
-    star.position.set(0, 0.17, 0.112);   // on the brow (the imported head: eyes at y 0.09, the crown at 0.23)
-    star.rotation.set(-0.5, 0, 0);
-    // With the traveller's bare head, the earned star belongs on his lapel.
-    if (H.outfit) { star.position.copy(TRAVELLER_STAR.at); star.rotation.set(TRAVELLER_STAR.tilt, 0, 0); star.scale.setScalar(TRAVELLER_STAR.scale); }
     star.userData.noCollide = true;
     star.visible = false;
-    (H.outfit ? H.chestAnchor : H.headAnchor).add(star);
+    placeStar();
+  }
+  /**
+   * On the hood's brow when the hood is up; with the traveller's bare head (his outfit, or the hood down),
+   * the earned star belongs on his lapel. (Pinned to the brow with no hood there, it hung in the air in
+   * front of his hair: every moment's close-up showed it; the cinematics QC pass.)
+   */
+  function placeStar() {
+    if (!star) return;
+    const hooded = !H.outfit && !!H.hood?.some((h) => h.isMesh && h.visible);   // (the hood's own shell: the goggles' group stays in the list)
+    if (star.userData.hooded === hooded && star.parent) return;
+    star.userData.hooded = hooded;
+    if (hooded) { star.position.set(0, 0.17, 0.112); star.rotation.set(-0.5, 0, 0); star.scale.setScalar(1); }   // on the brow (the imported head: eyes at y 0.09, the crown at 0.23)
+    else { const L = H.outfit ? TRAVELLER_STAR : LAPEL_STAR; star.position.copy(L.at); star.rotation.set(L.tilt, 0, 0); star.scale.setScalar(L.scale); }
+    (hooded ? H.headAnchor : H.chestAnchor).add(star);
   }
   // ---- the bell (and the listening shell's soft hum); the echo shell plays back on the same button
   let bellT = 0, shellT = 3;
@@ -215,7 +227,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       }
       if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + (hasLantern ? 1.2 : 0.6), player.pos.z, hasLantern ? 7.5 + Math.sin(t * 7) * 0.3 : 4.2 + Math.sin(t * 1.3) * 0.2);
       else light.set(0, -1e5, 0, 0);
-      if (star) star.visible = items.has('star');
+      if (star) { star.visible = items.has('star'); if (star.visible) placeStar(); }
       if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = items.has('scarf') ? 0.6 : 1; }
     },
     dispose() { off(); offBloom?.(); echo.dispose(); levelEl?.remove?.(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },

@@ -17,16 +17,62 @@ import { THINGS } from './desert-data.js';
 //                      the sun catches it. A small bronze bell like the Speaker's; ring it. The
 //                      Speaker hears of it (desert.way.bell, desert.way.told).
 //
+// Called out on the ride (October 2026: the ride was "empty" at 34 m/s, the three blinked past): heading
+// toward one of them on the errand (stages hearth, stone, light) and within CALL.range, a line names it
+// once, ahead of you, while there is still time to stop (CALLS; not once it is done: the bowl filled, the
+// camp seen, the bell rung). The butte itself is named once as it comes up on the way out.
+//
 //   const way = setupWay(ctx)   →   { update(dt, t), fillBowl() } (null without the Hearth)
 
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 
+/** How far ahead a place on the way is named, and how near is too near to bother (you are there). */
+export const CALL = { range: 130, near: 18, hearth: 320, show: 6 };
+/** What is named, as it comes up ahead (no lore: what you would see from the saddle). */
+export const CALLS = {
+  bowl: 'Ahead, at the foot of the next marked stone: a bronze bowl, dry, and the mark on the stone above it dull.',
+  camp: 'Off the way ahead: a ring of blackened stones and two poles leaning together. Somebody camped here once.',
+  bell: 'Something glints in the sand ahead, a few metres off the way.',
+  hearth: 'Ahead, on its hill of red rock: the Givers’ Hearth, a dark slit near the top of its chimney.',
+};
+const ERRAND = ['hearth', 'stone', 'light'];
+
 export function setupWay(ctx) {
-  const { level, dialogue, game, sound, toast } = ctx;
+  const { level, dialogue, game, sound, toast, player } = ctx;
+  // (said at once on the line under the view, as the drone says what it found: main.js passes `cue`; toasts
+  // wait their turn, and "ahead" said late is behind you. A toast where there is no cue: the tests)
+  const callLine = ctx.cue ?? ((text) => toast(text));
   const W = level.hearth?.way, M = level.hearth?.materials;
   if (!W) return null;
   const filled = () => !!game.flag('desert.way.bowl');
-  const st = { glow: filled() ? 1 : 0 };
+  const st = { glow: filled() ? 1 : 0, called: new Set(), prev: null };
+  // the places named on the ride, and when each is worth naming
+  const callAt = [
+    { id: 'bowl', at: W.bowl.at, open: () => !filled() },
+    { id: 'camp', at: W.camp.at, open: () => !game.flag('desert.way.camp') },
+    { id: 'bell', at: W.bell.at, open: () => !game.flag('desert.way.bell') },
+    { id: 'hearth', at: level.hearth.doorFront, range: CALL.hearth, open: () => game.flag('quest.desert.power') === 'hearth' },
+  ];
+  const callOut = (pos) => {
+    // which way you are going: from where you were a couple of metres back
+    if (!st.prev) { st.prev = pos.clone(); return null; }
+    const mx = pos.x - st.prev.x, mz = pos.z - st.prev.z, moved = Math.hypot(mx, mz);
+    if (moved < 2) return null;
+    st.prev.copy(pos);
+    if (moved > 40) return null;   // (a teleport, a doorway: no direction to speak of)
+    if (!ERRAND.includes(game.flag('quest.desert.power')) || dialogue.open) return null;
+    for (const c of callAt) {
+      if (st.called.has(c.id) || !c.open()) continue;
+      const d = flat(pos, c.at);
+      if (d > (c.range ?? CALL.range) || d < CALL.near) continue;
+      // ahead of you: moving toward it
+      if ((c.at.x - pos.x) * mx + (c.at.z - pos.z) * mz < 0.7 * d * moved) continue;
+      st.called.add(c.id);
+      callLine(CALLS[c.id], CALL.show);
+      return c.id;
+    }
+    return null;
+  };
   const near = (at, r = 3.2) => (p) => (Math.abs(p.pos.y - at.y) < 3 ? flat(p.pos, at) : Infinity);
   const look = (def, at, prompt, lookAt) => registerInteractable({ id: `way.${def.id}`, priority: PRIORITY.use, range: 3.2, at: () => at, prompt,
     distance: near(at), use: () => dialogue.start(def, null, at.clone(), lookAt?.clone() ?? null) });
@@ -47,7 +93,10 @@ export function setupWay(ctx) {
 
   return {
     fillBowl,
+    callOut,
+    called: st.called,
     update(dt, t, camPos = null) {
+      if (player?.pos) callOut(player.pos);
       // the bowl's water and the stone's mark come up together
       st.glow = Math.min(1, st.glow + (filled() ? dt / 1.6 : -st.glow));
       W.bowl.fluid.visible = st.glow > 0.01;

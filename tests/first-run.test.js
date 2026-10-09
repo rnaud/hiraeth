@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { quietFirstRun, isFreshProfile, hasAnySave, SEEN_KEY } from '../src/first-run.js';
-import { devMode, DEV_KEY } from '../src/dev-gate.js';
+import { devMode, DEV_KEY, ALWAYS_DEV } from '../src/dev-gate.js';
 import { verbKey } from '../src/prompt-keys.js';
 import { PAD } from '../src/bindings.js';
 import { FirstSteps, LOOK, JUMP, TAUGHT } from '../src/first-steps.js';
@@ -39,19 +39,20 @@ test('a brand-new profile is not greeted with "Updated to": the version is marke
 
 test('the debug entries are the author’s: the Developer panel setting, a dev build or ?dev=1', () => {
   const s = mem();
-  assert.equal(devMode({ storage: s, search: '', dev: false }), false, 'a player sees none');
-  assert.equal(devMode({ storage: s, search: '', dev: false, settings: { devPanel: true } }), true, 'the Developer panel');
-  assert.equal(devMode({ storage: s, search: '', dev: true }), true, 'a dev build');
-  assert.equal(devMode({ storage: s, search: '?dev=1', dev: false }), true, '?dev=1');
+  assert.equal(devMode({ storage: s, search: '', dev: false }), ALWAYS_DEV, 'ALWAYS_DEV: everyone, for now');
+  assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), false, 'a player sees none');
+  assert.equal(devMode({ always: false, storage: s, search: '', dev: false, settings: { devPanel: true } }), true, 'the Developer panel');
+  assert.equal(devMode({ always: false, storage: s, search: '', dev: true }), true, 'a dev build');
+  assert.equal(devMode({ always: false, storage: s, search: '?dev=1', dev: false }), true, '?dev=1');
   assert.equal(s.getItem(DEV_KEY), '1');
-  assert.equal(devMode({ storage: s, search: '', dev: false }), true, 'remembered on the device');
-  assert.equal(devMode({ storage: s, search: '?dev=0', dev: false }), false, '?dev=0 forgets it');
-  assert.equal(devMode({ storage: s, search: '', dev: false }), false);
+  assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), true, 'remembered on the device');
+  assert.equal(devMode({ always: false, storage: s, search: '?dev=0', dev: false }), false, '?dev=0 forgets it');
+  assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), false);
   // the title's Debug button and the Start menu's entry go through it
   const title = src('src/title.js'), ui = src('src/ui.js');
-  assert.match(title, /devMode\(\{ settings \}\) \? `<button data-a="debug">\$\{t\('title\.debug'\)\}<\/button>` : ''/);
+  assert.match(title, /devMode\(\{ settings \}\) \? `<button data-a="debug">\$\{lbl\(t\('title\.debug'\)\)\}<\/button>` : ''/);   // (lbl: its words and the confirm glyph)
   assert.match(title, /a === 'debug' && devMode\(/);
-  assert.match(ui, /<button data-a="debug" data-dev hidden>\$\{t\('menu\.debug'\)\}<\/button>/);
+  assert.match(ui, /<button data-a="debug" data-dev hidden>\$\{t\('menu\.debug'\)\}\$\{F\}<\/button>/);
   assert.match(ui, /for \(const b of el\.querySelectorAll\('\[data-dev\]'\)\) b\.hidden = !dev;/);
   assert.match(ui, /a === 'debug' && devMode\(/);
   assert.match(src('docs/systems/ui.md'), /src\/dev-gate\.js/, 'documented');

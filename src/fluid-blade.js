@@ -79,6 +79,7 @@ export const activeRange = (S) => [S.activeFrom ?? S.hit - 0.08, S.activeTo ?? S
 export const BLADE_TOUCH = 0.12;
 /** The sphere the swept blade is tested against for a target (its radius, the margin on top). */
 export const bladeTouchRadius = (target) => (target.radius ?? 0.5) + BLADE_TOUCH;
+function smooth01(x) { const t = THREE.MathUtils.clamp(x, 0, 1); return t * t * (3 - 2 * t); }
 /** Time within the captured clip: anticipation, fast cut, follow-through. */
 export function attackSample(S, elapsed) {
   const wind = S.wind ?? 0.3, active = S.active ?? 0.2, recover = S.recover ?? 0.3;
@@ -88,6 +89,13 @@ export function attackSample(S, elapsed) {
   const t = elapsed < wind ? lerp(S.from, a, clamp(elapsed / wind)) : elapsed < wind + active
     ? lerp(a, b, clamp((elapsed - wind) / active)) : lerp(b, S.to, clamp((elapsed - wind - active) / recover));
   return { t, duration, wind, active, phase: elapsed < wind ? 'wind' : elapsed < wind + active ? 'strike' : 'recover' };
+}
+/** Does the blade's trail sweep now: the displayed clip time inside the attack's active window (its swing frames), or the arc's strike phase. */
+export function trailCut(b) {
+  if (!b.swinging || b.charging) return false;
+  if (!b.move) return b.phase === 'strike';
+  const [from, to] = activeRange(b.spec), t = b.tool.player?.swingMove?.t;
+  return t !== undefined && t >= from && t <= to;
 }
 /** Distance to the moving blade, sampled between consecutive poses to avoid tunnelling. */
 export function sweptBladeTouches(point, radius, before, after) {
@@ -104,6 +112,57 @@ export function sweptBladeTouches(point, radius, before, after) {
 /** The blade's grown moves (src/ink.js): the whirl replaces the third swing and cuts all round; the lunge is a swing begun at a run. */
 export const WHIRL = { clip: 'mixamo_gs_high_spin', from: 0.55, to: 1.45, hit: 1.06, activeFrom: 0.65, activeTo: 1.38, wind: 0.25, active: 0.42, recover: 0.28, angle: Math.PI, damage: 2 };
 export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 0.5, dash: 9, damage: 2, reach: 3.6 };
+/**
+ * The charged cut (v1.3, the Great Sword pack's slash): the blade button still held `after` s into the first swing's
+ * wind-up turns it into a charge: the sword drawn back over the right shoulder (the clip from `raiseFrom` to its cocked
+ * pose `hold` over `raise` s, blended in from the swing begun over `draw` s) and held there, gathering, as long as the button is; `full` s and it is full (a ring, a
+ * ping). Let go: the clip's own swing from `hold`, a wide diagonal sweep (`angle`, `reach`), `damage[1]` full, else
+ * `damage[0]`, and it staggers even an armoured foe (`breaks`: src/foes.js Foe.hit). Then the cooldown, as after a third swing.
+ */
+export const CHARGE = { clip: 'mixamo_gs_slash_1', raiseFrom: 0.3, hold: 0.45, raise: 0.18, draw: 0.2, after: 0.2, full: 0.6, move: 0.3,
+  from: 0.45, hit: 0.65, activeFrom: 0.54, activeTo: 0.76, to: 1.05, wind: 0.07, active: 0.17, recover: 0.36, angle: 1.5, reach: 3.3, damage: [2, 3] };
+/**
+ * The air cut (v1.3, the Great Sword pack's jump attack): a swing begun in the air (not the rising cut) raises the sword
+ * over the head with the body held a moment at the top (`lift` m/s up), then cleaves down as the body is driven down
+ * (`plunge` m/s) into it, carried in to a foe up to `pull` m out of reach (to stand `ideal` m off its body: the slam lands close); the whole body plays it (the knee up, the landing crouch), its cone tipped `down` rad below
+ * level. One an airtime: the next swing waits for the ground.
+ */
+export const AIR = { clip: 'mixamo_gs_jump_attack', from: 0.72, hit: 1.12, activeFrom: 0.98, activeTo: 1.24, to: 1.42, wind: 0.14, active: 0.17, recover: 0.22,
+  lift: 2, plunge: 12, pull: 3.5, ideal: 0.7, down: 0.6, angle: 1.25, reach: 3.2, damage: 2 };
+/**
+ * The riposte (v1.3, the Sword and Shield pack's slash 4): for `window` s after a perfect parry the blade button plays a
+ * fast overhead counter: the sword up over the head and down (cut on the clip's chop, 1.30–1.43 s), `damage` (doubled on
+ * the parried foe, which the parry left stunned), and it staggers anyone (`breaks`), held reeling `stagger` s. A gold
+ * ring and a bright ring-out as it starts, a heavier one as it lands. The window missed, the blade is as before. The clip's
+ * chop comes down `turn` rad to his right (measured on the traveller): he turns that much to his left into it, so it lands
+ * on the foe, and steps in to stand `ideal` m off its body (the chop reaches less far than a swing).
+ */
+export const RIPOSTE = { clip: 'mixamo_ss_slash_4', window: 0.6, from: 1.05, hit: 1.37, activeFrom: 1.3, activeTo: 1.43, to: 1.78, wind: 0.12, active: 0.12, recover: 0.3,
+  angle: 1.3, reach: 3.2, damage: 3, stagger: 1.2, turn: 1.3, ideal: 0.5 };
+/**
+ * The dash cut (v1.3, the Sword and Shield pack's attack 2): the blade button pressed during an evade, or within `late` s
+ * of its end, plays a running cut the moment the evade ends: carried forward at `speed` m/s through the wind-up and cut
+ * (Player's collision controller moves him); with a foe within `pull` m, past it: to `past` m beyond it, `side` m to its
+ * left (the foe on his sword side, the sweep crossing it as he goes by), as fast as that takes (up to `fastest` m/s), still
+ * facing it. No i-frames of its own (the
+ * evade's are all there are). `cooldown` s from one dash cut to the next: evade, cut, evade again and the press is a
+ * plain swing.
+ */
+export const DASH = { clip: 'mixamo_ss_attack_2', late: 0.15, cooldown: 1.5, speed: 9, pull: 5, side: 1.1, past: 1.0, fastest: 16, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.16, active: 0.14, recover: 0.26,
+  angle: 1.7, reach: 3.2, damage: 2 };
+/** Is a press now a riposte: `since` s after a perfect parry (RIPOSTE.window)? */
+export const riposteOpen = (since, R = RIPOSTE) => since >= 0 && since < R.window;
+/** Is a press now a dash cut: evading, or `late` s at most after an evade (`since` s; 0 while evading), the dash cut's cooldown `cool` over. */
+export const dashOpen = (since, cool, D = DASH) => since <= D.late && cool <= 0;
+/** The attacks that end a combo (no chain after them; the cooldown follows), and play as heavy ones (sound, knockback). */
+const ENDS = new Set([CHARGE, AIR, RIPOSTE, DASH]);
+/** Every attack the blade plays from a captured clip: the combo's three, the grown whirl and lunge, the charged cut, the air cut, the riposte and the dash cut. */
+export const ATTACKS = { swing1: SWINGS[0], swing2: SWINGS[1], swing3: SWINGS[2], whirl: WHIRL, lunge: LUNGE, charge: CHARGE, air: AIR, riposte: RIPOSTE, dash: DASH };
+/** The charged cut's pose while held `t` s (src/fluid-blade.js CHARGE): drawn back to `hold`, then a slow breath about it. */
+export function chargePose(t, C = CHARGE) {
+  const k = smooth01(t / C.raise);
+  return C.raiseFrom + (C.hold - C.raiseFrom) * k - 0.012 * k * (1 - Math.cos(t * 7));
+}
 /** The reach step: the blade this much longer, its swing this much further. */
 export const REACH_UP = 1.3;
 /**
@@ -162,7 +221,7 @@ export function lockTarget(from, range = BLADE.lock, targets = allTargets(), loc
 
 const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _q = new THREE.Quaternion();
 const _Y = new THREE.Vector3(0, 1, 0);
-const smooth01 = (x) => { const t = THREE.MathUtils.clamp(x, 0, 1); return t * t * (3 - 2 * t); };
+const RIPOSTE_GOLD = '#ffd46b';
 
 export class FluidBlade {
   constructor(tool) {
@@ -205,6 +264,8 @@ export class FluidBlade {
     // its i-frames: how long it has run, whether it was given them, the rest before the next can be, a blow swallowed
     this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
     this.hitTargets = new Set(); this.previousBlade = null; this.buffered = 0; this.closeIn = 0;
+    // the counters: the riposte's window after a perfect parry, the dash cut's after an evade (and its cooldown)
+    this.sinceParry = Infinity; this.sinceEvade = Infinity; this.dashWant = false; this.dashCool = 0;
     this.device = new ShieldDevice(tool);
     this.shield = this.device.root;
     this.guardArc = null;
@@ -227,7 +288,9 @@ export class FluidBlade {
   coarse(out = {}) {
     const T = this.tool, p = T.player, S = this.special, up = hasUpgrade('reach', T.state) ? REACH_UP : 1;
     out.origin = (out.origin ?? new THREE.Vector3()).copy(p.pos).addScaledVector(p.frame.up, 1.1);
-    out.dir = this.dir; out.reach = (S?.reach ?? BLADE.reach) * up; out.angle = S?.angle ?? BLADE.angle;
+    // (the air cut's cone tipped down toward the ground under it)
+    out.dir = S?.down ? (out.tilt ??= new THREE.Vector3()).copy(this.dir).multiplyScalar(Math.cos(S.down)).addScaledVector(p.frame.up, -Math.sin(S.down)) : this.dir;
+    out.reach = (S?.reach ?? BLADE.reach) * up; out.angle = S?.angle ?? BLADE.angle;
     return out;
   }
 
@@ -245,6 +308,7 @@ export class FluidBlade {
     const perfect = this.parryLive;
     if (!perfect && !T.reserve.use()) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
     p.perfectBlock = perfect; this.perfectReady = false;
+    if (perfect) this.sinceParry = 0;   // (the riposte's window opens)
     this.guardRearm = GUARD.rearm;
     this.parry = GUARD.parryFor;
     hitStop(perfect ? 0.14 : 0.07); kick(perfect ? 0.5 : 0.14);
@@ -285,13 +349,21 @@ export class FluidBlade {
 
   get swinging() { return this.n >= 0; }
 
-  /** Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed); held: the button is down. */
-  update(dt, press, ok, held = false, evade = false) {
+  /**
+   * Per frame. press: a fresh press of the blade button; ok: the tool may act (FluidTool.allowed); held: the guard is
+   * down; evade: the evade's button; bladeHeld: the blade button is down (held through a wind-up it charges: CHARGE).
+   */
+  update(dt, press, ok, held = false, evade = false, bladeHeld = false) {
     const T = this.tool, p = T.player;
-    this.cutNow = false;
+    this.cutNow = false; this.pose.dir = this.dir; this.pose.lead = true;
+    // (how long the blade button has been down since its press: CHARGE.after)
+    this.holdT = bladeHeld ? (press ? 0 : (this.holdT ?? -Infinity) + dt) : -Infinity;
+    if (p?.onGround) this.airUsed = false;
     this.cool = Math.max(0, this.cool - dt);
     this.evadeCool = Math.max(0, this.evadeCool - dt);
     this.evadeT = Math.max(0, this.evadeT - dt);
+    this.sinceEvade = this.evadeT > 0 ? 0 : this.sinceEvade + dt;
+    this.sinceParry += dt; this.dashCool = Math.max(0, this.dashCool - dt);
     // (the i-frames' clock: their window closing starts the rest before the next evade may have them)
     const wasOn = this.evadeGranted && this.evadeAge < iframeWindow(this.gentle)[1];
     this.evadeAge = this.evadeT > 0 ? this.evadeAge + dt : Infinity;
@@ -303,7 +375,7 @@ export class FluidBlade {
     if (!held) this.perfectReady = false;
     this.guardHeld = held;
     const dodgePress = evade && !this.evadeHeld; this.evadeHeld = evade;
-    if (ok && dodgePress && !this.evadeT && !this.evadeCool && p?.onGround && (!this.swinging || this.phase === 'recover')) {
+    if (ok && dodgePress && !this.evadeT && !this.evadeCool && p?.onGround && (!this.swinging || this.phase === 'recover' || this.charging)) {
       this.stop(); this.evadeT = EVADE.duration; this.evadeCool = EVADE.cooldown;
       this.evadeAge = 0; this.evadeGranted = this.iframeRest === 0; this.dodged = false;
       if (p._moveDir?.lengthSq() > 0.01) this.evadeDir.copy(p._moveDir);
@@ -326,19 +398,46 @@ export class FluidBlade {
       this.drawn = Math.max(0, this.drawn - dt * 10);
       this.placeShield(dt); return this.fade(dt);
     }
+    // the riposte: a press in the window a perfect parry opened (the guard may still be held)
+    if (press && riposteOpen(this.sinceParry) && !this.swinging && !this.evadeT && p.onGround) { this.sinceParry = Infinity; this.buffered = 0; press = false; this.start(0, RIPOSTE); }
+    // the dash cut: a press during an evade (or just after it) cuts as the evade ends, once a cooldown
+    if (press && this.evadeT > 0) this.dashWant = true;
+    if ((this.dashWant || press) && !this.evadeT && !this.swinging && !held && p.onGround && this.cool === 0 && dashOpen(this.sinceEvade, this.dashCool)) { this.dashWant = false; this.buffered = 0; press = false; this.start(0, DASH); }
+    if (this.sinceEvade > DASH.late || this.dashCool > 0) this.dashWant = false;
     // a press is kept a moment (BLADE.buffer): pressed during an evade or the cooldown, it swings as soon as it can
     if (press && !held) this.buffered = BLADE.buffer;
     else this.buffered = Math.max(0, this.buffered - dt);
     if (this.buffered > 0 && !held && !this.evadeT) {
-      if (this.swinging) { this.queued = this.n < 2; this.buffered = 0; }   // chained: the next swing follows this one
-      else if (this.cool === 0) { this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0); this.buffered = 0; }
+      if (this.swinging) { this.queued = this.n < 2 && !ENDS.has(this.special); this.buffered = 0; }   // chained: the next swing follows this one (not after the charged or the air cut)
+      else if (this.cool === 0 && !(this.airUsed && !p.onGround)) { this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0); this.buffered = 0; }
     }
-    if (this.swinging) {
+    // held through the first swing's wind-up: the charge (CHARGE), on the ground, the clip there
+    if (this.swinging && !this.charging && this.n === 0 && !this.special && !this.chained && this.phase === 'wind' && bladeHeld && this.holdT >= CHARGE.after
+      && p.onGround && p.animator?.moveClip?.(CHARGE.clip)) {
+      this.charging = { t: 0, full: false }; this.phase = 'charge'; T.sound?.fluidCharge?.(false);
+    }
+    if (this.charging) {
+      const C = this.charging;
+      C.t += dt;
+      if (!C.full && C.t >= CHARGE.full) {
+        C.full = true; T.sound?.fluidCharge?.(true);
+        const at = _o.copy(p.pos).addScaledVector(p.frame.up, 1.2);
+        T.rings?.add({ from: at, dir: p.frame.up, reach: 0.05, r0: 0.25, r1: 1.2, life: 0.3, color: '#fff6dc', thick: 1 });
+      }
+      // turned to the nearest foe while it gathers
+      const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
+      if (foe) { _a.subVectors(foe.position(), p.pos); _a.addScaledVector(p.frame.up, -_a.dot(p.frame.up)); if (_a.lengthSq() > 1e-6) this.dir.copy(_a).normalize(); }
+      if (!bladeHeld || !p.onGround) this.release();
+    }
+    if (this.swinging && !this.charging) {
       const previousTime = this.t * this.dur;
       this.t += dt / this.dur;
       this.sample = attackSample(this.spec, this.t * this.dur);
       this.phase = this.sample.phase;
-      if (!this.released && this.t * this.dur >= this.sample.wind) { this.released = true; T.sound?.fluidSlash?.(this.n); }
+      if (!this.released && this.t * this.dur >= this.sample.wind) {
+        this.released = true; T.sound?.fluidSlash?.(ENDS.has(this.special) ? 2 : this.n);
+        if (this.special === AIR && !p.onGround) p.airKick = { up: -AIR.plunge, ...(this.airPull ? { dir: this.dir, speed: 1 } : {}) };   // (the air cut: driven down into it, the carry in spent)
+      }
       // Player poses before the tool updates. Use the source time actually displayed, not
       // the next requested pose, so damage follows the visible hand even on a long frame.
       if (this.move) {
@@ -349,18 +448,23 @@ export class FluidBlade {
       } else if (this.t * this.dur >= this.sample.wind && previousTime < this.sample.wind + this.sample.active) this.strike();
       if (this.t >= 1) {
         this.last = this.n; this.n = -1; p.swingMove = null;
-        if (this.last === 2) { this.cool = BLADE.cooldown; this.chainT = 0; }
+        if (this.last === 2 || ENDS.has(this.special)) { this.cool = BLADE.cooldown; this.chainT = 0; }
         else { this.chainT = BLADE.chain; if (this.queued) this.start(this.last + 1); }
         this.queued = false;
       }
     }
     // A captured swing poses the whole grounded body; the aim layer only turns toward the target.
     if (this.swinging && this.move && T.k < 0.05) {
-      const S = this.move, u = Math.min(this.t, 1);
-      (p.swingMove ??= {}).clip = S.clip; p.swingMove.t = this.sample.t;
-      p.swingMove.full = !!p.onGround; p.swingMove.id = this.swingId;
-      p.swingMove.w = THREE.MathUtils.clamp(Math.min(u * this.dur / 0.07, (1 - u) * this.dur / 0.12), 0, 1);
-      this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
+      const S = this.move, u = Math.min(this.t, 1), m = (p.swingMove ??= {});
+      if (this.charging) { m.clip = CHARGE.clip; m.t = chargePose(this.charging.t); }
+      else { m.clip = S.clip; m.t = this.sample.t; }
+      m.air = S === AIR; m.full = !!p.onGround || m.air; m.id = this.swingId; m.blend = this.charging ? CHARGE.draw : 0.09;
+      // (in over 70 ms, out over 120; the charged cut let go is already in: no dip back toward the loops)
+      m.w = this.charging ? 1 : THREE.MathUtils.clamp(Math.min(S === CHARGE ? 1 : u * this.dur / 0.07, (1 - u) * this.dur / 0.12), 0, 1);
+      // (the riposte: turned into its chop, which comes down to his right)
+      this.pose.dir = this.special === RIPOSTE ? (this._turned ??= new THREE.Vector3()).copy(this.dir).applyAxisAngle(p.frame.up, RIPOSTE.turn) : this.dir;
+      this.pose.lead = this.special !== RIPOSTE;
+      this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.pose.dir, 3);
       this.pose.k = 1; this.pose.noArm = true;
       p.aim = this.pose;
     }
@@ -398,15 +502,20 @@ export class FluidBlade {
     } else if (!this.swinging && p.swingMove) p.swingMove = null;
     if (!want && this.guardK === 0) this.guardT = 0;
     this.lit += ((this.swinging ? 1 : 0) - this.lit) * (1 - Math.exp(-(this.swinging ? 30 : 9) * dt));
+    if (this.charging) this.lit = 0.8 + 0.2 * Math.sin(this.charging.t * (this.charging.full ? 26 : 12));   // (gathering: the blade pulses, faster once full)
     if (this.evadeT && p.onGround) {
       this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.dir, 3);
       this.pose.k = 1; this.pose.noArm = true; p.aim = this.pose;
       p.combatMotion = { dir: this.evadeDir, speed: EVADE.speed * (0.55 + 0.45 * Math.sin(Math.PI * this.evadeT / EVADE.duration)), scale: 0, evade: this.evadeT / EVADE.duration };
+    } else if (this.charging && p.onGround) {
+      p.combatMotion = { dir: this.dir, speed: 0, scale: CHARGE.move };   // (gathering: a slow step at most)
     } else if (this.swinging && p.onGround) {
       const active = this.phase === 'strike';
       // (closing in on a foe just out of reach: MAGNET, through the wind-up and the cut)
       const pull = this.phase !== 'recover' ? this.closeIn : 0;
-      p.combatMotion = { dir: this.dir, speed: Math.max(active ? (this.special === LUNGE ? 7 : 1.7) : 0, pull), scale: this.phase === 'recover' ? 0.45 : 0.15 };
+      // (the dash cut: carried on through its wind-up and cut, slowing through the follow-through)
+      if (this.special === DASH) p.combatMotion = { dir: this.dashDir, speed: this.phase === 'recover' ? this.dashSpeed * 0.25 * (1 - this.t) : this.dashSpeed, scale: 0.15, dash: true };
+      else p.combatMotion = { dir: this.dir, speed: Math.max(active ? (this.special === LUNGE ? 7 : 1.7) : 0, pull), scale: this.phase === 'recover' ? 0.45 : 0.15 };
     }
     // in a fight the blade stays in the fist (a while after, and all the time locked on), then is put away
     this.since += dt;
@@ -433,15 +542,20 @@ export class FluidBlade {
     this.guardArc = p && U ? D.arc(_o.copy(p.pos).addScaledVector(U, 1.1), U) : null;
   }
 
-  start(n) {
+  /** A swing: the combo's `n`th, or a counter (`force`: RIPOSTE, DASH). */
+  start(n, force = null) {
     const T = this.tool, p = T.player, U = p.frame.up;
     this.chained = this.n >= 0 || this.chainT > 0;
+    this.charging = null; this.chargeFull = false;
     this.n = n; this.t = 0; this.hit = false; this.released = false; this.phase = "wind"; this.swingId = (this.swingId ?? 0) + 1; this.hitTargets.clear(); this.previousBlade = null; this.contactT = null;
     // the captured swing if the clip is there, else the arc; grown: the whirl for the third, the lunge from a run
     // (the lunge: a swing begun at a run, or locked on and closing in fast)
     const closing = p.lockOn && p.vel && p.vel.dot(p.lockOn.dir) > 2.5;
-    this.special = !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
-    const S = this.special ?? SWINGS[n], A = p.animator;
+    // (in the air: the air cut, once an airtime, if its clip is there)
+    const A = p.animator, air = !force && !p.onGround && !!A?.moveClip?.(AIR.clip);
+    this.special = force ? force : air ? AIR : !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
+    if (air) this.airUsed = true;
+    const S = this.special ?? SWINGS[n];
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
     this.spec = S; this.sample = attackSample(S, 0); this.dur = this.sample.duration;
     this.hitAt = (this.sample.wind + this.sample.active * 0.45) / this.dur;
@@ -452,13 +566,52 @@ export class FluidBlade {
     // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself); one hovering
     // over you: a rising cut, up to it
     const flat = this.dir.length(), time = this.sample.wind + this.sample.active;
-    const rise = foe && this.special !== LUNGE && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
+    const rise = foe && this.special !== LUNGE && !force && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
     this.rising = !!rise;
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
-    this.closeIn = foe && !rise && this.special !== LUNGE && p.onGround ? closeInSpeed(flat, foe.radius ?? 0.6, time) : 0;
+    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.radius ?? 0.6, time, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : MAGNET) : 0;
+    if (force === DASH) {
+      // past the foe on its left (on his sword side), through its line; with none near, straight on
+      this.dashCool = DASH.cooldown; T.sound?.fluidDash?.();
+      const F = _f.copy(this.dir).normalize(), time = this.sample.wind + this.sample.active;
+      (this.dashDir ??= new THREE.Vector3()).copy(F); this.dashSpeed = DASH.speed;
+      if (foe && flat <= DASH.pull) {
+        const R = _r.crossVectors(F, U).normalize();
+        this.dashDir.copy(this.dir).addScaledVector(F, DASH.past).addScaledVector(R, -DASH.side);
+        this.dashSpeed = THREE.MathUtils.clamp(this.dashDir.length() / time, DASH.speed * 0.6, DASH.fastest);
+        this.dashDir.normalize();
+      }
+    }
+    if (force === RIPOSTE) {
+      // (turned into the chop at once: it comes down RIPOSTE.turn to his right)
+      p.heading = p.frame.headingOf(_f.copy(this.dir).normalize().applyAxisAngle(U, RIPOSTE.turn));
+      T.sound?.fluidRiposte?.(false);
+      const at = _o.copy(p.pos).addScaledVector(U, 1.2);
+      T.rings?.add({ from: at, dir: U, reach: 0.05, r0: 0.3, r1: 1.5, life: 0.28, color: RIPOSTE_GOLD, thick: 1 });
+    }
+    // the air cut: held a moment at the top, and carried in to a foe a little out of reach (AIR.pull) as the ground's pull does
+    if (air) {
+      const reach = foe ? closeInSpeed(flat, foe.radius ?? 0.6, this.sample.wind, { ideal: AIR.ideal, max: AIR.pull }) : 0;
+      this.airPull = reach > 0;
+      p.airKick = { up: Math.max(p.vel ? p.vel.dot(U) : 0, AIR.lift), ...(reach > 0 ? { dir: this.dir.clone().normalize(), speed: reach } : {}) };
+    }
     if (this.dir.lengthSq() < 1e-6) p.frame.dir(p.heading, this.dir);
     this.dir.normalize();
     T.used('blade', p.pos);
+  }
+
+  /** The charge let go (CHARGE): the clip's own swing from the cocked pose, full or not. */
+  release() {
+    const p = this.tool.player;
+    this.chargeFull = !!this.charging?.full; this.charging = null;
+    this.special = CHARGE; this.spec = CHARGE; this.move = p?.animator?.moveClip?.(CHARGE.clip) ? CHARGE : null;
+    this.t = 0; this.released = false; this.hit = false; this.hitTargets.clear(); this.previousBlade = null; this.contactT = null;
+    this.sample = attackSample(CHARGE, 0); this.dur = this.sample.duration; this.phase = 'wind';
+    this.hitAt = (this.sample.wind + this.sample.active * 0.45) / this.dur;
+    // (a foe a little out of reach: the sweep steps you in, as a swing does: MAGNET)
+    const T = this.tool, foe = p ? lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null) : null;
+    if (foe && p.onGround) { _a.subVectors(foe.position(), p.pos); _a.addScaledVector(p.frame.up, -_a.dot(p.frame.up)); }
+    this.closeIn = foe && p.onGround ? closeInSpeed(_a.length(), foe.radius ?? 0.6, this.sample.wind + this.sample.active) : 0;
   }
 
   /** The active cut: coarse range/occlusion first, then the actual swept blade. */
@@ -466,18 +619,27 @@ export class FluidBlade {
     const T = this.tool, S = this.special;
     this.cutNow = true;
     const C = this.coarse(this._coarse ??= { origin: _o }), origin = C.origin;
-    let hits = bladeHits(origin, this.dir, T.physics, { reach: C.reach, angle: C.angle });
+    let hits = bladeHits(origin, C.dir, T.physics, { reach: C.reach, angle: C.angle });
     const pose = this.rising ? null : this.bladeSegment();   // (the rising cut: the leap's cone, the arms swing level)
     if (pose) hits = hits.filter((h) => sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
-    const info = { ...T.info(), damage: S?.damage ?? BLADE.damage[this.n] ?? 1, combo: S ? 2 : this.n };
+    const damage = S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1;
+    const info = { ...T.info(), damage, combo: S ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}) };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
     // wildlife in the cone scatters (it doesn't list the blade: it never feels it, it just runs)
     for (const h of targetsInCone(origin, this.dir, BLADE.reach, BLADE.angle, T.physics)) if (h.target.kind === 'wildlife' && !this.hitTargets.has(h.target)) { this.hitTargets.add(h.target); h.target.onHit?.('push', h.point, h.dir, info); }
     if (hits.length) {
       T.lastHit = 'target';
-      hitStop(this.n === 2 || this.special ? 0.11 : 0.06); kick(this.n === 2 || this.special ? 0.5 : 0.25);   // (the cut lands: the frame freezes, src/feel.js)
+      hitStop((S === CHARGE && this.chargeFull) || S === RIPOSTE ? 0.15 : this.n === 2 || S ? 0.11 : 0.06); kick(S === CHARGE || S === RIPOSTE ? 0.7 : this.n === 2 || S ? 0.5 : 0.25);   // (the cut lands: the frame freezes, src/feel.js)
+      if (S === RIPOSTE) {
+        // (the riposte lands: a gold burst off the foe, a ring-out)
+        T.sound?.fluidRiposte?.(true);
+        for (const h of hits) {
+          T.rings?.add({ from: h.point, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.4, life: 0.32, color: RIPOSTE_GOLD, thick: 1 });
+          for (let i = 0; i < 14; i++) T.glow?.add({ pos: h.point, vel: _a.randomDirection().multiplyScalar(3), drag: 3, size: 0.06, life: 0.45, color: i % 2 ? '#fff6dc' : RIPOSTE_GOLD, grow: true });
+        }
+      }
       for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6);
       this.hit = true;
     }
@@ -497,7 +659,7 @@ export class FluidBlade {
     return { a: new THREE.Vector3(0, base, 0).applyMatrix4(g.matrixWorld), b: new THREE.Vector3(0, base + len, 0).applyMatrix4(g.matrixWorld) };
   }
 
-  stop() { if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
+  stop() { this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
 
   fade(dt) { this.lit += (0 - this.lit) * (1 - Math.exp(-12 * dt)); this.place(dt); }
 
@@ -532,11 +694,26 @@ export class FluidBlade {
     }
     this.bladeGroup.visible = this.lit > 0.03;
     this.bladeGroup.scale.set(1, Math.max(0.05, this.lit) * bladeScale(T.state, this.builtLength), 1);   // (the blade grows out of the guard as it lights; its length tuned and upgraded)
-    if (this.swinging && dt > 0) {
-      const seg = this.bladeSegment() ?? { a: this.group.getWorldPosition(_a), b: _b.copy(this.point) }, tones = T.modeTones;
-      // a fine trail: small sparks along the edge, gone in a blink (the blade itself carries the look)
-      for (let i = 0; i < 4; i++) T.glow.add({ pos: _o.lerpVectors(seg.a, seg.b, 0.35 + i * 0.21), vel: _r.set(0, 0, 0), drag: 8, size: 0.012 + i * 0.004, life: 0.09, color: tones[(this.n + i) % tones.length], grow: false });
+    const seg = this.swinging && dt > 0 ? this.bladeSegment() ?? { a: this.group.getWorldPosition(_a).clone(), b: this.point.clone() } : null;
+    if (seg) {
+      const tones = T.modeTones, from = this.trailFrom, n = this.n < 0 ? 0 : this.n;
+      if (this.charging) {
+        // gathering: sparks drawn in to the blade from round it
+        for (let i = 0; i < (this.charging.full ? 3 : 2); i++) {
+          const at = _o.lerpVectors(seg.a, seg.b, Math.random()), off = _r.randomDirection().multiplyScalar(0.35);
+          T.glow.add({ pos: at.add(off), vel: off.multiplyScalar(-4), drag: 2, size: 0.016, life: 0.12, color: this.charging.full ? '#fff6dc' : tones[i % tones.length], grow: false });
+        }
+      } else if (trailCut(this) && from) {
+        // the cut (the clip's own swing frames: activeRange): a sweep of sparks over the ground the edge crossed since the last frame
+        const steps = Math.min(8, Math.max(1, Math.ceil(from.b.distanceTo(seg.b) / 0.08)));
+        for (let k = 1; k <= steps; k++) for (let i = 0; i < 3; i++) {
+          const u = k / steps, x = 0.45 + i * 0.27;
+          _a.lerpVectors(from.a, seg.a, u); _b.lerpVectors(from.b, seg.b, u);
+          T.glow.add({ pos: _o.lerpVectors(_a, _b, x), vel: _r.set(0, 0, 0), drag: 8, size: 0.014 + i * 0.006, life: 0.14, color: tones[(n + i) % tones.length], grow: false });
+        }
+      } else T.glow.add({ pos: _o.lerpVectors(seg.a, seg.b, 0.9), vel: _r.set(0, 0, 0), drag: 8, size: 0.01, life: 0.06, color: tones[n % tones.length], grow: false });   // (wind-up, follow-through: a glint at the tip)
     }
+    this.trailFrom = seg ? { a: seg.a.clone(), b: seg.b.clone() } : null;
   }
 
   /**

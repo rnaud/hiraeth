@@ -41,9 +41,9 @@ const CSS = `
 #cine .fade.white { background: #fff6dc; }
 #cine .red { position: absolute; inset: 0; opacity: 0; mix-blend-mode: multiply;
   background: radial-gradient(ellipse at center, rgba(255, 150, 130, .55) 30%, rgba(170, 30, 25, .95) 100%); }
-#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: 13px ui-monospace, Menlo, monospace; color: #2b211f;
-  width: max-content; max-width: calc(100vw - 40px); box-sizing: border-box; text-align: center;
-  padding: 6px 12px; background: rgba(255, 246, 220, .92); border: 1.5px solid #2b211f; opacity: 0; transition: opacity .4s; }
+#cine .hint { position: absolute; left: 50%; top: calc(11vh + 12px); transform: translateX(-50%); font: 12px ui-monospace, Menlo, monospace; color: #2b211f;
+  width: max-content; max-width: min(560px, calc(100vw - 40px)); box-sizing: border-box; text-align: center;
+  padding: 4px 11px; background: rgba(255, 246, 220, .84); border: 1px solid rgba(43, 33, 31, .5); border-radius: 10px; opacity: 0; transition: opacity .4s; }
 #cine .hint.show { opacity: 1; transition: opacity .4s, top .3s; }
 #objective { position: fixed; left: 50%; top: 18vh; transform: translateX(-50%); z-index: 7900; pointer-events: none; text-align: center; opacity: 0;
   width: max-content; max-width: min(640px, calc(100vw - 32px)); font: 13px ui-monospace, Menlo, monospace; color: #2b211f; }
@@ -63,6 +63,16 @@ export const holdToSkip = (kind = inputKind()) => (kind === 'pad' ? `hold ${back
 const hasDOM = () => typeof document !== 'undefined' && !!document.body;
 /** A toast's, a hint's or the objective's words into their box: plain text, a {key:verb} as the player's own key or button (src/prompt-keys.js). */
 const setText = (el, text) => { if (hasKeys(text)) el.innerHTML = keyText(escapeHtml(text), { html: true }); else el.textContent = text; };
+
+/**
+ * A quest's start, as its toast says it (the toast with class "quest", index.html): a small head
+ * ("New quest", "New errand") over the quest's title and its first step. Plain HTML, the step's
+ * {key:verb} as the player's own key or button.
+ */
+export function questToastHtml({ head = 'New quest', title = '', step = '' } = {}) {
+  const k = (s) => (hasKeys(s) ? keyText(escapeHtml(s), { html: true }) : escapeHtml(s));
+  return `<span class="qk">◆ ${escapeHtml(head)}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}`;
+}
 
 /** Seconds a line of `text` needs on screen (as the calls time theirs). */
 export const readTime = (text) => Math.min(6.2, 1.4 + String(text ?? '').length * 0.052);
@@ -93,6 +103,22 @@ export function layoutCinema({ w, h, bars = false, items = [], obstacles = [], s
   const free = (r) => !obstacles.some((o) => hit(r, o, gap / 2)) && !placed.some((p) => hit(r, p, gap / 2));
   const put = (id, r) => { placed.push(r); rects[id] = r; if (r.y0 < -0.5 || r.y1 > h + 0.5 || r.x0 < -0.5 || r.x1 > w + 0.5) fits = false; };
   const top0 = (bar ? bar : S.top) + margin, bot0 = h - (bar ? bar : S.bottom) - margin;
+  /** r where it is, or moved sideways along its row to the free span nearest where it was (null: none wide enough). */
+  const slide = (r) => {
+    if (free(r)) return r;
+    const iw = r.x1 - r.x0, lo = S.left + margin, hi = w - S.right - margin;
+    const row = [...obstacles, ...placed].filter((o) => Math.min(r.y1, o.y1) - Math.max(r.y0, o.y0) > -gap / 2).sort((a, b) => a.x0 - b.x0);
+    let best = null, a = lo;
+    for (const o of [...row, { x0: hi + gap, x1: hi + gap }]) {
+      const b = o.x0 - gap;
+      if (b - a >= iw) {
+        const x = Math.min(Math.max(r.x0, a), b - iw), c = { x0: x, y0: r.y0, x1: x + iw, y1: r.y1 };
+        if (free(c) && (!best || Math.abs(x - r.x0) < Math.abs(best.x0 - r.x0))) best = c;
+      }
+      a = Math.max(a, o.x1 + gap);
+    }
+    return best;
+  };
   for (const it of items) {
     const iw = Math.min(it.w, w - 2 * margin), ih = it.h;
     if (it.place === 'corner') {
@@ -128,14 +154,17 @@ export function layoutCinema({ w, h, bars = false, items = [], obstacles = [], s
       }
       put(it.id, { x0, y0: y1 - ih, x1, y1 });
     } else {
-      let y0 = Math.max(top0, it.minTop ?? 0);
-      for (let k = 0; k < 40; k++) {
-        const r = { x0, y0, x1, y1: y0 + ih };
-        if (free(r)) break;
-        const blockers = [...obstacles, ...placed].filter((o) => hit(r, o, gap / 2));
-        y0 = Math.max(...blockers.map((o) => o.y1)) + gap;
+      // centred when it can be; else slid sideways into the row's widest gap nearest the centre (a phone's
+      // buttons down the right, the health bar top left); else the next row down
+      let y0 = Math.max(top0, it.minTop ?? 0), r = null;
+      for (let k = 0; k < 40 && !r; k++) {
+        r = slide({ x0, y0, x1, y1: y0 + ih });
+        if (r) break;
+        const band = { x0: S.left, y0, x1: w - S.right, y1: y0 + ih };
+        const blockers = [...obstacles, ...placed].filter((o) => hit(band, o, gap / 2));
+        y0 = (blockers.length ? Math.min(...blockers.map((o) => o.y1)) : y0) + gap;
       }
-      put(it.id, { x0, y0, x1, y1: y0 + ih });
+      put(it.id, r ?? { x0, y0, x1, y1: y0 + ih });
     }
   }
   // nothing but the skip bar may sit on the letterbox
@@ -192,8 +221,10 @@ function shown(e) {
   const r = e.getBoundingClientRect();
   return r.width > 1 && r.height > 1 ? { x0: r.left, y0: r.top, x1: r.right, y1: r.bottom } : null;
 }
-const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on';
-const OBSTACLES = ['#cue.show', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
+// (.mg-hud on: a game or a challenge is being played, its clock and goal the only words on the screen: src/minigames/kit/runner.js)
+const HOLD_TOASTS = '#homeward.open, #starmap.open, #page.open, #journal.open, #warp.on, .mg-hud:not(.off)';
+// (#health whether it shows or not: it comes up the moment you are hurt, and a toast must never sit on it)
+export const OBSTACLES = ['#health', '#cue.show', '#gear', '#fps', '#touch button', '#controller-hint', '#dialogue.open .dlg-panel', '#dialogue.open .dlg-who', '#dialogue.open .dlg-tag', '#boxscene.card #boxcard', '#boxscene.on .skip'];
 
 export class Cinema {
   constructor() {
@@ -231,6 +262,7 @@ export class Cinema {
   }
 
   bars(on) {
+    this._bars = on; if (!on) this._walk = false;   // (toasts wait for a letterboxed scene's end, unless you walk through it: dark())
     if (!this.dom) return;
     this.el.classList.toggle('on', on);
     document.body.classList.toggle('cine-on', on);
@@ -259,6 +291,7 @@ export class Cinema {
 
   _showLine() {
     speakLine(this.subs.line);   // the voice under the line now up (src/story/voice.js; null hushes it)
+    if (this.subs.line?.text) this.onWords?.(this.subs.line.text);   // (words on the screen: main.js listens for the hum)
     if (!this.dom) return;
     const line = this.subs.line;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }
@@ -283,6 +316,7 @@ export class Cinema {
 
   /** Show only the touch controls and the use prompt (the rest of the HUD stays hidden): a scene you walk through. */
   controls(show) {
+    this._walk = show;
     if (!this.dom) return;
     const t = document.getElementById('touch');
     if (t) t.style.visibility = show ? '' : 'hidden';
@@ -305,7 +339,7 @@ export class Cinema {
     this.skipK = k;
     if (!this.dom) return;
     const txt = label ?? holdToSkip(), node = this.skipEl.firstChild;
-    if (node && node.nodeType === 3 && node.nodeValue !== txt && (show || !label)) node.nodeValue = txt;
+    if (node && node.nodeType === 3 && node.nodeValue !== txt && show) node.nodeValue = txt;   // (only as it shows: swapped while fading out, a moment's tag flashed "hold ESC to skip")
     this.skipEl.classList.toggle('press', !!label && show);
     const was = this.skipEl.classList.contains('show');
     this.skipEl.classList.toggle('show', show);
@@ -334,9 +368,9 @@ export class Cinema {
    * has a few seconds before the next replaces it, and they wait while a scene
    * has the screen dark or the eyes shut. Placed by layout() like the rest.
    */
-  toast(text) {
+  toast(text, o = null) {
     if (!text) return;
-    if (this.toasts.at(-1) !== text) this.toasts.push(text);
+    if (this.toasts.at(-1)?.text !== text) this.toasts.push({ text, ...(o?.kind === 'quest' ? o : {}) });
     this._pumpToasts();
   }
 
@@ -347,15 +381,21 @@ export class Cinema {
   dark() {
     if (!this.dom) return false;
     if (this.held) return true;   // (a moment plays: src/story/moment.js; its toasts come after)
+    if (this._bars && !this._walk) return true;   // (a ship's scene, a recording: a quest's toast over it read as clutter, the cinematics QC pass)
     return this._lidK < 0.9 || this.el.classList.contains('lids') || (parseFloat(this.fadeEl.style.opacity) || 0) > 0.5
       || !!document.querySelector(HOLD_TOASTS);
   }
 
   _pumpToasts() {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
-    const text = this.toasts.shift(), secs = toastSeconds(text);
+    const item = this.toasts.shift(), text = item.text, quest = item.kind === 'quest';
+    const secs = toastSeconds(text) + (quest ? 1 : 0);   // (a quest's start: a moment longer, it is three lines)
+    this.onWords?.(text);   // (words on the screen: main.js listens for the hum)
     screen.toast(keyText(text), secs);   // (as data too: platform.js screen.toast)
-    setText(this.toastEl, text); this._toastText = text;
+    // a quest's start looks unlike the other notices: its own card (questToastHtml, index.html #toast.quest)
+    if (quest) this.toastEl.innerHTML = questToastHtml(item); else setText(this.toastEl, text);
+    this.toastEl.classList.toggle('quest', quest);
+    this._toastItem = item;
     this.toastEl.style.animationDuration = `${secs}s`;
     this.toastEl.classList.remove('show');
     this._toastT = secs * 0.58;   // read before the next may take its place (it fades by itself after secs)
@@ -372,7 +412,7 @@ export class Cinema {
     // a toast that went up just before the screen went dark (the opening's black, the eyes shut) comes back after
     const T = this.toastEl;
     if (T && T.classList.contains('show') && this.dark()) {
-      if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift(this._toastText ?? T.textContent);   // (else it was fading out anyway)
+      if (performance.now() - (this._toastAt ?? 0) < 3200) this.toasts.unshift(this._toastItem ?? { text: T.textContent });   // (else it was fading out anyway)
       T.classList.remove('show');
       this._toastT = 0;
       this.layout();
@@ -411,7 +451,7 @@ export class Cinema {
     for (const [id, r] of Object.entries(L.rects)) {
       if (id === 'sub') { set(this.sub, 'bottom', innerHeight - r.y1); document.documentElement.style.setProperty('--cine-sub-clear', `${Math.round(innerHeight - r.y0 + 10)}px`); }
       else if (id === 'skip') { set(this.skipEl, 'bottom', innerHeight - r.y1); set(this.skipEl, 'right', innerWidth - r.x1); }
-      else set(els[id], 'top', r.y0);
+      else { set(els[id], 'top', r.y0); set(els[id], 'left', (r.x0 + r.x1) / 2); }   // (left: its centre, the CSS translates it by half its width)
     }
     if (!L.rects.sub) document.documentElement.style.removeProperty('--cine-sub-clear');
   }
@@ -420,6 +460,29 @@ export class Cinema {
 }
 
 /** Travel between worlds: ink streaks rushing out from the centre, then the destination's name. */
+/**
+ * The jump to space (the take-off's last seconds, then the loading screen of the next world): it used to be
+ * ink streaks on the paper's cream, a white page between a dusty sky and a new world that read as a glitch.
+ * Now space opens from the middle of the screen: a disc of the night's ink grows out over the climb (`hole`,
+ * the share of the screen's half-diagonal it covers, eased), the streaks are drawn in the paper's cream, a
+ * little teal and red on it, and a few fixed stars show; the paper is only the course card's. The next world's
+ * loading screen keeps the same ink (index.html #loading.space, ?via=ship).
+ */
+export const WARP = {
+  space: '#151a2b',    // the night's ink: the same as the loading screen's (index.html #loading.space)
+  ink: '#2b211f', paper: '#f7ecd2',
+  streaks: ['#f7ecd2', '#62c3c9', '#e0705f'],   // cream, the teal and the red, light on the dark
+  open: 0.9,           // s: the disc covers the screen
+  stars: 90,
+};
+
+/** The warp's look at `t` seconds: the disc's reach (0..1 of the half-diagonal) and how far the streaks are drawn. */
+export function warpLook(t) {
+  const k = Math.min(1, Math.max(0, t / WARP.open));
+  const hole = k * k * (3 - 2 * k);   // (smoothstep: a slow start, out to the corners)
+  return { hole, speed: Math.min(1, Math.max(0, t / 1.2)) };
+}
+
 export class Warp {
   constructor() {
     if (!hasDOM()) return;
@@ -429,6 +492,7 @@ export class Warp {
     document.body.appendChild(el);
     this.canvas = el.querySelector('canvas');
     this.streaks = Array.from({ length: 220 }, () => ({ a: Math.random() * Math.PI * 2, r: Math.random(), v: 0.4 + Math.random(), w: 1 + Math.random() * 2.5, c: Math.random() }));
+    this.stars = Array.from({ length: WARP.stars }, () => ({ x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 1.4 }));
   }
   start(title) {
     if (!this.el) return;
@@ -440,14 +504,25 @@ export class Warp {
     if (!this.el || !this.el.classList.contains('on')) return;
     this.t += dt;
     const c = this.canvas, W = (c.width = innerWidth), H = (c.height = innerHeight), g = c.getContext('2d');
-    g.fillStyle = '#f7ecd2'; g.fillRect(0, 0, W, H);
-    const cx = W / 2, cy = H / 2, R = Math.hypot(cx, cy), k = Math.min(1, this.t / 1.2);
+    const cx = W / 2, cy = H / 2, R = Math.hypot(cx, cy), { hole, speed: k } = warpLook(this.t);
+    // the climb's sky fades in under the element (its opacity); space opens out of the middle of it, an inked rim round the disc
+    g.clearRect(0, 0, W, H);
+    if (hole < 1) { g.fillStyle = WARP.paper; g.globalAlpha = 0.35 + 0.65 * hole; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
+    const rh = hole >= 1 ? R * 1.5 : Math.max(1, hole * R * 1.04);
+    g.fillStyle = WARP.space;
+    g.beginPath(); g.arc(cx, cy, rh, 0, Math.PI * 2); g.fill();
+    if (hole < 1) { g.strokeStyle = WARP.ink; g.lineWidth = 3; g.stroke(); }
+    g.save(); g.beginPath(); g.arc(cx, cy, rh, 0, Math.PI * 2); g.clip();
+    g.fillStyle = WARP.paper;
+    for (const st of this.stars) { g.globalAlpha = 0.55; g.fillRect(st.x * W, st.y * H, st.s, st.s); }
+    g.globalAlpha = 1;
     for (const s of this.streaks) {
       s.r = (s.r + dt * s.v * (0.3 + 1.6 * k)) % 1;
       const r0 = s.r * s.r * R, r1 = r0 + (30 + 260 * k) * s.r;
-      g.strokeStyle = s.c < 0.12 ? '#c8483a' : s.c < 0.22 ? '#277e86' : '#2b211f';
+      g.strokeStyle = s.c < 0.12 ? WARP.streaks[2] : s.c < 0.22 ? WARP.streaks[1] : WARP.streaks[0];
       g.lineWidth = s.w * (0.4 + s.r);
       g.beginPath(); g.moveTo(cx + Math.cos(s.a) * r0, cy + Math.sin(s.a) * r0); g.lineTo(cx + Math.cos(s.a) * r1, cy + Math.sin(s.a) * r1); g.stroke();
     }
+    g.restore();
   }
 }

@@ -225,7 +225,9 @@ export function* buildArzach(scene) {
     palm.geometry.translate(0, 13, 0);
     hand.add(palm);
     seg(9, 26, new THREE.Vector3(0, -24, -2), new THREE.Vector3(0, 1, -0.12));   // forearm
-    const fingers = [[-9.5, -0.32, 15, 12], [-3.2, -0.1, 18, 14], [3.2, 0.1, 17, 13], [9.5, 0.3, 13, 11]];
+    // (index, middle, ring, little; [x, spread, first joint, rest]: clearly graded, little to middle, so the
+    // knuckles' riddle, smallest to tallest, can be read by looking: src/story/knuckle-riddle.js)
+    const fingers = [[-9.5, -0.32, 14, 11], [-3.2, -0.1, 20, 15], [3.2, 0.1, 17, 13], [9.5, 0.3, 8, 6]];
     const knuckles = [];
     for (const [fx, spread, l1, l2] of fingers) {
       const base = new THREE.Vector3(fx, 25, 0);

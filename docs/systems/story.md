@@ -120,6 +120,16 @@ themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test
   finishing another world, `perdide2.promise.kept`; with Ilen's news he hears where Odile and Talo went,
   `src/story/perdide2-data.js promiseDue`); Esk's hill in Viridel (the quest that fails). Each has a line of
   his at the first homecoming, a reply of Ilen's at the Lantern, and a line of hers at the stone.
+  A save from before the token was a choice (the keepsake given outright, no `incal.token`) reads as kept
+  (`src/save-migrate.js` step 3, which reads the keepsakes too): the Lantern's `tokenKept`, and Dov's `lit`
+  has a line for a kept token.
+- **The route's people hear about Ilen** (October 2026). Once he knows who she was (`calls.ilen.told`), one
+  answer each, once: Madame Sel's `after` (the Signal Market: "Ilen was my sister", `sister`, she hears it
+  was the first of her two readings; `bazaar.sel.ilen`), Hollin's `after` (Lorn II: "I had a sister",
+  `perdide2.hollin.ilen`, only before the Lantern) and Nour's `after` (the desert: the singing light her
+  parents heard, `desert.nour.ilen`, only before the Lantern). Once he has found her (`finale.met`), Sel hears
+  she heard it (`found`, `bazaar.sel.found`), and Hollin's `after` offers Odile and Talo's news too (it was
+  only in `came`, the kept promise; `perdide2.hollin.found` stops it twice). Tests: `tests/route-ilen.test.js`.
 - **Old saves** (`src/save-migrate.js` step 2): a save that ended under the old rules has had its first
   homecoming (`ending.first: 'old'`); the reel the old ending left on the slab is his again until the true
   ending; the ship's log waits on the voicemail; the Lantern opens once the market has been heard.
@@ -265,6 +275,12 @@ walkthroughs and local names; each data file's header lists its flags.
   a click, A / × and B / ○). The press that asks never answers: held keys repeat
   (`e.repeat`), the pad needs a fresh A, and a Yes within 150 ms of the question is ignored.
   B or Esc in the question says no and leaves the map open.
+- **Only finished worlds are charted** (playtest 2026-10-08): `WIP` in `src/levels/names.js` lists the
+  worlds still being made (the twelve detours built in October 2026, never vetted or finished). The ship's
+  map is given `CHARTED_SIDE` (the detours minus `WIP`, none for now) instead of `SIDE`, and the Sightings
+  page leaves out the slots of a `WIP` world unless one was already met there. The worlds list (L, Debug),
+  the dev menu (\`) and `?level=<id>` still open every world. To release a detour, play it through and
+  take it out of `WIP`: the map charts it from then on. `tests/menus-settings.test.js`.
 - **The gates are gone:** the stone gates (`Gate` in `quest.js`), the page-turn transition
   and the edge crossings (`via=gate`, `via=edge`) were removed; the scout's last objective is
   "Back to the ship". Ship sites no longer keep clear of the old gate spots; the City-Shaft and the market,
@@ -344,7 +360,11 @@ walkthroughs and local names; each data file's header lists its flags.
   by hand against the G-buffer so the traveller in front still hides it, then lays it over
   the frame, slightly translucent, with a soft bloom of its own colours. `callShot` frames
   it from behind his right shoulder and pushes in on the busts' faces (`CALL_FACE`) while
-  the hologram is up (`st.close`); `faceRecording` keeps him turned to it. At the stone the
+  the hologram is up (`st.close`); `faceRecording` keeps him turned to it. While the busts are
+  up a recording cuts to other angles at the start of a line (`callCuts`, `callAngle`: the two
+  faces close from his left, his face from over the dash, wide from the side with the window;
+  his own lines on his face; each held 4.5 s at least) and goes back behind him as they fold;
+  after the fold his own lines cut to his face again. Words and timing are unchanged. At the stone the
   three busts (`REEL_HOLO`) rise over the reel, looking up at him.
 - **The stone** (`src/levels/home.js` `buildTomb`, `src/ship/homecoming.js`,
   `src/story/ending.js`): nobody waits at the door; the window is dark. The cargo check lists
@@ -353,7 +373,9 @@ walkthroughs and local names; each data file's header lists its flags.
   charm, the glyph lens, the bell-note whistle, the listening shell and the echo shell (since the
   second story pass), the pale star; not the backpack, jets or wings). He walks to the parents' stone in the front yard and sets each token on
   the slab (`tombSlots`, `tokenModel`; one short line each, `tombLines`, on a brisk
-  `tombTimeline`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
+  `tombTimeline`; the camera cuts between over his shoulder, his hands along the slab, his face from
+  the headstone and Lou's face as she speaks, at a line's start, 4 s at least each: `tombCuts`,
+  `TOMB_ANGLES`), last the reel (`reelModel`), which plays `FINAL_RECORDING`, the oldest,
   as a hologram of the three of them over the stone. Then the closing line, an end card and
   the credits ("Left on the stone"). `ending.keepsake` is `all`; saves that ended with one
   keepsake chosen keep it. Coming back later, the stone keeps its tokens.
@@ -414,9 +436,8 @@ catches**), the ship.
     (`dregsText`, `verbKey`), and so does the pool's first fill (`filledText`).
   - **Four talks became two**: Nour has you listen at the dry well with her in her own talk (her
     `rim` node, `desert.well.seen`; the well can still be looked at), and Ama's jar and the
-    Speaker's old words are one stage, `ask` (flag `desert.asked`, set by `askedBoth` once both
-    `desert.jar.given` and `desert.speaker.heard` are; the marker, `askWho`, is on Ama until the jar
-    is yours, then the Speaker). Stages now: city, box, elder, ask, down, channel, fill, …
+    Speaker's old words were one stage, `ask` (since the first hour was shortened, below, it is Ama's
+    jar alone). Stages now: city, box, elder, ask, down, channel, fill, …
   - **Old saves** (`desert.quest.v` 4, `STAGE_MERGE` in `desert-data.js`): a save at the old `well`,
     `ama` or `speaker` stage goes to `ask` and keeps what it did (it advances at once if both were
     done). A v1 save first goes through `STAGE_MIGRATION` (to Nour), as before.
@@ -428,6 +449,41 @@ catches**), the ship.
     **bell** glinting in the sand near the end, a flash every few seconds (the sun on it) big
     enough to see from the saddle; ring it; the Speaker hears of it (`desert.way.bell`,
     `desert.way.told`). `tests/desert-spark.test.js` covers them and the v4 migration.
+- **The first hour shorter (October 2026, `docs/fun-and-story-review.md` item 5)**: the review's "three talk
+  stages in a row" were still three talks after the chest (Nour, Ama, the Speaker), and the ride's three
+  things blinked past at 34 m/s.
+  - **Nour says the verse.** Her `quest` node gives the Speaker's line herself ("Where the giant's eyes are
+    marked, its mouth is a door", the marked skull beyond the back gate), so `ask` is **Ama's jar alone**:
+    `askedDone` (`src/story/desert.js`) sets `desert.asked` once `desert.jar.given` is; the stage's marker is
+    on Ama (`at: 'ama'`; `askWho` is gone). Ama's `power` points at the skull. The Speaker is a stage no
+    more but keeps his whole talk (the giants carried the water from the swamp of lights, the clue
+    `clue.desert.perdide`, `desert.speaker.heard`) for whoever walks with him; Nour's `down` and Ama's
+    `power` say he keeps the old words whole. Old saves at `ask` with the jar pass on at once.
+  - **The jar on the way in.** Ama's `early` (before Nour has sent you) leads to `jarEarly`, which gives the
+    jar (only offered while `desert.jar.given` is unset); then Nour's `quest`, `rim` and `again` say the jar
+    is on your hip already (`{ if: { has: 'jar' } }` lines) and `ask` passes the moment it comes. The camps
+    lie on the way from the ship to the gate; the back gate is beside the tree.
+  - **Ama calls you over for it.** While `amaCallsYou` (`src/story/desert.js`: no `desert.jar.given`, the tree
+    cold), her shout as you come up to the camps before the chest is `CALLS.ama[0]` (come by my fire, a jar
+    that wants carrying) instead of "To the city!" (`amaCampShout`), and she is a caller ("calling you over")
+    with `max: 2`: the shout counts, so one more word at most as you pass within 14 m. Callers take an
+    optional `max` and `flag`; hers sets `desert.ama.called`, which gives her `hello` the answer "You called
+    me over. A jar?" (`jarCalled`, the same jar). With the jar given she waves you on as before.
+  - **The ride, called out.** `setupWay` names each place once as it comes up ahead on the errand (stages
+    `hearth`, `stone`, `light`): moving toward it (from where you were 2 m back) and within `CALL.range`
+    (130 m; the Hearth's door 320 m, on the way out only), not nearer than `CALL.near` (18 m), and not once
+    it is done (the bowl filled, `desert.way.camp`, `desert.way.bell`). The line (`CALLS`: what you would see
+    from the saddle, no lore) goes to `ctx.cue`, which main.js points at the drone's line under the view
+    (`scoutSays`, 6 s): a toast waits its turn in the queue, and "ahead" said late is behind you. Without a
+    cue (the tests) it is a toast.
+  - **Measured** (the story on the game's own modules, a direct player's shortest answers; words at 48
+    letters a second plus 1.2 s a page and 1.5 s an answer, walking 6 m/s in straight lines, the Speaker at
+    an average place on his loop): talks before the way down 4 → 3 (after the chest 3 → 2; 1 with the jar
+    on the way in), pages 24 → 15, answers 10 → 6, walk 1040 → 865 m (625 m), stepping out to the giant's
+    mouth ~275 → ~210 s (~174 s). The ride stays 1.6 km (~48 s each way at top speed).
+  - Tests: `tests/desert-spark.test.js` (the merged stage on the jar alone, the jar on the way in, Ama's
+    call twice at most and only without the jar, the call-outs out and home and not off the errand), `tests/desert-story.test.js` (the chain: Ama, then the
+    way down; the Speaker optional).
 - **Tests**: `tests/desert-story.test.js` plays the chain end to end (the empty tank, the lever,
   the fill, the rise, Nour, Marrow, the bike, the Hearth, the grille, the stone, the lighting,
   the ship); `tests/desert-spark.test.js` covers the migrations, the cold tree (no burn, the
@@ -646,3 +702,17 @@ world holds one more.
 - Tests: `tests/sightings.test.js` (every route sighting is keyed on a real line or flag; written down
   once, with a word, and kept in the save; an old save written quietly; the page), and
   `tests/detour-traces.test.js` (one trace a detour world, each set by its own line).
+
+## Vael's stone hand: the knuckle riddle (`src/story/knuckle-riddle.js`, v1.1)
+
+Shoot the four knuckles smallest finger to tallest: little, first (index), ring, middle (`KNUCKLE_ORDER`
+[3, 0, 2, 1], from the thumb side). After the 2026-10-08 playtest found it unclear, it is readable by looking:
+- the fingers are clearly graded (src/levels/arzach.js: knuckles at 8, 14, 17, 20 m up the finger) and the
+  knuckle stones with them (`RIDDLE.radius` 3.5-4.7 m, every one wider than the finger's 3 m);
+- one to four dots are cut on each knuckle's palm side, its place in the order (`dots`);
+- a right knuckle rings its note (a rising scale) and stays lit, so the chain shows; a miss gives a dull
+  knock, all four flash rust and go dark, and the chain starts again (from that knuckle if it is the first);
+- the second miss: Kesh calls the order out (`KNUCKLE_LINES.call`) and the journal's step spells it
+  (`KNUCKLE_HINT_STEP`, flag `arzach.hand.hint`); from the third, the next right knuckle glints.
+The hand's own text and Kesh's repeat both point at the dots. `strikeKnuckle` is the pure state machine
+(tests/knuckle-riddle.test.js); arzach.js draws and sounds it (tests/story-arzach.test.js).

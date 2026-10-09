@@ -69,10 +69,10 @@ const pick = (arr, i) => arr[Math.min(i, arr.length - 1)];
 /** The recording in the prologue: the father, the day the traveller left. The impact cuts it off. */
 export const PROLOGUE_CALL = [
   SHIP('~neutral~ First new message.'),
-  F("~neutral~ Little light’s on. Good. Your mother says that means I can start."),
-  F("~solemn~ Listen. Be careful out there. Nobody owes you help just because you’ve arrived needing it."),
-  F("~neutral~ Keep the translator at your ear. You’ll meet people who speak nothing like us. Try listening before deciding they’re wrong."),
-  F("~angry~ You left the boat half built. Walked out of school. Now your mother waits by the window. Finish something, son."),
+  F('~neutral~ Is it on? Little light’s on. Right. There you are.'),
+  F('~solemn~ Keep the translator at your ear. Nobody out there talks like us, or owes you a thing.'),
+  F('~angry~ The boat. The school. Your mother. You leave everything half done.'),
+  // (under these last words the hum creeps in, louder until the strike: src/story/hum.js callHum)
   F('~solemn~ My son, make us proud. Bring back something of value.'),
   spoken('father', '~neutral~ We will be waiting for you at the—', { cut: true }),
 ];

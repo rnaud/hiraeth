@@ -51,7 +51,7 @@ Other pages: `studio.html` (the character studio), `motion.html` (the Motion pag
 ## Test and build
 
 ```bash
-node --test tests/*.test.js     # the unit tests (Node's runner, no browser); also run by the pre-commit hook
+node --test tests/*.test.js     # the unit tests (Node's runner, no browser); the hook runs the ones a commit reaches, GitHub all before a deploy
 npx vite build                  # the production build into dist/
 ```
 

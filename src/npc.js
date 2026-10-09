@@ -1,6 +1,6 @@
 import { questLook } from './characters/quest-looks.js';
 import * as THREE from 'three';
-import { buildCharacter } from './player.js';
+import { buildCharacter, LOCK_MOVE } from './player.js';
 import { Cape, groundField, trianglesGround, SEATED } from './cape.js';
 import { DrawnSurfaces } from './splat-decal.js';
 import { Animator } from './animator.js';
@@ -19,6 +19,10 @@ import { cleanExpression, PEOPLE_REST } from './expression.js';
 import { Knockdown, toppleVelocities, KNOCKOVER, getUpPlacement, GET_UP } from './ragdoll.js';
 export { KNOCKOVER };
 import { holdAim } from './crowd.js';
+import { layWave } from './wave.js';
+
+// the upper body over a step aside (NPC.sidestep): Mixamo's breathing idle
+const SIDESTEP_UPPER = 'breathing_idle';
 import { Locomotion, gaitFeet, gaitStyle, poseStyle, walkFor } from './locomotion.js';
 import { SkinnedLod, skinnedLods } from './skinned-lod.js';
 import { runSteps } from './load-steps.js';
@@ -582,8 +586,32 @@ export class NPC {
     this.updateCape(dt, player, camera, speed);
 
     // speech balloon: placed by placeBalloon() after the camera has moved this frame
-    this.talking = !this.talkTo && !this.hush && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;   // (hush: a scene is on, no balloons)
+    // (hush: a scene is on, no balloons; quiet: nothing new to say, src/story/balloons.js)
+    this.talking = !this.talkTo && !this.hush && !this.quiet && this.greeted && this.time - this.greeted > 0.6 && dist < greetR;
     if (this.shout && this.time < this.shout.until) this.talking = true;
+  }
+
+  /**
+   * A step aside or back (crowd.js ASIDE: a standing person getting out of your way): the traveller's
+   * locked-on sidesteps and step back (LOCK_MOVE), their time following the ground covered, eased in
+   * and out over the clips (call before pose()). `dir`: 'left' | 'right' | 'back', or null (not
+   * stepping, or stepping ahead: the walk does that). Returns whether a step is playing.
+   */
+  sidestep(dt, dir, speed) {
+    const A = this.animator, S = (this._step ??= { w: 0, t: 0, side: null });
+    const want = dir && dir !== 'ahead' && speed > 0.05 ? dir : null;
+    if (want) S.side = want;
+    S.w += ((want ? 1 : 0) - S.w) * (1 - Math.exp(-12 * dt));
+    if (!A || !S.side || S.w < 0.02) { if (!want) { S.side = null; S.w = 0; } return false; }
+    const M = LOCK_MOVE[S.side], clip = A.moveClip?.(M.clip);
+    if (!clip) return false;
+    S.t = (S.t + dt * Math.max(speed, 0.4) / M.speed) % clip.duration;
+    A.play(M.clip, S.t, S.w, { full: false });
+    // (the step's legs only: above them a calm standing body, not the sword-and-shield guard the steps were
+    // captured in, whose raised arms threw the cape up over the shoulders)
+    const calm = A.moveClip?.(SIDESTEP_UPPER);
+    if (calm) A.playUpper(SIDESTEP_UPPER, (this.time * 0.9) % calm.duration, S.w);
+    return S.w > 0.5;
   }
 
   /** Plant the feet (feet.js), or let them follow the clip (far off, seated, leaning, flung about). */
@@ -664,7 +692,9 @@ export class NPC {
     else {
       this._frozen = false;
       const waveT = p.greetT >= 0 && p.pose === 0 && !p.group ? now - p.greetT : -1;
-      this.pose(dt, p.speed, waveT, 99, player, p.talk > 0.45 && !moving ? 'talk' : null);
+      // stepping out of your way sideways or back: that step from motion capture, not the forward walk sliding sideways
+      const stepping = this.sidestep(dt, moving && !p.walk ? p.stepDir : null, p.speed);
+      this.pose(dt, stepping ? 0 : p.speed, waveT, 99, player, p.talk > 0.45 && !moving ? 'talk' : null);
       // the crowd decides where they look
       this.char.head.rotateY(p.headYaw * 0.85);
       this.char.head.rotateX(p.headPitch * 0.7);
@@ -694,7 +724,9 @@ export class NPC {
     this._clothTick = !this._clothTick;
     if (this.cape && (camD < 5 || this._clothTick || !this.cape.ready)) {
       this.object.updateMatrixWorld(true);
-      this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
+      // (the way they really go: stepping aside or back that isn't the way they face)
+      if (this._step?.side) this.vel.set(Math.sin(this.heading), 0, Math.cos(this.heading)).applyAxisAngle(Y, { left: Math.PI / 2, right: -Math.PI / 2, back: Math.PI }[this._step.side] ?? 0).multiplyScalar(p.speed);
+      else this.vel.set(Math.sin(this.heading) * p.speed, 0, Math.cos(this.heading) * p.speed);
       const seated = !moving && (p.pose === 3 || p.pose === 4);
       // (every other frame: carried along between, as in updateCape)
       const s = { up: Y, vel: this.vel, wind: player.wind, floor: p.pos, field: seated ? this.seatField() : null, capsules: this.clothCapsules(player), carry: camD < 5 ? 0 : 1 };
@@ -705,7 +737,8 @@ export class NPC {
     } else this.cape?.follow();
     const line = now < (p.shoutUntil ?? -1) ? p.say : p.lines[p.lineIdx % p.lines.length];
     if (this.lines[0] !== line) { this.lines = [line]; this.lineIdx = 0; }
-    this.talking = p.speaking && (dist < 6 || now < (p.shoutUntil ?? -1));
+    // (a greeting only when they have something new: quiet, src/story/balloons.js; a shout always)
+    this.talking = p.speaking && ((dist < 6 && !this.quiet) || now < (p.shoutUntil ?? -1));
   }
 
   /**
@@ -954,11 +987,8 @@ export class NPC {
         this.loco.pose(c);
       } else this.loco.lastHeading = this.heading;
       if (DG?.fidget) this.fidget(c, speed, DG.fidget);
-      if (waveT >= 0 && waveT < 2.2) {
-        const k = Math.min(waveT * 4, 1) * Math.min((2.2 - waveT) * 4, 1);
-        c.arms[1].rotation.set(-0.2 * k, 0, 0.12 + 2.5 * k);
-        c.elbows[1].rotation.set(-(0.3 + 0.5 * Math.sin(waveT * 14) * k), 0, 0);
-      }
+      // the wave: the left arm out and up, the hand swinging side to side, eased over the clip (src/wave.js)
+      if (waveT >= 0) layWave(c, this.object, waveT, 1);
       if (dist < 12) {
         let a = this.aimAtPlayer(player, dist) - this.heading;
         a = Math.atan2(Math.sin(a), Math.cos(a));
@@ -984,12 +1014,8 @@ export class NPC {
     c.arms[0].rotation.set(-hip * 0.9, 0, -0.06);
     c.arms[1].rotation.set(hip * 0.9, 0, 0.06);
     c.elbows[0].rotation.x = c.elbows[1].rotation.x = -(0.2 + run * 1.2);
-    // wave: right arm up, hand swinging, for ~2 s after greeting
-    if (waveT >= 0 && waveT < 2.2) {
-      const k = Math.min(waveT * 4, 1) * Math.min((2.2 - waveT) * 4, 1);
-      c.arms[1].rotation.set(-0.2 * k, 0, 0.12 + 2.5 * k);
-      c.elbows[1].rotation.x = -(0.3 + 0.5 * Math.sin(waveT * 14) * k);
-    }
+    // wave: the left arm up, the hand swinging, for ~2 s after greeting (src/wave.js)
+    if (waveT >= 0) layWave(c, this.object, waveT, 1);
     // look: at the player when near, around when idle
     let look = Math.sin(this.time * 0.4) * 0.5 * (1 - moving);
     if (dist < 12) {

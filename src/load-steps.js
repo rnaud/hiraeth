@@ -84,21 +84,69 @@ export const stepped = (build) => (...args) => runSteps(build(...args));
  * only while a fence put more than `lag` ms ago is still unsignaled: the GPU is that far behind. A GPU that
  * keeps up costs nothing (a fence's status is seen a frame late at best, so waiting on every one would add a
  * frame a piece). Without fences (WebGL 1, a test) it does nothing.
+ *
+ * It gives up, for the rest of its life, when the fences can't be trusted: `giveUp` waits in a row that ran
+ * the whole `most`, or `budget` ms of waiting in all. A driver whose fences never signal (the Steam Deck's
+ * ANGLE under gamescope, seemingly, with the canvas hidden) had every piece wait the whole `most`: 741 kinds
+ * of surface in the desert and as many warm-draw batches, minutes on "mixing the inks…".
  */
-export function gpuPacer(gl, { lag = 40, most = 250 } = {}) {
+export function gpuPacer(gl, { lag = 40, most = 250, giveUp = 3, budget = 3000, warn = console.warn } = {}) {
   const queue = [];   // [fence, when put]
   const ok = !!gl && typeof gl.fenceSync === 'function';
   const signaled = (s) => gl.getSyncParameter(s, gl.SYNC_STATUS) === gl.SIGNALED;
   const drop = () => { while (queue.length && signaled(queue[0][0])) gl.deleteSync(queue.shift()[0]); };
+  let maxed = 0;   // waits in a row that ran the whole `most`
+  const stop = (why) => {
+    pace.off = true;
+    for (const [f] of queue) gl.deleteSync(f);
+    queue.length = 0;
+    warn?.(`gpu pacer: ${why}; the load goes on without waiting for the GPU (${pace.waited.toFixed(0)} ms waited)`);
+  };
   const pace = async () => {
-    if (!ok) return;
+    if (!ok || pace.off) return;
     drop();
     const t0 = now();
-    while (queue.length && now() - queue[0][1] > lag && now() - t0 < most) { await new Promise((r) => setTimeout(r, 2)); drop(); }
+    let full = false;
+    while (queue.length && now() - queue[0][1] > lag) {
+      if (now() - t0 >= most) { full = true; break; }
+      await new Promise((r) => setTimeout(r, 2));
+      drop();
+    }
     pace.waited += now() - t0;
+    maxed = full ? maxed + 1 : 0;
+    if (maxed >= giveUp) return stop(`${maxed} waits in a row ran out (${most} ms each): fences not signalled`);
+    if (pace.waited >= budget) return stop(`waited over ${budget} ms in all`);
     queue.push([gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0), now()]);
     gl.flush();
   };
-  pace.waited = 0;
+  pace.waited = 0; pace.off = false;
   return pace;
+}
+
+/**
+ * The next frame, or `fallback` ms, whichever comes first: a loading stage waits for a frame so the loading
+ * screen can paint, but a window the compositor doesn't show (hidden, occluded, a handheld's compositor
+ * holding it back) may run no frame callbacks at all, and the load must not wait for one forever.
+ */
+export function nextFrame(fallback = 250) {
+  return new Promise((resolve) => {
+    let done = false, timer = 0;
+    const go = () => { if (done) return; done = true; clearTimeout(timer); resolve(); };
+    timer = setTimeout(go, fallback);
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(go);
+  });
+}
+
+/**
+ * A load's watchdog: every `every` ms, if the current step (what `step()` says) has run over `after` ms,
+ * it says so once (a load that stalls says where). stop() when the load is over.
+ */
+export function loadWatchdog(step, { every = 2000, after = 15000, warn = console.warn } = {}) {
+  let cur = null, since = now(), told = false;
+  const id = setInterval(() => {
+    const s = step();
+    if (s !== cur) { cur = s; since = now(); told = false; return; }
+    if (!told && now() - since > after) { told = true; warn(`load: still on "${s}" after ${((now() - since) / 1000).toFixed(0)} s`); }
+  }, every);
+  return { stop: () => clearInterval(id) };
 }

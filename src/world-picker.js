@@ -8,6 +8,8 @@ import { ORDER } from './levels/names.js';
 import { GAMES, gameHref } from './minigames/index.js';
 import { bestScore, formatScore } from './minigames/kit/scores.js';
 import { scoreDef } from './minigames/kit/flow.js';
+import { InputMode } from './input-mode.js';
+import { glyph } from './pad-glyphs.js';
 
 /** The game's other pages, at the top of the list (they leave the game). */
 export const PAGES = [
@@ -52,6 +54,20 @@ export const alongLine = (id, order = ORDER) => {
   return i < 0 ? 'in your save' : i === 0 ? 'debug save · a new journey' : `debug save · ${i} world${i === 1 ? '' : 's'} done before it`;
 };
 
+const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+/**
+ * A world's card in the grid: its picture with its number, its name, its source and the save it opens in;
+ * its blurb and moves are its tooltip and, focused, the strip at the foot. The confirm glyph shows on the
+ * focused one (src/pad-glyphs.js).
+ */
+export function cardHtml(l, i, current = false) {
+  return `<a class="card${current ? ' current' : ''}" href="${pickHref(l.id)}" data-id="${esc(l.id)}" title="${esc(l.blurb)}">
+    <span class="pic"><img src="thumbs/${esc(l.id)}.jpg" alt="" loading="lazy" onerror="this.style.visibility='hidden'" /><b class="num">${i + 1}</b>${glyph('ok', { focus: true })}</span>
+    <span class="txt"><h2>${esc(l.title)}</h2><span class="src">${esc(l.source)}</span><span class="along">${esc(alongLine(l.id))}</span></span>
+  </a>`;
+}
+
 /** The cards (and Continue, to the world this save was left in, and the other pages) into the #picker element. */
 export function fillPicker(picker, { levels, current = null, cont = null, state = null }) {
   const nav = document.createElement('nav');
@@ -73,33 +89,41 @@ export function fillPicker(picker, { levels, current = null, cont = null, state 
     btn.textContent = `▶ Continue — ${cont.title}`;
     picker.querySelector('header').after(btn);
   }
-  picker.querySelector('.cards').innerHTML = levels.map((l, i) => `
-  <a class="card${l.id === current ? ' current' : ''}" href="${pickHref(l.id)}">
-    <img src="thumbs/${l.id}.jpg" alt="" onerror="this.style.visibility='hidden'" />
-    <div class="txt">
-      <div class="num">${i + 1}</div>
-      <h2>${l.title}</h2>
-      <div class="src">${l.source}</div>
-      <p>${l.blurb}</p>
-      <div class="moves">${l.moves}</div>
-      <div class="along">${alongLine(l.id)}</div>
-    </div>
-  </a>`).join('');
+  picker.querySelector('.cards').innerHTML = levels.map((l, i) => cardHtml(l, i, l.id === current)).join('');
+  // a grid on a controller: the D-pad and the stick move to the card that way (menuNavigate, data-grid-nav);
+  // the focused card's words in the strip at the foot (the cards are small: a picture, a name, the save)
+  picker.dataset.gridNav = '';
+  const info = picker.querySelector('.info') ?? picker.appendChild(Object.assign(document.createElement('p'), { className: 'info' }));
+  picker.addEventListener('focusin', (e) => {
+    const card = e.target.closest?.('.card');
+    const l = card && levels.find((x) => x.id === card.dataset.id);
+    info.innerHTML = l ? `<b>${esc(l.title)}</b> ${esc(l.blurb)} <span class="moves">${esc(l.moves)}</span>` : '';
+    info.hidden = !l;
+  });
+  info.hidden = true;
+  const close = picker.querySelector('.close');
+  if (close && !close.querySelector('.glyph')) close.insertAdjacentHTML('afterbegin', glyph('back', { key: 'Esc' }));
 }
 
 /** The list alone, before any world is built: a card (or its number) loads that world; close goes back to the title. */
 export async function showWorldsOnly(doc = document, win = window) {
-  const [{ LEVELS, levelById }, { SaveGame }, { closeHint, inputKind }, { Controller, menuNavigate }, { padFaces }, { game }] = await Promise.all([
-    import('./levels/index.js'), import('./ui.js'), import('./prompt-keys.js'), import('./controller.js'), import('./native-pad.js'), import('./game-state.js')]);
+  const [{ LEVELS, levelById }, { SaveGame, isTouch }, { Controller, menuNavigate }, { padFaces }, { game }] = await Promise.all([
+    import('./levels/index.js'), import('./ui.js'), import('./controller.js'), import('./native-pad.js'), import('./game-state.js')]);
   const picker = doc.getElementById('picker');
+  // what is in hand (remembered from the title): the glyphs in the buttons follow it (src/pad-glyphs.js)
+  const inputMode = new InputMode({ touchDevice: isTouch });
+  const hint = picker.querySelector('header .hint');
+  const showInput = () => { inputMode.apply(doc.body.classList); if (hint) hint.textContent = inputMode.kind === 'keys' ? 'press a number' : ''; };
+  for (const ev of ['keydown', 'pointerdown', 'touchstart']) win.addEventListener(ev, (e) => { inputMode.event(e); showInput(); }, { capture: true, passive: true });
   const saved = SaveGame.load()?.level;
   fillPicker(picker, { levels: LEVELS, cont: levelById(saved) ?? null, state: game });
-  const hint = picker.querySelector('header .hint');
-  if (hint) hint.textContent = inputKind() === 'keys' ? 'press a number · Esc for the title' : closeHint('');
+  showInput();   // (the keys' hint: a number opens its world; a pad's back button is in the close button)
   const toTitle = () => { win.location.href = win.location.pathname; };
   picker.querySelector('.close').addEventListener('click', toTitle);
+  const ARROWS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
   win.addEventListener('keydown', (e) => {
     if (e.code === 'Escape' || e.code === 'KeyL') toTitle();
+    if (ARROWS[e.code]) { e.preventDefault(); menuNavigate(picker, ...ARROWS[e.code]); }   // (the grid, as the pad moves in it)
     const n = Number(e.key);
     if (n >= 1 && n <= LEVELS.length) win.location.search = pickHref(LEVELS[n - 1].id);
   });
@@ -107,16 +131,19 @@ export async function showWorldsOnly(doc = document, win = window) {
   const controller = new Controller({
     context: () => 'menu',
     look: () => {}, faces: () => padFaces(),
-    activity: () => doc.body.classList.add('controller'),
-    navigate: (x, y) => menuNavigate(picker, x, y),
+    activity: () => { inputMode.pad(); showInput(); },   // (and the world it opens starts with no touch buttons: src/input-mode.js)
+    navigate: (x, y, fresh) => menuNavigate(picker, x, y, fresh),
     scroll: (amount) => { picker.scrollTop += amount; },
     action: (name) => {
       if (name === 'back' || name === 'start' || name === 'select') toTitle();
+      if (name === 'tabPrev' || name === 'tabNext') picker.scrollBy({ top: (name === 'tabNext' ? 1 : -1) * picker.clientHeight * 0.8 });   // (LB / RB: a page)
       if (name === 'confirm') { if (picker.contains(doc.activeElement)) doc.activeElement.click(); else menuNavigate(picker, 0, 1); }
     },
   });
   let last = performance.now();
   const loop = (now) => {
+    const pads = Array.from(navigator.getGamepads?.() ?? []).some((p) => p?.connected);
+    if (inputMode.frame(pads) === 'pad' !== doc.body.classList.contains('controller')) showInput();
     controller.update(Math.min((now - last) / 1000, 0.1), !doc.hidden && doc.hasFocus());
     last = now;
     requestAnimationFrame(loop);

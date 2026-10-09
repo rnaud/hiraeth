@@ -5,6 +5,7 @@ import { R, DECK, HATCH_A } from './hull.js';
 import { CONSOLE_R } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
 import { callTimeline, NUDGE, nudgeText, nudgeDue } from './prologue.js';
+import { callHum, callHumLevel } from '../story/hum.js';
 import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
@@ -64,6 +65,79 @@ export function callShot(ship, model, t = 0, close = 0) {
   };
 }
 /**
+ * The recordings' other angles while the busts are up (ship-local frames; the dash and the projector
+ * ahead of him at -z, the pilot's seat behind him), each pushing in a little over `u` seconds:
+ *   bust    from beside his left shoulder, tight on the two faces in the light
+ *   listen  from over the dash beside the projector, back at his face, lit by the hologram
+ *   window  wide from the right side: him in profile, the busts, the window and the world beyond
+ * ('over', the shot behind his right shoulder, is callShot itself.)
+ */
+export function callAngle(ship, model, angle, u = 0) {
+  const p = model.interior.points.projector ?? polar(7.95, Math.PI, DECK + 1.07);
+  const me = model.interior.points.cockpit ?? polar(6.55, Math.PI, DECK);
+  const push = Math.min(u * 0.04, 0.3), L = (x, y, z) => ship.world(model, V(x, y, z));
+  if (angle === 'bust') {
+    return { pos: L(-0.72 + 0.1 * push, DECK + 1.74, me.z + 0.42 - push), look: L(p.x - 0.05, p.y + CALL_FACE - 0.1, p.z), fov: 30 - 3 * push };
+  }
+  if (angle === 'listen') {
+    const at = polar(7.4, Math.PI + 0.13, DECK + 1.5);
+    return { pos: L(at.x, at.y, at.z + push), look: L(me.x, DECK + 1.56, me.z), fov: 34 - 4 * push };
+  }
+  if (angle === 'window') {
+    const at = polar(6.85, Math.PI - 0.42, DECK + 1.45);
+    return { pos: L(at.x - 0.6 * push, at.y, at.z), look: L(p.x - 0.5, DECK + 1.55, p.z + 0.2), fov: 52 - 4 * push };
+  }
+  return null;
+}
+
+/** Shortest a recording's angle is held (s), and the order the angles come in (`listen` on his own lines). */
+export const CALL_CUTS = { min: 4.5, order: ['bust', 'window', 'over'] };
+
+/**
+ * Where a recording cuts, and to what: [{ t, angle }] from t 0. It starts on callShot ('over', pushing in
+ * as the busts rise) and cuts only at the start of a line, while the busts are fully up, never sooner than
+ * `min` s after the last cut nor `min` s before they fold; a line of his own ('scene', 'you') cuts to his
+ * face ('listen'), the others take the next of `order` (never the same angle twice running). At the fold it
+ * goes back to 'over', which eases out as before; after that, a line of his own cuts to his face again and the
+ * next line back. Words and timing are untouched: only the camera changes.
+ * (The QC pass: one push-in for 25–77 s.)
+ */
+export function callCuts(timeline, span, { min = CALL_CUTS.min, order = CALL_CUTS.order, closeIn = CLOSE_IN, closeOut = CLOSE_OUT } = {}) {
+  const cuts = [{ t: 0, angle: 'over' }];
+  if (!span) return cuts;
+  const up = timeline.lines[span[0]].t0 - 0.9 + closeIn, fold = timeline.lines[span[1]].t1 + 0.15;
+  let last = up, k = 0;
+  for (const l of timeline.lines) {
+    if (l.t0 < up + min || l.t0 > fold - min || l.t0 - last < min) continue;
+    const prev = cuts.at(-1).angle;
+    let angle = l.line.who === 'scene' || l.line.who === 'you' ? 'listen' : order[k++ % order.length];
+    if (angle === prev) angle = order[k++ % order.length];
+    if (angle === prev) continue;
+    cuts.push({ t: l.t0, angle });
+    last = l.t0;
+  }
+  if (cuts.length > 1 && cuts.at(-1).angle !== 'over') cuts.push({ t: fold, angle: 'over' });
+  // after the fold (eased out), the long tails of the later recordings: his own lines on his face, the others back
+  // behind him; the same holds
+  last = Math.max(last, fold + closeOut - min);
+  for (const l of timeline.lines) {
+    if (l.t0 < fold + closeOut || l.t0 - last < min || l.t0 > timeline.total - 2) continue;
+    const angle = l.line.who === 'scene' || l.line.who === 'you' ? 'listen' : 'over';
+    if (angle === cuts.at(-1).angle) continue;
+    cuts.push({ t: l.t0, angle });
+    last = l.t0;
+  }
+  return cuts;
+}
+
+/** The cut in force at `t` (and when it began). */
+export function cutAt(cuts, t) {
+  let c = cuts[0];
+  for (const x of cuts) if (x.t <= t) c = x;
+  return c;
+}
+
+/**
  * Course set at the holo table: across the table from the traveller, the planet turning
  * between you, a slow push in (ship-local, then world).
  */
@@ -117,6 +191,7 @@ export class PrologueDirector {
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.call = callTimeline(PROLOGUE_CALL);
+    this.humAt = callHum(this.call);   // the hum under his last words, until the strike (src/story/hum.js)
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
     this.T = V(Math.sin(c.travel), 0, Math.cos(c.travel));
@@ -173,6 +248,7 @@ export class PrologueDirector {
         break;
       }
       case 'impact':
+        this.humming?.stop(); this.humming = null;   // (the strike cuts the hum off with his words)
         sfx.impact(s.sound); sfx.staticBurst(s.sound, 1.6); sfx.alarm(s.sound, 1); sfx.hum(s.sound, 0.25);
         s.shake(2.2);
         s.setPower('alarm', sp);
@@ -213,8 +289,10 @@ export class PrologueDirector {
         {
           // what struck the ship left a signature (src/story/signature.js): said once the father's card has gone
           const wait = Math.max(0, (this.cardUntil ?? 0) - (typeof performance !== 'undefined' ? performance.now() : 0));
-          if (wait > 0) setTimeout(() => { if (!this.done) C.say(CRASH_LINE, { secs: 6 }); }, wait + 300);
-          else C.say(CRASH_LINE, { secs: 6 });
+          // (and the pulse it tracks is heard, faintly: the hum again, from the scar)
+          const pulse = () => { C.say(CRASH_LINE, { secs: 6 }); s.sound?.makersHum?.({ vol: 0.55 }); };
+          if (wait > 0) setTimeout(() => { if (!this.done) pulse(); }, wait + 300);
+          else pulse();
         }
         break;
       case 'stepout': {
@@ -283,12 +361,17 @@ export class PrologueDirector {
         } else if (this.nudgeOff && this.walkT >= this.nudgeOff) { this.nudgeOff = 0; C.hint(null); }
         break;
       }
-      case 'call':
+      case 'call': {
         s.shot(callShot(s, sp, t, this.rec.close ?? 0));
-        sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
+        // under his last words something sings, nearer and nearer: the hum, and the picture starts to break up
+        const hum = callHumLevel(t, this.humAt);
+        if (hum > 0 && !this.humming) this.humming = s.sound?.makersHumRise?.(this.humAt.to - t + 0.4) ?? { stop() {} };
+        sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8, 0.45 * hum) });
         playLines(s, sp, this.call, t, this.rec);
+        if (hum > 0) s.holo?.glitch(0.35 * hum);
         faceRecording(s, sp);
         break;
+      }
       case 'impact': {
         // a hand-held view of the cockpit, the red light pulsing, the planet starting to swing
         const k = smooth(seg(t, 1.2, 4.4));
@@ -417,6 +500,7 @@ export class PrologueDirector {
 
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
+    this.humming?.stop(); this.humming = null;
     s.holo?.clear();
     // skipped before the dust cleared: the charge is still given, and the objective waits for its card
     if (skipped) this.giveCharge();
@@ -489,6 +573,7 @@ export class CallDirector extends Sequence {
     const tl = callTimeline(lines);
     const C = ship.cinema;
     const st = { span: recordingSpan(lines), who: who ?? onHologram(n), label };
+    st.cuts = callCuts(tl, st.span);
     super(ship, [
       {
         dur: tl.total + 0.6,
@@ -499,7 +584,8 @@ export class CallDirector extends Sequence {
           sfx.beep(ship.sound, true);
         },
         frame: (t) => {
-          ship.shot(callShot(ship, m, t, st.close ?? 0));
+          const cut = cutAt(st.cuts, t);
+          ship.shot((cut.angle !== 'over' && callAngle(ship, m, cut.angle, t - cut.t)) || callShot(ship, m, t, st.close ?? 0));
           m.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
           playLines(ship, m, tl, t, st);
           faceRecording(ship, m);
@@ -529,6 +615,17 @@ export const APPROACH = { space: 2.8, entry: 2.1, sky: 1.9 };
  */
 export function landingK(u) { u = Math.min(1, Math.max(0, u)); return 1 - Math.pow(1 - u, 3); }
 
+/** m the planet's near surface keeps from the camera in the approach: the ship is ~45 m off, in front of it. */
+export const PLANET_NEAR = 110;
+/**
+ * The planet's distance for an angular radius `ang`: at least `D`, and far enough that its near surface
+ * (D·(1 − sin ang) from the camera) stays behind the ship. Close and huge, its face came in front of the
+ * ship's legs as it filled the view (the cinematics QC pass); the size on screen is the same either way.
+ */
+export function planetDistance(D, ang, near = PLANET_NEAR) {
+  return Math.max(D, near / Math.max(0.02, 1 - Math.sin(ang)));
+}
+
 /**
  * Arriving by ship: out of the jump, the destination planet grows ahead (drawn in its own
  * colours, src/ship/approach.js); the ship levels out and brakes into the air, through the
@@ -548,6 +645,7 @@ export class ArrivalDirector extends Sequence {
     const fog0 = () => { const U = ship.post?.uniforms; if (U) U.uFogMul.value = 0; };   // no haze in space
     // the planet `D` m off, `drop` rad below the ship's course, `ang` rad its angular radius (so it grows as it nears)
     const placePlanet = (a, from, D, drop, ang) => {
+      D = planetDistance(D, ang);
       pl.copy(fwd).multiplyScalar(Math.cos(drop)).addScaledVector(up, -Math.sin(drop)).normalize();
       a.planet.position.copy(from).addScaledVector(pl, D).sub(a.group.position);
       a.planet.scale.setScalar(D * Math.sin(ang));

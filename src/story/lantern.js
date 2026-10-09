@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { spoken } from './tone.js';
 import { makeMaterial } from '../materials.js';
+import { closeUp } from './film.js';
 import { QUESTS, PEOPLE, KEEPSAKE, ARRIVE_LINES, QUEST_ID as Q } from './lantern-data.js';
 
 // The Lantern, alive (lantern-data.js has the words; src/levels/lantern.js the place).
@@ -15,6 +16,27 @@ import { QUESTS, PEOPLE, KEEPSAKE, ARRIVE_LINES, QUEST_ID as Q } from './lantern
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+/** s per panel of the light's arrival (A: him and the light coming down, B: the crown, C: his face). */
+export const LANTERN_SHOTS = { A: 4.0, B: 4.0, C: 2.0 };
+/** The light coming down: its radius (m) and the least it spans on screen (degrees). */
+export const ORB = { R: 0.9, MIN_DEG: 3.2 };
+/**
+ * The light's scale `dist` m from the lens: its own (`k`) close to, never smaller on screen than
+ * ORB.MIN_DEG far off. (At 0.9 m, 80 m up in the dusk it was a few pixels, all ink contour: a dark
+ * disc until it reached the crown. The QC pass.)
+ */
+/**
+ * A frame from `pos` with `low` in its lower part and `high` in its upper part: the look `lean` of the way
+ * from one to the other, the lens wide enough (`spread` times the angle between them, within `min`..`max`
+ * degrees) that both sit inside the letterbox.
+ */
+export function frameBoth(pos, low, high, { lean = 0.42, spread = 1.7, min = 48, max = 76 } = {}) {
+  const a = low.clone().sub(pos).normalize(), b = high.clone().sub(pos).normalize();
+  const ang = (a.angleTo(b) * 180) / Math.PI;
+  const dir = a.clone().lerp(b, lean).normalize();
+  return { look: pos.clone().addScaledVector(dir, 20), fov: Math.min(max, Math.max(min, ang * spread)) };
+}
+export const orbScale = (dist, k = 1) => Math.max(k, (dist * Math.tan((ORB.MIN_DEG * Math.PI) / 360)) / ORB.R);
 
 export function setupLantern(ctx) {
   const { level, quests, dialogue, game, spawn, story, sound, player, toast = () => {}, moments = null } = ctx;
@@ -53,23 +75,49 @@ export function setupLantern(ctx) {
   // the light comes down into the crown, the first time you step up onto the island
   const arrive = () => {
     st.arrived = true;
-    const top = G.top.clone(), from = top.clone().add(V(-30, 40, 60));
-    const orb = new THREE.Mesh(new THREE.SphereGeometry(0.9, 16, 12), makeMaterial({ color: '#fff4c8', glow: 1, flat: true }));
+    const top = G.top.clone();
+    // three panels (the cinematics QC pass, docs/systems/cinematics-qc.md: before, the first framed empty
+    // dusk with the lantern under the subtitle, and the second pulled in against the crown's rail):
+    //   A behind him, wide, the lantern's crown above the caption and the light coming down to it;
+    //   B across from the crown at its height, wide, as the light settles in; C his face, looking up
+    const P = player.pos.clone(), d = V(top.x - P.x, 0, top.z - P.z);
+    if (d.lengthSq() < 1) d.set(0, 0, -1);
+    d.normalize();
+    const r = V(-d.z, 0, d.x);
+    // where it comes from: out past the crown as he sees it, high and a little aside (a fixed offset put it
+    // behind the lens from some ways up onto the island)
+    const from = top.clone().addScaledVector(d, 45).addScaledVector(r, -20).add(V(0, 40, 0));
+    const orb = new THREE.Mesh(new THREE.SphereGeometry(ORB.R, 16, 12), makeMaterial({ color: '#fff4c8', glow: 1, flat: true }));
     orb.userData.noCollide = true;
     orb.position.copy(from);
     level.lantern.crown.parent?.add(orb);
     const m = moments?.play?.({
-      id: 'lantern.arrive', flag: 'lantern.moment.arrive', dur: 9,
+      id: 'lantern.arrive', flag: 'lantern.moment.arrive', dur: LANTERN_SHOTS.A + LANTERN_SHOTS.B + LANTERN_SHOTS.C,
       shots: [
-        { dur: 4.5, from: { pos: player.pos.clone().add(V(4, 1.6, 6)), look: top.clone().add(V(-10, 14, 20)), fov: 48 }, to: { pos: player.pos.clone().add(V(3, 1.4, 5)), look: top.clone().add(V(-3, 4, 6)), fov: 44 } },
-        { dur: 4.5, from: { pos: top.clone().add(V(9, -8, 22)), look: top.clone(), fov: 40 }, to: { pos: top.clone().add(V(7, -9, 18)), look: top.clone().add(V(0, -1, 0)), fov: 38 } },
+        { dur: LANTERN_SHOTS.A, ease: 'linear', from: (t) => {
+          const k = Math.min(1, t / LANTERN_SHOTS.A), lit = orb.getWorldPosition(V(0, 0, 0));
+          const pos = P.clone().addScaledVector(d, -9 + 1.2 * k).addScaledVector(r, 2.5 - 0.3 * k).add(V(0, 2.4 - 0.2 * k, 0));
+          // the crown low in the frame and the light coming down above it, both in from the start (the QC pass:
+          // the light was above the frame until 3 s, and the dark moon in the dusk read as it)
+          return { pos, ...frameBoth(pos, top, lit) };
+        } },
+        { dur: LANTERN_SHOTS.B, clear: false, from: { pos: top.clone().addScaledVector(d, -26).addScaledVector(r, 9).add(V(0, -1, 0)), look: top.clone().add(V(0, 0.5, 0)), fov: 34 },
+          to: { pos: top.clone().addScaledVector(d, -23).addScaledVector(r, 8).add(V(0, -1.5, 0)), look: top.clone(), fov: 32 } },
+        { dur: LANTERN_SHOTS.C, clear: false, from: closeUp(player, { angle: 0.55, dur: LANTERN_SHOTS.C, drop: 0.2 }) },
       ],
+      // (in time order: the moment runs its beats in the order given, so the chime listed last came at 4.8 s)
       beats: [
-        { t: 0.4, line: spoken('scene', ARRIVE_LINES[0]), secs: 4 },
-        { t: 4.8, line: spoken('scene', ARRIVE_LINES[1]), secs: 4 },
         { t: 0.2, run: () => sound?.chime?.() },
+        { t: 0.4, line: spoken('scene', ARRIVE_LINES[0]), secs: 3.6 },
+        { t: LANTERN_SHOTS.A + 0.3, line: spoken('scene', ARRIVE_LINES[1]), secs: 3.8 },
       ],
-      onFrame: (mm, t) => { orb.position.lerpVectors(from, top, Math.min(1, t / 7) ** 0.7); orb.scale.setScalar(1 - Math.min(1, t / 8) * 0.4); },
+      onStart: (mm) => { mm.face = top.clone(); mm.eyes = top.clone(); },
+      onFrame: (mm, t) => {
+        orb.position.lerpVectors(from, top, Math.min(1, t / 7) ** 0.7);
+        // (glowing from the start: never so small far off that its contour is all there is of it)
+        const lens = mm.camera?.()?.pos, at = orb.getWorldPosition(mm.eyes);
+        orb.scale.setScalar(orbScale(lens ? lens.distanceTo(at) : 0, 1 - Math.min(1, t / 8) * 0.4));
+      },
       onEnd: () => { orb.removeFromParent(); game.set('lantern.moment.arrive', true); },
     });
     if (!m) { orb.removeFromParent(); game.set('lantern.moment.arrive', true); }

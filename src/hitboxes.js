@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { BLADE, GUARD, EVADE, bladeTouchRadius, lockTarget, iframeWindow } from './fluid-blade.js';
 import { STRIKE_RISE, hurtRadius, sweepRadius } from './foes.js';
+import { HOP } from './foe-height.js';
 import { allTargets } from './targets.js';
 import { BOMB } from './gadgets/bomb.js';
 
@@ -63,10 +64,14 @@ export function registerHitboxes(fn) { sources.add(fn); return () => sources.del
 const v3 = (p) => new THREE.Vector3(p.x, p.y, p.z);
 const flatHeading = (d) => Math.atan2(d.x, d.z);
 
-/** The foe's state in words: what its mind is doing, stunned or reeling, its hp. */
+/** The foe's state in words: what its mind is doing, stunned, dazed or reeling, perched, waiting or hopping, its hp. */
 export function foeStatus(f) {
   const parts = [f.state === 'recover' && f.reel ? f.reel : f.state];
-  if (f.stunned > 0) parts.push(`stunned ${f.stunned.toFixed(1)}s`);
+  if (f.dazed > 0) parts.push(`dazed ${f.dazed.toFixed(1)}s`);   // (knocked off a ledge: stars over it)
+  else if (f.stunned > 0) parts.push(`stunned ${f.stunned.toFixed(1)}s`);
+  if (f.perched != null) parts.push('perched');                   // (on the high ground over you: src/foe-height.js)
+  if (f.waiting) parts.push('waiting: no way to you');             // (holding off below or above you)
+  if (f.hop) parts.push(f.hop.t < HOP.crouch ? 'crouched to hop' : 'hopping');
   if (f.state === 'wind' || f.state === 'strike') parts.push(`${Math.round(f.k * 100)}%`);
   if (f.state === 'recover') parts.push(`${Math.max(0, f.timer).toFixed(1)}s`);
   parts.push(`hp ${Math.max(0, +f.hp.toFixed(1))}/${f.def.hp}`);

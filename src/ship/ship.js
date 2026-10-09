@@ -1,4 +1,4 @@
-import { SIDE } from '../levels/names.js';
+import { CHARTED_SIDE } from '../levels/names.js';
 import * as THREE from 'three';
 import { game } from '../game-state.js';
 import { buildShipModel, buildSpace, poseRamp } from './model.js';
@@ -22,6 +22,7 @@ import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
 import { shakeScale } from '../feel.js';
 import { Prologue } from './prologue.js';
+import { ReboardGate } from './landing.js';
 import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJECTIVE } from './cinematics.js';
 
 // The traveller's ship: a big round ball, home between worlds.
@@ -69,6 +70,7 @@ export class Ship {
     const site = (this.site = findShipSite({ level, physics, levelId, avoid }) ?? { x: level.spawn.x + 30, z: level.spawn.z, heading: -Math.PI / 2, ground: level.spawn.y, source: 'fallback' });
     this.crashed = !!site.crash && !game.flag('ship.launched');
     this.inside = false;
+    this.reboard = new ReboardGate();   // (stepped out: the ramp doesn't offer to take you straight back in, src/ship/landing.js)
     this.cam = null;          // a cinematic camera, or null to leave the rig alone
     this.shakeK = 0;
     this.auto = null;
@@ -329,7 +331,7 @@ export class Ship {
       home: () => homeOpen({ flag: (k) => game.flag(k), completed: this.completed() }) || this.levelId === HOME_ID,   // src/story/ending.js
       relay: () => this.relay(),
       finale: () => finaleOpen({ flag: (k) => game.flag(k), completed: this.completed() }),   // the Lantern, past the market (src/story/ending.js)
-      side: deps.side ?? SIDE,   // (the worlds off the route: src/levels/names.js)
+      side: deps.side ?? CHARTED_SIDE,   // (the finished worlds off the route, never the ones still being made: src/levels/names.js WIP)
       onTravel: (id) => this.travel(id),
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });
@@ -473,7 +475,7 @@ export class Ship {
     }
     // E belongs to the ship inside it and at the hatch
     // (not while riding up to it: then E gets you off, as the HUD says)
-    const inShip = this.inside || (this.atRampFoot() && !this.player.ride);
+    const inShip = this.inside || (this.atRampFoot() && !this.player.ride && this.reboard.open);
     if (inShip && ctl.KeyE) {
       if (!this._eHeld) this.use();
       this._eHeld = true;
@@ -561,7 +563,7 @@ export class Ship {
       if (this.atHatchInside()) return 'E step outside';
       return 'aboard the ship';
     }
-    if (this.atRampFoot() && !this.player.ride) return 'E go aboard';
+    if (this.atRampFoot() && !this.player.ride && this.reboard.open) return 'E go aboard';
     return null;
   }
 
@@ -661,6 +663,8 @@ export class Ship {
       if (inside) { this._climb = P.opts.climb; P.opts.climb = false; }
       else if (this._climb !== undefined) { P.opts.climb = this._climb; this._climb = undefined; }
     }
+    // the ramp's "go aboard": quiet after stepping out, until you have walked away from it once
+    this.reboard.update({ aboard: inside || this.playing || !!this.auto, fromRamp: Math.hypot(P.pos.x - this.rampFoot.x, P.pos.z - this.rampFoot.z) });
     this.cinema.update(dt);   // timed subtitles; everything on screen kept in its own place
     const c = this.cinematic;
     if (c && !c.done) {

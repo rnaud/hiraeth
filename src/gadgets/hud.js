@@ -28,6 +28,7 @@ body.minigame #gadget-chip, body.minigame #gadget-reticle, body.minigame #gadget
 @keyframes gchip { 0% { transform: rotate(-0.6deg) scale(1.25); } 100% { transform: rotate(-0.6deg) scale(1); } }
 body.touch #gadget-chip { pointer-events: auto; bottom: calc(86px + var(--safe-bottom, 0px)); }
 body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
+body.cine-on #gadget-chip, body.cine-on #gadget-reticle, body.cine-on #gadget-wheel, body.cine-on #gadget-marks { display: none !important; }   /* (a cinematic: its letterbox is up, src/ship/cinema.js) */
 #gadget-reticle { position: fixed; left: 0; top: 0; z-index: 31; pointer-events: none; display: none; width: 34px; height: 34px; margin: -17px 0 0 -17px; }
 #gadget-reticle.on { display: block; }
 #gadget-reticle .r { position: absolute; inset: 0; border: 2.5px solid #2b211f; border-radius: 50%; box-shadow: 0 0 0 2px rgba(247, 236, 210, 0.8); }
@@ -56,7 +57,7 @@ body.talking #gadget-chip, body.photo #gadget-chip { display: none; }
 #gadget-wheel .slot.hi { transform: scale(1.25); background: #f2c54b; }
 #gadget-wheel .name { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 3px 8px; background: #f7ecd2; border: 1.5px solid #2b211f;
   font: 12px/1.4 ui-monospace, Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: #2b211f; }
-#touch .b-gadget { right: calc(112px + var(--safe-right)); bottom: calc(262px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; display: none; }
+#touch .b-gadget { display: none; }   /* (its place and size: src/touch-layout.js, set by ui.js TouchControls) */
 body.gadget-on #touch .b-gadget { display: block; }
 body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !important; }   /* (a game, a conversation: nothing to use it on) */
 #gadget-wheel.many { width: 344px; height: 344px; margin: -172px 0 0 -172px; }

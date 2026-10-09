@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { Dog } from '../dog.js';
 import { spoken } from './tone.js';
+import { skipLabel } from './moment.js';
 import { HOME_SPOTS, unlaidTokens, stoneTokens, layTokens, tokensNow, tokenModel } from '../levels/home.js';
 import { ILEN_HOME } from './lantern-data.js';
 import { FLOWERS } from '../levels/home-garden.js';
@@ -79,6 +80,25 @@ export function sitPose(c, k) {
 
 // ------------------------------------------------------------------ a quiet moment (the stone, the window seat)
 
+/** The stone's second angle, on his face: from `from` s in until `before` s ahead of the last lines. */
+export const HOMAGE_FACE = { from: 3.4, before: 2.6 };
+/** The window seat's second panel (s): from beside the seat, his profile and the round window, between `from` and `before` the end. */
+export const SEAT_SIDE = { from: 5.0, before: 1.5 };
+
+/**
+ * The window seat's second angle: from the room beside the seat (on the table's side), close, his profile
+ * against the round window with the ring through it (what the second line is about). `seat` where he sits,
+ * `win` a point out beyond the window, `table` a point in the room, `floor` the floor's height.
+ */
+export function seatSide(seat, win, table, floor) {
+  const out = V(win.x - seat.x, 0, win.z - seat.z).normalize(), side = V(-out.z, 0, out.x);
+  if ((table.x - seat.x) * side.x + (table.z - seat.z) * side.z < 0) side.negate();
+  // (his head, sat, is about 1.3 m up: framed off his chest it was cut off by the frame's top)
+  const head = V(seat.x, floor + 1.2, seat.z);
+  const pane = V(seat.x, floor + 1.35, seat.z).addScaledVector(out, 1.2);
+  return { pos: seat.clone().setY(floor + 1.5).addScaledVector(side, 1.6).addScaledVector(out, -1.0), look: head.lerp(pane, 0.4), fov: 52 };
+}
+
 /**
  * A short scene of its own: the traveller set in place and posed, the camera framed, a few
  * lines, then back to you. No menus: it plays (Esc hurries it).
@@ -94,6 +114,10 @@ export class Moment {
     P.overlay = (p) => { const c = p.char; if (this.pose === 'sit') sitPose(c, smooth(this.k)); else kneelPose(c, smooth(this.k), this.reach); };
     const C = this.ship?.cinema;
     C?.bars?.(true); C?.hud?.(false);
+    // the skip tag, as the moments show it (Esc hurries it; a tap on the tag too): it had none (the QC pass)
+    C?.skip?.(0, true, skipLabel());
+    if (C?.skipEl && !C.skipEl._home) { C.skipEl._home = true; C.skipEl.addEventListener?.('click', () => C._homeMoment?.hurry()); }
+    if (C) C._homeMoment = this;
     this.onStart?.();
   }
   /** Esc: on to the end (the beats still happen, quickly). */
@@ -126,7 +150,8 @@ export class Moment {
     const c = this.player.char;
     if (c) { c.body.position.set(0, 0, 0); }
     const C = this.ship?.cinema;
-    C?.say(null); C?.bars?.(false); C?.hud?.(true);
+    C?.say(null); C?.bars?.(false); C?.hud?.(true); C?.skip?.(0, false);
+    if (C?._homeMoment === this) C._homeMoment = null;
     this.ship?.release?.(1.2);
     this.onEnd?.();
   }
@@ -295,8 +320,14 @@ export function setupHome(ctx) {
     const heading = Math.atan2(HOME_SPOTS.tomb.x - stand.x, HOME_SPOTS.tomb.z - stand.z);
     st.moment = new Moment({
       player, ship, at: stand, heading, pose: 'kneel', dur: t + 1.6, beats,
-      // a low three-quarter shot over his right shoulder onto the slab, pushing in a little; then wider as he rises
+      // a low three-quarter shot over his right shoulder onto the slab, pushing in a little; then wider as he rises.
+      // In between, while he sets things down and the lines come, a second angle from beside the stone on his
+      // face (the QC pass: one angle held for 15 s, his back to us the whole time)
       shot: (T, k) => {
+        if (T > HOMAGE_FACE.from && T < t - HOMAGE_FACE.before) {
+          const u = Math.min(1, (T - HOMAGE_FACE.from) / 6);
+          return { pos: L(-1.45 + 0.15 * u, 0.85, 0.3 + 0.1 * u), look: L(0, 0.98, 1.3), fov: 38 - 2 * u };
+        }
         const push = Math.min(T * 0.025, 0.35);
         const rise = Math.max(0, T - (t + 0.2)) / 1.4;
         return { pos: L(2.15 - push + rise * 1.2, 0.95 + rise * 0.8, 2.6 - push + rise * 1.6), look: L(-0.15, 0.62 + (1 - k) * 0.3, 0.15), fov: 38 + rise * 6 };
@@ -314,8 +345,17 @@ export function setupHome(ctx) {
     st.moment = new Moment({
       player, ship, at, heading: T.seatHeading, pose: 'sit', dur: 9.5,
       beats: [{ t: 1.4, line: spoken('scene', THINGS.seat.talk.nodes.look.say[0]), secs: 3.6 }, { t: 5.2, line: spoken('scene', THINGS.seat.talk.nodes.look.say[1]), secs: 3.6 }],
-      // beside him, low, looking past him out of the window (the ring, the ship, the sky)
-      shot: (Tt) => ({ pos: at.clone().lerp(small.spots.table, 0.45).setY(small.floor + 1.25), look: out.clone().setY(small.floor + 1.5 + Math.min(Tt * 0.05, 0.4)), fov: 50 }),
+      // beside him, looking past him out of the window (the ring, the ship, the sky); far enough back and high
+      // enough that his head stays in the frame as he sits and stands (the QC pass: it cut his head off)
+      // Then, for the second line, closer from beside the seat: his profile and the round window, the ring
+      // through it (the QC pass: one angle for 9.5 s); back to the first for him getting up
+      shot: (Tt) => {
+        if (Tt > SEAT_SIDE.from && Tt < 9.5 - SEAT_SIDE.before) {
+          const c = seatSide(at, out, small.spots.table, small.floor), u = Math.min(1, (Tt - SEAT_SIDE.from) / 3);
+          return { ...c, pos: c.pos.lerp(c.look, 0.08 * u), fov: c.fov - 2 * u };
+        }
+        return { pos: at.clone().lerp(small.spots.table, 0.62).setY(small.floor + 1.5), look: out.clone().setY(small.floor + 1.3 + Math.min(Tt * 0.04, 0.3)), fov: 54 };
+      },
       onEnd: () => { st.moment = null; },
     });
     st.moment.start();

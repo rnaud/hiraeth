@@ -51,6 +51,16 @@ each choice to what uses it:
 - **Touch:** a floating stick on the left, drag on the right to look, and
   buttons for jump, interact, run and the game menu (❏). Low graphics by
   default.
+- **Touch controls' size:** every button's place and size lives in one table, `src/touch-layout.js`
+  (drawn for a screen 560 px or more on its short side: a tablet, the Deck). `touchScale(w, h)` is the
+  short side over 560, between 0.64 and 1, so a phone held sideways (812 x 375) keeps the cluster in
+  the lower right corner (226 x 235 px with every button showing) and upright leaves the left side
+  free. `touchLayout(k)` scales places and sizes round each button's centre; no button goes under
+  38 px across nor its label under 11 px. ui.js `TouchControls` sets them inline (and `--tk` on
+  `#touch`) on resize and when a button is added later (the gadget's); the stick's ring and travel
+  scale too. index.html only colours and hides the buttons. The HUD keeps clear by measuring them
+  (src/ship/cinema.js `OBSTACLES`). `tests/touch-layout.test.js`: no two buttons touch at any scale,
+  the cluster stays in the corner at the phone sizes.
 - **Ending:** find all seven story pages and all 35 relics for a closing page.
   It unlocks an eighth world, **The Atelier**: a blank page with pencil
   sketches of every landmark and the artist at his table.
@@ -86,7 +96,8 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
 ## A quieter screen: conversations and prompts
 - **No button reminders.** (Since v0.62 there is no status box at all: "Nothing on the screen" below.) The status box (`updateHud` in `src/main.js`) showed the place,
   gauges, the objective and relics, and a prompt only for what is right here (the ship's
-  hatch and console, a lens); a ride's controls show for six seconds after you get on.
+  hatch and console, a lens); nothing while riding (no button hints as you get on, playtest
+  2026-10-08: the settings' Controls page lists a ride's buttons).
   The controller's button bar is gone except in photo mode; the full controls live in the
   settings (and H for the keyboard's). Story pages, item cards and toasts that teach name the
   input through a `{key:verb}` placeholder, in the keys and buttons the player holds and bound
@@ -94,6 +105,15 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
 - **A controller means no touch buttons.** `body.controller` hides `#touch` and the gear.
   A connected pad (the Retroid's own controls via `native-pad.js`) counts as in use until
   the screen or the keys are touched, so a handheld starts with a clean screen.
+- **What is in hand** (`src/input-mode.js`, `InputMode`; tests `tests/input-mode.test.js`): `pad`,
+  `keys` or `touch`, from the controller's activity, trusted key presses (not the touch buttons'
+  synthetic ones, nor typing in a field, nor code-less keys a handheld may send), mouse clicks and
+  touches. It sets `body.controller` and `body.touch` (the touch layout and buttons only while the
+  fingers are what is in use: a keyboard on a touch-screen laptop hides them too) and is remembered
+  for the tab in `sessionStorage` (`moebius.input.v1`): a new world is a new page, and a browser
+  lists a pad only after its first press there, so the touch buttons used to come back on every
+  world loaded with a controller. A remembered pad holds until the screen or keys are used, or a
+  pad that was listed goes away. The title screen and the worlds list remember a pad press too.
 - **Round button badges** (`src/prompt-keys.js`): `keyBadge('E')` is
   `<b class="key">E</b>`, a small ink circle (a pill for "X / □"); `badgeLine()` badges the
   button at the start of each " · " part of a status line. The badge holds the plain
@@ -134,6 +154,19 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   (`npx vite`, `import.meta.env.DEV`), or after opening the game once with `?dev=1` (remembered on
   the device as `moebius.dev`; `?dev=0` forgets it). Players see neither. The Dev menu (\`) and
   `?level=<id>` work as before. `tests/first-run.test.js` checks the gate.
+  Playtest 2026-10-08 ("the language switched to French and the debug menu disappeared"): the gate is
+  meant, and came in that same day, so the entries went from the author's device until the Developer
+  panel is ticked. Nothing reads their words (they are found by `data-a`): with the gate on they stay
+  through a change of language, on the title and in the Start menu (`tests/menus-settings.test.js`). For now `ALWAYS_DEV` (src/dev-gate.js) shows them to everyone.
+- **The Settings on a controller** (`src/menu-pad.js`, through `menuNavigate` in src/controller.js, the
+  menus' A in main.js and title.js, `SettingsMenu.back`): ↑ ↓ move; ← → change a slider or a dropdown, a
+  step a push, repeating while held, but never with the push that brought the focus onto it (the
+  Controller tells `menuNavigate` whether a push is fresh); A / × opens a dropdown (its row tinted, the dropdown
+  yellow in a red frame: `.pad-open`), the directions go through its choices, A / × keeps the one shown
+  (applied then, once), B / ○ puts the old one back, and B / ○ again leaves the menu. The Language dropdown (`data-pad="open"`) changes only once
+  opened: playtest 2026-10-08, holding → from the menu's last button stepped onto it (the first setting)
+  and the same push, repeating, turned every menu French. Nothing reads the device's language: English
+  unless chosen. `tests/menus-settings.test.js`.
 - **The title's vista** (`src/title-vista.js`): a golden-hour view over a sea of cloud, drawn
   by the game's own pipeline (G-buffer materials, the ink pass of `post.js` in the 'Moebius
   print' style, the sky with two pale moons). Mushroom tables, needle spires, balanced stacks
@@ -195,7 +228,7 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   - **the cue** (`#cue`, `cueText`, `Cue`): one short line at the bottom (at the top on a phone,
     where the toasts make room for it: cinema.js `OBSTACLES`) for what the use button does right
     here when it has nothing to float over (the ship's ramp, hatch and console, a lens, the
-    backpack slotting in), a ride's controls for `RIDE_HINT_MS` after you get on, what the scout
+    backpack slotting in), nothing while riding (a ride's controls are in the settings), what the scout
     just found, and a region's name as you cross into it (`PlaceName`: it must hold 1.5 s, and
     the name where you arrive is not shown). Prompts with a place still float over it (`#prompt`).
   - **health** (`#health`): while hurt or healing (`Fader(3)`), then fades; **stamina** as before.
@@ -267,10 +300,10 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   page, its relics, a ? until found; then the observatory's sketch and the errands'), **Worlds** (the worlds you know in the route's order,
   their picture from `thumbs/`, ✓ story, relics and makers' boxes found, "you are here").
 - **Look**: the panel's name in the Start menu's comic lettering among four tabs at the top; the sheet
-  of ruled paper between two side tabs naming the neighbours (with `LB / L1`, `RB / R1` on a pad); the
-  cursor a gold cell in a pulsing red ring; the strip at the bottom: the picked thing's name, kind and
-  words, and the buttons that do something here (`menuPrompts`: a pad's in Xbox / PlayStation form,
-  which `native-pad.js` renames, the keyboard's keys, none on a touch screen). Sizes follow the viewport
+  of ruled paper between two side tabs naming the neighbours (their LB / RB glyphs inside them, Q / E with
+  the keys; the ✕ carries B / Esc: v1.2, below); the cursor a gold cell in a pulsing red ring; the strip
+  at the bottom: the picked thing's name, kind and words, and what the confirm button does here
+  (`menuPrompts`: its glyph and the verb, none on a touch screen). Sizes follow the viewport
   (`vh` clamps): 1280 × 720 and the Retroid's 730 × 410 CSS px both fit; a long panel scrolls inside
   its sheet with the cursor.
 - **Controls**: LB / L1 and RB / R1 turn the panels (`Controller` sends `tabPrev` / `tabNext` in a
@@ -301,3 +334,79 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   makers' box and open it", else its title. `Quests.summary()` gives each active quest's goal and
   current step and the ended ones by title; `journalHtml()` is the same as text. The steps already done
   are never shown, in the menu or in play.
+
+## Notices and the quest card (playtest 2026-10-08)
+
+- **Notices** (`#toast`, queued by `Cinema.toast`, `src/ship/cinema.js`) are quiet: translucent paper,
+  a 1 px line, no shadow, 12 px, at most 560 px wide (60 % of a phone held sideways). The cue and the
+  scenes' hint got the same lighter frame.
+- **Never on the health bar**: `#health` is one of the layout's `OBSTACLES` whether it shows or not
+  (it comes the moment you are hurt). `layoutCinema` places a top item centred when it can, else slides
+  it sideways along its row to the free span nearest the centre (`slide`: a phone's buttons down the
+  right), else the next row down; `Cinema.layout` sets its `left` as well as its `top`. On a narrow
+  portrait phone the cue sits below the health bar's line. Tests: `tests/hints.test.js`.
+- **A quest's start looks different**: `Quests.startToast` (and the villagers' errands, `Errands`) call
+  the toast with `{ kind: 'quest', head, title, step }`; the queue keeps it, and the toast is drawn as
+  `questToastHtml`: an ink card with a gold rule, "◆ New quest" (or New errand) in gold capitals over
+  the title in italics and the first step (`#toast.quest`, index.html). Later steps, endings and every
+  other notice stay plain.
+
+## Screen sizes (resolution audit, 9 October 2026)
+
+Checked at 1280 × 720, 1920 × 1080, 2560 × 1440, 1280 × 800 (Steam Deck), 812 × 375 (a phone on its side),
+375 × 812 and 1080 × 2400: the title, the HUD, the pause menu and its settings, a conversation, the journal
+and its Worlds page, with a script listing text off screen, cut, or under 10 px. In src/menus.css: the pause
+menu's side is compact at `max-height: 480px` in landscape (smaller PAUSED, the save on one line, 12 px
+buttons: all of them show, down to Quit to title), its buttons are smaller on a phone held upright (the
+settings get the screen), and PAUSED is sized by the width too (`min(7vh, 8vw)`: it ran out of its column on
+tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-10 px floor, and the title's
+"Continue" world name at least 11 px. Still open (TODO.md): the touch controls' size on a phone held sideways.
+
+
+## The menus on a controller: grids, glyphs in the buttons, the pad's own names (October 2026, v1.2)
+
+- **Glyphs in the buttons** (`src/pad-glyphs.js`): a menu's buttons carry their own prompt instead of a hint
+  line under them. `glyph(role, { focus, key })` is an empty `<span class="glyph" data-glyph="…">` put inside
+  the button; its label is CSS, a custom property per role on `:root` (`--g-ok`, `--gc-ok` its colour,
+  `--gz-ok` its size), set by `installGlyphs()` (once per page: `src/boot.js`, the items page) from the pad in
+  hand and refreshed whenever native-pad.js works the labels out again (`onLabels`, a pad connected or gone,
+  the "Controller buttons" setting). So a menu drawn again keeps its glyphs, native-pad.js never rewrites them
+  (it skips `[data-glyph]`), and screen readers skip them (`aria-hidden`). Roles, by position as the prompts
+  are written: `ok` and `back` (the menus' confirm and back, printed A and B whatever the layout), `x`, `y`,
+  `lb`, `rb`, `lt`, `rt`, `view`, `menu`, `l3`, `r3`, `dpad`. `focus: true` shows it only on the button a pad
+  has focused (the entry A would press). With the keyboard (`body:not(.controller)`) a glyph shows its key,
+  `GLYPH_KEYS` (Enter, Esc, Q, E) or its own `data-key`, drawn as a key cap; a role without one hides; on a
+  touch screen (`body.touch`) none show. Where: the title (A beside the focused entry and save, B in Back and
+  Keep, X on a save's Delete: X / □ deletes, the Controller now sends `x` and `y` in menus), the Start menu
+  (B in Resume, A on the focused entry, the reset question), the journal (B in the ✕, LB / RB on the side
+  tabs; the strip keeps the confirm button's verb only, `menuPrompts`), the galactic map (B in close, A in
+  Travel and Yes, B in No), the cargo check, the restart dialog, what's new's Close, the worlds list and the
+  items page. Conversations keep their answer badge (`choiceHtml`), now in the pad's own names (below).
+- **The pad's family** (`src/native-pad.js` `familyOf`, `padFamily`): from the Gamepad id, Xbox (045e,
+  XInput, and any pad we don't know), PlayStation (054c, DualSense, DualShock), Switch (057e, Pro Controller,
+  Joy-Con), or the handheld layout (the Android app, a Retroid, `?pad=android`). `padText(text, layout, faces,
+  family)` keeps the matching half of "A / ×" and the family's own shoulder and menu names (L1 R1 L2 R2,
+  Create / Options; L R ZL ZR, − / +; LS / RS for L3 / R3 on Xbox and Switch); the Android layout is as
+  before. `watchLabels` now rewrites the page whenever a pad is listed, so every prompt follows; with none
+  listed the prompts stay as written. A Switch pad on a computer reports positions with A on the right:
+  `padFaces` auto now says 'nintendo' for it, so it confirms with A (right) and backs out with B (bottom), as
+  on a Switch. `padGlyphs({ family, faces, layout })` (pure) gives each role's label and colour (Xbox's
+  green A, red B…, PlayStation's shapes a little larger). The source's prompts stay in Xbox / PlayStation
+  form.
+- **Grids** (`gridStep` in `src/menu-pad.js`, through `menuNavigate`): a menu whose root (or an ancestor)
+  has `data-grid-nav` moves in 2D, to the card that way on the screen: ← → within the row (by a third of the
+  card at least, so the focused card drawn lifted and larger doesn't count its column as "to the right"),
+  ↑ ↓ to the column's card or else the nearest that way, ↓ past the last row wraps to the first, the column
+  kept. Other menus keep moving in their order. The worlds list (`#picker`, `cardHtml`) is a grid of small
+  cards (a picture with its number, the name, the source, the save it opens in; the blurb and moves in the
+  strip at the foot for the focused card), the focused one lifted in a red frame with A on it; the arrow
+  keys move the same way, LB / RB scroll a page. The items page's cards are a grid too.
+- **The item viewer full screen** (items.html, `src/items-page/`): on a handheld's 1920 × 1080 screen (about
+  730 × 410 CSS px) the words covered the item. Now the bar holds the name and its buttons (◀ ▶ with LB /
+  RB, turn with Y, reset with X, ✕ with B; the keys ← → R 0 Esc with the keyboard) and one short line under
+  the item: its kind and its first sentence (`shortLine`, at most 90 letters). "more" (A, I or Enter) opens
+  the rest in a column on the left and the item's canvas narrows beside it (`ItemViewer.show` sizes to its
+  canvas). Under 480 px high everything is smaller. With a pad: the cards are a grid, A opens, LB / RB or
+  ← → the other items, ↑ ↓ zoom, the right stick tilts, B closes (B on the list: back to the worlds list).
+- Tests: `tests/pad-glyphs.test.js` (families, the names, the glyphs' labels and CSS, the buttons that carry
+  them, `gridStep`, the worlds' cards, X / Y in menus, `shortLine`), `tests/game-menu.test.js`.

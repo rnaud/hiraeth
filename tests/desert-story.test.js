@@ -42,6 +42,7 @@ const npcs = [];
 const rt = createStory({ levelId: 'desert', scene, physics, level, player, npcs, crowd, sound, journal: { sections: [], el: { addEventListener() {} } }, story: { complete: () => { storyDone = true; } },
   capture: null, lib: null, humans: null, toast: (t) => toasts.push(t), tool: null });
 const { quests } = rt;
+const wellEntry = INTERACT.allInteractables().find((x) => x.id === 'well');   // (the well's prompt: the last test looks into it)
 // people: also walk the story people (main.js does it every frame; most tests don't need them to move)
 const step = (n = 1, dt = 1 / 30, { people = false } = {}) => { for (let i = 0; i < n; i++) { camera.position.copy(player.pos).add(V(0, 2, 4)); rt.update(dt, i * dt, { camera }); crowd.update(dt, i * dt, player, camera); if (people) for (const p of npcs) p.update(dt, player, camera); } };
 const talk = (person, choices) => {
@@ -288,7 +289,9 @@ test('a new game: the quest doesn’t just appear; Marrow, at your ship, calls y
   const W = rt.world, m = W.people.marrow;
   assert.equal(quests.isStarted('desert.power'), false, 'no quest on landing');
   assert.equal(quests.objective().label, 'Marrow, by your ship', 'the scout finds the one to ask');
-  assert.ok(flat(m.pos, level.spawn) < 12, 'Marrow is at your ship');
+  assert.ok(flat(m.pos, level.spawn) < 18, 'Marrow is at your ship');
+  // (but well clear of where it came down: the hull is 13 m round, he stands 22 m from its centre: src/ship/landing.js)
+  assert.ok(flat(m.pos, level.spawn) > 6, 'not under the ramp');
   // he calls you over (a word, every few seconds), and turns to you; he never starts talking himself
   at(m.pos.clone().add(V(9, 0, 0)));
   for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
@@ -442,18 +445,20 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   const { items } = await import('../src/items.js');
   const W = rt.world, H = level.hearth;
   assert.equal(quests.stage('desert.power'), 'ask');
-  assert.equal(quests.objective().label, 'Ama’s jar, the Speaker’s words');
-  assert.ok(quests.objective().position.distanceTo(W.people.ama.pos) < 0.01, 'the marker is on Ama first');
+  assert.equal(quests.objective().label, 'Ama’s jar, at the camp fires');
+  assert.ok(quests.objective().position.distanceTo(W.people.ama.pos) < 0.01, 'the marker is on Ama');
+  // Nour said the Speaker's verse herself (the first hour shorter: the Speaker is no stage of his own now)
+  assert.match(PEOPLE.nour.talk.nodes.quest.say.map((s) => s.text ?? s).join(' '), /mouth is a door/);
   talk(THINGS.well, [0]);   // (the well can still be looked at: it isn't a stage any more)
-  talk(PEOPLE.ama, ['I’ll bring it back full']);
+  const ama = talk(PEOPLE.ama, ['I’ll bring it back full']);
   assert.ok(quests.has('jar'), 'Ama gives the jar, now that Nour sent you');
+  assert.match(ama.pages.join(' '), /skull is beyond the back gate/, 'and points the way');
   step(2);
-  assert.equal(quests.stage('desert.power'), 'ask', 'the Speaker still to ask');
-  // the marker follows the Speaker round the circuit
-  const sp = W.people.speaker;
-  assert.ok(quests.objective().position.distanceTo(sp.pos) < 0.01);
+  assert.equal(quests.stage('desert.power'), 'down', 'the jar is the one errand before the way down');
+  // the Speaker still has the old words whole, for whoever walks with him
   const said = talk(PEOPLE.speaker, ['Nour says', 'Is there a way down']);
   assert.match(said.pages.join(' '), /mouth is a door/);
+  assert.equal(game.flag('desert.speaker.heard'), true, 'his old words (the giants, the swamp of lights)');
   step(2);
   assert.equal(quests.stage('desert.power'), 'down');
   // the objective is in the cave, so the guide routes through the skull's mouth
@@ -662,7 +667,7 @@ test('old saves: stages that moved go to Nour, the ones done advance on their fl
   assert.equal(migrateDesertQuest(s.g), 'elder');
   assert.equal(s.run(), 'elder', 'Nour first');
   s.g.set('desert.elder.heard', true);
-  s.g.set('desert.asked', true);   // (setupDesert's askedBoth: the jar and the Speaker were done)
+  s.g.set('desert.asked', true);   // (setupDesert's askedDone: the jar was given)
   assert.equal(s.run(), 'down', 'the jar and the Speaker were done already');
   // in the cave already: untouched
   s = save('channel', { 'item.backpack': true });
@@ -749,3 +754,21 @@ test('the water let out before anyone sent you down: the steps that lead there p
   clearInteractables();
 });
 
+test('looking into the well: he turns to the shaft, not to the spot on the terrace he was asked from', () => {
+  const C = Q.city, e = wellEntry;   // (taken as the story set it up: later tests clear the prompts)
+  assert.ok(e, 'the well can be looked into');
+  // between the rim and the place the prompt is asked from (city.wellLook, 3.4 m out from the middle), a little to the side
+  const p = C.well.clone().lerp(C.wellLook, 0.85); p.x += 0.6;
+  at(p); facing(C.well);
+  assert.ok(e.distance(player) < e.range, 'the prompt answers there');
+  e.use(player);
+  assert.ok(rt.dialogue.open, 'the well speaks');
+  step(1);
+  const to = player.faceToward;
+  assert.ok(to, 'he turns to something');
+  const dir = (a) => { const d = a.clone().sub(player.pos); d.y = 0; return d.normalize(); };
+  assert.ok(dir(to).dot(dir(C.well)) > 0.99, `toward the well (${dir(to).dot(dir(C.well)).toFixed(2)}; it was -0.62: his back to it)`);
+  assert.ok(flat(to, C.well) < 0.01 && to.y > C.well.y && to.y < C.well.y + 1.15, 'down into the shaft, under the rim');
+  rt.dialogue.close();
+  step(1);
+});

@@ -28,8 +28,8 @@
       #cue {
         position: fixed; left: 50%; bottom: calc(22px + var(--safe-bottom, 0px)); z-index: 31; transform: translateX(-50%);
         width: max-content; max-width: min(720px, calc(100vw - 32px)); box-sizing: border-box; text-align: center;
-        font: calc(12px * var(--ts, 1))/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(255, 250, 240, 0.9);
-        border: 1.5px solid #2b211f; border-radius: 14px; box-shadow: 2px 2px 0 #2b211f; padding: 3px 12px;
+        font: calc(12px * var(--ts, 1))/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(255, 250, 240, 0.8);
+        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 14px; padding: 2px 11px;
         pointer-events: none; user-select: none; opacity: 0; transition: opacity 0.35s;
       }
       #cue.show { opacity: 1; }
@@ -72,7 +72,7 @@
         border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; padding: 10px 22px; cursor: pointer; border-radius: 4px; }
       #restart button:focus-visible, #restart button:hover { background: #ffd866; outline: none; }
       #restart button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2b211f; }
-      #restart small { display: block; margin-top: 10px; color: #6b5a4e; font-size: calc(11px * var(--ts, 1)); }
+      #restart button { display: inline-flex; align-items: center; }   /* (the confirm glyph inside it: src/pad-glyphs.js) */
       #picker {
         position: fixed; inset: 0; z-index: 5000; display: none; overflow: auto;
         background: rgba(247, 236, 210, 0.94); color: #2b211f;
@@ -83,21 +83,29 @@
       #picker h1 { font-size: 26px; letter-spacing: 0.12em; margin: 0; }
       #picker header span { opacity: 0.7; }
       #picker .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
-      #picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 22px; }
+      /* the worlds: a grid of small cards a controller moves through in 2D (src/world-picker.js, data-grid-nav) */
+      #picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(176px, 44vw), 1fr)); gap: 14px; padding-bottom: 64px; }
       #picker .card {
-        display: flex; align-items: stretch; color: inherit; text-decoration: none; background: #fbf4e2;
-        border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; transition: transform 0.12s;
+        position: relative; display: flex; flex-direction: column; color: inherit; text-decoration: none; background: #fbf4e2; scroll-margin: 28px 12px 72px;
+        border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; transition: transform 0.12s, box-shadow 0.12s;
       }
-      #picker .card:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 #2b211f; }
-      #picker .card.current { outline: 3px solid #d9643a; outline-offset: 3px; }
-      #picker img { display: block; flex: none; align-self: flex-start; width: 96px; height: 96px; margin: 12px 0 12px 12px; object-fit: cover; border: 2px solid #2b211f; background: #efe3c6; }
-      #picker .txt { flex: 1; min-width: 0; padding: 12px 14px 14px; position: relative; }
-      #picker .num { position: absolute; right: 14px; top: 10px; font-size: 22px; opacity: 0.35; }
-      #picker h2 { margin: 0 0 2px; padding-right: 30px; font-size: 17px; letter-spacing: 0.05em; }
-      #picker .src { font-style: italic; opacity: 0.75; margin-bottom: 8px; }
-      #picker p { margin: 0 0 10px; }
-      #picker .moves { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
-      #picker .along { margin-top: 6px; font-size: 11px; color: #6b5a4e; }
+      #picker .card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2b211f; }
+      #picker .card.current { outline: 3px dashed #d9643a; outline-offset: 3px; }
+      #picker .card:focus, #picker .card:focus-visible { z-index: 1; outline: 4px solid #c8483a; outline-offset: 2px; background: #fff6dc; transform: translate(-3px, -3px) scale(1.04); box-shadow: 8px 8px 0 #2b211f; }
+      #picker .card .pic { position: relative; display: block; aspect-ratio: 16 / 9.5; border-bottom: 2px solid #2b211f; background: #efe3c6; overflow: hidden; }
+      #picker img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      #picker .num { position: absolute; left: 6px; top: 6px; min-width: 1.4em; padding: 1px 5px; text-align: center; font-size: 12px; background: #fbf4e2; border: 1.5px solid #2b211f; }
+      #picker .card .glyph.on-focus { position: absolute; right: 6px; bottom: 6px; margin: 0; font-size: 15px; }
+      #picker .txt { display: block; min-width: 0; padding: 6px 8px 8px; }
+      #picker h2 { margin: 0; font-size: 13px; line-height: 1.25; letter-spacing: 0.03em; }
+      #picker .src { display: block; font-size: 11px; font-style: italic; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #picker .along { display: block; margin-top: 3px; font-size: 10px; color: #6b5a4e; }
+      #picker .info { position: fixed; left: 50%; bottom: calc(10px + var(--safe-bottom, 0px)); transform: translateX(-50%); z-index: 2; box-sizing: border-box; width: min(760px, calc(100vw - 24px));
+        margin: 0; padding: 7px 12px; font-size: 12px; line-height: 1.4; background: #fbf4e2; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; }
+      #picker .info[hidden] { display: none; }
+      #picker .info .moves { display: inline; margin-left: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
+      #picker .close { display: inline-flex; align-items: center; }
+      @media (max-height: 480px) { #picker .debug-note { display: none; } #picker header { margin-bottom: 12px; } #picker h1 { font-size: 20px; } #picker .pages { margin-bottom: 10px; gap: 6px; } #picker .pages a { padding: 3px 8px; } }
       #picker .debug-note { margin: -8px 0 18px; max-width: 70em; font-size: 12px; color: #6b5a4e; }
       #photo {
         position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: none;
@@ -131,7 +139,7 @@
       #changelog ul { margin: 0; padding-left: 18px; }
       #changelog li { margin: 3px 0; }
       #changelog .buttons { margin-top: 12px; text-align: right; }
-      #changelog button { font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
+      #changelog button { display: inline-flex; align-items: center; font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
       #changelog .buttons button + button { margin-left: 8px; }
       /* the interactive changelog (changelog.html?embed=1) over the game */
       #changelog iframe.pictures { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #f7ecd2; z-index: 1; }
@@ -148,13 +156,14 @@
         background: #f2c54b; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f;
       }
       #picker .card.locked { opacity: 0.6; cursor: default; }
-      #picker .card.locked .lock { flex: none; align-self: flex-start; width: 96px; height: 96px; margin: 12px 0 12px 12px; display: grid; place-items: center; font-size: 40px; border: 2px solid #2b211f; background: repeating-linear-gradient(45deg, #efe3c6 0 10px, #e6d8b8 10px 20px); }
+
 
       /* touch */
       #touch { display: none; }
       body.touch #touch { display: block; }
       /* a phone: the buttons fill the bottom, the cue goes up top (the toasts make room for it: src/ship/cinema.js) */
-      @media (max-width: 700px) { body.touch #cue { bottom: auto; top: calc(12px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
+      /* (below the health bar's line: it shows the moment you are hurt, top left) */
+      @media (max-width: 700px) { body.touch #cue { bottom: auto; top: calc(40px + var(--safe-top, 0px)); max-width: calc(100vw - 96px); } }
       #touch .stick { position: fixed; width: 140px; height: 140px; border-radius: 50%; border: 2px solid rgba(43, 33, 31, 0.5); background: rgba(255, 250, 240, 0.25); display: none; z-index: 35; pointer-events: none; }
       #touch .stick.on { display: block; }
       #touch .nub { position: absolute; left: 45px; top: 45px; width: 50px; height: 50px; border-radius: 50%; background: rgba(43, 33, 31, 0.55); }
@@ -162,17 +171,18 @@
         position: fixed; z-index: 36; width: 64px; height: 64px; border-radius: 50%; font: 18px ui-monospace, Menlo, monospace;
         color: #2b211f; background: rgba(255, 250, 240, 0.8); border: 2px solid #2b211f; touch-action: none;
       }
-      #touch .b-jump { right: 24px; bottom: 90px; width: 78px; height: 78px; font-size: 26px; }
-      #touch .b-use { right: 112px; bottom: 40px; }
-      #touch .b-run { right: 24px; bottom: 186px; font-size: 13px; }
+      /* each button's place and size: src/touch-layout.js (ui.js TouchControls sets them, scaled to the screen's short side) */
       #touch .b-run.on { background: #f2c54b; }
-      #touch .b-book { right: 112px; bottom: 120px; }
       body.touch #gear { top: 14px; bottom: auto; }
       #loading {
         position: fixed; inset: 0; z-index: 9000; display: grid; place-content: center; justify-items: center; gap: 18px;
         font: 14px ui-monospace, Menlo, monospace; color: #2b211f; background: #f7ecd2; transition: opacity 0.8s;
       }
       #loading.done { opacity: 0; pointer-events: none; }
+      /* arriving from the ship's jump (?via=ship): the warp's space ink, not the paper (src/ship/cinema.js WARP) */
+      #loading.space { background: #151a2b; color: #f7ecd2; }
+      #loading.space .ring { stroke: #f7ecd2; }
+      #loading.space .nib { stroke: #f7ecd2; }
       /* transform animations run on the compositor, so they keep moving while the world is built: on an HTML
          box of its own (will-change: its own layer from the start; a transform on an SVG root is not
          run off the main thread by every engine), the drawing inside it static */
@@ -307,19 +317,28 @@
       body.talking .balloon, body.talking #prompt, body.talking #controller-hint, body.talking #gear { visibility: hidden; }
       /* the conversation is answered by tapping the panel: the game buttons would sit under and round it */
       body.talking #touch { visibility: hidden; }
-      #touch .b-use.talk { font-size: 13px; }
+      #touch .b-use.talk { font-size: calc(13px * var(--tk, 1)) !important; }   /* (over the inline size: src/touch-layout.js) */
       /* the game menu (View / Select, J: src/game-menu.js): its styles are in src/menus.css */
 
+      /* a notice: quiet paper, a thin rule, no shadow (src/ship/cinema.js places it clear of the health bar) */
       #toast {
-        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 8px 14px;
-        font: calc(13px * var(--ts, 1)) ui-monospace, Menlo, monospace; color: #2b211f; background: #fffaf0; border: 2px solid #2b211f;
-        box-shadow: 4px 4px 0 #2b211f; opacity: 0; pointer-events: none;
+        position: fixed; left: 50%; top: 22px; transform: translateX(-50%); z-index: 60; padding: 5px 12px;
+        font: calc(12px * var(--ts, 1))/1.45 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(255, 250, 240, 0.84);
+        border: 1px solid rgba(43, 33, 31, 0.45); border-radius: 10px; opacity: 0; pointer-events: none;
       }
+      /* a quest begins (src/story/quests.js startToast): its own card, ink with a gold rule, its title large */
+      #toast.quest { padding: 7px 22px 8px; background: rgba(43, 33, 31, 0.92); color: #f7ecd2; border: 0; border-top: 2px solid #f2c54b; border-radius: 3px; }
+      #toast.quest span { display: block; }
+      #toast.quest .qk { font: 600 calc(10px * var(--ts, 1))/1.5 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.3em; text-transform: uppercase; color: #f2c54b; }
+      #toast.quest .qt { font: italic 500 calc(17px * var(--ts, 1))/1.3 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.03em; text-wrap: balance; }
+      #toast.quest .qs { margin-top: 2px; font-size: calc(12px * var(--ts, 1)); opacity: 0.85; text-wrap: balance; }
       #toast.show { animation: toast 4.5s forwards; }
       /* the toast is placed in the stack of things written on the screen (src/ship/cinema.js layoutCinema):
          one line where it can, centred, and over the letterbox's frame during a scene, below its top bar */
-      #toast { width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; text-align: center; transition: top 0.3s; }
+      #toast { width: max-content; max-width: min(560px, calc(100vw - 32px)); box-sizing: border-box; text-align: center; transition: top 0.3s; }
       body.cine-on #toast { z-index: 8050; }
+      /* a phone on its side: the buttons fill the right, so a notice wraps narrower and slides left of them (src/ship/cinema.js) */
+      @media (orientation: landscape) and (max-height: 500px) { body.touch #toast { max-width: min(560px, 60vw); } }
       @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -8px); } 8%, 80% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
 
       #page {
@@ -358,17 +377,12 @@
       #fps { right: calc(14px + var(--safe-right)); top: calc(14px + var(--safe-top)); bottom: auto; }
       body.touch #gear { top: calc(12px + var(--safe-top)); bottom: auto; }
       body.touch #fps { top: auto; bottom: calc(14px + var(--safe-bottom)); left: calc(16px + var(--safe-left)); right: auto; }
-      #touch .b-jump { right: calc(24px + var(--safe-right)); bottom: calc(90px + var(--safe-bottom)); }
-      #touch .b-use { right: calc(112px + var(--safe-right)); bottom: calc(40px + var(--safe-bottom)); }
-      #touch .b-run { right: calc(24px + var(--safe-right)); bottom: calc(186px + var(--safe-bottom)); }
-      #touch .b-book { right: calc(112px + var(--safe-right)); bottom: calc(120px + var(--safe-bottom)); }
       #changelog, #page { box-sizing: border-box; padding: calc(12px + var(--safe-top)) calc(12px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(12px + var(--safe-left)); }
       #changelog .panel, #page .sheet { box-sizing: border-box; max-width: 100%; max-height: calc(100dvh - 32px - var(--safe-top) - var(--safe-bottom)); overflow: auto; }
       #picker { padding: calc(24px + var(--safe-top)) calc(20px + var(--safe-right)) calc(24px + var(--safe-bottom)) calc(20px + var(--safe-left)); }
       #picker header { flex-wrap: wrap; gap: 12px; }
       #picker header .hint { font-style: normal; }
       @media (display-mode: standalone) { .install-tip { display: none; } }
-      #touch .b-ping { right: calc(112px + var(--safe-right)); bottom: calc(200px + var(--safe-bottom)); font-size: 13px; }
       #controller-hint { display: none; position: fixed; z-index: 1000; bottom: calc(8px + var(--safe-bottom)); left: 50%; transform: translateX(-50%); width: max-content; max-width: 90%; padding: 7px 12px; background: #f7eed9ed; border: 1px solid #473d36; font: 12px monospace; pointer-events: none; }
       body.controller.controller-hint #controller-hint { display: block; }
       /* holding a controller (a Retroid, a pad on a phone): no buttons on the screen at all */
@@ -379,7 +393,7 @@
         opacity: 0; visibility: hidden; transition: opacity 0.4s, visibility 0s 0.4s; }
       body.aiming #tool, body.tool-gauge #tool { opacity: 1; visibility: visible; transition: opacity 0.15s; }
       body:not(.aiming) #tool .cross { visibility: hidden; }
-      body.talking #tool { visibility: hidden; }
+      body.talking #tool, body.cine-on #tool { visibility: hidden; }   /* (a cinematic: the jar's gauge waits too) */
       #tool .cross { position: relative; width: 24px; height: 24px; border: 2px solid #2b211f; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(247, 236, 210, 0.75), inset 0 0 0 1.5px rgba(247, 236, 210, 0.6); transition: transform 0.12s; }
       #tool .cross::after { content: ''; position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px; border-radius: 50%; background: #2b211f; }
       #tool .cross i { position: absolute; background: #2b211f; box-shadow: 0 0 0 1px rgba(247, 236, 210, 0.7); }
@@ -399,15 +413,8 @@
       #tool .mode { position: absolute; top: 40px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px;
         font: 11px/1.5 ui-monospace, Menlo, monospace; color: #2b211f; background: rgba(247, 236, 210, 0.85); border: 1px solid #2b211f; }
       #tool .mode b { font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; }
-      #touch .b-aim { right: calc(200px + var(--safe-right)); bottom: calc(150px + var(--safe-bottom)); font-size: 24px; }
       #touch .b-aim.on { background: #9fd6e8; }
-      #touch .b-fire { right: calc(200px + var(--safe-right)); bottom: calc(60px + var(--safe-bottom)); width: 74px; height: 74px; font-size: 26px; }
-      #touch .b-mode { right: calc(282px + var(--safe-right)); bottom: calc(96px + var(--safe-bottom)); width: 50px; height: 50px; font-size: 22px; }
-      #touch .b-guard { right: calc(206px + var(--safe-right)); bottom: calc(228px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
-      #touch .b-evade { right: calc(206px + var(--safe-right)); bottom: calc(290px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
-      #touch .b-lock { right: calc(282px + var(--safe-right)); bottom: calc(232px + var(--safe-bottom)); width: 40px; height: 40px; font-size: 18px; }
       body:not(.combat) #touch .b-lock { display: none; }   /* (only with a foe near: src/foes.js) */
-      #touch .b-blade { right: calc(282px + var(--safe-right)); bottom: calc(166px + var(--safe-bottom)); width: 54px; height: 54px; font-size: 22px; }
       body:not(.modes) #touch .b-mode { display: none; }
       /* no backpack yet: no tool buttons, no tool hints (ui.js ToolHud sets .no-tool) */
       body.no-tool #touch .b-aim, body.no-tool #touch .b-fire, body.no-tool #touch .b-mode, body.no-tool #touch .b-blade, body.no-tool #touch .b-guard, body.no-tool #touch .b-evade, body.no-tool #touch .b-lock { display: none; }
@@ -432,6 +439,7 @@
       html.speech-solid #dialogue .dlg-choices button { background: #ffffff; color: #000000; }
       html.speech-solid .balloon { background: #ffffff; color: #000000; border-width: 2.5px; }
       html.speech-solid #cue, html.speech-solid #toast { background: #ffffff; color: #000000; }
+      html.speech-solid #toast.quest { background: #000000; color: #ffffff; }
       html.speech-solid #cue.place span { background: #ffffff; color: #000000; padding: 2px 8px; }
       /* reduced motion: the panels and pages arrive without sliding, nothing blinks */
       html.reduce-motion #dialogue { transform: translate(-50%, 0); transition: opacity 0.25s; }
@@ -450,6 +458,7 @@
       </svg></div>
       <div class="msg" data-t="load.sketching">sketching the world…</div>
     </div>
+    <script>if (/[?&]via=ship(&|$)/.test(location.search)) document.getElementById('loading').classList.add('space');</script>
     <div id="journal"></div>
     <div id="page"></div>
     <div id="toast"></div>
@@ -477,7 +486,7 @@
       <circle r="15" fill="none" stroke="#2b211f" stroke-width="0.8" stroke-dasharray="1.6 2.4" opacity="0.5" />
       <circle r="6.6" fill="#f7ecd2" stroke="#2b211f" stroke-width="1.6" />
     </svg></div>
-    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button" data-t="restart.button">Restart</button><small></small></div></div>
+    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button"><span class="glyph" data-glyph="ok" data-key="Enter" aria-hidden="true"></span><span data-t="restart.button">Restart</span></button></div></div>
     <script type="module" src="/src/boot.js"></script>
   </body>
 </html>

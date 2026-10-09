@@ -75,10 +75,13 @@ export function setupIncalMoments(ctx, { st, splinter, incalPos, land, told, P, 
       return pan.look.clone();
     };
     const W = wall();
-    const cFrom = W ? { pos: W.lens, look: W.at.clone().addScaledVector(UP, 1), fov: 26 } : null;
-    const cTo = W ? { pos: W.lens.clone().lerp(W.at, 0.12), look: W.at.clone().addScaledVector(UP, 1.6), fov: 25 } : null;
+    // (closer and squarer than first framed, so LOOK UP reads: at 85 m and 26° the words were a smudge; the QC pass)
+    const cFrom = W ? { pos: W.lens.clone().lerp(W.at, 0.4), look: W.at.clone().addScaledVector(UP, 0.6), fov: 22 } : null;
+    const cTo = W ? { pos: W.lens.clone().lerp(W.at, 0.5), look: W.at.clone().addScaledVector(UP, 0.8), fov: 21 } : null;
     const m = moments.play({
       ...def, dur: LODESTAR.A + LODESTAR.B + LODESTAR.C + LODESTAR.D,
+      // (it starts with the camera looking steeply up at the light: hand back behind him, level)
+      behind: true,
       shots: [
         // A: over his shoulder, looking up as it leaves his hand
         { dur: LODESTAR.A, ease: 'linear', clear: false, from: (t) => ({ pos: aAt.clone().addScaledVector(UP, -0.25 * smooth(t / LODESTAR.A)), look: follow(t), fov: 58 }) },

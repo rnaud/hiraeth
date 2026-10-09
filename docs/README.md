@@ -52,8 +52,9 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [story.md](systems/story.md) | the story's systems: quests, errands, the father's charge, every world's story, the ending, the route and the galactic map, the strike's signature, the recordings, the desert reworked, quests that fail |
 | [progression.md](systems/progression.md) | progression: the route, the wings before the jets, the cab pass, Vael's bird |
 | [dialogue.md](systems/dialogue.md) | conversations and answers, listening, alien voices and the translator, the worlds' scripts, highlights, keys in lines (`{key:aim}`), the conversation camera |
-| [conversations.md](systems/conversations.md) | conversations: the camera's cut, the close shot of the traveller's face and his answer beat, the gap between two people, the translator |
+| [conversations.md](systems/conversations.md) | conversations: the camera's cut, the close shot of the traveller's face, holding still while he talks, fires kept out of the shot, who gets a balloon, the gap between two people, the translator |
 | [cinematics.md](systems/cinematics.md) | the ship's cutscenes and the burning tree, moments (first times, filmed) |
+| [cinematics-qc.md](systems/cinematics-qc.md) | the cinematics' quality control: the script that plays every one headless, the checklist, the scores of the October 2026 pass and what it fixed |
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone |
 | [items.md](systems/items.md) | items, the backpack and the makers' boxes |
@@ -68,6 +69,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [minigames.md](systems/minigames.md) | the minigames: the runner (start card, 3-2-1, HUD, pause, results, the best in the save), the Games row and the arcade sign, how to add a game (options, a best per difficulty, games on foot), Dune skiing, Sky steps, the Canyon run, Fishing, the Ring race, the Wing drop, the shooting gallery, Ink tide, the Drum circle, the Sketch hunt |
+| [challenges.md](systems/challenges.md) | challenges in the open world: the sign, the start card, the run's clock and goal, the best, Retry, the quiet reward; each world's trial and the makers' runs (the temples' kit and pieces in the open: one a world, from the Wind hall to the Vine walk and the Bell crossing) |
 | [dev-tools.md](systems/dev-tools.md) | the Lab, the worlds list's debug save, the clipping audit |
 | [testing.md](systems/testing.md) | the tests, and the play-through: the route played from the crash to home in node, old saves resumed, the page's own flows in a headless Chrome |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |

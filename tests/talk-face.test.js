@@ -107,17 +107,14 @@ test('a conversation says who speaks, in which tone, and how open their mouth is
   d.next(); d.update(0.05);
   assert.equal(d.faces().npc.tone, 'happy');
   d.update(10);
-  // the traveller answers: his face, his tone, his mouth, for as long as he says it
+  // the traveller's answer is not said back (playtest, October 2026): his face stays quiet, she replies
   d.choose(0);
-  let said = 0, mouth = 0;
-  for (let i = 0; i < 120; i++) { d.update(1 / 60); const f = d.faces(); if (f.player.speaking) { said++; assert.equal(f.player.tone, 'curious'); mouth = Math.max(mouth, f.player.mouth); } }
-  assert.ok(said > 10 && mouth > 0.2, `he answers (${said} frames, mouth ${mouth.toFixed(2)})`);
-  // the last word ends the talk; it is still being said after the panel closes
+  for (let i = 0; i < 120; i++) { d.update(1 / 60); assert.equal(d.faces().player.speaking, false, 'he does not say it again'); }
   d.update(10);
   d.choose(0);
   assert.equal(d.open, false);
   d.update(1 / 60);
-  assert.equal(d.faces().player.speaking, true);
+  assert.equal(d.faces().player.speaking, false);
   assert.equal(d.faces().npc.speaking, false);
 });
 

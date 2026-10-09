@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { CINEMATICS, reviewURL } from '../src/cinematics-page/catalog.js';
-import { reviewStorage } from '../src/cinematics-page/storage.js';
+import { reviewStorage, mergeNotes } from '../src/cinematics-page/storage.js';
+import { readFileSync } from 'node:fs';
 import { WORLD_MOMENTS } from '../src/story/film.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
 import { ORDER, SIDE } from '../src/levels/names.js';
@@ -19,4 +20,14 @@ test('review storage never writes through to a player save and starts fresh on r
   assert.equal(a.getItem('moebius.s1.game.v1'), 'temporary');
   const b = reviewStorage('?cinematicReview=desert.flow'); assert.equal(b.getItem('moebius.s1.game.v1'), null);
   a.removeItem('moebius.s1.game.v1'); assert.equal(a.getItem('moebius.s1.game.v1'), null);
+});
+
+test('imported QC notes merge by date, and the last QC pass\'s notes load and name real cinematics', () => {
+  const here = { a: { verdict: 'Pass', text: 'old', updated: '2026-10-01' }, b: { verdict: 'Needs work', text: 'mine', updated: '2026-10-09' } };
+  const merged = mergeNotes(here, { notes: { a: { verdict: 'Needs work', text: 'new', updated: '2026-10-05' }, b: { verdict: 'Pass', text: 'older', updated: '2026-10-02' }, c: { verdict: 'Nonsense' } } });
+  assert.equal(merged.a.text, 'new'); assert.equal(merged.b.text, 'mine'); assert.equal(merged.c, undefined);
+  const pass = JSON.parse(readFileSync(new URL('../docs/systems/cinematics-qc-notes.json', import.meta.url), 'utf8'));
+  const ids = new Set(CINEMATICS.map((e) => e.id));
+  for (const id of Object.keys(pass.notes)) assert.ok(ids.has(id), id);
+  assert.equal(Object.keys(mergeNotes({}, pass)).length, CINEMATICS.length, 'every cinematic has its verdict');
 });

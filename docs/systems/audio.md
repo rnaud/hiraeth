@@ -13,6 +13,25 @@ since a suspended context would only queue sounds to burst out at once. The
 ship's arrival sets its engines every frame, so they come in even when the
 sound starts partway through.
 
+## The hum (v1.0)
+
+Everyone on the route talks about humming (the chest on the great tree, Vael's stones, the bell, the
+pole), and the scar on the hull beats in threes; before v1.0 nothing hummed. `Sound.makersHum({ vol, pos })`
+(`src/audio.js`) is that one sound: a low sung D3 (two reedy oscillators a breath apart and the octave
+under, a closed-mouth "mm" formant, a slow vibrato) that swells three times and lifts a fifth on the
+third, about four seconds, about -34 dB at vol 1 (a footstep's loudness, under the score).
+`makersHumRise(dur)` is the same voice growing in threes over `dur` and returns `{ stop() }`.
+When it plays (`src/story/hum.js`, pure):
+- the prologue: it rises under the father's charge (`callHum`, `callHumLevel`) while the picture
+  breaks up, and the strike cuts it; it sounds once more, faintly, with the ship's line about the
+  magnetic signature (`src/ship/cinematics.js`);
+- an unopened makers' box within `HUM.reach` (45 m) sings it every 8–12 s, louder near
+  (`Sound.boxHum(k, far)`, from `src/boxes/index.js`);
+- a line on the screen that speaks of humming (a conversation's line, the `words` event of
+  `src/story/dialogue.js`; a subtitle or toast, `Cinema.onWords`; the balloon up) plays it at 0.7,
+  at most once every `HUM.gap` (24 s: `HumCue`, main.js).
+`tests/hum.test.js` renders it on engine/webaudio.js: heard (over -48 dB) and subtle (under -30).
+
 ## Musicians' solos (v0.39)
 
 Bands (`sound.setBands`) play on the score's beat around a place. A solo is

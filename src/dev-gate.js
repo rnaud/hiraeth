@@ -9,6 +9,10 @@
 
 export const DEV_KEY = 'moebius.dev';
 
+// For now (2026-10-08, the author's call) everyone sees the debug entries, the published game too.
+// Set false to hide them from players again; the switches above then decide.
+export const ALWAYS_DEV = true;
+
 const env = () => { try { return import.meta.env ?? {}; } catch { return {}; } };
 const defaultStorage = () => { try { return globalThis.localStorage ?? null; } catch { return null; } };
 const defaultSearch = () => globalThis.location?.search ?? '';
@@ -23,8 +27,8 @@ export function readDevParam(search = defaultSearch(), storage = defaultStorage(
 }
 
 /** Show the author's debug entries? */
-export function devMode({ settings = null, search = defaultSearch(), storage = defaultStorage(), dev = !!env().DEV } = {}) {
+export function devMode({ always = ALWAYS_DEV, settings = null, search = defaultSearch(), storage = defaultStorage(), dev = !!env().DEV } = {}) {
   readDevParam(search, storage);
-  if (dev || settings?.devPanel) return true;
+  if (always || dev || settings?.devPanel) return true;
   try { return storage?.getItem(DEV_KEY) === '1'; } catch { return false; }
 }

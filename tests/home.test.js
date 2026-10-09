@@ -130,3 +130,20 @@ test('the stone keeps what was laid on it: at the ending, and at every visit sin
   assert.deepEqual(unlaidTokens(g).map((t) => t.id), ['c'], 'a keepsake found since is not on it yet');
   void game;
 });
+
+test('the window seat’s second angle: from inside the room beside the seat, clear of walls, on him and the window (the QC pass)', async () => {
+  const { seatSide } = await import('../src/story/home.js');
+  const scene = new THREE.Scene();
+  const level = quiet(() => createHome(scene));
+  const physics = new Physics(scene, level.ground);
+  const { small } = level.home, S = small.spots;
+  const c = seatSide(S.seat, S.window, S.table, small.floor);
+  assert.equal(level.indoorAt(c.pos), 'small', 'the lens is in the room');
+  const toSeat = S.seat.clone().setY(small.floor + 1.05).sub(c.pos), d = toSeat.length();
+  assert.ok(d > 1 && d < 2.6, `close on him (${d.toFixed(2)} m)`);
+  assert.ok(physics.rayDistance(c.pos, toSeat.clone().normalize(), d) >= d - 0.3, 'nothing between the lens and him');
+  const look = c.look.clone().sub(c.pos).normalize();
+  assert.ok(look.angleTo(toSeat.normalize()) < THREE.MathUtils.degToRad(c.fov / 2), 'he is in the frame');
+  const toWin = S.window.clone().sub(c.pos).normalize();
+  assert.ok(look.angleTo(toWin) < THREE.MathUtils.degToRad(c.fov * 0.8), 'and the window beyond him');
+});

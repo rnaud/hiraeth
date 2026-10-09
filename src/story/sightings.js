@@ -16,6 +16,7 @@
 // Each is saved as the flag sight.<id> (in the save, like every flag), so it stays met.
 
 import { DETOUR_SIGHTINGS } from './sightings-detours.js';
+import { isWip } from '../levels/names.js';
 
 export const THREADS = [
   { id: 'light', name: 'The singing light', ask: 'What struck the ship, and why did it turn?' },
@@ -110,11 +111,13 @@ export function recordSightings(game, { toast = () => {} } = {}) {
 
 /**
  * The Sightings page: [{ id, name, ask, found, of, entries: [{ id, line, who, world, found }] }], one a
- * thread, in order. A sighting not met yet keeps its world's name only if the world is known (`known(id)`).
+ * thread, in order. A sighting not met yet keeps its world's name only if the world is known (`known(id)`); one in a
+ * world still being made (src/levels/names.js WIP) is left out until met.
  */
-export function sightingsData({ game, known = () => true, titles = {}, list = SIGHTINGS } = {}) {
+export function sightingsData({ game, known = () => true, titles = {}, list = SIGHTINGS, wip = isWip } = {}) {
   return THREADS.map((t) => {
-    const entries = list.filter((s) => s.thread === t.id).map((s) => {
+    // (a world still being made is off the map: its slots are left out, unless already met there)
+    const entries = list.filter((s) => s.thread === t.id && (!wip(s.world) || seen(s.id, game))).map((s) => {
       const found = seen(s.id, game);
       return { id: s.id, found, line: found ? s.line : '?', who: found ? s.who : '', world: found || known(s.world) ? titles[s.world] ?? s.world : '' };
     });

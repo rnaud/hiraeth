@@ -182,7 +182,10 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 6.9, 75.6));
   const C3 = 86.6;
   K.rotunda({ x: 0, z: C3, y: 0, r: 9, h: 14, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
-  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 0, C3));   // (as drawn)
+  // the dais, solid as drawn: its two steps as cylinders (the lathe alone gave no top a ray from above
+  // could land on, so the chest stood on the floor, sunk into the dais to its lid: the QC pass)
+  K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 0, C3), new THREE.CylinderGeometry(2.5, 2.5, 0.62, 28).translate(0, 0.31, C3));
+  K.solid(new THREE.CylinderGeometry(3, 3, 0.3, 28).translate(0, 0.15, C3));
   add(Door, { id: 'd2', at: [0, 0, C3 + 9.7], w: 5, h: 6.4, hidden: true });
   add(Mark, { room: 'lens', at: [5.6, 0, C3 - 4.5], yaw: -Math.PI * 0.75 });
 

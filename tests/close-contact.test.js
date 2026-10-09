@@ -7,7 +7,7 @@ const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: (
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 const { NPC } = await import('../src/npc.js');
 const { Physics } = await import('../src/physics.js');
-const { Crowd, holdAim } = await import('../src/crowd.js');
+const { Crowd, holdAim, ASIDE, stepSide } = await import('../src/crowd.js');
 const { CROWD_POSES } = await import('../src/crowd-shader.js');
 const { createBazaar } = await import('../src/levels/bazaar.js');
 const { Dialogue } = await import('../src/story/dialogue.js');
@@ -105,6 +105,42 @@ test('a crowd person you push into steps round you, not through you, and stands 
   assert.ok(closest > 0.6, `kept out of you as you came through (closest ${closest.toFixed(2)} m)`);
   assert.ok(zig < 5 && path < 0.15, `still while you shuffle: ${zig} zigzags, ${path.toFixed(2)} m of fidgeting`);
   assert.ok(flick < 3, `their walk doesn't flicker on and off (${flick} switches)`);
+});
+
+test('stepSide: a move in a person’s own frame is a sidestep, a step back or a step ahead', () => {
+  assert.equal(stepSide(0.01, 0.2), 'right');
+  assert.equal(stepSide(0.05, -0.2), 'left');
+  assert.equal(stepSide(-0.2, 0.05), 'back');
+  assert.equal(stepSide(0.2, 0.05), 'ahead');
+});
+
+test('brushing past a crowd person: they step out of your path at a walking pace, to their side, and come back', () => {
+  // ("Brushing past people feels odd: they just shift in place": they slid off their spot at up to
+  // 2-3 m/s, straight back from you, the forward walk playing as the body went sideways)
+  const crowd = crowdOf();
+  const p = crowd.people.find((q) => !q.walk && q.pose === CROWD_POSES.stand && !q.group) ?? crowd.people.find((q) => !q.walk && q.pose === CROWD_POSES.stand);
+  assert.ok(p, 'someone standing');
+  const home = p.home.clone(), fwd = V(Math.sin(p.heading), 0, Math.cos(p.heading)), right = V(fwd.z, 0, -fwd.x);
+  // you walk across in front of them at 1.4 m/s, your line 0.5 m from their spot, from their right to their left
+  const pp = V(), dt = 1 / 60, path = right.clone().negate();
+  let fastest = 0, closest = Infinity, along = 0, across = 0;
+  const dirs = new Set(), last = p.pos.clone();
+  for (let f = 0; f < 600; f++) {
+    const t = f * dt, s = -4 + Math.min(t * 1.4, 8);
+    pp.copy(home).addScaledVector(fwd, 0.5).addScaledVector(path, s);
+    crowd.simulate(p, dt, 10 + t, pp, t * 1.4 < 8 ? 1.4 : 0, 5);
+    const step = V(p.pos.x - last.x, 0, p.pos.z - last.z);
+    fastest = Math.max(fastest, step.length() / dt);
+    along += Math.abs(step.dot(path)); across += Math.abs(step.dot(fwd));
+    if (p.stepDir) dirs.add(p.stepDir);
+    last.copy(p.pos);
+    if (t * 1.4 < 8) closest = Math.min(closest, Math.hypot(p.pos.x - pp.x, p.pos.z - pp.z));
+  }
+  assert.ok(closest > 0.55, `out of your way (closest ${closest.toFixed(2)} m)`);
+  assert.ok(fastest <= ASIDE.speed + 0.05, `a step's pace: ${fastest.toFixed(2)} m/s at most`);
+  assert.ok(across > along, `out of your path (${across.toFixed(2)} m across it, ${along.toFixed(2)} m along it)`);
+  assert.ok(dirs.size > 0, 'a step the body can play');
+  assert.ok(p.offset.length() < 0.08, `back on their spot after (${p.offset.length().toFixed(2)} m off)`);
 });
 
 for (const [label, ahead, playerSpeed] of [['passing', 3, 2.5], ['stopping to greet you', 1.4, 0]]) {

@@ -7,65 +7,21 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 - [ ] Redo the character's face to match the references more closely and feel less cartoony / anime.
   Pay particular attention to the eyes as a possible cause of the style mismatch.
-- [ ] Fix shadow artifacts in caves and interiors.
-- [ ] Make the debug menu easier to navigate with a controller: use a grid layout and smaller level cards.
-- [ ] Put button prompts inside the actual buttons in all menus, instead of in hints below them.
-- [ ] Show button prompts that match the connected controller.
-- [ ] Greatly reduce text in the item debug menu. In fullscreen on the Retroid, keep the text from
-  taking over the screen and hiding the item; the item should remain clearly visible.
+
+# Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
+
+- [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the
+  review page (the script confirms the cargo check but can't judge the walk-through parts).
 
 # Playtest notes (2026-10-08)
 
-## Prologue and the crash landing
-
-- [ ] The intro from Dad is boring.
-- [ ] A character's speech bubble shows up while the ship is still crashing.
-- [ ] A character stands too close to the ship as it crash-lands.
-- [ ] Leaving the ship for the first time shows a prompt to go back into it.
-- [ ] The humming the game talks about is never heard. Make it part of the prologue and bring it back
-  regularly.
-
-## Dialogue
-
-- [ ] During dialogue, when the camera points at the player's character, the character moves around.
-- [ ] The character looks around too much during dialogue.
-- [ ] Choosing a dialogue option just plays the chosen line back.
-- [ ] When Nour says to stand in the water, the answers offered don't match the context.
-- [ ] Talking to Ama, the flame is in the way.
-- [ ] Not every character should have a bubble over their head.
-
-## Characters and animation
-
-- [ ] Characters' waving looks wrong; something is off in the animation.
-- [ ] The main character has an animation where his mouth opens wide and his neck moves strangely.
-- [ ] Brushing past people feels odd: they just shift in place.
-- [ ] When told to look into the well, the character looks the other way.
-
 ## Shadows and visuals
 
-- [ ] Marrow casts a white shadow towards the ship during dialogue.
-- [ ] On the stairs to the big tree, shadows move with the camera and the character casts a white shadow.
-- [ ] The Golden Dunes entrance looks stuck, though it works.
-- [ ] The transition between worlds looks wrong on a white background when heading to space.
-- [ ] Do a visual audit at different screen resolutions.
+- [ ] The Golden Dunes entrance looks stuck, though it works. (Unclear which entrance: no door or gate in
+  the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
+  panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
+  the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
 
-## HUD and prompts
-
-- [ ] On-screen hints are too obvious and hide the health bar.
-- [ ] Starting a new quest should show a hint that looks different from the others.
-- [ ] Don't show button hints when getting into a vehicle.
-- [ ] Loading a new level shows the touch controls again.
-
-## Gameplay
-
-- [ ] No invisible enemies.
-- [ ] The knuckles riddle (which to shoot first) is unclear: how is the player meant to solve it?
-
-## Menus and settings
-
-- [ ] The galactic map lists the WIP levels that were never vetted or finished.
-- [ ] Dropdown values in Settings can't be changed with a controller.
-- [ ] The language switched to French and the debug menu disappeared.
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
@@ -81,17 +37,27 @@ Ranked; each says why in the review. Playtest with two or three new players befo
 - [x] **Two or three real choices** with consequences at the stone (Viridel's loss stays, as one of them):
   Dov's lift token (keep it, or give it back so he goes home), Hollin's promise (it costs the coming back),
   Esk's hill. The stone and Ilen both remember them (src/story/ending.js choicesMade).
-  - [ ] Later: more of the route's people could hear about Ilen (Sel at the market, Hollin's other lines);
-    old saves that kept Dov's token before the choice existed show no line for it.
-- [ ] **The desert's first hour shorter:** the three talk stages in a row, the empty Hearth ride.
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
+  The vehicles' side is done (a trial in every route world, v0.98) and so is the system for the temple kit's
+  side with nine runs: the desert's Wind hall, Lorn's Hush walk, Vael's Feather leap, the Buried Machine's
+  Furnace steps, the Garden of Spheres' Sphere court, the City-Shaft's Long look (v1.3), the Signal Market's
+  Echo relay, Viridel's Vine walk and the Sky Stones' Bell crossing (v1.4, docs/systems/challenges.md; the
+  stand-in runtime now has the ball rolled onto its plate, the echo stones and horns, the seeds with their vine
+  bridges and the flower-door, the bell-tuned bridges of fallen-up stones and the bell-tuned door).
+  Next: a makers' run in the other two route worlds, each from its own temple's pieces; both want a new piece
+  in the stand-in runtime: Lorn's deep wood (LightEar: the lantern charm's lamps), the Hangar (eye banks with
+  riding discs: `level.dynamic`, which the runs now feed).
 - [x] **Each world's climax staged as a moment** (every route world: `src/story/<world>-moments.js`,
   docs/systems/cinematics.md).
 - [x] **One trace of the singing light or of Ilen in each detour world** (and the Sightings page that
   keeps them: docs/systems/story.md, docs/systems/ui.md).
 - [ ] The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the
-  Arena). Next: captured sword swings for the blade (the Sword and Shield and Great Sword packs from
-  Mixamo), a better machine, foes that use the world's height and the temple kit.
+  Arena), and the blade's attacks are all captured swings (the combo, the guard, the whirl, the lunge, and in
+  v1.3 the charged cut and the air cut from the Great Sword pack, in v1.4 the riposte after a perfect parry and
+  the dash cut out of an evade from the Sword and Shield pack, on their clips' own swing frames: DONE.md).
+  In v1.4 foes use the world's height (they climb, hop down and hold off; the spitter takes the high ground;
+  knocked off a ledge they lie dazed; a stilled temple crystal's frost holds them, and knocked into deep water
+  they are swept away: DONE.md). Next: a better machine.
 
 # Carried over
 
@@ -165,6 +131,20 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 
 ## Steam Deck (waiting on the device: it was asleep, 2026-10-07)
 
+- [ ] **Performance pass on the Steam Deck** (2026-10-09, once the Deck is plugged in so it doesn't sleep):
+  every world in Gaming Mode on the installed build, the FPS and frame times against the targets, the worst
+  views profiled (GPU vs JS), fixes for the biggest costs, before/after numbers in the changelog. First confirm
+  the "mixing the inks…" hang (below) is gone.
+- [ ] Every level hangs on "mixing the inks…" on the Deck (2026-10-08, runtime 1294001, its packaged game,
+  gamescope GL): no error in the console, the first shader warm-up never logs. Suspect: the load's GPU pacer
+  (src/load-steps.js gpuPacer) waiting its full 250 ms on fences the driver never signals, every piece.
+  Check on the device with `PORT=5312 scripts/bench/deck-run.sh start headless` and the console over CDP.
+  Found and fixed (2026-10-08, not yet confirmed on the Deck): with fences forced never to signal, headless
+  Chrome's desert load took 185 s (the first warm-up alone 97 s: 741 surface kinds × up to 250 ms), the
+  Deck's exact symptom; a page with no frame callbacks hung at the very first stage instead (not the
+  Deck's). Now the pacer gives up after 3 full waits in a row or 3 s in all (one "gpu pacer: …" warning),
+  a stage waits for a frame or 250 ms, and a stage over 15 s names its step ("load: still on …"): 3.8 s
+  with silent fences. On the Deck, look for the "gpu pacer" warning to confirm the cause.
 - [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
   fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
   then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the

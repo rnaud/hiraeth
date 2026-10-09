@@ -10,7 +10,7 @@ import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
 import { buildApproach, planetMaterial, MARK_IDS } from '../src/ship/approach.js';
 import { PLANETS } from '../src/ship/planets.js';
-import { ArrivalDirector, APPROACH, landingK } from '../src/ship/cinematics.js';
+import { ArrivalDirector, APPROACH, landingK, planetDistance, PLANET_NEAR } from '../src/ship/cinematics.js';
 import { FlameBody, FIRE, COOL_FIRE } from '../src/story/flames.js';
 
 // The ship's cutscenes and the desert's burning tree, from player feedback:
@@ -216,4 +216,13 @@ test('the burning tree is one great 3D flame with a living fire shader, and stil
   assert.equal('#' + f.material.uniforms.uPal.value[1].getHexString(), COOL_FIRE[1], 'the feast: cool fire');
   f.setPalette(FIRE, true); f.update(0, 0);
   assert.equal('#' + f.material.uniforms.uPal.value[0].getHexString(), FIRE[0]);
+});
+
+test('the approach planet\'s face never comes in front of the ship, however big it grows (the cinematics QC pass)', () => {
+  for (const ang of [0.05, 0.4, 0.9, 1.2, 1.32]) {
+    const D = planetDistance(700, ang);
+    assert.ok(D * (1 - Math.sin(ang)) >= PLANET_NEAR - 1e-6, `near surface at ${(D * (1 - Math.sin(ang))).toFixed(0)} m for ${ang}`);
+    assert.ok(D * Math.cos(ang) < 5000, 'its visible face stays inside the far plane');
+  }
+  assert.equal(planetDistance(1250, 0.08), 1250, 'small and far: unchanged');
 });

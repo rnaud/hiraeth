@@ -5,6 +5,8 @@ import { PAD } from '../bindings.js';
 import { Quests, QuestMarker } from './quests.js';
 import { Dialogue, TRAVELLER_TAG } from './dialogue.js';
 import { sightOf } from './shot.js';
+import { flameVeils } from './flames.js';
+import { hasBalloon } from './balloons.js';
 import { talkSpace, stepBack, gapOf } from './spacing.js';
 import { CAPSULE } from '../player.js';
 import { MomentStage } from './moment.js';
@@ -226,7 +228,7 @@ export function createStory(o) {
 
   // ---------------------------------------------------------------- the conversation camera
   // (src/story/shot.js: a shot with no wall, tree, rock or bystander between it and the faces)
-  const sight = physics ? sightOf(physics) : null;
+  const sight = physics ? sightOf(physics, { veils: (near) => flameVeils(near, 30) }) : null;
   const _fa = new THREE.Vector3(), _fb = new THREE.Vector3(), _fw = new THREE.Vector3(), _fs = new THREE.Vector3(), _fsd = new THREE.Vector3();
   /** What the camera frames: a person (the two-shot), or a thing (over the shoulder, at `look`). */
   function shotOf(t) {
@@ -242,6 +244,18 @@ export function createStory(o) {
     const head = npc.humanoid?.b?.Head;
     if (head && npc.object.visible) return head.getWorldPosition(out).addScaledVector(up, 0.08 * npc.object.scale.y);
     return out.copy(npc.pos).addScaledVector(up, (npc.seat ? 1.0 : 1.55) * npc.object.scale.y);
+  }
+  /** Each person's balloon allowed or not (npc.quiet): story people by their def, crowd people by their short talk. */
+  let balloonT = 0;
+  const crowdOf = new Map();
+  if (crowd) for (const e of crowd.pool) crowdOf.set(e.npc, e);
+  function quietBalloons() {
+    const objective = quests.objective();
+    for (const n of npcs) {
+      const e = crowdOf.get(n);
+      const def = e ? (e.person && world?.crowdTalk?.(e.person)) || null : n.def ?? null;
+      n.quiet = !hasBalloon(def, { game, quests, objective, at: n.pos });
+    }
   }
   /** Bystanders the shot should not look through (asked again whenever the shot is). */
   const bystanders = () => {
@@ -306,8 +320,10 @@ export function createStory(o) {
         p.faceUntil = crowd.time + 0.5; p.lookUntil = crowd.time + 1;
         if (p.group) { p.group.pauseUntil = crowd.time + 0.5; p.group.lookUntil = crowd.time + 1; }
       }
-      if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && !dialogue.beat && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
+      if (talking?.npc?.talkTo) talking.npc.talkTo.speaking = dialogue.runner?.speaker === 'npc' && dialogue.revealed < (dialogue.runner?.text.length ?? 0);
       cabs.update();
+      // who greets you with a balloon: only those with something for you (src/story/balloons.js)
+      if ((balloonT -= dt) <= 0) { balloonT = 0.25; quietBalloons(); }
       dialogue.update(dt);
       // their faces (src/talk-face.js): the person you talk to wears the tone of the line they say, their mouth on
       // its syllables; so does the traveller on his pages and when he answers; each eases back to rest after
@@ -318,6 +334,8 @@ export function createStory(o) {
       // and the traveller's eyes on their face
       // (a moment says where he looks and turns: src/story/moment.js m.eyes, m.face)
       const M = moments.playing ? moments.current : null;
+      // and held still while it lasts: no weight shifts, glances or looking about (src/player.js TALK_CALM)
+      player.talking = dialogue.open;
       player.eyeTarget = dialogue.open && talking?.npc?.object.visible ? faceOf(talking.npc, player.frame?.up ?? UP, _eyes) : M?.eyes ?? null;
       // the traveller turns to whoever they talk to, or to what they look at
       player.faceToward = talking && dialogue.open ? (talking.npc?.pos ?? (rt._shot?.of === talking ? rt._shot.look : talking.look ?? talking.at)) : M?.face ?? null;

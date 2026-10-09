@@ -64,11 +64,11 @@ test('grounded combat uses legs and smoothly returns to locomotion, with matchin
   registerTarget({kind:'foe',lock:true,accepts:['blade'],radius:.8,position:()=>v(0,1,-58.6),onHit:()=>hit++});
   let full=0,maxTurn=0,previous=null;
   for(let i=0;i<75;i++){
-   tick(i<50?{KeyF:true}:{}); full=Math.max(full,p.animator.legsW);
+   tick(i<3?{KeyF:true}:{}); full=Math.max(full,p.animator.legsW);   // (a tap: held, it charges: tests/blade-attacks.test.js)
    const q=p.animator.bone('upperarm_r').quaternion.clone();if(previous)maxTurn=Math.max(maxTurn,q.angleTo(previous));previous=q;
   }
   assert.ok(full>.95,'full body during the cut');assert.equal(hit,1,'one real blade contact per target');
-  assert.ok(maxTurn<1.2,`no large pose snap (${maxTurn})`);assert.equal(p.swingMove,null);assert.ok(!tool.blade.guarding,'holding attack does not guard');
+  assert.ok(maxTurn<1.2,`no large pose snap (${maxTurn})`);assert.equal(p.swingMove,null);assert.ok(!tool.blade.guarding,'attacking does not guard');
   const start=p.pos.clone();tick({AltLeft:true});for(let i=0;i<18;i++)tick({AltLeft:true});assert.ok(p.pos.distanceTo(start)>1,'evade moves through the controller');
   assert.ok(tool.blade.evadeCool>0,'held evade does not retrigger');tool.dispose();clearTargets();
  }

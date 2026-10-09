@@ -107,13 +107,16 @@ function cut(g, test) {
 }
 
 /** Wobble a geometry's vertices by a smooth pseudo-noise (rough stone). */
-function rough(g, amount, freq = 0.3, seed = 0) {
+export function rough(g, amount, freq = 0.3, seed = 0) {
   const p = g.attributes.position;
   for (let i = 0; i < p.count; i++) {
     const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
     const n = Math.sin(x * freq + seed) * Math.cos(z * freq * 1.3 - seed) + Math.sin(y * freq * 1.7 + x * 0.5 * freq + seed * 2) * 0.6;
     const l = Math.hypot(x, z) || 1;
-    p.setXYZ(i, x + (x / l) * n * amount, y + n * amount * 0.3, z + (z / l) * n * amount);
+    // (a dome's foot ring, y = 0, only ever goes down: lifted, it opened a slit between the floor and the wall
+    // that the sun shone through, a lit seam round the cave's floor; down, it stands in the floor)
+    const dy = n * amount * 0.3;
+    p.setXYZ(i, x + (x / l) * n * amount, y + (Math.abs(y) < 0.01 ? -Math.abs(dy) : dy), z + (z / l) * n * amount);
   }
   g.computeVertexNormals();
   return g;

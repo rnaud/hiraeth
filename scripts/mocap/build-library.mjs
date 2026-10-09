@@ -83,7 +83,7 @@ async function sources() {
     // sway and a get-up's rise stay in the pose instead of sliding the feet; `still`: an idle, smoothed
     // as the CMU idles are)
     const uses = info.use.split('+');
-    list.push({ id: `mixamo_${info.id}`, use: uses[0], uses, desc: `${info.name}: ${info.desc}`, source: `Mixamo "${info.name}" (${info.desc})`, inPlace: info.inPlace, loop: info.loop, mixamo: true,
+    list.push({ id: `mixamo_${info.id}`, use: uses[0], uses, desc: `${info.name}: ${info.desc}`, source: `Mixamo "${info.name}" (${info.desc})`, inPlace: info.inPlace, loop: info.loop, mixamo: true, until: info.until,
       still: info.still ?? (/idle/i.test(info.desc) && !/turn|walk|run/i.test(info.desc)), root: info.root ?? (info.inPlace && uses[0] !== 'mm' ? 'fixed' : null),
       opts: { loop: !!info.loop && uses.includes('mm'), minLength: 0.5 }, load: async () => {
       const { fbxTake } = await import('./fbx.js');
@@ -121,6 +121,8 @@ async function convert(src) {
     }
     clips = kept;
   }
+  // (a Mixamo row's `until`: only its first `until` s are shipped, the rest the game never plays)
+  if (src.until) clips = clips.slice(0, 1).map((c) => sliceClip(c, 0, Math.round(src.until * FPS) + 1));
   return { take, clips };
 }
 
