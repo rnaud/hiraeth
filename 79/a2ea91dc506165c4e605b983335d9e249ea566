@@ -1,0 +1,53 @@
+DONE.md
+  s_9ca76055a220ed::t_b0e6d64887f962 1159-1175
+changelog.md
+  s_9ca76055a220ed::t_4d4a0dd019b207 7-9
+docs/systems/localisation.md
+  s_9ca76055a220ed::t_cb6d9d85b5d147 5
+docs/systems/story.md
+  s_9ca76055a220ed::t_00270ebb6b3b85 268-273
+docs/systems/ui.md
+  s_9ca76055a220ed::t_ff86fe203bc1c3 147-159
+src/changelog-media.js
+  s_9ca76055a220ed::t_437366dfaa034f 194-196
+src/changelog.js
+  s_9ca76055a220ed::t_3cd432250904d5 49-52
+src/controller.js
+  s_9ca76055a220ed::t_d3c514989874f6 27,119,235-240,245-248
+src/levels/names.js
+  s_9ca76055a220ed::t_7e945e88818df4 40-48
+src/main.js
+  s_9ca76055a220ed::t_0d15970f0d7ab5 7,1119,1139
+src/menu-pad.js
+  s_9ca76055a220ed::t_6d8c668600a06b 1-93
+src/menus.css
+  s_9ca76055a220ed::t_a7a6d7ec5e747b 158-161
+src/ship/ship.js
+  s_9ca76055a220ed::t_ed3dd0edc4e4e4 1,332
+src/story/sightings.js
+  s_9ca76055a220ed::t_1701ea8f967803 19,114-115,117,119-120
+src/title.js
+  s_9ca76055a220ed::t_45896091b1b4e3 26,261,294
+src/ui.js
+  s_9ca76055a220ed::t_0d8ca943788eb5 11,280,355,360,376
+src/world-picker.js
+  s_9ca76055a220ed::t_4018edd04b6dda 111
+tests/menus-settings.test.js
+  s_9ca76055a220ed::t_2581f08f6fa511 1-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "79a2ea91dc506165c4e605b983335d9e249ea566",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
