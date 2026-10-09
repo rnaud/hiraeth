@@ -130,5 +130,6 @@ export function pagerHtml(total, page, per = PER_PAGE) {
   return `<nav class="pager"><button type="button" class="btn small" data-page="${page - 1}"${page <= 1 ? ' disabled' : ''}>◀</button>${nums}<button type="button" class="btn small" data-page="${page + 1}"${page >= pages ? ' disabled' : ''}>▶</button> <small>${total} batches · ${(page - 1) * per + 1}–${Math.min(total, page * per)}</small></nav>`;
 }
 
-/** Checked at first: every provider with a key, fal's models all included (the author compares them all). */
-export const defaultChecked = (p) => p.available;
+/** Checked at first: Gemini and OpenAI when they have a key (the author's default, as DEFAULT_PROVIDERS on the server); the rest a click away. */
+export const DEFAULT_CHECKED = ['openai', 'gemini'];
+export const defaultChecked = (p) => p.available && DEFAULT_CHECKED.includes(p.id);

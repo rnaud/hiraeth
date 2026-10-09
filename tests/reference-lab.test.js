@@ -16,7 +16,7 @@ import { parseAspect, sizeFor, redact, httpJson, readRef, onHost } from '../scri
 import { runBatch, mergeBatches, reject, pick, discard, listBatches, readBatch, nextSheet, parseCandidate, checkTarget, CANDIDATES_DIR } from '../scripts/reference-lab/batch.mjs';
 import { referenceLabMiddleware, sameMachine, listRefs, referenceLabPlugin } from '../scripts/reference-lab/server.mjs';
 import { parseArgs, main } from '../scripts/gen-reference.mjs';
-import { batchHtml, filterBatches, filterHtml, pagerHtml, providerRow, promptFor, filterRefs, fileSrc } from '../src/reference-lab/view.js';
+import { batchHtml, defaultChecked, filterBatches, filterHtml, pagerHtml, providerRow, promptFor, filterRefs, fileSrc } from '../src/reference-lab/view.js';
 import { DEV_PAGES, pagesHere, PAGES } from '../src/world-picker.js';
 import { cameFromDebug } from '../src/debug-back.js';
 import { BUILD_INPUT } from '../vite.config.js';
@@ -506,6 +506,8 @@ test('the page\'s drawing: a provider without a key greyed with the name to add,
   assert.deepEqual(filterBatches(list, 'picked').map((b) => b.batch), ['a']);
   assert.deepEqual(filterBatches(list, 'rejected').map((b) => b.batch), ['b']);
   assert.equal(filterBatches(list, 'all').length, 4);
+  assert.deepEqual(['openai', 'gemini', 'fal-flux', 'bfl'].map((id) => defaultChecked({ id, available: true })), [true, true, false, false], 'Gemini and OpenAI by default');
+  assert.equal(defaultChecked({ id: 'openai', available: false }), false);
   assert.match(filterHtml(list), /class="btn small on" data-show="open" aria-pressed="true">To pick <small>2<\/small>/);
   assert.equal(fileSrc('references/a b/c.jpg'), '/references/a%20b/c.jpg');
   assert.equal(filterRefs([{ path: 'references/The Desert/x.jpg', folder: 'The Desert' }, { path: 'references/Lorn/y.jpg', folder: 'Lorn' }], { query: 'desert' }).length, 1);

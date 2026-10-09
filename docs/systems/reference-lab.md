@@ -76,7 +76,8 @@ other four are a click away).
    `rejected` (with the prompt), so the next prompt can learn from it; *Take back* undoes it.
 6. Every batch is on the one page, newest first, five to a page with a pager, filtered: **To pick** (the
    default: nothing picked, not turned down), Picked, None of them, All (`#show=…&page=N` survives a reload).
-   Every provider with a key is checked by default, all of fal's models included.
+   Gemini and OpenAI are checked by default (`DEFAULT_PROVIDERS`; the CLI's default too); the others are a
+   click (or `--providers`) away.
 
 Mouse, keys and a controller all work: the D-pad and the stick move across the page (`data-grid-nav`), the
 buttons carry their glyphs, B closes the zoom and then goes back to the Debug menu (the shared ◀ Debug button,
@@ -103,7 +104,7 @@ node scripts/gen-reference.mjs --merge <batch>,<batch>,…   # batches of one pr
 Keep one prompt in one batch: a provider that failed is retried with `--into` (the batch's own prompt and
 references), not in a new batch, so its pictures sit beside the others' for the pick.
 
-`--providers` defaults to every provider with a key (all of fal's five: name them to spend less). `--pick
+`--providers` defaults to Gemini and OpenAI (name others to compare them). `--pick
 latest/openai/1` picks from the newest batch.
 
 ## Files and manifests

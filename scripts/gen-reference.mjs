@@ -17,7 +17,7 @@
 // The keys come from .env.local / .env (scripts/reference-lab/env.mjs) and are never printed.
 import { ROOT } from './reference-lab/common.mjs';
 import { availability, loadKeys } from './reference-lab/env.mjs';
-import { PROVIDERS } from './reference-lab/providers/index.mjs';
+import { DEFAULT_PROVIDERS, PROVIDERS } from './reference-lab/providers/index.mjs';
 import { resolveFrom } from './reference-lab/prompts.mjs';
 import { CANDIDATES_DIR, discard, listBatches, mergeBatches, parseCandidate, pick, readBatch, reject, runBatch } from './reference-lab/batch.mjs';
 
@@ -46,7 +46,7 @@ export function parseArgs(argv) {
 const HELP = `node scripts/gen-reference.mjs
   --prompt "…" | --from docs/…prompts.md#<id>[/alt]   what to draw
   --refs a.jpg,b.jpg          style references (repository paths)
-  --providers openai,gemini   default: every provider with a key (--list shows them)
+  --providers openai,gemini   default: Gemini and OpenAI (DEFAULT_PROVIDERS); --list shows them all
   --model gemini=gemini-3-pro-image   another model for one provider (repeatable)
   --n 2  --ar 16:9  --target references/enemy-archetypes/<id>/
   --into <batch>              run the providers into an existing batch (its prompt and references)
@@ -96,7 +96,7 @@ export async function main(argv = process.argv.slice(2), { root = ROOT, keys = l
     if (p.needsImage && !o.refs.length) log(`note: ${p.from} expects the chosen sheet-1 as an image reference: add it with --refs`);
   }
   if (!prompt) { log(HELP); return 1; }
-  const providers = o.providers ?? PROVIDERS.filter((p) => availability([p], keys)[0].available).map((p) => p.id);
+  const providers = o.providers ?? PROVIDERS.filter((p) => DEFAULT_PROVIDERS.includes(p.id) && availability([p], keys)[0].available).map((p) => p.id);
   if (!providers.length) { log('no provider has a key: add OPENAI_API_KEY, GEMINI_API_KEY, FAL_KEY or BFL_API_KEY to .env.local (--list)'); return 1; }
   log(`batch: ${providers.join(', ')} · ${o.n} each · ${ar ?? '1:1'} · ${o.refs.length} reference(s)`);
   const m = await runBatch({ root, prompt, refs: o.refs, providers, models: o.models, n: o.n, ar: ar ?? '1:1', target, from, comparison: o.comparison, keys, fetch: f, ...(o.into ? { batch: o.into, n: o.n } : {}) });

@@ -15,7 +15,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync,
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { extOf, insideRoot, parseAspect, readRef, redact, sha256 } from './common.mjs';
-import { PROVIDERS } from './providers/index.mjs';
+import { DEFAULT_PROVIDERS, PROVIDERS } from './providers/index.mjs';
 import { KEY_NAMES, keyFor, mainCheckout } from './env.mjs';
 
 export const CANDIDATES_DIR = 'references/_candidates';
@@ -53,7 +53,7 @@ export function checkTarget(root, target) {
 }
 
 /**
- * Run a batch. o: { root, prompt, refs: [paths], providers: [ids] | null (all with a key), n, ar, target,
+ * Run a batch. o: { root, prompt, refs: [paths], providers: [ids] | null (DEFAULT_PROVIDERS that have a key), n, ar, target,
  * from, comparison, models: { id: model }, keys, fetch, sleep, now, batch, onUpdate }. Returns the manifest.
  */
 export async function runBatch(o) {
@@ -66,7 +66,7 @@ export async function runBatch(o) {
   const n = Math.max(1, Math.min(8, Math.round(+o.n || 1)));
   const target = checkTarget(root, o.target);
   const refs = (o.refs ?? []).map((p) => readRef(root, p));
-  const want = o.providers?.length ? o.providers : PROVIDERS.filter((p) => keyFor(p, keys)).map((p) => p.id);
+  const want = o.providers?.length ? o.providers : PROVIDERS.filter((p) => DEFAULT_PROVIDERS.includes(p.id) && keyFor(p, keys)).map((p) => p.id);
   const chosen = want.map((id) => PROVIDERS.find((p) => p.id === id) ?? { id, missing: true });
   const batch = o.batch ?? newBatchId(o.now ? new Date(o.now()) : new Date());
   const dir = batchDir(root, batch);

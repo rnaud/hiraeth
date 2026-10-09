@@ -6,3 +6,6 @@ import { FAL_PROVIDERS } from './fal.mjs';
 
 export const PROVIDERS = [openai, gemini, ...FAL_PROVIDERS, bfl];
 export const providerById = (id) => PROVIDERS.find((p) => p.id === id) ?? null;
+
+/** The providers a batch uses when none are named (the author's choice, 2026-10-09: Gemini and OpenAI; the rest a click or --providers away). */
+export const DEFAULT_PROVIDERS = ['openai', 'gemini'];
