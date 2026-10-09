@@ -265,6 +265,12 @@ walkthroughs and local names; each data file's header lists its flags.
   a click, A / × and B / ○). The press that asks never answers: held keys repeat
   (`e.repeat`), the pad needs a fresh A, and a Yes within 150 ms of the question is ignored.
   B or Esc in the question says no and leaves the map open.
+- **Only finished worlds are charted** (playtest 2026-10-08): `WIP` in `src/levels/names.js` lists the
+  worlds still being made (the twelve detours built in October 2026, never vetted or finished). The ship's
+  map is given `CHARTED_SIDE` (the detours minus `WIP`, none for now) instead of `SIDE`, and the Sightings
+  page leaves out the slots of a `WIP` world unless one was already met there. The worlds list (L, Debug),
+  the dev menu (\`) and `?level=<id>` still open every world. To release a detour, play it through and
+  take it out of `WIP`: the map charts it from then on. `tests/menus-settings.test.js`.
 - **The gates are gone:** the stone gates (`Gate` in `quest.js`), the page-turn transition
   and the edge crossings (`via=gate`, `via=edge`) were removed; the scout's last objective is
   "Back to the ship". Ship sites no longer keep clear of the old gate spots; the City-Shaft and the market,

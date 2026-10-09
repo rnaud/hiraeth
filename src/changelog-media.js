@@ -191,6 +191,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'fallenring-mark', caption: 'The Fallen Ring: the makers’ sign burned into the tilted piece’s foot', commit: '9ba725ea',
         view: { level: 'fallenring', save: SAVE_ON, player: [127.5, 0.5, -41], heading: 2.2, eye: [129.6, 3.6, -43.2], target: [139.6, 2.2, -51.85], fov: 55, wait: 3000 } },
     ] },
+    { match: 'The galactic map charts only finished worlds', see: 'Open the galactic map at the ship’s holo table: the route’s worlds and Home are there, the detours off the route are not. The Debug worlds list still opens them.' },
+    { match: 'Every setting works on a controller', see: 'With a controller, open the Settings (Menu), move down to Graphics and press A / ×: the row turns red and the dropdown yellow; press down twice and A / × to keep it, or B / ○ to leave it as it was.' },
+    { match: 'The language no longer changes by itself', see: 'With a controller, open the Settings and hold right from the menu’s last button: the focus stops on Language and it stays English. Press A / ×, down, A / × to switch it.' },
   ],
   '0.99': [
     { match: 'You can choose your own keys', shots: [

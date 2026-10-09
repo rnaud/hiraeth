@@ -23,6 +23,7 @@ import { startThemeDownload } from './music-store.js';
 import { THEME_FILES } from './soundtracks.js';
 import { VERSION } from './changelog.js';
 import { devMode } from './dev-gate.js';
+import { padConfirm } from './menu-pad.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -257,7 +258,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         (cur === pick && del ? del : pick).focus({ preventScroll: true });
       }
     };
-    const navigate = (x, y) => (screen === 'saves' && confirmEl.hidden && !settingsMenu.open ? savesNavigate(x, y) : menuNavigate(navRoot(), x, y));
+    const navigate = (x, y, fresh = true) => (screen === 'saves' && confirmEl.hidden && !settingsMenu.open ? savesNavigate(x, y) : menuNavigate(navRoot(), x, y, fresh));
     const navRoot = () => (!confirmEl.hidden ? confirmEl : settingsMenu.open ? settingsMenu.el : root.querySelector(`[data-screen="${screen}"]`));
     const KEYS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
     const onKey = (e) => {
@@ -290,7 +291,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         if (name === 'back' || name === 'start' || name === 'select') back();
         if (name === 'confirm') {
           const r = navRoot(), el = doc.activeElement;
-          if (r.contains(el)) { if (el.tagName !== 'SELECT' && el.type !== 'range') el.click(); }
+          if (r.contains(el)) { if (!padConfirm(el)) el.click(); }   // (a dropdown opens, then keeps the choice shown: src/menu-pad.js)
           else navigate(0, 1);
         }
       },

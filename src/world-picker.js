@@ -108,7 +108,7 @@ export async function showWorldsOnly(doc = document, win = window) {
     context: () => 'menu',
     look: () => {}, faces: () => padFaces(),
     activity: () => { doc.body.classList.add('controller'); rememberInput('pad'); },   // (and the world it opens starts with no touch buttons: src/input-mode.js)
-    navigate: (x, y) => menuNavigate(picker, x, y),
+    navigate: (x, y, fresh) => menuNavigate(picker, x, y, fresh),
     scroll: (amount) => { picker.scrollTop += amount; },
     action: (name) => {
       if (name === 'back' || name === 'start' || name === 'select') toTitle();

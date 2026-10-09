@@ -2,7 +2,7 @@
 
 The game's words in the player's language: `src/i18n.js`, with one table a language in `src/i18n/`.
 English (`en.js`) is the source; French (`fr.js`) is the first translation. The setting is
-*Language* in the settings' first group (`lang`, saved with the settings; default English).
+*Language* in the settings' first group (`lang`, saved with the settings; default English, never taken from the device). On a controller it changes only once opened with A / × (`data-pad="open"`, src/menu-pad.js: docs/systems/ui.md, "The Settings on a controller").
 
 ## How it works
 

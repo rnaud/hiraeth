@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- The language no longer changes by itself on a controller: holding right into the Settings stops on the first setting, and the Language dropdown changes only once opened with A / ×.
+- Every setting works on a controller: A / × opens a dropdown, the D-pad or stick goes through its choices, A / × keeps one and B / ○ leaves it as it was; left and right still change dropdowns and sliders.
+- The galactic map charts only finished worlds: the detours still being made are off it until they are ready.
 - Whistling for your hoverbike or hailing a taxi is far softer, and so is the Overnight Train’s whistle.
 - Water welling up, in the desert’s cave channel and its city well and the Buried Machine’s oil dish, now gurgles and bubbles softly instead of a loud whoosh.
 - The desert wind is much quieter, and a sandstorm rises to a low roar instead of a hiss over everything.
