@@ -260,6 +260,18 @@ export function fillPicker(picker, { levels, current = null, cont = null, state 
     picker.scrollTo?.({ top: Math.max(0, top), behavior: 'smooth' });
     if (focus) items(sec)[0]?.focus({ preventScroll: true });
   };
+  // scrolled by the wheel or a finger: the chip of the section under the header
+  let spy = 0;
+  picker.addEventListener('scroll', () => {
+    if (spy) return;
+    spy = requestAnimationFrame(() => {
+      spy = 0;
+      if (picker.contains(doc.activeElement) && doc.activeElement.closest('.dbg-section')) return;   // (the focus says where)
+      const line = header.getBoundingClientRect().bottom + 24;
+      const at = visible().filter((s) => s.getBoundingClientRect().top <= line).pop() ?? visible()[0];
+      if (at) mark(at.dataset.section);
+    });
+  }, { passive: true });
   nav.addEventListener('click', (e) => {
     const c = e.target.closest?.('.chip');
     if (c) goTo(body.querySelector(`#dbg-${c.dataset.jump}`), !doc.body.classList.contains('touch'));
@@ -273,6 +285,7 @@ export function fillPicker(picker, { levels, current = null, cont = null, state 
     if (i < 0) { const lit = nav.querySelector('.chip.here')?.dataset.jump; i = list.findIndex((s) => s.dataset.section === lit); }
     goTo(list[i < 0 ? 0 : (i + dir + list.length) % list.length]);
   };
+  mark(sections[0]?.key);
   const none = body.querySelector('.none');
   /** Show only what matches (and the sections with something in them). */
   const filter = (text) => {
@@ -291,6 +304,7 @@ export function fillPicker(picker, { levels, current = null, cont = null, state 
       any ||= !!shown;
     }
     none.hidden = any;
+    if (!nav.querySelector('.chip.here:not([disabled])')) { const first = visible()[0]; if (first) mark(first.dataset.section); }   // (the lit chip: one that is still there)
     picker.classList.toggle('filtering', !!String(text).trim());
   };
   search.addEventListener('input', () => filter(search.value));
