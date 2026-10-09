@@ -1,0 +1,339 @@
+.claude/skills/procedural-animation/SKILL.md
+  s_dea9cd5a610a8f::t_b4703783e19a41 1-114
+.claude/skills/visual-audit/SKILL.md
+  s_dea9cd5a610a8f::t_171df7e51714e7 25,33-39
+.github/workflows/deploy.yml
+  s_dea9cd5a610a8f::t_8cf7df77a4e32a 3
+CLAUDE.md
+  s_dea9cd5a610a8f::t_44541706d958b8 3
+DONE.md
+  s_dea9cd5a610a8f::t_366fefee5c2a45 1570-1634
+LORE.md
+  s_dea9cd5a610a8f::t_843906399b3148 21,36-41,165-176,220,282,289-290,299-300,302,308,314-315,317-319,324,328,334-335,338-339,341-342,457-465,479,500-504,792,797,843,918,939-942,1050-1062
+README.md
+  s_dea9cd5a610a8f::t_5b40de6e27b820 3-4,10
+TODO.md
+  s_dea9cd5a610a8f::t_8f4cede796c38d 38-43,65-87,151-182
+android/app/src/main/AndroidManifest.xml
+  s_dea9cd5a610a8f::t_ee5f54ab6abbe4 64
+android/app/src/main/java/com/rnaud/moebius/AppShell.java
+  s_dea9cd5a610a8f::t_d968686ed58955 20-22,31,43-47,50-59,61
+android/app/src/main/java/com/rnaud/moebius/AppShellPlugin.java
+  s_dea9cd5a610a8f::t_e6a21fb0feb709 14,45-53
+android/app/src/main/java/com/rnaud/moebius/GamepadBridge.java
+  s_dea9cd5a610a8f::t_9ee95bf6e3ad1d 33-34,90,104
+android/app/src/main/java/com/rnaud/moebius/MainActivity.java
+  s_dea9cd5a610a8f::t_1c8e9235b35fab 337
+android/app/src/main/java/com/rnaud/moebius/Rumbler.java
+  s_dea9cd5a610a8f::t_ac68226a1f20b7 1-89
+android/app/src/main/java/com/rnaud/moebius/Updater.java
+  s_dea9cd5a610a8f::t_7f1c7aa7110a26 39
+android/app/src/main/java/com/rnaud/moebius/WebBundles.java
+  s_dea9cd5a610a8f::t_dc9e32878dc9f3 87,96
+android/app/src/test/java/com/rnaud/moebius/UpdateRulesTest.java
+  s_dea9cd5a610a8f::t_feb381b6390b5e 71-72
+changelog.md
+  s_dea9cd5a610a8f::t_0271154734e56b 5-19,24-27
+docs/README.md
+  s_dea9cd5a610a8f::t_220e2fc3924cc3 27-28,41,63-64,74
+docs/design/enemy-roster-prompts.md
+  s_dea9cd5a610a8f::t_2c2cc9ff64b3fc 1-393
+docs/design/enemy-roster.md
+  s_dea9cd5a610a8f::t_2e9283daa68274 1-881
+docs/game-brief.md
+  s_dea9cd5a610a8f::t_af19638431c8ca 23-26,28,109,121-122
+docs/steam-deck.md
+  s_dea9cd5a610a8f::t_a8a1fcb60a0f06 14,97,99
+docs/story-bible.md
+  s_dea9cd5a610a8f::t_13f067bd664f52 27-28,31,33,40-43,46,50-51,78-79,166-170,200-206,220,312,330,357,363,426-433,456-457,587
+docs/systems/audio.md
+  s_dea9cd5a610a8f::t_48f246cf201fb6 26-27,36-82
+docs/systems/cinematics-qc.md
+  s_dea9cd5a610a8f::t_1fe4b153f4c7ce 136-154,164
+docs/systems/cinematics.md
+  s_dea9cd5a610a8f::t_43f68a6a1b23f7 31,47,49-85,88,90
+docs/systems/controls.md
+  s_dea9cd5a610a8f::t_9f9c50ed3953ee 133-153
+docs/systems/interiors.md
+  s_dea9cd5a610a8f::t_8468b1ab0d4706 1-77
+docs/systems/items.md
+  s_dea9cd5a610a8f::t_7e37fcfb456709 55-56,69-71,94-96,153-193
+docs/systems/procedural-animation.md
+  s_dea9cd5a610a8f::t_28317188cceb57 1-426
+docs/systems/rendering.md
+  s_dea9cd5a610a8f::t_9dce2a84b53130 529-557
+docs/systems/story.md
+  s_dea9cd5a610a8f::t_73be63dbe58bde 107,155,165-171,182,187-189,266,272-281,306-309,313-315,612,614,737-752
+docs/systems/ui.md
+  s_dea9cd5a610a8f::t_7aae3d0fddd3c6 145-155,185-195,213-219,420-439,558-591
+docs/systems/unity.md
+  s_dea9cd5a610a8f::t_c3656046d55df9 66
+docs/systems/worlds.md
+  s_dea9cd5a610a8f::t_28d241db1ed475 146-148
+docs/systems/xbox.md
+  s_dea9cd5a610a8f::t_bc5d07a208f20d 6
+docs/xbox-setup.md
+  s_dea9cd5a610a8f::t_fffb12813a8e48 1-85
+index.html
+  s_dea9cd5a610a8f::t_1d08fd956ea578 284-286
+lore/characters/family.md
+  s_dea9cd5a610a8f::t_31dc253c83d646 59,72,121
+lore/characters/worlds.md
+  s_dea9cd5a610a8f::t_94d4478fc2d126 177
+lore/continuity.md
+  s_dea9cd5a610a8f::t_ec90a23540688d 15-16,20,26-34,36-37,65-68
+lore/plot-review.md
+  s_dea9cd5a610a8f::t_5f4ab2ca690acc 106
+lore/voice-guide.md
+  s_dea9cd5a610a8f::t_951a193c3ee9ff 52
+public/music/manifest.json
+  s_dea9cd5a610a8f::t_9e0a35b3020ea3 188-197
+scripts/enemy-roster/archetypes.json
+  s_dea9cd5a610a8f::t_563e92c7beb55e 1-65
+scripts/enemy-roster/sheet.cjs
+  s_dea9cd5a610a8f::t_49a7ae011806a1 1-137
+scripts/motion-audit/metrics.mjs
+  s_dea9cd5a610a8f::t_f9108d0fceb96a 1-118
+scripts/motion-audit/run.mjs
+  s_dea9cd5a610a8f::t_fdd6003c01c09c 1-114
+scripts/package-steam-deck.mjs
+  s_dea9cd5a610a8f::t_9ee42fdb576bee 41
+scripts/steam-deck/deck.py
+  s_dea9cd5a610a8f::t_01454319681105 38
+scripts/steam-deck/release-notes.md
+  s_dea9cd5a610a8f::t_845283c4583c49 6,24
+scripts/title-shots.mjs
+  s_dea9cd5a610a8f::t_ec8541a4a8ac5d 144
+src/audio.js
+  s_dea9cd5a610a8f::t_18a615b54e8e43 21,1102-1103,1128-1211,1655-1669
+src/boot.js
+  s_dea9cd5a610a8f::t_20e614ab421e26 16
+src/changelog-media.js
+  s_dea9cd5a610a8f::t_eb04c23b473592 275-292,294-342,344-368
+src/changelog.js
+  s_dea9cd5a610a8f::t_381f05c3363d83 11-30,47-51
+src/cinematics-page/catalog.js
+  s_dea9cd5a610a8f::t_e0cee2b88d43a5 6
+src/debug-save.js
+  s_dea9cd5a610a8f::t_69d9a00e9c31f8 19
+src/enemies/page.js
+  s_dea9cd5a610a8f::t_6a359a68ca35fa 7-8,16-23,32-33,35
+src/fluid-blade.js
+  s_dea9cd5a610a8f::t_1ea0f0217c1684 9,609
+src/foes.js
+  s_dea9cd5a610a8f::t_b3417703dd4d05 18,1792
+src/game-state.js
+  s_dea9cd5a610a8f::t_27eb8d21d7d270 45-47
+src/hud.js
+  s_dea9cd5a610a8f::t_8d86525e461711 51-53
+src/i18n/en.js
+  s_dea9cd5a610a8f::t_d810953d217856 51-56,272,274-295
+src/i18n/fr.js
+  s_dea9cd5a610a8f::t_50c38dc2a21a0c 51-56,270,272-293
+src/interior-kit.js
+  s_dea9cd5a610a8f::t_36a7c17489c179 1-249
+src/items-page/viewer.js
+  s_dea9cd5a610a8f::t_a5543499ae44f6 40-42,44,103-105
+src/levels/content.js
+  s_dea9cd5a610a8f::t_d96b547694e4c4 250
+src/levels/desert.js
+  s_dea9cd5a610a8f::t_1ba6a403cdfc55 12-13,16,87-104,113,120
+src/levels/perdide.js
+  s_dea9cd5a610a8f::t_c088ad7c126b19 171
+src/main.js
+  s_dea9cd5a610a8f::t_acdacdb9166bd7 44,74,116-118,169-171,189,307-309,591-594,596-598,622-632,782,1050,1169-1172,1202,1229,1236,1615-1617,1662-1664,1714,1735
+src/menus.css
+  s_dea9cd5a610a8f::t_2abb6ce65fc6ca 203-207,209-211,213-215,217-221,224-242,315,318
+src/motion/main.js
+  s_dea9cd5a610a8f::t_c4973730833d99 61-63
+src/music-store.js
+  s_dea9cd5a610a8f::t_9f64058d120926 20
+src/player.js
+  s_dea9cd5a610a8f::t_ad4a1e0209056b 1583
+src/resources.js
+  s_dea9cd5a610a8f::t_2f45294ec9fed5 19-20,26-28,67-71,143-144,154-159
+src/rumble.js
+  s_dea9cd5a610a8f::t_489f8fbc8500fc 1-176
+src/save-migrate.js
+  s_dea9cd5a610a8f::t_ec91a90fe9f2de 23-31,34-36,38-40,94-107
+src/shadows.js
+  s_dea9cd5a610a8f::t_887b7e8b458e49 62-67,106,159-176
+src/ship/cinema.js
+  s_dea9cd5a610a8f::t_5eb020ba3e3bcf 15,31-33,303
+src/ship/cinematics.js
+  s_dea9cd5a610a8f::t_c75dbed0e3337a 7-9,14,17,36-38,200-208,264-271,273-276,278-289,291,293,300-303,309,315-316,318-319,342,392-398,405-414,417-434,437-452,455,458-464,472-474,476,479,481,486-487,489,494,527-568,591-602,614-615,639,641-642,775,948
+src/ship/hologram.js
+  s_dea9cd5a610a8f::t_c8b008a6057ebf 33
+src/ship/hull.js
+  s_dea9cd5a610a8f::t_5c053c80c507ab 8
+src/ship/portrait.js
+  s_dea9cd5a610a8f::t_a88cef7b1c0d90 12,111-113,131-136
+src/ship/prologue.js
+  s_dea9cd5a610a8f::t_73b12877599333 11-17,41-48,55-59
+src/ship/ship.js
+  s_dea9cd5a610a8f::t_507a62cff5e99a 20,32-33,337-339,364,546-549
+src/ship/sites.js
+  s_dea9cd5a610a8f::t_5dce6bdbea92f1 23,25
+src/ship/starmap.js
+  s_dea9cd5a610a8f::t_d61b0e0d3920dd 8,27-33,42-43,67-69,94,241-269,274-281,290-292,309,315-316,343-344,348-350,358-361,373-408,436-450,522-523,538-605,607-612,615-616,620,625
+src/shop-panel.css
+  s_dea9cd5a610a8f::t_1029a80b06a0c0 1-69
+src/shop-panel.js
+  s_dea9cd5a610a8f::t_acde94c474e550 1-218
+src/shop-world.js
+  s_dea9cd5a610a8f::t_deb40144f275e6 1-135
+src/shop.js
+  s_dea9cd5a610a8f::t_42b6f80d97df03 1-148
+src/soundtracks.js
+  s_dea9cd5a610a8f::t_e3f567407add92 34-64
+src/story/arzach2-data.js
+  s_dea9cd5a610a8f::t_954d3e537edfe5 208
+src/story/buried-data.js
+  s_dea9cd5a610a8f::t_70c879d2aadb0a 180,182,201
+src/story/calls.js
+  s_dea9cd5a610a8f::t_2845f6af32f8e5 69-75,78-83,372,375,453,585
+src/story/charge.js
+  s_dea9cd5a610a8f::t_2e82965fac8e5e 2,20,92
+src/story/desert-data.js
+  s_dea9cd5a610a8f::t_d56627922fb644 26-29,79,83,106-107,179,227,242,251,257,445,472,474,524,530,548,556,558,564,620,631,694-695,920-933
+src/story/desert-repay.js
+  s_dea9cd5a610a8f::t_43eaf226ac5ad7 1-154
+src/story/desert.js
+  s_dea9cd5a610a8f::t_54a42329bb1542 10,19,163,204,579-581,584-586,588-597,1012,1014,1098
+src/story/dialogue.js
+  s_dea9cd5a610a8f::t_8033c911f4084f 11,54-55
+src/story/edena-data.js
+  s_dea9cd5a610a8f::t_8d61b21f9bc9d2 231,233
+src/story/ending.js
+  s_dea9cd5a610a8f::t_de7cc203917730 130,288
+src/story/garage-data.js
+  s_dea9cd5a610a8f::t_852e13e3e3a069 159,161
+src/story/hum.js
+  s_dea9cd5a610a8f::t_de89a6bafc815e 8-12
+src/story/incal-data.js
+  s_dea9cd5a610a8f::t_cb7ef3650750e3 133,137,491
+src/story/index.js
+  s_dea9cd5a610a8f::t_fce1b20b9e3195 38,212-213,306,319
+src/story/key-phrase.js
+  s_dea9cd5a610a8f::t_5346f5ecf66092 1-23
+src/story/lantern-data.js
+  s_dea9cd5a610a8f::t_7625f353461cd7 7-8,16-18,132,135,146,150,159,165,168,176
+src/story/light-theme.js
+  s_dea9cd5a610a8f::t_17bdffa0fb58e7 1-82
+src/story/people-book.js
+  s_dea9cd5a610a8f::t_3a9486121031d3 79,81,84,119,145,151,158,160-161,171-174,235,482
+src/story/perdide-data.js
+  s_dea9cd5a610a8f::t_a4478c5ead502d 10,31,183,299,303,305,476
+src/story/perdide.js
+  s_dea9cd5a610a8f::t_0db9ebc0b25dd4 24,215
+src/story/perdide2-data.js
+  s_dea9cd5a610a8f::t_0b372f6b3e6bc7 291
+src/story/relay.js
+  s_dea9cd5a610a8f::t_b72a2481236397 53
+src/story/route.js
+  s_dea9cd5a610a8f::t_8c19da4b3834b1 6
+src/story/shop-data.js
+  s_dea9cd5a610a8f::t_3ca1e5210d92d6 1-78
+src/story/shops.js
+  s_dea9cd5a610a8f::t_3052de17955628 1-39
+src/story/sightings.js
+  s_dea9cd5a610a8f::t_6360b91d5eb04d 22,31,37,51
+src/story/signature-search.js
+  s_dea9cd5a610a8f::t_1c273e012fbe61 1-157
+src/story/signature.js
+  s_dea9cd5a610a8f::t_10da0c6c4a1ead 1,3-5,11-12,15,28,31-32,53,67,70-73,76,82
+src/story/spheres-data.js
+  s_dea9cd5a610a8f::t_2ed43e01b22e6c 222,224
+src/studio/main.js
+  s_dea9cd5a610a8f::t_2fed8ca9d3592d 61-63
+src/title-layout.js
+  s_dea9cd5a610a8f::t_8e8da332cdd15a 2-7,9,17-19,22-23,25,28-31,34,49-69,80-81
+src/title-shots.js
+  s_dea9cd5a610a8f::t_5a62ae8f0f55a7 19-20
+src/title-world.js
+  s_dea9cd5a610a8f::t_c29552c465efc8 26-27,148-150,460-487,506,527-529
+src/title.js
+  s_dea9cd5a610a8f::t_d31e119c691a26 12-14,17-18,23,42-55,164-167,198-206,209-210,217,322-335
+src/trailer/main.js
+  s_dea9cd5a610a8f::t_c7eda9e22b9385 46-47
+src/ui.js
+  s_dea9cd5a610a8f::t_87262fb127c759 15,37-38,204-208,215-216,309-310
+tests/android-ota.test.js
+  s_dea9cd5a610a8f::t_a0113ca21bb4b7 57-58
+tests/charge.test.js
+  s_dea9cd5a610a8f::t_59ca98f259907c 2,14
+tests/desert-repay.test.js
+  s_dea9cd5a610a8f::t_4d4ef97c027324 1-83
+tests/desert-spark.test.js
+  s_dea9cd5a610a8f::t_b0d64755375ad7 105-106
+tests/desert-story.test.js
+  s_dea9cd5a610a8f::t_595324c4ee5744 628-631,634-638
+tests/first-run.test.js
+  s_dea9cd5a610a8f::t_36091f07625c54 53
+tests/hum.test.js
+  s_dea9cd5a610a8f::t_ba3a10edf64cc8 40,42,105-118
+tests/interiors.test.js
+  s_dea9cd5a610a8f::t_31c530b64b9b57 1-138
+tests/menus-settings.test.js
+  s_dea9cd5a610a8f::t_dc6fa8d2080390 175
+tests/motion-metrics.test.js
+  s_dea9cd5a610a8f::t_8e9ccf23dd8ff5 1-84
+tests/music-store.test.js
+  s_dea9cd5a610a8f::t_c63d87e6c68410 69
+tests/people-page.test.js
+  s_dea9cd5a610a8f::t_acc0219b4e5b43 15-16,28-30,94-95
+tests/playthrough-agent.js
+  s_dea9cd5a610a8f::t_7b60d43703689c 21,655-658
+tests/playthrough-worlds.js
+  s_dea9cd5a610a8f::t_9d65755c412907 40-42
+tests/prologue-call.test.js
+  s_dea9cd5a610a8f::t_24fdb9cf626066 1-5,9,11-17,20-21,30-62,64-65,69,75-118
+tests/resources.test.js
+  s_dea9cd5a610a8f::t_fd44ef064e8ebb 72,75,77-80,82-83,85-88,159
+tests/route.test.js
+  s_dea9cd5a610a8f::t_10b16f5c0bc93b 70-71,74,78,104
+tests/rumble.test.js
+  s_dea9cd5a610a8f::t_5e44ed18679924 1-94
+tests/shadow-setup.test.js
+  s_dea9cd5a610a8f::t_5c714a1bcceb3d 1-100
+tests/ship.test.js
+  s_dea9cd5a610a8f::t_d5f3f0633f7fea 178,285
+tests/shop.test.js
+  s_dea9cd5a610a8f::t_35eddbaa80ab80 1-273
+tests/sightings.test.js
+  s_dea9cd5a610a8f::t_3787c9830c97fa 85
+tests/signature-search.test.js
+  s_dea9cd5a610a8f::t_01e1e2e66fee88 1-128
+tests/signature.test.js
+  s_dea9cd5a610a8f::t_1272291c9c5bcc 1-2,5,35-36,41-44,55
+tests/site-only.test.js
+  s_dea9cd5a610a8f::t_69ce142a55c193 37-38
+tests/soundtracks.test.js
+  s_dea9cd5a610a8f::t_f2bf5dba0ad2e8 57-77
+tests/test_steam_deck.py
+  s_dea9cd5a610a8f::t_e4ccd8102d7f42 217
+tests/title-layout.test.js
+  s_dea9cd5a610a8f::t_0b3e8c86760544 5,14,17-19,22,26,29-40,46-50,58-69,72-80,84,91-92
+tests/title-world.test.js
+  s_dea9cd5a610a8f::t_7525fa32d2dedc 6-7,85-90,95-120
+tests/waterfall.test.js
+  s_dea9cd5a610a8f::t_43d26866551783 34
+tests/xbox.test.js
+  s_dea9cd5a610a8f::t_600117d05b8ebd 152-153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bbdf8d27da99b8526fcabd940a766888187372d8",
+  "prompts": {},
+  "sessions": {
+    "s_dea9cd5a610a8f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a120b8-776c-71e1-b9e3-6142fe20bbd0",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
