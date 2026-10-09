@@ -304,7 +304,19 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Talk to anyone and wait on a long line: when the camera comes in close on the traveller he stays still, his eyes on the one speaking.' },
     { match: 'Picking an answer in a conversation no longer plays', see: 'In the desert, talk to Nour and pick any answer: her reply starts at once, and your answer is not shown or voiced again.' },
     { match: 'When Nour tells you to stand in water', see: 'Open the makers’ chest in Qanat, talk to Nour, ask what is on your back: the answers after “Stand in water to fill the backpack” ask where there is water, or whether it could wake the ship.' },
-    { match: 'Talking to Ama by the camp fire', see: 'pictures to come' },
+    { match: 'Talking to Ama by the camp fire', shots: [
+      { name: 'ama-fire', caption: 'Talking to Ama beside the main camp fire: the camera used to stand in the flames', commit: '21bd507b', before: 'e35f5da4',
+        view: { level: 'desert', save: SAVE_DESERT, wait: 2500, setup: `
+  const V = THREE.Vector3, n = npcs.find((x) => x.def?.id === 'ama'), F = level.qanat.fires[0];
+  const gy = (x, z) => { const g = physics.groundAt(x, F.y + 5, z); return Number.isFinite(g) ? g : F.y - 1.5; };
+  const A = new V(F.x + 2.6, 0, F.z); A.y = gy(A.x, A.z);
+  const P = new V(A.x, 0, A.z + 1.5); P.y = gy(P.x, P.z);
+  player.teleport(P, new V(0, 1, 0), new V(0, 0, -1)); player.heading = Math.PI;
+  n.pos.copy(A); ${sleepJs(2500)}
+  n.pos.copy(A); storyRt.dialogue.start(n.def, n); n.pos.copy(A);
+  storyRt.dialogue._side = 1;   // (the fire's side of the line between them: where the camera starts)
+  ${sleepJs(900)}`, wait: 300 } },
+    ] },
     { match: 'Fewer speech balloons', see: 'Walk through the pilgrims’ camps after talking to everyone there: nobody greets you with a balloon unless your quest points to them or they have news; shouts still show.' },
   ],
   '0.93': [
