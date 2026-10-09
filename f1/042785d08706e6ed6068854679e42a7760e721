@@ -1,0 +1,26 @@
+docs/systems/ship.md
+  s_9ca76055a220ed::t_fd0b848bff98bc 197-199,205-207
+  s_9ca76055a220ed::t_574fb66016d08d 196
+src/changelog-media.js
+  s_9ca76055a220ed::t_69322cf008fc83 312-326
+  s_9ca76055a220ed::t_7df3ee43d06391 412-422
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_e2960687b5ad01 178-191
+  s_9ca76055a220ed::t_777752ec40cad4 177
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f1042785d08706e6ed6068854679e42a7760e721",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
