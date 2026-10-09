@@ -143,3 +143,14 @@ sampling of the arm bones against the tank's profile): the arms never reach into
 the right hand, with the bracer, hung into the hip in the idle sway and now hangs a little
 out (`idleLayer`). NPC capes collide with the traveller's body capsules when they stand
 within 2.2 m (`NPC.clothCapsules`), so a seated elder's cape no longer drapes through your legs.
+
+## Design audits: level and temple
+
+Two read-only measuring tools behind the `level-design-qc` and `temple-design-qc` skills (`.claude/skills/`):
+`scripts/level-design/audit.mjs` builds each route world in node (as the play-through does) and measures its
+places, critical path, empty stretches, walks back, landmarks and sight lines; `scripts/temple-design/audit.mjs`
+builds each temple's rooms and measures its puzzle graph (locks, keys, mechanics, clue distance and sight, an
+obviousness score per step). Both score a rubric and plan camera views; `scripts/design-qc/capture.mjs` shoots
+them in one muted headless Chrome (PORT 5344, never 5173). Pure logic: `scripts/*/lib.mjs`, tested in
+`tests/level-design.test.js` and `tests/temple-design.test.js`. Reports: `docs/audits/level-design-v*.md`,
+`docs/audits/temple-design-v*.md`.
