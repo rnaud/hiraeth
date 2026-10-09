@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_d1adec0323eee1 7
+docs/systems/items.md
+  s_9ca76055a220ed::t_30332c80cc88db 103-105,113,145-148,152,154-178,189
+src/changelog-media.js
+  s_9ca76055a220ed::t_df5bea19b0efe5 303,436-449
+src/changelog.js
+  s_9ca76055a220ed::t_a19a6dc55e05c2 36-37
+src/chimes.js
+  s_9ca76055a220ed::t_7698439a03c09e 4,20-21,63-64,67-69,124,134,194,196-199,201-202,204-206,208,219-221,236-237,243,247,253-257,263,282-284,286-288,292,297-299,307,318-321
+src/crystal-shader.js
+  s_9ca76055a220ed::t_c1ba926b117f1c 1-149
+src/materials.js
+  s_9ca76055a220ed::t_38315ba7f3fbb2 16,510,625,1701,2337-2339,2650-2654,2729-2731,2847
+src/story/shop-data.js
+  s_9ca76055a220ed::t_47fee038cdd1d0 45
+tests/chimes.test.js
+  s_9ca76055a220ed::t_0af959e17e3b1a 7,266,268,282,284-290,292-295,297-300,312,317
+tests/crystal-shader.test.js
+  s_9ca76055a220ed::t_5eaa778e3e2f9b 1-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f67a0bb7a3a433eebc232b2013b170bea2e88ce8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
