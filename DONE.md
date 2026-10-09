@@ -1440,3 +1440,16 @@ tests/sound-mix.test.js holds them.
   keepsakes), so choicesMade, the Lantern's `tokenKept` and Dov's new line for a kept token see it.
   Tests: tests/desert-spark.test.js (Ama), tests/route-ilen.test.js (the Ilen lines and the old save).
 
+
+## Fun and story: challenges from the temples' kit in the open (done 9 October, v1.3)
+
+- [x] **Optional mastery challenges, the temple kit's side** (part of the TODO item, which stays open for the
+  other worlds). The trials (a ride or an ability in every route world, v0.98) already had the sign, the start
+  card, the clock, the best and Retry; the makers' runs join them (src/trials/kit-data.js, kit-courses.js,
+  kit-run.js; `createChallenges` makes a world's trial and its runs): the temples' kit and pieces (Gust, Swing,
+  Bank) stood in the open with a stand-in runtime, for good. The desert's **Wind hall** (gusts down a roofless
+  hall, screens to shelter behind, three eyes to wake in one breath; Pell has a word) and Lorn's **Hush walk**
+  (a causeway over the lake under three crystal pendulums, out and back dry; Sedge has a word). The quiet
+  reward: the speaker's line on the results and over their head, the sign's plate keeping the best. While a
+  run is on, the world's notices wait (src/ship/cinema.js `HOLD_TOASTS`). docs/systems/challenges.md,
+  tests/trials-kit.test.js.

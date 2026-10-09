@@ -81,7 +81,7 @@ import { ItemIcons } from './item-icons.js';
 import { buildItemModel } from './boxes/model.js';
 import { Flammables, flammableSpots } from './flammable.js';
 import { Chemistry } from './chemistry.js';
-import { createTrials } from './trials/index.js';
+import { createChallenges } from './trials/index.js';
 import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
@@ -1845,7 +1845,7 @@ if (minigameDef) {
 }
 // this world's mastery trial (src/trials/): a sign in the world opens its start card, played here on foot
 // (the runner as a game page's, but Quit leaves you where the run did: nothing reloads)
-trialsRt = minigameDef ? null : createTrials({ levelId, scene, physics, level, player, items, game, foes, notice: (t) => showToast(t),
+trialsRt = minigameDef ? null : createChallenges({ levelId, scene, physics, level, player, items, game, foes, npcs, sound, notice: (t) => showToast(t),
   surfaceAt: (x, z, y, below) => waters.surfaceAt(x, z, y, below),
   open: (def) => {
     if (minigame) return false;

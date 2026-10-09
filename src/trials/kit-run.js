@@ -1,0 +1,72 @@
+import { CourseRun } from './course.js';
+
+// The makers' runs' rules (docs/systems/challenges.md): pure, over plain { x, y, z } points, tested in node
+// (tests/trials-kit.test.js). A makers' run is a short chain of the temples' own pieces stood in the open
+// (src/trials/kit-courses.js builds them): gates on foot, taken in order, and at the end, for some, a bank of
+// eyes to wake in one breath. The bank only listens once every gate is behind you, so nobody wakes it from
+// the door or climbs round the outside to it.
+//
+//   const run = new KitRun({ gates, bank: 3 })   (bank: how many eyes, 0 for none)
+//   run.step(from, to, t)  → 'gate' | 'ready' (the last gate: the bank is listening) | 'finish' | null
+//   run.wake(n, t)         the eyes awake now (n): 'finish' once all of them are, inside the run
+//   run.goal()             the line under the clock: 'gate 2 / 5', 'wake the eyes 1 / 3'
+
+export class KitRun {
+  constructor({ gates = [], bank = 0 } = {}) {
+    this.course = new CourseRun(gates);
+    this.bank = bank;
+    this.awake = 0;
+    this.done = false;
+    this.finishedAt = null;
+  }
+  get gates() { return this.course.gates; }
+  get next() { return this.course.next; }
+  get splits() { return this.course.splits; }
+  /** Every gate passed: the bank (if any) listens now. */
+  get ready() { return this.course.done; }
+  step(from, to, t = 0) {
+    if (this.done) return null;
+    const r = this.course.step(from, to, t);
+    if (r === 'finish') {
+      if (this.bank > 0) return 'ready';
+      this.done = true; this.finishedAt = t;
+      return 'finish';
+    }
+    return r;
+  }
+  /** The bank's eyes awake now (inside its window). Only counts once the gates are behind you. */
+  wake(n, t = 0) {
+    if (this.done || !this.ready || this.bank <= 0) return null;
+    this.awake = Math.max(0, Math.min(this.bank, n));
+    if (this.awake >= this.bank) { this.done = true; this.finishedAt = t; return 'finish'; }
+    return null;
+  }
+  goal() {
+    if (this.done) return '';
+    if (!this.ready) return `gate ${Math.min(this.next + 1, this.gates.length)} / ${this.gates.length}`;
+    return `wake the eyes ${this.awake} / ${this.bank}`;
+  }
+}
+
+/**
+ * Out of a makers' run? (a reason in words for the results card, or ''.) P: the traveller ({ dead, swim,
+ * inWater: { depth } }). A run over water (`wet: true`, the Hush walk) ends in the water; any run ends at a
+ * knockout.
+ */
+export function outOfRun(trial, P) {
+  if (!P) return '';
+  if (P.dead) return 'Knocked out';
+  if (trial?.wet && (P.swim || (P.inWater?.depth ?? 0) > 0.7)) return 'In the water';
+  return '';
+}
+
+/**
+ * What the one standing nearby says when a run ends well (src/trials/kit-data.js `voice`): the first finish,
+ * the makers' mark beaten for the first time, or a later finish. Lines carry their tone (src/story/tone.js).
+ */
+export function voiceLine(voice, { first = false, beaten = false, beatenBefore = false } = {}) {
+  if (!voice) return null;
+  if (first) return voice.first;
+  if (beaten && !beatenBefore) return voice.beaten ?? voice.again;
+  return voice.again ?? null;
+}

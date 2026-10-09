@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { registerTarget } from '../targets.js';
 import { registerItemModel } from '../boxes/model.js';
-import { gameMarkerModel } from '../minigames/kit/marker.js';
+import { gameMarkerModel, signPlate } from '../minigames/kit/marker.js';
 import { standAt } from '../minigames/kit/onfoot.js';
 import { formatTime, bestScore } from '../minigames/kit/scores.js';
 import { ITEMS } from '../items.js';
@@ -12,6 +12,10 @@ import { CourseRun, lacks, inMode, parTime, MODES } from './course.js';
 import { gatePoints, startPoint } from './check.js';
 import { WindColumn } from './winds.js';
 import { keyText } from '../prompt-keys.js';
+import { kitTrialsFor } from './kit-data.js';
+import { buildKitCourse } from './kit-courses.js';
+import { KitRun, outOfRun, voiceLine } from './kit-run.js';
+import { stripTone } from '../story/tone.js';
 
 // The mastery trials in the worlds (docs/systems/minigames.md, "Trials in the worlds"): one optional run in
 // each route world, built from what that world gives you (the hoverbike, the wings and the wind, the bird,
@@ -37,6 +41,7 @@ const CONTROLS = {
   jets: { pad: [['RT / R2', 'thrust'], ['Left stick', 'fly the nose']], keys: [['Space held', 'thrust'], ['W A S D', 'fly the nose']] },
   foot: { pad: [['Left stick', 'run'], ['A / ×', 'jump']], keys: [['W A S D', 'run'], ['Space', 'jump']] },
   eyes: { pad: [['LT / L2', 'aim'], ['RT / R2', 'splash']], keys: [['Right mouse', 'aim'], ['Left mouse', 'splash']] },
+  kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad ← / →', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
 };
 
 let mats = null;
@@ -98,49 +103,92 @@ export function trialGame(T, world) {
   };
 }
 
-export function createTrials({ levelId, scene, physics, level, player, items, game, foes = null, notice = () => {}, surfaceAt = null, open = () => false, trials = TRIALS }) {
-  const T = trials[levelId];
-  if (!T || !physics) return { trial: null, update() {}, dispose() {} };
+/** This world's vehicle trial alone (the tests' way in; main.js makes them all with createChallenges). */
+export function createTrials(args) {
+  const T = (args.trials ?? TRIALS)[args.levelId];
+  if (!T || !args.physics) return { trial: null, update() {}, dispose() {} };
+  return makeTrial(T, args);
+}
+
+/**
+ * Every challenge standing in this world (docs/systems/challenges.md): its trial (src/trials/data.js) and its
+ * makers' runs (src/trials/kit-data.js), each with its sign. { list, byId(id), running, update(dt, t), dispose() }.
+ */
+export function createChallenges(args) {
+  const { levelId, physics } = args;
+  const kits = args.kits ? args.kits.filter((T) => T.world === levelId) : kitTrialsFor(levelId);
+  const defs = physics ? [(args.trials ?? TRIALS)[levelId], ...kits].filter(Boolean) : [];
+  const list = defs.map((T) => makeTrial(T, args));
+  return {
+    list,
+    byId: (id) => list.find((w) => w.trial.id === id) ?? null,
+    get running() { return list.find((w) => w.running) ?? null; },
+    update(dt, t) { for (const w of list) w.update(dt, t); },
+    dispose() { for (const w of list) w.dispose(); },
+  };
+}
+
+/** One challenge in the world: its sign, its course, its runs. */
+export function makeTrial(T, { levelId, scene, physics, player, items, game, foes = null, notice = () => {}, surfaceAt = null, open = () => false, npcs = null, sound = null }) {
+  const kitRun = T.mode === 'kit';
   const M = trialMats(T.color);
   const offs = [];
+  // a makers' run: the temple pieces stood in the open, for good (src/trials/kit-courses.js)
+  const course = kitRun ? buildKitCourse(T, { scene, physics, player, notice, sound }) : null;
   // the wind columns are the world's for good, run or no run (the foes feel them too)
   const winds = (T.winds ?? []).map(([x, z, r, h, lift]) => new WindColumn(scene, { foot: V(x, physics.groundAt(x, 1e4, z, 2e4), z), r, h, lift }));
-  const gates = T.gates ? gatePoints(T, { physics, surfaceAt }) : [];
-  const start = startPoint(T, { physics, surfaceAt });
+  const gates = course ? course.gates : T.gates ? gatePoints(T, { physics, surfaceAt }) : [];
+  const start = course ? course.start : startPoint(T, { physics, surfaceAt });
   const eyesAt = (T.eyes ?? []).map(([x, z]) => V(x, physics.groundAt(x, 1e4, z, 2e4), z));
-  const par = T.eyes ? Math.ceil(eyesAt.reduce((d, p, i) => d + p.distanceTo(i ? eyesAt[i - 1] : start), 0) / T.speed * 1.4 + 10) : parTime(gates, start, T.speed);
+  const par = T.par ?? (T.eyes ? Math.ceil(eyesAt.reduce((d, p, i) => d + p.distanceTo(i ? eyesAt[i - 1] : start), 0) / T.speed * 1.4 + 10) : parTime(gates, start, T.speed));
+  const doneKey = kitRun ? `trial.${T.id}.done` : `trial.${levelId}.done`;
   // the sign: a makers' post with the run's colour, a step from the line
-  const [mx, my, mz] = T.marker.length === 3 ? T.marker : [T.marker[0], null, T.marker[1]];
-  const mPos = V(mx, my ?? physics.groundAt(mx, 1e4, mz, 2e4), mz);
+  let mPos;
+  if (course) mPos = course.markerAt.clone();
+  else {
+    const [mx, my, mz] = T.marker.length === 3 ? T.marker : [T.marker[0], null, T.marker[1]];
+    mPos = V(mx, my ?? physics.groundAt(mx, 1e4, mz, 2e4), mz);
+  }
   const sign = gameMarkerModel(T.color);
   sign.position.copy(mPos);
   sign.rotation.y = Math.atan2(start.x - mPos.x, start.z - mPos.z) + Math.PI;
   sign.traverse((o) => { o.userData.noCollide = true; });
   scene?.add(sign);
   const world = {
-    trial: T, gates, start, par, sign, winds, running: null,
+    trial: T, gates, start, par, sign, winds, course, running: null,
     game: null,
     /** What the traveller lacks for it now ('' if nothing). */
     lacks: () => lacks(T, { has: (id) => items.has(id), mount: player?.mount ?? null }),
     best: () => bestScore(game, { id: T.id }),
-    done: () => !!game.flag(`trial.${levelId}.done`),
+    done: () => !!game.flag(doneKey),
     /** The interact button at the sign. */
     try() {
       const why = world.lacks();
       if (why) { notice(`${T.name}: ${why} Come back with it.`); return false; }
       return open(world.game);
     },
-    session: (ctx) => session(ctx),
+    session: (ctx) => (kitRun ? kitSession(ctx) : session(ctx)),
+    /** A makers' run's plate on its sign: its name, and your best (or the makers' mark, before you have one). */
+    plate() {
+      const best = world.best();
+      const old = sign.userData.plate;
+      if (old) { old.material.map?.dispose?.(); old.geometry.dispose(); old.removeFromParent(); }
+      const p = signPlate(T.name, best != null ? `best ${formatTime(best)}` : `mark ${formatTime(par)}`, T.color, 1.5, 0.5);
+      sign.userData.plate = p;
+      if (p) { p.position.set(0, 1.3, 0.24); sign.add(p); }
+    },
     update(dt, t) {
       for (const w of winds) w.update(dt, t, player);
+      course?.update(dt, t);
       const lamp = sign.userData.lamp;
       if (lamp) lamp.scale.setScalar(1 + 0.12 * Math.sin(t * 3));
     },
-    dispose() { for (const w of winds) w.dispose(); sign.removeFromParent(); offs.forEach((f) => f()); },
+    dispose() { for (const w of winds) w.dispose(); course?.dispose(); sign.removeFromParent(); offs.forEach((f) => f()); },
   };
   world.game = trialGame(T, world);
+  if (kitRun) world.plate();
   offs.push(registerInteractable({
-    id: `trial.${levelId}`, priority: PRIORITY.use, range: 3,
+    id: kitRun ? `trial.${T.id}` : `trial.${levelId}`, priority: PRIORITY.use, range: 3,
     prompt: `try the ${T.name.toLowerCase()}`,
     at: () => (world._at ??= mPos.clone().add(V(0, 1.6, 0))),
     enabled: () => !world.running && (!player?.riding || (!!MODES[T.mode]?.mount && player.ride === player.mount)),   // (a run on a mount: ride up to the sign)
@@ -162,9 +210,7 @@ export function createTrials({ levelId, scene, physics, level, player, items, ga
         onHit: () => { if (ctx.phase !== 'play' || e.lit) return false; e.lit = true; e.m.userData.eye.material = M.glow; ctx.sfx.coin(eyes.filter((x) => x.lit).length); return true; } });
       eyes.push(e);
     });
-    // the wilds keep their distance while you run (a pack would only be in the way)
-    const restWas = foes?.packRest;
-    if (foes) { for (const f of foes.list.slice()) if (!f.placed && !f.guard) foes.remove(f); foes.packRest = 1e9; }
+    const unCalm = calmWilds();
     world.running = run;
     const heading = T.heading ?? 0;
     const mount = MODES[T.mode]?.mount ? P.mount : null;
@@ -189,7 +235,7 @@ export function createTrials({ levelId, scene, physics, level, player, items, ga
     const finish = () => {
       const t = ctx.time;
       const first = !world.done();
-      game.set(`trial.${levelId}.done`, true);
+      game.set(doneKey, true);
       const reward = T.reward && ITEMS[T.reward] && !items.has(T.reward) ? ITEMS[T.reward] : null;
       if (reward) items.grant(T.reward);
       const lines = [`The makers’ mark: ${formatTime(par)}${t <= par ? ' · beaten' : ''}`];
@@ -223,7 +269,90 @@ export function createTrials({ levelId, scene, physics, level, player, items, ga
       end() {
         for (const e of eyes) e.off?.();
         world.running = null;
-        if (foes && restWas !== undefined) foes.packRest = Math.max(20, restWas === 1e9 ? 20 : restWas);
+        unCalm();
+      },
+    };
+  }
+
+  /** The wilds keep their distance while you run (a pack would only be in the way): the returned fn puts them back. */
+  function calmWilds() {
+    const restWas = foes?.packRest;
+    if (foes) { for (const f of foes.list.slice()) if (!f.placed && !f.guard) foes.remove(f); foes.packRest = 1e9; }
+    return () => { if (foes && restWas !== undefined) foes.packRest = Math.max(20, restWas === 1e9 ? 20 : restWas); };
+  }
+
+  /**
+   * One makers' run (src/trials/kit-run.js): on foot through the gates among the temple pieces, then (the wind
+   * hall) the bank of eyes in one breath. It ends in the water (the Hush walk), at a knockout, or up on the
+   * jets. The reward is a word from someone nearby (src/trials/kit-data.js `voice`) and the sign's plate.
+   */
+  function kitSession(ctx) {
+    const P = ctx.player;
+    const run = new KitRun({ gates, bank: course.bank ? course.bank.eyes.length : 0 });
+    const meshes = [];
+    let prev = null, gone = false, off = 0;
+    gates.forEach((g, i) => { const m = gateMesh(g, i ? gates[i - 1] : start, M); m.visible = false; ctx.add(m); meshes.push(m); });
+    const unCalm = calmWilds();
+    world.running = run;
+    course.reset();
+    course.listen(() => run.ready && ctx.phase === 'play');
+    const place = () => {
+      if (P.ride) P.dismount?.(true);
+      standAt(P, start, course.heading, ctx.rig, course.heading + Math.PI);
+      if (ctx.rig) ctx.rig.yaw = course.heading + Math.PI;
+    };
+    place();
+    const show = () => meshes.forEach((m, i) => {
+      m.visible = !run.ready && i >= run.next && i <= run.next + 2;
+      m.userData.beam.visible = i === run.next;
+      m.userData.band.material = i === run.next ? M.glow : M.paper;
+    });
+    show();
+    const finish = () => {
+      const t = ctx.time;
+      const first = !world.done();
+      const beatenBefore = !!game.flag(`trial.${T.id}.beaten`);
+      const beaten = t <= par;
+      game.set(doneKey, true);
+      if (beaten) game.set(`trial.${T.id}.beaten`, true);
+      const lines = [`The makers’ mark: ${formatTime(par)}${beaten ? ' · beaten' : ''}`];
+      if (first) lines.push('First finish.');
+      // the quiet reward: whoever stands nearby has a word (on the card, and over their head if they are in view)
+      const line = voiceLine(T.voice, { first, beaten, beatenBefore });
+      let html = '';
+      if (line) {
+        html = `<div class="trial-reward"><p class="kicker">${esc(T.voice.name)}, ${esc(T.voice.from)}</p><p>“${esc(stripTone(line))}”</p></div>`;
+        const who = (npcs ?? []).find((n) => n.def?.id === T.voice.who);
+        if (who) who.shout = { text: line, until: (who.time ?? 0) + 6 };
+      }
+      ctx.finish({ lines, html });
+      world.said = line;
+      setTimeout(() => world.plate(), 0);   // (once the runner has kept the best)
+    };
+    return {
+      update(dt, input, { live, phase }) {
+        if (phase === 'count') { place(); prev = null; return; }
+        if (!live || gone) return;
+        const p = P.pos.clone(); p.y += 1;   // (the middle of the body)
+        if (prev) {
+          const r = run.step(prev, p, ctx.time);
+          if (r === 'gate') { ctx.sfx.checkpoint(); show(); }
+          if (r === 'ready') { ctx.sfx.checkpoint(); show(); ctx.flash('Now the eyes: all three in one breath', 'big', 2.2); }
+          if (r === 'finish') { gone = true; show(); finish(); return; }
+        }
+        if (run.ready && course.bank && run.wake(course.bank.awake(), ctx.time) === 'finish') { gone = true; finish(); return; }
+        ctx.status(run.goal());
+        prev = p;
+        // out of the run: knocked out, in the lake, up on the jets for more than a moment
+        const why = outOfRun(T, P);
+        if (why) { gone = true; ctx.finish({ failed: true, title: why }); return; }
+        off = T.onFoot && P.jetFlight ? off + dt : 0;
+        if (off > 1.5) { gone = true; ctx.finish({ failed: true, title: 'Off your feet', lines: ['This one is walked: no jets.'] }); }
+      },
+      end() {
+        world.running = null;
+        course.listen(null);
+        unCalm();
       },
     };
   }

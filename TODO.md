@@ -41,6 +41,10 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   Dov's lift token (keep it, or give it back so he goes home), Hollin's promise (it costs the coming back),
   Esk's hill. The stone and Ilen both remember them (src/story/ending.js choicesMade).
 - [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
+  The vehicles' side is done (a trial in every route world, v0.98) and so is the system for the temple kit's
+  side with its first two runs, the desert's Wind hall and Lorn's Hush walk (v1.3, docs/systems/challenges.md).
+  Next: a makers' run in the other nine route worlds, each from its own temple's pieces (Vael's updrafts and
+  gusts, the Hangar's eye banks and discs, the echo stones of the Garden and the market, Viridel's seeds).
 - [x] **Each world's climax staged as a moment** (every route world: `src/story/<world>-moments.js`,
   docs/systems/cinematics.md).
 - [x] **One trace of the singing light or of Ilen in each detour world** (and the Sightings page that

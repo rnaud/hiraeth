@@ -17,6 +17,11 @@ export const CHANGELOG = [
       see: 'After the mother’s recording about Ilen has played at the console, go back to Madame Sel under the tower, to Hollin on his island or to Nour under the tree, and talk to them: a new answer about your sister. After the Lantern, Sel and Hollin have one more.' },
     { text: 'Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.',
       see: 'Load a save that got the lift token from Dov in the City-Shaft before version 0.97 and talk to him at the palace gate after the Lodestar is lit.' },
+    // challenges in the open
+    { text: 'Two new optional challenges built from the temples’ own pieces, out in the open. In the desert, the Wind hall: a roofless hall on a dune crest where gusts shove you back unless you shelter behind its screens, and three eyes to wake in one breath at its end. In Lorn, the Hush walk: a causeway over the lake with crystal pendulums swinging across it, out to the round stone and back without being knocked into the water. Each has a sign that shows the makers’ mark, then your best time, and someone who lives nearby has a word for you when you finish.',
+      see: 'The Wind hall stands on the dune crest west of the desert’s landing, near Pell: walk up to the sign by its steps and press X / □ (E). The Hush walk is on Lorn’s south shore, a short walk from the landing.' },
+    { text: 'While you are running a trial or a challenge, the game’s other notices wait for the results: only the clock and the goal stay on the screen.',
+      see: 'Start the Wind hall or any world’s trial: the box hints and other messages that would have come up during the run show after it.' },
   ] },
   { v: '1.2', date: '2026-10-09', items: [
     // shadows in caves and rooms
