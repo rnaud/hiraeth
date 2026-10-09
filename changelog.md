@@ -27,6 +27,8 @@ The same release notes shown in the game (press **N** or open settings).
 - After the Signal Market, the ship’s map charts one more place, off every chart.
 - Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.
 - A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.
+- The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.
+- The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.
 
 ## v0.99 — 2026-10-08
 
@@ -119,8 +121,6 @@ The same release notes shown in the game (press **N** or open settings).
 - The Moon Foundry, the Underside, the City Floating in Space and the Overnight Train now have their own instrumental music.
 - Home has a quiet new piano-led theme, completing the instrumental soundtrack for all 25 playable worlds.
 - Game updates can now deliver the full soundtrack to Android and Steam Deck, and the website can publish all 25 themes.
-- The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.
-- The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.
 
 ## v0.93 — 2026-10-08
 

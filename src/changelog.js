@@ -10,6 +10,8 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '1.0', date: '2026-10-08', items: [
+    { text: 'The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.', see: 'Wear the backpack and launch the scout; the same reservoir appears in the item viewer.' },
+    { text: 'The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.', see: 'Approach the giant beyond Qanat’s back gate, then explore the ship’s galley and central room.' },
     { text: 'A Cinematics review page gathers the films, recordings, journeys and makers’ boxes, with replay controls and notes for quality control.', see: 'Debug → Cinematics, or open cinematics.html. Choose a scene; review notes can be exported.' },
     // the ending
     { text: 'Coming home after six worlds is now a first homecoming: something passes over the hill while you are at the stone, and the story isn’t over.', see: 'Fly home after six worlds and stay at the stone until the end.' },
@@ -125,8 +127,6 @@ export const CHANGELOG = [
     'The Garden of Spheres: the white stone’s shade a sea-green grey, as in the drawings, the umbrella trees’ trunks a blue-grey, and the lawns a warmer yellow, less lime.',
   ] },
   { v: '0.94', date: '2026-10-08', items: [
-    { text: 'The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.', see: 'Wear the backpack and launch the scout; the same reservoir appears in the item viewer.' },
-    { text: 'The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.', see: 'Approach the giant beyond Qanat’s back gate, then explore the ship’s galley and central room.' },
     { text: 'Game updates can now deliver the full soundtrack to Android and Steam Deck, and the website can publish all 25 themes.', see: 'Check for updates, then visit any world with music enabled. Downloaded music remains available offline.' },
     {"text": "Home has a quiet new piano-led theme, completing the instrumental soundtrack for all 25 playable worlds.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
     {"text": "The Moon Foundry, the Underside, the City Floating in Space and the Overnight Train now have their own instrumental music.", "see": "Visit these worlds with music enabled; each has its own instrumental recording, balanced beneath dialogue and ambience."},
