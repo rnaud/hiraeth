@@ -260,11 +260,28 @@ const BELL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = w
 const SAVE_BELL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.bell': true, 'items.v': 2 }, keepsakes: [] };
 const SAVE_BLOOM ={ flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
 
+/** The hearts' pictures (v1.5): the health at `k` (the old bar's share; 1.5 hearts at 0.5) and the tank at 1.4 of 3, held there, the notices hidden. */
+const HEARTS_SETUP = (k) => `${HIDE('#toast, #cue, #prompt, #objective')} const hold = () => { player.hurtAt = 1e12; player.health = ${k}; if (tool.reserve) { tool.reserve.level = 1.4; tool.reserve.since = -1e9; } }; hold(); setInterval(hold, 100);`;
 const FROM_ROSTER = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the four set in a row and held still (9 October)';
 const FROM_ATTACK = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720: the enemy set striking with its attack locked on the traveller, held still (9 October)';
 
 export const CHANGELOG_MEDIA = {
   '1.5': [
+    // hearts, potions and the magic bar (the HUD shot in both commits with the same setup: half the health gone, the bar at 1.4 of 3, held there)
+    { match: 'Your health is now hearts', shots: [
+      { name: 'hearts-hud', caption: 'Half the health gone, at the top left: before, the thin red bar; after, a heart and a half of three in ink, the potion beside them and the magic bar under them, spent to under half', commit: 'fdaa8144', before: '40356176',
+        view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1500, setup: HEARTS_SETUP(0.5) } },
+      { name: 'hearts-deck', caption: 'The same on the Steam Deck’s screen (1280 × 800)', commit: 'fdaa8144', before: '40356176',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [1280, 800], wait: 1500, setup: HEARTS_SETUP(0.5) } },
+      { name: 'hearts-phone', caption: 'And on a phone held sideways (812 × 375): the hearts, the potion and the bar stay readable, clear of the view (on a touch screen the flask is the potion button)', commit: 'fdaa8144', before: '40356176',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [812, 375], wait: 1500, setup: `document.body.classList.add('touch'); ${HEARTS_SETUP(0.5)}` } },
+    ], see: 'Let a foe hit you, or take a long fall: the hearts come up at the top left, a quarter at a time, and stay until you drink.' },
+    { match: 'Hearts no longer come back by themselves', see: 'Get hurt, wait: the hearts stay down. Press C (View + D-pad ↓ on a controller, or tap the flask by the hearts): the flask tilts, a swig, and two hearts come back in a warm glow. At full hearts it says so and keeps the potion.' },
+    { match: 'The backpack’s three charges are now a magic bar', shots: [
+      { name: 'magic-bar', caption: 'Two shots spent, whole hearts: before, nothing on the screen (only the backpack’s glass showed it); after, the magic bar at the top left with a tick per shot, refilling', commit: 'fdaa8144', before: '40356176',
+        view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1500, setup: HEARTS_SETUP(1) } },
+    ], see: 'Aim (LT / L2, right mouse) and shoot three times: the bar under your hearts empties a third a shot; stop, and a second later it fills back up, full in about four seconds.' },
+    { match: 'Spines and flames now bite a quarter heart', see: 'In the desert, walk into a sand candelabra’s spines: a quarter heart, a shove, and no second prick if you step straight back in. In the Arena, pick Second wind between waves.' },
     { match: 'The Arena’s waves now come round to every foe', shots: [
       { name: 'arena-waves', only: 'after', caption: 'Wave 144 in the Arena: the Glass Dunes’ pair, a glass crab and the possessed furnace walker, the wave said at the top with its world', from: 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the waves started at the Glass Dunes’ pairs (9 October)' },
     ], see: 'In the Arena, open the FOES list and choose “Waves from here” beside a world: its four come one by one, then in pairs, then together.' },

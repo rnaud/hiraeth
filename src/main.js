@@ -319,7 +319,7 @@ player.setMaxHearts(resources.maxHearts);
  * until the shops), or a word says why not.
  */
 function drinkPotion() {
-  if (busy() || photo.on || ship.playing || !player.object?.visible) return false;
+  try { if (busy() || photo.on || ship.playing || !player.object?.visible) return false; } catch { return false; }   // (still loading: busy and the rest come later)
   const why = player.cantDrink();
   if (why === 'full') { sound.potion('no'); showToast(tr('potion.full')); hpShown = 3; return false; }
   if (why) return false;
