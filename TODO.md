@@ -340,6 +340,13 @@ glows and lines, the crowd's GPU figures, the cave's rounded walls, and players 
 Deck's) and Android, and what differed from the web is drawn now (DONE.md; engine-bridge.md, "What
 still differs"). What is left needs a device or a policy:
 
+- [ ] **The water's contact foam in Unity** (docs/systems/water.md, "Contact foam"): the web's water draws a band
+  of little waves round whatever stands in it from the scene's depth behind it (`contactFoam` in
+  `src/water-shader.js`, the passes in `Waters.renderGBuffer`). The Unity twin of the water look
+  (`unity/Memento/Assets/Memento/Shaders/Surface.shader` `waterLook`) has the shore foam from the bed map only:
+  mirror it with `_CameraDepthTexture` (the water drawn after the opaques, writing no depth), the same `CONTACT`
+  numbers, and the band's distance as there (the run through the water over its `fwidth`, clamped).
+
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's
   APK builds, 73 MB, `BridgeBuild.Android`; `scripts/bench/android-bridge.sh desert -views

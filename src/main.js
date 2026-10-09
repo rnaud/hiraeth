@@ -35,7 +35,7 @@ import { WindStreaks } from './wind.js';
 import { EDGE_HINTS, EdgeInk } from './edge.js';
 import { HOLO } from './ship/hologram.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
-import { tileSceneSteps, cullFar, fitBounds, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
+import { tileSceneSteps, cullFar, fitBounds, waterContactOn, SmallCuller, RoomCuller, InteriorCuller, resolveQuality, detectHandheld, detectDeck, GpuTimer, adaptScale, engineLabel, cacheUniformArrays, pinRenderFrame } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { skinnedLods } from './skinned-lod.js';
 import { buildFloraSteps, floraKeep, FLORA_WORLDS } from './flora.js';
@@ -157,7 +157,7 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.3, 5000);
 
 // G-buffer: [0] albedo + light, [1] normal + view depth, [2] surface hatching
-const gbuffer = createGBuffer();   // (src/pipeline.js: shared with the character studio)
+const gbuffer = createGBuffer({ depthTexture: true });   // (src/pipeline.js: shared with the character studio; its depth read by the water's contact foam)
 
 // Sun shadow maps: three orthographic cascades that follow the player (src/shadows.js).
 // fine = crisp character shadows, near = the street around you, far = mesas shadowing distant dunes.
@@ -989,6 +989,7 @@ function applyDetail() {
   U.uPostLite.value = preset.postLite ? 1 : 0;
   sharedUniforms.uWearLite.value = low || preset.postLite ? 1 : 0;   // (lighter weathering: materials.js WEATHER)
   waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
+  waters.contact = waterContactOn(preset);   // the little waves round what stands in the water (src/water.js renderGBuffer)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;
@@ -1430,7 +1431,7 @@ function renderFrame() {
   renderer.setRenderTarget(gbuffer);
   renderer.setClearColor(0x000000, 0);
   renderer.clear();
-  renderer.render(scene, camera);
+  waters.renderGBuffer(renderer, scene, camera, gbuffer);   // (the water drawn last over the scene's depth: its contact foam, src/water.js)
   bloom.render(renderer);   // the glowing surfaces, for the halos
 
   // 3. Moebius composite

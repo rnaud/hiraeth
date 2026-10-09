@@ -359,18 +359,22 @@ export class InteriorCuller {
  *  - postLite: one ink-line pass instead of two
  *  - floraFar: plants drawn up to this share of their own distance (flora.js); floraDensity: how many
  *    small plants grow in a clump (read when the world loads; large plants always grow)
+ *  - waterContact: the little waves round what stands in the water (water.js renderGBuffer: a second
+ *    G-buffer step and a depth copy where water is in view); false: one pass, the bed map's foam only
  *  - lodPx: levels of detail (lod.js): a distant mesh may lose detail smaller than this many pixels
  *    on screen (0 = always full detail)
  */
 // (cpuBound's probe, adaptScale: a step of 0.1 tried where the main thread looks like the limit, judged over
 //  5 windows, kept for 3 fps more or 2 missed refreshes fewer a window, else not tried again for 240 windows, 2 min)
 const PROBE = { step: 0.1, windows: 5, fps: 3, missed: 2, hold: 240 };
-const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1, lodPx: 1 };
+const FULL = { dynamic: null, shadow: { fine: 2048, near: 4096, far: 2048 }, nearExtent: 220, nearEvery: 1, farEvery: 3, taps: 9, ao: true, cloudShadows: true, lowDetail: false, crowdFar: null, crowdMid: null, propFar: 520, propPx: 1, postLite: false, floraFar: 1, floraDensity: 1, lodPx: 1, waterContact: true };
+/** Whether a preset draws the water's contact foam (water.js renderGBuffer). */
+export const waterContactOn = (preset) => preset?.waterContact !== false;
 export const QUALITY_PRESETS = {
   auto:     { ...FULL, label: 'Auto (adapts to keep it smooth)', scale: 1, dynamic: { min: 0.5, max: 1, low: 40, high: 56 } },
   handheld: { label: 'Handheld (Retroid, phones)', scale: 0.75, dynamic: { min: 0.5, max: 0.9, low: 34, high: 55, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
     shadow: { fine: 0, near: 2048, far: 2048 }, nearExtent: 160, nearEvery: 2, farEvery: 4, taps: 4,
-    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2 },
+    ao: false, cloudShadows: false, lowDetail: true, crowdFar: 220, crowdMid: 40, propFar: 320, propPx: 2, postLite: true, floraFar: 0.65, floraDensity: 0.55, lodPx: 2, waterContact: false },
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
   // the Steam Deck at its own 1280×800: the handheld's lighter recipe where the Deck's CPU pays for

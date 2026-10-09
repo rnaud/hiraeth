@@ -10,14 +10,18 @@ import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
 //   3. the ink composite (post.js) into composeRT
 //   4. FXAA, scaled to the display (the blit)
 
-/** G-buffer: [0] albedo + light, [1] normal + view depth, [2] surface hatching. */
-export function createGBuffer() {
+/**
+ * G-buffer: [0] albedo + light, [1] normal + view depth, [2] surface hatching. depthTexture: its depth buffer
+ * readable (the water's contact foam reads the scene's depth at full precision: water.js renderGBuffer).
+ */
+export function createGBuffer({ depthTexture = false } = {}) {
   return new THREE.WebGLRenderTarget(1, 1, {
     count: 3,
     type: THREE.HalfFloatType,
     minFilter: THREE.NearestFilter,
     magFilter: THREE.NearestFilter,
     depthBuffer: true,
+    ...(depthTexture ? { depthTexture: new THREE.DepthTexture(1, 1, THREE.UnsignedIntType) } : {}),
   });
 }
 

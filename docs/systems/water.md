@@ -29,6 +29,8 @@ Like the rest it only writes the G-buffer; post.js prints it:
   drawn from both sides).
 - `waterPrint: true` (the Garden's mirrored shore) is a flat printed shape lying on
   the water: its own colour with the ripples, no depth, not swimmable.
+- **Contact foam** (below): little waves lapping round whatever stands in the water, from the scene's
+  depth behind it.
 - The handheld's low detail (`uWaterLite`, main.js `applyDetail`) keeps one scale
   of waves and drops the caustics and the sparkle.
 
@@ -114,3 +116,61 @@ whole world under it, drawn the Moebius way rather than as the generic murk. Wit
   there, so inside you are dry (an ordinary walk, no tint, no muffled sound) and the camera too.
 - **Deep under** (`DEEP_UNDER`, 2.5 m): nothing splashes at the surface for what happens down there (a step, a
   stroke, going in): only bubbles in the sound. A sea body bakes no bed map (it is seen from below).
+
+## Contact foam (October 2026: little waves round what stands in the water)
+
+The author: "when there is a structure in water like a building or a rock there should be a little visual thing
+around it to show that little waves are hitting it". The bed map's shore foam only knows the collision world, and
+only as a flat band; what has no collider (the traveller wading or swimming, people, boats, the ship, roots and
+props) had nothing. Now wherever anything meets the water (`contactFoam` in `src/water-shader.js`, `CONTACT`):
+
+- **The look**: a pale band hugging the object, `band` (0.3 m) wide close up, never under `minPx` (6) device px
+  times the pixel ratio on screen (so its outer contour never sits on the object's own outline as a doubled line),
+  at most `maxBand`; it **breathes** out and back by `breathe` of itself, each stretch of it in its own time; its
+  outer part broken by small **gaps** drifting with the wind (only where the band is 9+ px thick: a gap in a thinner
+  one is a speck post.js would ink); two broken **inked wavelets** off it, swelling out after it and back; a few
+  **flecks** of foam just off it (world-fixed cells, each coming and going), drawn only while 2.5+ px across.
+  The detail goes by `detail` (0.03 → 0.07 m per px), the band itself by `far` (0.1 → 0.2): far off the object's
+  outline marks the waterline alone. The band's foam is lit like the shore's (`W.lit`), its wavelets ink.
+- **The technique**: the depth difference. The view ray's run through the water to what is behind it (the scene's
+  view depth there less the water fragment's, over the ray's share of it), over how fast that run grows across the
+  water (`fwidth`, clamped to `slope` 0.4 … 1): the distance to the contact in metres, ~equal to the run beside a
+  face standing in the water, large over a flat shallow bed (25 cm of water over sand is not a contact; the bed
+  map's shore foam still draws beaches). All its noise is on `p.xz`: anchored in the world.
+- **The passes** (`Waters.renderGBuffer`, called by main.js and title-world.js for the G-buffer): with water in
+  view, (1) the water bodies' depth alone, sunk `CONTACT_SINK` (2 m: deeper than the band reaches where it is
+  drawn), so what lies deeper under the water stays hidden early, as when the water was drawn among the rest;
+  (2) the scene without the water; (3) the water, writing no depth of its own, reading the scene's (`uSceneDepth`).
+  At the end of the pass the depth buffer holds the scene's alone; it is **blitted** (the water's rectangle on
+  screen, `screenRect`, with a margin) into a depth texture for the **next frame**, which reads it reprojected
+  (`uScenePrevVP`, `uScenePrevEye`; a point something stood in front of then gives no contact, not a flash of
+  foam). Reading this frame's would end the G-buffer pass in the middle and store and reload all three targets:
+  0.7–1.9 ms at High on the M4 Pro (a tiled GPU, as the handheld's are). When the camera has jumped (`CONTACT_REUSE`:
+  1.5 m, 0.12 rad, or the water's rectangle outside the copied one: a cut, a portrait, `captureView`) it is
+  copied in the middle of the pass, this frame's. The G-buffer has a depth texture for it
+  (`createGBuffer({ depthTexture: true })`: 24 bits, millimetres at 50 m; RT1.w's half float, 1/32 m from 32 m on,
+  made the band's edge follow its steps); any other target falls back to a shader copy of RT1.w.
+- **Quality**: the preset's `waterContact` (`waterContactOn`, perf.js): on everywhere but Handheld, where one
+  plain pass is kept (the depth store and blit on the Retroid's tiled GPU, unmeasured there). Off, under water, or
+  no water in view: one plain pass, as before.
+- **Cost** (M4 Pro, Chrome, each `renderFrame()` of 16 closed by a `readPixels`, medians of 24, the foam off and on
+  in turns in one page): High (1728 × 1117 at scale 1.5, 2592 × 1676): Viridel's lake 9.92 → 10.18 ms, Lorn II's
+  tree 9.78 → 10.26, the waterfall city's basin 7.51 → 7.98, the Mangrove's roots 8.74 → 8.70 (noise), the Lab's
+  pool 9.83 → 10.49. Handheld if it were on (1280 × 720 at 0.75): +0.04 – 0.10 ms. The first version, copying this
+  frame's depth in the middle of the pass, cost +0.7 – 4.4 ms (the store and reload, and every bed under the water
+  shaded before the sunk depth).
+- **Stable in motion**: the visual audit's orbit probe at three water spots (`KNOWN`: Lorn II's tree, the waterfall
+  basin's ledge, the Mangrove's roots, High): nothing flagged, the spot and enclosure masks' p95 step 0 – 0.06. A foam
+  orbit (world points on the water round the contact, the clock frozen, the camera turning 1° a frame so the water
+  reads the last frame's depth, the pale state compared every 4°): Lorn II's tree 0.49 % of points change a step
+  with the foam on (0.24 % with the shore foam alone; the band's edge moves smoothly with the view, as the ray's run
+  does), the Lab's pool 0.24 % (0.22 %); the reprojected frame against this frame's depth at the same view: 0 –
+  0.05 % of points differ.
+- **Left**: a jump shadow or other multiply decal lying on a water surface that is in the collision world is
+  drawn before the water now and lost under it (where water is not solid it lies on the bed, as before). Walkways
+  whose sides stop at the surface (Lorn's) have nothing under the water for the ray to meet: their edge keeps the
+  bed map's foam. The Unity port's water (`unity/…/Surface.shader` `waterLook`) has the shore foam but not this
+  (TODO.md).
+- Tests: `tests/water-contact.test.js` (the band by distance, the fades, the presets, `screenRect`, the passes in
+  order with a mock renderer, the blit and the reuse, the shader's intersection term behind its gate, no screen
+  position in it).

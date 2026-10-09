@@ -615,6 +615,11 @@ only showed in the light term) were each missed by still frames from fixed camer
   the known spots at Handheld and High before it merges: the ghost check (debug 9, 10 and 2 with the traveller and
   without), the orbit (the same surface points in debug 10 and 9 over ±32°), the seams (foot rays and debug 5 inside
   caves and rooms). Their thresholds were set on the builds before 620c4384 and c58cbcaa (docs/audits/visual-v1.4.md).
+- **The water's contact foam** (water.md, "Contact foam") reads the scene's depth behind each water pixel, one tap at
+  its own reprojected point, no neighbours: a person standing in the water counts as something the water meets
+  (foam round their legs), one in front of the water hides it; its noise is on the water's world position, and it
+  reads the last frame's depth reprojected, so a turn moves nothing across the surface (orbit probe at three water
+  spots, nothing flagged).
 - **A shell standing on a floor** keeps its foot ring at or under it, whatever roughens it: `tests/shell-seams.test.js`
   runs every displacement helper on domes, drums and mounds, and fails on a new helper it doesn't know.
 

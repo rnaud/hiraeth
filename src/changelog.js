@@ -16,6 +16,8 @@ export const CHANGELOG = [
     'Shadow hounds and the lizards trot on four jointed legs, the front knees forward and the hind ones bent back, the diagonal legs stepping together; the lizards now stand on four legs instead of two. A pouncing hound stretches its legs out fore and aft through the leap.',
     'The makers’ machines and the possessed machines walk on jointed piston legs, one foot at a time in hard, straight moves (lift, swing, set down), with a piston sliding at each knee and a puff of dust where a foot lands.',
     'Foes step quicker when they run and slower when they walk, so their feet no longer skate over the ground, and two of a kind no longer step in time with each other. Winding up an attack, a foe on legs plants its feet wide and sits back away from you, holds, then lunges through.',
+    // the water
+    'Little waves lap at whatever stands in the water: round rocks, pillars, tree roots, walls, piers, boats, people and the traveller himself when he wades or swims, a pale band of foam hugging it, breathing out and back, with small moving gaps, a broken inked ripple or two just off it and a few flecks of foam. It reaches the shore too, wherever the water meets the ground. (Graphics: on everywhere but Handheld.)',
   ] },
   { v: '1.6', date: '2026-10-09', items: [
     // the galactic map's signature search

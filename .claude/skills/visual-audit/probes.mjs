@@ -47,6 +47,10 @@ const KNOWN = {
     { name: 'giant-cave', kind: 'cave', inside: true, player: [-1250, 1000, 1272], heading: Math.PI, eye: [-1249.3, 1001.8, 1274.5], target: [-1250, 999.6, 1250] },
     { name: 'hearth-cave', kind: 'cave', inside: true, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262] },
   ],
+  // where things stand in water: the contact foam (water.js renderGBuffer reads the last frame's depth, reprojected)
+  perdide2: [{ name: 'tree-in-water', kind: 'water', player: [134.3, 0, -139.2], eye: [134.3, 3, -132.2], target: [134.3, 0.2, -141] }],
+  waterfall: [{ name: 'pool-ledge', kind: 'water', player: [-69.3, -17, 25.9], eye: [-65.8, -14, 32], target: [-70.2, -16.8, 24.4] }],
+  mangrove: [{ name: 'roots-in-water', kind: 'water', player: [-146.5, 0, -72.7], eye: [-140.5, 3, -69.2], target: [-148.1, 0.2, -73.6] }],
 };
 
 // ---------------------------------------------------------------- the browser

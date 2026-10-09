@@ -322,6 +322,18 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
   '1.7': [
+    { match: 'Little waves lap at whatever stands in the water', shots: [
+      { name: 'water-contact-lorn2', caption: 'Lorn II: a great tree standing in the water, before with no edge where it meets it, after with the band of foam lapping round its foot and the far shore', from: 'headless Chrome against a dev server (captureView), the contact foam off and on in the same page' },
+      { name: 'water-contact-viridel', caption: 'Viridel’s lake from above: the near shore before and after (a pale lapping band with an inked ripple off it)', from: 'headless Chrome against a dev server (captureView), the contact foam off and on in the same page' },
+      { name: 'water-contact-waterfall', caption: 'The traveller swimming in the waterfall city’s basin: foam and flecks round him after (his stroke differs between the two)', from: 'headless Chrome against a dev server (captureView), the contact foam off and on in the same page' },
+    ], numbers: [
+      { title: 'Frame time with water in view, High', unit: 'ms', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1728 × 1117 at render scale 1.5 (2592 × 1676)',
+        rows: [{ where: 'Viridel, the lake', before: 9.92, after: 10.18 }, { where: 'Lorn II, the tree in the water', before: 9.78, after: 10.26 }, { where: 'The waterfall city, the basin', before: 7.51, after: 7.98 }, { where: 'The White Mangrove, the roots', before: 8.74, after: 8.70 }],
+        source: 'each renderFrame() of 16 closed by a readPixels, medians of 24, the foam off and on in turns in one page (docs/systems/water.md, "Contact foam")' },
+      { title: 'Frame time with water in view, Handheld preset if it were on (it is off there)', unit: 'ms', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1280 × 720 at render scale 0.75',
+        rows: [{ where: 'Viridel, the lake', before: 2.55, after: 2.60 }, { where: 'Lorn II, the tree in the water', before: 1.60, after: 1.70 }, { where: 'The waterfall city, the basin', before: 1.02, after: 1.06 }, { where: 'The White Mangrove, the roots', before: 1.16, after: 1.25 }],
+        source: 'as above' },
+    ], see: 'Walk into any water (Lorn, Lorn II, the White Mangrove, Viridel’s lake, the waterfall city’s basin, the desert’s pools) and look where it meets a rock, a wall or your own legs: a pale band of foam breathes against it with small gaps moving along it and broken ripples off it. Graphics: Handheld keeps the plain shore foam.' },
     { match: 'Debug: an Audits page gathers every review', shots: [
       { name: 'audits-page', only: 'after', caption: 'Debug → Audits at the Steam Deck’s size: a card a report, its overall score, the change since the last of its kind and its criteria as small bars', size: [1280, 800], from: 'headless Chrome against a dev server (audits.html)' },
       { name: 'audits-compare', only: 'after', caption: 'Two combat reviews compared: 3.75 → 4.01, each foe’s total before (the dashed ghost) and after', size: [1280, 800], from: 'headless Chrome against a dev server (audits.html#/combat-v1.6/compare)' },

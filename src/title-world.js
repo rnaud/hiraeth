@@ -5,7 +5,7 @@ import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pi
 import { applyTimeOfDay, colourScript } from './timeofday.js';
 import { applyEclipse } from './eclipse.js';
 import { Cascade, shadowDirection, selfLitSkips } from './shadows.js';
-import { detectDeck, detectHandheld, resolveQuality, tileSceneSteps, cullFar } from './perf.js';
+import { detectDeck, detectHandheld, resolveQuality, waterContactOn, tileSceneSteps, cullFar } from './perf.js';
 import { LodManager, lodView } from './lod.js';
 import { Physics, dropBuriedFloraSteps } from './physics.js';
 import { Waters } from './water.js';
@@ -135,7 +135,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   const step = async () => { await slice(); if (cancelled()) throw ABORT; };
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(50, 1, 0.3, 5000);
-  const gbuffer = createGBuffer();
+  const gbuffer = createGBuffer({ depthTexture: true });
   const composeRT = createComposeTarget();
   const blit = createBlit(composeRT.texture);
   const post = createPost();
@@ -213,6 +213,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     U.uPostLite.value = preset.postLite ? 1 : 0;
     SU.uWearLite.value = low || preset.postLite ? 1 : 0;
     waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;
+    if (waters) waters.contact = waterContactOn(preset);
   };
   applyDetail();
   const focus = new THREE.Vector3();
@@ -352,7 +353,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     renderer.setRenderTarget(gbuffer);
     renderer.setClearColor(0x000000, 0);
     renderer.clear();
-    renderer.render(scene, camera);
+    if (waters) waters.renderGBuffer(renderer, scene, camera, gbuffer); else renderer.render(scene, camera);   // (the water last: its contact foam, water.js)
     bloom.render(renderer);
     U.uInvProj.value.copy(camera.projectionMatrixInverse);
     U.uCamWorld.value.copy(camera.matrixWorld);
@@ -420,6 +421,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     win.removeEventListener('resize', resize);
     try { tool?.dispose?.(); } catch { /* gone */ }
     try { physics?.dispose?.(); } catch { /* gone */ }
+    try { waters?.dispose?.(); } catch { /* gone */ }
     scene.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
     for (const c of Object.values(cascades)) c.rt?.dispose();
     gbuffer.dispose(); composeRT.dispose(); bloom.dispose?.(); blit.material.dispose();

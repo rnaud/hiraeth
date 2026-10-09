@@ -24,6 +24,11 @@ import { waterShared, RINGS, WATER_MARK } from './water-shader.js';
 //              creatures on the water (uWaterRings, a ring buffer)
 //   splashes   white drops and a sound (audio.js) on going in and out, strokes,
 //              wading steps
+//   contact    renderGBuffer draws the G-buffer in two passes when water is in
+//              view: the scene without the water, its view depth copied
+//              (only the water's rectangle on screen), then the water over it,
+//              reading that depth for the little waves round whatever stands in
+//              it (water-shader.js CONTACT); `contact` false (a preset): one pass
 //   underwater the camera never sits on the surface (keepCamera); under it, a
 //              tinted pass with banded fog over the composite (renderOver: it
 //              also paints the sun's sparkle on the water),
@@ -71,6 +76,7 @@ export class Waters {
     this.ringNext = 0;
     this._emit = new Map();     // per thing: seconds to its next ring
     this.camUnder = null;       // { y } while the camera is under the water
+    this.contact = true;        // the contact foam (main.js: the preset's waterContact)
     if (scene) this.scan(scene);
     this.drops = drops && scene ? new Drops(scene) : null;
   }
@@ -379,6 +385,51 @@ export class Waters {
   }
 
   /**
+   * The G-buffer pass (main.js, title-world.js), into `target` (already bound and cleared): the scene, and with
+   * the contact foam on and water in view, the water drawn last, over the scene's depth:
+   *   1. the water's depth alone, sunk CONTACT_SINK m (what lies deeper stays hidden early: drawing the water last
+   *      would otherwise shade every bed and wall under it, a whole frame of G-buffer work in the swamps);
+   *   2. the scene without the water;
+   *   3. the water, reading the scene's depth (uSceneDepth) and writing none of its own, so the depth buffer
+   *      still holds the scene's at the end of the pass, and is copied then for the next frame (DepthCopy).
+   * The water reads the last frame's copy, reprojected (uScenePrevVP): reading this frame's would end the pass
+   * and store and reload the whole G-buffer, ~0.7 ms at High on a tiled GPU. When the camera has jumped (a cut,
+   * a portrait, the first frame) it is copied in the middle of the pass instead, this frame's (ContactCopy.fresh).
+   */
+  renderGBuffer(renderer, scene, camera, target) {
+    const shown = this.contact && !this.camUnder ? this.contactBodies(camera) : null;
+    const rect = shown && screenRect(shown.map((b) => b.box), _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse), target.width, target.height);
+    if (!rect) { renderer.render(scene, camera); if (this.depthCopy) this.depthCopy.valid = false; return false; }
+    const copy = (this.depthCopy ??= new DepthCopy());
+    const sink = (this.sinkMat ??= sinkMaterial());
+    for (const b of shown) { const m = b.mesh.material; b.mesh.material = sink; renderer.render(b.mesh, camera); b.mesh.material = m; }
+    for (const b of shown) b.mesh.visible = false;
+    renderer.render(scene, camera);
+    for (const b of shown) b.mesh.visible = true;
+    const fresh = !copy.reusable(target, camera, rect);
+    if (fresh) { copy.render(renderer, target, rect, camera); renderer.setRenderTarget(target); }
+    copy.bind(waterShared);
+    waterShared.uWaterContact.value = 1;
+    for (const b of shown) { b.mat.depthWrite = false; renderer.render(b.mesh, camera); b.mat.depthWrite = true; }
+    waterShared.uWaterContact.value = 0;
+    // (the depth buffer holds the scene's alone: for the next frame; only the blit needs no shader copy)
+    if (!fresh) { copy.render(renderer, target, rect, camera); renderer.setRenderTarget(target); }
+    return fresh ? 'fresh' : 'reused';
+  }
+
+  /** The bodies the contact pass draws: shown, of the water look, in the camera's frustum (null: none). */
+  contactBodies(camera) {
+    camera.updateMatrixWorld();
+    _frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    let out = null;
+    for (const b of this.bodies) if (b.mat && shownInScene(b.mesh) && _frustum.intersectsBox(b.box)) (out ??= []).push(b);
+    return out;
+  }
+
+  /** Free what the contact pass made (the level is left). */
+  dispose() { this.depthCopy?.dispose(); this.depthCopy = null; this.sinkMat?.dispose(); this.sinkMat = null; }
+
+  /**
    * Over the finished page (after post.js, before FXAA): under water, the tint
    * and the banded haze; above it, the sun's sparkle on the water (water-shader.js
    * marks it in the normals' length: drawn here it gets no ink outline).
@@ -397,6 +448,147 @@ export class Waters {
 }
 
 const _frustum = new THREE.Frustum(), _pm = new THREE.Matrix4();
+
+/**
+ * m: the water's depth is laid down this far under its surface before the scene (renderGBuffer). Deeper than the
+ * contact band ever reaches: the view ray's run through the water is at least the depth under the surface, and the
+ * band with its wavelets reaches at most ~1.4 m where its detail is drawn (tests/water-contact.test.js).
+ */
+export const CONTACT_SINK = 2;
+
+/**
+ * The last frame's depth is reused while the camera has moved under `move` m and turned under `turn` rad since,
+ * and the water's rectangle on screen stays inside the one copied (copied `margin` px wider); else this frame's is copied.
+ */
+export const CONTACT_REUSE = { move: 1.5, turn: 0.12, margin: 48 };
+const _fwd = new THREE.Vector3();
+
+/** Depth only, the water mesh lowered CONTACT_SINK m. */
+function sinkMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: { uSink: { value: CONTACT_SINK } },
+    vertexShader: /* glsl */ `uniform float uSink;
+      void main() { vec4 w = modelMatrix * vec4(position, 1.0); w.y -= uSink; gl_Position = projectionMatrix * viewMatrix * w; }`,
+    fragmentShader: /* glsl */ `void main() {}`,
+    colorWrite: false, depthWrite: true, depthTest: true, side: THREE.DoubleSide,
+  });
+}
+
+/**
+ * The pixels of a w × h target that boxes cover on screen, for a view-projection matrix `vp`: { x, y, w, h }
+ * (whole pixels, a pixel's margin, clamped), the whole target when a corner is behind the camera, null when
+ * nothing shows.
+ */
+export function screenRect(boxes, vp, w, h) {
+  const e = vp.elements;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const b of boxes) {
+    for (let i = 0; i < 8; i++) {
+      const x = i & 1 ? b.max.x : b.min.x, y = i & 2 ? b.max.y : b.min.y, z = i & 4 ? b.max.z : b.min.z;
+      const cw = e[3] * x + e[7] * y + e[11] * z + e[15];
+      if (cw <= 1e-4) return { x: 0, y: 0, w, h };
+      const nx = (e[0] * x + e[4] * y + e[8] * z + e[12]) / cw, ny = (e[1] * x + e[5] * y + e[9] * z + e[13]) / cw;
+      x0 = Math.min(x0, nx); x1 = Math.max(x1, nx); y0 = Math.min(y0, ny); y1 = Math.max(y1, ny);
+    }
+  }
+  const px0 = Math.max(0, Math.floor((x0 * 0.5 + 0.5) * w) - 1), px1 = Math.min(w, Math.ceil((x1 * 0.5 + 0.5) * w) + 1);
+  const py0 = Math.max(0, Math.floor((y0 * 0.5 + 0.5) * h) - 1), py1 = Math.min(h, Math.ceil((y1 * 0.5 + 0.5) * h) + 1);
+  if (px1 <= px0 || py1 <= py0) return null;
+  return { x: px0, y: py0, w: px1 - px0, h: py1 - py0 };
+}
+
+/**
+ * The scene's depth before the water, for the water's contact foam (uSceneDepth, uSceneNearFar). A G-buffer with a
+ * depth texture (main.js, title-world.js) has its depth buffer blitted, the scissored rectangle only (a hardware copy:
+ * no shader, 24 bits, millimetres at 50 m; the water shader makes it a view depth); any other target, its RT1.w
+ * copied by a shader (a half float: 1/32 m from 32 m on).
+ */
+class DepthCopy {
+  constructor() {
+    this.blit = null;    // a depth-only target the G-buffer's depth is blitted into
+    this.copy = null;    // the shader copy of RT1.w (no depth texture)
+    this.texture = null;
+    this.nearFar = new THREE.Vector3();
+    this.vp = new THREE.Matrix4();     // the view-projection it was taken with
+    this.eye = new THREE.Vector3();    // and the camera's position
+    this.fwd = new THREE.Vector3();
+    this.rect = null;
+    this.size = [0, 0];
+    this.valid = false;
+  }
+  /** Is the last copy good for this frame: taken last frame, same target, the camera moved little, the water's rectangle inside its own? */
+  reusable(gbuffer, camera, rect) {
+    if (!this.valid || !gbuffer.depthTexture || this.size[0] !== gbuffer.width || this.size[1] !== gbuffer.height || this.nearFar.z < 0.5) return false;
+    if (camera.position.distanceTo(this.eye) > CONTACT_REUSE.move) return false;
+    camera.getWorldDirection(_fwd);
+    if (_fwd.dot(this.fwd) < Math.cos(CONTACT_REUSE.turn)) return false;
+    const r = this.rect;
+    return rect.x >= r.x && rect.y >= r.y && rect.x + rect.w <= r.x + r.w && rect.y + rect.h <= r.y + r.h;
+  }
+  /** The water's uniforms: this copy and the camera it was taken with. */
+  bind(U) {
+    U.uSceneDepth.value = this.texture;
+    U.uSceneNearFar.value.copy(this.nearFar);
+    U.uScenePrevVP.value.copy(this.vp);
+    U.uScenePrevEye.value.copy(this.eye);
+  }
+  render(renderer, gbuffer, rect, camera) {
+    this.vp.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    this.eye.setFromMatrixPosition(camera.matrixWorld);
+    camera.getWorldDirection(this.fwd);
+    const w = gbuffer.width, h = gbuffer.height, m = CONTACT_REUSE.margin, r0 = rect ?? { x: 0, y: 0, w, h };
+    // (a margin round the water's rectangle: next frame's reprojection may look a little outside it)
+    const x0 = Math.max(0, r0.x - m), y0 = Math.max(0, r0.y - m), r = { x: x0, y: y0, w: Math.min(w, r0.x + r0.w + m) - x0, h: Math.min(h, r0.y + r0.h + m) - y0 };
+    this.rect = r;
+    this.size = [w, h];
+    this.valid = true;
+    if (gbuffer.depthTexture && camera?.isPerspectiveCamera) {
+      if (!this.blit) {
+        const depthTexture = new THREE.DepthTexture(w, h, gbuffer.depthTexture.type);
+        this.blit = new THREE.WebGLRenderTarget(w, h, { format: THREE.RedFormat, depthBuffer: true, depthTexture });
+      }
+      if (this.blit.width !== w || this.blit.height !== h) this.blit.setSize(w, h);
+      renderer.initRenderTarget?.(this.blit);
+      (this._box ??= new THREE.Box2()).min.set(r.x, r.y); this._box.max.set(r.x + r.w, r.y + r.h);
+      renderer.copyTextureToTexture(gbuffer.depthTexture, this.blit.depthTexture, this._box, (this._at ??= new THREE.Vector2()).set(r.x, r.y));
+      this.texture = this.blit.depthTexture;
+      this.nearFar.set(camera.near, camera.far, 1);
+      return;
+    }
+    const c = (this.copy ??= makeCopy());
+    if (c.rt.width !== w || c.rt.height !== h) c.rt.setSize(w, h);
+    c.material.uniforms.tNormal.value = gbuffer.textures[1];
+    c.rt.scissor.set(r.x, r.y, r.w, r.h);
+    c.rt.scissorTest = true;
+    renderer.setRenderTarget(c.rt);
+    renderer.render(c.quad, c.camera);
+    this.texture = c.rt.texture;
+    this.nearFar.set(0, 0, 0);
+  }
+  dispose() {
+    this.blit?.dispose(); this.blit?.depthTexture?.dispose();
+    if (this.copy) { this.copy.rt.dispose(); this.copy.material.dispose(); this.copy.quad.geometry.dispose(); }
+    this.blit = this.copy = this.texture = null;
+  }
+}
+
+function makeCopy() {
+  const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, format: THREE.RedFormat, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: false, generateMipmaps: false });
+  const material = new THREE.ShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    depthTest: false, depthWrite: false,
+    uniforms: { tNormal: { value: null } },
+    vertexShader: /* glsl */ `void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+    fragmentShader: /* glsl */ `
+      precision highp float;
+      uniform highp sampler2D tNormal;
+      out vec4 outDepth;
+      void main() { outDepth = vec4(texelFetch(tNormal, ivec2(gl_FragCoord.xy), 0).w, 0.0, 0.0, 1.0); }`,
+  });
+  const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material);
+  quad.frustumCulled = false;
+  return { rt, material, quad, camera: new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1) };
+}
 /** The over-the-page pass: how far away water still sparkles (m). */
 export const WATER_PASS = { reach: 600 };
 
