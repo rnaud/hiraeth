@@ -1,0 +1,31 @@
+.claude/skills/procedural-animation/SKILL.md
+  s_9ca76055a220ed::t_4e591959ac18cd 1-114
+TODO.md
+  s_9ca76055a220ed::t_81840590901d31 110-141
+docs/README.md
+  s_9ca76055a220ed::t_cab01b120f35f6 39
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_556cfe436bc8df 1-426
+scripts/motion-audit/metrics.mjs
+  s_9ca76055a220ed::t_28bfaf5946165c 1-118
+scripts/motion-audit/run.mjs
+  s_9ca76055a220ed::t_9a8a46422e1e21 1-114
+tests/motion-metrics.test.js
+  s_9ca76055a220ed::t_776b818cc017cd 1-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "96b5612f37ddd2e7a38c26a4240e5ca45e90d601",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
