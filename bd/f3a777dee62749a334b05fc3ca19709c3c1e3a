@@ -1,0 +1,91 @@
+.claude/skills/cinematics-qc/SKILL.md
+  s_9ca76055a220ed::t_13f9fd6a4d6bf5 50,53-60,123-126
+DONE.md
+  s_9ca76055a220ed::t_7b46b1ee1ddb5e 1385-1426
+TODO.md
+  s_9ca76055a220ed::t_294a4eb404daff 13-15
+changelog.md
+  s_9ca76055a220ed::t_9ef3117c87a0d8 7-15
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_c0ecad2040f703 35-41
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_6bb92a0732f106 2,21-22,45-47,71-72,76-77,81-82,90-92,95-97,100-102,105-107,110-112,115-117,120-122,125-127,130-132,135-137,140-142,145-147,150-152,155-157,160-162,296-297,300-302,305-307,310-312,315-317,320-322,325-327,330-332,335-337,340-342,346-347,350-352,356-357,361-362,366-367,370-372,375-377,380-382,385-387,391-392,395-397,400-402,405-407,410-412,415-417,420-422,425-427,430-432,435-437,441-442,446-447,450-452,460
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_cc439b8e4f2977 88-109,122,127,132-134,136-150,177-208
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_c48903862e2c6c 80-81,133-135,173-178
+docs/systems/story.md
+  s_9ca76055a220ed::t_aed5690c38f244 353-357,366-368
+scripts/cinematics-qc.mjs
+  s_9ca76055a220ed::t_87413ff5840d31 17-18,289-290,343-344,367
+src/boxes/effects.js
+  s_9ca76055a220ed::t_4d4cfcd48d126b 17,68
+src/boxes/scene.js
+  s_9ca76055a220ed::t_0a34c36c7aa56e 46-67,120,124-138,307,309,312,314,316,319,321-326,328
+src/changelog-media.js
+  s_9ca76055a220ed::t_074743784e3d55 250-274
+src/changelog.js
+  s_9ca76055a220ed::t_4daf92e03c8e75 29-38
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_7332d1a8d2fac7 90-96
+src/items.js
+  s_9ca76055a220ed::t_f090dfe632b94f 198
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_3110ef1d763b40 67-139,576,587-588
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_9e1827a23971b4 119-155,416,624-628
+src/story/arzach-moments.js
+  s_9ca76055a220ed::t_3c644fcb526b54 1,10,30,77-79
+src/story/ending.js
+  s_9ca76055a220ed::t_c432eb9fc13fa5 184
+src/story/film.js
+  s_9ca76055a220ed::t_73a5aecb765ace 86-103
+src/story/home.js
+  s_9ca76055a220ed::t_f600e16eac1dac 85-100,350-358
+src/story/incal-moments.js
+  s_9ca76055a220ed::t_1cc0d24ba4744e 78-80,83-84
+src/story/lantern.js
+  s_9ca76055a220ed::t_db14853751b201 21-39,78,87-93,99-102,115-120
+src/story/moment.js
+  s_9ca76055a220ed::t_389044757c0690 95,193-195,214-221,255
+src/temples/perdide.js
+  s_9ca76055a220ed::t_a0436fc058c82b 175-178
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_807fb9169c7749 141-144
+src/temples/spheres.js
+  s_9ca76055a220ed::t_c6a98cdf0c3ec7 185-188
+tests/boxes.test.js
+  s_9ca76055a220ed::t_7cdc4dbba9c115 463-500
+tests/ending.test.js
+  s_9ca76055a220ed::t_9b24adef41d7b0 394-422
+tests/finale.test.js
+  s_9ca76055a220ed::t_7c75d26a591ff0 198-220
+tests/home.test.js
+  s_9ca76055a220ed::t_ef2009b6e736e9 133-149
+tests/item-star.test.js
+  s_9ca76055a220ed::t_917817621a76c8 34-42
+tests/moment.test.js
+  s_9ca76055a220ed::t_2debf6d57aa6fb 87-113
+tests/ship.test.js
+  s_9ca76055a220ed::t_9da6b5a228a66d 503-546
+tests/temples.test.js
+  s_9ca76055a220ed::t_b53ddfbde3c49b 312-317
+tests/world-moments.test.js
+  s_9ca76055a220ed::t_6814ea150974ac 56-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bdf3a777dee62749a334b05fc3ca19709c3c1e3a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
