@@ -4,6 +4,7 @@ import { menuNavigate } from './controller.js';
 import { SHOP_LINES } from './story/shop-data.js';
 import { stripTone, parseLine } from './story/tone.js';
 import { planLine, voiceOf } from './story/voice.js';
+import { chimeIcon } from './chime-icon.js';
 
 // The shop panel (docs/systems/ui.md, "The shop"): opened by talking to a keeper ("Show me what you have") or
 // at their counter (src/story/shops.js: game.emit('shop:open', { shop })). A paper sheet over the room: the
@@ -24,8 +25,8 @@ import { planLine, voiceOf } from './story/voice.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-/** The chimes' disc, small, for prices and the wallet (as the HUD's: index.html #health .chimes). */
-export const CHIME_SVG = '<svg class="chime-ico" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="#d6a13e"/><circle cx="8" cy="8" r="4.7" fill="none" stroke="#a8742a" stroke-width="0.9"/><rect x="6.3" y="6.3" width="3.4" height="3.4" fill="#f7ecd2" stroke="#2b211f" stroke-width="1.1"/><circle cx="8" cy="8" r="6.6" fill="none" stroke="#2b211f" stroke-width="1.5"/></svg>';
+/** The chimes' crystal, small, for prices and the wallet (as the HUD's: index.html #health .chimes; src/chime-icon.js). */
+export const CHIME_SVG = chimeIcon('chime-ico');
 
 /** A ware's picture: an inked drawing in the HUD's own style (the flask, a heart, a magic cell). */
 export function warePicture(kind) {

@@ -22,6 +22,10 @@ export const CHANGELOG = [
     'The traveller’s fingers curl gently in toward his palms, both hands alike, standing, walking, running, talking and holding the blade or the shield. They used to bend back from the palm and splay: in the game his skin had slipped off the bones of his fingers, and on the title screen his hands were never posed at all.',
     // the traveller's kit
     'The hose from the backpack’s tank to your glove is gone: it bent stiffly over the shoulder and through the arm as you aimed. The glove now carries a small glass vial of the tank’s own fluid on its cuff, glowing with it, brighter as the tank fills and flashing as you shoot, so the glove and the tank still read as one. The story’s waters now pour into the tank instead of climbing the hose.',
+    // the chimes become small floating crystals
+    'Chimes are now small floating crystals instead of brass discs: blunt cyan shards about as long as your thumb, with a lavender seam and a soft light inside, that hover a hand above the ground, tilted and turning, and catch the light now and then. A five is a little cluster of three. They still drop from foes, drift to you when you come near, and buy the same things.',
+    'Picking up chimes rings like struck glass, a clear shimmering ting that climbs as you gather a run of them; they scatter from a foe and are counted onto a shop’s counter with the same glassy sound.',
+    'The chimes’ coin beside your hearts, in the shop’s prices and wallet and by the Gear heading of the menu is now a little cyan crystal. Haddu’s shop hangs strings of crystals by its door and a big crystal on its signs, and he explains what chimes are in his new words.',
   ] },
   { v: '1.6', date: '2026-10-09', items: [
     // the galactic map's signature search

@@ -451,7 +451,7 @@ Where the health bar was (top left, `#health` in index.html; `updateHealth` in m
 - **The potion** beside them: a corked flask with red in it and its stock (`∞` until the shops; a count
   later, faded at none). It tilts as you drink. On a touch screen it is the potion button (`pointer-events`
   only while shown).
-- **The chimes** beside the potion (v1.5, `.chimes`): a pierced brass disc and the wallet's count
+- **The chimes** beside the potion (v1.5, `.chimes`): a small cyan crystal (src/chime-icon.js, since October 2026; a pierced brass disc before) and the wallet's count
   (src/chimes.js, `resources.chimes`), hidden while there are none. A change of the wallet shows the whole
   block for its 3 s (`healthHud`'s `wallet`), the count ticks up to it (`walletTick`: at least 14 a second,
   a purse of forty in about half a second; gold and a little larger while it counts) and the disc turns over.

@@ -3,7 +3,8 @@
 //
 // Haddu keeps the shop by Qanat's main gate, between the camps and the walls: a broad, slow man in a deep
 // teal coat over saffron, a red fez, a brass monocle, and a bell he rings for every sale. He weighs every
-// chime on his little scale ("a chime rings true or it doesn't") and sells to pilgrims what the walk takes
+// chime (a small floating crystal since October 2026) on his little scale and taps it ("a chime rings true or
+// it doesn't") and sells to pilgrims what the walk takes
 // out of them: cures for the hurt, and now and then a heart's worth of something stronger. He has kept shop
 // through forty Drinkings and talks about them as other people talk about the weather.
 
@@ -41,7 +42,7 @@ export const SHOPKEEPERS = {
         },
         chimes: {
           say: [
-            '~neutral~ Brass, pierced square. They ring when they fall, so you always know when you’ve dropped your fortune.',
+            '~neutral~ Little splinters of singing crystal, no longer than your thumb. They float a hand above the sand and ring like glass when you touch them, so you always know when you’ve dropped your fortune.',
             '~playful~ The creatures out in the dunes are full of them. Don’t ask me why. Clear a few of them off the road and bring me what rings.',
           ],
           choices: [{ text: '~curious~ Show me what you have.', do: { emit: ['shop:open', { shop: 'qanat' }] }, end: true }, { text: '~happy~ I’ll be back.', end: true }],
@@ -70,7 +71,7 @@ export const SHOP_LINES = {
     potion: ['~happy~ One cure, corked tight. Drink it before you need it, not after.', '~playful~ Sensible. The dunes bite.'],
     heart: ['~happy~ Swallow it whole. You’ll feel braver by sundown.', '~solemn~ A heart’s worth. Spend it well.'],
     magic: ['~happy~ A little more room in that tank. Fill it with something kind.', '~curious~ Feel that? Your pack just got deeper.'],
-    short: ['~sad~ The scale says no. Come back with a few more chimes.', '~playful~ Close! But brass doesn’t round up.'],
+    short: ['~sad~ The scale says no. Come back with a few more chimes.', '~playful~ Close! But crystal doesn’t round up.'],
     soldOut: ['~sad~ That’s the last of them. The salt road brings no more.', '~neutral~ Gone, I’m afraid. Someone braver got there first.'],
     full: ['~surprised~ Your pack is full of my cures already. Drink one first.', '~playful~ Any more flasks and you’ll clink when you walk.'],
     bye: ['~happy~ Mind the sun on your way out.', '~playful~ Come back richer.'],

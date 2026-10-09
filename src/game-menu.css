@@ -100,10 +100,9 @@ html.reduce-motion #journal [data-at].at, html.reduce-motion #journal .gm-side.a
   position: absolute; left: 50%; bottom: -0.8em; transform: translateX(-50%); padding: 0 5px; font-style: normal; font-size: calc(clamp(9px, 1.25vh, 10px) * var(--ts, 1)); line-height: 1.55;
   letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; color: var(--paper); background: var(--red); border: 1.5px solid var(--ink); border-radius: 6px;
 }
-/* the wallet by the gear's heading: a pierced brass chime and the count (src/chimes.js) */
+/* the wallet by the gear's heading: the chimes' small crystal and the count (src/chime-icon.js) */
 #journal .gm-body h2 .gm-wallet { float: right; display: inline-flex; align-items: center; gap: 6px; opacity: 1; color: var(--ink); font-weight: bold; letter-spacing: 0.04em; }
-#journal .gm-wallet .chime { display: inline-block; width: 1.35em; height: 1.35em; box-sizing: border-box; border-radius: 50%; background: #d6a13e; border: 2px solid var(--ink); box-shadow: 1.5px 1.5px 0 var(--ink), inset 0 0 0 2px #e9c46f; position: relative; }
-#journal .gm-wallet .chime::after { content: ''; position: absolute; left: 50%; top: 50%; width: 0.32em; height: 0.32em; transform: translate(-50%, -50%); background: var(--paper); border: 1.5px solid var(--ink); }
+#journal .gm-wallet .chime { display: block; width: 1.35em; height: 1.35em; overflow: visible; filter: drop-shadow(1.5px 1.5px 0 var(--ink)); }
 #journal .gm-carry { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 2vw, 28px); min-width: 0; }
 #journal .gm-carry section { min-width: 0; }
 /* the picked one, large: its picture in a big slot, its name in capitals, what kind of thing it is */

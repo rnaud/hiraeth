@@ -100,11 +100,16 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
 
 ## Chimes, the currency (v1.5)
 
-**Chimes** are small brass discs pierced with a square hole, a raised rim round the face, that ring when they
-fall: the kind of thing the route's people already trade (the City-Shaft's lift and taxi tokens, Tobin's bent
-coin), strung on a cord by the handful. Chosen for the game's ear (notes, listening, the bell-note whistle:
-picking one up is a small ting) and the look of the route's brass; no lore beyond the name and the look.
-In French, *tintes*. Batch 3's shops spend them.
+**Chimes** are small floating crystals (since October 2026; brass discs pierced square before): blunt,
+weathered shards of translucent cyan mineral, about **3 cm** long, a palm's small change, that float a hand
+above the ground and ring like struck glass when touched. The look is the author's pick,
+`references/Core Objects/Currency/Small Floating Crystal/reference-4.jpeg` (provenance:
+`references/batches/2026-10-09-selected-family-currency-ship-sword.json`): broad asymmetric facets, a pale
+lavender seam inside, a very subtle glow. **The name stays.** The bible's crystals sing (Lorn's Great Crystal,
+the Lodestar splinter that "hums like Lorn's crystal"), so splinters of a singing mineral that ring when taken
+are still chimes: the name was always the sound, not the brass. So the save key (`res.chimes`), the wallet's
+API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migration. Haddu says what they are
+("little splinters of singing crystal, no longer than your thumb"). Batch 3's shops spend them.
 
 - **The wallet** (`src/resources.js`): `resources.chimes` (whole, at most `CHIMES.cap` 9999),
   `addChimes(n, { source, training })` (returns how many went in), `spend(n, { source })` (false and nothing
@@ -134,21 +139,31 @@ In French, *tintes*. Batch 3's shops spend them.
   sets `chimes: false` too); the **Arena** (`chimes: 'training'`, a dev world) drops them from its waves, its
   FOES list and each guardian bout in the ring (a purse a bout, `guardian:spar`), so the shops can be tried
   there: they go into the wallet but are not counted in `res.chimes.earned`.
-- **The pieces** (`ChimeField`, `PIECE`): a drop scatters ones (a drop of 10 or more: fives, larger and paler,
-  then ones; a purse is eight fives). Each pops out of the foe's middle in a little arc (0.45–0.7 s, up
-  1.1–1.9 m, landing 0.5–1.7 m out, on the ground under it unless that is a ledge more than 4 m off), bounces,
-  then hovers 0.32 m up turning on its edge and glints now and then (a four-point star facing the camera).
+- **The pieces** (`ChimeField`, `PIECE`): a drop scatters ones (a drop of 10 or more: fives, then ones; a purse
+  is eight fives). Each pops out of the foe's middle in a little arc (0.45–0.7 s, up 1.1–1.9 m, landing
+  0.5–1.7 m out, on the ground under it unless that is a ledge more than 4 m off), bounces, then hovers 0.32 m up,
+  bobbing 4 cm, tilted (`CRYSTAL.tilt`, 0.42 rad) and turning round the vertical, and glints every 0.9–2.2 s (a
+  four-point star 7 cm across facing the camera: the light catching an edge); between glints it keeps a small spark
+  at its tip (`CRYSTAL.twinkle`, a fifth of the glint, breathing): its inner light, what makes a 3 cm crystal findable at a few metres.
   After 0.45 s it can be taken: walked over (`take` 0.65 m round the feet) or drawn in from `magnet` 2.4 m of
   the traveller's middle, faster and faster. Left lying it blinks for its last 5 s and is gone after 30 s.
-  Not taken while knocked out, in a menu or a scene. `ChimeView` draws them (an instanced brass disc, the
-  glints) in one draw call each.
-- **On the screen**: the chimes beside the potion at the top left (a pierced brass disc and the count,
-  docs/systems/ui.md), shown with the hearts whenever the wallet changes; the count ticks up to the wallet's
-  (`walletTick`) and the disc turns over as one rings in. Each pickup is a small struck ting, climbing through a
-  quick run (`sound.chimePickup`), a drop a few falling tings (`chimeScatter`). The game menu's Items panel
-  shows the wallet by the Gear heading.
+  Not taken while knocked out, in a menu or a scene. `ChimeView` draws them in one draw call each: the ones
+  (`crystalGeometry`: an uneven six-sided prism, `CRYSTAL.one` 3.4 cm long, closing in blunt chisel ends, flat
+  facets, vertex colours cyan lit toward the sun and darker away, two lavender faces for the seam), the fives
+  (`clusterGeometry`: a 5 cm shard, paler, with two small ones grown at its foot) and the glints; both crystals
+  share one material lit from within (`glow` 0.5). The shop's strings of chimes, the sign on its back wall and
+  the hanging sign outside (`interior-kit.js chimeEmblem`) use the same shard, larger.
+- **On the screen**: the chimes beside the potion at the top left (the crystal's icon and the count,
+  docs/systems/ui.md; `src/chime-icon.js`, the same drawing in index.html, the shop panel's prices and wallet
+  and the game menu's), shown with the hearts whenever the wallet changes; the count ticks up to the wallet's
+  (`walletTick`) and the icon turns as one rings in. Each pickup is a crystalline ting (`sound.crystalTing`: the
+  partials of struck glass, `CRYSTAL_PARTIALS` 1, 2.32, 4.25, 6.63, the fundamental doubled 0.6 % sharp so it
+  shimmers, an airy tail, a faint high tick at the strike; an octave above the old brass ting), climbing through a
+  quick run (`sound.chimePickup`; a five rings a second, higher one over it), a drop a few falling glassy tings
+  (`chimeScatter`), a sale the same counted onto the counter before the keeper's brass bell (`purchase`). The
+  game menu's Items panel shows the wallet by the Gear heading.
 
-Tests: `tests/chimes.test.js`.
+Tests: `tests/chimes.test.js` (drops, the field, the wallet, the HUD's icon, the crystal's size, facets and colours, the view), `tests/chime-sound.test.js` (the ting rendered silently in memory).
 
 ## Shops (v1.5)
 
@@ -186,7 +201,7 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   shelf), `shop.bought.heart` / `shop.bought.magic`.
 - **The first shop**: Haddu's Chimes & Cures in the desert, by the way from the camps up to Qanat's main gate.
   Haddu (`SHOPKEEPERS.haddu`): a broad, slow chime-weigher in a deep teal coat over saffron, a red fez, a brass
-  monocle and a hand bell, who has kept shop through forty Drinkings and weighs every chime on his little scale; a
+  monocle and a hand bell, who has kept shop through forty Drinkings and weighs every crystal on his little scale; a
   low, unhurried voice (0.78). Talking to him ("Show me what you have") or E at his counter opens the shop; his
   lines at the counter (`SHOP_LINES`) greet, thank you for each kind of sale, say when you are short, when it is
   sold out or your pack is full, and see you off. He is on the People page once met.

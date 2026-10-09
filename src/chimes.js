@@ -1,8 +1,9 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 
-// Chimes, the currency (docs/systems/items.md, "Chimes"): small pierced brass discs that ring when they fall,
-// the kind the route's people trade (the City-Shaft's lift and taxi tokens, Tobin's bent coin). The wallet is
+// Chimes, the currency (docs/systems/items.md, "Chimes"): small floating crystals, splinters of the singing
+// mineral that ring like struck glass (brass discs until October 2026). The wallet is
 // src/resources.js (resources.chimes, addChimes, spend, the 'wallet' event); this module is where they come
 // from and how they lie in the world:
 //
@@ -15,7 +16,7 @@ import { makeMaterial } from './materials.js';
 //   ChimeField                            the pieces: pop out in a little arc, bounce, hover and turn, glint;
 //                                         walked over (PIECE.take) or drawn in (PIECE.magnet) they are picked
 //                                         up; left, they blink (PIECE.blink) and are gone after PIECE.life s
-//   ChimeView                             draws a field (one instanced mesh of discs, one of glints)
+//   ChimeView                             draws a field (instanced shards, clusters for the fives, glints)
 
 /** What a foe of each kind leaves, in chimes (a fraction is a chance of one: the swarm's six blots, the splinters). */
 export const DROP_OF = {
@@ -61,7 +62,7 @@ export function pieceValues(n) {
  */
 export const PIECE = {
   flight: [0.45, 0.7], spread: [0.5, 1.7], rise: [1.1, 1.9], bounce: 0.22, bounceT: 0.24, hover: 0.32,
-  wait: 0.45, magnet: 2.4, take: 0.65, pull: 30, life: 30, blink: 5, glint: [1.4, 3], max: 160, fiveFrom: 10,
+  wait: 0.45, magnet: 2.4, take: 0.65, pull: 30, life: 30, blink: 5, glint: [0.9, 2.2], max: 160, fiveFrom: 10,
 };
 
 /** Whether a piece is drawn this moment: always, but in its last PIECE.blink s it blinks, faster towards the end. */
@@ -186,60 +187,128 @@ export function connectDrops(game, field, { policy = 'on', purseAt = (pos) => po
 }
 
 // ------------------------------------------------------------------ the look
+// Since October 2026 a chime is a small floating crystal (references/Core Objects/Currency/Small Floating Crystal/
+// reference-4.jpeg, the author's pick): a blunt, weathered shard of translucent cyan mineral with broad uneven
+// facets and a pale lavender seam inside, about three centimetres long, a palm's small change, not a gem. It
+// hovers tilted and turns, a soft light in it, and rings like struck glass when it is taken (audio.js
+// crystalTing). A five is a little cluster: a larger, paler shard with two small ones grown at its foot.
 
-/** A chime: a brass disc pierced with a square hole, a raised rim (m; its face is in the xy plane). */
-export function chimeGeometry(r = 0.12) {
-  const s = new THREE.Shape(); s.absarc(0, 0, r, 0, Math.PI * 2, false);
-  const h = r * 0.3, hole = new THREE.Path(); hole.moveTo(-h, -h); hole.lineTo(-h, h); hole.lineTo(h, h); hole.lineTo(h, -h); hole.closePath();
-  s.holes.push(hole);
-  const g = new THREE.ExtrudeGeometry(s, { depth: r * 0.16, bevelEnabled: true, bevelThickness: r * 0.06, bevelSize: r * 0.06, bevelSegments: 1, curveSegments: 18 });
-  g.translate(0, 0, -r * 0.08);
+/**
+ * The crystal's size (m): a one's length (the reference's three centimetres), a five's, the hover's tilt, a glint's reach,
+ * and `twinkle`: the glint's share always lit at rest (its inner light, a small spark that keeps a 3 cm crystal findable
+ * a few metres off; it swells to the whole glint as the light catches an edge).
+ */
+export const CRYSTAL = { one: 0.034, five: 0.05, tilt: 0.42, glint: 0.07, twinkle: 0.2 };
+/** The tones (vertex colours: the faces of a shard; the instance colour tints the whole: a five paler). */
+export const CRYSTAL_TONES = { face: '#63d3e4', light: '#a9eef4', shade: '#3aa9c6', seam: '#b9a7e8' };
+export const CHIME_TONES = { 1: '#ffffff', 5: '#e4fbff' };
+
+const rand = (seed) => () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+
+/**
+ * One crystal shard (m), its long axis along +y, centred: an uneven six-sided prism whose ends close in blunt,
+ * chisel-like points (not a needle), each face flat (its own normal: the facets print as planes). Vertex
+ * colours: the faces cyan, lighter toward the light and darker away, the two faces of the seam lavender.
+ * `length` the shard's length, `seed` its own unevenness. Non-indexed: position, normal, color.
+ */
+export function crystalGeometry(length = CRYSTAL.one, seed = 7) {
+  const r = rand(seed * 7919 + 13), L = length, W = L * 0.27, sides = 6;
+  // the girdle: two rings of six, each corner a little in or out (the weathered, asymmetric facets)
+  const ring = (y, k) => Array.from({ length: sides }, (_, i) => {
+    const a = (i / sides) * Math.PI * 2 + (r() - 0.5) * 0.35, w = W * k * (0.78 + r() * 0.4);
+    return new THREE.Vector3(Math.cos(a) * w, y, Math.sin(a) * w * 0.82);
+  });
+  const lo = ring(-L * (0.2 + r() * 0.06), 1), hi = ring(L * (0.16 + r() * 0.06), 0.92);
+  // blunt ends: a short chisel edge (two points) rather than a single tip
+  const top = [new THREE.Vector3(W * 0.2, L * 0.5, (r() - 0.5) * W * 0.2), new THREE.Vector3(-W * 0.18, L * 0.47, (r() - 0.5) * W * 0.2)];
+  const bot = [new THREE.Vector3(W * 0.14, -L * 0.5, (r() - 0.5) * W * 0.2), new THREE.Vector3(-W * 0.16, -L * 0.46, (r() - 0.5) * W * 0.2)];
+  const C = CRYSTAL_TONES, sun = new THREE.Vector3(-0.5, 0.75, 0.45).normalize(), seamAt = Math.floor(r() * sides);
+  const tris = [], centre = new THREE.Vector3();
+  const tri = (a, b, c, seam) => {
+    const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a)).normalize();
+    // (facing outward: away from the shard's middle)
+    if (n.dot(centre.copy(a).add(b).add(c).divideScalar(3)) < 0) { [b, c] = [c, b]; n.negate(); }
+    const lit = n.dot(sun), tone = new THREE.Color(seam ? C.seam : C.face);
+    if (!seam) tone.lerp(new THREE.Color(lit > 0 ? C.light : C.shade), Math.min(1, Math.abs(lit) * 0.9));
+    tris.push([a, b, c, n, tone]);
+  };
+  for (let i = 0; i < sides; i++) {
+    const j = (i + 1) % sides, seam = i === seamAt || i === (seamAt + 1) % sides;
+    tri(lo[i], hi[i], hi[j], seam); tri(lo[i], hi[j], lo[j], seam);   // the prism's sides
+    // the top's and the foot's facets, each corner closing on the nearer point of the chisel
+    const ti = hi[i].x >= 0 ? 0 : 1, tj = hi[j].x >= 0 ? 0 : 1, bi = lo[i].x >= 0 ? 0 : 1, bj = lo[j].x >= 0 ? 0 : 1;
+    tri(hi[i], hi[j], top[ti]); if (ti !== tj) tri(hi[j], top[tj], top[ti]);
+    tri(lo[i], lo[j], bot[bi]); if (bi !== bj) tri(lo[j], bot[bj], bot[bi]);
+  }
+  const P = new Float32Array(tris.length * 9), N = new Float32Array(tris.length * 9), K = new Float32Array(tris.length * 9);
+  tris.forEach(([a, b, c, n, col], t) => [a, b, c].forEach((v, k) => {
+    const o = t * 9 + k * 3;
+    P.set([v.x, v.y, v.z], o); N.set([n.x, n.y, n.z], o); K.set([col.r, col.g, col.b], o);
+  }));
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(P, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(N, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(K, 3));
   return g;
 }
+
+/** A five: a larger shard (CRYSTAL.five long) with two small ones grown out at its foot, leaning away. */
+export function clusterGeometry(length = CRYSTAL.five) {
+  const big = crystalGeometry(length, 11);
+  const a = crystalGeometry(length * 0.52, 23).rotateZ(0.75).translate(length * 0.17, -length * 0.26, length * 0.03);
+  const b = crystalGeometry(length * 0.44, 31).rotateZ(-0.6).rotateY(1.9).translate(-length * 0.14, -length * 0.3, -length * 0.08);
+  return mergeGeometries([big, a, b]);
+}
+
 /** A glint: a flat four-point star (the light catching an edge). */
-export function glintGeometry(r = 0.16) {
+export function glintGeometry(r = CRYSTAL.glint) {
   const s = new THREE.Shape(), k = r * 0.16;
   s.moveTo(0, r); s.lineTo(k, k); s.lineTo(r, 0); s.lineTo(k, -k); s.lineTo(0, -r); s.lineTo(-k, -k); s.lineTo(-r, 0); s.lineTo(-k, k); s.closePath();
   return new THREE.ShapeGeometry(s);
 }
 
-/** The tones: a one is brass, a five a paler, larger chime. */
-export const CHIME_TONES = { 1: '#d6a13e', 5: '#f0d98a' };
-
-/** Draws a ChimeField: the discs turning on their edge (one instanced mesh), and a glint now and then. */
+/**
+ * Draws a ChimeField: the ones' shards and the fives' clusters (an instanced mesh each), hovering tilted and
+ * turning round the vertical, lit from within (glow), with a small spark facing the camera that swells into a glint
+ * now and then.
+ */
 export class ChimeView {
   constructor(parent, max = PIECE.max) {
-    this.discs = new THREE.InstancedMesh(chimeGeometry(), makeMaterial({ metal: 'brass', color: '#ffffff', glow: 0.25, key: 'chimes' }), max);
-    this.discs.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3);
-    this.glints = new THREE.InstancedMesh(glintGeometry(), makeMaterial({ color: '#fff8dc', flat: true, glow: 1, side: THREE.DoubleSide, key: 'chime-glint' }), 32);
-    for (const m of [this.discs, this.glints]) { m.frustumCulled = false; m.count = 0; m.userData.noCollide = true; m.name = 'Chimes'; parent?.add(m); }
-    this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._c = new THREE.Color(); this._e = new THREE.Euler();
+    const mat = makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.5, key: 'chime-crystal' });
+    const mesh = (geo, n) => { const m = new THREE.InstancedMesh(geo, mat, n); m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3); return m; };
+    this.crystals = mesh(crystalGeometry(), max);
+    this.clusters = mesh(clusterGeometry(), Math.ceil(max / 2));
+    this.glints = new THREE.InstancedMesh(glintGeometry(), makeMaterial({ color: '#f4fdff', flat: true, glow: 1, side: THREE.DoubleSide, key: 'chime-glint' }), max);
+    for (const m of [this.crystals, this.clusters, this.glints]) { m.frustumCulled = false; m.count = 0; m.userData.noCollide = true; m.name = 'Chimes'; parent?.add(m); }
+    this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._t = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._c = new THREE.Color();
   }
   /** camera: the glints face it. */
   update(field, camera = null) {
-    let i = 0, j = 0;
+    let i = 0, f = 0, j = 0;
     for (const p of field.list) {
       if (!pieceVisible(p)) continue;
-      const s = p.value > 1 ? 1.45 : 1;
+      const five = p.value > 1, s = five ? 1.3 : 1;
       const grow = p.phase === 'fly' ? Math.min(1, 0.4 + p.t * 3) : p.phase === 'pull' ? 0.85 : 1;
-      this._q.setFromEuler(this._e.set(0.18, p.spin, 0));
-      this._m.compose(p.pos, this._q, this._s.setScalar(s * grow));
-      this.discs.setMatrixAt(i, this._m);
-      this.discs.setColorAt(i, this._c.set(CHIME_TONES[p.value] ?? CHIME_TONES[1]));
-      i++;
-      if (p.glint > 0 && j < 32) {
-        const k = Math.sin((1 - p.glint / 0.3) * Math.PI);
+      // tilted, turning round the vertical (the tilt precesses: the shard's ends trace a small cone)
+      this._q.setFromAxisAngle(_Y, p.spin).multiply(this._t.setFromAxisAngle(_Z, CRYSTAL.tilt));
+      this._m.compose(p.pos, this._q, this._s.setScalar(grow));
+      const into = five ? this.clusters : this.crystals, k = five ? f++ : i++;
+      into.setMatrixAt(k, this._m);
+      into.setColorAt(k, this._c.set(CHIME_TONES[p.value] ?? CHIME_TONES[1]));
+      if (p.phase !== 'pull') {
+        // the spark: CRYSTAL.twinkle of the glint at rest (breathing a little), the whole glint as the light catches it
+        const g = Math.max(CRYSTAL.twinkle * (0.8 + 0.2 * Math.sin(p.age * 3 + p.spin)), p.glint > 0 ? Math.sin((1 - p.glint / 0.3) * Math.PI) : 0) * grow;
         if (camera) this._q.copy(camera.quaternion); else this._q.identity();
-        this._m.compose(_gp.copy(p.pos).add(_off.set(0.05, 0.06, 0).applyQuaternion(this._q)), this._q, this._s.setScalar(Math.max(0.01, k * s)));
+        this._m.compose(_gp.copy(p.pos).add(_off.set(0.007, 0.017, 0.004).applyQuaternion(this._q)), this._q, this._s.setScalar(Math.max(0.01, g * s)));
         this.glints.setMatrixAt(j++, this._m);
       }
     }
-    this.discs.count = i; this.glints.count = j;
-    this.discs.instanceMatrix.needsUpdate = true; this.glints.instanceMatrix.needsUpdate = true;
-    if (this.discs.instanceColor) this.discs.instanceColor.needsUpdate = true;
+    this.crystals.count = i; this.clusters.count = f; this.glints.count = j;
+    for (const m of [this.crystals, this.clusters, this.glints]) m.instanceMatrix.needsUpdate = true;
+    for (const m of [this.crystals, this.clusters]) if (m.instanceColor) m.instanceColor.needsUpdate = true;
   }
   dispose() {
-    for (const m of [this.discs, this.glints]) { m.removeFromParent(); m.geometry.dispose(); m.dispose?.(); }
+    for (const m of [this.crystals, this.clusters, this.glints]) { m.removeFromParent(); m.geometry.dispose(); m.dispose?.(); }
   }
 }
-const _gp = new THREE.Vector3(), _off = new THREE.Vector3();
+const _gp = new THREE.Vector3(), _off = new THREE.Vector3(), _Y = new THREE.Vector3(0, 1, 0), _Z = new THREE.Vector3(0, 0, 1);

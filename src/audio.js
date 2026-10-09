@@ -171,6 +171,12 @@ export function renderSyllable(ctx, dest, s, t, noise) {
   }
 }
 
+/**
+ * A struck glass's partials ([ratio to the fundamental, level, how long it rings as a share of the ting]): the chimes'
+ * crystal (Sound.crystalTing). Inharmonic like a wine glass's, the fundamental's twin 0.6 % sharp (it beats, a shimmer).
+ */
+export const CRYSTAL_PARTIALS = [[1, 1, 1], [1.006, 0.55, 0.9], [2.32, 0.42, 0.62], [4.25, 0.2, 0.4], [6.63, 0.1, 0.25]];
+
 export class Sound {
   /** score: false plays no world music (the title screen: only the menu music). */
   constructor(levelId, { score = true } = {}) {
@@ -1623,7 +1629,7 @@ export class Sound {
     [0, 4, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.28 + i * 0.06, 0.06, 'sine', this.fx));
   }
 
-  /** A small struck-metal ring (two partials, bell-like): the chimes (src/chimes.js). */
+  /** A small struck-metal ring (two partials, bell-like): the shop's counter bell. */
   ting(t, f, vol = 0.05, dur = 0.5) {
     const ctx = this.ctx;
     for (const [k, v, d] of [[1, 1, 1], [2.76, 0.45, 0.55], [5.4, 0.18, 0.3]]) {
@@ -1635,21 +1641,38 @@ export class Sound {
       o.start(t); o.stop(t + dur * d + 0.02);
     }
   }
-  /** A chime picked up: a bright ting, rising through a quick run of them (a five: lower, with a second ting). */
+  /**
+   * A small crystal struck (the chimes, src/chimes.js: since October 2026 floating crystals): glass, not brass. The
+   * partials of a struck glass (CRYSTAL_PARTIALS: inharmonic, the upper ones dying first), the fundamental doubled a
+   * hair sharp so it shimmers as it rings, a long airy tail, and a faint high tick at the strike.
+   */
+  crystalTing(t, f, vol = 0.04, dur = 0.8) {
+    const ctx = this.ctx;
+    for (const [k, v, d] of CRYSTAL_PARTIALS) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f * k;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(1e-4, vol * v * this.fxVol), t + 0.003);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur * d);
+      o.connect(g).connect(this.fx);
+      o.start(t); o.stop(t + dur * d + 0.02);
+    }
+    this.burst(t, { dur: 0.025, type: 'highpass', freq: 6500, q: 0.8, vol: vol * 0.25 * this.fxVol });
+  }
+  /** A chime picked up: a crystalline ting, rising through a quick run of them (a five: a second, higher one over it). */
   chimePickup(value = 1) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
     this._chimeRun = t - (this._chimeAt ?? -9) < 0.35 ? Math.min(7, (this._chimeRun ?? 0) + 1) : 0;
     this._chimeAt = t;
-    const f = this.freq(this._chimeRun, 2);
-    this.ting(t, f, 0.045);
-    if (value > 1) this.ting(t + 0.07, f * 1.5, 0.04, 0.7);
+    const f = this.freq(this._chimeRun, 3);
+    this.crystalTing(t, f, 0.036);
+    if (value > 1) this.crystalTing(t + 0.07, f * 1.5, 0.03, 1.1);
   }
-  /** Chimes scattered out of a foe (a guardian's purse: more of them): a few small tings, falling. */
+  /** Chimes scattered out of a foe (a guardian's purse: more of them): a few small glassy tings, falling. */
   chimeScatter(big = false) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime, n = big ? 7 : 3;
-    for (let i = 0; i < n; i++) this.ting(t + 0.45 + i * 0.06 + Math.random() * 0.04, this.freq(4 - (i % 5), 2), 0.018, 0.3);
+    for (let i = 0; i < n; i++) this.crystalTing(t + 0.45 + i * 0.06 + Math.random() * 0.04, this.freq(4 - (i % 5), 3), 0.014, 0.45);
   }
 
   /** A shop's counter bell (the shop panel opens, src/shop-panel.js): two quick tings, the second higher. */
@@ -1659,11 +1682,11 @@ export class Sound {
     this.ting(t, 1318.5, 0.04, 0.9);
     this.ting(t + 0.11, 1760, 0.035, 1.1);
   }
-  /** A sale: the chimes counted out onto the counter (a few tings falling, more for a dearer one), then the keeper's bell. */
+  /** A sale: the chimes counted out onto the counter (a few glassy tings falling, more for a dearer one), then the keeper's bell. */
   purchase(price = 10) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime, n = Math.min(8, 3 + Math.floor(price / 25));
-    for (let i = 0; i < n; i++) this.ting(t + i * 0.055, this.freq(6 - (i % 6), 2), 0.03, 0.35);
+    for (let i = 0; i < n; i++) this.crystalTing(t + i * 0.055, this.freq(6 - (i % 6), 3), 0.024, 0.5);
     this.ting(t + n * 0.055 + 0.12, 1760, 0.04, 1.2);
   }
 

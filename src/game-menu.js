@@ -28,6 +28,7 @@ import { escapeHtml, inputKind, keyText } from './prompt-keys.js';
 import { glyph } from './pad-glyphs.js';
 import { gridStep } from './menu-pad.js';
 import { t, onLanguage } from './i18n.js';
+import { chimeIcon } from './chime-icon.js';
 
 // (the names in the language now: src/i18n.js)
 export const PANELS = ['items', 'quests', 'sketches', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
@@ -145,7 +146,7 @@ export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], ch
   const line = (x) => `<button class="line ${x.kind}" ${where(x.kind, x.id)}>${icon(x.it)}<span>${esc(x.name)}</span></button>`;
   const html = `<div class="gm-items">
     <div class="gm-left">
-      <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span>${chimes !== null ? `<span class="gm-wallet" title="${esc(t('hud.chimes'))}"><i class="chime" aria-hidden="true"></i>${t('gm.chimes', { n: chimes })}</span>` : ''}</h2>
+      <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span>${chimes !== null ? `<span class="gm-wallet" title="${esc(t('hud.chimes'))}">${chimeIcon('chime')}${t('gm.chimes', { n: chimes })}</span>` : ''}</h2>
         <div class="grid" style="--cols:${GEAR_COLS}">${gear.map(slot).join('')}${empties}</div></section>
       <div class="gm-carry">
         <section><h2>${t('gm.pack')}</h2>${packs.map(line).join('') || `<p class="none">${t('gm.packNone')}</p>`}</section>

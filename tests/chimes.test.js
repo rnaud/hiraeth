@@ -4,7 +4,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { DROP_OF, DROP_CATEGORY, PURSE, SPREAD, PIECE, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops } from '../src/chimes.js';
+import { DROP_OF, DROP_CATEGORY, PURSE, SPREAD, PIECE, CRYSTAL, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry } from '../src/chimes.js';
+import { CHIME_ICON_PATHS } from '../src/chime-icon.js';
+import { CHIME_SVG } from '../src/shop-panel.js';
+const view0 = () => new ChimeView(null).crystals;
 import { Resources, CHIMES } from '../src/resources.js';
 import { GameState } from '../src/game-state.js';
 import { Foes, FOES } from '../src/foes.js';
@@ -244,19 +247,62 @@ test('the HUD: the count ticks up to the wallet; a change shows the hearts\' blo
   assert.deepEqual(healthHud({ health: 1, chimes: 3, wallet: true }, new Fader(3), 0.1), { value: 1, low: false, hearts: 3, max: 3, chimes: 3 }, 'a change: shown, with the count');
   const html = src('index.html');
   assert.match(html, /<span class="chimes none" role="img" aria-label="Chimes"/);
+  assert.ok(html.includes(`<svg viewBox="0 0 16 16" aria-hidden="true">${CHIME_ICON_PATHS}</svg><b>0</b>`), 'the HUD draws the crystal (src/chime-icon.js), not the brass disc');
+  assert.ok(CHIME_ICON_PATHS.includes('#63d3e4') && !CHIME_ICON_PATHS.includes('#d6a13e'), 'cyan, not brass');
+  assert.ok(itemsPanel({ chimes: 42 }).html.includes(CHIME_ICON_PATHS) && CHIME_SVG.includes(CHIME_ICON_PATHS), 'the game menu\'s wallet and the shop\'s prices draw it too');
   assert.match(src('src/main.js'), /game\.on\('wallet'/);
   assert.match(itemsPanel({ chimes: 42 }).html, /class="gm-wallet"[^>]*>.*42 chimes/);
   assert.doesNotMatch(itemsPanel({}).html, /gm-wallet/);
 });
 
-test('the view draws each visible piece, a five larger', () => {
+test('the view draws each visible piece: the ones as shards, the fives as clusters, hovering tilted and turning', () => {
   const scene = new THREE.Scene(), view = new ChimeView(scene), F = new ChimeField({ groundAt: () => 0, rng: seeded(12) });
   F.drop(v(0, 0, 0), 12);   // (two fives, two ones)
   for (let t = 0; t < 1; t += DT) F.update(DT, null);
   view.update(F, null);
-  assert.equal(view.discs.count, 4);
-  const m = new THREE.Matrix4(), sc = new THREE.Vector3(), scales = [];
-  for (let i = 0; i < 4; i++) { view.discs.getMatrixAt(i, m); m.decompose(new THREE.Vector3(), new THREE.Quaternion(), sc); scales.push(+sc.x.toFixed(2)); }
-  assert.deepEqual(scales.sort(), [1, 1, 1.45, 1.45]);
+  assert.equal(view.crystals.count, 2, 'two ones');
+  assert.equal(view.clusters.count, 2, 'two fives');
+  assert.equal(view.crystals.material, view.clusters.material, 'one material for both (a draw call each)');
+  assert.equal(view.glints.count, 4, 'each at rest keeps a small spark (its inner light), so a 3 cm crystal is found a few metres off');
+  const gm = new THREE.Matrix4(), gs = new THREE.Vector3(); view.glints.getMatrixAt(0, gm); gm.decompose(new THREE.Vector3(), new THREE.Quaternion(), gs);
+  assert.ok(gs.x * CRYSTAL.glint < 0.02, `the spark small at rest (${(gs.x * CRYSTAL.glint * 100).toFixed(1)} cm)`);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), up = new THREE.Vector3();
+  view.crystals.getMatrixAt(0, m); m.decompose(new THREE.Vector3(), q, sc);
+  assert.ok(Math.abs(sc.x - 1) < 1e-6, 'at rest, its own size');
+  const tilt = up.set(0, 1, 0).applyQuaternion(q).angleTo(new THREE.Vector3(0, 1, 0));
+  assert.ok(Math.abs(tilt - CRYSTAL.tilt) < 1e-3, `it hovers tilted (${tilt.toFixed(2)} rad)`);
+  // it turns: a later frame, another heading
+  const before = q.clone();
+  for (let t = 0; t < 0.5; t += DT) F.update(DT, null);
+  view.update(F, null); view.crystals.getMatrixAt(0, m); m.decompose(new THREE.Vector3(), q, sc);
+  assert.ok(q.angleTo(before) > 0.3, 'and turns');
   view.dispose(); assert.equal(scene.children.length, 0);
+});
+
+test('a chime is a small crystal at the scale of a palm: about 3 cm, faceted, cyan with a lavender seam, not a coin', () => {
+  const size = (g) => { g.computeBoundingBox(); return g.boundingBox.getSize(new THREE.Vector3()); };
+  const one = crystalGeometry(), s1 = size(one);
+  assert.ok(s1.y > 0.028 && s1.y < 0.04, `a one is about three centimetres long (${(s1.y * 100).toFixed(1)} cm)`);
+  assert.ok(Math.max(s1.x, s1.z) < s1.y * 0.65, 'longer than it is wide: a shard, not a disc');
+  assert.equal(CRYSTAL.one, s1.y.toFixed(3) * 1);
+  const five = clusterGeometry(), s5 = size(five);
+  assert.ok(s5.y > s1.y * 1.2 && s5.y < 0.07, `a five a little larger (${(s5.y * 100).toFixed(1)} cm), still palm-sized`);
+  assert.ok(five.attributes.position.count > one.attributes.position.count * 2.5, 'a cluster of three shards');
+  // flat facets: each triangle's three normals are one
+  const N = one.attributes.normal;
+  for (let i = 0; i < N.count; i += 3) for (let k = 1; k < 3; k++) assert.ok(Math.abs(N.getX(i) - N.getX(i + k)) + Math.abs(N.getY(i) - N.getY(i + k)) + Math.abs(N.getZ(i) - N.getZ(i + k)) < 1e-6);
+  // facing outward, and closed (the faces' areas times their normals sum to nothing)
+  const P = one.attributes.position, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), sum = new THREE.Vector3(), mid = new THREE.Vector3();
+  for (let i = 0; i < P.count; i += 3) {
+    a.fromBufferAttribute(P, i); b.fromBufferAttribute(P, i + 1); c.fromBufferAttribute(P, i + 2);
+    const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a));
+    assert.ok(n.dot(mid.copy(a).add(b).add(c)) >= 0, 'every face turned outward');
+    sum.add(n);
+  }
+  assert.ok(sum.length() < 1e-7, `closed (${sum.length().toExponential(1)})`);
+  // its colours: mostly cyan (blue and green over red), a few lavender faces (the seam: red and blue over green)
+  const K = one.attributes.color; let cyan = 0, lavender = 0;
+  for (let i = 0; i < K.count; i += 3) { const r = K.getX(i), g = K.getY(i), bl = K.getZ(i); if (g > r && bl > r) cyan++; if (r > g && bl > g) lavender++; }
+  assert.ok(cyan > lavender * 3 && lavender >= 2, `cyan faces (${cyan}) and the seam (${lavender})`);
+  assert.ok(view0().material.uniforms.uGlow.value > 0.3, 'a soft light inside');
 });

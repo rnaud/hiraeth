@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { buildRoom, portalPair } from './interiors.js';
 import { textGeometry } from './story/sign-text.js';
+import { crystalGeometry } from './chimes.js';
 
 // The interior kit (docs/systems/interiors.md): a building you walk into and play inside. One call gives a
 // door in the world (a shopfront: a plastered house with its door, an awning, a name board over the door and
@@ -106,12 +107,11 @@ export function wallBoxes(L, H, T, holes) {
   return out;
 }
 
-/** A pierced brass disc, the chimes' own sign, facing ±x (seen along a street that runs past the door). */
+/** The chimes' own sign: a big cyan crystal (src/chimes.js crystalGeometry) in a brass ring, flat to the street, facing ±x. */
 function chimeEmblem(r = 0.5) {
   return {
-    disc: new THREE.CylinderGeometry(r, r, 0.08, 24).rotateZ(Math.PI / 2),
-    rim: new THREE.TorusGeometry(r * 0.72, 0.035, 5, 24).rotateY(Math.PI / 2),
-    hole: new THREE.BoxGeometry(0.1, r * 0.5, r * 0.5),
+    rim: new THREE.TorusGeometry(r * 0.86, 0.04, 5, 24).rotateY(Math.PI / 2),
+    crystal: crystalGeometry(r * 1.45, 5).rotateZ(-0.42).scale(1, 1, 0.5).rotateY(Math.PI / 2),
   };
 }
 
@@ -182,7 +182,7 @@ export function buildShopfront(scene, {
   I.push(new THREE.BoxGeometry(0.08, 0.08, 1.35).translate(sx, sy + 0.62, 0.67), new THREE.BoxGeometry(0.06, 0.5, 0.06).rotateX(-0.75).translate(sx, sy + 0.36, 0.2));
   for (const z of [0.6, 1.1]) I.push(new THREE.CylinderGeometry(0.015, 0.015, 0.22, 4).translate(sx, sy + 0.5, z));
   const E = chimeEmblem(0.42);
-  const em = { disc: E.disc.translate(sx, sy, 0.85), rim: E.rim.translate(sx, sy, 0.85), hole: E.hole.translate(sx, sy, 0.85) };
+  const em = { rim: E.rim.translate(sx, sy, 0.85), crystal: E.crystal.translate(sx, sy, 0.85) };
   // the materials (the ink look: flat colours, strata on the plaster, the post pass draws the lines)
   const wallM = strata(wall, wall2), plinthM = makeMaterial({ color: trim, flat: true });
   const add = (geos, m, o = {}) => { if (!geos.length) return null; const mesh = new THREE.Mesh(mergeGeometries(geos), m); Object.assign(mesh.userData, o); grp.add(mesh); return mesh; };
@@ -196,9 +196,8 @@ export function buildShopfront(scene, {
   else add([new THREE.PlaneGeometry(bw - 0.02, bh - 0.02).translate(0, by, 0.103)], makeMaterial({ color: '#ffffff', map: face, flat: true, glow: 0.3 }), { noCollide: true });
   add(G, makeMaterial({ color: glow, glow: 0.85, flat: true }), { noCollide: true });
   if (emblem === 'chime') {
-    add([em.disc], makeMaterial({ color: '#d6a13e', flat: true }), { noCollide: true });
     add([em.rim], makeMaterial({ color: '#a8742a', flat: true }), { noCollide: true });
-    add([em.hole], makeMaterial({ color: '#f7ecd2', flat: true }), { noCollide: true });
+    add([em.crystal], makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.5, key: 'chime-crystal' }), { noCollide: true });
   }
   const domeG = new THREE.SphereGeometry(1.0, 16, 9, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 1.25, 1).translate(w / 2 - 1.5, h + 0.22, -d + 1.5);
   add([domeG], makeMaterial({ color: dome }));   // (smooth: no facets on its shadow line)

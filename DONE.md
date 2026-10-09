@@ -1781,3 +1781,20 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   bike toast and the docs say so. Tests: tests/glove.test.js (no hose, cable or tube anywhere on the traveller, no
   inlet, no outlet; the vial lit by the fluid, small, on the cuff), tests/abilities.test.js. docs/systems/traveller-kit.md
   ("No hose").
+- [x] **Replace coin currency with small floating crystals** (`references/Core Objects/Currency/Small Floating
+  Crystal/reference-4.jpeg`, provenance in `references/batches/2026-10-09-selected-family-currency-ship-sword.json`).
+  The pickup is procedural, from the selected image: `crystalGeometry` (src/chimes.js), an uneven six-sided prism
+  3.4 cm long (`CRYSTAL.one`: the prompt's three centimetres, palm-relative, not a giant crystal) with blunt chisel
+  ends, flat facets in vertex colours (cyan lit toward the sun, darker away, two lavender faces for the inner seam)
+  and a soft inner light (glow 0.5); a five is `clusterGeometry`, a 5 cm paler shard with two small ones at its foot.
+  `ChimeView` draws them as two instanced meshes plus the glints; they hover tilted (0.42 rad), turn round the
+  vertical, bob, keep a small spark (`CRYSTAL.twinkle`) and glint every 0.9-2.2 s with a 7 cm star, so a 3 cm crystal still reads at a few metres. The
+  systems are unchanged (drops, magnet, wallet, prices, `res.chimes`). The name stays *chimes*: the bible's crystals
+  sing (Lorn's Great Crystal, the Lodestar splinter), so splinters that ring when taken are still chimes; no save
+  migration is needed. Collection rings like glass (`Sound.crystalTing`, `CRYSTAL_PARTIALS`: inharmonic struck-glass
+  partials, a 0.6 % sharp twin that shimmers, a high tick, an octave above the old brass ting) in the pickup run, the
+  scatter and the sale. The HUD's icon, the shop panel's prices and wallet and the game menu's wallet draw the
+  crystal (`src/chime-icon.js`, copied into index.html); the shop's strings of chimes, its back-wall sign and its
+  hanging sign use the shard; Haddu's lines and the People page say what chimes are. Tests: tests/chimes.test.js
+  (size, facets, closed, colours, glow, the view's tilt and turn, the icon everywhere), tests/chime-sound.test.js
+  (the ting rendered silently in memory). docs/systems/items.md ("Chimes, the currency").

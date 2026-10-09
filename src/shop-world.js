@@ -3,11 +3,12 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { buildInterior } from './interior-kit.js';
 import { SHOPS, SHELF } from './shop.js';
+import { crystalGeometry } from './chimes.js';
 
 // A shop in a world (docs/systems/interiors.md, "A shop"): the interior kit's building (src/interior-kit.js)
 // furnished as a shop: a counter across the room with the wares laid out on it (as many flasks as the shelf
-// holds, a heart container and a magic cell for each one left), shelves of jars behind, strings of chimes
-// hanging by the door, lattice windows. The keeper stands behind the counter (src/story/shops.js spawns them);
+// holds, a heart container and a magic cell for each one left), shelves of jars behind, strings of chimes (the
+// small floating crystals, threaded on cords) hanging by the door, lattice windows. The keeper stands behind the counter (src/story/shops.js spawns them);
 // the counter's front is where E looks at the wares (the shop panel, src/shop-panel.js).
 //
 //   const shop = buildShop(scene, { def: SHOPS.qanat, slot: 0, door: { at, heading }, front: { ... } });
@@ -57,7 +58,7 @@ export function buildShop(scene, { def = SHOPS.qanat, slot = 0, door, front = {}
   solid.push(new THREE.BoxGeometry(cw + 0.2, 0.08, 0.84).translate(0, 1.0, cz));
   teal.push(new THREE.BoxGeometry(cw + 0.02, 0.16, 0.02).translate(0, 0.72, cz + 0.34));
   for (const x of [-cw / 2 + 0.05, cw / 2 - 0.05]) ink.push(new THREE.BoxGeometry(0.06, 0.96, 0.68).translate(x, 0.48, cz));
-  // a little brass scale at the counter's end (the chimes are weighed)
+  // a little brass scale at the counter's end (the chimes, crystals, are weighed)
   brass.push(new THREE.CylinderGeometry(0.14, 0.16, 0.04, 12).translate(2.15, 1.06, cz - 0.1), new THREE.CylinderGeometry(0.015, 0.015, 0.42, 6).translate(2.15, 1.27, cz - 0.1),
     new THREE.BoxGeometry(0.5, 0.02, 0.02).translate(2.15, 1.47, cz - 0.1));
   for (const s of [-1, 1]) brass.push(new THREE.CylinderGeometry(0.09, 0.06, 0.03, 10).translate(2.15 + s * 0.23, 1.33, cz - 0.1));
@@ -66,14 +67,15 @@ export function buildShop(scene, { def = SHOPS.qanat, slot = 0, door, front = {}
     solid.push(new THREE.BoxGeometry(1.4, 0.06, 0.3).translate(x, y, -R.d / 2 + 0.2));
     for (let k = 0; k < 4; k++) (k % 2 ? jars : glass).push(lathe([[0.01, 0], [0.08, 0.02], [0.09, 0.14], [0.04, 0.2], [0.05, 0.24]], 8).translate(x - 0.5 + k * 0.33, y + 0.03, -R.d / 2 + 0.22));
   }
-  // strings of chimes from the ceiling by the door: cords with brass discs threaded on them
+  // strings of chimes from the ceiling by the door: cords with the small crystals threaded on them, tilted this way and that
+  const crystals = [];
   for (const [x, z, n] of [[-1.6, 2.6, 6], [-1.25, 2.85, 5], [1.3, 2.7, 7], [1.65, 2.5, 4]]) {
     ink.push(new THREE.CylinderGeometry(0.008, 0.008, n * 0.13 + 0.3, 4).translate(x, R.h - (n * 0.13 + 0.3) / 2, z));
-    for (let k = 0; k < n; k++) brass.push(new THREE.CylinderGeometry(0.05, 0.05, 0.012, 10).rotateX(Math.PI / 2).rotateY(k * 0.7).translate(x, R.h - 0.35 - k * 0.13, z));
+    for (let k = 0; k < n; k++) crystals.push(crystalGeometry(0.05, 3 + k).rotateZ(((k % 3) - 1) * 0.35).rotateY(k * 0.7).translate(x, R.h - 0.35 - k * 0.13, z));
   }
-  // the chimes' sign painted large on the back wall, between the shelves
+  // the chimes' sign on the back wall, between the shelves: a big crystal on a brass plate
   brass.push(new THREE.CylinderGeometry(0.42, 0.42, 0.03, 24).rotateX(Math.PI / 2).translate(0, 3.0, -R.d / 2 + 0.2));
-  ink.push(new THREE.BoxGeometry(0.22, 0.22, 0.04).translate(0, 3.0, -R.d / 2 + 0.21));
+  crystals.push(crystalGeometry(0.62, 5).rotateZ(-0.42).scale(1, 1, 0.45).translate(0, 3.0, -R.d / 2 + 0.26));
   // the windows' lattice
   for (const s of [-1, 1]) {
     const x = s * (R.w / 2), z = -0.4;   // (both side windows' middles: src/interiors.js lays a side wall's x along -z / +z)
@@ -86,6 +88,7 @@ export function buildShop(scene, { def = SHOPS.qanat, slot = 0, door, front = {}
   add(brass, makeMaterial({ color: '#d6a13e', flat: true }), true);
   add(jars, makeMaterial({ color: '#c8673f', flat: true }), true);
   add(glass, makeMaterial({ color: '#d9503f', flat: true }), true);
+  add(crystals, makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.5, key: 'chime-crystal' }), true);
 
   // ---- the wares on the counter, one mesh per piece so what is sold goes from the display
   const top = 1.04, display = { potion: [], heart: [], magic: [] };

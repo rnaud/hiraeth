@@ -19,11 +19,6 @@ rather than mixing the earlier inconsistent exploration sheets.
   Father, Mother, Lou, Ilen, Aunt Tove and Moustache. Preserve each selected face, proportions,
   outfit and silhouette in models, portraits, recordings and story scenes. Rig and animate the
   human characters and dog appropriately, keeping their identities consistent across views.
-- [ ] **Replace coin currency with small floating crystals** using
-  `references/Core Objects/Currency/Small Floating Crystal/reference-4.jpeg`.
-  Preserve the selected cyan mineral shape and subtle light, with palm-relative scale (the
-  prompt targets roughly 3 cm), rather than giant crystals. Generate the pickup asset and
-  matching currency UI, with readable levitation and collection feedback in the game's style.
 - [ ] **Generate and integrate the angular ship redesign** from
   `references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg`.
   Establish one consistent 3D hull and derive all angles from it. Fit a proper walkable cockpit,
