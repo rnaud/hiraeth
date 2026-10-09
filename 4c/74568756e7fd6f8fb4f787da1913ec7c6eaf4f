@@ -1,0 +1,57 @@
+changelog.md
+  s_9ca76055a220ed::t_08b7203e33f4c4 7-9
+docs/story-bible.md
+  s_9ca76055a220ed::t_32c3c0827c0721 180-188,190,194
+src/changelog-media.js
+  s_9ca76055a220ed::t_20b3cb10ae80b8 226-249
+src/changelog.js
+  s_9ca76055a220ed::t_6f7c77f7188b6a 25-28
+src/main.js
+  s_9ca76055a220ed::t_24643fbebcea08 552
+src/story/desert-data.js
+  s_9ca76055a220ed::t_04a06bfaba60b1 16,65-66,86-89,183-190,215,553-554,556-562,565-566,571,573,575,577-578,580-581
+src/story/desert-way.js
+  s_9ca76055a220ed::t_e54a4ac7aea2fe 20-24,29-39,41-44,48-75,96-97,99
+src/story/desert.js
+  s_9ca76055a220ed::t_24d77335a58401 97-98,116-122,167-169
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_52760f8724f115 448-451,453,455,457-458,461,670
+DONE.md
+  s_135273ed848c60::t_f909205a041d1e 1364-1384
+docs/systems/story.md
+  s_135273ed848c60::t_5256b885b5924b 423-424,436-464
+tests/desert-spark.test.js
+  s_74e45dbc619a7d::t_d5e8f39450b3c3 194,208,211-212,281-358
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4c74568756e7fd6f8fb4f787da1913ec7c6eaf4f",
+  "prompts": {},
+  "sessions": {
+    "s_135273ed848c60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a02bcb6affcf46897",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_74e45dbc619a7d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0b8172381cd9bf2d",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
