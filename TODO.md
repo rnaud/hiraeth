@@ -55,12 +55,14 @@ rather than mixing the earlier inconsistent exploration sheets.
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
-# Enemy roster (approved 2026-10-09: 21 archetypes; framework, batch 1 (v1.8) and batch 2 (v1.9) built)
+# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9) and 3 (v1.13) built)
 
 docs/design/enemy-roster.md ("Status": each archetype's), docs/systems/foes.md "The enemy roster". Done: the
 framework, batch 1 (the shellback crab, the horn lizard, the antler hound, the lamp tripod, the ink blot; scored in
-docs/audits/combat-v1.8.md) and batch 2 (the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
-jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md). Vael II runs wholly on the new roster.
+docs/audits/combat-v1.8.md), batch 2 (the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
+jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md) and batch 3 (the bellows toad, the stilt heron, the
+skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/combat-v1.13.md). The Desert, Vael,
+Vael II and Lorn run wholly on the new roster.
 
 - [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
   (`references/enemy-archetypes/<id>/sheet-1.jpg`) instead of the old reference crops.
@@ -68,9 +70,16 @@ jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md). Vael II runs 
   the ink blot were built from the doc's descriptions and the old references; match each body and its skins to its own
   sheet, then set `art: 'sheet-1'` in src/enemies/archetypes.js. Batch 2 is drawn to its sheets; the alternate skins
   (`sheet-2.jpg`) are not used yet by either batch.
-- [ ] **Batch 3**: the bellows toad, the stilt heron (`StiltMotor` generalised), the skitter swarm (mid tier), the root
-  knot (FABRIK arms); Lorn, Lorn II and Viridel follow, and the Desert and Vael then run fully on the new roster (they
-  wait only on the heron and the swarm).
+- [ ] Play batch 3 with a pad (combat-v1.13 recs. 1 and 4): the heron's 0.9 s spear from 4 m up and 5 m away (1.0 s if
+  it reads late); wading through the toad's spores on Lorn's slopes.
+- [ ] The skitter flock costs 352 draws (44 meshes a skitter, combat-v1.13 rec. 2): merge each one's dome, eyes and
+  feelers, or draw a far flock from one instanced mesh.
+- [ ] The combat-review script: watch a group kind as its group (`aloneWave`: the skitters' ring and heap), and read the
+  toad's choke and leap and the heron's open and topple as answers (combat-v1.13 rec. 3).
+- [ ] Batch 3 against its sheets (docs/design/enemy-roster.md "Status"): the jug's ochre marks between its bands; the
+  skitters' curved bony legs; the heron flying off when you run at it (it strides away now).
+- [ ] The antler hound's smoke mane never moves: in src/enemies/plans/quadruped.js the line that sets each flame's
+  `userData.yaw` and pushes it into `mane` sits inside a comment (after `fl.scale.setScalar(…);   // (…)`).
 - [ ] Play the ring centipede's ring with a pad in the Buried Machine (combat-v1.9 rec. 1): is the gap readable before
   it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
 - [ ] A cut on a lantern jelly's thread of light breaks its ward (the doc's counter; combat-v1.9 rec. 2): now only a
@@ -177,8 +186,10 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
 - [x] **4. Chains** (1 session): `chain.js` (`PathTrail`, `FollowChain`, `Wave`; `wave-legs.js` for metachronal
   legs) with the roster's batch 2 on them (procedural-animation.md, "Phase 4, the chains"). Left for later: the
   serpent (the Mother Snapper, phase 6) and cloaks / cables on the older plans.
-- [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md, awaiting approval): each body plan a table entry and
-  its poses, scored with the rubric (≥ 2 on every row).
+- [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md): each body plan a table entry and
+  its poses, scored with the rubric (≥ 2 on every row). Done for batch 3 (procedural-animation.md, "Phase 5": the
+  hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor); left: batches 4 and 5's
+  plans (tracks, the brute, the siege machine, the roller, the humanoid spirit, the strings).
 - [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
   bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
   each fight's new attacks.
@@ -238,13 +249,15 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
 - [x] **Founders' Belfry (1.44 → 4.00, v1.8)**: held bells (the Bell Chamber's door, the Hall of Echoes' stones
   only while it rings), the ball rolled across the held stones holds them (bell + push), the Hall of Stones a hub
   with `d1`'s balls in two stores, a high door whose eye is under the landing. Left: its opening (balls and a
-  disc); the Cloud-Mother's falling stone (a guardian change, with the foes batch).
+  disc); the Cloud-Mother's falling stone (a guardian change: left out of the roster's batch 3, a temple change; a ring
+  of the belfry brings a stone down where she will dive).
 - [x] **Hush-House (1.67 → 3.44, v1.8)**: the first crystal in the Threshold; the root-wall's door and its eye seen
   from the disc; the far door wants the pendulums stilled in turn (stilling + order). Left: a shortcut or a
   reversible state; `d2`'s jaws stilled from the passing disc; the Mother stilled through the order.
 - [x] **Lamp-House (1.67 → 3.11, v1.8)**: the third pool on a loft hidden by its edge; the pool-orb, lit by the
   lantern and rolled into the niche (lantern + push). Left: a lock before the chest (the chest at 25 %); `s4` on
-  the near side; the Lampless lured to pools lit earlier.
+  the near side; the Lampless lured to pools lit earlier (a guardian change: left out of the roster's batch 3; fits
+  the reworked Lamp-House: lured to the pools you've lit).
 - [ ] **Undertower (1.67)**: `br1` stands only while the high note is held, so the one-note rule bites twice (a
   catch, then a second high stone); teach the stones before the shell.
 - [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
@@ -257,7 +270,12 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
   the report for each.
 - [ ] **The guardian's last phase asks for the twist**: the staged fights are in (v1.6: three phases, body tells,
   docs/systems/foes.md "The guardians' staged fights"); the last phase still asks for the temple's one verb, not the
-  twist room's combination. Guardian exam 2→3-4.
+  twist room's combination. Guardian exam 2→3-4. Left out of the roster's batch 3 (temple work, not the roster's;
+  the temple audit's suggestions for the reworked temples): the Cloud-Mother, a ring of the belfry brings a stone
+  down where she will dive; the Lampless, lured to the pools you've lit; the Mother Snapper, her last phase asks for
+  the pendulums stilled in order (smallest first); the First Sign (Undertower), in its last phase it hears only
+  through the arena's dishes, so you play its word into a low dish on the wall; the Clockwork Foreman (First Garage),
+  its six numerals hit in the clock's order counted from four.
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 

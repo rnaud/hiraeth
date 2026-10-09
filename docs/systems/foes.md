@@ -618,7 +618,7 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## The enemy roster (v1.8–v1.9, `src/enemies/`)
+## The enemy roster (v1.8–v1.13, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
@@ -632,11 +632,11 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   - `built`: on its own body, its tuning (`def`, a foe kind's, added to `FOES`) here. Batch 1: the **shellback crab**
     (`crab`), the **horn lizard** (`lizard`), the **antler hound** (`hound`), the **lamp tripod** (`tripod`), the
     **ink blot** (`blot`). Batch 2 (v1.9): the **mound worm** (`worm`), the **sky ray** (`ray`), the **signal moth**
-    (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`);
-  - `stand-in`: not built yet, an old kind runs as its body meanwhile (the skitter swarm on the blot swarm, the
-    bellows toad on the spitting blot, the root knot on the root stalker, the crucible cart on the slag walker, the
+    (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`). Batch 3 (v1.13): the **bellows toad**
+    (`toad`), the **stilt heron** (`heron`), the **skitter swarm** (`skitter`), the **root knot** (`rootknot`);
+  - `stand-in`: not built yet, an old kind runs as its body meanwhile (the crucible cart on the slag walker, the
     ring drone on the rust drone, the furnace brute on the glass golem, the shade on the shade);
-  - `planned`: nothing stands in (the stilt heron, the pearl roller, the bell walker, the marionette): the world
+  - `planned`: nothing stands in (the pearl roller, the bell walker, the marionette): the world
     tables list them, spawning passes them over until they land.
 - **Skins** (`src/enemies/skins.js` `SKINS[archetype][world]`): a name, a palette, props (lichen, a beetle's
   antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
@@ -712,10 +712,35 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | ring centipede (`centipede`) | a 5 m tube of grey plates with coloured bands, great crab claws round a drill for jaws, 24 short legs; coiled, a crescent | ring (2.3 s; spirals round you, its body a wall, then closes), pincer lunge (0.95 s) | out over its back with the wings or jets; the push breaks the ring; its head turned in takes a cut double; parry the lunge; its back takes half | coiled on its rock; takes offence at 6 m |
   | lantern jelly (`jelly`) | a broad puffy bell, three glowing lanterns under it, long pale threads | ward (1.0 s; a lantern's thread of light to a neighbour: half the harm, no staggers), mend (1.5 s; tier-2 skins: down within reach over a hurt one), sting curtain (0.9 s; threads to the ground under it) | a shot or the boomerang pops each lantern and its ward; the air cut or the push when it comes down; kill it first | drifts; never starts a fight, joins one |
 
+- **Batch 3's fields** (v1.13): `hops` (the toad moves hop by hop: its drawn body lags the mind's position and lands each
+  hop on planted feet, src/enemies/plans/hopper.js); `choke` (a shot while it winds that up, its throat swollen, bursts
+  the glob: stunned `CHOKE` s, the lob lost); `leave: 'spores'` (a lob's patch that slows you `SPORES`: your own speed
+  bled off, no harm); `leap` (`{ height }`: the strike is a leap onto where you stood, within `range`, up in an arc as
+  its body and its target, `alt`; the air cut meets it in the air: on its back `LEAP_FLIP` s, double); `onParry:
+  'open'` (any guard knocks it aside, a perfect parry longer, `OPEN`: the heron's head hangs in reach); `topples` (a
+  charged cut at its legs: down `TOPPLE` s, the cuts double and it stays down; asleep in a bloom stays down the same
+  way); `flock` (`{ ring, one }`: between darts it rings you at `ring` m, backing out after one, and only one of its kind
+  strikes at a time) with `pile` (n of its flock near it, `Foe.mates`, climb onto it as it winds up, `Foes.pile`,
+  `Foe.ride`; it topples, throwing them; the push on any of the heap scatters it) and `calm.linger` (a flock fights only
+  if you stay within `provoke` m that long; run at it and it scatters, `scatter`; an ember into it sends the rest
+  running); `rooted` (nothing knocks it back), `ground` (only on your feet: a jump clears the root knot's grip), `blur`
+  (spores over your sight whichever way you look, no harm); the calm modes `sit` (the toad), `wade` (the heron, slow and
+  wide; `shy`, it walks off), `flock`, `root` (the root knot stands where it is).
+- **Batch 3** (v1.13):
+
+  | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
+  |---|---|---|---|---|
+  | bellows toad (`toad`) | a 2.2 m pear sitting up, a throat sac in folds, heavy lids; hops | spore lob (1.2 s; the sac swells see-through, it rears; a landing mark, spores), volley (1.45 s; the City-Shaft, the Waterfall), belly flop (0.95 s; a deep shaking crouch, a leap and a ring of shock) | a shot in the swollen throat (it chokes), walk out of the mark, jump the ring, the air cut in its leap (on its back, double), close in | sits by the water; fights within 4 m |
+  | stilt heron (`heron`) | nearly 5 m: a jug or a feathered egg on two stilts, an S-neck, a spear bill | spear (0.9 s; the neck drawn back into an S, 5 m), sweep (1.0 s; a foot lifted high, then a stamp), wing buffet (0.8 s; Vael) | evade aside, a guard leaves its head open, the dash cut inside its reach, a charged cut at a leg topples it | wades and fishes; walks off as you come near; fights cornered (2.8 m) |
+  | skitter swarm (`skitter`) | eight knee-high domes on high-kneed legs; a speckle of humps | ripple rush (0.6 s; it rears and clicks, one at a time), pile (1.2 s; a heap grows, then topples) | any blow, a shot or the push ends one; the push scatters the heap; an ember scatters the flock | grazes in a flock; scatters if you run at it; fights if you linger in it |
+  | root knot (`rootknot`) | a 3.2 m mushroom on five jointed root-arms | grip (1.0 s; two arms plunged in, the cap tipped; the soil heaves toward you, then lash), lash (0.75 s; two arms coiled back), spore puff (1.0 s; Lorn II) | jump or sidestep the heave; a cut or stilling frees you; a parry chips the lash; a bloom glob (asleep, cuts double); embers ×2 | stands rooted, its cap following you; fights at 3.6 m |
+
 - **Retired:** the 100 world enemies (src/enemies/roster.js, models.js, their tests and capture scripts: gone from
   spawning, the Arena, the FOES list and the gallery) and the glass splinter (v1.8); the dune ray, the sign moth's old
   body and the winged blot (v1.9: the mound worm, the signal moth and the sky ray took their places; the Arena's old
-  waves and Ink tide field the sky ray where the winged blot came). The spitting blot's spit is the blot's.
+  waves and Ink tide field the sky ray where the winged blot came); the spitting blot, the blot swarm and the root
+  stalker (v1.13: the bellows toad, the skitter swarm and the root knot took their places in the Arena's old waves, Ink
+  tide and the centipede's shed tail). The spitting blot's spit is the blot's.
   Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and
   the kept kinds kept their ids.
 - **Tests:** `tests/archetypes.test.js` (the tables, every world's roster valid and diverse, the curve, each built

@@ -1,4 +1,4 @@
-# Enemy roster: 21 archetypes (approved 2026-10-09; framework, batches 1 and 2 built)
+# Enemy roster: 21 archetypes (approved 2026-10-09; framework, batches 1 to 3 built)
 
 2026-10-09. Approved (see "Decisions"); the framework and batch 1 are built (see "Status"). It replaces the 100 world enemies (src/enemies/roster.js) and
 the 15 old kinds (src/foes.js, src/foe-kinds.js) with **21 archetypes**. Each one has its own silhouette, body plan,
@@ -886,7 +886,9 @@ skins kept with the new body; checked with `node scripts/enemy-roster/compare.mj
 the same views) and the motion audit (no foot sliding). Left as it was: the hound's Mangrove sheet keeps a halo ring
 from the main sheet's shape, which the driftwood hound does not wear (the halo is the Garden of Spheres').
 
-**Batches 3–6 follow the `enemy-rework` skill** (`.claude/skills/enemy-rework/SKILL.md`): both sheets read, the
+**Batch 3 is drawn to both its sheets** (2026-10-09, `art: { main, alt }`, following the `enemy-rework` skill): the
+bellows toad, the stilt heron, the skitter swarm and the root knot, each painted (src/enemies/surfaces.js) and on its
+own plan of the locomotion kit's phase 5 (docs/systems/procedural-animation.md, "Phase 5"). **Batches 3–6 follow the `enemy-rework` skill** (`.claude/skills/enemy-rework/SKILL.md`): both sheets read, the
 silhouette and proportions, the parts, then **the procedural surface, mandatory** (src/enemies/surfaces.js: the
 patterns, colour zones, glow and gloss the sheet paints, drawn by src/foe-surface.js; docs/systems/foes.md
 "Procedural surfaces"), each skin's palette, motion, wind-ups and telegraphs, the combat review, the cost, and the
@@ -900,13 +902,13 @@ centipede's pitted plates, the jelly's glowing ribbed lanterns (the porcelain je
 | # | Archetype | Status | Body now | Notes |
 |---|---|---|---|---|
 | 1 | Shellback crab | **built** (batch 1) | `plans/walker.js`, plan 1, 7 skins | snap, shell spin, burrow (Salt Harbour, Underwater); scuttles sideways in bursts; calm, shy. Drawn to its sheets (Vael II's cliff crab; the Salt Harbour's anchor crab): a deep steep-sided dome over an ivory plated belly, thick legs with hooked tips, tall arms to big upright pincers, black eyes on stalks; lichen stars; barnacles, rope and an anchor |
-| 2 | Skitter swarm | stand-in | the blot swarm | batch 4 |
+| 2 | Skitter swarm | **built** (batch 3) | `plans/skitterers.js`, plan 2, 5 skins | ripple rush (rings you at 4 m, one darts at a time, rearing and clicking first), pile (three climb into a heap that topples; the push scatters it); a flock of eight, an ember sends it running; grazes and scatters if you run at it, fights only if you linger in it. Drawn to its sheets (the Desert's dune skitters; the Moon Foundry's furnace beetles): a round dome with an ochre band (the furnace beetle's pitted iron with a glowing seam), six high-kneed ivory legs with pointed feet, tiny eyes with glints, feelers. Differs: the sheets' fist-sized dome is built knee-high (it did not read smaller); the legs are straight segments, not the sheets' curved bony ones |
 | 3 | Ring centipede | **built** (batch 2) | `plans/centipede.js`, plan 3, 6 skins | ring (spirals round you, its body a wall: out over its back, or push it apart), pincer lunge; plated, its head turned in takes double; sheds two skitterers off its tail; coiled at rest. Drawn to its sheet |
-| 4 | Bellows toad | stand-in | the spitting blot | batch 4 |
+| 4 | Bellows toad | **built** (batch 3) | `plans/hopper.js`, plan 5, 3 skins + Home's (Arena) | spore lob (a landing mark; spores that slow you; a shot in the swollen throat chokes it), volley (the City-Shaft, the Waterfall), belly flop (a leap onto you and a ring of shock; the air cut meets it: on its back, double); hops; sits by the water. Drawn to its sheets (Lorn's spore toad; the City-Shaft's pressure toad): a 2.2 m pear, a cream belly, the throat sac hanging in folds and swelling into a ball with the glob pressed to its front, heavy-lidded eyes, folded haunches, webbed feet; lilac spots; the brass valve and gauge. Differs: the sheets draw it nearly three times the traveller (the prompt: to his shoulder), built between; the swollen sac is opaque with the glob showing at its front (the game has no see-through surface) |
 | 5 | Horn lizard | **built** (batch 1) | `plans/quadruped.js`, plan 6, 5 skins + the Atelier's (Arena) | blare (shoves you to its partner), flank bite (from behind you), tail whip (at its back, the `tail` pattern); pairs. Drawn to its sheets (the City-Shaft's pipe lizard; the Market's coin lizard): a salamander hugging the ground, back at the knee, legs sprawled out with splayed toes, a long low neck, the snout grown into a curved horn, the tail lying behind and coiling into a spiral (a rigid coil on the chain's tip); the blare lifts its front half and swells a throat sac; mottled bands; coins on strings and a wind-up key |
-| 6 | Stilt heron | planned | none | batch 4 |
+| 6 | Stilt heron | **built** (batch 3) | `plans/stilt.js`, plan 7, 4 skins | spear (the S-neck drawn back, 5 m; a guard leaves its head open), sweep (a foot raised, a stamp; a charged cut at a leg topples it: down 3 s, cuts double), wing buffet (Vael: straight back); wades, walks off, fights cornered. Drawn to its sheets (the Desert's cistern heron; Vael's ridge runner): nearly 5 m, a glazed clay jug with ochre bands (a slim blue feathered egg with folded wings and a rust-red crest), stilts with the joint two thirds up bending back, wide three-toed feet, the S-neck and spear bill. Differs: the ochre marks between the jug's bands are left out; it does not fly off when you run (it strides away) |
 | 7 | Pearl roller | planned | none | batch 6 |
-| 8 | Root knot | stand-in | the root stalker | batch 4 |
+| 8 | Root knot | **built** (batch 3) | `plans/tentacled.js`, plan 12, 5 skins | grip (two arms plunged in, the soil heaving toward you: jump or sidestep; caught, dragged in), lash (two arms coiled back; a parry chips it), spore puff (Lorn II: a blur, no harm); rooted (nothing knocks it back), asleep in a bloom it stays down, cuts double. Drawn to its sheets (Lorn's reed knot; Lorn II's root crawler): 3.2 m, a broad warty cap with gills, a ribbed bulb, two pale eyes, five three-segment root-arms with rootlet fans, a skirt of tendrils. Differs: the sheets draw it near 5 m against the traveller (the prompt: 2.5 m), built between; its bulb sits in the cap's shadow, darker than drawn |
 | 9 | Lantern jelly | **built** (batch 2) | `plans/floater.js`, plan 11, 5 skins | ward (a lantern's thread: half the harm, no staggers), mend (tier-2 skins, comes down within reach), sting curtain; a shot or the boomerang pops a lantern; never starts a fight, joins one; alone in the Arena with a blot. Drawn to its sheet |
 | 10 | Signal moth | **built** (batch 2) | `plans/flyer.js`, plan 13, 5 skins | flash (both kite wings snapped open, the eye-spots blazing), dart, dust (the lamp moth and the Antennas' moth: the lock slips); in threes. Drawn to its sheet |
 | 11 | Sky ray | **built** (batch 2) | `plans/glider.js`, plan 14, 6 skins | skim (a perfect parry grounds it), tail lash (at its back), downdraft (Vael, Vael II: breaks the glide); circles in its thermals. Drawn to its sheet |
@@ -923,8 +925,9 @@ centipede's pitted plates, the jelly's glowing ribbed lanterns (the porcelain je
 
 Measured: docs/audits/combat-v1.8.md (batch 1: scores 3.7–4.5, motion on the kit: no foot slide, the right gait
 groups) and docs/audits/combat-v1.9.md (batch 2: 4.3–4.7 by eye; the centipede's 24 legs slide 0.00 m/m, the chains
-keep to their heads' paths). Vael II now runs wholly on the new roster; the Desert and Vael wait on the stilt heron and
-the skitter swarm (batch 3).
+keep to their heads' paths). Vael II now runs wholly on the new roster; with batch 3 (docs/audits/combat-v1.13.md: 4.3–4.8, mean 4.54; the motion
+audit: no foot slide, the right gaits) the Desert, Vael and Lorn do too. Lorn II and Viridel still field a stand-in (the
+shade, the furnace brute: batches 4 and 5).
 
 ## Open questions for the author
 

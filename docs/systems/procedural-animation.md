@@ -548,6 +548,33 @@ keep to their heads' weaving path (0.000 m off); the ray beats 1.17/s at full sp
 and 3.07; the jelly pulses 0.55/s drifting and 2.38/s winding up. `tests/motion-chains.test.js` holds the chains and
 these measures; `tests/motion-plans.test.js` the centipede's legs in two skins.
 
+### Phase 5, the rest of the roster: batch 3 (2026-10-09)
+
+Four more plans, each a table entry in `src/motion-kit/plans.js` and its body in `src/enemies/plans/`, with three small
+additions to the kit (`src/motion-kit/rig.js`):
+
+- **A third segment** (`jointedLeg`'s `lenC`, a plan's `knee.lenC`): a root-arm with two bends, solved by FABRIK
+  (`ik.js fabrik`) from a guess curled toward the pole each frame (`Rig.solveChain`: the first joint up and out, the
+  second over the tip, the end started off the target so FABRIK runs), so the bends keep their side frame to frame.
+- **A detail tier floor** (`Rig`'s `tier`, a plan's `tier: 'mid'`): a swarm's members plan every second frame even
+  close by (IK every frame).
+- **A hopper's landing** (`ctx.landHome`): off the air, the feet plant at their homes, not spread over a stride.
+- **The bird's pole** (`poleFor('back')`): the joint halfway down a stilt bends back.
+
+| plan | archetype | how it moves |
+|---|---|---|
+| 2 skitterers | skitter swarm | six two-bone legs (long for the short hip-to-foot span, so the knees ride up level with the dome) in a quick tripod (swings 0.05–0.16 s) at the mid tier; fast underdamped body springs (it twitches); the rush rears it on its back legs with the front pair lifted; in a heap (`Foe.ride`) its legs hang and it rides its level |
+| 5 hopper | bellows toad | its drawn root lags the mind's position and hops: a crouch (0.14 s), a 0.36 s arc to where the mind will be by then, a squashed landing with dust, at least 0.3 s down; it hops once it lags 0.62 m (by a share of its own: two toads never hop together), so a slower toad hops less often; between hops the kit only settles its feet; in the air (and on its back) they tuck; the belly flop's leap is the mind's own (`attack.leap`, `alt`) |
+| 7 stilt | stilt heron | StiltMotor's rules (src/aliens/alien.js) as the kit's table: two legs one at a time with a long slow swing (0.3–0.62 s), the bird's joint two thirds up bending back, the high body on a soft spring (f 1.5, ζ 0.38) and its own pendulum that lags a change of pace, a turn and a blow; the S-neck ten segments on a Catmull-Rom curve blended between key shapes (rest, the spear's S drawn back, the thrust, down to the water), the head along the key's direction; the sweep lifts one leg (`leg.lift`), the stamp turns the body round on the other |
+| 12 tentacled | root knot | five three-segment root-arms as feet, one at a time round the ring (the `wave` gait, swings 0.28–0.6 s); the body carried between them on slow springs; the grip and the lash lift two front arms on their own (`leg.lift` with an arcing `air`); the cap follows you on its own pivot |
+
+Measured (`node scripts/motion-audit/run.mjs toad heron skitter rootknot --pack`, `--pace=0.5`): the toad's feet slide
+0.00 m/m (its hops 1.25/s at full speed, 1.00 at half; two toads out of step), the heron's 0.01 (worst 0.03 m, reach span
+31 %, lift 13 %, one leg at a time, 0.75 → 0.38 steps/s), the skitter's 0.00 (reach 53 %, lift 18 %, the tripod, 5.88 →
+3.13 steps/s), the root knot's 0.02 (worst 0.04 m, reach 29 %, lift 14 %, one arm at a time, 0.90 → 0.65).
+`tests/motion-plans.test.js` holds these (two skins of the heron and the toad); `tests/motion-kit.test.js` the
+three-segment arm, the bird's joint, the mid tier and the hopper's landing.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of

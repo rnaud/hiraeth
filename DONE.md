@@ -1904,3 +1904,17 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] Retired: the dune ray, the sign moth's old body, the winged blot (the Arena's old waves and Ink tide field the
   sky ray). Scored in docs/audits/combat-v1.9.md (4.3–4.7). docs/systems/characters.md no longer speaks of the world
   enemies as live.
+
+## Enemy roster: batch 3 and the kit's phase 5 (2026-10-09, v1.13)
+
+- [x] Batch 3 (src/enemies/plans/), drawn to both its sheets and painted in every skin: the bellows toad (hopper.js:
+  hop by hop on planted feet), the stilt heron (stilt.js: StiltMotor's rules as the kit's `stilt` plan, an S-neck of
+  segments), the skitter swarm (skitterers.js: a quick tripod at the mid tier, a flock of eight), the root knot
+  (tentacled.js: five three-segment root-arms on FABRIK). Their minds (src/foes.js): spores, the choke, the leap and
+  its air cut; the open bill and the topple; the flock's ring, its one-at-a-time darts, the heap and its scatter, the
+  linger; the rooted knot, its ground-running grip, its blur (docs/systems/foes.md, "Batch 3's fields").
+- [x] Retired: the spitting blot, the blot swarm, the root stalker (the Arena's old waves, Ink tide and the centipede's
+  shed field the new kinds). The Desert, Vael and Lorn run wholly on the new roster. Scored in
+  docs/audits/combat-v1.13.md (4.3–4.8, mean 4.54).
+- [x] Fewer draws: a tapering tube is one merged mesh (src/enemies/plans/kit.js): the crab 145 → 65 meshes, the lizard
+  185 → 90, the hound 123 → 48.
