@@ -260,8 +260,22 @@ const BELL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = w
 const SAVE_BELL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.bell': true, 'items.v': 2 }, keepsakes: [] };
 const SAVE_BLOOM ={ flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
 
+const FROM_ROSTER = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the four set in a row and held still (9 October)';
+const FROM_ATTACK = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720: the enemy set striking with its attack locked on the traveller, held still (9 October)';
+
 export const CHANGELOG_MEDIA = {
   '1.5': [
+    { match: 'The Arena’s waves now come round to every foe', shots: [
+      { name: 'arena-waves', only: 'after', caption: 'Wave 144 in the Arena: the Glass Dunes’ pair, a glass crab and the possessed furnace walker, the wave said at the top with its world', from: 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the waves started at the Glass Dunes’ pairs (9 October)' },
+    ], see: 'In the Arena, open the FOES list and choose “Waves from here” beside a world: its four come one by one, then in pairs, then together.' },
+    { match: 'The Arena’s FOES list is easier to find', shots: [
+      { name: 'foe-list', caption: 'The Arena’s FOES list opened: before, a narrow column of the ink and the worlds’ kinds; after, every foe grouped by world, a search, world filters and “Waves from here”', commit: '50d41c3c',
+        view: { level: 'arena', quality: 'medium', hud: true, save: SAVE_ON, wait: 1200, setup: `${HIDE('#inputs, .input-display, #toast')} document.querySelector('#foe-spawner .tab')?.click(); level.quickMenu?.toggle?.(true);` } },
+    ], see: 'In the Arena, press K (or D-pad ↓ on a controller), or click the FOES tab on the left: type in the search, or turn the world filters with LB / RB.' },
+    { match: 'The Arena can call the temples’ guardians', shots: [
+      { name: 'arena-guardian', only: 'after', caption: 'The Elder of Vael called into the Arena’s ring: woken as the traveller stepped in, its cone drawn on the sand before it strikes', from: 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720 (9 October)' },
+    ], see: 'In the Arena, open the FOES list, turn to Guardians and choose one: step into the ring ahead to wake it.' },
+    { match: 'The hundred new enemies can always be seen', see: 'In the Arena, choose “Waves from here” beside the City During the Eclipse: the spirits’ white outlines and the glowing eyes show on the sand; set the hour to night in the dev menu to see them against the dark.' },
     { match: 'A People page in the menu', shots: [
       { name: 'people-cards', only: 'after', caption: 'The menu’s new People page partway through the route: a card for everyone met, world by world, each with the portrait their last conversation took (the desert’s people here; the others not yet talked to since the portraits began show their initial)', from: 'headless Chrome against this branch’s dev server, 1440 × 900, a save at the City-Shaft (9 October)' },
       { name: 'people-page', only: 'after', caption: 'Dov’s page on the Steam Deck’s screen: what you know of him (each part only once heard), where he is now, the token you gave back, and the quests and the ration tin between you; ◀ ▶ to the people either side', from: 'headless Chrome against this branch’s dev server, 1280 × 800 (9 October)' },
@@ -269,6 +283,43 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Open the menu (View, or J) and turn to People with RB / R1: the D-pad moves over the cards, A / × opens one, B / ○ goes back.' },
   ],
   '1.4': [
+    { match: 'Creatures and spirits: 100 reference-based enemies', shots: [
+      { name: 'roster-desert', only: 'after', caption: "The Desert in the Arena: dune skitter, cistern beast, possessed cistern pump, dune wanderer shade", from: FROM_ROSTER },
+      { name: 'roster-arzach', only: 'after', caption: "Vael in the Arena: ridge runner, storm ray, possessed aerie sentinel, feather-cowled shade", from: FROM_ROSTER },
+      { name: 'roster-arzach2', only: 'after', caption: "Vael II: The Sky Stones in the Arena: cliff crab, cloud spitter, possessed monastery bell, cloud monk shade", from: FROM_ROSTER },
+      { name: 'roster-perdide', only: 'after', caption: "Lorn in the Arena: marsh snapper, spore toad, possessed marsh harvester, shell-masked shade", from: FROM_ROSTER },
+      { name: 'roster-perdide2', only: 'after', caption: "Lorn II: The Deep Wood in the Arena: root crawler, fungal spitter, possessed wood cutter, hollow woodsman shade", from: FROM_ROSTER },
+      { name: 'roster-edena', only: 'after', caption: "Viridel in the Arena: seedpod artillery, glass wasp, possessed pruning machine, garden keeper shade", from: FROM_ROSTER },
+      { name: 'roster-incal', only: 'after', caption: "The City-Shaft in the Arena: pipe lizard, pressure toad, possessed inspection tripod, city vagrant shade", from: FROM_ROSTER },
+      { name: 'roster-garage', only: 'after', caption: "The Sealed Hangar in the Arena: oil beetle, scrap ray, possessed welding automaton, hooded mechanic shade", from: FROM_ROSTER },
+      { name: 'roster-buried', only: 'after', caption: "The Buried Machine in the Arena: drill grub, ash lizard, possessed mining tripod, pressure-suited shade", from: FROM_ROSTER },
+      { name: 'roster-spheres', only: 'after', caption: "The Garden of Spheres in the Arena: pearl rolling hunter, prism spitter, possessed ring machine, halo garden shade", from: FROM_ROSTER },
+      { name: 'roster-bazaar', only: 'after', caption: "The Signal Market in the Arena: stall crab, coin lizard, possessed sign automaton, parcel-backed shade", from: FROM_ROSTER },
+      { name: 'roster-mangrove', only: 'after', caption: "The White Mangrove in the Arena: root wader, salt mollusk, possessed surveyor, driftwood shade", from: FROM_ROSTER },
+      { name: 'roster-glassdunes', only: 'after', caption: "The Glass Dunes in the Arena: glass crab, crystal manta, possessed furnace walker, mirrored nomad shade", from: FROM_ROSTER },
+      { name: 'roster-waterfall', only: 'after', caption: "The City Behind the Waterfall in the Arena: drain crawler, pressure-jet toad, possessed turbine guardian, aqueduct keeper shade", from: FROM_ROSTER },
+      { name: 'roster-saltharbour', only: 'after', caption: "The Salt Harbour in the Arena: anchor crab, brine mollusk, possessed dock winch, drowned sailor shade", from: FROM_ROSTER },
+      { name: 'roster-antennas', only: 'after', caption: "The Forest of Antennas in the Arena: copper beetle, signal moth, possessed relay sentinel, static wanderer shade", from: FROM_ROSTER },
+      { name: 'roster-underwater', only: 'after', caption: "The Underwater City in the Arena: coral crawler, porcelain ray, possessed diving bell, drowned diver shade", from: FROM_ROSTER },
+      { name: 'roster-eclipse', only: 'after', caption: "The City During the Eclipse in the Arena: crescent crawler, night lizard, possessed observatory machine, eclipse pilgrim shade", from: FROM_ROSTER },
+      { name: 'roster-fallenring', only: 'after', caption: "The Fallen Ring in the Arena: orbital crab, solar ray, possessed gyroscope drone, orbital worker shade", from: FROM_ROSTER },
+      { name: 'roster-moonfoundry', only: 'after', caption: "The Moon Foundry in the Arena: furnace beetle, ember lizard, possessed crucible automaton, foundry worker shade", from: FROM_ROSTER },
+      { name: 'roster-underside', only: 'after', caption: "The Underside in the Arena: bridge crawler, abyss ray, possessed cable crane, suspended humanoid shade", from: FROM_ROSTER },
+      { name: 'roster-spacecity', only: 'after', caption: "The City Floating in Space in the Arena: magnetic mollusk, space moth, possessed airlock inspector, void wanderer shade", from: FROM_ROSTER },
+      { name: 'roster-overnighttrain', only: 'after', caption: "The Overnight Train in the Arena: luggage beetle, lantern moth, possessed luggage porter, shadow conductor", from: FROM_ROSTER },
+      { name: 'roster-home', only: 'after', caption: "Home in the Arena: seashell crawler, bulb toad, possessed watering automaton, attic wanderer shade", from: FROM_ROSTER },
+      { name: 'roster-atelier', only: 'after', caption: "The Atelier in the Arena: paint beetle, ink lizard, possessed drawing machine, paper mannequin shade", from: FROM_ROSTER },
+      { name: 'attack-lob', only: 'after', caption: 'A spore toad of Lorn lobs a glob: the glob in flight, and the ring where it lands drawn on the sand under the traveller, the same ring that hits', from: FROM_ATTACK },
+      { name: 'attack-beam', only: 'after', caption: 'The possessed aerie sentinel of Vael fires its focused beam: the lane drawn on the ground from it through the traveller is exactly what it hits', from: FROM_ATTACK },
+      { name: 'attack-volley', only: 'after', caption: 'The Garden of Spheres’ prism spitter fires its three-shot barrage: three rings across the line to the traveller, struck one after the other', from: FROM_ATTACK },
+      { name: 'creatures-page', only: 'after', caption: 'Worlds → Creatures & spirits: every world’s four to turn round, watch walking and play both attacks, with links to fight one or a whole world in the Arena', from: 'headless Chrome against this branch’s dev server, enemies.html, 1280 × 720 (9 October)' },
+    ] },
+    { match: 'The quest characters beyond the Desert wear their reference designs', shots: [
+      { name: 'quest-vael', caption: 'Oïa, Tam and Senn in Vael, in the running game: before, the seeded clothes of every world’s people; after, their reference designs, the beaked cowls, the toy bird and the ear-horn', commit: '5b19b845', before: '592f0e7a',
+        view: people([{ id: 'oia' }, { id: 'tam' }, { id: 'senn' }], { level: 'arzach' }) },
+      { name: 'quest-buried', caption: 'Hask, Wen and Dun in the Buried Machine: before, seeded clothes; after, the padded machine suits, the porthole helmet, the abacus and the breather', commit: '5b19b845', before: '592f0e7a',
+        view: people([{ id: 'hask.buried' }, { id: 'wen' }, { id: 'dun' }], { level: 'buried' }) },
+    ] },
     { match: 'A perfect parry now opens a moment for a riposte', shots: [
       { name: 'blade-riposte', caption: 'A blot’s lunge parried with a fresh guard, then the blade button a moment later in the Arena: before, he is only stepping out of the guard (the light swing barely begun); after, the riposte’s overhead chop coming down on the stunned blot, a gold ring round him', commit: 'dc9642b2',
         view: { ...ARENA_BLADE, setup: BLADE_VIEW(`input.KeyZ = true; ${sleepJs(120)} foes.strike(f); ${sleepJs(150)} input.KeyZ = false; input.KeyF = true; ${sleepJs(60)} input.KeyF = false; ${sleepJs(150)}`) } },

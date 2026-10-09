@@ -104,7 +104,7 @@ export class ArenaGuardians {
     const hint = G.kind === 'robot' ? 'It comes for you. When it opens, shoot its core.' : 'It is afraid of you. When it pants, open, give it water: a fluid shot.';
     const phases = G.def.phases.map((p, i) => (p.weary ? p : { ...p, hint: i ? `${G.name} again. ${hint}` : hint, openHint: undefined }));
     const openHint = G.kind === 'robot' ? 'It opens: shoot it now.' : 'It pants, open: water now.';
-    const guardian = new Guardian(rt, { def: { ...G.def, phases, openHint, onHit: sparHit, onStrike: G.id === 'desert' ? (g, a) => { if (a.id === 'burrow') { g.model.pos.x = g.attackAt.x; g.model.pos.z = g.attackAt.z; } } : undefined }, model, arena: { center, r: RING.r, y: center.y } });
+    const guardian = new Guardian(rt, { def: { ...G.def, phases, openHint, wake: `${G.name} stirs in the ring, unfolds, and sees you.`, onHit: sparHit, onStrike: G.id === 'desert' ? (g, a) => { if (a.id === 'burrow') { g.model.pos.x = g.attackAt.x; g.model.pos.z = g.attackAt.z; } } : undefined }, model, arena: { center, r: RING.r, y: center.y } });
     root.add(model.group);
     this.current = { id, G, guardian, root, ring, mat };
     this.say(`${G.name}, from ${G.world}, waits in the ring ahead. Step in to wake it.`);
