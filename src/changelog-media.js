@@ -373,6 +373,10 @@ export const CHANGELOG_MEDIA = {
     ] },
   ],
   '1.10': [
+    // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
+    { match: 'On a controller, D-pad ↓ drinks a healing potion', see: 'With a controller, take a hit so a heart is missing and press D-pad ↓: the traveller drinks, the flask by the hearts tips and the hearts come back. In the Arena (?level=arena) D-pad ↓ opens the FOES list instead.' },
+    { match: 'Calling your mount or hailing a taxi is a click of the left stick', see: 'In the Desert with the hoverbike found, stand still and click the left stick: the bike comes. Push the stick and click it: you run, and the bike stays where it is.' },
+    { match: 'The gun’s modes moved onto D-pad ↑ with the gadgets', see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
     { match: 'Five more foes of the new roster', shots: [
       { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
     ], see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },

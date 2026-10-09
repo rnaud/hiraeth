@@ -89,7 +89,7 @@ The first things in the game that fight back, and the tool's answer to them.
   shorter cooldown) has none (`evadeGranted` false). At the usual pace (the 0.65 s cooldown) each evade has its
   window, and back to back they cover a third of the time. `tests/evade-iframes.test.js` checks the window,
   every kind of blow in and out of it, the spam gaps, Gentle and the overlay.
-  Push is a gun mode; calling a mount is D-pad ↓ (v0.93: docs/systems/controls.md, "The layout").
+  Push is a gun mode; calling a mount is L3 clicked standing still (v1.10; D-pad ↓ from v0.93: docs/systems/controls.md, "The layout").
 - **The flinch:** a strike that lands without knocking you down plays the pack's impact on the upper body
   (`Player.flinch`, `FLINCH`).
 - **What it hits:** during the active cut, coarse cone/range and wall checks find candidates, then
@@ -705,7 +705,7 @@ lending puts the Arena's back.
 
 **The FOES list** (`src/foe-spawner.js` `FoeList`, v1.5): the level's quick menu (`level.quickMenu`, as the
 Arcade's board), so main.js routes the pad to it. Opened from the FOES ▸ tab on the left edge (under it, how: K on
-the keyboard, D-pad ↓ on a pad, the mount's call, free here), K or D-pad ↓ again; B / ○ or Esc closes. Grouped
+the keyboard, D-pad ↓ on a pad, the potion's button, which the menu takes in this level), K or D-pad ↓ again; B / ○ or Esc closes. Grouped
 (`foeSections`): the roster (each archetype in its own skin, an old kind standing in for one not built, then the old
 kinds no archetype uses), then a section per world with its archetypes in its skin (each with its role and moves,
 and a "Waves from here" that runs that world's waves: `Foes.startWaves(world)`), then the temple guardians. A search (a name, a world, a kind, a move: every word must match) and a world filter

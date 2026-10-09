@@ -5,7 +5,7 @@ import { sheetSrc } from './reference-sheets.js';
 // canvas with the view's own crop: no image files of its own), its number and its title. Choose one
 // and the level fades straight to it (level.goTo), or loads the page at it if it is another world's.
 //
-//   open / close   Tab (keyboard) · D-pad ↓ (pad, free in this level: there is no mount to call)
+//   open / close   Tab (keyboard) · D-pad ↓ (pad: the potion's button, the menu takes it in this level)
 //                  · the small "views" button at the top left (touch, mouse) · B / ○ or Esc closes
 //   move           mouse · arrows and Enter · d-pad or left stick and A / × (main.js routes the pad
 //                  here while it is open: level.quickMenu)

@@ -92,7 +92,7 @@ test('the quick coil and the fourth chamber: a longer bar and a quicker refill (
 });
 
 test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot only while aiming', () => {
-  const none = { aim: false, shoot: false, fire: false, quick: false, blade: false, guard: false, evade: false, mode: false, modeBack: false };
+  const none = { aim: false, shoot: false, fire: false, quick: false, blade: false, guard: false, evade: false, mode: false };
   assert.deepEqual(toolInput({ KeyR: true, KeyG: true }), { ...none, aim: true, shoot: true, fire: true });
   assert.deepEqual(toolInput({ MouseRight: true, MouseLeft: true, MouseMiddle: true }), { ...none, aim: true, shoot: true, fire: true }, 'the middle button does nothing now (the push is a gun mode)');
   assert.deepEqual(toolInput({ PadAim: true, PadFire: true }), { ...none, aim: true, shoot: true, fire: true });
@@ -104,8 +104,7 @@ test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot o
   for (const k of ['KeyF', 'PadBlade']) assert.deepEqual(toolInput({ [k]: true }), { ...none, blade: true }, `${k}: the fluid blade`);
   for (const k of ['ControlLeft', 'KeyZ', 'PadGuard', 'TouchGuard']) assert.deepEqual(toolInput({ [k]: true }), { ...none, guard: true }, `${k}: its guard`);
   assert.deepEqual(toolInput({ TouchBlade: true }), { ...none, blade: true }, 'touch attack is separate from guard');
-  assert.deepEqual(toolInput({ PadModeNext: true }), { ...none, mode: true }, 'D-pad right');
-  assert.deepEqual(toolInput({ PadModePrev: true }), { ...none, modeBack: true }, 'D-pad left');
+  assert.deepEqual(toolInput({ PadModeNext: true, PadModePrev: true }), none, 'D-pad left / right: free (the pad\'s gun mode is the gadget chooser\'s: src/gadgets/index.js)');
 });
 
 test('each ability spends a charge from the one reserve; empty, nothing fires until the refill', () => {

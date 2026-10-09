@@ -6,7 +6,7 @@ import { slotStorage } from './save-slots.js';
 import { UpdatePanel } from './update-panel.js';
 import { devMode } from './dev-gate.js';
 import { t, setLanguage, onLanguage, LANGUAGES } from './i18n.js';
-import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts, padFor, padConflicts, captureKey, capturePad, RESERVED_KEYS } from './remap.js';
+import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts, padFor, padConflicts, captureKey, capturePad, RESERVED_KEYS, migratePad } from './remap.js';
 import { setMotion } from './feel.js';
 import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
@@ -108,6 +108,7 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   if (!(out.hudV >= 1)) { delete out.showFps; out.hudV = 1; }
   // (High was only ever the default there: a player who picked a lighter preset keeps it)
   if (typeof out.enemies === 'boolean') out.enemies = out.enemies ? 'normal' : 'off';   // (v0.87 saved it as on / off)
+  if (out.pad && typeof out.pad === 'object') out.pad = migratePad(out.pad);   // (the pad's verbs before PAD_SCHEME 3: 'call' on D-pad ↓ is the potion now)
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
   return out;
 }
@@ -132,7 +133,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
 const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
 
 /** The verbs on the Controls page's "your buttons" and "your keys", in the order shown. */
-export const REBIND_PAD = ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'call', 'modePrev', 'modeNext'];
+export const REBIND_PAD = ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion'];
 export const REBIND_KEYS = ['forward', 'back', 'left', 'right', 'run', 'jump', 'interact', 'blade', 'guard', 'evade', 'lock', 'aim', 'fire', 'mode', 'scout', 'gadget', 'gadgetNext', 'whistle', 'potion', 'journal', 'menu', 'controls', 'photo', 'mute'];
 
 /**

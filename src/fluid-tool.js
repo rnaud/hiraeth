@@ -40,7 +40,7 @@ import { MAGIC, MAGIC_COST } from './resources.js';
 //            of flight); a shot needs a whole unit left. After a burn the bar
 //            waits until you land, then refills as usual (no endless flight).
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
-//   stun / fire / bloom   gun modes (X, the pad's D-pad left / right, the touch ◐ button): the glob
+//   stun / fire / bloom   gun modes (X, the pad's D-pad ↑ while aiming or the gadget wheel's inner ring, the touch ◐ button): the glob
 //            stills (onHit 'stun'), burns ('fire') or grows ('bloom') instead of splashing; all
 //            modes share the bar (targets.js: who accepts which mode)
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
@@ -104,8 +104,7 @@ export function toolInput(c = {}) {
     blade: !!(c.KeyF || c.PadBlade || c.TouchBlade || (c.MouseLeft && !t.aim)),
     guard: !!(c.ControlLeft || c.ControlRight || c.KeyZ || c.PadGuard || c.TouchGuard),   // separate held guard: Ctrl or Z, LB / L1, touch shield
     evade: !!(c.AltLeft || c.AltRight || c.PadEvade || c.TouchEvade),   // Alt, B / ○, touch ↶
-    mode: !!(c.KeyX || c.PadModeNext),     // the next owned gun mode
-    modeBack: !!c.PadModePrev,             // the previous one (D-pad left)
+    mode: !!c.KeyX,     // the next owned gun mode (the pad's: D-pad ↑ while aiming, or the wheel's inner ring: src/gadgets/index.js)
   };
 }
 
@@ -660,7 +659,7 @@ export class FluidTool {
     this.reserve = new Reserve();
     this.k = 0; this.camK = 0; this.cooldown = 0; this.quick = 0; this.quickShoot = false;
     this.pending = null; this.time = 0; this._enabled = true;
-    this.held = { fire: false, quick: false, push: false, blade: false, mode: false, modeBack: false };
+    this.held = { fire: false, quick: false, push: false, blade: false, mode: false };
     this.mode = 'shoot'; this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
     this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
@@ -882,12 +881,12 @@ export class FluidTool {
     const quickPress = input.quick && !this.held.quick;
     // (the push is a gun mode: fired as a shot, it throws its cone instead of a glob)
     const firePress = (input.shoot && !this.held.fire) || quickPress, pushPress = firePress && this.mode === 'push', shootPress = firePress && !pushPress;
-    const modePress = input.mode && !this.held.mode, modeBackPress = input.modeBack && !this.held.modeBack;
+    const modePress = input.mode && !this.held.mode;
     const bladePress = input.blade && !this.held.blade;
     this.held.blade = input.blade;
-    this.held.fire = input.fire; this.held.quick = input.quick; this.held.mode = input.mode; this.held.modeBack = input.modeBack;
-    // X / D-pad right (left: back) / the touch button: the next owned gun mode (also while not aiming, and riding)
-    if (!paused && this._enabled && this.owned && (modePress || modeBackPress)) this.cycleMode(modeBackPress ? -1 : 1);
+    this.held.fire = input.fire; this.held.quick = input.quick; this.held.mode = input.mode;
+    // X / the touch button: the next owned gun mode (also while not aiming, and riding; the pad's: src/gadgets/index.js)
+    if (!paused && this._enabled && this.owned && modePress) this.cycleMode(1);
     if (!this.modes.includes(this.mode)) this.mode = 'shoot';
     this.modeFlash = Math.max(0, this.modeFlash - dt / 1.6);
     if (ok && (shootPress || pushPress)) {

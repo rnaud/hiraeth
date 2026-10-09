@@ -4,7 +4,7 @@
 // checks that no button does two things in one context.
 //
 // Buttons by position, in Xbox / PlayStation form (native-pad.js prints them as the pad does: a Retroid's
-// bottom button reads "B"). A chord is written 'View + D-pad ↓' (View held, then the other).
+// bottom button reads "B"). A chord is written 'View + D-pad ↑' (View held, then the other).
 //
 // These are the defaults. A player can move the verbs to other buttons and keys (the Controls page, saved with
 // the settings: src/remap.js); the controller reads through that, and the prompts are renamed as they show
@@ -20,17 +20,23 @@ export const BUTTON_NAME = {
 /**
  * The verbs a player can move to another button, and their buttons by default (the foot rows of BINDINGS below;
  * riding, the same buttons follow them). View and Menu stay where they are, and so do the menus' and the
- * conversations' buttons: the way back is never lost.
+ * conversations' buttons: the way back is never lost. Two jobs ride on another verb's button and follow it:
+ * calling the mount is run's button clicked standing still, and the gun mode is pick's button while aiming
+ * (or the wheel's inner ring).
  */
 export const PAD_VERBS = {
   jump: 'A', evade: 'B', interact: 'X', gadget: 'Y', blade: 'RB', guard: 'LB', aim: 'LT', fire: 'RT',
-  run: 'L3', lock: 'R3', pick: '↑', call: '↓', modePrev: '←', modeNext: '→',
+  run: 'L3', lock: 'R3', pick: '↑', potion: '↓',
 };
+
+/** What the prompts say for "standing still" and "while aiming" after a button (call: run's button; mode: pick's). */
+export const STILL = ' (standing still)', AIMING = ' while aiming';
 
 /** The button names the prompts use for each verb (Xbox / PlayStation form), from PAD_VERBS. */
 export const PAD = {
-  ...Object.fromEntries(Object.entries(PAD_VERBS).filter(([v]) => !v.startsWith('mode')).map(([v, b]) => [v, BUTTON_NAME[b]])),
-  mode: 'D-pad ← / →', journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑', potion: 'View + D-pad ↓',
+  ...Object.fromEntries(Object.entries(PAD_VERBS).map(([v, b]) => [v, BUTTON_NAME[b]])),
+  call: BUTTON_NAME[PAD_VERBS.run] + STILL, mode: BUTTON_NAME[PAD_VERBS.pick] + AIMING,
+  journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
 };
 
 /**
@@ -59,16 +65,16 @@ export const BINDINGS = {
     ['LB', 'guard (held; at the blow: parry) · no foe near: with the right stick, zoom'],
     ['LT', 'aim the fluid tool'],
     ['RT', 'shoot while aiming · else the jets\' throttle'],
-    ['L3', 'run, until the stick is let go'],
+    ['L3', 'run, until the stick is let go · standing still: call the mount, hail a taxi'],
     ['R3', 'lock on, the next, let go · no foe in reach: the scout finds the objective'],
-    ['↑', 'gadget: tap the next · hold the wheel'],
-    ['↓', 'call the mount · hail a taxi'],
-    ['←', 'the gun mode before'],
-    ['→', 'the next gun mode'],
+    ['↑', 'gadget: tap the next (aiming: the next gun mode) · hold the wheel (right stick: the gun modes)'],
+    ['↓', 'drink a healing potion'],
+    ['←', 'free'],
+    ['→', 'free'],
     ['View', 'the sketchbook (items, quests, worlds)'],
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
-    ['View + ↓', 'drink a healing potion'],
+    ['View + ↓', 'free'],
     ['View + ←', 'free · the Arena: the input display (F6)'],
     ['View + →', 'free'],
     ['L3 + R3', 'debug: the hitbox overlay (F4)'],
@@ -116,10 +122,10 @@ export const BINDINGS = {
   ],
 };
 
-/** The chords nothing uses yet: the controller sends `padchord` events for them (main.js). (View + ↓ drinks a potion: 'viewDown'.) */
-export const FREE = ['View + ←', 'View + →'];
+/** The buttons and chords nothing uses yet: the controller sends `padchord` events for the chords (main.js). */
+export const FREE = ['←', '→', 'View + ↓', 'View + ←', 'View + →'];
 
 /** The layout's version, kept on the device so a player from before is told once what moved (main.js). */
-export const PAD_SCHEME = 2;
+export const PAD_SCHEME = 3;
 export const PAD_SCHEME_KEY = 'moebius.padScheme';
-export const PAD_SCHEME_NOTE = 'The controller layout changed: X / □ uses and talks, B / ○ evades, D-pad ↓ calls your mount, R3 finds your objective, and Y / △ with no gadget in hand sounds the whistle. Menu, then Controls, lists them all.';
+export const PAD_SCHEME_NOTE = 'The controller layout changed: D-pad ↓ drinks a potion, L3 clicked standing still calls your mount, and the gun modes moved to D-pad ↑ (tap it while aiming, or hold it for the wheel), so D-pad ← and → are free. Menu, then Controls, lists them all.';

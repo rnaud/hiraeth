@@ -33,6 +33,10 @@ export const CHANGELOG = [
     'The antler hound stands taller, on long lean legs with a deep chest, a narrow waist and a long muzzle, under a much bigger branching crown, and smoke streams off its back like a mane. In the Garden of Spheres it is ink-black, its black antlers glinting gold with a thin gold halo caught in them; in the White Mangrove its antlers are bleached driftwood, it drips like wet ink and its smoke is sage and lilac. Lying in wait, its head and crown rise out of a ragged pool of shadow.',
     'The lamp tripod stands on three long ivory legs, nearly upright, under a taller riveted boiler with a slate-blue band, two smokestacks, a bigger porthole and a searchlight as wide as the boiler with a grid over its lens; as it aims at you, a harpoon gun slides out under the boiler. Underwater it is a coral-copper diving bell with a turquoise band, portholes all round, a wind-up key and bubbles.',
     'The ink blot is a glossy drop now, round below and drawn up into a splashing point, with big cream eyes and dark pupils, violet light on its ink and a ragged rim of the ground’s colour where it pools; winding up a lunge, it sinks into a stack of rings. In the Sealed Hangar it is gunmetal, its rim rust and oily teal, with metal shavings stuck in it.',
+    // the controller's quick buttons, rearranged
+    'On a controller, D-pad ↓ drinks a healing potion: one press, where you held View before. In the Arena, the Arcade and the References it still opens their lists.',
+    'Calling your mount or hailing a taxi is a click of the left stick (L3) while you stand still. Clicked while you move it makes you run, as before, and a run never whistles.',
+    'The gun’s modes moved onto D-pad ↑ with the gadgets: tap it while aiming (LT / L2) for the next mode, or hold it for the wheel, where the modes sit on an inner ring. The left stick picks a gadget, the right stick a mode, both in one hold. D-pad ← and → are free now, and a returning player is told once what moved.',
   ] },
   { v: '1.9', date: '2026-10-09', items: [
     // the temples, reworked from the temple design audit: the Founders' Belfry

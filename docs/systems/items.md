@@ -60,8 +60,8 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
   the containers are the save's (`resources.maxHearts`, main.js keeps the player to it). They never come back
   by themselves. What takes them: the damage table in docs/systems/foes.md.
 - **The healing potion** (`POTION`: two hearts, a 0.9 s drink, the hearts at 0.45 s): **C** on the keyboard
-  (`KEYS.potion`, movable on the Controls page), **View + D-pad ↓** on a controller (the free chord;
-  `PAD.potion`), the **flask beside the hearts** on a touch screen. `player.drinkPotion()` starts the drink
+  (`KEYS.potion`, movable on the Controls page), **D-pad ↓** on a controller (a verb, movable too:
+  `PAD_VERBS.potion`; v1.5 to v1.9 the chord View + D-pad ↓; in a level with its own quick menu ↓ opens that), the **flask beside the hearts** on a touch screen. `player.drinkPotion()` starts the drink
   (not at full hearts, knocked down, riding, swimming or drinking already: `cantDrink()` says which; full,
   a notice says so); main.js takes one from the stock (`resources.takePotion()`), plays the cork and the two
   swallows (`sound.potion`), tilts the HUD's flask and raises a warm glow round the traveller as the hearts

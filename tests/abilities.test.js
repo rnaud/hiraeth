@@ -194,11 +194,13 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   assert.equal(tool.mode, 'stun');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.stun.tones[0], 'cold blue in the tank');
   assert.equal('#' + tool.tankU.uFluidBase.value.getHexString(), MODES.stun.tones[0], 'the flask\'s fluid itself turns stilling blue');
-  step(1, { PadModeNext: true }); step(1);
-  assert.equal(tool.mode, 'fire', 'D-pad right');
+  tool.cycleMode(1); step(1);   // (the pad's: D-pad ↑ while aiming, or the wheel: src/gadgets/index.js)
+  assert.equal(tool.mode, 'fire', 'the next');
   assert.equal('#' + tool.tankU.uFluidTones.value[0].getHexString(), MODES.fire.tones[0], 'ember orange');
-  step(1, { PadModePrev: true }); step(1);
-  assert.equal(tool.mode, 'stun', 'D-pad left goes back');
+  tool.cycleMode(-1); step(1);
+  assert.equal(tool.mode, 'stun', 'the one before');
+  step(1, { PadModeNext: true, PadModePrev: true }); step(1);
+  assert.equal(tool.mode, 'stun', 'D-pad left / right are free: no gun mode');
   // the lava nearly stops in stilling mode (the pattern changes too)
   step(90); const t0 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t0 < 0.2, 'stilling: nearly still');
   tool.setMode('fire'); step(60); const t1 = tool.fluidTime; step(60); assert.ok(tool.fluidTime - t1 > 2, 'ember: boiling');

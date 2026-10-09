@@ -75,11 +75,11 @@ test('a verb moved to another button: the controller reads it there, the old but
 });
 
 test('the D-pad moved under View is still View\'s layer (photo), and a trigger moved to a face keeps its analog throttle', () => {
-  const t = pad({ pad: { pick: '→', modeNext: '↑' } });
+  const t = pad({ pad: { pick: '→', potion: '↑' } });
   t.set('View', true); t.frame();
   t.set('↑', true);
   const h = t.frame();
-  assert.ok(t.actions.includes('photo') && !h.PadModeNext, 'View + ↑: photo, not the gun mode');
+  assert.ok(t.actions.includes('photo') && !t.actions.includes('potion'), 'View + ↑: photo, not the potion moved there');
   const f = pad({ pad: { fire: 'A', jump: 'RT' } });
   f.p.buttons[0] = { pressed: true, value: 1 };
   const hf = f.frame();
@@ -92,9 +92,11 @@ test('run and guard: held, or toggled', () => {
   hold.set('L3', true); assert.ok(hold.frame().ShiftLeft);
   hold.set('L3', false); assert.ok(!hold.frame().ShiftLeft, 'hold: let go, walk');
   const tog = pad({ run: 'toggle' });
+  tog.p.axes = [0, -1, 0, 0];
   tog.set('L3', true); assert.ok(tog.frame().ShiftLeft);
-  tog.set('L3', false); assert.ok(tog.frame().ShiftLeft, 'toggle: still running, the stick at rest too');
-  tog.set('L3', true); assert.ok(!tog.frame().ShiftLeft, 'pressed again: walk');
+  tog.set('L3', false); tog.p.axes = [0, 0, 0, 0]; assert.ok(tog.frame().ShiftLeft, 'toggle: still running, the stick at rest too');
+  tog.p.axes = [0, -1, 0, 0];
+  tog.set('L3', true); assert.ok(!tog.frame().ShiftLeft, 'pressed again (moving): walk');
   const auto = pad({});
   auto.p.axes = [0, -1, 0, 0];
   auto.set('L3', true); auto.frame(); auto.set('L3', false);
@@ -141,6 +143,18 @@ test('keys moved: routes, swallowed defaults, conflicts, and what the keys are c
   assert.deepEqual(normalisePrefs({ keys: { jump: 'Escape', nope: 'KeyK', run: 'ShiftLeft' } }).keys, {}, 'Esc is the menus\', unknown verbs and unchanged keys are dropped');
 });
 
+test('a pad layout from before PAD_SCHEME 3: the old call (D-pad ↓) becomes the potion, the gun modes\' verbs go', async () => {
+  const { migratePad } = remap;
+  assert.deepEqual(migratePad({ call: 'LB', guard: '↓' }), { potion: 'LB', guard: '↓' }, 'a swap stays a swap');
+  assert.deepEqual(normalisePrefs({ pad: { call: 'LB', guard: '↓' } }).pad, { potion: 'LB', guard: '↓' });
+  assert.equal(padConflicts(normalisePrefs({ pad: { call: 'LB', guard: '↓' } }).pad).size, 0, 'nothing shares a button after it');
+  assert.deepEqual(normalisePrefs({ pad: { modePrev: 'LB', modeNext: 'RB', jump: 'B' } }).pad, { jump: 'B' }, 'the gun modes\' overrides are dropped');
+  assert.deepEqual(migratePad({ call: 'X', potion: 'Y' }), { potion: 'Y' }, 'a potion already moved keeps its button');
+  assert.deepEqual(normalisePrefs({ pad: { call: '↓' } }).pad, {}, 'call left on ↓: the potion\'s default, nothing to keep');
+  const { migrateSettings } = await import('../src/ui.js');
+  assert.deepEqual(migrateSettings({ hudV: 1, pad: { call: 'LB', guard: '↓', modeNext: 'RB' } }).pad, { potion: 'LB', guard: '↓' }, 'the saved settings too');
+});
+
 test('the key listener sends keys on as the verb\'s default key, toggles run, and hands one key to "press a key"', () => {
   const win = new EventTarget();
   win.KeyboardEvent = class extends Event { constructor(type, o = {}) { super(type, o); Object.assign(this, { code: o.code, key: o.key, repeat: !!o.repeat }); } };
@@ -172,8 +186,10 @@ test('the prompts name the buttons and keys now bound, the menus\' own ones stay
   assert.equal(promptText('A / × jump', { layout: 'standard', faces: 'xbox' }), 'B jump');
   assert.equal(promptText('A / × confirm', { layout: 'standard', faces: 'xbox', remap: false }), 'A confirm', '.pad-raw: not renamed (one half all the same)');
   assert.equal(promptText('A / × jump', { layout: 'android', faces: 'nintendo' }), 'A jump', 'then the handheld\'s letters (B / ○ is printed A on a Retroid)');
-  setControlPrefs({ pad: { modePrev: 'LB', guard: '←' } });
-  assert.equal(padRename('D-pad ← / → gun mode'), 'LB / L1 / D-pad → gun mode');
+  setControlPrefs({ pad: { potion: 'LB', guard: '↓' } });
+  assert.equal(padRename('D-pad ↓ potion · LB / L1 guard'), 'LB / L1 potion · D-pad ↓ guard', 'the potion and the guard swapped');
+  setControlPrefs({ pad: { run: 'RB', blade: 'L3' } });
+  assert.equal(padRename('L3 (standing still) call'), 'RB / R1 (standing still) call', 'the mount follows run');
   setControlPrefs({ keys: { interact: 'KeyF', blade: 'KeyE' } });
   assert.equal(keyRename().get('E'), 'F');
   assert.equal(promptText('E', { layout: 'standard', faces: 'xbox', key: true }), 'F', 'a key badge');

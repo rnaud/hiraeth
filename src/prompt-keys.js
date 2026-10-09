@@ -7,7 +7,7 @@
 // handheld's own letter ("X") and swaps A and B when asked.
 
 import { backKey } from './native-pad.js';
-import { PAD } from './bindings.js';
+import { STILL, AIMING } from './bindings.js';
 import { verbKey as remapKey, verbButton, controlPrefs } from './remap.js';
 import { t } from './i18n.js';
 
@@ -63,10 +63,10 @@ const VERB_KEYS = {
     call: () => remapKey('interact'), gadget: () => remapKey('gadget'), run: () => remapKey('run'), scout: () => remapKey('scout'),
     whistle: () => remapKey('whistle'), thrust: () => `${remapKey('jump')} held in the air`, potion: () => remapKey('potion') },
   pad: { move: 'the left stick', look: 'the right stick', jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
-    mode: () => { const a = verbButton('modePrev'), b = verbButton('modeNext'); return a === 'D-pad ←' && b === 'D-pad →' ? PAD.mode : `${a} / ${b}`; },
+    mode: () => verbButton('pick') + AIMING,   // (the gun mode: pick's button while aiming, or the wheel's inner ring)
     blade: () => verbButton('blade'), guard: () => verbButton('guard'), evade: () => verbButton('evade'), lock: () => verbButton('lock'),
-    call: () => verbButton('call'), gadget: () => verbButton('gadget'), run: () => verbButton('run'), scout: () => verbButton('lock'),
-    whistle: () => `${verbButton('gadget')} with no gadget in hand`, thrust: () => verbButton('fire'), potion: PAD.potion },
+    call: () => verbButton('run') + STILL, gadget: () => verbButton('gadget'), run: () => verbButton('run'), scout: () => verbButton('lock'),   // (call: run's button clicked standing still)
+    whistle: () => `${verbButton('gadget')} with no gadget in hand`, thrust: () => verbButton('fire'), potion: () => verbButton('potion') },
   touch: { move: 'the stick on the left', look: 'a drag on the right', jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',
     blade: '⚔', guard: '◇', evade: '↶', lock: '◉', call: 'E', gadget: '◆', run: 'run', scout: 'ping',
     whistle: '◆ with no gadget in hand', thrust: '⤒ held in the air', potion: 'the flask by your hearts' },

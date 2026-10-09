@@ -76,7 +76,7 @@ export function* buildArena(scene) {
       },
     },
     atmo: () => ({ tint: [1, 1, 1], fog: 1.0, name: 'The Arena' }),   // (as the desert's golden dunes)
-    quickMenu: foeList,   // (main.js: one of its menus; D-pad ↓ opens it, the mount's call: there is none here; main.js attaches the foes)
+    quickMenu: foeList,   // (main.js: one of its menus; D-pad ↓ opens it, the potion's button: the menu takes it here; main.js attaches the foes)
     dynamic: () => foeList.solids(),   // (a guardian called into its ring is solid: src/arena-guardians.js)
     update(dt, t) { foeList.update(dt, t); },
   };

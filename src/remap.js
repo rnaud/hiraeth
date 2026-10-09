@@ -17,7 +17,7 @@
 import { KEYS, PAD_VERBS, PAD_BUTTONS, BUTTON_NAME } from './bindings.js';
 import { t, language } from './i18n.js';
 
-export const RUN_MODES = ['auto', 'hold', 'toggle'];   // auto: the pad's L3 runs until the stick is let go (the keyboard holds)
+export const RUN_MODES = ['auto', 'hold', 'toggle'];   // auto: the pad's L3 runs until the stick is let go (the keyboard holds); clicked standing still it calls the mount, whatever the mode
 export const GUARD_MODES = ['hold', 'toggle'];
 /** Keys a verb can't be moved to: the menus' and the scenes' own (Esc backs out, Enter confirms), the F keys, the dev menu's. */
 export const RESERVED_KEYS = /^(Escape|Enter|NumpadEnter|F\d+|Backquote|Meta\w*|OSLeft|OSRight|ContextMenu)$/;
@@ -29,7 +29,21 @@ export const IDENTITY = Object.freeze(PAD_BUTTONS.map((_, i) => i));
 
 const clean = (o, ok) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([v, c]) => ok(v, c)));
 const cleanKeys = (keys) => clean(keys, (v, c) => KEYS[v] && typeof c === 'string' && c !== KEYS[v] && !RESERVED_KEYS.test(c));
-const cleanPad = (pad) => clean(pad, (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.includes(b) && b !== PAD_VERBS[v]);
+const cleanPad = (pad) => clean(migratePad(pad), (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.includes(b) && b !== PAD_VERBS[v]);
+
+/**
+ * A pad layout saved before PAD_SCHEME 3, brought up to date. The verb on D-pad ↓ was 'call' (the mount); it is
+ * the potion now (the mount is run's button clicked standing still), so a moved 'call' becomes a moved 'potion':
+ * a swap stays a swap (call ↔ LB, guard on ↓: the potion on LB, guard on ↓, nothing shared). The gun modes'
+ * verbs on ← / → are gone (pick's button while aiming, or the wheel): their buttons are free.
+ */
+export function migratePad(pad) {
+  if (!pad || typeof pad !== 'object') return pad;
+  if (!('call' in pad) && !('modePrev' in pad) && !('modeNext' in pad)) return pad;
+  const { call, modePrev, modeNext, ...out } = pad;
+  if (call !== undefined && out.potion === undefined) out.potion = call;
+  return out;
+}
 
 /** The prefs from a settings object (or anything with keys / pad / run / guard), cleaned: only real changes stay. */
 export function normalisePrefs(p = {}) {
@@ -206,19 +220,13 @@ export function padConflicts(pad = prefs.pad) {
 /** The button's name now for a verb ('B / ○'). */
 export const verbButton = (verb, pad = prefs.pad) => BUTTON_NAME[padFor(verb, pad)];
 
-const NAME_RE = new RegExp(`D-pad ← / →|${Object.keys(PAD_VERBS).map((v) => BUTTON_NAME[PAD_VERBS[v]]).sort((a, b) => b.length - a.length).map((s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')).join('|')}`, 'g');
+const NAME_RE = new RegExp(Object.keys(PAD_VERBS).map((v) => BUTTON_NAME[PAD_VERBS[v]]).sort((a, b) => b.length - a.length).map((s) => s.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')).join('|'), 'g');
 const VERB_OF = Object.fromEntries(Object.entries(PAD_VERBS).map(([v, b]) => [BUTTON_NAME[b], v]));
 
 /** A prompt written with the default buttons ("A / × jump"), in the buttons now bound (one pass: swaps stay swaps). */
 export function padRename(text, pad = prefs.pad) {
   if (!text || !Object.keys(pad).length) return text;
-  return text.replace(NAME_RE, (name) => {
-    if (name === 'D-pad ← / →') {
-      const a = padFor('modePrev', pad), b = padFor('modeNext', pad);
-      return a === '←' && b === '→' ? name : `${BUTTON_NAME[a]} / ${BUTTON_NAME[b]}`;
-    }
-    return BUTTON_NAME[padFor(VERB_OF[name], pad)];
-  });
+  return text.replace(NAME_RE, (name) => BUTTON_NAME[padFor(VERB_OF[name], pad)]);
 }
 /** Any change to rename on the page (the pad's buttons, or keys by the player or by the keyboard's layout). */
 export const hasRenames = () => Object.keys(prefs.pad).length > 0 || keyRename().size > 0;

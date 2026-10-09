@@ -98,10 +98,11 @@ test('the pad: Y / △ is the gadget button, D-pad up chooses; the keyboard T an
   const h = c.update(DT);
   assert.equal(h.PadGadget, false); assert.equal(h.PadGadgetPick, true, 'D-pad up held');
   assert.deepEqual(actions, [], 'Y / △ and D-pad ↑ are the gadgets\' only: no ping, no bell (src/bindings.js)');
-  assert.deepEqual(gadgetInput({ KeyT: true }), { use: true, pick: false, back: false });
+  assert.deepEqual(gadgetInput({ KeyT: true }), { use: true, pick: false, back: false, pad: false, aim: false });
   assert.equal(gadgetInput({ MouseMiddle: true }).use, true);
   assert.equal(gadgetInput({ TouchGadget: true }).use, true);
-  assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { use: false, pick: true, back: true });
+  assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { use: false, pick: true, back: true, pad: false, aim: false });
+  assert.deepEqual(gadgetInput({ PadGadgetPick: true, PadAim: true }), { use: false, pick: true, back: false, pad: true, aim: true }, 'the pad\'s choosing, aiming: the gun modes');
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /ring: \(\) => itemFx\.ring\(\)/, 'with nothing in hand the use button sounds the whistle (V)');
   assert.ok(main.indexOf('gadgets.control(') < main.indexOf('player.update(dt, busy() ? noInput : ctl'), 'the reel acts before the traveller moves');
@@ -110,13 +111,13 @@ test('the pad: Y / △ is the gadget button, D-pad up chooses; the keyboard T an
 
 // ------------------------------------------------------------------ the runtime
 
-function runtime({ owned = ['hook', 'bomb'], defs = null } = {}) {
+function runtime({ owned = ['hook', 'bomb'], defs = null, tool = null } = {}) {
   const game = new GameState(null);
   const listeners = new Set();
   const its = { has: (id) => !!game.flag(`item.${id}`), grant(id) { game.set(`item.${id}`, true); for (const f of listeners) f(id, true); }, on(f) { listeners.add(f); return () => listeners.delete(f); } };
   const log = [];
   const spy = (id) => ({ create: () => ({ press: () => log.push(`${id} press`), hold: () => log.push(`${id} hold`), release: () => log.push(`${id} release`), cancel: () => log.push(`${id} cancel`), equip: () => log.push(`${id} equip`), unequip: () => log.push(`${id} unequip`) }), id, name: id, text: '', use: '', model: () => new THREE.Group() });
-  const G = new Gadgets({ defs: defs ?? [spy('hook'), spy('bomb')], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its });
+  const G = new Gadgets({ defs: defs ?? [spy('hook'), spy('bomb')], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its, tool });
   for (const id of owned) its.grant(id);
   return { G, game, its, log };
 }
@@ -146,6 +147,56 @@ test('the runtime: the first gadget found is taken in hand; the use button press
   log.length = 0;
   G.control(DT, { KeyT: true }, true);
   assert.deepEqual(log, ['hook cancel', 'bomb cancel']);
+});
+
+/** A fluid tool's gun modes, as the runtime sees them (fluid-tool.js: owned, enabled, modes, mode, setMode, cycleMode). */
+function fakeTool(modes = ['shoot', 'push', 'fire']) {
+  return { owned: true, enabled: true, modes, mode: modes[0],
+    setMode(m) { if (!this.modes.includes(m) || m === this.mode) return false; this.mode = m; return true; },
+    cycleMode(d = 1) { const i = this.modes.indexOf(this.mode); return this.setMode(this.modes[(i + d + this.modes.length) % this.modes.length]); } };
+}
+
+test('the gun modes on the pad\'s chooser: a tap of D-pad ↑ while aiming is the next mode, the wheel\'s inner ring the right stick\'s', () => {
+  const tool = fakeTool();
+  const { G } = runtime({ tool });
+  assert.equal(G.equipped, 'hook');
+  // not aiming: a tap takes the next gadget, the mode stays
+  G.control(DT, { PadGadgetPick: true }); G.control(DT, {});
+  assert.equal(G.equipped, 'bomb'); assert.equal(tool.mode, 'shoot');
+  // aiming (LT): a tap takes the next gun mode, the gadget stays
+  G.control(DT, { PadGadgetPick: true, PadAim: true }); G.control(DT, { PadAim: true });
+  assert.equal(tool.mode, 'push', 'the next gun mode'); assert.equal(G.equipped, 'bomb', 'the gadget stays');
+  // the keyboard's B while aiming (R) still takes a gadget: its gun mode stays on X
+  G.control(DT, { KeyB: true, KeyR: true }); G.control(DT, {});
+  assert.equal(G.equipped, null); assert.equal(tool.mode, 'push');
+  // held from the pad: the wheel, gadgets outside, the gun modes on the inner ring
+  for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { PadGadgetPick: true });
+  assert.ok(G.wheelOn && G.wheelModes, 'the wheel is open, with the gun modes');
+  assert.deepEqual(G.modeList().map((m) => [m.id, m.current]), [['shoot', false], ['push', true], ['fire', false]], 'the current one marked');
+  // the left stick a gadget (right and down: hook, of none / hook / bomb), the right stick a mode (left and down: fire)
+  G.control(DT, { PadGadgetPick: true, stick: { x: 1, y: -0.6 }, rstick: { x: -1, y: -0.6 } });
+  assert.equal(G.modeHi, 2, 'the right stick points at the third slot (left and down)');
+  G.control(DT, {});
+  assert.ok(!G.wheelOn);
+  assert.equal(G.equipped, 'hook', 'the gadget the left stick pointed at');
+  assert.equal(tool.mode, 'fire', 'and the mode the right stick pointed at, in one hold');
+  // the keyboard's wheel (B held) has no inner ring
+  for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { KeyB: true });
+  assert.ok(G.wheelOn && !G.wheelModes, 'B held: the gadgets only');
+  G.control(DT, {});
+  // no gadget found: the pad's wheel opens for the modes alone
+  const t2 = fakeTool();
+  const { G: none } = runtime({ owned: [], tool: t2 });
+  for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) none.control(DT, { PadGadgetPick: true });
+  assert.ok(none.wheelOn, 'no gadget, but gun modes: the wheel opens');
+  none.control(DT, { PadGadgetPick: true, rstick: { x: 1, y: -0.6 } }); none.control(DT, {});
+  assert.equal(t2.mode, 'push', 'the right stick chose it');
+  // no backpack: no modes, no ring, the tap is a gadget's
+  const off = { ...fakeTool(), owned: false };
+  const { G: bare } = runtime({ tool: off });
+  assert.deepEqual(bare.gunModes(), []);
+  bare.control(DT, { PadGadgetPick: true, PadAim: true }); bare.control(DT, {});
+  assert.equal(bare.equipped, 'bomb', 'without the backpack, a tap while aiming takes the next gadget');
 });
 
 test('the menu shows a gadget in hand, and lets you take another', () => {

@@ -538,7 +538,7 @@ export function setupDesert(ctx) {
     if (addColour) game.set('desert.pool.tinted', true);
     return { wasDry, addColour };
   };
-  // (the buttons as the player holds them: on a pad X is interact, the gun's mode is the D-pad: src/bindings.js)
+  // (the buttons as the player holds them: on a pad X is interact, the gun's mode is D-pad ↑ while aiming: src/bindings.js)
   const FILLED = () => filledText();
   /** Ama's jar fills at the pool too. */
   const fillJar = () => {

@@ -324,7 +324,7 @@ game.on('wallet', () => { hpShown = 3; if (hpChimes) { hpChimes.classList.remove
 const hpFade = new Fader(3);   // (src/hud.js: while hurt, spending or fighting, and 3 s after)
 player.setMaxHearts(resources.maxHearts);
 /**
- * The potion button (KEYS.potion C, View + D-pad ↓, the flask beside the hearts on a touch screen): the drink
+ * The potion button (KEYS.potion C, D-pad ↓ on a pad, the flask beside the hearts on a touch screen): the drink
  * starts (src/player.js drinkPotion: the hearts come back half-way through it), the stock gives one (infinite
  * until the shops), or a word says why not.
  */
@@ -353,7 +353,6 @@ function potionHint() {
   setTimeout(() => showToast(keyText(tr('potion.hint'))), 900);
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
-window.addEventListener('padchord', (e) => { if (e.detail?.name === 'viewDown') drinkPotion(); });   // View + D-pad ↓
 hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
 // Knocked out (a fatal fall, or the bar run out): you lie there a moment, then the screen
 // dims and a small panel asks to restart, from where you last stood safely. Its button is
@@ -716,7 +715,7 @@ Object.assign(journal.menu, {
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     icon: (id) => itemIcons.get(id) }),
   onTrack: (id) => storyRt.quests.choose(id),
-  // an item that is a gun mode: take it (the fluid tool's D-pad / X switch, from the menu)
+  // an item that is a gun mode: take it (the fluid tool's switch: X, D-pad ↑ while aiming, the wheel; from the menu)
   onUse: (id) => { const m = { backpack: 'shoot', stun: 'stun', fire: 'fire', bloom: 'bloom' }[id]; if (m && tool.modes.includes(m)) tool.setMode(m); else gadgets?.equip(id); },   // (or a gadget taken in hand: src/gadgets/)
 });
 // a keepsake just earned: a toast says what the father's charge gained
@@ -1255,6 +1254,7 @@ const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
+  wheel: () => !!gadgets?.wheelOn,   // (the gadget wheel open: the right stick picks a gun mode on its inner ring)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y, fresh) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
@@ -1287,8 +1287,9 @@ const controller = new Controller({
     if (name === 'worlds') showPicker(true);
     if (name === 'photo') setPhoto(!photo.on);   // (View + D-pad ↑ from play; back, View or Menu in it)
     if (name === 'capture') photo.capture = true;
-    if (name === 'call' && quickMenu) quickMenu.toggle(true);   // (the References: D-pad ↓ opens the list of views; there is no mount to call)
-    else if (name === 'call' && !ship.playing) player.callMount();   // D-pad ↓: whistle for the mount or hail a taxi (the keyboard's E still falls back to it)
+    if (name === 'potion' && quickMenu) quickMenu.toggle(true);   // (the Arena's foes, the Arcade's board, the References' views: D-pad ↓ opens the level's quick menu)
+    else if (name === 'potion') drinkPotion();   // D-pad ↓: drink a healing potion
+    if (name === 'call' && !quickMenu && !level.jump && !ship.playing) player.callMount();   // L3 clicked standing still: whistle for the mount or hail a taxi (the keyboard's E still falls back to it)
     if (name === 'lock' && level.jump) level.jump(1);   // in the Lab, R3 / L3 hop to the next / previous world's room
     else if (name === 'lock' && !ship.playing) {
       // R3: lock on to a foe, then the next, then let go (Tab: src/foes.js); with no foe in reach, the scout

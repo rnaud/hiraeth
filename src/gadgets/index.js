@@ -5,6 +5,7 @@ import { game as sharedGame } from '../game-state.js';
 import { GadgetWorld } from './world.js';
 import { GadgetHud } from './hud.js';
 import { InkBursts, inkMat } from './kit.js';
+import { MODES } from '../fluid-kit.js';
 import { sfx } from './sfx.js';
 
 // The gadgets' runtime (docs/systems/gadgets.md): one per world, made in main.js after the foes. It holds
@@ -18,11 +19,15 @@ import { sfx } from './sfx.js';
 //          the V key's job; the chip shows the whistle then)
 //   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before; nothing in hand is one stop
 //          of the round), held a moment it opens the wheel: point the left stick (WASD) at one, let go
+//   modes  the fluid tool's gun modes, on the pad (the keyboard keeps X): D-pad ↑ tapped while aiming (LT)
+//          takes the next one, and the wheel opened from the pad has them on an inner ring that the right
+//          stick points at (both can be chosen in one hold: a gadget with the left stick, a mode with the right)
 //
 //   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice, post, relics, boxes })
 //   gadgets.control(dt, ctl, paused)   before the traveller moves (a reel sets his velocity)
 //   gadgets.update(dt, paused)         after the fluid tool (the aim's camera and pose are set last)
 //   gadgets.equip(id | null) · gadgets.cycle(±1) · gadgets.equipped · gadgets.owned() · gadgets.instrument()
+//   gadgets.gunModes() · gadgets.wheelOn (main.js: the right stick doesn't look meanwhile)
 
 /** How long the choose button is held before the wheel opens (s). */
 export const WHEEL_HOLD = 0.32;
@@ -34,6 +39,8 @@ export function gadgetInput(c = {}) {
     use: !!(c.KeyT || c.MouseMiddle || c.PadGadget || c.TouchGadget),
     pick: !!(c.KeyB || c.PadGadgetPick),
     back: !!(c.ShiftLeft || c.ShiftRight) && !!c.KeyB,
+    pad: !!c.PadGadgetPick,   // (the choosing is the pad's: the gun modes join it)
+    aim: !!c.PadAim,          // (the pad aims the fluid tool: a tap of the choose button is the next gun mode)
   };
 }
 
@@ -72,7 +79,7 @@ export class Gadgets {
     for (const d of defs) {
       try { this.inst.set(d.id, d.create(this.ctx)); } catch (e) { console.warn('gadget', d.id, e); }
     }
-    this.held = { use: false, pick: false }; this.pickT = 0; this.wheelOn = false; this.wheelHi = -1;
+    this.held = { use: false, pick: false }; this.pickT = 0; this.wheelOn = false; this.wheelHi = -1; this.modeHi = -1; this.wheelModes = false; this.pickPad = false; this.pickAim = false;
     this.penT = 0;
     // found (a box, the dev menu, ?items=): nothing in hand yet, the first one found is taken in hand
     this.offs = [items.on?.((id, owned) => {
@@ -119,36 +126,61 @@ export class Gadgets {
     return [{ id: null, glyph: tune ? tune.glyph : 'none', name: tune ? `${tune.name} (no gadget in hand)` : 'nothing in hand', none: true, icon: tune ? this.icon?.(tune.id) ?? null : null }, ...this.owned().map((id) => ({ id, glyph: this.def(id).glyph ?? '◆', name: this.def(id).name, icon: this.icon?.(id) ?? null }))];
   }
 
+  /** The fluid tool's gun modes the pad can choose now, in their order ([] without the backpack, or only one). */
+  gunModes() {
+    const t = this.tool;
+    if (!t || !t.owned || t.enabled === false) return [];
+    const m = t.modes ?? [];
+    return m.length > 1 ? m : [];
+  }
+
+  /** The wheel's inner ring: the gun modes as { id, name, tone, current }. */
+  modeList() {
+    return this.gunModes().map((id) => ({ id, name: MODES[id]?.label ?? id, tone: MODES[id]?.tones?.[0] ?? '#49ab83', current: id === this.tool?.mode }));
+  }
+
   /** Before the traveller moves: the buttons, the wheel, what the gadget in hand does to him. */
   control(dt, input = {}, paused = false) {
     if (paused) {
       // a menu, a conversation, a scene: whatever was under way lets go, the wheel closes
       if (this.wheelOn) { this.wheelOn = false; this.hud.wheel(null); }
+      this.modeHi = -1;
       for (const i of this.inst.values()) i.cancel?.();
       this.held = { use: false, pick: false };
       return;
     }
     const g = gadgetInput(input), cur = this.current;
     // the choose button: a tap, the next one; held, the wheel
-    if (g.pick && !this.held.pick) { this.pickT = 0; }
+    if (g.pick && !this.held.pick) { this.pickT = 0; this.pickPad = g.pad; this.pickAim = false; }
     if (g.pick) {
-      this.pickT += dt;
-      if (!this.wheelOn && this.pickT >= WHEEL_HOLD && this.owned().length) { this.wheelOn = true; this.wheelHi = -1; cur?.cancel?.(); }
+      this.pickT += dt; this.pickAim ||= g.aim;   // (aimed at any moment of the press: a tap is the gun mode's)
+      // (opened from the pad, the gun modes are in it too: it opens for them alone, with no gadget found yet)
+      const modes = this.pickPad && this.gunModes().length > 0;
+      if (!this.wheelOn && this.pickT >= WHEEL_HOLD && (this.owned().length || modes)) { this.wheelOn = true; this.wheelHi = -1; this.modeHi = -1; this.wheelModes = modes; cur?.cancel?.(); }
     }
     if (this.wheelOn) {
-      const list = this.wheelList();
+      const list = this.owned().length ? this.wheelList() : [];
       const sx = input.stick?.x ?? ((input.KeyD ? 1 : 0) - (input.KeyA ? 1 : 0)), sy = input.stick?.y ?? ((input.KeyW ? 1 : 0) - (input.KeyS ? 1 : 0));
       const s = wheelSlot(sx, sy, list.length);
       if (s >= 0) this.wheelHi = s;
-      this.hud.wheel(list, this.wheelHi);
+      // the inner ring: the right stick points at a gun mode (the controller doesn't look meanwhile)
+      const modes = this.wheelModes ? this.modeList() : null;
+      if (modes) { const m = wheelSlot(input.rstick?.x ?? 0, input.rstick?.y ?? 0, modes.length); if (m >= 0) this.modeHi = m; }
+      this.hud.wheel(list, this.wheelHi, modes ? { list: modes, hi: this.modeHi } : null);
       // (the stick chooses: the traveller stands still meanwhile)
       for (const k of ['KeyW', 'KeyA', 'KeyS', 'KeyD']) input[k] = false;
       if ('stick' in input) input.stick = null;
       if (!g.pick) {
         this.wheelOn = false; this.hud.wheel(null);
-        if (this.wheelHi >= 0) this.equip(list[this.wheelHi].id);
+        if (this.wheelHi >= 0 && list[this.wheelHi]) this.equip(list[this.wheelHi].id);
+        if (modes && this.modeHi >= 0 && modes[this.modeHi]) this.tool?.setMode?.(modes[this.modeHi].id);
+        this.modeHi = -1;
       }
-    } else if (!g.pick && this.held.pick && this.pickT < WHEEL_HOLD) this.cycle(g.back || this.held.back ? -1 : 1);
+    } else if (!g.pick && this.held.pick && this.pickT < WHEEL_HOLD) {
+      // a tap: the next gadget; aiming the fluid tool on the pad, the next gun mode
+      if (this.pickPad && (this.pickAim || g.aim) && this.gunModes().length) this.tool.cycleMode?.(1);
+      else this.cycle(g.back || this.held.back ? -1 : 1);
+    }
     this.held.pick = g.pick; this.held.back = g.back;
     // the use button: pressed, held, let go (to the gadget in hand)
     if (cur && !this.wheelOn) {

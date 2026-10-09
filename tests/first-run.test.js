@@ -58,7 +58,7 @@ test('the debug entries are the author’s: the Developer panel setting, a dev b
   assert.match(src('docs/systems/ui.md'), /src\/dev-gate\.js/, 'documented');
 });
 
-test('teaching prompts name the input in your hands; on a pad the gun’s mode is the D-pad, never X', () => {
+test('teaching prompts name the input in your hands; on a pad the gun’s mode is D-pad ↑ while aiming, never X', () => {
   assert.equal(verbKey('mode', 'pad'), PAD.mode);
   assert.doesNotMatch(verbKey('mode', 'pad'), /X/);
   assert.equal(verbKey('mode', 'keys'), 'X');
@@ -74,7 +74,7 @@ test('teaching prompts name the input in your hands; on a pad the gun’s mode i
 test('the pool’s first fill and the chest’s dregs name the buttons as the player holds them', async () => {
   globalThis.document ??= undefined;
   const { filledText, dregsText } = await import('../src/story/desert.js');
-  assert.match(filledText('pad'), /switch the gun to push with D-pad ← \/ →/);
+  assert.match(filledText('pad'), /switch the gun to push with D-pad ↑ while aiming/);
   assert.match(filledText('pad'), /aim with LT \/ L2, then RT \/ R2/);
   assert.match(filledText('keys'), /push with X,/);
   assert.match(dregsText('pad'), /One shot\. Aim with LT \/ L2, then RT \/ R2\./);

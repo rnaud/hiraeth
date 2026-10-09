@@ -15,7 +15,7 @@ import { RES_VERSION } from './save-migrate.js';
 //            smoothly. It refills by itself like stamina: MAGIC.delay s after the last spend, empty to full
 //            (the starting bar) in MAGIC.fill s. src/fluid-tool.js Reserve is the bar; this module says how
 //            long it is (maxMagic) and how quickly it comes back (magicPace, the quick coil).
-//   Potions  POTION.heal hearts back, drunk with the potion button (KEYS.potion, View + D-pad ↓, the touch
+//   Potions  POTION.heal hearts back, drunk with the potion button (KEYS.potion, D-pad ↓, the touch
 //            flask). A count: POTION.start in a new game, at most POTION.cap carried; the shops sell more
 //            (src/shop.js). The `infinite` flag is the dev menu's (and was everyone's until the first shop).
 //

@@ -206,7 +206,7 @@ export function* buildArcade(scene, { games = GAMES, state = game, search = glob
     defaults: { hour: 16.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },
     killY: -Infinity,
     reactions: false,
-    quickMenu: board,   // (main.js: one of its menus; D-pad ↓ opens it, the mount's call: there is none here)
+    quickMenu: board,   // (main.js: one of its menus; D-pad ↓ opens it, the potion's button: the menu takes it here)
     sky: {
       script: {
         day: ['#9fbcc6', '#dfe3d6', '#9fb0cf', '#fff9ee', '#fff6dc'],

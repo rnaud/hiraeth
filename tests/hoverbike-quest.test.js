@@ -131,7 +131,7 @@ test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backp
   assert.equal(bike.dormant, false);
   assert.equal(quests.isDone('desert.bike'), true);
   assert.notEqual(bestInteractable(player)?.entry.id, 'bike.tarp', 'the tarp is done with');
-  assert.ok(toasts.some((t) => /D-pad ↓/.test(keyText(t, { kind: 'pad' }))), 'the toast says how to call it (a {key:call}: D-pad ↓ with a pad in hand)');
+  assert.ok(toasts.some((t) => /L3 \(standing still\)/.test(keyText(t, { kind: 'pad' }))), 'the toast says how to call it (a {key:call}: L3 standing still with a pad in hand)');
 });
 
 test('the new models keep their seats, sockets and lights, within a handheld budget', () => {
