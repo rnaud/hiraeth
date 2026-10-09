@@ -27,7 +27,11 @@ scripts/bench/results/raw/
 .dev.vars.*
 .env
 .env.*
+.env.local
 !.env.example
+
+# the reference lab's candidates (scripts/gen-reference.mjs, reference-lab.html): only picks are kept
+/references/_candidates/
 
 # the engine bridges (docs/systems/engine-bridge.md): the bundles are built from src/ (scripts/engine-bundle.mjs),
 # the engines keep their caches; the runs write their pictures and logs to output/engine-bridge/

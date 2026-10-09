@@ -23,6 +23,18 @@ export const PAGES = [
   { href: 'audits.html', label: 'Audits', hint: 'every audit report, its scores and findings, and how they changed' },
 ];
 
+/**
+ * The pages a dev server alone has (`npx vite`: their middleware is the dev server's, and the build leaves them
+ * out): the reference lab (reference-lab.html, docs/systems/reference-lab.md).
+ */
+export const DEV_PAGES = [
+  { href: 'reference-lab.html', label: 'Reference lab', hint: 'generate reference pictures with several AI providers and pick the best (dev server only)' },
+];
+/** Is this the dev server? (import.meta.env.DEV: false in a build, absent under node) */
+export const devServer = () => { try { return !!import.meta.env?.DEV; } catch { return false; } };
+/** The pages the list shows here. */
+export const pagesHere = (dev = devServer()) => (dev ? [...PAGES, ...DEV_PAGES] : PAGES);
+
 /** A game's best in the save (`state`: flag(name)), as its results show it, or '' (none yet, or no save). */
 export function gameBest(g, state) {
   if (!state?.flag) return '';
@@ -73,7 +85,7 @@ export function cardHtml(l, i, current = false) {
 export function fillPicker(picker, { levels, current = null, cont = null, state = null }) {
   const nav = document.createElement('nav');
   nav.className = 'pages';
-  nav.innerHTML = PAGES.map((p) => `<a href="${p.href}" title="${p.hint}">${p.label}</a>`).join('');
+  nav.innerHTML = pagesHere().map((p) => `<a href="${p.href}" title="${p.hint}">${p.label}</a>`).join('');
   picker.querySelector('header').after(nav);
   const games = document.createElement('nav');
   games.className = 'pages games';

@@ -2,6 +2,7 @@ import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import { existsSync, realpathSync, rmSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { auditsPlugin } from './scripts/audits-data.mjs';
+import { referenceLabPlugin } from './scripts/reference-lab/server.mjs';
 
 // Relative asset paths so the build works both at a site root and under
 // GitHub Pages' /moebius/ sub-path.
@@ -40,6 +41,7 @@ export default defineConfig({
   // The game, trailer, character studio (studio.html, src/studio/) and Motion page
   // (motion.html, src/motion/: the traveller's loops against motion matching): they ship with the game
   build: { target: 'es2022', rolldownOptions: { input: BUILD_INPUT } },
-  plugins: [dropMakeHuman(), auditsPlugin()],
+  // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md)
+  plugins: [dropMakeHuman(), auditsPlugin(), referenceLabPlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });
