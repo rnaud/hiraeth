@@ -31,7 +31,7 @@ import { COURTS, COURT } from '../src/finds/courts.js';
 
 /** Where the one who speaks lives in a world: a person of its own (CONTENT npcs, by id), or a story local
  * (src/story/<world>-data.js LOCALS, standing on the world's spawn spots in order) → [x, z], or null. */
-const STORY = { arzach: await import('../src/story/arzach-data.js') };
+const STORY = { arzach: await import('../src/story/arzach-data.js'), arzach2: await import('../src/story/arzach2-data.js') };
 function homeOf(world, who) {
   const npcs = CONTENT[world].npcs;
   const own = npcs.filter((n) => n.id === who);
@@ -104,7 +104,8 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
     assert.ok(homeOf(T.world, T.voice.who), `${id}: ${T.voice.who} lives in ${T.world}`);
     const def = trialGame(T, { par: T.par, session: () => ({}) });
     assert.equal(def.drives, false); assert.equal(def.score.kind, 'time'); assert.ok(def.trial);
-    if (T.controls !== 'kitwings') assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
+    if (!['kitwings', 'kitbell'].includes(T.controls)) assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
+    if (T.controls === 'kitbell') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /bell/.test(what)), `${id}: the card names the bell’s button`);
     if (T.controls === 'kitecho') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /shell/.test(what)), `${id}: the card names the shell’s button`);
     if (T.controls === 'kitwings') assert.ok(def.controls.pad.some(([b, what]) => b === 'A / ×' && /wings/.test(what)), `${id}: the card names the wings`);
     assert.match(def.rules, /makers’ mark/);
@@ -116,6 +117,8 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
   assert.equal(lacks(KIT_TRIALS['kit-perdide'], { has: () => false }), '', 'the Hush walk wants nothing but your feet');
   assert.match(lacks(KIT_TRIALS['kit-arzach'], { has: (i) => i === 'backpack' }), /wings/);
   assert.equal(lacks(KIT_TRIALS['kit-arzach'], { has: (i) => ['backpack', 'glider'].includes(i) }), '');
+  assert.match(lacks(KIT_TRIALS['kit-arzach2'], { has: (i) => i === 'backpack' }), /bell/);
+  assert.equal(lacks(KIT_TRIALS['kit-arzach2'], { has: (i) => i === 'bell' }), '', 'the bell crossing wants the whistle, not the gun');
 });
 
 // ------------------------------------------------------------------------------- in their worlds
@@ -715,6 +718,78 @@ test('the vine walk: a bloom grows each seed’s vine bridge over its gap, opens
   // the makers' mark: a steady scripted run (walked at 5 m/s; the gun switched to bloom, the first two seeds bloomed
   // from the start, the door from the first deck, the third seed from behind the door: half a second each) plus slack
   const t = scripted(course, [[0, 0, 8], [0, 0, 50], [0, 0, 75]]) + 5 * 0.5;
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+test('the bell crossing: the bell brings each gap’s fallen-up stones down, the door opens to it; the cloud and the wings end it', () => {
+  const { scene, physics } = world('arzach2');
+  const T = KIT_TRIALS['kit-arzach2'];
+  const game = new GameState(), said = [];
+  const pl = traveller();
+  const C = createChallenges({ levelId: 'arzach2', scene, physics, player: pl, items: { has: () => true }, game, kits: [T], trials: {}, notice: (t) => said.push(t) });
+  const W = C.list[0], course = W.course, K = course.kit, L = course.rt.logic;
+  const floor = (x, z) => { const p = K.world(x, 1, z), g = physics.groundAt(p.x, p.y, p.z, 30); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  const fwd = K.world(0, 0, 1).sub(K.world(0, 0, 0));
+  const tick = () => course.update(1 / 60, 0);
+  const ring = (x, z) => { game.emit('bell', { pos: K.world(x, 0, z) }); tick(); };
+  assert.equal(course.bells.length, 3);
+  // the gaps: far wider than a jump, nothing under them but the cloud, a deck either side
+  for (const [z0, z1] of course.gaps) {
+    assert.ok(z1 - z0 > 3 * 3, `a gap no jump crosses (${z1 - z0} m)`);
+    for (const x of [-1.5, 0, 1.5]) assert.ok(floor(x, (z0 + z1) / 2) < T.fall.below, `nothing across the gap at ${(z0 + z1) / 2} yet`);
+  }
+  for (const z of [5, 28, 50, 74]) assert.ok(Math.abs(floor(0, z)) < 0.05, `a deck at ${z}`);
+  // the bells are the temple logic's bell elements, wanting the whistle; each far enough from the next that one note wakes one
+  const [b1, b2, b3] = course.bells;
+  assert.equal(L.el(b1.id).type, 'bell'); assert.deepEqual(L.el(b1.id).needs, ['bell']);
+  const ears = [...course.bells.map((b) => b.ear), course.door.ear];
+  for (let i = 1; i < ears.length; i++) assert.ok(ears[i].at.distanceTo(ears[i - 1].at) > ears[i].reach + ears[i - 1].reach, 'one ring never wakes two');
+  // too far: nothing; the listening shell's soft hum: nothing; the bell beside it: the stones come down, a floor at once
+  ring(0, 2);
+  assert.ok(!b1.down(), 'rung from the far end of the deck: the stones stay up');
+  game.emit('bell', { pos: K.world(0, 0, 10), soft: true }); tick();
+  assert.ok(!b1.down(), 'the shell’s hum is not a bell');
+  ring(0, 8);
+  assert.ok(b1.down(), 'the bell rung at the edge (no run on: for anyone)');
+  assert.ok(!b2.down(), 'only its own bridge');
+  assert.ok(said.some((s) => /come down/.test(s)), 'it says so');
+  assert.ok(Math.abs(floor(0, 17)) < 0.05, `a floor across the first gap (${floor(0, 17).toFixed(2)})`);
+  assert.ok(floor(3.5, 17) < T.fall.below, 'only as wide as the stones: off their side is the cloud');
+  // the door: solid while shut, the bell opens it
+  assert.ok(physics.rayDistance(K.world(0, 1.5, 67), fwd, 6) < 3.6, 'the door shuts the doorway');
+  ring(0, 60);
+  assert.ok(!course.door.open(), 'from the third deck: too far');
+  ring(0, 67);
+  assert.ok(course.door.open(), 'rung before it: it opens');
+  assert.ok(physics.rayDistance(K.world(0, 1.5, 67), fwd, 6) >= 6 - 0.01, 'the way through is open');
+  // a new run: the stones back up, the door shut
+  const ctx = runnerCtx(pl);
+  let sess = W.session(ctx);
+  assert.ok(!b1.down() && !course.door.open(), 'all as it was');
+  assert.ok(floor(0, 17) < T.fall.below, 'the first gap open again');
+  assert.ok(physics.rayDistance(K.world(0, 1.5, 67), fwd, 6) < 3.6, 'the door shut again');
+  // down into the cloud past the first deck's edge ends it, and so do the wings
+  pl.pos.copy(K.world(0, -8, 17));
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Into the cloud');
+  sess.end(); ctx.result = null;
+  sess = W.session(ctx);
+  pl.gliding = true;
+  for (let i = 0; i < 20 && !ctx.result; i++) sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Off your feet', 'the wings opened: over in a moment');
+  pl.gliding = false;
+  sess.end(); ctx.result = null;
+  // played: each bell rung at its edge, each bridge walked, the door rung open, the arch
+  sess = W.session(ctx);
+  ring(-2.6, 8); walk(sess, ctx, pl, V(W.gates[0].x, W.gates[0].y - 1, W.gates[0].z));
+  ring(2.6, 31); walk(sess, ctx, pl, V(W.gates[1].x, W.gates[1].y - 1, W.gates[1].z));
+  ring(-2.6, 53); ring(0, 67); walk(sess, ctx, pl, V(W.gates[2].x, W.gates[2].y - 1, W.gates[2].z));
+  assert.ok(ctx.result && !ctx.result.failed, 'finished');
+  for (const [z0, z1] of course.gaps) assert.ok(Math.abs(floor(0, (z0 + z1) / 2)) < 0.05, `the stones over ${z0}–${z1}`);
+  sess.end();
+  // the makers' mark: a steady scripted run (walked at 5 m/s; to each bell's edge and the door, half a second to sound each) plus slack
+  const t = scripted(course, [[0, 0, 8], [0, 0, 30], [0, 0, 52], [0, 0, 67], [0, 0, 76.4]]) + 4 * 0.5;
   assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
   C.dispose();
 });

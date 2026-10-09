@@ -77,6 +77,15 @@ seed on grows its bridge, a bloomed bud opens, from `rt.lit`, what `onLit` has h
 back and shuts the door (`reset`). A run's `noWings` ends it the moment the wings open (a glide would carry you
 over a 10 m gap), with `offFeet` the words. The course's dispose takes its pieces' colliders back too.
 
+**The bells heard** (`rt.bellBridge({ id, ear, reach, a, b, w, n })`, `addBellBridge`; `rt.bellDoor({ id, at, reach })`,
+`addBellDoor`): the Founders' Belfry's own `Bridge` from 'above' (its stones hang high over the gap, bobbing: they
+fell up) and its bell-tuned `Door`, each woken by the temple's `BellEar` (the game event `bell`, from the
+bell-note whistle: src/boxes/effects.js; the listening shell's soft hum does not count). In the open each
+bridge's ear stands on a bell post at the gap's near edge, reach 6 m, and the ears stand further apart than
+two reaches, so one note brings down one bridge. They answer anyone, run or no run (`rt.free`, as the seeds do),
+and the stand-in drives them in `links` (stones down, door open, from `rt.lit`); a new run sends the stones back
+up and shuts the door. The stones are a floor the moment they start down, as in the temple.
+
 | run | where | goal | the sign | mark | wants | who speaks |
 |---|---|---|---|---|---|---|
 | **Wind hall** (`kit-desert`) | a roofless makers' hall on the dune crest west of the landing, door to the south, steps down to the sand (origin −135, 21.4, −64) | walk its 46 m through the gusts (every 5 s: streaks, then a shove back down the hall; calm behind each of the four screens and under the porch), then wake the three eyes over the porch inside 4 s | east of the steps | 42 s | the fluid gun | Pell, the counter of bones, at the foot of the dune |
@@ -87,6 +96,7 @@ over a 10 m gap), with `offFeet` the words. The course's dispose takes its piece
 | **Furnace steps** (`kit-buried`) | a platform, eight iron pillars over a glowing grate 4 m down, and a landing before a sealed door, on the sand east of the Buried Machine's landing, running south (origin 40, 11, 66) | jump pillar to pillar (gaps 1.8–2.4 m, steps up under a metre, zigzag) to the landing; down on the grate ends it; then wake the door's four eyes in 2.6 s | on the sand by the stair | 34 s | the fourth chamber | Jot, nine teeth old, by the landing |
 | **Echo relay** (`kit-bazaar`) | a plinth 10 m by 46 down the first side street west of the Signal Market's avenue, a few steps from the spawn, running west out past the towers (origin −42, 0.35, 75) | past three walls hung with old dishes (a way 4 m wide past each, west, east, west) to the arch at the far end; then the relay: the low and middle stones stand at the near end with the high note's horn, the high stone under the far arch with the low and middle horns (each stone 31–37 m from its horn): catch a note, carry it, play it back at its horn, three times | at the mouth of the street, by the step | 38 s | the fluid gun and the echo shell | Oyo, who sells lanterns on the avenue |
 | **Vine walk** (`kit-edena`) | four decks of the white builders' stone in a line down the meadow's long slope east of Mira's water clock, running east (origin 57, −3.2, 1): level with the top, so 2 m over the meadow at the steps and 10 m at the far end | bloom the seed at each of the three 10 m gaps (its vine grows a bridge) and the flower-door in the wall on the third deck (it hides the third seed), to the arch on the last deck; down in the meadow past the first deck, or the wings opened, ends it | on the meadow beside the steps | 28 s | the bloom mode | Mira, who keeps the water clock |
+| **Bell crossing** (`kit-arzach2`) | four decks of bone-white stone out over the sea of cloud from the starting plateau's south rim, each beyond the rim floating on a stone of its own, level with the plateau, running south (origin 0, 40.5, 85) | sound the bell-note whistle by the bell at each of the three 10 m gaps (its fallen-up stones come down into a bridge) and before the bell-tuned door on the last deck, to the arch past it; down into the cloud past the first deck, or the wings opened, ends it | on the plateau beside the step | 28 s | the bell-note whistle | Sister Aube, the hermit of the edge (a story local: `src/story/arzach2-data.js` LOCALS) |
 
 Fair on a controller and on touch: walking, jumping, aiming and the splash are all the run asks; the gust's
 rhythm is shown before it blows (0.8 s of streaks), the crystals swing in plain sight, every screen leaves a way
@@ -104,7 +114,10 @@ second for each splash and each play-back) of 21.6 s plus slack: 38 s; walked in
 (3.8 m/s, no running) with the real gun, shell and key, 31 s. The vine walk wants the gun's bloom mode (D-pad /
 X, or the touch mode button) and a walk; the seeds and the door take a shot from anywhere in range (the first two
 can be bloomed from the start), and the vines are a floor at once. Its mark: a scripted 17.4 s (walked at 5 m/s,
-half a second for the mode and each bloom) plus slack, 28 s; walked in the game, 24.9 s.
+half a second for the mode and each bloom) plus slack, 28 s; walked in the game, 24.9 s. The bell crossing asks
+for a walk and the whistle's button (Y / △ with no gadget in hand, V, or the touch ◆ button), by each bell and
+before the door; the stones carry you at once. Its mark: a scripted 17.2 s (walked at 5 m/s, half a second for
+each of the four bells) plus slack, 28 s; walked in the game with the real whistle, 24.8 s.
 
 **Adding one:** an entry in `KIT_TRIALS` (its world, `course`, `origin` and `yaw`, the sign and the start in
 the course's frame, the mark, `needs`, `wet`, `voice` with a tone on every line) and, for a new kind of
@@ -137,7 +150,10 @@ says why, wakes for its own note within reach once the walls are behind you, shr
 further from its horn than both reaches, stones and posts solid, a way past every wall, its mark); the vine
 walk's gaps (no jump crosses them, the meadow under them below the fall line), its seeds (a splash soaks in, a
 bloom grows a floor across, only as wide as the vine; with no run on too), its door (shut and solid, a bloom
-opens it), a new run taking it all back, the meadow and the wings ending it, its mark.
+opens it), a new run taking it all back, the meadow and the wings ending it, its mark; the bell crossing's gaps
+(no jump crosses them, only cloud under them), its bells (too far, or the shell's hum: nothing; by the post, the
+stones come down, a floor only as wide as they are, run or no run; one note wakes one ear), its door (shut and
+solid, the bell opens it), a new run sending it all back, the cloud and the wings ending it, its mark.
 Each run is clear of its world's ship and of its makers' court. The trials:
 `tests/trials.test.js`, `tests/trials-worlds.test.js`.
 
@@ -145,7 +161,6 @@ Each run is clear of its world's ship and of its makers' court. The trials:
 
 A makers' run in the other route worlds, each from its own temple's kit. Every one left wants a new piece in
 the stand-in runtime (`openRuntime`): Lorn's deep wood (the lantern charm's lamps, `LightEar`), the Hangar
-(eye banks with riding discs: moving solids, which `course.solids()` now hands the traveller), the sky stones
-(bell ears: like the echo relay's horns, a listener on a game event, `bell`). Viridel's greenhouse glass (a vine
+(eye banks with riding discs: moving solids, which `course.solids()` now hands the traveller). Viridel's greenhouse glass (a vine
 up a pane too smooth to climb) would want the rest of its wall made unclimbable (`noClimb` colliders), which the
 stand-in does not do yet.

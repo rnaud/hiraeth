@@ -69,7 +69,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [minigames.md](systems/minigames.md) | the minigames: the runner (start card, 3-2-1, HUD, pause, results, the best in the save), the Games row and the arcade sign, how to add a game (options, a best per difficulty, games on foot), Dune skiing, Sky steps, the Canyon run, Fishing, the Ring race, the Wing drop, the shooting gallery, Ink tide, the Drum circle, the Sketch hunt |
-| [challenges.md](systems/challenges.md) | challenges in the open world: the sign, the start card, the run's clock and goal, the best, Retry, the quiet reward; each world's trial and the makers' runs (the temples' kit and pieces in the open: one a world, from the Wind hall to the Echo relay and the Vine walk) |
+| [challenges.md](systems/challenges.md) | challenges in the open world: the sign, the start card, the run's clock and goal, the best, Retry, the quiet reward; each world's trial and the makers' runs (the temples' kit and pieces in the open: one a world, from the Wind hall to the Vine walk and the Bell crossing) |
 | [dev-tools.md](systems/dev-tools.md) | the Lab, the worlds list's debug save, the clipping audit |
 | [testing.md](systems/testing.md) | the tests, and the play-through: the route played from the crash to home in node, old saves resumed, the page's own flows in a headless Chrome |
 | [unity.md](systems/unity.md) | the desert in Unity, and the web-against-Unity benchmark |

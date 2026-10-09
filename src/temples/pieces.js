@@ -483,13 +483,14 @@ export class Bank {
   dispose() { for (const e of this.eyes) e.off?.(); }
 }
 
-/** Bell-tuned: the bell-note whistle sounded within reach rings element `id` (a 'bell' element: needs the bell). */
+/** Bell-tuned: the bell-note whistle sounded within reach rings element `id` (a 'bell' element: needs the bell).
+ * o: { id, at, reach, heard (what it says when it answers), heardKey (say it once) } */
 export class BellEar {
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.at = rt.kit.world(...o.at); this.reach = o.reach ?? 40;
     this.off = rt.game?.on?.('bell', ({ pos, soft } = {}) => {
       if (!pos || soft || pos.distanceTo(this.at) > this.reach) return;   // (soft: the listening shell's hum, not a bell)
-      if (rt.logic.light(this.id)) { rt.sound?.chime?.(); rt.notice?.('The door answers the bell’s note.'); rt.onLit?.(this.id); }
+      if (rt.logic.light(this.id)) { rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'The door answers the bell’s note.', o.heardKey ?? null); rt.onLit?.(this.id); }
     });
   }
   update() {}

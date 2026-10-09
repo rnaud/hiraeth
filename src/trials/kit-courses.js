@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TempleKit, templeMaterials, box, annulus, lathe, paint, T as tf } from '../temples/kit.js';
-import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud } from '../temples/pieces.js';
+import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud, BellEar, Door } from '../temples/pieces.js';
 import { TempleLogic, memoryStore } from '../temples/logic.js';
 import { PALETTE as DESERT } from '../temples/desert.js';
 import { PALETTE as LORN } from '../temples/perdide.js';
@@ -10,6 +10,7 @@ import { PALETTE as SPHERES } from '../temples/spheres.js';
 import { PALETTE as SHAFT } from '../temples/incal.js';
 import { PALETTE as MARKET } from '../temples/bazaar.js';
 import { PALETTE as VIRIDEL } from '../temples/edena.js';
+import { PALETTE as BELFRY } from '../temples/arzach2.js';
 
 // The makers' runs in the open (docs/systems/challenges.md, src/trials/kit-data.js): the temples' own kit
 // (src/temples/kit.js: halls, slabs, stairs, columns) and moving pieces (src/temples/pieces.js: Gust, Swing,
@@ -25,13 +26,15 @@ import { PALETTE as VIRIDEL } from '../temples/edena.js';
 //   course.rollers   the balls in their grooves, each with its plate ({ ball, plate, home(), reset() })
 //   course.stones · course.ears   the singing stones and the horns that listen for their notes ({ ear, note, lit(), reset() })
 //   course.vines · course.bud     the seeds with their vine bridges ({ seed, bridge, grown() }) and the flower-door ({ bud, open() })
+//   course.bells · course.door    the bridges of stones that fell up, each with the bell-tuned post that brings it down
+//                                 ({ ear, bridge, down() }), and the bell-tuned door ({ door, ear, open() })
 //   course.task      what the run asks once its gates are behind you: { kind: 'eyes' | 'roll' | 'ears', n, count(), goal }
 //   course.solids()  the moving floors (the balls, the plates) for the traveller (src/player.js opts.dynamic)
 //   course.listen(fn) the bank's eyes may wake (fn() → true) · course.reset() for a new run
 //   course.update(dt, t) · course.dispose()
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL };
+const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY };
 
 /**
  * What a temple piece asks of its temple (src/temples/runtime.js), for a piece stood in the open. Its logic is
@@ -167,6 +170,61 @@ export function addBud(rt, { id, at, yaw = 0, w = 3.4, h = 4.4, color }) {
     open: () => bud.open,
     update() { if (rt.lit.has(bloom) && !bud.open) bud.setOpen(true); },
     reset() { rt.lit.delete(bloom); bud.setOpen(false, true); bud.curl = 0; bud.apply(0); },
+  };
+}
+
+/** A bell on a post, as the Founders' Belfry hangs them (drawn only, the post solid): where a bell-tuned piece listens. */
+function bellPost(K, x, z) {
+  K.both(K.M.trim, new THREE.CylinderGeometry(0.16, 0.22, 3.2, 8).translate(x, 1.6, z));
+  K.add(K.M.trim, new THREE.CylinderGeometry(0.5, 0.6, 0.25, 12).translate(x, 0.12, z));
+  K.add(K.M.trim, box(0.16, 0.16, 1.3, x, 3.15, z + 0.4));
+  const bell = lathe([[0.02, 0], [0.42, 0.04], [0.46, 0.25], [0.32, 0.72], [0.26, 0.98], [0.02, 1.06]], 16);
+  K.add(K.M.stoneMat, bell.translate(x, 2.05, z + 0.9));
+  K.add(K.M.glyph, new THREE.TorusGeometry(0.44, 0.05, 4, 20).rotateX(Math.PI / 2).translate(x, 2.1, z + 0.9));
+  K.add(K.M.trim, tf(annulus(0.9, 1.25, 0.05, 24), [x, 0.03, z]));
+}
+
+/**
+ * A bridge of stones that fell up, stood in the open (the Founders' Belfry's Hall of Echoes: the temples' Bridge
+ * from 'above' and the BellEar that brings it down): the stones hang high over the gap, bobbing, until the bell-note
+ * whistle is sounded within `reach` of the bell on its post at the near edge; then they come down into the walkway,
+ * a floor at once. It answers anyone, run or no run (rt.free); a new run sends the stones back up.
+ * o: { id, ear: [x, y, z] (the post's foot), reach, a, b, w, n } → { id, ear, bridge, down(), update(), reset() }
+ */
+export function addBellBridge(rt, { id, ear: at, reach = 6, a, b, w = 4, n = 6 }) {
+  const L = rt.logic, bid = `${id}.stones`;
+  L.def.elements[id] = { type: 'bell', room: 'open', needs: ['bell'] };
+  L.def.elements[bid] = { type: 'bridge', opens: { lit: id } };
+  rt.free.add(id);
+  bellPost(rt.kit, at[0], at[2]);
+  const ear = rt.add(BellEar, { id, at, reach, heard: 'The stones hear the bell’s note, and come down into place.', heardKey: 'bell.stones' });
+  const bridge = rt.add(Bridge, { id: bid, a, b, w, n, from: 'above' });
+  return {
+    id, ear, bridge,
+    down: () => bridge.open,
+    update() { if (rt.lit.has(id) && !bridge.open) bridge.setOpen(true); },
+    reset() { rt.lit.delete(id); bridge.setOpen(false, true); bridge.time = 0; bridge.apply(); },
+  };
+}
+
+/**
+ * A bell-tuned door stood in the open (the Belfry's: the temples' Door with its bell, and a BellEar before it): the
+ * whistle sounded within `reach` of it opens it; solid while shut; answers anyone; a new run shuts it again.
+ * o: { id, at (the doorway's foot), yaw, w, h, reach, ear (where it listens: a step before it) }
+ * → { id, door, ear, open(), update(), reset() }
+ */
+export function addBellDoor(rt, { id, at, yaw = 0, w = 3.4, h = 4.4, reach = 6, ear: ea = [at[0], at[1], at[2] - 1.5] }) {
+  const L = rt.logic, eid = `${id}.bell`;
+  L.def.elements[eid] = { type: 'bell', room: 'open', needs: ['bell'] };
+  L.def.elements[id] = { type: 'door', opens: { lit: eid } };
+  rt.free.add(eid);
+  const door = rt.add(Door, { id, at, yaw, w, h, bell: true });
+  const ear = rt.add(BellEar, { id: eid, at: ea, reach });
+  return {
+    id, door, ear,
+    open: () => door.open,
+    update() { if (rt.lit.has(eid) && !door.open) door.setOpen(true); },
+    reset() { rt.lit.delete(eid); door.setOpen(false, true); },
   };
 }
 
@@ -538,6 +596,46 @@ export const COURSES = {
       gulf: { from: 12, to: 22 }, gaps: [[12, 22], [34, 44], [58, 68]],
     };
   },
+  /**
+   * The bell crossing (the Sky Stones): the Founders' Belfry's Hall of Echoes stood out over the sea of cloud from
+   * the starting plateau's south rim. Four decks of the bone-white stone in a line, each beyond the rim floating
+   * on a stone of its own, level with the plateau; between them three gaps of 10 m, the stones of each one's
+   * bridge hanging high over it (they fell up). A bell on a post at each gap's near edge: sound the bell-note
+   * whistle beside it and the stones come down into place. On the last deck a wall with a bell-tuned door, and
+   * the arch past it. Down into the cloud ends the run, and so do the wings (src/trials/kit-data.js `noWings`).
+   */
+  bellcrossing(K, rt) {
+    const W = 8, decks = [[-1, 12], [22, 34], [44, 56], [66, 80]];
+    for (const [i, [z0, z1]] of decks.entries()) {
+      K.slab(-W / 2, z0, W / 2, z1, 0, i ? 2.4 : 4, K.M.wall);
+      K.slab(-W / 2 - 0.25, z0 - 0.25, W / 2 + 0.25, z1 + 0.25, 0, 0.4, K.M.floor);
+      for (const s of [-1, 1]) K.add(K.M.trim, box(0.3, 0.06, z1 - z0, s * (W / 2 - 0.2), 0.03, (z0 + z1) / 2));
+      // each beyond the rim floats on a stone of its own (drawn only): a blunt cone of rock under the deck
+      if (i > 0) K.add(K.M.stoneMat, new THREE.ConeGeometry(1, 9, 9).rotateX(Math.PI).scale(W * 0.55, 1, (z1 - z0) * 0.55).translate(0, -2.4 - 4.5, (z0 + z1) / 2));
+      if (i < 3) K.glyph([0, -1.2, z1 + 0.27], 1.2, 0);   // (on each deck's face over the gap)
+    }
+    K.slab(-2.6, -2.2, 2.6, -1, -0.25, 1.2, K.M.floor);   // (a step up onto it from the plateau)
+    // the bridges of fallen-up stones over the gaps, each with its bell at the near edge
+    const bells = [[12, 22, -2.6], [34, 44, 2.6], [56, 66, -2.6]].map(([z0, z1, x], i) =>
+      rt.bellBridge({ id: `stones${i + 1}`, ear: [x, 0, z0 - 1.2], a: [0, 0, z0], b: [0, 0, z1] }));
+    // the last deck's wall and its bell-tuned door, the arch past it
+    const WZ = 70;
+    K.wall(-W / 2, WZ, W / 2, WZ, 0, 6.4, { t: 1.0, holes: [{ at: W / 2, w: 3.4, h: 4.4 }] });
+    K.glyph([0, 5.4, WZ - 0.52], 1.0, Math.PI);
+    const door = rt.bellDoor({ id: 'door', at: [0, 0, WZ] });
+    for (const s of [-1, 1]) K.column(s * 2.6, 77.4, 0, 4.4, 0.4);
+    K.both(K.M.wall, box(6.2, 0.6, 1.0, 0, 4.7, 77.4));
+    K.glyph([0, 4.7, 76.88], 0.9, Math.PI);
+    return {
+      // the gates: on the second deck (the first stones down), the third, under the far arch past the door
+      gates: [[0, 1.6, 28, 2.6], [0, 1.6, 50, 2.6], [0, 1.6, 76.4, 2.4]],
+      bank: null, gusts: [], swings: [], updrafts: [], links: [...bells, door], bells, door,
+      bounds: [[-W / 2 - 1, -16, -3], [W / 2 + 1, 8, 81]],
+      clear: [[-W / 2 - 1, -3], [W / 2 + 1, 81]],
+      // (the tests' measures: the first gap, and every gap)
+      gulf: { from: 12, to: 22 }, gaps: [[12, 22], [34, 44], [56, 66]],
+    };
+  },
 };
 
 /** Build a makers' run in its world (see the top of this file). */
@@ -556,6 +654,8 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   rt.ear = (o) => addEar(rt, o);
   rt.vine = (o) => addVine(rt, o);
   rt.bud = (o) => addBud(rt, o);
+  rt.bellBridge = (o) => addBellBridge(rt, o);
+  rt.bellDoor = (o) => addBellDoor(rt, o);
   const build = COURSES[T.course];
   if (!build) throw new Error(`no makers’ course "${T.course}"`);
   const C = build(kit, rt);
@@ -581,7 +681,7 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   return {
     trial: T, kit, rt, gates, start, heading: kit.heading(T.heading ?? 0), markerAt,
     bank: C.bank, swings: C.swings, gusts: C.gusts, updrafts: C.updrafts ?? [], gulf: C.gulf ?? null, pillars: (C.pillars ?? []).map((p) => ({ ...p, at: at(p.x, p.y, p.z) })), pieces,
-    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, task, gaps: C.gaps ?? [],
+    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, bells: C.bells ?? [], door: C.door ?? null, task, gaps: C.gaps ?? [],
     solids: () => solids,
     /** The ground the world's own props should leave clear (world x, z corners). */
     clear: C.clear.map(([x, z]) => at(x, 0, z)),
