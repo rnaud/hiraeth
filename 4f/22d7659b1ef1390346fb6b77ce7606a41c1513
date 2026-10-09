@@ -1,0 +1,27 @@
+references/enemy-archetypes/bell/manifest.json
+  s_9ca76055a220ed::t_547acce6c597d6 21-39
+references/enemy-archetypes/brute/manifest.json
+  s_9ca76055a220ed::t_8f12f6cc49d949 21-39
+references/enemy-archetypes/cart/manifest.json
+  s_9ca76055a220ed::t_87061aa2c83450 21-39
+references/enemy-archetypes/drone/manifest.json
+  s_9ca76055a220ed::t_be0de8c4fb1d08 21-39
+references/enemy-archetypes/shade/manifest.json
+  s_9ca76055a220ed::t_a4569751e963db 21-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4f22d7659b1ef1390346fb6b77ce7606a41c1513",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
