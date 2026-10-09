@@ -1,0 +1,25 @@
+"references/Core Objects/Reviewed Gadgets/Grappling Launcher - Stowed/prompt.txt"
+  s_636e79c9ee751a::t_b5c31c89490a79 1
+"references/Core Objects/Reviewed Gadgets/Grappling Launcher - Stowed/review.txt"
+  s_636e79c9ee751a::t_30902893a0531c 1
+"references/Core Objects/Reviewed Gadgets/Grappling Launcher - Stowed/source.txt"
+  s_636e79c9ee751a::t_7238bc7a5b4070 1
+references/REFERENCE-SELECTION.txt
+  s_636e79c9ee751a::t_6bd4cdadcb9bb0 5,32-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a50bfc252a8f3bc7c89327e841667e38332fa291",
+  "prompts": {},
+  "sessions": {
+    "s_636e79c9ee751a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11db2-8eba-7d92-a417-5ca567fe4057",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
