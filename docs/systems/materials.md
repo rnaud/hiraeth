@@ -337,6 +337,13 @@ numbers, as `vObjRel` already was for the strokes).
   ink) and a soft wash of that colour on what is near; stronger at night. Seven small passes,
   about 1/16 of the pixels. Façades (`pattern: 'facade'`) light some windows at dusk, one after
   another, and those glow too.
+- **The fluid sword's living blade** (`src/blade-shader.js`, v1.11; `makeMaterial({ fluid: 'blade' })` adds the
+  `BLADE_FLUID` define on top of `FLUID` kind 6): injected the way the chimes' crystal is (`BLADE_VERT_PARS`,
+  `BLADE_VERT` after the crystal's vertex code, `BLADE_FLUID_GLSL` in place of the old `bladeFluid`, `BLADE_DISCARD`
+  with the other fluids' discards, `bladeLight(albedo, L, emit, n)` after the crystal's light, `BLADE_INK` at the end):
+  currents, ripple lines, motes, a wobbling meniscus edge, the swing's bow and the ripple ring, a breathing glow that
+  blooms after dark, soft ink with a pen share (outline only). Its uniforms (`uBlade`, `uBladeB`, `uBladeC`) are the
+  sword's alone; the other fluids compile the plain currents. Details: `docs/systems/foes.md`, "Alive".
 - **The makers' inscriptions** (`makeMaterial({ glyphs })`, `src/glyphs.js`): the makers marked
   everything they made (LORE.md, "The glyph"). On upright faces, each row of the wall's grid
   (`glyphs`: a cell in metres, or the grid's) carries a frieze between two incised border lines:

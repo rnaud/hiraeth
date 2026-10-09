@@ -307,7 +307,11 @@ function mergeParts(group, keep = []) {
   return group;
 }
 
-/** Instanced dots and dashes: droplets, sprays, the glob's wake. */
+/**
+ * Instanced dots and dashes: droplets, sprays, the glob's wake. A dot may carry a `floor` (its height along up) and
+ * `land(dot)`: falling through it, it is gone and land is called (the sword's drops splash: src/fluid-blade.js); a
+ * `flat` one lies flat on the ground (a splash).
+ */
 export class Dots {
   constructor(parent, max, material, geo = new THREE.SphereGeometry(1, 6, 4)) {
     this.mesh = new THREE.InstancedMesh(geo, material, max);
@@ -324,15 +328,18 @@ export class Dots {
   update(dt, up) {
     if (!this.list.length && !this.mesh.count) return;
     this.list = this.list.filter((d) => (d.age += dt) < d.life);
-    let i = 0;
+    let i = 0, landed = null;
     for (const d of this.list) {
       d.vel.multiplyScalar(Math.exp(-d.drag * dt)).addScaledVector(up, -d.grav * dt);
       d.pos.addScaledVector(d.vel, dt);
+      // (a drop given a `floor` (its height along up) and `land`: falling through it, it is gone and land(drop) is called)
+      if (d.land && d.pos.dot(up) < d.floor && d.vel.dot(up) < 0) { d.age = d.life; (landed ??= []).push(d); continue; }
       const k = 1 - d.age / d.life, s = d.size * (d.grow ? 0.4 + 0.6 * Math.min(1, d.age * 8) : 1) * Math.min(1, k * 2.2);
       const sp = d.vel.length();
-      if (d.stretch > 1 && sp > 0.05) this._q.setFromUnitVectors(this._y, this._v.copy(d.vel).divideScalar(sp));
+      if (d.flat) this._q.setFromUnitVectors(this._y, up);   // (a splash: a disc flat on the ground)
+      else if (d.stretch > 1 && sp > 0.05) this._q.setFromUnitVectors(this._y, this._v.copy(d.vel).divideScalar(sp));
       else this._q.identity();
-      this._s.set(s, s * (d.stretch > 1 ? 1 + (d.stretch - 1) * Math.min(1, sp / 4) : 1), s);
+      this._s.set(s, d.flat ? s * 0.15 : s * (d.stretch > 1 ? 1 + (d.stretch - 1) * Math.min(1, sp / 4) : 1), s);
       this._m.compose(d.pos, this._q, this._s);
       this.mesh.setMatrixAt(i, this._m);
       this.mesh.setColorAt(i, this._c.set(d.color));
@@ -341,6 +348,7 @@ export class Dots {
     this.mesh.count = i;
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    if (landed) for (const d of landed) d.land(d);
   }
 }
 

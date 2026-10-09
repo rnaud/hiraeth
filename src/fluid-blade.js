@@ -8,6 +8,7 @@ import { SheathState, sheathFrame, buildFrog } from './sword-sheath.js';
 import { ShieldDevice, SHIELD, shieldArc } from './shield.js';
 import { MAGIC_COST } from './resources.js';
 import { rumblePlay } from './rumble.js';
+import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
 
 // Three committed cuts: anticipation, release and recovery, with one buffered follow-up.
 // Full-body captured poses on the ground, upper-body in the air. The blade's swept segment
@@ -103,13 +104,14 @@ export function trailCut(b) {
 /**
  * The drops a cut flings off its edge this frame (src/fluid-sword.js wakeStyle `style`): `style.drops` of them
  * from the outer part of the blade (`from` last frame's segment, `seg` this frame's; {a: the cup, b: the point}),
- * thrown on with a share of the edge's speed and falling. Plain objects for tool.drops.add.
+ * thrown on with a share of the edge's speed and falling (`near`: from that share of the way up; 0.85, off the point).
+ * Plain objects for tool.drops.add.
  */
-export function shedDrops(from, seg, dt, style, rand = Math.random) {
+export function shedDrops(from, seg, dt, style, rand = Math.random, near = 0.35) {
   const out = [];
   if (!from || !seg || !(dt > 0)) return out;
   for (let i = 0; i < style.drops; i++) {
-    const x = 0.35 + 0.65 * rand(), pos = new THREE.Vector3().lerpVectors(seg.a, seg.b, x);
+    const x = near + (1 - near) * rand(), pos = new THREE.Vector3().lerpVectors(seg.a, seg.b, x);
     const was = new THREE.Vector3().lerpVectors(from.a, from.b, x);
     const vel = pos.clone().sub(was).divideScalar(dt).multiplyScalar(0.3 + 0.2 * rand());
     if (vel.length() > 9) vel.setLength(9);
@@ -207,6 +209,18 @@ export const bladeGrowth = (lit, state, B = BLADE) => {
   return { length: bladeLength(state, B) * k, width: bladeWidth(state, B) * (0.3 + 0.7 * s) };
 };
 /**
+ * The blade's lite look (src/blade-shader.js BLADE_QUALITY, set by main.js applyDetail: the handheld, Low, a desktop Auto
+ * that had to drop resolution). Lite: no ripples' lines or motes in the shader, no extra drops off the point, no splashes.
+ */
+export const bladeLite = () => BLADE_QUALITY.lite;
+/** The tongue of fluid standing out of the cup in the fist between cuts: bladeGrowth's `lit` at `time` s (breathing about BLADE_LOOK.idle). */
+export const bladeIdle = (time, L = BLADE_LOOK) => L.idle * (1 + 0.12 * Math.sin(time * L.breathRate));
+/** How far a swing smears the fluid (0..1) for the tip moving `speed` m/s. */
+export const bladeSmear = (speed, L = BLADE_LOOK) => THREE.MathUtils.clamp(speed / L.smearAt, 0, 1);
+/** How far back (m) the fluid trails the point moving `speed` m/s. */
+export const bladeLag = (speed, L = BLADE_LOOK) => Math.min(L.lagMax, Math.max(0, speed) * L.lag);
+
+/**
  * The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it
  * covers, and the shield (src/shield.js). What it covers is the shield as drawn (ShieldDevice.arc: the
  * bearings between its rim's edges round the chest); `angle` is that arc for a shield held `reach` in
@@ -256,6 +270,7 @@ const _o = new THREE.Vector3(), _f = new THREE.Vector3(), _r = new THREE.Vector3
 const _Y = new THREE.Vector3(0, 1, 0);
 const _m1 = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _p1 = new THREE.Vector3(), _p2 = new THREE.Vector3(), _s1 = new THREE.Vector3(), _s2 = new THREE.Vector3(), _q1 = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
 const RIPOSTE_GOLD = '#ffd46b';
+const _tip = new THREE.Vector3(), _vel = new THREE.Vector3(), _back = new THREE.Vector3(), _lag = new THREE.Vector3();
 
 export class FluidBlade {
   constructor(tool) {
@@ -269,6 +284,10 @@ export class FluidBlade {
     this.builtLength = sword.builtLength; this.builtWidth = sword.builtWidth;
     this.core = sword.core; this.bladeGroup = sword.blade; this.hilt = sword.hilt; this.swordMat = sword.material;
     this.group = sword.group;
+    // its life (src/blade-shader.js; alive()): the smear and lag of a swing, the ripple of a hit or a parry, the flash
+    this.bead = sword.group.getObjectByName('bead');
+    this.smear = 0; this.lagV = new THREE.Vector3(); this.tipPrev = null; this.flowExtra = 0; this.flash = 0;
+    this.ripple = { age: 99, from: 0.75, k: 0, gold: 0 };
     this.wake = new BladeWake(tool.fx);
     this.group.name = 'fluid blade';
     this.group.visible = false;
@@ -339,6 +358,9 @@ export class FluidBlade {
     T.used('block', p.pos);
     T.sound?.fluidBlock?.(perfect);
     this.device.s.hit(perfect ? 'perfect' : 'block');
+    // (the fluid answers: a ring up from the cup; a perfect parry flares the blade out of it a moment, gold)
+    this.rippleAt(0, perfect ? BLADE_LOOK.ripple.parry : BLADE_LOOK.ripple.block, perfect ? 1 : 0);
+    if (perfect) this.lit = Math.max(this.lit, 0.9);
     const at = this.device.root.visible ? this.device.centre : _o.copy(p.pos).addScaledVector(p.frame.up, 1.2).addScaledVector(this.dir, GUARD.reach), tones = T.modeTones;
     T.rings?.add({ from: at, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.1, life: 0.3, color: tones[0], thick: 1 });
     for (let i = 0; i < 18; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
@@ -445,6 +467,7 @@ export class FluidBlade {
       C.t += dt;
       if (!C.full && C.t >= CHARGE.full) {
         C.full = true; T.sound?.fluidCharge?.(true);
+        this.rippleAt(0, BLADE_LOOK.ripple.charge);
         const at = _o.copy(p.pos).addScaledVector(p.frame.up, 1.2);
         T.rings?.add({ from: at, dir: p.frame.up, reach: 0.05, r0: 0.25, r1: 1.2, life: 0.3, color: '#fff6dc', thick: 1 });
       }
@@ -666,6 +689,9 @@ export class FluidBlade {
       }
       for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6);
       this.hit = true;
+      // (a ring runs along the blade from where it struck, both ways)
+      const at = pose ? _tip.copy(hits[0].point).sub(pose.a).dot(_vel.subVectors(pose.b, pose.a)) / Math.max(pose.a.distanceToSquared(pose.b), 1e-6) : 0.75;
+      this.rippleAt(THREE.MathUtils.clamp(at, 0.2, 1), this.n === 2 || S ? BLADE_LOOK.ripple.heavy : BLADE_LOOK.ripple.hit, S === RIPOSTE ? 1 : 0);
     }
     T.sound?.fluidSlashHit?.(hits.length > 0, info.combo === 2);
     return hits;
@@ -680,6 +706,67 @@ export class FluidBlade {
     const base = BLADE.guard + 0.012, len = bladeLength(this.tool.state) * Math.max(0.05, lit);
     // (in the hilt's own frame, as the blade is drawn in it: carried at world size, the bone's scale undone)
     return { a: new THREE.Vector3(0, base, 0).applyMatrix4(m), b: new THREE.Vector3(0, base + len, 0).applyMatrix4(m) };
+  }
+
+  /** How far the blade shows (bladeGrowth's `lit`): lit, or in the fist (`inFist`) the idle tongue (bladeIdle), eased in and out. */
+  shownLit(dt, inFist) {
+    const want = inFist && !this.swinging && !this.charging ? 1 : 0;
+    this.idleK = dt > 0 ? (this.idleK ?? 0) + (want - (this.idleK ?? 0)) * (1 - Math.exp(-4 * dt)) : want;
+    const time = (this.tool.time ?? 0) + (this._inspectT ?? 0);
+    return Math.max(this.lit, bladeIdle(time) * this.idleK);
+  }
+
+  /** A ring along the blade from `from` (0 the cup .. 1 the point), `k` strong, gold by `gold` (src/blade-shader.js), and a flash. */
+  rippleAt(from, k = 1, gold = 0) {
+    Object.assign(this.ripple, { age: 0, from, k, gold });
+    this.flash = Math.max(this.flash, Math.min(1, 0.5 * k));
+  }
+
+  /**
+   * The blade's life a frame (src/blade-shader.js), once it is placed: its currents' clock (faster through a swing), the
+   * smear and the lag (the point's speed, and where the fluid trails in the blade's own frame), the breath, the ripple and
+   * the flash, the magic's glow; the bead in the cup breathing with it.
+   */
+  alive(dt) {
+    const T = this.tool, L = BLADE_LOOK, M = this.swordMat.uniforms;
+    let speed = 0, lagged = false;
+    if (this.bladeGroup.visible && this.group.visible) {
+      if (dt > 0) {
+        this.core.updateWorldMatrix(true, false);
+        const tip = _tip.set(0, this.builtLength, 0).applyMatrix4(this.core.matrixWorld);
+        if (this.tipPrev) {
+          speed = _vel.subVectors(tip, this.tipPrev).length() / dt;
+          if (speed > 1e-3) {
+            // (a point bladeLag back along the way it moves, in the blade's object space: x across, z through)
+            _back.copy(tip).addScaledVector(_vel, -bladeLag(speed) / (speed * dt));
+            this.core.worldToLocal(_back);   // (the point itself is (0, builtLength, 0) there)
+            _lag.set(_back.x, 0, _back.z);
+            lagged = true;
+          }
+        }
+        (this.tipPrev ??= new THREE.Vector3()).copy(tip);
+      }
+    } else this.tipPrev = null;
+    if (!lagged && dt > 0) _lag.set(0, 0, 0);
+    if (dt > 0) {
+      const want = bladeSmear(speed);
+      this.smear += (want - this.smear) * (1 - Math.exp(-(want > this.smear ? 30 : 6) * dt));
+      this.lagV.lerp(_lag, 1 - Math.exp(-25 * dt));
+      this.flowExtra += dt * L.flow * this.smear;
+      this.ripple.age += dt;
+      this.flash *= Math.exp(-8 * dt);
+    }
+    const time = (T.time ?? 0) + (this._inspectT ?? 0), breath = time * L.breathRate;
+    M.uFluidA.value.z = time + this.flowExtra;   // (the currents flow up it)
+    const R = T.reserve, energy = R?.max ? R.level / R.max : 1;
+    M.uBlade.value.set(this.smear, energy, breath, bladeLite() ? 1 : 0);
+    M.uBladeB.value.set(this.lagV.x, this.lagV.z, this.ripple.age, this.ripple.from);
+    M.uBladeC.value.x = this.ripple.k; M.uBladeC.value.y = this.ripple.gold; M.uBladeC.value.z = this.flash;
+    // the bead breathes (scaled about the cup's lip, where it stands)
+    if (this.bead) {
+      const k = 1 + 0.12 * (0.5 + 0.5 * Math.sin(breath)) + 0.5 * this.flash;
+      this.bead.scale.setScalar(k); this.bead.position.y = HILT.mouth * (1 - k);
+    }
   }
 
   stop() { this.charging = null; if (this.tool.player) this.tool.player.combatMotion = null; this.n = -1; this.queued = false; if (this.tool.player) this.tool.player.swingMove = null; }
@@ -778,12 +865,13 @@ export class FluidBlade {
       this.group.visible = held > 0.02 || this.lit > 0.03;
     }
     // (the blade only once the hilt is in the fist: a swing begun with it on the back lights as it arrives)
-    this.bladeGroup.visible = this.lit > 0.03 && (held > 0.97 || !placed);
+    // (in the fist between cuts a tongue of the fluid stands out of the cup, breathing: bladeIdle)
+    const shown = this.shownLit(dt, held >= 0.97 && placed);
+    this.bladeGroup.visible = shown > 0.03 && (held > 0.97 || !placed);
     // (the blade grows out of the cup as it lights: its length tuned and upgraded, its width filling out, broader with ink)
-    const grown = bladeGrowth(this.lit, T.state);
+    const grown = bladeGrowth(shown, T.state);
     this.bladeGroup.scale.set(grown.width / this.builtWidth, grown.length / this.builtLength, 1);
-    const U = this.swordMat.uniforms.uFluidA.value;
-    U.z = (T.time ?? 0) + (this._inspectT ?? 0);   // (the currents flow up it)
+    this.alive(dt);
     const seg = this.swinging && dt > 0 ? this.bladeSegment() ?? { a: this.group.getWorldPosition(_a).clone(), b: this.point.clone() } : null;
     const cut = !!seg && !this.charging && trailCut(this) && !!this.trailFrom;
     const style = wakeStyle(this.special, this.chargeFull);
@@ -806,7 +894,12 @@ export class FluidBlade {
           _a.lerpVectors(from.a, seg.a, u); _b.lerpVectors(from.b, seg.b, u);
           T.glow.add({ pos: _o.lerpVectors(_a, _b, x), vel: _r.set(0, 0, 0), drag: 8, size: 0.012 + 0.008 * ((k + n) % 2), life: 0.12, color: tones[(n + k) % tones.length], grow: false });
         }
-        for (const d of shedDrops(from, seg, dt, style)) T.drops?.add(d);
+        // (they fall to the ground at his feet and splash there; a fast cut throws more off the point: not on the lite look)
+        const lite = bladeLite(), floor = p?.frame?.up ? p.pos.dot(p.frame.up) : null;
+        const land = !lite && floor !== null ? (this._land ??= (d) => this.splash(d)) : null;
+        const drop = (d) => T.drops?.add(land ? { ...d, floor, land } : d);
+        for (const d of shedDrops(from, seg, dt, style)) drop(d);
+        if (!lite && this.smear > 0.45) for (const d of shedDrops(from, seg, dt, { ...style, drops: this.smear > 0.8 ? 2 : 1 }, Math.random, 0.85)) drop(d);
       } else {
         // wind-up, follow-through: a glint at the tip, and now and then a drip off the splash by the cup
         T.glow.add({ pos: _o.lerpVectors(seg.a, seg.b, 0.9), vel: _r.set(0, 0, 0), drag: 8, size: 0.01, life: 0.06, color: tones[n % tones.length], grow: false });
@@ -814,6 +907,13 @@ export class FluidBlade {
       }
     }
     this.trailFrom = seg ? { a: seg.a.clone(), b: seg.b.clone() } : null;
+  }
+
+  /** A drop off the blade meets the ground (tool.drops `land`): two droplets pop up off it, a little flat splash spreads and fades. */
+  splash(d) {
+    const T = this.tool, up = T.player?.frame?.up ?? _Y;
+    for (let i = 0; i < 2; i++) T.drops?.add({ pos: d.pos, vel: _a.randomDirection().multiplyScalar(0.6).addScaledVector(up, 1 + Math.random()), grav: 9, size: d.size * 0.5, life: 0.2, color: d.color });
+    T.drops?.add({ pos: d.pos, flat: true, grow: true, size: d.size * 2.4, life: 0.35, color: d.color });
   }
 
   /**

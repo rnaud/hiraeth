@@ -15,6 +15,7 @@ import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
 import { DUNE_GLASS_GLSL, DUNE_GLASS_VERT_PARS, DUNE_GLASS_VERT, duneGlassMaterial, dunePoolMaterial } from './dune-glass-shader.js';
 import { CRYSTAL_GLSL, CRYSTAL_VERT_PARS, CRYSTAL_VERT, crystalMaterial } from './crystal-shader.js';
 import { FOE_SURFACE_GLSL, FOE_SURFACE_PARS, foeSurfaceMaterial } from './foe-surface.js';
+import { BLADE_VERT_PARS, BLADE_VERT, BLADE_FLUID_GLSL, BLADE_DISCARD, BLADE_INK, bladeMaterial } from './blade-shader.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -509,6 +510,7 @@ const vertexShader = /* glsl */ `
   #endif
   ${DUNE_GLASS_VERT_PARS}
   ${CRYSTAL_VERT_PARS}
+  ${BLADE_VERT_PARS}
   #include <skinning_pars_vertex>
   #include <morphtarget_pars_vertex>
   #ifdef FACE_KEYS
@@ -624,6 +626,7 @@ const vertexShader = /* glsl */ `
     #endif
     ${DUNE_GLASS_VERT}
     ${CRYSTAL_VERT}
+    ${BLADE_VERT}
     vec4 pos = vec4(transformed, 1.0);
     vec3 nrm = objectNormal;
     #ifdef USE_INSTANCING
@@ -1838,27 +1841,8 @@ const fragmentShader = /* glsl */ `
     }
     return fluidTone(pick);
   }
-  // The fluid sword (kind 6, src/fluid-sword.js): turquoise water with sand-cream currents and deep teal pools
-  // flowing up it toward the point (flat tones: the post pass inks where they meet), a bright ridge down its middle
-  // and a rim at each edge (pale on the leading, gold on the trailing, as the sheet draws them). aFold: x across
-  // (-1 the trailing edge .. 1 the leading), y along (0 the hilt .. 1 the point); tones: cream, deep, pale, gold, -, light.
-  vec3 bladeFluid(float t) {
-    float u = vFold.x, v = vFold.y;
-    // (stretched up the blade: the currents run along it as streaks, not blobs)
-    vec2 p = vec2(u * 1.7 + 0.8 * v, v * 3.6 - t * 0.6);
-    vec2 q = vec2(vnoise(p * vec2(1.0, 2.0) + vec2(0.0, t * 0.3)), vnoise(p * vec2(1.3, 2.4) + vec2(5.2, 1.3) - vec2(t * 0.2, 0.0)));
-    float f = vnoise(p + 1.7 * q + vec2(1.7, 9.2));
-    float g = vnoise(p * vec2(1.6, 2.6) + 1.3 * q.yx + vec2(4.1, 2.7));
-    float cream = f - 0.18 * u - 0.15 * smoothstep(0.7, 1.0, v) - 0.2 * (1.0 - smoothstep(0.05, 0.3, v));   // (the currents lie toward the trailing edge, from a quarter of the way up)
-    // soft where they meet (as water mixes: the post pass inks only the sharpest of them)
-    vec3 col = mix(uFluidBase, fluidTone(1), 0.85 * smoothstep(0.36, 0.22, g - 0.1 * (1.0 - v)));   // deep pools, more by the hilt
-    col = mix(col, fluidTone(0), smoothstep(0.7, 0.77, cream));
-    col = mix(col, fluidTone(2), 0.5 * smoothstep(0.55, 0.62, g) * (1.0 - smoothstep(0.62, 0.7, g)));   // pale glints between them
-    float ridge = (1.0 - smoothstep(0.03, 0.08, abs(u - 0.12 * v))) * smoothstep(0.12, 0.3, v) * (1.0 - smoothstep(0.86, 0.97, v));
-    col = mix(col, fluidTone(5), 0.75 * ridge);
-    col = mix(col, u > 0.0 ? fluidTone(2) : fluidTone(3), smoothstep(0.84, 0.95, abs(u)));
-    return col;
-  }
+  // The fluid sword (kind 6, src/fluid-sword.js): its living blade (blade-shader.js; aFold: x across, y along)
+  ${BLADE_FLUID_GLSL}
   vec3 fluidAlbedo(vec3 base) {
     float t = uFluidA.z, kind = uFluidA.w;
     int n = int(uFluidA.y + 0.5);
@@ -1972,6 +1956,7 @@ const fragmentShader = /* glsl */ `
       float top = mix(2.45, -0.1, uFluidB.y) - 0.22 * vnoise(vec2(s * 9.0, t * 0.6 + 3.0));
       if (vFold.x < 0.5 && (vBind.y < 0.015 + 0.11 * drip * drip || vBind.y > top || (uFluidBox.w > 0.0 && vBind.y > uFluidBox.w))) discard;   // (the flame, aFold.x over 0.5, shrinks by itself)
     }
+    ${BLADE_DISCARD}
     #endif
     // stroke coordinates + derivatives first, in uniform control flow
     vec3 on = uFlat > 0.5 ? cross(dFdx(vObjRel), dFdy(vObjRel)) : vObjNormal;
@@ -2346,6 +2331,9 @@ const fragmentShader = /* glsl */ `
     #ifdef FOE_SURFACE
       foeGloss(albedo, L, n);   // (foe-surface.js: a foe's crisp highlight)
     #endif
+    #ifdef BLADE_FLUID
+      bladeLight(albedo, L, emit, n);   // (blade-shader.js: the fluid sword's breathing glow, rim and flecks)
+    #endif
     #ifdef METAL
       float metalInk;
       albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, metalInk);
@@ -2661,6 +2649,7 @@ const fragmentShader = /* glsl */ `
       gHatch.rgb = vec3(uCrystalDeep.a, 0.0, 0.0);
       gHatch.a += 8.0;
     #endif
+    ${BLADE_INK}
   }
 `;
 
@@ -2850,6 +2839,7 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
     mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
+    if (o.fluid === 'blade') bladeMaterial(mat);   // the sword's living blade (blade-shader.js)
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)
   if (o.fall) fallMaterial(mat, o);   // a falling sheet of water (waterfall-shader.js)

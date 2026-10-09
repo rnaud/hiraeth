@@ -24,6 +24,7 @@ import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
 import { sharedUniforms, markHero, setEnvGround } from './materials.js';
+import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
 import { LEVELS, levelById } from './levels/index.js';
@@ -990,6 +991,7 @@ function applyDetail() {
   U.uPostLite.value = preset.postLite ? 1 : 0;
   sharedUniforms.uWearLite.value = low || preset.postLite ? 1 : 0;   // (lighter weathering: materials.js WEATHER)
   waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
+  BLADE_QUALITY.lite = bladeLiteFor(preset, low);   // (the fluid sword's lighter look: src/blade-shader.js)
   waters.contact = waterContactOn(preset);   // the little waves round what stands in the water (src/water.js renderGBuffer)
   for (const n of npcs) n.lowDetail = low;
   if (crowd) {

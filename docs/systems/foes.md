@@ -107,8 +107,8 @@ The first things in the game that fight back, and the tool's answer to them.
     `aFold` carries across (-1 trailing .. 1 leading) and along (0 .. 1) for the shader.
   - *The fluid* (`src/materials.js` fluid kind `blade`, 6: `bladeFluid`): turquoise (`SWORD_TONES.base`) with
     sand-cream currents (toward the trailing edge, from a quarter of the way up) and deep teal pools (more by the
-    hilt), noise stretched along the blade so they run as streaks, flowing up it over time; soft where they meet,
-    so the post pass inks only the sharpest of them; a bright ridge down the middle, a pale rim on the leading
+    hilt), noise stretched along the blade so they run as streaks, flowing up it over time; soft where they meet
+    (v1.11: ringed by its own fine teal pen line, the post pass drawing only the outline: *Alive* below); a bright ridge down the middle, a pale rim on the leading
     edge and a gold one on the trailing (as the sheet draws them); a little self-light (`glow` 0.5). The colours
     are the sheet's, not the gun mode's (the old blade took the tank's tones).
   - *Growing* (`bladeGrowth`): as it lights for a swing it grows out of the cup to `bladeLength` (the reach step:
@@ -128,6 +128,50 @@ The first things in the game that fight back, and the tool's answer to them.
   - *Cost*: three draw calls held (grip, brass, the bead), four lit, five through a cut; in the Arena (High) the
     lit sword draws 13 calls over every pass (14 before), 7.6k triangles (the mesh is 2.5k); placing it and the
     wake take about 0.01 ms of CPU each a frame. Tests: `tests/fluid-sword.test.js`.
+  - *Alive* (v1.11, `src/blade-shader.js`, `FluidBlade.alive()`; `tests/blade-shader.test.js`): the blade moves
+    inside, answers the swing and the blows, and glows. All in the G-buffer shader and a few uniforms: no pass, no
+    texture, no draw call added (the sword still draws 11 calls over every pass mid-swing in the Arena, High).
+    - *Inside*: the currents run on their own clock (`uFluidA.z`: the game's time plus `flowExtra`, which runs up to
+      `BLADE_LOOK.flow` (2.5×) faster while it smears). Fine pale ripple lines (a second warped field's middle, a pen
+      width at any distance, gone where they would crowd under a pixel) and small bubbles rising toward the point
+      (a pale ring and a glint, each column of 2.5 cm cells at its own pace) drift through it. A fine darker-teal pen
+      line rings the cream currents (the post pass draws nothing inside the blade now: below).
+    - *The skin*: the outermost 3–7 % of the width is a meniscus that comes and goes with a slow wobble (discarded,
+      so the outline itself wobbles; whole by the cup and at the point); a thin bright line just inside it on the
+      leading edge (gold on the trailing), a pixel and a half at least, over the bloom threshold (a faint halo).
+    - *The swing* (`bladeSmear`, `bladeLag`): the point's speed (world, frame to frame) smears it (0..1, whole at
+      `smearAt` 30 m/s; in fast, out over ~0.2 s): the currents stretch back across the blade, the side it trails
+      frays. The fluid trails the point by `bladeLag` (speed × 1.6 ms, at most 7 cm), turned into the blade's own
+      frame (`uBladeB.xy`): the vertex shader bows the outer blade back along it (`v^1.6`) and stretches the trailing
+      half out, with a wave running up the edges. Through the cut more drops fly off the point (`shedDrops`'s `near`
+      0.85, one or two a frame when it smears past 0.45), and the drops fall to the ground at his feet and splash
+      there (`Dots`: a drop's `floor` and `land`; two droplets pop up and a flat splash spreads and fades).
+    - *The blows* (`rippleAt`): a hit sends a bright ring along the blade both ways from where it struck (the hit
+      point projected on the blade; heavier for the third swing and the specials), a block a ring up from the cup,
+      a perfect parry a gold one and the blade flares out of the cup a moment (`lit` 0.9, then back), the charge
+      gathered full a ring; each with a flash of the whole blade (`uBladeC.z`, gone in ~0.3 s) and the bead swelling.
+      The ring bulges the edges as it passes.
+    - *At rest*: in the fist between cuts a short tongue of the fluid stands out of the cup (`bladeIdle`: 11 % of the
+      blade, 9 cm, breathing ±12 % on a 3 s breath, eased in and out with `idleK`; the hits still use `lit`); the bead
+      in the cup breathes on the same beat, on the back too.
+    - *Light* (`bladeLight`, after the light term as the chimes' crystal): a pale rim where the faces turn away,
+      flecks of sunlight on the ripples (no sun: a softer glint off a light over your shoulder), never under the toon
+      threshold. The glow (`BLADE_LOOK`): 0.5 by day, breathing +0.07, +0.04 with the magic bar full (all under the
+      bloom threshold 0.62), +0.16 after dark (`uNight`, or no sun): over it, so at night the blade is lit from within
+      with a printed halo round it, and reads in the dark. The edge line, the bubbles, the flecks and a ring glow over
+      the threshold by day too.
+    - *Ink*: soft ink (`gHatch.a` + 8, as the chimes and the makers' boxes) with a pen share of 0.5: post.js draws its
+      outline half pen, half a darker shade of the water, and nothing inside it (no colour-edge, crease or shadow line
+      across the currents, no hatching): the shader's own pale ripple lines and teal pen line draw its inside.
+    - *Lite* (`BLADE_QUALITY.lite`, `bladeLiteFor`, said by main.js applyDetail; `uBlade.w`): the handheld (its lighter
+      ink pass), Low, and a desktop Auto that had to drop resolution leave out the ripple lines, the bubbles, the
+      extra drops off the point and the splashes; the currents, the skin, the swing's bow, the rings and the light
+      stay. The Deck keeps the whole look.
+    - *Cost* (M4 Pro, Chrome ANGLE Metal, 1280 × 720; the Arena, the first swing frozen on its cut, GPU-synced
+      renders): the sword's draw calls and triangles unchanged (11 draws, 7.4k triangles over every pass, High);
+      its render cost at play distance under 0.1 ms either way, close up (the blade filling the screen) +0.2 ms
+      against +0.1 ms before; `place()` 0.02 ms of CPU (0.017 before). Deck preset: the same draws, the frame
+      within ±0.2 ms.
 
 ## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
 

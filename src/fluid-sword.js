@@ -11,7 +11,8 @@ import { makeMaterial, MODE_RIBBON } from './materials.js';
 //   - the blade: broad and liquid, narrow where it leaves the cup, splashing out to its full width a tenth of
 //     the way up (its edges ragged there, as water thrown), the leading edge almost straight, the trailing edge
 //     curving up into a long point; lens-shaped in section with a ridge down the middle. Drawn in turquoise
-//     with sand-cream currents and deep teal pools flowing up it (src/materials.js fluid kind 'blade')
+//     with sand-cream currents and deep teal pools flowing up it (src/materials.js fluid kind 'blade'), alive:
+//     ripples, bubbles, a wobbling skin, bowed by the swing, a ring at each blow, a breathing glow (src/blade-shader.js)
 //   - the wake: a ribbon of the fluid trailing off the outer half of the edge through a cut, falling and
 //     tapering as it dissolves into print dots (one strip, rebuilt from the last few frames' blade)
 //
