@@ -76,12 +76,6 @@ export const FOES = {
     attack: { shape: 'ring', radius: 1.0, ahead: 0.6, damage: 0.25, wind: 0.5, strike: 0.24, contact: 0.55, lunge: 1.0 },
     recover: 0.7, cool: [0.6, 1.4], hit: 0.2,
   },
-  // hovers out of the blade's reach, climbs and tips its nose at you, then dives; low after its dive, it can be cut
-  flyer: {
-    name: 'winged blot', hp: 2, radius: 0.6, height: 0.5, hover: 3.6, speed: 3.8, sight: 22, giveUp: 45, reach: 6,
-    attack: { shape: 'lane', width: 1.7, range: 9, damage: 0.75, wind: 1.0, strike: 0.4, contact: 0.85, dive: true },
-    recover: 1.7, cool: [1.8, 2.8], hit: 0.3,
-  },
   // a person made of living shadow (src/shade.js): it walks up and cuts with a sword's swing, dripping as it goes
   shade: {
     name: 'shade', hp: 5, radius: 0.45, height: 1.15, speed: 3.0, sight: 18, giveUp: 40, reach: 2.3, clamber: true, tone: '#3b2a5c',
@@ -105,16 +99,14 @@ export const PEACEFUL = new Set(['home', 'lab', 'references', 'atelier', 'overni
 export const WILD = { people: 45, spawn: 55 };
 /** The packs of ink blots: how many at once, how far out they come in, how long before the next. */
 export const PACK = { size: [2, 3], first: 1, near: 18, far: 26, settle: 3, rest: [35, 55], drop: 85 };
-/** Worlds of open sky, where winged blots fly. */
-export const SKY_WORLDS = new Set(['arzach', 'arzach2', 'glassdunes', 'fallenring', 'underside', 'antennas']);
 /** What a pack is: the world's roster (src/foe-worlds.js packOf): the first, its own kind alone; then a lead and its fillers. */
 export function packKinds(n, levelId, rng = Math.random) { return packOf(n, levelId, rng); }
 const STILL = 3.5;   // s a stilling glob holds a foe
 const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
-export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['shade'], ['flyer', 'flyer'], ['spitter', 'spitter', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'flyer'],
+export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['spitter', 'blot'], Array(6).fill('swarm'), ['machine'], ['shade'], ['ray', 'ray'], ['spitter', 'spitter', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'ray'],
   // then the worlds' (the archetypes and their stand-ins: src/enemies/archetypes.js, src/foe-kinds.js)
-  ['ray'], ['golem'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['stalker', 'blot'], ['crab', 'crab'], ['slag'], ['hound', 'hound'], ['lizard', 'lizard'], ['tripod'], ['tripod', 'lizard', 'lizard'], ['golem', 'crab', 'drone', 'hound']];
+  ['worm'], ['golem'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['stalker', 'blot'], ['crab', 'crab'], ['slag'], ['hound', 'hound'], ['lizard', 'lizard'], ['tripod'], ['tripod', 'lizard', 'lizard'], ['golem', 'crab', 'drone', 'hound']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
 export const TURNS = { strikers: 2, apart: 0.3 };
@@ -164,6 +156,10 @@ export function warnSpot(px, py, ahead, hidden = false) {
 /** A buried ray winding up its burst swims to its ring: there by `arrive` of the wind-up, at most `max` m/s, within `stop` m. */
 export const SWIM = { arrive: 0.85, max: 12, stop: 0.4 };
 export const PHASE = { near: 3.2 };
+/** The centipede's ring (Foes.corral): its body walls you in within `wall` m of it, unless you are `over` m over its back. */
+export const RING = { wall: 0.95, over: 0.9 };
+/** A sky ray ploughed into the ground by a perfect parry of its skim (onParry 'ground'): s it lies there, open. */
+export const GROUNDED = 2.5;
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
 /**
@@ -246,6 +242,10 @@ export class Foe {
     this.shelled = !!this.def.shell;   // a salt crab's shell (a bomb cracks it)
     this.flipped = 0; this.lit = 0; this.crust = 0; this.sleep = 0;   // s: on its back; lit by an ember; doused cold; asleep in a bloom
     this.low = 0;   // s knocked low by a cut (a hovering foe: KNOCKED_LOW)
+    // batch 2 (v1.9): a support's lanterns and the neighbours it wards (the jelly); the ward on this one, if any
+    // ({ by, t }); the tail segments it has shed (the centipede); the ring it runs round you (attack.encircle)
+    this.lanterns = this.def.lanterns ?? 0; this.wards = []; this.ward = null; this.allies = [];
+    this.shed = 0; this.ring = null;
     // the world (v0.98): the height a hovering foe holds over its footing (HOVER), its hiding place (COVER),
     // a fall (FALL: { vy, top, base, hard }), a tumble up an updraft, and the hazards' and workings' rests
     this.over = 0; this.overV = 0; this.fallTop = null; this.youY = null;
@@ -275,9 +275,18 @@ export class Foe {
    */
   attacksAt(d, dy = 0) {
     const D = this.def;
-    return D.attacks.filter((a) => !a.chain && d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6 && (dy < STRIKE_RISE || reachesUp(a))
+    return D.attacks.filter((a) => !a.chain && (a.ward || a.mend || (d >= (a.min ?? 0) && d <= (a.max ?? D.reach) + 1e-6 && (dy < STRIKE_RISE || reachesUp(a))))
       && (!a.skins || this.moves.includes(a.id)) && (a.below == null || this.hp <= D.hp * a.below + 1e-9)
-      && (!a.rear || this.behind) && (!a.flank || this.unseen));
+      && (!a.rear || this.behind) && (!a.flank || this.unseen)
+      && (!a.up || !this.buried) && (!a.surface || !D.burrow || this.buried)   // (a burrower: some moves only up, its burst only from under)
+      && (!(a.ward || a.mend) || !!this.allyFor(a)));                            // (a support's move needs a neighbour to take it)
+  }
+  /** The neighbour a support's move (attack.ward / attack.mend) would go to, or null: one not yet warded while a lantern is free; one hurt. */
+  allyFor(a) {
+    const near = (x) => x.alive && x.pos.distanceTo(this.pos) <= (a.ward ?? a.mend).range;
+    if (a.ward) return (this.wards?.length ?? 0) < (this.lanterns ?? 0) ? (this.allies ?? []).find((x) => near(x) && !(x.ward?.t > 0)) ?? null : null;
+    if (a.mend) return (this.allies ?? []).filter((x) => near(x) && x.hp < x.def.hp - 0.5).sort((p, q) => p.hp / p.def.hp - q.hp / q.def.hp)[0] ?? null;
+    return null;
   }
   /** One of them, by weight (the one it just used less likely). dy: your height off its level (m): out of a blow's reach, only a lob. */
   chooseAttack(d, dy = 0) {
@@ -293,6 +302,8 @@ export class Foe {
     if (a.chain) this.heading = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);   // (a follow-up turns to where you are now)
     this.state = 'wind'; this.timer = 0; this.k = 0; this.atk = a; this.lastAtk = a.id; this.contacted = false;
     this.cover = null; this.hid = false; this.waiting = false; this.holding = null;   // (it may hide again after this strike)
+    this.ring = null;
+    this.allyTarget = a.ward || a.mend ? this.allyFor(a) : null;   // (a support's move: to a neighbour)
     this.attackH = this.heading + (a.back ? Math.PI : 0);   // (a tail whip: behind it)
     if (this.buried && !a.surface) this.surfaced();   // (a ray comes up out of the sand to glide)
     if (this.def.keep) this.retreat = PRESSURE.retreat;   // (it struck: it may back off again after)
@@ -326,10 +337,39 @@ export class Foe {
   }
   /** Up out of the sand (a dune ray): it stays up a while, to be fought. */
   surfaced() { this.buried = false; this.upFor = BURROW.up; }
+  /**
+   * The centipede's ring (attack.encircle): through the wind-up it spirals round where you stood (attackAt), from its
+   * own distance (at most r0) in to r1, at `speed` × its own, its body following its head round into a ring
+   * (src/enemies/plans/centipede.js); Foes.corral keeps you inside while it closes.
+   */
+  encircle(a, wind, dt, env) {
+    const E = a.encircle, c = this.attackAt;
+    if (!this.ring) {
+      const dx = this.pos.x - c.x, dz = this.pos.z - c.z, r = Math.hypot(dx, dz);
+      this.ring = { ang: Math.atan2(dx, dz), r0: Math.max(E.r1 + 0.5, Math.min(E.r0, r || E.r0)), dir: this.rng() < 0.5 ? -1 : 1, r: r || E.r0 };
+    }
+    const R = this.ring, k = Math.min(1, this.timer / wind);
+    R.r = THREE.MathUtils.lerp(R.r0, E.r1, THREE.MathUtils.smoothstep(k, 0.15, 0.95));
+    R.ang += R.dir * ((this.def.speed * E.speed) / Math.max(R.r, 0.5)) * dt;
+    const tx = c.x + Math.sin(R.ang) * R.r, tz = c.z + Math.cos(R.ang) * R.r, mx = tx - this.pos.x, mz = tz - this.pos.z;
+    if (Math.hypot(mx, mz) > 1e-4) { this.step(mx, mz, env); this.heading = Math.atan2(mx, mz); }
+  }
+  /** Its ward ends (run out, its jelly gone, or the lantern popped). */
+  unward() { const J = this.ward?.by; this.ward = null; if (J) J.wards = J.wards.filter((x) => x !== this); }
+  /** A shot or the boomerang pops one of a support's lanterns: the lit one first, and the ward it held. True when one popped. */
+  pop() {
+    if (!(this.lanterns > 0)) return false;
+    this.lanterns--;
+    if (this.wards.length) this.wards.at(-1).unward();   // (the lit one, warding, is the one you hit)
+    while (this.wards.length > this.lanterns) this.wards.at(-1).unward();
+    this.flash = 1;
+    return true;
+  }
   /** Done with attack a: its follow-up straight away (a combo), else recover. */
   next(a, P, ev) {
     const n = a.then ? attackOf(this.kind, a.then) : null;
     if (n && !P.dead && !P.down) { this.beginWind(n, P); ev.push('warn'); return; }
+    if (a.dives && this.def.burrow) { this.buried = true; this.upFor = 0; }   // (the worm's dive: back under the sand)
     this.state = 'recover'; this.timer = a.recover ?? this.def.recover; this.k = 0; this.reel = null;
   }
   /** An instant attack lands as its wind-up ends: a lob, a flash, a ray bursting up, a hound stepping out of the shadow. */
@@ -340,7 +380,9 @@ export class Foe {
       if (a.surface) this.surfaced();
       this.heading = this.attackH = Math.atan2(P.pos.x - this.pos.x, P.pos.z - this.pos.z);
     }
-    if (a.damage > 0) {
+    // a support's move on its neighbour (the jelly's ward, its mend): Foes.support does the rest
+    if ((a.ward || a.mend) && this.allyTarget?.alive) ev.push({ type: a.ward ? 'ward' : 'mend', target: this.allyTarget, atk: a });
+    if (a.damage > 0 || a.slip) {
       const pts = this.attackPts ?? [this.attackAt];
       const seen = a.at === 'self' ? env.seen?.(this.chest, P.pos) ?? true : true;   // (a flash needs a clear line; a lob goes over)
       const hit = playerOk && seen && pts.some((p) => Math.abs(P.pos.y - (a.at === 'self' ? this.level : p.y)) < STRIKE_RISE && inArea(a, p, this.attackH, P.pos));
@@ -368,6 +410,9 @@ export class Foe {
     this.cool = Math.max(0, this.cool - dt);
     if (!this.buried && this.upFor > 0) this.upFor = Math.max(0, this.upFor - dt);
     for (const k of ['flipped', 'lit', 'crust', 'sleep', 'low', 'knockedBy', 'dazed']) if (this[k] > 0) this[k] = Math.max(0, this[k] - dt);
+    // a jelly's ward on it runs out, or ends with the jelly (its lantern popped: Foe.pop)
+    if (this.ward && ((this.ward.t -= dt) <= 0 || !this.ward.by.alive || this.ward.by.dead !== undefined)) this.unward();
+    if (this.wards.length) this.wards = this.wards.filter((x) => x.alive && x.ward?.by === this);
     // the world's hazards and workings it is in (v0.98: knocked into spines, a gust, an updraft, a pendulum)
     this.feelWorld(dt, env, ev);
     // up or down a ledge: crouched, then in the air (src/foe-height.js HOP); its mind waits until it lands
@@ -384,7 +429,9 @@ export class Foe {
     // a flyer keeps to its height, low only while it recovers from a dive (and falls when stilled)
     // (knocked low by a cut, it drops fast and stays within the blade's reach a while)
     if (D.hover) {
-      this.alt += ((this.stunned > 0 ? 0.3 : this.low > 0 || this.state === 'recover' ? 0.35 : D.hover) - this.alt) * (1 - Math.exp(-(this.low > 0 ? 6 : this.state === 'recover' ? 1.2 : 3) * dt));
+      // (a support stays up after its moves; it comes down only to mend, within reach: the jelly)
+      const mending = this.state === 'wind' && this.atk?.mend, low = this.state === 'recover' && !D.support;
+      this.alt += ((this.stunned > 0 ? 0.3 : mending ? 1.1 : this.low > 0 || low ? 0.35 : D.hover) - this.alt) * (1 - Math.exp(-(this.low > 0 ? 6 : low ? 1.2 : mending ? 2.5 : 3) * dt));
       this.fly(dt, P, env, ev);
       if (!this.alive) return ev;
     }
@@ -418,7 +465,18 @@ export class Foe {
         if (lost || (away > D.giveUp && youLeft) || d > D.sight * 2) { this.state = 'home'; ev.push('home'); break; }
         this.face(dx, dz, dt, 8);
         if (down) { this.circle(P, D.reach + PRESSURE.hold, dt, env); break; }   // (you are down: it waits round you, facing you, for you to rise)
-        if (D.hover && this.hide(dt, P, d, env)) break;   // (between strikes, a hovering foe hides behind the world: COVER)
+        // a support (the jelly) keeps over its neighbours, a little toward you, and works on them; alone, it comes for you
+        if (D.support) {
+          const ally = this.allies.filter((x) => x.alive && x.dead === undefined).sort((p, q) => p.pos.distanceTo(this.pos) - q.pos.distanceTo(this.pos))[0];
+          if (ally) {
+            const a = this.cool === 0 && (env.mayStrike?.(this) ?? true) ? this.chooseAttack(d, Math.abs(P.pos.y - this.level)) : null;
+            if (a) { this.beginWind(a, P); ev.push('warn'); break; }
+            const ax = P.pos.x - ally.pos.x, az = P.pos.z - ally.pos.z, al = Math.hypot(ax, az) || 1;
+            this.walkTo(ally.pos.x + (ax / al) * 1.4, ally.pos.z + (az / al) * 1.4, D.speed, dt, env, 0.5);
+            break;
+          }
+        }
+        if (D.hover && !D.support && this.hide(dt, P, d, env)) break;   // (between strikes, a hovering foe hides behind the world: COVER)
         // over height (v1.4): a walker finds its way up and down to you; out of a blow's reach it doesn't swing at air
         const walker = !D.hover, dy = Math.abs(P.pos.y - this.level), high = dy >= STRIKE_RISE;
         if (walker && D.perch) this.perchUp(P, d, dt, env);   // (a spitter climbs to the high ground, and holds it)
@@ -450,6 +508,8 @@ export class Foe {
           const a = this.chooseAttack(d, dy);
           if (a) { this.beginWind(a, P); ev.push('warn'); this.route = null; }
           else if (walker) this.approach(P, dt, env, D.radius + 0.6);
+          // a flyer too close for any of its moves (a sky ray past you after a skim) wheels off to come round again
+          else if (D.hover && d < Math.min(...D.attacks.filter((x) => !x.chain && !x.ward && !x.mend && !x.rear && (!x.skins || this.moves.includes(x.id))).map((x) => x.min ?? 0)) && d > 1e-4) { this.step(-dx / d * D.speed * dt, -dz / d * D.speed * dt, env); }
           else this.walkTo(P.pos.x, P.pos.z, D.speed, dt, env, D.radius + 0.6);
         }
         break;
@@ -464,6 +524,8 @@ export class Foe {
           this.placeArea(a, P);
         }
         if (a.surface && this.buried) this.swimTo(this.attackAt, wind, dt, env);   // (its fin is seen coming at you)
+        if (a.encircle) this.encircle(a, wind, dt, env);                         // (the centipede runs its ring round you)
+        if (a.mend && this.allyTarget?.alive) { const T = this.allyTarget.pos; this.walkTo(T.x, T.z, D.speed * 1.5, dt, env, 0.3); }   // (down over the hurt one)
         if (this.timer >= wind) {
           if (a.instant || a.at === 'target') this.resolve(a, P, playerOk, ev, env);
           else { this.state = 'strike'; this.timer = 0; this.k = 0; this.contacted = false; }
@@ -528,11 +590,13 @@ export class Foe {
       this.step(-(P.pos.x - this.pos.x) / d * D.speed * 0.35 * dt, -(P.pos.z - this.pos.z) / d * D.speed * 0.35 * dt, env);
       this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 5);
     } else if (this.watcher && !lost && d < D.sight) this.face(P.pos.x - this.pos.x, P.pos.z - this.pos.z, dt, 3);   // (stands and watches you go)
-    else {
-      this.wander += dt * (still ? 0.12 : C.mode === 'patrol' ? 0.25 : 0.4);
-      const R = C.mode === 'patrol' ? C.round ?? 7 : still ? 0.8 : 2.5;
-      const tx = this.home.x + Math.sin(this.wander) * R, tz = this.home.z + Math.cos(this.wander * (C.mode === 'patrol' ? 1 : 0.7)) * R;
-      this.walkTo(tx, tz, D.speed * (still ? 0.12 : C.mode === 'patrol' ? 0.35 : 0.25), dt, env);
+    else if (C.mode !== 'coil') {   // (coiled, a centipede suns where it lies)
+      // circling (a ray in the thermals, a moth round its lamp: round and round), drifting (a jelly with the wind)
+      const round = C.mode === 'circle', drift = C.mode === 'drift';
+      this.wander += dt * (still ? 0.12 : C.mode === 'patrol' ? 0.25 : round ? 0.5 : drift ? 0.08 : 0.4);
+      const R = C.mode === 'patrol' ? C.round ?? 7 : still ? 0.8 : round ? 5 : drift ? 4 : 2.5;
+      const tx = this.home.x + Math.sin(this.wander) * R, tz = this.home.z + Math.cos(this.wander * (C.mode === 'patrol' || round ? 1 : 0.7)) * R;
+      this.walkTo(tx, tz, D.speed * (still ? 0.12 : C.mode === 'patrol' ? 0.35 : round ? 0.6 : drift ? 0.15 : 0.25), dt, env);
     }
     if (lost) return false;
     if (this.provoked) return true;
@@ -929,6 +993,14 @@ export class Foe {
     this.shrugged = false;
     this.provoked = true;   // (wildlife hurt fights back)
     const D = this.def, src = info.source;
+    if (this.buried && mode === 'blade' && info.air) {
+      // the air cut driven down onto the mound: up it comes, and the blow lands double (the mound worm)
+      this.surfaced(); this.stunned = BURROW.flush; this.flash = 1; this.k = 0; this.letGo = true;
+      if (this.state === 'wind' || this.state === 'strike') this.state = 'chase';
+      this.hp -= (info.damage ?? 1) * 2;
+      if (this.hp <= 0) { this.state = 'dead'; this.k = 0; return 'burst'; }
+      return 'flushed';
+    }
     if (this.buried) {
       // under the sand a blast, a stomp or a gust throws a ray up, dazed; a cut at its fin flushes it out
       // (a shorter daze, no harm: the sand takes the blow); nothing else reaches it
@@ -950,7 +1022,19 @@ export class Foe {
       }
       // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
       dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1);
+      if (D.segmented && dir && src !== 'parry') {
+        // plated (the centipede): from behind or the side the plates take half and it never reels; its head,
+        // turned in for the ring, takes the cut double; cut from behind once it is hurt, its tail breaks off
+        if (!this.frontal(dir)) {
+          dmg *= 0.5; this.plated = true;
+          if (D.shed && !this.shed && this.hp - dmg <= D.hp * D.shed.below) { this.shed = D.shed.segments; this.shedNow = true; }
+        } else if (this.state === 'wind' && this.atk?.encircle) dmg *= 2;
+      }
       this.stunned = 0; this.sleep = 0; this.dazed = 0;
+    } else if (mode === 'shoot' && D.takes.shoot === 'pop') {
+      // a support's lanterns: a shot pops one (and the ward it held); with none left, it hurts it
+      if (this.pop()) { this.provoked = true; return 'popped'; }
+      dmg = 1;
     } else if (mode === 'shoot' || mode === 'fire') {
       dmg = D.takes[mode] ?? 0;
       if (mode === 'shoot' && D.douse) this.crust = D.douse;   // (water on slag: a cold crust)
@@ -976,7 +1060,12 @@ export class Foe {
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
     if (mode === 'blade' || mode === 'fire' || mode === 'world') this.letGo = true;   // (a hold, a line, is broken)
     // Light cuts interrupt a blot (the flinchy ones), or the first two thirds of anyone's wind-up; the charged cut (info.breaks) anyone.
-    const reels = (mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike');
+    // (a ward from a jelly: half the harm, and it shrugs off staggers; plated: a cut on its back never staggers it;
+    // the push breaks a ring it is closing)
+    const warded = this.ward?.t > 0, plated = this.plated; this.plated = false;
+    if (warded) dmg *= 0.5;
+    const ringBroken = mode === 'push' && this.state === 'wind' && !!this.atk?.encircle;
+    const reels = ringBroken || (!warded && !plated && ((mode === 'world' && !info.stun) || (D.flinchy && mode === 'blade') || (mode === 'blade' && !!info.breaks) || (this.state === 'wind' && this.k < 0.66) || (this.heavyRecoil && this.state !== 'strike')));
     // a cut that doesn't stop it: a heavy foe, or one committed to its blow (late in its wind-up, striking); Foes.hurt answers with its armour's thunk
     this.shrugged = mode === 'blade' && !reels && (!!D.heavy || this.state === 'wind' || this.state === 'strike');
     if (mode === 'blade' && D.hover) this.low = KNOCKED_LOW;   // (cut, a hovering foe drops within reach)
@@ -1002,10 +1091,10 @@ const pluralOf = (id) => (foeName(id) !== FOES[parseKind(id).kind]?.name ? `${fo
 export function waveWords(kinds) {
   const count = (k) => kinds.filter((x) => x === k).length, say = (n, one, many = `${one}s`) => `${n} ${n > 1 ? many : one}`;
   // (the old names first, as they always were, then the worlds' kinds and the archetypes, the ink blot last)
-  const order = ['machine', 'shade', 'spitter', 'flyer', ...Object.keys(KINDS), ...Object.keys(ARCHETYPE_KINDS).filter((k) => k !== 'blot'), 'blot'];
+  const order = ['machine', 'shade', 'spitter', ...Object.keys(KINDS), ...Object.keys(ARCHETYPE_KINDS).filter((k) => k !== 'blot'), 'blot'];
   const rank = (k) => order.indexOf(parseKind(k).kind) + (parseKind(k).skin ? 0.5 : 0);
   const ids = [...new Set(kinds)].filter((k) => parseKind(k).kind !== 'swarm').sort((a, b) => rank(a) - rank(b));
-  const words = { machine: 'machine', shade: 'shade', spitter: 'spitting blot', flyer: 'winged blot', blot: 'ink blot' };
+  const words = { machine: 'machine', shade: 'shade', spitter: 'spitting blot', blot: 'ink blot' };
   const parts = ids.map((k) => say(count(k), words[k] ?? foeName(k), words[k] ? undefined : pluralOf(k)));
   if (kinds.some((k) => parseKind(k).kind === 'swarm')) parts.push('a swarm');
   return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts.at(-1)}` : parts[0] ?? '';
@@ -1018,12 +1107,17 @@ const seeded = (s) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
  */
 export function worldWaves(world) {
   const kinds = [...new Set(worldArchetypes(world).map((a) => ARCHETYPES[a].kind).filter(Boolean))];
-  const alone = kinds.map((k) => Array(FOES[k]?.group ?? 1).fill(skinned(k, world)));
+  const alone = kinds.map((k) => aloneWave(k, world));
   return [...alone, ...[1, 2].map((n) => packOf(n + 2, world, seeded(n * 7 + world.length)).map((k) => skinned(k, world)))];
 }
 
+/** A kind alone in a world's skin: a group kind as its group; a support with what it supports (def.escort: the jelly and a blot). */
+export function aloneWave(k, w) {
+  const D = FOES[k];
+  return [...Array(D?.group ?? 1).fill(skinned(k, w)), ...(D?.escort ? [skinned(D.escort, w)] : [])];
+}
 /** The built archetypes, each alone in each of its skins (src/enemies/skins.js), a group kind as a group. */
-const SKIN_WAVES = BUILT.flatMap((a) => skinWorlds(a).map((w) => Array(FOES[ARCHETYPES[a].kind].group ?? 1).fill(skinned(ARCHETYPES[a].kind, w))));
+const SKIN_WAVES = BUILT.flatMap((a) => skinWorlds(a).map((w) => aloneWave(ARCHETYPES[a].kind, w)));
 const WORLD_START = {};
 /**
  * The Arena's whole cycle (v1.8, the enemy roster): the ink and the worlds' kinds (WAVES), then each built archetype
@@ -1074,14 +1168,6 @@ function blotModel(kind = 'blot') {
     M.eyeMat = makeMaterial({ color: '#d9f05a', flat: true, glow: 0.6, key: `foe-eye-spit.${foeMaterialId++}` }); M.base = '#d9f05a';
     for (const e of eyes) e.material = M.eyeMat;
     M.glob = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 1), ink); M.glob.visible = false;
-  }
-  if (kind === 'flyer') {
-    // wings of ink, flapping
-    M.wings = [-1, 1].map((s) => {
-      // The broad root overlaps the body; only the outboard span flaps.
-      const w = new THREE.Mesh(new THREE.ConeGeometry(0.28, 1.1, 4).rotateZ(-s * Math.PI / 2).scale(1, 1, 0.25).translate(s * 0.48, 0, 0), ink);
-      w.position.set(s * 0.38, 0.6, -0.05); g.add(w); return w;
-    });
   }
   if (kind === 'swarm') { M.size = 0.45; for (const e of eyes) e.scale.setScalar(1.7); }   // (tiny, so its eyes are big: they are what you see of it)
   g.scale.setScalar(M.size);
@@ -1204,6 +1290,7 @@ export class Foes {
    */
   cycleLock() {
     const P = this.player, cam = this.camera;
+    if (this.lockSlip > 0) { this.lock = null; return null; }   // (a moth's dust: the lock won't take)
     const fwd = cam ? cam.getWorldDirection(new THREE.Vector3()) : null;
     // those ahead of the camera first, nearest the middle of the view and nearest you (a buried ray too: the
     // reticle follows its fin, dimmed: src/lock-reticle.js)
@@ -1235,6 +1322,7 @@ export class Foes {
    * src/lock-reticle.js).
    */
   updateLock(dt = 0) {
+    if (this.lockSlip > 0) { this.lockSlip = Math.max(0, this.lockSlip - dt); this.lock = null; }
     const f = this.lock, P = this.player;
     if (f && (!f.alive || f.dead !== undefined)) this.lock = this.nextLock(f);
     else if (f && f.pos.distanceTo(P.pos) > LOCK.lose) this.lock = null;
@@ -1604,11 +1692,24 @@ export class Foes {
     const r = f.hit(mode, dir, info);
     if (!r) return false;
     if (r === 'glance') { this.sound?.foeHurt?.('machine'); this.sparks(f, f.chest); return true; }   // (off a crab's shell)
+    if (r === 'popped') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
+    if (f.shedNow) this.shedTail(f);
     if (r === 'flushed') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
     if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burst(f); return true; }
     if (f.shrugged) { this.armour(f, dir); return true; }
     if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.def.sound ?? f.kind);
     return true;
+  }
+
+  /** A centipede cut from behind sheds its tail: its last segments break off and run as skitterers (def.shed). */
+  shedTail(f) {
+    f.shedNow = false;
+    const S = f.def.shed, sp = f.model.spine, tail = sp?.at(-1) ?? f.pos;
+    for (let i = 0; i < S.n; i++) {
+      const at = new THREE.Vector3(tail.x + (i - 0.5) * 0.8, f.pos.y, tail.z), x = this.add(S.kind, at);
+      x.state = 'chase'; x.cool = 0.8 + i * 0.4; x.guard = f.guard; x.placed = f.placed;
+    }
+    this.animKit(f, 0, {}).spray(tail, f.model.tones ?? [INK], 10, 3, 9);
   }
 
   /** Done: a blot bursts back into ink, a machine comes apart; the magic bar gets a unit back. */
@@ -1677,10 +1778,13 @@ export class Foes {
       if (!f.placed && !this.waves && f.pos.distanceTo(P.pos) > PACK.drop) { this.remove(f); continue; }
       // a machine only stirs while you are in its temple (the Arena's, always)
       const inTemple = !f.placed || this.waves || this.level?.temple?.inside?.(P.pos);
+      // a support sees its neighbours (the jelly: who it may ward or mend)
+      if (f.def.support) f.allies = this.list.filter((x) => x !== f && x.alive && x.dead === undefined && !x.def.support && x.pos.distanceTo(f.pos) < 12);
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
         if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow());   // (rising over its whole wind-up)
         if (e === 'notice') { this.meet(f); this.alarm(f); }
+        if (e?.type === 'ward' || e?.type === 'mend') { this.support(f, e); continue; }
         if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
         if (f.kind === 'shade') this.slashTrail(f);
@@ -1694,6 +1798,7 @@ export class Foes {
       this.look(f, dt);
     }
     this.updateHold(dt);
+    this.corral();
     this.updateHazards(dt);
     this.keepApart();
     this.warnings();
@@ -1782,8 +1887,12 @@ export class Foes {
       else if (a.onParry === 'cut') { f.stunned = Math.max(f.stunned, perfect ? PARRY_STUN : 1); this.sparks(f, P.chest ?? P.pos); }
       // a perfect parry sends a tripod's bolt back down its beam, into its lamp
       else if (a.onParry === 'reflect' && perfect && f.alive) { this.hurt(f, 'world', null, { damage: 2, source: 'parry' }); this.sparks(f, f.chest); }
+      // a sky ray's skim parried: it ploughs into the ground and lies there, open
+      else if (a.onParry === 'ground' && perfect) { f.stunned = Math.max(f.stunned, GROUNDED); f.alt = 0.15; f.vel.multiplyScalar(0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 12, 1.2); }
       return false;
     }
+    // a moth's dust: your lock slips off and won't take for a while (no harm)
+    if (a.slip) { this.lock = null; this.lockSlip = a.slip * (this.difficulty === 'gentle' ? 0.6 : 1); P.flinch?.(); return true; }
     this.harm(this.harmOf(a.damage));
     _v.subVectors(P.pos, f.pos).setY(0);
     if (_v.lengthSq() < 1e-4) _v.set(Math.sin(f.heading), 0, Math.cos(f.heading));
@@ -1802,6 +1911,8 @@ export class Foes {
     } else if (a.knock) P.knockDown?.(_v.clone().multiplyScalar(a.knock).addScaledVector(_up, 3.5), { why: 'foe' });
     else { P.vel?.addScaledVector(_v, 5).addScaledVector(_up, 2.5); P.flinch?.(); }   // (a flinch from motion capture: player.js)
     if (a.blind) this.blind(a.blind * g, f.def.tone);
+    // a ray's downdraft: thrown down, the glide and the jets broken
+    if (a.draft) { P.gliding = false; P.endJets?.(); if (P.vel) P.vel.y = Math.min(P.vel.y, -a.draft); }
     return true;
   }
 
@@ -1853,6 +1964,48 @@ export class Foes {
     if (h.d > stop) P.vel?.set(_v.x / h.d * h.pull, P.vel.y, _v.z / h.d * h.pull);
     else P.vel?.set(0, P.vel.y, 0);
   }
+  /**
+   * A centipede closing its ring (attack.encircle) is a wall: wherever its body is (its model's spine, else its head),
+   * you can't walk across it; on the inside you are held in, out over its back only from high enough (the wings, the
+   * jets, a ledge: RING.over m over its back). Pushes you back to your side of it.
+   */
+  corral() {
+    const P = this.player;
+    if (!P?.pos || P.dead || P.ride) return;
+    for (const f of this.list) {
+      if (!f.alive || f.dead !== undefined || f.state !== 'wind' || !f.atk?.encircle) continue;
+      const c = f.attackAt, inside = Math.hypot(P.pos.x - c.x, P.pos.z - c.z) < Math.hypot(f.pos.x - c.x, f.pos.z - c.z);
+      for (let pass = 0; pass < 3; pass++) for (const p of f.model.spine?.length ? f.model.spine : [f.pos]) {   // (a few passes: one segment's push may lean you on the next)
+        if (P.pos.y > p.y + RING.over) continue;
+        const dx = P.pos.x - p.x, dz = P.pos.z - p.z, d = Math.hypot(dx, dz);
+        if (d >= RING.wall || d < 1e-4) continue;
+        // which side: toward the ring's centre if you are inside it, away if outside
+        let nx = c.x - p.x, nz = c.z - p.z; const nl = Math.hypot(nx, nz) || 1; nx /= nl; nz /= nl;
+        if (!inside) { nx = -nx; nz = -nz; }
+        const push = RING.wall - d;
+        P.pos.x += nx * push; P.pos.z += nz * push;
+        if (P.vel) { const vn = P.vel.x * nx + P.vel.z * nz; if (vn < 0) { P.vel.x -= vn * nx; P.vel.z -= vn * nz; } }
+      }
+    }
+  }
+
+  /** A support's move landed on its neighbour (the jelly): a ward (half the harm, no staggers) held by a lantern, or a mend. */
+  support(f, e) {
+    const T = e.target;
+    if (!T?.alive || T.dead !== undefined || !f.alive) return;
+    if (e.type === 'ward') {
+      if (f.wards.length >= f.lanterns) return;
+      T.ward?.by && T.unward();
+      T.ward = { by: f, t: e.atk.ward.time };
+      f.wards.push(T);
+      this.tool?.rings?.add({ from: T.chest.clone(), dir: _up, reach: 0.05, r0: T.def.radius * 0.5, r1: T.def.radius + 0.6, life: 0.4, color: f.def.tone, thick: 1 });
+    } else {
+      T.hp = Math.min(T.def.hp, T.hp + e.atk.mend.hp);
+      this.animKit(f, 0, {}).spray(T.chest, [f.def.tone, '#ffffff'], 12, 2, -2);
+    }
+    this.sound?.chime?.();
+  }
+
   /** How far the line from f reaches now (a drone's harpoon line, a stalker's roots: drawn to you), or 0. */
   held(f) { return this.hold?.f === f ? this.hold.d : 0; }
 
@@ -1959,7 +2112,7 @@ export class Foes {
    */
   alarm(f) {
     for (const x of this.list) {
-      if (x === f || !x.alive || x.dead !== undefined || x.provoked || x.kind !== f.kind || !x.def.calm?.alarm) continue;
+      if (x === f || !x.alive || x.dead !== undefined || x.provoked || (x.kind !== f.kind && !x.def.calm?.joins) || !x.def.calm?.alarm) continue;
       if (x.pos.distanceTo(f.pos) > x.def.calm.alarm) continue;
       x.provoked = true; x.watcher = false;
       if (x.state === 'idle') x.state = 'chase';
@@ -2040,7 +2193,6 @@ export class Foes {
       // a flyer winding up its dive climbs and tips its nose down at you (the body is the tell: nothing on the ground)
       if (f.def.hover && f.state === 'wind') { g.position.y += 0.7 * wind; g.rotation.x = 0.45 * wind; }
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f05a3c' : f.stunned > 0 ? '#bfe9ff' : M.base);
-      if (M.wings) { const flap = Math.sin(performance.now() / (f.state === 'wind' ? 60 : 110)) * 0.6; M.wings[0].rotation.z = flap; M.wings[1].rotation.z = -flap; }
       // the spitter's glob: in the air over the last half of its wind-up, down onto the drawn ring
       if (M.glob) {
         const u = f.state === 'wind' ? (f.k - 0.45) / 0.55 : -1;

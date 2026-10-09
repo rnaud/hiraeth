@@ -281,10 +281,11 @@ test('more foes: the spitter keeps its distance and lobs at where you stand, the
   let warned = false; for (let i = 0; i < 6 / DT && !warned; i++) warned = s.update(DT, P, env).includes('warn');
   assert.ok(warned && s.attackAt.distanceTo(v(P.pos.x, 0, P.pos.z)) < 0.01, 'its ring is drawn under you');
   // the flyer: high, out of the blade's reach; after its dive, low
-  const f = new Foe('flyer', v(0, 0, 0), { rng: () => 0.5 }), Q = player(v(0, 0, 5));
+  const f = new Foe('ray', v(0, 0, 0), { rng: () => 0.5 }), Q = player(v(0, 0, 5));
   run(f, Q, 0.3);
   assert.ok(f.chest.y > 3, 'flies high');
   let dove = false; for (let i = 0; i < 8 / DT && !dove; i++) dove = f.update(DT, Q, env).some((e) => e.type === 'strike');
+  run(f, Q, 0.6);
   assert.ok(dove && f.alt < 1, 'dove, and low');
   // the swarm: a push ends one; a stilled blot takes a cut double
   const w = new Foe('swarm', v());
@@ -293,9 +294,9 @@ test('more foes: the spitter keeps its distance and lobs at where you stand, the
   assert.equal(b.hit('blade', v(0, 0, 1), { damage: 1 }), 'burst', 'stilled: one cut is two');
   // packs: the first one blot; flyers only under open sky
   assert.deepEqual(packKinds(0, 'desert'), ['blot']);
-  for (let i = 0; i < 40; i++) assert.ok(!packKinds(3, 'desert', () => (i % 10) / 10).includes('flyer'), 'no flyers in the desert');
-  assert.ok([...Array(40)].some((_, i) => packKinds(3, 'arzach', () => (i % 10) / 10).includes('flyer')), 'flyers in Vael');
-  assert.equal(waveWords(['machine', 'machine', 'blot', 'blot', 'flyer']), '2 machines, 1 winged blot and 2 ink blots');
+  for (let i = 0; i < 40; i++) assert.ok(!packKinds(3, 'desert', () => (i % 10) / 10).includes('ray'), 'no flyers in the desert');
+  assert.ok([...Array(40)].some((_, i) => packKinds(3, 'arzach', () => (i % 10) / 10).includes('ray')), 'flyers in Vael');
+  assert.equal(waveWords(['machine', 'machine', 'blot', 'blot', 'ray']), '2 machines, 1 sky ray and 2 ink blots');
 });
 
 test('difficulty: gentle halves the harm, slows the wind-ups and lets one strike at a time; off has none; an old on / off setting carries over', async () => {

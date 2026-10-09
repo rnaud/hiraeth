@@ -320,6 +320,7 @@ class Boomerang {
         const f = T.foe;
         if (!f?.alive) return false;
         f.stunned = Math.max(f.stunned ?? 0, BOOM.stun); f.flash = 1;
+        f.pop?.();   // (a lantern jelly's lantern pops, and the ward it held)
         f.vel?.addScaledVector(flat, f.kind === 'machine' ? 1 : 3);
         if (mode === 'stun' || mode === 'fire') T.onHit?.(mode, point, dir, info);
         hitStop(0.05); kick(0.25);

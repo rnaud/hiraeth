@@ -77,7 +77,7 @@ test('a foe off the screen waits its turn while one you can see is striking', ()
 });
 
 test('the dune ray: a cut at its fin flushes it; up, it stays up to fight for a while', () => {
-  const r = new Foe('ray', v(), { rng: () => 0.5 });
+  const r = new Foe('worm', v(), { rng: () => 0.5 });
   assert.equal(r.buried, true);
   assert.equal(r.hit('blade', v(0, 0, 1), { damage: 1 }), 'flushed');
   assert.ok(!r.buried && r.upFor === BURROW.up && r.stunned === BURROW.flush);
@@ -107,7 +107,7 @@ test('the lock: cut down, it moves on to the next foe in reach; the reticle read
   f.staggered(true);
   assert.equal(reticleLook(f).mode, 'open', 'parried: open');
   assert.ok(chevronSpread(reticleLook(f)) > 1.1);
-  const ray = new Foe('ray', v());
+  const ray = new Foe('worm', v());
   assert.equal(reticleLook(ray).mode, 'veiled', 'under the sand: dimmed');
   f.hp = 2; assert.deepEqual([reticleLook(f).hp, reticleLook(f).max], [2, FOES.machine.hp]);
   resetFeel();
@@ -212,7 +212,7 @@ test('a cut that lands and does not stop a foe is answered with its armour: a th
 });
 
 test('a hovering foe the blade cuts drops within reach a while', () => {
-  const f = new Foe('flyer', v(), { rng: () => 0.5 }), P = player(v(0, 0, 12));
+  const f = new Foe('ray', v(), { rng: () => 0.5 }), P = player(v(0, 0, 30));   // (out of its sight: it only circles)
   runFor(f, P, 1);
   assert.ok(f.alt > 3);
   f.hit('blade', v(0, 0, 1), { damage: 1 });

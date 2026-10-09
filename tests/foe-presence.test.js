@@ -51,7 +51,7 @@ test('every kind shows itself in every state: tall enough, wide enough, with a l
   }
   // the states that used to hide are among those checked
   assert.ok(Object.keys(states).some((t) => t.startsWith('hound:chase') && t.endsWith(':phased')), 'a running hound');
-  assert.ok(Object.keys(states).some((t) => t.startsWith('ray:') && t.includes(':buried')), 'a buried ray');
+  assert.ok(Object.keys(states).some((t) => t.startsWith('worm:') && t.includes(':buried')), 'a buried worm');
   // (a ray winding up under the sand: its own test below, as which attack it picks here is random)
   clearTargets();
 });
@@ -60,8 +60,8 @@ test('a buried dune ray swims at you as it winds up its burst, its fin up the wh
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
-  const f = foes.add('ray', v(0, 0, 8));
-  const erupt = attackOf('ray', 'erupt');
+  const f = foes.add('worm', v(0, 0, 8));
+  const erupt = attackOf('worm', 'erupt');
   f.def = { ...f.def, attacks: [erupt] };   // (only its burst)
   let wound = false, start = null, minFin = Infinity;
   for (let i = 0; i < 12 / DT && !wound; i++) {

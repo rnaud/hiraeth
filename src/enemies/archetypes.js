@@ -22,8 +22,9 @@ import { fromPattern } from './attacks.js';
 //   sound     its hurt and burst family (combat-v1.4 rec. 2; src/audio.js plays two sets for now)
 //   drop      chimes it leaves (src/chimes.js DROP_OF)
 //   was       the old kinds it replaces or folds in
-//   art       'pending': its fresh Midjourney sheet (docs/design/enemy-roster-prompts.md) is not drawn yet; the
+//   art       'pending': its fresh reference sheet (docs/design/enemy-roster-prompts.md) is not matched yet; the
 //             built body follows the doc's description and the best existing references until it is
+//             'sheet-N': the built body is drawn to its picked sheet, references/enemy-archetypes/<id>/sheet-N.jpg
 //
 // A built archetype's def is a foe kind's tuning (src/foe-kinds.js says what a kind and an attack may hold), with
 // the archetype's additions:
@@ -37,7 +38,20 @@ import { fromPattern } from './attacks.js';
 //   attack.far      begun from beyond its reach once it has chased you that long (s: the blot's spit)
 //   attack.shove    m/s you are shoved, toward its partner if it has one (the lizard's blare)
 //   attack.track    a lane's aim follows you this share of the wind-up, then locks (the tripod's searchlight)
-//   onParry         'flip' | 'cut' | 'chip' | 'reflect' (a perfect parry sends the bolt back at it)
+//   onParry         'flip' | 'cut' | 'chip' | 'reflect' (a perfect parry sends the bolt back at it) | 'ground' (a perfect
+//                   parry ploughs a flyer into the ground, open: the sky ray's skim)
+//   attack.up       only while it is up out of the sand (a burrower: the worm's spit stones, its dive); a `surface`
+//                   attack of a burrower only while it is under; attack.dives: it goes back under after it
+//   attack.encircle { r0, r1, speed }: through the wind-up it spirals round where you stood from r0 to r1 m, at speed ×
+//                   its own, its body a wall behind it (Foes.corral), and the ring closes on you (the centipede)
+//   attack.slip     s your lock-on slips (the moth's dust); attack.draft: m/s down, the glide broken (the ray's downdraft)
+//   attack.ward / attack.mend   a support's move on a neighbour, not on you (the jelly: ward { time, range }, mend { hp, range })
+//   segmented       plated: a cut from behind or the side does half and never staggers it; its head, turned in for the
+//                   ring, takes a cut double (the centipede); shed { kind, n, below, segments }: cut from behind under
+//                   `below` of its health, its tail segments break off as `n` of `kind`, once
+//   support         it keeps near its neighbours, not you (the jelly); lanterns: how many wards it can hold (a shot or
+//                   the boomerang pops one: takes.shoot 'pop'); escort: what comes with it alone in the Arena
+//   calm.joins      it joins any fight near it, not only its own kind's (the jelly never starts one: provoke 0)
 //   attack.tell / attack.counter   what the body does in the wind-up, and what answers it (the gallery says them)
 
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
@@ -74,9 +88,25 @@ export const ARCHETYPES = {
   },
   centipede: {
     name: 'ring centipede', family: 'creature', plan: 'centipede', planNo: 3, role: 'trapper', tier: 3, ranged: false,
-    status: 'planned', kind: null, was: [], sound: 'chitin', drop: 6, art: 'pending',
-    moves: ['ring', 'pincer lunge', 'segment shed'], answers: ['wings or jets out of the ring', 'air cut on the head', 'parry'],
+    status: 'built', kind: 'centipede', was: [], sound: 'chitin', drop: 6, art: 'sheet-1',
+    moves: ['ring', 'pincer lunge', 'segment shed'], answers: ['wings or jets out of the ring', 'air cut on the head', 'parry', 'the push breaks the ring'],
     idle: 'suns coiled on warm rocks and unrolls slowly when you pass',
+    def: S({
+      name: 'ring centipede', hp: 6, radius: 0.75, height: 0.55, speed: 4.4, sight: 18, giveUp: 40, reach: 6, heavy: true, segmented: true, breaks: true,
+      tone: '#d8b048', takes: { shoot: 0, fire: 1, push: 0 }, weak: { bomb: 1.5 },
+      calm: { mode: 'coil', wild: true, provoke: 6, alarm: 10 },
+      shed: { kind: 'swarm', n: 2, below: 0.67, segments: 2 },
+      attacks: [
+        // the ring: it spirals round you, its body a wall closing behind it, and tightens; out over its back with the
+        // wings or the jets, or break it (the push, a cut on its head as it turns in)
+        { id: 'ring', name: 'ring', shape: 'ring', at: 'target', radius: 2.0, damage: 0.75, knock: 5, wind: 2.3, instant: true, encircle: { r0: 4, r1: 1.15, speed: 1.7 }, min: 2.2, max: 6, weight: 2,
+          tell: 'its head lifts and turns inward, its legs ripple faster and the circle starts to close', counter: 'out over its back with the wings or jets before it closes; the push breaks it; its head, turned in, takes a cut double' },
+        { id: 'lunge', name: 'pincer lunge', shape: 'ring', radius: 1.5, ahead: 1.4, damage: 0.75, wind: 0.95, strike: 0.26, contact: 0.5, lunge: 2.6, max: 3.2, weight: 1.5,
+          tell: 'the head rears and the front segments bunch up like a spring', counter: 'parry and riposte, or evade to the side' },
+      ],
+      recover: 1.5, cool: [1.5, 2.6], hit: 0.45,
+    }),
+    note: 'A ring centipede: it runs round you and closes its body into a ring. Get out over its back with the wings or the jets before the ring closes, push it apart, or cut its head as it turns in. Its plated back shrugs off cuts; only the head counts.',
   },
   toad: {
     name: 'bellows toad', family: 'creature', plan: 'hopper', planNo: 5, role: 'lobber', tier: 1, ranged: true,
@@ -126,27 +156,87 @@ export const ARCHETYPES = {
   },
   jelly: {
     name: 'lantern jelly', family: 'creature', plan: 'floater', planNo: 11, role: 'support', tier: 2, ranged: true,
-    status: 'planned', kind: null, was: [], sound: 'soft', drop: 4, art: 'pending',
-    moves: ['ward', 'mend', 'sting curtain'], answers: ['shot (each lantern)', 'boomerang', 'air cut when it sinks'],
+    status: 'built', kind: 'jelly', was: [], sound: 'soft', drop: 4, art: 'sheet-1',
+    moves: ['ward', 'mend', 'sting curtain'], answers: ['shot (each lantern)', 'boomerang', 'air cut when it sinks', 'the push knocks it off a mend'],
     idle: 'drifts with the wind in slow herds; never starts a fight',
+    def: S({
+      name: 'lantern jelly', hp: 3, radius: 0.75, height: 0.6, hover: 3.6, speed: 2.2, sight: 18, giveUp: 40, reach: 9, support: true, lanterns: 3, flinchy: true,
+      tone: '#f2a45c', takes: { shoot: 'pop', fire: 1, push: 0 }, escort: 'blot',
+      calm: { mode: 'drift', wild: true, provoke: 0, alarm: 14, joins: true },
+      attacks: [
+        { id: 'ward', name: 'ward', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.0, instant: true, ward: { time: 10, range: 9 }, max: 9, weight: 3,
+          tell: 'a lantern swells and its bell pulses faster', counter: 'a shot or the boomerang pops the lantern, and the ward with it' },
+        { id: 'mend', name: 'mend', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.5, instant: true, mend: { hp: 1.5, range: 8 }, max: 9, weight: 2, skins: ['perdide2', 'spheres', 'underwater', 'fallenring'],
+          tell: 'it drifts down out of the air over a hurt one, low enough to reach', counter: 'the air cut or the push, while it is low' },
+        { id: 'curtain', name: 'sting curtain', shape: 'ring', at: 'self', radius: 2.2, damage: 0.5, wind: 0.9, strike: 2.0, contact: 0.15, max: 2.2, weight: 2,
+          tell: 'the bell clenches, its threads drawn up', counter: 'step out from under it' },
+      ],
+      recover: 1.4, cool: [1.4, 2.6], hit: 0.35,
+    }),
+    note: 'A lantern jelly keeps the others going: a thread of light from one of its lanterns halves the harm to the foe it holds. Shoot its lanterns (or throw the boomerang) to pop them, and catch it with the air cut when it sinks to mend one. Don’t stand under it.',
   },
   moth: {
     name: 'signal moth', family: 'creature', plan: 'flyer', planNo: 13, role: 'disruptor', tier: 2, ranged: true,
-    status: 'stand-in', kind: 'moth', was: ['sign moth'], sound: 'paper', drop: 1, art: 'pending',
+    status: 'built', kind: 'moth', was: ['sign moth'], sound: 'paper', drop: 1, art: 'pending',
     moves: ['flash', 'dart', 'dust'], answers: ['push', 'fan’s gust', 'a light swing', 'shot'],
     idle: 'circles lamps and signs and sits on them in rows; fights near its lit sign',
+    def: S({
+      name: 'signal moth', hp: 1, radius: 0.45, height: 0.4, hover: 1.6, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
+      tone: '#ff5fa2', takes: { shoot: 1, fire: 1, push: 1 },
+      calm: { mode: 'circle', wild: true, provoke: 5, alarm: 12 },
+      attacks: [
+        { id: 'flash', name: 'flash', shape: 'cone', at: 'self', instant: true, range: 6.5, angle: 0.5, damage: 0.25, blind: 1.5, wind: 1.0, min: 1.8, max: 6.5, weight: 2,
+          tell: 'its wings snap open flat toward you and the eye-spots burn brighter, with a rising whine', counter: 'turn the camera away or guard' },
+        { id: 'dart', name: 'dart', shape: 'lane', width: 1.2, range: 5, damage: 0.25, wind: 0.6, strike: 0.3, contact: 0.8, dive: true, max: 4.5,
+          tell: 'its wings fold back along its body and it rears, nose high', counter: 'one light blow, or the push' },
+        { id: 'dust', name: 'dust', shape: 'ring', at: 'self', instant: true, radius: 2.2, damage: 0, slip: 3, wind: 1.0, max: 2, skins: ['perdide2', 'antennas'],
+          tell: 'it hovers right over you, fluttering, dust sifting off its wings', counter: 'step out from under it, or the push' },
+      ],
+      recover: 1.2, cool: [1.4, 2.6], hit: 0.25,
+    }),
+    note: 'Signal moths come in threes: when their wings snap open, turn away or guard (LB / L1), or the flash blinds you. One cut, one shot or a gust ends each.',
   },
   ray: {
     name: 'sky ray', family: 'creature', plan: 'glider', planNo: 14, role: 'air striker', tier: 1, ranged: false,
-    status: 'stand-in', kind: 'flyer', was: ['winged blot'], sound: 'soft', drop: 3, art: 'pending',
+    status: 'built', kind: 'ray', was: ['winged blot'], sound: 'soft', drop: 3, art: 'sheet-1',
     moves: ['skim', 'tail lash', 'downdraft'], answers: ['parry grounds it', 'air cut as it passes low', 'wings or jets'],
     idle: 'circles in the thermals over cliffs and lands on warm rock with its wings spread flat',
+    def: S({
+      name: 'sky ray', hp: 3, radius: 0.9, height: 0.3, hover: 3.6, speed: 4.6, sight: 24, giveUp: 45, reach: 10,
+      tone: '#b98674', takes: { shoot: 1, fire: 1 },
+      calm: { mode: 'circle', wild: true, provoke: 7, alarm: 12 },
+      attacks: [
+        { id: 'skim', name: 'skim', shape: 'lane', width: 1.8, range: 10, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.15, dive: true, sweep: true, min: 3, max: 10, weight: 2, onParry: 'ground',
+          tell: 'it banks round onto its line at you, wings swept back, with a rising whistle', counter: 'a parry grounds it (open a while); or evade' },
+        { id: 'lash', name: 'tail lash', shape: 'cone', range: 2.8, angle: 0.9, damage: 0.5, wind: 0.75, strike: 0.24, contact: 0.5, max: 2.8, rear: true, back: true,
+          tell: 'its whip tail lifts high behind it', counter: 'guard' },
+        { id: 'draft', name: 'downdraft', shape: 'ring', at: 'self', radius: 3, damage: 0.25, wind: 1.1, strike: 0.6, contact: 0.3, draft: 7, max: 2.6, skins: ['arzach', 'arzach2'],
+          tell: 'it stalls right over you, its wings rising high', counter: 'get out from under it, or the air cut up into it' },
+      ],
+      recover: 1.6, cool: [1.6, 2.6], hit: 0.3,
+    }),
+    note: 'A sky ray comes in low along a line: when it banks round and sweeps its wings back, guard (LB / L1) at the last moment and it ploughs into the ground, open; or step off its line. Cut it as it passes low.',
   },
   worm: {
     name: 'mound worm', family: 'creature', plan: 'burrower', planNo: 15, role: 'ambusher', tier: 1, ranged: false,
-    status: 'stand-in', kind: 'ray', was: ['dune ray'], sound: 'soft', drop: 4, art: 'pending',
-    moves: ['erupt', 'spit stones', 'dive'], answers: ['flush it out (stomp, gust, bomb, a cut at the fin)', 'air cut onto the mound'],
+    status: 'built', kind: 'worm', was: ['dune ray'], sound: 'soft', drop: 4, art: 'sheet-1',
+    moves: ['erupt', 'spit stones', 'dive'], answers: ['flush it out (stomp, gust, bomb, a cut at the fin)', 'air cut onto the mound', 'cut it while it is up'],
     idle: 'its mound wanders the dunes slowly, surfacing to eat thorn bushes; ignores you unless you stand on it',
+    def: S({
+      name: 'mound worm', hp: 4, radius: 0.8, height: 1.1, speed: 4.2, sight: 20, giveUp: 45, reach: 9, burrow: true,
+      tone: '#c98d4f', takes: { shoot: 1, fire: 1 },
+      calm: { mode: 'wander', wild: true, provoke: 2.6 },
+      attacks: [
+        { id: 'erupt', name: 'erupt', shape: 'ring', at: 'target', track: 0.6, radius: 1.8, damage: 0.75, wind: 1.3, knock: 5, surface: true, instant: true, max: 9, weight: 2,
+          tell: 'its mound circles you, stops and trembles, and the fin sinks', counter: 'move off the spot: up, it stays up a while, open' },
+        { id: 'spit', name: 'spit stones', shape: 'cone', range: 6.5, angle: 0.45, damage: 0.5, wind: 1.0, strike: 0.35, contact: 0.4, min: 3.2, max: 7, up: true, weight: 1.5,
+          tell: 'it rears back and swells, its rings bunching', counter: 'guard' },
+        { id: 'dive', name: 'dive', shape: 'ring', at: 'self', radius: 2.3, damage: 0.25, knock: 4, wind: 0.95, strike: 0.3, contact: 0.5, max: 2.4, up: true, dives: true,
+          tell: 'it leans over toward you and the teeth round its mouth spin', counter: 'step back' },
+      ],
+      recover: 1.9, cool: [1.2, 2.2],
+    }),
+    note: 'A mound worm swims under the sand: when its mound stops and trembles and the fin sinks, move: it bursts up where you stood. Up, it stays a while to fight: cut it then. Cut the fin, drop a bomb or a stomp, or come down on the mound with the air cut to flush it out.',
   },
   // ----------------------------------------------------------------------------- possessed machines (always hostile)
   tripod: {

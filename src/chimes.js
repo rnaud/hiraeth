@@ -24,7 +24,7 @@ import { ARCHETYPES, BUILT } from './enemies/archetypes.js';
 /** What a foe of each kind leaves, in chimes (a fraction is a chance of one: the swarm's six blots, the splinters). */
 export const DROP_OF = {
   swarm: 0.5, moth: 1,                                 // the small ones, that come in groups
-  blot: 2, spitter: 3, flyer: 3, ray: 4, drone: 4,
+  blot: 2, spitter: 3, drone: 4,
   stalker: 5, machine: 6,
   shade: 8, golem: 8, slag: 8,                         // the heavy ones
   // the built archetypes: the shellback crab 5, the horn lizard 4, the lamp tripod 6, the antler hound 4 (the blot's 2 as ever)

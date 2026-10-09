@@ -44,13 +44,13 @@ const wallSeen = (from, to) => {
 test('a hovering foe keeps its height over the higher of its footing and you: up to a ledge, and held over a drop', () => {
   // you stand on a ledge 3 m up: it rises to stay its hover over you
   const P = player(v(0, 3, 15));
-  const f = new Foe('flyer', v(0, 0, 0), { rng: () => 0.5 });
+  const f = new Foe('ray', v(0, 0, 0), { rng: () => 0.5 });
   run(f, P, { ground: () => 0 }, 2.5);
   assert.ok(Math.abs(f.over - 3) < 0.15, `held 3 m over its footing (${f.over.toFixed(2)})`);
   assert.ok(f.chest.y > 3 + 2.5, 'its body over you, as on flat ground');
   // over a drop (the ground 10 m down from x 5 to 15), on to you on the far side: it holds its altitude
   const drop = (x) => (x > 5 && x < 15 ? -10 : 0);
-  const Q = player(v(22, 0, 0)), g = new Foe('flyer', v(3, 0, 0), { rng: () => 0.5 });
+  const Q = player(v(22, 0, 0)), g = new Foe('ray', v(3, 0, 0), { rng: () => 0.5 });
   g.state = 'chase'; g.heading = Math.PI / 2;
   let lowest = Infinity, crossed = false;
   const env = { ground: (x) => drop(x) };
@@ -58,13 +58,13 @@ test('a hovering foe keeps its height over the higher of its footing and you: up
   assert.ok(crossed, 'it flew out over the drop');
   assert.ok(lowest > -1.5, `it held its altitude (lowest level ${lowest.toFixed(2)}), not diving to the ground below`);
   // stilled up there, it drops all the way, and lands hard
-  const s = new Foe('flyer', v(10, -10, 0)); s.over = 10; s.state = 'chase';
+  const s = new Foe('ray', v(10, -10, 0)); s.over = 10; s.state = 'chase';
   s.hit('stun');
   const ev = run(s, Q, env, 2);
   assert.ok(s.over === 0, 'down on the ground below');
   assert.ok(ev.some((e) => e.type === 'landed' && e.hard && e.h > FALL.hard), 'a long drop is a hard landing');
   // a drop deeper than HOVER.max it does not fly out over on its own
-  const deep = { ground: (x) => (x > 5 ? -30 : 0) }, d = new Foe('flyer', v(3, 0, 0), { rng: () => 0.5 });
+  const deep = { ground: (x) => (x > 5 ? -30 : 0) }, d = new Foe('ray', v(3, 0, 0), { rng: () => 0.5 });
   run(d, player(v(25, 0, 0)), deep, 3);
   assert.ok(d.pos.x <= 5.01 && d.pos.y === 0, 'it stops at the edge of a chasm past its reach');
   assert.ok(HOVER.max >= 8 && HOVER.max <= 15);
@@ -73,7 +73,7 @@ test('a hovering foe keeps its height over the higher of its footing and you: up
 test('between strikes a hovering foe hides behind the world, then comes out to strike; Gentle hides less long', () => {
   const P = player(v(-8, 0, 0));
   const hideRun = (gentle) => {
-    const f = new Foe('flyer', v(3, 0, 7), { rng: () => 0.5 });
+    const f = new Foe('ray', v(3, 0, 7), { rng: () => 0.5 });
     f.state = 'chase'; f.cool = 2.5;
     const env = { ground: () => 0, seen: wallSeen, gentle: () => gentle };
     let hidden = 0, inCover = 0, run = 0, warned = null, t = 0;
@@ -91,12 +91,12 @@ test('between strikes a hovering foe hides behind the world, then comes out to s
   assert.ok(N.warned != null && N.warned < COVER.hold + 6, `it came out and wound up a strike (at ${N.warned?.toFixed(2)} s)`);
   assert.ok(G.inCover <= COVER.gentle + 0.05 && G.inCover < N.inCover, `Gentle: less long in cover (${G.inCover.toFixed(2)} < ${N.inCover.toFixed(2)})`);
   // one hide between two strikes: after it struck, it may hide again
-  const h = new Foe('flyer', v()); h.hid = true; h.beginWind(FOES.flyer.attack, P);
+  const h = new Foe('ray', v()); h.hid = true; h.beginWind(FOES.ray.attack, P);
   assert.equal(h.hid, false, 'it struck: it may hide again');
 });
 
 test('with nothing to hide behind it climbs higher instead, then still comes down within reach; the cut knocks it low', () => {
-  const P = player(v(0, 0, 12)), f = new Foe('flyer', v(0, 0, 0), { rng: () => 0.5 });
+  const P = player(v(0, 0, 12)), f = new Foe('ray', v(0, 0, 0), { rng: () => 0.5 });
   f.state = 'chase'; f.cool = 2.5;
   const env = { ground: () => 0, seen: () => true };
   let climbed = 0, hit = false;
@@ -105,7 +105,7 @@ test('with nothing to hide behind it climbs higher instead, then still comes dow
   assert.ok(climbed > 1.5 && climbed <= COVER.climb + 1e-6, `it climbed out of reach a while (${climbed.toFixed(2)} m)`);
   assert.ok(hit, 'and still dived on you');
   // cut, it drops within reach (KNOCKED_LOW), and leaves off hiding
-  const g = new Foe('flyer', v(0, 0, 6), { rng: () => 0.5 });
+  const g = new Foe('ray', v(0, 0, 6), { rng: () => 0.5 });
   g.state = 'chase'; g.cool = 2.5;
   run(g, P, env, 0.5);
   assert.ok(g.cover?.climb, 'climbing, nowhere to hide');

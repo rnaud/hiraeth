@@ -63,6 +63,78 @@ export const PLANS = {
     },
     style: 'machine',
   },
+  // ---------------------------------------------------------------- the chain plans (kit phase 4: src/motion-kit/chain.js)
+  // plan 3: the centipede: a follow-the-leader spine on the head's own path (PathTrail), a pair of legs per segment
+  // stepping in a metachronal wave on distance (src/motion-kit/wave-legs.js), knees out and up
+  centipede: {
+    spine: { segments: 12, spacing: 0.36 },
+    legs: { stride: 0.5, duty: 0.65, height: 0.42, lag: 0.62, lenA: 0.62, lenB: 0.66, pole: 'out-up' },   // (height × leg; lag rad a pair)
+    body: { spring: { f: 4, z: 0.55, r: 0 } },
+    poses: {
+      coil: { y: -0.06, z: -0.18, pitch: -0.3 },                     // (the head rears, the front segments bunch back)
+      strike: { y: 0.02, z: 0.3, pitch: 0.18 },
+      recover: { y: -0.04, pitch: 0.08 },
+      hurt: { y: -0.04, roll: 0.15 },
+      'coil:ring': { y: 0.05, z: 0, pitch: -0.18 },                   // (the ring: the head lifts and turns inward)
+    },
+    style: 'organic',
+  },
+  // plan 15: the burrower: under the sand a path of mounds on the head's path (PathTrail), a fin at the front;
+  // surfaced, a stack of rings standing out of the hole (a spine of rings bent by the pose), slumping back slowly
+  burrower: {
+    spine: { mounds: 6, spacing: 0.55, rings: 7 },
+    body: { spring: { f: 2.2, z: 0.5, r: 0 }, rise: { f: 2.6, z: 0.62, r: -0.4 } },   // (it dips before it rises: r < 0)
+    poses: {
+      coil: { y: -0.1, z: -0.25, pitch: -0.35 },                     // (spit stones: rears back, its rings bunching)
+      strike: { z: 0.3, pitch: 0.4 },
+      recover: { y: -0.2, pitch: 0.25 },
+      hurt: { y: -0.1, roll: 0.2 },
+      'coil:dive': { z: 0.25, pitch: 0.6 },                          // (the dive: it leans over toward you first)
+    },
+    style: 'organic',
+  },
+  // plan 14: the glider: a slow travelling wave across the span (the tips lag the root), bank = turn rate × speed,
+  // pitch with acceleration, a follow-the-leader tail
+  glider: {
+    wing: { strips: 4, rate: [0.45, 1.3], amp: 0.2, lag: 0.7 },        // (rate: cycles a second idle → at full speed)
+    body: { bank: 0.16, bankMax: 0.75, pitch: 0.05, spring: { f: 1.6, z: 0.7, r: 0 } },
+    tail: { n: 9, length: 0.24, maxBend: 0.35 },
+    poses: {
+      coil: { y: 0.4, z: -0.3, pitch: -0.25 },                       // (it climbs and sweeps back before the skim)
+      strike: { y: -0.2, z: 0.3, pitch: 0.2 },
+      recover: { y: -0.1, pitch: -0.1 },
+      hurt: { y: -0.3, roll: 0.4 },
+    },
+    style: 'organic',
+  },
+  // plan 13: the flyer: a flap by speed (the tips lag the root), body pitch from acceleration, a hover bob
+  flyer: {
+    wing: { strips: 3, rate: [5.5, 8.5], amp: 0.75, lag: 0.55, fold: 0.15 },   // (cycles a second hovering → flying)
+    body: { pitch: 0.06, pitchMax: 0.5, bob: 0.12, spring: { f: 3, z: 0.6, r: 0 } },
+    poses: {
+      coil: { y: 0.15, z: -0.12, pitch: -0.3 },                      // (rears up, nose high)
+      strike: { z: 0.2, pitch: 0.35 },
+      recover: { y: -0.1 },
+      hurt: { y: -0.2, roll: 0.5 },
+      'coil:flash': { y: 0.1, z: -0.05, pitch: -0.15 },
+    },
+    style: 'organic',
+  },
+  // plan 11: the floater: the bell pulses (scale) at a rate the telegraph raises, bobs, tilts into its drift on a
+  // spring; threads and lanterns hang on verlet chains
+  floater: {
+    bell: { rate: [0.55, 2.4], squash: 0.14 },                         // (pulses a second: drifting → winding up)
+    body: { tilt: 0.06, tiltMax: 0.4, bob: 0.18, spring: { f: 1.2, z: 0.55, r: 0 } },
+    threads: { n: 12, links: 9, length: 0.4 },
+    poses: {
+      coil: { y: -0.25, pitch: 0.1 },                                // (the bell clenches, drawn down)
+      strike: { y: 0.1 },
+      recover: { y: 0.05 },
+      hurt: { y: -0.4, roll: 0.3 },
+      'coil:mend': { y: -2.2 },                                      // (it sinks low over the hurt one, in reach)
+    },
+    style: 'organic',
+  },
 };
 
 /** The pole (the knee's side) for a leg whose rest foot is at {x, z} (body frame), by the plan's rule. */

@@ -2,13 +2,12 @@ import * as THREE from 'three';
 import { makeMaterial } from './materials.js';
 
 // The worlds' old kinds (docs/systems/foes.md, "Each world's foes"): since the enemy roster (docs/design/enemy-roster.md,
-// src/enemies/archetypes.js) they run as the stand-in bodies of archetypes not built yet (the dune ray for the mound
-// worm, the glass golem for the furnace brute, the sign moth for the signal moth, the rust drone for the ring
-// drone, the root stalker for the root knot, the slag walker for the crucible cart); each goes when its archetype
-// lands. Their tuning (KINDS, merged into foes.js FOES), what the game says the first time you meet each (NOTES),
-// and how each looks and moves (kindModel: a model with its own anim(f, c), called by Foes.look). The built
-// archetypes' own (the shellback crab, the horn lizard, the antler hound, the lamp tripod, the ink blot) are in
-// src/enemies/archetypes.js and src/enemies/plans/.
+// src/enemies/archetypes.js) they run as the stand-in bodies of archetypes not built yet (the glass golem for the
+// furnace brute, the rust drone for the ring drone, the root stalker for the root knot, the slag walker for the
+// crucible cart); each goes when its archetype lands (the dune ray, the sign moth and the winged blot went with batch 2:
+// the mound worm, the signal moth and the sky ray). Their tuning (KINDS, merged into foes.js FOES), what the game says
+// the first time you meet each (NOTES), and how each looks and moves (kindModel: a model with its own anim(f, c),
+// called by Foes.look). The built archetypes' own are in src/enemies/archetypes.js and src/enemies/plans/.
 //
 // An attack (foes.js Foe; src/temples/boss.js inArea for the shapes):
 //   id, shape 'ring' | 'cone' | 'lane', radius / range / angle / width, damage, wind (s), strike (s), contact (0..1)
@@ -38,17 +37,6 @@ import { makeMaterial } from './materials.js';
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
 
 export const KINDS = {
-  // the Desert, the Buried Machine: swims under the sand, a fin and a ripple; its fin races at you, then it bursts up there
-  ray: S({
-    name: 'dune ray', hp: 3, radius: 0.8, height: 0.3, speed: 4.4, sight: 20, giveUp: 45, reach: 9, burrow: true, breaks: true,
-    tone: '#b0562c', takes: { shoot: 1, fire: 1 },
-    attacks: [
-      { id: 'erupt', shape: 'ring', at: 'target', track: 0.6, radius: 1.8, damage: 0.75, wind: 1.25, knock: 5, surface: true, instant: true, max: 9, weight: 2 },
-      { id: 'glide', shape: 'lane', width: 2.2, range: 8, damage: 0.5, wind: 0.85, strike: 0.5, contact: 0.05, lunge: 8, sweep: true, min: 3.5, max: 7.5 },
-    ],
-    recover: 1.9, cool: [1.2, 2.2],
-  }),
-  // the Glass Dunes: a slow walker of fused green glass; bombs crack it deep (the furnace brute's stand-in)
   golem: S({
     name: 'glass golem', hp: 6, radius: 0.95, height: 1.5, speed: 1.9, sight: 15, giveUp: 30, reach: 12, heavy: true, breaks: true,
     tone: '#3f9a72', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 }, pack: 2,
@@ -59,17 +47,6 @@ export const KINDS = {
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   }),
-  // the Signal Market: moths of neon tube; their wings flare and blind whoever faces them
-  moth: S({
-    name: 'sign moth', hp: 1, radius: 0.4, height: 0.35, hover: 1.3, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
-    tone: '#ff5fa2', takes: { shoot: 1, fire: 1, push: 1 },
-    attacks: [
-      { id: 'flash', shape: 'cone', at: 'self', instant: true, range: 6.5, angle: 0.5, damage: 0.25, blind: 1.5, wind: 1.0, min: 1.8, max: 6.5, weight: 2 },
-      { id: 'dart', shape: 'lane', width: 1.2, range: 5, damage: 0.25, wind: 0.6, strike: 0.3, contact: 0.8, dive: true, max: 4.5 },
-    ],
-    recover: 1.2, cool: [1.4, 2.6], hit: 0.25,
-  }),
-  // the Sealed Hangar, the City-Shaft, the Moon Foundry: a rusted makers' drone that fires a harpoon on a line
   drone: S({
     name: 'rust drone', hp: 3, radius: 0.55, height: 0.3, hover: 2.1, speed: 3.2, sight: 20, reach: 9, keep: 3.6, metal: true, breaks: true,
     tone: '#c0582e', sound: 'machine', takes: { shoot: 0, fire: 0 },
@@ -104,9 +81,7 @@ export const KINDS = {
 
 /** Said once, the first time each kind comes for you (prompts in pad form: src/native-pad.js rewrites them). */
 export const NOTES = {
-  ray: 'A dune ray swims under the sand. When its fin stands tall and races at you, glowing, move: it bursts up where the fin stops, and stays up a while to fight. Cut its fin, or drop a bomb or a stomp, to flush it out.',
   golem: 'A glass golem: slow and hard, glass turns a fluid shot. A bomb cracks it twice as deep, and a perfect parry chips it.',
-  moth: 'Sign moths: when their wings flare, turn away or guard (LB / L1), or the flash blinds you. One cut, one shot or a gust ends each.',
   drone: 'A rust drone hangs out of the blade’s reach. Guard (LB / L1) its harpoon to cut the line and stun it; stilled, or pulled down with the magnet glove, it can be cut.',
   stalker: 'A root stalker: when it rears its root-arms back, they are about to shoot along the ground to grab you. Step out of their line, or cut it to break the hold. Embers burn it; a bloom glob puts it to sleep.',
   slag: 'A slag walker leaves burning slag where it treads: keep off the glow. A plain fluid shot cools its crust, and cooled it cuts twice as deep.',
@@ -127,54 +102,6 @@ export function kindModel(kind) {
 }
 
 const MODELS = {
-  ray() {
-    // a flat diamond of sand-coloured hide, dark ink spots, a whip tail; buried, only the fin and a mound of sand
-    const g = new THREE.Group(), body = new THREE.Group(); g.add(body);
-    const hide = M_('ray-hide', { color: '#c98d4f', color2: '#e1b077' }), ink = M_('ray-ink', { color: '#2b211f' });
-    const sand = M_('ray-sand', { color: '#b98a55' }), eye = M_('ray-eye', { color: '#f6e7b0', glow: 0.6 });
-    const disc = add(body, new THREE.SphereGeometry(1, 16, 8).scale(1.15, 0.16, 0.85), hide, 0, 0.2, 0);
-    const wings = pair((s) => { const w = add(body, new THREE.ConeGeometry(0.42, 0.9, 4).rotateZ(-s * Math.PI / 2).scale(1, 0.25, 1), hide, s * 1.25, 0.2, -0.1); return w; });
-    const tail = add(body, new THREE.ConeGeometry(0.07, 1.8, 5).rotateX(-Math.PI / 2).translate(0, 0, -0.9), ink, 0, 0.22, -0.7);
-    const barb = add(tail, new THREE.ConeGeometry(0.1, 0.3, 4).rotateX(-Math.PI / 2), ink, 0, 0, -1.8);
-    for (let i = 0; i < 6; i++) add(body, new THREE.CircleGeometry(0.09 + (i % 3) * 0.04, 8).rotateX(-Math.PI / 2), ink, Math.sin(i * 2.1) * 0.6, 0.37, Math.cos(i * 1.7) * 0.4);
-    const eyes = pair((s) => add(body, new THREE.SphereGeometry(0.07, 8, 6), eye, s * 0.22, 0.34, 0.5));
-    // buried it still reads (playtest 2026-10-08, no invisible foes: src/foe-presence.js): a tall dark fin with a
-    // white contour (it reads on noon sand and on night sand; cut it and the ray is flushed out), a mound of
-    // darker, turned sand, and a thick ink ripple ring round it that pulses as it swims
-    const fin = add(g, new THREE.ConeGeometry(0.42, 1.3, 4).scale(0.4, 1, 1), M_('ray-fin', { color: '#2b211f', lineWhite: true }), 0, 0.55, 0);
-    const mound = add(g, new THREE.SphereGeometry(1, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2).scale(0.9, 0.22, 1.1), sand, 0, 0, 0);
-    const ripple = add(g, new THREE.RingGeometry(0.84, 1, 28).rotateX(-Math.PI / 2), M_('ray-ripple', { color: '#5a3a26', side: THREE.DoubleSide }), 0, 0.05, 0);
-    return {
-      group: g, parts: [disc, ...wings, tail, ...eyes], eyeMat: eye, base: '#f6e7b0', size: 1,
-      tell: (id) => (id === 'erupt' ? fin : barb),   // (the glow gathers on its fin as it races at you; on its barb to glide)
-      anim(f, c) {
-        const under = f.buried;
-        // buried: the body under the sand, the fin cutting along it; it rises as it surfaces
-        f._rise = lerp(f._rise ?? 0, under ? 0 : 1, 1 - Math.exp(-10 * c.dt));
-        const r = f._rise;
-        body.position.y = lerp(-0.6, 0, r); body.visible = r > 0.05;
-        fin.visible = mound.visible = ripple.visible = r < 0.95;
-        // (winding up its burst it swims at you, src/foes.js: the fin stands up taller and throws a wake; it never
-        // sinks out of sight before it comes up)
-        fin.position.y = 0.55 * (1 - r) + (f.state === 'wind' && f.atk?.surface ? 0.35 * c.wind : 0);
-        fin.scale.setScalar(1 + (f.state === 'wind' && f.atk?.surface ? 0.5 * c.wind : 0));   // (it stands up taller as it comes: the body is the tell)
-        fin.rotation.z = Math.sin(c.now / 160) * 0.15;
-        ripple.scale.setScalar((1.1 + 0.18 * Math.sin(c.now / 180)) * (1 - r));
-        mound.scale.setScalar(1 - r); mound.position.y = -0.02;
-        const flap = Math.sin(c.now / (f.state === 'strike' ? 70 : 180)) * (under ? 0 : 0.35);
-        wings[0].rotation.z = flap; wings[1].rotation.z = -flap;
-        tail.rotation.y = Math.sin(c.now / 220) * 0.4; tail.rotation.x = f.state === 'recover' ? Math.sin(c.now / 90) * 0.3 : 0;
-        disc.rotation.z = flap * 0.15;
-        g.position.y += (f.state === 'strike' && !under ? 0.4 * Math.sin(Math.PI * f.k) : 0) + (f.state === 'wind' && f.atk?.id === 'glide' ? 0.25 * c.wind : 0);
-        eye.uniforms.uColor.value.set(eyeColor(f, '#f6e7b0'));
-        // sand sprays where it swims, and where it is about to come up
-        if (under && (c.moving || (f.state === 'wind' && f.atk?.surface)) && Math.random() < 0.6) c.dust(f.pos, '#e8c58f', 2, 0.9);
-        // (no spray where it will come up: nothing is drawn on the ground for its burst, only the fin racing at you, src/telegraph.js)
-        if (f.state === 'wind' && f.atk?.surface && Math.random() < 0.3 + c.wind) c.dust(f.pos, '#e1b077', 1 + c.wind * 3, 0.5 + c.wind * 0.6);
-      },
-    };
-  },
-
   golem() {
     // a heap of fused green glass on short legs: faceted chunks, a lit core, shards along its back
     const g = new THREE.Group();
@@ -220,42 +147,6 @@ const MODELS = {
         else c.lob(f, -1);
         if (id === 'shards' && f.state === 'strike' && !f._shardsOut) { f._shardsOut = true; c.spray(f.chest, ['#bfe8c4', '#7fd6a8', '#2d4a3e'], 30, 7); }
         if (f.state !== 'strike') f._shardsOut = false;
-      },
-    };
-  },
-
-  moth() {
-    // a moth bent from neon tube: dark wings outlined in glowing pink and cyan, the tubes flaring before a flash
-    const g = new THREE.Group();
-    const dark = M_('moth-dark', { color: '#241a2e' }), pink = M_('moth-neon-pink', { color: '#ff5fa2', glow: 0.8 }), cyan = M_('moth-neon-cyan', { color: '#5ff0e8', glow: 0.8 });
-    add(g, new THREE.CapsuleGeometry(0.08, 0.45, 3, 6).rotateX(Math.PI / 2), dark, 0, 0.35, 0);
-    const head = add(g, new THREE.SphereGeometry(0.1, 8, 6), dark, 0, 0.38, 0.3);
-    const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.04, 6, 4), cyan, s * 0.06, 0.03, 0.07));
-    pair((s) => { const a = add(head, new THREE.CylinderGeometry(0.008, 0.008, 0.35, 3), pink, s * 0.07, 0.17, 0.05); a.rotation.z = -s * 0.5; a.rotation.x = 0.5; });
-    const wing = (s, back) => {
-      const w = new THREE.Group(); w.position.set(s * 0.06, 0.38, back ? -0.12 : 0.06); g.add(w);
-      const sh = new THREE.Shape(); const L = back ? 0.45 : 0.62, H = back ? 0.32 : 0.4;
-      sh.moveTo(0, 0); sh.bezierCurveTo(s * L * 0.3, H, s * L, H * 0.9, s * L, back ? -H * 0.2 : H * 0.1); sh.bezierCurveTo(s * L * 0.9, -H * 0.5, s * L * 0.3, -H * 0.4, 0, 0);
-      add(w, new THREE.ShapeGeometry(sh, 10).rotateX(-Math.PI / 2), dark).material.side = THREE.DoubleSide;
-      const pts = sh.getPoints(18).map((p) => new THREE.Vector3(p.x, 0.012, -p.y));
-      add(w, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts, true), 32, 0.018, 4, true), back ? cyan : pink);
-      return w;
-    };
-    const wings = [wing(-1, false), wing(1, false), wing(-1, true), wing(1, true)];
-    return {
-      group: g, parts: [head, ...eyes, ...wings], eyeMat: cyan, base: '#5ff0e8', size: 1, tell: () => head,
-      anim(f, c) {
-        const flash = f.atk?.id === 'flash' && f.state === 'wind' ? c.wind : 0;
-        // wings flutter; winding a flash they spread flat toward you and the tubes burn white
-        const flap = Math.sin(c.now / (f.state === 'wind' ? 45 : 70) + f.home.x) * (0.9 - flash * 0.8);
-        wings.forEach((w, i) => { w.rotation.z = (i % 2 ? -1 : 1) * (flap + 0.2) * (i < 2 ? 1 : 0.8); w.rotation.x = -flash * 1.2; });
-        g.position.y += f.alt + Math.sin(c.now / 300 + f.home.z) * 0.12;
-        const dart = f.atk?.id === 'dart' && f.state === 'wind' ? c.wind : 0;   // (the dart: wings swept back, it rears up, nose high)
-        if (dart) wings.forEach((w, i) => { w.rotation.y = (i % 2 ? 1 : -1) * dart * 0.9; });
-        g.rotation.x = -flash * 0.4 - dart * 0.5;
-        g.position.y += dart * 0.35;
-        pink.uniforms.uColor.value.set(flash > 0.6 ? '#fff4fb' : '#ff5fa2'); pink.uniforms.uGlow.value = 0.8 + flash * 0.2;
-        cyan.uniforms.uColor.value.set(flash > 0.75 ? '#ffffff' : f.stunned > 0 ? '#bfe9ff' : '#5ff0e8');
       },
     };
   },

@@ -34,7 +34,7 @@ function insideShape(s, p) {
 const attackShape = (f) => foeHitboxes(f).find((s) => s.tag.startsWith('foe.attack.'));
 
 test('a foe\'s strike is drawn where, and as big as, the combat code tests it: telegraph, then active, then spent', () => {
-  for (const kind of ['blot', 'machine', 'flyer', 'swarm', 'shade']) {
+  for (const kind of ['blot', 'machine', 'swarm', 'shade']) {
     const f = new Foe(kind, v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0; f.heading = 0.7;
     const P = { pos: v(Math.sin(0.7) * (f.def.reach - 0.2), 0, Math.cos(0.7) * (f.def.reach - 0.2)) };
     f.update(dt, P, env);
@@ -108,10 +108,10 @@ test('every attack of the worlds\' kinds lands exactly where it is drawn: areas,
   }
 });
 
-test('a charge (a ray\'s glide, a crab\'s spin): its lane while it winds up; then the circle round its body that hits, the lane kept faint', () => {
+test('a charge (a sky ray\'s skim, a crab\'s spin): its lane while it winds up; then the circle round its body that hits, the lane kept faint', () => {
   for (const kind of ['ray', 'crab']) {
     const a = FOES[kind].attacks.find((x) => x.sweep);
-    const f = new Foe(kind, v(), { rng: () => 0.5 }); f.attacksAt = () => [a]; f.state = 'chase'; f.cool = 0; f.heading = 0; f.buried = false;
+    const f = new Foe(kind, v(), { rng: () => 0.5 }); f.attacksAt = () => [a]; f.state = 'chase'; f.cool = 0; f.heading = 0; f.buried = false; f.hid = true;   // (a flyer: no hiding first)
     const P = { pos: v(0, 0, 5) };
     f.update(dt, P, env);
     assert.equal(attackShape(f).kind, 'lane');

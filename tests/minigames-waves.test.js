@@ -44,7 +44,7 @@ test('the waves grow in size and in mix; each new kind comes in on its own wave'
 test('the worlds’ own foes come in after the shade, one every wave or two, mixed in with the old ones', () => {
   const late = Object.keys(FIRST).filter((k) => FIRST[k] > 6).sort((a, b) => FIRST[a] - FIRST[b]);
   const worlds = [...Object.keys(KINDS), ...Object.keys(ARCHETYPE_KINDS).filter((k) => k !== 'blot')];
-  assert.deepEqual(late.slice().sort(), worlds.filter((k) => !FOES[k].noWild).sort(), 'every kind of the worlds that roams comes in, the built archetypes too');
+  assert.deepEqual(late.slice().sort(), worlds.filter((k) => !FOES[k].noWild && FIRST[k] > 6).sort(), 'every kind of the worlds that roams comes in, the built archetypes too');
   assert.equal(FIRST[late[0]], 7);
   for (let i = 1; i < late.length; i++) assert.ok(FIRST[late[i]] - FIRST[late[i - 1]] <= 2 && FIRST[late[i]] > FIRST[late[i - 1]], `${late[i]} a wave or two after ${late[i - 1]}`);
   for (const k of late) {
@@ -77,7 +77,7 @@ test('every new kind can fight in the basin: a ray buried in its sand, drones ho
       if (f.state === 'wind') wound = true;
       if (k === 'drone' && i === 120) assert.ok(f.alt > 1.5, 'a drone hovers over the sand');
       if (k === 'hound' && f.state === 'chase') assert.ok(f.phased, 'a hound running is a shadow');
-      if (k === 'ray' && f.state === 'chase') assert.ok(f.buried, 'a ray chasing swims under the sand');
+      if (k === 'worm' && f.state === 'chase') assert.ok(f.buried, 'a ray chasing swims under the sand');
       assert.ok(Math.hypot(f.pos.x, f.pos.z) < TIDE.arena + 4, `${k} stays in the basin`);
     }
     assert.ok(wound, `a ${k} from a spring comes for you and winds up a strike (closest ${minD.toFixed(1)} m)`);

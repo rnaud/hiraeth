@@ -36,7 +36,7 @@ function only(kind, id, at = v(), o = {}) {
 
 test('the worlds’ old kinds (stand-ins for archetypes not built yet), each with two or three telegraphed attacks, a note and a look of its own', () => {
   const fresh = Object.keys(KINDS);
-  assert.ok(fresh.length >= 6, `${fresh.length} kinds`);
+  assert.ok(fresh.length >= 4, `${fresh.length} kinds`);
   for (const k of fresh) {
     const D = FOES[k];
     assert.ok(D.hp > 0 && D.radius > 0 && D.speed > 0 && D.name, k);
@@ -75,18 +75,18 @@ test('every kind moves and animates in a world without errors, through every att
 });
 
 test('the dune ray swims under the sand: no blade reaches it there, its ring follows you then holds, and it bursts up there', () => {
-  const r = only('ray', 'erupt'), P = player(v(0, 0, 6));
+  const r = only('worm', 'erupt'), P = player(v(0, 0, 6));
   assert.equal(r.buried, true);
   // a cut at its fin flushes it out, dazed a moment, unharmed (the sand takes the blow); a shot finds only sand
-  const fin = new Foe('ray', v());
+  const fin = new Foe('worm', v());
   assert.equal(fin.hit('shoot', v(0, 0, 1)), false, 'a shot finds only sand');
   assert.equal(fin.hit('blade', v(0, 0, 1), { damage: 2 }), 'flushed');
-  assert.ok(!fin.buried && fin.stunned > 0 && fin.hp === FOES.ray.hp, 'flushed out by the cut, dazed, unharmed');
+  assert.ok(!fin.buried && fin.stunned > 0 && fin.hp === FOES.worm.hp, 'flushed out by the cut, dazed, unharmed');
   assert.ok(untilWind(r, P, 'erupt'));
   P.pos.set(1, 0, 6); runFor(r, P, 0.2);
   assert.ok(r.attackAt.distanceTo(v(1, 0, 6)) < 0.01, 'the ring follows you while it tracks');
   // past the tracking, it holds: step out and it misses; it is up and open after
-  runFor(r, P, FOES.ray.attacks[0].wind * FOES.ray.attacks[0].track);
+  runFor(r, P, FOES.worm.attacks[0].wind * FOES.worm.attacks[0].track);
   const held = r.attackAt.clone();
   P.pos.set(6, 0, 6);
   const ev = runFor(r, P, 1);
@@ -102,13 +102,13 @@ test('the dune ray swims under the sand: no blade reaches it there, its ring fol
   r.upFor = 0; r.state = 'recover'; r.timer = 0.01; runFor(r, P, 0.05);
   assert.equal(r.buried, true, 'its time up over, it dives again');
   // a bomb or a stomp flushes a buried one out, dazed
-  const s = new Foe('ray', v());
+  const s = new Foe('worm', v());
   assert.equal(s.hit('blade', v(1, 0, 0), { damage: 2, source: 'bomb' }), true);
   assert.ok(!s.buried && s.stunned > 1, 'flushed out and dazed');
   // standing in it: it lands, and knocks you down
   clearTargets();
-  const Q = player(v(0, 0, 6)), foes = world(Q), g = foes.add('ray', v());
-  g.attacksAt = (d) => [attackOf('ray', 'erupt')];
+  const Q = player(v(0, 0, 6)), foes = world(Q), g = foes.add('worm', v());
+  g.attacksAt = (d) => [attackOf('worm', 'erupt')];
   let hit = false;
   for (let i = 0; i < 6 / DT && !hit; i++) { foes.update(DT); hit = Q.knocks > 0; }
   assert.ok(hit && Q.hurts.length === 1, 'burst up under you: knocked down');
@@ -347,7 +347,7 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   }
   // each old kind still standing in has a home
   for (const k of Object.keys(KINDS)) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 2), `${k} has a home`);
-  const signature = { desert: 'blot', arzach: 'flyer', arzach2: 'crab', glassdunes: 'golem', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'slag', eclipse: 'hound', underwater: 'crab', buried: 'ray' };
+  const signature = { desert: 'blot', arzach: 'ray', arzach2: 'crab', glassdunes: 'golem', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'slag', eclipse: 'hound', underwater: 'crab', buried: 'worm' };
   const rng = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const [id, k] of Object.entries(signature)) {
     const packs = []; for (let n = 1; n < 240; n++) packs.push(packOf(n, id, rng));
@@ -357,7 +357,7 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   assert.deepEqual(packOf(0, 'desert'), ['blot'], 'the very first pack the game explains: a blot');
   assert.deepEqual(packOf(0, 'eclipse'), ['hound'], 'elsewhere, the world’s lead first, alone');
   assert.deepEqual(packOf(2, 'bazaar', () => 0.1), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
-  assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('ray'), 'a world with no roster: the classic mix');
+  assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('worm'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);
   assert.deepEqual(guardKinds('saltharbour'), ['crab', 'blot']);
   assert.equal(templeKind('garage', 1), 'machine'); assert.equal(templeKind('garage', 2), 'drone');

@@ -649,7 +649,7 @@ export class FluidBlade {
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
     const damage = S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1;
-    const info = { ...T.info(), damage, combo: S ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}) };
+    const info = { ...T.info(), damage, combo: S ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}) };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
     // wildlife in the cone scatters (it doesn't list the blade: it never feels it, it just runs)
     for (const h of targetsInCone(origin, this.dir, BLADE.reach, BLADE.angle, T.physics)) if (h.target.kind === 'wildlife' && !this.hitTargets.has(h.target)) { this.hitTargets.add(h.target); h.target.onHit?.('push', h.point, h.dir, info); }

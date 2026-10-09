@@ -50,9 +50,9 @@ export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', gu
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
 export const GROUP = { swarm: 6, moth: 3, hound: 2, lizard: 2 };
-export const FROM = { swarm: 2, machine: 2, golem: 1, slag: 1, shade: 3, tripod: 1 };
+export const FROM = { swarm: 2, machine: 2, golem: 1, slag: 1, shade: 3, tripod: 1, centipede: 1 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { machine: 2, golem: 2, slag: 2, crab: 1.5, tripod: 2 };
+export const COSTS = { machine: 2, golem: 2, slag: 2, crab: 1.5, tripod: 2, centipede: 2 };
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
 export const BUDGET = [[1, 2], [2, 3], [3, 4], [4, 5]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */

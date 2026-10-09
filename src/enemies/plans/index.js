@@ -4,6 +4,11 @@ import { crabModel } from './walker.js';
 import { lizardModel, houndModel } from './quadruped.js';
 import { tripodModel } from './piston.js';
 import { blotModel } from './blob.js';
+import { centipedeModel } from './centipede.js';
+import { wormModel } from './burrower.js';
+import { rayModel } from './glider.js';
+import { mothModel } from './flyer.js';
+import { jellyModel } from './floater.js';
 
 // One body builder per body plan (docs/design/enemy-roster.md, "Build plan"): each exposes its joints to the
 // locomotion kit (src/motion-kit/) and draws the archetype in a world's skin (src/enemies/skins.js); a skin only
@@ -11,11 +16,16 @@ import { blotModel } from './blob.js';
 // dispose() }, drawn by src/foes.js Foes.look like the old kinds' (src/foe-kinds.js).
 //
 //   walker.js     plan 1   the shellback crab
+//   centipede.js  plan 3   the ring centipede (a spine on its own path, legs in a metachronal wave)
 //   quadruped.js  plan 6   the horn lizard and the antler hound (one rig, two archetypes)
+//   floater.js    plan 11  the lantern jelly
+//   flyer.js      plan 13  the signal moth
+//   glider.js     plan 14  the sky ray
+//   burrower.js   plan 15  the mound worm
 //   piston.js     plan 18  the lamp tripod
 //   blob.js       plan 20  the ink blot
 
-const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel };
+const BUILDERS = { crab: crabModel, lizard: lizardModel, hound: houndModel, tripod: tripodModel, blot: blotModel, centipede: centipedeModel, worm: wormModel, ray: rayModel, moth: mothModel, jelly: jellyModel };
 
 /** The body of a built archetype's kind in a world's skin, or null (not one: an old kind draws itself). */
 export function archetypeModel(kind, world) {

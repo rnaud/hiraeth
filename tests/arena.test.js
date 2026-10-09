@@ -24,7 +24,7 @@ test('the Arena’s waves: the ink and the worlds’ kinds first, then each buil
   assert.deepEqual(ARENA_WAVES.slice(0, WAVES.length), WAVES, 'the old waves first, as they were');
   const skins = ARENA_WAVES.slice(WAVES.length, WAVES.length + skinWaves);
   for (const a of BUILT) for (const w of Object.keys(SKINS[a])) assert.ok(skins.some((x) => x[0] === `${ARCHETYPES[a].kind}@${w}`), `${a} in ${w}`);
-  assert.ok(skins.every((x) => new Set(x).size === 1), 'each alone (a pair kind as its pair)');
+  assert.ok(skins.every((x) => new Set(x).size === 1 || (FOES[parseKind(x[0]).kind].escort && new Set(x.slice(0, -1)).size === 1)), 'each alone (a pair kind as its pair; a support with its escort)');
   // every kind, every built archetype in every skin, and every world comes round
   const all = new Set(ARENA_WAVES.flat().map((k) => parseKind(k).kind));
   for (const k of Object.keys(FOES)) if (!FOES[k].noWild) assert.ok(all.has(k), k);

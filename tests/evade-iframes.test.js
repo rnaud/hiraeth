@@ -80,7 +80,7 @@ test('a foe\'s strike inside the window misses, outside it lands; the first swal
 });
 
 test('every kind of blow: a lunge, a lob, a volley, a charge, a flash, a harpoon, roots, a shockwave and slag', () => {
-  const ids = ['slam', 'lob', 'volley', 'glide', 'flash', 'harpoon', 'grab'];
+  const ids = ['slam', 'lob', 'volley', 'skim', 'flash', 'harpoon', 'grab'];
   for (const id of ids) for (const inside of [true, false]) {
     const { P, foes, B, evadeFor } = setup();
     const { kind, a } = attack(id);

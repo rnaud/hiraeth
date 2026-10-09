@@ -22,16 +22,18 @@ test('enemy warning colours belong to each enemy and are released with it',()=>{
  foes.dispose();
 });
 test('wing roots remain embedded throughout the flap, and machine arms have shoulder sockets',()=>{
- const foes=make(),fly=foes.add('flyer',new THREE.Vector3());
- for(const wing of fly.model.wings)for(const angle of [-.6,0,.6]){
-  wing.rotation.z=angle;fly.model.group.updateMatrixWorld(true);
+ // the sky ray's and the signal moth's wing roots stay on the body through the beat (src/enemies/plans/glider.js, flyer.js)
+ const foes=make();
+ for(const kind of ['ray','moth']){const fly=foes.add(kind,new THREE.Vector3());for(const wing of fly.model.wings)for(const angle of [-.6,0,.6]){
+  wing.parent.rotation.z=angle;fly.model.group.updateMatrixWorld(true);
+  const body=fly.model.body.getWorldPosition(new THREE.Vector3());
   const p=wing.geometry.attributes.position;let near=Infinity;
   for(let i=0;i<p.count;i++){
    const v=new THREE.Vector3().fromBufferAttribute(p,i).applyMatrix4(wing.matrixWorld);
-   near=Math.min(near,v.distanceTo(new THREE.Vector3(0,.55,0)));
+   near=Math.min(near,v.distanceTo(body));
   }
-  assert.ok(near<.5,'wing surface overlaps the ink body throughout its flap');
- }
+  assert.ok(near<.5,`${kind}: the wing surface meets the body throughout its beat (${near.toFixed(2)})`);
+ }}
  const machine=foes.add('machine',new THREE.Vector3());
  for(const arm of machine.model.arms){
   const socket=arm.children.find(c=>c.geometry?.type==='SphereGeometry');

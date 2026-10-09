@@ -4,6 +4,7 @@
 //   walker     the shellback crab (in its own skin and the stall crab's awning)
 //   quadruped  the horn lizard and the antler hound (one rig, two archetypes; a second skin of each)
 //   machine    the makers' machine (three legs), the lamp tripod (in its own skin and as the diving bell)
+//   centipede  the ring centipede: 24 legs in a metachronal wave on its path (kit phase 4)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -19,6 +20,8 @@ const SUBJECTS = [
   { id: 'machine', legs: OLD.machine, n: 3, groups: [[0], [1], [2]] },
   { id: 'tripod', legs: kitLegs, n: 3, groups: [[0], [1], [2]] },
   { id: 'tripod@underwater', legs: kitLegs, n: 3, groups: [[0], [1], [2]] },
+  { id: 'centipede', legs: kitLegs, n: 24, groups: 'wave' },             // (a metachronal wave: a pair's two legs never together)
+  { id: 'centipede@eclipse', legs: kitLegs, n: 24, groups: 'wave' },
 ];
 
 const sys = foeSystem();
@@ -37,7 +40,8 @@ for (const s of SUBJECTS) {
     assert.ok(r.worstSlide < 0.1, `worst contact slid ${r.worstSlide.toFixed(3)} m`);
     assert.ok(r.reachShare > 0.15, `hip-to-foot changes ${(r.reachShare * 100).toFixed(0)} % of the leg`);
     assert.ok(r.liftShare >= 0.06, `lifts ${(r.liftShare * 100).toFixed(0)} % of the leg`);
-    assert.deepEqual(r.groups, s.groups, 'gait groups');
+    if (s.groups === 'wave') assert.ok(r.groups.every((g) => !g.some((l) => l % 2 === 0 && g.includes(l + 1))), `a pair's legs step apart: ${JSON.stringify(r.groups)}`);
+    else assert.deepEqual(r.groups, s.groups, 'gait groups');
     assert.ok(h.cadence < r.cadence * 0.85, `cadence follows the speed: ${h.cadence.toFixed(2)} at half against ${r.cadence.toFixed(2)}`);
     assert.ok(h.slidePerMetre < 0.05, `at half speed too: ${h.slidePerMetre.toFixed(3)}`);
     assert.ok(r.unison < 0.9, `two of a kind step in unison: ${r.unison.toFixed(2)}`);

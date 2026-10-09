@@ -39,7 +39,7 @@ test('what a walker can cross: steps it walks, ledges a climber clambers, drops 
   assert.equal(linkOf(3, reachOf(FOES.blot)), null, 'not 3 m');
   assert.equal(linkOf(-4, reachOf(FOES.blot)), 'drop');
   assert.equal(linkOf(-4, reachOf(FOES.machine)), null, 'a machine drops less far');
-  assert.equal(linkOf(-2, reachOf(FOES.ray)), null, 'a ray under the sand only walks');
+  assert.equal(linkOf(-2, reachOf(FOES.worm)), null, 'a worm under the sand only walks');
   for (const k of ['blot', 'shade', 'stalker', 'hound']) assert.ok(FOES[k].clamber, `${k} clambers`);
   assert.ok(FOES.spitter.perch, 'the spitter takes the high ground');
   // a hop arcs over the higher end, and ends where it was going
