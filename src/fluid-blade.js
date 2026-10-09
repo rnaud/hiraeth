@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { makeMaterial } from './materials.js';
 import { allTargets, targetsInCone } from './targets.js';
 import { hitStop, kick } from './feel.js';
-import { hasUpgrade } from './ink.js';
+import { hasUpgrade, UPGRADES } from './ink.js';
 import { fistGrip, carry, fitScale } from './blade-grip.js';
+import { buildSword, BladeWake, wakeStyle, WAKE_TONES, HILT } from './fluid-sword.js';
 import { ShieldDevice, SHIELD, shieldArc } from './shield.js';
 import { MAGIC_COST } from './resources.js';
 import { rumblePlay } from './rumble.js';
@@ -15,7 +15,7 @@ import { rumblePlay } from './rumble.js';
 // Combat movement is applied by Player through the usual ground and collision controller.
 
 export const BLADE = {
-  length: 0.85, width: 0.052, guard: 0.06,   // a sword's blade (m), out of a hilt: the grip's middle in the fist, the guard this far up from it
+  length: 0.85, width: 0.111, guard: HILT.mouth - 0.012,   // the sword's blade (m; width at its widest), out of the hilt's cup this far up from the grip's middle (in the fist)
   swing: 0.62,          // s a swing takes
   hitAt: 0.5,         // share of the swing when it lands
   chain: 0.45,         // s after a swing in which the next press chains
@@ -99,6 +99,24 @@ export function trailCut(b) {
   const [from, to] = activeRange(b.spec), t = b.tool.player?.swingMove?.t;
   return t !== undefined && t >= from && t <= to;
 }
+/**
+ * The drops a cut flings off its edge this frame (src/fluid-sword.js wakeStyle `style`): `style.drops` of them
+ * from the outer part of the blade (`from` last frame's segment, `seg` this frame's; {a: the cup, b: the point}),
+ * thrown on with a share of the edge's speed and falling. Plain objects for tool.drops.add.
+ */
+export function shedDrops(from, seg, dt, style, rand = Math.random) {
+  const out = [];
+  if (!from || !seg || !(dt > 0)) return out;
+  for (let i = 0; i < style.drops; i++) {
+    const x = 0.35 + 0.65 * rand(), pos = new THREE.Vector3().lerpVectors(seg.a, seg.b, x);
+    const was = new THREE.Vector3().lerpVectors(from.a, from.b, x);
+    const vel = pos.clone().sub(was).divideScalar(dt).multiplyScalar(0.3 + 0.2 * rand());
+    if (vel.length() > 9) vel.setLength(9);
+    out.push({ pos, vel, drag: 2.5, grav: style.grav, size: style.size * (0.6 + 0.8 * rand()), stretch: 3, life: 0.3 + 0.3 * rand(), color: style.dropTones[i % style.dropTones.length] });
+  }
+  return out;
+}
+
 /** Distance to the moving blade, sampled between consecutive poses to avoid tunnelling. */
 export function sweptBladeTouches(point, radius, before, after) {
   const a = new THREE.Vector3(), b = new THREE.Vector3(), nearest = new THREE.Vector3();
@@ -175,6 +193,18 @@ export const REACH_UP = 1.3;
 export const bladeLength = (state, B = BLADE) => B.length * (hasUpgrade('reach', state) ? REACH_UP : 1);
 /** How far the blade's mesh, built `built` m long, is stretched to be bladeLength. */
 export const bladeScale = (state, built, B = BLADE) => bladeLength(state, B) / built;
+/** Each step of ink reached (src/ink.js UPGRADES: the reach, the whirl, the lunge) makes the blade this much broader. */
+export const INK_BROADER = 0.1;
+/** The blade's width at its widest (m): BLADE.width, broader by INK_BROADER for each step of ink reached. */
+export const bladeWidth = (state, B = BLADE) => B.width * (1 + INK_BROADER * UPGRADES.filter((u) => hasUpgrade(u.id, state)).length);
+/**
+ * The blade as it lights for a swing (`lit` 0..1; src/fluid-blade.js place): grown out of the cup to its length,
+ * narrow at first and filling out to its width. { length, width } (m).
+ */
+export const bladeGrowth = (lit, state, B = BLADE) => {
+  const k = Math.max(0.05, lit), s = k * k * (3 - 2 * k);
+  return { length: bladeLength(state, B) * k, width: bladeWidth(state, B) * (0.3 + 0.7 * s) };
+};
 /**
  * The guard: the clips (block idle held round and round, the block played as a strike lands), how wide it
  * covers, and the shield (src/shield.js). What it covers is the shield as drawn (ShieldDevice.arc: the
@@ -230,31 +260,15 @@ export class FluidBlade {
     this.tool = tool;
     this.n = -1; this.t = 0; this.chainT = 0; this.cool = 0; this.lit = 0; this.hit = false; this.queued = false;
     this.point = new THREE.Vector3(); this.dir = new THREE.Vector3(0, 0, 1); this.pose = { k: 0, point: this.point, dir: this.dir };
-    // a sword: a flat, two-edged blade of the tank's fluid (the glob's lava in its tones) tapering to a point,
-    // its two edges bright (glowing: the bloom draws its halo), out of a hilt: a brass guard, a wrapped grip in
-    // the fist, a brass pommel. The blade grows out of the guard as it lights; the trail's drops follow its tip
-    const L = this.builtLength = BLADE.length, W = BLADE.width, tip = W * 2.2;
-    const outline = new THREE.Shape().moveTo(-W / 2, 0).lineTo(W / 2, 0).lineTo(W / 2 * 0.86, L - tip).lineTo(0, L).lineTo(-W / 2 * 0.86, L - tip).lineTo(-W / 2, 0);
-    const bladeGeo = new THREE.ExtrudeGeometry(outline, { depth: 0.002, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.004, bevelSegments: 1, curveSegments: 1 }).translate(0, 0, -0.001);
-    const edgeMat = makeMaterial({ color: '#fffbea', flat: true, glow: 1, key: 'fluid-blade-edge' });
-    this.core = new THREE.Mesh(bladeGeo, tool.globMat);
-    this.edges = [-1, 1].map((s) => {
-      const len = Math.hypot(L - tip, W * 0.07), e = new THREE.Mesh(new THREE.BoxGeometry(0.005, len, 0.004).translate(0, len / 2, 0), edgeMat);
-      e.position.set(s * W / 2 * 0.98, 0, 0); e.rotation.z = s * Math.atan2(W / 2 * 0.14, L - tip); return e;
-    });
-    const tipEdges = [-1, 1].map((s) => { const len = Math.hypot(tip, W / 2 * 0.86), e = new THREE.Mesh(new THREE.BoxGeometry(0.005, len, 0.004).translate(0, len / 2, 0), edgeMat); e.position.set(s * W / 2 * 0.86, L - tip, 0); e.rotation.z = s * Math.atan2(W / 2 * 0.86, tip); return e; });
-    this.bladeGroup = new THREE.Group();
-    this.bladeGroup.position.y = BLADE.guard + 0.012;
-    this.bladeGroup.add(this.core, ...this.edges, ...tipEdges);
-    // the hilt, its origin the middle of the grip (where the fingers close: src/blade-grip.js fistGrip)
-    const brass = makeMaterial({ color: '#c99a46', metal: 'brass', key: 'fluid-blade-brass' }), wrap = makeMaterial({ color: '#3a2a22', flat: true, key: 'fluid-blade-grip' });
-    this.hilt = new THREE.Group();
-    this.hilt.add(new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.02, 0.032).translate(0, BLADE.guard, 0), brass));          // the guard, over the index and the thumb
-    this.hilt.add(new THREE.Mesh(new THREE.CylinderGeometry(0.0155, 0.017, 0.115, 8).translate(0, -0.005, 0), wrap));    // the grip, in the fist
-    this.hilt.add(new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6).translate(0, -0.075, 0), brass));                  // the pommel, under the little finger
-    this.group = new THREE.Group();
+    // the sword (src/fluid-sword.js, the selected design): a broad blade of turquoise fluid out of a brass cup, on a
+    // leather-wrapped grip in the fist with a brass pommel. The blade grows out of the cup as it lights (its length
+    // and width), broader with each step of ink; a wake of fluid trails off its edge through the cut
+    const sword = buildSword({ length: BLADE.length, width: BLADE.width, bladeBase: BLADE.guard + 0.012 });
+    this.builtLength = sword.builtLength; this.builtWidth = sword.builtWidth;
+    this.core = sword.core; this.bladeGroup = sword.blade; this.hilt = sword.hilt; this.swordMat = sword.material;
+    this.group = sword.group;
+    this.wake = new BladeWake(tool.fx);
     this.group.name = 'fluid blade';
-    this.group.add(this.bladeGroup, this.hilt);
     this.group.visible = false;
     this.group.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; o.frustumCulled = false; });
     tool.fx.add(this.group);
@@ -683,7 +697,7 @@ export class FluidBlade {
     const on = (this.drawn > 0.02 || this.lit > 0.03) && p?.object?.visible !== false;
     this.group.visible = on;
     if (p) p.swordGrip = on ? Math.max(this.drawn, this.lit) : 0;
-    if (!on) return;
+    if (!on) { this.wake.update(dt, null, false); return; }
     const held = this.mountGrip();
     if (held) fitScale(this.group, THREE.MathUtils.lerp(0.35, 1, smooth01(Math.max(this.drawn, this.lit))));   // (drawn: out of the glove's cuff into the fist)
     else {
@@ -696,25 +710,39 @@ export class FluidBlade {
       this.group.scale.setScalar(1);
     }
     this.bladeGroup.visible = this.lit > 0.03;
-    this.bladeGroup.scale.set(1, Math.max(0.05, this.lit) * bladeScale(T.state, this.builtLength), 1);   // (the blade grows out of the guard as it lights; its length tuned and upgraded)
+    // (the blade grows out of the cup as it lights: its length tuned and upgraded, its width filling out, broader with ink)
+    const grown = bladeGrowth(this.lit, T.state);
+    this.bladeGroup.scale.set(grown.width / this.builtWidth, grown.length / this.builtLength, 1);
+    const U = this.swordMat.uniforms.uFluidA.value;
+    U.z = (T.time ?? 0) + (this._inspectT ?? 0);   // (the currents flow up it)
     const seg = this.swinging && dt > 0 ? this.bladeSegment() ?? { a: this.group.getWorldPosition(_a).clone(), b: this.point.clone() } : null;
+    const cut = !!seg && !this.charging && trailCut(this) && !!this.trailFrom;
+    const style = wakeStyle(this.special, this.chargeFull);
+    this.wake.update(dt, seg, cut, style, p?.frame?.up);
     if (seg) {
-      const tones = T.modeTones, from = this.trailFrom, n = this.n < 0 ? 0 : this.n;
+      const tones = style.tones, from = this.trailFrom, n = this.n < 0 ? 0 : this.n;
       if (this.charging) {
-        // gathering: sparks drawn in to the blade from round it
+        // gathering: sparks drawn in to the blade from round it, and the fluid dripping off it
         for (let i = 0; i < (this.charging.full ? 3 : 2); i++) {
           const at = _o.lerpVectors(seg.a, seg.b, Math.random()), off = _r.randomDirection().multiplyScalar(0.35);
           T.glow.add({ pos: at.add(off), vel: off.multiplyScalar(-4), drag: 2, size: 0.016, life: 0.12, color: this.charging.full ? '#fff6dc' : tones[i % tones.length], grow: false });
         }
-      } else if (trailCut(this) && from) {
-        // the cut (the clip's own swing frames: activeRange): a sweep of sparks over the ground the edge crossed since the last frame
-        const steps = Math.min(8, Math.max(1, Math.ceil(from.b.distanceTo(seg.b) / 0.08)));
-        for (let k = 1; k <= steps; k++) for (let i = 0; i < 3; i++) {
-          const u = k / steps, x = 0.45 + i * 0.27;
+        if (Math.random() < dt * 8) T.drops?.add({ pos: _o.lerpVectors(seg.a, seg.b, Math.random() * 0.6), vel: _r.set(0, 0, 0), grav: 9, size: 0.014, stretch: 2.5, life: 0.5, color: WAKE_TONES[0] });
+      } else if (cut) {
+        // the cut (the clip's own swing frames: activeRange): sparks over the ground the edge crossed since the
+        // last frame (fewer than before the wake: it draws the sweep), and drops of fluid flung off the edge
+        const steps = Math.min(6, Math.max(1, Math.ceil(from.b.distanceTo(seg.b) / 0.12)));
+        for (let k = 1; k <= steps; k++) {
+          const u = k / steps, x = 0.7 + 0.3 * ((k + n) % 2);
           _a.lerpVectors(from.a, seg.a, u); _b.lerpVectors(from.b, seg.b, u);
-          T.glow.add({ pos: _o.lerpVectors(_a, _b, x), vel: _r.set(0, 0, 0), drag: 8, size: 0.014 + i * 0.006, life: 0.14, color: tones[(n + i) % tones.length], grow: false });
+          T.glow.add({ pos: _o.lerpVectors(_a, _b, x), vel: _r.set(0, 0, 0), drag: 8, size: 0.012 + 0.008 * ((k + n) % 2), life: 0.12, color: tones[(n + k) % tones.length], grow: false });
         }
-      } else T.glow.add({ pos: _o.lerpVectors(seg.a, seg.b, 0.9), vel: _r.set(0, 0, 0), drag: 8, size: 0.01, life: 0.06, color: tones[n % tones.length], grow: false });   // (wind-up, follow-through: a glint at the tip)
+        for (const d of shedDrops(from, seg, dt, style)) T.drops?.add(d);
+      } else {
+        // wind-up, follow-through: a glint at the tip, and now and then a drip off the splash by the cup
+        T.glow.add({ pos: _o.lerpVectors(seg.a, seg.b, 0.9), vel: _r.set(0, 0, 0), drag: 8, size: 0.01, life: 0.06, color: tones[n % tones.length], grow: false });
+        if (Math.random() < dt * 6) T.drops?.add({ pos: _o.lerpVectors(seg.a, seg.b, 0.05 + Math.random() * 0.25), vel: _r.set(0, 0, 0), grav: 9, size: 0.012, stretch: 2.5, life: 0.45, color: WAKE_TONES[Math.random() < 0.7 ? 0 : 1] });
+      }
     }
     this.trailFrom = seg ? { a: seg.a.clone(), b: seg.b.clone() } : null;
   }
@@ -738,5 +766,5 @@ export class FluidBlade {
     S.k = shield;   // (held where the panel says)
   }
 
-  dispose() { this.group.removeFromParent(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
+  dispose() { this.group.removeFromParent(); this.wake.dispose(); this.device.dispose(); if (this.tool.player?.guard) this.tool.player.guard = null; }
 }

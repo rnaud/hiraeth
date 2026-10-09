@@ -21,7 +21,7 @@ import * as THREE from 'three';
 //   carry(object, mount)     parent `object` to the mount's bone, there (and at world size each frame: fitScale)
 
 export const GRIP = {
-  pommel: 0.07,      // m from the grip's middle (the fingers' centre) down to the pommel's end of the wrapped grip
+  pommel: 0.082,     // m from the grip's middle (the fingers' centre) down to the pommel's end of the wrapped grip (src/fluid-sword.js HILT.grip)
   fingers: ['index', 'middle', 'ring', 'pinky'],
 };
 export const BRACER = {

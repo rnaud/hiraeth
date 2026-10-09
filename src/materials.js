@@ -1769,7 +1769,7 @@ const fragmentShader = /* glsl */ `
   #ifdef FLUID
   // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
   // lava lamp in flat print tones. Only materials made with o.fluid compile this.
-  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, (1: the hose, gone), 2 glob, 3 wing, 4 trail, 5 shadow
+  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, (1: the hose, gone), 2 glob, 3 wing, 4 trail, 5 shadow, 6 the sword
   uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · (unused: the hose's pulse) · slosh 0..1
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
   uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
@@ -1831,9 +1831,31 @@ const fragmentShader = /* glsl */ `
     }
     return fluidTone(pick);
   }
+  // The fluid sword (kind 6, src/fluid-sword.js): turquoise water with sand-cream currents and deep teal pools
+  // flowing up it toward the point (flat tones: the post pass inks where they meet), a bright ridge down its middle
+  // and a rim at each edge (pale on the leading, gold on the trailing, as the sheet draws them). aFold: x across
+  // (-1 the trailing edge .. 1 the leading), y along (0 the hilt .. 1 the point); tones: cream, deep, pale, gold, -, light.
+  vec3 bladeFluid(float t) {
+    float u = vFold.x, v = vFold.y;
+    // (stretched up the blade: the currents run along it as streaks, not blobs)
+    vec2 p = vec2(u * 1.7 + 0.8 * v, v * 3.6 - t * 0.6);
+    vec2 q = vec2(vnoise(p * vec2(1.0, 2.0) + vec2(0.0, t * 0.3)), vnoise(p * vec2(1.3, 2.4) + vec2(5.2, 1.3) - vec2(t * 0.2, 0.0)));
+    float f = vnoise(p + 1.7 * q + vec2(1.7, 9.2));
+    float g = vnoise(p * vec2(1.6, 2.6) + 1.3 * q.yx + vec2(4.1, 2.7));
+    float cream = f - 0.18 * u - 0.15 * smoothstep(0.7, 1.0, v) - 0.2 * (1.0 - smoothstep(0.05, 0.3, v));   // (the currents lie toward the trailing edge, from a quarter of the way up)
+    // soft where they meet (as water mixes: the post pass inks only the sharpest of them)
+    vec3 col = mix(uFluidBase, fluidTone(1), 0.85 * smoothstep(0.36, 0.22, g - 0.1 * (1.0 - v)));   // deep pools, more by the hilt
+    col = mix(col, fluidTone(0), smoothstep(0.7, 0.77, cream));
+    col = mix(col, fluidTone(2), 0.5 * smoothstep(0.55, 0.62, g) * (1.0 - smoothstep(0.62, 0.7, g)));   // pale glints between them
+    float ridge = (1.0 - smoothstep(0.03, 0.08, abs(u - 0.12 * v))) * smoothstep(0.12, 0.3, v) * (1.0 - smoothstep(0.86, 0.97, v));
+    col = mix(col, fluidTone(5), 0.75 * ridge);
+    col = mix(col, u > 0.0 ? fluidTone(2) : fluidTone(3), smoothstep(0.84, 0.95, abs(u)));
+    return col;
+  }
   vec3 fluidAlbedo(vec3 base) {
     float t = uFluidA.z, kind = uFluidA.w;
     int n = int(uFluidA.y + 0.5);
+    if (kind > 5.5) return bladeFluid(t);
     if (kind > 4.5) {
       // the shade (src/shade.js): a cartoon's negative, flat black (its lines white: lineWhite, post.js 1b), and
       // a few short white strokes (uFluidBox.z how much), a few mm wide in the world (never under a pixel), tapering
@@ -1937,7 +1959,7 @@ const fragmentShader = /* glsl */ `
     // a shade (src/shade.js): its feet run into the floor in a cartoon's wavering drips; as it comes and goes
     // (uFluidB.y: how much has run away) it pours up out of the floor and back down into it, under a dripping edge;
     // its body's head is cut at the neck (uFluidBox.w, bind y; 0 none): the flame is its head (none of this on the flame)
-    if (uFluidA.w > 4.5) {
+    if (uFluidA.w > 4.5 && uFluidA.w < 5.5) {
       float s = vBind.x + vBind.z * 0.7, t = uFluidA.z;
       float drip = vnoise(vec2(s * 16.0, t * 0.35));
       float top = mix(2.45, -0.1, uFluidB.y) - 0.22 * vnoise(vec2(s * 9.0, t * 0.6 + 3.0));
@@ -2139,7 +2161,7 @@ const fragmentShader = /* glsl */ `
       albedo = fluidAlbedo(albedo);
       // the shade's contour from inside: a white band ~1.4 px in from where its surface turns away (n·v over its
       // own screen derivative: how many pixels to the edge), under post.js' white line, a cartoon's clean outline
-      if (uFluidA.w > 4.5) {
+      if (uFluidA.w > 4.5 && uFluidA.w < 5.5) {
         float ndv = abs(dot(n, normalize(cameraPosition - vWorldPos)));
         float rimPx = ndv / max(fwidth(ndv), 1e-5), rimW = ${SHADE_RIM.toFixed(2)} * max(uPixelRatio, 1.0);
         albedo = mix(albedo, vec3(${INK_WHITE.map((v) => v.toFixed(3)).join(', ')}), 1.0 - smoothstep(rimW - 0.5, rimW + 0.5, rimPx));
@@ -2345,7 +2367,7 @@ const fragmentShader = /* glsl */ `
 
     // (the line's weight and colour over the light term: LINE, post.js lightOf)
     #ifdef FLUID
-      if (uFluidA.w > 4.5) L = 1.0;   // (the shade: flat black, no shade side, so no shadow-edge line across it)
+      if (uFluidA.w > 4.5 && uFluidA.w < 5.5) L = 1.0;   // (the shade: flat black, no shade side, so no shadow-edge line across it)
     #endif
     float packedL = clamp(L, 0.0, 1.0) + 2.0 * uLineStep;
     gAlbedoLight = vec4(albedo, uLineWhite > 0.5 ? -1.0 - packedL : packedL);   // (a white line: the sign bit, post.js 1b)
@@ -2680,7 +2702,7 @@ const cache = new Map();
  * @param {boolean} [o.swayLarge] with sway: a large plant (only its low leaves part as you brush past)
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
- * @param {string}  [o.fluid]   'tank' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js);
+ * @param {string}  [o.fluid]   'tank' | 'glob' | 'wing' | 'trail' | 'shadow' | 'blade': the traveller's magical fluid (fluid-tool.js, fluid-kit.js, fluid-sword.js);
  *                               'shadow': a shade's body and flame (src/shade.js: flat black, white fold strokes, feet in drips;
  *                               uFluidA.z its time, uFluidB.y how much of it has run away: 0..1, its spawn and death;
  *                               fluidBox [_, _, fold strokes 0..1, neck cut bind y (0 none)]; always lit flat).
@@ -2797,7 +2819,7 @@ export function makeMaterial(o) {
   }
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
-    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, glob: 2, wing: 3, trail: 4, shadow: 5 }[o.fluid] ?? 0) };
+    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, glob: 2, wing: 3, trail: 4, shadow: 5, blade: 6 }[o.fluid] ?? 0) };
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };

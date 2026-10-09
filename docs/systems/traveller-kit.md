@@ -73,6 +73,15 @@ the rucksack's outer face. The look and its reasons:
   knuckles and plate in its tones. The story's lines that had the water "climb your hose" now pour it into
   the tank.
 
+- **The fluid sword** (`src/fluid-sword.js`, held by `src/fluid-blade.js`; the selected design,
+  `references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/reference-3.jpeg`): the hilt in
+  the right fist (`src/blade-grip.js fistGrip`, its origin the grip's middle) is a leather-wrapped grip (`HILT`:
+  a spiral of raised bands, grooves between), a brass collar over the index that swells into a bulb with two
+  studs and opens into an oval cup with a bead of fluid always in it, and a brass pommel with a curled tail.
+  Out of the cup, only while it is lit for a cut, the broad turquoise blade (`bladeEdges`, `bladeGeometry`).
+  Drawn, unlit, the fist holds the hilt alone; put away, it shrinks into the glove's cuff. Three draw calls
+  held, four lit, five through a cut (the wake). How it looks and trails: `docs/systems/foes.md`, "The look".
+
 Tests: `tests/glove.test.js` (worn with the tank only, the skin under it, the mouth at the knuckles
 in every aim, the lights, the vial lit by the fluid, no hose anywhere), `tests/traveller.test.js` (fit, rucksack, flask size and visibility, hair,
 face), `tests/drone.test.js` (docks and clearance in every clip),

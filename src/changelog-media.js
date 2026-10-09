@@ -338,6 +338,23 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
   '1.7': [
+    { match: 'The fluid blade is the chosen sword now', shots: [
+      { name: 'sword-hand', caption: 'In hand (the studio, Blade and shield): the slim glowing blade and plain hilt before; after, the broad turquoise blade out of a brass cup, cream currents up it', from: 'headless Chrome against a dev server (studio.html?backpack=true&sword=true&view=arms), the same pose before and after' },
+      { name: 'sword-hilt', caption: 'The hilt close up: before a bar guard and a ball pommel; after the brass collar opening into an oval cup, the wrapped grip and the pommel with its curled tail', from: 'headless Chrome against a dev server (studio.html, view Hands), the same pose before and after' },
+      { name: 'sword-swing', caption: 'The first swing at its cut, in the Arena: before a string of sparks; after ribbons of the fluid trailing off the edge and drops flying', from: 'headless Chrome against a dev server (the Arena, High), the swing caught on its first cut frame' },
+      { name: 'sword-charged', caption: 'The charged cut let go: a wider, fuller wake and more drops', from: 'headless Chrome against a dev server (the Arena, High), the charge held to full, caught on its cut' },
+      { name: 'sword-air', caption: 'The air cut: the fluid thrown down with the blade', from: 'headless Chrome against a dev server (the Arena, High), caught on its cut' },
+    ], numbers: [
+      { title: 'The sword lit mid-swing: what it draws (every pass), High', unit: 'draws', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1280 × 720 at render scale 1.5',
+        rows: [{ where: 'The Arena, the first swing', before: 14, after: 13 }],
+        source: 'renderFrame() with the sword shown and hidden in turns in one page, medians of 6 (docs/systems/foes.md, "The look")' },
+      { title: 'The sword lit mid-swing: triangles (every pass), High', unit: 'triangles', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1280 × 720 at render scale 1.5',
+        rows: [{ where: 'The Arena, the first swing', before: 456, after: 7572 }],
+        source: 'as above (the mesh is 2,500 triangles: blade 792, grip 816, brass 816, the bead 80)' },
+      { title: 'The sword’s work a frame, High', unit: 'ms', better: 'lower', device: 'M4 Pro, Chrome (ANGLE Metal), 1280 × 720 at render scale 1.5',
+        rows: [{ where: 'Placing it (CPU)', before: 0.001, after: 0.011 }, { where: 'The wake (CPU)', before: 0, after: 0.011 }, { where: 'The frame, swinging in the Arena (median)', before: 16.6, after: 16.7 }],
+        source: '300 calls timed in the page; the frame at 60 fps either way (vsync)' },
+    ], see: 'Swing the blade (F, RB / R1): watch its edge through a cut, hold the button for a charged cut, cut in the air, after an evade or a perfect parry. Debug → Character studio → Fluid backpack, Blade and shield shows it in hand.' },
     { match: 'Little waves lap at whatever stands in the water', shots: [
       { name: 'water-contact-lorn2', caption: 'Lorn II: a great tree standing in the water, before with no edge where it meets it, after with the band of foam lapping round its foot and the far shore', from: 'headless Chrome against a dev server (captureView), the contact foam off and on in the same page' },
       { name: 'water-contact-viridel', caption: 'Viridel’s lake from above: the near shore before and after (a pale lapping band with an inked ripple off it)', from: 'headless Chrome against a dev server (captureView), the contact foam off and on in the same page' },

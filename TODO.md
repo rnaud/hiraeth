@@ -25,10 +25,6 @@ rather than mixing the earlier inconsistent exploration sheets.
   living space, galley, sleeping area and storage inside that hull, using the existing Main Interior,
   Cockpit and Message, and Living Quarters references for atmosphere. Establish dimensions from a
   human-scale blockout; the prompt's 24 m length is a proposal, not a verified measurement.
-- [ ] **Generate and integrate the selected fluid sword** from
-  `references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/reference-3.jpeg`
-  (the user's `0_2 (53).jpeg` download). Match the broad turquoise liquid blade, wrapped grip,
-  brass fittings and trailing fluid details, preserving the design in hand and during combat.
 
 # Singing light soundtrack follow-up
 

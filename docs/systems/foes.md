@@ -26,8 +26,8 @@ The first things in the game that fight back, and the tool's answer to them.
   `hit` −0.08/+0.1) is where its clip's blade moves fastest, measured on the traveller (the tip's speed through
   `from`–`to`): the three 47/36/30 m/s at 0.60/0.81/1.13 s, the whirl 27 at 1.06, the charge 22 at 0.66, the air
   cut 18 at 1.16, the riposte 33 at 1.39, the dash cut 43 at 0.56, each well over its speed round the cut. `tests/blade-attacks.test.js` checks it, so a clip's
-  times can't drift off its swing. The trail follows the same window (`trailCut`): through the cut a sweep of
-  sparks over the ground the edge crossed since the last frame (up to 8 steps, 3 along the blade), else one glint
+  times can't drift off its swing. The trail follows the same window (`trailCut`): through the cut the fluid's wake and drops off the
+  edge and sparks over the ground the edge crossed since the last frame (v1.7: "The look" below), else one glint
   at the tip; while charging, sparks drawn in to the blade. (The studio's paused `time` is not the clip's: its
   0.4 s is about 0.85 s of the clip. Measure in the game, as the test does.)
 - **The charged cut** (`CHARGE`, v1.3, the Great Sword pack's slash `gs_slash_1`): the blade button still held
@@ -96,11 +96,38 @@ The first things in the game that fight back, and the tool's answer to them.
   a swept segment from the glove to the blade tip checks contact with target volumes. Each target
   is hit once per swing. Without a loaded character clip, the original cone is the fallback.
   Wildlife scatters once per swing; other non-blade targets do not take damage.
-- **The look:** a sword. A flat two-edged blade (`BLADE.length` 0.85 m, `width` 5 cm, extruded from an
-  outline tapering to a point) of the glob's lava material in the tank's tones, its edges bright glowing lines,
-  on a hilt: a brass guard, a wrapped grip in the fist and a brass pommel. The blade grows out of the guard as
-  it lights for a swing and fades after, and a trail of small sparks sweeps after the edge through the cut. (The game's materials
-  draw into the G-buffer: no transparency, so the glow is the bloom's.)
+- **The look** (v1.7, `src/fluid-sword.js`; the selected design, `references/Core Objects/Reviewed Gadgets/Fluid
+  Sword - Selected 2026-10-09/reference-3.jpeg`): a broad blade of turquoise fluid out of a brass cup, on a
+  leather-wrapped hilt (the hilt: `docs/systems/traveller-kit.md`, "The fluid sword").
+  - *The blade* (`bladeEdges`, `bladeGeometry`): `BLADE.length` 0.85 m, `BLADE.width` 0.111 m at its widest, narrow
+    where it leaves the cup (0.048 m), splashing out to its width within a tenth of the way (its edges ragged
+    there, as water thrown: a fixed jag over the first 30 %), the leading edge (`+x`, the edge that cuts) nearly
+    straight, the trailing edge curving up into a long point that leans to the lead. A lens in section, 17 mm
+    through its ridge, thin at the edges, the two faces split at the edge so the ink draws it; 792 triangles.
+    `aFold` carries across (-1 trailing .. 1 leading) and along (0 .. 1) for the shader.
+  - *The fluid* (`src/materials.js` fluid kind `blade`, 6: `bladeFluid`): turquoise (`SWORD_TONES.base`) with
+    sand-cream currents (toward the trailing edge, from a quarter of the way up) and deep teal pools (more by the
+    hilt), noise stretched along the blade so they run as streaks, flowing up it over time; soft where they meet,
+    so the post pass inks only the sharpest of them; a bright ridge down the middle, a pale rim on the leading
+    edge and a gold one on the trailing (as the sheet draws them); a little self-light (`glow` 0.5). The colours
+    are the sheet's, not the gun mode's (the old blade took the tank's tones).
+  - *Growing* (`bladeGrowth`): as it lights for a swing it grows out of the cup to `bladeLength` (the reach step:
+    `REACH_UP` longer, as before) and fills out from 30 % to its width; `bladeWidth` is `BLADE.width` broader by
+    `INK_BROADER` (10 %) for each step of ink reached (`src/ink.js` UPGRADES: the reach, the whirl, the lunge), so
+    the ink shows on the blade. The width is only the look: hits still use the segment (`bladeSegment`).
+  - *Trailing fluid* (`BladeWake`, `wakeStyle`, `shedDrops`): through the cut (the same `trailCut` window as the
+    sparks: each attack's `activeRange`) each frame lays the blade's segment into a wake of two ribbons
+    (`WAKE_STRANDS`: one off the outer fifth of the blade, a thinner, shorter-lived one off its middle), which
+    narrow to their outer edge, fall and dissolve into print dots over `life` (MODE_RIBBON, the hover trail's
+    dissolve; bands of `WAKE_TONES` fixed along it; one mesh, 16 samples a strand). Drops fly off the outer part
+    of the edge with a third of its speed (capped at 9 m/s) and fall (`tool.drops`). The style by attack: the
+    combo and others alike; the charged cut wider and spilling more (more still when full); the riposte gold; the
+    air cut thrown down (more gravity); the dash cut the longest streak. The sparks stay, fewer (up to 6 steps
+    on the outer part: the wake draws the sweep). Through the wind-up and follow-through, a glint at the tip and
+    now and then a drip off the splash by the cup; charging, the gathering sparks and drips.
+  - *Cost*: three draw calls held (grip, brass, the bead), four lit, five through a cut; in the Arena (High) the
+    lit sword draws 13 calls over every pass (14 before), 7.6k triangles (the mesh is 2.5k); placing it and the
+    wake take about 0.01 ms of CPU each a frame. Tests: `tests/fluid-sword.test.js`.
 
 ## In the hands: the grip and the shield (`src/blade-grip.js`, `src/shield.js`, v0.93)
 

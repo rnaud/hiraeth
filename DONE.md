@@ -1798,3 +1798,23 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   hanging sign use the shard; Haddu's lines and the People page say what chimes are. Tests: tests/chimes.test.js
   (size, facets, closed, colours, glow, the view's tilt and turn, the icon everywhere), tests/chime-sound.test.js
   (the ting rendered silently in memory). docs/systems/items.md ("Chimes, the currency").
+
+## The selected fluid sword (v1.7, 2026-10-09)
+
+- [x] **Generate and integrate the selected fluid sword** from
+  `references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/reference-3.jpeg`
+  (the user's `0_2 (53).jpeg` download). Match the broad turquoise liquid blade, wrapped grip,
+  brass fittings and trailing fluid details, preserving the design in hand and during combat.
+  How: modelled in code (src/fluid-sword.js), no generated mesh. The hilt: a leather grip wrapped in a spiral of
+  raised bands, a brass collar that swells into a bulb with two studs and opens into an oval cup with a bead of
+  fluid in it, a brass pommel with a curled tail (one merged brass mesh). The blade: the sheet's outline (narrow
+  at the cup, splashing out ragged to 0.111 m within a tenth of the way, a straight leading edge, the trailing edge
+  curving into a long leaning point), a lens in section, drawn by a new fluid kind in src/materials.js
+  (`bladeFluid`: turquoise with cream currents and deep teal pools streaming up it, a bright ridge, a pale and a
+  gold rim). It grows longer and broader as it lights, and 10 % broader with each step of ink. Through each
+  attack's cut window a two-strand wake of the fluid trails off the edge and drops fly (`BladeWake`, `wakeStyle`,
+  `shedDrops`: wider on the charged cut, gold in the riposte, falling with the air cut, a long streak behind the
+  dash cut). Same draw calls as before (13 vs 14 lit, all passes), 2.5k triangles. Checked in the studio (in hand,
+  the hilt, scrubbed swings, from the side) and in the Arena (stance, the combo, charge held and let go, riposte,
+  dash cut, air cut, guard) beside the sheet; before/after pictures in the v1.7 changelog.
+  docs/systems/foes.md ("The look"), docs/systems/traveller-kit.md ("The fluid sword"), tests/fluid-sword.test.js.
