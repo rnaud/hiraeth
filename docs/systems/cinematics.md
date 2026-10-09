@@ -246,3 +246,15 @@ migrations and slot metadata, so replay cannot overwrite a player's saves or act
 and Pass / Needs work decisions are stored separately in this browser and exported as JSON.
 Deep links use the cinematic id in the page hash. This is a review tool, not a deterministic video
 exporter: world simulation and interactive beats run live.
+
+## The jump to space (src/ship/cinema.js `Warp`, playtest 2026-10-08)
+
+The take-off's last second hands over to the warp, then the page goes to `?level=<id>&via=ship`. The warp
+drew ink streaks on the paper's cream and the loading screen after it was cream too: a white page between
+the dusty climb and the next world. Now space opens out of the middle of the screen in the night's ink
+(`WARP.space`, #151a2b: a disc with an inked rim growing to the corners over `WARP.open`, 0.9 s, `warpLook`),
+the streaks in cream with a little teal and red, a few fixed stars, the course card still on paper. An inline
+script in index.html gives `#loading` the class `space` (the same ink, the pen in cream) when the URL says
+`via=ship`, so the dark carries on until the arrival. tests/cinema.test.js checks the contrast, the disc's
+growth and both ends.
+

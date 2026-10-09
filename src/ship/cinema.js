@@ -456,6 +456,29 @@ export class Cinema {
 }
 
 /** Travel between worlds: ink streaks rushing out from the centre, then the destination's name. */
+/**
+ * The jump to space (the take-off's last seconds, then the loading screen of the next world): it used to be
+ * ink streaks on the paper's cream, a white page between a dusty sky and a new world that read as a glitch.
+ * Now space opens from the middle of the screen: a disc of the night's ink grows out over the climb (`hole`,
+ * the share of the screen's half-diagonal it covers, eased), the streaks are drawn in the paper's cream, a
+ * little teal and red on it, and a few fixed stars show; the paper is only the course card's. The next world's
+ * loading screen keeps the same ink (index.html #loading.space, ?via=ship).
+ */
+export const WARP = {
+  space: '#151a2b',    // the night's ink: the same as the loading screen's (index.html #loading.space)
+  ink: '#2b211f', paper: '#f7ecd2',
+  streaks: ['#f7ecd2', '#62c3c9', '#e0705f'],   // cream, the teal and the red, light on the dark
+  open: 0.9,           // s: the disc covers the screen
+  stars: 90,
+};
+
+/** The warp's look at `t` seconds: the disc's reach (0..1 of the half-diagonal) and how far the streaks are drawn. */
+export function warpLook(t) {
+  const k = Math.min(1, Math.max(0, t / WARP.open));
+  const hole = k * k * (3 - 2 * k);   // (smoothstep: a slow start, out to the corners)
+  return { hole, speed: Math.min(1, Math.max(0, t / 1.2)) };
+}
+
 export class Warp {
   constructor() {
     if (!hasDOM()) return;
@@ -465,6 +488,7 @@ export class Warp {
     document.body.appendChild(el);
     this.canvas = el.querySelector('canvas');
     this.streaks = Array.from({ length: 220 }, () => ({ a: Math.random() * Math.PI * 2, r: Math.random(), v: 0.4 + Math.random(), w: 1 + Math.random() * 2.5, c: Math.random() }));
+    this.stars = Array.from({ length: WARP.stars }, () => ({ x: Math.random(), y: Math.random(), s: 0.6 + Math.random() * 1.4 }));
   }
   start(title) {
     if (!this.el) return;
@@ -476,14 +500,25 @@ export class Warp {
     if (!this.el || !this.el.classList.contains('on')) return;
     this.t += dt;
     const c = this.canvas, W = (c.width = innerWidth), H = (c.height = innerHeight), g = c.getContext('2d');
-    g.fillStyle = '#f7ecd2'; g.fillRect(0, 0, W, H);
-    const cx = W / 2, cy = H / 2, R = Math.hypot(cx, cy), k = Math.min(1, this.t / 1.2);
+    const cx = W / 2, cy = H / 2, R = Math.hypot(cx, cy), { hole, speed: k } = warpLook(this.t);
+    // the climb's sky fades in under the element (its opacity); space opens out of the middle of it, an inked rim round the disc
+    g.clearRect(0, 0, W, H);
+    if (hole < 1) { g.fillStyle = WARP.paper; g.globalAlpha = 0.35 + 0.65 * hole; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
+    const rh = hole >= 1 ? R * 1.5 : Math.max(1, hole * R * 1.04);
+    g.fillStyle = WARP.space;
+    g.beginPath(); g.arc(cx, cy, rh, 0, Math.PI * 2); g.fill();
+    if (hole < 1) { g.strokeStyle = WARP.ink; g.lineWidth = 3; g.stroke(); }
+    g.save(); g.beginPath(); g.arc(cx, cy, rh, 0, Math.PI * 2); g.clip();
+    g.fillStyle = WARP.paper;
+    for (const st of this.stars) { g.globalAlpha = 0.55; g.fillRect(st.x * W, st.y * H, st.s, st.s); }
+    g.globalAlpha = 1;
     for (const s of this.streaks) {
       s.r = (s.r + dt * s.v * (0.3 + 1.6 * k)) % 1;
       const r0 = s.r * s.r * R, r1 = r0 + (30 + 260 * k) * s.r;
-      g.strokeStyle = s.c < 0.12 ? '#c8483a' : s.c < 0.22 ? '#277e86' : '#2b211f';
+      g.strokeStyle = s.c < 0.12 ? WARP.streaks[2] : s.c < 0.22 ? WARP.streaks[1] : WARP.streaks[0];
       g.lineWidth = s.w * (0.4 + s.r);
       g.beginPath(); g.moveTo(cx + Math.cos(s.a) * r0, cy + Math.sin(s.a) * r0); g.lineTo(cx + Math.cos(s.a) * r1, cy + Math.sin(s.a) * r1); g.stroke();
     }
+    g.restore();
   }
 }
