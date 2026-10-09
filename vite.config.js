@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { auditsPlugin } from './scripts/audits-data.mjs';
 import { referenceLabPlugin } from './scripts/reference-lab/server.mjs';
+import { referencesPlugin } from './scripts/references-index.mjs';
 
 // Relative asset paths so the build works both at a site root and under
 // GitHub Pages' /moebius/ sub-path.
@@ -54,7 +55,8 @@ export default defineConfig({
   // The game, trailer, character studio (studio.html, src/studio/) and Motion page
   // (motion.html, src/motion/: the traveller's loops against motion matching): they ship with the game
   build: { target: 'es2022', rolldownOptions: { input: BUILD_INPUT } },
-  // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md)
-  plugins: [dropMakeHuman(), auditsPlugin(), referenceLabPlugin()],
+  // (the reference lab, reference-lab.html, and the references page, references.html: dev server only, not built:
+  // docs/systems/reference-lab.md, docs/systems/references.md)
+  plugins: [dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

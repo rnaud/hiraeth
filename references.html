@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f7ecd2">
+<title>Hiraeth · the references</title>
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<style>
+  /* The references (src/references-page/, docs/systems/references.md "The references page"): dev server only */
+  :root {
+    --paper: #f7ecd2; --card: #fffaf0; --ink: #2b211f; --soft: #6d5f57; --rule: #d8c9a8; --gold: #f2c54b; --red: #c8483a; --teal: #3f7f7a;
+    --safe-top: env(safe-area-inset-top, 0px); --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-left: env(safe-area-inset-left, 0px);
+    --side: 270px; --head: 96px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); font: 14px/1.45 ui-monospace, Menlo, Consolas, monospace; }
+  button, input, select { font: inherit; color: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  header { position: sticky; top: 0; z-index: 6; padding: calc(10px + var(--safe-top)) calc(12px + var(--safe-right)) 8px calc(12px + var(--safe-left)); background: var(--paper); border-bottom: 2px solid var(--ink); }
+  .top { display: flex; align-items: center; gap: 8px; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: 0.16em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; min-width: 0; }
+  h1 span { font-size: 12px; letter-spacing: 0; opacity: 0.6; font-weight: normal; }
+  .search { flex: 1 1 200px; display: flex; align-items: center; gap: 4px; min-width: 120px; max-width: 520px; margin-left: auto; padding: 2px 8px; background: var(--card); border: 2px solid var(--ink); }
+  .search input { flex: 1; min-width: 0; border: 0; background: none; padding: 3px 0; outline: none; }
+  .search:focus-within { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .btn { display: inline-flex; align-items: center; gap: 2px; padding: 4px 10px; background: var(--card); border: 2px solid var(--ink); cursor: pointer; text-decoration: none; white-space: nowrap; }
+  .btn:hover { background: #fff; }
+  #folders { display: none; }
+  #filters { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+  #filters select { padding: 3px 6px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 0; max-width: 46vw; }
+  .chip { padding: 2px 10px; background: var(--card); border: 1.5px solid var(--ink); border-radius: 14px; cursor: pointer; font-size: 12.5px; }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  #shown { margin-left: auto; color: var(--soft); font-size: 12px; }
+
+  .layout { display: grid; grid-template-columns: var(--side) 1fr; align-items: start; }
+  /* the folders */
+  #tree { position: sticky; top: var(--head); max-height: calc(100vh - var(--head)); overflow: auto; padding: 10px 6px calc(20px + var(--safe-bottom)) calc(8px + var(--safe-left)); border-right: 1.5px solid var(--rule); scrollbar-width: thin; }
+  #tree ul { list-style: none; margin: 0; padding: 0 0 0 12px; }
+  #tree > ul { padding-left: 0; }
+  #tree li.sec { margin-top: 6px; }
+  #tree li.sec.archive { margin-top: 18px; padding-top: 8px; border-top: 1.5px dashed var(--rule); }
+  .node { display: flex; width: 100%; align-items: baseline; gap: 6px; padding: 2px 6px; background: none; border: 0; border-left: 3px solid transparent; text-align: left; cursor: pointer; }
+  .node:hover { background: var(--card); }
+  .node .tw { width: 1em; flex: none; color: var(--soft); font-size: 11px; }
+  .node .lb { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .node small { color: var(--soft); font-size: 11px; }
+  .node[aria-current="true"] { background: var(--ink); color: var(--paper); border-left-color: var(--gold); }
+  .node[aria-current="true"] small, .node[aria-current="true"] .tw { color: var(--paper); opacity: 0.75; }
+  li.sec > .node { font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; font-size: 12.5px; }
+  li.archive > .node { color: var(--soft); }
+
+  /* the pictures */
+  main { padding: 10px calc(12px + var(--safe-right)) calc(40px + var(--safe-bottom)) 14px; min-width: 0; }
+  .crumb { margin: 2px 0 10px; color: var(--soft); font-size: 12.5px; word-break: break-word; }
+  .crumb b { color: var(--ink); }
+  .group { margin: 0 0 22px; }
+  .group h2 { margin: 0 0 8px; font-size: 13px; letter-spacing: 0.04em; border-bottom: 1px solid var(--ink); padding-bottom: 3px; display: flex; gap: 8px; align-items: baseline; word-break: break-word; }
+  .group h2 small { color: var(--soft); font-weight: normal; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(150px, 44vw), 1fr)); gap: 10px; }
+  .thumb { position: relative; display: flex; flex-direction: column; gap: 3px; padding: 4px; background: var(--card); border: 1.5px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); cursor: zoom-in; text-align: left; scroll-margin: calc(var(--head) + 16px) 12px 16px; transition: transform 0.1s, box-shadow 0.1s; }
+  .thumb:hover { background: #fff; }
+  .thumb:focus { outline: 4px solid var(--red); outline-offset: 2px; transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); }
+  .thumb .im { aspect-ratio: 4 / 3; background: #e8dcc0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .thumb .nm { font-size: 11px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .thumb .bd { position: absolute; top: 7px; right: 7px; display: flex; gap: 3px; }
+  .bd i { font-style: normal; font-size: 10px; padding: 0 5px; border: 1px solid var(--ink); background: var(--paper); border-radius: 8px; }
+  .bd i.lab { background: var(--gold); }
+  .empty { color: var(--soft); padding: 24px 4px; }
+
+  /* a picture, full screen */
+  #viewer { position: fixed; inset: 0; z-index: 30; display: none; flex-direction: column; background: #241c1a; color: var(--paper); padding: calc(8px + var(--safe-top)) calc(8px + var(--safe-right)) calc(8px + var(--safe-bottom)) calc(8px + var(--safe-left)); }
+  #viewer.open { display: flex; }
+  body.viewing .debug-back { display: none; }   /* (B / Esc close the picture first) */
+  #viewer .bar { display: flex; gap: 6px; align-items: center; }
+  #viewer .bar .btn { color: var(--ink); }
+  #viewer .cap { flex: 1; min-width: 0; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #viewer .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr minmax(280px, 30%); gap: 10px; margin-top: 8px; }
+  #viewer .stage { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; touch-action: pan-y pinch-zoom; }
+  #viewer .stage img { max-width: 100%; max-height: 100%; object-fit: contain; user-select: none; -webkit-user-drag: none; }
+  #viewer .info { overflow: auto; background: var(--card); color: var(--ink); border: 2px solid var(--ink); padding: 10px 12px; font-size: 12.5px; scrollbar-width: thin; }
+  #viewer .info:focus { outline: 3px solid var(--gold); }
+  .info h3 { margin: 0 0 6px; font-size: 13px; word-break: break-word; }
+  .info dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 3px 10px; }
+  .info dt { color: var(--soft); }
+  .info dd { margin: 0; word-break: break-word; }
+  .info .txt { margin: 8px 0 0; padding: 6px 8px; background: #f3e8cc; white-space: pre-wrap; word-break: break-word; max-height: 40vh; overflow: auto; }
+  .info .lbl { margin: 10px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
+  .info code { font-size: 11.5px; }
+
+  /* a narrow screen: the folders are a drawer (☰ Folders, Y on a pad) */
+  @media (max-width: 900px) {
+    :root { --side: min(84vw, 320px); }
+    #folders { display: inline-flex; }
+    .layout { grid-template-columns: 1fr; }
+    #tree { position: fixed; z-index: 20; top: 0; bottom: 0; left: 0; width: var(--side); max-height: none; padding-top: calc(48px + var(--safe-top)); background: var(--paper); border-right: 2px solid var(--ink); box-shadow: 6px 0 0 rgba(43, 33, 31, 0.25); transform: translateX(-105%); transition: transform 0.18s; }
+    body.drawer #tree { transform: none; }
+    body.drawer::after { content: ''; position: fixed; inset: 0; z-index: 15; background: rgba(43, 33, 31, 0.35); }
+    #viewer .body { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto; }
+    #viewer .info { max-height: 38vh; }
+  }
+  @media (max-width: 560px) {
+    h1 { font-size: 14px; letter-spacing: 0.08em; }
+    .top { flex-wrap: wrap; }
+    .search { order: 9; flex-basis: 100%; max-width: none; }
+    #shown { flex-basis: 100%; margin-left: 0; }
+  }
+  @media (max-height: 500px) {
+    header { padding-top: calc(5px + var(--safe-top)); padding-bottom: 5px; }
+    #filters { margin-top: 4px; }
+    #viewer .body { grid-template-columns: 1fr minmax(240px, 34%); grid-template-rows: none; }
+    #viewer .info { max-height: none; }
+  }
+</style>
+</head>
+<!-- the shared "◀ Debug" button (src/debug-back.js); B and Esc are the page's own (the picture, the folders, the search, then the Debug list) -->
+<body data-debug-back="keys-off pad-off">
+<header>
+  <div class="top">
+    <span class="debug-room" aria-hidden="true"></span>
+    <h1 id="title">THE REFERENCES</h1>
+    <button class="btn" id="folders" title="The folders (F)"><span class="glyph" data-glyph="y" data-key="F" aria-hidden="true"></span>☰ Folders</button>
+    <label class="search"><span class="glyph" data-glyph="x" data-key="/" aria-hidden="true"></span><input id="q" type="search" placeholder="search the paths…" autocomplete="off" spellcheck="false" aria-label="Search the paths"></label>
+  </div>
+  <div id="filters" role="toolbar" aria-label="Filters">
+    <select id="world" aria-label="World"><option value="">every world</option></select>
+    <select id="kind" aria-label="Kind"><option value="">every kind</option></select>
+    <button class="chip" id="lab" aria-pressed="false" title="Only the reference lab's picks">lab picks</button>
+    <button class="chip" id="prompt" aria-pressed="false" title="Only the pictures with a prompt">has a prompt</button>
+    <button class="chip" id="clear" title="Clear the search and the filters">clear</button>
+    <span id="shown"></span>
+  </div>
+</header>
+<div class="layout">
+  <nav id="tree" aria-label="Folders"></nav>
+  <main id="grid"><p class="empty">Reading the references…</p></main>
+</div>
+<div id="viewer" aria-hidden="true" role="dialog" aria-label="A reference">
+  <div class="bar">
+    <button class="btn" data-go="-1" title="The picture before (←)"><span class="glyph" data-glyph="lb" data-key="←" aria-hidden="true"></span>◀</button>
+    <span class="cap"></span>
+    <a class="btn" id="original" target="_blank" rel="noopener" title="The picture alone, full size">full size</a>
+    <button class="btn" data-go="1" title="The picture after (→)">▶<span class="glyph end" data-glyph="rb" data-key="→" aria-hidden="true"></span></button>
+    <button class="btn" data-close title="Close (Esc)"><span class="glyph" data-glyph="back" aria-hidden="true"></span>✕</button>
+  </div>
+  <div class="body">
+    <div class="stage"><img alt=""></div>
+    <aside class="info" tabindex="0" data-nav></aside>
+  </div>
+</div>
+<script type="module" src="/src/references-page/main.js"></script>
+<script type="module" src="/src/debug-back-page.js"></script>
+</body>
+</html>

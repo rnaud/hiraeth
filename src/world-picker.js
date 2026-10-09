@@ -39,17 +39,15 @@ export const PAGES = [
 
 /**
  * The pages a dev server alone has (`npx vite`: their middleware is the dev server's, and the build leaves them
- * out): the reference lab (reference-lab.html, docs/systems/reference-lab.md). Marked "dev server" in the list.
+ * out): the reference lab (reference-lab.html, docs/systems/reference-lab.md) and the references page
+ * (references.html, docs/systems/references.md). Marked "dev server" in the list.
  */
 export const DEV_PAGES = [
   { href: 'reference-lab.html', label: 'Reference lab', hint: 'generate reference pictures with several AI providers and pick the best', dev: true },
+  { href: 'references.html', label: 'References', hint: 'every reference picture by world and folder, with its prompt and provenance', dev: true },
 ];
-/**
- * Pages that may not be there yet: listed once the page answers (probePages). The References page
- * (references.html) is being made beside this menu; it shows up here as soon as it exists.
- */
+/** Pages that may not be there yet: listed once the page answers (probePages). None now (references.html arrived). */
 export const MAYBE_PAGES = [
-  { href: 'references.html', label: 'References', hint: 'the pictures the game is drawn after', maybe: true },
 ];
 /** Is this the dev server? (import.meta.env.DEV: false in a build, absent under node) */
 export const devServer = () => { try { return !!import.meta.env?.DEV; } catch { return false; } };

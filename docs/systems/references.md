@@ -31,6 +31,44 @@ references/
 - The sheets the References level draws are bundled by Vite (`new URL('../../references/levels/…')`), so a
   wrong path also fails `npx vite build`.
 
+## The references page (references.html, dev server only)
+
+Debug → References (`src/world-picker.js` `DEV_PAGES`: listed on the dev server only, like the reference lab):
+every picture under `references/` to browse. `references.html`, `src/references-page/` (`model.js` the pure
+part: kinds, tree, filters, address; `view.js` the HTML; `main.js` the page), `scripts/references-index.mjs`.
+
+- **The index** is built by the dev server on each request (`GET /__references/index.json`, a Vite middleware,
+  `apply: 'serve'`): a walk of `references/` (not `_candidates/`, not a 3D pick's `3d/` renders), each picture
+  with its world and kind from its path (`classify`) and what its folder says of it (`metaFor`): its record in
+  the JSON files beside it or above it (`manifest.json`: the lab's picks, provider, model, prompt, why, date;
+  `sources.json` / `selections.json`: Midjourney's jobs and titles), the batches' records
+  (`references/batches/*.json`: prompt, job, the selection's note) and the text files beside it (`prompt.txt`,
+  `source.txt`, `review.txt`, `why.txt`). Nothing to regenerate: a new pick shows on the next load.
+  `node scripts/references-index.mjs` prints its counts.
+- **Small pictures**: `GET /__references/thumb?p=<path>`, a 360 px WebP made by sharp and cached in the system's
+  temp folder (`hiraeth-reference-thumbs/`), lazy-loaded in the grid; the viewer shows the file itself
+  (`/references/…`, served by Vite: commas stay unencoded, Vite does not decode `%2C`).
+- **The page**: the folders on the left (All; Levels → each world → environment / characters / places; the
+  ship, the main character, core objects, enemy archetypes, title screen; the loose files; Lab picks; the
+  Archive last, closed, and kept out of All and of the filters unless chosen); the pictures by folder; a
+  search over the paths and titles (every word); filters by world, kind, lab picks, has a prompt. A picture
+  full screen with its information beside it (below it on a narrow screen): path, size and pixels, world and
+  kind, provider, model, date, source link, the records it came from, why, review, prompt, notes.
+- **The address keeps the place**: `#path=<folder or picture>` (relative to `references/`), `&in=<folder>` when
+  a picture was opened from a wider one (`*`: All), `&q=`, `&world=`, `&kind=`, `&lab=1`, `&prompt=1`.
+- **Controls**: the D-pad / stick / arrows move across what is on screen (`data-grid-nav`), A / Enter opens,
+  B / Esc goes back (the picture, the folders drawer, the search, then the Debug menu), LB / RB the picture
+  before / after in the viewer (← / →, a swipe), else the folder before / after (`[` / `]`), X the search (`/`),
+  Y the folders (`F`: a drawer below 900 px wide). The shared "◀ Debug" button, hidden while a picture is open.
+- **Why not on Pages**: `references/` (≈ 200 MB of originals) is not deployed: not in `BUILD_INPUT`, not in
+  `public/`, not copied by `deploy.yml`. Putting it there would mean a build step (like `changelog-media/`,
+  site-only, never the APK) writing the index as JSON, the 360 px thumbnails (≈ 475 × 15 KB ≈ 7 MB) and
+  1600 px WebP copies for the viewer (≈ 475 × 150 KB ≈ 70 MB) to `dist/references/`, and the page reading a
+  static index when the dev server's is absent. Not done: the page is the author's, on the dev server.
+- `tests/references-page.test.js`: kinds, the index's records from each kind of file, filters and the archive
+  kept apart, the tree's order, the address, the middleware's limits (nothing outside `references/` or in the
+  candidates), dev server only, the ◀ Debug button and the glyphs.
+
 ## The References: the reference pages rebuilt (v0.57)
 
 `?level=references` (`src/levels/references.js`, a `dev` level like the Lab: in the worlds list,

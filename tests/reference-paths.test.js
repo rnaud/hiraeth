@@ -38,9 +38,9 @@ function textFiles() {
 
 const entries = (dir) => (existsSync(dir) && statSync(dir).isDirectory() ? readdirSync(dir).filter((f) => !f.startsWith('.')) : []);
 const WORLDS = entries(join(REFS, 'levels'));
-const PLACEHOLDER = /^(\$\{|<|…|\*|\{|\.\.\.|\s|\(|$)/;
+const PLACEHOLDER = /^(\$\{|<|…|\*|\{|\.\.\.|\s|\(|:|$)/;
 /** The tests that build a references/ tree of their own in a temporary folder (x/, a b/…). */
-const FIXTURE_TREES = new Set(['tests/reference-lab.test.js', 'tests/reference-lab-3d.test.js']);
+const FIXTURE_TREES = new Set(['tests/reference-lab.test.js', 'tests/reference-lab-3d.test.js', 'tests/references-page.test.js']);
 /** Folders named before this guard that were never committed (the traveller's sheets of 2026-10-05, lore/). */
 const NEVER_COMMITTED = new Set(['references/traveller']);
 
@@ -77,7 +77,7 @@ test('the layout: the worlds are under references/levels/, each with its environ
 test('every path into references/ names a folder that is there', () => {
   const bad = [];
   // (not another folder's references/: a skill's own, `…/moebius-ai-characters/references/`)
-  const re = /(?<![A-Za-z_-]{2,}\/)references(?:\/|%2F)((?:[^"'`)\]\n<>,;|]|%20)*)/g;
+  const re = /(?<![A-Za-z_-]{2,}\/)(?<!\w)references(?:\/|%2F)((?:[^"'`)\]\n<>,;|]|%20)*)/g;
   for (const f of textFiles()) {
     if (f === 'tests/reference-paths.test.js' || FIXTURE_TREES.has(f)) continue;
     const t = readFileSync(join(ROOT, f), 'utf8');
