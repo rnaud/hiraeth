@@ -80,6 +80,7 @@ export function candidateCard(batch, c, est = false, label = '') {
  */
 export function batchHtml(m) {
   if (!m) return '<p class="empty">Generate a batch, or open one from the history.</p>';
+  if (m.mode === '3d') return batch3dHtml(m);
   // the reference the batch was drawn from (when there is one): on its own above everything else
   const refs = m.refs?.length ? m.refs : (m.comparison ? [m.comparison] : []);
   const cmp = refs.length ? `<div class="refrow">${refs.map((r) => `<figure class="cand cmp" tabindex="0" data-nav data-cmp="${esc(r)}"><img src="${esc(fileSrc(r))}" alt="the reference"><figcaption><b>reference</b> ${esc(r.split('/').pop())}</figcaption></figure>`).join('')}</div>` : '';
@@ -133,3 +134,62 @@ export function pagerHtml(total, page, per = PER_PAGE) {
 /** Checked at first: Gemini and OpenAI when they have a key (the author's default, as DEFAULT_PROVIDERS on the server); the rest a click away. */
 export const DEFAULT_CHECKED = ['openai', 'gemini'];
 export const defaultChecked = (p) => p.available && DEFAULT_CHECKED.includes(p.id);
+
+// ------------------------------------------------------------------ the 3D mode (Tripo)
+const mb = (bytes) => (bytes == null ? '' : `${(bytes / 1e6).toFixed(1)} MB`);
+const cropText = (c) => (c ? ` · crop ${c.x},${c.y} ${c.w}×${c.h}` : '');
+
+/** The options of a 3D batch in a few words. */
+export function options3dText(o = {}) {
+  return [o.model, o.texture ? (o.pbr ? 'PBR texture' : 'texture') : 'no texture', o.texture && o.textureQuality === 'detailed' ? 'HD texture' : '',
+    o.faceLimit ? `≤ ${o.faceLimit} faces` : '', o.quad ? 'quad (FBX)' : '', o.rig ? 'rigged' : ''].filter(Boolean).join(' · ');
+}
+
+/** A 3D candidate's card: a viewer (its still until the live one is mounted), its controls, Pick and Discard. */
+export function model3dCard(batch, c) {
+  const gone = c.status === 'discarded';
+  const src = (f) => (f ? candidateSrc(batch, f) : '');
+  const rig = c.rig ? ` · rig: ${c.rig.status}${c.rig.rigType ? ` (${c.rig.rigType})` : ''}${c.rig.error ? `: ${c.rig.error}` : ''}` : '';
+  const anim = c.rig?.animated ? src(c.rig.animated) : '';
+  const viewer = gone ? '<div class="gone">discarded</div>'
+    : `<div class="viewer" data-model="${esc(src(c.file))}" data-format="${esc(c.format ?? 'glb')}"${anim ? ` data-anim="${esc(anim)}"` : ''}${c.preview ? ` data-still="${esc(src(c.preview))}"` : ''}>${c.preview ? `<img src="${esc(src(c.preview))}" alt="${esc(c.id)}" loading="lazy">` : '<span class="wait">3D model</span>'}</div>
+    <div class="vacts"><button type="button" class="btn small on" data-view-act="spin" title="Turntable on / off">Turn</button><button type="button" class="btn small" data-view-act="wire" title="Wireframe">Wire</button><button type="button" class="btn small" data-view-act="tex" title="Texture / clay">Clay</button>${anim ? '<button type="button" class="btn small" data-view-act="anim" title="The preview walk (rigged)">Walk</button>' : ''}</div>`;
+  return `<figure class="cand model3d ${esc(c.status)}" data-cand="${esc(c.id)}" data-nav tabindex="0">
+    ${viewer}
+    <figcaption><b>${esc(c.label || c.provider)}</b> #${esc(c.id.split('/').pop())} ${esc(secs(c.ms))} ${esc(money(c.costUSD, c.estimated))} · ${esc(mb(c.bytes))} ${esc(c.format ?? '')}${esc(rig)}${c.status === 'picked' ? ` <span class="picked">✓ ${esc(c.pickedAs ?? 'picked')}</span>` : ''}</figcaption>
+    ${gone ? '' : `<div class="acts"><button type="button" class="btn" data-pick="${esc(c.id)}">${glyph('x', { key: 'P' })}Pick</button><button type="button" class="btn" data-discard="${esc(c.id)}">${glyph('y', { key: 'Del' })}Discard</button></div>`}
+  </figure>`;
+}
+
+/** A 3D batch: the pictures as sent (or the prompt) above, Tripo's state, then every model in a viewer. */
+export function batch3dHtml(m) {
+  const inputs = (m.inputs ?? []).map((i) => `<figure class="cand cmp" tabindex="0" data-nav><img src="${esc(candidateSrc(m.batch, i.file))}" alt="the ${esc(i.view ?? '')} view"><figcaption><b>${esc(i.view ?? 'view')}</b> · ${esc(String(i.path).split('/').pop())}${esc(cropText(i.crop))}</figcaption></figure>`).join('');
+  const refrow = inputs ? `<div class="refrow">${inputs}</div>` : '';
+  const p = m.providers?.tripo ?? {};
+  const stages = Object.entries(p.stages ?? {}).map(([n, s]) => `#${esc(n)} ${esc(s)}`).join(' · ');
+  const state = p.status === 'running' ? `<span class="spin">generating… ${stages}</span>`
+    : p.status === 'error' ? `<span class="err">${esc(p.kind)}: ${esc(p.error)}</span>`
+      : `${p.count} in ${esc(secs(p.ms))} · ${esc(money(p.costUSD, p.estimated))} (${esc(p.credits)} credits)${p.error ? ` <span class="err">${esc(p.error)}</span>` : ''}`;
+  const picked = m.candidates.find((c) => c.status === 'picked');
+  const left = m.candidates.filter((c) => c.status !== 'discarded').length;
+  const verdict = m.rejected
+    ? `<p class="rejected"><b>None of them</b> (${esc(m.rejected.date)}): ${esc(m.rejected.why)} <button type="button" class="btn small" data-unreject>Take back</button></p>`
+    : picked ? `<p class="meta"><span class="picked">Kept: #${esc(picked.id.split('/').pop())} → ${esc(picked.pickedAs ?? '')}</span></p>`
+      : m.status === 'running' ? '' : `<p class="meta">${left} model(s): pick the one to keep, or say why none works.</p>`;
+  const none = !picked && !m.rejected && m.status !== 'running' ? '<button type="button" class="btn small" data-reject>None of them…</button> ' : '';
+  const what = { image: 'image to model', multiview: 'multiview to model', text: 'text to model' }[m.kind] ?? m.kind;
+  return `<article class="batch b3d${m.rejected ? ' is-rejected' : ''}" data-batch-id="${esc(m.batch)}">${refrow}<div class="bhead"><p class="meta"><b>${esc(m.batch)}</b> · ${esc(m.status)} · <b>3D</b> ${esc(what)} · ${m.n} candidate(s) · ${esc(options3dText(m.options))}${m.estimateUSD != null ? ` · about $${Number(m.estimateUSD).toFixed(2)}` : ''}${m.target ? ` · → ${esc(m.target)}` : ''}</p>
+    ${m.prompt ? `<p class="prompt">${esc(m.from ? `${m.from}: ` : '')}${esc(m.prompt.length > 320 ? `${m.prompt.slice(0, 320)}…` : m.prompt)}</p>` : ''}
+    <ul class="pstates"><li class="pstate ${esc(p.status)}" data-row="tripo"><b>${esc(p.label ?? 'Tripo 3D')}</b> <small>${esc(p.model ?? '')}</small> ${state}</li></ul>
+    ${verdict}
+    ${none}<button type="button" class="btn small" data-discard-batch>Discard the batch</button></div>
+    <div class="wall w3d">${m.candidates.map((c) => model3dCard(m.batch, c)).join('')}</div></article>`;
+}
+
+/** The 3D form's chosen pictures: each with its view, its crop and a remove button. */
+export function input3dRow(inp, i, views = ['front', 'left', 'back', 'right'], several = false) {
+  return `<div class="inp" data-inp="${i}"><img src="${esc(fileSrc(inp.path))}" alt="">
+    <span class="nm" title="${esc(inp.path)}">${esc(inp.path.split('/').pop())}<small>${esc(inp.crop ? `crop ${inp.crop.x},${inp.crop.y} ${inp.crop.w}×${inp.crop.h}` : 'whole picture')}</small></span>
+    ${several ? `<select data-inp-view="${i}" title="Which view this is">${views.map((v) => `<option${v === inp.view ? ' selected' : ''}>${v}</option>`).join('')}</select>` : ''}
+    <button type="button" class="btn small" data-inp-crop="${i}">Crop…</button><button type="button" class="x" data-inp-del="${i}" title="Remove">✕</button></div>`;
+}

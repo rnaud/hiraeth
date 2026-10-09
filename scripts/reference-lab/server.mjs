@@ -10,6 +10,9 @@
 //   POST /__reference-lab/pick             { batch, candidate, target, why }
 //   POST /__reference-lab/discard          { batch, candidate? }
 //   POST /__reference-lab/reject           { batch, why }   none of them, and why (why: null takes it back)
+//   POST /__reference-lab/generate3d       { images, crops, views, prompt, options, n, target, from } → { batch }  (3D mode, Tripo)
+//   GET  /__reference-lab/tripo/balance    the Tripo account's credits (free to ask)
+//   (pick takes { preview } too for a 3D batch: the page's turntable as a data URL)
 //
 // The keys are read here, on each generate (so a key added to .env.local works without a restart), and
 // go only into the providers' request headers. Calls that spend money are refused from anything but this
@@ -17,10 +20,12 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { IMAGE_EXT, ROOT, mimeOf } from './common.mjs';
-import { availability, loadKeys } from './env.mjs';
+import { availability, keyFor, loadKeys } from './env.mjs';
 import { PROVIDERS } from './providers/index.mjs';
 import { listPrompts } from './prompts.mjs';
-import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, pick, readBatch, reject, runBatch } from './batch.mjs';
+import { CANDIDATES_DIR, batchDir, discard, listBatches, newBatchId, readBatch, reject, runBatch } from './batch.mjs';
+import { execute3dBatch, pickAny, prepare3dBatch } from './batch3d.mjs';
+import tripo, { PREVIEW_ANIMATION, VIEWS } from './providers/tripo.mjs';
 
 export const API_BASE = '/__reference-lab/';
 
@@ -69,14 +74,23 @@ export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keys
     if (!sameMachine(req)) return send(403, { error: 'the reference lab answers this machine only' });
     const path = url.slice(API_BASE.length);
     try {
-      if (req.method === 'GET' && path === 'providers') return send(200, { providers: availability(PROVIDERS, keysFn()) });
+      if (req.method === 'GET' && path === 'providers') {
+        const keys = keysFn();
+        return send(200, { providers: availability(PROVIDERS, keys), tripo: { ...availability([tripo], keys)[0], views: VIEWS, animations: PREVIEW_ANIMATION } });
+      }
+      if (req.method === 'GET' && path === 'tripo/balance') {
+        const key = keyFor(tripo, keysFn());
+        if (!key) return send(200, { available: false });
+        return send(200, { available: true, ...(await tripo.balance({ key, fetch: fetchFn })) });
+      }
       if (req.method === 'GET' && path === 'prompts') return send(200, listPrompts(root));
       if (req.method === 'GET' && path === 'refs') return send(200, { refs: listRefs(root) });
       if (req.method === 'GET' && path === 'batches') return send(200, { batches: listBatches(root) });
       if (req.method === 'GET' && path.startsWith('batches/')) return send(200, readBatch(root, decodeURIComponent(path.slice(8))));
       if (req.method === 'GET' && path.startsWith('file/')) {
         // a candidate's picture, from wherever the store is (the main checkout: not under this server's root)
-        const m = decodeURIComponent(path.slice(5)).match(/^([A-Za-z0-9][\w.-]*)\/([a-z0-9-]+)\/(\d+\.(?:jpe?g|png|webp))$/);
+        // (<provider>/<n>.jpg, and the 3D mode's tripo/<n>.glb, tripo/<n>-preview.webp, inputs/<i>-<view>.png…)
+        const m = decodeURIComponent(path.slice(5)).match(/^([A-Za-z0-9][\w.-]*)\/([a-z0-9-]+)\/([\w-]+\.(?:jpe?g|png|webp|glb|fbx))$/);
         if (!m) return send(404, { error: 'not found' });
         const file = join(batchDir(root, m[1]), m[2], m[3]);
         if (!existsSync(file)) return send(404, { error: 'not found' });
@@ -84,7 +98,7 @@ export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keys
         return res.end(readFileSync(file));
       }
       if (req.method !== 'POST') return send(404, { error: 'not found' });
-      const body = await readBody(req);
+      const body = await readBody(req, path === 'pick' ? 8_000_000 : 1_000_000);   // (a 3D pick carries its turntable)
       if (path === 'generate') {
         const batch = newBatchId();
         const job = runBatch({ ...body, root, batch, keys: keysFn(), fetch: fetchFn });
@@ -95,7 +109,15 @@ export function referenceLabMiddleware({ root = ROOT, fetch: fetchFn, keys: keys
         if (early) return send(400, { error: String(early.message ?? early) });
         return send(202, { batch });
       }
-      if (path === 'pick') return send(200, pick({ root, batch: body.batch, candidate: body.candidate, target: body.target, why: body.why }));
+      if (path === 'generate3d') {
+        // the inputs read and cropped first (a bad request says so now, nothing spent), then Tripo in the background
+        const prepared = await prepare3dBatch({ ...body, root, batch: newBatchId() });
+        const job = execute3dBatch(prepared, { keys: keysFn(), fetch: fetchFn });
+        running.set(prepared.manifest.batch, job);
+        job.catch(() => {}).finally(() => running.delete(prepared.manifest.batch));
+        return send(202, { batch: prepared.manifest.batch, estimateUSD: prepared.manifest.estimateUSD });
+      }
+      if (path === 'pick') return send(200, pickAny({ root, batch: body.batch, candidate: body.candidate, target: body.target, why: body.why, preview: body.preview ?? null }));
       if (path === 'reject') return send(200, reject({ root, batch: body.batch, why: body.why ?? null }));
       if (path === 'discard') return send(200, discard({ root, batch: body.batch, candidate: body.candidate ?? null }));
       return send(404, { error: 'not found' });

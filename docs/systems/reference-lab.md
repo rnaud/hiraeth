@@ -19,6 +19,7 @@ the CLI `scripts/gen-reference.mjs`. The code is in `scripts/reference-lab/` (se
 | `gemini` | `GEMINI_API_KEY` | Google Gemini image, "Nano Banana" (`gemini-nano-banana-2.1` by default; `gemini-3-pro-image` is the one with real style references) |
 | `fal-flux`, `fal-flux-pro`, `fal-seedream`, `fal-ideogram`, `fal-recraft` | `FAL_KEY` or `FAL_API_KEY` | fal.ai: FLUX.2 [dev] and [pro] with several references, Seedream 4.5, Ideogram 3 (references as style), Recraft V3 (one reference, restyled) |
 | `bfl` | `BFL_API_KEY` | Black Forest Labs direct: FLUX.2 [pro] (`flux-2-pro`; `-pro-preview`, `-max`, `-flex`, `-klein-9b`) without fal in between |
+| `tripo` (3D mode) | `TRIPO_3D_API_KEY` or `TRIPO_API_KEY` | Tripo 3D: a picked reference (or a prompt) turned into a GLB model, optionally rigged ([3D mode](#3d-mode)) |
 
 Put them in **`.env.local`** (or `.env`) at the repository root, one `NAME=value` a line. Both files are
 git-ignored (`.gitignore`: `.env`, `.env.*`, `.env.local`; `tests/reference-lab.test.js` checks it). A git
@@ -31,7 +32,8 @@ How the keys are kept safe (`scripts/reference-lab/env.mjs`, `common.mjs`):
 
 - read **server-side only**, by the CLI or the dev server's middleware; the page is told which providers have a
   key, never the key;
-- sent only in a request header (`Authorization`, `x-goog-api-key`, `x-key`), never in a URL; a polling URL a
+- sent only in a request header (`Authorization`, `x-goog-api-key`, `x-key`), never in a URL (Tripo's only to
+  `openapi.tripo3d.ai`: its model files come from a signed CDN URL fetched without it); a polling URL a
   provider sends back gets the key only if it is on that provider's own hosts over https (`onHost`);
 - redacted from every error message before it is printed or written (`redact`), and never in
   `candidates.json` or a manifest;
@@ -178,3 +180,109 @@ Each module's header records its endpoints, models and the docs read. In short:
 Rate limits: a 429 is retried once after `Retry-After` (at most 20 s), then reported as `rate-limit`; 401 / 403
 `auth`, 402 `credits`, 5xx `server`. Not checked live by the tests: a provider's first real run is the check
 that its endpoint and model ids still hold.
+
+## 3D mode
+
+The lab's second mode turns a picked reference into a 3D model with **Tripo** (Tripo3D, API v3), so a creature
+or a character sheet can be looked at from every side, wireframed, and rigged before anyone models it by hand.
+Code: `scripts/reference-lab/providers/tripo.mjs` (the API; its header lists every doc page read),
+`scripts/reference-lab/batch3d.mjs` (batches and picks), `scripts/reference-lab/crop.mjs` (cutting a view out of
+a sheet, with sharp), `src/reference-lab/viewer3d.js` (the three.js viewer, loaded only when a 3D batch shows);
+tests `tests/reference-lab-3d.test.js` (mocked fetch, no key, no real call).
+
+**What goes in.** One picture → *image to model*; 2 to 4 views of one subject → *multiview to model* (each view
+marked front, left, back or right; front is required); no picture and a prompt → *text to model*. Our sheets put
+four views side by side, and Tripo wants one subject a picture, so each picture can be **cropped**: on the page,
+*Crop…* on an input opens the picture to drag a rectangle (or *1/4 … 4/4* for one of four views across the top,
+a starting point to adjust); on the CLI, one `--crop x,y,w,h` per picture (pixels of the original; `-` for none).
+The same sheet can be added several times, one crop a view. A crop is cut server-side and sent as PNG (Tripo
+reads JPEG and PNG). The pictures as sent are kept in the batch (`inputs/`) and shown above its models.
+
+**Options.** Model (`v3.1-20260211` default, `v3.0-20250812`, `v2.5-20250123`; the low-poly P series
+`P1-20260311` and `P2-20260801`, 48–20,000 / 50,000 faces), texture on/off, PBR (forces a texture), HD texture
+(`texture_quality: detailed`, v3 and P only), a face limit (empty: adaptive), quad (v3 or P2; **the output is
+then FBX**, which the viewer also opens), candidates (1–4: one task each, run at once), and **rig it**: after the
+model, Tripo's rig check (free) says whether it can be rigged and as what (biped, quadruped, hexapod, octopod,
+avian, serpentine, aquatic); then the rig (`v1.0-20240301` for a biped, `v2.5-20260210` for the other bodies,
+Tripo's own bone names) and a preview animation retargeted onto it (`preset:biped:walk`,
+`preset:hexapod:walk`… ; avian has no preset, so no walk). A rig that fails, or a model that cannot be rigged,
+leaves the model itself standing.
+
+**Running.** The page: the *3D models* switch in the header (remembered; `#mode=3d` opens it), click pictures in
+the references panel, set the options in the *3D · Tripo* panel (it shows the account's credits), Generate. The
+CLI:
+
+```sh
+node scripts/gen-reference.mjs --3d --images references/enemy-archetypes/crab/sheet-1.jpg --crop 800,130,420,380
+node scripts/gen-reference.mjs --3d --images a.jpg,b.jpg --views front,left --rig --n 2 [--faces 20000] [--quad]
+node scripts/gen-reference.mjs --3d --images references/enemy-archetypes/crab/sheet-1.jpg,references/enemy-archetypes/crab/sheet-1.jpg \
+  --crop 0,100,450,400 --crop 470,100,330,390 --views front,left        # two views cut out of one sheet
+node scripts/gen-reference.mjs --3d --prompt "a lamp on three legs" --target references/enemy-archetypes/tripod/3d/
+node scripts/gen-reference.mjs --pick <batch>/tripo/1 --why "the legs read"      # --reject, --discard as for 2D
+```
+
+**A batch** is stored like a 2D one (`references/_candidates/<batch>/candidates.json`, `mode: '3d'`), so the
+filters (To pick, Picked, None of them, All) and the pager take both kinds together. The picture(s) is uploaded
+once (`POST /v3/files` → a `file_token`), then each candidate is one generation task polled every 2 s
+(`GET /v3/tasks/<id>`, up to 10 minutes) while the page shows its stage and progress; the model (it expires
+after 5 minutes) and Tripo's own render are downloaded at once. One candidate failing leaves the others; the
+failures are listed with their kind. Files: `tripo/<n>.glb` (or `.fbx`), `tripo/<n>-preview.<ext>`,
+`tripo/<n>-rigged.glb`, `tripo/<n>-animated.glb`. Each candidate records its task ids, credits and cost.
+
+**The page** shows each model in a small three.js stage: drag to orbit, wheel to zoom, **Turn** (the turntable,
+on by default), **Wire** (wireframe), **Clay** (no texture), **Walk** (the rigged model's preview walk). At most
+eight live viewers at once (a browser has about 16 WebGL contexts), made as their cards scroll into view; the
+others show Tripo's still. **Pick**, **Discard**, **None of them…** and *Discard the batch* work as for 2D.
+
+**Where a pick goes, and why.** `references/<…>/3d/`, by default a `3d/` folder beside the first picture
+(the crab's sheet → `references/enemy-archetypes/crab/3d/`), any folder inside `references/` with `--target`:
+
+```
+references/enemy-archetypes/crab/3d/model-N.glb            the model (.fbx when quad), never an overwrite
+references/enemy-archetypes/crab/3d/model-N-preview.webp   a turntable sheet (8 angles) drawn by the page on Pick
+                                                           (CLI pick: Tripo's own render instead)
+references/enemy-archetypes/crab/3d/model-N-rigged.glb     with a rig; model-N-walk.glb (its preview animation)
+references/enemy-archetypes/crab/3d/manifest.json          { archetype, created, models: [ … ] }
+```
+
+`references/` is never part of the game: Vite builds only `BUILD_INPUT` and copies `public/`, and the Android
+and web bundles are made from that build, so a model there costs nothing to players however large (Tripo's
+textured GLBs are a few MB; a face limit and no PBR keep them smaller). It sits beside the sheet it came from,
+as a reference like the sheet, and is committed with it (a few MB each: pick one per subject, not every
+candidate). The manifest entry records everything needed to make it again or explain it:
+
+```json
+{
+  "file": "model-1.glb", "preview": "model-1-preview.webp", "rigged": "model-1-rigged.glb", "animated": "model-1-walk.glb",
+  "service": "Reference lab 3D", "provider": "tripo", "model": "v3.1-20260211", "kind": "image",
+  "inputs": [{ "path": "references/enemy-archetypes/crab/sheet-1.jpg", "view": "front", "crop": { "x": 800, "y": 130, "w": 420, "h": 380 } }],
+  "options": { "model": "v3.1-20260211", "texture": true, "pbr": true, "textureQuality": "standard", "faceLimit": null, "quad": false, "rig": true },
+  "tasks": { "model": "task_…", "rigCheck": "task_…", "rig": "task_…", "retarget": "task_…" },
+  "rig": { "status": "done", "rigType": "hexapod", "rigModel": "v2.5-20260210", "animation": "preset:hexapod:walk" },
+  "date": "2026-10-10", "batch": "…", "candidate": "tripo/1", "format": "glb", "sha256": "…", "bytes": 4200000,
+  "credits": 65, "costUSD": 0.65, "why": "the legs read"
+}
+```
+
+**Bringing a picked model into the game later** (not done by the lab): the game draws its creatures itself in
+ink and flat colour, so a Tripo model is first a reference for proportions, joints and silhouette. To use one
+as geometry: copy it out of `references/` into `public/models/<kind>/<id>.glb`, shrink it there (decimate to
+the game's budget, drop the PBR maps for the game's own toon material, meshopt or Draco compression with
+gltf-transform), and load it lazily with the `GLTFLoader` the game already uses (`three/addons`), never by an
+import that would pull it into the main bundle; a rigged one's bones would drive the creature's own gait code.
+
+**Costs** (Tripo's pricing page, 2026-10-09; 1 credit = $0.01, credits frozen when a task starts and charged only
+on success): image or multiview to model 20 credits untextured, 30 textured; text to model 10 / 20; HD texture
++10, quad +5; rig check free, rig 25, a retargeted animation 10. So one textured model from a picture is **$0.30**,
+rigged with its walk $0.65. The P series' prices sit on a tab of the pricing page not in its text: the same
+figures are used as an estimate. The tasks' own `credits_consumed` is what is recorded. The page and the CLI
+show the estimate before; the *3D · Tripo* panel shows the balance (`GET /v3/account/balance`, free).
+
+**Failures**, sorted like the 2D providers': `no-key` (nothing sent), `auth` (401, codes 1000/1001), `credits`
+(Tripo answers a 403 with "not enough credit", or code 2010: "out of Tripo credits: top up at
+platform.tripo3d.ai"), `bad-request` (400, an option the model does not take), `blocked` (a banned task, code
+2008), `server` (a failed or expired task, a 5xx), `rate-limit` (429, retried once), `timeout`.
+
+**First real run** (2026-10-09): the key works (the upload succeeded), but the account had **0 credits**: the
+crab's three-quarter view came back `credits`, nothing charged. Tripo's API credits are bought on
+[platform.tripo3d.ai](https://platform.tripo3d.ai) (Billing); a $0.30 run is the next check.

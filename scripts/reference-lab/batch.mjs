@@ -59,6 +59,7 @@ export function checkTarget(root, target) {
 export async function runBatch(o) {
   const { root, keys = {} } = o;
   const prior = o.batch && existsSync(join(batchDir(root, o.batch), 'candidates.json')) ? readBatch(root, o.batch) : null;
+  if (prior?.mode === '3d') throw new Error(`${o.batch} is a 3D batch: run a new one with --3d`);
   if (prior) o = { ...o, prompt: prior.prompt, refs: prior.refs, ar: prior.ar, n: o.n ?? prior.n, target: prior.target, from: prior.from, comparison: prior.comparison };
   const prompt = String(o.prompt ?? '').trim();
   if (!prompt) throw new Error('no prompt');
@@ -124,6 +125,7 @@ export function mergeBatches({ root, into, from }) {
   for (const b of from) {
     if (b === into) continue;
     const o = readBatch(root, b);
+    if (m.mode === '3d' || o.mode === '3d') throw new Error('3D batches are not merged');
     if (o.prompt !== m.prompt) throw new Error(`${b} has another prompt than ${into}`);
     for (const [id, p] of Object.entries(o.providers)) {
       if (p.status !== 'done' && m.providers[id]) continue;   // (a failure never replaces what worked)
@@ -156,7 +158,7 @@ export function listBatches(root) {
   return readdirSync(dir).filter((b) => ID.test(b) && existsSync(join(dir, b, 'candidates.json'))).sort().reverse().map((b) => {
     try {
       const m = readBatch(root, b);
-      return { batch: b, created: m.created, prompt: m.prompt, from: m.from, status: m.status, target: m.target, count: m.candidates.filter((c) => c.status !== 'discarded').length, picked: m.candidates.filter((c) => c.status === 'picked').length, rejected: m.rejected ?? null, providers: Object.keys(m.providers) };
+      return { batch: b, mode: m.mode ?? '2d', kind: m.kind ?? null, created: m.created, prompt: m.prompt, from: m.from, status: m.status, target: m.target, count: m.candidates.filter((c) => c.status !== 'discarded').length, picked: m.candidates.filter((c) => c.status === 'picked').length, rejected: m.rejected ?? null, providers: Object.keys(m.providers) };
     } catch { return { batch: b, status: 'unreadable' }; }
   });
 }
@@ -183,6 +185,7 @@ export function nextSheet(dir) {
  */
 export function pick({ root, batch, candidate, target = null, why = '', now = Date.now }) {
   const m = readBatch(root, batch);
+  if (m.mode === '3d') throw new Error(`${batch} is a 3D batch: its pick is pick3d (batch3d.mjs)`);
   const c = m.candidates.find((x) => x.id === candidate);
   if (!c) throw new Error(`no candidate ${candidate} in ${batch}`);
   if (c.status === 'discarded') throw new Error(`${candidate} was discarded`);
@@ -238,7 +241,7 @@ export function reject({ root, batch, why, now = Date.now }) {
     const manifest = existsSync(mf) ? JSON.parse(readFileSync(mf, 'utf8'))
       : { ...(to.startsWith('references/enemy-archetypes/') ? { archetype: to.split('/')[2] } : {}), created: date, sheets: [] };
     manifest.rejected = (manifest.rejected ?? []).filter((r) => r.batch !== batch);
-    if (text) manifest.rejected.push({ batch, why: text, date, prompt: m.prompt, providers: Object.keys(m.providers) });
+    if (text) manifest.rejected.push({ batch, why: text, date, ...(m.mode === '3d' ? { mode: '3d', inputs: m.refs, options: m.options } : {}), ...(m.prompt ? { prompt: m.prompt } : {}), providers: Object.keys(m.providers) });
     if (!manifest.rejected.length) delete manifest.rejected;
     if (text || existsSync(mf)) { mkdirSync(dir, { recursive: true }); writeJson(mf, manifest); }
   }
@@ -253,7 +256,7 @@ export function discard({ root, batch, candidate = null }) {
   const m = readBatch(root, batch);
   const c = m.candidates.find((x) => x.id === candidate);
   if (!c) throw new Error(`no candidate ${candidate} in ${batch}`);
-  rmSync(join(dir, c.file), { force: true });
+  for (const f of [c.file, c.preview, c.rig?.file, c.rig?.animated]) if (f) rmSync(join(dir, f), { force: true });   // (a 3D one's preview and rig too)
   c.status = 'discarded';
   writeJson(join(dir, 'candidates.json'), m);
   return { discarded: `${batch}/${candidate}` };

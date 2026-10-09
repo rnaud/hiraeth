@@ -89,18 +89,50 @@
   .pager .btn.on { background: var(--ink); color: var(--paper); }
   .pager small { color: var(--soft); }
   /* the zoom */
-  #zoom { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; background: rgba(43, 33, 31, 0.94); padding: 10px; }
+  #zoom { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; background: #2b211f; padding: 10px; }
   #zoom.open { display: flex; }
   #zoom .bar { display: flex; gap: 6px; align-items: center; }
   #zoom .cap { flex: 1; color: var(--paper); font-size: 12.5px; }
   #zoom img { flex: 1; min-height: 0; width: 100%; object-fit: contain; margin-top: 8px; }
+  /* the 3D mode (Tripo) */
+  .modes { display: flex; gap: 4px; }
+  .modes .btn.on { background: var(--ink); color: var(--paper); }
+  body:not(.mode-3d) [data-only="3d"], body.mode-3d [data-only="2d"] { display: none !important; }
+  .hint { margin: 0 0 6px; font-size: 12px; color: var(--soft); }
+  #inputs3d { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; }
+  .inp { display: grid; grid-template-columns: 54px 1fr auto auto auto; gap: 6px; align-items: center; padding: 3px; border: 1.5px solid var(--ink); background: #fff; }
+  .inp img { width: 54px; height: 36px; object-fit: cover; }
+  .inp .nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11.5px; }
+  .inp .nm small { display: block; color: var(--soft); }
+  .inp select { width: auto; font-size: 12px; padding: 1px 3px; }
+  .inp .x { border: 0; background: none; cursor: pointer; }
+  .checks { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 6px 0; font-size: 12px; }
+  .wall.w3d { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  figure.model3d .viewer { position: relative; height: 300px; background: radial-gradient(circle at 50% 40%, #fffaf0, #e8dcc0); overflow: hidden; }
+  figure.model3d .viewer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; cursor: default; background: none; }
+  figure.model3d .viewer canvas.live { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
+  figure.model3d .viewer.ready img { visibility: hidden; }
+  figure.model3d .viewer.loading::after { content: 'loading the model…'; position: absolute; left: 6px; bottom: 4px; font-size: 11px; color: #8a5a3c; }
+  figure.model3d .viewer.failed::after { content: 'could not load the model'; color: var(--red); }
+  figure.model3d .viewer .wait { position: absolute; inset: 0; display: grid; place-items: center; color: var(--soft); }
+  .vacts { display: flex; gap: 4px; margin: 4px 0 2px; }
+  .vacts .btn.on { background: var(--ink); color: var(--paper); }
+  /* the crop */
+  #crop { position: fixed; inset: 0; z-index: 1000; display: none; flex-direction: column; gap: 8px; background: #2b211f; padding: 10px; }
+  #crop.open { display: flex; }
+  #crop .bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--paper); padding-left: 130px; }   /* (clear of the ◀ Debug button) */
+  #crop .bar .cap { flex: 1; font-size: 12.5px; }
+  #crop .stage { position: relative; overflow: hidden; align-self: center; max-width: 100%; max-height: calc(100vh - 80px); cursor: crosshair; user-select: none; touch-action: none; }
+  #crop .stage img { display: block; max-width: calc(100vw - 20px); max-height: calc(100vh - 80px); }
+  #crop .rect { position: absolute; border: 2px solid var(--gold); box-shadow: 0 0 0 9999px rgba(43, 33, 31, 0.55); pointer-events: none; }
 </style>
 </head>
 <!-- the shared "◀ Debug" button (src/debug-back.js); B is the page's own (the zoom first), Esc too while the zoom is open -->
-<body data-debug-back="pad-off" data-debug-busy="#zoom.open">
+<body data-debug-back="pad-off" data-debug-busy="#zoom.open, #crop.open">
 <header>
   <span class="debug-room" aria-hidden="true"></span>
   <h1>REFERENCE LAB</h1>
+  <nav class="modes" aria-label="Mode"><button type="button" class="btn small on" data-mode="2d" title="Pictures from several image AIs">2D pictures</button><button type="button" class="btn small" data-mode="3d" title="A 3D model from the picked references (Tripo)">3D models</button></nav>
   <span id="status">Loading… (the lab needs the dev server: npx vite)</span>
   <button type="button" class="btn go" id="go" title="Send the prompt to every chosen provider (G)"><span class="glyph" data-glyph="menu" data-key="G" aria-hidden="true"></span>Generate</button>
 </header>
@@ -110,22 +142,43 @@
       <h2>Prompt</h2>
       <select id="source" title="A prompt from the prompt documents or the references' manifests"><option value="">Free text</option></select>
       <textarea id="prompt" placeholder="What to draw, in words. Choose one above to start from a written prompt."></textarea>
-      <label class="f" for="target">Target folder for a pick (sheet-N + manifest.json)</label>
+      <p class="hint" data-only="3d">3D: the prompt is used only with no picture (text to model).</p>
+      <label class="f" for="target"><span data-only="2d">Target folder for a pick (sheet-N + manifest.json)</span><span data-only="3d">Target folder for a 3D pick (model-N.glb + manifest.json); empty: a 3d/ folder beside the first picture</span></label>
       <input type="text" id="target" placeholder="references/enemy-archetypes/<id>/">
     </section>
     <section class="panel">
-      <h2>Style references <small id="ref-count"></small></h2>
+      <h2><span data-only="2d">Style references</span><span data-only="3d">Pictures to model</span> <small id="ref-count"></small></h2>
       <div class="row">
         <input type="search" id="ref-search" placeholder="search the paths">
         <select id="ref-folder"></select>
       </div>
       <div id="refs" class="scroll"></div>
-      <div id="picked"></div>
-      <div id="refs-note"></div>
-      <label class="f" for="comparison">Shown beside the results for comparison</label>
-      <select id="comparison"><option value="">(none)</option></select>
+      <div data-only="2d">
+        <div id="picked"></div>
+        <div id="refs-note"></div>
+        <label class="f" for="comparison">Shown beside the results for comparison</label>
+        <select id="comparison"><option value="">(none)</option></select>
+      </div>
     </section>
-    <section class="panel">
+    <section class="panel" data-only="3d">
+      <h2>3D · Tripo <small id="tripo-state"></small></h2>
+      <p class="hint">Click pictures above: one → image to model; 2 to 4 views of one subject → multiview (mark each view, front required); none → text to model from the prompt. <b>Crop…</b> cuts one view out of a sheet.</p>
+      <div id="inputs3d"></div>
+      <div class="row">
+        <div><label class="f" for="m3-model">Model</label><select id="m3-model"></select></div>
+        <div><label class="f" for="m3-n">Candidates</label><select id="m3-n"><option selected>1</option><option>2</option><option>3</option><option>4</option></select></div>
+        <div><label class="f" for="m3-faces">Face limit</label><input type="text" id="m3-faces" inputmode="numeric" placeholder="adaptive"></div>
+      </div>
+      <div class="checks">
+        <label><input type="checkbox" id="m3-texture" checked> texture</label>
+        <label><input type="checkbox" id="m3-pbr" checked> PBR</label>
+        <label><input type="checkbox" id="m3-hd"> HD texture</label>
+        <label><input type="checkbox" id="m3-quad"> quad (FBX)</label>
+        <label><input type="checkbox" id="m3-rig"> rig it (+ a preview walk)</label>
+      </div>
+      <small class="hint" id="m3-cost"></small>
+    </section>
+    <section class="panel" data-only="2d">
       <h2>Providers</h2>
       <div id="providers"></div>
       <div class="row">
@@ -147,6 +200,19 @@
     <button type="button" class="btn" data-close title="Close"><span class="glyph" data-glyph="back" aria-hidden="true"></span>✕</button>
   </div>
   <img alt="">
+</div>
+<div id="crop" aria-hidden="true">
+  <div class="bar">
+    <span class="cap">Drag a rectangle around one view.</span>
+    <button type="button" class="btn small" data-crop-q="0" title="The first of four views side by side">1/4</button>
+    <button type="button" class="btn small" data-crop-q="1">2/4</button>
+    <button type="button" class="btn small" data-crop-q="2">3/4</button>
+    <button type="button" class="btn small" data-crop-q="3">4/4</button>
+    <button type="button" class="btn small" data-crop-whole>Whole picture</button>
+    <button type="button" class="btn go" data-crop-use>Use</button>
+    <button type="button" class="btn" data-crop-close title="Cancel">✕</button>
+  </div>
+  <div class="stage"><img alt=""><div class="rect" hidden></div></div>
 </div>
 <script type="module" src="/src/reference-lab/main.js"></script>
 <script type="module" src="/src/debug-back-page.js"></script>

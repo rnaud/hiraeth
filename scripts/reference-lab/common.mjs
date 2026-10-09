@@ -27,7 +27,7 @@ export function sizeFor(ar, long = 1536, mult = 16) {
   return ratio >= 1 ? { width: round(long), height: round(long / ratio) } : { width: round(long * ratio), height: round(long) };
 }
 
-const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif' };
+const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif', '.glb': 'model/gltf-binary', '.fbx': 'application/octet-stream' };
 export const IMAGE_EXT = /\.(jpe?g|png|webp)$/i;
 export const mimeOf = (path) => MIME[extname(path).toLowerCase()] ?? 'application/octet-stream';
 export const extOf = (mime = '') => ({ 'image/jpeg': 'jpg', 'image/jpg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' })[String(mime).toLowerCase().split(';')[0]] ?? 'png';
