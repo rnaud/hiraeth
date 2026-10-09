@@ -1,0 +1,19 @@
+src/enemies/plans/piston.js
+  s_9ca76055a220ed::t_fccefe4c8de36e 7-12,20-21,25-26,28-36,42-43,45-63,66-70,72-75,77,79-91,93-105,107,110,112-113,117-127,130-132,134,136,168,173,176-178,182,185-186,192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "110608dd0b94c6f07818460dd4c40ceba739085b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

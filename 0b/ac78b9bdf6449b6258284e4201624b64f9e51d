@@ -1,0 +1,19 @@
+src/enemies/plans/quadruped.js
+  s_9ca76055a220ed::t_986a98a6eb2455 8-21,23,27-29,32,38-39,41,47,57-64,69,71-73,75-129,132-133,137,140-141,146,151-159,163,165-174,183-213,219-225,227-260,262-272,277,286-288,290,295-296,298,300,304-306,308
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0bac78b9bdf6449b6258284e4201624b64f9e51d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
