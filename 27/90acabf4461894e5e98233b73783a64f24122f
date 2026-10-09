@@ -1,0 +1,29 @@
+docs/systems/foes.md
+  s_9ca76055a220ed::t_877e0cfaff06f8 619-620
+src/enemies/models.js
+  s_9ca76055a220ed::t_5430348f7cdc77 12-17
+src/hitboxes.js
+  s_9ca76055a220ed::t_2519a85259c453 92-102
+tests/foe-height.test.js
+  s_9ca76055a220ed::t_e46bd54faf7261 297-333
+tests/foe-presence.test.js
+  s_9ca76055a220ed::t_d6212229168f9c 122-145
+tests/hitboxes.test.js
+  s_9ca76055a220ed::t_aba2062309bfe1 272-294
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2790acabf4461894e5e98233b73783a64f24122f",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
