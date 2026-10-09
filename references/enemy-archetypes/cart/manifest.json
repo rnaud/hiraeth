@@ -1,0 +1,23 @@
+{
+  "archetype": "cart",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Machine design reference sheet for a science fiction exploration game: one crucible cart, an ancient makers' machine possessed by a dark spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its pour wind-up with the crucible tilted forward on its turret, the pouring lip glowing and the smoke leaning the same way. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; it is two metres wide and as tall as the traveller. Body plan: a squat open crucible pot, wider than it is tall, with a pouring lip on one side, sitting on a slow turntable turret; underneath, two caterpillar tracks with clearly drawn road wheels and sprockets, no legs; small springs between tracks and chassis; two short jointed welding-torch arms at the sides. The possession: boiling over, ink froths over the crucible's rim like a pot left on the fire, and a column of black smoke rises out of it with two white eyes in it. Sealed Hangar palette: black-teal and gunmetal steel, patched canvas covers, a glowing orange lip, the brew ink-black and violet. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#cart",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-44-09-5fa2",
+      "candidate": "openai/1",
+      "sha256": "b9af023a1bf1a562264eff8e6002af142b27a0b3fdc5cc3f09cb93729fa9a1fd",
+      "bytes": 192190,
+      "costUSD": 0.041
+    }
+  ]
+}

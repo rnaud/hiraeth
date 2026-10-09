@@ -1,0 +1,23 @@
+{
+  "archetype": "marionette",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one marionette, a puppet hanging in mid-air from strings, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its strings wind-up with both arms lifted, the fingers curled, and two extra strings unspooling downward from its hands. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the puppet is two metres tall and its feet hang a metre off the ground. Body plan: a thin rigid wooden-puppet figure with ball joints at the shoulders, elbows, wrists, hips, knees and ankles, all clearly drawn; hanging limp with the head tipped forward; four long strings from its head, hands and back rising straight up into a knot of black smoke far overhead. The manifestation: the puppeteer, the spirit is the hand you never see, the strings vanish up into the smoke, and the puppet has no eyes of its own. Garden of Spheres palette: a clear glass puppet with faint prism reflections, fine silver threads, pearl ball joints, the smoke knot ink-black and violet. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, feet on ground.",
+      "from": "docs/design/enemy-roster-prompts.md#marionette",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-46-44-4c29",
+      "candidate": "openai/2",
+      "sha256": "c09fed769f9de4281742da521e63f61fa60322c3b62f6c8a2adf4256ff0c59d7",
+      "bytes": 183035,
+      "costUSD": 0.041
+    }
+  ]
+}

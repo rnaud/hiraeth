@@ -1,0 +1,23 @@
+{
+  "archetype": "jelly",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one lantern jelly floating in the air, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its ward pose with one lantern swollen bright and a thin thread of light running from it out to the side, the bell pulsing tight. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands below it for scale, the jelly hovering well above the traveller's head. Body plan: a soft puffy bell-shaped cap 1.5 metres wide; long trailing threads hanging three metres down, gently waving; three small paper lanterns hanging on cords beneath the bell, each glowing; no legs, no face, only two soft dark eye-spots on the bell's rim. From far off, a floating lamp. Vael II palette: pale pink puffy bell like a cloud, ivory threads, apricot paper lanterns glowing warm, pale aqua and cool blue-grey shadow. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#jelly",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-42-17-b8a4",
+      "candidate": "openai/1",
+      "sha256": "dba8a04662f05af2d38a80ca66fd70e8b0050aa117a4bc6c900e0a9ee39ed3e3",
+      "bytes": 154723,
+      "costUSD": 0.041
+    }
+  ]
+}

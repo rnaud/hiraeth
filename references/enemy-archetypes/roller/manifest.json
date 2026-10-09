@@ -1,0 +1,23 @@
+{
+  "archetype": "roller",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one pearl roller, a snail with a shell bigger than itself, drawn at the same scale on a plain cream background: unrolled in front view, side view and three-quarter view, then rolled up into a perfect ball, then its bowl wind-up with the eye stalks sunk and the shell rocked back on its foot. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale, the shell as tall as the traveller's chest. Body plan: a nearly spherical spiral shell 1.4 metres across; a soft muscular foot underneath with ripples along its sole; two long eye stalks and two short feelers; no legs; rolled up, the foot and head tuck completely inside the shell's opening and it becomes a sphere. Sealed Hangar palette: a polished steel shell with an oily rainbow sheen along its spiral groove, a dark teal foot, black-teal shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#roller",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-41-17-b107",
+      "candidate": "openai/1",
+      "sha256": "6afdc16eda08f2be322a6808292315655e3bbd5d2a872b9f6bc4be332c6ba705",
+      "bytes": 202996,
+      "costUSD": 0.041
+    }
+  ]
+}

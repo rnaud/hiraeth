@@ -1,0 +1,22 @@
+{
+  "archetype": "lizard",
+  "created": "2026-10-09",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-09-18-37-21-34d9",
+      "why": "All very bad (author). They read as tall long-necked pink dinosaurs with a gramophone horn stuck on the head: \"long neck\" and \"trumpet where its snout should be\" pulled every provider to a sauropod with a prop. Next: low sprawling monitor-lizard posture, the neck level, the horn grown from the snout like bone, less candy-pink.",
+      "date": "2026-10-09",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one horn lizard, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its blare wind-up reared up on its hind legs with its chest swelling and the bell of its horn glowing. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the lizard is three metres long with its tail, its back at the traveller's hip. Body plan: a long low four-legged body; legs set under the body, front legs with elbows bending back, hind legs with knees bending forward and long ankles, four splayed toes on each foot; a long neck; a long curled tail ending in a spiral; and a brass trumpet growing where its snout should be, flaring into a wide bell. Reads as a curl with a horn. City-Shaft palette: soft pink scales with ivory belly plates, the horn an elbowed brass pipe ending in a bell, slate-blue shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "providers": [
+        "openai",
+        "gemini",
+        "fal-flux",
+        "fal-flux-pro",
+        "fal-seedream",
+        "fal-ideogram",
+        "fal-recraft"
+      ]
+    }
+  ]
+}

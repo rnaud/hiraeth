@@ -1,0 +1,23 @@
+{
+  "archetype": "rootknot",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one root knot, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its grip wind-up with two root-arms plunged into the ground in front of it and its broad cap tipped forward. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the knot is 2.5 metres tall. Body plan: a broad mushroom cap over a bulb-shaped body; five long root-arms around its base, each a jointed tapering limb with two clear bends like elbows, each tip spread into a small fan of rootlets planted in the ground; a skirt of short tendrils between them; no legs, the body is carried between the planted arms; two small pale eyes under the cap's rim. From far off, a tree that shouldn't be there. Lorn palette: a pale lilac cap with cream gills, a reed-green bulb, ochre roots, violet shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#rootknot",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-41-47-a1cf",
+      "candidate": "openai/2",
+      "sha256": "0f669eee59414eb5fa5b250ed65c8c34768b0eb0cfc2dc07287a079c16020ade",
+      "bytes": 191750,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "archetype": "heron",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one stilt heron, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its spear wind-up with the long neck drawn back into a tight S, the bill pointed straight forward and the body leaning back. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale, reaching only to its knee joint. Body plan: two very long thin stilt legs 2.5 metres high, each with a clearly drawn backward-bending ankle joint halfway up like a bird's, and wide three-toed wading feet; a slim body shaped like a round cream clay water jug with a narrow mouth at the top; a long S-curved neck rising from the jug's mouth; a small head with a long straight spear bill. Tall and thin, nothing else is this vertical. Desert palette: cream glazed clay body with ochre painted bands, sand-gold legs, a turquoise bill tip, warm cream shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#heron",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-40-45-8782",
+      "candidate": "openai/2",
+      "sha256": "4b233849a2f0dc055b3b2bc4b14474e8aa101b9e769af3043fd7d00d5de0ef3f",
+      "bytes": 155860,
+      "costUSD": 0.041
+    }
+  ]
+}

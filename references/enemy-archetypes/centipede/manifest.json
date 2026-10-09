@@ -1,0 +1,23 @@
+{
+  "archetype": "centipede",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one ring centipede, drawn at the same scale on a plain cream background: a full side view stretched out straight, a top-down view coiled into a complete ring, a three-quarter view of the head, and its pincer-lunge wind-up with the head reared high and the front segments bunched up like a spring. Beneath the straight side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the body is five metres long and the head as tall as the traveller's waist. Body plan: fourteen armoured ring segments of equal size in a follow-the-leader chain, each segment with one pair of short legs, each leg with a clear knee joint and a pointed foot, the legs shown in a rippling wave down the body; a heavy crab-like head with two big pincers and a small drill-bit snout; a short tapering tail. Coiled, it makes a crescent or a perfect ring. Buried Machine palette: rust-orange segment bands on ash-grey plates, a steel drill-bit head, slate-violet shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#centipede",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-39-47-f88a",
+      "candidate": "openai/1",
+      "sha256": "8a9a4bca84170bb7d4dbfad10abf29ee10bc100eeb81f05054428d87eb8d9b30",
+      "bytes": 237360,
+      "costUSD": 0.041
+    }
+  ]
+}

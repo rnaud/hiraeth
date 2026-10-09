@@ -1,0 +1,23 @@
+{
+  "archetype": "shade",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Spirit design reference sheet for a science fiction exploration game: one shade, an empty hooded cloak worn by nothing, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its cut wind-up with the ink sword drawn back over its shoulder and the hood turning toward the viewer. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the shade is 2.2 metres tall. Body plan: an upright humanoid shape made only by the cloak: shoulders, sleeves with bent elbows, a gauntlet-like cuff where the sword hand would be, and below the hem two empty boots with clear knee bends visible through the cloth; no face, only two white eyes in the dark of the hood; long cloak strips trailing. The manifestation: the cloak hangs empty, its hem breaking into drifting smoke, and the sword is poured liquid ink. Not a skeletal clawed figure. Lorn II palette: a pointed hood of rough bark, a moss-green and deep teal cloak, a brass buckle, the smoke and sword ink-black and violet. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage, skeleton, claws.",
+      "from": "docs/design/enemy-roster-prompts.md#shade",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-46-11-5c66",
+      "candidate": "openai/1",
+      "sha256": "cfd4fc699d25ec17d59877f3421c3d1895884ca17e29ca469cc10f8993106fe6",
+      "bytes": 273637,
+      "costUSD": 0.041
+    }
+  ]
+}

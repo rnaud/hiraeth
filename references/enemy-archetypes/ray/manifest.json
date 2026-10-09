@@ -1,0 +1,23 @@
+{
+  "archetype": "ray",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one sky ray flying, drawn at the same scale on a plain cream background: seen from above with wings spread flat, front view, side view showing how thin it is, and its skim wind-up banking hard with the wings swept back and the tail lifted. Beneath the top view its solid black silhouette, a broad flat diamond with a whip tail. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the wings span four metres. Body plan: a broad flat diamond-shaped body that is all wing, the wing edges rippling in a slow wave from root to tip; a short blunt head with two eyes on top and a small mouth beneath; a long thin whip tail made of small linked segments; no legs. Vael palette: rust-red back with ivory belly, pale blue wing edges, a cream tail, cool blue-grey shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#ray",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-43-13-244f",
+      "candidate": "openai/2",
+      "sha256": "0ac0d684affb3692ada7dda71a5b155f6eb942e153d9719d127d3c774785d798",
+      "bytes": 118109,
+      "costUSD": 0.041
+    }
+  ]
+}

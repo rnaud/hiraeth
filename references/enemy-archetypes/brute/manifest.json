@@ -1,0 +1,23 @@
+{
+  "archetype": "brute",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Machine design reference sheet for a science fiction exploration game: one furnace brute, an ancient makers' machine possessed by a dark spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its slam wind-up with both huge fists raised high over the top of its body and the torso arched back. Beneath the side view its solid black silhouette, a wardrobe with fists. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; it is 3.5 metres tall, the traveller reaching its hip. Body plan: a huge ivory barrel torso with no head; two massive arms long enough to reach the ground, with shoulder ball joints, thick elbows and big three-fingered fists; short thick legs with a knee bending forward and broad flat elephant-like feet; panels and rivets. The possession: ink in the cracks, the hull cracked all over like a dropped jar, black ink seeping from every seam and running down its limbs like tar, the widest cracks glowing violet. Lorn II palette: old ivory hull with brass fittings, grown through with dark roots and moss, a rusted saw blade in one fist, deep teal shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#brute",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-45-39-1b4d",
+      "candidate": "openai/1",
+      "sha256": "7bad5af419f950e9447b2296464c686a5ff702717c13faae635a2c873ee5bea7",
+      "bytes": 264883,
+      "costUSD": 0.041
+    }
+  ]
+}

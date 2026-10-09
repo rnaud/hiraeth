@@ -1,0 +1,23 @@
+{
+  "archetype": "tripod",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Machine design reference sheet for a science fiction exploration game: one lamp tripod, an ancient makers' machine possessed by a dark spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its beam wind-up with the searchlight's shutter narrowed to a bright cone and a harpoon bolt loaded under the lamp. Beneath the side view its solid black silhouette, a lighthouse on stilts. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; it is 3.5 metres tall, the traveller reaching its knee. Body plan: a tall round ivory boiler with a big searchlight lamp on top; three thin jointed legs, each with a hip hinge, a knee that bends outward, a visible brass piston between thigh and body, and a small round flat foot pad; riveted panels. The possession: a round porthole window in the boiler with the dark pressed against the glass from inside, two white eyes and inky fingers smearing it; its steam vents puff black. City-Shaft palette: ivory enamel and polished brass, slate-blue accents, pink rust, the possession ink-black and violet. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#tripod",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-38-17-e590",
+      "candidate": "openai/1",
+      "sha256": "6d97aaa1f4beef44ee545f794338d0a6ad1f18c83addd5736ac71b0d2360f866",
+      "bytes": 246480,
+      "costUSD": 0.041
+    }
+  ]
+}

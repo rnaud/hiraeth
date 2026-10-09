@@ -1,0 +1,23 @@
+{
+  "archetype": "skitter",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: the skitter swarm, a flock of fist-sized creatures. Across the top, one skitter drawn large four times: front view, side view, three-quarter view, and its rush wind-up reared up on its back legs with its front legs raised, clicking. Below, ten identical skitters running as one rippling line, and three of them piled into a wobbling heap; beneath them the solid black silhouette of the flock. A small cloaked human traveller with a round jade fluid backpack stands beside the flock for scale, the skitters no higher than the traveller's ankle. Body plan of one skitter: a smooth round dome body the size of a fist, six short hooked legs with one clear knee joint each bending up above the dome, pointed feet, two tiny black eyes at the front rim, two short feelers. Desert palette: sand-gold domes with ochre bands, ivory legs, turquoise eye glints, warm cream shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#skitter",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-39-18-f770",
+      "candidate": "openai/1",
+      "sha256": "1efb8d1f2160204457c047e78608cfde7a267693b12eb33c25754cf24ad2e0b3",
+      "bytes": 166803,
+      "costUSD": 0.041
+    }
+  ]
+}

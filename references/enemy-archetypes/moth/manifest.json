@@ -1,0 +1,18 @@
+{
+  "archetype": "moth",
+  "created": "2026-10-09",
+  "sheets": [],
+  "rejected": [
+    {
+      "batch": "2026-10-09-18-42-47-1d2c",
+      "why": "All very bad (author). Plain natural-history moth plates, nothing alien or Moebius about them. Next: an otherworldly lamp creature, a lantern body, membrane wings on rods like signal panels.",
+      "date": "2026-10-09",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one signal moth hovering upright in the air, drawn four times side by side at the same scale on a plain cream background: front view with wings folded into a tent, side view, three-quarter view, and its flash wind-up with both broad wings snapped wide open and two big eye-spots on them glowing bright. Beneath the open-wing view its solid black silhouette, a broad triangle. A small cloaked human traveller with a round jade fluid backpack stands below it for scale; the open wings span 1.8 metres. Body plan: a furry upright body in three parts; two pairs of broad wings, the front pair large, hinged at the shoulder; two feathery antennae like a tuning fork; six thin legs folded under the body, each with a clear knee joint and a hooked foot. Lorn II palette: dusty grey wings lit warm from behind so their veins glow amber, two red eye-spots, brass-coloured fur, deep teal shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "providers": [
+        "openai",
+        "gemini",
+        "fal-flux"
+      ]
+    }
+  ]
+}

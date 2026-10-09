@@ -1,0 +1,23 @@
+{
+  "archetype": "bell",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Machine design reference sheet for a science fiction exploration game: one bell walker, an ancient makers' machine possessed by a dark spirit, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its toll wind-up reared back on its rear legs with the clapper swung high inside the bell. Beneath the side view its solid black silhouette, a bell on legs. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; the bell is four metres tall, the traveller reaching its rim. Body plan: a great bronze bell hung in a riveted yoke; five short spider legs around the yoke, each with a hip hinge, a high knee bending up and out and a pointed foot; a visible pendulum clapper inside. The possession: the clapper is the spirit, a black body with two white eyes swinging inside the bell, its thin arms hooked over the rim; ink drips from the bell's mouth. Signal Market palette: aged bronze with teal verdigris, brass yoke hung with little coins and patched cloth pennants, warm amber accents, the spirit ink-black and violet. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#bell",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-44-38-3cce",
+      "candidate": "openai/1",
+      "sha256": "fd5379be88f1d6e8af23c0fc821c266497da76be151d72c87580c0ff8e34425b",
+      "bytes": 232645,
+      "costUSD": 0.041
+    }
+  ]
+}

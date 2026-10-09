@@ -1,0 +1,23 @@
+{
+  "archetype": "worm",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one mound worm, drawn at the same scale on a plain cream background: hidden as a travelling sand mound with only a dorsal fin showing; standing upright out of its hole in front view, side view and three-quarter view; and its eruption pose bursting straight up out of the ground with sand flying. Beneath the upright side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale; standing up it is 2.5 metres tall and one metre thick. Body plan: a fat grub made of thick stacked rings, a bulbous front end tapering to a pointed drill tail; a round mouth ringed with small grinding teeth; a tall thin dorsal fin along its back; no legs; tiny dark eyes. Upright it reads as a stack of rings. Desert palette: sand-gold rings with ochre bands, an ivory fin, a turquoise-tinted mouth, warm cream shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#worm",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-43-37-de48",
+      "candidate": "openai/1",
+      "sha256": "38601ad802ff2fcf4330168c27c7d82a74f7d264facfb9a74b2122bd7ae16e3c",
+      "bytes": 162575,
+      "costUSD": 0.041
+    }
+  ]
+}

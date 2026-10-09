@@ -1,0 +1,23 @@
+{
+  "archetype": "toad",
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Creature design reference sheet for a science fiction exploration game: one bellows toad, drawn four times side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and its spore-lob wind-up rearing back with its huge throat sac swollen to twice its size and gone translucent, a round glob of spores visible inside. Beneath the side view its solid black silhouette. A small cloaked human traveller with a round jade fluid backpack stands beside it for scale, the sitting toad as tall as the traveller's shoulder. Body plan: a squat pear-shaped body sitting upright like a fat old man; short thick front legs with elbows and broad three-toed hands; powerful folded hind legs with a clearly drawn knee bending forward and an ankle bending back, long webbed feet flat on the ground; a wide mouth and heavy-lidded eyes on top of the head; the deflated throat sac hanging in folds. Lorn palette: mottled moss-green skin with pale lilac spots, a cream belly, the throat sac pale lilac, violet shadows. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, restrained cream paper grain, whimsical technology, clear readable construction, fully visible bodies, evenly spaced views, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#toad",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-18-40-17-f8b9",
+      "candidate": "openai/1",
+      "sha256": "fc396080bc2f65f0506c13a01e82fa19caa850f39936ceaf48f9047aae0384ec",
+      "bytes": 169144,
+      "costUSD": 0.041
+    }
+  ]
+}
