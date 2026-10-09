@@ -1,0 +1,21 @@
+references/enemy-archetypes/lizard/manifest.json
+  s_9ca76055a220ed::t_20068594649e19 4-22
+references/enemy-archetypes/moth/manifest.json
+  s_9ca76055a220ed::t_57489be9cd53cc 4-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2537a78dd5390b2bae3f543fef7afbf598023313",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
