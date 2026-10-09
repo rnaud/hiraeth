@@ -21,6 +21,8 @@ export const CHANGELOG = [
       see: 'The Echo relay is in the first side street west of the avenue, a few steps from where you arrive, behind the lantern stalls. It wants the fluid gun and the echo shell from the Undertower. Walk up to the sign and press X / □ (E); play the shell back with Y / △ with no gadget in hand (V).' },
     { text: 'And one in Viridel, the Vine walk, from the Greenhouse’s own seeds and flower-doors: four white decks stand in a line down a long slope of the meadow, higher over the meadow the further they go, with a gap between each. Bloom the seed at each gap and its vine grows a bridge across; bloom the flower-door on the third deck to get through. Fall into the meadow, or open your wings, and the run is over. Mira, who keeps the water clock, has a word for you when you finish.',
       see: 'The Vine walk starts at the top of the long slope just east of Mira and her water clock. It wants the bloom mode from the Greenhouse: switch the gun to it (D-pad ← / →, X) and splash each seed. Walk up to the sign and press X / □ (E).' },
+    'Knock a foe into deep water with a cut or the push, off a bank or a ledge, and it is swept away in a great splash. In the shallows it only wades.',
+    'A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.',
   ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour

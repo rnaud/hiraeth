@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.4 — 2026-10-09
 
+- A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.
+- Knock a foe into deep water with a cut or the push, off a bank or a ledge, and it is swept away in a great splash. In the shallows it only wades.
 - And one in Viridel, the Vine walk, from the Greenhouse’s own seeds and flower-doors: four white decks stand in a line down a long slope of the meadow, higher over the meadow the further they go, with a gap between each. Bloom the seed at each gap and its vine grows a bridge across; bloom the flower-door on the third deck to get through. Fall into the meadow, or open your wings, and the run is over. Mira, who keeps the water clock, has a word for you when you finish.
 - A new optional challenge in the Signal Market, the Echo relay, built from the Undertower’s own singing stones and listening horns: walk past three walls hung with old dishes to the arch at the far end, then give each horn its own stone’s note. Splash a stone close enough for the echo shell to catch its song, carry it the length of the street to the horn of its colour and play it back; the shell holds one note at a time. Oyo, who sells lanterns on the avenue, has a word for you when you finish.
 - Knock a foe off a ledge with a cut or the push and it lands dazed for a few seconds, stars turning over its head: your next cut lands double. From high enough, the fall ends it. The charged cut also throws foes farther.

@@ -296,6 +296,26 @@ export const CHANGELOG_MEDIA = {
       { name: 'vine-walk-results', only: 'after', caption: 'The Vine walk finished: the time, the makers’ mark, and a word from Mira, who keeps the water clock', commit: '7f245a39',
         view: { level: 'edena', hud: true, hour: 10, save: SAVE_BLOOM, player: [55, -3.1, 1], setup: VINE_THROUGH('kit-edena', 24.9), wait: 600 } },
     ] },
+    { match: 'Knock a foe into deep water', shots: [
+      { name: 'foe-swept', caption: 'An ink blot pushed off a crystal rock in Lorn’s swamp into water deeper than a man, as it comes down: before, it has gone under without a splash and lies on the bottom out of sight, to wade out again; after, a great splash where it went in, and it is gone', commit: 'a88286bf',
+        view: { level: 'perdide', quality: 'high', save: SAVE_ON, eye: [173, 3.4, 216.5], target: [168.2, -0.6, 208.7], fov: 50, wait: 640,
+          setup: `const V = THREE.Vector3; for (const f of foes.list.slice()) foes.remove(f); foes.packRest = 1e9;
+            player.teleport(new V(176.5, -0.6, 208.7), new V(0, 1, 0), new V(0, 0, 1)); player.heading = -Math.PI / 2;
+            ${HIDE('#toast')} ${sleepJs(1500)}
+            const f = foes.add('blot', new V(171.28, 0.99, 208.72)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(400)}
+            foes.hurt(f, 'push', new V(-1, 0, 0), { shove: 3 });` } },
+    ], see: 'In Lorn, get a stalker or a blot onto the bank of the swamp where it drops into deep water and push it in (or cut it toward the water): it goes under in a big splash and is gone. Push one into the shallows and it only wades.' },
+    { match: 'A temple’s crystal pendulum that you have stilled', shots: [
+      { name: 'foe-crystal', caption: 'The Hush-House’s pendulum bridge with its middle crystal stilled and an ink blot coming along the bridge through it: before, it has passed the frosted crystal as if it were air and is at the traveller; after, it stands held against the crystal, its eyes pale', commit: 'a88286bf',
+        view: { level: 'perdide', quality: 'high', save: SAVE_ON, eye: [-92.5, 1712.6, 403.2], target: [-100, 1710, 407.2], fov: 55, wait: 2200,
+          setup: `const V = THREE.Vector3, sw = level.temple.pieces.filter((p) => p.stillFor != null);
+            for (const s of sw.slice(0, 2)) { s.s = 0; s.update(0); s.hit('stun'); s.stillFor = 60; s.still = 60; }
+            const c = sw[1].center.clone();
+            for (const f of foes.list.slice()) foes.remove(f); foes.packRest = 1e9;
+            player.teleport(new V(c.x, 1709.1, c.z - 3.2), new V(0, 1, 0), new V(0, 0, 1)); player.heading = 0;
+            ${HIDE('#toast')} ${sleepJs(800)}
+            const f = foes.add('blot', new V(c.x, 1709, c.z + 2.6)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50);` } },
+    ], see: 'In Lorn’s Hush-House, still a pendulum over the bridge with a stilling glob and let a foe come at you along the bridge through it: it stops dead against the frosted crystal, its eyes pale, for a few seconds.' },
   ],
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [

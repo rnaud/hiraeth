@@ -10,7 +10,8 @@
 //   it to a spot over you, in its reach and in sight, and lobs down from there; perched, it won't step down off
 //   it while you are below.
 // - **Knocked off** (KNOCK): a foe your blow or push carries off a ledge lands dazed a long while
-//   (KNOCK.stun), with stars over it; from KNOCK.defeat up, the fall ends it.
+//   (KNOCK.stun), with stars over it; from KNOCK.defeat up, the fall ends it. Knocked into deep water
+//   (KNOCK.deep, from any height, off a bank or a ledge), it is swept away: a great splash, and it is over.
 
 /** How high a walker climbs and how far it drops: a step it walks; a clamber and a drop are hops. */
 export const CLIMB = { step: 1.1, clamber: 2.4, drop: 4.5, heavyDrop: 2.6 };
@@ -24,8 +25,9 @@ export const HOP = { crouch: 0.32, time: 0.32, perM: 0.07, arc: 0.6 };
 export const ROUTE = { cell: 1, radius: 13, budget: 520, every: 1.1, stuck: 0.4, drift: 3, flat: 1.15, hold: 5 };
 /** The high ground: `rise` m over you at least (past a blow's reach, STRIKE_RISE), looked for every `every` s, the way no longer than `far` m. */
 export const PERCH = { rise: 1.7, every: 2.5, far: 16 };
-/** Knocked off a ledge by you: dazed `stun` s from `min` m; from `defeat` m it is over. `recent`: s a blow counts as yours. */
-export const KNOCK = { min: 1.4, stun: 3.5, defeat: 4.5, recent: 0.9, charged: 2.2 };
+/** Knocked off a ledge by you: dazed `stun` s from `min` m; from `defeat` m it is over. `recent`: s a blow counts as yours.
+ * `deep`: water this deep (m, as deep as lifts you off your feet: swim.js SWIM.float) sweeps a foe knocked into it away. */
+export const KNOCK = { min: 1.4, stun: 3.5, defeat: 4.5, recent: 0.9, charged: 2.2, deep: 1.3 };
 
 /** What a kind can climb and drop (m): a hovering one flies, a burrowing one only walks. */
 export function reachOf(def) {
@@ -145,3 +147,6 @@ export const hopTime = (dy) => HOP.time + Math.abs(dy) * HOP.perM;
 
 /** What landing h m down after your knock does: 'over' (it ends it), 'dazed' (a long stun), or null (an ordinary landing). */
 export function knockedOff(h) { return h >= KNOCK.defeat ? 'over' : h >= KNOCK.min ? 'dazed' : null; }
+
+/** What being knocked into water `depth` m deep does: 'swept' (it is over), or null (it wades). */
+export function knockedInto(depth) { return depth >= KNOCK.deep ? 'swept' : null; }
