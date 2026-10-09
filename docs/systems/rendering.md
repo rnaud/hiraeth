@@ -493,6 +493,19 @@ the same placed views; the light term, `params.debug` 5, and the spot masks, 10,
   climber's wall got a near-black, spiky mass round his outline, and people walking in the shade dragged
   blobs round their feet that slid as the view turned. A tap that lands on a person (gHatch.a's hero or figure
   flag) now closes nothing in; the flags are read only for a tap that would count, as the grass's were.
+- **A pale ghost of a person in the dark masses** (post.js `enclosure`, `creaseAO`, `occlusionShare`; playtest
+  2026-10-08: "Marrow casts a white shadow towards the ship", "the character casts a white shadow on the
+  stairs to the big tree, shadows move with the camera"). The fix above made a person's tap count as *open*:
+  where a person stood in front of a spot-black mass (the hull beside Marrow, the stair risers behind the
+  traveller) the share fell and the mass got a pale hole in the person's shape, once per tap offset, sliding
+  with the view (debug 9 shows the copies). A tap on a person now looks past them, twice as far along its
+  direction, and if that lands on a person too it is left out of the share altogether (the share is of the
+  taps that saw what stands behind; none left: open). Crease shading leaves person taps out the same way,
+  reading the flags for a tap that would close something in or that stands nearer than the point (a person
+  hiding what is behind them is nearer), so most taps still skip the read. The Unity port's Composite.shader
+  had no person test; it takes the same rule. The shadow maps were checked and are not involved (they follow
+  the player, snapped to texels). What remains: on stepped geometry the spot blacks come in blocks that move
+  with the camera (fixed screen-space taps, 4 on Handheld): TODO.md.
 - **Shadows popping in after a turn** (shadows.js `VIEW_SLACK`, `viewOf`, `viewLeft`). The caster culling
   drops what can't shade the view, for the view of the frame a map is drawn in; the far map is drawn every
   3rd frame (4th on Handheld) and the near map every 2nd on the handheld presets, and looked at from the next

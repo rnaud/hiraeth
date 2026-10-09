@@ -57,6 +57,17 @@ export const FACE_SHADE = { tone: 'vec3(1.13, 0.93, 0.8)', warm: '0.72', night: 
 export const OCCLUSION_TAPS = {
   spot: (n) => Array.from({ length: n }, (_, i) => { const a = 0.39 + (i * 6.2832) / n, r = i % 2 ? 0.55 : 1; return [Math.cos(a) * r, Math.sin(a) * r]; }),
 };
+/**
+ * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js enclosure and
+ * creaseAO): taps = [{ c (0..1, how much this one closes in), person }]. A tap on a person is left out (neither
+ * open nor closed: the person hides what stands behind); none left: 0 (open).
+ */
+export function occlusionShare(taps) {
+  let occ = 0, seen = 0;
+  for (const t of taps) if (!t.person) { occ += t.c; seen++; }
+  return occ / Math.max(seen, 1);
+}
+
 /** A GLSL constant array of vec2s. */
 export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = vec2[${list.length}](${list.map(([x, y]) => `vec2(${x.toFixed(7)}, ${y.toFixed(7)})`).join(', ')});`;
 
@@ -427,7 +438,9 @@ const fragmentShader = /* glsl */ `
   // 0 where a tap lands on a person (gHatch.a: glow + 2 hero + 4 figure + 8 soft + 16 face + 32 drift): people
   // stand in front of a wall or the ground, they don't make a pocket of it (the spot blacks and the crease
   // shading drew a dark ragged halo round a climber on his wall and blobs round people's feet that slid as you
-  // turned)
+  // turned). Such a tap is left out of the share altogether (occlusionShare): counted as open, it drew the
+  // reverse, pale copies of a person in the dark masses behind them (a white "shadow" of Marrow on the shaded
+  // sand by the ship, of the traveller on the tree's stairs), sliding with the camera.
   float notPerson(vec2 suv) { return step(mod(texture(tHatch, suv).a, 8.0), 1.5); }
   float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc) {
     vec3 P = viewPos(uv, d);
@@ -440,7 +453,7 @@ const fragmentShader = /* glsl */ `
     float a0 = hash(fc) * 6.2832;
     vec2 cs = vec2(cos(a0), sin(a0));
     mat2 turn = mat2(cs.x, cs.y, -cs.y, cs.x);
-    float ao = 0.0;
+    float ao = 0.0, seen = 0.0;
     for (int i = 0; i < 8; i++) {
       float b = float(i) * 2.39996;
       float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
@@ -452,17 +465,23 @@ const fragmentShader = /* glsl */ `
         * max(dot(nV, v) / max(dist, 1e-4) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
       // (grass blades close nothing in: no grey speckle round them)
       // (nor does a person: no grey halo round a climber on his wall, round people's feet)
-      if (c > 0.0) { float t = mod(texture(tHatch, suv).a, 16.0); c *= step(t, 7.5) * step(mod(t, 8.0), 1.5); }
-      ao += c;
+      // (and a tap on a person isn't counted at all, open or closed: the share is of the taps that saw what
+      // stands behind, so a person in front of a recess leaves no pale ghost of themselves in its shading)
+      // (the flags only read for a tap that would close something in, or that stands nearer than the point:
+      // a person hiding what is behind them is nearer; most other taps skip the read, docs/systems/performance.md)
+      float np = 1.0;
+      if (c > 0.0 || (sd > 0.0 && sd < d)) { float t = mod(texture(tHatch, suv).a, 16.0); np = step(mod(t, 8.0), 1.5); c *= step(t, 7.5) * np; }
+      ao += c; seen += np;
     }
-    return clamp(ao / 8.0 * 2.2, 0.0, 1.0);
+    return clamp(ao / max(seen, 1.0) * 2.2, 0.0, 1.0);
   }
 
   // ---------------------------------------------------------------- spot blacks
   // How enclosed a point is, at the scale of a pocket (R metres): from fixed directions round it in
   // screen space (no jitter: the estimate is smooth from pixel to pixel, so a hard threshold of it is a
   // clean-edged mass), the share of the neighbours standing in front of its face (a person never counts:
-  // notPerson). taps: 8, or 4 (handheld).
+  // notPerson; a tap landing on one looks past them, twice as far out, and is left out of the share if that
+  // lands on a person too: occlusionShare). taps: 8, or 4 (handheld).
   // The directions are constants (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a
   // perspective camera: ray(uv) = (uv * rA + rB, -1)), and a tap on the sky weighs 0 instead of a
   // skip: the same estimate at a fraction of its cost (docs/systems/performance.md).
@@ -471,30 +490,32 @@ const fragmentShader = /* glsl */ `
     vec3 P = vec3(uv * rA + rB, -1.0) * d;
     vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
     vec2 s = clamp(R * uProj11 * 0.5 * uRes.y / d, 4.0, 96.0) / uRes;
-    float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
+    float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0, seen = 0.0;
     if (taps == 8) {
       for (int i = 0; i < 8; i++) {
-        vec2 suv = uv + SPOT_TAPS8[i] * s;
+        vec2 o = SPOT_TAPS8[i] * s, suv = uv + o;
+        float np = notPerson(suv);
+        if (np < 0.5) { suv = uv + 2.0 * o; np = notPerson(suv); }   // (on a person: look past them)
         float sd = texture(tNormal, suv).w;
         vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
         float dist = length(v);
         float c = step(0.0, sd) * sign(sd)   // (the sky: open)
           * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
-        if (c > 0.0) c *= notPerson(suv);
-        occ += c;
+        occ += c * np; seen += np;
       }
-      return occ * 0.125;
+      return occ / max(seen, 1.0);
     }
     for (int i = 0; i < 4; i++) {
-      vec2 suv = uv + SPOT_TAPS4[i] * s;
+      vec2 o = SPOT_TAPS4[i] * s, suv = uv + o;
+      float np = notPerson(suv);
+      if (np < 0.5) { suv = uv + 2.0 * o; np = notPerson(suv); }   // (on a person: look past them)
       float sd = texture(tNormal, suv).w;
       vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
       float dist = length(v);
       float c = step(0.0, sd) * sign(sd) * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
-      if (c > 0.0) c *= notPerson(suv);
-      occ += c;
+      occ += c * np; seen += np;
     }
-    return occ * 0.25;
+    return occ / max(seen, 1.0);
   }
 
   // ---------------------------------------------------------------- haze by depth and height (4b)

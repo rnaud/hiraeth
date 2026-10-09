@@ -190,20 +190,21 @@ Shader "Hidden/Memento/Composite"
         float R = 1.3;
         float rpx = clamp(R * _Proj11 * 0.5 * _Res.y / d, 3.0, 48.0);
         float a0 = hash(fc) * 6.2832;
-        float ao = 0.0;
+        float ao = 0.0, seen = 0.0;
         for (int i = 0; i < 8; i++) {
           float a = a0 + float(i) * 2.39996;
           float rr = rpx * sqrt((float(i) + 0.5) / 8.0);
           float2 suv = uv + float2(cos(a), sin(a)) * rr * _Res.zw;
           float sd = tN(suv).w;
-          if (sd <= 0.0) continue;
+          if (sd <= 0.0) { seen += 1.0; continue; }   // (the sky: open)
           float3 v = viewPos(suv, sd) - P;
           float dist = length(v);
           float cc = max(dot(nV, v / max(dist, 1e-4)) - 0.2, 0.0) * (1.0 - smoothstep(R * 0.6, R * 1.6, dist));
-          if (cc > 0.0) cc *= step(fmod(tH(suv).a, 16.0), 7.5);   // (grass blades close nothing in)
-          ao += cc;
+          // (grass blades close nothing in; a tap on a person isn't counted at all, open or closed: post.js notPerson)
+          float t = fmod(tH(suv).a, 16.0), np = step(fmod(t, 8.0), 1.5);
+          ao += cc * step(t, 7.5) * np; seen += np;
         }
-        return saturate(ao / 8.0 * 2.2);
+        return saturate(ao / max(seen, 1.0) * 2.2);
       }
 
       // spot blacks: how enclosed a point is at the scale of a pocket (post.js enclosure: fixed directions, no jitter)
@@ -212,19 +213,22 @@ Shader "Hidden/Memento/Composite"
         float3 P = viewPos(uv, d);
         float3 nV = normalize(mul(transpose((float3x3)_CamWorld), nW));
         float2 s = clamp(R * _Proj11 * 0.5 * _Res.y / d, 4.0, 96.0) * _Res.zw;
-        float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
+        float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0, seen = 0.0;
         int n = taps == 8 ? 8 : 4;
         for (int i = 0; i < n; i++)
         {
           float a = 0.39 + i * 6.2832 / n, rr = (i % 2) ? 0.55 : 1.0;
           float2 suv = uv + float2(cos(a), sin(a)) * rr * s;
           float sd = tN(suv).w;
-          if (sd <= 0.0) continue;
+          if (sd <= 0.0) { seen += 1.0; continue; }   // (the sky: open)
+          // (a tap on a person is left out, neither open nor closed: post.js notPerson / occlusionShare)
+          float np = step(fmod(tH(suv).a, 8.0), 1.5);
           float3 v = viewPos(suv, sd) - P;
           float dist = length(v);
-          occ += smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+          occ += np * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+          seen += np;
         }
-        return occ / n;
+        return occ / max(seen, 1.0);
       }
       // the haze in layers by distance (x) and the fog by height along the ray (y): post.js hazeAt
       float2 hazeAt(float d, float3 rd)

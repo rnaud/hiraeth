@@ -4,7 +4,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { createPost, OCCLUSION_TAPS, glslVec2s } from '../src/post.js';
+import { readFileSync } from 'node:fs';
+import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare } from '../src/post.js';
 
 const shader = createPost().scene.children[0].material.fragmentShader;
 const body = (name) => {
@@ -41,8 +42,9 @@ test('no skip (continue / break), cos or sin inside the occlusion loops', () => 
   assert.ok(!/viewPos\(suv/.test(enc), 'the tap positions from the affine ray');
   const ao = body('creaseAO');
   assert.equal((ao.match(/\bcos\(/g) ?? []).length, 2, 'crease shading: one turn per pixel (and the spiral\'s own constant steps)');
-  // the surface flags (is the tap on a grass blade, or a person?) only read for a tap that would close something in
-  assert.match(ao, /if \(c > 0\.0\) \{ float t = mod\(texture\(tHatch, suv\)\.a, 16\.0\); c \*= step\(t, 7\.5\) \* step\(mod\(t, 8\.0\), 1\.5\); \}/);
+  // the surface flags (is the tap on a grass blade, or a person?) only read for a tap that would close something in,
+  // or one nearer than the point (a person hiding what stands behind them)
+  assert.match(ao, /if \(c > 0\.0 \|\| \(sd > 0\.0 && sd < d\)\) \{ float t = mod\(texture\(tHatch, suv\)\.a, 16\.0\); np = step\(mod\(t, 8\.0\), 1\.5\); c \*= step\(t, 7\.5\) \* np; \}/);
   assert.equal((ao.match(/texture\(tHatch/g) ?? []).length, 1);
 });
 
@@ -58,9 +60,36 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   }
   assert.ok(shader.includes('float notPerson(vec2 suv) { return step(mod(texture(tHatch, suv).a, 8.0), 1.5); }'));
   const enc = body('enclosure');
-  // both loops (8 taps, 4 on the handheld), and the flags read only for a tap that would count
-  assert.equal((enc.match(/if \(c > 0\.0\) c \*= notPerson\(suv\);/g) ?? []).length, 2);
+  // both loops (8 taps, 4 on the handheld): a person's tap is left out of the share (below)
+  // (a tap on a person first looks past them, twice as far out; still on one, it is left out)
+  assert.equal((enc.match(/float np = notPerson\(suv\);\s*if \(np < 0\.5\) \{ suv = uv \+ 2\.0 \* o; np = notPerson\(suv\); \}/g) ?? []).length, 2);
+  assert.equal((enc.match(/occ \+= c \* np; seen \+= np;/g) ?? []).length, 2);
+  assert.equal((enc.match(/return occ \/ max\(seen, 1\.0\);/g) ?? []).length, 2);
   assert.ok(!/texture\(tHatch/.test(enc));
+});
+
+test('a person in front leaves no pale ghost in the shading behind them (Marrow by the ship, the tree’s stairs)', () => {
+  // a point in a recess: 6 of 8 taps close it in. A person steps in front and hides 3 of them: counted as open
+  // (before) the share fell from 0.75 to 0.375 and the spot-black mass got a pale hole the person's shape; left
+  // out, the share is the remaining taps' and a person in front of open ground closes nothing
+  const recess = [1, 1, 1, 1, 1, 1, 0, 0].map((c) => ({ c, person: false }));
+  assert.equal(occlusionShare(recess), 0.75);
+  const hidden = recess.map((t, i) => (i < 3 ? { c: 0, person: true } : t));
+  assert.ok(Math.abs(occlusionShare(hidden) - 0.6) < 1e-12, 'the five taps still seeing the recess');
+  const before = hidden.reduce((a, t) => a + t.c, 0) / 8;
+  assert.ok(occlusionShare(hidden) > before + 0.2, 'no longer counted as open');
+  // a uniform recess: hiding any taps leaves the share as it was
+  const full = Array.from({ length: 8 }, () => ({ c: 1, person: false }));
+  assert.equal(occlusionShare(full.map((t, i) => (i % 3 ? t : { c: 0, person: true }))), 1);
+  // open ground with a person in front: still open; every tap on the person: open
+  assert.equal(occlusionShare(Array.from({ length: 8 }, (_, i) => ({ c: 0, person: i < 5 }))), 0);
+  assert.equal(occlusionShare(Array.from({ length: 4 }, () => ({ c: 1, person: true }))), 0);
+  // crease shading takes the same share (the clamp x 2.2 over it)
+  assert.match(body('creaseAO'), /return clamp\(ao \/ max\(seen, 1\.0\) \* 2\.2, 0\.0, 1\.0\);/);
+  // and so does the Unity port's composite (it had no person test at all)
+  const unity = readFileSync(new URL('../unity/Memento/Assets/Memento/Shaders/Composite.shader', import.meta.url), 'utf8');
+  assert.equal((unity.match(/return (saturate\(ao|occ) \/ max\(seen, 1\.0\)/g) ?? []).length, 2);
+  assert.equal((unity.match(/np = step\(fmod\((t|tH\(suv\)\.a), 8\.0\), 1\.5\)/g) ?? []).length, 2);
 });
 
 test('the view ray is affine in uv, so a tap can be placed without the inverse projection', () => {
