@@ -190,7 +190,25 @@ const HAND_VIEW = `const H = level.arzach.hand, n = new THREE.Vector3(H.normal.x
   const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 50) { this.fov = 50; this.updateProjectionMatrix(); } return base.call(this, force); };`;
 
+/** A makers' run played through in the page (docs/systems/challenges.md): its card, Start, its gates, (its bank), the results at a plausible time. */
+const RUN_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  window.minigame.clock = ${time};
+  const b = w.course.bank; if (b) { b.hit(0); b.hit(1); b.hit(2); }
+  await wait(2600);`;
+
 export const CHANGELOG_MEDIA = {
+  '1.3': [
+    { match: 'Two new optional challenges built from the temples’ own pieces', shots: [
+      { name: 'wind-hall', caption: 'The Wind hall on the dune crest west of the desert’s landing, its sign by the steps: gusts blow down it, four screens to shelter behind, three eyes under the porch at its far end', commit: '33271faa',
+        view: { level: 'desert', player: [-129, 19.6, -73.5], heading: 3.6, eye: [-118, 30, -86], target: [-135, 22, -46], fov: 55, wait: 3000 } },
+      { name: 'hush-walk', caption: 'The Hush walk on Lorn’s south shore: a causeway out over the deep lake under three arches, a crystal of the Hush swinging across from each', commit: '33271faa',
+        view: { level: 'perdide', player: [0, 1.6, 19], heading: 0, eye: [20, 8, 12], target: [3, 3, 48], fov: 55, wait: 3000 } },
+      { name: 'wind-hall-results', only: 'after', caption: 'The Wind hall finished: the time, the makers’ mark, and a word from Pell, who lives at the foot of the dune (his line comes up over his head too)', commit: '33271faa',
+        view: { level: 'desert', hud: true, hour: 10, player: [-129, 19.6, -73.5], setup: RUN_THROUGH('kit-desert', 38.4), wait: 600 } },
+    ] },
+  ],
   '1.2': [
     { match: 'The dark masses in shaded corners', shots: [
       { name: 'spot-cave', caption: 'The cave under the giant, High: before, the dark masses between the ribs came in stacked rectangles; after, brushed shapes that stay put as you turn', commit: 'c58cbcaa',
