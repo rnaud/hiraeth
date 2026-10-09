@@ -1,0 +1,51 @@
+changelog.md
+  s_9ca76055a220ed::t_bb4972fed84227 5-10
+src/levels/arzach.js
+  s_9ca76055a220ed::t_a780d48c96a578 10-11,343-346,349-352
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_c4c4dd928e61ce 11-12,818-821,826-829
+src/shop-fronts.js
+  s_9ca76055a220ed::t_7f760daa928228 1-483
+src/shop-world.js
+  s_9ca76055a220ed::t_687bcfa8f47d62 7-9,13-14,16-21,23,30-35,37-54,56-63,65-132,134-420,459,461-493,495,498,501,512-513,517-536
+src/story/people-book.js
+  s_9ca76055a220ed::t_36450c5f65eb9a 197-200,232-235,266-269,301-304,339-342,387-390,421-424,454-457,481-484,517-520
+src/story/shop-data.js
+  s_9ca76055a220ed::t_a359b85ca02f29 11-32,83-220,239-338
+tests/shop.test.js
+  s_9ca76055a220ed::t_8785247593a6e4 274-364
+src/changelog.js
+  s_49b196bec425ad::t_fba563df690b9d 11-16
+src/interior-kit.js
+  s_49b196bec425ad::t_09e8df8a936eaa 29-30,227-228
+src/player.js
+  s_49b196bec425ad::t_f9a8867e1c2c13 1505-1507
+src/shop-kit.js
+  s_49b196bec425ad::t_639c2858cc2cf5 1-197
+src/shop.js
+  s_49b196bec425ad::t_2bd7e856c6a99c 43-48,51-61,64-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "667948f3bbc1b7b271d0b2b1abe71fed68b27202",
+  "prompts": {},
+  "sessions": {
+    "s_49b196bec425ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adaefa9eaedd6efd3",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
