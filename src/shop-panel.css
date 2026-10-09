@@ -1,0 +1,69 @@
+/* The shop panel (src/shop-panel.js): a paper sheet over the room, the keeper's words, the wallet, the wares
+   as cards (a grid a controller moves through: data-grid-nav). Sized for 1280 × 720 and up, the Deck's
+   1280 × 800, and a phone either way up (812 × 375, 375 × 812). */
+#shop { position: fixed; inset: 0; z-index: 78; display: none; place-items: center; padding: 3vh 3vw; box-sizing: border-box;
+  background: rgba(43, 33, 31, 0.42); color: #2b211f; font: calc(13px * var(--ts, 1))/1.4 ui-monospace, Menlo, monospace; }
+#shop.open { display: grid; animation: shopIn .22s ease-out; }
+@keyframes shopIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+#shop .shop-sheet { position: relative; width: min(860px, 100%); max-height: 100%; overflow: auto; box-sizing: border-box; padding: 16px 18px 18px;
+  background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 6px 6px 0 #2b211f; transform: rotate(-0.4deg); }
+#shop .shop-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 12px; }
+#shop .shop-keeper { flex: 1; min-width: 0; }
+#shop .shop-keeper b { font-size: 1.35em; letter-spacing: 0.06em; }
+#shop .shop-keeper i { margin-left: 0.7em; opacity: 0.7; }
+#shop .shop-line { position: relative; margin: 8px 0 0; padding: 7px 11px; background: #fffaf0; border: 1.5px solid #2b211f; border-radius: 10px; font-style: italic; }
+#shop .shop-line::before { content: ''; position: absolute; left: 18px; top: -7px; width: 10px; height: 10px; background: #fffaf0; border-left: 1.5px solid #2b211f; border-top: 1.5px solid #2b211f; transform: rotate(45deg); }
+#shop .shop-wallet { display: flex; align-items: center; gap: 5px; padding: 6px 10px; border: 1.5px solid #2b211f; background: #fffaf0; font-weight: 800; font-size: 1.25em; white-space: nowrap; }
+#shop .chime-ico { width: 1.15em; height: 1.15em; flex: none; }
+#shop .shop-close { display: inline-flex; align-items: center; border: 1.5px solid #2b211f; background: #fffaf0; font: inherit; font-size: 1.1em; padding: 5px 10px; cursor: pointer; color: #2b211f; }
+#shop .shop-close:hover, #shop .shop-close:focus-visible { background: #f2c54b; outline: none; }
+#shop .shop-wares { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+#shop .ware { position: relative; display: grid; grid-template-rows: auto auto 1fr auto auto; justify-items: center; text-align: center; gap: 4px; padding: 12px 10px 10px;
+  font: inherit; color: inherit; background: #fffaf0; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; scroll-margin: 10px; transition: transform .12s, box-shadow .12s; }
+#shop .ware:hover, #shop .ware:focus-visible { outline: none; transform: translate(-1px, -2px); box-shadow: 5px 6px 0 #2b211f; background: #fff3cf; }
+#shop .ware:focus-visible { border-color: #c8483a; box-shadow: 5px 6px 0 #c8483a; }
+#shop .ware-pic svg { display: block; height: 58px; width: auto; filter: drop-shadow(2px 2px 0 rgba(43, 33, 31, 0.85)); }
+#shop .ware-name { font-weight: 800; font-size: 1.1em; letter-spacing: 0.03em; }
+#shop .ware-effect { font-size: 0.92em; opacity: 0.85; }
+#shop .ware-stock { font-size: 0.85em; opacity: 0.7; }
+#shop .ware-foot { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 1.9em; }
+#shop .ware-price { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 1.3em; }
+#shop .ware-flag { font-weight: 700; font-size: 0.9em; padding: 1px 6px; border: 1.5px solid #2b211f; background: #f7ecd2; }
+#shop .ware .glyph { margin: 0; }
+#shop .ware.short .ware-price { color: #a33a2c; }
+#shop .ware.soldout, #shop .ware.full { background: #efe3c8; }
+#shop .ware.soldout .ware-pic, #shop .ware.full .ware-pic { opacity: 0.45; filter: grayscale(0.6); }
+#shop .ware.soldout .ware-flag { background: #2b211f; color: #f7ecd2; transform: rotate(-4deg); }
+#shop .shop-wares[inert] { opacity: 0.5; }
+#shop .shop-ask { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%) rotate(0.6deg); width: min(420px, 90%); padding: 12px 16px; text-align: center;
+  background: #f7ecd2; border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; }
+#shop .shop-ask p { margin: 0 0 10px; font-weight: 700; }
+#shop .shop-ask-row { display: flex; justify-content: center; gap: 12px; }
+#shop .shop-ask button { display: inline-flex; align-items: center; font: 700 calc(14px * var(--ts, 1))/1 ui-monospace, Menlo, monospace; letter-spacing: 0.08em; color: #2b211f;
+  border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; padding: 9px 16px; cursor: pointer; border-radius: 4px; background: #fffaf0; }
+#shop .shop-ask .yes { background: #f2c54b; }
+#shop .shop-ask button:hover, #shop .shop-ask button:focus-visible { outline: none; background: #ffd866; }
+#shop .shop-ask button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2b211f; }
+/* a short landscape screen (a phone on its side, a handheld): smaller pictures and words, the cards still in a row */
+@media (max-height: 480px) {
+  #shop { padding: 8px 10px; font-size: calc(11px * var(--ts, 1)); }
+  #shop .shop-sheet { padding: 9px 12px 12px; }
+  #shop .shop-head { margin-bottom: 7px; gap: 10px; }
+  #shop .shop-line { margin-top: 4px; padding: 4px 9px; }
+  #shop .ware { padding: 7px 7px 6px; gap: 2px; }
+  #shop .ware-pic svg { height: 36px; }
+  #shop .ware-effect { font-size: 0.86em; }
+  #shop .shop-ask { bottom: 10px; padding: 8px 12px; }
+}
+/* a narrow screen (a phone held upright): one card a row, the picture beside the words */
+@media (max-width: 560px) {
+  #shop .shop-head { flex-wrap: wrap; }
+  #shop .shop-keeper { flex-basis: 100%; order: 3; }
+  #shop .shop-wallet { margin-right: auto; }
+  #shop .shop-wares { grid-template-columns: 1fr; gap: 9px; }
+  #shop .ware { grid-template-columns: auto 1fr; grid-template-rows: auto auto auto auto; justify-items: start; text-align: left; column-gap: 12px; }
+  #shop .ware-pic { grid-row: 1 / span 4; align-self: center; width: 52px; display: flex; justify-content: center; }
+  #shop .ware-foot { justify-content: flex-start; }
+  #shop .ware-pic svg { height: 48px; }
+}
+body.shopping #touch { visibility: hidden; }

@@ -13,6 +13,7 @@ if (new URLSearchParams(location.search).has('cinematicReview')) {
 
 import './menus.css';
 import './game-menu.css';
+import './shop-panel.css';
 import { installNativePad, watchLabels } from './native-pad.js';
 import { installGlyphs } from './pad-glyphs.js';
 import { opensTitle } from './save-slots.js';

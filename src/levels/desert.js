@@ -9,9 +9,11 @@ import { Hoverbike } from '../bike.js';
 import { makeMaterial } from '../materials.js';
 const makeGlow = () => makeMaterial({ color: '#fffaf0', glow: 1 });
 import { buildRoom, doorwayPortals } from '../interiors.js';
+import { buildShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTemple, clearInstances } from '../temples/index.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
@@ -82,6 +84,24 @@ export function* buildDesert(scene) {
   const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
+  // Haddu's shop (src/shop-world.js, the interior kit): beside the way from the camps up to the main gate, its door
+  // turned to the path and a little toward the camps you come from, out of the gate's waiting crowd and every quest's way
+  const shop = (() => {
+    const c = qanat.camps, p = c.spot(-17, -42), heading = c.heading(1.0);
+    const at = new THREE.Vector3(p.x, terrain.heightAt(p.x, p.z), p.z);
+    // (sunk to the lowest ground under it, so no corner floats over a dune's slope)
+    const fwd = new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading)), side = new THREE.Vector3(fwd.z, 0, -fwd.x);
+    let low = at.y;
+    for (const [a, b] of [[-3.6, 0], [3.6, 0], [-3.6, -6.2], [3.6, -6.2]]) { const q = at.clone().addScaledVector(side, a).addScaledVector(fwd, b); low = Math.min(low, terrain.heightAt(q.x, q.z)); }
+    return buildShop(scene, { def: SHOPS.qanat, slot: 0, door: { at, heading }, front: { sink: 1.6 + (at.y - low), wall: '#f1dcc0', wall2: '#e9c9a4', trim: '#c8673f', dome: '#5fb7ad', awning: ['#c8483a', '#f3ead8'] } });
+  })();
+  portals.push(...shop.portals);
+  lights.push(...shop.lights);
+  // (no rock, shrub or tuft through its walls or on its doorstep)
+  const shopClear = [{ x: shop.interior.front.local(0, 0, -2.4).x, z: shop.interior.front.local(0, 0, -2.4).z, r: 6.5 }];
+  clearInstances(scene, shopClear, shop.interior.front.group);
+  const avoidWorld = floraAvoid;
+  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || avoidWorld(x, z, r);
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
@@ -90,13 +110,14 @@ export function* buildDesert(scene) {
   // the Givers' House in the eastern dunes, and its rooms far overhead (src/temples/desert.js)
   return attachTemple('desert', scene, {
     id: 'desert',
-    floraAvoid,
+    floraAvoid: avoidShop,
     observatory,
     qanat,
     hearth,
     vistas,
     landmarks,
     maskRooms,
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

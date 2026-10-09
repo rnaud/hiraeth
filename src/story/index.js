@@ -35,6 +35,7 @@ import { setupCabs } from './cab.js';
 import { setupHome } from './home.js';
 import { setupLantern } from './lantern.js';
 import { setupTempleStory } from '../temples/index.js';
+import { setupShops } from './shops.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -208,6 +209,8 @@ export function createStory(o) {
   const cabs = setupCabs({ player, dialogue, level, toast });
   // the world's temple (src/temples/): its quest, its local, its rooms and guardian
   const temple = setupTempleStory({ ...o, quests, dialogue, game, spawn, talkable });
+  // the world's shops (src/story/shops.js): the keepers behind their counters, the wares on them
+  const shops = setupShops({ level, game, spawn });
 
   // people in the crowd: whoever is nearest (a pooled full NPC) can be talked to
   if (crowd && world?.crowdTalk) {
@@ -300,7 +303,7 @@ export function createStory(o) {
   let useBtn = null;
   const useButton = () => (useBtn ??= typeof document !== 'undefined' ? document.querySelector('#touch .b-use') : null);
   const rt = {
-    quests, dialogue, marker, world, temple, portrait, moments, makeRoom, cabs, prompt: null, promptAt: null,
+    quests, dialogue, marker, world, temple, shops, portrait, moments, makeRoom, cabs, prompt: null, promptAt: null,
     busy: () => dialogue.open || moments.playing || !!world?.busy?.(),   // (a world's own scene: home's quiet moments, a first time filmed)
     /** The tracked objective, routed through doorways (the cave) like the scout does. */
     objective() {
@@ -313,6 +316,7 @@ export function createStory(o) {
       world?.update?.(dt, t, { camera });
       moments.update(dt);
       temple?.update(dt, t);
+      shops?.update(dt);
       world?.hold?.();
       // the person you talk to keeps facing you; a crowd person's group pauses
       if (talking?.crowd && crowd) {

@@ -16,14 +16,16 @@ import { RES_VERSION } from './save-migrate.js';
 //            (the starting bar) in MAGIC.fill s. src/fluid-tool.js Reserve is the bar; this module says how
 //            long it is (maxMagic) and how quickly it comes back (magicPace, the quick coil).
 //   Potions  POTION.heal hearts back, drunk with the potion button (KEYS.potion, View + D-pad ↓, the touch
-//            flask). A count with an `infinite` flag: infinite until the shops sell them.
+//            flask). A count: POTION.start in a new game, at most POTION.cap carried; the shops sell more
+//            (src/shop.js). The `infinite` flag is the dev menu's (and was everyone's until the first shop).
 //
 // The save: game flags, so the format grows freely (src/game-state.js):
 //   res.v                 the resources' format (RES_VERSION; src/save-migrate.js stamps old saves)
 //   res.hearts.extra      heart containers gained beyond HEARTS.start (later: shops, quests)
 //   res.magic.extra       magic expansions gained beyond the items' own (later: shops), in units
-//   res.potions           potions carried (only counted when res.potions.infinite is false)
-//   res.potions.infinite  potions never run out (true until the shops: undefined reads as true)
+//   res.potions           potions carried (unset: POTION.start, a new game's)
+//   res.potions.infinite  potions never run out (the dev menu; unset: false. Until the first shop, v1.5, it was
+//                         everyone's: src/save-migrate.js step 5 gave those saves a full stock instead)
 //   res.chimes            the wallet: chimes carried (CHIMES.cap at most)
 //   res.chimes.earned     chimes ever picked up out in the worlds (not the Arena's training: src/chimes.js)
 // The items that lengthen the bar (MAGIC_ITEMS: the fourth chamber, 'cell') are read from
@@ -62,8 +64,11 @@ export const MAGIC_COST = { shoot: 1, push: 1, boost: 1, shield: 1, gadget: 1, j
  */
 export const CHIMES = { cap: 9999 };
 
-/** The potion: hearts back, and the drink (s: the flask to the lips and down; the hearts come at `at`). */
-export const POTION = { heal: 2, time: 0.9, at: 0.45 };
+/**
+ * The potion: hearts back, and the drink (s: the flask to the lips and down; the hearts come at `at`); `start` in a
+ * new game's pack, at most `cap` carried (the shops, src/shop.js, sell more).
+ */
+export const POTION = { heal: 2, time: 0.9, at: 0.45, start: 3, cap: 5 };
 
 /**
  * The damage table, in hearts (docs/systems/foes.md, "What they do to you"). The foes' and guardians' own
@@ -135,8 +140,8 @@ export class Resources {
   }
   /** Potions: how many, and whether they run out. */
   get potions() {
-    const inf = this.state.flag('res.potions.infinite');
-    return { count: Math.max(0, Math.floor(num(this.state.flag('res.potions')))), infinite: inf === undefined ? true : !!inf };
+    const n = this.state.flag('res.potions');
+    return { count: Math.max(0, Math.floor(num(n, POTION.start))), infinite: !!this.state.flag('res.potions.infinite') };
   }
   /** One potion out of the pack: false when there are none (an infinite stock always has one). */
   takePotion() {
@@ -146,8 +151,12 @@ export class Resources {
     this.state.set('res.potions', p.count - 1);
     return true;
   }
-  /** (later: the shops) */
-  addPotions(n = 1) { this.state.set('res.potions', this.potions.count + Math.max(0, Math.floor(n))); }
+  /** Potions into the pack (the shops), up to POTION.cap; returns how many went in. */
+  addPotions(n = 1) {
+    const was = this.potions.count, now = Math.min(Math.max(POTION.cap, was), was + Math.max(0, Math.floor(n)));
+    this.state.set('res.potions', now);
+    return now - was;
+  }
   setPotionsInfinite(on) { this.state.set('res.potions.infinite', !!on); }
   addHeartContainer(n = 1) { this.state.set('res.hearts.extra', Math.max(0, Math.floor(num(this.state.flag('res.hearts.extra')))) + n); }
   addMagic(n = 1) { this.state.set('res.magic.extra', Math.max(0, num(this.state.flag('res.magic.extra'))) + n); }

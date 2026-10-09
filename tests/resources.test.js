@@ -69,19 +69,23 @@ test('the forgiving rule: one blow never takes you from more than a heart to not
   assert.equal(heartsOf({ health: 0.5 }), 1.5, 'a stand-in with only a share counts as three hearts');
 });
 
-test('potions: a count with an infinite flag (infinite until the shops); two hearts each', () => {
+test('potions: a count, three to start and five at most since the first shop; two hearts each; the dev menu can make them infinite', () => {
   assert.equal(POTION.heal, 2);
   assert.ok(POTION.at < POTION.time && POTION.time <= 1.2, 'a short drink');
+  assert.equal(POTION.start, 3); assert.equal(POTION.cap, 5);
   const g = new GameState(null), R = new Resources(g, itemSet());
-  assert.deepEqual(R.potions, { count: 0, infinite: true }, 'a new save: infinite');
-  for (let i = 0; i < 50; i++) assert.equal(R.takePotion(), true, 'never runs out');
-  R.setPotionsInfinite(false);
-  assert.equal(R.takePotion(), false, 'finite and none left');
-  R.addPotions(2);
+  assert.deepEqual(R.potions, { count: 3, infinite: false }, 'a new save: three');
+  assert.ok(R.takePotion() && R.takePotion() && R.takePotion());
+  assert.equal(R.takePotion(), false, 'none left');
+  assert.equal(R.addPotions(2), 2);
   assert.deepEqual(R.potions, { count: 2, infinite: false });
+  assert.equal(R.addPotions(9), 3, 'up to the carry cap');
+  assert.equal(R.potions.count, POTION.cap);
   assert.ok(R.takePotion() && R.takePotion());
-  assert.equal(R.takePotion(), false);
-  assert.equal(g.flag('res.potions'), 0, 'kept in the save');
+  assert.equal(g.flag('res.potions'), 3, 'kept in the save');
+  R.setPotionsInfinite(true);
+  for (let i = 0; i < 50; i++) assert.equal(R.takePotion(), true, 'infinite (the dev menu): never runs out');
+  assert.equal(R.potions.count, 3);
 });
 
 test('the magic bar: three units (a unit is what a chamber was); refills 1 s after the last spend, empty to full in 4 s', () => {
@@ -152,7 +156,7 @@ test('old saves: the format stamped once, the fourth chamber read as a longer ba
   assert.equal(R.maxMagic, 4, 'a save that had the fourth chamber: a bar of four');
   assert.equal(R.meets('magic:4'), true, 'and the Engine-House doors still open');
   assert.equal(R.magicPace.delay, MAGIC.coil.delay, 'the coil still quick');
-  assert.deepEqual(R.potions, { count: 0, infinite: true });
+  assert.deepEqual(R.potions, { count: POTION.cap, infinite: false }, 'potions were infinite before the shop: a full stock now');
   const fresh = new GameState(null); fresh.reset();
   assert.equal(fresh.flag('res.v'), RES_VERSION);
 });

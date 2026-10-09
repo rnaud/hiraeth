@@ -113,6 +113,8 @@ import { lendTool } from './minigames/kit/onfoot.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
 import { talkAllowed } from './ship/landing.js';
 import { HumCue } from './story/hum.js';
+import { ShopPanel } from './shop-panel.js';
+import { interiorAt } from './interior-kit.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -613,6 +615,17 @@ const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crow
   capture: (e, l, w, h, o) => captureView(e, l, w, h, o) });
 for (const c of scene.children) if (!preStory.has(c)) auditRoots.push(c);   // (and what the world's story placed)
 story.waitFor = () => storyRt.dialogue.open;   // a story page never opens over a conversation: it waits for its end
+// the shops (src/shop.js, src/shop-panel.js, src/story/shops.js): talking to a keeper ("Show me what you have") or E at
+// their counter opens the panel; a heart container fills the hearts too, and the HUD shows the wallet and the hearts
+const shopPanel = new ShopPanel({ game, resources, sound,
+  onBought: ({ ware }) => { if (ware === 'heart') { player.setMaxHearts(resources.maxHearts); player.restore(player.maxHearts); } hpShown = 3; },
+  onClose: () => { document.body.classList.remove('shopping'); },
+  covered: () => menu.open || journal.open || changelog.open || restartOpen });
+game.on('shop:open', ({ shop } = {}) => {
+  const e = storyRt.shops?.byId(shop);
+  // (after the conversation that asked for it has closed)
+  if (e) setTimeout(() => { if (!shopPanel.isOpen && !storyRt.dialogue.open) { document.body.classList.add('shopping'); shopPanel.open(e); } }, 60);
+});
 await slice();
 // E: boarding a vehicle and turning a lens share the interact button with talking (nearest wins)
 // (as far as the vehicle lets you board from: a cab hovering beside a terrace is further off than a bike)
@@ -1030,7 +1043,7 @@ const menu = new SettingsMenu(settings, {
   // where you are, at the top of the Start menu
   where: () => `<b>${slots.active === DEBUG_SLOT ? 'Debug save' : `Save ${slots.active}`}</b>${meta.title} · ${formatPlaytime((slots.meta().playtime ?? 0) + playClock)} played`,
   // (Esc during the ship's scenes is "hold to skip", even in the parts you walk through)
-  isBusy: () => story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
+  isBusy: () => shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || photo.on || storyRt.busy() || ship.busy() || ship.playing || boxes.busy(),
   // this save only (the other slots stay): forget it and start again with the prologue
   onResetProgress: () => {
     reactiveWorld.clear(); game.reset();
@@ -1149,7 +1162,10 @@ function updateHud() {
   const lens = !player.ride && expedition?.state.started && !expedition.state.done && expedition.nearby(player) >= 0 ? expedition.hud(player) : null;
   const text = cueText({ quiet, ride: player.ride?.kind ?? null, aiming: tool.aiming, shipHint: ship.hud(), shipPlaying: ship.playing,
     prompt: storyRt.prompt, promptAt: storyRt.promptAt, lens, boarding: player.boarding, controller: controllerActive });
-  const place = quiet || ship.playing || ship.inside ? '' : placeName.update(atmo?.name, now);
+  const indoors = interiorAt(player.pos);
+  // (inside a shop: its name as you step in; back out, the street's name is not news)
+  const place = quiet || ship.playing || ship.inside ? '' : placeName.update(indoors?.label ?? atmo?.name, now, { quiet: !indoors && placeName.wasIndoors });
+  placeName.wasIndoors = !!indoors;
   const found = !quiet && now < scoutSaid.until ? scoutSaid.text : '';   // (what the scout found, a moment)
   let teach = '';
   if (firstSteps) {
@@ -1179,7 +1195,7 @@ function placeToolGauge() {
 }
 
 
-const busy = () => restartOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open || !!minigame?.busy();
+const busy = () => restartOpen || shopPanel.isOpen || story.pageOpen || journal.open || changelog.open || picker.classList.contains('open') || menu.open || endingOpen || storyRt.busy() || ship.busy() || boxes.busy() || !!level.quickMenu?.open || !!minigame?.busy();
 // a level's own quick menu (the References' list of views: src/levels/reference-picker.js): a menu like the others for the pad
 const quickMenu = level.quickMenu ?? null;
 if (quickMenu) quickMenu.blocked = () => busy() || photo.on;
@@ -1206,13 +1222,14 @@ const pageUp = () => pageEl.classList.contains('open');
 // (in the order they stack on the screen: what's new, the Start menu, the sketchbook over a box's card, the
 // worlds, a story page, a conversation; B / ○ closes the one on top, so the sketchbook opened over a
 // conversation or a moment closes first)
-const menuRoot = () => minigame?.cardEl() ?? (restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl);
+const menuRoot = () => minigame?.cardEl() ?? (restartOpen ? restartEl : changelog.open ? changelog.el : menu.open ? menu.el : quickMenu?.open ? quickMenu.el : journal.open ? journal.el : shopPanel.isOpen ? shopPanel.root : boxes.busy() && boxes.card.el ? boxes.card.el : picker.classList.contains('open') ? picker : pageUp() ? pageEl : storyRt.dialogue.open ? storyRt.dialogue.el : pageEl);
 const closeControllerMenu = () => {
   if (restartOpen) return;   // (only confirm restarts: there is nothing to go back to)
   if (changelog.open) changelog.toggle(false);
   else if (menu.open) menu.back();
   else if (quickMenu?.open) quickMenu.toggle(false);
   else if (journal.open) { if (!journal.menu.back()) journal.toggle(false); }   // (a person's page, a sketch held up: back first)
+  else if (shopPanel.isOpen) shopPanel.back();   // (out of a purchase's question first, then out of the shop)
   else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
   else if (boxes.busy()) boxes.skip();
   else if (picker.classList.contains('open')) showPicker(false);
@@ -1591,7 +1608,9 @@ function frame(ts) {
 
   if (sky.speed > 0) sky.hour = (sky.hour + (sky.speed / 60) * dt) % 24;
   // region fog / horizon follow the player smoothly (the field itself is smooth)
-  atmo = level.atmo(player.pos.x, player.pos.z, player.pos.y);
+  // (inside a building, the air and light of the street at its door, not of the slot far overhead: src/interior-kit.js)
+  const indoorAt = interiorAt(player.pos)?.door.at;
+  atmo = indoorAt ? level.atmo(indoorAt.x, indoorAt.z, indoorAt.y) : level.atmo(player.pos.x, player.pos.z, player.pos.y);
   updateSky();
   level.lightAt?.(player.pos, sharedUniforms.uSunDir.value);
 
@@ -1686,7 +1705,7 @@ function frame(ts) {
     // (while a moment is filmed only a shout the moment asked for: an idle bark over a panel reads as a caption, src/story/moment.js)
     const filming = storyRt.moments.playing;
     // (and nobody at all until the player has the controls: the crash, a landing, a recording: src/ship/landing.js)
-    const talk = talkAllowed({ shipPlaying: ship.playing });
+    const talk = talkAllowed({ shipPlaying: ship.playing }) && !shopPanel.isOpen;   // (nor over the shop panel: the keeper speaks in it)
     if (talk) for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
@@ -1707,7 +1726,7 @@ function frame(ts) {
   sound.update({
     speed: player.riding ? 0 : Math.hypot(player.vel.x, player.vel.z), gust: wind.gust(), storm: Wx.storm, rain: Wx.rainOut, rainRoof: Wx.rainRoof,
     thrusting: player.thrusting || player.jetHold, jetPower: player.jetPower, riding: player.riding, rideKind: rideK, rideSpeed: player.ride?.speed ?? 0,
-    altitude: player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),
+    altitude: interiorAt(player.pos) ? 0 : player.pos.y - (terrain.heightAt ? terrain.heightAt(player.pos.x, player.pos.z) : player.pos.y),   // (a shop's room is high over the map: on the ground, for the wind)
     flying: player.gliding || !!player.jetFlight, indoor: shelter.indoor, night: sky.hour < 6.4 || sky.hour > 19.3,
     roar: level.roar?.(player.pos) ?? 0,   // (a waterfall near: src/levels/waterfall.js)
     hum: level.hum?.(player.pos) ?? 0,   // (masts and a receiver near: src/levels/antennas.js)
