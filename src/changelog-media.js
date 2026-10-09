@@ -281,6 +281,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'magic-bar', caption: 'Two shots spent, whole hearts: before, nothing on the screen (only the backpack’s glass showed it); after, the magic bar at the top left with a tick per shot, refilling', commit: 'fdaa8144', before: '40356176',
         view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1500, setup: HEARTS_SETUP(1) } },
     ], see: 'Aim (LT / L2, right mouse) and shoot three times: the bar under your hearts empties a third a shot; stop, and a second later it fills back up, full in about four seconds.' },
+    // chimes, the currency
+    { match: 'Foes now leave chimes when they fall', see: 'In any world, cut down an ink blot: two or three brass chimes pop out round it and hover, turning; walk over them or come within a couple of steps and they fly to you with a ting. In the Arena, open the FOES list, pick a machine or a guardian: they drop chimes too (a guardian bout in the ring, a purse of forty).' },
+    { match: 'Your chimes show beside your hearts and potion', see: 'Pick up a few chimes: the hearts come up at the top left with a brass disc and the count beside the potion, counting up. Open the menu (View, or J): the count is by the Gear heading on the Items page.' },
     { match: 'Spines and flames now bite a quarter heart', see: 'In the desert, walk into a sand candelabra’s spines: a quarter heart, a shove, and no second prick if you step straight back in. In the Arena, pick Second wind between waves.' },
     { match: 'The Arena’s waves now come round to every foe', shots: [
       { name: 'arena-waves', only: 'after', caption: 'Wave 144 in the Arena: the Glass Dunes’ pair, a glass crab and the possessed furnace walker, the wave said at the top with its world', from: 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the waves started at the Glass Dunes’ pairs (9 October)' },

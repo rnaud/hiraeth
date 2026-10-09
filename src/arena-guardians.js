@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from './materials.js';
 import { Guardian } from './temples/boss.js';
+import { game as sharedGame } from './game-state.js';
 import { keeperModel, elderModel, whaleModel, signModel, sentinelModel, gardenerModel, foremanModel, snapperModel, mothModel, echoModel } from './temples/guardians.js';
 import { KEEPER } from './temples/desert.js';
 import { ELDER } from './temples/arzach.js';
@@ -67,8 +68,8 @@ export function sparHit(g, part, mode) {
 }
 
 export class ArenaGuardians {
-  constructor({ scene, player = null, physics = null, sound = null, notice = () => {} } = {}) {
-    Object.assign(this, { scene, player, physics, sound, say: notice });
+  constructor({ scene, player = null, physics = null, sound = null, notice = () => {}, game = sharedGame } = {}) {
+    Object.assign(this, { scene, player, physics, sound, say: notice, game });
     this.current = null;   // { id, guardian, root, ring }
   }
 
@@ -92,7 +93,7 @@ export class ArenaGuardians {
       def: { id: `arena-${id}` }, root, player: P, sound: this.sound, physics: this.physics, logic: { resolved: false },
       notice: (text, key = null) => { if (!text) return; if (key) { if (told.has(key)) return; told.add(key); } this.say(text); },
       rumble: () => {},
-      onBossResolved: () => this.say(`${G.name} is done. Call another, or the waves, from the list.`),
+      onBossResolved: (g) => { this.say(`${G.name} is done. Call another, or the waves, from the list.`); this.game?.emit?.('guardian:spar', { id, pos: (g?.model?.pos ?? center).clone() }); },   // (its purse, as training: src/chimes.js)
     };
     const model = G.model();
     // asleep at the far side of the ring, facing you

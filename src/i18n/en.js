@@ -260,6 +260,7 @@ export const EN = {
   'hud.boarding': 'slotting the backpack in…',
   'hud.potion': 'Drink a potion',
   'hud.hearts': 'Hearts',
+  'hud.chimes': 'Chimes',
   'potion.full': 'Your hearts are full: keep the potion.',
   'potion.none': 'No potions left.',
   'potion.hint': 'Hearts don’t come back by themselves: drink a potion with {key:potion} (two hearts).',
@@ -279,6 +280,7 @@ export const EN = {
 
   // ---------------------------------------------------------------- the game menu (View, J)
   'gm.gear': 'Gear',
+  'gm.chimes': '{n} chimes',
   'gm.gearCount': '{n} of {m}',
   'gm.pack': 'In your pack',
   'gm.packNone': 'Nothing to deliver.',

@@ -160,7 +160,7 @@ export class TempleRuntime {
     this.logic.resolve();
     this.applyDoors();
     this.game.set(`temple.${this.id}.done`, true);
-    this.game.emit('temple:resolved', { id: this.id });
+    this.game.emit('temple:resolved', { id: this.id, pos: this.guardian?.model?.pos?.clone?.() ?? null });   // (pos: where it settled: its purse, src/chimes.js)
     this.def.onResolved?.(this);
   }
   applyDoors() {

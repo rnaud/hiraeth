@@ -13,8 +13,9 @@ import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
 import { guardianHint } from './temples/hints.js';
-import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud } from './hud.js';
+import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick } from './hud.js';
 import { resources } from './resources.js';
+import { ChimeField, ChimeView, dropPolicy, connectDrops } from './chimes.js';
 import { screen } from './platform.js';
 import { inputKind, keyText } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
@@ -311,6 +312,10 @@ const hpEl = document.getElementById('health');
 const hpHearts = hpEl?.querySelector?.('.hearts'), hpMagic = hpEl?.querySelector?.('.magic'), hpMagicFill = hpMagic?.firstElementChild;
 const hpPotion = hpEl?.querySelector?.('.potion'), hpPotionN = hpPotion?.querySelector?.('b');
 let hpShown = 0, hpKey = '', hpMagicKey = '', hpPotionKey = '';
+// the chimes beside the potion (src/chimes.js): the count ticks up to the wallet's, the block shows a moment on a change
+const hpChimes = hpEl?.querySelector?.('.chimes'), hpChimesN = hpChimes?.querySelector?.('b');
+let walletShown = resources.chimes, walletDrawn = -1;
+game.on('wallet', () => { hpShown = 3; if (hpChimes) { hpChimes.classList.remove('got'); void hpChimes.offsetWidth; hpChimes.classList.add('got'); } });
 const hpFade = new Fader(3);   // (src/hud.js: while hurt, spending or fighting, and 3 s after)
 player.setMaxHearts(resources.maxHearts);
 /**
@@ -409,7 +414,10 @@ function updateHealth(dt) {
   player.setMaxHearts(resources.maxHearts);
   const h = player.health ?? 1, R = tool.owned && !tool.dry ? tool.reserve : null, pot = resources.potions;
   // (a hurt, a knockdown, a potion: at once; the state goes to platform.js screen.health as it is drawn)
+  const wallet = resources.chimes, ticking = walletShown !== wallet;
+  walletShown = walletTick(walletShown, wallet, dt);
   const hp = healthHud({ health: h, hearts: player.hearts, max: player.maxHearts, magic: R ? R.level : null, magicMax: R?.max ?? 3, potions: pot.count, infinite: pot.infinite,
+    chimes: wallet, wallet: ticking,
     combat: document.body.classList.contains('combat'), down: player.down, hurt: hpShown > 0, quiet: ship.playing || photo.on }, hpFade, dt);
   hpShown = 0;
   screen.set('health', hp);
@@ -422,6 +430,9 @@ function updateHealth(dt) {
   if (R) hpMagicFill.style.width = `${(M.fill * 100).toFixed(1)}%`;
   const pk = `${pot.infinite}|${pot.count}`;
   if (pk !== hpPotionKey) { hpPotionKey = pk; hpPotionN.textContent = pot.infinite ? '∞' : `${pot.count}`; hpPotion.classList.toggle('none', !pot.infinite && pot.count <= 0); }
+  const wn = Math.round(walletShown);
+  if (hpChimes && wn !== walletDrawn) { walletDrawn = wn; hpChimesN.textContent = `${wn}`; hpChimes.classList.toggle('none', wn <= 0 && wallet <= 0); }
+  hpChimes?.classList.toggle('tick', walletShown !== wallet);
 }
 player.vehicles.push(...(level.vehicles ?? []));
 // rooms off the map, reached through doorways (the desert's chambers and the cave in the
@@ -680,7 +691,7 @@ function pumpPortraits() {
 }
 window.portraits = portraits;   // (the console, the shot scripts)
 Object.assign(journal.menu, {
-  sources: menuSources({ items, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game, portrait: (id) => portraits.get(id),
+  sources: menuSources({ items, wallet: () => resources.chimes, quests: storyRt.quests, charge, keepsakes: () => game.keepsakes(), journal, current: levelId, order: ORDER, known: (id) => journal.known(id), game, portrait: (id) => portraits.get(id),
     levels: LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, blurb: l.blurb, relicNames: CONTENT[l.id]?.relics.names, storyTitle: CONTENT[l.id]?.story.title })),
     mode: () => ({ mode: tool.owned ? tool.mode : null, modes: tool.owned ? tool.modes : [], gadget: gadgets?.equipped ?? null, gadgets: gadgets?.owned() ?? [] }), boxes: () => boxes.counts(), errandDefs: ERRANDS, done: worldDone,
     icon: (id) => itemIcons.get(id) }),
@@ -745,6 +756,21 @@ const wildlife = new Wildlife(scene, level, physics, { content, sound, defs: lev
 const firstSteps = levelId === 'desert' && !minigameDef && !game.flag('item.backpack') ? new FirstSteps(game) : null;
 const firstStepsAt = new THREE.Vector3(NaN, 0, 0); let firstStepsT = 0;
 const foes = new Foes({ scene, level, levelId, content, physics, player, tool, sound, npcs, settings, camera, lib, humans: humanT, waters, notice: (t) => showToast(t) });
+// chimes, the currency (src/chimes.js): a foe cut down scatters a few (by its weight), a guardian a purse once;
+// walked over or drawn in, they ring into the wallet (src/resources.js); none from a game's own foes (Ink tide)
+const chimePolicy = dropPolicy(level);
+const chimes = new ChimeField({
+  groundAt: (x, y, z) => physics.groundAt(x, y + 2, z, 8),
+  onTake: (p) => { resources.addChimes(p.value, { source: 'pickup', training: p.training }); sound.chimePickup?.(p.value); },
+});
+const chimeView = new ChimeView(scene);
+/** A guardian's purse: scattered on the floor between it and you (a floating guardian's body is out of reach). */
+const purseAt = (pos) => {
+  const P = player.pos, at = P.clone();
+  if (pos) { const dx = pos.x - P.x, dz = pos.z - P.z, d = Math.hypot(dx, dz); if (d > 0.1) at.set(P.x + (dx / d) * Math.min(3.4, d), P.y, P.z + (dz / d) * Math.min(3.4, d)); }
+  return at;
+};
+connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound });
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
 const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
@@ -1711,6 +1737,8 @@ function frame(ts) {
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);
+  if (!(busy() || photo.on || ship.playing)) chimes.update(dt, player.dead ? null : player.pos);   // (src/chimes.js: picked up walking over them, or drawn in)
+  chimeView.update(chimes, camera);
   // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
   // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
@@ -1972,5 +2000,5 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, itemIcons, gadgets,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

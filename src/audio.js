@@ -1538,6 +1538,35 @@ export class Sound {
     [0, 4, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.28 + i * 0.06, 0.06, 'sine', this.fx));
   }
 
+  /** A small struck-metal ring (two partials, bell-like): the chimes (src/chimes.js). */
+  ting(t, f, vol = 0.05, dur = 0.5) {
+    const ctx = this.ctx;
+    for (const [k, v, d] of [[1, 1, 1], [2.76, 0.45, 0.55], [5.4, 0.18, 0.3]]) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f * k;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * v * this.fxVol, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur * d);
+      o.connect(g).connect(this.fx);
+      o.start(t); o.stop(t + dur * d + 0.02);
+    }
+  }
+  /** A chime picked up: a bright ting, rising through a quick run of them (a five: lower, with a second ting). */
+  chimePickup(value = 1) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this._chimeRun = t - (this._chimeAt ?? -9) < 0.35 ? Math.min(7, (this._chimeRun ?? 0) + 1) : 0;
+    this._chimeAt = t;
+    const f = this.freq(this._chimeRun, 2);
+    this.ting(t, f, 0.045);
+    if (value > 1) this.ting(t + 0.07, f * 1.5, 0.04, 0.7);
+  }
+  /** Chimes scattered out of a foe (a guardian's purse: more of them): a few small tings, falling. */
+  chimeScatter(big = false) {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime, n = big ? 7 : 3;
+    for (let i = 0; i < n; i++) this.ting(t + 0.45 + i * 0.06 + Math.random() * 0.04, this.freq(4 - (i % 5), 2), 0.018, 0.3);
+  }
+
   /** Picking something up: a hand on it, the bag. */
   pickup({ pos = null } = {}) {
     if (!this.ctx || this.muted) return;

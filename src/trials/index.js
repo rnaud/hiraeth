@@ -6,6 +6,7 @@ import { registerItemModel } from '../boxes/model.js';
 import { gameMarkerModel, signPlate } from '../minigames/kit/marker.js';
 import { standAt } from '../minigames/kit/onfoot.js';
 import { formatTime, bestScore } from '../minigames/kit/scores.js';
+import { PURSE } from '../chimes.js';
 import { ITEMS } from '../items.js';
 import { Resources } from '../resources.js';
 import { TRIALS } from './data.js';
@@ -137,6 +138,12 @@ export function createChallenges(args) {
 }
 
 /** One challenge in the world: its sign, its course, its runs. */
+/** A makers' run's first finish: its purse (src/chimes.js PURSE.run) into the wallet, and the card's line. */
+export function firstPurse(game, items) {
+  const got = new Resources(game, items ?? undefined).addChimes(PURSE.run, { source: 'run' });
+  return got ? `First finish: ${got} chimes.` : 'First finish.';
+}
+
 export function makeTrial(T, { levelId, scene, physics, player, items, game, foes = null, notice = () => {}, surfaceAt = null, open = () => false, npcs = null, sound = null }) {
   const kitRun = T.mode === 'kit';
   const M = trialMats(T.color);
@@ -254,7 +261,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
       const reward = T.reward && ITEMS[T.reward] && !items.has(T.reward) ? ITEMS[T.reward] : null;
       if (reward) items.grant(T.reward);
       const lines = [`The makers’ mark: ${formatTime(par)}${t <= par ? ' · beaten' : ''}`];
-      if (first) lines.push('First finish.');
+      if (first) lines.push(firstPurse(game, items));
       const html = reward ? `<div class="trial-reward"><p class="kicker">Yours: ${esc(reward.name)}</p><p>${esc(reward.text)}</p><p><b>${keyText(esc(reward.use), { html: true })}</b></p></div>` : '';
       ctx.finish({ lines, html });
       if (reward) notice(`${reward.name}: yours. ${reward.use}`);
@@ -332,7 +339,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
       game.set(doneKey, true);
       if (beaten) game.set(`trial.${T.id}.beaten`, true);
       const lines = [`The makers’ mark: ${formatTime(par)}${beaten ? ' · beaten' : ''}`];
-      if (first) lines.push('First finish.');
+      if (first) lines.push(firstPurse(game, items));
       // the quiet reward: whoever stands nearby has a word (on the card, and over their head if they are in view)
       const line = voiceLine(T.voice, { first, beaten, beatenBefore });
       let html = '';

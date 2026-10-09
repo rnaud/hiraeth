@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.5 — 2026-10-09
 
+- Your chimes show beside your hearts and potion whenever they change, counting up as they ring in, and on the menu’s Items page by your gear. Finishing a makers’ run for the first time adds fifteen. Shops to spend them in are coming.
+- Foes now leave chimes when they fall: small brass discs with a square hole that pop out, glint and ring as they land. Walk over them, or just come near and they fly to you; left lying, they blink and are gone after half a minute. Small foes leave one or two, heavy ones more, and a temple’s guardian leaves a purse of forty the first time it is calmed or broken. Nothing drops in the Ink tide.
 - Spines and flames now bite a quarter heart at a time, and stepping straight back into spines no longer pricks you again at once. In the Arena, Second wind gives all your hearts back and mends them slowly, and the tank boons lengthen and quicken the magic bar.
 - The backpack’s three charges are now a magic bar under your hearts. A shot, a push or a boost spends a third of it and the jets burn it steadily; it starts filling again a second after you stop, empty to full in about four seconds. The fourth chamber lengthens the bar by a third and the quick coil makes it refill twice as fast. Saves that had them keep them, and the Engine-House’s doors still open.
 - Hearts no longer come back by themselves. Drink a healing potion instead: C on the keyboard, View + D-pad ↓ on a controller, or tap the flask beside your hearts. It gives two hearts back after a quick swig. Potions never run out for now.

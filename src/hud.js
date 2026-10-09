@@ -5,7 +5,8 @@
 //     lens), and a region's name as you cross into it; nothing while riding (no list of a
 //     vehicle's buttons as you get on: the settings' Controls page has them);
 //   - the hearts, the magic bar and the potion (index.html #health: heartsSvg, magicHud) while a heart is
-//     missing, the bar is spending or refilling, or a fight is on; the stamina wheel while not full
+//     missing, the bar is spending or refilling, or a fight is on; the chimes beside them, and the block
+//     for a moment whenever they change (walletTick counts them up); the stamina wheel while not full
 //     (main.js, ui.js ToolHud), each lingering a moment (Fader);
 //   - the objective: the scout finds it (Q, R3: src/scout.js) and the cue says its goal over its
 //     next step (findSummary); the game menu's Quests panel shows the same for every quest (src/game-menu.js).
@@ -75,16 +76,29 @@ export class Fader {
  * (shows it at once). value: the hearts as a share (the old bar's), low: one heart or less left.
  * Without `hearts` (an old caller) the share `health` counts as HEARTS.start hearts.
  */
-export function healthHud({ health = 1, hearts = null, max = 3, magic = null, magicMax = 3, potions = null, infinite = true, combat = false, down = false, hurt = false, quiet = false } = {}, fader, dt) {
+export function healthHud({ health = 1, hearts = null, max = 3, magic = null, magicMax = 3, potions = null, infinite = true, chimes = null, wallet = false, combat = false, down = false, hurt = false, quiet = false } = {}, fader, dt) {
   const h = hearts ?? health * max, share = max > 0 ? h / max : 0;
   const spending = magic !== null && magic < magicMax - 1e-3;
-  if (hurt) fader.update(0, true);
+  if (hurt || wallet) fader.update(0, true);   // (wallet: the chimes just changed, or are still counting up)
   const on = fader.update(dt, share < 0.999 || !!down || spending || !!combat) && !quiet;
   if (!on) return null;
   const out = { value: +share.toFixed(3), low: h <= 1 + 1e-9 && h < max, hearts: +h.toFixed(2), max };
   if (magic !== null) Object.assign(out, { magic: +magic.toFixed(2), magicMax });
   if (potions !== null) Object.assign(out, { potions, infinite: !!infinite });
+  if (chimes !== null) out.chimes = chimes;
   return out;
+}
+
+/**
+ * The wallet's count on the screen ticking towards the real one (src/chimes.js, src/resources.js): at least
+ * `rate` a second, quicker the further it has to go (a guardian's purse counts up in about half a second).
+ * Returns the new shown value (a float: draw it rounded).
+ */
+export function walletTick(shown, target, dt, rate = 14) {
+  const d = target - shown;
+  if (Math.abs(d) < 0.5) return target;
+  const step = Math.max(rate, Math.abs(d) * 5) * dt;
+  return Math.abs(d) <= step ? target : shown + Math.sign(d) * step;
 }
 
 /** Each heart's quarters filled (0..4), for `hearts` (counted in quarters) out of `max` containers. */

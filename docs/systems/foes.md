@@ -173,6 +173,11 @@ which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 's
   hearts, counted in quarters. The table below. A blot shoves you; a machine knocks you down.
 - **The reward:** each foe cut down gives a unit of the magic bar back, a third of the starting bar
   (glowing drops fly to the flask).
+- **Chimes** (v1.5, `src/chimes.js`; docs/systems/items.md, "Chimes"): each foe cut down also scatters a few
+  brass chimes, the currency, by its weight (a swarm blot a chance of one, an ink blot two, a machine six, a shade
+  or a golem eight; the 100 world enemies four, six or eight by their category), and a temple's guardian a purse
+  of forty, once. Walk over them or come near: they are drawn in. None from Ink tide's foes or one lost out of the
+  world; the Arena's are training (`Foes.burst` emits `foe:burst` with the kind, the category, where and `lost`).
 
 ### The damage table (hearts; v1.5)
 
@@ -435,6 +440,10 @@ Echo's resonators, the Tooth-Warden's vents as targets: in the ring its body is)
 (`sparHit`): when it opens (pants, vents open), a fluid shot counts a step (`RING.step`, water for a living one, a
 shot at a machine), a push frightens a living one back (`RING.fright`); the phase hints say so instead of the
 temple's. Its end is its own: a hand laid on a living one, a machine broken. Choosing anything else sends it back.
+
+**Chimes in the Arena** (v1.5): its foes drop them as anywhere (`level.foes.chimes: 'training'`), and each
+guardian bout won in the ring leaves a purse (`guardian:spar`), so the wallet and the shops can be tried there;
+they go into the wallet but are not counted as earned (`res.chimes.earned`).
 
 ## Each world's foes (v0.93)
 

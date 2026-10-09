@@ -124,14 +124,15 @@ const KINDS = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass',
 const KIND_NAME = Object.defineProperties({}, Object.fromEntries(KINDS.map((k) => [k, { get: () => t(`gm.kind.${k}`), enumerable: true }])));
 
 /**
- * Items: { gear: [{ id, name, kind, text, use, icon, inUse, usable }], slots, pack: [{ id, name }], keepsakes: [{ id, name, text, world }] }.
+ * Items: { gear: [{ id, name, kind, text, use, icon, inUse, usable }], slots, pack: [{ id, name }], keepsakes: [{ id, name, text, world }],
+ * chimes (the wallet, shown by the gear's heading; null: not shown) }.
  * The gear's grid (a slot for each item there is to find: the empty ones drawn but not named, so nothing
  * is given away but how many), under it what you carry for the quests and the keepsakes for the father's
  * charge, side by side; beside it all, the picked one large, as the N64's Equipment screen shows its hero.
  * Rows: the grid's, then a row a line of the pack (column 0) and of the keepsakes (column CARRY_COL).
  */
 export const CARRY_COL = 4;
-export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [] } = {}) {
+export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [], chimes = null } = {}) {
   const rows = [];
   gear.forEach((it, i) => { (rows[Math.floor(i / GEAR_COLS)] ??= []).push({ col: i % GEAR_COLS, kind: 'item', id: it.id, name: it.name, sub: KIND_NAME[it.kind] ?? '', desc: [it.text, it.use].filter(Boolean).join(' '), act: it.usable ? 'use' : null, it }); });
   const packs = pack.map((it) => ({ kind: 'pack', id: it.id, name: it.name, sub: KIND_NAME.quest, desc: t('gm.carried'), act: null, it: { ...it, kind: 'quest' } }));
@@ -144,7 +145,7 @@ export function itemsPanel({ gear = [], slots = 0, pack = [], keepsakes = [] } =
   const line = (x) => `<button class="line ${x.kind}" ${where(x.kind, x.id)}>${icon(x.it)}<span>${esc(x.name)}</span></button>`;
   const html = `<div class="gm-items">
     <div class="gm-left">
-      <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span></h2>
+      <section class="gm-gear"><h2>${t('gm.gear')} <span>${slots ? t('gm.gearCount', { n: gear.length, m: slots }) : gear.length}</span>${chimes !== null ? `<span class="gm-wallet" title="${esc(t('hud.chimes'))}"><i class="chime" aria-hidden="true"></i>${t('gm.chimes', { n: chimes })}</span>` : ''}</h2>
         <div class="grid" style="--cols:${GEAR_COLS}">${gear.map(slot).join('')}${empties}</div></section>
       <div class="gm-carry">
         <section><h2>${t('gm.pack')}</h2>${packs.map(line).join('') || `<p class="none">${t('gm.packNone')}</p>`}</section>

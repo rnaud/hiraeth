@@ -190,7 +190,7 @@ function* buildTide(scene) {
     ground: terrain, name: 'The ink tide', hour: 17.4,
     spawn: new THREE.Vector3(0, 0, 4),
     features: { mount: false, wind: false, jetpack: false, climb: true },
-    foes: { own: true, wild: false, noInk: true },   // (src/foes.js: on whatever the setting, added by the game, no ink for the blade's growth)
+    foes: { own: true, wild: false, noInk: true, chimes: false },   // (src/foes.js: on whatever the setting, added by the game, no ink for the blade's growth, no chimes: src/chimes.js)
     tide: { sea, foam, lines },
   });
 }
