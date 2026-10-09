@@ -272,8 +272,51 @@ const CHIME_DROP = (kind, where) => `const V = THREE.Vector3, wait = (ms) => new
 const FROM_ROSTER = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the four set in a row and held still (9 October)';
 const FROM_ATTACK = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720: the enemy set striking with its attack locked on the traveller, held still (9 October)';
 
+/**
+ * The first shop's pictures (v1.5): the traveller set down inside Haddu's shop by the counter, the camera pinned in the
+ * room's corner by the door looking at the counter and the keeper (the interior kit: level.shops, src/interior-kit.js);
+ * `then` runs after (the panel opened, a card chosen).
+ */
+const SHOP_IN = (then = '') => `${HIDE('#toast, #cue, #prompt, #objective')}
+  const V = THREE.Vector3, it = level.shops[0].interior, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  player.teleport(it.local(-1.0, 0.05, 1.3), new V(0, 1, 0), new V(0, 0, 1)); player.heading = Math.PI;
+  const eye = it.local(1.8, 1.8, 3.1), at = it.local(-0.4, 1.2, -1.6);
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 55) { this.fov = 55; this.updateProjectionMatrix(); } return base.call(this, force); };
+  resources.addChimes(160);
+  await wait(3000);
+  ${then}`;
+const SHOP_OPEN = (then = '') => SHOP_IN(`game.emit('shop:open', { shop: 'qanat' }); await wait(900); ${then}`);
+const SHOP_DOOR = [203.67, 319.94, -1.62];   // Haddu's door (x, z) and its heading: src/levels/desert.js
+
 export const CHANGELOG_MEDIA = {
   '1.5': [
+    // the first shop
+    { match: 'The first shop has opened in the desert', shots: [
+      { name: 'shop-front', caption: 'Beside the way from the camps up to Qanat’s main gate: before, open sand; after, Haddu’s shop, its door under a striped awning, the name board over it and a brass chime hanging by the door', commit: 'b1fff179',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(SHOP_DOOR[0], SHOP_DOOR[1], { a: SHOP_DOOR[2] - 0.55, dist: 15, h: 3.4, ty: 2, pd: 7, pa: SHOP_DOOR[2] - 0.3, fov: 50 }), wait: 800 } },
+      { name: 'shop-inside', only: 'after', caption: 'Inside: Haddu behind his counter, the wares laid out on it (three flasks, two hearts, two magic cells), shelves of jars behind, the sun through a lattice window on the floor', commit: 'b1fff179',
+        view: { level: 'desert', save: SAVE_ON, setup: SHOP_IN(), wait: 800 } },
+    ], see: 'From the pilgrims’ camps, walk toward Qanat’s main gate: the shop is on your left before the gate. Walk into its door; walk out of the room’s door to be back in the street. Save inside (wait a few seconds) and reload: you are still in the shop.' },
+    { match: 'Haddu, a broad, slow chime-weigher', shots: [
+      { name: 'shop-panel', only: 'after', caption: 'The shop open (1280 × 720): Haddu and what he says, the wallet, a card for each ware with its picture, effect, stock and price', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, setup: SHOP_OPEN(), wait: 800 } },
+      { name: 'shop-panel-deck', only: 'after', caption: 'On the Steam Deck’s screen (1280 × 800)', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [1280, 800], setup: SHOP_OPEN(), wait: 800 } },
+      { name: 'shop-panel-side', only: 'after', caption: 'On a phone held sideways (812 × 375): the same row of cards, smaller', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [812, 375], setup: `document.body.classList.add('touch'); ${SHOP_OPEN()}`, wait: 800 } },
+      { name: 'shop-panel-phone', only: 'after', caption: 'On a phone held upright (375 × 812): one card a row, the picture beside the words', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [375, 812], setup: `document.body.classList.add('touch'); ${SHOP_OPEN()}`, wait: 800 } },
+    ], see: 'In the shop, talk to Haddu (X / □, E) and answer “Show me what you have”, or stand at the middle of the counter and look at the wares. The D-pad or the arrows move between the cards, A / × or Enter chooses, B / ○ or Esc backs out.' },
+    { match: 'He sells healing potions', shots: [
+      { name: 'shop-ask', only: 'after', caption: 'A heart container chosen: “Buy a heart container for 50 chimes?”, Buy with A and Not now with B', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, setup: SHOP_OPEN(`document.querySelector('#shop [data-ware="heart"]').click(); await wait(500);`), wait: 600 } },
+    ], see: 'Buy a heart container: the price on its card goes from 50 to 80, “1 left”, and a fourth heart comes up at the top left, full. Buy both: the card says Sold out, and Haddu says so if you choose it again. A card you can’t afford shows its price in red.' },
+    { match: 'Potions now run out', shots: [
+      { name: 'potions-hud', caption: 'Half the hearts gone, at the top left: before, the flask said ∞; after, a save from before the shop has a full five', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1500, setup: HEARTS_SETUP(0.5) } },
+    ], see: 'Drink a potion (C, View + D-pad ↓, or tap the flask): the count by the flask goes down. With none left, a notice says a shop sells more.' },
     // hearts, potions and the magic bar (the HUD shot in both commits with the same setup: half the health gone, the bar at 1.4 of 3, held there)
     { match: 'Your health is now hearts', shots: [
       { name: 'hearts-hud', caption: 'Half the health gone, at the top left: before, the thin red bar; after, a heart and a half of three in ink, the potion beside them and the magic bar under them, spent to under half', commit: 'fdaa8144', before: '40356176',
