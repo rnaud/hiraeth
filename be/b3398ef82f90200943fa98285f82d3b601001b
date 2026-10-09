@@ -1,0 +1,35 @@
+docs/systems/foes.md
+  s_9ca76055a220ed::t_8193c5e5a35353 110-111,131-174
+docs/systems/materials.md
+  s_9ca76055a220ed::t_db92d543bae6c1 340-346
+src/blade-shader.js
+  s_9ca76055a220ed::t_792d4d2b48e969 1-243
+src/fluid-blade.js
+  s_9ca76055a220ed::t_a0fdf14472b731 11,107-108,110,114,211-222,273,287-290,361-363,470,692-694,711-771,868-870,872,874,897-902,912-918
+src/fluid-sword.js
+  s_9ca76055a220ed::t_c09d96701b5b16 14-15
+src/fluid-tool.js
+  s_9ca76055a220ed::t_47a986094b0324 310-314,331,335-336,339-340,342,351
+src/main.js
+  s_9ca76055a220ed::t_d8ab678c8cddfa 27,994
+src/materials.js
+  s_9ca76055a220ed::t_7488257f00fdd5 18,513,629,1844-1845,1959,2334-2336,2652,2842
+tests/blade-shader.test.js
+  s_9ca76055a220ed::t_22142fc154ac84 1-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "beb3398ef82f90200943fa98285f82d3b601001b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
