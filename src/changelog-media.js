@@ -301,6 +301,7 @@ const BEHIND_RIGHT = `${HIDE('#toast, #cue, #prompt, #objective')}
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 45) { this.fov = 45; this.updateProjectionMatrix(); } return base.call(this, force); };`;
 /** Twelve chimes (two fives, two ones) dropped in the Arena's middle, scattered the same way before and after (a seeded rng), the foes away. */
 const FROM_CHIME_SHADER = 'headless Chrome against a dev server, High, 1280 × 720, hour 10: the chimes dropped from a seeded rng and laid out in a ring, the camera pinned (the same scatter before and after); before at main before the change, after with it';
+const FROM_ART = 'node scripts/enemy-roster/compare.mjs: the reference sheet (references/enemy-archetypes/) over the creatures gallery’s own body (enemies.html, headless Chrome against this branch’s dev server) in the sheet’s skin and views, before the art pass and after it (9 October)';
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
@@ -369,6 +370,28 @@ export const CHANGELOG_MEDIA = {
     { match: 'The lantern jelly drifts high', shots: [
       { name: 'roster2-jelly', only: 'after', caption: 'The lantern jelly (Vael II’s cloud jelly): a broad puffy bell, three paper lanterns, long pale threads', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), drifting' },
       { name: 'roster2-skins-jelly', only: 'after', caption: 'The lantern jelly in its worlds: the cloud jelly, the lamp jelly, the halo jelly, the porcelain jelly, the sun jelly', from: 'headless Chrome, the creatures gallery, each skin drifting' },
+    ] },
+    // the first five redrawn to their sheets: each its main sheet and its alternate, the sheet on top, the game's body
+    // under it in the sheet's skin and views (front, side, three-quarter, the sheet's wind-up)
+    { match: 'The shellback crab is redrawn', shots: [
+      { name: 'art-crab', caption: 'Vael II’s cliff crab: its sheet above, the game’s crab below (front, side, three-quarter, the shell-spin wind-up), before and after', from: FROM_ART },
+      { name: 'art-crab-alt', caption: 'The Salt Harbour’s anchor crab against its sheet, before and after', from: FROM_ART },
+    ] },
+    { match: 'The horn lizard now hugs the ground', shots: [
+      { name: 'art-lizard', caption: 'The City-Shaft’s pipe lizard: its sheet above, the game’s lizard below (front, side, three-quarter, the blare wind-up), before and after', from: FROM_ART },
+      { name: 'art-lizard-alt', caption: 'The Signal Market’s coin lizard against its sheet, before and after', from: FROM_ART },
+    ] },
+    { match: 'The antler hound stands taller', shots: [
+      { name: 'art-hound', caption: 'The Garden of Spheres’ halo hound: its sheet above, the game’s hound below (front, side, three-quarter, the pounce wind-up), before and after', from: FROM_ART },
+      { name: 'art-hound-alt', caption: 'The White Mangrove’s driftwood hound against its sheet, before and after', from: FROM_ART },
+    ] },
+    { match: 'The lamp tripod stands on three long', shots: [
+      { name: 'art-tripod', caption: 'The City-Shaft’s inspection tripod: its sheet above, the game’s tripod below (front, side, three-quarter, the beam wind-up), before and after', from: FROM_ART },
+      { name: 'art-tripod-alt', caption: 'The Underwater City’s diving bell against its sheet, before and after', from: FROM_ART },
+    ] },
+    { match: 'The ink blot is a glossy drop now', shots: [
+      { name: 'art-blot', caption: 'The Desert’s sand-edged blot: its sheet above, the game’s blot below (front, side, three-quarter, the lunge and the spit wind-ups), before and after', from: FROM_ART },
+      { name: 'art-blot-alt', caption: 'The Sealed Hangar’s rust-edged blot against its sheet, before and after', from: FROM_ART },
     ] },
   ],
   '1.9': [
