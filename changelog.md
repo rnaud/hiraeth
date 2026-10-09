@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.2 — 2026-10-09
+
+- No more bright line of sunlight round the floor of the cave under the giant and of the Givers’ Hearth.
+- The dark masses in shaded corners, on stairs and round furniture stay put as the camera moves instead of shifting about in blocks, and come out as brushed shapes rather than stacked rectangles, most of all on Handheld.
+
 ## v1.1 — 2026-10-09
 
 - The game can be played at rnaud.github.io/moebius again, as well as on its main site.

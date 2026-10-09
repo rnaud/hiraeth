@@ -9,6 +9,11 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '1.2', date: '2026-10-09', items: [
+    // shadows in caves and rooms
+    'The dark masses in shaded corners, on stairs and round furniture stay put as the camera moves instead of shifting about in blocks, and come out as brushed shapes rather than stacked rectangles, most of all on Handheld.',
+    'No more bright line of sunlight round the floor of the cave under the giant and of the Givers’ Hearth.',
+  ] },
   { v: '1.1', date: '2026-10-09', items: [
     // shadows and visuals, from the playtest
     'People no longer leave a pale, person-shaped ghost in the dark shading behind them (Marrow by the ship, the traveller on the stairs to the great tree), and the dark masses round them no longer jump about as the camera moves.',

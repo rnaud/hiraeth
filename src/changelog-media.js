@@ -191,6 +191,18 @@ const HAND_VIEW = `const H = level.arzach.hand, n = new THREE.Vector3(H.normal.x
   camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 50) { this.fov = 50; this.updateProjectionMatrix(); } return base.call(this, force); };`;
 
 export const CHANGELOG_MEDIA = {
+  '1.2': [
+    { match: 'The dark masses in shaded corners', shots: [
+      { name: 'spot-cave', caption: 'The cave under the giant, High: before, the dark masses between the ribs came in stacked rectangles; after, brushed shapes that stay put as you turn', commit: 'c58cbcaa',
+        view: { level: 'desert', save: SAVE_DESERT, player: [-1250, 1000, 1272], heading: Math.PI, eye: [-1249.3, 1001.8, 1274.5], target: [-1250, 999.6, 1250], fov: 55, wait: 3000 } },
+      { name: 'spot-stairs', caption: 'The stairs to the great tree in Qanat, Handheld: the risers and the terrace faces keep the same dark masses from every side (before, they came and went in blocks as the camera swung)', commit: 'c58cbcaa',
+        view: { level: 'desert', save: SAVE_DESERT, quality: 'handheld', player: [219.1, 4.6, 382.0], heading: 2.6, eye: [213.62, 8.85, 372.51], target: [219.1, 3.85, 382.04], fov: 55, wait: 3000 } },
+    ], see: 'Climb the stairs round the great tree in Qanat, or go down into the cave under the giant, and swing the camera round: the dark masses stay where they are.' },
+    { match: 'No more bright line of sunlight', shots: [
+      { name: 'cave-seam', caption: 'The Givers’ Hearth: before, a line of sunlight round the foot of the cave’s wall; after, the floor is in shade all the way to the wall', commit: 'c58cbcaa',
+        view: { level: 'desert', save: SAVE_DESERT, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262], fov: 55, wait: 3000 } },
+    ] },
+  ],
   '1.1': [
     { match: 'Notices no longer pop up over a scene', shots: [
       { name: 'scene-notices', caption: 'Opening the makers’ box in Qanat: the desert quest’s card used to sit across the top of the scene', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
