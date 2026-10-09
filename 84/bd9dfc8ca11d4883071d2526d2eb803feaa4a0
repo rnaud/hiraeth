@@ -1,0 +1,65 @@
+DONE.md
+  s_9ca76055a220ed::t_1b9390377014ba 1768-1783
+changelog.md
+  s_9ca76055a220ed::t_53409643516572 7
+docs/systems/characters.md
+  s_9ca76055a220ed::t_5520c627ee130a 172
+docs/systems/story.md
+  s_9ca76055a220ed::t_5c436306486a37 195
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_eaf097649aa3df 21,54-56,60-62,66-75,77
+src/bike.js
+  s_9ca76055a220ed::t_ab441c0dd45311 15,121
+src/changelog.js
+  s_9ca76055a220ed::t_9c3ef0e37395c3 23-24
+src/fluid-tool.js
+  s_9ca76055a220ed::t_a370ad9c9c5d2e 15-17,36,289,494,552,618,624-626,630,668,720,767,1040,1077,1101,1106,1143,1152-1154,1202,1273,1275
+src/humanoid.js
+  s_9ca76055a220ed::t_471b6707018b92 797-798,802,804,818
+src/items.js
+  s_9ca76055a220ed::t_5c1d786c391e3b 29
+src/materials.js
+  s_9ca76055a220ed::t_5b1bee1ae3b2b4 1772-1773,2683,2800
+src/perf.js
+  s_9ca76055a220ed::t_568903ff6fe502 328
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_105dea75f6b970 324
+src/story/bazaar.js
+  s_9ca76055a220ed::t_89c3b15eb1d73e 43,47
+src/story/buried.js
+  s_9ca76055a220ed::t_e422a20a963ee6 462
+src/story/desert-moments.js
+  s_9ca76055a220ed::t_5e38fae700ad21 211
+src/story/desert.js
+  s_9ca76055a220ed::t_340173dd5a664b 151,565
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_372fa3f86f73db 474
+src/story/perdide-moments.js
+  s_9ca76055a220ed::t_5eb9b26c3b806b 126
+src/traveller-style.js
+  s_9ca76055a220ed::t_7c585f7ad54b22 9
+src/traveller.js
+  s_9ca76055a220ed::t_28c64ad554acc5 403-404,410,415,422-423,426-427,492-501,507
+tests/abilities.test.js
+  s_9ca76055a220ed::t_6aad306eef0734 59,84
+tests/glove.test.js
+  s_9ca76055a220ed::t_a5e1aa14f0becb 16-17,52,55-56,76,87-108,110-116,152
+unity/Memento/Assets/Memento/Runtime/Bike.cs
+  s_9ca76055a220ed::t_1d3c0b0cb983cc 58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "84bd9dfc8ca11d4883071d2526d2eb803feaa4a0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
