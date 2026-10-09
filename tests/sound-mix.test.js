@@ -25,8 +25,16 @@ const fresh = (level = 'desert') => {
   sounds.push(s);
   return s;
 };
-/** The loudest 100 ms of `fn`'s sound over the calm, in dB. */
-const loudest = (fn, level, secs = 3) => { const s = fresh(level); fn(s); return dB(peakRms(s.ctx.render(48000 * secs))); };
+/** Math.random seeded while `fn` runs: the sounds' noise is random, and a level measured 1-2 dB inside a
+ *  limit failed now and then on GitHub (the water under the whoosh, 2026-10-09). */
+const seeded = (fn, seed = 12345) => {
+  const real = Math.random;
+  let x = seed >>> 0;
+  Math.random = () => { x = (x * 1664525 + 1013904223) >>> 0; return x / 2 ** 32; };
+  try { return fn(); } finally { Math.random = real; }
+};
+/** The loudest 100 ms of `fn`'s sound over the calm, in dB (with the noise seeded, so it is the same every run). */
+const loudest = (fn, level, secs = 3) => seeded(() => { const s = fresh(level); fn(s); return dB(peakRms(s.ctx.render(48000 * secs))); });
 test.after(() => { for (const s of sounds) { clearInterval(s.scheduler); clearInterval(s.menuTimer); s._unlisten?.(); } });
 
 test('the footsteps\' surface: the world\'s own ground, stone on anything built on it', () => {
