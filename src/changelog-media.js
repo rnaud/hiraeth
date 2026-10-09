@@ -172,12 +172,15 @@ const WAY = { bowl: [646.27, 141.38], camp: [1028.02, -97.03], bell: [1442.76, -
 export const CHANGELOG_MEDIA = {
   '1.1': [
     { match: 'People no longer leave a pale, person-shaped ghost', shots: [
-      { name: 'person-ghost', caption: 'Climbing the stairs to the great tree in Qanat, Handheld, 9:30', from: 'headless Chrome against this branch’s own dev server, Handheld preset, the same pinned camera before and after the fix (9 October)' },
+      { name: 'person-ghost', caption: 'Climbing the stairs to the great tree in Qanat, Handheld, 9:30: before, a pale wedge the shape of him lightens the dark risers below his feet', from: 'headless Chrome against this branch’s own dev server, Handheld preset, the same pinned camera before and after the fix (9 October)' },
     ], see: 'In Qanat, climb the stairs round the great tree with the camera close behind: the risers beside you stay as dark as the rest.' },
     { match: 'Heading to space now opens onto the night', shots: [
       { name: 'space-jump', caption: 'The jump to space after take-off, 1280 × 720', from: 'headless Chrome against this branch’s own dev server: the old warp drawing and the new, the same moment of the jump (9 October)' },
     ], see: 'Take off from the ship’s galactic map to any world.' },
-    { match: 'The pause menu fits on a phone held sideways', see: 'On a phone, open the pause menu held sideways and upright; checked at 812 × 375, 375 × 812, 1080 × 2400, 1280 × 720, 1280 × 800, 1920 × 1080 and 2560 × 1440.' },
+    { match: 'The pause menu fits on a phone held sideways', shots: [
+      { name: 'pause-phone', caption: 'The pause menu on a phone held sideways (812 × 375): Quit to title at the bottom now shows', commit: '140c19c7',
+        view: { level: 'desert', size: [812, 375], hud: true, save: SAVE_ON, setup: `${HIDE('#toast')} ${MENU}`, wait: 1500 } },
+    ], see: 'On a phone, open the pause menu held sideways and upright; checked at 812 × 375, 375 × 812, 1080 × 2400, 1280 × 720, 1280 × 800, 1920 × 1080 and 2560 × 1440.' },
   ],
   '1.0': [
     { match: 'In conversations the traveller holds still', numbers: [
@@ -223,6 +226,29 @@ export const CHANGELOG_MEDIA = {
     { match: 'The touch buttons stay as you left them ', shots: [
       { name: 'touch-new-world', caption: 'A new world loads on a phone after playing with a controller (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, the pad remembered from the world before, Low (8 October)' },
     ] },
+    { match: 'The traveller’s backpack is now a flat', shots: [
+      { name: 'backpack', caption: 'The traveller from behind in the character studio: the reservoir on his back, its ivory frame and jade fluid', commit: '0bc4b9fd', view: studio('backpack=true&view=arms&yaw=2.8&pitch=0.1') },
+    ] },
+    { match: 'The fallen giant has deep eye sockets', shots: [
+      { name: 'giant', caption: 'The fallen giant beyond Qanat’s back gate, from in front of its face: the deep sockets, the teeth and the jaw into its throat', commit: '0bc4b9fd',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(318, 530, { a: Math.atan2(88, 130), dist: 42, h: 7, ty: 5, pd: 30, pa: Math.atan2(88, 130) + 0.25, fov: 55 }), wait: 500 } },
+      { name: 'ship-room', caption: 'The ship’s central room in the prologue: the coral floor and the oval light overhead', commit: '0bc4b9fd',
+        view: { level: 'desert', query: 'prologue=1', hour: null, save: { flags: { 'items.v': 2 }, keepsakes: [] },
+          setup: `for (let i = 0; i < 240 && window.ship?.prologue?.stage !== 'walk'; i++) ${sleepJs(250)} ${sleepJs(1500)}`, wait: 300 } },
+    ] },
+    { match: 'The Debug button is back on the title screen', shots: [
+      { name: 'debug-title', caption: 'The title screen, as a player’s build shows it', commit: 'c31a73b9',
+        view: { prod: true, hud: true, hour: null, weather: '', save: SAVE_ON, ready: '!!document.querySelector(\'[data-a="news"]\')', wait: 2500 } },
+    ] },
+    { match: 'A Cinematics review page gathers', shots: [
+      { name: 'cinematics', only: 'after', caption: 'The Cinematics review page: all 91 films, recordings and journeys, to choose one and play it', commit: 'e35f5da4', view: { page: 'cinematics.html', wait: 2500 } },
+    ] },
+    { match: 'A last, small world at the end of the light’s trace', shots: [
+      { name: 'lantern', only: 'after', caption: 'The last world from the ship’s ramp: the sand bar out to the tower', commit: 'e80fc41d', view: { level: 'lantern', hour: null, save: SAVE_ON, wait: 4000 } },
+    ] },
+    { match: 'Game updates are about 100 MB smaller too', numbers: [{ title: 'An over-the-air update', unit: 'MB', better: 'lower', device: 'the update for Android and the Steam Deck',
+      note: 'after: estimated, the 99 MB of recorded themes taken out of the 129 MB update', rows: [{ where: 'download', before: 129, after: 30 }],
+      source: 'the update zip measured at 129 MB on 8 October (the Worker’s download fix); scripts/web-update.mjs leaves the music out' }] },
     { match: 'The Sketchbook has a Sightings page', shots: [
       { name: 'sightings', caption: 'The game menu’s Sketchbook after the desert’s first talks: the Sightings first, a ? for each still to find', commit: '9ba725ea',
         view: { level: 'desert', hud: true, save: { flags: { ...SAVE_ON.flags, 'world.desert.done': true, 'sight.desert.oum': true, 'sight.desert.dalia': true, 'sight.desert.nour': true, 'sight.desert.hull': true, 'sight.desert.givers': true }, keepsakes: [] },
@@ -323,7 +349,7 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The lock-on has a new reticle', shots: [
       { name: 'lock-reticle', caption: 'Locked on to a makers’ machine in the Arena', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
-    ] },
+    ], see: 'Lock on to any foe (R3 / Tab), in the Arena or the wilds: the gold chevrons ring it, and the pips over them go out as it is hurt.' },
     { match: 'The reticle reads the foe', shots: [
       { name: 'lock-windup', caption: 'The machine three quarters through winding up its slam: the chevrons red and closing in', from: 'headless Chrome in the Arena against this branch’s own dev server, Medium, 1280 × 720 (8 October); the before draws v0.95’s circle, with its own style, at the same place' },
     ], see: 'Lock on to a foe and parry its strike: the reticle spreads pale blue while it reels. A dune ray under the sand dims it.' },

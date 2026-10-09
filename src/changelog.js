@@ -15,6 +15,11 @@ export const CHANGELOG = [
     'Heading to space now opens onto the night: the jump’s streaks fly across a dark sky instead of a blank white page, and the next world’s loading screen keeps that dark.',
     // screens at every size
     'The pause menu fits on a phone held sideways (every button shows, down to Quit to title) and takes less of the screen on a phone held upright; the smallest words in the journal and on the title screen are a little larger.',
+    // small fixes (made before v1.0, without a line then)
+    { text: 'In the References world, the Moon Foundry’s views no longer stretch tall after the window changes size.', see: 'Debug → References, go to a Moon Foundry view, then resize the window or turn the device.' },
+    { text: 'While you play a game (the shooting gallery, the drum circle, a race…), the gadget’s card, aiming mark and wheel no longer stay on the screen.', see: 'Hold a gadget, then play the shooting gallery at its stall in the Signal Market: only the game’s own display shows.' },
+    { text: 'Updates on Android and the Steam Deck no longer stop partway through the download.', see: 'Settings → Updates → Check for updates on Android or the Steam Deck: the update downloads to the end and installs.' },
+    { text: 'The game can be played at rnaud.github.io/moebius again, as well as on its main site.', see: 'Open https://rnaud.github.io/moebius/ in a browser.' },
   ] },
   { v: '1.0', date: '2026-10-08', items: [
     // the opening, from the playtest

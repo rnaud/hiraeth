@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.1 — 2026-10-09
 
+- The game can be played at rnaud.github.io/moebius again, as well as on its main site.
+- Updates on Android and the Steam Deck no longer stop partway through the download.
+- While you play a game (the shooting gallery, the drum circle, a race…), the gadget’s card, aiming mark and wheel no longer stay on the screen.
+- In the References world, the Moon Foundry’s views no longer stretch tall after the window changes size.
 - The pause menu fits on a phone held sideways (every button shows, down to Quit to title) and takes less of the screen on a phone held upright; the smallest words in the journal and on the title screen are a little larger.
 - Heading to space now opens onto the night: the jump’s streaks fly across a dark sky instead of a blank white page, and the next world’s loading screen keeps that dark.
 - People no longer leave a pale, person-shaped ghost in the dark shading behind them (Marrow by the ship, the traveller on the stairs to the great tree), and the dark masses round them no longer jump about as the camera moves.
