@@ -59,7 +59,12 @@ export function tentTaps(st, taps = 9) {
 /**
  * One cascade. Bias and normal offset are given in texels (so a smaller map,
  * the handheld preset's, scales them with its bigger texels).
- * uniforms: { map, matrix, bias, offset } shared uniform objects.
+ * uniforms: { map, matrix, bias, offset } shared uniform objects, and optionally
+ * texel: [the vec3 uniform uShadowTexel, this cascade's component 0/1/2]. With it,
+ * configure() keeps the shader's idea of the texel (its tent `spread`, materials.js
+ * shadowLit) in step with the map: the creatures' gallery reconfigured its map
+ * without telling the shader, whose taps then spread 2.7 times too far and tore
+ * every shadow's edge into ragged, crawling streaks.
  */
 export class Cascade {
   constructor({ size, extent, depth, bias = 2.2, offset = 3, uniforms, name = '' }) {
@@ -98,6 +103,7 @@ export class Cascade {
     }
     this.U.bias.value = (this.biasTexels * this.texel) / this.depth;   // depth-buffer units
     this.U.offset.value = this.offsetTexels * this.texel;              // metres along the normal
+    if (this.U.texel) this.U.texel[0].value.setComponent(this.U.texel[1], this.texel);
     this.dir.set(0, 0, 0);   // re-aim and re-place on the next update
   }
 
@@ -148,6 +154,24 @@ export class Cascade {
     renderer.clear();
     renderer.render(scene, this.cam);
   }
+}
+
+/** The game's fine map (main.js cascades.fine on High): crisp character shadows; the galleries draw with the same. */
+export const FINE_CASCADE = { size: 2048, extent: 12, bias: 3.4, offset: 2.6 };
+
+/**
+ * The half-width (m) of a shadow window that holds a subject standing at its centre and its whole
+ * shadow: its radius `r` (m, round its foot), plus the shadow of its top (`height` m) thrown by a sun
+ * `sinEl` high (sine of the elevation; the shadow's length height / tan, held to 4 heights for a sun
+ * near the horizon), and a margin for the filter and the map's soft edge (materials.js fades the last
+ * 6 % of the window). Rounded up to whole `step` metres (so a creature changing its pose doesn't resize
+ * the map every frame), and kept within [min, max].
+ */
+export function fitShadowExtent(r, height, sinEl, { min = 2, max = 12, step = 1 } = {}) {
+  const s = THREE.MathUtils.clamp(sinEl, 0.01, 1), cos = Math.sqrt(1 - s * s);
+  const reach = r + Math.min(height * cos / s, 4 * height);
+  const half = reach / 0.88 + 0.25;
+  return THREE.MathUtils.clamp(Math.ceil(half / step) * step, min, max);
 }
 
 // ------------------------------------------------------------------ caster culling

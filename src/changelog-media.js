@@ -313,6 +313,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'On the title screen the traveller now stands still', shots: [
       { name: 'title-stance', caption: 'The Sky Stones, close on the traveller: before, the game’s idle, one arm swung out, the weight on one leg; after, upright, arms at his sides, hands by his thighs', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…), cropped round him' },
     ], see: 'Open the game a few times and watch him for a while: he no longer looks about or shifts his weight; he breathes, and his coat stirs.' },
+    // the creatures' gallery
+    { match: 'In the creatures and spirits gallery, the creatures’ shadows', shots: [
+      { name: 'gallery-shadow', caption: 'The dune skitter in the gallery, standing (shown at 2×): before, its shadow’s edge torn and speckled, pale streaks between the legs; after, one smooth shadow, each leg’s outline clear', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the creature held at one moment, cropped round it' },
+      { name: 'gallery-shadow-motion', caption: 'Eight frames over two seconds of its idle: before, the edges crawl from frame to frame; after, they hold still', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the page’s own animation stepped a quarter of a second between frames' },
+    ], see: 'Open the creatures and spirits gallery (enemies.html), pick the Desert’s dune skitter, and watch its shadow while it stands, moves and attacks, dragging to turn it.' },
   ],
   '1.5': [
     // the first shop

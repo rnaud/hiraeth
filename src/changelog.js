@@ -17,6 +17,8 @@ export const CHANGELOG = [
     // the title screen
     'The title screen’s menu is much smaller and sits low at the left, so the world behind the name shows: Continue (or New game) and Saves as two small buttons, and under them a row of little ink icons for Settings (a gear), What’s new (a star), Debug (a beetle) and Full screen (corner brackets), each named when you point at it or reach it with the controller. Full screen no longer shows in the Xbox app.',
     'On the title screen the traveller now stands still, upright, his arms straight down at his sides and his back to you, looking out over the world as on the covers; only his breath and his coat move.',
+    // the creatures' gallery
+    'In the creatures and spirits gallery, the creatures’ shadows are clean again: they were torn into ragged, streaky shapes that crawled as the creature moved or the view turned. Now each one casts one smooth ink shadow that holds still, drawn as in the game, and thin parts like a ray’s tail cast theirs too. The game itself was not affected.',
   ] },
   { v: '1.5', date: '2026-10-09', items: [
     'A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.',

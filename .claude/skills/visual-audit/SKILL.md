@@ -22,7 +22,7 @@ Read first:
 - the last `docs/audits/visual-v*.md`.
 
 Still frames from fixed cameras miss what moves with the camera or with a person. Three bugs of October 2026 got past
-this audit that way; sections 3-5 are there so they never do again, in any world:
+this audit that way; sections 3-5 are there so they never do again, in any world (and a fourth, on a page beside the game):
 1. **Pale person-shaped "shadows"** (Marrow by the ship, the traveller on the tree's stairs): the spot blacks'
    enclosure and the crease shading (post.js `enclosure`, `creaseAO`) counted taps landing on a person as open space,
    cutting a pale copy of them into a dark mass that slid with the camera (fixed in 620c4384, `occlusionShare`).
@@ -30,6 +30,13 @@ this audit that way; sections 3-5 are there so they never do again, in any world
    sat at fixed screen offsets (fixed in c58cbcaa: taps anchored to the surface).
 3. **A lit seam round the caves' floors**: geometry. rough() raised the dome's foot ring, a slit the sun shone
    through (fixed in c58cbcaa; `tests/cave-seams.test.js`, generalised in `tests/shell-seams.test.js`).
+4. **Torn, streaky shadows in the creatures' gallery** (`enemies.html`, the dune skitter, "look at the shadows in
+   motion"): the page reconfigured its shadow map without telling the shader its texel (`uShadowTexel`), so the tent's
+   taps spread 2.5 times too far; only the gallery, not the game. Fixed by cascades that keep their own texel uniform and
+   a window fitted to the creature (rendering.md, "Torn shadows in the creatures' gallery"; `tests/shadow-setup.test.js`).
+   The galleries and studios (`enemies.html`, `items.html`, `studio.html`) draw with the game's pipeline but their own
+   shadow setup: in an audit, look at one creature there in motion (its idle over 2 s, an orbit of ±32°) beside the
+   same one in the Arena (`?level=arena&enemy=<id>`), the light term (debug 5) close on its shadow's edge.
 
 **Rules for every run:** muted, never port 5173, on the real GPU (never SwiftShader), the High preset
 unless the check is about a preset, and the HUD hidden. Look at every picture yourself: the numbers
