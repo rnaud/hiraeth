@@ -25,11 +25,16 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Xbox (queued 2026-10-09)
 
-- [ ] **An Xbox Dev Mode package**: the web game packaged as a UWP/MSIX app (a WebView2 wrapper like the
-  Android app's, the same web bundle and over-the-air updates), built on GitHub (a Windows runner) and
-  published to a prerelease, deployed by the author through the console's Device Portal (Dev Mode needs a
-  Microsoft Partner Center individual account and the Xbox Dev Mode app on the console). Controller input,
-  10-foot UI and the TV's safe area checked; first try the game in Edge on the Xbox to see how it plays.
+- [ ] **An Xbox Dev Mode package** (decided 2026-10-09: the packaged web game, not the Unity build): the web
+  game in a UWP app with WebView2 (like the Android app's wrapper: the same web bundle and over-the-air
+  updates), x64, set to the **Game** app type after deploying (Dev Home / Device Portal: ~5 GB and the full
+  GPU instead of an App's 1 GB and 45 %), built on GitHub (a Windows runner) and published to a prerelease;
+  the author deploys it through Device Portal (Dev Mode: a Partner Center individual account, the green
+  "Xbox Dev Mode" app). First measure on the console with the frame readout: JavaScript's JIT on inside
+  WebView2, the Game-mode GPU share reaching the WebView, the controller (WebView2's gamepad bug is
+  desktop-only by reports: WebView2Feedback#4366). Why not Unity: Puerts has no UWP/Xbox V8 (it would need a
+  V8 port or QuickJS without a JIT, several times slower on a frame the script limits), for at most ~0.9 ms
+  of gain measured on the Mac (docs/systems/engine-bridge.md).
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
