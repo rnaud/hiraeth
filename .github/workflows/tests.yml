@@ -4,6 +4,10 @@ name: Tests
 # main every deploy calls it first and waits for it (deploy.yml, cloudflare.yml, android.yml,
 # steam-deck.yml: `uses: ./.github/workflows/tests.yml`), so a failing test never reaches
 # players. The pre-commit hook runs only the tests a commit's changes reach (scripts/affected-tests.mjs).
+#
+# Split in three shards that run at once, of about equal time: scripts/test-shards.mjs deals the
+# files out by their times in tests/shard-timings.json (docs/systems/testing.md, "The shards").
+# A deploy's `needs: tests` waits for every shard.
 
 on:
   pull_request:
@@ -15,8 +19,13 @@ permissions:
 
 jobs:
   unit:
+    name: unit (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -24,5 +33,4 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: node --test tests/*.test.js
-
+      - run: node --test $(node scripts/test-shards.mjs ${{ matrix.shard }}/3)

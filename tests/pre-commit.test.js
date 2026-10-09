@@ -20,7 +20,13 @@ test('the pre-commit hook runs the reached tests, all of them when asked, and is
 test('every deploy waits for the whole unit suite', () => {
   const tests = read('.github/workflows/tests.yml');
   assert.match(tests, /workflow_call:/);
-  assert.match(tests, /node --test tests\/\*\.test\.js/);
+  // the suite in shards, run at once (scripts/test-shards.mjs: together they are every test file, tests/test-shards.test.js)
+  const n = /\n {8}shard: \[([\d, ]+)\]\n/.exec(tests);
+  assert.ok(n, 'a matrix of shards');
+  const shards = n[1].split(',').map(Number);
+  assert.deepEqual(shards, shards.map((_, i) => i + 1), 'numbered from 1');
+  assert.match(tests, new RegExp(`node --test \\$\\(node scripts/test-shards\\.mjs \\$\\{\\{ matrix\\.shard \\}\\}/${shards.length}\\)`), 'each shard runs its share of all of them');
+  assert.doesNotMatch(tests, /fail-fast: true/, 'one shard failing doesn’t hide the others');
   for (const [f, job] of [['deploy.yml', 'build'], ['cloudflare.yml', 'deploy'], ['android.yml', 'apk'], ['steam-deck.yml', 'linux']]) {
     const yml = read(`.github/workflows/${f}`);
     assert.match(yml, /\n  tests:\n    uses: \.\/\.github\/workflows\/tests\.yml/, f);

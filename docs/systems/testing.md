@@ -1,6 +1,6 @@
 # Testing: the unit tests and the play-through
 
-`node --test tests/*.test.js` runs every test (about a thousand, under a minute); `npx vite build`
+`node --test tests/*.test.js` runs every test (about 2400, two minutes on this Mac); `npx vite build`
 must pass too. `.githooks/pre-commit` runs the tests a commit's changes reach before every commit that
 touches code: `scripts/affected-tests.mjs` follows each test's relative imports (and the files it reads
 by a literal path, or names) and keeps those that reach a changed file; a change to `package.json`, the
@@ -10,6 +10,47 @@ GitHub (`.github/workflows/tests.yml`, called first by deploy.yml, cloudflare.ym
 steam-deck.yml), and no deploy starts until it passes. (Until 2026-10-08 the hook ran every test and
 GitHub none: with several agents committing at once on this Mac each commit waited 20+ minutes.) Each world's story has its own test (`tests/story-*.test.js`, `tests/desert-story.test.js`),
 which plays that world alone from a new game. The play-through plays them all, one after the other.
+
+## The shards
+
+On GitHub the suite runs as three jobs at once (`.github/workflows/tests.yml`, a matrix `shard: [1, 2, 3]`;
+a deploy's `needs: tests` waits for all three). Each runs `node --test $(node scripts/test-shards.mjs N/3)`:
+the script deals the test files out by their times in `tests/shard-timings.json` (file → seconds, committed),
+longest first, each to the shard with the least time so far; a file not in the table yet (a new test) goes
+round-robin after them, and one in the table that is gone is ignored. Every shard works the plan out alone,
+the same way, so together they run every file once (`tests/test-shards.test.js`).
+
+    node scripts/test-shards.mjs --plan 3              each shard's files and expected seconds
+    node scripts/test-shards.mjs --update [--jobs 6]   time every file on its own and rewrite the table
+
+Regenerate the table when a file's time changes a lot or many new files came in (the test fails once a fifth
+of the files are missing from it). A runner has 4 cores, `node --test` runs about 2.4 files at a time there,
+so a shard takes about its seconds / 2.4, or its longest file if that is longer: keep files under a minute.
+
+## Heavy tests
+
+Most of the suite's time is building worlds (about 30%: a level and its collision, 0.1 to 2.5 s each), long
+simulations of the traveller, and the play-through. Each test file runs in a process of its own, so a world
+can be shared only between the tests of one file. The rules for a test that is slow:
+
+- **Share what is built.** Tests of one file that need the same world, unchanged, take it from
+  `tests/built-worlds.js` (`builtWorld(id)`: built once per process, with the three.js warnings its build
+  printed); a check of every world goes in the file that already builds them all (the push's rings and the
+  build's warnings live in `tests/contact-audit.test.js` for that), not in a file that builds them again. A
+  test that plays a world's story, or needs a save's flags set before the build, builds its own.
+- **Sample, and say why.** Where a check walks every person, frame or world and the property is the same for
+  each of a kind, take one of each kind and write in a comment what it still covers. One simulation can serve
+  several checks (`tests/idle-legs.test.js`: one 49 s standing for the legs, the head and talking).
+- **No real waits.** The story times some things with `setTimeout`; tick node:test's mock clock
+  (`t.mock.timers`) instead of sleeping (`tests/desert-story.test.js`). (The play-through still waits in real
+  time: its agent's waits let the story's timers fire, and shortening them soft-locks it.)
+- **Raycast through a BVH** (three-mesh-bvh, `indirect: true` so the geometry is left alone) when a test
+  casts thousands of rays at drawn meshes: the same hits.
+- **Measure** before and after: `node --test --test-reporter=spec tests/x.test.js` prints each test's time.
+
+A bare V8 context (`engine/vm-run.mjs`, the engine bundles' tests) hands the bundle the context's built-ins as
+locals: a free name in a context made from an object is looked up through its interceptor on every read, and
+that made a world's build 15-20 times slower there than in Node (`tests/pose-exact.test.js` took 75 s, now 15).
 
 ## The load's smoke test (`scripts/load-smoke.mjs`)
 
