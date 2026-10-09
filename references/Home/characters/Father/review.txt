@@ -1,0 +1,2 @@
+User-selected reference. Preserve this design rather than mixing it with rejected variants.
+Single-view concept: additional angles must be derived from this selection; geometry is not verified by the image.

@@ -36,6 +36,9 @@ running, testing, shipping.
 
 ## Working rules
 
+- Visual references always use **Midjourney in the visible internal Codex browser**. Generate options
+  there for the user to heart/favourite; wait for their selections before downloading, saving into the
+  repository or integrating. Do not substitute another image generator unless explicitly requested.
 - Before every commit that touches code, `.githooks/pre-commit` runs the unit tests
   the change reaches (`scripts/affected-tests.mjs`; `FULL_TESTS=1` runs them all;
   enabled by `npm install`, or `git config core.hooksPath .githooks`). The whole suite

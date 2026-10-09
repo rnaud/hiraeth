@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-09",
+  "selection": "User favourites from the revised single-view Midjourney batches, plus the explicitly requested sword download.",
+  "assets": [
+    {
+      "folder": "Home/characters/Father",
+      "file": "reference-1.jpeg",
+      "job": "d8275abf-1f5b-4b34-9e7a-852287e6df14",
+      "image_index": 0,
+      "source_url": "https://www.midjourney.com/jobs/d8275abf-1f5b-4b34-9e7a-852287e6df14?index=0",
+      "original_download": "0_0 (72).jpeg",
+      "sha256": "874ec43fe51110e562c2057f05023914dcee2f02e1993270041ef44e40075571",
+      "bytes": 177257
+    },
+    {
+      "folder": "Home/characters/Mother",
+      "file": "reference-4.jpeg",
+      "job": "748263e9-c70f-4b16-ba66-1913ace10010",
+      "image_index": 3,
+      "source_url": "https://www.midjourney.com/jobs/748263e9-c70f-4b16-ba66-1913ace10010?index=3",
+      "original_download": "0_3 (72).jpeg",
+      "sha256": "d6308c926c8a5abbbe90c466cc5cdf80623ccd8d7520f3248ae900d63cb01e40",
+      "bytes": 289817
+    },
+    {
+      "folder": "Home/characters/Lou",
+      "file": "reference-3.jpeg",
+      "job": "263aa21f-614e-4240-8613-15e16e74db0e",
+      "image_index": 2,
+      "source_url": "https://www.midjourney.com/jobs/263aa21f-614e-4240-8613-15e16e74db0e?index=2",
+      "original_download": "0_2 (67).jpeg",
+      "sha256": "cb150672f40f172a711d0471adc640c934eac8584c508eda3627e242148fa002",
+      "bytes": 325358
+    },
+    {
+      "folder": "Home/characters/Ilen",
+      "file": "reference-1.jpeg",
+      "job": "ff7d453e-7810-459e-8e9c-6d007a6427c3",
+      "image_index": 0,
+      "source_url": "https://www.midjourney.com/jobs/ff7d453e-7810-459e-8e9c-6d007a6427c3?index=0",
+      "original_download": "0_0 (71).jpeg",
+      "sha256": "76e6c1e33b59bc01dfbf06e4e74706e290c257958a39ac17a6393bfb0c329ae7",
+      "bytes": 211244
+    },
+    {
+      "folder": "Home/characters/Aunt Tove",
+      "file": "reference-3.jpeg",
+      "job": "12f086a9-db93-45d2-94cf-8debc7b9ec5c",
+      "image_index": 2,
+      "source_url": "https://www.midjourney.com/jobs/12f086a9-db93-45d2-94cf-8debc7b9ec5c?index=2",
+      "original_download": "0_2 (66).jpeg",
+      "sha256": "a3264aa4df761c3aa29ec0d0b598a94b8f376a1a85cc75944e5ecac9263638fa",
+      "bytes": 197684
+    },
+    {
+      "folder": "Home/characters/Moustache",
+      "file": "reference-4.jpeg",
+      "job": "7bd44b87-0c45-4b9e-8e36-f82f4fca996b",
+      "image_index": 3,
+      "source_url": "https://www.midjourney.com/jobs/7bd44b87-0c45-4b9e-8e36-f82f4fca996b?index=3",
+      "original_download": "0_3 (71).jpeg",
+      "sha256": "c4a682054bc732bd2c197d11687f2936b86543748b80fcbfb2c6abfbbf50fa4b",
+      "bytes": 151496
+    },
+    {
+      "folder": "Core Objects/Currency/Small Floating Crystal",
+      "file": "reference-4.jpeg",
+      "job": "c9a6dc73-3cc1-4da5-90f5-a962e5d139ff",
+      "image_index": 3,
+      "source_url": "https://www.midjourney.com/jobs/c9a6dc73-3cc1-4da5-90f5-a962e5d139ff?index=3",
+      "original_download": "0_3 (70).jpeg",
+      "sha256": "5b218293912d0f090d0d2be968705d0babb89b735a7b05e7c8b03b78b50306e7",
+      "bytes": 132948
+    },
+    {
+      "folder": "The Travellers Ship/Angular Exterior - Selected",
+      "file": "reference-4.jpeg",
+      "job": "8a749a3d-4a9f-4275-8af3-6dfe6db1bb68",
+      "image_index": 3,
+      "source_url": "https://www.midjourney.com/jobs/8a749a3d-4a9f-4275-8af3-6dfe6db1bb68?index=3",
+      "original_download": "0_3 (69).jpeg",
+      "sha256": "83a1bac04d710ed71dc6d2cb8a2347c593642a98c6ccc6245dc9efd5034ceb9b",
+      "bytes": 201274
+    },
+    {
+      "folder": "Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09",
+      "file": "reference-3.jpeg",
+      "job": null,
+      "image_index": 2,
+      "source_url": null,
+      "original_download": "0_2 (53).jpeg",
+      "sha256": "3b1094e83fc95a3781f398f77846b5210d7b46b2e58a5c078c0ecb1aed87561d",
+      "bytes": 186349
+    }
+  ]
+}
