@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.3 — 2026-10-09
 
+- A box also takes its time from what it holds: a gadget’s box rocks three quick times, a charm’s only twice and opens sooner.
+- Opening a makers’ box now ends with a moment that suits what was inside: a gadget is tried once, the pale star is pinned on and shown worn, a charm is turned over in his hand and pocketed, a part for the tank clicks onto the pack, the glyph lens and the listening shell turn him toward the nearest box still shut, and the whistle and the echo shell play a few notes. It lasts under two seconds, and B / ○ or Esc skips it.
 - Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.
 - Once you know who Ilen was, a few people along the way have a word about her: Madame Sel at the Signal Market, Hollin in the deep wood and Nour in Qanat. Sel also hears how the message ended once you have found her, and Hollin can hear where Odile and Talo went even if you never promised to come back.
 - Ama no longer waves you straight on to the city while she still has her jar for you: as you come up to the camps she calls you over to her fire, once more at most if you pass near, and then asks about it as soon as you sit down. Once the jar is yours she waves you on as before.

@@ -242,7 +242,9 @@ test('a box opens through E and its scene, grants its item and stays open', () =
   assert.ok(step < 0.25, `no jump in the camera (largest step ${step.toFixed(2)} m)`);
   assert.equal(items.has('backpack'), false, 'not yours until you press on');
   assert.equal(boxes.dismiss(), true);
-  for (let i = 0; i < 60; i++) boxes.update(1 / 30, 9 + i / 30);
+  assert.equal(boxes.scene.phase, 'beat', 'the closing beat (the backpack: he tries it once)');
+  assert.equal(items.has('backpack'), true, 'granted as the beat starts');
+  for (let i = 0; i < 30 * 3.5; i++) boxes.update(1 / 30, 9 + i / 30);
   assert.ok(!boxes.busy(), 'over');
   assert.ok(shots.includes('release'), 'the camera goes back');
   assert.equal(items.has('backpack'), true, 'granted');
@@ -427,7 +429,7 @@ test('opening: it floats up, wobbles two or three times with rests between, then
   assert.ok(seen.leanMax > 0.1, 'it rocks');
   assert.ok(seen.restFrames > 10, 'and rests between');
   assert.ok(seen.minLift > LIFT * 0.95, 'floating all the while');
-  assert.deepEqual(knocks, WOBBLES.map((_, i) => i), 'a knock with each wobble');
+  assert.deepEqual(knocks, WOBBLES.map((_, i) => i), 'a knock with each wobble (the star: the plain three)');
   assert.ok(items.has('star'), 'and the item is yours');
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('star');
 });

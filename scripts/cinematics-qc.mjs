@@ -14,6 +14,8 @@
 //   node scripts/cinematics-qc.mjs --skip          also test the skip: hold Esc 1.2 s in, it must end within 3 s
 //   node scripts/cinematics-qc.mjs --size 844x390 --mobile        phone landscape (touch emulated)
 //   node scripts/cinematics-qc.mjs --out output/cinematics-qc/run1 --quality high --rest 5   (s idle between cinematics)
+//   node scripts/cinematics-qc.mjs --only box.desert.star --query boxPlan=high   (more of the page's URL: a box's
+//                                  camera plan forced, to see every plan with every closing beat)
 //   node scripts/cinematics-qc.mjs --only incal.lodestar --probe "window.camera.position.toArray()"
 //                                  evaluate an expression in the page at every screenshot: <out>/<id>/probe.json
 // PORT (default 5308) is Vite's; Chrome picks its own debugging port. Writes <out>/report.json and report.md.
@@ -297,7 +299,7 @@ async function playOne(c, base, entry, o) {
     for (const k of spread(o.frames * 3, o.frames)) { await c.ev(`window.trailer.draw(${(dur * k) / (o.frames * 3 - 1)}); true`); await sleep(400); await grab(`t${Math.round((dur * k) / (o.frames * 3 - 1))}`); }
     return { entry, status: 'frames only (scrubbed)', analysis: { ...analyse([]), played: true, duration: dur, skipShown: true, endedCleanly: true, barsShare: 1 }, errors: [...c.errors], shots, manual: true };
   }
-  await c.send('Page.navigate', { url: base + reviewURL(entry).replace(/^\.\//, '') });
+  await c.send('Page.navigate', { url: base + reviewURL(entry).replace(/^\.\//, '') + (o.query && entry.id !== 'trailer' ? `&${o.query}` : '') });
   let up = false;
   for (let i = 0; i < 4 * 180 && !up; i++) { try { up = await c.ev('!!window.__moebiusBooted && !!window.camera && !!window.ship'); } catch { /* loading */ } if (!up) await sleep(250); }
   if (!up) return { entry, status: `never came up (${c.errors.at(-1) ?? 'no error'})`, analysis: analyse([]), errors: [...c.errors], shots: [] };
@@ -310,7 +312,7 @@ async function playOne(c, base, entry, o) {
     if (st.playing && !started) { started = Date.now(); next = 0; }
     if (started && !ended) {
       if (Date.now() - started >= next) { next += every; await grab(`${((Date.now() - started) / 1000).toFixed(1)}s`); }
-      if (st.card) await c.ev('window.boxes.skip(); true');   // (the box's card waits for a press)
+      if (st.card) await c.ev('window.boxes.dismiss(); true');   // (the box's card waits for a press: A / E, as a player would, so the closing beat plays)
       // (the homecomings and the prologue wait on a choice now and then, the cargo check: confirm it, as a player would)
       if (/^(prologue|homecoming\.)/.test(entry.id) && Date.now() - started > (nextPress ??= 6000)) { nextPress += 6000; await pressEnter(c); }
       if (o.skip && !skip && Date.now() - started > 1200) {
@@ -364,7 +366,7 @@ async function main() {
   if (PORT === 5173) throw new Error('5173 is the author\'s own dev server: pick another PORT');
   const size = arg('size', '1280x720').split('x').map(Number);
   const o = { out: resolve(ROOT, arg('out', 'output/cinematics-qc')), frames: Number(arg('frames', 8)), every: Number(arg('every', 1)), quality: arg('quality', 'high'),
-    skip: flag('skip'), emptyInk: Number(arg('empty-ink', 3)), rest: Number(arg('rest', 3)), size, mobile: flag('mobile'), probe: arg('probe', null) };
+    skip: flag('skip'), emptyInk: Number(arg('empty-ink', 3)), rest: Number(arg('rest', 3)), size, mobile: flag('mobile'), probe: arg('probe', null), query: arg('query', '') };
   const { CINEMATICS } = await import('../src/cinematics-page/catalog.js');
   const entries = pickEntries(CINEMATICS, { only: arg('only')?.split(','), group: arg('group') });
   if (!entries.length) throw new Error('no cinematic matches');

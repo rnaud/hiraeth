@@ -17,6 +17,9 @@ export const CHANGELOG = [
       see: 'After the mother’s recording about Ilen has played at the console, go back to Madame Sel under the tower, to Hollin on his island or to Nour under the tree, and talk to them: a new answer about your sister. After the Lantern, Sel and Hollin have one more.' },
     { text: 'Saves from before you could choose what to do with Dov’s lift token now count it as kept: Dov mentions it, and Ilen asks about it at the Lantern.',
       see: 'Load a save that got the lift token from Dov in the City-Shaft before version 0.97 and talk to him at the palace gate after the Lodestar is lit.' },
+    // the makers' boxes
+    'Opening a makers’ box now ends with a moment that suits what was inside: a gadget is tried once, the pale star is pinned on and shown worn, a charm is turned over in his hand and pocketed, a part for the tank clicks onto the pack, the glyph lens and the listening shell turn him toward the nearest box still shut, and the whistle and the echo shell play a few notes. It lasts under two seconds, and B / ○ or Esc skips it.',
+    'A box also takes its time from what it holds: a gadget’s box rocks three quick times, a charm’s only twice and opens sooner.',
   ] },
   { v: '1.2', date: '2026-10-09', items: [
     // shadows in caves and rooms

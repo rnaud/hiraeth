@@ -48,6 +48,7 @@ node scripts/cinematics-qc.mjs --only arzach.bird,box.desert* --frames 10 --ever
 node scripts/cinematics-qc.mjs --group "World moments" --skip                      # + the skip test
 node scripts/cinematics-qc.mjs --group "World moments" --size 844x390 --mobile     # phone landscape
 node scripts/cinematics-qc.mjs --only incal.lodestar --probe "window.camera.position.toArray()"   # ask the page
+node scripts/cinematics-qc.mjs --only box.desert.star --query boxPlan=high        # a box under another camera plan
 ```
 
 `--probe "<js>"` evaluates an expression in the page at every screenshot and writes what it returned
