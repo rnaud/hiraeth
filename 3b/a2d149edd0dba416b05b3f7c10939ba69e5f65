@@ -1,0 +1,25 @@
+"references/The Desert/places/qanat-tree/manifest.json"
+  s_9ca76055a220ed::t_18e4af67037ab6 1-22
+"references/The Desert/places/ribcage/manifest.json"
+  s_9ca76055a220ed::t_b9ba24c0922eba 1-22
+"references/The Desert/places/skull-cave/manifest.json"
+  s_9ca76055a220ed::t_563e44851e0ac5 1-22
+"references/The Desert/places/skull/manifest.json"
+  s_9ca76055a220ed::t_c394c2fedf8159 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3ba2d149edd0dba416b05b3f7c10939ba69e5f65",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
