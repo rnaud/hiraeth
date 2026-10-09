@@ -1,0 +1,27 @@
+docs/systems/animation.md
+  s_9ca76055a220ed::t_c10333a38b2974 380
+docs/systems/conversations.md
+  s_9ca76055a220ed::t_1cd0ba7707c506 75,113
+tests/dialogue-playtest.test.js
+  s_9ca76055a220ed::t_2d82518d01b271 4
+tests/head-turn.test.js
+  s_9ca76055a220ed::t_0fd16c57840a9c 5-6,10
+tests/idle-legs.test.js
+  s_9ca76055a220ed::t_54f2b648b9ced1 7-10,52-59,67,70-77,83-89,93-94,140-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fdd12500511363c4a91aaae51d4ba3cb2af9b203",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
