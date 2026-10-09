@@ -141,7 +141,7 @@ test('the worlds list: small cards, the words of the focused one at the foot', (
   assert.match(html, /data-glyph="ok"/, 'A on the focused card');
   assert.match(html, /title="Dunes &amp; mesas\."/, 'the blurb is its tooltip, not on the card');
   assert.doesNotMatch(html, /<p>/);
-  assert.match(src('index.html'), /#picker \.cards \{ display: grid; grid-template-columns: repeat\(auto-fill, minmax\(min\(176px/);
+  assert.match(src('src/world-picker.css'), /#picker \.cards \{ display: grid; grid-template-columns: repeat\(auto-fill, minmax\(min\(176px/);
 });
 
 test('a menu\'s extra buttons on a pad: X / □ and Y / △ (a save\'s Delete, the items page\'s reset and turn)', () => {

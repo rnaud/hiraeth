@@ -1096,20 +1096,31 @@ const completed = () => !!journal.data.completed;
 const cont = SaveGame.load();
 // only the worlds you know of (src/story/route.js): the rest open as you go. ?level=<id> and the dev menu go anywhere.
 const pickable = LEVELS;   // the worlds list (L) is a debug tool: every world, open, whatever you've found (play travels by the ship's map)
-fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.level) ?? null, state: game });
+const debugMenu = fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.level) ?? null, state: game });
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
-  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : ''; }   // (a pad's back button: in the close button, src/pad-glyphs.js)
+  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'type to filter · a number opens · L closes' : ''; }   // (a pad's back button: in the close button, src/pad-glyphs.js)
+  if (!on && document.activeElement === debugMenu.search) debugMenu.search.blur();
 }
 showPicker(query.get('worlds') === '1');   // (?level=<id>&worlds=1: a world with the list up; the title's Debug entry shows the list alone, src/world-picker.js) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'KeyL') showPicker(!picker.classList.contains('open'));
-  if (e.code === 'Escape' && picker.classList.contains('open')) showPicker(false);
-  const n = Number(e.key);
-  if (picker.classList.contains('open') && n >= 1 && n <= pickable.length && (!pickable[n - 1].hidden || completed())) location.search = pickHref(pickable[n - 1].id);
+  if (e.target === debugMenu.search) return;   // (the Debug menu's filter: its keys are its own, src/world-picker.js)
+  const open = picker.classList.contains('open');
+  // (L opens it; open, L closes it unless a filter is being typed: a letter starts the filter)
+  if (e.code === 'KeyL' && (!open || !debugMenu.search.value)) { showPicker(!open); return; }
+  if (!open) return;
+  if (e.code === 'Escape') { if (debugMenu.search.value) debugMenu.filter(debugMenu.search.value = ''); else showPicker(false); return; }
+  if (e.code === 'PageDown' || e.code === 'PageUp') { e.preventDefault(); debugMenu.jump(e.code === 'PageDown' ? 1 : -1); return; }
+  const n = Number(e.key), list = debugMenu.numbered;   // (the worlds as the menu numbers them)
+  if (e.key !== ' ' && n >= 1 && n <= Math.min(9, list.length) && (!list[n - 1].hidden || completed())) location.search = pickHref(list[n - 1].id);
 });
+// a letter typed on the open Debug menu starts its filter, before the game's own keys see it (C, P, Q…)
+window.addEventListener('keydown', (e) => {
+  if (!picker.classList.contains('open') || e.target === debugMenu.search || (e.code === 'KeyL' && !debugMenu.search.value)) return;
+  if (debugMenu.typeKey(e)) e.stopPropagation();
+}, { capture: true });
 
 // ------------------------------------------------------------------ photo mode
 // P: free camera (WASD / Q E, mouse look, SHIFT faster), HUD hidden,
@@ -1238,7 +1249,7 @@ const closeControllerMenu = () => {
   else if (shopPanel.isOpen) shopPanel.back();   // (out of a purchase's question first, then out of the shop)
   else if (storyRt.moments.playing) storyRt.moments.skip();   // B / ○ skips a moment (src/story/moment.js)
   else if (boxes.busy()) boxes.skip();
-  else if (picker.classList.contains('open')) showPicker(false);
+  else if (picker.classList.contains('open')) { if (document.activeElement === debugMenu.search) debugMenu.search.blur(); else showPicker(false); }
   else if (pageUp()) pageEl.click();
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
   else pageEl.click();
@@ -1269,6 +1280,8 @@ const controller = new Controller({
     // LB / L1, RB / R1 in the game menu: the panel before, the one after
     if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === journal.el) journal.menu.turn(name === 'tabPrev' ? -1 : 1);
     if ((name === 'tabPrev' || name === 'tabNext') && quickMenu && menuRoot() === quickMenu.el) quickMenu.turn?.(name === 'tabPrev' ? -1 : 1);   // (the References' list: the world before / after)
+    if ((name === 'tabPrev' || name === 'tabNext') && menuRoot() === picker) debugMenu.jump(name === 'tabPrev' ? -1 : 1);   // (the Debug menu: the section before / after)
+    if (name === 'y' && menuRoot() === picker) debugMenu.focusSearch();   // (and Y its filter)
     if (name === 'confirm') {
       const root = menuRoot();
       if (root.id === 'dialogue') { const f = document.activeElement; if (f?.dataset?.i !== undefined && root.contains(f) && storyRt.dialogue.revealed >= storyRt.dialogue.runner.text.length) f.click(); else storyRt.dialogue.next(); }

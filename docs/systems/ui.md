@@ -606,7 +606,7 @@ Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` an
   kept. Other menus keep moving in their order. The worlds list (`#picker`, `cardHtml`) is a grid of small
   cards (a picture with its number, the name, the source, the save it opens in; the blurb and moves in the
   strip at the foot for the focused card), the focused one lifted in a red frame with A on it; the arrow
-  keys move the same way, LB / RB scroll a page. The items page's cards are a grid too.
+  keys move the same way, LB / RB jump between its sections (docs/systems/dev-tools.md "The Debug menu"). The items page's cards are a grid too.
 - **The item viewer full screen** (items.html, `src/items-page/`): on a handheld's 1920 × 1080 screen (about
   730 × 410 CSS px) the words covered the item. Now the bar holds the name and its buttons (◀ ▶ with LB /
   RB, turn with Y, reset with X, ✕ with B; the keys ← → R 0 Esc with the keyboard) and one short line under

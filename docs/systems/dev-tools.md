@@ -1,6 +1,40 @@
-# The Lab and the clipping audit
+# The Debug menu, the Lab and the clipping audit
 
-Developer levels and checks: the Lab, the worlds list's debug save, the clipping audit.
+Developer levels and checks: the Debug menu, the Lab, the worlds list's debug save, the clipping audit.
+
+## The Debug menu (v1.11, `src/world-picker.js`, `src/world-picker.css`)
+
+The title's **Debug** (and the Start menu's, and L in play) opens the Debug menu: alone at `?worlds=1` (the
+"◀ Debug" buttons' `DEBUG_MENU_HREF`, nothing built behind it), or over the world (`main.js`). It is one
+page in sections, each a heading with one line, in this order (`menuSections`):
+
+| Section | What is in it |
+| --- | --- |
+| **Play** | Continue (the world this save was left in), then the route's worlds (`ORDER`) in story order, each in the debug save |
+| **Story places** | the finished worlds off the route: Home, the Lantern, the Atelier (in your save) |
+| **Test rooms** | the `dev: true` levels: the Lab, the Arena, the Gadget Yard, the Arcade, the References |
+| **Worlds in progress** | the `WIP` worlds (off the galactic map) |
+| **Games** | the minigames (`gamesRow`), each with its best |
+| **Pages** | `PAGES` (What's new, Audits, Items, Creatures & spirits, Character studio, Motion, Cinematics, Trailer), `MAYBE_PAGES` (References, `references.html`: listed once the page answers, `probePages`) and on the dev server `DEV_PAGES` (the reference lab, tagged "dev server"; a build never lists it) |
+| **This build** | version, build number and commit (`__HIRAETH_BUILD__`, defined by `vite.config.js` `gitBuildInfo`; the Android / Deck app's build line in the app), dev server or build, and the debug save's note |
+
+Worlds are cards (picture, number, name, source, the save it opens in; `cardHtml`); everything else is a
+row (name, one line, a tag; `rowHtml`), the same paper, ink, offset shadow and red focus frame. The cards are
+numbered in the order shown (`pickOrder`): 1–9 open the route's first nine. The sticky header holds the title,
+the **filter** and close, and a chip a section (a click scrolls there; the one in view is lit).
+
+- **Keys**: typing a letter (or `/`) filters (every word must be in an item's name, line or id); Enter opens
+  the first match, Esc clears the filter and then closes; PgUp / PgDn the section before / after; the arrows
+  move in the grid. In play, L still opens and closes it (L closes only while no filter is typed), and the
+  letters typed on it are the filter's, not the game's.
+- **A controller**: the D-pad moves in 2D (`data-grid-nav`), A opens, B goes back (out of the filter first),
+  LB / RB jump between sections (their glyphs either side of the chips), Y opens the filter. The text box is
+  out of the D-pad's way (a handheld would open its keyboard): only Y reaches it.
+- **The way back**: the item opened is remembered for the tab (`sessionStorage` `moebius.debugMenu.last`); the
+  menu opened again (◀ Debug on a page, B from a world) focuses it and scrolls to it, so it comes back to the
+  section it was left from. Every link and its URL are as before (`pickHref`, `gameHref`, the pages' files).
+- **Sizes**: the sections' grids fill the width; under 620 px the filter takes a line of its own and the
+  headings' lines go under them; under 480 px tall (a handheld on its side) it tightens. `tests/world-picker.test.js`.
 
 ## The Lab (v0.39)
 
@@ -9,8 +43,8 @@ previous or next world's room, the hub between the last and the first. The Start
 **Debug** entry opens the worlds list over the world you're in. The title's opens it alone
 (`?worlds=1`, `src/world-picker.js`): `boot.js` draws the cards without loading `main.js`,
 so no world is built behind it (about 1 s on the dev server; on the Lab it took about 15 s).
-`?level=<id>&worlds=1` still opens a world with the list up. The list's top row links the game's other
-pages (`PAGES` in `src/world-picker.js`: the character studio, Motion, the trailer, What's new, Items). The
+`?level=<id>&worlds=1` still opens a world with the list up. Its Pages section links the game's other
+pages (`PAGES` in `src/world-picker.js`, see "The Debug menu" above). The
 items page (`items.html`, `src/items-page/`) shows every item of `src/items.js` in 3D: its model
 (`buildItemModel`) drawn by the game's own pipeline (`viewer.js`: the G-buffer, a fine shadow map with the near
 and far ones made and switched off, the ink pass, FXAA) on the slots' paper. One renderer for the page: each

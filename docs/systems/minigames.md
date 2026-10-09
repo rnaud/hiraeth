@@ -11,9 +11,9 @@ rhythm game (`src/minigames/drums.js`), and the **Sketch hunt** in the Signal Ma
 
 ## Playing one
 
-- **The worlds list** (Debug on the title, L in play) has a **Games** row under the pages
+- **The Debug menu** (Debug on the title, L in play) has a **Games** section
   (`src/world-picker.js` `gamesRow(games, state)`): each opens the game's page, `?game=<id>`, its best in the
-  save under its name (`gameBest`: a best of each difficulty shows the one chosen last).
+  save beside its name (`gameBest`: a best of each difficulty shows the one chosen last).
 - **In a world**, an arcade sign: `placeGameMarker(world, gameId, pos)` (`src/minigames/kit/marker.js`) stands
   a glowing post with "play …" on the interact button; it opens `?game=<id>&from=<level>`. The desert has
   Fishing's on the shore of the mineral basin (`desert-vistas.js` `BASIN`), the Canyon run's under the lavender

@@ -1,5 +1,6 @@
 import { defineConfig, searchForWorkspaceRoot } from 'vite';
 import { existsSync, realpathSync, rmSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { auditsPlugin } from './scripts/audits-data.mjs';
 import { referenceLabPlugin } from './scripts/reference-lab/server.mjs';
@@ -35,8 +36,20 @@ const dropMakeHuman = () => ({
   apply: 'build',
   writeBundle(options) { if (process.env.MAKEHUMAN === '0') rmSync(`${options.dir ?? 'dist'}/${MH_DIR}`, { recursive: true, force: true }); },
 });
+/**
+ * What this build is, for the Debug menu's "This build" (src/world-picker.js buildInfo): its commit and its
+ * build number (the commits up to it, as scripts/release-info.mjs gameBuild numbers the APK and the web
+ * bundle; none from a shallow clone). Nothing when git isn't there.
+ */
+export function gitBuildInfo(run = (...a) => execFileSync('git', a, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()) {
+  const info = {};
+  try { info.commit = run('rev-parse', '--short=8', 'HEAD'); } catch { return info; }
+  try { if (run('rev-parse', '--is-shallow-repository') === 'false') info.build = Number(run('rev-list', '--count', 'HEAD')) || undefined; } catch { /* no count */ }
+  return info;
+}
 export default defineConfig({
   base: './',
+  define: { __HIRAETH_BUILD__: JSON.stringify(gitBuildInfo()) },
   // main.js loads in stages with top-level await
   // The game, trailer, character studio (studio.html, src/studio/) and Motion page
   // (motion.html, src/motion/: the traveller's loops against motion matching): they ship with the game

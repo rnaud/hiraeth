@@ -14,6 +14,7 @@ if (new URLSearchParams(location.search).has('cinematicReview')) {
 import './menus.css';
 import './game-menu.css';
 import './shop-panel.css';
+import './world-picker.css';   // (the Debug menu, src/world-picker.js: over the game, and alone at ?worlds=1)
 import { installNativePad, watchLabels } from './native-pad.js';
 import { installGlyphs } from './pad-glyphs.js';
 import { opensTitle } from './save-slots.js';

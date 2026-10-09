@@ -1,0 +1,122 @@
+/* The Debug menu (src/world-picker.js, docs/systems/dev-tools.md "The Debug menu"): the game's paper and
+   ink, as the audits and the changelog pages. A sticky header (the title, the filter, the close button and
+   a chip a section), then the sections, each a heading with one line and its cards (worlds) or rows. */
+#picker {
+  --paper: #f7ecd2; --card: #fffaf0; --ink: #2b211f; --soft: #6d5f57; --rule: #d8c9a8; --gold: #f2c54b; --red: #c8483a;
+  position: fixed; inset: 0; z-index: 5000; display: none; overflow: auto; overscroll-behavior: contain;
+  background: rgba(247, 236, 210, 0.97); color: var(--ink); font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace;
+  padding: 0 calc(16px + var(--safe-right, env(safe-area-inset-right, 0px))) calc(72px + var(--safe-bottom, env(safe-area-inset-bottom, 0px))) calc(16px + var(--safe-left, env(safe-area-inset-left, 0px)));
+  box-sizing: border-box;
+}
+#picker.open { display: block; }
+#picker *, #picker *::before, #picker *::after { box-sizing: border-box; }
+#picker [hidden], #picker .filtered { display: none !important; }
+
+/* the header */
+#picker header {
+  position: sticky; top: 0; z-index: 3; margin: 0 calc(-16px - var(--safe-right, env(safe-area-inset-right, 0px))) 0 calc(-16px - var(--safe-left, env(safe-area-inset-left, 0px)));
+  padding: calc(12px + var(--safe-top, env(safe-area-inset-top, 0px))) calc(16px + var(--safe-right, env(safe-area-inset-right, 0px))) 8px calc(16px + var(--safe-left, env(safe-area-inset-left, 0px)));
+  background: var(--paper); border-bottom: 2px solid var(--ink);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+}
+#picker h1 { flex: 1 1 auto; min-width: 0; margin: 0; font-size: 18px; letter-spacing: 0.16em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#picker h1 span { font-size: 12px; letter-spacing: 0; font-weight: normal; opacity: 0.6; }
+#picker .tools { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; }
+#picker .tools .hint { font-size: 11px; color: var(--soft); white-space: nowrap; }
+#picker .tools .hint:empty { display: none; }
+#picker .search { display: inline-flex; align-items: center; gap: 4px; padding: 0 6px; height: 30px; background: var(--card); border: 2px solid var(--ink); cursor: text; }
+#picker .search .glyph { margin: 0; font-size: 10px; }
+#picker .search input { width: 15em; min-width: 0; height: 100%; border: 0; background: none; font: inherit; color: inherit; outline: none; padding: 0 2px; }
+#picker .search input::placeholder { color: var(--soft); opacity: 0.8; }
+#picker .search:focus-within { outline: 4px solid var(--red); outline-offset: 1px; }
+#picker .search .say { display: none; font-size: 12px; }
+/* a controller: the box is only Y's (a D-pad that lands in a text box would open the handheld's keyboard) */
+body.controller #picker:not(.typing):not(.filtering) .search input { display: none; }
+body.controller #picker:not(.typing):not(.filtering) .search .say { display: inline; }
+body.controller #picker:not(.typing):not(.filtering) .search { cursor: default; }
+#picker .close { display: inline-flex; align-items: center; height: 30px; padding: 0 10px; font: inherit; color: inherit; background: var(--card); border: 2px solid var(--ink); cursor: pointer; white-space: nowrap; }
+#picker .close:hover, #picker .close:focus-visible { background: #fff; outline: 4px solid var(--red); outline-offset: 1px; }
+
+/* the sections' chips: a tap scrolls to it; LB / RB on a pad */
+#picker .jump { flex: 1 0 100%; display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; padding: 2px 2px 3px; margin: 0; }
+#picker .jump::-webkit-scrollbar { display: none; }
+#picker .jump > * { flex: none; }
+#picker .jump .glyph { margin: 0 2px; font-size: 10px; }
+body:not(.controller) #picker .jump .glyph { display: none; }
+#picker .chip { padding: 2px 11px; font: inherit; font-size: 12px; color: inherit; background: var(--card); border: 1.5px solid var(--ink); border-radius: 14px; cursor: pointer; }
+#picker .chip:hover { background: #fff; }
+#picker .chip.here { background: var(--ink); color: var(--paper); }
+#picker .chip:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
+#picker .chip[disabled] { opacity: 0.35; cursor: default; }
+
+/* the sections */
+#picker .dbg-section { margin: 22px 0 0; }
+#picker h2.sec { margin: 0 0 12px; padding-bottom: 3px; border-bottom: 1.5px solid var(--ink); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #7a3a35; }
+#picker h2.sec small { margin-left: 8px; font-size: 11px; letter-spacing: 0.02em; text-transform: none; font-weight: normal; color: var(--soft); }
+#picker .card, #picker .row { scroll-margin: var(--head, 128px) 12px 72px; }
+
+/* the worlds: a grid of small cards a controller moves through in 2D (data-grid-nav) */
+#picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(176px, 44vw), 1fr)); gap: 14px; }
+#picker .card {
+  position: relative; display: flex; flex-direction: column; min-width: 0; color: inherit; text-decoration: none; background: var(--card);
+  border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); transition: transform 0.12s, box-shadow 0.12s;
+}
+#picker .card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+#picker .card.current { outline: 3px dashed #d9643a; outline-offset: 3px; }
+#picker .card:focus, #picker .card:focus-visible { z-index: 1; outline: 4px solid var(--red); outline-offset: 2px; background: #fff6dc; transform: translate(-3px, -3px) scale(1.04); box-shadow: 8px 8px 0 var(--ink); }
+#picker .card .pic { position: relative; display: block; aspect-ratio: 16 / 9.5; border-bottom: 2px solid var(--ink); background: #efe3c6; overflow: hidden; }
+#picker .card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+#picker .num { position: absolute; left: 6px; top: 6px; min-width: 1.4em; padding: 1px 5px; text-align: center; font-size: 12px; background: #fbf4e2; border: 1.5px solid var(--ink); }
+#picker .card .glyph.on-focus { position: absolute; right: 6px; bottom: 6px; margin: 0; font-size: 15px; }
+#picker .txt { display: block; min-width: 0; padding: 6px 8px 8px; }
+#picker .card h3 { margin: 0; font-size: 13px; line-height: 1.25; letter-spacing: 0.03em; }
+#picker .src { display: block; font-size: 11px; font-style: italic; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#picker .along { display: block; margin-top: 3px; font-size: 10px; color: var(--soft); }
+
+/* the rows: a name and one line, the same paper and ink as the cards */
+#picker .rows { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr)); gap: 10px 14px; }
+#picker .rows.lead { margin-bottom: 14px; }
+#picker .row {
+  position: relative; display: flex; flex-direction: column; justify-content: center; gap: 1px; min-width: 0; min-height: 48px; padding: 6px 12px;
+  color: inherit; text-decoration: none; background: var(--card); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink); transition: transform 0.12s, box-shadow 0.12s;
+}
+#picker a.row:hover { background: #fff; transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+#picker a.row:focus, #picker a.row:focus-visible { z-index: 1; outline: 4px solid var(--red); outline-offset: 2px; background: #fff6dc; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+#picker .row .lbl { display: flex; align-items: baseline; gap: 8px; font-weight: 700; letter-spacing: 0.03em; }
+#picker .row .lbl small { margin-left: auto; flex: none; font-weight: normal; font-size: 10px; letter-spacing: 0.06em; }
+#picker .row .hint { display: block; font-size: 11.5px; color: var(--soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#picker .row .glyph.on-focus { position: absolute; right: 8px; bottom: 6px; margin: 0; font-size: 13px; }
+#picker .row small.tag { padding: 0 6px; border: 1.5px dashed var(--ink); border-radius: 9px; text-transform: uppercase; }
+#picker .row small.best { padding: 0 6px; background: var(--gold); border: 1.5px solid var(--ink); border-radius: 9px; }
+#picker .row.continue { background: var(--gold); }
+#picker .row.continue .hint { color: #5a4630; }
+#picker .facts .row.fact { box-shadow: none; border-style: dashed; border-width: 1.5px; min-height: 40px; }
+#picker .facts .row.fact .lbl { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a5a3c; font-weight: normal; }
+#picker .facts .row.fact .hint { font-size: 13px; color: var(--ink); }
+#picker .debug-note { grid-column: 1 / -1; margin: 2px 0 0; max-width: 70em; font-size: 12px; color: var(--soft); }
+#picker .none { margin: 28px 0; color: var(--soft); }
+#picker .none button { font: inherit; padding: 3px 9px; background: var(--card); border: 1.5px solid var(--ink); cursor: pointer; }
+
+/* the focused card's words, at the foot */
+#picker .info { position: fixed; left: 50%; bottom: calc(10px + var(--safe-bottom, 0px)); transform: translateX(-50%); z-index: 4; width: min(760px, calc(100vw - 24px));
+  margin: 0; padding: 7px 12px; font-size: 12px; line-height: 1.4; background: #fbf4e2; border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); }
+#picker .info .moves { display: inline; margin-left: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
+
+/* a phone: the filter takes a line of its own; the hint goes */
+@media (max-width: 620px) {
+  #picker h1 { font-size: 15px; letter-spacing: 0.12em; }
+  #picker .tools { flex: 1 0 100%; order: 2; }
+  #picker .tools .hint { display: none; }
+  #picker .search { flex: 1 1 auto; }
+  #picker .search input { width: 100%; }
+  #picker .jump { order: 3; }
+  #picker h2.sec small { display: block; margin: 2px 0 0; }
+}
+/* a short screen (a handheld on its side, a phone held across): tighter */
+@media (max-height: 480px) {
+  #picker header { padding-top: calc(6px + var(--safe-top, env(safe-area-inset-top, 0px))); padding-bottom: 5px; gap: 5px 10px; }
+  #picker h1 { font-size: 15px; }
+  #picker .dbg-section { margin-top: 14px; }
+  #picker h2.sec { margin-bottom: 8px; }
+  #picker .row { min-height: 40px; padding: 4px 10px; }
+}
