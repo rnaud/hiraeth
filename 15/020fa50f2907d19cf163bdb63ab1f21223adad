@@ -1,0 +1,29 @@
+.claude/skills/enemy-rework/SKILL.md
+  s_9ca76055a220ed::t_4ac040eb42b0fa 12
+changelog.md
+  s_9ca76055a220ed::t_b56033cf9228fb 7
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_83cc60d863a7c6 894
+docs/systems/foes.md
+  s_9ca76055a220ed::t_01227a78c260ad 693
+src/changelog-media.js
+  s_9ca76055a220ed::t_54ab47d0516c0d 483-505
+src/changelog.js
+  s_9ca76055a220ed::t_f8d2b9dd4738d8 26-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15020fa50f2907d19cf163bdb63ab1f21223adad",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
