@@ -18,11 +18,18 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 ## Shadows and visuals
 
-- [ ] Marrow casts a white shadow towards the ship during dialogue.
-- [ ] On the stairs to the big tree, shadows move with the camera and the character casts a white shadow.
-- [ ] The Golden Dunes entrance looks stuck, though it works.
-- [ ] The transition between worlds looks wrong on a white background when heading to space.
-- [ ] Do a visual audit at different screen resolutions.
+- [ ] The Golden Dunes entrance looks stuck, though it works. (Unclear which entrance: no door or gate in
+  the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
+  panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
+  the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
+- [ ] The spot blacks (post.js enclosure) are screen-space with fixed taps: on stepped geometry (the tree's
+  stairs, terrace risers) the masses come in blocks that shift as the camera moves, worst on Handheld's 4
+  taps. People no longer leave ghosts in them (DONE.md); the blocks themselves want a steadier estimate
+  (world-space, or a wider threshold for 4 taps) checked against the desert's sheets.
+- [ ] Touch controls on a phone held sideways (812 x 375) cover the right half of the view, the button
+  cluster reaching the top edge; scale the cluster with the screen's height. (Resolution audit, 9 October.)
+- [ ] The pause menu's footer ("Your progress is saved as you play.") sits a pixel under the bottom at
+  1280 x 720 with the dev-only Debug entry; the side scrolls to it. Fine for players; tidy if the side grows.
 
 
 ## Gameplay

@@ -1242,3 +1242,28 @@ tests/sound-mix.test.js holds them.
   from a spot on the terrace 3.4 m from its middle, and with no `look` the traveller turned to that spot:
   standing between it and the rim, his back to the well. It now looks at wellInside, down the shaft.
   tests/desert-story.test.js.)
+
+## Shadows and visuals (playtest 2026-10-08, done 9 October)
+
+- [x] Marrow casts a white shadow towards the ship during dialogue; on the stairs to the big tree, shadows
+  move with the camera and the character casts a white shadow. (Not the shadow maps: they follow the player
+  and snap to texels as they should. The "shadows" were the spot blacks, post.js `enclosure`, a screen-space
+  share of taps standing in front of a point; a tap landing on a person counted as open, so wherever a person
+  stood in front of a dark mass (the ship's hull, the stair risers) the mass got a pale hole in their shape,
+  offset by each tap, sliding with the camera. A tap on a person now looks past them, twice as far out, and is
+  left out of the share if that lands on a person too (`occlusionShare`); crease shading (`creaseAO`) leaves
+  person taps out the same way. The Unity port's Composite.shader had no person test at all and got the same
+  rule. tests/occlusion-taps.test.js; checked in Qanat on the stairs, Handheld, debug view 9 before and after.)
+- [x] The transition between worlds looks wrong on a white background when heading to space. (The warp,
+  src/ship/cinema.js `Warp`, drew ink streaks on the paper's cream, then the next world's loading screen was
+  cream too. Space now opens from the middle in the night's ink (`WARP`, `warpLook`), the streaks in cream,
+  teal and red, a few stars; index.html gives the loading screen the same ink when it is reached ?via=ship.
+  tests/cinema.test.js.)
+- [x] Do a visual audit at different screen resolutions. (Title, HUD, pause menu, settings, a conversation,
+  the journal and its Worlds page at 1280 x 720, 1920 x 1080, 2560 x 1440, 1280 x 800, 812 x 375, 375 x 812
+  and 1080 x 2400, headless Chrome, screenshots plus a script listing text off screen, cut or under 10 px.
+  Fixed: the pause menu's buttons ran off the bottom of a phone held sideways (Quit to title only by
+  scrolling: a compact side at max-height 480 px), took two thirds of a phone held upright (smaller buttons),
+  and the PAUSED title overflowed its column on tall narrow screens (sized by width too); the journal's and
+  the title's smallest words (7-9 px) have a 9-10 px floor. Bigger findings are in TODO.md.)
+

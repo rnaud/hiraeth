@@ -341,3 +341,14 @@ panels, the cursor, the page), `src/game-menu-data.js` (what fills them, from th
   the title in italics and the first step (`#toast.quest`, index.html). Later steps, endings and every
   other notice stay plain.
 
+## Screen sizes (resolution audit, 9 October 2026)
+
+Checked at 1280 × 720, 1920 × 1080, 2560 × 1440, 1280 × 800 (Steam Deck), 812 × 375 (a phone on its side),
+375 × 812 and 1080 × 2400: the title, the HUD, the pause menu and its settings, a conversation, the journal
+and its Worlds page, with a script listing text off screen, cut, or under 10 px. In src/menus.css: the pause
+menu's side is compact at `max-height: 480px` in landscape (smaller PAUSED, the save on one line, 12 px
+buttons: all of them show, down to Quit to title), its buttons are smaller on a phone held upright (the
+settings get the screen), and PAUSED is sized by the width too (`min(7vh, 8vw)`: it ran out of its column on
+tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-10 px floor, and the title's
+"Continue" world name at least 11 px. Still open (TODO.md): the touch controls' size on a phone held sideways.
+

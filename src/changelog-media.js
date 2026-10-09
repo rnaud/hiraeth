@@ -170,6 +170,15 @@ const MENU = `menu.toggle(true); ${sleepJs(500)}`;
 const WAY = { bowl: [646.27, 141.38], camp: [1028.02, -97.03], bell: [1442.76, -315.37] };
 
 export const CHANGELOG_MEDIA = {
+  '1.1': [
+    { match: 'People no longer leave a pale, person-shaped ghost', shots: [
+      { name: 'person-ghost', caption: 'Climbing the stairs to the great tree in Qanat, Handheld, 9:30', from: 'headless Chrome against this branch’s own dev server, Handheld preset, the same pinned camera before and after the fix (9 October)' },
+    ], see: 'In Qanat, climb the stairs round the great tree with the camera close behind: the risers beside you stay as dark as the rest.' },
+    { match: 'Heading to space now opens onto the night', shots: [
+      { name: 'space-jump', caption: 'The jump to space after take-off, 1280 × 720', from: 'headless Chrome against this branch’s own dev server: the old warp drawing and the new, the same moment of the jump (9 October)' },
+    ], see: 'Take off from the ship’s galactic map to any world.' },
+    { match: 'The pause menu fits on a phone held sideways', see: 'On a phone, open the pause menu held sideways and upright; checked at 812 × 375, 375 × 812, 1080 × 2400, 1280 × 720, 1280 × 800, 1920 × 1080 and 2560 × 1440.' },
+  ],
   '1.0': [
     { match: 'In conversations the traveller holds still', numbers: [
       { title: 'The traveller standing 30 s, idle and in a conversation', better: 'lower', device: 'the real rig and clips in Node (tests/talk-still.test.js)', source: 'tests/talk-still.test.js, 8 October', rows: [

@@ -9,6 +9,13 @@ import { inputKind } from './prompt-keys.js';
 import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
+  { v: '1.1', date: '2026-10-09', items: [
+    // shadows and visuals, from the playtest
+    'People no longer leave a pale, person-shaped ghost in the dark shading behind them (Marrow by the ship, the traveller on the stairs to the great tree), and the dark masses round them no longer jump about as the camera moves.',
+    'Heading to space now opens onto the night: the jump’s streaks fly across a dark sky instead of a blank white page, and the next world’s loading screen keeps that dark.',
+    // screens at every size
+    'The pause menu fits on a phone held sideways (every button shows, down to Quit to title) and takes less of the screen on a phone held upright; the smallest words in the journal and on the title screen are a little larger.',
+  ] },
   { v: '1.0', date: '2026-10-08', items: [
     // the opening, from the playtest
     { text: 'Your father’s message at the start is shorter and tighter: four lines instead of six, about nine seconds less, and under his last words something starts to hum and the picture begins to break up, just before the impact.', see: 'Start a new game and play the voicemail in the cockpit; listen under “Bring back something of value.”' },
