@@ -158,3 +158,19 @@ test('the guard is in place before any sound: the title screen and a loading wor
   assert.match(src('audio.js'), /start\(\) \{\s*\/\/[^\n]*\n\s*if \(this\.guard\?\.away\(\)\)/);
   assert.match(src('story/arzach2.js'), /audioAway\(\)\) return false;/, 'the bell\'s own context');
 });
+
+test('review mute is applied at Sound construction, overriding an audible saved preference',async()=>{
+  const p=page(),saved={window:globalThis.window,localStorage:globalThis.localStorage};
+  p.win.navigator={getAutoplayPolicy:()=> 'disallowed'};
+  globalThis.window=p.win;
+  const writes=[];globalThis.localStorage={getItem:()=> '0',setItem:(...args)=>writes.push(args)};
+  try{
+    const {Sound}=await import('../src/audio.js');
+    for(let reload=0;reload<3;reload++){
+      const s=new Sound('desert',{muted:true});
+      assert.equal(s.muted,true);assert.equal(s.masterLevel(),0,'zero gain before the context can start');
+    }
+    assert.equal(new Sound('desert').muted,false,'normal play retains the saved preference');
+    assert.deepEqual(writes,[],'preview mute does not change the player preference');
+  }finally{globalThis.window=saved.window;globalThis.localStorage=saved.localStorage;}
+});

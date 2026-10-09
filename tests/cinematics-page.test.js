@@ -19,6 +19,7 @@ test('review storage never writes through to a player save and starts fresh on r
   const a = reviewStorage('?cinematicReview=desert.flow'); a.setItem('moebius.s1.game.v1', 'temporary');
   assert.equal(a.getItem('moebius.s1.game.v1'), 'temporary');
   const b = reviewStorage('?cinematicReview=desert.flow'); assert.equal(b.getItem('moebius.s1.game.v1'), null);
+  assert.equal(new URL(reviewURL(CINEMATICS.find(e=>e.id==='trailer')), 'https://example.com/').searchParams.get('muted'),'1');
   a.removeItem('moebius.s1.game.v1'); assert.equal(a.getItem('moebius.s1.game.v1'), null);
 });
 

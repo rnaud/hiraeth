@@ -795,3 +795,68 @@ Review record (2026-10-08, `codex/quest-character-rebuild`):
 Repairs found through inspection: floating lanterns and lamp stems; separated balanced stones; a misplaced wizard-hat orb; pack cones transformed about the wrong origin; padded seams outside the torso; missing procedural beards; Nima's short hem; Wendel's obscuring headwear and Hollin/Robin's mismatched mushroom additions; detached wing roots and machine/guardian joints; shared mutable enemy warning materials; and shade inversion when recoil overwrote Euler angles after a quaternion turn. The shade regression exercises a complete turn including recoil.
 
 The reviewed snapshots show these repairs working. They are not a guarantee of zero clipping across all frames, collision situations, cloth wind conditions, crowd seeds, fallback body shapes, or guardian attacks. Fine face details and garment volumes remain stylized approximations. The subsequent world-enemy implementation adds 100 procedural interpretations of those references; see foes.md for its attack system and separate review coverage. Legacy enemy families and guardians remain available.
+
+## Generated father (October 2026)
+
+The father’s holographic recordings use `public/characters/father-v1/model.glb`:
+25,220 triangles, a 2K colour texture and the game’s 53-bone skeleton. The approved
+T-pose, untouched Tripo export, sampled vertex colours and generation provenance
+are in `data/characters/father-v1/`. `src/characters/father-fit.js` fits this asset’s
+forward-facing palms and all thirty finger joints; it does not change the traveller fit.
+
+`src/characters/father-v1.js` builds independent instances and adds subtle runtime
+blink/jaw morphs. The export contains skinning, but these morphs and the speaking
+performance are supplied by the game. `Hologram` loads the asset asynchronously,
+replaces any early procedural father and retains that fallback on load failure.
+The texture passes through the existing hologram shader, bust clipping and scan lines.
+
+The generated coat remains fused to the body. Below the waist the mesh follows the
+pelvis rigidly, avoiding tears between trousers and coat in this stationary recording
+role. This is not a walking NPC or a simulated cloth asset. Face motion is stylized,
+not a phoneme rig. Painted crease/ink lines remain, although no broad directional
+shadow was apparent in unlit inspection; opposite-light inspection changes shading.
+
+Review locally at `tools/father-review.html` (unlit, matte, hologram; rest/idle/talk;
+flat/relaxed/fist) and `cinematics.html#call.1` for the actual ship recording. Bind-pose,
+independent-instance, texture, speech and all thirty finger influence checks live in
+`tests/father-v1.test.js`. Browser review used the internal browser on port 5174.
+
+The recording derivative is 1.50 MB (previously 4.56 MB), with 14,931 vertices
+and one draw call. `scripts/tripo/slim-father.mjs` removes hidden geometry below
+0.90 m and unused payload, retaining all surviving vertex attributes and skeleton.
+The 2K colour map uses approximately 22.4 MB with RGBA8 mipmaps, versus 89.5 MB
+for 4K. Full-body source stays in data; the reproducible full working rig is under
+output. The review page can compare both. These reductions do not constitute a
+measured mobile FPS gain. Budget checks live in `tests/father-v1.test.js`.
+
+Motion correction: loose-coat slice medians had misplaced both shoulders, while
+colour-based weight patches split neighbouring surface vertices. The father now
+uses measured shoulder/chest joint centres and a continuous anatomical weight
+field with a broad elbow blend. The mouth is at y=1.613 m and eyes at 1.682 m,
+measured with the preview guides; speech displacement is zero above y=1.625 m.
+Tests exercise 36 seconds of real idle/talk/idle animation, edge stretch and
+upper-face isolation. Neutral clay and isolated mouth controls expose defects
+that final hologram shading can hide. Crease lines remain from the generated
+texture and mesh; reducing texture resolution changes cost, not that art style.
+
+The speech morph also has a strict lower boundary at y=1.596 m; throat, scarf
+and collar vertices remain unchanged. For the generated father, gaze adds only
+a head turn: the procedural torso sway/turn and speech nod layer are disabled,
+leaving the base clip responsible for body motion. Matched-time left/right gaze
+regressions check torso/shoulder/neck world transforms and actual skinned chest,
+scarf-base and shoulder vertices while requiring a real head turn. `char.head`
+also retargets the neck, so father gaze is applied to `Head` after retargeting.
+The skull blend ends below the jaw; the outer raised collar is excluded from the
+neck core. The preview’s paused Gaze control switches direction without advancing
+the base performance, exposing clothing shifts that a moving clip could hide.
+
+The chin extends down to approximately y=1.575, so skull weights follow a sloping
+jaw boundary, with the gaze pivot inside the neck at (0, 1.58, 0.035). The fused
+neck's short transition still needs a shared runtime correction: 328 vertices use
+interpolated gaze rotation and 16 passes of pinned edge/bend constraints. UV seam
+duplicates share solver nodes. This keeps the jaw/collar boundaries fixed while
+preventing the neck from collapsing under combined yaw/pitch. Positions reset from
+rest every frame and when switching the review to rest; translated/rotated spawns
+are covered. The exported GLB contains the fitted rig/weights; the correction,
+like the face keys, runs in `father-v1.js` in both game and review. The review now
+measures animation CPU time separately from render submission.

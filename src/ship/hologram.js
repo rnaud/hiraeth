@@ -5,6 +5,7 @@ import { Animator } from '../animator.js';
 import { namedLook } from '../costumes.js';
 import { FAMILY, FAMILY_LOOKS } from '../characters/family.js';
 import { MODE_OUTFIT, MODE_EYE } from '../materials.js';
+import { loadFatherV1, createFatherV1, applyFatherGaze, FATHER_FACE } from '../characters/father-v1.js';
 
 // The recordings' hologram (src/story/calls.js): the parents, as they were when
 // they made them, projected as busts over the lens of the projector on the dash
@@ -118,6 +119,7 @@ const overlay = (() => {
 
 const vertexShader = /* glsl */ `
   #include <skinning_pars_vertex>
+  #include <morphtarget_pars_vertex>
   uniform float uTime;
   uniform float uGlitch;
   uniform float uSeed;
@@ -127,16 +129,20 @@ const vertexShader = /* glsl */ `
   out vec3 vBind;
   out vec3 vLocal;
   out vec3 vCol;
+  out vec2 vUv;
   out float vDepth;
   void main() {
     vec3 transformed = position;
     vec3 objectNormal = normal;
+    #include <morphinstance_vertex>
+    #include <morphtarget_vertex>
     #ifdef USE_SKINNING
       #include <skinbase_vertex>
       #include <skinnormal_vertex>
       #include <skinning_vertex>
     #endif
     vBind = position;
+    vUv = uv;
     #ifdef USE_COLOR
       vCol = color;
     #else
@@ -173,6 +179,8 @@ const fragmentShader = /* glsl */ `
   uniform vec2 uSpan;        // world y of the lens and the picture's top: it builds from the bottom
   uniform vec2 uCut;         // the bust: gone below x, whole above y (the figure's own metres)
   uniform int uKind;
+  uniform sampler2D uMap;
+  uniform vec4 uGeneratedFace;
   uniform vec3 uColor;
   uniform vec3 uColor2;
   uniform vec3 uColor3;
@@ -186,6 +194,7 @@ const fragmentShader = /* glsl */ `
   in vec3 vBind;
   in vec3 vLocal;
   in vec3 vCol;
+  in vec2 vUv;
   in float vDepth;
   out highp vec4 fragColor;
   const vec3 INK = vec3(0.13, 0.1, 0.11);
@@ -205,6 +214,10 @@ const fragmentShader = /* glsl */ `
     if (cut < grain * 0.55 + 0.01) discard;
 
     vec3 alb = uColor;
+    if (uKind == 4) {
+      alb = texture(uMap, vUv).rgb;
+      alb = mix(alb * 12.92, 1.055 * pow(max(alb,vec3(0.0)), vec3(1.0/2.4)) - .055, step(vec3(.0031308),alb));
+    }
     if (uKind == 1) alb = vCol * uColor;
     else if (uKind == 2) {
       vec3 b = vBind;
@@ -235,6 +248,10 @@ const fragmentShader = /* glsl */ `
 
     // the face's ink lines: lids, the fold by the nose, the mouth opening as they talk
     float ink = 0.0;
+    if (uKind == 4 && vBind.z > uGeneratedFace.w && uTalk > .01) {
+      vec2 mouth = vec2(vBind.x / uGeneratedFace.y, (vBind.y - uGeneratedFace.x + uTalk * .004) / (.001 + uTalk * .006));
+      ink = (1.0 - smoothstep(.7, 1.0, length(mouth))) * uTalk;
+    }
     if (uKind == 2 && uFace.x > 0.0 && vBind.y > uOutfit.z && abs(vBind.x) < 0.16 && vBind.z > 0.03) {
       vec2 q = vec2(abs(vBind.x), vBind.y - uFace.x);
       float fw = max(fwidth(q.y), 1e-4) * 1.3;
@@ -406,9 +423,11 @@ export function holoLook(mat, vertexColors = false) {
   const U = mat?.uniforms ?? {};
   const c = (k, d) => new THREE.Color().copy(U[k]?.value ?? mat?.color ?? new THREE.Color(d));
   const mode = U.uMode?.value;
-  const kind = mode === MODE_OUTFIT ? 2 : mode === MODE_EYE ? 3 : vertexColors ? 1 : 0;
+  const kind = mode === MODE_OUTFIT ? 2 : mode === MODE_EYE ? 3 : mat?.map ? 4 : vertexColors ? 1 : 0;
   return {
     uKind: { value: kind },
+    uMap: { value: mat?.map ?? null },
+    uGeneratedFace: { value: new THREE.Vector4(FATHER_FACE.mouthY,.023,0,FATHER_FACE.frontZ) },
     uColor: { value: c('uColor', '#ffffff') },
     uColor2: { value: c('uColor2', '#ffffff') },
     uColor3: { value: c('uColor3', '#ffffff') },
@@ -460,7 +479,7 @@ const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _o = new THREE.Vector3
 
 /** One person on the hologram: a dressed body drawn in light, played by the mocap library, cut to a bust. */
 export class HoloFigure {
-  constructor(id, { lib, humans }) {
+  constructor(id, { lib, humans, fatherAsset = null }) {
     const P = PEOPLE[id];
     this.id = id;
     this.kind = P.kind;
@@ -470,14 +489,18 @@ export class HoloFigure {
     // (their own look wherever they appear: the family's, src/characters/family.js; the child's seeded)
     const look = namedLook({ world: 'home', id: P.family ? id : `holo-${id}`, palette: P.palette, look: P.look, kind: P.kind });
     // (on MakeHuman bodies, their age's body: an elder's, as the people of their age, src/makehuman/people.js)
-    let human = humans[P.kind === 'm' ? 0 : 1];
-    const mh = human?.userData?.mhPeople;
-    if (mh && P.def) human = mh.templateFor({ kind: P.kind, def: P.def, dress: look }) ?? human;
-    this.humanoid = new Humanoid(human, this.char, P.kind, { skin: P.skin, hair: P.hair, build: look.build });
-    // (their hair on their own skull: costumes.js scalp; their own face)
-    if (look.face) { this.humanoid.ownFace = look.face; this.humanoid.setFace(look.face); }
-    this.humanoid.dress(look);
-    if (P.moustache) this.addMoustache(P.hair);
+    if (id === 'father' && fatherAsset) {
+      this.humanoid = createFatherV1(this.char, fatherAsset);
+    } else {
+      let human = humans[P.kind === 'm' ? 0 : 1];
+      const mh = human?.userData?.mhPeople;
+      if (mh && P.def) human = mh.templateFor({ kind: P.kind, def: P.def, dress: look }) ?? human;
+      this.humanoid = new Humanoid(human, this.char, P.kind, { skin: P.skin, hair: P.hair, build: look.build });
+      // (their hair on their own skull: costumes.js scalp; their own face)
+      if (look.face) { this.humanoid.ownFace = look.face; this.humanoid.setFace(look.face); }
+      this.humanoid.dress(look);
+      if (P.moustache) this.addMoustache(P.hair);
+    }
     this.animator = lib ? new Animator(lib, this.char) : null;
     if (this.animator) this.animator.phase = Math.random();
     const B = BUST[P.kind];
@@ -533,6 +556,7 @@ export class HoloFigure {
   update(dt, { talking = false, face = null, other = null } = {}) {
     this.t += dt;
     const c = this.char, a = this.animator, t = this.t;
+    const generatedFather = !!this.humanoid.body.userData.father;
     if (a) {
       const N = a.lib.native;
       a.update(dt, { speed: 0, onGround: true, mode: talking ? 'talk' : 'ground', walkAt: N.walk * 1.3, jogAt: N.jog, sprintAt: N.sprint * 1.2, strideScale: 1.05 });
@@ -568,14 +592,32 @@ export class HoloFigure {
     const talkK = talking ? 1 : 0.25;
     const nod = Math.sin(t * 5.3) * Math.max(0, Math.sin(t * 1.7 + this.seed)) * 0.07 * talkK + Math.sin(t * 0.8) * 0.012;
     const tilt = wave(t * 0.6, this.seed) * (talking ? 0.07 : 0.04);
-    c.torso.rotateY(this.look.yaw * 0.25 + wave(t * 0.5, this.seed + 3) * 0.035 * (talking ? 1.4 : 1));
-    c.torso.rotateZ(wave(t * 0.7, this.seed + 5) * 0.022);
-    c.torso.rotateX(Math.sin(t * 1.5) * 0.012 + (talking ? Math.max(0, Math.sin(t * 1.7 + this.seed)) * 0.03 : 0));
-    c.head.rotateY(this.look.yaw * 0.75);
-    c.head.rotateX(this.look.pitch + nod);
-    c.head.rotateZ(tilt);
+    // The generated coat already follows the recorded torso performance. A
+    // glance must not add a second turn/lean to its chest and attached arms.
+    if (!generatedFather) {
+      c.torso.rotateY(this.look.yaw * 0.25 + wave(t * 0.5, this.seed + 3) * 0.035 * (talking ? 1.4 : 1));
+      c.torso.rotateZ(wave(t * 0.7, this.seed + 5) * 0.022);
+      c.torso.rotateX(Math.sin(t * 1.5) * 0.012 + (talking ? Math.max(0, Math.sin(t * 1.7 + this.seed)) * 0.03 : 0));
+    }
+    if (!generatedFather) {
+      c.head.rotateY(this.look.yaw * .75);
+      c.head.rotateX(this.look.pitch + nod);
+      c.head.rotateZ(tilt);
+    }
     this.humanoid.update();
+    // char.head retargets neck_01 as well as Head. Its rotation drags the
+    // generated scarf/lapels even when every torso bone stays unchanged.
+    // Add gaze only after retargeting, at the actual skull joint.
+    if (generatedFather) {
+      applyFatherGaze(this.humanoid,this.look.yaw,this.look.pitch);
+    }
     this.u.uTalk.value = mouthOpen(this.t, talking);
+    if (this.humanoid.body.userData.father) {
+      const mesh=this.humanoid.body;
+      mesh.morphTargetInfluences[0]=Math.max(0,1-Math.abs((t%4.3)-.13)/.10);
+      mesh.morphTargetInfluences[1]=this.u.uTalk.value;
+      this.humanoid.hands.update(dt,{mode:'ground',talk:{tone:'solemn',k:talking?1:0,beat:this.u.uTalk.value}});
+    }
   }
 }
 
@@ -588,6 +630,15 @@ export class Hologram {
     this.lib = lib;
     this.humans = humans;
     this.figures = {};
+    this.fatherReady = loadFatherV1(import.meta.env?.BASE_URL ?? '/').then(asset => {
+      this.fatherAsset=asset;
+      const old=this.figures.father;
+      if(!old)return;
+      const next=new HoloFigure('father',{lib:this.lib,humans:this.humans,fatherAsset:asset});
+      next.object.position.copy(old.object.position);next.object.quaternion.copy(old.object.quaternion);
+      next.object.visible=old.object.visible;
+      this.root.remove(old.object);this.root.add(next.object);this.figures.father=next;
+    }).catch(e=>{console.warn('Father v1 unavailable; using procedural recording.',e);});
     this.root = new THREE.Group();
     this.root.name = 'hologram';
     this.root.matrixAutoUpdate = false;
@@ -618,7 +669,7 @@ export class Hologram {
 
   figure(id) {
     if (!this.figures[id]) {
-      try { this.figures[id] = new HoloFigure(id, { lib: this.lib, humans: this.humans }); } catch (e) { console.warn('hologram figure failed', e); return null; }
+      try { this.figures[id] = new HoloFigure(id, { lib: this.lib, humans: this.humans, fatherAsset:this.fatherAsset }); } catch (e) { console.warn('hologram figure failed', e); return null; }
       this.root.add(this.figures[id].object);
     }
     return this.figures[id];

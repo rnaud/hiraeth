@@ -416,6 +416,8 @@ export class Humanoid {
   constructor(template, char, kind = 'm', { skin = '#e8c6a8', hair = '#8a6a55', gloves = null, suit = false, outfit = null, build = null } = {}) {
     this.char = char;
     this.kind = kind;
+    this.palmNormal = template.userData.palmNormal ? new THREE.Vector3().fromArray(template.userData.palmNormal) : null;
+    this.preserveFingerRest = template.userData.preserveFingerRest === true;
     // the traveller: the same body, skeleton and face as everyone, its suit painted on and its gear worn on top (traveller.js)
     this.outfit = !!outfit;
     if (outfit) ({ skin, hair } = { skin: TRAVELLER_PALETTE.skin, hair: TRAVELLER_PALETTE.brow });
@@ -493,7 +495,7 @@ export class Humanoid {
       const along = this.rest.get(B[`middle_01_${s}`]).p.clone().sub(origin).normalize();
       const span = this.rest.get(B[`index_01_${s}`]).p.clone().sub(this.rest.get(B[`pinky_01_${s}`]).p);
       const normal = new THREE.Vector3().crossVectors(along, span).normalize();
-      if (normal.y > 0) normal.negate();   // palms face down in the T-pose
+      if (this.palmNormal ? normal.dot(this.palmNormal) < 0 : normal.y > 0) normal.negate();
       return [s, { along, normal }];
     }));
     this.restHipMid = this.rest.get(B.thigh_l).p.clone().add(this.rest.get(B.thigh_r).p).multiplyScalar(0.5);

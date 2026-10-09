@@ -17,6 +17,10 @@ export async function seedReview() {
 }
 export async function startReview(w) {
   const e = selected();
+  w.sound.muted = true;
+  w.sound.setVolumes(0, 0);
+  w.sound.setVoices(0);
+  if (w.sound.master) w.sound.master.gain.setValueAtTime(0, w.sound.ctx.currentTime);
   const state = w.cinematicReview = { paused: false, status: 'Loading', id: e.id };
   const tell = () => {
     const m = w.storyRt?.moments?.current ?? w.storyRt?.world?.state?.moment ?? w.ship?.cinematic ?? w.boxes?.scene;
@@ -39,7 +43,6 @@ export async function startReview(w) {
     const deadline = Date.now() + 120000;
     while (!w.__moebiusBooted) { if (Date.now() > deadline) throw new Error('World loading timed out. Replay to retry.'); await new Promise(r => setTimeout(r, 100)); }
     while (w.document.getElementById('loading')) { if (Date.now() > deadline) throw new Error('Loading overlay did not close. Replay to retry.'); await new Promise(r => setTimeout(r, 50)); }
-    w.sound?.setVolumes?.(0, 0);
     w.story.closePage?.();
     if (e.query) { state.status = 'Playing · interactive sequences use the game controls'; return; }
     const W = w.storyRt.world, V = (...a) => new w.THREE.Vector3(...a), up = V(0, 1, 0);

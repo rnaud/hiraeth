@@ -338,6 +338,7 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
   '1.7': [
+    { match: 'Your father’s recordings now use', see: 'Open Debug → Cinematics → Recording 1 · Home to see the new father in the ship’s projector.' },
     { match: 'The fluid blade is the chosen sword now', shots: [
       { name: 'sword-hand', caption: 'In hand (the studio, Blade and shield): the slim glowing blade and plain hilt before; after, the broad turquoise blade out of a brass cup, cream currents up it', from: 'headless Chrome against a dev server (studio.html?backpack=true&sword=true&view=arms), the same pose before and after' },
       { name: 'sword-hilt', caption: 'The hilt close up: before a bar guard and a ball pommel; after the brass collar opening into an oval cup, the wrapped grip and the pommel with its curled tail', from: 'headless Chrome against a dev server (studio.html, view Hands), the same pose before and after' },
@@ -451,6 +452,7 @@ export const CHANGELOG_MEDIA = {
     ], see: 'Call a guardian in the Arena (FOES list > Temple guardians) or fight one in its temple: each has its own moves and combos; at each change of phase it staggers for a couple of seconds and lights up with cracks (a machine) or glyph veins (a living one), and its moves change.' },
     { match: 'Their openings are read from their bodies', see: 'Let a guardian’s stamp, charge, dive or spin miss you: it stays stuck a moment (the Keeper’s forefeet in the stone, the Foreman spinning dizzy, its face open), and that counts as its opening. A slam that sends a ring along the floor is jumped (or flown over with the jets).' },
     { match: 'Among the new moves:', see: 'The Keeper (the desert’s Givers’ House), the Elder (Vael’s Aerie), the Mother Snapper (Lorn’s Hush-House), the warden (the City-Shaft), the Clockwork Foreman (the First Garage) and the First Sign (the Signal Market’s Undertower): each in its temple, or in the Arena’s ring.' },
+
     // the galactic map's signature search
     { match: 'The galactic map has a signature search', shots: [
       { name: 'map-search', caption: 'The map on a new journey (1280 × 720): before, Vael and Lorn named outright; after, two uncharted regions and the scanner warming near Vael (four bars, “strong”)', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },

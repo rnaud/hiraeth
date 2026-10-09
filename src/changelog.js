@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.7', date: '2026-10-09', items: [
+    { text: 'Cinematic previews start and replay silently, including dialogue and the trailer.', see: 'Open Debug → Cinematics and replay any scene. Sound stays off until you enable it.' },
+    'Your father’s recordings now use his chosen likeness: silver hair, a slate-blue coat and rust waistcoat, with moving hands and a softly animated face inside the hologram. His shoulders and sleeves bend smoothly, speech leaves his nose and neck still, glances turn his head without pulling his jaw, collar or torso, and his neck keeps its shape through turns, and the recording model is two thirds smaller to download.',
     // the audits page
     'Debug: an Audits page gathers every review of the game (the look, the fights, the worlds, the temples, the dialogue, the speed, the cinematics) with their scores as tables and bars, their findings with pictures, the edits they ranked and the to-do items they led to, and shows how the scores changed between two reviews of the same kind; it works with a controller.',
     // foes walk on jointed legs (the locomotion kit)

@@ -15,6 +15,7 @@ User-approved Midjourney originals and provenance are indexed in
 Use the selected single-view designs as the source of truth; derive further views from them
 rather than mixing the earlier inconsistent exploration sheets.
 
+- [ ] Extend the generated father beyond the recording bust for full-body walking and clothing motion; the procedural family is integrated (see DONE.md).
 - [ ] **Generate and integrate the angular ship redesign** from
   `references/The Travellers Ship/Angular Exterior - Selected/reference-4.jpeg`.
   Establish one consistent 3D hull and derive all angles from it. Fit a proper walkable cockpit,

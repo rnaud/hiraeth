@@ -274,7 +274,7 @@ export class Hands {
     const along = restP(bone('middle_01')).clone().sub(origin).normalize();
     const span = restP(bone('index_01')).clone().sub(restP(bone('pinky_01')));
     const normal = new THREE.Vector3().crossVectors(along, span).normalize();
-    if (normal.y > 0) normal.negate();   // (palms face down in the T-pose)
+    if (h.palmNormal ? normal.dot(h.palmNormal) < 0 : normal.y > 0) normal.negate();
     span.addScaledVector(normal, -span.dot(normal)).normalize();
     const joints = [];
     // a joint's bend at rest (rad, + toward the palm): each segment flattened onto the plane the fingers curl in
@@ -302,7 +302,7 @@ export class Hands {
     // finger, the same on both hands. A rig bent only toward the palm at rest (the MakeHuman people's
     // natural curl; the Quaternius bodies' are straight, within 3°) keeps its rest, as the poses and
     // the props they hold were set on it.
-    if (!joints.some((J) => J.zero > HANDS.straighten)) for (const J of joints) J.zero = 0;
+    if (h.preserveFingerRest || !joints.some((J) => J.zero > HANDS.straighten)) for (const J of joints) J.zero = 0;
     const thumb = [];
     for (let j = 0; j < 3; j++) {
       const b = bone(`thumb_0${j + 1}`), d = b && dirOf(b);

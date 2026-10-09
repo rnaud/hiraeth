@@ -1,0 +1,56 @@
+{
+  "character": "father",
+  "status": "integrated-stationary-recording-asset",
+  "reference": "reference.jpeg",
+  "referenceApproval": "User explicitly approved corrected T-pose option 1 on 2026-10-09",
+  "referenceUrl": "https://www.midjourney.com/jobs/da8c7afb-5670-4301-94c1-3189ede40490?index=0",
+  "identityReferenceUrl": "https://www.midjourney.com/jobs/d8275abf-1f5b-4b34-9e7a-852287e6df14?index=0",
+  "tripoJob": "f45a1697-c215-440c-a931-6e233a64d729",
+  "tripoUrl": "https://studio.tripo3d.ai/workspace/generate/f45a1697-c215-440c-a931-6e233a64d729",
+  "settings": {
+    "model": "H3.1",
+    "triangles": 50000,
+    "texture": "4K",
+    "removeLighting": true,
+    "pbr": false,
+    "ultraMeshQuality": true,
+    "generateInParts": false
+  },
+  "credits": {
+    "before": 3045,
+    "cost": 50,
+    "after": 2995
+  },
+  "validation": {
+    "unlitTexture": "Inspected front, quarter, side and back; crease ink remains, no broad directional shading apparent.",
+    "oppositeLights": "Matte preview relit from left and right; surface shading changes.",
+    "rig": "Sloping chin/skull weights and fitted neck pivot; pinned runtime neck correction. Full-range combined yaw/pitch edge ratio 0.588\u20132.120; 36-second idle/talk/idle check, jaw rigidity, torso/scarf isolation, repeated poses, rest reset and translated/rotated spawns pass.",
+    "gameIntegration": "Replayed corrected, optimized father in muted ship recording. Browser displayed the father correctly; console also contained generic Chromium UnknownError messages without application stack traces.",
+    "build": "vite build passed",
+    "tests": "55 targeted father/ship/changelog/media/audio-guard/cinematics tests passed, including 12 father regressions; vite build passed.",
+    "previewCpu": "Internal browser review animation CPU median about 1.6 ms, render submission 0.1 ms. Desktop observation, not GPU frame time or mobile FPS."
+  },
+  "source": {
+    "file": "source.glb",
+    "sha256": "f03b563576a0a564b1fb3558176ded4ad8b33389c9e1bafc09a92cafbdf1402c",
+    "vertices": 28773,
+    "triangles": 49118
+  },
+  "runtime": {
+    "file": "public/characters/father-v1/model.glb",
+    "sha256": "b1d85bc234de518ad6ea4743d56abdd3211db3b0d71868658ab99537566f853f",
+    "bones": 53,
+    "faceMorphs": "runtime only; blink and stylized jaw",
+    "triangles": 25220,
+    "vertices": 14931,
+    "textureSize": 2048,
+    "bytes": 1504332,
+    "gazeCorrection": "Runtime only: 328 transition vertices, 1722 edge/bend constraints, 16 iterations; corrected positions and normals shared by game and review."
+  },
+  "limitations": [
+    "Fused dressed mesh; no separate cloth or hidden body.",
+    "Lower body follows pelvis rigidly for stationary holographic recordings; walking is not supported.",
+    "Face motion is stylized rather than a phoneme rig.",
+    "Runtime derivative is cropped below 0.90 m for holographic recordings. Source texture and geometric crease detail remain; no mobile FPS gain measured."
+  ]
+}

@@ -210,3 +210,24 @@ management. Do not import the review renderer into the game; only share its mate
 adapter, leaving world lighting, hero tags and the existing render passes in charge.
 The bare GLB still does not contain the reconstructed clothing or cloth simulation;
 those run in both the game and the review through the shared code.
+
+## Father v1 — recording asset
+
+Source and approved T-pose: `data/characters/father-v1/`; provenance records the
+Tripo job, 50-credit generation and Remove Lighting setting. The earlier posed
+prototype is not used. Rebuild the runtime GLB from the untouched source:
+
+```sh
+mkdir -p output/character-tripo/father-v1
+node scripts/tripo/rig-baseline.mjs data/characters/father-v1/source.glb output/character-tripo/father-v1/full-before.glb --father
+node scripts/tripo/slim-father.mjs output/character-tripo/father-v1/full-before.glb public/characters/father-v1/model.glb
+node scripts/tripo/verify-rig.mjs public/characters/father-v1/model.glb
+node --test tests/father-v1.test.js tests/hands.test.js tests/ship.test.js
+```
+
+The checked-in `data/characters/father-v1/colors.json` samples source UVs in vertex
+order. To resample after replacing the source, sample the full source UV order (never the compacted runtime bust) and rebuild. Rig-specific finger coordinates must be remeasured for a new source.
+The lower body is held to the pelvis for stationary holograms; walking and cloth
+are not supported. Runtime face keys are supplied by `src/characters/father-v1.js`.
+Use `tools/father-review.html` for unlit/opposing-light checks and the game’s
+`cinematics.html#call.1` for integration review. Use temporary folders for downloads.

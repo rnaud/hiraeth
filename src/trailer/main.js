@@ -29,7 +29,9 @@ const status = document.querySelector('#status'), play = document.querySelector(
 const record = document.querySelector('#record'), sound = document.querySelector('#sound');
 const W = film.width, H = film.height;
 const RW = 3840, RH = 2160; // Supersample before the 1440p encode.
-let renderer, audio, master, audioStream, recorder, stream, playing = false, elapsed = 0, last = 0, muted = false;
+let renderer, audio, master, audioStream, recorder, stream, playing = false, elapsed = 0, last = 0, muted = new URLSearchParams(location.search).get('muted') === '1';
+sound.textContent = muted ? 'Sound off' : 'Sound on';
+sound.setAttribute('aria-pressed', String(!muted));
 const worlds = new Map();
 let active = null;
 THREE.ColorManagement.enabled = false;

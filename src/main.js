@@ -538,7 +538,9 @@ rig.constrain = (cam) => { level.constrainCamera?.(cam); keepLensOut(cam, () => 
 await slice();
 
 // ------------------------------------------------------------------ sound, weather, people, story
-const sound = new Sound(levelId);
+// Review playback must be silent before audio initialization or any input starts
+// a context; startReview runs after world loading and is too late for this.
+const sound = new Sound(levelId, { muted: query.has('cinematicReview') ? true : undefined });
 // the body heard: jumps, landings, the climb, the wings, the roll, falling and getting up (src/foley.js)
 const foley = new BodyFoley(sound);
 interactHooks.onUse = () => sound.pickup({ pos: player.pos });   // (picking something up, taking it)

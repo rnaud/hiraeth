@@ -179,7 +179,7 @@ export const CRYSTAL_PARTIALS = [[1, 1, 1], [1.006, 0.55, 0.9], [2.32, 0.42, 0.6
 
 export class Sound {
   /** score: false plays no world music (the title screen: only the menu music). */
-  constructor(levelId, { score = true } = {}) {
+  constructor(levelId, { score = true, muted = store.get('moebius.muted') === '1' } = {}) {
     this.score = score;
     this.menuOn = false;
     // the world's score (src/score.js): the unknown (the title, the Lab) play the desert's
@@ -189,7 +189,7 @@ export class Sound {
     this.voice = { lead: S.pal.lead, pluck: S.pal.pluck, ambience: AMBIENCE[levelId] ?? 'wind', melody: S.motif };
     this.act = { ...CALM_ACT };   // what you are doing, eased (update): the score follows it
     this.ctx = null;
-    this.muted = store.get('moebius.muted') === '1';
+    this.muted = muted;
     this.musicVol = 0.8;
     this.fxVol = 1.0;
     this.musicModeSetting = 'moments';   // Settings > Music: the recorded theme for the moments, or always (src/music-moments.js)

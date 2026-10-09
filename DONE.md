@@ -1844,3 +1844,9 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   studio and home-family tests updated to the designs. docs/systems/characters.md ("The family"),
   docs/systems/procedural-animation.md ("Moustache on the kit"). Not modelled: Ilen's grey streaks, the mother's
   slate undersleeves, the father's coat pockets; the faces are the game's procedural faces shaped toward each drawing.
+
+- [x] Rebuilt the father in Tripo from the approved corrected T-pose, with Remove Lighting
+  enabled. Preserved source/provenance, fitted the game skeleton and thirty finger joints,
+  and integrated the textured model into father holographic recordings with runtime face
+  motion and a procedural load-failure fallback. Reviewed unlit, with opposite lights and
+  in the ship recording. This is the stationary bust asset; walking and separate cloth remain.

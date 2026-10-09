@@ -16,5 +16,5 @@ export const CINEMATICS = [
 ];
 export function reviewURL(entry) {
   const q = new URLSearchParams({ level: entry.world, cinematicReview: entry.id, ...entry.query });
-  return entry.id === 'trailer' ? './trailer.html' : `./index.html?${q}`;
+  return entry.id === 'trailer' ? './trailer.html?muted=1' : `./index.html?${q}`;
 }

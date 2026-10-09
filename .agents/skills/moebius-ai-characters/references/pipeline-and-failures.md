@@ -4,11 +4,71 @@
 
 The original experiment used Tripo and reference sheets with a coral overshirt, cream trousers, dark hair and several optional accessories. The user chose no backpack for that iteration. Preserve identity before optimizing topology. Compare eye spacing, nose/profile, jaw/chin, hair mass, shoulder width, torso/leg ratios and garment length; a good texture can conceal poor shape.
 
-If using Midjourney or another image generator to normalize views, retain one identity reference and one explicit rest pose. Ask for orthographic-like front/side/back, consistent camera height and scale, even diffuse light, and unobstructed hands. Visually verify the outputs: prompts do not guarantee these properties. Use modest/clothed base layers when a bare under-body is unnecessary. Reference normalization is optional if current images already work.
+Use Midjourney to normalize references, unless the user explicitly chooses another image service. Retain one identity reference and a verified T-pose for humanoid game assets. Ask for orthographic-like views, consistent camera height and scale, even diffuse light, and unobstructed open empty hands. Visually verify the outputs: prompts do not guarantee these properties. Use modest/clothed base layers when a bare under-body is unnecessary. Reference normalization is optional only if the selected image already meets the T-pose and lighting requirements. Generate held accessories separately rather than fusing them into the hand.
+
+### Father prototype lesson (2026-10-09)
+
+Tripo H3.1 job `40ed419a-3512-417b-8647-370734310bff` used the selected father reference with one hand in a pocket and the other holding a cap. It produced a 49,036-triangle posed visual prototype, not an animation-ready character. This input should have been converted to a verified T-pose before spending the 50 credits. Importing a posed mesh is possible, but restoring hidden hand anatomy and separating contact regions may require reconstruction; auto-rigging is not a substitute for suitable input.
+
+Remove Lighting was enabled, with 4K textures and PBR disabled. Dark coat/cap regions remain visible in the service preview; without an exported unlit review, their contribution from texture versus preview shading is unverified. Do not describe this prototype as free of baked shadows. GLB export attempts did not produce a confirmed local file in this session.
 
 Keep untouched source GLBs, job identifiers and versioned derived files. The baseline export contained a fused mesh, texture and no usable skin/animation. A segmentation result with ten parts still grouped inner shirt/scarf with outer torso. Neither proved an independent overshirt existed. Do not reuse these historical service details as current feature claims.
 
 ## Rest fit, deformation and fingers
+
+### Father motion and budget corrections (2026-10-09)
+
+The first father fit passed normalized-weight and bind-pose checks but failed motion:
+loose coat slices put the shoulders too low and asymmetrically forward; painted
+colour thresholds produced discontinuous coat weights. Measured joint centres and
+a continuous anatomical weight field fixed the shoulder/lapel tearing. Broader
+elbow blending avoids a narrow hinge in the sleeve. The first speech landmark
+(1.646 m) was near the nose; the actual mouth is approximately 1.613 m. Isolated
+face guides exposed this error. Speech displacement is now restricted below the
+nose, with a regression that checks the upper face stays unchanged.
+
+The original full rig also cost 4.56 MB, 49,118 triangles and a 4K texture (~89.5 MB
+decoded RGBA8 with mipmaps). `scripts/tripo/slim-father.mjs` keeps the full source
+rebuildable but ships a recording-only bust: 25,220 triangles, 14,931 vertices,
+1.50 MB, one draw call and a 2K texture (~22.4 MB with mipmaps). It removes geometry
+entirely below 0.90 m and unused payload without decimating face or fingers. Do not
+use this cropped derivative for a walking NPC. These budgets are asset-specific;
+no mobile FPS gain has been measured. Source crease detail remains in both the
+colour atlas and geometry. Check clay alongside unlit to distinguish those causes.
+
+`tools/father-review.html` provides pause, face guides, isolated mouth states and
+elbow focus. `tests/father-v1.test.js` samples actual idle/talk/idle cycles and
+surface edge stretch. These supplement visual inspection; they do not certify
+natural deformation or acceptable art style by themselves.
+
+The first gaze repair stopped procedural torso rotation but still failed visually:
+`char.head` retargeted both `neck_01` and `Head`, dragging neck-weighted scarf and
+lapels while torso-bone invariance tests passed. Father gaze now applies at the
+actual skull joint after retargeting. The skull weight blend ends below the jaw;
+outer raised collars are excluded from the anatomical neck core. The regression
+compares actual skinned chest/scarf-base/shoulder vertices and neck transforms at
+matching clip times, and checks rigid jaw attachment. Paused left/right controls
+now update gaze immediately without advancing the performance. Do not infer
+visible isolation from control names or unchanged torso bones alone.
+
+The next profile review found the chin near y=1.575, below the earlier 1.596
+test boundary. A sloping skull boundary and a pivot fitted inside the neck avoid
+shearing the chin. Linear skinning still compressed the short transition during
+combined yaw/pitch. The shared runtime now corrects 328 transition vertices with
+interpolated gaze rotation plus pinned edge/bend constraints, welding UV duplicates
+for the solve. Skull and clothing boundaries stay fixed; this is a local deformation
+correction, not cloth. Sixteen iterations pass the full gaze-range compression and
+stretch gate. Check actual corrected positions, not the original attribute values,
+when measuring posed geometry. Rest reset and translated/rotated spawn tests guard
+against cumulative edits and space errors. The review reports animation CPU time
+separately from renderer submission; neither is a mobile GPU benchmark.
+
+Rebasing onto the newer shared hand driver exposed another interaction: its
+generic rest-straightening pass distorted the father's already fitted, forward-palm
+digits. The full-cycle surface regression caught it. A per-template
+`preserveFingerRest` option keeps this asset's measured rest while retaining the
+upstream correction for other characters. Recheck fitted assets when shared
+rest-pose correction changes; do not disable a global fix to accommodate one rig.
 
 Nearest-surface barycentric weights preserve the source shape, but transfer poorly when donor anatomy is misplaced. Fit before transferring, including individual digits. Merely translating the donor hand left its longer, bent fingertips outside this generated flat hand. All ten distal finger bones initially had zero meaningful influence despite normalized weights and a correct bind-pose roundtrip. This was a real wiring defect, not just subtle animation. A second defect was in the
 hand driver: it skipped terminal phalanges when no extra fingertip leaf existed.
@@ -42,6 +102,8 @@ Color-based separation is fragile: brown trouser shadows can resemble coral clot
 ## Materials and preview fidelity
 
 Generated metallic/roughness/normal maps made skin and cloth glossy. Matte material settings improved this asset, but cannot remove highlights or shadows baked into base color. Inspect each material rather than stripping maps universally.
+
+For every generated game character, review base color with an unlit material (no lighting, shadows, AO, normal map or post-processing). Inspect face, under chin, armpits, coat folds, crotch and boots for directional darkening or highlights painted into the texture. Then use a neutral lit material and move the key light between opposing directions while keeping camera/exposure fixed. Geometry shadows should respond to light; painted lighting remains fixed. Save both views and record whether the texture passes. Keep intentional graphic outlines, but remove broad illumination gradients and contact-shadow stains from albedo. If cleanup is needed, retain the original export and make a versioned texture correction or regeneration; follow the repository's Midjourney rule for AI image edits unless explicitly overridden. Recheck identity, palette and UV seams after correction. If clean albedo cannot be verified, label the asset a prototype and leave game integration pending.
 
 A standard Three.js material cannot be sent directly through this game's multi-target G-buffer. Adapt it to the shared game material shader, retaining vertex colors, texture, lining and repair blends. The game uses printed RGB shader colors; the normal review uses linear color management. Convert deliberately and avoid double conversion when toggling.
 
