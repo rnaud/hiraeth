@@ -55,7 +55,7 @@ namespace Memento
                 {
                     if (!Q.Has("backpack")) { game.hud.Toast("It needs power."); return; }
                     G.Set("desert.bike.found", true); dormant = false;
-                    game.hud.Toast("The hose clicks in; the fluid lights its caps. The hoverbike hums.");
+                    game.hud.Toast("The tank clicks in; the fluid lights its caps. The hoverbike hums.");
                 },
             }); }
             Interact.Add(new Interactable

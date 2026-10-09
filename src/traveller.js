@@ -400,30 +400,31 @@ function rucksack(chestY, chestZ) {
 /**
  * The glove the fluid comes out of, after the coral-shirt sheets: a dark leather glove on the right
  * hand, its cuff a little up the forearm with a pale band round it, a plate on the back of the hand
- * and the three knuckles lit by the fluid, a hose down the outside of the arm into its cuff. In bind
+ * and the three knuckles lit by the fluid, a brass fitting on the cuff holding a little glass vial of it
+ * (the tank's own fluid: no hose since October 2026, the vial says the two are one). In bind
  * metres: how far up the forearm the cuff reaches from the wrist (`cuff`), how far the leather stands
  * off the skin on the fingers, on the hand and at the cuff's open end (`off`, `hand`, `flare`), the
  * band's width, the plate (its centre past the wrist, its half length, half width and half thickness),
  * the knuckles lit (one charge each: their studs' centres along each finger, the studs' half sizes
  * along, off and across the hand), the fluid's mouth (`muzzle`: past the knuckles along the hand, and down toward the palm,
- * so in the aiming fist it is just in front of the knuckles) and the hose's fitting on the cuff.
+ * so in the aiming fist it is just in front of the knuckles) and the fitting's place up the cuff (`fitting`).
  */
 export const GLOVE = {
   cuff: 0.06, off: 0.0022, hand: 0.003, flare: 0.009, band: 0.011,
   plate: [0.042, 0.021, 0.018, 0.008], knuckles: ['index', 'middle', 'ring'], knuckle: 0.014, stud: [0.0105, 0.005, 0.0065],
-  muzzle: [0.024, 0.012], inlet: 0.036,
+  muzzle: [0.024, 0.012], fitting: 0.036,
 };
 
 /**
  * The glove's pieces on the body's own hand (the leather: the skin's triangles there, pushed out along
  * their welded normals, with the skin's own weights, so it bends with every finger; the band, the plate
  * and the knuckles' studs each on their bone), skinned in bind space:
- * { pieces: [{ name, geometry, color, o: { glove } }], muzzle, inlet (bind points: the fluid's mouth
- * on the hand, the hose's end on the forearm), bones: { muzzle, inlet } (their bones' indices),
+ * { pieces: [{ name, geometry, color, o: { glove } }], muzzle (bind point: the fluid's mouth
+ * on the hand), bones: { muzzle } (its bone's index),
  * covers(p) (a bind point of the skin under the leather) }, cached
  * per geometry. `base`: the skin's geometry in bind space; `body`: a skinned mesh bound to it (its
- * skeleton and bind matrices). `o.glove`: 'leather', 'band', 'fitting', 'plate'
- * (the mode's tone) or 'light' (with `charge` 0..2).
+ * skeleton and bind matrices). `o.glove`: 'leather', 'band', 'fitting', 'vial' (the
+ * fluid's tone), 'plate' (the mode's tone) or 'light' (with `charge` 0..2).
  */
 export function fluidGlove(base, body, s = 'r') {
   const cached = gloves.get(base)?.[s];
@@ -488,17 +489,22 @@ export function fluidGlove(base, body, s = 'r') {
     pieces.push({ name: `Glove_light_${c}_${s}`, color: PAL.gloveLight, o: { glove: 'light', charge: c },
       geometry: stud(at.addScaledVector(back, surface(at, back, 0.007) - G.stud[1] * 0.4), G.stud, bi(`${f}_01_${s}`)) });
   });
-  // the hose's fitting: a short brass sleeve on the cuff, over the back of the wrist, pointing up the arm
-  const axis = wrist.clone().addScaledVector(along, -G.inlet);
-  const inlet = axis.clone().addScaledVector(back, surface(axis, back, 0.015) + 0.008);
-  const fit = new THREE.CylinderGeometry(0.0085, 0.011, 0.03, 10).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), along.clone().negate()));
-  pieces.push({ name: `Glove_fitting_${s}`, geometry: conform(plain(fit, new THREE.Matrix4().makeTranslation(inlet.x, inlet.y, inlet.z)), leather, body, /./, bi(`lowerarm_${s}`), inlet), color: PAL.fitting, o: { glove: 'fitting' } });
+  // the fitting: a short brass sleeve on the cuff, over the back of the wrist, along the arm, capped at both
+  // ends, and in it a little glass vial of the tank's fluid that glows with it (fluid-tool.js lights it)
+  const axis = wrist.clone().addScaledVector(along, -G.fitting);
+  const fitAt = axis.clone().addScaledVector(back, surface(axis, back, 0.015) + 0.008);
+  const toArm = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), along.clone().negate());
+  const at = new THREE.Matrix4().makeTranslation(fitAt.x, fitAt.y, fitAt.z);
+  const fit = mergeGeometries([0.0135, -0.0135].map((y) => new THREE.CylinderGeometry(0.0105, 0.0105, 0.006, 10).translate(0, y, 0)).concat([new THREE.CylinderGeometry(0.0045, 0.0045, 0.03, 6)]).map((g) => { g.deleteAttribute('uv'); return g.applyQuaternion(toArm); }));
+  pieces.push({ name: `Glove_fitting_${s}`, geometry: conform(plain(fit, at), leather, body, /./, bi(`lowerarm_${s}`), fitAt), color: PAL.fitting, o: { glove: 'fitting' } });
+  const vial = new THREE.CapsuleGeometry(0.0078, 0.014, 3, 10).applyQuaternion(toArm);
+  pieces.push({ name: `Glove_vial_${s}`, geometry: conform(plain(vial, at), leather, body, /./, bi(`lowerarm_${s}`), fitAt), color: PAL.gloveLight, o: { glove: 'vial' } });
   // the fluid's mouth: the knuckles' line, past them and toward the palm (the front of the aiming fist)
   const line = G.knuckles.reduce((sum, f) => sum.add(bindPos(body, `${f}_01_${s}`)), new THREE.Vector3()).divideScalar(G.knuckles.length);
   const muzzle = line.addScaledVector(along, G.muzzle[0]).addScaledVector(back, -G.muzzle[1]);
   // the skin it covers (from a little inside the cuff: the glove's own hand, past(p) metres past the wrist)
   const covers = (q) => q.clone().sub(wrist).dot(along) > -G.cuff + 0.006;
-  const out = { pieces, muzzle, inlet: inlet.addScaledVector(along, -0.015), bones: { muzzle: bi(`hand_${s}`), inlet: bi(`lowerarm_${s}`) }, covers };
+  const out = { pieces, muzzle, bones: { muzzle: bi(`hand_${s}`) }, covers };
   gloves.set(base, { ...gloves.get(base), [s]: out });
   return out;
 }

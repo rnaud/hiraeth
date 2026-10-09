@@ -148,7 +148,7 @@ export function dregsText(kind = inputKind()) {
 /** The tank's first fill at the pool: what it does now, with the buttons as the player holds them (src/prompt-keys.js verbKey). */
 export function filledText(kind = inputKind()) {
   const k = (v) => verbKey(v, kind);
-  return `The water climbs your hose, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with ${k('aim')}, then ${k('fire')}) and pushes (switch the gun to push with ${k('mode')}, and shoot).`;
+  return `The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with ${k('aim')}, then ${k('fire')}) and pushes (switch the gun to push with ${k('mode')}, and shoot).`;
 }
 
 export function setupDesert(ctx) {
@@ -562,7 +562,7 @@ export function setupDesert(ctx) {
       else {
         const { wasDry, addColour } = fillTank();
         if (wasDry) toast(FILLED());
-        else if (addColour) toast('The water climbs your hose. The tank takes its colours.');
+        else if (addColour) toast('The water climbs into your tank. The tank takes its colours.');
         fillJar();
       }
     }

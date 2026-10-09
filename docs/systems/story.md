@@ -192,7 +192,7 @@ Every system talks through it, and its header lists the flags and events.
   completed world. The father reacts to the latest keepsake's kind; the mother
   joins from the third.
 - **The fluid backpack** (`src/fluid-tool.js`): a lava-lamp tank (`#ifdef FLUID`
-  in `materials.js`), a hose and a glove on the right hand, which is what shoots. Shoot (G / click while aiming),
+  in `materials.js`) and a glove on the right hand that drinks from it (no hose since October 2026), which is what shoots. Shoot (G / click while aiming),
   push (a gun mode, fired as a shot) and boost (jump again in the air) share three
   charges, and all three refill 2 s after the last use (for the jets, 2 s after landing). Hits reach `targets.js` as `'shoot'` and
   `'push'` (with `info { colours, strength, shove }`). `tool.refill({ addColour,

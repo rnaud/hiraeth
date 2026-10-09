@@ -12,9 +12,9 @@ import { FluidBlade } from './fluid-blade.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
 
 // The magic-fluid backpack: the traveller's signature tool. A glass tank of
-// shifting, lava-lamp fluid rides on the back; a ribbed hose runs from its cap
-// over the right shoulder and down the arm into the cuff of a glove on the right hand: the glove is
-// what shoots, the fluid leaving from just in front of its knuckles. Three abilities share one magic
+// shifting, lava-lamp fluid rides on the back and feeds a glove on the right hand (no hose: it was cut
+// in October 2026, accurate but stiff in play; the glove's lit vial on the cuff shows the same fluid):
+// the glove is what shoots, the fluid leaving from just in front of its knuckles. Three abilities share one magic
 // bar (src/resources.js MAGIC: it was three charges, the tank's chambers; one unit is what a chamber was):
 //   shoot  a glob of fluid, straight from the glove to the crosshair (no arc, no
 //          preview): it splashes on whatever it meets and leaves a short-lived
@@ -33,7 +33,7 @@ import { MAGIC, MAGIC_COST } from './resources.js';
 // starting bar empty to full in MAGIC.fill s (4); the quick coil quickens both (src/boxes/effects.js).
 //
 // Everything runs on the backpack (src/items.js): without items.has('backpack')
-// the tank, hose and glove are not worn and nothing fires. The other items
+// the tank and glove are not worn and nothing fires. The other items
 // grow out of it (fluid-kit.js):
 //   jetpack  two nozzles under the tank. Thrust burns the same bar smoothly
 //            (FLUID.jet.drain units a second: the starting bar is ten seconds
@@ -286,7 +286,7 @@ export function boostVelocity(vel, up, fwd, { up: burst = FLUID.boost.up, forwar
 
 // ---------------------------------------------------------------- visuals
 
-const INK = '#263c37', BRASS = '#acaa78', BRASS_DARK = '#6c806b', STEEL = '#83b9ae', STEEL_DARK = '#3d6b60', RUBBER = '#303f3d';
+const INK = '#263c37', BRASS = '#acaa78', BRASS_DARK = '#6c806b', STEEL = '#83b9ae', STEEL_DARK = '#3d6b60';
 // the tank's brass, steel and iron are metal (materials.js METALS); lit parts stay lights
 const METAL_OF = { [BRASS]: 'brass', [BRASS_DARK]: 'brass', [STEEL]: 'steel', [STEEL_DARK]: 'painted', [INK]: 'iron' };
 const flatMat = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[color] && !o.glow ? { metal: METAL_OF[color] } : {}), ...o });
@@ -491,7 +491,7 @@ class Rings {
 // 0.74 at the collar, +z forward, the character's right at -x). The glass flask
 // follows the selected Ivory and Jade reference: a flat rounded rectangular reservoir,
 // framed in ivory enamel and brass over a sage pad. Jade living fluid holds turquoise
-// and pale lemon currents; charge height, hose, vehicle socket and scout docks retain
+// and pale lemon currents; charge height, vehicle socket and scout docks retain
 // their existing frames. The side uprights carry the scout and lantern.
 export const TANK = {
   at: [0, 0.4, -0.283],     // glass bottom: on the upper back, its top under the shoulders
@@ -505,7 +505,6 @@ export const TANK = {
   profile: [[0.125, 0], [0.15, 0.012], [0.1625, 0.035], [0.1625, 0.09], [0.1625, 0.21], [0.1625, 0.29], [0.16, 0.325], [0.15, 0.35], [0.125, 0.36]],
   collar: { y: 0.318, h: 0.05 },   // shoulder-tab attachment frame; the glass stays unobscured
   neck: { y: 0.374, h: 0.04, r: 0.046, stopper: 0.034 },
-  outlet: [-0.09, 0.39, 0.01],    // where the hose leaves: the brass elbow on the collar, on the wearer's right
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
   base: '#49ab83',          // the living fluid's own green (a gun mode tints it its first tone)
@@ -550,7 +549,7 @@ export function scoutDockPose(k, pos, quat) {
 const LEATHER = '#5e4b37', STOPPER = '#e9dcbc';
 /**
  * The flask itself (the worn tank's and the item's picture, src/boxes/model.js): the glass in its fluid
- * material (`glassMat`), the collar, the neck and stopper, the hose's elbow, the foot ring and, worn
+ * material (`glassMat`), the collar, the neck and stopper, the foot ring and, worn
  * (`worn`), the leather tabs up over the shoulders. In the tank's frame. Returns { group, glass }.
  */
 export function buildFlask(glassMat, { worn = true, mat = flatMat } = {}) {
@@ -590,11 +589,6 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat } = {}) {
   add(new THREE.TorusGeometry(N.r * 0.92, 0.007, 4, 16).rotateX(Math.PI / 2), mat(INK), 0, N.y + N.h * 0.7, 0, false);
   add(new THREE.CylinderGeometry(N.stopper * 0.86, N.stopper, 0.034, 12), mat(STOPPER), 0, N.y + N.h + 0.017, 0, false);
   add(new THREE.SphereGeometry(0.014, 8, 6), mat(BRASS), 0, N.y + N.h + 0.04, 0, false);
-  // the hose's brass elbow on the collar, toward the right shoulder, and the pipe from the neck to it
-  const [ox, oy, oz] = TANK.outlet;
-  add(new THREE.CylinderGeometry(0.02, 0.024, 0.06, 10), mat(BRASS), ox + 0.016, oy - 0.022, oz, false).rotation.z = 0.5;
-  add(new THREE.TorusGeometry(0.024, 0.007, 4, 12).rotateX(Math.PI / 2), mat(INK), ox + 0.006, oy - 0.008, oz, false).rotation.z = 0.5;
-  add(new THREE.CylinderGeometry(0.011, 0.011, Math.abs(ox) - N.r + 0.01, 8).rotateZ(Math.PI / 2), mat(BRASS_DARK), (ox - N.r) / 2, N.y + 0.012, oz, false);
   if (worn) {
     // the leather tabs from the collar's corners up over his shoulders (into the collar of his shirt)
     for (const sx of [-1, 1]) {
@@ -621,20 +615,19 @@ function buildTank() {
   }
   mergeParts(g, [glass]);
   g.position.set(...TANK.at); g.scale.setScalar(TANK.scale);
-  const [ox, oy, oz] = TANK.outlet;
-  return { group: noCollide(g), glass, outlet: new THREE.Vector3(ox, oy, oz), top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
+  return { group: noCollide(g), glass, top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
 }
 
 /**
  * The glove the fluid comes out of: the traveller wears it on his right hand (traveller.js
  * fluidGlove: meshes skinned to the hand, hidden until the tank is worn, a plate and three charge
- * lights; Humanoid.glove: their meshes and two anchors, the fluid's mouth in front of the knuckles
- * and the hose's end on the cuff). A body without one (an NPC's, the tests' bare rig) still shoots
- * from its right hand: the mouth a hand's length past the wrist, the hose to the wrist.
+ * lights and the vial on its cuff; Humanoid.glove: their meshes and the fluid's mouth in front of the
+ * knuckles). A body without one (an NPC's, the tests' bare rig) still shoots from its right hand: the
+ * mouth a hand's length past the wrist.
  */
 function gloveOf(H) {
   const G = H?.glove;
-  return { meshes: G?.meshes ?? [], plate: G?.plate ?? null, lights: G?.lights ?? [], muzzle: G?.muzzle ?? null, inlet: G?.inlet ?? null, show: G?.show ?? null, visible: false };
+  return { meshes: G?.meshes ?? [], plate: G?.plate ?? null, lights: G?.lights ?? [], vial: G?.vial ?? null, muzzle: G?.muzzle ?? null, show: G?.show ?? null, visible: false };
 }
 /** A lit part of the glove: its colour (from ink to `tone` by `k`) and glow. (Read off the mesh each time: markHero swaps its material.) */
 function lightGlove(mesh, tone, k, glow) {
@@ -642,62 +635,6 @@ function lightGlove(mesh, tone, k, glow) {
   if (!u) return;
   u.uColor.value.set(INK).lerp(_c.set(tone), k);
   u.uGlow.value = glow * k;
-}
-
-/** The hose: a ribbed tube re-laid every frame along a Catmull-Rom curve through the tank, the arm and the glove's cuff. */
-class Hose {
-  constructor(parent, { rings = 48, sides = 7, radius = 0.02 } = {}) {
-    Object.assign(this, { R: rings, S: sides, radius });
-    const n = rings * sides;
-    this.pos = new Float32Array(n * 3); this.nrm = new Float32Array(n * 3);
-    const fold = new Float32Array(n * 2);
-    for (let r = 0; r < rings; r++) for (let k = 0; k < sides; k++) fold[(r * sides + k) * 2] = r / (rings - 1);
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
-    g.setAttribute('normal', new THREE.BufferAttribute(this.nrm, 3).setUsage(THREE.DynamicDrawUsage));
-    g.setAttribute('aFold', new THREE.BufferAttribute(fold, 2));   // x: 0 at the tank -> 1 at the hand (the fluid pulse runs along it)
-    const idx = [];
-    for (let r = 0; r < rings - 1; r++) for (let k = 0; k < sides; k++) {
-      const a = r * sides + k, b = r * sides + ((k + 1) % sides), c = a + sides, d = b + sides;
-      idx.push(a, b, c, b, d, c);
-    }
-    g.setIndex(idx);
-    this.geo = g;
-    this.mesh = new THREE.Mesh(g, makeMaterial({ color: RUBBER, fluid: 'hose', glow: 0.12, fluidTones: FLUID_TONES }));
-    this.mesh.name = 'Fluid hose';
-    this.mesh.frustumCulled = false; this.mesh.userData.noCollide = true;
-    parent.add(this.mesh);
-    this.curve = new THREE.CatmullRomCurve3([], false, 'centripetal');
-    this.pts = Array.from({ length: rings }, () => new THREE.Vector3());
-    this._t = new THREE.Vector3(); this._n = new THREE.Vector3(); this._b = new THREE.Vector3(); this._p = new THREE.Vector3();
-  }
-  /** Lay the hose through control points (world space). */
-  set(points) {
-    const C = this.curve, P = this.pts, R = this.R, S = this.S;
-    C.points = points;
-    for (let r = 0; r < R; r++) C.getPoint(r / (R - 1), P[r]);
-    let len = 0;
-    const T = this._t, N = this._n, B = this._b;
-    for (let r = 0; r < R; r++) {
-      const a = P[Math.max(0, r - 1)], b = P[Math.min(R - 1, r + 1)];
-      T.subVectors(b, a).normalize();
-      if (r === 0) { N.set(0, 1, 0).cross(T); if (N.lengthSq() < 1e-6) N.set(1, 0, 0).cross(T); N.normalize(); }
-      else { N.addScaledVector(T, -N.dot(T)).normalize(); }   // parallel transport: no twisting
-      B.crossVectors(T, N);
-      if (r > 0) len += P[r].distanceTo(P[r - 1]);
-      const rad = this.radius * (1 + 0.09 * Math.sin(len * (Math.PI * 2 / 0.045)));   // ribs
-      for (let k = 0; k < S; k++) {
-        const th = (k / S) * Math.PI * 2, cs = Math.cos(th), sn = Math.sin(th);
-        const nx = N.x * cs + B.x * sn, ny = N.y * cs + B.y * sn, nz = N.z * cs + B.z * sn;
-        const j = (r * S + k) * 3;
-        this.pos[j] = P[r].x + nx * rad; this.pos[j + 1] = P[r].y + ny * rad; this.pos[j + 2] = P[r].z + nz * rad;
-        this.nrm[j] = nx; this.nrm[j + 1] = ny; this.nrm[j + 2] = nz;
-      }
-    }
-    this.geo.attributes.position.needsUpdate = true;
-    this.geo.attributes.normal.needsUpdate = true;
-    this.length = len;
-  }
 }
 
 // ---------------------------------------------------------------- the tool
@@ -728,7 +665,7 @@ export class FluidTool {
     this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
     this.globs = [];
-    this.fill = items.has('backpack') && state.flag('tool.empty') ? 0 : 1; this.flash = 0; this.wave = 0; this.slosh = 0; this.pulse = 2; this.lastHit = null; this.ringLit = [1, 1, 1];
+    this.fill = items.has('backpack') && state.flag('tool.empty') ? 0 : 1; this.flash = 0; this.wave = 0; this.slosh = 0; this.lastHit = null; this.ringLit = [1, 1, 1];
     this._lastVel = new THREE.Vector3(); this._hasVel = false;
 
     const fx = (this.fx = new THREE.Group());
@@ -780,7 +717,7 @@ export class FluidTool {
     if (player) { player.onAirJump = (since, o) => this.boost(since, o); player.fuelSource = this; player.handoff = this; }
   }
 
-  /** Put the tank, hose and glove on the traveller (needs the humanoid's chest anchor and arm bones). */
+  /** Put the tank and glove on the traveller (needs the humanoid's chest anchor and arm bones). */
   wear() {
     const p = this.player, H = p?.humanoid;
     if (!H?.chestAnchor) return;
@@ -792,15 +729,11 @@ export class FluidTool {
     // the scout clings to the tank's left side (the cap would hide the helmet), folded, its foot on the glass
     this.placeDock(this.owned);
     this.glove = gloveOf(H);
-    this.hose = new Hose(this.scene ?? tank.group);
     const copies = new Map(), glassMat = tank.glass.material;
     markHero(tank.group, copies);
     // the fluid stays out of the player's soft-ink mask, so the post pass inks its blobs like print
     if (TANK.inked) tank.glass.material = glassMat;
-    markHero(this.hose.mesh, copies);
     this.tankU = tank.glass.material.uniforms;
-    this.hoseU = this.hose.mesh.material.uniforms;
-    this.hosePts = Array.from({ length: 6 }, () => new THREE.Vector3());
     // the wings bloom from the cap (inked at full strength, like the fluid in the glass)
     this.wings = new FluidWings(tank.group, FLUID_TONES);
     // the fluid jets clip under the tank (the old canisters are gone, player.js); their flames are the globs' fluid
@@ -831,7 +764,7 @@ export class FluidTool {
   dispose() {
     this.offs.forEach((off) => off()); this.offs = [];
     this.blade?.dispose();
-    this.fx.removeFromParent(); this.tank?.group.removeFromParent(); this.hose?.mesh.removeFromParent();
+    this.fx.removeFromParent(); this.tank?.group.removeFromParent();
     if (this.glove?.show) this.glove.show(false); else for (const o of this.glove?.meshes ?? []) o.visible = false;
     const p = this.player;
     if (p?.onAirJump) p.onAirJump = null;
@@ -1020,7 +953,6 @@ export class FluidTool {
     if (!this.canJet || this.reserve.level <= FLUID.jet.min * 0.5) return false;
     if (!this.jetBurnt) { this.jetBurnt = true; this.state.emit('tool:fire', { mode: 'jet', point: this.player.pos.clone() }); }
     this.reserve.drain(FLUID.jet.drain * dt);
-    this.pulse = Math.min(this.pulse, 0.4);
     return true;
   }
 
@@ -1105,7 +1037,7 @@ export class FluidTool {
 
   /** The click of the tank going into a socket (on) or leaving it. */
   onDocked(v, on) {
-    this.flash = 1; this.slosh = 1; this.pulse = 0;
+    this.flash = 1; this.slosh = 1;
     this.sound?.fluidDock?.(on);
     const at = this.tank.group.localToWorld(_o.set(0, 0.1, 0)), up = this.player.frame.up, tones = this.modeTones;
     this.rings.add({ from: at, dir: up, reach: 0.05, r0: 0.12, r1: on ? 0.9 : 0.5, life: 0.35, color: tones[0], thick: 1 });
@@ -1142,7 +1074,7 @@ export class FluidTool {
     this._trailKey = null;
   }
 
-  /** The tank, hose and glove follow the body; the fluid level eases to the charges left. */
+  /** The tank and glove follow the body; the fluid level eases to the charges left. */
   updateWorn(dt) {
     const p = this.player;
     // (fillTo: a scene holds the glass at its own level, the first fill rising slowly: src/story/desert.js)
@@ -1152,7 +1084,6 @@ export class FluidTool {
     this.fill += (target - this.fill) * (1 - Math.exp(-rate * dt));
     this.flash = Math.max(0, this.flash - dt * 3);
     this.wave = Math.max(0, this.wave - dt * 0.9);
-    this.pulse += dt * 5;
     if (p?.vel && dt > 0) {
       // the fluid sloshes with the body's accelerations
       if (this._hasVel) this.slosh = Math.max(this.slosh * Math.exp(-2.2 * dt), Math.min(1, _a.subVectors(p.vel, this._lastVel).length() / dt / 70));
@@ -1167,12 +1098,12 @@ export class FluidTool {
     this._tonesKey = key;
     // the flask's own fluid: green, or a gun mode's first tone (stilling's cold blue, ember's orange, bloom's leaf green)
     if (retone && this.tankU?.uFluidBase) this.tankU.uFluidBase.value.set(MODES[this.mode]?.tones?.[0] ?? TANK.base);
-    for (const U of [this.tankU, this.hoseU, this.globU, this.wingU]) {
+    for (const U of [this.tankU, this.globU, this.wingU]) {
       if (!U) continue;
       if (retone) U.uFluidTones.value.forEach((c, i) => c.set(tones[i] ?? FLUID_TONES[i]));
       U.uFluidA.value.x = this.fill; U.uFluidA.value.y = n; U.uFluidA.value.z = U === this.globU ? this.time * Math.max(this.rate, 0.4) : this.fluidTime;
       if (U === this.wingU) { U.uFluidB.value.x = this.flash; continue; }
-      U.uFluidB.value.set(this.flash, this.wave, this.pulse, this.slosh * Math.min(1, this.rate));
+      U.uFluidB.value.set(this.flash, this.wave, 0, this.slosh * Math.min(1, this.rate));
     }
     if (!this.tank) return;
     // found: it grows onto the back with a little overshoot and a shimmer of fluid
@@ -1197,7 +1128,6 @@ export class FluidTool {
     if (this.glove?.show) this.glove.show(owned);
     else if (this.glove && this.glove.visible !== owned) for (const o of this.glove.meshes) o.visible = owned;
     if (this.glove) this.glove.visible = owned;
-    this.hose.mesh.visible = visible && where !== 'flight';
     if (owned && this.appear < 1 && where === 'back') {
       const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
       this.tank.group.scale.setScalar(sc * TANK.scale);
@@ -1210,8 +1140,7 @@ export class FluidTool {
     this.updateWings(dt);
     this.updatePower(dt);
     if (!visible) return;
-    if (where === 'socket') return this.layHoseToPort();
-    if (where === 'flight') return;
+    if (where !== 'back') return;
     // the glove's knuckles light for the charges left (in sequence as it refills), its plate in the
     // mode's tone, brighter for a moment as it fires or changes mode, dim with the tank empty
     for (let i = 0; i < 3; i++) {
@@ -1220,41 +1149,9 @@ export class FluidTool {
       lightGlove(this.glove?.lights[i], tones[i % tones.length], THREE.MathUtils.clamp(this.ringLit[i], 0, 1), 0.95);
     }
     if (this.glove?.plate) lightGlove(this.glove.plate, tones[0], this.reserve.charges ? 1 : 0.3, 0.7 + 0.3 * Math.max(this.flash, this.mode !== 'shoot' ? 0.5 : 0));
-    // the hose: up out of the cap, over the right shoulder, down the outside of the arm into the glove's cuff
-    const H = p.humanoid, B = H.b;
-    const P = this.hosePts;
-    const tg = this.tank.group;
-    tg.updateWorldMatrix(true, false);
-    tg.localToWorld(P[0].copy(this.tank.outlet));
-    _q.setFromRotationMatrix(tg.matrixWorld);
-    const Uc = _o.set(0, 1, 0).applyQuaternion(_q), Rc = _f.set(-1, 0, 0).applyQuaternion(_q), Bk = _m.set(0, 0, -1).applyQuaternion(_q);
-    const S = B.upperarm_r.getWorldPosition(_t1), E = B.lowerarm_r.getWorldPosition(_t2);
-    if (this.glove?.inlet) { this.glove.inlet.updateWorldMatrix(true, false); this.glove.inlet.getWorldPosition(P[5]); }
-    else B.hand_r.getWorldPosition(P[5]);
-    P[1].copy(P[0]).addScaledVector(Uc, 0.06).addScaledVector(Rc, 0.04);
-    P[2].copy(S).addScaledVector(Uc, 0.1).addScaledVector(Bk, 0.05);
-    // off the sleeve: outward, square to each bone
-    const side = (a, b, out) => { _t3.subVectors(b, a).normalize(); out.copy(Rc).addScaledVector(_t3, -Rc.dot(_t3)); return out.lengthSq() > 1e-6 ? out.normalize() : out.copy(Rc); };
-    side(S, E, _a);
-    P[3].lerpVectors(S, E, 0.5).addScaledVector(_a, 0.07).addScaledVector(Bk, 0.02);
-    side(E, P[5], _a);
-    P[4].copy(E).addScaledVector(_a, 0.065).addScaledVector(Bk, 0.015);
-    this.hose.set(P);
-  }
-
-  /** In a socket: the hose runs from the cap down into the vehicle's engine (its port). */
-  layHoseToPort() {
-    const v = this.dockVehicle, P = this.hosePts, tg = this.tank.group;
-    tg.updateWorldMatrix(true, false);
-    tg.localToWorld(P[0].copy(this.tank.outlet));
-    if (v.port) { v.port.updateWorldMatrix(true, false); v.port.getWorldPosition(P[5]); }
-    else tg.localToWorld(P[5].set(-0.1, -0.05, 0.2));
-    const up = _o.set(0, 1, 0).applyQuaternion(tg.getWorldQuaternion(_q));
-    P[1].copy(P[0]).addScaledVector(up, 0.07);
-    P[2].lerpVectors(P[0], P[5], 0.3).addScaledVector(up, 0.12);
-    P[3].lerpVectors(P[0], P[5], 0.6).addScaledVector(up, 0.06);
-    P[4].lerpVectors(P[0], P[5], 0.85).addScaledVector(up, 0.03);
-    this.hose.set(P);
+    // the vial on the cuff: the tank's own fluid, so glove and tank read as one (no hose since October 2026);
+    // its glow follows the level in the glass, a flash as it fires
+    if (this.glove?.vial) lightGlove(this.glove.vial, tones[1 % n], 0.35 + 0.65 * THREE.MathUtils.clamp(this.fill, 0, 1), 0.75 + 0.25 * this.flash);
   }
 
   /** A press with the tank empty: a dribble from the nozzle and a dry click. */
@@ -1302,7 +1199,7 @@ export class FluidTool {
     glob.mesh.visible = true;
     glob.tone = 0; glob.mode = 'shoot';
     this.globs.push(glob);
-    this.pulse = 0; this.flash = 1; this.slosh = 1;
+    this.flash = 1; this.slosh = 1;
     this.sound?.fluidShoot?.('shoot');
     const tones = this.modeTones;
     for (let i = 0; i < 9; i++) this.drops.add({ pos: from, vel: _a.copy(d).multiplyScalar(2.5 + i).add(_t1.randomDirection().multiplyScalar(1)), drag: 6, grav: 6, size: 0.024, life: 0.4, color: tones[i % tones.length] });
@@ -1373,9 +1270,9 @@ export class FluidTool {
     return true;
   }
 
-  /** Bookkeeping for every use: the hose pulse, the tank's flash and slosh, the story event (globs: mode 'shoot', glob: the gun mode). */
+  /** Bookkeeping for every use: the tank's flash and slosh, the story event (globs: mode 'shoot', glob: the gun mode). */
   used(mode, point, extra = null) {
-    this.pulse = 0; this.flash = 1; this.slosh = 1;
+    this.flash = 1; this.slosh = 1;
     this.state.emit('tool:fire', { mode, point: point.clone(), ...extra });
   }
 

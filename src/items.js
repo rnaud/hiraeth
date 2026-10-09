@@ -26,7 +26,7 @@ import { game } from './game-state.js';
 export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
-    text: "A makers’ glass tank with a hose to a leather glove: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
+    text: "A makers’ glass tank and the leather glove that drinks from it: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
     use: 'Aim with {key:aim} and shoot bursts of fluid with {key:fire}; switch the gun’s mode with {key:mode} to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: {key:blade} swings it, {key:guard} held guards, {key:evade} evades. Everything it does spends the magic bar (a shot, a push or a boost: a third of it), which refills by itself a moment after the last use. It also powers vehicles.'
   },
   jetpack: {

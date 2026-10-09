@@ -1769,8 +1769,8 @@ const fragmentShader = /* glsl */ `
   #ifdef FLUID
   // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
   // lava lamp in flat print tones. Only materials made with o.fluid compile this.
-  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, 1 hose, 2 glob, 3 wing, 4 trail, 5 shadow
-  uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · hose pulse head (0 tank -> 1 hand) · slosh 0..1
+  uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, (1: the hose, gone), 2 glob, 3 wing, 4 trail, 5 shadow
+  uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · (unused: the hose's pulse) · slosh 0..1
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
   uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
   vec3 fluidTone(int i) { return uFluidTones[i - 6 * (i / 6)]; }
@@ -1871,12 +1871,6 @@ const fragmentShader = /* glsl */ `
       if (vein < 0.03 * (1.2 - y) && y < 0.9) col = mix(col, vec3(0.17, 0.13, 0.12), 0.55);
       if (abs(u) > 0.88) col = mix(col, vec3(1.0), 0.6);    // a pale rim
       return col;
-    }
-    if (kind > 0.5 && kind < 1.5) {
-      // the hose: rubber, with a slug of fluid running down it when the tool is used
-      float u = vFold.x, head = uFluidB.z;
-      if (u < head && u > head - 0.3) return fluidTone(int(mod(floor(u * 7.0 - t * 3.0), float(n))));
-      return base;
     }
     float H = uFluidBox.y - uFluidBox.x;
     float h = (vBind.y - uFluidBox.x) / H;
@@ -2686,7 +2680,7 @@ const cache = new Map();
  * @param {boolean} [o.swayLarge] with sway: a large plant (only its low leaves part as you brush past)
  * @param {boolean} [o.crowd]   instanced crowd figures: the vertex shader poses and colours each
  *                              instance from its attributes (crowd-shader.js); no other mode changes
- * @param {string}  [o.fluid]   'tank' | 'hose' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js);
+ * @param {string}  [o.fluid]   'tank' | 'glob' | 'wing' | 'trail': the traveller's magical fluid (fluid-tool.js, fluid-kit.js);
  *                               'shadow': a shade's body and flame (src/shade.js: flat black, white fold strokes, feet in drips;
  *                               uFluidA.z its time, uFluidB.y how much of it has run away: 0..1, its spawn and death;
  *                               fluidBox [_, _, fold strokes 0..1, neck cut bind y (0 none)]; always lit flat).
@@ -2803,7 +2797,7 @@ export function makeMaterial(o) {
   }
   if (o.fluid) {
     mat.defines = { ...mat.defines, FLUID: 1 };
-    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, hose: 1, glob: 2, wing: 3, trail: 4, shadow: 5 }[o.fluid] ?? 0) };
+    mat.uniforms.uFluidA = { value: new THREE.Vector4(1, 2, 0, { tank: 0, glob: 2, wing: 3, trail: 4, shadow: 5 }[o.fluid] ?? 0) };
     mat.uniforms.uFluidB = { value: new THREE.Vector4() };
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };

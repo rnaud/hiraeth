@@ -123,7 +123,7 @@ export function setupPerdideMoments(ctx, { heart, axis, rung, phrase, others }) 
         for (const l of lights) dark(l);
         ring();
         if (first) toast('Keepsake: A singing splinter');
-        toast('The cave sings the phrase back to the splinter. Crystal-violet climbs your hose: a new colour band in the tank.');
+        toast('The cave sings the phrase back to the splinter. Crystal-violet rises through your glass: a new colour band in the tank.');
       },
     });
     return !!m;

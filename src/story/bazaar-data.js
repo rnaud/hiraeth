@@ -321,7 +321,7 @@ export const STREET = {
         choices: [{ text: '~curious~ All of them? Not one left, for my tank?', if: { all: [{ flag: 'item.backpack' }, { not: { flag: LANTERN_FLAG } }] }, goto: 'tank' }, { text: '~neutral~ Goodbye.', end: true }] },
       // the market's colour band for the tank (src/story/bazaar.js pours it in when the flag is set)
       tank: { say: ["~whisper~ Kept one under the stall. I’m allowed to be a collector occasionally."], next: 'pour' },
-      pour: { say: ["~playful~ (He pours its light into your hose.) There. A little sun for the road. No returns on sunshine."], do: { set: { [LANTERN_FLAG]: true } },
+      pour: { say: ["~playful~ (He pours its light into your tank.) There. A little sun for the road. No returns on sunshine."], do: { set: { [LANTERN_FLAG]: true } },
         choices: [{ text: '~happy~ Thank you, Oyo.', end: true }] },
       rumours: { say: ["~playful~ They say the quiet ones read minds. They say the tower tells the truth. They say the noodle man is three people in a coat. I only trust the noodles."], choices: [{ text: '~neutral~ Goodbye.', end: true }] },
     } },

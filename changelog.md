@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.7 — 2026-10-09
 
+- The hose from the backpack’s tank to your glove is gone: it bent stiffly over the shoulder and through the arm as you aimed. The glove now carries a small glass vial of the tank’s own fluid on its cuff, glowing with it, brighter as the tank fills and flashing as you shoot, so the glove and the tank still read as one. The story’s waters now pour into the tank instead of climbing the hose.
 - The traveller’s fingers curl gently in toward his palms, both hands alike, standing, walking, running, talking and holding the blade or the shield. They used to bend back from the palm and splay: in the game his skin had slipped off the bones of his fingers, and on the title screen his hands were never posed at all.
 - Little waves lap at whatever stands in the water: round rocks, pillars, tree roots, walls, piers, boats, people and the traveller himself when he wades or swims, a pale band of foam hugging it, breathing out and back, with small moving gaps, a broken inked ripple or two just off it and a few flecks of foam. It reaches the shore too, wherever the water meets the ground. (Graphics: on everywhere but Handheld.)
 - Foes step quicker when they run and slower when they walk, so their feet no longer skate over the ground, and two of a kind no longer step in time with each other. Winding up an attack, a foe on legs plants its feet wide and sits back away from you, holds, then lunges through.

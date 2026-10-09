@@ -56,7 +56,7 @@ function setup({ up = null, physics = ground(), mount = null } = {}) {
   return { p, tool, scene, camera, state, step, calls };
 }
 
-test('no backpack: no tank, hose or glove, nothing fires, nothing throws; found, it shimmers onto the back and works', () => {
+test('no backpack: no tank or glove, nothing fires, nothing throws; found, it shimmers onto the back and works', () => {
   own();
   const { p, tool, step } = setup();
   const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];   // (the rucksack's outer pocket, traveller.js)
@@ -64,7 +64,6 @@ test('no backpack: no tank, hose or glove, nothing fires, nothing throws; found,
   assert.equal(tool.owned, false);
   assert.equal(tool.tank.group.visible, false, 'a bare back');
   assert.equal(pocket.visible, true, 'the rucksack keeps its outer pocket');
-  assert.equal(tool.hose.mesh.visible, false);
   assert.equal(tool.glove.visible, false, 'a bare hand');
   assert.deepEqual(tool.modes, [], 'no gun modes');
   step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(1, { TouchFire: true }); step(10);
@@ -82,7 +81,7 @@ test('no backpack: no tank, hose or glove, nothing fires, nothing throws; found,
   step(70);
   assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
   assert.equal(pocket.visible, false, 'the flask sits over the pocket');
-  assert.equal(tool.glove.visible, true, 'the glove on'); assert.equal(tool.hose.mesh.visible, true);
+  assert.equal(tool.glove.visible, true, 'the glove on');
   p.pos.set(0, 0, 0); p.onGround = true; step(5);
   tool.setMode('push'); step(1, { TouchFire: true }); step(12);   // (the push: a gun mode, fired as a shot)
   assert.equal(tool.charges, 2, 'the push works now');

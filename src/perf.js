@@ -325,7 +325,7 @@ export class InteriorCuller {
     for (const o of this.list) {
       if (!o.visible) continue;
       // Left unculled (frustumCulled false): drawn wherever it is, its bounds not kept (the fluid's
-      // rings and spray, the hose, splats, splashes). Their cached bounds are stale or empty, and
+      // rings and spray, splats, splashes). Their cached bounds are stale or empty, and
       // hid the push's shock front in every temple: an instanced one is measured where its
       // instances are now (none: nothing to draw; a big set, the Givers' water's thousands, every
       // 16th frame), anything else stays.

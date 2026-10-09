@@ -1765,3 +1765,19 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   docs/audits/combat-v1.6.md (guardians 3.6-3.8 → 4.0-4.8), tests/telegraphs.test.js.
 - [x] From the v1.4 combat review: the hound's pounce (now 0.8 s, read from its crouch) and the guardians' shared
   template.
+
+## The kit without its hose (v1.7, 2026-10-09)
+
+- [x] **Remove the cable from the backpack's tank to the glove** (the author, 2026-10-09). The ribbed hose
+  (`Hose` in src/fluid-tool.js: a tube re-laid every frame along a curve from the flask's collar over the right
+  shoulder and down the arm into the glove's cuff, and from the cap into a vehicle's engine port while the tank sat
+  in a socket) is gone, with everything that built, laid, lit or anchored it: the flask's brass elbow and pipe
+  (`TANK.outlet`, `tank.outlet`), `layHoseToPort`, the hose's points and uniforms, the fluid pulse that ran down it
+  (`pulse`, uFluidB.z), the shader's hose branch (fluid kind 1) and the glove's `inlet` anchor
+  (traveller.js `GLOVE.inlet`, humanoid.js). The glove's brass fitting stays on the cuff (`GLOVE.fitting`), capped,
+  and now holds a small glass vial (`Glove_vial_r`, `glove.vial`) that fluid-tool.js lights in the fluid's tone,
+  brighter as the glass fills and flashing on a shot: with the knuckles and the plate, that is what ties the glove to
+  the tank. The story lines that had water "climb your hose" pour it into the tank; the item's text, the Unity port's
+  bike toast and the docs say so. Tests: tests/glove.test.js (no hose, cable or tube anywhere on the traveller, no
+  inlet, no outlet; the vial lit by the fluid, small, on the cuff), tests/abilities.test.js. docs/systems/traveller-kit.md
+  ("No hose").

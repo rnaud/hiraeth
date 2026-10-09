@@ -471,7 +471,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         ring: {
-          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet climbs the hose as a new colour band. The splinter warms in your hand."],
+          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet rises through the glass as a new colour band. The splinter warms in your hand."],
           do: [{ set: { 'perdide.heart.rung': true } },
             { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that passed your ship.' } }],
           choices: [{ text: '~neutral~ (keep it)', end: true }],

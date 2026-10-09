@@ -12,7 +12,7 @@ import { padRide } from './controller.js';
 //
 // It runs on the traveller's magic-fluid backpack (powered: true; the skiff
 // too): boarding swings the tank into the socket behind the seat (player.js,
-// fluid-tool.js), a hose clicks into the engine's port, and the fluid lights
+// fluid-tool.js), the fluid feeds the engine's port, and the fluid lights
 // the jets' caps, the headlamp, the hover plate and the trails. Without the backpack
 // it won't start. In the desert it must first be found (src/story/desert-bike.js).
 
@@ -118,7 +118,7 @@ function buildBike() {
 /**
  * A cradle for the backpack's tank on a vehicle's body: a brass ring and two
  * clamps; `socket` is where the tank's glass bottom sits (its +z toward the
- * vehicle's front), `port` the engine inlet the hose clicks into.
+ * vehicle's front), `port` the engine inlet (a fitting: the tank feeds it through the cradle, no hose).
  */
 export function buildSocket(body, { at = [0, 0.25, -1.4], port = [0.22, 0.05, -1.0] } = {}) {
   const socket = new THREE.Group();

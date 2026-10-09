@@ -40,11 +40,11 @@ export function setupBazaar(ctx) {
   if (!quests.isStarted(Q)) quests.opensWith(Q, 'sel');
   if (!quests.def(quests.tracked() ?? '')) quests.track(quests.isActive(Q) ? Q : quests.active().find((d) => d.world === 'bazaar')?.id);
 
-  // Oyo's last lantern (his talk, bazaar-data.js): its little sun runs down the hose, and the tank takes its colour for good
+  // Oyo's last lantern (his talk, bazaar-data.js): its little sun pours into the tank, and the tank takes its colour for good
   game.on(`flag:${LANTERN_FLAG}`, (v) => {
     if (!v) return;
     game.emit('tool:refill', { addColour: true, tone: LANTERN_TONE });
-    toast('The lantern’s little sun runs down your hose. The tank takes its colour: a bruise, healing.');
+    toast('The lantern’s little sun pours into your tank. The tank takes its colour: a bruise, healing.');
   });
 
   const onAir = () => !!game.flag('bazaar.broadcast.on');

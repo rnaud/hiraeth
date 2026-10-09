@@ -794,14 +794,14 @@ export class Humanoid {
    * The fluid glove (traveller.js fluidGlove) over the right hand of `skin` (a skinned mesh on this
    * body's skeleton: the traveller's suit, or the coral-shirt traveller's own mesh), hidden until the
    * tank is worn (fluid-tool.js). this.glove: { meshes, plate, lights (three, one a charge), muzzle
-   * (the fluid's mouth in front of the knuckles), inlet (the hose's end on the cuff) }, the two
-   * anchors on the hand's and the forearm's bones.
+   * (the fluid's mouth in front of the knuckles, an anchor on the hand's bone), vial (the lit glass on
+   * the cuff's fitting) }.
    */
   wearGlove(skin, geometry = skin.geometry) {
     const G = fluidGlove(geometry, skin), bones = skin.skeleton.bones;
-    this.glove = { meshes: [], plate: null, lights: [] };
+    this.glove = { meshes: [], plate: null, vial: null, lights: [] };
     for (const p of G.pieces) {
-      const lit = p.o.glove === 'plate' || p.o.glove === 'light';
+      const lit = p.o.glove === 'plate' || p.o.glove === 'light' || p.o.glove === 'vial';
       let mat = makeMaterial({ figure: true, color: p.color, side: THREE.DoubleSide, ...(lit ? { flat: true, glow: 0.9 } : {}) });
       // each light its own colour and glow (the fluid tool sets them), the rest of its uniforms shared
       if (lit) { const u = mat.uniforms; mat = mat.clone(); mat.uniforms = { ...u, uColor: { value: u.uColor.value.clone() }, uGlow: { value: u.uGlow.value } }; }
@@ -815,6 +815,7 @@ export class Humanoid {
       skin.parent.add(o);
       this.glove.meshes.push(o);
       if (p.o.glove === 'plate') this.glove.plate = o;
+      if (p.o.glove === 'vial') this.glove.vial = o;
       if (p.o.glove === 'light') this.glove.lights[p.o.charge] = o;
     }
     // a bind point carried by a bone (its place in the bone's frame, whatever the pose now)
@@ -826,7 +827,6 @@ export class Humanoid {
       return o;
     };
     this.glove.muzzle = carry(G.muzzle, G.bones.muzzle, 'glove muzzle');
-    this.glove.inlet = carry(G.inlet, G.bones.inlet, 'glove inlet');
     // worn: the meshes show and the skin's triangles under the leather are left out of its index (else they
     // show through between the fingers); off, the bare hand as it was. (Per geometry: the face's reshaping
     // gives the body a new one, and a glove already on follows it there.)

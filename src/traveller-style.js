@@ -6,7 +6,7 @@ export const TRAVELLER_PALETTE = {
   brow: '#35362d', hair: '#292f2a', teal: '#69b8ae', lavender: '#b5a8c1',
   // the canvas rucksack: dusty olive canvas, its lid a shade darker, worn leather straps
   canvas: '#9a936c', canvasShade: '#7f7a5a', leather: '#6f5a43', earpiece: '#5d574a',
-  // the fluid glove (traveller.js fluidGlove): its lights before the tank's tones retint them, the hose's brass fitting
+  // the fluid glove (traveller.js fluidGlove): its lights (and the cuff's vial) before the tank's tones retint them, the cuff's brass fitting
   gloveLight: '#52c8cf', fitting: '#acaa78',
 };
 
