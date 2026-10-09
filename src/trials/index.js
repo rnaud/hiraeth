@@ -41,8 +41,11 @@ const CONTROLS = {
   jets: { pad: [['RT / R2', 'thrust'], ['Left stick', 'fly the nose']], keys: [['Space held', 'thrust'], ['W A S D', 'fly the nose']] },
   foot: { pad: [['Left stick', 'run'], ['A / ×', 'jump']], keys: [['W A S D', 'run'], ['Space', 'jump']] },
   eyes: { pad: [['LT / L2', 'aim'], ['RT / R2', 'splash']], keys: [['Right mouse', 'aim'], ['Left mouse', 'splash']] },
+  kitwings: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer the wings; back to float']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump, then hold to glide'], ['W A S D', 'steer the wings; S to float']] },
   kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad ← / →', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
 };
+
+const COUNT = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
 
 let mats = null;
 const trialMats = (color) => {
@@ -90,7 +93,7 @@ function eyeMesh(at, M) {
 
 /** The trial as a minigame definition (src/minigames/kit/runner.js reads it), run in this world. */
 export function trialGame(T, world) {
-  const C = CONTROLS[T.mode] ?? CONTROLS.foot;
+  const C = CONTROLS[T.controls ?? T.mode] ?? CONTROLS.foot;
   const reward = ITEMS[T.reward];
   return {
     id: T.id, name: T.name, color: T.color, trial: true,
@@ -282,9 +285,9 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   }
 
   /**
-   * One makers' run (src/trials/kit-run.js): on foot through the gates among the temple pieces, then (the wind
-   * hall) the bank of eyes in one breath. It ends in the water (the Hush walk), at a knockout, or up on the
-   * jets. The reward is a word from someone nearby (src/trials/kit-data.js `voice`) and the sign's plate.
+   * One makers' run (src/trials/kit-run.js): on foot (and on the wings) through the gates among the temple
+   * pieces, then (the wind hall) the bank of eyes in one breath. It ends in the water (the Hush walk), down on
+   * the plain (the feather leap), at a knockout, or up on the jets. The reward is a word from someone nearby (src/trials/kit-data.js `voice`) and the sign's plate.
    */
   function kitSession(ctx) {
     const P = ctx.player;
@@ -337,17 +340,18 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
         if (prev) {
           const r = run.step(prev, p, ctx.time);
           if (r === 'gate') { ctx.sfx.checkpoint(); show(); }
-          if (r === 'ready') { ctx.sfx.checkpoint(); show(); ctx.flash('Now the eyes: all three in one breath', 'big', 2.2); }
+          if (r === 'ready') { ctx.sfx.checkpoint(); show(); ctx.flash(`Now the eyes: all ${COUNT[course.bank.eyes.length] ?? course.bank.eyes.length} in one breath`, 'big', 2.2); }
           if (r === 'finish') { gone = true; show(); finish(); return; }
         }
         if (run.ready && course.bank && run.wake(course.bank.awake(), ctx.time) === 'finish') { gone = true; finish(); return; }
         ctx.status(run.goal());
         prev = p;
-        // out of the run: knocked out, in the lake, up on the jets for more than a moment
-        const why = outOfRun(T, P);
+        // out of the run: knocked out, in the lake, down on the plain, up on the jets for more than a moment
+        const fr = T.fall ? course.kit.local(P.pos) : null;
+        const why = outOfRun(T, P, { passed: run.next, height: fr?.y ?? Infinity, along: fr?.z ?? Infinity });
         if (why) { gone = true; ctx.finish({ failed: true, title: why }); return; }
         off = T.onFoot && P.jetFlight ? off + dt : 0;
-        if (off > 1.5) { gone = true; ctx.finish({ failed: true, title: 'Off your feet', lines: ['This one is walked: no jets.'] }); }
+        if (off > 1.5) { gone = true; ctx.finish({ failed: true, title: 'Off your feet', lines: [T.offFeet ?? 'This one is walked: no jets.'] }); }
       },
       end() {
         world.running = null;

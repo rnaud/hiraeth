@@ -1453,3 +1453,9 @@ tests/sound-mix.test.js holds them.
   reward: the speaker's line on the results and over their head, the sign's plate keeping the best. While a
   run is on, the world's notices wait (src/ship/cinema.js `HOLD_TOASTS`). docs/systems/challenges.md,
   tests/trials-kit.test.js.
+- [x] **Two more makers' runs.** Vael's **Feather leap** (north-west of the landing by the stone hand: a
+  column of rising wind lifts open wings onto a tower's terrace, gusts down it with three screens, then a gulf
+  to glide to a lower ledge; down on the plain ends it; Kesh has a word) and the Buried Machine's **Furnace
+  steps** (east of the landing: eight iron pillars to jump across a glowing grate, then a door of four eyes in
+  one breath, which wants the fourth chamber; Jot has a word). A run can now end on the ground under it
+  (`fall`), name its own controls (`controls: 'kitwings'`) and have a bank of any size.

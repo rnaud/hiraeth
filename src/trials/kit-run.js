@@ -50,13 +50,17 @@ export class KitRun {
 
 /**
  * Out of a makers' run? (a reason in words for the results card, or ''.) P: the traveller ({ dead, swim,
- * inWater: { depth } }). A run over water (`wet: true`, the Hush walk) ends in the water; any run ends at a
- * knockout.
+ * inWater: { depth } }). A run over water (`wet: true`, the Hush walk) ends in the water; a run up in the air
+ * (`fall`, the feather leap) ends down on the ground under it once its first gates are behind you (passed:
+ * the gates passed; height and along: the traveller's feet in the course's frame, up and its z); any run ends
+ * at a knockout.
  */
-export function outOfRun(trial, P) {
+export function outOfRun(trial, P, { passed = 0, height = Infinity, along = Infinity } = {}) {
   if (!P) return '';
   if (P.dead) return 'Knocked out';
   if (trial?.wet && (P.swim || (P.inWater?.depth ?? 0) > 0.7)) return 'In the water';
+  const F = trial?.fall;
+  if (F && passed >= (F.after ?? 0) && height < F.below && along >= (F.from ?? -Infinity)) return F.words ?? 'Fell';
   return '';
 }
 
