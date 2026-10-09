@@ -540,7 +540,7 @@ export class HomecomingDirector {
         const dive = id === 'dive' ? smooth(t / 2.6) : 0;
         if (s.spaceCopy) s.spaceCopy.space.rotation.x = 0.12 * k + 0.5 * dive;
         const back = id === 'cargo' ? 0.6 : 0;
-        s.shot({ pos: this.W(V(-0.4 - back * 0.6, DECK + 1.8, -7.3 + (1 - k) * 1.0 + back)), look: this.W(V(0.4, DECK + 1.3 - dive * 0.5, -16)), fov: 60 - k * 4 });
+        s.shot({ pos: this.W(V(-0.75 - back * 0.4, DECK + 1.95, -7.3 + (1 - k) * 1.0 + back)), look: this.W(V(-1.0, DECK + 1.75 - dive * 0.6, -16)), fov: 60 - k * 4 });   // (through the left pane, past the middle frame)
         s.player.heading = s.worldHeading(sp, Math.PI);
         if (id === 'approach') {
           if (t > 1.6 && !this.said) { this.said = true; C.say({ who: 'ship', text: 'Out of the jump. Home is below us.' }); }

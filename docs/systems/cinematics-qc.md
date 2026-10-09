@@ -159,6 +159,21 @@ to the step out, five runs with a fix between each:
 - Found and fixed: see the table's row. Left: the light is drawn with the ship's puffs (no glow pass of its
   own); his head doesn't turn to follow it in the pass (the shot does the looking).
 
+### The angular ship (v1.8)
+
+The ship's scenes re-checked after the round ship became the angular one (docs/systems/ship.md):
+`scripts/cinematics-qc.mjs --only prologue,call.1,takeoff,arrival.glassdunes,arrival.home,homecoming.first`
+(port 5362, High, 1280 × 720, muted), the prologue walked to the console by a `--probe` that places him at
+the cockpit point and presses the button, four runs with a fix between each.
+
+| Cinematic | Tech /5 (first run → after) | Interest /5 | Problems found | Fixed |
+|---|---|---|---|---|
+| `prologue` | 3 (waits at the walk) → 4.5 | 5 | The drain's shot had the pilot's seat filling the left of the frame; the glide and the settle stood as far off as the ball needed, the low hull small in the frame | The drain from his right, past the seat; the glide 64 m off, the settle 31–40 m; the glide flies nose first and the landing slews it round in the sand |
+| `call.1` | 5 → 5 | 4 | — (the four angles placed from where he stands and the projector: the father over the dash, the windshield behind) | — |
+| `takeoff` | 3.5 → 5 | 4 | The course-set shot was 3.4 m from the table away from him: outside the hull when he stood elsewhere (lens in the hull, 21 frames); then, inside, no walls drawn: the rooms' near/far check measured from the player's rig before the scene placed its camera | Two angles inside the main room, across the table from him; the rooms' check after the camera is placed (`tests/cutscenes.test.js`: the shots inside the ship stay in its rooms) |
+| `arrival.glassdunes` | 5 → 5 | 4 | — (nose first toward the planet, down on its jets, the door and the stair-ramp, him walking down) | — |
+| `arrival.home`, `homecoming.first` | 3.5 → 3.5 (long, partly played) | 4 | The look out of the windshield was mostly the dash and the middle frame | Raised, through the left pane |
+
 ### The table
 
 Tech: the script's score on the first run (its heuristics, rescored with the final rules) → the score

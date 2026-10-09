@@ -156,10 +156,12 @@ export function cutAt(cuts, t) {
  */
 export function tableShot(ship, model, t = 0) {
   const tp = model.interior.points.table;
-  const me = ship.local(model, ship.player.pos).sub(tp).setY(0);
-  const away = me.lengthSq() > 0.01 ? me.normalize().negate() : V(1, 0, 0);
-  const d = 3.4 - Math.min(t * 0.2, 0.4);
-  return { pos: ship.world(model, V(tp.x + away.x * d, tp.y + 0.55, tp.z + away.z * d)), look: ship.world(model, V(tp.x - away.x * 0.6, tp.y + 0.05, tp.z - away.z * 0.6)), fov: 50 };
+  // two angles inside the main room, over the galley's end or from the lockers' side: the one across the table from him
+  const me = ship.local(model, ship.player.pos);
+  const sides = [V(1.0, 0, 0.95), V(-0.85, 0, -1.0)].map((d) => d.normalize());
+  const away = sides.reduce((a, b) => (me.distanceToSquared(tp.clone().add(a)) > me.distanceToSquared(tp.clone().add(b)) ? a : b));
+  const d = 2.5 - Math.min(t * 0.2, 0.4);
+  return { pos: ship.world(model, V(tp.x + away.x * d, tp.y + 0.38, tp.z + away.z * d)), look: ship.world(model, V(tp.x - away.x * 0.6, tp.y, tp.z - away.z * 0.6)), fov: 54 };
 }
 
 /** Seconds the shot takes to push in on the busts, and to ease back out. */
@@ -446,7 +448,7 @@ export class PrologueDirector {
       case 'drain': {
         // dark, then the amber reserve; the planet swings up into the window: she can't hold orbit
         const k = smooth(seg(t, 1.6, 4.8));
-        s.shot({ pos: this.W(V(-0.9, DECK + 1.75, -5.6)), look: this.W(V(0.2, DECK + 1.9 - k * 0.7, -12)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });
+        s.shot({ pos: this.W(V(1.0, DECK + 1.8, -5.5)), look: this.W(V(-0.3, DECK + 1.9 - k * 0.7, -12)), fov: 58, roll: k * 0.12 + Math.sin(t * 1.3) * 0.02 });   // (from his right: the pilot's seat out of the way)
         if (t < 0.1 && !this.dark) { this.dark = true; C.fade(0.55, false, 0.35); }   // (the lamps out: dark but for the window)
         if (t > 1.3 && !this.reserve) { this.reserve = true; s.setPower('emergency', sp); C.fade(0.25, false, 0.8); C.red(0.18); }
         if (t > 2.4 && !this.said2) { this.said2 = true; C.say({ who: 'ship', text: 'Not enough to hold orbit. Taking us down.' }); }
@@ -473,7 +475,7 @@ export class PrologueDirector {
           const under = s.world(pk, V((Math.random() - 0.5) * 3, BELLY - 0.4, CENTRE_Z + (Math.random() - 0.5) * 16));
           s.flame.emit(under, V(0, -14, 0), 1.2 + Math.random(), 0.3, pickOf(FIRE));
         }
-        const cam = s.restPos.clone().addScaledVector(this.N, -82).addScaledVector(this.T, 46).add(V(0, 9, 0));
+        const cam = s.restPos.clone().addScaledVector(this.N, -64).addScaledVector(this.T, 36).add(V(0, 8, 0));   // (the long low hull: nearer than the ball needed)
         if (t < dt * 1.5) this.look.copy(p);
         this.look.lerp(p, 1 - Math.exp(-6 * dt));
         s.shot({ pos: cam, look: this.look, fov: 40 });
@@ -506,9 +508,9 @@ export class PrologueDirector {
       }
       case 'settle': {
         const k = smooth(seg(t, 0, 3.6));
-        const a = s.restPos.clone().addScaledVector(this.N, -62).addScaledVector(this.T, 44).add(V(0, 26, 0));
-        const b = s.restPos.clone().addScaledVector(this.N, -50).addScaledVector(this.T, 34).add(V(0, 20, 0));
-        s.shot({ pos: a.lerp(b, k), look: s.restPos.clone().addScaledVector(this.T, -26).add(V(0, -4, 0)), fov: 46 });
+        const a = s.restPos.clone().addScaledVector(this.N, -40).addScaledVector(this.T, 28).add(V(0, 17, 0));
+        const b = s.restPos.clone().addScaledVector(this.N, -31).addScaledVector(this.T, 21).add(V(0, 12, 0));
+        s.shot({ pos: a.lerp(b, k), look: s.restPos.clone().addScaledVector(this.T, -16).add(V(0, -2, 0)), fov: 46 });
         if (t > 1.6 && !this.creak) { this.creak = true; s.sound?.critter?.('creak', 1); }
         break;
       }

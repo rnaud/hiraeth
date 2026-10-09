@@ -10,7 +10,8 @@ import { makeMaterial, MODE_STRATA } from '../src/materials.js';
 import { THRUSTERS, exhaust, blast, BLAST_H } from '../src/ship/exhaust.js';
 import { buildApproach, planetMaterial, MARK_IDS } from '../src/ship/approach.js';
 import { PLANETS } from '../src/ship/planets.js';
-import { ArrivalDirector, APPROACH, landingK, planetDistance, PLANET_NEAR } from '../src/ship/cinematics.js';
+import { ArrivalDirector, APPROACH, landingK, planetDistance, PLANET_NEAR, callShot, callAngle, tableShot } from '../src/ship/cinematics.js';
+import { inRooms } from '../src/ship/interior.js';
 import { FlameBody, FIRE, COOL_FIRE } from '../src/story/flames.js';
 
 // The ship's cutscenes and the desert's burning tree, from player feedback:
@@ -227,3 +228,29 @@ test('the approach planet\'s face never comes in front of the ship, however big 
   }
   assert.equal(planetDistance(1250, 0.08), 1250, 'small and far: unchanged');
 });
+
+test('the shots inside the ship stay in its rooms, the lens clear of every wall (the recordings, the course set at the table)', () => {
+  const { physics, ship } = flatWorld();
+  const m = ship.parked, P = m.interior.points;
+  ship.player = new Player(physics);
+  const check = (name, shot) => {
+    const l = ship.local(m, shot.pos);
+    assert.ok(inRooms(l, { margin: -0.15 }), `${name}: the camera in the rooms (${l.toArray().map((n) => n.toFixed(2))})`);
+    for (const d of [v(1, 0, 0), v(-1, 0, 0), v(0, 1, 0), v(0, -1, 0), v(0, 0, 1), v(0, 0, -1)]) {
+      assert.ok(physics.rayDistance(shot.pos, d, 0.25) >= 0.25 - 1e-6, `${name}: the lens 25 cm clear of everything`);
+    }
+    // and what it looks at is in sight (nothing solid in between)
+    const to = shot.look.clone().sub(shot.pos), len = to.length();
+    assert.ok(physics.rayDistance(shot.pos, to.normalize(), len - 0.6) >= len - 0.6 - 1e-6, `${name}: the subject in sight`);
+  };
+  for (const t of [0, 5]) for (const close of [0, 1]) check(`call ${t} ${close}`, callShot(ship, m, t, close));
+  for (const a of ['bust', 'listen', 'window']) check(a, callAngle(ship, m, a, 3));
+  // the course set at the holo table, wherever he stands: by it on either side, at the dash, outside by the ramp
+  for (const at of [P.tableFoot.clone().add(v(1.1, 0, 0)), P.tableFoot.clone().add(v(-1.1, 0, 0.4)), P.cockpit]) {
+    ship.player.pos.copy(ship.world(m, at));
+    check(`table from ${at.toArray().map((n) => n.toFixed(1))}`, tableShot(ship, m, 1));
+  }
+  ship.player.pos.copy(ship.rampFoot);
+  check('table, him outside', tableShot(ship, m, 1));
+});
+
