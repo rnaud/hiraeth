@@ -2,13 +2,12 @@ import * as THREE from 'three';
 
 // The gadgets on the screen (docs/systems/gadgets.md, "On the screen"): a small chip in the lower left
 // corner with the gadget in hand (its mark, its name, its count, the button), a reticle on what the aim
-// would catch, the wheel for choosing one (hold D-pad ↑ or B; from the pad, the gun modes on an inner ring), and on a touch screen a use button and the
+// would catch, the wheel for choosing one (hold D-pad ↑ or B), and on a touch screen a use button and the
 // chip to tap for the next one. Paper and ink like the rest of the HUD. Works without a page (the tests).
 //
 //   const hud = new GadgetHud({ camera, touch, input })
 //   hud.chip({ def, count, max, refill, note, key }) · hud.chip(null)
-//   hud.reticle(point | null, kind, label) · hud.wheel(list, highlighted | -1, modes?) · hud.wheel(null)
-//     modes: { list: [{ id, name, tone, current }], hi } the inner ring (the gun modes, chosen with the right stick)
+//   hud.reticle(point | null, kind, label) · hud.wheel(list, highlighted | -1) · hud.wheel(null)
 //   hud.marks([{ point, label }])   numbered diamonds on what a gadget has locked on to (the boomerang), [] hides
 //   hud.onTap = () => …   (the chip tapped: the next gadget)
 
@@ -66,14 +65,6 @@ body.minigame #touch .b-gadget, body.talking #touch .b-gadget { display: none !i
 #gadget-wheel.many .slot img { width: 44px; height: 44px; }
 #gadget-wheel.many .slot.none { font-size: 11px; }
 #gadget-wheel.many .slot.hi { transform: scale(1.18); }
-#gadget-wheel .inner { position: absolute; border: 1.5px dotted rgba(43, 33, 31, 0.55); border-radius: 50%; background: rgba(247, 236, 210, 0.55); }
-#gadget-wheel .mode { position: absolute; width: 42px; height: 42px; margin: -21px 0 0 -21px; border: 2px solid #2b211f; border-radius: 50%;
-  display: grid; place-items: center; font: 7px/1 ui-monospace, Menlo, monospace; letter-spacing: 0; text-transform: uppercase; color: #2b211f; overflow: hidden;
-  box-shadow: 2px 2px 0 #2b211f; transition: transform 0.08s; }
-#gadget-wheel .mode.cur { outline: 2px dashed #2b211f; outline-offset: 2px; }
-#gadget-wheel .mode.hi { transform: scale(1.3); box-shadow: 0 0 0 3px #f2c54b, 2px 2px 0 #2b211f; }
-#gadget-wheel.modes .name { top: auto; bottom: -30px; transform: translateX(-50%); text-align: center; }
-#gadget-wheel.modes .name small { display: block; font-size: 10px; letter-spacing: 0.04em; text-transform: none; opacity: 0.8; }
 `;
 
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -163,14 +154,10 @@ export class GadgetHud {
     });
   }
 
-  /**
-   * The wheel: [{ glyph, name }] round a circle (clockwise from the top), one highlighted; null hides it.
-   * modes: the gun modes on an inner ring ({ list: [{ id, name, tone, current }], hi }), the name then under the wheel.
-   */
-  wheel(list, hi = -1, modes = null) {
+  /** The wheel: [{ glyph, name }] round a circle (clockwise from the top), one highlighted; null hides it. */
+  wheel(list, hi = -1) {
     if (!this.dom) return;
-    const mk = modes ? `|${modes.list.map((m) => m.id + (m.current ? '*' : '')).join(',')}|${modes.hi}` : '';
-    const key = list ? `${list.map((l) => l.name + (l.icon ? 1 : 0)).join(',')}|${hi}${mk}` : '';
+    const key = list ? `${list.map((l) => l.name + (l.icon ? 1 : 0)).join(',')}|${hi}` : '';
     if (key === this.last.wheel) return;
     this.last.wheel = key;
     this.wheelEl.classList.toggle('on', !!list);
@@ -178,24 +165,10 @@ export class GadgetHud {
     // (more than eight: a wider ring of smaller slots, so ten gadgets and "nothing" never touch)
     const n = list.length, many = n > 8, R = many ? 136 : 112, C = many ? 172 : 150;
     this.wheelEl.classList.toggle('many', many);
-    this.wheelEl.classList.toggle('modes', !!modes);
-    const at = (i, k, r) => { const a = (i / k) * Math.PI * 2; return `left:${(C + Math.sin(a) * r).toFixed(0)}px;top:${(C - Math.cos(a) * r).toFixed(0)}px`; };
-    // the inner ring: the gun modes, each in its own tone, the one in the tool now ringed (dashed)
-    let inner = '';
-    if (modes?.list.length) {
-      const r = 50, m = modes.list.length;
-      inner = `<div class="inner" style="left:${C - r - 26}px;top:${C - r - 26}px;width:${2 * r + 52}px;height:${2 * r + 52}px"></div>`
-        + modes.list.map((l, i) => `<div class="mode${i === modes.hi ? ' hi' : ''}${l.current ? ' cur' : ''}" style="${at(i, m, r)};background:${esc(l.tone)}">${esc(l.name)}</div>`).join('');
-    }
-    const gadget = hi >= 0 && list[hi] ? list[hi].name : n ? 'choose a gadget' : '';
-    let name;
-    if (modes) {
-      const cur = modes.list.find((l) => l.current), m = modes.list[modes.hi] ?? cur;
-      name = `${esc(gadget || 'gun mode')}<small>${n ? 'left stick: gadget · ' : ''}right stick: gun mode${m ? ` (${esc(m.name)})` : ''}</small>`;
-    } else name = esc(gadget);
-    this.wheelEl.innerHTML = '<div class="ring"></div>' + list.map((l, i) =>
-      `<div class="slot${i === hi ? ' hi' : ''}${l.none ? ' none' : ''}" style="${at(i, n, R)}">${l.icon ? `<img src="${esc(l.icon)}" alt="">` : esc(l.glyph)}</div>`).join('')
-      + inner + `<div class="name">${name}</div>`;
+    this.wheelEl.innerHTML = '<div class="ring"></div>' + list.map((l, i) => {
+      const a = (i / n) * Math.PI * 2, x = C + Math.sin(a) * R, y = C - Math.cos(a) * R;
+      return `<div class="slot${i === hi ? ' hi' : ''}${l.none ? ' none' : ''}" style="left:${x.toFixed(0)}px;top:${y.toFixed(0)}px">${l.icon ? `<img src="${esc(l.icon)}" alt="">` : esc(l.glyph)}</div>`;
+    }).join('') + `<div class="name">${esc(hi >= 0 ? list[hi].name : 'choose a gadget')}</div>`;
   }
 
   dispose() { for (const e of [this.chipEl, this.retEl, this.wheelEl, this.touchBtn, this.marksEl]) e?.remove(); }

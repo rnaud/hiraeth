@@ -4,7 +4,7 @@
 // without walking to its sign. The level's quick menu (level.quickMenu, as the References' list of views:
 // main.js treats it as one of its menus, routes the pad to it and keeps the game still while it is open).
 //
-//   open / close   Tab (keyboard) · D-pad ↓ (pad: the potion's button, the menu takes it in this level)
+//   open / close   Tab (keyboard) · D-pad ↓ (pad: the mount's call, free here: there is no mount)
 //                  · the board by the way in (the interact button) · the small "games" button (touch, mouse)
 //                  · B / ○ or Esc closes
 //   move           mouse · arrows and Enter · d-pad or left stick and A / ×

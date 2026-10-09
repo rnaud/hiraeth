@@ -57,7 +57,7 @@ sheet's, or the start of its sheet's name, "The Desert / IMG_3775.JPG"), each en
 panel, its number (as the label and `?view=n` count) and its title; the view you are in is marked
 "here". Choosing one calls `level.goTo`, which fades there.
 
-- **Open / close:** Tab; D-pad ↓ on a pad (the potion's button, which this menu takes here; the mount's until v1.9); the small "views"
+- **Open / close:** Tab; D-pad ↓ on a pad (the mount's button, free in this level: no mount, no taxi); the small "views"
   button at the top left (touch, mouse; hidden while a pad is in use); B / ○, Esc or a click beside
   the card closes it.
 - **Moving:** mouse; arrows and Enter; d-pad or left stick and A / ×. Left / right step through the

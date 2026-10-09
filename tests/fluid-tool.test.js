@@ -104,7 +104,7 @@ test('controls: aim, shoot and push from keyboard, mouse, pad or touch; a shot o
   for (const k of ['KeyF', 'PadBlade']) assert.deepEqual(toolInput({ [k]: true }), { ...none, blade: true }, `${k}: the fluid blade`);
   for (const k of ['ControlLeft', 'KeyZ', 'PadGuard', 'TouchGuard']) assert.deepEqual(toolInput({ [k]: true }), { ...none, guard: true }, `${k}: its guard`);
   assert.deepEqual(toolInput({ TouchBlade: true }), { ...none, blade: true }, 'touch attack is separate from guard');
-  assert.deepEqual(toolInput({ PadModeNext: true, PadModePrev: true }), none, 'D-pad left / right: free (the pad\'s gun mode is the gadget chooser\'s: src/gadgets/index.js)');
+  assert.deepEqual(toolInput({ PadModeNext: true }), { ...none, mode: true }, 'D-pad right');
 });
 
 test('each ability spends a charge from the one reserve; empty, nothing fires until the refill', () => {

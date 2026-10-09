@@ -20,23 +20,18 @@ export const BUTTON_NAME = {
 /**
  * The verbs a player can move to another button, and their buttons by default (the foot rows of BINDINGS below;
  * riding, the same buttons follow them). View and Menu stay where they are, and so do the menus' and the
- * conversations' buttons: the way back is never lost. Two jobs ride on another verb's button and follow it:
- * calling the mount is run's button clicked standing still, and the gun mode is pick's button while aiming
- * (or the wheel's inner ring).
+ * conversations' buttons: the way back is never lost. One job per button: no verb rides on another's button
+ * (standing still, aiming), so a button always does what its row on the Controls page says.
  */
 export const PAD_VERBS = {
   jump: 'A', evade: 'B', interact: 'X', gadget: 'Y', blade: 'RB', guard: 'LB', aim: 'LT', fire: 'RT',
-  run: 'L3', lock: 'R3', pick: '↑', potion: '↓',
+  run: 'L3', lock: 'R3', pick: '↑', potion: '←', call: '↓', modeNext: '→',
 };
-
-/** What the prompts say for "standing still" and "while aiming" after a button (call: run's button; mode: pick's). */
-export const STILL = ' (standing still)', AIMING = ' while aiming';
 
 /** The button names the prompts use for each verb (Xbox / PlayStation form), from PAD_VERBS. */
 export const PAD = {
   ...Object.fromEntries(Object.entries(PAD_VERBS).map(([v, b]) => [v, BUTTON_NAME[b]])),
-  call: BUTTON_NAME[PAD_VERBS.run] + STILL, mode: BUTTON_NAME[PAD_VERBS.pick] + AIMING,
-  journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
+  mode: BUTTON_NAME[PAD_VERBS.modeNext], journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
 };
 
 /**
@@ -65,12 +60,12 @@ export const BINDINGS = {
     ['LB', 'guard (held; at the blow: parry) · no foe near: with the right stick, zoom'],
     ['LT', 'aim the fluid tool'],
     ['RT', 'shoot while aiming · else the jets\' throttle'],
-    ['L3', 'run, until the stick is let go · standing still: call the mount, hail a taxi'],
+    ['L3', 'run, until the stick is let go'],
     ['R3', 'lock on, the next, let go · no foe in reach: the scout finds the objective'],
-    ['↑', 'gadget: tap the next (aiming: the next gun mode) · hold the wheel (right stick: the gun modes)'],
-    ['↓', 'drink a healing potion'],
-    ['←', 'free'],
-    ['→', 'free'],
+    ['↑', 'gadget: tap the next · hold the wheel'],
+    ['↓', 'call the mount · hail a taxi (the Arena, the Arcade, the References: their list)'],
+    ['←', 'drink a healing potion'],
+    ['→', 'the next gun mode (round again after the last)'],
     ['View', 'the sketchbook (items, quests, worlds)'],
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
@@ -122,10 +117,10 @@ export const BINDINGS = {
   ],
 };
 
-/** The buttons and chords nothing uses yet: the controller sends `padchord` events for the chords (main.js). */
-export const FREE = ['←', '→', 'View + ↓', 'View + ←', 'View + →'];
+/** The chords nothing uses yet: the controller sends `padchord` events for them (main.js). */
+export const FREE = ['View + ↓', 'View + ←', 'View + →'];
 
 /** The layout's version, kept on the device so a player from before is told once what moved (main.js). */
-export const PAD_SCHEME = 3;
+export const PAD_SCHEME = 4;   // (3, v1.11's first build: double duties on L3 and D-pad ↑, the potion on ↓)
 export const PAD_SCHEME_KEY = 'moebius.padScheme';
-export const PAD_SCHEME_NOTE = 'The controller layout changed: D-pad ↓ drinks a potion, L3 clicked standing still calls your mount, and the gun modes moved to D-pad ↑ (tap it while aiming, or hold it for the wheel), so D-pad ← and → are free. Menu, then Controls, lists them all.';
+export const PAD_SCHEME_NOTE = 'The controller layout changed, one job per button: D-pad ↑ chooses a gadget, D-pad ← drinks a potion, D-pad ↓ calls your mount, D-pad → takes the next gun mode, and L3 runs. Menu, then Controls, lists them all.';

@@ -19,7 +19,7 @@ test('radial deadzone removes drift and preserves analog range', () => {
   assert.ok(stick(.5,0).x > 0 && stick(.5,0).x < .5);
   assert.ok(Math.hypot(...Object.values(stick(1,1))) <= 1.000001);
 });
-test('walking: bottom jumps, left interacts, right evades, top uses the gadget, D-pad down drinks, R3 locks on', () => {
+test('walking: bottom jumps, left interacts, right evades, top uses the gadget, D-pad down calls, R3 locks on', () => {
   const t=setup(); t.pad.axes=[.6,-1,.5,0]; [BOTTOM,LEFT].forEach(i=>t.button(i,true));
   const input=t.c.update(1/60);
   assert.ok(input.KeyW && input.KeyD && input.Space && input.KeyE && input.PadE && !input.PadEvade);
@@ -30,9 +30,12 @@ test('walking: bottom jumps, left interacts, right evades, top uses the gadget, 
   t.button(LT,true); h=t.c.update(.016); assert.ok(!h.PadEvade, 'LT alone: no evade'); t.button(RIGHT,true); assert.ok(t.c.update(.016).PadEvade, 'aiming does not change B'); t.button(RIGHT,false); t.button(LT,false); t.c.update(.016);
   t.button(TOP,true); h=t.c.update(.016); assert.ok(h.PadGadget, 'Y / △: the gadget in hand'); t.button(TOP,false); t.c.update(.016);
   assert.deepEqual(t.actions,[], 'none of these is an action: no ping, no call');
-  t.tap(13); assert.deepEqual(t.actions,['potion'], 'D-pad down drinks a healing potion');
+  t.tap(13); assert.deepEqual(t.actions,['call'], 'D-pad down whistles for the mount');
   t.tap(R3); assert.equal(t.actions.at(-1), 'lock', 'R3 locks on (main.js: with no foe in reach, the scout)');
   t.tap(12); assert.equal(t.actions.at(-1), 'lock', 'D-pad up is not an action: it chooses a gadget (PadGadgetPick)');
+  t.tap(14); assert.equal(t.actions.at(-1), 'potion', 'D-pad left drinks a potion');
+  t.tap(15); assert.equal(t.actions.at(-1), 'potion', 'D-pad right is not an action: the next gun mode (PadModeNext)');
+  t.tap(10); assert.deepEqual(t.actions.slice(-1), ['l3'], 'L3 standing still: no call (one job per button: it runs)');
 });
 test('View: the sketchbook on release; View held + D-pad up is photo mode, + down / left / right the free chords', () => {
   const t=setup();
@@ -43,7 +46,8 @@ test('View: the sketchbook on release; View held + D-pad up is photo mode, + dow
   t.button(12,false); t.c.update(.016); t.button(VIEW,false); t.c.update(.016);
   assert.deepEqual(t.actions,['journal','photo'], 'a chord: no sketchbook as View is let go');
   t.button(VIEW,true); t.c.update(.016); t.tap(13); t.tap(14); t.button(15,true); h=t.c.update(.016); t.button(VIEW,false); t.button(15,false); t.c.update(.016);
-  assert.deepEqual(t.actions.slice(2),['viewDown','viewLeft','viewRight'], 'no potion under View: the free chords');
+  assert.ok(!h.PadModeNext, 'View + right: not the gun mode');
+  assert.deepEqual(t.actions.slice(2),['viewDown','viewLeft','viewRight'], 'no call, no potion, no gun mode under View');
   const r=setup(); r.context('ride'); r.button(VIEW,true); r.c.update(.016); r.tap(12); r.button(VIEW,false); r.c.update(.016);
   assert.deepEqual(r.actions,['photo'], 'riding too');
 });
@@ -54,38 +58,6 @@ test('run: click the left stick, and you run until you let the stick go', () => 
   t.button(L3,false); assert.ok(t.c.update(.016).ShiftLeft, 'still running after the click');
   t.pad.axes=[0,0,0,0]; assert.ok(!t.c.update(.016).ShiftLeft, 'the stick back to the centre: a walk again');
   t.pad.axes=[0,-1,0,0]; assert.ok(!t.c.update(.016).ShiftLeft);
-});
-test('L3 standing still calls the mount on its release; with the stick pushed it runs, and a run never calls', () => {
-  // at rest: a click calls (on the release), and doesn't run
-  const t=setup();
-  t.button(L3,true); let h=t.c.update(.016); assert.ok(!h.ShiftLeft); assert.deepEqual(t.actions.filter(a=>a!=='l3'),[], 'nothing yet: it waits for the release');
-  t.button(L3,false); h=t.c.update(.016); assert.deepEqual(t.actions.filter(a=>a!=='l3'),['call'], 'let go standing still: the call');
-  assert.ok(!h.ShiftLeft, 'and no run');
-  // moving: a click runs and never calls
-  const m=setup(); m.pad.axes=[0,-1,0,0];
-  m.tap(L3); assert.ok(m.c.update(.016).ShiftLeft, 'running'); assert.ok(!m.actions.includes('call'), 'a run click never whistles');
-  // clicked at rest, then the stick pushed before letting go: a run after all, no call
-  const p=setup();
-  p.button(L3,true); p.c.update(.016); p.pad.axes=[0,-1,0,0];
-  assert.ok(p.c.update(.016).ShiftLeft, 'pushed while held: it runs');
-  p.button(L3,false); assert.ok(p.c.update(.016).ShiftLeft); assert.ok(!p.actions.includes('call'), 'no call');
-  // held long at rest: not a click, no call
-  const l=setup(); l.button(L3,true); for (let i=0;i<40;i++) l.c.update(.016); l.button(L3,false); l.c.update(.016);
-  assert.ok(!l.actions.includes('call'), 'held over half a second: no call');
-  // L3 + R3 (the hitboxes): no call
-  const b=setup(); b.button(L3,true); b.c.update(.016); b.button(R3,true); b.c.update(.016); b.button(R3,false); b.button(L3,false); b.c.update(.016);
-  assert.ok(b.actions.includes('hitboxes') && !b.actions.includes('call'), 'L3 + R3: the hitboxes, no whistle');
-  // riding: L3 boosts, never calls
-  const r=setup(); r.context('ride'); r.c.update(.016); r.tap(L3); assert.ok(!r.actions.includes('call'), 'riding: no call');
-});
-test('the gadget wheel open: the right stick goes to the wheel (its gun modes), not the camera', () => {
-  let open=false;
-  const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 1, 0], buttons: Array.from({length:17}, () => ({pressed:false,value:0})) };
-  const looks=[];
-  const c = new Controller({ pads: () => [pad], context: () => 'game', action() {}, look: (x, y) => looks.push([x, y]), navigate() {}, scroll() {}, wheel: () => open });
-  let h=c.update(.016); assert.ok(looks.length===1 && !h.rstick, 'closed: the right stick looks');
-  open=true; h=c.update(.016); assert.equal(looks.length, 1, 'open: no look'); assert.ok(h.rstick.x > 0.9, 'the stick goes to the wheel');
-  assert.deepEqual(mergeControls({}, h).rstick, h.rstick, 'merged as the left stick is');
 });
 test('disconnect and background clear controls without releasing keyboard input', () => {
   const t=setup(); t.button(0,true); assert.ok(t.c.update(.016).Space);
@@ -139,10 +111,10 @@ test('the fluid tool: LT aims, RT shoots only while aiming (else the jets), RB s
   t.button(LB,true); assert.ok(t.c.update(.016).PadGuard, 'LB held: the guard');
   const b=setup(); b.button(LEFT,true); input=b.c.update(.016);
   assert.ok(!input.PadPush && input.KeyE, 'the left button interacts, it does not push');
-  b.button(LEFT,false); b.c.update(.016); b.tap(14); b.tap(15);
-  assert.deepEqual(b.actions, [], 'D-pad left / right: free (the gun mode is D-pad up while aiming: src/gadgets/index.js)');
-  b.button(LT,true); b.button(12,true); input=b.c.update(.016);
-  assert.ok(input.PadAim && input.PadGadgetPick, 'LT + D-pad up: the chooser, aiming (a tap: the next gun mode)');
+  b.button(LEFT,false); b.button(14,true); input=b.c.update(.016);
+  assert.ok(!input.PadModeNext && b.actions.includes('potion'), 'D-pad left: a potion, never a gun mode');
+  b.button(14,false); b.button(15,true); input=b.c.update(.016);
+  assert.ok(input.PadModeNext, 'D-pad right: the next gun mode');
   // a light squeeze of LT is enough to aim
   const s=setup(); s.pad.buttons[LT]={pressed:false,value:.35}; assert.ok(s.c.update(.016).PadAim);
   // no aiming or firing from menus

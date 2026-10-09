@@ -12,7 +12,7 @@ import { TITLES } from './levels/names.js';
 // it falls (practice). A world's "waves from here" runs the Arena's cycle (foes.js ARENA_WAVES) from that world's
 // first enemy; a guardian is called into a ring on the sand. Paper and ink, as the Arcade's board.
 //
-//   open / close   the FOES tab on the left edge (it says how) · D-pad ↓ (the potion's button: this menu takes it in the level)
+//   open / close   the FOES tab on the left edge (it says how) · D-pad ↓ (the mount's call: there is none here)
 //                  · K on the keyboard · B / ○ or Esc closes
 //   move           mouse · arrows and Enter · D-pad or left stick and A / × · LB / RB the world filter
 //

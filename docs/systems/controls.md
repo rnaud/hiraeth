@@ -18,20 +18,19 @@ Controls page. **E** interacts: get on, get off, talk, use; with nothing near it
 mount (or hails a taxi). **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after five seconds; ping again
 to refresh it. The guide follows quest progress and portal routes, with local obstacle avoidance. **V**
-sounds the bell-note whistle (and the echo shell). **C** drinks a healing potion (D-pad ↓ on a pad,
+sounds the bell-note whistle (and the echo shell). **C** drinks a healing potion (D-pad ← on a pad,
 the flask beside the hearts on touch: docs/systems/items.md). **P** photo mode. **L** opens the level picker. Each
 level's controls are listed in [worlds.md](worlds.md), "Levels".
 
 **The tool:** hold right mouse (or **R**) to aim, left click (or **G**) to fire while aiming, and **X** to
-switch modes (fluid, push, and those found). On a gamepad, LT aims, RT fires while aiming, and D-pad ↑
-tapped while aiming takes the next mode (held, the gadget wheel's inner ring: the right stick picks one);
-on touch, use **◎ ✺ ◐**. The jets: Space held in the air (RT on a pad). The paralyze ray
+switch modes (fluid, push, and those found). On a gamepad, LT aims, RT fires while aiming and D-pad →
+takes the next mode (round again after the last); on touch, use **◎ ✺ ◐**. The jets: Space held in the air (RT on a pad). The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar: reactive scenery, observatory
 lenses within 30 m, cruising taxis and Lorn's carnivorous plants.
 
 **Gadgets** (v0.90, docs/systems/gadgets.md): **T** or the middle mouse button uses the one in hand
 (hold to aim, let go), **B** takes the next (Shift + B the one before; held: the wheel); on a pad Y / △
-and D-pad ↑ (opened from the pad, the wheel has the gun modes on an inner ring); on touch ◆, and the chip in the corner takes the next. With no gadget in hand the use
+and D-pad ↑; on touch ◆, and the chip in the corner takes the next. With no gadget in hand the use
 button sounds the bell-note whistle.
 
 ## Controller
@@ -120,8 +119,8 @@ To see a controller register: a small ink drawing of a pad in the lower right, e
 pressed, both sticks where they are, the triggers' travel as bars; under it the pad's `id`, its
 `mapping`, vendor:product, the browser's layout and the profile chosen (with the hat's axis and the
 right stick's), the raw state live (pressed button indices, every axis), and the last six presses as
-`raw → button → what it does`: `button 7 → RB / R1 → the fluid blade`, `axis 9 = 0.14 → D-pad ↓ → drink
-a healing potion`, `button 5 → not mapped`. What it does is the first clause of `src/bindings.js` `BINDINGS`
+`raw → button → what it does`: `button 7 → RB / R1 → the fluid blade`, `axis 9 = 0.14 → D-pad ↓ → call
+the mount`, `button 5 → not mapped`. What it does is the first clause of `src/bindings.js` `BINDINGS`
 for the controller's context (`actionLabel`). On in the Arena; View + D-pad ← there (a free chord), **F6**
 anywhere, the dev menu, `?inputs=1` (`?inputs=0` keeps it off in the Arena). Off, `update()` returns at
 once and nothing is built.
@@ -257,7 +256,7 @@ Conflicts and oddities:
 8. Keyboard: B was a gadget key and a guard key; the attack was F, where every PC action game attacks
    on the left click.
 
-### After (v0.93; v1.10: the potion on ↓, the mount on L3, the gun modes on ↑)
+### After (v0.93; the D-pad's quick slots as of v1.11: one job per button)
 
 | button | on foot | in a fight | aiming | climbing · swimming · gliding · jets | riding | cab | menus · talking | photo |
 |---|---|---|---|---|---|---|---|---|
@@ -269,14 +268,15 @@ Conflicts and oddities:
 | LB / L1 | + right stick: zoom (no foe near) | guard | | | | | panel before | down |
 | LT / L2 | aim | | | jets: hold to aim | brake | | | |
 | RT / R2 | the jets' throttle | | shoot | the jets' throttle | throttle | | | faster |
-| L3 | run (the stick pushed) · **clicked standing still: call the mount, hail a taxi** (v1.10) | | | as before | boost | | | |
+| L3 | run | | | as before | boost | | | |
 | R3 | lock on · **no foe in reach: the scout** | lock on, the next, let go | | **the scout** | **the scout** | | | |
-| D-pad ↑ | choose a gadget (tap: the next, held: the wheel; **its inner ring the gun modes**, v1.10) | | **tap: the next gun mode** (v1.10) | | | | navigate | |
-| D-pad ↓ | **drink a healing potion** (v1.10; a level's quick menu where there is one) | | | | | | navigate | |
-| D-pad ← → | **free** (v1.10) | | | | | | navigate | |
+| D-pad ↑ | choose a gadget (tap: the next, held: the wheel) | | | | | | navigate | |
+| D-pad ↓ | **call the mount, hail a taxi** (the Arena, the Arcade, the References: their list) | | | | | | navigate | |
+| D-pad ← | **drink a healing potion** (v1.11; View + D-pad ↓ before) | | | | | | navigate | |
+| D-pad → | **the next gun mode** (round again after the last; ← took the one before until v1.11) | | | | | | navigate | |
 | View (on release) | the sketchbook | | | | the sketchbook | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
-| View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display; ↓ drank a potion v1.5 to v1.9) | | | | | | | |
+| View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
 | L3 + R3 | debug: the hitbox overlay (F4) | | | | | | | |
 | Menu | the Start menu | | | | the Start menu | | close | leave |
 
@@ -288,29 +288,22 @@ Start menu.
 ### Why each is where it is
 
 - **Kept:** A jump, the shoulders and the triggers (RB blade, LB guard, LT aim, RT fire / jets: already the
-  souls and Horizon layout), L3 run, R3 lock-on, D-pad ↑ gadgets with the hold-to-open wheel (Zelda's
-  ability wheel is on ↑), View and Menu, the riding layout (A jumps off: the author's own handheld request;
-  B, back, gets off; RT / LT drive).
+  souls and Horizon layout), L3 run, R3 lock-on, D-pad ↑ gadgets with the hold-to-open wheel (Zelda's ability wheel is on ↑), View and Menu, the
+  riding layout (A jumps off: the author's own handheld request; B, back, gets off; RT / LT drive).
 - **B evades, X interacts:** dodge on the right button is the strongest habit the reference games share,
   and back in menus is the same button, so "B gets you out" holds everywhere: a blow, a menu, a vehicle, a
   cab, a conversation. Interact moves to the free left button, as Horizon's □.
-- **D-pad ↓ drinks a potion** (v1.10, the author's request): healing is the quick slot a fight reaches for,
-  one press where it was a View chord. In a level with its own quick menu (the Arena's foes, the Arcade's
-  board, the References' views) ↓ opens that menu instead, as it did when it was the mount's.
-- **L3 clicked standing still calls the mount** (v1.10; v0.93 to v1.9 it was D-pad ↓): a click of the left
-  stick while it is pushed is a run, so the same click at rest was free; you call a mount when you stop to
-  wait for it. The call goes on the click's *release*, so a click that becomes a run (the stick pushed
-  before L3 is let go) never whistles, nor does L3 + R3 (the hitboxes); held longer than half a second at
-  rest it was a run held early (the hold mode), not a call (`CALL_CLICK`). The same in the three run
-  modes; in the Lab L3 still hops to the previous world's room and calls nothing. It follows run's button
-  when that is moved. The keyboard's E still whistles when nothing is near.
-- **The gun modes on D-pad ↑** (v1.10, the author's request): ← / → for one mode switch spent two quick
-  slots. Choosing the mode is choosing what the hand does, as a gadget is, so it joins the gadget chooser:
-  a tap of ↑ *while aiming* (LT held) takes the next gun mode (aiming is when the mode matters; not aiming,
-  the tap takes the next gadget, as before), and the wheel (↑ held) opened from the pad has the gun modes
-  on an inner ring, each in its tone, the current one ringed: the left stick points at a gadget on the
-  outer ring, the right stick at a mode on the inner one (the camera doesn't turn meanwhile), and letting
-  ↑ go takes both. With no gadget found the wheel opens for the modes alone. ← / → are free.
+- **D-pad ↓ calls the mount:** Zelda's whistle, one press on a quick slot instead of a chord on the aim
+  trigger; the keyboard's E still whistles when nothing is near. The levels with a quick menu and no mount
+  (the Arena's FOES list, the Arcade's board, the References' views) open it on ↓ instead: there is
+  nothing to call there, so the button still has one job in each place.
+- **One job per button (v1.11):** each D-pad direction is one verb, whatever you are doing: ↑ gadgets (tap
+  the next, hold the wheel, gadgets only), ← the potion, ↓ the mount, → the next gun mode. The potion
+  leaves View + D-pad ↓ for a single press (it is drunk mid-fight); the gun modes, which took both ← and
+  →, keep → alone and go round (there are four at most). v1.11's first build tried double duties instead
+  (L3 clicked standing still called the mount, a tap of ↑ while aiming took the next gun mode, the potion
+  on ↓): a button whose job depends on whether the stick is at rest or LT is held proved confusing, so it
+  went back to one job per button (`PAD_SCHEME` 4).
 - **The scout on R3 when nothing can be locked on to:** R3 means "find something": a foe if one is in reach
   (souls), else the way to the objective (Horizon's Focus). In a fight R3 always locks; out of one it never
   needs to. It works riding and flying, where Y sent it before. (Bosses are not foes in reach: in a
@@ -321,17 +314,18 @@ Start menu.
 - **Photo mode under View:** rarely used, so it leaves the quick slots; View held turns the D-pad into a
   second layer (the sketchbook opens as View is let go, if no chord was used meanwhile). It is in the
   Start menu too, the only way in on a touch screen.
-- **Free for later:** D-pad ← / →, and View + D-pad ↓ / ← / →, sent as a `padchord` window event (`{ detail: { name:
+- **Free for later:** View + D-pad ↓ / ← / → (↓ drank the potion from v1.5 to v1.10), sent as a `padchord` window event (`{ detail: { name:
   'viewDown' | 'viewLeft' | 'viewRight' } }`). The hitbox overlay keeps L3 + R3 (both sticks: a debug
   combo nobody presses by accident; R3 alone still locks on, L3 alone runs).
 - **The keyboard:** the left click attacks as in every PC action game (and shoots while aiming, as
   before); B is only the gadgets' key, so it never raises the shield.
 - **Players from before** see a one-time note the first time they use a pad (`PAD_SCHEME` in
-  `src/bindings.js`, kept on the device as `moebius.padScheme`; 3 since v1.10). A layout moved on the
-  Controls page before v1.10 is brought up to date (`migratePad` in `src/remap.js`, run by `migrateSettings`
-  and by `setControlPrefs`): the verb on D-pad ↓ was `call` and is `potion` now, so a moved `call` becomes
-  a moved `potion` (a swap stays a swap, nothing ends up shared), and the gone `modePrev` / `modeNext`
-  overrides are dropped.
+  `src/bindings.js`, kept on the device as `moebius.padScheme`). The buttons a player moved (the settings'
+  `pad`) are brought up to date once (`migratePad` in `src/remap.js`, from `migrateSettings`, marked
+  `padV`): from schemes 1–2, the mount and the next gun mode stay where they were and the mode before is
+  gone; from scheme 3 (a saved `potion` tells it), the potion keeps the button chosen and a verb the player
+  had swapped onto ↓ (the potion's place then) moves to ←, its place now, so a swap stays a swap.
+  Whatever still shares a button after that goes back to its default.
 
 Tests: `tests/bindings.test.js` (no button bound twice in a context; a virtual pad pressed through every
 row on foot, riding, in menus, talking and in photo mode; no prompt in `src/` naming the old buttons),

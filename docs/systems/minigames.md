@@ -85,8 +85,8 @@ a hooped spire in the middle.
   `main.js` does not move him to the place saved as he left.
 - **The games board** (`src/levels/arcade-board.js` `ArcadeBoard`, the level's `quickMenu` as the References' list
   of views: `main.js` routes the pad to it and keeps the game still while it is open): every game, its line and its
-  best; choose one to open it. Opened from the board by the way in (interact), **Tab**, **D-pad ↓** (the potion's
-  button, which the board takes here), or the small "games" button (touch, mouse); B / ○ or Esc closes.
+  best; choose one to open it. Opened from the board by the way in (interact), **Tab**, **D-pad ↓** (the mount's
+  call: there is no mount here), or the small "games" button (touch, mouse); B / ○ or Esc closes.
 - **Next and previous**: `main.js` gives the runner `links: arcadeLinks(from, id)` (null unless `from=arcade`).
   The runner's `host.links` is generic: `{ quit: { label, href }, extra: [{ id, label, sub, href, step }] }`;
   the extra links are buttons on the start card, the pause card and the results (before Quit, under its label),

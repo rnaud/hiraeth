@@ -1,7 +1,7 @@
 import { store } from './platform.js';
 import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
-import { PAD, PAD_VERBS, KEYS, BUTTON_NAME } from './bindings.js';
+import { PAD, PAD_VERBS, KEYS, BUTTON_NAME, PAD_SCHEME } from './bindings.js';
 import { slotStorage } from './save-slots.js';
 import { UpdatePanel } from './update-panel.js';
 import { devMode } from './dev-gate.js';
@@ -56,6 +56,7 @@ const DEFAULTS = {
   run: 'auto',          // run on the pad: auto (L3 until you stop) | hold | toggle (the keyboard: hold | toggle)
   guard: 'hold',        // guard: hold | toggle
   hudV: 1,              // settings saved before v1 had the frame readout on by default: it goes off once
+  padV: PAD_SCHEME,     // the pad's overrides saved before the layout's version 4 (one job per button) are brought up to date once
   deckV: 1,             // the Steam Deck before v1 started on High (its first save kept it): it goes to Auto (its own preset) once
 };
 
@@ -108,7 +109,8 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   if (!(out.hudV >= 1)) { delete out.showFps; out.hudV = 1; }
   // (High was only ever the default there: a player who picked a lighter preset keeps it)
   if (typeof out.enemies === 'boolean') out.enemies = out.enemies ? 'normal' : 'off';   // (v0.87 saved it as on / off)
-  if (out.pad && typeof out.pad === 'object') out.pad = migratePad(out.pad);   // (the pad's verbs before PAD_SCHEME 3: 'call' on D-pad ↓ is the potion now)
+  // (the pad's verbs saved before PAD_SCHEME 4: one job per button now, src/remap.js migratePad)
+  if (!(out.padV >= PAD_SCHEME) && out.pad && typeof out.pad === 'object' && Object.keys(out.pad).length) { out.pad = migratePad(out.pad); out.padV = PAD_SCHEME; }
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
   return out;
 }
@@ -133,7 +135,7 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
 const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
 
 /** The verbs on the Controls page's "your buttons" and "your keys", in the order shown. */
-export const REBIND_PAD = ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion'];
+export const REBIND_PAD = ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'modeNext'];
 export const REBIND_KEYS = ['forward', 'back', 'left', 'right', 'run', 'jump', 'interact', 'blade', 'guard', 'evade', 'lock', 'aim', 'fire', 'mode', 'scout', 'gadget', 'gadgetNext', 'whistle', 'potion', 'journal', 'menu', 'controls', 'photo', 'mute'];
 
 /**

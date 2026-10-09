@@ -7,10 +7,9 @@
 //             · Y the gadget in hand (none: the bell-note whistle, once found)
 //             · LT aim · RT shoots while LT is held, and without it is the jets' throttle (analog)
 //             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
-//             · L3 run until you stop (clicked standing still: call the mount / hail a taxi)
-//             · R3 lock on (nothing to lock: the scout finds the objective)
-//             · D-pad ↑ choose a gadget (tap: the next, aiming: the next gun mode; held: the wheel, the
-//               left stick a gadget, the right stick a gun mode) · ↓ drink a potion · ← / → free
+//             · L3 run until you stop · R3 lock on (nothing to lock: the scout finds the objective)
+//             · D-pad ↑ choose a gadget (tap: the next; held: the wheel) · ← drink a potion
+//             · ↓ call the mount / a taxi · → the next gun mode (one job per button)
 //             · View the sketchbook (on release; View + D-pad: photo, free slots)
 //             · Menu the settings
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
@@ -45,9 +44,6 @@ export function toPositions(list) {
   return out;
 }
 
-/** How long L3 may be held standing still and still call the mount on its release (s): longer, it was a run held at rest. */
-export const CALL_CLICK = 0.5;
-
 const trigger = (v) => (v > 0.05 ? Math.min(1, (v - 0.05) / 0.9) : 0);
 
 export class Controller {
@@ -55,9 +51,9 @@ export class Controller {
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
    */
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, wheel = () => false, prefs = controlPrefs, padMap = currentPadMap }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, wheel, prefs, padMap });   // (combat: a foe is near, LB blocks rather than zooms; wheel: the gadget wheel is open, the right stick chooses a gun mode there rather than looks)
-    this.previous = []; this.held = {}; this.index = null; this.repeat = 0; this.l3Rest = null;
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap });   // (combat: a foe is near, LB blocks rather than zooms)
+    this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null; this.running = false; this.guarding = false; this.view = null;
   }
   update(dt, enabled = true) {
@@ -87,7 +83,6 @@ export class Controller {
     // A held confirm/jump must never leak through when a menu closes (nor RT fire as you step off a bike).
     if (ctx !== this.lastContext) {
       buttons.forEach((b, i) => { if (b && this.previous[i]) this.blocked.add(i); });
-      this.l3Rest = null;
       this.repeat = 0; this.direction = '';
       if (ctx !== 'game') this.guarding = false;
     }
@@ -133,10 +128,7 @@ export class Controller {
       const h = this.held;
       // LB held: the right stick zooms (pull back: out) instead of looking
       // (in a fight LB blocks: the stick looks)
-      // (the gadget wheel open: the right stick is its inner ring, the gun modes, and doesn't look: src/gadgets/index.js)
-      const wheel = ctx === 'game' && this.wheel?.();
-      if (wheel) h.rstick = { x: right.x, y: -right.y };
-      else if (down(LB) && ctx !== 'photo' && !this.combat?.()) { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
+      if (down(LB) && ctx !== 'photo' && !this.combat?.()) { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
       else this.look(right.x * dt * 900, right.y * dt * 900);
       h.stick = { x: left.x, y: -left.y };
       if (ctx === 'photo') {
@@ -154,31 +146,20 @@ export class Controller {
         // the bottom button jumps off (player.jumpOff); the vehicle's own hop / flap / rise is the left one's,
         // the right one (back) gets off
         h.Space = down(WEST); h.JumpOff = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
-        this.running = false; this.l3Rest = null;
+        this.running = false;
       } else {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
         h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
-        // run: click the left stick while it is pushed; you keep running until you let the stick go (the Controls
-        // page: or held, or a toggle: src/remap.js RUN_MODES). Clicked standing still (the stick at rest), it
-        // calls the mount or hails a taxi ('call'), on its release: pushed before it is let go, it is a run after
-        // all, so a run never whistles (nor does L3 + R3, the hitboxes)
-        const moving = !!(left.x || left.y);
+        // run: click the left stick; you keep running until you let the stick go (the Controls page: or held,
+        // or a toggle: src/remap.js RUN_MODES)
         if (press(L3) && !down(R3)) this.action('l3');   // (the Lab: the previous world's room)
-        let runPress = press(L3) && moving;
-        if (press(L3) && !moving && !down(R3)) this.l3Rest = 0;
-        else if (this.l3Rest !== null) {
-          if (down(R3)) this.l3Rest = null;
-          else if (moving) { this.l3Rest = null; runPress = down(L3); }
-          else if (!down(L3)) { if (this.l3Rest < CALL_CLICK) this.action('call'); this.l3Rest = null; }
-          else this.l3Rest += dt;
-        }
-        if (P.run === 'hold') this.running = down(L3) && this.l3Rest === null;
-        else if (P.run === 'toggle') { if (runPress) this.running = !this.running; }
-        else if (runPress) this.running = true;
-        else if (!moving) this.running = false;
+        if (P.run === 'hold') this.running = down(L3);
+        else if (P.run === 'toggle') { if (press(L3)) this.running = !this.running; }
+        else if (press(L3)) this.running = true;
+        else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
         h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
-        h.KeyE = down(WEST); h.PadE = h.KeyE;   // X / □ interacts (it never whistles: that's L3 standing still, 'call')
+        h.KeyE = down(WEST); h.PadE = h.KeyE;   // X / □ interacts (it never whistles: that's D-pad ↓, 'call')
         // the fluid tool: hold LT to aim, RT shoots while aiming (the push too: a gun mode) and fires the jets
         // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
         h.PadAim = down(LT); h.PadFire = down(RT);
@@ -189,13 +170,15 @@ export class Controller {
         h.PadEvade = down(EAST);   // B / ○ evades (the stick's way, or a backstep)
         // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below;
         // down() leaves the D-pad out then, whatever verb is bound to it)
+        // →: the next gun mode of the fluid tool, round again after the last (fluid-tool.js)
+        h.PadModeNext = down(RIGHT);
         // the gadget in hand (src/gadgets/): the top button uses it (pressed, held, let go; with none in hand it
-        // sounds the bell-note whistle), D-pad ↑ chooses one (a tap the next, aiming the next gun mode; held the
-        // wheel: gadgets round the outside, the gun modes on the inner ring)
+        // sounds the bell-note whistle), D-pad ↑ chooses one (a tap the next, held the wheel)
         h.PadGadget = down(NORTH); h.PadGadgetPick = down(UP);
-        // ↓ drinks a healing potion (main.js drinkPotion; a level's quick menu instead: the Arena's foes, the
-        // Arcade's board, the References' views). ← / → are free
-        if (press(DOWN)) this.action('potion');
+        // ↓ whistles for the mount, or hails a taxi (player.callMount; the References: the list of views)
+        if (press(DOWN)) this.action('call');
+        // ←: drink a healing potion (main.js drinkPotion)
+        if (press(LEFT)) this.action('potion');
       }
       if (ctx !== 'photo') {
         // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
@@ -247,7 +230,7 @@ export function triggers(c = {}) {
 export function mergeControls(keyboard, gamepad) {
   const merged = { ...keyboard };
   for (const [key, value] of Object.entries(gamepad)) {
-    if (key === 'stick' || key === 'rstick') { if (value.x || value.y) merged[key] = value; }
+    if (key === 'stick') { if (value.x || value.y) merged.stick = value; }
     else if (typeof value === 'number') merged[key] = Math.max(+keyboard[key] || 0, value);
     else merged[key] = !!keyboard[key] || value;
   }

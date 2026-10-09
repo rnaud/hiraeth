@@ -24,21 +24,20 @@ test('keys in lines: the keyboard, with the player’s own keys', () => {
   setControlPrefs({});
 });
 
-test('keys in lines: a controller, its buttons as the player moved them; push is D-pad ↑ while aiming, never X', () => {
+test('keys in lines: a controller, its buttons as the player moved them; push is the D-pad, never X', () => {
   setControlPrefs({});
   assert.equal(keyText('{key:aim} {key:fire}', { kind: 'pad' }), 'LT / L2 RT / R2');
-  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'D-pad ↑ while aiming');
+  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'D-pad →');
+  assert.equal(keyText('{key:potion}', { kind: 'pad' }), 'D-pad ←');
   assert.doesNotMatch(keyText('{key:mode}', { kind: 'pad' }), /X/);
   assert.equal(keyText('{key:interact}', { kind: 'pad' }), 'X / □');
-  assert.equal(keyText('{key:call}', { kind: 'pad' }), 'L3 (standing still)', 'the mount: L3 clicked standing still');
-  assert.equal(keyText('{key:potion}', { kind: 'pad' }), 'D-pad ↓');
+  assert.equal(keyText('{key:call}', { kind: 'pad' }), 'D-pad ↓');
   assert.equal(keyText('{key:blade} {key:guard} {key:evade}', { kind: 'pad' }), 'RB / R1 LB / L1 B / ○');
-  setControlPrefs({ pad: { jump: 'B', evade: 'A', pick: '←', run: 'LB', potion: '→' } });
+  setControlPrefs({ pad: { jump: 'B', evade: 'A', modeNext: 'RB', potion: 'LB' } });
   assert.equal(keyText('{key:jump}', { kind: 'pad' }), 'B / ○');
   assert.equal(keyText('{key:evade}', { kind: 'pad' }), 'A / ×');
-  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'D-pad ← while aiming', 'the gun mode follows pick');
-  assert.equal(keyText('{key:call}', { kind: 'pad' }), 'LB / L1 (standing still)', 'the mount follows run');
-  assert.equal(keyText('{key:potion}', { kind: 'pad' }), 'D-pad →');
+  assert.equal(keyText('{key:mode}', { kind: 'pad' }), 'RB / R1');
+  assert.equal(keyText('{key:potion}', { kind: 'pad' }), 'LB / L1');
   // as HTML the name is already the bound one: .pad-raw keeps native-pad.js from renaming it a second time
   assert.equal(keyText('{key:jump}', { kind: 'pad', html: true }), '<kbd class="kp pad-raw">B / ○</kbd>');
   setControlPrefs({});
@@ -139,5 +138,5 @@ test('no item card and no toast names a button in prose', () => {
   }
   assert.deepEqual(bad, []);
   // and the ones that teach use the placeholder, which resolves
-  assert.equal(keyText(ITEMS.stun.use, { kind: 'pad' }).startsWith('Switch modes with D-pad ↑ while aiming.'), true);
+  assert.equal(keyText(ITEMS.stun.use, { kind: 'pad' }).startsWith('Switch modes with D-pad →.'), true);
 });

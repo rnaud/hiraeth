@@ -50,25 +50,15 @@ Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); a
 | use (press, hold, let go) | Y / △ (`PadGadget`) | T, the middle mouse button | ◆ |
 | next gadget (a tap) | D-pad ↑ (`PadGadgetPick`) | B (Shift + B: the one before) | tap the chip |
 | the wheel (held 0.32 s) | D-pad ↑ held, the left stick points | B held, W A S D point | |
-| the next gun mode (a tap while aiming) | D-pad ↑ with LT / L2 held | (X, the fluid tool's own key) | (◐) |
-| a gun mode in the wheel | the right stick points at the inner ring | | |
-
-**The gun modes join the chooser (v1.10).** On a pad the fluid tool's gun modes (`src/fluid-kit.js`
-`MODES`: fluid, push, and the ones found) are chosen here, not on D-pad ← / → any more (they are free). A
-tap of D-pad ↑ while aiming (`PadAim`, at any moment of the press) takes the next mode (`tool.cycleMode`);
-not aiming, the next gadget, as before. The wheel opened from the pad (`PadGadgetPick`, not the keyboard's
-B) has the modes on an inner ring (`gunModes()`, `modeList()`; `hud.wheel(list, hi, { list, hi })`), each
-in its first tone, the current one ringed with a dashed line, and the name under the wheel with "left
-stick: gadget · right stick: gun mode". The right stick reaches the runtime as `rstick` (the controller
-stops looking while `gadgets.wheelOn`: main.js passes `wheel` to `Controller`); letting ↑ go takes the
-gadget the left stick pointed at and the mode the right stick pointed at, either or both (`tool.setMode`).
-With no gadget found yet, the wheel opens for the modes alone (only the inner ring). Only one mode owned
-(no backpack): no ring.
 
 With nothing in hand the use button sounds the bell-note whistle and plays the echo shell back, once found
 (`ring`, the V key's job: src/boxes/effects.js), and the chip shows the whistle; the wheel's first slot says
 so. B only chooses gadgets: it is not a guard key (v0.93, docs/systems/controls.md "The layout"). The game menu's Items panel takes a gadget in hand
 too (`onUse`).
+
+D-pad ↑ chooses gadgets and nothing else, aiming or not, and the wheel holds the gadgets only (one job per
+button, v1.11): the fluid tool's gun modes are D-pad → (the next, round again: src/fluid-tool.js), the
+potion D-pad ←, the mount D-pad ↓ (docs/systems/controls.md, "Why each is where it is").
 
 ## Played together
 

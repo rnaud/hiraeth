@@ -7,7 +7,6 @@
 // handheld's own letter ("X") and swaps A and B when asked.
 
 import { backKey } from './native-pad.js';
-import { STILL, AIMING } from './bindings.js';
 import { verbKey as remapKey, verbButton, controlPrefs } from './remap.js';
 import { t } from './i18n.js';
 
@@ -63,9 +62,9 @@ const VERB_KEYS = {
     call: () => remapKey('interact'), gadget: () => remapKey('gadget'), run: () => remapKey('run'), scout: () => remapKey('scout'),
     whistle: () => remapKey('whistle'), thrust: () => `${remapKey('jump')} held in the air`, potion: () => remapKey('potion') },
   pad: { move: 'the left stick', look: 'the right stick', jump: () => verbButton('jump'), interact: () => verbButton('interact'), aim: () => verbButton('aim'), fire: () => verbButton('fire'),
-    mode: () => verbButton('pick') + AIMING,   // (the gun mode: pick's button while aiming, or the wheel's inner ring)
+    mode: () => verbButton('modeNext'),
     blade: () => verbButton('blade'), guard: () => verbButton('guard'), evade: () => verbButton('evade'), lock: () => verbButton('lock'),
-    call: () => verbButton('run') + STILL, gadget: () => verbButton('gadget'), run: () => verbButton('run'), scout: () => verbButton('lock'),   // (call: run's button clicked standing still)
+    call: () => verbButton('call'), gadget: () => verbButton('gadget'), run: () => verbButton('run'), scout: () => verbButton('lock'),
     whistle: () => `${verbButton('gadget')} with no gadget in hand`, thrust: () => verbButton('fire'), potion: () => verbButton('potion') },
   touch: { move: 'the stick on the left', look: 'a drag on the right', jump: '⤒', interact: 'E', aim: '◎', fire: '✺', mode: '◐',
     blade: '⚔', guard: '◇', evade: '↶', lock: '◉', call: 'E', gadget: '◆', run: 'run', scout: 'ping',

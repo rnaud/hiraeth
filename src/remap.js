@@ -17,7 +17,7 @@
 import { KEYS, PAD_VERBS, PAD_BUTTONS, BUTTON_NAME } from './bindings.js';
 import { t, language } from './i18n.js';
 
-export const RUN_MODES = ['auto', 'hold', 'toggle'];   // auto: the pad's L3 runs until the stick is let go (the keyboard holds); clicked standing still it calls the mount, whatever the mode
+export const RUN_MODES = ['auto', 'hold', 'toggle'];   // auto: the pad's L3 runs until the stick is let go (the keyboard holds)
 export const GUARD_MODES = ['hold', 'toggle'];
 /** Keys a verb can't be moved to: the menus' and the scenes' own (Esc backs out, Enter confirms), the F keys, the dev menu's. */
 export const RESERVED_KEYS = /^(Escape|Enter|NumpadEnter|F\d+|Backquote|Meta\w*|OSLeft|OSRight|ContextMenu)$/;
@@ -29,20 +29,30 @@ export const IDENTITY = Object.freeze(PAD_BUTTONS.map((_, i) => i));
 
 const clean = (o, ok) => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([v, c]) => ok(v, c)));
 const cleanKeys = (keys) => clean(keys, (v, c) => KEYS[v] && typeof c === 'string' && c !== KEYS[v] && !RESERVED_KEYS.test(c));
-const cleanPad = (pad) => clean(migratePad(pad), (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.includes(b) && b !== PAD_VERBS[v]);
+const cleanPad = (pad) => clean(pad, (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.includes(b) && b !== PAD_VERBS[v]);
 
 /**
- * A pad layout saved before PAD_SCHEME 3, brought up to date. The verb on D-pad ↓ was 'call' (the mount); it is
- * the potion now (the mount is run's button clicked standing still), so a moved 'call' becomes a moved 'potion':
- * a swap stays a swap (call ↔ LB, guard on ↓: the potion on LB, guard on ↓, nothing shared). The gun modes'
- * verbs on ← / → are gone (pick's button while aiming, or the wheel): their buttons are free.
+ * A pad layout saved before PAD_SCHEME 4 (src/ui.js migrateSettings, once), brought up to date: one job per button,
+ * ↑ the gadgets, ← the potion, ↓ the mount, → the next gun mode.
+ * - Scheme 3 (v1.11's first build; a saved 'potion' tells it, the potion was no pad verb before): the potion sat on
+ *   ↓, so a verb the player put on ↓ swapped places with it; that verb goes to the potion's place now, ←, and the
+ *   swap stays a swap (potion on LB, guard on ↓: potion on LB, guard on ←). The potion keeps the button chosen.
+ * - Schemes 1–2: 'call' (↓) and 'modeNext' (→) are where they were; 'modePrev' (←) is gone, the potion has ←.
+ * Whatever then shares a button (a verb on the gun mode's or the potion's new place) goes back to its default:
+ * no guessing.
  */
 export function migratePad(pad) {
-  if (!pad || typeof pad !== 'object') return pad;
-  if (!('call' in pad) && !('modePrev' in pad) && !('modeNext' in pad)) return pad;
-  const { call, modePrev, modeNext, ...out } = pad;
-  if (call !== undefined && out.potion === undefined) out.potion = call;
-  return out;
+  if (!pad || typeof pad !== 'object') return {};
+  const out = { ...pad };
+  if ('potion' in out) for (const v of Object.keys(out)) if (v !== 'potion' && out[v] === '↓') out[v] = '←';
+  delete out.modePrev;
+  for (let i = 0; i < Object.keys(PAD_VERBS).length; i++) {
+    const clash = padConflicts(cleanPad(out));
+    const moved = [...clash].filter((v) => v in out);
+    if (!moved.length) break;
+    for (const v of moved) delete out[v];
+  }
+  return cleanPad(out);
 }
 
 /** The prefs from a settings object (or anything with keys / pad / run / guard), cleaned: only real changes stay. */

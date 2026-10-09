@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { Controller } from '../src/controller.js';
-import { BINDINGS, FREE, PAD } from '../src/bindings.js';
+import { BINDINGS, FREE, PAD, PAD_VERBS } from '../src/bindings.js';
 
 const IDX = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, View: 8, Menu: 9, L3: 10, R3: 11, '↑': 12, '↓': 13, '←': 14, '→': 15 };
 
@@ -31,7 +31,7 @@ function pad(context = 'game', faces = 'xbox') {
 }
 
 // what a press shows up as: a held flag the game reads, or an action main.js runs
-const FLAGS = ['Space', 'KeyE', 'PadEvade', 'PadGadget', 'PadBlade', 'PadGuard', 'PadAim', 'PadFire', 'PadGadgetPick', 'JumpOff', 'Throttle', 'Brake', 'Boost', 'KeyQ'];
+const FLAGS = ['Space', 'KeyE', 'PadEvade', 'PadGadget', 'PadBlade', 'PadGuard', 'PadAim', 'PadFire', 'PadGadgetPick', 'PadModeNext', 'JumpOff', 'Throttle', 'Brake', 'Boost', 'KeyQ'];
 const effects = ({ held, acts }) => [...FLAGS.filter((k) => held[k]), ...acts];
 
 test('the table: no button does two things in one context, and the free chords are free', () => {
@@ -44,15 +44,19 @@ test('the table: no button does two things in one context, and the free chords a
     }
   }
   for (const f of FREE) assert.match(BINDINGS.foot.find(([b]) => b === f)?.[1] ?? '', /^free/, `${f} is listed as free`);
-  // every verb's button names a real button in Xbox / PlayStation form (the mount: run's, standing still; the gun mode: pick's, aiming)
-  for (const [verb, name] of Object.entries(PAD)) assert.match(name, /^(A \/ ×|B \/ ○|X \/ □|Y \/ △|[LR][BT] \/ [LR][12]|L3|R3|D-pad [↑↓←→]|View|Menu|View \+ D-pad [↑↓←→])( \(standing still\)| while aiming)?$/, verb);
-  assert.equal(PAD.call, 'L3 (standing still)'); assert.equal(PAD.mode, 'D-pad ↑ while aiming'); assert.equal(PAD.potion, 'D-pad ↓');
+  // every verb's button names a real button in Xbox / PlayStation form
+  // (one job per button: one button each, never "while aiming" or "standing still")
+  for (const [verb, name] of Object.entries(PAD)) assert.match(name, /^(A \/ ×|B \/ ○|X \/ □|Y \/ △|[LR][BT] \/ [LR][12]|L3|R3|D-pad [↑↓←→]|View|Menu|View \+ D-pad [↑↓←→])$/, verb);
+  assert.equal(PAD.pick, 'D-pad ↑'); assert.equal(PAD.potion, 'D-pad ←'); assert.equal(PAD.call, 'D-pad ↓'); assert.equal(PAD.mode, 'D-pad →'); assert.equal(PAD.run, 'L3');
+  // no two verbs on one button by default
+  const buttons = Object.values(PAD_VERBS);
+  assert.equal(new Set(buttons).size, buttons.length, 'each verb its own button');
 });
 
 test('on foot, each button does exactly what the table says, and only that', () => {
   const want = {
     A: ['Space'], B: ['PadEvade'], X: ['KeyE'], Y: ['PadGadget'], RB: ['PadBlade'], LB: ['PadGuard'], LT: ['PadAim'], RT: ['PadFire'],
-    R3: ['lock'], '↑': ['PadGadgetPick'], '↓': ['potion'], '←': [], '→': [], View: ['journal'], Menu: ['settings'],
+    R3: ['lock'], '↑': ['PadGadgetPick'], '↓': ['call'], '←': ['potion'], '→': ['PadModeNext'], View: ['journal'], Menu: ['settings'],
     'View + ↑': ['photo'], 'View + ↓': ['viewDown'], 'View + ←': ['viewLeft'], 'View + →': ['viewRight'],
     'L3 + R3': ['hitboxes'],
   };
@@ -63,8 +67,12 @@ test('on foot, each button does exactly what the table says, and only that', () 
   }
   const t = pad('game'); t.p.axes = [0, -1, 0, 0]; t.set('L3', true);
   assert.ok(t.c.update(0.016).ShiftLeft, 'L3 runs');
+  // L3 only runs: clicked standing still, it calls nothing (one job per button)
   const s = pad('game');
-  assert.deepEqual(effects(s.press('L3')).filter((a) => a !== 'l3'), ['call'], 'L3 standing still: call the mount');
+  assert.deepEqual(effects(s.press('L3')).filter((a) => a !== 'l3'), [], 'L3 standing still: nothing but run');
+  // D-pad ↑ only chooses gadgets: aiming, a tap is still the gadget's, never a gun mode
+  const a = pad('game'); a.set('LT', true); a.c.update(0.016);
+  assert.deepEqual(effects(a.press('↑')).filter((x) => x !== 'PadAim'), ['PadGadgetPick'], 'D-pad ↑ while aiming: the gadget pick only');
 });
 
 test('riding, each button does what the table says', () => {
@@ -103,10 +111,13 @@ const STALE = [
   [/X \/ □[)\s,]*(evade|evades)\b|evades?\b[^.'"]{0,24}X \/ □/i, 'evade is B / ○ now'],
   [/Y \/ △[^.'"]{0,40}\b(pings?|scout)\b|\b(ping|scout)\b[^.'"]{0,30}Y \/ △/i, 'the scout is R3 (no foe near) now'],
   [/\bR3\b[^.'"]{0,30}\b(bell|shell|sound)|\b(bell|shell)\b[^.'"]{0,40}\bR3\b|RS \/ R3/i, 'the whistle is Y / △ with no gadget in hand now'],
-  [/LT( \/ L2)? \+ X \/ □/, 'the mount is L3 standing still now (the Arcade\'s and References\' boards: D-pad ↓)'],
-  [/[Ww]histle[^.'"]{0,40}\(X \/ □/, 'the mount is L3 standing still now'],
-  [/D-pad ↓[^.'"]{0,20}(mount|taxi|whistle)|(mount|taxi)[^.'"]{0,20}D-pad ↓/i, 'the mount is L3 standing still now, D-pad ↓ the potion'],
-  [/D-pad ← \/ →|View \+ D-pad ↓[^.'"]{0,20}potion/, 'the gun mode is D-pad ↑ while aiming now, the potion D-pad ↓'],
+  [/LT( \/ L2)? \+ X \/ □/, 'the mount (and the Arcade\'s and References\' boards) is D-pad ↓ now'],
+  [/[Ww]histle[^.'"]{0,40}\(X \/ □/, 'the mount is D-pad ↓ now'],
+  // (scheme 3, v1.11's first build: double duties, gone)
+  [/L3[^.'"]{0,8}\(?standing still|standing still[^.'"]{0,20}L3|left stick[^.'"]{0,20}standing still/i, 'L3 only runs now; the mount is D-pad ↓'],
+  [/D-pad ↑[^.'"]{0,4} while aiming|D-pad ↑[^.'"]{0,30}gun mode/i, 'D-pad ↑ only chooses gadgets now; the gun mode is D-pad →'],
+  [/D-pad ↓[^.,'"]{0,20}(drinks?|potion)|potion[^.,'"]{0,20}D-pad ↓|View \+ D-pad ↓[^.'"]{0,20}potion/i, 'the potion is D-pad ← now (View + D-pad ↓ is free)'],
+  [/D-pad ← \/ →|inner ring[^.'"]{0,30}(gun|mode)|(gun|mode)[^.'"]{0,30}inner ring/i, 'the gun mode is D-pad → alone now, and the wheel holds the gadgets only'],
   [/D-pad (down|↓)[^.'"]{0,12}photo|photo[^.'"]{0,12}D-pad (down|↓)/i, 'photo mode is View + D-pad ↑ now'],
   [/LB \/ L1[^.'"]{0,12}swings/, 'the blade is RB / R1'],
   [/left mouse button[^.'"]{0,30}(thrust|jets|lift)|RT \/ R2 \(the left mouse button/i, 'the left mouse button is the blade now'],
@@ -127,16 +138,15 @@ test('the Controls page names every verb\'s button, and the interact prompt is X
   const { controlsList } = await import('../src/ui.js');
   const L = controlsList('A / ×', 'B / ○');
   const text = L.pad.map(([, how]) => how).join(' · ');
-  for (const v of ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'journal', 'menu']) assert.ok(text.includes(PAD[v]), `${v}: ${PAD[v]}`);
+  for (const v of ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'mode', 'journal', 'menu']) assert.ok(text.includes(PAD[v]), `${v}: ${PAD[v]}`);
   assert.ok(L.pad.some(([what, how]) => /^Use, talk/.test(what) && how === 'X / □'));
   assert.ok(L.pad.some(([what, how]) => /^Evade/.test(what) && how === 'B / ○'));
-  assert.ok(L.pad.some(([what, how]) => /^Call your mount/.test(what) && how === 'click the left stick (L3) standing still'));
-  assert.ok(L.pad.some(([what, how]) => /^Drink a healing potion/.test(what) && how === 'D-pad ↓'));
-  assert.ok(L.pad.some(([what, how]) => /^Gun mode/.test(what) && how.startsWith('D-pad ↑ while aiming')));
+  assert.ok(L.pad.some(([what, how]) => /^Call your mount/.test(what) && how === 'D-pad ↓'));
+  assert.ok(L.pad.some(([what, how]) => /^Drink a healing potion/.test(what) && how === 'D-pad ←'));
+  assert.ok(L.pad.some(([what, how]) => /^Gun mode/.test(what) && how === 'D-pad →'));
   const main = readFileSync(join(ROOT, 'src/main.js'), 'utf8');
-  assert.match(main, /name === 'potion' && quickMenu\) quickMenu\.toggle\(true\)/, 'a level\'s quick menu (the Arena\'s foes, the Arcade\'s board, the References\' views) keeps D-pad ↓');
-  assert.match(main, /name === 'potion'\) drinkPotion\(\)/, 'elsewhere D-pad ↓ drinks');
-  assert.match(main, /name === 'call' && !quickMenu && !level\.jump && !ship\.playing\) player\.callMount\(\)/, 'L3 standing still calls the mount');
+  assert.match(main, /name === 'call' && quickMenu\) quickMenu\.toggle\(true\)/, 'a level\'s quick menu (the Arena\'s foes, the Arcade\'s board, the References\' views) keeps D-pad ↓: no mount there');
+  assert.match(main, /name === 'potion'\) drinkPotion\(\)/, 'D-pad ← drinks');
   const story = readFileSync(join(ROOT, 'src/story/index.js'), 'utf8');
   assert.match(story, /key: controller \? PAD\.interact : 'E'/);
 });

@@ -44,7 +44,7 @@ const CONTROLS = {
   foot: { pad: [['Left stick', 'run'], ['A / ×', 'jump']], keys: [['W A S D', 'run'], ['Space', 'jump']] },
   eyes: { pad: [['LT / L2', 'aim'], ['RT / R2', 'splash']], keys: [['Right mouse', 'aim'], ['Left mouse', 'splash']] },
   kitwings: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer the wings; back to float']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump, then hold to glide'], ['W A S D', 'steer the wings; S to float']] },
-  kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad ↑ while aiming', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
+  kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad →', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
   // (the echo relay: the stones splashed, the shell played back: src/echo-shell.js, the whistle's button)
   // (the bell crossing: the bell-note whistle on the same button, src/boxes/effects.js ring())
   kitbell: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the bell (no gadget in hand)']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the bell']] },

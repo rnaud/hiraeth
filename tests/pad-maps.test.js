@@ -162,7 +162,7 @@ test('standard pads come out untouched, the very objects, and the list too', () 
   assert.deepEqual(lit(odd.navigator.getGamepads()[1]), [0]);
 });
 
-test('the controller, on a raw SN30 Pro: the bottom button jumps, the hat\'s ↓ drinks a potion, LB guards', () => {
+test('the controller, on a raw SN30 Pro: the bottom button jumps, the hat\'s ↓ calls the mount, LB guards', () => {
   let pad = SN30_CHROME(), t = 1;
   const win = { navigator: { getGamepads: () => [pad] } };
   installPadMaps(win);
@@ -174,7 +174,7 @@ test('the controller, on a raw SN30 Pro: the bottom button jumps, the hat\'s ↓
   assert.ok(frame((p) => press(p, 6)).PadGuard, 'raw 6 (L): guard');
   assert.ok(frame((p) => press(p, 7)).PadBlade, 'raw 7 (R): the blade');
   frame(); frame((p) => { p.axes[9] = HAT(4); }); frame();
-  assert.deepEqual(actions, ['potion'], 'the hat\'s ↓: drink a potion');
+  assert.deepEqual(actions, ['call'], 'the hat\'s ↓: call the mount');
 });
 
 test('the input display names each press from the bindings table', () => {
