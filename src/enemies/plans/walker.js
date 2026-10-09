@@ -138,7 +138,7 @@ export function crabModel(skin) {
   // shin down to a hooked dark tip, splayed out like a table; an alternating tripod, the shell riding on the feet
   const legs = [];
   for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
-    const z = (0.34 - k * 0.34) * deep;
+    const z = (0.34 - k * 0.34) * DEEP;   // (a beetle's longer shell over the same stance)
     const leg = planLeg(PLANS.walker, { group: g, body, hip: { x: s * 0.52, y: -0.16, z }, foot: { x: s * 1.24, z: z * 2.1 + 0.04 }, pole: { x: s * 1.6, y: 0.7, z: z * 0.8 }, radius: 0.076, pad: 'point', mats: { joint: jointM, thigh: legM, shin: legM, foot: tipM ?? darkM }, name: `crab leg ${legs.length}` });
     // (the hooked tip: a dark claw curling in under the shin's end)
     tube(leg.foot, [[0, 0.12, 0], [s * 0.025, 0.05, 0], [-s * 0.015, 0.0, 0]], 0.03, tipM ?? darkM, 0.006);
