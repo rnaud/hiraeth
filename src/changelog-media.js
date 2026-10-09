@@ -307,6 +307,14 @@ const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) =>
   await wait(600);
   const at = new V(0, 0, 0); at.y = physics.groundAt(0, 30, 0, 80); chimes.drop(at, 12);`;
 
+// v1.9's chimes floating: the same seeded scatter, no foes, never picked up (drops: [x, z, chimes] on the Arena's floor)
+const CHIME_FLOAT = (drops) => `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
+  { const u = chimes.update.bind(chimes); chimes.update = (dt) => u(dt, null); }
+  let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646; chimes.clear();
+  await wait(600);
+  for (const [x, z, n] of ${JSON.stringify(drops)}) { const at = new V(x, 0, z); at.y = physics.groundAt(x, 30, z, 80); chimes.drop(at, n); }`;
+
 // ------------------------------------------------------------------ v1.6's views: the body telegraphs
 // (a foe held at 85 % of a wind-up, three-quarters on: before, its lane or ring on the floor; after, its pose and its glow)
 const FOE_WIND = (kind, atk) => `foes.setPractice('');
@@ -340,6 +348,15 @@ const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 export const CHANGELOG_MEDIA = {
   '1.9': [
     { match: 'An 8BitDo SN30 Pro (and the other 8BitDo pads', see: 'Connect an 8BitDo SN30 Pro to a computer (Bluetooth, its D-input mode) and open the game: the title screen\'s prompts read B at the bottom and A on the right, as printed on the pad, and A (the right button) confirms.' },
+    // the chimes float
+    { match: 'Chimes float now: every crystal hovers well clear of the ground', shots: [
+      { name: 'chimes-float-close', caption: 'Three ones and two fives in the Arena, close up (the same scatter in both): before, their lowest points 15–22 cm off the sand and no shadow, so they seem to lie on it; after, 40 cm of air under each, a soft patch of shade on the sand below', commit: '47d28ed2',
+        view: { level: 'arena', player: [-14, 0, -14], eye: [-0.8, 1.0, 2.6], target: [0, 0.35, 0], fov: 55, save: SAVE_ON, wait: 2500, setup: CHIME_FLOAT([[0, 0, 3], [0, 0, 10]]) } },
+      { name: 'chimes-float-play', caption: 'At play distance, behind the traveller: before, crystals sitting on the sand; after, floating over their shade', commit: '47d28ed2',
+        view: { level: 'arena', player: [0, 0, 6.5], heading: Math.PI, eye: [-1, 2.8, 6], target: [0, 0.35, 0], fov: 55, save: SAVE_ON, wait: 2500, setup: CHIME_FLOAT([[0, 0, 4], [0, 0, 3], [0, 0, 10]]) } },
+      { name: 'chimes-float-five', caption: 'A guardian’s purse, eight fives: before, the clusters’ small shards almost touching the sand; after, each well clear of it, its shade a little wider than a one’s', commit: '47d28ed2',
+        view: { level: 'arena', player: [-14, 0, -14], eye: [-1.0, 1.1, 3.4], target: [0, 0.35, 0], fov: 55, save: SAVE_ON, wait: 2500, setup: CHIME_FLOAT([[0, 0, 40]]) } },
+    ] },
     // the temples, reworked from the temple design audit (docs/audits/temple-design-v1.8.md)
     { match: 'The Founders’ Belfry is rebuilt round one idea', shots: [
       { name: 'belfry-hub', caption: 'The Hall of Stones from its south end: before, the two balls in their grooves in the hall itself, beside the door; after, two archways into the stone stores and a line inlaid from each to the door', commit: 'b3647461',
