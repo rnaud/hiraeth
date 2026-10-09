@@ -100,13 +100,16 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
 
 ## Chimes, the currency (v1.5)
 
-**Chimes** are floating crystals (since October 2026; brass discs pierced square before): blunt,
-weathered shards of translucent cyan mineral, as big on screen as the coins were (**27.5 cm** long; at first
-3.4 cm, too small to read from a few steps: the author asked for the coins' size back the same day), that float
-above the ground and ring like struck glass when touched. The look is the author's pick,
-`references/Core Objects/Currency/Small Floating Crystal/reference-4.jpeg` (provenance:
-`references/batches/2026-10-09-selected-family-currency-ship-sword.json`): broad asymmetric facets, a pale
-lavender seam inside, a very subtle glow. **The name stays.** The bible's crystals sing (Lorn's Great Crystal,
+**Chimes** are floating crystals (since October 2026; brass discs pierced square before): long, blunt,
+weathered shards of translucent mineral, **20 cm** long (at first 3.4 cm, too small to read from a few steps;
+then the coins' size, 27.5 cm, which the author found too big), that float upright over their own small shadow
+and ring like struck glass when touched. They come in six worths, like Zelda's rupees, each the same shard in its
+own colour (**the tiers**, below). The look is the author's picks of 9 October in
+`references/Core Objects/Currency/Floating Chime/`: `one/sheet-1.jpg` (the design: "love the design but they are
+too big"), the small single crystal of `five/sheet-1.jpg` ("great but only the small one") and the field of
+`field/sheet-1.jpg` ("love this"; each with its prompt in a manifest.json, written in
+docs/design/chime-prompts.md): broad uneven facets, a flat little cap and a blunt point, a lavender seam down its
+length, a warm light at its heart. (Before that, `Small Floating Crystal/reference-4.jpeg`.) **The name stays.** The bible's crystals sing (Lorn's Great Crystal,
 the Lodestar splinter that "hums like Lorn's crystal"), so splinters of a singing mineral that ring when taken
 are still chimes: the name was always the sound, not the brass. So the save key (`res.chimes`), the wallet's
 API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migration. Haddu says what they are
@@ -140,48 +143,75 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   sets `chimes: false` too); the **Arena** (`chimes: 'training'`, a dev world) drops them from its waves, its
   FOES list and each guardian bout in the ring (a purse a bout, `guardian:spar`), so the shops can be tried
   there: they go into the wallet but are not counted in `res.chimes.earned`.
-- **The pieces** (`ChimeField`, `PIECE`): a drop scatters ones (a drop of 10 or more: fives, then ones; a purse
-  is eight fives). Each pops out of the foe's middle in a little arc (0.45–0.7 s, up 1.1–1.9 m, landing
+- **The tiers** (`TIERS`, `tierOf`): 1 cyan, 5 jade, 10 amber, 20 coral, 50 violet, 100 pearl. One shard design
+  for all of them: the tier is the instance colour (the geometry's vertex colours are pale greys,
+  `CRYSTAL_NEUTRAL`, so any hue tints them), a size (× 1, 1.08, 1.16, 1.25, 1.36, 1.5: a hundred is 30 cm) and a
+  glow (0, 0.2 … 1: the inner light and the warm heart brighter, a fifty and a hundred just over the bloom
+  threshold so they carry a soft halo, the glint growing with it, a hundred's more than twice a one's, and coming up to 35 % sooner). The hues go
+  round the Moebius palette and step in lightness too (pearl lightest, then amber, jade and cyan, coral, violet), and
+  size and glow climb with the worth, so they are told apart where a hue is not (colour-blind players). A drop
+  scatters the fewest pieces (`pieceValues`, greedy over the tiers, which is the fewest for these worths: 8 is a
+  jade and three cyan, a guardian's purse of 40 two coral twenties, 186 one of each). Until October 2026 there
+  were ones and fives (a paler cluster, from a drop of 10 up). The wallet is a number, so nothing to migrate.
+- **The pieces** (`ChimeField`, `PIECE`): a drop scatters its tiers' pieces. Each pops out of the foe's middle in a little arc (0.45–0.7 s, up 1.1–1.9 m, landing
   0.5–1.7 m out, on the ground under it unless that is a ledge more than 4 m off), bounces, then hovers with
-  `PIECE.hover` (0.4 m) of air under its lowest point, bobbing 4.5 cm (`PIECE.bob`): its centre is that much higher
-  than its lowest point as it hovers tilted (`pieceBelow`, from the geometry once: 12 cm for a one, 19 cm for a five,
-  whose small shards reach further down), so a one's centre rests 0.52 m up and a five's 0.59 m (`restHeight`; until
-  October 2026 both centres were 0.34 m up, a one's lowest point 22 cm off the ground and a five's 15 cm, and with no
-  shadow they read as lying on it), tilted (`CRYSTAL.tilt`, 0.42 rad) and turning round the vertical at 1.7 rad/s
-  (`PIECE.turn`; 3 for the coin), and glints every 1.6–3.6 s (a four-point star 18 cm across at its upper end, facing
-  the camera); between glints a faint spark (`CRYSTAL.twinkle`, a tenth of the glint): the crystal reads by itself.
-  After 0.45 s it can be taken: walked over (`take` 0.65 m round the feet) or drawn in from `magnet` 2.4 m of
-  the traveller's middle, faster and faster. Left lying it blinks for its last 5 s and is gone after 30 s.
-  Not taken while knocked out, in a menu or a scene. `ChimeView` draws them in one draw call each: the ones
-  (`crystalGeometry`: an uneven six-sided prism, `CRYSTAL.one` 27.5 cm long, closing in blunt chisel ends, flat
-  facets, vertex colours cyan lit toward the sun and darker away, two lavender faces for the seam), the fives
-  (`clusterGeometry`: a 38 cm shard, paler, with two small ones grown at its foot) and the glints; both crystals
-  share one material, the crystal shader below. None of the three casts a shadow (`userData.castShadow` false:
-  a crystal gives light; unculled, they would be drawn again in every shadow pass). The shop's strings of chimes,
+  `PIECE.hover` (0.2 m) of air under its lowest point, bobbing 3.5 cm (`PIECE.bob`): its centre is that much higher
+  than its lowest point as it floats (`pieceBelow`, from the geometry once, times its tier's size: 10 cm for a one,
+  15 cm for a hundred), so a one's centre rests 0.30 m up and a hundred's 0.35 m (`restHeight`). As in the field
+  reference the air under it is about its own length and its shadow close below (from 47d28ed2 to October 2026 the
+  27.5 cm shards had 0.4 m under them; before that none, and they read as lying on the sand). Upright with a slight
+  lean (`CRYSTAL.tilt`, 0.12 rad; 0.42 before), turning round the vertical at 1.1 rad/s (`PIECE.turn`; 1.7 before,
+  3 for the coin), it glints every 1.6–3.6 s (sooner the more it is worth: a four-point star 12 cm across on a facet a
+  little above its middle, facing the camera); between glints a faint spark (`CRYSTAL.twinkle`, a tenth of the
+  glint): the crystal reads by itself. After 0.45 s it can be taken: walked over (`take` 0.65 m round the feet) or
+  drawn in from `magnet` 2.4 m of the traveller's middle. **Drawn in** it sets off gently (`drift` 1.2 m/s, then
+  30 m/s² faster), on a curve (`swirl`: its heading turned sideways by up to 0.9 of the way to the traveller at
+  the magnet's edge, falling away as the square of the distance, so it comes in straight at the end), spinning at
+  6 rad/s, glowing (a soft halo), with a trail of light behind it (`PIECE.trail`: its last 12 places, one every
+  28 ms, drawn as shrinking stars in the glints' mesh). Before, it shot straight in at 2 m/s and up, spinning at
+  14 rad/s. Left lying it blinks for its last 5 s and is gone after 30 s. Not taken while knocked out, in a menu
+  or a scene. `ChimeView` draws them all in **one instanced mesh** whatever their worth (`crystalGeometry`: seven
+  sides in three bands of broad uneven facets, each ring twisted a little and a little off the axis, the middle
+  band long and its sides nearly parallel, closing in a small flat cap above and a blunt point below, `CRYSTAL.one`
+  20 cm long, about 7 × 6 cm across, 56 triangles; flat facets, one column of them the seam), the tier's colour in
+  the instance colour, its size in the instance's scale, its glow in an instance attribute (`aChimeGlow`); the
+  glints and the trails share a second, the patches of shade a third (until October 2026 a fourth for the fives'
+  clusters). None casts a shadow (`userData.castShadow` false: a crystal gives light; unculled, they would be
+  drawn again in every shadow pass). The shop's strings of chimes,
   the sign on its back wall and the hanging sign outside (`interior-kit.js chimeEmblem`) use the same shard at
   their own sizes, in the plain material.
 - **The patch of shade under each** (`BLOB`, `blobOf`, `blobMaterial`): with no cast shadow, nothing showed the air
   under a crystal, and a floating thing with no shadow reads as resting on the ground. So `ChimeView` lays a soft
-  dark disc on the ground under each piece (`ChimeView.blobs`: one more instanced draw for the whole field, a
-  20-sided disc each), 18 cm in radius under a one (a five's 1.38 × that), on the ground's slope (two more ground
-  probes when a piece is dropped: `p.up`), 1.5 cm off it. It is drawn as the jump's shadow is (src/jump-shadow.js),
-  multiplied into the G-buffer, but only the colour, softly ((1 − r²)² from the middle, the ground × 0.5 at most):
-  the light term, normals, depth and flags are left as they are, so the post pass draws no cast-shadow edge and no
-  ink line round it, and it reads on sunlit sand, in shade, on grass, on the shop's floor and at night alike. It
-  shrinks a little and fades as the piece bobs up (to nothing `BLOB.span`, 1.2 m, over its rest: gone at the top of
-  the pop-out arc), lies under the piece's path in flight, is not drawn for a piece being drawn in, and fades out
+  lavender disc on the ground under each piece (`ChimeView.blobs`: one more instanced draw for the whole field, a
+  20-sided disc each), 9.5 cm in radius under a one (times its tier's size), on the ground's slope (two more ground
+  probes when a piece is dropped: `p.up`), 1.5 cm off it: a small soft shadow, as in the field reference. It is
+  drawn into the G-buffer as the jump's shadow is (src/jump-shadow.js), but only the colour: the ground goes toward
+  a lavender shade (`BLOB.tint`, 60 % at most, `BLOB.dark`), full out to 55 % of its radius (`BLOB.core`) and soft
+  over the rest (blended by its strength in alpha, the other targets written at alpha 0 and the alpha channel kept:
+  the light term, normals, depth and flags are left as they are), so the post pass draws no cast-shadow edge and no
+  ink line round it, and it reads on sunlit sand, in shade, on grass, on the shop's floor and at night alike (until
+  October 2026: 18 cm, the ground multiplied by up to 0.5, softly all the way out, a brownish smudge). It shrinks a
+  little and fades as the piece bobs up (to nothing `BLOB.span`, 0.8 m, over its rest: gone at the top of the
+  pop-out arc), lies under the piece's path in flight, is not drawn for a piece being drawn in, and fades out
   between 27 and 45 m from the camera (a smudge a few pixels across). Depth-tested, not writing depth, and out of
   the shadow passes like the crystals.
 - **The size** (`COIN`, `CRYSTAL`): the brass coin was a disc 0.12 m in radius (25.4 cm across with its bevel), a
-  five 1.45 × as wide. A one is as long as makes it, tilted as it hovers, as tall as the coin was wide (25.3 cm);
-  a five's cluster as much taller again (36.8 cm, 1.45 ×). So the pickup reach (`take` 0.65 m) and the magnet
-  (2.4 m), tuned for the coin, stay.
+  five 1.45 × as wide; the first crystals as tall as it (27.5 cm, a five's cluster 38 cm). The author found those
+  too big, so since October 2026 a one is 20 cm long, picked by eye from the game's own camera (7 m behind the
+  traveller, 3 m up) on the desert's sand: 16 cm read as a fleck there and 18 cm barely, 20 cm still as a shard over
+  its shadow. A hundred is 30 cm. The pickup reach (`take` 0.65 m) and the magnet (2.4 m), tuned for the coin,
+  stay.
 - **The crystal's look** (`src/crystal-shader.js`, makeMaterial `{ crystal: true }`, the `CHIME_CRYSTAL` define;
   compiled into the G-buffer shader like the dune glass, `CHIME_CRYSTAL` holds its tones and weights): each facet
-  one flat tone by the live sun (from a deep blue toward the vertex colour's light), bright edges along the
-  facets (the geometry's `aCrystal`: barycentric weights, a side quad's diagonal held at 1 so no line crosses a
-  facet; at least a pixel wide, faded out once the facets are too small on screen), a paler heart on the facets
-  facing you that pulses gently (each crystal on its own beat, from its position), inner lines seen through the
+  one flat tone by the live sun (from its own colour darkened with a little lavender in it, `deep`, toward its
+  light: the shade side cool, as Moebius shades), the seam's faces lavender (`seam`, a fifth of the tier's colour in
+  it; the geometry marks them with a negative length in `aCrystal.w`), bright edges along the facets (the geometry's
+  `aCrystal`: barycentric weights, a side quad's diagonal and the flat cap's spokes held at 1 so no line crosses a
+  facet; at least a pixel wide, faded out once the facets are too small on screen) with a fine ink line in them
+  seen close (`ink`, the reference's pen; gone sooner than the bright line), a paler core on the facets facing you
+  and a warm heart at its middle seen through them (`core` cream, `heart`: a soft spot that slides a little as it
+  turns), pulsing gently (each crystal on its own beat, from its position), brighter by its tier's glow and
+  brightest as it is drawn in (`aChimeGlow`, `tierGlow` added to the glow term at 1), inner lines seen through the
   facet (the view ray `refract`ed into the shard's own frame samples two sets of soft lines, so they slide as you
   walk round it or it turns), a faint rainbow fringe and a pale rim on the grazing facets, and a sparkle: the
   facet whose mirror ray meets the sun goes white and glows over the bloom threshold (a small printed halo); with
@@ -191,18 +221,23 @@ API, the strings (*tintes* in French) and Haddu's *Chimes & Cures* need no migra
   (the rest a darker shade of the crystal), and nothing inside it: no crease, colour-edge or shadow-edge line
   between the facets, no hatching, no spot black, no crease shading. **Cost**: thirty in view add the same three
   instanced draws as before and no shadow draws (before: four, the two near cascades); the frame with them and
-  without them is within ±0.05 ms (renderFrame timed, render scale 2, High, on the Mac), as it was before.
+  without them is within ±0.05 ms (renderFrame timed, render scale 2, High, on the Mac), as it was before. Since
+  the tiers (October 2026), three draws for a whole field whatever lies about (four before: the fives' clusters
+  had their own mesh), 56 triangles a crystal (28 before; 1,680 for thirty); thirty in view on the desert's sand,
+  High 1280 × 720: the frame with them and without them within the run-to-run noise before and after (+0.31 and
+  −0.20 ms, ±0.5 ms on a shared Mac).
 - **On the screen**: the chimes beside the potion at the top left (the crystal's icon and the count,
   docs/systems/ui.md; `src/chime-icon.js`, the same drawing in index.html, the shop panel's prices and wallet
   and the game menu's), shown with the hearts whenever the wallet changes; the count ticks up to the wallet's
   (`walletTick`) and the icon turns as one rings in. Each pickup is a crystalline ting (`sound.crystalTing`: the
   partials of struck glass, `CRYSTAL_PARTIALS` 1, 2.32, 4.25, 6.63, the fundamental doubled 0.6 % sharp so it
   shimmers, an airy tail, a faint high tick at the strike; an octave above the old brass ting), climbing through a
-  quick run (`sound.chimePickup`; a five rings a second, higher one over it), a drop a few falling glassy tings
+  quick run (`sound.chimePickup`; a five or a ten rings a second note a fifth over it, a twenty or a fifty an octave
+  too, a hundred a twelfth as well), a drop a few falling glassy tings
   (`chimeScatter`), a sale the same counted onto the counter before the keeper's brass bell (`purchase`). The
   game menu's Items panel shows the wallet by the Gear heading.
 
-Tests: `tests/chimes.test.js` (drops, the field, the wallet, the HUD's icon, the crystal's size against the coin's, facets and colours, the view), `tests/crystal-shader.test.js` (the material's gate and uniforms, the outline-only ink, the edge attribute, one instanced draw per kind and no shadow passes), `tests/chime-sound.test.js` (the ting rendered silently in memory).
+Tests: `tests/chimes.test.js` (drops, the tiers and the fewest pieces, the field, the magnet's curve and trail, the wallet, the HUD's icon, the crystal's size and shape, facets and colours, the view: each tier's colour, size and glow), `tests/crystal-shader.test.js` (the material's gate and uniforms, the outline-only ink, the edge attribute and the seam, one instanced draw for every tier and no shadow passes), `tests/chime-sound.test.js` (the ting rendered silently in memory).
 
 ## Shops (v1.5)
 

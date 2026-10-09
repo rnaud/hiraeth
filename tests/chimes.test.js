@@ -4,7 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { DROP_OF, PURSE, SPREAD, PIECE, CRYSTAL, COIN, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, clusterGeometry, pieceBelow, restHeight, blobOf, BLOB } from '../src/chimes.js';
+import { DROP_OF, PURSE, SPREAD, PIECE, CRYSTAL, COIN, TIERS, tierOf, dropAmount, dropPolicy, pieceValues, pieceVisible, ChimeField, ChimeView, connectDrops, crystalGeometry, pieceBelow, restHeight, blobOf, BLOB, TRAIL_MAX } from '../src/chimes.js';
+import { CRYSTAL_ATTR, CRYSTAL_GLOW_ATTR } from '../src/crystal-shader.js';
 import { CHIME_ICON_PATHS } from '../src/chime-icon.js';
 import { CHIME_SVG } from '../src/shop-panel.js';
 const view0 = () => new ChimeView(null).crystals;
@@ -44,12 +45,22 @@ test('drop amounts: every foe kind has one, small ones a little, heavy ones more
   assert.ok(Math.abs(sum / 2000 - 0.5) < 0.05);
 });
 
-test('pieces: ones, and fives for a big drop; the values add up', () => {
+test('pieces: the fewest by tier (1, 5, 10, 20, 50, 100, like rupees); the values add up', () => {
+  assert.deepEqual(TIERS.map((t) => t.value), [1, 5, 10, 20, 50, 100]);
   assert.deepEqual(pieceValues(3), [1, 1, 1]);
   assert.deepEqual(pieceValues(0), []);
-  for (const n of [1, 4, 9, 10, 13, 40, 57]) assert.equal(pieceValues(n).reduce((a, b) => a + b, 0), n);
-  assert.ok(pieceValues(PURSE.guardian).length <= 12, 'a purse is a handful of pieces, not forty');
-  assert.ok(pieceValues(PURSE.guardian).every((x) => x === 5));
+  assert.deepEqual(pieceValues(8), [5, 1, 1, 1]);
+  assert.deepEqual(pieceValues(PURSE.guardian), [20, 20], 'a guardian\'s purse: two coral twenties');
+  assert.deepEqual(pieceValues(186), [100, 50, 20, 10, 5, 1]);
+  // the fewest pieces (worked out the long way for every amount up to 400)
+  const fewest = [0];
+  for (let n = 1; n <= 400; n++) fewest[n] = Math.min(...TIERS.filter((t) => t.value <= n).map((t) => fewest[n - t.value] + 1));
+  for (let n = 0; n <= 400; n++) {
+    const p = pieceValues(n);
+    assert.equal(p.reduce((a, b) => a + b, 0), n, `${n}: adds up`);
+    assert.equal(p.length, fewest[n], `${n}: the fewest pieces`);
+  }
+  assert.equal(tierOf(20).name, 'coral'); assert.equal(tierOf(7).value, 5, 'between tiers: the one under it');
 });
 
 test('where they drop: everywhere but a game\'s own foes (Ink tide); the Arena\'s as training', () => {
@@ -105,17 +116,17 @@ test('the magnet: within reach a piece is drawn in and taken; out of reach it st
   for (let k = 0; k < 2; k += DT) assert.equal(G.update(DT, null).length, 0);
 });
 
-test('they float well clear of the ground, a five as high above it as a one, and are still walked over and drawn in', () => {
+test('they float clear of the ground, every tier as high above it as a one, and are still walked over and drawn in', () => {
   const F = new ChimeField({ groundAt: () => 2, rng: seeded(3) });
-  F.drop(v(0, 2, 0), 12);   // (two fives, two ones)
+  F.drop(v(0, 2, 0), 186);   // (one of each tier)
   for (let t = 0; t < 1.2; t += DT) F.update(DT, null);
   const lowest = (p) => p.pos.y - pieceBelow(p.value) - 2;
   for (const p of F.list) {
     assert.equal(p.phase, 'rest');
-    assert.ok(lowest(p) > 0.34 && lowest(p) < 0.46, `${p.value}: ${(lowest(p) * 100).toFixed(0)} cm of air under it`);
+    assert.ok(Math.abs(lowest(p) - PIECE.hover) <= PIECE.bob[0] + 1e-6, `${p.value}: ${(lowest(p) * 100).toFixed(0)} cm of air under it`);
   }
   // still taken walking over it (the higher centre is within reach of the feet) or standing next to it
-  for (const value of [1, 5]) {
+  for (const value of [1, 5, 100]) {
     const p = F.list.find((q) => q.value === value);
     assert.ok(F.update(DT, v(p.pos.x + 0.3, 2, p.pos.z)).includes(p), `${value}: taken`);
   }
@@ -138,8 +149,8 @@ test('a patch of shade lies on the ground under each piece: fainter and smaller 
   const low = { ...p, pos: p.pos.clone().setY(p.to.y + p.lift - PIECE.bob[0]) }, high = { ...p, pos: p.pos.clone().setY(p.to.y + p.lift + PIECE.bob[0]) };
   const bl = blobOf(low), bh = blobOf(high);
   assert.ok(bh.k < bl.k && bh.r < bl.r && bl.k - bh.k < 0.15, 'a little fainter and smaller at the top of the bob');
-  // a five's is larger
-  assert.ok(blobOf({ ...p, value: 5 }).r > b.r * 1.3);
+  // a larger tier's is larger
+  assert.ok(blobOf({ ...p, value: 5 }).r > b.r && blobOf({ ...p, value: 100 }).r > b.r * 1.4);
   // drawn in: none
   assert.equal(blobOf({ ...p, phase: 'pull' }).k, 0);
   // the view: one more instanced draw, the patches for the pieces at rest, out of the shadow passes
@@ -148,8 +159,12 @@ test('a patch of shade lies on the ground under each piece: fainter and smaller 
   assert.ok(view.blobs.isInstancedMesh && view.blobs.count === 1);
   assert.equal(view.blobs.material.depthWrite, false, 'depth-tested, not writing depth');
   assert.ok(view.blobs.material.depthTest && view.blobs.material.transparent);
-  assert.match(view.blobs.material.fragmentShader, /gNormalDepth = vec4\(1\.0\)/, 'multiplied into the G-buffer: normals and depth left as they are');
-  assert.match(view.blobs.material.fragmentShader, /gAlbedoLight = vec4\(vec3\([^;]*\), 1\.0\)/, 'only the colour darkened: the light term kept (no hard shadow edge to ink)');
+  const bm = view.blobs.material;
+  assert.match(bm.fragmentShader, /gNormalDepth = vec4\(0\.0\);/, 'blended into the G-buffer at alpha 0: normals and depth left as they are');
+  assert.match(bm.fragmentShader, /gAlbedoLight = vec4\(uTint, s\);/, 'only the colour, toward the lavender shade by its strength');
+  assert.equal(bm.blendSrc, THREE.SrcAlphaFactor); assert.equal(bm.blendDst, THREE.OneMinusSrcAlphaFactor);
+  assert.ok(bm.blendSrcAlpha === THREE.ZeroFactor && bm.blendDstAlpha === THREE.OneFactor, 'the light term (alpha) kept: no hard shadow edge to ink');
+  const tint = new THREE.Color(BLOB.tint); assert.ok(tint.b > tint.g && tint.r > tint.g, 'lavender, as the reference\'s shadows');
   assert.equal(view.blobs.userData.castShadow, false);
   view.dispose(); assert.equal(scene.children.length, 0);
 });
@@ -302,61 +317,73 @@ test('the HUD: the count ticks up to the wallet; a change shows the hearts\' blo
   assert.doesNotMatch(itemsPanel({}).html, /gm-wallet/);
 });
 
-test('the view draws each visible piece: the ones as shards, the fives as clusters, hovering tilted and turning', () => {
+test('the view draws each visible piece: every tier the one shard in its colour and size, upright with a lean, turning', () => {
   const scene = new THREE.Scene(), view = new ChimeView(scene), F = new ChimeField({ groundAt: () => 0, rng: seeded(12) });
-  F.drop(v(0, 0, 0), 12);   // (two fives, two ones)
+  F.drop(v(0, 0, 0), 186);   // (one of each tier)
   for (let t = 0; t < 1; t += DT) F.update(DT, null);
   view.update(F, null);
-  assert.equal(view.crystals.count, 2, 'two ones');
-  assert.equal(view.clusters.count, 2, 'two fives');
-  assert.equal(view.crystals.material, view.clusters.material, 'one material for both (a draw call each)');
-  assert.equal(view.glints.count, 4, 'each at rest keeps a faint spark, swelling into a glint now and then');
+  assert.equal(view.crystals.count, 6, 'all six in the one mesh (one draw)');
+  assert.equal(view.meshes.length, 3, 'the crystals, the glints, the shade');
+  assert.equal(view.glints.count, 6, 'each at rest keeps a faint spark, swelling into a glint now and then');
+  // each its tier's colour, size and glow
+  const c = new THREE.Color(), mm = new THREE.Matrix4(), ss = new THREE.Vector3();
+  F.list.filter(pieceVisible).forEach((p, i) => {
+    const T = tierOf(p.value);
+    view.crystals.getColorAt(i, c); assert.equal(c.getHexString(), new THREE.Color(T.color).getHexString(), `${p.value}: ${T.name}`);
+    view.crystals.getMatrixAt(i, mm); mm.decompose(new THREE.Vector3(), new THREE.Quaternion(), ss);
+    assert.ok(Math.abs(ss.x - T.size) < 1e-6, `${p.value}: its size`);
+    assert.ok(Math.abs(view.glow.getX(i) - T.glow) < 1e-6, `${p.value}: its glow`);
+  });
+  assert.equal(view.crystals.geometry.attributes[CRYSTAL_GLOW_ATTR], view.glow, 'the glow: an instance attribute of the one mesh');
   const gm = new THREE.Matrix4(), gs = new THREE.Vector3(); view.glints.getMatrixAt(0, gm); gm.decompose(new THREE.Vector3(), new THREE.Quaternion(), gs);
   assert.ok(gs.x * CRYSTAL.glint < 0.02, `the spark faint at rest (${(gs.x * CRYSTAL.glint * 100).toFixed(1)} cm): the crystal reads by itself now`);
   const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), up = new THREE.Vector3();
-  view.crystals.getMatrixAt(0, m); m.decompose(new THREE.Vector3(), q, sc);
+  const one = F.list.findIndex((p) => p.value === 1);
+  view.crystals.getMatrixAt(one, m); m.decompose(new THREE.Vector3(), q, sc);
   assert.ok(Math.abs(sc.x - 1) < 1e-6, 'at rest, its own size');
   const tilt = up.set(0, 1, 0).applyQuaternion(q).angleTo(new THREE.Vector3(0, 1, 0));
-  assert.ok(Math.abs(tilt - CRYSTAL.tilt) < 1e-3, `it hovers tilted (${tilt.toFixed(2)} rad)`);
+  assert.ok(Math.abs(tilt - CRYSTAL.tilt) < 1e-3 && CRYSTAL.tilt < 0.2, `it floats upright, a slight lean (${tilt.toFixed(2)} rad)`);
   // it turns: a later frame, another heading
   const before = q.clone();
   for (let t = 0; t < 0.5; t += DT) F.update(DT, null);
-  view.update(F, null); view.crystals.getMatrixAt(0, m); m.decompose(new THREE.Vector3(), q, sc);
+  view.update(F, null); view.crystals.getMatrixAt(one, m); m.decompose(new THREE.Vector3(), q, sc);
   assert.ok(q.angleTo(before) > 0.3, 'and turns');
+  // the tiers: told apart by colour, and by size and glow going up with the worth
+  assert.equal(new Set(TIERS.map((t) => t.color)).size, TIERS.length);
+  for (let i = 1; i < TIERS.length; i++) assert.ok(TIERS[i].size > TIERS[i - 1].size && TIERS[i].glow > TIERS[i - 1].glow, `${TIERS[i].name}: larger and brighter`);
+  const lum = (h) => { const k = new THREE.Color(h); return 0.2126 * k.r + 0.7152 * k.g + 0.0722 * k.b; };
+  assert.ok(lum(tierOf(100).color) > lum(tierOf(10).color) && lum(tierOf(10).color) > lum(tierOf(20).color) && lum(tierOf(20).color) > lum(tierOf(50).color), 'the hues step in lightness too (pearl, amber, coral, violet)');
   view.dispose(); assert.equal(scene.children.length, 0);
 });
 
-test('a chime is a crystal as big on screen as the brass coin it replaced, a five as much bigger as the coin\'s five', () => {
+test('a chime is a long blunt crystal, smaller than the brass coin, floating over its shadow; every tier the same shard', () => {
   const size = (g) => { g.computeBoundingBox(); return g.boundingBox.getSize(new THREE.Vector3()); };
-  // as it hovers: tilted by CRYSTAL.tilt (its height and width on screen, seen from the side)
-  const hovering = (g) => size(g.clone().rotateZ(CRYSTAL.tilt));
-  const coin = 2 * (COIN.r + COIN.bevel);   // (the old chimeGeometry before 2ddc8498: a 0.12 m disc, bevelled)
-  const one = crystalGeometry(), s1 = size(one), h1 = hovering(one);
+  const coin = 2 * (COIN.r + COIN.bevel);   // (the old chimeGeometry before 2ddc8498: a 0.12 m disc, bevelled; the 27.5 cm shard after it)
+  const one = crystalGeometry(), s1 = size(one), h1 = size(one.clone().rotateZ(CRYSTAL.tilt));
   assert.equal(CRYSTAL.one, +s1.y.toFixed(3), 'CRYSTAL.one is its length');
-  assert.ok(Math.abs(h1.y / coin - 1) < 0.05, `a one stands as tall as the coin was wide (${(h1.y * 100).toFixed(1)} cm, the coin ${(coin * 100).toFixed(1)} cm)`);
-  assert.ok(h1.y > 7 * 0.034, 'not the 3.4 cm splinter of the first crystals');
-  assert.ok(Math.max(s1.x, s1.z) < s1.y * 0.65, 'longer than it is wide: a shard, not a disc');
-  // the five: as much bigger as the coin's five (1.45 x)
-  const five = clusterGeometry(), h5 = hovering(five);
-  assert.ok(Math.abs(h5.y / h1.y - COIN.five) < 0.08, `a five ${(h5.y / h1.y).toFixed(2)} x a one (the coin's five ${COIN.five} x)`);
-  assert.ok(Math.abs(h5.y / (coin * COIN.five) - 1) < 0.05, `a five as tall as the coin's five was wide (${(h5.y * 100).toFixed(1)} cm)`);
-  assert.ok(five.attributes.position.count > one.attributes.position.count * 2.5, 'a cluster of three shards');
-  // they float: PIECE.hover of air under their lowest point (the cluster's foot reaches further down than a shard's
-  // end, so a five's centre is higher), a clear gap even at the bottom of the bob
-  for (const [value, g] of [[1, one], [5, five]]) {
-    const t = g.clone().rotateZ(CRYSTAL.tilt); t.computeBoundingBox();
-    assert.ok(Math.abs(pieceBelow(value) + t.boundingBox.min.y) < 1e-6, `pieceBelow(${value}) is its lowest point, tilted`);
-    assert.ok(Math.abs(restHeight(value) - pieceBelow(value) - PIECE.hover) < 1e-9);
+  assert.ok(CRYSTAL.one >= 0.15 && CRYSTAL.one <= 0.2 && h1.y < coin * 0.85, `smaller than the coin-sized shard the author found too big (${(CRYSTAL.one * 100).toFixed(0)} cm)`);
+  assert.ok(h1.y > 4 * 0.034, 'not the 3.4 cm splinter of the first crystals');
+  assert.ok(s1.y > 2.5 * Math.max(s1.x, s1.z), `a long shard, not a pebble (${(s1.y / Math.max(s1.x, s1.z)).toFixed(1)} × as long as wide)`);
+  // its ends: a small flat cap at the top (a face of the cap ring facing straight up), a blunt point below
+  const N = one.attributes.normal, P = one.attributes.position;
+  let cap = 0; for (let i = 0; i < N.count; i += 3) if (N.getY(i) > 0.999) cap++;
+  assert.ok(cap >= 5, `a flat cap (${cap} triangles)`);
+  // the tiers: the same shard, a hundred half as long again as a one
+  assert.ok(Math.abs(tierOf(100).size - 1.5) < 1e-9 && tierOf(1).size === 1);
+  // they float: PIECE.hover of air under their lowest point, a clear gap even at the bottom of the bob, as in the
+  // reference (field/sheet-1.jpg: about a shard's length of air, the shadow close under it)
+  const t = one.clone().rotateZ(CRYSTAL.tilt); t.computeBoundingBox();
+  for (const T of TIERS) {
+    assert.ok(Math.abs(pieceBelow(T.value) + t.boundingBox.min.y * T.size) < 1e-6, `pieceBelow(${T.value}) is its lowest point, leaning, at its size`);
+    assert.ok(Math.abs(restHeight(T.value) - pieceBelow(T.value) - PIECE.hover) < 1e-9);
   }
-  assert.ok(pieceBelow(5) > pieceBelow(1) + 0.03, 'a five reaches further down');
-  assert.ok(PIECE.hover - PIECE.bob[0] >= 0.35 && PIECE.hover + PIECE.bob[0] <= 0.46, `a clear gap of air under them (${PIECE.hover} m ± ${PIECE.bob[0]})`);
-  // picked up and drawn in from the coin's reach (the same size), wider than a five
-  assert.ok(PIECE.take > h5.y && PIECE.magnet > 3 * PIECE.take);
+  assert.ok(PIECE.hover - PIECE.bob[0] >= 0.15 && PIECE.hover + PIECE.bob[0] <= 0.3, `a clear gap of air under them (${PIECE.hover} m ± ${PIECE.bob[0]})`);
+  // picked up and drawn in from the coin's reach, wider than the largest tier
+  assert.ok(PIECE.take > h1.y * tierOf(100).size && PIECE.magnet > 3 * PIECE.take);
   // flat facets: each triangle's three normals are one
-  const N = one.attributes.normal;
   for (let i = 0; i < N.count; i += 3) for (let k = 1; k < 3; k++) assert.ok(Math.abs(N.getX(i) - N.getX(i + k)) + Math.abs(N.getY(i) - N.getY(i + k)) + Math.abs(N.getZ(i) - N.getZ(i + k)) < 1e-6);
   // facing outward, and closed (the faces' areas times their normals sum to nothing)
-  const P = one.attributes.position, a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), sum = new THREE.Vector3(), mid = new THREE.Vector3();
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), sum = new THREE.Vector3(), mid = new THREE.Vector3();
   for (let i = 0; i < P.count; i += 3) {
     a.fromBufferAttribute(P, i); b.fromBufferAttribute(P, i + 1); c.fromBufferAttribute(P, i + 2);
     const n = new THREE.Vector3().subVectors(b, a).cross(new THREE.Vector3().subVectors(c, a));
@@ -364,9 +391,38 @@ test('a chime is a crystal as big on screen as the brass coin it replaced, a fiv
     sum.add(n);
   }
   assert.ok(sum.length() < 1e-7 * (CRYSTAL.one / 0.034) ** 2, `closed (${sum.length().toExponential(1)})`);
-  // its colours: mostly cyan (blue and green over red), a few lavender faces (the seam: red and blue over green)
-  const K = one.attributes.color; let cyan = 0, lavender = 0;
-  for (let i = 0; i < K.count; i += 3) { const r = K.getX(i), g = K.getY(i), bl = K.getZ(i); if (g > r && bl > r) cyan++; if (r > g && bl > g) lavender++; }
-  assert.ok(cyan > lavender * 3 && lavender >= 2, `cyan faces (${cyan}) and the seam (${lavender})`);
+  // its colours (the plain material's: the shop's strings, its signs): mostly cyan, a column of lavender faces (the seam)
+  const K = one.attributes.color, B = one.attributes[CRYSTAL_ATTR]; let cyan = 0, lavender = 0, seamW = 0;
+  for (let i = 0; i < K.count; i += 3) {
+    const r = K.getX(i), g = K.getY(i), bl = K.getZ(i);
+    if (g > r && bl > r) cyan++;
+    if (r > g && bl > g) { lavender++; assert.ok(B.getW(i) < 0, 'a seam face: its length negative (the crystal shader paints it)'); }
+    if (B.getW(i) < 0) seamW++;
+  }
+  assert.ok(cyan > lavender * 3 && lavender >= 3 && seamW === lavender, `cyan faces (${cyan}) and the seam (${lavender})`);
   assert.ok(view0().material.defines.CHIME_CRYSTAL, 'drawn by the crystal shader (tests/crystal-shader.test.js)');
+});
+
+test('the magnet: a piece drifts in on a curve, faster and faster, glowing, a trail of light behind it', () => {
+  const F = new ChimeField({ groundAt: () => 0, rng: seeded(9) });
+  F.drop(v(0, 0, 0), 1);
+  for (let t = 0; t < 1; t += DT) F.update(DT, null);
+  const p = F.list[0], start = p.pos.clone(), feet = v(p.pos.x + 2.0, 0, p.pos.z), mid = v(feet.x, 0.9, feet.z);
+  F.update(DT, feet);
+  assert.equal(p.phase, 'pull');
+  const path = [p.pos.clone()];
+  for (let t = 0; t < 0.12 && F.list.length; t += DT) { F.update(DT, feet); path.push(p.pos.clone()); }
+  // off the straight line to the traveller's middle (a curve), sideways
+  const line = mid.clone().sub(start).normalize(), off = path.map((q) => q.clone().sub(start).sub(line.clone().multiplyScalar(q.clone().sub(start).dot(line))).length());
+  assert.ok(Math.max(...off) > 0.02, `it curves (${(Math.max(...off) * 100).toFixed(1)} cm off the line)`);
+  assert.ok(path[1].distanceTo(path[0]) < path.at(-1).distanceTo(path.at(-2)), 'faster and faster');
+  assert.ok(p.trail.length >= 3 && p.trail.length <= PIECE.trail[0], `a trail (${p.trail.length} points)`);
+  // the view: lit up, the trail drawn with the glints (no draw of its own), no shade under it
+  const scene = new THREE.Scene(), view = new ChimeView(scene);
+  view.update(F, new THREE.PerspectiveCamera());
+  assert.ok(Math.abs(view.glow.getX(0) - (tierOf(1).glow + 1)) < 1e-6, 'drawn in: it glows');
+  assert.equal(view.glints.count, p.trail.length - 1, 'its trail: small lights in the glints\' mesh');
+  assert.ok(view.glints.instanceMatrix.count >= PIECE.max + TRAIL_MAX);
+  assert.equal(view.blobs.count, 0);
+  view.dispose();
 });

@@ -1702,7 +1702,7 @@ export class Sound {
     }
     this.burst(t, { dur: 0.025, type: 'highpass', freq: 6500, q: 0.8, vol: vol * 0.25 * this.fxVol });
   }
-  /** A chime picked up: a crystalline ting, rising through a quick run of them (a five: a second, higher one over it). */
+  /** A chime picked up: a crystalline ting, rising through a quick run of them (worth more, more over it: a five or a ten a fifth higher, a twenty or a fifty an octave too, a hundred a twelfth). */
   chimePickup(value = 1) {
     if (!this.ctx || this.muted) return;
     const t = this.ctx.currentTime;
@@ -1711,6 +1711,8 @@ export class Sound {
     const f = this.freq(this._chimeRun, 3);
     this.crystalTing(t, f, 0.036);
     if (value > 1) this.crystalTing(t + 0.07, f * 1.5, 0.03, 1.1);
+    if (value >= 20) this.crystalTing(t + 0.14, f * 2, 0.024, 1.3);
+    if (value >= 100) this.crystalTing(t + 0.21, f * 3, 0.02, 1.6);
   }
   /** Chimes scattered out of a foe (a guardian's purse: more of them): a few small glassy tings, falling. */
   chimeScatter(big = false) {
