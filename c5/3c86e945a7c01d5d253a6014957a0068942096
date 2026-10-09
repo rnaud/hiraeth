@@ -1,0 +1,25 @@
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_2aed778dda8107 18-20,39,129-133,139,143-147,152,155-157,165,240,266-276,279,283-308,357,363,376,434,450-457,459,463-470
+docs/systems/unity.md
+  s_9ca76055a220ed::t_b6d8089ebed0be 83-106,114-117
+scripts/unity-ci-cache-prune.sh
+  s_9ca76055a220ed::t_dcb13cd7fdc2ba 1-20
+tests/unity-ci.test.js
+  s_9ca76055a220ed::t_fe5d1d842648de 28-48,50-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c53c86e945a7c01d5d253a6014957a0068942096",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
