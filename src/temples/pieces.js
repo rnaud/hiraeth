@@ -33,7 +33,8 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 //   Bud      a flower-door: a great bud over a doorway that a bloom glob opens, petals folded back
 //   Glass    a greenhouse pane too smooth to climb, until a vine has grown up it
 //   EchoStone a singing stone: splash it and it sings its note (the echo shell catches it)
-//   EchoEar  a horn that listens for its note played back close by (the echo shell)
+//   EchoEar  a horn that listens for its note played back close by (the echo shell), or sung (hears: 'note')
+//   Dish     a pair of receiving dishes: a note sung into the near one's mouth comes out of the far one's
 //   Platform a disc that rides between points (you ride along on it)
 //   Bridge   stones that rise out of a chasm when their condition holds
 //   Mark     a glyph stone: walk past it and it is where you come back to (a checkpoint)
@@ -205,7 +206,8 @@ export class Ball {
    * passes while it stands, and drops if it goes from under it), lock (at rest on its plate it stays there),
    * lamp: { id, reach, hold, lasts, caught, dark, woke } (a pool-orb: stand by it at rest with the lantern `hold` s
    * and it glows for `lasts` s; at rest on its plate while it glows it wakes element `id`, a 'switch' that
-   * needs the lantern; dark, it wakes nothing) }
+   * needs the lantern; dark, it wakes nothing), sings: 'low' | 'mid' | 'high' (a singing ball: a splash makes it
+   * sing that note, game event 'note', as a singing stone does) }
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o; this.r = o.r ?? 1.1;
@@ -222,7 +224,7 @@ export class Ball {
     this.group.add(this.spin);
     if (o.lamp) { this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0; }
     this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? M.stoneMat));
-    this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
+    this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
     noCollide(this.group);
     this.center = V();
@@ -258,6 +260,7 @@ export class Ball {
     if (!dir) return false;
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
+    if (this.o.sings && mode !== 'push') this.sing();   // (a singing ball: a splash makes it sing, and nudges it)
     const along = dir.x * this.dir.x + dir.z * this.dir.z;
     const k = mode === 'push' ? 4.2 + 4.5 * (info.strength ?? 1) : 1.2;   // m/s: a push rolls it a few metres, a splash nudges it
     if (Math.abs(along) < 0.25) { this.wobble = 0.4; return true; }
@@ -266,9 +269,18 @@ export class Ball {
     this.rt.sound?.critter?.('creak', 0.7);
     return true;
   }
+  /** A singing ball (o.sings: a note of NOTES): it sings like a singing stone, from where it lies. */
+  sing() {
+    const N = NOTES[this.o.sings] ?? NOTES.mid;
+    this.flash = 1.6;
+    this.rt.sound?.orbNote?.(N.degree, this.center, { size: 0.8 });
+    this.rt.game?.emit?.('note', { pos: this.center.clone(), note: this.o.sings, degree: N.degree, color: N.color, label: `the singing ball’s ${N.name} note` });
+    return true;
+  }
   update(dt) {
     if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.spin.rotation.z = Math.sin(this.wobble * 30) * this.wobble * 0.1; }
     if (this.o.lamp) this.lamp(dt);
+    if (this.o.sings) { this.flash = Math.max(0, (this.flash ?? 0) - dt); this.glow.uniforms.uGlow.value = 0.35 + 0.6 * (this.flash / 1.6); }
     if (this.drop) { this.falling(dt); return; }
     const G = this.o.gap;
     if (G && this.t > G.from + 1e-3 && this.t < G.to - 1e-3 && !this.rt.logic.isOpen(G.bridge)) { this.startDrop(); return; }
@@ -1150,7 +1162,7 @@ export const NOTES = {
 /**
  * A singing stone of the makers (the Signal Market's Undertower): splash it and it sings one note, a ring of
  * light pulsing out; the echo shell (src/echo-shell.js), carried within earshot, catches it (game event
- * 'note' { pos, note, degree, color, label }). o: { note: 'low' | 'mid' | 'high', at (its foot), yaw, h }
+ * 'note' { pos, note, degree, color, label }). o: { note: 'low' | 'mid' | 'high', at (its foot), yaw, h, shape: 'egg' }
  */
 export class EchoStone {
   constructor(rt, o) {
@@ -1162,11 +1174,21 @@ export class EchoStone {
     this.group.position.copy(K.world(...o.at));
     this.group.rotation.y = K.heading(o.yaw ?? 0);
     rt.root.add(this.group);
-    this.group.add(mesh([lathe([[0.9, 0], [0.95, 0.3], [0.7, 0.45], [0.62, h * 0.9], [0.4, h], [0.01, h + 0.1]], 8)], M.stoneMat));
     this.glow = own({ color: N.color, glow: 0.15, flat: true });
     const bands = [];
-    for (const y of [0.35, 0.55, 0.75]) bands.push(T(new THREE.TorusGeometry(0.66 - y * 0.12, 0.07, 4, 20), [0, h * y, 0], [Math.PI / 2, 0, 0]));
-    bands.push(T(glyphGeometry(0.8, 0.06), [0, h * 0.62, 0.64]));
+    if (o.shape === 'egg') {
+      // an egg of pale stone in a brass cup (the Undertower's gallery): its width a little over a third of its height
+      const R = h * 0.36, prof = [];
+      for (let i = 0; i <= 12; i++) { const a = (i / 12) * Math.PI, y = (1 - Math.cos(a)) / 2; prof.push([Math.max(0.01, Math.sin(a) * R * (1 - 0.18 * y)), 0.15 + y * (h - 0.15)]); }
+      this.group.add(mesh([lathe(prof, 14)], M.stoneMat));
+      this.group.add(mesh([lathe([[R * 0.8, 0], [R * 0.86, 0.12], [R * 0.7, 0.4], [R * 0.6, 0.42], [0.01, 0.42]], 14)], M.trimMat));
+      for (const y of [0.3, 0.5]) bands.push(T(new THREE.TorusGeometry(R * (0.96 - Math.abs(y - 0.45) * 0.4), 0.05, 4, 24), [0, h * y, 0], [Math.PI / 2, 0, 0]));
+      bands.push(T(glyphGeometry(R * 0.9, 0.05), [0, h * 0.62, R * 0.92]));
+    } else {
+      this.group.add(mesh([lathe([[0.9, 0], [0.95, 0.3], [0.7, 0.45], [0.62, h * 0.9], [0.4, h], [0.01, h + 0.1]], 8)], M.stoneMat));
+      for (const y of [0.35, 0.55, 0.75]) bands.push(T(new THREE.TorusGeometry(0.66 - y * 0.12, 0.07, 4, 20), [0, h * y, 0], [Math.PI / 2, 0, 0]));
+      bands.push(T(glyphGeometry(0.8, 0.06), [0, h * 0.62, 0.64]));
+    }
     this.group.add(mesh(bands, this.glow));
     // the ring of light that pulses out when it sings
     this.ringM = own({ color: N.color, glow: 0.8, flat: true });
@@ -1177,7 +1199,7 @@ export class EchoStone {
     noCollide(this.group);
     this.center = this.group.position.clone().addScaledVector(UP, h * 0.6);
     this.flash = 0;
-    this.off = registerTarget({ kind: 'switch', radius: 1.1, position: () => this.center, onHit: () => this.sing() });
+    this.off = registerTarget({ kind: 'switch', radius: o.shape === 'egg' ? h * 0.36 : 1.1, position: () => this.center, onHit: () => this.sing() });
   }
   sing() {
     this.flash = 1.6;
@@ -1199,7 +1221,12 @@ export class EchoStone {
  * Something that listens for a note played back close to it (the echo shell's game event 'echo' { pos, note }):
  * its own note, within `reach`, lights element `id` (a 'switch' that needs the shell); another note it only
  * shrugs off. A horn of brass on a post (or over a door's lintel: o.lintel), ringed in its note's colour.
- * o: { id, note, at, yaw, reach, lintel }
+ * o: { id, note, at, yaw, reach, lintel, hears, stand, size, heard, wrong, fading }
+ *   hears: 'echo' (the shell played back: the default), 'note' (a stone's own song, no shell needed) or 'both'
+ *   stand: the post's height (2.4 m); size: the horn's scale (1)
+ * An element with `hold: s` (logic.js) is not latched: the horn rings s seconds after it hears its note (heard
+ * again, it starts over; 2.5 s before the end it says `fading`), then falls quiet (logic.quiet), like the
+ * Founders' Belfry's held bells.
  */
 export class EchoEar {
   constructor(rt, o) {
@@ -1207,31 +1234,124 @@ export class EchoEar {
     const N = NOTES[o.note] ?? NOTES.mid;
     const K = rt.kit, M = rt.M;
     this.reach = o.reach ?? 7;
+    this.hold = rt.logic.el?.(o.id)?.hold ?? 0;
+    this.left = 0;
     this.group = new THREE.Group();
     this.group.position.copy(K.world(...o.at));
     this.group.rotation.y = K.heading(o.yaw ?? 0);
     rt.root.add(this.group);
-    const y = o.lintel ? 0 : 2.4;
-    if (!o.lintel) this.group.add(mesh([T(new THREE.CylinderGeometry(0.16, 0.22, 2.4, 8), [0, 1.2, 0]), T(new THREE.CylinderGeometry(0.5, 0.6, 0.25, 12), [0, 0.12, 0])], M.trimMat));
+    const stand = o.stand ?? 2.4, sz = o.size ?? 1;
+    const y = o.lintel ? 0 : stand;
+    if (!o.lintel) this.group.add(mesh([T(new THREE.CylinderGeometry(0.16 * Math.sqrt(sz), 0.22 * Math.sqrt(sz), stand, 8), [0, stand / 2, 0]), T(new THREE.CylinderGeometry(0.5 * sz, 0.6 * sz, 0.25, 12), [0, 0.12, 0])], M.trimMat));
     // the horn: a flared bell of brass facing out, its mouth ringed in the note's colour
-    this.group.add(mesh([T(lathe([[0.12, 0], [0.18, 0.5], [0.35, 0.9], [0.75, 1.15], [0.8, 1.2]], 14), [0, y, -0.4], [Math.PI / 2, 0, 0])], own({ color: '#d8a24a', flat: true })));
+    this.group.add(mesh([T(lathe([[0.12, 0], [0.18, 0.5], [0.35, 0.9], [0.75, 1.15], [0.8, 1.2]], 14).scale(sz, sz, sz), [0, y, -0.4 * sz], [Math.PI / 2, 0, 0])], own({ color: '#d8a24a', flat: true, side: THREE.DoubleSide })));
     this.glow = own({ color: N.color, glow: 0.2, flat: true });
-    this.group.add(mesh([T(new THREE.TorusGeometry(0.78, 0.07, 4, 24), [0, y, 0.82])], this.glow));
+    this.group.add(mesh([T(new THREE.TorusGeometry(0.78 * sz, 0.07 * Math.sqrt(sz), 4, 24), [0, y, 0.82 * sz])], this.glow));
     noCollide(this.group);
     this.at = this.group.position.clone().addScaledVector(UP, y);
     this.lit = rt.logic.isLit(o.id);
-    this.off = rt.game?.on?.('echo', ({ pos, note } = {}) => {
-      if (!pos || pos.distanceTo(this.at) > this.reach || this.lit) return;
+    const hears = o.hears ?? 'echo';
+    const listen = ({ pos, note } = {}) => {
+      if (!pos || pos.distanceTo(this.at) > this.reach) return;
+      if (this.hold && this.lit && note === this.note) { this.left = this.hold; this.warned = false; return; }   // (heard again: the note starts over)
+      if (this.lit) return;
       if (note === this.note) {
-        if (rt.logic.light(this.id)) { this.lit = true; rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'It hears its own note, played back close by, and answers.'); rt.onLit?.(this.id); }
-      } else { this.shrug = 0.8; rt.notice?.(o.wrong ?? `It hears the note, and stays still: it listens for the ${N.name} one.`, `ear.wrong.${this.id}`); }
-    });
+        if (rt.logic.light(this.id)) {
+          this.lit = true;
+          if (this.hold) { this.left = this.hold; this.warned = false; }
+          rt.sound?.chime?.(); rt.notice?.(o.heard ?? 'It hears its own note, played back close by, and answers.', o.heard && this.hold ? `ear.heard.${this.id}` : null); rt.onLit?.(this.id);
+        }
+      } else if (typeof note === 'string' && !note.startsWith('sign.')) { this.shrug = 0.8; rt.notice?.(o.wrong ?? `It hears the note, and stays still: it listens for the ${N.name} one.`, `ear.wrong.${this.id}`); }
+    };
+    const offs = [];
+    if (hears !== 'note') offs.push(rt.game?.on?.('echo', listen));
+    if (hears !== 'echo') offs.push(rt.game?.on?.('note', listen));
+    this.off = () => { for (const f of offs) f?.(); };
     this.shrug = 0;
   }
+  /** Seconds left of a held note (0: quiet). */
+  get ringing() { return this.left; }
   update(dt, t) {
-    this.lit ||= this.rt.logic.isLit(this.id);
+    if (this.hold) {
+      this.lit = this.rt.logic.isLit(this.id);
+      if (this.left > 0) {
+        this.left -= dt;
+        if (this.left < 2.5 && !this.warned) { this.warned = true; this.rt.rumble?.(0.8, 0.2); if (this.o.fading) this.rt.notice?.(this.o.fading, `ear.fading.${this.id}`); }
+        if (this.left <= 0) { this.left = 0; this.lit = false; this.rt.logic.quiet(this.id); }
+      }
+    } else this.lit ||= this.rt.logic.isLit(this.id);
     this.shrug = Math.max(0, this.shrug - dt);
-    this.glow.uniforms.uGlow.value = this.lit ? 0.9 : 0.2 + 0.08 * Math.sin(t * 2) + this.shrug * 0.4;
+    const fade = this.hold && this.left > 0 && this.left < 2.5 ? 0.6 + 0.4 * Math.sin(t * 12) : 1;
+    this.glow.uniforms.uGlow.value = this.lit ? 0.9 * fade : 0.2 + 0.08 * Math.sin(t * 2) + this.shrug * 0.4;
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * A pair of the makers' receiving dishes (the Signal Market's Undertower): a note sung or played into the near
+ * dish's mouth comes out of the far one's a moment later, as if sung there (the same game event, 'note' or
+ * 'echo', marked `relayed`: a dish never passes on what another dish said). It only carries while `when` holds
+ * (a stone ball on its footstone: a logic.js condition); dark, it hears nothing.
+ * o: { id?, at, yaw, tilt, r, reach (4.5 m round its mouth), when, to: { at, yaw, tilt, r }, delay (0.6 s), dark }
+ */
+export class Dish {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o; this.id = o.id;
+    this.reach = o.reach ?? 4.5; this.delay = o.delay ?? 0.6;
+    this.glow = own({ color: '#fff0bd', glow: 0.08, flat: true });
+    this.ends = [o, o.to].filter(Boolean).map((d) => this.build(d));
+    this.queue = [];
+    const offs = [];
+    for (const type of ['note', 'echo']) offs.push(rt.game?.on?.(type, (e = {}) => this.hear(type, e)));
+    this.off = () => { for (const f of offs) f?.(); };
+  }
+  build(d) {
+    const K = this.rt.kit, M = this.rt.M, r = d.r ?? 2.6, fl = r * 0.7;
+    const g = new THREE.Group();
+    g.position.copy(K.world(...d.at));
+    g.rotation.set(d.tilt ?? 0, K.heading(d.yaw ?? 0), 0, 'YXZ');
+    this.rt.root.add(g);
+    const prof = []; for (let i = 0; i <= 8; i++) { const q = (i / 8) * r; prof.push([Math.max(0.01, q), (q * q) / (4 * fl)]); }
+    g.add(mesh([lathe(prof, 22).rotateX(Math.PI / 2)], this.cream ??= own({ color: '#f5dfab', flat: true, side: THREE.DoubleSide })));
+    g.add(mesh([T(new THREE.TorusGeometry(r, 0.12, 4, 28), [0, 0, r * r / (4 * fl)]), T(new THREE.CylinderGeometry(0.18, 0.3, r * 0.9, 8), [0, -r * 0.5, -0.3])], M.trimMat));
+    g.add(mesh([T(new THREE.ConeGeometry(0.25, 1.0, 8).rotateX(Math.PI / 2), [0, 0, r * 0.6]), T(new THREE.TorusGeometry(r * 0.35, 0.06, 4, 20), [0, 0, r * 0.09])], this.glow));
+    // the ring of sound it sends out when it carries a note
+    const ringM = own({ color: '#fff0bd', glow: 0.8, flat: true });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1, 0.05, 4, 36), ringM);
+    ring.position.z = r * 0.7; ring.visible = false;
+    g.add(ring);
+    noCollide(g);
+    g.updateMatrixWorld(true);
+    const mouth = new THREE.Vector3(0, 0, r * 0.7).applyMatrix4(g.matrixWorld);
+    return { g, mouth, ring, ringM, r, k: 0 };
+  }
+  get awake() { return !this.o.when || !!this.rt.logic.check(this.o.when); }
+  /** Something sang near its mouth: carried to the far dish, if it is awake. */
+  hear(type, e) {
+    if (e.relayed || !e.pos || this.ends.length < 2) return;
+    const near = this.ends[0];
+    if (e.pos.distanceTo(near.mouth) > this.reach) return;
+    if (!this.awake) { this.rt.notice?.(this.o.dark ?? 'The dish is dark: it hears nothing.', `dish.dark.${this.id ?? 0}`); return; }
+    near.k = 1;
+    this.queue.push({ type, e, t: this.delay });
+  }
+  update(dt, t) {
+    this.glow.uniforms.uGlow.value = this.awake ? 0.55 + 0.2 * Math.sin(t * 2.2) : 0.08;
+    for (let i = this.queue.length - 1; i >= 0; i--) {
+      const q = this.queue[i];
+      q.t -= dt;
+      if (q.t > 0) continue;
+      this.queue.splice(i, 1);
+      const far = this.ends[1];
+      far.k = 1;
+      this.rt.sound?.orbNote?.(q.e.degree ?? 0, far.mouth, { size: 0.9 });
+      this.rt.game?.emit?.(q.type, { ...q.e, pos: far.mouth.clone(), relayed: true });
+    }
+    for (const end of this.ends) {
+      end.k = Math.max(0, end.k - dt / 1.2);
+      end.ring.visible = end.k > 0.01;
+      if (end.ring.visible) { end.ring.scale.setScalar(0.4 + (1 - end.k) * end.r * 1.6); end.ringM.uniforms.uGlow.value = 0.9 * end.k; }
+    }
   }
   dispose() { this.off?.(); }
 }
@@ -1298,7 +1418,9 @@ export class Platform {
 
 export class Bridge {
   /**
-   * o: { id, a, b: [x, y, z] the walkway's ends (its top), w, n: stones, from: 'below' | 'above' | 'grow' }
+   * o: { id, a, b: [x, y, z] the walkway's ends (its top), w, n: stones, from: 'below' | 'above' | 'grow', pillar: m }
+   * pillar: each stone a tall pillar about that deep (the Undertower's). A bridge from below that shuts (a held
+   * note fading) sinks back, the far stones first, but not while someone stands on it: it waits for them.
    * from 'above': the stones hang high over the gap (they fell up), bobbing, and come down into place.
    * from 'grow' (a vine bridge, Viridel's bloom): woven vine that grows out from `a`, a span at a time.
    */
@@ -1328,7 +1450,8 @@ export class Bridge {
         g.add(mesh(leaves, this.leafM));
         if (flowers.length) g.add(mesh(flowers, this.bloomM));
       } else {
-        g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
+        const deep = o.pillar ? o.pillar * (0.8 + 0.4 * ((i * 7) % 5) / 4) : 0;   // (pillars: each its own depth, as the Undertower's rise out of the dark)
+        g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), deep ? box(w - 0.3, deep, L / n - 0.3, 0, -1 - deep / 2, 0) : box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
         g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
       }
       this.root.add(g);
@@ -1338,6 +1461,7 @@ export class Bridge {
       blocks.push(bl);
     }
     this.block = new THREE.Group(); for (const bl of blocks) this.block.add(bl);
+    this.span = { a, b, w };
     noCollide(this.root);
     this.open = rt.logic.isOpen(o.id);
     this.k = this.open ? 1 : 0;
@@ -1345,10 +1469,21 @@ export class Bridge {
     this.apply();
   }
   init(physics) { this.physics = physics; if (this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  /** Someone stands on it (stones from below wait for them to step off before they sink). */
+  ridden(p = this.rt.player) {
+    if (!p?.pos || !this.span) return false;
+    const l = this.rt.kit.local(p.pos), { a, b, w } = this.span;
+    const ab = _dl.copy(b).sub(a), t = THREE.MathUtils.clamp(_dn.copy(l).sub(a).dot(ab) / ab.lengthSq(), -0.05, 1.05);
+    const q = a.clone().addScaledVector(ab, t);
+    return Math.hypot(l.x - q.x, l.z - q.z) < w / 2 + 0.5 && l.y > q.y - 0.6 && l.y < q.y + 2.5 && t > -0.04 && t < 1.04;
+  }
   setOpen(open, instant = false) {
+    this.wantShut = false;
     if (open === this.open) return;
+    if (!open && !instant && this.from === 'below' && this.ridden()) { this.wantShut = true; return; }
     // (stones that were down and rise again, held ones let go: they start from where they are)
     this.rise = !open && !instant && this.from === 'above' ? 0 : null;
+    this.sink = !open && !instant && this.from === 'below' ? 0 : null;   // (stones from below sink back, the far ones first)
     this.open = open;
     this.time = instant ? 99 : 0;
     if (open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
@@ -1374,14 +1509,17 @@ export class Bridge {
         s.g.rotation.z = (1 - kk) * Math.sin(i * 2.3) * 0.25;
         s.g.visible = true;
       } else {
-        s.g.position.y = s.y - (1 - k) * 14;
-        s.g.visible = k > 0.001;
+        const kk = this.open ? k : this.sink != null ? 1 - ease(THREE.MathUtils.clamp((this.sink - (this.stones.length - 1 - i) * 0.1) / 1.0, 0, 1)) : 0;
+        s.g.position.y = s.y - (1 - kk) * 14;
+        s.g.visible = kk > 0.001;
       }
     }
   }
   update(dt, t) {
+    if (this.wantShut && !this.ridden()) this.setOpen(false);
     if (this.open && this.time < 6) { this.time += dt; this.apply(t); }
     else if (!this.open && this.from === 'above') { if (this.rise != null) this.rise += dt; this.apply(t); }
+    else if (!this.open && this.sink != null && this.sink < 4) { this.sink += dt; this.apply(t); }
   }
 }
 

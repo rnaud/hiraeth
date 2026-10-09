@@ -157,11 +157,12 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     const stand = lockPos && at[l.a] ? standPoint(lockPos, at[l.a]) : lockPos;
     const ks = merged.map((k) => {
       const kp = (k.how === 'needs' || k.how === 'item') ? null : byId.get(k.plate ?? k.id)?.pos ?? byId.get(k.id)?.pos ?? (k.room ? at[k.room] : null);
-      // the echo ears: the clue is the singing stone of the same note (it must be splashed first)
+      // the echo ears: the clue is the singing stone of the same note (it must be splashed first; a singing ball,
+      // `sings`, is one too)
       const ear = byId.get(k.id);
       let clue = null;
       if (ear?.cls === 'EchoEar') {
-        const stones = pieces.filter((p) => p.cls === 'EchoStone' && p.o?.note === ear.o.note).map((p) => piecePos(p.o));
+        const stones = pieces.filter((p) => (p.cls === 'EchoStone' && p.o?.note === ear.o.note) || (p.cls === 'Ball' && p.o?.sings === ear.o.note)).map((p) => piecePos(p.o));
         if (stones.length && kp) clue = stones.reduce((b, s) => (!b || dist(s, kp) < dist(b, kp) ? s : b), null);
       }
       const where = clue ?? kp;

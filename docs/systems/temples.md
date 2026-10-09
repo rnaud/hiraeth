@@ -100,10 +100,11 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   when it kneels; a hand on its brow); after, flowers and vines on every slab of
   the white ruins (`level.edena.ruins`, two instanced pools whose counts grow)
   and on the dome. The **Undertower** (`bazaar.js`) through an old doorway in
-  the silent tower's back: the ball and the disc over the cable pit, the riding
-  well, the **echo shell**, the door, the bridge and the far door that want the
-  low, high and middle stones' notes played back (one held at a time, so the
-  order matters), the **First Sign** (`signModel`: it cries one word of its
+  the silent tower's back (reworked from the temple design audit: "Notes that
+  travel" below): the singing ball and the dish pair over the cable pit, the
+  riding well and its horn for the low stone, the **echo shell**, the low note
+  carried up to the door, the held pillar bridge, the far door that listens
+  through a dish, the **First Sign** (`signModel`: it cries one word of its
   line; when it lowers its dish, play the word back into it and it says the
   next); after, a lamp on the silent tower, and once a night it speaks the line.
 - **Bloom mode** (`src/fluid-kit.js` MODES.bloom, item `bloom`): a fourth gun
@@ -150,6 +151,17 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   while it glows it lights element `id` (a lantern `switch`, shown by a `LightEar` with `reach: 0`, which
   only glows once something else has lit it). Rolled in dark it lights nothing and is tipped back out (no
   dead state), and it only locks in its socket once its lamp is lit.
+- **Notes that travel** (the Undertower, from the same audit; its idea: a note travels, the dishes carry
+  it across a hall, the shell in your pocket, one note at a time). A `Dish` is a pair of the makers'
+  receiving dishes: a `'note'` sung or an `'echo'` played within `reach` (4.5 m) of the near dish's mouth
+  comes out of the far one's 0.6 s later, as the same event marked `relayed` (a dish never passes on
+  another's). It carries only while `when` holds (a ball's weight on its footstone, `drumOn`); dark, it
+  says so and carries nothing. An `EchoEar` may hear a stone's own song (`hears: 'note'` or `'both'`), be
+  set on a tall stand (`stand`, `size`), and hold its element for `hold` seconds like a held bell (the
+  gallery's great horns: the pillar bridge, `{ any: [e1, e3] }`, stands while either rings, so the far
+  side's own horn is the way back). A `Ball` with `sings: note` is a singing ball: a splash makes it sing.
+  A `Bridge` with `pillar` rises as tall pillars; a bridge from below that shuts sinks, the far stones
+  first, and waits for whoever stands on it. `EchoStone` `shape: 'egg'` is the gallery's eggs.
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets
