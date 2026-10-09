@@ -1,0 +1,47 @@
+DONE.md
+  s_9ca76055a220ed::t_fa7c4adb11e45d 1768,1802-1820
+changelog.md
+  s_9ca76055a220ed::t_1079321520272a 13
+docs/systems/foes.md
+  s_9ca76055a220ed::t_a92e66987db497 29-30,99-130
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_164f5a55cc3f2a 76-84
+src/blade-grip.js
+  s_9ca76055a220ed::t_0d4f8d7d6942dc 24
+src/changelog-media.js
+  s_9ca76055a220ed::t_d3d0c0b65dc211 341-357
+src/changelog.js
+  s_9ca76055a220ed::t_b2ec2e16611e6e 19-20
+src/fluid-blade.js
+  s_9ca76055a220ed::t_d3d618e4ec8bc7 4,6,18,102-119,196-207,263-270,700,713-717,719-721,723,725,730-736,738,740-745,769
+src/fluid-sword.js
+  s_9ca76055a220ed::t_de935468171d7b 1-268
+src/materials.js
+  s_9ca76055a220ed::t_24e6462c3f7a65 1834-1854,1858,1962,2164,2370
+tests/fluid-sword.test.js
+  s_1d29e581185361::t_554e99d4ec2dcb 1-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ce8a1bad56063da2fb356d79dc797def1e547630",
+  "prompts": {},
+  "sessions": {
+    "s_1d29e581185361": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ae05bac3bb7ef50b9",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
