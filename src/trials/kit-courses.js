@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { TempleKit, templeMaterials, box, annulus, T as tf } from '../temples/kit.js';
-import { Gust, Swing, Bank, Updraft, Ball, Plate } from '../temples/pieces.js';
+import { TempleKit, templeMaterials, box, annulus, lathe, paint, T as tf } from '../temples/kit.js';
+import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar } from '../temples/pieces.js';
 import { TempleLogic, memoryStore } from '../temples/logic.js';
 import { PALETTE as DESERT } from '../temples/desert.js';
 import { PALETTE as LORN } from '../temples/perdide.js';
@@ -8,34 +8,37 @@ import { PALETTE as VAEL } from '../temples/arzach.js';
 import { PALETTE as BURIED } from '../temples/buried.js';
 import { PALETTE as SPHERES } from '../temples/spheres.js';
 import { PALETTE as SHAFT } from '../temples/incal.js';
+import { PALETTE as MARKET } from '../temples/bazaar.js';
 
 // The makers' runs in the open (docs/systems/challenges.md, src/trials/kit-data.js): the temples' own kit
 // (src/temples/kit.js: halls, slabs, stairs, columns) and moving pieces (src/temples/pieces.js: Gust, Swing,
-// Bank, Updraft, and a Ball rolled onto its Plate) stood out in a world, in that world's temple palette. They stay there for good, run or no run: the
+// Bank, Updraft, a Ball rolled onto its Plate, the singing EchoStone and the listening EchoEar) stood out in a world, in that world's temple palette. They stay there for good, run or no run: the
 // wind-hall gusts and the crystals swing whether you are timing yourself or only passing (and the pieces are
 // workings, so a foe feels them too). The pieces want a temple runtime; here a small stand-in (`openRuntime`)
 // gives them the frame, the materials, the traveller and a logic that only says yes while a run asks it to (and
 // keeps, as a temple's own logic does, where each ball has rolled and which plate it holds: `rt.roller`).
 //
-//   const course = buildKitCourse(T, { scene, physics, player, notice, sound })
+//   const course = buildKitCourse(T, { scene, physics, player, notice, sound, game })
 //   course.gates, course.start, course.heading, course.markerAt (world)
 //   course.bank      (the wind-hall's eyes: a Bank) · course.swings · course.gusts · course.updrafts
 //   course.rollers   the balls in their grooves, each with its plate ({ ball, plate, home(), reset() })
-//   course.task      what the run asks once its gates are behind you: { kind: 'eyes' | 'roll', n, count(), goal }
+//   course.stones · course.ears   the singing stones and the horns that listen for their notes ({ ear, note, lit(), reset() })
+//   course.task      what the run asks once its gates are behind you: { kind: 'eyes' | 'roll' | 'ears', n, count(), goal }
 //   course.solids()  the moving floors (the balls, the plates) for the traveller (src/player.js opts.dynamic)
 //   course.listen(fn) the bank's eyes may wake (fn() → true) · course.reset() for a new run
 //   course.update(dt, t) · course.dispose()
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT };
+const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET };
 
 /**
  * What a temple piece asks of its temple (src/temples/runtime.js), for a piece stood in the open. Its logic is
  * a temple's own (src/temples/logic.js TempleLogic, kept in memory, not in the save): the balls' places along
  * their grooves and the weights on the plates, for the pieces that roll and press (`roller`); nothing is ever
- * lit for good or opened, and a bank wakes whole only while a run is listening.
+ * lit for good or opened, and a bank (or a horn) wakes only while a run is listening. game: the game's events
+ * (the singing stones' 'note', the echo shell's 'echo': src/echo-shell.js).
  */
-export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}, sound = null }) {
+export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}, sound = null, game = null }) {
   const root = new THREE.Group();
   root.name = `${kit.group.name} (pieces)`;
   scene?.add(root);
@@ -43,10 +46,10 @@ export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}
   let listening = () => false;
   const logic = new TempleLogic({ id: 'open', rooms: {}, links: [], elements: {} }, { store: memoryStore(), has: () => true });
   logic.isLit = () => false; logic.isOpen = () => false; logic.check = () => true;
-  /** A bank woke whole: lit only while a run is listening (else it goes dark again). */
-  logic.light = () => !!listening();
-  return {
-    kit, M, P, root, player, sound, logic,
+  const rt = {
+    kit, M, P, root, player, sound, game, logic,
+    /** What a piece that only answers a run says when it is woken with no run on (by element id). */
+    deaf: {},
     listen(fn) { listening = fn ?? (() => false); },
     notice(text, key = null) {
       if (!text) return;
@@ -55,6 +58,13 @@ export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}
     },
     rumble() {}, onLit() {},
   };
+  /** A bank woke whole, a horn heard its note: lit only while a run is listening (else it goes dark again). */
+  logic.light = (id) => {
+    if (listening()) return true;
+    if (rt.deaf[id]) rt.notice(rt.deaf[id], 'deaf');
+    return false;
+  };
+  return rt;
 }
 
 /**
@@ -80,6 +90,41 @@ export function addRoller(rt, { id, a, b, r = 1, plateR = r + 0.25 }) {
       ball.place();
     },
   };
+}
+
+/**
+ * A horn that listens for one note, stood in the open (the temples' EchoEar, src/temples/pieces.js, a 'switch' of
+ * the logic's): the note played back from the echo shell within `reach` wakes it, while a run listens; a new run
+ * puts it to sleep again. A post you cannot walk through. o: { id, note, at, yaw, reach }
+ * → { id, note, ear, lit(), reset() }
+ */
+export function addEar(rt, { id, note, at, yaw = 0, reach = 7 }) {
+  rt.logic.def.elements[id] = { type: 'switch', room: 'open', needs: ['echo'] };
+  rt.deaf[id] = 'The horn hears its note, and stays still. It answers someone running the relay: start at the sign.';
+  const ear = rt.add(EchoEar, { id, note, at, yaw, reach });
+  rt.kit.solid(new THREE.CylinderGeometry(0.3, 0.3, 2.6, 8).translate(at[0], at[1] + 1.3, at[2]));
+  return {
+    id, note, ear,
+    lit: () => ear.lit,
+    reset() { ear.lit = false; ear.shrug = 0; },
+  };
+}
+
+/** A singing stone stood in the open (the temples' EchoStone): splash it and it sings its note. Solid, on a ring. */
+export function addStone(rt, { note, at, yaw = 0, h = 3.2 }) {
+  const stone = rt.add(EchoStone, { note, at, yaw, h });
+  const K = rt.kit, [x, y, z] = at;
+  K.solid(new THREE.CylinderGeometry(0.62, 0.95, h, 10).translate(x, y + h / 2, z));
+  K.add(K.M.trim, tf(annulus(1.0, 1.4, 0.06, 28), [x, y + 0.03, z]));
+  return stone;
+}
+
+/** An old receiving dish of the market's (drawn only), facing `yaw` (0: +z), as the Undertower hangs them. */
+function dish(K, x, y, z, r, yaw, tilt = 0) {
+  const prof = []; for (let i = 0; i <= 8; i++) { const q = (i / 8) * r; prof.push([Math.max(0.01, q), (q * q) / (4 * r * 0.7)]); }
+  K.add(paint('#f5dfab', { smooth: true, side: THREE.DoubleSide }), tf(lathe(prof, 20).rotateX(-Math.PI / 2), [x, y, z], [tilt, yaw, 0], 1, 'YXZ'));
+  K.add(paint('#c99758'), tf(new THREE.TorusGeometry(r, 0.1, 4, 28).translate(0, 0, r / 2.8), [x, y, z], [tilt, yaw, 0], 1, 'YXZ'));
+  K.add(K.M.dark, tf(new THREE.ConeGeometry(0.22, 0.9, 8).rotateX(Math.PI / 2).translate(0, 0, r * 0.6), [x, y, z], [tilt, yaw, 0], 1, 'YXZ'));
 }
 
 // ---------------------------------------------------------------------------------------- the courses
@@ -354,10 +399,56 @@ export const COURSES = {
       gulf: { from: stones[0][1], to: stones[1][0] }, gaps: stones.slice(1).map(([z0], i) => [stones[i][1], z0]),
     };
   },
+  /**
+   * The echo relay (the Signal Market): the Undertower's singing stones and listening horns stood out on a makers'
+   * plinth down the first side street west of the avenue. At the near end two stones (low, middle) and the high
+   * note's horn; at the far end, under an arch, the high stone and the horns of the low and middle notes; between
+   * them three listening walls hung with old dishes, out from each side in turn. Each horn wants its own stone's
+   * note played back close by (the echo shell catches a note sung within 18 m and holds one at a time), and every
+   * stone stands over 30 m from its horn: the notes are carried. Through the walls to the arch, then the relay.
+   */
+  echorelay(K, rt) {
+    const W = 10, L = 46, sl = 6;
+    K.slab(-W / 2, -1, W / 2, L, 0, 1.2, K.M.floor);
+    K.slab(-2.6, -2.2, 2.6, -1, -0.17, 0.9, K.M.floor);   // (a step up onto it)
+    for (const s of [-1, 1]) K.add(K.M.trim, box(0.35, 0.06, L + 1, s * (W / 2 - 0.18), 0.03, (L - 1) / 2));
+    // the listening walls: out from the west edge, then the east, then the west, a way 4 m wide past each
+    const walls = [16, 22.5, 29];
+    walls.forEach((z, i) => {
+      const side = i % 2 ? 1 : -1, x0 = side * W / 2, x1 = side * (W / 2 - sl), cx = (x0 + x1) / 2;
+      K.both(K.M.wall, box(sl, 3.4, 0.8, cx, 1.7, z));
+      K.both(K.M.trim, box(sl + 0.2, 0.3, 1.0, cx, 3.45, z));
+      dish(K, cx, 1.9, z - 0.42, 1.1, Math.PI);
+      dish(K, cx, 1.9, z + 0.42, 1.1, 0);
+    });
+    // a cable along the floor from the near stones to the far arch (drawn only, flat: nothing to trip on)
+    K.add(K.M.dark, box(0.3, 0.04, L - 6, W / 2 - 0.7, 0.02, L / 2));
+    // the near end: the low and middle stones (and, further on, the high note's horn)
+    const stones = [addStone(rt, { note: 'low', at: [-3.4, 0, 4.2] }), addStone(rt, { note: 'mid', at: [3.4, 0, 4.2] })];
+    // the far end: an arch, the high stone under it, the horns of the low and middle notes before it
+    for (const s of [-1, 1]) K.column(s * 2.6, L - 1.4, 0, 4.6, 0.4);
+    K.both(K.M.wall, box(6.2, 0.6, 1.0, 0, 4.9, L - 1.4));
+    K.glyph([0, 4.9, L - 1.92], 0.9, Math.PI);
+    dish(K, 0, 6.6, L - 1.4, 1.4, Math.PI, -0.5);
+    stones.push(addStone(rt, { note: 'high', at: [0, 0, L - 2.6], yaw: Math.PI }));
+    const ears = [
+      rt.ear({ id: 'low', note: 'low', at: [-3.4, 0, 41], yaw: Math.PI }),
+      rt.ear({ id: 'high', note: 'high', at: [4, 0, 10.5], yaw: 0 }),
+      rt.ear({ id: 'mid', note: 'mid', at: [3.4, 0, 41], yaw: Math.PI }),
+    ];
+    return {
+      // the gates: through the way past each wall, then before the arch at the far end
+      gates: [[3, 1.6, walls[0], 2.0], [-3, 1.6, walls[1], 2.0], [3, 1.6, walls[2], 2.0], [0, 1.6, 37, 2.6]],
+      bank: null, gusts: [], swings: [], updrafts: [], stones, ears,
+      earGoal: 'wake the horns', earFlash: 'Now the horns: give each its own note back',
+      bounds: [[-W / 2 - 1, -3, -3], [W / 2 + 1, 8, L + 1]],
+      clear: [[-W / 2 - 1, -3], [W / 2 + 1, L + 1]],
+    };
+  },
 };
 
 /** Build a makers' run in its world (see the top of this file). */
-export function buildKitCourse(T, { scene, physics, player = null, notice = () => {}, sound = null }) {
+export function buildKitCourse(T, { scene, physics, player = null, notice = () => {}, sound = null, game = null }) {
   const P = PALETTES[T.world] ?? DESERT;
   const M = templeMaterials(P);
   const [ox, oy, oz] = T.origin;
@@ -365,10 +456,11 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   parent.name = `Makers’ run: ${T.name}`;
   scene?.add(parent);
   const kit = new TempleKit(parent, T.name, V(ox, oy, oz), T.yaw ?? 0, M);
-  const rt = openRuntime({ scene: parent, kit, M, P, player, notice, sound });
+  const rt = openRuntime({ scene: parent, kit, M, P, player, notice, sound, game });
   const pieces = [];
   rt.add = (Piece, o) => { const p = new Piece(rt, o); pieces.push(p); return p; };
   rt.roller = (o) => addRoller(rt, o);
+  rt.ear = (o) => addEar(rt, o);
   const build = COURSES[T.course];
   if (!build) throw new Error(`no makers’ course "${T.course}"`);
   const C = build(kit, rt);
@@ -384,15 +476,16 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   const markerAt = V(m.x, physics ? physics.groundAt(m.x, m.y + 6, m.z, 30) : m.y, m.z);
   if (!Number.isFinite(markerAt.y)) markerAt.y = m.y;
   const box3 = new THREE.Box3(V(...C.bounds[0]), V(...C.bounds[1]));
-  const rollers = C.rollers ?? [];
+  const rollers = C.rollers ?? [], ears = C.ears ?? [];
   const task = C.bank ? { kind: 'eyes', n: C.bank.eyes.length, count: () => C.bank.awake(), goal: 'wake the eyes' }
     : rollers.length ? { kind: 'roll', n: rollers.length, count: () => rollers.filter((r) => r.home()).length, goal: C.rollGoal ?? 'roll the balls home', flash: C.rollFlash ?? 'Now roll them onto their plates' }
+    : ears.length ? { kind: 'ears', n: ears.length, count: () => ears.filter((e) => e.lit()).length, goal: C.earGoal ?? 'wake the horns', flash: C.earFlash ?? 'Now the horns: give each its note back' }
     : null;
   const solids = pieces.filter((p) => p.solid);
   return {
     trial: T, kit, rt, gates, start, heading: kit.heading(T.heading ?? 0), markerAt,
     bank: C.bank, swings: C.swings, gusts: C.gusts, updrafts: C.updrafts ?? [], gulf: C.gulf ?? null, pillars: (C.pillars ?? []).map((p) => ({ ...p, at: at(p.x, p.y, p.z) })), pieces,
-    rollers, task, gaps: C.gaps ?? [],
+    rollers, stones: C.stones ?? [], ears, task, gaps: C.gaps ?? [],
     solids: () => solids,
     /** The ground the world's own props should leave clear (world x, z corners). */
     clear: C.clear.map(([x, z]) => at(x, 0, z)),
@@ -405,6 +498,7 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
       if (b) { b.done = false; for (const e of b.eyes) e.at = -1e9; }
       for (const s of C.swings) s.still = 0;
       for (const r of rollers) r.reset();
+      for (const e of ears) e.reset();
     },
     update(dt, t) {
       rt.player = player;

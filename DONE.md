@@ -1528,3 +1528,14 @@ tests/sound-mix.test.js holds them.
   throws 2.2× (as the heavy third). The walkers' wall test now looks over a climbable step (it was at 0.5 m, so no
   foe climbed a step taller than that: a temple's dais stopped a machine at its foot). Not done: crystals, water.
 
+## Challenges: the echo relay in the Signal Market (done 9 October, v1.4)
+
+- [x] **The echo stones and horns in the open, and the Signal Market's makers' run.** The stand-in runtime
+  (src/trials/kit-courses.js `openRuntime`) now carries the game's events, and `addStone` / `rt.ear` stand the
+  Undertower's own `EchoStone` and `EchoEar` in the open (solid, a horn a `switch` of the stand-in's logic that
+  wakes for its own note played back from the echo shell, only while a run listens; with no run on it says to
+  start at the sign). A run's task can now be the horns (`kind: 'ears'`). The **Echo relay** (down the first side
+  street west of the avenue: three walls hung with old dishes, then each note carried from its stone to its
+  horn, every stone over 30 m from its horn; Oyo, who sells lanterns, has a word). Played through in the game
+  with the real gun, shell and key. The runs' test now also keeps them clear of their world's makers' court
+  (the first spot, east of the avenue, ran into it). tests/trials-kit.test.js.

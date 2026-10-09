@@ -43,6 +43,8 @@ const CONTROLS = {
   eyes: { pad: [['LT / L2', 'aim'], ['RT / R2', 'splash']], keys: [['Right mouse', 'aim'], ['Left mouse', 'splash']] },
   kitwings: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer the wings; back to float']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump, then hold to glide'], ['W A S D', 'steer the wings; S to float']] },
   kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad ← / →', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
+  // (the echo relay: the stones splashed, the shell played back: src/echo-shell.js, the whistle's button)
+  kitecho: { pad: [['Left stick', 'walk; L3 to run'], ['LT / L2', 'aim'], ['RT / R2', 'splash a stone'], ['Y / △', 'play the shell back (no gadget in hand)']], keys: [['W A S D', 'walk; Shift to run'], ['Right mouse', 'aim'], ['Left mouse', 'splash a stone'], ['V', 'play the shell back']] },
 };
 
 const COUNT = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
@@ -137,7 +139,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   const M = trialMats(T.color);
   const offs = [];
   // a makers' run: the temple pieces stood in the open, for good (src/trials/kit-courses.js)
-  const course = kitRun ? buildKitCourse(T, { scene, physics, player, notice, sound }) : null;
+  const course = kitRun ? buildKitCourse(T, { scene, physics, player, notice, sound, game }) : null;
   // its moving floors (a ball, a plate) are the traveller's to stand on and be stopped by, as a temple's are
   if (course?.solids().length && player?.opts) {
     const was = player.opts.dynamic;

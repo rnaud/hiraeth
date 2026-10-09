@@ -8,7 +8,7 @@
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
 //   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps',
-//            'spherecourt', 'longlook'
+//            'spherecourt', 'longlook', 'echorelay'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -116,6 +116,22 @@ export const KIT_TRIALS = {
       first: '~shout~ Rolled a ball to the end of the world and walked out after it! That’s a view. That’s worth two coins. I’m keeping them.',
       beaten: '~surprised~ Faster than the makers, over that drop? Don’t do that in front of customers. They’ll want a discount.',
       again: '~playful~ Back for another look? First one’s free. That was the second. One coin.',
+    },
+  },
+  'kit-bazaar': {
+    id: 'kit-bazaar', world: 'bazaar', mode: 'kit', course: 'echorelay', name: 'Echo relay', color: '#62c3c9',
+    blurb: 'The Undertower’s singing stones and listening horns stood out down the first side street west of the avenue, with old dishes on the walls between.',
+    rules: 'Walk past the listening walls to the arch at the far end. Then give each horn its own note: splash a stone near enough for the echo shell to catch its song, carry it to the horn of its colour, and play it back. The shell holds one note at a time.',
+    origin: [-42, 0.35, 75], yaw: -Math.PI / 2,
+    marker: [4.4, -3.6], start: [0, -1.4], heading: 0, par: 38,
+    needs: ['backpack', 'echo'], lacks: 'Its stones sing for the fluid and its horns listen for the echo shell: it wants both.',
+    onFoot: true, offFeet: 'This one is walked: no jets.',
+    controls: 'kitecho',
+    voice: {
+      who: 'oyo', name: 'Oyo', from: 'who sells lanterns on the avenue',
+      first: '~shout~ Low, high, middle, and every horn answering! I stopped selling to listen. Nobody bought a thing. Worth it.',
+      beaten: '~surprised~ Quicker than the makers! I didn’t have time to light a single lantern.',
+      again: '~playful~ Again? Play it slower next time. I sell more lanterns when there’s music.',
     },
   },
 };

@@ -35,16 +35,18 @@ to do one.
 
 Data in `src/trials/kit-data.js` (`KIT_TRIALS`, id `kit-<world>`, mode `kit`), built by
 `src/trials/kit-courses.js` (`COURSES`): the temple kit (`TempleKit`: hall, slab, stairs, column, glyph) in the
-world's temple palette, and the temple pieces (`Gust`, `Swing`, `Bank`, `Updraft`, `Ball` and `Plate`) given a
-small stand-in for their temple's runtime (`openRuntime`: the frame, the materials, the traveller, and a
-temple's own logic kept in memory, which lights a bank only while a run listens). They stand there for good, run or no run: the hall gusts and the crystals swing for anyone
+world's temple palette, and the temple pieces (`Gust`, `Swing`, `Bank`, `Updraft`, `Ball` and `Plate`,
+`EchoStone` and `EchoEar`) given a small stand-in for their temple's runtime (`openRuntime`: the frame, the
+materials, the traveller, the game's events, and a temple's own logic kept in memory, which lights a bank or a
+horn only while a run listens; woken with no run on, a horn says to start at the sign: `rt.deaf`). They stand there for good, run or no run: the hall gusts and the crystals swing for anyone
 passing, and as workings (src/workings.js) they throw foes about too. The collision is the kit's proxy, added
 with `physics.addCollider`. The rules are pure (`src/trials/kit-run.js`): `KitRun` (the gates in order, then
 the bank if there is one: it only listens once every gate is behind you, so nobody wakes it from the door or
 climbs round the outside), `outOfRun` (a knockout; the water on a causeway; `fall`: the ground under a run
 up in the air, once its first gates are behind you and past a point along it; `onFoot`: up on the jets for
 more than 1.5 s ends it, `offFeet` the words), `voiceLine`. `controls` names the start card's controls
-(`kitwings`: walk, jump, the wings; the default `kit`: walk, jump, aim, splash).
+(`kitwings`: walk, jump, the wings; `kitecho`: walk, aim, splash, play the shell back; the default `kit`: walk,
+jump, aim, splash).
 
 **The ball onto its plate** (`rt.roller({ id, a, b, r, plateR })`, `addRoller`): the temples' own `Ball` and
 `Plate` (src/temples/pieces.js) with their logic (src/temples/logic.js, a `drum` and its `plate`, in the stand-in's
@@ -57,6 +59,15 @@ and gives them back when it goes. What a run asks once its gates are behind you 
 (`kind: 'eyes'`) or the balls home (`kind: 'roll'`, its goal "roll the spheres home 1 / 2"); a ball rolled home
 early waits there, and the last gate finishes the run.
 
+**The notes carried** (`addStone`, `rt.ear({ id, note, at, yaw, reach })`, `addEar`): the Signal Market's own
+`EchoStone` (splashed, it sings its note: the game event `note`) and `EchoEar` (a horn on a post, a `switch` in the
+stand-in's logic, that wakes when its own note is played back from the echo shell within 7 m: the game event
+`echo`, src/echo-shell.js), both solid here (a proxy round the stone and the post). The shell catches a note sung
+within 18 m and holds one at a time, so a stone further from its horn than both reaches together means walking
+the note over. The task is the horns awake (`kind: 'ears'`, "wake the horns 1 / 3"); a wrong note only makes a
+horn shrug; a new run puts them to sleep (`reset`). The stand-in needs the game's events for these:
+`buildKitCourse(T, { …, game })`.
+
 | run | where | goal | the sign | mark | wants | who speaks |
 |---|---|---|---|---|---|---|
 | **Wind hall** (`kit-desert`) | a roofless makers' hall on the dune crest west of the landing, door to the south, steps down to the sand (origin −135, 21.4, −64) | walk its 46 m through the gusts (every 5 s: streaks, then a shove back down the hall; calm behind each of the four screens and under the porch), then wake the three eyes over the porch inside 4 s | east of the steps | 42 s | the fluid gun | Pell, the counter of bones, at the foot of the dune |
@@ -65,6 +76,7 @@ early waits there, and the last gate finishes the run.
 | **Sphere court** (`kit-spheres`) | a white plinth 12 m by 46 on the meadow south of the mirror lake, running east (origin 140, 0.4, −22) | weave the slalom past four stone spheres to the arch at the far end, then roll the two white spheres onto their plates at the dais with the push: the west one up the court (8 m), the east one back down it from the far end (12 m) | by the step at its west end | 42 s | the fluid gun | Nell, who looks into the lake, on the shore to the south-east |
 | **Long look** (`kit-incal`) | a balcony from the rim out over the City-Shaft, in the parapet's gap round from the spawn (origin 266, 200.3, 61.4, facing the shaft's middle) | roll the stone ball from the rim along the balcony's three stones (the gaps between them a jump; the ball crosses on an iron rail) onto its plate at the far end, 31 m; no parapet: down the shaft ends it | on the rim behind the plinth | 40 s | the fluid gun | Tobin, the seller of views, along the rim |
 | **Furnace steps** (`kit-buried`) | a platform, eight iron pillars over a glowing grate 4 m down, and a landing before a sealed door, on the sand east of the Buried Machine's landing, running south (origin 40, 11, 66) | jump pillar to pillar (gaps 1.8–2.4 m, steps up under a metre, zigzag) to the landing; down on the grate ends it; then wake the door's four eyes in 2.6 s | on the sand by the stair | 34 s | the fourth chamber | Jot, nine teeth old, by the landing |
+| **Echo relay** (`kit-bazaar`) | a plinth 10 m by 46 down the first side street west of the Signal Market's avenue, a few steps from the spawn, running west out past the towers (origin −42, 0.35, 75) | past three walls hung with old dishes (a way 4 m wide past each, west, east, west) to the arch at the far end; then the relay: the low and middle stones stand at the near end with the high note's horn, the high stone under the far arch with the low and middle horns (each stone 31–37 m from its horn): catch a note, carry it, play it back at its horn, three times | at the mouth of the street, by the step | 38 s | the fluid gun and the echo shell | Oyo, who sells lanterns on the avenue |
 
 Fair on a controller and on touch: walking, jumping, aiming and the splash are all the run asks; the gust's
 rhythm is shown before it blows (0.8 s of streaks), the crystals swing in plain sight, every screen leaves a way
@@ -75,14 +87,19 @@ walking jump carries about 3 m, so the furnace's pillars are each well inside on
 from straight behind, and there is always room beside it to walk round. The marks of the sphere court and the
 long look are a scripted run (walked at 5 m/s, each ball pushed as soon as it lies still, the tank's three
 charges and its refill counted, pushed from a step behind) plus about 30 %: 32 and 31 s; played in the game with the real push, 31 and
-36 s (the gates walked first, then the ball rolled out from the rim).
+36 s (the gates walked first, then the ball rolled out from the rim). The echo relay asks only for a walk, a splash
+and the shell's button (Y / △ with no gadget in hand, V, or the touch ◆ button); each horn wears its note's colour
+(low amber, middle teal, high rose) like its stone's bands. Its mark is a scripted run (walked at 5 m/s, half a
+second for each splash and each play-back) of 21.6 s plus slack: 38 s; walked in the game at the walking pace
+(3.8 m/s, no running) with the real gun, shell and key, 31 s.
 
 **Adding one:** an entry in `KIT_TRIALS` (its world, `course`, `origin` and `yaw`, the sign and the start in
 the course's frame, the mark, `needs`, `wet`, `voice` with a tone on every line) and, for a new kind of
 course, a builder in `COURSES` returning `{ gates: [[x, y, z, r]] (local), bank, swings, gusts, bounds,
 clear }`. Pick a spot with nothing standing on it, nobody living there and clear of where the ship lands
 (the test checks the people and `findShipSite`: Vael's search puts the ship at −99, −57, which the first try at
-the feather leap stood on). Someone who speaks is a world's own person (`id` in CONTENT) or a story local
+the feather leap stood on), and clear of the world's makers' court (src/finds/courts.js: the first try at the
+echo relay ran into the market's, east of the avenue). Someone who speaks is a world's own person (`id` in CONTENT) or a story local
 (LOCALS, standing on the world's spawn spots in order; in the game the story gives them their `def.id`).
 
 ## Tests
@@ -101,14 +118,17 @@ the ball onto its plate (the logic's drum and plate, the push rolls it, a splash
 home it holds the plate, a reset rolls it back, the traveller's solids given and taken back); the sphere
 court's grooves (opposite ways to one dais, the middle clear, the slalom's spheres solid, balls home early wait
 for the last gate) and the long look's stones (floors out over the drop, open air under the gaps beside the
-rail, nothing in the way, down the shaft ends it); for both, the mark against a scripted run.
-Each run is clear of its world's ship. The trials:
+rail, nothing in the way, down the shaft ends it); for both, the mark against a scripted run; the echo relay's
+stones and horns (a stone sings, the shell catches it near and not far, a horn stays still with no run on and
+says why, wakes for its own note within reach once the walls are behind you, shrugs at another, every stone
+further from its horn than both reaches, stones and posts solid, a way past every wall, its mark).
+Each run is clear of its world's ship and of its makers' court. The trials:
 `tests/trials.test.js`, `tests/trials-worlds.test.js`.
 
 ## Next
 
 A makers' run in the other route worlds, each from its own temple's kit. Every one left wants a new piece in
 the stand-in runtime (`openRuntime`): Lorn's deep wood (the lantern charm's lamps, `LightEar`), the Hangar
-(eye banks with riding discs: moving solids, which `course.solids()` now hands the traveller), the Signal
-Market (echo stones and ears), Viridel (seeds that grow vine bridges: the logic's bridges, which the stand-in's
-TempleLogic could now keep), the sky stones (bell ears).
+(eye banks with riding discs: moving solids, which `course.solids()` now hands the traveller), Viridel (seeds
+that grow vine bridges: the logic's bridges, which the stand-in's TempleLogic could now keep), the sky stones
+(bell ears: like the echo relay's horns, a listener on a game event, `bell`).

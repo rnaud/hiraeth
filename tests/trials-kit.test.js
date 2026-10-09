@@ -21,6 +21,8 @@ import { clearWorkings, workingsAt } from '../src/workings.js';
 import { GameState } from '../src/game-state.js';
 import { findShipSite, siteAvoid } from '../src/ship/sites.js';
 import { R as HULL } from '../src/ship/hull.js';
+import { createEchoShell, ECHO } from '../src/echo-shell.js';
+import { COURTS, COURT } from '../src/finds/courts.js';
 
 // The makers' runs (docs/systems/challenges.md): the temples' kit stood in the open as optional challenges.
 // The rules alone (src/trials/kit-run.js), then each run built in its own world with real collision and water,
@@ -102,8 +104,9 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
     assert.ok(homeOf(T.world, T.voice.who), `${id}: ${T.voice.who} lives in ${T.world}`);
     const def = trialGame(T, { par: T.par, session: () => ({}) });
     assert.equal(def.drives, false); assert.equal(def.score.kind, 'time'); assert.ok(def.trial);
-    if (!T.controls) assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
-    else assert.ok(def.controls.pad.some(([b, what]) => b === 'A / ×' && /wings/.test(what)), `${id}: the card names the wings`);
+    if (T.controls !== 'kitwings') assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
+    if (T.controls === 'kitecho') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /shell/.test(what)), `${id}: the card names the shell’s button`);
+    if (T.controls === 'kitwings') assert.ok(def.controls.pad.some(([b, what]) => b === 'A / ×' && /wings/.test(what)), `${id}: the card names the wings`);
     assert.match(def.rules, /makers’ mark/);
   }
   assert.deepEqual(kitTrialsFor('desert').map((T) => T.id), ['kit-desert']);
@@ -202,6 +205,14 @@ for (const T of Object.values(KIT_TRIALS)) {
       const dx = Math.max(x0 - lo.x, 0, lo.x - x1), dz = Math.max(z0 - lo.z, 0, lo.z - z1);
       assert.ok(Math.hypot(dx, dz) > HULL + 6, `clear of the ship (${Math.hypot(dx, dz).toFixed(0)} m from the course)`);
     }
+    // clear of the world's makers' court (src/finds/courts.js: its pavement, its box and the ground it keeps clear)
+    const court = COURTS[T.world];
+    if (court) {
+      const lo = course.kit.local(V(court.at[0], course.start.y, court.at[1])), cs = course.clear.map((p) => course.kit.local(p));
+      const [x0, x1] = [Math.min(...cs.map((p) => p.x)), Math.max(...cs.map((p) => p.x))], [z0, z1] = [Math.min(...cs.map((p) => p.z)), Math.max(...cs.map((p) => p.z))];
+      const d = Math.hypot(Math.max(x0 - lo.x, 0, lo.x - x1), Math.max(z0 - lo.z, 0, lo.z - z1));
+      assert.ok(d > COURT.clear, `clear of the makers’ court (${d.toFixed(0)} m)`);
+    }
     // the one who speaks lives within earshot of it (a short walk from the course)
     const [hx, hz] = homeOf(T.world, T.voice.who);
     const near = Math.min(...[W.start, ...W.gates, W.sign.position].map((p) => Math.hypot(p.x - hx, p.z - hz)));
@@ -266,6 +277,16 @@ for (const T of Object.values(KIT_TRIALS)) {
         if (i < course.rollers.length - 1) assert.equal(ctx.st, `${course.task.goal} ${i + 1} / ${course.rollers.length}`);
       }
     }
+    if (course.ears.length) {
+      assert.equal(ctx.result, null, 'the gates passed: not yet finished');
+      assert.equal(ctx.st, `${course.task.goal} 0 / ${course.ears.length}`);
+      assert.ok(ctx.said.some((s) => /horns/.test(s)), 'it says so');
+      for (const [i, E] of course.ears.entries()) {
+        game.emit('echo', { pos: E.ear.at.clone(), note: E.note });   // (its note, played back from the shell beside it)
+        sess.update(1 / 60, {}, { live: true, phase: 'play' });
+        if (i < course.ears.length - 1) assert.equal(ctx.st, `${course.task.goal} ${i + 1} / ${course.ears.length}`);
+      }
+    }
     // ---- the finish: its lines, the word from nearby, the best kept
     assert.ok(ctx.result && !ctx.result.failed, 'finished');
     assert.match(ctx.result.lines.join(' '), /First finish/);
@@ -287,7 +308,8 @@ for (const T of Object.values(KIT_TRIALS)) {
     for (const gt of W.gates) { walk(sess, ctx, player, V(gt.x, gt.y - 1, gt.z), 0.1); if (ctx.result) break; }
     if (course.bank) { course.bank.update(0.5, 0); for (const i of course.bank.eyes.keys()) course.bank.hit(i); sess.update(1 / 60, {}, { live: true, phase: 'play' }); }
     for (const R of course.rollers) { assert.ok(!R.home(), 'the balls rolled back for the new run'); ctx.time += rollHome(course, R).t; }
-    if (course.rollers.length) sess.update(1 / 60, {}, { live: true, phase: 'play' });
+    for (const E of course.ears) { assert.ok(!E.lit(), 'the horns asleep again for the new run'); game.emit('echo', { pos: E.ear.at.clone(), note: E.note }); }
+    if (course.rollers.length || course.ears.length) sess.update(1 / 60, {}, { live: true, phase: 'play' });
     assert.ok(ctx.result && !ctx.result.failed);
     assert.ok(!/First finish/.test(ctx.result.lines.join(' ')));
     assert.ok([T.voice.again, T.voice.beaten].includes(pell.shout?.text));
@@ -544,5 +566,86 @@ test('the long look: three stones out over the shaft, the ball rolled out to the
   course.reset();
   const t = scripted(course, [[0, 0, 2.4], { roll: R }, [1.4, 0, 33]]);
   assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+test('the echo relay: stones that sing, horns that listen only in a run, each note carried from its stone to its horn in the shell', () => {
+  const { scene, physics } = world('bazaar');
+  const T = KIT_TRIALS['kit-bazaar'];
+  const game = new GameState(), items = { has: () => true }, said = [];
+  const pl = traveller();
+  const C = createChallenges({ levelId: 'bazaar', scene, physics, player: pl, items, game, kits: [T], trials: {}, notice: (t) => said.push(t) });
+  const W = C.list[0], course = W.course, K = course.kit, L = course.rt.logic;
+  const shell = createEchoShell({ player: pl, game, items });
+  const stone = (n) => course.stones.find((s) => s.note === n), ear = (n) => course.ears.find((e) => e.note === n);
+  const at = (x, z) => K.world(x, 0, z);
+  const play = () => { shell.update(5); return shell.play(); };
+  // three notes, a stone and a horn each, the logic's own switches; every stone further from its horn than the
+  // shell's earshot and the horn's reach together: each note is carried
+  assert.deepEqual(course.stones.map((s) => s.note).sort(), ['high', 'low', 'mid']);
+  assert.deepEqual(course.ears.map((e) => e.note).sort(), ['high', 'low', 'mid']);
+  for (const E of course.ears) {
+    assert.equal(L.el(E.id).type, 'switch');
+    const d = stone(E.note).center.distanceTo(E.ear.at);
+    assert.ok(d > ECHO.reach + E.ear.reach + 3, `the ${E.note} stone ${d.toFixed(0)} m from its horn`);
+  }
+  // the stones and the horns' posts are solid; the walls leave a way 4 m wide past each
+  const fwd = K.world(0, 0, 1).sub(K.world(0, 0, 0));
+  assert.ok(physics.rayDistance(K.world(-3.4, 1, 1), fwd, 6) < 3.5, 'a stone stops you');
+  assert.ok(physics.rayDistance(K.world(4, 1, 8), fwd, 6) < 3, 'a horn’s post stops you');
+  for (const [i, z] of [16, 22.5, 29].entries()) {
+    let open = 0;
+    for (let x = -4.8; x <= 4.8; x += 0.2) if (physics.rayDistance(K.world(x, 1.1, z - 1.2), fwd, 2.4) >= 2.4) open++;
+    assert.ok(open * 0.2 >= 3.4 && open * 0.2 <= 4.6, `wall ${i + 1}: a way past it ${(open * 0.2).toFixed(1)} m wide`);
+  }
+  // a stone sings when splashed; the shell catches it near enough, not from the far end
+  pl.pos.copy(at(0, 40));
+  stone('low').sing();
+  assert.equal(shell.held, null, 'out of earshot at the far end');
+  pl.pos.copy(course.start);
+  stone('low').sing();
+  assert.equal(shell.held?.note, 'low', 'caught at the start');
+  // no run on: the horn hears its own note and stays still (and says why)
+  pl.pos.copy(at(0, 37));
+  assert.ok(play());
+  assert.equal(ear('low').lit(), false, 'no run: it stays still');
+  assert.ok(said.some((s) => /start at the sign/.test(s)), 'it says to start at the sign');
+  // a run: the horns listen once the walls are behind you
+  const ctx = runnerCtx(pl);
+  const sess = W.session(ctx);
+  stone('low').sing();
+  play();
+  assert.equal(ear('low').lit(), false, 'from the start: too far, and not yet listening');
+  for (const gt of W.gates) walk(sess, ctx, pl, V(gt.x, gt.y - 1, gt.z));
+  assert.equal(ctx.st, 'wake the horns 0 / 3');
+  play();
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.ok(ear('low').lit(), 'the low horn hears its note played back beside it');
+  assert.ok(!ear('mid').lit() && ear('mid').ear.shrug > 0, 'the middle one beside it only shrugs');
+  assert.equal(ctx.st, 'wake the horns 1 / 3');
+  // the high stone under the arch: its horn is back at the near end, out of reach from here
+  stone('high').sing();
+  assert.equal(shell.held.note, 'high', 'the shell holds one note: the high one now');
+  play();
+  assert.ok(!ear('high').lit(), 'too far from its horn');
+  walk(sess, ctx, pl, at(3.5, 15.5));
+  play();
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.ok(ear('high').lit(), 'carried back to its horn');
+  stone('mid').sing();
+  assert.equal(shell.held.note, 'mid', 'the middle stone caught from the first wall');
+  walk(sess, ctx, pl, at(3, 35));
+  play();
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.ok(ctx.result && !ctx.result.failed, 'all three: finished');
+  sess.end();
+  // a new run: the horns asleep again
+  course.reset();
+  assert.ok(course.ears.every((e) => !e.lit()));
+  // the makers' mark: a steady scripted run (walked at 5 m/s; half a second to aim and splash or to play, six times) plus slack
+  const legs = [[3, 0, 16], [-3, 0, 22.5], [3, 0, 29], [0, 0, 37], [3, 0, 29], [-3, 0, 22.5], [3.5, 0, 15.5], [-3, 0, 22.5], [3, 0, 29], [3, 0, 35]];
+  const t = scripted(course, legs) + 6 * 0.5;
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  shell.dispose();
   C.dispose();
 });

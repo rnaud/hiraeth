@@ -16,6 +16,9 @@ export const CHANGELOG = [
     'Foes now follow you up and down. Ink blots, shades, root stalkers and shadow hounds crouch, then leap up a ledge as tall as you, and hop down after you; machines and the other heavy foes climb steps and stairs and come round by a ramp. One that can’t reach you hangs back where it can see you instead of pressing against the wall, and no foe swings at you when you stand out of its reach above it.',
     'A spitting blot now climbs steps and ramps to the high ground over you and lobs down from there, and keeps its perch while you are below. Go up after it, or walk out of its reach and it comes down.',
     'Knock a foe off a ledge with a cut or the push and it lands dazed for a few seconds, stars turning over its head: your next cut lands double. From high enough, the fall ends it. The charged cut also throws foes farther.',
+    // challenges in the open
+    { text: 'A new optional challenge in the Signal Market, the Echo relay, built from the Undertower’s own singing stones and listening horns: walk past three walls hung with old dishes to the arch at the far end, then give each horn its own stone’s note. Splash a stone close enough for the echo shell to catch its song, carry it the length of the street to the horn of its colour and play it back; the shell holds one note at a time. Oyo, who sells lanterns on the avenue, has a word for you when you finish.',
+      see: 'The Echo relay is in the first side street west of the avenue, a few steps from where you arrive, behind the lantern stalls. It wants the fluid gun and the echo shell from the Undertower. Walk up to the sign and press X / □ (E); play the shell back with Y / △ with no gadget in hand (V).' },
   ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour
