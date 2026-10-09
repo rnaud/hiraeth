@@ -1,0 +1,21 @@
+docs/README.md
+  s_9ca76055a220ed::t_86163a54d9a1e0 26
+docs/audits/temple-design-v1.12.md
+  s_9ca76055a220ed::t_a5b47f01142935 1-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "890913cef857cec73756f8678e22107558aaa8b1",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
