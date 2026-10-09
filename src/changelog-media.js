@@ -495,8 +495,8 @@ export const CHANGELOG_MEDIA = {
         { where: 'the magic bar with every one bought', before: 5, after: 9 },
       ], source: 'src/shop.js STOCK_TOTAL; HEARTS.start 3, MAGIC.start 3 (docs/systems/items.md, “A shop in every world”)' },
       { title: 'What a container costs, in packs of the foes where it is sold', unit: 'packs', better: 'lower', device: 'bought in the route’s order, a pack of each world’s foes as src/foe-worlds.js fields them', rows: [
-        { where: 'the first (the desert, 50 chimes)', before: 14.5, after: 14.5 },
-        { where: 'the dearest before (the desert’s second, 80)', before: 23.2, after: 23.2 },
+        { where: 'the first (the desert, 50 chimes)', before: 13.8, after: 13.8 },
+        { where: 'the dearest before (the desert’s second, 80)', before: 22.1, after: 22.1 },
         { where: 'the middle ones (Lorn to the Hangar)', before: null, after: '15–22' },
         { where: 'the last (the Market’s, 470)', before: null, after: 30.6 },
       ], source: 'tests/shop.test.js “the prices up the route” (each between 8 and 35 packs)' },

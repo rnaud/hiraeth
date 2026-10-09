@@ -307,7 +307,7 @@ docs/systems/ui.md, "The shop"). Tests: `tests/shop.test.js`.
   the drops: a **pack** of a world's foes (its wild kinds' drops, src/chimes.js, the pack's size by the world's stage,
   src/foe-worlds.js `BUDGET`) is about 3–4 chimes in the desert and Vael, 8–10 in the stage-1 worlds, 12–18 in the
   stage-2 and 15–21 in the last three; the tiered pieces (`TIERS`) only change how a drop looks, not its worth. Bought
-  in the route's order, every container costs **15–31 packs** of the world it is sold in (the desert's first 15,
+  in the route's order, every container costs **14–31 packs** of the world it is sold in (the desert's first 14,
   the Market's last two 29–31), so the late ones keep the first one's feel and none is a handful of fights
   (tests/shop.test.js holds each between 8 and 35 packs, an expansion from 5). A potion stays 10, a pack or two.
   Each keeper (`SHOPKEEPERS`, `SHOP_LINES` in src/story/shop-data.js) has a conversation of Haddu's shape (hello,

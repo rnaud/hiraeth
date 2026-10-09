@@ -1925,6 +1925,6 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   src/shop-world.js `SHOP_STYLES`, `placeShop`), placed by the way in each world (the level design audit's empty
   stretches where it had one), its keeper with a conversation, counter lines in the world's voice and a People page
   entry (src/story/shop-data.js, people-book.js). Potions everywhere; 15 heart containers and 6 magic expansions in
-  all (18 hearts of 20, a bar of 9), a little more in the later worlds, priced up the one curve at 15–31 packs of
+  all (18 hearts of 20, a bar of 9), a little more in the later worlds, priced up the one curve at 14–31 packs of
   each world's foes (docs/systems/items.md, "A shop in every world"; docs/systems/interiors.md, "A shop in every
   world"). The rooms off the map are spared by the world's edge and the Hangar's far-off rule.
