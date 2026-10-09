@@ -1,0 +1,113 @@
+.github/workflows/xbox.yml
+  s_05e8f0b297231a::t_eab82a8e7cded4 1-223
+.gitignore
+  s_9ca76055a220ed::t_41edf9e0793fac 45-53
+scripts/icons.mjs
+  s_9ca76055a220ed::t_4f5d0bf650eefb 24-26,65-76,258-268,309-322,324
+scripts/release-info.mjs
+  s_9ca76055a220ed::t_bd3a5319349844 20,45-48,86-87,90,94,118-129
+scripts/web-update.mjs
+  s_9ca76055a220ed::t_63a52d0216a645 5-6,22,173
+scripts/xbox-cert.sh
+  s_9ca76055a220ed::t_347d0c21871c85 1-58
+src/boot.js
+  s_9ca76055a220ed::t_f057e6133f844b 23,25
+src/dev-menu.js
+  s_9ca76055a220ed::t_46583de7bdc0f7 16
+src/flora-grass.js
+  s_9ca76055a220ed::t_ba3ab5ff9d6941 32-33
+src/foe-spawner.js
+  s_9ca76055a220ed::t_d9f8f776c84ff7 21
+src/game-menu.css
+  s_9ca76055a220ed::t_7f9f0c56247700 18-19,37
+src/i18n/en.js
+  s_9ca76055a220ed::t_50e59100339bd8 34
+src/i18n/fr.js
+  s_9ca76055a220ed::t_50019ea9ddb3ec 34
+src/levels/arcade-board.js
+  s_9ca76055a220ed::t_25f706031aa641 17
+src/levels/reference-picker.js
+  s_9ca76055a220ed::t_00f0e270351461 61
+src/levels/reference-sheets.js
+  s_9ca76055a220ed::t_2be1f05ec10b8f 9,13-14,20
+src/main.js
+  s_9ca76055a220ed::t_eb1ea072d8a151 66-67,192,940,957,1522-1523
+src/menus.css
+  s_9ca76055a220ed::t_000176eca49f24 36-37,102,126,148,176,190
+src/native-app.js
+  s_9ca76055a220ed::t_0e028984b2991f 21,23-25,31,34
+src/native-pad.js
+  s_9ca76055a220ed::t_f21faf8f839500 38,141,145-146,148,293
+src/perf.js
+  s_9ca76055a220ed::t_c4bf9e7aeb4a66 382-385,465-466,496-497,500-501,504
+src/story/charge.js
+  s_9ca76055a220ed::t_85196ed1a6ee68 100
+src/title-vista.js
+  s_9ca76055a220ed::t_1991a54d227930 9,340-341,521
+src/ui.js
+  s_9ca76055a220ed::t_cc42387a62a79b 14,27-28,31,285,288,319
+src/updates.js
+  s_9ca76055a220ed::t_de8c7e6a53a6c3 68
+src/xbox.js
+  s_9ca76055a220ed::t_3b7da3fb8e1ed2 1-127
+tests/quality.test.js
+  s_9ca76055a220ed::t_8e854d8adb23ba 58,60-65,189-190
+tests/updates.test.js
+  s_9ca76055a220ed::t_045f1bb95fb4d1 195
+tests/xbox.test.js
+  s_9ca76055a220ed::t_d6685e723fcb0a 1-261
+xbox/Hiraeth/App.xaml
+  s_9ca76055a220ed::t_a92c7ab69b43a3 1-11
+xbox/Hiraeth/App.xaml.cs
+  s_9ca76055a220ed::t_0f5ff1526a280a 1-56
+xbox/Hiraeth/Hiraeth.csproj
+  s_9ca76055a220ed::t_2da83790589105 1-111
+xbox/Hiraeth/MainPage.xaml
+  s_9ca76055a220ed::t_f490b506f37352 1-13
+xbox/Hiraeth/MainPage.xaml.cs
+  s_9ca76055a220ed::t_e7ab95e043f51a 1-279
+xbox/Hiraeth/Package.appxmanifest
+  s_9ca76055a220ed::t_9735a2f78fe1ca 1-46
+xbox/Hiraeth/Properties/AssemblyInfo.cs
+  s_9ca76055a220ed::t_0e8a74f64f47ad 1-9
+xbox/Hiraeth/Properties/Default.rd.xml
+  s_9ca76055a220ed::t_defe1463f2c0a8 1-6
+xbox/Hiraeth/WebBundles.cs
+  s_05e8f0b297231a::t_ab16f3c4409d4e 1-394
+index.html
+  s_ee6dacfa5aab85::t_d9b957e294a002 23-29
+scripts/xbox-package.mjs
+  s_ee6dacfa5aab85::t_5c4677afa7828e 1-131
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dda8e41eb34392b6772712bacc414e2b523c0b7f",
+  "prompts": {},
+  "sessions": {
+    "s_05e8f0b297231a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1206d-f2fb-7580-8e26-273276a8bab9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ee6dacfa5aab85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a52ad62ab2a5068f7",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
