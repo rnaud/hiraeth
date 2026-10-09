@@ -1,0 +1,45 @@
+.claude/skills/temple-design-qc/SKILL.md
+  s_9ca76055a220ed::t_8bc45a1b0b90c5 1-177
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_c483bc3fc1ca38 146-156
+scripts/design-qc/capture.mjs
+  s_9ca76055a220ed::t_4ebde60635a409 1-97
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_7d6e90a78ab601 1-158
+scripts/level-design/lib.mjs
+  s_9ca76055a220ed::t_ccf398a5d8c6b7 1-315
+scripts/temple-design/audit.mjs
+  s_9ca76055a220ed::t_7a13032a253d03 1-100
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_e95e45395b9b55 1-423
+tests/level-design.test.js
+  s_9ca76055a220ed::t_a7d10e437d9e15 1-116
+tests/temple-design.test.js
+  s_9ca76055a220ed::t_462bffa311e9d8 1-119
+.claude/skills/level-design-qc/SKILL.md
+  s_6d0bb8c818320c::t_cf5b30247a793e 1-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8aa67c8b79c5b7184d5f0fbccb3ffbc5870324d6",
+  "prompts": {},
+  "sessions": {
+    "s_6d0bb8c818320c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a3eee319ec26e9637",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
