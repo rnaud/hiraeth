@@ -432,7 +432,76 @@ const PAD_SAVE = { flags: { 'prologue.done': true, 'item.backpack': true, 'items
 const PAD_VIEW = (setup) => ({ level: 'arena', hud: true, save: PAD_SAVE, wait: 1200, setup: `${FAKE_PAD}\n${setup}` });
 const PADS = { commit: 'cc087bd4' };
 
+// ------------------------------------------------------------------ v1.14's shops
+/** Where the shops' pictures came from (made by hand: the branch was to be rebased, so no commit to retake them at). */
+const FROM_SHOPS = 'headless Chrome (High, 1280 × 720, hour 10, clear) against the main branch before the shops (612e9602, the before) and the shops’ branch (the after), the camera pinned on the shop’s door the same for both (14 m out at 0.45 rad off its heading, 2.2 m up; Vael and Lorn 11 m at −0.5, Lorn II 12 m at 0.25, the City-Shaft 9 m and 3 m up, the Garden 16 m); inside, the traveller set down by the counter and the camera in the room’s corner by the door (9 October)';
+/** A world's shop: its front from the path (before: the place as it was) and inside (after only), each with the author's pick beside it. */
+const SHOP_SHOTS = (w, front, inside, refs) => [
+  { name: `shop-${w}-front`, caption: front, from: FROM_SHOPS, ...(refs.front ? { reference: { sheet: refs.front, caption: 'The author’s pick: the front, from the reference lab (references/shops)' } } : {}) },
+  { name: `shop-${w}-inside`, only: 'after', caption: inside, from: FROM_SHOPS, reference: { sheet: refs.inside, caption: 'The author’s pick: the interior, from the reference lab (references/shops)' } },
+];
+const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place’s name comes up as you step in), talk to ${who} or stand at the middle of the counter and look at the wares. Walk out of the room’s door to be back where you were.`;
+
 export const CHANGELOG_MEDIA = {
+  '1.14': [
+    { match: 'Every world on the way home now has a shop of its own', shots: [
+      { name: 'shops-strip', only: 'after', caption: 'The ten new shopfronts, in the route’s order: Vael’s hoodoo, Vael II’s gatehouse, Lorn’s raft-house, Lorn II’s moss dome, Viridel’s potting house, the City-Shaft’s narrow house, the Hangar’s riveted hatch, the Buried Machine’s dome, the Garden’s pavilion and the Market’s cure-stall', from: `the after pictures of the lines below, laid four by four on one picture in headless Chrome (${FROM_SHOPS})` },
+    ], see: 'Each world’s shop is by the way you walk there: on the People page each keeper says where once you have met them.' },
+    { match: 'In Vael, Brin keeps the Wind-Shelf', shots: SHOP_SHOTS('arzach',
+      'On the walk from the landing to the lone tower: before, the empty slope; after, the Wind-Shelf in a bone-white hoodoo’s foot, its mushroom cap and ochre band, an ochre sail on a pole, wares on cords and the white feather by the door',
+      'Inside: Brin, veiled in peach and ochre wraps, behind the curved stone counter (three flasks, a heart on a peach cloth, the sand tray), niches of flasks, feathers and crystals on cords',
+      { front: 'references/shops/vael/sheet-2.jpg', inside: 'references/shops/vael/sheet-1.jpg' }), see: SHOP_SEE('From the landing walk toward the lone tower: the hoodoo is on your right, halfway up the slope', 'Brin') },
+    { match: 'In Vael II, Sister Perpetue keeps the Almonry', shots: SHOP_SHOTS('arzach2',
+      'On the cliff-top before the monastery: before, the open plateau; after, the gatehouse in rose stone between two round towers under slate cones, the arched door, and the hatch with its counter-board, slate canopy and seven bronze bells',
+      'Inside: Sister Perpetue in her white headcloth behind the counter, the bronze rail of bells over it, niches of wax-sealed flasks, teal lanterns on the top shelf, the ledger table',
+      { front: 'references/shops/vael-ii/sheet-1.jpg', inside: 'references/shops/vael-ii/sheet-2.jpg' }), see: SHOP_SEE('Fly to the monastery on the rose cliff: the gatehouse stands before it, facing the start', 'Sister Perpetue') },
+    { match: 'In Lorn, Nettle keeps a raft-house', shots: SHOP_SHOTS('perdide',
+      'On the landing island’s east shore: before, the grass to the water; after, Nettle’s raft-house of grey planks and reed bundles under its thatch, the violet lantern, the Hush over the door, the shelf of wares and the knot cord on its pole',
+      'Inside: Nettle under her reed hat behind the plank counter on two barrels, the fireflies’ jar and the snapping plant on it, flasks hung by their necks, knot cords, shelves of jars, the violet crystal lamp and the hatch onto the water',
+      { inside: 'references/shops/lorn/sheet-1.jpg' }), see: SHOP_SEE('From the ship walk east to the island’s shore', 'Nettle') },
+    { match: 'In Lorn II, Rowan keeps the Welcome-Shelf', shots: SHOP_SHOTS('perdide2',
+      'On the lit path south of the landing: before, the bank; after, the moss dome with its blue door open in a stone arch, the three little lamps of the Welcome, the striped stall of flasks and the lamp-post',
+      'Inside: Rowan in his quilted blue coat behind the curved wooden counter (a heart in its bell jar, a teapot and cups), an arch of shelves, roots over the walls, warm lamps',
+      { front: 'references/shops/lorn-ii/sheet-1.jpg', inside: 'references/shops/lorn-ii/sheet-2.jpg' }), see: SHOP_SEE('Follow the lit path south from the landing: the dome is on its right bank before the first dark pool', 'Rowan') },
+    { match: 'In Viridel, Clover keeps a potting house', shots: SHOP_SHOTS('edena',
+      'Halfway from Mira’s garden down to the fallen ship: before, the meadow; after, the potting house of wood and glass against a leaning white slab under an umbrella tree, its striped awning, the ladder of pots and the pedestal with the heart in a pot',
+      'Inside: Clover in her straw hat and green smock behind the workbench, shelves of bell jars and flasks, the makers’ mark on the white panels, teal glass globes and ferns hanging',
+      { front: 'references/shops/viridel/sheet-1.jpg', inside: 'references/shops/viridel/sheet-2.jpg' }), see: SHOP_SEE('From Mira walk down toward the fallen ship: the potting house is on your left', 'Clover') },
+    { match: 'In the City-Shaft, Fausta keeps a narrow three-storey shop', shots: SHOP_SHOTS('incal',
+      'On the middle terrace by the cab stop: before, a house among the others; after, Fausta’s narrow cream house with green shutters, its arched door and the striped awning over the shop window with the wares under it',
+      'Inside: Fausta in her rust apron behind the marble counter (two hearts in their boxes), the basket on its rope with a bell, the wall of drawers and shelves of flasks with the rolling ladder',
+      { front: 'references/shops/city-shaft/sheet-1.jpg', inside: 'references/shops/city-shaft/sheet-2.jpg' }), see: SHOP_SEE('Take a cab to “The middle levels”: the shop is beside the stop', 'Fausta') },
+    { match: 'In the Sealed Hangar, Odo, the Major’s quartermaster', shots: SHOP_SHOTS('garage',
+      'Beside the way from the landing to the keep: before, the bare plateau; after, the riveted sage cabin with its stencilled gear and flask, the door, the hatch under a corrugated awning with its rack of flasks, crates, a drum and a chimney',
+      'Inside: Odo in his blue boiler suit and peaked cap behind the metal counter (the stamp and the requisitions on it), shelf units of crates and flasks, the glass cabinet, the lamp over the counter',
+      { front: 'references/shops/hangar/sheet-1.jpg', inside: 'references/shops/hangar/sheet-2.jpg' }), see: SHOP_SEE('From the landing walk toward the keep: the hatch is on your left', 'Odo') },
+    { match: 'In the Buried Machine, Mott keeps the Tooth-Counter', shots: SHOP_SHOTS('buried',
+      'Between the landing and Wen’s great dome: before, the sand; after, the riveted grey-blue dome with its arched door in a thick frame, the rust canvas on struts, the gear tooth on its chain and the shelf of wares',
+      'Inside: Mott with her goggles up behind the counter ringed with gear teeth, the abacus and two hearts in their bell jars on it, the shelf of tall flasks, the ribs of the dome',
+      { front: 'references/shops/buried-machine/sheet-1.jpg', inside: 'references/shops/buried-machine/sheet-2.jpg' }), see: SHOP_SEE('From the landing walk toward Wen’s great dome: the shop’s dome is on your right', 'Mott') },
+    { match: 'In the Garden of Spheres, Hale keeps the Listening Stall', shots: SHOP_SHOTS('spheres',
+      'Beside the path from the grove to the sphere-arch: before, the meadow; after, the round white pavilion on its plinth, its colonnade and flat-rimmed dome, the blue swag and glass bells, the white disc and the round counter of wares',
+      'Inside: Hale in his cream robe behind the round counter with its basin of water, glass bells on the high ledge, tuning forks on the right wall, flasks on the white bench',
+      { front: 'references/shops/spheres/sheet-1.jpg', inside: 'references/shops/spheres/sheet-2.jpg' }), see: SHOP_SEE('Walk the path south from the grove toward the sphere-arch: the pavilion is on your left', 'Hale') },
+    { match: 'In the Signal Market, Pashka keeps the loudest cure-stall', shots: SHOP_SHOTS('bazaar',
+      'On the avenue’s west pavement: before, the gap between two stalls; after, Pashka’s teal stall in a coral tower’s foot, its counter of flasks, the red conical awning hung with bulbs and the lit board of a heart and a flask',
+      'Inside: Pashka, big and lavender, behind the teal counter (two hearts in their glass cases), glowing screens of hearts and flasks, red flasks on cords, coral in the corners',
+      { front: 'references/shops/signal-market/sheet-1.jpg', inside: 'references/shops/signal-market/sheet-2.jpg' }), see: SHOP_SEE('From the landing walk down the avenue: the stall is on the right before the first skybridge', 'Pashka') },
+    { match: 'Heart containers and magic expansions are now sold all along the way', numbers: [
+      { title: 'What the shops hold', unit: 'items', better: 'higher', device: 'every shop of the route, src/shop.js SHOPS', rows: [
+        { where: 'heart containers', before: 2, after: 15 },
+        { where: 'magic expansions', before: 2, after: 6 },
+        { where: 'hearts with every one bought', before: 5, after: 18 },
+        { where: 'the magic bar with every one bought', before: 5, after: 9 },
+      ], source: 'src/shop.js STOCK_TOTAL; HEARTS.start 3, MAGIC.start 3 (docs/systems/items.md, “A shop in every world”)' },
+      { title: 'What a container costs, in packs of the foes where it is sold', unit: 'packs', better: 'lower', device: 'bought in the route’s order, a pack of each world’s foes as src/foe-worlds.js fields them', rows: [
+        { where: 'the first (the desert, 50 chimes)', before: 14.5, after: 14.5 },
+        { where: 'the dearest before (the desert’s second, 80)', before: 23.2, after: 23.2 },
+        { where: 'the middle ones (Lorn to the Hangar)', before: null, after: '15–22' },
+        { where: 'the last (the Market’s, 470)', before: null, after: 30.6 },
+      ], source: 'tests/shop.test.js “the prices up the route” (each between 8 and 35 packs)' },
+    ], see: 'Open a shop in a later world: its heart costs what the next one would have cost in Haddu’s, and buying one anywhere raises the price everywhere.' },
+  ],
   '1.13': [
     // the enemy roster, part three: each new foe alone, its main skin and its alternate, the stand-in before it; the sheets beside them
     { match: 'Four more foes of the new roster', see: 'In the Arena (the worlds list, or ?level=arena) open the FOES list (K, or D-pad ↓) and pick Lorn: its four foes in their skins (the spore toad, the reed knot, the marsh snapper, the spore mites), each alone, then two of its packs. Out in Lorn or the Desert, walk past them: toads sit, herons wade off, skitters graze and scatter if you run at them, root knots stand still with their caps turning after you.' },
