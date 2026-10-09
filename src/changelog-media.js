@@ -346,6 +346,17 @@ const GUARD_WIND = (id, atk, { meter = 0, k = 0.85, side = 15, back = 9, h = 6, 
 const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 2500, setup, ...(player ? { player, heading: Math.PI * 0.75 } : {}) });
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
+// (v1.10, the controller's quick buttons: a pad in hand, held as the setup says; the camera stays put)
+const FAKE_PAD = `const pad = { index: 0, id: 'Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)', connected: true, mapping: 'standard', timestamp: 1, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0, touched: false })) };
+  navigator.getGamepads = () => [pad];
+  const set = (i, on) => { pad.buttons[i] = { pressed: on, value: on ? 1 : 0, touched: on }; pad.timestamp++; };
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  window.rig.look = () => {};
+  set(9, true); await wait(150); set(9, false); await wait(300); window.menu.toggle(false); await wait(300);`;
+const PAD_SAVE = { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'item.hook': true, 'item.bomb': true, 'item.fan': true, 'item.lens': true, 'item.magnet': true, 'item.fire': true, 'item.stun': true, 'gadget.equipped': 'hook' }, keepsakes: [] };
+const PAD_VIEW = (setup) => ({ level: 'arena', hud: true, save: PAD_SAVE, wait: 1200, setup: `${FAKE_PAD}\n${setup}` });
+const PADS = { commit: '4784b177' };
+
 export const CHANGELOG_MEDIA = {
   '1.11': [
     { match: 'While Qanat’s tree stands cold, the pilgrims’ camps keep a column of smoke', shots: [
@@ -374,9 +385,18 @@ export const CHANGELOG_MEDIA = {
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")
-    { match: 'On a controller, D-pad ↓ drinks a healing potion', see: 'With a controller, take a hit so a heart is missing and press D-pad ↓: the traveller drinks, the flask by the hearts tips and the hearts come back. In the Arena (?level=arena) D-pad ↓ opens the FOES list instead.' },
-    { match: 'Calling your mount or hailing a taxi is a click of the left stick', see: 'In the Desert with the hoverbike found, stand still and click the left stick: the bike comes. Push the stick and click it: you run, and the bike stays where it is.' },
-    { match: 'The gun’s modes moved onto D-pad ↑ with the gadgets', see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
+    { match: 'On a controller, D-pad ↓ drinks a healing potion', shots: [
+      { name: 'controls-pad-list', caption: 'The Controls page with a controller in hand, at the controller’s list: before, the potion on View + D-pad ↓, the mount on D-pad ↓ and the gun mode on D-pad ← / →; after, the potion on D-pad ↓, the mount on L3 standing still, the gun mode on D-pad ↑ while aiming', ...PADS,
+        view: PAD_VIEW(`window.menu.toggle(true, 'controls'); await wait(400); const li = [...document.querySelectorAll('#settings li')].find((e) => /^Gun mode \\(/.test(e.textContent.trim())); li?.scrollIntoView({ block: 'center' }); await wait(300);`) },
+    ], see: 'With a controller, take a hit so a heart is missing and press D-pad ↓: the traveller drinks, the flask by the hearts tips and the hearts come back. In the Arena (?level=arena) D-pad ↓ opens the FOES list instead.' },
+    { match: 'Calling your mount or hailing a taxi is a click of the left stick', shots: [
+      { name: 'controls-pad', caption: 'The Controls page’s “Your buttons (controller)”: before, Call your mount on D-pad ↓ and two gun-mode buttons on D-pad ← and →; after, Run (standing still: call your mount) on L3, the gun mode with Choose a gadget, and Drink a potion on D-pad ↓', ...PADS,
+        view: PAD_VIEW(`window.menu.toggle(true, 'controls'); await wait(500);`) },
+    ], see: 'In the Desert with the hoverbike found, stand still and click the left stick: the bike comes. Push the stick and click it: you run, and the bike stays where it is.' },
+    { match: 'The gun’s modes moved onto D-pad ↑ with the gadgets', shots: [
+      { name: 'gun-wheel', caption: 'D-pad ↑ held in the Arena, the left stick on the grappling hook and the right stick down to the left: before, the gadgets alone (the right stick turned the camera); after, the gun modes on an inner ring in their colours, the one in the tool ringed, and the right stick on Ember', ...PADS,
+        view: PAD_VIEW(`set(12, true); await wait(700); pad.axes = [0.95, 0.3, -0.95, 0.3]; pad.timestamp++; await wait(400);`) },
+    ], see: 'With the backpack and a gadget, hold D-pad ↑: the wheel opens with the gun modes on an inner ring. Point the left stick at a gadget and the right stick at a mode, then let go. Hold LT / L2 and tap D-pad ↑: the next gun mode.' },
     { match: 'Five more foes of the new roster', shots: [
       { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
     ], see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },
