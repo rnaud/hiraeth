@@ -1,0 +1,49 @@
+src/audio.js
+  s_9ca76055a220ed::t_52eda535c33aeb 20,1009-1014,1017,1019-1022,1040-1126
+src/boxes/index.js
+  s_9ca76055a220ed::t_1393e409112974 10,341,358,384
+src/crowd.js
+  s_9ca76055a220ed::t_1134941da23fa1 1087
+src/main.js
+  s_9ca76055a220ed::t_4a1e052c73c3be 110-111,538-543,1568,1578-1580,1583-1584,1590
+src/ship/cinema.js
+  s_9ca76055a220ed::t_caa89302851786 292
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_74bc76e0a328d4 8,121,178,219-222,291,293-296,298,301,430
+src/ship/landing.js
+  s_9ca76055a220ed::t_7a1b2798953d1c 1-60
+src/ship/ship.js
+  s_9ca76055a220ed::t_773aa770650f4e 25,73,478,566,666-667
+src/story/calls.js
+  s_9ca76055a220ed::t_7a6de770ba124d 72-75
+src/story/desert.js
+  s_9ca76055a220ed::t_8a13a588cb1039 18,184-188
+src/story/dialogue.js
+  s_9ca76055a220ed::t_791c34d1772e05 352,472-474
+src/story/hum.js
+  s_9ca76055a220ed::t_a040cea741421e 1-63
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_6d1b8cb8580b1a 291-293
+tests/hum.test.js
+  s_9ca76055a220ed::t_2485e7ca4a8d51 1-104
+tests/landing.test.js
+  s_9ca76055a220ed::t_75e09b1a3ad8c7 1-77
+tests/prologue-call.test.js
+  s_9ca76055a220ed::t_9219fe5e858e53 1-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "917a5599cef6a3fee6789f03c7aa928f54f821ff",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
