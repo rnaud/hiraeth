@@ -1,0 +1,57 @@
+DONE.md
+  s_9ca76055a220ed::t_c93cc3c2c431fc 1141-1158
+changelog.md
+  s_9ca76055a220ed::t_13fbb7feb1c24a 30-33
+docs/systems/ui.md
+  s_9ca76055a220ed::t_86f88e221643ca 89-90,98-106,208,314-330
+index.html
+  s_9ca76055a220ed::t_15ceddbae90af6 31-32,157-158,314,316-318,320-325,329,331-332,445
+src/changelog-media.js
+  s_9ca76055a220ed::t_5c27d03ea2ca31 174-184
+src/changelog.js
+  s_9ca76055a220ed::t_5e6334a471f801 16-20
+src/hud.js
+  s_9ca76055a220ed::t_5f0a53400288a2 5-6,21,33,39
+src/input-mode.js
+  s_9ca76055a220ed::t_6c1995b221c61a 1-95
+src/main.js
+  s_9ca76055a220ed::t_0f1d97368a6bc9 65,516,534,947-950,1025-1026,1032,1069,1117,1166-1167,1454-1456
+src/quest.js
+  s_9ca76055a220ed::t_7ef030c6ae42b2 307-308,328-329,341
+src/ship/cinema.js
+  s_9ca76055a220ed::t_a79ae2dd42497f 44-46,67-76,106-121,157-165,167,225-226,367,369,386-387,389-392,409,448
+src/story/quests.js
+  s_9ca76055a220ed::t_47fa2810125357 140,151-155,226
+src/title.js
+  s_9ca76055a220ed::t_110ec73b794bf1 19,277-280,286,310
+src/ui.js
+  s_9ca76055a220ed::t_8a4deb9304d12f 405
+src/world-picker.js
+  s_9ca76055a220ed::t_438b616e378f87 11,110
+tests/accessibility.test.js
+  s_9ca76055a220ed::t_6db8f86c031760 272-273
+tests/cab-ride.test.js
+  s_9ca76055a220ed::t_6469dbce4913dd 175-177
+tests/hints.test.js
+  s_9ca76055a220ed::t_4834e27cdec97e 1-91
+tests/hud.test.js
+  s_9ca76055a220ed::t_3985819abc4323 4,49-53
+tests/input-mode.test.js
+  s_9ca76055a220ed::t_493a2cc9c44f41 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7333cc68ebcb55fafe05de78f042cc118ce4d90e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
