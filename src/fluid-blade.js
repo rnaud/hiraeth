@@ -213,7 +213,7 @@ export const bladeGrowth = (lit, state, B = BLADE) => {
  * that had to drop resolution). Lite: no ripples' lines or motes in the shader, no extra drops off the point, no splashes.
  */
 export const bladeLite = () => BLADE_QUALITY.lite;
-/** The tongue of fluid standing out of the cup in the fist between cuts: bladeGrowth's `lit` at `time` s (breathing about BLADE_LOOK.idle). */
+/** The share of the blade standing out of the cup in the fist between cuts: bladeGrowth's `lit` at `time` s (breathing about BLADE_LOOK.idle; 0, off: only the bead). */
 export const bladeIdle = (time, L = BLADE_LOOK) => L.idle * (1 + 0.12 * Math.sin(time * L.breathRate));
 /** How far a swing smears the fluid (0..1) for the tip moving `speed` m/s. */
 export const bladeSmear = (speed, L = BLADE_LOOK) => THREE.MathUtils.clamp(speed / L.smearAt, 0, 1);
@@ -708,7 +708,7 @@ export class FluidBlade {
     return { a: new THREE.Vector3(0, base, 0).applyMatrix4(m), b: new THREE.Vector3(0, base + len, 0).applyMatrix4(m) };
   }
 
-  /** How far the blade shows (bladeGrowth's `lit`): lit, or in the fist (`inFist`) the idle tongue (bladeIdle), eased in and out. */
+  /** How far the blade shows (bladeGrowth's `lit`): lit, or in the fist (`inFist`) the idle share (bladeIdle: 0, none), eased in and out. */
   shownLit(dt, inFist) {
     const want = inFist && !this.swinging && !this.charging ? 1 : 0;
     this.idleK = dt > 0 ? (this.idleK ?? 0) + (want - (this.idleK ?? 0)) * (1 - Math.exp(-4 * dt)) : want;
@@ -865,7 +865,7 @@ export class FluidBlade {
       this.group.visible = held > 0.02 || this.lit > 0.03;
     }
     // (the blade only once the hilt is in the fist: a swing begun with it on the back lights as it arrives)
-    // (in the fist between cuts a tongue of the fluid stands out of the cup, breathing: bladeIdle)
+    // (in the fist between cuts nothing stands out of the cup, only the bead breathes in it: bladeIdle, BLADE_LOOK.idle 0)
     const shown = this.shownLit(dt, held >= 0.97 && placed);
     this.bladeGroup.visible = shown > 0.03 && (held > 0.97 || !placed);
     // (the blade grows out of the cup as it lights: its length tuned and upgraded, its width filling out, broader with ink)

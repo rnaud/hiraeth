@@ -532,7 +532,7 @@ export const CHANGELOG_MEDIA = {
     ], see: 'On the title, choose Debug (or press L in a world). Type a few letters to filter; on a controller LB / RB jump between sections and Y opens the filter. Open a page and come back with ◀ Debug: the page you opened has the focus.' },
     // the fluid sword, alive
     { match: 'The fluid sword feels alive', shots: [
-      { name: 'blade-alive-idle', caption: 'In the fist between cuts, close up: before, the bare cup (the blade only shows through a swing); after, a short tongue of the fluid standing out of it, breathing, bubbles and ripples in it', ...ALIVE,
+      { name: 'blade-alive-idle', caption: 'In the fist between cuts, close up: before and after, nothing stands out of the cup (the blade only shows through a swing), only the bead in it, which now breathes', ...ALIVE,
         view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(1500), { dist: 0.5, at: 0.05 }) } },
       { name: 'blade-alive-swing', caption: 'The first swing on its cut, close up: before, flat currents inked in black; after, the fluid bowed back by the swing, fine pale ripples and bubbles drifting up it, a bright line along the cutting edge and its skin wobbling', ...ALIVE,
         view: { ...ARENA_BLADE, setup: BLADE_CLOSE(SWING_AT(250), { dist: 0.85 }) } },
@@ -550,7 +550,7 @@ export const CHANGELOG_MEDIA = {
         rows: [{ where: 'High, play distance', before: '0–0.1', after: '0–0.1' }, { where: 'High, close up (the blade filling the screen)', before: 0.1, after: 0.2 },
           { where: 'Steam Deck preset, close up', before: '0–0.1', after: '0–0.1' }, { where: 'Placing it a frame (CPU)', before: 0.017, after: 0.02 }],
         source: 'renders timed with a readPixels sync, the sword shown and hidden in turns on the frozen cut (8 × 25 renders each, medians); the whole render 4–6 ms, its noise about ±0.2 ms. Not measured on a Deck itself' },
-    ], see: 'Swing the blade (F, RB / R1) and watch it close: ripples and bubbles run up it, its edges wobble, a fast cut bends it back and throws drops that splash at your feet. Land a cut, block or parry: a ring runs along it. Stand still with it drawn: a small tongue of fluid breathes in the cup. At night it glows. On the handheld and Low the ripples, bubbles and splashes are left out.' },
+    ], see: 'Swing the blade (F, RB / R1) and watch it close: ripples and bubbles run up it, its edges wobble, a fast cut bends it back and throws drops that splash at your feet. Land a cut, block or parry: a ring runs along it. Stand still with it drawn: the bead in the cup breathes. At night it glows. On the handheld and Low the ripples, bubbles and splashes are left out.' },
   ],
   '1.10': [
     // the controller's quick buttons, rearranged (docs/systems/controls.md, "Why each is where it is")

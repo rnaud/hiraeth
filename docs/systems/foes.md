@@ -151,9 +151,9 @@ The first things in the game that fight back, and the tool's answer to them.
       a perfect parry a gold one and the blade flares out of the cup a moment (`lit` 0.9, then back), the charge
       gathered full a ring; each with a flash of the whole blade (`uBladeC.z`, gone in ~0.3 s) and the bead swelling.
       The ring bulges the edges as it passes.
-    - *At rest*: in the fist between cuts a short tongue of the fluid stands out of the cup (`bladeIdle`: 11 % of the
-      blade, 9 cm, breathing ±12 % on a 3 s breath, eased in and out with `idleK`; the hits still use `lit`); the bead
-      in the cup breathes on the same beat, on the back too.
+    - *At rest*: in the fist between cuts nothing stands out of the cup, only the bead in it breathes (±12 % on a 3 s
+      breath, on the back too). `BLADE_LOOK.idle` (`bladeIdle`, eased with `idleK`) could stand a share of the blade
+      out of the cup; it is 0: at 11 % (9 cm) the tongue read as a small dagger in stills and changed the weapon.
     - *Light* (`bladeLight`, after the light term as the chimes' crystal): a pale rim where the faces turn away,
       flecks of sunlight on the ripples (no sun: a softer glint off a light over your shoulder), never under the toon
       threshold. The glow (`BLADE_LOOK`): 0.5 by day, breathing +0.07, +0.04 with the magic bar full (all under the

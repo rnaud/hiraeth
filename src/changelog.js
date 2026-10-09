@@ -28,7 +28,7 @@ export const CHANGELOG = [
     // the Debug menu, tidied
     'The Debug menu is laid out anew, in sections with a heading each: Play (Continue, then the route’s worlds in story order), Story places, Test rooms, Worlds in progress, Games, Pages, and This build (its version, build number and commit). Worlds keep their picture cards, everything else is a row with its name and one line. Type to filter it, or jump between sections with the chips at the top, PgUp / PgDn, or LB / RB on a controller (Y opens the filter); coming back from a page or a world puts you back on what you opened.',
     // the fluid sword, alive
-    'The fluid sword feels alive: currents swirl up the blade with fine ripples and small bubbles rising to the point, its edges shimmer like the skin of water with a bright line along the cutting edge, a swing bends the fluid back and smears it and flings drops that splash on the ground, each hit, block and parry sends a ring of light along it, a short tongue of fluid breathes in the cup between cuts, and after dark the blade glows from within.',
+    'The fluid sword feels alive: currents swirl up the blade with fine ripples and small bubbles rising to the point, its edges shimmer like the skin of water with a bright line along the cutting edge, a swing bends the fluid back and smears it and flings drops that splash on the ground, each hit, block and parry sends a ring of light along it, and after dark the blade glows from within.',
   ] },
   { v: '1.10', date: '2026-10-09', items: [
     // the enemy roster, part two: five more foes, each its own

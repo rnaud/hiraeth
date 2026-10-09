@@ -41,7 +41,8 @@ export const BLADE_LOOK = {
   night: 0.16,       // added after dark: over the threshold, a halo round the blade
   breath: 0.07,      // how far the glow breathes, and its pace (rad/s: about 3 s a breath)
   breathRate: 2.1,
-  idle: 0.11,        // in the fist between cuts: a tongue of the fluid this share of the blade stands out of the cup (fluid-blade.js bladeIdle)
+  idle: 0,           // in the fist between cuts: a share of the blade standing out of the cup (fluid-blade.js bladeIdle). Off: a
+                     // ~9 cm tongue read as a small dagger in stills; between cuts only the bead breathes in the cup
   full: 0.04,        // added with the magic bar full
   smearAt: 30,       // m/s at the tip where the smear is whole
   lag: 0.0016,       // s: how far back the fluid trails (the tip's speed times this, m)

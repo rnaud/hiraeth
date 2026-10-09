@@ -1,6 +1,6 @@
 // The fluid sword's living blade (src/blade-shader.js, compiled into materials.js; src/fluid-blade.js alive();
 // docs/systems/foes.md "Alive"): the material's gate and uniforms, the shader's pieces and its lite path, the
-// preset's say, the smear and lag of a swing, the ripple of a hit or a parry, the idle tongue, the drops that splash.
+// preset's say, the smear and lag of a swing, the ripple of a hit or a parry, nothing out of the cup between cuts, the drops that splash.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../src/materials.js';
 import { BLADE_LOOK, BLADE_QUALITY, bladeLiteFor, BLADE_FLUID_GLSL, BLADE_VERT, BLADE_VERT_PARS, BLADE_DISCARD, BLADE_INK } from '../src/blade-shader.js';
 import { swordMaterial, WAKE_TONES } from '../src/fluid-sword.js';
-import { bladeSmear, bladeLag, bladeIdle, bladeLite, shedDrops, BLADE } from '../src/fluid-blade.js';
+import { bladeSmear, bladeLag, bladeIdle, bladeLite, shedDrops } from '../src/fluid-blade.js';
 import { wakeStyle } from '../src/fluid-sword.js';
 import { QUALITY_PRESETS, resolveQuality } from '../src/perf.js';
 import { FluidTool, Dots } from '../src/fluid-tool.js';
@@ -71,16 +71,14 @@ test('the preset\'s say: the handheld and Low go lite, the Deck and High keep th
   BLADE_QUALITY.lite = false; assert.equal(bladeLite(), false);
 });
 
-test('the smear and the lag follow the point\'s speed, capped; the idle tongue breathes about its share', () => {
+test('the smear and the lag follow the point\'s speed, capped; nothing stands out of the cup between cuts', () => {
   assert.equal(bladeSmear(0), 0);
   assert.ok(bladeSmear(10) > 0 && bladeSmear(10) < bladeSmear(20) && bladeSmear(BLADE_LOOK.smearAt) === 1 && bladeSmear(80) === 1);
   assert.equal(bladeLag(0), 0);
   assert.ok(bladeLag(20) < bladeLag(30) && bladeLag(1000) === BLADE_LOOK.lagMax, 'capped');
   assert.ok(bladeLag(47) > 0.04, `a fast cut trails the fluid several cm (${bladeLag(47).toFixed(3)} m)`);
-  let lo = 1, hi = 0;
-  for (let t = 0; t < 6; t += 0.05) { const k = bladeIdle(t); lo = Math.min(lo, k); hi = Math.max(hi, k); }
-  assert.ok(lo > 0.8 * BLADE_LOOK.idle && hi < 1.2 * BLADE_LOOK.idle && hi - lo > 0.1 * BLADE_LOOK.idle, 'breathing about its share');
-  assert.ok(BLADE_LOOK.idle * BLADE.length < 0.15, 'a short tongue, not a blade');
+  assert.equal(BLADE_LOOK.idle, 0, 'no tongue: it read as a small dagger');
+  for (let t = 0; t < 6; t += 0.05) assert.equal(bladeIdle(t), 0, 'none at any breath');
 });
 
 test('drops off the point: from its outer part when asked', () => {
@@ -103,7 +101,7 @@ test('a drop with a floor lands once: gone, its land called; a flat splash lies 
   assert.ok(s.y < 0.3 * s.x, 'flat on the ground');
 });
 
-test('in play: a swing smears and bows the fluid, a parry sends a gold ring and flares it, the tongue stands between cuts', async () => {
+test('in play: a swing smears and bows the fluid, a parry sends a gold ring and flares it, only the bead between cuts', async () => {
   items.grant('backpack');
   const scene = course({ ramp: false, stairs: false });
   const p = await traveller(scene, v(0, 0, -60), { moves: true, body: 'plain' });
@@ -122,13 +120,14 @@ test('in play: a swing smears and bows the fluid, a parry sends a gold ring and 
   assert.ok(lag > 0.01, `and bows it back (${lag.toFixed(3)} object m)`);
   assert.ok(U.uFluidA.value.z - clock > 60 * dt, 'its currents ran faster than the clock through the cut');
   assert.ok(drops.some((d) => d.land && d.floor !== undefined && WAKE_TONES.includes(d.color)), 'drops that splash where they land');
-  // between cuts, in the fist: the tongue of fluid, breathing; smear gone
+  // between cuts, in the fist: nothing out of the cup, the bead breathing in it; smear gone
   for (let i = 0; i < 40; i++) tick({});
-  assert.ok(b.swinging === false && b.lit < 0.05 && b.bladeGroup.visible, 'the tongue stands out of the cup');
-  const len = b.bladeGroup.scale.y * b.builtLength;
-  assert.ok(len > 0.05 && len < 0.15, `a short one (${len.toFixed(3)} m)`);
+  assert.ok(b.swinging === false && b.lit < 0.05 && !b.bladeGroup.visible, 'nothing stands out of the cup');
+  assert.ok(b.group.visible && b.bead?.visible !== false, 'the hilt and its bead still drawn');
   assert.ok(U.uBlade.value.x < 0.2, 'calm again');
-  const breath = U.uBlade.value.z; tick({}); assert.ok(U.uBlade.value.z > breath, 'breathing');
+  const breath = U.uBlade.value.z, beads = new Set();
+  for (let i = 0; i < 90; i++) { tick({}); assert.ok(!b.bladeGroup.visible, 'still nothing out of the cup'); beads.add(b.bead.scale.x.toFixed(3)); }
+  assert.ok(U.uBlade.value.z > breath && beads.size > 5, 'the bead breathes');
   // a perfect parry: a gold ring up from the cup, a flash, the blade flared out of it
   b.guardK = 1; b.perfectReady = true; b.guardAge = 0; b.guardArc = null; tool.reserve.level = tool.reserve.max;
   const front = p.pos.clone().addScaledVector(b.dir, 2);
