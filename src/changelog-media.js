@@ -346,6 +346,31 @@ const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot'
 const TELLS = { commit: '3a635fa8', before: '8312cf69' };
 
 export const CHANGELOG_MEDIA = {
+  '1.10': [
+    { match: 'Five more foes of the new roster', shots: [
+      { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
+    ], see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },
+    { match: 'The mound worm swims under the sand', shots: [
+      { name: 'roster2-worm', caption: 'Before: the dune ray, standing in for it. After: the mound worm up out of its hole, a stack of banded rings with a tall ivory fin down its back, rearing to spit', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), before walking, after winding up its spit' },
+      { name: 'roster2-skins-worm', only: 'after', caption: 'The mound worm under the sand in its three worlds: the dune worm, the drill grub, the glass worm; the mound and the humps of its wake follow the fin’s own path', from: 'headless Chrome, the creatures gallery, each skin walking (node scripts/enemy-roster/skins.mjs)' },
+    ] },
+    { match: 'The sky ray glides overhead', shots: [
+      { name: 'roster2-skins-ray', only: 'after', caption: 'The sky ray in its worlds: the storm ray, the cloud ray trailing mist, the scrap ray, the glass manta, the porcelain ray with ribbon fins, the abyss ray', from: 'headless Chrome, the creatures gallery, each skin flying' },
+    ] },
+    { match: 'The signal moth flies in threes', shots: [
+      { name: 'roster2-moth', caption: 'Before: the sign moth of neon tube. After: the signal moth (the Deep Wood’s lamp moth), a ribbed paper lantern with a hooded face, kite wings on rods with red eye-spots, six hooked legs', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
+      { name: 'roster2-moth-flash', only: 'after', caption: 'The signal moth winding up its flash: both wings snapped open toward you, the eye-spots burning white', from: 'headless Chrome, the creatures gallery, its flash at 90 % of the wind-up, seen from in front' },
+      { name: 'roster2-skins-moth', only: 'after', caption: 'The signal moth in its worlds: the lamp moth, the glass wasp, the neon sign moth, the Antennas’ moth with dish antennae, the space moth', from: 'headless Chrome, the creatures gallery, each skin flying' },
+    ] },
+    { match: 'The ring centipede: a long tube', shots: [
+      { name: 'roster2-centipede', only: 'after', caption: 'The ring centipede (the Buried Machine’s drill-head): grey plates with orange bands, crab-claw jaws round a drill, its legs stepping in a ripple down the body', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), walking' },
+      { name: 'roster2-skins-centipede', only: 'after', caption: 'The ring centipede in its worlds: drill-head, pearl, orbital, crescent, drain, wire-wound', from: 'headless Chrome, the creatures gallery, each skin walking' },
+    ] },
+    { match: 'The lantern jelly drifts high', shots: [
+      { name: 'roster2-jelly', only: 'after', caption: 'The lantern jelly (Vael II’s cloud jelly): a broad puffy bell, three paper lanterns, long pale threads', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), drifting' },
+      { name: 'roster2-skins-jelly', only: 'after', caption: 'The lantern jelly in its worlds: the cloud jelly, the lamp jelly, the halo jelly, the porcelain jelly, the sun jelly', from: 'headless Chrome, the creatures gallery, each skin drifting' },
+    ] },
+  ],
   '1.9': [
     { match: 'An 8BitDo SN30 Pro (and the other 8BitDo pads', see: 'Connect an 8BitDo SN30 Pro to a computer (Bluetooth, its D-input mode) and open the game: the title screen\'s prompts read B at the bottom and A on the right, as printed on the pad, and A (the right button) confirms.' },
     // the chimes float
@@ -388,29 +413,6 @@ export const CHANGELOG_MEDIA = {
       { name: 'lamp-niche', caption: 'The Dark Gallery’s far ledge: after, the pool-orb in its groove and the niche in the west wall with its dark lamp', commit: 'bfecbed3',
         view: { level: 'perdide2', player: [-139, 1809, -185], eye: [-138, 1811.5, -183], target: [-153, 1809.5, -179.3], fov: 70 } },
     ], see: 'In the Lamp-House, cross the Dark Gallery with the lantern. Push the orb straight into the niche: it settles dark and is tipped back out. Stand still beside it until it glows, then push it in: the niche’s lamp catches and the far door opens.' },
-    { match: 'Five more foes of the new roster', shots: [
-      { name: 'roster2-ray', caption: 'Before: the winged blot, the air foe. After: the sky ray (Vael’s storm ray), its broad red wings rimmed in pale blue, its jointed whip tail', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
-    ], see: 'In Vael II, walk past a lantern jelly drifting over the cliffs without fighting anything: it lets you be. Start a fight with a cliff crab nearby and the jelly comes over to ward it. In the Buried Machine, a ring centipede lies coiled on its rock until you come within a few metres.' },
-    { match: 'The mound worm swims under the sand', shots: [
-      { name: 'roster2-worm', caption: 'Before: the dune ray, standing in for it. After: the mound worm up out of its hole, a stack of banded rings with a tall ivory fin down its back, rearing to spit', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), before walking, after winding up its spit' },
-      { name: 'roster2-skins-worm', only: 'after', caption: 'The mound worm under the sand in its three worlds: the dune worm, the drill grub, the glass worm; the mound and the humps of its wake follow the fin’s own path', from: 'headless Chrome, the creatures gallery, each skin walking (node scripts/enemy-roster/skins.mjs)' },
-    ] },
-    { match: 'The sky ray glides overhead', shots: [
-      { name: 'roster2-skins-ray', only: 'after', caption: 'The sky ray in its worlds: the storm ray, the cloud ray trailing mist, the scrap ray, the glass manta, the porcelain ray with ribbon fins, the abyss ray', from: 'headless Chrome, the creatures gallery, each skin flying' },
-    ] },
-    { match: 'The signal moth flies in threes', shots: [
-      { name: 'roster2-moth', caption: 'Before: the sign moth of neon tube. After: the signal moth (the Deep Wood’s lamp moth), a ribbed paper lantern with a hooded face, kite wings on rods with red eye-spots, six hooked legs', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
-      { name: 'roster2-moth-flash', only: 'after', caption: 'The signal moth winding up its flash: both wings snapped open toward you, the eye-spots burning white', from: 'headless Chrome, the creatures gallery, its flash at 90 % of the wind-up, seen from in front' },
-      { name: 'roster2-skins-moth', only: 'after', caption: 'The signal moth in its worlds: the lamp moth, the glass wasp, the neon sign moth, the Antennas’ moth with dish antennae, the space moth', from: 'headless Chrome, the creatures gallery, each skin flying' },
-    ] },
-    { match: 'The ring centipede: a long tube', shots: [
-      { name: 'roster2-centipede', only: 'after', caption: 'The ring centipede (the Buried Machine’s drill-head): grey plates with orange bands, crab-claw jaws round a drill, its legs stepping in a ripple down the body', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), walking' },
-      { name: 'roster2-skins-centipede', only: 'after', caption: 'The ring centipede in its worlds: drill-head, pearl, orbital, crescent, drain, wire-wound', from: 'headless Chrome, the creatures gallery, each skin walking' },
-    ] },
-    { match: 'The lantern jelly drifts high', shots: [
-      { name: 'roster2-jelly', only: 'after', caption: 'The lantern jelly (Vael II’s cloud jelly): a broad puffy bell, three paper lanterns, long pale threads', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), drifting' },
-      { name: 'roster2-skins-jelly', only: 'after', caption: 'The lantern jelly in its worlds: the cloud jelly, the lamp jelly, the halo jelly, the porcelain jelly, the sun jelly', from: 'headless Chrome, the creatures gallery, each skin drifting' },
-    ] },
   ],
   '1.8': [
     { match: 'The hundred look-alike world enemies are gone', shots: [

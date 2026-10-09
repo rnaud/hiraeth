@@ -2,7 +2,7 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
-## v1.9 — 2026-10-09
+## v1.10 — 2026-10-09
 
 - The lantern jelly drifts high with three glowing lanterns under its puffy bell and long threads trailing. It never starts a fight but joins one: a thread of light from a lantern to another foe halves the harm that foe takes and keeps it from staggering, and in later worlds it sinks down to mend the hurt. Shoot a lantern (or hit it with the boomerang) to pop it and break its thread, catch it with the air cut when it comes down, and don’t stand under it when its bell clenches.
 - The ring centipede: a long tube of banded plates on two dozen little legs that step in a ripple running down its body, with great crab claws round a drill for jaws. Coiled on a rock it suns itself; come close and it runs round you, its body closing into a ring you can’t walk through, then tightens. Get out over its back with the wings or the jets, push it apart, or cut its head as it turns in (twice the harm); its plated back shrugs off cuts, and cut from behind it sheds its tail as two little skitterers.
@@ -10,6 +10,9 @@ The same release notes shown in the game (press **N** or open settings).
 - The sky ray glides overhead on slow beats of its broad red wings, the tips trailing, banking into its turns, a long jointed tail whipping behind. It banks round onto a line at you, sweeps its wings back and comes in low: a perfect guard at the last moment ploughs it into the ground, open. In Vael and Vael II it also stalls over you and beats you down out of the air.
 - The mound worm swims under the sand as a travelling mound with a tall ivory fin and a wake of humps behind it. When the mound stops and trembles and the fin sinks, step away: it bursts up where you stood, a stack of fat banded rings with a round toothed mouth, and stays up a while to fight, spitting grit or diving back under. Cut its fin, drop a bomb or come down on the mound with the air cut (it hurts twice as much) to flush it out. Left alone it swims on past you.
 - Five more foes of the new roster, each with its own shape, way of moving and job in a fight, in every world it lives in. They take over from the dune ray, the old sign moth and the winged blots; Vael II now meets only the new foes. Left alone they keep their own ways: rays circle in the thermals, moths round their lamps, jellies drift with the wind, centipedes lie coiled on warm rocks, and a worm’s mound wanders the dunes.
+
+## v1.9 — 2026-10-09
+
 - Chimes float now: every crystal hovers well clear of the ground, a five as high as a one, with a soft patch of shade on the ground under it that shrinks and fades as it bobs up, so you can see they are floating rather than lying in the sand.
 - An 8BitDo SN30 Pro (and the other 8BitDo pads printed with Nintendo letters) now shows its own buttons in every prompt, the title screen included: B at the bottom, A on the right, the way they are printed on it, and A confirms in the menus, as on a Switch pad.
 - In the Lamp-House’s Dark Gallery the far door’s lamp now sits in a niche low in the west wall, and only a pool-orb’s light wakes it: stand still by the orb with your lantern until it glows, then roll it down its groove into the niche before the glow fades. Rolled in dark, it wakes nothing, and the niche tips it back out.
