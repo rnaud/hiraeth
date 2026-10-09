@@ -1,0 +1,63 @@
+DONE.md
+  s_9ca76055a220ed::t_2f14f939112353 1176-1199
+changelog.md
+  s_9ca76055a220ed::t_111e683e2a3728 37-41
+docs/README.md
+  s_9ca76055a220ed::t_f387925c66c7c4 55
+docs/systems/conversations.md
+  s_9ca76055a220ed::t_cfd2b650956600 32,59-95,113-114
+src/animator.js
+  s_9ca76055a220ed::t_605e7e3a4d8813 468-469
+src/changelog-media.js
+  s_9ca76055a220ed::t_6d5370dc7645dc 174-196
+src/changelog.js
+  s_9ca76055a220ed::t_c9285f589227f0 16-21
+src/eyes.js
+  s_9ca76055a220ed::t_3e9f55b7408e06 71-77,110,113-116,118-122
+src/humanoid.js
+  s_9ca76055a220ed::t_dc70598e2e9a81 1216,1228,1230-1231
+src/npc.js
+  s_9ca76055a220ed::t_9bf2f080f3a029 574-575,698-699
+src/player.js
+  s_9ca76055a220ed::t_4432322feb0602 333-351,1632,2252-2255,2327-2328,2351-2352
+src/story/balloons.js
+  s_9ca76055a220ed::t_f309167129c04f 1-41
+src/story/coverage.js
+  s_9ca76055a220ed::t_ae9756c97ccb20 9-10
+src/story/desert-data.js
+  s_9ca76055a220ed::t_c26a57dbe98bf7 396,529-534
+src/story/dialogue.js
+  s_9ca76055a220ed::t_34e82da0d33655 344-345,367-368,370-371,409-410,476,478,482,490,497,499,501,540,543,548
+src/story/flames.js
+  s_9ca76055a220ed::t_f6802ecb3afb90 25-56,89
+src/story/index.js
+  s_9ca76055a220ed::t_a644bea6b65858 8-9,230,247-258,322,324-325,336-337
+src/story/shot.js
+  s_9ca76055a220ed::t_38aa9c1a2b2ab0 18-19,25-38,40-42,44-80,151,160-164,179-181,334-336,393
+tests/convo-closeup.test.js
+  s_9ca76055a220ed::t_4557b78dbb3baa 9,13,169-171,184-185,187-192,194,199,203,211
+tests/dialogue-playtest.test.js
+  s_9ca76055a220ed::t_7706f660599b26 1-161
+tests/platform.test.js
+  s_9ca76055a220ed::t_309c2486142be1 73,75
+tests/talk-face.test.js
+  s_9ca76055a220ed::t_1301c5a46549f0 110,112,117
+tests/talk-still.test.js
+  s_9ca76055a220ed::t_ad278138592ccb 1-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "78c2ebc443d93e4458d2a6fdbce70cf23b2a2c59",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
