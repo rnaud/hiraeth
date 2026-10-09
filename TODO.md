@@ -118,7 +118,9 @@ jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md). Vael II runs 
 
 ## Shadows and visuals
 
-- [ ] The Golden Dunes entrance looks stuck, though it works. (Unclear which entrance: no door or gate in
+- [ ] The Golden Dunes entrance looks stuck, though it works. (v1.9: one more candidate fixed, the doorway in the sand
+  before the masked head, south of the landing: its flat dark panel in a stone frame read as a shut door; it is a short
+  passage into the dark now, src/interiors.js doorwayPortals. Check whether that was the one.) (Unclear which entrance: no door or gate in
   the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
   panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
   the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
@@ -188,12 +190,17 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
   Loops +1-2.
 - [ ] **A weenie on every main-quest leg** (6 worlds guide under half their long legs; the drone does it): a tall,
   unique, lit silhouette in sight from each leg's start, or a leading line. Wayfinding +1-2.
-- [ ] **Desert: the Hearth ride** (1.55 km, nothing within 40 m, (71, −12) → (1568, −417)): a camp with a person,
-  a salt-bloom field, a wreck; and a different way back by the canyon or the observatory. Density 2→4, loops 1→3.
-- [ ] **Desert: landing → Qanat is blind** (391 m): smoke over the camps or the dark tree's crown in the landing's
-  sightline; the dry channel as a leading line to the Givers' House; Oum nearer the path. Wayfinding 2→3.
-- [ ] **Vael: frame the quest by the tower** (legs 20 % guided): Oïa's stone on the landing–tower line, menhirs to
-  the Aerie; the trial, the hand or the remote box on the 445 m plain. Wayfinding 1→3, density 3→4.
+- [x] **Desert: the Hearth ride** (v1.9, docs/audits/level-design-v1.9.md): Yara's shade and a skiff's wreck on the
+  straight ride out, home along the marked stones past the bowl and the camp. Longest gap 1,552 → 518 m, density 2→4,
+  loops 1→2. Left: the wreck → Hearth stretch (518 m); the walk from the tree back to the ship.
+- [x] **Desert: landing → Qanat is blind** (v1.9): the camps' smoke over the dune while the tree is cold, the Givers'
+  dry channel, Oum on a dune in sight of the way in. Wayfinding 2→3, the desert 2.56 → 3.11.
+- [x] **Vael: the plain** (v1.9): Senn and the hush-cloth's box on the capped spire halfway to the tower, standing
+  stones up to the Aerie. Vael 2.89 → 3.56. Left: both walks back are still the way you came (Oïa or the last
+  stage off the landing–tower line, or the bird's first flight home past the colossus); Oïa from the Aerie's door.
+- [ ] **City-Shaft (next batch)**: a stop where the jets land on each drop, a "do" between Nima, Ossa and the palace
+  gate (Ossa's goods hoist), Perrine and Wren nearer the path (Perrine's stall holds a relic tests pin).
+- [ ] **The audit**: scale the loner rule with the travel speed; leading lines (a level's `lines`) as a wayfinding aid.
 - [ ] **City-Shaft: a stop on each 470-560 m drop**, a "go"/"do" between the three talks in a row, lamps down
   each terrace's stair. Density 2→3, pacing +1.
 - [ ] **Sky Stones: Ondine onto the clapper's return arc** (490 m from anything), a lit marker at the clapper.
