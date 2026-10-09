@@ -1,0 +1,53 @@
+changelog.md
+  s_9ca76055a220ed::t_3c1c2e0f348210 7
+docs/systems/animation.md
+  s_9ca76055a220ed::t_3494ee6e9e7228 85-88,105-106
+docs/systems/characters.md
+  s_9ca76055a220ed::t_44b8f6df760ad8 61-95,597-599
+src/changelog-media.js
+  s_9ca76055a220ed::t_f17f4a939379d7 358-362
+src/changelog.js
+  s_9ca76055a220ed::t_0d69488a96efa9 21-22
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_f31b27634b79cb 40-42,59-62
+src/hands.js
+  s_9ca76055a220ed::t_b306491b2def12 92,192-233,250-252,280-282,284,291-295,298-305,319,387,391-392,398-401
+src/makehuman/body.js
+  s_9ca76055a220ed::t_d3f4df7e2a0169 338-341,343,345,384
+src/motion/main.js
+  s_9ca76055a220ed::t_f572a4249c7d0f 23,320-322
+src/title-world.js
+  s_9ca76055a220ed::t_af562cfafa5220 20,329-330
+src/trailer/actors.js
+  s_9ca76055a220ed::t_22d730528a3121 112-113
+tests/hands-fingers.test.js
+  s_9ca76055a220ed::t_8660b187fe7d71 1-199
+tests/traveller-v1.test.js
+  s_9ca76055a220ed::t_342124f80e0c2a 40-45
+src/characters/tripo-hands.js
+  s_9741f7c5161aa2::t_4281e280980e15 1-5,13-19,21-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "54d3365d3d0f7268461e1c406e9ae9759c2ba0c3",
+  "prompts": {},
+  "sessions": {
+    "s_9741f7c5161aa2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a0e2d6e2ca847dfcf",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
