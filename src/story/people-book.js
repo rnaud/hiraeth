@@ -159,6 +159,9 @@ export const BOOK = {
     P('tamsin', 'Dalia', 'Listens to the stones', [
       'The stones hum before a storm. The night before you came down they hummed under a clear sky: a light passed, singing their note.',
     ], ['In the desert near where your ship came down.']),
+    P('yara', 'Yara', 'Carries salt', [
+      'Yara hauls salt from the flats to Qanat, and rests in the only shade between the camps and the red rocks. Coming home from the Hearth, she says, take the marked stones.',
+    ], ['Under her sunshade, a third of the way from the camps to the red rocks.']),
     P('traveller', 'Naji', 'Sketches the observatory', [
       'Naji has drawn the observatory east of camp a hundred times, always asleep, and would like one picture of it working.',
     ], ['East of the camps, by the sleeping observatory.']),

@@ -402,3 +402,36 @@ test('the ride to the Hearth: each thing on the way is named once as it comes up
   assert.deepEqual(ride(D, city.clone().addScaledVector(dir, 200), D.H.doorFront.clone().addScaledVector(dir, -30)), []);
   game.reset();
 });
+
+test('the straight ride out (level design audit v1.9): Yara’s shade and a skiff’s wreck on the line from Marrow’s hollow to the Hearth, each named as it comes up', async () => {
+  const { STORY, ridePlaces } = await import('../src/desert-sites.js');
+  const { CALLS } = await import('../src/story/desert-way.js');
+  const { CONTENT } = await import('../src/levels/content.js');
+  const { THINGS } = await import('../src/story/desert-data.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const P = ridePlaces(), bike = V(STORY.bike.x, 0, STORY.bike.z);
+  // on the way, in order, well apart: a stop every 500 m or so of a 1.6 km ride
+  const along = (p) => Math.hypot(p.x - bike.x, p.z - bike.z);
+  assert.ok(along(P.shade) > 350 && along(P.shade) < 650 && along(P.wreck) > 850 && along(P.wreck) < 1150);
+  // Yara sits under the shade (src/levels/content.js)
+  const yara = Object.values(CONTENT).flatMap((c) => c?.npcs ?? []).find((n) => n.id === 'yara');
+  assert.ok(yara && Math.hypot(yara.at[0] - P.shade.x, yara.at[1] - P.shade.z) < 3, 'Yara in her shade');
+  const D = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 4, 'desert.bike.v': 1, 'desert.channel.open': true, 'desert.spark.heard': true, 'desert.bike.found': true, 'quest.desert.power': 'hearth' });
+  const R = D.H.ride, said = [];
+  const to = D.H.doorFront, n = Math.ceil(Math.hypot(to.x - bike.x, to.z - bike.z) / (34 / 30));
+  for (let i = 0; i <= n; i++) {
+    const p = bike.clone().lerp(to, i / n);
+    D.player.pos.set(p.x, D.level.ground.heightAt(p.x, p.z), p.z);
+    const before = D.toasts.length;
+    D.step(1);
+    if (D.toasts.length > before && Object.values(CALLS).includes(D.toasts.at(-1))) said.push(D.toasts.at(-1));
+  }
+  assert.deepEqual(said.filter((t) => t === CALLS.shade || t === CALLS.wreck), [CALLS.shade, CALLS.wreck], 'both named, in order, once');
+  // the wreck is something to look at
+  D.player.pos.copy(R.wreck.stand);
+  assert.equal(bestInteractable(D.player)?.entry.id, 'way.rideWreck');
+  const r = new DialogueRunner(THINGS.rideWreck, { game, quests: D.quests });
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  assert.equal(game.flag('desert.ride.wreck'), true);
+  game.reset();
+});

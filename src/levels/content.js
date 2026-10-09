@@ -33,6 +33,8 @@ import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
 import { ORDER } from './names.js';
+import { ridePlaces } from '../desert-sites.js';
+const RIDE_SHADE = ridePlaces().shade;
 export { ORDER };
 export const nextLevel = (id) => ORDER[(ORDER.indexOf(id) + 1) % ORDER.length];
 
@@ -258,6 +260,15 @@ export const CONTENT = {
           hello: { say: ["~sad~ Naji. I draw. East of camp: an observatory with a brass ring on top. I’ve drawn it a hundred times, always asleep. I’d like one picture of it working."], choices: [{ text: '~curious~ How do I wake it?', goto: 'how' }, { text: '~neutral~ Bye.', end: true }] },
           how: { say: ["~playful~ Climb the six ledges and turn all three lenses toward its centre. Tell me what happens. My knees have retired from ledges."], choices: [{ text: '~happy~ I will.', end: true }] },
         } } },
+      // out on the ride to the Givers' Hearth, a third of the way: the only shade between the camps and the red rocks
+      // (src/desert-sites.js ridePlaces; her sunshade is drawn in src/desert-hearth.js `ride`)
+      { at: [RIDE_SHADE.x + 0.6, RIDE_SHADE.z + 0.4], radius: 1.2, palette: pal('#e2b552', { cloth: '#f3ead8', hat: '#c8483a' }), lines: ['~tired~ Shade. Mine. Share it.', '~neutral~ The wind’s from the flats. Salt on everything.'],
+        id: 'yara', name: 'Yara', title: 'who carries salt', color: '#e2b552', talk: { listen: [
+          '~neutral~ Yara. I haul salt from the flats to Qanat on that sledge. This shade is the only one between the camps and the red rocks, so I sit in it on the way. Sit, if you like.',
+          '~curious~ Going out to the Hearth? Keep its chimney ahead. Halfway there’s a sand-skiff on its side, mast still up. Somebody sailed this far once. After that, only the red rocks.',
+          '~solemn~ Coming home, take the marked stones. They run from the Hearth’s door all the way back to Qanat: the fire-bearers walked the fire home along them. You can’t miss them, and they don’t drift.',
+          { after: { flag: 'world.desert.done' }, say: '~happy~ I saw the tree’s smoke from the flats this morning. First time in my life. The salt felt lighter all the way.' },
+        ] } },
     ],
   },
   incal: {

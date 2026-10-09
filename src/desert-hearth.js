@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { glyphGeometry } from './story/sign-text.js';
-import { STORY, hearthStones, wayPlaces, WAY } from './desert-sites.js';
+import { STORY, hearthStones, wayPlaces, WAY, ridePlaces } from './desert-sites.js';
 
 // The Givers' Hearth: where the Givers kept their fire, and the keepers put the
 // spark-stone back after they lit Qanat's tree with it (src/story/desert.js has
@@ -263,6 +263,40 @@ export function buildDesertHearth(scene, terrain) {
     way.bell = { at: bellAt, group: bell, glint };
   }
 
+  // ================================================================ two stops on the straight ride out (src/desert-sites.js ridePlaces)
+  const ride = {};
+  {
+    const P = ridePlaces(), at = (p) => V(p.x, terrain.heightAt(p.x, p.z), p.z);
+    const cloth = makeMaterial({ color: '#c8483a', flat: true, side: THREE.DoubleSide }), cream = makeMaterial({ color: '#f3ead8', flat: true, side: THREE.DoubleSide });
+    const wood = makeMaterial({ color: '#8a6a4a', flat: true, side: THREE.DoubleSide }), salt = makeMaterial({ color: '#f4f0e6', flat: true });
+    // the salt-carrier's shade: a tall pole with a long pennant (seen over the dunes), a canted awning striped red
+    // and cream on two shorter poles, her salt in blocks on a sledge, a mat (Yara sits under it: src/levels/content.js)
+    const shadeAt = at(P.shade), sk = new Kit(root, 'The salt-carrier’s shade', shadeAt.clone().setY(shadeAt.y - 0.3), P.shade.heading + 0.4);
+    sk.both(wood, new THREE.CylinderGeometry(0.09, 0.12, 9.5, 6).translate(-1.6, 4.75, -1.2), new THREE.CylinderGeometry(0.2, 0.2, 9.5, 6).translate(-1.6, 4.75, -1.2));
+    sk.add(cloth, new THREE.PlaneGeometry(4.2, 0.9).translate(2.1, 0, 0).translate(-1.6, 8.9, -1.2));   // the pennant, streaming downwind
+    for (const [x, z] of [[1.9, 1.4], [1.9, -1.4]]) sk.both(wood, new THREE.CylinderGeometry(0.06, 0.07, 2.4, 5).translate(x, 1.2, z));
+    for (let i = 0; i < 5; i++) sk.add(i % 2 ? cream : cloth, new THREE.PlaneGeometry(4.1, 0.62).rotateX(-Math.PI / 2).translate(0, 0, -1.24 + i * 0.62).applyMatrix4(new THREE.Matrix4().makeRotationZ(0.22)).translate(0.1, 2.75, 0));
+    sk.both(wood, box(1.0, 0.18, 2.2, -0.9, 0.12, 2.2));   // the sledge, and her salt on it
+    for (let i = 0; i < 3; i++) sk.add(salt, box(0.8, 0.34, 0.6, -0.9, 0.38 + (i === 2 ? 0.34 : 0), 1.55 + (i % 2) * 0.66 + (i === 2 ? 0.33 : 0)));
+    sk.add(M.ink, box(0.03, 0.02, 2.0, -1.4, 0.23, 2.2)).add(M.ink, box(0.03, 0.02, 2.0, -0.4, 0.23, 2.2));   // its runners' cords
+    sk.add(cream, new THREE.PlaneGeometry(1.6, 2.2).rotateX(-Math.PI / 2).translate(0.4, 0.04, 0));   // the mat
+    sk.flush();
+    ride.shade = { at: shadeAt, seat: sk.world(0.4, 0, 0), pennant: sk.world(-1.6, 9, -1.2) };
+    // a sand-skiff's wreck: a long hull lying on its side, half under a dune, its ribs showing at the stern, the mast
+    // still standing out of it at a lean with a rag of sail (it shows a long way off), a little of its cargo spilled
+    const wreckAt = at(P.wreck), wk = new Kit(root, 'A sand-skiff’s wreck', wreckAt.clone().setY(wreckAt.y - 0.5), P.wreck.heading - 1.1);
+    const hull = new THREE.CylinderGeometry(0.35, 1.9, 12, 14, 3, true, Math.PI * 0.35, Math.PI * 1.3).rotateX(-Math.PI / 2).rotateZ(0.95).scale(1, 0.8, 1).translate(0, 1.1, 0);   // (open along its top, tapering to the bow)
+    wk.both(wood, hull, box(3, 2.6, 11, 0, 1.3, 0));
+    wk.add(cream, new THREE.CylinderGeometry(0.9, 1.93, 6, 14, 1, true, Math.PI * 1.2, 0.35).rotateX(-Math.PI / 2).rotateZ(0.95).scale(1, 0.8, 1).translate(0, 1.1, -2.4));   // a faded band of its paint
+    for (let i = 0; i < 4; i++) wk.add(wood, new THREE.TorusGeometry(1.85, 0.08, 4, 10, Math.PI * 1.1).rotateZ(0.95 + Math.PI * 0.35).translate(0, 1.1, 6.3 + i * 0.75));   // the bare ribs at the stern
+    const mast = new THREE.CylinderGeometry(0.1, 0.16, 11, 6).translate(0, 5.5, 0).rotateZ(-0.38).translate(0.4, 1.6, -1.5);
+    wk.both(wood, mast, new THREE.CylinderGeometry(0.25, 0.25, 11, 6).translate(0, 5.5, 0).rotateZ(-0.38).translate(0.4, 1.6, -1.5));
+    wk.add(cream, new THREE.PlaneGeometry(2.2, 3.4).translate(1.1, -1.7, 0).rotateZ(-0.38).translate(0.4 + Math.sin(0.38) * 10.4, 1.6 + Math.cos(0.38) * 10.4, -1.5));   // a rag of sail
+    for (const [x, z, r] of [[2.9, -3.6, 0.45], [3.5, -2.4, 0.35], [-2.8, 3.5, 0.4]]) wk.both(salt, box(r * 1.6, r, r * 1.2, x, r * 0.5 + 0.5, z));   // spilled salt blocks
+    wk.flush();
+    ride.wreck = { at: wreckAt, look: wk.world(0.5, 2.2, -1.5), stand: wk.world(3.4, 0.5, -1.5) };
+  }
+
   // ================================================================ inside: the hall
   const O = V(STORY.hearthCave.x, STORY.hearthCave.y, STORY.hearthCave.z);
   const cave = new Kit(root, 'The Givers’ Hearth (inside)', O, 0);
@@ -353,7 +387,7 @@ export function buildDesertHearth(scene, terrain) {
     grille, grilleRest: grille.position.clone(), ball, ballRest: ball.position.clone(), ballEnd: L(...HEARTH.ball.end.toArray()),
     stone, stoneRest: stone.position.clone(), stoneLight, plinthLight, doorLight,
     shelfFront: L(0, HEARTH.shelf, -11.6), plinthFront: L(HEARTH.plinth.x, 0, HEARTH.plinth.z0 + 1.6),
-    materials: { marks: M.marks, slit: M.slit, spark: M.spark, wayMark: M.wayMark, wayFluid: M.wayFluid, glint: M.glint }, way,
+    materials: { marks: M.marks, slit: M.slit, spark: M.spark, wayMark: M.wayMark, wayFluid: M.wayFluid, glint: M.glint }, way, ride,
     lights, portals,
     /** Show the hall only when the camera is down there; the butte is always drawn (it is a landmark). */
     update(dt, t, { camera } = {}) {

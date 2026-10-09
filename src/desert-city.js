@@ -625,6 +625,11 @@ export function buildDesertCity(scene, terrain) {
     }
     const cf = new Flames(root, campFlames, { seed: 47 });
     updaters.push({ near: camp.world(0, 0, 0), r: 260, f: (dt, t) => cf.update(dt, t) });
+    // the stragglers' smoke: while the tree stands cold, the camps keep green wood on the big fire so that whoever
+    // fell behind the procession can find the way in. A column over the dunes, seen from the landing, where the city
+    // itself is behind the ridge (level design audit v1.9: the first leg was blind). Once the tree burns, its own
+    // column is the way to the city, and this one is let die down (out.update).
+    out.campSmoke = new SmokeColumn(root, camp.world(0, 2.5, 0), { count: 140, height: 190, drift: 170, base: 2.2, top: 13, period: 110 });
 
     // tents: peaked cloth tents and round domed ones, with poles and pennants
     const TENTS = [[-11, -5, 'peak'], [10, 5, 'peak'], [-24, -8, 'dome'], [24, 0, 'dome'], [-14, 22, 'peak'], [14, 24, 'wing'], [-30, 10, 'peak'], [30, 16, 'peak'], [-6, 32, 'dome'], [7, -24, 'wing'], [-22, -24, 'peak'], [26, -20, 'dome']];
@@ -942,7 +947,7 @@ export function buildDesertCity(scene, terrain) {
   // what moves is only animated when it's in view, and less often far away
   const frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
   const seen = (p, r) => frustum.intersectsSphere(_sph.set(p, r));
-  let frameNo = 0, treeDt = 0, smokeDt = 0;
+  let frameNo = 0, treeDt = 0, smokeDt = 0, campDt = 0;
   const smokeMid = V(0, 0, 0);
   out.update = (dt, t, { camera, player }) => {
     _cam.copy(camera.position);
@@ -965,6 +970,11 @@ export function buildDesertCity(scene, terrain) {
     smokeDt += dt;
     const sm = out.city.smoke, sEvery = dCity < 400 ? 1 : 2;
     if (lit && frameNo % sEvery === 0 && seen(smokeMid.copy(sm.at).addScaledVector(sm.wind, sm.drift * sm.windK * 0.35).setY(sm.at.y + sm.height * 0.6), sm.height * 0.75)) { sm.update(smokeDt, t, player?.wind, camera); smokeDt = 0; }
+    // the camps' smoke for the stragglers: only while the tree is cold
+    const cs = out.campSmoke, csOn = out.city.lit < 0.5;
+    cs.mesh.visible = csOn;
+    campDt += dt;
+    if (csOn && frameNo % 2 === 0 && seen(smokeMid.copy(cs.at).setY(cs.at.y + cs.height * 0.5), cs.height * 0.7)) { cs.update(campDt, t, player?.wind, camera); campDt = 0; }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;

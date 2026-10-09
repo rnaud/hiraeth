@@ -329,6 +329,26 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   in mid-air (off the ground, no jets or wings, not falling for `HANG.time` s).
   `tests/ring-jets.test.js`.
 
+## The desert's layout, from the level design audit (v1.9)
+
+`docs/audits/level-design-v1.9.md` has the before and after. What changed, and where:
+- **The stragglers' smoke** (`src/desert-city.js`, `campSmoke`): while the tree is cold (`city.lit < 0.5`) a
+  smaller `SmokeColumn` rises from the camps' big fire, seen over the dune from the landing (the city is behind
+  it); once the tree burns its own column takes over and this one is hidden.
+- **The straight ride out** (`src/desert-sites.js` `RIDE`, `ridePlaces`; drawn in `src/desert-hearth.js` `ride`):
+  most riders go straight from Marrow's hollow toward the Hearth's chimney, while the marked stones run from
+  Qanat a little to the north. A third of the way, Yara the salt-carrier under her sunshade (`src/levels/content.js`,
+  a tall pole with a red pennant); two thirds, a sand-skiff's wreck with its mast up (`THINGS.rideWreck`,
+  `desert.ride.wreck`). Both are named on the ride as they come up (`src/story/desert-way.js` `CALLS`). The stones
+  then lead home past the bowl and the camp: the `light` stage says so.
+- **The Givers' dry channel** (`src/levels/desert.js` `buildDryChannel`): a sunken, stone-lined bed from the Givers'
+  House's door toward Qanat's east wall, on the same wiggle the temple's water takes once it runs
+  (`src/temples/desert.js` `change` lays its water over it).
+- **Oum** (`STORY.pilgrim`) sits on a dune 100 m west of the way in, not 300 m out in the western dunes.
+- For the audit (`scripts/level-design/audit.mjs`): the level's `sights` (the bowl, the camp, the bell, the wreck),
+  its `beacons` (the camps' smoke or the tree's column, the Hearth's chimney), and the bike stage's `ends`
+  (`bikeHollow`: the stage is done at the hollow, not at Marrow).
+
 ## Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning

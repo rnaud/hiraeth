@@ -98,11 +98,11 @@ export const QUESTS = [
       { id: 'rise', text: 'The water is climbing the roots. Go back to the well at the tree’s foot', label: 'The well, filling', flag: 'desert.well.watched', at: 'well' },
       { id: 'spark', text: 'The tree drank, and stands cold. Ask Nour why it will not burn', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
       // the Givers' Hearth is far out in the red rocks: Marrow's hoverbike first (src/story/desert-bike.js)
-      { id: 'bike', text: "Ask Marrow at the camps about his hidden hoverbike. You need it for the long journey to the Givers’ Hearth", label: 'Something faster than walking', flag: 'desert.bike.found', at: 'bikeWay' },
-      { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth in the red rocks, from marked stone to marked stone', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
+      { id: 'bike', text: "Ask Marrow at the camps about his hidden hoverbike. You need it for the long journey to the Givers’ Hearth", label: 'Something faster than walking', flag: 'desert.bike.found', at: 'bikeWay', ends: 'bikeHollow' },
+      { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth in the red rocks: its chimney stands over the dunes, and the marked stones lead there too', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
       // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
       { id: 'stone', text: "Push the stone ball along its groove to lift the Hearth’s grille, then climb up and take the spark-stone", label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
-      { id: 'light', text: 'Bring the spark-stone back to Qanat and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well' },
+      { id: 'light', text: 'Bring the spark-stone back to Qanat, home along the marked stones, and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
       { id: 'ship', text: 'The tree burns again. Qanat is repaying you: its people are carrying what they can spare to your ship. Go and meet them there', label: 'Your ship, and Qanat’s gift', flag: 'desert.ship.fed', at: 'ship' },
     ],
@@ -873,6 +873,17 @@ export const THINGS = {
         ring: { say: ["~happy~ It rings, thin and clear, out over the red rocks. It sounds as if it has been waiting to."], choices: [{ text: '~neutral~ (set it back in the sand)', end: true }] },
       },
     },
+  },
+  // the straight ride out (src/desert-sites.js ridePlaces, src/story/desert-way.js): a sand-skiff's wreck two thirds of the way
+  rideWreck: {
+    id: 'rideWreck', name: 'A sand-skiff’s wreck', title: 'on the ride to the red rocks', color: '#8a6a4a', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A sand-skiff lies on its side, half under the dune. Its mast still stands at a lean, a rag of sail on it, cracking in the wind.",
+        "~neutral~ On its bow, scoured nearly away, a painted eye: the Givers’ mark. Someone sailed out toward the Hearth once, faster than walking, and walked the rest.",
+        { if: { flag: 'desert.bike.found' }, text: "~playful~ Marrow would have it in pieces by sundown. Better not to mention it." }],
+      do: { set: { 'desert.ride.wreck': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
   },
   // the Givers' Hearth (src/desert-hearth.js, src/story/desert.js): the weight that lifts the grille, the grille itself
   weight: {

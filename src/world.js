@@ -1,5 +1,5 @@
 import { OBSERVATORY } from './observatory.js';
-import { SITES, POLE_LINE, STORY, processionLoop, hearthStones, wayPlaces } from './desert-sites.js';
+import { SITES, POLE_LINE, STORY, processionLoop, hearthStones, wayPlaces, ridePlaces } from './desert-sites.js';
 import * as THREE from 'three';
 import { runSteps } from './load-steps.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -445,6 +445,7 @@ export function buildWorld(scene, terrain) {
   for (const [x, z] of processionLoop(10)) storyClear.push({ x, z, r: 12 });
   for (const [x, z] of hearthStones()) storyClear.push({ x, z, r: 5 });   // the fire-bearers' marked stones (src/desert-hearth.js)
   for (const { x, z } of Object.values(wayPlaces())) storyClear.push({ x, z, r: 5 });   // the bowl, the camp and the bell on the way (src/desert-hearth.js)
+  for (const { x, z } of Object.values(ridePlaces())) storyClear.push({ x, z, r: 14 });   // the salt-carrier's shade and the skiff's wreck on the ride out
   const story = (x, z, r = 0) => { for (const c of storyClear) if ((c.x - x) ** 2 + (c.z - z) ** 2 < (c.r + r) ** 2) return true; return false; };
   const addProp = (m, x, z, r) => { if (!story(x, z, r)) scene.add(m); };
   const floaters = [];  // { obj, baseY, phase }

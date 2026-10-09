@@ -30,7 +30,7 @@ export const STORY = {
   camps: { x: 168, z: 292, r: 40 },
   giant: { x: 318, z: 530, r: 30, yaw: Math.atan2(88, 130) },     // the skull outside the back gate, its face to the dunes (the body lies under the city)
   cave: { x: -1250, y: 1000, z: 1250 },                             // the interior's origin (far overhead)
-  pilgrim: { x: -60, z: 520 },                                      // the old pilgrim who fell behind
+  pilgrim: { x: 8, z: 218 },                                        // the old pilgrim who fell behind: on a dune west of the way in, in sight of it (v1.9: she sat 300 m out, a trip there and back with nothing else on it)
   drum: { x: 156.65, z: -187.6 },                                   // Teo's drum, blown under the old ribcage and jammed against the inside of a rib's foot (src/story/desert-errands.js)
   bike: { x: 132, z: 150, yaw: 2.3 },                               // Marrow's hollow: the hoverbike under its tarp (quest desert.bike)
   // the Givers' Hearth (src/desert-hearth.js): a butte of red rock far out in the south-east, ~1.7 km from
@@ -67,6 +67,20 @@ export function wayPlaces() {
     const [sx, sz] = stones[w.stone], along = w.along ?? 0;
     out[id] = { x: sx + (dx / L) * along - (dz / L) * w.side, z: sz + (dz / L) * along + (dx / L) * w.side, stone: w.stone };
   }
+  return out;
+}
+/**
+ * Two stops on the straight ride out, from Marrow's hollow (where the bike wakes) to the Hearth's door: the
+ * way most riders take, the butte's chimney ahead, while the marked stones run home to Qanat a little to the
+ * north (the level design audit, v1.9: the ride was 1.5 km with nothing on it). A third of the way, a
+ * salt-carrier resting in the shade of her sunshade (src/levels/content.js: Yara); two thirds, a sand-skiff's
+ * wreck, its mast still standing (src/desert-hearth.js `ride`, src/story/desert-way.js).
+ * Each: { x, z, f } (f: how far along the ride; side: metres to its right).
+ */
+export const RIDE = { shade: { f: 0.3, side: 9 }, wreck: { f: 0.61, side: -12 } };
+export function ridePlaces() {
+  const a = STORY.bike, b = STORY.hearth, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz), out = {};
+  for (const [id, w] of Object.entries(RIDE)) out[id] = { x: a.x + dx * w.f - (dz / L) * w.side, z: a.z + dz * w.f + (dx / L) * w.side, f: w.f, heading: Math.atan2(dx, dz) };
   return out;
 }
 /** The procession's circuit as a smooth closed curve: [x, z] every `step` metres. */

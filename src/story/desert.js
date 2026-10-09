@@ -629,6 +629,7 @@ export function setupDesert(ctx) {
   quests.locate('rib', () => (toolHasPush() || !game.flag('desert.pole.tried') ? cave.bone.position : lever.placed() || quests.has('pole') ? lever.pivot : lever.leanFoot));
   // something faster than walking: Marrow until he has told you, then the hollow
   quests.locate('bikeWay', () => (['find', 'wake'].includes(quests.stage('desert.bike')) || game.flag('desert.bike.uncovered') ? hollow.site.bike : people.marrow.pos));
+  quests.locate('bikeHollow', () => hollow.site.bike);   // (where that stage is done: the stage's `ends`, for the level design audit)
   quests.locate('pool', () => cave.poolCenter);
   quests.locate('ship', shipPos);
   quests.locate('mask', () => V(-20, level.ground.heightAt(-20, -372), -372));
