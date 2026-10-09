@@ -308,6 +308,9 @@ const BEHIND_RIGHT = `${HIDE('#toast, #cue, #prompt, #objective')}
 const FROM_CHIME_SHADER = 'headless Chrome against a dev server, High, 1280 × 720, hour 10: the chimes dropped from a seeded rng and laid out in a ring, the camera pinned (the same scatter before and after); before at main before the change, after with it';
 /** An enemy's design sheet, shown beside its pair (n 1: the main skin's sheet, 2: the alternate's). */
 const REF = (id, n, skin) => ({ sheet: `references/enemy-archetypes/${id}/sheet-${n}.jpg`, caption: `${n === 1 ? 'The main' : 'The alternate'} design sheet: ${skin}` });
+/** The roster's procedural surfaces: taken with the foe views below at the commit before them and at theirs (made
+ *  before the branch was rebased: hence `from`, not `commit`). */
+const SURF = { from: 'node scripts/changelog-shots.mjs (view.foe, the creatures gallery) at 3ea3e8f7, the commit before the surfaces, and at the surfaces’ own commit, before rebasing' };
 /** Batch 1's art pass: from before compare.mjs (7dd178f7) to its last commit. */
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -508,6 +511,29 @@ export const CHANGELOG_MEDIA = {
       { name: 'roster2-jelly', only: 'after', caption: 'The lantern jelly (Vael II’s cloud jelly): a broad puffy bell, three paper lanterns, long pale threads', commit: '5e506359',
         view: { foe: { id: 'jelly@arzach2', pose: 'walk', yaw: 0.5, pitch: 0.05 } }, reference: REF('jelly', 1, 'the cloud jelly (Vael II)') },
       { name: 'roster2-skins-jelly', only: 'after', caption: 'The lantern jelly in its worlds: the cloud jelly, the lamp jelly, the halo jelly, the porcelain jelly, the sun jelly', from: 'headless Chrome, the creatures gallery, each skin drifting' },
+    ] },
+    // the roster painted as on its sheets (src/foe-surface.js): each archetype before and after its surface, the sheet beside it
+    { match: 'The foes of the new roster are painted', shots: [
+      { name: 'surf-crab', title: 'Cliff crab', caption: 'Vael II’s cliff crab: lichen stars and specks painted on its slate dome, specks on its ivory legs and claws', ...SURF, view: { foe: { id: 'crab@arzach2', zoom: 0.58, ...{ yaw: 0.75, pitch: 0.25 } } }, reference: REF('crab', 1, 'the cliff crab (Vael II)') },
+      { name: 'surf-crab-alt', title: 'Anchor crab', caption: 'The Salt Harbour’s anchor crab: cream barnacle rosettes and ochre stains over its turquoise shell (five raised crusts of thirteen left)', ...SURF, view: { foe: { id: 'crab@saltharbour', zoom: 0.58, ...{ yaw: 0.75, pitch: 0.25 } } }, reference: REF('crab', 2, 'the anchor crab (the Salt Harbour)') },
+      { name: 'surf-lizard', title: 'Pipe lizard', caption: 'The City-Shaft’s pipe lizard: mottled bands and fine scales over pale belly plates', ...SURF, view: { foe: { id: 'lizard@incal', zoom: 0.58, ...{ yaw: 1.05, pitch: 0.3 } } }, reference: REF('lizard', 1, 'the pipe lizard (the City-Shaft)') },
+      { name: 'surf-lizard-alt', title: 'Coin lizard', caption: 'The Signal Market’s coin lizard: amber rosettes on its teal scales', ...SURF, view: { foe: { id: 'lizard@bazaar', zoom: 0.58, ...{ yaw: 1.05, pitch: 0.3 } } }, reference: REF('lizard', 2, 'the coin lizard (the Signal Market)') },
+      { name: 'surf-hound', title: 'Halo hound', caption: 'The Garden of Spheres’ halo hound: gold glints scattered through its ink and on its antlers', ...SURF, view: { foe: { id: 'hound@spheres', zoom: 0.58, ...{ yaw: 1.0, pitch: 0.12 } } }, reference: REF('hound', 1, 'the halo hound (the Garden of Spheres)') },
+      { name: 'surf-tripod', title: 'Inspection tripod', caption: 'The City-Shaft’s inspection tripod: pink rust streaks down the ivory boiler, rust on its legs, a shine on the enamel', ...SURF, view: { foe: { id: 'tripod@incal', zoom: 0.58, ...{ yaw: 0.7, pitch: 0.1 } } }, reference: REF('tripod', 1, 'the inspection tripod (the City-Shaft)') },
+      { name: 'surf-tripod-alt', title: 'Diving bell', caption: 'The Underwater City’s diving bell: mottled coral copper with rust and verdigris', ...SURF, view: { foe: { id: 'tripod@underwater', zoom: 0.58, ...{ yaw: 0.7, pitch: 0.1 } } }, reference: REF('tripod', 2, 'the diving bell (the Underwater City)') },
+      { name: 'surf-blot', title: 'Ink blot', caption: 'The Desert’s ink blot: a crisp wet highlight off its smooth form and violet light moving in the ink', ...SURF, view: { foe: { id: 'blot@desert', zoom: 0.58, ...{ yaw: 0.6, pitch: 0.15 } } }, reference: REF('blot', 1, 'the sand-edged blot (the Desert)') },
+      { name: 'surf-worm', title: 'Drill grub', caption: 'The Buried Machine’s drill grub: slate-violet rings mottled with ash, rust flecks', ...SURF, view: { foe: { id: 'worm@buried', zoom: 0.58, ...{ yaw: 0.6, pitch: 0.1, pose: 'spit', at: 0.35 } } }, reference: REF('worm', 2, 'the drill grub (the Buried Machine)') },
+      { name: 'surf-ray', title: 'Storm ray', caption: 'Vael’s storm ray: a fine net of veins over its red wings, darker blooms', ...SURF, view: { foe: { id: 'ray@arzach', zoom: 0.58, ...{ yaw: 0.5, pitch: 0.6, pose: 'walk' } } }, reference: REF('ray', 1, 'the storm ray (Vael)') },
+      { name: 'surf-moth', title: 'Lamp moth', caption: 'The Deep Wood’s lamp moth: its paper lantern ribbed and glowing brighter at its heart, veins across its wings', ...SURF, view: { foe: { id: 'moth@perdide2', zoom: 0.58, ...{ yaw: 0.55, pitch: 0.1, pose: 'walk' } } }, reference: REF('moth', 1, 'the lamp moth (the Deep Wood)') },
+      { name: 'surf-centipede', title: 'Ring centipede', caption: 'The Buried Machine’s ring centipede: pitted, rust-flecked plates with a dull shine', ...SURF, view: { foe: { id: 'centipede@buried', zoom: 0.58, ...{ yaw: 0.9, pitch: 0.3, pose: 'walk' } } }, reference: REF('centipede', 1, 'the drill-head centipede (the Buried Machine)') },
+      { name: 'surf-jelly', title: 'Porcelain jelly', caption: 'The Underwater City’s porcelain jelly: cobalt bands and medallions on white glaze, coral-red threads, yellow glass lanterns in brass nets', ...SURF, view: { foe: { id: 'jelly@underwater', zoom: 0.58, ...{ yaw: 0.5, pitch: 0.05, pose: 'walk' } } }, reference: REF('jelly', 2, 'the porcelain jelly (the Underwater City)') },
+    ], numbers: [
+      { title: 'A pack of twelve foes in the Arena, drawn', unit: '', better: 'lower', device: 'Mac (M4 Pro), headless Chrome on the GPU, 1280 × 720, the pack held still in view; medians of three runs each (scripts/enemy-roster/bench.mjs)', rows: [
+        { where: 'draw calls, Steam Deck preset', before: 3655, after: 3507 },
+        { where: 'GPU ms a frame, High', before: 7.93, after: 6.75 },
+        { where: 'GPU ms a frame, Steam Deck preset', before: 4.71, after: 4.21 },
+        { where: 'CPU ms a frame, High', before: 8.4, after: 8.1 },
+      ], source: 'scripts/enemy-roster/bench.mjs, before 3ea3e8f7 and after the surfaces; GPU times vary ±2 ms run to run on a shared machine: no cost measurable', note: '148 draws fewer: the cliff crab’s 26 lichen stars and 48 of the anchor crab’s barnacles, each drawn in the view and the shadow' },
     ] },
     // the first five redrawn to their sheets: each its main skin and its alternate, before the art pass and after it
     { match: 'The shellback crab is redrawn', shots: [

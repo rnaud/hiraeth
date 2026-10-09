@@ -34,7 +34,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | File | What |
 |---|---|
 | [controls.md](systems/controls.md) | keyboard, mouse, touch and the tool; remapping (your own keys and buttons); the controller layout by position, prompts; the controls of October 2026 |
-| [foes.md](systems/foes.md) | the fluid blade, the ink blots in the wilds, the makers' machines in the temples, the Enemies setting, the Arena; the damage table (hearts) |
+| [foes.md](systems/foes.md) | the fluid blade, the ink blots in the wilds, the makers' machines in the temples, the Enemies setting, the Arena; the damage table (hearts); the enemy roster and its procedural surfaces (patterns, glow and gloss painted by the shader); building or reworking an enemy to its sheets: the `enemy-rework` skill (`.claude/skills/enemy-rework/`) |
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
 | [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like a plane (v0.89), aiming straight up, ragdolls that end on the ground, the jump's shadow |
 | [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), Vael's bird (standing, folding, flying), motion capture and motion matching, the Motion page |

@@ -722,8 +722,12 @@ shader itself, with no texture, no UVs and no extra draw:
   materials (`kit.js` `materials(archetype, skin)` looks them up; `light0…2` wear `light`).
 - **Fewer draws:** the cliff crab's 26 lichen-star meshes are painted now, and the anchor crab keeps 5 raised barnacle
   crusts of 13 (the rest painted rosettes): 26 and 48 draws fewer a crab.
-- **Cost:** only on a foe's pixels; a feature is a handful of hashes (spots 8 cells, noise 8 a octave). Measured in
-  "Performance" below.
+- **Cost:** only on a foe's pixels; a feature is a handful of hashes (spots 8 cells, noise 8 a octave). A pack of
+  twelve (both crabs and lizards, a hound, a tripod, two blots, a centipede, a jelly, a moth, a ray) held in view in
+  the Arena, `node scripts/enemy-roster/bench.mjs` (Mac M4 Pro, headless Chrome on the GPU, 1280 × 720, medians of
+  three alternating runs): draw calls 3655 → 3507 on the Steam Deck preset (the painted lichen and barnacles, each
+  drawn in the view and the shadow), GPU 7.9 → 6.8 ms on High and 4.7 → 4.2 ms on the Deck preset, CPU 8.4 → 8.1 ms
+  on High: no cost measurable (the GPU times move ±2 ms run to run on the shared machine).
 - **Tests:** `tests/foe-surface.test.js` (only the named features compile, colours resolve in every skin, every part
   named is one its builder makes, every built archetype is painted in every skin).
 

@@ -886,6 +886,17 @@ skins kept with the new body; checked with `node scripts/enemy-roster/compare.mj
 the same views) and the motion audit (no foot sliding). Left as it was: the hound's Mangrove sheet keeps a halo ring
 from the main sheet's shape, which the driftwood hound does not wear (the halo is the Garden of Spheres').
 
+**Batches 3–6 follow the `enemy-rework` skill** (`.claude/skills/enemy-rework/SKILL.md`): both sheets read, the
+silhouette and proportions, the parts, then **the procedural surface, mandatory** (src/enemies/surfaces.js: the
+patterns, colour zones, glow and gloss the sheet paints, drawn by src/foe-surface.js; docs/systems/foes.md
+"Procedural surfaces"), each skin's palette, motion, wind-ups and telegraphs, the combat review, the cost, and the
+changelog's pictures (the body alone before and after, the sheet as its own picture). **Batches 1 and 2 wear their
+surfaces** (v1.10): the cliff crab's lichen stars and specks, the anchor crab's barnacle rosettes and ochre stains, the
+lizards' mottled scales and belly plates (the coin lizard's amber rosettes), the hounds' gold glints, the tripod's
+pink rust streaks and gloss (the diving bell's mottled copper, rust and verdigris), the blot's wet violet gloss, the
+worms' mottled rings and rust specks, the ray's net of veins, the moth's lantern ribs and wing veins, the
+centipede's pitted plates, the jelly's glowing ribbed lanterns (the porcelain jelly's cobalt bands and medallions).
+
 | # | Archetype | Status | Body now | Notes |
 |---|---|---|---|---|
 | 1 | Shellback crab | **built** (batch 1) | `plans/walker.js`, plan 1, 7 skins | snap, shell spin, burrow (Salt Harbour, Underwater); scuttles sideways in bursts; calm, shy. Drawn to its sheets (Vael II's cliff crab; the Salt Harbour's anchor crab): a deep steep-sided dome over an ivory plated belly, thick legs with hooked tips, tall arms to big upright pincers, black eyes on stalks; lichen stars; barnacles, rope and an anchor |

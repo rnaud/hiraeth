@@ -36,7 +36,7 @@ const git = (...a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8' }).tr
 export function allShots(media = CHANGELOG_MEDIA) {
   const out = [];
   for (const [v, lines] of Object.entries(media)) for (const line of lines) for (const s of line.shots ?? []) {
-    if (!s.view) continue;   // (a picture made by hand: `from` says where it came from)
+    if (!s.view || !s.commit) continue;   // (a picture made by hand, or taken before a rebase: `from` says where it came from)
     out.push({ v, ...s, key: `${v}/${s.name}`, files: shotFiles(v, s) });
   }
   return out;
