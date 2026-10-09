@@ -1,8 +1,8 @@
-// The strike's signature (src/story/signature.js): the worlds the ship can fly to are the
-// ones that carry the same magnetic signature as whatever struck it in the prologue.
+// The light's signature (src/story/signature.js): the worlds the ship can fly to are the
+// ones that carry the same magnetic signature as the singing light that drained it in the prologue.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SIGNATURE_WORLDS, hasSignature, signatureReading, revealNote, arrivalLine, CRASH_LINE, MAP_LINE, SIGNATURE_LEGEND } from '../src/story/signature.js';
+import { SIGNATURE_WORLDS, hasSignature, signatureReading, revealNote, arrivalLine, LANDING_LINE, FOLLOW_LINE, MAP_LINE, SIGNATURE_LEGEND } from '../src/story/signature.js';
 import { TONES } from '../src/story/tone.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { LEVELS } from '../src/levels/index.js';
@@ -32,12 +32,16 @@ test('the galactic map marks the signature on every world, not on home', () => {
   assert.equal(entries.find((e) => e.home).signature, false);
 });
 
-test('the ship says it: after the crash, on the map, out of the jump (once per world), and when new worlds are charted', () => {
-  for (const l of [CRASH_LINE, MAP_LINE]) {
+test('the ship says it: after the landing, on the map, out of the jump (once per world), and when new worlds are charted', () => {
+  for (const l of [LANDING_LINE, MAP_LINE]) {
     assert.equal(l.who, 'ship');
     assert.ok(TONES.includes(l.tone) && !/^~/.test(l.text), 'a tone, and no tag in the text');
     assert.match(l.text, /signature/);
   }
+  // following it is his own choice, said as the ship comes down (the restaged opening, October 2026)
+  assert.equal(FOLLOW_LINE.who, 'you');
+  assert.match(FOLLOW_LINE.text, /we follow it/);
+  assert.ok(![LANDING_LINE, MAP_LINE, FOLLOW_LINE].some((l) => /impact|struck|hit us|crash/i.test(l.text)), 'nothing struck it: the light passed and drained it');
   const flags = {};
   const a = arrivalLine('perdide', (k) => flags[k]);
   assert.equal(a.who, 'ship');
@@ -48,6 +52,6 @@ test('the ship says it: after the crash, on the map, out of the jump (once per w
   assert.ok(arrivalLine('bazaar', (k) => flags[k]), 'each world its own');
   assert.equal(arrivalLine(HOME_ID), null, 'home has none: the ship knows that way by heart');
   assert.equal(revealNote([]), null);
-  assert.equal(revealNote(['Vael II: The Sky Stones']), "New on the ship's map: Vael II: The Sky Stones. The ship reads the strike's signature there too.");
+  assert.equal(revealNote(['Vael II: The Sky Stones']), "New on the ship's map: Vael II: The Sky Stones. The ship reads the light's signature there too.");
   assert.match(revealNote(['A', 'B']), /: A and B\./);
 });

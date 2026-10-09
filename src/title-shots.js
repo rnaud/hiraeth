@@ -16,6 +16,8 @@
 //   sky          { planets, eclipse }: the cover's planets in place of the world's (src/post.js: az, el, size,
 //                color, ring), its eclipse's disc moved or resized
 //   look         the view's own touches on the world's ink preset (post.js uniforms), rarely
+//   menu         'mid': the title's menu higher, in the middle of the space under the name, for a cover whose
+//                lower left is busy (src/title-layout.js; left out: the lower left, calm in every shot so far)
 //
 // Pure: no three.js, no DOM (the tests import it; the shots' data is checked there).
 

@@ -12,6 +12,7 @@
 // also be timed, or queued behind the one showing).
 import { screen } from '../platform.js';
 import { speakLine } from '../story/voice.js';
+import { markKeyPhrase } from '../story/key-phrase.js';
 import { inputKind, keyText, hasKeys, escapeHtml } from '../prompt-keys.js';
 import { backKey } from '../native-pad.js';
 import { toastSeconds } from '../quest.js';   // a long toast stays up longer   // the mumbled voice under each subtitle
@@ -27,6 +28,9 @@ const CSS = `
 #cine .sub span { display: block; width: fit-content; max-width: 100%; box-sizing: border-box; margin: 0 auto; padding: 5px 12px 6px;
   background: rgba(247, 236, 210, 0.95); border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; text-wrap: balance; }
 #cine .sub b { letter-spacing: .14em; margin-right: 8px; font-weight: bold; }
+#cine .sub em { font-style: normal; font-weight: bold; }
+#cine .sub em.value { color: #8a5a10; border-bottom: 2px solid #e2b552; white-space: nowrap; }
+#cine .sub em.value::before { content: '✦'; color: #d9a43a; font-size: .8em; margin-right: 3px; }
 #cine .sub b.father { color: #7a3a35; } #cine .sub b.mother { color: #277e86; } #cine .sub b.ship { color: #c8483a; }
 #cine .sub.show { opacity: 1; transition: opacity .2s, bottom .3s; }
 #cine .sub.show.in span { animation: cine-sub-in .22s ease-out; }
@@ -296,7 +300,7 @@ export class Cinema {
     const line = this.subs.line;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }
     const who = { father: 'FATHER', mother: 'MOTHER', ship: 'SHIP', lou: 'LOU', ilen: 'ILEN' }[line.who] ?? '';
-    this.subText.innerHTML = `${who ? `<b class="${line.who}">${who}</b>` : ''}${keyText(line.text, { html: true })}`;
+    this.subText.innerHTML = `${who ? `<b class="${line.who}">${who}</b>` : ''}${keyText(markKeyPhrase(line.text).replace(/\*([^*]+)\*/g, '<em>$1</em>'), { html: true })}`;   // (the key phrase lettered as itself: src/story/key-phrase.js)
     // a new line comes in over the old one's place (one box, never two)
     this.sub.classList.remove('in');
     this._seen('sub', true);

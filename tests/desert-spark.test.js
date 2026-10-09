@@ -102,6 +102,8 @@ test('an old save at the jar: the tree already burns; wading fills the jar and t
   assert.equal(quests.stage('desert.power'), 'ship', 'no spark-stone errand for a tree that burns');
   game.emit('ship:enter');
   step(2);
+  assert.equal(quests.isDone('desert.power'), false, 'Qanat brings its gift first (src/story/desert-repay.js)');
+  step(30 * 26);
   assert.equal(quests.isDone('desert.power'), true);
 });
 

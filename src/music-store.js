@@ -17,7 +17,7 @@
 import { bundledGame, SHEET_SITE } from './levels/reference-sheets.js';
 
 /** The themes the devices carry: the desert's (the first world). The packaging reads this too. */
-export const ON_DEVICE_THEMES = ['desert.mp3'];
+export const ON_DEVICE_THEMES = ['desert.mp3', 'singing-light.mp3'];   // (and the singing light's cue, heard in the prologue: src/soundtracks.js CUES)
 export const THEME_DB = 'hiraeth-music', THEME_STORE = 'themes', THEME_DB_VERSION = 1;
 
 /** The key a theme is kept under: its file name (they never change; a new recording gets a new name). */

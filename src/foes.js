@@ -15,6 +15,7 @@ import { hitStop, kick, slowMo } from './feel.js';
 import { LockReticle } from './lock-reticle.js';
 import { ENEMY_BY_ID, ENEMY_ROSTER, WORLD_ENEMIES, worldPack } from './enemies/roster.js';
 import { TITLES } from './levels/names.js';
+import { rumblePlay } from './rumble.js';
 import { enemyModel } from './enemies/models.js';
 import { speciesAttacks, attackReach, lockAttack, speciesContact, poseAttackEffect } from './enemies/attacks.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
@@ -1788,6 +1789,7 @@ export class Foes {
     mesh.position.set(at.x, at.y + 0.08, at.z); mesh.userData.noCollide = true;
     this.group.add(mesh);
     (this.shocks ??= []).push({ f, at, r: a.radius ?? 1.5, W, mesh, hit: false });
+    if (this.player?.pos) rumblePlay('slam', { dist: this.player.pos.distanceTo(at) });   // felt underfoot, by how near (src/rumble.js)
   }
 
   /** Slag poured or stamped out: burning patches on the ground (a ring round it, or a fan before it). */

@@ -5,7 +5,7 @@ import {
 
 // The ship's outside: a round hull with panel lines, a terracotta belt,
 // portholes, antennae, four landing legs, a hatch with a telescoping ramp
-// and, on the flank, the scorch from the impact: three dots over an arc.
+// and, on the flank, the scorch the singing light left as it passed: three dots over an arc.
 
 export const R = 13;            // outer hull radius
 export const RI = 12.6;         // inner hull radius

@@ -4,6 +4,8 @@ import { Foes } from '../foes.js';
 import { GameState } from '../game-state.js';
 import { ENEMY_ROSTER, WORLD_ENEMIES, ENEMY_BY_ID } from './roster.js';
 import { lockAttack } from './attacks.js';
+import { sharedUniforms } from '../materials.js';
+import { fitShadowExtent, FINE_CASCADE } from '../shadows.js';
 
 const $=id=>document.getElementById(id);
 const query=new URLSearchParams(location.search);
@@ -11,7 +13,14 @@ let world=WORLD_ENEMIES[query.get('world')]?query.get('world'):'desert';
 let chosen=ENEMY_BY_ID[query.get('enemy')]?.id??WORLD_ENEMIES[world][0].id;
 world=ENEMY_BY_ID[chosen].world;
 class EnemyViewer extends ItemViewer {
-  constructor(){super();this.backdrop.material=this.backdrop.material.clone();this.backdrop.material.fragmentShader=this.backdrop.material.fragmentShader.replace('L = mix(L, 1.0, max(uGlow, emit));','L = 1.0;');this.backdrop.material.needsUpdate=true;this.mode='idle';this.fixed=null;this.orbit={yaw:.45,pitch:.15,zoom:1};this.cascade.configure(2048,16);this.cascade.prime(this.renderer);}
+  constructor(){super();this.backdrop.material=this.backdrop.material.clone();this.backdrop.material.fragmentShader=this.backdrop.material.fragmentShader.replace('L = mix(L, 1.0, max(uGlow, emit));','L = 1.0;');this.backdrop.material.needsUpdate=true;this.mode='idle';this.fixed=null;this.orbit={yaw:.45,pitch:.15,zoom:1};}
+  // The shadow window: the game's own fine map (FINE_CASCADE: 2048 px over ±12 m, its bias and normal offset), wider only
+  // for a creature whose shadow would not fit in it (fitShadowExtent: a flyer stands on the floor, but its attacks show
+  // it at its height), centred on the creature's foot (the frame's centre moves to hold an attack's marked area). It
+  // used to be ±16 m round that centre, configured without telling the shader (uShadowTexel): ragged, streaky shadows
+  // that crawled as the creature moved. (A finer, fitted map was tried: its thinner bias put acne on the shells.)
+  fitShadow(m){const e=m.shadowExtent;if(this.cascade.extent!==e||this.cascade.size!==FINE_CASCADE.size){this.cascade.configure(FINE_CASCADE.size,e);this.cascade.prime(this.renderer);}}
+  shadowCentre(m){return m.f.model.group.getWorldPosition(this._foot??=new T.Vector3()).setY(0);}
   model(id){
     let m=this.models.get(id);
     if(!m){
@@ -20,8 +29,10 @@ class EnemyViewer extends ItemViewer {
       const f=owner.add(id,new T.Vector3());f.heading=0;owner.look(f,0);
       const b=new T.Box3().setFromObject(f.model.group),centre=b.getCenter(new T.Vector3());
       const holder=new T.Group();holder.add(owner.group);
-      m={holder,owner,f,centre,r:b.getBoundingSphere(new T.Sphere()).radius,height:b.max.y-b.min.y,fluids:[]};this.models.set(id,m);
+      const size=b.getSize(new T.Vector3()),shadowExtent=fitShadowExtent(1.3*Math.hypot(size.x,size.z)/2,1.15*size.y+(f.def.hover??0),sharedUniforms.uSunDir.value.y,{min:FINE_CASCADE.extent,max:2*FINE_CASCADE.extent});
+      m={holder,owner,f,centre,r:b.getBoundingSphere(new T.Sphere()).radius,height:b.max.y-b.min.y,fluids:[],shadowExtent};this.models.set(id,m);
     }
+    this.fitShadow(m);
     m.holder.position.set(0,0,0);m.owner.group.position.set(0,0,0);m.holder.updateMatrixWorld(true);
     const f=m.f,dt=this.fixed?0:1/60;
     f.heading=0;f.pos.set(0,0,0);f.stunned=0;

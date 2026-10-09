@@ -142,12 +142,17 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   `?start` (a save started over from the Start menu; the URL is cleaned so a reload goes
   back to the title). Quit to title is just a load of the bare page.
 - **Title screen**: the name (Hiraeth, lettered: below) over one of the worlds, seen from a fixed
-  camera framed like one of the covers it was designed from, then Continue (the slot played last), New
-  game, Saves, Settings (the same settings, `SettingsMenu({ el, title: true })`), What's new, Debug and,
-  in a desktop browser, Full screen. Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a
-  controller through `Controller` + `menuNavigate` (the entries are a grid on a short screen; the save
-  list moves by rows, left / right reaches a save's Delete); the confirm glyph sits inside the focused
-  entry (src/pad-glyphs.js). It imports nothing that loads the game state, and marks the Android boot
+  camera framed like one of the covers it was designed from, and a small menu low at the left: Continue
+  (the slot played last) or New game, and Saves, as compact text buttons; under them a row of icon
+  buttons (`TITLE_ICONS`, inked: a gear for Settings (the same settings, `SettingsMenu({ el, title: true })`),
+  a star for What's new, a beetle for Debug, corner brackets for Full screen). Each icon has an
+  `aria-label` and a label shown at the row's right end on hover or focus. Full screen shows only where it
+  does something: not in the Android, Deck or Xbox apps, nor in an installed web app already full screen.
+  Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a controller through `Controller`:
+  the main menu by `mainNavigate` (↑ ↓ down the column and into the row's first icon, ← → along the row,
+  ↑ from the row back to Saves), the rest by `menuNavigate` (the save list moves by rows, left / right
+  reaches a save's Delete); the confirm glyph sits inside the focused entry, in an icon's corner
+  (src/pad-glyphs.js). It imports nothing that loads the game state, and marks the Android boot
   heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
 - **The debug entries are the author's** (`src/dev-gate.js` `devMode()`): the title's Debug
   button (the worlds list) and the Start menu's "Debug: worlds" show only with the same switch as
@@ -177,12 +182,17 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   every size, the same in every language (`aria-label="Hiraeth"`); the layout thickens the ink line on a
   small screen so it never falls under 1.5 px. The Steam art uses it too (`scripts/steam-art.mjs`).
 - **Layout** (`src/title-layout.js` `titleLayout`, pure; set as CSS variables on `#title`): the name across
-  the upper part (at most 27 % of the height, 86 % of the width), the menu in the quiet space under it,
-  lower middle, as the covers leave it. A short screen (a phone on its side, 812 × 375; a Retroid) sets the
-  entries in two or three columns; a screen held upright puts the name at the top and the menu at the
-  bottom in two columns, the world between; safe-area insets are kept clear. `tests/title-layout.test.js`
-  checks 16:9, 21:9, the Deck's 16:10, 4:3, a phone both ways, a tall Android phone and a Retroid: on the
-  screen, never overlapping, readable.
+  the upper part (at most 27 % of the height, 86 % of the width). The menu small, so the world shows (v1.6,
+  the author: "much smaller, and left aligned"): entries 40–48 px tall (a touch target; `MENU`), their words
+  12–15.5 px, the column at least 14 × the font wide (170–240 px; a longer word in another language widens it),
+  the icons as tall, square, 6–10 px apart. Its left edge 3.5 % of the width in from the safe area (14–64 px),
+  its foot 5 % of the height above the bottom (12–56 px), never under the name. Every shot leaves its lower
+  left calm (the traveller stands right of the middle, the covers' focal points sit in the middle and higher);
+  a shot may ask for its menu higher with `menu: 'mid'` (none does yet). The menu takes 1.6 % of 1920 × 1080
+  (v1.5's six entries: 6.7 %), 2.8 % of 1280 × 720 (10.4 %), 8.6 % of a phone either way (17 %).
+  `tests/title-layout.test.js` checks 16:9, 1280 × 720, 21:9, the Deck's 16:10, 4:3, a phone both ways, a tall
+  Android phone and a Retroid, with two, three and four icons: on the screen, under the name, left aligned,
+  low, small, touchable, readable; and the safe area.
 - **The title's shots** (`src/title-shots.js` `SHOTS`): one per cover in `references/Title Screen/`
   whose world is in the game: a level, the hour, a camera (`eye`, `target`, vertical `fov` at 16:9), the
   traveller's spot and heading, and, when the cover's world is built the other way round, `mirror` (the
@@ -200,7 +210,13 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   feet), its water, flora and grass, its flocks and its own motion (`level.update`), drawn by the game's
   pipeline (G-buffer materials, the near and wide shadow maps once, the traveller's fine one each frame,
   bloom, the ink pass in the world's preset and look, the water's sparkle or its under-water haze, FXAA).
-  The traveller is the game's own (the Player, his generated body, cape and flask, idling). No people,
+  The traveller is the game's own (the Player, his generated body, cape and flask), held in a stern, still
+  stance as the covers draw him (`TITLE_STANCE`, `holdStance`): upright, his weight even, arms straight down
+  at his sides (out 0.11 rad, the gloved right 0.15, elbows bent 0.1), hands by the thighs, the head a touch
+  lowered, looking out over the world; only his breath (a hundredth of a radian in the arms) and his coat
+  move. Held over the idle clip: the Player's talking calm (no glances, no captured look-about, the weight
+  shift small) and the arms set in `character.poseArms`, just before the body follows the rig, so the feet
+  still plant on the ground. The shots' headings stand as authored (most turn his back to us). No people,
   wildlife, foes, ship, story, weather or sound: the title's menu music plays on.
   - *Boot*: the name and the menu show at once over the paper (a cream page with a printed grain); the
     module is imported after the menu has painted, builds in slices (input keeps working), compiles its
@@ -401,6 +417,26 @@ Code: `src/story/people-book.js` (the book and the rules), `peopleData` in `src/
   (`pumpPortraits` in main.js, one a frame, people within 60 m); until then their initial on their world's
   colour.
 
+## The galactic map's signature search (v1.6)
+
+The holo table's map (`src/ship/starmap.js`) with a world to find (docs/systems/story.md, "The signature
+search") and power: the chart gets the class `searching`. Each findable world sits unnamed at its place on the
+route inside an **uncharted region** (a dashed circle of static, 0.16 of the field's diagonal, its centre off
+the world by up to half its radius, the same every time: `regionFor`), labelled UNCHARTED. The **scanner** (a
+ring with a cross) follows the mouse over the field, a finger pressed on it (`touch-action: none` while
+searching), the left stick (half a field-diagonal a second at full tilt) or W A S D (the arrows still step
+through the charted worlds; on a pad the D-pad does, and the scanner over a charted world selects it, so A
+travels). The **cues**, from `cueStrength` (0 beyond 0.45 of the diagonal, 1 on the world) through `cues()`: the
+scanner's colour (violet, gold, then the route's orange), its glow, its three rings pinging on the beat (2.2 s
+far, 0.75 s on it), a little jitter (none with reduced motion), the light's notes every 1.7 s at most (by
+strength), the rumble's `search` beat, and the **meter** at the top right of the chart (the foot of the chart on
+a phone held upright): SIGNAL, five bars and a word (silent, faint, warmer, strong, locking). The **lock**: within
+`lockRadius` (6 % of the diagonal, at least 30 px or 0.6 of a planet's disc) it fills in half a second (a gold arc
+round the scanner), and leaks away at 1.2 a second outside. Full: the planet resolves where it was (blur to sharp,
+a gold ring), the `found` rumble, the ship's line, and a second later the map is drawn again with the world
+charted and chosen. The legend becomes SIGNATURE SEARCH (`SEARCH_LEGEND`, short form on small screens), the
+header counts the signatures to find, and the hint line says how to search on the device in hand.
+
 ## Hearts, the magic bar and the potion (v1.5)
 
 Where the health bar was (top left, `#health` in index.html; `updateHealth` in main.js, `healthHud`,
@@ -519,3 +555,37 @@ tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-
   ← → the other items, ↑ ↓ zoom, the right stick tilts, B closes (B on the list: back to the worlds list).
 - Tests: `tests/pad-glyphs.test.js` (families, the names, the glyphs' labels and CSS, the buttons that carry
   them, `gridStep`, the worlds' cards, X / Y in menus, `shortLine`), `tests/game-menu.test.js`.
+
+## The shop (v1.5)
+
+The shop panel (`src/shop-panel.js`, `src/shop-panel.css`, `#shop`), opened by talking to a keeper ("Show me what
+you have": the conversation emits `shop:open`) or with E at their counter (src/story/shops.js); main.js opens it
+once the conversation has closed. A paper sheet over the room, the room dimmed behind it:
+
+- **The head**: the keeper's name and title, and what they say now in a speech bubble (in their voice:
+  `sound.speak` on the conversation's channel), the **wallet** (the chime and the count, redrawn on every
+  `wallet` event), and ✕ to leave (B / ○, Esc). The keeper's balloon is not drawn over the panel; their goodbye
+  goes over their head as it closes.
+- **The wares**, a card each: the picture (an inked SVG in the HUD's style: the flask, a heart, a magic cell),
+  the name, what it does, how many are left ("3 on the shelf", "2 left") and what you have ("you carry 3 / 5",
+  "you have 4", "your bar: 3"), the price in chimes. One that can't be bought says why on the card ("Not enough
+  chimes", the price in red; "Sold out", the picture faded and a black tag; "Your pack is full") and stays
+  focusable (`aria-disabled`, not `disabled`: the pad can still land on it), and choosing it makes the keeper
+  say it ("The scale says no", "That's the last of them", "Your pack is full of my cures already").
+- **Buying**: a card asks first, "Buy a heart container for 50 chimes?", with **Buy** (A / ×, Enter) and **Not
+  now** (B / ○, Esc) in a small sheet over the cards (the cards `inert` meanwhile); Buy pays, the chimes are
+  counted out on the counter and the bell rings (`sound.purchase`; the counter bell as it opens,
+  `sound.shopBell`), the keeper thanks you for that kind of ware, the card and the wallet update, the HUD shows
+  the hearts and the wallet, and the counter's display loses what was sold.
+- **The controller**: the cards are a grid (`data-grid-nav`: ← → between cards, ↑ ↓ in a column on a phone),
+  A / × asks and buys, B / ○ backs out of the question and then out of the shop (main.js `menuRoot` returns
+  `shopPanel.root`, the question while it shows; `closeControllerMenu` calls `shopPanel.back()`); the glyphs are
+  in the buttons (A on the focused card, A in Buy, B in Not now and in ✕). **Keyboard**: the arrows, Enter /
+  Space / E, Esc or Backspace (the panel's own capture listener; the press that opened it is ignored). **Mouse
+  and touch**: tap a card, then Buy; the touch controls are hidden while it is open (`body.shopping`).
+- **Screen sizes**: three cards in a row at 1280 × 720 and the Deck's 1280 × 800; under 480 px high (a phone on
+  its side, 812 × 375) the same row, smaller; under 560 px wide (a phone held upright, 375 × 812) one card a row,
+  the picture beside the words, the wallet and ✕ on top.
+- While it is open the game is busy (`busy()`): nothing else takes the input, and the potion button is off.
+
+Tests: `tests/shop.test.js` (the markup, the states, the question, the keeper's reactions, the wiring).

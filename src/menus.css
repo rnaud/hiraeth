@@ -200,28 +200,46 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
   .fullmenu .saved { display: none; }
 }
 
-/* ------------------------------------------------------------------ the title's menu (v1.5)
-   Labels in the lettering's manner (src/title-logo.js): ivory, an ink line, a vermilion shadow down and to
-   the right, set out by src/title-layout.js in the quiet space under the name (CSS variables on #title:
-   one column, two or three on a short screen, at the bottom on a screen held upright). */
+/* ------------------------------------------------------------------ the title's menu (v1.6)
+   Small and to the left, low down, so the world shows (src/title-layout.js sets the CSS variables on #title):
+   the main entries a short column of compact text buttons, the tools a row of icon buttons under it. Paper,
+   a thin ink line and a small vermilion shadow, after the lettering (src/title-logo.js); the focused one
+   vermilion, its glyph inside (src/pad-glyphs.js). Every button a touch target (40 px and up). */
 #title[data-screen="main"] .main-menu {
-  position: absolute; top: var(--menu-top, 52vh); left: 50%; transform: translateX(-50%); width: var(--menu-w, min(420px, 86vw));
-  display: grid; grid-template-columns: repeat(var(--menu-cols, 1), minmax(0, 1fr)); gap: var(--btn-gap, 12px) calc(var(--btn-gap, 12px) * 1.5);
-  padding: 0; margin: 0; background: none; border-radius: 0; align-items: stretch;
+  position: absolute; top: var(--menu-top, 62vh); left: var(--menu-left, 4vw); width: auto;
+  display: flex; flex-direction: column; align-items: flex-start; gap: calc(var(--btn-gap, 8px) * 1.6);
+  padding: 0; margin: 0; background: none; border-radius: 0;
 }
+#title .main-menu .entries { display: flex; flex-direction: column; gap: var(--btn-gap, 8px); min-width: var(--menu-w, 200px); max-width: calc(100vw - 2 * var(--menu-left, 4vw)); }   /* (a longer word in another language: the column grows) */
+#title .main-menu .tools { display: flex; gap: var(--btn-gap, 8px); }
+#title .main-menu .tools:empty, #title .main-menu .entries:empty { display: none; }
 #title .main-menu button {
-  position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: var(--btn-h, 48px); box-sizing: border-box;
-  padding: 2px calc(var(--btn-font, 17px) * 1.9); text-align: center; color: #211a17; background: #fbe8c4;
-  border: 2px solid #211a17; border-radius: 3px; box-shadow: 4px 4px 0 #e27c5b, 4px 4px 0 2px #211a17;
-  font: 800 calc(var(--btn-font, 17px) * var(--ts, 1))/1.1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
-  letter-spacing: 0.16em; text-transform: uppercase; text-indent: 0.16em; white-space: nowrap;
+  position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-height: var(--btn-h, 44px); box-sizing: border-box;
+  padding: 3px calc(var(--btn-font, 14px) * 1.05); text-align: left; color: #211a17; background: rgba(251, 232, 196, 0.9);
+  border: 1.5px solid #211a17; border-radius: 3px; box-shadow: 2px 2px 0 #e27c5b;
+  font: 800 calc(var(--btn-font, 14px) * var(--ts, 1))/1.1 'Avenir Next', Futura, 'Futura PT', 'Helvetica Neue', Roboto, sans-serif;
+  letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap;
   transition: transform 0.08s, box-shadow 0.08s, background 0.12s, color 0.12s;
 }
-#title .main-menu button small { display: block; margin-top: 2px; font-size: max(0.62em, 10px); font-weight: 600; letter-spacing: 0.06em; text-indent: 0; text-transform: none; opacity: 0.8; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-#title .main-menu button:hover, #title .main-menu button:focus { outline: none; background: #fff4dc; transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #e27c5b, 6px 6px 0 2px #211a17; }
-#title .main-menu button:focus { background: #e27c5b; color: #fffaf0; box-shadow: 6px 6px 0 #211a17, 6px 6px 0 2px #211a17; }
-#title .main-menu button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #e27c5b, 1px 1px 0 2px #211a17; }
-#title .main-menu .primary { border: 2px solid #211a17; }
+#title .main-menu .entries button { width: 100%; padding-right: calc(var(--btn-font, 14px) * 2.6); }   /* (room for the glyph at the right end) */
+#title .main-menu .lbl { display: flex; align-items: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+#title .main-menu button small { display: block; margin-top: 1px; font-size: max(0.72em, 10px); font-weight: 600; letter-spacing: 0.04em; text-transform: none; opacity: 0.78; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#title .main-menu .primary { border-left: 4px solid #e27c5b; }
+#title .main-menu button:hover { outline: none; background: #fff4dc; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #e27c5b; }
+#title .main-menu button:focus { outline: none; background: #e27c5b; color: #fffaf0; transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #211a17; }
+#title .main-menu .primary:focus { border-left-color: #211a17; }
+#title .main-menu button:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #e27c5b; }
+/* the tools: square icon buttons, the icon smaller inside; the label at the row's right end on hover or focus */
+#title .main-menu .tool { width: var(--icon, 44px); height: var(--icon, 44px); min-height: 0; padding: 0; align-items: center; letter-spacing: 0; }
+#title .main-menu .tool .ico { width: 58%; height: 58%; display: block; pointer-events: none; }
+#title .main-menu .tool .tip {
+  position: absolute; top: 50%; left: calc(100% + var(--k, 0) * (var(--icon, 44px) + var(--btn-gap, 8px)) + 10px); transform: translateY(-50%); padding: 4px 8px; pointer-events: none;
+  font: 700 calc(11px * var(--ts, 1))/1.2 'Avenir Next', Futura, 'Helvetica Neue', Roboto, sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
+  color: #fffaf0; background: #211a17; border-radius: 3px; white-space: nowrap; opacity: 0; transition: opacity 0.12s;
+}
+#title .main-menu .tool:hover .tip, #title .main-menu .tool:focus .tip { opacity: 1; }
+/* (the confirm glyph: a small badge in the icon's corner, not beside it) */
+#title .main-menu .tool > .glyph { position: absolute; right: -9px; bottom: -9px; margin: 0; font-size: 12px; }
 /* a quieter tool entry under Debug (the character studio): smaller, tucked against it */
 /* the saves and the confirm card: translucent paper, hairlines, no hard shadows */
 #title .saves { background: rgba(251, 246, 234, 0.82); border: 1px solid rgba(43, 33, 31, 0.35); box-shadow: 0 10px 40px rgba(43, 33, 31, 0.18); border-radius: 6px; backdrop-filter: blur(3px); }
@@ -294,10 +312,10 @@ html.reduce-motion #title .clouds, html.reduce-motion #title .planet, html.reduc
 .fullmenu .rb-warn { color: #a8392d; font-weight: bold; }
 
 /* ------------------------------------------------------------------ button glyphs (src/pad-glyphs.js)
-   The confirm glyph beside the focused title entry (out of the flow: the labels stay centred), B in Back
+   The confirm glyph at the right end of the focused title entry (out of the flow: the labels keep their place; an icon's in its corner), B in Back
    and Keep, X on a save's Delete, A on the focused save; in the Start menu B in Resume, A on the focused entry. */
 #title .main-menu .lbl { position: static; }
-#title .main-menu .lbl .glyph { position: absolute; left: 0.55em; top: 50%; transform: translateY(-50%); margin: 0; text-indent: 0; letter-spacing: 0; text-shadow: none; }
+#title .main-menu .lbl .glyph { position: absolute; right: 0.5em; top: 50%; transform: translateY(-50%); margin: 0; text-indent: 0; letter-spacing: 0; text-shadow: none; }
 #title .saves .head button, #title .confirm button, #title .slot .del { display: inline-flex; align-items: center; }
 #title .slot .pick .glyph.on-focus { margin: 0 0 0 auto; font-size: calc(clamp(12px, 2vh, 16px) * var(--ts, 1)); }
 .fullmenu .menu-nav button { display: flex; align-items: center; }

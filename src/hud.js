@@ -48,8 +48,9 @@ export function cueText(s = {}) {
  */
 export class PlaceName {
   constructor({ settle = 1500, show = 3500 } = {}) { Object.assign(this, { settle, show }); this.name = null; this.pending = null; this.at = 0; this.until = 0; }
-  /** The name to show now, or ''. */
-  update(name, now) {
+  /** The name to show now, or ''. `quiet`: take this name at once without showing it (back out of a building into the street you left). */
+  update(name, now, { quiet = false } = {}) {
+    if (quiet && name) { this.name = name; this.pending = null; this.until = 0; return ''; }
     if (name && name !== this.name) {
       if (name !== this.pending) { this.pending = name; this.at = now; }
       else if (now - this.at >= this.settle) {

@@ -172,7 +172,7 @@ test('the debug entries stay hidden from players, and with the gate on they surv
   assert.match(ui, /toggle\(on = !this\.open, page = 'settings'\) \{\s*this\.open = on;\s*if \(on\) \{\s*this\.sync\(\);/, 'and when it opens later');
   // ...and the title's menu, redrawn in a new language, asks devMode again
   assert.match(title, /onLanguage\(\(\) => \{[^\n]*renderMain\(\); \}\);/);
-  assert.match(title, /devMode\(\{ settings \}\) \? `<button data-a="debug">/);
+  assert.match(title, /devMode\(\{ settings \}\) && \['data-a="debug"'/);
   // found by data-a, never by their words
   for (const f of [ui, title]) assert.doesNotMatch(f, /textContent === ['"]D[eé]bog|textContent === ['"]Debug/);
 });

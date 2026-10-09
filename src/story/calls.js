@@ -66,15 +66,21 @@ const SHIP = (text, set) => spoken('ship', text, set ? { set } : null);
 const YOU = (text, set) => spoken('you', text, set ? { set } : null);
 const pick = (arr, i) => arr[Math.min(i, arr.length - 1)];
 
-/** The recording in the prologue: the father, the day the traveller left. The impact cuts it off. */
+/**
+ * The recording in the prologue: the father, years after the traveller left (story-bible.md, "The recordings":
+ * "We haven't heard from you for so long"). He misses him and is still disappointed in him, and gives the
+ * charge again: not to come home without *something of value* (the key phrase: src/story/key-phrase.js).
+ * Under it the singing light's theme comes nearer (src/story/light-theme.js), and the traveller pauses the
+ * recording to listen (the cut: src/ship/prologue.js, `pause`).
+ */
 export const PROLOGUE_CALL = [
   SHIP('~neutral~ First new message.'),
-  F('~neutral~ Is it on? Little light’s on. Right. There you are.'),
-  F('~solemn~ Keep the translator at your ear. Nobody out there talks like us, or owes you a thing.'),
-  F('~angry~ The boat. The school. Your mother. You leave everything half done.'),
-  // (under these last words the hum creeps in, louder until the strike: src/story/hum.js callHum)
-  F('~solemn~ My son, make us proud. Bring back something of value.'),
-  spoken('father', '~neutral~ We will be waiting for you at the—', { cut: true }),
+  F('~tired~ Is it on? Right. There you are. We haven’t heard from you for so long.'),
+  F('~sad~ Your mother still lays your place at the table. We miss you. Both of us.'),
+  F('~angry~ And I’m still disappointed in you. The boat, the school. You leave everything half done.'),
+  // (the theme is nearest under these words: src/story/light-theme.js lightCues)
+  F('~solemn~ My son, make us proud. Bring back *something of value*. Until then, don’t come home.'),
+  spoken('father', '~neutral~ Keep the translator at your ear. Nobody out there talks like—', { cut: true }),
 ];
 
 /**
@@ -363,10 +369,10 @@ const BEATS = [
     ],
   },
   {
-    // Odile and Talo's ship: struck by the same light
+    // Odile and Talo's ship: brought down by the same light
     id: 'struck', when: (f) => f.struck,
     lines: () => [
-      F("~angry~ Ships get struck. It happens. That’s what I told your mother. I don’t know what else to tell her.", { 'calls.beat.struck': true }),
+      F("~angry~ Ships go dark out there. It happens. That’s what I told your mother. I don’t know what else to tell her.", { 'calls.beat.struck': true }),
       YOU('~whisper~ (Like Odile and Talo’s. Like mine.)'),
     ],
   },
@@ -444,7 +450,7 @@ function motherAlone(f) {
     M("~whisper~ Hello, love. Your father’s asleep. I need to tell you something without him interrupting.", { 'calls.ilen.told': true, 'calls.ilen.told.at': f.here ?? true }),
     M("~neutral~ If you’re asking about Ilen, perhaps you heard his message on an old relay. I should have told you myself, years ago."),
     M("~solemn~ Ilen was your sister. Your elder sister. She had grown up and left before you were born."),
-    M("~sad~ He sent her off with the same words. Make us proud. Bring back something of value."),
+    M("~sad~ He sent her off with the same words. Make us proud. Bring back *something of value*."),
     M('~sad~ She never came home. We never found out why.'),
     M("~sad~ Every night for a year he sent that message after her. Then I asked him to stop. We couldn’t keep living at the receiver."),
     ...(f.lights >= 1 ? [M("~whisper~ The last sound from her ship was singing. No words. We never learned what it meant.")] : []),
@@ -576,7 +582,7 @@ export function callLines(n, ctx = {}) {
     SHIP('~neutral~ The last recording on the reel. Playing.'),
     M('~solemn~ We are both here. He wants to say something.', { 'calls.home': true }),
     F('~solemn~ Son.'),
-    F("~solemn~ I keep thinking about what I asked you to bring back. Something of value. I made it sound like you had to earn your way through the door."),
+    F("~solemn~ I keep thinking about what I asked you to bring back. *Something of value*. I made it sound like you had to earn your way through the door."),
     ...(k ? [YOU(`~whisper~ (You hold ${nameIn(k)} up to them.)`)] : []),
     ...(f.ilenTold ? [F("~sad~ I told your sister the same thing. I would have welcomed her back with empty hands.")] : []),
     // Lou, five, across the yard: the drawings he keeps in his chair (src/story/home-data.js), not said

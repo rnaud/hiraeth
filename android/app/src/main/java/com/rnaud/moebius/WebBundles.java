@@ -84,7 +84,7 @@ final class WebBundles {
 
     /** The native bridge's level. Bump it whenever the Java side changes in a way the web side relies on
      *  (GamepadBridge, AppShellPlugin, the events below): web bundles built after that need this APK. */
-    static final int NATIVE_API = 7;   // 7: silent while away (the tab muted by GeckoView, the pause answered before the session deactivates, onStop and screen off too, the WebView's timers paused); 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
+    static final int NATIVE_API = 8;   // 8: rumble (AppShell 'rumble', info's rumble: Rumbler, the VIBRATE permission); 7: silent while away (the tab muted by GeckoView, the pause answered before the session deactivates, onStop and screen off too, the WebView's timers paused); 6: the game in GeckoView (MainActivity; the WebView where it can't run), AppShell.info's engine; 5: updates from the game's site, a quiet APK check (info's apkCheck); 4: AppShell check / download / openApk, progress and the update log; 3: info reports the update check
     /** The oldest bridge the web game needs (web.json's minNative, scripts/release-info.mjs). Raise it to NATIVE_API
      *  when the web side starts relying on a bridge change; a Java-only change (like 5) leaves it, so older apps keep
      *  taking the game's updates while the APK offer (latest.json's native) brings them the new app. */
@@ -93,7 +93,7 @@ final class WebBundles {
     /** The game's updates: next to the web game on Cloudflare (cloudflare.yml, scripts/web-update.mjs). */
     static final String MANIFEST = "https://memento.alexandria-rnaud.workers.dev/updates/web.json";
     /** Where a new APK is (GitHub releases; the author's, by hand, once the repository is private). */
-    static final String RELEASES = "https://github.com/rnaud/moebius/releases/latest";
+    static final String RELEASES = "https://github.com/rnaud/hiraeth/releases/latest";
     static final long BOOT_TIMEOUT_MS = 30000;   // (the full game boots in ~7-18 s on a software-GL emulator)
     private static final int MAX_TRIES = 2;
     private static final int ZIP_LIMIT = 300 * 1024 * 1024;

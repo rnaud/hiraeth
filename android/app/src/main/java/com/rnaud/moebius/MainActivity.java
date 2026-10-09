@@ -334,7 +334,7 @@ public class MainActivity extends Activity {
         if (call == null) return;
         int id = call.optInt("id");
         if (!"AppShell".equals(call.optString("plugin"))) { reply(from, id, false, "no plugin " + call.optString("plugin")); return; }
-        AppShell.call(this, bundles, "gecko", call.optString("method"), new AppShell.Reply() {
+        AppShell.call(this, bundles, "gecko", call.optString("method"), call.optJSONObject("args"), new AppShell.Reply() {
             @Override public void ok(JSONObject value) { ui.post(() -> reply(from, id, true, value)); }
             @Override public void fail(String why) { ui.post(() -> reply(from, id, false, why)); }
         });

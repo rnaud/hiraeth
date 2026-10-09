@@ -12,6 +12,8 @@ import * as arzach2 from '../src/story/arzach2-data.js';
 import * as perdide2 from '../src/story/perdide2-data.js';
 import * as garage from '../src/story/garage-data.js';
 import * as incal from '../src/story/incal-data.js';
+import { SHOPKEEPERS } from '../src/story/shop-data.js';
+import { SHOPS } from '../src/shop.js';
 
 // The game menu's People page (src/story/people-book.js, src/game-menu.js peoplePanel): who the people of the
 // route are, as far as the save says the traveller knows them. Spoiler-safe: only people met, and only the
@@ -23,7 +25,9 @@ const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 async function peopleOf(world) {
   const m = await import(`../src/story/${world}-data.js`);
   const out = new Map();
-  for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[world]?.npcs, m.WREN ? [m.WREN] : null]) {
+  // (and the keepers of the world's shops: src/story/shop-data.js, placed by src/story/shops.js)
+  const keepers = Object.values(SHOPS).filter((s) => s.world === world).map((s) => SHOPKEEPERS[s.keeper]);
+  for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[world]?.npcs, m.WREN ? [m.WREN] : null, keepers]) {
     for (const p of Array.isArray(list) ? list : Object.values(list ?? {})) if (p?.id && p.talk && !out.has(p.id)) out.set(p.id, p);
   }
   return out;
@@ -87,8 +91,8 @@ test('the story unlocks part by part as the save hears it, and says where they a
   assert.match(personStory(esk, { 'quest.edena.terraces': 'failed' }).join(' '), /hollow/);
   // Ilen: what the light was, only once she has told it (the talk that ends with her coming home)
   const ilen = PERSON.get('ilen');
-  assert.ok(!personStory(ilen, { 'met.ilen': true }).join(' ').includes('struck'));
-  assert.match(personStory(ilen, { 'met.ilen': true, 'finale.met': true }).join(' '), /struck your ship/);
+  assert.ok(!personStory(ilen, { 'met.ilen': true }).join(' ').includes('drained'));
+  assert.match(personStory(ilen, { 'met.ilen': true, 'finale.met': true }).join(' '), /passed your ship and drained it/);
   // the conditions read the save's own shapes
   assert.equal(holds({ quest: 'desert.drum', done: true }, { 'quest.desert.drum': 'done' }), true);
   assert.equal(holds({ quest: 'desert.drum', past: 'free' }, { 'quest.desert.drum': 'find' }), false);

@@ -3,7 +3,7 @@ Play Hiraeth offline on Steam Deck, with automatic updates and a non-Steam libra
 In **Desktop Mode**, open Konsole and run:
 
 ```sh
-curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/moebius/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
+curl --fail --location --output /tmp/install-moebius.py https://github.com/rnaud/hiraeth/releases/download/steam-deck/install-moebius.py && python3 /tmp/install-moebius.py
 ```
 
 When prompted, use **Steam → Exit**. The installer adds Hiraeth to the existing
@@ -21,5 +21,5 @@ Use Steam Input's **Gamepad with Joystick Trackpad** template. Leave **Force the
 use of a specific Steam Play compatibility tool** unchecked. Steam → Exit Game
 closes the game in Gaming Mode; Alt+F4 works in Desktop Mode.
 
-See [the Steam Deck guide](https://github.com/rnaud/moebius/blob/main/docs/steam-deck.md)
+See [the Steam Deck guide](https://github.com/rnaud/hiraeth/blob/main/docs/steam-deck.md)
 for details and troubleshooting. This is a non-Steam build, not a Steam Store release.

@@ -63,7 +63,7 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
   version in `src/changelog.js`, versionCode the commit count (`release-info.mjs build`); signed with the
   web app's release key (alias `moebius`), so it installs **next to** the app `com.rnaud.moebius`, never
   over it, and every build installs over the last. Published as `memento-unity.apk` on the release
-  [`unity-android`](https://github.com/rnaud/moebius/releases/tag/unity-android).
+  [`unity-android`](https://github.com/rnaud/hiraeth/releases/tag/unity-android).
 - **Linux** (`BridgeBuild.Linux -mono`, the Steam Deck's: x86_64, Vulkan), after the APK, as
   `memento-unity-linux.tar.gz` on the release `unity-linux`.
 - Both releases are prereleases and never "latest" (the app's updater and the players read the

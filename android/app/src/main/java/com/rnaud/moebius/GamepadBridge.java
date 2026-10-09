@@ -30,6 +30,8 @@ final class GamepadBridge {
     private final boolean[] hat = new boolean[4];    // up, down, left, right from the hat axes
     private float lt, rt;                            // analog triggers
     private String name = "Android gamepad";
+    /** the pad last used (its InputDevice id, -1 none yet): the one Rumbler shakes */
+    static volatile int lastDevice = -1;
     private boolean scheduled, live;
 
     GamepadBridge(Out out) { this.out = out; }
@@ -85,6 +87,7 @@ final class GamepadBridge {
         InputDevice d = e.getDevice();
         boolean pad = isPad(e.getSource()) || (d != null && isPad(d.getSources())) || e.getKeyCode() == KeyEvent.KEYCODE_BACK;
         if (!pad) return false;
+        if (d != null) lastDevice = d.getId();
         if (e.getAction() == KeyEvent.ACTION_DOWN) keys[i] = 1f;
         else if (e.getAction() == KeyEvent.ACTION_UP) keys[i] = 0f;
         else return true;
@@ -98,6 +101,7 @@ final class GamepadBridge {
         if ((e.getSource() & InputDevice.SOURCE_JOYSTICK) != InputDevice.SOURCE_JOYSTICK || e.getAction() != MotionEvent.ACTION_MOVE) return false;
         InputDevice d = e.getDevice();
         boolean z = d == null || d.getMotionRange(MotionEvent.AXIS_Z, e.getSource()) != null;
+        if (d != null) lastDevice = d.getId();
         axes[0] = e.getAxisValue(MotionEvent.AXIS_X);
         axes[1] = e.getAxisValue(MotionEvent.AXIS_Y);
         axes[2] = e.getAxisValue(z ? MotionEvent.AXIS_Z : MotionEvent.AXIS_RX);

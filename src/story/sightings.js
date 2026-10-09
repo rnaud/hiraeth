@@ -19,7 +19,7 @@ import { DETOUR_SIGHTINGS } from './sightings-detours.js';
 import { isWip } from '../levels/names.js';
 
 export const THREADS = [
-  { id: 'light', name: 'The singing light', ask: 'What struck the ship, and why did it turn?' },
+  { id: 'light', name: 'The singing light', ask: 'What drained the ship as it passed, and why did it turn?' },
   { id: 'glyph', name: 'The makers’ sign', ask: 'Three dots over an arc, burned into the hull. Who signs their work like that?' },
   { id: 'signal', name: 'The father’s signal', ask: 'A voice sent out a long time ago. Who was it meant for?' },
   { id: 'before', name: 'Someone came this way before', ask: 'Who else came this far alone?' },
@@ -28,13 +28,13 @@ export const THREADS = [
 const ROUTE = [
   // ---------------------------------------------------------------- the singing light
   { id: 'desert.oum', thread: 'light', world: 'desert', who: 'Oum', line: 'A light crossed the dunes singing one long note. It turned over Qanat, and the tree went dark.', heard: { who: 'oum', node: 'light' } },
-  { id: 'desert.dalia', thread: 'light', world: 'desert', who: 'Dalia', line: 'The stones hummed under a clear sky. Something low, then rising, like a question.', heard: { who: 'tamsin', node: 'listen', has: 'night before your crash' } },
+  { id: 'desert.dalia', thread: 'light', world: 'desert', who: 'Dalia', line: 'The stones hummed under a clear sky. Something low, then rising, like a question.', heard: { who: 'tamsin', node: 'listen', has: 'night before you came down' } },
   { id: 'desert.nour', thread: 'light', world: 'desert', who: 'Nour', line: 'The Givers’ chest answered the light all night.', heard: { who: 'nour', node: 'dark' } },
   { id: 'arzach.senn', thread: 'light', world: 'arzach', who: 'Senn', line: 'The light sang. The stones answered. The bird cried.', heard: { who: 'senn', node: 'light' } },
   { id: 'arzach2.calix', thread: 'light', world: 'arzach2', who: 'Calix', line: 'The night it passed, the silent bell hummed by itself.', heard: { who: 'calix', node: 'mark' } },
   { id: 'perdide.sedge', thread: 'light', world: 'perdide', who: 'Sedge', line: 'Low over the reeds, one high note. The Great Crystal answered without any rain.', heard: { who: 'sedge', node: 'light' } },
   { id: 'perdide.saba', thread: 'light', world: 'perdide', who: 'Saba', line: 'The crystal is a piece of it, fallen long ago. The rest is still out there, singing.', heard: { who: 'saba', node: 'heard' } },
-  { id: 'perdide.phrase', thread: 'light', world: 'perdide', who: 'the Great Crystal', line: 'In the rain it sang a phrase it had never sung before: the one you heard the night the ship was struck.', flag: 'perdide.crystal.sung' },
+  { id: 'perdide.phrase', thread: 'light', world: 'perdide', who: 'the Great Crystal', line: 'In the rain it sang a phrase it had never sung before: the one you heard the night it passed your ship.', flag: 'perdide.crystal.sung' },
   { id: 'perdide2.robin', thread: 'light', world: 'perdide2', who: 'Robin', line: 'It came low over the wood. Three pools went out as it passed: one, two, three.', heard: { who: 'wick', node: 'night' } },
   { id: 'perdide2.saucer', thread: 'light', world: 'perdide2', who: 'Odile and Talo’s saucer', line: 'Struck a second time, over the deep wood. Its lamp still blinks three short and one long.', heard: { who: 'saucer', node: 'look' } },
   { id: 'edena.mira', thread: 'light', world: 'edena', who: 'Mira', line: 'Talo called it the Singer: it sang, turned, then struck their ship.', heard: { who: 'mira', node: 'same' } },
@@ -48,7 +48,7 @@ const ROUTE = [
   { id: 'spheres.ume', thread: 'light', world: 'spheres', who: 'Ume', line: 'An Answerer, matching the pole’s note. It turned directly over the plaza.', heard: { who: 'ume', node: 'strange' } },
   { id: 'bazaar.ferro', thread: 'light', world: 'bazaar', who: 'Ferro', line: 'It turned as though it were reading the signs. The antenna’s bulbs lit by themselves.', heard: { who: 'ferro', node: 'light' } },
   // ---------------------------------------------------------------- the makers' sign
-  { id: 'desert.hull', thread: 'glyph', world: 'desert', who: 'Marrow', line: 'Burned into your ship’s hull where it was struck, and still warm.', heard: { who: 'marrow', node: 'wreck' } },
+  { id: 'desert.hull', thread: 'glyph', world: 'desert', who: 'Marrow', line: 'Burned into your ship’s hull where the light brushed it, and still warm.', heard: { who: 'marrow', node: 'wreck' } },
   { id: 'desert.givers', thread: 'glyph', world: 'desert', who: 'Nour', line: 'The Givers’ mark: on the giants, the carved stones, the chests. The same signature.', heard: { who: 'nour', node: 'givers' } },
   { id: 'arzach.track', thread: 'glyph', world: 'arzach', who: 'Oïa', line: 'Drawn in the sand without a word: the bird’s track.', heard: { who: 'oia', node: 'track' } },
   { id: 'arzach2.face', thread: 'glyph', world: 'arzach2', who: 'the tower on the plain', line: 'On the brow of a sleeping face, the same as the desert’s masked head.', heard: { who: 'face', node: 'look' } },

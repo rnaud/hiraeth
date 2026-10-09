@@ -37,12 +37,11 @@ export class ItemViewer {
     this.blit = createBlit(this.composeRT.texture);
     // one fine shadow map round the item, as the game's fine cascade; the near and far ones made and switched
     // off (the materials sample all three as depth maps: one left unbound is an invalid draw)
-    this.cascade = new Cascade({ name: 'fine', size: 1024, extent: 3, depth: 60, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0 } });
-    const near = new Cascade({ name: 'near', size: 256, extent: 20, depth: 60, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset } });
-    const far = new Cascade({ name: 'far', size: 256, extent: 40, depth: 60, bias: 2.2, offset: 2.4, uniforms: { map: SU.uShadowMap2, matrix: SU.uShadowMatrix2, bias: SU.uShadowBias2, offset: SU.uShadowNormalOffset2 } });
+    this.cascade = new Cascade({ name: 'fine', size: 1024, extent: 3, depth: 60, bias: 3.4, offset: 2.6, uniforms: { map: SU.uShadowMap0, matrix: SU.uShadowMatrix0, bias: SU.uShadowBias0, offset: SU.uShadowNormalOffset0, texel: [SU.uShadowTexel, 0] } });
+    const near = new Cascade({ name: 'near', size: 256, extent: 20, depth: 60, bias: 2.3, offset: 3.2, uniforms: { map: SU.uShadowMap, matrix: SU.uShadowMatrix, bias: SU.uShadowBias, offset: SU.uShadowNormalOffset, texel: [SU.uShadowTexel, 1] } });
+    const far = new Cascade({ name: 'far', size: 256, extent: 40, depth: 60, bias: 2.2, offset: 2.4, uniforms: { map: SU.uShadowMap2, matrix: SU.uShadowMatrix2, bias: SU.uShadowBias2, offset: SU.uShadowNormalOffset2, texel: [SU.uShadowTexel, 2] } });
     for (const c of [this.cascade, near, far]) c.prime(R);
-    near.disable(); far.disable();
-    SU.uShadowTexel.value.set(this.cascade.texel, near.texel, far.texel);
+    near.disable(); far.disable();   // (each cascade keeps uShadowTexel in step with its map: reconfigure freely)
     for (const [k, v] of Object.entries(PRESETS['Moebius print'])) if (U[k]) U[k].value = v;
     applyTimeOfDay(10.5, SU.uSunDir.value, U, null);
     SU.uCloudShadows.value = 0;
@@ -101,7 +100,9 @@ export class ItemViewer {
     // 1. the shadow round the item
     this.backdrop.visible = false;
     S.overrideMaterial = this.shadowOverride;
-    this.cascade.aim(shadowDirection(SU.uSunDir.value, new THREE.Vector3())); this.cascade.place(centre); this.cascade.render(R, S);
+    // (centred on the subject's own foot where a viewer says where that is: EnemyViewer, whose frame also holds
+    // the attack's marked area)
+    this.cascade.aim(shadowDirection(SU.uSunDir.value, new THREE.Vector3())); this.cascade.place(this.shadowCentre?.(m) ?? centre); this.cascade.render(R, S);
     S.overrideMaterial = null;
     this.backdrop.visible = true;
     // 2. the G-buffer, 3. the ink pass, 4. FXAA to the canvas

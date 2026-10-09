@@ -175,7 +175,7 @@ test('the desert crash site faces Qanat, and the city shows on the horizon from 
   const { desertHeight } = await import('../src/desert-landmarks.js');
   const s = SITE_OVERRIDES.desert, city = { x: 230, z: 400 };
   assert.ok(Math.hypot(s.x, s.z) < 160, 'near the old camp');
-  assert.ok(s.crash && s.crash.sink > 2 && s.crash.length > 60, 'dug in at the end of a long furrow');
+  assert.ok(s.crash && s.crash.sink > 2 && s.crash.length > 30 && s.crash.length < 70, 'dug in at the end of a short skid: a forced landing on its belly, not a crash');
   assert.ok(Math.abs(s.crash.roll) < 0.01 && Math.abs(s.crash.pitch) < 0.01, 'upright: the deck inside is level, walking it never goes up and down');
   const toCity = Math.atan2(city.x - s.x, city.z - s.z);
   assert.ok(Math.abs(Math.atan2(Math.sin(toCity - s.heading), Math.cos(toCity - s.heading))) < 0.2, 'the hatch faces the city');
@@ -282,7 +282,7 @@ test('recordings: one per completed world, each heard once, the mother from the 
   assert.ok(callLines(1, { keepsake: { name: 'A gear tooth', kind: 'thing' } }).some((l) => l.who === 'you' && l.text.includes('a gear tooth')), 'he holds the keepsake up to them');
   assert.ok(callLines(2, { keepsake: { name: 'x', kind: 'song' } }).some((l) => /song/i.test(l.text)), 'he reacts to a song');
   assert.ok(callLines(3, { keepsake: { name: 'x', kind: 'person' } }).some((l) => l.who === 'mother' && /Who/.test(l.text)), 'she asks who you met');
-  assert.ok(PROLOGUE_CALL.some((l) => l.text === 'My son, make us proud. Bring back something of value.'));
+  assert.ok(PROLOGUE_CALL.some((l) => l.text.replace(/\*/g, '').startsWith('My son, make us proud. Bring back something of value.')));
   // one call per world on the route; the mother's own call (Ilen) waits once he has been asked and the ship has flown on
   assert.equal(CALL_COUNT, ORDER.length);
   const flags = { 'calls.ilen.asked': true, 'calls.ilen.at': 'bazaar', 'ship.level': 'bazaar' };

@@ -30,7 +30,7 @@ import { MODE_OUTFIT, MODE_EYE } from '../materials.js';
 //   holo.show({ parent: model.group, at, scale, who: 'both', face: () => travellerHead, lens: 0.16 })
 //                                                     // who: 'father' | 'mother' | 'both' | 'three'
 //   holo.speak('father')                              // who is talking (null: nobody)
-//   holo.glitch(1)                                    // tear it up (the impact)
+//   holo.glitch(1)                                    // tear it up (the power going)
 //   holo.hide()                                       // folds away over HOLO_FOLD seconds
 //   holo.update(dt)                                   // every frame
 

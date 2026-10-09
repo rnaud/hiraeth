@@ -1,6 +1,6 @@
 name: Deploy to GitHub Pages
 
-# The game at https://rnaud.github.io/moebius/, a second home next to the Cloudflare
+# The game at https://rnaud.github.io/hiraeth/, a second home next to the Cloudflare
 # Worker (cloudflare.yml). Only the site: the content updates for the app and the
 # Deck (/updates/) come from the Worker alone.
 

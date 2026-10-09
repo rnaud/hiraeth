@@ -43,8 +43,8 @@ U.uRes.value.set(RW, RH); U.uPixelRatio.value = RW / W; SU.uPixelRatio.value = R
 blit.material.uniforms.resolution.value.set(1 / RW, 1 / RH);
 const baseLook = THREE.UniformsUtils.clone(U);
 const shadowOverride = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, colorWrite: false });
-const cascades = [['0', 1024, 100], ['', 2048, 350], ['2', 2048, 1500]].map(([suffix, size, extent]) =>
-  new Cascade({ size, extent, depth: 3200, uniforms: { map: SU[`uShadowMap${suffix}`], matrix: SU[`uShadowMatrix${suffix}`], bias: SU[`uShadowBias${suffix}`], offset: SU[`uShadowNormalOffset${suffix}`] } }));
+const cascades = [['0', 1024, 100], ['', 2048, 350], ['2', 2048, 1500]].map(([suffix, size, extent], i) =>
+  new Cascade({ size, extent, depth: 3200, uniforms: { map: SU[`uShadowMap${suffix}`], matrix: SU[`uShadowMatrix${suffix}`], bias: SU[`uShadowBias${suffix}`], offset: SU[`uShadowNormalOffset${suffix}`], texel: [SU.uShadowTexel, i] } }));
 SU.uShadowTexel.value.set(...cascades.map(c => c.texel));
 
 

@@ -24,28 +24,31 @@ at the first homecoming, and again at the true ending, with his sister beside hi
 *word* (something a person said), *person* (someone who asks to come along, or
 a promise to return), *knowing* (an understanding of how the world works).
 
-**The glyph**: three dots over an arc that bows upward (∩), never a smile. It is scorched into the ship's hull from
-the impact. It recurs on the reactive scenery's three apertures in every world,
+**The glyph**: three dots over an arc that bows upward (∩), never a smile. It is scorched into the ship's hull where
+the singing light brushed past it. It recurs on the reactive scenery's three apertures in every world,
 on the giants' bones, on the Lodestar's facets, on the Major's machine, on the
 android ruins of Viridel and on the oldest market sign. Locals each have a
-different name and story for it. Nobody out on the route knows what struck the ship; in each
+different name and story for it. Nobody out on the route knows what drained the ship; in each
 world at least one person (often several) saw a singing light pass over on the
-night the ship was struck: it dipped low, turned "like it was looking for
+night before it found the ship: it dipped low, turned "like it was looking for
 something", and climbed away. It never fell. **What it was** (said only at the
 end, by Ilen at the Lantern): her answer. The makers' lantern sends a light to
 bring in anyone a long way from home; when the father's broadcast reached her,
 thirty years late, she sang his own message into one, put the makers' sign on
 it, and sent it home. It sang over the round house (the father at the window),
 then went looking for the voice that had called her and found it on the reel
-playing in his ship's cockpit: the strike. It was trying to bring him to her.
+playing in his ship's cockpit (he paused the reel to listen to it). It passed so
+close it drained the ship (they drink what a ship runs on as they pass), and he
+came down in the desert: a forced landing, not a crash. It was trying to bring
+the father to her; it found the son, and he chose to follow it.
 The glyph scorched into the hull is the sign it carried: *we heard you*.
 
-**The signature** (src/story/signature.js; LORE.md, "The strike's signature"):
+**The signature** (src/story/signature.js; LORE.md, "The light's signature"):
 the scar is magnetised, and its field beats slowly in threes. The ship charts
 only the worlds whose field carries the same signature (the worlds the singing
 light passed through) and reads the trace further on from each one finished.
-Home has none. The ship says so after the crash, on the map and out of each
-first jump; a few locals notice it as compasses and needles that turn.
+Home has none. The ship says so after the landing (and he tells it to follow
+the light), on the map and out of each first jump; a few locals notice it as compasses and needles that turn.
 
 **The boxes** (src/boxes/, src/items.js): every item box in the game is an
 artifact of the **makers**, the people whose sign is the glyph. Nobody has
@@ -72,8 +75,8 @@ wings, its lenses and rings, little charms. Each gift waits in a chest:
   world has its own name for them (table below), and one person in each
   world mentions theirs.
 - **Answered at the Lantern** (the final chapter, below): the singing light is a
-  makers' light, sent from their lantern, and the one that struck the ship was
-  Ilen's answer (Nour was right: "whatever struck you knew their sign"); the
+  makers' light, sent from their lantern, and the one that drained the ship was
+  Ilen's answer (Nour was right: "whatever brought you down knew their sign"); the
   chests opened for her too, thirty years ago. The glyph means *we heard you*.
 
 **The colours**: the backpack fluid starts two-tone (cyan and violet). Each
@@ -160,8 +163,11 @@ written in).
   1. `city`: the ship is dark and the traveller's back is bare. The quest
      doesn't just appear: Marrow the salvager is at the ship, looking over the
      scar on its hull, and calls the traveller over ("Sky-person! Over here!");
-     he says the only fire out here that could wake a ship is the great tree's,
-     in Qanat, gone cold, and to ask old Nour under the humming chest. The quest
+     he says the ship isn't broken but drained, that only Qanat, round its great
+     tree, ever held that much power (the tree has gone cold, and burning or cold
+     Qanat doesn't hand its fire to strangers), and to ask old Nour under the
+     humming chest. Nour: put our tree right, "and Qanat will not let you leave in
+     the dark". The quest
      starts in that talk (or with Ama, the Speaker, Nour or Hessa, whoever the
      traveller talks to first). On the way the camps and the procession wave them on
      (Ama: "To the city, sky-stranger! Up to the tree!"; the Speaker: "Qanat is
@@ -191,8 +197,13 @@ written in).
      dry (damp stains, a pale tide line, no water at all) because a giant's bone
      has fallen across the channel. Pushing it clear (fluid push; without the
      tool, a heave) lets the water run: the stream comes out of the crack, down
-     the channel, and fills the pool; the tree drinks. 7. `fill`, 8. `ship`: the jar filled at the pool powers the ship
-     (`ship.powered`, `world.desert.done`, the keepsake).
+     the channel, and fills the pool; the tree drinks. 7. `fill` (the jar and the tank at the pool), then the
+     spark-stone's errand lights the tree. 8. `ship`: **Qanat repays him.** Because he gave the city back its
+     light, the city chooses to help him in return: the ones with something to give go down to his ship and pour
+     in what their houses can spare (the camps' share of the Drinking, a street's lamps, the well's first water,
+     an oven's fire-water, Marrow's last cell), one by one, Nour last ("You gave us back our light, child. So
+     Qanat gives your ship its own."). That powers the ship (`ship.powered`, `world.desert.done`, the keepsake;
+     src/story/desert-repay.js), not the tree's fire by itself.
   Saves from before (stages `pack`, `camps`, then ama, speaker, well) move to
   `city` or to Nour and skip what they already did (src/story/desert.js
   `migrateDesertQuest`; src/boxes/index.js `migrateSave` marks the shrine's
@@ -206,7 +217,7 @@ written in).
   where they could go no further; the water pooled in their hearts. The tree
   grows from this giant's heart and Qanat was built round it.
 - **Clue**: the Speaker says the giants "came down from the swamp of lights"
-  → Lorn. Someone saw a singing light go over the night the ship was struck (it dipped low, turned, and climbed away).
+  → Lorn. Someone saw a singing light go over the night before the ship came down (it dipped low, turned, and climbed away).
 
 ### 7. The City-Shaft (incal) — "The Light Nobody Looks At"
 - **Local story**: The Lodestar turns above the palace; the upper city calls it a
@@ -298,7 +309,7 @@ written in).
   the ground now. The journal files it as failed; the father's charge keeps it
   as "what you could not mend"; a recording afterwards lands differently.
 - **Keepsake**: *word*: "We tend the garden. The garden tends us."
-- **Clue**: Odile and Talo's ship was struck by the same singing light → the
+- **Clue**: Odile and Talo's ship was brought down by the same singing light → the
   traveller's ship wasn't the first.
 
 ### 10. The Garden of Spheres — "What the Spheres Remember"
@@ -316,7 +327,7 @@ written in).
   splinter to the cave; follow the fireflies.
 - **Keepsake**: *thing*: a crystal splinter that harmonises with the tank.
 - **Clue**: the crystal's song matches the "singing light" → it is a fragment
-  of whatever struck the ship.
+  of whatever passed the ship.
 
 ### 5. Lorn II — "The Lamps Are Kept"
 - **Local story**: In the deep wood people keep the pools lit for travellers
@@ -343,13 +354,13 @@ written in).
 - **The place**: one small island in a still sea of light at dusk; the makers'
   lantern on its crown; Ilen's house, the top half of her own round ship; yellow
   flowers; a bench facing home; two stones on the point: Odile and Talo, who got
-  there first (struck twice, they came looking the third time), kept the lantern
+  there first (brought down twice, they came looking the third time), kept the lantern
   and kept her, and died there.
 - **Ilen**: about fifty, grey coming into her hair, the mother's teal and coral;
   speaks the home tongue (no translator). A light brought her in thirty years
   ago and her ship never flew again (its last sound home was the light's
   singing). She meets her brother, learns the parents are dead, tells him what
-  the light was and why it struck, hears what he chose on the way, asks him to
+  the light was and why it came to his ship, hears what he chose on the way, asks him to
   tell Hollin where Odile and Talo went, and comes home.
 - **Keepsake**: *person*: Ilen herself (she walks to the stone; she is never
   set on it).
@@ -412,9 +423,14 @@ the recordings heard, whatever the order of the worlds; numbered as
 `src/story/calls.js` numbers them: the prologue's is recording 0, `AGE[1..5]`
 follow, and the last is n = `ENDING_WORLDS`):
 0. The prologue: "Good morning. You have one new message." (the voicemail
-   button blinks on the dash). The
-   father's speech the day he left (nine years ago); the player takes it for a
-   call from home. The impact tears the hologram apart.
+   button blinks on the dash). The father, years after he left: "We haven't
+   heard from you for so long." He misses him ("Your mother still lays your
+   place at the table"), is still disappointed in him ("You leave everything
+   half done"), and gives the charge again: "Bring back *something of value*.
+   Until then, don't come home." The player takes it for a call from home.
+   Under it the singing light's theme comes nearer; he pauses the recording to
+   listen, the light passes the ship and drains it, and the hologram goes with
+   the power.
 1. The first one after a world: no date; the father is short with him.
 2. The father mentions things that cannot be now (exams, the fence, the Orrin
    boy). The screen shows a worn date stamp.
@@ -437,8 +453,8 @@ follow, and the last is n = `ENDING_WORLDS`):
 Before that, a few recordings answer what happened in a way the traveller
 cannot explain (each once, flags `calls.beat.<id>`): the father warning him
 off "anything singing out there" (after the singing light); the harbour bell
-behind them (after Vael II's bell); "ships get struck out there, that's all it
-is" (after Odile and Talo's ship); "if you break something out there, you say
+behind them (after Vael II's bell); "ships go dark out there, it happens"
+(after Odile and Talo's ship); "if you break something out there, you say
 sorry, and you mean it, and then you go" (after the tea terraces in Viridel, the
 quest that fails); the three dots he drew on the landing ring
 as a boy (after the glyph); a bird's promise in a child's story; the lamp the
@@ -568,7 +584,7 @@ Built details beyond the bible: the bird's promise (`bird.promise`) could later
 let her answer a whistle in other worlds; Vael II's clapper "fell up"; the
 Major once visited the wheel and wrote "FOUND IT. NOW WHAT?" on the drum wall;
 Odile and Talo left Viridel in the saucer for the deep wood, the way the light
-went; it struck them again over the wood; they waited a season in Lorn II, then
+went; it brought them down again over the wood; they waited a season in Lorn II, then
 crossed the swamp in Fen's skiff to ask the Great Crystal, and went on (where,
 nobody knows); each sphere remembers the last sound it heard before it came down
 out of the sky (the white builders found the spheres and the pyramids already

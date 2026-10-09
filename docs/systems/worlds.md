@@ -143,7 +143,9 @@ The reference pages for the four v0.30 worlds are in `references/`
 
 - **Interiors** (`src/interiors.js`): rooms are real geometry, with walls
   that have door and window openings, so the sun's shadow map throws light
-  patches inside. Each has furniture and a glowing lamp.
+  patches inside. Each has furniture and a glowing lamp. Buildings with a shopfront
+  and a room to play in are made with the interior kit (`src/interior-kit.js`,
+  docs/systems/interiors.md): Haddu's shop by Qanat's main gate is the first.
   - **City:** three villas behind the spawn you walk straight into.
   - **Desert:** a carved doorway in front of the masked head leads to a
     glyph chamber under an oculus.

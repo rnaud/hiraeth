@@ -8,6 +8,26 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.6', date: '2026-10-09', items: [
+    // the galactic map's signature search
+    'The galactic map has a signature search: a world newly in reach is no longer named outright. The ship hears the singing light’s three pulses out there and marks uncharted regions on the chart; sweep them with the mouse, the left stick, W A S D or a finger, and the scanner warms, quickens and sings louder as you near a world that carries it, with a signal meter in the corner. Hold it there a moment and the planet appears and is charted.',
+    'The worlds still open in the same order as before, and saves from before keep every world they had on the map.',
+    // rumble
+    'Controllers rumble: a hit (harder the more hearts it costs), a heavy foe’s slam nearby, a hard landing, drinking a potion, letting go of a charged cut, picking up chimes (barely), the ship lifting off, and the signature search, beating in threes as you near a world. In Settings, Controller rumble turns it off and Rumble strength picks low, medium or high; without a controller that can rumble they are greyed out. On Android it comes with the new app, which the game offers.',
+    // the title screen
+    'The title screen’s menu is much smaller and sits low at the left, so the world behind the name shows: Continue (or New game) and Saves as two small buttons, and under them a row of little ink icons for Settings (a gear), What’s new (a star), Debug (a beetle) and Full screen (corner brackets), each named when you point at it or reach it with the controller. Full screen no longer shows in the Xbox app.',
+    'On the title screen the traveller now stands still, upright, his arms straight down at his sides and his back to you, looking out over the world as on the covers; only his breath and his coat move.',
+    // the opening, the singing light and the father's message
+    'Your father’s first message now makes the years away plain: “We haven’t heard from you for so long.” He misses you, he is still disappointed in you, and you are not to come home until you bring back something of value. Those words, the game’s own, are now written in gold with their ✦ wherever anyone says them: on his message, on the later recordings and in conversations.',
+    'The singing light has a song of its own: five high, wordless notes, first far off under your father’s message, then nearer, then nearest under his last words.',
+    'The opening is restaged: you pause the message to listen, and the singing light passes close by the ship, singing, and drains its power as it goes. The lights go out, the reserve comes on, and the ship comes down in the desert on its belly, a hard landing rather than a crash, with no fire and no smoke.',
+    'As the emergency power comes on, the ship says it can follow the light’s signature, and you tell it to: when the ship can fly again, you follow the light, because you want to hear it again.',
+    'Nobody talks about your ship being struck any more: Marrow and Nour in the desert, the witnesses in every world, the People page, the Sightings, the map’s note and Ilen at the Lantern now speak of the light passing your ship and draining it.',
+    // Qanat repays you
+    'In the desert, Qanat now repays you for its tree: once the tree burns, the villagers come down to your ship, each with what their house can spare (the camps’ share of the Drinking, a street’s lamps, the well’s first water), and pour it in together, Nour last. That is what wakes the ship, not your jar alone.',
+    // the creatures' gallery
+    'In the creatures and spirits gallery, the creatures’ shadows are clean again: they were torn into ragged, streaky shapes that crawled as the creature moved or the view turned. Now each one casts one smooth ink shadow that holds still, drawn as in the game, and thin parts like a ray’s tail cast theirs too. The game itself was not affected.',
+  ] },
   { v: '1.5', date: '2026-10-09', items: [
     'A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.',
     // the Arena
@@ -24,6 +44,11 @@ export const CHANGELOG = [
     // chimes, the currency
     'Foes now leave chimes when they fall: small brass discs with a square hole that pop out, glint and ring as they land. Walk over them, or just come near and they fly to you; left lying, they blink and are gone after half a minute. Small foes leave one or two, heavy ones more, and a temple’s guardian leaves a purse of forty the first time it is calmed or broken. Nothing drops in the Ink tide.',
     'Your chimes show beside your hearts and potion whenever they change, counting up as they ring in, and on the menu’s Items page by your gear. Finishing a makers’ run for the first time adds fifteen. Shops to spend them in are coming.',
+    // the first shop
+    'The first shop has opened in the desert: Haddu’s Chimes & Cures, a little house with a striped awning beside the way from the pilgrims’ camps up to Qanat’s main gate. Walk in through its door and you are inside, its name shows as you step in, and a save made inside brings you back inside.',
+    'Haddu, a broad, slow chime-weigher in a red fez, keeps the counter. Talk to him, or look at the wares on his counter, and his shop opens: a card for each ware with its picture, what it does, its price and how many are left. Choose one, say yes, and he takes your chimes; he tells you when you are short, when something is sold out, and thanks you for every sale. It works with a controller, the keyboard, the mouse or a finger, on any screen.',
+    'He sells healing potions (10 chimes), heart containers (one more heart for good, and your hearts filled) and magic expansions (one more unit on the magic bar). He only has a couple of hearts and expansions, and each one costs more than the last: the first heart is 50 chimes, a few fights’ worth.',
+    'Potions now run out: a new journey starts with three and you carry five at most, so buy more from Haddu (his shelf holds three and fills again with time). Saves from before start with a full five.',
     // platforms
     { text: 'Hiraeth on Xbox, for testers with a console in Developer Mode: an app of its own that plays the game full screen on the TV with the controller, the Xbox buttons in every prompt, its menus kept inside the TV’s safe area, and the game’s updates arriving by themselves, saves kept.',
       see: 'For testers with an Xbox in Developer Mode: download the package from the xbox prerelease, install it through the Device Portal, set it to Game, and open Hiraeth from Dev Home. Press F3 (or open the frame readout from the settings) to see XBOX, the frame time and whether the JIT is on.' },

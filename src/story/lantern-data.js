@@ -4,8 +4,8 @@
 // Ilen, the traveller's elder sister, left home thirty years ago with the father's words ("make us
 // proud, bring back something of value"). A makers' light found her ship far out and brought her in
 // to the lantern, not gently: her ship never flew again (the last thing it sent home was the light's
-// singing). Odile and Talo had come in on a light long before her, looking for what struck them
-// over Viridel and Lorn II; they kept the lantern, and her. They lie on the point now.
+// singing). Odile and Talo had come in on a light long before her, looking for what brought them
+// down over Viridel and Lorn II; they kept the lantern, and her. They lie on the point now.
 //
 // The makers built the lantern to listen for anyone a long way from home and send a light to bring
 // them in. When the father's broadcast finally reached her, thirty years on the old relays ("Come with
@@ -13,7 +13,9 @@
 // back into one, with the makers' sign on it (three dots over an arc: "we heard you"), and sent it
 // home. It sang over the round house (the father at the window), found nobody calling back, and went
 // looking for the voice that had called her: it found it on the reel playing in the father's ship's
-// cockpit, and went straight to it. That was the strike. It was trying to bring him here.
+// cockpit, and went straight to it, singing (the traveller paused the reel to listen). It passed so close it
+// drained the ship (they drink what a ship runs on as they pass) and left its sign on the hull, and he came
+// down in the desert. It was trying to bring the father here; it found his son, and his son followed it.
 //
 // She speaks the home tongue (no translator: the first voice out there that sounds like home). She
 // asks what he brought, and hears what he chose on the way (src/story/ending.js choicesMade): Dov's
@@ -127,10 +129,10 @@ export const PEOPLE = {
             '~solemn~ (She looks past you, at the scorch along the hull. She looks at it a long time.) A light did that. A singing one.',
             '~sad~ It was mine. My answer. I’m sorry.',
           ],
-          choices: [{ text: '~curious~ Your answer?', goto: 'answer' }, { text: '~angry~ It nearly killed me.', goto: 'sorry' }],
+          choices: [{ text: '~curious~ Your answer?', goto: 'answer' }, { text: '~angry~ It drained my ship. I came down in a desert.', goto: 'sorry' }],
         },
         sorry: {
-          say: ['~sad~ I know. I’m sorry. In thirty years I’ve never seen one of them be gentle.', '~solemn~ Let me tell you what it is. Then be angry, if you still want to. I’d understand.'],
+          say: ['~sad~ I know. I’m sorry. They drink what a ship runs on as they pass. In thirty years I’ve never seen one of them be gentle.', '~solemn~ Let me tell you what it is. Then be angry, if you still want to. I’d understand.'],
           next: 'answer',
         },
         answer: {
@@ -141,11 +143,11 @@ export const PEOPLE = {
             '~neutral~ Then Dad’s message came, crawling along the old relays. *Come with empty hands. Just come.* Thirty years on the way.',
             '~solemn~ A light can’t carry words. It carries a song. So I sang his own message into one, and put the makers’ sign on it, and sent it home.',
           ],
-          choices: [{ text: '~curious~ The sign. Three dots over an arc.', goto: 'sign' }, { text: '~curious~ Then why did it strike my ship?', goto: 'why' }],
+          choices: [{ text: '~curious~ The sign. Three dots over an arc.', goto: 'sign' }, { text: '~curious~ Then why did it come to my ship?', goto: 'why' }],
         },
         sign: {
           say: ['~solemn~ {glyph} It’s on everything they left. Every people out there has a name for it. Odile read it as *we heard you*.', '~whisper~ She might be wrong. It’s what I wanted him to hear.'],
-          choices: [{ text: '~curious~ Then why did it strike my ship?', goto: 'why' }],
+          choices: [{ text: '~curious~ Then why did it come to my ship?', goto: 'why' }],
         },
         why: {
           say: [
@@ -154,16 +156,16 @@ export const PEOPLE = {
             '~sad~ Talo used to say they only know straight. If he was right, it wasn’t trying to bring you down. It was trying to bring him here.',
           ],
           choices: [
-            { text: '~whisper~ The reel was playing when it hit. His message, from the day I left.', goto: 'reel' },
+            { text: '~whisper~ The reel was playing when it came. His message. I stopped it to listen.', goto: 'reel' },
             { text: '~tired~ It has a funny way of bringing people.', goto: 'funny' },
           ],
         },
         funny: {
           say: ['~sad~ (She looks at the scorch on the hull again.) It does. It brought me the same way.'],
-          choices: [{ text: '~whisper~ The reel was playing when it hit. His message, from the day I left.', goto: 'reel' }],
+          choices: [{ text: '~whisper~ The reel was playing when it came. His message. I stopped it to listen.', goto: 'reel' }],
         },
         reel: {
-          say: ['~whisper~ Then it heard him, at the end. It did what I asked. It just found you instead.', '~happy~ (She laughs, and wipes her face with her sleeve.) Which is better. I didn’t know there was a you to find.'],
+          say: ['~whisper~ Then it heard him, at the end. It did what I asked. It just found you instead.', '~solemn~ And you came after it, all this way. A light can’t make anyone do that.', '~happy~ (She laughs, and wipes her face with her sleeve.) Which is better. I didn’t know there was a you to find.'],
           choices: [
             { text: '~curious~ You said Odile. Odile and Talo?', goto: 'odile', if: { any: [{ flag: 'clue.edena.struck' }, { flag: 'perdide2.saucer.seen' }, { flag: 'clue.edena.pod' }] } },
             { text: '~curious~ You’ve been alone here all this time?', goto: 'odile' },
@@ -171,7 +173,7 @@ export const PEOPLE = {
         },
         odile: {
           say: [
-            '~solemn~ Not all of it. Odile and Talo got here first, a long time before me. Struck twice, and the third time they came looking. Gardeners, the pair of them.',
+            '~solemn~ Not all of it. Odile and Talo got here first, a long time before me. Brought down twice, and the third time they came looking. Gardeners, the pair of them.',
             '~happy~ They kept the lantern, and they kept me. Talo taught me to read its song. Odile taught me to plant anything in anything.',
             '~sad~ They’re on the point now, under two stones. Talo first, then Odile, eight winters ago. I kept the lantern after.',
           ],

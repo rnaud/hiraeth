@@ -5,7 +5,7 @@
 //
 //  - Only the worlds you know of are named and can be chosen; the rest are
 //    faint dots further along the route (the unlock rule: src/story/route.js).
-//  - Every world on the chart carries the strike's signature (src/story/signature.js):
+//  - Every world on the chart carries the singing light's signature (src/story/signature.js):
 //    a small glyph mark on its disc, its reading in the panel, and a line beside the
 //    chart saying why these worlds and no others.
 //  - The detours (names.js SIDE: worlds off the route, with no story to finish) are charted after
@@ -24,6 +24,13 @@
 // enough worlds are done (src/story/ending.js). After the first homecoming, once the Signal Market has
 // been heard, the Lantern (the final chapter, src/story/ending.js finaleEntry) is charted past the
 // market's place, a dotted line out to it, pulsing while the light's trace leads there.
+//
+// The signature search (v1.6, src/story/signature-search.js): a world the route has just opened is not
+// named yet. The chart shows an uncharted region somewhere round it, and a scanner (the cursor, a finger
+// dragged over the chart, the left stick, or W A S D) that warms, quickens and sings nearer it, with the
+// pad rumbling the signature's three pulses (src/rumble.js 'search'). Held over it half a second, the
+// planet resolves and is charted (o.onFound(id): the ship sets `map.found.<id>` and says so). A meter
+// in the chart's corner shows the same in bars and a word, so nothing depends on sound or rumble.
 
 import { homeEntry, finaleEntry, FINALE_AFTER } from '../story/ending.js';
 import { knownWorlds } from '../story/route.js';
@@ -32,6 +39,8 @@ import { planetSvg } from './planets.js';
 import { hasSignature, signatureReading, SIGNATURE, SIGNATURE_LEGEND, SIGNATURE_LEGEND_SHORT } from '../story/signature.js';
 import { padIndex } from '../native-pad.js';
 import { glyph } from '../pad-glyphs.js';
+import { isCharted, searchStep, cues, regionFor, lockRadius, signatureNotes, SEARCH, SEARCH_LABEL, SEARCH_LEGEND, SEARCH_LEGEND_SHORT } from '../story/signature-search.js';
+import { rumblePlay } from '../rumble.js';
 
 /**
  * What E does at the ship's two consoles. `at`: 'dash' (the cockpit's voicemail button: the
@@ -55,7 +64,9 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
   const known = new Set(knownWorlds({ order, done: isDone, visited: isVisited, current }));
   const out = order.map((id, i) => {
     const L = levels.find((l) => l.id === id) ?? { id, title: id };
-    return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id), signature: hasSignature(id),
+    // opened by the route but not charted yet: found by the signature search (src/story/signature-search.js)
+    const findable = known.has(id) && !isCharted({ id, index: i, visited: isVisited(id), done: isDone(id), current: id === current, flag: flag ?? (() => undefined) });
+    return { id, i, title: L.title, source: L.source ?? '', blurb: L.blurb ?? '', visited: isVisited(id), done: isDone(id), current: id === current, known: known.has(id) && !findable, findable, signature: hasSignature(id),
       signal: sig?.stage === 'far' && sig.world === id ? 'far' : null };
   });
   // the worlds off the route (names.js SIDE): charted from the start, off the dotted line
@@ -80,7 +91,7 @@ export function worldBox(s = 1) {
   return { disc, font, w: Math.max(84, Math.round(108 * s)), h: disc + 10 + 2 * line + line * 0.95 };
 }
 
-/** The strike's signature as the ship draws it: the glyph, three dots over an upward arc. */
+/** The light's signature as the ship draws it: the glyph, three dots over an upward arc. */
 export const SIG_GLYPH = '<svg class="glyph" viewBox="0 0 20 16" aria-hidden="true"><circle cx="4.5" cy="2.2" r="1.7"/><circle cx="10" cy="2.2" r="1.7"/><circle cx="15.5" cy="2.2" r="1.7"/><path d="M3 15 Q10 4.5 17 15" fill="none" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
 const HEADER = 62;   // the title and the count, top left of the field
@@ -227,10 +238,47 @@ const CSS = `
 #starmap.nopower .locked { display: grid; }
 #starmap .locked div { padding: 16px 26px; text-align: center; background: #3a1f22; border: 2px solid #e6503a; box-shadow: 6px 6px 0 #2b211f; color: #f7ecd2; }
 #starmap .locked b { display: block; font-size: 22px; letter-spacing: .18em; color: #e6503a; margin-bottom: 6px; }
+/* the signature search (src/story/signature-search.js): the uncharted regions, the scanner, the meter, a planet resolving */
+#starmap.searching .field { touch-action: none; cursor: crosshair; }
+#starmap svg.route .uncharted { fill: url(#sm-static); stroke: rgba(205, 180, 255, .5); stroke-width: 1.4; stroke-dasharray: 3 6; }
+#starmap svg.route text.uncharted-tag { fill: rgba(233, 220, 255, .75); font: 10.5px ui-monospace, Menlo, monospace; letter-spacing: .18em; }
+#starmap .scanner { position: absolute; z-index: 3; left: 0; top: 0; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; pointer-events: none; display: none;
+  border: 2.5px solid var(--sc, #cdb4ff); box-shadow: 0 0 calc(4px + 26px * var(--warm, 0)) calc(1px + 8px * var(--warm, 0)) var(--sc, #cdb4ff), inset 0 0 0 2px #1f2747; background: radial-gradient(circle, rgba(255,255,255,.0) 40%, color-mix(in srgb, var(--sc, #cdb4ff) calc(35% * var(--warm, 0)), transparent) 70%); }
+#starmap.searching .scanner { display: block; }
+#starmap .scanner::before, #starmap .scanner::after { content: ''; position: absolute; border-radius: 50%; }
+#starmap .scanner::before { left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; background: var(--sc, #cdb4ff); box-shadow: 0 -16px 0 -1.5px var(--sc), 0 16px 0 -1.5px var(--sc), -16px 0 0 -1.5px var(--sc), 16px 0 0 -1.5px var(--sc); }
+#starmap .scanner::after { inset: -9px; background: conic-gradient(#f2c54b calc(var(--lock, 0) * 360deg), transparent 0); -webkit-mask: radial-gradient(circle, transparent 62%, #000 64%); mask: radial-gradient(circle, transparent 62%, #000 64%); }
+#starmap .scanner .ping { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--sc, #cdb4ff); opacity: 0; }
+#starmap .scanner.beat .ping { animation: sm-ping .7s ease-out; }
+#starmap .scanner.beat .ping:nth-child(2) { animation-delay: .12s; }
+#starmap .scanner.beat .ping:nth-child(3) { animation-delay: .24s; }
+@keyframes sm-ping { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(calc(1.6 + var(--warm, 0))); opacity: 0; } }
+#starmap .meter { position: absolute; z-index: 2; right: 12px; top: 46px; display: none; align-items: center; gap: 6px; padding: 4px 8px; font-size: 11px; letter-spacing: .1em; color: #e9dcff; background: rgba(31, 39, 71, .85); border: 1.5px solid rgba(205, 180, 255, .55); }
+#starmap.searching .meter { display: flex; }
+#starmap.portrait .meter { top: auto; bottom: 8px; right: 8px; }
+#starmap .meter i { display: inline-block; width: 6px; height: 12px; background: rgba(247, 236, 210, .2); }
+#starmap .meter i.on { background: var(--sc, #cdb4ff); }
+#starmap .meter b { min-width: 6.5em; font-weight: normal; color: var(--sc, #cdb4ff); }
+#starmap .resolve { position: absolute; z-index: 4; transform: translate(-50%, -50%); pointer-events: none; animation: sm-resolve 1s ease-out both; }
+#starmap .resolve svg.planet { display: block; width: 100%; height: 100%; overflow: visible; }
+#starmap .resolve::after { content: ''; position: absolute; inset: -14px; border-radius: 50%; border: 3px solid #f2c54b; animation: sm-ring 1s ease-out both; }
+@keyframes sm-resolve { 0% { opacity: 0; filter: blur(6px); transform: translate(-50%, -50%) scale(.4); } 60% { opacity: 1; filter: blur(0); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@keyframes sm-ring { 0% { transform: scale(.5); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
+#starmap .legend.search { border-color: rgba(242, 197, 75, .7); }
+#starmap .legend.search b { color: #f2c54b; }
+.reduce-motion #starmap .scanner.beat .ping { animation: none; }
 `;
 
 const now = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 const NEXT = ['ArrowRight', 'ArrowDown', 'KeyD', 'KeyS'], PREV = ['ArrowLeft', 'ArrowUp', 'KeyA', 'KeyW'];
+/** The keys that move the scanner while there is a world to find. */
+const SCAN_KEYS = { KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
+/** The scanner's colour at a warmth: cool violet, gold, then the route's orange right on it. */
+export function scanColour(w) {
+  const k = Math.min(1, Math.max(0, w));
+  const [a, b, t] = k < 0.7 ? [[205, 180, 255], [242, 197, 75], k / 0.7] : [[242, 197, 75], [255, 140, 90], (k - 0.7) / 0.3];
+  return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(', ')})`;
+}
 
 export class StarMap {
   /** @param o { order, levels, flag(), journal, current, powered(), home(), onTravel(id) } */
@@ -239,6 +287,9 @@ export class StarMap {
     this.open = false;
     this.sel = 0;
     this.asking = null;   // the entry the "Travel to …?" question is about
+    this._held = new Set();   // W A S D held: the scanner moves (the search)
+    this.search = { lock: {} };   // the search's state (src/story/signature-search.js searchStep)
+    this.scan = null;   // the scanner's place on the field [x, y] px
     if (typeof document === 'undefined' || !document.body) return;
     if (!document.getElementById('starmap-css')) { const s = document.createElement('style'); s.id = 'starmap-css'; s.textContent = CSS; document.head.appendChild(s); }
     this.el = document.createElement('div');
@@ -255,12 +306,14 @@ export class StarMap {
         else if (choose) { this.answer(this._yes); e.preventDefault(); }
         return;
       }
+      if (this.searching() && SCAN_KEYS[e.code]) { this._held.add(e.code); e.preventDefault(); return; }
       if (e.code === 'Escape') { this.toggle(false); e.stopPropagation(); }
       else if (NEXT.includes(e.code)) this.step(1);
       else if (PREV.includes(e.code)) this.step(-1);
       else if (choose) { this.go(); e.preventDefault(); }
     }, true);
-    window.addEventListener('keyup', (e) => { if (e.code === 'KeyE') this._armed = true; });
+    window.addEventListener('keyup', (e) => { if (e.code === 'KeyE') this._armed = true; this._held.delete(e.code); });
+    window.addEventListener('blur', () => this._held.clear());
     window.addEventListener('resize', () => { if (this.open) this.place(); });
   }
 
@@ -287,10 +340,14 @@ export class StarMap {
     const worlds = this.entries.filter((e) => !e.home), known = worlds.filter((e) => e.known);
     const done = worlds.filter((e) => e.done).length;
     const farSig = worlds.find((e) => e.signal && !e.known);
+    const toFind = worlds.filter((e) => e.findable).length, searching = toFind > 0 && !!o.powered?.();
+    this.el.classList.toggle('searching', searching);
     this.el.innerHTML = `<div class="chart">
       <div class="field">
         <svg class="route"></svg>
-        <h1>GALACTIC MAP</h1><div class="sub">${known.length} worlds charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${farSig ? ' · a faint signal further along the route' : ''}</div>
+        <h1>GALACTIC MAP</h1><div class="sub">${known.length} ${known.length === 1 ? "world" : "worlds"} charted · ${done} ${done === 1 ? 'discovery' : 'discoveries'} made${toFind ? ` · ${toFind === 1 ? 'a signature' : `${toFind} signatures`} to find` : ''}${farSig ? ' · a faint signal further along the route' : ''}</div>
+        <div class="scanner" aria-hidden="true"><span class="ping"></span><span class="ping"></span><span class="ping"></span></div>
+        <div class="meter" role="status" aria-live="polite">SIGNAL <i></i><i></i><i></i><i></i><i></i> <b>silent</b></div>
         ${this.entries.map((e, i) => e.known ? `<button class="world${e.signal ? ' signal' : ''}${e.done ? ' done' : ''}${e.visited ? '' : ' unvisited'}${e.current ? ' current' : ''}${e.home ? ' home' : ''}" data-i="${i}">
             <span class="disc">${e.home ? '' : planetSvg(e.id)}${e.done ? '<span class="star">✦</span>' : ''}${e.signature ? `<span class="sig" title="${SIGNATURE.toLowerCase()}">${SIG_GLYPH}</span>` : ''}</span>
             <span class="name">${e.title}</span><span class="tag">${e.current ? 'you are here' : e.home ? 'they are waiting' : e.finale ? (e.signal ? RELAY_TEXT.traceTag : e.done ? 'Ilen’s island' : 'the last place') : e.signal ? RELAY_TEXT.tag : e.side ? 'a detour' : e.visited ? '' : 'new'}</span></button>` : '').join('')}
@@ -298,8 +355,10 @@ export class StarMap {
       </div>
       <div class="side">
         <div class="panel"></div>
-        <div class="legend">${SIG_GLYPH}<b>${SIGNATURE}</b> · <span class="long">${SIGNATURE_LEGEND}</span><span class="short">${SIGNATURE_LEGEND_SHORT}</span></div>
-        <div class="keys">${{ touch: 'tap a world, then Travel', pad: `${glyph('dpad')}choose a world`, keys: `${glyph('dpad', { key: '← →' })}choose a world` }[this.hints]}</div>
+        ${searching ? `<div class="legend search">${SIG_GLYPH}<b>${SEARCH_LABEL}</b> · <span class="long">${SEARCH_LEGEND}</span><span class="short">${SEARCH_LEGEND_SHORT}</span></div>`
+          : `<div class="legend">${SIG_GLYPH}<b>${SIGNATURE}</b> · <span class="long">${SIGNATURE_LEGEND}</span><span class="short">${SIGNATURE_LEGEND_SHORT}</span></div>`}
+        <div class="keys">${searching ? { touch: 'drag over the chart to search · tap a world, then Travel', pad: `left stick: search · ${glyph('dpad')}choose a world`, keys: `mouse or W A S D: search · ${glyph('dpad', { key: '← →' })}choose a world` }[this.hints]
+          : { touch: 'tap a world, then Travel', pad: `${glyph('dpad')}choose a world`, keys: `${glyph('dpad', { key: '← →' })}choose a world` }[this.hints]}</div>
       </div>
       <div class="confirm"><div class="card"></div></div>
       <div class="locked"><div><b>NO POWER</b>The ship cannot fly.<br>Find a new source of power.</div></div>
@@ -311,6 +370,42 @@ export class StarMap {
       b.addEventListener('mouseenter', () => { if (!this.asking) this.select(+b.dataset.i); });
     }
     this.el.querySelector('.confirm').addEventListener('click', (e) => { if (e.target.classList.contains('confirm')) this.answer(false); });   // a click beside the card: no
+    // the search: the scanner follows the mouse over the chart, or a finger pressed on it
+    const field = this.el.querySelector('.field');
+    const follow = (e) => {
+      if (!this.searching() || this.asking) return;
+      if (e.pointerType !== 'mouse' && !(e.buttons & 1) && e.type !== 'pointerdown') return;
+      const r = field.getBoundingClientRect();
+      this.scan = [e.clientX - r.left, e.clientY - r.top];
+      this.drawScanner();
+    };
+    field.addEventListener('pointermove', follow);
+    field.addEventListener('pointerdown', follow);
+  }
+
+  /** Is there a world to find (and power to look)? */
+  searching() { return !!this.open && !!this.targets?.length && !!this.o.powered?.() && !this.resolving; }
+
+  /** Draw the scanner where it is, in its colour, with the meter beside the chart. */
+  drawScanner(c = this._cue ?? cues(0), lock = this._lock ?? 0) {
+    const sc = this.el?.querySelector('.scanner');
+    if (!sc || !this.scan) return;
+    const still = typeof document !== 'undefined' && document.documentElement.classList.contains('reduce-motion');
+    const j = still ? 0 : c.jitter;
+    const jx = j ? (Math.random() - 0.5) * 2 * j : 0, jy = j ? (Math.random() - 0.5) * 2 * j : 0;
+    sc.style.transform = `translate(${this.scan[0] + jx}px, ${this.scan[1] + jy}px)`;
+    const col = scanColour(c.warmth);
+    for (const el of [sc, this.el.querySelector('.meter')]) {
+      el?.style.setProperty('--sc', col);
+      el?.style.setProperty('--warm', c.warmth.toFixed(3));
+    }
+    sc.style.setProperty('--lock', lock.toFixed(3));
+    const m = this.el.querySelector('.meter');
+    if (m) {
+      [...m.querySelectorAll('i')].forEach((b, i) => b.classList.toggle('on', i < c.bars));
+      const w = m.querySelector('b'), word = lock > 0.05 ? 'locking' : c.word;
+      if (w.textContent !== word) w.textContent = word;
+    }
   }
 
   /** Lay the route out for the field's current size: the discs, the names, the dotted line. */
@@ -338,7 +433,21 @@ export class StarMap {
     if (fin && mk) svg += `<line x1="${L.pts[mk.i][0]}" y1="${L.pts[mk.i][1]}" x2="${L.pts[fin.i][0]}" y2="${L.pts[fin.i][1]}" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="1 5"/>`;
     if (home) svg += `<path d="M${L.pts[worlds.filter((e) => !e.side).length - 1].join(' ')} L${L.home.join(' ')}${L.centre ? ` L${L.pts[0].join(' ')}` : ''}" fill="none" stroke="#f2c54b" stroke-width="1.4" stroke-dasharray="2 6"/>`;
     // the worlds not known yet: faint dots, no names
-    for (const e of worlds) if (!e.known) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
+    for (const e of worlds) if (!e.known && !e.findable) svg += `<circle cx="${L.pts[e.i][0]}" cy="${L.pts[e.i][1]}" r="${Math.max(3, L.box.disc * 0.07)}" fill="rgba(247,236,210,.3)"/>`;
+    // the worlds to find (the signature search): an uncharted region somewhere round each, never centred on it
+    const diag = Math.hypot(W, H);
+    this.diag = diag;
+    this.targets = worlds.filter((e) => e.findable).map((e) => ({ id: e.id, title: e.title, x: L.pts[e.i][0], y: L.pts[e.i][1] }));
+    if (this.targets.length) {
+      svg += `<defs><pattern id="sm-static" width="9" height="7" patternUnits="userSpaceOnUse"><rect width="9" height="7" fill="rgba(205,180,255,.06)"/><path d="M0 2h3M5 5h3M2 6h1M7 1h1" stroke="rgba(233,220,255,.28)" stroke-width="1"/></pattern></defs>`;
+      for (const t of this.targets) {
+        const g = regionFor(t.id, t.x, t.y, diag);
+        const cx = Math.min(W - 20, Math.max(20, g.cx)), cy = Math.min(H - 20, Math.max(HEADER, g.cy));
+        svg += `<circle class="uncharted" cx="${cx}" cy="${cy}" r="${g.r}"/><text class="uncharted-tag" x="${cx}" y="${cy - g.r - 6 < HEADER ? cy + g.r + 14 : cy - g.r - 6}" text-anchor="middle">UNCHARTED</text>`;
+      }
+    }
+    if (!this.scan || this.scan[0] > W || this.scan[1] > H) this.scan = [W / 2, HEADER + (H - HEADER) / 2];
+    this.drawScanner();
     // the relay signal from a world not charted yet: a ring pulsing round its faint dot (src/story/relay.js)
     for (const e of worlds) if (!e.known && e.signal) {
       const [x, y] = L.pts[e.i], r = Math.max(9, L.box.disc * 0.26);
@@ -410,6 +519,8 @@ export class StarMap {
     this.asking = null;
     this.el.classList.remove('asking');
     this.el.classList.toggle('open', on);
+    this._held.clear();
+    this.search.lock = {};
     if (on) {
       this.render();
       this.place();
@@ -424,23 +535,94 @@ export class StarMap {
     }
   }
 
-  /** Gamepad: d-pad / stick to choose, A to travel, B to close; in the question, A yes and B no. */
+  /**
+   * The search, once a frame while the map is open (`dt` s; `stick`: the pad's left stick [x, y]): the
+   * scanner moved by the stick or W A S D, the cues for where it is, a world resolved when held over it.
+   */
+  searchUpdate(dt, stick = null) {
+    if (!this.searching() || this.asking) return null;
+    const field = this.el?.querySelector('.field');
+    const W = field?.clientWidth ?? 800, H = field?.clientHeight ?? 600, diag = this.diag ?? Math.hypot(W, H);
+    let mx = 0, my = 0;
+    for (const k of this._held) { const d = SCAN_KEYS[k]; if (d) { mx += d[0]; my += d[1]; } }
+    if (stick) {
+      const m = Math.hypot(stick[0], stick[1]);
+      if (m > 0.2) { const k = Math.min(1, (m - 0.2) / 0.7) / m; mx += stick[0] * k; my += stick[1] * k; }
+    }
+    if (mx || my) {
+      const v = SEARCH.speed * diag * dt, n = Math.max(1, Math.hypot(mx, my));
+      this.scan = [Math.min(W, Math.max(0, this.scan[0] + (mx / n) * v)), Math.min(H, Math.max(0, this.scan[1] + (my / n) * v))];
+      // the scanner over a charted world picks it (the stick works as a cursor; A then travels)
+      for (const b of this.el.querySelectorAll('button.world')) {
+        const d = b.querySelector('.disc').getBoundingClientRect(), f = field.getBoundingClientRect();
+        if (Math.hypot(this.scan[0] - (d.left + d.width / 2 - f.left), this.scan[1] - (d.top + d.height / 2 - f.top)) < d.width / 2 && this.sel !== +b.dataset.i) this.select(+b.dataset.i);
+      }
+    }
+    const r = searchStep(this.search, { at: this.scan, targets: this.targets, dt, diag, disc: this.layout?.box?.disc ?? 0 });
+    const c = cues(r.strength);
+    this._cue = c; this._lock = r.lock;
+    this.drawScanner(c, r.lock);
+    // the beat: the scanner pings (three rings), the pad rumbles the three pulses, the light's notes now and then
+    this._beatT = (this._beatT ?? 0) - dt;
+    if (c.notes > 0 && this._beatT <= 0) {
+      this._beatT = c.beat;
+      const sc = this.el.querySelector('.scanner');
+      sc?.classList.remove('beat'); void sc?.offsetWidth; sc?.classList.add('beat');
+      rumblePlay('search', { s: r.strength });
+      const t = now();
+      if (t - (this._notesT ?? -1e9) > 1700) { this._notesT = t; signatureNotes(this.o.sound?.(), c.notes); }
+    }
+    if (r.found) this.resolve(r.found);
+    return r;
+  }
+
+  /** A world found: the planet resolves where it was, the ship charts it (o.onFound), the map is drawn again with it. */
+  resolve(id) {
+    const t = this.targets.find((x) => x.id === id);
+    if (!t || this.resolving) return;
+    this.resolving = id;
+    rumblePlay('found');
+    this.o.sound?.()?.chime?.();
+    const field = this.el.querySelector('.field'), disc = this.layout?.box?.disc ?? 58;
+    const el = document.createElement('div');
+    el.className = 'resolve';
+    Object.assign(el.style, { left: `${t.x}px`, top: `${t.y}px`, width: `${disc}px`, height: `${disc}px` });
+    el.innerHTML = planetSvg(id);
+    field.appendChild(el);
+    this.o.onFound?.(id, t.title);
+    setTimeout(() => {
+      this.resolving = null;
+      this.search.lock = {};
+      if (!this.open) return;
+      const keep = this.scan;
+      this.render(); this.place();
+      this.scan = keep; this.drawScanner(cues(0), 0);
+      const i = this.entries.findIndex((e) => e.id === id && e.known);
+      if (i >= 0) this.select(i);
+    }, 1000);
+  }
+
+  /** Gamepad: d-pad / stick to choose, A to travel, B to close; in the question, A yes and B no. While searching, the stick moves the scanner. */
   update() {
-    if (!this.open || typeof navigator === 'undefined' || !navigator.getGamepads) return;
-    const gp = [...navigator.getGamepads()].find(Boolean);
+    if (!this.open) { this._frameT = null; return; }
+    const t = now(), dt = this._frameT == null ? 0 : Math.min(0.1, (t - this._frameT) / 1000);
+    this._frameT = t;
+    const gp = typeof navigator !== 'undefined' && navigator.getGamepads ? [...navigator.getGamepads()].find(Boolean) : null;
+    const searching = this.searching();
+    this.searchUpdate(dt, gp ? [gp.axes[0] ?? 0, gp.axes[1] ?? 0] : null);
     if (!gp) return;
     const b = (i) => !!gp.buttons[i]?.pressed;
-    const x = (b(15) || b(13) ? 1 : 0) - (b(14) || b(12) ? 1 : 0) || Math.round(gp.axes[0] ?? 0);
-    const now = performance.now();
+    const x = (b(15) || b(13) ? 1 : 0) - (b(14) || b(12) ? 1 : 0) || (searching && !this.asking ? 0 : Math.round(gp.axes[0] ?? 0));
+    const tn = performance.now();
     const A = b(padIndex('ok')), B = b(padIndex('back')), pressA = A && !this._padA, pressB = B && !this._padB;   // printed A / B (native-pad.js)
     this._padA = A; this._padB = B;
     if (this.asking) {
-      if (x && now - (this._padT ?? 0) > 220) { this._padT = now; this.focusAnswer(this._yes ? 'no' : 'yes'); }
+      if (x && tn - (this._padT ?? 0) > 220) { this._padT = tn; this.focusAnswer(this._yes ? 'no' : 'yes'); }
       if (pressA) this.answer(this._yes);
       else if (pressB) this.answer(false);
       return;
     }
-    if (x && now - (this._padT ?? 0) > 220) { this._padT = now; this.step(x); }
+    if (x && tn - (this._padT ?? 0) > 220) { this._padT = tn; this.step(x); }
     if (pressA) this.go();
     else if (pressB) this.toggle(false);
   }

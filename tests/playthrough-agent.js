@@ -18,6 +18,7 @@
 // (tests/playthrough.test.js SOLVERS). What it could not do is written down as an issue, not
 // thrown: the report lists every soft-lock it found, world by world.
 
+import { foundFlag } from '../src/story/signature-search.js';
 import * as THREE from 'three';
 
 // a little DOM: the story never needs a real page
@@ -651,7 +652,10 @@ export function shipTurn({ from, to, journal, issue }) {
   }
   if (consoleAction({ at: 'table', powered: !!flag('ship.powered') }) !== 'map') issue('ship', `the holo table is locked (ship.powered ${flag('ship.powered')})`);
   const map = mapEntries({ order: ORDER, levels: LEVELS, flag, journal: { storyDone: journal.storyDone, seen: (id) => journal.seen.has(id) }, current: from, home: () => homeOpen({ flag, completed: completed() }), finale: () => finaleOpen({ flag, completed: completed() }) });
-  const e = map.find((x) => x.id === to);
+  // a world the route opened but the map has not charted yet: the player finds it with the signature search
+  // (src/story/signature-search.js), as a player would before choosing it
+  let e = map.find((x) => x.id === to);
+  if (e?.findable) { game.set(foundFlag(to), true); e = { ...e, known: true }; }
   if (!e?.known) issue('route', `the map does not chart ${to} after ${from} (charted: ${map.filter((x) => x.known).map((x) => x.id).join(', ')})`);
   game.emit('travel', { to }); game.set('ship.level', to); game.set('ship.launched', true);
   return { heard, map };

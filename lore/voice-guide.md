@@ -49,7 +49,7 @@ A witness reports what they saw before explaining what they believe. The light
 turned; three lamps went out; a compass now points toward the ship. Theories
 belong to speakers. “I think it was searching” is different from the narrator
 confirming a search. No new speech should declare what the Singer really is,
-why it struck the ships, or what happened to Ilen.
+why it drains the ships it passes, or what happened to Ilen.
 
 Let cultures disagree about meaning while agreeing on observable events. Keep
 the glyph’s many names. Vary the witness accounts: a compass failure, flowers

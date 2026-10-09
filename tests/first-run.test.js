@@ -50,7 +50,7 @@ test('the debug entries are the author’s: the Developer panel setting, a dev b
   assert.equal(devMode({ always: false, storage: s, search: '', dev: false }), false);
   // the title's Debug button and the Start menu's entry go through it
   const title = src('src/title.js'), ui = src('src/ui.js');
-  assert.match(title, /devMode\(\{ settings \}\) \? `<button data-a="debug">\$\{lbl\(t\('title\.debug'\)\)\}<\/button>` : ''/);   // (lbl: its words and the confirm glyph)
+  assert.match(title, /devMode\(\{ settings \}\) && \['data-a="debug"', t\('title\.debug'\), 'debug'\]/);   // (an icon in the tools' row: its name, its label and the confirm glyph)
   assert.match(title, /a === 'debug' && devMode\(/);
   assert.match(ui, /<button data-a="debug" data-dev hidden>\$\{t\('menu\.debug'\)\}\$\{F\}<\/button>/);
   assert.match(ui, /for \(const b of el\.querySelectorAll\('\[data-dev\]'\)\) b\.hidden = !dev;/);

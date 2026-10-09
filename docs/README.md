@@ -24,6 +24,8 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [fun-and-story-review.md](fun-and-story-review.md) | the October 2026 review of the experience's shape: the ending before the peak, the unanswered light, choices, pacing; ranked recommendations |
 | [what-makes-a-great-game.md](what-makes-a-great-game.md) | research: what makes a great (exploration) game, in twelve themes with audit questions and sources |
 | [audits/](audits/) | the audits, one file per kind and version: the game against those twelve themes ([game, v0.97](audits/game-v0.97.md), [game, v1.0](audits/game-v1.0.md)), performance ([v1.0](audits/perf-v1.0.md)), visual quality ([v1.0](audits/visual-v1.0.md), [v1.4: the probes](audits/visual-v1.4.md)), the dialogue ([v1.0](audits/dialogue-v1.0.md)), the combat ([v1.4](audits/combat-v1.4.md)), the worlds' level design ([v1.5](audits/level-design-v1.5.md)) and the temples' design ([v1.5](audits/temple-design-v1.5.md)); run them with the `game-audit`, `perf-audit`, `visual-audit`, `dialogue-review`, `combat-review`, `level-design-qc` and `temple-design-qc` skills (`.claude/skills/`) |
+| [design/enemy-roster.md](design/enemy-roster.md) | **proposal, awaiting the author's approval:** 21 enemy archetypes replacing the 100 world enemies and the 15 old kinds (silhouette, body plan, role, telegraphed attacks and counterplay, idle, references, world skins), the world table, the difficulty curve, what is retired, the build order; the contact sheet `design/enemy-roster-sheet.jpg` (`node scripts/enemy-roster/sheet.cjs`) |
+| [design/enemy-roster-prompts.md](design/enemy-roster-prompts.md) | the Midjourney prompts for fresh reference sheets, one per archetype (four views, the wind-up pose, the silhouette, the scale figure, the joints spelled out) plus one alternate world skin each; how to run them, where to save them and how to pick |
 | [world-principles.md](world-principles.md) | the fundamental world principles: the world notices you, living things, connection, restraint |
 | [../lore/README.md](../lore/README.md), [../LORE.md](../LORE.md) | the writing room and the lore |
 
@@ -36,6 +38,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [movement.md](systems/movement.md) | collision, contact (what you stand on and climb is what is drawn; the contact audit), mounts that come to you, footprints, the paraglider, hazards, health and falls, the hoverbike and vehicles, the feel of the jump and stamina |
 | [movement-and-camera.md](systems/movement-and-camera.md) | movement and the camera, the third feedback round: the jets fly like a plane (v0.89), aiming straight up, ragdolls that end on the ground, the jump's shadow |
 | [animation.md](systems/animation.md) | climbing and mantling, the rig review, ragdolls, hands, locomotion (feet, starts, stops, turns), Vael's bird (standing, folding, flying), motion capture and motion matching, the Motion page |
+| [procedural-animation.md](systems/procedural-animation.md) | procedural animation for creatures and machines: the research (IK, gaits, springs, chains, telegraph poses, LOD, the ink look) with sources, why the foes walked stiffly (measured), the locomotion kit for ~20 body plans, the phased plan; skill `procedural-animation`, `scripts/motion-audit/` |
 | [characters.md](systems/characters.md) | the traveller, people of every height and build, the character studio, MakeHuman bodies, capes, costumes, the traveller's reference redesign |
 | [capes-at-every-distance.md](systems/capes-at-every-distance.md) | capes and robes that look the same at every distance and through every switch of detail |
 | [traveller-kit.md](systems/traveller-kit.md) | the traveller's kit: the rucksack, the flask and their hooks |
@@ -57,7 +60,8 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [cinematics-qc.md](systems/cinematics-qc.md) | the cinematics' quality control: the script that plays every one headless, the checklist, the scores of the October 2026 pass and what it fixed |
 | [ship-consoles.md](systems/ship-consoles.md) | the ship's two consoles: the voicemail and the holo table |
 | [scout.md](systems/scout.md) | the scout drone |
-| [items.md](systems/items.md) | items, the backpack and the makers' boxes; hearts, the magic bar and potions (src/resources.js) |
+| [items.md](systems/items.md) | items, the backpack and the makers' boxes; hearts, the magic bar and potions (src/resources.js); chimes; the shops, their wares and prices |
+| [interiors.md](systems/interiors.md) | buildings you walk into: the interior kit (a shopfront, its room far overhead, the doors both ways, saving inside), a shop's room |
 | [gadgets.md](systems/gadgets.md) | the gadgets (v0.90): the framework (one file a gadget), the buttons, the grappling hook, ink bombs, the Gadget Yard; how to add one |
 | [boxes.md](systems/boxes.md) | the makers' boxes (the v0.63 redesign): the model, the scene, the placements |
 | [changelog.md](systems/changelog.md) | the interactive changelog: before / after pictures, numbers and how to see each change; the capture tool; why its pictures stay off the devices |
@@ -67,6 +71,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [android.md](systems/android.md) | the APK, signing, over-the-air updates, updates from the site, GeckoView |
 | [platforms.md](systems/platforms.md) | installing on iPhone, the Steam Deck |
 | [xbox.md](systems/xbox.md) | the Xbox Dev Mode package: the UWP app, its updates and saves, signing, CI, deploying and measuring on the console |
+| [xbox-setup.md](xbox-setup.md) | playing on your Xbox in Developer Mode, step by step: sign-up, activation, installing |
 | [app-icon.md](systems/app-icon.md) | the app icon: a capture of a reference view, every size made from it |
 | [references.md](systems/references.md) | the References level: the reference sheets rebuilt as views |
 | [minigames.md](systems/minigames.md) | the minigames: the runner (start card, 3-2-1, HUD, pause, results, the best in the save), the Games row and the arcade sign, how to add a game (options, a best per difficulty, games on foot), Dune skiing, Sky steps, the Canyon run, Fishing, the Ring race, the Wing drop, the shooting gallery, Ink tide, the Drum circle, the Sketch hunt |

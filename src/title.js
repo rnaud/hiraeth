@@ -9,17 +9,18 @@
 // the slots are sandboxed meanwhile, and once a save is chosen the game starts in a fresh page
 // (?start), so nothing of the title's world reaches the game.
 //
-// Layout: src/title-layout.js places the name and the menu for the screen's shape (a column under
-// the name, two or three columns on a short screen, the menu at the bottom on a phone held upright).
+// Layout: src/title-layout.js places the name across the top and the menu small, low at the left: the
+// main entries (Continue or New game, Saves) a short column of text buttons, the tools (Settings, What's
+// new, Debug, Full screen) a row of icon buttons under it (TITLE_ICONS), each named and labelled on focus.
 //
 // Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a controller
-// (d-pad or stick to move, A confirm, B back) through the same menuNavigate as the
-// game's menus. The menu music plays under it (src/audio.js menuMusic).
+// (d-pad or stick to move, A confirm, B back): the main menu by its own mainNavigate (down the
+// column into the row, along it), the rest through the same menuNavigate as the game's menus. The menu music plays under it (src/audio.js menuMusic).
 //
 // Imports nothing that loads the game state: the summaries come from the raw saves.
 
 import { slots, SLOT_COUNT, formatPlaytime, formatDate, progressLine } from './save-slots.js';
-import { Settings, SettingsMenu, isNativeApp, isDeckApp, isTouch, reducedMotion } from './ui.js';
+import { Settings, SettingsMenu, isNativeApp, isDeckApp, isXboxApp, isTouch, reducedMotion } from './ui.js';
 import { t, onLanguage } from './i18n.js';
 import { Sound } from './audio.js';
 import { Controller, menuNavigate } from './controller.js';
@@ -37,6 +38,20 @@ import { titleLayout, layoutVars } from './title-layout.js';
 import { chooseShot } from './title-shots.js';
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+/** The tools' icons, inked like the covers' line work (24 × 24, the stroke in the button's colour). */
+const icon = (d, extra = '') => `<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${d}${extra}</svg>`;
+export const TITLE_ICONS = {
+  // a gear: eight teeth round a wheel, its hub
+  settings: icon('<path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.85 1.85M16.65 16.65l1.85 1.85M5.5 18.5l1.85-1.85M16.65 7.35l1.85-1.85"/><circle cx="12" cy="12" r="5.6" fill="currentColor" fill-opacity=".14"/><circle cx="12" cy="12" r="2.1"/>'),
+  // a star with a spark: what's new
+  news: icon('<path d="M10.5 3.5l1.9 5.6 5.6 1.9-5.6 1.9-1.9 5.6-1.9-5.6-5.6-1.9 5.6-1.9z" fill="currentColor" fill-opacity=".14"/><path d="M18.5 14.5v5M16 17h5"/>'),
+  // a beetle: debug
+  debug: icon('<ellipse cx="12" cy="14" rx="4.6" ry="6" fill="currentColor" fill-opacity=".14"/><path d="M12 8v12M9.8 6.4a2.4 2.4 0 0 1 4.4 0M7.4 11.5 4 9.6M7.4 14.5H3.6M7.6 17.6l-3.2 2.2M16.6 11.5 20 9.6M16.6 14.5h3.8M16.4 17.6l3.2 2.2"/>'),
+  // corner brackets, out: full screen; in: leave it
+  fullscreen: icon('<path d="M3.5 8.5v-5h5M15.5 3.5h5v5M20.5 15.5v5h-5M8.5 20.5h-5v-5"/>'),
+  leave: icon('<path d="M8.5 3.5v5h-5M20.5 8.5h-5v-5M15.5 20.5v-5h5M3.5 15.5h5v5"/>'),
+};
 
 /** The drawn backdrop (without WebGL): a ringed planet over mesas, dunes, a giant's ribs and a caped traveller. */
 export const BACKDROP = `
@@ -146,7 +161,10 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     root.id = 'title';
     root.className = shot ? 'vista-wait' : '';   // (the paper until the world fades in)
     if (shot) root.dataset.shot = shot.id;
-    const fullscreen = !isNativeApp && !isDeckApp && doc.fullscreenEnabled;   // (the Deck's app is fullscreen already)
+    // (Full screen only where it does something: not in the apps (the Deck's, the Xbox's, Android's are full
+    // screen already), nor in an installed web app already shown full screen)
+    const fullscreen = () => !isNativeApp && !isDeckApp && !isXboxApp && !!doc.fullscreenEnabled
+      && !(!doc.fullscreenElement && win.matchMedia?.('(display-mode: fullscreen)')?.matches);
     root.innerHTML = `${BACKDROP}<div class="paper" aria-hidden="true"></div>
       <div class="front">
         <header>${LOGO}</header>
@@ -177,21 +195,26 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
       const last = store.latest(), s = last ? store.summary(last) : null;
       // (each label carries the confirm glyph, shown beside it while it has a pad's focus: src/pad-glyphs.js)
       const lbl = (text) => `<span class="lbl">${glyph('ok', { focus: true })}${text}</span>`;
-      mainNav.innerHTML = `${s
+      // the main entries: a short column of compact text buttons; the tools: a row of icon buttons under it
+      // (each named for a screen reader and in a label shown on hover or focus, at the row's right end where
+      // nothing is covered: --k, how many icons stand to its right; the glyph in its corner)
+      const fs = !!doc.fullscreenElement;
+      const tools = [['data-a="settings"', t('title.settings'), 'settings'], ['data-a="news"', t('title.news'), 'news'],
+        devMode({ settings }) && ['data-a="debug"', t('title.debug'), 'debug'],
+        fullscreen() && ['data-a="fullscreen"', t(fs ? 'title.leaveFullscreen' : 'title.fullscreen'), fs ? 'leave' : 'fullscreen']].filter(Boolean);
+      const tool = ([attr, label, icon], i) => `<button ${attr} class="tool" style="--k: ${tools.length - 1 - i}" aria-label="${esc(label)}">${TITLE_ICONS[icon]}<span class="tip" aria-hidden="true">${esc(label)}</span>${glyph('ok', { focus: true })}</button>`;
+      mainNav.innerHTML = `<div class="entries">${s
         ? `<button data-a="continue" class="primary">${lbl(t('title.continue'))}<small>${esc(s.world)}</small></button>`
         : `<button data-a="new" class="primary">${lbl(t('title.new'))}</button>`}
-        <button data-a="saves">${lbl(t('title.saves'))}</button>
-        <button data-a="settings">${lbl(t('title.settings'))}</button>
-        <button data-a="news">${lbl(t('title.news'))}</button>
-        ${devMode({ settings }) ? `<button data-a="debug">${lbl(t('title.debug'))}</button>` : ''}
-        ${fullscreen ? `<button data-a="fullscreen">${lbl(t(doc.fullscreenElement ? 'title.leaveFullscreen' : 'title.fullscreen'))}</button>` : ''}`;
+        <button data-a="saves">${lbl(t('title.saves'))}</button></div>
+        <div class="tools">${tools.map(tool).join('')}</div>`;
       relayout();
     };
     // the name and the menu placed for this screen (src/title-layout.js), as CSS variables
     let insets = null;
     const relayout = () => {
       insets ??= safeInsets(doc, win);
-      const L = titleLayout({ w: win.innerWidth, h: win.innerHeight, buttons: mainNav.querySelectorAll('button').length, safe: insets });
+      const L = titleLayout({ w: win.innerWidth, h: win.innerHeight, buttons: mainNav.querySelectorAll('.entries button').length, icons: mainNav.querySelectorAll('.tools button').length, safe: insets, at: shot?.menu });
       for (const [k, v] of Object.entries(layoutVars(L))) root.style.setProperty(k, v);
       root.dataset.layout = L.mode;
       for (const g of root.querySelectorAll('header .logo g[stroke-width]')) g.setAttribute('stroke-width', L.ink.toFixed(1));
@@ -296,7 +319,20 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         (cur === pick && del ? del : pick).focus({ preventScroll: true });
       }
     };
-    const navigate = (x, y, fresh = true) => (screen === 'saves' && confirmEl.hidden && !settingsMenu.open ? savesNavigate(x, y) : menuNavigate(navRoot(), x, y, fresh));
+    // the main menu: ↑ ↓ through the column and down into the tools' row (its first icon), ← → along the row,
+    // ↑ from the row back to the column's last entry, ↓ from the row round to the first
+    const mainNavigate = (x, y) => {
+      const col = [...mainNav.querySelectorAll('.entries button')], row = [...mainNav.querySelectorAll('.tools button')];
+      const cur = doc.activeElement, ci = col.indexOf(cur), ri = row.indexOf(cur);
+      let next = null;
+      if (ci < 0 && ri < 0) next = col[0] ?? row[0];
+      else if (ci >= 0) next = y > 0 ? col[ci + 1] ?? row[0] ?? col[0] : y < 0 ? col[ci - 1] ?? row[0] ?? col.at(-1) : null;
+      else if (x) next = row[Math.min(Math.max(ri + x, 0), row.length - 1)];
+      else next = y < 0 ? col.at(-1) ?? row[ri] : col[0] ?? row[ri];
+      next?.focus({ preventScroll: true });
+    };
+    const navigate = (x, y, fresh = true) => (!confirmEl.hidden || settingsMenu.open ? menuNavigate(navRoot(), x, y, fresh)
+      : screen === 'saves' ? savesNavigate(x, y) : mainNavigate(x, y));
     const navRoot = () => (!confirmEl.hidden ? confirmEl : settingsMenu.open ? settingsMenu.el : root.querySelector(`[data-screen="${screen}"]`));
     const KEYS = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0], KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0] };
     const onKey = (e) => {

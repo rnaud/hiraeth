@@ -50,7 +50,7 @@ export const RELAY_TEXT = {
   farUncharted: 'Further along the route, past the worlds charted, the receiver holds a faint signal on an old relay. Too weak to read yet: a voice, and what might be a name.',
   // on the map, by the Lantern, after the first homecoming (the light's trace past the market)
   traceTag: 'the light’s trace',
-  trace: 'The trace of the light that struck the ship runs back past the Signal Market, off every chart, to this one small world, and stops here. It came over the hill at home, and went this way.',
+  trace: 'The trace of the light that drained the ship runs back past the Signal Market, off every chart, to this one small world, and stops here. It came over the hill at home, and went this way.',
   // on the home panel while the mother's recording is held
   held: 'A recording is held at the console: “For when he asks.” Your mother’s voice.',
   // the console's screen (standby) and its "no new messages"

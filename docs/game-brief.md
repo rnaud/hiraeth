@@ -20,12 +20,12 @@ Each level should advance this story through its inhabitants, quests, and discov
 The opening plays inside the game engine and leads directly into gameplay.
 
 1. The traveller wakes aboard a large, spherical spaceship.
-2. They enter the cockpit and play a message from their father, who asks them to make the family proud and return with something of value. The player takes it for a call from home; it is a recording, made the day the traveller left (built: there are no live calls, see working decision 1).
-3. Something strikes the ship, interrupting the recording.
-4. With its power depleted, the ship makes a forced landing in the desert.
-5. The traveller steps outside. Their first objective is to find a new source of power.
+2. They enter the cockpit and play a message from their father: "We haven't heard from you for so long." He misses them and is still disappointed in them, and tells them not to come home until they bring back **something of value** (the game's key phrase, lettered in gold wherever it is said). The player takes it for a call from home; it is a recording, made years after the traveller left (built: there are no live calls, see working decision 1).
+3. Over the message a few sung notes come nearer: the singing light's theme. The traveller pauses the recording to listen.
+4. The light passes the ship, close, and drains its energy; the ship makes a forced landing in the desert nearby (a landing, not a crash).
+5. The traveller steps outside and tells the ship to follow the light, of their own accord. Their first objective is to find a new source of power.
 
-The cause of the impact remains a mystery.
+What the light is remains a mystery until the end (the Lantern).
 
 ### Story across the levels
 Restoring the ship opens the wider journey. Each world should offer:
@@ -106,7 +106,7 @@ Reactions should vary in intensity, leaving room for quiet and mystery.
 ## Decisions still to make
 (Answered so far in the working decisions below; kept for the record.)
 - Are the parents openly disappointed from the beginning, or does that emerge through later recordings? (Decision 1: from the beginning, softening as they age.)
-- What struck the ship, and how does it connect to the wider story? (Decision 2: still a mystery; the singing light, LORE.md section 4.)
+- What struck the ship, and how does it connect to the wider story? (Decision 2: the singing light, which passed and drained it rather than striking it (October 2026); answered at the Lantern, LORE.md section 4.)
 - Does the desert’s magical water power the ship, refill the backpack, or both? (Decision 3: both.)
 - Do shooting, jumping, and pushing use the same three-charge reserve? (Decision 4: yes.)
 - What does the traveller ultimately choose to bring home? (Decision 5: everything, set on his parents’ stone.)
@@ -118,8 +118,8 @@ Reactions should vary in intensity, leaving room for quiet and mystery.
 These were chosen to unblock building. Each is a single constant or data entry where possible.
 
 1. **Parents.** There are no live calls: the traveller plays **old recordings** of his parents on the cockpit console, one after each world, projected as a hologram over the dash. He picks one that seems to fit where he has been; it never answers him. They were not happy with him when they made them. Little by little it shows that the recordings are very old, and at the end that the parents are dead: he is trying to make them proud after the fact. The mother speaks from the third recording on. (`src/story/calls.js`, `src/ship/hologram.js`; docs/story-bible.md, "The recordings")
-2. **The impact.** Left mysterious. Physical clues: the ship's hull has a scorched scar in the shape of the **recurring glyph** (three dots over an arc — the same mark that recurs on the reactive scenery's three apertures), and the same glyph appears as a faint motif in every world. Nobody explains it yet.
-3. **The magical water** does **both**: in the desert it fills a vessel that restarts the ship, and wading into it fully refills the backpack and permanently tints the fluid with a new colour band.
+2. **The light's passing** (was "the impact"; restaged October 2026: it drained the ship as it passed, nothing struck it). Left mysterious until the Lantern. Physical clues: the ship's hull has a scorched scar in the shape of the **recurring glyph** (three dots over an arc — the same mark that recurs on the reactive scenery's three apertures), and the same glyph appears as a faint motif in every world. Nobody explains it yet.
+3. **The magical water** does **both**: in the desert Qanat's people bring theirs, with the traveller's jar, to restart the ship (their thanks for the tree: src/story/desert-repay.js), and wading into it fully refills the backpack and permanently tints the fluid with a new colour band.
 4. **Charges.** Shoot, boost and push all share **one reserve of three charges**. Five seconds after the last use, all three refill at once. The tank shows the fill level as three stacked colour bands; the hand attachment shows three lit rings. *(Superseded in v1.5: the charges became a magic bar of three units that refills by itself like stamina, 1 s after the last use and full in 4 s; docs/systems/items.md, "Hearts, magic and potions".)*
    Built (`src/fluid-tool.js`): boost is **jump again in the air** (a fresh press, not the jump itself); keep holding and the wings still open once you fall (with the glider), and with the tank empty a press just glides as before. With the jets, holding jump thrusts and a **quick double tap** boosts. Push is C / middle click / B (○); shoot is G / left click / RT while aiming.
 5. **What the traveller brings home.** Each world's discovery is collected as a **keepsake** (a thing, a song, a memory, a person's words). Built: after six worlds Home is on the galactic map; the traveller brings everything home, the keepsakes and the makers' small gifts, little tokens of having grown up, and sets them one by one on his parents' grave on the hill, with his daughter Lou beside him (she lives in the small house across the yard with Aunt Tove and the dog); she leaves a drawing, the reel plays its oldest recording, and an end card follows. Home stays open after that: both houses to walk into, the stone to pay respects at (src/story/ending.js, src/ship/homecoming.js, src/story/home.js, src/levels/home.js).

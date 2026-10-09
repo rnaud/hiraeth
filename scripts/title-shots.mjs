@@ -141,7 +141,7 @@ try {
       for (const [w, h] of SIZES) {
         const mobile = w < 900 || h > w;
         await open(c, shot.id, [w, h], { mobile });
-        console.log(`  ${w}x${h}:`, await c.ev(`JSON.stringify({ vw: innerWidth, vh: innerHeight, layout: window.title.root.dataset.layout, cols: window.title.root.style.getPropertyValue('--menu-cols') })`));
+        console.log(`  ${w}x${h}:`, await c.ev(`JSON.stringify({ vw: innerWidth, vh: innerHeight, layout: window.title.root.dataset.layout, menu: window.title.root.style.getPropertyValue('--menu-left') + ',' + window.title.root.style.getPropertyValue('--menu-top') })`));
         await grab(c, join(OUT, `${shot.id}-${w}x${h}.png`), flag('clean'));
       }
     }

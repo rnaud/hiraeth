@@ -104,7 +104,7 @@ themes 5 and 6). One rule set in `src/story/ending.js` (pure; `tests/finale.test
   has no section: it is one small island; its header says what is where). The story: `src/story/lantern.js`
   and `lantern-data.js`. A filmed moment on first stepping onto the island (the light comes down into
   the crown, `lantern.moment.arrive`); Ilen at the lantern's step; one talk that answers the light (what it
-  is, why it struck, the makers' sign), hears what he chose on the way, and asks him to tell Hollin. She
+  is, why it came to his ship, the makers' sign), hears what he chose on the way, and asks him to tell Hollin. She
   comes home with him (`finale.met`, the quest "We Heard You" done, `world.lantern.done`, the keepsake
   `lantern.person`, which never goes on the slab: `NOT_SET_DOWN`). She walks down the bar and goes aboard.
 - **The true ending** (`homecomingKind` → `'final'`: `finale.met`, `ending.final` unset). The cargo check
@@ -152,7 +152,7 @@ its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
   and the remaining worlds stay open, before home or after (their recordings come
   from the reel's oldest side).
 
-- a title card when it is given, as the dust settles over the crash: the words
+- a title card when it is given, as the dust settles over the landing: the words
   SOMETHING OF VALUE lettered on a band of paper with a pen line and a gold dot,
   small, in the lower third (the world you arrive in is for looking at: clear of the
   toasts at the top and the subtitles at the bottom), gone after five seconds,
@@ -162,7 +162,13 @@ its own mark (✦, gold; a world's main quest is ◆, an errand ◇):
   worlds, and what you carry (the keepsakes);
 - a gold tag on the HUD's objective line: for a while after a keepsake is earned
   ("✦ Something of value: Teo's walking rhythm"), and whenever nothing nearer is
-  asked of you.
+  asked of you;
+- **the key phrase, lettered as itself** (October 2026, `src/story/key-phrase.js`): wherever "something
+  of value" is said on the screen (the prologue's voicemail, a later recording, a conversation, an answer
+  you pick, a balloon) it is bold in the charge's gold with its ✦ (`em.value`: index.html for the panel
+  and balloons, `src/ship/cinema.js` for subtitles). `formatText` and the subtitles find it by its words;
+  written `*something of value*` the voice also leans on it. Inside a quoted recording it keeps the
+  quote's own span. `tests/prologue-call.test.js`.
 
 ## The traveller's story begins (v0.32)
 Design: `docs/game-brief.md` (the brief and its working decisions) and
@@ -173,13 +179,14 @@ Every system talks through it, and its header lists the flags and events.
   corner, galley, entry, cockpit round a holo table; see "The ship's deck" in [worlds.md](worlds.md)). It has its own
   collider (`physics.addCollider`) and lands at each world's arrival point
   (`level.shipSite`, `SITE_OVERRIDES` in `sites.js`, or a site search near the
-  spawn). In the desert it lies crashed at (58, 48), with a furrow behind it.
+  spawn). In the desert it lies where it came down drained (20, 120), on its belly at the end of a short skid.
   E at the holo table in the middle of the deck opens the galactic map (`starmap.js`); the
   cockpit dash is the voicemail (docs/systems/ship-consoles.md). The map is locked until `ship.powered`. Travel loads
   `?level=<id>&via=ship`.
 - **The prologue** (`prologue.js` state machine, `cinematics.js` director)
-  plays on a new game: waking in the bunk, the father's call, the impact, the
-  crash landing seen from outside, stepping out. `?prologue=1` replays it; hold
+  plays on a new game: waking in the bunk, the father's message with the singing light's theme
+  under it, the pause, the light passing and draining the ship, the forced landing seen from
+  outside, stepping out (docs/systems/cinematics.md, "The restaged opening"). `?prologue=1` replays it; hold
   Esc to skip. "Reset progress" starts a new game.
 - **Calls home** (`src/story/calls.js`): six calls, one waiting after each
   completed world. The father reacts to the latest keepsake's kind; the mother
@@ -256,12 +263,22 @@ walkthroughs and local names; each data file's header lists its flags.
 
 ## The galactic map and the route (v0.38)
 - **The route** (`src/story/route.js`, `knownWorlds`): the worlds open up in `ORDER`. The
-  desert (the crash) is always known, then the next `AHEAD` (2) worlds that are not done,
+  desert (where the ship came down) is always known, then the next `AHEAD` (2) worlds that are not done,
   so there is always a choice of two. Finishing a world (`world.<id>.done` or its story
   page) brings in the next one, and the closing page's toast names it ("New on the ship's
   map: …"). Worlds you have visited, or stand in, stay known. Home opens on its own
   (`src/story/ending.js`). The level picker (L) and the sketchbook (J) apply the same rule; `?level=<id>` and the
   dev menu bypass it.
+- **The signature search** (v1.6, `src/story/signature-search.js`): a world the route opens is not named
+  at once. It is *findable* (`routeChart`: known to the route, not visited, done or found) until the player
+  finds it on the map (flag `map.found.<id>`; the map's search: docs/systems/ui.md, "The galactic map's
+  signature search"). The crash site, worlds visited, done or stood in, the detours, the Lantern and home are
+  charted outright. The closing page's toast no longer names the new world (`findableNote`: "The ship reads the
+  singing light's signature somewhere new. Search for it on the galactic map."); the level picker (L) and the
+  sketchbook (J) name only charted worlds (`chartedWorlds`). The ship explains it the first time the map opens
+  with a world to find (`SEARCH_LINE`, flag `signature.search.told`, after `MAP_LINE` when both are new) and
+  says each find (`foundLine`). Old saves: `src/save-migrate.js` step 6 marks every world the route had opened
+  for them as found. `tests/signature-search.test.js`.
 - **The map** (`src/ship/starmap.js`): unknown worlds are faint unnamed dots along the
   route. Known worlds are drawn planets in flat colours (`src/ship/planets.js`, no
   screenshots): a shadow crescent, an ink outline and one mark each (dunes, bands,
@@ -286,15 +303,16 @@ walkthroughs and local names; each data file's header lists its flags.
   "Back to the ship". Ship sites no longer keep clear of the old gate spots; the City-Shaft and the market,
   where that moved the ship, pin it where it stood (`SITE_OVERRIDES`).
 
-## The strike's signature: why these worlds
-- **The reason for the route** (`src/story/signature.js`, the lore in `LORE.md`). Whatever
-  struck the ship in the prologue left a magnetic signature in the glyph-shaped scar on its
-  hull, a slow pulse in threes. The ship charts only the worlds whose field carries the same
+## The light's signature: why these worlds
+- **The reason for the route** (`src/story/signature.js`, the lore in `LORE.md`). The singing
+  light that passed and drained the ship in the prologue left a magnetic signature in the
+  glyph-shaped scar on its hull, a slow pulse in threes. The ship charts only the worlds whose field carries the same
   pulse (`SIGNATURE_WORLDS`: every world in `ORDER`, each with a reading and the place it is
   strongest), and reads the trace further on from each one you finish (the route's unlock
   rule, unchanged). Home has none: the ship knows that way by heart.
-- **Where it shows:** the ship says it as the emergency power comes on after the crash
-  (`CRASH_LINE`, the prologue's hatch), the first time the map opens with power (`MAP_LINE`,
+- **Where it shows:** the ship says it as the emergency power comes on after the landing
+  (`LANDING_LINE`, the prologue's hatch), and he answers that they will follow it (`FOLLOW_LINE`:
+  his own choice; both play on past the hand-back, and after a skip), the first time the map opens with power (`MAP_LINE`,
   flag `signature.told`), and out of the jump the first time it comes to a world
   (`arrivalLine`, flag `signature.<id>`); the toast for newly charted worlds says the
   signature reads there too (`revealNote`). On the map (`src/ship/starmap.js`) every
@@ -591,9 +609,9 @@ sound to make it clear I should chat with her".
     plants, the spheres and the pebble, the crates and the oldest sign. The other between-world
     errands stay light parcels (a greeting gives, a greeting takes), on purpose.
 - **The lore, one story** (LORE.md, section 10, has every decision): the light passed every
-  world the same night, the night the ship was struck, and climbed away; Ilen's message is
+  world the same night, the night before it found his ship, and climbed away; Ilen's message is
   thirty years on the way; recording 4 is an old one made for him at ten; Odile and Talo were
-  struck twice and went on across the swamp; the spheres came down out of the sky and the
+  brought down twice and went on across the swamp; the spheres came down out of the sky and the
   white builders copied them; the Hangar's board and Lorn II's Welcome draw the ∩; the bell
   whistle is clay, not a second bone whistle; the Atelier no longer claims an unlock; Emrys's
   Footprint points at the chest that exists; a few wrong directions are put right.
@@ -716,3 +734,19 @@ Shoot the four knuckles smallest finger to tallest: little, first (index), ring,
   (`KNUCKLE_HINT_STEP`, flag `arzach.hand.hint`); from the third, the next right knuckle glints.
 The hand's own text and Kesh's repeat both point at the dots. `strikeKnuckle` is the pure state machine
 (tests/knuckle-riddle.test.js); arzach.js draws and sounds it (tests/story-arzach.test.js).
+
+## Qanat repays the traveller (October 2026)
+
+The desert's main quest ends with reciprocity, not with the tree powering the ship by itself
+(`src/story/desert-repay.js`, its words in `src/story/desert-data.js` `REPAY`, `REPAY_CALL`). The ship came
+down drained; Marrow says nothing out there holds that much power but the whole city round its tree, and
+that Qanat doesn't hand its fire to strangers; Nour promises that if he puts the tree right, "Qanat will not
+let you leave in the dark". Once the tree burns (`desert.tree.lit`) and `LEAVE_AFTER` (25 s) has passed, or
+he heads for the ship, the ones with something to give (Ama, Idris the potter, Hessa, Lula the baker, Marrow,
+Nour) go down to the ship and wait in a half ring on the city side of the ramp (far from the camera, so they
+are simply there: a far follower is moved straight to its spot, `src/npc.js`). Within `START` (18 m) of the
+ramp, or walking in, the beat plays (`repayPlan`): Nour calls him over, each steps up to the hull in turn and
+says what they pour in (a balloon, a chime and a splash, `REPAY_TIMING.gap` 3.4 s apart), Nour last ("You
+gave us back our light, child. So Qanat gives your ship its own."), then `desert.ship.fed`: the quest ends
+and the ship wakes. They go home, out of sight, once he has gone. Before the tree burns his jar alone does
+nothing ("nothing in it wants to burn"). `tests/desert-repay.test.js`, `tests/desert-story.test.js`.

@@ -272,8 +272,100 @@ const CHIME_DROP = (kind, where) => `const V = THREE.Vector3, wait = (ms) => new
 const FROM_ROSTER = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the four set in a row and held still (9 October)';
 const FROM_ATTACK = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720: the enemy set striking with its attack locked on the traveller, held still (9 October)';
 
+/**
+ * The first shop's pictures (v1.5): the traveller set down inside Haddu's shop by the counter, the camera pinned in the
+ * room's corner by the door looking at the counter and the keeper (the interior kit: level.shops, src/interior-kit.js);
+ * `then` runs after (the panel opened, a card chosen).
+ */
+const SHOP_IN = (then = '') => `${HIDE('#toast, #cue, #prompt, #objective')}
+  const V = THREE.Vector3, it = level.shops[0].interior, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  player.teleport(it.local(-1.0, 0.05, 1.3), new V(0, 1, 0), new V(0, 0, 1)); player.heading = Math.PI;
+  const eye = it.local(1.8, 1.8, 3.1), at = it.local(-0.4, 1.2, -1.6);
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 55) { this.fov = 55; this.updateProjectionMatrix(); } return base.call(this, force); };
+  resources.addChimes(160);
+  await wait(3000);
+  ${then}`;
+const SHOP_OPEN = (then = '') => SHOP_IN(`game.emit('shop:open', { shop: 'qanat' }); await wait(900); ${then}`);
+const SHOP_DOOR = [203.67, 319.94, -1.62];   // Haddu's door (x, z) and its heading: src/levels/desert.js
+
 export const CHANGELOG_MEDIA = {
+  '1.6': [
+    // the galactic map's signature search
+    { match: 'The galactic map has a signature search', shots: [
+      { name: 'map-search', caption: 'The map on a new journey (1280 × 720): before, Vael and Lorn named outright; after, two uncharted regions and the scanner warming near Vael (four bars, “strong”)', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },
+      { name: 'map-search-found', only: 'after', caption: 'Held over it: the lock ring fills, Vael resolves where it was, and the ship says “Signature locked. Vael is on the chart.”', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },
+      { name: 'map-search-phone', caption: 'On a phone held upright (390 × 844): the scanner near Vael, the signal meter at the foot of the chart', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },
+    ], see: 'Start a new journey (or reach a world you have not charted yet) and open the map at the holo table with power: move the mouse, push the left stick, hold W A S D or drag a finger over the uncharted regions. The meter in the corner and the scanner’s colour say how near you are, the light’s three notes play faintly and the controller rumbles; stay on the spot half a second.' },
+    { match: 'The worlds still open in the same order as before', see: 'Load a save from before this version: every world it had on the map is still there; only the next world the route opens is searched for.' },
+    // rumble
+    { match: 'Controllers rumble:', shots: [
+      { name: 'rumble-settings', caption: 'Settings with a controller that can rumble: Controller rumble and Rumble strength under Controls', from: 'headless Chrome against this branch’s own dev server and main before it, a simulated Xbox pad (its dual-rumble actuator), Medium' },
+    ], see: 'With a controller (Xbox, PlayStation, a Steam Deck, the Android app on a handheld): take a hit, drink a potion (View + D-pad ↓), let go of a charged cut, pick up chimes, lift off in the ship, or search the galactic map. Settings > Controls has Controller rumble and Rumble strength.' },
+    // the title screen
+    { match: 'The title screen’s menu is much smaller', shots: [
+      { name: 'title-menu-waterfall', caption: 'The city behind the waterfall (1280 × 720): before, six big entries down the middle of the picture; after, two small buttons and four icons low at the left (the menu takes 2.8 % of the screen, was 10.4 %)', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…)' },
+      { name: 'title-menu-desert', caption: 'The desert under the ringed planet: the ribs, the mesa and the planet all clear of the menu now', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…)' },
+      { name: 'title-menu-focus', only: 'after', caption: 'With a controller (shown at 2×): What’s new reached along the row, A in its corner, its name beside the row; Continue says which world it goes back to', from: 'headless Chrome at 2× against this branch’s own dev server, a save in slot 1, the controller’s glyphs shown' },
+      { name: 'title-menu-phone', only: 'after', caption: 'On a phone held upright (375 × 812): the same small menu at the bottom left, every button still a 40 px touch target', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…)' },
+    ], see: 'Open the game: the menu is at the bottom left. Point at an icon (or reach it with the D-pad: down from Saves into the row, then left and right) to see its name; Enter or A opens it.' },
+    { match: 'On the title screen the traveller now stands still', shots: [
+      { name: 'title-stance', caption: 'The Sky Stones, close on the traveller: before, the game’s idle, one arm swung out, the weight on one leg; after, upright, arms at his sides, hands by his thighs', from: 'headless Chrome (1280 × 720, Medium) against this branch’s own dev server and main before it, the title asked for its shot (?shot=…), cropped round him' },
+    ], see: 'Open the game a few times and watch him for a while: he no longer looks about or shifts his weight; he breathes, and his coat stirs.' },
+    // the opening, the singing light and the father's message
+    { match: 'Your father’s first message now makes the years away plain', shots: [
+      { name: 'voicemail-charge', caption: 'The charge on the voicemail: before, “Bring back something of value.” in plain letters; after, “something of value” in gold with its ✦, and the condition: “Until then, don’t come home.”', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+    ], see: 'Start a new game (or open the game with ?level=desert&prologue=1), walk to the cockpit and press the blinking voicemail button: the father’s four lines, then the cut. The gold words come back on the last recording on the reel, in the mother’s recording about Ilen, at the Lantern, and in the answers “I’m looking for something of value” in Viridel, the Buried Machine and Lorn.' },
+    { match: 'The singing light has a song of its own', see: 'With the sound on, play the opening: the five notes come three times under the father’s message, each nearer, then alone when you pause it, then loud as the light goes by, falling in pitch. The game sings them itself for now; a recorded version will take their place.' },
+    { match: 'The opening is restaged', shots: [
+      { name: 'opening-light', caption: 'Just after the message: before, the strike (“Impact. Hull breach.”, red alarm light); after, the singing light coming past the cockpit window, the father’s picture held still', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'opening-pause', only: 'after', caption: 'The pause: the father held mid-word over the dash, the traveller listening, and the light coming out of the dark in the window', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'opening-pass', only: 'after', caption: 'Outside: the light brushes past the ship’s hull and rushes away; the ship goes dark as it passes', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'opening-landing', caption: 'The arrival: before, ploughing a long furrow through the dunes in a storm of dust and fire; after, down on its belly at the end of a short skid', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+    ], see: 'Start a new game and press the voicemail button: let the message play to the cut (the pause), then watch the light pass, the drain and the landing. Hold Esc (B) to skip as before.' },
+    { match: 'As the emergency power comes on, the ship says', shots: [
+      { name: 'landing-line', caption: 'The hatch opens: before, “The impact left a magnetic signature in our hull”; after, “Whatever passed us drained the core and left a magnetic signature on the hull”', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+      { name: 'follow-line', only: 'after', caption: 'Stepping out: “Then track it. When we can fly, we follow it. I want to hear it again.”', from: 'headless Chrome against this branch’s own dev server and main before it, a new game at High, 1280 × 720 (9 October)' },
+    ], see: 'At the end of the opening, as the hatch opens: the ship’s line, then his. Skipping the opening still plays them, once the father’s card has gone.' },
+    { match: 'Nobody talks about your ship being struck any more', see: 'In the desert ask Oum about the light, or Nour why you fell; at the Lantern, ask Ilen why the light came to your ship. The map’s note reads “LIGHT SIGNATURE”.' },
+    // Qanat repays you
+    { match: 'In the desert, Qanat now repays you for its tree', shots: [
+      { name: 'qanat-gift', only: 'after', caption: 'At the ship once the tree burns: Nour last at the hull, “You gave us back our light, child. So Qanat gives your ship its own.”, the others in a half ring by the ramp', from: 'headless Chrome against this branch’s own dev server, a save at the desert’s last stage, at High, 1280 × 720, the camera held (9 October)' },
+      { name: 'qanat-well', only: 'after', caption: 'Hessa pours the well’s first water into the ship', from: 'headless Chrome against this branch’s own dev server, a save at the desert’s last stage, at High, 1280 × 720, the camera held (9 October)' },
+    ], see: 'Light Qanat’s tree with the spark-stone, then walk back to your ship: the villagers are waiting by the ramp. Each steps up in turn and says what they pour in; then the ship hums awake.' },
+    // the creatures' gallery
+    { match: 'In the creatures and spirits gallery, the creatures’ shadows', shots: [
+      { name: 'gallery-shadow', caption: 'The dune skitter in the gallery, standing (shown at 2×): before, its shadow’s edge torn and speckled, pale streaks between the legs; after, one smooth shadow, each leg’s outline clear', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the creature held at one moment, cropped round it' },
+      { name: 'gallery-shadow-motion', caption: 'Eight frames over two seconds of its idle: before, the edges crawl from frame to frame; after, they hold still', from: 'headless Chrome against this branch’s own dev server and main before it, enemies.html, the page’s own animation stepped a quarter of a second between frames' },
+    ], see: 'Open the creatures and spirits gallery (enemies.html), pick the Desert’s dune skitter, and watch its shadow while it stands, moves and attacks, dragging to turn it.' },
+  ],
   '1.5': [
+    // the first shop
+    { match: 'The first shop has opened in the desert', shots: [
+      { name: 'shop-front', caption: 'Beside the way from the camps up to Qanat’s main gate: before, open sand; after, Haddu’s shop, its door under a striped awning, the name board over it and a brass chime hanging by the door', commit: 'b1fff179',
+        view: { level: 'desert', save: SAVE_ON, setup: pinAt(SHOP_DOOR[0], SHOP_DOOR[1], { a: SHOP_DOOR[2] - 0.55, dist: 15, h: 3.4, ty: 2, pd: 7, pa: SHOP_DOOR[2] - 0.3, fov: 50 }), wait: 800 } },
+      { name: 'shop-inside', only: 'after', caption: 'Inside: Haddu behind his counter, the wares laid out on it (three flasks, two hearts, two magic cells), shelves of jars behind, the sun through a lattice window on the floor', commit: 'b1fff179',
+        view: { level: 'desert', save: SAVE_ON, setup: SHOP_IN(), wait: 800 } },
+    ], see: 'From the pilgrims’ camps, walk toward Qanat’s main gate: the shop is on your left before the gate. Walk into its door; walk out of the room’s door to be back in the street. Save inside (wait a few seconds) and reload: you are still in the shop.' },
+    { match: 'Haddu, a broad, slow chime-weigher', shots: [
+      { name: 'shop-panel', only: 'after', caption: 'The shop open (1280 × 720): Haddu and what he says, the wallet, a card for each ware with its picture, effect, stock and price', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, setup: SHOP_OPEN(), wait: 800 } },
+      { name: 'shop-panel-deck', only: 'after', caption: 'On the Steam Deck’s screen (1280 × 800)', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [1280, 800], setup: SHOP_OPEN(), wait: 800 } },
+      { name: 'shop-panel-side', only: 'after', caption: 'On a phone held sideways (812 × 375): the same row of cards, smaller', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [812, 375], setup: `document.body.classList.add('touch'); ${SHOP_OPEN()}`, wait: 800 } },
+      { name: 'shop-panel-phone', only: 'after', caption: 'On a phone held upright (375 × 812): one card a row, the picture beside the words', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, size: [375, 812], setup: `document.body.classList.add('touch'); ${SHOP_OPEN()}`, wait: 800 } },
+    ], see: 'In the shop, talk to Haddu (X / □, E) and answer “Show me what you have”, or stand at the middle of the counter and look at the wares. The D-pad or the arrows move between the cards, A / × or Enter chooses, B / ○ or Esc backs out.' },
+    { match: 'He sells healing potions', shots: [
+      { name: 'shop-ask', only: 'after', caption: 'A heart container chosen: “Buy a heart container for 50 chimes?”, Buy with A and Not now with B', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, setup: SHOP_OPEN(`document.querySelector('#shop [data-ware="heart"]').click(); await wait(500);`), wait: 600 } },
+    ], see: 'Buy a heart container: the price on its card goes from 50 to 80, “1 left”, and a fourth heart comes up at the top left, full. Buy both: the card says Sold out, and Haddu says so if you choose it again. A card you can’t afford shows its price in red.' },
+    { match: 'Potions now run out', shots: [
+      { name: 'potions-hud', caption: 'Half the hearts gone, at the top left: before, the flask said ∞; after, a save from before the shop has a full five', commit: 'b1fff179',
+        view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1500, setup: HEARTS_SETUP(0.5) } },
+    ], see: 'Drink a potion (C, View + D-pad ↓, or tap the flask): the count by the flask goes down. With none left, a notice says a shop sells more.' },
     // hearts, potions and the magic bar (the HUD shot in both commits with the same setup: half the health gone, the bar at 1.4 of 3, held there)
     { match: 'Your health is now hearts', shots: [
       { name: 'hearts-hud', caption: 'Half the health gone, at the top left: before, the thin red bar; after, a heart and a half of three in ink, the potion beside them and the magic bar under them, spent to under half', commit: 'fdaa8144', before: '40356176',

@@ -34,7 +34,8 @@ test('stripSiteOnly takes them out of a built dist/ and leaves the rest', async 
 });
 
 test('the recorded themes are fetched on demand, all but the desert\'s (the first world, offline from the first session)', () => {
-  assert.deepEqual(ON_DEVICE_THEMES, ['desert.mp3']);
+  assert.deepEqual(ON_DEVICE_THEMES, ['desert.mp3', 'singing-light.mp3']);
+  assert.ok(!fetchedOnDemand('music/singing-light.mp3') && !leftOff('music/singing-light.mp3'), 'the singing light\'s cue rides in the package: the prologue plays it on a first launch');
   assert.equal(SOUNDTRACKS.desert, 'desert.mp3');
   for (const file of new Set(Object.values(SOUNDTRACKS))) {
     const rel = `music/${file}`;

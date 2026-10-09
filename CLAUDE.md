@@ -1,7 +1,6 @@
 # Hiraeth: notes for Claude
 
-A three.js exploration game called Hiraeth (the repository and internal ids still say
-`moebius`), drawn in the style of Moebius, played in the browser
+A three.js exploration game called Hiraeth (the internal ids still say `moebius`), drawn in the style of Moebius, played in the browser
 (GitHub Pages) and as an Android app (`android/`, Capacitor). Design lives in
 `docs/game-brief.md` and `docs/story-bible.md`; how each system works in
 `docs/systems/<topic>.md` (indexed in `docs/README.md`; superseded notes and old

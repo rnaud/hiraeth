@@ -17,6 +17,7 @@ import { Hologram } from './hologram.js';
 import { homeOpen, HOME_ID, finaleOpen } from '../story/ending.js';
 import { relaySignal, RELAY_TEXT } from '../story/relay.js';
 import { MAP_LINE } from '../story/signature.js';
+import { foundFlag, foundLine, SEARCH_LINE } from '../story/signature-search.js';
 import { HomecomingDirector } from './homecoming.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
@@ -28,8 +29,8 @@ import { PrologueDirector, ArrivalDirector, TakeoffDirector, CallDirector, OBJEC
 // The traveller's ship: a big round ball, home between worlds.
 //
 //  - It stands at each world's arrival point (src/ship/sites.js). In the
-//    desert, until it first flies again, it lies where it crashed: tilted,
-//    dug into a dune at the end of its furrow.
+//    desert, until it first flies again, it lies where it came down when the singing light drained it:
+//    on its belly, dug into a dune at the end of a short skid.
 //  - Walk up the ramp and in: bunk room, ring corridor, galley, entry hall,
 //    cockpit. All of it collides (physics.addCollider).
 //  - E at the cockpit console: the voicemail button (it blinks while a message waits): the
@@ -333,6 +334,9 @@ export class Ship {
       finale: () => finaleOpen({ flag: (k) => game.flag(k), completed: this.completed() }),   // the Lantern, past the market (src/story/ending.js)
       side: deps.side ?? CHARTED_SIDE,   // (the finished worlds off the route, never the ones still being made: src/levels/names.js WIP)
       onTravel: (id) => this.travel(id),
+      sound: () => this.sound,
+      // the signature search charted a world (src/story/signature-search.js)
+      onFound: (id, title) => { game.set(foundFlag(id), true); this.cinema?.say(foundLine(title), { secs: 3.6 }); },
     });
     globalThis.addEventListener?.('keydown', (e) => { if (e.code === 'Escape') this._esc = true; this._keyT = performance.now(); });
     globalThis.addEventListener?.('keyup', (e) => { if (e.code === 'Escape') this._esc = false; });
@@ -357,7 +361,7 @@ export class Ship {
     }
     this.removeSpaceCopy();
     if (this.crashSite) this.crashSite.reveal(1);
-    if (this.crashed) this.startSmoke = true;
+    // (no smoke: the singing light drained it and it came down on its belly; nothing on it burns)
     if (via === 'ship') {
       this.cinematic = new ArrivalDirector(this);
       this.cinematic.start();
@@ -539,7 +543,10 @@ export class Ship {
     this.parked.callScreen?.set({ who: 'map' });
     this.map.toggle(true);
     // the first time with power: why these worlds (src/story/signature.js)
-    if (!game.flag('signature.told')) { game.set('signature.told', true); this.cinema.say(MAP_LINE, { secs: 7 }); }
+    const first = !game.flag('signature.told');
+    if (first) { game.set('signature.told', true); this.cinema.say(MAP_LINE, { secs: 7 }); }
+    // the first time there is a world to find: how the search works (src/story/signature-search.js)
+    if (this.map.targets?.length && !game.flag('signature.search.told')) { game.set('signature.search.told', true); this.cinema.say(SEARCH_LINE, { secs: 7, queue: first }); }
   }
 
   travel(to) {

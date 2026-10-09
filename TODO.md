@@ -35,26 +35,12 @@ rather than mixing the earlier inconsistent exploration sheets.
   (the user's `0_2 (53).jpeg` download). Match the broad turquoise liquid blade, wrapped grip,
   brass fittings and trailing fluid details, preserving the design in hand and during combat.
 
-# Story clarity, singing light and rumble (queued 2026-10-09)
+# Singing light soundtrack follow-up
 
-- [ ] **Make the years away clear in the first voicemail.** Rewrite the father's opening message so
-  players understand the traveller left home many years ago: for example, "We haven't heard from you
-  for so long." Convey both "we miss you" and "I'm still disappointed in you," and tell him not to
-  come back until he brings **"something of value"**. Highlight that phrase in the game's dialogue.
-- [ ] **Give the singing light a distinctive few-note theme, made with Suno, and restage the opening.**
-  Hear the theme over the father's voicemail; the traveller pauses the recording to listen more closely.
-  The light passes the ship and drains its energy, forcing a landing nearby rather than a crash.
-  Make it clear that the traveller subsequently follows the singing light of his own accord.
-  Reconcile later references to the collision and the Lantern's explanation with this revised encounter.
-- [ ] **Have Qanat repay the traveller's help by repowering his ship.** Make the connection between
-  restoring the village's light and getting airborne explicit: because he helped them, the villagers
-  choose to help him in return and pool the village's resources to restore the ship's power.
-  Replace the current direct sacred-light-to-ship-power explanation with that act of reciprocity.
-- [ ] **Turn the galactic minimap into a signature-search minigame.** Explain that the ship can detect
-  the singing light's signature on other planets. Let the player hover over regions of the map and
-  follow rumble and visual cues to discover nearby planets carrying the same signature.
-- [ ] **Add rumble support to the game**, including feedback for the galactic minimap's signature search.
-  Keep the visual search cues usable when rumble is unavailable or disabled.
+- [ ] **Generate the singing light theme with Suno** using the brief in
+  `docs/systems/audio.md` ("The singing light's theme") and install the selected recording
+  in the existing `singing-light` cue slot. The synthesised motif, restaged opening,
+  voicemail, Qanat repayment, signature search and rumble are implemented (DONE.md).
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
@@ -75,6 +61,29 @@ rather than mixing the earlier inconsistent exploration sheets.
   other people (Marrow) in front of dark areas, not only the traveller; run the side worlds.
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
+
+# Enemy roster (approved 2026-10-09: 21 archetypes, the bell walker in the Market; fresh Midjourney sheets first)
+
+docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. Do not build until approved.
+
+- [ ] **Fresh reference sheets first**: run the 21 Midjourney prompts in docs/design/enemy-roster-prompts.md (one
+  main sheet per archetype in its first world's skin, plus one alternate skin), save each to
+  `references/enemy-archetypes/<id>/sheet-N.jpg` with a `manifest.json`, pick by silhouette first, then rebuild the
+  contact sheet.
+
+- [ ] **Approve the roster**: 21 archetypes (12 creatures, 5 possessed machines, 4 spirits), each with its own
+  silhouette, body plan and role; no two machines or spirits share a body plan, and each shows its possession its
+  own way. It replaces the 100 world enemies (src/enemies/roster.js: the machines and the shades all looked alike)
+  and folds in the 15 old kinds (kept: salt crab, sign moth, blot; rebuilt: dune ray → mound worm, rust drone →
+  ring drone, root stalker → root knot, slag walker → crucible cart, shadow hound → antler hound, shade reworked;
+  retired: spitting blot, blot swarm, winged blot, glass splinter, glass golem, makers' machine). The doc's open
+  questions: 21 or 20, the Vael II bell, the marionette possessing wildlife, names, fresh references, side worlds.
+- [ ] Once approved, build in the doc's order (with the procedural animation kit below): the framework
+  (archetypes + skins tables, rosters), then crab / lizard + hound / tripod / blot, then worm / ray / moth /
+  centipede / jelly, then toad / heron / swarm / root knot, then drone / cart / brute / bell, then shade / roller /
+  marionette; then the rosters, difficulty and sounds per archetype, re-scored with the combat-review skill.
+  This supersedes the per-kind items below where they overlap (the hound's pounce, the shade's second attack,
+  the soft end of the route, a sound per kind).
 
 # Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
 
@@ -138,6 +147,38 @@ rather than mixing the earlier inconsistent exploration sheets.
   (where it will fall), since the thrower's wind-up can't show where it lands. The guardians get richer, staged fights: more attacks than the shared three, combos
   and phase changes that change the moves, openings read from the body. Keep fairness: wind-ups long enough
   to read, the off-screen warning marker for foes behind you. Re-score with the combat-review skill.
+
+# Procedural animation (queued 2026-10-09, after the combat telegraphs)
+
+The foes walk like toys on sticks: rigid legs swung by a shared clock, feet sliding 0.3–1.4 m per metre walked,
+six-legged crabs waddling all-left / all-right, bodies that ignore their feet (measured:
+docs/systems/procedural-animation.md, "The audit"). Build a small locomotion kit (`src/motion/`) and move the
+new ~20 body plans and the guardians onto it. Review every step with the `procedural-animation` skill
+(`node scripts/motion-audit/run.mjs`, the rubric). Sessions are rough estimates.
+
+- [ ] **1. Kit core** (1 session): `spring.js` (second-order f/ζ/r with the stability clamp, expDamp,
+  quantise), `ik.js` (two-bone with a stable pole, replacing `kneeOf`; FABRIK for 3+ joints), `gait.js`
+  (rest targets, groups that lift only when the others are down, distance/time/turn triggers, smootherstep +
+  sine arc, one ground ray per step, touchdown events for dust / sound / rumble). Tests: IK clamp and pole
+  through a straight leg, springs stable at 10–240 fps, a planted foot never moves, tripod and tetrapod form.
+- [ ] **2. Body and poses** (1 session): `body.js` (ride height over planted feet, pitch/roll from the foot
+  plane, bob per lift, lean into acceleration and turns), `pose.js` (a plan's key poses blended by the mind's
+  state; wind-up locks stepping, plants wide, counter-moves via r < 0; strike snaps with overshoot; recover
+  settles). Ties into the body telegraphs.
+- [ ] **3. First three plans end to end** (1–2 sessions): multi-legged walker, quadruped beast, piston-legged
+  machine in the enemies viewer and the Arena; targets slide/m < 0.05, reach span > 15 % of leg length, lift
+  ≥ 6 %, right groups, cadence following speed; before/after motion strips for the changelog.
+- [ ] **4. Chains** (1 session): `chain.js` (follow-the-leader with angle limits, short verlet with a pinned
+  root, travelling waves on a phase accumulator) for serpents, centipedes, jellies, flyers, gliders, and
+  tails / cloaks / cables on the plans above.
+- [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md, awaiting approval): each body plan a table entry and
+  its poses, scored with the rubric (≥ 2 on every row).
+- [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
+  bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
+  each fight's new attacks.
+- [ ] **7. LOD and style** (1 session): near / mid / far tiers held 30 frames, the stepped-output clock
+  (12–15 fps per foe) as a per-plan style; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
+  the motion check for ink shimmer.
 
 # Level design (audit) (docs/audits/level-design-v1.5.md, 2026-10-09)
 

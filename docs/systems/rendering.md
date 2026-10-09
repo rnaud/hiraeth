@@ -526,6 +526,35 @@ shimmered more in a slow pan (the Buried Machine: 26.7 → 30.8).
 redrawn), `tests/motion-stable.test.js` (the deep lookup near the terminator), `tests/occlusion-taps.test.js`
 (people close nothing in, for every flag they may carry).
 
+## Torn shadows in the creatures' gallery (`uShadowTexel`, `fitShadowExtent`; October 2026)
+
+The author's report on `enemies.html` (the dune skitter): "look at the shadows in motion, there is something really
+wrong". The creature's shadow on the paper was torn: ragged, streaky edges, pale gaps, specks that crawled as it
+breathed and as the view turned. **The gallery only**: the same creatures in the Arena (the skitter, the old kinds, the
+Keeper in its ring) were clean, and so are the studio, the items' gallery and the title.
+
+- **Cause.** `materials.js shadowLit` spreads each cascade's tent by `px / uShadowTexel` (where a texel is smaller than
+  the pixel, "Smooth cast-shadow edges"). The gallery (`src/enemies/page.js`) inherits the items' viewer and
+  reconfigured its fine map from 1024 px over ±3 m to 2048 px over ±16 m, but `uShadowTexel.x` still said the old
+  5.9 mm texel against the real 15.6 mm: the taps spread up to 2.5 times their grid about the point, off the tent's
+  weights, and the bilinear comparison taps broke the edge into noise. Its window was also the whole ±16 m round the
+  frame's centre (which moves to hold an attack's marked area), so a small creature had a coarse map.
+- **Fix.** A `Cascade` given `uniforms.texel: [SU.uShadowTexel, slot]` writes its texel there on every `configure()`;
+  every cascade in `src/` passes its slot (the game, the title, the studio, the motion check, the trailer, the
+  galleries), so reconfiguring a map can no longer leave the shader behind. The gallery's window is now the game's own
+  fine map (`FINE_CASCADE`: 2048 px over ±12 m, bias 3.4 and normal offset 2.6 texels; main.js builds its fine cascade
+  from it), wider only for a creature whose shadow wouldn't fit (`fitShadowExtent(r, height, sinEl)`: its radius and the
+  shadow of its top at the sun's height, a flyer's hover counted; all 100 fit under the page's 57° sun), and centred on
+  the creature's foot (`ItemViewer.shadowCentre`), not on the frame. Tried and dropped: a finer map fitted to each
+  creature (±4-5 m, 4 mm texels): its bias in texels was too thin in metres, acne on the shells' shoulders; holding the
+  bias in metres still left specks. The game's map is clean and draws the shadow as the game does.
+- **Seen**: 8 frames over 2 s of its idle and the orbit (±32° in 8° steps) before and after; the edges are smooth and
+  hold still, and thin parts that the coarse map lost (the storm-ray's tail) cast again.
+- `tests/shadow-setup.test.js`: a cascade keeps its uShadowTexel slot in step through reconfigurations; every
+  `new Cascade` in `src/` passes a slot, with bias (1.5-4 texels) and normal offset (2-3.5) in range, the galleries'
+  fine map the game's; the fitted window holds a subject's foot, top and shadow inside the map's unfaded part for
+  several sun heights; the gallery fits its window and centres it on the creature.
+
 ## Spot blacks anchored to the surface; cave seams (October 2026)
 
 The playtest: on the tree's stairs and the terraces the spot blacks came in blocks that shifted as the camera

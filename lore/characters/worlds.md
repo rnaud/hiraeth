@@ -174,7 +174,7 @@ inside a carnivorous plant indefinitely without clear instructions.
 213. Met Odile and Talo in her first spring. Writing premise: she is excited
 to be wrong about the size of something she knows well. Exact about sounds,
 humble about their meaning. She recognises the light's song; she cannot tell
-you why it struck the ship.
+you why it came to the ship.
 
 Sedge is a shy witness, clearest when describing the reeds. Corm gives the
 plants names and discusses feeding them as ordinary husbandry. Ivo watches

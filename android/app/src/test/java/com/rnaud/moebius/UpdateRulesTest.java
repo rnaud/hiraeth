@@ -68,8 +68,8 @@ public class UpdateRulesTest {
     public void pastTheCaches() {
         assertEquals("https://x/web.json?t=5", UpdateRules.bust("https://x/web.json", 5));
         assertEquals("https://x/web.json?a=1&t=5", UpdateRules.bust("https://x/web.json?a=1", 5));
-        assertEquals("https://github.com/rnaud/moebius/releases/tag/v0.56",
-            UpdateRules.pageFor("https://github.com/rnaud/moebius/releases/download/v0.56/moebius-v0.56.apk", "f"));
+        assertEquals("https://github.com/rnaud/hiraeth/releases/tag/v0.56",
+            UpdateRules.pageFor("https://github.com/rnaud/hiraeth/releases/download/v0.56/moebius-v0.56.apk", "f"));
         assertEquals("f", UpdateRules.pageFor("https://example.com/a.apk", "f"));
         assertEquals("f", UpdateRules.pageFor(null, "f"));
     }

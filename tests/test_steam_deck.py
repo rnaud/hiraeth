@@ -214,7 +214,7 @@ class ContentUpdateTests(unittest.TestCase):
 
     def test_the_site_is_the_feed(self):
         self.assertEqual(deck.CONTENT_MANIFEST_URL, 'https://memento.alexandria-rnaud.workers.dev/updates/web.json')
-        self.assertTrue(deck.MANIFEST_URL.startswith('https://' + 'github.com/rnaud/moebius/releases/download/steam-deck/'),
+        self.assertTrue(deck.MANIFEST_URL.startswith('https://' + 'github.com/rnaud/hiraeth/releases/download/steam-deck/'),
                         'the runtime package stays on the release (by hand once the repository is private)')
 
     def test_a_newer_game_is_unpacked_and_served_next_launch(self):
