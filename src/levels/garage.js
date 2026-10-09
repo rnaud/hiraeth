@@ -3,7 +3,10 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../noise.js';
 import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { jitter, soften } from '../world.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTemple, navigationPortal } from '../temples/index.js';
+import { placeShop } from '../shop-world.js';
+import { interiorAt } from '../interior-kit.js';
+import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { tagMetal } from '../gadgets/metal.js';
 
@@ -478,12 +481,19 @@ export function* buildGarage(scene) {
   let cooldown = 0, passing = null;
   const PASS = { in: 0.16, out: 0.4 };   // s: the fade into the portal's light, and out of it
 
+  // Odo's Quartermaster's Hatch (src/shop-world.js, src/shop-fronts.js 'kiosk'): a cabin of riveted plate on the
+  // plateau beside the way from the landing to the keep, its door and hatch turned to the way and the landing
+  const shop = placeShop(scene, { def: SHOPS.hatch, at: new THREE.Vector3(13, 0, 86), heading: -1.1 });
+
   // (the makers' First Garage on the rim: src/temples/garage.js)
   yield;
   return attachTemple('garage', scene, {
     id: 'garage',
-    // the plateau's flora (src/flora.js) keeps off the path from the start to the keep
-    floraAvoid: (x, z, r) => Math.abs(x) < 18 + r && z > 14 - r && z < 175 + r,
+    // (the shop's door: a doorway in the level's list, which main.js walks; the gravity portals are the level's own, below)
+    portals: [...shop.portals],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    // the plateau's flora (src/flora.js) keeps off the path from the start to the keep (and the shop's ground)
+    floraAvoid: shop.avoid((x, z, r) => Math.abs(x) < 18 + r && z > 14 - r && z < 175 + r),
     ground: { heightAt: () => -Infinity },
     spawn: aSpawn,
     spawnHeading: Math.PI,
@@ -501,12 +511,13 @@ export function* buildGarage(scene) {
     },
     killY: -Infinity,
     noShadow,
-    lights: portals.map((p) => new THREE.Vector4(p.pos.x, p.pos.y, p.pos.z, 16)),
+    lights: [...portals.map((p) => new THREE.Vector4(p.pos.x, p.pos.y, p.pos.z, 16)), ...shop.lights],
     life: {
       flocks: [{ count: 9, color: '#d27b5e', size: 1.3, radius: 60, height: [10, 30], seed: 5 }],
       motes: { count: 140, color: '#d8aa50', size: 0.05, glow: 0.7, rise: 0.15, wind: [0.2, 0.1] },
     },
-    navigationPortals: portals,
+    // (the scout reads this list here: the gravity portals and, in their shape, the shop's door)
+    navigationPortals: [...portals, ...shop.portals.map(navigationPortal)],
     gravityAt,
     // out through the ring's skin (the slit, or pressed through it): there is nothing to stand on
     // out there, and the jets only push you back against the hull, so you go back where you last stood
@@ -578,7 +589,8 @@ export function* buildGarage(scene) {
       if (z === 'A' && p.y < -260) player.teleport(aSpawn, Y, new THREE.Vector3(0, 0, -1));
       if (z === 'B' && p.y > B_POS.y + 400) player.teleport(bSpawn, down, new THREE.Vector3(0, 0, 1));
       if (z === 'C' && Math.hypot(p.y - C_POS.y, p.z - C_POS.z) > RING_R + 40) player.teleport(cSpawn, Y, new THREE.Vector3(1, 0, 0));
-      if (z === 'A' && Math.hypot(p.x, p.z) > 900) player.teleport(aSpawn, Y, new THREE.Vector3(0, 0, -1));
+      // (but not out of a building you walked into: its room is far off over the map, src/interior-kit.js)
+      if (z === 'A' && Math.hypot(p.x, p.z) > 900 && !interiorAt(p)) player.teleport(aSpawn, Y, new THREE.Vector3(0, 0, -1));
     },
   });
 }

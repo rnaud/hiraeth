@@ -9,6 +9,8 @@ import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
 import { ghostBridge, hiddenWriting } from '../gadgets/hidden.js';
@@ -1145,9 +1147,15 @@ export function* buildBuried(scene) {
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
+  // Mott's Tooth-Counter (src/shop-world.js, src/shop-fronts.js 'rivetdome'): a small riveted dome among the domes,
+  // beside the way from the landing to Wen's great dome, its oval door turned to the way and the landing
+  const shop = placeShop(scene, { def: SHOPS.toothcounter, at: new THREE.Vector3(-1, terrain.heightAt(-1, 28), 28), heading: -0.5 });
+  lights.push(...shop.lights);
   return attachTemple('buried', scene, {
     id: 'buried',
-    floraAvoid: avoid,   // the flora keeps off the canyon, the oculus, the hollow and the hero props (src/flora.js)
+    portals: [...shop.portals],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    floraAvoid: shop.avoid(avoid),   // the flora keeps off the canyon, the oculus, the hollow, the hero props and the shop (src/flora.js)
     ground: terrain,
     spawn,
     spawnHeading: Math.PI,

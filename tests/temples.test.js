@@ -1401,7 +1401,9 @@ test('the Hangar’s own portals still work round the temple’s: its list kept,
   assert.ok(nav.length >= own.length + 3, 'the temple’s doorways join the list the scout reads');
   for (const p of own) assert.ok(nav.includes(p), 'every gravity portal is still in it');
   for (const p of nav) assert.ok(p.pos?.isVector3 && p.to?.isVector3 && p.toUp?.isVector3 && p.toFwd?.isVector3, `${p.label}: the same shape (pos, to, toUp, toFwd)`);
-  assert.ok(level.portals.every((p) => p.temple === 'garage' && p.at && p.r), 'the doorways the game walks through are the temple’s');
+  const shopDoors = level.shops?.[0]?.portals ?? [];
+  assert.ok(level.portals.every((p) => (p.temple === 'garage' || shopDoors.includes(p)) && p.at && p.r), 'the doorways the game walks through are the temple’s (and Odo’s shop’s door)');
+  for (const p of shopDoors) assert.ok(nav.some((q) => q.at === p.at && q.to === p.to), 'the shop’s door is in the scout’s list too, in its shape');
   // the scout routes into the temple through its door
   const rt = level.temple;
   const route = viaPortal(V(0, 0, 120), { id: 'in', label: 'inside', position: rt.kit.world(0, 9, 90) }, nav);

@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.14 — 2026-10-09
 
+- In the Buried Machine, Mott keeps the Tooth-Counter, a small riveted dome among the domes on the way to Wen, a rusty gear tooth hung for its sign; she counts on an abacus of gear teeth and dates every sale by the great wheel.
+- In the Sealed Hangar, Odo, the Major’s quartermaster, keeps a riveted hatch beside the way from the landing to the keep, a gear and a flask stencilled on its side, and stamps every sale on a requisition the Major signed long ago.
 - In the City-Shaft, Fausta keeps a narrow three-storey shop on the middle terrace beside the cab stop, with a striped awning over its window, green shutters and a crane that lowers baskets of cures to every level.
 - In Viridel, Clover keeps a potting house of wood and glass against a fallen white slab under an umbrella tree, halfway from Mira’s garden down to the fallen ship: a striped awning, pots and flasks on a ladder of shelves, a brass bracket hanging a flask in a ring, and a heart grown in a pot of moss.
 - In Lorn II, Rowan keeps the Welcome-Shelf, a moss dome on the lit path with a blue door, a striped stall of flasks and three little lamps over the door. He has kept it stocked for travellers for thirty years, and you are his first customer.
