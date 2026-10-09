@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from '../../materials.js';
+import { surfaceFor } from '../surfaces.js';
 
 // Shared pieces for the archetypes' body builders (src/enemies/plans/): the game's ink materials per skin, meshes
 // placed in one call, tubes along points, and the finishing pass every model gets. A body is drawn in the Moebius
@@ -15,11 +16,20 @@ export const ease = (from, to, rate, dt) => from + (to - from) * (1 - Math.exp(-
 /**
  * The materials of one foe's body: shared ones by skin (`mat(name, color, o)`: one per archetype, skin and name),
  * and its own ones that it recolours as it fights (`own(name, color, o)`: an eye, a glowing bell), released with it.
+ * Given the skin itself (skinOf), each part wears its painted surface by its name (src/enemies/surfaces.js).
  */
 export function materials(archetype, skin) {
-  const owned = [];
-  const mat = (name, color, o = {}) => makeMaterial({ color, flat: o.flat ?? false, hatch: 0.45, patches: 0, ...o, key: `arch.${archetype}.${skin}.${name}` });
-  const own = (name, color, o = {}) => { const m = makeMaterial({ color, flat: true, ...o, key: `arch.${archetype}.${name}.${serial++}` }); owned.push(m); return m; };
+  const owned = [], id = typeof skin === 'string' ? skin : skin?.id;
+  // the part's painted surface (src/enemies/surfaces.js, drawn by src/foe-surface.js): patterns, colour zones, glow, gloss
+  const paint = (name, o) => {
+    if (o.foeSurface !== undefined || typeof skin !== 'object') return o;
+    const s = surfaceFor(archetype, skin, name);
+    if (!s) return o;
+    const { mat: extra, ...fs } = s;
+    return { ...o, ...extra, ...(Object.keys(fs).length ? { foeSurface: fs } : {}) };
+  };
+  const mat = (name, color, o = {}) => makeMaterial({ color, flat: o.flat ?? false, hatch: 0.45, patches: 0, ...paint(name, o), key: `arch.${archetype}.${id}.${name}` });
+  const own = (name, color, o = {}) => { const m = makeMaterial({ color, flat: true, ...paint(name, o), key: `arch.${archetype}.${name}.${serial++}` }); owned.push(m); return m; };
   return { mat, own, dispose: () => { for (const m of owned) releaseMaterial(m); owned.length = 0; } };
 }
 

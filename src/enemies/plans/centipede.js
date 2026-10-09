@@ -31,7 +31,7 @@ const _m = new THREE.Matrix4(), _inv = new THREE.Matrix4(), _q = new THREE.Quate
 const UP = new THREE.Vector3(0, 1, 0);
 
 export function centipedeModel(skin) {
-  const PL = PLANS.centipede, P = skin.palette, props = new Set(skin.props), M = materials('centipede', skin.id);
+  const PL = PLANS.centipede, P = skin.palette, props = new Set(skin.props), M = materials('centipede', skin);
   const N = PL.spine.segments, SP = PL.spine.spacing, RIDE = 0.6;   // (the body's centre: a tube about a metre thick, as tall as the traveller's chest)
   const g = new THREE.Group(); g.name = skin.name;
   const plateM = M.mat('plate', P.plate, { color2: P.plate2 }), underM = M.mat('under', P.under), legM = M.mat('leg', P.leg), darkM = M.mat('dark', P.dark, { flat: true, lineWhite: P.dark && props.has('glow') });

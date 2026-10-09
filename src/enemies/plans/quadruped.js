@@ -63,7 +63,7 @@ function spiralPoints(r0, turns = 1.15, n = 22) {
 }
 
 export function lizardModel(skin) {
-  const P = skin.palette, props = new Set(skin.props), M = materials('lizard', skin.id);
+  const P = skin.palette, props = new Set(skin.props), M = materials('lizard', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const hideM = M.mat('hide', P.hide, { color2: P.hide2 }), bellyM = M.mat('belly', P.belly), darkM = M.mat('dark', P.dark, { flat: true });
   const spotM = M.mat('spot', P.accent, { flat: true }), verdM = M.mat('verd', P.verd, { flat: true });
@@ -212,7 +212,7 @@ function antlerCrown(parent, props, mat, glintM) {
 }
 
 export function houndModel(skin) {
-  const P = skin.palette, props = new Set(skin.props), M = materials('hound', skin.id);
+  const P = skin.palette, props = new Set(skin.props), M = materials('hound', skin);
   const g = new THREE.Group(); g.name = skin.name;
   // its ink is drawn with a white contour, as the shade's: black on the Eclipse's dark streets it would be only a
   // hole (playtest 2026-10-08, no invisible foes: src/foe-presence.js)

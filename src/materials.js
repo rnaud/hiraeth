@@ -14,6 +14,7 @@ import { WATER_GLSL, WATER_MARK, waterMaterial } from './water-shader.js';
 import { FALL_GLSL, fallMaterial } from './waterfall-shader.js';
 import { DUNE_GLASS_GLSL, DUNE_GLASS_VERT_PARS, DUNE_GLASS_VERT, duneGlassMaterial, dunePoolMaterial } from './dune-glass-shader.js';
 import { CRYSTAL_GLSL, CRYSTAL_VERT_PARS, CRYSTAL_VERT, crystalMaterial } from './crystal-shader.js';
+import { FOE_SURFACE_GLSL, FOE_SURFACE_PARS, foeSurfaceMaterial } from './foe-surface.js';
 
 // ---------------------------------------------------------------------------
 // G-buffer surface material.
@@ -1699,6 +1700,8 @@ const fragmentShader = /* glsl */ `
   #endif
   ${DUNE_GLASS_GLSL}
   ${CRYSTAL_GLSL}
+  ${FOE_SURFACE_PARS}
+  ${FOE_SURFACE_GLSL}
 
   // ordered 4x4 dither threshold, for print-like dissolves
   float bayer4(vec2 p) {
@@ -2238,6 +2241,9 @@ const fragmentShader = /* glsl */ `
     }
     #endif
     albedo *= instColor;
+    #ifdef FOE_SURFACE
+      patInk = max(patInk, foeSurface(albedo, emit, n));   // (foe-surface.js: an enemy's painted patterns, its glow)
+    #endif
     #ifdef S_FORM
     if (uVeins > 0.0 && uFormHatch > 0.0 && vForm.w > 0.5 && vForm.w < 1.5) {
       // a dark cap's underside (the Garden's umbrellas): its veins drawn lighter, radiating from the stalk, lit
@@ -2336,6 +2342,9 @@ const fragmentShader = /* glsl */ `
     #endif
     #ifdef CHIME_CRYSTAL
       chimeCrystal(albedo, L, emit, n);   // (crystal-shader.js: the chimes' faceted crystal)
+    #endif
+    #ifdef FOE_SURFACE
+      foeGloss(albedo, L, n);   // (foe-surface.js: a foe's crisp highlight)
     #endif
     #ifdef METAL
       float metalInk;
@@ -2729,6 +2738,8 @@ const cache = new Map();
  * @param {boolean|object} [o.crystal] the chimes' faceted crystal (crystal-shader.js; compiles the CHIME_CRYSTAL block, reads
  *                              the geometry's aCrystal): flat facets by the sun, bright edges, a pulsing inner glow,
  *                              refracted inner lines, a rainbow fringe, a rim and a sparkle; outline-only soft ink
+ * @param {object}  [o.foeSurface] an enemy's painted surface (foe-surface.js; compiles FOE_SURFACE and an FS_* per feature):
+ *                              fade, belly, mottle, rust, grain, bands, stripes, scales, spots, spots2, drips, glow, gloss
  * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
  * @param {boolean} [o.nightPaint] compile the NIGHT_PAINT block: the geometry's aNight attribute (vec4: rgb its colour by
@@ -2845,6 +2856,7 @@ export function makeMaterial(o) {
   if (o.duneGlass) duneGlassMaterial(mat, o);   // the Glass Dunes' glass (dune-glass-shader.js)
   if (o.dunePool) dunePoolMaterial(mat, o);   // the sand that takes its light
   if (o.crystal) crystalMaterial(mat, o);   // the chimes' crystal (crystal-shader.js)
+  if (o.foeSurface) foeSurfaceMaterial(mat, o);   // an enemy's painted patterns (foe-surface.js)
   if (o.makersBox) {
     const B = o.makersBox;
     mat.defines = { ...mat.defines, MAKERS_BOX: 1 };

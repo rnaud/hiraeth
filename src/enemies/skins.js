@@ -77,14 +77,16 @@ export const SKINS = {
     arzach2: { name: 'cloud jelly', palette: { bell: '#efc4d4', bell2: '#f8dce6', under: '#a8c8e0', thread: '#d8e4ec', lantern: '#b39464', light: '#ffc27a', eye: '#1a1420', dark: '#8a6a78' }, props: ['paper', 'puffy'] },
     perdide2: { name: 'lamp jelly', palette: { bell: '#c8453e', bell2: '#e06a5a', thread: '#a8342e', lantern: '#b8955a', light: '#ffd27a', eye: '#fff2c0', dark: '#4a1a18' }, props: ['brass'], moves: ['mend'] },
     spheres: { name: 'halo jelly', palette: { bell: '#efe7f2', bell2: '#f8f4fa', thread: '#c8b8d8', lantern: '#e8f8ff', light: '#a8e0f2', eye: '#4a4058', dark: '#6a5a80' }, props: ['prism', 'halo'], moves: ['mend'] },
-    underwater: { name: 'porcelain jelly', palette: { bell: '#f4f1ea', bell2: '#ffffff', thread: '#8fc8e8', lantern: '#d8f0f8', light: '#8fc8e8', eye: '#2a4a5a', dark: '#5f8fa8' }, props: ['float', 'glaze'], moves: ['mend'] },
+    // (sheet-2: white porcelain with cobalt bands and medallions, cobalt under the bell, coral-red threads, yellow glass lanterns in brass nets)
+    underwater: { name: 'porcelain jelly', palette: { bell: '#f4f1ea', bell2: '#ffffff', under: '#3550a8', thread: '#e2787e', lantern: '#b8955a', light: '#ffe28a', eye: '#2a4a5a', dark: '#3550a8' }, props: ['float', 'glaze'], moves: ['mend'] },
     fallenring: { name: 'sun jelly', palette: { bell: '#3f8f8a', bell2: '#5aa8a0', thread: '#2a6a66', lantern: '#ffcf8a', light: '#ff9a3e', eye: '#fff4b0', dark: '#16302e' }, props: ['core'], moves: ['mend'] },
   },
   moth: {
     perdide2: { name: 'lamp moth', palette: { wing: '#a39bbf', wing2: '#c8c2d8', body: '#f2cf86', spot: '#d8504a', glow: '#fff2d0', antenna: '#c9a050', eye: '#1a1420' }, props: ['lit', 'dusty'], moves: ['dust'] },
     edena: { name: 'glass wasp', palette: { wing: '#f2b8c8', wing2: '#f8dce4', body: '#f7d8a8', spot: '#e0607a', glow: '#fff0f4', antenna: '#5a3a44', eye: '#2a1e24' }, props: ['wasp'] },
     bazaar: { name: 'sign moth', palette: { wing: '#2a1f36', wing2: '#3a2c48', body: '#ff9ac8', spot: '#5ff0e8', glow: '#ffffff', antenna: '#ff5fa2', eye: '#101018' }, props: ['neon', 'letters'] },
-    antennas: { name: 'signal moth', palette: { wing: '#efe4c8', wing2: '#f7efda', body: '#ffe6a8', spot: '#c98a54', glow: '#fff8e0', antenna: '#b0683c', eye: '#2a2018' }, props: ['dish'], moves: ['dust'] },
+    // (sheet-2: cream paper wings traced with copper, a mint-green lantern, copper hood and legs)
+    antennas: { name: 'signal moth', palette: { wing: '#efe4c8', wing2: '#f7efda', body: '#cfe5c6', spot: '#9fd0b8', glow: '#eefbe8', antenna: '#b0683c', eye: '#2a2018' }, props: ['dish'], moves: ['dust'] },
     spacecity: { name: 'space moth', palette: { wing: '#5f7fd8', wing2: '#a8b8f0', body: '#d8f0ff', spot: '#f2f4ff', glow: '#ffffff', antenna: '#d8dff2', eye: '#101830' }, props: ['sail'] },
   },
   ray: {

@@ -1,0 +1,78 @@
+// The enemies' painted surfaces (src/foe-surface.js, src/enemies/surfaces.js; docs/systems/foes.md, "Procedural
+// surfaces"): a material compiles only the features it names, every skin's colours resolve from its palette, every
+// part named in the table is a part its body builder makes, and every built archetype wears a surface in every skin.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { makeMaterial } from '../src/materials.js';
+import { FOE_SURFACE_FEATURES, FOE_SURFACE_GLSL, FOE_SURFACE_PARS, foeSurfaceDefines, foeSurfaceOf } from '../src/foe-surface.js';
+import { SURFACES, surfaceColor, surfaceFor } from '../src/enemies/surfaces.js';
+import { SKINS, skinOf } from '../src/enemies/skins.js';
+import { ARCHETYPES } from '../src/enemies/archetypes.js';
+import { archetypeModel } from '../src/enemies/plans/index.js';
+
+const BUILT = Object.keys(SURFACES);
+
+test('a foe surface compiles only the features it names, with their uniforms', () => {
+  assert.deepEqual(foeSurfaceDefines({ spots: { color: '#fff' }, gloss: true }), { FOE_SURFACE: 1, FS_SPOTS: 1, FS_GLOSS: 1 });
+  assert.deepEqual(Object.keys(foeSurfaceOf({ spots: true, nonsense: true, mottle: null })), ['spots'], 'unknown and unset features dropped');
+  const m = makeMaterial({ color: '#7b8697', foeSurface: { spots: { color: '#efe5c4', star: 1 }, belly: { color: '#e9dfc8' } }, key: 'test.foe-surface' });
+  assert.equal(m.defines.FOE_SURFACE, 1);
+  assert.ok(m.defines.FS_SPOTS && m.defines.FS_BELLY && !m.defines.FS_MOTTLE);
+  assert.ok(m.uniforms.uFs_spotsC && m.uniforms.uFsBellyC && !m.uniforms.uFsMottleC);
+  assert.equal(m.uniforms.uFs_spotsS.value.x, 1, 'a lichen star');
+  const plain = makeMaterial({ color: '#7b8697', key: 'test.foe-surface.plain' });
+  assert.ok(!plain.defines.FOE_SURFACE, 'a material without one is unchanged');
+  for (const f of FOE_SURFACE_FEATURES) {
+    assert.match(FOE_SURFACE_GLSL, new RegExp(`#ifdef FS_${f.toUpperCase()}\\b`), `${f}: drawn`);
+    assert.match(FOE_SURFACE_PARS, new RegExp(`#ifdef FS_${f.toUpperCase()}\\b`), `${f}: its uniforms`);
+  }
+  // hooked into the surface shader additively: its patterns in the albedo stage, its gloss once the light is known
+  assert.match(m.fragmentShader, /foeSurface\(albedo, emit, n\)/);
+  assert.match(m.fragmentShader, /foeGloss\(albedo, L, n\)/);
+});
+
+test('the table’s colours: hex, a palette key, darker or paler', () => {
+  const P = { shell: '#808080' };
+  assert.equal(surfaceColor('#123456', P), '#123456');
+  assert.equal(surfaceColor('shell', P), '#808080');
+  assert.equal(surfaceColor('shell*0.5', P), '#404040');
+  assert.equal(surfaceColor('shell+0.5', P), '#c0c0c0');
+  assert.equal(surfaceColor('nothing', P), undefined);
+});
+
+test('every skin’s surfaces resolve from its palette, on parts its body really makes', () => {
+  for (const a of BUILT) {
+    assert.ok(SKINS[a], `${a}: an archetype with skins`);
+    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater' }[a]}.js`, import.meta.url), 'utf8');
+    const parts = new Set([...src.matchAll(/M\.(?:mat|own)\([`'"]([a-z0-9]+)/g)].map((m) => m[1]));
+    for (const [skin, table] of Object.entries(SURFACES[a])) {
+      if (skin !== '*') assert.ok(SKINS[a][skin], `${a}: a skin ${skin}`);
+      for (const name of Object.keys(table)) assert.ok(parts.has(name), `${a}.${skin}: ${name} is a part of its body`);
+    }
+    for (const w of Object.keys(SKINS[a])) {
+      const S = skinOf(a, w);
+      for (const name of new Set([...Object.keys(SURFACES[a]['*'] ?? {}), ...Object.keys(SURFACES[a][w] ?? {})])) {
+        const s = surfaceFor(a, S, name);
+        for (const [f, v] of Object.entries(s ?? {})) {
+          if (f === 'mat') continue;
+          assert.ok(FOE_SURFACE_FEATURES.includes(f), `${a}@${w}.${name}: ${f} is a feature`);
+          for (const k of ['color', 'color2']) if (k in v) assert.match(v[k], /^#[0-9a-f]{6}$/i, `${a}@${w}.${name}.${f}.${k} resolves (${v[k]})`);
+        }
+      }
+    }
+  }
+});
+
+test('every built archetype wears a painted surface in every skin, at no extra draw', () => {
+  for (const a of BUILT) {
+    assert.equal(ARCHETYPES[a].status, 'built', a);
+    for (const w of Object.keys(SKINS[a])) {
+      const m = archetypeModel(ARCHETYPES[a].kind, w);
+      let painted = 0, meshes = 0;
+      m.group.traverse((o) => { if (o.isMesh) { meshes++; if (o.material?.defines?.FOE_SURFACE) painted++; } });
+      assert.ok(painted > 0, `${a}@${w}: painted`);
+      m.dispose?.();
+    }
+  }
+});

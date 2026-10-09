@@ -25,7 +25,7 @@ import { materials, add, tube, pivot, pair, lerp, ease, eyeColor, finish } from 
 const _a = new THREE.Vector3(), _d = new THREE.Vector3(), _inv = new THREE.Matrix4();
 
 export function wormModel(skin) {
-  const PL = PLANS.burrower, P = skin.palette, props = new Set(skin.props), M = materials('worm', skin.id);
+  const PL = PLANS.burrower, P = skin.palette, props = new Set(skin.props), M = materials('worm', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const bodyM = M.mat('body', P.body, { color2: P.body2 }), ringM = M.mat('ring', P.ring), sandM = M.mat('sand', P.sand);
   const mouthM = M.mat('mouth', P.mouth, { flat: true }), teethM = M.mat('teeth', P.teeth, { flat: true });

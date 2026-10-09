@@ -42,7 +42,7 @@ function strip(s, x0, x1) {
 }
 
 export function mothModel(skin) {
-  const PL = PLANS.flyer, P = skin.palette, props = new Set(skin.props), M = materials('moth', skin.id);
+  const PL = PLANS.flyer, P = skin.palette, props = new Set(skin.props), M = materials('moth', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const wasp = props.has('wasp'), neon = props.has('neon');
   const wingM = M.mat('wing', P.wing, { color2: P.wing2, side: THREE.DoubleSide, lineWhite: neon });

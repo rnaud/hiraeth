@@ -684,7 +684,48 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   world's skin; its moves with their tells and answers; Fight it in the Arena).
   `node scripts/enemy-roster/compare.mjs --out <dir> [--tag after] [crab …]` sets the game's body under each of its
   reference sheets, in the sheet's skin and views (front, side facing left, three-quarter, the wind-up the sheet
-  draws): the contact images the art pass is checked against (`compare-<archetype>-<1|2>.png`).
+  draws): the contact images the art pass is checked against (`compare-<archetype>-<1|2>.png`, a working tool
+  only); `--separate` writes each view alone, large, 3D only (`<archetype>-<n>-<view>[-tag].png`), the pictures for
+  a before / after. The changelog's pairs come from `scripts/changelog-shots.mjs` (`view.foe`), with the sheet beside
+  them as its own picture (docs/systems/changelog.md, "Enemies"). The routine for a rework:
+  `.claude/skills/enemy-rework/SKILL.md`.
+
+### Procedural surfaces (v1.10, `src/foe-surface.js`, `src/enemies/surfaces.js`)
+
+The sheets paint their creatures: lichen stars on a slate dome, barnacle rosettes, mottled bands and rosettes on a
+lizard, rust streaks under a boiler's rivets, a blot's wet violet gloss, glowing paper lanterns. A flat colour per
+part read too far from them, so every built archetype's parts carry a **painted surface** drawn by the surface
+shader itself, with no texture, no UVs and no extra draw:
+
+- **The shader** (`src/foe-surface.js`, the `FOE_SURFACE` block of materials.js, added after the material's own
+  colour; its gloss once the light term is known): thirteen features, each compiled only where a material names it
+  (`FS_*` defines, as `S_*`): `fade` (a colour along an axis: the crab's apricot claw tips), `belly` (the underside
+  another colour, inked seams across it), `mottle` (two octaves of value noise), `rust` (rust and verdigris patches,
+  denser low, with pits), `grain` (wood grain with pen lines), `bands` and `stripes` (rings across an axis, inked
+  edges: segments, ribs, porcelain bands), `scales` (fish scales or staggered plates, triplanar, their outlines inked),
+  `spots` and `spots2` (round spots, rings or six-pointed lichen stars on the surface: 8 cells of a 3D lattice, each
+  spot's centre seen along the normal, so no projection and no seam), `drips`, `glow` (translucent: a light inside,
+  brightest where you look straight through, a rim, a pulse, blooming), `gloss` (a crisp highlight of the sun and of
+  the sky over you, off the smooth normal so a faceted blot gets a spot, not a lit facet).
+- **Anchored to the part:** object space with the scale baked in (`vObjPos`: metres), so a pattern moves with the
+  body and keeps its size on a big skin; random numbers from pcg4d on the float's bits (a fract-of-product hash
+  clumps at small coordinates).
+- **Ink:** the colour steps are the post pass's to ink. A sharp edge (`soft: 0`) gets a pen line round each spot, as
+  the sheets outline their lichen stars; a soft one doesn't (the coin lizard's amber rosettes). Bands, plates, scales
+  and grain write pen lines into the drawn-detail channel (`patInk`), so they thin out with the rest of the detail.
+- **Far off:** every feature fades to its mean colour once its cells are a few pixels (`FOE_SURFACE.far`): no
+  shimmer, the right overall tone. On the handheld and Low (`uWearLite`) the scales take one projection and the
+  finest second layer of spots is skipped.
+- **The table** (`src/enemies/surfaces.js`): `SURFACES[archetype]['*'][part]` for every skin, `[skin][part]` over it
+  (a feature set to null takes one away); colours are hex, a palette key, `key*0.7` darker or `key+0.3` paler, so each
+  skin's palette (from sheet-1 and sheet-2) drives its pattern. Parts are the names the body builders give their
+  materials (`kit.js` `materials(archetype, skin)` looks them up; `light0…2` wear `light`).
+- **Fewer draws:** the cliff crab's 26 lichen-star meshes are painted now, and the anchor crab keeps 5 raised barnacle
+  crusts of 13 (the rest painted rosettes): 26 and 48 draws fewer a crab.
+- **Cost:** only on a foe's pixels; a feature is a handful of hashes (spots 8 cells, noise 8 a octave). Measured in
+  "Performance" below.
+- **Tests:** `tests/foe-surface.test.js` (only the named features compile, colours resolve in every skin, every part
+  named is one its builder makes, every built archetype is painted in every skin).
 
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 

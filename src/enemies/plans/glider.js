@@ -41,7 +41,7 @@ function strip(s, x0, x1) {
 }
 
 export function rayModel(skin) {
-  const PL = PLANS.glider, P = skin.palette, props = new Set(skin.props), M = materials('ray', skin.id);
+  const PL = PLANS.glider, P = skin.palette, props = new Set(skin.props), M = materials('ray', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const dark = props.has('dark');
   const topM = M.mat('top', P.top, { color2: P.top2, side: THREE.DoubleSide, lineWhite: dark });

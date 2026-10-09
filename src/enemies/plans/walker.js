@@ -27,11 +27,9 @@ const domeY = (rho) => SHELL_H * Math.pow(Math.max(0, 1 - Math.pow(Math.min(1, r
 const DOME = Array.from({ length: 15 }, (_, i) => { const r = SHELL_R * (1 - i / 14); return new THREE.Vector2(Math.max(0.001, r), domeY(r / SHELL_R)); });
 /** The belly: a bowl of ivory plates under the lip. */
 const BELLY = [[0.96, 0], [0.93, -0.08], [0.84, -0.17], [0.66, -0.24], [0.36, -0.28], [0.001, -0.29]].reverse().map(([r, y]) => new THREE.Vector2(r * SHELL_R, y));   // (bottom up: faces out)
-/** A six-pointed fleck of lichen (the sheet's pale stars). */
-const STAR = (() => { const s = new THREE.Shape(); for (let i = 0; i <= 12; i++) { const a = (i / 12) * Math.PI * 2, r = i % 2 ? 0.4 : 1; s[i ? 'lineTo' : 'moveTo'](Math.sin(a) * r, Math.cos(a) * r); } return s; })();
 
 export function crabModel(skin) {
-  const P = skin.palette, props = new Set(skin.props), M = materials('crab', skin.id);
+  const P = skin.palette, props = new Set(skin.props), M = materials('crab', skin);
   const g = new THREE.Group(), body = pivot(g, 0, 0.6, 0, 'shell'); g.name = skin.name;
   const shellM = M.mat('shell', P.shell, { color2: P.shell2 }), underM = M.mat('under', P.under), clawM = M.mat('claw', P.claw, { color2: P.leg });
   const legM = M.mat('leg', P.leg), jointM = M.mat('joint', P.joint), armM = P.arm ? M.mat('arm', P.arm) : legM, tipM = P.tip ? M.mat('tip', P.tip) : null;
@@ -61,15 +59,13 @@ export function crabModel(skin) {
   // what is under the shell (a bomb cracks it off: the soft back shows)
   const meat = add(body, new THREE.SphereGeometry(0.6, 12, 6).scale(1, 0.32, 0.78), M.mat('meat', '#e08a70'), 0, 0.06, 0); meat.visible = false;
   const dress = [];   // (what a cracked shell loses)
-  if (props.has('lichen')) {
-    const starGeo = new THREE.ShapeGeometry(STAR);
-    for (let i = 0; i < 26; i++) { const a = i * 2.39996, r = SHELL_R * 0.92 * Math.sqrt((i + 0.5) / 26); const s = sit(add(body, starGeo, accentM), Math.sin(a) * r, Math.cos(a) * r * deep, 0.008); s.scale.setScalar(0.07 + (i % 3) * 0.02); s.rotateZ(i); dress.push(s); }
-  }
+  // (the lichen stars are painted on the shell now: src/enemies/surfaces.js, src/foe-surface.js; 26 draws fewer)
   if (props.has('patina')) for (let i = 0; i < 7; i++) { const a = i * 2.1, r = 0.25 + (i % 3) * 0.15; dress.push(sit(add(body, new THREE.SphereGeometry(0.11, 6, 4).scale(1, 1, 0.25), accentM), Math.sin(a) * r, Math.cos(a) * r * 0.9)); }
   if (props.has('barnacles')) {
     // crusts of barnacles in patches over the shell (the anchor crab's cream rosettes)
     const cone = new THREE.CylinderGeometry(0.03, 0.055, 0.05, 7).rotateX(Math.PI / 2).translate(0, 0, 0.03);
-    for (let i = 0; i < 13; i++) { const a = i * 2.4 + 0.3, r = SHELL_R * (0.2 + (i % 5) * 0.15);
+    // (a few raised crusts; the rest of the rosettes are painted on the shell: src/enemies/surfaces.js)
+    for (let i = 0; i < 5; i++) { const a = i * 2.4 + 0.3, r = SHELL_R * (0.2 + (i % 5) * 0.15);
       for (let k = 0; k < 6; k++) { const b = a + (k % 3) * 0.13, rr = r + (k > 2 ? 0.08 : 0); const m = sit(add(body, cone, accentM), Math.sin(b) * rr, Math.cos(b) * rr * deep); m.scale.setScalar(0.8 + ((i + k) % 3) * 0.25); dress.push(m); } }
   }
   if (props.has('rope')) {

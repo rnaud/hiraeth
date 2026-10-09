@@ -26,7 +26,7 @@ const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3
 const UP = new THREE.Vector3(0, 1, 0), DOWN = new THREE.Vector3(0, -1, 0);
 
 export function jellyModel(skin) {
-  const PL = PLANS.floater, P = skin.palette, props = new Set(skin.props), M = materials('jelly', skin.id);
+  const PL = PLANS.floater, P = skin.palette, props = new Set(skin.props), M = materials('jelly', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const bellM = M.mat('bell', P.bell, { color2: P.bell2, side: THREE.DoubleSide }), darkM = M.mat('dark', P.dark, { flat: true });
   const threadM = M.mat('thread', P.thread, { flat: true, line: 0.3, lineTint: 0.75 }), lanternM = M.mat('lantern', P.lantern), eyeM = M.own('eye', P.eye, { glow: 0.6 });

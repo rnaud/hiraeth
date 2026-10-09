@@ -26,7 +26,7 @@ function ragged(r, n, seed) {
 }
 
 export function blotModel(skin) {
-  const P = skin.palette, props = new Set(skin.props), M = materials('blot', skin.id);
+  const P = skin.palette, props = new Set(skin.props), M = materials('blot', skin);
   const g = new THREE.Group(); g.name = skin.name;
   const inkM = M.mat('ink', P.ink, { flat: true }), edgeM = M.mat('edge', P.edge, { flat: true }), shineM = M.mat('shine', P.shine ?? '#5a4a8a', { flat: true });
   const edge2M = P.edge2 ? M.mat('edge2', P.edge2, { flat: true }) : null, pupilM = M.mat('pupil', '#15121a', { flat: true });
