@@ -1539,7 +1539,7 @@ tests/sound-mix.test.js holds them.
   waiting (no way to you) and crouched / hopping. Checked in Lorn (a blot pushed off the swamp's bank, a blot
   walking into the Hush-House's stilled pendulum), headless Chrome. tests/foe-height.test.js.
 
-## Challenges: the echo relay in the Signal Market and the vine walk in Viridel (done 9 October, v1.4)
+## Challenges: the echo relay in the Signal Market, the vine walk in Viridel and the bell crossing in the Sky Stones (done 9 October, v1.4)
 
 - [x] **The echo stones and horns in the open, and the Signal Market's makers' run.** The stand-in runtime
   (src/trials/kit-courses.js `openRuntime`) now carries the game's events, and `addStone` / `rt.ear` stand the
@@ -1558,3 +1558,11 @@ tests/sound-mix.test.js holds them.
   further they go: three 10 m gaps, a seed at each, a flower-door on the third deck; down in the meadow or the
   wings opened ends it, `noWings`; Mira has a word). Played through in the game with the real gun in bloom
   mode. The course's dispose now takes its pieces' colliders back. tests/trials-kit.test.js.
+- [x] **The bell-tuned bridges and door in the open, and the Sky Stones' makers' run.** `rt.bellBridge` stands
+  the Founders' Belfry's own `Bridge` from 'above' (its stones hang high over the gap: they fell up) with the
+  `BellEar` that brings it down, on a bell post at the gap's edge; `rt.bellDoor` its bell-tuned `Door` with an
+  ear before it. They answer the bell-note whistle within 6 m, for anyone (`rt.free`); a new run sends the
+  stones back up and shuts the door. `BellEar` takes its own words now (`heard`). The **Bell crossing** (four
+  decks out over the sea of cloud from the starting plateau's south rim, three 10 m gaps, a bell-tuned door on
+  the last deck; the cloud or the wings end it; Sister Aube has a word). Mark 28 s over a scripted 17.2 s;
+  played through in the game with the real whistle (V) in 24.8 s. tests/trials-kit.test.js.

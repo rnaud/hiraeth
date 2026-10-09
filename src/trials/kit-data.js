@@ -8,7 +8,7 @@
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
 //   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps',
-//            'spherecourt', 'longlook', 'echorelay', 'vinewalk'
+//            'spherecourt', 'longlook', 'echorelay', 'vinewalk', 'bellcrossing'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -22,7 +22,7 @@
 //   onFoot   walked: up on the jets for more than a moment ends it (offFeet: the words on the card)
 //   noWings  the wings opened end it at once too (the vine walk: a glide would carry you over its gaps)
 //   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash;
-//            'kitwings'; 'kitecho': walk, splash, play the shell back)
+//            'kitwings'; 'kitecho': walk, splash, play the shell back; 'kitbell': walk, jump, sound the bell)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
 
@@ -150,6 +150,23 @@ export const KIT_TRIALS = {
       first: '~happy~ Three bridges grown and walked before my clock dripped twice. The builders would have liked you.',
       beaten: '~surprised~ Quicker than the builders! The vines had hardly finished growing under your feet.',
       again: '~playful~ Again? The vines are getting used to you. Mind the flowers. They mind you.',
+    },
+  },
+  'kit-arzach2': {
+    id: 'kit-arzach2', world: 'arzach2', mode: 'kit', course: 'bellcrossing', name: 'Bell crossing', color: '#f6c84e',
+    blurb: 'The Founders’ Belfry’s fallen-up bridges stood out over the sea of cloud from the south rim: four floating decks, three gaps, a bell at each, and a bell-tuned door.',
+    rules: 'Cross the three gaps to the arch on the last deck. The stones of each bridge hang high over its gap: sound the bell-note whistle by the bell at the edge and they come down into place. The door on the last deck opens to the bell too. Into the cloud, or on your wings, and the run is over.',
+    origin: [0, 40.5, 85], yaw: 0,
+    marker: [-4.4, -4.6], start: [0, 0.6], heading: 0, par: 28,
+    needs: ['bell'], lacks: 'Its bridges and its door answer the bell-note whistle.',
+    onFoot: true, noWings: true, offFeet: 'Feet only: the stones carry you over, not the wings or the jets.',
+    fall: { after: 0, below: -2, from: 12, words: 'Into the cloud' },
+    controls: 'kitbell',
+    voice: {
+      who: 'aube', name: 'Sister Aube', from: 'the hermit of the edge',
+      first: '~happy~ The stones came down for you, one bridge after another. I watched from my door. I wrote it down, next to the cloud.',
+      beaten: '~surprised~ Quicker than the founders! The stones hardly had time to settle before you were off them.',
+      again: '~playful~ Again? Mind the edges. The cloud is patient, and I am running out of page.',
     },
   },
 };

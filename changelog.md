@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.4 — 2026-10-09
 
+- And one in the Sky Stones, the Bell crossing, from the Founders’ Belfry’s own fallen-up bridges and bell-tuned door: four stone decks float in a line out over the sea of cloud, and the stones of the bridge across each gap hang high above it. Sound the bell-note whistle by the bell at the gap’s edge and they come down into place; the door on the last deck opens to the bell too. Fall into the cloud, or open your wings, and the run is over. Sister Aube, the hermit of the edge, has a word for you when you finish.
 - A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.
 - Knock a foe into deep water with a cut or the push, off a bank or a ledge, and it is swept away in a great splash. In the shallows it only wades.
 - And one in Viridel, the Vine walk, from the Greenhouse’s own seeds and flower-doors: four white decks stand in a line down a long slope of the meadow, higher over the meadow the further they go, with a gap between each. Bloom the seed at each gap and its vine grows a bridge across; bloom the flower-door on the third deck to get through. Fall into the meadow, or open your wings, and the run is over. Mira, who keeps the water clock, has a word for you when you finish.

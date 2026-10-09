@@ -23,6 +23,8 @@ export const CHANGELOG = [
       see: 'The Vine walk starts at the top of the long slope just east of Mira and her water clock. It wants the bloom mode from the Greenhouse: switch the gun to it (D-pad ← / →, X) and splash each seed. Walk up to the sign and press X / □ (E).' },
     'Knock a foe into deep water with a cut or the push, off a bank or a ledge, and it is swept away in a great splash. In the shallows it only wades.',
     'A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.',
+    { text: 'And one in the Sky Stones, the Bell crossing, from the Founders’ Belfry’s own fallen-up bridges and bell-tuned door: four stone decks float in a line out over the sea of cloud, and the stones of the bridge across each gap hang high above it. Sound the bell-note whistle by the bell at the gap’s edge and they come down into place; the door on the last deck opens to the bell too. Fall into the cloud, or open your wings, and the run is over. Sister Aube, the hermit of the edge, has a word for you when you finish.',
+      see: 'The Bell crossing starts at the south rim of the starting plateau, past Sister Aube’s hermitage. It wants the bell-note whistle from the Founders’ Belfry. Walk up to the sign and press X / □ (E); sound the whistle with Y / △ with no gadget in hand (V).' },
   ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour
