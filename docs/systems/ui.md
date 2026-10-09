@@ -142,12 +142,17 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   `?start` (a save started over from the Start menu; the URL is cleaned so a reload goes
   back to the title). Quit to title is just a load of the bare page.
 - **Title screen**: the name (Hiraeth, lettered: below) over one of the worlds, seen from a fixed
-  camera framed like one of the covers it was designed from, then Continue (the slot played last), New
-  game, Saves, Settings (the same settings, `SettingsMenu({ el, title: true })`), What's new, Debug and,
-  in a desktop browser, Full screen. Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a
-  controller through `Controller` + `menuNavigate` (the entries are a grid on a short screen; the save
-  list moves by rows, left / right reaches a save's Delete); the confirm glyph sits inside the focused
-  entry (src/pad-glyphs.js). It imports nothing that loads the game state, and marks the Android boot
+  camera framed like one of the covers it was designed from, and a small menu low at the left: Continue
+  (the slot played last) or New game, and Saves, as compact text buttons; under them a row of icon
+  buttons (`TITLE_ICONS`, inked: a gear for Settings (the same settings, `SettingsMenu({ el, title: true })`),
+  a star for What's new, a beetle for Debug, corner brackets for Full screen). Each icon has an
+  `aria-label` and a label shown at the row's right end on hover or focus. Full screen shows only where it
+  does something: not in the Android, Deck or Xbox apps, nor in an installed web app already full screen.
+  Keyboard (arrows / WASD, Enter, Esc, Delete), mouse and touch, and a controller through `Controller`:
+  the main menu by `mainNavigate` (↑ ↓ down the column and into the row's first icon, ← → along the row,
+  ↑ from the row back to Saves), the rest by `menuNavigate` (the save list moves by rows, left / right
+  reaches a save's Delete); the confirm glyph sits inside the focused entry, in an icon's corner
+  (src/pad-glyphs.js). It imports nothing that loads the game state, and marks the Android boot
   heartbeat (`markBooted`) once it is up. Styles: `src/menus.css`.
 - **The debug entries are the author's** (`src/dev-gate.js` `devMode()`): the title's Debug
   button (the worlds list) and the Start menu's "Debug: worlds" show only with the same switch as
@@ -177,12 +182,17 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   every size, the same in every language (`aria-label="Hiraeth"`); the layout thickens the ink line on a
   small screen so it never falls under 1.5 px. The Steam art uses it too (`scripts/steam-art.mjs`).
 - **Layout** (`src/title-layout.js` `titleLayout`, pure; set as CSS variables on `#title`): the name across
-  the upper part (at most 27 % of the height, 86 % of the width), the menu in the quiet space under it,
-  lower middle, as the covers leave it. A short screen (a phone on its side, 812 × 375; a Retroid) sets the
-  entries in two or three columns; a screen held upright puts the name at the top and the menu at the
-  bottom in two columns, the world between; safe-area insets are kept clear. `tests/title-layout.test.js`
-  checks 16:9, 21:9, the Deck's 16:10, 4:3, a phone both ways, a tall Android phone and a Retroid: on the
-  screen, never overlapping, readable.
+  the upper part (at most 27 % of the height, 86 % of the width). The menu small, so the world shows (v1.6,
+  the author: "much smaller, and left aligned"): entries 40–48 px tall (a touch target; `MENU`), their words
+  12–15.5 px, the column at least 14 × the font wide (170–240 px; a longer word in another language widens it),
+  the icons as tall, square, 6–10 px apart. Its left edge 3.5 % of the width in from the safe area (14–64 px),
+  its foot 5 % of the height above the bottom (12–56 px), never under the name. Every shot leaves its lower
+  left calm (the traveller stands right of the middle, the covers' focal points sit in the middle and higher);
+  a shot may ask for its menu higher with `menu: 'mid'` (none does yet). The menu takes 1.6 % of 1920 × 1080
+  (v1.5's six entries: 6.7 %), 2.8 % of 1280 × 720 (10.4 %), 8.6 % of a phone either way (17 %).
+  `tests/title-layout.test.js` checks 16:9, 1280 × 720, 21:9, the Deck's 16:10, 4:3, a phone both ways, a tall
+  Android phone and a Retroid, with two, three and four icons: on the screen, under the name, left aligned,
+  low, small, touchable, readable; and the safe area.
 - **The title's shots** (`src/title-shots.js` `SHOTS`): one per cover in `references/Title Screen/`
   whose world is in the game: a level, the hour, a camera (`eye`, `target`, vertical `fov` at 16:9), the
   traveller's spot and heading, and, when the cover's world is built the other way round, `mirror` (the
@@ -200,7 +210,13 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   feet), its water, flora and grass, its flocks and its own motion (`level.update`), drawn by the game's
   pipeline (G-buffer materials, the near and wide shadow maps once, the traveller's fine one each frame,
   bloom, the ink pass in the world's preset and look, the water's sparkle or its under-water haze, FXAA).
-  The traveller is the game's own (the Player, his generated body, cape and flask, idling). No people,
+  The traveller is the game's own (the Player, his generated body, cape and flask), held in a stern, still
+  stance as the covers draw him (`TITLE_STANCE`, `holdStance`): upright, his weight even, arms straight down
+  at his sides (out 0.11 rad, the gloved right 0.15, elbows bent 0.1), hands by the thighs, the head a touch
+  lowered, looking out over the world; only his breath (a hundredth of a radian in the arms) and his coat
+  move. Held over the idle clip: the Player's talking calm (no glances, no captured look-about, the weight
+  shift small) and the arms set in `character.poseArms`, just before the body follows the rig, so the feet
+  still plant on the ground. The shots' headings stand as authored (most turn his back to us). No people,
   wildlife, foes, ship, story, weather or sound: the title's menu music plays on.
   - *Boot*: the name and the menu show at once over the paper (a cream page with a printed grain); the
     module is imported after the menu has painted, builds in slices (input keeps working), compiles its

@@ -23,7 +23,8 @@ import { onXbox } from './xbox.js';
 // level code and drawn by its own pipeline (G-buffer materials, shadows, the ink pass, the
 // water's sparkle, the flora), seen from a fixed camera framed like one of the covers in
 // references/Title Screen/ (the shot: src/title-shots.js). The traveller stands where the
-// cover has him, idling (the game's Player, his body and his flask), his cape in the wind.
+// cover has him, standing still in a held stance, arms at his sides (TITLE_STANCE), only his
+// breath and his coat moving (the game's Player, his body and his flask).
 //
 // Only what the frame needs: the level, its collision (for the plants and the traveller's
 // feet: a static BVH, built in a worker), its water, flora and grass. No people, wildlife,
@@ -456,6 +457,34 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   return handle;
 }
 
+/**
+ * The traveller's stance on the title: stern and still, as the covers draw him (upright, his back to
+ * us, looking out over the world), not the game's swinging idle. Over the idle clip, held calm (the
+ * Player's talking calm: no glances, no captured look-about, the weight shift small), each frame his
+ * arms are set straight down at his sides, hands by the thighs, elbows barely bent, the head a touch
+ * lowered; only the breath moves them. Rig angles (rad, src/player.js makeChar): an arm's x < 0
+ * raises it forward, its z turns it outward by `side` (arms[0] -1, arms[1] +1); an elbow's x < 0 bends it.
+ *   out      each arm out from the body (clears the hips and the coat's skirt)
+ *   outGlove the right one, in the flask's glove, a little further (its cuff stands off the hip)
+ *   back     the arms a hair behind the body's line (hands by the seams, not in front of the thighs)
+ *   elbow    the elbows' bend
+ *   head     the head's pitch over the clip's (+ down)
+ *   breath   the arms' rise with each breath, its rate (rad/s)
+ */
+export const TITLE_STANCE = { out: 0.11, outGlove: 0.15, back: 0.04, elbow: -0.1, head: 0.05, breath: 0.012, rate: 1.7 };
+
+/** Hold the stance on the rig (after the clip and the standing layer, before the body follows the rig). */
+export function holdStance(c, t = 0, S = TITLE_STANCE) {
+  const b = Math.sin(t * S.rate);
+  for (let i = 0; i < 2; i++) {
+    const side = i === 0 ? -1 : 1;
+    c.arms[i].rotation.set(S.back + b * S.breath * 0.5, 0, side * ((i === 0 ? S.outGlove : S.out) + b * S.breath));
+    c.elbows[i].rotation.set(S.elbow - b * S.breath * 0.5, 0, 0);
+  }
+  c.head?.quaternion.multiply(_hq.setFromEuler(_he.set(S.head, 0, 0)));
+}
+const _hq = new THREE.Quaternion(), _he = new THREE.Euler();
+
 /** A stand-in for the player, for a level's update that looks where he is (no traveller in the shot). */
 function stubPlayer(at) {
   return { pos: at.clone(), vel: new THREE.Vector3(), heading: 0, frame: { up: new THREE.Vector3(0, 1, 0) }, object: new THREE.Object3D(), vehicles: [], riding: false, onGround: true };
@@ -474,7 +503,7 @@ function placeTraveller(player, { at, heading = 0 }, physics) {
 }
 
 /**
- * The traveller as the game draws him: the Player (his body, cape, gear and idle), his generated
+ * The traveller as the game draws him: the Player (his body, cape, gear; held in TITLE_STANCE), his generated
  * body (characters/traveller-v1.js), his flask on his back (fluid-tool.js), the game's animation
  * library. Loaded only when the shot has him; the world shows without him if a file is missing.
  */
@@ -495,6 +524,9 @@ async function makeTraveller({ scene, physics, level, camera, waters, shot, step
     player.character = createTravellerV1(player.char, assets);
     player.humanoid = player.character.humanoid;
   }
+  // (the stance: TITLE_STANCE, held calm, the arms set just before the body follows the rig)
+  player.talking = true;
+  if (player.character) player.character.poseArms = (p) => { holdStance(p.char, p.time); return []; };
   player.attach(scene);
   const hero = markHero(player.char.root);
   markHero(player.cape?.mesh, hero);

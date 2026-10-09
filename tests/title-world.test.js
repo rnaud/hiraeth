@@ -3,7 +3,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { titleResolution, titlePreset } from '../src/title-world.js';
+import { titleResolution, titlePreset, holdStance, TITLE_STANCE } from '../src/title-world.js';
+import * as THREE from 'three';
 import { SlotStore, slotKey } from '../src/save-slots.js';
 
 const src = (f) => readFileSync(new URL(`../src/${f}`, import.meta.url), 'utf8');
@@ -81,10 +82,40 @@ test('the menu still wires up: every entry, the keys, the pad and the glyphs', (
   assert.match(title, /const lbl = \(text\) => `<span class="lbl">\$\{glyph\('ok', \{ focus: true \}\)\}/, 'the focused entry: A, inside the button');
   assert.match(title, /root\.addEventListener\('click', onClick\)/, 'mouse and touch');
   // laid out for the screen (src/title-layout.js), again on a resize and when the entries change
-  assert.match(title, /titleLayout\(\{ w: win\.innerWidth, h: win\.innerHeight, buttons: mainNav\.querySelectorAll\('button'\)\.length/);
+  assert.match(title, /titleLayout\(\{ w: win\.innerWidth, h: win\.innerHeight, buttons: mainNav\.querySelectorAll\('\.entries button'\)\.length, icons: mainNav\.querySelectorAll\('\.tools button'\)\.length/);
+  // the tools: icon buttons, each named (aria-label) and labelled on hover or focus, the glyph inside; the pad reaches them
+  assert.match(title, /class="tool" style="--k: \$\{tools\.length - 1 - i\}" aria-label="\$\{esc\(label\)\}">\$\{TITLE_ICONS\[icon\]\}<span class="tip" aria-hidden="true">/);
+  for (const k of ['settings', 'news', 'debug', 'fullscreen', 'leave']) assert.match(title, new RegExp(`\\b${k}: icon\\(`), k);
+  assert.match(title, /const mainNavigate = /);
+  assert.match(title, /isXboxApp && !!doc\.fullscreenEnabled/, 'no Full screen where it does nothing');
   assert.match(title, /win\.addEventListener\('resize', onResize\)/);
   assert.match(title, /win\.removeEventListener\('resize', onResize\)/);
   // the CSS reads the layout
   const css = src('menus.css');
-  for (const v of ['--logo-top', '--logo-w', '--menu-top', '--menu-w', '--menu-cols', '--btn-h', '--btn-font']) assert.ok(css.includes(`var(${v}`), v);
+  for (const v of ['--logo-top', '--logo-w', '--menu-top', '--menu-left', '--menu-w', '--btn-h', '--btn-font', '--icon']) assert.ok(css.includes(`var(${v}`), v);
+});
+
+test('the traveller holds a stern, still stance on the title: arms straight down at his sides, only his breath moving', () => {
+  const rig = () => ({ arms: [new THREE.Object3D(), new THREE.Object3D()], elbows: [new THREE.Object3D(), new THREE.Object3D()], head: new THREE.Object3D() });
+  const c = rig();
+  // (whatever the idle clip left there: a swing, a bent elbow)
+  c.arms[0].rotation.set(-0.6, 0.2, 0.4); c.elbows[1].rotation.set(-1.2, 0, 0);
+  holdStance(c, 0);
+  for (let i = 0; i < 2; i++) {
+    const side = i === 0 ? -1 : 1;
+    assert.ok(Math.abs(c.arms[i].rotation.x) < 0.1, 'hanging, not swung forward or back');
+    assert.equal(c.arms[i].rotation.y, 0);
+    assert.ok(c.arms[i].rotation.z * side > 0.05 && c.arms[i].rotation.z * side < 0.2, 'a little out from the body, by the thighs');
+    assert.ok(c.elbows[i].rotation.x <= 0 && c.elbows[i].rotation.x > -0.2, 'the elbows barely bent');
+  }
+  // the head a touch lowered (pitched down over the clip's)
+  assert.ok(new THREE.Euler().setFromQuaternion(c.head.quaternion).x > 0);
+  // a breath later: nearly the same (no idle swing), but not a statue
+  const d = rig(); holdStance(d, Math.PI / 2 / TITLE_STANCE.rate);
+  const moved = Math.abs(d.arms[1].rotation.z - c.arms[1].rotation.z);
+  assert.ok(moved > 0 && moved < 0.03, `the breath moves the arms ${moved.toFixed(3)} rad`);
+  // and title-world holds him so: calm, the stance set before the body follows the rig
+  const w = src('title-world.js');
+  assert.match(w, /player\.talking = true;/);
+  assert.match(w, /player\.character\.poseArms = \(p\) => \{ holdStance\(p\.char, p\.time\); return \[\]; \}/);
 });
