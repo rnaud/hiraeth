@@ -84,6 +84,18 @@ export const SHOVE_LINES = ['~surprised~ Whoa! Watch it!', '~angry~ Oof! Hey!', 
 export const SINGE_LINES = ['~shout~ Hot! Hot!', '~surprised~ Yow! Sparks!', '~surprised~ My cloak! …it doesn’t burn?', '~angry~ Who’s throwing fire?'];
 const STUN_FOR = 3.5;
 /** A shove's displacement over time (0..1): knocked back fast, held a moment, then they walk back to their place. */
+/**
+ * Standing people stepping out of your way (Crowd.simulate): within `room` m of their spot they step
+ * off it, at most `most` m, at no more than `speed` m/s (they slid at up to 3 m/s, the body gliding
+ * over still feet); with you walking past, `across` of the way is out of your path to their side
+ * rather than straight back from you. The near tier's body plays a sidestep or a step back for it.
+ */
+export const ASIDE = { room: 1.25, most: 1.0, speed: 1.1, across: 0.7 };
+/** The step a move of (ahead, right) metres in a person's own frame is: 'left', 'right', 'back' or 'ahead'. */
+export function stepSide(ahead, right) {
+  if (Math.abs(right) > Math.abs(ahead) * 0.8) return right > 0 ? 'right' : 'left';
+  return ahead < 0 ? 'back' : 'ahead';
+}
 export const shoveCurve = (s) => (s < 0 || s > 3.6 ? 0 : s < 0.35 ? 1 - (1 - s / 0.35) ** 3 : s < 1.8 ? 1 : 1 - THREE.MathUtils.smoothstep(s, 1.8, 3.6));
 export const GREET_LINES = ['~shout~ Fresh figs! Fresh figs!', '~scared~ Mind the edge, it\u2019s a long way down.', '~angry~ The taxis never stop for us lower folk.',
   '~curious~ Have you seen the light above the palace?', '~happy~ Laundry dries fast up here.', '~sad~ My grandmother never saw the sky.', '~playful~ Lovely hat.', '~neutral~ Excuse me.', '~tired~ Busy day.'];
@@ -863,17 +875,30 @@ export class Crowd {
       // away from you, so a player on their spot swung them from side to side every frame.)
       _w.subVectors(p.home, pp); _w.y = 0;
       const dh = _w.length();
-      const room = 1.25;
+      const room = ASIDE.room;
       let len = p.offset.length();
       if (len < 0.02) p.asideA = undefined;   // back home: the next push picks its way afresh
+      // (a player walking past: out of their path, to the side they are on, not straight back from them,
+      // which for someone coming at you was a step backwards: ASIDE)
+      const pv = p._pp ? _d.subVectors(pp, p._pp).setY(0).divideScalar(Math.max(dt, 1e-3)) : null;
+      (p._pp ??= new THREE.Vector3()).copy(pp);
+      if (pv && pv.lengthSq() > 0.09 && dh > 0.05) {
+        const side = Math.sign(_w.x * -pv.z + _w.z * pv.x) || 1;   // which side of your path their spot is
+        _d.set(-pv.z * side, 0, pv.x * side).normalize();
+        _w.normalize().lerp(_d, ASIDE.across).multiplyScalar(dh);
+      }
       const away = holdAim(p, 'asideA', _w, dh, 0.15, 0.6);
+      const was = len;
       if (sameLevel && dh < room && p.pose !== POSE.sit && p.pose !== POSE.kerb) {
         let ang = len < 0.02 ? away : Math.atan2(p.offset.x, p.offset.z);
         ang += wrapA(away - ang) * damp(5, dt);
-        len += (Math.min(room - dh + 0.15, 1.1) - len) * damp(7, dt);
+        len += (Math.min(room - dh + 0.15, ASIDE.most) - len) * damp(7, dt);
         p.offset.set(Math.sin(ang) * len, 0, Math.cos(ang) * len);
         if (!lookAt) lookAt = pp;
       } else p.offset.multiplyScalar(1 - damp(1.3, dt));
+      // (a step's pace, not a slide: no faster than feet go)
+      len = p.offset.length();
+      if (Math.abs(len - was) > ASIDE.speed * dt && len > 1e-6) p.offset.multiplyScalar((was + Math.sign(len - was) * ASIDE.speed * dt) / len);
       _o.copy(p.home).add(p.offset);
       if (p.offset.lengthSq() > 1e-4) {
         // stay on the floor and out of the walls while stepping aside
@@ -882,6 +907,9 @@ export class Crowd {
         else this.physics.pushCapsule(_o, 0.25, 0.3, 1.6);
       }
       const moved = _o.distanceTo(p.pos);
+      // which way they step, in their own frame (the near tier plays a sidestep or a step back for it: NPC.updatePuppet)
+      const mx = _o.x - p.pos.x, mz = _o.z - p.pos.z, fx = Math.sin(p.heading), fz = Math.cos(p.heading);
+      p.stepDir = moved > 1e-5 ? stepSide(mx * fx + mz * fz, mx * -fz + mz * fx) : null;
       p.pos.copy(_o);
       // their pace, smoothed: (read off a single frame it flickered between a step and nothing,
       // and the legs with it)

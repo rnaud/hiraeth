@@ -58,7 +58,8 @@ test('standing about, the desert’s cloaked people keep their hands and forearm
   scene.add(new THREE.Mesh(new THREE.PlaneGeometry(100, 100).rotateX(-Math.PI / 2)));
   scene.updateMatrixWorld(true);
   const physics = new Physics(scene);
-  const player = { pos: V(0, 0, 4), vel: V(), riding: false, ride: null, wind: V() }, camera = new THREE.PerspectiveCamera();
+  // (you stand 10 m off, past their greeting: a greeting's wave brings the arm out of the cloak, src/wave.js)
+  const player = { pos: V(0, 0, 10), vel: V(), riding: false, ride: null, wind: V() }, camera = new THREE.PerspectiveCamera();
   camera.position.set(0, 1.6, 4);
   const out = {};
   for (const id of ['bako', 'speaker', 'nour', 'hessa']) {
