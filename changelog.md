@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.14 — 2026-10-09
 
+- In Lorn II, Rowan keeps the Welcome-Shelf, a moss dome on the lit path with a blue door, a striped stall of flasks and three little lamps over the door. He has kept it stocked for travellers for thirty years, and you are his first customer.
+- In Lorn, Nettle keeps a raft-house moored at the landing island’s shore: grey planks and reed bundles under a steep thatch, a violet crystal lantern under the eave, the Hush painted over the door so the snappers leave her be, and her accounts kept as knots on a cord.
 - In Vael II, Sister Perpetue keeps the Almonry, the monastery’s gatehouse on the cliff-top between two round towers under slate roofs: seven little bells over its hatch, one rung for every sale, and every cure sealed in wax with the Three Notes.
 - In Vael, Brin keeps the Wind-Shelf, a shelter carved into the foot of a hoodoo on the long walk to the lone tower: an ochre sail on a pole, her wares turning on cords in the wind, a white feather for a sign and her prices drawn in a tray of sand. She says one word at a time.
 - Every world on the way home now has a shop of its own, built the way its people build and kept by someone who lives there. Walk in through its door, talk to the keeper or look at the wares on the counter, and buy healing potions, heart containers and magic expansions with your chimes; each keeper has their own words at the counter, and you will find them on the People page once you have met them.

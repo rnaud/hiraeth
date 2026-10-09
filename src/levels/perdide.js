@@ -8,6 +8,8 @@ import { Paint, painted, paintMaterial, spindle } from '../vehicle-kit.js';
 import { LANDING } from '../story/perdide-data.js';
 import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -475,13 +477,20 @@ export function* buildPerdide(scene) {
     lights.push(new THREE.Vector4(x, g0 + H * 0.75, z, 16));
   }
 
+  // Nettle's Float (src/shop-world.js, src/shop-fronts.js 'raft'): a raft-house moored at the landing island's east
+  // shore, its deck out over the channel, its door turned to the island and the landing 30 m off
+  const shop = placeShop(scene, { def: SHOPS.float, at: new THREE.Vector3(27, terrain.heightAt(27, 13), 13), heading: -2.0 });
+  lights.push(...shop.lights);
+
   // the Hush-House on the cave island, and its rooms far overhead (src/temples/perdide.js)
   yield;
   return attachTemple('perdide', scene, {
     id: 'perdide',
-    // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own
-    floraAvoid: (x, z, r) => Math.hypot(x - GREAT.x, z - GREAT.z) < 22 + r || Math.hypot(x - BED.x, z - BED.z) < BED.r + 5 + r
-      || Math.hypot(x - ISLE.x, z - ISLE.z) < ISLE.r * 0.6 + r,
+    portals: [...shop.portals],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own (and the shop its own)
+    floraAvoid: shop.avoid((x, z, r) => Math.hypot(x - GREAT.x, z - GREAT.z) < 22 + r || Math.hypot(x - BED.x, z - BED.z) < BED.r + 5 + r
+      || Math.hypot(x - ISLE.x, z - ISLE.z) < ISLE.r * 0.6 + r),
     // for the story (src/story/perdide.js): the Great Crystal, the cave's crystals, the plants
     // (`fed` counts the globs each has swallowed), the fireflies' nest; silence 0..1 shuts every
     // jaw (the crystal is singing), tame stops them snapping at you, calm only the bed's

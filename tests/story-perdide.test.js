@@ -16,6 +16,7 @@ const { PEOPLE, THINGS, LANDING } = await import('../src/story/perdide-data.js')
 const { clearInteractables, bestInteractable } = await import('../src/interact.js');
 const { allTargets } = await import('../src/targets.js');
 const { CONTENT, ERRANDS } = await import('../src/levels/content.js');
+const { interiorAt } = await import('../src/interior-kit.js');
 
 game.reset();
 const scene = new THREE.Scene();
@@ -72,7 +73,8 @@ const reachable = (() => {
 test('the swamp’s people and places stand on walkable or wadeable ground', () => {
   assert.equal(CONTENT.perdide, PERDIDE_CONTENT);
   assert.deepEqual(CONTENT.perdide.npcs.map((n) => n.id), ['wendel', 'sedge', 'ivo.perdide']);
-  for (const n of npcs) for (const p of n.route) stand(p, n.def.name);
+  // (but the keeper behind Nettle's counter, in her shop's room far over the map: tests/shop-worlds.test.js)
+  for (const n of npcs) for (const p of n.route) if (!interiorAt(p)) stand(p, n.def.name);
   for (const id of ['saba', 'corm', 'ysse']) { const n = W.people[id]; for (const p of n.route) stand(p, n.def.name); }
   stand(W.places.heart, 'the cave’s heart');
   stand(W.places.splinterAt, 'the splinter');

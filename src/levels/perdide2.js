@@ -8,6 +8,8 @@ import { Terrain, jitter } from '../world.js';
 import { Hoverbike } from '../bike.js';
 import { KEEPERS } from '../story/perdide2-data.js';
 import { stepped } from '../load-steps.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
 import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
 
 // ---------------------------------------------------------------------------
@@ -789,15 +791,22 @@ export function* buildPerdide2(scene) {
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < DEEP && p.y < WATER + 0.5;
   const spawnY = H(0, 0);
 
+  // Rowan's Welcome-Shelf (src/shop-world.js, src/shop-fronts.js 'mossdome'): a moss dome on the lit path's west
+  // bank, a third of the way to the first dark pool, its door and stall turned to the path and the landing
+  const shop = placeShop(scene, { def: SHOPS.welcome, at: new THREE.Vector3(-10, H(-10, -65), -65), heading: Math.PI / 4 });
+  lights.push(...shop.lights);
+
   // the Lamp-House in the shallows east of the root cave, and its rooms far overhead (src/temples/perdide2.js)
   yield;
   return attachTemple('perdide2', scene, {
     id: 'perdide2',
+    portals: [...shop.portals],
+    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // (the roots and the arches' strands are long thin tubes lining the path: a BVH split by area (SAH)
     // queries them 40–65 % quicker than one split at the middle, for ~0.25 s more to build in its worker:
     // docs/systems/movement.md "Contact", "What the collision costs a frame")
     collision: { strategy: 'SAH' },
-    floraAvoid: (x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r,   // off the lit path and the keep-outs (src/flora.js)
+    floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r),   // off the lit path, the keep-outs and the shop (src/flora.js)
     ground: terrain,
     spawn: new THREE.Vector3(0, spawnY, 0),
     spawnHeading: Math.PI,
