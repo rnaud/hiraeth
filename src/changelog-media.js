@@ -456,6 +456,10 @@ export const CHANGELOG_MEDIA = {
       { name: 'vael-stones', caption: 'From the landing, west up the slope: after, a line of standing stones climbing toward the Aerie on the plateau', commit: '02d87f59',
         view: { level: 'arzach', player: [6, 0, 1], eye: [10, 3.5, 2], target: [-80, 16, -2], fov: 60, hour: 12 } },
     ] },
+    { match: 'The doorway in the sand before the desert’s masked head', shots: [
+      { name: 'desert-mask-doorway', caption: 'The doorway before the masked head: before, a flat dark panel in its frame; after, a short passage into the dark', commit: 'e2e9cd1f',
+        view: { level: 'desert', player: [9, 9, -360], eye: [10, 11.5, -357], target: [7, 10.5, -371], fov: 50 } },
+    ] },
   ],
   '1.8': [
     { match: 'The hundred look-alike world enemies are gone', shots: [
