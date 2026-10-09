@@ -258,6 +258,7 @@ export const FR = {
   'hud.boarding': 'le sac à dos s\'enclenche…',
   'hud.potion': 'Boire une potion',
   'hud.hearts': 'Cœurs',
+  'hud.chimes': 'Tintes',
   'potion.full': 'Vos cœurs sont pleins : gardez la potion.',
   'potion.none': 'Plus de potions.',
   'potion.hint': 'Les cœurs ne reviennent pas seuls : buvez une potion avec {key:potion} (deux cœurs).',
@@ -277,6 +278,7 @@ export const FR = {
 
   // ---------------------------------------------------------------- le menu du jeu (View, J)
   'gm.gear': 'Équipement',
+  'gm.chimes': '{n} tintes',
   'gm.gearCount': '{n} sur {m}',
   'gm.pack': 'Dans votre sac',
   'gm.packNone': 'Rien à livrer.',

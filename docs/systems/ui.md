@@ -385,6 +385,10 @@ Where the health bar was (top left, `#health` in index.html; `updateHealth` in m
 - **The potion** beside them: a corked flask with red in it and its stock (`∞` until the shops; a count
   later, faded at none). It tilts as you drink. On a touch screen it is the potion button (`pointer-events`
   only while shown).
+- **The chimes** beside the potion (v1.5, `.chimes`): a pierced brass disc and the wallet's count
+  (src/chimes.js, `resources.chimes`), hidden while there are none. A change of the wallet shows the whole
+  block for its 3 s (`healthHud`'s `wallet`), the count ticks up to it (`walletTick`: at least 14 a second,
+  a purse of forty in about half a second; gold and a little larger while it counts) and the disc turns over.
 - **The magic bar** under them: an inked bar `2.35 × --hh` wide per unit (three units at the start, longer
   with expansions), a tick per unit (a unit is what a shot costs), teal fill; short of one unit it is pale
   and hatched. Hidden without the backpack (and for the desert's dry tank).

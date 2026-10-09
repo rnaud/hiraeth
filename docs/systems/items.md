@@ -94,6 +94,58 @@ expansions, potions for sale) and the currency plug in without touching what spe
   all of them back and lends a slow mend (`TIDE.mend`, 0.1 hearts a second per pick, through `FALL.regen`);
   Deeper well lengthens the bar a unit, Quick refill shortens the wait and quickens the fill.
 
+## Chimes, the currency (v1.5)
+
+**Chimes** are small brass discs pierced with a square hole, a raised rim round the face, that ring when they
+fall: the kind of thing the route's people already trade (the City-Shaft's lift and taxi tokens, Tobin's bent
+coin), strung on a cord by the handful. Chosen for the game's ear (notes, listening, the bell-note whistle:
+picking one up is a small ting) and the look of the route's brass; no lore beyond the name and the look.
+In French, *tintes*. Batch 3's shops spend them.
+
+- **The wallet** (`src/resources.js`): `resources.chimes` (whole, at most `CHIMES.cap` 9999),
+  `addChimes(n, { source, training })` (returns how many went in), `spend(n, { source })` (false and nothing
+  taken when short, or for a negative or non-number amount), `canAfford(n)`, and `game.emit('wallet',
+  { count, delta, source, training })` on every change. Saved as `res.chimes`; `res.chimes.earned` counts
+  what was picked up out in the worlds, not the Arena's training.
+- **What drops them** (`src/chimes.js`, wired by `connectDrops` in main.js): a foe cut down scatters
+  `dropAmount({ kind, category })` where it fell, ±25 % (`SPREAD`), never under one:
+
+  | Foe | Chimes |
+  |---|---|
+  | swarm blot, glass splinter | a 50 % chance of 1 (they come six and three at a time) |
+  | sign moth | 1 |
+  | ink blot | 2 |
+  | spitter, winged blot | 3 |
+  | dune ray, rust drone, shadow hound | 4 |
+  | root stalker, salt crab | 5 |
+  | makers' machine | 6 |
+  | shade, glass golem, slag walker | 8 |
+  | a world enemy (the 100): local creature, shadow spirit, possessed machine | 4, 6, 8 (by its category, not its family) |
+  | a temple's guardian resolved (calmed or broken) | a purse of 40, once per temple (`res.purse.<id>`) |
+  | a makers' run's first finish | 15, straight into the wallet (the results card says so: `firstPurse`) |
+
+  Nothing from a foe that falls out of the world or is swept into deep water (`lost`), nor when the Enemies
+  setting is Off (no foes). There are no breakable pots or crates in the game, so no other source.
+- **Where** (`dropPolicy(level)`): everywhere foes are, except a game's own foes (`level.foes.own`: **Ink tide**
+  sets `chimes: false` too); the **Arena** (`chimes: 'training'`, a dev world) drops them from its waves, its
+  FOES list and each guardian bout in the ring (a purse a bout, `guardian:spar`), so the shops can be tried
+  there: they go into the wallet but are not counted in `res.chimes.earned`.
+- **The pieces** (`ChimeField`, `PIECE`): a drop scatters ones (a drop of 10 or more: fives, larger and paler,
+  then ones; a purse is eight fives). Each pops out of the foe's middle in a little arc (0.45–0.7 s, up
+  1.1–1.9 m, landing 0.5–1.7 m out, on the ground under it unless that is a ledge more than 4 m off), bounces,
+  then hovers 0.32 m up turning on its edge and glints now and then (a four-point star facing the camera).
+  After 0.45 s it can be taken: walked over (`take` 0.65 m round the feet) or drawn in from `magnet` 2.4 m of
+  the traveller's middle, faster and faster. Left lying it blinks for its last 5 s and is gone after 30 s.
+  Not taken while knocked out, in a menu or a scene. `ChimeView` draws them (an instanced brass disc, the
+  glints) in one draw call each.
+- **On the screen**: the chimes beside the potion at the top left (a pierced brass disc and the count,
+  docs/systems/ui.md), shown with the hearts whenever the wallet changes; the count ticks up to the wallet's
+  (`walletTick`) and the disc turns over as one rings in. Each pickup is a small struck ting, climbing through a
+  quick run (`sound.chimePickup`), a drop a few falling tings (`chimeScatter`). The game menu's Items panel
+  shows the wallet by the Gear heading.
+
+Tests: `tests/chimes.test.js`.
+
 ## The makers' boxes, Android controls and updates (v0.36)
 - **The boxes** are artifacts of the makers, the people of the glyph (see "The
   boxes" in the story bible). The backpack's box stands in the Givers' shrine

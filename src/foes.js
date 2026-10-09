@@ -1424,7 +1424,7 @@ export class Foes {
    */
   worldEvent(f, e) {
     const s = this.sound;
-    if (e.type === 'fell') { this.burst(f); return; }
+    if (e.type === 'fell') { f.lost = true; this.burst(f); return; }   // (out of the world: nothing to drop where it went)
     if (e.type === 'thrown' || e.type === 'tumbled') { s?.whoosh?.(); return; }
     if (e.type === 'frosted') { s?.chime?.(); this.animKit(f, 0, {}).dust(f.chest, '#dff4ff', 10, 0.6); return; }   // (a stilled crystal's frost: held, eyes pale)
     if (e.type === 'hop') { worldSnd.thud(s, e.how === 'drop' ? 0.35 : 0.2); this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 6, 0.5); return; }   // (up or down a ledge: a soft landing)
@@ -1448,6 +1448,7 @@ export class Foes {
   knockedOff(f, e) {
     const swept = e.knocked === 'swept', over = e.knocked === 'over' || swept;
     if (swept) {
+      f.lost = true;   // (the water takes it, and what it carried: no chimes)
       // into deep water: a great splash (src/water.js), and the water takes it
       if (this.waters?.splash) this.waters.splash(f.pos, e.surface, 2);
       else this.sound?.splash?.(2);
@@ -1555,7 +1556,8 @@ export class Foes {
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
     if (!this.level?.foes?.noInk) gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it; not from a game's endless waves)
     f.dead = 0.8;   // (the look fades out over this)
-    this.game.emit?.('foe:burst', { kind: f.kind });
+    // (src/chimes.js, main.js: what it leaves; `lost` when it went out of the world or into deep water)
+    this.game.emit?.('foe:burst', { kind: f.kind, species: f.species, category: f.variant?.category ?? null, pos: f.pos.clone(), lost: !!f.lost, practice: !!this.practice?.kind, waves: !!this.waves });
   }
 
   update(dt, paused = false) {

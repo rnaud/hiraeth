@@ -24,6 +24,8 @@ import { RES_VERSION } from './save-migrate.js';
 //   res.magic.extra       magic expansions gained beyond the items' own (later: shops), in units
 //   res.potions           potions carried (only counted when res.potions.infinite is false)
 //   res.potions.infinite  potions never run out (true until the shops: undefined reads as true)
+//   res.chimes            the wallet: chimes carried (CHIMES.cap at most)
+//   res.chimes.earned     chimes ever picked up out in the worlds (not the Arena's training: src/chimes.js)
 // The items that lengthen the bar (MAGIC_ITEMS: the fourth chamber, 'cell') are read from
 // the items themselves, so a save that had one before the bar existed has it now, and the dev menu's revoke
 // takes it back.
@@ -31,6 +33,8 @@ import { RES_VERSION } from './save-migrate.js';
 //   import { resources } from './resources.js';
 //   resources.maxHearts · resources.maxMagic · resources.magicPace → { delay, rate }
 //   resources.potions → { count, infinite } · resources.takePotion() → bool
+//   resources.chimes · resources.addChimes(n, { source, training }) · resources.spend(n) → bool
+//   resources.canAfford(n) · game.on('wallet', ({ count, delta, source }) => …)   the currency (src/chimes.js)
 //   resources.meets('magic:4')   a requirement (src/temples/runtime.js, src/trials/index.js): 'magic:<n>' is
 //                                a bar of at least n units, anything else an item
 
@@ -51,6 +55,12 @@ export const MAGIC_ITEMS = { cell: 1 };
 
 /** What each use of the backpack costs, in units of the bar (the jets: units a second at full throttle). */
 export const MAGIC_COST = { shoot: 1, push: 1, boost: 1, shield: 1, gadget: 1, jets: 0.3 };
+
+/**
+ * The currency, chimes (docs/systems/items.md, "Chimes"): a wallet of whole chimes, at most `cap`. What the
+ * foes drop and the purses are in src/chimes.js.
+ */
+export const CHIMES = { cap: 9999 };
 
 /** The potion: hearts back, and the drink (s: the flask to the lips and down; the hearts come at `at`). */
 export const POTION = { heal: 2, time: 0.9, at: 0.45 };
@@ -141,6 +151,34 @@ export class Resources {
   setPotionsInfinite(on) { this.state.set('res.potions.infinite', !!on); }
   addHeartContainer(n = 1) { this.state.set('res.hearts.extra', Math.max(0, Math.floor(num(this.state.flag('res.hearts.extra')))) + n); }
   addMagic(n = 1) { this.state.set('res.magic.extra', Math.max(0, num(this.state.flag('res.magic.extra'))) + n); }
+  /** The wallet: chimes carried (whole, 0..CHIMES.cap). */
+  get chimes() { return Math.min(CHIMES.cap, Math.max(0, Math.floor(num(this.state.flag('res.chimes'))))); }
+  /** Chimes ever picked up in the worlds (the Arena's training gains not counted). */
+  get chimesEarned() { return Math.max(0, Math.floor(num(this.state.flag('res.chimes.earned')))); }
+  canAfford(n) { return Number.isFinite(+n) && +n >= 0 && this.chimes >= Math.ceil(+n); }
+  /**
+   * Chimes in: whole, up to CHIMES.cap (what would pass it is lost). `training` (the Arena): into the wallet, so
+   * the shops can be tried there, but not counted as earned. Returns how many went in; says so ('wallet').
+   */
+  addChimes(n, { source = null, training = false } = {}) {
+    const was = this.chimes, add = Math.max(0, Math.floor(num(n)));
+    const now = Math.min(CHIMES.cap, was + add), delta = now - was;
+    if (!add) return 0;
+    if (delta) this.state.set('res.chimes', now);
+    if (!training) this.state.set('res.chimes.earned', this.chimesEarned + add);
+    if (delta) this.state.emit?.('wallet', { count: now, delta, source, training: !!training });
+    return delta;
+  }
+  /** Pay `n` chimes (batch 3's shops): false, and nothing taken, when short (or n is not a sensible amount). */
+  spend(n, { source = null } = {}) {
+    const k = Math.ceil(num(n, NaN));
+    if (!Number.isFinite(k) || k < 0 || !this.canAfford(k)) return false;
+    if (k === 0) return true;
+    const now = this.chimes - k;
+    this.state.set('res.chimes', now);
+    this.state.emit?.('wallet', { count: now, delta: -k, source });
+    return true;
+  }
   /** A requirement: 'magic:<n>' a bar of at least n units (the old "fourth chamber" is magic:4), else an item. */
   meets(id) {
     const m = /^magic:(\d+(?:\.\d+)?)$/.exec(id ?? '');
