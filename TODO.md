@@ -23,11 +23,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
   restoring the village's light and getting airborne explicit: because he helped them, the villagers
   choose to help him in return and pool the village's resources to restore the ship's power.
   Replace the current direct sacred-light-to-ship-power explanation with that act of reciprocity.
-- [ ] **Turn the galactic minimap into a signature-search minigame.** Explain that the ship can detect
-  the singing light's signature on other planets. Let the player hover over regions of the map and
-  follow rumble and visual cues to discover nearby planets carrying the same signature.
-- [ ] **Add rumble support to the game**, including feedback for the galactic minimap's signature search.
-  Keep the visual search cues usable when rumble is unavailable or disabled.
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 

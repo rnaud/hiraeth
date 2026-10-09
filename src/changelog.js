@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.6', date: '2026-10-09', items: [
+    // the galactic map's signature search
+    'The galactic map has a signature search: a world newly in reach is no longer named outright. The ship hears the singing light’s three pulses out there and marks uncharted regions on the chart; sweep them with the mouse, the left stick, W A S D or a finger, and the scanner warms, quickens and sings louder as you near a world that carries it, with a signal meter in the corner. Hold it there a moment and the planet appears and is charted.',
+    'The worlds still open in the same order as before, and saves from before keep every world they had on the map.',
+    // rumble
+    'Controllers rumble: a hit (harder the more hearts it costs), a heavy foe’s slam nearby, a hard landing, drinking a potion, letting go of a charged cut, picking up chimes (barely), the ship lifting off, and the signature search, beating in threes as you near a world. In Settings, Controller rumble turns it off and Rumble strength picks low, medium or high; without a controller that can rumble they are greyed out. On Android it comes with the new app, which the game offers.',
+  ] },
   { v: '1.5', date: '2026-10-09', items: [
     'A People page in the menu (View): everyone you have talked to, world by world, with their portrait. Open someone to read what you know of them, where they are now, and what passed between you: the quests, the things exchanged and the choices you made.',
     // the Arena

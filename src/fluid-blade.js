@@ -6,6 +6,7 @@ import { hasUpgrade } from './ink.js';
 import { fistGrip, carry, fitScale } from './blade-grip.js';
 import { ShieldDevice, SHIELD, shieldArc } from './shield.js';
 import { MAGIC_COST } from './resources.js';
+import { rumblePlay } from './rumble.js';
 
 // Three committed cuts: anticipation, release and recovery, with one buffered follow-up.
 // Full-body captured poses on the ground, upper-body in the air. The blade's swept segment
@@ -605,6 +606,7 @@ export class FluidBlade {
   release() {
     const p = this.tool.player;
     this.chargeFull = !!this.charging?.full; this.charging = null;
+    rumblePlay('charged', { full: this.chargeFull });   // (src/rumble.js)
     this.special = CHARGE; this.spec = CHARGE; this.move = p?.animator?.moveClip?.(CHARGE.clip) ? CHARGE : null;
     this.t = 0; this.released = false; this.hit = false; this.hitTargets.clear(); this.previousBlade = null; this.contactT = null;
     this.sample = attackSample(CHARGE, 0); this.dur = this.sample.duration; this.phase = 'wind';

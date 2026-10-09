@@ -67,14 +67,15 @@ test('the galactic map names only the worlds you know; home still opens after si
   const journal = (done, seen = []) => ({ storyDone: (id) => done.includes(id), seen: (id) => seen.includes(id) || done.includes(id) });
   const first = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(['desert']), current: 'desert', flag: () => undefined });
   assert.equal(first.length, ORDER.length, 'every world has its place on the route');
-  assert.deepEqual(first.filter((e) => e.known).map((e) => e.id), ['desert', 'arzach', 'perdide']);
+  assert.deepEqual(first.filter((e) => e.known || e.findable).map((e) => e.id), ['desert', 'arzach', 'perdide'], 'the route as before');
+  assert.deepEqual(first.filter((e) => e.known).map((e) => e.id), ['desert'], 'the two ahead are found by the signature search first');
   const later = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(ORDER.slice(0, 6)), current: 'edena', flag: () => undefined, home: () => true });
   assert.ok(later.find((e) => e.id === HOME_ID)?.known, 'home is known when it opens');
-  assert.deepEqual(later.filter((e) => e.known && !e.home).map((e) => e.id), ORDER.slice(0, 8));
+  assert.deepEqual(later.filter((e) => (e.known || e.findable) && !e.home).map((e) => e.id), ORDER.slice(0, 8));
   // world.<id>.done flags count too
   const flags = { 'world.arzach.done': true };
   const f = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(['desert']), current: 'arzach', flag: (k) => flags[k] });
-  assert.ok(f.find((e) => e.id === 'arzach2').known);
+  assert.ok(f.find((e) => e.id === 'arzach2').findable, 'opened: to be found');
   assert.ok(!f.find((e) => e.id === 'garage').known);
 });
 
@@ -100,7 +101,7 @@ function stubEl() {
 
 function openMap({ powered = true } = {}) {
   const travelled = [];
-  const map = new StarMap({ order: ORDER, levels: LEVELS, journal: { storyDone: (id) => id === 'desert', seen: () => false }, current: 'desert', flag: () => undefined, powered: () => powered, onTravel: (id) => travelled.push(id) });
+  const map = new StarMap({ order: ORDER, levels: LEVELS, journal: { storyDone: (id) => id === 'desert', seen: () => false }, current: 'desert', flag: (k) => (k === 'map.found.arzach' || k === 'map.found.perdide' ? true : undefined), powered: () => powered, onTravel: (id) => travelled.push(id) });
   map.el = stubEl();
   map.hints = 'keys';
   map.entries = mapEntries(map.o);

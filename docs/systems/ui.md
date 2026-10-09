@@ -401,6 +401,26 @@ Code: `src/story/people-book.js` (the book and the rules), `peopleData` in `src/
   (`pumpPortraits` in main.js, one a frame, people within 60 m); until then their initial on their world's
   colour.
 
+## The galactic map's signature search (v1.6)
+
+The holo table's map (`src/ship/starmap.js`) with a world to find (docs/systems/story.md, "The signature
+search") and power: the chart gets the class `searching`. Each findable world sits unnamed at its place on the
+route inside an **uncharted region** (a dashed circle of static, 0.16 of the field's diagonal, its centre off
+the world by up to half its radius, the same every time: `regionFor`), labelled UNCHARTED. The **scanner** (a
+ring with a cross) follows the mouse over the field, a finger pressed on it (`touch-action: none` while
+searching), the left stick (half a field-diagonal a second at full tilt) or W A S D (the arrows still step
+through the charted worlds; on a pad the D-pad does, and the scanner over a charted world selects it, so A
+travels). The **cues**, from `cueStrength` (0 beyond 0.45 of the diagonal, 1 on the world) through `cues()`: the
+scanner's colour (violet, gold, then the route's orange), its glow, its three rings pinging on the beat (2.2 s
+far, 0.75 s on it), a little jitter (none with reduced motion), the light's notes every 1.7 s at most (by
+strength), the rumble's `search` beat, and the **meter** at the top right of the chart (the foot of the chart on
+a phone held upright): SIGNAL, five bars and a word (silent, faint, warmer, strong, locking). The **lock**: within
+`lockRadius` (6 % of the diagonal, at least 30 px or 0.6 of a planet's disc) it fills in half a second (a gold arc
+round the scanner), and leaks away at 1.2 a second outside. Full: the planet resolves where it was (blur to sharp,
+a gold ring), the `found` rumble, the ship's line, and a second later the map is drawn again with the world
+charted and chosen. The legend becomes SIGNATURE SEARCH (`SEARCH_LEGEND`, short form on small screens), the
+header counts the signatures to find, and the hint line says how to search on the device in hand.
+
 ## Hearts, the magic bar and the potion (v1.5)
 
 Where the health bar was (top left, `#health` in index.html; `updateHealth` in main.js, `healthHud`,

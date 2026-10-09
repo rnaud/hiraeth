@@ -130,6 +130,27 @@ Controller logic and browser integration are tested with simulated standard pads
 physical controller testing is still needed on iPhone.
 
 
+## Rumble (`src/rumble.js`, v1.6)
+
+The controller shakes for a few moments, each a named pattern of pulses (the heavy motor and the light one,
+0..1): `hurt` (by the hearts lost, main.js `onHurt`; a fall rumbles as its landing instead), `slam` (a heavy
+foe's ground slam, by distance out to 14 m: `src/foes.js` `addWave`), `land` (a hard landing's tumble) and
+`knockdown` (main.js `onKnockdown`), `potion` (two soft swallows, `onDrink`), `charged` (the blade's charged
+cut let go, harder when full: `src/fluid-blade.js` `release`), `chime` (a picked-up chime, the lightest tick),
+`takeoff` (the ship off its feet: `src/ship/cinematics.js`), `search` (the galactic map's signature search: three
+pulses, stronger and closer together nearer a world) and `found`.
+
+- **Where it plays:** the Gamepad API's `vibrationActuator.playEffect('dual-rumble', …)` (Chrome and Edge on
+  a computer, the Steam Deck's Electron app, the Xbox app's WebView2), `hapticActuators[0].pulse()` where only
+  that exists; in the Android app, whose pads are its own (`src/native-pad.js`), the bridge's AppShell
+  `rumble` ({ ms, strong, weak }, `Rumbler.java`): the last pad's own vibrators (two motors on Android 12+ get
+  the strong and weak pulses apart), or the handheld's motor under built-in controls (a Retroid); a phone with
+  no pad never vibrates. `AppShell.info` says `rumble` (NATIVE_API 8, the VIBRATE permission).
+- **Settings > Controls:** Controller rumble (on by default) and Rumble strength (low 0.45, medium 0.75 by
+  default, high 1). Without a pad that can shake both are greyed out ("no controller that can rumble") and
+  nothing plays; changing them plays a short pulse to feel.
+- Nothing depends on it: every cue that rumbles also shows and sounds. `tests/rumble.test.js`.
+
 ## Remapping (`src/remap.js`, the Controls page)
 
 The tables in `src/bindings.js` stay the defaults and the one source: `KEYS` (each keyboard verb's
