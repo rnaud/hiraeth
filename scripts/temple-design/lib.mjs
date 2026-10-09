@@ -272,8 +272,9 @@ export function templeMetrics(g, { guardian = null } = {}) {
   const E = g.elements;
   // the steps a player solves, in order, with how obvious each is
   const steps = puzzles.map((l) => {
-    const keyIds = new Set(l.keys.flatMap((k) => [k.id, k.plate].filter(Boolean)));   // (a ball's plate is part of its key)
-    const decoys = Object.entries(E).filter(([id, e]) => e.room === l.a && ['plate', 'switch', 'brazier', 'bramble', 'bell', 'drum'].includes(e.type) && !keyIds.has(id) && !puzzles.some((p) => p !== l && p.keys.some((k) => k.id === id || k.plate === id))).length;
+    const keyOf = (k) => [k.id, k.plate, E[k.id]?.type === 'drum' ? E[k.id].plate : null].filter(Boolean);   // (a ball's plate is part of its key)
+    const keyIds = new Set(l.keys.flatMap(keyOf));
+    const decoys = Object.entries(E).filter(([id, e]) => e.room === l.a && ['plate', 'switch', 'brazier', 'bramble', 'bell', 'drum'].includes(e.type) && !keyIds.has(id) && !puzzles.some((p) => p !== l && p.keys.some((k) => keyOf(k).includes(id)))).length;
     const o = obviousness(l, { decoys });
     const complexity = baseOf(l.mechanics).length + Math.max(0, l.keys.length - 1) * 0.5 + Math.max(0, ...l.keys.map((k) => k.rooms)) + (l.sequence ? 0.5 : 0) + (l.mechanics.includes('volley') || l.mechanics.includes('timed') ? 0.5 : 0) + (l.mechanics.includes('reveal') ? 0.5 : 0) + 0.25 * l.traversalHere.filter((t) => t !== 'pit').length;
     return { lock: l.id, from: l.a, to: l.b, mechanics: l.mechanics, keys: l.keys.map((k) => ({ id: k.id, metres: k.metres, rooms: k.rooms, visible: k.visible })), obvious: o.score, why: o.why, complexity: +complexity.toFixed(2), traversal: l.traversalHere, afterGadget: g.roomOrder.indexOf(l.a) >= g.roomOrder.indexOf(g.chestRoom) };

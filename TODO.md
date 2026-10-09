@@ -208,7 +208,7 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
   Crystal ↔ Saba ping-pong merged; a weenie in each of the Hangar's far zones; answering spheres along the Garden's
   572 m blind leg; a pipe leading to the Buried Machine's wheel. See the report.
 
-# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09)
+# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; docs/audits/temple-design-v1.8.md: the three worst reworked)
 
 All eleven are one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
 with an older verb). Ranked; each re-runs `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js
@@ -222,12 +222,16 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
   its next use a room later. Non-obvious +1.
 - [ ] **Break the shared opening** (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
   Garage = the Engine-House, 100 %): each first room from its world's own idea. Identity → 3-4.
-- [ ] **Founders' Belfry (1.44)**: the bell stones stay down only while it rings, a ball pushed across mid-ring
-  holds them (bell + push); the Stone Stair a hub with `d1`'s two balls in two side rooms; `e3` rung from a disc.
-- [ ] **Hush-House (1.67)**: a stilled pendulum as a step to `j2`'s ledge; the choir's order by pitch (sung in the
-  Threshold), not by height; `d2`'s jaws stilled from the passing disc.
-- [ ] **Lamp-House (1.67)**: the moss bridge shows only in light, pushed ahead on a glowing ball; `s3` behind the
-  root wall, a shortcut back; the Lampless lured to pools lit earlier.
+- [x] **Founders' Belfry (1.44 → 4.00, v1.8)**: held bells (the Bell Chamber's door, the Hall of Echoes' stones
+  only while it rings), the ball rolled across the held stones holds them (bell + push), the Hall of Stones a hub
+  with `d1`'s balls in two stores, a high door whose eye is under the landing. Left: its opening (balls and a
+  disc); the Cloud-Mother's falling stone (a guardian change, with the foes batch).
+- [x] **Hush-House (1.67 → 3.44, v1.8)**: the first crystal in the Threshold; the root-wall's door and its eye seen
+  from the disc; the far door wants the pendulums stilled in turn (stilling + order). Left: a shortcut or a
+  reversible state; `d2`'s jaws stilled from the passing disc; the Mother stilled through the order.
+- [x] **Lamp-House (1.67 → 3.11, v1.8)**: the third pool on a loft hidden by its edge; the pool-orb, lit by the
+  lantern and rolled into the niche (lantern + push). Left: a lock before the chest (the chest at 25 %); `s4` on
+  the near side; the Lampless lured to pools lit earlier.
 - [ ] **Undertower (1.67)**: `br1` stands only while the high note is held, so the one-note rule bites twice (a
   catch, then a second high stone); teach the stones before the shell.
 - [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
