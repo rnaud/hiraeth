@@ -77,13 +77,19 @@ export const FIRST_SIGN = {
   openHint: 'It lowers its dish to you and goes still, listening. It is waiting to hear its word.',
   resolved: 'The First Sign takes its whole line back, word by word, and says it once, quietly, to nobody in particular. Then it turns its dish up to the dark, and listens.',
   phases: [
-    { to: 0.5, attacks: ['cry', 'beam'], pause: 1.6, hint: 'When it lowers its dish to listen, play its word back into it.' },
-    { to: 1.0, attacks: ['static', 'cry', 'beam'], pause: 1.2, hint: 'It has a new word now. Catch it, and give it back.' },
+    { to: 0.5, attacks: ['cry', 'beam', 'static'], pause: 1.6, hint: 'When it lowers its dish to listen, play its word back into it.' },
+    { to: 0.75, attacks: ['beam', 'stutter', 'static'], pause: 1.2, hint: 'It has a new word now, and it stutters on it before it cries. Catch it, and give it back.' },
+    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'Its lamps flicker and its dish sweeps the hall. Catch its word, and give it back.' },
   ],
   attacks: {
-    cry: { shape: 'ring', at: 'self', radius: 9, telegraph: 1.6, damage: 0.75, knock: 12, recover: 0.9, open: 4.4 },
-    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 0.75, knock: 10, recover: 0.8 },
-    static: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6, open: 4.4 },
+    cry: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'mouth', rig: 'lean', wave: { speed: 10, reach: 18, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 12, recover: 0.9, open: 4.4 },
+    beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'mouth', damage: 0.75, knock: 10, recover: 0.6, then: 'sweep' },
+    sweep: { shape: 'cone', range: 22, angle: 0.8, wind: 1.0, track: 0.5, part: 'mouth', rig: 'coil', pose: 'beam', side: 1, link: true, damage: 0.75, knock: 10, recover: 0.8 },
+    static: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.2, wind: 1.4, track: 0.6, part: 'mouth', pose: 'cry', damage: 0.75, knock: 8, recover: 0.6 },
+    statics: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'mouth', pose: 'cry', damage: 0.5, knock: 6, recover: 0.6 },
+    stutter: { shape: 'ring', at: 'self', radius: 5.5, wind: 1.0, part: 'mouth', rig: 'swell', pose: 'cry', damage: 0.5, knock: 9, recover: 0.4, then: 'stutter2' },
+    stutter2: { shape: 'ring', at: 'self', radius: 5.5, wind: 0.65, part: 'mouth', rig: 'swell', pose: 'cry', link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'cryEnd' },
+    cryEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'mouth', rig: 'lean', pose: 'cry', link: true, wave: { speed: 10, reach: 18, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 12, recover: 0.9, open: 4.4 },
   },
 };
 

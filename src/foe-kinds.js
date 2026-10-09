@@ -7,14 +7,15 @@ import { makeMaterial } from './materials.js';
 //
 // An attack (foes.js Foe; src/temples/boss.js inArea for the shapes):
 //   id, shape 'ring' | 'cone' | 'lane', radius / range / angle / width, damage, wind (s), strike (s), contact (0..1)
-//   at        'self' (round it) | 'target' (where you stand: lobbed, drawn on the floor) | 'behind' (past you);
+//   at        'self' (round it) | 'target' (where you stand) | 'behind' (past you);
 //             unset: a ring lands `ahead` of it, a cone or a lane starts at it
 //   min, max  the distances it is used at (max: the kind's reach); weight: how often; chain: only as a `then`
 //   instant   resolved as the wind-up ends (no strike phase): lobs, flashes, blinks
-//   tele      drawn on the floor while it winds up (area and ranged attacks; plain melee reads from the body)
+//   lob       a lobbed or thrown projectile: the only attack with a mark on the ground (where it lands); every
+//             other attack is read from the body alone (src/telegraph.js: the pose, the glow, the rising sound)
 //   lunge     m travelled through the strike; dive: a flyer comes down along it; sweep: hits whatever it
 //             touches on the way (a charge: within half the lane's width of its body), not one area at the contact
-//   track     the drawn area follows you over this share of the wind-up, then holds
+//   track     its aim (a lob's mark) follows you over this share of the wind-up, then holds
 //   then      the id of a quick follow-up wound at once (a combo), unless it was blocked
 //   knock     knocks you down; tether / grab { time, pull }: pulls you in; blind: s of white; wave: a ground
 //             shockwave running out (jump it); leave: burning slag ('ring' | 'cone'); surface / blink: the foe
@@ -30,13 +31,13 @@ import { makeMaterial } from './materials.js';
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
 
 export const KINDS = {
-  // the Desert, the Buried Machine: swims under the sand, a fin and a ripple; its ring follows you, then it bursts up
+  // the Desert, the Buried Machine: swims under the sand, a fin and a ripple; its fin races at you, then it bursts up there
   ray: S({
     name: 'dune ray', hp: 3, radius: 0.8, height: 0.3, speed: 4.4, sight: 20, giveUp: 45, reach: 9, burrow: true, breaks: true,
     tone: '#b0562c', takes: { shoot: 1, fire: 1 },
     attacks: [
       { id: 'erupt', shape: 'ring', at: 'target', track: 0.6, radius: 1.8, damage: 0.75, wind: 1.25, knock: 5, surface: true, instant: true, max: 9, weight: 2 },
-      { id: 'glide', shape: 'lane', width: 2.2, range: 8, tele: true, damage: 0.5, wind: 0.85, strike: 0.5, contact: 0.05, lunge: 8, sweep: true, min: 3.5, max: 7.5 },
+      { id: 'glide', shape: 'lane', width: 2.2, range: 8, damage: 0.5, wind: 0.85, strike: 0.5, contact: 0.05, lunge: 8, sweep: true, min: 3.5, max: 7.5 },
     ],
     recover: 1.9, cool: [1.2, 2.2],
   }),
@@ -46,8 +47,8 @@ export const KINDS = {
     tone: '#3f9a72', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 }, splits: { kind: 'splinter', n: 3 }, pack: 2,
     attacks: [
       { id: 'slam', shape: 'cone', range: 3.2, angle: 0.75, damage: 0.75, wind: 1.1, strike: 0.3, contact: 0.55, knock: 6.5, max: 2.9, weight: 1.5, onParry: 'chip' },
-      { id: 'shards', shape: 'ring', at: 'self', radius: 3.4, tele: true, damage: 0.5, wind: 1.3, strike: 0.25, contact: 0.4, max: 3.2 },
-      { id: 'hurl', shape: 'ring', at: 'target', instant: true, radius: 1.6, damage: 0.75, wind: 1.35, min: 4.5, max: 12 },
+      { id: 'shards', shape: 'ring', at: 'self', radius: 3.4, damage: 0.5, wind: 1.3, strike: 0.25, contact: 0.4, max: 3.2 },
+      { id: 'hurl', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.6, damage: 0.75, wind: 1.35, min: 4.5, max: 12 },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   }),
@@ -55,7 +56,7 @@ export const KINDS = {
   splinter: S({
     name: 'glass splinter', hp: 1, radius: 0.3, height: 0.3, speed: 5.4, sight: 18, reach: 1.4, flinchy: true, noWild: true, breaks: true,
     tone: '#5fbf8f', takes: { shoot: 1, fire: 0, push: 1 },
-    attacks: [{ id: 'lunge', shape: 'ring', radius: 0.9, ahead: 0.6, damage: 0.25, wind: 0.45, strike: 0.22, contact: 0.55, lunge: 1.2 }],
+    attacks: [{ id: 'lunge', shape: 'ring', radius: 0.9, ahead: 0.6, damage: 0.25, wind: 0.5, strike: 0.22, contact: 0.55, lunge: 1.2 }],
     recover: 0.7, cool: [0.7, 1.5], hit: 0.2,
   }),
   // the Signal Market: moths of neon tube; their wings flare and blind whoever faces them
@@ -63,7 +64,7 @@ export const KINDS = {
     name: 'sign moth', hp: 1, radius: 0.4, height: 0.35, hover: 1.3, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
     tone: '#ff5fa2', takes: { shoot: 1, fire: 1, push: 1 },
     attacks: [
-      { id: 'flash', shape: 'cone', at: 'self', instant: true, tele: true, range: 6.5, angle: 0.5, damage: 0.25, blind: 1.5, wind: 1.0, min: 1.8, max: 6.5, weight: 2 },
+      { id: 'flash', shape: 'cone', at: 'self', instant: true, range: 6.5, angle: 0.5, damage: 0.25, blind: 1.5, wind: 1.0, min: 1.8, max: 6.5, weight: 2 },
       { id: 'dart', shape: 'lane', width: 1.2, range: 5, damage: 0.25, wind: 0.6, strike: 0.3, contact: 0.8, dive: true, max: 4.5 },
     ],
     recover: 1.2, cool: [1.4, 2.6], hit: 0.25,
@@ -73,8 +74,8 @@ export const KINDS = {
     name: 'rust drone', hp: 3, radius: 0.55, height: 0.3, hover: 2.1, speed: 3.2, sight: 20, reach: 9, keep: 3.6, metal: true, breaks: true,
     tone: '#c0582e', sound: 'machine', takes: { shoot: 0, fire: 0 },
     attacks: [
-      { id: 'harpoon', shape: 'lane', width: 1.1, range: 9.5, tele: true, damage: 0.5, wind: 1.1, strike: 0.3, contact: 0.7, tether: { time: 0.9, pull: 7.5 }, min: 3, max: 9, weight: 2, onParry: 'cut' },
-      { id: 'ram', shape: 'lane', width: 1.4, range: 6, tele: true, damage: 0.5, wind: 0.8, strike: 0.35, contact: 0.8, dive: true, max: 6 },
+      { id: 'harpoon', shape: 'lane', width: 1.1, range: 9.5, damage: 0.5, wind: 1.1, strike: 0.3, contact: 0.7, tether: { time: 0.9, pull: 7.5 }, min: 3, max: 9, weight: 2, onParry: 'cut' },
+      { id: 'ram', shape: 'lane', width: 1.4, range: 6, damage: 0.5, wind: 0.8, strike: 0.35, contact: 0.8, dive: true, max: 6 },
     ],
     recover: 1.4, cool: [1.6, 2.6], hit: 0.35,
   }),
@@ -83,7 +84,7 @@ export const KINDS = {
     name: 'root stalker', hp: 4, radius: 0.65, height: 1.3, speed: 2.7, sight: 16, giveUp: 35, reach: 6.5, breaks: true, clamber: true,
     tone: '#7fcfc0', takes: { shoot: 1, fire: 2, bloom: 'hold' },
     attacks: [
-      { id: 'grab', shape: 'lane', width: 1.2, range: 6.5, tele: true, damage: 0.25, wind: 1.0, strike: 0.35, contact: 0.7, grab: { time: 1.1, pull: 6 }, then: 'lash', min: 2.6, max: 6.5, weight: 1.5, onParry: 'cut' },
+      { id: 'grab', shape: 'lane', width: 1.2, range: 6.5, damage: 0.25, wind: 1.0, strike: 0.35, contact: 0.7, grab: { time: 1.1, pull: 6 }, then: 'lash', min: 2.6, max: 6.5, weight: 1.5, onParry: 'cut' },
       { id: 'lash', shape: 'cone', range: 2.8, angle: 1.0, damage: 0.5, wind: 0.75, strike: 0.26, contact: 0.5, max: 2.6 },
     ],
     recover: 1.3,
@@ -93,8 +94,8 @@ export const KINDS = {
     name: 'salt crab', hp: 4, radius: 0.75, height: 0.55, speed: 3.0, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
     tone: '#b8553a', sound: 'machine', takes: { shoot: 0, fire: 1 }, weak: { bomb: 1.5 },
     attacks: [
-      { id: 'snap', shape: 'cone', range: 2.3, angle: 0.7, damage: 0.5, wind: 0.6, strike: 0.2, contact: 0.5, max: 2.2, weight: 1.5 },
-      { id: 'spin', shape: 'lane', width: 2.4, range: 8, tele: true, damage: 0.75, wind: 1.1, strike: 0.7, contact: 0.05, lunge: 8, sweep: true, knock: 5, min: 3, max: 8, onParry: 'flip' },
+      { id: 'snap', shape: 'cone', range: 2.3, angle: 0.7, damage: 0.5, wind: 0.7, strike: 0.2, contact: 0.5, max: 2.2, weight: 1.5 },
+      { id: 'spin', shape: 'lane', width: 2.4, range: 8, damage: 0.75, wind: 1.1, strike: 0.7, contact: 0.05, lunge: 8, sweep: true, knock: 5, min: 3, max: 8, onParry: 'flip' },
     ],
     recover: 1.4, cool: [1.3, 2.4],
   }),
@@ -104,8 +105,8 @@ export const KINDS = {
     trail: { every: 1.3, r: 0.75, life: 4.5 }, douse: 2.5,
     tone: '#ff7a2e', takes: { shoot: 1, fire: 0 },
     attacks: [
-      { id: 'stomp', shape: 'ring', at: 'self', radius: 2.7, tele: true, damage: 0.75, wind: 0.95, strike: 0.25, contact: 0.5, leave: 'ring', max: 2.5, weight: 1.3 },
-      { id: 'pour', shape: 'cone', range: 4.6, angle: 0.5, tele: true, damage: 0.75, wind: 1.15, strike: 0.5, contact: 0.4, leave: 'cone', min: 1.5, max: 4.4 },
+      { id: 'stomp', shape: 'ring', at: 'self', radius: 2.7, damage: 0.75, wind: 0.95, strike: 0.25, contact: 0.5, leave: 'ring', max: 2.5, weight: 1.3 },
+      { id: 'pour', shape: 'cone', range: 4.6, angle: 0.5, damage: 0.75, wind: 1.15, strike: 0.5, contact: 0.4, leave: 'cone', min: 1.5, max: 4.4 },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   }),
@@ -114,9 +115,9 @@ export const KINDS = {
     name: 'shadow hound', hp: 3, radius: 0.5, height: 0.55, speed: 5.6, sight: 22, giveUp: 45, reach: 7, phase: true, group: 2, clamber: true,
     tone: '#6c4fa0', takes: { shoot: 0, fire: 2 },
     attacks: [
-      { id: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.5, wind: 0.6, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.5 },
-      { id: 'step', shape: 'ring', at: 'behind', instant: true, tele: true, radius: 1.3, track: 0.5, damage: 0, blink: true, wind: 0.9, then: 'bite', min: 2.5, max: 7 },
-      { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.5, wind: 0.45, strike: 0.2, contact: 0.5 },
+      { id: 'pounce', shape: 'ring', radius: 1.6, ahead: 1.6, damage: 0.5, wind: 0.8, strike: 0.28, contact: 0.55, lunge: 3.2, max: 3.4, weight: 1.5 },
+      { id: 'step', shape: 'ring', at: 'behind', instant: true, radius: 1.3, track: 0.5, damage: 0, blink: true, wind: 0.9, then: 'bite', min: 2.5, max: 7 },
+      { id: 'bite', chain: true, shape: 'cone', range: 2.3, angle: 0.8, damage: 0.5, wind: 0.55, strike: 0.2, contact: 0.5 },
     ],
     recover: 1.2, cool: [1.1, 2.0],
   }),
@@ -124,14 +125,14 @@ export const KINDS = {
 
 /** Said once, the first time each kind comes for you (prompts in pad form: src/native-pad.js rewrites them). */
 export const NOTES = {
-  ray: 'A dune ray swims under the sand. When a ripple ring closes round your feet, move: it bursts up there, and stays up a while to fight. Cut its fin, or drop a bomb or a stomp, to flush it out.',
+  ray: 'A dune ray swims under the sand. When its fin stands tall and races at you, glowing, move: it bursts up where the fin stops, and stays up a while to fight. Cut its fin, or drop a bomb or a stomp, to flush it out.',
   golem: 'A glass golem: slow and hard, glass turns a fluid shot. A bomb cracks it twice as deep, a perfect parry chips it, and when it falls its splinters keep coming.',
   moth: 'Sign moths: when their wings flare, turn away or guard (LB / L1), or the flash blinds you. One cut, one shot or a gust ends each.',
   drone: 'A rust drone hangs out of the blade’s reach. Guard (LB / L1) its harpoon to cut the line and stun it; stilled, or pulled down with the magnet glove, it can be cut.',
-  stalker: 'A root stalker: its roots run along the ground to grab you. Step out of their path, or cut it to break the hold. Embers burn it; a bloom glob puts it to sleep.',
+  stalker: 'A root stalker: when it rears its root-arms back, they are about to shoot along the ground to grab you. Step out of their line, or cut it to break the hold. Embers burn it; a bloom glob puts it to sleep.',
   crab: 'A salt crab: its shell turns the blade from the front. Get round it, guard (LB / L1) its spinning charge to flip it on its back, or crack the shell with a bomb.',
   slag: 'A slag walker leaves burning slag where it treads: keep off the glow. A plain fluid shot cools its crust, and cooled it cuts twice as deep.',
-  hound: 'Shadow hounds: running at a distance they are only shadows and the blade passes through; close in, they are solid. Cut when they come near or rise to strike, or light them with an ember. A pool behind you means one is stepping through.',
+  hound: 'Shadow hounds: running at a distance they are only shadows and the blade passes through; close in, they are solid. Cut when they come near or rise to strike, or light them with an ember. One that sinks into its own shadow is stepping through: it comes up behind you.',
 };
 
 // ------------------------------------------------------------------ how they look
@@ -168,6 +169,7 @@ const MODELS = {
     const ripple = add(g, new THREE.RingGeometry(0.84, 1, 28).rotateX(-Math.PI / 2), M_('ray-ripple', { color: '#5a3a26', side: THREE.DoubleSide }), 0, 0.05, 0);
     return {
       group: g, parts: [disc, ...wings, tail, ...eyes], eyeMat: eye, base: '#f6e7b0', size: 1,
+      tell: (id) => (id === 'erupt' ? fin : barb),   // (the glow gathers on its fin as it races at you; on its barb to glide)
       anim(f, c) {
         const under = f.buried;
         // buried: the body under the sand, the fin cutting along it; it rises as it surfaces
@@ -177,7 +179,8 @@ const MODELS = {
         fin.visible = mound.visible = ripple.visible = r < 0.95;
         // (winding up its burst it swims at you, src/foes.js: the fin stands up taller and throws a wake; it never
         // sinks out of sight before it comes up)
-        fin.position.y = 0.55 * (1 - r) + (f.state === 'wind' && f.atk?.surface ? 0.12 * c.wind : 0);
+        fin.position.y = 0.55 * (1 - r) + (f.state === 'wind' && f.atk?.surface ? 0.35 * c.wind : 0);
+        fin.scale.setScalar(1 + (f.state === 'wind' && f.atk?.surface ? 0.5 * c.wind : 0));   // (it stands up taller as it comes: the body is the tell)
         fin.rotation.z = Math.sin(c.now / 160) * 0.15;
         ripple.scale.setScalar((1.1 + 0.18 * Math.sin(c.now / 180)) * (1 - r));
         mound.scale.setScalar(1 - r); mound.position.y = -0.02;
@@ -189,7 +192,8 @@ const MODELS = {
         eye.uniforms.uColor.value.set(eyeColor(f, '#f6e7b0'));
         // sand sprays where it swims, and where it is about to come up
         if (under && (c.moving || (f.state === 'wind' && f.atk?.surface)) && Math.random() < 0.6) c.dust(f.pos, '#e8c58f', 2, 0.9);
-        if (f.state === 'wind' && f.atk?.surface && Math.random() < 0.3 + c.wind) c.dust(f.attackAt, '#e1b077', 1 + c.wind * 2, (f.atk.radius ?? 1.5) * (1 - c.wind * 0.6));
+        // (no spray where it will come up: nothing is drawn on the ground for its burst, only the fin racing at you, src/telegraph.js)
+        if (f.state === 'wind' && f.atk?.surface && Math.random() < 0.3 + c.wind) c.dust(f.pos, '#e1b077', 1 + c.wind * 3, 0.5 + c.wind * 0.6);
       },
     };
   },
@@ -218,6 +222,7 @@ const MODELS = {
     const chunk = add(arms[1], new THREE.IcosahedronGeometry(0.3, 0), pale, 0, -1.2, 0.1); chunk.visible = false;
     return {
       group: g, parts: [torso, head, heart, ...arms, ...legs, ...shards], eyeMat: core, base: '#d8ff9a', size: 1, chunk,
+      tell: (id) => (id === 'slam' ? arms[0].children[1] : id === 'shards' ? shards[2] : arms[1].children[1]),
       anim(f, c) {
         const id = f.atk?.id, w = c.wind;
         legs.forEach((l, k) => { l.rotation.x = c.moving ? Math.sin(c.t * 7 + k * Math.PI) * 0.35 : 0; });
@@ -229,7 +234,8 @@ const MODELS = {
         const rise = id === 'shards' && f.state === 'wind' ? w : id === 'shards' && f.state === 'strike' ? 1 - c.release : 0;
         shards.forEach((s, i) => { s.position.y = s.userData.y0 + rise * (0.35 + (i % 2) * 0.2); s.scale.setScalar(1 + rise * 0.4); });
         chunk.visible = id === 'hurl' && f.state === 'wind' && f.k < 0.55;
-        g.rotation.x = id === 'slam' ? (f.state === 'wind' ? -0.12 * w : f.state === 'strike' ? 0.3 * c.release : 0) : 0;
+        g.rotation.x = id === 'slam' ? (f.state === 'wind' ? -0.12 * w : f.state === 'strike' ? 0.3 * c.release : 0) : id === 'shards' && f.state === 'wind' ? 0.12 * w : 0;
+        if (id === 'shards' && f.state === 'wind') g.position.y -= 0.25 * w;   // (it hunches down as its shards rise)
         core.uniforms.uColor.value.set(eyeColor(f, '#d8ff9a', '#fff4b0'));
         core.uniforms.uGlow.value = 0.7 + (f.state === 'wind' ? 0.3 * w : 0);
         // the hurled chunk: in the air over the second half of the wind-up, onto the drawn ring
@@ -246,10 +252,11 @@ const MODELS = {
     const body = add(g, new THREE.OctahedronGeometry(0.3, 0).scale(0.6, 1.3, 0.6), glass, 0, 0.35, 0);
     const eye = add(g, new THREE.OctahedronGeometry(0.06, 0), core, 0, 0.42, 0.15);
     return {
-      group: g, parts: [body, eye], eyeMat: core, base: '#d8ff9a', size: 1.3,   // (drawn a little bigger than it was: a shard you can see coming)
+      group: g, parts: [body, eye], eyeMat: core, base: '#d8ff9a', size: 1.3, tell: () => eye,   // (drawn a little bigger than it was: a shard you can see coming)
       anim(f, c) {
         body.rotation.y += c.dt * (f.state === 'wind' ? 14 : 4);
         body.rotation.z = f.state === 'strike' ? -1.3 : f.state === 'wind' ? -0.5 * c.wind : 0;
+        if (f.state === 'wind') g.position.y -= 0.12 * c.wind;   // (it drops low and spins up before it lunges)
         g.position.y += 0.1 + Math.abs(Math.sin(c.now / 140 + f.home.x)) * (c.moving ? 0.25 : 0.06);
         core.uniforms.uColor.value.set(eyeColor(f, '#d8ff9a'));
       },
@@ -275,14 +282,17 @@ const MODELS = {
     };
     const wings = [wing(-1, false), wing(1, false), wing(-1, true), wing(1, true)];
     return {
-      group: g, parts: [head, ...eyes, ...wings], eyeMat: cyan, base: '#5ff0e8', size: 1,
+      group: g, parts: [head, ...eyes, ...wings], eyeMat: cyan, base: '#5ff0e8', size: 1, tell: () => head,
       anim(f, c) {
         const flash = f.atk?.id === 'flash' && f.state === 'wind' ? c.wind : 0;
         // wings flutter; winding a flash they spread flat toward you and the tubes burn white
         const flap = Math.sin(c.now / (f.state === 'wind' ? 45 : 70) + f.home.x) * (0.9 - flash * 0.8);
         wings.forEach((w, i) => { w.rotation.z = (i % 2 ? -1 : 1) * (flap + 0.2) * (i < 2 ? 1 : 0.8); w.rotation.x = -flash * 1.2; });
         g.position.y += f.alt + Math.sin(c.now / 300 + f.home.z) * 0.12;
-        g.rotation.x = -flash * 0.4;
+        const dart = f.atk?.id === 'dart' && f.state === 'wind' ? c.wind : 0;   // (the dart: wings swept back, it rears up, nose high)
+        if (dart) wings.forEach((w, i) => { w.rotation.y = (i % 2 ? 1 : -1) * dart * 0.9; });
+        g.rotation.x = -flash * 0.4 - dart * 0.5;
+        g.position.y += dart * 0.35;
         pink.uniforms.uColor.value.set(flash > 0.6 ? '#fff4fb' : '#ff5fa2'); pink.uniforms.uGlow.value = 0.8 + flash * 0.2;
         cyan.uniforms.uColor.value.set(flash > 0.75 ? '#ffffff' : f.stunned > 0 ? '#bfe9ff' : '#5ff0e8');
       },
@@ -310,6 +320,7 @@ const MODELS = {
     line.visible = false;
     return {
       group: g, parts: [hull, band, eye, ...rotors.map((r) => r.parent), gun], eyeMat: lens, base: '#ffb347', size: 1, line, harpoon,
+      tell: (id) => (id === 'harpoon' ? harpoon : eye),
       anim(f, c) {
         const id = f.atk?.id;
         rotors.forEach((r, k) => { r.rotation.y += c.dt * (f.stunned > 0 ? 4 : 30 + k * 3); });
@@ -317,7 +328,9 @@ const MODELS = {
         g.rotation.z = Math.sin(c.now / 400 + f.home.z) * 0.08;
         // the harpoon: aimed through its wind-up (the gun tips down at you), out along the lane as it strikes
         const aim = id === 'harpoon' && f.state === 'wind' ? c.wind : 0;
-        g.rotation.x = aim * 0.35 + (f.state === 'strike' && id === 'ram' ? 0.6 : 0);
+        const rear = id === 'ram' && f.state === 'wind' ? c.wind : 0;   // (the ram: it rocks back and rises, rotors screaming, then drops at you)
+        g.rotation.x = aim * 0.35 - rear * 0.55 + (f.state === 'strike' && id === 'ram' ? 0.6 : 0);
+        g.position.y += rear * 0.4;
         let reach = 0;
         if (id === 'harpoon' && f.state === 'strike') reach = (f.atk.range ?? 9) * Math.min(1, f.k / 0.7);
         const held = c.tethered(f);
@@ -346,6 +359,7 @@ const MODELS = {
       const a = new THREE.Group(); a.position.set(s * 0.38, 1.4, 0.15); g.add(a);
       add(a, root([[0, 0, 0], [s * 0.3, 0.1, 0.3], [s * 0.25, -0.3, 0.8], [s * 0.1, -0.6, 1.1]], 0.045), bone);
       for (let i = 0; i < 3; i++) add(a, new THREE.ConeGeometry(0.025, 0.3, 3).rotateX(Math.PI / 2 + 0.6), dark, s * 0.1 + (i - 1) * 0.06, -0.65, 1.2);
+      const tip = new THREE.Object3D(); tip.position.set(s * 0.1, -0.65, 1.25); a.add(tip); a.userData.tip = tip;
       return a;
     });
     // the grab: roots running out along the ground toward you
@@ -353,7 +367,7 @@ const MODELS = {
     const tendrils = [-0.25, 0, 0.25].map((x) => add(reach, root([[0, 0, 0], [x * 0.5, 0.15, 0.33], [x, 0.05, 0.66], [x * 0.6, 0.1, 1]], 0.04), bone));
     reach.visible = false;
     return {
-      group: g, parts: [knot, eye, ...legs, ...arms], eyeMat: lamp, base: '#9fe8d8', size: 1,
+      group: g, parts: [knot, eye, ...legs, ...arms], eyeMat: lamp, base: '#9fe8d8', size: 1, tell: (id) => (id === 'grab' ? arms[0].userData.tip : arms[1].userData.tip),
       anim(f, c) {
         const id = f.atk?.id;
         legs.forEach((l, k) => { l.rotation.x = c.moving ? Math.sin(c.t * 6 + k * Math.PI / 2) * 0.22 : 0; });
@@ -361,7 +375,8 @@ const MODELS = {
         const sweep = id === 'lash' ? (f.state === 'wind' ? -1.1 * c.wind : f.state === 'strike' ? lerp(-1.1, 1.2, c.release) : 0) : 0;
         arms[0].rotation.y = sweep; arms[1].rotation.y = sweep;
         const grabWind = id === 'grab' && f.state === 'wind' ? c.wind : 0;
-        arms.forEach((a, i) => { a.rotation.x = -grabWind * 0.9 + (id === 'grab' && f.state === 'strike' ? 0.5 : 0); });
+        arms.forEach((a, i) => { a.rotation.x = -grabWind * 1.5 + (id === 'grab' && f.state === 'strike' ? 0.5 : 0); });   // (both root-arms reared high back over it)
+        g.rotation.x = -grabWind * 0.18;
         knot.scale.set(1 + grabWind * 0.12, 1 - grabWind * 0.1, 1);
         // the roots run out along the drawn lane while it strikes, and stay round you while it holds
         let len = 0;
@@ -386,6 +401,7 @@ const MODELS = {
     const crystals = [];
     for (let i = 0; i < 9; i++) { const a = i * 2.4, r = 0.2 + (i % 3) * 0.17; const cr = add(body, new THREE.BoxGeometry(0.12, 0.16, 0.12), salt, Math.sin(a) * r, 0.36 - r * 0.25, Math.cos(a) * r * 0.8); cr.rotation.set(i, i * 0.7, 0); crystals.push(cr); }
     const meat = add(body, new THREE.SphereGeometry(0.6, 12, 6).scale(1, 0.35, 0.8), flesh, 0, 0.05, 0); meat.visible = false;
+    const shellTop = new THREE.Object3D(); shellTop.position.set(0, 0.75, 0); body.add(shellTop);   // (the spin's glow rides on its shell, not inside it)
     const eyes = pair((s) => { const st = add(body, new THREE.CylinderGeometry(0.025, 0.025, 0.3, 4), dark, s * 0.18, 0.4, 0.55); add(st, new THREE.SphereGeometry(0.06, 8, 6), eye, 0, 0.17, 0); return st; });
     const claws = pair((s) => {
       const c = new THREE.Group(); c.position.set(s * 0.65, -0.05, 0.5); body.add(c);
@@ -402,6 +418,7 @@ const MODELS = {
     }
     return {
       group: g, parts: [shell, belly, ...crystals, ...eyes, ...claws.map((x) => x.c), ...legs], eyeMat: eye, base: '#f2d34b', size: 1,
+      tell: (id) => (id === 'snap' ? claws[0].pin : shellTop),
       anim(f, c) {
         const id = f.atk?.id;
         const tuck = id === 'spin' ? (f.state === 'wind' ? c.wind : f.state === 'strike' ? 1 : 0) : 0;
@@ -409,7 +426,7 @@ const MODELS = {
         eyes.forEach((e) => { e.scale.y = 1 - tuck * 0.8; });
         claws.forEach(({ c: cl, pin }, i) => {
           const snap = id === 'snap' ? (f.state === 'wind' ? c.wind : f.state === 'strike' ? 1 - c.release : 0) : 0;
-          cl.rotation.y = (i ? -1 : 1) * (snap * 0.6 - tuck * 0.9); cl.rotation.x = -snap * 0.5; pin.rotation.y = (i ? 1 : -1) * snap * 0.4;
+          cl.rotation.y = (i ? -1 : 1) * (snap * 0.9 - tuck * 0.9); cl.rotation.x = -snap * 0.9;   // (claws raised high and wide before the snap) pin.rotation.y = (i ? 1 : -1) * snap * 0.4;
           cl.scale.setScalar(1 - tuck * 0.5);
         });
         // the spin: tucked into its shell, turning faster and faster through the wind-up, a top along the lane
@@ -438,17 +455,18 @@ const MODELS = {
     const head = add(g, new THREE.SphereGeometry(0.36, 10, 8).scale(1, 0.8, 1.1), crust, 0, 1.75, 0.55);
     const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.06, 6, 4), hot, s * 0.14, 0.06, 0.32));
     const lip = add(head, new THREE.TorusGeometry(0.16, 0.05, 5, 12, Math.PI).rotateX(Math.PI / 2), crust, 0, -0.16, 0.34);
-    const legs = pair((s) => { const l = new THREE.Group(); l.position.set(s * 0.42, 0.85, 0); g.add(l); add(l, new THREE.CylinderGeometry(0.22, 0.3, 0.85, 7).translate(0, -0.42, 0), crust); add(l, new THREE.SphereGeometry(0.14, 6, 4), melt, 0, -0.45, 0.2); return l; });
+    const legs = pair((s) => { const l = new THREE.Group(); l.position.set(s * 0.42, 0.85, 0); g.add(l); add(l, new THREE.CylinderGeometry(0.22, 0.3, 0.85, 7).translate(0, -0.42, 0), crust); add(l, new THREE.SphereGeometry(0.14, 6, 4), melt, 0, -0.45, 0.2); const foot = new THREE.Object3D(); foot.position.set(0, -0.85, 0.15); l.add(foot); l.userData.foot = foot; return l; });
     const stream = add(g, new THREE.CylinderGeometry(0.1, 0.22, 1, 6).translate(0, -0.5, 0), hot, 0, 1.55, 1.0); stream.visible = false;
     return {
-      group: g, parts: [body, head, ...blobs, ...legs], eyeMat: hot, base: '#ffd36a', size: 1,
+      group: g, parts: [body, head, ...blobs, ...legs], eyeMat: hot, base: '#ffd36a', size: 1, tell: (id) => (id === 'stomp' ? legs[1].userData.foot : lip),
       anim(f, c) {
         const id = f.atk?.id, w = c.wind;
         // stomp: one leg raised high through the wind-up, down hard; pour: it leans and tips its lip at you
         const lift = id === 'stomp' ? (f.state === 'wind' ? w : f.state === 'strike' ? 1 - c.release : 0) : 0;
-        legs.forEach((l, k) => { l.rotation.x = (c.moving ? Math.sin(c.t * 5 + k * Math.PI) * 0.3 : 0) - (k === 1 ? lift * 1.3 : 0); l.position.y = 0.85 + (k === 1 ? lift * 0.4 : 0); });
+        legs.forEach((l, k) => { l.rotation.x = (c.moving ? Math.sin(c.t * 5 + k * Math.PI) * 0.3 : 0) - (k === 1 ? lift * 1.6 : 0); l.position.y = 0.85 + (k === 1 ? lift * 0.6 : 0); });
         const lean = id === 'pour' ? (f.state === 'wind' ? w : f.state === 'strike' ? 1 : 0) : 0;
-        g.rotation.x = lean * 0.45 - lift * 0.1;
+        g.rotation.x = lean * 0.45 - lift * 0.22;   // (it leans back on its other leg, the raised foot high in front)
+        g.rotation.z = lift * 0.12;
         g.position.y += c.moving ? Math.abs(Math.sin(c.t * 5)) * 0.07 : 0;
         stream.visible = id === 'pour' && f.state === 'strike';
         if (stream.visible) { stream.scale.set(1, 1.6 + Math.sin(c.now / 50) * 0.1, 1); if (Math.random() < 0.7) c.spray(_v.set(f.pos.x + Math.sin(f.heading) * 2.2, f.pos.y + 0.2, f.pos.z + Math.cos(f.heading) * 2.2), ['#ffd36a', '#ff7a2e'], 3, 3); }
@@ -485,9 +503,11 @@ const MODELS = {
     const glowRim = add(g, new THREE.RingGeometry(0.62, 0.74, 24).scale(0.8, 1.5, 1).rotateX(-Math.PI / 2), M_('hound-glow', { color: '#d6c2ff', glow: 0.8, side: THREE.DoubleSide }), 0, 0.04, 0);
     const poolEyes = pair((s) => add(g, new THREE.SphereGeometry(0.07, 8, 6).scale(1, 0.6, 1), eye, s * 0.12, 0.4, 0.42));
     return {
-      group: g, parts: [], eyeMat: eye, base: '#d6c2ff', size: 1, shadowy: true,
+      group: g, parts: [], eyeMat: eye, base: '#d6c2ff', size: 1, shadowy: true, tell: () => head,
       anim(f, c) {
-        f._solid = lerp(f._solid ?? 1, f.phased ? 0 : 1, 1 - Math.exp(-(f.phased ? 6 : 14) * c.dt));
+        // stepping through the shadow (its 'step'): it sinks into its own pool as it winds up, nothing drawn behind you
+        const sinking = f.state === 'wind' && f.atk?.blink;
+        f._solid = lerp(f._solid ?? 1, f.phased || sinking ? 0 : 1, 1 - Math.exp(-(f.phased || sinking ? 6 : 14) * c.dt));
         const s = f._solid;
         body.visible = s > 0.08; body.scale.set(1, Math.max(0.05, s), 1); body.position.y = -(1 - s) * 0.3;
         pool.visible = s < 0.9; pool.scale.setScalar(1.2 - s * 0.5); poolEyes.forEach((e) => { e.visible = s < 0.6; });

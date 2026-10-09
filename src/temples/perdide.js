@@ -79,13 +79,20 @@ export const MOTHER = {
   resolved: 'The Mother Snapper breathes out, long and slow, and sleeps. Up in the dome the crystals hum in tune again.',
   phases: [
     { to: 0.45, attacks: ['lunge', 'sweep'], pause: 1.5, hint: 'When her head lies spent after a lunge, still her: a cold glob in her open mouth.' },
-    { to: 0.9, attacks: ['seed', 'lunge', 'sweep'], pause: 1.2, hint: 'Her crown glows. Still her as she rears to strike, or when she lies spent.' },
+    { to: 0.75, attacks: ['snap', 'seed', 'sweep'], pause: 1.2, hint: 'Her crown glows and she feints, snapping short before she lunges. Still her as she rears to strike, or when she lies spent.' },
+    { to: 0.9, attacks: ['thrash', 'seed', 'snap'], pause: 1.0, hint: 'Her leaves bristle with thorns. Still her as she rears, or when she lies spent.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    lunge: { shape: 'lane', range: 13.5, width: 3.4, telegraph: 1.5, damage: 1, knock: 11, recover: 0.6, open: 3.6 },
-    sweep: { shape: 'cone', range: 9.5, angle: 0.95, telegraph: 1.3, damage: 0.75, knock: 12, recover: 0.7 },
-    seed: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.7, track: 0.55, damage: 0.75, knock: 8, recover: 0.8 },
+    lunge: { shape: 'lane', range: 13.5, width: 3.4, wind: 1.4, track: 0.6, part: 'mouth', damage: 1, knock: 11, recover: 0.6, open: 3.6 },
+    sweep: { shape: 'cone', range: 9.5, angle: 0.95, wind: 1.2, track: 0.6, part: 'mouth', side: 1, damage: 0.75, knock: 12, recover: 0.7, then: 'sweepBack' },
+    sweepBack: { shape: 'cone', range: 9.5, angle: 0.95, wind: 0.75, track: 0.5, part: 'mouth', pose: 'sweep', side: -1, link: true, damage: 0.75, knock: 12, recover: 0.8 },
+    seed: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.0, wind: 1.5, track: 0.55, part: 'mouth', damage: 0.75, knock: 8, recover: 0.8 },
+    snap: { shape: 'lane', range: 7.5, width: 3, wind: 1.0, track: 0.7, part: 'mouth', damage: 0.5, knock: 8, recover: 0.4, then: 'snap2' },
+    snap2: { shape: 'lane', range: 7.5, width: 3, wind: 0.65, track: 0.6, part: 'mouth', pose: 'snap', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'lungeEnd' },
+    lungeEnd: { shape: 'lane', range: 13.5, width: 3.4, wind: 1.2, track: 0.5, part: 'mouth', pose: 'lunge', link: true, damage: 1, knock: 11, recover: 0.6, open: 3.6 },
+    thrash: { shape: 'ring', at: 'self', radius: 7, wind: 1.3, part: 'core', rig: 'swell', damage: 0.75, knock: 12, recover: 0.6, then: 'seedVolley' },
+    seedVolley: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.1, track: 0.55, part: 'mouth', pose: 'seed', link: true, damage: 0.5, knock: 6, recover: 0.8 },
   },
 };
 
@@ -102,7 +109,7 @@ function motherHit(g, part, mode) {
     }
     if (g.attack && g.state === 'fight' && !g.struck) {
       // stilled mid-strike: it never lands; once she has begun to calm, it calms her more
-      g.attack = null; g.tele.hide(); g.cool = 2.4;
+      g.stop(); g.cool = 2.4;
       if (g.phaseIndex >= 1) { g.add(0.15, 'still'); rt.sound?.chime?.(); rt.notice('She stops mid-strike, frosted, and sways. Her crown glows brighter.', 'mother.mid'); }
       else rt.notice('She stops mid-strike, frosted, and shakes it off. Wait for her to lie spent.', 'mother.mid0');
       return true;

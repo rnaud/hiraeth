@@ -113,29 +113,46 @@ export function scoreKind(F, run = {}, worlds = 0, roleCount = 1) {
   };
 }
 
-/** A temple guardian's facts (src/temples/<world>.js: KEEPER, ELDER …): its phases, telegraphs, openings. */
+/**
+ * A temple guardian's facts (src/temples/<world>.js: KEEPER, ELDER …): its moves (a combo's links apart), its wind-ups
+ * (body tells: src/telegraph.js), its combos, its openings (after a move, or when a move misses), its phases.
+ */
 export function guardianFacts(id, def) {
   const attacks = Object.entries(def.attacks ?? {});
-  const tele = attacks.map(([, a]) => a.telegraph ?? 0);
+  const own = attacks.filter(([, a]) => !a.link);
+  const wind = (a) => a.wind ?? a.telegraph ?? 0;
+  const tele = own.map(([, a]) => wind(a)), links = attacks.filter(([, a]) => a.link).map(([, a]) => wind(a));
   const shapes = [...new Set(attacks.map(([, a]) => a.shape))];
   const opens = attacks.filter(([, a]) => a.open).map(([, a]) => a.open);
+  const combos = own.filter(([, a]) => a.then).map(([k]) => { const out = [k]; let n = def.attacks[k]; while (n?.then && out.length < 6) { out.push(n.then); n = def.attacks[n.then]; } return out; });
+  const phases = (def.phases ?? []).filter((p) => !p.weary);
   return {
-    id, name: def.name, kind: def.kind, phases: (def.phases ?? []).filter((p) => !p.weary).length,
-    attacks: attacks.map(([k]) => k), shapes, teleMin: tele.length ? Math.min(...tele) : 0, teleMax: tele.length ? Math.max(...tele) : 0,
-    openMin: opens.length ? Math.min(...opens) : 0, damageMax: Math.max(0, ...attacks.map(([, a]) => a.damage ?? 0)),
-    tracks: attacks.some(([, a]) => a.at === 'player'), final: def.final,
+    id, name: def.name, kind: def.kind, phases: phases.length,
+    attacks: own.map(([k]) => k), moves: attacks.length, shapes, teleMin: tele.length ? Math.min(...tele) : 0, teleMax: tele.length ? Math.max(...tele) : 0,
+    linkMin: links.length ? Math.min(...links) : 0, combos: combos.length, comboLen: Math.max(0, ...combos.map((c) => c.length)),
+    openMin: opens.length ? Math.min(...opens) : 0, misses: attacks.filter(([, a]) => a.miss).length,
+    lobs: attacks.filter(([, a]) => a.lob).length, waves: attacks.filter(([, a]) => a.wave).length,
+    floor: attacks.filter(([, a]) => a.tele || (a.at === 'player' && !a.lob && !a.over)).length,   // (drawn on the floor without being a lob: none wanted)
+    newMoves: phases.slice(1).map((p, i) => p.attacks.filter((x) => !phases[i].attacks.includes(x)).length),
+    damageMax: Math.max(0, ...attacks.map(([, a]) => a.damage ?? 0)),
+    tracks: attacks.some(([, a]) => a.at === 'player' || a.over), final: def.final,
   };
 }
-/** The rubric for a guardian, from its tuning (they run in their temples, not the Arena: the review plays them there). */
+/**
+ * The rubric for a guardian, from its tuning (they run in their temples, not the Arena: the review plays them there).
+ * Readability: its own moves' body tells (a combo's links are read off the move before); counterplay: moves, combos
+ * and the ways it opens; space: shapes, the floor it uses (waves to jump, lobs to step from, dives that follow you);
+ * phases: how many and how much each changes.
+ */
 export function scoreGuardian(G) {
-  const readability = band(G.teleMin, [0.8, 1.1, 1.4, 1.7]);
-  const counterplay = clamp5(1 + G.attacks.length * 0.6 + (G.openMin ? 1 : 0) + (G.kind === 'organic' ? 0.5 : 0));
-  const space = clamp5(1 + G.shapes.length * 0.8 + (G.tracks ? 0.6 : 0));
-  const fairness = clamp5(G.damageMax <= 0.22 && G.teleMin >= 1.2 ? 4.5 : G.teleMin >= 1 ? 3.5 : 2.5);
-  const phases = clamp5(1 + G.phases * 1.2);
+  const readability = Math.max(1, band(G.teleMin, [0.8, 1.0, 1.2, 1.35]) - (G.floor ? 1 : 0) - (G.linkMin && G.linkMin < 0.6 ? 1 : 0));
+  const counterplay = clamp5(1 + Math.min(6, G.attacks.length) * 0.35 + G.combos * 0.4 + (G.openMin ? 0.7 : 0) + (G.misses ? 0.7 : 0) + (G.kind === 'organic' ? 0.3 : 0));
+  const space = clamp5(1 + G.shapes.length * 0.6 + (G.tracks ? 0.6 : 0) + (G.waves ? 0.6 : 0) + (G.lobs ? 0.6 : 0));
+  const fairness = clamp5(G.teleMin >= 1.2 && (!G.linkMin || G.linkMin >= 0.6) ? 4.5 : G.teleMin >= 1 ? 3.5 : 2.5);
+  const phases = clamp5(1 + G.phases * 0.9 + (G.newMoves.length && G.newMoves.every((n) => n > 0) ? 1 : 0));
   const total = +((readability + counterplay + space + fairness + phases) / 5).toFixed(1);
   return { readability, counterplay, space, fairness, phases, total,
-    why: `telegraphs ${G.teleMin.toFixed(1)}-${G.teleMax.toFixed(1)} s, ${G.attacks.length} attacks (${G.shapes.join('/')}), open ${G.openMin || '-'} s, ${G.phases} phases, ${G.kind === 'organic' ? 'calmed' : 'broken'}` };
+    why: `body tells ${G.teleMin.toFixed(1)}-${G.teleMax.toFixed(1)} s (links ${G.linkMin ? G.linkMin.toFixed(2) : '-'} s), ${G.attacks.length} moves + ${G.moves - G.attacks.length} links, ${G.combos} combos (up to ${G.comboLen}), open ${G.openMin || '-'} s, ${G.misses} punish a miss, ${G.lobs} lobs, ${G.waves} waves, ${G.phases} phases (new moves ${G.newMoves.join('/') || '-'}), ${G.kind === 'organic' ? 'calmed' : 'broken'}` };
 }
 
 /** A markdown table (rows of cells). */

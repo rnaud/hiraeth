@@ -1808,13 +1808,28 @@ export class Sound {
     for (let i = 0; i < 3; i++) this.burst(t + 0.06 + i * 0.05, { dur: 0.02, type: 'highpass', freq: 3800, q: 1, vol: 0.05 });
   }
 
-  /** A foe (src/foes.js) winds up a strike: an ink blot's wet gurgle, a machine's grinding whine. */
-  foeWarn(kind = 'blot') {
+  /**
+   * A foe (src/foes.js) winds up a strike: a sound that rises over exactly its wind-up (`dur` s: src/telegraph.js), an
+   * ink blot's wet gurgle climbing, a machine's grinding whine; at the held stillness before the strike, a tick.
+   */
+  foeWarn(kind = 'blot', dur = 0.8) {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    if (kind === 'machine') { this.sweep(t, 140, 420, 0.7, 0.07, 'sawtooth'); this.burst(t, { dur: 0.5, type: 'bandpass', freq: 500, q: 3, vol: 0.06, rate: 0.5 }); return; }
-    this.sweep(t, 180, 90, 0.5, 0.08, 'triangle');
-    this.burst(t, { dur: 0.45, type: 'lowpass', freq: 400, q: 2, vol: 0.12, rate: 0.4 });
+    const t = this.ctx.currentTime, d = Math.max(0.3, dur);
+    if (kind === 'machine') { this.sweep(t, 120, 460, d, 0.07, 'sawtooth'); this.burst(t, { dur: d * 0.9, type: 'bandpass', freq: 500, q: 3, vol: 0.06, rate: 0.5 }); }
+    else { this.sweep(t, 110, 330, d, 0.07, 'triangle'); this.burst(t, { dur: d * 0.8, type: 'lowpass', freq: 420, q: 2, vol: 0.1, rate: 0.4 }); }
+    this.burst(t + d * 0.75, { dur: 0.03, type: 'highpass', freq: kind === 'machine' ? 2600 : 1900, q: 1.5, vol: 0.06 });
+  }
+
+  /**
+   * A temple guardian winds up a move (src/temples/boss.js): a deep voice rising over its wind-up (a living one's
+   * growl, a machine's spinning-up whine), louder for a heavy move; the tick at the stillness before it lands.
+   */
+  guardianWarn(kind = 'organic', dur = 1.2, heavy = false) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime, d = Math.max(0.4, dur), v = heavy ? 1.3 : 1;
+    if (kind === 'robot') { this.sweep(t, 70, 340, d, 0.06 * v, 'sawtooth'); this.sweep(t, 140, 680, d, 0.025 * v, 'square'); }
+    else { this.sweep(t, 55, 170, d, 0.08 * v, 'triangle'); this.burst(t, { dur: d, type: 'lowpass', freq: 300, q: 1.6, vol: 0.12 * v, rate: 0.35 }); }
+    this.burst(t + d * 0.75, { dur: 0.05, type: 'bandpass', freq: kind === 'robot' ? 1800 : 900, q: 2, vol: 0.08 * v });
   }
 
   /** A foe takes a cut: a splat of ink, or a clang. */

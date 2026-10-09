@@ -1,6 +1,7 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, releaseMaterial } from '../materials.js';
+import { poseK } from '../telegraph.js';
 
 let serial=0;
 const UP=new T.Vector3(0,1,0), V=(a)=>new T.Vector3(...a);
@@ -15,7 +16,9 @@ export function enemyModel(s) {
   const spirit=s.family==='shade'||s.family==='machine';
   const skin=material(s.color),accent=material(s.accent),ink=material('#171321',0,spirit),violet=material('#76617d',0,spirit),cream=material('#eee2be'),brass=material('#b39464'),dark=material('#575653');
   const eye=material('#f8e8bb',.8), joint=s.family==='machine'?brass:skin;
-  const limbs=[],wings=[],smoke=[],rotors=[];
+  const limbs=[],wings=[],smoke=[],rotors=[],tips=[];
+  // where a wind-up's glow gathers (src/telegraph.js): the head (its first eyes), the body's core, each arm's claw
+  let head=null;const core=new T.Object3D();body.add(core);
   function mesh(g,m,p=[0,0,0],parent=body){const o=new T.Mesh(g,m);o.position.set(...p);parent.add(o);return o;}
   function ell(p,r,m=skin,parent=body){return mesh(new T.SphereGeometry(1,12,8).scale(...r),m,p,parent);}
   function box(p,r,m=skin,parent=body){return mesh(new T.BoxGeometry(...r),m,p,parent);}
@@ -24,7 +27,7 @@ export function enemyModel(s) {
   function ring(p,r,m=brass,parent=body,th=.035){return mesh(new T.TorusGeometry(r,th,6,24),m,p,parent);}
   function curve(points,r,m=joint,parent=body){return mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points.map(V)),Math.max(8,points.length*4),r,5,false),m,[0,0,0],parent);}
   function panel(points,m=skin,parent=body){const shape=new T.Shape();points.forEach((p,i)=>i?shape.lineTo(p[0],p[1]):shape.moveTo(p[0],p[1]));shape.closePath();return mesh(new T.ShapeGeometry(shape),m,[0,0,0],parent);}
-  function eyes(p,spread=.13,parent=body){for(const side of [-1,1]){const x=p[0]+side*spread;ell([x,p[1],p[2]],[.03,.042,.025],eye,parent);if(s.slot<2)ell([x,p[1],p[2]+.022],[.016,.024,.01],ink,parent);}}
+  function eyes(p,spread=.13,parent=body){if(!head){head=new T.Object3D();head.position.set(p[0],p[1],p[2]+.08);parent.add(head);}for(const side of [-1,1]){const x=p[0]+side*spread;ell([x,p[1],p[2]],[.03,.042,.025],eye,parent);if(s.slot<2)ell([x,p[1],p[2]+.022],[.016,.024,.01],ink,parent);}}
   function leg(at,knee,foot,r=.06,parent=body){
     const h=new T.Group();h.position.set(...at);parent.add(h);ell([0,0,0],[r*1.45,r*1.45,r*1.45],joint,h);
     beam([0,0,0],knee,r,joint,h);ell(knee,[r*1.55,r*1.55,r*1.55],joint,h);beam(knee,foot,r*.8,joint,h);ell([foot[0],foot[1],foot[2]+.06],[r*1.5,r*.8,r*2.6],joint,h);limbs.push({o:h,role:'leg',side:Math.sign(at[0])||1});return h;
@@ -33,6 +36,7 @@ export function enemyModel(s) {
     const h=new T.Group();h.position.set(...at);parent.add(h);const r=s.family==='machine'?.095:.055;
     ell([0,0,0],[r*1.6,r*1.6,r*1.6],joint,h);beam([0,0,0],[side*.12,-length*.48,.02],r,joint,h);ell([side*.12,-length*.48,.02],[r*1.4,r*1.4,r*1.4],joint,h);beam([side*.12,-length*.48,.02],[side*.17,-length,.1],r*.75,joint,h);
     if(claw)for(let i=-1;i<=1;i++)curve([[side*.17,-length,.1],[side*.17+i*.08,-length-.13,.17],[side*.17+i*.07,-length-.27,.26]],r*.3,joint,h);
+    const tip=new T.Object3D();tip.position.set(side*.17,-length-.2,.18);h.add(tip);tips.push(tip);
     limbs.push({o:h,role:'arm',side});return h;
   }
   function antenna(at,height= .5,parent=body){curve([at,[at[0]+.05,at[1]+height*.6,at[2]],[at[0]+.15,at[1]+height,at[2]+.08]],.016,brass,parent);}
@@ -171,6 +175,7 @@ export function enemyModel(s) {
   const proportions={sentinel:[.78,1.24,.85],harvester:[1.08,.94,1],cutter:[1.16,.94,1],pruner:[1.12,1,1],welder:[1.08,1.07,1],ring:[.92,.87,.88],sign:[.95,1.15,.87],surveyor:[.8,1.18,.85],furnace:[1.1,1.1,1],winch:[1.05,1.1,1],relay:[.8,1.12,.85],observatory:[1,1,.9],gyro:[1.12,1.03,1],crucible:[1.18,.88,1],crane:[.8,1.24,.87],inspector:[1.06,1.1,1],porter:[1.22,1.05,1],watering:[1.1,.94,1],drawing:[1.12,.87,1]};
   if(s.family==='machine'&&proportions[form])body.scale.set(...proportions[form]);
   // Batch stationary pieces within each joint; keep animated wings, cloth and rotors independent.
+  core.position.set(0,Math.max(.5,new T.Box3().setFromObject(body).getCenter(new T.Vector3()).y),.2);
   const animated=new Set([...smoke,...rotors]);
   const parents=[];group.traverse(o=>{if(o.isGroup)parents.push(o);});
   for(const parent of parents){
@@ -187,11 +192,25 @@ export function enemyModel(s) {
   group.updateMatrixWorld(true);
   const bounds=new T.Box3().setFromObject(group), size=bounds.getSize(new T.Vector3());
   const result={group,body,parts:body.children.filter(o=>!animated.has(o)),size:s.scale,eyeMat:eye,ownedMaterials:mats,reference:s.reference,height:Math.max(.45,size.y*.5),radius:Math.min(.85,Math.max(.35,Math.min(size.x,size.z)*.5)),limbs,wings,
+    /** The striking part for a motion: an arm's claw, the head, the core, the nozzle or a wing (src/telegraph.js ChargeGlow). */
+    tell(motion){
+      const nozzle=limbs.find(l=>l.role==='nozzle')?.o;
+      if(['claw','sweep','pull'].includes(motion))return tips[0]??head??core;
+      if(['jet','beam','lob'].includes(motion))return nozzle??head??core;
+      if(motion==='gust')return wings[0]?.o??head??core;
+      if(['slam','pulse'].includes(motion))return core;
+      return head??core;
+    },
     animate(f,dt,t){
-      const moving=['chase','home'].includes(f.state),w=f.state==='wind'?Math.min(1,f.k):0,k=f.state==='strike'?Math.sin(f.k*Math.PI):0;
+      // the pose builds over the first three quarters of the wind-up, then holds still until the strike (src/telegraph.js)
+      const moving=['chase','home'].includes(f.state),w=f.state==='wind'?poseK(f.k):0,k=f.state==='strike'?Math.sin(f.k*Math.PI):0;
       const motion=f.def.attack.motion,active=f.state==='strike';
-      body.position.y=(moving?Math.abs(Math.sin(t*7))*.06:Math.sin(t*2)*.012)+(motion==='slam'?(w*.14-k*.12):0);
-      body.rotation.set(motion==='charge'||motion==='peck'?-w*.13+k*.25:0,motion==='sweep'?(-w*.4+k*.8):0,0);
+      // each motion's own wind-up: a slam rears up tall, a pulse swells, a charge or a peck crouches and draws back,
+      // a jet, a beam or a lob rears back to aim, a sweep coils away, a dive or a gust rises
+      const rear=motion==='slam'?w*.32-k*.2:motion==='charge'||motion==='peck'||motion==='sting'?-w*.1:motion==='dive'||motion==='gust'?w*.25:0;
+      body.position.y=(moving?Math.abs(Math.sin(t*7))*.06:Math.sin(t*2)*.012)+rear;
+      body.rotation.set(motion==='charge'||motion==='peck'||motion==='sting'?-w*.22+k*.3:motion==='slam'?-w*.25+k*.35:['jet','beam','lob'].includes(motion)?-w*.2+k*.12:0,motion==='sweep'||motion==='claw'?(-w*.6+k*1.0):0,0);
+      body.scale.setScalar(motion==='pulse'?1+w*.16-k*.1:1);
       for(const l of limbs){const walk=moving?Math.sin(t*7+(l.side>0?Math.PI:0))*.2:0;
         l.o.rotation.x=l.role==='leg'?walk:l.role==='nozzle'?-w*.12:l.role==='arm'?-w*.9+k*1.05:0;
         l.o.rotation.z=l.role==='arm'?l.side*(motion==='pull'?(w*.5-k*.6):motion==='claw'?w*.35-k*.5:0):0;

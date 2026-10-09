@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import { inArea } from '../temples/boss.js';
 
-// Every pattern uses a locked warning, explicit contact instants and a punishable recovery. damage: hearts
+// Every pattern uses a locked aim, explicit contact instants and a punishable recovery. The warning is the body's
+// (src/telegraph.js: the motion's pose, a glow on the striking limb, a rising sound); only the lobbed globs (`lob`)
+// mark where they land on the ground. damage: hearts
 // per contact (an ordinary attack half a heart in all: docs/systems/foes.md).
 // The numerical footprint below is also the renderer's footprint; no invisible larger hitbox.
 export const ATTACKS = {
@@ -11,8 +13,8 @@ export const ATTACKS = {
   tail: { name:'Tail sweep', shape:'cone', range:3.7, angle:1.45, wind:1.15, strike:.5, contacts:[.6], damage:0.75, motion:'sweep', recover:1.4 },
   sweep: { name:'Scything sweep', shape:'cone', range:3.3, angle:1.2, wind:1, strike:.7, contacts:[.35,.8], offsets:[-.55,.55], damage:0.25, motion:'sweep', recover:1.45 },
   stomp: { name:'Groundbreaker', shape:'ring', radius:3.1, wind:1.35, strike:.45, contacts:[.65], damage:1, knock:6, motion:'slam', recover:1.8 },
-  lob: { name:'Arcing glob', shape:'ring', at:'target', radius:1.65, wind:1.3, strike:.75, contacts:[.9], damage:0.5, motion:'lob', recover:1.5 },
-  volley: { name:'Three-shot barrage', shape:'ring', at:'target', radius:1.05, spread:2.5, wind:1.5, strike:1.2, contacts:[.38,.65,.92], damage:0.25, motion:'lob', recover:1.7 },
+  lob: { name:'Arcing glob', shape:'ring', at:'target', lob:true, radius:1.65, wind:1.3, strike:.75, contacts:[.9], damage:0.5, motion:'lob', recover:1.5 },
+  volley: { name:'Three-shot barrage', shape:'ring', at:'target', lob:true, radius:1.05, spread:2.5, wind:1.5, strike:1.2, contacts:[.38,.65,.92], damage:0.25, motion:'lob', recover:1.7 },
   jet: { name:'Pressure jet', shape:'lane', range:7, width:1.25, wind:1.15, strike:.8, contacts:[.22,.5,.8], damage:0.25, knock:2, motion:'jet', recover:1.5 },
   beam: { name:'Focused beam', shape:'lane', range:10, width:1.0, wind:1.45, strike:.55, contacts:[.55], damage:0.75, motion:'beam', recover:1.8 },
   pulse: { name:'Expanding pulse', shape:'ring', radius:4.3, wind:1.4, strike:.7, contacts:[.8], damage:0.75, knock:4, motion:'pulse', recover:1.65 },
@@ -43,10 +45,12 @@ export function speciesContact(f, zone, player, env, playerOk) {
     && (env.seen?.(f.chest,player.pos)??true);
 }
 
-/** Visible projectiles/energy use the same world-space zones as damage. */
+/** The motions whose strike is a thing you can see leave it (a glob, a jet, a beam, a pulse, a slam's shock): a body's blow has none. */
+export const ENERGY = new Set(['lob','jet','beam','pulse','slam']);
+/** Visible projectiles/energy (while it strikes) use the same world-space zones as damage. */
 export function poseAttackEffect(mesh, f, zone, t) {
   const a=zone.attack, u=THREE.MathUtils.clamp(f.k/zone.contact,0,1);
-  mesh.visible=f.state==='strike' && f.k<=zone.contact+.1;
+  mesh.visible=f.state==='strike' && f.k<=zone.contact+.1 && ENERGY.has(a.motion);
   if(!mesh.visible)return;
   if(a.motion==='lob') {
     mesh.position.lerpVectors(f.chest,zone.at,u);mesh.position.y+=Math.sin(Math.PI*u)*2.8;

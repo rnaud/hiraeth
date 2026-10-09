@@ -8,6 +8,8 @@
 //                  air cut, the riposte, the dash cut, the gun's modes) dealt through Foes.hurt with the move's damage
 //                  and source, so armour, shells, weak points and immunities answer as in play; blows × the move's cycle
 //   contact sheet  each kind at the height of its wind-up, tiled (docs/audits/combat-v<version>/telegraphs.webp)
+//   guardians      each guardian in an Arena ring, phase by phase, held at 85 % of the phase's first move (guardians.webp;
+//                  --guardians no to skip)
 //
 // The guardians are read from their temples' defs (src/temples/*.js: any export with phases and attacks) and scored
 // from their tuning; they are reviewed by playing their temples (the Arena has no ring for them).
@@ -128,7 +130,7 @@ const setup = await ev(`(async () => {
   const worlds = {}; for (const w of Object.keys(ROSTERS)) { const R = rosterOf(w); for (const k of new Set([R.first, ...Object.keys(R.wild ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])])) (worlds[k] ??= []).push(w); }
   // a kind that only comes out of another (a golem's splinters) fights where its parent does
   for (const [k, D] of Object.entries(FOES)) if (D.splits?.kind) worlds[D.splits.kind] = [...new Set([...(worlds[D.splits.kind] ?? []), ...(worlds[k] ?? [])])];
-  return { kinds: SPAWN_KINDS.filter((k) => FOES[k]), defs: plain(Object.fromEntries(SPAWN_KINDS.map((k) => [k, FOES[k]]))), worlds,
+  return { hearts: P.maxHearts ?? 1, kinds: SPAWN_KINDS.filter((k) => FOES[k]), defs: plain(Object.fromEntries(SPAWN_KINDS.map((k) => [k, FOES[k]]))), worlds,
     tuning: plain({ BLADE: blade.BLADE, SWINGS: blade.SWINGS, CHARGE: blade.CHARGE, AIR: blade.AIR, RIPOSTE: blade.RIPOSTE, DASH: blade.DASH, FLUID: tool.FLUID, MODES: kit.MODES }),
     extra: plain({ GUARD: blade.GUARD, EVADE: blade.EVADE, LOCK: (await import('/src/foes.js')).LOCK }) };
 })()`);
@@ -194,7 +196,8 @@ for (const kind of KINDS) {
     windSeen: L.median(winds.map((w) => w.dur)), winds: Object.fromEntries(Object.entries(strikes)),
     windByAttack: Object.fromEntries([...new Set(winds.map((w) => w.atk))].map((a) => [a, +L.median(winds.filter((w) => w.atk === a).map((w) => w.dur)).toFixed(2)])),
     attacksPerMin: +(winds.length / span).toFixed(1),
-    damagePerMin: +(dmg.reduce((a, d) => a + d.d, 0) / span).toFixed(2), hurts: dmg.length,
+    // (hurts come in hearts since v1.5: a share of a fresh bar, so 1.0 is still a full bar a minute, as in v1.4's report)
+    damagePerMin: +(dmg.reduce((a, d) => a + d.d, 0) / (setup.hearts || 1) / span).toFixed(2), hurts: dmg.length,
     closest: samples.length ? +Math.min(...samples.map((s) => s.d)).toFixed(1) : null,
     ttk,
   };
@@ -204,6 +207,41 @@ for (const kind of KINDS) {
 }
 await ev('(() => { foes.setPractice(""); clearInterval(window.__keep); return true; })()').catch(() => {});
 
+// ---------------------------------------------------------------- the guardians, phase by phase (a second sheet)
+// Each guardian called into a ring (src/arena-guardians.js), its meter set to each phase's start, held at 85 % of
+// that phase's first move's wind-up and seen from the side: guardians.png / .webp, a row each, a column a phase.
+const gShots = [];
+if (arg('guardians', 'yes') !== 'no') {
+  const list = await ev(`(async () => { const { GUARDIANS } = await import('/src/arena-guardians.js'); return GUARDIANS.map((G) => ({ id: G.id, phases: G.def.phases.filter((p) => !p.weary).map((p, i, all) => ({ from: i ? all[i - 1].to : 0, atk: p.attacks[0] })) })); })()`);
+  for (const G of list) for (const [i, ph] of G.phases.entries()) {
+    await ev(`(async () => {
+      foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x));
+      const V = THREE.Vector3, { ArenaGuardians } = await import('/src/arena-guardians.js');
+      window.__ag?.dismiss(); cancelAnimationFrame(window.__agTick ?? 0);
+      // (always from the same open sand, facing away from the ship: src/levels/arena.js)
+      { const y = physics.groundAt(-14, 20, -14, 60); player.teleport(new V(-14, Number.isFinite(y) ? y : 0, -14), new V(0, 1, 0), new V(Math.sin(Math.PI * 0.75), 0, Math.cos(Math.PI * 0.75))); player.heading = Math.PI * 0.75; }
+      const A = window.__ag = new ArenaGuardians({ scene, player, physics, sound: null, notice() {} });
+      const g = A.call('${G.id}'), m = g.model, f = new V(Math.sin(m.heading), 0, Math.cos(m.heading)), r = new V(f.z, 0, -f.x);
+      player.teleport(m.pos.clone().addScaledVector(f, 9).setY(m.pos.y), new V(0, 1, 0), f.clone().negate());
+      g.meter = ${ph.from}; g.floor = ${ph.from}; g.state = 'fight';
+      const a = { id: '${ph.atk}', ...g.def.attacks['${ph.atk}'] }, w = a.wind ?? a.telegraph;
+      g.attack = a; g.at = w * 0.85; g.struck = false; g.windFor = w; g.view = { ...a, id: a.pose ?? '${ph.atk}' }; g.attackK = 0.85;
+      g.attackH = m.heading; g.attackAt.copy(a.at === 'player' ? player.pos : m.pos.clone().addScaledVector(f, 6)).setY(g.arena.y);
+      if (a.lob && a.volley > 1 && g.spreadMarks) g.spreadMarks(a);
+      const fight = g.fight.bind(g); g.fight = (dt, t, P) => fight(0, t, P);
+      const tick = () => { A.update(1 / 60, performance.now() / 1000); window.__agTick = requestAnimationFrame(tick); }; tick();
+      const H = m.height ?? 4, eye = m.pos.clone().addScaledVector(r, 22).addScaledVector(f, 9).add(new V(0, 6, 0)), at = m.pos.clone().addScaledVector(f, 3).add(new V(0, H * 0.45, 0));
+      const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+      const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+      camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };
+      return true; })()`);
+    await sleep(1600);
+    gShots.push({ kind: `${G.id}.${i}.${ph.atk}`, png: Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64') });
+    console.log(`guardian ${G.id} phase ${i}: ${ph.atk}`);
+  }
+  await ev('(() => { window.__ag?.dismiss(); cancelAnimationFrame(window.__agTick ?? 0); return true; })()').catch(() => {});
+}
+
 // ---------------------------------------------------------------- the contact sheet (a PNG written here: no dependency)
 function encodePNG(w, h, rgb) {
   const raw = Buffer.alloc((w * 3 + 1) * h);
@@ -212,8 +250,9 @@ function encodePNG(w, h, rgb) {
   const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
-if (shots.length) {
-  const cols = 4, tw = 320, th = 180, rows = Math.ceil(shots.length / cols), out = Buffer.alloc(cols * tw * rows * th * 3, 255);
+function sheet(shots, name, cols = 4) {
+  if (!shots.length) return;
+  const tw = 320, th = 180, rows = Math.ceil(shots.length / cols), out = Buffer.alloc(cols * tw * rows * th * 3, 255);
   shots.forEach(({ png }, i) => {
     const { pixels, channels, width, height } = decodePNG(png), ox = (i % cols) * tw, oy = Math.floor(i / cols) * th;
     for (let y = 0; y < th; y++) for (let x = 0; x < tw; x++) {
@@ -221,9 +260,11 @@ if (shots.length) {
       out[d] = pixels[s]; out[d + 1] = pixels[s + 1]; out[d + 2] = pixels[s + 2];
     }
   });
-  writeFileSync(join(OUT, 'telegraphs.png'), encodePNG(cols * tw, rows * th, out));
-  spawnSync('cwebp', ['-quiet', '-q', '72', join(OUT, 'telegraphs.png'), '-o', join(OUT, 'telegraphs.webp')]);
+  writeFileSync(join(OUT, `${name}.png`), encodePNG(cols * tw, rows * th, out));
+  spawnSync('cwebp', ['-quiet', '-q', '72', join(OUT, `${name}.png`), '-o', join(OUT, `${name}.webp`)]);
 }
+sheet(shots, 'telegraphs');
+sheet(gShots, 'guardians', 3);
 
 // ---------------------------------------------------------------- the scores
 const roles = {};
@@ -233,7 +274,7 @@ const scored = results.map((r) => ({ ...r, facts: facts[r.kind], worlds: (setup.
 const gScored = guardians.filter((g) => !g.error).map((g) => ({ ...g, score: L.scoreGuardian(g) }));
 const md = report(scored, gScored, MOVES, WATCH);
 writeFileSync(join(OUT, 'combat.md'), md);
-writeFileSync(join(OUT, 'combat.json'), JSON.stringify({ version: VERSION, date: new Date().toISOString(), watch: WATCH, moves: MOVES, extra: setup.extra, foes: scored, guardians: gScored, guardianErrors: guardians.filter((g) => g.error), errors: errors.slice(0, 8), contact: shots.map((x) => x.kind) }, null, 2));
+writeFileSync(join(OUT, 'combat.json'), JSON.stringify({ version: VERSION, date: new Date().toISOString(), watch: WATCH, moves: MOVES, extra: setup.extra, foes: scored, guardians: gScored, guardianErrors: guardians.filter((g) => g.error), errors: errors.slice(0, 8), contact: shots.map((x) => x.kind), guardianSheet: gShots.map((x) => x.kind) }, null, 2));
 console.log(`combat.md, combat.json and the contact sheet in ${OUT}`);
 ws.close(); proc.kill('SIGTERM'); await sleep(800); rmSync(profile, { recursive: true, force: true });
 await server.close();

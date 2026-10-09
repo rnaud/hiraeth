@@ -156,11 +156,11 @@ The first things in the game that fight back, and the tool's answer to them.
 `FOES` holds the tuning. Each foe is a `Foe` (pure logic over plain vectors, tested in node) drawn by `Foes`,
 which also registers its target (`kind: 'foe', lock: true, accepts: ['blade', 'stun', 'fire']`).
 
-- **The mind:** idle → chase → wind → strike → recover. Blots coil for 0.65 s, then lunge over
+- **The mind:** idle → chase → wind → strike → recover. Blots coil for 0.7 s, then lunge over
   0.24 s; machines plant and raise their arms for 1.05 s, then slam over 0.32 s. Direction locks
   when the wind-up begins. Damage occurs 55% through the strike, with a wall check. Movement
-  checks footing and walls. Normal melee has no floor marker; body poses and sound are the tell.
-  Boss area telegraphs and offscreen warnings remain. Light hits interrupt blots and the first
+  checks footing and walls. Every wind-up is told by the body (pose, glow, rising sound: "Telegraphs: the body,
+  not the floor" below); only a lob marks the floor. The off-screen warning marker remains. Light hits interrupt blots and the first
   two thirds of a machine's wind-up; the machine's late wind-up and strike commit.
 - **What hurts them:**
   - the blade: `info.damage`;
@@ -196,8 +196,9 @@ traveller instead of an eighth: a little harder, as asked.
 | **An ordinary blow**: an ink blot's lunge, each hit of its combo, a spitter's lob, each glob of a volley, a machine's quake wave, a harpoon, a ram, a lash, a snap, a pounce, a bite, a shards ring; a world foe's peck, sting, lob, pull, buffet | **½** | `FOES.blot`, `foe-kinds.js`, `enemies/attacks.js` |
 | A heavy blow: a winged blot's dive, a shade's sword, a machine's quake slam, an erupting ray, a glass golem's slam or hurl, a crab's spin, a slag walker's stomp or pour; a world foe's rush, tail, beam, pulse, dive | ¾ | same |
 | A crushing blow: a machine's slam; a world foe's groundbreaker | 1 | `FOES.machine`, `enemies/attacks.js` |
-| A guardian's strike: the fans, the cries and the trackers | ¾ | each temple's `attacks` (`telegraph:` lines) |
-| A guardian's heaviest: the stamps, the slams, the dives, the beams of the Tooth-Warden and the sentinel | 1 | same |
+| A guardian's lighter blows: a combo's quick links (pecks, snaps, jabs, stutters), each shard of a thrown volley, a gale, a shockwave ring | ½ | each temple's `attacks` (`wind:` lines) |
+| A guardian's strike: the sweeps, the cries, the lobs, the buffets | ¾ | same |
+| A guardian's heaviest: the stamps, the slams, the charges, the dives, the beams of the Tooth-Warden and the sentinel | 1 | same |
 | A temple's swinging guardian piece; a fall into a temple's pit | ½; ¼ | `temples/pieces.js`, `temples/runtime.js` |
 | Fire (the burning tree), a fan's embers, spines (cacti), a temple's spike row | 1, ¾, ½, ¼ a second, in quarter bites | `HAZARD_DPS` (`hazards.js`) |
 | Out of air under water | ¼ every 1.2 s, never the last quarter | `SWIM.bite` |
@@ -234,6 +235,138 @@ Tests: `tests/resources.test.js` (the table, quarters, Gentle, the rule), `tests
 - **The machine's look:** a round brass shell on three legs, clawed arms, the glyph for an eye; broken, its
   parts fly apart, bounce and fade (`breakApart`, `updateDebris`). Home, the Lab, the References and the Atelier
   (`PEACEFUL`) never have any.
+
+## Telegraphs: the body, not the floor (v1.6, `src/telegraph.js`)
+
+No attack is drawn on the ground. Every attack of every foe, world enemy and guardian is told by the body that
+makes it; the only mark on the floor is a **projectile's landing mark** (`lob: true`: a spitter's globs, a golem's
+hurled chunk, the guardians' seeds, clods, cogs, mortars, notes and hail), drawn where it will fall, because the
+thrower's wind-up can't show where it lands. `groundMark(a)` is the one test (src/foes.js `look`, the world
+enemies' zone tells, src/temples/boss.js `tells`); `tests/telegraphs.test.js` walks every attack definition and
+fails on a ground zone that isn't a lob. The hitbox overlay (`src/hitboxes.js`, debug) still draws every zone.
+
+**The rules a new enemy follows** (the coming archetypes reuse them; nothing per enemy is needed for the generic
+path):
+
+1. **The pose.** Each attack has its own wind-up of the body: rear back (a slam, a stamp), crouch and draw back (a
+   charge, a pounce, a peck), coil away (a sweep), spin up (a spin), raise (an overhead, a lob), swell (a cry, a
+   pulse), rise (a dive). The models' `anim` (src/foe-kinds.js), the world enemies' shared motions
+   (src/enemies/models.js `animate`, keyed by the attack's `motion` in src/enemies/attacks.js), a guardian's `rig`
+   (src/temples/boss.js `poseRig`) and the model's own poses. The pose is complete at **`POSE_DONE` (75 %) of the
+   wind-up and then held still**: the brief stillness before the strike.
+2. **The glow.** A spark of the attacker's tone (`ChargeGlow`) gathers on the striking part (a model's
+   `tell(attackId)` returns the Object3D: the golem's fist, the crab's claw, the drone's harpoon, the slag walker's
+   raised foot; a world enemy's `tell(motion)`: an arm's claw, the head, the nozzle, a wing, the core; a guardian's
+   attack `part`: mouth, head, eye, feet, arms, wings, core, tail, a glow on each of a pair). It swells and spins
+   faster with the wind-up and burns white through the stillness; one flare as the strike lands.
+3. **The sound.** `Sound.foeWarn(kind, dur)` / `guardianWarn(kind, dur, heavy)` rise over exactly the wind-up
+   (Gentle's longer one too), and tick at the stillness.
+4. **The eyes** turn orange through the wind-up (as before).
+5. **Fair wind-ups** (`WIND_MIN`, Normal; Gentle × `GENTLE.wind` 1.35 for foes and guardians alike, through
+   `TELL.slow`): a combo's follow-up ≥ 0.4 s, a quarter heart's nip ≥ 0.5 s, an ordinary blow (½ heart) ≥ 0.7 s, a
+   heavy one (¾ or more, a knock-down, a grab) ≥ 0.95 s; a guardian's own move ≥ 1.0 s, a link inside its combo
+   ≥ 0.6 s. The off-screen warning marker (`warnSpot`) still shows a foe winding up behind you.
+6. **No invisible foes** (src/foe-presence.js) still holds: a hound sinking into its shadow to step behind you
+   keeps its pool, its hump and its eyes.
+
+What changed per family:
+
+- **The 15 kinds**: every `tele` floor shape removed (the ray's glide, the golem's shards, the moth's flash, the
+  drone's harpoon and ram, the stalker's grab, the crab's spin, the slag walker's stomp and pour, the hound's step,
+  the machine's quake); the spitter's lob and volley and the golem's hurl keep their landing marks. Poses made
+  plainer where they were faint (the machine's slam one arm, its quake both and crouched; the flyer climbs and tips;
+  the drone rocks back for its ram; the stalker rears both arms; the crab raises its claws; the slag walker leans
+  back on its raised foot; the moth's dart sweeps its wings; the splinter drops and spins). A dune ray no longer
+  sprays sand where it will come up: its fin stands tall, glows and races there. A hound's step sinks it into its
+  own pool (no ring behind you). Wind-ups raised to the minimums: the blot's lunge 0.65 → 0.7 s and its combo's
+  second 0.32 → 0.4, the crab's snap 0.6 → 0.7, the hound's pounce 0.6 → 0.8 and bite 0.45 → 0.55, the splinter's
+  lunge 0.45 → 0.5.
+- **The 100 world enemies** (to be replaced by about twenty archetypes): the generic path only. Their zone tells
+  show only for `lob` (the arcing glob and the barrage); the strike's visible effect only for the motions that throw
+  something you can see (`ENERGY`: lob, jet, beam, pulse, slam); the shared motions build to `POSE_DONE` and hold,
+  with stronger rears, crouches, coils and swells, and the glow on the limb the motion uses.
+- **The 11 guardians**: below, "The guardians' staged fights".
+
+
+**The wind-up table** (the 15 kinds; the guardians' are in their section):
+
+| Kind · attack | Wind-up (s) | Class (min) | The body’s tell |
+|---|---|---|---|
+| ink blot · lunge | 0.7 | ordinary (0.7) | squashes down, leans back |
+| ink blot · combo | 0.8 | ordinary (0.7) | a longer squash |
+| ink blot · again | 0.4 | chain (0.4) | (the combo’s second: straight on) |
+| makers’ machine · slam | 1.05 | heavy (0.95) | one arm high over its shoulder |
+| makers’ machine · quake | 1.35 | heavy (0.95) | both arms high, crouched low |
+| spitting blot · lob | 1.25 | ordinary (0.7) | rears, the glob at its snout (lands on a mark); **landing mark** |
+| spitting blot · volley | 1.45 | ordinary (0.7) | rears; three globs (three marks); **landing mark** |
+| blot swarm · strike | 0.5 | light (0.5) | squashes down |
+| winged blot · strike | 1 | heavy (0.95) | climbs, tips its nose down at you |
+| shade · strike | 0.95 | heavy (0.95) | its flame flares, the sword drawn back (motion capture) |
+| dune ray · erupt | 1.25 | heavy (0.95) | its fin stands tall and races at you |
+| dune ray · glide | 0.85 | ordinary (0.7) | rises off the sand, wings spread |
+| glass golem · slam | 1.1 | heavy (0.95) | arm raised high, leans back |
+| glass golem · shards | 1.3 | ordinary (0.7) | hunches, its back shards rise and burn |
+| glass golem · hurl | 1.35 | heavy (0.95) | arm back, the chunk lifted (lands on a mark); **landing mark** |
+| glass splinter · lunge | 0.5 | light (0.5) | drops low, spins up |
+| sign moth · flash | 1 | light (0.5) | wings spread flat toward you, tubes burn white |
+| sign moth · dart | 0.6 | light (0.5) | wings swept back, nose high |
+| rust drone · harpoon | 1.1 | heavy (0.95) | tips its gun at you |
+| rust drone · ram | 0.8 | ordinary (0.7) | rocks back and rises, rotors screaming |
+| root stalker · grab | 1 | heavy (0.95) | both root-arms reared high back |
+| root stalker · lash | 0.75 | ordinary (0.7) | arms swept back to one side |
+| salt crab · snap | 0.7 | ordinary (0.7) | claws raised high and wide |
+| salt crab · spin | 1.1 | heavy (0.95) | tucks into its shell and spins faster and faster |
+| slag walker · stomp | 0.95 | heavy (0.95) | one foot raised high, leaning back |
+| slag walker · pour | 1.15 | heavy (0.95) | leans and tips its lip at you |
+| shadow hound · pounce | 0.8 | ordinary (0.7) | crouches back on its haunches |
+| shadow hound · step | 0.9 | light (0.5) | sinks into its own shadow pool |
+| shadow hound · bite | 0.55 | chain (0.4) | (behind you; the screen-edge marker) |
+
+## The guardians' staged fights (v1.6, `src/temples/boss.js`)
+
+All eleven shared one template before (three attacks, two phases, 1.4-1.7 s floor telegraphs). Each is now a fight
+of its own, from its body and its temple's verb, on the same engine:
+
+- **Moves** (4-6 of its own, `def.attacks`): a shape (`ring` at `self`, `front` or the `player`; `cone`; `lane`), a
+  `wind`, a `part` for the glow, a `rig` and the model's `pose`, a `side` for mirrored swings; `track` (how long it
+  keeps aiming), `lob` + `volley` (thrown things and their landing marks), `over` (its body travels to hang over,
+  or plough under, the spot: dives, falls, the Keeper's burrow), `dash` (a charge), `wave` (a ring running out
+  along the floor: jump it, or fly over it), `reachUp` (it reaches the air over it: the warden's flare).
+- **Combos** (`then` → a `link`): two or three moves chained, the links quicker (≥ 0.6 s), the last the big one to
+  read, and after it the opening (`open`). A combo cut short (you are knocked down) still ends in its opening.
+  `comboOf(def, id)` lists one.
+- **Openings read from the body**: `open` after a move or a combo (it pants, its vents open, its dish lowers), and
+  `miss` when a move misses you (stuck: forefeet wedged, a beak in the floor, spun dizzy, crashed into the wall),
+  told by `def.missHint`. The temple's own verb counts only then, as before.
+- **Phases**: three fighting phases each (the last phase of v1.5 split in two, at a meter step the temples'
+  puzzles already land on), each adding moves. At a change it **shifts** (`SHIFT` 2.4 s): it staggers and shakes,
+  no move, its phase hint said; its **marks** (`PhaseMarks`) light: none at first, half after the first change, all
+  and pulsing after the second (cracks on a machine, glyph veins on a living one). The meter still counts during
+  the shift.
+- **Closing in**: a close move with you out of its reach makes it come for you first (≤ 3 s) instead of swapping
+  for another move; a rooted one (the Mother Snapper) throws instead.
+- Unchanged: organic guardians are calmed (never hurt), machines broken; a strike never takes the last of a healthy
+  bar (`strikeDamage`); a knock-out puts it back to sleep at its phase's start; the stilling lens stops a move
+  before it lands (and the rest of its combo).
+
+| Guardian (temple verb) | Phase 1 | Phase 2 | Phase 3 | Combos (the last opens it) | Stuck when it misses |
+|---|---|---|---|---|---|
+| The Keeper (ember, then water) | stamp, sweep | sweep, charge, stamp | burrow (ploughs under the sand at you), spit (3 clods) | sweep → sweepBack → stamp | stamp, charge |
+| The warden (jets: get above it) | beam, mortar, stomp | stomp, sweeping beam, mortar | flare (vents straight up at you over it), beam, 3 mortars | stomp → stomp → slam (wave); flare → slam | - |
+| The Elder (wings beside her) | peck, stamp, buffet | buffet, dive, gale | stone feathers (3), peck, gale | peck → peck → buffet; gale → dive | - |
+| The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | hail (4), roll, wail | roll → tail → wail; hail → dive | - |
+| The Mother Snapper (stilling) | lunge, sweep | snap, seed, sweep | thrash, seed, snap | sweep → sweepBack; snap → snap → lunge; thrash → 3 seeds | - |
+| The Lampless (the lantern) | swoop, gust, dust | flutter, scales (3), swoop | spiral, scales, gust | flutter → flutter → dust; spiral → spiral | - |
+| The Gardener (bloom) | sweep, stamp (wave), clods | sweep, roots, stamp | crush, clods, sweep | sweep → sweepL → stamp | roots, crush |
+| The Clockwork Foreman (six numerals in a breath) | jab, chime (wave), hammer | cog, spin, hammer | jab, cogs (3), spin | jab → jab → hammer | spin (dizzy: its face opens) |
+| The Tooth-Warden (four vents) | beam, mortar, stomp | grind, beam, stomp | charge, 3 mortars, grind | stomp → stomp → slam; grind → beam | charge (into the wall) |
+| The Echo (answer its note) | note (a lobbed note), pulse (wave), ripple | fall, chord (its rings lock into a lens), note | scale (3 notes), ripple, fall | ripple → ripple → pulse; scale → chord | fall |
+| The First Sign (its word played back) | cry (wave), beam, static | beam, stutter, static | statics (3), stutter, beam | beam → sweep; stutter → stutter → cry | - |
+
+Wind-ups: every guardian's own move 1.0-2.0 s (the Keeper's burrow 2.0 s, it ploughs at you), links 0.65-0.75 s,
+combo finishers 1.1-1.3 s. `tests/telegraphs.test.js` checks the move lists, the phases (each adds a move), a combo
+that ends in an opening, an opening in every phase, a combo's timing, the body tells, a phase change and the shock
+ring; `tests/temples.test.js` still plays every temple through.
 
 ## Feel (`src/feel.js`)
 
@@ -453,8 +586,8 @@ and temple rooms draw from its roster.
 - **Attacks** (`def.attacks`, the fields are listed at the top of `src/foe-kinds.js`): every kind has a list;
   `Foe.chooseAttack(d)` picks one whose `[min, max]` holds the distance, by weight, the last one used less
   likely. `def.attack` stays the first (old code and tests read it). An attack may be `instant` (resolved as the
-  wind-up ends: lobs, flashes, blinks), `tele` (drawn on the floor; plain melee still reads from the body),
-  `track` (the drawn area follows you over that share of the wind-up, then holds), `sweep` (a charge that hits
+  wind-up ends: lobs, flashes, blinks), `lob` (a thrown or lobbed projectile: the only attack with a mark on the
+  floor, where it lands; v1.6), `track` (its aim follows you over that share of the wind-up, then holds), `sweep` (a charge that hits
   what it runs into), `then` (a quick follow-up wound straight away: a combo; a block or a parry ends it),
   `spread` (a volley of rings), and effects: `knock`, `tether` / `grab` (pull you in: `Foes.hold`, ended by
   a cut, stilling or the time), `blind` (only if the camera looks toward it), `wave` (a ground shockwave:

@@ -1,3 +1,4 @@
+import { groundMark } from '../src/telegraph.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -43,12 +44,12 @@ test('eight new kinds (and the golem’s splinters), each with two or three tele
     if (!D.noWild) assert.ok(main.length >= 2 && main.length <= 3, `${k}: ${main.length} attacks`);
     for (const a of D.attacks) {
       assert.ok(['ring', 'cone', 'lane'].includes(a.shape) && a.wind > 0 && a.damage >= 0, `${k}.${a.id}`);
-      if (a.chain) assert.ok(a.wind < 0.5, `${k}.${a.id}: a follow-up is quick`);
-      else assert.ok(a.wind >= 0.45, `${k}.${a.id}: a wind-up you can read (${a.wind} s)`);
+      if (a.chain) assert.ok(a.wind <= 0.6, `${k}.${a.id}: a follow-up is quick`);
+      else assert.ok(a.wind >= 0.5, `${k}.${a.id}: a wind-up you can read (${a.wind} s)`);
       if (a.then) assert.ok(attackOf(k, a.then), `${k}.${a.id} → ${a.then}`);
       assert.ok((a.max ?? D.reach) <= D.reach + 1e-9, `${k}.${a.id} within its reach`);
-      // ranged and area strikes are drawn on the floor; a lane or a lob always is
-      if (a.shape === 'lane' || a.at === 'target' || a.at === 'behind') assert.ok(a.tele || a.at === 'target' || a.at === 'behind' || a.dive, `${k}.${a.id} drawn`);
+      // nothing is drawn on the floor but a projectile's landing mark (src/telegraph.js; tests/telegraphs.test.js)
+      assert.ok(!('tele' in a), `${k}.${a.id}: no floor telegraph`);
     }
     if (!D.noWild) assert.ok(NOTES[k] && /LB \/ L1|move|cut|bomb|ember|shot|gust/i.test(NOTES[k]), `${k}: what beats it, said once`);
     const M = kindModel(k);
@@ -178,7 +179,7 @@ test('the rust drone: its harpoon line pulls you in until it is cut; guarded, th
 test('the root stalker: roots along the ground grab and drag you in, then it lashes; a cut breaks the hold; a bloom puts it to sleep; embers burn it', () => {
   const s = only('stalker', 'grab'), P = player(v(0, 0, 5));
   assert.ok(untilWind(s, P, 'grab'));
-  assert.equal(s.atk.tele, true, 'its roots are drawn on the floor');
+  assert.ok(!groundMark(s.atk), 'its roots read from its reared arms, nothing on the floor');
   const ev = runFor(s, P, attackOf('stalker', 'grab').wind + 0.4);
   assert.equal(strikes(ev)[0]?.hit, true);
   assert.equal(s.state, 'wind'); assert.equal(s.atk.id, 'lash', 'the grab runs straight into a lash');
@@ -309,17 +310,20 @@ test('old foes, new attacks: the blot’s lunge-combo (stopped by a guard), the 
   foes.dispose(); F.dispose(); F2.dispose(); clearTargets();
 });
 
-test('telegraphs: lanes, lobs and areas are drawn on the floor through the wind-up, plain melee is not; Gentle winds them up slower and halves every harm', () => {
+test('telegraphs: only a lob marks the floor (where it lands); lanes and melee read from the body and its glow; Gentle winds them up slower and halves every harm', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
-  const d = foes.add('drone', v(0, 0, 6)), bl = foes.add('blot', v(3, 0, 1));
+  const d = foes.add('drone', v(0, 0, 6)), bl = foes.add('blot', v(3, 0, 1)), sp = foes.add('spitter', v(-6, 0, 0));
   d.attacksAt = () => [attackOf('drone', 'harpoon')];
   bl.attacksAt = () => [attackOf('blot', 'lunge')];
-  let droneDrawn = false, blotDrawn = false;
-  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && d.tele.group.visible; blotDrawn ||= bl.state === 'wind' && bl.tele.group.visible; }
-  assert.ok(droneDrawn, 'the harpoon’s lane is drawn');
+  sp.attacksAt = () => [attackOf('spitter', 'lob')];
+  let droneDrawn = false, blotDrawn = false, lobDrawn = false, droneGlow = false;
+  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; droneDrawn ||= d.state === 'wind' && d.tele.group.visible; droneGlow ||= d.state === 'wind' && d.k > 0.5 && !!d.glow?.visible; blotDrawn ||= bl.state === 'wind' && bl.tele.group.visible; lobDrawn ||= sp.state === 'wind' && sp.tele.group.visible; }
+  assert.equal(droneDrawn, false, 'the harpoon’s lane is not drawn: the gun tips at you, its tip glowing');
+  assert.ok(droneGlow, 'a glow gathers on the harpoon');
   assert.equal(blotDrawn, false, 'the blot’s lunge reads from its body');
+  assert.ok(lobDrawn, 'a lobbed glob marks where it will land');
   foes.dispose(); clearTargets();
   // gentle: the same wind-up takes GENTLE.wind as long; a shockwave and slag bite half
   const G = player(v(0, 0, 0)), gentle = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId: 'arena', physics: flat, player: G, settings: { enemies: 'gentle' }, game: new GameState(null) });

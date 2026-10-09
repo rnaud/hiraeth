@@ -35,7 +35,8 @@ node .claude/skills/combat-review/arena.mjs <scratch>/combat [--kinds blot,crab]
 PORT (default 5333) and CDP (Chrome's debugging port, default 5391). For each kind, in the Arena (`?level=arena`):
 - **watch**: it is called in (`foes.setPractice`), locked on, and fights a scripted player standing still (his health
   topped up, every hurt counted) for `--watch` s: the **wind-ups as seen** (its state `wind`, per attack: median s), the
-  **attacks a minute**, the **health a minute** a still player loses (a threat measure: 1.0 is a full bar a minute);
+  **attacks a minute**, the **health a minute** a still player loses (a threat measure: 1.0 is a full fresh bar a
+  minute; hurts are in hearts since v1.5, divided by the traveller's hearts);
 - **time to kill** with each move (`scripts/combat-review/lib.mjs movesFrom`, from the game's own tuning): the light
   combo (1, 1, 2 over three swings), the full charged cut, the air cut, the riposte (on a stunned foe; its time adds one
   of the foe's attack cycles to wait for the parry), the dash cut (its cooldown), and the gun's shot, ember and push
@@ -52,7 +53,7 @@ dev menu's temple jump).
 
 | | 1 | 3 | 5 |
 |---|---|---|---|
-| **Readability / telegraph** | strikes with no tell, under 0.35 s | a clear tell around 0.5-0.7 s | a tell of the body and the floor ≥ 0.95 s, never confused with another attack |
+| **Readability / telegraph** | strikes with no tell, under 0.35 s | a clear tell around 0.5-0.7 s | a tell of the body ≥ 0.95 s (its pose, the glow on its striking part, the rising sound; a landing mark only for what is thrown), never confused with another attack |
 | **Counterplay variety** | only the blade, one answer | two answers (guard, a gun mode) | many: a weak point, a parry effect, a mode that changes it, terrain |
 | **Space, height and the kit** | flat ground, walks at you | uses range or a ledge | climbs, perches, flies, burrows, lobs, makes you jump or move |
 | **Threat vs fairness** | harmless, or hurts hard on a short tell | a real threat on a fair tell | dangerous when ignored, always answerable |
@@ -64,9 +65,12 @@ splits, parry effects…) and its attacks; space from its movement and attack sh
 telegraph; identity from its own tone and sound (confirm on the contact sheet: shape matters most); combines from how many
 worlds field it and how rare its role is. Each comes with its reason (`combat.md`, "Why each foe scored as it did").
 
-**Guardians** (the temples' bosses, `src/temples/boss.js`; organic ones are calmed, machines broken): readability (their
-floor telegraphs, 0.8-1.7 s+), counterplay (attacks, the opening after them, the temple's own way to calm or break it),
-space (shapes, tracking, the arena), fairness (damage against telegraph; the knock-down), phases (how the fight changes).
+**Guardians** (the temples' bosses, `src/temples/boss.js`; organic ones are calmed, machines broken; staged fights since
+v1.6): readability (the body tells of its own moves, 0.8-1.35 s+; a combo's links ≥ 0.6 s; a floor-drawn attack that
+isn't a lob costs a point), counterplay (moves, combos, the openings after them or after a miss, the temple's own way
+to calm or break it), space (shapes, tracking, dives, shock rings, lobs), fairness (links and wind-ups against damage;
+the knock-down), phases (how many, and whether each adds moves). `arena.mjs` also draws `guardians.webp`: each guardian
+in an Arena ring, phase by phase, at 85 % of the phase's first move (`--guardians no` skips it).
 
 ## 3. The combat as a whole (1-5 each, with reasons)
 

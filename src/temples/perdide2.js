@@ -71,14 +71,21 @@ export const LAMPLESS = {
   weary: 'It folds its wings and settles, its glyphs lit with your light. Go to it.',
   resolved: 'The Lampless sighs, and climbs to the lamp, and the lamp catches from it: the whole room goes gold.',
   phases: [
-    { to: 0.45, attacks: ['swoop', 'gust'], pause: 1.6, hint: 'When it hangs low, searching, stand still by it with your lantern: let it drink.' },
-    { to: 0.9, attacks: ['dust', 'swoop', 'gust'], pause: 1.3, hint: 'Its glyphs glow with your light. Again: stand still with it when it searches.' },
+    { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, searching, stand still by it with your lantern: let it drink.' },
+    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Its glyphs glow with your light, and it beats its wings at you before it dusts the room. Again: stand still with it when it searches.' },
+    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'Its eye-spots burn gold and it circles down twice. Stand still with it when it searches.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    swoop: { shape: 'ring', at: 'player', radius: 4.2, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 9, recover: 0.9, open: 4.0 },
-    gust: { shape: 'cone', range: 14, angle: 0.6, telegraph: 1.4, damage: 0.75, knock: 12, recover: 0.8 },
-    dust: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.5, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
+    swoop: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.5, track: 0.6, over: true, part: 'core', rig: 'rise', damage: 0.75, knock: 9, recover: 0.9, open: 4.0 },
+    gust: { shape: 'cone', range: 14, angle: 0.6, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', damage: 0.75, knock: 12, recover: 0.8 },
+    dust: { shape: 'ring', at: 'self', radius: 8.5, wind: 1.4, part: 'wings', rig: 'swell', damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
+    flutter: { shape: 'cone', range: 8, angle: 0.8, wind: 1.0, track: 0.7, part: 'wings', rig: 'lean', damage: 0.5, knock: 9, recover: 0.5, then: 'flutter2' },
+    flutter2: { shape: 'cone', range: 8, angle: 0.8, wind: 0.65, track: 0.6, part: 'wings', rig: 'lean', pose: 'flutter', link: true, damage: 0.5, knock: 9, gap: 0.2, then: 'dustEnd' },
+    dustEnd: { shape: 'ring', at: 'self', radius: 8.5, wind: 1.2, part: 'wings', rig: 'swell', pose: 'dust', link: true, damage: 0.75, knock: 10, recover: 0.8, open: 3.4 },
+    scales: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'wings', rig: 'swell', damage: 0.5, knock: 6, recover: 0.7 },
+    spiral: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.4, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', damage: 0.75, knock: 9, recover: 0.4, then: 'spiral2' },
+    spiral2: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.0, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.0 },
   },
 };
 

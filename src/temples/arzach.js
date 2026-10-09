@@ -71,15 +71,23 @@ export const ELDER = {
   openHint: 'She spreads her wings and looks up at the open sky, trembling, and does not go.',
   weary: 'She folds her wings and settles, the glyphs on them bright with the wind. Go to her.',
   resolved: 'The Elder stretches her neck to you, then opens her wings wide, and rides the wind up out of the roost.',
+  missHint: 'Her beak is caught in the floor: she pulls, wings spread, and looks up at the open sky.',
   phases: [
-    { to: 0.45, attacks: ['buffet', 'stamp'], pause: 1.5, hint: 'When she spreads her wings and looks up, afraid, ride the wind beside her: open your wings near her.' },
-    { to: 0.9, attacks: ['dive', 'buffet'], pause: 1.3, hint: 'She has left the floor, beating hard. When she hangs in the air, fly with her again.' },
+    { to: 0.45, attacks: ['peck', 'stamp', 'buffet'], pause: 1.5, hint: 'When she spreads her wings and looks up, afraid, ride the wind beside her: open your wings near her.' },
+    { to: 0.75, attacks: ['buffet', 'dive', 'gale'], pause: 1.3, hint: 'She has left the floor, beating hard. When she hangs in the air, fly with her again.' },
+    { to: 0.9, attacks: ['feathers', 'peck', 'gale'], pause: 1.1, hint: 'Stone feathers fall from her, her glyph lines burning. She dives harder: fly with her when she hangs there.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    buffet: { shape: 'cone', range: 11, angle: 0.8, telegraph: 1.4, damage: 0.75, knock: 13, recover: 0.7 },
-    stamp: { shape: 'ring', at: 'self', radius: 7, telegraph: 1.5, damage: 0.75, knock: 10, recover: 0.8, open: 4.2 },
-    dive: { shape: 'ring', at: 'player', radius: 4, telegraph: 1.7, track: 0.55, damage: 0.75, knock: 9, recover: 0.9, open: 4.2 },
+    peck: { shape: 'lane', range: 8, width: 2.4, wind: 1.0, track: 0.7, part: 'mouth', rig: 'lean', damage: 0.5, knock: 8, recover: 0.6, then: 'peck2' },
+    peck2: { shape: 'lane', range: 8, width: 2.4, wind: 0.65, track: 0.6, part: 'mouth', rig: 'lean', pose: 'peck', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'buffetEnd' },
+    buffet: { shape: 'cone', range: 11, angle: 0.8, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', damage: 0.75, knock: 13, recover: 0.7 },
+    buffetEnd: { shape: 'cone', range: 11, angle: 0.8, wind: 1.1, track: 0.5, part: 'wings', rig: 'lean', pose: 'buffet', link: true, damage: 0.75, knock: 13, recover: 0.8, open: 4.2 },
+    stamp: { shape: 'ring', at: 'self', radius: 7, wind: 1.4, part: 'feet', rig: 'rear', damage: 0.75, knock: 10, recover: 0.8, open: 4.2 },
+    dive: { shape: 'ring', at: 'player', radius: 4, wind: 1.6, track: 0.6, over: true, part: 'mouth', rig: 'rise', damage: 0.75, knock: 9, recover: 0.9, open: 4.2 },
+    gale: { shape: 'lane', range: 20, width: 5, wind: 1.3, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 16, recover: 0.7, then: 'diveEnd' },
+    diveEnd: { shape: 'ring', at: 'player', radius: 4, wind: 1.2, track: 0.6, over: true, part: 'mouth', rig: 'rise', pose: 'dive', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.2 },
+    feathers: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 6, recover: 0.7 },
   },
 };
 

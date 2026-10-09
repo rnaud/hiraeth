@@ -52,8 +52,8 @@ test('every kind the game has gets facts and six scores in 1..5, whatever the ro
 
 test('a guardian gets facts and scores from its temple\'s def', () => {
   const G = guardianFacts('arzach.ELDER', ELDER);
-  assert.equal(G.kind, 'organic'); assert.equal(G.phases, 2);
-  assert.ok(G.teleMin >= 1 && G.attacks.length === 3);
+  assert.equal(G.kind, 'organic'); assert.equal(G.phases, 3);
+  assert.ok(G.teleMin >= 1 && G.attacks.length >= 4 && G.combos >= 1 && G.floor === 0);
   const S = scoreGuardian(G);
   for (const k of ['readability', 'counterplay', 'space', 'fairness', 'phases']) assert.ok(S[k] >= 1 && S[k] <= 5);
 });

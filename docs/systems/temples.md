@@ -48,10 +48,12 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   the scout. Saved in the save slot's flags under `temple.<id>.*`. `solve(def)`
   plays a temple through as a player would; `withhold` proves its gadget is the key.
   A latched element may come `after` another (the Hush-House's crystals, low to high).
-- **`boss.js`**: `Guardian`: sleep, wake, fight, open, weary, resolved; a meter in
-  phases (`calm` for an organic guardian, `damage` for a robot); attacks
-  telegraphed on the floor (`ring`, `cone`, `lane`) then struck: `knockDown` +
-  `hurt` in hearts (¾ or 1: docs/systems/foes.md, the damage table), never taking you from more than a
+- **`boss.js`**: `Guardian`: sleep, wake, fight, open, shift, weary, resolved; a meter in
+  phases (`calm` for an organic guardian, `damage` for a robot), three fighting phases with a shift between
+  (it staggers, its marks light, new moves); a staged fight of 4-6 moves, combos and openings read from the
+  body, every move told by the body, only thrown things marking where they land (docs/systems/foes.md, "The
+  guardians' staged fights"), then struck: `knockDown` +
+  `hurt` in hearts (½ to 1: docs/systems/foes.md, the damage table), never taking you from more than a
   heart to nothing (`strikeDamage`); a knockout puts the keeper
   back to its phase's start. `final: 'touch'` (an interactable: a hand on its brow)
   or `'break'`. **`guardians.js`**: the Keeper's and the warden's bodies.

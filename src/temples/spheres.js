@@ -74,15 +74,23 @@ export const ECHO = {
   openHint: 'It sings, and one of the spheres round the hall glows with its note.',
   weary: 'It sinks to the floor, its rings slowing, humming to itself. It is listening for you now.',
   resolved: 'The Echo hums once with all three spheres at once, and goes quiet, and stays.',
+  missHint: 'It fell short and lies on the floor, ringing: one of the spheres round the hall glows with its note.',
   phases: [
-    { to: 0.45, attacks: ['note', 'pulse'], pause: 1.7, hint: 'When it sings, answer it: splash the sphere that glows with its note.' },
-    { to: 0.9, attacks: ['chord', 'note', 'pulse'], pause: 1.3, hint: 'Its rings brighten. Keep answering it, note for note.' },
+    { to: 0.45, attacks: ['note', 'pulse', 'ripple'], pause: 1.7, hint: 'When it sings, answer it: splash the sphere that glows with its note.' },
+    { to: 0.75, attacks: ['fall', 'chord', 'note'], pause: 1.3, hint: 'Its rings brighten and lock together into a lens. Keep answering it, note for note.' },
+    { to: 0.9, attacks: ['scale', 'ripple', 'fall'], pause: 1.1, hint: 'Its heart cracks with light, and it sings three notes at once. Keep answering it.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    note: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.5, track: 0.6, damage: 0.75, knock: 8, recover: 0.8, open: 3.2 },
-    pulse: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 1, knock: 12, recover: 0.8 },
-    chord: { shape: 'lane', range: 26, width: 3, telegraph: 1.6, damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
+    note: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'core', rig: 'spin', damage: 0.75, knock: 8, recover: 0.8, open: 3.2 },
+    pulse: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'core', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.8 },
+    ripple: { shape: 'ring', at: 'self', radius: 6, wind: 1.0, part: 'core', rig: 'swell', damage: 0.5, knock: 9, recover: 0.4, then: 'ripple2' },
+    ripple2: { shape: 'ring', at: 'self', radius: 6, wind: 0.7, part: 'core', rig: 'swell', pose: 'ripple', link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'pulseEnd' },
+    pulseEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'core', rig: 'swell', pose: 'pulse', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 0.8, open: 3.2 },
+    chord: { shape: 'lane', range: 26, width: 3, wind: 1.5, track: 0.7, part: 'core', rig: 'lean', damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
+    fall: { shape: 'ring', at: 'player', radius: 4, wind: 1.5, track: 0.6, over: true, part: 'core', rig: 'rise', damage: 0.75, knock: 9, recover: 0.8, miss: 3.0 },
+    scale: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'core', rig: 'spin', pose: 'note', damage: 0.5, knock: 6, recover: 0.5, then: 'chordEnd' },
+    chordEnd: { shape: 'lane', range: 26, width: 3, wind: 1.2, track: 0.6, part: 'core', rig: 'lean', pose: 'chord', link: true, damage: 0.75, knock: 10, recover: 0.9, open: 2.8 },
   },
 };
 

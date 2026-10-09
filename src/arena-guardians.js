@@ -18,8 +18,8 @@ import { TITLES } from './levels/names.js';
 
 // The Arena's guardians (docs/systems/foes.md "The Arena"): the FOES list's Guardians section calls the thing at
 // the heart of a temple (src/temples/boss.js Guardian, its body from src/temples/guardians.js) into a temporary
-// ring on the sand, to spar with outside its temple. It fights as in its temple (its attacks in turn, each drawn on
-// the floor, a knock-down that never takes the last of a healthy bar); its temple's puzzle is not there, so a
+// ring on the sand, to spar with outside its temple. It fights as in its temple (its staged fight: moves, combos and
+// phases, each move told by its body, a knock-down that never takes the last of a healthy bar); its temple's puzzle is not there, so a
 // sparring rule stands in for it (sparHit): when it opens (pants, vents open) a fluid shot (water for a living
 // guardian, a shot at a machine's core) counts a step; a push frightens a living one back a little. Its final
 // moment is its own (lay a hand on a living one; a machine breaks).

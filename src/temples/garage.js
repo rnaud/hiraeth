@@ -81,14 +81,21 @@ export const FOREMAN = {
   wake: 'In the workshop something winds itself up with a long clatter of springs. A machine with a clock for a chest turns its face to you. Its hands are racing.',
   openHint: 'The glass over its face swings up and its six numerals glow. Hit all six, inside one breath.',
   resolved: 'The Clockwork Foreman shudders, and its hands come round, slowly, to the right time, and stop there. Under your feet something begins to tick, in step.',
+  missHint: 'It spins on, dizzy, its hands whirling; the glass over its face swings up. Six numerals: now.',
   phases: [
-    { to: 0.5, attacks: ['hammer', 'chime'], pause: 1.6, hint: 'When it has struck, its face opens: six numerals, one breath. One tank will not do it.' },
-    { to: 1.0, attacks: ['cog', 'hammer', 'chime'], pause: 1.2, hint: 'It throws its cogs now, and strikes faster. Six numerals, one breath.' },
+    { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'When it has struck, its face opens: six numerals, one breath. One tank will not do it.' },
+    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its bell cracks and it winds itself up to spin, throwing cogs. Six numerals, one breath.' },
+    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'It strikes faster, out of step, sparks from every seam. Six numerals, one breath.' },
   ],
   attacks: {
-    hammer: { shape: 'cone', range: 10, angle: 0.7, telegraph: 1.4, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
-    chime: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.5, damage: 1, knock: 12, recover: 1.0, open: 5.6 },
-    cog: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6 },
+    hammer: { shape: 'cone', range: 10, angle: 0.7, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
+    jab: { shape: 'cone', range: 7, angle: 0.6, wind: 1.0, track: 0.7, part: 'arms', rig: 'lean', pose: 'cog', damage: 0.5, knock: 8, recover: 0.5, then: 'jab2' },
+    jab2: { shape: 'cone', range: 7, angle: 0.6, wind: 0.65, track: 0.6, part: 'arms', rig: 'lean', pose: 'cog', link: true, damage: 0.5, knock: 8, gap: 0.2, then: 'hammerEnd' },
+    hammerEnd: { shape: 'cone', range: 10, angle: 0.7, wind: 1.1, track: 0.5, part: 'arms', rig: 'rear', pose: 'hammer', link: true, damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
+    chime: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'head', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 1, knock: 12, recover: 1.0, open: 5.6 },
+    cog: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.2, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', damage: 0.75, knock: 8, recover: 0.6 },
+    cogs: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', pose: 'cog', damage: 0.5, knock: 6, recover: 0.6 },
+    spin: { shape: 'ring', at: 'self', radius: 6.5, wind: 1.3, part: 'arms', rig: 'spin', damage: 0.75, knock: 12, recover: 0.6, miss: 4.0 },
   },
 };
 

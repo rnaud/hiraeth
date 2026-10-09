@@ -74,14 +74,22 @@ export const TOOTH_WARDEN = {
   wake: 'The machine in the hall straightens on its four legs with a noise like a dropped toolbox. Its lamp turns to you.',
   openHint: 'All four of its vents open at once, glowing. Hit all four, quickly.',
   resolved: 'The Tooth-Warden locks up, every joint at once, and goes still. Somewhere under your feet the engine catches, and runs.',
+  missHint: 'It ploughs into the wall and stands there shuddering: all four of its vents open at once.',
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar'], pause: 1.6, hint: 'When its four vents open, hit all four inside one breath.' },
-    { to: 1.0, attacks: ['slam', 'beam', 'mortar'], pause: 1.2, hint: 'It is faster now, and it slams. Four vents, one breath.' },
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'When its four vents open, hit all four inside one breath.' },
+    { to: 0.75, attacks: ['grind', 'beam', 'stomp'], pause: 1.2, hint: 'It is faster now: it grinds round on its legs, and slams. Four vents, one breath.' },
+    { to: 1.0, attacks: ['charge', 'mortars', 'grind'], pause: 1.0, hint: 'Its plates are cracked and glowing, and it charges. Let it hit the wall. Four vents, one breath.' },
   ],
   attacks: {
-    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 1, knock: 10, recover: 0.8, open: 3.2 },
-    mortar: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6 },
-    slam: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
+    beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', damage: 1, knock: 10, recover: 0.8, open: 3.2 },
+    mortar: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', damage: 0.75, knock: 8, recover: 0.6 },
+    mortars: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', pose: 'mortar', damage: 0.5, knock: 6, recover: 0.6 },
+    stomp: { shape: 'ring', at: 'front', ahead: 4, radius: 4, wind: 1.0, part: 'feet', rig: 'rear', damage: 0.75, knock: 9, recover: 0.4, then: 'stomp2' },
+    stomp2: { shape: 'ring', at: 'front', ahead: 4, radius: 4, wind: 0.7, part: 'feet', rig: 'rear', pose: 'stomp', link: true, damage: 0.75, knock: 9, gap: 0.25, then: 'slam' },
+    slam: { shape: 'ring', at: 'self', radius: 6, wind: 1.3, part: 'feet', rig: 'rear', link: true, wave: { speed: 9, reach: 18, width: 0.7, damage: 0.5 }, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
+    grind: { shape: 'ring', at: 'self', radius: 6, wind: 1.3, part: 'core', rig: 'spin', damage: 0.75, knock: 12, recover: 0.6, then: 'beamEnd' },
+    beamEnd: { shape: 'lane', range: 28, width: 2.6, wind: 1.1, track: 0.6, part: 'eye', rig: 'lean', pose: 'beam', link: true, damage: 1, knock: 10, recover: 0.8, open: 3.2 },
+    charge: { shape: 'lane', range: 16, width: 4.4, wind: 1.3, track: 0.65, part: 'eye', rig: 'crouch', dash: 11, damage: 1, knock: 12, recover: 1.0, open: 1.6, miss: 3.2 },
   },
 };
 const VOLLEY = 2.6;   // s: the four vents must all be hit inside this

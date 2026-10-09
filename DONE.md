@@ -1747,3 +1747,21 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
 - [x] Recorded the reference workflow in AGENTS.md and CLAUDE.md: Midjourney in the visible internal
   browser, user favourites before saving. Character, currency, ship and sword generation/integration
   remain open in TODO.md; the reference selection itself is complete.
+
+## Combat telegraphs (v1.6, 2026-10-09)
+
+- [x] **No attack drawn on the ground; the guardians' staged fights.** Every attack of the 15 kinds, the 100 world
+  enemies and the 11 guardians is told by the body (src/telegraph.js): the attack's own pose, complete at 75 % of
+  the wind-up and then held still; a spark (`ChargeGlow`) gathering on the striking part and burning white; a sound
+  rising over exactly the wind-up (`foeWarn(kind, dur)`, `guardianWarn`); the eyes as before. The floor shapes (`tele`,
+  the world enemies' zone tells, the guardians' discs, fans and lanes) are gone; only lobbed and thrown things keep a
+  landing mark (`lob`: the spitter, the golem's hurl, the world enemies' globs, the guardians' seeds, clods, cogs,
+  mortars, notes, hail). Wind-up minimums by weight (`WIND_MIN`; the hound's pounce 0.6 → 0.8 s, the blot's lunge,
+  the crab's snap, the splinter, the bite), Gentle's slower wind-ups for guardians too (`TELL.slow`), the off-screen
+  marker kept. The world enemies got the generic path only (they are to be replaced by archetypes). Each guardian
+  now has 4-6 moves of its own, combos whose last move opens it, openings when a move misses, shock rings to jump,
+  three phases with a shift (it staggers; cracks or glyph veins light: `PhaseMarks`) that add moves, and closes in
+  for a close move. docs/systems/foes.md ("Telegraphs: the body, not the floor", "The guardians' staged fights"),
+  docs/audits/combat-v1.6.md (guardians 3.6-3.8 → 4.0-4.8), tests/telegraphs.test.js.
+- [x] From the v1.4 combat review: the hound's pounce (now 0.8 s, read from its crouch) and the guardians' shared
+  template.

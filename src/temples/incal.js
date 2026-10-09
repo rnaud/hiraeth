@@ -78,15 +78,23 @@ export const WARDEN = {
   wake: 'The machine in the hall unfolds on its three legs. Its lamp-eye finds you, and turns red.',
   openHint: 'Its vents open, glowing. Hit them.',
   resolved: 'The warden sags on its legs. Its eye goes dark, and the hum in the walls stops. Then, far below, a sound like breathing.',
+  missHint: 'Its slam went wide and it rocks on its legs, venting: its vents open, glowing.',
   phases: [
-    { to: 0.5, attacks: ['beam', 'mortar'], pause: 1.6, hint: 'Its eye sweeps the floor: keep out of its line. When its side vents open, shoot them.' },
-    { to: 1.0, attacks: ['slam', 'beam', 'mortar'], pause: 1.3, hint: 'It shuts its sides. Only the vent on its crown is open now: get above it, and shoot down.',
+    { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Its eye burns before it fires: keep out of its line. When its side vents open, shoot them.' },
+    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.3, hint: 'It shuts its sides, and its eye sweeps the hall. Only the vent on its crown is open now: get above it, and shoot down.',
       openHint: 'The hatch on its crown swings up, glowing: its sides stay shut. Get above it, and shoot down into it.' },
+    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.1, hint: 'Cracks glow along its hull, and it vents straight up when you hang over it: wait for the hatch, then come in over it.',
+      openHint: 'The hatch on its crown swings up, glowing: get above it, and shoot down into it.' },
   ],
   attacks: {
-    beam: { shape: 'lane', range: 28, width: 2.6, telegraph: 1.5, damage: 1, knock: 10, recover: 0.8, open: 2.8 },
-    mortar: { shape: 'ring', at: 'player', radius: 3.6, telegraph: 1.6, track: 0.6, damage: 0.75, knock: 8, recover: 0.6 },
-    slam: { shape: 'ring', at: 'self', radius: 8.5, telegraph: 1.4, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
+    beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', damage: 1, knock: 10, recover: 0.8, open: 2.8 },
+    sweepBeam: { shape: 'cone', range: 24, angle: 0.9, wind: 1.5, track: 0.6, part: 'eye', rig: 'coil', side: 1, damage: 0.75, knock: 10, recover: 0.8, open: 2.8 },
+    mortar: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', damage: 0.75, knock: 8, recover: 0.6 },
+    mortars: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.4, wind: 1.4, track: 0.6, part: 'head', rig: 'swell', pose: 'mortar', damage: 0.5, knock: 6, recover: 0.6 },
+    stomp: { shape: 'ring', at: 'front', ahead: 4, radius: 4, wind: 1.0, part: 'feet', rig: 'rear', damage: 0.75, knock: 9, recover: 0.4, then: 'stomp2' },
+    stomp2: { shape: 'ring', at: 'front', ahead: 4, radius: 4, wind: 0.7, part: 'feet', rig: 'rear', pose: 'stomp', link: true, damage: 0.75, knock: 9, gap: 0.25, then: 'slam' },
+    slam: { shape: 'ring', at: 'self', radius: 6, wind: 1.3, part: 'feet', rig: 'rear', link: true, wave: { speed: 9, reach: 18, width: 0.7, damage: 0.5 }, damage: 1, knock: 13, recover: 1.0, open: 3.0 },
+    flare: { shape: 'ring', at: 'self', radius: 4.5, reachUp: 9, wind: 1.2, part: 'head', rig: 'swell', damage: 0.75, knock: 10, recover: 0.6, then: 'slam' },
   },
 };
 

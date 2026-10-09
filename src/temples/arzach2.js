@@ -76,14 +76,20 @@ export const MOTHER = {
   weary: 'She settles on the floor of her hall, her fins still. She is listening. Go to her.',
   resolved: 'She sighs, and the cloud along her back thins away. Far below the tower, something heavy comes down to rest.',
   phases: [
-    { to: 0.5, attacks: ['gust', 'dive'], pause: 1.8, hint: 'She cannot stay down, and she cannot stop crying. When she cries, sound the bell near her.' },
-    { to: 0.9, attacks: ['wail', 'dive', 'gust'], pause: 1.4, hint: 'Her glyphs wake. Again: answer her crying with the bell.' },
+    { to: 0.5, attacks: ['gust', 'dive', 'wail'], pause: 1.8, hint: 'She cannot stay down, and she cannot stop crying. When she cries, sound the bell near her.' },
+    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Her glyphs wake and she rolls in the air, her tail lashing. Again: answer her crying with the bell.' },
+    { to: 0.9, attacks: ['rain', 'roll', 'wail'], pause: 1.2, hint: 'The cloud along her back darkens and hails. Answer her crying with the bell.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    gust: { shape: 'cone', range: 14, angle: 0.55, telegraph: 1.4, damage: 0.75, knock: 12, recover: 0.9 },
-    dive: { shape: 'ring', at: 'player', radius: 4.6, telegraph: 1.7, track: 0.55, damage: 1, knock: 9, recover: 1.0, open: 3.0 },
-    wail: { shape: 'ring', at: 'self', radius: 9, telegraph: 1.5, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
+    gust: { shape: 'cone', range: 14, angle: 0.55, wind: 1.3, track: 0.6, part: 'mouth', rig: 'swell', damage: 0.75, knock: 12, recover: 0.9 },
+    dive: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.6, track: 0.55, over: true, part: 'core', rig: 'rise', damage: 1, knock: 9, recover: 1.0, open: 3.0 },
+    wail: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'mouth', rig: 'swell', wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
+    roll: { shape: 'cone', range: 10, angle: 1.0, wind: 1.1, track: 0.6, part: 'wings', rig: 'coil', side: 1, damage: 0.75, knock: 11, recover: 0.6, then: 'tail' },
+    tail: { shape: 'ring', at: 'self', radius: 7, wind: 0.75, part: 'tail', rig: 'coil', side: -1, link: true, damage: 0.5, knock: 9, gap: 0.25, then: 'wailEnd' },
+    wailEnd: { shape: 'ring', at: 'self', radius: 6, wind: 1.2, part: 'mouth', rig: 'swell', pose: 'wail', link: true, wave: { speed: 9, reach: 16, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 11, recover: 0.8, open: 2.6 },
+    rain: { shape: 'ring', at: 'player', lob: true, volley: 4, radius: 2, wind: 1.5, track: 0.6, part: 'core', rig: 'swell', damage: 0.5, knock: 6, recover: 0.6, then: 'diveEnd' },
+    diveEnd: { shape: 'ring', at: 'player', radius: 4.6, wind: 1.3, track: 0.55, over: true, part: 'core', rig: 'rise', pose: 'dive', link: true, damage: 1, knock: 9, recover: 1.0, open: 3.0 },
   },
 };
 

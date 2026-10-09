@@ -53,7 +53,7 @@ test('a perfect parry interrupts remaining custom contacts; Gentle reduces harm 
  const Q=P(),sys=system('desert',Q,{settings:{enemies:'normal'}}),f=sys.add(WORLD_ENEMIES.desert[0].id,v());let damage=0;
  Q.hurt=d=>damage+=d;Q.guard=()=> 'perfect';sys.strike(f);assert.equal(damage,0);assert.equal(f.state,'recover');assert.ok(f.stunned>0);
  Q.guard=null;f.stunned=0;sys.strike(f);const normal=damage;damage=0;sys.settings.enemies='gentle';sys.strike(f);assert.equal(damage,quarters(normal*.5),'half, counted in quarters (never under one)');
- f.state='wind';f.k=.5;lockAttack(f,Q);sys.look(f,.01);assert.ok(f.zoneTells.some(t=>t.group.visible));sys.settings.enemies='off';sys.update(.01);assert.ok(f.zoneTells.every(t=>!t.group.visible));sys.dispose();
+ f.state='wind';f.k=.5;lockAttack(f,Q);sys.look(f,.01);assert.ok(f.zoneTells.every(t=>!t.group.visible),'a body blow draws nothing on the ground');assert.ok(f.glow?.visible,'its striking limb glows');f.def.attack={...f.def.attack,lob:true,motion:'lob',at:'target'};lockAttack(f,Q);sys.look(f,.01);assert.ok(f.zoneTells.some(t=>t.group.visible),'a lob marks where it lands');sys.settings.enemies='off';sys.update(.01);assert.ok(f.zoneTells.every(t=>!t.group.visible));sys.dispose();
 });
 test('world packs introduce all four designs and wilderness machines fight without a temple',()=>{
  for(const world of Object.keys(WORLD_ENEMIES)){const ids=new Set(Array.from({length:6},(_,i)=>worldPack(i,world)).flat());assert.equal(ids.size,4);}

@@ -89,15 +89,23 @@ export const KEEPER = {
   openHint: 'It pants, its mouth open, its tongue dry as the sand. It is thirsty.',
   weary: 'It lowers its head to the dry spout, worn out. It isn’t afraid any more. Go to it.',
   resolved: 'It breathes out, long and slow, and the stone under the spout begins to sweat. Water.',
+  missHint: 'Its forefeet are wedged in the stone: it heaves and pants, its mouth open.',
   phases: [
     { to: 0.4, attacks: ['stamp', 'sweep'], pause: 1.8, hint: 'It shies from the dark round the walls. Light the four braziers.' },
-    { to: 0.8, attacks: ['burrow', 'sweep', 'stamp'], pause: 1.4, hint: 'Its glyphs brighten. When it pants, give it water: shoot the fluid into its mouth.' },
+    { to: 0.6, attacks: ['sweep', 'charge', 'stamp'], pause: 1.5, hint: 'Its glyphs brighten, and it lowers its head to charge. When it pants, give it water: shoot the fluid into its mouth.' },
+    { to: 0.8, attacks: ['burrow', 'spit', 'sweep'], pause: 1.3, hint: 'Its shell plates rattle up, glowing: it digs into the sand now. Keep giving it water when it pants.' },
     { to: 1.0, weary: true },
   ],
+  // its moves (src/temples/boss.js): read from its body, never the floor; the sweep runs back the other way and
+  // ends in a stamp (the punish to read, then it pants); a charge or a stamp that misses wedges it, panting
   attacks: {
-    stamp: { shape: 'ring', at: 'player', radius: 4.2, telegraph: 1.5, track: 0.5, damage: 1, knock: 8, recover: 0.9, open: 2.6 },
-    sweep: { shape: 'cone', range: 12, angle: 0.62, telegraph: 1.4, damage: 0.75, knock: 10, recover: 1.0, open: 2.2 },
-    burrow: { shape: 'ring', at: 'player', radius: 3.4, telegraph: 2.1, track: 0.7, damage: 1, knock: 11, recover: 1.4, open: 3.2 },
+    stamp: { shape: 'ring', at: 'front', ahead: 4.5, radius: 4.2, wind: 1.35, part: 'feet', rig: 'rear', damage: 1, knock: 8, recover: 0.9, miss: 2.6 },
+    sweep: { shape: 'cone', range: 12, angle: 0.62, wind: 1.2, track: 0.6, part: 'mouth', rig: 'coil', side: 1, damage: 0.75, knock: 10, recover: 1.0, then: 'sweepBack' },
+    sweepBack: { shape: 'cone', range: 12, angle: 0.62, wind: 0.7, track: 0.5, part: 'mouth', rig: 'coil', pose: 'sweep', side: -1, link: true, damage: 0.75, knock: 10, gap: 0.2, then: 'stampEnd' },
+    stampEnd: { shape: 'ring', at: 'front', ahead: 4.5, radius: 4.2, wind: 1.1, part: 'feet', rig: 'rear', pose: 'stamp', link: true, damage: 1, knock: 8, recover: 0.9, open: 2.6 },
+    charge: { shape: 'lane', range: 14, width: 4, wind: 1.3, track: 0.65, part: 'head', rig: 'crouch', dash: 9, damage: 1, knock: 11, recover: 1.1, open: 1.4, miss: 2.8 },
+    burrow: { shape: 'ring', at: 'player', radius: 3.4, wind: 2.0, track: 0.6, over: true, part: 'core', damage: 1, knock: 11, recover: 1.4, open: 3.2 },
+    spit: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'mouth', rig: 'lean', damage: 0.5, knock: 6, recover: 0.8 },
   },
 };
 
@@ -114,12 +122,12 @@ function keeperHit(g, part, mode) {
   const rt = g.rt;
   if (mode === 'push') { g.add(-0.05, 'push'); rt.notice('It flinches back from the shove, more frightened than before. Gently.', 'keeper.push'); if (g.state === 'fight' && !g.attack) g.cool = 0; return true; }
   if (g.phaseIndex === 0) { if (mode !== 'fire' && (part === 'mouth' || part === 'body')) rt.notice('It snaps at the fluid, frightened. It is the dark it fears: light the braziers round the walls.', 'keeper.dark'); return true; }
-  if (g.phaseIndex === 1) {
+  if (g.phaseIndex >= 1) {
     if (part === 'mouth' && g.state === 'open' && (mode === 'shoot' || mode === 'stun')) {
       g.add(0.1, 'water');
       rt.sound?.critter?.('splash', 1);
       if (g.state === 'open') { g.enter('fight'); g.cool = 1.4; }   // it swallows, and shakes its head (unless that was the last it needed)
-      if (g.phaseIndex === 1) rt.notice('It swallows. Its glyphs glow a little brighter.', null);
+      if (g.phaseIndex >= 1) rt.notice('It swallows. Its glyphs glow a little brighter.', null);
       return true;
     }
     if (mode === 'fire') { rt.notice('It flinches from the ember. It wants water, not fire.', 'keeper.fire'); return true; }

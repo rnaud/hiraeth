@@ -290,8 +290,55 @@ const SHOP_IN = (then = '') => `${HIDE('#toast, #cue, #prompt, #objective')}
 const SHOP_OPEN = (then = '') => SHOP_IN(`game.emit('shop:open', { shop: 'qanat' }); await wait(900); ${then}`);
 const SHOP_DOOR = [203.67, 319.94, -1.62];   // Haddu's door (x, z) and its heading: src/levels/desert.js
 
+// ------------------------------------------------------------------ v1.6's views: the body telegraphs
+// (a foe held at 85 % of a wind-up, three-quarters on: before, its lane or ring on the floor; after, its pose and its glow)
+const FOE_WIND = (kind, atk) => `foes.setPractice('');
+  ${sleepJs(300)}
+  ${FOE_HELD(kind, `f.heading = Math.atan2(-d.x, -d.z) + 1.0; f.over = 0; f.alt = f.def.hover ?? 0; f.state = 'wind'; f.atk = f.def.attacks.find((a) => a.id === '${atk}'); f.k = 0.85; f.timer = f.atk.wind * 0.85; f.attackH = f.heading; f.attackAt.copy(f.pos);`, { dist: 5, eye: 5.5, h: 2.2 })}`;
+/**
+ * A temple guardian called into a ring in the Arena (src/arena-guardians.js) and held at 85 % of a move's wind-up (its
+ * meter at `meter`: its phase), seen from the side with the traveller in front of it; driven by the page each frame.
+ * Written for both sides: the old Guardian (telegraph, a floor shape) and the new (wind, the body's tells).
+ */
+const GUARD_WIND = (id, atk, { meter = 0, k = 0.85, side = 15, back = 9, h = 6, look = 0.35 } = {}) => `foes.setPractice('');
+  ${sleepJs(300)}
+  const V = THREE.Vector3, { ArenaGuardians } = await import('/src/arena-guardians.js');
+  const A = new ArenaGuardians({ scene, player, physics, sound: null, notice() {} });
+  const g = A.call('${id}'), m = g.model, f = new V(Math.sin(m.heading), 0, Math.cos(m.heading)), r = new V(f.z, 0, -f.x);
+  player.teleport(m.pos.clone().addScaledVector(f, 9).setY(m.pos.y), new V(0, 1, 0), f.clone().negate());
+  g.meter = ${meter}; g.floor = ${meter}; g.state = 'fight'; g.t = 0;
+  const a = { id: '${atk}', ...g.def.attacks['${atk}'] }, w = a.wind ?? a.telegraph;
+  g.attack = a; g.at = w * ${k}; g.struck = false; g.windFor = w; g.view = { ...a, id: a.pose ?? '${atk}' }; g.attackK = ${k};
+  g.attackH = m.heading; g.attackAt.copy(m.pos).addScaledVector(f, 6).setY(g.arena.y);
+  if (a.lob && a.volley > 1 && g.spreadMarks) { g.attackAt.copy(player.pos).setY(g.arena.y); g.spreadMarks(a); }
+  const fight = g.fight.bind(g); g.fight = (dt, t, P) => fight(0, t, P);
+  const tick = () => { A.update(1 / 60, performance.now() / 1000); requestAnimationFrame(tick); }; tick();
+  const H = m.height ?? 4, eye = m.pos.clone().addScaledVector(r, ${side}).addScaledVector(f, ${back}).add(new V(0, ${h}, 0)), at = m.pos.clone().addScaledVector(f, 3).add(new V(0, H * ${look}, 0));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, new V(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 55) { this.fov = 55; this.updateProjectionMatrix(); } return base.call(this, force); };`;
+const TELL_VIEW = (setup, player = null) => ({ level: 'arena', query: 'foe=blot', quality: 'high', save: SAVE_ON, wait: 2500, setup, ...(player ? { player, heading: Math.PI * 0.75 } : {}) });
+const TELLS = { commit: '3a635fa8', before: '8312cf69' };
+
 export const CHANGELOG_MEDIA = {
   '1.6': [
+    // the fights: told by the body, not the ground
+    { match: 'Foes no longer draw their attacks on the ground', shots: [
+      { name: 'tell-drone', caption: 'A rust drone at 85 % of its harpoon’s wind-up: before, a lane filling on the floor; after, the gun tipped at you, the drone rocked back and a spark burning on the harpoon’s tip', ...TELLS, view: TELL_VIEW(FOE_WIND('drone', 'harpoon'), [-14, 0, -14]) },
+      { name: 'tell-crab', caption: 'A salt crab winding up its spinning charge: before, its lane on the sand; after, tucked into its shell and spinning, the spark on its shell', ...TELLS, view: TELL_VIEW(FOE_WIND('crab', 'spin'), [-14, 0, -14]) },
+      { name: 'tell-slag', caption: 'A slag walker raising its foot to stamp: before, a ring on the floor round it; after, the raised leg alone, glowing at the foot', ...TELLS, view: TELL_VIEW(FOE_WIND('slag', 'stomp'), [-14, 0, -14]) },
+    ], see: 'In the Arena (?level=arena), call any foe from the FOES list and watch it wind up: nothing appears on the ground; its body moves into its own wind-up, a spark grows on the part that will strike and turns white, the rising sound ends in a tick, and it holds still for a beat before the blow. Turn on the hitbox overlay (debug) to see the zones.' },
+    { match: 'Only what is thrown or lobbed still marks the ground', shots: [
+      { name: 'tell-keeper-spit', only: 'after', caption: 'The Keeper of the cistern spitting three clods of sand: the clods in the air and their three landing marks round the traveller', ...TELLS, view: TELL_VIEW(GUARD_WIND('desert', 'spit', { meter: 0.6, k: 0.8 })) },
+    ], see: 'Fight a spitting blot, a glass golem (its hurled chunk) or a guardian that throws (the Keeper’s clods, the Mother Snapper’s seeds, the Foreman’s cogs, a warden’s mortars, the Cloud-Mother’s hail): only these mark the ground, a ring where each will land.' },
+    { match: 'A few wind-ups are longer, so they can be read', see: 'Fight shadow hounds (the Arena, or the City During the Eclipse): the pounce now crouches for 0.8 s, and one that melts into its own shadow is about to come up behind you (the warning marker at the screen’s edge shows it). A dune ray’s fin grows tall as it races at you before it bursts up.' },
+    { match: 'The eleven temple guardians each fight a staged fight', shots: [
+      { name: 'tell-keeper-stamp', caption: 'The Keeper of the cistern at 85 % of its stamp: before, a ring filling on the floor where the traveller stood; after, reared up on its hind legs, its forefeet glowing over the spot they will come down on', ...TELLS, view: TELL_VIEW(GUARD_WIND('desert', 'stamp', { meter: 0.4, side: 18, back: 10, h: 6, look: 0.5 })) },
+      { name: 'tell-snapper-lunge', caption: 'The Mother Snapper about to lunge: before, a long lane on the floor; after, her head reared high, jaws agape, the spark in her mouth', ...TELLS, view: TELL_VIEW(GUARD_WIND('perdide', 'lunge', { side: 24, back: 6, h: 6, look: 0.9 })) },
+      { name: 'tell-warden-phase', only: 'after', caption: 'The warden in its third phase: cracks glowing along its hull, its crown hatch up and its glow climbing out before it vents straight up at whoever hangs over it', ...TELLS, commit: 'c704cb68', view: TELL_VIEW(GUARD_WIND('incal', 'flare', { meter: 0.75, side: 20, back: 8, h: 6, look: 0.6 })) },
+    ], see: 'Call a guardian in the Arena (FOES list > Temple guardians) or fight one in its temple: each has its own moves and combos; at each change of phase it staggers for a couple of seconds and lights up with cracks (a machine) or glyph veins (a living one), and its moves change.' },
+    { match: 'Their openings are read from their bodies', see: 'Let a guardian’s stamp, charge, dive or spin miss you: it stays stuck a moment (the Keeper’s forefeet in the stone, the Foreman spinning dizzy, its face open), and that counts as its opening. A slam that sends a ring along the floor is jumped (or flown over with the jets).' },
+    { match: 'Among the new moves:', see: 'The Keeper (the desert’s Givers’ House), the Elder (Vael’s Aerie), the Mother Snapper (Lorn’s Hush-House), the warden (the City-Shaft), the Clockwork Foreman (the First Garage) and the First Sign (the Signal Market’s Undertower): each in its temple, or in the Arena’s ring.' },
     // the galactic map's signature search
     { match: 'The galactic map has a signature search', shots: [
       { name: 'map-search', caption: 'The map on a new journey (1280 × 720): before, Vael and Lorn named outright; after, two uncharted regions and the scanner warming near Vael (four bars, “strong”)', from: 'headless Chrome against this branch’s own dev server and main before it, a new save in the desert with the ship powered, Medium' },

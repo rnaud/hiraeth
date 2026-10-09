@@ -5,6 +5,7 @@ import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
 import { workingsAt } from './workings.js';
 import { Telegraph, inArea } from './temples/boss.js';
+import { ChargeGlow, TELL, groundMark, poseK } from './telegraph.js';
 import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
@@ -44,10 +45,10 @@ export const FOES = {
   blot: {
     name: 'ink blot', hp: 2, radius: 0.6, height: 0.55, speed: 3.4, sight: 17, giveUp: 40, reach: 2.1, flinchy: true, clamber: true,
     attacks: [
-      { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.5, wind: 0.65, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
+      { id: 'lunge', shape: 'ring', radius: 1.7, ahead: 1.1, damage: 0.5, wind: 0.7, strike: 0.24, contact: 0.55, lunge: 1.8, weight: 2 },
       // the lunge-combo: a longer coil, a lunge, and a second quick one straight after (unless the first was blocked)
       { id: 'combo', shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.8, strike: 0.22, contact: 0.55, lunge: 1.6, then: 'again', min: 0.8 },
-      { id: 'again', chain: true, shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.32, strike: 0.22, contact: 0.55, lunge: 1.8 },
+      { id: 'again', chain: true, shape: 'ring', radius: 1.6, ahead: 1.0, damage: 0.5, wind: 0.4, strike: 0.22, contact: 0.55, lunge: 1.8 },
     ],
     recover: 1.0, cool: [1.1, 2.2], hit: 0.35,
   },
@@ -56,18 +57,18 @@ export const FOES = {
     tone: '#e0703a', sound: 'machine', takes: { shoot: 0, fire: 0 },
     attacks: [
       { id: 'slam', shape: 'cone', range: 3.3, angle: 0.8, damage: 1, wind: 1.05, strike: 0.32, contact: 0.55, knock: 7, weight: 1.6 },
-      // the ground slam: both arms high and a longer hold, then a ring of shock runs out over the floor (jump it)
-      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, tele: true, damage: 0.75, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } },
+      // the ground slam: both arms high, crouched, a longer hold; then a ring of shock runs out over the floor (jump it)
+      { id: 'quake', shape: 'ring', at: 'self', radius: 2.0, damage: 0.75, wind: 1.35, strike: 0.3, contact: 0.6, knock: 6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 } },
     ],
     recover: 1.5, cool: [1.4, 2.4], hit: 0.5,
   },
-  // keeps its distance (inside `keep` it backs off) and lobs a glob of ink: the ring is drawn where you stand
+  // keeps its distance (inside `keep` it backs off) and lobs a glob of ink: a projectile, so its landing mark is drawn where you stand
   spitter: {
     name: 'spitting blot', hp: 2, radius: 0.55, height: 0.6, speed: 2.6, sight: 20, giveUp: 40, reach: 11, keep: 6.5, perch: true, tone: '#7f9a2e',
     attacks: [
-      { id: 'lob', shape: 'ring', at: 'target', instant: true, radius: 1.6, damage: 0.5, wind: 1.25, weight: 2 },
+      { id: 'lob', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.6, damage: 0.5, wind: 1.25, weight: 2 },
       // the arc volley: three globs, three rings across your way (step between them, or out of the row)
-      { id: 'volley', shape: 'ring', at: 'target', instant: true, spread: [-3, 0, 3], radius: 1.2, damage: 0.5, wind: 1.45, min: 4 },
+      { id: 'volley', shape: 'ring', at: 'target', instant: true, lob: true, spread: [-3, 0, 3], radius: 1.2, damage: 0.5, wind: 1.45, min: 4 },
     ],
     recover: 1.3, cool: [1.6, 2.6], hit: 0.35,
   },
@@ -77,7 +78,7 @@ export const FOES = {
     attack: { shape: 'ring', radius: 1.0, ahead: 0.6, damage: 0.25, wind: 0.5, strike: 0.24, contact: 0.55, lunge: 1.0 },
     recover: 0.7, cool: [0.6, 1.4], hit: 0.2,
   },
-  // hovers out of the blade's reach and dives along a lane drawn on the ground; low after its dive, it can be cut
+  // hovers out of the blade's reach, climbs and tips its nose at you, then dives; low after its dive, it can be cut
   flyer: {
     name: 'winged blot', hp: 2, radius: 0.6, height: 0.5, hover: 3.6, speed: 3.8, sight: 22, giveUp: 45, reach: 6,
     attack: { shape: 'lane', width: 1.7, range: 9, damage: 0.75, wind: 1.0, strike: 0.4, contact: 0.85, dive: true },
@@ -204,7 +205,7 @@ export const STRIKE_RISE = 1.6;
 export const reachesUp = (a) => a.at === 'target' || a.at === 'behind';
 /** A foe's target sphere (shots, the cone, the lock): its body's radius and a margin. The blade adds its own (fluid-blade.js BLADE_TOUCH). */
 export const hurtRadius = (def) => def.radius + 0.15;
-/** How near a charge (attack.sweep) must run to you to hit: half its lane's width, so the lane drawn is the ground it covers. */
+/** How near a charge (attack.sweep) must run to you to hit: half its lane's width (the hitbox overlay's lane is the ground it covers). */
 export const sweepRadius = (a, def) => (a.width ? a.width / 2 : def.radius + 0.75);
 
 /**
@@ -993,6 +994,7 @@ function blotModel(kind = 'blot') {
     // a snout to lob from, and sickly yellow-green eyes
     const snout = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.18, 0.45, 8).rotateX(Math.PI / 2), ink);
     snout.position.set(0, 0.5, 0.55); g.add(snout);
+    M.tell = () => snout;   // (the glob gathers, glowing, at its snout)
     releaseMaterial(eye);
     M.eyeMat = makeMaterial({ color: '#d9f05a', flat: true, glow: 0.6, key: `foe-eye-spit.${foeMaterialId++}` }); M.base = '#d9f05a';
     for (const e of eyes) e.material = M.eyeMat;
@@ -1040,10 +1042,11 @@ function machineModel() {
     l.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 1.0, 5).translate(0, -0.5, 0).rotateX(-0.28), dark));
     return l;
   });
-  return { group: g, body, head: cap, arms, legs, heart, eyeMat: core, parts: [body, belt, cap, mast, heart, ...arms, ...legs] };
+  return { group: g, body, head: cap, arms, legs, heart, eyeMat: core, parts: [body, belt, cap, mast, heart, ...arms, ...legs],
+    tell: (id) => (id === 'quake' ? cap : arms[0].children[2]) };   // (the slam's claw; the quake's crown, both arms over it)
 }
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _gl = new THREE.Vector3(), _gf = new THREE.Vector3();
 /** The world's sounds on a foe (the game's synth, src/audio.js burst / sweep): spines, a flame's hiss, a hard landing. */
 const sndAt = (s) => (s?.ctx && s.burst && s.sweep ? s.ctx.currentTime : null);
 const worldSnd = {
@@ -1265,7 +1268,7 @@ export class Foes {
   }
 
   remove(f) {
-    f.target?.(); f.tele?.dispose(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent(); f.model.shade?.dispose();
+    f.target?.(); f.tele?.dispose(); f.glow?.dispose(); f.model.group.removeFromParent(); f.model.glob?.removeFromParent(); f.model.shade?.dispose();
     for (const t of f.teles ?? []) t.dispose();
     for (const g of f.globs ?? []) g.removeFromParent();
     f.stars?.removeFromParent();
@@ -1562,9 +1565,10 @@ export class Foes {
   }
 
   update(dt, paused = false) {
+    TELL.slow = this.difficulty === 'gentle' ? GENTLE.wind : 1;   // (the guardians' wind-ups too: src/telegraph.js)
     const P = this.player;
     if (!P) return;
-    if (!this.on) { for (const f of this.list) { f.model.group.visible=false;f.tele.hide();for(const tell of f.zoneTells??[])tell.hide();for(const effect of f.effects??[])effect.visible=false; } return; }
+    if (!this.on) { for (const f of this.list) { f.model.group.visible=false;f.tele.hide();f.glow?.hide();for(const tell of f.zoneTells??[])tell.hide();for(const effect of f.effects??[])effect.visible=false; } return; }
     if (paused) return;
     if (this.tool?.blade) this.tool.blade.gentle = this.gentle;   // (the evade's i-frame window for this setting)
     this._people = this.peopleNow();
@@ -1586,7 +1590,7 @@ export class Foes {
         f.dead -= dt;
         if (f.model.shade) { f.model.shade.melt = 1 - f.dead / 0.8; f.model.shade.update(dt, f); }   // (a shade runs away into the ground)
         else f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8));
-        f.tele.hide();
+        f.tele.hide(); f.glow?.hide();
         for(const tell of f.zoneTells??[])tell.hide();
         for(const effect of f.effects??[])effect.visible=false;
         if (f.dead <= 0) this.remove(f);
@@ -1597,7 +1601,7 @@ export class Foes {
       const inTemple = !f.placed || this.waves || this.level?.temple?.inside?.(P.pos);
       const ev = inTemple ? f.update(dt, P, this.env) : [];
       for (const e of ev) {
-        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind);
+        if (e === 'warn') this.sound?.foeWarn?.(f.def.sound ?? f.kind, ((f.atk ?? f.def.attack).wind ?? 0.8) * this.env.slow());   // (rising over its whole wind-up)
         if (e === 'notice') this.meet(f);
         if (e?.type && e.type !== 'strike') { this.worldEvent(f, e); continue; }
         if (e?.type !== 'strike') continue;
@@ -1936,6 +1940,8 @@ export class Foes {
       const s = M.size;
       g.scale.set((1 + w + (1 - squash) * 0.5 - stretch * 0.15) * s, (squash - w - stretch * 0.15) * s, (1 + w + stretch * 0.6) * s);
       g.rotation.x = -wind * 0.25 + stretch * 0.35;
+      // a flyer winding up its dive climbs and tips its nose down at you (the body is the tell: nothing on the ground)
+      if (f.def.hover && f.state === 'wind') { g.position.y += 0.7 * wind; g.rotation.x = 0.45 * wind; }
       M.eyeMat.uniforms.uColor.value.set(f.state === 'wind' ? '#f05a3c' : f.stunned > 0 ? '#bfe9ff' : M.base);
       if (M.wings) { const flap = Math.sin(performance.now() / (f.state === 'wind' ? 60 : 110)) * 0.6; M.wings[0].rotation.z = flap; M.wings[1].rotation.z = -flap; }
       // the spitter's glob: in the air over the last half of its wind-up, down onto the drawn ring
@@ -1956,8 +1962,11 @@ export class Foes {
     } else {
       const walk = moving ? Math.sin(t * 9) * 0.45 : 0;
       M.legs.forEach((l, k) => { l.rotation.x = Math.sin(t * 9 + k * Math.PI * 2 / 3) * (moving ? 0.35 : 0) - wind * 0.16; });
+      // the slam: one arm high over its shoulder; the quake: both arms high, crouched low on its legs
+      const quake = (f.atk ?? f.def.attack).id === 'quake';
       const arm = wind ? -2.6 * wind : strike ? THREE.MathUtils.lerp(-2.6, -0.45, release) : -0.45 * recovery;
-      M.arms[0].rotation.x = arm; M.arms[1].rotation.x = arm * 0.85;
+      M.arms[0].rotation.x = arm; M.arms[1].rotation.x = quake || !wind ? arm * 0.85 : -0.3 * wind;
+      if (quake && wind) g.position.y -= 0.22 * wind;
       M.body.rotation.y = wind * 0.3 + (strike ? 0.3 * (1 - release) : 0);
       g.rotation.x = -wind * 0.15 + (strike ? release * 0.3 : recovery * 0.3);
       g.position.y += f.alt - wind * 0.1;   // (alt: held up off its feet by the magnet glove, src/gadgets/magnet.js)
@@ -1984,19 +1993,34 @@ export class Foes {
       for(let i=0;i<f.zoneTells.length;i++){
         const z=f.zones?.[i],tell=f.zoneTells[i],effect=f.effects[i];
         const live=z&&!f.stunned&&['wind','strike'].includes(f.state);
-        if(live){tell.show(z.attack,z.at,z.heading,z.at.y);tell.set(f.state==='wind'?f.k:1,t);tell.fillM.uniforms.uColor.value.set(z.attack.color);poseAttackEffect(effect,f,z,t);}
-        else {tell.hide();effect.visible=false;}
+        // (only a lobbed glob marks where it lands, until it lands: every other attack is read from the body)
+        if(live&&!z.done&&groundMark(z.attack)){tell.show(z.attack,z.at,z.heading,z.at.y);tell.set(f.state==='wind'?f.k:1,t);tell.fillM.uniforms.uColor.value.set(z.attack.color);}
+        else tell.hide();
+        if(live)poseAttackEffect(effect,f,z,t); else effect.visible=false;
       }
     } else {
-    // Melee reads from the body; ranged impacts and areas (a lob, a lane, a shockwave's slam) are drawn on the floor.
+    // The body is the tell (src/telegraph.js); only a lobbed shot's landing mark is drawn on the floor.
     const a = f.atk ?? f.def.attack, pts = f.attackPts ?? [f.attackAt];
-    const drawn = f.state === 'wind' && (a.tele || a.at === 'target' || a.at === 'behind');
+    const drawn = f.state === 'wind' && groundMark(a);
     for (let i = 0; i < Math.max(pts.length, 1 + (f.teles?.length ?? 0)); i++) {
       const T = i === 0 ? f.tele : ((f.teles ??= [])[i - 1] ??= new Telegraph(this.group, f.def.tone ?? '#6d4fa8'));
-      if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, a.at === 'behind' || a.at === 'target' ? pts[i].y : f.level); T.set(f.k, t); }
+      if (drawn && i < pts.length) { T.show(a, pts[i], f.attackH, pts[i].y); T.set(f.k, t); }
       else T.hide();
     }
     }
+    this.chargeGlow(f, t);
+  }
+
+  /** The glow building on the striking part through a wind-up (src/telegraph.js ChargeGlow), a last flare as it strikes. */
+  chargeGlow(f, t) {
+    const winding = f.state === 'wind' && !f.stunned, striking = f.state === 'strike' && !f.contacted;
+    if (!winding && !striking) { f.glow?.hide(); return; }
+    const M = f.model;
+    f.glow ??= new ChargeGlow(this.group, f.variant ? f.def.attack.color : f.def.tone ?? '#f05a3c', Math.max(0.22, Math.min(0.5, f.def.radius * 0.45)));
+    const a = f.atk ?? f.def.attack, part = M.tell?.(f.variant ? a.motion : a.id, f) ?? null;
+    if (part) { M.group.updateMatrixWorld(true); part.getWorldPosition(_gl); }
+    else _gl.copy(f.chest).add(_gf.set(Math.sin(f.heading), 0, Math.cos(f.heading)).multiplyScalar(f.def.radius * 0.9));
+    f.glow.set(winding ? f.k : 1, _gl, performance.now() / 1000);
   }
 
   /** The stars of a foe dazed (Foe.dazed: knocked off a ledge by you), turning over its head. */

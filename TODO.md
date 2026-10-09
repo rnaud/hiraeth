@@ -93,15 +93,22 @@ docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. D
   ink's) for the whole roster; glass, shell, paper, roots, slag and shadow each want their own.
 - [ ] The route's difficulty falls at the end: the Garden of Spheres and the Signal Market field the softest kinds (the
   sign moth: 1.0 bar a minute, one blow). Bring a late kind or a mixed lead to them.
-- [ ] The shadow hound's pounce (0.60 s wind-up, the highest threat: 3.35 bars a minute on a still player) wants a
-  floor telegraph or ~0.75 s; the shade (one cut, 3.0 a minute, only the blade answers it) wants a second attack and
-  another answer.
-- [ ] The eleven guardians share one template (three attacks, two phases, 1.4-1.7 s telegraphs): vary it down the
-  route (a third phase or a combined attack later on, telegraphs tightening toward the Signal Market).
+- [ ] The shade (one cut, 3.75 bars a minute on a still player in v1.6, only the blade answers it) wants a second
+  attack and another answer. (The hound's pounce is 0.8 s now: v1.6.)
 - [ ] A shot that does nothing (machine, ray, golem, drone, crab, hound) should say so: a glance spark and the armour's
   thunk.
 - [ ] The combat-review script: frame each kind side-on for the contact sheet; drive guard, parry and evade timing
   against each attack; batch and group the report when the larger roster lands.
+
+# Combat review (docs/audits/combat-v1.6.md, 2026-10-09)
+
+- [ ] Play the eleven guardians' new fights in their temples with a pad and tune by hand: the combo starters' 1.0 s,
+  the miss-openings' lengths, the shock rings' 9 m/s against the jump.
+- [ ] The hearts (v1.5) made every kind about a third more dangerous to a still player (an ordinary blow is a sixth
+  of a fresh bar): the swarm's, the splinter's and the crab's fairness fell a point; look at them or at `DAMAGE.blow`.
+- [ ] A miss-opening for the Lampless, the Elder and the Cloud-Mother (a dive that misses could wedge them as the
+  Keeper's stamp does), and a shock ring for the Lampless's dust (its space scores 3).
+
 
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
 
@@ -137,16 +144,6 @@ docs/design/enemy-roster.md, contact sheet docs/design/enemy-roster-sheet.jpg. D
   desktop-only by reports: WebView2Feedback#4366). Why not Unity: Puerts has no UWP/Xbox V8 (it would need a
   V8 port or QuickJS without a JIT, several times slower on a frame the script limits), for at most ~0.9 ms
   of gain measured on the Mac (docs/systems/engine-bridge.md).
-
-# Combat telegraphs (queued 2026-10-09)
-
-- [ ] **No attack drawn on the ground.** Every foe's and guardian's attack is telegraphed by the body itself
-  (wind-up pose, a coil, a glow building on the striking part, a sound), never by discs, fans or lanes filled
-  on the floor (src/temples/boss.js "telegraphed on the floor first"; the foes' warning zones; the 100 world
-  enemies' ground zones). Exception: lobbed shots and thrown projectiles keep a landing mark on the ground
-  (where it will fall), since the thrower's wind-up can't show where it lands. The guardians get richer, staged fights: more attacks than the shared three, combos
-  and phase changes that change the moves, openings read from the body. Keep fairness: wind-ups long enough
-  to read, the off-screen warning marker for foes behind you. Re-score with the combat-review skill.
 
 # Procedural animation (queued 2026-10-09, after the combat telegraphs)
 
@@ -213,7 +210,7 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
 
 All eleven are one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
 with an older verb). Ranked; each re-runs `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js
-passing (skill: temple-design-qc). The fights themselves: "Combat telegraphs" above.
+passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md, "Combat telegraphs").
 
 - [ ] **A twist room in every temple** after the gadget's test: the gadget plus the temple's pre-gadget verb in one
   lock (keys of two kinds). Combination 1→3, teach→test→twist 3→4.
@@ -239,7 +236,9 @@ passing (skill: temple-design-qc). The fights themselves: "Combat telegraphs" ab
   that switches the updraft on; jets against a gust in the Lamp Gallery; `s1` seen only mid-ride; `k2` on pistons
   in turn; false lens stones with the clue a room back; a burning tar ball pushed into `b3`; `b2` a room back. See
   the report for each.
-- [ ] **The guardian's last phase asks for the twist** (with "Combat telegraphs"). Guardian exam 2→3-4.
+- [ ] **The guardian's last phase asks for the twist**: the staged fights are in (v1.6: three phases, body tells,
+  docs/systems/foes.md "The guardians' staged fights"); the last phase still asks for the temple's one verb, not the
+  twist room's combination. Guardian exam 2→3-4.
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 

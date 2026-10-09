@@ -107,15 +107,22 @@ export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0,
     mouth, mouthR: 1.3, radius: 3.4, height: 4.4,
     head, jaw, body, neck, legs, eyes, glowM, eyeM, gait: 0, rise: 0, open: 0, rear: 0, low: 0, sink: 0,
+    marks: { c: [0, 3.9, 0], r: [2.9, 1.7, 3.6] },
+    /** Where a move's glow gathers: its forefeet, its head (src/temples/boss.js partAt). */
+    part(name, out, side = 1) {
+      if (name === 'feet') { const L = legs[side > 0 ? 1 : 0]; return out.copy(L.knee.localToWorld(_w.set(0, -2.0, 0.1))); }
+      if (name === 'head') return out.copy(head.localToWorld(_w.set(0, 0.7, 0.2)));
+      return null;
+    },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
-      const id = attack?.id;
+      const id = attack?.id, side = attack?.side ?? 1;
       // how it holds itself in each state
       const asleep = state === 'sleep', weary = state === 'weary' || state === 'resolved';
       M.rise = ease(M.rise, asleep ? 0 : state === 'wake' ? 0.85 : weary ? 0.35 : 1, state === 'wake' ? 0.8 : 2);
-      M.open = ease(M.open, state === 'open' ? 1 : id === 'sweep' && k > 0.6 ? 0.7 : 0, 6);
+      M.open = ease(M.open, state === 'open' ? 1 : id === 'sweep' && k > 0.6 ? 0.7 : id === 'spit' ? Math.min(1, k * 1.4) : 0, 6);
       M.rear = ease(M.rear, id === 'stamp' ? (k < 1 ? k : 0) : 0, id === 'stamp' && k >= 1 ? 20 : 4);
-      M.low = ease(M.low, state === 'open' || weary || id === 'sweep' ? 1 : asleep ? 1.3 : 0, 3);
+      M.low = ease(M.low, state === 'open' || weary || id === 'sweep' || id === 'charge' ? 1 : id === 'spit' ? -0.3 * k : asleep ? 1.3 : 0, 3);
       M.sink = ease(M.sink, id === 'burrow' && k < 1 ? Math.min(1, k * 1.6) : 0, id === 'burrow' && k >= 1 ? 9 : 2.5);
       M.gait += dt * speed * 1.4;
       const breathe = Math.sin(t * (asleep || weary ? 0.9 : 1.6)) * 0.06;
@@ -131,7 +138,7 @@ export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9
         L.knee.rotation.x = Math.max(0, -sw) * 0.5 + (front ? M.rear * 0.6 : 0);
       }
       // the neck: up and searching when it fights, down to the floor asleep, low and open when it pants
-      const sway = Math.sin(t * 0.7) * 0.2 + (id === 'sweep' ? Math.sin(Math.min(1, k) * Math.PI * 2.2) * (k >= 1 ? 0.2 : 0.7) : 0);
+      const sway = Math.sin(t * 0.7) * 0.2 + (id === 'sweep' ? side * Math.sin(Math.min(1, k) * Math.PI * 2.2) * (k >= 1 ? 0.2 : 0.7) : 0);
       // a swan's neck: forward from the shell, then up, the head level; low, it droops to the ground ahead
       neck.forEach((g, i) => {
         g.rotation.x = lerp(NECK_UP[i], NECK_LOW[i], Math.min(1, M.low)) + (M.low > 1 ? (M.low - 1) * 0.3 : 0) + (i === 0 ? M.rear * 0.4 : 0);
@@ -200,7 +207,13 @@ export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
     mouth, mouthR: 1.8, radius: 4.2, height: 5.2, bodyR: 3.4,
-    body, fins, tail, jaw, glowM, eyeM, open: 0, low: 0, swim: 0,
+    body, fins, tail, jaw, glowM, eyeM, open: 0, low: 0, swim: 0, roll: 0,
+    marks: { c: [0, 0.3, 0], r: [2.9, 2.3, 5.8] },
+    part(name, out, side = 1) {
+      if (name === 'wings') return out.copy(fins[side > 0 ? 1 : 0].f.localToWorld(_w.set(side * 4.6, 0, -0.4)));
+      if (name === 'tail') return out.copy(tail.localToWorld(_w.set(0, 0.1, -2.8)));
+      return null;
+    },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id;
@@ -208,9 +221,10 @@ export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb
       // how high she swims: high and wary; low when she cries; on the floor, worn out; up again, calm
       M.low = ease(M.low, asleep ? 0.4 : weary ? 1 : state === 'open' ? 0.75 : id === 'dive' ? Math.min(1, k * 1.3) * (k >= 1 ? 1 : 0.6) : resolved ? 0.1 : 0, 2.5);
       M.hover = THREE.MathUtils.lerp(7.5, 2.3, M.low) + Math.sin(t * 0.8) * 0.4;
-      M.open = ease(M.open, state === 'open' ? 1 : id === 'gust' && k > 0.5 ? 0.6 : 0, 5);
+      M.open = ease(M.open, state === 'open' ? 1 : id === 'gust' && k > 0.5 ? 0.6 : id === 'wail' ? Math.min(1, k * 1.3) : 0, 5);
+      M.roll = ease(M.roll, id === 'roll' ? (k >= 1 ? -1 : 1.1 * k) * (attack?.side ?? 1) : 0, k >= 1 ? 9 : 3);
       M.swim += dt * (0.8 + speed * 0.6);
-      body.rotation.z = Math.sin(M.swim * 0.7) * 0.08;
+      body.rotation.z = Math.sin(M.swim * 0.7) * 0.08 + M.roll;
       body.rotation.x = Math.sin(M.swim * 0.5) * 0.05 + (state === 'open' ? -0.15 : 0);
       for (const F of fins) F.f.rotation.z = F.s * (Math.sin(M.swim * 1.6) * 0.35 * (weary ? 0.3 : 1) - 0.1);
       tail.rotation.x = Math.sin(M.swim * 1.6 + 1) * 0.3;
@@ -265,7 +279,7 @@ export function echoModel({ core = '#fbf3d8', ring = '#d6e6ee', veil = '#e9dff2'
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
     mouth, mouthR: 2.0, radius: 3.6, height: 5, bodyR: 2.2, touchR: 3.0,
-    body, rings, veils, coreM, glowM, open: 0, low: 0, spin: 0,
+    body, rings, veils, coreM, glowM, open: 0, low: 0, spin: 0, marks: { c: [0, 0, 0], r: [1.7, 1.7, 1.7] },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const asleep = state === 'sleep', weary = state === 'weary', resolved = state === 'resolved';
@@ -273,7 +287,9 @@ export function echoModel({ core = '#fbf3d8', ring = '#d6e6ee', veil = '#e9dff2'
       M.hover = THREE.MathUtils.lerp(6.5, 2.2, M.low) + Math.sin(t * 1.1) * 0.35;
       M.open = ease(M.open, state === 'open' ? 1 : 0, 4);
       M.spin += dt * (asleep || weary ? 0.2 : resolved ? 0.4 : 0.9 + (attack ? k * 2.5 : 0));
-      rings.forEach((r, i) => { r.rotation.z = M.spin * (i % 2 ? -1 : 1) * (0.6 + i * 0.25); });
+      // its chord: the rings tilt flat, one over another, into a single lens aimed at you
+      M.align = ease(M.align ?? 0, attack?.id === 'chord' ? Math.min(1, k * 1.3) : 0, 4);
+      rings.forEach((r, i) => { r.rotation.z = M.spin * (i % 2 ? -1 : 1) * (0.6 + i * 0.25); r.rotation.x = lerp(0.6 + i * 0.9, 0, M.align); r.rotation.y = lerp(i * 1.1, 0, M.align); });
       veils.forEach((v, i) => { v.rotation.x = Math.sin(t * 1.3 + i) * 0.18 + speed * 0.05; });
       const calm = resolved ? 1 : meter;
       coreM.uniforms.uGlow.value = 0.35 + 0.5 * M.open * (0.6 + 0.4 * Math.sin(t * 9)) + 0.15 * calm;
@@ -333,7 +349,11 @@ export function mothModel({ fur = '#e9dff2', wing = '#d6c8e6', wing2 = '#b9a6d4'
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
     mouth, mouthR: 1.6, radius: 3.4, height: 3.4, bodyR: 2.2, touchR: 1.6,
-    body, wings, glowM, low: 0, flap: 0,
+    body, wings, glowM, low: 0, flap: 0, marks: { c: [0, 0.2, -0.3], r: [1.0, 0.95, 2.6] },
+    part(name, out, side = 1) {
+      if (name === 'wings') { const W = wings.find((w) => w.s === side && !w.back); return out.copy(W.w.localToWorld(_w.set(side * 4.2, 0.1, 0.2))); }
+      return null;
+    },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const asleep = state === 'sleep', weary = state === 'weary', resolved = state === 'resolved';
@@ -405,7 +425,13 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: false, hover: 3.5,
     mouth, mouthR: 1.4, radius: 3.0, height: 7, bodyR: 2.6, touchR: 1.0,
-    rig, neck, head, wings, glowM, spread: 0, raise: 0, lift: 0, pitch: 0, beat: 0,
+    rig, neck, head, wings, glowM, spread: 0, raise: 0, lift: 0, pitch: 0, beat: 0, marks: { c: [0, 4.4, 0], r: [2.3, 1.9, 3.4] },
+    part(name, out, side = 1) {
+      if (name === 'wings') { const W = wings.find((w) => w.s === side); return out.copy(W.w.localToWorld(_w.set(side * 5.8, 0, -1))); }
+      if (name === 'mouth') return out.copy(head.localToWorld(_w.set(0, -0.15, 3.6)));
+      if (name === 'feet') return out.copy(rig.localToWorld(_w.set(side * 1.0, 0.3, 0.9)));
+      return null;
+    },
     animate(dt, t, { state, attack, k = 0, meter = 0, phase = 0 }) {
       const id = attack?.id, struck = !!attack && k >= 1;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
@@ -418,6 +444,7 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
       else if (state === 'open') { spread = 1; raise = 0.35 + 0.08 * Math.sin(t * 14); neckK = -0.6; pitch = -0.15; beat = M.floats ? 0.6 : 0; }
       else if (id === 'buffet') { spread = 1; raise = struck ? -0.45 : 0.75 * k; pitch = struck ? 0.1 : -0.2 * k; beat = 0; }
       else if (id === 'stamp') { spread = 0.8; raise = 0.5; lift = struck ? 0 : 1.6 * k; pitch = struck ? 0.2 : -0.45 * k; }
+      else if (id === 'peck') { spread = 0.5; raise = 0.3; neckK = struck ? 1.1 : -0.6 * k; pitch = struck ? 0.25 : -0.15 * k; }
       else if (id === 'dive') { spread = 1; raise = struck ? -0.2 : 0.6; lift = struck ? -M.hover + 0.4 : 2.8 * k; pitch = struck ? 0.3 : -0.2; beat = struck ? 0 : 1; }
       M.spread = ease(M.spread, spread, 5); M.raise = ease(M.raise, raise, struck ? 14 : 5);
       M.lift = ease(M.lift, lift, struck ? 12 : 3); M.pitch = ease(M.pitch, pitch, 5); M.beat = ease(M.beat, beat, 3);
@@ -479,7 +506,7 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, rooted: true, reach,
     mouth, mouthR: 1.9, radius: 3.6, height: 6, bodyR: 2.8, touchR: 1.6,
-    H, upper, lower, beads, glowM, gape: 0, pitch: 0.6, turn: 0, head: at,
+    H, upper, lower, beads, glowM, gape: 0, pitch: 0.6, turn: 0, head: at, marks: { c: [0, 1.3, 0], r: [2.7, 1.8, 2.7] },
     animate(dt, t, { state, attack, k = 0, meter = 0 }) {
       const id = attack?.id, struck = !!attack && k >= 1;
       let gape = 0.12 + 0.06 * Math.sin(t * 2.2), pitch = 0.35, turn = 0, rate = 3.5;
@@ -490,9 +517,18 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
       else if (id === 'lunge') {
         if (!struck) { want.set(0, 9.6, -1.2); gape = 0.15 + 0.75 * k; pitch = -0.1; rate = 4; }
         else { want.set(0, 1.85, reach - 1.2); gape = 0; pitch = 0.05; rate = 16; }
+      } else if (id === 'snap') {
+        // a short snap: reared only half as high, struck only halfway out (the feint before the real lunge)
+        if (!struck) { want.set(0, 7.5, 0.5); gape = 0.15 + 0.6 * k; pitch = -0.05; rate = 5; }
+        else { want.set(0, 2.4, 6.5); gape = 0; pitch = 0.1; rate = 16; }
+      } else if (id === 'thrash') {
+        // the head pulled down into her leaves, then thrown up and round
+        if (!struck) { want.set(0, 2.6, 1.6); gape = 0.3 * k; pitch = 0.7; rate = 4; }
+        else { want.set(Math.sin(t * 9) * 4, 6, Math.cos(t * 9) * 4); gape = 0.5; pitch = 0.2; rate = 10; }
       } else if (id === 'sweep') {
-        if (!struck) { want.set(-5.5, 3.2, 3.5); gape = 0.6 * k; pitch = 0.2; turn = -0.9; rate = 4; }
-        else { want.set(5.5, 2.6, 3.5); gape = 0.1; pitch = 0.2; turn = 0.9; rate = 9; }
+        const sd = attack?.side ?? 1;
+        if (!struck) { want.set(-5.5 * sd, 3.2, 3.5); gape = 0.6 * k; pitch = 0.2; turn = -0.9 * sd; rate = 4; }
+        else { want.set(5.5 * sd, 2.6, 3.5); gape = 0.1; pitch = 0.2; turn = 0.9 * sd; rate = 9; }
       } else if (id === 'seed') {
         if (!struck) { want.set(0, 10.5, 0.2); gape = 0.2 + 0.5 * k; pitch = -1.15; rate = 3; }
         else { want.set(0, 10, 0.8); gape = 0.9; pitch = -0.9; rate = 8; }
@@ -586,7 +622,13 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const mouth = V(), _w = V();
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
-    head, body, vents, shutters, legs, eyeM, ventM, hatch, plume, open: 0, slump: 0, gait: 0, crown: 0,
+    head, body, vents, shutters, legs, eyeM, ventM, hatch, plume, open: 0, slump: 0, gait: 0, crown: 0, marks: { c: [0, 5, 0], r: [2.35, 1.7, 2.35] },
+    part(name, out, side = 1) {
+      if (name === 'eye') return out.copy(head.localToWorld(_w.set(0, 0, 1.25)));
+      if (name === 'head') return out.copy(head.localToWorld(_w.set(0, 1.3, 0)));
+      if (name === 'feet') return out.copy(legs[side > 0 ? 0 : 1 % legs.length].localToWorld(_w.set(0, -3.3, 2.6)));
+      return null;
+    },
     /** Where vent i is, in the world (a target each, for a guardian that wants them all hit at once). */
     vent(i, out = V()) { const a = (i / nV) * Math.PI * 2; return body.localToWorld(out.set(Math.sin(a) * 2.5, 0.4, Math.cos(a) * 2.5)); },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
@@ -606,6 +648,8 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       topVent.material.uniforms.uGlow.value = 0.15 + 0.85 * M.open * M.guard * (0.7 + 0.3 * Math.sin(t * 12));
       // the crown open (guarded and open): its hatch up, the glow rising out of it
       M.crown = M.open * M.guard;
+      // its flare (the third phase): the hatch rattles up and the vent's glow climbs out of it before it vents at the air over it
+      if (attack?.id === 'flare') M.crown = Math.max(M.crown, Math.min(1, k) * Math.max(M.guard, 0.6));
       hatch.visible = M.guard > 0.05; hatch.scale.setScalar(Math.max(0.3, M.guard));
       hatch.rotation.z = M.crown * 1.9 + (M.crown > 0.5 ? Math.sin(t * 17) * 0.05 : 0);
       plume.visible = M.crown > 0.05;
@@ -613,7 +657,7 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       // the damage shows: it leans, and its hull dulls toward soot
       body.rotation.x = meter * 0.12 * Math.sin(t * 0.7);
       legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
-      const blink = attack && attack.shape === 'lane' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.9;
+      const blink = attack && (attack.shape === 'lane' || attack.part === 'eye') ? 0.6 + 0.4 * Math.sin(t * (10 + 30 * Math.min(1, k))) : 0.9;
       eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.15) : blink;
       eyeM.uniforms.uColor.value.set(attack ? '#e0644a' : '#f6c84e');
       ventM.uniforms.uGlow.value = 0.2 + 0.8 * sideOpen * (0.7 + 0.3 * Math.sin(t * 12));
@@ -688,7 +732,12 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
   let race = 0, hourA = 0, minA = 0;
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 0.01, radius: 3.0, height: 8.5, bodyR: 2.4,
-    body, hands, hour, minute, lid, arms, legs, lampM, eyeM, open: 0, slump: 0, gait: 0, numbers: NUM,
+    body, hands, hour, minute, lid, arms, legs, lampM, eyeM, open: 0, slump: 0, gait: 0, numbers: NUM, marks: { c: [0, 4.4, 0], r: [2.7, 1.8, 2.7] },
+    part(name, out, side = 1) {
+      if (name === 'arms') return out.copy(arms[side > 0 ? 1 : 0].localToWorld(_w.set(side * 0.35, -2.75, 0.9)));
+      if (name === 'head') return out.copy(body.localToWorld(_w.set(0, 3.9, 0)));
+      return null;
+    },
     /** Where numeral lamp i is, in the world. */
     vent(i, out = V()) { const p = numAt(i); return body.localToWorld(out.set(p.x, p.y, p.z + 0.1)); },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
@@ -788,7 +837,11 @@ export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7
   const mouth = V(), _w = V();
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.6, radius: 4.4, height: 7, bodyR: 3.8, touchR: 1.4,
-    body, head, arms, legs, bloom, bareMesh, eyeM, kneel: 0, rear: 0, gait: 0,
+    body, head, arms, legs, bloom, bareMesh, eyeM, kneel: 0, rear: 0, gait: 0, marks: { c: [0, 3.4, 0], r: [4.0, 2.9, 3.7] },
+    part(name, out, side = 1) {
+      if (name === 'arms') return out.copy(arms[side > 0 ? 1 : 0].localToWorld(_w.set(side * 1.2, -3.6, 2.2)));
+      return null;
+    },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, struck = !!attack && k >= 1;
@@ -802,12 +855,15 @@ export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7
       head.rotation.x = M.kneel * 0.45 + Math.sin(t * 0.9) * 0.04;
       // the arms: one raised then swept across for the sweep; both dug in for the roots
       let lx = 0, rx = 0, rz = 0;
-      if (id === 'sweep') { rx = struck ? -0.6 : -1.6 * k; rz = struck ? 1.2 : -0.6 * k; }
+      let lz = 0;
+      if (id === 'sweep' && (attack?.side ?? 1) > 0) { rx = struck ? -0.6 : -1.6 * k; rz = struck ? 1.2 : -0.6 * k; }
+      if (id === 'sweep' && (attack?.side ?? 1) < 0) { lx = struck ? -0.6 : -1.6 * k; lz = struck ? -1.2 : 0.6 * k; }
       if (id === 'roots') { lx = rx = struck ? 0.9 : -1.2 * k; }
       if (state === 'open' || state === 'weary' || state === 'resolved') { lx = rx = 0.5; }
       arms[0].rotation.x = ease(arms[0].rotation.x, lx + Math.sin(t * 1.3) * 0.05, struck ? 12 : 5);
       arms[1].rotation.x = ease(arms[1].rotation.x, rx + Math.sin(t * 1.1 + 1) * 0.05, struck ? 12 : 5);
       arms[1].rotation.z = ease(arms[1].rotation.z, rz, struck ? 12 : 5);
+      arms[0].rotation.z = ease(arms[0].rotation.z, lz, struck ? 12 : 5);
       legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.2 * Math.min(1, speed); });
       // calmer: the bare patches close over, the flowers come up, its eyes go from ember to leaf
       M.bareMesh.scale.setScalar(Math.max(0.05, 1 - calm * 0.95));
@@ -869,7 +925,7 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
   const mouth = V(), _w = V();
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.4, radius: 3.4, height: 12, bodyR: 2.4,
-    body, head, legs, lampM, hornM, open: 0, slump: 0, gait: 0, pitch: 0.6,
+    body, head, legs, lampM, hornM, open: 0, slump: 0, gait: 0, pitch: 0.6, marks: { c: [0, 4.2, 0], r: [2.1, 0.9, 2.1] },
     animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, struck = !!attack && k >= 1;
@@ -888,7 +944,8 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
       M.pitch = ease(M.pitch, pitch, struck ? 14 : 3);
       head.rotation.set(M.pitch, ease(head.rotation.y, yaw, 3), 0);
       legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
-      const flash = id === 'cry' && !struck ? 0.4 + 0.6 * Math.max(0, Math.sin(t * 18)) : 0;
+      const flash = (id === 'cry' || id === 'beam') && !struck ? (0.4 + 0.6 * Math.max(0, Math.sin(t * (10 + 20 * k)))) * Math.min(1, 0.4 + k) : 0;
+      hornM.uniforms.uColor.value.set(attack && !struck ? '#ffd0a0' : '#f0a083');
       lampM.uniforms.uGlow.value = state === 'resolved' ? 0.9 : state === 'sleep' ? 0.08 : 0.25 + flash + 0.5 * M.open;
       hornM.uniforms.uGlow.value = state === 'resolved' ? 0.6 : 0.2 + 0.8 * M.open * (0.7 + 0.3 * Math.sin(t * 8));
       body.rotation.x = meter * 0.05 * Math.sin(t * 0.9);

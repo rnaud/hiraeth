@@ -39,13 +39,13 @@ test('the damage table: every foe and guardian attack in whole quarters, ordinar
   }
   assert.equal(FOES.blot.attacks.find((a) => a.id === 'lunge').damage, DAMAGE.blow, 'the ink blot\'s lunge: the baseline');
   assert.equal(FOES.machine.attacks.find((a) => a.id === 'slam').damage, DAMAGE.crushing, 'a machine\'s slam: a heart');
-  // the guardians' strikes: three quarters to a heart
+  // the guardians' strikes: half a heart (a combo's link, a volley's shard) to a heart
   const dir = new URL('../src/temples/', import.meta.url);
   let n = 0;
   for (const f of readdirSync(dir).filter((x) => x.endsWith('.js'))) {
-    for (const m of src(`src/temples/${f}`).matchAll(/telegraph: [\d.]+,[^}]*?damage: ([\d.]+)/g)) {
+    for (const m of src(`src/temples/${f}`).matchAll(/wind: [\d.]+,[^}]*?damage: ([\d.]+)/g)) {
       const d = +m[1]; n++;
-      assert.ok(d >= DAMAGE.heavy && d <= DAMAGE.crushing && d * 4 === Math.round(d * 4), `${f}: a guardian strike of ${d} hearts`);
+      assert.ok(d >= DAMAGE.blow && d <= DAMAGE.crushing && d * 4 === Math.round(d * 4), `${f}: a guardian strike of ${d} hearts`);
     }
   }
   assert.ok(n >= 30, `every guardian's strikes read (${n})`);

@@ -84,15 +84,21 @@ export const GARDENER = {
   openHint: 'It kneels, heaving, its bare back to the glass. Nothing grows on it.',
   weary: 'It lies down among the beds, flowering all over, breathing slow. Go to it.',
   resolved: 'The Gardener sighs, a long sigh that smells of rain, and closes its eyes. All round the glasshouse, everything begins to grow.',
+  missHint: 'Its root-claws are sunk in the floor: it kneels, heaving, and pulls at them, its bare back to the glass.',
   phases: [
-    { to: 0.4, attacks: ['sweep', 'stamp'], pause: 1.7, hint: 'It tramples the dead beds round the walls. Bloom them.' },
-    { to: 0.9, attacks: ['roots', 'sweep', 'stamp'], pause: 1.3, hint: 'Its eyes are greener. When it kneels, bloom its bare back.' },
+    { to: 0.4, attacks: ['sweep', 'stamp', 'clods'], pause: 1.7, hint: 'It tramples the dead beds round the walls. Bloom them.' },
+    { to: 0.7, attacks: ['sweep', 'roots', 'stamp'], pause: 1.3, hint: 'Its eyes are greener, and it digs its claws in to send roots at you. When it kneels, bloom its bare back.' },
+    { to: 0.9, attacks: ['crush', 'clods', 'sweep'], pause: 1.1, hint: 'Moss tears from it in clumps, its glyph veins lit. When it kneels, bloom its back.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
-    sweep: { shape: 'cone', range: 11, angle: 0.75, telegraph: 1.4, damage: 0.75, knock: 11, recover: 0.9 },
-    stamp: { shape: 'ring', at: 'self', radius: 7.5, telegraph: 1.5, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
-    roots: { shape: 'ring', at: 'player', radius: 3.8, telegraph: 1.8, track: 0.6, damage: 0.75, knock: 9, recover: 1.0, open: 3.2 },
+    sweep: { shape: 'cone', range: 11, angle: 0.75, wind: 1.2, track: 0.6, part: 'arms', rig: 'coil', side: 1, damage: 0.75, knock: 11, recover: 0.9, then: 'sweepL' },
+    sweepL: { shape: 'cone', range: 11, angle: 0.75, wind: 0.75, track: 0.5, part: 'arms', rig: 'coil', pose: 'sweep', side: -1, link: true, damage: 0.75, knock: 11, gap: 0.2, then: 'stampEnd' },
+    stamp: { shape: 'ring', at: 'self', radius: 7.5, wind: 1.4, part: 'feet', rig: 'rear', wave: { speed: 8, reach: 15, width: 0.7, damage: 0.5 }, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
+    stampEnd: { shape: 'ring', at: 'self', radius: 7.5, wind: 1.2, part: 'feet', rig: 'rear', pose: 'stamp', link: true, damage: 1, knock: 10, recover: 1.0, open: 3.2 },
+    roots: { shape: 'lane', range: 16, width: 3, wind: 1.4, track: 0.6, part: 'arms', rig: 'crouch', damage: 0.75, knock: 9, recover: 1.0, miss: 2.8 },
+    clods: { shape: 'ring', at: 'player', lob: true, volley: 1, radius: 3, wind: 1.4, track: 0.6, part: 'arms', rig: 'lean', pose: 'sweep', damage: 0.75, knock: 8, recover: 0.8 },
+    crush: { shape: 'cone', range: 8, angle: 0.9, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', pose: 'roots', damage: 1, knock: 11, recover: 0.8, miss: 3.0 },
   },
 };
 
