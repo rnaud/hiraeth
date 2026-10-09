@@ -250,7 +250,15 @@ const VINE_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = w
   for (const [i, g] of w.gates.entries()) { if (i === w.gates.length - 1) window.minigame.clock = ${time}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(1, 0, 0)); await wait(700); }
   await wait(2600);`;
 const SAVE_ECHO = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.echo': true, 'items.v': 2 }, keepsakes: [] };
-const SAVE_BLOOM = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
+/** A makers' run with bell-tuned pieces played through: every bridge and the door rung down (rt.lit, as their ears do), the gates walked. */
+const BELL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const b of w.course.bells) w.course.rt.lit.add(b.id);
+  w.course.rt.lit.add(w.course.door.id + '.bell'); await wait(800);
+  for (const [i, g] of w.gates.entries()) { if (i === w.gates.length - 1) window.minigame.clock = ${time}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  await wait(2600);`;
+const SAVE_BELL = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.bell': true, 'items.v': 2 }, keepsakes: [] };
+const SAVE_BLOOM ={ flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
 
 export const CHANGELOG_MEDIA = {
   '1.4': [
@@ -295,6 +303,15 @@ export const CHANGELOG_MEDIA = {
           setup: `const w = window.trials.byId('kit-edena'), wait = (ms) => new Promise((r) => setTimeout(r, ms)); for (const v of w.course.vines.slice(0, 2)) v.seed.hit('bloom'); await wait(3500);` } },
       { name: 'vine-walk-results', only: 'after', caption: 'The Vine walk finished: the time, the makers’ mark, and a word from Mira, who keeps the water clock', commit: '7f245a39',
         view: { level: 'edena', hud: true, hour: 10, save: SAVE_BLOOM, player: [55, -3.1, 1], setup: VINE_THROUGH('kit-edena', 24.9), wait: 600 } },
+    ] },
+    { match: 'And one in the Sky Stones, the Bell crossing', shots: [
+      { name: 'bell-crossing', caption: 'The Bell crossing off the south rim of the Sky Stones’ starting plateau: four stone decks floating in a line over the sea of cloud, a bell on a post at each gap’s edge, the stones of each bridge hanging high over its gap, and the wall with the bell-tuned door on the last deck', commit: 'a443e0fb',
+        view: { level: 'arzach2', save: SAVE_BELL, player: [-3, 40.6, 80], heading: 0, eye: [-34, 50, 98], target: [0, 39, 126], fov: 55, wait: 3000 } },
+      { name: 'bell-crossing-stones', only: 'after', caption: 'The Bell crossing: the whistle sounded by the first bell, and the fallen-up stones coming down into a bridge across the gap', commit: 'a443e0fb',
+        view: { level: 'arzach2', save: SAVE_BELL, player: [-3, 40.6, 80], heading: 0, eye: [5.5, 43.5, 88], target: [0, 41, 104], fov: 55, wait: 400,
+          setup: `const w = window.trials.byId('kit-arzach2'), wait = (ms) => new Promise((r) => setTimeout(r, ms)); await wait(2500); w.course.rt.lit.add('stones1'); await wait(1100);` } },
+      { name: 'bell-crossing-results', only: 'after', caption: 'The Bell crossing finished: the time, the makers’ mark, and a word from Sister Aube, the hermit of the edge', commit: 'a443e0fb',
+        view: { level: 'arzach2', hud: true, hour: 10, save: SAVE_BELL, player: [-3, 40.6, 80], setup: BELL_THROUGH('kit-arzach2', 24.8), wait: 600 } },
     ] },
   ],
   '1.3': [
