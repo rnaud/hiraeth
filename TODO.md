@@ -16,13 +16,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Playtest notes (2026-10-08)
 
-## Characters and animation
-
-- [ ] Characters' waving looks wrong; something is off in the animation.
-- [ ] The main character has an animation where his mouth opens wide and his neck moves strangely.
-- [ ] Brushing past people feels odd: they just shift in place.
-- [ ] When told to look into the well, the character looks the other way.
-
 ## Shadows and visuals
 
 - [ ] Marrow casts a white shadow towards the ship during dialogue.

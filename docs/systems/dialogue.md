@@ -142,7 +142,10 @@ cheapest wins. `Dialogue.frameCamera` asks again every 0.6 s (people walk into s
 change is eased, a new angle is a cut (never a swing round the pair; docs/systems/conversations.md), and pulls the camera in along a line it was scored on if something still
 cuts it. A thing whose `at` is only where you stand (the foot of the stone hand) passes the
 part to look at as `dialogue.start(def, null, at, look)`. While a conversation is open
-`player.faceToward` turns the traveller to the person or the thing.
+`player.faceToward` turns the traveller to the person or the thing (to `look` when there is one, else
+to `at`: so a thing asked from a spot beside it must pass its `look`, or he turns to that spot. Qanat's
+well is asked from the terrace 3.4 m out from its middle; standing between there and the rim he turned
+his back on it. It passes `wellInside`, down the shaft: `tests/desert-story.test.js`).
 
 ## The speaker's portrait, and when it comes back empty (October 2026)
 

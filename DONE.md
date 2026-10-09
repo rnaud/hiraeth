@@ -1218,3 +1218,27 @@ tests/sound-mix.test.js holds them.
   charge until the strike, sounds from the scar with the ship's "magnetic signature" line, comes from an
   unopened makers' box within 45 m every 8–12 s, and plays softly (once per 24 s) when a line, balloon,
   toast or subtitle mentions humming. About -34 dB, a footstep's loudness. tests/hum.test.js.)
+
+## Playtest notes (2026-10-08): characters and animation
+
+- [x] Characters' waving looks wrong. (src/npc.js set the arm's and forearm's Euler angles outright: the
+  arm shot up past the head, the forearm bent about its own x, which with the arm up swung the hand to
+  the face and back, and the arm snapped from the clip's pose at the start and the end. Now src/wave.js
+  layWave: the upper arm out to the side and a little forward, the elbow about at the shoulder, the
+  forearm up and swinging side to side, every joint slerped from the clip's pose by an eased weight.
+  tests/wave.test.js. Checked in headless Chrome on Qanat's people.)
+- [x] The main character's mouth opens wide and his neck moves strangely. (The captured looking-about
+  idles: Animator.apply turns the rig's head to the clip's Head as read in the world, which carries the
+  chest's and neck's twist our chest doesn't take, so the skull turned 105-107° on the neck, the jaw
+  into the shoulder and the face stretched over it, and dropped 30° on a neck bent 46°, chin in the
+  collar. limitHeadTurn eases the head's turn on the neck under HEAD_TURN (60° about it, 24° off it).
+  tests/head-turn.test.js plays the shipped traveller through all three idles.)
+- [x] Brushing past people feels odd: they just shift in place. (Standing crowd people slid off their spot
+  at up to 2-3 m/s, straight back from you, the forward walk playing as the body went sideways. Now
+  crowd.js ASIDE: at most 1.1 m/s, out of your path to their side (from your own movement), and the near
+  tier's body plays the captured sidestep or step back for it (NPC.sidestep) under a calm standing upper
+  body, the cloth told the way they really go. tests/close-contact.test.js. Checked in the Signal Market.)
+- [x] When told to look into the well, the character looks the other way. (The well's prompt is asked
+  from a spot on the terrace 3.4 m from its middle, and with no `look` the traveller turned to that spot:
+  standing between it and the rim, his back to the well. It now looks at wellInside, down the shaft.
+  tests/desert-story.test.js.)

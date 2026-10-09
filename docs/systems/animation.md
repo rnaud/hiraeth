@@ -357,6 +357,13 @@ layers as they were). Strips of each are made on the Motion page (`motionPage.sh
   then its breathing idle, then the library's look-around, 10 s apart, above the legs (`legs:
   false`), the head's own turn kept and the idle layer's glances eased off meanwhile;
   `tests/idle-legs.test.js` stands him 36 s with them: no twitch, no step, the balls within 3 mm.
+  The head's own turn is held within a neck's reach (`HEAD_TURN`, `limitHeadTurn`: 60° about the
+  neck, 24° off its line, approached smoothly): the clip's head is read in the world, so it carries
+  the chest's and the neck's twist, which our chest and neck (following only the spine's and neck's
+  lines) don't take; in the looking about the whole of it landed on the skull, 105° round on the neck
+  (the jaw into the shoulder, the face stretched: "his mouth opens wide and his neck moves strangely"),
+  and 30° down on a neck already bent 46°. `tests/head-turn.test.js` plays all three idles: the face
+  stays under 80° from the chest.
 - **Gestures** (`Player.gesture(kind)`; `src/interact.js` `gestureOf`): using something whose prompt
   picks up or takes something under 1.1 m over the feet kneels (Mixamo's kneeling inspection, the
   feet let go to follow it, `play` `free`), *pet* kneels and lays the petting's reaching arm over it
@@ -561,3 +568,23 @@ last displayed pose over 90 ms when a combat clip changes or releases control. G
 remain upper-body. Clip weights ease in/out and the existing foot contacts place grounded feet. This
 works with default blended locomotion and the optional matcher; it does not change the matcher default
 or claim to fix the speed/database mismatch measured above.
+
+## People greeting you and getting out of your way (October 2026)
+
+- **The wave** (`src/wave.js` `layWave`, from `NPC.pose`): for `WAVE.dur` (2.2 s) after someone greets
+  you, their left arm comes out to the side and a little forward (`lift` 1.95 rad from hanging: the
+  elbow about at the shoulder), the forearm stands up from it and swings side to side across the front
+  (`fore` ± `sway` at `rate` 2.3 Hz), each joint slerped from wherever the clip had it by an eased weight
+  (`waveWeight`: in over 0.35 s, out over 0.45). It used to set the Euler angles outright: the arm up
+  past the head, the forearm bending about its own x, which with the arm raised swung the hand toward
+  the face and back, and a snap to hanging at the first frame. `tests/wave.test.js`.
+- **Stepping aside** (`crowd.js` `ASIDE`, `stepSide`; `NPC.sidestep`): a standing crowd person within
+  1.25 m of their spot steps off it (at most 1 m) at no more than 1.1 m/s, and with you walking past,
+  70 % of the way is out of your path to their side (your movement read from your place frame to
+  frame) rather than straight back from you. Their step in their own frame (`p.stepDir`: left, right,
+  back) has the near tier's body play the traveller's captured sidesteps or step back (`LOCK_MOVE`),
+  their time following the ground covered, under Mixamo's breathing idle above the legs (the steps were
+  captured with sword and shield: their raised arms threw the cape over the shoulders), and the cloth
+  is told the way they really go. They used to slide at up to 2-3 m/s with the forward walk playing.
+  `tests/close-contact.test.js`.
+

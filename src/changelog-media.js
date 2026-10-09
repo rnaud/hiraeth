@@ -226,6 +226,18 @@ export const CHANGELOG_MEDIA = {
     { match: 'The galactic map charts only finished worlds', see: 'Open the galactic map at the ship’s holo table: the route’s worlds and Home are there, the detours off the route are not. The Debug worlds list still opens them.' },
     { match: 'Every setting works on a controller', see: 'With a controller, open the Settings (Menu), move down to Graphics and press A / ×: the row turns red and the dropdown yellow; press down twice and A / × to keep it, or B / ○ to leave it as it was.' },
     { match: 'The language no longer changes by itself', see: 'With a controller, open the Settings and hold right from the menu’s last button: the focus stops on Language and it stays English. Press A / ×, down, A / × to switch it.' },
+    { match: 'People wave properly when they greet you', shots: [
+      { name: 'wave', caption: 'A baker in Qanat waving as you come near, 0.7 to 1.2 s into the greeting', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ] },
+    { match: 'The traveller no longer wrings his neck', shots: [
+      { name: 'head-turn', caption: 'Standing still, the captured looking-about idle at its widest turn (10.9 to 11.7 s)', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ] },
+    { match: 'People standing in a crowd step out of your way', shots: [
+      { name: 'brush-past', caption: 'Walking past a group in the Signal Market, 0.5 m from one of them, at 1.4 m/s', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ], see: 'In the Signal Market, walk straight through a group standing together: each steps aside or back with their feet, and returns.' },
+    { match: 'Looking into the dry well in Qanat', shots: [
+      { name: 'well-look', caption: 'Asking to look into the well from between the rim and the terrace beside it', from: 'headless Chrome against this branch’s own dev server, before with the commit’s earlier files, High (9 October)' },
+    ] },
   ],
   '0.99': [
     { match: 'You can choose your own keys', shots: [

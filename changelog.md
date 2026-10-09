@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- Looking into the dry well in Qanat, the traveller now faces the well and looks down into it, instead of turning his back on it.
+- People standing in a crowd step out of your way when you brush past: a step to the side or back, at a walking pace, feet moving, half turned to you, then back to their place, instead of sliding off their spot.
+- The traveller no longer wrings his neck when he looks about while standing: his head turns over his shoulder as far as a neck goes, instead of nearly backwards with his jaw sunk into his shoulder.
+- People wave properly when they greet you: the arm comes out to the side with the hand up and waving side to side, eased in and out, instead of a stiff arm shot straight up and snapping back.
 - The Steam Deck no longer hangs on “mixing the inks…”: a graphics driver that never says when it has finished its work no longer holds the loading screen up, and every world loads in seconds again.
 - The language no longer changes by itself on a controller: holding right into the Settings stops on the first setting, and the Language dropdown changes only once opened with A / ×.
 - Every setting works on a controller: A / × opens a dropdown, the D-pad or stick goes through its choices, A / × keeps one and B / ○ leaves it as it was; left and right still change dropdowns and sliders.
