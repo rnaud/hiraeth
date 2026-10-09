@@ -1,0 +1,25 @@
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_4fcd2c0d5bd815 162-176
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_8df2fb12981be3 159-164,451,478,511-513
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_e4984173aed2dd 543
+tests/cutscenes.test.js
+  s_9ca76055a220ed::t_d5815dfe00a1c0 13-14,231-256
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "beacf96fb40be5a0449dd4b78bda95ca3a40bb5e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
