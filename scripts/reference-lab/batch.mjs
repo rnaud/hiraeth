@@ -190,6 +190,15 @@ export function pick({ root, batch, candidate, target = null, why = '', now = Da
   if (!to) throw new Error('no target folder: give --target references/…/');
   const dir = join(root, to);
   mkdirSync(dir, { recursive: true });
+  const mf0 = join(dir, 'manifest.json');
+  const again = existsSync(mf0) && JSON.parse(readFileSync(mf0, 'utf8')).sheets?.find((s) => s.batch === batch && s.candidate === c.id);
+  if (again) {   // (picked twice: one sheet, the newer reason kept)
+    const manifest = JSON.parse(readFileSync(mf0, 'utf8'));
+    const entry = manifest.sheets.find((s) => s.batch === batch && s.candidate === c.id);
+    if (why) entry.why = why;
+    writeJson(mf0, manifest);
+    return { file: `${to}${entry.file}`, manifest: `${to}manifest.json`, entry, again: true };
+  }
   const ext = c.file.split('.').pop() === 'jpeg' ? 'jpg' : c.file.split('.').pop();
   const file = `sheet-${nextSheet(dir)}.${ext}`;
   copyFileSync(join(batchDir(root, batch), c.file), join(dir, file));

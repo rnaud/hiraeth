@@ -290,6 +290,8 @@ test('a batch: every provider at once, one failing without stopping the others, 
   assert.equal(p1.file, 'references/enemy-archetypes/crab/sheet-1.jpg');
   const p2 = pick({ root, batch: 'b1', candidate: 'openai/1' });
   assert.equal(p2.file, 'references/enemy-archetypes/crab/sheet-2.jpg');
+  const p3 = pick({ root, batch: 'b1', candidate: 'openai/1', why: 'on second thought' });
+  assert.ok(p3.again && p3.file === p2.file, 'picked twice: one sheet, the reason updated');
   const mf = JSON.parse(readFileSync(join(root, 'references/enemy-archetypes/crab/manifest.json'), 'utf8'));
   assert.equal(mf.archetype, 'crab');
   assert.equal(mf.sheets.length, 2);
