@@ -1,0 +1,39 @@
+docs/systems/ui.md
+  s_9ca76055a220ed::t_06bd51351d0abc 145-155,185-195,213-219
+scripts/title-shots.mjs
+  s_9ca76055a220ed::t_04fb2b1f40c640 144
+src/menus.css
+  s_9ca76055a220ed::t_0d4395952f00a7 203-207,209-211,213-215,217-221,224-242,315,318
+src/title-layout.js
+  s_9ca76055a220ed::t_df1ac3e8f7f6b8 2-7,9,17-19,22-23,25,28-31,34,49-69,80-81
+src/title-shots.js
+  s_9ca76055a220ed::t_72c906a6400c42 19-20
+src/title-world.js
+  s_9ca76055a220ed::t_165fcd0dab3096 26-27,460-487,506,527-529
+src/title.js
+  s_9ca76055a220ed::t_bfccbfa975e12a 12-14,17-18,23,42-55,164-167,198-206,209-210,217,322-335
+tests/first-run.test.js
+  s_9ca76055a220ed::t_793ce22a1ea270 53
+tests/menus-settings.test.js
+  s_9ca76055a220ed::t_89fcb0780e7ba6 175
+tests/title-layout.test.js
+  s_9ca76055a220ed::t_70d945cda66f54 5,14,17-19,22,26,29-40,46-50,58-69,72-80,84,91-92
+tests/title-world.test.js
+  s_9ca76055a220ed::t_0536c8eba85343 6-7,85-90,95-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34be9ca0d7e76df919853132f456ac2bd228843d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
