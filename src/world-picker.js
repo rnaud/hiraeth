@@ -107,7 +107,7 @@ export async function showWorldsOnly(doc = document, win = window) {
     context: () => 'menu',
     look: () => {}, faces: () => padFaces(),
     activity: () => doc.body.classList.add('controller'),
-    navigate: (x, y) => menuNavigate(picker, x, y),
+    navigate: (x, y, fresh) => menuNavigate(picker, x, y, fresh),
     scroll: (amount) => { picker.scrollTop += amount; },
     action: (name) => {
       if (name === 'back' || name === 'start' || name === 'select') toTitle();

@@ -24,6 +24,7 @@
 // printed letter with Nintendo labels (Android, the Retroid: 0 is A on the right)
 // is moved to positions first (faces().byLabel, see native-pad.js padFaces).
 import { controlPrefs, currentPadMap, capturingPad, padCaptured, IDENTITY } from './remap.js';
+import { padDirection } from './menu-pad.js';
 
 export const SOUTH = 0, EAST = 1, WEST = 2, NORTH = 3;
 const LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11, UP = 12, DOWN = 13, LEFT = 14, RIGHT = 15;
@@ -115,7 +116,7 @@ export class Controller {
       const direction = y ? `y${y}` : x ? `x${x}` : '';
       this.repeat -= dt;
       if (direction && (direction !== this.direction || this.repeat <= 0)) {
-        this.navigate(y ? 0 : x, y); this.repeat = direction === this.direction ? 0.14 : 0.4;
+        this.navigate(y ? 0 : x, y, direction !== this.direction); this.repeat = direction === this.direction ? 0.14 : 0.4;   // (fresh: a new push, not the held one repeating)
       }
       this.direction = direction;
       if (right.y) this.scroll(right.y * dt * 650);
@@ -231,18 +232,18 @@ export function mergeControls(keyboard, gamepad) {
   return merged;
 }
 
-export function menuNavigate(root, x, y) {
+/**
+ * A direction in a menu (`fresh`: a new push, not a held one repeating; the keyboard's are always new).
+ * Left / right change a slider or a dropdown, up / down move, and an open dropdown goes through its choices
+ * (src/menu-pad.js: never the push that landed on a control, the language only once opened with A).
+ */
+export function menuNavigate(root, x, y, fresh = true) {
   // (and anything marked data-nav: the quests in the menu's quest log, chosen to track one)
   const elements = [...root.querySelectorAll('button, a[href], input, select, [data-nav]')].filter(e => !e.disabled && e.getClientRects().length);
   if (!elements.length) return;
   const current = document.activeElement;
-  if (x && root.contains(current) && (current.type === 'range' || current.tagName === 'SELECT')) {
-    if (current.type === 'range') current.value = Math.max(+current.min, Math.min(+current.max, +current.value + x * (+current.step || 1)));
-    else current.selectedIndex = Math.max(0, Math.min(current.options.length - 1, current.selectedIndex + x));
-    current.dispatchEvent(new Event('input', { bubbles: true }));
-  } else {
-    const index = elements.indexOf(current);
-    const next = elements[index < 0 ? 0 : (index + (y || x) + elements.length) % elements.length];
-    next.focus(); next.scrollIntoView({ block: 'nearest' });
-  }
+  if (padDirection(root.contains(current) ? current : null, x, y, fresh)) return;
+  const index = elements.indexOf(current);
+  const next = elements[index < 0 ? 0 : (index + (y || x) + elements.length) % elements.length];
+  next.focus(); next.scrollIntoView({ block: 'nearest' });
 }

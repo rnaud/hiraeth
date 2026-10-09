@@ -8,6 +8,7 @@ import { devMode } from './dev-gate.js';
 import { t, setLanguage, onLanguage, LANGUAGES } from './i18n.js';
 import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts, padFor, padConflicts, captureKey, capturePad, RESERVED_KEYS } from './remap.js';
 import { setMotion } from './feel.js';
+import { padCancel } from './menu-pad.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -276,7 +277,7 @@ export class SettingsMenu {
           <h1>${t('set.title')} <span>v${VERSION}</span></h1>
           ${isNativeApp || isDeckApp ? '<section class="updates" hidden></section>' : ''}
           <h2>${t('set.group.screen')}</h2>
-          ${row(t('set.lang'), `<select data-k="lang">${Object.entries(LANGUAGES).map(([id, l]) => `<option value="${id}">${l.name}</option>`).join('')}</select>`)}
+          ${row(t('set.lang'), `<select data-k="lang" data-pad="open">${Object.entries(LANGUAGES).map(([id, l]) => `<option value="${id}">${l.name}</option>`).join('')}</select>`)}
           ${row(t('set.quality'), opts('quality', ['auto', 'handheld', 'deck', 'low', 'medium', 'high']))}
           ${row(t('set.textSize'), opts('textSize', Object.keys(TEXT_SIZES)))}
           ${row(t('set.speechBg'), `<input data-k="speechBg" type="checkbox">`)}
@@ -351,11 +352,12 @@ export class SettingsMenu {
     this.el.querySelector(`.panel[data-page="${name}"]`)?.scrollTo?.(0, 0);
   }
   /**
-   * Back (B / ○, Esc): first out of the "start over?" question, then out of the menu, whatever
+   * Back (B / ○, Esc): first out of an open dropdown (src/menu-pad.js), then out of the "start over?" question, then out of the menu, whatever
    * page it shows (the pages are side by side, not one inside another: B closes the menu).
    */
   back() {
     const ask = this.el.querySelector('.ask');
+    if (padCancel()) return;   // (an open dropdown first: its old choice back, src/menu-pad.js)
     if (ask && !ask.hidden) this.askReset(false);
     else this.toggle(false);
   }
@@ -371,6 +373,7 @@ export class SettingsMenu {
       this.updates?.open();
     } else {
       this.stopRebind?.();
+      padCancel();   // (a dropdown left open: as it was)
       this.updates?.close();
       if (this.el.contains(document.activeElement)) document.activeElement.blur();
     }

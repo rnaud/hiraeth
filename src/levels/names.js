@@ -37,5 +37,14 @@ export const TITLES = {
 export const ORDER = ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar'];
 // the worlds off the route: on the ship's map from the start, never needed on the way home (no story to follow)
 export const SIDE = ['mangrove', 'glassdunes', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity', 'overnighttrain'];
+// the worlds still being made: built in a rush in October 2026 and never vetted or finished. The galactic
+// map leaves them off (CHARTED_SIDE) and the Sightings page leaves their slots out; the worlds list (Debug)
+// and the dev menu still open them, and ?level=<id>. A world leaves this list once it has been played
+// through and signed off, and it is charted on the map from then on.
+export const WIP = ['mangrove', 'glassdunes', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity', 'overnighttrain'];
+/** Is this world still being made (not shown to players)? */
+export const isWip = (id) => WIP.includes(id);
+// the detours a player sees on the galactic map: the ones off the route that are finished
+export const CHARTED_SIDE = SIDE.filter((id) => !isWip(id));
 // a world that follows another's story is only charted once that one is done (Vael II: the bird's promise)
 export const AFTER = { arzach2: 'arzach' };

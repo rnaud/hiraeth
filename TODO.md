@@ -61,12 +61,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 - [ ] No invisible enemies.
 - [ ] The knuckles riddle (which to shoot first) is unclear: how is the player meant to solve it?
 
-## Menus and settings
-
-- [ ] The galactic map lists the WIP levels that were never vetted or finished.
-- [ ] Dropdown values in Settings can't be changed with a controller.
-- [ ] The language switched to French and the debug menu disappeared.
-
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.

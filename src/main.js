@@ -4,6 +4,7 @@ import { updateHazards } from './hazards.js';
 import * as THREE from 'three';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
+import { padConfirm } from './menu-pad.js';
 import { PAD_SCHEME, PAD_SCHEME_KEY, PAD_SCHEME_NOTE } from './bindings.js';
 import { installNativePad, watchLabels, setFaces, padFaces, confirmKey, backKey } from './native-pad.js';
 import { installAppShell, markBooted } from './native-app.js';
@@ -1117,7 +1118,7 @@ const controller = new Controller({
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { controllerActive = true; screenInput = false; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
-  navigate: (x, y) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y); },
+  navigate: (x, y, fresh) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
   scroll: amount => { if (changelog.pad('scroll', amount)) return; const root = menuRoot(); (root.querySelector('.list, .panel:not([hidden]), .sheet') ?? root).scrollTop += amount; },
   action: (name, dt) => {
     if (changelog.pad(name)) return;   // (the interactive changelog over the game takes the controller: src/changelog.js)
@@ -1137,7 +1138,7 @@ const controller = new Controller({
       else if (root === journal.el) journal.menu.confirm();
       else if (root.contains(document.activeElement)) {
         const el = document.activeElement;
-        if (el.tagName !== 'SELECT' && el.type !== 'range') el.click();
+        if (!padConfirm(el)) el.click();   // (a dropdown opens, then keeps the choice shown: src/menu-pad.js)
       }
       else menuNavigate(root, 0, 1);
     }

@@ -1138,3 +1138,19 @@ tests/sound-mix.test.js holds them.
   turns it into the surface (`footSurface`: built → stone), and steps and landings play it. Sampled over
   a 240 m square round each spawn, the grassy worlds read 0.4–26 % stone, the desert all sand.)
 
+## Playtest notes (2026-10-08): menus and settings
+
+- [x] The galactic map lists the WIP levels that were never vetted or finished. (The twelve detours built
+  in October 2026 are listed in `WIP` (src/levels/names.js); the ship's map gets `CHARTED_SIDE`, the
+  detours minus `WIP` (none for now), and the Sightings page leaves their slots out. The worlds list
+  (L, Debug), the dev menu and `?level=` still open them; taking a world out of `WIP` charts it.)
+- [x] Dropdown values in Settings can't be changed with a controller. (src/menu-pad.js: A / × opens a
+  dropdown, the D-pad or stick goes through its choices, A / × keeps one, B / ○ puts the old one back;
+  left / right still step dropdowns and sliders. Checked end to end with a simulated pad on the title.)
+- [x] The language switched to French and the debug menu disappeared. (French: holding → from the
+  menu's last button stepped onto Language, the first setting, and the same push, repeating, changed
+  it; now a control never changes with the push that landed on it, and Language only changes once
+  opened with A. Nothing read the device's language. The debug entries had been hidden
+  from players that same day (src/dev-gate.js: a dev build, ?dev=1 or Settings → Developer panel); with
+  one of those on they stay through a change of language, title and Start menu (tested in a player's
+  build), and they were never keyed on English words. They are shown to everyone for now (ALWAYS_DEV).)
