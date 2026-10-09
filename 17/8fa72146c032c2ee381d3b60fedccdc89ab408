@@ -1,0 +1,31 @@
+docs/systems/reference-lab.md
+  s_9ca76055a220ed::t_e4732652bb2e91 79-80,107
+scripts/gen-reference.mjs
+  s_9ca76055a220ed::t_1efe446b182057 20,49,99
+scripts/reference-lab/batch.mjs
+  s_9ca76055a220ed::t_fb2a4257a05a32 18,56,69
+scripts/reference-lab/providers/index.mjs
+  s_9ca76055a220ed::t_95740617795d84 9-11
+src/reference-lab/view.js
+  s_9ca76055a220ed::t_8dcfa59dd310a4 133-135
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_00627671e5c6bb 19,509-510
+docs/design/chime-prompts.md
+  s_9ca76055a220ed::t_99e1adc4cffe6c 1-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "178fa72146c032c2ee381d3b60fedccdc89ab408",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
