@@ -1,0 +1,269 @@
+.claude/skills/procedural-animation/SKILL.md
+  s_9ca76055a220ed::t_3b0d99c1450a0d 1-114
+.claude/skills/visual-audit/SKILL.md
+  s_9ca76055a220ed::t_fcd1c682b9db41 25,33-39
+AGENTS.md
+  s_9ca76055a220ed::t_1d96201fdb271f 1-12
+CLAUDE.md
+  s_9ca76055a220ed::t_3be953b5a6ad61 38-40
+DONE.md
+  s_9ca76055a220ed::t_474b3e02004f31 1594-1750
+LORE.md
+  s_9ca76055a220ed::t_8e15ad932b5237 21,36-41,165-176,220,282,289-290,299-300,302,308,314-315,317-319,324,328,334-335,338-339,341-342,457-465,479,500-504,792,797,843,918,939-942,1050-1062
+TODO.md
+  s_9ca76055a220ed::t_9b132dbeccd111 11-43,65-87,148-179,270-271,275-278,282-284
+changelog.md
+  s_9ca76055a220ed::t_256da1369c9cd7 13-19
+docs/README.md
+  s_9ca76055a220ed::t_633dbb293763cb 27-28,41
+docs/design/enemy-roster-prompts.md
+  s_9ca76055a220ed::t_6201d6ecefbf67 1-393
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_49db5580ff0387 1-881
+docs/game-brief.md
+  s_9ca76055a220ed::t_f7a15b28acd01b 23-26,28,109,121-122
+docs/story-bible.md
+  s_9ca76055a220ed::t_7cf0619a39e556 27-28,31,33,40-43,46,50-51,78-79,166-170,200-206,220,312,330,357,363,426-433,456-457,587
+docs/systems/audio.md
+  s_9ca76055a220ed::t_b3ef421465730a 26-27,36-82
+docs/systems/cinematics-qc.md
+  s_9ca76055a220ed::t_7c12fab6f0f27f 136-154,164
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_622b72237272f5 31,47,49-85,88,90
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_cb8c39720aa96d 1-426
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_fea7a02fa42db6 529-557
+docs/systems/story.md
+  s_9ca76055a220ed::t_377d1db3e79137 107,155,165-171,182,187-189,266,306-309,313-315,612,614,737-752
+index.html
+  s_9ca76055a220ed::t_1dd8bf31344409 284-286
+lore/characters/family.md
+  s_9ca76055a220ed::t_a9ea2f86efdf88 59,72,121
+lore/characters/worlds.md
+  s_9ca76055a220ed::t_52fe3db5a3f89f 177
+lore/continuity.md
+  s_9ca76055a220ed::t_9664665ba85485 15-16,20,26-34,36-37,65-68
+lore/plot-review.md
+  s_9ca76055a220ed::t_fcbed0e70b3603 106
+lore/voice-guide.md
+  s_9ca76055a220ed::t_dac57f5876b131 52
+public/music/manifest.json
+  s_9ca76055a220ed::t_a09c2998036198 188-197
+"references/Core Objects/Currency/Small Floating Crystal/prompt.txt"
+  s_9ca76055a220ed::t_907642a56452c4 1
+"references/Core Objects/Currency/Small Floating Crystal/review.txt"
+  s_9ca76055a220ed::t_d7af1beb0d6555 1-2
+"references/Core Objects/Currency/Small Floating Crystal/source.txt"
+  s_9ca76055a220ed::t_b5a6f96336239f 1-3
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/review.txt"
+  s_9ca76055a220ed::t_f99c0630417d33 1
+"references/Core Objects/Reviewed Gadgets/Fluid Sword - Selected 2026-10-09/source.txt"
+  s_9ca76055a220ed::t_66699588551b7a 1-3
+"references/Home/characters/Aunt Tove/prompt.txt"
+  s_9ca76055a220ed::t_2266f615ae858f 1
+"references/Home/characters/Aunt Tove/review.txt"
+  s_9ca76055a220ed::t_0cb2b94aafa495 1-2
+"references/Home/characters/Aunt Tove/source.txt"
+  s_9ca76055a220ed::t_9b581d73045872 1-3
+references/Home/characters/Father/prompt.txt
+  s_9ca76055a220ed::t_3ffdcfe3aca348 1
+references/Home/characters/Father/review.txt
+  s_9ca76055a220ed::t_5c0b1416cbe50a 1-2
+references/Home/characters/Father/source.txt
+  s_9ca76055a220ed::t_c95add932a034b 1-3
+references/Home/characters/Ilen/prompt.txt
+  s_9ca76055a220ed::t_f1aaa35ff5f691 1
+references/Home/characters/Ilen/review.txt
+  s_9ca76055a220ed::t_ec5cc5a66bdc64 1-2
+references/Home/characters/Ilen/source.txt
+  s_9ca76055a220ed::t_4090501b242ad7 1-3
+references/Home/characters/Lou/prompt.txt
+  s_9ca76055a220ed::t_517e686254db70 1
+references/Home/characters/Lou/review.txt
+  s_9ca76055a220ed::t_0ce4f305368837 1-2
+references/Home/characters/Lou/source.txt
+  s_9ca76055a220ed::t_311fa8327d66fc 1-3
+references/Home/characters/Mother/prompt.txt
+  s_9ca76055a220ed::t_c953acb6037baf 1
+references/Home/characters/Mother/review.txt
+  s_9ca76055a220ed::t_9f6d38aad7c4a6 1-2
+references/Home/characters/Mother/source.txt
+  s_9ca76055a220ed::t_87992e982c5ab6 1-3
+references/Home/characters/Moustache/prompt.txt
+  s_9ca76055a220ed::t_f388354641c09f 1
+references/Home/characters/Moustache/review.txt
+  s_9ca76055a220ed::t_44e0ba74f3a5bc 1-2
+references/Home/characters/Moustache/source.txt
+  s_9ca76055a220ed::t_1616448da47bce 1-3
+"references/The Travellers Ship/Angular Exterior - Selected/prompt.txt"
+  s_9ca76055a220ed::t_f55c904c57bbb5 1
+"references/The Travellers Ship/Angular Exterior - Selected/review.txt"
+  s_9ca76055a220ed::t_a8336e15a2f98c 1-2
+"references/The Travellers Ship/Angular Exterior - Selected/source.txt"
+  s_9ca76055a220ed::t_531cf19c3ef679 1-3
+references/batches/2026-10-09-selected-family-currency-ship-sword.json
+  s_9ca76055a220ed::t_14822a25f2d5cb 1-96
+scripts/enemy-roster/archetypes.json
+  s_9ca76055a220ed::t_2b41afda134346 1-65
+scripts/enemy-roster/sheet.cjs
+  s_9ca76055a220ed::t_616bd3d66bfd90 1-137
+scripts/motion-audit/metrics.mjs
+  s_9ca76055a220ed::t_aeef561487ae40 1-118
+scripts/motion-audit/run.mjs
+  s_9ca76055a220ed::t_de47a341d4e145 1-114
+src/audio.js
+  s_9ca76055a220ed::t_42175b26361983 21,1102-1103,1128-1211
+src/changelog-media.js
+  s_9ca76055a220ed::t_82e975b3c68945 363-388
+src/changelog.js
+  s_9ca76055a220ed::t_a40e1f4e962a0a 20-29
+src/cinematics-page/catalog.js
+  s_9ca76055a220ed::t_dc2f1b5560c603 6
+src/debug-save.js
+  s_9ca76055a220ed::t_56ef1ba97e5fed 19
+src/enemies/page.js
+  s_9ca76055a220ed::t_962fb3acd25020 7-8,16-23,32-33,35
+src/items-page/viewer.js
+  s_9ca76055a220ed::t_3032dcd0442c36 40-42,44,103-105
+src/levels/content.js
+  s_9ca76055a220ed::t_33244a84c31855 250
+src/levels/perdide.js
+  s_9ca76055a220ed::t_6923f04f20b100 171
+src/main.js
+  s_9ca76055a220ed::t_eaedd0606ce7c1 44,169-171,1662-1664
+src/motion/main.js
+  s_9ca76055a220ed::t_cbc653b162bc87 61-63
+src/music-store.js
+  s_9ca76055a220ed::t_ee0244b471bd24 20
+src/shadows.js
+  s_9ca76055a220ed::t_17fb3d9668fe76 62-67,106,159-176
+src/ship/cinema.js
+  s_9ca76055a220ed::t_1e303132b39152 15,31-33,303
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_9f1ae1b2873f1d 7-9,14,36-38,200-208,264-271,273-276,278-289,291,293,300-303,309,315-316,318-319,342,392-398,405-414,417-434,437-452,455,458-464,472-474,476,479,481,486-487,489,494,527-568,591-602,614-615,639,641-642,775
+src/ship/hologram.js
+  s_9ca76055a220ed::t_e50139da594bf9 33
+src/ship/hull.js
+  s_9ca76055a220ed::t_0a8e9736acf749 8
+src/ship/portrait.js
+  s_9ca76055a220ed::t_a92743226ad669 12,111-113,131-136
+src/ship/prologue.js
+  s_9ca76055a220ed::t_26959e9cb6bc6e 11-17,41-48,55-59
+src/ship/ship.js
+  s_9ca76055a220ed::t_5f4885d2f5a673 32-33,364
+src/ship/sites.js
+  s_9ca76055a220ed::t_7540d60c27be14 23,25
+src/ship/starmap.js
+  s_9ca76055a220ed::t_d0b51525b6e6c0 8,94
+src/soundtracks.js
+  s_9ca76055a220ed::t_d774ef63e76266 34-64
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_93970ab64f9703 208
+src/story/buried-data.js
+  s_9ca76055a220ed::t_2a399f0867a9d6 180,182,201
+src/story/calls.js
+  s_9ca76055a220ed::t_f9955cf16bd5ab 69-75,78-83,372,375,453,585
+src/story/charge.js
+  s_9ca76055a220ed::t_cf3546be68fba8 2,20,92
+src/story/desert-data.js
+  s_9ca76055a220ed::t_b12687ad25169f 26-29,79,83,106-107,179,227,242,251,257,445,472,474,524,530,548,556,558,564,620,631,694-695,920-933
+src/story/desert-repay.js
+  s_9ca76055a220ed::t_abd09b1012e3c8 1-154
+src/story/desert.js
+  s_9ca76055a220ed::t_951e0321af1072 10,19,163,204,579-581,584-586,588-597,1012,1014,1098
+src/story/dialogue.js
+  s_9ca76055a220ed::t_3340bf93733078 11,54-55
+src/story/edena-data.js
+  s_9ca76055a220ed::t_32cf9e13f128ea 231,233
+src/story/ending.js
+  s_9ca76055a220ed::t_e4747f1c7e1f97 130,288
+src/story/garage-data.js
+  s_9ca76055a220ed::t_fb31f09ec7164c 159,161
+src/story/hum.js
+  s_9ca76055a220ed::t_33b2ddf355ef52 8-12
+src/story/incal-data.js
+  s_9ca76055a220ed::t_f0eb6cf2ca6c3d 133,137,491
+src/story/key-phrase.js
+  s_9ca76055a220ed::t_40f5bcd0b42bd4 1-23
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_b18a4c83fda792 7-8,16-18,132,135,146,150,159,165,168,176
+src/story/light-theme.js
+  s_9ca76055a220ed::t_2c636379a0365e 1-82
+src/story/people-book.js
+  s_9ca76055a220ed::t_a36456f465221d 79,81,84,119,145,151,158,160-161,235,482
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_7f5566f98830fd 10,31,183,299,303,305,476
+src/story/perdide.js
+  s_9ca76055a220ed::t_944769257ba491 24,215
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_028f5c45a180de 291
+src/story/relay.js
+  s_9ca76055a220ed::t_e1b857c342c61a 53
+src/story/route.js
+  s_9ca76055a220ed::t_9b37c435a5f5f3 6
+src/story/sightings.js
+  s_9ca76055a220ed::t_a6e8a08e0545b4 22,31,37,51
+src/story/signature-search.js
+  s_9ca76055a220ed::t_af526c972f4650 3,12
+src/story/signature.js
+  s_9ca76055a220ed::t_ae008a4062045b 1,3-5,11-12,15,28,31-32,53,67,70-73,76,82
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_22072638f33600 222,224
+src/studio/main.js
+  s_9ca76055a220ed::t_6a42db48099205 61-63
+src/title-world.js
+  s_9ca76055a220ed::t_9e1645205f3e36 148-150
+src/trailer/main.js
+  s_9ca76055a220ed::t_37ed4f42911225 46-47
+tests/charge.test.js
+  s_9ca76055a220ed::t_9e420b0ac85e5d 2,14
+tests/desert-repay.test.js
+  s_9ca76055a220ed::t_e1f3e96d4ca7f3 1-83
+tests/desert-spark.test.js
+  s_9ca76055a220ed::t_6682591565ff6c 105-106
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_876455a02956e4 628-631,634-638
+tests/hum.test.js
+  s_9ca76055a220ed::t_a3dc072a75fe37 40,42,105-118
+tests/motion-metrics.test.js
+  s_9ca76055a220ed::t_32bc5471a01dee 1-84
+tests/music-store.test.js
+  s_9ca76055a220ed::t_2025eddd716360 69
+tests/people-page.test.js
+  s_9ca76055a220ed::t_6019ccc4a3faba 94-95
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_0a5f2637ef38c8 40-42
+tests/prologue-call.test.js
+  s_9ca76055a220ed::t_2083e15ab07d8a 1-5,9,11-17,20-21,30-62,64-65,69,75-118
+tests/shadow-setup.test.js
+  s_9ca76055a220ed::t_9df1630c8f25f3 1-100
+tests/ship.test.js
+  s_9ca76055a220ed::t_bb141c1818ac7b 178,285
+tests/sightings.test.js
+  s_9ca76055a220ed::t_740b878f27b8f7 85
+tests/signature.test.js
+  s_9ca76055a220ed::t_1b9ba09043bbae 1-2,5,35-36,41-44,55
+tests/site-only.test.js
+  s_9ca76055a220ed::t_fb83805c5958b0 37-38
+tests/soundtracks.test.js
+  s_9ca76055a220ed::t_74668b2dbf957d 57-77
+tests/xbox.test.js
+  s_9ca76055a220ed::t_41f447ba086d9c 152-153
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72ab40137e1bb77e1db7b46bb7b96c529520bdbb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
