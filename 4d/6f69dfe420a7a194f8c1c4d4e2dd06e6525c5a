@@ -1,0 +1,93 @@
+DONE.md
+  s_9ca76055a220ed::t_49277e75b52512 1290-1326
+changelog.md
+  s_9ca76055a220ed::t_2d43055a57c50f 5-13
+docs/systems/controls.md
+  s_9ca76055a220ed::t_b464971bb81ed1 71-74
+index.html
+  s_9ca76055a220ed::t_893e1c1f6330ad 75,86-87,89-90,92-108,142,159,504
+items.html
+  s_9ca76055a220ed::t_e3616578abf73d 33-36,38-65,87-98
+src/boot.js
+  s_9ca76055a220ed::t_15bf6ca2a10db7 17,29
+src/game-menu.css
+  s_9ca76055a220ed::t_5d0ccb6a930048 42-43,57,210
+src/game-menu.js
+  s_9ca76055a220ed::t_1745082379cf76 23-24,263-266,268-270,292,294,296
+src/items-page/main.js
+  s_9ca76055a220ed::t_df47e6a73e7b39 11-24,76-77,81-86,94-96,98,101,106-107,109-145,158-164,169-170
+src/main.js
+  s_9ca76055a220ed::t_ae2e54c5831702 18,977
+src/menus.css
+  s_9ca76055a220ed::t_448c88b7dafd35 289-299
+src/native-pad.js
+  s_9ca76055a220ed::t_b9f7f921bb363f 52,75-105,126,160-173,175,177-181,184-189,203,211,214-219,225,243-244,246
+src/pad-glyphs.js
+  s_9ca76055a220ed::t_d808dfd7f8f4a8 1-129
+src/ship/homecoming.js
+  s_9ca76055a220ed::t_e5f0e1ba36cf0a 9,71,135
+src/ship/starmap.js
+  s_9ca76055a220ed::t_ed4d3d46a583dd 33-34,198,297,302,364,382
+src/title.js
+  s_9ca76055a220ed::t_5673bfcff0084b 21,102,109-110,137,144,160-161,163-169,283-285,292,297-301,311-312
+src/ui.js
+  s_9ca76055a220ed::t_5e96befd48c960 12,257-259,268-269,272-275,313
+src/world-picker.js
+  s_9ca76055a220ed::t_2f72da2a57e5bb 11-12,56-69,91-104,109-110,112-116,119,122,125,133,138,144-145
+tests/first-run.test.js
+  s_9ca76055a220ed::t_6b721eaf50e711 53,55
+tests/hud.test.js
+  s_9ca76055a220ed::t_e274ab4b1a40d8 216
+tests/pad-glyphs.test.js
+  s_9ca76055a220ed::t_8f2f9f94ba798d 1-165
+docs/systems/ui.md
+  s_135273ed848c60::t_169661ef268768 293-296,355-402
+src/changelog-media.js
+  s_b56271e77d0699::t_07aa43e8aefd60 194-212
+src/changelog.js
+  s_b56271e77d0699::t_befe8f2cac2fa7 8,11-20,1299-1301
+src/controller.js
+  s_b56271e77d0699::t_85149be01ce822 27,114-115,249-254
+src/items-page/view.js
+  s_b56271e77d0699::t_183b8407e33977 23-25,32-43
+src/items-page/viewer.js
+  s_b56271e77d0699::t_0419edc4745160 137-138
+src/menu-pad.js
+  s_b56271e77d0699::t_3bb3de628c5876 94-141
+tests/game-menu.test.js
+  s_b56271e77d0699::t_8b89724b667b35 137-146
+tests/menus.test.js
+  s_b56271e77d0699::t_e85019cae4e13d 67,82-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4d6f69dfe420a7a194f8c1c4d4e2dd06e6525c5a",
+  "prompts": {},
+  "sessions": {
+    "s_135273ed848c60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a02bcb6affcf46897",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b56271e77d0699": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a501d6d7c3c0e7fef",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
