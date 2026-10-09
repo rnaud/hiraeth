@@ -262,6 +262,13 @@ const SAVE_BLOOM ={ flags: { 'prologue.done': true, 'item.backpack': true, 'item
 
 /** The hearts' pictures (v1.5): the health at `k` (the old bar's share; 1.5 hearts at 0.5) and the tank at 1.4 of 3, held there, the notices hidden. */
 const HEARTS_SETUP = (k) => `${HIDE('#toast, #cue, #prompt, #objective')} const hold = () => { player.hurtAt = 1e12; player.health = ${k}; if (tool.reserve) { tool.reserve.level = 1.4; tool.reserve.since = -1e9; } }; hold(); setInterval(hold, 100);`;
+/** The chimes' pictures (v1.5): a foe called in still, then cut down (Foes.burst) where the camera looks; the traveller out of the magnet's reach. */
+const CHIME_DROP = (kind, where) => `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
+  await wait(600);
+  const at = ${where}; at.y = physics.groundAt(at.x, at.y + 30, at.z, 80);
+  const f = foes.add('${kind}', at); f.state = 'idle'; f.cool = 99; f.heading = 0.6;
+  await wait(1200); foes.burst(f);`;
 const FROM_ROSTER = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the four set in a row and held still (9 October)';
 const FROM_ATTACK = 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720: the enemy set striking with its attack locked on the traveller, held still (9 October)';
 
@@ -282,8 +289,16 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1500, setup: HEARTS_SETUP(1) } },
     ], see: 'Aim (LT / L2, right mouse) and shoot three times: the bar under your hearts empties a third a shot; stop, and a second later it fills back up, full in about four seconds.' },
     // chimes, the currency
-    { match: 'Foes now leave chimes when they fall', see: 'In any world, cut down an ink blot: two or three brass chimes pop out round it and hover, turning; walk over them or come within a couple of steps and they fly to you with a ting. In the Arena, open the FOES list, pick a machine or a guardian: they drop chimes too (a guardian bout in the ring, a purse of forty).' },
-    { match: 'Your chimes show beside your hearts and potion', see: 'Pick up a few chimes: the hearts come up at the top left with a brass disc and the count beside the potion, counting up. Open the menu (View, or J): the count is by the Gear heading on the Items page.' },
+    { match: 'Foes now leave chimes when they fall', shots: [
+      { name: 'chimes-arena', caption: 'A shade cut down in the Arena, two seconds after: before, only its ink on the sand; after, its chimes too, brass discs hovering and turning round where it fell', commit: 'aa81c3f0',
+        view: { level: 'arena', player: [-14, 0, -14], eye: [-3.4, 1.6, -3.2], target: [0, 0.3, 0.2], fov: 48, save: SAVE_ON, wait: 2200, setup: CHIME_DROP('shade', 'new V(0, 0, 0)') } },
+      { name: 'chimes-desert', caption: 'The Desert: a spitting blot cut down by the dunes outside Qanat, its ink stain on the sand; after, its chimes beside the stain', commit: 'aa81c3f0',
+        view: { level: 'desert', player: [-190, 22, 290], eye: [-201.5, 23.6, 301.5], target: [-204, 21.6, 304.2], fov: 45, save: SAVE_ON, wait: 2200, setup: CHIME_DROP('spitter', 'new V(-204, 22, 304)') } },
+    ], see: 'In any world, cut down an ink blot: two or three brass chimes pop out round it and hover, turning; walk over them or come within a couple of steps and they fly to you with a ting. In the Arena, open the FOES list, pick a machine or a guardian: they drop chimes too (a guardian bout in the ring, a purse of forty).' },
+    { match: 'Your chimes show beside your hearts and potion', shots: [
+      { name: 'chimes-hud', caption: 'Thirty-seven chimes picked up, half the hearts gone, at the top left: before, the hearts, the potion and the magic bar; after, a brass chime and the count beside the potion', commit: 'aa81c3f0',
+        view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1800, setup: `${HEARTS_SETUP(0.5)} window.resources?.addChimes?.(37);` } },
+    ], see: 'Pick up a few chimes: the hearts come up at the top left with a brass disc and the count beside the potion, counting up. Open the menu (View, or J): the count is by the Gear heading on the Items page.' },
     { match: 'Spines and flames now bite a quarter heart', see: 'In the desert, walk into a sand candelabra’s spines: a quarter heart, a shove, and no second prick if you step straight back in. In the Arena, pick Second wind between waves.' },
     { match: 'The Arena’s waves now come round to every foe', shots: [
       { name: 'arena-waves', only: 'after', caption: 'Wave 144 in the Arena: the Glass Dunes’ pair, a glass crab and the possessed furnace walker, the wave said at the top with its world', from: 'headless Chrome against this branch’s dev server, the Arena at High, 1280 × 720, the waves started at the Glass Dunes’ pairs (9 October)' },
