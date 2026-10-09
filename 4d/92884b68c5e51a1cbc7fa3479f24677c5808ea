@@ -1,0 +1,21 @@
+docs/design/shop-prompts.md
+  s_dba7573ac1048f::t_ff6d6a6e424494 18-23,49,55,63,69,77,83,91,97,105,111,119,125,133,139,147,153,161,167,175,181,189,195
+docs/design/temple-prompts.md
+  s_dba7573ac1048f::t_103f3849ff180a 14-16,39,45,53,59,67,73,81,87,95,101,109,115,123,129,137,143,151,157,165,171,179,185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4d92884b68c5e51a1cbc7fa3479f24677c5808ea",
+  "prompts": {},
+  "sessions": {
+    "s_dba7573ac1048f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a79b492b6c4e981cf",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
