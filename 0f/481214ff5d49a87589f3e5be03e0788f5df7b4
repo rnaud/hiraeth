@@ -1,0 +1,207 @@
+.claude/skills/new-world/SKILL.md
+  s_9ca76055a220ed::t_a5a531fb748f26 22
+DONE.md
+  s_9ca76055a220ed::t_38cef9d0f45e5c 645,1824
+docs/README.md
+  s_9ca76055a220ed::t_99eed41935157c 77
+docs/design/desert-places-prompts.md
+  s_9ca76055a220ed::t_26117b8e9419c7 9
+docs/design/enemy-roster-prompts.md
+  s_9ca76055a220ed::t_ec719b933e5759 12,16,27
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_cf920305a86b57 18,119-120,146-147,174-175,203-204,232,258-259,286,311-312,341-342,368-369,397-398,428,462-463,491,521,547,577-578,608-609,636,667,698
+docs/makehuman.md
+  s_9ca76055a220ed::t_17d22097af95d5 300
+docs/systems/characters.md
+  s_9ca76055a220ed::t_0021ed4575cc1d 386,728
+docs/systems/foes.md
+  s_9ca76055a220ed::t_81f53754259398 940-941
+docs/systems/reference-lab.md
+  s_9ca76055a220ed::t_f025a785decb57 93,144
+docs/systems/references.md
+  s_9ca76055a220ed::t_dd892571fcd90d 3-32,40,230,564,1152,1164,1175
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_bd72f9a2eb45b7 869
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_a902170d7a8bb7 493,538,599,647,705,760,819,871,923,988,1045,1105,1142
+references/archive/world-enemies/ENEMIES.md
+  s_9ca76055a220ed::t_0b050a95923b40 1-6,13,19
+references/archive/world-enemies/enemy-atlas.html
+  s_9ca76055a220ed::t_21ab4e391b9dcd 2-26
+references/archive/world-enemies/enemy-roster.json
+  s_9ca76055a220ed::t_1f078b3b6c8e68 78,144,210,276,342,408,474,540,606,672,738,804,870,936,1002,1068,1134,1200,1266,1332,1398,1464,1530,1596,1662
+references/batches/2026-10-08-practical-revisions.json
+  s_9ca76055a220ed::t_d9e88cdda4953f 51,62
+references/batches/2026-10-08-ship-giant-objects.json
+  s_9ca76055a220ed::t_4c776a0f5361ea 38,49
+references/batches/2026-10-09-selected-family-currency-ship-sword.json
+  s_9ca76055a220ed::t_bcd83061b05145 6,16,26,36,46,56
+scripts/enemy-roster/sheet.cjs
+  s_9ca76055a220ed::t_e2461ecf4d59da 9,103
+scripts/gen-reference.mjs
+  s_9ca76055a220ed::t_1d9a77aca21b91 8
+scripts/reference-lab/batch.mjs
+  s_9ca76055a220ed::t_48b9650ea442e2 47
+src/changelog-media.js
+  s_9ca76055a220ed::t_3baea18973a2a4 654,658-659,662,666-667
+src/characters/family.js
+  s_9ca76055a220ed::t_00af945ba48a6d 1,19-24
+src/costumes.js
+  s_9ca76055a220ed::t_c482d7bdd5839b 1473,1619
+src/desert-city.js
+  s_9ca76055a220ed::t_3d307d9e37d22a 15,649
+src/desert-landmarks.js
+  s_9ca76055a220ed::t_dc9cc21f139dc5 11
+src/dog.js
+  s_9ca76055a220ed::t_94f22a47e53c53 10
+src/dune-glass-shader.js
+  s_9ca76055a220ed::t_538cc8fd73a5f6 4
+src/levels/antennas-kit.js
+  s_9ca76055a220ed::t_13b73c8f2601ab 10
+src/levels/antennas.js
+  s_9ca76055a220ed::t_685c7c319aad68 21
+src/levels/eclipse-kit.js
+  s_9ca76055a220ed::t_792a5d6a28b0b9 11-12
+src/levels/eclipse.js
+  s_9ca76055a220ed::t_81e07b424cbefd 18
+src/levels/fallen-ring-kit.js
+  s_9ca76055a220ed::t_eece525f4de01f 14
+src/levels/fallen-ring.js
+  s_9ca76055a220ed::t_007b276cdb3bf3 17
+src/levels/garden-kit.js
+  s_9ca76055a220ed::t_343f672174b3c6 8
+src/levels/glass-dunes-kit.js
+  s_9ca76055a220ed::t_ab590c50bec98d 8
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_efbcab622f81bd 18
+src/levels/mangrove-kit.js
+  s_9ca76055a220ed::t_d680534dbc25e6 11
+src/levels/mangrove.js
+  s_9ca76055a220ed::t_dfbfd3c2649a65 17
+src/levels/market-night-kit.js
+  s_9ca76055a220ed::t_71c3a874757503 9
+src/levels/moon-foundry-kit.js
+  s_9ca76055a220ed::t_0e81aa465dcf54 11
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_0607ba0c81fa4e 18
+src/levels/overnight-train-kit.js
+  s_9ca76055a220ed::t_8de03aafb748f2 9
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_3106905442005f 18
+src/levels/reference-antennas.js
+  s_9ca76055a220ed::t_926b97e8001998 11,19
+src/levels/reference-buried.js
+  s_9ca76055a220ed::t_3d56846b4a2b47 13,23
+src/levels/reference-desert.js
+  s_9ca76055a220ed::t_9b1a30bc9e157a 11,18
+src/levels/reference-eclipse.js
+  s_9ca76055a220ed::t_834ad28e9895b3 11,23
+src/levels/reference-fallenring.js
+  s_9ca76055a220ed::t_a689a3d31a0e62 12,20
+src/levels/reference-glassdunes.js
+  s_9ca76055a220ed::t_1e620615c64d27 9,21
+src/levels/reference-lorn.js
+  s_9ca76055a220ed::t_f2834e5f5fb2ce 12,22
+src/levels/reference-mangrove.js
+  s_9ca76055a220ed::t_4372cbd93b28ad 9,17
+src/levels/reference-market.js
+  s_9ca76055a220ed::t_eea4ef25671421 8,18
+src/levels/reference-marketnight.js
+  s_9ca76055a220ed::t_10634b02c92c88 10,20
+src/levels/reference-moonfoundry.js
+  s_9ca76055a220ed::t_69acdef0be8ac2 12,21
+src/levels/reference-overnighttrain.js
+  s_9ca76055a220ed::t_e0a2697cbdf5dd 10,18
+src/levels/reference-saltharbour.js
+  s_9ca76055a220ed::t_0788e8838e2655 7,16
+src/levels/reference-shaft.js
+  s_9ca76055a220ed::t_967c95e2ae3116 8,16
+src/levels/reference-spacecity.js
+  s_9ca76055a220ed::t_f3854385636f0e 9,22
+src/levels/reference-spheres.js
+  s_9ca76055a220ed::t_9caa15b97673ed 12,22
+src/levels/reference-underside.js
+  s_9ca76055a220ed::t_986d9f7570bbc4 10,20
+src/levels/reference-underwater.js
+  s_9ca76055a220ed::t_01d7bebbe0f327 9,17
+src/levels/reference-vael2.js
+  s_9ca76055a220ed::t_814eb4fd27cb44 13,23
+src/levels/reference-waterfall.js
+  s_9ca76055a220ed::t_ad54ff2b544c71 10,18
+src/levels/salt-harbour-kit.js
+  s_9ca76055a220ed::t_a7fd7b5a12aa9c 8
+src/levels/salt-harbour.js
+  s_9ca76055a220ed::t_291c1a011a1d66 17
+src/levels/space-city-kit.js
+  s_9ca76055a220ed::t_6098b3428f426e 11
+src/levels/space-city.js
+  s_9ca76055a220ed::t_419de86b1cbbab 15
+src/levels/underside-kit.js
+  s_9ca76055a220ed::t_687cfb2a83674a 11
+src/levels/underside.js
+  s_9ca76055a220ed::t_16d843554e7ace 18
+src/levels/underwater-kit.js
+  s_9ca76055a220ed::t_9df6e618be8870 10
+src/levels/underwater.js
+  s_9ca76055a220ed::t_8f6a4bbff5451c 14
+src/levels/waterfall-kit.js
+  s_9ca76055a220ed::t_33ab08900bbb89 10
+src/levels/waterfall.js
+  s_9ca76055a220ed::t_21908f18ee2b0c 13
+src/levels/wood-kit.js
+  s_9ca76055a220ed::t_c0dcf1c123d46d 8
+src/ship/hologram.js
+  s_9ca76055a220ed::t_63fcd61a7dda20 460
+src/story/home-data.js
+  s_9ca76055a220ed::t_b520eea50b2127 55,131
+src/story/lantern-data.js
+  s_9ca76055a220ed::t_b6aa0a99921bfb 66
+src/waterfall-shader.js
+  s_9ca76055a220ed::t_0ea369ddbc6e12 4-5
+tests/antennas.test.js
+  s_9ca76055a220ed::t_f6bb454aceaee8 33
+tests/desert-props.test.js
+  s_9ca76055a220ed::t_f22eec4ed572a4 5
+tests/family.test.js
+  s_9ca76055a220ed::t_a0ab7c70844faa 2,35-36,242
+tests/home-family.test.js
+  s_9ca76055a220ed::t_f5380f40474b53 79
+tests/mangrove.test.js
+  s_9ca76055a220ed::t_84c26e80300caf 90
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_c801f85b21d22c 33-36,101,158,288,297,315,340,380,414,443,480,484,513
+tests/reference-sheets.test.js
+  s_9ca76055a220ed::t_236768e29d47bb 26
+tests/references.test.js
+  s_9ca76055a220ed::t_57edd551e32bec 200
+tests/saltharbour.test.js
+  s_9ca76055a220ed::t_8fa53f315fadc9 22
+tests/ship.test.js
+  s_9ca76055a220ed::t_c34ed9bb7f2997 358
+tests/reference-paths.test.js
+  s_287deb75191cf6::t_181c99652d676b 1-134
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0f481214ff5d49a87589f3e5be03e0788f5df7b4",
+  "prompts": {},
+  "sessions": {
+    "s_287deb75191cf6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4cab3fbdb86b9a64",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
