@@ -1,0 +1,31 @@
+tests/close-contact.test.js
+  s_9ca76055a220ed::t_d03dc58c143091 10,110-145
+tests/head-turn.test.js
+  s_9ca76055a220ed::t_f8d41cda5fce2e 1-82
+tests/wave.test.js
+  s_6b8abf8ef692f6::t_ea0d0e445f9cec 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e77c60bb8810cfecc4caecf9a148d1fa5afc00c4",
+  "prompts": {},
+  "sessions": {
+    "s_6b8abf8ef692f6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a33c1b8922b52386a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
