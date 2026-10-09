@@ -8,8 +8,20 @@ import '../gadgets/all.js';   // (first: the gadgets are items too, src/gadgets/
 import { ITEMS } from '../items.js';
 import { PLACEMENTS, FALLBACKS } from '../boxes/placements.js';
 import { TITLES } from '../levels/names.js';
-import { itemsPage, KIND_NAMES } from './view.js';
-import { keyText } from '../prompt-keys.js';
+import { itemsPage, KIND_NAMES, shortLine } from './view.js';
+import { keyText, escapeHtml as esc } from '../prompt-keys.js';
+import { Controller, menuNavigate } from '../controller.js';
+import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
+import { installGlyphs } from '../pad-glyphs.js';
+import { InputMode } from '../input-mode.js';
+const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+
+// a controller here too (a handheld opens this page from the worlds list): its buttons' glyphs, its own names
+installNativePad(); watchLabels(); installGlyphs();
+const inputMode = new InputMode({ touchDevice: isTouch });
+inputMode.apply(document.body.classList);
+for (const ev of ['keydown', 'pointerdown', 'touchstart']) addEventListener(ev, (e) => { inputMode.event(e); inputMode.apply(document.body.classList); }, { capture: true, passive: true });
+document.body.dataset.gridNav = '';   // (menuNavigate: the cards are a grid)
 
 const $ = (s) => document.querySelector(s);
 const entries = itemsPage(ITEMS, PLACEMENTS, FALLBACKS, TITLES);
@@ -61,10 +73,17 @@ try {
   // the full-screen view
   const full = $('#full');
   let current = null, fdrag = null, pinch = null;
+  // the words: one short line under the item (its kind, the first sentence); "more" (A / I) opens all of it
+  // in a column beside the item, which moves over (the canvas narrows: never under the words)
   const describe = (id) => {
     const it = ITEMS[id];
     full.querySelector('h2').textContent = it.name;
-    full.querySelector('.about').innerHTML = `<p>${it.text}</p>${it.use ? `<p><i>${keyText(it.use, { html: true })}</i></p>` : ''}`;
+    full.querySelector('.short').innerHTML = `<b>${esc(KIND_NAMES[it.kind] ?? it.kind)}</b><span class="line">${esc(shortLine(it.text))}</span>`;
+    full.querySelector('.long').innerHTML = `<p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true })}</p>` : ''}`;
+  };
+  const more = (on = !full.classList.contains('more')) => {
+    full.classList.toggle('more', on);
+    full.querySelector('.more .lbl').textContent = on ? 'less' : 'more';
   };
   function open(id) {
     current = id; describe(id);
@@ -72,17 +91,58 @@ try {
     viewer.show(full, id);
   }
   function close() {
-    full.classList.remove('open'); full.setAttribute('aria-hidden', 'true'); document.body.style.overflow = '';
-    viewer.hide(); current = null;
+    full.classList.remove('open'); full.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; more(false);
+    viewer.hide();
+    const was = current; current = null;
     for (const pic of document.querySelectorAll('.pic.drawn')) draw(pic);   // (the renderer was the full view's: the cards again)
+    document.querySelector(`article[data-id="${was}"]`)?.focus({ preventScroll: false });   // (back on its card, for the pad)
   }
   const go = (d) => { const list = visible(), i = list.indexOf(current); open(list[(i + d + list.length) % list.length]); };
+  const reset = () => Object.assign(viewer.orbit, { yaw: VIEW.yaw, pitch: VIEW.pitch, zoom: VIEW.fullZoom });
   full.addEventListener('click', (e) => {
     if (e.target.closest('[data-close]')) close();
     else if (e.target.closest('[data-go]')) go(+e.target.closest('[data-go]').dataset.go);
     else if (e.target.closest('[data-spin]')) viewer.spin = !viewer.spin;
-    else if (e.target.closest('[data-reset]')) Object.assign(viewer.orbit, { yaw: VIEW.yaw, pitch: VIEW.pitch, zoom: VIEW.fullZoom });
+    else if (e.target.closest('[data-reset]')) reset();
+    else if (e.target.closest('[data-more]')) more();
   });
+  // a controller: the cards are a grid (the D-pad and the stick move to the card that way), A opens one;
+  // full screen: ← → or LB / RB the other items, ↑ ↓ zoom, the right stick tilts, A more, Y turn, X reset, B closes.
+  // Each of those buttons carries its glyph (src/pad-glyphs.js), for the pad in hand or the keys.
+  const controller = new Controller({
+    context: () => 'menu', look: () => {}, faces: () => padFaces(),
+    activity: () => { inputMode.pad(); inputMode.apply(document.body.classList); },
+    navigate: (x, y, fresh) => {
+      if (!current) return menuNavigate(document.body, x, y, fresh);
+      if (x) go(x);
+      else if (y) zoomOrbit(viewer.orbit, y > 0 ? 1.15 : 1 / 1.15);
+    },
+    scroll: (amount) => { if (current) { viewer.spin = false; dragOrbit(viewer.orbit, 0, amount * 0.6); } else window.scrollBy(0, amount); },
+    action: (name) => {
+      if (current) {
+        if (name === 'back') close();
+        else if (name === 'tabPrev' || name === 'tabNext') go(name === 'tabNext' ? 1 : -1);
+        else if (name === 'confirm') more();
+        else if (name === 'y') viewer.spin = !viewer.spin;
+        else if (name === 'x') reset();
+        return;
+      }
+      const el = document.activeElement;
+      if (name === 'confirm') { if (el?.matches?.('article')) open(el.dataset.id); else if (el && el !== document.body) el.click(); else menuNavigate(document.body, 0, 1); }
+      else if (name === 'tabPrev' || name === 'tabNext') {   // (LB / RB: the kind before / after)
+        const i = kinds.indexOf(state.kind), k = kinds[(i + (name === 'tabNext' ? 1 : -1) + kinds.length) % kinds.length];
+        state.kind = k; apply();
+      } else if (name === 'back') location.href = './?worlds=1';   // (back to the worlds list it was opened from)
+    },
+  });
+  let last = performance.now();
+  const tick = (t) => {
+    const padOn = Array.from(navigator.getGamepads?.() ?? []).some((p) => p?.connected);
+    if ((inputMode.frame(padOn) === 'pad') !== document.body.classList.contains('controller')) inputMode.apply(document.body.classList);
+    controller.update(Math.min(0.1, (t - last) / 1000), !document.hidden && document.hasFocus());
+    last = t; requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
   full.addEventListener('dblclick', () => Object.assign(viewer.orbit, { yaw: VIEW.yaw, pitch: VIEW.pitch, zoom: VIEW.fullZoom }));
   full.addEventListener('pointerdown', (e) => { if (e.target.closest('.bar, .about')) return; fdrag = { x: e.clientX, y: e.clientY }; viewer.spin = false; full.setPointerCapture(e.pointerId); });
   full.addEventListener('pointermove', (e) => { if (!fdrag) return; dragOrbit(viewer.orbit, e.clientX - fdrag.x, e.clientY - fdrag.y); fdrag.x = e.clientX; fdrag.y = e.clientY; });
@@ -95,11 +155,19 @@ try {
     pinch = d; fdrag = null;
   }, { passive: true });
   window.addEventListener('keydown', (e) => {
-    if (!current) return;
+    if (!current) {
+      if (e.target.tagName === 'INPUT') return;
+      const dir = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[e.key];
+      if (dir) { e.preventDefault(); menuNavigate(document.body, ...dir); }
+      else if (e.key === 'Enter' && document.activeElement?.matches?.('article')) open(document.activeElement.dataset.id);
+      return;
+    }
     if (e.key === 'Escape') close();
     else if (e.key === 'ArrowRight') go(1);
     else if (e.key === 'ArrowLeft') go(-1);
     else if (e.key === 'r' || e.key === 'R') viewer.spin = !viewer.spin;
+    else if (e.key === 'i' || e.key === 'I' || e.key === 'Enter') more();
+    else if (e.key === '0') reset();
   });
   window.itemsViewer = viewer;   // (for the screenshots and the console)
 } catch (e) {

@@ -206,6 +206,23 @@ export const CHANGELOG_MEDIA = {
       { name: 'cave-seam', caption: 'The Givers’ Hearth: before, a line of sunlight round the foot of the cave’s wall; after, the floor is in shade all the way to the wall', commit: 'c58cbcaa',
         view: { level: 'desert', save: SAVE_DESERT, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262], fov: 55, wait: 3000 } },
     ] },
+    { match: 'Every menu shows its buttons inside the buttons themselves', shots: [
+      { name: 'menu-glyphs', caption: 'The journal with an Xbox pad: before, a line of hints at the bottom; after, B in the ✕, LB and RB on the side tabs', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated Xbox pad, 1280 × 720 (9 October)' },
+      { name: 'pause-glyphs', caption: 'The pause menu with an Xbox pad: B in Resume, A beside the entry the pad is on', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated Xbox pad, 1280 × 720 (9 October)' },
+    ], see: 'With a controller, press Menu (the pause menu) or View (the journal); on the title, open Saves. Then press a key on the keyboard: the same buttons show Enter, Esc, Q and E.' },
+    { match: 'The buttons shown match the controller in your hands', shots: [
+      { name: 'ps-glyphs', caption: 'The journal with a DualSense: before, Xbox / PlayStation pairs (“LB / L1”, “A / ×”); after, L1, R1, × and ○ alone', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated DualSense, 1280 × 720 (9 October)' },
+    ], see: 'Connect an Xbox, PlayStation or Switch pad and press a button: every menu, conversation and prompt names that pad’s buttons. On a Retroid, its own letters as before.' },
+    { match: 'A Switch Pro Controller or Joy-Cons on a computer', see: 'On a computer with a Switch Pro Controller, open the title’s Saves: the right button (A) opens a save, the bottom one (B) goes back. Settings → Controller buttons still changes it.' },
+    { match: 'Debug: the worlds list is a grid of small cards', shots: [
+      { name: 'worlds-grid', caption: 'The worlds list with a pad: before, large cards in three columns; after, a grid of small cards, the focused one framed in red with its description at the foot', from: 'headless Chrome against this branch’s own dev server and the commit before, a simulated Xbox pad, 1280 × 720 (9 October)' },
+    ], see: 'Title → Debug with a controller: the D-pad moves left, right, up and down across the cards; A opens the world.' },
+    { match: 'Debug: the Items page works with a controller', shots: [
+      { name: 'items-pad', only: 'after', caption: 'The Items page with a pad: the card the pad is on lifted in a red frame, A on its picture', from: 'headless Chrome against this branch’s own dev server, a simulated Xbox pad, 1280 × 720 (9 October)' },
+    ], see: 'Title → Debug → Items with a controller: move to a card and press A, then LB / RB, Y, X and B.' },
+    { match: 'Debug: an item full screen shows one short line', shots: [
+      { name: 'item-viewer', caption: 'An item full screen at 730 × 410 CSS px (a Retroid Pocket’s 1920 × 1080 screen): before, its words covered the item; after, one line under it', from: 'headless Chrome against this branch’s own dev server and the commit before, 730 × 410 (9 October)' },
+    ], see: 'Title → Debug → Items, open any item full screen on a handheld or a small window, then press A (or I) for the rest.' },
   ],
   '1.1': [
     { match: 'Notices no longer pop up over a scene', shots: [

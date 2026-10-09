@@ -10,6 +10,7 @@ import { setControlPrefs, controlPrefs, keyFor, keyLabel, verbKey, keyConflicts,
 import { setMotion } from './feel.js';
 import { touchScale, touchLayout, stickLayout } from './touch-layout.js';
 import { padCancel } from './menu-pad.js';
+import { glyph } from './pad-glyphs.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -254,7 +255,9 @@ export class SettingsMenu {
   render() {
     const el = this.el, game = !this.title;
     const row = (label, control) => `<label class="row"><span>${label}</span>${control}</label>`;
-    const go = (page, label) => `<button data-a="page" data-page="${page}">${label}</button>`;
+    // (the side's entries: the confirm glyph on the focused one; Resume / Back carries the back button's: src/pad-glyphs.js)
+    const F = glyph('ok', { focus: true });
+    const go = (page, label) => `<button data-a="page" data-page="${page}">${label}${F}</button>`;
     const opts = (k, list) => `<select data-k="${k}">${list.map((v) => `<option value="${v}">${t(`set.${k}.${v}`)}</option>`).join('')}</select>`;
     const updates = el.querySelector('.updates');   // (kept across a redraw: it has its own state)
     el.innerHTML = `
@@ -263,14 +266,14 @@ export class SettingsMenu {
           <div class="brand" aria-hidden="true">${game ? t('menu.paused') : 'HIRAETH'}</div>
           <div class="where"></div>
           <nav class="menu-nav">
-            <button data-a="close" class="primary">${game ? t('menu.resume') : t('menu.back')}</button>
-            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}</button><button data-a="book" data-panel="quests">${t('menu.quests')}</button>` : ''}
+            <button data-a="close" class="primary">${game ? t('menu.resume') : t('menu.back')}${glyph('back', { key: 'Esc' })}</button>
+            ${game ? `<button data-a="book" data-panel="items">${t('menu.items')}${F}</button><button data-a="book" data-panel="quests">${t('menu.quests')}${F}</button>` : ''}
             ${go('settings', t('menu.settings'))}
             ${go('controls', t('menu.controls'))}
-            ${game ? `<button data-a="photo">${t('menu.photo')}</button>
-            <button data-a="news">${t('menu.news')}</button>
-            <button data-a="debug" data-dev hidden>${t('menu.debug')}</button>
-            <button data-a="title">${t('menu.quit')}</button>` : ''}
+            ${game ? `<button data-a="photo">${t('menu.photo')}${F}</button>
+            <button data-a="news">${t('menu.news')}${F}</button>
+            <button data-a="debug" data-dev hidden>${t('menu.debug')}${F}</button>
+            <button data-a="title">${t('menu.quit')}${F}</button>` : ''}
           </nav>
           <p class="saved">${game ? t('menu.saved') : ''}</p>
         </aside>
@@ -308,7 +311,7 @@ export class SettingsMenu {
           <div class="danger">
             <button data-a="reset">${t('set.reset')}</button>
             <div class="ask" hidden><span>${t('set.resetAsk')}</span>
-              <button data-a="reset-yes">${t('set.resetYes')}</button><button data-a="reset-no">${t('set.resetNo')}</button></div>
+              <button data-a="reset-yes">${glyph('ok', { focus: true })}${t('set.resetYes')}</button><button data-a="reset-no">${glyph('back', { key: 'Esc' })}${t('set.resetNo')}</button></div>
           </div>` : ''}
           ${isNativeApp || isDeckApp ? '' : `<p class="keys install-tip">${t('set.installTip')}</p>`}
         </section>

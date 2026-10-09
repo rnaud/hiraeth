@@ -72,7 +72,7 @@
         border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; padding: 10px 22px; cursor: pointer; border-radius: 4px; }
       #restart button:focus-visible, #restart button:hover { background: #ffd866; outline: none; }
       #restart button:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #2b211f; }
-      #restart small { display: block; margin-top: 10px; color: #6b5a4e; font-size: calc(11px * var(--ts, 1)); }
+      #restart button { display: inline-flex; align-items: center; }   /* (the confirm glyph inside it: src/pad-glyphs.js) */
       #picker {
         position: fixed; inset: 0; z-index: 5000; display: none; overflow: auto;
         background: rgba(247, 236, 210, 0.94); color: #2b211f;
@@ -83,21 +83,29 @@
       #picker h1 { font-size: 26px; letter-spacing: 0.12em; margin: 0; }
       #picker header span { opacity: 0.7; }
       #picker .close { border: 1.5px solid #2b211f; background: none; font: inherit; padding: 4px 10px; cursor: pointer; }
-      #picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 22px; }
+      /* the worlds: a grid of small cards a controller moves through in 2D (src/world-picker.js, data-grid-nav) */
+      #picker .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(176px, 44vw), 1fr)); gap: 14px; padding-bottom: 64px; }
       #picker .card {
-        display: flex; align-items: stretch; color: inherit; text-decoration: none; background: #fbf4e2;
-        border: 2px solid #2b211f; box-shadow: 5px 5px 0 #2b211f; transition: transform 0.12s;
+        position: relative; display: flex; flex-direction: column; color: inherit; text-decoration: none; background: #fbf4e2; scroll-margin: 28px 12px 72px;
+        border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; transition: transform 0.12s, box-shadow 0.12s;
       }
-      #picker .card:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 #2b211f; }
-      #picker .card.current { outline: 3px solid #d9643a; outline-offset: 3px; }
-      #picker img { display: block; flex: none; align-self: flex-start; width: 96px; height: 96px; margin: 12px 0 12px 12px; object-fit: cover; border: 2px solid #2b211f; background: #efe3c6; }
-      #picker .txt { flex: 1; min-width: 0; padding: 12px 14px 14px; position: relative; }
-      #picker .num { position: absolute; right: 14px; top: 10px; font-size: 22px; opacity: 0.35; }
-      #picker h2 { margin: 0 0 2px; padding-right: 30px; font-size: 17px; letter-spacing: 0.05em; }
-      #picker .src { font-style: italic; opacity: 0.75; margin-bottom: 8px; }
-      #picker p { margin: 0 0 10px; }
-      #picker .moves { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
-      #picker .along { margin-top: 6px; font-size: 11px; color: #6b5a4e; }
+      #picker .card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #2b211f; }
+      #picker .card.current { outline: 3px dashed #d9643a; outline-offset: 3px; }
+      #picker .card:focus, #picker .card:focus-visible { z-index: 1; outline: 4px solid #c8483a; outline-offset: 2px; background: #fff6dc; transform: translate(-3px, -3px) scale(1.04); box-shadow: 8px 8px 0 #2b211f; }
+      #picker .card .pic { position: relative; display: block; aspect-ratio: 16 / 9.5; border-bottom: 2px solid #2b211f; background: #efe3c6; overflow: hidden; }
+      #picker img { display: block; width: 100%; height: 100%; object-fit: cover; }
+      #picker .num { position: absolute; left: 6px; top: 6px; min-width: 1.4em; padding: 1px 5px; text-align: center; font-size: 12px; background: #fbf4e2; border: 1.5px solid #2b211f; }
+      #picker .card .glyph.on-focus { position: absolute; right: 6px; bottom: 6px; margin: 0; font-size: 15px; }
+      #picker .txt { display: block; min-width: 0; padding: 6px 8px 8px; }
+      #picker h2 { margin: 0; font-size: 13px; line-height: 1.25; letter-spacing: 0.03em; }
+      #picker .src { display: block; font-size: 11px; font-style: italic; opacity: 0.75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #picker .along { display: block; margin-top: 3px; font-size: 10px; color: #6b5a4e; }
+      #picker .info { position: fixed; left: 50%; bottom: calc(10px + var(--safe-bottom, 0px)); transform: translateX(-50%); z-index: 2; box-sizing: border-box; width: min(760px, calc(100vw - 24px));
+        margin: 0; padding: 7px 12px; font-size: 12px; line-height: 1.4; background: #fbf4e2; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f; }
+      #picker .info[hidden] { display: none; }
+      #picker .info .moves { display: inline; margin-left: 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #8a5a3c; }
+      #picker .close { display: inline-flex; align-items: center; }
+      @media (max-height: 480px) { #picker .debug-note { display: none; } #picker header { margin-bottom: 12px; } #picker h1 { font-size: 20px; } #picker .pages { margin-bottom: 10px; gap: 6px; } #picker .pages a { padding: 3px 8px; } }
       #picker .debug-note { margin: -8px 0 18px; max-width: 70em; font-size: 12px; color: #6b5a4e; }
       #photo {
         position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: none;
@@ -131,7 +139,7 @@
       #changelog ul { margin: 0; padding-left: 18px; }
       #changelog li { margin: 3px 0; }
       #changelog .buttons { margin-top: 12px; text-align: right; }
-      #changelog button { font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
+      #changelog button { display: inline-flex; align-items: center; font: inherit; padding: 6px 12px; background: #fffaf0; border: 2px solid #2b211f; cursor: pointer; }
       #changelog .buttons button + button { margin-left: 8px; }
       /* the interactive changelog (changelog.html?embed=1) over the game */
       #changelog iframe.pictures { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #f7ecd2; z-index: 1; }
@@ -148,7 +156,7 @@
         background: #f2c54b; border: 2px solid #2b211f; box-shadow: 4px 4px 0 #2b211f;
       }
       #picker .card.locked { opacity: 0.6; cursor: default; }
-      #picker .card.locked .lock { flex: none; align-self: flex-start; width: 96px; height: 96px; margin: 12px 0 12px 12px; display: grid; place-items: center; font-size: 40px; border: 2px solid #2b211f; background: repeating-linear-gradient(45deg, #efe3c6 0 10px, #e6d8b8 10px 20px); }
+
 
       /* touch */
       #touch { display: none; }
@@ -478,7 +486,7 @@
       <circle r="15" fill="none" stroke="#2b211f" stroke-width="0.8" stroke-dasharray="1.6 2.4" opacity="0.5" />
       <circle r="6.6" fill="#f7ecd2" stroke="#2b211f" stroke-width="1.6" />
     </svg></div>
-    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button" data-t="restart.button">Restart</button><small></small></div></div>
+    <div id="restart" class="pad-raw" role="dialog" aria-label="Knocked out" data-t-aria="restart.label"><div class="sheet"><p>That was too far a fall.</p><button type="button"><span class="glyph" data-glyph="ok" data-key="Enter" aria-hidden="true"></span><span data-t="restart.button">Restart</span></button></div></div>
     <script type="module" src="/src/boot.js"></script>
   </body>
 </html>

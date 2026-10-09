@@ -15,7 +15,7 @@ import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js'
 import { guardianHint } from './temples/hints.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary } from './hud.js';
 import { screen } from './platform.js';
-import { closeHint, inputKind } from './prompt-keys.js';
+import { inputKind } from './prompt-keys.js';
 import { FirstSteps } from './first-steps.js';
 import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
@@ -319,7 +319,6 @@ function updateRestart(dt) {
   restartEl.classList.toggle('open', want);
   if (want) {
     restartEl.querySelector('p').textContent = tr(knockedOut === 'fall' ? 'restart.fall' : 'restart.out');
-    restartEl.querySelector('small').textContent = controllerActive ? tr('restart.pad', { key: confirmKey() }) : tr(isTouch ? 'restart.tap' : 'restart.enter');
     if (document.pointerLockElement) document.exitPointerLock?.();
     restartEl.querySelector('button').focus({ preventScroll: true });
   }
@@ -975,7 +974,7 @@ fillPicker(picker, { levels: pickable, current: levelId, cont: levelById(cont?.l
 function showPicker(on) {
   if (on) for (const q of [menu, journal, changelog]) if (q.open) q.toggle(false);
   picker.classList.toggle('open', on);
-  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : closeHint(''); }
+  if (on) { document.exitPointerLock?.(); const h = picker.querySelector('header .hint'); if (h) h.textContent = inputKind() === 'keys' ? 'press a number · L to toggle this screen' : ''; }   // (a pad's back button: in the close button, src/pad-glyphs.js)
 }
 showPicker(query.get('worlds') === '1');   // (?level=<id>&worlds=1: a world with the list up; the title's Debug entry shows the list alone, src/world-picker.js) L is a developer shortcut; in play, worlds are chosen on the ship's galactic map (and saves on the title screen)
 picker.querySelector('.close').addEventListener('click', () => showPicker(false));

@@ -6,6 +6,7 @@ import { makeMaterial, MODE_STRATA } from '../materials.js';
 import { callTimeline } from './prologue.js';
 import * as sfx from './sfx.js';
 import { padIndex } from '../native-pad.js';
+import { glyph } from '../pad-glyphs.js';
 import { exhaust, footPuffs } from './exhaust.js';
 import { spoken } from '../story/tone.js';
 import { tokenList, leaveTokens, tombLines, credits, creditsHtml, KIND_LABEL, choicesMade, homecomingKind, ILEN_TOKEN, FINALE_ID } from '../story/ending.js';
@@ -67,7 +68,7 @@ const CSS = `
 #homeward .k .from { display: block; font-size: 10px; opacity: .6; letter-spacing: .06em; margin-top: 1px; }
 #homeward .k .text { display: block; margin-top: 4px; font-size: 12px; }
 #homeward footer { padding: 10px 14px; border-top: 2px solid #2b211f; display: flex; gap: 12px; align-items: center; }
-#homeward footer button { font: inherit; padding: 6px 14px; background: #f2c54b; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; }
+#homeward footer button { display: inline-flex; align-items: center; font: inherit; padding: 6px 14px; background: #f2c54b; border: 2px solid #2b211f; box-shadow: 3px 3px 0 #2b211f; cursor: pointer; }
 #homeward footer span { font-size: 11px; opacity: .65; }
 #credits { position: fixed; inset: 0; z-index: 8200; pointer-events: none; opacity: 0; transition: opacity 1.4s; overflow: hidden;
   background: linear-gradient(rgba(43, 33, 31, .55), rgba(43, 33, 31, .35)); }
@@ -131,7 +132,7 @@ class CargoPanel {
       : '<div class="k"><b>Nothing</b><span class="text">The hold is empty. Just you.</span></div>';
     this.el.innerHTML = `<header><h2>CARGO CHECK</h2><p>Before descent. Everything in the hold goes down with you.</p></header>
       <div class="list">${list}</div>
-      <footer><button class="go">Take it all down ▶</button><span>A / × or ENTER</span></footer>`;
+      <footer><button class="go">${glyph('ok')}Take it all down ▶</button></footer>`;
     document.body.appendChild(this.el);
     this.el.querySelector('.go').addEventListener('click', () => this.go());
     this.onKey = (e) => {

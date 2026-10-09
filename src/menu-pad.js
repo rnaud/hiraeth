@@ -91,3 +91,51 @@ export const padCancel = () => close(false);
 
 /** (tests) as a fresh page */
 export function padReset() { holdOn = null; open = null; }
+
+// ---- grids (the worlds list, the items page): the D-pad and the stick move in 2D, to the card that is
+// that way on the screen, as a console's menus do (a list's next / previous would walk a row of three
+// cards to reach the one below). Opted into by the menu's root: data-grid-nav (menuNavigate).
+
+/**
+ * The index of the box to go to from `index` towards (x, y) (each -1, 0 or 1), or `index` if none.
+ * `rects`: [{ left, top, width, height }] in the page's order. A box counts when its centre lies that
+ * way (by a third of the current box at least) and, for ← →, it shares the current one's row; for ↑ ↓
+ * one in its column wins, else the nearest anywhere below / above. The nearest wins, sideways distance
+ * counting double. Past the last row ↓ wraps to the first (↑ to the last), the column kept; ← → stop at
+ * the ends of a row.
+ */
+export function gridStep(rects, index, x, y) {
+  const n = rects.length;
+  if (!n) return -1;
+  if (index < 0 || index >= n) return 0;
+  if (!x && !y) return index;
+  const c = (r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  const cur = rects[index], cc = c(cur);
+  const along = (p) => (x ? (p.x - cc.x) * x : (p.y - cc.y) * y);   // how far that way
+  const side = (p) => (x ? Math.abs(p.y - cc.y) : Math.abs(p.x - cc.x));
+  const overlaps = (r) => (x ? r.top < cur.top + cur.height && r.top + r.height > cur.top : r.left < cur.left + cur.width && r.left + r.width > cur.left);
+  // (a third of the box's own size: the focused card is drawn lifted and a little larger, its neighbours in
+  // the same column must not count as "to the right")
+  const min = Math.max(1, (x ? cur.width : cur.height) / 3);
+  let best = -1, bestScore = Infinity, bestBand = false;
+  rects.forEach((r, i) => {
+    if (i === index) return;
+    const p = c(r), a = along(p);
+    if (a < min) return;
+    const band = overlaps(r);
+    if (x && !band) return;   // (← → stay in the row: a list of one column doesn't jump up to the header)
+    const score = a + 2 * side(p);
+    if ((band && !bestBand) || (band === bestBand && score < bestScore)) { best = i; bestScore = score; bestBand = band; }
+  });
+  if (best >= 0 || x) return best >= 0 ? best : index;
+  // ↓ from the last row: the first row's box nearest the column (↑ from the first: the last row's)
+  const edge = (r) => (y > 0 ? r.top : -(r.top + r.height));   // (smallest: the first row going ↓, the last going ↑)
+  let far = -1, farEdge = Infinity, farSide = Infinity;
+  rects.forEach((r, i) => {
+    if (i === index) return;
+    const e = edge(r), s = side(c(r));
+    if (e < farEdge - 4 || (Math.abs(e - farEdge) <= 4 && s < farSide)) { far = i; farEdge = Math.min(e, farEdge); farSide = s; }
+  });
+  if (far < 0 || edge(cur) <= farEdge + 4) return index;   // (one row: nowhere to wrap to)
+  return far;
+}

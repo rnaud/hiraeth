@@ -24,7 +24,7 @@
 // printed letter with Nintendo labels (Android, the Retroid: 0 is A on the right)
 // is moved to positions first (faces().byLabel, see native-pad.js padFaces).
 import { controlPrefs, currentPadMap, capturingPad, padCaptured, IDENTITY } from './remap.js';
-import { padDirection } from './menu-pad.js';
+import { padDirection, gridStep } from './menu-pad.js';
 
 export const SOUTH = 0, EAST = 1, WEST = 2, NORTH = 3;
 const LB = 4, RB = 5, LT = 6, RT = 7, VIEW = 8, MENU = 9, L3 = 10, R3 = 11, UP = 12, DOWN = 13, LEFT = 14, RIGHT = 15;
@@ -111,6 +111,8 @@ export class Controller {
       else if (press(RB)) this.action('tabNext');
       else if (press(no)) this.action('back');
       else if (press(ok) || talkOn) this.action('confirm');
+      else if (ctx === 'menu' && press(WEST)) this.action('x');   // (a menu's own extra buttons: a save's Delete on the title,
+      else if (ctx === 'menu' && press(NORTH)) this.action('y');  //  the items page's reset and turn; each carries its glyph)
       const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
       const y = down(DOWN) ? 1 : down(UP) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
       const direction = y ? `y${y}` : x ? `x${x}` : '';
@@ -244,6 +246,10 @@ export function menuNavigate(root, x, y, fresh = true) {
   const current = document.activeElement;
   if (padDirection(root.contains(current) ? current : null, x, y, fresh)) return;
   const index = elements.indexOf(current);
-  const next = elements[index < 0 ? 0 : (index + (y || x) + elements.length) % elements.length];
-  next.focus(); next.scrollIntoView({ block: 'nearest' });
+  // a grid (data-grid-nav on the menu or round it: the worlds list, the items page): to the card that is that way
+  const grid = !!root.closest?.('[data-grid-nav]');
+  const to = index < 0 ? 0 : grid ? gridStep(elements.map((e) => e.getBoundingClientRect()), index, x, y) : (index + (y || x) + elements.length) % elements.length;
+  const next = elements[to];
+  if (!next) return;
+  next.focus({ preventScroll: grid }); next.scrollIntoView({ block: 'nearest', inline: 'nearest' });   // (a grid's cards keep a margin: their scroll-margin)
 }

@@ -1326,3 +1326,38 @@ tests/sound-mix.test.js holds them.
 - [x] The pause menu's footer sat under the bottom at 1280 x 720 with the dev-only Debug entry (31 px, not
   one). (src/menus.css: below 760 px tall, landscape, the side's and its buttons' gaps are a little
   tighter; the footer now ends at 706 px. Checked in headless Chrome.)
+## Visuals and controller menus (October 2026): the menus on a controller (done 9 October, v1.2)
+- [x] Make the debug menu easier to navigate with a controller: use a grid layout and smaller level cards.
+  (The worlds list, src/world-picker.js cardHtml + index.html #picker: small cards in a grid, a picture with
+  its number, the name, the source and the save it opens in; the blurb and moves are the tooltip and, for
+  the focused card, a strip at the foot. menuNavigate (src/controller.js) moves in 2D when the menu opts in
+  with data-grid-nav: gridStep in src/menu-pad.js picks the card that way on the screen (← → stay in the
+  row, ↑ ↓ the column or the nearest, ↓ past the last row wraps to the top), tolerant of the focused card
+  being drawn lifted and larger. The focused card: a red frame, lifted, A on its picture, scrolled into
+  view with a margin. The arrow keys move the same way. tests/pad-glyphs.test.js.)
+- [x] Put button prompts inside the actual buttons in all menus, instead of in hints below them.
+  (src/pad-glyphs.js: glyph(role) is a span inside the button whose label is CSS (a custom property per
+  role), so a menu drawn again keeps it and native-pad.js never rewrites it. The title (A beside the
+  focused entry, B in Back and Keep, X on a save's Delete, which X / □ now presses), the Start menu (B in
+  Resume, A on the focused entry, the reset question), the journal (B in the ✕, now shown with a pad too;
+  LB / RB on the side tabs; the strip keeps only the confirm button's verb), the galactic map (B in close,
+  A in Travel and Yes, B in No; the hint lines gone), the cargo check, the restart dialog, what's new's
+  Close, the worlds list's close. The Controller sends 'x' and 'y' in menus (X / □, Y / △). Keys mode shows
+  the keys (Enter, Esc, Q, E or the glyph's data-key); touch hides them.)
+- [x] Show button prompts that match the connected controller. (native-pad.js familyOf / padFamily from the
+  Gamepad id: Xbox, PlayStation (054c, DualSense, DualShock), Switch (057e, Pro Controller, Joy-Con), the
+  handheld layout (the Android app, a Retroid) as before; an unknown pad reads as Xbox. padText takes the
+  family: the half of "A / ×" that matches, and its shoulders and menu buttons (L1 R1 L2 R2 Create Options;
+  L R ZL ZR − +; LS RS for L3 R3 on Xbox and Switch). watchLabels now rewrites the page whenever a pad is
+  listed, so conversations and prompts follow; the glyphs' labels and colours come from padGlyphs. A Switch
+  pad on a computer now confirms with its A on the right (padFaces auto). The prompts in the source stay in
+  Xbox / PlayStation form. Checked with simulated Xbox, DualSense, Pro Controller and Retroid pads at
+  1280 × 720 and 812 × 375. tests/pad-glyphs.test.js.)
+- [x] Greatly reduce text in the item debug menu; on the Retroid the item stays clearly visible. (items.html
+  and src/items-page/: full screen shows the name in the bar and one short line under the item (its kind
+  and its first sentence, shortLine, at most 90 letters); "more" (A, I, Enter) opens the rest in a column
+  on the left and the item's canvas narrows beside it (the viewer sizes to its canvas); the hint line is
+  gone, the keys and buttons are glyphs in the bar's buttons; smaller still under 480 px high. The page
+  works with a pad too (a grid of cards, A opens, LB / RB or ← → the other items, ↑ ↓ zoom, the right
+  stick tilts, Y turn, X reset, B close). Checked at 730 × 410 (a Retroid's CSS size), 1280 × 720 and
+  1920 × 1080.)
