@@ -201,6 +201,14 @@ const RUN_THROUGH = (id, time, last = 0) => `const w = window.trials.byId('${id}
   const b = w.course.bank; if (b) { b.hit(0); b.hit(1); b.hit(2); }
   await wait(2600);`;
 
+/** A makers' run with balls played through for its results card: the gates walked, the balls set on their plates. */
+const ROLL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  window.minigame.clock = ${time};
+  for (const R of w.course.rollers) { R.ball.t = 1; R.ball.place(); w.course.rt.logic.moveDrum(R.id, 1); }
+  await wait(2600);`;
+
 export const CHANGELOG_MEDIA = {
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [
@@ -224,6 +232,14 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'buried', player: [45, 6, 59], heading: 0, eye: [60, 18, 72], target: [40, 6, 94], fov: 55, wait: 3000 } },
       { name: 'feather-leap-results', only: 'after', caption: 'The Feather leap finished: the time, the makers’ mark, and a word from Kesh, who keeps the stone hand nearby', commit: 'f51e0acc',
         view: { level: 'arzach', hud: true, hour: 10, save: { flags: { 'prologue.done': true, 'item.backpack': true, 'item.glider': true, 'items.v': 2 }, keepsakes: [] }, player: [-97, 24, -208], setup: RUN_THROUGH('kit-arzach', 41.2, 0.1), wait: 600 } },
+    ] },
+    { match: 'And two more, with the temples’ stone balls', shots: [
+      { name: 'sphere-court', caption: 'The Sphere court on the meadow south of the Garden of Spheres’ mirror lake: the slalom of stone spheres, the dais with its two plates between the grooves, a white sphere at the head of each, and the arch at the far end', commit: '1274815e',
+        view: { level: 'spheres', player: [136, 1, -27], heading: 1.57, eye: [126, 11, -38], target: [160, 0, -20], fov: 55, wait: 3000 } },
+      { name: 'long-look', caption: 'The Long look in the City-Shaft: a makers’ balcony from the rim out over the shaft, three stones with a gap between each, the ball’s rail across them, and the frame round the view at the far end with the plate', commit: '1274815e',
+        view: { level: 'incal', player: [269.2, 200.5, 65.3], heading: -1.8, eye: [265.7, 209.3, 44.95], target: [244.56, 200.3, 56.49], fov: 55, wait: 3000 } },
+      { name: 'long-look-results', only: 'after', caption: 'The Long look finished: the time, the makers’ mark, and a word from Tobin, who sells views along the rim', commit: '1274815e',
+        view: { level: 'incal', hud: true, hour: 10, player: [269.2, 200.5, 65.3], setup: ROLL_THROUGH('kit-incal', 33.6), wait: 600 } },
     ] },
   ],
   '1.2': [
