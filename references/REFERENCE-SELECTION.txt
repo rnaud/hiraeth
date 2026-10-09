@@ -2,7 +2,7 @@ REFERENCE DIRECTION — 2026-10-08
 
 SHIP: Keep the original Main Interior, Cockpit and Message, and Living Quarters sets. User confirmed these are good. The exploratory cutaway generated in Midjourney was not imported or selected.
 
-BACKPACK: Use the existing coral-shirt character sheets for proportions. The initial Living Fluid Flask set is superseded for wearable design: it reads as a loose round bottle. Prefer Fluid Backpack - Assembly v3 for mounting and the slim flat tank, plus Backpack and Glove - In Use v2 for the connection and action. Wearable v2 explores fit but is not a consistent production turnaround; some views omit or change the tank. Colour explorations are pending the user's selection, not a change to gameplay charge/mode colours.
+BACKPACK: Use the existing coral-shirt character sheets for proportions. The initial Living Fluid Flask set is superseded for wearable design: it reads as a loose round bottle. Prefer Fluid Backpack - Assembly v3 for mounting and the slim flat tank, plus Backpack and Glove - In Use v2 for the connection and action. Wearable v2 explores fit but is not a consistent production turnaround; some views omit or change the tank. The user selected Ivory and Jade; see the implemented direction below. Gameplay charge and mode meanings remain unchanged.
 
 SCOUT: Folding Scout - States v2/reference-4.jpeg is a useful folding concept; do not infer exact hinge trajectories or clearances from generated views. Runtime folding and backpack dock clearance remain authoritative.
 
@@ -29,3 +29,10 @@ The sword must read as magical liquid, not green metal. The shield's fist stays
 entirely behind the fluid plane, with a physical support arm crossing the air gap.
 Do not use the earlier sword or shield jobs as construction blueprints.
 Grappling hook jobs 2c91a885 and ffe601b1 rejected: disconnected or doubled cable routes.
+
+Additional reviewed gadget studies
+Recall Hourglass (1), Ink Bridge Pen (3), Seeing Lens (2), Spring Boots (3),
+Bubble Wand (3), Gust Fan (3), and Grappling Launcher - Stowed (2).
+Numbers identify reference-N.jpeg in each Reviewed Gadgets folder.
+The stowed launcher is accepted for silhouette/materials only; its deployed cable
+route still needs a mechanical rig. See every folder’s review.txt before modelling.
