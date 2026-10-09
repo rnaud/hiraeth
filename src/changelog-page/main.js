@@ -6,7 +6,7 @@
 import { CHANGELOG, VERSION } from '../changelog.js';
 import { changelogEntries } from '../changelog-media.js';
 import { Controller } from '../controller.js';
-import { padFaces } from '../native-pad.js';
+import { padFaces, watchLabels } from '../native-pad.js';
 import { filterChips, filtered, lineHtml, MEDIA_SITE, pageOfId, pagerHtml, paginate, shotHtml, versionHtml } from './view.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -16,6 +16,8 @@ document.body.classList.toggle('embed', embed);
 $('#version').textContent = `v${VERSION}`;
 
 const entries = changelogEntries(CHANGELOG);
+watchLabels();   // (the lines' buttons, "B / ○ or Esc", as one half: the pad last used here, else Xbox's; src/native-pad.js)
+
 
 // ------------------------------------------------------------------ filters, search and pages
 // Only the page shown is in the document (a hundred versions of pictures and tables at once is too much

@@ -19,7 +19,7 @@ import { NPC } from '../npc.js';
 import { playVoice, hit as playHit } from '../score-voices.js';
 import { scoreFor, scoreFreq } from '../score.js';
 import { inputKind } from '../prompt-keys.js';
-import { padText } from '../native-pad.js';
+import { promptText } from '../native-pad.js';
 import { arenaLevel } from './kit/world.js';
 import {
   LANES, LEVELS, SONG, JUDGE, drumSong, eventsBetween, heardSongTime, newRun, judgePress, sweepMisses, runDone,
@@ -246,7 +246,7 @@ class Overlay {
   setLabels(kind, lay) {
     for (const [i, d] of this.labels.entries()) {
       const L = LANES[i], [dx, dy] = DIRS[L.at];
-      const text = kind === 'pad' ? padText(L.pad) : kind === 'touch' ? '' : `${L.keyLabel} ${L.keys[1].slice(3)}`;
+      const text = kind === 'pad' ? promptText(L.pad, { remap: false }) : kind === 'touch' ? '' : `${L.keyLabel} ${L.keys[1].slice(3)}`;
       if (d.textContent !== text) d.textContent = text;
       d.style.display = text ? '' : 'none';
       // (beside its socket, a turn of the ring clockwise from it: clear of the spokes)

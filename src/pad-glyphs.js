@@ -17,7 +17,7 @@
 // Roles are named by position as the prompts are (Xbox / PlayStation form): 'ok' and 'back' are the
 // menus' confirm and back buttons, printed A and B whatever the layout (native-pad.js confirmKey).
 
-import { padText, labelState, onLabels, padFaces, padLayout, padFamily } from './native-pad.js';
+import { padText, labelState, onLabels, padFaces, padLayout, pageFamily } from './native-pad.js';
 
 /** The roles, and the prompt each stands for (Xbox / PlayStation form; ok / back depend on the faces). */
 export const GLYPH_ROLES = {
@@ -98,7 +98,7 @@ let installed = null;
 /** The labels for the pad on this page now (from native-pad.js's state, or worked out from the window). */
 function currentLabels(win) {
   const st = labelState();
-  const family = st.family || padFamily(win), faces = padFaces(win).faces, layout = padLayout(win);
+  const family = st.family || pageFamily(win), faces = padFaces(win).faces, layout = padLayout(win);
   return padGlyphs({ family, faces, layout });
 }
 

@@ -156,8 +156,8 @@ overrides beside them, saved with the settings (`keys: { verb: code }`, `pad: { 
   ("A / ×" is the button now bound to jump; one pass, so a swap stays a swap) and `keyRename` on
   key badges (`.key` holding exactly a default key's name: "E", "SPACE", "W/S"). Under `.pad-raw`
   (the conversation panel, the game menu, the restart card, the Controls page's own lists, the
-  "Talking", "In menus", "Their panels" and "Photo mode" rows) the pad names stay as written:
-  those are the menus' own buttons. The keyboard's names follow the keyboard's layout where the
+  "Talking", "In menus", "Their panels" and "Photo mode" rows) the pad names are not renamed:
+  those are the menus' own buttons (they still show one half of "A / ×": docs/systems/ui.md). The keyboard's names follow the keyboard's layout where the
   browser tells it (`navigator.keyboard.getLayoutMap`: an AZERTY shows ZQSD) and the language
   ("ESPACE", "MAJ").
 - **The Controls page** (Start menu → Controls, or H) starts with "Your buttons" and "Your keys"

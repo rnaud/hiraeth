@@ -387,8 +387,20 @@ tall narrow screens). The journal's (src/game-menu.css) smallest words have a 9-
   Joy-Con), or the handheld layout (the Android app, a Retroid, `?pad=android`). `padText(text, layout, faces,
   family)` keeps the matching half of "A / ×" and the family's own shoulder and menu names (L1 R1 L2 R2,
   Create / Options; L R ZL ZR, − / +; LS / RS for L3 / R3 on Xbox and Switch); the Android layout is as
-  before. `watchLabels` now rewrites the page whenever a pad is listed, so every prompt follows; with none
-  listed the prompts stay as written. A Switch pad on a computer reports positions with A on the right:
+  before. `watchLabels` rewrites every text on the page, always.
+- **One button, never the pair** (October 2026; the author saw "A / ×" on the Steam Deck): a browser lists a
+  pad only after its first press on the page (each world is a new page), and Steam Input's pads too, so
+  until then there was no family and the prompts stayed as written, both halves. Now `pageFamily` picks one:
+  the pad listed now; else the family of the last pad listed on this device (`rememberFamily`, localStorage
+  `moebius.padFamily.v1`); else the platform's (`platformFamily`: the Deck's app, `moebius:`, Steam's
+  browser or a Steam pad on the list, ids with Valve's 28de, "Steam Virtual Gamepad", "Steam Deck": Xbox
+  letters, as Steam draws them; the Android app its handheld names; anything else Xbox's, the standard's own).
+  `padText` with no family shows the Xbox half too, so no caller can print the pair. With the keyboard or the
+  touch screen in hand the button glyphs show the key or nothing (CSS), and a prompt written as text keeps
+  that one half. The interactive changelog page runs `watchLabels` as well. `tests/prompt-pairs.test.js`
+  renders every prompt string (the language files, the bindings, the changelog, every literal in `src/`)
+  for each case (Xbox, PlayStation, Switch, handheld, keyboard, no pad listed, a remembered DualSense, a
+  Steam virtual pad, the Deck's app) and fails on any "A / ×" pair left. A Switch pad on a computer reports positions with A on the right:
   `padFaces` auto now says 'nintendo' for it, so it confirms with A (right) and backs out with B (bottom), as
   on a Switch. `padGlyphs({ family, faces, layout })` (pure) gives each role's label and colour (Xbox's
   green A, red B…, PlayStation's shapes a little larger). The source's prompts stay in Xbox / PlayStation

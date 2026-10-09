@@ -25,6 +25,9 @@ export const CHANGELOG = [
     'A temple’s crystal pendulum that you have stilled now holds a foe that walks into it: the frost takes it for a few seconds, harmless, its eyes pale, and your next cut lands double. Swinging, the crystal still knocks foes away.',
     { text: 'And one in the Sky Stones, the Bell crossing, from the Founders’ Belfry’s own fallen-up bridges and bell-tuned door: four stone decks float in a line out over the sea of cloud, and the stones of the bridge across each gap hang high above it. Sound the bell-note whistle by the bell at the gap’s edge and they come down into place; the door on the last deck opens to the bell too. Fall into the cloud, or open your wings, and the run is over. Sister Aube, the hermit of the edge, has a word for you when you finish.',
       see: 'The Bell crossing starts at the south rim of the starting plateau, past Sister Aube’s hermitage. It wants the bell-note whistle from the Founders’ Belfry. Walk up to the sign and press X / □ (E); sound the whistle with Y / △ with no gadget in hand (V).' },
+    // controllers
+    { text: 'Button prompts now always name one button, the one on the controller in your hands, never two names for the same button side by side. Before your first press in a world, and on the Steam Deck, they use the controller you last played with, or the Deck’s own letters.',
+      see: 'Start a world with a controller and don’t touch it while it loads: the prompts on the loading screen, the hints and the menus already show A, B, X, Y (or the shapes of the PlayStation pad you last used), never both. On the Steam Deck it is the Deck’s letters from the first second.' },
   ] },
   { v: '1.3', date: '2026-10-09', items: [
     // the desert's first hour

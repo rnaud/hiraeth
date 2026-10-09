@@ -33,7 +33,7 @@
 // the key now bound to use), except under .pad-raw (the menus' own confirm / back, which never move).
 
 import { installPadMaps } from './pad-maps.js';
-import { padRename, keyRename, hasRenames, onControlPrefs } from './remap.js';
+import { padRename, keyRename, onControlPrefs } from './remap.js';
 import { onLanguage } from './i18n.js';
 
 let native = null;
@@ -84,12 +84,16 @@ const IS_XBOX = /xbox|x-box|xinput|microsoft|045e/i;
 const IS_PLAYSTATION = /playstation|dualsense|dualshock|sony|054c|\bps[345]\b|^wireless controller/i;
 const IS_NINTENDO = /nintendo|057e|pro controller|joy-?con|switch/i;
 const IS_HANDHELD = /retroid|odin|anbernic|ayn/i;
+// Steam Input's own pads (the Steam Deck's controls in its app and in Gaming Mode, any pad Steam wraps):
+// Valve's vendor id 28de, "Steam Virtual Gamepad", "Steam Deck"; Steam draws them as an Xbox pad
+const IS_STEAM = /\b28de\b|steam virtual gamepad|steam deck|steam controller|valve/i;
 
 /** A pad's family from its Gamepad id (see above); '' for no id. */
 export function familyOf(id) {
   const s = String(id ?? '');
   if (!s) return '';
   if (IS_HANDHELD.test(s)) return 'handheld';
+  if (IS_STEAM.test(s)) return 'xbox';
   if (IS_XBOX.test(s)) return 'xbox';
   if (IS_PLAYSTATION.test(s)) return 'playstation';
   if (IS_NINTENDO.test(s)) return 'nintendo';
@@ -101,6 +105,44 @@ export function padFamily(win = globalThis.window) {
   if (padLayout(win) === 'android') return 'handheld';
   const ids = native ? [native.id] : padIds(win);
   return ids.length ? familyOf(ids[0]) : '';
+}
+
+// ---- one half of "A / ×", always
+// A browser lists a pad only after its first press on the page (each world is a new page), and Steam
+// Input's pads on the Steam Deck the same: until then padFamily() is ''. The prompts used to stay as
+// written then ("A / × jump", both halves); now the page picks a half from the best it knows:
+//   1. the pad listed now (padFamily)
+//   2. the family of the last pad listed on this device (remembered: rememberFamily, localStorage)
+//   3. the platform's own (platformFamily): the Steam Deck's app or a Steam pad → Xbox letters
+//      (Steam draws its pads so); the Android app is the 'handheld' layout already; anything else the
+//      standard's own names, Xbox's.
+export const PAD_FAMILY_KEY = 'moebius.padFamily.v1';
+const FAMILIES = new Set(['xbox', 'playstation', 'nintendo', 'handheld']);
+const store = (win) => safe(() => win?.localStorage) ?? null;
+/** The family of the last pad listed on this device ('' none yet). */
+export function rememberedFamily(win = globalThis.window) {
+  const v = safe(() => store(win)?.getItem(PAD_FAMILY_KEY));
+  return FAMILIES.has(v) ? v : '';
+}
+/** Remember a listed pad's family for the pages after (a new world, the next launch). */
+export function rememberFamily(family, win = globalThis.window) {
+  if (FAMILIES.has(family) && rememberedFamily(win) !== family) safe(() => store(win)?.setItem(PAD_FAMILY_KEY, family));
+}
+/** The Steam Deck: its app (the moebius: page, src/ui.js isDeckApp), Steam's browser, or a Steam pad on the list. */
+export function onSteam(win = globalThis.window) {
+  if (win?.location?.protocol === 'moebius:') return true;
+  if (/steamdeck|valve steam|steam(?:os)?\b/i.test(win?.navigator?.userAgent ?? '')) return true;
+  return padIds(win).some((id) => IS_STEAM.test(id));
+}
+/** The platform's own family when no pad is known (see above): never ''. */
+export function platformFamily(win = globalThis.window) {
+  if (padLayout(win) === 'android') return 'handheld';
+  if (onSteam(win)) return 'xbox';
+  return 'xbox';
+}
+/** The family the page's prompts are drawn for: the listed pad's, else the remembered one, else the platform's. Never ''. */
+export function pageFamily(win = globalThis.window) {
+  return padFamily(win) || rememberedFamily(win) || platformFamily(win);
 }
 
 let facesSetting = 'auto';
@@ -172,7 +214,7 @@ const FAMILY = {
 const SYMBOL = { A: '×', B: '○', X: '□', Y: '△' };
 
 let labelFaces = 'xbox';   // what watchLabels() last found
-let labelFamily = '';      // and the pad's family ('' none listed: the prompts stay as written)
+let labelFamily = '';      // and the pad's family (pageFamily: never '' once watchLabels has run)
 
 /**
  * A prompt in the given layout's button names ('android': the handheld's) and face letters ('nintendo': B at the bottom).
@@ -181,6 +223,8 @@ let labelFamily = '';      // and the pad's family ('' none listed: the prompts 
 export function padText(text, layout = 'android', faces = labelFaces, family = '') {
   if (!text) return text;
   let out = text;
+  if (layout !== 'android' && family === 'handheld') layout = 'android';
+  if (layout !== 'android' && !FAMILY[family]) family = faces === 'nintendo' ? 'nintendo' : 'xbox';   // (no pad known: one half, never the pair)
   if (layout !== 'android' && FAMILY[family]) {
     const nin = family === 'nintendo' || (faces === 'nintendo' && family !== 'playstation');
     out = out.replace(FACE, (_, l) => (family === 'playstation' ? SYMBOL[l] : (nin ? LETTER.nintendo : LETTER.xbox)[l]));
@@ -240,10 +284,12 @@ export function watchLabels(win = globalThis.window) {
   if (!win?.document?.body) return;
   layout = padLayout(win);
   labelFaces = padFaces(win).faces;
-  labelFamily = padFamily(win);
+  const listed = padFamily(win);
+  if (listed) rememberFamily(listed, win);
+  labelFamily = listed || rememberedFamily(win) || platformFamily(win);
   for (const fn of labelHooks) { try { fn(labelState()); } catch (e) { console.warn('labels', e); } }
   if (observer) { rewrite(win.document.body); return; }
-  if (layout !== 'android' && labelFaces !== 'nintendo' && !labelFamily && !hasRenames()) return;
+  // (always: every prompt is written as a pair, "A / ×", and the page shows one half)
   rewrite(win.document.body);
   observer = new win.MutationObserver((list) => {
     for (const m of list) {
