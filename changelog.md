@@ -42,6 +42,11 @@ The same release notes shown in the game (press **N** or open settings).
 - The Debug button is back on the title screen and in the Start menu for everyone, for now, so testers can jump to any world.
 - The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.
 - The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.
+- Stepping out of the ship no longer offers to take you straight back in: “go aboard” waits until you have walked away from the ramp and come back.
+- Marrow no longer stands right under your ship as it crash-lands: he waits a safe distance away, to the side of the hatch.
+- Nobody talks while the ship is still crashing: no speech balloons or talk prompts until you have the controls.
+- The hum everyone talks about can now be heard: a low sung note that swells three times. It rises under your father’s message until the impact, sounds again from the scar on the hull after the landing, comes from the makers’ boxes (Nour’s chest first) every few seconds as you come near, and answers softly whenever someone mentions humming.
+- Your father’s message at the start is shorter and tighter: four lines instead of six, about nine seconds less, and under his last words something starts to hum and the picture begins to break up, just before the impact.
 
 ## v0.99 — 2026-10-08
 

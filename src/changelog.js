@@ -10,6 +10,12 @@ import { backKey } from './native-pad.js';
 
 export const CHANGELOG = [
   { v: '1.0', date: '2026-10-08', items: [
+    // the opening, from the playtest
+    { text: 'Your father’s message at the start is shorter and tighter: four lines instead of six, about nine seconds less, and under his last words something starts to hum and the picture begins to break up, just before the impact.', see: 'Start a new game and play the voicemail in the cockpit; listen under “Bring back something of value.”' },
+    { text: 'The hum everyone talks about can now be heard: a low sung note that swells three times. It rises under your father’s message until the impact, sounds again from the scar on the hull after the landing, comes from the makers’ boxes (Nour’s chest first) every few seconds as you come near, and answers softly whenever someone mentions humming.', see: 'In the desert, climb towards the chest on the great tree’s trunk, or listen when Ilo shouts that Nour’s chest is humming.' },
+    'Nobody talks while the ship is still crashing: no speech balloons or talk prompts until you have the controls.',
+    'Marrow no longer stands right under your ship as it crash-lands: he waits a safe distance away, to the side of the hatch.',
+    'Stepping out of the ship no longer offers to take you straight back in: “go aboard” waits until you have walked away from the ramp and come back.',
     { text: 'The traveller’s backpack is now a flat ivory-framed glass reservoir with jade fluid, turquoise and lemon currents, a sage backing and matching ivory-and-sage scout.', see: 'Wear the backpack and launch the scout; the same reservoir appears in the item viewer.' },
     { text: 'The fallen giant has deep eye sockets, a toothed mouth and a broad rounded lower jaw leading into its throat. The ship gains warm coral flooring, cream overhead cupboards and an oval ceiling light.', see: 'Approach the giant beyond Qanat’s back gate, then explore the ship’s galley and central room.' },
     { text: 'The Debug button is back on the title screen and in the Start menu for everyone, for now, so testers can jump to any world.', see: 'Open the game: Debug is on the title screen.' },

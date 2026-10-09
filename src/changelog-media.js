@@ -194,6 +194,15 @@ export const CHANGELOG_MEDIA = {
   ${sleepJs(900)}`, wait: 300 } },
     ] },
     { match: 'Fewer speech balloons', see: 'Walk through the pilgrims’ camps after talking to everyone there: nobody greets you with a balloon unless your quest points to them or they have news; shouts still show.' },
+    { match: 'Nobody talks while the ship is still crashing', shots: [
+      { name: 'crash-balloon', caption: 'The ship ploughing into the dunes in a new game', from: 'headless Chrome against this branch’s own dev server and the commit before, the prologue from the voicemail on, Medium (8 October)' },
+    ] },
+    { match: 'Marrow no longer stands right under your ship', shots: [
+      { name: 'crash-marrow', caption: 'The dust settling after the crash: Marrow is the small figure by the hull', from: 'headless Chrome against this branch’s own dev server and the commit before, the prologue from the voicemail on, Medium (8 October)' },
+    ] },
+    { match: 'Stepping out of the ship no longer offers', shots: [
+      { name: 'step-out', caption: 'The first second with the controls after stepping out of the ship', from: 'headless Chrome against this branch’s own dev server and the commit before, the prologue from the voicemail on, Medium (8 October)' },
+    ] },
     { match: 'Notices are quieter', shots: [
       { name: 'hud-notices', caption: 'A long notice while hurt, 1280 × 720', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },
       { name: 'hud-notices-phone', caption: 'The same notice on a phone held sideways (812 × 375, touch)', from: 'headless Chrome against this branch’s own dev server and the commit before, in the Desert hurt to half health, Low (8 October)' },

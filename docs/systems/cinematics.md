@@ -44,6 +44,22 @@ The ship's cutscenes and the filmed first times.
   edges and no flipped faces, and casts rays from the terraces, stairs and trunk: every first
   hit is bark seen from outside.
 
+## The prologue's message and the crash landing (v1.0)
+
+- **The father's message** (`PROLOGUE_CALL`, `src/story/calls.js`) is four lines and the cut, 25.5 s
+  (it was six, 34.5 s): he checks the little light and greets you as if live, gives the translator and
+  "nobody owes you" in one breath, then what was left half done, then the charge word for word. Under
+  the charge the hum rises and the call screen's static and the hologram's glitch grow with it, until
+  the strike cuts all three (docs/systems/audio.md, "The hum"). `tests/prologue-call.test.js`.
+- **Nobody talks over a ship's scene** (`talkAllowed`, `src/ship/landing.js`): while `ship.playing`
+  main.js picks no balloon and places no talk prompt, and `crowd.hush` keeps the crowd's shouts down.
+  (The hidden traveller rides in the parked ship during the crash, so Marrow greeted him through it.)
+- **Marrow at the wreck** stands at `bystanderSpot`: 22 m from the hull's centre (it is 13 m round),
+  the hatch's way turned 0.7 rad to a side, never in the furrow behind the crash's `travel`.
+- **Stepping out** (`ReboardGate`): while you are aboard or a scene or the autopilot walks you, the
+  ramp's "go aboard" (prompt and E) is held until you have been 7 m from its foot once.
+  `tests/landing.test.js`.
+
 ## Moments: first times, filmed (`src/story/moment.js`)
 A moment is a short cinematic (6–12 s) for a first time that deserves one, composed like a comic
 page: a few panels, the letterbox, a line or two, the traveller's face and hands in the line's

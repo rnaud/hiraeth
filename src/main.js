@@ -107,6 +107,8 @@ import { MinigameRunner } from './minigames/kit/runner.js';
 import { levelMetaFor } from './minigames/kit/world.js';
 import { lendTool } from './minigames/kit/onfoot.js';
 import { arcadeLinks } from './minigames/kit/arcade.js';
+import { talkAllowed } from './ship/landing.js';
+import { HumCue } from './story/hum.js';
 
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
@@ -533,6 +535,12 @@ const expedition = level.observatory ? new ObservatoryQuest({ model: level.obser
 await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
 const showToast = (text, o) => ship.cinema.toast(text, o);   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
+// the hum, when words on the screen speak of it: a toast, a subtitle, a line of a conversation, a balloon (src/story/hum.js)
+const humCue = new HumCue();
+let lastBalloon = null;
+const hearWords = (text) => { if (humCue.hear(text, performance.now() / 1000)) sound.makersHum?.({ vol: 0.7 }); };
+ship.cinema.onWords = hearWords;
+game.on('words', ({ text }) => hearWords(text));
 player.onNotice = showToast;   // "It needs power." (a vehicle without the backpack)
 const preStory = new Set(scene.children);
 const storyRt = createStory({ levelId, scene, physics, level, player, npcs, crowd, sound, journal, story, lib, humans: peopleT, toast: showToast, tool,
@@ -1557,6 +1565,7 @@ function frame(ts) {
     }
   }
   if (crowd && level.crowdAway) crowd.away = level.crowdAway();   // (a world's night thins its street: bazaar.js)
+  if (crowd) crowd.hush = !talkAllowed({ shipPlaying: ship.playing });   // (no shouts over the crash or a landing: src/ship/landing.js)
   crowd?.update(dt, t, player, camera);
   for (const n of npcs) n.update(dt, player, camera);
   errands.update();
@@ -1566,15 +1575,19 @@ function frame(ts) {
     let best = null, bd = Infinity;
     // (while a moment is filmed only a shout the moment asked for: an idle bark over a panel reads as a caption, src/story/moment.js)
     const filming = storyRt.moments.playing;
-    for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
+    // (and nobody at all until the player has the controls: the crash, a landing, a recording: src/ship/landing.js)
+    const talk = talkAllowed({ shipPlaying: ship.playing });
+    if (talk) for (const n of npcs) if (n.talking && (!filming || (n.shout && n.time < n.shout.until))) { const d = n.pos.distanceTo(player.pos); if (d < bd) { bd = d; best = n; } }
     const prompted = storyRt.prompt && storyRt.promptEntry?.npc;
     for (const n of npcs) n.placeBalloon(camera, n === best, n === prompted ? 30 : 0);
+    // a balloon that speaks of humming: the hum, softly (src/story/hum.js)
+    if (best?._balloonLine && best._balloonLine !== lastBalloon) { lastBalloon = best._balloonLine; hearWords(best._balloonLine); }
     // the one who talks near you says it with their face too (src/talk-face.js; a conversation drives its own)
     if (best?.humanoid && !best.talkTo && best.object.visible && camera.position.distanceTo(best.pos) < TALK_FACE.near) talkFaces.drive(best.humanoid, best.balloonFace());
     talkFaces.update(dt);
     updateHands(dt, { player, npcs, camera });   // the fingers: relaxed, gripping, gesturing with the line (src/hands.js)
     player.character?.updateHands();
-    if (!busy() && !photo.on) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
+    if (!busy() && !photo.on && talk) storyRt.placePrompt(camera, controllerActive); else storyRt.placePrompt(camera, false);
   }
   relics.update(dt, t, player);
   if (!minigameDef) story.update(dt, t, camera);   // (a game's page tells no story: its host's goal is not reached by standing in the game)

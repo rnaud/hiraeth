@@ -1084,7 +1084,7 @@ export class Crowd {
     const b = this.balloon;
     if (!b) return;
     const p = this.shout;
-    const on = p && !p.npc && this.time < p.shoutUntil && p._dCam < 45;
+    const on = !this.hush && p && !p.npc && this.time < p.shoutUntil && p._dCam < 45;   // (hush: a ship's scene plays, main.js)
     if (on) {
       _w.set(p.pos.x, p.pos.y + 2.05 * p.scale, p.pos.z).project(camera);
       if (_w.z < 1 && Math.abs(_w.x) < 1.1 && Math.abs(_w.y) < 1.1) {

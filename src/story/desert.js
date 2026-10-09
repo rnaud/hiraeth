@@ -15,6 +15,7 @@ import { setupHoverbike } from './desert-bike.js';
 import { setupDrum, setupMask } from './desert-errands.js';
 import { setupHearth } from './desert-spark.js';
 import { setupWay } from './desert-way.js';
+import { bystanderSpot } from '../ship/landing.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -180,9 +181,11 @@ export function setupDesert(ctx) {
   // a new game: he is at your ship when you step out, looking over the scar on its hull (then home to his crates)
   const ramp = ctx.ship?.arrivalSpot?.() ?? null;
   const rampAt = ramp?.pos ?? (level.ship?.pos ?? level.spawn).clone();
-  const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0)), side = V(out.z, 0, -out.x);
-  const wreckSpot = onGround(rampAt.clone().addScaledVector(side, 5.2).addScaledVector(out, -2.2));
-  const hull = rampAt.clone().addScaledVector(out, -14);
+  const out = V(Math.sin(ramp?.heading ?? 0), 0, Math.cos(ramp?.heading ?? 0));
+  const hull = ctx.ship?.restPos?.clone() ?? rampAt.clone().addScaledVector(out, -14);
+  // (well clear of where the ship comes down and ploughs in: he watched it land, src/ship/landing.js)
+  const watch = bystanderSpot({ out, hull, travel: ctx.ship?.site?.crash?.travel ?? null });
+  const wreckSpot = onGround(V(watch.x, rampAt.y, watch.z));
   people.marrow = spawn(PEOPLE.marrow, { route: opening() ? [wreckSpot] : marrowHome, speed: 0.6 });
   if (opening()) { people.marrow.facing = Math.atan2(hull.x - wreckSpot.x, hull.z - wreckSpot.z); people.marrow.heading = people.marrow.facing; }
   /** Marrow back to his crates: once the quest is under way and you are well away from him. */

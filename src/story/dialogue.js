@@ -342,7 +342,7 @@ export class Dialogue {
     this.openedAt = typeof performance !== 'undefined' ? performance.now() : 0;
     this.revealed = 0; this.translated = -LAG;
     this._mouth.length = 0;
-    this._doneAt = null; this._you.clear(); this._chip = null;
+    this._doneAt = null; this._you.clear(); this._chip = null; this._wordsSaid = null;
     this.cover.reset(this.clock); this._framed = null;
     // the camera cuts straight to the two-shot (frameCamera picks it on the next frame, after onOpen
     // has made room between the two): no swing round from the follow camera
@@ -445,6 +445,9 @@ export class Dialogue {
 
   render() {
     this.publish();
+    // each line as it comes up, for whoever listens to the words (main.js: the hum, src/story/hum.js)
+    const said = this.runner?.text;
+    if (said && said !== this._wordsSaid) { this._wordsSaid = said; this.game?.emit?.('words', { text: said }); }
     if (!this.el) return;
     this.showChip();
     const r = this.runner;

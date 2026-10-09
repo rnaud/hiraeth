@@ -16,15 +16,6 @@ Open work only. Finished items move to DONE.md (with how they were done); the ch
 
 # Playtest notes (2026-10-08)
 
-## Prologue and the crash landing
-
-- [ ] The intro from Dad is boring.
-- [ ] A character's speech bubble shows up while the ship is still crashing.
-- [ ] A character stands too close to the ship as it crash-lands.
-- [ ] Leaving the ship for the first time shows a prompt to go back into it.
-- [ ] The humming the game talks about is never heard. Make it part of the prologue and bring it back
-  regularly.
-
 ## Characters and animation
 
 - [ ] Characters' waving looks wrong; something is off in the animation.

@@ -17,6 +17,7 @@ import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
+import { HUM, boxHumWait } from './story/hum.js';
 
 // Bako's ney solo (AudioEngine.solo): three breaths in a hijaz mode, [semitones from the tonic, seconds].
 // (0 D, 1 E♭, 4 F♯, 5 G, 7 A, 8 B♭, 10 C) The augmented second (1 -> 4) and the slow falls back to the tonic
@@ -1005,11 +1006,20 @@ export class Sound {
   }
 
   // ------------------------------------------------------------------ item boxes (src/boxes/)
-  /** A box nearby hums: k 0..1 (how close the nearest unopened box is). A soft fifth that beats slowly. */
-  boxHum(k = 0) {
+  /**
+   * A box nearby hums: k 0..1 (how close the nearest unopened box is). A soft fifth that beats slowly.
+   * `far` 0..1 (the nearest unopened box within HUM.reach): every few seconds it sings the hum
+   * (makersHum(), src/story/hum.js), louder as you come near, so the chest the desert talks about is heard.
+   */
+  boxHum(k = 0, far = 0) {
     if (!this.ctx) return;
     if (!Number.isFinite(k)) k = 0;
+    if (!Number.isFinite(far)) far = 0;
     const ctx = this.ctx, t = ctx.currentTime;
+    if (far > 0.02 && !this.muted) {
+      if (this._boxHumAt === undefined) this._boxHumAt = t + 1.5;   // (a breath after it comes in reach)
+      else if (t >= this._boxHumAt) { this.makersHum({ vol: 0.35 + 0.65 * far * far }); this._boxHumAt = t + boxHumWait(far); }
+    } else this._boxHumAt = undefined;
     if (!this._hum) {
       if (k <= 0.001) return;
       const g = ctx.createGain(); g.gain.value = 0;
@@ -1025,6 +1035,93 @@ export class Sound {
       this._hum = { g, oscs, lfo };
     }
     this._hum.g.gain.setTargetAtTime(this.muted ? 0 : 0.05 * k * k, t, 0.25);
+  }
+
+  // ------------------------------------------------------------------ the hum (src/story/hum.js)
+  /**
+   * One voice of the hum from time t: a low sung note (two reedy oscillators a breath apart and the
+   * octave under, through a closed-mouth formant, a slow vibrato), into `out`. Returns its gain (to
+   * shape) and stop(at).
+   */
+  _humVoice(t, out, f = HUM.root) {
+    const ctx = this.ctx;
+    const g = ctx.createGain(); g.gain.value = 0;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 720; lp.Q.value = 0.9;
+    const mm = ctx.createBiquadFilter(); mm.type = 'peaking'; mm.frequency.value = 260; mm.Q.value = 1.4; mm.gain.value = 9;   // "mm": the closed mouth
+    const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 4.6; vg.gain.value = 7;   // cents
+    vib.connect(vg);
+    const oscs = [[1, 'sawtooth', -4, 0.55], [1, 'triangle', 5, 0.8], [0.5, 'sine', 0, 0.9]].map(([m, type, det, v]) => {
+      const o = ctx.createOscillator(), og = ctx.createGain();
+      o.type = type; o.frequency.value = f * m; o.detune.value = det; og.gain.value = v;
+      vg.connect(o.detune);
+      o.connect(og).connect(lp); o.start(t);
+      return o;
+    });
+    lp.connect(mm).connect(g).connect(out);
+    vib.start(t);
+    const stop = (at) => { for (const o of [...oscs, vib]) o.stop(at); setTimeout(() => { try { g.disconnect(); } catch { /* gone */ } }, Math.max(0, at - ctx.currentTime) * 1000 + 200); };
+    return { g, oscs, stop };
+  }
+
+  /** Where a hum goes: placed at `pos` (spot), or on the effects bus with more of the room. */
+  _humOut(pos, vol, until) {
+    if (pos) return this.spot(pos, { vol, reach: HUM.reach * 2, room: 0.7, until });
+    const ctx = this.ctx, g = ctx.createGain();
+    g.gain.value = vol;
+    g.connect(this.fx);
+    const send = ctx.createGain(); send.gain.value = 0.5; g.connect(send).connect(this.reverb);
+    setTimeout(() => { try { g.disconnect(); send.disconnect(); } catch { /* gone */ } }, until * 1000);
+    return g;
+  }
+
+  /**
+   * The hum, once (about four seconds): three swells of one low note, the third lifting a fifth and
+   * fading. Subtle: under the score, about a footstep's loudness at vol 1. From `pos` if given.
+   */
+  makersHum({ vol = 1, pos = null } = {}) {
+    if (!this.ctx || this.muted) return 0;
+    const P = HUM.pulse, n = HUM.pulses, len = n * P + 1;
+    const out = this._humOut(pos, vol, len + 1);
+    if (!out) return 0;
+    const t = this.ctx.currentTime + 0.05, v = this._humVoice(t, out), G = v.g.gain;
+    G.setValueAtTime(0, t);
+    for (let i = 0; i < n; i++) {
+      const a = t + i * P, peak = 0.011 * (i === n - 1 ? 0.8 : 1);
+      G.linearRampToValueAtTime(peak, a + P * 0.4);
+      G.linearRampToValueAtTime(i === n - 1 ? 0.0001 : peak * 0.3, a + (i === n - 1 ? P + 1 : P));
+    }
+    // the third swell lifts a fifth (1.5×), the way the people who hum it back sing it
+    const lift = t + (n - 1) * P + P * 0.15;
+    for (const o of v.oscs) { const f0 = o.frequency.value; o.frequency.setValueAtTime(f0, lift); o.frequency.exponentialRampToValueAtTime(f0 * 1.5, lift + P * 0.5); }
+    v.stop(t + len + 0.1);
+    return len;
+  }
+
+  /**
+   * The hum rising over `dur` seconds (the prologue: under the father's charge, until the strike):
+   * pulsing in threes, louder and louder. Returns { stop() } (the strike: cut at once).
+   */
+  makersHumRise(dur = 6) {
+    if (!this.ctx || this.muted) return { stop() {} };
+    const out = this._humOut(null, 1, dur + 3);
+    const t = this.ctx.currentTime + 0.05, v = this._humVoice(t, out), G = v.g.gain, P = HUM.pulse * 0.8;
+    G.setValueAtTime(0, t);
+    for (let a = 0, i = 0; a < dur; a += P, i++) {
+      const k = Math.min(1, (a + P) / dur) ** 1.4, peak = 0.0025 + 0.015 * k * (i % 3 === 2 ? 1.15 : 1);
+      G.linearRampToValueAtTime(peak, t + a + P * 0.45);
+      G.linearRampToValueAtTime(peak * 0.45, t + a + P);
+    }
+    for (const o of v.oscs) o.frequency.setTargetAtTime(o.frequency.value * 1.06, t, dur);   // (it bends upward as it nears)
+    let done = false;
+    const stop = () => {
+      if (done || !this.ctx) return;
+      done = true;
+      const now = this.ctx.currentTime;
+      G.cancelScheduledValues(now); G.setValueAtTime(G.value, now); G.linearRampToValueAtTime(0, now + 0.04);
+      v.stop(now + 0.1);
+    };
+    setTimeout(stop, (dur + 2) * 1000);   // (never left singing)
+    return { stop };
   }
 
   /** The lid lifts: a wooden creak and a breath of air. */

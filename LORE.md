@@ -165,7 +165,8 @@ happens to hold what his father once said about such things.
 you anything. Keep the translator at your ear. "You leave everything here half
 done. The boat. The school. Your mother." "My son, make us proud. Bring back
 something of value." "We will be waiting for you at the—" (the impact cuts it
-off). The player takes it for a call from home.
+off). Under his last words something starts to hum, louder until the strike: the
+singing light, finding his voice on the reel. The player takes it for a call from home.
 
 ### What he asks the reel for, world by world
 | World | Word | What the reel finds | What he makes of it |

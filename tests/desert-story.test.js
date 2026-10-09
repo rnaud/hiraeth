@@ -288,7 +288,9 @@ test('a new game: the quest doesn’t just appear; Marrow, at your ship, calls y
   const W = rt.world, m = W.people.marrow;
   assert.equal(quests.isStarted('desert.power'), false, 'no quest on landing');
   assert.equal(quests.objective().label, 'Marrow, by your ship', 'the scout finds the one to ask');
-  assert.ok(flat(m.pos, level.spawn) < 12, 'Marrow is at your ship');
+  assert.ok(flat(m.pos, level.spawn) < 18, 'Marrow is at your ship');
+  // (but well clear of where it came down: the hull is 13 m round, he stands 22 m from its centre: src/ship/landing.js)
+  assert.ok(flat(m.pos, level.spawn) > 6, 'not under the ramp');
   // he calls you over (a word, every few seconds), and turns to you; he never starts talking himself
   at(m.pos.clone().add(V(9, 0, 0)));
   for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });

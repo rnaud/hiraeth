@@ -5,6 +5,7 @@ import { R, DECK, HATCH_A } from './hull.js';
 import { CONSOLE_R } from './interior.js';
 import { PROLOGUE_CALL, recordingSpan, onHologram, recordingLabel } from '../story/calls.js';
 import { callTimeline, NUDGE, nudgeText, nudgeDue } from './prologue.js';
+import { callHum, callHumLevel } from '../story/hum.js';
 import { verbKey } from '../prompt-keys.js';
 import * as sfx from './sfx.js';
 import { exhaust, footPuffs } from './exhaust.js';
@@ -117,6 +118,7 @@ export class PrologueDirector {
     this.sp = ship.spaceCopy.model;
     this.pk = ship.parked;
     this.call = callTimeline(PROLOGUE_CALL);
+    this.humAt = callHum(this.call);   // the hum under his last words, until the strike (src/story/hum.js)
     this.rec = { span: recordingSpan(PROLOGUE_CALL), who: onHologram('prologue'), label: recordingLabel('prologue') };
     const c = ship.site.crash;
     this.T = V(Math.sin(c.travel), 0, Math.cos(c.travel));
@@ -173,6 +175,7 @@ export class PrologueDirector {
         break;
       }
       case 'impact':
+        this.humming?.stop(); this.humming = null;   // (the strike cuts the hum off with his words)
         sfx.impact(s.sound); sfx.staticBurst(s.sound, 1.6); sfx.alarm(s.sound, 1); sfx.hum(s.sound, 0.25);
         s.shake(2.2);
         s.setPower('alarm', sp);
@@ -213,8 +216,10 @@ export class PrologueDirector {
         {
           // what struck the ship left a signature (src/story/signature.js): said once the father's card has gone
           const wait = Math.max(0, (this.cardUntil ?? 0) - (typeof performance !== 'undefined' ? performance.now() : 0));
-          if (wait > 0) setTimeout(() => { if (!this.done) C.say(CRASH_LINE, { secs: 6 }); }, wait + 300);
-          else C.say(CRASH_LINE, { secs: 6 });
+          // (and the pulse it tracks is heard, faintly: the hum again, from the scar)
+          const pulse = () => { C.say(CRASH_LINE, { secs: 6 }); s.sound?.makersHum?.({ vol: 0.55 }); };
+          if (wait > 0) setTimeout(() => { if (!this.done) pulse(); }, wait + 300);
+          else pulse();
         }
         break;
       case 'stepout': {
@@ -283,12 +288,17 @@ export class PrologueDirector {
         } else if (this.nudgeOff && this.walkT >= this.nudgeOff) { this.nudgeOff = 0; C.hint(null); }
         break;
       }
-      case 'call':
+      case 'call': {
         s.shot(callShot(s, sp, t, this.rec.close ?? 0));
-        sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8) });
+        // under his last words something sings, nearer and nearer: the hum, and the picture starts to break up
+        const hum = callHumLevel(t, this.humAt);
+        if (hum > 0 && !this.humming) this.humming = s.sound?.makersHumRise?.(this.humAt.to - t + 0.4) ?? { stop() {} };
+        sp.callScreen?.set({ statik: Math.max(0, 1 - t / 0.8, 0.45 * hum) });
         playLines(s, sp, this.call, t, this.rec);
+        if (hum > 0) s.holo?.glitch(0.35 * hum);
         faceRecording(s, sp);
         break;
+      }
       case 'impact': {
         // a hand-held view of the cockpit, the red light pulsing, the planet starting to swing
         const k = smooth(seg(t, 1.2, 4.4));
@@ -417,6 +427,7 @@ export class PrologueDirector {
 
   finish(skipped) {
     const s = this.s, C = s.cinema, pk = this.pk;
+    this.humming?.stop(); this.humming = null;
     s.holo?.clear();
     // skipped before the dust cleared: the charge is still given, and the objective waits for its card
     if (skipped) this.giveCharge();

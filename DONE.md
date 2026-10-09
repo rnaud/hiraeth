@@ -1197,3 +1197,24 @@ tests/sound-mix.test.js holds them.
   a conversation you have never had, or a bystander or crowd person with unheard news; shouts always.
   docs/systems/conversations.md.)
 
+## Playtest notes (2026-10-08): the prologue and the crash landing
+
+- [x] The intro from Dad is boring. (The recording, src/story/calls.js PROLOGUE_CALL: four lines from him
+  and the cut instead of six, 34.5 → 25.5 s. "Is it on? … There you are." makes it sound live; the advice
+  and the translator are one line; the boat, the school, his mother one more; then the charge word for
+  word and the cut. Staged: the hum creeps in under the charge and the picture breaks up until the strike
+  cuts both, so the impact answers the message. tests/prologue-call.test.js.)
+- [x] A character's speech bubble shows up while the ship is still crashing. (Marrow's idle balloon: the
+  hidden player sits in the parked ship near him. No balloon, crowd shout or talk prompt while a ship's
+  scene plays: talkAllowed, src/ship/landing.js, in main.js and crowd.hush. tests/landing.test.js.)
+- [x] A character stands too close to the ship as it crash-lands. (Marrow stood 12 m from the hull's
+  centre, under its 13 m bulge; now bystanderSpot puts him 22 m out, to one side of the hatch and never
+  in the furrow. Checked in headless Chrome through the prologue.)
+- [x] Leaving the ship for the first time shows a prompt to go back into it. (ReboardGate,
+  src/ship/landing.js: armed while aboard or walked by a scene; the ramp's "go aboard" and its E wait
+  until you have been 7 m from the ramp's foot. tests/landing.test.js drives the Ship.)
+- [x] The humming the game talks about is never heard. (src/story/hum.js and Sound.makersHum /
+  makersHumRise: a low sung D that swells three times and lifts a fifth. It rises under the father's
+  charge until the strike, sounds from the scar with the ship's "magnetic signature" line, comes from an
+  unopened makers' box within 45 m every 8–12 s, and plays softly (once per 24 s) when a line, balloon,
+  toast or subtitle mentions humming. About -34 dB, a footstep's loudness. tests/hum.test.js.)

@@ -289,6 +289,7 @@ export class Cinema {
 
   _showLine() {
     speakLine(this.subs.line);   // the voice under the line now up (src/story/voice.js; null hushes it)
+    if (this.subs.line?.text) this.onWords?.(this.subs.line.text);   // (words on the screen: main.js listens for the hum)
     if (!this.dom) return;
     const line = this.subs.line;
     if (!line) { this.sub.classList.remove('show', 'in'); this._seen('sub', false); this.layout(); return; }
@@ -385,6 +386,7 @@ export class Cinema {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
     const item = this.toasts.shift(), text = item.text, quest = item.kind === 'quest';
     const secs = toastSeconds(text) + (quest ? 1 : 0);   // (a quest's start: a moment longer, it is three lines)
+    this.onWords?.(text);   // (words on the screen: main.js listens for the hum)
     screen.toast(keyText(text), secs);   // (as data too: platform.js screen.toast)
     // a quest's start looks unlike the other notices: its own card (questToastHtml, index.html #toast.quest)
     if (quest) this.toastEl.innerHTML = questToastHtml(item); else setText(this.toastEl, text);

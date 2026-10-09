@@ -7,6 +7,7 @@ import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 import { migrateTemples } from '../temples/migrate.js';
+import { HUM } from '../story/hum.js';
 
 // Item boxes: the makers' boxes (docs/story-bible.md, "The boxes"). One smooth
 // dark blue shell with no edges, a pale star painted on its top and a compass
@@ -337,7 +338,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     },
     update(dt, t, { camera } = {}) {
       // the reactions: star, seam, light, hum, shudder
-      let hum = 0;
+      let hum = 0, far = 0;   // (far: the hum itself, heard from further off: src/story/hum.js)
       const pp = player?.pos;
       for (const b of list) {
         const P = b.parts, M = P.mats;
@@ -354,6 +355,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
         if (b.isSpent) continue;
         const near = (b.near = smoothstep(22, 3.2, d));
         hum = Math.max(hum, near);
+        far = Math.max(far, smoothstep(HUM.reach, 4, d));
         const pulse = 0.5 + 0.5 * Math.sin(t * 3.2 + b.phase);
         // the star and the glyphs brighten; the ray of light crosses it more often, and brighter
         const A = M.body.uniforms.uBoxA.value;
@@ -379,7 +381,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
           if (on) { const w = THREE.MathUtils.clamp(d * 0.03, 1, 12) * smoothstep(9, 22, d); b.beacon.scale.set(w, 36, w); }
         }
       }
-      sound?.boxHum?.(current ? 0 : hum);
+      sound?.boxHum?.(current ? 0 : hum, current ? 0 : far);
       offerQuests(dt);
       if (current) current.update(dt);
       void camera;
