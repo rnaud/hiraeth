@@ -14,7 +14,7 @@ import { createEchoShell } from '../echo-shell.js';
 //   lantern  after dusk a little paper lantern glows on the tank and lights the ground
 //   lens     unopened boxes show a pale column from afar (src/boxes/index.js reads it)
 //   bell     V sounds a bell note; unopened boxes within 90 m answer (game event 'bell' { pos })
-//   star     a pale enamel star on the hood, over the brow
+//   star     a pale enamel star on the overshirt's lapel (over the brow when a hood is up)
 //   resin    climbing tires you half as fast (player.climbK)
 //   soles    a hard landing counts as a slower one (player.fallGuard: the drop it takes to tumble grows by a third)
 //   hush     creatures don't hear you walk up (player.hush: src/wildlife.js reads it)
@@ -65,7 +65,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     H.chestAnchor.add(grp);
     lantern = { grp, paper };
   }
-  // ---- the star on the hood
+  // ---- the star on the lapel (or the hood)
   let star = null;
   if (H?.headAnchor) {
     star = new THREE.Mesh(new THREE.ExtrudeGeometry(starShape(0.045, 0.015), { depth: 0.008, bevelEnabled: false }),

@@ -14,6 +14,8 @@
 //   node scripts/cinematics-qc.mjs --skip          also test the skip: hold Esc 1.2 s in, it must end within 3 s
 //   node scripts/cinematics-qc.mjs --size 844x390 --mobile        phone landscape (touch emulated)
 //   node scripts/cinematics-qc.mjs --out output/cinematics-qc/run1 --quality high --rest 5   (s idle between cinematics)
+//   node scripts/cinematics-qc.mjs --only incal.lodestar --probe "window.camera.position.toArray()"
+//                                  evaluate an expression in the page at every screenshot: <out>/<id>/probe.json
 // PORT (default 5308) is Vite's; Chrome picks its own debugging port. Writes <out>/report.json and report.md.
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -284,7 +286,8 @@ async function playOne(c, base, entry, o) {
     const png = Buffer.from(r.data, 'base64'), file = join(dir, `${String(shots.length).padStart(2, '0')}-${label}.png`);
     writeFileSync(file, png);
     let ink = null; try { ink = inkDensity(decodePNG(png)); } catch { /* an odd PNG */ }
-    shots.push({ file, label, ink });
+    let probe; if (o.probe) { try { probe = await c.ev(o.probe); } catch (e) { probe = `probe failed: ${e.message}`; } }
+    shots.push({ file, label, ink, probe });
   };
   if (entry.id === 'trailer') {
     await c.send('Page.navigate', { url: `${base}trailer.html` });
@@ -337,6 +340,8 @@ async function playOne(c, base, entry, o) {
     try { const webp = s.file.replace(/\.png$/, '.webp'); execFileSync('cwebp', ['-quiet', '-q', '70', '-resize', '960', '0', s.file, '-o', webp]); rmSync(s.file); file = webp; } catch { /* no cwebp: the PNG stays */ }
     kept.push({ file: file.slice(o.out.length + 1), label: s.label, ink: s.ink && +s.ink.gradient.toFixed(1) });
   }
+  // --probe: what the expression returned at every screenshot (kept or not), by its label
+  if (o.probe) writeFileSync(join(dir, 'probe.json'), JSON.stringify(shots.map((s) => ({ label: s.label, probe: s.probe })), null, 1));
   // one picture of them all (4 across, labelled), to look at in one go
   try {
     const cols = 4, w = 480, h = Math.round((w * size[1]) / size[0]), rows = Math.max(1, Math.ceil(kept.length / cols));
@@ -359,7 +364,7 @@ async function main() {
   if (PORT === 5173) throw new Error('5173 is the author\'s own dev server: pick another PORT');
   const size = arg('size', '1280x720').split('x').map(Number);
   const o = { out: resolve(ROOT, arg('out', 'output/cinematics-qc')), frames: Number(arg('frames', 8)), every: Number(arg('every', 1)), quality: arg('quality', 'high'),
-    skip: flag('skip'), emptyInk: Number(arg('empty-ink', 3)), rest: Number(arg('rest', 3)), size, mobile: flag('mobile') };
+    skip: flag('skip'), emptyInk: Number(arg('empty-ink', 3)), rest: Number(arg('rest', 3)), size, mobile: flag('mobile'), probe: arg('probe', null) };
   const { CINEMATICS } = await import('../src/cinematics-page/catalog.js');
   const entries = pickEntries(CINEMATICS, { only: arg('only')?.split(','), group: arg('group') });
   if (!entries.length) throw new Error('no cinematic matches');

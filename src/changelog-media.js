@@ -206,6 +206,22 @@ export const CHANGELOG_MEDIA = {
       { name: 'cave-seam', caption: 'The Givers’ Hearth: before, a line of sunlight round the foot of the cave’s wall; after, the floor is in shade all the way to the wall', commit: 'c58cbcaa',
         view: { level: 'desert', save: SAVE_DESERT, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262], fov: 55, wait: 3000 } },
     ] },
+    { match: 'The makers’ boxes in the temples of the Garden of Spheres', shots: [
+      { name: 'temple-box', caption: 'The Footprint’s chest in the Garden of Spheres, two seconds into the opening: before, the box sunk into the dais and his head off the top of the frame', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → Makers’ box · lens (or open the chest in the Footprint’s round chamber).' },
+    { match: 'The City-Shaft: when the Lodestar lights again', shots: [
+      { name: 'look-up', caption: 'The third shot, across the shaft: before, a blank billboard far off; after, LOOK UP in light', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+      { name: 'lodestar-handback', caption: 'A second and a half after the moment ends, on the palace’s crown: before, the camera pressed against his head; after, behind him', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → the Lodestar lights again over the shaft.' },
+    { match: 'In Vael, the bird’s arrival keeps the horizon', shots: [
+      { name: 'vael-sky', caption: 'The second shot, the long lens up at her: before, plain sky and a speck; after, the haze’s towers at its foot', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → the bird comes down out of the haze and bows.' },
+    { match: 'The Lantern: the light coming down out of the dusk', shots: [
+      { name: 'lantern-dusk', caption: 'Two seconds in, from behind him: before, the light still above the frame (the dark disc is the dusk’s moon); after, the light beside the crown', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'Debug → Cinematics → The light returns to the Lantern.' },
+    { match: 'Lou’s window seat at home has a second shot', shots: [
+      { name: 'window-seat', caption: 'The window seat, six seconds in: before, the same angle from the start; after, beside him, the window and the land beyond', from: 'headless Chrome against this branch’s own dev server (scripts/cinematics-qc.mjs, the cinematics QC pass), the same cinematic before and after the fix (9 October)' },
+    ], see: 'At home, sit in Lou’s window seat (or Debug → Cinematics → The window seat).' },
   ],
   '1.1': [
     { match: 'Notices no longer pop up over a scene', shots: [

@@ -4,6 +4,12 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.2 — 2026-10-09
 
+- The pale star’s description and the line as you lay it on the stone say it is pinned to your overshirt, not a hood.
+- Lou’s window seat at home has a second shot: from beside you, your profile against the round window and the land beyond it.
+- The Lantern: the light coming down out of the dusk glows from the first shot, beside the crown, instead of being out of the picture until it is nearly there.
+- In Vael, the bird’s arrival keeps the horizon and the stone towers under her as she comes down, instead of two seconds of empty sky.
+- The City-Shaft: when the Lodestar lights again, the billboards’ LOOK UP now reads, close and square, and afterwards the camera comes back behind you instead of pressed against your head.
+- The makers’ boxes in the temples of the Garden of Spheres and of Lorn stand on their dais instead of sunk into it, so opening them no longer cuts your head off the picture.
 - On a phone the touch buttons now size themselves to the screen: held sideways they stay in the lower right corner instead of reaching the top and covering half the view, and the stick under your left thumb needs less travel.
 - No more bright line of sunlight round the floor of the cave under the giant and of the Givers’ Hearth.
 - The dark masses in shaded corners, on stairs and round furniture stay put as the camera moves instead of shifting about in blocks, and come out as brushed shapes rather than stacked rectangles, most of all on Handheld.

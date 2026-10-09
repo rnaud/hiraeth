@@ -31,3 +31,12 @@ test('the star sits on the lapel with the head bare, on the brow under a hood, a
   assert.ok(items.has('star') && starOf(hooded.chestAnchor) && !starOf(hooded.headAnchor), 'the hood down: to the lapel');
   fx2.dispose();
 });
+
+test('the star’s words say where it is worn: the overshirt, not a hood he no longer has', async () => {
+  const { tokenLine } = await import('../src/story/ending.js');
+  const { ITEMS } = await import('../src/items.js');
+  assert.match(ITEMS.star.use, /overshirt/);
+  const text = JSON.stringify(tokenLine({ kind: 'item', item: 'star', name: 'Pale star' }));
+  assert.match(text, /overshirt/);
+  assert.doesNotMatch(text, /your hood/);
+});

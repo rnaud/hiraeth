@@ -82,6 +82,22 @@ export function sitPose(c, k) {
 
 /** The stone's second angle, on his face: from `from` s in until `before` s ahead of the last lines. */
 export const HOMAGE_FACE = { from: 3.4, before: 2.6 };
+/** The window seat's second panel (s): from beside the seat, his profile and the round window, between `from` and `before` the end. */
+export const SEAT_SIDE = { from: 5.0, before: 1.5 };
+
+/**
+ * The window seat's second angle: from the room beside the seat (on the table's side), close, his profile
+ * against the round window with the ring through it (what the second line is about). `seat` where he sits,
+ * `win` a point out beyond the window, `table` a point in the room, `floor` the floor's height.
+ */
+export function seatSide(seat, win, table, floor) {
+  const out = V(win.x - seat.x, 0, win.z - seat.z).normalize(), side = V(-out.z, 0, out.x);
+  if ((table.x - seat.x) * side.x + (table.z - seat.z) * side.z < 0) side.negate();
+  // (his head, sat, is about 1.3 m up: framed off his chest it was cut off by the frame's top)
+  const head = V(seat.x, floor + 1.2, seat.z);
+  const pane = V(seat.x, floor + 1.35, seat.z).addScaledVector(out, 1.2);
+  return { pos: seat.clone().setY(floor + 1.5).addScaledVector(side, 1.6).addScaledVector(out, -1.0), look: head.lerp(pane, 0.4), fov: 52 };
+}
 
 /**
  * A short scene of its own: the traveller set in place and posed, the camera framed, a few
@@ -331,7 +347,15 @@ export function setupHome(ctx) {
       beats: [{ t: 1.4, line: spoken('scene', THINGS.seat.talk.nodes.look.say[0]), secs: 3.6 }, { t: 5.2, line: spoken('scene', THINGS.seat.talk.nodes.look.say[1]), secs: 3.6 }],
       // beside him, looking past him out of the window (the ring, the ship, the sky); far enough back and high
       // enough that his head stays in the frame as he sits and stands (the QC pass: it cut his head off)
-      shot: (Tt) => ({ pos: at.clone().lerp(small.spots.table, 0.62).setY(small.floor + 1.5), look: out.clone().setY(small.floor + 1.3 + Math.min(Tt * 0.04, 0.3)), fov: 54 }),
+      // Then, for the second line, closer from beside the seat: his profile and the round window, the ring
+      // through it (the QC pass: one angle for 9.5 s); back to the first for him getting up
+      shot: (Tt) => {
+        if (Tt > SEAT_SIDE.from && Tt < 9.5 - SEAT_SIDE.before) {
+          const c = seatSide(at, out, small.spots.table, small.floor), u = Math.min(1, (Tt - SEAT_SIDE.from) / 3);
+          return { ...c, pos: c.pos.lerp(c.look, 0.08 * u), fov: c.fov - 2 * u };
+        }
+        return { pos: at.clone().lerp(small.spots.table, 0.62).setY(small.floor + 1.5), look: out.clone().setY(small.floor + 1.3 + Math.min(Tt * 0.04, 0.3)), fov: 54 };
+      },
       onEnd: () => { st.moment = null; },
     });
     st.moment.start();

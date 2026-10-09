@@ -181,7 +181,7 @@ const ITEM_LINES = {
   bell: "~solemn~ (The bell-note whistle. One clear note, wherever you play it.)",
   shell: "~solemn~ (The listening shell. What was hidden hummed back, if you were quiet enough to hear it.)",
   echo: "~solemn~ (The echo shell. It keeps the last note it heard, the way the reel kept their voices.)",
-  star: "~solemn~ (The pale star from your hood. A traveller’s sign.)",
+  star: "~solemn~ (The pale star from your overshirt. A traveller’s sign.)",
 };
 
 /** Keepsakes that never go on the slab: Ilen (the Lantern's keepsake is her, and she walks to the stone herself). */

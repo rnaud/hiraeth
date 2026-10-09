@@ -47,7 +47,16 @@ PORT=5308 node scripts/cinematics-qc.mjs --out output/cinematics-qc/<run>       
 node scripts/cinematics-qc.mjs --only arzach.bird,box.desert* --frames 10 --every 0.5
 node scripts/cinematics-qc.mjs --group "World moments" --skip                      # + the skip test
 node scripts/cinematics-qc.mjs --group "World moments" --size 844x390 --mobile     # phone landscape
+node scripts/cinematics-qc.mjs --only incal.lodestar --probe "window.camera.position.toArray()"   # ask the page
 ```
+
+`--probe "<js>"` evaluates an expression in the page at every screenshot and writes what it returned
+to `<out>/<id>/probe.json` (by the frame's label): where a thing is on screen (`v.clone().project(camera)`),
+whether a mesh is visible (walk its parents), a flag. Use it before guessing why a frame looks wrong:
+it is how the 2026-10-09 follow-up found a blank billboard (its text mesh never shown, because the review
+staging skipped the step that lights it) and a "dark disc" (the light was off screen; the disc was a moon).
+To test a hypothesis, the probe may also change the scene once (`if (!window.__t) { window.__t = 1; … }`),
+e.g. drop static copies of a mesh at several distances. Same rules: one run at a time, never beside another.
 
 It serves this checkout with Vite on `PORT` (default 5308; refuses 5173), opens each entry the way
 the review page does (`index.html?level=…&cinematicReview=<id>`: temporary progress, the real
@@ -111,6 +120,10 @@ One point each, by watching (the frames, then the review page for the timing):
 
 ## 5. Fix, then record
 
+- **Check the staging before the shot.** The review page stages each cinematic (`src/cinematics-page/runtime.js`
+  `startReview`); if what it shows depends on a step play takes first (a splinter let go, a camera looking
+  up, the traveller standing beside a pole rather than in it), stage that step, or the frames judge
+  something no player sees. Look at the hand-back frame (`NN-after`) with the staging in mind too.
 - Fix technical problems in the code (framing in the moment's shot list, the HUD in
   `src/ship/cinema.js` `hud()` or `index.html`'s `body.cine-on` rules, toasts with `cinema.held`,
   skip wiring, volumes in the swell). Re-run the affected ids and compare frames.
