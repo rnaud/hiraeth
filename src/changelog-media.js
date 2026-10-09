@@ -235,6 +235,22 @@ const ROLL_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = w
   window.minigame.clock = ${time};
   for (const R of w.course.rollers) { R.ball.t = 1; R.ball.place(); w.course.rt.logic.moveDrum(R.id, 1); }
   await wait(2600);`;
+/** The echo relay played through for its results card: the walls walked, then the horns woken (as their notes played back would). */
+const ECHO_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const g of w.gates) { window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(0, 0, 1)); await wait(700); }
+  window.minigame.clock = ${time};
+  for (const e of w.course.ears) e.ear.lit = true;
+  await wait(2600);`;
+/** The vine walk played through for its results card: the seeds and the door bloomed, the decks walked (the clock set before the last gate). */
+const VINE_THROUGH = (id, time) => `const w = window.trials.byId('${id}'), V = window.THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  w.try(); await wait(900); document.querySelector('button[data-act="start"]').click(); await wait(4300);
+  for (const v of w.course.vines) v.seed.hit('bloom');
+  w.course.bud.bud.hit('bloom'); await wait(800);
+  for (const [i, g] of w.gates.entries()) { if (i === w.gates.length - 1) window.minigame.clock = ${time}; window.player.teleport(new V(g.x, g.y - 1.6, g.z), new V(0, 1, 0), new V(1, 0, 0)); await wait(700); }
+  await wait(2600);`;
+const SAVE_ECHO = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.echo': true, 'items.v': 2 }, keepsakes: [] };
+const SAVE_BLOOM = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.bloom': true, 'items.v': 2 }, keepsakes: [] };
 
 export const CHANGELOG_MEDIA = {
   '1.4': [
@@ -265,6 +281,21 @@ export const CHANGELOG_MEDIA = {
       { name: 'foe-knock-off', caption: 'An ink blot cut off the edge of the Arena’s ledge, a second later: before, it has landed and is already coming on along the foot of the ledge; after, it lies dazed where it fell, pale stars turning over it', commit: 'f544f600', before: '6ecedb75',
         view: { ...ARENA_LEDGE, eye: [10.5, 3.2, -32.5], target: [5, 0.9, -38.6], setup: LEDGE_VIEW(`const f = foes.add('blot', new V(5, 2, -40.4)); f.state = 'chase'; setInterval(() => { f.cool = 99; }, 50); ${sleepJs(300)} f.pos.set(5, 2, -40.3); foes.hurt(f, 'blade', new V(0, 0, 1), { damage: 1, combo: 2 });`), wait: 1300 } },
     ], see: 'In the Arena, get a blot up on the ledge at the far side and cut it toward the edge (the third swing, the charged cut or the push): it lands dazed below, stars over it.' },
+    { match: 'A new optional challenge in the Signal Market, the Echo relay', shots: [
+      { name: 'echo-relay', caption: 'The Echo relay down the first side street west of the Signal Market’s avenue: the low and middle stones at the near end, the three walls hung with old dishes, and the arch at the far end with the high stone and the horns', commit: '59249565',
+        view: { level: 'bazaar', save: SAVE_ECHO, player: [-39.5, 0.4, 78.5], heading: -Math.PI / 2, eye: [-35, 8.5, 71], target: [-68, 1, 76], fov: 55, wait: 3000 } },
+      { name: 'echo-relay-results', only: 'after', caption: 'The Echo relay finished: the time, the makers’ mark, and a word from Oyo, who sells lanterns on the avenue', commit: '59249565',
+        view: { level: 'bazaar', hud: true, hour: 10, save: SAVE_ECHO, player: [-39.5, 0.4, 78.5], setup: ECHO_THROUGH('kit-bazaar', 30.6), wait: 600 } },
+    ] },
+    { match: 'And one in Viridel, the Vine walk', shots: [
+      { name: 'vine-walk', caption: 'The Vine walk on the slope east of Mira’s water clock: four white decks in a line, higher over the meadow the further they go, a seed at the edge of each gap, and the wall with the flower-door on the third deck', commit: '7f245a39',
+        view: { level: 'edena', save: SAVE_BLOOM, player: [55, -3.1, 1], heading: Math.PI / 2, eye: [60, 9, -28], target: [98, -4, 2], fov: 55, wait: 3000 } },
+      { name: 'vine-walk-grown', only: 'after', caption: 'The Vine walk in a run: the first two seeds bloomed from the start and their vines grown across the gaps, the flower-door ahead still shut', commit: '7f245a39',
+        view: { level: 'edena', save: SAVE_BLOOM, player: [55, -3.1, 1], heading: Math.PI / 2, eye: [53, 3.1, 4.5], target: [95, -3.2, 0], fov: 55, wait: 600,
+          setup: `const w = window.trials.byId('kit-edena'), wait = (ms) => new Promise((r) => setTimeout(r, ms)); for (const v of w.course.vines.slice(0, 2)) v.seed.hit('bloom'); await wait(3500);` } },
+      { name: 'vine-walk-results', only: 'after', caption: 'The Vine walk finished: the time, the makers’ mark, and a word from Mira, who keeps the water clock', commit: '7f245a39',
+        view: { level: 'edena', hud: true, hour: 10, save: SAVE_BLOOM, player: [55, -3.1, 1], setup: VINE_THROUGH('kit-edena', 24.9), wait: 600 } },
+    ] },
   ],
   '1.3': [
     { match: 'Two new optional challenges built from the temples’ own pieces', shots: [
