@@ -1,0 +1,33 @@
+docs/systems/reference-lab.md
+  s_9ca76055a220ed::t_e40580e736388d 74-78,98,121
+reference-lab.html
+  s_9ca76055a220ed::t_005a18fcca29b4 81-87,135
+scripts/gen-reference.mjs
+  s_9ca76055a220ed::t_159ac42c04cdc6 14,22,39,53,81-85
+scripts/reference-lab/batch.mjs
+  s_9ca76055a220ed::t_05dbf7cd9d3c4f 159,189,224-247
+scripts/reference-lab/server.mjs
+  s_9ca76055a220ed::t_78d1efdf34a8f2 12,23,99
+src/reference-lab/main.js
+  s_9ca76055a220ed::t_f76b95d1f8fcf9 15,27,90,93-94,96-111,113-115,120,122,125-136,138-140,145,149-150,168,179-184,186,189,196,204-206,212,232-233,252,255-256
+src/reference-lab/view.js
+  s_9ca76055a220ed::t_cb5e751034d140 95-101,104-106,109-118,120-122
+tests/reference-lab.test.js
+  s_9ca76055a220ed::t_36b07782dc2681 16,19,339-349,477-488
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30b85416c808743c143570bc76b40b10d554859c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
