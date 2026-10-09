@@ -1,0 +1,23 @@
+{
+  "created": "2026-10-09",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Game scene concept art for a science fiction exploration game, seen from behind and above the player character at play distance: golden desert sand in afternoon light, a small cloaked human traveller with a round jade fluid backpack and a sword on its back walking toward a scatter of a dozen floating crystals left behind by a defeated creature, each crystal a blunt translucent cyan shard as long as a forearm floating upright at knee height, turning, softly glowing from inside, a few larger paler clusters among them, each with its own small soft shadow on the sand beneath and clear air between, one crystal glinting where the sun catches a facet, a faint trail of light as the nearest drifts toward the traveller. The crystals read clearly against the sand from a distance. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, golden sand, cyan and lavender glass, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, gem, jewellery, rupee, coin.",
+      "from": "docs/design/chime-prompts.md#field",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-56-27-3c00",
+      "candidate": "openai/1",
+      "sha256": "ba5680d81a722427d1f59837ea43a4fe9269bd1612acb1496149f9c8323115f4",
+      "bytes": 214365,
+      "costUSD": 0.041,
+      "why": "love this"
+    }
+  ]
+}
