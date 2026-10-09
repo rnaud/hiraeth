@@ -604,6 +604,15 @@ fast and too shared to settle it. Done, at no measured cost in load time:
 - `gpuPacer` (`load-steps.js`): a fence after each compile and each warm-draw batch (8 meshes, was 24); the
   load waits only while a fence older than 40 ms is still unsignaled (the GPU that far behind). Waiting on
   every fence instead took the gaps away here but doubled the load (a fence's status is seen a frame late).
+  **It gives up** for the rest of the load (one `console.warn`, "gpu pacer: …") after 3 waits in a row that
+  ran the whole 250 ms, or 3 s of waiting in all: a driver whose fences never signal (suspected on the Steam
+  Deck, ANGLE under gamescope, 2026-10-08) made every piece wait the full 250 ms, and the desert's 741
+  surface kinds plus its warm-draw batches hung on "mixing the inks…" for minutes (reproduced in headless
+  Chrome with `getSyncParameter` forced to UNSIGNALED: 185 s, 3.8 s with the give-up; 3.0 s normally).
+- A loading stage waits for a frame so the screen paints, or 250 ms if none comes (`nextFrame`): a window
+  the compositor doesn't show may run no frame callbacks, and the load used to wait for one forever.
+- `loadWatchdog`: a stage (and its step: surfaces, post, water, shadows, passage) still running after 15 s
+  is named once in the console, so a stalled load says where.
 - The pen spins on an HTML box of its own (`will-change: transform`; a transform on an SVG root isn't run
   off the main thread by every engine); the drawing is the same.
 - The WebGL canvas is hidden under the loading screen until the first frame.

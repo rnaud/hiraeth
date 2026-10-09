@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.0 — 2026-10-08
 
+- The Steam Deck no longer hangs on “mixing the inks…”: a graphics driver that never says when it has finished its work no longer holds the loading screen up, and every world loads in seconds again.
 - The language no longer changes by itself on a controller: holding right into the Settings stops on the first setting, and the Language dropdown changes only once opened with A / ×.
 - Every setting works on a controller: A / × opens a dropdown, the D-pad or stick goes through its choices, A / × keeps one and B / ○ leaves it as it was; left and right still change dropdowns and sliders.
 - The galactic map charts only finished worlds: the detours still being made are off it until they are ready.

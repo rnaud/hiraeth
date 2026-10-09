@@ -152,6 +152,12 @@ modelling world by world, and the shader limits (DONE.md). Nothing is left open 
   gamescope GL): no error in the console, the first shader warm-up never logs. Suspect: the load's GPU pacer
   (src/load-steps.js gpuPacer) waiting its full 250 ms on fences the driver never signals, every piece.
   Check on the device with `PORT=5312 scripts/bench/deck-run.sh start headless` and the console over CDP.
+  Found and fixed (2026-10-08, not yet confirmed on the Deck): with fences forced never to signal, headless
+  Chrome's desert load took 185 s (the first warm-up alone 97 s: 741 surface kinds × up to 250 ms), the
+  Deck's exact symptom; a page with no frame callbacks hung at the very first stage instead (not the
+  Deck's). Now the pacer gives up after 3 full waits in a row or 3 s in all (one "gpu pacer: …" warning),
+  a stage waits for a frame or 250 ms, and a stage over 15 s names its step ("load: still on …"): 3.8 s
+  with silent fences. On the Deck, look for the "gpu pacer" warning to confirm the cause.
 - [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
   fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
   then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the

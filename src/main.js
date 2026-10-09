@@ -99,7 +99,7 @@ import { chargeState, chargeHud, showChargeCard, GIVEN as CHARGE_GIVEN, CARD as 
 import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
-import { slicer, runStepsAsync, gpuPacer } from './load-steps.js';
+import { slicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -116,15 +116,18 @@ watchLabels();
 // so it can paint (its pen animation runs on the compositor meanwhile).
 const loadMsg = document.querySelector('#loading .msg');
 const tLoad = performance.now();
-let tStage = tLoad, lastMsg = 'start';
+let tStage = tLoad, lastMsg = 'start', loadStep = '';
+// (a stage that runs over 15 s says which step it is on: a stalled load says where)
+const loadWatch = loadWatchdog(() => (loadStep ? `${lastMsg} / ${loadStep}` : lastMsg));
 // Between stages, the build gives the main thread back every LOAD_BUDGET ms (src/load-steps.js:
 // await slice() as often as you like; a world's own build yields from inside itself)
 const slice = slicer();
 const stage = (msg) => {
   console.info(`load: ${lastMsg} ${(performance.now() - tStage).toFixed(0)} ms`);
-  tStage = performance.now(); lastMsg = msg;
+  tStage = performance.now(); lastMsg = msg; loadStep = '';
   if (loadMsg) loadMsg.textContent = msg;
-  return new Promise((r) => requestAnimationFrame(() => setTimeout(() => { slice.reset(); r(); }, 0)));
+  // (a frame so the screen paints, or a moment if no frame comes: a window not shown may run none)
+  return nextFrame().then(() => new Promise((r) => setTimeout(() => { slice.reset(); r(); }, 0)));
 };
 
 // We author every colour as a display value and output it untouched.
@@ -1765,16 +1768,20 @@ console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await slice();
 {
   const t0 = performance.now();
+  loadStep = 'surfaces';
   const n = await warmShadersSliced(scene, camera, gbuffer);
   console.info(`shaders: ${n} kinds of surface, ${renderer.info.programs.length} programs, ${(performance.now() - t0).toFixed(0)} ms`);
 }
+loadStep = 'post';
 await warmShaders(post.scene, post.camera, composeRT);
 await slice();
+loadStep = 'water';
 { const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
 await slice();
 // the shadow passes draw everything with one depth-only material, a program per kind of mesh
 // (instanced, skinned, which attributes): compiled now too, each kind wearing it for the moment
 // (a person or a plant first seen in a shadow had stalled a frame on its compile)
+loadStep = 'shadows';
 await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null, { wear: shadowOverride });
 // The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
 // leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
@@ -1784,6 +1791,7 @@ await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.ena
 const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });
 {
   const t0 = performance.now();
+  loadStep = 'passage';
   scene.updateMatrixWorld();
   rig.update(player.pos, 0, player.frame);   // (the first frame's camera)
   camera.updateMatrixWorld();
@@ -1837,6 +1845,7 @@ trialsRt = minigameDef ? null : createTrials({ levelId, scene, physics, level, p
   } });
 window.trials = trialsRt;
 const passage = new Passage({ cover: new PassageCover(), warm: warmDraw, carry: (c) => carryAcross(player, rig, camera, c), busy: () => !!blades.grass?.placing });
+loadWatch.stop();
 stage('ready'); console.info(`load: total ${(performance.now() - tLoad).toFixed(0)} ms (after module load)`);
 requestAnimationFrame((t) => {
   renderer.domElement.style.visibility = '';

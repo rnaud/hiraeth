@@ -40,3 +40,61 @@ test('the wait is capped, and nothing happens without fences', async () => {
   await gpuPacer(null)();
   await gpuPacer({})();
 });
+
+test('fences that never signal: it gives up after a few full waits, once, and the load goes on unpaced', async () => {
+  const gl = fakeGL(), warns = [];
+  const pace = gpuPacer(gl, { lag: 0, most: 30, giveUp: 3, warn: (m) => warns.push(m) });
+  const t0 = Date.now();
+  for (let i = 0; i < 200; i++) await pace();   // 200 pieces: unbounded, that's 200 × 30 ms
+  const took = Date.now() - t0;
+  assert.ok(pace.off, 'it gave up');
+  assert.ok(took < 1500, `the whole load's wait is bounded (${took} ms)`);
+  assert.ok(pace.waited < 600, `about giveUp × most waited (${pace.waited.toFixed(0)} ms)`);
+  assert.equal(warns.length, 1, 'one warning');
+  assert.match(warns[0], /not signalled/);
+  assert.equal(gl.deleted, gl.fences.length, 'the fences left are let go');
+  const n = gl.fences.length;
+  await pace();
+  assert.equal(gl.fences.length, n, 'no more fences once given up');
+});
+
+test('a GPU that is slow but does signal: a full wait now and then is fine, the total is still capped', async () => {
+  const gl = fakeGL(), warns = [];
+  const pace = gpuPacer(gl, { lag: 0, most: 20, giveUp: 3, budget: 120, warn: (m) => warns.push(m) });
+  const t0 = Date.now();
+  for (let i = 0; i < 100; i++) {
+    await pace();
+    if (i % 2) gl.fences.forEach((f) => { f.done = true; });   // every other piece the GPU catches up
+  }
+  assert.ok(pace.off, 'it gave up on the budget');
+  assert.match(warns[0], /in all/);
+  assert.ok(Date.now() - t0 < 1000, `bounded (${Date.now() - t0} ms)`);
+});
+
+test('nextFrame: a frame, or the fallback when frame callbacks never run', async () => {
+  const { nextFrame } = await import('../src/load-steps.js');
+  const had = globalThis.requestAnimationFrame;
+  try {
+    globalThis.requestAnimationFrame = (f) => setTimeout(f, 5);
+    let t0 = Date.now();
+    await nextFrame(1000);
+    assert.ok(Date.now() - t0 < 500, 'the frame came first');
+    globalThis.requestAnimationFrame = () => 0;   // a window not shown: no frame ever
+    t0 = Date.now();
+    await nextFrame(40);
+    assert.ok(Date.now() - t0 < 500, 'the fallback came');
+  } finally { globalThis.requestAnimationFrame = had; }
+});
+
+test('loadWatchdog: a step that runs too long is named, once', async () => {
+  const { loadWatchdog } = await import('../src/load-steps.js');
+  const warns = [];
+  let step = 'a';
+  const w = loadWatchdog(() => step, { every: 5, after: 30, warn: (m) => warns.push(m) });
+  await new Promise((r) => setTimeout(r, 15));
+  step = 'mixing the inks… / surfaces';
+  await new Promise((r) => setTimeout(r, 120));
+  w.stop();
+  assert.equal(warns.length, 1);
+  assert.match(warns[0], /mixing the inks… \/ surfaces/);
+});

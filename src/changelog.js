@@ -56,6 +56,8 @@ export const CHANGELOG = [
     'The galactic map charts only finished worlds: the detours still being made are off it until they are ready.',
     'Every setting works on a controller: A / × opens a dropdown, the D-pad or stick goes through its choices, A / × keeps one and B / ○ leaves it as it was; left and right still change dropdowns and sliders.',
     'The language no longer changes by itself on a controller: holding right into the Settings stops on the first setting, and the Language dropdown changes only once opened with A / ×.',
+    // loading
+    { text: 'The Steam Deck no longer hangs on “mixing the inks…”: a graphics driver that never says when it has finished its work no longer holds the loading screen up, and every world loads in seconds again.', numbers: [{ title: 'Loading the Desert with a driver that never reports its work done', unit: 's', better: 'lower', device: 'a Mac, headless Chrome, the driver’s silence simulated', rows: [{ where: 'Desert', before: 185, after: 3.8 }], source: 'src/load-steps.js gpuPacer; a CDP script overriding getSyncParameter' }], see: 'Start any world on the Steam Deck: the loading screen goes past “mixing the inks…” in a few seconds.' },
   ] },
   { v: '0.99', date: '2026-10-08', items: [
     // playing your way
