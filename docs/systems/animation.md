@@ -358,7 +358,7 @@ layers as they were). Strips of each are made on the Motion page (`motionPage.sh
   false`), the head's own turn kept and the idle layer's glances eased off meanwhile;
   `tests/idle-legs.test.js` stands him 36 s with them: no twitch, no step, the balls within 3 mm.
   The head's own turn is held within a neck's reach (`HEAD_TURN`, `limitHeadTurn`: 60° about the
-  neck, 24° off its line, approached smoothly): the clip's head is read in the world, so it carries
+  neck, 34° off its line, eased in past 60 % of each): the clip's head is read in the world, so it carries
   the chest's and the neck's twist, which our chest and neck (following only the spine's and neck's
   lines) don't take; in the looking about the whole of it landed on the skull, 105° round on the neck
   (the jaw into the shoulder, the face stretched: "his mouth opens wide and his neck moves strangely"),

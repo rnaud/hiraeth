@@ -1231,7 +1231,7 @@ tests/sound-mix.test.js holds them.
   idles: Animator.apply turns the rig's head to the clip's Head as read in the world, which carries the
   chest's and neck's twist our chest doesn't take, so the skull turned 105-107° on the neck, the jaw
   into the shoulder and the face stretched over it, and dropped 30° on a neck bent 46°, chin in the
-  collar. limitHeadTurn eases the head's turn on the neck under HEAD_TURN (60° about it, 24° off it).
+  collar. limitHeadTurn eases the head's turn on the neck under HEAD_TURN (60° about it, 34° off it, eased in past 60 % of each).
   tests/head-turn.test.js plays the shipped traveller through all three idles.)
 - [x] Brushing past people feels odd: they just shift in place. (Standing crowd people slid off their spot
   at up to 2-3 m/s, straight back from you, the forward walk playing as the body went sideways. Now
