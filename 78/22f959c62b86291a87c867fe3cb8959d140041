@@ -1,0 +1,67 @@
+changelog.html
+  s_9ca76055a220ed::t_f9df9dbd508362 128,131,143
+changelog.md
+  s_9ca76055a220ed::t_f1e656f4d4bfa2 7-9
+cinematics.html
+  s_9ca76055a220ed::t_a11d23218a12f8 3,5-6
+docs/systems/animation.md
+  s_9ca76055a220ed::t_7447fa63b34c6b 110-127,555-586
+docs/systems/characters.md
+  s_9ca76055a220ed::t_4124a0bae66d9d 48-60
+docs/systems/ui.md
+  s_9ca76055a220ed::t_e1e2fb31f63586 499-522
+enemies.html
+  s_9ca76055a220ed::t_2ae81a7e8f141b 5,7-8
+items.html
+  s_9ca76055a220ed::t_785aa828d783b9 77,80,101
+motion.html
+  s_9ca76055a220ed::t_d9de443e0c279b 18-19,68,70,72,81
+src/boot.js
+  s_9ca76055a220ed::t_a2b0248e9b952b 25,39-42,62
+src/changelog-media.js
+  s_9ca76055a220ed::t_8278e6988a3ea0 342-363
+src/changelog.js
+  s_9ca76055a220ed::t_3911a6bfde2f67 30-34
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_ae3d7becd54593 49-51,85-86
+src/debug-back-page.js
+  s_9ca76055a220ed::t_3726ddcc994a76 1-5
+src/debug-back.js
+  s_9ca76055a220ed::t_8b5bf919a30eb8 1-122
+src/humanoid.js
+  s_9ca76055a220ed::t_a00a740603cdb2 386-388,1268-1272,1311-1317,1345,1349-1370
+src/motion-match.js
+  s_9ca76055a220ed::t_eadb3867a6f09f 471-480
+src/motion/main.js
+  s_9ca76055a220ed::t_2eb4340bb88960 375,377-378,627,637-642,1036-1037
+src/player.js
+  s_9ca76055a220ed::t_8e9a2d8ba7ed1b 2406-2408,2411
+studio.html
+  s_9ca76055a220ed::t_fe877af9700bd3 49,51,60
+tests/debug-back.test.js
+  s_9ca76055a220ed::t_3f8bb2914e94bd 1-56
+tests/hands-sleeves.test.js
+  s_9ca76055a220ed::t_760d7fd49ad8b1 1-178
+tests/mocap.test.js
+  s_9ca76055a220ed::t_9de9e47e5130f1 234-236
+tests/motion-matching.test.js
+  s_9ca76055a220ed::t_20f552197a21ca 17-36
+trailer.html
+  s_9ca76055a220ed::t_e793136d84f32e 7,10-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7822f959c62b86291a87c867fe3cb8959d140041",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
