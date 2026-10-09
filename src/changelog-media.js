@@ -290,6 +290,22 @@ const SHOP_IN = (then = '') => `${HIDE('#toast, #cue, #prompt, #objective')}
 const SHOP_OPEN = (then = '') => SHOP_IN(`game.emit('shop:open', { shop: 'qanat' }); await wait(900); ${then}`);
 const SHOP_DOOR = [203.67, 319.94, -1.62];   // Haddu's door (x, z) and its heading: src/levels/desert.js
 
+// ------------------------------------------------------------------ v1.7's views
+/** The camera pinned close behind the traveller's right shoulder (the kit's hose: there before, gone after). */
+const BEHIND_RIGHT = `${HIDE('#toast, #cue, #prompt, #objective')}
+  const V = THREE.Vector3, up = new V(0, 1, 0), f = new V(); player.object.getWorldDirection(f); f.y = 0; f.normalize();
+  const right = f.clone().cross(up), P = player.pos.clone();
+  const eye = P.clone().addScaledVector(f, -1.7).addScaledVector(right, 0.9).add(new V(0, 1.75, 0)), at = P.clone().addScaledVector(right, 0.15).add(new V(0, 1.2, 0));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, at, up));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 45) { this.fov = 45; this.updateProjectionMatrix(); } return base.call(this, force); };`;
+/** Twelve chimes (two fives, two ones) dropped in the Arena's middle, scattered the same way before and after (a seeded rng), the foes away. */
+const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
+  let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
+  await wait(600);
+  const at = new V(0, 0, 0); at.y = physics.groundAt(0, 30, 0, 80); chimes.drop(at, 12);`;
+
 // ------------------------------------------------------------------ v1.6's views: the body telegraphs
 // (a foe held at 85 % of a wind-up, three-quarters on: before, its lane or ring on the floor; after, its pose and its glow)
 const FOE_WIND = (kind, atk) => `foes.setPractice('');
@@ -360,6 +376,22 @@ export const CHANGELOG_MEDIA = {
       { name: 'traveller-fingers-motion', caption: 'Standing, 10 s into the idle (the Motion page), each hand from the front and from its side (the knuckles’ line toward the camera), close: before, the fingers straight, bent back and fanned, crossing at the tips; after, each finger curled a little more than the last toward the palm, by the thigh', size: [1280, 992], from: 'headless Chrome against a dev server, motion.html?mode=solo, stepped 600 frames at 60 Hz, the camera pinned 2.2 m off each hand (fov 6.5°); the before from origin/main as it was (9 October); four views on one sheet' },
       { name: 'traveller-fingers-title', caption: 'The title screen’s traveller (?shot=E3), each hand from the front and from its side: before, the bare left hand’s fingers straight and splayed down his thigh; after, curled in toward the palm (the right hand is in the fluid glove)', size: [1280, 992], from: 'headless Chrome against a dev server, ?shot=E3, the camera pinned 2.2 m off each hand (fov 6.5°); the before from origin/main as it was (9 October); four views on one sheet' },
     ], see: 'Open Debug → Motion and turn the view round to his front (drag), close in: his fingers curl toward his palms by his thighs; walk and run (W A S D, Shift): they open a little as he runs. On the title screen, look at the hand by his side.' },
+    // the traveller's kit: no hose
+    { match: 'The hose from the backpack’s tank to your glove is gone', shots: [
+      { name: 'kit-hose-studio', caption: 'The traveller from behind his right shoulder in the character studio: before, the ribbed hose from the flask’s collar over the shoulder and down the arm into the glove; after, none: the glove’s cuff holds a small lit vial of the tank’s fluid', commit: '84bd9dfc', view: studio('backpack=true&view=arms&yaw=2.5&pitch=0.15') },
+      { name: 'kit-hose-glove', caption: 'The glove close up in the studio: before, the hose coming into the brass fitting on the cuff; after, the capped fitting and its vial, lit in the fluid’s tone like the knuckles', commit: '84bd9dfc', view: studio('backpack=true&view=hands&yaw=-2&pitch=0.2') },
+      { name: 'kit-hose-play', caption: 'In the desert, the camera close behind the traveller’s right shoulder: before, the hose arcing from the tank over his shoulder to the hand; after, a clean shoulder and arm, the glove’s vial glowing', commit: '84bd9dfc', view: { level: 'desert', save: SAVE_ON, wait: 1500, setup: BEHIND_RIGHT } },
+    ], see: 'Find the backpack (or start a new journey and open its box), then turn the camera round the traveller: no hose over his shoulder any more; on the back of his right wrist the glove’s little vial glows in the tank’s colours, dimmer as the tank empties, flashing as you shoot. Also on the title screen, in the character studio (backpack on) and in the Items page’s picture of the tank.' },
+    // the chimes become small floating crystals
+    { match: 'Chimes are now small floating crystals instead of brass discs', shots: [
+      { name: 'chimes-crystal-drop', caption: 'Twelve chimes dropped in the Arena, two seconds after, the camera low and close (the same scatter in both): before, brass discs a hand wide turning on their edges; after, small cyan crystals about 3 cm long, tilted and turning, each with its small spark, a five as a little cluster', commit: 'cdc9eb02', view: { level: 'arena', player: [-14, 0, -14], eye: [-1.9, 0.9, -1.7], target: [0, 0.32, 0], fov: 38, save: SAVE_ON, wait: 2200, setup: CHIME_SEEDED } },
+    ], see: 'Cut down any foe: its chimes pop out and hover, small cyan crystals tilted and turning a hand above the ground, a glint catching one now and then; come within a couple of steps and they fly to you. In the Arena, call a shade or a machine from the FOES list for a bigger drop (fives: little clusters).' },
+    { match: 'Picking up chimes rings like struck glass', see: 'With the sound on, cut down a foe and walk into its chimes: each rings like a small glass struck, a shimmering ting a step higher for each in a quick run; a five rings twice. The drop scatters with a few glassy tings, and buying at Haddu’s counts them onto the counter the same way before his brass bell.' },
+    { match: 'The chimes’ coin beside your hearts', shots: [
+      { name: 'chimes-crystal-hud', caption: 'Thirty-seven chimes picked up, at the top left (shown at 2×): before, the pierced brass disc beside the potion; after, the small cyan crystal', commit: 'cdc9eb02', view: { level: 'desert', hud: true, save: SAVE_ON, wait: 1800, clip: [0, 0, 640, 360], setup: `${HEARTS_SETUP(0.5)} window.resources?.addChimes?.(37);` } },
+      { name: 'chimes-crystal-shop', caption: 'Haddu’s shop panel: before, brass discs by every price and the wallet; after, the crystal', commit: 'cdc9eb02', view: { level: 'desert', hud: true, save: SAVE_ON, setup: SHOP_OPEN(), wait: 800 } },
+      { name: 'chimes-crystal-shopfront', caption: 'Inside Haddu’s shop: before, a pierced brass disc on the back wall; after, a big cyan crystal on its brass plate (the strings by the door, behind the camera, are crystals too)', commit: 'cdc9eb02', view: { level: 'desert', save: SAVE_ON, setup: SHOP_IN(), wait: 800 } },
+    ], see: 'Pick up a few chimes: the crystal and the count come up beside the potion. Open the menu (View, or J): the crystal and the count are by the Gear heading. At Haddu’s, by the way up to Qanat’s main gate: every price shows the crystal; ask him “Chimes?” for his new words.' },
   ],
   '1.6': [
     // the fights: told by the body, not the ground
