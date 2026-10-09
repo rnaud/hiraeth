@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_b54a884fed694e 7
+docs/README.md
+  s_9ca76055a220ed::t_b41b49771df12a 69
+docs/systems/android.md
+  s_9ca76055a220ed::t_0683195c65fb2d 86
+docs/systems/platforms.md
+  s_9ca76055a220ed::t_d562e4464bd7c9 3-4
+TODO.md
+  s_ee6dacfa5aab85::t_4a4a3ecad353f0 66-73
+docs/systems/xbox.md
+  s_ee6dacfa5aab85::t_07dbba8acf9f6e 1-147
+src/changelog.js
+  s_ee6dacfa5aab85::t_e5991c47ecf9a3 27-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7d3c47ab1b9e5a3136cc799af1841aac4c56f6f8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_ee6dacfa5aab85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a52ad62ab2a5068f7",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
