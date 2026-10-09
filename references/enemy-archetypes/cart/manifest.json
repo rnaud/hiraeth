@@ -18,6 +18,25 @@
       "sha256": "b9af023a1bf1a562264eff8e6002af142b27a0b3fdc5cc3f09cb93729fa9a1fd",
       "bytes": 192190,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (black-teal and gunmetal steel, patched canvas covers, a glowing orange lip, the brew ink-black and violet) may remain. The same crucible cart, same squat pot on a turret, same caterpillar tracks with road wheels, the same ink boiling over the rim with eyes in its smoke, redrawn as the Moon Foundry's crucible cart: cream enamel with chipped edges, soot-darkened brass, no torch arms, glowing ember slag at the lip. Front, side and three-quarter views and the tilted pour wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#cart/alt",
+      "refs": [
+        "references/enemy-archetypes/cart/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-06-04-ac53",
+      "candidate": "openai/2",
+      "sha256": "782ec62462be158093708e9c4af2aa8e960317ed46e4c5f5021ebfdc9fc97ab1",
+      "bytes": 195231,
+      "costUSD": 0.041
     }
   ]
 }

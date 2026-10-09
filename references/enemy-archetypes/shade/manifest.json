@@ -18,6 +18,25 @@
       "sha256": "cfd4fc699d25ec17d59877f3421c3d1895884ca17e29ca469cc10f8993106fe6",
       "bytes": 273637,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (a pointed hood of rough bark, a moss-green and deep teal cloak, a brass buckle, the smoke and sword ink-black and violet) may remain. The same shade, same empty cloak with jointed sleeves and empty boots, two white eyes in the hood, ink sword and smoking hem, redrawn as the Eclipse's pilgrim: a tall round pilgrim's hood with a brass crescent moon at its peak, a violet and dusk-blue cloak, a small lantern on its belt, pale gold trim. Front, side and three-quarter views and the sword-back cut wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage, skeleton, claws.",
+      "from": "docs/design/enemy-roster-prompts.md#shade/alt",
+      "refs": [
+        "references/enemy-archetypes/shade/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-08-03-64fd",
+      "candidate": "openai/1",
+      "sha256": "6bf496d99ffa9e4e1edca98d1a3a5a60d7985237f33bf28be323a4c40f46bf3b",
+      "bytes": 258256,
+      "costUSD": 0.041
     }
   ]
 }

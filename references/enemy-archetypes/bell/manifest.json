@@ -18,6 +18,25 @@
       "sha256": "fd5379be88f1d6e8af23c0fc821c266497da76be151d72c87580c0ff8e34425b",
       "bytes": 232645,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (aged bronze with teal verdigris, brass yoke hung with little coins and patched cloth pennants, warm amber accents, the spirit ink-black and violet) may remain. The same bell walker, same five short jointed spider legs round a riveted yoke, redrawn as the Salt Harbour's dock winch: instead of a bell a big weathered winch drum in the yoke, its heavy chain and hook swinging below as the clapper, the black spirit with white eyes clinging to the chain, cream, turquoise and rusty coral, salt crust. Front, side and three-quarter views and the reared toll wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#bell/alt",
+      "refs": [
+        "references/enemy-archetypes/bell/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-06-32-001e",
+      "candidate": "openai/1",
+      "sha256": "0ca89a51ef2d568ffb05fcdd347eae4f9a1bb6096751394f8808514057473f54",
+      "bytes": 235417,
+      "costUSD": 0.041
     }
   ]
 }

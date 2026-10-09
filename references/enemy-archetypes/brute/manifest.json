@@ -18,6 +18,25 @@
       "sha256": "7bad5af419f950e9447b2296464c686a5ff702717c13faae635a2c873ee5bea7",
       "bytes": 264883,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (old ivory hull with brass fittings, grown through with dark roots and moss, a rusted saw blade in one fist, deep teal shadows) may remain. The same furnace brute, same headless barrel torso, long jointed arms with huge fists and short legs, the same ink seeping from violet-glowing cracks, redrawn as the Glass Dunes' furnace walker: plated in thick faceted glass over a sand-gold furnace hull, a glowing orange furnace door in its chest, pale aqua glints. Front, side and three-quarter views and the fists-raised slam wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#brute/alt",
+      "refs": [
+        "references/enemy-archetypes/brute/sheet-1.jpg"
+      ],
+      "ar": "3:2",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-07-33-5330",
+      "candidate": "openai/2",
+      "sha256": "3fb71cb237ee999cdfb8c59c96986c6fc124898023f21797d24982b43c19d50f",
+      "bytes": 257662,
+      "costUSD": 0.041
     }
   ]
 }

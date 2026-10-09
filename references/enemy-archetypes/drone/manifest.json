@@ -18,6 +18,25 @@
       "sha256": "58381fe047acfc88b413c8bd19e54fcb5ae28050f96223e6bc66147c685df5b2",
       "bytes": 157858,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Use the attached sheet only for the creature's shape, anatomy, proportions and poses; repaint it completely in a new colour scheme that reads as a different colour at a glance: none of the attached sheet's colours (weathered brass plates with pink rust, ivory enamel rims, slate-blue shadow, the smoke ink-black and violet) may remain. The same ring drone, same three stacked discs on a spindle with jointed dangling arms, the same smoke with eyes trapped between the plates, redrawn for the Garden of Spheres: pearl-white plates with fine gold rims, gold arms, a faint prism shimmer on the discs. Front, side and three-quarter views and the parted-plates harpoon wind-up on plain cream paper, black silhouette below, small cloaked traveller with a round jade backpack for scale. Moebius science-fiction ligne claire, exquisite fine pen contours, sparse hatching, flat pastel gouache, cream paper grain, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, scenery, collage.",
+      "from": "docs/design/enemy-roster-prompts.md#drone/alt",
+      "refs": [
+        "references/enemy-archetypes/drone/sheet-1.jpg"
+      ],
+      "ar": "16:9",
+      "date": "2026-10-09",
+      "batch": "2026-10-09-19-07-03-d6f5",
+      "candidate": "openai/2",
+      "sha256": "31008dbcdac05ba18b6e8bd2c8b87035bd964f4079440b05421656fae39fcfe1",
+      "bytes": 149393,
+      "costUSD": 0.041
     }
   ]
 }
