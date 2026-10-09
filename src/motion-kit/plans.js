@@ -109,7 +109,7 @@ export const PLANS = {
   },
   // plan 13: the flyer: a flap by speed (the tips lag the root), body pitch from acceleration, a hover bob
   flyer: {
-    wing: { strips: 3, rate: [5.5, 8.5], amp: 0.75, lag: 0.55, fold: 0.15 },   // (cycles a second hovering → flying)
+    wing: { strips: 3, rate: [2.4, 3.6], amp: 0.75, lag: 0.55 },   // (beats a second hovering → flying: a big lamp moth fanning)
     body: { pitch: 0.06, pitchMax: 0.5, bob: 0.12, spring: { f: 3, z: 0.6, r: 0 } },
     poses: {
       coil: { y: 0.15, z: -0.12, pitch: -0.3 },                      // (rears up, nose high)

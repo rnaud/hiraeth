@@ -1897,7 +1897,7 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   accumulator, metachronal legs on distance (docs/systems/procedural-animation.md, "Phase 4, the chains").
 - [x] Batch 2 (src/enemies/plans/): the mound worm (burrower.js), the sky ray (glider.js), the signal moth (flyer.js),
   the ring centipede (centipede.js: 24 legs, 0.00 m/m of slide), the lantern jelly (floater.js), in every skin; the
-  worm, the ray, the centipede and the jelly drawn to their picked sheets. Their minds: the worm's burst from under and
+  five drawn to their picked sheets. Their minds: the worm's burst from under and
   its stones and dive when up, the air cut's double; the ray's skim a parry grounds and its downdraft; the moth's dust
   that slips the lock; the centipede's ring that walls you in (`Foes.corral`), plated but for its head, its shed tail;
   the jelly's wards, mends and popped lanterns, never starting a fight (docs/systems/foes.md, "The enemy roster").

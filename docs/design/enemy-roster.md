@@ -874,12 +874,13 @@ plan in `src/enemies/plans/`. The 100 world enemies are retired (their attack pa
 glass splinter with them. docs/systems/foes.md, "The enemy roster", says how it all works.
 
 **Art:** the picked sheets are in `references/enemy-archetypes/<id>/sheet-1.jpg` (with `manifest.json`), for every
-archetype but the horn lizard and the signal moth (being redrawn). Batch 2's worm, ray, centipede and jelly are drawn
-to theirs (`art: 'sheet-1'` in src/enemies/archetypes.js): the worm's ivory fin and turquoise toothed mouth on a stack
-of ochre-banded rings, the ray's red diamond with its pale rim, bulging eyes and segmented tail, the centipede's grey
-tube of plates with orange bands and crab-claw jaws round a drill, the jelly's broad pink puffy bell with three paper
-lanterns. Batch 1 and the moth follow the doc's description and the older references until their pass
-(`art: 'pending'`).
+archetype (the horn lizard's and the signal moth's from their rewritten prompts), and an alternate skin each
+(`sheet-2.jpg`). Batch 2 is drawn to its main sheets (`art: 'sheet-1'` in src/enemies/archetypes.js): the worm's ivory
+fin and turquoise toothed mouth on a stack of ochre-banded rings, the ray's red diamond with its pale rim, bulging eyes
+and segmented tail, the moth as an upright paper lantern with a hooded face, glowing-bulb antennae, kite wings on rods
+and six hooked legs, the centipede's grey tube of plates with orange bands and crab-claw jaws round a drill, the
+jelly's broad pink puffy bell with three paper lanterns. Batch 1 follows the doc's description and the older
+references until its pass (`art: 'pending'`).
 
 | # | Archetype | Status | Body now | Notes |
 |---|---|---|---|---|
@@ -892,7 +893,7 @@ lanterns. Batch 1 and the moth follow the doc's description and the older refere
 | 7 | Pearl roller | planned | none | batch 6 |
 | 8 | Root knot | stand-in | the root stalker | batch 4 |
 | 9 | Lantern jelly | **built** (batch 2) | `plans/floater.js`, plan 11, 5 skins | ward (a lantern's thread: half the harm, no staggers), mend (tier-2 skins, comes down within reach), sting curtain; a shot or the boomerang pops a lantern; never starts a fight, joins one; alone in the Arena with a blot. Drawn to its sheet |
-| 10 | Signal moth | **built** (batch 2) | `plans/flyer.js`, plan 13, 5 skins | flash, dart, dust (the lamp moth and the Antennas' moth: the lock slips); in threes. Art pending its redrawn sheet |
+| 10 | Signal moth | **built** (batch 2) | `plans/flyer.js`, plan 13, 5 skins | flash (both kite wings snapped open, the eye-spots blazing), dart, dust (the lamp moth and the Antennas' moth: the lock slips); in threes. Drawn to its sheet |
 | 11 | Sky ray | **built** (batch 2) | `plans/glider.js`, plan 14, 6 skins | skim (a perfect parry grounds it), tail lash (at its back), downdraft (Vael, Vael II: breaks the glide); circles in its thermals. Drawn to its sheet |
 | 12 | Mound worm | **built** (batch 2) | `plans/burrower.js`, plan 15, 3 skins | erupt (from under), spit stones and dive (up); the dune ray's mind; the air cut onto the mound double; ignores you off its mound. Drawn to its sheet |
 | 13 | Lamp tripod | **built** (batch 1) | `plans/piston.js`, plan 18, 5 skins | beam and bolt (the searchlight follows then locks; a parry sends it back), stamp (the `stomp` pattern), steam vent; the porthole face, black steam, a leg's possessed twitch. The Desert's cistern pump is not placed yet. Art match pending its sheet |

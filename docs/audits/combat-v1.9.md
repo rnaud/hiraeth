@@ -70,7 +70,7 @@ The ttk riposte of the worm (11 s) counts the wait for an attack to parry: it is
 | | segments off the head's weaving path | 0.000 m |
 | mound worm | mounds off the fin's weaving path | 0.000 m |
 | sky ray | beats/s full → half, tip lag | 1.17 → 0.80, 2.1 rad |
-| signal moth | beats/s full → half, tip lag | 8.45 → 7.17, 1.1 rad |
+| signal moth | beats/s full → half, tip lag | 3.58 → 3.07, 1.1 rad (after its sheet: a big lantern moth fanning) |
 | lantern jelly | pulses/s drifting → winding up | 0.55 → 2.38 |
 
 Rubric (0–3): joints 3 (the centipede's two-bone legs, knees out and up), feet 3 (planted on distance, one ray at
@@ -80,7 +80,7 @@ worm's rise dips first, `r < 0`; the ray banks and pitches on springs; the jelly
 wings' tips lagging their roots), anticipation 3 (each wind-up its own pose: the worm rears and bunches or leans and
 spins its teeth, the ray climbs and sweeps its wings back, the moth snaps open or folds to a tent, the centipede's head
 lifts and turns in or rears with its front bunched, the jelly's lantern swells or its bell clenches), ink 2 (the
-threads drawn with a hairline in their own colour; the moth's wings still read as paddles until its sheet), cost 2.
+threads drawn with a hairline in their own colour; the moth's six hooked legs are thin from far off), cost 2.
 
 ## The best and the weakest
 
@@ -89,7 +89,8 @@ threads drawn with a hairline in their own colour; the moth's wings still read a
   tube with claws) and the worm's (a stack of rings with a sail) are like nothing else in the roster.
 - **The lantern jelly (4.5)** is the first support: in a pack it changes what you hit first.
 - **The weakest: the sky ray and the signal moth (4.3).** The ray is a tier-1 teacher of the parry, as it should be;
-  the moth's body waits for its redrawn sheet, and its dust is only in two skins.
+  the moth's flash and dart are the old sign moth's, on a new body (drawn to its sheet after this run), and its dust
+  is only in two skins.
 
 ## Recommendations (in TODO.md)
 
@@ -99,7 +100,7 @@ threads drawn with a hairline in their own colour; the moth's wings still read a
    killing the jelly break it now.
 3. The combat-review script calls each kind in alone: give a support its escort (`aloneWave`) in the watch, and read
    `encircle` as a body attack, not a lob.
-4. The moth's body against its redrawn sheet when it is picked (the wings as rounded triangles, not paddles).
+4. Look at the moth's new lantern body in a world at 15–30 m: its kite wings read, its thin hooked legs may shimmer.
 5. The sound families (`sound` in src/enemies/archetypes.js: chitin, soft, paper) are still played by two sets.
 
 ## Against the last report

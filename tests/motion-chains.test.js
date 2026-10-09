@@ -89,6 +89,6 @@ test('the chain archetypes, measured: the centipede and the worm keep to their h
     assert.ok(r[k].beatHalf < r[k].beatFull * 0.95, `${k}: slower beats at half speed (${r[k].beatHalf.toFixed(2)} against ${r[k].beatFull.toFixed(2)})`);
     assert.ok(r[k].tipLag > 0.5, `${k}: the tip trails the root`);
   }
-  assert.ok(r.ray.beatFull < 2 && r.moth.beatFull > 5, 'the ray glides on slow beats, the moth flutters');
+  assert.ok(r.ray.beatFull < 2 && r.moth.beatFull > r.ray.beatFull * 1.8, 'the ray glides on slow beats, the moth fans quicker');
   assert.ok(r.jelly.pulseWind > r.jelly.pulseDrift * 2.5, `the jelly's pulse quickens through a wind-up (${r.jelly.pulseDrift.toFixed(2)} → ${r.jelly.pulseWind.toFixed(2)})`);
 });

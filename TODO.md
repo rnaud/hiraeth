@@ -56,13 +56,12 @@ framework, batch 1 (the shellback crab, the horn lizard, the antler hound, the l
 docs/audits/combat-v1.8.md) and batch 2 (the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
 jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md). Vael II runs wholly on the new roster.
 
-- [ ] **The lizard's and the moth's sheets** (being redrawn: docs/design/enemy-roster-prompts.md); the other 19 are
-  picked (`references/enemy-archetypes/<id>/sheet-1.jpg`). Rebuild the contact sheet once they are in.
-- [ ] **Art match pending its sheet** (batch 1): the shellback crab, the horn lizard (once its sheet is in), the antler
-  hound, the lamp tripod, the ink blot were built from the doc's descriptions and the old references; match each body
-  and its skins to its own sheet, then set `art: 'sheet-1'` in src/enemies/archetypes.js. The signal moth too, once
-  its redrawn sheet is picked (its wings still read as paddles: combat-v1.9 rec. 4). Batch 2's worm, ray, centipede
-  and jelly are drawn to theirs.
+- [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
+  (`references/enemy-archetypes/<id>/sheet-1.jpg`) instead of the old reference crops.
+- [ ] **Art match pending its sheet** (batch 1): the shellback crab, the horn lizard, the antler hound, the lamp tripod,
+  the ink blot were built from the doc's descriptions and the old references; match each body and its skins to its own
+  sheet, then set `art: 'sheet-1'` in src/enemies/archetypes.js. Batch 2 is drawn to its sheets; the alternate skins
+  (`sheet-2.jpg`) are not used yet by either batch.
 - [ ] **Batch 3**: the bellows toad, the stilt heron (`StiltMotor` generalised), the skitter swarm (mid tier), the root
   knot (FABRIK arms); Lorn, Lorn II and Viridel follow, and the Desert and Vael then run fully on the new roster (they
   wait only on the heron and the swarm).

@@ -10,6 +10,7 @@ import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
 import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, rangedKind, worldArchetypes } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, RING, GROUNDED, BURROW } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
+import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
 import { ORDER, SIDE, TITLES } from '../src/levels/names.js';
@@ -364,9 +365,9 @@ test('batch 2: the mound worm, the sky ray, the signal moth, the ring centipede 
   assert.ok(!FOES.flyer && !KINDS.ray && !KINDS.moth, 'retired');
   assert.ok(!WAVES.flat().includes('flyer') && ARENA_WAVES.flat().every((k) => parseKind(k).kind !== 'flyer'));
   assert.throws(() => new Foe('flyer', v()), /Unknown enemy/);
-  // the art: the worm, the ray, the centipede and the jelly drawn to their picked sheets; the moth's is being redrawn
-  for (const a of ['worm', 'ray', 'centipede', 'jelly']) assert.equal(ARCHETYPES[a].art, 'sheet-1', a);
-  assert.equal(ARCHETYPES.moth.art, 'pending');
+  // the art: each drawn to its picked sheet (references/enemy-archetypes/<id>/sheet-1.jpg)
+  for (const a of ['worm', 'ray', 'moth', 'centipede', 'jelly']) assert.equal(ARCHETYPES[a].art, 'sheet-1', a);
+  for (const a of ['worm', 'ray', 'moth', 'centipede', 'jelly']) assert.ok(existsSync(new URL(`../references/enemy-archetypes/${a}/${ARCHETYPES[a].art}.jpg`, import.meta.url)), `${a}: its sheet is in`);
   // Vael II runs wholly on the new roster now (every kind it spawns is a built archetype's own)
   const R = ROSTERS.arzach2, kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards]);
   for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)].status, 'built', `Vael II: ${k}`);

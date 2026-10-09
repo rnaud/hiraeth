@@ -399,8 +399,9 @@ export const CHANGELOG_MEDIA = {
       { name: 'roster2-skins-ray', only: 'after', caption: 'The sky ray in its worlds: the storm ray, the cloud ray trailing mist, the scrap ray, the glass manta, the porcelain ray with ribbon fins, the abyss ray', from: 'headless Chrome, the creatures gallery, each skin flying' },
     ] },
     { match: 'The signal moth flies in threes', shots: [
-      { name: 'roster2-moth', caption: 'Before: the sign moth of neon tube. After: the signal moth in the Signal Market’s skin, its broad wings beating, its eye-spots and its painted letters', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
-      { name: 'roster2-skins-moth', only: 'after', caption: 'The signal moth in its worlds: the lamp moth, the glass wasp, the sign moth, the Antennas’ moth with dish antennae, the space moth', from: 'headless Chrome, the creatures gallery, each skin flying' },
+      { name: 'roster2-moth', caption: 'Before: the sign moth of neon tube. After: the signal moth (the Deep Wood’s lamp moth), a ribbed paper lantern with a hooded face, kite wings on rods with red eye-spots, six hooked legs', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), each flying, before (the old foe) and after' },
+      { name: 'roster2-moth-flash', only: 'after', caption: 'The signal moth winding up its flash: both wings snapped open toward you, the eye-spots burning white', from: 'headless Chrome, the creatures gallery, its flash at 90 % of the wind-up, seen from in front' },
+      { name: 'roster2-skins-moth', only: 'after', caption: 'The signal moth in its worlds: the lamp moth, the glass wasp, the neon sign moth, the Antennas’ moth with dish antennae, the space moth', from: 'headless Chrome, the creatures gallery, each skin flying' },
     ] },
     { match: 'The ring centipede: a long tube', shots: [
       { name: 'roster2-centipede', only: 'after', caption: 'The ring centipede (the Buried Machine’s drill-head): grey plates with orange bands, crab-claw jaws round a drill, its legs stepping in a ripple down the body', from: 'headless Chrome against a dev server, the creatures gallery (enemies.html), walking' },

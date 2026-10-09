@@ -77,11 +77,11 @@ export const SKINS = {
     fallenring: { name: 'sun jelly', palette: { bell: '#3f8f8a', bell2: '#5aa8a0', thread: '#2a6a66', lantern: '#ffcf8a', light: '#ff9a3e', eye: '#fff4b0', dark: '#16302e' }, props: ['core'], moves: ['mend'] },
   },
   moth: {
-    perdide2: { name: 'lamp moth', palette: { wing: '#8d8a86', wing2: '#a8a49c', body: '#5a5654', spot: '#f2a45c', glow: '#ffd27a', antenna: '#3a3634', eye: '#ffd27a' }, props: ['lit', 'dusty'], moves: ['dust'] },
-    edena: { name: 'glass wasp', palette: { wing: '#f2b8c8', wing2: '#f8dce4', body: '#3a2a30', spot: '#ff8ab0', glow: '#ffd0e0', antenna: '#2a1e24', eye: '#bff0c8' }, props: ['wasp'] },
-    bazaar: { name: 'sign moth', palette: { wing: '#241a2e', wing2: '#33263f', body: '#1a1420', spot: '#5ff0e8', glow: '#ff5fa2', antenna: '#ff5fa2', eye: '#5ff0e8' }, props: ['neon', 'letters'] },
-    antennas: { name: 'signal moth', palette: { wing: '#efe4c8', wing2: '#f7efda', body: '#8a6a4a', spot: '#c98a54', glow: '#ffe6a8', antenna: '#c98a54', eye: '#e8f07a' }, props: ['dish'], moves: ['dust'] },
-    spacecity: { name: 'space moth', palette: { wing: '#5f7fd8', wing2: '#a8b8f0', body: '#2a3460', spot: '#d8dff2', glow: '#d8f0ff', antenna: '#d8dff2', eye: '#ffffff' }, props: ['sail'] },
+    perdide2: { name: 'lamp moth', palette: { wing: '#a39bbf', wing2: '#c8c2d8', body: '#f2cf86', spot: '#d8504a', glow: '#fff2d0', antenna: '#c9a050', eye: '#1a1420' }, props: ['lit', 'dusty'], moves: ['dust'] },
+    edena: { name: 'glass wasp', palette: { wing: '#f2b8c8', wing2: '#f8dce4', body: '#f7d8a8', spot: '#e0607a', glow: '#fff0f4', antenna: '#5a3a44', eye: '#2a1e24' }, props: ['wasp'] },
+    bazaar: { name: 'sign moth', palette: { wing: '#2a1f36', wing2: '#3a2c48', body: '#ff9ac8', spot: '#5ff0e8', glow: '#ffffff', antenna: '#ff5fa2', eye: '#101018' }, props: ['neon', 'letters'] },
+    antennas: { name: 'signal moth', palette: { wing: '#efe4c8', wing2: '#f7efda', body: '#ffe6a8', spot: '#c98a54', glow: '#fff8e0', antenna: '#b0683c', eye: '#2a2018' }, props: ['dish'], moves: ['dust'] },
+    spacecity: { name: 'space moth', palette: { wing: '#5f7fd8', wing2: '#a8b8f0', body: '#d8f0ff', spot: '#f2f4ff', glow: '#ffffff', antenna: '#d8dff2', eye: '#101830' }, props: ['sail'] },
   },
   ray: {
     arzach: { name: 'storm ray', palette: { top: '#c8573a', top2: '#d8704c', under: '#ece2c8', edge: '#9fb3d8', spots: '#8a3424', eye: '#2a1810', tail: '#e8dcc0' }, props: [], moves: ['draft'] },

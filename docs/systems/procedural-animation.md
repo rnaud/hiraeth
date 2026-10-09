@@ -538,14 +538,14 @@ The plans on them (`src/motion-kit/plans.js`; `src/enemies/plans/`):
 | 3 centipede | ring centipede | 12 segments on the head's `PathTrail`, 24 two-bone legs (knees out and up) on `WaveLegs`; the plates rock with the wave; antennae on `FollowChain`s; the ring's wind-up quickens the wave (the legs' clock runs 1.6× the distance: shorter steps, never a slide) |
 | 15 burrower | mound worm | under: six mounds on the head's path and a fin; up: seven rings stacked as a spine bent by the pose, a slow `Wave` up it, rising on a spring with `r < 0` (it dips first) and slumping back through its recovery |
 | 14 glider | sky ray | each wing four nested strips turned by one `Wave` (0.45–1.3 beats/s by speed, the tip 2.1 rad behind the root); bank = turn rate × speed on a spring, pitch from acceleration; the skim sweeps the wings back and stills the beat; the tail a 9-link `FollowChain` |
-| 13 flyer | signal moth | each wing three nested strips on a `Wave` (5.5–8.5 beats/s by speed, the tip 1.1 rad behind); nose up as it hovers, upright and still to flash, folded into a tent to dart; antennae on `FollowChain`s |
+| 13 flyer | signal moth | upright; each kite wing three nested strips turned about the upright by a `Wave` (2.4–3.6 beats/s by speed, the outer edge 1.1 rad behind), swept back as it flies, open and still to flash, wrapped round the lantern to dart; antennae on `FollowChain`s, its six hooked legs on `VerletChain`s |
 | 11 floater | lantern jelly | the bell's pulse on a `Wave` (0.55/s drifting, 2.4/s through a wind-up: the telegraph), a bob, a tilt into its drift; 12 threads and 3 lanterns on `VerletChain`s; the curtain drops the threads to the ground |
 
 Measured (`node scripts/motion-audit/run.mjs centipede --pack`, `--pace=0.5`; `node scripts/motion-audit/chains.mjs`):
 the centipede's legs slide 0.00 m/m (worst 0.00 m), reach span 36 % of the leg, lift 42 %, 8.75 → 4.38 steps/s at half
 speed, a pair's legs never in one group, two side by side out of step; the centipede's segments and the worm's mounds
-keep to their heads' weaving path (0.000 m off); the ray beats 1.17/s at full speed and 0.80/s at half, the moth 8.45
-and 7.17; the jelly pulses 0.55/s drifting and 2.38/s winding up. `tests/motion-chains.test.js` holds the chains and
+keep to their heads' weaving path (0.000 m off); the ray beats 1.17/s at full speed and 0.80/s at half, the moth 3.58
+and 3.07; the jelly pulses 0.55/s drifting and 2.38/s winding up. `tests/motion-chains.test.js` holds the chains and
 these measures; `tests/motion-plans.test.js` the centipede's legs in two skins.
 
 ## Measuring

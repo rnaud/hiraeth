@@ -177,11 +177,11 @@ export const ARCHETYPES = {
   },
   moth: {
     name: 'signal moth', family: 'creature', plan: 'flyer', planNo: 13, role: 'disruptor', tier: 2, ranged: true,
-    status: 'built', kind: 'moth', was: ['sign moth'], sound: 'paper', drop: 1, art: 'pending',
+    status: 'built', kind: 'moth', was: ['sign moth'], sound: 'paper', drop: 1, art: 'sheet-1',
     moves: ['flash', 'dart', 'dust'], answers: ['push', 'fan’s gust', 'a light swing', 'shot'],
     idle: 'circles lamps and signs and sits on them in rows; fights near its lit sign',
     def: S({
-      name: 'signal moth', hp: 1, radius: 0.45, height: 0.4, hover: 1.6, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
+      name: 'signal moth', hp: 1, radius: 0.5, height: 0.4, hover: 1.6, speed: 4.2, sight: 18, reach: 6.5, flinchy: true, light: true, group: 3, breaks: true,
       tone: '#ff5fa2', takes: { shoot: 1, fire: 1, push: 1 },
       calm: { mode: 'circle', wild: true, provoke: 5, alarm: 12 },
       attacks: [
