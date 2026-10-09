@@ -1,0 +1,119 @@
+// The temple design audit's pure logic (scripts/temple-design/lib.mjs, .claude/skills/temple-design-qc):
+// each function shown the case it is for, on small made-up temples, and once on a real temple's logic.
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { conditionKeys, reversible, mechanicOf, puzzleGraph, obviousness, templeMetrics, scoreTemple, skeleton, similarity, rankTrend, piecePos, planSvg } from '../scripts/temple-design/lib.mjs';
+
+// a linear temple: a plate door, the chest, a gadget door, the guardian (the shape every temple had in October 2026)
+const LINEAR = {
+  id: 'lin', entry: 'a', gadget: 'fire',
+  rooms: { a: {}, b: {}, c: {}, d: { boss: true }, out: {} },
+  links: [{ a: 'a', b: 'b', door: 'd1' }, { a: 'b', b: 'c', door: 'd2' }, { a: 'c', b: 'd', door: 'd3' }, { a: 'd', b: 'out', door: 'd5' }],
+  elements: {
+    p1: { type: 'plate', room: 'a' },
+    d1: { type: 'door', opens: { pressed: 'p1' }, latch: true },
+    chest: { type: 'gadget', room: 'b', item: 'fire' },
+    b1: { type: 'brazier', room: 'b', needs: ['fire'] },
+    d2: { type: 'door', opens: { lit: 'b1' }, latch: true },
+    d3: { type: 'door', opens: null },
+    boss: { type: 'boss', room: 'd', needs: ['backpack', 'fire'] },
+    d5: { type: 'door', opens: { resolved: true } },
+  },
+};
+const LIN_PIECES = [
+  { cls: 'Mark', o: { room: 'a', at: [0, 0, 5] } }, { cls: 'Plate', o: { id: 'p1', at: [2, 0, 12] } }, { cls: 'Door', o: { id: 'd1', at: [0, 0, 15] } },
+  { cls: 'Mark', o: { room: 'b', at: [0, 0, 20] } }, { cls: 'Brazier', o: { id: 'b1', at: [2, 0, 27] } }, { cls: 'Door', o: { id: 'd2', at: [0, 0, 30] } },
+  { cls: 'Mark', o: { room: 'c', at: [0, 0, 35] } }, { cls: 'Door', o: { id: 'd3', at: [0, 0, 40] } }, { cls: 'Mark', o: { room: 'd', at: [0, 0, 50] } },
+  { cls: 'Door', o: { id: 'd5', at: [0, 0, 60] } },
+];
+
+test('a condition names its keys, a ball on a plate is a push, and a latched plate door never closes again', () => {
+  assert.deepEqual(conditionKeys({ all: [{ pressed: 'p1' }, { lit: 's1' }, { drumOn: ['ball', 'p2'] }] }).map((k) => k.id), ['p1', 's1', 'ball', 'p2']);
+  const E = { p1: { type: 'plate' }, p2: { type: 'plate' }, ball: { type: 'drum', plate: 'p2' } };
+  assert.equal(reversible({ pressed: 'p1' }, E), true, 'a plate you stand on lets go when you step off');
+  assert.equal(reversible({ pressed: 'p2' }, E), false, 'a ball resting on it holds it');
+  assert.deepEqual(mechanicOf('p2', E.p2, { elements: E }), ['push']);
+  assert.deepEqual(mechanicOf('p1', E.p1, { elements: E }), ['weight']);
+  assert.deepEqual(mechanicOf('k1', { type: 'switch', needs: ['magic:4'] }, { piece: { cls: 'Bank' } }), ['gadget:cell', 'volley']);
+  assert.deepEqual(mechanicOf('c2', { type: 'switch', after: 'c1' }), ['sequence']);
+  assert.deepEqual(piecePos({ a: [0, 0, 0], b: [0, 0, 10] }), [0, 0, 5]);
+  assert.deepEqual(piecePos({ eyes: [{ at: [0, 2, 0] }, { at: [2, 2, 0] }] }), [1, 2, 0]);
+});
+
+test('the linear temple: no loops, no hubs, every key beside its lock and in sight: painfully obvious', () => {
+  const g = puzzleGraph(LINEAR, LIN_PIECES);
+  assert.deepEqual(g.locks.map((l) => l.id), ['d1', 'd2', 'd3', 'd5']);
+  assert.equal(g.locks.find((l) => l.id === 'd3').arena, true, 'the arena door is not a puzzle');
+  const m = templeMetrics(g);
+  assert.equal(m.structure.linear, true);
+  assert.equal(m.steps.length, 2);
+  assert.ok(m.steps.every((s) => s.obvious === 5), JSON.stringify(m.steps.map((s) => [s.lock, s.obvious, s.why])));
+  assert.equal(skeleton(g), 'BCGK');
+  const s = scoreTemple(m);
+  assert.equal(s.criteria.structure.score, 1);
+  assert.equal(s.criteria.nonObvious.score, 1);
+  assert.equal(s.criteria.combination.score, 1);
+});
+
+test('a key out of sight, a room away, combined with an older verb, reads as less obvious', () => {
+  const T = structuredClone(LINEAR);
+  T.rooms.side = {};
+  T.links.push({ a: 'b', b: 'side' });
+  T.elements.b1.room = 'side';
+  T.elements.ball = { type: 'drum', room: 'side', plate: 'p9' };
+  T.elements.p9 = { type: 'plate', room: 'side' };
+  T.elements.d2.opens = { all: [{ lit: 'b1' }, { pressed: 'p9' }] };
+  const pieces = [...LIN_PIECES.filter((p) => p.o.id !== 'b1'), { cls: 'Mark', o: { room: 'side', at: [30, 0, 20] } }, { cls: 'Brazier', o: { id: 'b1', at: [34, 0, 22] } }, { cls: 'Plate', o: { id: 'p9', at: [30, 0, 25] } }];
+  const wall = (a, b) => !(Math.max(a[0], b[0]) > 15);   // a wall at x = 15 hides the side room from the door
+  const g = puzzleGraph(T, pieces, { los: wall });
+  const d2 = g.locks.find((l) => l.id === 'd2');
+  assert.deepEqual(d2.mechanics.sort(), ['gadget:fire', 'push']);
+  assert.ok(d2.keys.every((k) => k.rooms === 1 && k.visible === false));
+  const o = obviousness(d2);
+  assert.ok(o.score <= 2.5, `${o.score}: ${o.why.join('; ')}`);
+  const m = templeMetrics(g);
+  assert.equal(m.structure.cycles, 0);
+  assert.equal(m.structure.branches, 1, 'room b is a hub now: three ways out');
+  assert.equal(m.combos, 1);
+  assert.equal(m.gadget.withOld, 1, 'the ember and the push in one step');
+  assert.equal(skeleton(g), 'BCXK');
+});
+
+test('a loop back to the start counts, and a guardian that asks for the gadget and the push examines the temple', () => {
+  const T = structuredClone(LINEAR);
+  T.links.push({ a: 'c', b: 'a', door: 'sc' });
+  T.elements.sc = { type: 'door', opens: { lit: 'b1' }, latch: true };
+  const g = puzzleGraph(T, LIN_PIECES);
+  const m = templeMetrics(g, { guardian: { kind: 'organic', phases: [{ hint: 'Light the brazier, then push the stone' }, { hint: 'Splash its mouth' }, { weary: true }], attacks: { a: { shape: 'ring' } } } });
+  assert.equal(m.structure.cycles, 1);
+  assert.equal(m.guardian.usesGadget, true);
+  assert.ok(m.guardian.fightMechs.includes('push'));
+  assert.ok(scoreTemple(m).criteria.structure.score >= 2);
+});
+
+test('the shapes: identical skeletons are alike, a rising complexity has a positive trend', () => {
+  assert.equal(similarity('BCGGGK', 'BCGGGK'), 1);
+  assert.ok(similarity('BCGGGK', 'XBCXRTK') < 0.6);
+  assert.ok(rankTrend([1, 1, 2, 3, 4]) > 0.8);
+  assert.ok(rankTrend([4, 3, 2, 1]) < 0);
+});
+
+test('the plan draws every room and every lock', () => {
+  const g = puzzleGraph(LINEAR, LIN_PIECES), m = templeMetrics(g);
+  const svg = planSvg(g, m, { title: 'linear' });
+  assert.match(svg, /^<svg/);
+  for (const r of ['a', 'b', 'c', 'd']) assert.match(svg, new RegExp(`>${r}<`));
+  assert.match(svg, /d1 5/);
+});
+
+test('every real temple builds a graph its measures can read (no layout needed)', async () => {
+  await import('./register-gadgets.js');
+  const { TEMPLES } = await import('../src/temples/index.js');
+  for (const [id, { def }] of Object.entries(TEMPLES)) {
+    const g = puzzleGraph(def.logic, []);
+    const m = templeMetrics(g);
+    assert.ok(m.steps.length >= 2, `${id}: ${m.steps.length} steps`);
+    assert.ok(g.chestRoom, `${id}: a chest room`);
+    assert.ok(skeleton(g).includes('C') && skeleton(g).endsWith('K'), `${id}: ${skeleton(g)}`);
+  }
+});
