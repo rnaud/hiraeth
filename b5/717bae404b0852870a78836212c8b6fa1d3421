@@ -1,0 +1,23 @@
+docs/README.md
+  s_9ca76055a220ed::t_9cdab76bb95d55 70
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_bca49a000ee8b8 6
+docs/xbox-setup.md
+  s_9ca76055a220ed::t_b876fad50b0656 1-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5717bae404b0852870a78836212c8b6fa1d3421",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
