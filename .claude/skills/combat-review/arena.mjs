@@ -64,7 +64,7 @@ if (arg('rescore')) {
     const tun = J.tuning ?? await (async () => { const b = await import(join(ROOT, 'src/fluid-blade.js')), t = await import(join(ROOT, 'src/fluid-tool.js')), k = await import(join(ROOT, 'src/fluid-kit.js'));
       return { BLADE: b.BLADE, SWINGS: b.SWINGS, CHARGE: b.CHARGE, AIR: b.AIR, RIPOSTE: b.RIPOSTE, DASH: b.DASH, FLUID: t.FLUID, MODES: k.MODES }; })();
     const now = L.movesFrom(tun); J.moves = J.moves.map((m) => ({ ...m, ...(m.hits ? { cycles: now.find((x) => x.id === m.id)?.cycles, cooldown: now.find((x) => x.id === m.id)?.cooldown } : {}) }));
-    for (const r of J.foes) for (const m of J.moves) { const t = r.ttk[m.id]; if (t?.dead) t.s = L.timeToKill({ ...t, hits: t.landed + (t.from === 'behind' ? 0 : t.wasted) }, m, r.winds && Object.values(r.winds).length ? (J.watch / Object.values(r.winds).reduce((a, b) => a + b, 0)) : 3); } }
+    for (const r of J.foes) for (const m of J.moves) { const t = r.ttk[m.id], cyc = r.winds && Object.values(r.winds).length ? (J.watch / Object.values(r.winds).reduce((a, b) => a + b, 0)) : 3; if (t?.dead) t.s = L.openingTime(L.timeToKill({ ...t, hits: t.landed + (t.from === 'behind' ? 0 : t.wasted) }, m, cyc), t, m, cyc); } }
   J.foes = J.foes.map((r) => ({ ...r, score: L.scoreKind(r.facts, r, r.worlds ?? 0, roles[r.facts.role]) }));
   J.guardians = J.guardians.map((g) => ({ ...g, score: L.scoreGuardian(g) }));
   writeFileSync(join(OUT, 'combat.json'), JSON.stringify(J, null, 2));
@@ -166,7 +166,24 @@ for (const kind of KINDS) {
       const now = performance.now();
       return all.map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state, k: f.k ?? 0, atk: f.atk?.id ?? 'strike', d: f.pos.distanceTo(player.pos) })); })()`);
     if (s) samples.push(...s);
-    if (!shot && s?.some((m) => m.state === 'wind' && m.k > 0.45)) shot = Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64');
+    if (!shot && s?.some((m) => m.state === 'wind' && m.k > 0.45)) {
+      // (framed side-on for the contact sheet: the camera held off the winding one's flank, level with its middle and far
+      // enough for its whole body, then given back: a wind-up reads by its silhouette, which a view from behind the
+      // traveller hides)
+      await ev(`(() => { const f = foes.list.find((x) => x.alive && x.kind === ${JSON.stringify(kind)} && x.state === 'wind') ?? foes.list.find((x) => x.alive); if (!f) return false;
+        const V = THREE.Vector3, h = f.heading ?? 0, fw = new V(Math.sin(h), 0, Math.cos(h)), r = new V(fw.z, 0, -fw.x);
+        const box = f.model?.group ? new THREE.Box3().setFromObject(f.model.group) : null, size = box && !box.isEmpty() ? box.getSize(new V()) : new V(2, 2, 2);
+        const H = Math.max(1, size.y), span = Math.max(size.x, size.y, size.z, 1.5), mid = f.pos.clone().add(new V(0, H * 0.5, 0));
+        const eye = mid.clone().addScaledVector(r, span * 1.15 + 1.6).add(new V(0, span * 0.2, 0));
+        foes.lock = null;   // (no lock-on mark over it)
+        const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, mid, new V(0, 1, 0)));
+        const base = window.__camBase ??= THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+        camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); return base.call(this, force); };
+        return true; })()`);
+      await sleep(90);
+      shot = Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64');
+      await ev('(() => { delete camera.updateMatrixWorld; return true; })()');
+    }
     await sleep(40);
   }
   const dmg = await ev('window.__dmg.splice(0)');
@@ -198,16 +215,19 @@ for (const kind of KINDS) {
         if (from === 'front' && landed === 0 && wasted >= 6) from = 'behind';
         const dir = from === 'front' ? f.pos.clone().sub(player.pos).setY(0).normalize() : new THREE.Vector3(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0));
         ${m.stunned ? 'f.stunned = Math.max(f.stunned ?? 0, 1);' : ''}
+        if (f.def.clapper) f.open = Math.max(f.open ?? 0, 1);   // (a clapper-only foe: struck in its opening, as a player waits for it)
         const hp = f.hp, r = foes.hurt(f, ${JSON.stringify(m.mode)}, dir, { damage: ${m.hits ? `[${m.hits}][i % ${m.hits.length}]` : m.damage}, source: ${JSON.stringify(m.source)}, breaks: ${!!m.breaks}, air: ${m.source === 'air'}${m.hits ? `, combo: i % ${m.hits.length}` : ''} });   // (as the blade sends them: the air cut's air, the swing's place in the combo)
         if (!f.alive) { dead = true; break; }
         if (r && f.hp < hp) landed++; else wasted++;
         await new Promise((r) => setTimeout(r, 30));
       }
       foes.list.slice().forEach((x) => foes.remove(x));
-      return { hits, landed: landed + (dead ? 1 : 0), wasted, dead, from };
+      const opens = f.def.clapper ? Math.max(0, ...f.def.attacks.map((a) => a.opens ?? 0)) : 0;
+      return { hits, landed: landed + (dead ? 1 : 0), wasted, dead, from, opens };
     })()`);
     const cycle = winds.length ? (span * 60) / winds.length : 3;
-    ttk[m.id] = r ? { ...r, s: L.timeToKill({ ...r, hits: r.landed + (r.from === 'behind' ? 0 : r.wasted) }, m, cycle) } : null;   // (a flank costs no blows: only the ones that land, from behind)
+    // (a clapper-only foe, the bell walker: its blows only in its openings, each one an attack cycle's wait for its drop: L.openingTime)
+    ttk[m.id] = r ? { ...r, s: L.openingTime(L.timeToKill({ ...r, hits: r.landed + (r.from === 'behind' ? 0 : r.wasted) }, m, cycle), r, m, cycle) } : null;   // (a flank costs no blows: only the ones that land, from behind)
   }
   const row = {
     kind, name: setup.defs[kind].name,

@@ -2,7 +2,7 @@
 // the game's own tuning, hits to kill, the rubric's scores, for any roster (it names no kind).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { movesFrom, hitsToKill, timeToKill, band, kindFacts, scoreKind, guardianFacts, scoreGuardian, table, median } from '../scripts/combat-review/lib.mjs';
+import { movesFrom, hitsToKill, timeToKill, openingTime, band, kindFacts, scoreKind, guardianFacts, scoreGuardian, table, median } from '../scripts/combat-review/lib.mjs';
 import { BLADE, SWINGS, CHARGE, AIR, RIPOSTE, DASH } from '../src/fluid-blade.js';
 import { MODES } from '../src/fluid-kit.js';
 import { FOES } from '../src/foes.js';
@@ -31,6 +31,10 @@ test('hits to kill, and the time it takes', () => {
   assert.equal(timeToKill({ dead: true, hits: 3 }, { cycle: 1 }), 3);
   assert.equal(timeToKill({ dead: true, hits: 2 }, { cycle: 0.5, gated: 'parry' }, 2), 5);
   assert.equal(timeToKill({ dead: false, hits: 40 }, { cycle: 1 }), null);
+  // a clapper-only foe (the bell walker): its blows in its 2.5 s openings, each a wait of one attack cycle for its drop
+  assert.equal(openingTime(6, { opens: 2.5, landed: 6 }, { cycle: 1 }, 4), 6 + 3 * 4, 'two blows an opening: three openings');
+  assert.equal(openingTime(3, { opens: 0, landed: 3 }, { cycle: 1 }, 4), 3, 'any other foe: unchanged');
+  assert.equal(openingTime(null, { opens: 2.5, landed: 3 }, { cycle: 1 }), null);
 });
 
 test('every kind the game has gets facts and six scores in 1..5, whatever the roster', () => {

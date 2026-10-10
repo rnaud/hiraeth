@@ -50,6 +50,18 @@ export const timeToKill = (r, move, attackCycle = 0) => {
   return +(own + (move.gated ? r.hits * attackCycle : 0)).toFixed(2);
 };
 
+/**
+ * A clapper-only foe's time to kill (the bell walker: only its opening takes harm, combat-v1.16 rec. 4): the blows fit
+ * into openings of `r.opens` s each (as many as the move's cycle allows, at least one), and each opening costs one of
+ * its attack cycles' wait for the drop that opens it. Anything else: `s` as it is.
+ */
+export const openingTime = (s, r, move, attackCycle = 3) => {
+  if (s == null || !(r?.opens > 0)) return s;
+  const cycle = move.cycles ? move.cycles.reduce((a, b) => a + b, 0) / move.cycles.length : move.cycle;
+  const perOpening = Math.max(1, Math.floor(r.opens / Math.max(cycle, 1e-3))), openings = Math.ceil(Math.max(1, r.landed ?? r.hits) / perOpening);
+  return +(s + openings * attackCycle).toFixed(2);
+};
+
 /** Scores 1..5 by thresholds (a value at or over t[i] gets i + 2; under t[0], 1). */
 export const band = (v, t) => 1 + t.filter((x) => v >= x).length;
 const clamp5 = (v) => Math.max(1, Math.min(5, Math.round(v)));
