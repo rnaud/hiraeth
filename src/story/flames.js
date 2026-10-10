@@ -416,7 +416,7 @@ export class FlameBody {
    * @param parent  the group to hang it in
    * @param o { at: Vector3 (the base, in parent space), width, height (m), palette, seed }
    */
-  constructor(parent, { at, width = 40, height = 50, palette = FIRE, seed = 0, belly = 0.32, pace = 0.5, torn = 1, cover = 0 } = {}) {
+  constructor(parent, { at, width = 40, height = 50, palette = FIRE, seed = 0, belly = 0.32, pace = 0.5, torn = 1, cover = 0, shells = [0, 1, 2] } = {}) {
     // cover: 0 the inner layers sit low in the heart; 1 they fill nearly the whole flame (so what the
     // torn outside shows is more fire, not what burns inside it: the tree's limbs)
     this.pace = pace;   // how fast the fire runs (1: lively; a great slow fire is about half)
@@ -433,7 +433,8 @@ export class FlameBody {
     this.uniforms = { uPal: { value: this.pal.map((c) => c.clone()) }, uTime: { value: 0 }, uK: { value: 1 }, uTorn: { value: torn } };
     this.materials = [];
     // the shells: outside (0, red, open at the top), body (1), heart (2, low and pale)
-    for (const [shell, sw, sh] of [[0, 1, 1], [1, 0.9 * cover + 0.78 * (1 - cover), 0.92 * cover + 0.8 * (1 - cover)], [2, 0.66 * cover + 0.5 * (1 - cover), 0.62 * cover + 0.52 * (1 - cover)]]) {
+    // (shells: which of them to draw; Qanat's tree draws the outside and the heart only, its leaves are the rest of its fire)
+    for (const [shell, sw, sh] of [[0, 1, 1], [1, 0.9 * cover + 0.78 * (1 - cover), 0.92 * cover + 0.8 * (1 - cover)], [2, 0.66 * cover + 0.5 * (1 - cover), 0.62 * cover + 0.52 * (1 - cover)]].filter(([k]) => shells.includes(k))) {
       const m = new THREE.ShaderMaterial({
         glslVersion: THREE.GLSL3, vertexShader: BODY_VERT, fragmentShader: BODY_FRAG, side: THREE.DoubleSide,
         uniforms: { uPal: this.uniforms.uPal, uTime: this.uniforms.uTime, uK: this.uniforms.uK, uTorn: this.uniforms.uTorn,

@@ -267,9 +267,10 @@ export function setupDesert(ctx) {
   });
   // where they gather: on the terrace at the tree's foot, in front of the ledge and round its sides,
   // looking up at it; clear of the well, Nour's bench and the buttress's face (where you climb)
-  // (ledge-local: x across, z out from the chest; the buttress's face is at ledge.face)
+  // (ledge-local: x across, z out from the chest; the buttress's face is at ledge.face. Since the v1.39 tree, whose
+  // trunk is wider, the ledge stands further out and the well is nearer its right side: the spots lean left)
   const terraceY = ledge.foot.y;
-  const gatherSpots = [[-2.3, 3.9], [1.9, 3.4], [-3.0, 2.2], [3.0, 2.0], [-0.6, 4.9], [0.9, 5.2], [-2.6, 5.4], [2.6, 4.5], [-3.6, 0.6], [3.6, 0.4]]
+  const gatherSpots = [[-2.3, 3.9], [1.2, 3.2], [-3.4, 2.6], [-0.6, 4.9], [0.9, 5.2], [-2.6, 5.4], [2.0, 4.6], [-1.6, 6.2], [-3.9, 4.2]]
     .map(([x, z]) => ledge.at(x, 0, ledge.face + z - 2))
     .filter((p) => {
       const g = physics.groundAt(p.x, terraceY + 1.5, p.z, 3);
@@ -438,6 +439,8 @@ export function setupDesert(ctx) {
   cave.setWater(st.flow, st.level);
   // the smoke column casts no shadow across the city (the renderer hides level.noShadow in its shadow passes)
   if (city.smoke) (level.noShadow ??= []).push(city.smoke.mesh);
+  // nor do the tree's burning leaves (they glow: the square under them stays in the light, as drawn)
+  if (city.foliage) (level.noShadow ??= []).push(city.foliage);
   city.setLit?.(st.fire);
   if (open()) applyWater(true);
   if (lit()) applyLit(true);

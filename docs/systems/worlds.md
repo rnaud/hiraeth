@@ -209,7 +209,7 @@ procedurally:
 - terraced, striped mesas
 - mushroom rocks
 - arches
-- giant ribcage skeletons with tusks
+- giant ribcage skeletons lying on their sides (`src/desert-ribcage.js`)
 - monolith rings with floating orbs
 - floating islands
 - a dome-and-spire city
@@ -509,7 +509,8 @@ What v1.20 left (`docs/audits/level-design-v1.23.md`): the places far from every
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning
   tree's trunk 3.2 m over the top terrace, left of the dry well, on a buttress root whose flat
-  face you climb (push into it). The shelf reaches 2 m past the chest's centre, so the climb's
+  face you climb (push into it). The shelf reaches 1.7 m past the chest's centre (the chest on a
+  0.78 m stand, so it shows over the edge from the stairs), so the climb's
   last reach (`player.js` `tryMantle`, a 1.6 m ray at head height) clears the chest and ends in a
   pull-up onto the planks in front of it. `ledge.box` / `ledge.yaw` place the box
   (`src/boxes/placements.js`), `ledge.foot` is where you start the climb, `ledge.at(x, y, z)`
@@ -557,6 +558,47 @@ Rebuilt after `references/levels/The Desert/places/skull/sheet-1.jpg` and `skull
   and the cracks; `tests/cave-seams.test.js` the taller dome's foot.
 - Cost (High, the Mac, all passes, the place shown vs hidden): the skull 5 → 6 draws and 14.8k → 23.7k triangles from
   the path; the cave 21 → 19 draws and 20.2k → 32.6k triangles from its entrance (changelog v1.37).
+
+## Qanat's burning tree and the giant ribcage, after the picked references (v1.39)
+Rebuilt after `references/levels/The Desert/places/qanat-tree/sheet-1.jpg` and `ribcage/sheet-1.jpg` (prompts in
+`docs/design/desert-places-prompts.md`). Every hook the story uses kept: `city.ledge` (box, foot, shoulder, dais, bench,
+face), `city.flames` / `setLit` / `lit`, the fire's hazard, the well and stele, Teo's drum at `STORY.drum`.
+- **The tree** (`src/desert-city.js`): a pale lavender-grey trunk (`M.bark`: strata with `cracks`, the fissures running
+  down it), a 40-sided lathe fluted by `gnarl` and twisted, 6.3 m across its foot and forking at 21 m; its collider is the
+  same lathe (`tests/desert-story.test.js` still raycasts drawn against solid). Seven buttress fins (`FINS`, `fin()`: a
+  closed lofted wedge) stand 7–8 m up the trunk and fall to 0.4 m by 7.4 m out (`finH`), each ending in a low tail over the
+  paving, so the ring round the trunk is walked round (no step over 0.6 m from 8 to 10 m out). None stands toward the well
+  and stairs, the back stair, the ledge or the low arm. The low arm (`ARM`) is a root arching out of the trunk over Nour's
+  bench and down onto the tier below, 3.6 m clear where the way to the back gate passes under it. Five limbs spread from
+  the fork, each parting into three branches; the limbs collide, the branches are drawn only. The bark mesh stays one
+  closed, outward skin (`tests/desert-tree.test.js`); the shelf's root (`M.barkRoot`, the same look) is a batch of its own
+  because it stands into the trunk.
+- **The fire** glows by its material, no light of its own: the leaves (`fireLeaves`, `M.leaves`: one mesh, coloured per
+  vertex, glow 0.9, kept out of the shadow passes) are soft masses round every branch tip, violet dappled with teal and
+  rose by a slow noise, burning gold underneath and toward the heart (`LEAF_FIRE`). `setLit` hides them while the tree is
+  cold and grows them from 0.3 to full size about their pivot as the fire catches. The flame body among the limbs draws
+  two shells (`FlameBody` `shells`), smaller (30 × 24 m); the hazard keeps its old volume.
+- **The ledge** is the plank shelf the story bible describes: the pier is bark (drawn up to the planks' underside, solid to
+  the top), the shelf planks on two joists with braces back to the trunk, the makers' glyph painted on its boards, cloths
+  hanging from its corners, the chest on a 0.78 m stand of planks narrower than it (the climb's last reach over the edge
+  stays clear of it: `tests/boxes.test.js`). The colliders keep the old dais's shape; the shelf's front comes to 1.7 m
+  past the chest. Since the wider trunk puts the ledge 1 m further out, the gathering spots (`src/story/desert.js`) lean
+  left, away from the well. Pilgrims' lanterns stand round the top terrace, cloths hang from the low arm.
+- **The ribcage** (`src/desert-ribcage.js`, re-exported by `src/world.js`): a giant lying on its side, built ribcage-local
+  (x along the spine, z toward the ribs' feet) with every part set on the sand where it lies. Vertebrae (spools with a
+  standing spine and wings) half sunk from the tail to the neck; nine flat rib bands arching off the spine and down into
+  the sand on the other side (one snapped, its end lying by its foot), holes through the bone; the skull at the head end
+  with two horns curving up and two tusks reaching forward. One mesh coloured per vertex (`ribcageMaterial`), so the old
+  ribcage's extras (`story: { drum }`: a scrap of red cloth by Teo's drum, footprints leading to it) cost nothing. The
+  middle rib's foot is `RIB_FOOT` (local -5, 23.75): the drum stays jammed against its inside (`tests/desert-errands.test.js`).
+  The props' footprints (`mark`) are the old ribs' feet, so the rest of the desert is placed exactly as before.
+- `tests/qanat-tree-ribcage-reference.test.js` checks the leaves (colours, glow, bare when cold), the ring of fins, the arm
+  over the bench, the chest on the shelf, and the ribcage's colours, its hall, the drum's rib and the horns.
+- Cost (High, the Mac, all passes, the place shown vs hidden): the tree 6 → 6 draws and 17.9k → 35.3k triangles (the
+  leaves 7k of it, no shadow); the city's batches 15 → 14 a pass; the ribcage 3 → 3 draws and 26.5k → 38.9k triangles
+  (changelog v1.39).
+- Still different from the pictures: the leaves are soft masses, not the drawing's brushed flecks; the arm is a round root
+  rather than the hollow under the trunk where the bench sits; no sand drift is piled against the ribcage's far side.
 
 ## The ship's deck: flat, smaller, lived in, a holo table in the middle
 (The round deck below was replaced in October 2026 by the angular hull's rooms: docs/systems/ship.md. What

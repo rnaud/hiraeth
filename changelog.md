@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.39 — 2026-10-10
 
+- The giant ribcage south of the start is rebuilt too: a fallen giant lying on its side, a long spine of vertebrae half sunk in the sand, nine great ribs arching over you like a ruined hall, one broken, holes worn through the bone, and the skull at the head end with two horns curving up and two tusks reaching forward. A scrap of red cloth and a faint track of footprints lead to Teo’s drum under its middle rib.
+- The makers’ chest on the tree now waits on a plank shelf on the buttress root, the makers’ glyph painted on its boards and cloths tied to its corners; pilgrims’ lanterns stand round the terrace. The climb up to it is the same.
+- Qanat’s great tree is rebuilt after its picture: an enormous pale trunk, fluted and cracked, great roots flowing out over the square, one low arm arching down over Nour’s bench, and a wide crown whose leaves are the fire itself, violet, teal and gold, glowing over the city once the tree burns again. While it is cold its limbs stand bare.
 - The title screen shows the build number and commit after the version, so you can tell which build a device runs.
 - The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.
 - The ink pass that draws every frame’s lines is quicker to prepare: its debug views and the handheld’s lighter version are only built in when they are used. On the Xbox that pass took 28 s to get ready before a world could show; now 16.5 s.

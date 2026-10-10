@@ -57,6 +57,10 @@ export const CHANGELOG = [
     // the Arena (docs/systems/foes.md "The Arena")
     'The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.',
     'The title screen shows the build number and commit after the version, so you can tell which build a device runs.',
+    // the desert's burning tree and the giant ribcage, after the picked references (docs/systems/worlds.md)
+    'Qanat’s great tree is rebuilt after its picture: an enormous pale trunk, fluted and cracked, great roots flowing out over the square, one low arm arching down over Nour’s bench, and a wide crown whose leaves are the fire itself, violet, teal and gold, glowing over the city once the tree burns again. While it is cold its limbs stand bare.',
+    'The makers’ chest on the tree now waits on a plank shelf on the buttress root, the makers’ glyph painted on its boards and cloths tied to its corners; pilgrims’ lanterns stand round the terrace. The climb up to it is the same.',
+    'The giant ribcage south of the start is rebuilt too: a fallen giant lying on its side, a long spine of vertebrae half sunk in the sand, nine great ribs arching over you like a ruined hall, one broken, holes worn through the bone, and the skull at the head end with two horns curving up and two tusks reaching forward. A scrap of red cloth and a faint track of footprints lead to Teo’s drum under its middle rib.',
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

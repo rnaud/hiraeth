@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { SandDrifts } from './sand-drifts.js';
 import { mulberry32 } from './noise.js';
@@ -186,6 +186,65 @@ export function rough(g, amount, freq = 0.3, seed = 0) {
   return g;
 }
 
+/** Turn a closed indexed solid's faces outward if they were wound inward (its signed volume). */
+function outward(g) {
+  const p = g.attributes.position, ix = g.index.array, a = V(0, 0, 0), b = V(0, 0, 0), c = V(0, 0, 0);
+  let vol = 0;
+  for (let i = 0; i < ix.length; i += 3) { a.fromBufferAttribute(p, ix[i]); b.fromBufferAttribute(p, ix[i + 1]); c.fromBufferAttribute(p, ix[i + 2]); vol += a.dot(b.cross(c)); }
+  if (vol < 0) for (let i = 0; i < ix.length; i += 3) { const t = ix[i + 1]; ix[i + 1] = ix[i + 2]; ix[i + 2] = t; }
+  g.computeVertexNormals();
+  return g;
+}
+
+/** A round strut from a to b (a brace). */
+function strut(a, b, r) {
+  const d = b.clone().sub(a), g = new THREE.CylinderGeometry(r, r, d.length(), 6);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(UP, d.clone().normalize()));
+  return g.translate((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+}
+
+/** The cool fire's colours in the tree's leaves (the drinking's fire: violet most, streaks of teal and rose, gold at the heart). */
+export const LEAF_FIRE = { violet: ['#8c6ddc', '#a07fea', '#7c62d0'], teal: '#58c4c2', rose: '#e88bbd', gold: '#ffc65a' };
+/**
+ * The burning crown: soft masses of leaf-fire round each branch tip, one mesh coloured per vertex, relative to `pivot`
+ * (the mesh is scaled about it as the fire catches). Each mass is violet, dappled with teal and rose by a slow noise
+ * over the crown, and burns gold underneath and toward the heart, where the branches carry the fire.
+ */
+function fireLeaves(tips, pivot, rand) {
+  const parts = [], c = new THREE.Color(), gold = new THREE.Color(LEAF_FIRE.gold), teal = new THREE.Color(LEAF_FIRE.teal), rose = new THREE.Color(LEAF_FIRE.rose);
+  const violet = LEAF_FIRE.violet.map((x) => new THREE.Color(x));
+  for (const tip of tips) {
+    const n = 3 + Math.floor(rand() * 2);
+    for (let i = 0; i < n; i++) {
+      const r = 3.4 + rand() * 2.4, out = V(tip.x - pivot.x, 0, tip.z - pivot.z).normalize();
+      const at = tip.clone().add(V((rand() - 0.5) * 6, (rand() - 0.2) * 3, (rand() - 0.5) * 6)).addScaledVector(out, rand() * 2);
+      let g = mergeVertices(new THREE.IcosahedronGeometry(1, 1));
+      g.scale(r * (0.9 + rand() * 0.4), r * (0.5 + rand() * 0.15), r * (0.9 + rand() * 0.4));
+      g.rotateY(rand() * Math.PI);
+      { const p = g.attributes.position;   // (lumpy, not round)
+        for (let j = 0; j < p.count; j++) { const x = p.getX(j), y = p.getY(j), z = p.getZ(j), k = 1 + 0.16 * Math.sin(x * 1.3 + z * 0.9) * Math.cos(y * 1.7 - x * 0.5); p.setXYZ(j, x * k, y * k, z * k); } }
+      g.translate(at.x - pivot.x, at.y - pivot.y, at.z - pivot.z);
+      g.computeVertexNormals();
+      g = g.toNonIndexed();
+      g.deleteAttribute('uv');
+      const base = violet[Math.floor(rand() * violet.length)], p = g.attributes.position, k = p.count, a = new Float32Array(k * 3);
+      for (let j = 0; j < k; j++) {
+        const x = p.getX(j), y = p.getY(j), z = p.getZ(j);
+        const t = Math.sin(x * 0.33 + y * 0.5) * Math.cos(z * 0.29 - y * 0.21) + 0.35 * Math.sin(x * 0.9 - z * 0.7);
+        c.copy(base);
+        if (t > 0.62) c.lerp(teal, 0.85); else if (t < -0.78) c.lerp(rose, 0.7);
+        const under = THREE.MathUtils.clamp((at.y - pivot.y - y) / r * 0.5 + 0.5, 0, 1);   // (below the mass's middle)
+        const heart = THREE.MathUtils.clamp(1 - Math.hypot(x, z) / 11, 0, 1);
+        c.lerp(gold, THREE.MathUtils.clamp(0.8 * under ** 3 + 0.5 * heart, 0, 0.85));
+        a[j * 3] = c.r; a[j * 3 + 1] = c.g; a[j * 3 + 2] = c.b;
+      }
+      g.setAttribute('color', new THREE.BufferAttribute(a, 3));
+      parts.push(g);
+    }
+  }
+  return mergeGeometries(parts);
+}
+
 // Plain colours are "paint": every plain-coloured part of a place is drawn by
 // one vertex-coloured mesh (flat or smooth, one- or two-sided), instead of a
 // mesh per colour. The textured materials (strata, grids, glows) batch by
@@ -252,7 +311,11 @@ function materials() {
     dTeal: paint('#5fb7ad', { smooth: true }), dLav: paint('#b7a0cf', { smooth: true }), dOchre: paint('#e6b86f', { smooth: true }),
     dark: paint('#34405e'),
     ink: paint('#2b211f'),
-    bark: makeMaterial({ color: '#4a3a42', color2: '#5a4650', color3: '#3e3038', mode: MODE_STRATA, strataSize: 0.9, flat: true }),
+    // the great tree's bark: pale lavender grey, as drawn (references/levels/The Desert/places/qanat-tree)
+    bark: makeMaterial({ color: '#c4bac8', color2: '#b8aec0', color3: '#cec5d2', mode: MODE_STRATA, strataSize: 5, flat: true, cracks: 1 }),
+    barkRoot: makeMaterial({ color: '#c4bac8', color2: '#b8aec0', color3: '#cec5d2', mode: MODE_STRATA, strataSize: 5.01, flat: true, cracks: 1 }),
+    // its burning leaves: coloured per vertex, self-lit (the fire glows by its material: no light of its own)
+    leaves: makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.9 }),
     char: paint('#2f2830'),
     bone: paint('#f2ead6', { smooth: true }),
     boneDark: paint('#d9cdb2', { smooth: true }),
@@ -269,9 +332,6 @@ function materials() {
     caveFloor: makeMaterial({ color: '#e4b48c', color2: '#d8a77e', color3: '#ecc39e', mode: MODE_STRATA, strataSize: 0.6, flat: true, side: THREE.DoubleSide, shade: 0.5, shadeHue: 0.7, hatch: 0.6 }),
     mural: makeMaterial({ color: '#e9dcc0', flat: true, grid: 0.9 }),
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),
-    // the makers' own stone (the tree's pedestal): pale, finely bedded, carved with their inscriptions; their blue for its bands
-    makers: makeMaterial({ color: '#e4dcea', color2: '#d6cce0', color3: '#ece4ef', mode: MODE_STRATA, strataSize: 0.7, flat: true, grid: 0.8, glyphs: true }),
-    makersBlue: makeMaterial({ color: '#25386c', flat: true }),
     dry: paint('#5a4a40'),
     boneMesh: makeMaterial({ color: '#f2ead6' }),
   };
@@ -458,15 +518,20 @@ export function buildDesertCity(scene, terrain) {
     }
 
     // ---------------------------------------------------------------- the tree
+    // (references/levels/The Desert/places/qanat-tree/sheet-1.jpg: an enormous pale tree, its trunk fluted and gnarled,
+    // great buttress roots flowing out over the square, one low arm arching down over Nour's bench, and a wide crown of
+    // limbs whose leaves are the fire itself, a slow cool fire in violet, teal and gold)
     const top = TIERS[2][1];
-    const TREE = { x: 0, z: -3 }, S = 1.45;   // S: the tree's size (the limbs and flames scale with it)
-    // a gnarled trunk: a lathe, twisted and roughened, flaring into roots
-    const PROFILE = [[5.8, -0.3], [4.6, 0.8], [3.9, 2.5], [3.6, 6 * S], [3.2, 10 * S], [2.9, 14 * S], [3.0, 17 * S], [3.4, 19.5 * S]];
-    const gnarl = (y, th) => 1 + 0.12 * Math.sin(th * 5 + y * 0.4) + 0.06 * Math.sin(y * 1.3);
+    const TREE = { x: 0, z: -3 }, S = 1.45;   // S: the old tree's size (the fire's hazard keeps its reach)
+    const TWIST = 0.03;
+    // a massive fluted trunk: a lathe, twisted and ridged, flaring at its foot; it forks at FORK into the crown's limbs
+    const FORK = 21;
+    const PROFILE = [[6.3, -0.3], [5.6, 0.7], [5.0, 2.4], [4.7, 5], [4.5, 9], [4.35, 13], [4.4, 16.5], [4.8, 19.5], [5.4, 22]];
+    const gnarl = (y, th) => 1 + 0.07 * Math.sin(th * 9 + y * 0.22) + 0.04 * Math.sin(th * 15 - y * 0.35) + 0.05 * Math.sin(y * 0.9 + th * 2);
     const twist = (g) => {
       const p = g.attributes.position;
       for (let i = 0; i < p.count; i++) {
-        const x = p.getX(i), y = p.getY(i), z = p.getZ(i), tw = y * 0.045;
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i), tw = y * TWIST;
         const n = gnarl(y, Math.atan2(z, x));
         p.setXYZ(i, (x * Math.cos(tw) - z * Math.sin(tw)) * n, y, (x * Math.sin(tw) + z * Math.cos(tw)) * n);
       }
@@ -478,44 +543,77 @@ export function buildDesertCity(scene, terrain) {
       for (let i = 1; i < PROFILE.length; i++) if (y <= PROFILE[i][1]) { const [r0, y0] = PROFILE[i - 1], [r1, y1] = PROFILE[i]; return r0 + (r1 - r0) * THREE.MathUtils.clamp((y - y0) / (y1 - y0), 0, 1); }
       return PROFILE[PROFILE.length - 1][0];
     };
-    const barkR = (th, y) => profileR(y) * gnarl(y, th - y * 0.045);
-    // collision is the bark itself (it used to be a plain cone, up to 0.7 m proud of it, so a
-    // climber's hands hung in the air), minus the foot's flare, which is drawn over the roots
+    const barkR = (th, y) => profileR(y) * gnarl(y, th - y * TWIST);
+    // collision is the bark itself (so a climber's hands touch what you see), minus the foot's flare, drawn over the roots
     // (shut at both ends: under the terrace, and a low crown over the top, between the limbs)
-    const CROWN = [[2.3, 19.5 * S + 0.5], [0, 19.5 * S + 0.8]];
-    city.both(M.bark, twist(lathe([[0, -0.3], ...PROFILE, ...CROWN], 18)), twist(lathe([[0, -0.3], [4.75, -0.3], ...PROFILE.slice(1), ...CROWN], 18)));
-    // the makers' pedestal (below): a carved dais high on the trunk, over a buttress root, toward the old shrine's corner
-    const LEDGE = { phi: -0.5, H: 3.2, H2: 7.2, shoulder: 1.6 };   // H the root's shoulder, H2 the dais, over the terrace
-    // roots over the terrace, some curling down its sides (none where the pedestal's buttress stands)
-    for (let k = 0; k < 7; k++) {
-      const a = k / 7 * Math.PI * 2 + 0.4, ca = Math.sin(a), sa = Math.cos(a);
-      if (Math.abs(Math.atan2(Math.sin(a - LEDGE.phi), Math.cos(a - LEDGE.phi))) < 0.4) continue;
-      // (each grows out of the bark: it starts well inside the trunk, whose knots dip to r 3.6 here)
-      // (they are solid, so feet no longer sink up to 1.9 m into them; they lie about 0.4 m proud of the
-      // paving all the way out, low enough to step over, so the terrace is still walked round)
-      const pts = [V(TREE.x + ca * 2, top - 0.5, TREE.z + sa * 2), V(TREE.x + ca * 6.5, top - 0.3, TREE.z + sa * 6.5), V(TREE.x + ca * 10.5, top - 0.1, TREE.z + sa * 10.5), V(TREE.x + ca * 12.2, top - 2.5, TREE.z + sa * 12.2)];
-      city.both(M.bark, taper(pts, 0.9, 0.3, 12, 6));
+    const CROWN = [[3.2, 22.6], [0, 23]];
+    city.both(M.bark, twist(lathe([[0, -0.3], ...PROFILE, ...CROWN], 40)), twist(lathe([[0, -0.3], [5.4, -0.3], ...PROFILE.slice(1), ...CROWN], 40)));
+    // the makers' ledge (below): a plank shelf high on the trunk, over a buttress root, toward the old shrine's corner
+    const LEDGE = { phi: -0.5, H: 3.2, H2: 7.2, shoulder: 1.6 };   // H the root's shoulder, H2 the shelf, over the terrace
+    // tree-local helpers: a point at angle a (local angle: 0 toward the main gate), r out from the axis, y over the terrace
+    const onTree = (a, r, y) => V(TREE.x + Math.sin(a) * r, top + y, TREE.z + Math.cos(a) * r);
+    // the buttress roots: tall fins flowing out of the trunk and down over the square, each ending in a low tail you
+    // step over (none toward the well and the stairs, the back stair, the ledge's own buttress or the low arm). A fin
+    // stands 7–8 m up the trunk and is down to 0.4 m by 7.4 m out: the ring round the trunk is walked round (the
+    // routes: tests/desert-story.test.js, tests/boxes.test.js)
+    const FINS = [[0.75, 7.6], [1.35, 8.2], [1.95, 7.0], [2.55, 7.8], [-2.5, 7.4], [-1.85, 8.0], [-1.4, 6.8]];
+    const finH = (r, hTop) => r < 4.2 ? hTop : r > 7.4 ? 0.38 : 0.38 + (hTop - 0.38) * (1 - (r - 4.2) / 3.2) ** 2.2;
+    const fin = (a0, hTop) => {
+      const n = 14, r0 = 2.8, r1 = 8.4, pos = [], idx = [];
+      for (let i = 0; i <= n; i++) {
+        const r = r0 + (r1 - r0) * i / n, a = a0 + 0.1 * Math.sin(r * 0.6 + a0 * 3), h = finH(r, hTop);
+        const c = onTree(a, r, 0), ex = Math.cos(a), ez = -Math.sin(a);   // (e: across the fin, level)
+        const wb = THREE.MathUtils.lerp(2.1, 0.95, i / n), wt = THREE.MathUtils.lerp(0.5, 0.42, i / n);
+        for (const [u, y] of [[-wb / 2, -0.5], [wb / 2, -0.5], [wb * 0.3, h * 0.55], [wt / 2, h], [-wt / 2, h], [-wb * 0.3, h * 0.55]]) pos.push(c.x + ex * u, c.y + y, c.z + ez * u);
+      }
+      const K = 6;
+      for (let i = 0; i < n; i++) for (let j = 0; j < K; j++) { const a = i * K + j, b = i * K + (j + 1) % K, c = a + K, d = b + K; idx.push(a, b, d, a, d, c); }
+      for (let j = 1; j < K - 1; j++) { idx.push(0, j + 1, j); const L = n * K; idx.push(L, L + j, L + j + 1); }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
+      outward(g);
+      return g;
+    };
+    for (const [a, h] of FINS) {
+      city.both(M.bark, fin(a, h));
+      // its tail, low over the paving (0.35 m proud), curling down over the terrace's edge
+      const pts = [onTree(a, 6.2, -0.3), onTree(a + 0.05, 8.5, -0.15), onTree(a + 0.1, 10.5, -0.1), onTree(a + 0.12, 12.2, -2.5)];
+      city.both(M.bark, taper(pts, 0.72, 0.3, 12, 6));
     }
-    // limbs: a candelabrum of six arms reaching up and out, each ending in a flame
-    const limbs = [];
-    for (let k = 0; k < 6; k++) {
-      const a = k / 6 * Math.PI * 2 + 0.2, ca = Math.sin(a), sa = Math.cos(a), reach = (9 + (k % 2) * 4) * S, rise = (13 + (k % 3) * 3) * S, fork = 17 * S;
-      const p0 = V(TREE.x + ca * 0.6, top + fork - 1.2 * S, TREE.z + sa * 0.6);   // (inside the trunk, so the limb grows out of it)
-      const p1 = V(TREE.x + ca * reach * 0.6, top + fork + 2.5 * S, TREE.z + sa * reach * 0.6);
-      const p2 = V(TREE.x + ca * reach, top + fork + rise * 0.55, TREE.z + sa * reach);
-      const p3 = V(TREE.x + ca * reach * 1.05, top + fork + rise, TREE.z + sa * reach * 1.05);
-      city.add(M.bark, taper([p0, p1, p2, p3], 1.5 * S, 0.55 * S, 18, 7));
-      city.solid(taper([p0, p1, p2, p3], 1.3 * S, 0.5 * S, 6, 5));
-      limbs.push(p3);
+    // the low arm: a great root arching out of the trunk over Nour's bench and down onto the tier below
+    // (3.6 m clear over the walk round the trunk, where the way to the back gate passes under it)
+    const ARM = -1.1;
+    { const arm = [[3.2, 4.4], [6, 5.4], [8.5, 4.9], [10.5, 3.6], [12.3, 1.4], [13.6, -0.8], [14.4, -2.6]].map(([r, y], i) => onTree(ARM + 0.04 * i, r, y));
+      city.both(M.bark, taper(arm, 1.05, 0.6, 22, 8)); }
+    // limbs: five great arms spreading wide out of the fork, each parting into branches that carry the burning leaves
+    const limbs = [], tips = [];
+    for (let k = 0; k < 5; k++) {
+      const b = k / 5 * Math.PI * 2 + 0.3, reach = 19 + (k % 2) * 3, lift = 31 + (k % 3) * 1.5;
+      const p = [onTree(b, 1.0, FORK - 2), onTree(b + 0.05, 6.5, FORK + 3.2), onTree(b + 0.1, reach * 0.62, lift - 3), onTree(b + 0.12, reach, lift)];
+      city.add(M.bark, taper(p, 2.3, 0.6, 18, 8));
+      city.solid(taper(p, 2.0, 0.55, 6, 5));
+      limbs.push(p[3]); tips.push(p[3], p[2]);
+      // branches: two out to the sides and one up, from two thirds along the limb
+      const fork = new THREE.CatmullRomCurve3(p).getPointAt(0.55);
+      for (const [db, rr, yy] of [[-0.42, reach * 1.02, lift + 4.5], [0.42, reach * 0.95, lift + 5.5], [0.06, reach * 0.55, lift + 9]]) {
+        const tip = onTree(b + db, rr, yy), mid = fork.clone().lerp(tip, 0.5).add(V(0, 1.2, 0));
+        city.add(M.bark, taper([fork.clone().add(V(0, -0.4, 0)), mid, tip], 0.95, 0.22, 10, 6));
+        tips.push(tip);
+      }
     }
-    // the fire: one great 3D flame over the whole crown, its arms reaching into it (story/flames.js FlameBody)
+    // the fire: the leaves of the crown, a slow cool fire (glowing by their material: no light of their own), with a
+    // smaller flame body breathing among the limbs (story/flames.js FlameBody, two shells)
     const treeOrigin = city.world(0, 0, 0);
     const treeGroup = new THREE.Group();
     treeGroup.position.copy(treeOrigin); treeGroup.quaternion.setFromAxisAngle(UP, C.yaw);
     root.add(treeGroup);
-    // (wide enough, and wide high enough, to swallow every limb: the tips reach 14 m out and 36 m up;
-    // whole low down, torn into tongues only over the crown; a great fire, so it runs slow)
-    const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + 13 * S, TREE.z), width: 36 * S, height: 50 * S, seed: 7, belly: 0.5, pace: 0.45, torn: 1.1, cover: 1 });
+    const flames = new FlameBody(treeGroup, { at: V(TREE.x, top + FORK + 1, TREE.z), width: 30, height: 24, seed: 7, belly: 0.55, pace: 0.4, torn: 1.2, cover: 1, shells: [0, 2] });
+    const PIVOT = V(TREE.x, top + FORK + 8, TREE.z);
+    const foliage = new THREE.Mesh(fireLeaves(tips, PIVOT, mulberry32(7717)), M.leaves);
+    foliage.name = 'The tree’s burning leaves';
+    foliage.position.copy(PIVOT);
+    foliage.userData.noCollide = true;
+    treeGroup.add(foliage);
     // climb into it and it burns (src/hazards.js): its volume, from just over the fork to the tip
     // (only while it burns: the tree stands cold until it is lit, src/story/desert.js)
     { const lo = city.world(TREE.x, top + 14 * S, TREE.z), hi = city.world(TREE.x, top + 62 * S, TREE.z);
@@ -523,7 +621,7 @@ export function buildDesertCity(scene, terrain) {
       h.test = (p) => (out.city?.lit ?? 1) > 0.5 && test(p);
       registerHazard(h); }
     const crown = city.world(TREE.x, top + 30 * S, TREE.z);
-    const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 5 * S, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 3, size: 0.6, color: '#fff3c4' });
+    const embers = new Embers(root, [...limbs.map((p) => city.world(p.x, p.y + 3, p.z)), crown], { count: 70, rise: 2.4, life: 6, spread: 4, size: 0.6, color: '#fff3c4' });
     embers.mesh.boundingSphere = new THREE.Sphere(crown.clone(), 45); embers.mesh.frustumCulled = true;
     // the landmark: a tall column of light smoke from the crown flame, high over the horizon haze,
     // bending downwind into a long drifting plume, so the city can be found from anywhere on the plain
@@ -562,7 +660,7 @@ export function buildDesertCity(scene, terrain) {
     const lToCity = (x, y, z) => V(x, y, z).applyMatrix4(lM);
     // the bark's reach along the dais (the twist and the knots), so the box sits just clear of it
     const reach = (x, z, y) => { const p = lToCity(x, 0, z); return Math.hypot(p.x - TREE.x, p.z - TREE.z) - barkR(Math.atan2(p.z - TREE.z, p.x - TREE.x), y); };
-    const DRUM = { r: 0.86, h: 0.55 };   // (tall enough that the box shows over the dais's edge from the stairs)
+    const DRUM = { r: 0.86, h: 0.78 };   // the chest's stand: tall enough that the box shows over the shelf's edge from the stairs
     let sBack = 2.5;
     for (; sBack < 6; sBack += 0.05) {
       let clear = true;
@@ -571,10 +669,9 @@ export function buildDesertCity(scene, terrain) {
     }
     const BOX_HALF = 0.55;                 // half the box's depth (src/boxes/model.js BOX.d * BOX_SCALE / 2)
     const sC = sBack + BOX_HALF;           // the box's centre
-    const sF2 = sC + 2.3;                  // the dais's front edge (the pier's face): room to stand, and for the climb's last reach
+    const sF2 = sC + 1.7;                  // the shelf's front edge (the pier's face): room to stand, and for the climb's last reach
     const sF = sF2 + LEDGE.shoulder;       // the root's face, its shoulder between the two
     const sIn = sBack - 1.1;               // well into the bark
-    const stoneM = M.makers, trimM = M.makersBlue;
     // ---- the buttress root: a flat-faced wall of bark you can climb, flaring a little at its foot; its top the shoulder
     const BW = 2.0, bIn = sIn - 0.4, bD = sF - bIn;
     city.solid(lg(new THREE.BoxGeometry(BW, H + 0.3, bD).translate(0, (H - 0.3) / 2, bIn + bD / 2)));
@@ -597,48 +694,60 @@ export function buildDesertCity(scene, terrain) {
       city.add(M.glyph, lg(glyphGeometry(0.42).translate(0, 1.75, sF + 0.06)));
       [[-1, 0, 1.25], [1, 1, 0.95]].forEach(([s, c, len]) => city.add(M.cloth[c], lg(new THREE.PlaneGeometry(0.2, len).translate(s * (BW / 2 - 0.08), H - 0.1 - len / 2, sF + 0.02))));
     }
-    // ---- the pier: a carved stone column on the shoulder, its front face flat and plumb (the second pitch)
+    // ---- the pier: the root climbing on up the trunk, its front face flat and plumb (the second pitch)
     const PW = 1.6, pIn = sIn, pD = sF2 - pIn;
-    city.both(stoneM, lg(new THREE.BoxGeometry(PW, H2 - H + 0.02, pD).translate(0, (H + H2) / 2 - 0.01, pIn + pD / 2)));
-    // its foot (a plinth on the shoulder, set back from the face) and bands of the makers' blue up it
-    city.add(stoneM, lg(new THREE.BoxGeometry(PW + 0.36, 0.34, pD - 0.1).translate(0, H + 0.17, pIn + (pD - 0.1) / 2 - 0.04)));
-    for (const y of [H + 1.2, H2 - 1.0]) city.add(trimM, lg(new THREE.BoxGeometry(PW + 0.04, 0.12, pD + 0.02).translate(0, y, pIn + pD / 2)));
-    // a tall glyph inlaid in its face, lit like the root's mark
+    // (its own batch of the same bark: it stands into the trunk, and the tree's own mesh stays one closed skin, tests/desert-tree.test.js)
+    // (drawn up to the planks' underside: its top level with the boards showed through them; it collides up to the shelf's top)
+    city.add(M.barkRoot, lg(new THREE.BoxGeometry(PW, H2 - H - 0.15, pD).translate(0, (H + H2 - 0.15) / 2, pIn + pD / 2)));
+    city.solid(lg(new THREE.BoxGeometry(PW, H2 - H, pD).translate(0, (H + H2) / 2, pIn + pD / 2)));
+    for (const s of [-1, 1]) city.add(M.barkRoot, lg(taper([V(s * 0.5, H2 - 0.5, sF2 - 0.9), V(s * 0.95, (H + H2) / 2, sF2 - 0.6), V(s * 1.0, H + 0.2, sF2 - 0.2), V(s * 1.15, H - 0.2, sF2 + 0.2)], 0.36, 0.22, 10, 6)));
+    // the glyph painted on its face, lit like the root's mark
     city.add(M.glyph, lg(glyphGeometry(0.32).translate(0, (H + H2) / 2 + 0.15, sF2 + 0.03)));
-    // ---- the dais: an eight-sided slab, a flat side flush with the pier's face, carried on corbels
-    const DR = 2.15, DT = 0.42, dCos = Math.cos(Math.PI / 8), dZ = sF2 - DR * dCos;
-    const dais = (r, h, y) => new THREE.CylinderGeometry(r, r, h, 8).rotateY(Math.PI / 8).translate(0, y, dZ);
-    city.both(stoneM, lg(dais(DR, DT, H2 - DT / 2)));
-    city.add(trimM, lg(dais(DR + 0.06, 0.13, H2 - DT + 0.09)));                         // its rim, a band of blue
-    city.add(stoneM, lg(dais(DR - 0.25, 0.22, H2 - DT - 0.11)));                        // a step under it
-    // under it, a capital flaring out of the column to carry it (its front stays behind the pier's face: the climb is clear)
-    city.add(stoneM, lg(new THREE.CylinderGeometry(DR - 0.32, 0.85, 1.15, 8).rotateY(Math.PI / 8).translate(0, H2 - DT - 0.22 - 0.575, dZ)));
-    city.add(trimM, lg(new THREE.CylinderGeometry(0.9, 0.9, 0.1, 8).rotateY(Math.PI / 8).translate(0, H2 - DT - 0.22 - 1.15, dZ)));
-    // a ring of glyphs round the dais's edge (the makers' signature, lit)
-    for (let k = 0; k < 8; k++) {
-      const a = (k / 8) * Math.PI * 2;
-      if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) > Math.PI * 0.62) continue;   // (not on the sides sunk in the bark)
-      const g = glyphGeometry(0.11).rotateY(a).translate(Math.sin(a) * (DR * dCos + 0.065), H2 - 0.2, dZ + Math.cos(a) * (DR * dCos + 0.065));
-      city.add(M.glyph, lg(g));
+    // ---- the shelf: planks across two joists, its front edge flush with the pier's face, braced back to the bark
+    const DT = 0.42, DW = 3.6, dz0 = sBack - 0.9, dz1 = sF2;
+    city.solid(lg(new THREE.BoxGeometry(DW, DT, dz1 - dz0).translate(0, H2 - DT / 2, (dz0 + dz1) / 2)));
+    { const n = Math.round((dz1 - dz0) / 0.5), pw = (dz1 - dz0) / n;
+      for (let i = 0; i < n; i++) {
+        const w = DW + (i % 3 === 1 ? -0.12 : i % 3 === 2 ? 0.08 : 0), x = i % 2 ? 0.05 : -0.04;
+        city.add(M.wood, lg(new THREE.BoxGeometry(w, 0.14, pw - 0.05).translate(x, H2 - 0.07, dz0 + pw * (i + 0.5))));
+      }
+      for (const s of [-1, 1]) city.add(M.wood, lg(new THREE.BoxGeometry(0.24, 0.3, dz1 - dz0).translate(s * 1.35, H2 - 0.29, (dz0 + dz1) / 2)));   // the joists
+      // braces from the bark up to the joists' ends
+      for (const s of [-1, 1]) { const a = V(s * 1.35, H2 - 2.6, sBack - 0.2), b = V(s * 1.35, H2 - 0.4, dz1 - 0.35); city.add(M.wood, lg(strut(a, b, 0.11))); }
+      // the front plank painted with the makers' colours, and their glyph painted on the boards before the chest
+      city.add(M.lav, lg(new THREE.BoxGeometry(DW + 0.02, 0.06, 0.03).translate(0, H2 - 0.05, dz1 + 0.005)));
+      city.add(M.ochre, lg(new THREE.BoxGeometry(DW + 0.02, 0.04, 0.03).translate(0, H2 - 0.11, dz1 + 0.005)));
+      city.add(M.glyph, lg(glyphGeometry(0.42).rotateX(-Math.PI / 2).translate(0, H2 + 0.006, (sC + BOX_HALF + dz1) / 2 + 0.1)));
     }
-    // the drum the box sits on: a low round plinth with a ring of the makers' light round its rim
-    city.both(stoneM, lg(new THREE.CylinderGeometry(DRUM.r, DRUM.r + 0.08, DRUM.h, 24).translate(0, H2 + DRUM.h / 2, sC)));
-    city.add(M.glyph, lg(new THREE.TorusGeometry(DRUM.r + 0.02, 0.035, 5, 32).rotateX(Math.PI / 2).translate(0, H2 + DRUM.h - 0.07, sC)));
-    city.add(trimM, lg(new THREE.CylinderGeometry(DRUM.r + 0.1, DRUM.r + 0.12, 0.08, 24).translate(0, H2 + 0.04, sC)));
-    // two lamp posts either side of the drum: a stone post and a glowing orb on it
-    for (const s of [-1, 1]) {
-      const x = s * 1.5, z = sC + 0.25;
-      city.both(stoneM, lg(new THREE.CylinderGeometry(0.11, 0.15, 1.05, 6).translate(x, H2 + 0.52, z)));
-      city.add(trimM, lg(new THREE.CylinderGeometry(0.17, 0.13, 0.1, 6).translate(x, H2 + 1.08, z)));
-      city.add(M.glyph, lg(new THREE.SphereGeometry(0.13, 10, 8).translate(x, H2 + 1.25, z)));
-    }
-    // behind the box, half sunk in the bark: a carved stone halo, the glyph at its crown
-    city.add(stoneM, lg(new THREE.TorusGeometry(1.25, 0.11, 6, 28, Math.PI).translate(0, H2 + DRUM.h + 0.15, sC - 0.95)));
-    city.add(M.glyph, lg(glyphGeometry(0.2).translate(0, H2 + DRUM.h + 1.55, sC - 0.88)));
+    // cloths tied to its corners, hanging long
+    [[-1, dz1 - 0.06, 3, 2.3, 0], [1, dz1 - 0.06, 2, 1.7, 0], [-1, sC - 0.5, 1, 1.9, 1], [1, sC - 0.3, 7, 1.4, 1]].forEach(([s, z, c, len, side]) => {
+      const g = new THREE.PlaneGeometry(0.24, len, 1, 4);
+      { const p = g.attributes.position; for (let i = 0; i < p.count; i++) p.setZ(i, 0.05 * Math.sin(p.getY(i) * 2.4 + s)); }
+      g.translate(0, -len / 2, 0);
+      if (side) g.rotateY(Math.PI / 2);
+      city.add(M.cloth[c], lg(g.translate(s * (DW / 2 + 0.02), H2 - 0.12, z + (side ? 0 : 0.02))));
+    });
+    // the stand the chest sits on (where it shows over the shelf's edge from the stairs): a low box of planks, a cloth over it
+    // (narrower than the chest, so the climb's last reach over the shelf's edge stays clear of it: tests/boxes.test.js)
+    city.both(M.wood, lg(new THREE.BoxGeometry(1.2, DRUM.h, 0.6).translate(0, H2 + DRUM.h / 2, sC)));
+    city.add(M.ink, lg(new THREE.BoxGeometry(1.24, 0.04, 0.64).translate(0, H2 + DRUM.h * 0.5, sC)));
+    city.add(M.cloth[0], lg(new THREE.PlaneGeometry(0.5, DRUM.h - 0.04).translate(0, H2 + DRUM.h / 2 + 0.02, sC + 0.31)));
     // a stone bench on the terrace below, under the tree's arm: where Nour keeps the chest company
     const BENCH = { x: -7.33, z: 2.22 }, footC = lToCity(0, 0, sF + 0.8), benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
     city.both(M.stone, T(new THREE.BoxGeometry(1.5, 0.42, 0.5), [BENCH.x, 0.21 + top, BENCH.z], [0, benchYaw, 0]));
     city.add(M.cloth[1], T(new THREE.BoxGeometry(1.2, 0.04, 0.44), [BENCH.x, 0.44 + top, BENCH.z], [0, benchYaw, 0]));
+    // pilgrims' lanterns on posts round the top terrace, and cloths hung from the low arm
+    for (const a of [0.55, 1.5, 2.3, -2.3, -1.65]) {
+      const x = Math.sin(a) * 10.9, z = Math.cos(a) * 10.9;
+      city.add(M.ink, new THREE.CylinderGeometry(0.05, 0.07, 1.55, 5).translate(x, top + 0.78, z));
+      city.add(M.ink, new THREE.BoxGeometry(0.34, 0.05, 0.34).translate(x, top + 1.55, z));
+      city.add(M.ochre, new THREE.BoxGeometry(0.25, 0.32, 0.25).translate(x, top + 1.74, z));
+      city.add(M.ink, new THREE.ConeGeometry(0.24, 0.22, 4).rotateY(Math.PI / 4).translate(x, top + 2.0, z));
+    }
+    [[7.5, 4.3, 3, 1.5], [9.6, 3.4, 2, 1.1], [11.2, 1.6, 6, 0.8]].forEach(([r, y, c, len]) => {
+      const p = onTree(ARM + 0.04 * (r / 2.3), r, y - len / 2);
+      city.add(M.cloth[c], new THREE.PlaneGeometry(0.3, len, 1, 3).rotateY(ARM).translate(p.x, p.y, p.z));
+    });
     const toWorld = (x, y, z) => { const p = lToCity(x, y, z); return city.world(p.x, p.y, p.z); };
     // (ledge-local points: x across, y up from the terrace, z out from the chest's centre)
     const ledge = {
@@ -657,7 +766,7 @@ export function buildDesertCity(scene, terrain) {
       center: city.world(0, 0, 0), gate: city.world(0, 0, R + 6), backGate: city.world(0, 0, -R - 4),
       top: city.world(0, top, 0), well: city.world(WELL.x, top, WELL.z), stele: city.world(ST.x, top, ST.z + 1.2),
       wellLook: city.world(WELL.x, top, WELL.z + 3.4), treeBase: city.world(TREE.x, top, TREE.z), crown,
-      flames, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
+      flames, foliage, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
       plinthStair: city.world(0, 0, 31), local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
       stairTop: city.world(0, top, 12.6), ledge,
       // the fire: 0 (the tree stands cold, no flame, no smoke, no sparks) .. 1 (burning). A new game starts
@@ -668,6 +777,9 @@ export function buildDesertCity(scene, terrain) {
         const c = out.city, was = c.lit;
         c.lit = THREE.MathUtils.clamp(k, 0, 1);
         c.flames.lit = c.lit;
+        // the leaves catch with the fire, growing out of the branches (cold, the limbs stand bare)
+        c.foliage.visible = c.lit > 0.001;
+        c.foliage.scale.setScalar(0.3 + 0.7 * c.lit);
         if (was <= 0.001 && c.lit > 0.001) c.smoke.light();
         c.smoke.mesh.visible = c.lit > 0.001;
         if (c.lit <= 0.001) c.embers.mesh.visible = false;

@@ -7,6 +7,7 @@ import { createNoise2D, fbm, mulberry32, smoothstep, lerp } from './noise.js';
 import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from './materials.js';
 import { Banner } from './life.js';
 import { biomeWeights } from './biome.js';
+import { desertRibcage } from './desert-ribcage.js';
 
 export const WORLD_SIZE = 4000;
 const noise = createNoise2D(7);
@@ -362,68 +363,8 @@ export function desertArch({ rng, terrain, add, mark = () => {} }, x, z, R, tube
 }
 
 // ---------------------------------------------------------- giant ribcage
-/** A giant skeleton: spine, ribs, skull and tusks (same kit, and its bone material). */
-export function desertRibcage({ terrain, add, mark = () => {}, bone }, x, z, s, rot) {
-  const geos = [];
-  const len = 120 * s;
-  const ribs = 11;
-  const spinePts = [];
-  for (let i = 0; i <= 12; i++) {
-    const t = i / 12;
-    spinePts.push(new THREE.Vector3((t - 0.5) * len, 40 * s * Math.sin(Math.PI * (0.15 + t * 0.7)) + 4 * s, 0));
-  }
-  const spine = new THREE.CatmullRomCurve3(spinePts);
-  geos.push(new THREE.TubeGeometry(spine, 60, 2.8 * s, 8, false));
-  for (let i = 0; i < ribs; i++) {
-    const t = 0.12 + (i / (ribs - 1)) * 0.76;
-    const top = spine.getPoint(t);
-    const k = Math.sin(Math.PI * t) * 0.8 + 0.2;
-    for (const side of [-1, 1]) {
-      const curve = new THREE.CatmullRomCurve3([
-        top.clone(),
-        new THREE.Vector3(top.x, top.y * 0.92, side * 16 * s * k),
-        new THREE.Vector3(top.x - 3 * s, top.y * 0.55, side * 26 * s * k),
-        new THREE.Vector3(top.x - 5 * s, -3 * s, side * 24 * s * k),
-      ]);
-      geos.push(new THREE.TubeGeometry(curve, 24, 1.6 * s * (0.6 + k * 0.5), 6, false));
-    }
-    // vertebra
-    const v = new THREE.SphereGeometry(4 * s, 8, 6);
-    v.scale(0.7, 1, 1.1);
-    v.translate(top.x, top.y + 2.5 * s, 0);
-    geos.push(v);
-  }
-  // skull + tusks at the head end
-  const head = spine.getPoint(1);
-  const skull = new THREE.SphereGeometry(12 * s, 12, 9);
-  skull.scale(1.5, 0.8, 0.9);
-  skull.translate(head.x + 14 * s, head.y - 2 * s, 0);
-  geos.push(skull);
-  for (const side of [-1, 1]) {
-    const tusk = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(head.x + 22 * s, head.y - 6 * s, side * 6 * s),
-      new THREE.Vector3(head.x + 38 * s, head.y - 14 * s, side * 14 * s),
-      new THREE.Vector3(head.x + 52 * s, head.y - 4 * s, side * 12 * s),
-      new THREE.Vector3(head.x + 56 * s, head.y + 10 * s, side * 6 * s),
-    ]);
-    geos.push(new THREE.TubeGeometry(tusk, 20, 1.8 * s, 6, false));
-  }
-  const m = new THREE.Mesh(mergeGeometries(geos), bone);
-  m.position.set(x, terrain.baseAt(x, z, 30 * s) - 1, z);
-  m.rotation.y = rot;
-  add(m, x, z, 70 * s);
-  // footprints of the rib feet
-  const ca = Math.cos(rot), sa = Math.sin(rot);
-  for (let i = 0; i < ribs; i++) {
-    const t = 0.12 + (i / (ribs - 1)) * 0.76;
-    const k = Math.sin(Math.PI * t) * 0.8 + 0.2;
-    const lx = (t - 0.5) * len - 5 * s;
-    for (const side of [-1, 1]) {
-      const lz = side * 24 * s * k;
-      mark(x + lx * ca + lz * sa, z - lx * sa + lz * ca, 2 * s);
-    }
-  }
-}
+// (src/desert-ribcage.js: the fallen giant lying on its side, after its reference)
+export { desertRibcage };
 
 // ------------------------------------------------------------------ world
 
@@ -481,8 +422,7 @@ export function buildWorld(scene, terrain) {
   const mesa = (x, z, radius, height) => desertMesa(kit, x, z, radius, height);
   const mushroom = (x, z, s) => desertMushroom(kit, x, z, s);
   const arch = (x, z, R, tube) => desertArch(kit, x, z, R, tube);
-  const boneMat = makeMaterial({ color: '#f2ead6' });
-  const ribcage = (x, z, s, rot) => desertRibcage({ ...kit, bone: boneMat }, x, z, s, rot);
+  const ribcage = (x, z, s, rot, o) => desertRibcage(kit, x, z, s, rot, o);
 
   // ---------------------------------------------------------- monolith rings
   const stoneMats = [
@@ -620,7 +560,7 @@ export function buildWorld(scene, terrain) {
 
   // ---------------------------------------------------------- landmarks near spawn
   // the start is an open plain (like the print): landmarks stand back from it
-  ribcage(150, -210, 1, 0.5);
+  ribcage(150, -210, 1, 0.5, { story: { drum: STORY.drum } });   // the old ribcage: Teo's drum under its middle rib (src/story/desert-errands.js)
   monoliths(-170, -120, 22);
   arch(-10, -260, 34, 6);
   mesa(-260, -330, 50, 90);

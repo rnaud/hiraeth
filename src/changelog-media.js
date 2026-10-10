@@ -512,8 +512,37 @@ const FROM_SKULL38 = 'headless Chrome (High, 1280 × 720, hour 10, clear) on the
 const COST38 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden, medians of 7, the same views as the pictures' };
 /** The v1.39 combat pictures: made by hand, headless Chrome (Medium, 1280 × 720) in the Arena, against this branch and its parent. */
 const FROM_FIGHT39 = 'headless Chrome (Medium, 1280 × 720, muted) in the Arena against this branch’s own dev server, the before with the parent commit’s files swapped back in, the same scratch script and the same moment';
+/** The v1.39 tree and ribcage pictures: made by hand on the branch (a scratch shooter: the camera pinned, the traveller placed beside it). */
+const FROM_TREE39 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own dev server, a save past the lighting (the tree burns), the camera pinned and the traveller teleported, the same views for both: the before with the parent commit’s files swapped back in (the ledge with the chest still closed on it)';
+const COST39 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden (the tree: its bark, its flame body and its leaves; the ribcage: its mesh), medians of 7, the same views as the pictures; batches per pass counted in node' };
 export const CHANGELOG_MEDIA = {
   '1.39': [
+    { match: 'Qanat’s great tree is rebuilt after its picture', shots: [
+      { name: 'qanat-tree-stairs', caption: 'From the avenue at the foot of the stairs: before, a dark narrow trunk under one great blob of flame; after, a pale fluted trunk, the low arm arching down to the terrace, and a crown of glowing violet, teal and gold leaves', from: FROM_TREE39,
+        reference: { sheet: 'references/levels/The Desert/places/qanat-tree/sheet-1.jpg', caption: 'The picked reference: the old city round its burning tree, from the city’s stairs' } },
+      { name: 'qanat-tree-square', caption: 'On the top terrace by the well and the stele: before, a dark trunk and a blue-banded stone pier; after, the pale trunk with its cracks, the root arching down behind the well and the shelf on its buttress', from: FROM_TREE39 },
+    ], numbers: [
+      { title: 'Draw calls the tree adds to a frame (all passes)', unit: 'draws', better: 'lower', ...COST39, rows: [
+        { where: 'the tree, from the stairs', before: 6, after: 6 }, { where: 'the tree, at the ledge', before: 6, after: 6 },
+        { where: 'the old city’s batches, one pass (node)', before: 15, after: 14 },
+      ], note: 'The flame body draws two shells instead of three and the leaves take the third’s place; the makers’ stone and blue materials of the old dais are gone and the shelf’s root has a batch of its own: one draw fewer for the city.' },
+      { title: 'Triangles the tree adds to a frame (all passes)', unit: 'thousand triangles', better: 'lower', ...COST39, rows: [
+        { where: 'the tree, from the stairs', before: 17.9, after: 35.3 }, { where: 'the tree, at the ledge', before: 17.9, after: 35.3 },
+      ], note: 'The fluted trunk, the roots, the crown’s limbs and leaves (7k triangles, no shadow): a few percent of the frame (the stairs view’s whole frame 0.73M → 0.91M triangles, most of the difference in the people in view).' },
+    ], see: 'Walk up the avenue from Qanat’s main gate and look up the stairs; light the tree (or load a save past the lighting) to see its leaves burn.' },
+    { match: 'The makers’ chest on the tree now waits on a plank shelf', shots: [
+      { name: 'qanat-tree-ledge', caption: 'The ledge, the chest still closed on it: before, a carved stone dais with blue bands, lamp posts and a halo; after, a shelf of planks on joists and braces, the glyph painted on its boards, cloths hanging from its corners, the chest on a low stand', from: FROM_TREE39 },
+    ], see: 'Climb the buttress root left of the well, then the root above it, onto the shelf.' },
+    { match: 'The giant ribcage south of the start is rebuilt too', shots: [
+      { name: 'ribcage-wide', caption: 'From the dunes: before, a standing hoop of ribs on a high arched spine; after, the giant lying on its side, the vertebrae half sunk along the sand, the ribs arching over to the other side, the skull with its horns and tusks at the head end', from: FROM_TREE39,
+        reference: { sheet: 'references/levels/The Desert/places/ribcage/sheet-1.jpg', caption: 'The picked reference: a giant’s skeleton in the dunes' } },
+      { name: 'ribcage-between', caption: 'Between the ribs: before, thin posts under a spine high overhead; after, broad ribs arching over you like a hall, the broken one, the footprints leading to the drum', from: FROM_TREE39 },
+      { name: 'ribcage-drum', caption: 'Teo’s drum, jammed against the foot of the middle rib by the knuckle of bone: after, a scrap of red cloth beside it and the footprints coming to it', from: FROM_TREE39 },
+    ], numbers: [
+      { title: 'What the ribcage adds to a frame (all passes)', unit: 'thousand triangles', better: 'lower', ...COST39, rows: [
+        { where: 'the ribcage, from the dunes', before: 26.5, after: 38.9 }, { where: 'between the ribs', before: 26.5, after: 38.9 },
+      ], note: 'Still one mesh, three draws over the passes as before: its colours (bone, holes, cloth, footprints) are painted per vertex.' },
+    ], see: 'Walk south from your ship past the crash site: the ribcage lies across the dunes, the drum under its middle rib.' },
     { match: 'The Arena is a real arena now', shots: [
       { name: 'arena-ring', caption: 'The Arena from over the south gate: before, open sand with standing stones, a ledge and a thin ring; after, a round fighting floor with its markings, the wall and tiers of seats, the gates, braziers and banners', commit: '543f247f',
         view: { level: 'arena', wait: 2500, eye: [0, 30, 62], target: [0, 0, -8], fov: 55, player: [0, 0, 6], heading: Math.PI } },
