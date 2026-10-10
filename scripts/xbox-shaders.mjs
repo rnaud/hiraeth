@@ -64,8 +64,14 @@ export const BENCH = `window.__shaderBench = async (progs, opts = {}) => {
         for (let k = 0; k < 3; k++) { const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA16F, 4, 4); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0 + k, gl.TEXTURE_2D, t, 0); }
         const d = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, d); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, 4, 4); gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, d);
         return f; })());
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-      gl.drawBuffers([gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.COLOR_ATTACHMENT2]);
+      // (a program dumped with packed: true writes one RGBA32UI target instead: the packed G-buffer's repro)
+      const fbP = (window.__benchFbPacked ??= (() => {
+        const f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f);
+        const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t); gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32UI, 4, 4); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+        const d = gl.createRenderbuffer(); gl.bindRenderbuffer(gl.RENDERBUFFER, d); gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT24, 4, 4); gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, d);
+        return f; })());
+      gl.bindFramebuffer(gl.FRAMEBUFFER, m.p.packed ? fbP : fb);
+      gl.drawBuffers(m.p.packed ? [gl.COLOR_ATTACHMENT0] : [gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.COLOR_ATTACHMENT2]);
       gl.viewport(0, 0, 4, 4);
       gl.useProgram(m.pr);
       // (each sampler on a unit of its own: two kinds of sampler on one unit and WebGL refuses the draw)
@@ -116,7 +122,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const res = [];
   for (let k = 0; k < list.length; k += PAR) {
     const batch = list.slice(k, k + PAR);
-    const r = await c.ev(`window.__shaderBench(${JSON.stringify(batch.map((p) => ({ i: p.i, vs: p.vs, fs: p.fs })))}, { log: ${!!arg('log')}, draw: ${Number(arg('draw', 0))} })`);
+    const r = await c.ev(`window.__shaderBench(${JSON.stringify(batch.map((p) => ({ i: p.i, vs: p.vs, fs: p.fs, packed: !!p.packed })))}, { log: ${!!arg('log')}, draw: ${Number(arg('draw', 0))} })`);
     if (arg('log')) for (const o of r.out) writeFileSync(`${arg('log')}/${o.i}.log`, `${o.log}\n\n----- translated -----\n${o.hlsl ?? '(no WEBGL_debug_shaders)'}`);
     for (const o of r.out) {
       const p = list.find((x) => x.i === o.i);

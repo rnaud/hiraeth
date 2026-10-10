@@ -227,9 +227,24 @@ G-buffer then compiles the full three-output shader on the GPU process's main th
 draws ~32 programs, about 60 s of draw-time compiles. A G-buffer of one target makes the shader compiled at link the one
 the draws use, so it is compiled in parallel on the workers and never again at draw time.
 
-**First, a repro on the console** (to do before any of this; `scripts/xbox-shaders.mjs`). A heavy surface program
-writing one packed RGBA32UI target, against the same program writing three RGBA16F targets: its link time, its first
-draw's time, and whether the first draw still compiles anything on CrGpuMain (a `gpu.angle` trace).
+**The repro on the console** (done, October 2026; `scripts/xbox-shaders.mjs --draw` on programs whose `packed` flag
+makes them write one RGBA32UI output; a `gpu.angle` trace running). The desert's surface programs as they are against
+the same writing one packed uvec4, each linked, then drawn into a matching 4 × 4 target:
+
+| Program | 3 × RGBA16F: link + first draw | 1 × RGBA32UI: link + first draw |
+|---|---|---|
+| plain | 0.68 + 1.14 s | 1.41 + 0.49 s |
+| ground | 1.09 + 7.64 s | 7.78 + 1.06 s |
+| weathered | 3.99 + 9.46 s | 9.73 + 1.28 s |
+
+- The trace shows no `D3DCompile` on CrGpuMain for the packed ones: their one compile is at link, on the workers, with
+  all the code.
+- Their first draws (0.5-1.3 s) show no ANGLE compile; most likely the D3D driver creating the shader at first use,
+  which the three-output draws pay too.
+- The work a program costs is about the same; it moves from the GPU process's main thread to the links, about two at
+  a time beside everything else.
+- For the desert's view, roughly: from ~28 s of links plus ~60 s of serial draw-time compiles, to ~55 s of link work
+  over the two workers (~28 s) plus ~10-15 s of first draws.
 
 **Shape: pack in the writers, unpack once, readers untouched.**
 - The Xbox's G-buffer pass draws into one RGBA32UI target (plus the same depth texture).
