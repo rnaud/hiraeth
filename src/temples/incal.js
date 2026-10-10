@@ -504,8 +504,8 @@ function exterior(scene, level, rt) {
     // the dark in the doorway, deep in the porch, pointed as the arch
     const d = new THREE.Shape();
     d.moveTo(-dw / 2, 0); d.lineTo(-dw / 2, dh); d.quadraticCurveTo(-dw / 2, dh + dw * 0.6, 0, apex); d.quadraticCurveTo(dw / 2, dh + dw * 0.6, dw / 2, dh); d.lineTo(dw / 2, 0); d.closePath();
-    K.add(M.voidM, new THREE.ShapeGeometry(d, 12).translate(0, sill, P0 + 0.25));
-    K.solid(box(dw, apex, 0.6, 0, sill + apex / 2, P0 - 0.05));
+    K.add(M.voidM, new THREE.ShapeGeometry(d, 12).translate(0, sill, P0 + 1.6));
+    K.solid(box(dw, apex, 0.6, 0, sill + apex / 2, P0 + 1.45));
   }
   K.both(steel, box(13.6, 1.6, z1 - z0 + 0.5, 0, sill + 0.8 - 1.6, (z0 + z1) / 2 + 0.1));   // its blue foot
   K.add(steel, box(13.6, 0.9, 0.4, 0, sill + 13.2, z1 + 0.2));

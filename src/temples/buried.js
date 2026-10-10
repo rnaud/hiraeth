@@ -444,9 +444,9 @@ function exterior(scene, level, rt) {
     // the leaf: an oval of riveted iron, hinged at the doorway's left, swung back almost flat against the face
     const leaf = new THREE.Shape(); leaf.absellipse(ow, 0, ow, oh, 0, Math.PI * 2, false);
     const g = new THREE.ExtrudeGeometry(leaf, { depth: 0.22, bevelEnabled: false, curveSegments: 24 });
-    K.both(iron, T(g, [-ow - 0.1, oy, z1 + 0.75], [0, Math.PI - 0.22, 0]));
+    K.both(iron, T(g, [-ow - 0.1, oy, z1 + 0.75], [0, Math.PI - 0.55, 0]));
     for (const y of [oy - 2, oy + 2]) {
-      K.add(M.dark, T(new THREE.BoxGeometry(2.4, 0.34, 0.12), [-ow - 1.2, y, z1 + 1.02], [0, -0.22, 0]));
+      K.add(M.dark, T(new THREE.BoxGeometry(2.4, 0.34, 0.12), [-ow - 1.1, y, z1 + 1.35], [0, -0.55, 0]));
       K.add(M.dark, new THREE.CylinderGeometry(0.2, 0.2, 0.8, 10).translate(-ow - 0.1, y, z1 + 0.75));
     }
   }
