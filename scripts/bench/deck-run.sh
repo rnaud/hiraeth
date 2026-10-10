@@ -9,6 +9,9 @@
 # GAME_DIR_ON_DECK: a built game (dist/) copied to the Deck, served instead of the installed one
 # (MOEBIUS_GAME), to measure a change before it ships. Only our own unit (memento-bench) is started and
 # stopped; Steam, the session and the system's settings are left as they are.
+# The bench's game runs in a profile of its own (XDG_CONFIG_HOME=~/.local/share/moebius-bench: Electron's
+# single-instance lock, the settings and the saves are per profile), so it starts while the player's game
+# is open, and its runs (deck-worlds.mjs writes the settings and a save) never touch the player's own.
 DECK=${DECK:-deck@steamdeck.local}
 PORT=${PORT:-5310}
 case "$1" in
@@ -17,7 +20,8 @@ case "$1" in
     game=${3:-}
     ssh -o BatchMode=yes "$DECK" "export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
       B=\$(readlink -f ~/.local/share/moebius-deck/current)/moebius
-      G='${game:+MOEBIUS_GAME=$game} ${GPU:+MOEBIUS_GPU=$GPU}'
+      mkdir -p ~/.local/share/moebius-bench
+      G='XDG_CONFIG_HOME=/home/deck/.local/share/moebius-bench ${game:+MOEBIUS_GAME=$game} ${GPU:+MOEBIUS_GPU=$GPU}'
       A='--mute-audio --disable-audio-output --remote-debugging-port=9222'
       if [ $kind = headless ]; then
         systemd-run --user --unit=memento-bench --collect -p RuntimeMaxSec=7200 \

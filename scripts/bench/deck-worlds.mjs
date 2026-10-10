@@ -2,12 +2,14 @@
 // protocol: the game started on the Deck with --remote-debugging-port=9222 and an ssh tunnel to it
 // (scripts/bench/deck-run.sh does both), then on the Mac:
 //   node scripts/bench/deck-worlds.mjs [--port 5310] [--worlds desert,incal,...] [--quality deck|high|handheld]
-//        [--scale 1] [--modes fixed,dynamic] [--secs 8] [--warmup 3] [--only spawn,qanat] [--profile 1] [--raw dir]
+//        [--scale 1] [--modes fixed,dynamic] [--secs 8] [--warmup 3] [--only spawn,qanat] [--profile 1] [--cpuprofile 1] [--raw dir]
 // Per world: the world loaded (?level=, navigation to the first frame), then every view of the world
 // (viewpoints-worlds.json; the desert's are viewpoints.json's) placed, warmed up and recorded with the page
 // logic of the other runs (web-page.mjs): frame intervals, the screen refreshes missed, the JS time of
 // the animation-frame callbacks, the GPU time (timer queries), draws; in mode `dynamic` the render scale
 // the game chose. --profile: the main thread's time by system at each view (the Android run's profiler).
+// --cpuprofile: V8's sampling profile of each view (4 s; <raw>/<world>-<view>.cpuprofile, for DevTools) and
+// its heaviest functions by self time.
 // The game's sound stays at 0 (and the Deck's game runs with --mute-audio). See docs/systems/performance.md,
 // "Every world on the Steam Deck".
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
@@ -43,10 +45,12 @@ class Page {
     throw new Error(`no page on port ${port}: start the game with scripts/bench/deck-run.sh`);
   }
   async connect(url) {
-    this.ws = new WebSocket(url); this.id = 0; this.pending = new Map(); this.errors = [];
+    this.ws = new WebSocket(url); this.id = 0; this.pending = new Map(); this.errors = []; this.warnings = [];
     this.ws.onmessage = (m) => {
       const d = JSON.parse(m.data);
       if (d.id) { this.pending.get(d.id)?.(d); this.pending.delete(d.id); }
+      // (the console's warnings and errors: the load's "gpu pacer: …" and "load: still on …" among them)
+      else if (d.method === 'Runtime.consoleAPICalled' && ['warning', 'error'].includes(d.params.type)) this.warnings.push(d.params.args.map((a) => a.value ?? a.description ?? '').join(' ').slice(0, 200));
       else if (d.method === 'Runtime.exceptionThrown') this.errors.push(String(d.params.exceptionDetails?.exception?.description ?? d.params.exceptionDetails?.text).slice(0, 200));
     };
     // (the Deck gone to sleep, or the game closed: every call waiting fails, and the run stops with what it has)
@@ -106,6 +110,27 @@ const PROFILE = `(() => {
   };
   return true;
 })()`;
+/** V8's sampling profiler over `seconds` at the view: the profile saved, the top functions by self time a frame */
+async function cpuProfile(page, file, seconds = 4) {
+  await page.send('Profiler.enable');
+  await page.send('Profiler.setSamplingInterval', { interval: 200 });
+  await page.eval(() => { window.__bench.reset(); window.__bench.rec = true; return true; });
+  await page.send('Profiler.start');
+  await sleep(seconds * 1000);
+  const r = await page.send('Profiler.stop');
+  const frames = await page.eval(() => { window.__bench.rec = false; return window.__bench.cpu.length; });
+  const p = r.result?.profile;
+  if (!p) return null;
+  writeFileSync(file, JSON.stringify(p));
+  const byId = new Map(p.nodes.map((n) => [n.id, n])), self = new Map();
+  const dt = (p.endTime - p.startTime) / p.samples.length / 1000;
+  for (const id of p.samples) {
+    const f = byId.get(id).callFrame, key = `${f.functionName || '(anonymous)'} ${f.url.split('/').pop()}:${f.lineNumber + 1}`;
+    self.set(key, (self.get(key) ?? 0) + dt);
+  }
+  return [...self].sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, ms]) => [k, +(ms / Math.max(frames, 1)).toFixed(2)]);
+}
+
 async function profileView(page, seconds = 4) {
   await page.eval(PROFILE);
   await page.eval(() => { const P = window.__prof; for (const k of Object.keys(P.acc)) delete P.acc[k]; window.__bench.reset(); window.__bench.rec = true; P.on = true; return true; });
@@ -127,7 +152,7 @@ function missedShare(frames) {
 
 async function runWorld(page, world, mode) {
   const label = `${world} ${quality} ${mode}`;
-  page.errors = [];
+  page.errors = []; page.warnings = [];
   await page.eval((q) => {
     localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }));
     localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: q, showFps: true, hudV: 1, deckV: 1, music: 0, effects: 0, voices: 0 }));
@@ -138,6 +163,8 @@ async function runWorld(page, world, mode) {
   await sleep(1500);
   await page.waitFor('!!(window.__moebiusBooted && window.renderFrame && window.player && window.__bench)');
   const load = +((Date.now() - t0) / 1000).toFixed(1);
+  const loadWarnings = page.warnings.filter((w) => /pacer|load:/.test(w));
+  console.log(`${label}: loaded in ${load} s${loadWarnings.length ? ' — ' + loadWarnings.join(' | ') : ''}`);
   await sleep(4000);
   await page.eval(() => { window.story?.closePage?.(); window.sound?.setVolumes?.(0, 0); return true; });
   const W = world === 'desert' ? { views: VP.views, paths: VP.paths } : picked.worlds[world];
@@ -162,10 +189,14 @@ async function runWorld(page, world, mode) {
       v.profile = await profileView(page);
       console.log(`  ${name} profile: js ${v.profile.jsPerFrame} ms ` + Object.entries(v.profile.bySystem).slice(0, 10).map(([k, x]) => `${k} ${x}`).join(', ') + ` rest ${v.profile.rest}`);
     }
+    if (opt.cpuprofile) {
+      v.cpuTop = await cpuProfile(page, `${RAW}/${world}-${name}.cpuprofile`);
+      console.log(`  ${name} cpu (ms a frame, self): ` + (v.cpuTop ?? []).slice(0, 25).map(([k, x]) => `${x} ${k}`).join(' | '));
+    }
     console.log(`${label} ${name.padEnd(9)} ${v.fps} fps p95 ${v.frame?.p95} missed ${v.missedShare}% js ${v.cpu?.median} gpu ${v.gpu?.median} draws ${v.draws} scale ${v.scales?.median ?? v.scale}`);
     views.push(v);
   }
-  return { world, mode, quality, load, canvas, errors: page.errors.slice(0, 5), views };
+  return { world, mode, quality, load, canvas, errors: page.errors.slice(0, 5), warnings: [...new Set(page.warnings)].slice(0, 10), views };
 }
 
 const page = await Page.open(PORT);
