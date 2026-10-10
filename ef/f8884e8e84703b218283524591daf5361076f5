@@ -1,0 +1,185 @@
+changelog.md
+  s_9ca76055a220ed::t_480111c809afcb 5-11
+docs/README.md
+  s_9ca76055a220ed::t_a93d18e78fb24e 55
+docs/design/hints-audit.md
+  s_9ca76055a220ed::t_02d846ba9968b3 1-84
+docs/systems/boss-hints.md
+  s_9ca76055a220ed::t_c39dded9578f69 20-24
+docs/systems/hints.md
+  s_9ca76055a220ed::t_9683ffca5e9a1f 1-38
+index.html
+  s_9ca76055a220ed::t_86edb7e5958cd5 302-306
+src/boxes/card.js
+  s_9ca76055a220ed::t_210c1b0973df48 68
+src/boxes/effects.js
+  s_9ca76055a220ed::t_4bb2f60f41b272 9,111-113
+src/boxes/index.js
+  s_9ca76055a220ed::t_05c27a7193bd61 11,284
+src/changelog-media.js
+  s_9ca76055a220ed::t_c4ea57d704045f 485,489-499
+src/changelog.js
+  s_9ca76055a220ed::t_f63509ff300bfc 11-17
+src/first-steps.js
+  s_9ca76055a220ed::t_14322045d576a7 16-18,20,30-31,34-36,49,55
+src/foes.js
+  s_9ca76055a220ed::t_b97c59b8dbb2fa 26-27,1820,1843,1846,2097,2117,2183,2294,2464,2498-2501,2503,2505-2506
+src/gadgets/index.js
+  s_9ca76055a220ed::t_b0be9e21d62908 9-10,42-44,67-75
+src/game-menu.js
+  s_9ca76055a220ed::t_da0a075dfd8934 437
+src/hint-level.js
+  s_9ca76055a220ed::t_8098e9a927ec76 1-93
+src/hud.js
+  s_9ca76055a220ed::t_f6ce52a8389ada 16,32-33,44,47-49,168
+src/i18n/en.js
+  s_9ca76055a220ed::t_cbd830009d3ef4 82-85,148
+src/i18n/fr.js
+  s_9ca76055a220ed::t_8286cf86d014f9 82-85,147
+src/ink.js
+  s_9ca76055a220ed::t_e4d34761e18ec3 10,32
+src/items-page/main.js
+  s_9ca76055a220ed::t_152c37a48a890d 82
+src/items-page/view.js
+  s_9ca76055a220ed::t_427ffef1346c3a 27
+src/items.js
+  s_9ca76055a220ed::t_5b80109f74bf79 227
+src/main.js
+  s_9ca76055a220ed::t_6c5416cf9e1b22 15-16,354-355,357,610-611,665-668,671-673,1239,1688,1789
+src/player.js
+  s_9ca76055a220ed::t_1331e0b98d3747 19,1447
+src/prompt-keys.js
+  s_9ca76055a220ed::t_0d168894b4f46a 12,40,50-51,104-105,107-108,110
+src/quest.js
+  s_9ca76055a220ed::t_2affd202622b9f 6,206-207,344
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_2a9e644c07ffe6 291,302
+src/story/arzach2.js
+  s_9ca76055a220ed::t_7a81d364a92918 11,238,244,287
+src/story/bazaar-data.js
+  s_9ca76055a220ed::t_364eabc673ffea 382,409
+src/story/bazaar.js
+  s_9ca76055a220ed::t_d355d6ab0d328b 9,115,161
+src/story/buried-data.js
+  s_9ca76055a220ed::t_bdac49bcdd1ded 366,391-392
+src/story/buried.js
+  s_9ca76055a220ed::t_f5b9c3699bae94 10,184
+src/story/desert-bike.js
+  s_9ca76055a220ed::t_9d4dae9c2c1a42 7-8,158-159,162
+src/story/desert-data.js
+  s_9ca76055a220ed::t_3d43f4dc0b69cc 788,802,932
+src/story/desert-errands.js
+  s_9ca76055a220ed::t_b56281664313ff 9,128,138,272
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_3aea24c97d2c48 6,58,66
+src/story/desert.js
+  s_9ca76055a220ed::t_727cde315eeee2 21,391
+src/story/edena.js
+  s_9ca76055a220ed::t_61c88dfb8ffed8 11,149
+src/story/garage.js
+  s_9ca76055a220ed::t_9a1dbe608df8c3 7,84
+src/story/halfway.js
+  s_9ca76055a220ed::t_d6a416c67405ec 9,150,159
+src/story/incal-data.js
+  s_9ca76055a220ed::t_fc68c22e886135 619,622,634,638,656
+src/story/incal.js
+  s_9ca76055a220ed::t_cbe0004d830110 11,202,215,458
+src/story/index.js
+  s_9ca76055a220ed::t_9072794d04cdbe 23,377-378,380
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_7edadf909615db 371
+src/story/perdide2.js
+  s_9ca76055a220ed::t_730ec2a1f6a5a8 10,150,310,313,441
+src/story/quests.js
+  s_9ca76055a220ed::t_f529d9a812a23f 3,142,152-155,157-158
+src/story/spheres.js
+  s_9ca76055a220ed::t_0312e1e1c27f27 9,264
+src/story/terraces.js
+  s_9ca76055a220ed::t_823a4fe21db43f 9,333-334,360,368
+src/temples/arzach.js
+  s_9ca76055a220ed::t_4b70f5c5c14b90 483,493
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_d1e1a5dbf2b0d1 161,175
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_28174a79090317 444
+src/temples/buried.js
+  s_9ca76055a220ed::t_ab463da2259804 546
+src/temples/desert.js
+  s_9ca76055a220ed::t_d2c8dccfa6643b 175,184-185
+src/temples/edena.js
+  s_9ca76055a220ed::t_bc028017faecac 167
+src/temples/garage.js
+  s_9ca76055a220ed::t_c1f886483a4c28 515
+src/temples/hints.js
+  s_9ca76055a220ed::t_560257eb01762f 2,12,115,118,209,212,234-251
+src/temples/incal.js
+  s_9ca76055a220ed::t_91471213efe374 170,172
+src/temples/perdide.js
+  s_9ca76055a220ed::t_e6f0d0a0b90eee 126,139,141,149
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_e12a169fea5145 449
+src/temples/spheres.js
+  s_9ca76055a220ed::t_6b20cd7b1ebd96 230
+src/trials/index.js
+  s_9ca76055a220ed::t_ade13eb5b294a8 267
+src/ui.js
+  s_9ca76055a220ed::t_a065fc783335a4 16,49-50,85,119-121,333
+tests/accessibility.test.js
+  s_9ca76055a220ed::t_4e32c2e2d2cde2 292
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_081f2e38dad86e 20-23
+tests/boxes.test.js
+  s_9ca76055a220ed::t_4eb16904bfde2f 354,461
+tests/combat-feel.test.js
+  s_9ca76055a220ed::t_41ff83d9ba5b39 14-17
+tests/desert-errands.test.js
+  s_9ca76055a220ed::t_9498635c33418f 4-7
+tests/feel.test.js
+  s_9ca76055a220ed::t_8e52265b5caf18 9,173-174,189-193
+tests/first-run.test.js
+  s_9ca76055a220ed::t_e934629918048c 98,102-116,129,134
+tests/foe-height.test.js
+  s_9ca76055a220ed::t_6308261e9d7815 13-16
+tests/foes-world.test.js
+  s_9ca76055a220ed::t_6992ece5577602 12-15
+tests/foes.test.js
+  s_9ca76055a220ed::t_73828680e63d33 104
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_0fb39536f755a5 35-38,266
+tests/hint-level.test.js
+  s_9ca76055a220ed::t_32c417d50d3f5e 1-95
+tests/hints.test.js
+  s_9ca76055a220ed::t_a6e60de529ddca 9,60-61,84-97
+tests/hoverbike-quest.test.js
+  s_9ca76055a220ed::t_855d0b231b828b 5-8,138
+tests/hud.test.js
+  s_9ca76055a220ed::t_ec79c00fdb7ce8 5-6,40-52,131-132,172
+tests/incal-hoist.test.js
+  s_9ca76055a220ed::t_856fed1334a89e 4-7
+tests/key-placeholder.test.js
+  s_9ca76055a220ed::t_5d8b2270b703df 14-16,144-161
+tests/native-pad.test.js
+  s_9ca76055a220ed::t_85b648b52db673 165
+tests/story-arzach2.test.js
+  s_9ca76055a220ed::t_ce921f20c32a2a 4-7
+tests/story-spheres.test.js
+  s_9ca76055a220ed::t_2a212239336666 4-7
+tests/temples.test.js
+  s_9ca76055a220ed::t_091b148a321745 38,2380-2381
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "eff8884e8e84703b218283524591daf5361076f5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
