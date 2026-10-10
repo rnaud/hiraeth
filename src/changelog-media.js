@@ -515,6 +515,7 @@ const FROM_FIGHT39 = 'headless Chrome (Medium, 1280 × 720, muted) in the Arena 
 /** The v1.39 tree and ribcage pictures: made by hand on the branch (a scratch shooter: the camera pinned, the traveller placed beside it). */
 const FROM_TREE39 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own dev server, a save past the lighting (the tree burns), the camera pinned and the traveller teleported, the same views for both: the before with the parent commit’s files swapped back in (the ledge with the chest still closed on it)';
 const COST39 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden (the tree: its bark, its flame body and its leaves; the ribcage: its mesh), medians of 7, the same views as the pictures; batches per pass counted in node' };
+const C40 = '7ac449b9';   // (v1.40: the three detours on the route, one commit)
 export const CHANGELOG_MEDIA = {
   '1.40': [
     { match: 'The Overnight Train’s end doors are wider', shots: [
@@ -532,6 +533,32 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'overnighttrain', hour: 22, player: [-349, 7.35, -0.4], eye: [-345.5, 9.0, 2.4], target: [-354, 7.9, 0.2], fov: 55 } },
     ], see: 'In the Signal Market, walk south past the ship to the lamp on the platform and talk to Edda.' },
     { match: 'The Overnight Train has left the ship’s map', see: 'The galactic map no longer lists the Overnight Train; ring the bell at the Signal Market’s night halt once Edda has given you her letter (any time after that, for a ride).' },
+    { match: 'The route is twelve places now', see: 'Open the galactic map from the ship: after Edena comes the Underwater City, after the Buried City the Moon Foundry, and after the Spheres the City Floating in Space, each with its own people, temple and gift.' },
+    { match: 'The Underwater City is rebuilt so you never swim', shots: [
+      { name: 'uw-avenue', caption: 'Down the Avenue toward the Plaza: before, the old city open to the sea, where you swam; after, the Avenue under its glass dome, its street and pod towers, the Plaza’s dome beyond and the column rising from it to the Crown', commit: C40,
+        view: { level: 'underwater', player: [0, 0.05, 46], eye: [3, 3.4, 54], target: [0, 5, -20], fov: 55 } },
+    ], see: 'Walk off the ship at the Dock and down the long tube: every hall is dry, and the lifts carry you between floors.' },
+    { match: 'A lift in the Plaza’s column carries you up to the Crown', see: 'In the Plaza, step into the lift in the column and ride it up to the Crown; Fabre is by the lamp.' },
+    { match: 'In the Underwater City the whales have kept away', see: 'Talk to Maelle in the Whale Gallery, down the tube east of the Plaza, then go through the Whale-House at the south end of the city.' },
+    { match: 'The Moon Foundry is on the route', shots: [
+      { name: 'mf-casting-house', caption: 'From the foundry floor toward the Casting-House: before, the open floor between the columns; after, the founders’ Casting-House among the columns, its brick tower banded in copper and its arched door glowing', commit: C40,
+        view: { level: 'moonfoundry', player: [80, 0, -118], eye: [74, 8, -110], target: [126, 8, -164], fov: 55 } },
+    ], see: 'Walk east across the foundry floor at night to see the hung moons turned toward where the light went.' },
+    { match: 'At the bottom of the Casting-House the Last Founder', see: 'Go down through the Casting-House with the founders’ tongs; when the crucible opens, splash the Last Founder’s molten heart.' },
+    { match: 'The City Floating in Space is on the route', shots: [
+      { name: 'sc-moorings', caption: 'From the Towers north: before, empty sky; after, the bridge between the Towers’ houses up to the Moorings, the seventh island, and the Mooring-House on it with its lamps lit', commit: C40,
+        view: { level: 'spacecity', player: [98, 6, -100], eye: [100, 12, -92], target: [96, 18, -176], fov: 55 } },
+    ] },
+    { match: 'Three tall lamp-masts stand over the floating city’s roofs', shots: [
+      { name: 'sc-masts', caption: 'From the Market toward the Balcony: after, the Market’s lamp-mast standing over the roofs on the right, the Balcony’s far off on the horizon, and the Mooring-House on its island', commit: C40,
+        view: { level: 'spacecity', player: [0, 0, -40], eye: [4, 6, -30], target: [-7, 24, -180], fov: 55 } },
+    ] },
+    { match: 'New errands in each of the three', see: 'Talk to Mireille in the Underwater City’s garden dome, to the founders on the Moon Foundry’s floor and to the couriers on the floating city’s pier: each one has something to carry.' },
+    { match: 'Each of the three speaks and writes its own way now', see: 'Read the signs: bubble rows under the sea, stamped moons in the foundry, knotted cables in the floating city.' },
+    { match: 'Three new shops', see: 'Odette’s Air-Shop is under the Avenue’s dome, Gunnar’s Crucible on the foundry floor west of the ship, Amaro’s on the floating city’s pier.' },
+    { match: 'Three new trials', see: 'Each trial starts from its marker in the world: the Tube run at the Dock, the Floor round by the hangar’s mouth, the Courier’s round on the pier.' },
+    { match: 'Three new gifts in the makers’ boxes', see: 'Find the makers’ box in each world (the pearl high in the Avenue, the bellows on the moon in the claws, the star-thread on a Towers roof) and feel the difference when you run, rest or climb.' },
+    { match: 'The galactic map fits twelve worlds', see: 'On a phone, open the galactic map: all twelve worlds and home fit. In the game menu, the Items page shows ten pieces of gear to a row.' },
   ],
   '1.39': [
     { match: 'Qanat’s great tree is rebuilt after its picture', shots: [
