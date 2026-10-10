@@ -23,7 +23,7 @@ import { t as tr } from './i18n.js';
 import { Wildlife } from './wildlife.js';
 import { createGBuffer, createComposeTarget, createBlit, setSubject } from './pipeline.js';
 import GUI from 'lil-gui';
-import { sharedUniforms, markHero, setEnvGround } from './materials.js';
+import { sharedUniforms, markHero, keepHero, setEnvGround } from './materials.js';
 import { BLADE_QUALITY, bladeLiteFor } from './blade-shader.js';
 import { wallOpenings } from './wall-openings.js';
 import { createPost, createBloom, DEBUG_VIEWS, PRESETS } from './post.js';
@@ -479,7 +479,7 @@ if (generatedTraveller) {
 }
 player.attach(scene);
 await slice();
-const heroMaterials = markHero(player.char.root);
+const heroMaterials = keepHero(player.char.root);   // (and the gear hung on him later: materials.js keepHero)
 markHero(player.cape?.mesh, heroMaterials);
 if (player.mount) scene.add(player.mount.object);
 await slice();

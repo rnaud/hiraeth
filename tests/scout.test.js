@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Scout, nextObjective, viaPortal, lookoutSpot, FIND, HINT, FLARE, Flare, roughDistance, findText } from '../src/scout.js';
-import { makeMaterial, markHero, sharedUniforms } from '../src/materials.js';
+import { makeMaterial, markHero, keepHero, sharedUniforms } from '../src/materials.js';
+import { readFileSync } from 'node:fs';
 const v = (x=0,y=0,z=0) => new THREE.Vector3(x,y,z);
 
 test('what the scout finds: the traveler, the climb, the lenses, the return, the story, then the ship; never a relic', () => {
@@ -173,6 +174,28 @@ test('hero tagging isolates cached materials while preserving live scene uniform
   assert.equal(a.material,b.material); assert.notEqual(a.material,shared);
   assert.equal(a.material.uniforms.uHero.value,1);
   for(const key of Object.keys(sharedUniforms))assert.equal(a.material.uniforms[key],sharedUniforms[key]);
+});
+
+test('keepHero tags the gear hung on the traveller later (the shield, the sword), not its fluid; a move re-tags nothing', () => {
+  // (visual audit v1.4, finding 5: the shield bracer and the sword were built after main.js tagged him, so the spot
+  // blacks' taps took them for something in front of the sand: a blob in his own shadow beside his hand)
+  const body=makeMaterial({color:'#aabbcd'}), root=new THREE.Group(), hand=new THREE.Group();
+  root.add(new THREE.Mesh(new THREE.BoxGeometry(),body)); root.add(hand);
+  keepHero(root);
+  assert.equal(root.children[0].material.uniforms.uHero.value,1);
+  const shield=new THREE.Group(), brass=makeMaterial({color:'#c99a46',key:'t.keep.brass'}), glob=makeMaterial({color:'#ffffff',fluid:'glob',key:'t.keep.glob'});
+  shield.add(new THREE.Mesh(new THREE.BoxGeometry(),brass), new THREE.Mesh(new THREE.BoxGeometry(),glob));
+  hand.add(shield);   // (after: as the shield is put on his wrist)
+  assert.equal(shield.children[0].material.uniforms.uHero.value,1,'the shield is his');
+  assert.equal(brass.uniforms.uHero.value,0,'the cached one untouched');
+  assert.equal(shield.children[1].material,glob,'the fluid inked as print, left as it is (TANK.inked)');
+  const later=new THREE.Mesh(new THREE.BoxGeometry(),makeMaterial({color:'#5b4326',key:'t.keep.dark'}));
+  shield.add(later);   // (deeper, later still)
+  assert.equal(later.material.uniforms.uHero.value,1);
+  const tagged=shield.children[0].material;
+  root.add(shield);   // (moved: the sword from his back to his hand)
+  assert.equal(shield.children[0].material,tagged,'no new copy');
+  assert.match(readFileSync(new URL('../src/main.js',import.meta.url),'utf8'),/const heroMaterials = keepHero\(player\.char\.root\);/);
 });
 
 test('scout keeps your pace riding: it looks out ahead of you, stays near, and points at the goal', () => {

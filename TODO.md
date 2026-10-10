@@ -37,10 +37,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
-- [ ] Small square steps in the spot mass at the temple halls' pillar feet (Edena, High): check with the motion check's
-  swing on a hall.
-- [ ] A spot-black blob in the traveller's own cast shadow on open sand by the ship: check `notPerson` for the taps
-  round his feet.
 - [ ] The probes: an orbit amplitude that shrinks when the eye has to be pulled in front of a wall (small rooms flag
   on the camera's distance changing, not the masks); a ghost check that takes several noise frames, or freezes the
   world's movers, so drones and passers-by don't flag; foot rays that ignore furniture (a ray at 0.3 m too); place

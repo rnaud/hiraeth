@@ -2018,3 +2018,10 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] Hovering makers' drones in the temple halls drew a jagged spot-black halo on the wall behind them: foes are now
   movers (gHatch.a + 64, materials.js `MOVER`: the 'foe-' and 'arch.' material keys), seen past by the spot taps and
   the crease shading as people are, their own pockets kept (post.js `notStanding`). The incal hall's machine: no halo.
+- [x] Small square steps in the spot mass at the temple halls' pillar feet (Edena, High): checked with an orbit swing
+  (±32°, every frame saved) on the rebuilt Greenhouse hall: the masks hold still (p95 step 0 at its four spots); the
+  notches are copies of the leaves and corners in front, fixed to the surface. Nothing to fix.
+- [x] A spot-black blob in the traveller's own cast shadow on the sand by the ship: his gear (the shield bracer, the
+  sword and its frog, the tank's jets) was built after he was tagged hero, so the taps took the shield by his hand
+  for something over the sand. materials.js `keepHero` tags what is added under him later (not his fluid, inked as
+  print); main.js uses it. Left: a clean stripe where the dune's foot creases, as in any shade. tests/scout.test.js.

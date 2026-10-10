@@ -661,6 +661,22 @@ the after-run is [visual-v1.20](../audits/visual-v1.20.md).
   flag is held to 1/16 steps by the half-float target (a foe's eye at 0.6 reads 0.5625-0.625: under the lights'
   0.62 threshold either way). The probe's machine in a City-Shaft temple hall (incal, High): the halo gone, the
   machine's own legs and plates still black (`tests/ground-ink.test.js`, `tests/occlusion-taps.test.js`).
+- **Small square steps in the spot mass at the temple halls' pillar feet** (Edena, High): checked, nothing to fix.
+  The hall the audit saw was rebuilt since (the Builders' Greenhouse, v1.16); in the new one the orbit swing (±32° in
+  8° steps, every frame saved: `probes.mjs --save-all`) over its four spots at High holds the masks still (p95 step 0
+  at each, nothing flagged), and the square notches left at the foot of its planters and walls are the copies of the
+  leaves and corners in front of them, tied to the surface: they stay put as the camera turns. A hard-edged mass is a
+  union of such copies by design ("Wavy, not rectangular" above).
+- **A spot-black blob in the traveller's own shadow on the sand by the ship** (both presets; the probes' `stairs-0`
+  ghost view at the ramp; materials.js `keepHero`). `notPerson` on the taps round his feet was right: his body is
+  flagged. But his gear is built after main.js tagged him (`markHero` once, at boot): the shield bracer on his wrist,
+  the sword, its frog and grip, the tank's jets and lantern carried no hero flag, so the taps took the shield hanging
+  by his hand for something standing over the sand, and the shield and sword took spot blacks of their own in the
+  shade. `keepHero` tags his hierarchy and whatever is added under it later (Object3D 'childadded'), its fluid
+  materials left as they are (inked like print: fluid-tool.js `TANK.inked`); a part moved between bones (the sword
+  drawn) is not copied again. What is left in his shadow there is a clean stripe: the crease at the foot of the dune
+  (its enclosure 0.25-0.4 on Handheld's 4 taps), which takes the spot black in any shade, the ship's too (with every
+  tap on him counted open it stays: not a person's tap). `tests/scout.test.js`.
 
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 

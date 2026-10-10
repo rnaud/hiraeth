@@ -2890,6 +2890,26 @@ export const materialCount = () => cache.size;
 
 
 /**
+ * markHero, kept up: whatever is attached under the traveller later (the shield on his wrist, the sword and its frog,
+ * the tank and its jets: built after main.js tagged him) is tagged as it is added (Object3D 'childadded'), so it
+ * counts as him everywhere a person does: no spot blacks on it, and the occlusion taps see past it (a spot-black
+ * blob in his own shadow beside the shield, visual-v1.4). Fluid materials stay as they are (uFluidA: inked at full
+ * strength like print, fluid-tool.js TANK.inked).
+ */
+export const keepHeroSkip = (m) => !!m.uniforms?.uFluidA;
+export function keepHero(root, copies = new Map()) {
+  if (!root) return copies;
+  const watch = (o) => {
+    if (o.userData.heroWatch) return;
+    o.userData.heroWatch = true;
+    o.addEventListener('childadded', ({ child }) => { markHero(child, copies, keepHeroSkip); child.traverse(watch); });
+  };
+  markHero(root, copies);
+  root.traverse(watch);
+  return copies;
+}
+
+/**
  * Things that move about near walls without being people (gHatch.a + 64; docs/systems/rendering.md, "The visual
  * probes' findings fixed"): the screen-space occlusion of the spot blacks and the crease shading sees past them as it
  * sees past a person (post.js spotBehind), so a hovering drone draws no jagged dark halo on the wall behind it that
@@ -2898,12 +2918,12 @@ export const materialCount = () => cache.size;
  */
 export const MOVER = { key: /^(foe[-.]|arch\.)/ };
 export function isMover(o) { return o.mover ?? MOVER.key.test(o.key ?? ''); }
-/** Tag only the player's materials, preserving live shared shader uniforms. */
-export function markHero(root, copies = new Map()) {
+/** Tag only the player's materials, preserving live shared shader uniforms (skip(material): left as it is). */
+export function markHero(root, copies = new Map(), skip = null) {
   root?.traverse((o) => {
     if (!o.isMesh) return;
     const tagged = (material) => {
-      if (!material.uniforms?.uHero) return material;
+      if (!material.uniforms?.uHero || material.uniforms.uHero.value === 1 || skip?.(material)) return material;
       if (!copies.has(material)) {
         const copy = material.clone();
         Object.assign(copy.uniforms, sharedUniforms);
