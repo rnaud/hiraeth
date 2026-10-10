@@ -886,7 +886,7 @@ export class Updraft {
     const N = Math.max(6, Math.round(this.h / 2.4));
     const g = new THREE.TorusGeometry(this.r * 0.75, 0.07, 4, 32).rotateX(Math.PI / 2);
     for (let i = 0; i < N; i++) { const m = new THREE.Mesh(g, this.mat); this.root.add(m); this.rings.push({ m, s: i / N, w: 0.6 + (i % 3) * 0.2 }); }
-    const stone = mesh([T(annulus(this.r - 0.3, this.r + 0.4, 0.25, 36), [0, 0.12, 0])], rt.M.trimMat);
+    const stone = mesh([T(annulus(this.r - 0.3, this.r + 0.4, 0.05, 36), [0, 0.04, 0])], rt.M.trimMat);
     stone.position.copy(this.foot);
     this.root.add(stone);
     noCollide(this.root);

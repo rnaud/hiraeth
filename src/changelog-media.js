@@ -445,7 +445,7 @@ const SHOP_SHOTS = (w, front, inside, refs) => [
 const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place’s name comes up as you step in), talk to ${who} or stand at the middle of the counter and look at the wares. Walk out of the room’s door to be back where you were.`;
 
 /** The v1.16 temples (the Greenhouse, the Aerie and the fix to their doorway and bud): after at the fix, before at v1.15. */
-const TEMPLES16 = { commit: 'b805ff98', before: 'cfaa2045' };
+const TEMPLES16 = { commit: '6d005223', before: 'cfaa2045' };
 
 export const CHANGELOG_MEDIA = {
   '1.16': [

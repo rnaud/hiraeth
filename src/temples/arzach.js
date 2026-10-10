@@ -203,12 +203,12 @@ function layout(rt) {
   for (let i = 0; i < 24; i++) { const a = (i / 24) * TAU; if (off(a, Math.PI) < 0.4 || off(a, Math.PI / 2) < 0.5) continue; K.both(M.floor, T(new THREE.BoxGeometry(1.6, 0.5, 1.2), [Math.sin(a) * (WR - 0.6), 3.2 + (i % 3) * 1.4, C2 + Math.cos(a) * (WR - 0.6)], [0, a, 0])); }
   for (let i = 0; i < 16; i++) { const a = (i / 16) * TAU + 0.2, len = 14 + (i % 3) * 4; feather(i % 4 === 1 ? M.trim : M.wall, Math.sin(a) * (WR + 0.6), WH + 0.9, C2 + Math.cos(a) * (WR + 0.6), len, a, 0.45, true); }   // (solid: a climber up the well meets them as drawn)
   // the vent in the well's floor: the wind rises out of it while the hall's vent is stopped (its grate, still till then)
-  K.add(M.trim, T(annulus(4.4, 5, 0.12, 40), [0, 0.06, C2]));
+  K.add(M.trim, T(annulus(4.4, 5, 0.05, 40), [0, 0.02, C2]));
   for (let i = 0; i < 6; i++) K.add(M.dark, box(8.6, 0.05, 0.3, 0, 0.04, C2 - 3.75 + i * 1.5));
   add(Updraft, { at: [0, 0, C2], r: 4.5, h: 36, lift: 7, when: { drumOn: ['ballW', 'pH'] }, still: 'Still air over the grate: the wind goes down the hall. Nothing rises here.' });
   // the feather raft by the east wall: the well's wind lifts it to the Wing Chamber's balcony
   add(Platform, { id: 'raft', path: [[7.9, 0.3, C2], [7.9, 16, C2]], r: 2.2, speed: 1.6, pause: 2.2, when: { drumOn: ['ballW', 'pH'] } });
-  K.add(M.trim, T(annulus(2.4, 2.9, 0.12, 32), [7.9, 0.06, C2]));
+  K.add(M.trim, T(annulus(2.4, 2.9, 0.05, 32), [7.9, 0.02, C2]));
   K.slab(10.2, C2 - 2.8, WR + 0.8, C2 + 2.8, 16, 0.7);
   for (const s of [-1, 1]) feather(M.trim, 10.6, 16, C2 + s * 2.6, 4, Math.PI / 2, s * 0.3);
   add(Mark, { room: 'well', at: [-6.5, 0, C2 - 7], yaw: Math.PI * 0.75 });
@@ -229,7 +229,7 @@ function layout(rt) {
   for (const s of [-1, 1]) K.add(M.trim, box(0.35, 1.1, 0.35, s * 6.3, 32.55, C2 + WR - 5.15));
   // the gulf vent's throat: a grate in the balcony, its stone in it (pB); its cup at the groove's end (pX)
   K.add(M.dark, box(8, 0.04, 1.0, 0, 32.02, C2 + WR - 3.2));
-  K.add(M.trim, T(annulus(1.5, 2.1, 0.12, 32), [-3.6, 32.06, C2 + WR - 3.2]));
+  K.add(M.trim, T(annulus(1.5, 2.1, 0.05, 32), [-3.6, 32.02, C2 + WR - 3.2]));
   add(Ball, { id: 'ballB', a: [-3.6, 32.04, C2 + WR - 3.2], b: [3.6, 32.04, C2 + WR - 3.2], r: 1.1 });
   add(Plate, { id: 'pB', at: [-3.6, 32, C2 + WR - 3.2], r: 1.3 });
   add(Plate, { id: 'pX', at: [3.6, 32, C2 + WR - 3.2], r: 1.3 });
