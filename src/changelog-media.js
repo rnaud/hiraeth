@@ -523,7 +523,32 @@ const OPEN_BACKPACK = `const L = level.qanat.city.ledge; player.teleport(L.at(0,
   for (let i = 0; i < 120 && boxes.scene?.phase !== 'card'; i++) await new Promise((r) => setTimeout(r, 250))`;
 const PAD_ON = `; const b = document.body; b.classList.add('controller'); new MutationObserver(() => { if (!b.classList.contains('controller')) b.classList.add('controller'); }).observe(b, { attributes: true })`;
 const SQUARE_SAVE = { flags: { ...SAVE_DESERT.flags, 'desert.tree.lit': true }, keepsakes: [] };
+// (v1.42's quieter crowds: the camera at play distance on a person (a story person's npc, or a crowd person), following them,
+// the traveller placed between; d metres out along their facing turned by side, lift up)
+const PIN = (find, d, lift, side, fov) => `const T = THREE, n = ${find}; if (!n) throw new Error('nobody to frame');
+  const up = new T.Vector3(0, 1, 0), dir = () => { const h = (n.heading ?? 0) + ${side}; return new T.Vector3(Math.sin(h), 0, Math.cos(h)); };
+  player.teleport(n.pos.clone().addScaledVector(dir(), ${d * 0.55}), up, new T.Vector3(0, 0, 1));
+  const base = T.PerspectiveCamera.prototype.updateMatrixWorld, m = new T.Matrix4();
+  camera.updateMatrixWorld = function (force) {
+    const e = n.pos.clone().addScaledVector(dir(), ${d}).add(new T.Vector3(0, ${lift}, 0)), t = n.pos.clone().add(new T.Vector3(0, 1.1, 0));
+    this.position.copy(e); this.quaternion.setFromRotationMatrix(m.lookAt(e, t, up)); if (this.fov !== ${fov}) { this.fov = ${fov}; this.updateProjectionMatrix(); }
+    return base.call(this, force);
+  }`;
+const FACING = (id, d = 12, lift = 3.2, side = 0) => PIN(`npcs.find((q) => q.def?.id === '${id}')`, d, lift, side, 50);
+// (the desert's crowd is its pilgrims' procession, desert-city.js desertCrowdSpots: from beside a banner-bearer)
+const PROCESSION_VIEW = PIN(`crowd.people.filter((p) => p.role === 'banner')[3]`, 14, 3.6, 'Math.PI / 2 + 0.5', 55);
+const C42_PEOPLE = '95e2a3fb';
 export const CHANGELOG_MEDIA = {
+  '1.42': [
+    { match: 'The crowds in the towns wear their world’s colours a little softer now', shots: [
+      { name: 'crowd-procession', title: 'Below Qanat', caption: 'The pilgrims’ procession winding below Qanat: before, reds, saffrons and teals as strong as the story’s people wear; after, the same desert colours a step softer (Qanat’s square and the camps’ fires are mostly the story’s own people, who keep their colours)', commit: C42_PEOPLE,
+        view: { level: 'desert', setup: PROCESSION_VIEW, wait: 3000 } },
+      { name: 'crowd-market', title: 'The Signal Market', caption: 'Brush the painter on the market avenue: before, the strollers and stall-sitters as bright as he is; after, the crowd softer and his cream smock and teal reads first', commit: C42_PEOPLE,
+        view: { level: 'bazaar', setup: FACING('brush', 13, 3.4, 0.5), wait: 3000 } },
+      { name: 'crowd-square', title: 'Under the silent tower', caption: 'Madame Sel in the Signal Market’s square, the market round her: before, the crowd in strong reds, yellows and greens; after, the same colours softer, her coral and gold reading first', commit: C42_PEOPLE,
+        view: { level: 'bazaar', setup: FACING('sel', 15, 4.5), wait: 3000 } },
+    ] },
+  ],
   '1.41': [
     { match: 'The makers’ chest on Qanat’s tree keeps its secret now', shots: [
       { name: 'backpack-card', caption: 'The card when the chest on the tree opens: before, what it is and what it does, the whole backpack explained; after, one line, and the button says what to press (Enter, on the keyboard)', commit: '6fb8d13b',
