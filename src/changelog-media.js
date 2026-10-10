@@ -477,7 +477,42 @@ const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 't
   window.player.pos.copy(ns[0].pos).add(new THREE.Vector3(1.4, 0, 1.4)); await new Promise((r) => setTimeout(r, 1500));
   window.storyRt.dialogue.start(ns[0].def, ns[0]); await new Promise((r) => setTimeout(r, 2500));`;
 
+const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
+/** A save whose temple flags have a latched way open (the pit's pillars, the Root Stair's stones, the Warden's Well's irises). */
+const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...Object.fromEntries(keys.map((k) => [k, true])) }, keepsakes: [] });
 export const CHANGELOG_MEDIA = {
+  '1.27': [
+    // the temple design audit's rules (docs/audits/temple-design-v1.27.md): the same view before and after the rework
+    { match: 'No temple keeps its new tool’s first door beside the chest', shots: [
+      { name: 'eh-chamber', caption: 'The Engine-House’s Fourth Chamber, looking at the way on: before, the door ringed by four eyes on pistons and the crank by the chest; after, the open way into the Crank Passage, four still eyes either side of it', ...TEMPLES27,
+        view: { level: 'buried', player: [-147, 2207.2, -212], eye: [-146.5, 2209.4, -213], target: [-150, 2209.5, -188], fov: 70 } },
+      { name: 'bf-chamber', caption: 'The Founders’ Belfry’s Bell Chamber, looking north: before, the bell-tuned door in the chamber’s wall; after, the open way into the Bell Porch, its own bell hanging over its door at the far end', ...TEMPLES27,
+        view: { level: 'arzach2', player: [83, 1616.2, 222], eye: [83.5, 1618.4, 221], target: [80, 1618, 245], fov: 70 } },
+      { name: 'gh2-chamber', caption: 'The Builders’ Greenhouse’s Seed Chamber, looking north: before, the bud over the chamber’s door; after, the open way into the Bud Passage, the bud in its sunbeam beyond, a seed in the chamber’s sun', ...TEMPLES27,
+        view: { level: 'edena', player: [303, 1718.2, -376], eye: [303.5, 1720.4, -377], target: [300, 1720, -352], fov: 70 } },
+    ], see: 'In any of the seven, open the chest and walk on: the way out of its room is open, and the first door that wants the new tool waits at the end of the next, short room.' },
+    { match: 'Where the chest’s room had room for it', see: 'Once the new tool is yours, use it on the thing by the chest before going on: the Bell Chamber’s bell (its stones come down round the dais and rise again), the Fourth Chamber’s four eyes in one breath, the Seed Chamber’s seed in the sun, the Lantern Chamber’s lamp, the Shell Chamber’s low stone. Nothing opens; nothing is lost.' },
+    { match: 'The Founders’ Belfry’s Stone Stair has no riding discs', shots: [
+      { name: 'bf-stair', caption: 'The Stone Stair from the way in: before, two riding discs and a ledge between them; after, the founders’ bell low on the left with the ball’s groove running into its mouth, and the great stone hanging at the top by the high door', ...TEMPLES27,
+        view: { level: 'arzach2', player: [82, 1600.2, 199], eye: [82.5, 1602.6, 198], target: [79, 1608, 212], fov: 75 } },
+    ], see: 'In the Stone Stair, push the ball into the bell’s mouth and watch the great stone come down; stay off it and it falls up without you when the bell goes quiet. Splash the ball where it lies to ring again, stand on the stone, and splash the eye under the landing on the way up.' },
+    { match: 'In the Undertower’s Hall of Dishes', shots: [
+      { name: 'ut-pit', caption: 'The Hall of Dishes over the cable pit, its way across open: before, a riding disc; after, the makers’ pillars standing up out of the cable', ...TEMPLES27,
+        view: { level: 'bazaar', player: [-198, 1600.2, -502], eye: [-197.5, 1602.8, -503], target: [-200, 1599, -486], fov: 70, save: OPEN27('temple.bazaar.open.disc') } },
+    ], see: 'Roll the singing ball onto the dish’s footstone and splash it: the far horn answers and the pillars rise out of the cable pit.' },
+    { match: 'In the Lamp-House’s Root Stair', shots: [
+      { name: 'lh-roots', caption: 'The Root Stair, its way across open: before, a riding disc over the dark pool; after, glowing moss-stones risen out of it to the root-wall', ...TEMPLES27,
+        view: { level: 'perdide2', player: [-141, 1800.2, -251.5], eye: [-141, 1802.6, -252.5], target: [-140, 1799, -240], fov: 70, save: OPEN27('temple.perdide2.open.disc') } },
+    ], see: 'Light the small pool by the door, let the orb drink, roll it through to the socket: the moss-stones rise glowing out of the dark pool.' },
+    { match: 'The Footprint’s Hall of Spheres now opens with the walker', shots: [
+      { name: 'fp-spheres', caption: 'The Hall of Spheres from the way in: before, two spheres in two grooves; after, one sphere in a groove past carved prints of two, three and four toes, three prints by the east wall and the walker’s print over the door', ...TEMPLES27,
+        view: { level: 'spheres', player: [-120, 2000.2, -245], eye: [-119.5, 2002.6, -246], target: [-120, 2001, -224], fov: 70 } },
+    ], see: 'Roll the sphere onto the four-toed print and stand on the walker’s: nothing. Then the sphere on the three-toed print, and you on the three-toed print by the wall.' },
+    { match: 'In the Warden’s Well’s crown, the little vane', shots: [
+      { name: 'ww-crown', caption: 'From the crown by the high door, looking down through the open second iris: after, the little vane on its post in the loft below', ...TEMPLES27,
+        view: { level: 'incal', player: [420, 1458.8, 230.9], eye: [420, 1461, 231.2], target: [413.7, 1456, 221.4], fov: 70, save: OPEN27('temple.incal.open.iris', 'temple.incal.open.iris2') } },
+    ], see: 'In the loft, splash the little vane on its post, then fly straight up through the second iris to the great vane and hover: the crown’s eye opens its lids.' },
+  ],
   '1.26': [
     // the enemies against their design sheets: the body alone before and after, one camera, the sheet as its own picture
     { match: 'The antler hound now looks like its drawing', shots: [

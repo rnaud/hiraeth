@@ -256,30 +256,34 @@ Left from v1.23 (docs/audits/level-design-v1.23.md, "The ranked edits that remai
   tower down two more avenues (the west towers stand at every bearing from the back lane); Sel and the Sky Stones'
   monastery over 300 m from their landings (onboarding 3).
 
-# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16, v1.19, v1.24: the worst reworked, two or three at a time)
+# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16, v1.19, v1.24: the worst reworked, two or three at a time; v1.27: the four rules)
 
 All eleven were one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
 with an older verb); since v1.24 every one has its own idea (average 1.84 → 3.87). Ranked; each re-runs
 `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js passing (skill: temple-design-qc). The fights
-themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24
-(docs/audits/temple-design-v1.24.md, "The four rules"):
+themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24 and done in v1.27 but
+three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
 - [x] **A twist room in every temple** after the gadget's test: the gadget plus the temple's pre-gadget verb in one
   lock (keys of two kinds). All eleven (v1.24).
-- [ ] **One key per temple out of its lock's room**, in sight from it but reached from elsewhere (a shortcut that
-  opens from the far side, a disc mid-ride). Ten of eleven (v1.24); left: the Warden's Well (the crown's little vane in
-  the loft below, seen through the second iris, splashed and then flown up to the great one inside its 12 s).
-- [ ] **No gadget door beside the chest**: the chest room's way out teaches the gadget somewhere failure is cheap;
-  its next use a room later. Done in the Givers' House and the Footprint (v1.24); left: the Belfry (`d3`), the
-  Engine-House (`d3`), the Undertower (`d3`), the Greenhouse (`d3`), the Hush-House (`d2`), the Lamp-House (`d2`), the
-  First Garage (`d3`), each a gadget door a room on and a lock-free try by the chest (one gadget lock fewer each unless
-  a new one is added a room later: a batch of its own); the Aerie's and the Warden's Well's are traversals (a miss
-  drops you back), fine as they are.
+- [x] **One key per temple out of its lock's room**, in sight from it but reached from elsewhere (a shortcut that
+  opens from the far side, a disc mid-ride). All eleven (v1.27): the Warden's Well's little vane stands on a post in the
+  loft, seen from the crown down through the second iris, splashed and then flown up to the great one inside its 15 s.
+- [x] **No gadget door beside the chest**: the chest room's way out teaches the gadget somewhere failure is cheap;
+  its next use a room later. All eleven (v1.27): the Belfry, the Engine-House, the Undertower, the Greenhouse, the
+  Hush-House, the Lamp-House and the First Garage each have a passage a room on with the old door at its far end, and a
+  try that locks nothing in five of the chest rooms (docs/audits/temple-design-v1.27.md); the Aerie's and the Warden's
+  Well's are traversals (a miss drops you back), left as they are.
 - [ ] **Break the shared opening** (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
   Garage = the Engine-House, 100 %): each first room from its world's own idea. Done: the Givers' House (the pilot flame),
-  the Engine-House, the Greenhouse, the Hush-House; the Footprint's disc gone (it still opens with two balls on plates).
-  Left: the Belfry, the Undertower and the Lamp-House (their discs), the Warden's Well, the Aerie and the First Garage
-  (a disc or a raft after their own first step).
+  the Engine-House, the Greenhouse, the Hush-House, the Footprint (v1.27: the sphere on the walker's print, you on its
+  print by the wall; 86 % → 71 % the Lamp-House's), the Belfry (v1.27: the founders' bell struck by a ball, the great
+  stone that falls up), the Undertower (v1.27: the dish-carried note raises the pillars) and the Lamp-House (v1.27: the
+  orb's lamp raises moss-stones). Left: the Warden's Well, the Aerie and the First Garage (a disc or a raft after their
+  own first step).
+- [ ] **Play the v1.27 changes with a pad**: the Belfry's great stone (12 s, falling up with you), the Warden's Well's
+  little vane from the loft to the crown (15 s), the Footprint's carved prints read from the hall's door, the seven
+  passages.
 - [x] **Givers' House (2.11 → 4.22, v1.24)**: the Givers carried their fire. A tar ball rolled through the pilot flame
   into the hooded bowl by the door (taught before the gadget), back through the flame first in the Dry Channel (its disc
   gone), the chest's ball burning through the corridor's thorns to the bridge's bowl, the Hall of Channels' long groove
@@ -288,14 +292,15 @@ themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked
 - [x] **Footprint (2.22 → 4.33, v1.24)**: the lens shows where the walker set things down. The floating sphere and the
   stilling stone (the disc gone), the mural (the clue), the stones only the lens shows where the walker's prints hold,
   the walker's plate among plain prints and the eye across the chasm, the keepers' gallery back (a loop); the Echo
-  answered by the print. Left: its opening (two balls), its shape like the Lamp-House's (86 %).
+  answered by the print. Its opening and its shape: done in v1.27 (the walker's
+  prints; 71 %).
 - [ ] **Play the Givers' House's and the Footprint's new rooms and last phases with a pad** (v1.24): the tar balls'
   14 s and their pushes, the Hall of Channels' 4.6 s burn and the relay, the stilling stone and the floating sphere, the
   stones' 0.35 s crumble, the Keeper's 3.4 s pant by a fire, the Echo's print read across its hall.
 - [x] **Founders' Belfry (1.44 → 4.00, v1.8)**: held bells (the Bell Chamber's door, the Hall of Echoes' stones
   only while it rings), the ball rolled across the held stones holds them (bell + push), the Hall of Stones a hub
-  with `d1`'s balls in two stores, a high door whose eye is under the landing. Left: its opening (balls and a
-  disc). (The Cloud-Mother's falling stone: done in v1.15.)
+  with `d1`'s balls in two stores, a high door whose eye is under the landing. Its opening: done in v1.27 (the founders' bell
+  and the great stone). (The Cloud-Mother's falling stone: done in v1.15.)
 - [x] **Hush-House (1.67 → 3.44, v1.8)**: the first crystal in the Threshold; the root-wall's door and its eye seen
   from the disc; the far door wants the pendulums stilled in turn (stilling + order). Left: a shortcut or a
   reversible state; `d2`'s jaws stilled from the passing disc. (The Mother stilled through the order: v1.15.)
