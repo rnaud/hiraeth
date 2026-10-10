@@ -1,0 +1,21 @@
+.claude/skills/perf-audit/fps.mjs
+  s_9ca76055a220ed::t_9573eae887e3ff 6-11,13-17,23,28,31,36,39-40,42-43,47,50,61-62,64-96,113-114,121-142,146,148
+docs/systems/performance.md
+  s_9ca76055a220ed::t_2f2c5d4444da34 1072-1142
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8c244b61e354571e3a0ecd56805ad6ae16b62541",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
