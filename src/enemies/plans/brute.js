@@ -89,13 +89,16 @@ export function bruteModel(skin) {
     many(el, [0, 1, 2, 3, 4, 5].map((k) => { const a = (k / 6) * Math.PI * 2, l = 0.12 + (k % 3) * 0.08; return new THREE.ConeGeometry(0.035, l, 5).rotateX(Math.PI).translate(Math.sin(a) * 0.45, -FORE - 0.06 - l / 2, Math.cos(a) * 0.45); }), tarB);
     const fist = pivot(el, 0, -FORE - 0.12, 0.04, 'fist');
     add(fist, new THREE.SphereGeometry(1, 16, 12).scale(0.4, 0.36, 0.38), hullB, 0, -0.22, 0.02);
-    // (three fingers curled forward and down, a thumb on the inside: each a knuckle and a fingertip)
+    // (three fingers curled forward and down, a thumb on the inside: each finger three plated segments, as a
+    // gauntlet's (the sheet's), a little gap between them, curling further at each joint)
     const fingers = [];
     for (let k = 0; k < 3; k++) {
       const x = (k - 1) * 0.24;
-      fingers.push(new THREE.CapsuleGeometry(0.11, 0.2, 4, 8).translate(x, -0.5, 0.2), new THREE.CapsuleGeometry(0.1, 0.12, 4, 8).rotateX(0.9).translate(x, -0.66, 0.08));
+      fingers.push(new THREE.BoxGeometry(0.21, 0.17, 0.23).translate(x, -0.44, 0.22),
+        new THREE.BoxGeometry(0.2, 0.15, 0.21).rotateX(0.45).translate(x, -0.6, 0.2),
+        new THREE.BoxGeometry(0.18, 0.13, 0.19).rotateX(1.0).translate(x, -0.71, 0.1));
     }
-    fingers.push(new THREE.CapsuleGeometry(0.1, 0.2, 4, 8).rotateZ(s * 0.7).translate(-s * 0.36, -0.3, 0.18));
+    fingers.push(new THREE.BoxGeometry(0.19, 0.16, 0.2).rotateZ(s * 0.7).translate(-s * 0.34, -0.26, 0.18), new THREE.BoxGeometry(0.17, 0.14, 0.18).rotateZ(s * 1.0).translate(-s * 0.44, -0.38, 0.18));
     const hand = new THREE.Group(); fist.add(hand); hand.name = 'fingers';
     if (props.has('shears')) {
       // the pruning machine's: two long steel blades for fingers, a pivot bolt between them
@@ -194,7 +197,7 @@ export function bruteModel(skin) {
         const sgn = k ? 1 : -1;
         let x = sgn * walk + slump * -0.12, z = sgn * 0.06, y = 0, elb = -0.08 - slump * 0.22;
         // slam: both arms straight up over the top, the elbows a little bent, the fists together; down hard
-        x = lerp(x, -2.95, raise); elb = lerp(elb, -0.35, raise); z = lerp(z, -sgn * 0.12, raise);
+        x = lerp(x, -2.95, raise); elb = lerp(elb, -0.35, raise); z = lerp(z, -sgn * 0.36, raise);   // (the fists meeting over its head: the sheet's)
         if (strike && id === 'slam') { x = lerp(-2.95, -0.7, c.release); elb = lerp(-0.35, -0.1, c.release); }
         // hurl: the left arm (the free one) down to the ground, then up over its shoulder with the slab
         if (k === 1) { x = lerp(x, -0.55, bend); elb = lerp(elb, -0.25, bend); x = lerp(x, -2.7, lift); elb = lerp(elb, -1.1, lift); z = lerp(z, 0.25, lift); }
