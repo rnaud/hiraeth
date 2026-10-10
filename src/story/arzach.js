@@ -190,6 +190,7 @@ export function setupArzach(ctx) {
   // the ways home (src/vael-ways.js): the rider's mounting stone on the bird's tracks, and the roost on a stone in the sky
   if (A.tracks?.mount) thing(THINGS.mounting, A.tracks.mount.stand, { range: 3.4, prompt: 'look at the mounting stone', look: A.tracks.mount.look });
   if (A.roost) thing(THINGS.roost, A.roost.stand, { range: 3.4, prompt: 'look at the lean-to', look: A.roost.look });
+  if (A.mast) thing(THINGS.mast, A.mast.look, { range: 3.2, prompt: 'look at the mast', look: A.mast.top });
 
   // ---------------------------------------------------------------- the rider's flute, on the sill
   // a little bone flute with a white feather tied to it by a worn cord, lying on the sill by the window

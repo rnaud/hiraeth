@@ -119,11 +119,11 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go to the tower.', goto: 'go' }],
         },
         go: { say: ["~neutral~ (She points at *the tower’s foot* and sweeps both hands up its side, like rising air. Then she spreads her arms: *wings*.)",
-          { if: { not: { flag: 'item.glider' } }, text: "~neutral~ (She looks at your bare back, then points *west, to the white house with the stone wings* on the plain, and spreads her arms again.)" }], choices: [{ text: '~neutral~ (nod)', end: true }] },
+          { if: { not: { flag: 'item.glider' } }, text: "~neutral~ (She looks at your bare back, then points *west, up the standing stones to the white streamer* on the slope. Past it, she draws a house with stone wings, and spreads her arms again.)" }], choices: [{ text: '~neutral~ (nod)', end: true }] },
         again: {
           say: [{ if: { flag: 'arzach.window.seen' }, text: "~curious~ (Oïa checks your empty hands. She points back at the tower’s window.)" },
             { if: { not: { flag: 'arzach.window.seen' } }, text: "~neutral~ (A finger toward *the tower’s foot*. Both hands sweeping up: the wind. Arms out: wings. Her directions have not changed.)" },
-            { if: { all: [{ not: { flag: 'arzach.window.seen' } }, { not: { flag: 'item.glider' } }] }, text: "~neutral~ (Then west, to *the white house with the stone wings*. Arms out again, patiently.)" }],
+            { if: { all: [{ not: { flag: 'arzach.window.seen' } }, { not: { flag: 'item.glider' } }] }, text: "~neutral~ (Then west, up the standing stones to *the white streamer*, and past it *the white house with the stone wings*. Arms out again, patiently.)" }],
           choices: [{ text: '~curious~ Who lived in the tower?', goto: 'rider', if: { not: { flag: 'arzach.glyph.drawn' } } }, { text: '~neutral~ (nod)', end: true }],
         },
         whistle: {
@@ -243,6 +243,15 @@ export const THINGS = {
         "~solemn~ The great prints in the sand come up to the stone and go on down the slope toward the landing, where Oïa sits. From up here you can see the lone tower."],
       do: { set: { 'arzach.mounting.seen': true } },
       choices: [{ text: '~solemn~ (climb the steps, and look at the tower)', end: true }],
+    } } },
+  },
+  mast: {
+    id: 'mast', name: 'The riders’ mast', title: 'under the crest, west of the landing', color: '#f4efe2', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A tall white pole held up by three stones, a long white streamer cracking off its top. The riders flew one wherever the bird was to come down.",
+        "~curious~ From here, over the crest, a white house with stone wings sits on the plain. The streamer points at it whenever the wind is from the tower."],
+      do: { set: { 'arzach.mast.seen': true } },
+      choices: [{ text: '~neutral~ (go on up)', end: true }],
     } } },
   },
   roost: {

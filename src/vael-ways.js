@@ -13,9 +13,14 @@ import { glyphGeometry } from './story/sign-text.js';
 //                        saddle-cloth), looking out over the landing to the tower.
 //   the rider's roost    a stone floating halfway between the lone tower and the landing, on the line the bird flies
 //                        home: a lean-to, a bedroll, a cup, a long white streamer. Where the rider and the bird rested.
+//   the riders' mast     (level design audit, third round: onboarding) a tall bone-white mast with the riders' long
+//                        white streamer, on the slope just under the plateau's crest past the last standing stone: from
+//                        the landing, where the hollow shows nothing to the west, it shows over the slope where Oïa
+//                        points, and from its foot the white house with the stone wings comes into view.
 //
 //   buildBirdTracks(scene, terrain)  → { points: [[x, y, z]], mount: { at, look, stand } }
 //   buildRidersRoost(scene, terrain) → { top, look, stand, streamer }
+//   buildRidersMast(scene, terrain)  → { at, top, look, wave }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat0 = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); if (!g.attributes.normal) g.computeVertexNormals(); return g; };
@@ -27,6 +32,8 @@ export const MOUNT = { x: -116, z: 55 };
 /** The rider's roost: the floating stone's top, on the line from the tower's window to the landing (about 45 % of the way). */
 export const ROOST = { x: 143, y: 142, z: -222 };
 const TOWER = { x: 260, z: -420 };
+/** The riders' mast: on the slope under the crest past the last standing stone ([x, z]), and how tall (m). */
+export const MAST = { x: -100, z: -6, h: 16 };
 
 export function buildBirdTracks(scene, terrain) {
   const H = (x, z) => terrain.heightAt(x, z);
@@ -109,4 +116,33 @@ export function buildRidersRoost(scene) {
   ladder.userData.noCollide = true; scene.add(ladder);
   const base = streamer.rotation.y;
   return { top: V(x, y, z), look: at(0, 0.9, 0.6), stand: at(0, 0, 2.6), streamer, wave: (t) => { streamer.rotation.y = base + Math.sin(t * 0.7) * 0.14; streamer.rotation.x = Math.sin(t * 1.3) * 0.2; } };
+}
+
+export function buildRidersMast(scene, terrain) {
+  const { x, z, h } = MAST, y = terrain.heightAt(x, z);
+  const wood = makeMaterial({ color: '#d6c7a8', flat: true });
+  const cloth = makeMaterial({ color: '#f4efe2', flat: true, side: THREE.DoubleSide });
+  const rust = makeMaterial({ color: '#c8673f', flat: true, side: THREE.DoubleSide });
+  const stone = makeMaterial({ color: '#f2d6c4', color2: '#e8c0aa', color3: '#f8ecdf', mode: MODE_STRATA, strataSize: 2.2, flat: true });
+  // the mast, a crosspiece near its top, and three stones round its foot holding it
+  const mast = [new THREE.CylinderGeometry(0.2, 0.32, h + 1, 7).translate(0, (h + 1) / 2 - 1, 0), new THREE.CylinderGeometry(0.08, 0.08, 2.4, 5).rotateZ(Math.PI / 2).translate(0, h - 1.4, 0)];
+  const m = new THREE.Mesh(mergeGeometries(mast.map(flat0)), wood);
+  m.position.set(x, y, z); m.name = 'The riders’ mast';
+  scene.add(m);
+  const foot = [0, 2.1, 4.2].map((a, i) => new THREE.IcosahedronGeometry(0.6 + i * 0.08, 0).scale(1.2, 0.7, 1).translate(Math.cos(a) * 0.9, 0.15, Math.sin(a) * 0.9));
+  const st = new THREE.Mesh(mergeGeometries(foot.map(flat0)), stone);
+  st.position.set(x, y - 0.1, z); scene.add(st);
+  // the streamer: the roost's long white tail, longer and wider, off the top, broadside to the landing (it shows over
+  // the slope from there), and the riders' rust-red pennon over it
+  const L = 18, tail = new THREE.PlaneGeometry(L, 2, 28, 1).translate(L / 2, 0, 0);
+  { const p = tail.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / L; p.setY(i, p.getY(i) * (1 - 0.75 * u)); p.setZ(i, Math.sin(u * 8) * 0.7 * u); } tail.computeVertexNormals(); }   // (tapering, in waves)
+  const streamer = new THREE.Mesh(tail, cloth);
+  streamer.position.set(x, y + h - 1.2, z); streamer.rotation.y = Math.PI / 2 + 0.25; streamer.userData.noCollide = true;
+  scene.add(streamer);
+  const pennon = new THREE.Mesh(new THREE.BufferGeometry().setFromPoints([V(0, 0.7, 0), V(0, -0.7, 0), V(3.2, 0, 0)]).rotateY(Math.PI / 2 + 0.25), rust);
+  pennon.geometry.computeVertexNormals();
+  pennon.position.set(x, y + h + 0.2, z); pennon.userData.noCollide = true;
+  scene.add(pennon);
+  const base = streamer.rotation.y;
+  return { at: V(x, y, z), top: V(x, y + h, z), look: V(x + 1.6, y + 1.6, z + 0.6), wave: (t) => { streamer.rotation.y = base + Math.sin(t * 0.6) * 0.12; streamer.rotation.x = Math.sin(t * 1.1) * 0.16; } };
 }

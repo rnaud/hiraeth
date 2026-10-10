@@ -146,6 +146,13 @@ export const ACTIONS = {
     if (!cab.refuses(W.player, 'hail')) issue('cab', 'a cab stopped for him without a pass');
     if (!W.quests.isStarted('incal.pass')) issue('soft-lock', 'a cab refused him, and nothing says where a pass comes from');
   },
+  // Vael: Oïa, by the landing, opens the main quest and sends you up the standing stones to the Aerie for the wings
+  meetOia: (W, issue) => {
+    const r = A.talkTo(W, 'oia', A.goalOf(W, 'arzach.bird'));
+    if (r.error) return issue('soft-lock', r.error);
+    if (!W.quests.isStarted('arzach.bird')) issue('soft-lock', 'talking to Oïa by the landing started nothing');
+    if (!r.said.some((t) => /white streamer/.test(t))) issue('lead', 'Oïa did not point the way to the Aerie');
+  },
   cabTakesYou: (W, issue) => {
     const cab = cabOf(W);
     if (cab && cab.refuses(W.player, 'hail')) issue('cab', 'with the pass, the cabs still refuse him');
@@ -191,7 +198,8 @@ Object.assign(WAYS, {
 // ------------------------------------------------------------------ the route
 export const ROUTE = [
   { id: 'desert', play: ['desert.power'] },
-  { id: 'arzach', play: [{ temple: 'gadget' }, 'arzach.bird'] },     // the wings in the Aerie, then the tower
+  // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
+  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird'] },
   { id: 'arzach2', play: ['arzach2.bell'] },
   { id: 'perdide', play: ['perdide.crystal'] },
   { id: 'perdide2', play: ['perdide2.lamps'] },

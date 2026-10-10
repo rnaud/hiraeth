@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.17 — 2026-10-09
 
+- In Vael, a tall white mast flies the riders’ long streamer and a rust-red pennon on the slope under the crest west of the landing, where the standing stones lead. Oïa points to it when she sends you to the Aerie for wings, and from its foot the white house with the stone wings comes into view.
 - On the straight ride out to the Givers’ Hearth, between Yara’s shade and the wreck, the skiff’s stone anchor lies tipped in the sand, its frayed rope trailing off toward the wreck it failed to hold. It is named as it comes up, and you can look at it.
 - In the giant’s chest under Qanat, a stair of stone now climbs behind the pool, beside one of the tree’s roots, to a doorway in the far wall, and comes up under a hatch in the city’s back lane, a short walk from the well. Once the water runs, the quest sends you up it; the hatch only lifts from below, so the skull’s mouth is still the way in.
 - Lio’s errand is quicker: walk up to Tobin on the rim and he pays the fare as you come, grumbling, with no conversation to sit through between Lio’s two.
