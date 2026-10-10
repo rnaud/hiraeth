@@ -1,0 +1,71 @@
+"references/Core Objects/Round Backpack/sheet/manifest.json"
+  s_9ca76055a220ed::t_41759fe7f98c2c 1-40
+"references/Core Objects/Round Backpack/states/manifest.json"
+  s_9ca76055a220ed::t_b3f90b01221cb3 1-39
+"references/Core Objects/Round Backpack/worn/manifest.json"
+  s_9ca76055a220ed::t_2c5b96347d247a 1-39
+references/guardians/cloud-mother/manifest.json
+  s_9ca76055a220ed::t_ee8f4f8fba9ee9 1-22
+references/guardians/echo/manifest.json
+  s_9ca76055a220ed::t_65ea5cbf65cce2 1-22
+references/guardians/elder/manifest.json
+  s_9ca76055a220ed::t_0858cb94feae73 1-22
+references/guardians/first-sign/manifest.json
+  s_9ca76055a220ed::t_8865adcfb8765f 1-22
+references/guardians/foreman/manifest.json
+  s_9ca76055a220ed::t_04e1c03efd4c1a 1-22
+references/guardians/gardener/manifest.json
+  s_9ca76055a220ed::t_7e1125f28c4d7c 1-22
+references/guardians/keeper/manifest.json
+  s_9ca76055a220ed::t_e94c0249ded442 1-22
+references/guardians/lampless/manifest.json
+  s_9ca76055a220ed::t_ebed2aaef14e21 1-22
+references/guardians/mother-snapper/manifest.json
+  s_9ca76055a220ed::t_f56692bc546714 1-22
+references/guardians/tooth-warden/manifest.json
+  s_9ca76055a220ed::t_da56d8b46de917 1-22
+references/guardians/warden/manifest.json
+  s_9ca76055a220ed::t_ba7a8e204cff68 1-22
+references/temples/rooms/aerie-gulf/manifest.json
+  s_9ca76055a220ed::t_7da104a433e31d 1-22
+references/temples/rooms/aerie-winds/manifest.json
+  s_9ca76055a220ed::t_ed0ec8a8ca872f 1-22
+references/temples/rooms/aerie-wings/manifest.json
+  s_9ca76055a220ed::t_7ae50f8aa4a5e4 1-22
+references/temples/rooms/belfry-echoes/manifest.json
+  s_9ca76055a220ed::t_ddd01c3d8956b2 1-22
+references/temples/rooms/belfry-porch/manifest.json
+  s_9ca76055a220ed::t_53f5eac5042f84 1-22
+references/temples/rooms/belfry-stair/manifest.json
+  s_9ca76055a220ed::t_a6d5975dfa7938 1-22
+references/temples/rooms/givers-channels/manifest.json
+  s_9ca76055a220ed::t_13edb906ef5afb 1-22
+references/temples/rooms/givers-chest/manifest.json
+  s_9ca76055a220ed::t_6e3553920f41a4 1-22
+references/temples/rooms/givers-flame/manifest.json
+  s_9ca76055a220ed::t_ca9c073ad4daff 1-22
+references/temples/rooms/hush-jaws/manifest.json
+  s_9ca76055a220ed::t_77587f77bee86d 1-22
+references/temples/rooms/hush-pendulums/manifest.json
+  s_9ca76055a220ed::t_a40741cd535ca5 1-22
+references/temples/rooms/hush-stilling/manifest.json
+  s_9ca76055a220ed::t_6e4f84282c3b46 1-22
+references/temples/rooms/lamp-roots/manifest.json
+  s_9ca76055a220ed::t_bba046d2213a76 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b234a50fd477ea5d2cb5e2efdca1488e1c2ae432",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
