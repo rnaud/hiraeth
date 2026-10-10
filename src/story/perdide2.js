@@ -459,6 +459,9 @@ export function setupPerdide2(ctx) {
   quests.locate('pimDoor', () => (lampOn() ? pd.doorAt : pd.lampAt));
   quests.locate('fenBerth', () => (fenLampOn() ? bt.at.clone().setY(0.6) : bt.lampAt));
   quests.locate('cave', () => V(CAVE.x, CAVE.y, CAVE.mouth));
+  // (where the pools are done and where Hollin waits at the end: for the level design audit's route, stages' `ends`, `stands`)
+  quests.locate('lastPool', () => pools.at(-1)?.c ?? null);
+  quests.locate('hollinEnd', () => hollinEnd);
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
   // the label counts the pools
   const poolStage = quests.def(Q).stages.find((s) => s.id === 'pools');
@@ -524,6 +527,8 @@ export function setupPerdide2(ctx) {
     updatePimDoor(dt);
     updateBerth(dt);
     updateWave(dt);
+    // the water-way's lamps (src/deep-wood-ways.js): lit once Hollin has heard what was in the saucer
+    level.waterWay?.lit(quests.isDone(Q) || !!game.flag('perdide2.hollin.told'));
   };
 
   // the third pool's moment (src/story/perdide2-moments.js)

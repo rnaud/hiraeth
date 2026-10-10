@@ -36,7 +36,7 @@ export const QUESTS = [
       { id: 'sing', text: 'The crystal sings in the rain. Wait for a shower, or splash its spires with your fluid', label: 'The Great Crystal', flag: 'perdide.crystal.sung', at: 'crystal' },
       { id: 'listen', text: 'Ask Saba about the phrase it has never sung before', label: 'Saba, the Listener', flag: 'perdide.clue.ship', at: 'saba' },
       { id: 'splinter', text: 'Pick up the splinter the song shook loose', label: 'The fallen splinter', flag: 'perdide.splinter.taken', at: 'splinter' },
-      { id: 'cave', text: 'Carry the splinter to the crystal cave on the western island (whistle for the skiff)', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart' },
+      { id: 'cave', text: 'Carry the splinter to the crystal cave on the western island (whistle for the skiff)', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart', home: 'Wendel’s egg-lamps' },   // (home: the way back the ring's page sends you, for the level design audit)
     ],
   },
   {
@@ -471,7 +471,7 @@ export const THINGS = {
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         ring: {
-          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet rises through the glass as a new colour band. The splinter warms in your hand."],
+          say: ['~neutral~ You hold up the splinter in the middle of the ring.', "~solemn~ One crystal answers, then another. Soon the whole cave sings the new phrase back to the splinter.", "~happy~ Your tank joins in. Crystal-violet rises through the glass as a new colour band. The splinter warms in your hand.", "~whisper~ Out past the cave’s west mouth, a row of glowing eggs on posts runs off along the shore toward the landing: Wendel’s egg-lamps, set out to bring the gatherers home."],
           do: [{ set: { 'perdide.heart.rung': true } },
             { keepsake: { id: 'perdide.thing', level: 'perdide', name: 'A singing splinter', kind: 'thing', text: 'A splinter of the Great Crystal that harmonises with your tank. It sings the phrase of the light that passed your ship.' } }],
           choices: [{ text: '~neutral~ (keep it)', end: true }],

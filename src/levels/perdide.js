@@ -10,6 +10,7 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
+import { buildCaveCrown, buildEggLamps } from '../lorn-ways.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -482,6 +483,13 @@ export function* buildPerdide(scene) {
   const shop = placeShop(scene, { def: SHOPS.float, at: new THREE.Vector3(27, terrain.heightAt(27, 13), 13), heading: -2.0 });
   lights.push(...shop.lights);
 
+  // the cave's crown and Wendel's egg-lamps (src/lorn-ways.js, level design audit, fourth round): the cave seen from the
+  // Great Crystal's island, and the way home from its west mouth along the south shore past the gatherers' punt
+  yield;
+  const crown = buildCaveCrown(scene, CAVE, caveMat);
+  lights.push(new THREE.Vector4(crown.top.x, crown.top.y - 8, crown.top.z, 22));
+  const eggLamps = buildEggLamps(scene, terrain);
+
   // the Hush-House on the cave island, and its rooms far overhead (src/temples/perdide.js)
   yield;
   return attachTemple('perdide', scene, {
@@ -498,6 +506,11 @@ export function* buildPerdide(scene) {
     // a glob of the traveller's fluid makes a plant snap shut from afar (the push just rattles it)
     // an ember glob makes one recoil: it clamps shut and shudders (it doesn't feed it)
     targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, accepts: ['fire'], position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' || mode === 'fire' ? 2.5 : 0.8; if (mode === 'shoot') p.fed++; if (mode === 'fire') p.recoil = 1; return true; } })),
+    // what the level design audit reads (scripts/level-design/audit.mjs): the cave's crown, aimed at; the egg-lamps,
+    // followed home where the cave's stage sends you along them; and the punt, something to look at on the way
+    beacons: [{ name: 'the cave’s crown', top: crown.top.toArray(), height: crown.height }],
+    lines: [{ name: 'Wendel’s egg-lamps', points: eggLamps.points, auto: false }],
+    sights: [{ name: 'the gatherers’ punt', at: eggLamps.punt }, { name: 'Wendel’s egg-lamps', at: eggLamps.sight }],
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

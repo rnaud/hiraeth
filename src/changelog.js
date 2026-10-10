@@ -13,6 +13,9 @@ export const CHANGELOG = [
     'In Vael II, the monastery’s roof tiles that fell up with the bell’s clapper now hang in a long drifting string from the floating island’s church back over Tiv’s great table to the bell tower. Brother Calix asks you to follow them home with the clapper.',
     'Eight small floating stones carrying the riders’ old lanterns now hang from the rose cliff’s north lip past the Founders’ Belfry to Sister Aube’s hermitage by the landing. Dark for thirty years, they light again when the bell rings, and Calix sends you home along them.',
     'Brother Calix no longer wanders into the cloister’s door: he keeps to the courtyard beside it.',
+    'Lorn’s crystal cave now wears a crown: teal crystal spires grown up through its ridge from the vault below, glowing with the cave’s own crystals, which show over the swamp from far off.',
+    'Wendel’s egg-lamps, glowing eggs in iron cups on posts in the shallows, now run from the crystal cave’s west mouth along the swamp’s south shore to the landing, the egg-gatherers’ punt moored halfway with its baskets full. When the cave sings, its heart points you home along them.',
+    'In the Deep Wood the lamp-keepers’ old water-way is back: lamps on posts for boats, from a water-gate by the root cave’s lagoon round the deep water east of the wood to the landing, a lamp-raft moored halfway. Hollin lights it once you have told him what was in the saucer, and sends you home along it on the skiff.',
   ] },
   { v: '1.19', date: '2026-10-09', items: [
     // two more temples rebuilt round one idea each (the temple design audit), their guardians ending on it

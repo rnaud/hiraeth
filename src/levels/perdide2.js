@@ -11,6 +11,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
+import { buildWaterWay } from '../deep-wood-ways.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -796,6 +797,11 @@ export function* buildPerdide2(scene) {
   const shop = placeShop(scene, { def: SHOPS.welcome, at: new THREE.Vector3(-10, H(-10, -65), -65), heading: Math.PI / 4 });
   lights.push(...shop.lights);
 
+  // the water-way (src/deep-wood-ways.js, level design audit, fourth round): the keepers' lamps for boats, from the root
+  // cave's lagoon round the deep water east of the wood to the landing, lit again at the end: the skiff's way home
+  yield;
+  const waterWay = buildWaterWay(scene, terrain);
+
   // the Lamp-House in the shallows east of the root cave, and its rooms far overhead (src/temples/perdide2.js)
   yield;
   return attachTemple('perdide2', scene, {
@@ -807,6 +813,13 @@ export function* buildPerdide2(scene) {
     // docs/systems/movement.md "Contact", "What the collision costs a frame")
     collision: { strategy: 'SAH' },
     floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 2) || pathDist(x, z) < 3.6 + r),   // off the lit path, the keep-outs and the shop (src/flora.js)
+    // what the level design audit reads (scripts/level-design/audit.mjs): the saucer's beam while it answers (40 m, src/story/perdide2.js),
+    // the lit path (its pools and egg heaps: a leading line), the water-way home (followed where Hollin sends you
+    // home by it), and the water-gate and the lamp-raft to look at on it
+    beacons: [{ name: 'the saucer’s beam', top: [SAUCER.x, 40, SAUCER.z], height: 40 }],
+    lines: [{ name: 'the lit path', points: PATH_PTS }, { name: 'the water-way', points: waterWay.points, auto: false }],
+    sights: [{ name: 'the water-gate', at: waterWay.gate }, { name: 'the lamp-raft', at: waterWay.raft }],
+    waterWay,
     ground: terrain,
     spawn: new THREE.Vector3(0, spawnY, 0),
     spawnHeading: Math.PI,

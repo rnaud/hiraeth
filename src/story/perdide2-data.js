@@ -54,9 +54,11 @@ export const QUESTS = [
     outro: 'Hollin has welcomed a traveller at last. He hopes you will visit again; the pools will stay lit either way.',
     stages: [
       { id: 'hollin', text: 'Someone is waiting on the island. Talk to the old lamp-keeper', label: 'Hollin, the lamp-keeper', flag: 'perdide2.hollin.met', at: 'hollin' },
-      { id: 'pools', text: 'Relight the three dark pools along the path: shoot them with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool' },
+      // (for the level design audit: the pools are done at the last one, `ends`; Hollin is met at the root cave, where he has
+      //  walked down to, `stands`; and he sends you home by the water-way, `home`)
+      { id: 'pools', text: 'Relight the three dark pools along the path: shoot them with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool', ends: 'lastPool' },
       { id: 'answer', text: 'Something answered from across the water. Whistle for the skiff and go and see', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer' },
-      { id: 'tell', text: 'Tell Hollin what you found. He has walked down to the root cave to see the lights', label: 'Hollin, at the root cave', flag: 'perdide2.hollin.told', at: 'hollin' },
+      { id: 'tell', text: 'Tell Hollin what you found. He has walked down to the root cave to see the lights', label: 'Hollin, at the root cave', flag: 'perdide2.hollin.told', at: 'hollin', stands: 'hollinEnd', home: 'the water-way' },
     ],
   },
   {
@@ -149,7 +151,7 @@ export const KEEPERS = [
             { text: '~sad~ I can’t promise that.', do: [{ set: { 'perdide2.promise': 'maybe', 'perdide2.hollin.told': true } }], goto: 'maybe' },
           ],
         },
-        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ I’ll keep the pool by the landing for you, then. Promises keep a long time out here, if someone trims the wick."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        thanks: { say: ["~happy~ Then I’ll watch for you. No deadline. The pools will be ready.", "~solemn~ I’ll keep the pool by the landing for you, then. Promises keep a long time out here, if someone trims the wick.", "~happy~ Go home by water tonight. I’ve lit *the water-way*, the old lamps for boats: out through the gate by the lagoon, round the deep water. Your skiff knows it."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         came: {
           say: ["~surprised~ You came back. By a path you already knew. (He has to sit down on a root to look at you properly.)", "~happy~ Forty years I lit these for somebody to come back. It turns out it only takes the once."],
           do: { set: { 'perdide2.promise.kept': true } },
@@ -163,7 +165,7 @@ export const KEEPERS = [
           say: ["~solemn~ (You tell him: the lantern on its island, the woman who kept it with them, the two stones on the point.)", "~sad~ They got there. And kept a light at the end of it. Of course they did.", "~happy~ Then my lamps were lit for travellers who arrived somewhere. That’s all I ever wanted for them."],
           choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }],
         },
-        maybe: { say: ["~solemn~ You don’t have to promise. Come if you can. A welcome isn’t a debt."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
+        maybe: { say: ["~solemn~ You don’t have to promise. Come if you can. A welcome isn’t a debt.", "~neutral~ Go home by water, at least. I’ve lit *the water-way*, the old lamps for boats, out through the gate by the lagoon."], choices: [{ text: '~neutral~ Goodbye, Hollin.', end: true }] },
         after: {
           say: ["~happy~ The lights are on. Whenever you come, they’ll be on."],
           choices: [
