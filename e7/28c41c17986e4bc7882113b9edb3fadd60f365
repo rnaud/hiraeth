@@ -1,0 +1,73 @@
+"references/Core Objects/Chests/sheet/manifest.json"
+  s_9ca76055a220ed::t_fcf487706545d6 1-22
+"references/Core Objects/Chests/temple/manifest.json"
+  s_9ca76055a220ed::t_a2f196506fb5b1 1-39
+references/guardians/cloud-mother/manifest.json
+  s_9ca76055a220ed::t_60f6f0bf381288 20-36
+references/guardians/echo/manifest.json
+  s_9ca76055a220ed::t_e041ccac219f9c 20-36
+references/guardians/elder/manifest.json
+  s_9ca76055a220ed::t_cc9b71ff97ffae 20-36
+references/guardians/first-sign/manifest.json
+  s_9ca76055a220ed::t_7a9e6950b6b0c8 20-36
+references/guardians/foreman/manifest.json
+  s_9ca76055a220ed::t_113c617a188274 20-36
+references/guardians/gardener/manifest.json
+  s_9ca76055a220ed::t_5b440dd1dfcd01 20-36
+references/guardians/keeper/manifest.json
+  s_9ca76055a220ed::t_a2286e26864698 20-36
+references/guardians/lampless/manifest.json
+  s_9ca76055a220ed::t_b646c661df5965 20-36
+references/guardians/mother-snapper/manifest.json
+  s_9ca76055a220ed::t_0233b738574dee 20-36
+references/guardians/tooth-warden/manifest.json
+  s_9ca76055a220ed::t_e042bea33567a3 20-36
+references/guardians/warden/manifest.json
+  s_9ca76055a220ed::t_7e698f760044af 20-36
+references/temples/rooms/engine-chamber/manifest.json
+  s_9ca76055a220ed::t_a2302e4915aecb 1-22
+references/temples/rooms/engine-crank/manifest.json
+  s_9ca76055a220ed::t_27911608727228 1-22
+references/temples/rooms/engine-pistons/manifest.json
+  s_9ca76055a220ed::t_b782c71196071e 1-22
+references/temples/rooms/footprint-lens/manifest.json
+  s_9ca76055a220ed::t_30ab47b0dbdbb2 1-22
+references/temples/rooms/footprint-pool/manifest.json
+  s_9ca76055a220ed::t_deb61d20cb5058 1-22
+references/temples/rooms/footprint-spheres/manifest.json
+  s_9ca76055a220ed::t_61feb0e292a46c 1-22
+references/temples/rooms/garage-coil/manifest.json
+  s_9ca76055a220ed::t_66c6c66a3731d6 1-22
+references/temples/rooms/garage-escapement/manifest.json
+  s_9ca76055a220ed::t_0bed058a6d14b3 1-22
+references/temples/rooms/garage-winding/manifest.json
+  s_9ca76055a220ed::t_0265f2222f2429 1-22
+references/temples/rooms/undertower-dishes/manifest.json
+  s_9ca76055a220ed::t_6ff95a569d501d 1-22
+references/temples/rooms/undertower-shell/manifest.json
+  s_9ca76055a220ed::t_1ad3e509cfcd94 1-22
+references/temples/rooms/undertower-well/manifest.json
+  s_9ca76055a220ed::t_5d73b8f7b9bbe8 1-22
+references/temples/rooms/well-crown/manifest.json
+  s_9ca76055a220ed::t_979ea7e9651e91 1-22
+references/temples/rooms/well-jets/manifest.json
+  s_9ca76055a220ed::t_0116b479e5204d 1-22
+references/temples/rooms/well-turning/manifest.json
+  s_9ca76055a220ed::t_d23499d412dc33 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e728c41c17986e4bc7882113b9edb3fadd60f365",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
