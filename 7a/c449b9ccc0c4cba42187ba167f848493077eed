@@ -1,0 +1,201 @@
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_f6c995236f032c 58-61,63
+changelog.md
+  s_9ca76055a220ed::t_765b02f0a5dfd4 5-21
+docs/game-brief.md
+  s_9ca76055a220ed::t_a30798e0a8705f 40,126
+docs/story-bible.md
+  s_9ca76055a220ed::t_0f964a409c17a7 135-161,333-356,374-395,418-439,518,523
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_0eac7633ccc09f 443-502
+docs/systems/progression.md
+  s_9ca76055a220ed::t_ccc8eb09562798 5-10,16-18
+docs/systems/temples.md
+  s_9ca76055a220ed::t_478143f12cc2db 257-308,374
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_e70f878859c71a 1025-1081,1244-1246,1369-1371
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_1e816c5dc3fa99 73
+src/audio.js
+  s_9ca76055a220ed::t_a1494ee901a8fc 2100,2105
+src/boxes/effects.js
+  s_9ca76055a220ed::t_0e1c8810bcbbe9 30-31,43-44,97,107-113,115,125,223,245
+src/boxes/model.js
+  s_9ca76055a220ed::t_24d67f3e31cbe3 391-475,481-482
+src/boxes/placements.js
+  s_9ca76055a220ed::t_1b9bacc54039e0 223-254
+src/changelog.js
+  s_9ca76055a220ed::t_e3cd5646ac9787 11-32
+src/debug-save.js
+  s_9ca76055a220ed::t_88faf8a9c734bc 36-38,70-72,84-85
+src/edge.js
+  s_9ca76055a220ed::t_34b6d952cafb55 37
+src/fluid-kit.js
+  s_9ca76055a220ed::t_6bd935c795af13 25-26,28
+src/fluid-tool.js
+  s_9ca76055a220ed::t_e0e0d4b0cd0ab3 986,1322-1323,1332,1337
+src/foe-worlds.js
+  s_9ca76055a220ed::t_8332cd13f6ffc6 32-33,41-42,44-45
+src/game-menu.js
+  s_9ca76055a220ed::t_730bfe229acad4 37-38
+src/items.js
+  s_9ca76055a220ed::t_0107a854c433d0 79-96,173-188,245-260,275
+src/levels/content.js
+  s_9ca76055a220ed::t_978dd2c3c5ee5e 31,132,349-351,371-378,380,394-409
+src/levels/home-drawings.js
+  s_9ca76055a220ed::t_fa727a2ed5c9ab 16,134-154
+src/levels/index.js
+  s_9ca76055a220ed::t_9ef2dd88895ed8 117-121,138-139,141,152-153,155-156
+src/levels/moon-foundry.js
+  s_9ca76055a220ed::t_6980a1b4cc7870 10,16-19,64-65,101-104,107,109-117,129-130,137,140-147,276,536-541,543-561,615
+src/levels/names.js
+  s_9ca76055a220ed::t_c4ad702879b66f 39,41,46
+src/levels/space-city.js
+  s_9ca76055a220ed::t_8f0430fcc2c410 8-10,12,43-44,54,62-65,69-70,72-80,84-85,93-94,96-102,151,170-171,180,274-279,318-342,357-360,362-372,410,412-427,430-431
+src/levels/underwater-kit.js
+  s_9ca76055a220ed::t_d0bf287b20e9ea 647-773
+src/levels/underwater.js
+  s_9ca76055a220ed::t_81a0159e14db7b 3,7-10,13,17-21,23-35,37-39,42-73,77,79-88,92-96,98-107,110-173,178,189,191-200,202-208,210-222,224-226,228-250,255-263,265,269-297,300-310,314,316-319,322,324-325,327-331,333,348-358,369,373-377,380-390,396-397,401-423,425-427,431-437,439-440,442,445-446,450,453-459
+src/player.js
+  s_9ca76055a220ed::t_9e3054378a7107 1492-1494,2001
+src/resources.js
+  s_9ca76055a220ed::t_b39927f1c4d1d8 117
+src/score.js
+  s_9ca76055a220ed::t_92adf738f4e043 220-256
+src/ship/starmap.js
+  s_9ca76055a220ed::t_bf06ff3467565b 89,92
+src/shop-fronts.js
+  s_9ca76055a220ed::t_7ad562b7a15657 457-552
+src/shop-world.js
+  s_9ca76055a220ed::t_6464f1866580f0 374-426
+src/shop.js
+  s_9ca76055a220ed::t_774850591365c0 48,58,63,66-70
+src/story/all-quests.js
+  s_9ca76055a220ed::t_a97ceba7520b62 16-18,21
+src/story/calls.js
+  s_9ca76055a220ed::t_82565ed600c2cc 104,151-160
+src/story/ending.js
+  s_9ca76055a220ed::t_b72b4f5f0a20b2 62-67,379-385
+src/story/film.js
+  s_9ca76055a220ed::t_b48bea020bf3f4 35-38
+src/story/home-data.js
+  s_9ca76055a220ed::t_aff0634bca736e 53-56
+src/story/index.js
+  s_9ca76055a220ed::t_155a0a46827ce8 39-41,78-80
+src/story/moonfoundry-moments.js
+  s_9ca76055a220ed::t_3e14aad1b2f9db 1-53
+src/story/moonfoundry-people.js
+  s_9ca76055a220ed::t_e80343301bb3e9 1-139
+src/story/moonfoundry.js
+  s_9ca76055a220ed::t_b88237d368c9fb 1-51
+src/story/people-book.js
+  s_9ca76055a220ed::t_0f9502813269fe 32-34,38,372-400,528-541,569-579,700-703
+src/story/scripts.js
+  s_9ca76055a220ed::t_c2ad3dffc1415f 730-825,952
+src/story/shop-data.js
+  s_9ca76055a220ed::t_5257fa72309027 234-272,400-428
+src/story/sightings-detours.js
+  s_9ca76055a220ed::t_970212e3cc5a84 2-3
+src/story/sightings.js
+  s_9ca76055a220ed::t_5f0fd31b7e4c31 51-55,79-80
+src/story/signature.js
+  s_9ca76055a220ed::t_923f4c6f6687f4 52-55
+src/story/spacecity-moments.js
+  s_9ca76055a220ed::t_e797083edf1ad8 1-54
+src/story/spacecity-people.js
+  s_9ca76055a220ed::t_702a51a4631276 1-154
+src/story/spacecity.js
+  s_9ca76055a220ed::t_887ab44bd8759a 1-52
+src/story/underwater-moments.js
+  s_9ca76055a220ed::t_eb597b150ae4fe 1-52
+src/story/underwater-people.js
+  s_9ca76055a220ed::t_981a4d79f33fee 1-175
+src/story/underwater.js
+  s_9ca76055a220ed::t_79d18aabff8cc1 1-60
+src/story/voice.js
+  s_9ca76055a220ed::t_8c718e96d858a2 110-119
+src/temples/guardian-anchor.js
+  s_9ca76055a220ed::t_3c5c4c2ea54192 1-136
+src/temples/guardian-founder.js
+  s_9ca76055a220ed::t_66317eaedbcf19 1-157
+src/temples/guardian-listener.js
+  s_9ca76055a220ed::t_f425b69e3a739f 1-134
+src/temples/hints.js
+  s_9ca76055a220ed::t_fa223dbe7d1160 215-267
+src/temples/index.js
+  s_9ca76055a220ed::t_20afa828aea785 29-34,74-76,105-107
+src/temples/kit.js
+  s_9ca76055a220ed::t_d245145a996eb4 168,234-249
+src/temples/logic.js
+  s_9ca76055a220ed::t_2f6ec316585f44 24,209,211,259,265
+src/temples/migrate.js
+  s_9ca76055a220ed::t_6848cf1c08f4ae 22-24
+src/temples/moonfoundry-data.js
+  s_9ca76055a220ed::t_048afc6b3ed505 1-103
+src/temples/moonfoundry.js
+  s_9ca76055a220ed::t_6e11caf197dfa9 1-621
+src/temples/pieces.js
+  s_9ca76055a220ed::t_f800e1ac1d7781 301-306,325-326,358,385-392,394,749-751,767-772,793,797-802,1798-1800,1817,1820-1824,1831,1841,1843,1863-1864
+src/temples/spacecity-data.js
+  s_9ca76055a220ed::t_d575e938f0d45d 1-90
+src/temples/spacecity.js
+  s_9ca76055a220ed::t_e06d07319cf364 1-654
+src/temples/underwater-data.js
+  s_9ca76055a220ed::t_cef9c953e0ef25 1-90
+src/temples/underwater.js
+  s_9ca76055a220ed::t_77ea265c542dcd 1-577
+src/trials/data.js
+  s_9ca76055a220ed::t_babd9602d53ff4 103-127
+src/water.js
+  s_9ca76055a220ed::t_b86745996da49a 145,148-152,375,380-381,442
+src/wildlife/species.js
+  s_9ca76055a220ed::t_22bdfa7801a66b 930-934,968-986
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_ac837201b7e0a7 99-100
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_d75aed40f896ce 135,138
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_def559a5c486a0 108,113-114,136-137
+tests/moments-moonfoundry.test.js
+  s_9ca76055a220ed::t_9aab7c0c124159 1-99
+tests/moments-spacecity.test.js
+  s_9ca76055a220ed::t_0fa1865c0009eb 1-99
+tests/moments-underwater.test.js
+  s_9ca76055a220ed::t_c6a6e606ed81e0 1-99
+tests/moonfoundry.test.js
+  s_9ca76055a220ed::t_1aede6b853942c 116,118-119,121-122,125,129,199-203,205
+tests/people-page.test.js
+  s_9ca76055a220ed::t_53b916c66da596 25-26,29-30,33,38-41
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_ac4c6384da953b 609-612,615-621,634-638
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_3520229c239ddd 210-261,270-271,276-277,279-281
+tests/route.test.js
+  s_9ca76055a220ed::t_f0e973c65e7c4b 55
+tests/signature-search.test.js
+  s_9ca76055a220ed::t_fba60b761a1e7f 105
+tests/spacecity-world.test.js
+  s_9ca76055a220ed::t_48feed4d092911 1,23,25-26,28-29,32,36
+tests/temples.test.js
+  s_9ca76055a220ed::t_4854d47c54a040 236-238,241-242,244-245,272,1430-1779,3012-3216
+tests/trials.test.js
+  s_9ca76055a220ed::t_d7129df018c2f6 51-54
+tests/underwater.test.js
+  s_9ca76055a220ed::t_c613e2c4ccc907 2-3,12,117,119,121-123,126,129,131-137,139-149,152-164,168-176,178,180-181,183,188,191-194
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7ac449b9ccc0c4cba42187ba167f848493077eed",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
