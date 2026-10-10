@@ -8,6 +8,8 @@
 //   batch 3    (kit phase 5) the skitter (a quick tripod at the mid tier), the stilt heron (two stilts one at a time),
 //              the root knot (five three-segment arms on FABRIK, one at a time), the bellows toad (hop by hop: its
 //              feet still between hops, tucked in the air; the hop's rate follows its speed)
+//   batch 4    (kit phase 5, the machines) the furnace brute (two heavy legs, one at a time, the knee forward) and the bell
+//              walker (five spider legs round the ring, one at a time, in a machine's straight moves)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -31,6 +33,10 @@ const SUBJECTS = [
   { id: 'rootknot', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] },
   { id: 'toad', legs: kitLegs, n: 4, groups: [[0, 1], [2, 3]] },          // (a hop lifts all four: arms and legs)
   { id: 'toad@incal', legs: kitLegs, n: 4, groups: [[0, 1], [2, 3]] },
+  { id: 'brute', legs: kitLegs, n: 2, groups: [[0], [1]] },              // (batch 4: the slow brute, one heavy leg at a time)
+  { id: 'brute@glassdunes', legs: kitLegs, n: 2, groups: [[0], [1]] },
+  { id: 'bell', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] }, // (the siege machine: five legs one at a time)
+  { id: 'bell@saltharbour', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] },
 ];
 
 const sys = foeSystem();

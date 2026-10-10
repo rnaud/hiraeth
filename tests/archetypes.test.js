@@ -61,7 +61,7 @@ test('the roster: 21 archetypes, 12 creatures, 5 machines and 4 spirits, each it
     const plans = fam(f).map((a) => ARCHETYPES[a].planNo + ARCHETYPES[a].plan);
     assert.equal(new Set(plans).size, plans.length, `no two ${f}s share a body plan`);
   }
-  assert.deepEqual(BUILT.sort(), ['blot', 'centipede', 'crab', 'heron', 'hound', 'jelly', 'lizard', 'moth', 'ray', 'rootknot', 'skitter', 'toad', 'tripod', 'worm'], 'batches 1 to 3 are built');
+  assert.deepEqual(BUILT.sort(), ['bell', 'blot', 'brute', 'cart', 'centipede', 'crab', 'drone', 'heron', 'hound', 'jelly', 'lizard', 'moth', 'ray', 'rootknot', 'skitter', 'toad', 'tripod', 'worm'], 'batches 1 to 4 are built');
   for (const a of ['blot', 'crab', 'hound', 'lizard', 'tripod']) assert.ok(ARCHETYPES[a].art.main, `${a}: batch 1 is drawn to both its sheets`);
   assert.equal(ARCHETYPES.lizard.plan, ARCHETYPES.hound.plan, 'the lizard and the hound: one quadruped rig');
   assert.ok(ARCHETYPE_IDS.filter((a) => ARCHETYPES[a].ranged).length >= 8, 'eight ranged or area roles (the blot spits too)');

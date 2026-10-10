@@ -339,3 +339,35 @@ test('a hopper lands with its feet at their homes, not spread over a stride (ctx
   rig.planner.feet.forEach((foot) => { rig.planner.homeOf(foot, f.pos, 0, h); assert.ok(foot.pos.distanceTo(h) < 1e-9 && foot.planted, 'at its home, planted'); });
   assert.ok(g);
 });
+
+// ------------------------------------------------------------------ phase 5 (cont.): the machines (roster batch 4)
+import { TrackDrive, Pendulum } from '../src/motion-kit/machines.js';
+
+test('tracks never slip: driving straight both belts run the distance; turning on the spot they run opposite ways by the turn times half the gauge; the chassis tips over a bump', () => {
+  const T = new TrackDrive({ gauge: 1.5, length: 1.9, wheel: 0.17 }), p = new THREE.Vector3();
+  for (let i = 0; i <= 60; i++) { p.z = i * 0.05; T.update(1 / 60, p, 0); }
+  assert.ok(Math.abs(T.left - 3) < 1e-9 && Math.abs(T.right - 3) < 1e-9, `straight: ${T.left.toFixed(3)}, ${T.right.toFixed(3)} m`);
+  assert.ok(Math.abs(T.wheelAngle(1) - 3 / 0.17) < 1e-9, 'a road wheel turns by the run over its radius');
+  const S = new TrackDrive({ gauge: 1.5 }), q = new THREE.Vector3();
+  for (let i = 0; i <= 60; i++) S.update(1 / 60, q, (i / 60) * Math.PI / 2);   // (a quarter turn toward +x, on the spot)
+  assert.ok(Math.abs(S.left + (Math.PI / 2) * 0.75) < 1e-6 && Math.abs(S.right - (Math.PI / 2) * 0.75) < 1e-6, `on the spot: ${S.left.toFixed(3)}, ${S.right.toFixed(3)} m`);
+  // a bump under its front: the nose rises (pitch < 0: the chassis tips back)
+  const B = new TrackDrive({ gauge: 1.5, length: 1.9 }), r = new THREE.Vector3(), ground = (x, y, z) => (z > 0.5 ? 0.3 : 0);
+  for (let i = 0; i < 120; i++) B.update(1 / 60, r, 0, ground);
+  assert.ok(B.out.pitch < -0.05, `the nose up over the bump (${B.out.pitch.toFixed(3)} rad)`);
+  B.update(1 / 60, r.set(10, 0, 0), 0);
+  assert.ok(Math.abs(B.out.dl) < 1e-9, 'a teleport is no run');
+});
+
+test('a pendulum hung from a moving pivot: it swings back as the pivot sets off, settles, and swings higher when kicked', () => {
+  const P = new Pendulum({ length: 1.2, damping: 0.6 }), at = new THREE.Vector3();
+  let least = 0;
+  for (let i = 0; i < 30; i++) { at.z += 0.5 * (i / 30) * (i / 30); P.update(1 / 60, at, 0); least = Math.min(least, P.a); }
+  assert.ok(least < -0.05, `left behind as it sets off (${least.toFixed(3)} rad)`);
+  for (let i = 0; i < 1200; i++) P.update(1 / 60, at, 0);
+  assert.ok(Math.abs(P.a) < 0.03 && Math.abs(P.va) < 0.1, `it settles hanging down (${P.a.toFixed(3)} rad)`);
+  P.kick(3);
+  let most = 0; for (let i = 0; i < 60; i++) { P.update(1 / 60, at, 0); most = Math.max(most, P.a); }
+  assert.ok(most > 0.4 && most <= P.max, `kicked, it swings up (${most.toFixed(2)} rad)`);
+  for (const plan of ['brute', 'siege', 'tracked', 'hover']) assert.ok(PLANS[plan]?.poses?.coil, `${plan}: a plan of the kit with its poses`);
+});

@@ -65,6 +65,72 @@ export function merged(geos) {
 }
 /** Many small parts of one material (tubes, cones, spheres: each a geometry already placed in parent's frame) as one mesh. */
 export const many = (parent, geos, mat, x = 0, y = 0, z = 0) => add(parent, merged(geos), mat, x, y, z);
+/**
+ * Many moving parts of one material as one skinned mesh (one draw, the motion kept): each mesh's geometry is bound to
+ * its parent, the joint that moves it (a leg's thigh, shin and foot, a feeler's pivot: the kit keeps moving those), each
+ * tinted by its own material's colour over `mat`'s (vertex colours: `mat` needs vertexColors), and the meshes are taken
+ * out. owner: where it goes (the model's root, built at rest). Returns the skinned mesh.
+ */
+export function skinned(owner, meshes, mat) {
+  owner.updateMatrixWorld(true);
+  const bones = [], index = new Map(), geos = [], inv = new THREE.Matrix4().copy(owner.matrixWorld).invert(), m = new THREE.Matrix4();
+  const base = mat.uniforms?.uColor?.value ?? new THREE.Color(1, 1, 1);
+  for (const mesh of meshes) {
+    const bone = mesh.parent;
+    if (!index.has(bone)) { index.set(bone, bones.length); bones.push(bone); }
+    const g = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+    for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+    const n = g.attributes.position.count;
+    if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(n * 2), 2));
+    g.applyMatrix4(m.multiplyMatrices(inv, mesh.matrixWorld));
+    const c = mesh.material?.uniforms?.uColor?.value ?? base, b = index.get(bone);
+    const col = new Float32Array(n * 3), si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      col[i * 3] = c.r / Math.max(base.r, 1e-3); col[i * 3 + 1] = c.g / Math.max(base.g, 1e-3); col[i * 3 + 2] = c.b / Math.max(base.b, 1e-3);
+      si[i * 4] = b; sw[i * 4] = 1;
+    }
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+    g.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+    geos.push(g);
+    mesh.removeFromParent(); mesh.geometry.dispose();
+  }
+  const sm = new THREE.SkinnedMesh(mergeGeometries(geos, false), mat);
+  for (const g of geos) g.dispose();
+  sm.name = 'skinned'; sm.frustumCulled = false;   // (its bounds move with its joints)
+  owner.add(sm);
+  sm.updateMatrixWorld(true);
+  sm.bind(new THREE.Skeleton(bones));
+  // its bounds as its joints move (a gallery frames it, a box is taken of it): each joint's own box of its vertices, at
+  // the joint's place now (three's would skin every vertex once, with the joints as they were then, and keep that)
+  const local = bones.map(() => new THREE.Box3()), pos = sm.geometry.attributes.position, idx = sm.geometry.attributes.skinIndex, v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) local[idx.getX(i)].expandByPoint(v.fromBufferAttribute(pos, i).applyMatrix4(sm.matrixWorld).applyMatrix4(sm.skeleton.boneInverses[idx.getX(i)]));
+  const box = new THREE.Box3(), sphere = new THREE.Sphere(), back = new THREE.Matrix4(), corner = new THREE.Vector3();
+  const bounds = () => {
+    sm.updateWorldMatrix(true, false); back.copy(sm.matrixWorld).invert(); box.makeEmpty();
+    bones.forEach((b, i) => {
+      const L = local[i]; if (L.isEmpty()) return;
+      b.updateWorldMatrix(true, false);
+      for (let k = 0; k < 8; k++) box.expandByPoint(corner.set(k & 1 ? L.max.x : L.min.x, k & 2 ? L.max.y : L.min.y, k & 4 ? L.max.z : L.min.z).applyMatrix4(b.matrixWorld).applyMatrix4(back));
+    });
+    return box;
+  };
+  Object.defineProperty(sm, 'boundingBox', { configurable: true, get: bounds, set() {} });
+  Object.defineProperty(sm, 'boundingSphere', { configurable: true, get: () => bounds().getBoundingSphere(sphere), set() {} });
+  return sm;
+}
+
+/**
+ * The whole body's moving parts by material as a few skinned meshes: sets [{ from: [materials built with], into: the
+ * skinned mesh's material (vertexColors) }]; every mesh under owner in one of `from` goes into its set's mesh (its own
+ * colour kept as a tint). Returns the skinned meshes, in the sets' order (null for a set with no mesh).
+ */
+export function skinBy(owner, sets) {
+  const lists = sets.map(() => []);
+  owner.traverse((o) => { if (!o.isMesh || o.isSkinnedMesh) return; const i = sets.findIndex((s) => s.from.includes(o.material)); if (i >= 0) lists[i].push(o); });
+  return sets.map((s, i) => (lists[i].length ? skinned(owner, lists[i], s.into) : null));
+}
+
 /** A segment (a cylinder) from a to b, radius r (r1 at b). */
 export function rod(parent, a, b, r, mat, r1 = r) {
   const A = Array.isArray(a) ? V(...a) : a, B = Array.isArray(b) ? V(...b) : b, d = B.clone().sub(A);

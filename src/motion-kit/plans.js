@@ -136,6 +136,79 @@ export const PLANS = {
     },
     style: 'organic',
   },
+  // ---------------------------------------------------------------- phase 5 (cont.): the roster's batch 4, the machines
+  // plan 8: the giant slow brute (the furnace brute): two short legs, the knee bending forward, a long stance and a slow
+  // heavy step; the body on soft underdamped springs, so it dips deep at each footfall and overshoots when it stops, and
+  // its hips shift over the standing foot (a big sway); its long arms swing from the shoulders (src/enemies/plans/brute.js)
+  brute: {
+    gait: { gait: 'alternate', drift: 0.36, stepTime: [0.38, 0.72], height: 0.14, arc: 'organic', duty: 0.72, reach: 0.5 },
+    knee: { lenA: 0.56, lenB: 0.56, pole: 'forward' },
+    body: { bob: 0.1, lean: 0.035, bank: 0.02, sway: 0.55, tilt: 0.16, spring: { f: 1.5, z: 0.42, r: 0 }, height: { f: 2.1, z: 0.32, r: 0 } },
+    poses: {
+      coil: { y: -0.06, z: -0.1, pitch: -0.26, spread: 1.18 },        // (the slam: both fists over the top, the torso arched back)
+      strike: { y: -0.2, z: 0.18, pitch: 0.32 },                       // (down onto the fists, all its weight)
+      recover: { y: -0.12, z: 0.04, pitch: 0.14 },
+      hurt: { y: -0.06, roll: 0.08 },
+      'coil:hurl': { y: -0.18, z: 0.04, pitch: 0.3, spread: 1.15 },    // (bent over, tearing up the slab: it straightens to throw)
+      'strike:hurl': { y: 0, z: 0.06, pitch: -0.1 },
+      'coil:sweep': { y: -0.05, z: -0.02, yaw: 0.55, spread: 1.12 },  // (the backhand: one arm swung back, the shoulder turned)
+      'strike:sweep': { y: -0.06, z: 0.04, yaw: -0.65 },
+    },
+    style: 'organic',
+  },
+  // plan 19: the siege machine (the bell walker): five short spider legs round a hub, one at a time round the ring (a
+  // wave), a very slow step in a machine's three straight moves; the great bell on its yoke rides on stiff springs and
+  // swings with its own lag, the clapper a pendulum inside it (src/motion-kit/machines.js Pendulum)
+  siege: {
+    gait: { gait: 'wave', drift: 0.3, stepTime: [0.32, 0.6], height: 0.2, arc: 'machine', duty: 0.8, reach: 0.5 },
+    knee: { lenA: 0.4, lenB: 1.08, pole: 'out-up' },                   // (a short thigh rising out of the hub to a high knee, a long shin down)
+    body: { bob: 0.04, lean: 0.03, bank: 0.02, sway: 0.2, tilt: 0.14, spring: { f: 2.2, z: 0.5, r: 0 }, height: { f: 2.6, z: 0.55, r: 0 } },
+    swing: { length: 1.25, damping: 0.6, drive: 0.5 },                  // (the bell on its yoke: a pendulum of `length` m)
+    clapper: { length: 1.15, damping: 0.35, drive: 1 },
+    poses: {
+      coil: { y: 0.08, z: -0.16, pitch: -0.34, spread: 1.1 },         // (the toll: reared back on its rear legs, the clapper swinging higher)
+      strike: { y: -0.04, z: 0.08, pitch: 0.12 },
+      recover: { y: -0.04, pitch: 0.04 },
+      hurt: { y: -0.08, roll: 0.06 },
+      'coil:drop': { y: 0.5, z: 0, pitch: 0, spread: 0.9 },           // (the drop: its legs straighten and the bell rises a metre)
+      'strike:drop': { y: -0.2, z: 0, pitch: 0 },
+    },
+    style: 'machine',
+  },
+  // plan 17: the tracked machine (the crucible cart): no legs; two tracks that turn by the distance each side covered
+  // (src/motion-kit/machines.js TrackDrive: never a slip, a turn on the spot runs them opposite ways), the chassis
+  // pitching and rolling on springs over the ground under its four corners, a turret that turns on a slow spring with
+  // a servo's overshoot (ζ 0.4) and notches
+  tracked: {
+    track: { gauge: 1.5, length: 1.9, wheel: 0.17 },
+    body: { spring: { f: 2.4, z: 0.38, r: 0 }, tilt: 0.25, settle: 0.04 },
+    turret: { f: 1.1, z: 0.4, r: 0, notch: 0.035 },
+    poses: {
+      coil: { y: -0.04, z: -0.06, pitch: -0.08 },                       // (the pour: it sits back on its springs as the crucible tips)
+      strike: { y: 0, z: 0.05, pitch: 0.06 },
+      recover: { y: -0.02, pitch: 0.03 },
+      hurt: { y: -0.03, roll: 0.06 },
+      'coil:ram': { y: -0.06, z: -0.12, pitch: -0.12 },               // (the ram: backed up, squatting on its springs, the tracks spinning)
+      'strike:ram': { y: 0, z: 0.1, pitch: 0.14 },
+    },
+    style: 'machine',
+  },
+  // plan 13 for a machine (the ring drone): no wings; it hovers on springs, its plates spinning at their own speeds, and
+  // tilts with a servo's overshoot (underdamped, ζ 0.35); its aim moves in notches (src/enemies/plans/hover.js)
+  hover: {
+    plates: { spin: [0.7, -1.1, 1.5], lock: 11 },                     // (rad/s each plate idling; spun up and locked for the ram)
+    body: { tilt: 0.05, tiltMax: 0.4, bob: 0.08, spring: { f: 2.4, z: 0.35, r: 0 } },
+    aim: 0.12,                                                         // (rad: the notches its aim moves in)
+    poses: {
+      coil: { y: 0.12, z: -0.1, pitch: -0.1 },                         // (the harpoon: the plates part, it draws back a little)
+      strike: { y: 0, z: 0.1, pitch: 0.12 },
+      recover: { y: -0.08 },
+      hurt: { y: -0.2, roll: 0.4 },
+      'coil:ram': { y: 0.45, z: -0.2, pitch: -0.3 },                   // (the ram: it rises, rocked back, plates locked and spinning up)
+      'strike:ram': { y: -0.3, z: 0.3, pitch: 0.4 },
+    },
+    style: 'machine',
+  },
   // ---------------------------------------------------------------- the chain plans (kit phase 4: src/motion-kit/chain.js)
   // plan 3: the centipede: a follow-the-leader spine on the head's own path (PathTrail), a pair of legs per segment
   // stepping in a metachronal wave on distance (src/motion-kit/wave-legs.js), knees out and up

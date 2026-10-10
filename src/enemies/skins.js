@@ -123,30 +123,43 @@ export const SKINS = {
     desert: { name: 'cistern pump', palette: { body: '#e9dfbb', body2: '#f2ead0', leg: '#e9dfbb', brass: '#b39464', accent: '#cfa2a7', dark: '#3a2f28', lamp: '#fff2c0', rust: '#c98d4f' }, props: ['pump'] },
   },
   cart: {
-    garage: { name: 'welding cart', palette: { body: '#2f4a4a', accent: '#ff9a3e' } },
-    buried: { name: 'ore cart', palette: { body: '#8a5a3a', accent: '#ff7a2e' } },
-    moonfoundry: { name: 'crucible cart', palette: { body: '#efe4c8', accent: '#ff7a2e' } },
-    overnighttrain: { name: 'luggage trolley', palette: { body: '#8a5a3a', accent: '#d8b048' }, arena: true },
+    // (sheet-1, the Hangar's: black-teal and gunmetal steel, patched khaki canvas covers, bronze bolts, a glowing orange lip,
+    // the brew ink-black and violet, two welding-torch arms; sheet-2, the Moon Foundry's: cream enamel with chipped edges,
+    // soot-darkened brass, glowing ember slag at the lip, no torch arms)
+    garage: { name: 'welding cart', palette: { body: '#3e5a5c', body2: '#4f6e70', brass: '#a8854e', dark: '#1e2626', canvas: '#9c8e70', canvas2: '#7a6e56', pot: '#4a6466', pot2: '#5c7678', track: '#3a3c3c', wheel: '#55605e', brew: '#1d1626', lip: '#ff9a3e', slag: '#ff8a2e', slag2: '#ffd36a', smoke: '#1c1a1e', smoke2: '#55525a', eye: '#f8f4ff', crust: '#7a8590', flame: '#ffd27a', dust: '#8a8072', rust: '#a0603e' }, props: ['torches'] },
+    buried: { name: 'ore cart', palette: { body: '#7a5a40', body2: '#8e6c50', brass: '#8a5a3a', dark: '#2e2620', canvas: '#8a7058', canvas2: '#6a5444', pot: '#8a4f32', pot2: '#a0603e', track: '#3a3430', wheel: '#5a4a40', brew: '#1d1626', lip: '#ff7a2e', slag: '#ff7a2e', slag2: '#ffc06a', smoke: '#1b1720', smoke2: '#3e3048', eye: '#ffe0c0', crust: '#7a7a80', dust: '#8d8a86', rust: '#b06a3a' }, props: ['bucket'] },
+    moonfoundry: { name: 'crucible cart', palette: { body: '#ece2c8', body2: '#f6eedc', brass: '#9a7a48', dark: '#3a2e26', canvas: '#e6dcc2', canvas2: '#c9bc9c', pot: '#efe6d0', pot2: '#f8f2e2', track: '#4a3e34', wheel: '#9a7a48', brew: '#e8783a', lip: '#ffb06a', slag: '#ff8a3e', slag2: '#ffd36a', smoke: '#2a2228', smoke2: '#5a4a4a', eye: '#fff6e0', crust: '#8a8a8a', dust: '#a89a84', rust: '#5a4a3e' }, props: ['ember'] },
+    overnighttrain: { name: 'luggage trolley', palette: { body: '#8a5a3a', body2: '#a06e4a', brass: '#d8b048', dark: '#2a2018', canvas: '#a67c52', canvas2: '#7a5a3a', pot: '#6a4a32', pot2: '#7e5a3e', track: '#2a2420', wheel: '#d8b048', brew: '#1d1626', lip: '#d8b048', slag: '#ff8a2e', slag2: '#ffd36a', smoke: '#1b1720', smoke2: '#4a3a5e', eye: '#fff4d8', crust: '#7a7a80', dust: '#8a8072', rust: '#7a4a2e' }, props: ['trolley'], arena: true },
   },
   bell: {
-    bazaar: { name: 'sign automaton', palette: { body: '#b0783c', accent: '#5aa39b' } },
-    saltharbour: { name: 'dock winch', palette: { body: '#4f6f8a', accent: '#c9a46a' } },
-    underside: { name: 'cable crane', palette: { body: '#4c566a', accent: '#d8b048' } },
+    // (sheet-1, the Signal Market's: aged bronze with teal verdigris, a brass yoke hung with little coins and patched cloth
+    // pennants, amber accents, the spirit ink-black and violet; sheet-2, the Salt Harbour's: a weathered cream winch drum
+    // in the yoke, its chain and hook swinging below as the clapper, a turquoise yoke with rusty coral plates, salt crust)
+    bazaar: { name: 'sign automaton', palette: { bell: '#c4a96a', bell2: '#d4bc82', bellInside: '#4a4030', verd: '#6fb5a2', yoke: '#b89448', leg: '#b39a5a', joint: '#7fb5a0', dark: '#3a3228', spirit: '#1a1622', shine: '#6a4a9e', eye: '#f8f4ff', coin: '#d8b048', cloth: '#b8a8d8', clapper: '#5a5048' }, props: ['coins', 'pennants'] },
+    saltharbour: { name: 'dock winch', palette: { bell: '#ece2cc', bell2: '#f6eedc', bellInside: '#4a4a52', verd: '#d9826a', yoke: '#6fc2b4', leg: '#6fc2b4', joint: '#d9826a', dark: '#3a3a48', spirit: '#1a1622', shine: '#5a4a8e', eye: '#f8f4ff', chain: '#8a8e94', drum2: '#e8dcc6', salt: '#f8f6ee' }, props: ['winch', 'salt'] },
+    underside: { name: 'cable crane', palette: { bell: '#4c566a', bell2: '#5f6a80', bellInside: '#22283a', verd: '#8a96a8', yoke: '#d8b048', leg: '#4c566a', joint: '#d8b048', dark: '#22283a', spirit: '#14121c', shine: '#5a5a8e', eye: '#f4f0ff', chain: '#cdd2d8', drum2: '#d8b048', salt: '#a7b6c9' }, props: ['winch'] },
   },
   drone: {
-    incal: { name: 'rust drone', palette: { body: '#b39464', accent: '#d99a8a' } },
-    garage: { name: 'scrap drone', palette: { body: '#8a8478', accent: '#b8603a' } },
-    spheres: { name: 'ring drone', palette: { body: '#f2ece2', accent: '#d8b048' } },
-    antennas: { name: 'relay drone', palette: { body: '#c98a54', accent: '#efe4c8' } },
-    spacecity: { name: 'airlock drone', palette: { body: '#f4f4f0', accent: '#5f7fd8' } },
-    fallenring: { name: 'gyroscope drone', palette: { body: '#e8efe8', accent: '#d8b048' } },
+    // (sheet-1, the City-Shaft's: weathered brass plates with pink rust, ivory enamel rims, slate-blue undersides, the smoke
+    // ink-black and violet; sheet-2, the Garden of Spheres': pearl-white plates with fine gold rims, gold arms, a faint prism
+    // shimmer, the smoke a pale blue-grey)
+    incal: { name: 'rust drone', palette: { plate: '#c9a868', plate2: '#d8bc84', rim: '#efe5cd', under: '#7088a8', dark: '#2e2a2c', brass: '#b8924e', smoke: '#2c2834', smoke2: '#6e6680', eye: '#f6f2ff', steel: '#d0d4da', rust: '#d9998a', accent: '#7088a8' }, props: ['rust'] },
+    garage: { name: 'scrap drone', palette: { plate: '#6a6e6a', plate2: '#7e827c', rim: '#9a9488', under: '#3a3a3a', dark: '#1e1e1e', brass: '#a07a48', smoke: '#1c1a20', smoke2: '#3e3a46', eye: '#f4f4e8', rust: '#a0603e', tints: ['#7a5a3e', null, '#5f6b4a'] }, props: ['scrap'] },
+    spheres: { name: 'ring drone', palette: { plate: '#f6f2ea', plate2: '#fdfbf6', rim: '#f8f4ee', under: '#e4dfe8', dark: '#8a7a5a', vent: '#d8b048', brass: '#d8b048', smoke: '#9aa0b4', smoke2: '#cfd4e2', eye: '#ffffff', rust: '#e8d8f0', accent: '#d8b048' }, props: ['pearl'] },
+    antennas: { name: 'relay drone', palette: { plate: '#c98a54', plate2: '#d8a070', rim: '#efe4c8', under: '#5a6a5a', dark: '#2a2622', brass: '#c98a54', smoke: '#1f1a26', smoke2: '#4a3a5a', eye: '#e8f07a', rust: '#6fbf9a' }, props: ['dish'] },
+    spacecity: { name: 'airlock drone', palette: { plate: '#f4f4f0', plate2: '#ffffff', rim: '#f8f8f6', under: '#b8c4dc', dark: '#2a3048', brass: '#8fa8e8', smoke: '#1c1e2a', smoke2: '#3a4466', eye: '#dff0ff', rust: '#c8d4ec', accent: '#5f7fd8' }, props: ['stripe'] },
+    fallenring: { name: 'gyroscope drone', palette: { plate: '#e8efe8', plate2: '#f4f8f4', rim: '#d8b048', under: '#3f8f8a', dark: '#24302e', brass: '#d8b048', smoke: '#1c2624', smoke2: '#3a5a56', eye: '#fff4b0', rust: '#7fb59a' }, props: ['gyro'] },
   },
   brute: {
-    perdide2: { name: 'wood cutter', palette: { body: '#efe4c8', accent: '#3f6a3c' } },
-    edena: { name: 'pruning machine', palette: { body: '#e8e2d0', accent: '#6fa85c' } },
-    glassdunes: { name: 'furnace walker', palette: { body: '#8fd9c0', accent: '#ffffff' } },
-    waterfall: { name: 'turbine guardian', palette: { body: '#c8d0d0', accent: '#5f9fb8' } },
-    moonfoundry: { name: 'crucible hand', palette: { body: '#efe4c8', accent: '#ff7a2e' } },
+    // (sheet-1, Lorn II's wood cutter: old ivory hull with brass fittings, cracked all over, the widest cracks glowing violet,
+    // tar dripping, dark roots and moss grown over it, a rusted saw blade in one fist, deep teal shadows; sheet-2, the Glass
+    // Dunes' furnace walker: plated in faceted pale aqua glass over a sand-gold hull, the cracks glowing orange, a glowing
+    // furnace door in its chest)
+    perdide2: { name: 'wood cutter', palette: { body: '#e6d8b4', body2: '#efe5c8', joint: '#d6c69e', brass: '#b38d4e', verd: '#6f9a8a', tar: '#1d1a26', core: '#c9a25a', glow: '#a77bff', seam: '#4a4452', slab: '#8a7f70', root: '#3b3127', moss: '#6f8a3a', saw: '#a8693e', dark: '#2a2622' }, props: ['roots', 'saw'] },
+    edena: { name: 'pruning machine', palette: { body: '#ece6d4', body2: '#f6f1e2', joint: '#d9d2bd', brass: '#8fae7a', verd: '#5f9a7a', tar: '#1d1a26', core: '#a6d86a', glow: '#9a6cff', seam: '#46503f', slab: '#6f7a5a', root: '#4f6a3a', moss: '#7fb85c', blade: '#cfd4d8', dark: '#26302a' }, props: ['shears', 'roots'] },
+    glassdunes: { name: 'furnace walker', palette: { body: '#a9ded6', body2: '#d8f3ef', joint: '#c9a868', brass: '#c9a35e', verd: '#e8c88a', tar: '#1d1a26', core: '#ffa23e', glow: '#ff7a2e', seam: '#f2dfaa', slab: '#c9e8e0', dark: '#2a3a38' }, props: ['door'] },
+    waterfall: { name: 'turbine guardian', palette: { body: '#b9c6cc', body2: '#d2dde2', joint: '#8fa3ad', brass: '#c49a52', verd: '#5f9fb8', tar: '#1a2028', core: '#9fe0ff', glow: '#8f7bff', seam: '#2e3a44', slab: '#6f8a94', dark: '#1e262c' }, props: ['turbine', 'wet'] },
+    moonfoundry: { name: 'crucible hand', palette: { body: '#ece0c4', body2: '#f6ecd6', joint: '#5a4a3e', brass: '#8a6a3a', verd: '#4a3a30', tar: '#1d1a20', core: '#ff9a3e', glow: '#ff7a2e', seam: '#3a2e28', slab: '#5a4e46', dark: '#2a2220' }, props: ['ladle'] },
   },
   shade: {
     perdide2: { name: 'hollow woodsman', palette: { body: '#15121c', accent: '#6b5a3a' } },

@@ -25,8 +25,8 @@ import { ARCHETYPES, BUILT } from './enemies/archetypes.js';
 
 /** What a foe of each kind leaves, in chimes (a fraction is a chance of one: a swarm's skitters). */
 export const DROP_OF = {
-  drone: 4, machine: 6,
-  shade: 8, golem: 8, slag: 8,                         // the heavy ones
+  machine: 6,
+  shade: 8,                                            // the heavy ones (the furnace brute, the cart and the bell: their `drop`)
   // the built archetypes (their `drop`): the skitter ½, the moth 1, the blot 2, the toad and the heron 3, the root knot 5…
   ...Object.fromEntries(BUILT.map((a) => [ARCHETYPES[a].kind, ARCHETYPES[a].drop])),
 };

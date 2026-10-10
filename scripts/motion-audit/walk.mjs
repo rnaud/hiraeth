@@ -25,6 +25,23 @@ export function lowest(obj, out) {
       if (v.y < best) { best = v.y; out.copy(v); }
     }
   });
+  // (a leg drawn by a skinned mesh elsewhere in the model, its joints empty: that mesh's vertices bound to them, skinned)
+  if (best === Infinity) {
+    const joints = new Set(); obj.traverse((o) => joints.add(o));
+    let top = obj; while (top.parent) top = top.parent;
+    top.traverse((m) => {
+      if (!m.isSkinnedMesh) return;
+      const bones = new Set(m.skeleton.bones.map((b, i) => (joints.has(b) ? i : -1)).filter((i) => i >= 0));
+      if (!bones.size) return;
+      m.skeleton.update();
+      const p = m.geometry.attributes.position, si = m.geometry.attributes.skinIndex;
+      for (let i = 0; i < p.count; i++) {
+        if (!bones.has(si.getX(i))) continue;
+        m.getVertexPosition(i, v).applyMatrix4(m.matrixWorld);
+        if (v.y < best) { best = v.y; out.copy(v); }
+      }
+    });
+  }
   return out;
 }
 
@@ -52,11 +69,9 @@ export function foeSystem() {
 export const kitLegs = (M) => M.rig?.legs.map((l) => l.root);
 export const OLD = {
   machine: (M) => M.legs,
-  golem: (M) => M.parts.slice(5, 7),
-  slag: (M) => M.parts.slice(-2),
 };
 // The built archetypes (src/enemies/archetypes.js), each on the kit: a kind or a kind in a skin ('lizard@bazaar')
-export const ARCHETYPE_SUBJECTS = { crab: kitLegs, lizard: kitLegs, hound: kitLegs, tripod: kitLegs, centipede: kitLegs, toad: kitLegs, heron: kitLegs, skitter: kitLegs, rootknot: kitLegs };
+export const ARCHETYPE_SUBJECTS = { crab: kitLegs, lizard: kitLegs, hound: kitLegs, tripod: kitLegs, centipede: kitLegs, toad: kitLegs, heron: kitLegs, skitter: kitLegs, rootknot: kitLegs, brute: kitLegs, bell: kitLegs };
 /** The legs of any subject id: an old kind's, or an archetype's (in any skin). */
 export const legsFor = (id) => OLD[id] ?? (ARCHETYPE_SUBJECTS[id.split('@')[0]] ? kitLegs : null);
 

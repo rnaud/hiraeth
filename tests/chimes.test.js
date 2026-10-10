@@ -27,7 +27,7 @@ const seeded = (s = 7) => () => ((s = (s * 16807) % 2147483647) / 2147483647);
 test('drop amounts: every foe kind has one, small ones a little, heavy ones more; each built archetype its own', () => {
   for (const kind of Object.keys(FOES)) assert.ok(DROP_OF[kind] > 0, `${kind} drops something`);
   assert.ok(DROP_OF.skitter < 1, 'a swarm\'s skitters: a chance of one each');
-  assert.ok(DROP_OF.blot < DROP_OF.machine && DROP_OF.machine < DROP_OF.golem, 'by weight');
+  assert.ok(DROP_OF.blot < DROP_OF.machine && DROP_OF.machine < DROP_OF.brute, 'by weight');
   for (const a of BUILT) assert.equal(DROP_OF[ARCHETYPES[a].kind], ARCHETYPES[a].drop, `${a}: its drop (src/enemies/archetypes.js)`);
   assert.ok(DROP_OF.blot < DROP_OF.lizard && DROP_OF.lizard < DROP_OF.tripod, 'the teacher least, a sniper machine more');
   assert.ok(PURSE.guardian > 4 * Math.max(...Object.values(DROP_OF)), 'a guardian\'s purse is a big one');

@@ -37,11 +37,15 @@ import * as THREE from 'three';
 //            rim; or a lantern at `center` (object space) of `radius`; pulse (rad/s); emit (how far it blooms)
 //   gloss    a crisp highlight (the blot's wet ink, enamel): the sun's and the sky's, size (of the sphere), sky
 //            (the share from the sky, so it shows in shade too)
+//   cracks   a hull cracked like a dropped jar (the furnace brute's): a fine net of seams between cells `scale` m across
+//            (3D Voronoi: the pen-thin `width` of the cell's size, in `ink`, each cell its own shade `tone`: glass
+//            facets too), and over it a wider net of veins (`veins` m cells, `vein` width) glowing `color` (emit
+//            `glow`); `open` (0..1, a uniform the body sets as it is hurt: Foe hp) widens the veins and brightens them
 // Cost: per pixel of a foe only, each feature a handful of hashes (spots: 8 cells; noise: 8 a octave; scales: 1
 // or 3 projections); a whole pack is a few thousand pixels. Nothing is drawn twice and nothing is downloaded.
 // ---------------------------------------------------------------------------
 
-export const FOE_SURFACE_FEATURES = ['fade', 'belly', 'mottle', 'rust', 'grain', 'bands', 'stripes', 'scales', 'spots', 'spots2', 'drips', 'glow', 'gloss'];
+export const FOE_SURFACE_FEATURES = ['fade', 'belly', 'mottle', 'rust', 'grain', 'bands', 'stripes', 'scales', 'spots', 'spots2', 'drips', 'cracks', 'glow', 'gloss'];
 /** The fade-out: a pattern's cells under this many pixels go to its mean colour (from `far[1]` to `far[0]` px). */
 export const FOE_SURFACE = { far: [2.5, 6] };
 
@@ -57,6 +61,7 @@ const DEFAULTS = {
   spots: { color: '#ffffff', amount: 1, scale: 0.12, share: 0.6, size: 0.7, jitter: 1, star: 0, ring: 0, soft: 0 },
   spots2: { color: '#000000', amount: 1, scale: 0.05, share: 0.4, size: 0.4, jitter: 1, star: 0, ring: 0, soft: 0 },
   drips: { color: '#000000', amount: 1, width: 0.12, from: 0, length: 0.3, bulb: 0.4 },
+  cracks: { color: '#b07aff', amount: 1, ink: '#2a2235', inkAmount: 0.8, scale: 0.09, width: 0.06, tone: 0.06, veins: 0.42, vein: 0.07, glow: 0.8, open: 0 },
   glow: { color: '#ffd27a', amount: 0.6, rim: 0.3, core: 2, pulse: 0, emit: 0.6, center: null, radius: 0 },
   gloss: { color: '#ffffff', amount: 1, size: 0.06, sky: 0.5, sharp: 1 },
 };
@@ -97,6 +102,12 @@ export function foeSurfaceMaterial(mat, o) {
   if (f.spots) layer('spots', f.spots);
   if (f.spots2) layer('spots2', f.spots2);
   if (f.drips) { U.uFsDripsC = { value: cv(f.drips.color, f.drips.amount) }; U.uFsDrips = { value: v4(f.drips.width, f.drips.from, f.drips.length, f.drips.bulb) }; }
+  if (f.cracks) {
+    const c = f.cracks;
+    U.uFsCracksC = { value: cv(c.color, c.amount) }; U.uFsCracksI = { value: cv(c.ink, c.inkAmount) };
+    U.uFsCracks = { value: v4(c.scale, c.width, c.tone, c.glow) }; U.uFsCracksV = { value: v4(c.veins, c.vein, 0, 0) };
+    U.uFsCracksO = { value: c.open };
+  }
   if (f.glow) {
     U.uFsGlowC = { value: cv(f.glow.color, f.glow.amount) };
     U.uFsGlow = { value: v4(f.glow.rim, f.glow.core, f.glow.pulse, f.glow.emit) };
@@ -286,6 +297,38 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
       albedo = mix(albedo, uFsDripsC.rgb, uFsDripsC.a * k * fsNear(uFsDrips.x, px));
     }
     #endif
+    #ifdef FS_CRACKS
+    {
+      // (3D Voronoi over the 8 cells round the point, as the spots: the nearest two sites, the seam where they tie)
+      float aaF = px / max(uFsCracks.x, 1e-4), aaV = px / max(uFsCracksV.x, 1e-4);
+      for (int layer = 0; layer < 2; layer++) {
+        float sc = layer == 0 ? uFsCracks.x : uFsCracksV.x;
+        if (lite > 0.5 && layer == 0 && sc < 0.08) continue;   // (the handheld: the fine net only where it reads)
+        vec3 q = p / max(sc, 1e-4) + float(layer) * 17.3, b = floor(q - 0.5), c1 = vec3(0.0);
+        float d1 = 9.0, d2 = 9.0;
+        for (int i = 0; i < 8; i++) {
+          vec3 c = b + vec3(float(i & 1), float((i >> 1) & 1), float((i >> 2) & 1));
+          vec3 o = c + 0.5 + (fsHash4(c + 13.1).xyz - 0.5) * 0.7;
+          float d = length(q - o);
+          if (d < d1) { d2 = d1; d1 = d; c1 = c; } else if (d < d2) d2 = d;
+        }
+        float e = d2 - d1;
+        if (layer == 0) {
+          float near = fsNear(uFsCracks.x * 0.5, px), w = uFsCracks.y;
+          float seam = 1.0 - smoothstep(w - aaF, w + aaF, e);
+          albedo *= 1.0 + (fsHash4(c1 + 5.7).x * 2.0 - 1.0) * uFsCracks.z * near;
+          albedo = mix(albedo, uFsCracksI.rgb, uFsCracksI.a * mix(w, seam, near));
+        } else {
+          float near = fsNear(uFsCracksV.x * 0.4, px), w = uFsCracksV.y * (1.0 + 1.6 * uFsCracksO);
+          float tar = 1.0 - smoothstep(w - aaV, w + aaV, e), core = 1.0 - smoothstep(w * 0.5 - aaV, w * 0.5 + aaV, e);
+          albedo = mix(albedo, uFsCracksI.rgb, uFsCracksI.a * mix(w * 0.5, tar, near));
+          float gl = mix(w * 0.3, core, near) * (0.55 + 0.45 * uFsCracksO);
+          albedo = mix(albedo, uFsCracksC.rgb, uFsCracksC.a * gl);
+          emit = max(emit, gl * uFsCracks.w);
+        }
+      }
+    }
+    #endif
     #ifdef FS_GLOW
     {
       vec3 Vw = normalize(cameraPosition - vWorldPos);
@@ -358,6 +401,9 @@ export const FOE_SURFACE_PARS = /* glsl */ `
   #endif
   #ifdef FS_DRIPS
   uniform vec4 uFsDripsC; uniform vec4 uFsDrips;
+  #endif
+  #ifdef FS_CRACKS
+  uniform vec4 uFsCracksC; uniform vec4 uFsCracksI; uniform vec4 uFsCracks; uniform vec4 uFsCracksV; uniform float uFsCracksO;
   #endif
   #ifdef FS_GLOW
   uniform vec4 uFsGlowC; uniform vec4 uFsGlow; uniform vec4 uFsGlowP;

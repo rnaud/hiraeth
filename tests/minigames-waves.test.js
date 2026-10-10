@@ -92,7 +92,7 @@ test('gentle: smaller waves, never a crowd', () => {
     assert.ok(standing(N) <= waveCap(n), `wave ${n}: ${N}`);
   }
   assert.equal(waveCap(1, true), 5);
-  assert.equal(heads('skitter'), 0); assert.equal(heads('golem'), 1, 'a golem is one (its splinters are retired)');
+  assert.equal(heads('skitter'), 0); assert.equal(heads('brute'), 1, 'a brute is one');
   assert.ok(waveBudget(6, true) < waveBudget(6));
 });
 

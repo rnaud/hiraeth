@@ -60,8 +60,9 @@ export function matrixTo(obj, ancestor, out) {
  *   piston          { at } (body frame): a telescoping rod from the body to the thigh's middle (machines)
  *   air             where the foot hangs when the body is off the ground ({x, y, z} added to its rest, body frame)
  *   lenC            a third segment (a root-arm's tip: two bends), solved by FABRIK from a guess curled toward the pole
+ *   balls, taper    the joints' balls × (1: half again the leg's radius), how much the segments taper (1: to 0.6 at the foot)
  */
-export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, lenB, lenC = 0, pole, radius = 0.05, mats, pad = 'pad', ankle = null, piston = null, air = null, name = 'leg' }) {
+export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, lenB, lenC = 0, pole, radius = 0.05, balls = 1, taper = 1, mats, pad = 'pad', ankle = null, piston = null, air = null, name = 'leg' }) {
   const H = new THREE.Object3D(); H.name = `${name} hip`; H.position.set(hip.x, hip.y, hip.z); hipParent.add(H);
   const root = new THREE.Group(); root.name = name; group.add(root);
   const r = radius, j = mats.joint ?? mats.thigh;
@@ -71,8 +72,8 @@ export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, len
     if (ball) g.add(new THREE.Mesh(new THREE.SphereGeometry(ball, 8, 6), j));
     return g;
   };
-  const thigh = seg(lenA, r, r * 0.85, mats.thigh ?? j, r * 1.45);
-  const shin = seg(lenB, r * 0.85, lenC ? r * 0.7 : r * 0.6, mats.shin ?? j, r * 1.35);
+  const thigh = seg(lenA, r, r * (1 - 0.15 * taper), mats.thigh ?? j, r * 1.45 * balls);
+  const shin = seg(lenB, r * (1 - 0.15 * taper), lenC ? r * 0.7 : r * (1 - 0.4 * taper), mats.shin ?? j, r * 1.35 * balls);
   const tip = lenC ? seg(lenC, r * 0.7, r * 0.42, mats.tip ?? mats.shin ?? j, r * 1.1) : null;
   const f = new THREE.Group(); root.add(f);
   const ah = ankle ?? (pad === 'point' ? r * 0.6 : pad === 'disc' ? r * 0.9 : r * 0.8);

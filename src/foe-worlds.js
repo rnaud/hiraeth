@@ -45,14 +45,24 @@ export const WORLDS = {
   spacecity: { stage: 2, lead: 'drone', roster: { drone: 4, moth: 3, roller: 2 } },
 };
 
+/**
+ * The encounters placed by hand (WORLDS[w].placed: one met where it stands, not in a pack): where each stands (x, z: its
+ * ground found under it) and which way it faces (rad); met calm, as its archetype keeps to itself (src/foes.js
+ * Foes.updatePosts); once cut down, gone for good (a flag per save). Lorn II's wood cutter stands rusted mid-task on the
+ * dry bank of the lit path, halfway between the moss domes and the glass dome.
+ */
+export const PLACED = {
+  perdide2: [{ archetype: 'brute', at: [5.4, -200.9], heading: 1.12 }],
+};
+
 /** Worlds with no table of their own (a minigame's field, a test's): ink blots. */
 export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', guards: ['blot', 'blot'], temple: ['machine'], shade: 0, stage: 1 };
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2 };
-export const FROM = { skitter: 1, machine: 2, golem: 1, slag: 1, shade: 3, tripod: 1, centipede: 1 };
+export const FROM = { skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { machine: 2, golem: 2, slag: 2, crab: 1.5, tripod: 2, centipede: 2 };
+export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2 };
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
 export const BUDGET = [[1, 2], [2, 3], [3, 4], [4, 5]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */

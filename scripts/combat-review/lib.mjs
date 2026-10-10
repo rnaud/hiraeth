@@ -57,8 +57,11 @@ export function kindFacts(kind, D) {
   const ways = [];
   for (const [m, v] of Object.entries(D.takes ?? {})) if (v) ways.push(m);
   for (const k of Object.keys(D.weak ?? {})) ways.push(`weak:${k}`);
-  for (const k of ['shell', 'burrow', 'phase', 'douse', 'splits', 'flinchy', 'breaks', 'heavy', 'metal', 'light']) if (D[k]) ways.push(k);
+  for (const k of ['shell', 'burrow', 'phase', 'douse', 'splits', 'flinchy', 'breaks', 'heavy', 'metal', 'light', 'topples', 'segmented', 'flock', 'jams']) if (D[k]) ways.push(k);
   for (const a of attacks) if (a.onParry) ways.push(`parry:${a.onParry}`);
+  // (what an attack leaves open: a shot in a toad's swollen throat, the air cut in its leap, the bell-note whistle on a
+  // toll, the opening after a bell's drop, a wall that stalls a ram, the push on a ring or a heap, a jump over roots)
+  for (const a of attacks) for (const k of ['choke', 'leap', 'whistle', 'opens', 'stall', 'encircle', 'pile', 'ground']) if (a[k]) ways.push(k);
   const space = ['clamber', 'perch', 'hover', 'keep', 'heavy', 'burrow', 'phase', 'trail'].filter((k) => D[k]);
   for (const a of attacks) {
     if (a.dive) space.push('dive');
@@ -67,7 +70,7 @@ export function kindFacts(kind, D) {
     if (a.spread) space.push('volley');
     if (a.at === 'target') space.push('lob');
     if (a.lunge) space.push('lunge');
-    for (const k of ['grab', 'tether', 'blind', 'leave', 'blink', 'surface', 'sweep']) if (a[k]) space.push(k);
+    for (const k of ['grab', 'tether', 'blind', 'leave', 'blink', 'surface', 'sweep', 'leap', 'encircle', 'reverse']) if (a[k]) space.push(k);
   }
   return {
     kind, name: D.name, hp: D.hp, speed: D.speed,

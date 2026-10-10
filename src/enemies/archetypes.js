@@ -68,6 +68,14 @@ import { fromPattern } from './attacks.js';
 //                   you (the push scatters it: Foes.pile); calm.linger: s you must stay within `provoke` m
 //   rooted          it can't be knocked back (the root knot); attack.ground: only on your feet (a jump clears it);
 //                   attack.blur: s your sight is blurred by spores, whichever way you look
+// batch 4 (v1.15), the machines:
+//   stout           light cuts never stagger it, even early in a wind-up (the furnace brute, the bell walker: heavy breakers)
+//   attack.wave     a quake or a ring of sound running out over the ground (jump it); wave.count: that many, wave.every s apart
+//   attack.leaveLife  s its slag stays (the cart's pour); jams: s a bomb on its tracks keeps it from turning (the cart)
+//   attack.reverse  m it backs up through the wind-up (the cart's ram); attack.stall: s it stands stunned if a wall stops it
+//   attack.opens    s it sits open after the strike (the bell's drop: tipped toward you, the clapper in reach)
+//   clapper         only the clapper takes harm: a cut, a bomb glance off the bell unless it sits open or is stilled (the bell)
+//   attack.whistle  the bell-note whistle sounded near it as it winds this up chokes it: it sits open (Foes.bellNote)
 
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
 
@@ -346,31 +354,95 @@ export const ARCHETYPES = {
   },
   cart: {
     name: 'crucible cart', family: 'machine', plan: 'tracked', planNo: 17, role: 'area denier', tier: 3, ranged: true,
-    status: 'stand-in', kind: 'slag', was: ['slag walker'], sound: 'slag', drop: 8, art: 'pending',
+    status: 'built', kind: 'cart', was: ['slag walker'], sound: 'slag', drop: 8, art: { main: 'garage', alt: 'moonfoundry' },
     possession: 'boiling over: ink froths over the crucible’s rim, a column of black smoke with two eyes',
-    moves: ['pour', 'ram', 'trail'], answers: ['fluid shot cools its crust', 'bombs on the tracks', 'the combo from behind'],
+    moves: ['pour', 'ram', 'trail'], answers: ['a plain shot cools its crust (cuts ×2)', 'a bomb on its tracks (it can’t turn)', 'the combo from behind', 'a wall stalls its ram'],
     idle: 'trundles its old route between the furnaces, pouring into moulds that are no longer there',
+    def: S({
+      name: 'crucible cart', hp: 6, radius: 1.1, height: 1.0, speed: 2.0, sight: 16, giveUp: 30, reach: 8, heavy: true, breaks: true,
+      trail: { every: 1.5, r: 0.7, life: 4.5 }, douse: 4, jams: 5, tracks: true,
+      tone: '#ff8a2e', sound: 'machine', takes: { shoot: 1, fire: 0 }, weak: { bomb: 1.5 },
+      calm: { mode: 'trundle', provoke: 10, round: 6 },
+      attacks: [
+        // the crucible tips toward you on its trunnions, the lip glowing; a cone of burning slag that stays a while
+        { id: 'pour', name: 'pour', shape: 'cone', range: 4.6, angle: 0.55, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.4, leave: 'cone', leaveLife: 6, min: 1.4, max: 4.6, weight: 2,
+          tell: 'its crucible tips toward you on its trunnions, the lip glowing and the smoke leaning the same way', counter: 'get behind it or to the side of the lip; the slag stays a while: keep off it' },
+        // it backs up, its tracks spinning in place and spitting gravel; then a charge along a line (a wall stalls it)
+        { id: 'ram', name: 'ram', shape: 'lane', width: 2.0, range: 8, damage: 0.75, knock: 5, wind: 1.3, strike: 0.8, contact: 0.05, lunge: 8, sweep: true, reverse: 1.2, stall: 1.8, min: 3, max: 8, weight: 1.3,
+          tell: 'it backs up, its tracks spinning in place and spitting gravel behind it', counter: 'evade out of its line; let it ram a wall and it stalls, open' },
+      ],
+      recover: 1.5, cool: [1.5, 2.5], hit: 0.5,
+    }),
+    note: 'A crucible cart makes ground you can’t stand on: when its crucible tips toward you, get behind it or to the side of the lip, and keep off the slag it pours and drips. A plain shot cools its crust (cuts land double), a bomb on its tracks jams them, and a wall stops its ram cold.',
   },
   bell: {
     name: 'bell walker', family: 'machine', plan: 'siege', planNo: 19, role: 'siege', tier: 3, ranged: true,
-    status: 'planned', kind: null, was: [], sound: 'metal', drop: 8, art: 'pending',
+    status: 'built', kind: 'bell', was: [], sound: 'metal', drop: 8, art: { main: 'bazaar', alt: 'saltharbour' },
     possession: 'the clapper is the spirit, swinging inside the bell; ink drips from its mouth',
-    moves: ['toll', 'drop', 'opening'], answers: ['the bell whistle', 'strike the clapper', 'jump the rings'],
+    moves: ['toll', 'drop', 'opening'], answers: ['the bell-note whistle chokes its toll', 'strike the clapper while it sits open', 'jump the rings', 'guard its drop (it tips open)'],
     idle: 'stands in a square and tolls the hours, softly',
+    def: S({
+      name: 'bell walker', hp: 6, radius: 1.3, height: 2.6, speed: 1.1, sight: 22, giveUp: 30, reach: 12, heavy: true, stout: true, clapper: true, breaks: true,
+      tone: '#d8b048', sound: 'machine', takes: { shoot: 0, fire: 0 },
+      calm: { mode: 'toll', provoke: 12 },
+      attacks: [
+        // reared back on its rear legs, the clapper swinging higher three times; then BONG: three rings over the ground
+        { id: 'toll', name: 'toll', shape: 'ring', at: 'self', radius: 2.4, damage: 0.5, wind: 1.6, strike: 0.5, contact: 0.25, wave: { speed: 6.5, reach: 12, damage: 0.5, width: 0.6, count: 3, every: 0.7 }, whistle: true, max: 12, weight: 2,
+          tell: 'it rears back on its rear legs and the clapper swings higher, three times', counter: 'jump each ring as it reaches you (a guard doesn’t stop them); answer its note with the bell-note whistle and the toll chokes' },
+        // its legs straighten and the bell rises a metre; it slams its rim down where you stand, then tips up toward you
+        { id: 'drop', name: 'drop', shape: 'ring', radius: 2.0, damage: 1, knock: 6, wind: 1.2, strike: 0.55, contact: 0.92, leap: { height: 1.3 }, range: 4.5, track: 0.5, opens: 2.5, onParry: 'open', max: 4.5, weight: 2.5,
+          tell: 'its legs straighten and the bell rises a metre over it', counter: 'evade out from under it; then it tips up toward you: strike the clapper' },
+      ],
+      recover: 1.6, cool: [1.8, 2.8], hit: 0.5,
+    }),
+    note: 'A bell walker: only the clapper inside it takes harm. When it rears back and the clapper swings, jump each ring of its toll, or answer its note with the bell-note whistle and it chokes. When the bell rises, step out from under it: after it slams down it tips up toward you, open. Strike the clapper then.',
   },
   drone: {
-    name: 'ring drone', family: 'machine', plan: 'flyer (machine)', planNo: 13, role: 'tether', tier: 3, ranged: true,
-    status: 'stand-in', kind: 'drone', was: ['rust drone'], sound: 'metal', drop: 4, art: 'pending',
+    name: 'ring drone', family: 'machine', plan: 'hover', planNo: 13, role: 'tether', tier: 3, ranged: true,
+    status: 'built', kind: 'drone', was: ['rust drone'], sound: 'metal', drop: 4, art: { main: 'incal', alt: 'spheres' },
     possession: 'a caught cloud between its plates, leaking at the gaps, two eyes drifting in it',
-    moves: ['harpoon', 'ram', 'hide'], answers: ['stilling', 'magnet glove', 'hook', 'guard the harpoon'],
+    moves: ['harpoon', 'ram', 'hide'], answers: ['guard the harpoon (the line is cut)', 'stilling (it drops)', 'magnet glove (it is metal)', 'the hook pulls it down'],
     idle: 'circles its old post polishing a dome that isn’t there; drifts after anything that shines',
+    def: S({
+      name: 'ring drone', hp: 3, radius: 0.7, height: 0.8, hover: 1.7, speed: 3.2, sight: 20, reach: 9.5, keep: 4, metal: true, breaks: true,
+      tone: '#b8924e', sound: 'machine', takes: { shoot: 0, fire: 0 },
+      calm: { mode: 'circle', provoke: 14 },
+      attacks: [
+        // the plates part and slow, a reel slides out between them clicking; the harpoon flies along a line and reels you in
+        { id: 'harpoon', name: 'harpoon', shape: 'lane', width: 1.1, range: 9.5, damage: 0.5, wind: 1.1, strike: 0.3, contact: 0.7, tether: { time: 0.9, pull: 7.5 }, min: 3, max: 9.5, weight: 2, onParry: 'cut',
+          tell: 'its plates part and slow, and a reel with a harpoon slides out between them, clicking round', counter: 'guard it and the line is cut (the drone dazed); evade; caught, a cut or stilling frees you' },
+        // the plates lock and spin up, whining higher, as it rises rocked back; then it dives at you
+        { id: 'ram', name: 'ram', shape: 'lane', width: 1.4, range: 6, damage: 0.5, wind: 0.95, strike: 0.35, contact: 0.8, dive: true, max: 6, weight: 1.2, onParry: 'cut',
+          tell: 'its plates lock together and spin up, whining higher, as it rises rocked back', counter: 'guard it (a perfect parry dazes it); or evade' },
+      ],
+      recover: 1.4, cool: [1.6, 2.6], hit: 0.35,
+    }),
+    note: 'A ring drone hangs out of the blade’s reach and pulls you about: when its plates part and a harpoon slides out, guard (LB / L1) to cut the line, or evade. Stilled it drops; the magnet glove or the hook pulls it down to be cut. It hides between strikes.',
   },
   brute: {
     name: 'furnace brute', family: 'machine', plan: 'brute', planNo: 8, role: 'heavy', tier: 3, ranged: false,
-    status: 'stand-in', kind: 'golem', was: ['glass golem', 'makers’ machine (its slam and quake)'], sound: 'metal', drop: 8, art: 'pending',
+    status: 'built', kind: 'brute', was: ['glass golem', 'makers’ machine (its slam and quake)'], sound: 'metal', drop: 8, art: { main: 'perdide2', alt: 'glassdunes' },
     possession: 'ink in the cracks: the hull cracked like a dropped jar, the dark seeping from every seam',
-    moves: ['slam', 'hurl', 'sweep'], answers: ['riposte (×2 on the stunned)', 'bombs ×2', 'charged cut on a glowing crack'],
+    moves: ['slam', 'hurl', 'sweep'], answers: ['riposte (×2 on the stunned)', 'bombs ×2 crack the hull', 'charged cut on a glowing crack', 'jump the quake'],
     idle: 'stands where it stopped working, rusted mid-task; wakes with a groan when you come close',
+    def: S({
+      name: 'furnace brute', hp: 8, radius: 1.15, height: 2.4, speed: 1.7, sight: 18, giveUp: 32, reach: 12, heavy: true, stout: true, breaks: true,
+      tone: '#a77bff', sound: 'machine', takes: { shoot: 0, fire: 0 }, weak: { bomb: 2 },
+      calm: { mode: 'stand', provoke: 7 },
+      attacks: [
+        // both fists high over the top of its body, the torso arching back, the veins blazing; down, and a quake runs out
+        { id: 'slam', name: 'slam', shape: 'ring', radius: 2.1, ahead: 1.9, damage: 1, knock: 6, wind: 1.3, strike: 0.32, contact: 0.6, wave: { speed: 7, reach: 8, damage: 0.5, width: 0.55 }, max: 3.6, weight: 2, onParry: 'chip',
+          tell: 'both fists rise high over the top of its body, the torso arching back and the cracks blazing violet', counter: 'evade to the side and jump the quake; a perfect parry chips it (a crack bursts)' },
+        // it bends over and tears a slab out of the ground, straightens with it high over its shoulder, and throws it
+        { id: 'hurl', name: 'hurl', shape: 'ring', at: 'target', instant: true, lob: true, radius: 1.7, damage: 0.75, wind: 1.5, track: 0.5, min: 4.5, max: 12, weight: 1.5,
+          tell: 'it bends over and tears a slab out of the ground, then straightens with it held high over its shoulder', counter: 'walk out of the mark where it will land' },
+        // one arm swung back behind it, the shoulder turning; then a backhand across its front
+        { id: 'sweep', name: 'sweep', shape: 'cone', range: 3.6, angle: 1.3, damage: 0.75, knock: 5, wind: 1.05, strike: 0.3, contact: 0.5, max: 3.4, weight: 1.2,
+          tell: 'one arm swings back behind it, its shoulder turning away', counter: 'duck under it with an evade, or guard' },
+      ],
+      recover: 1.6, cool: [1.6, 2.6], hit: 0.55,
+    }),
+    note: 'A furnace brute: light cuts don’t stagger it. When both fists rise over its head, get to its side and jump the quake that runs out; a perfect parry chips its hull. When it tears up a slab, walk out of the mark. Bombs crack it twice as deep, and a riposte on the stunned lands double.',
   },
   // ----------------------------------------------------------------------------- spirits (the dark itself)
   blot: {

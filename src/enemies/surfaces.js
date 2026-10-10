@@ -206,6 +206,7 @@ Object.assign(SURFACES, {
         gloss: { size: 0.02, sky: 0.3, amount: 0.3 },
       },
       leg: { ...SPECKS('dark', 0.35, 0.025) },
+      limbs: { ...SPECKS('dark', 0.35, 0.025) },   // (the legs and feelers as one skinned mesh, the joints tinted)
       joint: { bands: { color: 'joint*0.8', axis: 1, period: 0.05, width: 0.15, ink: 0.4 } },
     },
     moonfoundry: {
@@ -218,6 +219,138 @@ Object.assign(SURFACES, {
       seam: { glow: { color: 'seam', amount: 0.55, rim: 0.2, core: 1.4, pulse: 1.8, emit: 0.7 } },
     },
     underside: { dome: { bands: null, spots: { color: 'band', scale: 0.08, share: 0.5, size: 0.35, ring: 0.4 }, gloss: { size: 0.03, sky: 0.5 } } },
+  },
+  // ----------------------------------------------------------------------------- batch 4: the possessed machines
+  brute: {
+    '*': {
+      // (sheet-1: old ivory cracked all over like a dropped jar, fine dark seams, the widest cracks glowing violet; tar
+      // running down from the belt; a few warm stains; brass fittings with verdigris at their seams)
+      body: {
+        cracks: { color: 'glow', ink: 'seam', inkAmount: 0.32, scale: 0.36, width: 0.022, tone: 0.03, veins: 0.8, vein: 0.06, glow: 0.95 },
+        mottle: { color: 'body*0.9', scale: 0.35, amount: 0.3, soft: 0.25, strength: 0.5 },
+        drips: { color: 'tar', width: 0.22, from: 2.02, length: 0.4, bulb: 0.35, amount: 0.7 },
+        gloss: { size: 0.02, sky: 0.3, amount: 0.35 },
+      },
+      brass: { rust: { color: 'brass*0.72', color2: 'verd', amount: 0.14, amount2: 0.12, scale: 0.08, down: 0.6, pits: 0.3 }, gloss: { size: 0.03, sky: 0.4, amount: 0.6 } },
+      tar: { gloss: { size: 0.04, sky: 0.85, amount: 0.9, color: 'glow+0.5' }, mottle: { color: 'glow*0.6', scale: 0.12, amount: 0.25, soft: 0.2, strength: 0.4 } },
+      root: { grain: { color: 'root*0.7', spacing: 0.03, ink: 0.35, warp: 0.6, amount: 0.5 } },
+      moss: { mottle: { color: 'moss*0.75', scale: 0.06, amount: 0.4, soft: 0.1 }, ...SPECKS('moss+0.3', 0.5, 0.03) },
+      saw: { rust: { color: 'saw*0.7', color2: '#c98a54', amount: 0.4, amount2: 0.2, scale: 0.08, down: 0.2, pits: 0.6 } },
+      slab: { mottle: { color: 'slab*0.8', scale: 0.15, amount: 0.4, soft: 0.1 }, ...SPECKS('dark', 0.4, 0.05) },
+    },
+    edena: { blade: { gloss: { size: 0.03, sky: 0.7 }, fade: { color: 'blade*0.7', axis: 1, from: -0.4, to: -1.3 } } },
+    glassdunes: {
+      // (sheet-2: thick faceted plates of pale aqua glass, each facet its own shade and a thin pale-gold line round it, a
+      // crisp glint; orange cracks glowing through; the hull's sand-gold showing at the joints)
+      body: {
+        cracks: { color: 'glow', ink: 'seam', inkAmount: 0.6, scale: 0.28, width: 0.024, tone: 0.12, veins: 0.6, vein: 0.05, glow: 1 },
+        glow: { color: 'body2', amount: 0.12, rim: 0.4, core: 1.6, emit: 0.04 },
+        gloss: { size: 0.035, sky: 0.75, amount: 0.9 },
+        drips: { color: 'tar', width: 0.2, from: 2.02, length: 0.45, bulb: 0.35, amount: 0.8 },
+      },
+    },
+    waterfall: {
+      body: {
+        cracks: { color: 'glow', ink: 'seam', inkAmount: 0.75, scale: 0.12, width: 0.045, tone: 0.05, veins: 0.55, vein: 0.055, glow: 0.9 },
+        gloss: { size: 0.05, sky: 0.9, amount: 1 },
+        drips: { color: '#e4f2f8', width: 0.1, from: 3.6, length: 0.8, bulb: 0.3, amount: 0.5 },
+        mottle: { color: 'verd', scale: 0.3, amount: 0.25, soft: 0.2, strength: 0.4 },
+      },
+    },
+    moonfoundry: {
+      body: {
+        cracks: { color: 'glow', ink: 'seam', inkAmount: 0.8, scale: 0.12, width: 0.05, tone: 0.05, veins: 0.5, vein: 0.06, glow: 1 },
+        rust: { color: 'joint', color2: 'body*0.8', amount: 0.22, amount2: 0.1, scale: 0.15, down: 0.8, pits: 0.4 },
+        drips: { color: 'tar', width: 0.16, from: 2.02, length: 0.55, bulb: 0.35, amount: 0.85 },
+      },
+    },
+  },
+  drone: {
+    '*': {
+      // (sheet-1: weathered brass with patches of pink rust, concentric rings turned into the top plate, the slate-blue
+      // underside; ivory enamel rims; the cloud ink-black with violet in it)
+      plate: {
+        rust: { color: 'rust', color2: 'plate2', amount: 0.24, amount2: 0.12, scale: 0.12, down: 0.2, pits: 0.4 },
+        bands: { color: 'plate*0.82', axis: 3, period: 0.09, width: 0.08, ink: 0.3 },
+        belly: { color: 'under', edge: -0.4, soft: 0.05 },
+        gloss: { size: 0.025, sky: 0.4, amount: 0.5 },
+      },
+      rim: { gloss: { size: 0.03, sky: 0.5, amount: 0.7 }, mottle: { color: 'rust', scale: 0.08, amount: 0.15, soft: 0.1, strength: 0.6 } },
+      smoke: { mottle: { color: 'smoke2', scale: 0.12, amount: 0.35, soft: 0.3, strength: 0.7, detail: 0.6 } },
+      brass: { gloss: { size: 0.03, sky: 0.4, amount: 0.6 } },
+    },
+    spheres: {
+      // (sheet-2: pearl plates with a faint prism shimmer, a crisp glaze; gold rims; pale grey-blue smoke)
+      plate: {
+        mottle: { color: '#f4dcea', scale: 0.25, amount: 0.18, soft: 0.3, strength: 0.4, detail: 0.5 },
+        spots2: { color: '#d4f0ec', scale: 0.2, share: 0.4, size: 1.2, soft: 0.5, amount: 0.35 },
+        belly: { color: 'under', edge: -0.4, soft: 0.05 },
+        gloss: { size: 0.04, sky: 0.8, amount: 1 },
+      },
+      rim: { gloss: { size: 0.04, sky: 0.8, amount: 1 }, mottle: { color: '#f0e0f4', scale: 0.1, amount: 0.2, soft: 0.3, strength: 0.5 } },
+      smoke: { mottle: { color: 'smoke2', scale: 0.14, amount: 0.45, soft: 0.35, strength: 0.8, detail: 0.5 } },
+    },
+    garage: { plate: { rust: { color: 'rust', color2: 'plate2', amount: 0.35, amount2: 0.15, scale: 0.1, down: 0.3, pits: 0.7 }, bands: { color: 'dark', axis: 0, period: 0.31, width: 0.02, ink: 0.5 }, belly: { color: 'under', edge: -0.4, soft: 0.05 } } },
+    spacecity: { plate: { gloss: { size: 0.04, sky: 0.8, amount: 1 }, belly: { color: 'under', edge: -0.4, soft: 0.05 }, bands: { color: 'accent', axis: 3, period: 0.24, width: 0.08, ink: 0.2 } } },
+  },
+  cart: {
+    '*': {
+      // (sheet-1: black-teal steel, scuffed and rusted at the edges, rivets; patched khaki canvas with darker patches and
+      // stitched seams; the crucible gunmetal with ink running down from its rim; treads on the belts; spoked wheels)
+      hull: { rust: { color: 'rust', color2: 'body2', amount: 0.15, amount2: 0.1, scale: 0.1, down: 0.7, pits: 0.4 }, ...SPECKS('dark', 0.3, 0.05) },
+      canvas: {
+        scales: { color: 'canvas2', size: 0.34, ink: 0.4, tone: 0.1, amount: 0.25, mode: 1 },
+        mottle: { color: 'canvas2', scale: 0.22, amount: 0.35, soft: 0.12, strength: 0.7 },
+      },
+      pot: {
+        drips: { color: 'brew', width: 0.15, from: 0.52, length: 0.5, bulb: 0.4, amount: 0.95 },
+        mottle: { color: 'pot2', scale: 0.25, amount: 0.3, soft: 0.2, strength: 0.6 },
+        rust: { color: 'rust', color2: 'pot2', amount: 0.12, amount2: 0, scale: 0.1, down: 0.8, pits: 0.3 },
+      },
+      belt: { bands: { color: 'track*0.55', axis: 2, period: 0.12, width: 0.42, ink: 0.55 } },
+      wheel: { stripes: { color: 'wheel*0.55', axis: 4, period: 0.26, width: 0.22, ink: 0.4 }, bands: { color: 'wheel*0.7', axis: 3, period: 1, width: 0.15, offset: -0.85 } },
+      brew: { gloss: { size: 0.04, sky: 0.9, amount: 0.9, color: 'smoke2+0.5' }, mottle: { color: 'smoke2', scale: 0.12, amount: 0.3, soft: 0.2, strength: 0.6 } },
+      smoke: { mottle: { color: 'smoke2', scale: 0.15, amount: 0.3, soft: 0.3, strength: 0.6, detail: 0.6 } },
+      brass: { gloss: { size: 0.03, sky: 0.4, amount: 0.5 } },
+    },
+    moonfoundry: {
+      // (sheet-2: cream enamel chipped at the edges, soot down its sides; the brew glowing ember, ember drips down the pot)
+      hull: { rust: { color: 'rust', color2: 'body2', amount: 0.07, amount2: 0.05, scale: 0.06, down: 0.9, pits: 0.3 }, gloss: { size: 0.03, sky: 0.5, amount: 0.6 } },
+      pot: {
+        drips: { color: 'slag', width: 0.15, from: 0.52, length: 0.42, bulb: 0.4, amount: 0.95 },
+        rust: { color: 'rust', color2: 'pot2', amount: 0.06, amount2: 0, scale: 0.06, down: 0.95, pits: 0.3 },
+        gloss: { size: 0.03, sky: 0.5, amount: 0.6 },
+      },
+      brew: { glow: { color: 'slag', amount: 0.7, rim: 0.2, core: 1, pulse: 2.5, emit: 0.8 }, mottle: { color: 'slag2', scale: 0.1, amount: 0.35, soft: 0.1 } },
+    },
+  },
+  bell: {
+    '*': {
+      // (sheet-1: aged bronze clouded with teal verdigris, two engraved bands of ornament (at the shoulder and above the
+      // lip); the yoke's brass plates riveted, verdigris at the seams; the spirit wet black with violet light on it)
+      bell: {
+        mottle: { color: 'verd', scale: 0.08, amount: 0.26, soft: 0.25, strength: 0.6, detail: 0.6 },
+        rust: { color: 'verd*0.85', color2: 'bell2', amount: 0.1, amount2: 0.14, scale: 0.1, down: 0.5, pits: 0.3 },
+        bands: { color: 'bell*0.62', axis: 1, period: 1.1, width: 0.075, ink: 0.55, offset: 0.33 },
+        gloss: { size: 0.025, sky: 0.4, amount: 0.5 },
+      },
+      yoke: { mottle: { color: 'verd', scale: 0.08, amount: 0.3, soft: 0.2, strength: 0.6 }, rust: { color: 'verd', color2: 'yoke*0.8', amount: 0.1, amount2: 0.08, scale: 0.08, down: 0.5, pits: 0.4 }, gloss: { size: 0.03, sky: 0.4, amount: 0.5 } },
+      leg: { mottle: { color: 'verd', scale: 0.08, amount: 0.35, soft: 0.2, strength: 0.6 }, rust: { color: 'verd', color2: 'leg*0.8', amount: 0.1, amount2: 0.08, scale: 0.08, down: 0.4, pits: 0.3 } },
+      spirit: { gloss: { size: 0.04, sky: 0.9, amount: 1, color: 'shine+0.5' }, mottle: { color: 'shine', scale: 0.12, amount: 0.25, soft: 0.25, strength: 0.4 } },
+      cloth: { mottle: { color: 'cloth*0.8', scale: 0.12, amount: 0.3, soft: 0.1 }, scales: { color: 'cloth*0.7', size: 0.2, ink: 0.3, tone: 0.08, amount: 0.2, mode: 1 } },
+    },
+    saltharbour: {
+      // (sheet-2: the cream drum weathered and salt-crusted, coral rust in patches; the wound chain in rows; the turquoise
+      // yoke spotted with coral rust)
+      drum: { mottle: { color: 'bell*0.85', scale: 0.2, amount: 0.3, soft: 0.2, strength: 0.6 }, spots2: { color: 'salt', scale: 0.05, share: 0.4, size: 0.6, amount: 0.8 }, rust: { color: 'verd', color2: 'bell2', amount: 0.15, amount2: 0, scale: 0.1, down: 0.5, pits: 0.3 } },
+      wound: { stripes: { color: 'chain*0.55', axis: 0, period: 0.1, width: 0.3, ink: 0.6 }, spots2: { color: 'verd', scale: 0.06, share: 0.3, size: 0.6, amount: 0.6 } },
+      yoke: { rust: { color: 'joint', color2: 'yoke*0.85', amount: 0.25, amount2: 0.1, scale: 0.1, down: 0.5, pits: 0.4 }, spots2: { color: 'salt', scale: 0.05, share: 0.35, size: 0.5, amount: 0.7 } },
+      leg: { rust: { color: 'joint', color2: 'leg*0.8', amount: 0.25, amount2: 0.1, scale: 0.1, down: 0.4, pits: 0.3 }, spots2: { color: 'salt', scale: 0.05, share: 0.3, size: 0.5, amount: 0.6 } },
+    },
+    underside: {
+      drum: { rust: { color: 'verd', color2: 'bell2', amount: 0.2, amount2: 0.1, scale: 0.12, down: 0.5, pits: 0.4 } },
+      wound: { stripes: { color: 'chain*0.55', axis: 0, period: 0.1, width: 0.3, ink: 0.6 } },
+    },
   },
   rootknot: {
     '*': {
@@ -272,7 +405,7 @@ export function surfaceFor(archetype, skin, name) {
   for (const [k, v] of Object.entries(merged)) {
     if (!v) continue;
     if (k === 'mat') { out.mat = v; continue; }   // (makeMaterial options for the part, not a feature)
-    out[k] = Object.fromEntries(Object.entries(v).map(([f, x]) => [f, f === 'color' || f === 'color2' ? surfaceColor(x, skin.palette) : x]));
+    out[k] = Object.fromEntries(Object.entries(v).map(([f, x]) => [f, typeof x === 'string' ? surfaceColor(x, skin.palette) : x]));   // (color, color2, the cracks' ink)
   }
   return Object.keys(out).length ? out : null;
 }

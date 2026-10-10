@@ -48,7 +48,7 @@ test('the table’s colours: hex, a palette key, darker or paler', () => {
 test('every skin’s surfaces resolve from its palette, on parts its body really makes', () => {
   for (const a of BUILT) {
     assert.ok(SKINS[a], `${a}: an archetype with skins`);
-    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater', toad: 'hopper', heron: 'stilt', skitter: 'skitterers', rootknot: 'tentacled' }[a]}.js`, import.meta.url), 'utf8');
+    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater', toad: 'hopper', heron: 'stilt', skitter: 'skitterers', rootknot: 'tentacled', brute: 'brute', drone: 'hover', cart: 'tracked', bell: 'siege' }[a]}.js`, import.meta.url), 'utf8');
     const parts = new Set([...src.matchAll(/M\.(?:mat|own)\([`'"]([a-z0-9]+)/g)].map((m) => m[1]));
     for (const [skin, table] of Object.entries(SURFACES[a])) {
       if (skin !== '*') assert.ok(SKINS[a][skin], `${a}: a skin ${skin}`);
@@ -66,6 +66,18 @@ test('every skin’s surfaces resolve from its palette, on parts its body really
       }
     }
   }
+});
+
+test('a cracked hull (the furnace brute’s): a fine net of seams and a wider net of glowing veins, opening as it is hurt', () => {
+  const m = makeMaterial({ color: '#e6d8b4', foeSurface: { cracks: { color: '#a77bff', ink: '#4a4452', scale: 0.3, veins: 0.8, open: 0.25 } }, key: 'test.foe-surface.cracks' });
+  assert.ok(m.defines.FS_CRACKS && m.uniforms.uFsCracksC && m.uniforms.uFsCracksV && m.uniforms.uFsCracksI);
+  assert.equal(m.uniforms.uFsCracksO.value, 0.25, 'its opening: a uniform its body sets as it is hurt');
+  assert.ok(Math.abs(m.uniforms.uFsCracksV.value.x - 0.8) < 1e-9, 'the veins’ cells');
+  assert.match(FOE_SURFACE_GLSL, /uFsCracksO/);
+  // (the ink of its seams resolves from the skin's palette like a colour)
+  const S = skinOf('brute', 'perdide2'), s = surfaceFor('brute', S, 'body');
+  assert.match(s.cracks.ink, /^#[0-9a-f]{6}$/i);
+  assert.equal(s.cracks.color, S.palette.glow);
 });
 
 test('every built archetype wears a painted surface in every skin, at no extra draw', () => {

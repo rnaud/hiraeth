@@ -34,31 +34,14 @@ function only(kind, id, at = v(), o = {}) {
   return f;
 }
 
-test('the worlds’ old kinds (stand-ins for archetypes not built yet), each with two or three telegraphed attacks, a note and a look of its own', () => {
-  const fresh = Object.keys(KINDS);
-  assert.ok(fresh.length >= 3, `${fresh.length} kinds`);   // (the golem, the drone, the slag walker: batch 4 takes them)
-  for (const k of fresh) {
-    const D = FOES[k];
-    assert.ok(D.hp > 0 && D.radius > 0 && D.speed > 0 && D.name, k);
-    const main = D.attacks.filter((a) => !a.chain);
-    if (!D.noWild) assert.ok(main.length >= 2 && main.length <= 3, `${k}: ${main.length} attacks`);
-    for (const a of D.attacks) {
-      assert.ok(['ring', 'cone', 'lane'].includes(a.shape) && a.wind > 0 && a.damage >= 0, `${k}.${a.id}`);
-      if (a.chain) assert.ok(a.wind <= 0.6, `${k}.${a.id}: a follow-up is quick`);
-      else assert.ok(a.wind >= 0.5, `${k}.${a.id}: a wind-up you can read (${a.wind} s)`);
-      if (a.then) assert.ok(attackOf(k, a.then), `${k}.${a.id} → ${a.then}`);
-      assert.ok((a.max ?? D.reach) <= D.reach + 1e-9, `${k}.${a.id} within its reach`);
-      // nothing is drawn on the floor but a projectile's landing mark (src/telegraph.js; tests/telegraphs.test.js)
-      assert.ok(!('tele' in a), `${k}.${a.id}: no floor telegraph`);
-    }
-    if (!D.noWild) assert.ok(NOTES[k] && /LB \/ L1|move|cut|bomb|ember|shot|gust/i.test(NOTES[k]), `${k}: what beats it, said once`);
-    const M = kindModel(k);
-    let meshes = 0; M.group.traverse((o) => { meshes += o.isMesh ? 1 : 0; });
-    assert.ok(meshes >= 2 && typeof M.anim === 'function', `${k} is drawn`);
-  }
+test('the worlds’ old kinds are all gone: the last stand-ins (the glass golem, the rust drone, the slag walker) went with batch 4; the wave words name a skin', () => {
+  assert.deepEqual(Object.keys(KINDS), [], 'no stand-in left (the shade runs on its own body in src/shade.js until batch 5)');
+  assert.deepEqual(Object.keys(NOTES), []);
+  for (const k of ['golem', 'slag']) assert.ok(!FOES[k], `${k} retired`);
+  assert.equal(kindModel('golem'), null);
   assert.equal(waveWords(['crab', 'crab', 'hound']), '2 shellback crabs and 1 antler hound');
   assert.equal(waveWords(['lizard@bazaar', 'lizard@bazaar', 'blot']), '2 coin lizards and 1 ink blot', 'a skin by its name');
-  for (const k of fresh) if (!FOES[k].noWild) assert.ok(WAVES.some((w) => w.includes(k)), `${k} in the Arena's waves`);
+  for (const k of ['brute', 'drone', 'cart', 'bell']) assert.ok(WAVES.some((w) => w.includes(k)), `${k} in the Arena's waves`);
 });
 
 test('every kind moves and animates in a world without errors, through every attack', () => {
@@ -115,22 +98,22 @@ test('the dune ray swims under the sand: no blade reaches it there, its ring fol
   foes.dispose(); clearTargets();
 });
 
-test('the glass golem (the furnace brute’s stand-in): shots turn off it, bombs crack it deep, a perfect parry chips it; its splinters are retired', () => {
+test('the furnace brute (the glass golem’s mind folded in): shots turn off it, bombs crack it twice as deep, a perfect parry of its slam chips it; the golem is retired', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
-  const g = foes.add('golem', v(0, 0, 2.5));
-  foes.hurt(g, 'shoot', v(0, 0, 1)); assert.equal(g.hp, FOES.golem.hp, 'glass turns a shot');
-  foes.hurt(g, 'blade', v(0, 0, 1), { damage: 1, source: 'bomb' }); assert.equal(g.hp, FOES.golem.hp - 2, 'a bomb: twice as deep');
+  const g = foes.add('brute', v(0, 0, 2.5));
+  foes.hurt(g, 'shoot', v(0, 0, 1)); assert.equal(g.hp, FOES.brute.hp, 'a shot turns off its hull');
+  foes.hurt(g, 'blade', v(0, 0, 1), { damage: 1, source: 'bomb' }); assert.equal(g.hp, FOES.brute.hp - 2, 'a bomb: twice as deep');
   // a perfect parry of its slam breaks a piece off
   P.guard = () => 'perfect';
   const hp = g.hp;
-  foes.strike(g, attackOf('golem', 'slam'));
+  foes.strike(g, attackOf('brute', 'slam'));
   assert.equal(g.hp, hp - 1, 'chipped');
   assert.ok(g.stunned > 0 && P.hurts.length === 0, 'and stunned, no harm');
   P.guard = null;
   while (g.alive) foes.hurt(g, 'blade', v(0, 0, 1), { damage: 1 });
-  assert.ok(!FOES.splinter && !FOES.golem.splits, 'the glass splinter is retired (docs/design/enemy-roster.md)');
+  assert.ok(!FOES.splinter && !FOES.golem && !FOES.brute.splits, 'the glass splinter and the golem are retired (docs/design/enemy-roster.md)');
   assert.equal(foes.list.filter((f) => f.alive).length, 0, 'it comes apart, nothing after it');
   foes.dispose(); clearTargets();
 });
@@ -154,7 +137,7 @@ test('sign moths: a flash blinds only when you look at it; a gust or a cut ends 
   foes.dispose(); G.dispose(); clearTargets();
 });
 
-test('the rust drone: its harpoon line pulls you in until it is cut; guarded, the line is cut and the drone dazed; the magnet takes it', () => {
+test('the ring drone (the rust drone’s mind): its harpoon line pulls you in until it is cut; guarded, the line is cut and the drone dazed; the magnet takes it', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
@@ -226,13 +209,13 @@ test('the shellback crab: the blade glances off its shell from the front; from b
   foes.dispose(); clearTargets();
 });
 
-test('the slag walker: it treads burning slag; standing in it hurts (never all of a healthy bar), a shot cools its crust and cooled it cuts twice as deep', () => {
+test('the crucible cart (the slag walker’s mind): it drips burning slag as it goes; standing in it hurts (never all of a healthy bar), a shot cools its crust and cooled it cuts twice as deep; its pour leaves a fan of slag', () => {
   clearTargets();
   const P = player(v(0, 0, 0)), foes = world(P);
   foes.waveRest = 1e9;
-  const s = foes.add('slag', v(0, 0, 12));
-  for (let i = 0; i < 3 / DT; i++) { foes.update(DT); P.health = 1; }
-  assert.ok((foes.patches?.length ?? 0) >= 1, 'it leaves slag where it walks');
+  const s = foes.add('cart', v(0, 0, 14));
+  for (let i = 0; i < 4 / DT; i++) { foes.update(DT); P.health = 1; }
+  assert.ok((foes.patches?.length ?? 0) >= 1, 'it leaves slag where it goes');
   const p = foes.patches[0];
   P.pos.copy(p.pos); P.hurts.length = 0;
   for (let i = 0; i < 1 / DT; i++) foes.updateHazards(DT);
@@ -245,10 +228,11 @@ test('the slag walker: it treads burning slag; standing in it hurts (never all o
   assert.ok(s.crust > 0, 'a shot cools it');
   foes.hurt(s, 'blade', v(0, 0, 1), { damage: 1 });
   assert.equal(s.hp, hp - 3, 'the shot (1), then the cut twice as deep (2)');
-  // a stomp leaves a ring of slag round it
+  // its pour leaves a fan of slag before it, a while longer than a trail's
   const n = foes.patches.length;
-  foes.leaveSlag(s, attackOf('slag', 'stomp'));
+  foes.leaveSlag(s, attackOf('cart', 'pour'));
   assert.ok(foes.patches.length >= Math.min(48, n + 5));
+  assert.ok(foes.patches.at(-1).life >= attackOf('cart', 'pour').leaveLife - 1e-9, 'the pour’s slag stays its while');
   foes.dispose(); clearTargets();
 });
 
@@ -348,7 +332,7 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   }
   // each old kind still standing in has a home
   for (const k of Object.keys(KINDS)) assert.ok(Object.values(ROSTERS).some((R) => R.first === k || (R.wild[k] ?? 0) >= 2), `${k} has a home`);
-  const signature = { desert: 'blot', arzach: 'ray', arzach2: 'crab', glassdunes: 'golem', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'slag', eclipse: 'hound', underwater: 'crab', buried: 'worm' };
+  const signature = { desert: 'blot', arzach: 'ray', arzach2: 'crab', glassdunes: 'brute', bazaar: 'lizard', garage: 'drone', incal: 'tripod', saltharbour: 'crab', moonfoundry: 'cart', eclipse: 'hound', underwater: 'crab', buried: 'worm' };
   const rng = (() => { let s = 7; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const [id, k] of Object.entries(signature)) {
     const packs = []; for (let n = 1; n < 240; n++) packs.push(packOf(n, id, rng));
@@ -360,7 +344,7 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   assert.deepEqual(packOf(2, 'bazaar', () => 0.1), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
   assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('worm'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);
-  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'blot']);
+  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'bell'], 'a dock winch stands by the harbour’s relic with the crab');
   assert.equal(templeKind('garage', 1), 'machine'); assert.equal(templeKind('garage', 2), 'drone');
   assert.equal(templeKind('desert', 3), 'machine');
   assert.ok(Array.from({ length: 200 }, (_, n) => packKinds(4 + (n % 5), 'eclipse', () => (n % 10) / 10)).flat().includes('shade') || ROSTERS.eclipse.wild.shade > 0, 'the eclipse’s shades');

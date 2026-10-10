@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Rig, planLeg } from '../../motion-kit/rig.js';
 import { PLANS } from '../../motion-kit/plans.js';
-import { materials, add, tube, pivot, pair, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, tube, tubeGeometry, many, skinned, pivot, pair, ease, eyeColor, finish, V } from './kit.js';
 
 // Plan 2, the tiny skitterers (docs/systems/procedural-animation.md §4): the skitter swarm (docs/design/enemy-roster.md,
 // archetype 2), drawn to its sheets (references/enemy-archetypes/skitter/: sheet-1 the Desert's dune skitters, sheet-2
@@ -16,6 +16,8 @@ import { materials, add, tube, pivot, pair, ease, eyeColor, finish, V } from './
 //   rush   it rears up on its back legs, front legs raised, and clicks; then darts in
 //   pile   (its flock climbs onto it: Foes.pile) braced wide under the heap, which wobbles as it grows; then topples
 // A skitter in a heap (f.riding) is lifted by its place in it, its legs gripping the one under it.
+// Five draws a skitter (v1.15; 44 before): the dome, its rim, the two eyes in one mesh, their glints in another, and its
+// six legs and two feelers as one skinned mesh whose joints are the kit's own (kit.js skinned: the motion unchanged).
 
 const K = 1.3;   // (the sheet's silhouette: a dome to the traveller's knee; the prompt's fist would not read)
 
@@ -39,7 +41,8 @@ export function skitterModel(skin) {
     tube(shell, arc, 0.032 * K, seamM);
   }
   // two tiny eyes at the front rim, a glint in each; two short feelers forward
-  const eyes = pair((s) => { const e = add(shell, new THREE.SphereGeometry(0.022 * K, 8, 6), eyeM, s * 0.075 * K, 0.035 * K, 0.295 * K); add(shell, new THREE.SphereGeometry(0.009 * K, 5, 4), glintM, s * 0.08 * K, 0.044 * K, 0.315 * K); return e; });
+  const eyes = many(shell, pair((s) => new THREE.SphereGeometry(0.022 * K, 8, 6).translate(s * 0.075 * K, 0.035 * K, 0.295 * K)), eyeM);
+  many(shell, pair((s) => new THREE.SphereGeometry(0.009 * K, 5, 4).translate(s * 0.08 * K, 0.044 * K, 0.315 * K)), glintM);
   const feelers = pair((s) => { const p = pivot(shell, s * 0.06 * K, 0.03 * K, 0.29 * K, 'feeler'); tube(p, [[0, 0, 0], [s * 0.02, -0.03, 0.07], [s * 0.05, -0.06, 0.15], [s * 0.09, -0.07, 0.2]].map((q) => q.map((x) => x * K)), 0.0045 * K, legM); return p; });
   // six short hooked legs from under the rim, the knees rising above the dome, pointed ivory feet; a tripod on the kit
   const legs = [];
@@ -50,13 +53,17 @@ export function skitterModel(skin) {
     legs.push(leg);
   }
   const rig = new Rig({ plan: PLANS.skitterers, group: g, body, legs });
+  // (the legs and feelers: one skinned mesh on the kit's joints, the joints tinted by vertex colour)
+  const limbs = [];
+  for (const o of [...legs.map((l) => l.root), ...feelers]) o.traverse((x) => { if (x.isMesh) limbs.push(x); });
+  skinned(g, limbs, M.mat('limbs', P.leg, { vertexColors: true }));
   finish(g);
-  const parts = [dome, under, ...eyes, ...feelers, ...legs.map((l) => l.root)];
+  const parts = [dome, under, eyes, ...feelers, ...legs.map((l) => l.root)];
   let rear = 0, climb = 0, front = 0;
   const L = rig.length;
   return {
     group: g, body: shell, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.dome, P.band, P.leg],
-    tell: (id) => (id === 'pile' ? dome : eyes[1]),
+    tell: (id) => (id === 'pile' ? dome : eyes),
     anim(f, c) {
       const id = f.atk?.id, dt = c.dt, wind = f.state === 'wind', strike = f.state === 'strike';
       // the rush: up on its back legs, the front pair raised and pawing, clicking

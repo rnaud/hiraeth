@@ -141,32 +141,38 @@ console.log(`${KINDS.length} kinds, ${guardians.length} guardians, ${MOVES.lengt
 const shots = [];
 const results = [];
 for (const kind of KINDS) {
-  // ---- watch it fight a still player
-  await ev(`(() => { foes.setPractice(${JSON.stringify(kind)}); window.__dmg.length = 0; player.health = 1; return true; })()`);
+  // ---- watch it fight a still player: a group kind as its group (the practice calls in its `group`: a skitter flock of
+  // eight, three moths), every member watched, and a support with what it supports (def.escort: the jelly and a blot,
+  // as the Arena's aloneWave); the wind-ups and the attacks a minute are its own kind's, the harm all of it
+  await ev(`(() => { foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); window.__dmg.length = 0; player.health = 1; return true; })()`);
   await sleep(600);
   const t0 = Date.now(), samples = [];
   let shot = null;
   while (Date.now() - t0 < WATCH * 1000) {
-    const s = await ev(`(() => { const f = foes.list.find((x) => x.alive && x.kind === ${JSON.stringify(kind)}); if (!f) return null;
-      if (!foes.lock || foes.lock !== f) foes.lock = f;
-      return { t: performance.now(), state: f.state, k: f.k ?? 0, atk: f.atk?.id ?? 'strike', d: f.pos.distanceTo(player.pos) }; })()`);
-    if (s) samples.push(s);
-    if (!shot && s?.state === 'wind' && s.k > 0.45) shot = Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64');
+    const s = await ev(`(() => { const all = foes.list.filter((x) => x.alive && x.dead === undefined && x.kind === ${JSON.stringify(kind)}); if (!all.length) return null;
+      if (!foes.lock || !all.includes(foes.lock)) foes.lock = all[0];
+      const now = performance.now();
+      return all.map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state, k: f.k ?? 0, atk: f.atk?.id ?? 'strike', d: f.pos.distanceTo(player.pos) })); })()`);
+    if (s) samples.push(...s);
+    if (!shot && s?.some((m) => m.state === 'wind' && m.k > 0.45)) shot = Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).result.data, 'base64');
     await sleep(40);
   }
   const dmg = await ev('window.__dmg.splice(0)');
-  // wind-ups: runs of 'wind' samples
-  const winds = [], strikes = {};
-  for (let i = 0, start = null; i < samples.length; i++) {
-    const w = samples[i].state === 'wind';
-    if (w && start === null) start = i;
-    if ((!w || i === samples.length - 1) && start !== null) {
-      const a = samples[start].atk, dur = (samples[i].t - samples[start].t) / 1000;
-      if (dur > 0.05) { winds.push({ atk: a, dur }); strikes[a] = (strikes[a] ?? 0) + 1; }
-      start = null;
+  // wind-ups: runs of 'wind' samples, member by member
+  const winds = [], strikes = {}, members = [...new Set(samples.map((s) => s.id))];
+  for (const id of members) {
+    const own = samples.filter((s) => s.id === id);
+    for (let i = 0, start = null; i < own.length; i++) {
+      const w = own[i].state === 'wind';
+      if (w && start === null) start = i;
+      if ((!w || i === own.length - 1) && start !== null) {
+        const a = own[start].atk, dur = (own[i].t - own[start].t) / 1000;
+        if (dur > 0.05) { winds.push({ atk: a, dur }); strikes[a] = (strikes[a] ?? 0) + 1; }
+        start = null;
+      }
     }
   }
-  const span = samples.length ? (samples.at(-1).t - samples[0].t) / 60000 : 1;
+  const span = samples.length ? (samples.at(-1).t - samples[0].t) / 60000 : 1;   // (attacks a minute: the whole group's)
   // ---- time to kill with each move (a fresh one each time, struck from in front)
   const ttk = {};
   for (const m of MOVES) {

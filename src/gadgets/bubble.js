@@ -40,9 +40,10 @@ const GRAVITY = 32;   // (the traveller's, src/player.js: given back while he fl
 /** What the game says when a bubble bursts on a foe too heavy to lift, worded for what it burst on. Pure. */
 export const HEAVY_WORDS = {
   machine: 'Too heavy for a bubble: it bursts on the machine’s shell.',
-  golem: 'Too heavy for a bubble: it bursts on the golem’s sharp glass.',
+  brute: 'Too heavy for a bubble: it bursts on the brute’s cracked hull.',
   crab: 'Too heavy for a bubble: it bursts on the crab’s salt-crusted shell.',
-  slag: 'Too heavy for a bubble: it hisses and bursts on the slag walker’s hot crust.',
+  cart: 'Too heavy for a bubble: it hisses and bursts on the cart’s hot crucible.',
+  bell: 'Too heavy for a bubble: it bursts with a ring on the bell’s bronze.',
 };
 export const heavyWords = (kind, name) => HEAVY_WORDS[kind] ?? `Too heavy for a bubble: it bursts on the ${name ?? 'foe'}.`;
 

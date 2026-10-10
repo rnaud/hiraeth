@@ -121,7 +121,7 @@ test('a foe in a bubble is helpless and floats up; dropped from high it lands ha
   assert.equal(W.bubble, null, 'it burst on the machine');
   assert.match(W.ctx?.notes?.at(-1) ?? '', /machine’s shell/);
   // the worlds' heavy foes: each worded for what it burst on, never "the machine's shell"
-  for (const [kind, word] of [['golem', /golem’s sharp glass/], ['crab', /crab’s salt-crusted shell/], ['slag', /slag walker’s hot crust/]]) {
+  for (const [kind, word] of [['brute', /brute’s cracked hull/], ['crab', /crab’s salt-crusted shell/], ['cart', /cart’s hot crucible/], ['bell', /bell’s bronze/]]) {
     const ctx = ctxOf(P, ph, { foes: { list: [], hurt() {} } }), B = bubble.create(ctx);
     B.spawn('free', v(0, 1, 1));
     assert.equal(B.engulf({ kind: 'foe', foe: new Foe(kind, v(0, 0, 0)) }), false, `a ${kind} is too heavy`);

@@ -2,7 +2,7 @@
 // Played on foot with the blade (attack RB / R1, guard LB / L1, evade B / ○) and the fluid gun (aim LT / L2,
 // fire RT / R2): endless waves of the game's foes (src/foes.js: ink blots, bellows toads, skitters, sky rays,
 // shades, the makers' machines; from wave 7 the worlds' own, the roster's and the old kinds: signal moths, mound
-// worms, root knots, stilt herons, crabs, rust drones, slag walkers, glass golems, hounds) out of the ink springs round
+// worms, root knots, stilt herons, crabs, ring drones, crucible carts, furnace brutes, bell walkers, hounds) out of the ink springs round
 // the rim, more of them and more kinds as the waves go on. Between two waves a breather: some health back, and three small boons on the sigil in the
 // middle (a longer blade, a deeper tank, quicker refills…): walk onto the one you want. The score is the
 // waves cleared and the style of the fight (cuts in quick succession, perfect parries and dodges, a wave untouched).
@@ -42,11 +42,11 @@ export const TIDE = {
  * own kinds comes in every wave or two, the plain ones first: all of them work on the basin's sand (a worm swims
  * under it), drones hover over it, and the hounds run as shadows between the pillars' long evening ones.
  */
-export const COST = { blot: 1, toad: 1.5, skitter: 2, ray: 2, shade: 3, machine: 3.5, moth: 2.4, worm: 2, rootknot: 2.5, heron: 2.4, crab: 2.5, drone: 2.5, lizard: 2.6, slag: 3.5, golem: 4, tripod: 3.2, hound: 3, centipede: 3.5, jelly: 2.5 };
-export const FIRST = { blot: 1, toad: 2, skitter: 3, machine: 4, ray: 5, shade: 6, moth: 7, worm: 8, rootknot: 9, crab: 11, drone: 12, lizard: 13, slag: 14, golem: 15, tripod: 16, hound: 17, centipede: 18, jelly: 19, heron: 20 };
+export const COST = { blot: 1, toad: 1.5, skitter: 2, ray: 2, shade: 3, machine: 3.5, moth: 2.4, worm: 2, rootknot: 2.5, heron: 2.4, crab: 2.5, drone: 2.5, lizard: 2.6, cart: 3.5, brute: 4, tripod: 3.2, hound: 3, centipede: 3.5, jelly: 2.5, bell: 4.5 };
+export const FIRST = { blot: 1, toad: 2, skitter: 3, machine: 4, ray: 5, shade: 6, moth: 7, worm: 8, rootknot: 9, crab: 11, drone: 12, lizard: 13, cart: 14, brute: 15, tripod: 16, hound: 17, centipede: 18, jelly: 19, heron: 20, bell: 21 };
 export const GROUP = { skitter: 5, moth: 3, hound: 2, lizard: 2 };
 /** Style points for each foe cut down (before the chain's multiplier). */
-export const KILL = { blot: 10, toad: 15, skitter: 4, ray: 20, shade: 30, machine: 40, moth: 8, worm: 25, rootknot: 25, heron: 22, crab: 30, drone: 30, lizard: 22, slag: 35, golem: 45, tripod: 35, hound: 18, centipede: 35, jelly: 20 };
+export const KILL = { blot: 10, toad: 15, skitter: 4, ray: 20, shade: 30, machine: 40, moth: 8, worm: 25, rootknot: 25, heron: 22, crab: 30, drone: 30, lizard: 22, cart: 35, brute: 45, tripod: 35, hound: 18, centipede: 35, jelly: 20, bell: 50 };
 /** How many a foe puts on the floor, for the crowd's cap (a swarm's little skitters don't count). */
 export const heads = (k) => (k === 'skitter' ? 0 : 1);
 
@@ -61,7 +61,7 @@ export const waveCap = (n, gentle = false) => (gentle ? 5 + Math.floor(n / 4) : 
  * come in so far, the bigger ones more likely the further on (one of the worlds' kinds come in within the last
  * two waves a little likelier still), until the budget is spent or the crowd is full (waveCap: heads). A list of
  * kinds, a group kind as many times as GROUP says (a swarm is five 'skitter'). Gentle: smaller waves, at first
- * never more than five foes standing at once (bar a swarm; a golem counts as its splinters).
+ * never more than five foes standing at once (bar a swarm).
  */
 export function waveKinds(n, { gentle = false, rng = Math.random } = {}) {
   const kinds = Object.keys(FIRST).filter((k) => FIRST[k] <= n);
@@ -430,7 +430,7 @@ function start(ctx) {
 export default {
   id: 'waves', order: 8,
   name: 'Ink tide',
-  blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, bellows toads, skitters, shades and machines, and further on the worlds’ own foes: moths, rays, herons, crabs, drones, golems, hounds…',
+  blurb: 'A basin of sand in a sea of ink, and the ink keeps coming: wave after wave of blots, bellows toads, skitters, shades and machines, and further on the worlds’ own foes: moths, rays, herons, crabs, drones, brutes, bells, hounds…',
   rules: 'Cut down every wave. Between waves you get some health back and a choice of three boons: walk onto the one you want. Score: 150 a wave cleared, plus style (quick chains of cuts, perfect parries, perfect dodges, a wave untouched). It ends when the tide knocks you out.',
   drives: false,
   controls: {
