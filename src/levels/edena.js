@@ -9,6 +9,7 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
+import { buildRunnel, runnelDist } from '../viridel-ways.js';
 
 // ---------------------------------------------------------------------------
 // Viridel: a paradise planet with pale meadows,
@@ -595,6 +596,11 @@ export function* buildEdena(scene) {
   const shop = placeShop(scene, { def: SHOPS.potting, at: new THREE.Vector3(62, terrain.heightAt(62, -92), -92), heading: -0.75 });
   shipPortals.push(...shop.portals);
 
+  // Mira's runnel (src/viridel-ways.js, level design audit, fourth round): from the water clock west round the meadow by
+  // the pond and down to the vines over the fallen ship: the main quest's way back to Mira
+  yield;
+  const runnel = buildRunnel(scene, terrain);
+
   // (the white builders' Greenhouse in the hollow north of the ruins: src/temples/edena.js)
   yield;
   return attachTemple('edena', scene, {
@@ -605,7 +611,11 @@ export function* buildEdena(scene) {
     edena: { crashed, tall, pond: { ...POND, y: pondY }, ruins: ruinSlabs },
     // no flora in the pond, round the crashed ship or at the foot of the tallest tree (src/flora.js)
     floraAvoid: shop.avoid((x, z, r) => Math.hypot(x - POND.x, z - POND.z) < POND.r + 6 + r || crashed.centre.distanceTo(new THREE.Vector3(x, crashed.centre.y, z)) < 26 + r
-      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r)),
+      || Math.hypot(x - tall.base.x, z - tall.base.z) < 14 + r || inTerraces(x, z, r) || runnelDist(x, z) < 1 + r),
+    // what the level design audit reads (scripts/level-design/audit.mjs): the runnel, a leading line followed where the
+    // main quest sends you back up it; the sluice-gate and the basin on it, to look at
+    lines: [{ name: 'Mira’s runnel', points: runnel.points, auto: false }],
+    sights: [{ name: 'the runnel’s sluice-gate', at: runnel.sluice }, { name: 'the runnel’s basin', at: runnel.basin }],
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
     spawnHeading: Math.PI,

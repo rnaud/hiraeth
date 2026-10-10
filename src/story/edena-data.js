@@ -49,7 +49,7 @@ export const QUESTS = [
       { id: 'log', text: 'Play the ship’s last log at the cockpit panel', label: 'The cockpit panel', flag: 'edena.log.read', at: 'panel' },
       { id: 'veil', text: 'Look under the flowers on the ship’s flank, as Talo asked. Don’t cut them: water them (shoot)', label: 'The flowers on the flank', flag: 'edena.veil.open', at: 'veil' },
       { id: 'scar', text: 'Look at what the garden uncovered', label: 'Under the flowers', flag: 'edena.scar.seen', at: 'veilLook' },
-      { id: 'tell', text: 'Tell Mira what you saw', label: 'Mira, the gardener', talk: 'mira', at: 'mira' },
+      { id: 'tell', text: 'Tell Mira what you saw: Vey says to follow her runnel back up, west round the meadow, to the water clock', label: 'Mira, the gardener', talk: 'mira', at: 'mira', via: 'Mira’s runnel' },
     ],
   },
   {

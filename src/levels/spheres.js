@@ -627,9 +627,10 @@ export function* buildSpheres(scene) {
   const A = LAYOUT.arch, Av = LAYOUT.avenue, Pz = LAYOUT.plaza;
   const plaza = { x: Pz.x, z: Pz.z, r: Pz.r };
   sphereArch(A.x, A.z, A.R);
-  path([[0, 8], [0, -60], [3, -150], [0, -250], [0, -350]], 3.4);
-  path([[0, -335], [0, Av.z1 + 4]], 6);
-  path([[2, -40], [60, -60], [130, -52], [178, -46]], 2.6);
+  const WAY = [[0, 8], [0, -60], [3, -150], [0, -250], [0, -350]], AVENUE = [[0, -335], [0, Av.z1 + 4]], LAKE_PATH = [[2, -40], [60, -60], [130, -52], [178, -46]];
+  path(WAY, 3.4);
+  path(AVENUE, 6);
+  path(LAKE_PATH, 2.6);
   path([[-2, -30], [-60, -60], [-140, -55], [-215, -58], [Hl.x, Hl.z + Hl.r[0] + 12]], 2.8);
   path([[-24, -64], [MP.x, -110], [MP.x, MP.z + MP.half + 12]], 2.4);
   path([[-8, -395], [-60, -405], [-120, -420], [-170, -430]], 2.2);
@@ -977,6 +978,9 @@ export function* buildSpheres(scene) {
     lights: [...shop.lights],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
+    // what the level design audit reads (scripts/level-design/audit.mjs): the white paths, leading lines: from the lake
+    // (the spheres that remember) to the grove's path, through the sphere-arch and down the avenue to the plaza
+    lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) }],
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {
