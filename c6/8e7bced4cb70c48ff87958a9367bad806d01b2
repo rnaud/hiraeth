@@ -1,0 +1,49 @@
+docs/systems/audio.md
+  s_9ca76055a220ed::t_270021933a05d7 314-351
+docs/systems/foes.md
+  s_9ca76055a220ed::t_1ddc243016cd1b 10,38,274,615-640,674-679
+src/audio.js
+  s_9ca76055a220ed::t_8d8ac1068b38f4 19,1753,1906-1910,1912-1957,1968-1969,1971
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_e3f1981e5ecba1 22-23,166,190,212,282,324,345,367,396,401,413,435,448,457,506,516,532,555
+src/fluid-blade.js
+  s_9ca76055a220ed::t_c64948fcfc09f0 26,145
+src/foe-voices.js
+  s_9ca76055a220ed::t_906fddc21b7dee 1-110
+src/foe-worlds.js
+  s_9ca76055a220ed::t_266943589fece0 27-33,65-66,71,95,120,125-127,129
+src/foes.js
+  s_9ca76055a220ed::t_9e728adbad309c 24,94-102,162-168,1192,1212-1218,1568-1569,1892-1894,1896-1897,1899,1916,2101,2277,2406
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_8947c22711c0ca 344-347
+tests/foe-voices.test.js
+  s_9ca76055a220ed::t_faa332e591113b 1-166
+tests/foes.test.js
+  s_9ca76055a220ed::t_d27f95e4e41bcf 60
+tests/archetypes.test.js
+  s_df57d1e2376fc9::t_0337441bc068d6 10,127-128,131,134-135,141-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c68e7bced4cb70c48ff87958a9367bad806d01b2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_df57d1e2376fc9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a168f326cbff9de83",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
