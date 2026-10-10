@@ -81,7 +81,11 @@ export function marionetteModel(skin) {
     const a = i * 2.39996, r = 0.1 + Math.sqrt(i / 34) * 0.75, s = 0.12 + ((i * 7) % 5) * 0.045;
     puffs.push(new THREE.IcosahedronGeometry(s, 1).scale(1.15, 0.85, 1.15).translate(Math.sin(a) * r, 0.3 + ((i * 3) % 7) * 0.06 - r * r * 0.35, Math.cos(a) * r * 0.85));
   }
-  for (let i = 0; i < 6; i++) puffs.push(new THREE.IcosahedronGeometry(0.09 - i * 0.01, 0).translate(Math.sin(i * 1.3) * 0.05, -0.05 - i * 0.14, Math.cos(i) * 0.03));
+  // (the sheet's: under the cloud the ink pours down in a twisting funnel, narrowing to where the strings go in)
+  for (let i = 0; i < 12; i++) {
+    const t = i / 11, a = t * 7.5, r = 0.06 + (1 - t) * 0.12;
+    puffs.push(new THREE.IcosahedronGeometry(lerp(0.3, 0.055, Math.pow(t, 0.8)), 1).scale(1.1, 0.8, 1.1).translate(Math.sin(a) * r, 0.08 - t * 1.05, Math.cos(a) * r * 0.8));
+  }
   const smoke = new THREE.Group(); anchor.add(smoke); smoke.name = 'knot';
   many(smoke, puffs, smokeM);
   // the puppet hangs from the anchor (`hang`: the pendulum turns it about the knot)
