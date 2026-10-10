@@ -118,7 +118,7 @@ test('the desert backpack box sits on the makers’ pedestal high up the burning
   const at = resolvePlacement(p, { physics, level });
   assert.ok(at, 'resolves');
   assert.ok(at.pos.distanceTo(L.box) < 0.05, 'on the pedestal');
-  // inside the walls, at the burning tree beside the well, high over the top terrace (out of reach of a jump or one climb)
+  // inside the walls, at the burning tree beside the well, high over the square (out of reach of a jump or one climb)
   assert.ok(Math.hypot(at.pos.x - C.center.x, at.pos.z - C.center.z) < 20, 'in the middle of the city');
   const rise = at.pos.y - C.top;
   assert.ok(rise > 6.5 && rise < 9, `high up the trunk (${rise.toFixed(2)} m)`);

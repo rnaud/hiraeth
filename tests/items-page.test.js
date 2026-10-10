@@ -13,7 +13,7 @@ test('the items page: every item with its picture, what it does, and where it is
   assert.equal(cards.length, Object.keys(ITEMS).length);
   for (const id of Object.keys(ITEMS)) assert.ok(existsSync(new URL(`../public/item-pictures/${id}.webp`, import.meta.url)), `${id}: its picture (node scripts/item-pictures.mjs)`);
   const w = whereFound('backpack', PLACEMENTS, FALLBACKS, TITLES);
-  assert.ok(w.some((x) => x.world === 'desert' && /pedestal/.test(x.note)), 'the backpack: Qanat\'s pedestal');
+  assert.ok(w.some((x) => x.world === 'desert' && /ledge/.test(x.note)), 'the backpack: Qanat\'s ledge on the tree');
   assert.ok(w.some((x) => x.title === 'By the ship'), 'and the spare by the ship');
   assert.ok(whereFound('fire', PLACEMENTS, FALLBACKS, TITLES).some((x) => x.temple), 'ember: in a temple');
   assert.match(cards.find((c) => c.id === 'glider').html, /Fluid wings/);

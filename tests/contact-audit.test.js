@@ -121,7 +121,9 @@ test('a riding disc’s rise is not a step: the drawn body rides it without lagg
 //    purpose: the oculus stays as open to the collision as its ceiling's hole), the balls (round);
 //  - taxis and the guardians' balls: a car's roof and a ball are a disc only in the middle (carrier counts).
 const KNOWN = {
-  desert: { sink: 8, hover: 3, inside: 15, walk: 30 }, incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
+  desert: { sink: 8, hover: 3, inside: 15, walk: 42 },   // (v1.41: the tree rooted in the square, the houses closer round it: the samples moved
+  // all over the world, the sand banks, the grove and the cave most; the old city itself 2 more, its roofs' edges)
+  incal: { sink: 0, hover: 0, inside: 2, walk: 0 },
   arzach: { sink: 5, hover: 0, inside: 5, walk: 34 }, arzach2: { sink: 3, hover: 1, inside: 4, walk: 2 },
   garage: { sink: 0, hover: 0, inside: 13, walk: 1 }, buried: { sink: 23, hover: 1, inside: 24, walk: 4 },
   edena: { sink: 3, hover: 0, inside: 7, walk: 28 }, spheres: { sink: 52, hover: 26, inside: 47, walk: 217 },

@@ -13,6 +13,7 @@ export const CHANGELOG = [
     'The makers’ chest on Qanat’s tree keeps its secret now: its card says only “A glass backpack? You’ve never seen anything like it. It’s empty though?”',
     'Every makers’ box’s card shows what to press: A / × (Enter on the keyboard) beside Continue, and B / ○ (Esc) beside Skip.',
     'When the chest on the tree opens, only Nour calls out, “Hey you!”, and comes to the tree’s foot to wait for you; nobody else crowds over.',
+    'Qanat’s great tree stands rooted in the middle of the town’s square, as in its picture, with no terraces or stairs under it; the houses gather closer round the square, and the well, the stele, Nour’s bench and the ledge with the chest stand at its foot.',
   ] },
   { v: '1.40', date: '2026-10-10', items: [
     // the camera in tight places (docs/systems/movement-and-camera.md "The camera QC and what it fixed")

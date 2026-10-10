@@ -14,9 +14,10 @@ import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 
 // The desert's story places (references/levels/The Desert/environment/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
-//   the old city of Qanat   a walled ring of domes and tower-houses on
-//                           stepped terraces round the burning tree; the
-//                           dry well at its roots and a carved stele
+//   the old city of Qanat   a walled ring of domes and tower-houses laid
+//                           round a paved square, the burning tree rooted
+//                           in its middle; the dry well at its roots and a
+//                           carved stele
 //   the camps               tents, fires, banners and log benches outside
 //                           the main gate, where the pilgrims wait
 //   the fallen giant        its skull outside the back gate (the way down),
@@ -303,7 +304,6 @@ function materials() {
   return {
     wall: makeMaterial({ color: '#f0d7c3', color2: '#e8c4ae', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 2.4, flat: true, weathered: true }),
     wallGlyph: makeMaterial({ color: '#efd8c4', color2: '#e3bfa8', color3: '#f6e6d6', mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.4, glyphs: true }),
-    terrace: makeMaterial({ color: '#ead2bc', color2: '#dfbea4', color3: '#f3e1cd', mode: MODE_STRATA, strataSize: 1.1, flat: true, weathered: 0.8 }),
     paving: makeMaterial({ color: '#e9d6bf', grid: 2.2, flat: true }),
     white: paint('#f6efe0'), pink: paint('#e9a99a'), rose: paint('#dd8f86'), ochre: paint('#e6b86f'), teal: paint('#5fb7ad'), lav: paint('#b7a0cf'),
     // domes are smooth (no facets on the shadow line)
@@ -412,7 +412,7 @@ export function buildDesertCity(scene, terrain) {
     for (const s of [-1, 1]) city.both(M.wall, new THREE.BoxGeometry(4, 13, 5).translate(s * 5.4, 5.5, -R));
     city.both(M.wall, new THREE.BoxGeometry(14.8, 3, 5.4).translate(0, 11.5, -R));
     city.add(M.glyph, glyphGeometry(1.0).translate(0, 11.4, -R - 2.75).rotateY(0));
-    // the keepers' hatch in the back lane, halfway from the terraces to the back gate: where the keepers' stair from the
+    // the keepers' hatch in the back lane, halfway from the square to the back gate: where the keepers' stair from the
     // giant's chest comes up (level design audit, third round: the walk out of the cave to the well was the way you went
     // down). A kerb of stone round a heavy wooden lid with an iron ring; it only lifts from below
     {
@@ -426,22 +426,26 @@ export function buildDesertCity(scene, terrain) {
       out.hatch = { at: hk.world(0, 0, HZ), out: hk.world(0, 0, HZ + 2.8), look: hk.world(0, 0.3, HZ) };
     }
 
-    // paving in the avenue and round the terraces (flush with the ground you walk on: 2 cm proud)
+    // the town's square: the tree stands rooted in its middle, on the ground, no terrace or dais under it (the author's
+    // call, October 2026, after the picked reference: references/levels/The Desert/places/qanat-tree/sheet-1.jpg); the
+    // houses are laid round it, their doors on the square
+    const SQUARE = 23;
+    // paving in the avenue and over the square (flush with the ground you walk on: 2 cm proud)
     city.add(M.paving, new THREE.BoxGeometry(11, 0.12, 40).translate(0, -0.04, 45));
-    city.add(M.paving, new THREE.CylinderGeometry(30, 30, 0.1, 40).translate(0, -0.03, 0));
+    city.add(M.paving, new THREE.CylinderGeometry(SQUARE + 3, SQUARE + 3, 0.1, 40).translate(0, -0.03, 0));
 
-    // houses: domes, cubes and tall tower-houses between the wall and the terraces
+    // houses: domes, cubes and tall tower-houses between the wall and the square
     const HOUSE_MATS = [M.white, M.white, M.pink, M.ochre, M.wall];
     const DOME_MATS = [M.dWhite, M.dPink, M.dRose, M.dTeal, M.dLav, M.dWhite];
     const placed = [];
     const clear = (x, z, r) => {
       if (Math.abs(x) < 7.5 + r && z > 20) return false;          // the avenue to the gate
       if (Math.abs(x) < 5 + r && z < -20) return false;           // the back lane
-      if (Math.hypot(x, z) < 31 + r || Math.hypot(x, z) > R - 4 - r) return false;
+      if (Math.hypot(x, z) < SQUARE + 1 + r || Math.hypot(x, z) > R - 4 - r) return false;
       return placed.every((p) => Math.hypot(p.x - x, p.z - z) > p.r + r + 2.2);
     };
     for (let tries = 0; tries < 700 && placed.length < 46; tries++) {
-      const a = rng() * Math.PI * 2, d = 33 + rng() * 27, x = Math.sin(a) * d, z = Math.cos(a) * d;
+      const a = rng() * Math.PI * 2, d = SQUARE + 3 + rng() * 34, x = Math.sin(a) * d, z = Math.cos(a) * d;
       const kind = rng();
       const r = kind < 0.4 ? 3 + rng() * 2.5 : kind < 0.75 ? 3.4 + rng() * 2 : 2.2 + rng() * 1;
       if (!clear(x, z, r)) continue;
@@ -477,27 +481,6 @@ export function buildDesertCity(scene, terrain) {
     }
     out.sites.houses = placed.length;
 
-    // the terraces round the tree: three tiers, stairs toward both gates
-    const TIERS = [[25, 2.2], [17.5, 4.4], [11.5, 6.6]];
-    // (the lip is a band round the edge, flush with the top: the feet stand where the paving is drawn,
-    // and the collider is as round and as wide as the lip, so you don't drop off its edge early)
-    for (const [r, h] of TIERS) {
-      city.both(M.terrace, new THREE.CylinderGeometry(r, r + 0.4, h, 40).translate(0, h / 2, 0), new THREE.CylinderGeometry(r + 0.25, r + 0.4, h, 40).translate(0, h / 2, 0));
-      city.add(M.wall, new THREE.CylinderGeometry(r + 0.25, r + 0.25, 0.35, 40).translate(0, h - 0.155, 0));   // a lip
-    }
-    // stairs: 0.37 m steps up each tier, on the gate side and the back
-    for (const dir of [1, -1]) {
-      let y = 0;
-      for (let k = 0; k < TIERS.length; k++) {
-        const [r, h] = TIERS[k], rOut = k === 0 ? 31 : TIERS[k - 1][0] - 0.3;
-        const n = Math.round((h - y) / 0.37), run = rOut - r - 0.4;
-        for (let s = 0; s < n; s++) {
-          const top = y + (s + 1) * (h - y) / n, zf = rOut - (s / n) * run, zb = r - 1.5;
-          city.both(M.terrace, new THREE.BoxGeometry(6.5, top, zf - zb).translate(0, top / 2, ((zf + zb) / 2) * dir));
-        }
-        y = h;
-      }
-    }
     // braziers along the avenue: a post, a bowl, a little fire
     const brazierFlames = [];
     for (let k = 0; k < 4; k++) for (const s of [-1, 1]) {
@@ -521,7 +504,7 @@ export function buildDesertCity(scene, terrain) {
     // (references/levels/The Desert/places/qanat-tree/sheet-1.jpg: an enormous pale tree, its trunk fluted and gnarled,
     // great buttress roots flowing out over the square, one low arm arching down over Nour's bench, and a wide crown of
     // limbs whose leaves are the fire itself, a slow cool fire in violet, teal and gold)
-    const top = TIERS[2][1];
+    const top = 0.02;   // the square's paving: the tree is rooted in it (since v1.41; it stood on three tiers 6.6 m up)
     const TREE = { x: 0, z: -3 }, S = 1.45;   // S: the old tree's size (the fire's hazard keeps its reach)
     const TWIST = 0.03;
     // a massive fluted trunk: a lathe, twisted and ridged, flaring at its foot; it forks at FORK into the crown's limbs
@@ -538,19 +521,19 @@ export function buildDesertCity(scene, terrain) {
       g.computeVertexNormals();
       return g.translate(TREE.x, top, TREE.z);
     };
-    // the bark's radius at angle th (atan2(z, x) round the axis) and height y over the terrace
+    // the bark's radius at angle th (atan2(z, x) round the axis) and height y over the square
     const profileR = (y) => {
       for (let i = 1; i < PROFILE.length; i++) if (y <= PROFILE[i][1]) { const [r0, y0] = PROFILE[i - 1], [r1, y1] = PROFILE[i]; return r0 + (r1 - r0) * THREE.MathUtils.clamp((y - y0) / (y1 - y0), 0, 1); }
       return PROFILE[PROFILE.length - 1][0];
     };
     const barkR = (th, y) => profileR(y) * gnarl(y, th - y * TWIST);
     // collision is the bark itself (so a climber's hands touch what you see), minus the foot's flare, drawn over the roots
-    // (shut at both ends: under the terrace, and a low crown over the top, between the limbs)
+    // (shut at both ends: under the paving, and a low crown over the top, between the limbs)
     const CROWN = [[3.2, 22.6], [0, 23]];
     city.both(M.bark, twist(lathe([[0, -0.3], ...PROFILE, ...CROWN], 40)), twist(lathe([[0, -0.3], [5.4, -0.3], ...PROFILE.slice(1), ...CROWN], 40)));
     // the makers' ledge (below): a plank shelf high on the trunk, over a buttress root, toward the old shrine's corner
-    const LEDGE = { phi: -0.5, H: 3.2, H2: 7.2, shoulder: 1.6 };   // H the root's shoulder, H2 the shelf, over the terrace
-    // tree-local helpers: a point at angle a (local angle: 0 toward the main gate), r out from the axis, y over the terrace
+    const LEDGE = { phi: -0.5, H: 3.2, H2: 7.2, shoulder: 1.6 };   // H the root's shoulder, H2 the shelf, over the square
+    // tree-local helpers: a point at angle a (local angle: 0 toward the main gate), r out from the axis, y over the square
     const onTree = (a, r, y) => V(TREE.x + Math.sin(a) * r, top + y, TREE.z + Math.cos(a) * r);
     // the buttress roots: tall fins flowing out of the trunk and down over the square, each ending in a low tail you
     // step over (none toward the well and the stairs, the back stair, the ledge's own buttress or the low arm). A fin
@@ -576,14 +559,14 @@ export function buildDesertCity(scene, terrain) {
     };
     for (const [a, h] of FINS) {
       city.both(M.bark, fin(a, h));
-      // its tail, low over the paving (0.35 m proud), curling down over the terrace's edge
-      const pts = [onTree(a, 6.2, -0.3), onTree(a + 0.05, 8.5, -0.15), onTree(a + 0.1, 10.5, -0.1), onTree(a + 0.12, 12.2, -2.5)];
+      // its tail, low over the paving (0.35 m proud), running out over the square and down into it
+      const pts = [onTree(a, 6.2, -0.3), onTree(a + 0.05, 8.5, -0.15), onTree(a + 0.1, 10.5, -0.12), onTree(a + 0.12, 12.4, -0.6)];
       city.both(M.bark, taper(pts, 0.72, 0.3, 12, 6));
     }
-    // the low arm: a great root arching out of the trunk over Nour's bench and down onto the tier below
+    // the low arm: a great root arching out of the trunk over Nour's bench and down into the square
     // (3.6 m clear over the walk round the trunk, where the way to the back gate passes under it)
     const ARM = -1.1;
-    { const arm = [[3.2, 4.4], [6, 5.4], [8.5, 4.9], [10.5, 3.6], [12.3, 1.4], [13.6, -0.8], [14.4, -2.6]].map(([r, y], i) => onTree(ARM + 0.04 * i, r, y));
+    { const arm = [[3.2, 4.4], [6, 5.4], [8.5, 4.9], [10.5, 3.6], [12.3, 1.6], [13.5, 0.3], [14.3, -0.8]].map(([r, y], i) => onTree(ARM + 0.04 * i, r, y));
       city.both(M.bark, taper(arm, 1.05, 0.6, 22, 8)); }
     // limbs: five great arms spreading wide out of the fork, each parting into branches that carry the burning leaves
     const limbs = [], tips = [];
@@ -633,7 +616,7 @@ export function buildDesertCity(scene, terrain) {
     // the dry well at the tree's roots, and the carved stele beside it
     const WELL = { x: 0, z: 8 };
     // (the kerb collides as the ring it is drawn as, and its dry bottom holds you up: a solid cylinder
-    // used to cap the well's mouth with an invisible floor 1.1 m over the terrace)
+    // used to cap the well's mouth with an invisible floor 1.1 m over the paving)
     city.both(M.stone, lathe([[2.0, 0], [2.6, 0], [2.6, 1.0], [2.25, 1.15], [2.0, 1.0], [2.0, 0]], 24).translate(WELL.x, top, WELL.z));
     city.both(M.dry, new THREE.CylinderGeometry(2.02, 2.02, 0.1, 24).translate(WELL.x, top + 0.06, WELL.z));
     const wellMat = magicMaterial(21);
@@ -647,13 +630,13 @@ export function buildDesertCity(scene, terrain) {
     city.add(M.ink, mural(3.0, 3.0).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 2.0, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.31))));
     city.add(M.glyph, glyphGeometry(0.55).applyMatrix4(new THREE.Matrix4().compose(V(ST.x, top + 3.9, ST.z), new THREE.Quaternion().setFromAxisAngle(UP, -0.35), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.32))));
 
-    // the makers' pedestal: high up the trunk, a carved stone dais on a stone pier, the pier standing
-    // on the shoulder of a buttress root that rises out of the terrace. On the dais, on a low drum
+    // the makers' ledge: high up the trunk, a plank shelf on a pier of root, the pier standing
+    // on the shoulder of a buttress root that rises out of the square. On the dais, on a low drum
     // ringed with the makers' light, the box that holds the backpack (src/boxes/placements.js:
     // 'desert.backpack'), out in the open where you see it from the stairs. A real little climb, in
     // two pitches: up the root's face onto its shoulder, then up the pier's face and over the dais's
     // edge (player.js tryMantle), where there is room to stand in front of the box.
-    // Ledge frame L: x across, y up from the terrace, z out from the tree's axis (toward phi).
+    // Ledge frame L: x across, y up from the square, z out from the tree's axis (toward phi).
     const { phi, H, H2 } = LEDGE;
     const lM = new THREE.Matrix4().compose(V(TREE.x, top, TREE.z), new THREE.Quaternion().setFromAxisAngle(UP, phi), V(1, 1, 1));
     const lg = (g) => g.applyMatrix4(lM);
@@ -688,7 +671,7 @@ export function buildDesertCity(scene, terrain) {
       }
       b.computeVertexNormals();
       city.add(M.bark, lg(b));
-      // two roots twisting down its sides into the terrace
+      // two roots twisting down its sides into the paving
       for (const s of [-1, 1]) city.add(M.bark, lg(taper([V(s * 0.62, H - 0.6, sF - 1.5), V(s * 1.25, H * 0.5, sF - 0.9), V(s * 1.5, 0.15, sF - 0.6), V(s * 1.7, -0.25, sF - 0.3)], 0.42, 0.2, 10, 6)));
       // the makers' mark on its face, and offering cloths tied to the shoulder's corners
       city.add(M.glyph, lg(glyphGeometry(0.42).translate(0, 1.75, sF + 0.06)));
@@ -732,11 +715,11 @@ export function buildDesertCity(scene, terrain) {
     city.both(M.wood, lg(new THREE.BoxGeometry(1.2, DRUM.h, 0.6).translate(0, H2 + DRUM.h / 2, sC)));
     city.add(M.ink, lg(new THREE.BoxGeometry(1.24, 0.04, 0.64).translate(0, H2 + DRUM.h * 0.5, sC)));
     city.add(M.cloth[0], lg(new THREE.PlaneGeometry(0.5, DRUM.h - 0.04).translate(0, H2 + DRUM.h / 2 + 0.02, sC + 0.31)));
-    // a stone bench on the terrace below, under the tree's arm: where Nour keeps the chest company
+    // a stone bench in the square below, under the tree's arm: where Nour keeps the chest company
     const BENCH = { x: -7.33, z: 2.22 }, footC = lToCity(0, 0, sF + 0.8), benchYaw = Math.atan2(footC.x - BENCH.x, footC.z - BENCH.z);
     city.both(M.stone, T(new THREE.BoxGeometry(1.5, 0.42, 0.5), [BENCH.x, 0.21 + top, BENCH.z], [0, benchYaw, 0]));
     city.add(M.cloth[1], T(new THREE.BoxGeometry(1.2, 0.04, 0.44), [BENCH.x, 0.44 + top, BENCH.z], [0, benchYaw, 0]));
-    // pilgrims' lanterns on posts round the top terrace, and cloths hung from the low arm
+    // pilgrims' lanterns on posts round the tree's foot, and cloths hung from the low arm
     for (const a of [0.55, 1.5, 2.3, -2.3, -1.65]) {
       const x = Math.sin(a) * 10.9, z = Math.cos(a) * 10.9;
       city.add(M.ink, new THREE.CylinderGeometry(0.05, 0.07, 1.55, 5).translate(x, top + 0.78, z));
@@ -749,11 +732,11 @@ export function buildDesertCity(scene, terrain) {
       city.add(M.cloth[c], new THREE.PlaneGeometry(0.3, len, 1, 3).rotateY(ARM).translate(p.x, p.y, p.z));
     });
     const toWorld = (x, y, z) => { const p = lToCity(x, y, z); return city.world(p.x, p.y, p.z); };
-    // (ledge-local points: x across, y up from the terrace, z out from the chest's centre)
+    // (ledge-local points: x across, y up from the square, z out from the chest's centre)
     const ledge = {
       box: toWorld(0, H2 + DRUM.h, sC), yaw: city.heading(phi), height: H2 + DRUM.h,
       at: (x, y, z) => toWorld(x, y, sC + z),
-      foot: toWorld(0, 0, sF + 0.8),        // on the terrace in front of the buttress: push into it and climb
+      foot: toWorld(0, 0, sF + 0.8),        // in the square in front of the buttress: push into it and climb
       face: sF - sC,                        // the root's climbing face, metres in front of the box
       shoulder: toWorld(0, H, (sF + sF2) / 2),   // the root's top, between the two pitches
       dais: { y: toWorld(0, H2, sC).y, face: sF2 - sC },   // the dais's top, and its edge (the pier's face) in front of the box
@@ -767,8 +750,9 @@ export function buildDesertCity(scene, terrain) {
       top: city.world(0, top, 0), well: city.world(WELL.x, top, WELL.z), stele: city.world(ST.x, top, ST.z + 1.2),
       wellLook: city.world(WELL.x, top, WELL.z + 3.4), treeBase: city.world(TREE.x, top, TREE.z), crown,
       flames, foliage, embers, smoke, light: treeLight, light2: treeLight2, wellWater, wellMat, yaw: C.yaw,
-      plinthStair: city.world(0, 0, 31), local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
-      stairTop: city.world(0, top, 12.6), ledge,
+      plinthStair: city.world(0, 0, 31),   // (the avenue's end at the square, where the stairs up to the tree once began)
+      local: (x, y, z) => city.world(x, y, z), top: city.world(0, top, 0).y,
+      stairTop: city.world(0, top, 12.6), ledge,   // (in the square before the well, where the stairs came up)
       // the fire: 0 (the tree stands cold, no flame, no smoke, no sparks) .. 1 (burning). A new game starts
       // at 0; src/story/desert.js lights it once the spark-stone is set in the full well
       lit: 1,

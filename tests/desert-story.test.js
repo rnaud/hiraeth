@@ -116,8 +116,14 @@ test('the city, its camps, the giant and the cave stand on solid ground, 300–6
   stand(Q.cave.inside, 'the cave passage');
   const pool = Q.cave.poolCenter, bed = physics.groundAt(pool.x, pool.y + 3, pool.z);
   assert.ok(bed < Q.cave.origin.y - 1 && bed > Q.cave.origin.y - 2.2, 'the pool has a shallow bed you can wade on');
-  // the top terrace is high above the plaza (you climb the stairs to the tree)
-  assert.ok(Q.city.wellLook.y - Q.city.center.y > 6, 'terraces rise round the tree');
+  // the tree is rooted in the town's square, on the ground: no terrace, dais or plinth under it (the author's call,
+  // October 2026, after the picked reference), the well and the stele beside it at the square's level
+  assert.ok(Math.abs(Q.city.treeBase.y - Q.city.center.y) < 0.1, 'the tree stands on the square');
+  assert.ok(Math.abs(Q.city.wellLook.y - Q.city.center.y) < 0.1, 'the well too');
+  for (let a = 0; a < Math.PI * 2; a += 0.2) for (const r of [16, 20, 24]) {
+    const w = Q.city.local(Math.sin(a) * r, 3, -3 + Math.cos(a) * r), g = physics.groundAt(w.x, w.y, w.z, 6);
+    if (Number.isFinite(g)) assert.ok(g - Q.city.center.y < 0.6, `the square is flat round the tree (${(g - Q.city.center.y).toFixed(2)} m at ${a.toFixed(1)}, ${r} m)`);
+  }
   // the cave has a roof: nothing of the sky above the pool
   assert.ok(physics.rayDistance(V(pool.x, pool.y + 2, pool.z), V(0, 1, 0), 60) < 30, 'the dome closes over the pool');
 });
@@ -152,7 +158,7 @@ test('the roofs are solid where they are drawn: domes, bulbs and flat roofs hold
   assert.ok(bad.length < roofs * 0.03, `you sink into ${bad.length} of ${roofs} roof spots: ${bad.slice(0, 6).join('; ')}`);
 });
 
-test('feet stand on what is drawn: the terraces round the tree, the plaza, the avenue, and the trunk', () => {
+test('feet stand on what is drawn: the square round the tree, the avenue, and the trunk', () => {
   // the drawn surfaces (render meshes, never collided) against the ground the feet are planted on (physics)
   const C = Q.city, meshes = [];
   Q.root.traverse((o) => { if (o.isMesh && o.visible && !/collision/.test(o.name) && o.geometry?.attributes.position) meshes.push(o); });
@@ -161,10 +167,9 @@ test('feet stand on what is drawn: the terraces round the tree, the plaza, the a
   const T = C.top - C.center.y;
   let checked = 0, total = 0;
   const bad = [];
-  // rings on each tier (between the stairs), the plaza round the terraces, the avenue to the gate
+  // rings over the square round the tree (it is rooted in it: no tiers since v1.41), the avenue to the gate
   const spots = [];
-  for (const [r0, r1, h] of [[19, 24.6, 2.2], [12.5, 17.1, 4.4], [6, 11.2, T]]) for (let r = r0; r <= r1; r += 1.4) for (let a = 0.35; a < Math.PI * 2 - 0.35; a += 0.21) if (Math.abs(a - Math.PI) > 0.35) spots.push([Math.sin(a) * r, h, Math.cos(a) * r]);
-  for (let r = 26; r <= 29.5; r += 1.5) for (let a = 0.4; a < Math.PI * 2 - 0.4; a += 0.3) spots.push([Math.sin(a) * r, 0, Math.cos(a) * r]);
+  for (let r = 6; r <= 22.6; r += 1.4) for (let a = 0.35; a < Math.PI * 2 - 0.35; a += 0.21) spots.push([Math.sin(a) * r, T, Math.cos(a) * r]);
   for (let z = 27; z <= 62; z += 2.5) for (const x of [-1.5, 1.5]) spots.push([x, 0, z]);
   for (const [x, h, z] of spots) {
     const w = C.local(x, h + 3, z);

@@ -36,12 +36,12 @@ const courtSite = (id) => (level) => level?.finds?.courts?.[id]?.box ?? level?.f
 
 export const PLACEMENTS = {
   desert: [
-    // the makers' pedestal in Qanat: a carved stone dais high on the burning tree's trunk (7 m up), on
-    // a stone pier standing on a buttress root's shoulder: two pitches to climb (src/desert-city.js
-    // builds it), above the terrace beside the dry well. Up the main stairs from the gate, on the left
-    // of the well; the box's pale column shows the way.
+    // the makers' ledge in Qanat: a plank shelf high on the burning tree's trunk (7 m up), on a pier of
+    // root standing on a buttress root's shoulder: two pitches to climb (src/desert-city.js builds it),
+    // over the town's square beside the dry well. Up the avenue from the gate, on the left of the well;
+    // the box's pale column shows the way.
     { id: 'desert.backpack', item: 'backpack', found: 'box.found.backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
-      note: 'In Qanat, on the makers’ pedestal high on the burning tree’s trunk, left of the dry well: climb the buttress root, then the stone pier. The first find, and the elder’s.' },
+      note: 'In Qanat, on the makers’ ledge high on the burning tree’s trunk in the town’s square, left of the dry well: climb the buttress root, then the pier. The first find, and the elder’s.' },
     // the progression rewrite (v1.38, docs/systems/progression.md): he comes with his sword alone. The backpack's first
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main
     // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and

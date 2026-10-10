@@ -23,7 +23,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const C = level.qanat.city;
 const top = C.top;
 
-/** A point round the tree: local angle a (0 toward the main gate), r m out from its axis, y over the top terrace. */
+/** A point round the tree: local angle a (0 toward the main gate), r m out from its axis, y over the square. */
 const round = (a, r, y = 0) => {
   const l = C.local(0, 0, -3), o = C.local(0, 0, 0), ax = C.local(1, 0, 0).sub(o), az = C.local(0, 0, 1).sub(o);
   return l.addScaledVector(ax, Math.sin(a) * r).addScaledVector(az, Math.cos(a) * r).setY(top + y);
@@ -67,7 +67,7 @@ test('the buttress roots leave the ring round the trunk walkable: nothing over a
   const bad = [];
   for (let a = -Math.PI; a < Math.PI; a += 0.05) for (const r of [8, 9, 10]) {
     const p = round(a, r);
-    if (Math.hypot(p.x - C.center.x, p.z - C.center.z) > 11.2) continue;   // (off the top terrace)
+    if (Math.hypot(p.x - C.center.x, p.z - C.center.z) > 11.2) continue;   // (the ring by the trunk: the tree's foot)
     if (p.distanceTo(C.well) < 3.2 || p.distanceTo(C.stele) < 2.6) continue;
     const g = physics.groundAt(p.x, top + 1.2, p.z, 3);
     if (Number.isFinite(g) && g - top > 0.6) bad.push(`${a.toFixed(2)}/${r}: ${(g - top).toFixed(2)} m`);
