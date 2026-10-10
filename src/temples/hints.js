@@ -129,11 +129,15 @@ export const BOSS_HINTS = {
       ['Four vents open after its beam. One faces away from you.',
         'All four in one breath. From the front its body hides the back one.',
         'Fly over it and aim with {key:aim} as the vents open: the jets hold you up, and from above all four show.'],
-      ['Four vents, one breath, and now it slams too.',
-        'Get above it before the vents open: the back one is out of reach from the floor.',
-        'Rise with the jets as it strikes, then hit all four glowing vents from over its head.'],
+      ['It turns on the great gear in the floor now.',
+        'Roll the ball by the west wall into the gear’s teeth: then four vents in a breath count twice.',
+        'Push the ball along its groove into the gear, then hit all four vents in one breath when they open.'],
+      ['It stamped the ball out of the gear, and opens turning.',
+        'One vent faces out at a time while the gear turns. Jam it again with the ball.',
+        'Roll the ball back into the gear’s teeth; when it opens, all four face out: hit them in one breath.'],
     ],
-    at: (g) => hiddenVent(g, 4),
+    // (from its second phase, the gear free: the ball by the wall)
+    at: (g, i) => (i >= 1 && !g.rt.gearJammed?.() ? g.rt.piece?.('bG')?.center ?? null : hiddenVent(g, 4)),
   },
   // the Builders' Greenhouse: the Gardener (organic: bloomed)
   edena: {

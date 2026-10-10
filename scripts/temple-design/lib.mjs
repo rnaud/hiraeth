@@ -62,7 +62,7 @@ export function reversible(c, el = {}) {
 }
 
 /** The traversal a piece asks for (it stands in a room and you must get past it): null for the puzzle's own parts. */
-export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Pit: 'pit', Glass: 'glass', JetGuide: 'jets' };
+export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets' };
 /** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath), a
  * timed hold (a held bell: what it opens stays only while it rings). */
 export const MODIFIERS = ['reveal', 'volley', 'timed'];
@@ -439,7 +439,7 @@ export function planSvg(g, m, { size = 520, title = '' } = {}) {
     o.push(`<rect x="${lx - 4}" y="${ly - 4}" width="8" height="8" fill="${s ? OBV(s.obvious) : '#777'}" stroke="#2b211f"/>`);
     if (s) o.push(`<text x="${lx - 30}" y="${ly - 6}" fill="#2b211f">${esc(l.id)} ${s.obvious}</text>`);
   }
-  const GLYPH = { Platform: '◎', Updraft: '↑', Gust: '≋', Swing: '∿', Pit: '▫', Glass: '▥', Ball: '●', Plate: '○', Switch: '◉', Brazier: '♨', Bramble: '✶', EchoStone: '♪', EchoEar: '♫', BellEar: '🔔', LightEar: '☼', Seed: '✿', Bank: '⁘', Jaw: '⩚', Bud: '❀', Resonator: '♪', Vane: '✢', Iris: '⊛' };
+  const GLYPH = { Platform: '◎', Updraft: '↑', Gust: '≋', Swing: '∿', Pit: '▫', Glass: '▥', Ball: '●', Plate: '○', Switch: '◉', Brazier: '♨', Bramble: '✶', EchoStone: '♪', EchoEar: '♫', BellEar: '🔔', LightEar: '☼', Seed: '✿', Bank: '⁘', Jaw: '⩚', Bud: '❀', Resonator: '♪', Vane: '✢', Iris: '⊛', Hammer: '▼' };
   for (const p of g.pieces) { if (!p.pos || !GLYPH[p.cls]) continue; const [x, y] = P(p.pos); o.push(`<text x="${x - 4}" y="${y + 4}" fill="${p.hidden ? '#8a7a66' : '#2b211f'}" font-size="11">${GLYPH[p.cls]}</text>`); }
   o.push(`<g transform="translate(${W - 180},${H - 64})"><text y="0">lock → key lines, by obviousness:</text>${[[5, 'painfully obvious (4.5+)'], [4, 'obvious (3.5+)'], [3, 'fair (2.5+)'], [2, 'hidden (below)']].map(([v, t], i) => `<rect y="${6 + i * 12}" width="10" height="8" fill="${OBV(v)}"/><text x="14" y="${13 + i * 12}">${t}</text>`).join('')}</g>`);
   o.push('</svg>');

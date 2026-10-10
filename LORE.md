@@ -1358,7 +1358,9 @@ down: a well of the makers turned on its end.
   oculus); the Lamp Gallery (an eye over the west shelf, hidden from the floor behind stone lids that lift only
   while the great vane in the floor turns, too heavy for a splash: hover over it on the jets and splash the eye;
   the iris in the ceiling opens); the loft (a ball on a high shelf, a gap in it whose stones stand only while the
-  loft's great vane turns: hover over it and push the ball across from the air); the Warden's Hall.
+  loft's great vane turns: hover over it and push the ball across from the air, and a second iris opens); the crown
+  (the eye by the high door lifts its lids only while two vanes turn at once: splash the little one on the west
+  wall, then fly to the great one in the floor and hover before the little one slows); the Warden's Hall.
 - **The warden** (robot): a tall machine of the makers on three legs, a ring
   of side vents and a lamp-eye. It beams along a lane, drops shots where you
   stand, and slams the floor round itself. After a beam its side vents open:
@@ -1413,18 +1415,28 @@ the pipe-cart ran down the canyon to the oculus and back.
   way his father did ("A door wants grease anyway"). Afterwards: the pipe-cart
   lifting out of the sand "like it had been asleep"; Jot rode it nine times and
   says he is ten teeth old now, from the excitement.
-- **Inside**: the Threshold; the Piston Hall (three pistons that rise and fall
-  out of step, still until you splash the valve's eye: ride them up to the
-  gantry; its face can also be climbed); the Counterweight (a stone ball onto its
-  plate); the Fourth Chamber (**the fourth chamber**; the door on is ringed by a
-  bank of four eyes that wake only together, inside one breath: four shots, and
-  the tank holds three without it); the Furnace (a chasm over embers; a second
-  bank of four on the far wall raises the bridge); the Tooth-Warden's Hall.
+- **Inside** (reworked round one idea, v1.17: a ball in the teeth stops the
+  engine there; the Tooth-Warden jams the whole engine, and the makers' own
+  jams are stone balls rolled into a crank's teeth): the Threshold; the Piston
+  Hall (three pistons to the gantry: the valve's eye hisses, but a ball sits in
+  their crank's teeth; roll it out and they ride, back in and they stop where
+  they are); the Crank Hall (the engine's hammer slams down on a walkway over a
+  pit: the gantry's ball rolled down its groove into the hammer's crank stops it
+  at the top of its stroke); the Fourth Chamber (**the fourth chamber**; the door
+  on wants four eyes in one breath, standing on pistons that rise in turn behind
+  a parapet, one crank for all four: jam it and all four stand up); the Furnace
+  (a chasm over embers; four eyes on pistons rising in turn behind the far
+  parapet, a crank for each of the two west ones on the near lip: jam those two
+  and catch the other two as they rise one after the other); the Tooth-Warden's
+  Hall.
 - **The Tooth-Warden** (robot): the makers' machine that minds the engine, on
   four legs, four vents round its drum, a lamp-eye; jammed since the night the
   sky rang. It beams, drops shots where you stand and slams; when all four vents
   open at once, hit all four inside a breath (two or three count for nothing).
-  Stopped, it locks up, every joint at once, and the engine catches and runs.
+  From its second phase it turns on the great gear in the floor (a ball in the
+  gear's teeth, and a volley counts twice); in its last it stamps the ball out
+  and opens turning, one vent at a time: jam the gear again and all four face
+  out. Stopped, it locks up, every joint at once, and the engine catches and runs.
 - **After**: the pipe-cart rides the canyon again, a round iron floor with a
   brass rail, from the start hollow down the sand ramp to the oculus and back,
   a pause at each end.

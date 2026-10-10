@@ -31,6 +31,7 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 //   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
 //   Vane     a vane of the makers' bellows: it drives its machine only while it turns (a splash, or the jets' wash)
 //   Iris     an iris in a ceiling: blades round a hole that slide back into the ceiling when it opens
+//   Hammer   a piston-hammer of the engine slamming down on a walkway; a ball jammed in its crank stops it
 //   Seed     a husk in a stone ring that only a bloom glob wakes: it sprouts (a vine, a planter's flowers)
 //   Bud      a flower-door: a great bud over a doorway that a bloom glob opens, petals folded back
 //   Glass    a greenhouse pane too smooth to climb, until a vine has grown up it
@@ -595,16 +596,25 @@ export class Bank {
       const glow = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.06, flat: true });
       g.add(mesh([T(new THREE.SphereGeometry(s * 0.55, 14, 8).scale(1, 1, 0.35), [0, 0, 0.2])], glow));
       noCollide(g);
-      const eye = { g, glow, at: -1e9, center: g.position.clone() };
-      eye.off = registerTarget({ kind: 'switch', radius: s, position: () => eye.center, onHit: () => this.hit(i) });
+      const eye = { g, glow, at: -1e9, center: g.position.clone(), base: g.position.clone(), piston: e.piston ?? null, k: 1 };
+      if (e.piston) {
+        // a piston under the eye (the Engine-House's furnace): it rises over the parapet in its turn of the stroke
+        const rod = e.piston.rod ?? 6;
+        g.add(mesh([T(new THREE.CylinderGeometry(0.62, 0.62, rod, 14), [0, -rod / 2 - s * 0.6, -0.25]), T(new THREE.CylinderGeometry(s + 0.15, s + 0.15, 0.5, 18), [0, -s - 0.1, -0.25])], M.stoneMat));
+        eye.k = 0;
+      }
+      eye.off = registerTarget({ kind: 'switch', radius: s, position: () => eye.center, enabled: () => eye.k > 0.85, onHit: () => this.hit(i) });
       return eye;
     });
     this.done = rt.logic.isLit(o.id);
     this.time = 0;
   }
+  /** An eye on a piston is up (in its turn of the stroke, or held up by its jam), so it can be hit. */
+  isUp(i) { return this.eyes[i].k > 0.85; }
   hit(i) {
     if (this.done) return true;
     const e = this.eyes[i];
+    if (!this.isUp(i)) return true;   // (sunk behind the parapet)
     if (this.o.order) {
       // in turn (o.order: the eyes' indices in the order they must wake): out of turn, every eye goes dark
       if (this.time - e.at <= this.window) return true;   // (awake already: a second splash changes nothing)
@@ -621,7 +631,9 @@ export class Bank {
     e.at = this.time;
     this.rt.sound?.critter?.('blip', 0.8);
     if (this.eyes.every((x) => this.time - x.at <= this.window)) {
-      if (this.rt.logic.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+      const L = this.rt.logic;
+      if (L.light(this.id)) { this.done = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
+      else if (this.o.unmet && !L.check(L.el(this.id)?.when)) this.rt.notice?.(this.o.unmet, `bank.unmet.${this.id}`);
       else this.rt.notice?.(this.o.full ?? 'All four woke, and went dark again: the bank wants more than this tank can hold in one breath.', `bank.${this.id}`);
     }
     return true;
@@ -636,6 +648,17 @@ export class Bank {
     if (this.seq && this.time - this.first > this.window) { this.seq = 0; for (const x of this.eyes) x.at = -1e9; }   // (in turn: the first faded, start again)
     if (this.o.fade && this.was >= 2 && n === 0) this.rt.notice?.(this.o.fade, `bank.fade.${this.id}`);
     this.was = n;
+    // eyes on pistons: each up in its turn of the stroke (o.stroke: { period, up }; its piston's phase), or held up
+    // by its jam (a condition: a ball in its crank), and all up once the bank has woken
+    const St = this.o.stroke;
+    for (const e of this.eyes) {
+      if (!e.piston) continue;
+      const turn = St ? ((((this.time / St.period - (e.piston.phase ?? 0)) % 1) + 1) % 1) * St.period < St.up : true;
+      const want = this.done || turn || (!!e.piston.jam && this.rt.logic.check(e.piston.jam)) ? 1 : 0;
+      e.k += (want - e.k) * Math.min(1, dt * 9);
+      e.g.position.copy(e.base).addScaledVector(UP, -(1 - e.k) * (e.piston.drop ?? 3));
+      e.center.copy(e.g.position);
+    }
     for (const e of this.eyes) {
       const lit = this.done || this.time - e.at <= this.window;
       e.glow.uniforms.uGlow.value = lit ? (this.done ? 0.85 : 0.55 + 0.4 * Math.max(0, 1 - (this.time - e.at) / this.window)) : 0.06 + 0.04 * Math.sin(t * 1.5);
@@ -1197,6 +1220,81 @@ export class Iris {
     }
     const wake = this.open ? 1 : this.lamps.length ? met / this.lamps.length : 0.2;
     this.glow.uniforms.uGlow.value = 0.2 + 0.7 * wake * (0.8 + 0.2 * Math.sin(t * 3));
+  }
+}
+
+// ---------------------------------------------------------------------------------------- the engine (the Buried Machine)
+/**
+ * A piston-hammer of the engine (the Engine-House: a ball in the teeth stops the engine there). An iron head on a
+ * piston rod strokes down onto a walkway and up again, driven by a crank wheel beside the way, and knocks whoever is
+ * under it off the walkway. It runs while its element (`id`, a door in the logic) is shut; open (a ball jammed in
+ * its crank's teeth), the wheel stops and the head hangs up, still. o: { id, at: [x, y, z] (the walkway under it),
+ * w (across, x), d (along, z), top (m: the head's underside, up), period (s), crank: [x, y, z] (the wheel's centre),
+ * r (the wheel's radius), knock (m/s: off the walkway, toward +x or -x, whichever side you are on), yaw }
+ */
+export class Hammer {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M;
+    this.w = o.w ?? 2.6; this.d = o.d ?? 2.2; this.top = o.top ?? 5; this.period = o.period ?? 2.6;
+    this.foot = K.world(...o.at);
+    this.group = new THREE.Group();
+    this.group.position.copy(this.foot);
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
+    rt.root.add(this.group);
+    // the head: an iron block banded, its face scored; the rod up to the ceiling
+    this.head = new THREE.Group();
+    this.iron = own({ color: rt.P.wall2 ?? '#b04a33', flat: true });
+    this.head.add(mesh([box(this.w + 0.3, 1.5, this.d + 0.3, 0, 0.75, 0)], this.iron));
+    this.head.add(mesh([box(this.w + 0.42, 0.22, this.d + 0.42, 0, 0.3, 0), box(this.w + 0.42, 0.22, this.d + 0.42, 0, 1.2, 0), box(0.5, 9, 0.5, 0, 6, 0)], M.trimMat));
+    this.group.add(this.head);
+    // the crank wheel beside the way: spokes and teeth, a notch at its foot where a ball jams it
+    this.wheel = new THREE.Group();
+    const r = (this.r = o.r ?? 1.5);
+    if (o.crank) {
+      this.wheel.position.copy(K.world(...o.crank)).sub(this.foot).applyAxisAngle(UP, -K.heading(o.yaw ?? 0));
+      const parts = [T(new THREE.TorusGeometry(r, 0.18, 6, 28), [0, 0, 0], [0, Math.PI / 2, 0]), T(new THREE.CylinderGeometry(0.3, 0.3, 0.5, 12), [0, 0, 0], [0, 0, Math.PI / 2])];
+      for (let i = 0; i < 4; i++) parts.push(T(new THREE.BoxGeometry(0.14, r * 2, 0.14), [0, 0, 0], [(i / 4) * Math.PI, 0, 0]));
+      for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2; parts.push(T(new THREE.BoxGeometry(0.28, 0.32, 0.3), [0, Math.cos(a) * (r + 0.18), Math.sin(a) * (r + 0.18)], [a, 0, 0])); }
+      this.wheel.add(mesh(parts, M.trimMat));
+      this.group.add(this.wheel);
+    }
+    noCollide(this.group);
+    this.phase = 0.9; this.cool = 0;
+    this.open = !!rt.logic?.isOpen(o.id);
+    this.k = this.open ? 1 : 0;
+    this.place();
+  }
+  setOpen(open) {
+    if (open === this.open) return;
+    this.open = open;
+    this.rt.sound?.critter?.('clack', 0.9);
+    this.rt.rumble?.(0.6, 0.4);
+  }
+  /** How far down the head is (0 up, 1 on the walkway) at a phase of its stroke: a fast fall, a rest, a slow rise. */
+  static stroke(p) { if (p < 0.12) return ease(p / 0.12); if (p < 0.3) return 1; if (p < 0.8) return 1 - ease((p - 0.3) / 0.5); return 0; }
+  get down() { return Hammer.stroke(this.phase); }
+  place() {
+    this.head.position.y = this.top * (1 - this.down);
+    this.wheel.rotation.x = this.phase * Math.PI * 2;
+  }
+  update(dt) {
+    // jammed: it finishes its rise and stops at the top (the pawl holds it there), the wheel still
+    if (!this.open) this.phase = (this.phase + dt / this.period) % 1;
+    else if (this.phase > 0.12 && this.phase < 0.8) this.phase = Math.min(0.8, this.phase + dt / this.period);
+    this.place();
+    this.cool = Math.max(0, this.cool - dt);
+    const P = this.rt.player;
+    if (!P || P.dead || P.down || this.cool > 0 || this.head.position.y > 2.2) return;
+    const l = this.group.worldToLocal(_dl.copy(P.pos));
+    if (Math.abs(l.x) < this.w / 2 + 0.5 && Math.abs(l.z) < this.d / 2 + 0.5 && l.y > -0.6 && l.y < this.head.position.y + 0.4) {
+      this.cool = 1.5;
+      const out = _dn.set(Math.sign(l.x) || 1, 0, 0).transformDirection(this.group.matrixWorld).multiplyScalar(this.o.knock ?? 8).addScaledVector(UP, 3);
+      P.knockDown?.(out.clone(), { why: 'guardian' });
+      P.hurt?.(sparing(heartsOf(P), DAMAGE.blow), 'guardian');
+      this.rt.rumble?.(0.5, 0.5);
+      this.rt.notice?.(this.o.hit ?? 'The hammer comes down and throws you off the walkway.', `hammer.${this.id}`);
+    }
   }
 }
 

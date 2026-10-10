@@ -14,6 +14,8 @@
 //                     stone rolled so it rises by her
 //   the warden (the Warden's Well: the tower breathes through its vanes)   its crown hatch opens only to the draught
 //                     of a turning vane, and the great vanes turn only under the jets' wash
+//   the Tooth-Warden (the Engine-House: a ball in the teeth stops the engine there)   it turns on the hall's great gear,
+//                     one vent facing out at a time, until a ball sits in the gear's teeth
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
@@ -547,5 +549,58 @@ test('the warden’s second phase teaches the vanes: a plain hit in its crown st
   const m1 = G.meter;
   G.hit('mouth', 'shoot');
   assert.ok(G.meter - m1 > HALL.hit + 1e-6 || G.phaseIndex > 1, `twice (${(G.meter - m1).toFixed(3)})`);
+  A.done();
+});
+
+// ------------------------------------------------------------------ the Tooth-Warden
+/** Roll the hall's ball into the great gear's teeth (from behind it, a push or two). */
+function jamGear(A) {
+  const { rt, P } = A, b = rt.piece('bG');
+  for (let k = 0; k < 6 && !rt.logic.drumOn('bG', 'pG'); k++) {
+    P.teleport(b.center.clone().addScaledVector(b.dir, -2.2).setY(b.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+    A.frame();
+    b.hit('push', b.dir.clone(), { strength: 1 });
+    A.wait(2.4);
+  }
+  return rt.logic.drumOn('bG', 'pG');
+}
+
+test('the Tooth-Warden’s last phase: it opens turning on its gear, one vent at a time, and four in a breath can’t be had; the ball rolled into the gear’s teeth, all four face out', () => {
+  const A = arena('buried', 'cell', 2);
+  const { rt, G, until, said } = A;
+  assert.equal(rt.gearJammed(), false, 'the gear is free');
+  assert.equal(until(() => G.state === 'open', 40), true, 'it opens');
+  A.wait(0.2);
+  assert.ok(G.model.only != null, 'one vent faces out');
+  const m = G.meter;
+  for (let i = 0; i < 4; i++) rt.volley(i);
+  assert.equal(G.meter, m, 'the four in a breath can’t be had: nothing');
+  assert.ok(said(/turned away/), 'it says the vents turn away');
+  assert.equal(jamGear(A), true, 'the ball in the gear’s teeth');
+  for (let n = 0; n < 4 && G.state !== 'resolved'; n++) {
+    assert.equal(until(() => G.state === 'open', 40), true, `it opens (${n})`);
+    assert.equal(G.model.only, null, 'jammed: all four face out');
+    for (let i = 0; i < 4; i++) rt.volley(i);
+  }
+  assert.equal(G.state, 'resolved', `stopped (${G.meter.toFixed(2)})`);
+  A.done();
+});
+
+test('the Tooth-Warden’s second phase teaches the gear: free, a volley counts as before; jammed, twice; and shifting it stamps the ball out', () => {
+  const A = arena('buried', 'cell', 1);
+  const { rt, G, until, said } = A;
+  assert.equal(until(() => G.state === 'open', 40), true, 'it opens');
+  const m0 = G.meter;
+  for (let i = 0; i < 4; i++) rt.volley(i);
+  assert.ok(Math.abs(G.meter - m0 - 0.125) < 1e-6, `the gear free: as before (${(G.meter - m0).toFixed(3)})`);
+  assert.equal(jamGear(A), true, 'jammed');
+  assert.equal(until(() => G.state === 'open', 40), true, 'it opens again');
+  G.meter = G.floor = G.def.phases[0].to;   // (back to the phase's start: one jammed volley is the whole phase)
+  for (let i = 0; i < 4; i++) rt.volley(i);
+  assert.ok(G.meter >= G.def.phases[1].to - 1e-6, `jammed: twice, the phase in one volley (${G.meter.toFixed(3)})`);
+  A.wait(0.5);
+  assert.equal(G.phaseIndex, 2, 'into its last phase');
+  assert.equal(rt.gearJammed(), false, 'it stamped the ball out of the teeth');
+  assert.ok(said(/jumps out of its teeth/), 'and it says so');
   A.done();
 });

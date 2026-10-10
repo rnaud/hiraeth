@@ -36,7 +36,12 @@ import { registerTarget } from '../targets.js';
 //                          turns; the lids lift; splash the eye from the air
 //   the loft               over the iris: a shelf high on the east wall, its ball, a gap in the shelf whose stones
 //                          stand only while the loft's great vane turns. Land on the shelf and the ball stops at the
-//                          gap; hover over the vane, and push the ball across from the air (the jets with the push)
+//                          gap; hover over the vane, and push the ball across from the air (the jets with the push);
+//                          on its plate it opens a second iris over the loft
+//   the crown              the top of the drum, the high door to the warden: its eye's lids lift only while two vanes
+//                          turn at once, a small one on the west wall (a splash: it slows) and a great one in the
+//                          floor (the jets): splash the small one, then fly to the great one and hover, and splash
+//                          the eye before the small one stops
 //   the Warden's Hall      the sentinel (a robot: its meter is damage). It beams and slams; its side vents open after
 //                          a beam: shoot them. Then it guards its sides and only the hatch on its crown is open: fly
 //                          above it, and shoot down; over a turning vane the draught holds the hatch wide (a hit
@@ -60,25 +65,27 @@ export const PALETTE = {
 
 /**
  * The vanes: how long a splash spins a small one (s: the Turning Floors' across both discs, the Climb's over the
- * slot), how far over a great one the jets' wash turns it (m); the gallery's ceiling over its floor and the loft's
- * shelf over the ceiling (m); the hall's four vanes, how far from its middle (m), how near the warden must stand to
+ * slot, the crown's while you fly to its great vane), how far over a great one the jets' wash turns it (m); the
+ * gallery's ceiling over its floor, the loft's shelf over the ceiling, the crown's floor over the gallery's (m) and
+ * the two irises' radii; the hall's four vanes, how far from its middle (m), how near the warden must stand to
  * one for its draught to reach the hatch (m), how near it backs onto one when its hatch opens (m) and how fast (m/s),
  * what a hit in the crown is worth (plain, over a turning vane; in its last phase only over a turning vane), and how
  * long its hatch stays up in its last two phases (s: time to fly to the vane and hover).
  */
-export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6 };
+export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 12 };
 export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7] };
 
 export const LOGIC = {
   id: 'incal', entry: 'threshold', gadget: 'jetpack',
-  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, warden: { boss: true }, out: {} },
+  rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, warden: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'turning' },
     { a: 'turning', b: 'climb', door: 'discs' },    // the riding discs, only while the vane over the far door turns
     { a: 'climb', b: 'jets', door: 'd1' },          // the ball on its plate, rolled over the slot while the well's vane turned
     { a: 'jets', b: 'gallery', needs: ['jetpack'] }, // up through the oculus
     { a: 'gallery', b: 'loft', door: 'iris' },      // the iris in the gallery's ceiling: the eye whose lids the great vane lifts
-    { a: 'loft', b: 'warden', door: 'd3' },          // the ball pushed over the gap from the air, over the loft's vane
+    { a: 'loft', b: 'crown', door: 'iris2' },       // the ball pushed over the gap from the air, over the loft's vane
+    { a: 'crown', b: 'warden', door: 'd3' },         // the eye whose lids lift only while two vanes turn at once
     { a: 'warden', b: 'out', door: 'd5' },
   ],
   elements: {
@@ -101,7 +108,13 @@ export const LOGIC = {
     span: { type: 'bridge', opens: { lit: 'vE' } },
     ball3: { type: 'drum', room: 'loft', plate: 'p3', plateAt: 1, start: 0, gap: 'span' },
     p3: { type: 'plate', room: 'loft' },
-    d3: { type: 'door', opens: { pressed: 'p3' }, latch: true },
+    iris2: { type: 'door', opens: { pressed: 'p3' }, latch: true },
+    // the crown: the eye by the high door lifts its lids only while the small vane (splashed) and the great vane
+    // (hovered over) turn at once: the small one first, it slows while you fly
+    vS: { type: 'vane', room: 'crown' },
+    vC: { type: 'vane', room: 'crown', needs: ['jetpack'] },
+    s4: { type: 'switch', room: 'crown', when: { all: [{ lit: 'vS' }, { lit: 'vC' }] } },
+    d3: { type: 'door', opens: { lit: 's4' }, latch: true },
     // the hall's four vanes: in its last phase its hatch opens only to one's draught
     warden: { type: 'boss', room: 'warden', needs: ['backpack', 'jetpack'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
     vh0: { type: 'vane', room: 'warden', needs: ['jetpack'] },
@@ -328,7 +341,8 @@ function layout(rt) {
   band(0, C3, GR, GC + 3.4, 1.3, 0.26, [[Math.PI / 2, 0.5]]);
   band(0, C3, GR, G0 + 31, 1.3, 0.26, [[0, 0.3]]);
   for (let i = 0; i < 10; i++) { const a = (i + 0.5) / 10 * TAU; if (Math.abs(Math.atan2(Math.sin(a + Math.PI / 2), Math.cos(a + Math.PI / 2))) < 0.5) continue; slit(0, C3, GR, a, G0 + 6.8, 4.6); }
-  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.4 || Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.55) continue; slit(0, C3, GR, a, GC + 6.5, 7.5); }
+  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.4 || Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.55) continue; slit(0, C3, GR, a, GC + 0.9, 4.8); }
+  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.5 || Math.abs(Math.atan2(Math.sin(a - Math.PI / 2), Math.cos(a - Math.PI / 2))) < 0.45 || Math.abs(Math.atan2(Math.sin(a + Math.PI / 2), Math.cos(a + Math.PI / 2))) < 0.35) continue; slit(0, C3, GR, a, G0 + VANES.crown + 2.4, 5.2); }
   /** A stone shelf jutting from the wall at angle a, its top at y, and a carved eye over it (blind: a carving). */
   const shelf = (a, y, deep = 2.6, wide = 0.2) => {
     K.both(M.floor, T(sector(GR - deep, GR + 0.2, rotA(a) - wide, rotA(a) + wide, 0.6), [0, y, C3]));
@@ -371,8 +385,27 @@ function layout(rt) {
   add(Plate, { id: 'p3', at: [SX, SY, B1], r: 1.2 });
   add(Vane, { id: 'vE', at: [6.4, GC, C3 - 9.4], r: 2.1, great: true, reach: VANES.reach,
     washed: 'The great vane turns under your jets, and up on the east shelf stones grind up into the gap.' });
+  // the second iris, over the loft: it opens on the shelf's ball, home on its plate
+  const GK = G0 + VANES.crown;
+  K.both(M.floor, T(annulus(VANES.iris2 + 0.1, GR + 0.4, 0.6, 48), [0, GK, C3]));
+  K.add(M.trim, T(annulus(VANES.iris2 + 0.1, VANES.iris2 + 0.7, 0.04, 40), [0, GK + 0.02, C3]));
+  add(Iris, { id: 'iris2', at: [0, GK, C3], r: VANES.iris2, t: 0.6, lamps: [{ pressed: 'p3' }] });
+
+  // ---- the crown (over the second iris): the high ledge by the north door, the eye over the east shelf whose lids
+  // lift only while two vanes turn at once: the small one on the west wall, the great one in the floor
+  add(Mark, { room: 'crown', at: [-8, GK, C3 - 7.5], yaw: Math.PI * 0.7 });
   K.both(M.floor, T(sector(GR - 4.5, GR + 0.2, rotA(0) - 0.32, rotA(0) + 0.32, 0.8), [0, G0 + 28, C3]));
-  add(Door, { id: 'd3', at: [0, G0 + 28, C3 + GR + 0.7], w: 5, h: 6, lamps: [{ pressed: 'p3' }] });
+  add(Vane, { id: 'vS', at: [Math.sin(-Math.PI / 2) * (GR - 0.05), GK + 3.4, C3], wall: true, yaw: Math.PI / 2, r: 1.5, coast: VANES.small,
+    turning: 'The little vane on the west wall spins, and over the east shelf one of the eye’s two lids lifts a little. It is slowing.',
+    fading: 'The little vane is slowing.' });
+  K.add(blue, T(annulus(1.9, 2.3, 0.3, 32).rotateZ(Math.PI / 2), [-(GR - 0.1), GK + 3.4, C3]));
+  const ca = Math.PI / 2, cy = GK + 6.8;
+  shelf(ca, cy - 1.25);
+  add(Switch, { id: 's4', at: [Math.sin(ca) * (GR - 0.15), cy, C3 + Math.cos(ca) * (GR - 0.15)], yaw: ca + Math.PI, size: 1.0, lids: true,
+    wrong: 'The splash patters on the eye’s lids. They lift only while two vanes turn at once: the little one on the west wall, and the great one in the floor.' });
+  add(Vane, { id: 'vC', at: [6.2, GK, C3 + 5.4], r: 2.2, great: true, reach: VANES.reach,
+    washed: 'The great vane turns under your jets. Over the east shelf, the eye’s lids stir.' });
+  add(Door, { id: 'd3', at: [0, G0 + 28, C3 + GR + 0.7], w: 5, h: 6, lamps: [{ lit: 's4' }] });
 
   // ---- the Warden's Hall (floor 62.6, a great drum), its corridor from the high door
   const H0 = G0 + 28, CW = C3 + GR + 1.4 + 3 + 21.4;   // 121.2

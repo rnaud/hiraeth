@@ -39,7 +39,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go in.', do: { start: 'temple.buried' }, goto: 'go' }, { text: '~neutral~ Goodbye.', end: true }],
         },
         go: {
-          say: ["~neutral~ Enter *the oval door facing the hollow*. It opens smoothly. I am confident about exactly that much.", "~whisper~ Watch the Warden for openings. When it exposes its weak points, hit them quickly. Its armour won’t be much use to argue with."],
+          say: ["~neutral~ Enter *the oval door facing the hollow*. It opens smoothly. I am confident about exactly that much.", "~curious~ My father stopped the old cart’s gears with a cobble when the brake went. *A stone in the teeth*: every engine the makers built stops for that, he said. And starts again when you take it out.", "~whisper~ Watch the Warden for openings. When it exposes its weak points, hit them quickly. Its armour won’t be much use to argue with."],
           choices: [{ text: '~happy~ All at once. Got it.', end: true }],
         },
         again: {

@@ -141,8 +141,8 @@ test('every built temple is solvable through its state machine, its gadget found
     assert.ok(!no.stuck.includes(boss[1].room), `${id}: the arena stays shut without ${def.gadget}`);
     const after = r.order.slice(at + 1);
     assert.ok(after.length >= 2 && after.every((room) => !no.stuck.includes(room)), `${id}: every room after the gadget needs it (${no.stuck.join(', ')})`);
-    // 3–6 puzzle rooms (rooms with something to do), a checkpoint in most
-    const busy = new Set(Object.values(L.elements).filter((e) => e.room && e.type !== 'boss').map((e) => e.room));
+    // 3–6 puzzle rooms (rooms with something to do; the arena's own pieces are the fight's), a checkpoint in most
+    const busy = new Set(Object.values(L.elements).filter((e) => e.room && e.type !== 'boss' && !L.rooms[e.room]?.boss).map((e) => e.room));
     assert.ok(busy.size >= 3 && busy.size <= 6, `${id}: ${busy.size} puzzle rooms`);
   }
 });
@@ -456,7 +456,7 @@ test('the Givers’ House on foot: in, the ball and the plates, the disc and the
 });
 
 // ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
-test('the Warden’s Well on foot: the vane and the discs, the slot and the ball, the jets, the great vane and the lidded eye, the iris, the ball pushed over the gap from the air, the warden broken over a vane, the shaft’s breath', () => {
+test('the Warden’s Well on foot: the vane and the discs, the slot and the ball, the jets, the great vane and the lidded eye, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye, the warden broken over a vane, the shaft’s breath', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('incal');
@@ -652,10 +652,49 @@ test('the Warden’s Well on foot: the vane and the discs, the slot and the ball
   for (let k = 0; k < 4 && !rt.logic.drumOn('ball3', 'p3'); k++) push(ball3, 1);
   assert.ok(rt.logic.drumOn('ball3', 'p3'), `onto its plate (${ball3.t.toFixed(2)})`);
   wait(2.2);
+  assert.equal(rt.logic.isOpen('iris2'), true, 'the second iris opens');
+
+  // ---- up through the second iris to the crown: the eye whose lids lift only while two vanes turn at once
+  const GK = 34.6 + 24;
+  P.teleport(L(0, GC + 0.1, 81.4 - 6.2), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  assert.equal(fly(GK + 3, [-8, 81.4 - 6]), true, `up through the second iris to the crown (${where()})`);
+  assert.ok(Math.abs(ly() - GK) < 0.5, `standing in the crown (${where()})`);
+  const s4 = rt.piece('s4'), vS = rt.piece('vS'), vC = rt.piece('vC');
+  // the great vane alone: the lids stay shut (round the open iris, not across it)
+  for (const [x, z] of [[0, -10.2], [9.6, -3.6], [9.6, 2.4]]) walk(L(x, GK, 81.4 + z), { tol: 1 });
+  assert.equal(walk(vC.center, { tol: 0.6 }), true, `onto the crown's great vane (${where()})`);
+  assert.equal(hover(GK + 6.6), true, `held over it (${where()})`);
+  assert.equal(vC.turning, true);
+  holding(1);
+  assert.ok(s4.lidK < 0.05, 'one vane turning is not enough: the lids stay shut');
+  s4.hit('shoot');
+  assert.equal(rt.logic.isLit('s4'), false, 'and a splash on them does nothing');
+  assert.ok(said(/two vanes/), 'it says what they want');
+  land();
+  for (let i = 0; i < 3 / DT && vC.turning; i++) frame();
+  // the small one alone: its splash, and it slows and stops before long
+  vS.hit('shoot');
+  assert.equal(vS.turning, true, 'the little vane spins');
+  assert.ok(!s4.lidsOpen(), 'still shut: the great one is still');
+  // the way: the small one first, then fly to the great one and hover while the small one still turns
+  for (let i = 0; i < 20 / DT && vS.turning; i++) frame();
+  vS.hit('shoot');
+  assert.equal(walk(vC.center, { tol: 0.6 }), true);
+  assert.equal(hover(GK + 6.6), true);
+  assert.ok(holding(1.2, () => s4.lidK > 0.95), `both turn: the lids lift (${vS.left.toFixed(1)} s of the little one left)`);
+  {
+    const f2 = P.pos.clone().add(V(0, 0.6, 0)), d2 = s4.center.clone().sub(f2), l2 = d2.length();
+    assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, `from the air the crown's eye is in sight (${where()})`);
+  }
+  s4.hit('shoot');
+  assert.equal(rt.logic.isLit('s4'), true, 'the crown’s eye wakes');
+  holding(2.2);
   assert.equal(rt.logic.isOpen('d3'), true, 'the high door opens');
+  land();
 
   // ---- the Warden's Hall
-  P.teleport(L(-7, GC + 0.1, 81.4 - 8.5), V(0, 1, 0), V(0, 0, 1));
+  P.teleport(L(-8, GK + 0.1, 81.4 - 7.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   assert.equal(fly(63.5, [0, 81.4 + 14 - 3.2]), true, `up to the high ledge (${where()})`);
   assert.equal(walk(L(0, 62.6, 104)), true, `into the hall (${where()})`);
@@ -966,7 +1005,7 @@ test('the Footprint on foot: two spheres on two plates, the still pool, the lens
 });
 
 // ------------------------------------------------------------------ on foot: the Buried Machine's Engine-House, room by room
-test('the Engine-House on foot: the valve and the pistons, the counterweight, the fourth chamber, the banks of four eyes, the Tooth-Warden’s four vents, the pipe-cart', () => {
+test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the fourth chamber’s pistons held up, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('buried');
@@ -984,14 +1023,50 @@ test('the Engine-House on foot: the valve and the pistons, the counterweight, th
   };
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const said = (re) => notes.some((n) => re.test(n));
+  /** Push a ball along its groove (way: +1 along it, -1 back), from behind it, until done() (or n pushes). */
+  const roll = (ball, way, done, n = 8) => {
+    const d = ball.dir.clone().multiplyScalar(way);
+    for (let k = 0; k < n && !done(); k++) {
+      P.teleport(ball.center.clone().addScaledVector(d, -2.2).setY(ball.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+      wait(0.2);
+      ball.hit('push', d.clone(), { strength: 0.8 });
+      wait(2.6);
+    }
+    return done();
+  };
+  /** Splash each eye of a bank as it comes up, for s seconds (or until it wakes): the eyes hit and when. */
+  const catchAsTheyRise = (bank, s, only = [0, 1, 2, 3]) => {
+    const last = [-9, -9, -9, -9];
+    for (let i = 0; i < s / DT && !rt.logic.isLit(bank.id); i++) {
+      frame();
+      for (const j of only) if (bank.isUp(j) && bank.time - last[j] > 2.7) { bank.hit(j); last[j] = bank.time; }
+    }
+    return rt.logic.isLit(bank.id);
+  };
   wait(0.5);
-  // ---- the Piston Hall: open the valve, ride the three pistons up to the gantry
+  // ---- the Piston Hall: the valve hisses, but a ball sits in the pistons' crank: they stay still
   const pistons = rt.pieces.filter((p) => p.path);
   wait(2);
-  assert.ok(pistons.every((p) => p.s === p.o.phase * p.total || p.s === 0 || p.s === p.total), 'still until the valve opens');
+  const still = () => pistons.every((p) => p.s === p.o.phase * p.total || p.s === 0 || p.s === p.total);
+  assert.ok(still(), 'still until the valve opens');
   rt.piece('s1').hit('shoot');
-  wait(0.1);
-  assert.equal(rt.logic.isOpen('pumps'), true);
+  wait(3);
+  assert.equal(rt.logic.isOpen('pumps'), false, 'the valve alone does not run them');
+  assert.ok(still(), 'they shudder and stay where they are');
+  assert.ok(said(/teeth of their crank/), 'and it says why');
+  // roll the ball out of the teeth: they run; back in, they stop where they are; out again
+  const ball0 = rt.piece('ball0');
+  assert.equal(roll(ball0, -1, () => rt.logic.drumOn('ball0', 'pY')), true, `out of the teeth (${ball0.t.toFixed(2)})`);
+  wait(0.2);
+  assert.equal(rt.logic.isOpen('pumps'), true, 'out of the teeth: the pistons run');
+  wait(2);
+  assert.ok(!still(), 'they rise and fall');
+  assert.equal(roll(ball0, 1, () => rt.logic.drumOn('ball0', 'pZ')), true, 'rolled back in');
+  const at0 = pistons.map((p) => p.s);
+  wait(2);
+  assert.deepEqual(pistons.map((p) => p.s), at0, 'jammed again, they stop where they are');
+  assert.equal(roll(ball0, -1, () => rt.logic.drumOn('ball0', 'pY')), true, 'and out again');
   assert.equal(walk(L(0, 0, 24.5)), true, `to the pistons (${where()})`);
   const board = (pis, low) => {
     // wait for it at its low end (and its neighbour level with you), then step on
@@ -1003,51 +1078,94 @@ test('the Engine-House on foot: the valve and the pistons, the counterweight, th
   board(pistons[2], true);
   for (let i = 0; i < 20 / DT && pistons[2].s < pistons[2].total - 0.1; i++) frame();
   assert.equal(walk(L(0, 7, 40.5), { max: 3 }), true, `onto the gantry (${where()})`);
-  // ---- the Counterweight
-  assert.equal(walk(L(-2, 7, 48)), true, `into the counterweight (${where()})`);
-  const ball = rt.piece('ball1');
-  for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', 'p1'); k++) {
-    walk(ball.center.clone().addScaledVector(ball.dir, -2.2).setY(P.pos.y), { tol: 0.6 });
-    ball.hit('push', ball.dir.clone(), { strength: 0.8 });
-    wait(2.6);
-  }
-  assert.ok(rt.logic.drumOn('ball1', 'p1'), 'the ball on its plate');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d2'), true);
-  // ---- the Fourth Chamber: the chest; the bank of four eyes wants four shots inside one breath
+  // ---- the Crank Hall: the hammer over the walkway throws you off; the gantry's ball rolled into its crank stops it
+  const hammer = rt.piece('h1');
+  assert.equal(walk(L(0, 7, 50)), true, `to the walkway (${where()})`);
+  for (let i = 0; i < 6 / DT && hammer.down > 0.05; i++) frame();
+  let thrown = false;
+  for (let i = 0; i < 8 / DT && !thrown; i++) { frame({ KeyW: true }, toward(L(0, 7, 60))); thrown = !!P.down || said(/throws you off/); }
+  assert.ok(thrown, `the hammer throws you off the walkway (${where()})`);
+  for (let i = 0; i < 6 / DT && (P.down || rt.kit.local(P.pos).y < 6); i++) frame();
+  const ballJ = rt.piece('ballJ');
+  assert.equal(roll(ballJ, 1, () => rt.logic.drumOn('ballJ', 'pJ')), true, `the ball down the groove into the crank's teeth (${ballJ.t.toFixed(2)})`);
+  wait(2.6);
+  assert.equal(rt.logic.isOpen('h1'), true, 'jammed');
+  assert.ok(hammer.down < 0.01, 'the hammer hangs up, still');
+  const ph = hammer.phase;
+  wait(1);
+  assert.equal(hammer.phase, ph, 'and stays there');
+  P.teleport(L(0, 7.1, 49.5), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  assert.equal(walk(L(0, 7, 60), { run: false }), true, `over the walkway under the still hammer (${where()})`);
+  // ---- the Fourth Chamber: four eyes on pistons that rise in turn; one crank holds them all up
   assert.equal(walk(L(0, 7, 70)), true, `into the chamber (${where()})`);
   const bank = rt.piece('k1');
-  for (let i = 0; i < 3; i++) bank.hit(i);
-  wait(3);
-  bank.hit(3);
-  assert.equal(rt.logic.isLit('k1'), false, 'three, then a breath later the fourth: they went dark again');
+  assert.equal(catchAsTheyRise(bank, 10), false, 'caught as they rise, never four in one breath');
+  const bK = rt.piece('bK');
+  assert.equal(roll(bK, 1, () => rt.logic.drumOn('bK', 'pK')), true, 'the ball into the crank');
+  wait(1);
+  assert.ok([0, 1, 2, 3].every((i) => bank.isUp(i)), 'all four stand up together');
   for (let i = 0; i < 4; i++) bank.hit(i);
   assert.equal(rt.logic.isLit('k1'), false, 'four at once, but without the fourth chamber the bank does not take it');
   items.grant('cell'); game.emit('box:opened', { id: 'buried.temple.cell' });
+  wait(3);
   for (let i = 0; i < 4; i++) bank.hit(i);
   assert.equal(rt.logic.isLit('k1'), true, 'four in a breath, with the fourth chamber');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
-  // ---- the Furnace: the second bank raises the bridge
+  // ---- the Furnace: two cranks for the two west pistons; jam those, and catch the other two as they rise in turn
   assert.equal(walk(L(0, 7, 90)), true, `to the furnace (${where()})`);
-  for (let i = 0; i < 4; i++) rt.piece('k2').hit(i);
+  const k2 = rt.piece('k2'), bA = rt.piece('bA'), bB = rt.piece('bB');
+  assert.equal(roll(bA, 1, () => rt.logic.drumOn('bA', 'pA')), true, 'one crank jammed');
+  assert.equal(catchAsTheyRise(k2, 10), false, 'one piston held up is not enough: the other three rise too far apart');
+  assert.equal(roll(bB, 1, () => rt.logic.drumOn('bB', 'pB')), true, 'the second crank jammed');
+  wait(1);
+  assert.ok(k2.isUp(0) && k2.isUp(1), 'the two west eyes stand up');
+  assert.equal(catchAsTheyRise(k2, 10), true, 'the other two caught one after the other: four in one breath');
   wait(3.5);
+  assert.equal(walk(L(0, 7, 90)), true, `to the bridge's foot (${where()})`);
   assert.equal(walk(L(0, 7, 114)), true, `over the bridge (${where()})`);
   assert.ok(P.pos.y > L(0, 6, 0).y, 'over it, not in the furnace');
-  // ---- the Tooth-Warden: all four vents in a breath, four times
+  // ---- the Tooth-Warden: four vents in a breath; then on its gear
   assert.equal(walk(L(0, 7, 128)), true, `into the hall (${where()})`);
-  const G = rt.guardian;
+  const G = rt.guardian, bG = rt.piece('bG');
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
   P.opts.health = false;
-  for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
-    let open = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
-    assert.ok(open, `its vents open (${n})`);
+  const opening = () => { for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') return true; } return false; };
+  let stamped = false, turned = false;
+  for (let n = 0; n < 12 && G.state !== 'resolved'; n++) {
+    assert.ok(opening(), `its vents open (${n}, phase ${G.phaseIndex})`);
     if (n === 0) { rt.volley(0); rt.volley(1); assert.equal(G.meter, 0, 'two vents are nothing'); }
+    if (G.phaseIndex === 1 && !rt.gearJammed()) {
+      // the second phase: free, a volley counts as before; then the gear jammed, twice
+      const m = G.meter;
+      for (let i = 0; i < 4; i++) rt.volley(i);
+      assert.ok(Math.abs(G.meter - m - 0.125) < 1e-6, `the gear free: a volley as before (${(G.meter - m).toFixed(3)})`);
+      roll(bG, 1, () => rt.logic.drumOn('bG', 'pG'));
+      assert.equal(rt.gearJammed(), true, 'the ball in the gear’s teeth');
+      continue;
+    }
+    if (G.phaseIndex === 2 && !turned) {
+      stamped = said(/jumps out of its teeth/);
+      assert.ok(stamped, 'shifting into its last phase it stamps the ball out of the gear');
+      assert.equal(rt.gearJammed(), false);
+      // the failure: it turns as it opens, one vent at a time: the four in a breath can't be done
+      turned = true;
+      const m = G.meter;
+      for (let i = 0; i < 4; i++) rt.volley(i);
+      assert.equal(G.meter, m, 'one vent faces out at a time: nothing');
+      assert.ok(said(/turned away/), 'and it says why');
+      roll(bG, 1, () => rt.logic.drumOn('bG', 'pG'));
+      assert.equal(rt.gearJammed(), true, 'rolled back into the teeth');
+      continue;
+    }
+    const m = G.meter;
     for (let i = 0; i < 4; i++) rt.volley(i);
+    if (G.phaseIndex >= 1 || G.meter > 0.5) assert.ok(G.meter > m, `a volley takes (${n})`);
   }
   assert.equal(G.state, 'resolved', `stopped (${G.meter})`);
+  assert.ok(turned, 'the last phase was met');
   assert.equal(game.flag('temple.buried.done'), true);
   wait(2.5);
   assert.ok(rt.logic.isOpen('d5'));

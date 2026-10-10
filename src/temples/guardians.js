@@ -622,7 +622,7 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   const mouth = V(), _w = V();
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
-    head, body, vents, shutters, legs, eyeM, ventM, hatch, plume, open: 0, slump: 0, gait: 0, crown: 0, marks: { c: [0, 5, 0], r: [2.35, 1.7, 2.35] },
+    head, body, vents, shutters, legs, eyeM, ventM, hatch, plume, open: 0, slump: 0, gait: 0, crown: 0, only: null, marks: { c: [0, 5, 0], r: [2.35, 1.7, 2.35] },
     part(name, out, side = 1) {
       if (name === 'eye') return out.copy(head.localToWorld(_w.set(0, 0, 1.25)));
       if (name === 'head') return out.copy(head.localToWorld(_w.set(0, 1.3, 0)));
@@ -643,7 +643,8 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       head.rotation.y = attack ? 0 : Math.sin(t * 0.8) * 0.5;
       head.rotation.x = M.slump * 0.6;
       const sideOpen = M.open * (1 - M.guard);
-      shutters.forEach((s) => { s.position.y = 0.4 + sideOpen * 1.15; s.rotation.x = -sideOpen * 0.4; });
+      // (M.only: one vent open at a time, the rest shut: the Tooth-Warden turning on its gear, buried.js)
+      shutters.forEach((s, i) => { const o = sideOpen * (M.only == null || M.only === i ? 1 : 0); s.position.y = 0.4 + o * 1.15; s.rotation.x = -o * 0.4; });
       topVent.scale.setScalar(0.3 + 0.7 * M.guard);
       topVent.material.uniforms.uGlow.value = 0.15 + 0.85 * M.open * M.guard * (0.7 + 0.3 * Math.sin(t * 12));
       // the crown open (guarded and open): its hatch up, the glow rising out of it

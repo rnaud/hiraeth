@@ -41,7 +41,7 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   number of eyes and a window, with its own words (`full`, `fade`): six in 4.6 s
   is the First Garage's (two tanks in one breath, the quick coil's refill).
   `Vane` (a vane of the makers' bellows, lit only while it turns) and `Iris` (blades in a ceiling) are the Warden's
-  Well's (below). Moving parts are `userData.dynamic` (no tiling or levels of detail).
+  Well's, `Hammer` (an engine's piston-hammer over a walkway) the Engine-House's (below). Moving parts are `userData.dynamic` (no tiling or levels of detail).
 - **`logic.js`**: the puzzle as pure state (`TempleLogic`): plates and what
   stands on them, balls on their rails, latched elements, doors and bridges from
   conditions (`{ all }`, `{ pressed }`, `{ lit }`, `{ drumOn }`, `{ item }`,
@@ -209,9 +209,22 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   the well's floor turns (the gap's `lip` says why it stops); the gallery's eye has stone lids (`Switch` `lids`:
   shut while its `when` fails) that the great vane in the floor lifts, and opens the `Iris` in the ceiling (blades
   that slide back into it, solid while shut); the loft's ball is pushed over a gap from the air, hovering over the
-  loft's great vane. The audit reads a vane as a splash (or its item) and a timing, a state that changes back, and a
-  ball's `gap` as a key of its plate's lock (`scripts/temple-design/lib.mjs`). The warden's hall has four
-  (`rt.hallVanes`, docs/systems/foes.md).
+  loft's great vane, and on its plate opens a second iris onto the crown, whose eye wants two vanes turning at once
+  (`when: { all: [vS, vC] }`: the small wall vane splashed first, then the great one hovered over before it slows).
+  The audit reads a vane as a splash (or its item) and a timing, a state that changes back, and a ball's `gap` as a
+  key of its plate's lock (`scripts/temple-design/lib.mjs`). The warden's hall has four (`rt.hallVanes`,
+  docs/systems/foes.md).
+- **A ball in the teeth stops the engine there** (the Engine-House, from the v1.17 audit; the Tooth-Warden jams the
+  whole engine, and the makers' own jams are stone balls rolled into a crank's teeth). What a crank drives stops where
+  it stands while a ball sits in its notch: the Piston Hall's pistons ride only while the valve is open and the ball
+  is out of their crank (`ball0` on `pY`, a drum with two stops: rolled back into `pZ` they stop again); the Crank
+  Hall's `Hammer` (an iron head slamming onto the walkway, knocking you into the pit) runs while its door `h1` is shut
+  and hangs up still once the gantry's ball is in its crank (`pJ`); a `Bank` with `stroke: { period, up }` stands its
+  eyes on pistons (`piston: { drop, phase, jam }`) that rise in turn, each up for `up` s of the period, hittable only
+  while up, held up while its `jam` holds (its `unmet` line when four woke but the bank's `when` fails). The Fourth
+  Chamber's four share one crank (one ball holds all four up); the Furnace's two west pistons have a crank each, the
+  other two are caught in turn. The cranks are a `Cranks` (buried.js: wheels that turn unless jammed, rods to their
+  pistons) and the hall's great gear a `Gear`; the Tooth-Warden turns on it (docs/systems/foes.md).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets
