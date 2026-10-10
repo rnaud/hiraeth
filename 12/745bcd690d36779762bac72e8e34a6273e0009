@@ -1,0 +1,64 @@
+docs/systems/foes.md
+  s_9ca76055a220ed::t_b61bbd3d8e9475 286,617,619,622,627-632
+  s_9ca76055a220ed::t_7a571fded627ac 10,38,274,285,680
+TODO.md
+  s_9ca76055a220ed::t_77b9fc1b0385b5 80-83,108-118,125-126
+src/changelog.js
+  s_9ca76055a220ed::t_a787b7765504ed 13-18
+  s_9ca76055a220ed::t_9f9bdafbfa5cc6 11-12
+changelog.md
+  s_9ca76055a220ed::t_dd20a66b695608 6-12
+  s_9ca76055a220ed::t_117bd845db2ef1 5
+docs/audits/combat-v1.22.md
+  s_9ca76055a220ed::t_e450b8b97c1162 2-228
+  s_9ca76055a220ed::t_2b96933699db62 1
+src/changelog-media.js
+  s_df57d1e2376fc9::t_105f7e5bbfbe05 471-501
+  s_9ca76055a220ed::t_9d9845ab5a5c0e 469-470
+DONE.md
+  s_9ca76055a220ed::t_3d1ebed509d616 2038-2052
+  s_9ca76055a220ed::t_7d8994646e9ba9 2036-2037
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_cbc033951ac221 781,784-785,865,953-956
+  s_9ca76055a220ed::t_f32dc663bf6a75 780
+docs/README.md
+  s_9ca76055a220ed::t_86a2937994a805 26
+docs/systems/audio.md
+  s_9ca76055a220ed::t_0513bbb65623e5 315,317
+src/fluid-blade.js
+  s_9ca76055a220ed::t_e550aef5f448ab 26
+src/foe-worlds.js
+  s_9ca76055a220ed::t_9037f7535d3781 11,128
+src/foes.js
+  s_9ca76055a220ed::t_ad65a90a965458 97,166,172
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_4da89b7a7dcbb4 127
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_bf03a44037de3a 344
+tests/resources.test.js
+  s_9ca76055a220ed::t_e883dd6d97308b 58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12745bcd690d36779762bac72e8e34a6273e0009",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_df57d1e2376fc9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a168f326cbff9de83",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
