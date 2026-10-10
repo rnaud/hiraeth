@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_7d2ff4ae4f41a8 7-8
+src/buried-ways.js
+  s_9ca76055a220ed::t_78ca85b3af2b24 1-45
+src/changelog.js
+  s_9ca76055a220ed::t_807206bf760cc2 20-21
+src/hangar-ways.js
+  s_9ca76055a220ed::t_e9203ceb88fcee 1-53
+src/levels/buried.js
+  s_9ca76055a220ed::t_8eb06475f885fe 13,1155-1159,1164-1167,1216-1217
+src/levels/garage.js
+  s_9ca76055a220ed::t_ddb6be781e36e6 12,56-59,316,326,393-394,405,506-509
+src/story/buried-data.js
+  s_9ca76055a220ed::t_60856c25e72149 42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "28e74fb584aeff7430de3107accada9431d66598",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
