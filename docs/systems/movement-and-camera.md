@@ -98,12 +98,13 @@ so they compare with the node walks rather than the old browser runs):
 | scenario | pops before → after | jumps | turns nobody asked for | out of frame |
 |---|---|---|---|---|
 | train-walk (42 s) | 14 → 0 | 37 → 1 | 21 → 0 | 6.1 % → 0 |
-| train-run | 15 → 0 | 37 → 1 | 33 → 1 | 2.6 % → 0 |
+| train-run | 15 → 0 | 37 → 1 | 33 → 1–2 | 2.6 % → 0 |
 | train-sleeper | 7 → 0 | 19 → 0 | 18 → 1 | 21 % → 0 |
 | train-jumps | 2 → 0 | 2 → 0 | 1 → 1 | 10.6 % → 0 |
 | train-deck, desert-open, bazaar-streets, arena-lock | 0 → 0 | | | 0 → 0 |
 
-All seven train scenarios green. The open worlds (the desert's run, the market's street, the Arena's lock-on) were
+Six of the seven train scenarios are green in every run; the run is green or one turn over its limit (a quick turn into
+the sleeping car's corridor at a run, the lens shoved 9 cm off a jamb). The open worlds (the desert's run, the market's street, the Arena's lock-on) were
 green before and stay green. Left: Qanat's shop (an 8 × 7 m room, walked round its edges) is red on small kinks of the
 look point (18 cm, 3 in 8 s) and its roughness; a door taken at a run while turning can still come in by ~0.2 m in a
 frame; crowd strollers still walk through the camera in other worlds' narrow streets (only the train's keep out of the
