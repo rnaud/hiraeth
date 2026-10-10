@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_9d5b6e12fe4c6c 7
+src/changelog.js
+  s_9ca76055a220ed::t_0b4bc261b1894e 78-84
+src/levels/dismissed/hangar/level.js
+  s_9ca76055a220ed::t_afbea22e3e104d 286-288,291,293-295
+src/levels/incal.js
+  s_9ca76055a220ed::t_e3a20ca3053efa 19,475,486,488-489,493,498-499,502,505-507,1183-1187,1192,1195
+src/reactive-world.js
+  s_9ca76055a220ed::t_4881b38cf356a2 7,278-281
+src/shop-fronts.js
+  s_9ca76055a220ed::t_cc6f965fea4abe 474
+src/shop-kit.js
+  s_9ca76055a220ed::t_96539f82ff6a6c 4,39-45,52-80
+src/story/arzach.js
+  s_9ca76055a220ed::t_f4ecb79f4227a5 12,235
+src/trials/kit-courses.js
+  s_9ca76055a220ed::t_386c48368e4ad6 5,783-785,830
+src/trials/winds.js
+  s_9ca76055a220ed::t_6042f2b8547ae7 4,45,70
+src/vertex-material.js
+  s_9ca76055a220ed::t_8701bd451cfdf7 26-27,29,46
+tests/vertex-material.test.js
+  s_9ca76055a220ed::t_5401b7f90c29d9 46-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f18a55ec40157641d07686c891e8a55a4da85ca8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
