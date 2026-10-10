@@ -16,6 +16,8 @@ import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { greebles } from './greeble-kit.js';
+import { DROPS, DROP_RING, buildShaftWays } from '../shaft-ways.js';
+import { HALFWAY } from '../story/halfway.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
@@ -306,6 +308,12 @@ export function* buildIncal(scene) {
       if (s === 0 && li === 0) clearEnds.push({ y, a: a0, w: STAIR.lane });
       if (s === 0 && li === LEVELS.length - 1) clearZones.push({ x: Math.cos(SHRINE_A) * (r0 + 8), y, z: Math.sin(SHRINE_A) * (r0 + 8), r: 12.5 });
       if (s === 0 && li === 3) { const sa = (a0 + a1) / 2 + SHOP.da; clearZones.push({ x: Math.cos(sa) * (r0 + SHOP.inset + 2.5), y, z: Math.sin(sa) * (r0 + SHOP.inset + 2.5), r: 8 }); }   // (Fausta's shop)
+      // (the lamplighters' landings, src/shaft-ways.js DROPS, and Perrine's stall beside the middle one, src/story/halfway.js)
+      const da = DROPS[y], inThis = (q) => ((q - a0) % TAU + TAU) % TAU <= span;
+      if (da !== undefined && inThis(da)) {
+        clearZones.push({ x: Math.cos(da) * (r0 + DROP_RING.inset), y, z: Math.sin(da) * (r0 + DROP_RING.inset), r: 8 });
+        if (y === LEVELS[3]) clearZones.push({ x: Math.cos(HALFWAY.a) * (r0 + HALFWAY.r), y, z: Math.sin(HALFWAY.a) * (r0 + HALFWAY.r), r: 9 });
+      }
       curGroup = `t${li}`; curY = y;
       const slab = new THREE.Mesh(sectorGeometry(r0, R, a0, a1, 7),
         strata(STEEL.color, STEEL.color2, STEEL.color3, 1.4, { flat: true, grid: 3 }));
@@ -982,6 +990,15 @@ export function* buildIncal(scene) {
     for (const t of trees) if (Math.abs(t[1] - top.y) < 1) { const d = fromEnd(t[0], t[2], top.a0); if (d > -10 && d < STAIR.lane + 1) t[3] = 0; }
   }
 
+  // ---------------------------------------------------------- the lamplighters' drops, the climb's pad and relay lamp, Tobin's view pad
+  // (src/shaft-ways.js: the way down on the jets, marked terrace by terrace; level design audit v1.15)
+  const ways = buildShaftWays(scene, { terraces, places });
+  {
+    const mid = terraces.find((t) => t.y === LEVELS[3] && ((HALFWAY.a - t.a0) % TAU + TAU) % TAU <= t.a1 - t.a0);
+    const stall = mid ? [{ x: Math.cos(HALFWAY.a) * (mid.r0 + HALFWAY.r), y: mid.y, z: Math.sin(HALFWAY.a) * (mid.r0 + HALFWAY.r), r: 6.5 }] : [];
+    for (const t of trees) for (const c of [...ways.clear, ...stall]) if (Math.abs(t[1] - c.y) < 1 && Math.hypot(t[0] - c.x, t[2] - c.z) < c.r) t[3] = 0;
+  }
+
   // trees on the rim around the spawn
   yield;
   for (let k = 0; k < 160; k++) {
@@ -1123,7 +1140,7 @@ export function* buildIncal(scene) {
   return attachTemple('incal', scene, {
     id: 'incal',
     portals: [...shop.portals],
-    lights: [...shop.lights],
+    lights: [...shop.lights, ...ways.lights],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the rim's flora (src/flora.js) keeps the view from the spawn, the villas, the pillar and the trees' feet clear
     floraAvoid: shop.avoid((x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
@@ -1137,12 +1154,14 @@ export function* buildIncal(scene) {
     features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
-    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places },
+    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways },
     // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
     beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
     // what the eye follows (the audit walks a leg a line carries along it, and counts it as guiding): the red stair
-    lines: () => (places.stair ? [{ name: 'the red stair', points: places.stair.path.map((p) => [p.x, p.y, p.z]) }] : []),
+    lines: () => [...(places.stair ? [{ name: 'the red stair', points: places.stair.path.map((p) => [p.x, p.y, p.z]) }] : []), { name: 'the lamplighters’ drops', points: ways.line }],
+    // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pad and relay lamp, Tobin's view pad
+    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'Tobin’s view pad', at: ways.view.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : [])],
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)

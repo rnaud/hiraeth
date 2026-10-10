@@ -134,6 +134,9 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   // the marker is on Nima
   assert.ok(quests.objective().position.distanceTo(W.people.nima.pos) < 0.01);
   talk(PEOPLE.nima, ['It looks dim', 'The night the sky rang', 'Where did the piece']);
+  assert.equal(quests.stage('incal.light'), 'down', 'down the lamplighters’ drops first');
+  // (the way down: landing to landing; halfway, at Perrine's stall, the stage is done)
+  at(level.shaft.ways.landings.find((l) => l.y === -24).at.clone()); step(2);
   assert.equal(quests.stage('incal.light'), 'ossa');
   assert.equal(game.flag('incal.rumour.light'), true, 'Nima saw the singing light');
   // the cabs don't stop at the bottom
@@ -152,6 +155,13 @@ test('the main quest: from the rim, down to the shrine, up to the palace, and th
   step(3);
   // the splinter floats at your shoulder
   assert.ok(W.state && quests.has('splinter'));
+  // on the climb, the relay lamp on the spire's ring catches the splinter's light as you pass (src/shaft-ways.js)
+  const relay = level.shaft.ways.relay;
+  assert.equal(game.flag('incal.relay.lit'), undefined);
+  assert.equal(relay.light.w, 0, 'dark until the splinter passes');
+  at(relay.look.clone().add(V(4, -2, 4))); step(2);
+  assert.equal(game.flag('incal.relay.lit'), true);
+  assert.ok(relay.light.w > 0 && toasts.some((t) => /relay lamp/.test(t)), 'it burns, and a line says so');
   // up at the palace, Dov lets you by
   at(P.palace.dov.clone().add(V(2, 0, 0)));
   talk(PEOPLE.dov, ['You’re from the bottom']);
@@ -317,8 +327,11 @@ test('the middle levels: Perrine’s halfway stall, its mirror washed and turned
   const H = W.halfway, MQ = 'incal.mirror';
   const flat2 = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
   assert.ok(H, 'the halfway stall is built');
+  const landing = level.shaft.ways.landings.find((l) => l.y === -24);
+  assert.ok(flat2(H.frame.position, landing.at) < 10, `beside the middle landing of the lamplighters’ drops (${flat2(H.frame.position, landing.at).toFixed(1)} m)`);
+  // (it moved there from the middle cab stop in v1.15: the stop and Fausta's shop keep their own stretch of the terrace)
   const stop = level.cabStops.find((c) => c.id === 'middle');
-  assert.ok(flat2(H.frame.position, stop.step) < 14, `beside the middle levels’ cab stop (${flat2(H.frame.position, stop.step).toFixed(1)} m)`);
+  assert.ok(flat2(H.frame.position, stop.step) > 60, 'away from the cab stop, where Fausta’s shop stands');
   stand(H.perrine.pos, 'Perrine, behind her counter');
   // the awning's flat roof holds the Smog lantern (content.js keeps its place)
   const relic = CONTENT.incal.relics.spots[2].at;

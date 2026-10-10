@@ -43,6 +43,8 @@ export const QUESTS = [
     outro: 'The Lodestar burns bright. For a moment, every level looked up.',
     stages: [
       { id: 'nima', text: 'The light above the palace is dimming. Find the sweeper on the high terrace, who still watches it', label: 'Nima, the sweeper', talk: 'nima' },
+      // (the way down on the jets, marked terrace by terrace: src/shaft-ways.js; talking to Ossa first skips it)
+      { id: 'down', text: 'Go down the shaft by the lamplighters’ drops: a red lamp on the edge of every terrace, landing to landing. Halfway, Perrine keeps a tea stall where they land', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
       { id: 'ossa', text: 'Go down to the bottom terrace and ask at the Upward Shrine what fell the night the sky rang', label: 'Ossa, at the bottom of the shaft', talk: 'ossa' },
       { id: 'palace', text: 'Carry the splinter up the whole shaft to the palace, under the Lodestar', label: 'The palace gate', talk: 'dov' },
       { id: 'look', text: 'Stand on the palace and look up at the Lodestar', label: 'Look up', flag: 'incal.lit', at: 'crown' },
@@ -90,7 +92,7 @@ export const QUESTS = [
 ];
 
 const LOOKED = { flag: 'incal.lit' };
-const EARLY = { quest: Q, stage: ['nima', 'ossa'] };   // before the splinter is in your hands
+const EARLY = { quest: Q, stage: ['nima', 'down', 'ossa'] };   // before the splinter is in your hands
 
 // ------------------------------------------------------------------ the people
 // palettes: cloak / lining / cloth / legs / hat / hair (buildCharacter + Humanoid)
@@ -104,7 +106,7 @@ export const PEOPLE = {
         { if: { quest: Q, done: true }, node: 'after' },
         { if: { quest: Q, stage: 'tell' }, node: 'told' },
         { if: { quest: Q, stage: ['palace', 'look'] }, node: 'carry' },
-        { if: { quest: Q, stage: 'ossa' }, node: 'again' },
+        { if: { quest: Q, stage: ['down', 'ossa'] }, node: 'again' },
         { node: 'hello' },
       ],
       nodes: {
@@ -146,7 +148,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ How do I get down?', goto: 'down' }, { text: '~neutral~ I’ll go down.', end: true }],
         },
         down: {
-          say: ["~angry~ *Glide down or take a cab.* Coming back is harder. Most cabs refuse to stop below the smog."],
+          say: ["~neutral~ *Follow the lamplighters’ drops.* A red lamp on the edge of every terrace, from my corner here down to the shrine. They dropped landing to landing before there were cabs.", "~angry~ *Glide down or take a cab*, if you like. Coming back is harder. Most cabs refuse to stop below the smog."],
           choices: [{ text: '~neutral~ I’ll manage.', end: true }],
         },
         sweep: {
@@ -200,13 +202,13 @@ export const PEOPLE = {
         { if: { quest: Q, done: true }, node: 'after' },
         { if: LOOKED, node: 'after' },
         { if: { quest: Q, stage: ['palace', 'look'] }, node: 'later' },
-        { if: { quest: Q, stage: ['nima', 'ossa'] }, node: 'hello' },
+        { if: { quest: Q, stage: ['nima', 'down', 'ossa'] }, node: 'hello' },
         { node: 'hello' },
       ],
       nodes: {
         hello: {
-          say: [{ if: { quest: Q, stage: 'ossa' }, text: "~happy~ Nima still sweeps? Good. Someone up there remembers us." },
-            { if: { not: { quest: Q, stage: 'ossa' } }, text: "~angry~ Here to admire the poor? Careful where you stand. Some of the scenery has washing to do." },
+          say: [{ if: { quest: Q, stage: ['down', 'ossa'] }, text: "~happy~ Nima still sweeps? Good. Someone up there remembers us." },
+            { if: { not: { quest: Q, stage: ['down', 'ossa'] } }, text: "~angry~ Here to admire the poor? Careful where you stand. Some of the scenery has washing to do." },
             "~neutral~ I’m Ossa. We built *the Upward Shrine* around the splinter that fell into Behla’s laundry. She hasn’t let us forget whose laundry."],
           choices: [
             { text: '~curious~ What came down?', goto: 'splinter' },
@@ -637,6 +639,50 @@ export const THINGS = {
         lit: { say: ["~neutral~ The yellow call-lamp shines up through the traffic lanes."], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
+  },
+  // the ways down and up (src/shaft-ways.js): the climb's floating pad, the relay lamp on the spire's ring, Tobin's view pad
+  pad: {
+    id: 'pad', name: 'The lamplighters’ pad', title: 'a quarter of the way up', color: '#9fc8c4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A round pad hanging in the air, a red lamp on its pole. Rows of tally marks are scratched into the rail, hundreds of them, in fives.",
+        "~curious~ Someone has written beside the newest ones: *halfway to the spire. breathe.*"],
+      do: { set: { 'incal.pad.seen': true } },
+      choices: [{ text: '~neutral~ (breathe)', end: true }],
+    } } },
+  },
+  locker: {
+    id: 'locker', name: 'The lamplighters’ locker', title: 'on a landing below the smog', color: '#d0694a', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A red cabinet by the lamp-post, its door hanging open. Inside: a coil of rope, a wick-trimmer, a tin of matches gone soft in the damp.",
+        "~sad~ A card is pinned to the back of the door, in a careful hand: *Last round, down to the shrine and back. Eleven years ago next spring. Lamps still lit.*",
+        "~neutral~ Someone has kept them lit since. The wick in the post’s lamp is new."],
+      do: { set: { 'incal.locker.seen': true } },
+      choices: [{ text: '~neutral~ (close the door)', end: true }],
+    } } },
+  },
+  relay: {
+    id: 'relay', name: 'The relay lamp', title: 'on the spire’s ring', color: '#d8a24a', voice: 0.6,
+    talk: {
+      entry: [{ if: { flag: 'incal.relay.lit' }, node: 'lit' }, { node: 'dark' }],
+      nodes: {
+        dark: {
+          say: ["~neutral~ An old brass lamp on the ring round the spire, its glass turned up the shaft. Three small figures looking up are stamped on its foot: the Three Who Look Up.",
+            "~curious~ It is dark. It looks as if it was made to catch a light, not to make one."],
+          choices: [{ text: '~neutral~ (step back)', end: true }],
+        },
+        lit: { say: ["~happy~ The relay lamp burns with the splinter’s light, a small star halfway up the shaft. Down on the bottom terrace someone will be looking up at it."], choices: [{ text: '~neutral~ (step back)', end: true }] },
+      },
+    },
+  },
+  viewPad: {
+    id: 'viewPad', name: 'Tobin’s view pad', title: 'halfway down from the palace', color: '#f2c54b', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~playful~ A brass telescope on a floating pad, aimed straight up. A painted sign: TOBIN’S VIEWS. THE ABYSS, ONE COIN. UP: FREE.",
+        { if: { flag: 'incal.lit' }, text: "~happy~ Through it the Lodestar fills the glass, turning, its glyph lit on every facet." },
+        { if: { not: { flag: 'incal.lit' } }, text: "~sad~ Through it the Lodestar fills the glass, turning, and guttering." }],
+      do: { set: { 'incal.view.seen': true } },
+      choices: [{ text: '~neutral~ (look a while longer)', end: true }],
+    } } },
   },
 };
 

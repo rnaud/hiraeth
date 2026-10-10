@@ -6,7 +6,7 @@ import { Taxi } from '../taxi.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } from './incal-data.js';
-import { setupHalfway } from './halfway.js';
+import { setupHalfway, halfwayTerrace } from './halfway.js';
 import { setupIncalMoments } from './incal-moments.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
@@ -17,8 +17,8 @@ import { setupIncalMoments } from './incal-moments.js';
 //                    fell; Pip plays round it; the dead taxi call-lamp at the edge
 //   the palace       Dov guards the landing ring round the gold dome (y 320); the
 //                    crown on top of the dome, under the Lodestar
-//   the middle       Perrine's halfway tea stall and the halfway mirror, by the middle
-//                    levels' cab stop (y −24: src/story/halfway.js)
+//   the middle       Perrine's halfway tea stall and the halfway mirror, where the lamplighters' drops land
+//                    halfway down (y −24: src/story/halfway.js, src/shaft-ways.js)
 //
 // The light: level.shaft.incal.k goes from 0 (dim, guttering) to 1 when the
 // splinter is given back and you look up at it from the palace. Then the city
@@ -64,7 +64,7 @@ export function setupIncal(ctx) {
   people.dov = spawn(PEOPLE.dov, { route: [onGround(P.palace.dov), onGround(P.palace.dov.clone().add(V(0, 0, -5)))], speed: 0.5 });
   for (const [id, n] of Object.entries(people)) quests.locate(id, () => n.pos);
   // the middle levels: Perrine's halfway stall and its mirror (src/story/halfway.js)
-  const midT = S.terraces?.find((t) => t.y === S.LEVELS?.[3]);
+  const midT = halfwayTerrace(S.terraces, S.LEVELS?.[3]);   // (the sector where the lamplighters' drops land halfway down)
   const halfway = setupHalfway(ctx, { terrace: midT, ground: (x, z) => { const g = physics.groundAt(x, midT.y + 2, z, 6); return Number.isFinite(g) ? g : midT.y; }, onGround });
   if (halfway?.perrine) people.perrine = halfway.perrine;
 
@@ -91,6 +91,21 @@ export function setupIncal(ctx) {
   thing(THINGS.bowl, P.bowlTop, { range: 3.2, prompt: 'look into the bowl' });
   const lampAt = P.lamp.clone().add(V(0, 1.4, 0));
   thing(THINGS.lamp, lampAt, { range: 3, prompt: 'look at the call-lamp' });
+  // the ways down and up (src/shaft-ways.js): the middle landing of the lamplighters' drops (the 'down' stage's goal), the
+  // climb's pad, the relay lamp the splinter wakes, Tobin's view pad on the way down from the palace
+  const ways = S.ways;
+  if (ways) {
+    const mid = ways.landings.find((L) => L.y === S.LEVELS?.[3]);
+    if (mid) quests.locate('halfway', () => mid.at);
+    thing(THINGS.pad, ways.pad.stand, { range: 3.2, prompt: 'look at the tally marks' });
+    thing(THINGS.relay, ways.relay.look, { range: 3.4, prompt: 'look at the relay lamp' });
+    thing(THINGS.viewPad, ways.view.stand, { range: 3.2, prompt: 'look through the telescope' });
+    if (ways.locker) thing(THINGS.locker, ways.locker.stand, { range: 2.8, prompt: 'look in the locker' });
+  }
+  /** The relay lamp: dark until the splinter passes within this of it, or the Lodestar burns. */
+  const RELAY_NEAR = 14;
+  const relayOn = (v) => { if (!ways) return; ways.relay.light.w = v ? 14 : 0; const u = ways.relay.glass.material.uniforms?.uGlow; if (u) u.value = v ? 1 : 0.05; };
+  relayOn(!!game.flag('incal.relay.lit'));
 
   // ---------------------------------------------------------------- the call-lamp and Wren, the old cab
   const lampHead = P.lampHead, lampWorld = V(0, 0, 0);
@@ -101,7 +116,8 @@ export function setupIncal(ctx) {
   // its own voice and its own words as you get in (the first time: who it is), then where to
   cab.voice = { id: WREN.id, name: WREN.name, title: WREN.title, voice: WREN.voice, kind: WREN.kind };
   cab.talk = (where, { greet }) => (greet ? { entry: WREN.talk.entry, nodes: { ...WREN.talk.nodes, where } } : { entry: [{ node: 'where' }], nodes: { where } });
-  quests.locate('wren', () => cab.pos);
+  // (the talk with Wren happens at the call-lamp's stop, where it comes once the lamp is lit: before, it circles far off)
+  quests.locate('wren', () => (game.flag('incal.lamp.lit') ? cab.pos : P.cab));
   const cabHome = P.cab.clone(), cabHeading = facing(P.cab, P.lamp) + Math.PI / 2;
   // before the lamp: it circles low in the depths, looking for a fare that never calls
   const circling = (t, taxi) => {
@@ -433,6 +449,12 @@ export function setupIncal(ctx) {
 
     updateHoist(dt, pp);
     halfway?.update(dt, t, pp);
+    // the relay lamp catches the splinter's light as you carry it past (or the Lodestar's, once it burns)
+    if (ways && !game.flag('incal.relay.lit') && ((quests.has('splinter') && pp.distanceTo(ways.relay.look) < RELAY_NEAR) || lit())) {
+      game.set('incal.relay.lit', true);
+      relayOn(true);
+      if (!lit()) { sound.chime?.(); toast('The old relay lamp on the spire’s ring catches the splinter’s light and burns again: a small star halfway up the shaft.'); }
+    }
 
     // the call-lamp: lit, it sways a little and throws light; a push only rattles it
     st.lampK += ((game.flag('incal.lamp.lit') ? 1 : 0) - st.lampK) * (1 - Math.exp(-dt * 3));

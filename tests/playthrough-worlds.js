@@ -122,6 +122,7 @@ Object.assign(WAYS, {
   // (the drone's first find, Nima on the high terrace 50 m under the rim, is reached on foot from the ship,
   // down the red stair in the shaft's wall: no way declared; tests/incal-stair.test.js walks it, and glides it)
   // (the cabs don't stop in the depths: src/story/incal.js)
+  'incal.light:down': { needs: ['jetpack'], how: 'down the lamplighters’ drops on the jets, landing to landing' },
   'incal.light:ossa': { needs: ['jetpack'], how: 'down the shaft on the jets' },
   'incal.light:palace': { needs: ['jetpack'], how: 'up to the palace on the jets' },
   'incal.light:look': { needs: ['jetpack'], how: 'up on the palace crown' },

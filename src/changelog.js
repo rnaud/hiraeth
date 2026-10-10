@@ -23,6 +23,9 @@ export const CHANGELOG = [
     // Vael
     'In Vael, the great bird’s old tracks lead down from the Aerie’s door over the plateau’s north side to Oïa’s stone, a different way from the standing stones you came up by. Halfway, on the plateau’s lip, the rider’s mounting stone still has its iron ring and a saddle-cloth folded over it.',
     'Flying home from the lone tower, you pass the rider’s roost: a stone floating halfway to the landing with a lean-to, a bedroll, a cup and a long white streamer, where the rider and the bird used to rest. Land on it and the bird settles where the rock is worn smooth.',
+    // the City-Shaft
+    'In the City-Shaft, the old lamplighters’ drops mark the way down on the jets: a red lamp-post and a painted ring on the edge of every terrace, landing to landing from Nima’s corner down to the Upward Shrine. Nima sends you down them, and halfway, on the middle levels, Perrine’s tea stall and her mirror now stand where they land. On a landing below the smog, the lamplighters’ locker still holds their rope and the card from their last round.',
+    'The climb from the shrine to the palace has its stops too: a floating pad with a lamp a quarter of the way up, and an old relay lamp on the spire’s ring that catches the splinter’s light as you carry it past. Coming back down from the palace to Nima you pass Tobin’s view pad, a coin telescope on a floating pad aimed straight up at the Lodestar.',
   ] },
   { v: '1.14', date: '2026-10-09', items: [
     // a shop in every world

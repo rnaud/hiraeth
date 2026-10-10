@@ -374,6 +374,25 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   shows nothing to the west; the stones lead up to the plateau's edge, where the Aerie shows.
 - **The tower as a beacon** (`level.beacons`): the audit's height grid kept the floating ruins and dropped the tower.
 
+## The City-Shaft's ways down and up (level design audit v1.15)
+
+`src/shaft-ways.js` (no rng; the houses' clearings, `DROPS`, are pushed in the terrace loop so the draws stay the same):
+- **The lamplighters' drops** (`DROPS`, `dropLandings`): a red lamp-post at the terrace edge and a cream ring painted on
+  the promenade (a red chevron in it pointing on down) on every level, a spiral from Nima's corner of the high terrace
+  (1.06 rad) to the bottom terrace by the shrine (2.98 rad), each landing a 60 m drop and some 60 m round from the last:
+  the way down on the jets. Nima says so (`down` node). The main quest has a `down` stage between Nima and Ossa (a `go`
+  to the middle landing, `locate('halfway')`; talking to Ossa first skips it): the three talks in a row are broken.
+- **Perrine's halfway stall** moved onto the middle landing (`HALFWAY.a`, src/story/halfway.js), its relic with it
+  (`content.js` spots[2]). The middle cab stop and Fausta's shop keep their own stretch of the terrace.
+- **The lamplighters' locker** on the −150 landing (`THINGS.locker`): rope, a wick-trimmer, the last round's card.
+- **The climb**: a floating pad with a lamp a quarter of the way from the shrine up to the palace gate (`CLIMB.pad`,
+  `THINGS.pad`), and **the relay lamp** on the spire's ring at the 92 m level facing the bottom (`THINGS.relay`): dark
+  until the splinter passes within 14 m (`incal.relay.lit`, a line says so) or the Lodestar burns.
+- **Tobin's view pad**: a floating pad halfway down from the palace's crown to Nima, a coin telescope aimed up
+  (`THINGS.viewPad`): the walk back after looking up passes it.
+- **Wren**'s quest marker sits at the call-lamp's stop until the lamp is lit (it circles far off till then).
+- For the audit: the drops are a `line` (from beside Nima to the shrine), the pads, the relay and the locker `sights`.
+
 ## Vael's ways home (level design audit v1.15)
 
 Both walks back were the way you came (`src/vael-ways.js`, no rng):

@@ -5,9 +5,11 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { textGeometry } from './sign-text.js';
 import { PEOPLE, THINGS } from './incal-data.js';
+import { DROPS } from '../shaft-ways.js';
 
-// The halfway stall (the City-Shaft's middle levels, by the cab stop: docs/systems/story.md,
-// "The halfway stall"). Most players pass the middle levels in a cab or on the jets; this is the
+// The halfway stall (the City-Shaft's middle levels, where the lamplighters' drops land halfway down: docs/systems/story.md,
+// "The halfway stall"; src/shaft-ways.js; it stood by the middle cab stop until the level design audit v1.15 moved it
+// onto the way down). Most players pass the middle levels in a cab or on the jets; this is the
 // small place there to stop at.
 //
 //   Perrine's tea stall   a counter under a flat awning, a kettle, a bench, a board: HALFWAY TEA
@@ -25,21 +27,24 @@ import { PEOPLE, THINGS } from './incal-data.js';
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const TAU = Math.PI * 2;
-/** Where it stands: along the middle terrace from the cab stop (rad), out from the terrace's inner edge (m). */
-export const HALFWAY = { da: -0.048, r: 7.8 };   // (the stretch of the promenade the houses leave clearest, ~10 m from the stop)
+/** Where it stands: its angle round the shaft (rad, just past the middle landing of the lamplighters' drops), out from the terrace's inner edge (m). */
+export const HALFWAY = { a: DROPS[-24] + 0.035, r: 7.8 };   // (7 m round from the landing's ring, the houses kept clear: src/levels/incal.js)
 /** The mirror's notch at the start: turned to a billboard, three notches round from facing up the shaft. */
 export const MIRROR_START = 3;
 const NOTCH = TAU / 8;
 /** The awning's flat roof, over the stall's floor (m): the relic sits 1.1 m over its middle. */
 export const AWNING_TOP = 2.62;
 
+/** The middle level's terrace sector the stall stands on (the one holding HALFWAY.a). */
+export const halfwayTerrace = (terraces, y) => terraces?.find((t) => t.y === y && ((HALFWAY.a - t.a0) % TAU + TAU) % TAU <= t.a1 - t.a0) ?? null;
+
 /**
  * The stall's frame on the middle terrace: origin on the terrace at the stall, +x along the
  * terrace, +z toward the void (and the shaft's middle). Pure: the tests and content.js's relic use it.
- * @param terrace the middle level's terrace ({ y, r0, a0, a1 }), ground (x, z) => y
+ * @param terrace the middle level's terrace sector holding HALFWAY.a ({ y, r0, a0, a1 }: halfwayTerrace), ground (x, z) => y
  */
 export function halfwayFrame(terrace, ground = () => terrace.y) {
-  const a = (terrace.a0 + terrace.a1) / 2 + HALFWAY.da, r = terrace.r0 + HALFWAY.r;
+  const a = HALFWAY.a, r = terrace.r0 + HALFWAY.r;
   const x = Math.cos(a) * r, z = Math.sin(a) * r;
   const g = new THREE.Group();
   g.position.set(x, ground(x, z), z);

@@ -100,9 +100,11 @@ test('every route world has its shop where the play-through builds it: on the gr
       W.step(2);
       assert.ok(interiorAt(W.player.pos) === null, `${world}: back out (${W.passed.join(', ')})`);
       assert.ok(W.player.pos.distanceTo(door) < 3.2, `${world}: in front of the door`);
-      // by the way: within reach of the landing or the world's people (docs/audits/level-design-v1.9.md)
-      const near = Math.min(door.distanceTo(level.spawn), ...W.npcs.filter((n) => n.def?.id).map((n) => door.distanceTo(n.pos)));
-      assert.ok(near < 200, `${world}: by the way (${near.toFixed(0)} m from the landing or a person)`);
+      // by the way: within reach of the landing, the world's people or a cab stop (docs/audits/level-design-v1.9.md; the
+      // City-Shaft's shop stands by the middle levels' cab stop, where the cabs set you down, since Perrine's stall moved
+      // onto the lamplighters' drops in v1.15)
+      const near = Math.min(door.distanceTo(level.spawn), ...W.npcs.filter((n) => n.def?.id).map((n) => door.distanceTo(n.pos)), ...(level.cabStops ?? []).map((s) => door.distanceTo(s.step)));
+      assert.ok(near < 200, `${world}: by the way (${near.toFixed(0)} m from the landing, a person or a cab stop)`);
       // nothing grows through it
       assert.ok(level.floraAvoid?.(door.x, door.z), `${world}: no plant on its doorstep`);
     } finally { W.dispose(); }

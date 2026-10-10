@@ -282,9 +282,9 @@ export const CONTENT = {
       label: 'the Lodestar', goal: [0, 450, 0], radius: 34, manual: true,
     },
     relics: {
-      // (the third, the Smog lantern, over the awning of Perrine's halfway tea stall at the middle levels' cab
-      //  stop: src/story/halfway.js halfwayFrame, AWNING_TOP; tests/story-incal.test.js keeps it there)
-      spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [213.76, -20.28, 32.39] }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
+      // (the third, the Smog lantern, over the awning of Perrine's halfway tea stall where the lamplighters' drops land on the middle levels
+      //  (src/shaft-ways.js; it moved there from the cab stop with the stall, v1.15): src/story/halfway.js halfwayFrame, AWNING_TOP; tests/story-incal.test.js keeps it there)
+      spots: [{ at: [320, 200, -80], snap: true }, { at: [-210, 150, 30], snap: true }, { at: [-64.77, -20.28, 206.32] }, { at: [-60, -86, 205], snap: true }, { at: [205, -218, -40], snap: true }],
       names: ['Taxi token', 'Palace key', 'Smog lantern', 'Smog-cabbage seed', 'Prayer bead'],
     },
     // the rim's people, and Nima on the high terrace (index 3: the desert's errand of

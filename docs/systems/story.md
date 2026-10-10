@@ -658,8 +658,8 @@ The audit's empty stretches (docs/story-audit.md, "Places to fill"), one at a ti
 own kits and systems, a few draws each, and colliders baked from what is drawn (`physics.addCollider`).
 
 - **The halfway stall** (`src/story/halfway.js`; words in `incal-data.js`): the City-Shaft's middle
-  levels (y −24), ten metres along the promenade from the middle cab stop, on the stretch the houses
-  leave clearest (`HALFWAY`). Perrine's tea stall: a counter under a flat red awning, a kettle and
+  levels (y −24), beside the middle landing of the lamplighters' drops (`src/shaft-ways.js`; until v1.15 it stood
+  by the middle cab stop, 240 m off the way down), 7 m round from the landing's ring (`HALFWAY`, `halfwayTerrace`). Perrine's tea stall: a counter under a flat red awning, a kettle and
   cups, a bench, HALFWAY TEA on the board, and Perrine behind it (her lines change while you carry
   the splinter, and after). Beside it **the halfway mirror** on its pole: her mother set it to catch
   the Lodestar and throw a coin of its light down to the bottom; the smog greased it and someone at
