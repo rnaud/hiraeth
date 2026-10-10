@@ -10,7 +10,7 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 //   roster   its archetypes by weight (how often each leads a pack)
 //   late     archetypes that lead only from the third pack on; placed: one met where it is placed, not in packs
 //   temple   the kinds in its temple rooms (no archetype in its echo guardian's temple: the makers' machines stay)
-// Since batch 5 (v1.17) every archetype is built on its own body: no stand-in is left, and every world runs on the new
+// Since batch 5 (v1.18) every archetype is built on its own body: no stand-in is left, and every world runs on the new
 // roster (an archetype not built would run on a stand-in's body, src/enemies/archetypes.js `kind`, or wait, `planned`).
 //
 // rosterOf(world) turns a world's table into what spawning reads, in foe kinds:

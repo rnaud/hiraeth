@@ -892,7 +892,7 @@ own plan of the locomotion kit's phase 5 (docs/systems/procedural-animation.md, 
 its sheets** (2026-10-09, v1.16): the furnace brute, the ring drone, the crucible cart and the bell walker, the
 possessed machines, each painted (the brute's cracked hull: a new surface feature, `cracks`) and on its own plan of the
 kit's phase 5 for machines (procedural-animation.md, "Phase 5, the machines": brute, hover, tracked, siege), their moving
-parts skinned on the kit's joints (6–16 meshes a body). **Batch 5 is drawn to both its sheets** (2026-10-09, v1.17): the
+parts skinned on the kit's joints (6–16 meshes a body). **Batch 5 is drawn to both its sheets** (2026-10-09, v1.18): the
 shade reworked onto a body of its own (a cloak worn by nothing, plan 9), the pearl roller (plan 16) and the marionette
 (plan 21), each painted and on its own plan of the kit (procedural-animation.md, "Phase 5, the late spirits and the
 roller"). **With batch 5 every archetype is built**: no stand-in is left (src/foe-kinds.js holds nothing, the shade's old
@@ -936,7 +936,7 @@ groups) and docs/audits/combat-v1.9.md (batch 2: 4.3–4.7 by eye; the centipede
 keep to their heads' paths). Vael II now runs wholly on the new roster; with batch 3 (docs/audits/combat-v1.13.md: 4.3–4.8, mean 4.54; the motion
 audit: no foot slide, the right gaits) the Desert, Vael and Lorn do too; with batch 4 (docs/audits/combat-v1.16.md:
 4.7–4.8 by eye, mean 4.78; the brute's feet slide 0.01 m/m, the bell's 0.00) Viridel does, and with batch 5
-(docs/audits/combat-v1.17.md: 4.3–4.8 by eye, mean 4.50; the shade's boots slide 0.01 m/m, the roller's roll is locked to
+(docs/audits/combat-v1.18.md: 4.3–4.8 by eye, mean 4.50; the shade's boots slide 0.01 m/m, the roller's roll is locked to
 the ground) every world does: Lorn II's rare shade on its own body, the Garden's rollers and glass puppet, the Signal
 Market's late marionettes.
 

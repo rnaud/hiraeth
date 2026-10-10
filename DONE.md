@@ -1970,7 +1970,7 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   (docs/systems/foes.md); re-scored in docs/audits/temple-design-v1.16.md (1.89 → 3.78 each, average 2.80 → 3.14).
   Engine: drums with `stops`, `when` on latched elements, `Sunbeam`, seed-balls, `Gust` / `Updraft` `when` and a
   gust's `carry`; tests/temples.test.js and tests/guardian-twists.test.js play them, failures first.
-## Enemy roster: batch 5, the late spirits and the roller, and the kit's last plans (2026-10-09, v1.17)
+## Enemy roster: batch 5, the late spirits and the roller, and the kit's last plans (2026-10-09, v1.18)
 
 - [x] Batch 5 (src/enemies/plans/), drawn to both its sheets and painted in every skin: the shade reworked (humanoid.js,
   plan 9: a cloak worn by nothing on two empty boots, its cloak on lagging springs, its ribbons continuous strips on
@@ -1986,5 +1986,5 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] No stand-in is left: every archetype is built, the shade's old body (src/shade.js ShadeBody) is retired, and every
   world runs wholly on the new roster (tests/archetypes-batch5.test.js). The Garden of Spheres' glass puppet placed by the
   white archway in the android wood (src/foe-worlds.js PLACED). The Arena's waves add the roller, the marionette with
-  creatures to drive, the shade with a roller. Scored in docs/audits/combat-v1.17.md (4.3–4.8 by eye, mean 4.50); the
+  creatures to drive, the shade with a roller. Scored in docs/audits/combat-v1.18.md (4.3–4.8 by eye, mean 4.50); the
   shade answers combat-v1.4's "one cut, only the blade" (3.0 → 4.3).

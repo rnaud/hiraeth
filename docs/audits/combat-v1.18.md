@@ -1,4 +1,4 @@
-# Combat review, v1.17 (2026-10-09): the enemy roster, batch 5 (the late spirits and the roller)
+# Combat review, v1.18 (2026-10-09): the enemy roster, batch 5 (the late spirits and the roller)
 
 <!-- audit-scores
 overall: 4.50 / 5
@@ -16,7 +16,7 @@ With them every archetype is built: no stand-in is left. Batches 1–4 stand as 
 
 - The batch's branch (commits cec851c3 and db0f1154 on main bed64a68, and the roller's tuning after this run), headless
   Chrome (muted, ANGLE Metal), the Arena, 1280 × 720, Enemies "normal"; `--kinds shade,roller,marionette --watch 24
-  --version 1.17 --guardians no`, then the roller again after its tuning (`--kinds roller`).
+  --version 1.17 (renamed v1.18 when main took v1.17 for the level design round) --guardians no`, then the roller again after its tuning (`--kinds roller`).
 - Each kind watched 24 s against a still traveller in its own skin (`HOME_SKIN`: Lorn II's hollow woodsman, the
   Hangar's ball-bearing snail, the Garden's glass puppet), then each move's blows through `Foes.hurt`, as in v1.8. The
   marionette was watched with its escort (`def.escort`: a crab), as a support is: its strings drive the crab, so its
@@ -25,7 +25,7 @@ With them every archetype is built: no stand-in is left. Batches 1–4 stand as 
   for the thrust's parry), the roller bounced off walls in a real world (the Arena is open), cutting the marionette's
   strings with the boomerang and the air cut, the yank's lift.
 
-![Each kind at the height of its wind-up, in the Arena (nothing is marked on the ground: none of them throws)](combat-v1.17/telegraphs.webp)
+![Each kind at the height of its wind-up, in the Arena (nothing is marked on the ground: none of them throws)](combat-v1.18/telegraphs.webp)
 
 ## The scores
 

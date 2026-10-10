@@ -379,7 +379,7 @@ Object.assign(SURFACES, {
   },
 });
 
-// batch 5 (v1.17): the late spirits and the roller
+// batch 5 (v1.18): the late spirits and the roller
 Object.assign(SURFACES, {
   shade: {
     '*': {

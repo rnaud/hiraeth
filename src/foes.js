@@ -84,11 +84,11 @@ const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
 // (the spitting blot, the blot swarm and the root stalker came here first; the bellows toad, the skitters and the root
 // knot took their places in v1.12; the furnace brute and the crucible cart took the glass golem's and the slag walker's
-// in v1.16, the ring drone the rust drone's, and the bell walker came in after the tripods; batch 5's at the end, v1.17)
+// in v1.16, the ring drone the rust drone's, and the bell walker came in after the tripods; batch 5's at the end, v1.18)
 export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Array(8).fill('skitter'), ['machine'], ['shade'], ['ray', 'ray'], ['toad', 'toad', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'ray'],
   // then the worlds' (the archetypes and their stand-ins: src/enemies/archetypes.js, src/foe-kinds.js)
   ['worm'], ['brute'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['rootknot', 'blot'], ['heron'], ['crab', 'crab'], ['cart'], ['hound', 'hound'], ['lizard', 'lizard'], ['tripod'], ['tripod', 'lizard', 'lizard'], ['bell'], ['brute', 'crab', 'drone', 'hound'], ['cart', 'drone', 'lizard'],
-  // batch 5 (v1.17): the pearl roller, the marionette with creatures to drive, the shade on its new body with company
+  // batch 5 (v1.18): the pearl roller, the marionette with creatures to drive, the shade on its new body with company
   ['roller'], ['roller', 'roller', 'blot'], ['marionette', 'crab'], ['marionette', 'lizard', 'lizard'], ['shade', 'roller']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
 /** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
@@ -157,7 +157,7 @@ const POSSESS_EYE = '#050407';
 /** Batch 4 (v1.16): a bell walker whose toll the bell-note whistle answered sits open this long (s), the clapper in reach. */
 export const HUSH = 3;
 /**
- * Batch 5 (v1.17): a pearl roller bounced off a guard (s stunned: a guard, a perfect one); a creature a marionette's strings
+ * Batch 5 (v1.18): a pearl roller bounced off a guard (s stunned: a guard, a perfect one); a creature a marionette's strings
  * drive (its wind-ups × wind; cut free, it drops stunned `free` s); how long an ember lights a shade solid (s).
  */
 export const BOUNCE = { guard: 2, perfect: 3 };
@@ -264,7 +264,7 @@ export class Foe {
     this.toppled = 0; this.open = 0; this.riding = null; this.scatter = 0; this.lingerT = 0; this.leapFrom = null; this.mates = 0;
     // batch 4 (v1.16): its tracks jammed by a bomb (s: the cart can't turn)
     this.jammed = 0;
-    // batch 5 (v1.17): the walls it has bounced off in this roll (the roller); the strings driving it ({ by, t }: a
+    // batch 5 (v1.18): the walls it has bounced off in this roll (the roller); the strings driving it ({ by, t }: a
     // marionette's) and the creature its own strings drive (host); its calm path's turn and its wait at the end (the shade)
     this.bounced = 0; this.possessed = null; this.host = null; this.pace = null;
   }

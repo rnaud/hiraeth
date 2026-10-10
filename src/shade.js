@@ -6,7 +6,7 @@ import { Footprints } from './life.js';
 // The shadow's leavings (src/foes.js): ShadePools, the dark pools a blot or a shade leaves where it is cut down (and a
 // hound or a shade where it steps out of its shadow), the drops it sheds and the licks a cut leaves in the air.
 //
-// The shade's old body lived here until the enemy roster's batch 5 (v1.17): the game's skinned person drawn as a cartoon's
+// The shade's old body lived here until the enemy roster's batch 5 (v1.18): the game's skinned person drawn as a cartoon's
 // negative, a black flame for a head. The shade is now a cloak worn by nothing on its own body (src/enemies/plans/
 // humanoid.js); the flame's maths and its white-lined material stay (tests/shade-flame.test.js), unused by any foe.
 

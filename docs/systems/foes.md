@@ -513,7 +513,7 @@ The count is said every 5 ink.
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
   `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
-  arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.17) hangs by the white archway in the
+  arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.18) hangs by the white archway in the
   android wood, just clear of its arch; the Desert's cistern pump is still to place.
 
 ## Controls and the lock-on
@@ -590,9 +590,9 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
   stuns the foe `PARRY_STUN` s.
 - **Combos:** a stilled foe takes the blade double (and the stilling breaks); a push ends a swarm blot.
 
-## The shade (v1.17: `src/enemies/plans/humanoid.js`)
+## The shade (v1.18: `src/enemies/plans/humanoid.js`)
 
-Until v1.17 the shade was the game's own skinned person drawn as a cartoon's negative, flat black with white lines and
+Until v1.18 the shade was the game's own skinned person drawn as a cartoon's negative, flat black with white lines and
 a black flame for a head (src/shade.js `ShadeBody`, with the Sword and Shield pack's cut). The enemy roster's batch 5
 reworked it onto a body of its own, archetype 19 (below, "Batch 5"): a cloak worn by nothing on two empty boots, with a
 feint and a step through its shadow beside its cut. src/shade.js keeps what the shadow leaves (`ShadePools`: the pools a
@@ -610,7 +610,7 @@ material (tests/shade-flame.test.js); no foe draws the flame now. The white cont
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## The enemy roster (v1.8–v1.17, `src/enemies/`)
+## The enemy roster (v1.8–v1.18, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
@@ -627,11 +627,11 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
     (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`). Batch 3 (v1.13): the **bellows toad**
     (`toad`), the **stilt heron** (`heron`), the **skitter swarm** (`skitter`), the **root knot** (`rootknot`). Batch 4
     (v1.16), the possessed machines: the **furnace brute** (`brute`), the **ring drone** (`drone`), the **crucible
-    cart** (`cart`), the **bell walker** (`bell`). Batch 5 (v1.17), the late spirits and the roller: the **shade**
+    cart** (`cart`), the **bell walker** (`bell`). Batch 5 (v1.18), the late spirits and the roller: the **shade**
     (`shade`, reworked), the **pearl roller** (`roller`), the **marionette** (`marionette`). **All 21 are built.**
-  - `stand-in`: not built yet, an old kind runs as its body meanwhile; none since v1.17 (src/foe-kinds.js holds no
+  - `stand-in`: not built yet, an old kind runs as its body meanwhile; none since v1.18 (src/foe-kinds.js holds no
     kind, the shade's old body is retired);
-  - `planned`: nothing stands in, the world tables list it and spawning passes it over; none since v1.17.
+  - `planned`: nothing stands in, the world tables list it and spawning passes it over; none since v1.18.
 - **Skins** (`src/enemies/skins.js` `SKINS[archetype][world]`): a name, a palette, props (lichen, a beetle's
   antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
   crescent, driftwood, halo or wire antlers; a drill lamp, a diving bell, gyroscope rings, a cistern pump), and
@@ -760,7 +760,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | crucible cart (`cart`) | a squat pot of boiling ink on a turntable over two tracks, a smoke column with eyes | pour (1.2 s; the crucible tips, the lip glows; slag stays 6 s), ram (1.3 s; it backs up, tracks spinning; a wall stalls it) | get behind it or aside; a plain shot douses it (cuts double); a bomb jams its tracks; walls; don't follow its dripped trail | trundles its round; always hostile (10 m) |
   | bell walker (`bell`) | a 4.4 m bell in a riveted yoke on five spider legs, the spirit at the lip; a winch drum in the Salt Harbour | toll (1.6 s; reared back, the clapper swinging higher three times; three rings run out 12 m), drop (1.2 s; the legs straighten, the bell rises; it slams where you stood, then tips up open 2.5 s) | jump each ring; the bell-note whistle chokes the toll; strike the clapper while it sits open; guard the drop | stands in its square, tolling softly; always hostile (12 m) |
 
-- **Batch 5's fields** (v1.17): `feint` (the share of the wind-up the shade's body spends on a false cut before the
+- **Batch 5's fields** (v1.18): `feint` (the share of the wind-up the shade's body spends on a false cut before the
   thrust: the body's alone, the mind winds the thrust up in full); `lights` (an ember lights it solid `LIT` s, `Foe.lit`)
   with `dark` (a move only while unlit: the shade's step); `at: 'beside'` (it comes up at your side: the step's blink);
   `rolls` (it rolls through the strike: a cut, a shot, an ember glance off, `Foe.rolling`), `onParry: 'bounce'` (any
@@ -774,7 +774,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   `alone` (a move only with nothing held and nothing near to hold: the dance) and `lift` (m/s a line that catches you
   lifts you: the yank); the calm modes `pace` (a path walked back and forth through its home, waiting `wait` s at each
   end: the shade) and `hang` (the marionette hangs where it is).
-- **Batch 5** (v1.17):
+- **Batch 5** (v1.18):
 
   | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
   |---|---|---|---|---|
@@ -788,7 +788,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   waves and Ink tide field the sky ray where the winged blot came); the spitting blot, the blot swarm and the root
   stalker (v1.13: the bellows toad, the skitter swarm and the root knot took their places in the Arena's old waves, Ink
   tide and the centipede's shed tail); the glass golem and the slag walker (v1.16: the furnace brute and the crucible
-  cart took their places; the rust drone's kind is the ring drone's); the shade's old body (v1.17: the skinned person
+  cart took their places; the rust drone's kind is the ring drone's); the shade's old body (v1.18: the skinned person
   with the flame head, src/shade.js `ShadeBody`; the shade's kind and its flags are kept, on its new body). The
   spitting blot's spit is the blot's.
   Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and

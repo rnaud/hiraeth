@@ -64,7 +64,7 @@ jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md), batch 3 (the 
 skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/combat-v1.13.md) and batch 4 (the
 furnace brute, the ring drone, the crucible cart, the bell walker, drawn to both their sheets; scored in
 docs/audits/combat-v1.16.md) and batch 5 (the shade reworked, the pearl roller, the marionette, drawn to both their
-sheets; scored in docs/audits/combat-v1.17.md). All 21 are built: no stand-in is left and every world runs wholly on
+sheets; scored in docs/audits/combat-v1.18.md). All 21 are built: no stand-in is left and every world runs wholly on
 the new roster.
 
 - [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
@@ -100,15 +100,15 @@ the new roster.
   sound families (`sound` per archetype: the roller's rolling rumble and glassy shatter, the marionette's paper and
   strings), re-scored with the combat-review skill. (Every old kind is retired since batch 5.)
 - [ ] The placed ones (`PLACED` in src/foe-worlds.js: Lorn II's wood cutter by the lit path, v1.16; the Garden's glass
-  puppet by the white archway in the android wood, v1.17): the Desert's cistern pump (a lamp tripod by the deep cistern).
-- [ ] Play the shade's feint with a pad (combat-v1.17 rec. 1): is the thrust's parry found after the false cut, or does
+  puppet by the white archway in the android wood, v1.18): the Desert's cistern pump (a lamp tripod by the deep cistern).
+- [ ] Play the shade's feint with a pad (combat-v1.18 rec. 1): is the thrust's parry found after the false cut, or does
   every early guard simply block it? If the feint never pays, a guard held through the false cut is broken by the thrust
   (staggered, not hurt).
-- [ ] The pearl roller in a world with walls (combat-v1.17 rec. 2): the Hangar's corridors, the Garden's terraces; does
+- [ ] The pearl roller in a world with walls (combat-v1.18 rec. 2): the Hangar's corridors, the Garden's terraces; does
   the bounce aim fairly at you, does a wall stall read as an opening?
-- [ ] The marionette's strings as targets (combat-v1.17 rec. 3): cut them with the air cut from the ground and with the
+- [ ] The marionette's strings as targets (combat-v1.18 rec. 3): cut them with the air cut from the ground and with the
   boomerang; if the air cut can't reach, lower the cut point or widen it.
-- [ ] The combat-review script (combat-v1.17 rec. 4): drive the marionette with a host and time freeing it (strings cut)
+- [ ] The combat-review script (combat-v1.18 rec. 4): drive the marionette with a host and time freeing it (strings cut)
   as well as killing it; the roller's shot and ember times assume it unrolled (rolling, they glance).
 - [ ] Batch 5 against its sheets (docs/design/enemy-roster.md "Status"): the shade's cloak a soft drape with folds, not a
   flared cone with painted ones, its smoke in flame-like curls; the roller's spiral on one side only and sheet-2's

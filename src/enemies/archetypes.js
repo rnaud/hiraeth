@@ -76,7 +76,7 @@ import { fromPattern } from './attacks.js';
 //   attack.opens    s it sits open after the strike (the bell's drop: tipped toward you, the clapper in reach)
 //   clapper         only the clapper takes harm: a cut, a bomb glance off the bell unless it sits open or is stilled (the bell)
 //   attack.whistle  the bell-note whistle sounded near it as it winds this up chokes it: it sits open (Foes.bellNote)
-// batch 5 (v1.17), the late spirits and the roller:
+// batch 5 (v1.18), the late spirits and the roller:
 //   attack.feint    the share of the wind-up its body spends on a fake (the shade's: the cut begun, stopped halfway, the
 //                   sword dropped to the hip for the thrust); the body's alone, the mind winds the real move up in full
 //   lights          an ember lights it solid a while (f.lit); attack.dark: only while it is not lit (the shade's step)
