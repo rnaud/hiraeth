@@ -1,0 +1,37 @@
+DONE.md
+  s_9ca76055a220ed::t_be19cf532e2549 1945,1957
+TODO.md
+  s_9ca76055a220ed::t_1bafaeea8621c4 58,66,83,86,89,93,103
+docs/README.md
+  s_9ca76055a220ed::t_a58289a7d26e6f 26
+docs/audits/combat-v1.16.md
+  s_9ca76055a220ed::t_8aa219b6a5af1a 1,19,30
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_a03bc1fd8b96d6 892,933
+docs/systems/foes.md
+  s_9ca76055a220ed::t_65033c57f124b8 510,644,660,693,769,781,795
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_3b2fa53db45f2a 71
+src/enemies/plans/skitterers.js
+  s_9ca76055a220ed::t_e197507018a492 19
+src/foe-kinds.js
+  s_9ca76055a220ed::t_914943d16bfb44 4
+src/foes.js
+  s_9ca76055a220ed::t_aa2b0750d06c86 93,159,260
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "67713bf9006497576245349fbd856871c5f8d865",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
