@@ -211,6 +211,14 @@ Shader "Hidden/Memento/Composite"
       // along axes tied to the world (level along its contour and straight up it; the world's x on level ground: post.js SPOT_FRAME),
       // their size swelling with two slow waves across the world (SPOT_SWELL), each projected to the screen; no jitter
       float2 spotUv(float3 S, float2 rA, float2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
+      // the plane of the surface seen at 'at' (q: normal, view depth) met along the ray r, between lo and hi (post.js planeAlong)
+      float planeAlong(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi)
+      {
+        float3 nQ = mul(toView, q.xyz);
+        float facing = dot(nQ, r);
+        float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, float3(at * rA + rB, -1.0) * q.w) / facing : hi;
+        return t > lo && t < hi ? t : hi;
+      }
       float enclosure(float2 uv, float3 nW, float d, float R, int taps)
       {
         float2 rB = viewPos(float2(0.0, 0.0), 1.0).xy, rA = viewPos(float2(1.0, 1.0), 1.0).xy - rB;
@@ -228,25 +236,38 @@ Shader "Hidden/Memento/Composite"
         float swell = 0.5 + 0.25 * (sin(dot(Pw, float3(5.215, 2.576, 2.325))) + sin(dot(Pw, float3(-2.502, 4.573, 6.817))));
         Rm *= lerp(0.6, 1.4, swell);
         t1 = mul(toView, t1) * Rm; t2 = mul(toView, t2) * Rm;
-        float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0, seen = 0.0;
+        float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
         int n8 = taps == 8 ? 8 : 4;
+        float2 tuv[8]; float4 tq[8]; float tp[8];
         for (int i = 0; i < n8; i++)
         {
           float a = 0.39 + i * 6.2832 / n8, rr = (i % 2) ? 0.55 : 1.0;
-          float3 o = (cos(a) * t1 + sin(a) * t2) * rr;
-          float2 suv = spotUv(P + o, rA, rB);
-          // (a tap on a person looks past them, twice as far out; still on one, it is left out, neither open nor
-          // closed: post.js notPerson / occlusionShare)
-          float np = step(fmod(tH(suv).a, 8.0), 1.5);
-          if (np < 0.5) { suv = spotUv(P + 2.0 * o, rA, rB); np = step(fmod(tH(suv).a, 8.0), 1.5); }
-          float sd = tN(suv).w;
-          if (sd <= 0.0) { seen += np; continue; }   // (the sky: open)
-          float3 v = float3(suv * rA + rB, -1.0) * sd - P;
-          float dist = length(v);
-          occ += np * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
-          seen += np;
+          tuv[i] = spotUv(P + (cos(a) * t1 + sin(a) * t2) * rr, rA, rB);
+          tq[i] = tN(tuv[i]); tp[i] = step(fmod(tH(tuv[i]).a, 8.0), 1.5);
         }
-        return occ / max(seen, 1.0);
+        for (int i = 0; i < n8; i++)
+        {
+          float sd = tq[i].w;
+          // (a tap on a person stands for what they hide: the surfaces seen two and four times as far out and the
+          // other taps' surfaces, as planes met along its ray, the nearest between the person and the point's own
+          // surface, else that surface: post.js spotBehind)
+          if (tp[i] < 0.5)
+          {
+            float a = 0.39 + i * 6.2832 / n8, rr = (i % 2) ? 0.55 : 1.0;
+            float3 o = (cos(a) * t1 + sin(a) * t2) * rr, r = float3(tuv[i] * rA + rB, -1.0);
+            float lo = sd;
+            sd = -(P.z + o.z);
+            float2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
+            if (step(fmod(tH(p2).a, 8.0), 1.5) > 0.5) sd = planeAlong(p2, tN(p2), r, toView, rA, rB, lo, sd);
+            if (step(fmod(tH(p4).a, 8.0), 1.5) > 0.5) sd = planeAlong(p4, tN(p4), r, toView, rA, rB, lo, sd);
+            for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);
+          }
+          if (sd <= 0.0) continue;   // (the sky: open)
+          float3 v = float3(tuv[i] * rA + rB, -1.0) * sd - P;
+          float dist = length(v);
+          occ += smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+        }
+        return occ / n8;
       }
       // the haze in layers by distance (x) and the fog by height along the ray (y): post.js hazeAt
       float2 hazeAt(float d, float3 rd)

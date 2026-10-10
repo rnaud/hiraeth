@@ -92,6 +92,51 @@ export function spotFrame(n) {
   return [t1, _cross(n, t1)];
 }
 /**
+ * What a spot tap's ray meets behind a person standing on it (mirrors post.js enclosure's spotLoop and
+ * planeAlong): `own` is the view depth of the point's own surface along the ray (the tap's place on it, P + o),
+ * `person` the person's depth there, `ray` the ray at view depth 1 ([x, y, -1]), `planes` the surfaces seen round
+ * it ({ n: view-space normal, p: a view-space point on it }). The nearest plane met between the person and `own`,
+ * else `own` (the point's own surface goes on behind them: open).
+ */
+export function spotBehind(own, person, ray, planes) {
+  let sd = own;
+  for (const { n, p } of planes) {
+    const facing = _dot(n, ray);
+    if (!(facing < 0)) continue;
+    const t = _dot(n, p) / facing;
+    if (t > person && t < sd) sd = t;
+  }
+  return sd;
+}
+
+/**
+ * The spot blacks' loop over n taps (post.js enclosure), as GLSL. A first pass reads every tap (its pixel, normal
+ * and depth, and whether a person stands there); a tap on a person then asks what the person hides (spotBehind):
+ * the surfaces seen two and four times as far out along its offset, and every other tap's surface, each taken as a
+ * plane and met along the hidden tap's own ray; the nearest in front of the point's own surface (P + o) and behind
+ * the person is what the tap sees, else the point's own surface (open).
+ */
+const spotLoop = (n) => `{
+      vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];
+      for (int i = 0; i < ${n}; i++) { tuv[i] = spotUv(P + SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, rA, rB); tq[i] = texture(tNormal, tuv[i]); tp[i] = notPerson(tuv[i]); }
+      float occ = 0.0;
+      for (int i = 0; i < ${n}; i++) {
+        float sd = tq[i].w;
+        if (tp[i] < 0.5) {   // (on a person: what they hide)
+          vec3 o = SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, r = vec3(tuv[i] * rA + rB, -1.0);
+          float lo = sd;
+          sd = -(P.z + o.z);
+          vec2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
+          if (notPerson(p2) > 0.5) sd = planeAlong(p2, texture(tNormal, p2), r, toView, rA, rB, lo, sd);
+          if (notPerson(p4) > 0.5) sd = planeAlong(p4, texture(tNormal, p4), r, toView, rA, rB, lo, sd);
+          for (int j = 0; j < ${n}; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);
+        }
+        occ += spotTapAt(tuv[i], sd, P, nV, rA, rB, r1, r2);
+      }
+      return occ / ${n}.0;
+    }`;
+
+/**
  * The share of a screen-space occlusion estimate's taps that close a point in (mirrors post.js enclosure and
  * creaseAO): taps = [{ c (0..1, how much this one closes in), person }]. A tap on a person is left out (neither
  * open nor closed: the person hides what stands behind); none left: 0 (open).
@@ -523,18 +568,26 @@ const fragmentShader = /* glsl */ `
   // the same places whatever the view (the masses stay put; only what the depth buffer can see changes), and
   // the estimate is still smooth from pixel to pixel (no jitter: a hard threshold of it is a clean-edged mass).
   // The radius is R metres, kept between 4 and 96 pixels on the screen as before. A person never counts
-  // (notPerson: a tap landing on one looks past them, twice as far out, and is left out of the share if that
-  // lands on a person too: occlusionShare). taps: 8, or 4 (handheld). The in-plane offsets are constants
-  // (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a perspective camera: ray(uv) = (uv * rA + rB, -1),
+  // (notPerson: a tap landing on one stands for what they hide, spotBehind: a person in front of a dark area
+  // leaves it as dark as without them, no pale ghost and no dark copy). taps: 8, or 4 (handheld). The in-plane
+  // offsets are constants (SPOT_TAPS8, SPOT_TAPS4), the view ray is affine in uv (a perspective camera: ray(uv) = (uv * rA + rB, -1),
   // so a view-space point S is at uv = (S.xy / -S.z - rB) / rA), and a tap on the sky weighs 0 instead of a
   // skip (docs/systems/performance.md, docs/systems/rendering.md "Spot blacks anchored to the surface").
   vec2 spotUv(vec3 S, vec2 rA, vec2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
-  float spotTap(vec2 suv, vec3 P, vec3 nV, vec2 rA, vec2 rB, float r1, float r2) {
-    float sd = texture(tNormal, suv).w;
+  float spotTapAt(vec2 suv, float sd, vec3 P, vec3 nV, vec2 rA, vec2 rB, float r1, float r2) {
     vec3 v = vec3(suv * rA + rB, -1.0) * sd - P;
     float dist = length(v);
     return step(0.0, sd) * sign(sd)   // (the sky: open)
       * smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
+  }
+  // what a tap's ray meets behind a person standing on it (spotBehind): the plane of the surface seen at pixel
+  // 'at' (q: its normal and view depth) met along the ray r (view space, z = -1), as a view depth; hi where it
+  // doesn't meet it between lo (the person) and hi
+  float planeAlong(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi) {
+    vec3 nQ = toView * q.xyz;
+    float facing = dot(nQ, r);
+    float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, vec3(at * rA + rB, -1.0) * q.w) / facing : hi;
+    return t > lo && t < hi ? t : hi;
   }
   float enclosure(vec2 uv, vec3 nW, float d, float R, int taps) {
     vec2 rB = viewPos(vec2(0.0), 1.0).xy, rA = viewPos(vec2(1.0), 1.0).xy - rB;
@@ -559,25 +612,9 @@ const fragmentShader = /* glsl */ `
     float swell = 0.5 + 0.25 * (sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[0])})) + sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[1])})));
     Rm *= mix(${SPOT_SWELL.range[0].toFixed(2)}, ${SPOT_SWELL.range[1].toFixed(2)}, swell);
     t1 = toView * t1 * Rm; t2 = toView * t2 * Rm;
-    float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0, seen = 0.0;
-    if (taps == 8) {
-      for (int i = 0; i < 8; i++) {
-        vec3 o = SPOT_TAPS8[i].x * t1 + SPOT_TAPS8[i].y * t2;
-        vec2 suv = spotUv(P + o, rA, rB);
-        float np = notPerson(suv);
-        if (np < 0.5) { suv = spotUv(P + 2.0 * o, rA, rB); np = notPerson(suv); }   // (on a person: look past them)
-        occ += spotTap(suv, P, nV, rA, rB, r1, r2) * np; seen += np;
-      }
-      return occ / max(seen, 1.0);
-    }
-    for (int i = 0; i < 4; i++) {
-      vec3 o = SPOT_TAPS4[i].x * t1 + SPOT_TAPS4[i].y * t2;
-      vec2 suv = spotUv(P + o, rA, rB);
-      float np = notPerson(suv);
-      if (np < 0.5) { suv = spotUv(P + 2.0 * o, rA, rB); np = notPerson(suv); }   // (on a person: look past them)
-      occ += spotTap(suv, P, nV, rA, rB, r1, r2) * np; seen += np;
-    }
-    return occ / max(seen, 1.0);
+    float r1 = R * 1.5, r2 = R * 3.0;
+    if (taps == 8) ${spotLoop(8)}
+    ${spotLoop(4)}
   }
 
   // ---------------------------------------------------------------- haze by depth and height (4b)

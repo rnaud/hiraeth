@@ -584,7 +584,7 @@ villas, temple halls (the Signal Market's, the Buried Machine's) and the Machine
   world (0.8 R long): the same at a point whatever the view, continuous over a surface, so the copies of an edge
   wave and the masses on a cave's ribbed dome or round a room's cabinet come out as brushed shapes rather than
   stacked blocks. (Turning the pattern instead bent them more but cost the risers their taps below.)
-- **People**: unchanged rules (a tap on a person looks past them, twice as far out along its surface offset, and
+- **People** (since replaced: "The visual probes' findings fixed", below): unchanged rules (a tap on a person looks past them, twice as far out along its surface offset, and
   is left out if that lands on one too).
 - **Checked** against the desert's sheets in the References (bones, tower, sails, wreck, bridges, 3774 ribs, dish
   city, slot canyon; High and Handheld): the same masses, a little less speckle on the sails.
@@ -622,6 +622,26 @@ only showed in the light term) were each missed by still frames from fixed camer
   spots, nothing flagged).
 - **A shell standing on a floor** keeps its foot ring at or under it, whatever roughens it: `tests/shell-seams.test.js`
   runs every displacement helper on domes, drums and mounds, and fails on a new helper it doesn't know.
+
+## The visual probes' findings fixed (docs/audits/visual-v1.4.md; October 2026)
+
+The first run of the probes (visual-v1.4) found five things in the pictures and a few in the probes themselves;
+the after-run is [visual-v1.20](../audits/visual-v1.20.md).
+
+- **A dark copy of the traveller on the wall beside him in room corners** (Handheld; post.js `enclosure`,
+  `spotLoop`, `planeAlong`, `spotBehind`). A tap landing on a person looked past them, twice as far along its
+  offset. In a corner that reached past the corner onto the other wall, which stands in front of the point: the
+  tap closed it in where, without him, it saw its own wall. Leaving the tap out was no better: on Handheld's 4 taps
+  a point with one tap of four closing (0.25, a hair under the desert's 0.3) became one of three. Now every tap is
+  read first (pixel, normal and depth, person or not), and a tap on a person **stands for what the person hides**:
+  the surfaces seen two and four times as far out along its offset and every other tap's surface are taken as
+  planes and met along the hidden tap's own ray; the nearest one between the person and the point's own surface
+  (its place on it, P + o) is what the tap sees, else the point's own surface goes on behind them (open). The
+  corner's far wall only meets that ray behind the near wall, so it no longer counts; a recess, a stair's tread
+  or the floor in a corner's foot still closes the point in. Every tap now counts (the share is over all of them).
+  The probes' corner (the desert, a room inside a way in): the dark region beside him 6442 px → 0 at Handheld; the
+  known spots stay clean. Twin: `tests/occlusion-taps.test.js` (a corner and a stair with a person in front, the
+  rule before and now, and `spotBehind` itself). The Unity port's Composite.shader takes the same rule.
 
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 

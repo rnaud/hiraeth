@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
-import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_SWELL, spotFrame, spotSwell, glslVec3 } from '../src/post.js';
+import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_SWELL, spotBehind, spotFrame, spotSwell, glslVec3 } from '../src/post.js';
 
 const shader = createPost().scene.children[0].material.fragmentShader;
 const body = (name) => {
@@ -33,7 +33,7 @@ test('the spot taps are the directions the shader used to work out per pixel', (
 });
 
 test('no skip (continue / break), cos or sin inside the occlusion loops', () => {
-  for (const name of ['enclosure', 'spotTap', 'creaseAO']) {
+  for (const name of ['enclosure', 'spotTapAt', 'planeAlong', 'creaseAO']) {
     const b = body(name);
     assert.ok(!/\bcontinue\b|\bbreak\b/.test(b), `${name}: a tap that doesn't count weighs 0, it isn't skipped`);
   }
@@ -42,7 +42,7 @@ test('no skip (continue / break), cos or sin inside the occlusion loops', () => 
   assert.equal((enc.match(/\bsin\(/g) ?? []).length, 2);
   assert.ok(!/\bcos\(/.test(enc));
   assert.ok(enc.indexOf('sin(') < enc.indexOf('for ('), 'the swell is worked out once, not per tap');
-  assert.ok(!/viewPos\(suv/.test(enc + body('spotTap')), 'the tap positions from the affine ray');
+  assert.ok(!/viewPos\(/.test(enc.slice(enc.indexOf('float r1')) + body('spotTapAt')), 'the tap positions from the affine ray');
   const ao = body('creaseAO');
   assert.equal((ao.match(/\bcos\(/g) ?? []).length, 2, 'crease shading: one turn per pixel (and the spiral\'s own constant steps)');
   // the surface flags (is the tap on a grass blade, or a person?) only read for a tap that would close something in,
@@ -63,12 +63,19 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   }
   assert.ok(shader.includes('float notPerson(vec2 suv) { return step(mod(texture(tHatch, suv).a, 8.0), 1.5); }'));
   const enc = body('enclosure');
-  // both loops (8 taps, 4 on the handheld): a person's tap is left out of the share (below)
-  // (a tap on a person first looks past them, twice as far out; still on one, it is left out)
-  assert.equal((enc.match(/float np = notPerson\(suv\);\s*if \(np < 0\.5\) \{ suv = spotUv\(P \+ 2\.0 \* o, rA, rB\); np = notPerson\(suv\); \}/g) ?? []).length, 2);
-  assert.equal((enc.match(/occ \+= spotTap\(suv, P, nV, rA, rB, r1, r2\) \* np; seen \+= np;/g) ?? []).length, 2);
-  assert.equal((enc.match(/return occ \/ max\(seen, 1\.0\);/g) ?? []).length, 2);
-  assert.ok(!/texture\(tHatch/.test(enc + body('spotTap')));
+  // both loops (8 taps, 4 on the handheld): a tap on a person stands for what the person hides (spotBehind, below):
+  // the planes of what is seen two and four times as far out and of the other taps, met along its ray
+  for (const n of [8, 4]) {
+    assert.ok(enc.includes(`tp[i] = notPerson(tuv[i]);`) && enc.includes(`vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];`), `${n} taps: read first`);
+    assert.ok(enc.includes(`return occ / ${n}.0;`), `${n} taps: every tap counts`);
+  }
+  assert.equal((enc.match(/if \(tp\[i\] < 0\.5\) \{/g) ?? []).length, 2);
+  assert.equal((enc.match(/sd = -\(P\.z \+ o\.z\);/g) ?? []).length, 2, 'the point’s own surface: the farthest the hidden tap can see');
+  assert.equal((enc.match(/vec2 p2 = spotUv\(P \+ 2\.0 \* o, rA, rB\), p4 = spotUv\(P \+ 4\.0 \* o, rA, rB\);/g) ?? []).length, 2);
+  assert.equal((enc.match(/for \(int j = 0; j < \d; j\+\+\) if \(tp\[j\] > 0\.5\) sd = planeAlong\(tuv\[j\], tq\[j\], r, toView, rA, rB, lo, sd\);/g) ?? []).length, 2);
+  assert.equal((enc.match(/occ \+= spotTapAt\(tuv\[i\], sd, P, nV, rA, rB, r1, r2\);/g) ?? []).length, 2);
+  assert.match(body('planeAlong'), /return t > lo && t < hi \? t : hi;/);
+  assert.ok(!/texture\(tHatch/.test(enc + body('spotTapAt')));
 });
 
 test('a person in front leaves no pale ghost in the shading behind them (Marrow by the ship, the tree’s stairs)', () => {
@@ -91,9 +98,11 @@ test('a person in front leaves no pale ghost in the shading behind them (Marrow 
   assert.match(body('creaseAO'), /return clamp\(ao \/ max\(seen, 1\.0\) \* 2\.2, 0\.0, 1\.0\);/);
   // and so does the Unity port's composite (it had no person test at all)
   const unity = readFileSync(new URL('../unity/Memento/Assets/Memento/Shaders/Composite.shader', import.meta.url), 'utf8');
-  assert.equal((unity.match(/return (saturate\(ao|occ) \/ max\(seen, 1\.0\)/g) ?? []).length, 2);
-  // (crease shading's one, the spot blacks' and its look past the person)
-  assert.equal((unity.match(/np = step\(fmod\((t|tH\(suv\)\.a), 8\.0\), 1\.5\)/g) ?? []).length, 3);
+  assert.equal((unity.match(/return saturate\(ao \/ max\(seen, 1\.0\)/g) ?? []).length, 1);
+  assert.equal((unity.match(/np = step\(fmod\(t, 8\.0\), 1\.5\)/g) ?? []).length, 1);
+  // (the spot blacks: what a person hides, as post.js spotBehind)
+  assert.ok(unity.includes('tp[i] = step(fmod(tH(tuv[i]).a, 8.0), 1.5);') && unity.includes('return occ / n8;'));
+  assert.ok(unity.includes('for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);'));
 });
 
 test('the view ray is affine in uv, so a tap can be placed without the inverse projection', () => {
@@ -273,4 +282,107 @@ test('a riser’s spot black stays put as the camera swings round it (it used to
       assert.ok(spread(got.surface) < spread(got.screen) / 2);
     }
   }
+});
+
+// A twin of the spot blacks with a person in front (visual audit v1.4, finding 1: a dark copy of the traveller on
+// the wall beside him in a room's corner, Handheld): the mask with the person against without, round them.
+function personScene(kind) {
+  const scene = new THREE.Scene(), mat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1.75, 0.3).translate(0, 0.875, 0), mat);
+  let eye, look;
+  if (kind === 'corner') {   // two walls square to each other on a floor; he stands 1.3 m out from the corner
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2).translate(10, 0, 10), mat));
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(40, 8).rotateY(Math.PI / 2).translate(0, 4, 10), mat));
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(40, 8).translate(10, 4, 0), mat));
+    const n = new THREE.Vector3(1, 0, 1).normalize(), foot = n.clone().multiplyScalar(1.3);
+    body.position.copy(foot); body.lookAt(foot.clone().add(n));
+    eye = new THREE.Vector3(0, 2.2, 0).addScaledVector(n, 5); look = foot.clone().setY(0.9);
+  } else {   // on the stairs, a riser behind him
+    const RISE = 0.37, RUN = 0.93;
+    for (let s = 0; s < 12; s++) { const top = (s + 1) * RISE, len = 12 - s * RUN; scene.add(new THREE.Mesh(new THREE.BoxGeometry(6.5, top, len).translate(0, top / 2, -s * RUN - len / 2), mat)); }
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), mat));
+    body.position.set(0.3, 2 * RISE, 1.3 - 3 * RUN);
+    eye = body.position.clone().add(new THREE.Vector3(1.5, 3, 6)); look = body.position.clone().add(new THREE.Vector3(0, 0.9, 0));
+  }
+  scene.add(body); scene.updateMatrixWorld(true);
+  const cam = new THREE.PerspectiveCamera(55, 16 / 9, 0.1, 500);
+  cam.position.copy(eye); cam.lookAt(look); cam.updateMatrixWorld(true);
+  return { scene, body, cam, look };
+}
+// The enclosure at uv (as post.js spotLoop): 'past' the rule before (a person's tap looked twice as far out, left
+// out if that was a person too), 'behind' the rule now (spotBehind); withPerson false: the same view without him.
+function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H = 360) {
+  const ray = new THREE.Raycaster(), toView = new THREE.Matrix3().setFromMatrix4(cam.matrixWorldInverse);
+  const hit = (su, sv) => {
+    ray.setFromCamera(new THREE.Vector2(su * 2 - 1, sv * 2 - 1), cam);
+    const h = ray.intersectObjects(scene.children, false).find((x) => withPerson || x.object !== body);
+    return h ? { d: -h.point.clone().applyMatrix4(cam.matrixWorldInverse).z, n: h.face.normal.clone().transformDirection(h.object.matrixWorld), person: h.object === body } : { d: 0, person: false };
+  };
+  const vp = (a, b) => { const p = new THREE.Vector4(a * 2 - 1, b * 2 - 1, 1, 1).applyMatrix4(cam.projectionMatrixInverse); return [p.x / p.w / -(p.z / p.w), p.y / p.w / -(p.z / p.w)]; };
+  const rB = vp(0, 0), r11 = vp(1, 1), rA = [r11[0] - rB[0], r11[1] - rB[1]];
+  const ray3 = (a, b) => new THREE.Vector3(a * rA[0] + rB[0], b * rA[1] + rB[1], -1);
+  const uvOf = (S) => [(S.x / -S.z - rB[0]) / rA[0], (S.y / -S.z - rB[1]) / rA[1]];
+  const h0 = hit(u, v);
+  if (!h0.d || h0.person) return null;
+  const P = ray3(u, v).multiplyScalar(h0.d), nV = h0.n.clone().applyMatrix3(toView).normalize();
+  const k = cam.projectionMatrix.elements[5] * 0.5 * H;
+  const Rm = Math.min(96, Math.max(4, R * k / h0.d)) * h0.d / k * (SPOT_SWELL.range[0] + (SPOT_SWELL.range[1] - SPOT_SWELL.range[0]) * spotSwell(P.clone().applyMatrix4(cam.matrixWorld).toArray(), R));
+  const [t1, t2] = spotFrame(h0.n.toArray()).map((t) => new THREE.Vector3(...t).applyMatrix3(toView).multiplyScalar(Rm));
+  const close = (uv, sd) => { if (sd <= 0) return 0; const w = ray3(...uv).multiplyScalar(sd).sub(P), dist = w.length(); return smooth(0.12, 0.5, nV.dot(w) / dist) * (1 - smooth(R * 1.5, R * 3, dist)); };
+  const plane = (h, uv) => ({ n: h.n.clone().applyMatrix3(toView).toArray(), p: ray3(...uv).multiplyScalar(h.d).toArray() });
+  const T = OCCLUSION_TAPS.spot(taps).map(([x, y]) => { const o = t1.clone().multiplyScalar(x).addScaledVector(t2, y), uv = uvOf(P.clone().add(o)); return { o, uv, h: hit(...uv) }; });
+  const seenAround = T.filter((t) => !t.h.person && t.h.d).map((t) => plane(t.h, t.uv));
+  let occ = 0, seen = 0;
+  for (const { o, uv, h } of T) {
+    if (!h.person) { occ += close(uv, h.d); seen++; continue; }
+    const uv2 = uvOf(P.clone().addScaledVector(o, 2)), h2 = hit(...uv2);
+    if (rule === 'past') { if (!h2.person) { occ += close(uv2, h2.d); seen++; } continue; }
+    const uv4 = uvOf(P.clone().addScaledVector(o, 4)), h4 = hit(...uv4);
+    const planes = [...[[h2, uv2], [h4, uv4]].filter(([q]) => !q.person && q.d).map(([q, quv]) => plane(q, quv)), ...seenAround];
+    occ += close(uv, spotBehind(-(P.z + o.z), h.d, ray3(...uv).toArray(), planes)); seen++;
+  }
+  return occ / Math.max(seen, 1);
+}
+function personGhost(kind, rule, taps, threshold = 0.3) {
+  const sc = personScene(kind), W = 640, H = 360, c = sc.look.clone().project(sc.cam);
+  let dark = 0, pale = 0, mass = 0;
+  for (let py = -150; py <= 150; py += 6) for (let px = -150; px <= 150; px += 6) {
+    const u = c.x * 0.5 + 0.5 + px / W, v = c.y * 0.5 + 0.5 + py / H;
+    const a = personTwin(sc, u, v, rule, true, taps); if (a === null) continue;
+    const m1 = smooth(threshold - 0.03, threshold + 0.03, a), m0 = smooth(threshold - 0.03, threshold + 0.03, personTwin(sc, u, v, rule, false, taps));
+    if (m0 > 0.5) mass++;
+    if (m1 - m0 > 0.3) dark++; else if (m0 - m1 > 0.3) pale++;
+  }
+  return { dark, pale, mass };
+}
+
+test('a person in front of a room’s corner leaves the corner’s spot black as it was (no dark copy beside him)', () => {
+  // before: a tap on him looked twice as far out, past the corner onto the other wall, which stands in front of the
+  // point: a dark copy of him on the wall beside him (Handheld's 4 taps)
+  const before = personGhost('corner', 'past', 4), now = personGhost('corner', 'behind', 4);
+  assert.ok(before.mass > 50 && before.dark > 25, `the bug, before: ${JSON.stringify(before)}`);
+  assert.ok(now.dark <= 2 && now.pale <= 2, `4 taps: ${JSON.stringify(now)}`);
+  const now8 = personGhost('corner', 'behind', 8);
+  assert.ok(now8.dark <= 2 && now8.pale <= 2, `8 taps: ${JSON.stringify(now8)}`);
+});
+
+test('a person on the stairs leaves the risers’ spot blacks behind him as they were', () => {
+  for (const taps of [4, 8]) {
+    const g = personGhost('stairs', 'behind', taps), old = personGhost('stairs', 'past', taps);
+    assert.ok(g.mass > 50, 'risers in view');
+    assert.ok(g.dark + g.pale <= Math.max(4, old.dark + old.pale), `${taps} taps: no worse than before (${JSON.stringify(g)} against ${JSON.stringify(old)})`);
+    assert.ok(g.dark + g.pale < g.mass * 0.03, `${taps} taps: ${JSON.stringify(g)}`);
+  }
+});
+
+test('what a person hides: the nearest surface met behind them, never behind the point’s own surface', () => {
+  const ray = [0, 0, -1];
+  // a wall facing the eye at depth 6 behind a person at 4, the point's own surface along the ray at 8: the wall
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -6] }]), 6);
+  // the wall behind the point's own surface (or in front of the person): the point's surface goes on (open)
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -9] }]), 8);
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -3] }]), 8);
+  // a surface seen from behind (facing away along the ray) is no wall for it; the nearest of several wins
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, -1], p: [0, 0, -6] }]), 8);
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -7] }, { n: [0, 0.6, 0.8], p: [0, 0, -5] }, { n: [0, 0, 1], p: [0, 0, -6] }]), 5);
 });

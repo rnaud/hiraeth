@@ -37,9 +37,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
-- [ ] A dark copy of the traveller on the wall behind him in room corners (Handheld): post.js `enclosure`'s look past
-  a person (twice as far) lands on the other wall of the corner, nearer than the point. Stop the look at the person's
-  depth, or leave the tap out; a test twin with a corner in tests/occlusion-taps.test.js.
 - [ ] A hairline of sky still shows at the Givers' Hearth's floor edge (44-73 px, debug 5, both presets): find it with
   foot rays from more points than the centre (the door cut is the first suspect) and close it with a skirt ring.
 - [ ] Hovering makers' drones in the temple halls draw a jagged spot-black halo on the wall behind them, moving with

@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.21 — 2026-10-10
+
+- Standing near a room’s corner in shade no longer paints a dark copy of the traveller on the wall beside him (worst on Handheld): the deep black masses in corners and recesses stay as they are whoever stands in front of them.
+
 ## v1.20 — 2026-10-09
 
 - In the Signal Market, once the silent tower speaks again, Madame Sel sends you home the quiet way: down the alley behind Signal Square and up the back lane behind the west towers, where the market’s old dishes have stayed turned to the tower for thirty years, past the radio-mender’s table, and out by the lantern market.

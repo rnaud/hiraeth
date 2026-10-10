@@ -2000,3 +2000,13 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   4.00, average 3.14 → 3.49). Engine: a held `vane` element, `Vane`, `Iris`, a `Switch`'s lids, a `Ball` gap's lip,
   `Hammer`, a `Bank`'s piston eyes on a stroke; the shaft's breath fixed (it let riders sink off its crest);
   tests/temples.test.js and tests/guardian-twists.test.js play them, failures first.
+
+## The visual probes' findings (docs/audits/visual-v1.4.md; 2026-10-09, v1.20)
+
+- [x] A dark copy of the traveller on the wall behind him in room corners (Handheld): the look past a person (twice as
+  far) reached the corner's other wall, in front of the point; leaving the tap out was no better (1 of 4 taps closing,
+  under the 0.3 threshold, became 1 of 3). Now every spot tap is read first and a tap on a person stands for what the
+  person hides: the planes of what is seen two and four times as far out and of the other taps, met along its own ray,
+  the nearest between the person and the point's own surface (post.js `spotLoop`, `planeAlong`, `spotBehind`; the
+  Unity composite too). The probes' corner 6442 px → 0; twins of a corner and a stair with a person in front in
+  tests/occlusion-taps.test.js (docs/systems/rendering.md, "The visual probes' findings fixed").

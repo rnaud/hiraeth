@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.21', date: '2026-10-10', items: [
+    // the pictures: what the visual audit's probes found
+    'Standing near a room’s corner in shade no longer paints a dark copy of the traveller on the wall beside him (worst on Handheld): the deep black masses in corners and recesses stay as they are whoever stands in front of them.',
+  ] },
   { v: '1.20', date: '2026-10-09', items: [
     // the worlds, fourth round of the level design audit: every way home passes something new, and a landmark on every long leg
     'In Vael II, the monastery’s roof tiles that fell up with the bell’s clapper now hang in a long drifting string from the floating island’s church back over Tiv’s great table to the bell tower. Brother Calix asks you to follow them home with the clapper.',
