@@ -565,7 +565,7 @@ const shipOut = (() => {
     crash: ship.site.crash ? { travel: -ship.site.crash.travel, length: ship.site.crash.length } : null,
     R: W.shipHull.R, DECK: W.shipHull.DECK, HATCH_A: -W.shipHull.HATCH_A,
     // the angular hull (src/ship/hull.js, docs/systems/ship.md): its length, side walls and the middle of its plan, in its own frame
-    hull: { length: W.shipHull.LENGTH, halfWidth: W.shipHull.HALF_W, centreZ: W.shipHull.CENTRE_Z, lift: W.shipHull.LIFT },
+    hull: { length: W.shipHull.LENGTH, halfWidth: W.shipHull.HALF_W, centreZ: W.shipHull.CENTRE_Z, lift: W.shipHull.LIFT, belly: W.shipHull.BELLY },
     // the holo table's planet (src/ship/holotable.js: drawn as approach.js draws a world; its size, its look)
     holoTable: { planetR: W.shipTable.planetR, world: levelId },
     // the approach from space and the landing (cinematics.js ArrivalDirector, exhaust.js): the bells, the feet, the timings

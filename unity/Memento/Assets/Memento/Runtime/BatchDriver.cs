@@ -179,10 +179,23 @@ namespace Memento
                 yield return Until("call", 7f); yield return Shoot("prologue_the_recording");
                 yield return Wait(9f); yield return Shoot("prologue_the_father");
                 Log($"prologue: {game.ship.Stage}, hologram {game.ship.holo.Live}, subtitle '{game.ship.subtitle}'");
-                yield return Until("impact", 1.4f); yield return Shoot("prologue_impact");
-                yield return Until("fall", 1.6f); yield return Shoot("prologue_falling");
-                yield return Until("streak", 2.6f); yield return Shoot("prologue_the_streak");
-                yield return Until("plough", 1.2f); yield return Shoot("prologue_the_furrow");
+                // (the angular hull's prologue: the pause, the light's pass, the drain, the glide, the landing; an older
+                // export's stages by their old names)
+                if (game.world.World.O("ship")?.O("hull") != null)
+                {
+                    yield return Until("pause", 5.0f); yield return Shoot("prologue_the_pause");
+                    yield return Until("pass", 3.2f); yield return Shoot("prologue_the_light");
+                    yield return Until("drain", 2.6f); yield return Shoot("prologue_the_drain");
+                    yield return Until("glide", 2.6f); yield return Shoot("prologue_the_glide");
+                    yield return Until("land", 1.2f); yield return Shoot("prologue_the_landing");
+                }
+                else
+                {
+                    yield return Until("impact", 1.4f); yield return Shoot("prologue_impact");
+                    yield return Until("fall", 1.6f); yield return Shoot("prologue_falling");
+                    yield return Until("streak", 2.6f); yield return Shoot("prologue_the_streak");
+                    yield return Until("plough", 1.2f); yield return Shoot("prologue_the_furrow");
+                }
                 yield return Until("settle", 1.5f); yield return Shoot("prologue_the_dust_clears");
                 yield return Pulse(v => pad.confirm = v);
                 yield return Until("hatch", 2.0f); yield return Shoot("prologue_the_hatch");

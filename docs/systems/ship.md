@@ -185,7 +185,15 @@ checks the door, the ramp and the jets, and `tests/contact-audit.test.js` lands 
   re-aimed, the glide comes in nose first and slews round in the sand as it stops; arrivals fly nose first
   along the way the bow will face; the homecoming's look out of the windshield is re-aimed.
 - **The trailer's reference scenes** build the same model; **the Unity export** writes the new points and the
-  hull's extents (`shipOut.hull`); the Unity port's own C# still places its cameras for the ball (TODO.md).
+  hull's extents (`shipOut.hull`: length, half width, middle, lift, belly). The Unity C# port's scenes
+  (`ShipScene.cs`, `ShipTravel.cs`) read them: the recordings' cameras from `cockpitFrame` (where he stands and
+  the projector; `callShot` and the pause's three angles), the wake-up from `wakeEye` / `wakeSit` / `wakeLook` /
+  `wakeRoom`, the walk ending at the console's reach (1.5 m: the bunk stands 2.3 m from it), the step-out from
+  `threshold`, boarding to `aboard`, the map at the holo table (`tableFoot`, `tableShot` for the course), the
+  glide's vapour off the hull's length and its jets under the belly; the prologue's new stages (pause, pass, drain,
+  glide, land; an older export's names play as these), the arrival nose first along the bow and down on four bells.
+  The web's sides mirrored into Unity's frame (`SideOf`). `tests/unity-ship-points.test.js` checks every point the
+  C# names is the interior's. Not yet seen running (no editor run here, TODO.md).
 - **The child's drawing** on the dash and in the cabin is the angular ship; the lines that called it "the
   round ship" now say the striped ship.
 

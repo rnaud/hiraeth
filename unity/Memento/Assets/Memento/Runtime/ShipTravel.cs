@@ -5,12 +5,13 @@ namespace Memento
 {
     /// <summary>
     /// The ship between worlds (src/ship/cinematics.js TakeoffDirector, ArrivalDirector; approach.js;
-    /// exhaust.js): leaving, the course set at the console, the ship lifting off its feet on its jets
+    /// exhaust.js): leaving, the course set at the holo table, the ship lifting off its feet on its jets
     /// in a storm of dust and climbing faster and faster, then the stars rushing past with the
     /// world's name (cinema.js Warp). Arriving: out of the jump the planet grows ahead, drawn as the
-    /// map draws it (Shaders/Planet.shader); the ship dives into its air in a sheet of fire, falls
-    /// through its sky trailing smoke, comes down on its jets over the landing site, and you walk
-    /// out down the ramp. Hold Back (Esc, Y / △) to skip either.
+    /// map draws it (Shaders/Planet.shader), the ship nose first along its bow's way; it levels out
+    /// and brakes into the air on its jets in a veil of vapour, comes down upright on its jets over the
+    /// landing site and onto its feet, and you walk out down the ramp from the doorway (the export's
+    /// threshold). Hold Back (Esc, Y / △) to skip either.
     /// </summary>
     public partial class ShipScene
     {
@@ -73,7 +74,9 @@ namespace Memento
         }
         bool arriving;
 
-        Vector3 Side => new Vector3(-outDir.z, 0, outDir.x);
+        Vector3 Side => SideOf(outDir);
+        /// <summary>The way the ship's bow points as it stands (local -z), level.</summary>
+        Vector3 Bow { get { var f = restRot * Vector3.back; f.y = 0; return f.sqrMagnitude > 1e-6f ? f.normalized : -outDir; } }
         float GroundAt(Vector3 p) => game.world.GroundBelow(new Vector3(p.x, restPos.y + 40, p.z), 0, 400);
         void PlaceAtRamp()
         {
@@ -152,9 +155,8 @@ namespace Memento
                     enter = () => { bars = 1; Say("ship", $"~neutral~ Course set: {title}. Hold on."); Sounds.Instance?.Play("ship_hatch"); Sounds.Instance?.Loop("ship_hum", 0.6f); pl.frozen = true; },
                     frame = (t, dt) =>
                     {
-                        // from behind the traveller at the console (callShot)
-                        var p = P.Has("projector") ? P.V3("projector") : Polar(7.95f, Mathf.PI, DECK + 1.07f);
-                        Shot(Wp(new Vector3(-1.3f, DECK + 1.95f, -4.8f - Mathf.Min(t * 0.03f, 0.3f))), Wp(new Vector3(p.x + 0.12f, DECK + 1.82f, p.z)), 48);
+                        // across the holo table from the traveller, the planet turning between (tableShot)
+                        ShotIn(TableShot(t), false);
                         Shake(0.25f * t);
                     } },
                 new() { id = "liftoff", dur = 3.8f,
@@ -186,7 +188,9 @@ namespace Memento
         {
             arriving = true;
             var pl = game.player;
-            var fwd = -outDir; var up = Vector3.up; var across = new Vector3(-fwd.z, 0, fwd.x);
+            // (nose first along the bow's way as it will stand; `across`: the web's, mirrored)
+            var fwd = Bow; var up = Vector3.up; var across = SideOf(fwd);
+            Quaternion NoseDown(float rad) => Quaternion.AngleAxis(rad * Mathf.Rad2Deg, Vector3.Cross(up, fwd));
             var centre = new Vector3(restPos.x, SpaceY, restPos.z);
             var top = restPos + Vector3.up * 140;
             Vector3 cam = Vector3.zero, look = Vector3.zero;
@@ -215,7 +219,7 @@ namespace Memento
                     {
                         float k = t / Approach_[0], e = Smooth(k);
                         var sp = centre + fwd * 14 * k;
-                        if (parked) { parked.transform.position = sp; parked.transform.rotation = Quaternion.AngleAxis((-0.35f * e + Mathf.Sin(t * 0.9f) * 0.03f) * Mathf.Rad2Deg, across) * restRot; }
+                        if (parked) { parked.transform.position = sp; parked.transform.rotation = NoseDown(0.35f * e - Mathf.Sin(t * 0.9f) * 0.03f) * restRot; }   // (nosing down toward it as it nears)
                         cam = centre + fwd * (-72 + 22 * e) + across * (30 - 8 * e) + up * (14 - 4 * e);
                         PlacePlanet(cam, 1250 - 350 * e, 0.3f + 0.1f * e, 0.08f * Mathf.Exp(1.55f * k));
                         approach.Spin(dt);
@@ -226,37 +230,35 @@ namespace Memento
                     enter = () => { Sounds.Instance?.Play("ship_roar"); },
                     frame = (t, dt) =>
                     {
+                        // into the air under control: it levels out and brakes on its jets as the planet fills the view, a
+                        // thin veil of vapour off the hull's rim, then through the clouds (a soft white)
                         float k = t / Approach_[1], e = Smooth(k);
-                        var sp = centre + fwd * (14 + 30 * k) - up * 16 * k * k;
-                        var tilt = Quaternion.AngleAxis((-0.35f - 0.45f * e + Mathf.Sin(t * 7) * 0.025f) * Mathf.Rad2Deg, across) * Quaternion.AngleAxis(Mathf.Sin(t * 3.1f) * 0.06f * Mathf.Rad2Deg, fwd);
-                        if (parked) { parked.transform.position = sp; parked.transform.rotation = tilt * restRot; }
+                        var sp = centre + fwd * (14 + 24 * e) - up * 10 * e;
+                        if (parked) { parked.transform.position = sp; parked.transform.rotation = NoseDown(0.35f * (1 - e)) * restRot; }
                         cam = sp + fwd * (-44 + 8 * e) + across * (20 - 5 * e) + up * (13 - 3 * e);
                         PlacePlanet(cam, 900 - 200 * e, 0.4f + 0.35f * e, Mathf.Min(1.32f, 0.38f + 0.95f * e));
                         approach.Spin(dt);
                         var toPlanet = (approach.PlanetPos - sp).normalized;
-                        // the fire of entry: on the belly, toward the planet, streaming back off the hull
-                        for (int i = 0, n = 3 + Mathf.RoundToInt(5 * Mathf.Min(1, k * 2)); i < n; i++)
+                        Exhaust(dt, 0.6f);   // the braking jets (no ground under them yet)
+                        if (parked && Random.value < dt * 6 * e)
                         {
-                            var at = sp + toPlanet * R * 0.9f + Random.insideUnitSphere * R * 0.6f;
-                            Emit(at, -toPlanet * (18 + Random.value * 14) - fwd * 8, 0.6f + Random.value * 0.8f, 0.22f + Random.value * 0.2f, FireMat());
+                            float u = Random.value * Mathf.PI * 2;
+                            Emit(parked.transform.position + parked.transform.rotation * new Vector3(Mathf.Sin(u) * halfWidth, 1, centreZ + Mathf.Cos(u) * hullLength * 0.5f), -toPlanet * 6 - fwd * 4, 0.8f + Random.value * 0.8f, 0.9f, vapourMat);
                         }
-                        if (Random.value < dt * 5) Emit(sp - fwd * R, -toPlanet * 10, 0.9f + Random.value * 0.9f, 1.2f, smokeMat);
-                        Shake(0.25f + 0.5f * k);
-                        Shot(cam, sp + toPlanet * 18, 50, Mathf.Sin(t * 2.2f) * 0.04f);
-                        if (t > Approach_[1] - 0.4f && !flashed) { flashed = true; Fade(1, 0.3f); }
+                        Shot(cam, sp + toPlanet * 18, 50);
+                        if (t > Approach_[1] - 0.7f && !flashed) { flashed = true; Fade(1, 0.6f); }
                     } },
                 new() { id = "sky", dur = Approach_[2],
-                    enter = () => { approach?.Remove(); approach = null; if (game.look) game.look.fogOverride = -1; Fade(0, 0.55f); Sounds.Instance?.Play("ship_roar"); },
+                    enter = () => { approach?.Remove(); approach = null; if (game.look) game.look.fogOverride = -1; Fade(0, 0.7f); Sounds.Instance?.Play("ship_roar"); },
                     frame = (t, dt) =>
                     {
-                        float k = t / Approach_[2], e = 1 - Mathf.Pow(1 - k, 2);
-                        var p = restPos - fwd * 90 * (1 - e) + up * (160 + 480 * (1 - e));
-                        if (parked) { parked.transform.position = p; parked.transform.rotation = Quaternion.AngleAxis((-0.25f * (1 - e) + Mathf.Sin(t * 4) * 0.03f) * Mathf.Rad2Deg, across) * restRot; }
-                        if (Random.value < 1 - k * 0.7f) Emit(p + new Vector3((Random.value - 0.5f) * 8, -R - 0.5f, (Random.value - 0.5f) * 8), new Vector3(0, 30, 0) - fwd * 10, 1.2f + Random.value * 1.2f, 0.3f, FireMat());
-                        for (int i = 0; i < 2; i++) Emit(p + new Vector3((Random.value - 0.5f) * 10, R * (Random.value - 0.2f), (Random.value - 0.5f) * 10), new Vector3(0, 22, 0) - fwd * 6, 2.4f + Random.value * 2.2f, 2.2f, smokeMat);
+                        // out of the clouds over the landing site: it comes down upright on its jets, slowing
+                        float k = Mathf.Min(1, t / Approach_[2]), e = 1 - Mathf.Pow(1 - k, 1.6f);
+                        var p = restPos - fwd * 40 * (1 - e) + up * (140 + 260 * (1 - e));
+                        if (parked) { parked.transform.position = p; parked.transform.rotation = restRot; }
+                        Exhaust(dt, 0.8f);
                         var c = restPos + fwd * 70 + Side * 85 + up * 230;
                         Shot(c, p + Vector3.down * 6, 44);
-                        Shake(0.2f * (1 - k));
                     } },
                 new() { id = "landing", dur = 4.2f,
                     enter = () => { look = top; Sounds.Instance?.Play("ship_rumble"); },
@@ -270,7 +272,7 @@ namespace Memento
                         Shot(c, look, 50);
                         float h = p.y - restPos.y;
                         if (!thud) Exhaust(dt, 0.75f + 0.25f * (1 - Mathf.Min(1, h / 60)));
-                        if (t > 3.9f && !thud) { thud = true; Shake(0.8f); Sounds.Instance?.Play("ship_impact", 0.4f); FootPuffs(); }
+                        if (t > 4.0f && !thud) { thud = true; Sounds.Instance?.Play("ship_rumble", 0.3f); FootPuffs(); }   // (onto its feet: a puff from under each, no jolt)
                     } },
                 new() { id = "door", dur = 2.8f,
                     enter = () => Sounds.Instance?.Play("ship_hatch"),
@@ -282,7 +284,7 @@ namespace Memento
                 new() { id = "walkout",
                     enter = () =>
                     {
-                        pl.Teleport(Wp(Polar(9.0f, HATCH_A, DECK)), siteHeading * Mathf.Rad2Deg);
+                        pl.Teleport(Wp(PtOr("threshold", false, Polar(9.0f, HATCH_A, DECK))), siteHeading * Mathf.Rad2Deg);   // (in the doorway)
                         ShowPlayer(true); pl.frozen = false;
                         pl.auto = new List<Vector3> { hinge + outDir * 0.6f, rampFoot, rampFoot + outDir * 2f };
                     },

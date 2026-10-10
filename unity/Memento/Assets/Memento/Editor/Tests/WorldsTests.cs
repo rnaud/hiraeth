@@ -173,7 +173,13 @@ namespace Memento.Tests
                 var ramp = s.V3("rampFoot"); var rest = s.V3("rest");
                 Assert.Less(ramp.y, rest.y, id);
                 Assert.Less(Vector2.Distance(new Vector2(ramp.x, ramp.z), new Vector2(rest.x, rest.z)), 30, id);
-                Assert.AreEqual(3, s.L("thrusters").Count, $"{id}: the bells under the hull (exhaust.js)");
+                Assert.AreEqual(4, s.L("thrusters").Count, $"{id}: the bells under the hull (exhaust.js, hull.js BELLS: two forward, two aft)");
+                // the angular hull's extents, and the points aboard the scenes place the traveller and their cameras by
+                var hull = s.O("hull");
+                Assert.IsNotNull(hull, $"{id}: the hull's extents (ship.hull)");
+                Assert.Greater(hull.F("length"), 2 * hull.F("halfWidth"), $"{id}: the hull is long and narrow");
+                foreach (var k in new[] { "cockpit", "projector", "table", "tableFoot", "hatchIn", "threshold", "aboard", "bunkStand" })
+                    Assert.IsTrue(s.O("points").Has(k), $"{id}: the ship's point '{k}'");
             }
         }
     }
