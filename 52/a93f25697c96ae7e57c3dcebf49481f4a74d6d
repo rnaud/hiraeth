@@ -1,0 +1,29 @@
+tests/combat-feel.test.js
+  s_9ca76055a220ed::t_d7042faa3fdfef 255-274
+src/changelog.js
+  s_9ca76055a220ed::t_cf5afa531f05a0 14
+changelog.md
+  s_9ca76055a220ed::t_47caf510606ae6 7
+src/changelog-media.js
+  s_9ca76055a220ed::t_c2e12518a1abff 520-524
+docs/systems/foes.md
+  s_9ca76055a220ed::t_e9a588ed197381 620-633
+src/lock-reticle.js
+  s_9ca76055a220ed::t_854cdda30bef15 2,4-7,9-11,13-17,22-30,32,51-53,65,70-84,94-99,102,106,109,111-119,121-131,134-135,138,141-142,146-147,149,153,156,160-187,198-209,211-226,231-234
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "52a93f25697c96ae7e57c3dcebf49481f4a74d6d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
