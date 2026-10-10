@@ -1,0 +1,39 @@
+.github/workflows/android.yml
+  s_9ca76055a220ed::t_0eda5dff373aaa 29,54-61,146-161,167-173
+.github/workflows/cloudflare.yml
+  s_9ca76055a220ed::t_86eedf8fb35bbc 24,39-40,44,46-51,102-104,115-120
+.github/workflows/steam-deck.yml
+  s_9ca76055a220ed::t_e83c5f1420a846 20,41-46,96-98,100-102,104-113
+.github/workflows/unity-android.yml
+  s_9ca76055a220ed::t_27e26597ec1782 193,209,226,250,291,310,396,414,432,450,477
+.github/workflows/xbox.yml
+  s_9ca76055a220ed::t_0bb55abd3d26ac 216-231
+docs/systems/android.md
+  s_9ca76055a220ed::t_b33bb37728af65 37-58
+docs/systems/unity.md
+  s_9ca76055a220ed::t_25751e4f33f088 79-84
+scripts/commit-status.sh
+  s_9ca76055a220ed::t_184b90e65b28a6 1-26
+scripts/retry.sh
+  s_9ca76055a220ed::t_7bf526323cb4c1 1-31
+scripts/unity-publish.sh
+  s_9ca76055a220ed::t_441ee1cd39ade2 23-24,26,30,33
+tests/release-workflows.test.js
+  s_9ca76055a220ed::t_d53d56711bfde3 1-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "574d4d87543a2e8fba0026619fd653133dbd3384",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
