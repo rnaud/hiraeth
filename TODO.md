@@ -35,7 +35,17 @@ rather than mixing the earlier inconsistent exploration sheets.
   in the existing `singing-light` cue slot. The synthesised motif, restaged opening,
   voicemail, Qanat repayment, signature search and rumble are implemented (DONE.md).
 
-# Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
+# Visual probes (docs/audits/visual-v1.20.md, 2026-10-10; v1.4's done: DONE.md)
+
+- [ ] The Lorn temple's floating crystal draws a jagged spot-black halo on the wall behind it as it turns (perdide
+  inner-wall-3, both presets; the orbit flags it): make its material with `{ mover: true }` (materials.js MOVER).
+- [ ] Dark triangles of the Givers' Hearth's dome hang across the passage's mouth: `cut()` keeps a triangle whose centre
+  is outside the door box; cut by any vertex inside the passage, or clip to its walls (desert-hearth.js).
+- [ ] A shop in the Signal Market (bazaar inside-3) is lit white inside in the light term (floor, shelves): check the
+  shop shell's shadow casting with the sun through the open front.
+- [ ] Small pale notches still left at a corner's foot beside a person (300-600 px, Handheld) and Marrow's wide hem
+  darkening the floor a little: where three planes meet, the planes round a hidden tap can miss the one hiding it
+  (a third look-past along the other axis?). The buried world's stairs-0 orbit (Handheld, 0.74) not looked at by eye.
 
 
 # Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.16) built)
