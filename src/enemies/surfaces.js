@@ -185,6 +185,8 @@ Object.assign(SURFACES, {
       body: {
         bands: { color: 'band', axis: 1, period: 1, width: 0.045, offset: -0.05, ink: 0 },
         stripes: { color: 'band', axis: 1, period: 1, width: 0.045, offset: -0.22, ink: 0 },
+        // (the ochre marks between the two lines: a ring of dabs round the belly)
+        rivets: { color: 'band', axis: 1, period: 1, offset: 0.155, count: 11, size: 0.075, ink: 0, shine: 0 },
         scales: { color: 'dark', size: 0.2, ink: 0.18, tone: 0.025, amount: 0.08, mode: 1 },
         gloss: { size: 0.045, sky: 0.6, amount: 0.8 },
       },
