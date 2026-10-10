@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_3c7b74f812ac0d 21-22
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_12b586257d974b 523,529-558
+src/changelog-media.js
+  s_9ca76055a220ed::t_61ea9956e7cd61 507-509,536-553
+src/changelog.js
+  s_9ca76055a220ed::t_08737d12f14fc8 27-29
+src/desert-city.js
+  s_9ca76055a220ed::t_03be77dce80bf2 116-172,265-269,798-857,859-930,938-955,958,965-985,989,1002-1010,1020-1028,1032-1037,1056-1061,1063-1065,1067-1074,1076-1135,1139-1148,1154,1156,1162,1170-1172,1176-1181,1184,1187,1195,1228
+tests/cave-seams.test.js
+  s_9ca76055a220ed::t_4dd36d06bfebdb 16,50
+tests/shell-seams.test.js
+  s_9ca76055a220ed::t_9eeb49906b1e53 17
+tests/skull-cave-reference.test.js
+  s_9ca76055a220ed::t_25a38ecf607a52 1-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ea27b25e684cd01b5878c6346d88cbab58d4d8d7",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
