@@ -17,6 +17,23 @@
       "sha256": "e431beca609bb582e1c92cba79e1a7754765c91ec681326ba2998c53b61077cb",
       "bytes": 189102,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the top hall of a makers' tower, a tall round drum of cream stone banded in steel blue with slit windows and a dark blue crown, four great vanes like bellows fans set in the floor between the columns. The warden, a nine-metre machine of pale steel-blue plates on three jointed legs with a golden lamp-eye, has backed onto one vane, its side vents shut, the hatch on its crown slammed shut. A cloaked adult human traveller of ordinary height with a round jade fluid backpack hovers over the vane beside it on twin jets of cyan glowing fluid, level with its crown, and the jets' wash spins the great vane, its draught rising and lifting the hatch on the machine's crown, a glow inside; the traveller aims a splash down into it, dwarfed by the machine. Friezes of three dots over an upward arc. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream stone, steel blue bands, dark blue, brass, cyan jet glow, golden lamp light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/guardian-prompts.md#warden/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-42-45-c83f",
+      "candidate": "openai/2",
+      "sha256": "c651da2ea88eec8823e0ceff1b0e62c3862396b88e668c023a68a3a3d63917d3",
+      "bytes": 267554,
+      "costUSD": 0.041
     }
   ]
 }

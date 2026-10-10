@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round chamber of cream stone banded in steel blue with no door but the one you came in by, a dais in the middle with the makers' chest standing open, a low round chest of cream stone carved with three dots over an upward arc, a cyan glow rising from it. High in the ceiling an open oculus onto a taller drum above. A cloaked adult human traveller of ordinary height with a round jade fluid backpack lifts off the floor on twin jets of cyan glowing fluid from the backpack for the first time, cloak flaring, rising toward the oculus, dwarfed by the chamber. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream stone, steel blue bands, dark blue, warm slit-window light, cyan jet glow, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#well-jets",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-32-27-e7a7",
+      "candidate": "openai/2",
+      "sha256": "86d2a5978ab790e71fcf14452329a2c621fcd1178e9cfd53656136cd50b1bee5",
+      "bytes": 240881,
+      "costUSD": 0.041
+    }
+  ]
+}

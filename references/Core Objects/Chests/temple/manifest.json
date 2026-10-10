@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object state reference sheet for a science fiction exploration game: a rare makers' temple chest, a rounded shell of white stone and pale jade glass segments like a closed bud with gold inlay of a four-point star, drawn four times side by side at the same scale on a plain cream background as it opens: closed and dim, a faint jade glow in its seams; waking, the seams bright, motes rising; the petals unfolding outward, a sphere of living jade-green fluid revealed glowing at its heart; fully open like a flower, the sphere floating free above it in a column of light. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, gold, jade green glow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, pirate treasure chest, padlock.",
+      "from": "docs/design/chest-prompts.md#temple/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-21-30-10-ff43",
+      "candidate": "openai/1",
+      "sha256": "232d7a026ccfef9deb82f07aff6f3145502b37cfa62758a7959596b20e38554d",
+      "bytes": 131898,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object concept art for a science fiction exploration game: a rare makers' temple chest standing on a low round altar in a quiet stone hall lit from above, larger and finer than the common chests, still hip high, a rounded shell of white stone and pale jade glass in segments like the petals of a closed bud, fine gold inlay tracing the makers' four-point star across the petals, and at its heart, seen through the gaps, a large sphere of living jade-green fluid glowing brightly, its light spilling between the petals onto the floor in rays; a slow ring of small floating jade motes circling it. A cloaked adult traveller of ordinary height with a round glass backpack of jade fluid kneels before it, the two jade glows answering each other. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, gold, jade green glow, cool blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, pirate treasure chest, padlock.",
+      "from": "docs/design/chest-prompts.md#temple",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-21-29-44-5ffb",
+      "candidate": "openai/1",
+      "sha256": "810d9650cf9437a3600e168f20359b45b1cf42e48ec32d75a2e07eabc681e88f",
+      "bytes": 231138,
+      "costUSD": 0.041
+    }
+  ]
+}

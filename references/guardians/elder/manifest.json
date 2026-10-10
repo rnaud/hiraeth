@@ -17,6 +17,23 @@
       "sha256": "f0151afe691d7bf2b762daa628da887d062da186fd55c7a52587da38331e3b95",
       "bytes": 187669,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the roost at the top of a great white temple of the makers, a round floor of bone-white stone banded in ochre, open to an aqua sky, ringed by a crown of tall stone feathers leaning outward. Two round vents in the floor, a stone ball in a groove between them pushed into one; out of the other a column of wind rises, drawn as pale spiralling streams of dust and loose feathers. In the column the Elder, a huge old bird of stone feathers with a long ochre beak, lifts off at last with her rose-tipped stone wings spread, the teal glyph lines on them lit, and beside her a cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the same wind on wide translucent wings of glowing fluid spread from the backpack, wingtip to wingtip with her, dwarfed by her. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky, peach light, teal glow, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/guardian-prompts.md#elder/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-40-11-87c1",
+      "candidate": "openai/1",
+      "sha256": "28b947373d88589641535482412541624989b393cb12781c893334ec89d5c388",
+      "bytes": 245518,
+      "costUSD": 0.041
     }
   ]
 }

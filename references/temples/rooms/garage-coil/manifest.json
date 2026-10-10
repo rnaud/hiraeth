@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round chamber of pale stone banded in brass, its walls lined with the makers' great coiled springs and stopped pendulums, a small clock over the door stopped at four. On a dais in the middle the makers' chest stands open, a low round chest of pale stone carved with three dots over an upward arc, a brass coil glowing inside it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a new brass coil glowing on the backpack, stands by the chest, dwarfed by the chamber; the way on is an open arch. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale stone, brass, teal accents, warm window light, deep umber shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers.",
+      "from": "docs/design/temple-interior-prompts.md#garage-coil",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-34-00-217c",
+      "candidate": "openai/1",
+      "sha256": "48a11dae727a9bcac1118e391412a2884aa9531a87a8e26cbb979b64ff30050c",
+      "bytes": 260006,
+      "costUSD": 0.041
+    }
+  ]
+}

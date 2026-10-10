@@ -17,6 +17,23 @@
       "sha256": "99c82428ce1becb57c12bbb999b14d80c59fce487c145fe4e190c580badd1c41",
       "bytes": 195915,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round hall under a low ribbed dome of violet stone, swamp crystals growing up through the floor, dusk light through an oculus. Rooted in the middle the Mother Snapper, a house-sized carnivorous plant, her long neck of green beads raised and her great rose-red jaws ringed with cream teeth open, a crown of violet crystal on her head. High over her three crystal pendulums of three sizes hang from the ribs, out of order: the smallest has just been stilled by a burst of pale icy blue frost and hangs motionless and lit, ringing true in faint rings of sound, the middle one swinging still dark, the biggest beyond. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the edge of her reach, a stream of pale icy blue fluid arcing up from the nozzle to the next pendulum, dwarfed by her. Carvings of three drops of rain over a shut mouth on the walls. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone, teal and violet crystal glow, icy pale blue, moss green, rose red, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/guardian-prompts.md#mother-snapper/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-41-12-1b83",
+      "candidate": "openai/1",
+      "sha256": "793b42402cdf1e033db16edd54ff9078846ac3e7bcd247687e4ac6ce7746574f",
+      "bytes": 270788,
+      "costUSD": 0.041
     }
   ]
 }

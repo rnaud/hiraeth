@@ -17,6 +17,23 @@
       "sha256": "4122dc12dd1a79778e8bb7246aba1cb2b7700a3e27147521c82f6fd5188b3ce0",
       "bytes": 164051,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the cistern hall at the heart of an ancient temple of the makers, a vast round drum of rose stone under a low dome, a single shaft of dusty light through its oculus. Four stone grooves run like spokes from the walls in to the dry basin in the middle, each passing a tall bronze brazier on the rim; one brazier burns with a cool ember-orange flame, and a tar ball rolled past it has caught, rolling down its spoke wreathed in small flames toward the basin. By the basin's edge the Keeper, a great pale beast with a shell of ivory bone plates, six long legs and a heron's neck, has stopped in its fear and lowered its long soft muzzle to the fire, mouth open, panting, the turquoise glyphs on its shell brightening. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the spoke's head, a stream of clear glowing water arcing from the nozzle into the beast's open mouth, dwarfed by the beast and the hall. Friezes of three dots over an upward arc round the drum, old dry channels under the walls. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose and ochre stone, ivory bone, ember orange, turquoise traces, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/guardian-prompts.md#keeper/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-39-35-bec3",
+      "candidate": "openai/2",
+      "sha256": "f7c86d70d0023580f0cdd935832c8eda952bad39f010da8390b5a17e9e9914fc",
+      "bytes": 256105,
+      "costUSD": 0.041
     }
   ]
 }

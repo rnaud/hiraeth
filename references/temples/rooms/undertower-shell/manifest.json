@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round chamber of blue-grey makers' stone deep under a market city, ancient cables running round the walls, a dais in the middle with the makers' chest standing open, a low round chest of blue-grey stone carved with three dots over an upward arc. Beside the dais a low singing stone hums, just splashed, its note drawn as glowing rings. A cloaked adult human traveller of ordinary height with a round jade fluid backpack holds up a pale spiral shell from the chest, and the stone's rings flow into the shell's mouth and are kept there, glowing softly inside it, dwarfed by the chamber. The way on is an open arch. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, brass, coral light, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#undertower-shell",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-39-03-3098",
+      "candidate": "openai/2",
+      "sha256": "02295a9f9a89b1141e28780d5065075d3d3adcfb606673435d4c3e270d774dd7",
+      "bytes": 261504,
+      "costUSD": 0.041
+    }
+  ]
+}

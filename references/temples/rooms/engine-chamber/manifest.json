@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round chamber inside a drum of rust-red iron, a dais in the middle with the makers' chest standing open, a low round chest of iron carved with three dots over an upward arc, a glow rising from it. On the north wall four carved round eyes in a row either side of the open way on. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a fourth chamber on the backpack newly lit beside the other three, fires four quick splashes of glowing fluid at the four eyes, which wake together, dwarfed by the chamber. Pipes and valve wheels, riveted plates banded in blue-grey, a cool shaft of daylight. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust red iron, blue-grey bands, ember orange glow, brass, cool teal daylight, deep umber shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#engine-chamber",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-36-05-511b",
+      "candidate": "openai/1",
+      "sha256": "414b67207dfb7e6d31bb518568dc1717c85bad41f2574bc0186db8cb9e5cb952",
+      "bytes": 234822,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a hall in the makers' foundations under a market city, blue-grey stone blocks older than anything above, a pit full of ancient cable across the floor. On the near side a great makers' receiving dish on a stand, a singing ball resting on its footstone, just splashed and humming, its note drawn as glowing rings going into the dish; on the far landing the dish's twin sends the same rings out over a brass horn, and out of the cable pit tall stone pillars rise into a bridge. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands by the near dish, dwarfed by the hall. Faint coloured light from the market's signs through gaps far above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, brass, coral light, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#undertower-dishes",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-38-02-9ae4",
+      "candidate": "openai/1",
+      "sha256": "db686b07083bf63b5c02074603dd5a6a0e5e1717e07c44ab89fe0786050535e7",
+      "bytes": 226679,
+      "costUSD": 0.041
+    }
+  ]
+}

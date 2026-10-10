@@ -17,6 +17,23 @@
       "sha256": "f87665841f68cd6dd7b696a5bffae0cd208edab245589336bcf677a81c970b91",
       "bytes": 194131,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the lamp-room at the top of a dark tower of the makers, almost black, a great dark lamp in a cage of glass panes in the middle and the night wood far below through them. Round the room three round pools in carved stone rims, two dark, one lit with a soft gold light rising from its water. Over the lit pool the Lampless, a great pale moth with four broad lavender wings and glowing gold glyph eye-spots, hangs low with its wings half folded, drinking the pool's light down its curled tongue, the light draining up into it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a little glowing lantern charm at their hip making a soft circle of light, stands well back from it across the room, still, watching, dwarfed by the moth. Friezes of three lamps over a hull. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep blue-violet darkness, warm lamp gold, lavender wings, moss green, coral glints, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/guardian-prompts.md#lampless/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-41-42-a645",
+      "candidate": "openai/2",
+      "sha256": "6a2e4ef40295ae4f524198e4475a3acfa3c81caadaf42295096317e24563f1de",
+      "bytes": 225155,
+      "costUSD": 0.041
     }
   ]
 }

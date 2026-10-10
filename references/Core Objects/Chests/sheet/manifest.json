@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object design reference sheet for a science fiction exploration game: an ancient makers' chest, hip high and a little wider than tall, a rounded pale cream ceramic shell like a smooth river stone with softly bevelled edges, a pale four-point star inlaid on its top, a thin brass band round its middle, and set into its front a round glass lens of living jade-green fluid swirling slowly and glowing softly from within, tiny bubbles rising. Drawn side by side at the same scale on a plain cream background: front view, side view, three-quarter view, and then its opening in three stages: the shell's upper half lifting and turning on hidden hinges, the jade lens brightening, a column of soft green light and motes rising from inside as the halves part like petals, and the empty open shell. A cloaked adult traveller of ordinary height with a round glass backpack of jade fluid stands at the side for scale, the chest reaching his hip. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, cream ceramic, brass, jade green glow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, pirate treasure chest, padlock.",
+      "from": "docs/design/chest-prompts.md#sheet",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-21-24-54-63e4",
+      "candidate": "openai/1",
+      "sha256": "ab01d647046adec2e75e587e941dbd6fd5e58ab505998b9fdbe9b1cd2a72e9fa",
+      "bytes": 153698,
+      "costUSD": 0.041
+    }
+  ]
+}

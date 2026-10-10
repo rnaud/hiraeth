@@ -17,6 +17,23 @@
       "sha256": "010b267facddf62242f24dea55f67e861d501fe8d49d266f599a76a6a760f855",
       "bytes": 151625,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the top hall of a round tower of bone-white stone, a high dome with an oculus onto a pale gold sky, great stones that fell up hanging under the dome. The Cloud-Mother, a great pale lavender-grey sky-whale with sail-like fins and a fringe of cloud along her back, dives nose-first out of the dome; below her one great stone has come down through the air to the floor, held there while a clear ringing note spreads through the hall, drawn as pale concentric rings of sound from a cloaked adult human traveller of ordinary height with a round jade fluid backpack, who stands well back with a little bell-shaped whistle of blue-glazed clay to their lips, dwarfed by her. She is about to land on the stone and lie there crying. Friezes of three dots over an upward arc, small bells carved in niches. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white stone, warm bronze, blue glaze, pale sky light, lavender grey, rose and lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/guardian-prompts.md#cloud-mother/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-40-40-343d",
+      "candidate": "openai/2",
+      "sha256": "e9638c8f5e4dab76f4b656f82fd75a58d1d599d30a8f4b97bfe090a0f96efbf3",
+      "bytes": 238301,
+      "costUSD": 0.041
     }
   ]
 }

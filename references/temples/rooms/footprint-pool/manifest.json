@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a hall inside a giant pale sphere, curved white walls and a dome, most of the floor a sunken pool of perfectly still pale water reflecting the dome. A white stone sphere floats in the pool, being pushed across the water toward a carved berth on the far side, and as it nears, round white stepping stones begin to rise out of the water behind it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack wades at the pool's edge, having pushed it, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white sphere stone, still pale water, pale blue, peach light, lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#footprint-pool",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-37-05-7310",
+      "candidate": "openai/2",
+      "sha256": "b7dd8326a8d10959329bb89f4acb3a979884122e396870944100f1dec258214b",
+      "bytes": 205956,
+      "costUSD": 0.041
+    }
+  ]
+}

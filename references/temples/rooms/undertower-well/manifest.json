@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a tall round well in the makers' foundations, blue-grey stone blocks, bundles of ancient cable climbing its walls. Two pale riding discs rise up it; on a ledge high up a brass horn on a stand, its ring the colour of the low note. On the floor a big low singing stone, just splashed and humming deep rings of sound up toward the horn, and beside it a smaller high stone, silent. A cloaked adult human traveller of ordinary height with a round jade fluid backpack rides the first disc upward, dwarfed by the well. Faint coloured light from the market's signs far above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, blue-grey stone, brass, coral light, teal glints, deep blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#undertower-well",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-38-34-ec4f",
+      "candidate": "openai/1",
+      "sha256": "ee124eaf784555b44ce1a725fa39429c82e5e00557658285e2f49cd0a4121b59",
+      "bytes": 270489,
+      "costUSD": 0.041
+    }
+  ]
+}
