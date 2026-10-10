@@ -196,7 +196,7 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
   the motion check for ink shimmer.
 
-# Level design (audit) (docs/audits/level-design-v1.5.md, 2026-10-09)
+# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15: 2026-10-09)
 
 Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
 
@@ -213,16 +213,24 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
 - [x] **Vael: the plain** (v1.9): Senn and the hush-cloth's box on the capped spire halfway to the tower, standing
   stones up to the Aerie. Vael 2.89 → 3.56. Left: both walks back are still the way you came (Oïa or the last
   stage off the landing–tower line, or the bird's first flight home past the colossus); Oïa from the Aerie's door.
-- [ ] **City-Shaft (next batch)**: a stop where the jets land on each drop, a "do" between Nima, Ossa and the palace
-  gate (Ossa's goods hoist), Perrine and Wren nearer the path (Perrine's stall holds a relic tests pin).
-- [ ] **The audit**: scale the loner rule with the travel speed; leading lines (a level's `lines`) as a wayfinding aid.
-- [ ] **City-Shaft: a stop on each 470-560 m drop**, a "go"/"do" between the three talks in a row, lamps down
-  each terrace's stair. Density 2→3, pacing +1.
+- [x] **City-Shaft** (v1.15, docs/audits/level-design-v1.15.md): the lamplighters' drops (a lamp-post and ring on every
+  terrace, a `down` stage between Nima and Ossa), Perrine's stall and relic on the middle landing, the lamplighters'
+  locker, a pad and the relay lamp on the climb, Tobin's view pad on the way back down, Wren's marker at its stop.
+  Longest gap 564 → 178 m, the City-Shaft 3.56 → 3.89. Left: Fausta's shop by the middle cab stop is now a remote
+  loner (a person waiting for a cab, or the drops passing it); the relay lamp alone on the climb; Nima/Lio/Tobin.
+- [x] **The audit** (v1.15): leading lines (`level.lines`, a stage's `via`, `auto: false`) guide legs and carry the walk
+  along them; the loner rule scales with the travel speed (18 s from anything).
+- [x] **A second way home in the desert and Vael** (v1.15): the pilgrims' road of lamp-lit cairns from Qanat's gate to
+  the ship, the tusk gate on the Hearth ride; the bird's tracks from the Aerie to Oïa past the mounting stone, the rider's
+  roost on the way home from the tower. The desert 3.33 → 3.56, Vael 3.78 → 4.33.
+- [ ] **Desert: the ride's Yara → wreck stretch** (418 m, 21 s: 1 s over the band) and the cave's walk back from the
+  giant's mouth to the well (188 m, the way you went). Density 4→5, loops 4→5.
+- [ ] **City-Shaft: the shop by the cab stop** (230 m from anything since Perrine moved onto the drops). Spacing 3→4.
 - [ ] **Sky Stones: Ondine onto the clapper's return arc** (490 m from anything), a lit marker at the clapper.
   Loops 2→4.
 - [ ] **Lorn II: lamp-lit stakes** to the light across the water and Hollin's cave; a place by the landing.
   Wayfinding 2→4.
-- [ ] **Pull the remote loners into 30-150 m of the path**: Oum, Ondine, Vael's box, Perrine, Wren, Gaspard, the
+- [ ] **Pull the remote loners into 30-150 m of the path**: Ondine, Gaspard, the
   pyramid seed, Emrys. Optional pull +1.
 - [ ] **One high place per flat world** (Lorn 8 m, Lorn II 17 m, Spheres 25 m of height): a climbable viewpoint
   with a box. Verticality +1-2.

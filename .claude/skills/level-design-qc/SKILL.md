@@ -146,7 +146,9 @@ node scripts/design-qc/capture.mjs <scratch>/shots --views <scratch>/level/views
 ```
 
 Per world: from high above, the landing looking toward the first goal, the longest empty stretch looking along
-it, and a blind leg looking toward its goal. Look at every one yourself: the numbers say where to look.
+it, and a blind leg looking toward its goal. Look at every one yourself: the numbers say where to look. A view of your
+own may carry `flags` (the save its world boots with: `desert.tree.lit` for the lit road); the script serves the game
+with its own Vite cache (in a worktree, node_modules is the main checkout's, and its `.vite` the author's server's).
 
 **Light-load rules** (the machine is shared): at most **one** headless Chrome (muted: `--mute-audio`, the game's
 volumes at 0) and **one** dev server (PORT, default **5344**) at a time; **never** port 5173 (the author's own

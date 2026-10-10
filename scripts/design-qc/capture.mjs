@@ -59,7 +59,8 @@ for (const f of svgs) {
 const worlds = [...new Set(views.map((v) => v.world))].filter((w) => !only || only.includes(w));
 if (worlds.length) {
   const { createServer } = await import(join(ROOT, 'node_modules/vite/dist/node/index.js'));
-  server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
+  // (its own dependency cache: in a worktree node_modules is the main checkout's, and its .vite is the author's server's)
+  server = await createServer({ root: ROOT, configFile: join(ROOT, 'vite.config.js'), cacheDir: join(profile, 'vite-cache'), logLevel: 'error', clearScreen: false, server: { port: PORT, strictPort: true, host: '127.0.0.1', hmr: false, watch: null } });
   await server.listen();
   await send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
 }
@@ -75,7 +76,7 @@ for (const [n, world] of worlds.entries()) {
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
   await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
     localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0 }));
-    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
+    localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...${JSON.stringify(Object.assign({}, ...views.filter((x) => x.world === world).map((x) => x.flags ?? {})))} }, keepsakes: [] })); true`);   // (a view's `flags`: the save its world boots with, shared by the world's views)
   await send('Page.navigate', { url: `${BASE}?level=${world}` });
   let up = false; for (let i = 0; i < 1200 && !up; i++) { up = (await ev('!!window.__moebiusBooted && !!window.player')) === true; if (!up) await sleep(100); }
   if (!up) { console.log(`${world}: never booted`); captured.push({ world, error: 'never booted' }); continue; }
