@@ -75,6 +75,44 @@ test('the fallen giant on the plain can be looked at, from in front of its face'
   assert.equal(game.flag('arzach.colossus.seen'), true);
 });
 
+test('the ways home (level design audit v1.15): the bird’s tracks from the Aerie down to Oïa, off the standing stones’ way up, and the rider’s roost on the bird’s line from the tower', async () => {
+  const { allInteractables } = await import('../src/interact.js');
+  const { ROOST_CALL } = await import('../src/story/arzach.js');
+  const T = A.tracks, door = level.temple.outside.door.at, oia = W.people.oia.pos;
+  const P = T.points.map(([x, y, z]) => V(x, y, z));
+  assert.ok(Math.hypot(P[0].x - door.x, P[0].z - door.z) < 30, 'the tracks start at the Aerie’s door');
+  assert.ok(Math.hypot(P.at(-1).x - oia.x, P.at(-1).z - oia.z) < 30, 'and end by Oïa’s stone');
+  // the standing stones lead up from the landing along z ≈ 0; the tracks come down the plateau’s north side
+  const off = (p) => Math.abs(p.x * door.z - p.z * door.x) / Math.hypot(door.x, door.z);
+  assert.ok(P.slice(2, -2).every((p) => off(p) > 40), `the middle of the tracks stands off the way up (${P.map((p) => off(p).toFixed(0)).join(', ')} m)`);
+  assert.equal(QUESTS[0].stages[0].via, 'the bird’s tracks', 'Oïa’s stage names them (the audit walks back along them)');
+  assert.deepEqual(level.lines.map((l) => l.name), ['the standing stones', 'the bird’s tracks']);
+  // the mounting stone on the tracks: something to look at, on solid ground
+  const m = allInteractables().find((x) => x.id === 'mounting');
+  assert.ok(m && m.at().distanceTo(T.mount.stand) < 0.01);
+  stand(T.mount.stand, 'beside the mounting stone');
+  assert.ok(P.some((p) => Math.hypot(p.x - T.mount.at.x, p.z - T.mount.at.z) < 15), 'beside the tracks');
+  let r = new DialogueRunner(THINGS.mounting, { game });
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  assert.equal(game.flag('arzach.mounting.seen'), true);
+  // the roost: a floating stone you can land on, close by the straight flight from the tower's window to the landing
+  const R = A.roost.top, sill = A.tower.sill, ship = level.spawn;
+  const d = V().subVectors(ship, sill), t = V().subVectors(R, sill).dot(d) / d.lengthSq(), near = sill.clone().addScaledVector(d, t);
+  assert.ok(t > 0.3 && t < 0.6 && near.distanceTo(R) < 20, `on the way home (${(t * 100).toFixed(0)} % of the way, ${near.distanceTo(R).toFixed(1)} m off the line)`);
+  stand(A.roost.stand, 'on the roost');
+  assert.ok(allInteractables().some((x) => x.id === 'roost'));
+  r = new DialogueRunner(THINGS.roost, { game });
+  assert.match(r.pages.join(' '), /lean-to/);
+  // (flying past it before the bird has answered the flute, nothing is said: tests at the end, once she has)
+  game.set('arzach.roost.seen', undefined);
+  const before = toasts.length;
+  at(R.clone().add(V(60, 10, 60))); step(3);
+  assert.ok(!toasts.slice(before).includes(ROOST_CALL.text), 'not before the bird answers');
+  // (the rest of the file plays Vael from a new game)
+  for (const f of ['arzach.mounting.seen']) game.set(f, undefined);
+  at(V(0, 0, 0)); step(1);
+});
+
 test('the people stand on the plain, and the tower’s balcony, steps and sill can be climbed', () => {
   for (const [id, n] of Object.entries(W.people)) stand(n.pos, id, 1.6);
   const T = A.tower;
@@ -289,3 +327,14 @@ test('looking at the stone hand starts its quest and says what to do', () => {
   assert.ok(strike && /shoot/i.test(strike.say.join(' ')) && /Kesh/.test(strike.say.join(' ')), 'shoot a knuckle; Kesh knows the order');
 });
 
+
+test('flying home on the bird once she has answered, the rider’s roost is named once as it comes up', async () => {
+  const { ROOST_CALL } = await import('../src/story/arzach.js');
+  assert.ok(game.flag('arzach.bird.called') || game.flag('bird.promise'), 'the main quest above brought her down');
+  game.set('arzach.roost.seen', undefined);
+  const R = A.roost.top, before = toasts.length;
+  at(R.clone().add(V(200, 10, 200))); step(2);
+  assert.ok(!toasts.slice(before).includes(ROOST_CALL.text), 'not from far off');
+  at(R.clone().add(V(60, 10, 62))); step(3); at(R.clone().add(V(50, 8, 50))); step(3);
+  assert.equal(toasts.slice(before).filter((x) => x === ROOST_CALL.text).length, 1, 'named once');
+});

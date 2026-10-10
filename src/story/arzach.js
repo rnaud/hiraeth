@@ -43,6 +43,8 @@ function ownMaterial(o) {
 
 // where the shed feathers lie: the caps of two spires (arzach.js spires, by their place), and the hand's palm
 const FEATHER_SPIRES = [[170, -282], [414, -543]];
+/** The rider's roost (src/vael-ways.js), named once as you fly near it (m: within range, not on it, about its height). */
+export const ROOST_CALL = { range: 120, near: 14, height: 70, text: 'Off to one side, on a floating stone: a little lean-to and a long white streamer. Somebody camped in the sky.' };
 
 /** The wind up the lone tower's side: its foot (on the sand, beside the balcony), radius, top and lift. */
 export function WIND(T, ground) {
@@ -185,6 +187,9 @@ export function setupArzach(ctx) {
     thing(THINGS.colossus, faceFoot, { range: 9, prompt: 'look at the fallen giant', look: C.face, height: 6 });
     quests.locate?.('colossus', () => faceFoot);
   }
+  // the ways home (src/vael-ways.js): the rider's mounting stone on the bird's tracks, and the roost on a stone in the sky
+  if (A.tracks?.mount) thing(THINGS.mounting, A.tracks.mount.stand, { range: 3.4, prompt: 'look at the mounting stone', look: A.tracks.mount.look });
+  if (A.roost) thing(THINGS.roost, A.roost.stand, { range: 3.4, prompt: 'look at the lean-to', look: A.roost.look });
 
   // ---------------------------------------------------------------- the rider's flute, on the sill
   // a little bone flute with a white feather tied to it by a worn cord, lying on the sill by the window
@@ -584,6 +589,11 @@ export function setupArzach(ctx) {
     }
     // the wind up the tower
     updateWind(dt, t);
+    // flying home from the tower, the roost comes up on the bird's line: named once, while there is time to land on it
+    if (A.roost && !told.has('roost') && !game.flag('arzach.roost.seen') && shown()) {
+      const R = A.roost.top, pp = player.pos;
+      if (flat(pp, R) < ROOST_CALL.range && flat(pp, R) > ROOST_CALL.near && Math.abs(pp.y - R.y) < ROOST_CALL.height) once('roost', ROOST_CALL.text);
+    }
   };
 
   return { people, update, hand, bow, call, feathers, knuckles, ringHand, cry, flute, takeFlute, wind, shown, film };

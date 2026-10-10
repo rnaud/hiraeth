@@ -47,7 +47,8 @@ export const QUESTS = [
     id: Q, title: 'The Waiting Bird', world: 'arzach', main: true,
     outro: 'She comes when you call. She chose to.',
     stages: [
-      { id: 'watcher', text: 'Someone sits on a stone on the plain, watching the lone tower. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia' },
+      // (from the Aerie, the bird's old tracks lead down to her: the way back that is not the standing stones' way up, src/vael-ways.js)
+      { id: 'watcher', text: 'Someone sits on a stone on the plain, watching the lone tower, where the bird’s old tracks end. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia', via: 'the bird’s tracks' },
       { id: 'tower', text: 'The wind rises up the lone tower’s side. Jump into it and open your wings (hold {key:jump} as you fall): it lifts you to the balcony', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
       { id: 'window', text: 'Climb the stone steps round the tower to its one window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
@@ -231,6 +232,28 @@ export const THINGS = {
         { if: { not: { any: [{ flag: 'bird.promise' }, { flag: 'arzach.bird.called' }] } }, text: "~whisper~ (It looks at the tower the way Oïa does: waiting, without hurry.)" }],
       do: { set: { 'arzach.colossus.seen': true } },
       choices: [{ text: '~solemn~ (sit a moment in its shade)', end: true }],
+    } } },
+  },
+  // the ways home (src/vael-ways.js): the rider's mounting stone on the bird's tracks, the rider's roost in the sky
+  mounting: {
+    id: 'mounting', name: 'A mounting stone', title: 'on the bird’s old tracks', color: '#efe4cf', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A block of pale stone with three steps up its side, and an iron ring on a post, worn bright on one side by a rope.",
+        "~neutral~ Over the top lies a white cloth, folded the way you would fold a saddle-cloth, the bird’s track drawn on it. {glyph}",
+        "~solemn~ The great prints in the sand come up to the stone and go on down the slope toward the landing, where Oïa sits. From up here you can see the lone tower."],
+      do: { set: { 'arzach.mounting.seen': true } },
+      choices: [{ text: '~solemn~ (climb the steps, and look at the tower)', end: true }],
+    } } },
+  },
+  roost: {
+    id: 'roost', name: 'The rider’s roost', title: 'on a stone in the sky', color: '#f2d6c4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~surprised~ Somebody lived up here. A lean-to of two white poles and a cloth, a bedroll, a cup turned upside down so the sand would not get in.",
+        "~neutral~ A ladder of rope hangs over the edge, far too short to reach anything. It was never for climbing up. A long white streamer cracks on its pole.",
+        { if: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] }, text: "~happy~ (The bird lands beside you without being asked, and settles where the rock is worn smooth. This was her place too.)" },
+        { if: { not: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] } }, text: "~sad~ The rock by the lean-to is worn smooth in a long hollow, the shape of something very large asleep." }],
+      do: { set: { 'arzach.roost.seen': true } },
+      choices: [{ text: '~solemn~ (sit by the cup a while)', end: true }],
     } } },
   },
   palm: {

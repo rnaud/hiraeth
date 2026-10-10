@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.15 — 2026-10-09
 
+- Flying home from the lone tower, you pass the rider’s roost: a stone floating halfway to the landing with a lean-to, a bedroll, a cup and a long white streamer, where the rider and the bird used to rest. Land on it and the bird settles where the rock is worn smooth.
+- In Vael, the great bird’s old tracks lead down from the Aerie’s door over the plateau’s north side to Oïa’s stone, a different way from the standing stones you came up by. Halfway, on the plateau’s lip, the rider’s mounting stone still has its iron ring and a saddle-cloth folded over it.
 - Qanat has a second way home. West of the main gate an old pilgrims’ road of stacked-stone cairns runs over the dunes, past Oum’s stone and the resting stone on the last dune’s crest, where pilgrims first saw the tree, down to your ship. Its lamps are cold until the tree burns; then the city lights them for you, one after another from the gate to the ship.
 - On the ride out to the Givers’ Hearth, where the red rocks begin, two great tusks stand either side of the way, leaning in until their tips cross high over it: the bike rides under. In their shade the Givers left a sealed jar on a low wall, and riders leave a little cairn.
 - The antler hound’s smoke mane moves again: its tongues of smoke stream and flicker off its back, flattening as it runs. They had stood still since the hound was drawn.

@@ -9,6 +9,7 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
+import { buildBirdTracks, buildRidersRoost } from '../vael-ways.js';
 
 // ---------------------------------------------------------------------------
 // Vael: a silent, bone-white world of needle spires,
@@ -343,6 +344,9 @@ export function* buildArzach(scene) {
   const drifts = sand.build(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
   sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
+  // the ways home (src/vael-ways.js, level design audit v1.15): the bird's old tracks from the Aerie down to Oïa's stone,
+  // past the rider's mounting stone; the rider's roost, a floating stone on the bird's line from the tower to the landing
+  const tracks = buildBirdTracks(scene, terrain), roost = buildRidersRoost(scene);
   // Brin's Wind-Shelf (src/shop-world.js, src/shop-fronts.js 'hoodoo'): carved into a hoodoo's foot on the long walk
   // from the landing to the lone tower (its emptiest stretch, docs/audits/level-design-v1.9.md), 11 m off the
   // straight line, its door turned to the walkers coming from the landing
@@ -359,12 +363,15 @@ export function* buildArzach(scene) {
     camYaw: 0,
     features: { mount: true, wind: true, jetpack: false, climb: true },
     // the story's places (src/story/arzach.js): the tower's balcony, steps and window, the hand's knuckles
-    arzach: { tower: towerInfo, hand: handInfo, colossus, spires, menhirs },
+    arzach: { tower: towerInfo, hand: handInfo, colossus, spires, menhirs, tracks, roost },
     // the lone tower is the weenie, but the audit's height grid ranks it out behind the floating ruins
     // (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks): its spire's tip
     beacons: [{ name: 'the lone tower', top: [towerInfo.x, towerInfo.base - 2 + towerInfo.H + 49, towerInfo.z], height: 60 }],
     // what the eye follows on the ground (the audit counts a line that leads to where a goal comes into view as guiding)
-    lines: [{ name: 'the standing stones', points: STANDING_STONES.map(([x, z]) => [x, z]) }],
+    // (the bird's tracks are the way back from the Aerie, not the way up: Oïa's stage names them)
+    lines: [{ name: 'the standing stones', points: STANDING_STONES.map(([x, z]) => [x, z]) }, { name: 'the bird’s tracks', points: tracks.points, auto: false }],
+    // things to stop for that are neither people nor quests (the audit counts them as places)
+    sights: [{ name: 'the rider’s mounting stone', at: tracks.mount.at }, { name: 'the rider’s roost', at: roost.top }],
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
     // (v0.95: the cast shadows on the open sand lifted halfway, as the sheets leave them pale or out)
@@ -388,7 +395,7 @@ export function* buildArzach(scene) {
     },
     killY: -Infinity,
     atmo: () => ({ tint: [1.02, 0.99, 0.94], fog: 0.75, name: 'Vael' }),
-    update(dt, t) { for (const m of movers) m(t); },
+    update(dt, t) { for (const m of movers) m(t); roost.wave(t); },
   });
 }
 export const createArzach = stepped(buildArzach);

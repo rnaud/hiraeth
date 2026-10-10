@@ -374,6 +374,18 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   shows nothing to the west; the stones lead up to the plateau's edge, where the Aerie shows.
 - **The tower as a beacon** (`level.beacons`): the audit's height grid kept the floating ruins and dropped the tower.
 
+## Vael's ways home (level design audit v1.15)
+
+Both walks back were the way you came (`src/vael-ways.js`, no rng):
+- **The bird's tracks**: her three-toed prints (`TRACKS`, every 3.4 m, toes pointing downhill) from the Aerie's door
+  over the plateau's north side down to Oïa's stone, 40–70 m off the standing stones' way up. Halfway, on the
+  plateau's lip, **the rider's mounting stone** (`MOUNT`: steps, an iron ring, a saddle-cloth with the bird's track;
+  `THINGS.mounting`). Out by the stones, back by the tracks. The tracks are a `line` with `auto: false`; Oïa's
+  `watcher` stage names them (`via`).
+- **The rider's roost** (`ROOST`): a floating stone 45 % of the way from the tower's window to the landing, on the line
+  the bird flies home: a lean-to, a bedroll, a cup, a short rope ladder, a long white streamer (`THINGS.roost`). Named
+  once as you fly near it once the bird has answered (`ROOST_CALL`, `src/story/arzach.js`).
+
 ## Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning
