@@ -3,6 +3,60 @@
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
 
+Playtests are not listed here: the author plays all the time.
+
+# The author's list (2026-10-10), before the full game audit
+
+## Worlds
+
+Never delete a temple or a character: a dismissed world moves whole to a dismissed-levels folder
+(`src/levels/dismissed/`), out of the route and the Debug menu's worlds, so its pieces can be reused elsewhere.
+
+- [ ] **Vael and Vael II become one world**, keeping the key areas of both.
+- [ ] **Lorn and Lorn II become one world**: the open area with the crystals leading into the forest of mushrooms.
+- [ ] **The Sealed Hangar leaves the route**, replaced by the Green Dunes (its temple moves there); **the Atelier is
+  dismissed**. Both go to the dismissed folder.
+- [ ] **Promote the Moon Foundry** to a world on the route.
+- [ ] **Promote the city in space and the city underwater**; redesign the underwater one so you are never outside swimming.
+- [ ] **The train level moves**: a moving train, not a station, and a sub-level reached by a quest from another world.
+- [ ] **References for a fire-and-ice world** (both at once), in the reference lab.
+- [ ] **A Star Fox-style space level**: the ship fights space pirates ("They are after your chimes!"); it plays as the
+  passage the first time you fly from the ship to a new destination.
+
+## Traversal and gadgets
+
+- [ ] **The jetpack becomes a debug-only item**: too powerful (with the abilities rewrite).
+- [ ] **The City-Shaft's air pillars**: columns of rising air to carry you back up with the wings; inside an air shaft
+  you only rise, no forward drift.
+
+## Look
+
+- [ ] **Redesign the chests** from new references: they are boring.
+- [ ] **Most world characters a little less colourful**, so the quest and main characters stand out.
+- [ ] **The title screen**: it hangs on load and ignores the buttons. Make it very light, then a quality pass against its
+  references.
+
+## Combat, more like Breath of the Wild
+
+- [ ] **A subtler, more elegant lock-on reticle.**
+- [ ] **Locked on: back + jump does a back flip**; timed right against an attack it slows time for a few free hits.
+- [ ] **Locked on: left or right + jump does a side hop.**
+- [ ] **A defeated foe vanishes in a little puff of smoke** a second or so after its defeat animation.
+
+## Camera and animation
+
+- [ ] **A camera skill** (`.claude/skills/`) that checks the camera behaves: e.g. on the train, walking makes it jump about.
+- [ ] **Finish motion matching**, with a quality-control pass.
+
+## Tools and releases
+
+- [ ] **A Midjourney CLI that uses the author's session cookies** (kept in `.env`, never printed or committed), for the
+  reference lab.
+- [ ] **Failed releases visible on the commit**: the v1.35 Android release failed (HTTP 403 creating the release, run
+  38046378533; no v1.35 release exists, v1.36 and v1.37 went out) and the Unity testers' release failed in its cache
+  prune step (run 38042662102). Retry the release creation, fix the prune, and mark the tested commit red when a release
+  fails.
+
 # Selected characters, currency, ship and sword (2026-10-09)
 
 User-approved Midjourney originals and provenance are indexed in
@@ -41,21 +95,10 @@ sheets; scored in docs/audits/combat-v1.18.md). All 21 are built: no stand-in is
 the new roster. v1.26: the contact sheet rebuilt from the picked sheets, the biggest gaps against them closed, the
 Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets").
 
-- [ ] Play batch 3 with a pad (combat-v1.13 recs. 1 and 4): the heron's 0.9 s spear from 4 m up and 5 m away (1.0 s if
-  it reads late); wading through the toad's spores on Lorn's slopes.
 - [ ] Batch 3 against its sheets (docs/design/enemy-roster.md "Status"; the jug's ochre marks done in v1.26): the
   skitters' curved bony legs (the kit's leg segments are straight cylinders: a bowed shin needs the segment's own bend
   plane); the heron flying off when you run at it (it strides away now); the toad's swollen sac see-through, the glob
   inside it (no see-through surface yet).
-- [ ] Play the ring centipede's ring with a pad in the Buried Machine (combat-v1.9 rec. 1): is the gap readable before
-  it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
-- [ ] Play the bell walker with a pad (combat-v1.16 rec. 1): is the drop's 2.5 s opening long enough to strike the
-  clapper without the whistle, and is a guarded drop found? If the fight drags, open it longer or let a stilling glob
-  tip it over.
-- [ ] Play the crucible cart's pour at close range and its dripped trail in the Hangar's corridors with a pad (combat-v1.16
-  rec. 2; tuned by numbers in v1.22: the slag burns every 1.1 s, was 0.7; the pour's slag stays 4 s, was 6; the trail 3.5
-  s, was 4.5; 7.1 → 4.4–5.2 bars a minute on a still traveller, combat-v1.22). Still the roster's hardest on a still
-  traveller with the hound (4.6): shorten the trail further if it reads unfair.
 - [ ] Measure the machines' CPU on the Retroid and the Deck (combat-v1.16 rec. 3: +0.25 ms a machine in headless Chrome,
   a pack of six 2.5 → 4.0 ms): the cart's ground rays every other frame and its wheels' instance upload first (a far cart
   could skip both).
@@ -63,33 +106,16 @@ Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets
   sprockets and wound its smoke, plated the brute's fingers and met its fists over its head, banded the bell's yoke):
   the brute's crack net lighter; the bell's spirit seen from above, its legs' plating; the drone's cloud spreading in
   wisps at its sides.
-- [ ] Play the shade's feint with a pad (combat-v1.18 rec. 1): is the thrust's parry found after the false cut, or does
-  every early guard simply block it? If the feint never pays, a guard held through the false cut is broken by the thrust
-  (staggered, not hurt).
-- [ ] The pearl roller in a world with walls (combat-v1.18 rec. 2): the Hangar's corridors, the Garden's terraces; does
-  the bounce aim fairly at you, does a wall stall read as an opening?
-- [ ] The marionette's strings as targets (combat-v1.18 rec. 3): cut them with the air cut from the ground and with the
-  boomerang; if the air cut can't reach, lower the cut point or widen it.
 - [ ] The combat-review script (combat-v1.18 rec. 4): drive the marionette with a host and time freeing it (strings cut)
   as well as killing it; the roller's shot and ember times assume it unrolled (rolling, they glance).
 - [ ] Batch 5 against its sheets (docs/design/enemy-roster.md "Status"; v1.26 hung the shade's cloak as a drape in
   folds and poured the marionette's knot down in a funnel): the shade's smoke in flame-like curls (tried as curling
   tubes in v1.26: they read as a white-lined fence, kept the wisps); the roller's spiral on one side only and sheet-2's
   rocking runners in its wind-up, a glistening trail where it grazes; the marionette's glass see-through.
-- [ ] Play batch 6's balance with a pad (combat-v1.22 recs. 1–3): the full charged cut at 0.85 s (was 0.6): does it still
-  feel worth holding? The light combo's third swing at 3 (was 2) and the air cut double on a flyer: do they now get
-  used? Three strikers at once, three quarters of the wait between strikes and the heavier blows (a heavy blow a heart;
-  the Market's ordinary blows ¾) in the Buried Machine, the Garden and the Market (`TURNS.late`, `HARM_BY_STAGE`): fair
-  with a pad, or a pile-on? If a pile-on, keep the heavier blows and drop the quicker waits first.
 - [ ] The still traveller's measure under-reads a big pack (combat-v1.22): two or three strikers at a time, and off the
   screen one waits while another strikes, so a pack of five presses about as hard as two. Drive the review's still
   player with the lock-on camera turning to each striker, or time a scripted player clearing the pack, before tuning the
   late worlds further by numbers.
-- [ ] Hear the foes' voices (v1.22, src/foe-voices.js) on the speakers and the Retroid: each archetype's hurt and burst
-  were checked only in memory (distinct by loudness over time and brightness, under the old sets' level); tune by ear.
-- [ ] Play the horn lizards' pair with a pad (combat-v1.8 rec. 1): the flanker's circle and its hiss read before the
-  bite? The blare's shove toward the partner fair? The antler hound's threat on a still player is the highest (4.6
-  bars a minute, rec. 2): lengthen its `cool` if the playtest agrees.
 
 # Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
 
@@ -97,16 +123,6 @@ Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets
   charged cut now each lead somewhere): a dash cut through a foe's back could land double, or its cooldown shorten.
 - [ ] The combat-review script: drive guard, parry and evade timing against each attack; batch and group the report
   when the larger roster lands (each kind is framed side-on for the contact sheet since v1.26).
-
-# Combat review (docs/audits/combat-v1.6.md, 2026-10-09)
-
-- [ ] Play the eleven guardians' new fights in their temples with a pad and tune by hand: the combo starters' 1.0 s,
-  the miss-openings' lengths, the shock rings' 9 m/s against the jump.
-
-# Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
-
-- [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the
-  review page (the script confirms the cargo check but can't judge the walk-through parts).
 
 # Playtest notes (2026-10-08)
 
@@ -153,7 +169,6 @@ docs/systems/procedural-animation.md, "The audit"). Build a small locomotion kit
 new ~20 body plans and the guardians onto it. Review every step with the `procedural-animation` skill
 (`node scripts/motion-audit/run.mjs`, the rubric). Sessions are rough estimates.
 
-
 # Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20, v1.23: 2026-10-10)
 
 Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
@@ -178,33 +193,10 @@ with an older verb); since v1.24 every one has its own idea (average 1.84 → 3.
 themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24 and done in v1.27 but
 three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
-- [ ] **Play the v1.27 changes with a pad**: the Belfry's great stone (12 s, falling up with you), the Warden's Well's
-  little vane from the loft to the crown (15 s), the Footprint's carved prints read from the hall's door, the seven
-  passages.
-- [ ] **Play the Givers' House's and the Footprint's new rooms and last phases with a pad** (v1.24): the tar balls'
-  14 s and their pushes, the Hall of Channels' 4.6 s burn and the relay, the stilling stone and the floating sphere, the
-  stones' 0.35 s crumble, the Keeper's 3.4 s pant by a fire, the Echo's print read across its hall.
-- [ ] **Play the Greenhouse's and the Aerie's new rooms and last phases with a pad** (v1.16): the escort up the Hall of
-  Winds (a push or two a calm), the tailwind's leap (as a gust comes), the perch's landing (fold the wings over it),
-  the Gardener's footstones in its 6.2 s kneel, the Elder's stone rolled in her 6.6 s hang.
-- [ ] **Play the Warden's Well's and the Engine-House's new rooms and last phases with a pad** (v1.19): the Turning
-  Floors' one splash (15 s), the hover-and-aim over a great vane, the shelf's ball pushed from the air, the crown's two
-  vanes (12 s), the warden's 7 s hatch; the hammer's stroke, the Furnace's piston tops (1.2 s each, 2 s apart), the
-  Tooth-Warden's gear rolled in its last phase.
-- [ ] **Play the five reworked guardians' last phases with a pad** (v1.15, docs/systems/foes.md "The guardians' last
-  phases"): is ringing as the Cloud-Mother rises to dive (78 % of her wind-up at most) readable, is the Lampless's
-  "stand back" (5 m) fair under its scales, are the Mother Snapper's crystals easy enough to tell apart by size from
-  the floor, can the First Sign's low dishes be reached in its 4.4 s opening (or is waiting by one the read), do six
-  numerals from four fit the Foreman's 5.6 s opening with the coil. (Since v1.24 all eleven guardians' last phases ask
-  for their temple's idea.)
-
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.
 
-- [ ] Playtest the fellow traveller (Tansy, v1.28: DONE.md, docs/systems/story.md) with two or three new players:
-  do they notice her by the ship, and does the last meeting land? If her stops feel too far apart, a fifth stop
-  (Viridel or the Garden of Spheres) would bring the payoff before the first homecoming for more players.
 - [ ] A second makers' run in a world, from what is left of its temple's kit (docs/systems/challenges.md, "Next"):
   Viridel's greenhouse glass (a vine up an unclimbable pane: `noClimb` colliders in the stand-in), the Hangar's
   eye banks on pistons in turn, the Lamp-House's pool-orb rolled to a lamp.
