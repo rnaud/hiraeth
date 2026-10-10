@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_19b8c8a91ab849 7
+src/levels/incal.js
+  s_9ca76055a220ed::t_2c73247fc4287b 1166-1168,1170
+src/shaft-ways.js
+  s_9ca76055a220ed::t_bea80b05d15455 40-42,151-163,174-175,177
+src/story/incal-data.js
+  s_9ca76055a220ed::t_b421492719405e 82,572
+src/story/incal.js
+  s_9ca76055a220ed::t_d21bf171d6670d 269
+src/changelog.js
+  s_126dba1e825fe2::t_620024a8cf1ccb 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "33e73dd1b659c6ac71e68895c38560e704f08bf8",
+  "prompts": {},
+  "sessions": {
+    "s_126dba1e825fe2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e25fce308c93d52",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
