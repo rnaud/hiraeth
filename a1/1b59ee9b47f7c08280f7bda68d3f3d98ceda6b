@@ -1,0 +1,33 @@
+changelog.md
+  s_3bb798c8af39ad::t_712194fb40bb30 17
+docs/systems/notes.md
+  s_3bb798c8af39ad::t_55c05a8379268b 5-7,13-14,48-49
+notes.html
+  s_3bb798c8af39ad::t_291849a7a151d9 28-29
+src/changelog.js
+  s_3bb798c8af39ad::t_887b39580c9e10 12
+src/notes-page/main.js
+  s_3bb798c8af39ad::t_a414a58a432934 4-17,23,26,28-29,33,76-101,105-107,110,136,138-147,149,155
+src/notes-page/style.css
+  s_3bb798c8af39ad::t_7b3ddbfa344024 5,29-30,53-60
+tests/notes-worker.test.js
+  s_3bb798c8af39ad::t_b1ec12995a445f 135,176-188
+worker/issues.js
+  s_3bb798c8af39ad::t_4df32979d2bb64 72,150-155,159
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a11b59ee9b47f7c08280f7bda68d3f3d98ceda6b",
+  "prompts": {},
+  "sessions": {
+    "s_3bb798c8af39ad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1269b-2218-7421-bc61-95f69c291ec6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
