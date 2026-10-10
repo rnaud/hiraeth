@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_1527d55b7bb6cd 7-8
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_cf6d7f86c10750 413,419-420,435-436,684-730,742-745
+scripts/motion-audit/cost.mjs
+  s_9ca76055a220ed::t_ef39f4b84f2bd4 1-3,5-9,12,14-15,17-24,27,29,36-37,47-54,57-59,62-63,65-76
+scripts/motion-audit/lod-page.mjs
+  s_9ca76055a220ed::t_6bf218479539e7 1-118
+scripts/motion-audit/shimmer.mjs
+  s_9ca76055a220ed::t_89de58d3812ad6 1-122
+src/changelog.js
+  s_9ca76055a220ed::t_ef8fcadc07552f 16-18
+src/main.js
+  s_9ca76055a220ed::t_589214f49c7caa 94,1824
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_1ddeb7d2e3016c 12,66,160,180
+src/motion-kit/rig.js
+  s_9ca76055a220ed::t_5b452f86ca4e24 7,19-20,23-29,31-34,39-42,45-47,49,152-153,187,203,212-216,219-220,222-223,227,240-245
+src/motion-kit/view.js
+  s_9ca76055a220ed::t_c1c4169db22ec3 1-27
+tests/motion-lod.test.js
+  s_9ca76055a220ed::t_e76bddc004bbf7 1-122
+src/changelog-media.js
+  s_9ca76055a220ed::t_02a3359151da03 485,497
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80171bbef404efaba305bc24f0e256ec2e1971eb",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
