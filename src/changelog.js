@@ -22,6 +22,7 @@ export const CHANGELOG = [
     'In the Sealed Hangar, Gaspard, who walked round the ring, now rests his feet on the plateau in sight of the signal board and the portal, not alone far out at its edge.',
     'In the Signal Market’s listeners’ lane, Wynn, the last of the old listeners, sits on a crate under the dishes halfway up, still listening to the silent tower after thirty years. He has something to say once it speaks.',
     'In the City-Shaft, Tobin now sends you back to Lio with his coin round the outer rim, past three more of his coin telescopes, each with its little yellow price board. A look through them is on the house.',
+    'In the desert, while the great tree is still cold, the cool air of the cave under the fallen giant breathes out through its skull: a thin pale column rising over Qanat’s back gate, which you can see from the camps over the city walls.',
   ] },
   { v: '1.22', date: '2026-10-10', items: [
     // the enemy roster's last step: balance and sound (docs/audits/combat-v1.22.md)

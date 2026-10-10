@@ -786,6 +786,11 @@ export function buildDesertCity(scene, terrain) {
     const door = giant.world(0, 0, 15.6);
     door.y = terrain.heightAt(door.x, door.z) + 0.05;
     out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(0, 12.1, 6.3), hand: giant.world(wr.x, wr.y, wr.z) };
+    // the giant's breath (level design audit, fifth round: from Ama's fire the skull's mouth was blind, the skull 17 m
+    // high behind the city's walls): the cool air of the cave under it breathing out through the skull's brow into the
+    // morning heat, a thin pale column over the back gate, seen from the camps over the walls. While the tree stands
+    // cold (with the camps' smoke: out.update); once it burns, the giant has been found.
+    out.giantBreath = new SmokeColumn(root, out.giant.brow.clone().add(V(0, 1.5, 0)), { count: 80, height: 85, drift: 45, base: 1.9, top: 6, period: 80, palette: ['#f4f0e8', '#ebe8e2', '#dfe4e5'], tint: '#f4f0e8' });
   }
 
   // ================================================================ the cave
@@ -993,7 +998,7 @@ export function buildDesertCity(scene, terrain) {
   // what moves is only animated when it's in view, and less often far away
   const frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
   const seen = (p, r) => frustum.intersectsSphere(_sph.set(p, r));
-  let frameNo = 0, treeDt = 0, smokeDt = 0, campDt = 0;
+  let frameNo = 0, treeDt = 0, smokeDt = 0, campDt = 0, breathDt = 0;
   const smokeMid = V(0, 0, 0);
   out.update = (dt, t, { camera, player }) => {
     _cam.copy(camera.position);
@@ -1021,6 +1026,13 @@ export function buildDesertCity(scene, terrain) {
     cs.mesh.visible = csOn;
     campDt += dt;
     if (csOn && frameNo % 2 === 0 && seen(smokeMid.copy(cs.at).setY(cs.at.y + cs.height * 0.5), cs.height * 0.7)) { cs.update(campDt, t, player?.wind, camera); campDt = 0; }
+    // and the giant's breath over the back gate, while the tree is cold
+    const gb = out.giantBreath;
+    if (gb) {
+      gb.mesh.visible = csOn;
+      breathDt += dt;
+      if (csOn && frameNo % 2 === 1 && seen(smokeMid.copy(gb.at).setY(gb.at.y + gb.height * 0.5), gb.height * 0.7)) { gb.update(breathDt, t, player?.wind, camera); breathDt = 0; }
+    }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
     cv.group.visible = inCave; if (cv.stairGroup) cv.stairGroup.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;

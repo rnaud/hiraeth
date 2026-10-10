@@ -133,9 +133,11 @@ export function* buildDesert(scene) {
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
     beacons: () => {
-      const cs = qanat.campSmoke.at, cr = qanat.city.crown, ch = hearth.chimneyTop;
+      const cs = qanat.campSmoke.at, cr = qanat.city.crown, ch = hearth.chimneyTop, gb = qanat.giantBreath?.at;
       return [qanat.city.lit < 0.5 ? { name: 'the camps’ smoke', top: [cs.x, cs.y + 70, cs.z], height: 70 } : { name: 'the tree’s smoke', top: [cr.x, cr.y + 120, cr.z], height: 120 },
-        { name: 'the Givers’ Hearth’s chimney', top: [ch.x, ch.y, ch.z], height: 40 }];
+        { name: 'the Givers’ Hearth’s chimney', top: [ch.x, ch.y, ch.z], height: 40 },
+        // (fifth round: the giant's breath over the back gate while the tree is cold, its lower half, before it bends away)
+        ...(gb && qanat.city.lit < 0.5 ? [{ name: 'the giant’s breath', top: [gb.x, gb.y + 40, gb.z], height: 30 }] : [])];
     },
     // what the eye follows on the sand (the audit walks a leg one carries along it, and counts it as guiding): the
     // fire-bearers' marked stones from Qanat to the Hearth, the Givers' dry channel from the city to their house
