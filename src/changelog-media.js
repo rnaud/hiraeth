@@ -572,6 +572,18 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'desert', hour: 10, people: [{ id: 'traveller', yaw: Math.PI * 0.85, dist: 2.1, height: 1.3 }], setup: EMPTY_SETUP },
         reference: { sheet: 'references/Core Objects/Round Backpack/states/sheet-2.jpg', caption: 'The stages it grows through (the states sheet’s second pick): plain, then a second ring and fins, then folding vanes and an extra valve' } },
     ] },
+    { match: 'The round backpack lies flat on your back now', shots: [
+      { name: 'backpack-dome', caption: 'His back, side and three-quarter with the strengths found: before, the round sphere standing well out from his back with its lava-lamp swirl; after, the glass dome lying flat on its brass porthole ring, half as deep, a jade nebula inside it', commit: '126dbb01', before: 'dabae377',
+        view: { level: 'desert', hour: 10, wait: 2500, people: [{ id: 'traveller', yaw: Math.PI, dist: 1.6, height: 1.25 }, { id: 'traveller', yaw: Math.PI / 2, dist: 1.6, height: 1.25 }, { id: 'traveller', yaw: 2.36, dist: 1.6, height: 1.25 }], setup: KIT_SETUP },
+        reference: { sheet: 'references/Core Objects/Round Backpack/worn/sheet-1.jpg', caption: 'The worn sheet: from the back, the side and three-quarter, the glass a half sphere on a flat brass ring, lying close to his back, a little galaxy glowing in it' } },
+      { name: 'backpack-nebula', caption: 'Close on the glass: before, the sphere’s flat streams of colour inked like a lava lamp; after, the nebula: spiral clouds in depth round a bright heart, pale stars, no ink lines inside', commit: '126dbb01', before: 'dabae377',
+        view: { level: 'desert', hour: 10, wait: 2500, people: [{ id: 'traveller', yaw: Math.PI, dist: 0.75, height: 1.2, lift: 0.05 }, { id: 'traveller', yaw: 2.5, dist: 0.75, height: 1.2, lift: 0.05 }], setup: KIT_SETUP },
+        reference: { sheet: 'references/Core Objects/Round Backpack/states/sheet-1.jpg', caption: 'The states sheet: the jade inside swirls round a heart as it fills, brightest at the last stage' } },
+      { name: 'backpack-play', caption: 'At play distance, the game’s own camera behind him in the desert', commit: '126dbb01', before: 'dabae377',
+        view: { level: 'desert', hour: 10, wait: 3000, setup: KIT_SETUP } },
+      { name: 'backpack-handheld', caption: 'The same on the Handheld preset (the Retroid’s, rendered at 0.75): the spiral and the heart still read, the stars fade rather than flicker', commit: '126dbb01', before: 'dabae377',
+        view: { level: 'desert', hour: 10, wait: 3000, quality: 'handheld', scale: 0.75, setup: KIT_SETUP } },
+    ] },
     { match: 'Saves keep what they earned', see: 'Load a save from before v1.38 that had come back from the giant’s pool: the double jump is there and the chest by the pool stands open; one past the Givers’ Hearth has the gun in hand.' },
     { match: 'The fallen giant’s skull beyond Qanat’s back gate is rebuilt', shots: [
       { name: 'skull-approach', caption: 'The skull from the path to its mouth: before, a small round skull with goggle-like rings and a mouth at its foot; after, a temple-sized skull tipped forward, its sockets ringed in turquoise and ochre, ribbons hanging under them, great teeth over the mouth, steps up to it and cairns along the way', from: FROM_SKULL38,
