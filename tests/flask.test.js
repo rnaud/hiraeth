@@ -8,18 +8,28 @@ import { TRAVELLER_V1_TANK_AT } from '../src/characters/traveller-v1.js';
 import { BACKPACK_STAGES, backpackStage } from '../src/items.js';
 
 // The round backpack (v1.38, references/Core Objects/Round Backpack/: the sheet's first pick, the states sheets):
-// a glass sphere of jade fluid in a brass cradle, its equator band with three charge lights, a capped neck with a
+// a glass dome (half a sphere, lying flat on the back) of jade nebula on a brass porthole ring, its equator band with three charge lights, a capped neck with a
 // cloth tied round it, an olive canvas back plate and leather straps; its three stages, one per strength found.
 
 const glassMat = () => makeMaterial({ color: '#ffffff', fluid: 'tank', fluidBox: [0, TANK.full, TANK.radius, 0], fluidBase: TANK.base });
 const visibleBox = (root) => { const b = new THREE.Box3(); root.updateMatrixWorld(true); root.traverse((o) => { for (let w = o; w; w = w.parent) if (!w.visible) return; if (o.isMesh) b.expandByObject(o); }); return b; };
 
-test('a glass sphere about 30 cm across: round every way, its fluid standing at the magic bar\'s level', () => {
+test('a glass dome about 30 cm across, half a sphere lying flat on the back: its fluid standing at the magic bar\'s level', () => {
   const R = Math.max(...TANK.profile.map(([r]) => r));
   assert.ok(Math.abs(R - TANK.radius) < 1e-9);
-  const w = 2 * R * TANK.squash * TANK.scale, h = (TANK.height - 0.01) * TANK.scale, d = 2 * R * TANK.depth * TANK.scale;
+  const w = 2 * R * TANK.squash * TANK.scale, h = (TANK.height - 0.01) * TANK.scale, d = R * TANK.depth * TANK.scale;
   assert.ok(w > 0.27 && w < 0.33, `about 30 cm across (${w.toFixed(2)} m)`);
-  assert.ok(Math.abs(w - d) < 1e-9 && Math.abs(w - h) < 0.01, 'a sphere, not a flask');
+  assert.ok(Math.abs(w - h) < 0.01, 'round across the back');
+  assert.ok(d > w * 0.35 && d < w * 0.5, `a dome out of its ring, not a sphere (${d.toFixed(3)} m deep)`);
+  // the whole pack, from the plate's back to the dome's top: about half v1.37's sphere (0.36 m)
+  const { group, glass } = buildFlask(glassMat(), { stage: 0 });
+  const plate = visibleBox(group), g = new THREE.Box3().setFromObject(glass);
+  const pack = (TANK.dome.plate + TANK.dome.plateD + 0.01 - g.min.z) * TANK.scale;
+  assert.ok(pack < 0.22, `slim: ${pack.toFixed(3)} m off his back`);
+  assert.ok(Math.abs(g.max.z - TANK.dome.z) < 1e-6 && plate.max.z > TANK.dome.plate, 'its flat face on the ring, the plate behind it');
+  // the shader marches the dome its uniform describes
+  assert.deepEqual(glass.material.uniforms.uFluidDome.value.toArray(), [0, TANK.center, TANK.dome.z, R]);
+  assert.equal(glass.material.uniforms.uFluidDomeK.value, TANK.depth);
   // round: the radius at its middle is its widest, small at its foot and its top
   assert.ok(tankRadiusAt(TANK.center) > R * 0.99 && tankRadiusAt(0.02) < R * 0.5 && tankRadiusAt(TANK.height - 0.01) < R * 0.5);
   assert.ok(TANK.full < TANK.height && TANK.full > TANK.height * 0.9, 'the fluid fills it with the bar full');
@@ -27,7 +37,7 @@ test('a glass sphere about 30 cm across: round every way, its fluid standing at 
   assert.ok(TANK.glow[1] > TANK.glow[0], 'it glows brighter the fuller the bar');
 });
 
-test('its cradle, neck, cloth, back plate and straps; three charge lights on its band; the item picture is the same sphere', () => {
+test('its cradle, neck, cloth, back plate and straps; three charge lights on its band; the item picture is the same dome', () => {
   const { group, glass, lights } = buildFlask(glassMat(), { stage: 0 });
   assert.ok(glass.material.uniforms.uFluidBase, 'the fluid\'s own colour');
   assert.equal('#' + glass.material.uniforms.uFluidBase.value.getHexString(), TANK.base);
@@ -37,7 +47,7 @@ test('its cradle, neck, cloth, back plate and straps; three charge lights on its
   assert.ok(box.max.y > TANK.neck.y + TANK.neck.h, 'the neck and its cap over the glass');
   assert.ok(box.max.z > glassBox.max.z + 0.15, 'the straps forward over the shoulders');
   const bare = buildFlask(glassMat(), { worn: false, stage: 0 }).group;
-  assert.ok(visibleBox(bare).max.z < glassBox.max.z + 0.03, 'no plate or straps on the item');
+  assert.ok(visibleBox(bare).max.z < TANK.dome.plate + TANK.dome.plateD, 'no plate or straps on the item');
   assert.ok(group.children.length > bare.children.length);
   // the menu's picture (src/boxes/model.js): the same glass
   const item = buildItemModel('backpack');

@@ -129,6 +129,7 @@ function tankModel() {
   const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false, stage: 0 });
   glass.userData.fluid = true;
   g.position.y = -0.22;
+  g.rotation.y = Math.PI + 0.3;   // (its dome to the eye (item-icons.js ICON_VIEW), a little turned: the round backpack's glass is half a sphere, open behind)
   const w = new THREE.Group(); w.add(g); w.scale.setScalar(0.7);
   return w;
 }

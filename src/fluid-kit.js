@@ -172,7 +172,7 @@ export class FluidJets {
     const bake = (geo, mat, m) => { if (!parts.has(mat)) parts.set(mat, []); parts.get(mat).push(geo.applyMatrix4(m)); };
     for (const s of [-1, 1]) {
       const n = new THREE.Group();
-      n.position.set(s * 0.1, -0.085, 0.03);
+      n.position.set(s * 0.1, -0.085, -0.06);   // (under the round backpack's dome, v1.38: clear of the plate)
       n.rotation.z = s * 0.16;                       // splayed a little outward
       n.updateMatrix();
       const at = (y) => new THREE.Matrix4().makeTranslation(0, y, 0).premultiply(n.matrix);

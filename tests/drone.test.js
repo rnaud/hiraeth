@@ -264,7 +264,7 @@ test('gliding: the scout hops off the rail onto the cap, out of the fluid wings,
   for (let k = 0; k <= 1.0001; k += 0.1) for (const p of placed(k)) {
     if (p.y >= 0 && p.y <= TANK.height) { const r = tankRadiusAt(p.y); assert.ok((p.x / (r * TANK.squash)) ** 2 + (p.z / (r * TANK.depth)) ** 2 > 1.02, `in the glass at k ${k.toFixed(1)}`); }
     // (the neck, its cap and the lift valve's wheel on it: v1.38's round backpack)
-    assert.ok(!(p.y < TANK.neck.y + TANK.neck.h + 0.065 && p.y > TANK.neck.y - 0.01 && Math.hypot(p.x / TANK.squash, p.z) < TANK.neck.r * 1.25), `in the cap at k ${k.toFixed(1)}`);
+    assert.ok(!(p.y < TANK.neck.y + TANK.neck.h + 0.065 && p.y > TANK.neck.y - 0.01 && Math.hypot(p.x / TANK.squash, p.z - TANK.neck.z) < TANK.neck.r * 1.25), `in the cap at k ${k.toFixed(1)}`);
   }
   // and on the cap, still clear of the arms and the head in every clip
   const w = wearer(true), dock = w.gear.scoutDock;

@@ -1781,32 +1781,92 @@ const fragmentShader = /* glsl */ `
 
   #ifdef FLUID
   // The traveller's magical fluid (fluid-tool.js; makeMaterial({ fluid })): a
-  // lava lamp in flat print tones. Only materials made with o.fluid compile this.
+  // lava lamp in flat print tones (the round backpack: a nebula). Only materials made with o.fluid compile this.
   uniform vec4 uFluidA;    // fill 0..1 · tones in the blend (2..6) · time (s) · kind: 0 tank, (1: the hose, gone), 2 glob, 3 wing, 4 trail, 5 shadow, 6 the sword
   uniform vec4 uFluidB;    // flash 0..1 · refill 0..1 (0 = none) · (unused: the hose's pulse) · slosh 0..1
   uniform vec4 uFluidBox;  // object space: glass bottom y, top y, radius, highlight angle (rad, about +y)
   uniform vec3 uFluidTones[6];   // the fluid's tones in the order they join the blend (fluid-tool.js sets them)
   vec3 fluidTone(int i) { return uFluidTones[i - 6 * (i / 6)]; }
   uniform vec3 uFluidBase;       // the flask's own fluid, the colour the tones stream through (green; a gun mode's tone)
-  // The flask's living fluid (kind 0, fluid-tool.js buildFlask; the sheets' glass jar): a green body with
-  // the blend's tones turning through it in slow warped streams, dark veins where they meet the green.
-  // p: a point on the glass (object space, in glass heights), continuous all round (no seam at the back).
-  vec3 flaskFluid(vec2 p, float t, int n) {
-    p *= 4.2;
-    vec2 q = vec2(vnoise(p + vec2(0.0, t * 0.23)), vnoise(p + vec2(5.2, 1.3) - vec2(t * 0.19, 0.0)));
-    vec2 r = vec2(vnoise(p * 1.3 + 2.8 * q + vec2(1.7, 9.2) + t * 0.09), vnoise(p * 1.3 + 2.8 * q + vec2(8.3, 2.8) - t * 0.11));
-    float f = vnoise(p * 0.9 + 2.6 * r);
-    vec3 col = uFluidBase;
-    // the streams: where the warped field rises, one tone of the blend each (the stretch of r it falls in),
-    // and inside the widest of them a core of the next tone
-    const float EDGE = 0.45, CORE = 0.63;
-    int nn = max(n, 1), k = int(floor(fract(r.y * 1.7 + q.x * 0.8) * float(nn)));
-    if (f > EDGE) col = fluidTone(k);
-    if (f > CORE) col = fluidTone(k + 1 - nn * ((k + 1) / nn));
-    // dark veins where the streams meet the green, finer round the cores: one pen-width
-    float fw = max(fwidth(f), 1e-4);
-    col = mix(col, vec3(0.08, 0.19, 0.14), 0.85 * (1.0 - smoothstep(0.6, 1.4, abs(f - EDGE) / fw)));
-    col = mix(col, vec3(0.1, 0.12, 0.16), 0.6 * (1.0 - smoothstep(0.4, 1.0, abs(f - CORE) / fw)));
+  // The round backpack's nebula (kind 0, fluid-tool.js buildFlask; the Round Backpack sheets): inside the glass dome
+  // a little galaxy, translucent jade-to-cyan clouds wound in a slow two-armed spiral round a soft bright heart, pale
+  // star specks twinkling at three depths, all lit from within. Marched through the dome from the fragment on its
+  // glass (six samples, no texture, no extra target): each depth's clouds turned a little behind the one over it, so
+  // it has depth as the view moves. Smooth colour, no flat steps: the glass is inked by its outline only.
+  uniform vec4 uFluidDome;   // the dome: the centre of its flat face (object space) · its radius (0: none)
+  uniform float uFluidDomeK; // how far it stands out of its ring (-z), in its radius
+  uniform mat4 modelMatrix;  // (object space for the march; three.js sets it for every program)
+  /** The clouds' density at q (the dome's unit space: its flat face's centre at 0, |q| <= 1, z <= 0); core the
+   *  bright heart's, tint how far a cloud leans from jade toward cyan. */
+  float nebula(vec3 q, float t, out float core, out float tint) {
+    float r = length(q.xy);
+    float tw = 2.3 * log(r + 0.12) - t * 0.3 + q.z * 0.9;   // wound tighter toward the middle; a deeper layer lags
+    float c = cos(tw), s = sin(tw);
+    vec2 p = mat2(c, -s, s, c) * q.xy;
+    float n1 = vnoise(p * 3.2 + vec2(q.z * 2.3, 1.7));
+    float n2 = vnoise(p * 7.1 + vec2(4.1, q.z * 3.1) + n1 * 1.3);
+    float arms = 0.5 + 0.5 * cos(2.0 * atan(p.y, p.x + 1e-5) + n1 * 1.6);
+    arms *= arms;
+    float d = smoothstep(0.38, 0.9, arms * 0.7 + n1 * 0.45 + n2 * 0.3) * (1.0 - smoothstep(0.6, 1.05, length(q)));
+    core = exp(-(r * r * 11.0 + q.z * q.z * 6.0)) * (0.7 + 0.3 * n2);
+    tint = smoothstep(0.35, 0.8, n2 * 0.6 + arms * 0.4);
+    return d;
+  }
+  /** The fluid seen through the glass at this fragment, standing to fillY (object space). seen how much of the
+   *  ray ran through fluid (0: empty glass). */
+  vec3 flaskNebula(float t, int n, float fillY, float bright, float sparkle, out float seen) {
+    vec4 D = uFluidDome.w > 0.0 ? uFluidDome : vec4(0.0, 0.5 * (uFluidBox.x + uFluidBox.y), 0.0, max(uFluidBox.z, 1e-3));
+    float K = uFluidDomeK > 0.0 ? uFluidDomeK : 1.0;
+    vec3 S = vec3(D.w, D.w, D.w * K);
+    vec3 ro = (vBind - D.xyz) / S;
+    vec3 rd = normalize((transpose(mat3(modelMatrix)) * (vWorldPos - cameraPosition)) / S);
+    // through the dome: to the far side of its ellipsoid or its flat face, whichever is nearer
+    float b = dot(ro, rd), h = b * b - dot(ro, ro) + 1.0;
+    float tMax = -b + sqrt(max(h, 0.0));
+    if (rd.z > 1e-4) tMax = min(tMax, -ro.z / rd.z);
+    tMax = clamp(tMax, 0.0, 2.0);
+    float fy = (fillY - D.y) / D.w;
+    vec3 base = uFluidBase;
+    vec3 deep = base * vec3(0.08, 0.3, 0.24);
+    vec3 cyan = mix(base, mix(fluidTone(0), vec3(0.55, 0.98, 0.72), 0.65), 0.65);
+    vec3 heart = vec3(0.88, 1.0, 0.86);
+    vec3 acc = vec3(0.0);
+    float T = 1.0, wet = 0.0, dt = tMax / 6.0;
+    for (int i = 0; i < 6; i++) {
+      vec3 q = ro + rd * (dt * (float(i) + 0.5));
+      if (q.y > fy) continue;
+      wet += 1.0;
+      float core, tint;
+      float d = nebula(q, t, core, tint);
+      float a = clamp(d * dt * 1.5, 0.0, 1.0);
+      acc += T * (a * mix(base * vec3(0.9, 1.15, 0.85), cyan * 1.2, tint) + dt * 1.5 * core * heart);
+      T *= 1.0 - a;
+    }
+    seen = wet / 6.0;
+    // the stars: specks on three shells, each its own parallax (a cell's hash, its speck at least a pixel across)
+    float px = max(length(fwidth(ro)), 1e-4);
+    float stars = 0.0;
+    for (int k = 0; k < 3; k++) {
+      float zs = -0.2 - 0.25 * float(k);
+      if (rd.z < 1e-3 || zs < ro.z) continue;
+      vec3 q = ro + rd * ((zs - ro.z) / rd.z);
+      if (q.y > fy || dot(q, q) > 0.95) continue;
+      float G = 9.0 + 4.0 * float(k);
+      vec2 g = q.xy * G + float(k) * 7.31;
+      vec2 cell = floor(g);
+      float hh = hash(cell + 17.0 * float(k));
+      if (hh < 0.8 - 0.15 * sparkle) continue;
+      vec2 off = vec2(hash(cell + 3.1), hash(cell + 8.7)) * 0.6 + 0.2;
+      float rad = max(0.07, px * G * 0.9);
+      float dd = length(fract(g) - off);
+      float tw = 0.55 + 0.45 * sin(t * (2.0 + 3.0 * hh) + hh * 40.0);
+      stars += (1.0 - smoothstep(rad * 0.3, rad, dd)) * tw * min(1.0, (0.07 / rad) * (0.07 / rad) * 4.0) * (0.6 + 0.4 * T);
+    }
+    vec3 back = mix(vec3(0.8, 0.9, 0.88), deep, smoothstep(0.0, 0.34, seen));
+    vec3 col = (acc + T * back) * bright;
+    col = mix(col, vec3(0.95, 1.0, 0.97), clamp(stars * (1.0 + 1.5 * sparkle), 0.0, 1.0) * step(0.01, seen));
+    // the surface: a soft bright line where the fluid meets the glass
+    col += vec3(0.35, 0.45, 0.4) * (1.0 - smoothstep(0.0, 0.05, abs(ro.y - fy))) * step(0.01, seen) * step(fy, 0.95);
     return col;
   }
   // Round a vertical axis (angle a, height h 0..1, aspect = radius / height):
@@ -1892,32 +1952,21 @@ const fragmentShader = /* glsl */ `
     float h = (vBind.y - uFluidBox.x) / H;
     float a = atan(vBind.z, vBind.x);
     if (kind > 1.5) return fluidLava(a, h, uFluidBox.z / H, t * 4.0, n, false);   // a glob in flight: blobs churning, no bands
-    // the flask: its living fluid stands at the fill level (a third of the glass a charge), sloshing; empty glass above
-    vec3 col = flaskFluid(vec2(vBind.x + 0.8 * vBind.z, vBind.y - uFluidBox.x) / H, t, n);
+    // the round backpack: its nebula stands at the fill level (a third of the glass a charge), sloshing; empty glass
+    // above; brighter with the glow (the bar, the jets' stage)
     float fill = uFluidA.x;
     float surf = max(fill, 0.07) + (0.012 + 0.05 * uFluidB.w) * sin(a + t * 6.0) * min(1.0, fill * 8.0);
-    float w = uFluidB.y;
-    if (w > 0.0 && h < surf) {
-      // refilling: bubbles stream up through it
-      vec2 g = vec2(a * uFluidBox.z / H * 10.0, h * 10.0 - t * 5.0);
-      vec2 c = fract(g) - 0.5;
-      if (hash(floor(g)) > 0.55 && dot(c, c) < 0.07) col = mix(col, vec3(1.0), 0.75 * w);
-    }
-    if (h > surf) col = kind < 0.5 ? vec3(0.8, 0.9, 0.88) : vec3(0.855, 0.925, 0.945);   // (the flask's glass a little green)
-    else if (h > surf - 0.04) col = mix(col, vec3(1.0), 0.35 + 0.4 * w);   // the meniscus
-    // the glass's edge, pale where it turns away from the eye (its thickness, seen through)
-    if (kind < 0.5) {
-      float fr = 1.0 - abs(dot(normalize(vNormal), normalize(cameraPosition - vWorldPos)));
-      col = mix(col, vec3(0.84, 0.94, 0.91), 0.8 * smoothstep(0.78, 0.86, fr));
-    }
-    // the glass's thick green foot, and a short etched mark at each third (the charges) on one side
-    if (h < 0.045) col = mix(col, vec3(0.2, 0.46, 0.36), 0.75);
-    float da = abs(a + 0.42);
-    if (da < 0.16 && (abs(h - 0.3333) < 0.008 || abs(h - 0.6667) < 0.008)) col = mix(col, vec3(0.12, 0.2, 0.17), 0.8);
+    float w = uFluidB.y, seen;
+    vec3 col = flaskNebula(t, n, uFluidBox.x + surf * H, 0.72 + 0.4 * uGlow, w, seen);
+    // the glass: a pale edge where it turns from the eye, glowing a little in the fluid's cyan; a window's
+    // highlight up on its shoulder and a smaller one under it
+    vec3 V = normalize(cameraPosition - vWorldPos);
+    float fr = 1.0 - abs(dot(normalize(vNormal), V));
+    col = mix(col, mix(vec3(0.84, 0.95, 0.92), vec3(0.62, 0.95, 0.8), seen), 0.6 * smoothstep(0.7, 0.95, fr));
+    vec3 on = normalize((vBind - uFluidDome.xyz) * vec3(1.0, 1.0, 1.0 / max(uFluidDomeK * uFluidDomeK, 0.2)));
+    float hl = dot(on, normalize(vec3(-0.42, 0.62, -0.66))), hl2 = dot(on, normalize(vec3(0.5, -0.38, -0.78)));
+    col = mix(col, vec3(1.0), 0.8 * smoothstep(0.97, 0.982, hl) + 0.4 * smoothstep(0.99, 0.995, hl2));
     col = mix(col, vec3(1.0), uFluidB.x * 0.45);
-    // a highlight streak down the glass
-    float dh = abs(mod(a - uFluidBox.w + 3.14159, 6.28318) - 3.14159);
-    if (dh < (kind < 0.5 ? 0.07 : 0.14) && h > 0.16 && h < 0.8) col = mix(col, vec3(1.0), h > surf ? 0.9 : 0.5);
     return col;
   }
   #endif
@@ -2327,6 +2376,9 @@ const fragmentShader = /* glsl */ `
     // some gradation so the post-process can choose single vs cross hatching.
     float L = mix(min(lambert, 0.38), lambert, sh);
     L = mix(L, 1.0, max(uGlow, emit));
+    #ifdef FLUID
+      if (uFluidA.w < 0.5) L = max(L, 0.92);   // (the round backpack's nebula is lit from within: no shade side on it)
+    #endif
     #ifdef DUNE_GLASS
       duneGlass(albedo, L, emit, n, ndl);   // (dune-glass-shader.js: the light through the Glass Dunes' glass)
     #endif
@@ -2658,6 +2710,10 @@ const fragmentShader = /* glsl */ `
       gHatch.a += 8.0;
     #endif
     ${BLADE_INK}
+    #ifdef FLUID
+      // the round backpack's glass: its outline only (no line round its clouds or its fill), a full pen line, no hatching
+      if (uFluidA.w < 0.5) { gHatch.rgb = vec3(1.0, 0.0, 0.0); gHatch.a += 8.0; }
+    #endif
   }
 `;
 
@@ -2851,6 +2907,8 @@ export function makeMaterial(o) {
     mat.uniforms.uFluidBox = { value: new THREE.Vector4(...(o.fluidBox ?? [-1, 1, 1, 0])) };
     mat.uniforms.uFluidTones = { value: Array.from({ length: 6 }, (_, i) => new THREE.Color(o.fluidTones?.[i] ?? '#ffffff')) };
     mat.uniforms.uFluidBase = { value: new THREE.Color(o.fluidBase ?? '#5fb86a') };
+    mat.uniforms.uFluidDome = { value: new THREE.Vector4(0, 0, 0, 0) };   // (the round backpack's dome: fluid-tool.js buildFlask sets it)
+    mat.uniforms.uFluidDomeK = { value: 1 };
     if (o.fluid === 'blade') bladeMaterial(mat);   // the sword's living blade (blade-shader.js)
   }
   if (o.mode === MODE_WATER) waterMaterial(mat, o);   // the water's own look (water-shader.js)

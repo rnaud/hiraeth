@@ -14,7 +14,7 @@ import { cleanExpression } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
 
 /** The fluid flask's place on his back (the chest anchor's frame; fluid-tool.js TANK.at is the rucksack's). */
-export const TRAVELLER_V1_TANK_AT = [0, 0.4, -0.355];   // (v1.38: the round backpack, its canvas plate on his back)
+export const TRAVELLER_V1_TANK_AT = [0, 0.4, -0.1886];   // (v1.38: the round backpack, its slim canvas plate on his back where v1.37's sphere had its plate's back)
 
 export async function loadTravellerV1(base) {
   const folder = `${base}characters/traveller-v1/`;

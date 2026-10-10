@@ -490,32 +490,38 @@ class Rings {
 // The tank, in its own frame (y up the glass from its bottom, +z toward the
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
 // 0.74 at the collar, +z forward, the character's right at -x). The round backpack (v1.38, the progression
-// rewrite; references/Core Objects/Round Backpack/, the sheet's first pick): a glass sphere of living jade fluid
-// in a brass cradle (a ring round it in the plane of the back, a band round its equator with three charge lights,
-// a foot cup), a short capped brass neck with a turquoise cloth tied round it, an olive canvas back plate padded
-// against the body and leather straps up over the shoulders; no hose. Its stages (items.js BACKPACK_STAGES, the
-// states sheet's second pick): 1 the lift valve (the valve's wheel on the neck, a second ring, two small fins),
-// 2 the wings (folding brass vanes at its sides), 3 the jets (a second valve on the cap, the glass brighter, the
-// fluid quicker). The side struts carry the scout and lantern; charge height, vehicle socket and scout docks keep
-// their frames.
+// rewrite; references/Core Objects/Round Backpack/, the worn sheet): a glass dome, half a sphere, of living jade
+// fluid (a little nebula: materials.js flaskNebula) on a flat brass porthole ring lying against the back (the ring's
+// plane z = 0, the dome out toward -z, 0.85 of its radius deep), a band across its equator with three charge lights,
+// a boss under the ring, a short capped brass neck on the ring's top with a turquoise cloth tied round it, a slim
+// olive canvas back plate against the body and leather straps up over the shoulders; no hose. Its stages (items.js
+// BACKPACK_STAGES, the states sheet's second pick): 1 the lift valve (the valve's wheel on the neck, a second ring,
+// two small fins), 2 the wings (folding brass vanes at its sides), 3 the jets (a second valve on the cap, the glass
+// brighter, the fluid quicker). The side struts carry the scout and lantern; charge height, vehicle socket and scout
+// docks keep their frames.
 const SPHERE_R = 0.19, SPHERE_Y = SPHERE_R + 0.01;
+/** How deep the dome stands out of its ring, in its radius (1: a true half sphere). */
+const DOME_DEPTH = 0.85;
+/** The back plate's front face (tank frame z, the ring's flange between it and the ring's plane) and its thickness. */
+const PLATE_Z = 0.02, PLATE_D = 0.015, PLATE_BEVEL = 0.008;
 export const TANK = {
-  at: [0, 0.4, -0.37],      // glass bottom: on the upper back, its top under the shoulders (half sunk in the old body's rucksack)
-  scale: 0.8,               // a sphere 30 cm across on the adult body (the sheet: "about the size of a large melon")
+  at: [0, 0.4, -0.245],     // the ring's centre at the glass's foot: on the old body's rucksack's outer face (the plate sunk in it)
+  scale: 0.8,               // a dome 30 cm across on the adult body (the sheet: "about the size of a large melon")
   height: SPHERE_Y + SPHERE_R,   // glass
   full: SPHERE_Y + SPHERE_R - 0.025,   // fluid height with the bar full (a sliver of air under the neck)
   squash: 1,                // across the back (x), of the round profile
-  depth: 1,                 // front to back (z): a sphere
+  depth: DOME_DEPTH,        // out from the back (-z): a dome, half a sphere a little flattened
+  dome: { z: 0, plate: PLATE_Z, plateD: PLATE_D + 2 * PLATE_BEVEL },   // the ring's plane (the dome's flat face), the plate's front face and thickness (padded)
   radius: SPHERE_R, center: SPHERE_Y,
   straps: [],               // leather bands round the glass (none: the cradle holds it, the straps go over the shoulders)
-  // the sphere's profile (radius at height), for the dock clearance and tankRadiusAt
+  // the dome's outline (radius at height), for the dock clearance and tankRadiusAt
   profile: Array.from({ length: 13 }, (_, i) => { const a = -Math.PI / 2 + (i / 12) * Math.PI; return [Math.max(0.02, SPHERE_R * Math.cos(a)), SPHERE_Y + SPHERE_R * Math.sin(a)]; }),
-  collar: { y: SPHERE_Y + SPHERE_R - 0.03, h: 0.05 },   // the straps' attachment frame, round the neck
-  neck: { y: SPHERE_Y + SPHERE_R - 0.03, h: 0.06, r: 0.05, stopper: 0.036 },
-  band: { y: SPHERE_Y, h: 0.042 },   // the brass band round the equator, its three charge lights on the outer face
-  plate: { w: 0.36, h: 0.46, d: 0.045 },   // the olive canvas back plate (worn)
-  highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
-  inked: true,              // blobs inked at full strength (not the player's softer interior lines)
+  collar: { y: SPHERE_Y + SPHERE_R - 0.015, h: 0.05 },   // the straps' attachment frame, round the neck
+  neck: { y: SPHERE_Y + SPHERE_R - 0.015, h: 0.05, r: 0.05, stopper: 0.036, z: -0.022 },   // on the ring's top, leaning onto the glass
+  band: { y: SPHERE_Y, h: 0.042 },   // the brass band across the dome's equator, its three charge lights on the outer face
+  plate: { w: 0.36, h: 0.46, d: PLATE_D },   // the olive canvas back plate (worn)
+  highlight: -1.05,         // (the old sphere's streak angle; the dome's window highlight is in its shader)
+  inked: true,              // (kept out of the player's soft-ink mask: the glass draws its own outline-only ink)
   base: '#49ab83',          // the living fluid's own green (a gun mode tints it its first tone)
   glow: [0.32, 0.62],       // the glass's glow: empty .. full (the magic bar); the jets' stage adds STAGE_GLOW
 };
@@ -528,8 +534,18 @@ function radiusAt(y) {
   for (let i = 0; i < 18; i++) { const m = (lo + hi) / 2; if (profileCurve.getPoint(m).y < y) lo = m; else hi = m; }
   return profileCurve.getPoint((lo + hi) / 2).x;
 }
-/** The glass's radius at height y (tank frame, before the flattening: x × TANK.squash, z × TANK.depth). */
+/** The glass's radius at height y (tank frame, across the back: x × TANK.squash; out from it, -z × TANK.depth). */
 export const tankRadiusAt = radiusAt;
+/**
+ * How far a point (tank frame) is from the glass, as the dome's ellipsoid measure: under 1 inside the dome (the
+ * ring's plane z = 0 to its top, -z × TANK.depth out), over 1 outside; a point behind the ring's plane (z > 0,
+ * toward the back) is never in the glass.
+ */
+export function tankGlassMeasure(p) {
+  if (p.z > TANK.dome.z) return Infinity;
+  const R = SPHERE_R;
+  return (p.x / (R * TANK.squash)) ** 2 + ((p.y - SPHERE_Y) / R) ** 2 + ((p.z - TANK.dome.z) / (R * TANK.depth)) ** 2;
+}
 /**
  * The scout's dock on the tank, in the tank's frame (it rides with the tank, into a vehicle's
  * socket too): clamped by its foot to the top of the cradle's left strut (the wearer's left),
@@ -537,8 +553,9 @@ export const tankRadiusAt = radiusAt;
  * the strut below), off the glass.
  */
 // (the top and the dock where they were on the body with the old, taller tank: 0.645 and 0.624 of it over a
-// glass bottom 0.12 m lower; high enough that the swinging arms never reach the scout)
-export const TANK_RAIL = { x: SPHERE_R * TANK.squash + 0.03, r: 0.012, z: -0.03, top: 0.495, brackets: [0.06, TANK.center + 0.1] };
+// glass bottom 0.12 m lower; high enough that the swinging arms never reach the scout. v1.38's slimmer dome: the
+// struts stand beside it, between its ring and its top, 11 cm nearer the back than beside the old sphere)
+export const TANK_RAIL = { x: SPHERE_R * TANK.squash + 0.03, r: 0.012, z: -0.07, top: 0.495, brackets: [0.06, TANK.center] };
 export const SCOUT_DOCK_Y = 0.474;
 export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY / TANK.scale + 0.002;
 export const SCOUT_DOCK_Z = TANK_RAIL.z;
@@ -549,7 +566,7 @@ export const SCOUT_DOCK_Z = TANK_RAIL.z;
  * arc that stays clear of the glass, turning from side-on to upright.
  */
 export const SCOUT_CAP = { y: TANK.neck.y + TANK.neck.h + 0.07 + DRONE_BELLY / TANK.scale, hop: 0.2 };
-const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, SCOUT_DOCK_Y + 0.14, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, 0)];
+const _dockArc = [new THREE.Vector3(SCOUT_DOCK_X, SCOUT_DOCK_Y, SCOUT_DOCK_Z), new THREE.Vector3(SCOUT_DOCK_X + 0.03, SCOUT_DOCK_Y + 0.14, SCOUT_DOCK_Z), new THREE.Vector3(0, SCOUT_CAP.y, TANK.neck.z)];
 export function scoutDockPose(k, pos, quat) {
   const t = THREE.MathUtils.smoothstep(k, 0, 1), [a, b, c] = _dockArc;
   pos.set(0, 0, 0).addScaledVector(a, (1 - t) ** 2).addScaledVector(b, 2 * t * (1 - t)).addScaledVector(c, t * t);
@@ -559,54 +576,69 @@ export function scoutDockPose(k, pos, quat) {
 
 const LEATHER = '#6a4a33', CANVAS = '#7d8a5a', CANVAS_DARK = '#5f6c44', CLOTH = '#3f9a92', LIGHT_OFF = '#3d6b60';
 /**
- * The round backpack itself (the worn tank's and the item's picture, src/boxes/model.js): the glass sphere in its
- * fluid material (`glassMat`), the brass cradle (the ring in the plane of the back, the equator band with its three
- * charge lights, the foot cup), the neck and its cap, the cloth tie and, worn (`worn`), the canvas back plate and the
- * leather straps up over the shoulders. In the tank's frame. Returns { group, glass, lights, stages }: `lights` the
- * band's three charge lights (lit for the units of the bar: FluidTool.updateWorn), `stages` [null, s1, s2, s3] the
- * parts each backpack stage adds (shown by setStage), kept apart from the merged rest.
+ * The round backpack itself (the worn tank's and the item's picture, src/boxes/model.js): the glass dome in its
+ * fluid material (`glassMat`: its dome uniform set here), the brass porthole ring it stands on (a rim in the plane
+ * of the back and a flange back to the plate), the band across its equator with its three charge lights, the boss
+ * under the ring, the neck and its cap on the ring's top, the cloth tie and, worn (`worn`), the slim canvas back plate
+ * and the leather straps up over the shoulders. In the tank's frame. Returns { group, glass, lights, stages }:
+ * `lights` the band's three charge lights (lit for the units of the bar: FluidTool.updateWorn), `stages`
+ * [null, s1, s2, s3] the parts each backpack stage adds (shown by setStage), kept apart from the merged rest.
  */
 export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } = {}) {
   const g = new THREE.Group();
   g.name = 'Round backpack';
   const add = (geo, m, x = 0, y = 0, z = 0, to = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); to.add(o); return o; };
-  const R = SPHERE_R, CY = SPHERE_Y, N = TANK.neck, B = TANK.band;
-  // (its vertices in the tank's frame, the centre CY up: the shader reads the fill height off them)
-  const glass = add(new THREE.SphereGeometry(R, 40, 28).translate(0, CY, 0), glassMat);
+  const R = SPHERE_R, CY = SPHERE_Y, N = TANK.neck, B = TANK.band, K = TANK.depth, PZ = PLATE_Z;
+  // (its vertices in the tank's frame, the centre CY up: the shader reads the fill height off them, and marches
+  // its nebula through the dome its uniform describes)
+  const glass = add(new THREE.SphereGeometry(R, 40, 22, Math.PI, Math.PI).scale(1, 1, K).translate(0, CY, 0), glassMat);
   glass.name = 'Fluid glass';
-  const brass = mat(BRASS), dark = mat(BRASS_DARK);
-  // the cradle: a ring round the sphere in the plane of the back, and the band round its equator
-  add(new THREE.TorusGeometry(R + 0.012, 0.011, 6, 48), brass, 0, CY, 0.02);
-  const band = add(new THREE.CylinderGeometry(R + 0.012, R + 0.012, B.h, 48, 1, true), mat(BRASS, { side: THREE.DoubleSide }), 0, B.y, 0);
+  glassMat.uniforms?.uFluidDome?.value.set(0, CY, TANK.dome.z, R);
+  glassMat.uniforms?.uFluidDomeK && (glassMat.uniforms.uFluidDomeK.value = K);
+  const brass = mat(BRASS), dark = mat(BRASS_DARK), open = mat(BRASS, { side: THREE.DoubleSide });
+  // half a ring (a torus' arc) laid round the dome's -z half: across it (`across`, in the xz plane) or over it (yz)
+  const halfRing = (r, tube, across, segs = 32) => {
+    const t = new THREE.TorusGeometry(r, tube, 4, segs, Math.PI);
+    return (across ? t.rotateX(-Math.PI / 2) : t.rotateZ(-Math.PI / 2).rotateY(Math.PI / 2)).scale(1, 1, K);
+  };
+  // the porthole ring: a rim round the glass in the plane of the back, a flange tapering back to the plate (in, so
+  // the sword's frog behind the right shoulder stays clear: tests/sword-sheath.test.js)
+  add(new THREE.TorusGeometry(R + 0.003, 0.007, 6, 48), brass, 0, CY, 0);
+  add(new THREE.CylinderGeometry(R - 0.018, R + 0.008, PZ, 48, 1, true).rotateX(Math.PI / 2), open, 0, CY, PZ / 2);
+  // the band across the dome's equator (half a hoop) and its edges
+  const band = add(new THREE.CylinderGeometry(R + 0.008, R + 0.008, B.h, 32, 1, true, Math.PI / 2, Math.PI).scale(1, 1, K), open, 0, B.y, 0);
   band.name = 'Band';
-  for (const y of [B.y - B.h / 2, B.y + B.h / 2]) add(new THREE.TorusGeometry(R + 0.013, 0.004, 3, 48).rotateX(Math.PI / 2), dark, 0, y, 0);
-  // rivets where the ring meets the band, and the foot cup under the glass
-  for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.011, 8, 6), dark, sx * (R + 0.016), CY, 0.02);
-  add(new THREE.CylinderGeometry(0.05, 0.035, 0.03, 16), brass, 0, 0.012, 0);
-  add(new THREE.SphereGeometry(0.014, 8, 6), dark, 0, -0.006, 0);
-  // the neck and its cap, a collar ring, and the turquoise cloth tied round it (its knot and a loose end)
-  add(new THREE.CylinderGeometry(N.r * 0.92, N.r, N.h, 18), brass, 0, N.y + N.h / 2, 0);
-  add(new THREE.TorusGeometry(N.r * 1.02, 0.007, 4, 18).rotateX(Math.PI / 2), dark, 0, N.y + N.h * 0.75, 0);
-  add(new THREE.CylinderGeometry(N.stopper, N.stopper * 1.05, 0.02, 14), brass, 0, N.y + N.h + 0.01, 0);
-  add(new THREE.TorusGeometry(N.r * 1.12, 0.014, 6, 18).rotateX(Math.PI / 2).scale(1, 0.8, 1), mat(CLOTH), 0, N.y + 0.012, 0);
-  add(new THREE.SphereGeometry(0.022, 8, 6).scale(1.3, 0.9, 0.8), mat(CLOTH), 0.04, N.y + 0.008, -0.035);
-  add(new THREE.BoxGeometry(0.018, 0.06, 0.008).rotateZ(-0.5), mat(CLOTH), 0.062, N.y - 0.03, -0.045);
+  for (const y of [B.y - B.h / 2, B.y + B.h / 2]) add(halfRing(R + 0.009, 0.004, true), dark, 0, y, 0);
+  // rivets where the band meets the ring, and the boss under it
+  for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.012, 8, 6), dark, sx * (R + 0.012), CY, -0.006);
+  add(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 16).rotateX(Math.PI / 2), brass, 0, 0.006, -0.004);
+  add(new THREE.SphereGeometry(0.014, 8, 6), dark, 0, 0.006, -0.022);
+  // the neck and its cap on the ring's top, a collar ring, and the turquoise cloth tied round it (its knot and a loose end)
+  const NZ = N.z;
+  add(new THREE.CylinderGeometry(N.r * 0.92, N.r, N.h, 18), brass, 0, N.y + N.h / 2, NZ);
+  add(new THREE.TorusGeometry(N.r * 1.02, 0.007, 4, 18).rotateX(Math.PI / 2), dark, 0, N.y + N.h * 0.75, NZ);
+  add(new THREE.CylinderGeometry(N.stopper, N.stopper * 1.05, 0.02, 14), brass, 0, N.y + N.h + 0.01, NZ);
+  add(new THREE.TorusGeometry(N.r * 1.12, 0.014, 6, 18).rotateX(Math.PI / 2).scale(1, 0.8, 1), mat(CLOTH), 0, N.y + 0.012, NZ);
+  add(new THREE.SphereGeometry(0.022, 8, 6).scale(1.3, 0.9, 0.8), mat(CLOTH), 0.04, N.y + 0.008, NZ - 0.035);
+  add(new THREE.BoxGeometry(0.018, 0.06, 0.008).rotateZ(-0.5), mat(CLOTH), 0.062, N.y - 0.03, NZ - 0.045);
   // the band's three charge lights on its outer face (-z: away from the back), each its own material (lit by FluidTool)
-  const lights = [-1, 0, 1].map((i) => { const a = Math.PI + i * 0.2; const m = add(new THREE.SphereGeometry(0.0115, 8, 6), makeMaterial({ color: LIGHT_OFF, flat: true, glow: 0.2 }), Math.sin(a) * (R + 0.015), B.y, Math.cos(a) * (R + 0.015)); m.name = 'Charge light'; return m; });
+  const lights = [-1, 0, 1].map((i) => { const a = Math.PI + i * 0.2; const m = add(new THREE.SphereGeometry(0.0115, 8, 6), makeMaterial({ color: LIGHT_OFF, flat: true, glow: 0.2 }), Math.sin(a) * (R + 0.012), B.y, Math.cos(a) * (R + 0.012) * K - 0.004); m.name = 'Charge light'; return m; });
   if (worn) {
-    // the olive canvas back plate between the glass and his back, padded, stitched round, two rivets
+    // the slim olive canvas back plate behind the ring, against his back, padded, stitched round, two rivets
     const P = TANK.plate;
     const shape = new THREE.Shape(), w = P.w / 2, h = P.h, r = 0.06, y0 = CY - h / 2;
     shape.moveTo(-w + r, y0); shape.lineTo(w - r, y0); shape.quadraticCurveTo(w, y0, w, y0 + r); shape.lineTo(w, y0 + h - r);
     shape.quadraticCurveTo(w, y0 + h, w - r, y0 + h); shape.lineTo(-w + r, y0 + h); shape.quadraticCurveTo(-w, y0 + h, -w, y0 + h - r);
     shape.lineTo(-w, y0 + r); shape.quadraticCurveTo(-w, y0, -w + r, y0);
-    add(new THREE.ExtrudeGeometry(shape, { depth: P.d, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 2, curveSegments: 6 }), mat(CANVAS), 0, 0, R + 0.012);
-    const edge = shape.getPoints(10).map((p) => new THREE.Vector3(p.x * 0.9, CY + (p.y - CY) * 0.92, R + 0.006));
+    add(new THREE.ExtrudeGeometry(shape, { depth: P.d, bevelEnabled: true, bevelSize: PLATE_BEVEL, bevelThickness: PLATE_BEVEL, bevelSegments: 2, curveSegments: 6 }), mat(CANVAS), 0, 0, PZ + PLATE_BEVEL);
+    const edge = shape.getPoints(10).map((p) => new THREE.Vector3(p.x * 0.9, CY + (p.y - CY) * 0.92, PZ - 0.002));
     add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge.slice(0, -1), true), 72, 0.0035, 4, true), mat(CANVAS_DARK));
-    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.012, 8, 6), dark, sx * (w - 0.04), y0 + h - 0.05, R + 0.004);
+    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.012, 8, 6), dark, sx * (w - 0.04), y0 + h - 0.05, PZ - 0.002);
     // the leather straps: from the plate's top corners up over his shoulders (into the collar of his shirt), buckled
+    // (their far end where v1.37's sphere had it on the body: the plate's back is where it was)
+    const shift = PZ + P.d + 2 * PLATE_BEVEL - (R + 0.012 + 0.045 + 0.012);
     for (const sx of [-1, 1]) {
-      const a = new THREE.Vector3(sx * (w - 0.05), y0 + h - 0.02, R + 0.04), b = new THREE.Vector3(sx * 0.105, 0.43 / TANK.scale + 0.05, 0.27 / TANK.scale + 0.12), d = b.clone().sub(a);
+      const a = new THREE.Vector3(sx * (w - 0.05), y0 + h - 0.02, PZ + 0.02), b = new THREE.Vector3(sx * 0.105, 0.43 / TANK.scale + 0.05, 0.27 / TANK.scale + 0.12 + shift), d = b.clone().sub(a);
       const strap = add(new THREE.BoxGeometry(0.046, 0.011, d.length()), mat(LEATHER), (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
       strap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
       add(new THREE.BoxGeometry(0.034, 0.018, 0.022), brass, a.x, a.y, a.z + 0.004).quaternion.copy(strap.quaternion);   // its buckle
@@ -617,36 +649,36 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
   stages.forEach((s, i) => { if (s) { s.name = `Backpack stage ${i}`; g.add(s); } });
   {
     const s = stages[1];
-    // the valve's wheel on the neck's cap (the sheet's), a second ring over the top (front to back), two small fins on the band
+    // the valve's wheel on the neck's cap (the sheet's), a second ring over the dome (top to bottom), two small fins on the band
     const top = N.y + N.h + 0.02;
-    add(new THREE.CylinderGeometry(0.008, 0.008, 0.035, 8), dark, 0, top + 0.017, 0, s);
-    add(new THREE.TorusGeometry(0.045, 0.007, 5, 20).rotateX(Math.PI / 2), brass, 0, top + 0.036, 0, s);
-    for (let i = 0; i < 3; i++) add(new THREE.BoxGeometry(0.09, 0.006, 0.006).rotateY((i * Math.PI) / 3), brass, 0, top + 0.036, 0, s);
-    add(new THREE.TorusGeometry(R + 0.016, 0.008, 5, 48).rotateY(Math.PI / 2), brass, 0, CY, 0, s);
+    add(new THREE.CylinderGeometry(0.008, 0.008, 0.035, 8), dark, 0, top + 0.017, NZ, s);
+    add(new THREE.TorusGeometry(0.045, 0.007, 5, 20).rotateX(Math.PI / 2), brass, 0, top + 0.036, NZ, s);
+    for (let i = 0; i < 3; i++) add(new THREE.BoxGeometry(0.09, 0.006, 0.006).rotateY((i * Math.PI) / 3), brass, 0, top + 0.036, NZ, s);
+    add(halfRing(R + 0.012, 0.008, false, 32), brass, 0, CY, 0, s);
     for (const sx of [-1, 1]) {
       const fin = new THREE.Shape(); fin.moveTo(0, -0.03); fin.lineTo(0.075, -0.006); fin.lineTo(0.07, 0.016); fin.lineTo(0, 0.03); fin.lineTo(0, -0.03);
-      const m = add(new THREE.ExtrudeGeometry(fin, { depth: 0.008, bevelEnabled: false }).translate(0, 0, -0.004), mat(BRASS, { side: THREE.DoubleSide }), sx * (R + 0.012), B.y, -0.02, s);
+      const m = add(new THREE.ExtrudeGeometry(fin, { depth: 0.008, bevelEnabled: false }).translate(0, 0, -0.004), open, sx * (R + 0.016), B.y, -0.012, s);
       m.rotation.y = sx < 0 ? Math.PI : 0;
     }
   }
   {
     const s = stages[2];
-    // folding brass vanes at the sides like little wings, folded back along the band (three a side, on a hinge post)
+    // folding brass vanes at the sides like little wings, folded back along the ring (three a side, on a hinge post)
     for (const sx of [-1, 1]) {
-      add(new THREE.CylinderGeometry(0.009, 0.009, 0.12, 8), dark, sx * (R + 0.03), B.y + 0.02, 0.01, s);
+      add(new THREE.CylinderGeometry(0.009, 0.009, 0.12, 8), dark, sx * (R + 0.03), B.y + 0.02, 0.005, s);
       for (let i = 0; i < 3; i++) {
         const vane = new THREE.Shape(); vane.moveTo(0, -0.018); vane.lineTo(0.13 - i * 0.025, -0.01); vane.lineTo(0.12 - i * 0.025, 0.014); vane.lineTo(0, 0.018); vane.lineTo(0, -0.018);
-        const m = add(new THREE.ExtrudeGeometry(vane, { depth: 0.006, bevelEnabled: false }), mat(BRASS, { side: THREE.DoubleSide }), sx * (R + 0.03), B.y + 0.06 - i * 0.04, 0.01, s);
+        const m = add(new THREE.ExtrudeGeometry(vane, { depth: 0.006, bevelEnabled: false }), open, sx * (R + 0.03), B.y + 0.06 - i * 0.04, 0.005, s);
         m.rotation.set(0, sx < 0 ? Math.PI - 1.1 : 1.1, sx * (0.35 - i * 0.3));
       }
     }
   }
   {
     const s = stages[3];
-    // the jets' extra valve: a capped brass stack on the cap's shoulder, its own little wheel
-    add(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 12), brass, 0.085, N.y + 0.01, 0.02, s);
-    add(new THREE.CylinderGeometry(0.026, 0.026, 0.014, 12), dark, 0.085, N.y + 0.05, 0.02, s);
-    add(new THREE.TorusGeometry(0.022, 0.005, 4, 14).rotateX(Math.PI / 2), brass, 0.085, N.y + 0.066, 0.02, s);
+    // the jets' extra valve: a capped brass stack on the ring's shoulder beside the neck, its own little wheel
+    add(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 12), brass, 0.085, N.y, -0.01, s);
+    add(new THREE.CylinderGeometry(0.026, 0.026, 0.014, 12), dark, 0.085, N.y + 0.04, -0.01, s);
+    add(new THREE.TorusGeometry(0.022, 0.005, 4, 14).rotateX(Math.PI / 2), brass, 0.085, N.y + 0.056, -0.01, s);
   }
   setStage({ stages }, stage);
   return { group: g, glass, lights, stages };
@@ -666,7 +698,7 @@ function buildTank(stage = 0) {
   const railX = TANK_RAIL.x;
   for (const sx of [-1, 1]) {
     add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK_RAIL.top - 0.05, 6), flatMat(BRASS_DARK), sx * railX, 0.05 + (TANK_RAIL.top - 0.05) / 2, TANK_RAIL.z);
-    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.026, 0.024, 0.12), flatMat(BRASS_DARK), sx * railX, y, TANK_RAIL.z + 0.06);   // (short: clear of the sword's frog behind the shoulder)
+    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.026, 0.024, PLATE_Z - TANK_RAIL.z), flatMat(BRASS_DARK), sx * railX, y, (TANK_RAIL.z + PLATE_Z) / 2);   // (back to the plate; short: clear of the sword's frog behind the shoulder)
     add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z);   // a brass knob on the strut's top
   }
   mergeParts(g, [glass, ...lights, ...stages.filter(Boolean)]);

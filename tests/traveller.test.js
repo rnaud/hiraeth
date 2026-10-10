@@ -345,14 +345,14 @@ test('an ordinary canvas rucksack with the round backpack standing out of its ou
   const sack = inChest(/^Rucksack$/), coat = inChest(/^Coral_overshirt$/);
   for (const n of ['Rucksack_lid', 'Rucksack_lid_straps', 'Rucksack_buckles', 'Bedroll', 'Rucksack_pocket']) assert.ok(piece(h, n), n);
   assert.equal(piece(h, 'Rucksack').material.uniforms.uColor.value.getHexString(), TRAVELLER_PALETTE.canvas.slice(1), 'canvas, not a radio box');
-  // the round backpack (TANK, chest frame; v1.38, references/Core Objects/Round Backpack): a glass sphere about 30 cm
-  // across, standing out of the rucksack's outer face, its neck out over the lid
-  const R = TANK.radius * TANK.scale, [, y0, z0] = TANK.at;
-  assert.ok(2 * R > 0.26 && 2 * R < 0.34, `a sphere about 30 cm across (${(2 * R).toFixed(2)} m)`);
-  assert.equal(TANK.squash, 1); assert.equal(TANK.depth, 1);
+  // the round backpack (TANK, chest frame; v1.38, references/Core Objects/Round Backpack): a glass dome about 30 cm
+  // across, half a sphere on its brass ring, the ring at the rucksack's outer face, its neck out over the lid
+  const R = TANK.radius * TANK.scale, [, y0, z0] = TANK.at, top = z0 - R * TANK.depth;
+  assert.ok(2 * R > 0.26 && 2 * R < 0.34, `a dome about 30 cm across (${(2 * R).toFixed(2)} m)`);
+  assert.equal(TANK.squash, 1); assert.ok(TANK.depth > 0.7 && TANK.depth <= 1, 'half a sphere, a little flattened at most');
   const outer = RUCKSACK.back - RUCKSACK.depth;
-  assert.ok(z0 < outer && z0 + R > outer - 0.02, `its middle out behind the rucksack, its glass against it (${z0.toFixed(3)}, ${outer.toFixed(3)})`);
-  assert.ok(coat.min.z - (z0 - R) < 0.38, `the whole pack stands ${(coat.min.z - (z0 - R)).toFixed(3)} m off his back`);
+  assert.ok(Math.abs(z0 - outer) < 0.04 && top < outer - 0.08, `its ring at the rucksack's face, its dome out behind it (${z0.toFixed(3)}, ${outer.toFixed(3)})`);
+  assert.ok(coat.min.z - top < 0.26, `the whole pack stands ${(coat.min.z - top).toFixed(3)} m off his back`);
   assert.ok(y0 > sack.min.y - 0.05 && y0 + TANK.height * TANK.scale < sack.max.y + 0.1, 'the glass about the rucksack\'s height, its neck out over the lid');
   assert.deepEqual(TANK.straps, [], 'no band across the fluid');
   // the cradle's struts stand at the sphere's sides, about the rucksack's width

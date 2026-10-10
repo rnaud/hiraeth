@@ -15,34 +15,50 @@ the rucksack's outer face. The look and its reasons:
   are `Humanoid.packPocket`; `FluidTool.updateWorn` hides them while the flask is
   on the back (`where === 'back'`) and shows them again when it is not found
   yet or sits in a vehicle's socket. The rucksack itself never hides.
-- **The round backpack** (v1.38, the progression rewrite; `references/Core Objects/Round Backpack/`: the sheet's
-  first pick, the states sheets): `buildFlask` builds a glass sphere 30 cm across (`TANK.radius` 0.19 × `TANK.scale`)
-  of living jade fluid in a brass cradle: a ring round it in the plane of the back, a band round its equator with
-  three charge lights on its outer face (`flask.lights`: lit for the whole units of the magic bar left, as the glove's
-  knuckles are), a foot cup; a short capped brass neck with a turquoise cloth tied round it; worn, an olive canvas back
-  plate padded against the body (stitched round, two rivets) and two leather straps from its top corners up over the
-  shoulders, buckled. No hose. The same model is the item's picture (`worn: false`, stage 0). It replaced the Ivory and
-  Jade flat flask (`references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`).
+- **The round backpack** (v1.38, the progression rewrite; `references/Core Objects/Round Backpack/`: the worn sheet,
+  the sheet's first pick, the states sheets): `buildFlask` builds a glass **dome**, half a sphere 30 cm across
+  (`TANK.radius` 0.19 × `TANK.scale`) standing `TANK.depth` (0.85) of its radius out of a flat brass porthole ring that
+  lies against the back (the tank frame's z = 0 is the ring's plane, the dome out toward -z). The ring: a rim round the
+  glass and a flange tapering back to the plate. A half hoop across the dome's equator carries three charge lights on
+  its outer face (`flask.lights`: lit for the whole units of the magic bar left, as the glove's knuckles are); a boss
+  under the ring; a short capped brass neck on the ring's top with a turquoise cloth tied round it; worn, a slim olive
+  canvas back plate (`TANK.dome.plate`, padded, stitched round, two rivets) and two leather straps from its top corners
+  up over the shoulders, buckled. No hose. The same model is the item's picture (`worn: false`, stage 0, turned so its
+  dome faces the icon's camera). It replaced the Ivory and Jade flat flask
+  (`references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`).
+- **Slim, lying flat** (the author on v1.38's first sphere: "it should be a bit slimmer like on the references so it's
+  not protruding out so much … it's a half sphere so it lays flat on the back"): the whole pack stands 0.21 m off the
+  back (plate to dome top), against v1.38's first sphere's 0.36 m. The plate's back is where the sphere's was on the
+  body, so the straps and the shirt are unchanged; `tankGlassMeasure(p)` is the dome's inside test (tests).
 - **Its stages** (`flask.stages`, `setStage`; src/items.js `BACKPACK_STAGES`, `backpackStage`): each strength found adds
   its parts, as the states sheet's second pick draws them. 1, the lift valve (the double jump): the valve's wheel on
-  the cap, a second ring over the top, two small brass fins on the band. 2, the wings: folding brass vanes at its sides,
-  folded back. 3, the Warden's harness (the City-Shaft's jets; the debug jets count too): a second capped valve on the cap's shoulder, the glass brighter (`STAGE_GLOW`) and its
-  fluid quicker (`STAGE_RATE`). A strength found flashes the fluid (FluidTool's item listener).
-- **Its glow and level follow the magic bar**: the fluid stands at the bar's level (empty: dry glass; full: up to the
-  neck), and the glass glows from `TANK.glow[0]` empty to `TANK.glow[1]` full (`uGlow`, FluidTool.updateWorn).
-- **Its fluid** (`materials.js flaskFluid`, kind 0) is jade green and alive. `uFluidBase` is
-  `TANK.base`, or a gun mode's first tone: stilling's blue, ember's orange, bloom's leaf green.
-  The blend's tones turn through it in slow, domain-warped streams with a core of the next tone,
-  and pen-width dark veins mark where they meet the green. It stands at the magic bar's level (a unit, a third of
-  the glass each, a short etched mark at each third) under a pale glass edge and a highlight,
-  over a thick green glass foot. The lava bands of the old tank are gone (`fluidLava` still draws
-  the globs and the wings). `TANK.straps` is empty: no leather band crosses the fluid.
+  the cap, a second half ring over the dome top to bottom, two small brass fins on the band. 2, the wings: folding brass
+  vanes at its sides, folded back along the ring. 3, the Warden's harness (the City-Shaft's jets; the debug jets count
+  too): a second capped valve on the ring's shoulder, the glass brighter (`STAGE_GLOW`) and its nebula turning quicker
+  (`STAGE_RATE`). A strength found flashes the fluid (FluidTool's item listener).
+- **Its glow and level follow the magic bar**: the nebula stands at the bar's level (empty: dry glass and a dreg;
+  full: up to the neck), and the glass glows from `TANK.glow[0]` empty to `TANK.glow[1]` full (`uGlow`,
+  FluidTool.updateWorn), the nebula brighter with it.
+- **Its fluid is a little nebula** (the author: "the new content looks like a little galaxy inside of the backpack. not
+  a lava lamp anymore"; `materials.js flaskNebula`, kind 0): translucent jade-to-cyan clouds wound in a slow two-armed
+  spiral round a soft bright heart, pale star specks twinkling, all lit from within. The fragment shader marches the
+  dome from the glass inward (six samples, `uFluidDome` its centre and radius, `uFluidDomeK` its depth, set by
+  `buildFlask`; object space through `modelMatrix`): each depth's clouds are turned a little behind the one over it, so
+  the inside has depth as the view moves; the stars sit on three shells, each its own parallax, a speck never under a
+  pixel (it fades instead). Above the fill line the rays see empty glass; a soft bright line marks the surface. One
+  draw, no texture, no extra render target. Its colours are `uFluidBase` (`TANK.base`, or a gun mode's first tone:
+  stilling's blue, ember's orange, bloom's leaf green) and the blend's first tone for the cyan wisps. The glass is lit
+  from within (no shade side, `L` at least 0.92) and **inked by its outline only** (the soft-ink flag with a full pen
+  line, as the makers' boxes: post.js draws no line round its clouds, its fill or its highlights). A pale glowing edge
+  where the glass turns away and a window's highlight on its shoulder finish it. `TANK.straps` is empty: no leather
+  band crosses it.
 - **Where it sits**: `Humanoid.tankAt` overrides `TANK.at`. The coral-shirt traveller
-  (`traveller-v1.js TRAVELLER_V1_TANK_AT`, z -0.355) has no rucksack, so the sphere's canvas plate sits right on his
-  back. The old body keeps `TANK.at` (z -0.37), standing out of its rucksack. The side struts' brackets are short so the
-  sword's frog behind the right shoulder stays clear (`tests/sword-sheath.test.js`: 1.8 cm at the least, to the plate's
-  stitching). A vehicle's socket and the hand-off
-  keep `TANK.scale` either way.
+  (`traveller-v1.js TRAVELLER_V1_TANK_AT`, z -0.1886) has no rucksack, so the dome's canvas plate sits right on his
+  back. The old body keeps `TANK.at` (z -0.245), its ring on its rucksack's outer face. The side struts stand beside the
+  dome (`TANK_RAIL.z` -0.07, between its ring and its top) with short brackets back to the plate, the top one at the
+  dome's middle, and the ring's rim is slim, so the sword's frog behind the right shoulder stays clear
+  (`tests/sword-sheath.test.js`: 1.2 cm at the least, to the ring's rim). The jets clip under the dome. A vehicle's
+  socket and the hand-off keep `TANK.scale` either way.
 - **The scout's dock**: without the flask, on the rucksack's lid (`kit.dock`,
   `Gear.packDock`); with it, clamped to the top of the flask's left upright
   (`TANK_RAIL`, `SCOUT_DOCK_*`), high enough that the arms don't swing into

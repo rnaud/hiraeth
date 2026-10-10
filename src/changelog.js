@@ -20,6 +20,7 @@ export const CHANGELOG = [
     'The Warden’s Well in the City-Shaft now holds the Warden’s harness: jets that fly in the City-Shaft only. The jets that flew everywhere were too strong for the worlds and are out of play (a save that had them keeps the harness).',
     // the round backpack (references/Core Objects/Round Backpack)
     'The backpack is a round glass sphere of glowing jade fluid in a brass cradle, on an olive canvas plate with leather straps. Its glow follows your magic bar, three lights on its band count the units left, and it grows with each strength: a valve wheel and fins, then folding brass vanes, then a second valve and a brighter, quicker swirl.',
+    'The round backpack lies flat on your back now, half as deep: a glass dome on a brass porthole ring, as the drawings have it. Inside it a little jade nebula turns slowly round a bright heart, its clouds layered in depth and pale stars twinkling, instead of the lava-lamp swirl; it still fills and glows with your magic, and turns faster once the harness is found.',
     // saves and buttons
     'Saves keep what they earned: past the giant’s pool you have the lift valve, past the Givers’ Hearth the gun, in hand. A controller layout you changed follows: whatever you had put on Y / △ now sounds the whistle.',
     // the desert's fallen giant and the cave in its chest, after the picked references (docs/systems/worlds.md)
