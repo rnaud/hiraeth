@@ -1,0 +1,63 @@
+changelog.md
+  s_9ca76055a220ed::t_c2518f99b7d79b 9-10
+docs/systems/performance.md
+  s_9ca76055a220ed::t_315693fbb34e24 1050-1071
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_735544a4a5a07b 190-219
+scripts/title-shots.mjs
+  s_9ca76055a220ed::t_2af1e805578402 12,31,43,121-132
+src/changelog.js
+  s_9ca76055a220ed::t_d3c53cf2e40b58 45-56
+src/main.js
+  s_9ca76055a220ed::t_962276ebe75c4d 114,2059-2061,2085-2087
+src/menus.css
+  s_9ca76055a220ed::t_3a4e885ff7fc88 34-41
+src/passage.js
+  s_9ca76055a220ed::t_435f369637d2f4 174-195
+src/post.js
+  s_9ca76055a220ed::t_14791c5fa5ec2b 236-237,359-371,1049-1053,1055-1057,1068,1099,1171,1197,1199,1237,1338,1344,1380,1394,1611
+src/title-still.js
+  s_9ca76055a220ed::t_65f7bf8fb2fe8e 1-46
+src/title-world.js
+  s_9ca76055a220ed::t_f01318e60918d1 18,110,112,132,413-415,422-427,482
+src/title.js
+  s_9ca76055a220ed::t_0bbe603c49d670 41,154,177-188,208,446-448,452,457-458,461,465-469,471
+src/warm-shaders.js
+  s_9ca76055a220ed::t_cdf66e4b5e7377 61-64,66-71
+tests/ink-size.test.js
+  s_9ca76055a220ed::t_cb5ebbe96c1c23 48
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_6a57e972b42e66 98
+tests/shade.test.js
+  s_9ca76055a220ed::t_748ac8bdedbc80 161
+tests/title-ready.test.js
+  s_9ca76055a220ed::t_2b322a7e221e4c 27,47
+tests/title-still.test.js
+  s_9ca76055a220ed::t_e14f9f85098a5f 1-117
+tests/load-awaits.test.js
+  s_0b5927001e4eb4::t_52fc9dab8e54e1 38-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c950df0bba4cf018b1fa67931d9744d4caadae59",
+  "prompts": {},
+  "sessions": {
+    "s_0b5927001e4eb4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a31281c77204b7b09",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
