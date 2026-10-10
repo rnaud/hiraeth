@@ -24,6 +24,9 @@ export const CHANGELOG = [
     'Saves keep what they earned: past the giant’s pool you have the lift valve, past the Givers’ Hearth the gun, in hand. A controller layout you changed follows: whatever you had put on Y / △ now sounds the whistle.',
   ] },
   { v: '1.37', date: '2026-10-10', items: [
+    // the desert's fallen giant and the cave in its chest, after the picked references (docs/systems/worlds.md)
+    'The fallen giant’s skull beyond Qanat’s back gate is rebuilt after its picture: as big as a temple and tipped face first into the sand, its eye sockets ringed in the pilgrims’ turquoise and ochre with ribbons and offerings hanging below, a row of great teeth over a dark mouth whose steps go down to a cool glow, and cairns marking the way from the gate.',
+    'The cave in the giant’s chest is rebuilt too: a tall vault of ribs with rock between them, light falling through cracks onto a warm sandy floor, a round dry pool walled in stone steps with the tree’s pale roots hanging into it, and a stone trough from a crack in the wall, the great fallen bone lying across it and water glinting in the crack behind.',
     // the audits page's dashboard (docs/systems/ui.md "The audits page")
     'The Audits page in the Debug menu opens on the latest scores of every kind of audit: a card each for the whole game, combat, level design, temple design, visuals, temple visuals, ink lines, cinematics, dialogue and performance, with its score, how much it moved since the audit before, and its scores per world, temple or creature, each with its own change. A card opens the full audit; History shows the earlier audits’ scores as a line and a list, and All audits lists every report as before.',
     'On the Audits page, clicking a report’s tabs or a card’s History button works again; before, it threw you back to the dashboard.',

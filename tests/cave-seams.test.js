@@ -13,7 +13,7 @@ const dome = (r, w, h, sy) => new THREE.SphereGeometry(r, w, h, 0, Math.PI * 2, 
 
 // (as the levels build them: radius, segments, rings, height scale; amount, frequency, seed)
 for (const [name, rough, shape, args] of [
-  ['the giant’s heart', roughCity, [31, 30, 16, 0.62], [1.2, 0.18, 5]],
+  ['the giant’s heart', roughCity, [31, 40, 20, 0.8], [1.2, 0.18, 5]],   // (the tall vault after the reference sheet)
   ['the Givers’ Hearth', roughHearth, [18.5, 28, 14, 0.8], [0.9, 0.22, 4]],
 ]) {
   test(`${name}: the dome's foot never lifts off the floor, and the dome stays rough`, () => {
@@ -47,7 +47,7 @@ test('the Givers’ Hearth: the floor runs on under the dome’s whole foot (no 
 
 test('the giant’s heart: its floor runs on under the dome’s foot too', () => {
   // (desert-city.js: the floor's lathe out to ROOM + 4 = 34 m, 36 sides; the dome as built there)
-  const floor = 34 * Math.cos(Math.PI / 36), p = roughCity(dome(31, 30, 16, 0.62), 1.2, 0.18, 5).attributes.position;
+  const floor = 34 * Math.cos(Math.PI / 36), p = roughCity(dome(31, 40, 20, 0.8), 1.2, 0.18, 5).attributes.position;
   let far = 0;
   for (let i = 0; i < p.count; i++) if (p.getY(i) <= 0) far = Math.max(far, Math.hypot(p.getX(i), p.getZ(i)));
   assert.ok(far > 32 && far < floor - 0.3, `the foot out to ${far.toFixed(2)} m, the floor to ${floor.toFixed(2)} m`);

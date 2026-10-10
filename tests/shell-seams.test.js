@@ -14,7 +14,7 @@ import { lumpy } from '../src/levels/sky-stones-kit.js';
 import { jitter, soften } from '../src/world.js';
 
 // shells as the worlds stand them on a floor at y = 0: a dome, an open drum (a round hall's wall, a trunk), a
-// tapering mound, a squashed half-sphere (the caves' 0.62 and 0.8)
+// tapering mound, a squashed half-sphere (the giant's heart was 0.62 before its tall vault, the Hearth's 0.8)
 const SHELLS = {
   dome: () => new THREE.SphereGeometry(18, 28, 14, 0, Math.PI * 2, 0, Math.PI / 2),
   'low dome': () => new THREE.SphereGeometry(31, 30, 16, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.62, 1),

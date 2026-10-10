@@ -520,11 +520,41 @@ What v1.20 left (`docs/audits/level-design-v1.23.md`): the places far from every
   is the bark itself (it was a cone up to 0.7 m outside it). `tests/desert-story.test.js`
   raycasts the drawn surfaces against the ground.
 - **The dry cave**: the giant's chest has no water until the rib is off the channel (levered, or pushed with a full tank):
-  damp stains in the basin and the gutter, a pale tide line where the pool stood. Then the
+  damp stains in the basin and the trough, pale tide lines where the pool stood. Then the
   stream runs out of the crack down the channel (`cave.setWater(flow, level)` reveals it
   segment by segment with a draw range), and the pool fills the basin from its lowest point,
   widening up its sides (its radius follows the basin's profile, `cave.basinR`). A save with
   the channel already open finds it full (`tests/desert-cave.test.js`).
+
+## The giant's skull and the cave in its chest, after the picked references (v1.37)
+Rebuilt after `references/levels/The Desert/places/skull/sheet-1.jpg` and `skull-cave/sheet-1.jpg` (prompts in
+`docs/design/desert-places-prompts.md`), in `src/desert-city.js`; every hook the story uses kept where it was
+(`giant.door` at local z 15.6 and its portal, `cave.inside` / `exit`, the pool at the cave's origin, `cave.boneRest`,
+`chDir`, `streamAt`, `setWater`, the mural, the keepers' stair), so quests and saves are untouched.
+- **The skull** is built in skull space and put through one matrix (`SK`): tipped forward 0.12 rad and rolled 0.04
+  about the mouth's front, and scaled 1.25 (about 29 m high: temple-sized). The cranium is a gently roughened
+  ellipsoid with its sockets, nose and mouth cut out (`trim`, a `cut` that keeps smooth normals). Each socket is a
+  lathed funnel stood in the bone: an ochre rim, the turquoise band and an ochre lip that follow the bone's curve
+  (`sag`, so the ring reads painted on, not a goggle), then a deep shaded bowl; ochre marks round the band. Ribbons
+  and beads hang off each ring's lower rim, laid off the bone by raycasts against the face (`boneZ`: where the face
+  bulges they hang from the bulge); ink cracks follow the crown the same way. The upper jaw mass carries twelve
+  teeth (the middle two high enough to walk under), the mouth is a thick arch (`archShell`) with steps going down to
+  a turquoise glow (`giant.glow`). The lower jaw tongue still collides as before (`tests/skull-entrance.test.js`), drawn
+  as worn stone steps; the jaw's teeth stand in the sand either side. Cairns (`giant.cairns`) line the walk from the
+  back gate round the skull's west side to the mouth, 2.6 m off it, one every ~10 m. Three draw batches as before.
+- **The cave** is a taller vault (height 0.8 of its radius, 40 × 20) with eleven flat rib bands (`band`) across it,
+  spaced so the crack, the doorway and the stair fall between them. The floor is warm sand; the pool is a flat bed
+  with four 0.4 m stone steps up to a paved kerb (`prof`, `KERB`: walkable both ways, under the 0.6 m step), with
+  tide lines on the risers and damp stains on the bed. Four cracks in the vault (`SKY`) let the sky through, each
+  with a bone rim, thin glowing rays and a pool of light on the floor (a glow material: no light of its own). The
+  roots hang from the crown in two curtains of pale strands; the channel is a stone trough on the floor from the crack
+  to the pool's top step, the fallen thigh bone resting on its walls, turquoise glints in the crack. The cave's bone
+  and the builders' stone have their own materials, lifted and warm in the shade (`shade`, `shadeHue`; so has the
+  floor): the room is lit only through cracks, and the city's paint went grey-brown there. Seven batches (eight
+  before). `tests/skull-cave-reference.test.js` checks the cairns, the brow and glow, the steps, the bone on the trough
+  and the cracks; `tests/cave-seams.test.js` the taller dome's foot.
+- Cost (High, the Mac, all passes, the place shown vs hidden): the skull 5 → 6 draws and 14.8k → 23.7k triangles from
+  the path; the cave 21 → 19 draws and 20.2k → 32.6k triangles from its entrance (changelog v1.37).
 
 ## The ship's deck: flat, smaller, lived in, a holo table in the middle
 (The round deck below was replaced in October 2026 by the angular hull's rooms: docs/systems/ship.md. What

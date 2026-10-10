@@ -113,6 +113,63 @@ function cut(g, test) {
   return out;
 }
 
+/** cut(), keeping the smooth normals the geometry had (a hole in smooth bone shows no facets). */
+function trim(g, test) {
+  if (!g.attributes.normal) g.computeVertexNormals();
+  const geo = g.index ? g.toNonIndexed() : g, p = geo.attributes.position.array, n = geo.attributes.normal.array, kp = [], kn = [];
+  for (let i = 0; i < p.length; i += 9) {
+    const cx = (p[i] + p[i + 3] + p[i + 6]) / 3, cy = (p[i + 1] + p[i + 4] + p[i + 7]) / 3, cz = (p[i + 2] + p[i + 5] + p[i + 8]) / 3;
+    if (!test(cx, cy, cz)) for (let k = 0; k < 9; k++) { kp.push(p[i + k]); kn.push(n[i + k]); }
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(kp, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(kn, 3));
+  return out;
+}
+
+/**
+ * A flat band along a curve lying in a plane (a rib of the giant's chest): an elliptical section, `w` wide across
+ * the plane (along `axis`, its normal) and `t` thick within it. Open ends (they stand in the floor).
+ */
+export function band(points, w, t, seg = 24, radial = 6, axis = V(0, 0, 1)) {
+  const curve = new THREE.CatmullRomCurve3(points), pos = [], idx = [], T0 = V(0, 0, 0), N = V(0, 0, 0);
+  for (let i = 0; i <= seg; i++) {
+    const u = i / seg, c = curve.getPointAt(u);
+    curve.getTangentAt(u, T0);
+    N.crossVectors(T0, axis).normalize();
+    for (let j = 0; j <= radial; j++) {
+      const a = (j % radial) / radial * Math.PI * 2;
+      pos.push(c.x + axis.x * w * Math.cos(a) + N.x * t * Math.sin(a), c.y + axis.y * w * Math.cos(a) + N.y * t * Math.sin(a), c.z + axis.z * w * Math.cos(a) + N.z * t * Math.sin(a));
+    }
+  }
+  for (let i = 0; i < seg; i++) for (let j = 0; j < radial; j++) {
+    const a = i * (radial + 1) + j, b = a + radial + 1;
+    idx.push(a, a + 1, b, a + 1, b + 1, b);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+/**
+ * A thick arch running along z (the skull's mouth, its tunnel): an inner face toward the axis (you walk under it),
+ * an outer face, and the front lip at z1. Angles a0..a1 from +x, counter-clockwise; centre height yc.
+ */
+function archShell(ri, ro, yc, z0, z1, a0, a1, seg = 18) {
+  const pos = [], idx = [];
+  const ring = (r, z) => { const k = pos.length / 3; for (let i = 0; i <= seg; i++) { const a = a0 + (a1 - a0) * i / seg; pos.push(Math.cos(a) * r, yc + Math.sin(a) * r, z); } return k; };
+  const quad = (A, B, flip) => { for (let i = 0; i < seg; i++) { const a = A + i, b = B + i; if (flip) idx.push(a, a + 1, b, a + 1, b + 1, b); else idx.push(a, b, a + 1, a + 1, b, b + 1); } };
+  const i0 = ring(ri, z0), i1 = ring(ri, z1), o0 = ring(ro, z0), o1 = ring(ro, z1), fi = ring(ri, z1), fo = ring(ro, z1);
+  quad(i0, i1, false); quad(o0, o1, true); quad(fi, fo, false);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
 /** Wobble a geometry's vertices by a smooth pseudo-noise (rough stone). */
 export function rough(g, amount, freq = 0.3, seed = 0) {
   const p = g.attributes.position;
@@ -205,8 +262,11 @@ function materials() {
     rope: paint('#716c70'),
     red: paint('#c8483a'),
     cloth: ['#c8483a', '#5fb7ad', '#d8a24a', '#8a6fb8', '#e6875f', '#f3ead8', '#62c3c9', '#e88fa6'].map((c) => paint(c, { side: THREE.DoubleSide })),
-    cave: makeMaterial({ color: '#7d6a8a', color2: '#6d5b7c', color3: '#8f7c9a', mode: MODE_STRATA, strataSize: 1.6, flat: true }),
-    caveFloor: makeMaterial({ color: '#8a7890', color2: '#7a6880', color3: '#9a88a0', mode: MODE_STRATA, strataSize: 0.6, flat: true, side: THREE.DoubleSide }),
+    // the giant's chest (references/levels/The Desert/places/skull-cave): lavender rock between the ribs, a floor of warm sand
+    // (both lifted in the shade, the floor keeping its own warm hue there: the cave is lit only through cracks, and the
+    // reference's shaded sand stays peach and its rock lavender, never brown-black)
+    cave: makeMaterial({ color: '#ab98b6', color2: '#9a88a8', color3: '#bcaac4', mode: MODE_STRATA, strataSize: 1.6, flat: true, shade: 0.35 }),
+    caveFloor: makeMaterial({ color: '#e4b48c', color2: '#d8a77e', color3: '#ecc39e', mode: MODE_STRATA, strataSize: 0.6, flat: true, side: THREE.DoubleSide, shade: 0.5, shadeHue: 0.7, hatch: 0.6 }),
     mural: makeMaterial({ color: '#e9dcc0', flat: true, grid: 0.9 }),
     glyph: makeMaterial({ color: '#70e7df', glow: 0.85, flat: true }),
     // the makers' own stone (the tree's pedestal): pale, finely bedded, carved with their inscriptions; their blue for its bands
@@ -735,29 +795,139 @@ export function buildDesertCity(scene, terrain) {
   const gy = terrain.baseAt(G.x, G.z, 16);
   const giant = new Kit(root, 'Fallen giant', V(G.x, gy, G.z), G.yaw);
   {
-    // Reference: Walkable Jaw Entrance v2. Keep the existing portal at z=15.6,
-    // but build a jaw and a vaulted mouth around the route, instead of a doorway painted on a ball.
-    const skull = new THREE.SphereGeometry(13, 28, 18).scale(1, 0.82, 0.72);
-    rough(skull, 0.35, 0.25, 3);
-    skull.translate(0, 5.8, -1.5);
-    giant.both(M.bone, skull);
-    // Deep sockets with thick orbital rims and cheekbones, well above the mouth.
+    // After the author's pick (references/levels/The Desert/places/skull/sheet-1.jpg): a temple-sized skull, half sunk,
+    // tipped forward as if the giant fell face first; two deep round sockets ringed in the pilgrims' turquoise and ochre
+    // with ribbons hanging under them, a row of great upper teeth over the mouth, and the mouth a dark tunnel at the
+    // sand's level, steps going down to a cool glow. The portal stays at z = 15.6 (the tongue in front of it is the
+    // lower jaw, sloping into the dune), the route to it a person wide (tests/skull-entrance.test.js).
+    const TILT = 0.12, ROLL = 0.04, SIZE = 1.25, PIVOT = V(0, 0, 14);   // face first: about the mouth's front, the crown forward; temple-sized
+    const SK = new THREE.Matrix4().makeTranslation(PIVOT.x, PIVOT.y, PIVOT.z)
+      .multiply(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(TILT, 0, ROLL)))
+      .multiply(new THREE.Matrix4().makeScale(SIZE, SIZE, SIZE))
+      .multiply(new THREE.Matrix4().makeTranslation(-PIVOT.x, -PIVOT.y, -PIVOT.z));
+    const sk = (geo) => geo.applyMatrix4(SK), skp = (x, y, z) => V(x, y, z).applyMatrix4(SK);
+    // the cranium: an ellipsoid, weathered (a gentle roughness: wind-smoothed, not rocky)
+    const CR = { c: V(0, 9.5, 1), a: 16, b: 14, cz: 13 };
+    const onSkull = (x, y) => { const dx = x / CR.a, dy = (y - CR.c.y) / CR.b; return V(x, y, CR.c.z + CR.cz * Math.sqrt(Math.max(0, 1 - dx * dx - dy * dy))); };
+    const normalAt = (p) => V(p.x / CR.a ** 2, (p.y - CR.c.y) / CR.b ** 2, (p.z - CR.c.z) / CR.cz ** 2).normalize();
+    // the sockets and the nose: a direction (the socket's axis) and the point where it meets the bone
+    const sockets = [-1, 1].map((s) => { const p = onSkull(s * 6.4, 12.8); return { s, p, d: normalAt(p) }; });
+    const nose = (() => { const p = onSkull(0, 10.0); return { p, d: normalAt(p) }; })();
+    const frame = (d) => { const q = new THREE.Quaternion().setFromUnitVectors(UP, d); return { q, ex: V(1, 0, 0).applyQuaternion(q), ez: V(0, 0, 1).applyQuaternion(q) }; };
+    const into = (P, d) => (x, y, z) => { const v = V(x, y, z).sub(P); return { h: v.dot(d), rho: v.clone().addScaledVector(d, -v.dot(d)) }; };
+    let cran = new THREE.SphereGeometry(1, 48, 28).scale(CR.a, CR.b, CR.cz);
+    rough(cran, 0.15, 0.22, 3);
+    cran.translate(CR.c.x, CR.c.y, CR.c.z);
+    const inSock = sockets.map(({ p, d }) => into(p, d)), inNose = into(nose.p, nose.d), nf = frame(nose.d);
+    cran = trim(cran, (x, y, z) => {
+      for (const f of inSock) { const { h, rho } = f(x, y, z); if (h > -4 && rho.length() < 4.7) return true; }
+      { const { h, rho } = inNose(x, y, z); if (h > -3 && (rho.dot(nf.ex) / 1.7) ** 2 + (rho.dot(nf.ez) / 2.5) ** 2 < 1) return true; }
+      return z > 3 && Math.hypot(x, y) < 4.9;   // the mouth: the tunnel's arch takes over
+    });
+    // (the face's bone, kept to lay things on it: the ribbons hang off it, the cracks follow it)
+    const face = [], keep = (g) => { face.push(new THREE.Mesh(g.clone())); return g; };
+    giant.both(M.bone, keep(sk(cran)));
+    // a socket: a funnel stood in the bone, its outer slope rising through the surface to a lip (the painted ring:
+    // turquoise, an ochre lip, ochre marks round it), then the deep shaded bowl
+    const ring = paint('#5fbcc0'), ochre = paint('#d9a64e'), sockIn = paint('#b8a898', { smooth: true });
+    const funnel = (P, d, prof, paints, sx = 1, sz = 1) => {
+      const { q } = frame(d), m = new THREE.Matrix4().compose(P, q, V(1, 1, 1)).multiply(new THREE.Matrix4().makeScale(sx, 1, sz));
+      for (let i = 0; i < paints.length; i++) giant.both(paints[i], sk(lathe(prof[i], 22).applyMatrix4(m)));
+    };
+    const ribbonAt = [];
+    for (const { s, p, d } of sockets) {
+      const sag = (r, lift) => [r, -r * r / 28 + lift];   // (on the bone's curve, R ≈ 14: the ring painted on it, not stood off it)
+      funnel(p, d, [[sag(6.0, 0.02), sag(5.75, 0.3)], [sag(5.75, 0.3), sag(5.2, 0.34), sag(4.6, 0.32)], [sag(4.6, 0.32), sag(4.35, 0.32), sag(4.2, 0.12)], [sag(4.2, 0.1), [4.0, -2.2], [3.3, -6.2], [0, -6.8]]], [ochre, ring, ochre, sockIn]);
+      // the marks: little ochre bars round the ring's slope, and three dots over each socket (the glyph's)
+      const { q } = frame(d), slopeN = V(0.37, 1, 0).normalize();
+      for (let k = 0; k < 22; k++) {
+        const a = (k / 22) * Math.PI * 2, r = 5.15, h = -r * r / 28 + 0.36;
+        const loc = V(Math.cos(a) * r, h, Math.sin(a) * r).addScaledVector(V(Math.cos(a) * slopeN.x, slopeN.y, Math.sin(a) * slopeN.x), 0.06);
+        const bar = new THREE.PlaneGeometry(0.42, k % 3 ? 0.16 : 0.36).rotateX(-Math.PI / 2).rotateZ(Math.atan2(-slopeN.x, slopeN.y)).rotateY(-a).translate(loc.x, loc.y, loc.z);
+        giant.add(ochre, sk(bar.applyQuaternion(q).translate(p.x, p.y, p.z)));
+      }
+      ribbonAt.push({ s, q, p, d });
+    }
+    // the nose: a narrower hole, taller than wide, flush with the bone
+    funnel(nose.p, nose.d, [[[2.9, -0.4], [2.15, -0.12], [1.85, -0.3]], [[1.85, -0.3], [1.5, -2.6], [0, -3.3]]], [M.bone, sockIn], 0.82, 1.3);
+    // the brow's glyph between the rings (the brow you look up at; the giant's breath comes out over it)
+    const browP = onSkull(0, 17.4), browN = normalAt(browP);
+    giant.add(M.glyph, sk(glyphGeometry(1.1).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), browN)).translate(browP.x + browN.x * 0.25, browP.y + browN.y * 0.25, browP.z + browN.z * 0.25)));
+    const brow = browP.clone().addScaledVector(browN, 0.3).applyMatrix4(SK);
+    // cheekbones under the sockets' outer corners, sweeping back to the temples
     for (const s of [-1, 1]) {
-      giant.add(M.ink, T(new THREE.SphereGeometry(3.05, 16, 10), [s * 5.7, 8.8, 8.7], [0, s * 0.16, 0], [1.1, 0.8, 0.3]));
-      giant.both(M.bone, T(new THREE.TorusGeometry(3.05, 0.42, 8, 24), [s * 5.7, 8.8, 9.15], [0, s * 0.16, s * -0.1], [1.15, 0.86, 1]));
-      giant.both(M.boneDark, taper([V(s * 10, 5.5, 7), V(s * 8.5, 4.5, 11), V(s * 5.2, 2.2, 14)], 1.5, 0.9, 12, 8));
-      giant.both(M.bone, taper([V(s * 5.5, -0.2, 12), V(s * 5.5, 0.35, 17), V(s * 3.6, -1.05, 21)], 0.9, 0.5, 14, 8));
+      giant.both(M.bone, keep(sk(taper([V(s * 14.6, 6.2, 0), V(s * 12.2, 6.9, 6.6), V(s * 9.6, 6.1, 10.8), V(s * 7.4, 4.9, 13.4)], 1.7, 1.15, 14, 8))));
+      // the jaw's hinge: a mass each side of the mouth, sunk in the sand
+      giant.both(M.bone, sk(rough(new THREE.SphereGeometry(1, 18, 12).scale(2.5, 3.0, 3.8), 0.2, 0.4, 7).translate(s * 8.4, -0.2, 11.2)));
     }
-    // A nasal bridge and two narrow nasal cavities, then the upper dental arch.
-    giant.both(M.bone, T(new THREE.SphereGeometry(2, 12, 8), [0, 7.5, 10], [0, 0, 0], [0.8, 1.5, 0.8]));
-    for (const s of [-1, 1]) giant.add(M.ink, T(new THREE.ConeGeometry(0.75, 2.5, 3), [s * 0.65, 7.2, 11.35], [0, 0, s * -0.2], [1, 1, 0.3]));
-    giant.both(M.bone, T(new THREE.TorusGeometry(4.7, 0.8, 8, 24, Math.PI), [0, 1.1, 13.4], [0, 0, 0], [1.12, 1, 1.2]));
-    for (let i = -4; i <= 4; i++) {
-      const y = 1.1 + Math.sqrt(4.7 ** 2 - (i * 1.02) ** 2);
-      giant.both(M.bone, T(new THREE.CapsuleGeometry(0.48, 0.85, 3, 8), [i * 1.13, y - 0.55, 14], [0.08, 0, -i * 0.055]));
-      if (Math.abs(i) > 2) giant.both(M.bone, T(new THREE.CapsuleGeometry(0.4, 0.6, 3, 8), [i * 1.34, 0.65, 17.3 - Math.abs(i) * 0.35], [0, 0, -i * 0.06]));
+    // the upper teeth on their arch (a U in plan, its front at z ≈ 15.5): the middle two high enough to walk under,
+    // the canines long, the back ones short
+    const U = (t) => V(6.6 * t, 5.7, 15.5 - 3.6 * t * t);
+    // (the arch: the upper jaw, the face's bone coming forward under the nose; the teeth come out from under it)
+    giant.both(M.bone, keep(sk(rough(new THREE.SphereGeometry(1, 28, 14).scale(7.3, 2.1, 3.6), 0.12, 0.4, 9).translate(0, 6.4, 11.8))));
+    for (const [x, len] of [[-6.0, 1.5], [-5.15, 2.1], [-4.2, 2.7], [-3.1, 4.3], [-1.9, 3.3], [-0.66, 2.4], [0.66, 2.5], [1.9, 3.1], [3.1, 4.6], [4.2, 2.6], [5.15, 2.0], [6.0, 1.4]]) {
+      const t = x / 6.6, c = U(t), yaw = Math.atan2(7.2 * t, 6.6);   // (facing out of the U)
+      const r = Math.abs(x) > 2.5 && Math.abs(x) < 3.5 ? 0.5 : 0.56, body = Math.max(len - 2 * r, 0.05);
+      const tooth = new THREE.CapsuleGeometry(r, body, 3, 7).scale(1.12, 1, 0.62).translate(0, 5.25 - len / 2, 0).rotateY(yaw).translate(c.x, 0, c.z - 0.15);
+      giant.both(M.bone, sk(tooth));
     }
-    // A shallow bone tongue meets the sand. Its broad centre remains clear for walking.
+    // ribbons and offerings tied under the rings: cloth strips hanging from each ring's lower rim, straight down but
+    // off the bone (where the face bulges under them they hang from the bulge), a bead or a little bundle at each end
+    const ray = new THREE.Raycaster(), _o = V(0, 0, 0), _back = V(0, 0, -1);
+    const boneZ = (x, y) => { ray.set(_o.set(x, y, 40), _back); const h = ray.intersectObjects(face, false)[0]; return h ? h.point.z : -Infinity; };
+    for (const { s, q, p } of ribbonAt) {
+      for (let k = 0; k < 7; k++) {
+        const a = Math.PI / 2 + (k - 3) * 0.26 * s, r = 5.5;   // (the funnel's local +z is down the face)
+        const top = V(Math.cos(a) * r, -r * r / 28 + 0.2, Math.sin(a) * r).applyQuaternion(q).add(p).applyMatrix4(SK);
+        const L = [3.2, 4.4, 2.6, 3.9, 2.2, 3.6, 2.8][k], strip = paint(M.cloth[[1, 2, 6, 5, 1, 0, 2][k]].paint), n = 6;
+        const pts = [top];
+        for (let i = 1; i <= n; i++) {
+          const y = top.y - L * i / n, sway = Math.sin(k * 1.7 + i * 0.9) * 0.05 * i;
+          pts.push(V(top.x + sway, y, Math.max(pts[i - 1].z, boneZ(top.x + sway, y) + 0.16)));
+        }
+        for (let i = 0; i < n; i++) {
+          const A = pts[i], B = pts[i + 1], dy = A.y - B.y, dz = B.z - A.z, len = Math.hypot(B.x - A.x, dy, dz);
+          giant.add(strip, new THREE.PlaneGeometry(0.46 - i * 0.03, len + 0.03).rotateX(Math.atan2(-dz, dy)).rotateZ(Math.atan2(B.x - A.x, dy)).translate((A.x + B.x) / 2, (A.y + B.y) / 2, (A.z + B.z) / 2));
+        }
+        const end = pts[n].clone().add(V(0, -0.18, 0.05));
+        if (k % 3 === 1) giant.add(paint(M.cloth[(k + 3) % 8].paint), new THREE.BoxGeometry(0.42, 0.36, 0.3).translate(end.x, end.y, end.z));
+        else giant.add(k % 2 ? ochre : ring, new THREE.IcosahedronGeometry(0.2, 0).translate(end.x, end.y, end.z));
+      }
+    }
+    // cracks in the weathered crown and temples: ink seams laid on the bone
+    {
+      const C0 = CR.c.clone().applyMatrix4(SK), rot = new THREE.Matrix4().extractRotation(SK), crng = mulberry32(808), dir = V(0, 0, 0), hitTo = [face[0]];
+      const onCrown = (az, el) => {
+        dir.set(Math.sin(az) * Math.cos(el), Math.sin(el), Math.cos(az) * Math.cos(el)).applyMatrix4(rot).normalize();
+        ray.set(_o.copy(C0).addScaledVector(dir, 40), dir.clone().negate());
+        const h = ray.intersectObjects(hitTo, false)[0];
+        return h ? h.point.clone().addScaledVector(dir, 0.06) : null;
+      };
+      for (const [az0, el0, az1, el1] of [[-0.12, 0.6, -0.5, 0.98], [-0.95, 0.32, -1.3, 0.78], [0.72, 0.74, 1.1, 0.42], [0.22, 1.02, 0.62, 1.26], [-1.5, 0.08, -1.72, 0.5], [0.5, 0.3, 0.95, 0.15], [2.6, 0.2, 2.9, 0.75], [3.3, 0.55, 3.0, 1.1], [-2.5, 0.35, -2.9, 0.85], [3.6, 0.1, 3.9, 0.4]]) {
+        let prev = null;
+        for (let i = 0; i <= 7; i++) {
+          const u = i / 7, q2 = onCrown(az0 + (az1 - az0) * u + (crng() - 0.5) * 0.05, el0 + (el1 - el0) * u + (crng() - 0.5) * 0.05);
+          if (q2 && prev) {
+            const len = prev.distanceTo(q2), mid = prev.clone().add(q2).multiplyScalar(0.5), n2 = mid.clone().sub(C0).normalize();
+            const m = new THREE.Matrix4().lookAt(prev, q2, n2).setPosition(mid);
+            giant.add(M.ink, new THREE.PlaneGeometry(0.1 - u * 0.05, len + 0.05).rotateX(-Math.PI / 2).applyMatrix4(m));
+          }
+          prev = q2;
+        }
+      }
+    }
+    // the mouth's tunnel: a thick arch from the teeth back into the head, steps going down it to a cool glow
+    const tunnel = archShell(4.3, 5.6, 0, 3.5, 13.9, -0.5, Math.PI + 0.5, 24);
+    giant.both(paint('#cbbba5', { smooth: true }), sk(tunnel));
+    for (let k = 0; k < 7; k++) {
+      const z1 = 14.8 - k * 1.5, top = -Math.max(0, k - 0.6) * 0.3;
+      giant.both(M.stone, sk(new THREE.BoxGeometry(8.6, 0.6, 1.5).translate(0, top - 0.3, z1 - 0.75)));
+    }
+    giant.add(M.ink, sk(new THREE.PlaneGeometry(9.6, 8).translate(0, 0.6, 3.75)));
+    giant.add(M.glyph, sk(new THREE.CircleGeometry(1.5, 18).scale(0.8, 1.2, 1).translate(0, 0.5, 3.85)));
+    giant.solid(sk(new THREE.BoxGeometry(9, 8, 0.4).translate(0, 1, 3.6)));
+    // the lower jaw: a tongue of bone meeting the sand (the broad middle clear for walking; it collides), drawn as the
+    // pilgrims' worn steps up to the mouth; the jaw's teeth stand out of the dune either side of the way in
     const jaw = new THREE.Shape();
     jaw.moveTo(-3.3, -13.8); jaw.lineTo(3.3, -13.8); jaw.quadraticCurveTo(5.2, -17, 4.4, -20.4);
     jaw.quadraticCurveTo(0, -23.2, -4.4, -20.4); jaw.quadraticCurveTo(-5.2, -17, -3.3, -13.8);
@@ -765,27 +935,58 @@ export function buildDesertCity(scene, terrain) {
     const jawPos = jawGeo.attributes.position;
     for (let i = 0; i < jawPos.count; i++) jawPos.setY(i, jawPos.getY(i) - Math.max(0, jawPos.getZ(i) - 15) * 0.19);
     jawGeo.computeVertexNormals();
-    giant.both(M.bone, jawGeo);
-    giant.add(M.ink, T(new THREE.SphereGeometry(3.3, 16, 10), [0, 1.9, 10.1], [0, 0, 0], [1.1, 0.9, 0.1]));
-    // Carved ribs lead the eye into the dark throat without obstructing the portal.
-    for (const z of [10.7, 11.8]) giant.both(M.boneDark, T(new THREE.TorusGeometry(3.8, 0.18, 6, 20, Math.PI), [0, 0.3, z]));
-    giant.add(M.glyph, T(glyphGeometry(1.05), [0, 12.1, 6.3], [-0.6, 0, 0]));
+    giant.solid(jawGeo);
+    const tongueY = (z) => 0.07 - Math.max(0, z - 15) * 0.19;
+    for (let k = 0; k < 6; k++) {
+      const z0 = 14.6 + k * 1.15, z1 = z0 + 1.15, w = 6.2 + k * 0.5, top = tongueY(z0) + 0.04;
+      giant.add(M.stone, new THREE.BoxGeometry(w, 0.7, z1 - z0 + 0.02).translate(Math.sin(k * 2.3) * 0.15, top - 0.35, (z0 + z1) / 2));
+    }
+    const ground = (x, z) => { const w = giant.world(x, 0, z); return terrain.heightAt(w.x, w.z) - gy; };
+    for (const [x, z, h, r] of [[-4.1, 19.6, 1.3, 0.55], [-5.3, 18.2, 1.8, 0.62], [-6.4, 16.6, 1.2, 0.58], [4.2, 19.8, 1.6, 0.55], [5.4, 18.3, 1.2, 0.62], [6.5, 16.5, 1.7, 0.58]]) {
+      const g0 = Math.min(ground(x, z), 0.1);
+      giant.both(M.bone, new THREE.CapsuleGeometry(r, h, 3, 8).scale(1, 1, 0.75).rotateZ(x * 0.03).translate(x, g0 + h / 2 - 0.3, z));
+    }
+    // offerings at the foot of the face: jars, bowls and tied bundles on either side of the mouth
+    const jarProf = [[0.01, 0], [0.2, 0.04], [0.27, 0.28], [0.13, 0.5], [0.16, 0.56]];
+    for (const [x, z, k] of [[-8.4, 15.2, 0], [-9.2, 14.2, 1], [-7.6, 16.4, 2], [8.6, 15.0, 3], [9.4, 13.8, 4], [7.9, 16.2, 5]]) {
+      const g0 = ground(x, z), sc = 1.4 + (k % 3) * 0.35;
+      if (k % 3 === 2) giant.add(paint(M.cloth[k % 8].paint), new THREE.BoxGeometry(0.6, 0.45, 0.5).rotateY(k).translate(x, g0 + 0.2, z));
+      else giant.add([M.ochre, M.rose, M.teal][k % 3], lathe(jarProf, 8).scale(sc, sc, sc).translate(x, g0 - 0.03, z));
+    }
     // one arm reaching out of the sand: shoulder, elbow, a hand spread on the dune
     const sh = V(17, -1, 2), el = V(25, 8, 9), wr = V(31, 1.5, 17);
-    const armPts = [[sh, el, 2.2, 1.7], [el, wr, 1.7, 1.2]];
-    for (const [a, b, r0, r1] of armPts) {
-      giant.both(M.bone, taper([a, a.clone().lerp(b, 0.5).add(V(0, 0.6, 0)), b], r0, r1, 10, 8));
-    }
+    for (const [a, b, r0, r1] of [[sh, el, 2.2, 1.7], [el, wr, 1.7, 1.2]]) giant.both(M.bone, taper([a, a.clone().lerp(b, 0.5).add(V(0, 0.6, 0)), b], r0, r1, 10, 8));
     giant.both(M.boneDark, new THREE.SphereGeometry(2.2, 10, 8).translate(el.x, el.y, el.z));
     for (let f = 0; f < 4; f++) {
       const a = -0.6 + f * 0.4, d = V(Math.sin(a + 0.6), 0, Math.cos(a + 0.6));
       const k1 = wr.clone().addScaledVector(d, 2.5).add(V(0, 0.4, 0)), k2 = wr.clone().addScaledVector(d, 5.2).add(V(0, -0.6, 0));
       giant.both(M.bone, taper([wr, k1, k2], 0.55, 0.32, 6, 6));
     }
+    // the pilgrims' cairns: from the back gate round the skull's side to its mouth, one every ~10 m, either side of the
+    // way (2.6 m off it: they never stand in it), and a few more gathered before the mouth
+    const gate = giant.local(out.city.backGate);
+    const way = [V(gate.x, 0, gate.z), V(-22, 0, -8), V(-18, 0, 24), V(0, 0, 26)];
+    const cairns = [];
+    for (let i = 0; i < way.length - 1; i++) {
+      const a = way[i], b = way[i + 1], L = a.distanceTo(b), dir = b.clone().sub(a).normalize(), side = V(-dir.z, 0, dir.x);
+      for (let d = i === 0 ? 14 : 5, n = 0; d < L - 3; d += 10, n++) cairns.push(a.clone().addScaledVector(dir, d).addScaledVector(side, (n % 2 ? 1 : -1) * 2.6));
+    }
+    cairns.push(V(-5.6, 0, 29), V(5.8, 0, 28), V(-8.4, 0, 33.5), V(8.8, 0, 33), V(-3.9, 0, 37), V(4.4, 0, 38));
+    const crng = mulberry32(5150);
+    for (const c of cairns) {
+      let y = ground(c.x, c.z) - 0.08;
+      const n = 3 + Math.floor(crng() * 2), base = 0.42 + crng() * 0.2;
+      for (let k = 0; k < n; k++) {
+        const r = base * (1 - k * 0.17), h = r * 0.62;
+        const stone = new THREE.IcosahedronGeometry(r, 0).scale(1, 0.6, 0.9).rotateY(crng() * 6).translate(c.x + (crng() - 0.5) * 0.08, y + h * 0.5, c.z + (crng() - 0.5) * 0.08);
+        if (k === 0) giant.both(M.stone, stone); else giant.add(M.stone, stone);
+        y += h * 0.95;
+      }
+    }
     giant.flush();
     const door = giant.world(0, 0, 15.6);
     door.y = terrain.heightAt(door.x, door.z) + 0.05;
-    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(0, 12.1, 6.3), hand: giant.world(wr.x, wr.y, wr.z) };
+    out.giant = { local: (x, y, z) => giant.world(x, y, z), skull: giant.world(0, 4.5, 0), door, yaw: G.yaw, brow: giant.world(brow.x, brow.y, brow.z), hand: giant.world(wr.x, wr.y, wr.z), cairns: cairns.map((c) => giant.world(c.x, ground(c.x, c.z), c.z)), glow: giant.world(...skp(0, 0.5, 3.85).toArray()) };
     // the giant's breath (level design audit, fifth round: from Ama's fire the skull's mouth was blind, the skull 17 m
     // high behind the city's walls): the cool air of the cave under it breathing out through the skull's brow into the
     // morning heat, a thin pale column over the back gate, seen from the camps over the walls. While the tree stands
@@ -798,7 +999,15 @@ export function buildDesertCity(scene, terrain) {
   const cave = new Kit(root, 'Cave of the giant’s heart', O, 0);
   const cv = {};
   {
-    const POOL = 12.5, ROOM = 30;
+    // After the author's pick (references/levels/The Desert/places/skull-cave/sheet-1.jpg): a nave of great ribs, sand
+    // and rock between them, light falling through cracks in the vault onto a sandy floor; in the middle a round pool
+    // walled in stone steps, dry, a tide line on its sides, the tree's pale roots hanging into it like curtains; a stone
+    // trough on the floor from a crack in the wall, one huge fallen bone across it, water glinting in the crack.
+    const POOL = 12.5, ROOM = 30, H = 0.8;   // (H: the dome's height over its radius, a tall vault)
+    // the cave's own bone and builders' stone: lifted in the shade and keeping their warmth there, as the floor does
+    // (the city's paint and mural stone go grey-brown in a room lit only through cracks)
+    const caveBone = makeMaterial({ color: '#efe4cc', shade: 0.45, shadeHue: 0.6, hatch: 0.7 });
+    const caveStone = makeMaterial({ color: '#e4d0b2', grid: 0.9, flat: true, shade: 0.45, shadeHue: 0.6, hatch: 0.7 });
     // the entrance passage on the +z side (the way back to the skull). First into the batches: from the
     // passage its walls hide the dome's far side and the room's floor, and drawn before them they keep
     // the GPU from painting those first (a third more fragments in the passage)
@@ -808,18 +1017,24 @@ export function buildDesertCity(scene, terrain) {
     cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
     cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
     cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
-    // the floor: a shallow basin in the middle, running on under the dome's roughened foot (out to 32.8 m: a floor
-    // ending at ROOM + 2 left a hairline under the wall in places, as the Givers' Hearth's did: visual-v1.4)
-    const prof = [[0, -1.7], [POOL - 2, -1.6], [POOL, -1.1], [POOL + 2.2, 0], [ROOM + 4, 0], [ROOM + 4, -1]];
-    const fl = lathe(prof.map(([r, y]) => [r, y]), 36);
-    cave.both(M.caveFloor, fl);   // (the basin collides as drawn: an 18-sided stand-in lay up to 0.5 m inside it)
+    // the floor: the pool's bed in the middle, four stone steps down into it, a paved kerb round it, then sand running
+    // on under the dome's roughened foot (out to 32.8 m: a floor ending at ROOM + 2 left a hairline under the wall in
+    // places, as the Givers' Hearth's did: visual-v1.4)
+    const prof = [[0, -1.7], [10.6, -1.6], [10.6, -1.2], [11.4, -1.2], [11.4, -0.8], [12.2, -0.8], [12.2, -0.4], [13.0, -0.4], [13.0, 0], [14.6, 0], [ROOM + 4, 0], [ROOM + 4, -1]];
+    const KERB = 9;   // (prof[1..KERB]: the steps and the kerb, in the builders' stone)
+    // (each collides as drawn: an 18-sided stand-in lay up to 0.5 m inside the old basin)
+    cave.both(M.caveFloor, lathe(prof.slice(0, 2), 36));
+    cave.both(caveStone, lathe(prof.slice(1, KERB + 1).reverse(), 36));   // (outside in: its faces up and toward the pool, the stone being one-sided)
+    cave.both(M.caveFloor, lathe(prof.slice(KERB), 36));
     // the pool's bed as one flat disc (a lathe's centre is a needle a ray can slip through)
     cave.solid(new THREE.CylinderGeometry(POOL - 1.5, POOL - 1.5, 0.3, 16).translate(0, -1.75, 0));
     // the basin's floor height at radius r, and its radius at height y (where water standing at y meets it)
-    const floorAt = (r) => { for (let i = 1; i < prof.length; i++) if (r <= prof[i][0]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return y0 + (y1 - y0) * (r - r0) / (r1 - r0); } return 0; };
-    const basinR = (y) => { for (let i = 1; i < 4; i++) if (y <= prof[i][1]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return r0 + (r1 - r0) * THREE.MathUtils.clamp((y - y0) / (y1 - y0), 0, 1); } return POOL + 2.2; };
-    // dry until the channel runs: damp stains in the bowl, and a pale tide line where the water stood
-    // (drawn just over the floor, following its slope)
+    const floorAt = (r) => { for (let i = 1; i < prof.length; i++) if (r <= prof[i][0] && prof[i][0] > prof[i - 1][0]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return y0 + (y1 - y0) * (r - r0) / (r1 - r0); } return 0; };
+    const basinR = (y) => {
+      for (let i = 1; i <= KERB - 1; i++) if (y <= prof[i][1]) { const [r0, y0] = prof[i - 1], [r1, y1] = prof[i]; return y1 === y0 ? r0 : r0 + (r1 - r0) * THREE.MathUtils.clamp((y - y0) / (y1 - y0), 0, 1); }
+      return prof[KERB - 1][0];
+    };
+    // dry until the channel runs: damp stains on the bed, and pale tide lines on the steps' faces where the water stood
     const stain = (cx, cz, R, seed, rings = 3, segs = 22) => {
       const pos = [], idx = [];
       const at = (x, z) => pos.push(x, floorAt(Math.hypot(x, z)) + 0.02, z);
@@ -838,71 +1053,113 @@ export function buildDesertCity(scene, terrain) {
       g.setIndex(idx);
       return g;
     };
-    const damp = paint('#66546f', { side: THREE.DoubleSide }), salt = paint('#c4b6c6', { side: THREE.DoubleSide });
-    cave.add(damp, stain(0.6, -0.4, 6.8, 1.3, 4, 30));
-    for (const [x, z, r, sd] of [[8.6, -2.4, 2.4, 2.1], [6.0, 3.6, 1.6, 4.4], [-5.4, -4.2, 1.9, 0.7], [-2.6, 6.1, 1.2, 3.3]]) cave.add(damp, stain(x, z, r, sd));
-    {
-      const rTide = basinR(-0.35) - 0.05, ring = [], ix = [], n = 72;
-      for (let k = 0; k <= n; k++) {
-        const a = (k / n) * Math.PI * 2, w = 0.09 + 0.05 * Math.sin(a * 5);
-        for (const r of [rTide - w, rTide + w]) ring.push(Math.cos(a) * r, floorAt(r) + 0.025, Math.sin(a) * r);
-      }
-      for (let k = 0; k < n; k++) { const a = k * 2; ix.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-      const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.Float32BufferAttribute(ring, 3));
-      g.setIndex(ix);
-      cave.add(salt, g);
-    }
-    // the dome, inside out, rough: the giant's chest
+    const damp = paint('#9a7c74'), salt = paint('#efe3cf');
+    cave.add(damp, stain(0.6, -0.4, 6.4, 1.3, 4, 30));
+    for (const [x, z, r, sd] of [[7.4, -2.4, 2.2, 2.1], [5.6, 3.6, 1.6, 4.4], [-5.4, -4.2, 1.9, 0.7], [-2.6, 6.1, 1.2, 3.3]]) cave.add(damp, stain(x, z, r, sd));
+    // (the tide lines: thin bands on the step risers, facing into the pool: the highest where the full pool stands)
+    for (const [r, y0, y1] of [[13.0 - 0.02, -0.36, -0.27], [12.2 - 0.02, -0.66, -0.6], [11.4 - 0.02, -1.08, -1.03]]) cave.add(salt, inward(new THREE.CylinderGeometry(r, r, y1 - y0, 48, 1, true).translate(0, (y0 + y1) / 2, 0)));
+    // the dome, inside out, rough: the giant's chest, cut for the passage and for the cracks the light falls through
     const door = (x, y, z) => Math.abs(x) < 3.0 && y < 5.2 && z > 15;   // the opening to the passage
-    const d = cut(inward(rough(new THREE.SphereGeometry(ROOM + 1, 30, 16, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.62, 1), 1.2, 0.18, 5)), door);
+    const SKY = [[-10, -11.2, 3.3], [8.5, -16.2, 2.8], [13, 8.8, 3.1], [-6.5, 13.8, 2.6]].map(([x, z, r]) => ({ x, z, r, y: H * Math.sqrt(Math.max(0, (ROOM + 1) ** 2 - x * x - z * z)) }));
+    const skyHole = (x, y, z) => SKY.some((h) => Math.hypot(x - h.x, y - h.y, z - h.z) < h.r);
+    const d = cut(inward(rough(new THREE.SphereGeometry(ROOM + 1, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, H, 1), 1.2, 0.18, 5)), (x, y, z) => door(x, y, z) || skyHole(x, y, z));
     cave.both(M.cave, d);   // (the rough dome collides as drawn: a smooth 14-sided one lay up to 1.6 m inside it)
-    // ribs arching overhead, a breastbone ridge between them
-    for (let k = 0; k < 7; k++) {
-      const z = -18 + k * 6, w = Math.sqrt(Math.max(ROOM * ROOM - z * z, 40)) * 0.97;
-      const pts = [V(-w, 0, z), V(-w * 0.78, 10.5, z * 1.02), V(0, 17.6, z * 1.05), V(w * 0.78, 10.5, z * 1.02), V(w, 0, z)];
-      cave.both(M.bone, taper(pts, 1.05, 1.05, 24, 7));   // (the ribs come down to the floor: solid where they are drawn)
+    // the ribs: broad flat bands arching across the nave from the floor, set into the vault (between them its rock);
+    // spaced so the channel's crack and the doorways fall between them
+    const RIBS = [];
+    for (let k = 0; k < 11; k++) RIBS.push(-23.7 + k * 5);
+    for (const z of RIBS) {
+      const a = Math.sqrt((ROOM + 1) ** 2 - z * z) - 1.7, b = H * Math.sqrt((ROOM + 1) ** 2 - z * z) - 1.5, pts = [];
+      for (let i = 0; i <= 12; i++) { const t = (i / 12) * Math.PI; pts.push(V(Math.cos(t) * a, Math.sin(t) * b - 0.6, z)); }
+      cave.both(caveBone, band(pts, 1.05, 0.55, 16, 5));   // (the ribs come down to the floor: solid where they are drawn)
     }
-    cave.both(M.boneDark, taper([V(0, 17.4, -22), V(0, 18.2, 0), V(0, 17.4, 20)], 1.4, 1.4, 14, 7));
-    // the tree's roots hang down through the ribs into the pool
-    const rootTips = [];
-    for (let k = 0; k < 6; k++) {
-      const a = k / 6 * Math.PI * 2 + 0.3, r0 = 2 + (k % 3) * 1.2, r1 = 5 + (k % 3) * 2.2, tw = 0.9 + (k % 2) * 0.5;
-      const top = V(Math.sin(a) * r0, 18.8, Math.cos(a) * r0), tip = V(Math.sin(a + tw) * r1, -0.7 - (k % 2) * 0.4, Math.cos(a + tw) * r1);
-      const m1 = V(Math.sin(a + tw * 0.3) * r0 * 1.8, 13, Math.cos(a + tw * 0.3) * r0 * 1.8), m2 = V(Math.sin(a + tw * 0.7) * r1 * 0.75, 6, Math.cos(a + tw * 0.7) * r1 * 0.75);
-      cave.add(M.bark, taper([top, m1, m2, tip], 0.62 - (k % 3) * 0.1, 0.12, 20, 6));
-      rootTips.push(cave.world(tip.x, tip.y + 0.5, tip.z));
+    cave.both(caveBone, taper([V(0, H * (ROOM + 1) - 1.8, -24), V(0, H * (ROOM + 1) - 1.2, 0), V(0, H * (ROOM + 1) - 1.8, 24)], 1.3, 1.3, 14, 7));
+    // the light through the cracks: a pale rim round each, thin rays down to a pool of light on the floor (no light
+    // of its own: the glow is the material's)
+    const sun = makeMaterial({ color: '#fbe3b2', glow: 0.55, flat: true }), slant = V(0.28, -1, 0.18).normalize();
+    for (const h of SKY) {
+      const top = V(h.x, h.y, h.z), n = top.clone().setY(top.y / (H * H)).normalize();
+      cave.add(caveBone, new THREE.TorusGeometry(h.r + 0.6, 0.6, 4, 12).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), n)).translate(top.x, top.y, top.z));
+      const t = -top.y / slant.y, foot = top.clone().addScaledVector(slant, t);
+      const fr = floorAt(Math.hypot(foot.x, foot.z)) + 0.12, rr = h.r * 1.15;   // (over the flagstones)
+      cave.add(sun, new THREE.CylinderGeometry(rr, rr, 0.02, 20).scale(1, 1, 0.8).translate(foot.x, fr, foot.z));
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + h.x, u = i % 2 ? 0.3 : 0.75;
+        const A = V(top.x + Math.cos(a) * h.r * u, top.y, top.z + Math.sin(a) * h.r * u), B = V(foot.x + Math.cos(a) * rr * 0.85 * u, fr, foot.z + Math.sin(a) * rr * 0.8 * u);
+        const len = A.distanceTo(B), m = new THREE.Matrix4().lookAt(A, B, V(0, 1, 0)).setPosition(A.clone().add(B).multiplyScalar(0.5));
+        cave.add(sun, new THREE.BoxGeometry(0.035, 0.035, len).applyMatrix4(m));
+      }
     }
-    cave.add(M.bark, taper([V(0, 19, 0), V(0.8, 13, -0.6), V(-0.5, 6, 0.5), V(0.2, -0.9, 0)], 1.25, 0.3, 18, 8));
-    // the channel: a stone gutter on vertebrae, from a crack in the wall down to the pool
-    const CH = { from: V(27.5, 3.4, -6), to: V(POOL - 0.6, -0.3, -2.6) };
+    // sand drifted against the wall between the ribs' feet, and rocks fallen on the floor
+    const rock = paint('#b8a49e');
+    const crng = mulberry32(4412);
+    for (let k = 0; k < RIBS.length - 1; k++) for (const s of [-1, 1]) {
+      const z = (RIBS[k] + RIBS[k + 1]) / 2, x = s * (Math.sqrt((ROOM + 1) ** 2 - z * z) - 2.2);
+      if ((s > 0 && Math.abs(z + 6.2) < 3) || Math.hypot(x + 17.5, z - 20.5) < 7.5) continue;   // (the channel's crack, the mural)
+      cave.add(M.caveFloor, new THREE.SphereGeometry(1, 9, 4, 0, Math.PI * 2, 0, Math.PI / 2).scale(3.2 + crng(), 0.5 + crng() * 0.5, 2.0).rotateY(Math.atan2(x, z)).translate(x, -0.05, z));
+    }
+    for (const [x, z, r] of [[-15.5, 6, 1.1], [-19, -8.5, 1.5], [15.5, 17.5, 1.2], [-7, 22.5, 0.8], [9.5, 21.5, 0.9], [-21.5, 2.5, 0.7], [18, 2.5, 0.8], [-12, -19.5, 1.0], [12.5, -20, 1.3]]) {
+      cave.both(rock, new THREE.DodecahedronGeometry(r, 0).scale(1.2, 0.75, 1).rotateY(x + z).translate(x, r * 0.45, z));
+    }
+    // a path of flagstones from the doorway to the pool's kerb
+    for (let k = 0; k < 9; k++) {
+      const z = ROOM - 1.4 - k * 1.65, w = 1.2 + ((k * 7) % 3) * 0.25;
+      for (const s of [-1, 1]) cave.add(caveStone, new THREE.BoxGeometry(w, 0.1, 1.35).rotateY((k % 2 ? 0.08 : -0.06) * s).translate(s * (0.72 + (k % 2) * 0.12), 0.05, z));
+    }
+    // the doorway in from the passage, framed in bone (a jaw's arch)
+    cave.both(caveBone, taper([V(-3.7, -0.4, ROOM - 0.3), V(-4.1, 3.8, ROOM - 0.6), V(-2.6, 6.3, ROOM - 0.9), V(0, 7.0, ROOM - 1.0), V(2.6, 6.3, ROOM - 0.9), V(4.1, 3.8, ROOM - 0.6), V(3.7, -0.4, ROOM - 0.3)], 0.8, 0.8, 24, 7));
+    // the tree's roots: pale, hanging from the crown of the vault into the pool in two curtains of strands
+    const rootTips = [], rrng = mulberry32(77);
+    const TOP = H * (ROOM + 1) - 2.2;
+    for (const [cx, cz, n] of [[-2.6, 1.4, 12], [3.4, -1.8, 10]]) {
+      for (let k = 0; k < 2; k++) {   // two thick roots carry each curtain down
+        const a = k * 2.4 + cx, tip = V(cx + Math.cos(a) * 1.6, -1.45, cz + Math.sin(a) * 1.6), pts = [];
+        for (let i = 0; i <= 5; i++) { const u = i / 5, wob = Math.sin(u * 7 + a) * 0.5 * Math.sin(u * Math.PI); pts.push(V(cx + Math.cos(a) * 1.6 * u + wob, TOP + 1 - (TOP + 2.45) * u, cz + Math.sin(a) * 1.6 * u + wob * 0.6)); }
+        pts[5].copy(tip);
+        cave.add(caveBone, taper(pts, 0.6, 0.16, 14, 5));
+        rootTips.push(cave.world(tip.x, tip.y + 0.5, tip.z));
+      }
+      for (let k = 0; k < n; k++) {
+        // a curtain: strands from round the bundle's top, wavering down and spreading out over the pool's bed
+        const a = rrng() * Math.PI * 2, spread = 0.9 + rrng() * 4.0, top = V(cx + Math.cos(a) * 0.9, TOP - rrng() * 1.5, cz + Math.sin(a) * 0.9);
+        const tipY = -1.5 + rrng() * 0.6, f = 1 + rrng() * 2, ph = rrng() * 6, amp = 0.25 + rrng() * 0.35, pts = [];
+        for (let i = 0; i <= 6; i++) {
+          const u = i / 6, sp = 0.9 + (spread - 0.9) * u * u, w = Math.sin(u * f * Math.PI * 2 + ph) * amp * Math.sin(u * Math.PI);
+          pts.push(V(cx + Math.cos(a) * sp - Math.sin(a) * w, top.y + (tipY - top.y) * u, cz + Math.sin(a) * sp + Math.cos(a) * w));
+        }
+        cave.add(caveBone, taper(pts, 0.16 + rrng() * 0.07, 0.05, 10, 3));
+        if (rootTips.length < 6 && k % 5 === 0) rootTips.push(cave.world(pts[6].x, pts[6].y + 0.5, pts[6].z));
+      }
+    }
+    // the channel: a stone trough on the floor, from a crack in the wall to the pool's steps
+    const CH = { from: V(27.6, 2.0, -6.2), to: V(12.4, 1.65, -2.75) };
     const chDir = CH.to.clone().sub(CH.from), chLen = chDir.length(); chDir.normalize();
     const chYaw = Math.atan2(chDir.x, chDir.z), chPitch = Math.asin(-chDir.y);
     const along = (u, lift = 0) => CH.from.clone().lerp(CH.to, u).add(V(0, lift, 0));
-    const gutter = new THREE.CylinderGeometry(1.3, 1.3, chLen, 12, 1, true, -Math.PI / 2, Math.PI);   // a half pipe, open on top
-    const gm = new THREE.Matrix4().compose(along(0.5), new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 + chPitch, chYaw, 0, 'YXZ')), V(1, 1, 1));
-    cave.add(M.stoneDS, gutter.clone().applyMatrix4(gm));
-    const floorY = (x, z) => { const r = Math.hypot(x, z); return r > POOL + 2.2 ? 0 : r > POOL ? -1.1 + 1.1 * (r - POOL) / 2.2 : -1.3; };
-    for (let k = 0; k < 5; k++) {
-      const p = along(0.08 + k * 0.2, -1.3), g = floorY(p.x, p.z), h = Math.max(p.y - g, 0.3);
-      cave.both(M.bone, new THREE.CylinderGeometry(0.7, 0.95, h, 8).translate(p.x, g + h / 2, p.z));   // vertebrae carry it
-    }
-    cave.add(M.ink, T(new THREE.BoxGeometry(0.6, 4.5, 3.2), [29.6, 3.6, -6.4], [0, chYaw, 0]));   // the crack it comes from
-    // a damp streak down the dry gutter (the water's old bed)
+    const gm = new THREE.Matrix4().compose(along(0.5, -1.27), new THREE.Quaternion().setFromEuler(new THREE.Euler(chPitch, chYaw, 0, 'YXZ')), V(1, 1, 1));
+    // (in the trough's frame: its bed at y = 0, its length along z) the block under it, a wall either side, a lip at the end
+    const trough = (geo) => geo.applyMatrix4(gm);
+    cave.both(caveStone, trough(new THREE.BoxGeometry(2.3, 2.4, chLen + 0.6).translate(0, -1.2, 0)));
+    for (const s of [-1, 1]) cave.both(caveStone, trough(new THREE.BoxGeometry(0.34, 0.55, chLen + 0.6).translate(s * 0.98, 0.27, 0)));
+    // the crack it comes from, a carved frame round its foot, and the water glinting in it (behind the bone)
+    cave.add(M.ink, T(new THREE.BoxGeometry(0.6, 5.2, 2.6), [29.4, 3.4, -6.3], [0, chYaw, 0]));
+    cave.both(caveStone, T(new THREE.BoxGeometry(0.9, 0.7, 3.6), [28.3, 2.9, -6.15], [0, chYaw, 0]));
+    for (const [y, z, h, w] of [[3.5, -6.0, 3.8, 0.26], [2.3, -6.7, 1.6, 0.18], [4.7, -6.55, 1.3, 0.16], [1.6, -5.9, 0.9, 0.3]]) cave.add(M.glyph, T(new THREE.BoxGeometry(0.06, h, w), [29.05, y, z], [0, chYaw, 0.06]));
+    // a damp streak down the dry trough (the water's old bed)
     {
       const pos = [], ix = [], n = 24;
       const side = V(-chDir.z, 0, chDir.x).normalize();
       for (let k = 0; k <= n; k++) {
         const u = k / n, c = along(u, -1.27), w = 0.32 + 0.08 * Math.sin(u * 17);
-        for (const sgn of [-1, 1]) pos.push(c.x + side.x * w * sgn, c.y + 0.03 + Math.abs(w * sgn) * 0.04, c.z + side.z * w * sgn);
+        for (const sgn of [-1, 1]) pos.push(c.x + side.x * w * sgn, c.y + 0.03, c.z + side.z * w * sgn);
       }
-      for (let k = 0; k < n; k++) { const a = k * 2; ix.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      for (let k = 0; k < n; k++) { const a = k * 2; ix.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }   // (facing up)
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
       g.setIndex(ix);
       cave.add(damp, g);
     }
-    // the stream: none until the rib is clear, then it runs out of the crack and down to the pool
+    // the stream: none until the bone is clear, then it runs out of the crack and down to the pool
     // (desert.js reveals it along the channel, segment by segment: cv.flow 0..1)
     const streamMat = magicMaterial(23, { aspect: 0.25 });
     const w = (u) => cave.world(...along(u, -1.0).toArray());
@@ -910,19 +1167,24 @@ export function buildDesertCity(scene, terrain) {
     const stream = magicStream(w(0), w(1), 1.6, streamMat, { segs: STREAM_SEGS });
     stream.geometry.setDrawRange(0, 0);
     root.add(stream);
-    // the fallen rib across the channel (it moves, so it never collides)
-    const boneAt = along(0.42, -0.45);
+    // the fallen bone across the channel, near the wall: a great thigh bone, its knuckled ends on the trough's walls
+    // (it moves, so it never collides)
+    const boneAt = along(0.34, -0.42);   // (its shaft on the walls' tops: they stand 0.55 m over the bed)
     const bonePivot = new THREE.Group();
     bonePivot.position.copy(cave.world(boneAt.x, boneAt.y, boneAt.z));
     bonePivot.rotation.y = chYaw + Math.PI / 2;
-    const ribCurve = [V(-4.4, -0.2, 0), V(-2, 0.5, 0.3), V(1.5, 0.55, 0.2), V(4.6, -0.3, -0.3)];
-    const ribMesh = new THREE.Mesh(taper(ribCurve, 0.85, 0.6, 14, 8), M.boneMesh);
+    const femur = mergeGeometries([
+      prep(taper([V(-3.6, 0.05, 0), V(-1.2, 0.35, 0.15), V(1.4, 0.35, 0.1), V(3.6, 0.0, -0.1)], 0.62, 0.55, 12, 8)),
+      prep(new THREE.SphereGeometry(1, 10, 7).scale(1.0, 0.85, 1.15).translate(-4.0, 0.15, 0.25)), prep(new THREE.SphereGeometry(1, 10, 7).scale(0.8, 0.7, 0.8).translate(-3.9, 0.0, -0.75)),
+      prep(new THREE.SphereGeometry(1, 10, 7).scale(1.05, 0.9, 1.3).translate(4.1, 0.0, 0.0)),
+    ]);
+    const ribMesh = new THREE.Mesh(femur, M.boneMesh);
     ribMesh.userData.noCollide = true;
     bonePivot.add(ribMesh);
-    bonePivot.add(Object.assign(new THREE.Mesh(T(glyphGeometry(0.5), [0, 1.05, 0.55], [-0.4, 0, 0]), M.glyph), { userData: { noCollide: true } }));
+    bonePivot.add(Object.assign(new THREE.Mesh(T(glyphGeometry(0.5), [0, 1.0, 0.62], [-0.4, 0, 0]), M.glyph), { userData: { noCollide: true } }));
     root.add(bonePivot);
     // the pool: none while the channel is blocked; it fills once the stream reaches it, widening
-    // up the basin's sides as it rises (desert.js sets cv.level; the update below lays it there)
+    // up the basin's steps as it rises (desert.js sets cv.level; the update below lays it there)
     const poolMat = magicMaterial(22);
     const pool = magicPool(1, poolMat, { rings: 10, segs: 56 });
     pool.position.copy(cave.world(0, -1.7, 0));
@@ -930,7 +1192,7 @@ export function buildDesertCity(scene, terrain) {
     pool.userData.water = true; pool.userData.waterMoves = true;   // you wade in it (water.js: it rises)
     root.add(pool);
     // the mural: giants lying down, the water running out of them to a tree
-    cave.add(M.mural, T(new THREE.BoxGeometry(9, 4.6, 0.5), [-17.5, 3.4, 20.5], [0, Math.PI * 0.8, 0]));
+    cave.add(caveStone, T(new THREE.BoxGeometry(9, 4.6, 0.5), [-17.5, 3.4, 20.5], [0, Math.PI * 0.8, 0]));
     cave.add(M.ink, mural(8.4, 4.0, true).applyMatrix4(new THREE.Matrix4().compose(V(-17.5, 3.2, 20.5), new THREE.Quaternion().setFromAxisAngle(UP, Math.PI * 0.8), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.26))));
     cave.add(M.glyph, glyphGeometry(1.4).applyMatrix4(new THREE.Matrix4().compose(V(-25.5, 7.5, -12), new THREE.Quaternion().setFromAxisAngle(UP, 1.1), V(1, 1, 1))));
     // the keepers' stair behind the pool, opposite the way in (HATCH.stair): eight blocks up to a ledge, a doorway framed in
@@ -963,7 +1225,7 @@ export function buildDesertCity(scene, terrain) {
     Object.assign(cv, {
       origin: O, poolCenter: cave.world(0, -1.25, 0), local: (x, y, z) => cave.world(x, y, z), poolR: POOL - 1, pool, poolMat, poolLight,
       bone: bonePivot, boneAt: bonePivot.position.clone(), boneRest: { pos: bonePivot.position.clone(), rot: bonePivot.rotation.clone() },
-      boneAside: cave.world(boneAt.x - chDir.z * 3.4, -0.1, boneAt.z + chDir.x * 3.4),
+      boneAside: cave.world(boneAt.x - chDir.z * 3.4, 0.55, boneAt.z + chDir.x * 3.4),
       stream, streamMat, chDir, rootTips,
       // the stream's way: its head at u (0 the crack, 1 the pool's edge), and the crack it runs out of (a moment frames them: desert.js)
       streamAt: (u, out = V(0, 0, 0)) => out.copy(cave.world(...along(THREE.MathUtils.clamp(u, 0, 1), -1.0).toArray())), crack: cave.world(29.6, 3.6, -6.4), mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
