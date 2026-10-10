@@ -464,6 +464,49 @@ const TEMPLES19 = { commit: 'd20992a7', before: '461ac5ea' };
 /** The level design audit's third round: the same view in headless Chrome against the commit before (bed64a68) and after. */
 const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280 × 720, High, noon) against this branch’s dev server and the commit before it (bed64a68), the same view each; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.20': [
+    // the worlds, fourth round of the level design audit (docs/audits/level-design-v1.20.md): the same view before and
+    // after each world's commit; the ways home seen from where they begin
+    { match: 'In Vael II, the monastery’s roof tiles that fell up', shots: [
+      { name: 'skystones-tiles', caption: 'From over Tiv’s great table, looking east to the floating island: before, the aqueduct and the island; after, the roof tiles that fell up strung out in drifting knots from the island’s church back over the table', commit: 'b8ad8af5',
+        view: { level: 'arzach2', player: [-22, 70, -440], eye: [-80, 108, -400], target: [160, 118, -500], fov: 60, hour: 12, wait: 4000 } },
+    ], see: 'Fetch the clapper from the floating island’s church and turn back toward the monastery: the tiles hang in a string over the great table all the way to the bell tower.' },
+    { match: 'Eight small floating stones carrying the riders’ old lanterns', shots: [
+      { name: 'skystones-lanterns', caption: 'From over the monastery’s north lip, looking toward the landing once the bell has rung: before, the cloud and the Founders’ Belfry; after, the first lantern stones, lit, leading past the Belfry', commit: 'b8ad8af5',
+        view: { level: 'arzach2', player: [-240, 77, -215], eye: [-232, 92, -214], target: [-90, 52, -10], fov: 60, hour: 12, wait: 4000,
+          save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'arzach2.clapper.hung': true, 'arzach2.bell.rung': true }, keepsakes: [] } } },
+    ], see: 'Ring the bell and listen with Calix: off the rose cliff’s north lip the lantern stones are lit, and they lead past the Founders’ Belfry to the landing.' },
+    { match: 'Brother Calix no longer wanders into the cloister’s door', see: 'Land on the rose cliff and find Calix in the monastery’s courtyard: he keeps to the paving south-west of the cloister’s door instead of walking into it.' },
+    { match: 'Lorn’s crystal cave now wears a crown', shots: [
+      { name: 'lorn-crown', caption: 'From the landing island’s west shore at dusk, looking to the cave island: before, the cave’s long hill; after, teal crystal spires through its ridge, glowing', commit: 'c9d0c534',
+        view: { level: 'perdide', player: [-30, 2, 0], eye: [-40, 8, 0], target: [-170, 30, 140], fov: 60, hour: 18.4, wait: 4000 } },
+    ], see: 'Look west from the landing, or from anywhere on the water between it and the cave island: the crown shows over the swamp.' },
+    { match: 'Wendel’s egg-lamps, glowing eggs in iron cups', shots: [
+      { name: 'lorn-egg-lamps', caption: 'From the landing island’s south-west shore at dusk, looking west along the shore: before, the open water; after, Wendel’s egg-lamps leading off toward the cave', commit: 'c9d0c534',
+        view: { level: 'perdide', player: [-30, 2, -20], eye: [-40, 6, -30], target: [-180, 2, 30], fov: 60, hour: 18.4, wait: 4000 } },
+    ], see: 'Ring the splinter at the cave’s heart, then leave by the cave’s west mouth: the lamps run along the south shore to the landing, the punt tied to the fifth.' },
+    { match: 'In the Deep Wood the lamp-keepers’ old water-way is back', shots: [
+      { name: 'deepwood-water-gate', caption: 'From the root cave’s lagoon at dusk, looking east over the deep water once Hollin has heard: before, the water and the trunks; after, the water-gate and the first lamps of the water-way', commit: 'c9d0c534',
+        view: { level: 'perdide2', player: [-6, 1, -395], eye: [0, 4, -362], target: [100, 2, -330], fov: 60, hour: 17.7, wait: 4000,
+          save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'perdide2.hollin.told': true }, keepsakes: [] } } },
+    ], see: 'Tell Hollin at the root cave what was in the saucer and take the skiff from the lagoon: the water-way’s lamps are lit from the gate round the deep water to the landing.' },
+    { match: 'In Viridel, Mira’s water clock now spills into a narrow runnel', shots: [
+      { name: 'viridel-runnel', caption: 'West of the landing, looking south toward the pond: before, the meadow; after, Mira’s runnel winding down past the sluice-gate', commit: 'f9cfe1a5',
+        view: { level: 'edena', player: [-20, 1, -20], eye: [-28, 5, -30], target: [-40, 0, -100], fov: 60, hour: 10, wait: 4000 } },
+    ], see: 'Walk west from Mira’s water clock: the runnel leaves it and winds round the meadow by the pond down to the fallen ship. After you have looked under the flowers, the quest sends you back up it.' },
+    { match: 'In the Sealed Hangar’s upside-down quarter, the Major’s old signal mast', shots: [
+      { name: 'hangar-mast', caption: 'In the upside-down quarter, from the ring’s portal toward the Major’s desk: before, the hanging houses; after, the Major’s mast with its red flag over the desk, the house that hid it gone', commit: '28e74fb5',
+        view: { level: 'garage', player: [0, 894, 2852], eye: [0, 895, 2850], target: [-147, 880, 2936], fov: 60, hour: 10.5, wait: 4000 } },
+    ], see: 'Come back through the ring’s portal into the upside-down quarter: the Major’s mast shows over the houses toward the slab’s edge. On the way back from his desk to the portal home, his telescope stands halfway.' },
+    { match: 'In the Buried Machine, forty-one Tooth Day posts', shots: [
+      { name: 'buried-tooth-posts', caption: 'From beside the great wheel’s foot, looking back toward the domes: before, the dunes; after, the row of Tooth Day posts leading to Wen’s dome', commit: '28e74fb5',
+        view: { level: 'buried', player: [90, 15, -150], eye: [92, 20, -158], target: [0, 8, -30], fov: 60, hour: 10, wait: 4000 } },
+    ], see: 'Pick up the sliver at the wheel’s foot and look toward the domes: the posts lead to Wen. The newest are red with rust, the oldest by the domes grey and leaning.' },
+    { match: 'In the Signal Market, once the silent tower speaks again', shots: [
+      { name: 'market-listeners-lane', caption: 'In the back lane behind the west towers, looking north: before, the empty lane; after, the old dishes on their poles, every one turned to the silent tower', commit: '8a281e2e',
+        view: { level: 'bazaar', player: [-82, 0.1, -210], eye: [-82, 3, -215], target: [-83, 3, 0], fov: 60, hour: 11.5, wait: 4000 } },
+    ], see: 'After the broadcast, talk to Madame Sel: then go west down the alley behind her, into the back lane, and north under the dishes past the radio-mender’s table to the lantern market.' },
+  ],
   '1.19': [
     // the Warden's Well and the Engine-House, rebuilt round one idea each (docs/audits/temple-design-v1.19.md): one pair
     // a line, from where you come in, before (v1.16) and after; the picked references beside the gallery, the furnace and
