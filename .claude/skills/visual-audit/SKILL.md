@@ -113,30 +113,38 @@ level-of-detail and cascade distances show on the zoom path.
 ```sh
 node .claude/skills/visual-audit/probes.mjs <scratch>/probes [--worlds …] [--presets handheld,high] [--hour 9.5]
      [--auto 4] [--interiors 4] [--only known] [--spots name,…] [--skip seams] [--root <another checkout>] [--rest 20]
+     [--people marrow,…] [--save-all]
 ```
 
 One headless Chrome (muted, the real GPU) and one dev server (PORT, default 5333; Chrome's debugging port CDP, default
 5391: other agents' tools hold the ports near PORT and have attached to a Chrome on 5338 before), world after world with a rest between; it never leaves a Chrome
 behind. By default it covers every route world (`ORDER` in src/levels/names.js) at **Handheld and High** (Handheld's 4
 spot taps are where the blocks showed): about 10 minutes a world and preset. Per world it takes the **known spots** of
-past bugs (`KNOWN` in the script: the Qanat tree's stairs, the cave under the giant, the Givers' Hearth; add each new
-bug's spot there) and finds up to `--auto` more round the ways in (`level.portals`' `to`), the benchmark views and the
+past bugs (`KNOWN` in the script: the Qanat tree's stairs, the cave under the giant, the Givers' Hearth, his own shadow
+by the ship's ramp (one view from the sun's side: `shadow`); add each new bug's spot there) and finds up to `--auto` more round the ways in (`level.portals`' `to`), the benchmark views and the
 spawn: **stairs** (risers in a ground profile), a **room corner** (two walls square to each other), **walls**, inside
 first. The pure logic is `scripts/visual-probes/lib.mjs` (`tests/visual-probes.test.js`: each function is shown the bug
-it is for). It writes `report.json` and, for each flagged probe, its debug pictures.
+it is for). It writes `report.json` and, for each flagged probe, its debug pictures (`--save-all`: every probe's, the
+albedo and normals of the ghost takes and every orbit frame too).
 
 **3. Ghost: the post-pass check** (bug 1). The traveller stands 1.3 m in front of the spot's surface (on the known
 stairs, where he stood in the playtest), the camera 5 m off. The probe renders the debug views (rendering.md, "Debug
 views") **9** (the enclosure, 8 taps) and **10** (the spot tier's spot mask, the preset's own taps) with him and with
-him hidden (his `visible` held false), his silhouette from **2** (the albedo's difference, the region at his chest), and
-the same masks once more with nobody moving (the world's own motion, left out). `ghostCheck`: a **pale region** beside
+him hidden (his `visible` held false), his silhouette from **2** and **3** (where the albedo or the normals differ, the
+region at his chest: a cream robe on a pale wall has the wall's albedo), and the same masks three more times with nobody
+moving (the world's own motion, a drone or a passer-by, left out: `noiseAcross`). `--people marrow,…` runs the check
+again with each of those story people (window.npcs, their def's id) standing where he stood, their walk held, the
+traveller hidden there (Marrow by the ship was the ghost's first report). `ghostCheck`: a **pale region** beside
 him in a dark mask, over 5 % of his own size or 300 px, is the white shadow; a **dark** one over 30 % of his size, the
 halo before it. Tuned on the bug: the Qanat stairs at Handheld, 0.11 of him before 620c4384 and 0.003 after; the
 Hearth 703 px before, 0 after. Look at the pictures it saves (`<spot>-ghost-d9with.png`, `…-d9without.png`, `…-d10…`)
 before calling it. A person over a tenth of the frame (the camera on top of him in a small room) is reported `close`,
 not judged; both cameras are pulled in front of any wall between them and the spot.
 
-**4. Orbit stability** (bug 2). The camera orbits the spot's point ±32° in 8° steps, the traveller hidden; the same
+**4. Orbit stability** (bug 2). The camera orbits the spot's point ±32° in 8° steps, the traveller hidden; in a small
+room the swing narrows (×0.75, 0.5, 0.25: `orbitScale`, reported as `swing`) until the eye, pulled in front of any wall,
+keeps 85 % of its distance at every step (a full swing there changed the camera's distance and the whole view, and
+flagged that, not the masks: visual-v1.4); the same
 surface points (raycast once from the first view, projected again in each, left out where something stands in front)
 are read in masks 10 and 9, and kept only where the albedo (debug 2) still matches the first view's (the same surface:
 not a person, a drone or a prop the collision doesn't hold, not a pixel off an edge). `stability` and `unstable`: flagged when the frame-to-frame step's 95th percentile is over
@@ -145,8 +153,9 @@ stairs 0.60 before, 0.20-0.23 after; the Hearth 0.54 / 0.25 before, 0.03-0.24 af
 in small steps) is a picture to look at, not a verdict: screen-space masks still slide a little with the view.
 
 **5. Seams and leaks in enclosed spaces** (bug 3). Inside every way in and every known cave (where a ray up meets a
-ceiling): level rays at the foot of the walls (6 cm up) and a metre up, all round (`floorSlits`: where the wall stands a
-metre up but the foot ray goes through, there is a gap under it; the Hearth before c58cbcaa: 6 of 24 directions, after:
+ceiling): level rays at the foot of the walls (6 cm up), 0.3 m up and a metre up, all round (`floorSlits`: where the
+wall stands a metre up but the foot ray goes through, there is a gap under it, unless the 0.3 m ray goes through too:
+then it was furniture on legs the metre-high ray met, the garage's bench; the Hearth before c58cbcaa: 6 of 24 directions, after:
 0); and the light term (debug **5**) looking round six ways at the floor's edge (`litRidges`: a thin line brighter than
 both sides, sky-white: the sky seen through a slit is 1.0 there, a lamp-lit surface rarely is). A run of 60 px is
 flagged (the Hearth's seam was 62-149 px before c58cbcaa); 30-60 px is saved as a picture to look at (bone markers,

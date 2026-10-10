@@ -75,6 +75,26 @@ test('floorSlits: the wall stands a metre up but the foot ray goes through: a sl
     { angle: 4, low: 6.5, high: 6.6 },       // a cabinet
   ];
   assert.deepEqual(floorSlits(rays).map((s) => s.angle), [1, 2]);
+  // the garage (visual-v1.4): a console on legs the metre-high ray meets, the foot ray running under it to the wall;
+  // the 0.3 m ray runs under it too, so it is no slit. Under a wall the 0.3 m ray meets the wall.
+  const withMid = [
+    { angle: 0, low: 9.7, mid: 9.6, high: 6.1 },     // under the console
+    { angle: 1, low: 26, mid: 18.1, high: 18 },      // under the wall's foot
+    { angle: 2, low: null, mid: null, high: 7 },     // a bench's seat, open under it to a door
+  ];
+  assert.deepEqual(floorSlits(withMid).map((s) => s.angle), [1]);
+});
+
+test('orbitScale: in a small room the swing narrows until the eye keeps its distance; noiseAcross unions the takes', async () => {
+  const { orbitScale, noiseAcross } = await import('../scripts/visual-probes/lib.mjs');
+  // the open: the full swing
+  assert.equal(orbitScale({ 1: [6.5, 6.5, 6.4, 6.5] }, 6.5), 1);
+  // a room: at ±32° and ±24° the eye is pulled in to 3 m, at ±16° it keeps 6 m
+  assert.equal(orbitScale({ 1: [3, 3.2, 6, 6.5, 6, 3.1, 3], 0.75: [3.5, 5, 6.5, 5, 3.6], 0.5: [6, 6.3, 6.5, 6.3, 6] }, 6.5), 0.5);
+  assert.equal(orbitScale({ 1: [2], 0.75: [2], 0.5: [2], 0.25: [2] }, 6.5), null);
+  const a = img(() => 0.5), b = img((x, y) => (x < 10 && y < 10 ? 0.9 : 0.5)), c = img((x, y) => (x > 100 && y > 60 ? 0.9 : 0.5));
+  const n = noiseAcross([a, b, c]);
+  assert.equal(n[5 * W + 5], 1); assert.equal(n[70 * W + 110], 1); assert.equal(n[40 * W + 60], 0);
 });
 
 test('stairRisers: risers in a ground profile make stairs; a slope or one step does not', () => {

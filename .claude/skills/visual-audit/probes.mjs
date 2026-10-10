@@ -15,6 +15,7 @@
 //
 //   node .claude/skills/visual-audit/probes.mjs <out-dir> [--worlds desert,incal] [--presets handheld,high]
 //        [--hour 9.5] [--auto 4] [--interiors 4] [--only known] [--root <checkout to serve>] [--rest 20]
+//        [--people marrow,...] (the ghost check again with each story person in his place) [--save-all]
 //   PORT (default 5333), CDP (Chrome's debugging port, default 5391). Never 5173 (the author's own dev server).
 // Writes <out-dir>/report.json and, for every flagged probe, its debug pictures (<world>/<preset>/...png).
 import { spawn } from 'node:child_process';
@@ -31,6 +32,7 @@ const L = await import(join(HERE, 'scripts/visual-probes/lib.mjs'));
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'visual-probes'));
 const PRESETS = arg('presets', 'handheld,high').split(','), HOUR = +arg('hour', 9.5), AUTO = +arg('auto', 4), MAXI = +arg('interiors', 4);
 const SAVE_ALL = args.includes('--save-all'), ONLY = arg('only', 'all'), SPOTS = arg('spots', '').split(',').filter(Boolean), SKIP = arg('skip', '').split(','), REST = +arg('rest', 20) * 1000, W = 1280, H = 720;
+const PEOPLE = arg('people', '').split(',').filter(Boolean), NOISE_TAKES = 3;
 const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5391);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -46,6 +48,10 @@ const KNOWN = {
     { name: 'qanat-tree-stairs', kind: 'stairs', ghost: true, player: [219.1, 4.6, 382.0], heading: 2.6, eye: [213.62, 8.85, 372.51], target: [219.1, 3.85, 382.04] },
     { name: 'giant-cave', kind: 'cave', inside: true, player: [-1250, 1000, 1272], heading: Math.PI, eye: [-1249.3, 1001.8, 1274.5], target: [-1250, 999.6, 1250] },
     { name: 'hearth-cave', kind: 'cave', inside: true, player: [1250, 1000, -1242], heading: Math.PI, eye: [1250.7, 1001.8, -1239.4], target: [1249, 1000.6, -1262] },
+    // his own cast shadow on the sand by the ship's ramp (visual-v1.4 finding 5: a spot-black blob in it beside the
+    // shield on his wrist), as the probe's stairs-0 saw it, and from the sun's side turned 35° (`shadow`)
+    { name: 'ship-ramp-shadow', kind: 'open', ghost: true, player: [31.05, 23.54, 134.05], heading: 0.785, eye: [33.67, 25.5, 136.67], target: [30.1, 23.8, 133.1] },
+    { name: 'ship-sand-shadow', kind: 'open', ghost: true, shadow: 35, player: [29, 24.456, 132], heading: 0.6435, eye: [23.3, 28.356, 124.4], target: [30.2, 26.256, 133.6] },
   ],
   // where things stand in water: the contact foam (water.js renderGBuffer reads the last frame's depth, reprojected)
   perdide2: [{ name: 'tree-in-water', kind: 'water', player: [134.3, 0, -139.2], eye: [134.3, 3, -132.2], target: [134.3, 0.2, -141] }],
@@ -88,6 +94,13 @@ const PAGE = `(() => {
   const P = window.__probe = {
     pin(eye, target, fov = 55) { const e = V(eye); window.__pin = { e, q: new THREE.Quaternion().setFromRotationMatrix(m4.lookAt(e, V(target), up)), fov }; camera.updateMatrixWorld(true); return true; },
     hide(on) { const o = player.object ?? player.char?.root; if (!o) return false; if (!o.__probeVis) { let v = o.visible; Object.defineProperty(o, 'visible', { get() { return window.__hideP ? false : v; }, set(x) { v = x; }, configurable: true }); o.__probeVis = true; } window.__hideP = !!on; return true; },
+    // a story person (window.npcs, by their def's id) held at a place: their walk stopped, hidden on demand
+    placeNpc(id, pos, heading) { const n = (window.npcs ?? []).find((x) => x.def?.id === id && !x.pooled); if (!n) return false;
+      n.pos.set(...pos); n.heading = heading; n.update = function () { this.show?.(true); this.object.position.copy(this.pos); this.object.quaternion.setFromAxisAngle(up, heading); };
+      n.update(); return true; },
+    hideNpc(id, on) { const n = (window.npcs ?? []).find((x) => x.def?.id === id && !x.pooled); const o = n?.object; if (!o) return false;
+      if (!o.__probeVis) { let v = o.visible; Object.defineProperty(o, 'visible', { get() { return o.__hide ? false : v; }, set(x) { v = x; }, configurable: true }); o.__probeVis = true; }
+      o.__hide = !!on; return true; },
     place(pos, heading) { player.teleport?.(V(pos), up, new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading))); player.heading = heading; player.vel?.set(0, 0, 0); return true; },
     debug(n) { params.debug = n; return true; },
     // an eye pulled in front of any wall between it and what it looks at (a small room: the orbit and the ghost camera)
@@ -131,8 +144,8 @@ const PAGE = `(() => {
     // the foot of the walls and a metre up, all round (24 ways)
     footRays(o, g) {
       const out = [];
-      for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2, d = [Math.sin(a), 0, Math.cos(a)], lo = P.hit([o[0], g + 0.06, o[2]], d, 60), hi = P.hit([o[0], g + 1.0, o[2]], d, 60);
-        out.push({ angle: +a.toFixed(3), low: lo ? +lo.d.toFixed(2) : null, high: hi ? +hi.d.toFixed(2) : null }); }
+      for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2, d = [Math.sin(a), 0, Math.cos(a)], lo = P.hit([o[0], g + 0.06, o[2]], d, 60), mid = P.hit([o[0], g + 0.3, o[2]], d, 60), hi = P.hit([o[0], g + 1.0, o[2]], d, 60);
+        out.push({ angle: +a.toFixed(3), low: lo ? +lo.d.toFixed(2) : null, mid: mid ? +mid.d.toFixed(2) : null, high: hi ? +hi.d.toFixed(2) : null }); }
       return out;
     },
     screen(p) { camera.updateMatrixWorld(true); const s = V(p).project(camera); return [(s.x * 0.5 + 0.5) * innerWidth, (0.5 - s.y * 0.5) * innerHeight]; },
@@ -153,14 +166,25 @@ const valueAt = (img, px) => (px ? img.data[Math.min(img.h - 1, Math.max(0, px[1
 
 async function orbit(spot, dir) {
   await ev(`__probe.hide(true)`);
+  // the swing: as wide as the eye can go without being pulled in any further in front of a wall than at the start
+  // (lib.mjs orbitScale): the camera's distance changing step to step is not what the orbit measures
   spot.eye = await ev(`__probe.clampEye(${JSON.stringify(spot.target)}, ${JSON.stringify(spot.eye)})`);
+  const D = len(sub(spot.eye, spot.target)), dists = {};
+  for (const sc of L.ORBIT_SCALES) {
+    dists[sc] = [];
+    for (const yaw of L.ORBIT.yaw) dists[sc].push(len(sub(await ev(`__probe.clampEye(${JSON.stringify(spot.target)}, ${JSON.stringify(orbitEye(spot.eye, spot.target, yaw * sc))})`), spot.target)));
+    if (L.orbitScale({ [sc]: dists[sc] }, D) === sc) break;
+  }
+  const scale = L.orbitScale(dists, D);
+  if (scale === null) { await ev(`__probe.hide(false)`); return { skipped: 'the eye is pulled in front of a wall at every swing', distance: +D.toFixed(1) }; }
+  const yaws = L.ORBIT.yaw.map((y) => y * scale);
   await ev(`__probe.pin(${JSON.stringify(spot.eye)}, ${JSON.stringify(spot.target)})`); await settle(500);
   const c = await ev(`__probe.screen(${JSON.stringify(spot.target)})`);
   const pts = await ev(`__probe.points(${Math.round(c[0])}, ${Math.round(c[1])})`);
   const series = { spot: pts.map(() => []), encl: pts.map(() => []) };
   let firstSpot = null, worstPng = null;
   let albedo0 = null;
-  for (const yaw of L.ORBIT.yaw) {
+  for (const yaw of yaws) {
     const eye = await ev(`__probe.clampEye(${JSON.stringify(spot.target)}, ${JSON.stringify(orbitEye(spot.eye, spot.target, yaw))})`);
     await ev(`__probe.pin(${JSON.stringify(eye)}, ${JSON.stringify(spot.target)})`); await settle();
     let px = await ev(`__probe.project(${JSON.stringify(pts)})`);
@@ -174,18 +198,19 @@ async function orbit(spot, dir) {
     await ev(`__probe.debug(10)`); await settle(120); const rawS = await grabRaw(); const s = L.maskOf(decodePNG(rawS), L.spotPick);
     await ev(`__probe.debug(9)`); await settle(120); const e = L.maskOf(await grab(), L.enclosurePick);
     px.forEach((p, i) => { series.spot[i].push(valueAt(s, p)); series.encl[i].push(valueAt(e, p)); });
-    if (yaw === L.ORBIT.yaw[0]) firstSpot = rawS;
-    if (yaw === L.ORBIT.yaw.at(-1)) worstPng = rawS;
+    if (SAVE_ALL) writeFileSync(join(dir, `${spot.name}-orbit-${yaw}-d10.png`), rawS);
+    if (yaw === yaws[0]) firstSpot = rawS;
+    if (yaw === yaws.at(-1)) worstPng = rawS;
   }
   await ev(`__probe.debug(0)`); await ev(`__probe.hide(false)`);
   const spotR = L.stability(series.spot), enclR = L.stability(series.encl);
   const flagged = L.unstable(spotR) || L.unstable(enclR), drift = L.drifting(spotR) || L.drifting(enclR);
-  if (flagged || drift) { writeFileSync(join(dir, `${spot.name}-orbit-first-d10.png`), firstSpot); writeFileSync(join(dir, `${spot.name}-orbit-last-d10.png`), worstPng); }
+  if (flagged || drift || SAVE_ALL) { writeFileSync(join(dir, `${spot.name}-orbit-first-d10.png`), firstSpot); writeFileSync(join(dir, `${spot.name}-orbit-last-d10.png`), worstPng); }
   const r3 = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'number' ? +v.toFixed(3) : v]));
-  return { points: pts.length, spot: r3(spotR), enclosure: r3(enclR), flagged, drift };
+  return { points: pts.length, swing: scale, spot: r3(spotR), enclosure: r3(enclR), flagged, drift };
 }
 
-async function ghost(spot, dir) {
+async function ghost(spot, dir, who = null) {
   // the traveller in front of the spot's surface, on the camera's line, or where the known spot puts him
   let player = spot.player, eye = spot.eye, heading = spot.heading ?? 0;
   if (!spot.ghost || !player) {
@@ -195,28 +220,42 @@ async function ghost(spot, dir) {
     player = [foot[0], g, foot[2]]; heading = Math.atan2(n[0], n[2]);
     eye = await ev(`__probe.clampEye(${JSON.stringify(add(player, [0, 0.9, 0]))}, ${JSON.stringify(add(add(spot.target, mul(n, 5)), [0, 1.2, 0]))})`);
   }
+  // (his own cast shadow in view: the eye on the sun's side, turned 35° off it, so the shadow falls beside him)
+  if (spot.shadow) {
+    const s = await ev("window.post.uniforms.uSunDir.value.toArray()"), d = norm([s[0], 0, s[2]]), a = (spot.shadow === true ? 35 : spot.shadow) * Math.PI / 180;
+    eye = add(player, [5.5 * (d[0] * Math.cos(a) - d[2] * Math.sin(a)), 2.6, 5.5 * (d[0] * Math.sin(a) + d[2] * Math.cos(a))]);
+  }
   await ev(`__probe.place(${JSON.stringify(player)}, ${heading})`);
+  // someone else in front of the dark area (Marrow by the ship: the first report of the ghost): the traveller stays
+  // there for the shadow maps and the zones, hidden, and they stand where he would
+  if (who) { await ev(`__probe.hide(true)`); if (!(await ev(`__probe.placeNpc(${JSON.stringify(who)}, ${JSON.stringify(player)}, ${heading})`))) return { skipped: `no ${who} in this world` }; }
+  const hideP = (on) => (who ? `__probe.hideNpc(${JSON.stringify(who)}, ${on})` : `__probe.hide(${on})`);
   await ev(`__probe.pin(${JSON.stringify(eye)}, ${JSON.stringify(add(player, [0, 0.9, 0]))})`); await settle(700);
   const shots = {};
   const chest = await ev(`__probe.screen(${JSON.stringify(add(player, [0, 1.0, 0]))})`);
   for (const hide of [false, true]) {
-    await ev(`__probe.hide(${hide})`);
-    for (const d of [2, 9, 10]) { await ev(`__probe.debug(${d})`); await settle(160); shots[`${d}${hide ? '-' : '+'}`] = await grabRaw(); }
+    await ev(hideP(hide));
+    for (const d of [2, 3, 9, 10]) { await ev(`__probe.debug(${d})`); await settle(160); shots[`${d}${hide ? '-' : '+'}`] = await grabRaw(); }
   }
-  // the same masks again with no one moving: what the world's own motion changes is left out
-  for (const d of [9, 10]) { await ev(`__probe.debug(${d})`); await settle(160); shots[`${d}=`] = await grabRaw(); }
-  await ev(`__probe.debug(0)`); await ev(`__probe.hide(false)`);
+  // the same masks again, three takes with no one moving: what the world's own motion changes (a drone, a passer-by)
+  // is left out (lib.mjs noiseAcross)
+  for (let k = 0; k < NOISE_TAKES; k++) for (const d of [9, 10]) { await ev(`__probe.debug(${d})`); await settle(160 + 140 * k); shots[`${d}=${k}`] = await grabRaw(); }
+  await ev(`__probe.debug(0)`); await ev(hideP(false)); if (who) await ev(`__probe.hide(false)`);
   const P = Object.fromEntries(Object.entries(shots).map(([k, v]) => [k, decodePNG(v)]));
-  const sil = L.personBlob(L.silhouette(P['2+'], P['2-']), W, H, chest.map(Math.round));
+  // (the albedo, or the normals where the albedo is the wall's: a cream robe on a pale wall, Marrow's)
+  const silA = L.silhouette(P['2+'], P['2-']), silN = L.silhouette(P['3+'], P['3-']);
+  const sil = L.personBlob(silA.map((v, i) => v | silN[i]), W, H, chest.map(Math.round));
   const m = (k, pick) => L.maskOf(P[k], pick);
-  const r9 = L.ghostCheck(m('9+', L.enclosurePick), m('9-', L.enclosurePick), sil, { noise: L.noiseOf(m('9-', L.enclosurePick), m('9=', L.enclosurePick)) });
-  const r10 = L.ghostCheck(m('10+', L.spotPick), m('10-', L.spotPick), sil, { noise: L.noiseOf(m('10-', L.spotPick), m('10=', L.spotPick)) });
+  const takes = (d, pick) => [m(`${d}-`, pick), ...Array.from({ length: NOISE_TAKES }, (_, k) => m(`${d}=${k}`, pick))];
+  const r9 = L.ghostCheck(m('9+', L.enclosurePick), m('9-', L.enclosurePick), sil, { noise: L.noiseAcross(takes(9, L.enclosurePick)) });
+  const r10 = L.ghostCheck(m('10+', L.spotPick), m('10-', L.spotPick), sil, { noise: L.noiseAcross(takes(10, L.spotPick)) });
   // (a person over a tenth of the frame: the camera is on top of him, the taps' reach is all him; not this probe's case)
   const close = r9.person > W * H * 0.1;
   const flagged = !close && [...r9.flags, ...r10.flags].some((f) => !/hardly in view/.test(f));
-  if (flagged) for (const k of ['9+', '9-', '10+', '10-']) writeFileSync(join(dir, `${spot.name}-ghost-d${k.replace('+', 'with').replace('-', 'without')}.png`), shots[k]);
+  if (flagged || SAVE_ALL) for (const k of [...(SAVE_ALL ? ['2+', '2-'] : []), '9+', '9-', '10+', '10-']) writeFileSync(join(dir, `${spot.name}${who ? `@${who}` : ''}-ghost-d${k.replace('+', 'with').replace('-', 'without')}.png`), shots[k]);
   const pick = (r) => ({ person: r.person, mass: r.mass, biggestPale: r.biggestPale, biggestDark: r.biggestDark, paleShare: +r.paleShare.toFixed(3), darkShare: +r.darkShare.toFixed(3), flags: r.flags });
-  return { enclosure: pick(r9), spot: pick(r10), flagged, ...(close ? { close: true } : {}) };
+  const r2 = (a) => a.map((x) => +x.toFixed(2));
+  return { ...(who ? { who } : {}), enclosure: pick(r9), spot: pick(r10), flagged, player: r2(player), heading: +heading.toFixed(3), eye: r2(eye), ...(close ? { close: true } : {}) };
 }
 
 // a lit line this long (px at 1280 x 720, sky-white in the light term) inside is flagged; 30 up to it is a picture to
@@ -318,6 +357,7 @@ for (const world of WORLDS) for (const preset of PRESETS) {
       await ev(`__probe.place(${JSON.stringify(s.player ?? s.target)}, ${s.heading ?? 0})`); await settle(400);
       row.orbit.push({ name: s.name, kind: s.kind, known: !!s.known, at: s.at ?? s.target, ...(await orbit(s, dir)) });
       row.ghost.push({ name: s.name, kind: s.kind, known: !!s.known, ...(await ghost(s, dir)) });
+      for (const who of PEOPLE) row.ghost.push({ name: `${s.name}@${who}`, kind: s.kind, known: !!s.known, ...(await ghost(s, dir, who)) });
     }
     // seams: inside every way in and the known caves
     const insides = [...spots.filter((s) => s.inside).map((s) => ({ name: s.name, at: s.player })), ...ways.map((w, i) => ({ name: `inside-${i}`, at: w }))];

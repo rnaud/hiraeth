@@ -2025,3 +2025,9 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   sword and its frog, the tank's jets) was built after he was tagged hero, so the taps took the shield by his hand
   for something over the sand. materials.js `keepHero` tags what is added under him later (not his fluid, inked as
   print); main.js uses it. Left: a clean stripe where the dune's foot creases, as in any shade. tests/scout.test.js.
+- [x] The probes (.claude/skills/visual-audit/probes.mjs, scripts/visual-probes/lib.mjs): the orbit's swing narrows
+  (×0.75, 0.5, 0.25: `orbitScale`) until the eye, pulled in front of a wall, keeps 85 % of its distance at every step;
+  the ghost check's noise from three takes with nobody moving (`noiseAcross`), its silhouette from the normals too
+  (a cream robe on a pale wall); foot rays at 0.3 m too (`floorSlits`: furniture on legs is no slit); `--people
+  marrow` puts a story person where the traveller stood; known spots for his shadow by the ship; `--save-all`. The
+  side worlds were run at Handheld (docs/audits/visual-v1.20.md). tests/visual-probes.test.js.

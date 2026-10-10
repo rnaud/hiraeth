@@ -213,16 +213,39 @@ export function litRidges(img, { bright = 0.97, contrast = 0.3, gap = 6, minRun 
 }
 
 /**
- * Rays from a point inside a room or a cave, level, at the foot of the walls (`low`, a few cm over the floor) and a
- * metre up (`high`): distances, null for nothing hit within reach. A slit is a direction where the wall stands a
- * metre up but the foot ray goes `margin` m further (or out): the dome's foot raised off the floor.
+ * Rays from a point inside a room or a cave, level, at the foot of the walls (`low`, a few cm over the floor), 0.3 m
+ * up (`mid`) and a metre up (`high`): distances, null for nothing hit within reach. A slit is a direction where the
+ * wall stands a metre up but the foot ray goes `margin` m further (or out): the dome's foot raised off the floor. Only
+ * at the floor: where the 0.3 m ray goes through too, what the metre-high ray met stands off the floor (a bench, a
+ * console on legs: the garage's two "slits" in visual-v1.4), not the wall. Rays without `mid` are judged as before.
  */
 export function floorSlits(rays, { reach = 40, margin = 1.5 } = {}) {
   const out = [];
   for (const r of rays) {
     if (r.high === null || r.high > reach) continue;   // (no wall there: a door, the open side)
-    if (r.low === null || r.low > r.high + margin) out.push({ angle: r.angle, high: r.high, low: r.low });
+    if (!(r.low === null || r.low > r.high + margin)) continue;
+    if (r.mid !== undefined && (r.mid === null || r.mid > r.high + margin)) continue;   // (under furniture, not under the wall)
+    out.push({ angle: r.angle, high: r.high, low: r.low, ...(r.mid !== undefined ? { mid: r.mid } : {}) });
   }
+  return out;
+}
+
+/**
+ * How far the orbit swings at a spot (a share of ORBIT.yaw): the widest of `scales` at which the eye, pulled in front
+ * of any wall between it and the spot, keeps `keep` of its distance at every step. In a small room a full ±32° swing
+ * pulled the eye in to a different distance at every step, the view changed wholly and the orbit flagged the camera,
+ * not the masks (visual-v1.4). dists: { [scale]: [the eye's distance at each step] }, D the distance asked for.
+ */
+export function orbitScale(dists, D, { keep = 0.85, scales = ORBIT_SCALES } = {}) {
+  for (const s of scales) if ((dists[s] ?? []).length && Math.min(...dists[s]) >= keep * D) return s;
+  return null;   // (not even the narrowest swing: the eye is pulled in at the first step; reported, not judged)
+}
+export const ORBIT_SCALES = [1, 0.75, 0.5, 0.25];
+
+/** noiseOf over several takes with nobody moving: what changes between the first and any later one (drones, passers-by). */
+export function noiseAcross(takes, step = 0.15) {
+  const out = new Uint8Array(takes[0].data.length);
+  for (let i = 1; i < takes.length; i++) { const n = noiseOf(takes[0], takes[i], step); for (let p = 0; p < out.length; p++) out[p] |= n[p]; }
   return out;
 }
 
