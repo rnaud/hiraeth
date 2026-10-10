@@ -454,9 +454,9 @@ combo finishers 1.1-1.3 s. `tests/telegraphs.test.js` checks the move lists, the
 that ends in an opening, an opening in every phase, a combo's timing, the body tells, a phase change and the shock
 ring; `tests/temples.test.js` still plays every temple through.
 
-### The guardians' last phases (v1.15, v1.16)
+### The guardians' last phases (v1.15, v1.16, v1.17)
 
-In the temples reworked round one idea (docs/audits/temple-design-v1.12.md, v1.16), the guardian's last phase asks
+In the temples reworked round one idea (docs/audits/temple-design-v1.12.md, v1.16, v1.17), the guardian's last phase asks
 for that idea, not only the gadget. Each is taught a phase earlier, where it works beside the old way; failing costs
 time, never the meter; the old verbs still do what they did (a stilling glob still stops a strike). Nothing new is
 drawn on the floor: the tells are the body's, and the pieces stand in the arena from the start.
@@ -470,6 +470,7 @@ drawn on the floor: the tells are the body's, and the pieces stand in the arena 
 | The Clockwork Foreman (count round from where the hand points; every clock stopped at four) | its face's six numerals (lamp i at 2i o'clock as you face it) and a ring on each (`steps`) | open, its hands come round to four; numerals hit round from four (`FROM_FOUR`, garage.js) ring and light, any order still counts | only in step takes, six inside one breath (`VOLLEY`) | out of step they all go dark; faded past a breath, begin again |
 | The Gardener (v1.16; nothing grows in the shade) | the dome's louvre and its sunbeam on one quarter at a time, a footstone before each dead bed that turns it to that quarter (`rt.gardenSun`, a `Sunbeam` with `pick`, edena.js) | in the sun a bloom on its back counts double (`SUN.sun`), in the shade as before; it kneels a little longer (`SUN.open`, `def.openFor`) | in the shade nothing grows on it: stand on the footstone of the quarter it kneels in, let the sun settle on it, then bloom its back | in the shade the flowers fold and drop off it, and it says so |
 | The Elder (v1.16; one wind, out wherever no stone stops it) | two vents in the roost's floor and one stone in a groove between them: in one vent, the wind rises from the other (`rt.roostWinds`, `ROOST`, arzach.js) | aloft, she drifts over the nearer vent; flown with in its wind she takes heart twice as fast (`ROOST.wind`), on still air as before | on still air she does not follow: the wind has to rise by her (the stone pushed into the other vent), and you ride it up beside her | beside her on still air she watches you sink, and it says to bring the wind |
+| The warden (v1.17; the tower breathes through its vanes) | four great vanes in the hall's floor between the columns (`rt.hallVanes`, `HALL`, incal.js), turned only by the jets' wash (`Vane` `great`) | its hatch open, it backs onto the nearest vane (`HALL.back`); a hit in the crown over a turning vane counts twice (`HALL.washed`), in still air as before; the hatch stays up longer (`HALL.open`, `def.openFor`) | in still air the hatch slams: hover over the vane it stands by (aim: the jets hold you), level with its crown, and the draught lifts the hatch | its hatch slams as the shot comes, and it says the air is still |
 
 `tests/guardian-twists.test.js` plays each in its arena with a real Player: the failure, then the way through, and
 the phase that teaches it; `tests/temples.test.js` plays them as part of each temple.

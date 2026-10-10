@@ -28,6 +28,8 @@ import { meetsWith } from '../resources.js';
 //           condition holds: an eye that wakes only in the sun a ball's louvre lets in)
 //          (a bell with `hold: s` is not latched: it rings for s seconds, then falls quiet. The piece keeps
 //           the time and calls quiet(id); nothing is saved. The Founders' Belfry's held doors and stones.)
+//          vane   (the makers' bellows, the Warden's Well: held like a bell, lit only while it turns. A splash spins
+//           a small one a while; a great one only turns under the jets' wash. Its piece calls light / quiet.)
 //          door / bridge { opens: condition, latch? }   (latch: once open, open for good, saved)
 //   conditions: { all: [] } · { any: [] } · { pressed: plate } · { lit: id } · { item: id }
 //               · { drumOn: [drum, plate] } · { open: door } · { gadget: true } · { resolved: true }
@@ -45,7 +47,9 @@ export function flagStore(game, id) {
   return { get: (k) => game.flag(`temple.${id}.${k}`), set: (k, v) => game.set(`temple.${id}.${k}`, v) };
 }
 
-const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell']);
+const LATCHED = new Set(['brazier', 'bramble', 'switch', 'bell', 'vane']);
+/** Held, not latched: lit only while it rings or turns (a held bell, a vane). */
+export const held = (e) => !!e && (e.type === 'vane' || !!e.hold);
 
 export class TempleLogic {
   constructor(def, { store = memoryStore(), has = () => false } = {}) {
@@ -102,14 +106,14 @@ export class TempleLogic {
     const e = this.el(id);
     if (!e || !LATCHED.has(e.type)) return false;
     if (!this.canUse(id)) return false;
-    if (e.hold) { if (this.ringing.has(id)) return false; this.ringing.add(id); return true; }
+    if (held(e)) { if (this.ringing.has(id)) return false; this.ringing.add(id); return true; }
     if (this.store.get(`lit.${id}`)) return false;
     this.store.set(`lit.${id}`, true);
     return true;
   }
   /** A held bell's note has faded (its piece kept the time). */
   quiet(id) { return this.ringing.delete(id); }
-  isLit(id) { return this.el(id)?.hold ? this.ringing.has(id) : !!this.store.get(`lit.${id}`); }
+  isLit(id) { return held(this.el(id)) ? this.ringing.has(id) : !!this.store.get(`lit.${id}`); }
   /** Its items are carried, the one it comes `after` (a sequence: crystals sung low to high) is lit, and its `when` holds. */
   canUse(id) { const e = this.el(id); return (e?.needs ?? []).every((it) => this.has(it)) && (!e?.after || this.isLit(e.after)) && (!e?.when || this.check(e.when)); }
   takeGadget() {
@@ -199,7 +203,7 @@ export class TempleLogic {
     for (const [id, e] of Object.entries(this.def.elements)) {
       if (!reach.has(e.room)) continue;
       if (e.type === 'gadget' && !this.gadget) return id;
-      if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!e.hold || this.awaited(id))) return id;
+      if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!held(e) || this.awaited(id))) return id;
       if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && this.has('backpack')) return id;
       // (a ball with several stops: worth pushing when one it isn't on is awaited)
       if (e.type === 'drum' && e.stops && this.has('backpack') && Object.keys(e.stops).some((p) => !this.drumOn(id, p) && this.awaited(p))) return id;

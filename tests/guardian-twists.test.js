@@ -12,6 +12,8 @@
 //                     the quarter it kneels in from that quarter's footstone
 //   the Elder (the Aerie: one wind, out wherever no stone stops it)   she takes heart only in the wind, the roost's
 //                     stone rolled so it rises by her
+//   the warden (the Warden's Well: the tower breathes through its vanes)   its crown hatch opens only to the draught
+//                     of a turning vane, and the great vanes turn only under the jets' wash
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
@@ -26,6 +28,7 @@ import { GROUNDED } from '../src/temples/arzach2.js';
 import { LURE } from '../src/temples/perdide2.js';
 import { SUN } from '../src/temples/edena.js';
 import { ROOST } from '../src/temples/arzach.js';
+import { HALL, draught } from '../src/temples/incal.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -480,5 +483,69 @@ test('the Elder’s second phase teaches the wind: flown with on still air she s
     if (G.state === 'open') { gained = fly(w2.foot.clone().add(V(0, 4, 0))); break; }
   }
   assert.ok(gained !== null && (gained > ROOST.still[1] + 1e-6 || G.phaseIndex > 1), `in the wind, twice (${gained?.toFixed(2)})`);
+  A.done();
+});
+
+// ------------------------------------------------------------------ the warden
+/** Hover over a vane on the jets (thrust a moment, then aim: they hold you), level with the warden's crown. */
+function hoverOver(A, v) {
+  const { G, P } = A;
+  P.teleport(v.center.clone().add(V(0, Math.max(6.5, G.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
+  for (let i = 0; i < 3; i++) A.frame({ PadThrust: 0.3 });
+  for (let i = 0; i < 0.5 / DT; i++) A.frame({ PadAim: true });
+}
+const nearestVane = (rt, G) => rt.hallVanes.slice().sort((a, b) => Math.hypot(a.center.x - G.model.pos.x, a.center.z - G.model.pos.z) - Math.hypot(b.center.x - G.model.pos.x, b.center.z - G.model.pos.z))[0];
+
+test('the warden’s last phase: over its crown in still air the hatch slams; it backs onto a vane, and hovering over that vane on the jets its draught lifts the hatch', () => {
+  const A = arena('incal', 'jetpack', 2);
+  const { rt, G, P, until, wait, said } = A;
+  assert.equal(rt.hallVanes?.length, 4, 'four great vanes in the floor');
+  let stillTried = false;
+  for (let n = 0; n < 6 && G.state !== 'resolved'; n++) {
+    assert.equal(until(() => G.state === 'open', 40), true, `its hatch opens (${n})`);
+    assert.ok(G.openFor >= HALL.open[2], `long enough to fly to the vane (${G.openFor})`);
+    wait(2.6);
+    const v = nearestVane(rt, G);
+    assert.ok(Math.hypot(v.center.x - G.model.pos.x, v.center.z - G.model.pos.z) < HALL.back + 0.6, 'it backs onto a vane');
+    if (!stillTried) {
+      // the failure: right over its crown, but in still air (no vane turning): the hatch slams; it costs the opening's time
+      stillTried = true;
+      assert.equal(draught(rt), null, 'no vane turns');
+      P.teleport(G.model.mouth.clone().add(V(3, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
+      const before = G.meter;
+      G.hit('mouth', 'shoot');
+      assert.equal(G.meter, before, 'in still air the shot does nothing');
+      assert.ok(said(/still air/), 'and it says why');
+    }
+    // the way: hover over that vane: the jets' wash turns it, and its draught holds the hatch up
+    hoverOver(A, v);
+    assert.equal(v.turning, true, 'the vane turns under the jets');
+    assert.ok(draught(rt), 'its draught reaches the warden');
+    const before = G.meter;
+    G.hit('mouth', 'shoot');
+    assert.ok(G.meter > before, `a hit goes in (${before.toFixed(3)} -> ${G.meter.toFixed(3)})`);
+    for (let i = 0; i < 4 / DT && !P.onGround; i++) A.frame();
+  }
+  assert.equal(G.state, 'resolved', `broken (${G.meter.toFixed(2)})`);
+  A.done();
+});
+
+test('the warden’s second phase teaches the vanes: a plain hit in its crown still counts, and over a turning vane twice as much', () => {
+  const A = arena('incal', 'jetpack', 1);
+  const { rt, G, P, until, wait } = A;
+  assert.equal(until(() => G.state === 'open', 40), true, 'its hatch opens');
+  P.teleport(G.model.mouth.clone().add(V(3, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
+  const m0 = G.meter;
+  G.hit('mouth', 'shoot');
+  assert.ok(Math.abs(G.meter - m0 - HALL.hit) < 1e-6, `in still air, as before (${(G.meter - m0).toFixed(3)})`);
+  for (let i = 0; i < 4 / DT && !P.onGround; i++) A.frame();
+  assert.equal(until(() => G.state === 'open', 40), true, 'it opens again');
+  wait(2.6);
+  const v = nearestVane(rt, G);
+  hoverOver(A, v);
+  assert.ok(draught(rt), 'over a turning vane');
+  const m1 = G.meter;
+  G.hit('mouth', 'shoot');
+  assert.ok(G.meter - m1 > HALL.hit + 1e-6 || G.phaseIndex > 1, `twice (${(G.meter - m1).toFixed(3)})`);
   A.done();
 });

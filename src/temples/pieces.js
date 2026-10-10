@@ -7,7 +7,7 @@ import { screened } from '../wind-screens.js';
 import { registerWorking } from '../workings.js';
 import { Flames } from '../story/flames.js';
 import { glyphGeometry } from '../story/sign-text.js';
-import { T, box, lathe, prep, annulus } from './kit.js';
+import { T, box, lathe, prep, annulus, sector } from './kit.js';
 import { sparing, heartsOf, DAMAGE } from '../resources.js';
 
 // The temple's moving and answering parts. Each piece is built by the
@@ -29,6 +29,8 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 //   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
 //   Updraft  a column of rising wind: it lifts the fluid wings, round and up, and lets you go at its top
 //   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
+//   Vane     a vane of the makers' bellows: it drives its machine only while it turns (a splash, or the jets' wash)
+//   Iris     an iris in a ceiling: blades round a hole that slide back into the ceiling when it opens
 //   Seed     a husk in a stone ring that only a bloom glob wakes: it sprouts (a vine, a planter's flowers)
 //   Bud      a flower-door: a great bud over a doorway that a bloom glob opens, petals folded back
 //   Glass    a greenhouse pane too smooth to climb, until a vine has grown up it
@@ -203,8 +205,8 @@ export class Plate {
 export class Ball {
   /**
    * o: { id, a, b: [x, y, z] the groove's ends (where the ball touches the floor), r, friction (1/s: 1.6, less
-   * rolls farther), gap: { bridge, from, to } (the groove crosses a bridge between those t: the ball only
-   * passes while it stands, and drops if it goes from under it), lock (at rest on its plate it stays there),
+   * rolls farther), gap: { bridge, from, to, lip } (the groove crosses a bridge between those t: the ball only
+   * passes while it stands, and drops if it goes from under it; lip: said when it stops at the near lip), lock (at rest on its plate it stays there),
    * lamp: { id, reach, pool, hold, lasts, caught, dark, woke } (a pool-orb: stand by it at rest with the lantern `hold` s, or let it rest by a lit pool (pool: { id, at, reach }) as long,
    * and it glows for `lasts` s; at rest on its plate while it glows it wakes element `id`, a 'switch' that
    * needs the lantern; dark, it wakes nothing), sings: 'low' | 'mid' | 'high' (a singing ball: a splash makes it
@@ -332,7 +334,7 @@ export class Ball {
     if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -this.v * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
     // a groove over a bridge: the stones are up, so the ball stops at the lip; or they went from under it
     if (G && !L.isOpen(G.bridge)) {
-      if (this.t <= G.from + 1e-3 && t > G.from) { t = G.from; this.v = -Math.abs(this.v) * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
+      if (this.t <= G.from + 1e-3 && t > G.from) { t = G.from; this.v = -Math.abs(this.v) * 0.25; this.rt.sound?.critter?.('clack', 0.5); if (G.lip) this.rt.notice?.(G.lip, `${this.id}.lip`); }
       else if (this.t >= G.to - 1e-3 && t < G.to) { t = G.to; this.v = Math.abs(this.v) * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
     }
     const moved = (t - this.t) * this.len;
@@ -509,7 +511,8 @@ export class Switch {
   /**
    * o: { id, at, yaw (the way it faces), size, crystal?: height, wrong?: text }: a carved eye that a splash of
    * fluid wakes. crystal: a singing crystal standing on the floor instead (its foot at `at`, this tall).
-   * wrong: said when a splash does not wake it (it comes `after` another: logic.js).
+   * wrong: said when a splash does not wake it (it comes `after` another: logic.js). lids: stone lids over the eye,
+   * shut while its element's `when` fails (it can't wake now).
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
@@ -529,6 +532,17 @@ export class Switch {
       this.group.add(mesh([T(new THREE.CylinderGeometry(s, s, 0.4, 24), [0, 0, 0], [Math.PI / 2, 0, 0])], M.trimMat));
       this.group.add(mesh([T(new THREE.SphereGeometry(s * 0.55, 16, 10).scale(1, 0.6, 0.35), [0, 0, 0.2]), T(glyphGeometry(s * 1.3, 0.06), [0, 0, 0.24])], this.glow));
       this.center = this.group.position.clone();
+      if (o.lids) {
+        // lids of stone over the eye (the Warden's Well): shut while its element's `when` fails, so you can see from
+        // across the room whether it can wake now
+        this.lids = [-1, 1].map((sd) => {
+          const g = new THREE.Group();
+          g.add(mesh([T(new THREE.CylinderGeometry(s * 0.9, s * 0.9, 0.12, 20, 1, false, sd > 0 ? Math.PI / 2 : -Math.PI / 2, Math.PI), [0, 0, 0.36], [Math.PI / 2, 0, 0])], M.trimMat));
+          this.group.add(g);
+          return { g, sd };
+        });
+        this.lidK = this.lidsOpen() ? 1 : 0;
+      }
     }
     noCollide(this.group);
     this.on = rt.logic.isLit(o.id);
@@ -544,9 +558,15 @@ export class Switch {
     else if (!this.on && this.o.wrong) { this.flash = 0.6; this.rt.sound?.critter?.('blip', 0.5); this.rt.notice?.(this.o.wrong, `wrong.${this.id}`); }
     return true;
   }
+  /** Its lids are up: it is awake, or its `when` holds (it could wake now). */
+  lidsOpen() { const L = this.rt.logic; return L.isLit(this.id) || L.check(L.el(this.id)?.when); }
   update(dt, t) {
     this.on ||= this.rt.logic.isLit(this.id);
     this.group.visible = this.seen();
+    if (this.lids) {
+      this.lidK = THREE.MathUtils.clamp(this.lidK + (this.lidsOpen() ? dt / 0.5 : -dt / 0.7), 0, 1);
+      for (const l of this.lids) l.g.position.y = l.sd * ease(this.lidK) * (this.o.size ?? 1.4) * 1.05;
+    }
     this.flash = Math.max(0, this.flash - dt);
     this.glow.uniforms.uGlow.value = this.on ? 0.8 + 0.2 * Math.sin(t * 2.5) : 0.08 + 0.05 * Math.sin(t * 1.3) + this.flash * 0.6;
   }
@@ -1013,6 +1033,170 @@ export class Gust {
     P.vel.x = this.dirW.x * this.push; P.vel.z = this.dirW.z * this.push;
     if (P.climbing) P.climbing = false;
     this.rt.notice?.(this.o.notice ?? 'The gust shoves you back down the hall. Wait it out behind a screen.', 'gust');
+  }
+}
+
+// ---------------------------------------------------------------------------------------- the bellows (the City-Shaft)
+/**
+ * A vane of the makers' bellows (the Warden's Well: the tower was built to keep the shaft breathing, and its vanes
+ * turned its machines on that breath until the warden stopped it). Element `id` (a 'vane', logic.js: held) is lit
+ * only while it turns, and what it drives (a riding disc, a bridge of stones, an eye's lids) works only as long.
+ * A splash of fluid (any mode) spins a small vane for `coast` seconds, slowing as it goes; a great one (`great`) is
+ * too heavy for a splash (it rocks and stops: `heavy` says so) and turns only under a steady wash: the jets burning
+ * (thrust, or holding you while you aim) within `reach` metres over it, and `linger` seconds after. Any vane turns
+ * under the jets' wash. Set in a floor it faces up; `wall` sets it on a wall, facing `yaw`.
+ * o: { id, at (its centre), wall, yaw, r, coast, great, reach, linger, heavy, turning (said the first time it turns),
+ *      washed (said the first time the jets turn it), fading (said as a splashed one slows) }
+ */
+export class Vane {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, r = (this.r = o.r ?? 1.6);
+    this.center = K.world(...o.at);
+    const h = K.heading(o.yaw ?? 0);
+    this.normal = o.wall ? V(Math.sin(h), 0, Math.cos(h)) : UP.clone();
+    this.reach = o.reach ?? 9; this.linger = o.linger ?? 0.9; this.coast = o.coast ?? 10;
+    this.group = new THREE.Group();
+    this.group.position.copy(this.center);
+    this.group.quaternion.setFromUnitVectors(UP, this.normal);
+    rt.root.add(this.group);
+    // (in a floor: everything within 5 cm of it, so a foot never meets an edge: the frame flush, the blades over a
+    // shallow well of dark)
+    const lift = o.wall ? 0.16 : 0;
+    this.group.add(mesh([T(annulus(r + 0.02, r + 0.42, 0.05, 40), [0, lift + 0.03, 0])], M.trimMat));
+    this.group.add(mesh([T(new THREE.CylinderGeometry(r + 0.02, r + 0.02, 0.02, 36), [0, lift - 0.04, 0])], this.dark = own({ color: rt.P.dark ?? '#34405e', flat: true })));
+    this.rotor = new THREE.Group();
+    this.rotor.position.y = lift;
+    const n = o.great ? 8 : 6, blades = [];
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      blades.push(T(new THREE.BoxGeometry(r * 0.82, 0.035, r * (o.great ? 0.3 : 0.36)), [Math.cos(a) * r * 0.52, 0, -Math.sin(a) * r * 0.52], [o.wall ? 0.35 : 0, a, 0], 1, 'YXZ'));
+    }
+    blades.push(T(new THREE.CylinderGeometry(r * 0.2, r * 0.2, 0.04, 16), [0, 0.005, 0]));
+    this.rotor.add(mesh(blades, M.trimMat));
+    this.glow = own({ color: rt.P.glow ?? '#9fdcef', glow: 0.12, flat: true });
+    this.rotor.add(mesh([T(new THREE.TorusGeometry(r * 0.2, 0.05, 4, 20), [0, 0.02, 0], [Math.PI / 2, 0, 0]), T(new THREE.TorusGeometry(r * 0.97, 0.03, 4, 40), [0, 0, 0], [Math.PI / 2, 0, 0])], this.glow));
+    this.group.add(this.rotor);
+    noCollide(this.group);
+    this.left = 0; this.w = 0; this.rock = 0;
+    this.off = registerTarget({ kind: 'vane', radius: r, position: () => this.center, onHit: (mode) => this.hit(mode) });
+  }
+  /** Is it turning (its element lit)? */
+  get turning() { return this.rt.logic.isLit(this.id); }
+  /** A splash: a small vane spins a while; a great one only rocks. */
+  hit() {
+    if (this.o.great) {
+      this.rock = 0.7;
+      this.rt.sound?.critter?.('creak', 0.6);
+      if (!this.turning) this.rt.notice?.(this.o.heavy ?? 'The splash rocks the great vane a hand’s breadth, and it stops. It is too heavy for a splash: it wants a steady wind under it.', `vane.heavy.${this.id}`);
+      return true;
+    }
+    this.spin(this.coast, false);
+    return true;
+  }
+  /** Set it turning for s seconds (or keep it turning: the longer of what is left and s). */
+  spin(s, washed) {
+    const L = this.rt.logic;
+    if (!L.isLit(this.id)) {
+      if (!L.light(this.id)) return false;
+      this.rt.sound?.whoosh?.();
+      this.rt.onLit?.(this.id);
+      this.rt.notice?.(washed ? this.o.washed : this.o.turning, `vane.turn.${this.id}.${washed ? 'jets' : 'splash'}`);
+    }
+    if (s > this.left) { this.left = s; this.warned = false; }
+    return true;
+  }
+  /** The jets' wash over it: burning, within reach over its face and not far off its axis. */
+  washedBy(P) {
+    if (!P?.jetFlight || !(P.jetPower > 0) || P.dead) return false;
+    const d = _dl.copy(P.pos).sub(this.center), along = d.dot(this.normal);
+    if (along < 0.3 || along > this.reach) return false;
+    return d.addScaledVector(this.normal, -along).length() < this.r + 1.2;
+  }
+  update(dt, t) {
+    const P = this.rt.player, L = this.rt.logic;
+    if (this.washedBy(P)) this.spin(this.linger, true);
+    if (this.left > 0) {
+      this.left -= dt;
+      if (!this.warned && this.left < 2.2 && this.left > this.linger + 0.05) { this.warned = true; this.rt.rumble?.(0.6, 0.15); if (this.o.fading) this.rt.notice?.(this.o.fading, `vane.fading.${this.id}`); }
+      if (this.left <= 0) { this.left = 0; L.quiet(this.id); this.rt.sound?.critter?.('creak', 0.5); }
+    }
+    // the blades: up to speed in a moment, slowing as the splash's push runs out, still once quiet
+    const want = this.left > 0 ? 9 * Math.min(1, 0.35 + this.left / 3) : 0;
+    this.w += (want - this.w) * Math.min(1, dt * (want > this.w ? 3 : 1.4));
+    this.rock = Math.max(0, this.rock - dt);
+    this.rotor.rotation.y += this.w * dt + Math.sin(this.rock * 18) * this.rock * 0.02;
+    this.glow.uniforms.uGlow.value = 0.12 + 0.7 * Math.min(1, this.w / 6) + 0.05 * Math.sin(t * 2);
+  }
+  dispose() { this.off?.(); }
+}
+
+/**
+ * An iris in a ceiling (the Warden's Well's gallery): blades round a round hole that slide back into the ceiling
+ * when its condition holds (the logic's door `id`); solid while shut (from below it is a roof, from above a floor).
+ * o: { id, at: [x, y, z] (its centre, the ceiling's top), r, t (thickness), lamps: [condition] (round its rim, under it) }
+ */
+export class Iris {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, M = rt.M, r = (this.r = o.r ?? 3), t = (this.t = o.t ?? 0.6);
+    this.group = new THREE.Group();
+    this.group.position.copy(K.world(...o.at));
+    this.group.rotation.y = K.yaw;
+    rt.root.add(this.group);
+    const n = 8;
+    this.blades = [];
+    for (let i = 0; i < n; i++) {
+      const a0 = (i / n) * Math.PI * 2, a1 = a0 + (Math.PI * 2) / n + 0.06;
+      const b = new THREE.Group();
+      b.add(mesh([T(sector(0.02, r + 0.05, a0, a1, t - 0.04), [0, -0.02, 0])], M.wallGlyph));
+      b.add(mesh([T(sector(r * 0.55, r * 0.62, a0 + 0.05, a1 - 0.1, 0.03), [0, 0.012, 0]), T(sector(r * 0.55, r * 0.62, a0 + 0.05, a1 - 0.1, 0.03), [0, -t + 0.03, 0])], M.trimMat));
+      this.group.add(b);
+      const mid = (a0 + a1) / 2;
+      this.blades.push({ g: b, dx: Math.cos(mid), dz: Math.sin(mid) });
+    }
+    this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.2, flat: true });
+    this.group.add(mesh([T(new THREE.TorusGeometry(r + 0.2, 0.08, 4, 48), [0, -t - 0.02, 0], [Math.PI / 2, 0, 0]), T(new THREE.TorusGeometry(r + 0.2, 0.08, 4, 48), [0, 0.03, 0], [Math.PI / 2, 0, 0])], this.glow));
+    this.lamps = (o.lamps ?? []).map((cond, i, all) => {
+      const m = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.05, flat: true });
+      const a = (i / all.length) * Math.PI * 2 + Math.PI / 2;
+      const lm = mesh([T(new THREE.SphereGeometry(0.28, 10, 8), [Math.cos(a) * (r + 0.7), -t - 0.2, Math.sin(a) * (r + 0.7)])], m);
+      this.group.add(lm);
+      return { cond, m };
+    });
+    noCollide(this.group);
+    this.block = new THREE.Mesh(new THREE.CylinderGeometry(r + 0.1, r + 0.1, t, 24).translate(0, -t / 2, 0), new THREE.MeshBasicMaterial());
+    this.block.position.copy(this.group.position);
+    this.center = this.group.position.clone().add(V(0, -t, 0));
+    this.k = rt.logic?.isOpen(o.id) ? 1 : 0;
+    this.open = this.k > 0.5;
+    this.apply();
+  }
+  init(physics) { this.physics = physics; if (!this.open) this.handle = physics.addCollider?.(this.block) ?? null; }
+  setOpen(open, instant = false) {
+    if (open === this.open) return;
+    this.open = open;
+    if (open && this.handle) { this.physics?.removeCollider?.(this.handle); this.handle = null; }
+    if (!open && this.physics && !this.handle) this.handle = this.physics.addCollider?.(this.block) ?? null;
+    if (instant) { this.k = open ? 1 : 0; this.apply(); }
+    else { this.rt.sound?.whoosh?.(); this.rt.rumble?.(open ? 1.6 : 0.8, 0.35); }
+  }
+  apply() {
+    // the blades slide out into the ceiling
+    const k = ease(this.k);
+    for (const b of this.blades) { b.g.position.set(b.dx * this.r * 1.05 * k, 0, b.dz * this.r * 1.05 * k); b.g.visible = k < 0.999; }
+  }
+  update(dt, t) {
+    const want = this.open ? 1 : 0;
+    if (this.k !== want) { this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.8 : -dt / 0.9), 0, 1); this.apply(); }
+    let met = 0;
+    for (const l of this.lamps) {
+      const on = this.open || !!this.rt.logic?.check(l.cond);
+      if (on) met++;
+      l.m.uniforms.uGlow.value += ((on ? 1 : 0.05) - l.m.uniforms.uGlow.value) * Math.min(1, dt * 6);
+    }
+    const wake = this.open ? 1 : this.lamps.length ? met / this.lamps.length : 0.2;
+    this.glow.uniforms.uGlow.value = 0.2 + 0.7 * wake * (0.8 + 0.2 * Math.sin(t * 3));
   }
 }
 

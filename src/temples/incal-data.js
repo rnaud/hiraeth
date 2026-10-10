@@ -41,7 +41,7 @@ export const PEOPLE = {
           choices: [{ text: '~neutral~ I’ll go up and look.', do: { start: 'temple.incal' }, goto: 'go' }, { text: '~neutral~ Good night, Vell.', end: true }],
         },
         go: {
-          say: ["~neutral~ *The door faces your ship.* It’s open. Going in has never been the problem; wanting to has.", "~playful~ There are supposed to be old jets inside. People below could use those. Stairs are an unfair way to distribute sky."],
+          say: ["~neutral~ *The door faces your ship.* It’s open. Going in has never been the problem; wanting to has.", "~curious~ My grandmother said the tower ran on its own breath: *little wind-wheels in the walls*, turning its floors. Splash one, she said, and watch it go. Until it stops.", "~playful~ There are supposed to be old jets inside. People below could use those. Stairs are an unfair way to distribute sky."],
           choices: [{ text: '~happy~ I’ll tell you what I find.', end: true }],
         },
         again: {

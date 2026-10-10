@@ -8,6 +8,14 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.19', date: '2026-10-09', items: [
+    // two more temples rebuilt round one idea each (the temple design audit), their guardians ending on it
+    'The Warden’s Well is rebuilt round one idea: the tower breathes through its vanes. The makers’ bellows turned its machines on the shaft’s breath, and a vane still drives its machine only while it turns; a splash spins a small one, and it slows as it goes. The Turning Floors’ discs ride only while the vane over the far door spins, and on the Climb the ball’s groove crosses a slot whose stones stand only while the vane in the well’s floor turns: splash it, then roll the ball over before it stops.',
+    'With the jets, you are the wind. The great vanes are too heavy for a splash, but hover over one on the jets (aim, and they hold you) and it turns under you. In the Lamp Gallery, now banded in steel blue with slit windows and shelves of carved eyes, the eye over the west shelf hides behind stone lids that lift only while the great vane in the floor turns; wake it and an iris in the ceiling opens onto the loft, where a ball on a high shelf must be pushed across a gap from the air while the loft’s own great vane holds its stones up.',
+    'The warden now backs onto one of four great vanes in its hall’s floor when its crown hatch opens. In its second phase a hit while that vane turns under your jets counts twice; in its last it keeps the hatch shut against still air, so hover over its vane until the draught lifts the hatch, then shoot down into it. Getting it wrong only costs time.',
+    'The Warden’s Well from outside: its door is now a tall pointed arch at the top of a short flight of steps, banded in steel blue at its foot, an old lamp on a post beside the steps. Once the warden is still, Vell keeps it lit.',
+    'Riding the shaft’s breath up from the City-Shaft’s bottom terrace now carries you all the way over the rim and sets you down there; near the end it used to let you sink off its crest and fall back down.',
+  ] },
   { v: '1.18', date: '2026-10-09', items: [
     // the enemy roster, part five: the last three
     'The last three foes of the new roster: the shade is remade, and the pearl roller and the marionette arrive. Every foe in every world now has a shape, a way of moving and a job in a fight of its own; none borrows another’s body any more.',

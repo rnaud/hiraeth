@@ -117,11 +117,18 @@ test('the warden\'s vents keep opening, fight after fight: its sides in the firs
   assert.ok(notes.slice(said).some((s) => /crown/i.test(s) && /hatch/i.test(s)), 'and it says so: the crown’s hatch, not its vents');
   assert.equal(guardianHint(rt)?.id, 'incal.1', 'the drone’s hint for its second phase');
   assert.match(guardianHint(rt).lines.join(' '), /crown/);
-  // from above, into the crown: broken
+  // from above, into the crown (in its last phase, over the vane it backs onto, held there on the jets): broken
   for (let n = 0; n < 8 && G.state !== 'resolved'; n++) {
     assert.ok(opening(40, 0.2));
-    P.teleport(G.model.mouth.clone().add(V(4, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
+    if (G.phaseIndex >= 2) {
+      for (let k = 0; k < 2.6 / DT; k++) frame();
+      const v = rt.hallVanes.slice().sort((a, b) => a.center.distanceTo(G.model.pos) - b.center.distanceTo(G.model.pos))[0];
+      P.teleport(v.center.clone().add(V(0, Math.max(6.5, G.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
+      for (let i = 0; i < 3; i++) frame({ PadThrust: 0.3 });
+      for (let i = 0; i < 0.5 / DT; i++) frame({ PadAim: true });
+    } else P.teleport(G.model.mouth.clone().add(V(4, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
     G.hit('mouth', 'shoot');
+    P.endJets();
     P.teleport(G.arena.center.clone().add(V(0, 0.5, -G.arena.r * 0.55)), V(0, 1, 0), V(0, 0, 1));
   }
   assert.equal(G.state, 'resolved');

@@ -46,6 +46,25 @@ test('a condition names its keys, a ball on a plate is a push, and a latched pla
   assert.deepEqual(piecePos({ eyes: [{ at: [0, 2, 0] }, { at: [2, 2, 0] }] }), [1, 2, 0]);
 });
 
+test('a vane is a splash (or the jets’ wash) and a timing, and a ball whose groove crosses a bridge has that bridge’s key in its plate’s lock', () => {
+  const E = {
+    v1: { type: 'vane', room: 'a' }, vG: { type: 'vane', room: 'a', needs: ['jetpack'] },
+    slot: { type: 'bridge', opens: { lit: 'v1' } },
+    ball: { type: 'drum', room: 'a', plate: 'p1', gap: 'slot' }, p1: { type: 'plate', room: 'a' },
+    d1: { type: 'door', opens: { pressed: 'p1' }, latch: true },
+    discs: { type: 'bridge', opens: { lit: 'vG' } },
+  };
+  assert.deepEqual(mechanicOf('v1', E.v1, { elements: E }), ['shot', 'timed'], 'a small vane: a splash spins it a while');
+  assert.deepEqual(mechanicOf('vG', E.vG, { elements: E }), ['gadget:jetpack', 'timed'], 'a great vane: only the jets turn it');
+  assert.equal(reversible({ lit: 'v1' }, E), true, 'lit only while it turns');
+  const logic = { id: 'v', entry: 'a', rooms: { a: {}, b: {}, c: {} }, links: [{ a: 'a', b: 'b', door: 'd1' }, { a: 'b', b: 'c', door: 'discs' }], elements: E };
+  const g = puzzleGraph(logic, []);
+  const d1 = g.locks.find((l) => l.id === 'd1');
+  assert.deepEqual(d1.keys.map((k) => k.id).sort(), ['ball', 'v1'], 'the vane that stands the slot is a key of the plate’s door');
+  assert.ok(d1.mechanics.includes('push') && d1.mechanics.includes('shot') && d1.mechanics.includes('timed'));
+  assert.equal(g.locks.find((l) => l.id === 'discs').reversible, true, 'what a vane drives stops with it');
+});
+
 test('the linear temple: no loops, no hubs, every key beside its lock and in sight: painfully obvious', () => {
   const g = puzzleGraph(LINEAR, LIN_PIECES);
   assert.deepEqual(g.locks.map((l) => l.id), ['d1', 'd2', 'd3', 'd5']);

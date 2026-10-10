@@ -57,7 +57,7 @@ export function reversible(c, el = {}) {
   if (c.not || c.any) return true;
   if (c.all) return c.all.some((x) => reversible(x, el));
   if (c.pressed) return !Object.values(el).some((e) => drumFor(e, c.pressed));
-  if (c.lit) return !!el[c.lit]?.hold;   // (a bell that rings a while, then falls quiet: logic.js `hold`)
+  if (c.lit) return !!el[c.lit]?.hold || el[c.lit]?.type === 'vane';   // (a bell that rings a while, then falls quiet: logic.js `hold`; a vane, lit only while it turns)
   return false;
 }
 
@@ -88,8 +88,9 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   else if (el.type === 'switch' && !item) tags.push('shot');
   else if (el.type === 'brazier' || el.type === 'bramble') { if (!item) tags.push('ember'); }
   else if (el.type === 'bell' && !item) tags.push('bell');
+  else if (el.type === 'vane' && !item) tags.push('shot');   // (a splash spins a small vane; a great one wants the jets' wash: its item)
   if (piece?.o?.hidden) tags.push('reveal');
-  if (el.hold) tags.push('timed');
+  if (el.hold || el.type === 'vane') tags.push('timed');
   // `when` a condition holds (an eye that wakes only in the sun a ball's louvre lets in): that condition's verbs too
   for (const k of conditionKeys(el.when)) {
     if (k.how === 'drumOn') tags.push('push');
@@ -154,6 +155,12 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     for (const n of l.needs ?? []) if (n !== 'backpack') keys.push({ id: n, how: 'needs', room: l.a, mech: [`gadget:${n === 'magic:4' ? 'cell' : n}`], traversal: true });
     // a key that takes only `when` something else holds (a ball on a louvre's plate): that is a key of the lock too
     for (const k of [...keys]) for (const w of conditionKeys(E[k.id]?.when)) if (E[w.id] && !keys.some((x) => x.id === w.id)) keys.push({ id: w.id, how: w.how, room: E[w.id].room ?? null, mech: mechanicOf(w.id, E[w.id], { elements: E, piece: byId.get(w.id) }), when: true });
+    // a ball whose groove crosses a bridge (its `gap`: it only passes while the bridge stands): what holds that bridge
+    // up is a key of the plate's lock too (the Warden's Well's slots, stood by a vane)
+    for (const k of [...keys]) {
+      const drum = k.how === 'pressed' ? Object.entries(E).find(([, e]) => drumFor(e, k.id) && e.gap) : null;
+      if (drum) for (const w of conditionKeys(E[drum[1].gap]?.opens)) if (E[w.id] && !keys.some((x) => x.id === w.id)) keys.push({ id: w.id, how: w.how, room: E[w.id].room ?? null, mech: mechanicOf(w.id, E[w.id], { elements: E, piece: byId.get(w.id) }), gap: true });
+    }
     // a plate a ball is meant for: the key is the ball's push (the plate is where it must go)
     const merged = [];
     for (const k of keys) {
@@ -432,7 +439,7 @@ export function planSvg(g, m, { size = 520, title = '' } = {}) {
     o.push(`<rect x="${lx - 4}" y="${ly - 4}" width="8" height="8" fill="${s ? OBV(s.obvious) : '#777'}" stroke="#2b211f"/>`);
     if (s) o.push(`<text x="${lx - 30}" y="${ly - 6}" fill="#2b211f">${esc(l.id)} ${s.obvious}</text>`);
   }
-  const GLYPH = { Platform: '◎', Updraft: '↑', Gust: '≋', Swing: '∿', Pit: '▫', Glass: '▥', Ball: '●', Plate: '○', Switch: '◉', Brazier: '♨', Bramble: '✶', EchoStone: '♪', EchoEar: '♫', BellEar: '🔔', LightEar: '☼', Seed: '✿', Bank: '⁘', Jaw: '⩚', Bud: '❀', Resonator: '♪' };
+  const GLYPH = { Platform: '◎', Updraft: '↑', Gust: '≋', Swing: '∿', Pit: '▫', Glass: '▥', Ball: '●', Plate: '○', Switch: '◉', Brazier: '♨', Bramble: '✶', EchoStone: '♪', EchoEar: '♫', BellEar: '🔔', LightEar: '☼', Seed: '✿', Bank: '⁘', Jaw: '⩚', Bud: '❀', Resonator: '♪', Vane: '✢', Iris: '⊛' };
   for (const p of g.pieces) { if (!p.pos || !GLYPH[p.cls]) continue; const [x, y] = P(p.pos); o.push(`<text x="${x - 4}" y="${y + 4}" fill="${p.hidden ? '#8a7a66' : '#2b211f'}" font-size="11">${GLYPH[p.cls]}</text>`); }
   o.push(`<g transform="translate(${W - 180},${H - 64})"><text y="0">lock → key lines, by obviousness:</text>${[[5, 'painfully obvious (4.5+)'], [4, 'obvious (3.5+)'], [3, 'fair (2.5+)'], [2, 'hidden (below)']].map(([v, t], i) => `<rect y="${6 + i * 12}" width="10" height="8" fill="${OBV(v)}"/><text x="14" y="${13 + i * 12}">${t}</text>`).join('')}</g>`);
   o.push('</svg>');

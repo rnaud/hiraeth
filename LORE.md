@@ -1350,20 +1350,24 @@ down: a well of the makers turned on its end.
   Afterwards: the wind came up the shaft, "warm, smelling of rain that never got
   down there"; the bottom folk stand along the parapet looking at the sky; she
   will light the lamp by the warden's door.
-- **Inside**: the Threshold; the Turning Floors (a drop crossed on two riding
-  discs that only wake when you splash the carved eye over the far door); the
-  Climb (a round well whose north half is a block of stone eleven metres high:
-  climb its face, roll the ball onto its plate, the door opens); the Jets'
-  Chamber (**the fluid jets**; the only way on is up through the oculus in its
-  ceiling); the Lamp Gallery (three eyes on the walls of a tall drum, each over
-  a shelf that hides it from the floor: fly up to each and splash it, and the
-  high door opens); the Warden's Hall.
+- **Inside** (reworked round one idea, v1.17: the tower breathes through its vanes; the breath turned the
+  makers' bellows, the bellows turned its machines, and a vane still drives its machine only while it turns): the
+  Threshold; the Turning Floors (two riding discs over a drop, riding only while the small vane over the far door
+  spins: a splash, and go before it slows); the Climb (climb the block's face; the ball's groove crosses a slot whose
+  stones stand only while the vane in the well's floor turns); the Jets' Chamber (**the fluid jets**; up through the
+  oculus); the Lamp Gallery (an eye over the west shelf, hidden from the floor behind stone lids that lift only
+  while the great vane in the floor turns, too heavy for a splash: hover over it on the jets and splash the eye;
+  the iris in the ceiling opens); the loft (a ball on a high shelf, a gap in it whose stones stand only while the
+  loft's great vane turns: hover over it and push the ball across from the air); the Warden's Hall.
 - **The warden** (robot): a tall machine of the makers on three legs, a ring
   of side vents and a lamp-eye. It beams along a lane, drops shots where you
   stand, and slams the floor round itself. After a beam its side vents open:
-  shoot them. Halfway, it shuts its sides; only the vent on its crown opens
-  then, and only a shot from above it counts (fly, or stand on the stone discs
-  round the hall). Broken, it sags and its eye goes dark.
+  shoot them. Halfway, it shuts its sides; only the hatch on its crown opens
+  then, and only a shot from above it counts; it backs onto one of the four
+  great vanes in the hall's floor, and over a turning vane the draught holds the
+  hatch wide. In its last phase it keeps the hatch shut against still air:
+  hover over its vane on the jets, and the draught lifts it. Broken, it sags and
+  its eye goes dark.
 - **After**: the shaft's breath comes back: beside the Upward Shrine a column
   of rising air (pale rings drifting up it) carries anyone who steps into it
   from the bottom terrace up past every level and sets them down on the rim.

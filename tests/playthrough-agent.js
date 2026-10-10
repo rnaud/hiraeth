@@ -617,7 +617,7 @@ export async function templeTo(W, until, issue, { nextSpot }) {
       if (b?.id !== `box.${box.id}`) issue('temple', `${T.def.name}: E by the chest is ${b?.id ?? 'nothing'}`);
       if (b?.id === `box.${box.id}`) { b.use(W.player); finishScenes(W); } else W.boxes.open(box.id, { instant: true });
       log.push(`chest: ${box.item}`);
-    } else if (['brazier', 'bramble', 'switch', 'bell'].includes(e.type)) { L.light(id); T.onLit(id); log.push(`${e.type} ${id}`); }
+    } else if (['brazier', 'bramble', 'switch', 'bell', 'vane'].includes(e.type)) { L.light(id); T.onLit(id); log.push(`${e.type} ${id}`); }   // (a vane: set turning; nothing here runs it down)
     else if (e.type === 'drum') { L.moveDrum(id, e.plateAt ?? 1); log.push(`roll ${id}`); }
     else if (e.type === 'plate') { L.press(id, 'player'); T.applyDoors(); W.step(2); L.release(id, 'player'); log.push(`stand on ${id}`); }
     else if (e.type === 'boss') { if (T.guardian?.resolve) T.guardian.resolve(); else T.onBossResolved(); log.push(`guardian ${id}`); }

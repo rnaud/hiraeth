@@ -40,7 +40,8 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   `NOTES` low / mid / high each have a degree and a colour). `Bank` takes any
   number of eyes and a window, with its own words (`full`, `fade`): six in 4.6 s
   is the First Garage's (two tanks in one breath, the quick coil's refill).
-  Moving parts are `userData.dynamic` (no tiling or levels of detail).
+  `Vane` (a vane of the makers' bellows, lit only while it turns) and `Iris` (blades in a ceiling) are the Warden's
+  Well's (below). Moving parts are `userData.dynamic` (no tiling or levels of detail).
 - **`logic.js`**: the puzzle as pure state (`TempleLogic`): plates and what
   stands on them, balls on their rails, latched elements, doors and bridges from
   conditions (`{ all }`, `{ pressed }`, `{ lit }`, `{ drumOn }`, `{ item }`,
@@ -198,6 +199,19 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   stone is out of the throat on the high balcony (`tail`: `not` on `drumOn`, a state that changes back), and the
   column beside the perch once the perch's stone is out of its own (`rise`). The Roost's two vents share one stone
   (`ROOST`).
+- **The tower breathes through its vanes** (the Warden's Well, from the v1.17 audit; the tower was built to keep the
+  shaft breathing, and the breath turned its machines). A `Vane` is one of the makers' bellows, in a floor (facing
+  up) or on a wall (`wall`, `yaw`): its element (type `vane`, logic.js: held like a held bell, lit only while it
+  turns) drives what names it only as long. A splash spins a small one for `coast` seconds, slowing (`fading` warns);
+  a `great` one only rocks to a splash (`heavy`) and turns under the jets' wash: the jets burning (thrust, or
+  holding you while you aim) within `reach` metres over its face, and `linger` s after. The Turning Floors' discs ride
+  on the far door's vane; the Climb's ball crosses a slot (`Ball` `gap`, the slot a `Bridge`) only while the vane in
+  the well's floor turns (the gap's `lip` says why it stops); the gallery's eye has stone lids (`Switch` `lids`:
+  shut while its `when` fails) that the great vane in the floor lifts, and opens the `Iris` in the ceiling (blades
+  that slide back into it, solid while shut); the loft's ball is pushed over a gap from the air, hovering over the
+  loft's great vane. The audit reads a vane as a splash (or its item) and a timing, a state that changes back, and a
+  ball's `gap` as a key of its plate's lock (`scripts/temple-design/lib.mjs`). The warden's hall has four
+  (`rt.hallVanes`, docs/systems/foes.md).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets

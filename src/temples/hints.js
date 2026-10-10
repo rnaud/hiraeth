@@ -70,10 +70,15 @@ export const BOSS_HINTS = {
       ['Its side vents open after its eye has swept the floor.',
         'Keep out of the line its eye sweeps. When the vents open, glowing, shoot them.',
         'Step out of the beam’s lane, then shoot the glowing vents while they are open. Four hits.'],
-      ['Its sides are shut now. Look up: the vent on its crown opens.',
-        'Only the crown vent takes a hit now. Get above it with the jets.',
-        'Fly up over its head, then aim with {key:aim}: the jets hold you there while you shoot into the crown vent.'],
+      ['Its sides are shut now. Its crown hatch opens, and it backs toward a vane.',
+        'Get above its crown with the jets. Over the vane by it, the draught holds the hatch wide.',
+        'Hover over its vane, level with its crown, aiming ({key:aim}): the vane turns, and a hit counts twice.'],
+      ['It keeps its hatch shut against still air now.',
+        'It backs onto a vane when it opens. Make that vane turn: only the jets turn the great ones.',
+        'Hover over its vane, level with its crown, aiming ({key:aim}): the draught lifts the hatch. Shoot down.'],
     ],
+    // (from its second phase, the hatch open: the vane it backs onto)
+    at: (g, i) => (i >= 1 && g.state === 'open' && g.rt.hallVanes?.length ? nearestPiece(g, g.rt.hallVanes.map((v) => v.id), g.model.pos) : null),
   },
   // the Elder's roost (organic: calmed by flying with her)
   arzach: {

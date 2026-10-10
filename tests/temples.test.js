@@ -456,7 +456,7 @@ test('the Givers’ House on foot: in, the ball and the plates, the disc and the
 });
 
 // ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
-test('the Warden’s Well on foot: the eye and the discs, the climb and the ball, the jets, up through the ceiling, the eyes over their shelves, the warden broken, the shaft’s breath', () => {
+test('the Warden’s Well on foot: the vane and the discs, the slot and the ball, the jets, the great vane and the lidded eye, the iris, the ball pushed over the gap from the air, the warden broken over a vane, the shaft’s breath', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('incal');
@@ -474,6 +474,8 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   };
   const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const said = (re) => notes.some((n) => re.test(n));
+  const ly = () => rt.kit.local(P.pos).y;
   /**
    * Fly with the jets (they fly like a plane: player.js JET): RT lifts you straight up, eased off
    * ahead of height y (local); the stick forward tips the nose over to level, facing `to` (local [x, z]);
@@ -482,7 +484,7 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   const fly = (y, to, { max = 14 } = {}) => {
     const target = L(to[0], y, to[1]);
     const face = () => { P.heading = P.frame.headingOf(target.clone().sub(P.pos).setY(0)); };
-    const left = () => y - rt.kit.local(P.pos).y;
+    const left = () => y - ly();
     let i = 0;
     face();
     for (; i < max / DT && left() > 0.3; i++) frame({ PadThrust: Math.min(1, Math.max(0.05, (left() - P.vel.dot(P.frame.up) * 0.6) / 8)) }, 0);   // (easing off ahead of the height: the speed lags)
@@ -491,43 +493,85 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
     for (; i < max / DT && !P.onGround; i++) frame({}, 0);
     return P.onGround && flat(target) < 2;
   };
+  /** Straight up on the jets from where you stand to height y (local), then aim: the jets hold you there, sinking slowly. */
+  const hover = (y) => {
+    for (let i = 0; i < 8 / DT && y - ly() > 0.3; i++) frame({ PadThrust: Math.min(1, Math.max(0.05, (y - ly() - P.vel.dot(P.frame.up) * 0.6) / 8)) }, 0);
+    for (let i = 0; i < 0.6 / DT; i++) frame({ PadAim: true }, 0);
+    return !!P.jetHold;
+  };
+  const holding = (s, fn = () => false) => { for (let i = 0; i < s / DT; i++) { frame({ PadAim: true }, 0); if (fn()) return true; } return false; };
+  const land = () => { for (let i = 0; i < 8 / DT && !P.onGround; i++) frame({}, 0); return P.onGround; };
+  const push = (ball, n = 8, until = () => false) => {
+    for (let k = 0; k < n && !until(); k++) {
+      walk(ball.center.clone().addScaledVector(ball.dir, -2.0), { tol: 0.5 });
+      ball.hit('push', ball.dir.clone(), { strength: 0.6 });
+      wait(2.5);
+    }
+  };
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), 'in the tower');
-  // ---- the Turning Floors: the discs are still until the eye over the far door is splashed
+
+  // ---- the Turning Floors: the discs are still until the vane over the far door turns; a splash spins it a while
   assert.equal(walk(L(0, 0, 17)), true, `to the drop (${where()})`);
   const [discA, discB] = rt.pieces.filter((p) => p.path);
   wait(3);
-  assert.ok(discA.s === 0 && discB.s === 0, 'the discs are still');
-  rt.piece('s1').hit('shoot');
+  assert.ok(discA.s === 0 && discB.s === discB.total, 'the discs are still');
+  const v1 = rt.piece('v1');
+  v1.hit('shoot');
   wait(0.1);
-  assert.equal(rt.logic.isOpen('discs'), true);
+  assert.equal(v1.turning, true, 'the vane spins');
+  assert.equal(rt.logic.isOpen('discs'), true, 'and the discs ride');
+  let splashes = 1;
   const ride = (disc, off) => {
-    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.5); i++) frame();
+    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.3); i++) { frame(); if (!v1.turning) { v1.hit('shoot'); splashes++; } }
     assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the disc (${where()})`);
-    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) { frame(); if (!v1.turning) { v1.hit('shoot'); splashes++; } }
     assert.equal(walk(off, { tol: 0.8 }), true, `off the disc (${where()})`);
   };
+  // (the far disc comes back for you from the far side: the two meet you at the island together)
   ride(discA, L(0, 0, 29));
   ride(discB, L(0, 0, 42.5));
   assert.ok(P.pos.y > L(0, -1, 0).y, 'across, not in the drop');
-  // ---- the Climb: up the block's face, the ball onto its plate, the door
+  assert.equal(splashes, 1, 'one splash carries you across');
+  // it slows, and stops; and the discs stop with it
+  assert.equal(walk(L(0, 0, 44)), true);
+  for (let i = 0; i < 20 / DT && v1.turning; i++) frame();
+  assert.equal(v1.turning, false, 'the vane runs down');
+  assert.equal(rt.logic.isOpen('discs'), false);
+  const s0 = [discA.s, discB.s];
+  wait(2);
+  assert.deepEqual([discA.s, discB.s], s0, 'the discs stop where they are');
+  assert.ok(said(/slowing/), 'it says it is slowing');
+
+  // ---- the Climb: up the block's face; the ball stops at the slot, until the vane in the well's floor turns
   assert.equal(walk(L(0, 0, 57)), true, `into the well (${where()})`);
   let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, 62))); if (P.onGround && rt.kit.local(P.pos).y > 10.5) { up = true; break; } }
+  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 11, 62))); if (P.onGround && ly() > 10.5) { up = true; break; } }
   assert.ok(up, `up the face (${where()})`);
-  const ball = rt.piece('ball1');
-  for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', 'p1'); k++) {
-    walk(ball.center.clone().addScaledVector(ball.dir, -2.0), { tol: 0.5 });
-    ball.hit('push', ball.dir.clone(), { strength: 0.6 });
-    wait(2.5);
+  const ball = rt.piece('ball1'), gap = ball.o.gap;
+  let most = 0;
+  for (let k = 0; k < 3; k++) { push(ball, 1); most = Math.max(most, ball.t); }
+  assert.ok(ball.t <= gap.from + 1e-3 && said(/slot’s lip/), `the ball stops at the slot's lip, and rolls back a little (${ball.t.toFixed(2)})`);
+  assert.equal(rt.logic.drumOn('ball1', 'p1'), false);
+  assert.ok(said(/drives them/), 'it says why');
+  // from the lip, the vane far below: a splash, and the slot's stones stand while it turns
+  const v2 = rt.piece('v2');
+  {
+    const eyeAt = L(0, 12.6, 58.9), to = v2.center.clone().add(V(0, 0.1, 0)), l = to.distanceTo(eyeAt);
+    assert.ok(physics.rayDistance(eyeAt, to.clone().sub(eyeAt).normalize(), l) >= l - 0.3, 'the vane in sight from the balcony’s lip');
   }
-  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the ball rests on its plate (${ball.t.toFixed(2)})`);
+  v2.hit('shoot');
+  wait(0.2);
+  assert.equal(rt.logic.isOpen('slot'), true, 'the slot stands');
+  push(ball, 8, () => rt.logic.drumOn('ball1', 'p1'));
+  assert.ok(rt.logic.drumOn('ball1', 'p1'), `over the slot, onto its plate (${ball.t.toFixed(2)})`);
   wait(2);
   assert.equal(rt.logic.isOpen('d1'), true);
+
   // ---- the Jets' Chamber: the chest; the only way on is up through the oculus
   assert.equal(walk(L(0, 11, 75)), true, `into the chamber (${where()})`);
   for (let i = 0; i < 2 / DT; i++) frame({ Space: true }, 0);
-  assert.ok(rt.kit.local(P.pos).y < 16, 'without the jets you cannot go up');
+  assert.ok(ly() < 16, 'without the jets you cannot go up');
   items.grant('jetpack'); game.emit('box:opened', { id: 'incal.temple.jetpack' });
   assert.equal(rt.logic.gadget, true);
   // what they are for, at once: a line a moment after the chest, the drone sent up, rings rising through the oculus
@@ -542,42 +586,125 @@ test('the Warden’s Well on foot: the eye and the discs, the climb and the ball
   assert.equal(jetsUsed(rt), false);
   assert.equal(walk(L(0, 11, 81), { tol: 1.2 }), true);
   assert.equal(fly(36.5, [0, 81 - 8]), true, `up through the oculus to the gallery floor (${where()})`);
-  assert.ok(Math.abs(rt.kit.local(P.pos).y - 34.6) < 0.4, `standing in the gallery (${where()})`);
+  assert.ok(Math.abs(ly() - 34.6) < 0.4, `standing in the gallery (${where()})`);
   assert.equal(jetsUsed(rt), true, 'up: the jets were the way');
   wait(1.2);
   assert.equal(guide.root.visible, false, 'the rings fade once you are up');
-  // the eyes are hidden from the floor: no line to them; you fly up level with each to splash it
-  for (const id of ['s2', 's3', 's4']) {
-    const eye = rt.piece(id);
-    const from = P.pos.clone().add(V(0, 1.5, 0)), d = eye.center.clone().sub(from), dist = d.length();
-    assert.ok(physics.rayDistance(from, d.normalize(), dist) < dist - 1, `${id}: hidden from the floor`);
+
+  // ---- the Lamp Gallery: the eye over the west shelf, hidden from the floor, its lids shut
+  const eye = rt.piece('s2'), vG = rt.piece('vG');
+  const from = P.pos.clone().add(V(0, 1.5, 0)), d = eye.center.clone().sub(from), dist = d.length();
+  assert.ok(physics.rayDistance(from, d.normalize(), dist) < dist - 1, 'the eye is hidden from the floor');
+  eye.hit('shoot');
+  assert.equal(rt.logic.isLit('s2'), false, 'shut lids: the splash does nothing');
+  assert.ok(said(/lids/), 'and it says they are shut');
+  vG.hit('shoot');
+  wait(0.2);
+  assert.equal(vG.turning, false, 'a splash only rocks the great vane');
+  assert.ok(said(/too heavy/), 'too heavy for a splash');
+  assert.equal(rt.logic.isOpen('iris'), false, 'the iris is shut');
+  // the way: up over the great vane on the jets, and hold there (aim): it turns, the lids lift; splash the eye
+  assert.equal(walk(vG.center, { tol: 0.6 }), true, `onto the great vane (${where()})`);
+  assert.equal(hover(34.6 + 7.8), true, `the jets hold you over it (${where()})`);
+  assert.equal(vG.turning, true, 'the jets’ wash turns it');
+  assert.ok(holding(0.8, () => eye.lidK > 0.95), 'the eye’s lids lift');
+  {
+    const f2 = P.pos.clone().add(V(0, 0.6, 0)), d2 = eye.center.clone().sub(f2), l2 = d2.length();
+    assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, `from the air the eye is in sight (${where()})`);
   }
-  for (const id of ['s2', 's3', 's4']) rt.piece(id).hit('shoot');
+  eye.hit('shoot');
+  assert.equal(rt.logic.isLit('s2'), true, 'the eye wakes');
+  holding(2.2);
+  assert.equal(rt.logic.isOpen('iris'), true, 'the iris opens');
+  land();
+  wait(2);
+  assert.equal(vG.turning, false, 'off the jets, the vane runs down');
+  assert.equal(rt.logic.isLit('s2'), true, 'and the eye stays awake');
+
+  // ---- up through the iris to the loft
+  const GC = 34.6 + 15;
+  assert.equal(walk(L(0, 34.6, 81.4 - 4.3), { tol: 0.4 }), true, `to the oculus' rim (${where()})`);
+  assert.equal(fly(GC + 3, [-6, 81.4 - 8]), true, `up through the iris to the loft (${where()})`);
+  assert.ok(Math.abs(ly() - GC) < 0.5, `standing in the loft (${where()})`);
+  // the shelf's ball stops at the gap: its stones are down, and the great vane is too heavy for a splash
+  const ball3 = rt.piece('ball3'), vE = rt.piece('vE'), g3 = ball3.o.gap;
+  P.teleport(ball3.center.clone().addScaledVector(ball3.dir, -2.2).setY(ball3.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  ball3.hit('push', ball3.dir.clone(), { strength: 1 });
+  wait(3);
+  assert.ok(ball3.t <= g3.from + 1e-3 && said(/stops at the gap/), `the ball stops at the gap (${ball3.t.toFixed(2)})`);
+  vE.hit('shoot');
+  wait(0.2);
+  assert.equal(rt.logic.isOpen('span'), false, 'a splash does not turn it');
+  // the way: hover over the loft's great vane, and push the ball over the gap from the air
+  P.teleport(L(-7, GC + 0.1, 81.4 - 8.5), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  assert.equal(walk(vE.center, { tol: 0.6 }), true, `onto the loft's vane (${where()})`);
+  assert.equal(hover(GC + 6.8), true, `held over it (${where()})`);
+  assert.ok(holding(2, () => rt.logic.isOpen('span')), 'the gap’s stones stand while it turns');
+  const aim = ball3.center.clone().sub(P.pos).normalize();
+  assert.ok(Math.abs(aim.dot(ball3.dir)) > 0.5, `the ball pushed along its groove from the air (${aim.dot(ball3.dir).toFixed(2)})`);
+  ball3.hit('push', aim, { strength: 1 });
+  holding(4, () => ball3.t > g3.to + 0.05);
+  assert.ok(ball3.t > g3.to, `over the gap (${ball3.t.toFixed(2)})`);
+  holding(3, () => rt.logic.drumOn('ball3', 'p3'));
+  land();
+  for (let k = 0; k < 4 && !rt.logic.drumOn('ball3', 'p3'); k++) push(ball3, 1);
+  assert.ok(rt.logic.drumOn('ball3', 'p3'), `onto its plate (${ball3.t.toFixed(2)})`);
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true, 'the high door opens');
+
   // ---- the Warden's Hall
-  assert.equal(fly(63.5, [0, 81 + 14 - 3.2]), true, `up to the high ledge (${where()})`);
+  P.teleport(L(-7, GC + 0.1, 81.4 - 8.5), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  assert.equal(fly(63.5, [0, 81.4 + 14 - 3.2]), true, `up to the high ledge (${where()})`);
   assert.equal(walk(L(0, 62.6, 104)), true, `into the hall (${where()})`);
   const K = rt.guardian;
   wait(0.4);
   assert.notEqual(K.state, 'sleep', 'it wakes');
   assert.equal(rt.logic.isOpen('d3'), false, 'the door shuts behind you');
   P.opts.health = false;
-  for (let n = 0; n < 8 && K.state !== 'resolved'; n++) {
+  const nearest = () => rt.hallVanes.slice().sort((a, b) => a.center.distanceTo(K.model.pos) - b.center.distanceTo(K.model.pos))[0];
+  const hoverOver = (v) => {
+    P.teleport(v.center.clone().add(V(0, Math.max(6.5, K.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
+    for (let i = 0; i < 3; i++) frame({ PadThrust: 0.3 }, 0);
+    for (let i = 0; i < 0.5 / DT; i++) frame({ PadAim: true }, 0);
+  };
+  let stillTried = false;
+  for (let n = 0; n < 10 && K.state !== 'resolved'; n++) {
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } }
     assert.ok(open, `its vents open (${n}, phase ${K.phaseIndex})`);
     if (K.phaseIndex >= 1) {
-      // guarded: only from above (here: hovering over it)
+      // guarded: only from above
       const below = K.meter;
       P.teleport(L(0, 62.6, 104), V(0, 1, 0), V(0, 0, 1));
       K.hit('mouth', 'shoot');
       assert.equal(K.meter, below, 'from the floor its shut sides take nothing');
-      P.teleport(K.model.mouth.clone().add(V(4, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
+      wait(2.5);   // (it backs onto its nearest vane)
+      const v = nearest();
+      assert.ok(Math.hypot(v.center.x - K.model.pos.x, v.center.z - K.model.pos.z) < 8, 'it backs onto a vane');
+      if (K.phaseIndex === 2 && !stillTried) {
+        // the last phase: over it in still air, its hatch slams
+        stillTried = true;
+        P.teleport(K.model.mouth.clone().add(V(4, 1.5, 0)), V(0, 1, 0), V(0, 0, 1));
+        K.hit('mouth', 'shoot');
+        assert.equal(K.meter, below, 'in still air the hatch stays shut');
+        assert.ok(said(/still air/), 'and it says so');
+      }
+      hoverOver(v);
+      assert.equal(v.turning, true, 'hovering on the jets turns the vane under you');
+      assert.ok(P.pos.y > K.model.mouth.y - 1.2, `over its hatch (${(P.pos.y - v.center.y).toFixed(1)} vs ${(K.model.mouth.y - v.center.y).toFixed(1)}, held ${P.jetHold})`);
     }
+    const before = K.meter, phase = K.phaseIndex;
     K.hit('mouth', 'shoot');
+    if (phase === 1) assert.ok(Math.abs(K.meter - before - 0.25) < 1e-6 || K.meter >= 0.75, `over a turning vane a hit counts twice (${(K.meter - before).toFixed(3)})`);
+    for (let i = 0; i < 1 / DT && !P.onGround; i++) frame();
   }
   assert.equal(K.state, 'resolved', `broken (${K.meter})`);
+  assert.ok(stillTried, 'the last phase was met');
+  land();
+  P.endJets();
   assert.equal(game.flag('temple.incal.done'), true);
   wait(2.5);
   assert.ok(rt.logic.isOpen('d5'));
