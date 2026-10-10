@@ -1,0 +1,47 @@
+changelog.md
+  s_9ca76055a220ed::t_50237daec653d6 5-10
+docs/systems/foes.md
+  s_9ca76055a220ed::t_4bfc6fbd15f189 442-443,445
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_dc184c45746043 665-666
+src/changelog.js
+  s_9ca76055a220ed::t_c039c3b7cf7ee1 11-17
+src/desert-hearth.js
+  s_9ca76055a220ed::t_24d8558d420632 114-120,123-135
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_05deb4f07c55f9 100,111-113,119
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_ea80dc251e77b7 93,103-105,107,110,113
+src/temples/pieces.js
+  s_9ca76055a220ed::t_36a176d4f6beae 848-851
+tests/telegraphs.test.js
+  s_9ca76055a220ed::t_6fe71703bee2c0 153-190
+src/temples/arzach.js
+  s_b04459ac088272::t_7b951f42e077ba 119-120,122,139,142-147
+tests/cave-seams.test.js
+  s_b04459ac088272::t_675bf5a7d95d83 10,56-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "548092c517cb4643d114e93db0830ede989b41c2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_b04459ac088272": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ab8f95304366f85d1",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
