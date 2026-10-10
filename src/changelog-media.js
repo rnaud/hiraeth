@@ -548,6 +548,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'A defeated foe lies where it fell for a second', shots: [
       { name: 'smoke-puff', caption: 'A toad a second after its defeat ran out (the practice’s next toad already called in behind it): before, shrunk away to nothing; after, going out in its puff of pastel smoke', from: FROM_FIGHT39 },
     ] },
+    { match: 'On the Xbox the controller works on the title screen', see: 'Launch Hiraeth on the Xbox from Dev Home and press the D-pad on the title: the focus moves. Before, nothing answered.' },
   ],
   '1.38': [
     { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },

@@ -286,3 +286,13 @@ test('the prerelease: its notes, and a workflow that waits for the tests and nev
   assert.match(wf, /'xbox\/\*\*'/);
   assert.match(wf, /Built from commit `\\\(\[0-9a-f\]\*\\\)`/, 'reads back the line the notes write');
 });
+
+test('on the Xbox the page has the focus whenever it is shown (the console\'s WebView2 says hasFocus() false, so no pad loop read a press)', async () => {
+  const { focusAlways } = await import('../src/xbox.js');
+  const doc = { hidden: false, hasFocus: () => false };
+  focusAlways({ document: doc });
+  assert.equal(doc.hasFocus(), true);
+  doc.hidden = true;
+  assert.equal(doc.hasFocus(), false);
+  assert.match(readFileSync(new URL('../src/xbox.js', import.meta.url), 'utf8'), /focusAlways\(win\);\n  forwardLogs\(win\)/, 'installed with the rest');
+});

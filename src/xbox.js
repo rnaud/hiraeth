@@ -56,8 +56,20 @@ export function installXbox(win = globalThis.window) {
   root?.classList?.add('xbox');
   root?.classList?.toggle('tv-safe', tvSafe(win));
   win.addEventListener?.('moebius:back', () => backFallback(win));
+  focusAlways(win);
   forwardLogs(win);
   return true;
+}
+
+/**
+ * The console's WebView2 answers document.hasFocus() false while it has the focus and the pad's presses reach it
+ * (seen on a Series X, WebView2 150): every page's pad loop reads only while the page has the focus, so the game
+ * took no press at all. The app is the whole screen: here the page has the focus whenever it is shown.
+ */
+export function focusAlways(win = globalThis.window) {
+  const doc = win?.document;
+  if (!doc) return;
+  safe(() => { doc.hasFocus = () => !doc.hidden; });
 }
 
 // ------------------------------------------------------------------ the page's log, into the app's (LocalState\web\update.log)

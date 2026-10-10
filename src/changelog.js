@@ -39,6 +39,8 @@ export const CHANGELOG = [
         { where: 'every world, from the second load on', before: '751–1544', after: 0 },
       ], source: 'the loads’ “gpu pacer” warnings over the DevTools protocol (scripts/bench/deck-worlds.mjs)' }],
       see: 'Start two worlds in a row on the Steam Deck: the second one passes “mixing the inks…” a little sooner.' },
+    // the Xbox app (docs/systems/xbox.md)
+    'On the Xbox the controller works on the title screen and in the game: the console told the game it never had the focus, so every press was ignored.',
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start
