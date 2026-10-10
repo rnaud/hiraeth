@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_2cdf1c491ab6e9 5-12
+docs/systems/foes.md
+  s_9ca76055a220ed::t_b798f79ebfa354 17-20,41-53,65-70,697-705
+src/changelog.js
+  s_9ca76055a220ed::t_87e60c6e6eff85 11-38
+src/fluid-blade.js
+  s_9ca76055a220ed::t_550874bf829a5d 29,88-91,94,171-181,183,214-248,523,526,581,583-587,597-606,608,624-630,745,747-751,788-794,796,867-868,874,887
+src/i18n/en.js
+  s_9ca76055a220ed::t_c4e2f92621094a 165-166,204-205
+src/i18n/fr.js
+  s_9ca76055a220ed::t_b8223d863c5d59 164-165,203-204
+src/player.js
+  s_9ca76055a220ed::t_56c5845862dd33 135-161,978-987,993,995-997,2413-2414,2434,2442-2447
+src/sword-sheath.js
+  s_9ca76055a220ed::t_0f53dc1ed6d709 14-17,38-39
+src/ui.js
+  s_9ca76055a220ed::t_3acb15f0578cd2 137-138
+tests/blade-attacks.test.js
+  s_9ca76055a220ed::t_878f71fb4ebdce 8,37-47,89,100-102,106-107,113-114,118,121,137,147,167-197
+tests/combat.test.js
+  s_9ca76055a220ed::t_fb909bcab9bcac 81
+tests/strafe.test.js
+  s_9ca76055a220ed::t_f0bfa0f4f35ea0 1-65
+tests/sword-sheath.test.js
+  s_9ca76055a220ed::t_fecf885f7a5887 92
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b455e1fd8981e50871ea93c4ab1422e00e808cbd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
