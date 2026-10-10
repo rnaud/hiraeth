@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.37 — 2026-10-10
 
+- On the Audits page, clicking a report’s tabs or a card’s History button works again; before, it threw you back to the dashboard.
 - The Audits page in the Debug menu opens on the latest scores of every kind of audit: a card each for the whole game, combat, level design, temple design, visuals, temple visuals, ink lines, cinematics, dialogue and performance, with its score, how much it moved since the audit before, and its scores per world, temple or creature, each with its own change. A card opens the full audit; History shows the earlier audits’ scores as a line and a list, and All audits lists every report as before.
 
 ## v1.36 — 2026-10-10

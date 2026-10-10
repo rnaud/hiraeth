@@ -222,7 +222,7 @@ document.addEventListener('click', (e) => {
   if (card) return openCard(card.dataset.id);
   const kind = t.closest('[data-kind]');
   if (kind && kind.matches('.chip')) { state.kind = kind.dataset.kind; drawIndex(); return; }
-  const view = t.closest('[data-view]');
+  const view = t.closest('button[data-view]');   // (not <body data-view>: that one holds every click)
   if (view) return go({ view: view.dataset.view });
   const hist = t.closest('[data-history]');
   if (hist) return toggleHistory(hist.dataset.history);

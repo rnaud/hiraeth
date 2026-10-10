@@ -501,6 +501,7 @@ export const CHANGELOG_MEDIA = {
     { match: 'The Audits page in the Debug menu opens on the latest scores', shots: [
       { name: 'audits-dashboard', caption: 'The Audits page as it opens: before, every report as a card, newest first (two temple design audits side by side, the older combat ones further down); after, one card per kind with only its latest audit, its scores per item and their changes', from: 'headless Chrome (1280 × 720) on audits.html, a dev server on the branch: before at its parent (4a2be0b0), after with the dashboard' },
     ], see: 'Open the Debug menu, pick Audits under Pages. Move between cards with the D-pad, A opens the full audit, Y (or H) shows a card’s History, LB / RB switch to All audits, B goes back.' },
+    { match: 'On the Audits page, clicking a report’s tabs', see: 'Open Audits from the Debug menu, click a card’s History button: it opens in place. Open an audit and click its tabs: each shows its part instead of going back to the dashboard.' },
   ],
   '1.35': [
     { match: 'Your sword lands where you see it meet a creature', shots: [

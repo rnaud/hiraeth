@@ -11,6 +11,7 @@ export const CHANGELOG = [
   { v: '1.37', date: '2026-10-10', items: [
     // the audits page's dashboard (docs/systems/ui.md "The audits page")
     'The Audits page in the Debug menu opens on the latest scores of every kind of audit: a card each for the whole game, combat, level design, temple design, visuals, temple visuals, ink lines, cinematics, dialogue and performance, with its score, how much it moved since the audit before, and its scores per world, temple or creature, each with its own change. A card opens the full audit; History shows the earlier audits’ scores as a line and a list, and All audits lists every report as before.',
+    'On the Audits page, clicking a report’s tabs or a card’s History button works again; before, it threw you back to the dashboard.',
   ] },
   { v: '1.36', date: '2026-10-10', items: [
     // the references page on the site (docs/systems/references.md "On the site")

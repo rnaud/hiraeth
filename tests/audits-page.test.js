@@ -128,8 +128,9 @@ test('the Markdown reader: nested lists, two kinds of list, pictures, captions, 
 test('the TODO items each report produced', () => {
   assert.ok(byId('combat-v1.4').todo.open >= 1);
   assert.ok(byId('level-design-v1.5').todo.open >= 5);
-  assert.ok(byId('temple-design-v1.5').todo.sections[0].items.length >= 5);
-  assert.ok(byId('cinematics-v1.6').todo.sections.length >= 1);
+  // (TODO.md changes as the work lands: a report whose items all moved to DONE.md has no section left)
+  assert.ok(Array.isArray(byId('temple-design-v1.5').todo.sections));
+  assert.ok(Array.isArray(byId('cinematics-v1.6').todo.sections));
   const t = todoSections('# A (docs/audits/x.md)\n\n- [ ] one\n  more\n- [x] two\n\n# B\n\n- [ ] not it', ['docs/audits/x.md']);
   assert.deepEqual(t['docs/audits/x.md'][0].items.map((i) => [i.text, i.done]), [['one more', false], ['two', true]]);
 });
@@ -186,4 +187,11 @@ test('the page is in the Debug list and the build; its data and pictures stay of
   assert.ok(siteOnly('audits/level-design-v1.5/bazaar-landing.webp'));
   assert.ok(!siteOnly('audits.html'), 'the page itself is small and ships');
   assert.ok(read('scripts/web-update.mjs').includes('AUDIT_FILE.test(n)'), 'the over-the-air zip leaves them out');
+});
+
+test('a click on a report\'s tab or a card\'s History is theirs, not the Latest / All tabs\' (the body carries data-view too)', () => {
+  const main = read('src/audits-page/main.js');
+  assert.match(main, /document\.body\.dataset\.view = view/);
+  assert.match(main, /t\.closest\('button\[data-view\]'\)/, 'only the view tabs themselves');
+  assert.doesNotMatch(main, /t\.closest\('\[data-view\]'\)/);
 });
