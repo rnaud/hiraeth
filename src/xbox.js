@@ -12,6 +12,8 @@
 // - The B button: the app keeps the system's Back from closing the game and sends moebius:back. The game reads
 //   B from the Gamepad API like any other button; when no pad reaches the page, Back becomes an Escape press.
 // - Pause and resume: the app sends moebius:pause / moebius:resume like Android's (src/audio-guard.js).
+// - The pad read by the app: the console's WebView2 never saw A or B, so the app reads the controller itself and
+//   posts it here ({ hiraeth: 'pad', pads }); listenHostPad folds it into navigator.getGamepads().
 
 /** The app's user agent token (xbox/Hiraeth/MainPage.xaml.cs UserAgentToken). */
 export const XBOX_UA = /\bHiraethXbox\/(\d+)/;
@@ -58,6 +60,90 @@ export function installXbox(win = globalThis.window) {
   win.addEventListener?.('moebius:back', () => backFallback(win));
   focusAlways(win);
   forwardLogs(win);
+  listenHostPad(win);
+  return true;
+}
+
+// ------------------------------------------------------------------ the pad, read by the app (xbox/Hiraeth/HostPad.cs)
+// On a Series X the page's Gamepad API saw only D-pad up, down and left, never A, B or D-pad right (WebView2 in a UWP
+// app: the presses XAML took never reached it). The app reads every pad through Windows.Gaming.Input and posts each
+// change: { hiraeth: 'pad', pads: [{ buttons: [17 values], axes: [4] }] }, in the Standard Gamepad's order. Here
+// navigator.getGamepads() then serves the real pads with the app's presses added (a press seen by either counts), and
+// a standard pad of the app's own for one the page doesn't see at all. The game's controller reads it unchanged.
+// Nothing changes until the first such message: an older app sends none.
+
+/** The id of a pad only the app sees (it ends with STANDARD GAMEPAD, like WebView2's own: src/native-pad.js families). */
+export const HOST_PAD_ID = 'Xbox Controller (read by the Hiraeth app) (STANDARD GAMEPAD)';
+const TRIGGERS = new Set([6, 7]);
+const num = (v) => { const n = +v; return Number.isFinite(n) ? Math.max(-1, Math.min(1, n)) : 0; };
+/** A button of the app's reading as the Gamepad API has it (a trigger counts as pressed from a light squeeze, as Chrome's XInput does). */
+const hostButton = (v, i) => {
+  const value = Math.max(0, num(v));
+  const pressed = TRIGGERS.has(i) ? value > 0.12 : value >= 0.5;
+  return { pressed, touched: pressed, value };
+};
+
+/**
+ * navigator.getGamepads() with the app's pads folded in: the k-th connected standard pad gets the k-th pad the app
+ * read (each button pressed if either says so, the larger value; each axis the one pushed further); an app's pad with
+ * no real one beside it is served on its own, in the first free slot.
+ */
+export function mergePads(real, host, stamp = 0) {
+  const out = Array.from(real ?? [], (p) => p ?? null);
+  const live = out.flatMap((p, i) => (p?.connected && p.mapping === 'standard' ? [i] : []));
+  (host ?? []).forEach((h, k) => {
+    const buttons = Array.from({ length: 17 }, (_, i) => hostButton(h?.buttons?.[i], i));
+    const axes = Array.from({ length: 4 }, (_, i) => num(h?.axes?.[i]));
+    const i = live[k];
+    if (i !== undefined) {
+      const p = out[i];
+      const own = Array.from(p.buttons ?? []), ownAxes = Array.from(p.axes ?? []);
+      out[i] = {
+        id: p.id, index: p.index, connected: true, mapping: p.mapping, timestamp: Math.max(+p.timestamp || 0, stamp),
+        vibrationActuator: p.vibrationActuator ?? null,
+        buttons: Array.from({ length: Math.max(own.length, buttons.length) }, (_, j) => {
+          const r = own[j], b = buttons[j];
+          if (!r) return b;
+          if (!b) return r;
+          return { pressed: !!(r.pressed || b.pressed), touched: !!(r.touched || b.touched), value: Math.max(+r.value || 0, b.value) };
+        }),
+        axes: Array.from({ length: Math.max(ownAxes.length, axes.length) }, (_, j) => {
+          const r = +ownAxes[j] || 0, a = axes[j] ?? 0;
+          return Math.abs(a) > Math.abs(r) ? a : r;
+        }),
+      };
+    } else {
+      let slot = out.findIndex((p) => !p);
+      if (slot < 0) slot = out.length;
+      out[slot] = { id: HOST_PAD_ID, index: slot, connected: true, mapping: 'standard', timestamp: stamp, vibrationActuator: null, buttons, axes };
+    }
+  });
+  return out;
+}
+
+/** Take the app's pad messages and, from the first, serve them through navigator.getGamepads(). Once per page; false off the app. */
+export function listenHostPad(win = globalThis.window) {
+  const wv = win?.chrome?.webview, nav = win?.navigator;
+  if (!wv || !nav || !onXbox(win) || win.__xboxHostPad) return false;
+  const state = win.__xboxHostPad = { pads: [], stamp: 0, messages: 0, served: false };
+  const now = () => safe(() => win.performance.now()) ?? Date.now();
+  const serve = () => {
+    const original = typeof nav.getGamepads === 'function' ? nav.getGamepads.bind(nav) : () => [];
+    const merged = () => mergePads(safe(() => original()) ?? [], state.pads, state.stamp);
+    safe(() => Object.defineProperty(nav, 'getGamepads', { value: merged, configurable: true, writable: true }));
+    if (nav.getGamepads !== merged) safe(() => { nav.getGamepads = merged; });
+    state.served = nav.getGamepads === merged;
+    safe(() => wv.postMessage({ hiraeth: 'log', level: 'info', text: `pad: read by the app too (${state.pads.length} pad${state.pads.length === 1 ? '' : 's'})${state.served ? '' : ', but getGamepads could not be replaced'}` }));
+  };
+  wv.addEventListener('message', (e) => {
+    let d = e?.data;
+    if (typeof d === 'string') d = safe(() => JSON.parse(d)) ?? d;
+    if (d?.hiraeth !== 'pad' || !Array.isArray(d.pads)) return;
+    state.pads = d.pads;
+    state.stamp = now();
+    if (state.messages++ === 0) serve();
+  });
+  safe(() => wv.postMessage({ hiraeth: 'pad-sync' }));   // (the app sends what is held now)
   return true;
 }
 

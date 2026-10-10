@@ -42,6 +42,9 @@ C# with .NET Native (C# 7.3: keep newer language features out), WinUI 2.8 and it
     app's own lines first: its memory limit (**about 1 GB means the app type is App**), the WebView2 runtime, the
     pointer mode, where the focus goes. The page gets the limit too (`__hiraethXbox.memory`, MB): the frame readout
     ends ` · app 1.0 GB` or ` · game 5.0 GB`.
+  - **The pad, read by the app too** (`HostPad.cs`): see "The A and B buttons" below. The D-pad's XY focus moves
+    (`XYFocusUp/Down/Left/Right`) all point back at the web view, a focus move away from it is cancelled
+    (`LosingFocus` → `TryCancel`), and XY keyboard navigation is off: XAML has nowhere to take the pad's input.
 - **`WebBundles.cs`**: the updates (below).
 - **`Package.appxmanifest`**: `rnaud.Hiraeth`, display name *Hiraeth*, the `Windows.Xbox` device family (and
   `Windows.Desktop`, to try it on a PC), the `internetClient` capability. Identity's `Version` and `Publisher` are
@@ -86,6 +89,9 @@ the session). Nothing changes elsewhere.
 - **The frame readout** (F3, or *Show FPS* in the settings): `XBOX EDGE <n>` first, and at the end
   ` · jit on 1.1 ns · js 240 MB`: a JIT probe (an integer loop, run once: about a nanosecond a turn with the JIT, ten
   to forty interpreted; `jitVerdict`) and the JS heap. `?jit=1` shows the probe anywhere.
+- **The pad read by the app** (`listenHostPad`, `mergePads`): from the app's first `{ hiraeth: 'pad' }` message,
+  `navigator.getGamepads()` serves the real pads with the app's presses folded in, or a pad of the app's own
+  (`HOST_PAD_ID`, standard mapping) when the page sees none. An app from before sends none and nothing changes.
 - The settings show the update section. (The title's *Full screen* entry still shows: the app is full screen
   already, so it does nothing there; left alone while the title screen is being redesigned.)
 
@@ -190,6 +196,33 @@ Reported on the first install (1660). Seen over DevTools: the page's Gamepad API
 App.xaml, `RequiresPointer="Never"` on the page too, no focus engagement on the web view, and puts the focus on the web
 view whenever it could have gone (a focus on nothing, or on the page, can bring the cursor back). If it still happens,
 `page.log` says so: `mouse input: … the system's mouse mode is on`, and where the focus went.
+
+## The A and B buttons (October 2026)
+
+With the focus fixed (`focusAlways`), a probe of `navigator.getGamepads()` every frame while the author pressed A, B
+and the D-pad for three minutes saw only buttons 12, 13 and 14 (D-pad up, down, left), never A, B or D-pad right. A
+fake standard pad through `getGamepads`, or a synthetic ArrowUp, moved the title's focus: the game was fine, the pad
+didn't reach WebView2's Gamepad API. WebView2 in a UWP app gets the pad from the system, not from the app
+(WebView2Feedback #1318, #4366: "only GameInput-based providers work"), and the presses XAML acts on (A to engage or
+invoke, B as Back, the D-pad's focus moves) were lost on the way. Two routes, both in:
+
+- **XAML kept off the pad**: no engagement on the web view (MainPage.xaml), its four XY focus targets are itself, a
+  focus move away is cancelled, Back is handled. If WebView2 gets the pad natively, that is enough.
+- **The app reads the pad** (`HostPad.cs`, the guarantee): `Windows.Gaming.Input.Gamepad.Gamepads`, each
+  `GetCurrentReading()` every 8 ms on a `ThreadPoolTimer`; on a change (or a new page: `NavigationCompleted`, and the
+  page's `{ hiraeth: 'pad-sync' }`) it posts `{ hiraeth: 'pad', pads: [{ buttons: [17], axes: [4] }] }` in the Standard
+  Gamepad's order (A B X Y, LB RB, LT RT analog, View Menu, L3 R3, up down left right, guide always 0; the sticks' Y
+  turned so up is -1, rounded to 0.01 so a resting stick sends nothing). While the app is away it stops and sends
+  `pads: []`. `src/xbox.js` `mergePads` gives the k-th connected standard pad the app's k-th reading (a button is
+  pressed if either says so; each axis is the one pushed further; the id, index and rumble stay the real pad's), so
+  the game's `Controller` reads it unchanged. B still never leaves the app (`BackRequested` handled) and the page
+  reads it as button 1; the guide button never reaches an app (the system's overlay; `EnteredBackground` pauses the
+  sound as before). `XboxApi` stays 1: the page relies on nothing new (an older app sends no pad messages).
+
+Check it on the console: `node scripts/xbox-devtools.mjs js 'JSON.stringify(window.__xboxHostPad && { n: __xboxHostPad.messages, pads: __xboxHostPad.pads })'`
+shows the app's readings (hold A while it runs: `buttons[0]` is 1), and
+`node scripts/xbox-devtools.mjs js 'navigator.getGamepads().filter(Boolean).map(p => p.id + " " + p.buttons.map((b, i) => b.pressed ? i : "").filter(String))'`
+the merged pads with what is held. `page.log` says `pad: read by the app too (1 pad)` once per page.
 
 ## Unknowns (to check on the console)
 

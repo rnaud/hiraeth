@@ -9,7 +9,10 @@
 //   - the settings' update section answered over web messages (src/xbox.js xboxCall: info, check, download, restart);
 //   - a downloaded build that doesn't boot in time goes back to the packaged one (the boot watch);
 //   - the page's warnings, errors and load timings written to LocalState\web\page.log (src/xbox.js forwardLogs),
-//     with what the app knows (its memory limit: an App or a Game, the WebView2 runtime, where the focus is).
+//     with what the app knows (its memory limit: an App or a Game, the WebView2 runtime, where the focus is);
+//   - the controller read by the app too (HostPad: Windows.Gaming.Input) and posted to the page, which folds it into
+//     navigator.getGamepads() (src/xbox.js listenHostPad): the console's WebView2 never saw A or B; and the focus
+//     kept on the web view (the D-pad's XY focus moves point back at it, a move away is cancelled).
 // C# 7.3 (.NET Native): no newer language features here.
 using System;
 using System.Threading.Tasks;
@@ -23,6 +26,7 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace Hiraeth
@@ -44,6 +48,7 @@ namespace Hiraeth
         DateTimeOffset bootStarted;
         bool away, checkedOnce;
         DateTimeOffset lastCheck = DateTimeOffset.MinValue;
+        HostPad pad;
 
         public MainPage()
         {
@@ -52,7 +57,47 @@ namespace Hiraeth
             NavigationCacheMode = NavigationCacheMode.Required;
             SystemNavigationManager.GetForCurrentView().BackRequested += OnBack;
             Loaded += OnLoaded;
-            Window.Current.Activated += (s, e) => { if (e.WindowActivationState != CoreWindowActivationState.Deactivated) FocusWeb("activated"); };
+            Window.Current.Activated += OnActivated;
+            KeepFocusOnWeb();
+        }
+
+        void OnActivated(object sender, WindowActivatedEventArgs e)
+        {
+            // (no stop on Deactivated, the guide's overlay: Windows.Gaming.Input reads nothing while the app hasn't the focus)
+            if (e.WindowActivationState == CoreWindowActivationState.Deactivated) return;
+            FocusWeb("activated");
+            if (core != null && !away) pad?.Start();
+        }
+
+        /// <summary>
+        /// XAML's own use of the pad kept off the web view: the D-pad's XY focus moves (and the keyboard's) lead back to
+        /// it, a focus move away from it is cancelled, no engagement (MainPage.xaml). The page reads the pad itself.
+        /// </summary>
+        void KeepFocusOnWeb()
+        {
+            Web.XYFocusUp = Web; Web.XYFocusDown = Web; Web.XYFocusLeft = Web; Web.XYFocusRight = Web;
+            Try("xy keyboard navigation", () => XYFocusKeyboardNavigation = XYFocusKeyboardNavigationMode.Disabled);
+            Web.LosingFocus += (s, e) =>
+            {
+                if (InWeb(e.NewFocusedElement)) return;
+                try { if (e.TryCancel()) return; } catch { }
+                try { e.Cancel = true; } catch { }
+            };
+        }
+
+        bool InWeb(DependencyObject d)
+        {
+            for (var n = d; n != null; n = VisualTreeHelper.GetParent(n)) { if (n == Web) return true; }
+            return false;
+        }
+
+        /// <summary>A reading of the pad (HostPad, on the thread pool) to the page, from the UI thread.</summary>
+        void SendPad(string json)
+        {
+            _ = Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+            {
+                try { if (core != null) core.PostWebMessageAsJson(json); } catch { }
+            });
         }
 
         /// <summary>The pad's input to the page: the web view holds the focus (a focus elsewhere may bring the system's mouse mode back).</summary>
@@ -105,6 +150,12 @@ namespace Hiraeth
                 core.NavigationCompleted += OnNavigationCompleted;
                 core.NewWindowRequested += OnNewWindow;
                 core.ProcessFailed += OnProcessFailed;
+                try
+                {
+                    pad = new HostPad(SendPad);
+                    pad.Start();
+                }
+                catch (Exception ex) { pad = null; bundles.PageLog("app: the pad can't be read: " + ex.Message); }
                 running = bundles.Pick();
                 await core.AddScriptToExecuteOnDocumentCreatedAsync(PageScript());
                 Load(running, "launch");
@@ -213,6 +264,7 @@ namespace Hiraeth
         void OnNavigationCompleted(CoreWebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
         {
             FocusWeb("page loaded");   // (the pad's input goes to the page)
+            pad?.Resend();             // (a new page knows nothing of what is held)
             if (away) { _ = Send(true); }         // (a page that loads while away is told again)
         }
 
@@ -256,6 +308,7 @@ namespace Hiraeth
             {
                 if (core == null || away == on) return;
                 away = on;
+                if (on) pad?.Stop(); else pad?.Start();
                 await Send(on);
                 try { core.MemoryUsageTargetLevel = on ? CoreWebView2MemoryUsageTargetLevel.Low : CoreWebView2MemoryUsageTargetLevel.Normal; } catch { }
                 if (!on)
@@ -289,6 +342,7 @@ namespace Hiraeth
                 bundles.PageLog(msg.GetNamedString("level", "info") + ": " + msg.GetNamedString("text", ""));
                 return;
             }
+            if (kind == "pad-sync") { pad?.Resend(); return; }   // (src/xbox.js listenHostPad, as the page starts listening)
             if (kind != "call") return;
             var id = msg.GetNamedNumber("id", 0);
             var method = msg.GetNamedString("method", "");

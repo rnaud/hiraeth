@@ -296,3 +296,107 @@ test('on the Xbox the page has the focus whenever it is shown (the console\'s We
   assert.equal(doc.hasFocus(), false);
   assert.match(readFileSync(new URL('../src/xbox.js', import.meta.url), 'utf8'), /focusAlways\(win\);\n  forwardLogs\(win\)/, 'installed with the rest');
 });
+
+test('the pad read by the app: merged into the real pad, or served on its own', async () => {
+  const { mergePads, HOST_PAD_ID } = await import('../src/xbox.js');
+  const btn = (pressed = false, value = pressed ? 1 : 0) => ({ pressed, touched: pressed, value });
+  // the console's own pad: D-pad up held, A never seen
+  const realPad = { id: 'Xbox 360 Controller (XInput STANDARD GAMEPAD)', index: 0, connected: true, mapping: 'standard', timestamp: 5, vibrationActuator: { type: 'dual-rumble' },
+    buttons: Array.from({ length: 17 }, (_, i) => btn(i === 12)), axes: [0.5, 0, 0, 0] };
+  const hostA = { buttons: [1, 0, 0, 0, 0, 0, 0.6, 0.05, 0, 0, 0, 0, 0, 0, 0, 1, 0], axes: [0.2, -0.9, 0, 0] };
+  const [m] = mergePads([realPad, null, null, null], [hostA], 9);
+  assert.equal(m.id, realPad.id, 'the real pad keeps its id and index');
+  assert.equal(m.index, 0);
+  assert.equal(m.vibrationActuator, realPad.vibrationActuator, 'and its rumble');
+  assert.equal(m.timestamp, 9);
+  assert.ok(m.buttons[0].pressed, 'A from the app');
+  assert.ok(m.buttons[12].pressed, 'up from the page');
+  assert.ok(m.buttons[15].pressed, 'right from the app');
+  assert.ok(!m.buttons[1].pressed, 'B held by nobody');
+  assert.ok(m.buttons[6].pressed && m.buttons[6].value === 0.6, 'a trigger: analog');
+  assert.ok(!m.buttons[7].pressed, 'a trigger barely touched');
+  assert.deepEqual(m.axes, [0.5, -0.9, 0, 0], 'each axis the one pushed further');
+  assert.ok(!realPad.buttons[0].pressed, 'the real pad left as it was');
+
+  // no real pad: the app's served as a standard pad
+  const [own, ...rest] = mergePads([null, null, null, null], [hostA], 3);
+  assert.equal(own.id, HOST_PAD_ID);
+  assert.match(own.id, /STANDARD GAMEPAD/);
+  assert.equal(own.mapping, 'standard');
+  assert.equal(own.connected, true);
+  assert.equal(own.index, 0);
+  assert.equal(own.buttons.length, 17);
+  assert.ok(own.buttons[0].pressed && !own.buttons[1].pressed);
+  assert.equal(rest.filter(Boolean).length, 0);
+  assert.equal(mergePads([], [hostA])[0].index, 0, 'an empty list grows');
+  // a second pad of the app's beside one real pad takes the next free slot
+  const two = mergePads([realPad, null], [hostA, { buttons: [0, 1], axes: [] }]);
+  assert.equal(two[1].id, HOST_PAD_ID);
+  assert.ok(two[1].buttons[1].pressed);
+  // nothing from the app: the real list unchanged
+  assert.deepEqual(mergePads([realPad, null], []), [realPad, null]);
+  // garbage from the app reads as nothing held (and a value over 1 as 1)
+  const [junk] = mergePads([], [{ buttons: ['x', null, NaN, 7], axes: ['y', -5] }]);
+  assert.ok(junk.buttons.every((b, i) => (i === 3 ? b.pressed && b.value === 1 : !b.pressed)));
+  assert.deepEqual(junk.axes, [0, -1, 0, 0]);
+});
+
+test('the pad read by the app reaches the game\'s controller through getGamepads, only once the app sends it', async () => {
+  const { listenHostPad } = await import('../src/xbox.js');
+  const { Controller } = await import('../src/controller.js');
+  const listeners = [], posted = [];
+  const wv = { addEventListener: (t, f) => { if (t === 'message') listeners.push(f); }, removeEventListener() {}, postMessage: (m) => posted.push(m) };
+  const realPad = { id: 'Xbox 360 Controller (XInput STANDARD GAMEPAD)', index: 0, connected: true, mapping: 'standard', timestamp: 1,
+    buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })), axes: [0, 0, 0, 0] };
+  const own = () => [realPad, null, null, null];
+  const win = fakeWin({ xbox: { api: 1 }, extra: { chrome: { webview: wv }, performance: { now: () => 42 } } });
+  win.navigator.getGamepads = own;
+  assert.ok(listenHostPad(win));
+  assert.ok(!listenHostPad(win), 'once a page');
+  assert.ok(posted.some((m) => m.hiraeth === 'pad-sync'), 'asks the app for what is held now');
+  assert.equal(win.navigator.getGamepads, own, 'an app that sends nothing changes nothing');
+  listeners.forEach((f) => f({ data: { hiraeth: 'reply', id: 1 } }));
+  assert.equal(win.navigator.getGamepads, own, 'other messages change nothing');
+
+  const press = (buttons) => listeners.forEach((f) => f({ data: { hiraeth: 'pad', pads: [{ buttons, axes: [0, 0, 0, 0] }] } }));
+  press([1]);
+  assert.notEqual(win.navigator.getGamepads, own, 'served from the first pad message');
+  assert.ok(win.navigator.getGamepads()[0].buttons[0].pressed, 'A');
+  assert.equal(win.navigator.getGamepads()[0].timestamp, 42);
+  assert.ok(posted.some((m) => m.hiraeth === 'log' && /read by the app/.test(m.text)), 'said in the app\'s log');
+  press([0]);
+  assert.ok(!win.navigator.getGamepads()[0].buttons[0].pressed, 'released');
+  listeners.forEach((f) => f({ data: JSON.stringify({ hiraeth: 'pad', pads: [] }) }));
+  assert.equal(win.navigator.getGamepads()[0], realPad, 'the app away: the real pad alone');
+
+  // the game's controller, unchanged, takes the app's D-pad right (never seen by the console's WebView2)
+  const moves = [];
+  const c = new Controller({ pads: () => win.navigator.getGamepads(), context: () => 'menu', action() {}, look() {}, navigate: (d) => moves.push(d), scroll() {} });
+  press([]); c.update(1 / 60);
+  press([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]); c.update(1 / 60);
+  assert.ok(moves.length > 0, `the menu focus moved: ${JSON.stringify(moves)}`);
+  assert.equal(listenHostPad(fakeWin({ extra: { chrome: { webview: wv } } })), false, 'not in a browser');
+});
+
+test('the app reads the pad itself and keeps the focus on the web view', () => {
+  const page = read('xbox/Hiraeth/MainPage.xaml.cs'), pad = read('xbox/Hiraeth/HostPad.cs');
+  assert.ok(read('xbox/Hiraeth/Hiraeth.csproj').includes('Include="HostPad.cs"'), 'compiled');
+  assert.match(pad, /Gamepad\.Gamepads/);
+  assert.match(pad, /GetCurrentReading\(\)/);
+  assert.ok(pad.includes('"{\\"hiraeth\\":\\"pad\\",\\"pads\\":["'), 'the message src/xbox.js listenHostPad takes');
+  // the Standard Gamepad's order
+  const order = ['A', 'B', 'X', 'Y', 'LeftShoulder', 'RightShoulder', 'View', 'Menu', 'LeftThumbstick', 'RightThumbstick', 'DPadUp', 'DPadDown', 'DPadLeft', 'DPadRight'];
+  const at = order.map((b) => pad.indexOf(`GamepadButtons.${b})`));
+  assert.ok(at.every((i) => i > 0), 'every button');
+  assert.deepEqual([...at].sort((a, b) => a - b), at, 'in the standard order');
+  assert.ok(pad.indexOf('r.LeftTrigger') > at[5] && pad.indexOf('r.RightTrigger') < at[6], 'the triggers as buttons 6 and 7');
+  assert.match(pad, /-r\.LeftThumbstickY/, 'up is -1, as on the web');
+  assert.match(page, /new HostPad\(SendPad\)/);
+  assert.match(page, /PostWebMessageAsJson\(json\)/);
+  assert.match(page, /kind == "pad-sync"/, 'the page asks for what is held');
+  assert.match(page, /if \(on\) pad\?\.Stop\(\); else pad\?\.Start\(\);/, 'nothing read while away');
+  assert.match(page, /Web\.XYFocusRight = Web/, 'the D-pad\'s focus moves lead back to the web view');
+  assert.match(page, /e\.TryCancel\(\)/, 'a focus move away is cancelled');
+  assert.doesNotMatch(pad, /\bvar _ =|using var |\bis not\b|\bnew\(\)|\brecord\b|\binit;|\$"/, 'C# 7.3 only');
+  assert.match(read('src/xbox.js'), /forwardLogs\(win\);\n  listenHostPad\(win\)/, 'installed with the rest');
+});

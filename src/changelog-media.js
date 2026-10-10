@@ -555,6 +555,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'smoke-puff', caption: 'A toad a second after its defeat ran out (the practice’s next toad already called in behind it): before, shrunk away to nothing; after, going out in its puff of pastel smoke', from: FROM_FIGHT39 },
     ] },
     { match: 'On the Xbox the controller works on the title screen', see: 'Launch Hiraeth on the Xbox from Dev Home and press the D-pad on the title: the focus moves. Before, nothing answered.' },
+    { match: 'On the Xbox, A, B and the D-pad’s right reach the game', see: 'On the Xbox, press A on the title: the entry the focus is on opens; B goes back from a menu and never leaves the app; the D-pad moves the focus every way, right included. Before, A, B and right did nothing.' },
     { match: 'The title screen shows the build number and commit', see: 'Look at the bottom of the title screen: v1.39 · build … · the commit.' },
   ],
   '1.38': [

@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - The title screen shows the build number and commit after the version, so you can tell which build a device runs.
 - The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.
+- On the Xbox, A, B and the D-pad’s right reach the game: the app reads the controller itself and passes every press on, since the console’s web view only ever saw some of the D-pad.
 - On the Xbox the controller works on the title screen and in the game: the console told the game it never had the focus, so every press was ignored.
 - Loading a world on the Steam Deck is about a second quicker: the loading screen stops waiting for a signal the Deck’s graphics driver never sends, once it has found that out the first time.
 - The Steam Deck runs smoother in busy places: its graphics preset draws the sun’s shadows in one pass fewer, with a sharper map near you so they look the same, people’s cloaks sway in the wind within 14 m (further off they hang still), and the game no longer recomputes the place of everything in the world each frame when it has not moved. The Deck’s processor, not its graphics chip, was what held it back.
