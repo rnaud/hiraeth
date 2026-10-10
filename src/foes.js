@@ -94,7 +94,7 @@ export const WAVE = { near: 10, far: 14, rest: 3 };
 /**
  * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
  * route's fourth stage (`late.stage`: the Buried Machine, the Garden of Spheres, the Signal Market; src/foe-worlds.js
- * WORLDS stage) three may (v1.19, the roster's step 8: the packs there are combinations, and two at a time made a pack of
+ * WORLDS stage) three may (v1.22, the roster's step 8: the packs there are combinations, and two at a time made a pack of
  * five no more pressing than a pair), and each one's wait between strikes is `late.cool` as long. Gentle: one, everywhere,
  * at the usual pace.
  */
@@ -163,13 +163,13 @@ export const GROUNDED = 2.5;
 export const CHOKE = 2.2, LEAP_FLIP = 2.6, TOPPLE = 3, OPEN = { guard: 1.2, perfect: 2.6 };
 export const SPORES = { life: 3, r: 1.4, slow: 7 };
 /**
- * Balance (v1.19, the enemy roster's step 8): the slag a cart pours or drips burns you every `burn` s you stand in it
+ * Balance (v1.22, the enemy roster's step 8): the slag a cart pours or drips burns you every `burn` s you stand in it
  * (combat-v1.16 rec. 2: 0.7 s made the cart the roster's worst on a still traveller, 7 bars a minute); the air cut on a
  * hovering foe (a flyer in its own air) lands AIR_MEETS times (combat-v1.4 rec. 1: a niche of its own).
  */
 export const SLAG = { burn: 1.1 };
 /**
- * The foes' harm by the stage of the route (src/foe-worlds.js WORLDS stage; v1.20): in the last three worlds a heavy blow
+ * The foes' harm by the stage of the route (src/foe-worlds.js WORLDS stage; v1.22): in the last three worlds a heavy blow
  * lands as a crushing one (¾ × 1.25 → 1, in quarters; an ordinary blow stays ½), in the Signal Market an ordinary blow as a
  * heavy one (½ × 1.5 → ¾): the danger rises with the hearts a traveller can have by then (up to 13–16 on arrival).
  */

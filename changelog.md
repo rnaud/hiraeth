@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.22 — 2026-10-10
+
+- The crucible cart’s slag burns you a little less often and cools sooner; the ring drone’s diving ram and the shade’s sword cut hit as hard as the other heavy blows, and the shade winds its cut up a touch longer.
+- Each sword move has a job: the light combo’s third swing hits harder (the quickest way through the middleweights on the ground), the air cut hits flying and hovering foes twice as hard, and the full charged cut takes a little longer to gather, still the answer to the heavy ones.
+- The journey grows harder as you go, and the Signal Market is now its hardest stretch. From Viridel on, pairs and swarms come with company; the Hangar’s and the Garden of Spheres’ packs are bigger; the Garden’s shades and halo hounds and the Market’s alley hounds, parcel puppets and bell walkers lead more often; and in the last three worlds three foes may strike at once instead of two, a little sooner, a heavy blow takes a whole heart, and in the Market an ordinary blow takes three quarters.
+- A shot or an ember that does nothing to a foe now says so: a spark and a dull tick off its iron or its shell, and it no longer flinches as if hurt.
+- Every creature, machine and spirit now sounds like itself when your blade lands and when it falls: a crab’s shell clacks and cracks, a toad’s throat wheezes and pops, a heron rings like a clay jug and breaks like one, a jelly’s lanterns ring like glass, a moth crinkles like paper, the bell walker’s bronze bongs and cracks, a shade’s empty cloak swishes and flutters down, a marionette’s strings snap one by one.
+
 ## v1.21 — 2026-10-10
 
 - Your own shadow on the sand no longer carries a ragged black blotch beside your hand (only a crease in the dune still darkens it), and the shield on your wrist and the sword on your back no longer fill with black in the shade: they count as part of you now, as your body does.

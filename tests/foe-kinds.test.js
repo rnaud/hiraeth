@@ -341,7 +341,7 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   }
   assert.deepEqual(packOf(0, 'desert'), ['blot'], 'the very first pack the game explains: a blot');
   assert.deepEqual(packOf(0, 'eclipse'), ['hound'], 'elsewhere, the world’s lead first, alone');
-  // lizards come in pairs: alone in the first half of the route, with the stage's fillers round them from the third stage on (v1.19)
+  // lizards come in pairs: alone in the first half of the route, with the stage's fillers round them from the third stage on (v1.22)
   { const p = packOf(2, 'bazaar', () => 0.1); assert.deepEqual(p.slice(0, GROUP.lizard), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
     assert.equal(p.length, GROUP.lizard + 3, 'the Market: a pair and three more (five places, the pair taking two)'); }
   for (let n = 1; n < 200; n++) { const p = packOf(n, 'perdide', rng); if (GROUP[p[0]]) assert.deepEqual(p, Array(GROUP[p[0]]).fill(p[0]), `Lorn: a group alone (${p})`); }

@@ -7,7 +7,7 @@ The first things in the game that fight back, and the tool's answer to them.
 - **Input:** F, RB / R1, touch ⚔ (`toolInput().blade`; `PadBlade` in `src/controller.js`). It comes with the
   backpack: no item, no box. It costs no charge. On a pad, LB held with the right stick still zooms.
 - **The combo:** a press swings (the first cut takes 0.62 s); a press during a swing or within `BLADE.chain` after it
-  chains the next, up to three: right to left, left to right, then a heavier overhead (`BLADE.damage` 1, 1, 3 since v1.20; 1, 1, 2 before),
+  chains the next, up to three: right to left, left to right, then a heavier overhead (`BLADE.damage` 1, 1, 3 since v1.22; 1, 1, 2 before),
   then `BLADE.cooldown`. A press the blade can't act on yet (during an evade, the cooldown) is kept `BLADE.buffer`
   (0.2 s) and swings as soon as it can (v0.96).
 - **The cut's pull** (`MAGNET`, `closeInSpeed`, v0.96): a swing begun with its target (the lock, else the soft lock)
@@ -35,7 +35,7 @@ The first things in the game that fight back, and the tool's answer to them.
   (`FluidBlade.charging`): the clip drawn from 0.3 s to its cocked pose (`hold` 0.45 s, the sword back over
   the right shoulder) over 0.18 s, blended in from the swing over 0.2 s (`playCombat`'s `blend`), and held
   there with a slow breath (`chargePose`) as long as the button is; a slow step at most (`combatMotion.scale`
-  0.3), turned to the nearest foe; the blade pulses; full after `CHARGE.full` (0.85 s since v1.20; 0.6 before): a white ring and a ping
+  0.3), turned to the nearest foe; the blade pulses; full after `CHARGE.full` (0.85 s since v1.22; 0.6 before): a white ring and a ping
   (`sound.fluidCharge`). Let go (or leave the ground): `release()` plays the clip's swing from 0.45 s (cut
   0.54–0.76 s, 0.07/0.17/0.36 s), cone half-angle 1.5 rad, reach 3.3 m, the cut's pull as a swing's;
   `CHARGE.damage` [2, 3] (not full / full), heavy (combo 2: the knockback, the hit-stop 0.11, full 0.15), and
@@ -271,7 +271,7 @@ traveller instead of an eighth: a little harder, as asked.
 | A swarm's nip, a moth's flash, a dart, a root's grab, a crab's lunge; each contact of a world foe's multi-contact attack (pincers, a scythe, a barrage, a jet) | ¼ | `FOES.swarm`, `foe-kinds.js`, `enemies/attacks.js` |
 | Burning slag underfoot, a first touch of spines (a bite) | ¼ | `foes.js` (`DAMAGE.graze`), `hazards.js` |
 | **An ordinary blow**: an ink blot's lunge, each hit of its combo, a spitter's lob, each glob of a volley, a machine's quake wave, a harpoon, a ram, a lash, a snap, a pounce, a bite, a shards ring; a world foe's peck, sting, lob, pull, buffet | **½** | `FOES.blot`, `foe-kinds.js`, `enemies/attacks.js` |
-| A heavy blow: a winged blot's dive, a ring drone's ram (a dive, v1.20), a shade's sword, a machine's quake slam, an erupting ray, a glass golem's slam or hurl, a crab's spin, a slag walker's stomp or pour; a world foe's rush, tail, beam, pulse, dive | ¾ | same |
+| A heavy blow: a winged blot's dive, a ring drone's ram (a dive, v1.22), a shade's sword, a machine's quake slam, an erupting ray, a glass golem's slam or hurl, a crab's spin, a slag walker's stomp or pour; a world foe's rush, tail, beam, pulse, dive | ¾ | same |
 | A crushing blow: a machine's slam; a world foe's groundbreaker | 1 | `FOES.machine`, `enemies/attacks.js` |
 | A guardian's lighter blows: a combo's quick links (pecks, snaps, jabs, stutters), each shard of a thrown volley, a gale, a shockwave ring | ½ | each temple's `attacks` (`wind:` lines) |
 | A guardian's strike: the sweeps, the cries, the lobs, the buffets | ¾ | same |
@@ -282,6 +282,8 @@ traveller instead of an eighth: a little harder, as asked.
 | A hard landing (a drop of 16–36 m) | ¼ to 2 (`FALL.worst`), never the last quarter | `fallDamage` (`player.js`) |
 | A fatal fall (36 m and more) | all of them | `FALL.lethal` |
 
+- **The last worlds** (v1.22, `HARM_BY_STAGE`): in the Buried Machine, the Garden of Spheres and the Signal Market a
+  heavy blow takes a heart; in the Market an ordinary blow takes three quarters ("Balance and sound" below).
 - **Gentle** (the Enemies setting) still halves the foes' harm (`GENTLE.harm`), then counts it in quarters,
   never under one: a heart's blow takes half, half a heart a quarter, a quarter still a quarter.
   The guardians and the world's hazards don't change with it (as before).
@@ -612,19 +614,22 @@ material (tests/shade-flame.test.js); no foe draws the flame now. The white cont
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## Balance and sound (v1.20, the enemy roster's step 8)
+## Balance and sound (v1.22, the enemy roster's step 8)
 
-The roster's last step (docs/design/enemy-roster.md, "Build plan" 8), measured in docs/audits/combat-v1.20.md:
+The roster's last step (docs/design/enemy-roster.md, "Build plan" 8), measured in docs/audits/combat-v1.22.md:
 
 - **The curve** (src/foe-worlds.js): the places by stage (`BUDGET`: 1–2, 2–3, 3–5, 4–5, and the Signal Market alone at
-  stage 4, 5–6), a world's own `budget` (Viridel 3–4: its moths' threes and its brutes; the Garden of Spheres 4–6: its
+  stage 4, 5–6), a world's own `budget` (Viridel 3–4: its moths' threes and its brutes; the Hangar 4–5: a drone and what it pulls you into; the Garden of Spheres 4–6: its
   rollers, drones and jellies are soft one by one), groups filled round from the third stage (`GROUP_COST`), and the
   late worlds' rosters weighted toward their late kinds (the Garden's centipedes, shades and halo hounds; the Market's
   alley hounds from its second pack, its parcel puppets from the third). Measured by the combat-review script's
   `--packs` (the cost of a pack in hearts against the hearts by then: `.claude/skills/combat-review/SKILL.md`).
-- **The turns** (`TURNS.late`): from stage 3 (the Buried Machine, the Garden, the Market) three foes may wind up at
-  once instead of two (`Foes.strikers`, `strikersAt`; the Arena plays its world's when it plays a world's waves, and
-  the review script sets `foes.stage`); Gentle keeps one.
+- **The last worlds press harder** (src/foes.js): from stage 3 (the Buried Machine, the Garden, the Market) three foes
+  may wind up at once instead of two and each waits three quarters as long between strikes (`TURNS.late`,
+  `strikersAt`, `coolAt`), and the harm rises with the stage (`HARM_BY_STAGE`, through `Foes.harmOf`, in quarters):
+  there a heavy blow lands as a crushing one (¾ → 1), and in the Market an ordinary blow as a heavy one (½ → ¾). The
+  stage is the world's (`Foes.stageHere`: the Arena plays its world's when it plays a world's waves, else stage 1; the
+  review script sets `foes.stage`); Gentle keeps one striker, the usual waits, and halves the harm as before.
 - **The moves' niches** (src/fluid-blade.js): the light combo's third swing lands 3 (`BLADE.damage` 1, 1, 3: the quickest
   through the mid-weight foes on the ground, 4–5 hearts of health), the air cut lands double on a hovering foe
   (`AIR_MEETS`: the ray, the moth, the jelly, the drone, the marionette), the full charged cut takes 0.85 s
@@ -672,7 +677,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   pump, Lorn II's wood cutter, the Garden's glass puppet; where each stands: `PLACED`, below) and its temple
   rooms. `ROSTERS` turns them into what spawning reads (kinds: each archetype's own or its stand-in's): `wild`,
   `fill`, `first` (the lead alone), `guards`, `temple`. Packs are sized by stage (`BUDGET`: 1–2, 2–3, 3–5, 4–5, and
-  the Signal Market's own 5–6 since v1.20; a world's `budget` overrides it: Viridel 3–4, the Garden of Spheres 4–6),
+  the Signal Market's own 5–6 since v1.22; a world's `budget` overrides it: Viridel 3–4, the Sealed Hangar 4–5, the Garden of Spheres 4–6),
   group kinds come as a group (`GROUP`: the lizards and the hounds in pairs, moths in threes, the swarm in eight):
   alone in the first half of the route, with fillers round them from the third stage on (the group taking
   `GROUP_COST` places), and the first half of the route holds at most one ranged kind a pack. "Balance" below says

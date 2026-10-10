@@ -124,7 +124,7 @@ test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the
   for (const w of ['desert', 'arzach']) assert.ok(Object.keys(WORLDS[w].roster).every((a) => ARCHETYPES[a].tier === 1), `${w}: tier 1 alone`);
   for (const w of ORDER.slice(0, 8)) assert.ok(tiers(w).every((t) => t < 4), `${w}: no tier 4 before the last three`);
   for (const w of ['spheres', 'bazaar']) assert.ok(tiers(w).includes(4), `${w}: tier 4`);
-  // (v1.19, the roster's step 8: the third stage up to five places, the last three four to five, the Market a summit of its own)
+  // (v1.22, the roster's step 8: the third stage up to five places, the last three four to five, the Market a summit of its own)
   assert.deepEqual(BUDGET, [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]]);
   const rng = (() => { let s = 11; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const w of ORDER) {

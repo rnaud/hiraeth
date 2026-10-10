@@ -55,7 +55,7 @@ test('Gentle halves the foes\' harm, still in quarters, never under one', () => 
   assert.equal(GENTLE.harm, 0.5);
   const harmOf = (d) => quarters(d * GENTLE.harm);
   assert.equal(harmOf(1), 0.5); assert.equal(harmOf(0.5), 0.25); assert.equal(harmOf(0.75), 0.25); assert.equal(harmOf(0.25), 0.25);
-  // (since v1.20 the last worlds' stage raises it too, after Gentle's half: HARM_BY_STAGE, tests/archetypes.test.js)
+  // (since v1.22 the last worlds' stage raises it too, after Gentle's half: HARM_BY_STAGE, tests/archetypes.test.js)
   assert.match(src('src/foes.js'), /harmOf\(d\) \{ return quarters\(d \* \(this\.difficulty === 'gentle' \? GENTLE\.harm : 1\) \* \(HARM_BY_STAGE\[this\.stageHere\] \?\? 1\)\); \}/);
 });
 

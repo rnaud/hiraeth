@@ -777,11 +777,12 @@ Down the route:
 The packs grow with the visit, as now (`packOf(n, world)`, `FROM`); Gentle still cuts a pack to two and softens
 the harms. Rough pack budget by stage: 1–2 foes / 2–3 / 3–4 / 4–5 (tier 4 counts double).
 
-**As built (step 8, v1.20; docs/audits/combat-v1.20.md):** the places by stage are 1–2 / 2–3 / 3–5 / 4–5, and the
-Signal Market stands alone at the top (stage 4: 5–6); a world may set its own (Viridel 3–4, the Garden of Spheres 4–6:
+**As built (step 8, v1.22; docs/audits/combat-v1.22.md):** the places by stage are 1–2 / 2–3 / 3–5 / 4–5, and the
+Signal Market stands alone at the top (stage 4: 5–6); a world may set its own (Viridel 3–4, the Sealed Hangar 4–5, the Garden of Spheres 4–6:
 its kinds are softer one by one). From the third stage on a pair or a flock comes with fillers round it (the pair two
 places, the moths' three three, the skitters' eight two), and in the last three worlds three foes may wind up at once
-instead of two (src/foes.js `TURNS.late`). The late kinds lead there: the Garden's shades and halo hounds, the Market's
+instead of two, each a little sooner, and their blows land heavier (a heavy blow a heart; in the Market an ordinary one
+three quarters: src/foes.js `TURNS.late`, `HARM_BY_STAGE`). The late kinds lead there: the Garden's shades and halo hounds, the Market's
 alley hounds (from its second pack) and parcel puppets. Measured with the combat-review script's `--packs`: the hearts a
 pack costs a traveller who trades blows with it standing still, as a share of the hearts he can have by then (every
 earlier shop's heart containers bought), falls from the middle of the route to the end before, and rises to the Market
@@ -861,7 +862,7 @@ Everything is built on the procedural locomotion kit (docs/systems/procedural-an
 7. **The late spirits and the roller**, 2 sessions: the **shade** rework (the feint, the shadow step), the **pearl
    roller** (rolling locked to distance) and the **marionette** (string anchors, possessing a host foe: a host's
    `possessed` state, string targets for the blade, the boomerang and ember).
-8. **Balance and sound**, 1 session (**done**, v1.20): the rosters and pack budgets per world, the difficulty curve checked
+8. **Balance and sound**, 1 session (**done**, v1.22): the rosters and pack budgets per world, the difficulty curve checked
    world by world with the combat-review skill, and the hurt/burst sound families (src/foe-voices.js: a voice per
    archetype in its family).
 
@@ -949,7 +950,10 @@ audit: no foot slide, the right gaits) the Desert, Vael and Lorn do too; with ba
 4.7–4.8 by eye, mean 4.78; the brute's feet slide 0.01 m/m, the bell's 0.00) Viridel does, and with batch 5
 (docs/audits/combat-v1.18.md: 4.3–4.8 by eye, mean 4.50; the shade's boots slide 0.01 m/m, the roller's roll is locked to
 the ground) every world does: Lorn II's rare shade on its own body, the Garden's rollers and glass puppet, the Signal
-Market's late marionettes.
+Market's late marionettes. **Batch 6 (step 8) is done** (v1.22, docs/audits/combat-v1.22.md: the whole roster 3.8–5.0 by
+eye, mean 4.63): a hurt and a burst per archetype in its sound family (src/foe-voices.js), the curve set world by world
+and measured with the combat-review script's `--packs` (the cost of a pack against the hearts by then rises at the end,
+9 → 10 → 14 → 18 %, where it fell to 5 %), the moves' niches, the cart's slag, and the shot that glances.
 
 ## Open questions for the author
 

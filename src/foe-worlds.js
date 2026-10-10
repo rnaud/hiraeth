@@ -8,7 +8,7 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 //   stage    where on the difficulty curve it stands (0: the Desert and Vael … 3: the Buried Machine and the Garden,
 //            4: the Signal Market alone; side worlds 2): its packs' places (BUDGET), and from 3 the turns and the harm
 //            of src/foes.js (TURNS.late, HARM_BY_STAGE)
-//   budget   [lo, hi] places when a world's differ from its stage's (v1.20: docs/audits/combat-v1.20.md)
+//   budget   [lo, hi] places when a world's differ from its stage's (v1.22: docs/audits/combat-v1.22.md)
 //   lead     the pack lead: the most common archetype there (no two route worlds in a row share one)
 //   roster   its archetypes by weight (how often each leads a pack)
 //   late     archetypes that lead only from the third pack on; placed: one met where it is placed, not in packs
@@ -125,7 +125,7 @@ export function packOf(n, levelId, rng = Math.random) {
   if (n >= 3 && rng() < R.shade) return ['shade'];
   let lead = pick(R.wild, rng);
   if ((FROM[lead] ?? 0) > n || (R.late?.[lead] && n < 3)) lead = pick(R.fill, rng);
-  // a group comes as its group: alone in the first half of the route, with fillers to the stage's places after (v1.19)
+  // a group comes as its group: alone in the first half of the route, with fillers to the stage's places after (v1.22)
   if (GROUP[lead] && (R.stage ?? 1) < 2) return Array(GROUP[lead]).fill(lead);
   const out = GROUP[lead] ? Array(GROUP[lead]).fill(lead) : [lead];
   let ranged = rangedKind(lead) ? 1 : 0;

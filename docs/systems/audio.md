@@ -312,9 +312,9 @@ small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 
   Buried Machine's oil dish play it instead of the quest `whoosh`.
 
 
-## The foes' voices (v1.20, the enemy roster's step 8)
+## The foes' voices (v1.22, the enemy roster's step 8)
 
-Every archetype sounds like itself when a blow lands and when it comes apart (combat-v1.4 rec. 2: until v1.19 the
+Every archetype sounds like itself when a blow lands and when it comes apart (combat-v1.4 rec. 2: until v1.21 the
 whole roster shared two sets, the machine's clang and the ink's splat). All synthesised on the Web Audio graph, no
 samples: `src/foe-voices.js` holds the data, `src/audio.js` plays it.
 

@@ -466,6 +466,39 @@ const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280
 /** The visual probes' fixes (docs/audits/visual-v1.21.md): the probes' own views, at their hour (9:30), the commit before each fix and the fix. */
 const PROBES20 = { hour: 9.5, wait: 3000 };
 export const CHANGELOG_MEDIA = {
+  '1.22': [
+    // the enemy roster's last step, balance and sound (docs/audits/combat-v1.22.md): nothing to photograph but numbers
+    // and how to hear or see it; the curve's numbers from the combat-review script's --packs, before and after
+    { match: 'Every creature, machine and spirit now sounds like itself', see: 'In the Arena (?level=arena) open the FOES list (K, or D-pad ↓) and call in any foe with the sound on: cut it, then cut it down. Each of the 21 has its own sound for a blow and for its end; the old two (a machine’s clang, the ink’s splat) were shared by all of them.',
+      numbers: [
+        { title: 'Sounds for a foe struck and a foe cut down', unit: 'sets', better: 'higher', device: 'any (the game’s own synthesis, no recordings)', rows: [
+          { where: 'when a blow lands', before: 2, after: 21 }, { where: 'when it falls', before: 2, after: 21 },
+        ], source: 'src/foe-voices.js FOE_VOICES, played by src/audio.js foeHurt / foeBurst; tests/foe-voices.test.js renders each in memory and checks every two apart', note: 'Plus the makers’ machine in the temples keeping its old clang, and a glance for a blow that does nothing.' },
+      ] },
+    { match: 'A shot or an ember that does nothing to a foe now says so', see: 'In the Arena, call in a ring drone, a lamp tripod or a furnace brute and shoot it with plain fluid: a spark flies off and it ticks; it doesn’t flinch. A blot or a toad still takes the shot.' },
+    { match: 'The journey grows harder as you go', see: 'The packs grow along the route: in the Garden of Spheres up to six at once, in the Signal Market lizard pairs with crabs and blots round them, alley hounds from the second pack, parcel puppets from the third. In the Arena, the FOES list’s “Fight this world’s roster” plays a world’s waves with its turns.',
+      numbers: [
+        { title: 'What a pack costs a traveller who trades blows with it standing still, in the hearts he can have by then', unit: '% of the hearts', better: 'higher', device: 'Mac M4 Pro, headless Chrome on the GPU, the Arena, a still traveller', rows: [
+          { where: 'The Desert (3 hearts)', before: 13, after: 8 }, { where: 'Vael (5)', before: 6, after: 5 }, { where: 'Vael II (6)', before: 13, after: 13 },
+          { where: 'Lorn (7)', before: 26, after: 23 }, { where: 'Lorn II (8)', before: 11, after: 9 }, { where: 'Viridel (9)', before: 16, after: 10 },
+          { where: 'The City-Shaft (10)', before: 9, after: 15 }, { where: 'The Sealed Hangar (12)', before: 6, after: 9 }, { where: 'The Buried Machine (13)', before: 11, after: 10 },
+          { where: 'The Garden of Spheres (15)', before: 8, after: 14 }, { where: 'The Signal Market (16)', before: 5, after: 18 },
+        ], source: 'node .claude/skills/combat-review/arena.mjs --packs route --ttk <a kinds run> --pack-count 4 --pack-watch 20, before at main ac7600f6; the hearts on arrival with every earlier shop’s heart containers bought', note: 'The aim is the end rising to the Market, not a high number: before, the route fell to its softest at the end. The time to clear a pack grows from 1.4–1.9 s in the first two worlds to 8.5–10 s in the last two; four seeded packs a world.' },
+      ] },
+    { match: 'Each sword move has a job', see: 'Jump and cut at a sky ray or a lantern jelly: one air cut. Three light swings into a root knot or a shade: down. Hold the charged cut on a toad or a horn lizard: one blow.',
+      numbers: [
+        { title: 'Foe kinds each move kills fastest', unit: 'kinds of 22', better: 'lower', device: 'the Arena, each blow through the game’s own Foes.hurt', rows: [
+          { where: 'the full charged cut', before: 19, after: 4 }, { where: 'the air cut', before: 0, after: 11 }, { where: 'the light combo', before: 0, after: 4 },
+          { where: 'the fluid shot', before: 2, after: 2 }, { where: 'the riposte', before: 1, after: 1 },
+        ], source: 'node .claude/skills/combat-review/arena.mjs (the time-to-kill columns), before and after; after retimed with --rescore --moves-now', note: '“Better” here is the charged cut no longer being the answer to almost everything; the dash cut still leads nowhere.' },
+      ] },
+    { match: 'The crucible cart’s slag burns you a little less often', see: 'In the Arena, call in a crucible cart and stand in its slag: it burns about once a second instead of three times in two, and its puddles and trail fade sooner.',
+      numbers: [
+        { title: 'A still traveller’s health lost in a minute', unit: 'bars a minute', better: 'lower', device: 'the Arena, a still traveller, 24 s each', rows: [
+          { where: 'crucible cart', before: '6.3–7.1', after: '4.4–5.2' },
+        ], source: 'node .claude/skills/combat-review/arena.mjs, before (v1.16’s report and this step’s run) and after (two runs)', note: 'The ring drone 0.4–1.7 → 1.9–2.1 (its diving ram ¾) and the shade 2.5–2.9 → 3.5 (its sword cut ¾, wound up 0.95 s).' },
+      ] },
+  ],
   '1.21': [
     { match: 'Standing near a room’s corner in shade', shots: [
       { name: 'corner-copy', caption: 'A room corner inside a doorway in the desert, Handheld: before, a dark copy of the traveller on the wall to his left; after, the corner’s black stays as it is', commit: '74438fda',

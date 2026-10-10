@@ -2033,3 +2033,20 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   side worlds were run at Handheld (docs/audits/visual-v1.21.md). tests/visual-probes.test.js.
 - [x] world.js `jitter`'s `vertical` noise lifted a foot ring as well as lowered it: y = 0 now only goes down, as
   `rough` does; tests/shell-seams.test.js runs it with its vertical noise (the guard against any world using it is gone).
+
+## Enemy roster: batch 6, balance and sound (2026-10-10, v1.22)
+
+- [x] Batch 6 (docs/design/enemy-roster.md step 8): a hurt and a burst per archetype in its sound family
+  (src/foe-voices.js, src/audio.js foeHurt / foeBurst; tests/foe-voices.test.js renders them in memory), combat-v1.4
+  rec. 2 and combat-v1.18 rec. 2 (the roller's rolling rumble and glassy shatter, the marionette's paper and strings).
+- [x] The route's curve rises to the Signal Market (combat-v1.4 rec. 3): the places by stage (1–2, 2–3, 3–5, 4–5, the
+  Market alone 5–6), Viridel's, the Hangar's and the Garden's own, groups with fillers from the third stage, the late
+  worlds weighted to their late kinds, three strikers at once, quicker turns and heavier blows in the last three
+  (src/foes.js `TURNS.late`, `HARM_BY_STAGE`); measured world by world with the combat-review script's new `--packs` (docs/audits/combat-v1.22.md).
+- [x] The moves' niches (combat-v1.4 rec. 1): the combo's third swing 3, the air cut double on a hovering foe, the full
+  charge 0.85 s; the charged cut was the fastest kill for 19 of 22 kinds, now 4 (the air cut 11, the combo 4, the shot
+  2, the riposte 1).
+- [x] A shot that does nothing says so (combat-v1.4 rec. 4): a glance, a spark and a tick, no flinch.
+- [x] The damage table re-checked against every attack (combat-v1.6 rec. 2): the drone's ram is a dive (¾), the shade's
+  cut its sword (¾, a 0.95 s wind-up); the crucible cart's slag tuned (combat-v1.16 rec. 2: 7.1 → 4.4–5.2 bars a minute
+  on a still traveller).

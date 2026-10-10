@@ -23,7 +23,7 @@ export const BLADE = {
   chain: 0.45,         // s after a swing in which the next press chains
   reach: 2.9, angle: 1.15,   // the swing's cone: metres from the chest, half-angle (rad, ~65°)
   lock: 6,             // m: the soft lock turns you to a foe this close
-  damage: [1, 1, 3],   // the combo's three swings (v1.20: the third lands three, the combo's niche: the mid-weight foes on the ground)
+  damage: [1, 1, 3],   // the combo's three swings (v1.22: the third lands three, the combo's niche: the mid-weight foes on the ground)
   cooldown: 0.5,       // after the third swing
   buffer: 0.2,         // s a press is remembered while the blade can't swing yet (an evade, the cooldown): it swings as soon as it can
 };

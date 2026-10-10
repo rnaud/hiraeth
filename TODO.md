@@ -77,9 +77,10 @@ the new roster.
 - [ ] Play the bell walker with a pad (combat-v1.16 rec. 1): is the drop's 2.5 s opening long enough to strike the
   clapper without the whistle, and is a guarded drop found? If the fight drags, open it longer or let a stilling glob
   tip it over.
-- [ ] The crucible cart on a still traveller costs 6.26 bars a minute, the most of the roster (combat-v1.16 rec. 2): play
-  its pour at close range and its dripped trail in the Hangar's corridors; shorten the slag near it or the trail if it
-  reads unfair.
+- [ ] Play the crucible cart's pour at close range and its dripped trail in the Hangar's corridors with a pad (combat-v1.16
+  rec. 2; tuned by numbers in v1.22: the slag burns every 1.1 s, was 0.7; the pour's slag stays 4 s, was 6; the trail 3.5
+  s, was 4.5; 7.1 → 4.4–5.2 bars a minute on a still traveller, combat-v1.22). Still the roster's hardest on a still
+  traveller with the hound (4.6): shorten the trail further if it reads unfair.
 - [ ] Measure the machines' CPU on the Retroid and the Deck (combat-v1.16 rec. 3: +0.25 ms a machine in headless Chrome,
   a pack of six 2.5 → 4.0 ms): the cart's ground rays every other frame and its wheels' instance upload first (a far cart
   could skip both).
@@ -89,9 +90,6 @@ the new roster.
   tracks, a toothed sprocket, a billowing smoke column; the brute's crack net lighter, its fingers in plates, its fists
   meeting over its head for the slam; the bell's yoke a flat riveted band, its spirit seen from above; the drone's
   cloud spreading in wisps at its sides.
-- [ ] **Batch 6** (the doc's step 8): balance and sound: the pack budgets per world played through, the hurt/burst
-  sound families (`sound` per archetype: the roller's rolling rumble and glassy shatter, the marionette's paper and
-  strings), re-scored with the combat-review skill. (Every old kind is retired since batch 5.)
 - [ ] The placed ones (`PLACED` in src/foe-worlds.js: Lorn II's wood cutter by the lit path, v1.16; the Garden's glass
   puppet by the white archway in the android wood, v1.18): the Desert's cistern pump (a lamp tripod by the deep cistern).
 - [ ] Play the shade's feint with a pad (combat-v1.18 rec. 1): is the thrust's parry found after the false cut, or does
@@ -107,20 +105,25 @@ the new roster.
   flared cone with painted ones, its smoke in flame-like curls; the roller's spiral on one side only and sheet-2's
   rocking runners in its wind-up, a glistening trail where it grazes; the marionette's glass see-through and its knot
   billowing ink, not heaped puffs.
+- [ ] Play batch 6's balance with a pad (combat-v1.22 recs. 1–3): the full charged cut at 0.85 s (was 0.6): does it still
+  feel worth holding? The light combo's third swing at 3 (was 2) and the air cut double on a flyer: do they now get
+  used? Three strikers at once, three quarters of the wait between strikes and the heavier blows (a heavy blow a heart;
+  the Market's ordinary blows ¾) in the Buried Machine, the Garden and the Market (`TURNS.late`, `HARM_BY_STAGE`): fair
+  with a pad, or a pile-on? If a pile-on, keep the heavier blows and drop the quicker waits first.
+- [ ] The still traveller's measure under-reads a big pack (combat-v1.22): two or three strikers at a time, and off the
+  screen one waits while another strikes, so a pack of five presses about as hard as two. Drive the review's still
+  player with the lock-on camera turning to each striker, or time a scripted player clearing the pack, before tuning the
+  late worlds further by numbers.
+- [ ] Hear the foes' voices (v1.22, src/foe-voices.js) on the speakers and the Retroid: each archetype's hurt and burst
+  were checked only in memory (distinct by loudness over time and brightness, under the old sets' level); tune by ear.
 - [ ] Play the horn lizards' pair with a pad (combat-v1.8 rec. 1): the flanker's circle and its hiss read before the
   bite? The blare's shove toward the partner fair? The antler hound's threat on a still player is the highest (4.6
   bars a minute, rec. 2): lengthen its `cool` if the playtest agrees.
 
 # Combat review (docs/audits/combat-v1.4.md, 2026-10-09)
 
-- [ ] The full charged cut kills 11 of the 15 kinds fastest of any move: give the light combo, the air cut and the
-  dash cut a reason (a staggering third swing, heavy foes resisting an uncharged release, a longer full charge).
-- [ ] A hurt and a burst sound per kind: src/audio.js `foeHurt` / `foeBurst` have two sets (the machine's and the
-  ink's) for the whole roster; glass, shell, paper, roots, slag and shadow each want their own.
-- [ ] The route's difficulty falls at the end: the Garden of Spheres and the Signal Market field the softest kinds (the
-  sign moth: 1.0 bar a minute, one blow). Bring a late kind or a mixed lead to them.
-- [ ] A shot that does nothing (machine, ray, golem, drone, crab, hound) should say so: a glance spark and the armour's
-  thunk.
+- [ ] The dash cut is the best answer nowhere (combat-v1.22: 1.5 s a blow by its cooldown; the air cut, the combo and the
+  charged cut now each lead somewhere): a dash cut through a foe's back could land double, or its cooldown shorten.
 - [ ] The combat-review script: frame each kind side-on for the contact sheet; drive guard, parry and evade timing
   against each attack; batch and group the report when the larger roster lands.
 
@@ -128,8 +131,6 @@ the new roster.
 
 - [ ] Play the eleven guardians' new fights in their temples with a pad and tune by hand: the combo starters' 1.0 s,
   the miss-openings' lengths, the shock rings' 9 m/s against the jump.
-- [ ] The hearts (v1.5) made every kind about a third more dangerous to a still player (an ordinary blow is a sixth
-  of a fresh bar): the swarm's, the splinter's and the crab's fairness fell a point; look at them or at `DAMAGE.blow`.
 - [ ] A miss-opening for the Lampless, the Elder and the Cloud-Mother (a dive that misses could wedge them as the
   Keeper's stamp does), and a shock ring for the Lampless's dust (its space scores 3).
 
