@@ -14,11 +14,112 @@ import { placeHitboxBoard } from './arena-hitbox-board.js';
 
 // ---------------------------------------------------------------------------
 // The Arena: a developer's world for the fluid blade and the foes (src/fluid-blade.js, src/foes.js),
-// reached only from the worlds list (?level=arena). A ring of golden sand under an open sky, a few
-// standing stones to fight round, a low ramp and a ledge. The foes come in waves round you, one after
-// another, whatever the Enemies setting (level.foes.waves: src/foes.js): one ink blot, then three,
-// then a makers' machine, then two machines with blots, and round again.
+// reached only from the worlds list (?level=arena). A real arena (v1.39): a round fighting floor of raked, packed
+// sand with its ring markings (the border, the waves' ring, the centre mark and ticks), a low stone wall round it with
+// three tiers of stone seats behind, two gates (north and south) under lintels, braziers burning at the gates and
+// banners on poles along the top tier. Nothing grows or stands on the floor (level.keepClear: no responsive flowers,
+// flora or wildlife inside the stands); the open desert beyond. All of it is a handful of merged meshes and no light.
+// The foes come in waves round you, one after another, whatever the Enemies setting (level.foes.waves: src/foes.js).
 // ---------------------------------------------------------------------------
+
+/**
+ * The arena's plan (m, round the origin; the gates at +z, south, behind the spawn, and -z, north):
+ * floor the fighting floor's radius; wall [inner radius, height]; tiers [outer radius, height] each, stepping up
+ * and out; gate the gates' half width; clear how far keepClear keeps the floor and the stands bare.
+ */
+export const ARENA = {
+  floor: 40,
+  wall: [40, 1.8],
+  tiers: [[41, 1.8], [43.5, 2.7], [46, 3.6], [48.5, 4.5]],
+  gate: 3.2,
+  clear: 50,
+  marks: { border: [38.4, 39], waves: [17.6, 18], centre: [1.5, 1.8] },
+};
+/** No scatter here (src/reactive-world.js, src/flora.js, src/wildlife.js read level.keepClear): the floor and the stands. */
+export const arenaKeepClear = (p) => Math.hypot(p.x, p.z) < ARENA.clear;
+
+/** The stands' cross-section (radius, height), wall face to the back, closed down to the ground. */
+function standsProfile() {
+  const [r0, h0] = ARENA.wall, pts = [[r0, 0], [r0, h0]];
+  let y = h0;
+  for (let i = 1; i < ARENA.tiers.length; i++) { const [r, h] = ARENA.tiers[i]; pts.push([ARENA.tiers[i - 1][0], y]); pts.push([ARENA.tiers[i - 1][0], h]); y = h; pts.push([r, h]); }
+  pts.push([ARENA.tiers.at(-1)[0], 0]);
+  // (the doubled corners dropped; from the back round to the wall's foot, so the lathe's faces look out of the stone)
+  return pts.filter((p, i) => i === 0 || p[0] !== pts[i - 1][0] || p[1] !== pts[i - 1][1]).reverse();
+}
+
+/** The stone: the wall and its tiers in two arcs between the gates (flat-faced), their ends capped, the gates' piers and lintels. */
+function standsGeometry() {
+  const prof = standsProfile(), parts = [];
+  const half = ARENA.gate / ARENA.floor + 0.02;   // (the gap's half angle at the wall)
+  for (const start of [half, Math.PI + half]) {
+    const len = Math.PI - 2 * half;
+    parts.push(new THREE.LatheGeometry(prof.map(([r, y]) => new THREE.Vector2(r, y)), 48, start, len).toNonIndexed());
+    // the arc's two ends: its cross-section, faced out of it
+    for (const [phi, end] of [[start, false], [start + len, true]]) {
+      // (in the xy plane: x the radius, y up, facing +z; turned so x runs out along the radius at phi, it faces back
+      // along the arc: right for its start; its end's is turned over, x mirrored back: the same place, facing on)
+      const cap = new THREE.ShapeGeometry(new THREE.Shape(prof.map(([r, y]) => new THREE.Vector2(r, y))));
+      if (end) cap.rotateY(Math.PI).scale(-1, 1, 1);
+      parts.push(cap.rotateY(phi - Math.PI / 2).toNonIndexed());
+    }
+  }
+  // the gates: a pier each side and a lintel over, the south one with steps down into it
+  for (const phi of [0, Math.PI]) {
+    const c = new THREE.Vector3(Math.sin(phi), 0, Math.cos(phi)), side = new THREE.Vector3(c.z, 0, -c.x);
+    for (const s of [-1, 1]) {
+      const at = c.clone().multiplyScalar(ARENA.floor + 1.2).addScaledVector(side, s * (ARENA.gate + 0.7));
+      parts.push(new THREE.BoxGeometry(1.6, 5.6, 2.6).rotateY(phi).translate(at.x, 2.8, at.z).toNonIndexed());
+      parts.push(new THREE.BoxGeometry(2.0, 0.4, 3.0).rotateY(phi).translate(at.x, 5.8, at.z).toNonIndexed());
+    }
+    const top = c.clone().multiplyScalar(ARENA.floor + 1.2);
+    parts.push(new THREE.BoxGeometry(2 * ARENA.gate + 3.4, 1.1, 2.4).rotateY(phi).translate(top.x, 6.5, top.z).toNonIndexed());
+  }
+  for (const g of parts) { g.deleteAttribute('uv'); g.computeVertexNormals(); }
+  return mergeGeometries(parts);
+}
+
+/** The floor's markings, flat on the sand (one mesh): the border, the waves' ring, the centre ring and cross, ticks. */
+function markingsGeometry() {
+  const M = ARENA.marks, parts = [];
+  const ring = ([a, b], n = 128) => new THREE.RingGeometry(a, b, n).rotateX(-Math.PI / 2);
+  parts.push(ring(M.border), ring(M.waves, 96), ring(M.centre, 48));
+  for (let i = 0; i < 4; i++) parts.push(new THREE.PlaneGeometry(0.26, 2.6).rotateX(-Math.PI / 2).translate(0, 0, M.centre[1] + 1.6).rotateY(i * Math.PI / 2));
+  // sixteen ticks inward from the border, and a broad bar across each gate's mouth
+  for (let i = 0; i < 16; i++) parts.push(new THREE.PlaneGeometry(0.3, 1.8).rotateX(-Math.PI / 2).translate(0, 0, M.border[0] - 1.2).rotateY((i + 0.5) * Math.PI / 8));
+  for (const phi of [0, Math.PI]) parts.push(new THREE.PlaneGeometry(2 * ARENA.gate, 0.5).rotateX(-Math.PI / 2).translate(0, 0, M.border[1] + 0.6).rotateY(phi));
+  return mergeGeometries(parts.map((g) => { const n = g.index ? g.toNonIndexed() : g; n.deleteAttribute('uv'); return n; }));
+}
+
+/** Braziers at the gates (bronze bowls on stone drums, a still flame in each: glowing, no light) and banner poles on the top tier. */
+function furniture() {
+  const bronze = [], flame = [], wood = [], red = [], teal = [];
+  for (const phi of [0, Math.PI]) {
+    const c = new THREE.Vector3(Math.sin(phi), 0, Math.cos(phi)), side = new THREE.Vector3(c.z, 0, -c.x);
+    for (const s of [-1, 1]) {
+      const at = c.clone().multiplyScalar(ARENA.floor - 1.4).addScaledVector(side, s * (ARENA.gate + 0.9));
+      bronze.push(new THREE.CylinderGeometry(0.45, 0.6, 1.1, 10).translate(at.x, 0.55, at.z));
+      bronze.push(new THREE.CylinderGeometry(0.75, 0.42, 0.45, 12, 1, true).translate(at.x, 1.32, at.z));
+      bronze.push(new THREE.TorusGeometry(0.75, 0.06, 4, 16).rotateX(Math.PI / 2).translate(at.x, 1.55, at.z));
+      flame.push(new THREE.ConeGeometry(0.42, 1.1, 7).translate(at.x, 1.95, at.z));
+      flame.push(new THREE.ConeGeometry(0.24, 0.8, 6).translate(at.x + 0.18, 1.85, at.z - 0.12));
+    }
+  }
+  // banners on poles along the top tier, red and teal by turns (none over the gates)
+  const [rTop, hTop] = ARENA.tiers.at(-1);
+  for (let i = 0; i < 12; i++) {
+    const phi = (i + 0.5) * (Math.PI / 6), c = new THREE.Vector3(Math.sin(phi), 0, Math.cos(phi));
+    const at = c.clone().multiplyScalar(rTop - 1.0);
+    wood.push(new THREE.CylinderGeometry(0.09, 0.12, 6.5, 6).translate(at.x, hTop + 3.25, at.z));
+    wood.push(new THREE.BoxGeometry(1.7, 0.1, 0.1).rotateY(phi).translate(at.x, hTop + 6.1, at.z));
+    // the cloth hangs from the crossbar, toward the floor, a swallow-tailed end
+    const s = new THREE.Shape();
+    s.moveTo(-0.8, 0); s.lineTo(0.8, 0); s.lineTo(0.8, -3.4); s.lineTo(0, -2.8); s.lineTo(-0.8, -3.4); s.lineTo(-0.8, 0);
+    const cloth = new THREE.ShapeGeometry(s).rotateY(phi + Math.PI).translate(at.x - c.x * 0.14, hTop + 6.0, at.z - c.z * 0.14);
+    (i % 2 ? teal : red).push(cloth);
+  }
+  return { bronze, flame, wood, red, teal };
+}
 
 export function* buildArena(scene) {
   const query=new URLSearchParams(typeof location==='undefined'?'':location.search);
@@ -35,26 +136,40 @@ export function* buildArena(scene) {
   });
   scene.add(terrain.mesh);
   const stone = makeMaterial({ color: '#b9a88e', color2: '#a29177', color3: '#8f7f66', mode: MODE_STRATA, strataSize: 1.2 });
-  const parts = [];
   yield;
-  // standing stones in a ring, to fight round and between
-  for (let i = 0; i < 7; i++) {
-    const a = (i / 7) * Math.PI * 2 + 0.3, r = 26 + (i % 2) * 6, h = 3.5 + (i % 3);
-    parts.push(new THREE.CylinderGeometry(1.1, 1.5, h, 7).translate(Math.cos(a) * r, h / 2, Math.sin(a) * r).toNonIndexed());
+  // the fighting floor: raked, packed sand a shade paler than the desert's, flat to the wall (drawn over the ground,
+  // which stays the solid floor), and its markings on it
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(ARENA.floor + 0.2, 128).rotateX(-Math.PI / 2), makeMaterial({ color: '#f1dcb0', color2: '#e8cd99', key: 'arena.floor' }));
+  floor.position.y = 0.015; floor.userData.noCollide = true; floor.name = 'Arena floor';
+  const marks = new THREE.Mesh(markingsGeometry(), makeMaterial({ color: '#8a6a48', flat: true, key: 'arena.marks' }));
+  marks.position.y = 0.035; marks.userData.noCollide = true; marks.name = 'Arena markings';
+  // the wall and its tiers of stone seats, the two gates
+  const stands = new THREE.Mesh(standsGeometry(), stone);
+  stands.name = 'Arena stands';
+  scene.add(floor, marks, stands);
+  yield;
+  // braziers at the gates (their flames glow: no light) and the banners along the top tier, a mesh per material
+  const F = furniture(), solid = [];
+  const mats = {
+    bronze: makeMaterial({ color: '#a9783e', flat: true, metal: 'brass', key: 'arena.bronze' }),
+    flame: makeMaterial({ color: '#ffb347', flat: true, glow: 1, key: 'arena.flame' }),
+    wood: makeMaterial({ color: '#5b4632', key: 'arena.wood' }),
+    red: makeMaterial({ color: '#c4553a', side: THREE.DoubleSide, key: 'arena.banner.red' }),
+    teal: makeMaterial({ color: '#3f9a92', side: THREE.DoubleSide, key: 'arena.banner.teal' }),
+  };
+  for (const [k, list] of Object.entries(F)) {
+    const m = new THREE.Mesh(mergeGeometries(list.map((g) => { const n = g.index ? g.toNonIndexed() : g; n.deleteAttribute('uv'); if (n.attributes.normal) n.deleteAttribute('normal'); n.computeVertexNormals(); return n; })), mats[k]);
+    m.name = `Arena ${k}`;
+    if (k === 'flame' || k === 'red' || k === 'teal') m.userData.noCollide = true;
+    solid.push(m);
   }
-  // a low ledge with a ramp up to it, on the far side
-  parts.push(new THREE.BoxGeometry(14, 2, 8).translate(0, 1, -44).toNonIndexed());
-  parts.push(new THREE.BoxGeometry(6, 0.6, 10).rotateX(-0.2).translate(0, 1, -35.5).toNonIndexed());
-  scene.add(new THREE.Mesh(mergeGeometries(parts), stone));
+  scene.add(...solid);
   yield;
-  // a ring drawn on the sand where the waves come in round
-  const ring = new THREE.Mesh(new THREE.RingGeometry(17.6, 18, 96).rotateX(-Math.PI / 2), makeMaterial({ color: '#8a6a48', flat: true }));
-  ring.position.y = 0.03; ring.userData.noCollide = true;
-  scene.add(ring);
   // the arcade sign of Ink tide, the endless waves as a game with a score (src/minigames/waves.js), by the way in
-  if (gameById('waves')) placeGameMarker({ scene, levelId: 'arena' }, 'waves', new THREE.Vector3(7.5, 0, 9), { heading: -2.4 });
-  // the hitbox board (src/hitboxes.js), across the way in from it: show or hide the fight's hitboxes
-  placeHitboxBoard(scene, new THREE.Vector3(-7.5, 0, 9), { heading: 2.4 });
+  // (at the floor's edge by the south gate, facing the middle: the floor itself is kept clear)
+  if (gameById('waves')) placeGameMarker({ scene, levelId: 'arena' }, 'waves', new THREE.Vector3(6.5, 0, 35.5), { heading: Math.atan2(-6.5, -35.5) });
+  // the hitbox board (src/hitboxes.js), across the gate from it: show or hide the fight's hitboxes
+  placeHitboxBoard(scene, new THREE.Vector3(-6.5, 0, 35.5), { heading: Math.atan2(6.5, -35.5) });
 
   return {
     id: 'arena',
@@ -65,6 +180,7 @@ export function* buildArena(scene) {
     features: { mount: false, wind: false, jetpack: true, climb: true },
     defaults: { hour: 9.5, preset: 'Moebius print', cloudShadows: 0, look: DESERT_WORLD_LOOK },   // (the desert's print: bright sand, a blue sky)
     killY: -Infinity,
+    keepClear: arenaKeepClear,   // (no responsive flowers, flora or wildlife on the floor or the stands)
     foes: { waves: true, chimes: 'training', ...(world ? { world } : {}), ...(kind ? { kind } : {}) },   // (chimes: into the wallet, not counted as earned: src/chimes.js)
     lendTool: { mode: null },   // (main.js: the backpack lent for the visit, so the blade and the shield are there on any save; nothing written to it)
     // the desert's print: a flat cerulean sky over cream sand

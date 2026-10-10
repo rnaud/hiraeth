@@ -275,6 +275,7 @@ function growPart({ part: world, species, level, physics, keep, density, why }) 
     if (world.ray && (y < region.band[0] || y > region.band[1])) return no('band');
     if (y < water - (sp.wade ?? 0) + (sp.wade ? 0 : 0.15)) return no('water');
     if (level.unsafe?.(_p.set(x, y, z)) && !sp.wade) return no('unsafe');
+    if (level.keepClear?.(_p)) return no('clear');   // (a floor kept bare: the Arena's)
     // nothing overhead: not inside a house, under a bridge, a ledge or an awning
     if (ray(x, y + 0.3, z, UP, sp.large ? 9 : 4)) return no('roof');
     if (sp.large) {

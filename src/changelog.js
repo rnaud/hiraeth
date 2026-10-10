@@ -41,6 +41,8 @@ export const CHANGELOG = [
       see: 'Start two worlds in a row on the Steam Deck: the second one passes “mixing the inks…” a little sooner.' },
     // the Xbox app (docs/systems/xbox.md)
     'On the Xbox the controller works on the title screen and in the game: the console told the game it never had the focus, so every press was ignored.',
+    // the Arena (docs/systems/foes.md "The Arena")
+    'The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.',
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

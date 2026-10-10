@@ -551,7 +551,7 @@ export class Wildlife {
     if (!this.surface(p, up, out, 0.6 * Math.max(1, c.size), 1.2 * Math.max(1, c.size))) return false;
     _v.subVectors(out, c.pos);
     if (Math.abs(_v.dot(up)) > 0.45 * Math.max(1, c.size)) return false;
-    if (this.level.unsafe?.(out)) return false;
+    if (this.level.unsafe?.(out) || this.level.keepClear?.(out)) return false;
     if (up.y > 0.99 && this.waterAt(out.x, out.z) > out.y - 0.04) return false;
     if (sp.leash && out.distanceTo(c.home) > sp.leash) return false;
     return true;
@@ -568,7 +568,7 @@ export class Wildlife {
       if (!(depth > (sp.depth ?? 0.25) + 0.1 && depth < (sp.maxDepth ?? 4))) return null;
       return { pos: new THREE.Vector3(p.x, w, p.z), up: Y.clone(), water: w };
     }
-    if (L.unsafe?.(p)) return null;
+    if (L.unsafe?.(p) || L.keepClear?.(p)) return null;   // (keepClear: a floor kept bare, the Arena's)
     const flat = sp.flatness ?? 0.28;
     _u.set(1, 0, 0); if (Math.abs(up.x) > 0.9) _u.set(0, 0, 1);
     const t1 = _u.cross(up).normalize().clone(), t2 = new THREE.Vector3().crossVectors(up, t1);

@@ -243,7 +243,7 @@ export class ReactiveWorld {
         const hit=physics.rayHit(proposed.clone().addScaledVector(up,10),up.clone().negate(),35);
         let pos=hit?.point;
         if(up.y>.99){const ground=level.ground.heightAt(proposed.x,proposed.z);if(Number.isFinite(ground)&&(!pos||ground>pos.y))pos=new THREE.Vector3(proposed.x,ground,proposed.z);}
-        if(!pos||level.unsafe?.(pos))continue;
+        if(!pos||level.unsafe?.(pos)||level.keepClear?.(pos))continue;   // (keepClear: a floor kept bare, the Arena's)
         this.addNode(pos,up,`${level.id}:${i}`,rotation,j);
       }
     }

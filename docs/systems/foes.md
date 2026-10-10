@@ -1043,7 +1043,20 @@ shader itself, with no texture, no UVs and no extra draw:
 
 ## The Arena (`src/levels/arena.js`, `?level=arena`)
 
-A developer's world in the worlds list: the desert's golden sand under an open sky (flat out to 150 m), standing stones, a ledge. `level.foes.waves` makes
+A developer's world in the worlds list, built as a real arena (v1.39; `ARENA` in the file is its plan): a round
+fighting floor 80 m across of raked, packed sand, paler than the desert's, with its markings drawn on it (a border, the
+waves' ring at 18 m, a centre ring and cross, sixteen ticks, a bar across each gate's mouth); round it a stone wall
+1.8 m high with three tiers of stone seats stepping up behind it to 4.5 m; two gates through the stands, north and south
+(behind the spawn), each between two piers under a lintel; a bronze brazier either side of each gate, its flame glowing
+(no light); twelve banners, red and teal by turns, on poles along the top tier. The Ink tide sign and the hitbox board
+stand at the floor's edge by the south gate, facing the middle. **Nothing stands or grows on the floor**:
+`level.keepClear` (`arenaKeepClear`, the floor and the stands, 50 m) keeps the responsive world's flowers
+(src/reactive-world.js), flora and wildlife off it; they bloom out in the desert beyond. The old standing stones and the
+ledge with its ramp are gone (the tiers' faces are walls to climb). It is drawn in eight merged meshes (the floor, its
+markings, the stone, the bronze, the flames, the poles, the two banner cloths) and adds no light, so it stays the
+performance audit's quiet stage. Tests: `tests/arena-floor.test.js` (nothing on the floor inside the wall, the wall and
+tiers round it and the gates open, eight meshes and no light, no flowers inside). The desert's golden sand stays the
+ground under it (flat out to 150 m) under an open sky. `level.foes.waves` makes
 `Foes` send the Arena's cycle round you, whatever the setting, `WAVE.rest` s after the last one falls (`ARENA_WAVES`,
 `arenaWave(n)`, v1.5): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine, a shade,
 flyers, … then each world's own kinds and a mixed wave), then (v1.8) each built archetype alone in each of its
