@@ -575,6 +575,37 @@ Measured (`node scripts/motion-audit/run.mjs toad heron skitter rootknot --pack`
 `tests/motion-plans.test.js` holds these (two skins of the heron and the toad); `tests/motion-kit.test.js` the
 three-segment arm, the bird's joint, the mid tier and the hopper's landing.
 
+### Phase 5, the machines: batch 4 (2026-10-09)
+
+Four more plans for the roster's possessed machines, each a table entry in `src/motion-kit/plans.js` and its body in
+`src/enemies/plans/`, with two kit pieces (`src/motion-kit/machines.js`) and a way to draw a body cheaply:
+
+- **TrackDrive** (plan 17): each side's belt runs by the distance that side covered (the body's travel along its heading,
+  plus or minus its turn times half the gauge), so a track never slips and a turn on the spot runs the belts opposite
+  ways; the road wheels turn by that run over their radius; the chassis pitches and rolls on springs over the ground
+  under its four corners (two rays every other frame). The belts' treads are painted (`bands`, their offset the run; the
+  upper run's joint bound unturned and turned round after, so its treads run the other way).
+- **Pendulum** (plan 19): a weight on a rod hung from a moving pivot, two small angles driven by the pivot's
+  acceleration in its own frame, damped, kicked to swing it higher.
+- **Skinned on the kit's joints** (`src/enemies/plans/kit.js` `skinned`, `skinBy`): a body's moving parts of one
+  material become one skinned mesh whose bones are the joints the kit already moves (thigh, shin and foot groups, arm
+  pivots, plates), one skeleton a body, the parts' own colours kept as vertex tints, bounds that follow the joints. Each
+  machine is 6–16 meshes, and the skitter (batch 3) went from 44 to 5 with its motion unchanged. The motion audit reads a
+  skinned leg's lowest vertex through the skin (`scripts/motion-audit/walk.mjs lowest`).
+- **The legs' joints** (`jointedLeg`'s `balls` and `taper`): smaller knee balls and a stouter shin for a heavy leg.
+
+| plan | archetype | how it moves |
+|---|---|---|
+| 8 brute | furnace brute | two short legs, the knee forward (pole `forward`), a long slow step (0.38–0.72 s); the body on soft underdamped springs (f 1.5–2.1, ζ 0.32–0.42): it dips deep at each footfall and overshoots when it stops, its hips shift over the standing foot (sway 0.55); each footfall a thump (`animKit.thump`: a camera kick and the pad's rumble within 10 m); its long arms swing from the shoulders against the legs by the distance walked; the slam's both fists over the top, the hurl's bend and lift, the sweep's arm swung back are its poses (`coil:hurl`, `coil:sweep`) |
+| 13 hover (a machine's) | ring drone | no wings: it bobs on springs, tilts into its drift with a servo's overshoot (ζ 0.35), turns in notches (0.12 rad); its three plates spin at their own speeds, part and slow for the harpoon, lock and spin up for the ram; its arms dangle and lag its moves on springs, folding up when it is low |
+| 17 tracked | crucible cart | TrackDrive; the turret on a slow angle spring (f 1.1, ζ 0.4: it overshoots and settles) in notches; the crucible tips on its trunnions on a spring; the smoke column a chain of puffs on their own joints, swaying and leaning with the pour; the ram's wind-up runs the belts in place (gravel off the back) |
+| 19 siege | bell walker | five spider legs round a hub, one at a time round the ring (`wave`), a slow step (0.32–0.6 s) in a machine's three straight moves, a short thigh up to a high knee and a long shin to a point (knee 0.4 / 1.08); the bell swings on its yoke and the clapper inside it, two pendulums driven by the hub; the toll rears it back on its rear legs (the front ones lift: `leg.lift`) and drives the clapper higher three times; the drop straightens its legs (`coil:drop`) and its leap is the mind's (`attack.leap`) |
+
+Measured (`node scripts/motion-audit/run.mjs brute bell --pack`, `--pace=0.5`): the brute's feet slide 0.01 m/m (worst
+0.03 m, reach span 23 %, lift 14 %, one leg at a time, 1.38 → 0.75 steps/s), the bell's 0.00 (worst 0.05 m, reach 36 %,
+lift 20 %, one leg at a time round the ring, 0.70 → 0.45). `tests/motion-plans.test.js` holds these (two skins of
+each); `tests/motion-kit.test.js` the tracks and the pendulum.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of

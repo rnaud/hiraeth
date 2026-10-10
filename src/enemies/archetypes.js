@@ -365,10 +365,10 @@ export const ARCHETYPES = {
       calm: { mode: 'trundle', provoke: 10, round: 6 },
       attacks: [
         // the crucible tips toward you on its trunnions, the lip glowing; a cone of burning slag that stays a while
-        { id: 'pour', name: 'pour', shape: 'cone', range: 4.6, angle: 0.55, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.4, leave: 'cone', leaveLife: 6, min: 1.4, max: 4.6, weight: 2,
+        { id: 'pour', name: 'pour', shape: 'cone', range: 4.6, angle: 0.55, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.4, leave: 'cone', leaveLife: 6, max: 4.6, weight: 2,
           tell: 'its crucible tips toward you on its trunnions, the lip glowing and the smoke leaning the same way', counter: 'get behind it or to the side of the lip; the slag stays a while: keep off it' },
         // it backs up, its tracks spinning in place and spitting gravel; then a charge along a line (a wall stalls it)
-        { id: 'ram', name: 'ram', shape: 'lane', width: 2.0, range: 8, damage: 0.75, knock: 5, wind: 1.3, strike: 0.8, contact: 0.05, lunge: 8, sweep: true, reverse: 1.2, stall: 1.8, min: 3, max: 8, weight: 1.3,
+        { id: 'ram', name: 'ram', shape: 'lane', width: 2.0, range: 8, damage: 0.75, knock: 5, wind: 1.3, strike: 0.9, contact: 0.05, lunge: 10, sweep: true, reverse: 1.2, stall: 1.8, min: 3, max: 8, weight: 1.3,
           tell: 'it backs up, its tracks spinning in place and spitting gravel behind it', counter: 'evade out of its line; let it ram a wall and it stalls, open' },
       ],
       recover: 1.5, cool: [1.5, 2.5], hit: 0.5,

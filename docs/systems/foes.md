@@ -507,6 +507,11 @@ The count is said every 5 ink.
 - **Relic guards:** a relic out in the wilds (`content.relics.spots`, where `wild()` holds) gets `GUARDS.size`
   blots round it as you come within `GUARDS.near` (32 m).
 - Cut down, they are gone for good (flag `foes.<world>.r<i>`).
+- **Placed by hand** (v1.15, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
+  where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
+  hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
+  `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the moss
+  domes and the glass dome; the Desert's cistern pump and the Garden's glass puppet are still to place.
 
 ## Controls and the lock-on
 
@@ -636,7 +641,7 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## The enemy roster (v1.8–v1.13, `src/enemies/`)
+## The enemy roster (v1.8–v1.15, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
@@ -651,11 +656,13 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
     (`crab`), the **horn lizard** (`lizard`), the **antler hound** (`hound`), the **lamp tripod** (`tripod`), the
     **ink blot** (`blot`). Batch 2 (v1.9): the **mound worm** (`worm`), the **sky ray** (`ray`), the **signal moth**
     (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`). Batch 3 (v1.13): the **bellows toad**
-    (`toad`), the **stilt heron** (`heron`), the **skitter swarm** (`skitter`), the **root knot** (`rootknot`);
-  - `stand-in`: not built yet, an old kind runs as its body meanwhile (the crucible cart on the slag walker, the
-    ring drone on the rust drone, the furnace brute on the glass golem, the shade on the shade);
-  - `planned`: nothing stands in (the pearl roller, the bell walker, the marionette): the world
-    tables list them, spawning passes them over until they land.
+    (`toad`), the **stilt heron** (`heron`), the **skitter swarm** (`skitter`), the **root knot** (`rootknot`). Batch 4
+    (v1.15), the possessed machines: the **furnace brute** (`brute`), the **ring drone** (`drone`), the **crucible
+    cart** (`cart`), the **bell walker** (`bell`);
+  - `stand-in`: not built yet, an old kind runs as its body meanwhile (only the shade, on its own body in
+    src/shade.js, until its batch-5 rework; src/foe-kinds.js has no stand-in left);
+  - `planned`: nothing stands in (the pearl roller, the marionette): the world tables list them, spawning passes them
+    over until they land.
 - **Skins** (`src/enemies/skins.js` `SKINS[archetype][world]`): a name, a palette, props (lichen, a beetle's
   antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
   crescent, driftwood, halo or wire antlers; a drill lamp, a diving bell, gyroscope rings, a cistern pump), and
@@ -665,7 +672,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   without a skin given, an archetype wears that world's (`skinFor`; its own where the world has none).
 - **The world tables** (`src/foe-worlds.js` `WORLDS`, the doc's table): each world's stage on the difficulty curve,
   its lead, its archetypes by weight, the late ones (from the third pack), the placed ones (the Desert's cistern
-  pump, Lorn II's wood cutter, the Garden's glass puppet: placement in the worlds is still to do) and its temple
+  pump, Lorn II's wood cutter, the Garden's glass puppet; where each stands: `PLACED`, below) and its temple
   rooms. `ROSTERS` turns them into what spawning reads (kinds: each archetype's own or its stand-in's): `wild`,
   `fill`, `first` (the lead alone), `guards`, `temple`. Packs are sized by stage (`BUDGET`: 1–2, 2–3, 3–4, 4–5),
   group kinds come as a group (`GROUP`: the lizards and the hounds in pairs, moths in threes, the swarm in six),
@@ -680,7 +687,13 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   mounds on its path, its ring stack rising on a spring that dips first), `glider.js` (plan 14: the ray's wings as
   strips turned by a travelling `Wave`, the tail on a `FollowChain`), `flyer.js` (plan 13: the moth's flap by speed,
   its antennae on chains), `floater.js` (plan 11: the jelly's bell pulsing on a `Wave` that quickens as it winds up,
-  threads and lanterns on verlet chains).
+  threads and lanterns on verlet chains). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
+  `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
+  (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum). **Skinned on the
+  kit's joints** (v1.15, `kit.js` `skinned`, `skinBy`): a body's moving parts of one material are one skinned mesh
+  whose bones are the kit's own joints (a leg's thigh, shin and foot, an arm's pivots, a plate's), each tinted by its
+  own colour (vertex colours), one skeleton a body; its bounds follow the joints. The machines are 6–16 meshes each,
+  a skitter 5 (44 before).
 - **Calm until provoked** (`def.calm`): out in the wilds (a pack: `Foes.add(kind, at, { calm: true })`) a kind with
   a calm keeps to it. Wildlife (`wild`) grazes, basks or lies about and fights only when provoked: you come within
   `provoke` m in sight, you hurt it, or one of its own near it is roused (`Foes.alarm`, `alarm` m); a shy one (the
@@ -753,12 +766,34 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | skitter swarm (`skitter`) | eight knee-high domes on high-kneed legs; a speckle of humps | ripple rush (0.6 s; it rears and clicks, one at a time), pile (1.2 s; a heap grows, then topples) | any blow, a shot or the push ends one; the push scatters the heap; an ember scatters the flock | grazes in a flock; scatters if you run at it; fights if you linger in it |
   | root knot (`rootknot`) | a 3.2 m mushroom on five jointed root-arms | grip (1.0 s; two arms plunged in, the cap tipped; the soil heaves toward you, then lash), lash (0.75 s; two arms coiled back), spore puff (1.0 s; Lorn II) | jump or sidestep the heave; a cut or stilling frees you; a parry chips the lash; a bloom glob (asleep, cuts double); embers ×2 | stands rooted, its cap following you; fights at 3.6 m |
 
+- **Batch 4's fields** (v1.15): `stout` (light cuts never stagger it, even early in a wind-up: only a charged cut, a
+  riposte, a parry; the brute, the bell); a wave's `count` and `every` (`Foes.addWave` queues the rest: the bell's toll
+  sends three rings); `leaveLife` (s its slag stays: the cart's pour, 6); `jams` (s a bomb on its tracks keeps it from
+  turning: `Foe.jammed`, `face` does nothing); `tracks` (it drives along its heading, slower the more it must turn:
+  `walkTo`); `reverse` (m it backs up through the wind-up: the ram) and `stall` (a lunge a wall stops: it stands
+  stunned, open, a `stalled` event); `opens` (s it sits open after the strike: the bell tips up toward you after its
+  drop, `Foe.open`); `clapper` (only the clapper takes harm: a cut or a bomb glances off the bell unless it sits open or
+  is stilled); `whistle` (the bell-note whistle sounded within 26 m while it winds this up chokes it: `Foes.bellNote`
+  on the game's `bell` event, `Foe.hush`, open `HUSH` s); the calm modes `stand` (the brute stands where it stopped
+  working), `trundle` (the cart's old round, as a patrol), `toll` (the bell in its square, tolling softly). The
+  `cracks` surface feature (src/foe-surface.js): the brute's hull, its veins opening as it is hurt (its own body
+  material's `uFsCracksO`). A heavy footfall shakes the camera and the pad near it (`animKit.thump`).
+- **Batch 4** (v1.15):
+
+  | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
+  |---|---|---|---|---|
+  | furnace brute (`brute`) | a 4.2 m headless egg cracked all over, violet veins, tar drips; ball shoulders, arms to the ground, short legs | slam (1.3 s; both fists over the top, the torso arched back; a quake runs 8 m), hurl (1.5 s; a slab torn up and thrown: its landing mark), sweep (1.05 s; one arm swung back) | jump the quake, a perfect parry chips it, bombs ×2, the riposte, the charged cut; stout: light cuts don't stagger it | stands rusted mid-task; wakes at 7 m |
+  | ring drone (`drone`) | three plates 1.2 m across on a spindle, smoke and eyes between them, three dangling arms | harpoon (1.1 s; the plates part, a reel slides out; reels you in), ram (0.95 s; the plates lock and spin up, it rises, then dives) | guard the harpoon (the line cut, dazed), stilling drops it, the magnet glove, the hook; it hides between strikes | circles its post; always hostile (14 m) |
+  | crucible cart (`cart`) | a squat pot of boiling ink on a turntable over two tracks, a smoke column with eyes | pour (1.2 s; the crucible tips, the lip glows; slag stays 6 s), ram (1.3 s; it backs up, tracks spinning; a wall stalls it) | get behind it or aside; a plain shot douses it (cuts double); a bomb jams its tracks; walls; don't follow its dripped trail | trundles its round; always hostile (10 m) |
+  | bell walker (`bell`) | a 4.4 m bell in a riveted yoke on five spider legs, the spirit at the lip; a winch drum in the Salt Harbour | toll (1.6 s; reared back, the clapper swinging higher three times; three rings run out 12 m), drop (1.2 s; the legs straighten, the bell rises; it slams where you stood, then tips up open 2.5 s) | jump each ring; the bell-note whistle chokes the toll; strike the clapper while it sits open; guard the drop | stands in its square, tolling softly; always hostile (12 m) |
+
 - **Retired:** the 100 world enemies (src/enemies/roster.js, models.js, their tests and capture scripts: gone from
   spawning, the Arena, the FOES list and the gallery) and the glass splinter (v1.8); the dune ray, the sign moth's old
   body and the winged blot (v1.9: the mound worm, the signal moth and the sky ray took their places; the Arena's old
   waves and Ink tide field the sky ray where the winged blot came); the spitting blot, the blot swarm and the root
   stalker (v1.13: the bellows toad, the skitter swarm and the root knot took their places in the Arena's old waves, Ink
-  tide and the centipede's shed tail). The spitting blot's spit is the blot's.
+  tide and the centipede's shed tail); the glass golem and the slag walker (v1.15: the furnace brute and the crucible
+  cart took their places; the rust drone's kind is the ring drone's). The spitting blot's spit is the blot's.
   Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and
   the kept kinds kept their ids.
 - **Tests:** `tests/archetypes.test.js` (the tables, every world's roster valid and diverse, the curve, each built
@@ -845,7 +880,7 @@ and a "Waves from here" that runs that world's waves: `Foes.startWaves(world)`),
 foe stops the waves (`Foes.setPractice(kind)`, a kind in a skin too: `tripod@underwater`): it comes in 9 m ahead of you, and again
 each time it falls. "Waves again" brings the waves back where they were, "Clear the field" leaves it empty.
 `?level=arena&foe=crab` (or `crab@saltharbour`) starts on one kind; in any world the console can call
-`foes.spawnKind('golem')`. Tests: `tests/arena.test.js` (the cycle's order, the waves in a running Arena, the
+`foes.spawnKind('brute@glassdunes')`. Tests: `tests/arena.test.js` (the cycle's order, the waves in a running Arena, the
 sections, the search and filter, the choices), `tests/foe-kinds.test.js` (practice).
 
 **The guardians** (`src/arena-guardians.js`, v1.5): the list's Guardians section calls each temple's guardian (the

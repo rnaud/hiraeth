@@ -68,7 +68,7 @@ export function kindFacts(kind, D) {
     if (a.shape === 'lane') space.push('lane');
     if (a.wave) space.push('shockwave');
     if (a.spread) space.push('volley');
-    if (a.at === 'target') space.push('lob');
+    if (a.at === 'target' && !a.encircle) space.push('lob');   // (a ring the body runs round you is a body attack, not a lob)
     if (a.lunge) space.push('lunge');
     for (const k of ['grab', 'tether', 'blind', 'leave', 'blink', 'surface', 'sweep', 'leap', 'encircle', 'reverse']) if (a[k]) space.push(k);
   }
@@ -78,7 +78,7 @@ export function kindFacts(kind, D) {
     windMin: winds.length ? Math.min(...winds) : 0, windMax: winds.length ? Math.max(...winds) : 0,
     damageMax: Math.max(0, ...attacks.map((a) => Math.max(a.damage ?? 0, a.wave?.damage ?? 0))),
     ways: [...new Set(ways)], space: [...new Set(space)],
-    tone: !!D.tone, sound: !!D.sound, role: D.keep || attacks.some((a) => a.at === 'target') ? 'ranged' : D.hover ? 'air' : D.heavy || D.hp >= 4 ? 'heavy' : D.light || D.group ? 'swarm' : 'melee',
+    tone: !!D.tone, sound: !!D.sound, role: D.keep || attacks.some((a) => a.at === 'target' && !a.encircle) ? 'ranged' : D.hover ? 'air' : D.heavy || D.hp >= 4 ? 'heavy' : D.light || D.group ? 'swarm' : 'melee',
   };
 }
 

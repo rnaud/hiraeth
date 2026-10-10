@@ -71,9 +71,10 @@ export const many = (parent, geos, mat, x = 0, y = 0, z = 0) => add(parent, merg
  * tinted by its own material's colour over `mat`'s (vertex colours: `mat` needs vertexColors), and the meshes are taken
  * out. owner: where it goes (the model's root, built at rest). Returns the skinned mesh.
  */
-export function skinned(owner, meshes, mat) {
+export function skinned(owner, meshes, mat, shared = null) {
   owner.updateMatrixWorld(true);
-  const bones = [], index = new Map(), geos = [], inv = new THREE.Matrix4().copy(owner.matrixWorld).invert(), m = new THREE.Matrix4();
+  // (shared: { bones, index, skeleton } of the model's other skinned meshes, so their joints' matrices go up once a frame)
+  const bones = shared?.bones ?? [], index = shared?.index ?? new Map(), geos = [], inv = new THREE.Matrix4().copy(owner.matrixWorld).invert(), m = new THREE.Matrix4();
   const base = mat.uniforms?.uColor?.value ?? new THREE.Color(1, 1, 1);
   for (const mesh of meshes) {
     const bone = mesh.parent;
@@ -100,7 +101,7 @@ export function skinned(owner, meshes, mat) {
   sm.name = 'skinned'; sm.frustumCulled = false;   // (its bounds move with its joints)
   owner.add(sm);
   sm.updateMatrixWorld(true);
-  sm.bind(new THREE.Skeleton(bones));
+  sm.bind(shared?.skeleton ?? new THREE.Skeleton(bones));
   // its bounds as its joints move (a gallery frames it, a box is taken of it): each joint's own box of its vertices, at
   // the joint's place now (three's would skin every vertex once, with the joints as they were then, and keep that)
   const local = bones.map(() => new THREE.Box3()), pos = sm.geometry.attributes.position, idx = sm.geometry.attributes.skinIndex, v = new THREE.Vector3();
@@ -128,7 +129,12 @@ export function skinned(owner, meshes, mat) {
 export function skinBy(owner, sets) {
   const lists = sets.map(() => []);
   owner.traverse((o) => { if (!o.isMesh || o.isSkinnedMesh) return; const i = sets.findIndex((s) => s.from.includes(o.material)); if (i >= 0) lists[i].push(o); });
-  return sets.map((s, i) => (lists[i].length ? skinned(owner, lists[i], s.into) : null));
+  // (one skeleton for all of them: every joint any of them hangs on, so the model's joints are uploaded once a frame)
+  const shared = { bones: [], index: new Map() };
+  for (const l of lists) for (const mesh of l) if (!shared.index.has(mesh.parent)) { shared.index.set(mesh.parent, shared.bones.length); shared.bones.push(mesh.parent); }
+  owner.updateMatrixWorld(true);
+  shared.skeleton = new THREE.Skeleton(shared.bones);
+  return sets.map((s, i) => (lists[i].length ? skinned(owner, lists[i], s.into, shared) : null));
 }
 
 /** A segment (a cylinder) from a to b, radius r (r1 at b). */

@@ -55,14 +55,16 @@ rather than mixing the earlier inconsistent exploration sheets.
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
-# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9) and 3 (v1.13) built)
+# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.15) built)
 
 docs/design/enemy-roster.md ("Status": each archetype's), docs/systems/foes.md "The enemy roster". Done: the
 framework, batch 1 (the shellback crab, the horn lizard, the antler hound, the lamp tripod, the ink blot; scored in
 docs/audits/combat-v1.8.md), batch 2 (the mound worm, the sky ray, the signal moth, the ring centipede, the lantern
-jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md) and batch 3 (the bellows toad, the stilt heron, the
-skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/combat-v1.13.md). The Desert, Vael,
-Vael II and Lorn run wholly on the new roster.
+jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md), batch 3 (the bellows toad, the stilt heron, the
+skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/combat-v1.13.md) and batch 4 (the
+furnace brute, the ring drone, the crucible cart, the bell walker, drawn to both their sheets; scored in
+docs/audits/combat-v1.15.md). The Desert, Vael, Vael II, Lorn and Viridel run wholly on the new roster; Lorn II all
+but its rare shade (the batch-5 rework).
 
 - [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
   (`references/enemy-archetypes/<id>/sheet-1.jpg`) instead of the old reference crops.
@@ -72,27 +74,34 @@ Vael II and Lorn run wholly on the new roster.
   (`sheet-2.jpg`) are not used yet by either batch.
 - [ ] Play batch 3 with a pad (combat-v1.13 recs. 1 and 4): the heron's 0.9 s spear from 4 m up and 5 m away (1.0 s if
   it reads late); wading through the toad's spores on Lorn's slopes.
-- [ ] The skitter flock costs 352 draws (44 meshes a skitter, combat-v1.13 rec. 2): merge each one's dome, eyes and
-  feelers, or draw a far flock from one instanced mesh.
-- [ ] The combat-review script: watch a group kind as its group (`aloneWave`: the skitters' ring and heap), and read the
-  toad's choke and leap and the heron's open and topple as answers (combat-v1.13 rec. 3).
 - [ ] Batch 3 against its sheets (docs/design/enemy-roster.md "Status"): the jug's ochre marks between its bands; the
   skitters' curved bony legs; the heron flying off when you run at it (it strides away now).
 - [ ] Play the ring centipede's ring with a pad in the Buried Machine (combat-v1.9 rec. 1): is the gap readable before
   it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
 - [ ] A cut on a lantern jelly's thread of light breaks its ward (the doc's counter; combat-v1.9 rec. 2): now only a
   shot, the boomerang or killing the jelly break it. A blade swing crossing the segment from the lantern to the foe.
-- [ ] The combat-review script: call a support in with its escort (`aloneWave`) for the watch, and read `encircle` as
-  a body attack, not a lob (combat-v1.9 rec. 3).
-- [ ] **Batch 4** (the doc's step 6): the ring drone, the crucible cart (tracks), the furnace brute, the bell walker,
-  each with its possession effect.
+- [ ] Play the bell walker with a pad (combat-v1.15 rec. 1): is the drop's 2.5 s opening long enough to strike the
+  clapper without the whistle, and is a guarded drop found? If the fight drags, open it longer or let a stilling glob
+  tip it over.
+- [ ] The crucible cart on a still traveller costs 6.26 bars a minute, the most of the roster (combat-v1.15 rec. 2): play
+  its pour at close range and its dripped trail in the Hangar's corridors; shorten the slag near it or the trail if it
+  reads unfair.
+- [ ] Measure the machines' CPU on the Retroid and the Deck (combat-v1.15 rec. 3: +0.25 ms a machine in headless Chrome,
+  a pack of six 2.5 → 4.0 ms): the cart's ground rays every other frame and its wheels' instance upload first (a far cart
+  could skip both).
+- [ ] The combat-review script: a clapper-only foe needs its opening to measure the time to kill (drive the whistle or
+  wait for the drop's opening before the blows: combat-v1.15 rec. 4).
+- [ ] Batch 4 against its sheets (docs/design/enemy-roster.md "Status"): the cart's canvas sagging in folds over the
+  tracks, a toothed sprocket, a billowing smoke column; the brute's crack net lighter, its fingers in plates, its fists
+  meeting over its head for the slam; the bell's yoke a flat riveted band, its spirit seen from above; the drone's
+  cloud spreading in wisps at its sides.
 - [ ] **Batch 5** (the doc's step 7): the shade rework (feint, shadow step), the pearl roller, the marionette (strings,
   a host's `possessed` state).
 - [ ] **Batch 6** (the doc's step 8): balance and sound: the pack budgets per world played through, the hurt/burst
   sound families (`sound` per archetype), re-scored with the combat-review skill; retire each old kind as its
   archetype lands (src/foe-kinds.js says which stands in for which).
-- [ ] The placed ones (`placed` in src/foe-worlds.js): the Desert's cistern pump (a lamp tripod by the deep cistern),
-  Lorn II's wood cutter (a furnace brute), the Garden's glass puppet (a marionette): a spot each in their worlds.
+- [ ] The placed ones (`PLACED` in src/foe-worlds.js, v1.15: Lorn II's wood cutter stands by the lit path): the Desert's
+  cistern pump (a lamp tripod by the deep cistern), the Garden's glass puppet (a marionette, with batch 5).
 - [ ] Play the horn lizards' pair with a pad (combat-v1.8 rec. 1): the flanker's circle and its hiss read before the
   bite? The blare's shove toward the partner fair? The antler hound's threat on a still player is the highest (4.6
   bars a minute, rec. 2): lengthen its `cool` if the playtest agrees.
@@ -186,7 +195,8 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   serpent (the Mother Snapper, phase 6) and cloaks / cables on the older plans.
 - [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md): each body plan a table entry and
   its poses, scored with the rubric (≥ 2 on every row). Done for batch 3 (procedural-animation.md, "Phase 5": the
-  hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor); left: batches 4 and 5's
+  hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor) and batch 4 ("Phase 5, the
+  machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints); left: batch 5's
   plans (tracks, the brute, the siege machine, the roller, the humanoid spirit, the strings).
 - [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
   bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for

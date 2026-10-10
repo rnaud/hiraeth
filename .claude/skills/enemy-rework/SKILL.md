@@ -47,7 +47,10 @@ writes `<id>-<n>-<view>[-tag].png`, large, 3D only, for looking closely and for 
 The parts the sheet draws, in order of how much they read: the big masses, then the limbs, then the face, then the
 dress (props). Each part a mesh (or merged geometry) in `src/enemies/plans/<plan>.js` with a **named material**
 (`M.mat('shell', P.shell)`): the name is how its surface is found. Keep the draw count low: one mesh per part, not
-one per fleck. A pattern of many small things (lichen, barnacles, rivets, spots) is painted (step 3), not modelled;
+one per fleck; tapering tubes and many small parts merged (`kit.js` `tubeGeometry`, `merged`, `many`), and a body's
+moving parts of one material skinned on the kit's own joints (`kit.js` `skinBy`: build each part in a build material
+on the pivot or leg segment that moves it, then one skinned mesh a material, one skeleton a body; batch 4's machines are
+6–16 meshes, the skitter 5). A pattern of many small things (lichen, barnacles, rivets, spots) is painted (step 3), not modelled;
 keep a few raised ones only where the silhouette needs them.
 
 ## 3. The procedural surface (mandatory)
