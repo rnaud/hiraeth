@@ -56,6 +56,57 @@ export function installXbox(win = globalThis.window) {
   root?.classList?.add('xbox');
   root?.classList?.toggle('tv-safe', tvSafe(win));
   win.addEventListener?.('moebius:back', () => backFallback(win));
+  forwardLogs(win);
+  return true;
+}
+
+// ------------------------------------------------------------------ the page's log, into the app's (LocalState\web\update.log)
+// The console has no DevTools at hand, but its Device Portal can fetch the app's files: the page's warnings and
+// errors, the load's stages and timings, and what reaches it from the pad (a pad, or mouse events: the system's
+// mouse mode) go to the app over WebView2's web messages ({ hiraeth: 'log', level, text }), which writes them into
+// its log. An app from before this ignores them.
+
+/** The console lines worth keeping: warnings and errors (not three.js's shader-compiler notes), the load's timings. */
+export const LOG_INFO = /^(load:|shaders:|passage warm-up|gpu pacer|bounds:)/;
+const NOISE = /Program Info Log|warning X\d{4}/;
+export const LOG_MAX = 300;   // lines a page sends at most
+
+/** Send the page's warnings, errors, load timings and input findings to the app. Once per page; false off the Xbox app. */
+export function forwardLogs(win = globalThis.window) {
+  const wv = win?.chrome?.webview;
+  if (!wv || !onXbox(win) || win.__xboxLogs) return false;
+  let sent = 0;
+  const post = (level, text) => {
+    if (sent >= LOG_MAX) return;
+    sent++;
+    safe(() => wv.postMessage({ hiraeth: 'log', level, text: (sent === LOG_MAX ? '(the page\'s log stops here) ' : '') + String(text).slice(0, 400) }));
+  };
+  const show = (a) => (typeof a === 'string' ? a : a instanceof Error ? `${a.message}` : safe(() => JSON.stringify(a)) ?? String(a));
+  const con = win.console;
+  for (const level of ['warn', 'error', 'info']) {
+    const own = con?.[level];
+    if (typeof own !== 'function') continue;
+    con[level] = function (...args) {
+      own.apply(this, args);
+      const text = args.map(show).join(' ');
+      if (NOISE.test(text) || (level === 'info' && !LOG_INFO.test(text))) return;
+      post(level, text);
+    };
+  }
+  win.addEventListener?.('error', (e) => post('error', `${e?.message ?? e} ${e?.filename ? `(${e.filename}:${e.lineno})` : ''}`));
+  win.addEventListener?.('unhandledrejection', (e) => post('error', `unhandled: ${show(e?.reason)}`));
+  // what the pad looks like from here: a pad on the Gamepad API, or mouse events (the system's mouse mode)
+  win.addEventListener?.('gamepadconnected', (e) => post('info', `pad: ${e?.gamepad?.id} (${e?.gamepad?.mapping || 'no mapping'})`));
+  let pointers = 0;
+  const pointer = (e) => {
+    if (++pointers > 1) return;
+    const pads = safe(() => Array.from(win.navigator.getGamepads()).filter(Boolean).length) ?? 0;
+    post('warn', `mouse input: a ${e?.pointerType || 'mouse'} ${e?.type} (pads seen: ${pads}): the system's mouse mode is on`);
+  };
+  win.addEventListener?.('pointermove', pointer, { capture: true, passive: true });
+  win.addEventListener?.('pointerdown', pointer, { capture: true, passive: true });
+  win.__xboxLogs = true;
+  post('info', `page: ${win.location?.pathname ?? ''}${win.location?.search ?? ''}`);
   return true;
 }
 
@@ -123,5 +174,7 @@ export function xboxReadout(win = globalThis.window) {
   if (!onXbox(win) && !asked) return '';
   probed ??= jitProbe();
   const heap = win?.performance?.memory?.usedJSHeapSize;
-  return ` · jit ${probed.verdict} ${probed.ns.toFixed(1)} ns${heap ? ` · js ${Math.round(heap / 1048576)} MB` : ''}`;
+  // (the app's memory limit, from an app that tells it: about 1 GB as an App, the GPU shared; 5 as a Game)
+  const limit = +win?.__hiraethXbox?.memory;
+  return ` · jit ${probed.verdict} ${probed.ns.toFixed(1)} ns${heap ? ` · js ${Math.round(heap / 1048576)} MB` : ''}${limit > 0 ? ` · ${limit < 2048 ? 'app' : 'game'} ${(limit / 1024).toFixed(1)} GB` : ''}`;
 }

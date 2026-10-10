@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { onXbox, xboxApi, tvSafe, installXbox, backFallback, xboxCall, xboxShell, jitProbe, jitVerdict, xboxReadout, qualityChoices, XBOX_HOST, XBOX_UA } from '../src/xbox.js';
+import { onXbox, xboxApi, tvSafe, installXbox, backFallback, xboxCall, xboxShell, jitProbe, jitVerdict, xboxReadout, qualityChoices, forwardLogs, LOG_MAX, XBOX_HOST, XBOX_UA } from '../src/xbox.js';
 import { pageFamily, platformFamily, PAD_FAMILY_KEY } from '../src/native-pad.js';
 import { QUALITY_PRESETS, resolveQuality, engineLabel } from '../src/perf.js';
 import { updateView } from '../src/updates.js';
@@ -138,6 +138,27 @@ test('the frame readout names the platform, and shows the JIT probe and the heap
   const line = xboxReadout(fakeWin({ xbox: { api: 1 }, extra: { performance: { memory: { usedJSHeapSize: 300 * 1048576 } } } }));
   assert.match(line, /^ · jit (on|off|unsure) \d+\.\d ns · js 300 MB$/);
   assert.match(xboxReadout(fakeWin({ search: '?jit=1' })), /jit/, '?jit=1 anywhere');
+  assert.match(xboxReadout(fakeWin({ xbox: { api: 1, memory: 1024 } })), / · app 1\.0 GB$/, 'an App\'s memory limit');
+  assert.match(xboxReadout(fakeWin({ xbox: { api: 1, memory: 5120 } })), / · game 5\.0 GB$/, 'a Game\'s');
+});
+
+test('the page\'s warnings, errors, load timings and pad findings go to the app\'s log', () => {
+  const posted = [], seen = [];
+  const con = { warn: (...a) => seen.push(['warn', ...a]), error: (...a) => seen.push(['error', ...a]), info: (...a) => seen.push(['info', ...a]) };
+  const win = fakeWin({ xbox: { api: 1 }, extra: { console: con, chrome: { webview: { postMessage: (m) => posted.push(m) } } } });
+  win.location.pathname = '/index.html';
+  win.navigator.getGamepads = () => [];
+  assert.equal(forwardLogs(fakeWin({ extra: { chrome: { webview: { postMessage: () => assert.fail('off the Xbox') } } } })), false);
+  assert.equal(forwardLogs(win), true);
+  assert.equal(forwardLogs(win), false, 'once a page');
+  con.warn('gpu pacer: gave up'); con.error(new Error('boom')); con.info('load: mixing the inks… 2000 ms'); con.info('crowd: 132 people');
+  con.warn('THREE.WebGLProgram: Program Info Log: (502,1): warning X4000: use of potentially uninitialized variable');
+  win.fire('pointermove'); win.fire('pointermove');
+  assert.equal(seen.length, 5, 'the console still prints everything');
+  assert.ok(posted.every((m) => m.hiraeth === 'log'));
+  assert.deepEqual(posted.map((m) => m.text), ['page: /index.html', 'gpu pacer: gave up', 'boom', 'load: mixing the inks… 2000 ms', 'mouse input: a mouse undefined (pads seen: 0): the system\'s mouse mode is on']);
+  for (let i = 0; i < LOG_MAX + 10; i++) con.warn(`w${i}`);
+  assert.equal(posted.length, LOG_MAX, 'a page sends at most LOG_MAX lines');
 });
 
 test('the JIT probe: a nanosecond a turn is a JIT, tens are an interpreter', () => {
@@ -222,6 +243,11 @@ test('the C# app agrees with the page and the feed', () => {
   assert.match(page, /SetVirtualHostNameToFolderMapping/);
   assert.match(bundles, new RegExp(`Manifest = "${SITE}updates/web\\.json"`), 'the same feed as Android and the Deck');
   assert.match(app, /RequiresPointerMode="WhenRequested"/, 'no mouse-mode cursor');
+  assert.match(read('xbox/Hiraeth/App.xaml.cs'), /RequiresPointerMode = ApplicationRequiresPointerMode\.WhenRequested/, 'and in code');
+  assert.match(read('xbox/Hiraeth/MainPage.xaml'), /RequiresPointer="Never">/, 'the page asks for no pointer either');
+  assert.match(page, /kind == "log"/, 'the page\'s log (src/xbox.js forwardLogs) is written down');
+  assert.match(page, /if \(bundles\.SwitchServed\(game\)\) _ = ClearCacheThen/, 'the cache (and the GPU\'s shader cache with it) cleared only when the build changes');
+  assert.match(page, /info\["memory"\]/, 'the memory limit told to the page');
   const csproj = read('xbox/Hiraeth/Hiraeth.csproj');
   for (const f of ['App.xaml.cs', 'MainPage.xaml.cs', 'WebBundles.cs', 'Properties\\AssemblyInfo.cs']) assert.ok(csproj.includes(`Include="${f}"`), f);
   assert.match(csproj, /<Content Include="game\\\*\*\\\*" \/>/, 'the staged game in the package');

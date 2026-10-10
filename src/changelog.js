@@ -21,6 +21,8 @@ export const CHANGELOG = [
     // the route
     'The route is nine places now: the desert, Vael, Lorn, Viridel, the City-Shaft, the Glass Dunes, the Buried Machine, the Garden of Spheres and the Signal Market. The Sealed Hangar and the Atelier leave the map and the world list; their people are kept for later.',
     'Saves carry over: a save left in the sky stones or the Deep Wood wakes in Vael or Lorn where you stood, one left in the Sealed Hangar wakes at the Glass Dunes’ landing, and everything you had done there stays done.',
+    // the load on a slow graphics chip (the Xbox app: docs/systems/xbox.md "The slow load")
+    { text: 'A new game no longer sits for minutes on “mixing the inks…” when the graphics chip can’t keep up: the load draws what you will see first and spends at most a few seconds drawing ahead the rooms behind the doors, which are drawn as you come near them instead. On the Xbox the app also keeps its compiled shaders from one launch to the next.', see: 'On the Xbox app (or any slow graphics chip), start a new game: the loading screen goes past “mixing the inks…” in seconds rather than minutes; the second launch is quicker still.' },
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

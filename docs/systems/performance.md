@@ -210,7 +210,9 @@ in to 2 m and eased back out over a second (`rig._curDist = 2`). Now:
   passes' formats (the G-buffer's, a shadow map's), so its geometry and textures are on the GPU and
   the driver has built its pipelines (a mobile GLES driver compiles a shader for real only at its
   first draw). A batch is drawn as the children of a scene of its own (shared, not moved), so a
-  draw costs the batch, not a walk over the world. At load for every destination; as you come
+  draw costs the batch, not a walk over the world. At load for every destination (what the first
+  frame sees first, then round the traveller, the ship, the destinations; at most `PASSAGE.loadBudget`,
+  8 s: the Xbox as an App spent 159 s on 2472 meshes, docs/systems/xbox.md "The slow load"); as you come
   within `PASSAGE.near` of a way through, anything new there, a slice a frame. Every program's first
   use (three's `getUniforms`: a wait on the GPU process, 100-250 ms behind a busy GPU) is done at
   load too.

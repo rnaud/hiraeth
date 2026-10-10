@@ -26,6 +26,7 @@ export const PASSAGE = {
   perFrame: 32,      // meshes drawn a frame while warming ahead (the rest, if any, once covered)
   near: 12,          // m: this close to a way through, its destination is warmed ahead
   radius: 100,       // m round a destination that count as it
+  loadBudget: 8000,  // ms: the longest the load spends drawing ahead (the rest as you come near: the Xbox took 159 s)
 };
 
 const Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);

@@ -2047,9 +2047,16 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   const view = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
   const inView = (o) => { try { return !o.frustumCulled || view.intersectsObject(o); } catch { return false; } };
   const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
-  const todo = [...warmDraw.near(dests), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near([player.pos], 120), ...seen];
-  let n = 0;
-  for (let i = 0; i < todo.length; i += 8) { n += warmDraw.draw(todo.slice(i, i + 8)); await slice(); await gpuPace(); }   // (8 at a time: a batch's uploads are one piece of the GPU's work)
+  // (what the first frame sees first, then round the traveller, the ship, the ways through: a GPU that can't keep up
+  // (the Xbox as an App, its graphics memory full: 159 s) stops at PASSAGE.loadBudget, and the rest is drawn ahead
+  // as you come near a door, as it is for anything new)
+  const todo = [...seen, ...warmDraw.near([player.pos], 120), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near(dests)];
+  let n = 0, i = 0;
+  for (; i < todo.length; i += 8) {   // (8 at a time: a batch's uploads are one piece of the GPU's work)
+    if (performance.now() - t0 > PASSAGE.loadBudget) break;
+    n += warmDraw.draw(todo.slice(i, i + 8)); await slice(); await gpuPace();
+  }
+  if (i < todo.length) console.warn(`passage warm-up: stopped after ${PASSAGE.loadBudget} ms, ${todo.length - i} meshes left to draw as you come near them`);
   // what the first frame would set up for itself: the rooms off the map, the levels of detail
   roomCull ??= makeRoomCull();
   await slice();
