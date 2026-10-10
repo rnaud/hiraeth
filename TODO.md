@@ -7,6 +7,21 @@ Playtests are not listed here: the author plays all the time.
 
 # The author's list (2026-10-10), before the full game audit
 
+## Desert progression and screenshot issue drafts (2026-10-10)
+
+- [ ] **Investigate the skull cave entrance being blocked.** The author cannot enter and feels stuck
+  against an invisible wall. Reproduce and check the entrance collision and progression gates; do not
+  assume the cause is confirmed.
+- [ ] **Earn the sword in a desert mini-dungeon instead of starting with it.** The player should begin
+  without the sword and find it in another part of the desert. Picking it up spawns enemies and locks the
+  mini-dungeon exit until they are cleared. Make the encounter and exit state survive saving/reloading
+  without trapping the player; account for existing saves.
+- [ ] **Save a screenshot as an issue draft from the Retroid Pocket debug menu.** In the L3 + R3 menu,
+  add an action that captures the current gameplay view and saves it as a draft accessible from the
+  Hiraeth Notes page on the author's phone. The author can add text to that screenshot later and submit
+  the issue. Keep unfinished drafts distinct from published GitHub issues; this needs cross-device
+  screenshot/draft storage, not just the existing device-local text draft.
+
 ## Combat, controls and world feedback (2026-10-10)
 
 Author feedback; investigate reported artifacts and stutters rather than treating their causes as confirmed. (The
