@@ -703,6 +703,10 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
   // the six numeral lamps round the face (src/temples/garage.js makes each a target)
   const NUM = 6, numAt = (i) => { const a = (i / NUM) * Math.PI * 2; return V(Math.sin(a) * 2.05, 0.1 + Math.cos(a) * 2.05, 2.78); };
   body.add(new THREE.Mesh(merge(...Array.from({ length: NUM }, (_, i) => { const p = numAt(i); return ell([0.3, 0.3, 0.16], '#ffffff', [p.x, p.y, p.z]); })), lampM));
+  // a ring round each numeral that lights when it is hit in step (counted round from four: src/temples/garage.js)
+  const stepM = makeMaterial({ color: '#fff3c4', glow: 0.95, flat: true, key: `foreman.step.${uid++}` });
+  const stepRing = new THREE.TorusGeometry(0.42, 0.07, 4, 16);
+  const steps = Array.from({ length: NUM }, (_, i) => { const p = numAt(i), r = new THREE.Mesh(stepRing, stepM); r.position.set(p.x, p.y, p.z + 0.06); r.visible = false; body.add(r); return r; });
   // the eye: a lamp under the crown
   body.add(new THREE.Mesh(merge(ell([0.32, 0.22, 0.16], '#ffffff', [0, 1.45, 2.55])), eyeM));
   // the hands, on a pivot at the face's middle
@@ -732,7 +736,9 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
   let race = 0, hourA = 0, minA = 0;
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 0.01, radius: 3.0, height: 8.5, bodyR: 2.4,
-    body, hands, hour, minute, lid, arms, legs, lampM, eyeM, open: 0, slump: 0, gait: 0, numbers: NUM, marks: { c: [0, 4.4, 0], r: [2.7, 1.8, 2.7] },
+    body, hands, hour, minute, lid, arms, legs, lampM, eyeM, steps, open: 0, slump: 0, gait: 0, numbers: NUM, marks: { c: [0, 4.4, 0], r: [2.7, 1.8, 2.7] },
+    /** Numeral i's ring lit (hit in step) or dark. */
+    step(i, on) { if (steps[i]) steps[i].visible = !!on; },
     part(name, out, side = 1) {
       if (name === 'arms') return out.copy(arms[side > 0 ? 1 : 0].localToWorld(_w.set(side * 0.35, -2.75, 0.9)));
       if (name === 'head') return out.copy(body.localToWorld(_w.set(0, 3.9, 0)));
@@ -753,7 +759,11 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
         const now = new Date(), wantH = -((now.getHours() % 12) + now.getMinutes() / 60) / 12 * Math.PI * 2, wantM = -(now.getMinutes() / 60) * Math.PI * 2;
         hourA = ease(hourA, wantH, 1.2); minA = ease(minA, wantM, 1.2);
       } else if (state === 'sleep') { minA = -0.4 + Math.sin(t * 9) * 0.06; hourA = -2.1; }
-      else { race += dt * (state === 'open' ? 0.3 : 4 + 3 * Math.sin(t * 1.7)); minA = -race * 2.2 + Math.sin(t * 11) * 0.3; hourA = -race * 0.4; }
+      else if (state === 'open') {
+        // its face open, its hands come round to four, the hour every clock in the house stopped at: count from there
+        const four = -(4 / 12) * Math.PI * 2, wrap = (a, to) => to + Math.atan2(Math.sin(a - to), Math.cos(a - to));
+        hourA = ease(wrap(hourA, four), four, 6); minA = ease(wrap(minA, 0), 0, 6); race = -hourA / 0.4;
+      } else { race += dt * (4 + 3 * Math.sin(t * 1.7)); minA = -race * 2.2 + Math.sin(t * 11) * 0.3; hourA = -race * 0.4; }
       minute.rotation.z = minA; hour.rotation.z = hourA;
       lid.rotation.x = -M.open * 1.6;
       // the arms: raised for the hammer, one up for the cog, both down asleep; the hammer comes down at the strike
@@ -765,6 +775,7 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
       arms[1].rotation.x = ease(arms[1].rotation.x, -up, struck ? 18 : 6);
       legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.18 * Math.min(1, speed) + M.slump * 0.25; });
       lampM.uniforms.uGlow.value = state === 'resolved' ? 0.25 : 0.08 + 0.9 * M.open * (0.75 + 0.25 * Math.sin(t * 10));
+      if (state !== 'open') for (const r of steps) r.visible = false;
       const off = state === 'sleep' || state === 'resolved';
       eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.12) : id === 'chime' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.85;
       eyeM.uniforms.uColor.value.set(state === 'resolved' ? '#f6c84e' : '#e0644a');
@@ -926,7 +937,7 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.4, radius: 3.4, height: 12, bodyR: 2.4,
     body, head, legs, lampM, hornM, open: 0, slump: 0, gait: 0, pitch: 0.6, marks: { c: [0, 4.2, 0], r: [2.1, 0.9, 2.1] },
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, struck = !!attack && k >= 1;
       M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
@@ -934,10 +945,11 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
       M.gait += dt * speed * 2;
       body.position.y = 4.2 - M.slump * 1.2 + Math.sin(M.gait) * 0.08;
       // the dish: slumped toward the floor asleep; up and searching in the fight; drawn back, then thrust, for its cry;
-      // lowered to you, listening, when it is open; turned up to the sky once it has its whole line again
+      // lowered to you, listening, when it is open (in its last phase turned up instead: it listens only through its
+      // cables, to the dishes on the wall, src/temples/bazaar.js); turned up to the sky once it has its whole line again
       let pitch = -0.1 + Math.sin(t * 0.7) * 0.15, yaw = Math.sin(t * 0.5) * 0.3;
       if (state === 'sleep') { pitch = 0.9; yaw = 0; }
-      else if (state === 'open') { pitch = 0.45; yaw = 0; }
+      else if (state === 'open') { pitch = phase >= 2 ? -0.8 : 0.45; yaw = 0; }
       else if (state === 'resolved' || state === 'weary') { pitch = -1.05; yaw = 0; }
       else if (id === 'cry') { pitch = struck ? 0.1 : -0.5 * k; yaw = 0; }
       else if (id === 'beam') { pitch = 0.15; yaw = 0; }

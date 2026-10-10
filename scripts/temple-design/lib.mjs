@@ -121,7 +121,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
   for (const p of pieces) {
     const t = TRAVERSAL[p.cls];
     const pos = piecePos(p.o);
-    if (!t || !pos) continue;
+    if (!t || !pos || p.o?.onStill) continue;   // (onStill: a guardian's, the Mother Snapper's crystals over her hall, no way across)
     const r = p.o?.room && traversal[p.o.room] ? p.o.room : near(pos);
     if (r && !traversal[r].includes(t)) traversal[r].push(t);
   }

@@ -23,7 +23,7 @@ import { parseLine, TONES } from '../src/story/tone.js';
 import { updateHazards } from '../src/hazards.js';
 import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
-import { VOLLEY } from '../src/temples/garage.js';
+import { VOLLEY, FROM_FOUR } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
@@ -710,14 +710,27 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
   wait(0.4);
   assert.notEqual(G.state, 'sleep', 'she wakes');
   P.opts.health = false;
-  for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
-    let open = false;
-    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
-    assert.ok(open, `she cries (${n})`);
+  // (from her second phase a ring as she rises to dive brings a stone down where she dives; in her last that is the
+  // only way she lies down to cry: tests/guardian-twists.test.js plays it through, failures and all)
+  const rising = () => G.phaseIndex >= 1 && G.attack?.over && !G.struck && G.at > 0.15 && G.at < G.windFor * 0.5;
+  let landed = 0;
+  for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
+    let ready = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || rising()) { ready = true; break; } }
+    assert.ok(ready, `she cries, or rises to dive (${n}, phase ${G.phaseIndex})`);
     if (n === 0) { const m = G.meter; G.hit('mouth', 'shoot'); assert.equal(G.meter, m, 'fluid does not calm her'); }
-    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    if (G.state !== 'open') {
+      ring();
+      assert.ok(rt.hallStones.list.some((s) => s.held > 0), `a stone comes down where she will dive (${n})`);
+      let lay = false;
+      for (let i = 0; i < 6 / DT; i++) { frame(); if (G.state === 'open') { lay = true; break; } }
+      assert.ok(lay, `she dives onto it and lies there, crying (${n})`);
+      landed++;
+    }
+    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(G.model.pos.x > L(0, 16, 150.8).x ? -6 : 6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
     ring();
   }
+  assert.ok(landed > 0, 'a stone brought down under her at least once');
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
   for (let i = 0; i < 30 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
   wait(2);
@@ -1041,13 +1054,22 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
   P.opts.health = false;
+  // (in its last phase it shies from you: a pool lit earlier lures it down, and it drinks there while you stand back;
+  // tests/guardian-twists.test.js plays it through, failures and all)
+  const lure = rt.lurePools.list[0];
   for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
+    if (G.phaseIndex >= 2 && !lure.lit) {
+      P.teleport(lure.at.clone().add(V(1, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+      for (let i = 0; i < 3 / DT && !lure.lit; i++) frame();
+      assert.ok(lure.lit, 'your lantern held by a pool lights it');
+    }
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it hangs low, searching (${n})`);
     const before = G.meter;
-    P.teleport(G.model.pos.clone().setY(L(0, 9, 0).y).add(V(4, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
-    for (let i = 0; i < 3 / DT && G.meter === before && G.state === 'open'; i++) frame();
+    if (G.phaseIndex >= 2) P.teleport(lure.at.clone().setY(L(0, 9, 0).y).add(V(lure.at.x > L(0, 9, 148).x ? -9 : 9, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    else P.teleport(G.model.pos.clone().setY(L(0, 9, 0).y).add(V(4, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    for (let i = 0; i < 8 / DT && G.meter === before && G.state === 'open'; i++) frame();
     assert.ok(G.meter > before || G.state !== 'open', `it drank (${n}: ${G.meter.toFixed(2)})`);
   }
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
@@ -1179,7 +1201,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   assert.equal(rt.logic.isOpen('d2'), true, 'stilled, they rest open');
   // ---- the Pendulum Gallery: a pendulum knocks you off the bridge; stilled, they let you by
   assert.equal(walk(L(0, 9, 93.5)), true, `to the bridge (${where()})`);
-  const swings = rt.pieces.filter((p) => p.len && p.arm);
+  const swings = rt.pieces.filter((p) => p.len && p.arm && p.id);   // (the gallery's: the Mother's three hang in her hall)
   assert.equal(swings.length, 3);
   P.teleport(L(0, 9.05, rt.kit.local(swings[0].group.position).z), V(0, 1, 0), V(0, 0, 1));
   let knocked = false;
@@ -1226,7 +1248,15 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   G.hit('mouth', 'shoot');
   assert.equal(G.meter, before0, 'plain fluid only startles her');
   let mid = 0;
+  // (in her last phase the cold no longer eases her: the crystals over her, stilled smallest first; tests/guardian-twists)
+  const crystal = (rank) => rt.motherCrystals.list.find((s) => s.o.rank === rank);
   for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
+    if (G.phaseIndex >= 2) {
+      const before = G.meter;
+      for (const r of [0, 1, 2]) crystal(r).hit('stun');
+      assert.ok(G.meter > before, `the crystals in turn calm her (${G.meter.toFixed(2)})`);
+      continue;
+    }
     let ready = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open' || (G.phaseIndex >= 1 && G.attack && !G.struck && G.at > 0.3)) { ready = true; break; } }
     assert.ok(ready, `she lies spent, or rears (${n})`);
@@ -1531,7 +1561,8 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
     assert.ok(open, `its face opens (${n}, phase ${G.phaseIndex})`);
     const before = G.meter;
     if (n === 0) { for (let i = 0; i < 3; i++) rt.volley(i); assert.equal(G.meter, before, 'three numerals are nothing'); }
-    tankShots(frame, 6, (i) => rt.volley(i));
+    // (round from four, where its hands stop as it opens: in its last phase only that order takes; tests/guardian-twists)
+    tankShots(frame, 6, (i) => rt.volley(FROM_FOUR[i]));
     assert.ok(G.meter > before || G.state === 'resolved', `six in a breath set it back a little (${n}: ${G.meter})`);
   }
   assert.equal(G.state, 'resolved', `set right (${G.meter})`);
@@ -1920,8 +1951,14 @@ test('the Undertower on foot: the singing ball and the dishes, the well’s horn
     const before = G.meter;
     if (n === 1) { game.emit('echo', { pos: P.pos.clone(), note: 'sign.0' }); assert.equal(G.meter, before, 'its old word does nothing: it has moved on'); }
     assert.equal(shell.held?.note, `sign.${n}`, `the shell holds its word (${shell.held?.label})`);
+    if (G.phaseIndex >= 2) {
+      // (its last phase: it hears only through the low dishes on the wall; tests/guardian-twists.test.js)
+      const dish = rt.piece('signDishW').ends[0].mouth;
+      P.teleport(dish.clone().setY(G.model.pos.y).lerp(G.arena.center.clone().setY(G.model.pos.y), 0.06).add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1));
+    }
     shell.update(2);
     assert.equal(shell.play(), true);
+    wait(1);
     assert.ok(G.meter > before || G.state === 'resolved', `its word back: retuned a little (${n}: ${G.meter})`);
   }
   assert.equal(G.state, 'resolved', `its whole line (${G.meter})`);

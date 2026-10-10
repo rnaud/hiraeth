@@ -47,6 +47,7 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //                          then (the next move of a combo), link (a move only met inside a combo), gap (s before
 //                          the next), open (s open after it), miss (s open, stuck, when it missed you) } },
 //        onHit(g, part ('mouth' | 'body' | 'vent'), mode, info) -> handled, final: 'touch' | 'break',
+//        onStrike(g, a), onCatch(g, a), onReset(g), openFor(g, a, s, missed) -> s (how long a combo's end leaves it open),
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
 // model: { group, pos (Vector3 on the floor), heading, mouth (Vector3), radius, height, part?(name, out, side),
 //          marks? { c, r } (where its phase marks go), animate(dt, t, { state, attack, k, speed, meter, phase }) }
@@ -440,7 +441,8 @@ export class Guardian {
         // a combo cut short (you are down) still ends in its opening: it has spent itself all the same
         const end = a.then ? this.def.attacks[comboOf(this.def, this.attack.id).at(-1)] : a;
         const missed = !this.hitLast && !!a.miss && a.miss > (end.open ?? 0);
-        const openFor = missed ? a.miss : end.open ?? 0;
+        // (a temple may change it: the Cloud-Mother's last phase opens only on a stone the bell holds, def.openFor)
+        const openFor = this.def.openFor?.(this, end, missed ? a.miss : end.open ?? 0, missed) ?? (missed ? a.miss : end.open ?? 0);
         this.stop();
         this.cool = this.phase.pause ?? 1.6;
         // (said once a phase: a later phase's opening may differ, the warden's crown vent: phase.openHint)

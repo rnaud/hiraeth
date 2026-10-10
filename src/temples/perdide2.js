@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
+import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, LightEar, Platform, Bridge, Ball, Plate, Mark, Pit } from './pieces.js';
@@ -31,7 +32,10 @@ import { mothModel } from './guardians.js';
 //                           (the push) down its groove into the niche before its glow fades. Rolled in dark,
 //                           it wakes nothing (the lantern with the push: light carried where you cannot go)
 //   the Lamp-Room           the guardian (organic: you calm it): the Lampless, a great moth. When it hangs low,
-//                           searching for light, stand still by it with the lantern lit, and let it drink
+//                           searching for light, stand still by it with the lantern lit, and let it drink. Three
+//                           dark pools lie round the room: lit earlier (a splash, or your lantern held by one), a
+//                           pool lures it as it searches, and it drinks there (taught in its second phase; in its
+//                           last it shies from you: only a pool brings it down, and only if you stand back)
 // After: the Lamp-House's lamp burns again, its beam turning over the wood at night (the world change).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -90,8 +94,8 @@ export const LAMPLESS = {
   resolved: 'The Lampless sighs, and climbs to the lamp, and the lamp catches from it: the whole room goes gold.',
   phases: [
     { to: 0.45, attacks: ['swoop', 'gust', 'dust'], pause: 1.6, hint: 'When it hangs low, searching, stand still by it with your lantern: let it drink.' },
-    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Its glyphs glow with your light, and it beats its wings at you before it dusts the room. Again: stand still with it when it searches.' },
-    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'Its eye-spots burn gold and it circles down twice. Stand still with it when it searches.' },
+    { to: 0.75, attacks: ['flutter', 'scales', 'swoop'], pause: 1.3, hint: 'Its glyphs glow with your light, and it beats its wings at you before it dusts the room. Stand still with it when it searches, or light a pool: it goes down to drink there.' },
+    { to: 0.9, attacks: ['spiral', 'scales', 'gust'], pause: 1.1, hint: 'Its eye-spots burn gold and it circles down twice, and it shies from you now. Light a pool before it searches, splash or lantern, and stand back: it drinks there.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -106,6 +110,55 @@ export const LAMPLESS = {
     spiral2: { shape: 'ring', at: 'player', radius: 4.2, wind: 1.0, track: 0.6, over: true, part: 'core', rig: 'rise', pose: 'swoop', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.0 },
   },
 };
+
+/** How close it lets you be to a pool it goes down to (m), and how long it drinks there (s). */
+export const LURE = { back: 5, drink: 1.2, speed: 8, reach: 1.2 };
+
+/**
+ * The Lamp-Room's three pools: dark until lit, by a splash (as the Hall of Dark Pools taught) or by your lantern held
+ * by one a moment (its light carried there). A lit pool stays lit until the Lampless drinks it dark. o: { at: [[x, z]], y }
+ */
+class LurePools {
+  constructor(rt, o) {
+    this.rt = rt;
+    const K = rt.kit, M = rt.M;
+    this.list = o.at.map(([x, z], i) => {
+      K.add(M.trim, T(annulus(1.6, 2.1, 0.16, 32), [x, o.y + 0.08, z]));
+      const mat = makeMaterial({ color: PALETTE.glow, glow: 0.05, flat: true, key: `temple.p2.lure.${i}` });
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.06, 28), mat);
+      m.position.copy(K.world(x, o.y + 0.1, z));
+      m.userData.noCollide = true; m.userData.dynamic = true;
+      rt.root.add(m);
+      const light = new THREE.Vector4(0, -1e5, 0, 0);
+      rt.lights.push(light);
+      const pool = { i, at: m.position.clone(), m, mat, light, lit: false, held: 0 };
+      pool.off = registerTarget({ kind: 'switch', radius: 1.7, position: () => pool.at, onHit: (mode) => { if (mode !== 'push') this.light(pool); return true; } });
+      return pool;
+    });
+    rt.lurePools = this;
+  }
+  light(p) {
+    if (p.lit) return;
+    p.lit = true;
+    this.rt.sound?.chime?.();
+    this.rt.notice?.('The pool takes the light and holds it, glowing.', 'lure.lit');
+  }
+  /** Drunk dark. */
+  drain(p) { p.lit = false; }
+  get lit() { return this.list.filter((p) => p.lit); }
+  update(dt, t) {
+    const P = this.rt.player, lantern = this.rt.logic.has('lantern');
+    for (const p of this.list) {
+      // your lantern held by a dark pool a moment: its light carried into it
+      const near = P && lantern && !p.lit && Math.hypot(P.pos.x - p.at.x, P.pos.z - p.at.z) < 2.6 && Math.abs(P.pos.y - p.at.y) < 2;
+      p.held = near ? p.held + dt : 0;
+      if (p.held > 1.2) { p.held = 0; this.light(p); }
+      p.mat.uniforms.uGlow.value = p.lit ? 0.8 + 0.12 * Math.sin(t * 3 + p.i) : 0.05 + 0.6 * Math.min(1, p.held / 1.2);
+      if (p.lit) p.light.set(p.at.x, p.at.y + 1.5, p.at.z, 9); else p.light.set(0, -1e5, 0, 0);
+    }
+  }
+  dispose() { for (const p of this.list) p.off(); }
+}
 
 function mothHit(g, part, mode) {
   if (mode === 'push') { g.add(-0.05, 'push'); g.rt.notice('It reels from the shove and flies higher, frightened.', 'moth.push'); return true; }
@@ -238,6 +291,9 @@ function layout(rt) {
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CL + HR + 5.7));
   K.both(M.voidM, box(3.4, 5, 0.9, 0, 11.5, CL + HR + 10.35));
 
+  // three dark pools round the room: lit earlier, each lures the Lampless down to drink (LurePools)
+  add(LurePools, { y: 9, at: [[-10.5, CL - 6], [10.5, CL - 6], [0, CL + 12]] });
+
   const model = mothModel();
   model.pos.copy(K.world(0, 9, CL + 4));
   model.home = model.pos.clone();
@@ -345,18 +401,49 @@ export const PERDIDE2_TEMPLE = {
   enterLine: 'Inside the Lamp-House it is very dark, and it smells of moss and old oil. Somewhere above, wings.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Out over the wood the Lamp-House’s lamp catches, and its beam begins to turn.', 'resolved.out'); },
-  // the Lampless drinks the lantern's light: stand still by it while it hangs low, searching
+  // the Lampless drinks the lantern's light: stand still by it while it hangs low, searching; or a pool lit earlier
+  // lures it down to drink there (its last phase: only a pool, and only while you stand back)
   onConnect(rt) {
     const G = rt.guardian;
     if (!G) return;
-    let still = 0;
+    let still = 0, drink = 0, lured = null, luredFor = 0;
     const upd = G.update.bind(G);
     G.update = (dt, t) => {
       upd(dt, t);
       const P = rt.player;
-      if (!P || G.state !== 'open') { still = 0; return; }
-      const near = Math.hypot(P.pos.x - G.model.pos.x, P.pos.z - G.model.pos.z) < 8;
+      if (!P || G.state !== 'open') { still = 0; drink = 0; lured = null; luredFor = 0; return; }
+      const last = G.phaseIndex >= 2, m = G.model;
+      // a lit pool lures it as it searches: it drifts down to the nearest and drinks (in its last phase, if you stand back)
+      const pools = rt.lurePools?.lit ?? [];
+      if (!lured && pools.length) lured = pools.slice().sort((a, b) => a.at.distanceToSquared(m.pos) - b.at.distanceToSquared(m.pos))[0];
+      if (lured && !lured.lit) lured = null;
+      if (lured) {
+        luredFor += dt;
+        if (luredFor < 7) G.openFor = Math.max(G.openFor ?? 0, G.t + 0.6);   // (it searches on while it drifts there)
+        const over = Math.hypot(m.pos.x - lured.at.x, m.pos.z - lured.at.z) < LURE.reach;
+        if (!over) {
+          // (straight there: in the open it would turn back to you)
+          const dx = lured.at.x - m.pos.x, dz = lured.at.z - m.pos.z, d = Math.hypot(dx, dz), step = Math.min(d, LURE.speed * dt);
+          m.pos.x += (dx / d) * step; m.pos.z += (dz / d) * step;
+          m.heading = Math.atan2(dx, dz);
+          G.keepIn();
+        }
+        rt.notice('It turns from you to the lit pool, and drifts down to it.', 'moth.lured');
+        const close = Math.hypot(P.pos.x - lured.at.x, P.pos.z - lured.at.z) < LURE.back;
+        if (over && close && last) { drink = 0; rt.notice('It hangs over the pool, but will not come down to drink while you stand by it. Stand back.', 'moth.back'); return; }
+        if (over && (drink += dt) > LURE.drink) {
+          drink = 0;
+          rt.lurePools.drain(lured); lured = null;
+          G.add(0.15, 'pool');
+          rt.sound?.chime?.();
+          rt.notice('It drinks the pool dark, and its glyphs glow with the light.', 'moth.drank');
+          if (G.state === 'open') { G.enter('fight'); G.cool = 2; }
+        }
+        return;
+      }
+      const near = Math.hypot(P.pos.x - m.pos.x, P.pos.z - m.pos.z) < 8;
       const quiet = Math.hypot(P.vel.x, P.vel.z) < 0.4 && !P.down;
+      if (last) { if (near) rt.notice('It shies from you, high out of reach: it comes down only to a light left for it.', 'moth.shy'); still = 0; return; }
       if (near && quiet && rt.logic.has('lantern')) {
         if ((still += dt) > 1.4) {
           still = 0;

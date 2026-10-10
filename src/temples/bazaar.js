@@ -36,7 +36,10 @@ import { signModel } from './guardians.js';
 //                        a horn of its own on the far side raise the pillars again for the way back
 //   the First Sign's Hall the guardian (a robot: its meter is damage, which here is retuning). It cries its
 //                        one word; when it lowers its dish to listen, play its word back into it, and it moves on
-//                        to the next word of its line
+//                        to the next word of its line. Its cables run out to the dishes round the hall's wall: two
+//                        low dishes, east and west, carry a word played into them up to their twins, and down the
+//                        cables to it (taught in its second phase; in its last it turns its dish up to the dark and
+//                        hears only through them)
 // After: the silent tower speaks, once a night, the whole line, in the First Sign's voice (the world change).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -54,6 +57,8 @@ export const PALETTE = {
 export const LINE = ['SOMEBODY', 'OUT THERE', 'IS TALKING', 'TO YOU'];
 const WORD_DEGREES = [1, 3, 5, 6];
 const LISTEN = 14;   // m: how close to its dish a played-back word has to be
+/** The low dishes on the First Sign's hall's wall: what is played into one reaches it down its cables, from anywhere. */
+export const SIGN_DISHES = ['signDishW', 'signDishE'];
 /** How long the gallery's great horns hold the high note (s): the pillar bridge stands as long as it rings. */
 export const HOLD = { horn: 12 };
 
@@ -99,8 +104,8 @@ export const FIRST_SIGN = {
   resolved: 'The First Sign takes its whole line back, word by word, and says it once, quietly, to nobody in particular. Then it turns its dish up to the dark, and listens.',
   phases: [
     { to: 0.5, attacks: ['cry', 'beam', 'static'], pause: 1.6, hint: 'When it lowers its dish to listen, play its word back into it.' },
-    { to: 0.75, attacks: ['beam', 'stutter', 'static'], pause: 1.2, hint: 'It has a new word now, and it stutters on it before it cries. Catch it, and give it back.' },
-    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'Its lamps flicker and its dish sweeps the hall. Catch its word, and give it back.' },
+    { to: 0.75, attacks: ['beam', 'stutter', 'static'], pause: 1.2, hint: 'It has a new word now, and it stutters on it before it cries. Catch it, and give it back: to its dish, or into a low dish on the wall, whose cables run to its foot.' },
+    { to: 1.0, attacks: ['statics', 'stutter', 'beam'], pause: 1.0, hint: 'Its lamps flicker and it turns its dish up to the dark: now it hears only through its cables. Catch its word, and play it into a low dish on the wall.' },
   ],
   attacks: {
     cry: { shape: 'ring', at: 'self', radius: 6, wind: 1.4, part: 'mouth', rig: 'lean', wave: { speed: 10, reach: 18, width: 0.7, damage: 0.5 }, damage: 0.75, knock: 12, recover: 0.9, open: 4.4 },
@@ -265,6 +270,15 @@ function layout(rt) {
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU + 0.4; dish(Math.sin(a) * (HR - 0.6), 26, CW + Math.cos(a) * (HR - 0.6), 2.8, a + Math.PI, 0.35); }
   for (let i = 0; i < 6; i++) { const a = (i / 6) * TAU + 0.2; cable([Math.sin(a) * 4, 12.2, CW + Math.cos(a) * 4], [Math.sin(a) * (HR - 0.5), 12.2, CW + Math.cos(a) * (HR - 0.5)], 0.25); }
   K.add(M.dark, T(annulus(3.4, 4.4, 0.06, 40), [0, 12.06, CW]));
+  // two low dishes on the wall, east and west, each with its twin high over it and a cable from them to the First
+  // Sign's foot: a word played into the low one reaches it down the cable, from anywhere in the hall
+  for (const [id, a] of [[SIGN_DISHES[0], -Math.PI / 2], [SIGN_DISHES[1], Math.PI / 2]]) {
+    const sx = Math.sin(a), sz = Math.cos(a);
+    add(Dish, { id, at: [sx * (HR - 1.5), 14.0, CW + sz * (HR - 1.5)], yaw: a + Math.PI, tilt: 0.15, r: 1.7,
+      to: { at: [sx * (HR - 0.9), 21.5, CW + sz * (HR - 0.9)], yaw: a + Math.PI, tilt: 0.45, r: 2.2 } });
+    cable([sx * (HR - 0.7), 21, CW + sz * (HR - 0.7)], [sx * (HR - 0.6), 12.2, CW + sz * (HR - 0.6)], 0.22);
+    cable([sx * (HR - 0.6), 12.2, CW + sz * (HR - 0.6)], [sx * 4.2, 12.2, CW + sz * 4.2], 0.25);
+  }
   add(Door, { id: 'd5', at: [0, 12, CW + HR + 0.7], w: 5, h: 6 });
   K.slab(-3.2, CW + HR + 0.6, 3.2, CW + HR + 10, 12, 0.8);
   K.wall(-3.2, CW + HR + 1.4, -3.2, CW + HR + 10, 12, 7, { t: 0.8 }); K.wall(3.2, CW + HR + 10, 3.2, CW + HR + 1.4, 12, 7, { t: 0.8 });
@@ -408,16 +422,25 @@ export const BAZAAR_TEMPLE = {
     // (it says it again as it lowers its dish to listen: you can always catch it then)
     const enter = G.enter.bind(G);
     G.enter = (state) => { const was = G.state; enter(state); if (state === 'open' && was !== 'open') say(); };
-    rt.offs.push(rt.game.on('echo', ({ pos, note } = {}) => {
+    // (a low dish on the wall carries a word down its cable from anywhere: in the last phase only that)
+    const byDish = (pos) => SIGN_DISHES.some((id) => { const d = rt.piece(id); return d && pos.distanceTo(d.ends[0].mouth) <= d.reach; });
+    rt.offs.push(rt.game.on('echo', ({ pos, note, relayed, via } = {}) => {
       if (!pos || !G.awake) return;
-      if (pos.distanceTo(G.model.mouth) > LISTEN) return;
-      if (G.state !== 'open') { rt.notice('It hears you, but it is not listening yet. Wait for it to lower its dish.', 'fs.notyet'); return; }
+      const cabled = !!relayed && SIGN_DISHES.includes(via);
+      if (!cabled && pos.distanceTo(G.model.mouth) > LISTEN) return;
+      if (!cabled && G.phaseIndex >= 2) {
+        // (played into a low dish, the dish carries it a moment later: say nothing yet)
+        if (!byDish(pos)) rt.notice('Its dish is turned up to the dark: it hears nothing near it now, only what its cables bring from the dishes on the wall. Play its word into a low dish.', 'fs.cables');
+        return;
+      }
+      if (G.state !== 'open') { rt.notice(G.phaseIndex >= 2 ? 'Its cables hum with the word, but it is not listening yet. Wait for it to stop.' : 'It hears you, but it is not listening yet. Wait for it to lower its dish.', G.phaseIndex >= 2 ? 'fs.notyet2' : 'fs.notyet'); return; }
       if (note !== `sign.${word()}`) {
         rt.notice(note?.startsWith?.('sign.') ? 'It hears its own old word, and shakes its dish. It has moved on: catch the new one.' : 'It hears the note, and shakes its dish. That is not its word.', `fs.wrong.${note}`);
         return;
       }
       G.add(0.25, 'echo');
       rt.rumble(0.6, 0.4);
+      if (cabled) rt.notice('The word runs down the cable from the dish on the wall, and its lamps answer.', 'fs.cabled');
       const next = word();
       if (G.state !== 'resolved') rt.notice(`It hears its word come back, and stops, and says the next: “${LINE[next]}”.`, `fs.next.${next}`);
       if (G.state === 'open') { G.enter('fight'); G.cool = 2.0; }

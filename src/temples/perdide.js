@@ -35,7 +35,10 @@ import { snapperModel } from './guardians.js';
 //                          and then the way back over is a walk, not the pendulums again (a shortcut)
 //   the Mother's Hall      the guardian (organic: you calm her): the Mother Snapper, rooted in the middle of a
 //                          round hall. Her head lunges, sweeps, spits seed; spent after a lunge it lies on the
-//                          floor, agape: a stilling glob in her mouth calms her. Later, still her mid-strike
+//                          floor, agape: a stilling glob in her mouth calms her. Later, still her mid-strike.
+//                          Three crystal pendulums swing high over her, out of tune and out of order: stilled in
+//                          turn, smallest first, their notes calm her (taught in her second phase; in her last the
+//                          cold no longer eases her, only the crystals sung low to high)
 // After: the dome flowers, and every snapping plant on Lorn has a ring of the same flowers at its foot.
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -96,8 +99,8 @@ export const MOTHER = {
   resolved: 'The Mother Snapper breathes out, long and slow, and sleeps. Up in the dome the crystals hum in tune again.',
   phases: [
     { to: 0.45, attacks: ['lunge', 'sweep'], pause: 1.5, hint: 'When her head lies spent after a lunge, still her: a cold glob in her open mouth.' },
-    { to: 0.75, attacks: ['snap', 'seed', 'sweep'], pause: 1.2, hint: 'Her crown glows and she feints, snapping short before she lunges. Still her as she rears to strike, or when she lies spent.' },
-    { to: 0.9, attacks: ['thrash', 'seed', 'snap'], pause: 1.0, hint: 'Her leaves bristle with thorns. Still her as she rears, or when she lies spent.' },
+    { to: 0.75, attacks: ['snap', 'seed', 'sweep'], pause: 1.2, hint: 'Her crown glows and she feints, snapping short before she lunges. Still her as she rears to strike, or when she lies spent. Over her three crystals swing out of tune: still them in turn, smallest first, and she listens.' },
+    { to: 0.9, attacks: ['thrash', 'seed', 'snap'], pause: 1.0, hint: 'Her leaves bristle with thorns, and the cold no longer eases her. Still the crystals over her in turn, low to high, smallest first.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -117,6 +120,10 @@ export const MOTHER = {
 function motherHit(g, part, mode) {
   const rt = g.rt;
   if (mode === 'stun') {
+    if (g.phaseIndex >= 2 && (part === 'mouth' && g.state === 'open')) {
+      rt.notice('The cold settles in her mouth, but she shakes her crown at the crystals ringing out of tune over her. Still them in turn, smallest first.', 'mother.tune');
+      return true;
+    }
     if (part === 'mouth' && g.state === 'open') {
       g.add(0.15, 'still');
       rt.notice('The cold glob settles in her mouth. Her jaws ease, and her head comes up slowly.', 'mother.still');
@@ -127,7 +134,8 @@ function motherHit(g, part, mode) {
     if (g.attack && g.state === 'fight' && !g.struck) {
       // stilled mid-strike: it never lands; once she has begun to calm, it calms her more
       g.stop(); g.cool = 2.4;
-      if (g.phaseIndex >= 1) { g.add(0.15, 'still'); rt.sound?.chime?.(); rt.notice('She stops mid-strike, frosted, and sways. Her crown glows brighter.', 'mother.mid'); }
+      if (g.phaseIndex >= 2) rt.notice('She stops mid-strike, frosted, and shakes it off: the cold no longer eases her. The crystals over her, smallest first.', 'mother.mid2');
+      else if (g.phaseIndex >= 1) { g.add(0.15, 'still'); rt.sound?.chime?.(); rt.notice('She stops mid-strike, frosted, and sways. Her crown glows brighter.', 'mother.mid'); }
       else rt.notice('She stops mid-strike, frosted, and shakes it off. Wait for her to lie spent.', 'mother.mid0');
       return true;
     }
@@ -141,6 +149,33 @@ function motherHit(g, part, mode) {
   }
   rt.notice('The fluid runs off her leaves. It does not calm her.', 'mother.leaves');
   return true;
+}
+
+/**
+ * A crystal over the Mother stilled (a Swing's onStill): in turn, smallest first, its note rings true and stays;
+ * the third calms her (a tenth, in her last phase the whole of it). Out of turn it rings flat, the notes stilled so
+ * far fade, and she snaps up startled: begin again from the smallest.
+ */
+export function motherCrystal(rt, sw) {
+  const C = rt.motherCrystals, G = rt.guardian;
+  if (!C || !G?.awake || G.state === 'weary') { rt.notice('The crystal stops, frosted over, and hums its note into the hall.', 'mc.still'); return; }
+  if (sw.taken) return;
+  if (sw.o.rank !== C.next) {
+    sw.flat = 0.8; rt.sound?.critter?.('blip', 0.5);
+    for (const s of C.list) s.taken = false;
+    C.next = 0;
+    if (G.state === 'fight' && !G.attack) G.cool = Math.min(G.cool, 0.4);
+    rt.notice('It rings flat over her, the notes you stilled fade, and she snaps up, startled. The makers sang from low to high: the smallest crystal first.', 'mc.flat');
+    return;
+  }
+  sw.taken = true; C.next++;
+  rt.sound?.chime?.();
+  if (C.next < C.list.length) { rt.notice('The crystal’s note rings true over her, and she turns her head up to it, listening.', 'mc.true'); return; }
+  for (const s of C.list) s.taken = false;
+  C.next = 0;
+  G.add(G.phaseIndex >= 2 ? 0.15 : 0.1, 'crystals');
+  rt.notice('Low to high, the three notes ring true over her: her jaws ease, and her crown glows.', `mc.done.${Math.min(G.phaseIndex, 2)}`);
+  if (G.state === 'open') { G.enter('fight'); G.cool = 2.2; }
 }
 
 // ------------------------------------------------------------------ inside
@@ -260,6 +295,14 @@ function layout(rt) {
   K.wall(3.2, CL + HR + 10, -3.2, CL + HR + 10, 9, 7, { t: 0.8, holes: [{ at: 3.2, w: 3.4, h: 5 }] });
   K.both(M.wall, box(7.2, 0.8, 9.4, 0, 16.4, CL + HR + 5.7));
   K.both(M.voidM, box(3.4, 5, 0.9, 0, 11.5, CL + HR + 10.35));
+
+  // three crystal pendulums high over her, out of order round the hall (by size: rank 0 the smallest): stilled
+  // in turn, smallest first, they calm her (motherCrystal). Hung well over your head: they knock nobody down
+  rt.motherCrystals = { next: 0, list: [] };
+  for (const [rank, x, z, size, yaw, i] of [[1, -12.5, CL - 1, 0.85, 0.1, 0], [2, 9, CL - 9.5, 1.15, 0.8, 1], [0, 10.5, CL + 8.5, 0.6, -0.7, 2]]) {
+    K.add(M.trim, box(2.4, 0.5, 0.6, x, 30.3, z));
+    rt.motherCrystals.list.push(add(Swing, { at: [x, 30, z], len: 12, amp: 0.38, period: 3.0 + i * 0.35, phase: i * 0.27, size, yaw, rank, onStill: (sw) => motherCrystal(rt, sw) }));
+  }
 
   const model = snapperModel({ reach: 12 });
   model.pos.copy(K.world(0, 9, CL + 3));

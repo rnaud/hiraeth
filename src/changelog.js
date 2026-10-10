@@ -9,6 +9,12 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.15', date: '2026-10-09', items: [
+    // the temple guardians: each last phase asks for its temple's one idea
+    'Five temple guardians now end their fight with their temple’s own idea, taught in the phase before, where the old way still works too; getting it wrong only costs time. In the Founders’ Belfry, stones that fell up hang under the Cloud-Mother’s dome: sound the bell as she rises to dive and one comes down where she will dive, held while the note sounds, and she lies on it, crying. In her last phase she no longer sinks to cry by herself: the stone is the way to her.',
+    'In the Lamp-House’s lamp-room three dark pools lie round the floor. Light one, with a splash or by holding your lantern by it, and when the Lampless searches it drifts down to the lit pool and drinks it dark. In its last phase it shies from you: it comes down only to a pool, and only while you stand back.',
+    'Three crystal pendulums now swing high over the Mother Snapper in the Hush-House, out of order round her hall. Still them in turn, smallest first, as the house was sung, and their notes calm her; out of turn one rings flat, the rest fade and she snaps up. In her last phase a cold glob in her mouth no longer eases her: only the crystals do.',
+    'The First Sign’s hall in the Undertower has two low dishes on its wall, each with a cable running to the Sign’s foot: its word played into one reaches it from anywhere in the hall. In its last phase it turns its dish up to the dark as it listens and hears only through those dishes.',
+    'When the Clockwork Foreman’s face opens in the First Garage, its hands now come round to four, the hour every clock in the house stopped at, and numerals hit round the clock from there ring out and light up. In its last phase only that order counts, all six inside one breath; out of step they all go dark.',
     // a fix
     'The antler hound’s smoke mane moves again: its tongues of smoke stream and flicker off its back, flattening as it runs. They had stood still since the hound was drawn.',
   ] },

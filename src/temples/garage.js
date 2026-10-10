@@ -37,7 +37,9 @@ import { foremanModel } from './guardians.js';
 //                        clock stopped at, which it no longer shows: the little clock over the way in does (and
 //                        the Winding Well's, and the one over the door outside). Out of turn they all go dark
 //   the Foreman's Workshop the guardian (a robot: its meter is damage). When its face opens, hit all six
-//                        numerals inside a breath
+//                        numerals inside a breath. Open, its hands come round to four; numerals hit in the clock's
+//                        order counted from four ring in step (taught in its second phase, where any order still
+//                        does); in its last phase only that order takes, and out of step they all go dark
 // After: the clock over the First Garage's door keeps the true time, and the makers' cogs in the cliff
 // below turn in step, their lamps lit (the world change).
 
@@ -54,6 +56,8 @@ export const PALETTE = {
 };
 
 export const VOLLEY = 4.6;   // s: the six eyes (and the Foreman's six numerals) must all be hit inside this
+/** The Foreman's numerals (its model's lamps, i at 2i o'clock as you face it) in the clock's order from four. */
+export const FROM_FOUR = [2, 3, 4, 5, 0, 1];
 
 export const LOGIC = {
   id: 'garage', entry: 'threshold', gadget: 'coil',
@@ -96,8 +100,8 @@ export const FOREMAN = {
   missHint: 'It spins on, dizzy, its hands whirling; the glass over its face swings up. Six numerals: now.',
   phases: [
     { to: 0.5, attacks: ['jab', 'chime', 'hammer'], pause: 1.6, hint: 'When it has struck, its face opens: six numerals, one breath. One tank will not do it.' },
-    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its bell cracks and it winds itself up to spin, throwing cogs. Six numerals, one breath.' },
-    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'It strikes faster, out of step, sparks from every seam. Six numerals, one breath.' },
+    { to: 0.75, attacks: ['cog', 'spin', 'hammer'], pause: 1.2, hint: 'Its bell cracks and it winds itself up to spin, throwing cogs. Six numerals, one breath. When its face opens its hands stop at four, as every clock in the house: numerals hit round from there ring in step.' },
+    { to: 1.0, attacks: ['jab', 'cogs', 'spin'], pause: 1.0, hint: 'It strikes faster, out of step, sparks from every seam, and now its numerals take only in step: six in one breath, round the way a clock goes from four, where its hands point.' },
   ],
   attacks: {
     hammer: { shape: 'cone', range: 10, angle: 0.7, wind: 1.3, track: 0.6, part: 'arms', rig: 'rear', damage: 0.75, knock: 11, recover: 0.8, open: 5.6 },
@@ -474,22 +478,49 @@ export const GARAGE_TEMPLE = {
   enterLine: 'Inside the First Garage everything ticks, but out of step, like a room full of clocks that have quarrelled.',
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Out on the rim, the clock over the First Garage’s door has begun to keep time.', 'resolved.out'); },
-  // the Foreman's six numerals: each a target while its face is open; all six inside a breath is a hit
+  // the Foreman's six numerals: each a target while its face is open; all six inside a breath is a hit. In step (the
+  // clock's order counted from four, where its hands come round to as it opens) each rings and its ring lights; in
+  // its last phase only in step takes, and a numeral out of step puts them all out
   onConnect(rt) {
     const G = rt.guardian;
     if (!G) return;
     const N = G.model.numbers ?? 6, hits = new Array(N).fill(-1e9), at = Array.from({ length: N }, () => V());
+    let step = 0, openT = 0;   // numerals hit in step so far, counted from four; the time into this opening
+    const dark = () => { step = 0; for (let k = 0; k < N; k++) G.model.step?.(k, false); };
     rt.volley = (i) => {
       const clock = rt.time;
       if (G.state !== 'open') { rt.notice('The glass is down over its face. Wait for it to strike, and open.', 'cf.shut'); return; }
+      const last = G.phaseIndex >= 2;
+      // a new opening, or the turn so far faded (its first more than a breath ago): begin again
+      if (G.t < openT) dark();
+      openT = G.t;
+      if (step && clock - hits[FROM_FOUR[0]] > VOLLEY) { dark(); rt.notice('The numerals you rang have gone dark again: six, inside one breath.', 'cf.fade'); }
+      if (step && i === FROM_FOUR[step - 1]) return;   // (the one just rung, again: nothing)
+      if (i === FROM_FOUR[step]) {
+        step++;
+        G.model.step?.(i, true);
+        rt.sound?.orbNote?.(step, G.model.vent(i, at[i]), { size: 0.8 });
+      } else {
+        if (last) {
+          hits.fill(-1e9); dark();
+          rt.sound?.critter?.('blip', 0.7);
+          rt.notice('The numerals ring out of step and all go dark. Its hands point at four: count round from there, the way a clock goes.', 'cf.wrong');
+          return;
+        }
+        dark();
+        if (i === FROM_FOUR[0]) { step = 1; G.model.step?.(i, true); }
+      }
       hits[i] = clock;
       rt.sound?.critter?.('clank', 0.9);
       const lit = hits.filter((h) => clock - h <= VOLLEY).length;
-      if (lit === N) {
-        hits.fill(-1e9);
+      const inStep = step === N;
+      if (inStep || (lit === N && !last)) {
+        const phase = G.phaseIndex;
+        hits.fill(-1e9); dark();
+        if (inStep && phase === 1) rt.notice('All six in step, round from four: its hands catch, and for a moment it keeps time.', 'cf.step');
+        rt.notice('All six numerals at once: its hands stagger, and slow.', `cf.volley.${phase}`);
         G.add(0.25, 'volley');
         rt.rumble(0.6, 0.45);
-        rt.notice('All six numerals at once: its hands stagger, and slow.', `cf.volley.${G.phaseIndex}`);
         if (G.state === 'open') { G.enter('fight'); G.cool = 1.6; }
       } else if (lit === 3 && !rt.logic.has('coil')) rt.notice('Three numerals, and the tank is dry. It would take a tank that fills again faster.', 'cf.three');
     };

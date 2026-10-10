@@ -750,7 +750,8 @@ export class Jaw {
  * (along the local x), and knocks whoever it meets off into the chasm. A stilling glob stops it dead
  * for `stillFor` seconds. o: { at: the pivot, len, amp (rad), period (s), phase (0..1), yaw, size (its
  * crystal's scale), id (an element a stilling wakes for good: a 'switch' that needs the stilling mode, which
- * may come `after` another: still them in turn), heard / wrong (what it says when it takes / rings flat) }
+ * may come `after` another: still them in turn), heard / wrong (what it says when it takes / rings flat),
+ * onStill(swing) (instead of an element: something else hears its note; `taken` makes it glow on) }
  */
 export class Swing {
   constructor(rt, o) {
@@ -782,6 +783,7 @@ export class Swing {
     if (mode === 'stun') {
       if (!this.still) this.rt.sound?.chime?.();
       this.still = this.stillFor;
+      if (this.o.onStill) { this.o.onStill(this); return true; }   // (its note heard by something else: the Mother Snapper's crystals)
       this.rt.notice?.(this.o.stilled ?? 'The crystal stops dead mid-swing, frosted over, and hangs there humming.', 'swing.still');
       // its note: it takes in turn (the element lit for good), or out of turn it rings flat
       if (this.id) {
@@ -809,7 +811,7 @@ export class Swing {
     const k = this.still > 0 ? Math.min(1, this.still) : 0;
     this.flat = Math.max(0, (this.flat ?? 0) - dt);
     this.mat.uniforms.uColor.value.set(this.rt.P.glow ?? '#a8e6ee').lerp(_frost, k);
-    this.mat.uniforms.uGlow.value = 0.3 + 0.5 * k + (this.id && this.rt.logic.isLit(this.id) ? 0.3 : 0) - this.flat * 0.25;   // (its note taken: it glows on)
+    this.mat.uniforms.uGlow.value = 0.3 + 0.5 * k + ((this.id && this.rt.logic.isLit(this.id)) || this.taken ? 0.3 : 0) - this.flat * 0.25;   // (its note taken: it glows on)
     // it meets you: off the bridge, the way it was swinging
     const P = this.rt.player;
     if (!P || P.dead || P.down || this.still > 0 || this.cool > 0) return;
@@ -1362,7 +1364,7 @@ export class Dish {
       const far = this.ends[1];
       far.k = 1;
       this.rt.sound?.orbNote?.(q.e.degree ?? 0, far.mouth, { size: 0.9 });
-      this.rt.game?.emit?.(q.type, { ...q.e, pos: far.mouth.clone(), relayed: true });
+      this.rt.game?.emit?.(q.type, { ...q.e, pos: far.mouth.clone(), relayed: true, via: this.id });   // (via: which dish carried it)
     }
     for (const end of this.ends) {
       end.k = Math.max(0, end.k - dt / 1.2);

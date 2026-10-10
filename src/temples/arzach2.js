@@ -32,8 +32,11 @@ import { whaleModel } from './guardians.js';
 //                          stones are down (it stops at the lip while they hang, and drops if they rise
 //                          under it). On its plate its weight holds the stones down for good.
 //   the Cloud-Mother's Hall the guardian (organic: you calm her). She swims high and fearful, gusts and dives;
-//                          each time she cries, low, her mouth open, sound the bell near her; worn out, she
-//                          lies down: lay a hand on her brow
+//                          each time she cries, low, her mouth open, sound the bell near her. Stones that fell
+//                          up hang under the dome: a ring as she rises to dive brings one down where she will
+//                          dive, held only while the note sounds, and she dives onto it and lies on it, crying
+//                          (taught in her second phase; in her last she no longer sinks to cry by herself, so
+//                          the stone is the way to her). Worn out, she lies down: lay a hand on her brow
 // After: the stones that fell up come down, all over Vael II (the world change).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -86,6 +89,8 @@ export const LOGIC = {
 
 /** The held notes: how long the founders' bells hold their door and their stones (s). */
 export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold };
+/** How long the Cloud-Mother lies on a held stone she dived onto, crying (s): the bell calms her then. */
+export const GROUNDED = 4.5;
 
 export const MOTHER = {
   kind: 'organic', name: 'the Cloud-Mother', final: 'touch', touch: 'lay a hand on her brow',
@@ -96,8 +101,8 @@ export const MOTHER = {
   resolved: 'She sighs, and the cloud along her back thins away. Far below the tower, something heavy comes down to rest.',
   phases: [
     { to: 0.5, attacks: ['gust', 'dive', 'wail'], pause: 1.8, hint: 'She cannot stay down, and she cannot stop crying. When she cries, sound the bell near her.' },
-    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Her glyphs wake and she rolls in the air, her tail lashing. Again: answer her crying with the bell.' },
-    { to: 0.9, attacks: ['rain', 'roll', 'wail'], pause: 1.2, hint: 'The cloud along her back darkens and hails. Answer her crying with the bell.' },
+    { to: 0.7, attacks: ['roll', 'dive', 'gust'], pause: 1.4, hint: 'Her glyphs wake and she rolls in the air, her tail lashing. Answer her crying with the bell. The stones that fell up hang under her dome: ring as she rises to dive, and one comes down where she will dive.' },
+    { to: 0.9, attacks: ['dive', 'rain', 'roll'], pause: 1.2, hint: 'The cloud along her back darkens and hails, and she no longer sinks to cry by herself. Ring as she rises to dive: a stone comes down under her, and when she lies on it, answer her crying with the bell.' },
     { to: 1.0, weary: true },
   ],
   attacks: {
@@ -120,12 +125,96 @@ function motherHit(g, part, mode) {
   else rt.notice('She flinches from the splash.', 'mother.splash');
   return true;
 }
-/** The bell-note whistle sounded near her while she cries: an eighth (then a tenth) of her calm. */
-function motherBell(g, pos) {
-  if (!pos || g.state !== 'open') { if (g.awake && pos) g.rt.notice('She hears the note, and turns her head. Sound it when she cries.', 'mother.wait'); return; }
-  if (pos.distanceTo(g.model.pos) > 28) { g.rt.notice('She is too far to hear it. Get closer.', 'mother.far'); return; }
+/**
+ * The bell-note whistle. Sounded near her while she cries: an eighth (then a tenth) of her calm. Sounded as she
+ * rises to dive (a dive's wind-up): a stone that fell up comes down where she will dive, held while the note sounds.
+ */
+export function motherBell(g, pos) {
+  if (!pos || !g.awake) return;
+  const rt = g.rt, a = g.attack;
+  if (g.state === 'fight' && a?.over && !g.struck && rt.hallStones) {
+    if (rt.hallStones.drop(g, a)) rt.notice('The note brings a hanging stone down under her, and holds it there while it sounds.', 'mother.stone');
+    return;
+  }
+  if (g.state !== 'open') {
+    rt.notice(g.phaseIndex >= 2 ? 'She hears the note, and rises out of its reach. Ring as she rises to dive: bring a stone down under her.' : 'She hears the note, and turns her head. Sound it when she cries.', g.phaseIndex >= 2 ? 'mother.wait2' : 'mother.wait');
+    return;
+  }
+  if (pos.distanceTo(g.model.pos) > 28) { rt.notice('She is too far to hear it. Get closer.', 'mother.far'); return; }
   g.add(g.phaseIndex === 0 ? 0.125 : 0.1, 'bell');
   if (g.state === 'open') { g.enter('fight'); g.cool = 2.2; }
+}
+/** A dive struck: onto a stone the bell holds under her, it takes her weight, and she lies on it. */
+function motherStrike(g, a) {
+  if (!a.over) return;
+  const s = g.rt.hallStones?.landed(g, a);
+  if (!s) return;
+  g.grounded = true;
+  g.rt.rumble?.(1.0, 0.5);
+  g.rt.notice('She dives onto the held stone and it takes her weight: she lies on it, dazed, crying. Sound the bell.', 'mother.grounded');
+}
+/** How long a combo's end leaves her open: on a held stone, a while; in her last phase, only there. */
+function motherOpen(g, a, s) {
+  if (g.grounded) { g.grounded = false; return Math.max(s, GROUNDED); }
+  if (g.phaseIndex >= 2 && s) { g.rt.notice('She cries, and rises again at once, out of the bell’s reach.', 'mother.rises'); return 0; }
+  return s;
+}
+
+/**
+ * The stones that fell up into the Cloud-Mother's hall, hanging under its dome. A ring of the bell as she rises to
+ * dive brings the nearest one down onto the spot she has picked (it follows the spot until she strikes) and holds it
+ * there while the note sounds (HOLD.stones); then it falls up again. Calm, she lets them down for good.
+ */
+class HallStones {
+  constructor(rt, o) {
+    this.rt = rt; this.hold = o.hold ?? HOLD.stones;
+    this.floorY = rt.kit.world(0, o.floor, 0).y;
+    this.mat = makeMaterial({ color: PALETTE.stone, glow: 0.05, flat: true, key: 'temple.arzach2.hallstones' });
+    this.list = o.at.map(([x, y, z, r], i) => {
+      const m = new THREE.Mesh(new THREE.IcosahedronGeometry(r, 1).scale(1, 0.7, 1), this.mat);
+      const home = rt.kit.world(x, y, z);
+      m.position.copy(home); m.rotation.set(i, i * 2, 0);
+      m.userData.noCollide = true; m.userData.dynamic = true;
+      rt.root.add(m);
+      return { m, home, r, i, to: home.clone(), held: 0, k: 0, g: null, a: null };
+    });
+    rt.hallStones = this;
+  }
+  /** A ring as guardian g winds up dive a: the nearest stone still hanging comes down where it will strike. */
+  drop(g, a) {
+    if (this.list.some((s) => s.a === a && s.held > 0)) return null;
+    const free = this.list.filter((s) => s.held <= 0).sort((p, q) => p.home.distanceToSquared(g.attackAt) - q.home.distanceToSquared(g.attackAt))[0];
+    if (!free) return null;
+    Object.assign(free, { held: this.hold, g, a });
+    free.to.set(g.attackAt.x, this.floorY + free.r * 0.6, g.attackAt.z);
+    this.rt.sound?.chime?.();
+    return free;
+  }
+  /** Dive a has struck: the stone brought down for it, if the note still holds it (it lands at once under her). */
+  landed(g, a) {
+    const s = this.list.find((q) => q.a === a && q.held > 0) ?? null;
+    if (s) { s.to.set(g.attackAt.x, this.floorY + s.r * 0.6, g.attackAt.z); s.k = 1; }
+    for (const q of this.list) if (q.a === a) q.a = null;
+    return s;
+  }
+  /** Knocked out: the note is gone, they all fall up again. */
+  reset() { for (const s of this.list) { s.held = 0; s.a = null; } }
+  update(dt, t) {
+    const calm = this.rt.logic.resolved;
+    let held = 0;
+    for (const s of this.list) {
+      s.held = Math.max(0, s.held - dt);
+      // while she winds up, the falling stone follows the spot she has picked
+      if (s.held > 0 && s.a && s.g?.attack === s.a && !s.g.struck) s.to.set(s.g.attackAt.x, this.floorY + s.r * 0.6, s.g.attackAt.z);
+      if (calm) s.to.set(s.home.x, this.floorY + s.r * 0.6, s.home.z);
+      const down = calm || s.held > 0;
+      s.k = down ? Math.min(1, s.k + dt / (calm ? 4 : 0.35)) : Math.max(0, s.k - dt / 2.5);
+      const bob = (1 - s.k) * Math.sin(t * 0.5 + s.i * 2.1) * 0.6;
+      s.m.position.lerpVectors(s.home, s.to, s.k * s.k).y += bob;
+      if (s.held > 0) held++;
+    }
+    this.mat.uniforms.uGlow.value = held ? 0.4 + 0.15 * Math.sin(t * 9) : 0.05;
+  }
 }
 
 // ------------------------------------------------------------------ inside
@@ -248,6 +337,9 @@ function layout(rt) {
   K.add(M.voidM, T(new THREE.PlaneGeometry(3.4, 5).translate(0, 2.5, 0), [0, 16, CH + HR + 10.5]));
   K.solid(box(4, 5, 0.5, 0, 18.5, CH + HR + 10.9));
 
+  // stones that fell up, hanging under the dome: a ring as she rises to dive brings one down (HallStones)
+  add(HallStones, { floor: 16, at: [[-9, 33, CH - 4, 1.5], [8, 35, CH + 3, 1.7], [-2, 37, CH + 10, 1.4], [6, 34, CH - 9, 1.3]] });
+
   const model = whaleModel();
   model.pos.copy(K.world(0, 16, CH + 6));
   model.home = model.pos.clone();
@@ -263,7 +355,7 @@ function layout(rt) {
     gadget: { at: W(0, 16.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 16.5, CH + HR + 9.6), r: 1.5 }],
     lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [-17.7, 5, 23, 11], [17.7, 5, 23, 11], [0, 8, C2, 16], [0, 20, C3, 16], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
-    guardian: { def: { ...MOTHER, onHit: motherHit }, model, arena },
+    guardian: { def: { ...MOTHER, onHit: motherHit, onStrike: motherStrike, openFor: motherOpen, onReset: (g) => { g.grounded = false; rt.hallStones?.reset(); } }, model, arena },
   };
 }
 
