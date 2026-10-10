@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { steppedColumns } from './lookouts.js';
 
 // Lorn II's way home (level design audit, fourth round: the walk back from the root cave to the ship was the lit path
 // you came down). The lamp-keepers kept two ways lit: the path for those on foot, and the water-way for boats, lamps on
@@ -68,4 +69,40 @@ export function buildWaterWay(scene, terrain) {
   const lit = (on) => { litGlass.visible = !!on; unlit.visible = !on; };
   const points = [[WATER_GATE.x, 0.5, WATER_GATE.z], ...WATER_WAY.map(([x, z]) => [x, Math.max(terrain.heightAt(x, z), 0) + 0.5, z])];
   return { points, gate: V(WATER_GATE.x, 0.5, WATER_GATE.z), raft: V(LAMP_RAFT.x, 0.5, LAMP_RAFT.z), lit };
+}
+
+/**
+ * The keepers' stalks (level design audit, fifth round: the Deep Wood spanned 17 m of height, and nothing near the landing
+ * but Hollin). Five giant stalks whose caps fell long ago, standing in the shallows west of the landing, broken off flat
+ * at heights a climb apart (6, 12, 18, 24 and 30 m: src/lookouts.js); the lamp-keepers went up them to watch both their
+ * ways at once, and their lamp still stands on the tallest. From its top: the lit path running south through the wood,
+ * the water-way's lamps round the deep water to the east, and the saucer's clearing far down the path. The lamp is lit
+ * with the water-way (lit(on)). The stalks collide as drawn; the lamp's glass is drawn only, within a hand of its post.
+ *
+ *   buildKeepersStalks(scene, terrain) → { top, steps, foot, height, lamp, lit(on), isLit() }
+ */
+export const KEEPERS_STALKS = { x: -52, z: -56, r: 2.6, step: 6 };
+export function buildKeepersStalks(scene, terrain) {
+  const { x, z, r, step } = KEEPERS_STALKS;
+  const S = steppedColumns({ x, z, r, step, sides: 12, ground: (px, pz) => terrain.heightAt(px, pz), face: Math.atan2(-z, -x) });
+  const stalk = makeMaterial({ color: '#a49cc8', color2: '#b9b3d9', flat: true });
+  const wood = makeMaterial({ color: '#3a3446', flat: true });
+  const dark = makeMaterial({ color: '#6a5a5e', flat: true });
+  const lamp = makeMaterial({ color: '#f2a07a', glow: 1 });
+  // the keepers' lamp on its post at the tallest stalk's back edge, away from the climb
+  const back = Math.atan2(-z, -x) + Math.PI, lx = x + Math.cos(back) * (S.ap - 0.5), lz = z + Math.sin(back) * (S.ap - 0.5), ty = S.top.y;
+  const post = [nonIdx(new THREE.CylinderGeometry(0.12, 0.16, 2.6, 6).translate(lx, ty + 1.3, lz)), nonIdx(new THREE.ConeGeometry(0.5, 0.45, 6).translate(lx, ty + 3.35, lz)),
+    nonIdx(new THREE.BoxGeometry(0.62, 0.08, 0.62).translate(lx, ty + 2.32, lz))];
+  const glassGeo = nonIdx(new THREE.CylinderGeometry(0.32, 0.32, 0.75, 6).translate(lx, ty + 2.74, lz));
+  const g = new THREE.Group();
+  g.name = 'The keepers’ stalks';
+  const stalks = new THREE.Mesh(mergeGeometries(S.parts), stalk);
+  stalks.userData.castShadow = true;
+  const unlit = new THREE.Mesh(glassGeo, dark), litGlass = new THREE.Mesh(glassGeo, lamp);
+  litGlass.visible = false;
+  for (const m of [unlit, litGlass]) m.userData.noCollide = true;
+  g.add(stalks, new THREE.Mesh(mergeGeometries(post), wood), unlit, litGlass);
+  scene.add(g);
+  const lit = (on) => { litGlass.visible = !!on; unlit.visible = !on; };
+  return { top: S.top, steps: S.steps, foot: S.foot, height: step * 5, lamp: V(lx, ty + 2.7, lz), lit, isLit: () => litGlass.visible };
 }

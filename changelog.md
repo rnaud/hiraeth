@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.23 — 2026-10-10
 
+- In the Deep Wood, five dead giant stalks stand in the shallows west of the landing, broken off a climb apart: the lamp-keepers’ old lookout. Climb them one after another to the top, 30 m up, where the keepers’ lamp lights again with the water-way and you can see both their ways at once.
 - From Saba’s stone by the Great Crystal, the crystal cave’s crown now shows through a gap in the landing island’s crystal grove, so you can see where the cave is before you set off for it.
 - Lorn has a high place: Wendel’s lookout, a teal crystal grown in steps on the rise east of the landing. Climb it column by column, a short climb and a rest each time, to its top 30 m up, where the makers’ box from the rise now waits and the whole swamp lies below you.
 - One of the riders’ lantern stones fell up with the bell’s clapper. Its lantern burns over the island church’s porch while the clapper lies there, a point of light in the sky seen from the monastery, and goes out when you pick the clapper up.

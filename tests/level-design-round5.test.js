@@ -54,3 +54,23 @@ test('Lorn: Wendel’s lookout climbs 6 m at a time, column by column, to the ma
   } finally { W.dispose(); }
 });
 
+test('Lorn II: the keepers’ stalks climb from the shallows 6 m at a time to the keepers’ lamp, 30 m up, lit with the water-way', () => {
+  const W = A.loadWorld('perdide2');
+  try {
+    const { stalks, waterWay } = W.level, { physics } = W;
+    assert.ok(stalks?.steps?.length === 5 && stalks.height >= 30);
+    let at = stalks.foot.clone();
+    for (const [k, s] of stalks.steps.entries()) {
+      const r = pitch(physics, before(at, s, 3.4), s);
+      assert.ok(r.climbed && r.ok, `pitch ${k + 1}: up onto ${s.y.toFixed(1)} m (ended at ${r.y.toFixed(2)})`);
+      at = s;
+    }
+    // within 80 m of the landing, off the lit path
+    assert.ok(Math.hypot(stalks.top.x - W.level.spawn.x, stalks.top.z - W.level.spawn.z) < 80, 'by the landing');
+    // the lamp on the top lights with the water-way
+    waterWay.lit(true);
+    assert.ok(stalks.isLit(), 'lit with the water-way');
+    waterWay.lit(false);
+    assert.ok(!stalks.isLit(), 'and dark without it');
+  } finally { W.dispose(); }
+});

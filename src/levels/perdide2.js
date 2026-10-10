@@ -11,7 +11,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
-import { buildWaterWay } from '../deep-wood-ways.js';
+import { buildWaterWay, buildKeepersStalks } from '../deep-wood-ways.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -801,6 +801,12 @@ export function* buildPerdide2(scene) {
   // cave's lagoon round the deep water east of the wood to the landing, lit again at the end: the skiff's way home
   yield;
   const waterWay = buildWaterWay(scene, terrain);
+  // the keepers' stalks (src/deep-wood-ways.js, fifth round): dead giant stalks broken off a climb apart in the shallows
+  // west of the landing, the keepers' lamp on the tallest, 30 m up: the wood's one high place, lit with the water-way
+  const stalks = buildKeepersStalks(scene, terrain);
+  lights.push(new THREE.Vector4(stalks.lamp.x, stalks.lamp.y, stalks.lamp.z, 10));
+  const wayLit = waterWay.lit;
+  waterWay.lit = (on) => { wayLit(on); stalks.lit(on); };
 
   // the Lamp-House in the shallows east of the root cave, and its rooms far overhead (src/temples/perdide2.js)
   yield;
@@ -818,7 +824,8 @@ export function* buildPerdide2(scene) {
     // home by it), and the water-gate and the lamp-raft to look at on it
     beacons: [{ name: 'the saucer’s beam', top: [SAUCER.x, 40, SAUCER.z], height: 40 }],
     lines: [{ name: 'the lit path', points: PATH_PTS }, { name: 'the water-way', points: waterWay.points, auto: false }],
-    sights: [{ name: 'the water-gate', at: waterWay.gate }, { name: 'the lamp-raft', at: waterWay.raft }],
+    sights: [{ name: 'the water-gate', at: waterWay.gate }, { name: 'the lamp-raft', at: waterWay.raft }, { name: 'the keepers’ lamp', at: stalks.top.clone().add(new THREE.Vector3(0, 0.5, 0)) }],
+    stalks,   // (the keepers' stalks: tests/level-design-round5.test.js climbs them)
     waterWay,
     ground: terrain,
     spawn: new THREE.Vector3(0, spawnY, 0),
