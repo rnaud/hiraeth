@@ -25,6 +25,9 @@ import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { keyText } from './prompt-keys.js';
+import { FoeReact, applyReact, restoreBody, installFlash, splashTones } from './foe-react.js';
+import { DEFEATS, startDefeat, defeatPose, defeatRoot, dimEyes } from './enemies/defeat.js';
+import { bodyReach } from './foe-body.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -1620,9 +1623,20 @@ export class Foes {
     this.group.add(f.model.group);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
     if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)
+    // its hit reaction (src/foe-react.js); an archetype's legs are solved after it, so its feet stay planted as it flinches
+    const fam = ARCHETYPES[f.archetype]?.family;
+    if (fam) {
+      f.react = new FoeReact(fam);
+      const R = f.model.rig;
+      if (R) { const write = R.write.bind(R); R.write = () => { this.beforeLegs(f); write(); this.afterLegs(f); }; }
+    }
+    // the body the blade meets: an archetype's drawn parts (src/foe-body.js), else the sphere
+    const body = fam ? f.model : null;
+    f.hurtBody = body;
+    const reach = body ? Math.min(hurtRadius(f.def), (f.def.hover ? bodyReach(body, -9, 9) : bodyReach(body, 0.5, 1.7)) || hurtRadius(f.def)) : undefined;
     f.target = registerTarget({ kind: 'foe', foe: f, lock: true, radius: hurtRadius(f.def), accepts: ['blade', 'stun', 'fire', 'bloom'],
-      position: () => f.chest, enabled: () => f.alive && f.model.group.visible,
-      onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info) });
+      position: () => f.chest, enabled: () => f.alive && f.model.group.visible, body: body ? () => body : null, reach,
+      onHit: (mode, point, dir, info) => this.hurt(f, mode, dir, info, point) });
     this.list.push(f);
     return f;
   }
@@ -1898,7 +1912,7 @@ export class Foes {
   }
 
   /** The fluid tool touched a foe (targets.js): its mind decides; the look, the sound and the reward follow. */
-  hurt(f, mode, dir, info) {
+  hurt(f, mode, dir, info, point = null) {
     // the push on any of a heap scatters it (the one under it reels); an ember into a flock sends the rest running
     if (mode === 'push' && f.riding?.on?.state === 'wind') { const B = f.riding.on; B.state = 'recover'; B.timer = B.def.hit * 2; B.k = 0; B.reel = 'scattered'; }
     if (mode === 'fire' && f.def.flock) for (const x of this.list) if (x !== f && x.kind === f.kind && x.alive && !x.riding && x.pos.distanceTo(f.pos) < 6) x.scatter = 1.4 + this.rng() * 0.6;
@@ -1909,10 +1923,69 @@ export class Foes {
     if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
     if (f.shedNow) this.shedTail(f);
     if (r === 'flushed') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
-    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound); this.burst(f); return true; }
-    if (f.shrugged) { this.armour(f, dir); return true; }
+    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound); this.react(f, mode, dir, info, point, true); this.defeat(f); return true; }
+    if (f.shrugged) { this.react(f, mode, dir, info, point); this.armour(f, dir); return true; }
     if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound);
+    if (mode !== 'stun' && mode !== 'bloom' && mode !== 'push') this.react(f, mode, dir, info, point);
     return true;
+  }
+
+  /**
+   * A blow that told on f (src/foe-react.js): its body flinches along the blow (a stagger bigger, held while it reels; a cut it
+   * shrugged off, a little), its ink flashes, and where the blade met it a splash in its family's colours: ink and its own
+   * tones off a creature, sparks off a machine, black ink off a spirit. `last`: the killing blow.
+   */
+  react(f, mode, dir, info = {}, point = null, last = false) {
+    const R = f.react;
+    if (!R) return;
+    const kind = f.shrugged ? 'shrug' : last || f.reel === 'staggered' || f.reel === 'riposted' || f.toppled > 0 || (info.damage ?? 1) >= 2 ? 'stagger' : 'flinch';
+    installFlash(f.model, R);
+    R.hit(dir, kind, { size: Math.max(f.def.radius, f.def.height * 0.5) / 0.6, hold: f.state === 'recover' ? f.timer : 0 });
+    if (mode !== 'blade' && mode !== 'world') return;
+    const T = this.tool, at = point ?? f.chest, tones = splashTones(R.family, f.model.tones);
+    if (!T?.drops) return;
+    const n = kind === 'stagger' ? 16 : kind === 'shrug' ? 6 : 10, back = dir ? _w.copy(dir).setY(0).normalize() : _w.set(0, 0, 0);
+    for (let i = 0; i < n; i++) {
+      const spark = R.family === 'machine' && i % 3 !== 2;
+      T.drops.add({ pos: at, vel: _v.randomDirection().multiplyScalar(spark ? 4.5 : 2.6).addScaledVector(back, spark ? 2 : 2.4).addScaledVector(_up, 1.6), drag: spark ? 3.5 : 2.2, grav: spark ? 6 : 10,
+        size: spark ? 0.028 : 0.03 + Math.random() * 0.035, stretch: spark ? 3 : 2, life: spark ? 0.3 : 0.45 + Math.random() * 0.2, color: tones[i % tones.length] });
+    }
+  }
+
+  /** The look's last word on the body before an archetype's legs are solved (its rig's write): the flinch, a defeat's sag. */
+  beforeLegs(f) {
+    const M = f.model, P = f.dying?.pose;
+    applyReact(f.react, M.body, P?.body ?? null);
+    if (P?.curl > 0 && M.rig) {
+      // its legs drawn up under it: off the ground (the rig's air), each foot pulled in toward the body's middle and up
+      const R = M.rig, k = Math.min(1, P.curl - 1);
+      R.air = Math.max(R.air, 1 + 0.6 * k);
+      for (const L of R.legs) { (L._air ??= new THREE.Vector3()).copy(L.air); L.air.set(L.air.x - L.restBody.x * 0.65 * k, L.air.y + (R.length * 0.35) * k, L.air.z - L.restBody.z * 0.65 * k); }
+    }
+  }
+  /** (the legs' own hanging spots back, after a defeat's curl) */
+  afterLegs(f) {
+    if (!(f.dying?.pose?.curl > 0)) return;
+    for (const L of f.model.rig.legs) if (L._air) L.air.copy(L._air);
+  }
+
+  /**
+   * The killing blow: it goes down its own way (src/enemies/defeat.js) and bursts at the end; the blow's feel now (the
+   * freeze, the kick, the slow motion of a fight's last). One with no recipe (an old kind), or gone out of the world, bursts
+   * at once. Nothing it does after this hurts you or stands in your way: its mind is done (state 'dead').
+   */
+  defeat(f) {
+    if (f.dying || f.dead !== undefined) return;
+    const R = DEFEATS[f.archetype];
+    if (!R || f.lost || !f.model?.anim) { this.burst(f); return; }
+    const P = this.player, last = !this.list.some((x) => x !== f && x.alive && x.dead === undefined && x.state !== 'idle' && (!P || x.pos.distanceTo(P.pos) < 28));
+    hitStop(last ? 0.12 : 0.09); kick(last ? 0.6 : 0.35);
+    if (last) slowMo(0.45, 0.35);
+    f.state = 'dead'; f.k = 0; f.letGo = true;
+    f.dying = startDefeat(f, R);
+    if (this.hold?.f === f) this.hold = null;
+    if (f.id) this.game.set(f.id, true);   // (counted at the blow: a save taken while it falls keeps it)
+    if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards: gone for good)
   }
 
   /** A centipede cut from behind sheds its tail: its last segments break off and run as skitterers (def.shed). */
@@ -1930,10 +2003,13 @@ export class Foes {
   burst(f) {
     this.sound?.foeBurst?.(f.kind, f.def.sound);
     // the blow that ends one lands harder (a longer freeze, a bigger kick); the last of a fight, a moment of
-    // slow motion to mark it done (src/feel.js)
-    const P = this.player, last = !this.list.some((x) => x !== f && x.alive && x.dead === undefined && x.state !== 'idle' && (!P || x.pos.distanceTo(P.pos) < 28));
-    hitStop(last ? 0.12 : 0.09); kick(last ? 0.6 : 0.35);
-    if (last) slowMo(0.45, 0.35);
+    // slow motion to mark it done (src/feel.js): felt at the blow already when it went down first (defeat)
+    if (!f.dying) {
+      const P = this.player, last = !this.list.some((x) => x !== f && x.alive && x.dead === undefined && x.state !== 'idle' && (!P || x.pos.distanceTo(P.pos) < 28));
+      hitStop(last ? 0.12 : 0.09); kick(last ? 0.6 : 0.35);
+      if (last) slowMo(0.45, 0.35);
+    }
+    f.state = 'dead'; f.k = 0;
     const T = this.tool, at = f.chest.clone();
     const tones = f.model.tones ?? BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];   // (an archetype's from its skin)
     for (let i = 0; i < 46; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
@@ -1984,9 +2060,17 @@ export class Foes {
     for (const f of this.list.slice()) {
       if (f.dead !== undefined) {   // bursting: shrink away, then gone
         f.dead -= dt;
-        f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8));
+        f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8) * (f.model.size ?? 1));
         f.tele.hide(); f.glow?.hide();
         if (f.dead <= 0) this.remove(f);
+        continue;
+      }
+      if (f.dying) {   // going down its own way (src/enemies/defeat.js), then the burst
+        const D = f.dying;
+        D.t += dt; D.u = Math.min(1, D.t / D.R.time);
+        f.tele.hide(); f.glow?.hide();
+        this.look(f, dt);
+        if (D.u >= 1) this.burst(f);
         continue;
       }
       if (!f.placed && !this.waves && f.pos.distanceTo(P.pos) > PACK.drop) { this.remove(f); continue; }
@@ -2509,6 +2593,15 @@ export class Foes {
   /** The look follows the mind: a blot wobbles and squashes into its lunge, a machine walks and raises its arms. */
   look(f, dt) {
     const M = f.model, g = M.group, t = (this._t = (this._t ?? 0) + dt / Math.max(1, this.list.length));
+    // the hit reaction's springs (src/foe-react.js); the body as its own pose left it, before it poses it again
+    if (f.react) { restoreBody(f.react, M.body); f.react.update(dt); }
+    // going down (src/enemies/defeat.js): the recipe's height, turn and moves this frame
+    const D = f.dying, DP = D ? (D.pose = defeatPose(D, D.u, D.pose ?? {})) : null;
+    if (DP) {
+      if (DP.alt != null) { f.alt = DP.alt; f.over = DP.over; }
+      f.heading = D.heading + DP.spin;
+      f.stunned = D.R.slack ? 1 : 0;   // (slack: its stunned pose, the strings let go)
+    }
     g.visible = true;
     g.position.copy(f.pos);
     g.position.y += f.over;   // (a hovering foe's held height over its footing: HOVER)
@@ -2521,8 +2614,11 @@ export class Foes {
     if (M.anim) {
       // each world's own kind moves itself (src/foe-kinds.js)
       g.scale.setScalar(M.size ?? 1); g.rotation.x = 0; g.rotation.z = 0;
-      M.anim(f, this.animKit(f, dt, { t, wind, release, recovery, moving }));
+      const kit = this.animKit(f, dt, { t, wind, release, recovery, moving });
+      M.anim(f, kit);
       if (f.possessed && M.eyeMat?.uniforms?.uColor) M.eyeMat.uniforms.uColor.value.set(POSSESS_EYE);   // (driven by strings: its eyes go black)
+      if (f.react && !M.rig) applyReact(f.react, M.body, DP?.body ?? null);   // (a body with no legs to solve: after its pose)
+      if (DP) this.falling(f, DP, kit);
     } else if (f.kind !== 'machine') {
       const w = Math.sin(performance.now() / 160 + f.home.x) * 0.06;
       const stretch = strike ? Math.sin(Math.PI * f.k) : 0;
@@ -2551,8 +2647,8 @@ export class Foes {
       g.scale.setScalar(1);
       M.rig.write();
     }
-    // Recoil follows the blow, then settles; a heavy impact also buckles the body.
-    const r = Math.sin(f.recoil * Math.PI * 0.5), strength = f.heavyRecoil ? 0.28 : 0.12;
+    // Recoil follows the blow, then settles; a heavy impact also buckles the body (an archetype: its own flinch, above).
+    const r = f.react ? 0 : Math.sin(f.recoil * Math.PI * 0.5), strength = f.heavyRecoil ? 0.28 : 0.12;
     g.position.addScaledVector(f.recoilDir, r * strength);
     // Compose recoil onto the orientation. Rewriting one Euler component after a
     // quaternion yaw past 90 degrees can discard its equivalent PI roll and invert a shade.
@@ -2576,6 +2672,22 @@ export class Foes {
     }
     }
     this.chargeGlow(f, t);
+  }
+
+  /**
+   * A defeat's frame on the drawn model (src/enemies/defeat.js), after its own pose: the root flipped, rolled, toppled or
+   * sunk; the plan's own letting go (model.defeat: the marionette's strings, the moth's wings); the eyes going out; what
+   * comes off it (dust where it lands, a machine's steam, a spirit's ink).
+   */
+  falling(f, P, c) {
+    const M = f.model, g = M.group, D = f.dying, u = D.u;
+    defeatRoot(g, P, M.size ?? 1);
+    M.defeat?.(f, c, u);
+    dimEyes(M, u);
+    const puff = D.R.puff;
+    if (puff === 'dust') { for (const at of [0.45, 0.9]) if (D.puffed < at && u >= at) { D.puffed = at; c.dust(f.pos, '#cdb89a', 8, f.def.radius); } }
+    else if (puff === 'vent' && Math.random() < 0.35) c.spray(_w.copy(f.chest).setY(f.pos.y + f.def.height * (1 - 0.5 * u)), ['#e8e2d6', '#b9b2a6', '#ffd27a'], 2, 1.6, -1.5);
+    else if (puff === 'ink' && Math.random() < 0.5) c.drip(f, M.tones?.[0] ?? '#14101a');
   }
 
   /** The glow building on the striking part through a wind-up (src/telegraph.js ChargeGlow), a last flare as it strikes. */

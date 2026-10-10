@@ -11,7 +11,7 @@ The first things in the game that fight back, and the tool's answer to them.
   then `BLADE.cooldown`. A press the blade can't act on yet (during an evade, the cooldown) is kept `BLADE.buffer`
   (0.2 s) and swings as soon as it can (v0.96).
 - **The cut's pull** (`MAGNET`, `closeInSpeed`, v0.96): a swing begun with its target (the lock, else the soft lock)
-  a little out of reach steps you in through the wind-up and cut, to stand `MAGNET.ideal` (1.2 m) off its body, up
+  a little out of reach steps you in through the wind-up and cut, to stand `MAGNET.ideal` (1.05 m since v1.35; 1.2 before) off its body, up
   to `MAGNET.max` (2.2 m) of ground; in reach, or further, nothing. Not the lunge (it carries you itself) nor in the air.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
@@ -487,7 +487,7 @@ the phase that teaches it; `tests/temples.test.js` plays them as part of each te
   on a block, 0.14 s on a perfect parry.
 - **Camera kick:** `kick(k)` jolts the camera after the rig places it (`shakeCamera`), settling over
   `FEEL.settle`; a foe's hit kicks harder (main.js `onHurt`).
-- **The finishing blow** (v0.96, `Foes.burst`): 0.09 s and a bigger kick; the last foe of a fight (none other
+- **The finishing blow** (v0.96, `Foes.burst`; since v1.35 at the blow, `Foes.defeat`, the burst after its defeat): 0.09 s and a bigger kick; the last foe of a fight (none other
   stirring within 28 m) 0.12 s, then `slowMo(0.45, 0.35)`: the world at 35% for 0.45 s, easing back over its last
   third (`feelDt`, after any hit-stop).
 - **Knockback:** the heavy third swing throws a foe 2.2× as far.
@@ -496,6 +496,84 @@ the phase that teaches it; `tests/temples.test.js` plays them as part of each te
   blow from behind never lands on top of one you are watching. `keepApart()` pushes foes standing inside each other apart.
 - **Warnings:** a foe winding up off the screen (or behind the camera) shows a round marker at the screen's
   edge on its side, filling as its strike comes (`#foe-warn`, `Foes.warnings`).
+
+## The body the blade meets, the soft aim (v1.35: `src/foe-body.js`, `src/fluid-blade.js` `AIM`, `bodyHits`)
+
+The author's playtest: "sometimes when I attack it doesn't hit the enemy; I think my sword is going above their head".
+Measured (`scripts/combat-reach.mjs`: the game's traveller with the real clips and blade swinging at each archetype's
+real model, posed by `Foes.look`, from 1–2.5 m off its body at 0 and ±40° off his facing, locked on or not): the first
+swing missed 72 of 504 times; every miss was a low body the level arc went over (the skitter every time, the lizard and
+the blot from 2 m) or the cut's pull still short of a foe 2–2.5 m off as the blade came through (the crab, the centipede,
+the moth). And 197 hits landed with the drawn blade nowhere near the drawn body: the old target was one sphere at the top
+of each body (`hurtRadius`), which hung between a heron's stilts and far over a lizard's back.
+
+- **The drawn body** (`bodyParts`, `bodyTouch`): an archetype's target says its model (`target.body()`), and the swept
+  blade (each frame's segment from the last, in steps of 10 cm) is tested against the boxes of its drawn parts, each in
+  the frame of the joint that moves it as the kit poses it (a skinned mesh: each joint's own box, `kit.js skinned`
+  `userData.boneBoxes`), grown by `BLADE_TOUCH`. Not the body: smoke, mist, a halo, threads, a harpoon's line, a ripple
+  on the sand (`NON_BODY`, by the part's material name), anything hidden (a cracked crab's dome), parts under 5 cm. The
+  contact point is where the blade entered a part: the splash and the blade's ripple start there. Everything else
+  (wildlife, scenery, the old kinds) keeps its sphere; the shots and the lock still use the sphere. The rising cut (a
+  foe hovering over you) still cuts the leap's cone.
+- **The pull arrives** (`closeInTime`, `MAGNET.arrive` 0.3): a swing begun a little out of reach steps you in through its
+  wind-up and the first 30 % of its cut, then stops (it was the whole cut, so the blade passed before you were there), to
+  stand `MAGNET.ideal` (1.05 m, was 1.2) off the body's front at the swing's height (`target.reach`, `bodyReach`: a
+  heron's stilts are near its middle, a crab's shell is wide; never further than its sphere said).
+- **The soft aim** (`AIM`, `aimTilt`, `Humanoid.swingTilt`): a swing at a foe (the lock, else the one it turns to, as
+  before) tilts its plane toward the body: the blade crosses in front of him at about 1.2 m (1.1 for the overhead
+  third: `AIM.natural`, measured from the clips), and when the body's middle part is lower or higher the plane tips
+  down (up to 0.62 rad) or up (0.4), aimed from where the pull will have him. The back takes 45 % of it (spine_02,
+  spine_03), the right shoulder the rest, eased in over the wind-up, held through the cut, out over the follow-through;
+  the clip still drives the swing, the hits read the hand's bone as drawn. It never turns him: the swing's way is
+  as before. Not for the air cut or the rising cut.
+- **The table, after:** 1 miss of 504 first swings (a heron's thin stilts at 2.5 m), none of the 168 second and third;
+  the 59 hits left with the blade off the drawn body are the rising cut's cone (the ray, the jelly, the drone, the
+  marionette over you). `node scripts/combat-reach.mjs [kinds…] [--legacy] [--json]` prints it (`--legacy`: as before).
+- Tests: `tests/combat-reach.test.js` (the boxes, the tilt's limits, the pull's timing, and every archetype hit by a
+  plain first swing from in front at 1.5 m; the skitter missed with `legacy`).
+
+## Hit and defeat (v1.35: `src/foe-react.js`, `src/enemies/defeat.js`)
+
+The author: "it's not always obvious that an enemy was hit; all enemies should have a defeat animation".
+
+- **"I've been hit"** (`FoeReact`, `Foes.react`): any blow that tells (the blade, a shot, an ember, the world) shoves the
+  body along it and tips it away on springs (`SecondOrder`), and squashes it; on an archetype with legs it goes on the
+  kit's `body` before the rig solves the legs (its `write` is wrapped: `Foes.beforeLegs`), so the feet stay planted.
+  `REACT`: a flinch 0.14 m / 0.2 rad (3.4 Hz, ζ 0.38); a stagger (a blow of 2 or more, the riposte, the charged cut, the
+  killing blow) 0.3 m / 0.42 rad, slower, leaning while it reels; a cut it shrugs off (armour, a committed blow) a little;
+  smaller bodies move more (`size^0.35`). Each frame the body is put back as its own pose left it before it poses again
+  (`restoreBody`), so nothing accumulates. The old kinds keep their recoil.
+- **The flash** (`installFlash`): for `REACT.flash.time` (0.18 s) each of its meshes, as it is drawn (not in the shadow
+  pass: the scene's override material), takes its family's pale tone (`REACT.tone`), is self-lit over the bloom's
+  threshold (`uGlow`: a printed halo) and, for its first 0.08 s, has its line drawn white (`uLineWhite`; the shade's,
+  already white, goes black): the material flags the post pass already reads, no pass touched. Installed on a model's
+  first hit (`onBeforeRender` / `onAfterRender` put each material back); nothing while it is not flashing.
+- **The splash** where the blade met it (the contact point): its own tones and a pale fleck off a creature, sparks off a
+  machine, black ink off a spirit (`splashTones`). Hit-stop as before (0.06 s a light cut, 0.11 s heavy, 0.15 s the full
+  charged cut or the riposte), the family's hurt sound as before. An armoured glance (a crab's shell, the bell's bronze, a
+  rolling shell) keeps its own sparks and thunk, no flash, no flinch; a stagger stays the mind's (`Foe.reel`).
+- **The defeats** (`DEFEATS`, `Foes.defeat`): the killing blow's feel at once (the freeze, the kick, the last foe's slow
+  motion), its mind done (state `dead`: no target, no lock, no blow, `keepApart` passes it by), then its body plan goes
+  down its own way over 0.8–1.5 s, the model's own pose with the recipe's moves on top (`defeatPose`, `Foes.falling`),
+  and the burst as before at the end (the ink, the tank's charge, the chimes, a machine's pieces). The crab flips onto
+  its back and curls its legs; the skitters too, quickly; the centipede's plates sink and roll over one after another
+  from the head (its own, in its pose); the toad slumps flat and rolls; the lizard rolls onto its side, legs drawn up; the
+  heron folds off its stilts and tips onto its chest; the roller tips onto its side; the root knot wilts and sinks; the
+  jelly deflates and drifts down; the moth folds its wings and spirals to the ground; the ray glides down banking; the
+  worm sinks back under the sand; the tripod and the bell walker buckle on their legs (the kit re-solves them under the
+  sinking body) and tip, venting; the cart grinds down and lists; the drone spins down; the brute drops to its knees and
+  falls on its face; the blot spreads into a puddle; the shade's cloak falls into an empty heap on its boots; the hound
+  drops and rolls over; the marionette's strings snap, its knot of smoke thins away and the puppet folds up where it
+  lands. Its eyes go out over the first half; dust where it lands, a machine's steam, a spirit's ink. A foe that went out
+  of the world, the roller's own last-roll shatter and the old kinds burst at once; the guardians keep their finishers.
+- **Cost** (the Arena, High, headless Chrome on the M4 Pro): `Foes.update` for twelve foes standing 0.5 ms a frame, 0.7
+  while they flinch, 0.8 while all twelve go down at once; the blade's body test 0.1 ms on a cut frame against a crab (the
+  sphere's under the timer's 0.1 ms); the pack bench (`scripts/enemy-roster/bench.mjs`) the same draw calls, CPU within
+  the shared machine's noise.
+- Tests: `tests/foe-hit-defeat.test.js` (the springs, the shove put back, the flash's flags given back and never in the
+  shadow pass, every archetype flinching on its body with its family's splash and staggering under a heavy blow, the
+  glance's own look; every archetype's defeat 0.8–1.5 s, harmless, its body moving, the burst and chimes only at the end;
+  sixteen at once).
 
 ## Ink and the blade's growth (`src/ink.js`)
 
@@ -1136,7 +1214,8 @@ A debug overlay of what the fight actually tests, for tuning and for learning th
   height); the blade's coarse cone, its segment and the swept quad (yellow; red on the frames it cuts); the
   guard's arc (green, white in the parry window); an evade (violet; pale lavender with the label `I-FRAMES <s left>` while its i-frames are on, then `i-frames
   over`, `no i-frames (too soon after the last)` for one given none, `DODGED` once one swallowed a blow); the
-  hard lock (orange diamond) or the soft lock. Each foe: its target sphere and the blade's touch ring, sight,
+  hard lock (orange diamond) or the soft lock. Each foe: its target sphere and the blade's touch ring (an archetype's
+  faint and dashed: the boxes of its drawn body, `foe.body`, are what the blade meets since v1.35), sight,
   reach, keep; its strike's area at `attackOrigin()` (orange while it winds up, red while live, dull once
   checked); a label with its state, wind-up %, stun or why it reels (`Foe.reel`: blocked, parried,
   flinched, staggered) and hp. Shots in flight, a lobbed glob, bombs and their blast reach, the hook's line.

@@ -75,6 +75,13 @@ export class HitboxBuilder {
         if (s.fill) { this.tri(q[0], q[1], q[2], col, s.fill); this.tri(q[0], q[2], q[3], col, s.fill); }
         break;
       }
+      case 'box': {
+        // (its 8 corners through its world matrix, 12 edges)
+        const b = s.box, P = [];
+        for (let k = 0; k < 8; k++) P.push(new THREE.Vector3(k & 1 ? b.max.x : b.min.x, k & 2 ? b.max.y : b.min.y, k & 4 ? b.max.z : b.min.z).applyMatrix4(s.m));
+        for (const [i, j] of [[0, 1], [2, 3], [4, 5], [6, 7], [0, 2], [1, 3], [4, 6], [5, 7], [0, 4], [1, 5], [2, 6], [3, 7]]) this.line(P[i], P[j], col, o.faint);
+        break;
+      }
       case 'segment': this.line(s.a, s.b, col, o.faint); if (s.thick) { _p.set(0, 0.015, 0); this.line(s.a.clone().add(_p), s.b.clone().add(_p), col); } break;
       case 'sweep':
         this.line(s.a0, s.a1, col, true); this.line(s.b0, s.b1, col, true); this.line(s.a0, s.b0, col, true);

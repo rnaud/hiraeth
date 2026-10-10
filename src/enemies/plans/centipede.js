@@ -134,7 +134,11 @@ export function centipedeModel(skin) {
       head.position.set(f.pos.x, f.pos.y + RIDE + P0.y + lift * 0.18, f.pos.z);
       trail.at(0, _a, _d);
       const hy = (Math.hypot(_d.x, _d.z) > 1e-6 ? Math.atan2(_d.x, _d.z) : f.heading) + turn + P0.yaw;
-      head.rotation.set(P0.pitch - lift * 0.35, hy, 0, 'YXZ');
+      // going down (src/enemies/defeat.js, f.dying): a ripple runs from the head to the tail, each plate sinking onto its
+      // legs and rolling over onto its side in turn; the legs, solved after, stay planted and splay under it
+      const dying = f.dying ? f.dying.u : 0, fall = (i) => (dying > 0 ? THREE.MathUtils.smoothstep(dying, 0.04 + i * 0.045, 0.4 + i * 0.045) : 0);
+      head.position.y -= fall(-1) * RIDE * 0.6;
+      head.rotation.set(P0.pitch - lift * 0.35 + fall(-1) * 0.45, hy, fall(-1) * 2.2, 'YXZ');
       // a lunge carries the head out along its heading (the strike pose's z); the body catches up on the path
       head.position.x += Math.sin(hy) * P0.z; head.position.z += Math.cos(hy) * P0.z;
       spine[0].copy(head.position);
@@ -147,8 +151,8 @@ export function centipedeModel(skin) {
         const y = Number.isFinite(ground) ? ground : p.y;
         // the plates rock a little over their legs (a sideways roll that runs down the body with the wave)
         const r = Math.sin((walked / PL.legs.stride) * Math.PI * 2 - i * PL.legs.lag) * 0.06 * Math.min(1, (walked - lastWalked) / Math.max(dt, 1e-3) / 2);
-        S.seg.position.set(p.x, y + RIDE - (i < 3 ? (1 - i / 3) * lift * -0.08 : 0), p.z);
-        S.seg.rotation.set(0, Math.atan2(dir.x, dir.z), r, 'YXZ');
+        S.seg.position.set(p.x, y + RIDE - (i < 3 ? (1 - i / 3) * lift * -0.08 : 0) - fall(i) * RIDE * 0.6, p.z);
+        S.seg.rotation.set(0, Math.atan2(dir.x, dir.z), r + fall(i) * 2.4, 'YXZ');
         S.seg.visible = i < N - shed;
         spine[i + 1].copy(S.seg.position);
       }

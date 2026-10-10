@@ -1539,6 +1539,27 @@ export class Humanoid {
   }
 
   /**
+   * The soft aim of a blade swing (src/fluid-blade.js AIM): the swing's plane tipped `angle` rad down (negative: up) toward
+   * `dir` (flat, world), over the current pose: the back bends a share of it (spine_02, spine_03: AIM.spine) and the right
+   * shoulder turns the rest, so the arm and the sword in the fist sweep lower (or higher) in front. Call after the
+   * frame's pose; update() re-drives every bone next frame.
+   */
+  swingTilt(angle, dir, up, spine = 0.45) {
+    const B = this.b;
+    if (!angle || !B.upperarm_r) return;
+    const axis = _w1.crossVectors(up, dir);
+    if (axis.lengthSq() < 1e-8) return;
+    axis.normalize();
+    for (const [name, share] of [['spine_02', spine * 0.5], ['spine_03', spine * 0.5], ['upperarm_r', 1 - spine]]) {
+      const bone = B[name];
+      if (!bone?.parent) continue;
+      const turn = _wq2.setFromAxisAngle(axis, angle * share);
+      bone.quaternion.copy(bone.parent.getWorldQuaternion(_wq4).invert().multiply(bone.getWorldQuaternion(_wq5).premultiply(turn)));
+      bone.updateMatrixWorld(true);
+    }
+  }
+
+  /**
    * The right hand to `point` (world) behind the right shoulder by k (0..1): drawing the fluid sword from its
    * frog on the back or putting it back (src/sword-sheath.js). The elbow goes up and out, the hand back over
    * the shoulder; `grip` (the fist's grip point in the hand bone's frame, src/blade-grip.js) is what lands on

@@ -3,6 +3,7 @@ import { BLADE, GUARD, EVADE, bladeTouchRadius, lockTarget, iframeWindow } from 
 import { STRIKE_RISE, hurtRadius, sweepRadius } from './foes.js';
 import { HOP } from './foe-height.js';
 import { allTargets } from './targets.js';
+import { bodyBoxes } from './foe-body.js';
 import { BOMB } from './gadgets/bomb.js';
 
 // The hitbox overlay's shapes (docs/systems/foes.md, "Hitboxes"): what the fight tests, read from the same
@@ -18,6 +19,7 @@ import { BOMB } from './gadgets/bomb.js';
 //   { kind: 'circle', c, r }                 flat on the ground round c
 //   { kind: 'fan', c, h, range, angle, r0 }  flat, from c along heading h, half-angle `angle` (a cone attack, a guard)
 //   { kind: 'lane', c, h, range, width, back }  a flat strip ahead of c
+//   { kind: 'box', m, box }                  a box (box: a local Box3, m: its world matrix): a part of a foe's body
 //   { kind: 'segment', a, b }                a line
 //   { kind: 'sweep', a0, b0, a1, b1 }        the blade's swept quad, last frame's segment to this one
 //   { kind: 'column', c, h0, h1, r }         the traveller's hurt column: a point at the feet, ±STRIKE_RISE of height
@@ -82,9 +84,12 @@ export function foeStatus(f) {
 export function foeHitboxes(f, out = [], { player = null, locked = null } = {}) {
   if (!f.alive || f.dead !== undefined) return out;
   const D = f.def, C = HITBOX_COLORS, chest = v3(f.chest), ground = v3(f.pos);
-  const r = hurtRadius(D);
-  out.push({ kind: 'sphere', c: chest, r, color: C.foeHurt, tag: 'foe.hurt', foe: f });
-  out.push({ kind: 'circle', c: chest, r: bladeTouchRadius({ radius: r }), color: C.foeHurt, tag: 'foe.bladeTouch', foe: f, dashed: true });
+  const r = hurtRadius(D), body = f.hurtBody ?? null;
+  // an archetype's body: the boxes of its drawn parts are what the blade meets (src/foe-body.js); its sphere (faint) is the
+  // shots' and the lock's
+  if (body) for (const b of bodyBoxes(body)) out.push({ kind: 'box', m: b.m, box: b.box, color: C.foeHurt, tag: 'foe.body', foe: f });
+  out.push({ kind: 'sphere', c: chest, r, color: C.foeHurt, tag: 'foe.hurt', foe: f, faint: !!body, dashed: !!body });
+  out.push({ kind: 'circle', c: chest, r: bladeTouchRadius({ radius: r }), color: C.foeHurt, tag: 'foe.bladeTouch', foe: f, dashed: true, faint: !!body });
   out.push({ kind: 'circle', c: ground, r: D.sight, color: C.sight, tag: 'foe.sight', foe: f, faint: true });
   out.push({ kind: 'circle', c: ground, r: D.reach, color: C.reach, tag: 'foe.reach', foe: f, faint: true });
   if (D.keep) out.push({ kind: 'circle', c: ground, r: D.keep, color: C.keep, tag: 'foe.keep', foe: f, faint: true, dashed: true });

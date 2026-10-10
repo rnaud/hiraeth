@@ -119,6 +119,16 @@ export function mothModel(skin) {
   return {
     group: g, body, wave, wings: wings.map((w) => w.strips[0].children[0]), parts: [lantern, head, ...wings.map((w) => w.root)], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.wing, P.body, P.spot],
     tell: (id) => (id === 'flash' ? wings[1].strips[S - 2] : head),
+    /** Going down (src/enemies/defeat.js): its wings stop beating and fold back over its body as it spirals down. */
+    defeat(f, c, u) {
+      const k = THREE.MathUtils.smoothstep(u, 0.1, 0.6);
+      wings.forEach((w, i) => {
+        const s = i ? 1 : -1;
+        w.root.rotation.y = lerp(w.root.rotation.y, s * 1.75, k); w.root.rotation.z = lerp(0, -s * 0.5, k);
+        w.strips.forEach((st, j) => { if (j > 0) st.rotation.y = lerp(st.rotation.y, s * 0.2, k); });
+      });
+      lanternM.uniforms.uGlow.value *= 1 - k * 0.8;
+    },
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';
       const vx = prev.x == null ? 0 : (f.pos.x - prev.x) / dt, vz = prev.x == null ? 0 : (f.pos.z - prev.z) / dt;

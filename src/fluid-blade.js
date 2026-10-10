@@ -9,6 +9,7 @@ import { ShieldDevice, SHIELD, shieldArc } from './shield.js';
 import { MAGIC_COST } from './resources.js';
 import { rumblePlay } from './rumble.js';
 import { BLADE_LOOK, BLADE_QUALITY } from './blade-shader.js';
+import { bodyTouch, bodySpan } from './foe-body.js';
 
 // Three committed cuts: anticipation, release and recovery, with one buffered follow-up.
 // Full-body captured poses on the ground, upper-body in the air. The blade's swept segment
@@ -29,9 +30,10 @@ export const BLADE = {
 };
 /**
  * The cut's pull (attack magnetism): a swing begun with a foe a little out of reach steps you in through its wind-up
- * and cut, so the blade lands where you meant it: up to `max` m, to stand `ideal` m off its body.
+ * and cut, so the blade lands where you meant it: up to `max` m, to stand `ideal` m off its body (v1.35: 1.05, was 1.2; off
+ * an archetype's front at the swing's height, its target's `reach`, not its sphere: a heron's stilts are near its middle).
  */
-export const MAGNET = { max: 2.2, ideal: 1.2 };
+export const MAGNET = { max: 2.2, ideal: 1.05, arrive: 0.3 };
 /**
  * The rising cut (v0.97): a swing begun on the ground at a foe hovering `min`+ m over the chest, within `flat` m,
  * leaps you up to it (to its height, at most `max` m) and in, and cuts on the way up; its cut is the leap's cone (the
@@ -48,6 +50,30 @@ export function riseTo(dy, d, time, R = RISE) {
 export function closeInSpeed(d, radius, time, M = MAGNET) {
   const gap = d - radius - M.ideal;
   return gap > 0 && gap <= M.max && time > 0 ? gap / time : 0;
+}
+/**
+ * The time a grounded swing's pull has to close in (v1.35): through its wind-up and the first `MAGNET.arrive` of its cut,
+ * so it is there as the blade comes through (it was the whole cut, and a foe 2-2.5 m off was still out of reach when
+ * the blade passed: tests/combat-reach.test.js); then it stops.
+ */
+export const closeInTime = (sample, M = MAGNET) => sample.wind + sample.active * M.arrive;
+
+/**
+ * The soft aim (v1.35): the swing's plane tilts toward its target's body, so a low foe gets a lower arc and one hovering a
+ * raised one, within `down` / `up` rad; the swing's way (its turn) is as before. `natural`: how high (m over the feet)
+ * each swing's blade crosses in front of him at `at` m (measured from the clips: scripts/combat-reach.mjs); the blade is
+ * aimed at the body's middle part (`inner` of its height kept off its top and bottom), and left as it is when it already
+ * crosses there. Shared by the spine (`spine`) and the shoulder (src/humanoid.js swingTilt); eased in over the wind-up.
+ */
+export const AIM = { down: 0.62, up: 0.4, natural: [1.2, 1.2, 1.1], at: 1.3, inner: 0.3, spine: 0.45 };
+/** The tilt (rad, + down) for a body spanning lo..hi m over his feet, `d` m off (flat), his shoulder `sh` m up, swing n. */
+export function aimTilt(lo, hi, d, sh, n = 0, A = AIM) {
+  if (!(hi > lo)) return 0;
+  const h0 = A.natural[Math.min(n, A.natural.length - 1)] ?? A.natural[0], span = hi - lo;
+  const want = THREE.MathUtils.clamp(h0, lo + Math.min(0.35, A.inner * span), hi - Math.min(0.3, A.inner * span));
+  if (Math.abs(want - h0) < 0.05) return 0;
+  const dd = THREE.MathUtils.clamp(d, 0.8, 2.2);
+  return THREE.MathUtils.clamp(Math.atan2(h0 - sh, dd) - Math.atan2(want - sh, dd), -A.up, A.down);
 }
 
 /**
@@ -254,6 +280,31 @@ export function bladeHits(origin, dir, physics = null, { reach = BLADE.reach, an
   return targetsInCone(origin, dir, reach, angle, physics).filter((h) => h.target.accepts?.includes('blade'));
 }
 
+/**
+ * The targets with a drawn body (src/foe-body.js) the swept blade meets this frame, from `before` to `after`: in reach of
+ * `origin` (the body's bounds), not behind a wall, the blade through one of its parts. Each: { target, point: where it
+ * met it, dir: from origin to it, flat, body: true }.
+ */
+export function bodyHits(origin, reach, physics, before, after, targets = allTargets()) {
+  const out = [];
+  for (const t of targets) {
+    const model = t.body?.();
+    if (!model || !t.enabled() || !t.accepts?.includes('blade')) continue;
+    const S = bodySpan(model, _span);
+    const d = S.centre.distanceTo(origin);
+    if (d - S.radius > reach + BLADE.length) continue;
+    const point = bodyTouch(model, before, after, BLADE_TOUCH);
+    if (!point) continue;
+    const to = _bh.subVectors(point, origin), dist = to.length();
+    if (physics?.rayDistance && dist > 0.3 && physics.rayDistance(origin, to.clone().divideScalar(dist), dist) < dist - 0.05) continue;
+    const dir = new THREE.Vector3(S.centre.x - origin.x, 0, S.centre.z - origin.z);
+    if (dir.lengthSq() < 1e-8) dir.copy(to).setY(0);
+    out.push({ target: t, point: point.clone(), distance: dist, dir: dir.normalize(), body: true });
+  }
+  return out;
+}
+const _span = { lo: 0, hi: 0, centre: new THREE.Vector3(), radius: 0 }, _bh = new THREE.Vector3();
+
 /** The nearest foe the soft lock turns to: a target with lock: true within `range` (flat distance), or null. */
 export function lockTarget(from, range = BLADE.lock, targets = allTargets(), locked = null) {
   if (locked?.enabled()) return locked;   // (the lock-on's foe first: src/foes.js)
@@ -401,7 +452,7 @@ export class FluidBlade {
    */
   update(dt, press, ok, held = false, evade = false, bladeHeld = false) {
     const T = this.tool, p = T.player;
-    this.cutNow = false; this.pose.dir = this.dir; this.pose.lead = true;
+    this.cutNow = false; this.pose.dir = this.dir; this.pose.lead = true; this.pose.tilt = 0;
     // (how long the blade button has been down since its press: CHARGE.after)
     this.holdT = bladeHeld ? (press ? 0 : (this.holdT ?? -Infinity) + dt) : -Infinity;
     if (p?.onGround) this.airUsed = false;
@@ -513,6 +564,7 @@ export class FluidBlade {
       this.pose.lead = this.special !== RIPOSTE;
       this.point.copy(p.pos).addScaledVector(p.frame.up, 1.3).addScaledVector(this.pose.dir, 3);
       this.pose.k = 1; this.pose.noArm = true;
+      this.pose.tilt = this.tilt ? this.tilt * this.aimK() : 0;   // (the soft aim: src/humanoid.js swingTilt)
       p.aim = this.pose;
     }
     // the arm follows the arc (the tool's aim pose, unless the tool is aiming itself)
@@ -559,7 +611,8 @@ export class FluidBlade {
     } else if (this.swinging && p.onGround) {
       const active = this.phase === 'strike';
       // (closing in on a foe just out of reach: MAGNET, through the wind-up and the cut)
-      const pull = this.phase !== 'recover' ? this.closeIn : 0;
+      const pull = this.phase !== 'recover' && this.closeLeft > 0 ? this.closeIn : 0;
+      this.closeLeft -= pull * dt;
       // (the dash cut: carried on through its wind-up and cut, slowing through the follow-through)
       if (this.special === DASH) p.combatMotion = { dir: this.dashDir, speed: this.phase === 'recover' ? this.dashSpeed * 0.25 * (1 - this.t) : this.dashSpeed, scale: 0.15, dash: true };
       else p.combatMotion = { dir: this.dir, speed: Math.max(active ? (this.special === LUNGE ? 7 : 1.7) : 0, pull), scale: this.phase === 'recover' ? 0.45 : 0.15 };
@@ -611,11 +664,13 @@ export class FluidBlade {
     this.dir.addScaledVector(U, -this.dir.dot(U));
     // a foe just out of reach: the swing steps you in to it (not the lunge, which carries you itself); one hovering
     // over you: a rising cut, up to it
-    const flat = this.dir.length(), time = this.sample.wind + this.sample.active;
+    const flat = this.dir.length(), time = this.sample.wind + this.sample.active, pullT = closeInTime(this.sample);
     const rise = foe && this.special !== LUNGE && !force && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
     this.rising = !!rise;
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
-    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.radius ?? 0.6, time, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : MAGNET) : 0;
+    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : MAGNET) : 0;
+    this.closeLeft = this.closeIn * pullT;
+    this.aimAt(foe, flat - this.closeLeft, !rise && p.onGround && this.special !== AIR);   // (aimed from where the pull will have him)
     if (force === DASH) {
       // past the foe on its left (on his sword side), through its line; with none near, straight on
       this.dashCool = DASH.cooldown; T.sound?.fluidDash?.();
@@ -658,7 +713,36 @@ export class FluidBlade {
     // (a foe a little out of reach: the sweep steps you in, as a swing does: MAGNET)
     const T = this.tool, foe = p ? lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null) : null;
     if (foe && p.onGround) { _a.subVectors(foe.position(), p.pos); _a.addScaledVector(p.frame.up, -_a.dot(p.frame.up)); }
-    this.closeIn = foe && p.onGround ? closeInSpeed(_a.length(), foe.radius ?? 0.6, this.sample.wind + this.sample.active) : 0;
+    const pullT = closeInTime(this.sample);
+    this.closeIn = foe && p.onGround ? closeInSpeed(_a.length(), foe.reach ?? foe.radius ?? 0.6, pullT) : 0;
+    this.closeLeft = this.closeIn * pullT;
+    this.aimAt(foe, foe ? _a.length() - this.closeLeft : 0, !!p?.onGround);
+  }
+
+  /**
+   * The soft aim for this swing (AIM, aimTilt): how far its plane tilts toward `foe`'s body (`flat` m off), eased in over
+   * the wind-up (aimK); none without a foe, rising, or in the air.
+   */
+  aimAt(foe, flat, ok = true) {
+    this.tilt = 0;
+    const p = this.tool.player;
+    if (!foe || !ok || !p) return;
+    const U = p.frame.up, feet = p.pos.dot(U), model = foe.body?.();
+    let lo, hi;
+    if (model) { const S = bodySpan(model, _span); lo = S.lo - feet; hi = S.hi - feet; }
+    else { const c = foe.position().dot(U) - feet, r = foe.radius ?? 0.5; lo = c - r; hi = c + r; }
+    const sh = p.humanoid?.b?.upperarm_r ? p.humanoid.b.upperarm_r.getWorldPosition(_a).dot(U) - feet : 1.25;
+    this.tilt = aimTilt(lo, hi, Math.max(0, flat - (foe.radius ?? 0.5) * 0.5), sh, this.special ? 0 : this.n);
+  }
+
+  /** The soft aim's share now: in over the wind-up, held through the cut, out over the follow-through. */
+  aimK() {
+    if (!this.tilt || !this.sample) return 0;
+    const S = this.sample, e = this.t * this.dur;
+    if (this.charging) return 1;
+    if (e < S.wind) return THREE.MathUtils.smoothstep(e / S.wind, 0, 1);
+    if (e < S.wind + S.active) return 1;
+    return 1 - THREE.MathUtils.smoothstep((e - S.wind - S.active) / Math.max(1e-3, this.dur - S.wind - S.active), 0, 1);
   }
 
   /** The active cut: coarse range/occlusion first, then the actual swept blade. */
@@ -666,9 +750,15 @@ export class FluidBlade {
     const T = this.tool, S = this.special;
     this.cutNow = true;
     const C = this.coarse(this._coarse ??= { origin: _o }), origin = C.origin;
-    let hits = bladeHits(origin, C.dir, T.physics, { reach: C.reach, angle: C.angle });
     const pose = this.rising ? null : this.bladeSegment();   // (the rising cut: the leap's cone, the arms swing level)
-    if (pose) hits = hits.filter((h) => sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
+    let hits = bladeHits(origin, C.dir, T.physics, { reach: C.reach, angle: C.angle });
+    if (pose) {
+      // a foe's drawn body (src/foe-body.js): the swept blade meets any of its parts, wherever the cone's test of its sphere
+      // would say (a heron's stilts, a crab's pincers, a moth's wings); anything else: its sphere, as before
+      hits = hits.filter((h) => !h.target.body?.());
+      hits.push(...bodyHits(origin, C.reach, T.physics, this.previousBlade ?? pose, pose));
+      hits = hits.filter((h) => h.body || sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose));
+    }
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
     const damage = S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1;

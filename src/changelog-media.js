@@ -492,7 +492,40 @@ const TV = (lv, id, view, caption, sheet, ref) => ({ name: `tv-${lv}-${view}`, t
   reference: { sheet: `references/temples/${id}/${sheet}`, caption: ref } });
 /** The ink lines by size (v1.33): crops of the ink-lines audit's pictures, the same instant before and after (made by hand). */
 const FROM_INK = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headless Chrome, muted, the game’s and the shaders’ clocks held, 10:30, clear), the build before with its post.js and head-ink.js swapped back in and the same command; crops scaled up nearest-neighbour; cwebp -q 72';
+/** The v1.35 combat pictures (the reach, the flash, the defeats): made by hand on the branch, headless Chrome (High, hour 10) in the Arena. */
+const FROM_HIT35 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena on the branch, the foe standing where it was put (its mind off); the reach: the first swing, the world frozen on the frame the blade is nearest over it (or lands) and the game’s own camera pinned beside them, before with the v1.35 changes switched off in the same page (the sphere, no soft aim, the old pull: scripts/combat-reach.mjs --legacy does the same in node); the flash: three frames after a light cut, before with its reaction off (the old recoil); the defeats: the moment before the killing blow, then a quarter, a half, three quarters and the end of its defeat (src/enemies/defeat.js), the scratch script hrx-shots.mjs';
+/** The miss table (scripts/combat-reach.mjs): 21 archetypes, first swings from 1, 1.5, 2 and 2.5 m off the body, straight on and 40° off, locked on or not; the second and third swings straight on. */
+const REACH35 = { device: 'node, the game’s traveller (its motion capture, the real blade) and each archetype’s real model posed by Foes.look', source: 'node scripts/combat-reach.mjs (before: --legacy, the blade as it was)' };
 export const CHANGELOG_MEDIA = {
+  '1.35': [
+    { match: 'Your sword lands where you see it meet a creature', shots: [
+      { name: 'reach-lizard', caption: 'A horn lizard cut from 1.5 m: before, the blade passes over its back and the cut still counts (the old ball round it); after, he leans in and the blade lands on its back, where it flashes', from: FROM_HIT35 },
+    ], numbers: [
+      { title: 'Cuts that landed with the drawn blade nowhere on the drawn body (of 672 swings)', unit: 'swings', better: 'lower', ...REACH35, rows: [
+        { where: 'all archetypes', before: 197, after: 59 }, { where: 'heron (its ball hung between its stilts)', before: 26, after: 2 }, { where: 'hound', before: 21, after: 0 }, { where: 'worm', before: 20, after: 0 }, { where: 'lizard', before: 16, after: 0 },
+      ], note: 'The 59 left are the rising cut, which leaps up at a ray, a jelly, a drone or a marionette hovering over you and cuts its whole cone, as before.' },
+    ], see: 'In the Arena (?level=arena), turn on the hitbox overlay (F4) and call in a heron or a lizard (the FOES list, K or D-pad ↓): its body is drawn as boxes, and a cut lands when the red blade crosses one.' },
+    { match: 'Swings find low and hovering foes', shots: [
+      { name: 'reach-skitter', caption: 'The first swing at a skitter 1.5 m off: before, the blade sweeps level over it, a miss; after, the swing bends down and lands on it', from: FROM_HIT35 },
+    ], numbers: [
+      { title: 'Misses of a plain swing', unit: 'misses', better: 'lower', ...REACH35, rows: [
+        { where: 'first swing (of 504)', before: 72, after: 1 }, { where: 'second swing (of 84)', before: 4, after: 0 }, { where: 'third swing (of 84)', before: 1, after: 0 },
+        { where: 'skitter, first swing (of 24)', before: 24, after: 0 }, { where: 'lizard, ink blot, moth (each of 24)', before: 12, after: 0 }, { where: 'crab, centipede (each of 24)', before: 6, after: 0 },
+      ], note: 'Before, 53 misses went over a low body and 19 came from the pull still being short as the blade passed (a foe 2–2.5 m off). The one left: a heron’s thin stilts from 2.5 m.' },
+    ], see: 'In the Arena call in a skitter or an ink blot and press RB / R1 at it from a couple of steps away: the traveller leans into the swing and the blade comes down onto it.' },
+    { match: 'Every creature, machine and spirit shows when your sword connects', shots: [
+      { name: 'hit-flash-lizard', caption: 'A horn lizard three frames after a light cut: before, it barely moves; after, it jolts away and its ink flashes pale, lit, its lines white', from: FROM_HIT35 },
+      { name: 'hit-flash-tripod', caption: 'A lamp tripod after a cut: after, it flashes hot white with a printed halo (the gold ring: it shrugged the cut off, armoured)', from: FROM_HIT35 },
+      { name: 'hit-flash-shade', caption: 'A shade after a cut: after, its cloak flashes a pale blue-white', from: FROM_HIT35 },
+    ], see: 'In the Arena call in any foe and cut it: watch it jolt and flash, and the splash where the blade struck (sparks off a machine, black ink off a spirit). The charged cut or the third swing knocks it much further.' },
+    { match: 'Every foe goes down its own way before it bursts', shots: [
+      { name: 'defeat-creatures-a', caption: 'Going down, left to right (before the blow, then a quarter, half, three quarters and the end): the crab, the skitter, the centipede, the toad, the lizard, the heron', only: 'after', from: FROM_HIT35 },
+      { name: 'defeat-creatures-b', caption: 'The roller, the root knot, the jelly, the moth, the ray, the worm', only: 'after', from: FROM_HIT35 },
+      { name: 'defeat-machines', caption: 'The lamp tripod, the crucible cart, the bell walker, the ring drone, the furnace brute', only: 'after', from: FROM_HIT35 },
+      { name: 'defeat-spirits', caption: 'The ink blot, the shade, the antler hound, the marionette', only: 'after', from: FROM_HIT35 },
+    ], see: 'In the Arena call in each foe and finish it: each falls its own way for about a second before it bursts into ink and its chimes drop. Several at once (the waves) fall together. (Cost, the Arena on High on the Mac: the foes’ update for twelve at once 0.5 ms a frame standing, 0.8 ms while all twelve go down together.)' },
+    { match: 'The hitbox overlay (F4, or the Arena’s board)', see: 'In the Arena use the board by the way in (or F4) and call in a foe: its body is drawn in pink boxes (its old sphere faint and dashed: what the shots and the lock-on still use).' },
+  ],
   '1.34': [
     // ink lines by the size of what they draw (docs/audits/ink-lines-v1.34.md)
     { match: 'Far-off plants no longer turn into black blots', shots: [

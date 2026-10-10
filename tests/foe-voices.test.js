@@ -144,6 +144,7 @@ test('a cut on a machine plays its own voice (the tripod\'s, not the machines\' 
   foes.hurt(f, 'blade', v(0, 0, 1), { damage: 1, source: 'charge', breaks: true });   // (a charged cut: it reels, no armour's thunk)
   assert.ok(sounds.includes('hurt:tripod:machine'), sounds.join());
   foes.hurt(f, 'blade', v(0, 0, 1), { damage: 99, source: 'charge', breaks: true });
+  for (let i = 0; i < 120 && f.dead === undefined; i++) foes.update(1 / 60);   // (it goes down first: src/enemies/defeat.js)
   assert.ok(sounds.includes('burst:tripod:machine'), sounds.join());
 });
 

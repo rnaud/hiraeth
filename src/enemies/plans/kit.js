@@ -116,6 +116,7 @@ export function skinned(owner, meshes, mat, shared = null) {
     });
     return box;
   };
+  sm.userData.boneBoxes = { bones, local };   // (each joint's box of its own vertices, in its frame: the body the blade meets, src/foe-body.js)
   Object.defineProperty(sm, 'boundingBox', { configurable: true, get: bounds, set() {} });
   Object.defineProperty(sm, 'boundingSphere', { configurable: true, get: () => bounds().getBoundingSphere(sphere), set() {} });
   return sm;

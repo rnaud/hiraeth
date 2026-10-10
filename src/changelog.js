@@ -8,6 +8,15 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.35', date: '2026-10-10', items: [
+    // the sword reaches what it looks like it reaches
+    'Your sword lands where you see it meet a creature: on its shell, its legs, its wings or its cloak, as it is drawn, instead of on an invisible ball round it. No more cuts counted through the air over a lizard’s back, nor missed on a heron’s stilts.',
+    'Swings find low and hovering foes: a cut at a skitter, a lizard or an ink blot bends down to it, one at a moth a little up to it, and a swing begun a step or two away now gets you there before the blade comes through. It never turns you round: only the swing’s angle follows.',
+    // you see every blow land
+    'Every creature, machine and spirit shows when your sword connects: its body jolts away from the blow and squashes on springs, its ink flashes bright for a blink, and its own colours, sparks or black ink fly from where the blade struck. A heavy blow knocks it visibly further; a cut off a crab’s shell or a bell’s bronze still just sparks.',
+    'Every foe goes down its own way before it bursts: the crab flips onto its back and curls its legs, the heron folds off its stilts, the jelly deflates and drifts down, the moth spirals to the ground, the worm sinks back under the sand, the machines buckle and let off steam, the shade’s cloak falls empty, the marionette’s strings snap. It can’t hurt you or stand in your way while it falls, and its chimes drop as it bursts, a second later.',
+    'The hitbox overlay (F4, or the Arena’s board) draws each creature’s body as the boxes your sword is tested against.',
+  ] },
   { v: '1.34', date: '2026-10-10', items: [
     // ink lines by the size of what they draw (docs/audits/ink-lines-v1.34.md, the ink-lines skill)
     'Far-off plants no longer turn into black blots: a meadow’s flowers, stems and leaves seen from a distance keep their colours under a light outline instead of being drawn over in ink. Close up they are drawn as before.',

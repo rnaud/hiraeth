@@ -162,6 +162,21 @@ export function marionetteModel(skin) {
   return {
     group: g, body, parts, eyeMat: null, base: P.thread, size: skin.scale, skin: skin.id, tones: [P.body, P.joint, P.smoke], strings, drops,
     tell: (id) => (id === 'dance' ? legs[0].kn : id === 'yank' ? arms[0].wr : arms[1].wr),
+    /**
+     * Going down (src/enemies/defeat.js): its strings snap and the knot of smoke thins away; the puppet drops and folds
+     * up where it lands, knees under it, head down, arms loose: a heap of limbs with nothing holding it up.
+     */
+    defeat(f, c, u) {
+      strings.visible = u < 0.16;
+      const thin = smooth(u, 0.05, 0.5);
+      smoke.scale.multiplyScalar(Math.max(0.01, 1 - thin)); smoke.visible = thin < 0.98;
+      const k = smooth(u, 0.35, 0.8);
+      legs.forEach((L) => { L.hip.rotation.x = lerp(L.hip.rotation.x, -1.35, k); L.kn.rotation.x = lerp(L.kn.rotation.x, 2.4, k); L.an.rotation.x = lerp(L.an.rotation.x, 0.6, k); });
+      arms.forEach((A) => { A.sh.rotation.x = lerp(A.sh.rotation.x, 0.3, k); A.sh.rotation.z = lerp(A.sh.rotation.z, A.s * 0.35, k); A.el.rotation.x = lerp(A.el.rotation.x, -0.6, k); });
+      neck.rotation.x = lerp(neck.rotation.x, 1.1, k);
+      hang.rotation.set(lerp(hang.rotation.x, 0, k), hang.rotation.y, lerp(hang.rotation.z, 0, k));
+      body.position.y -= 0.62 * k; body.rotation.x = lerp(body.rotation.x, 0.5, k);
+    },
     /** Where a string it dropped on a creature can be cut (Foes.possess): its hand's end of it, in the world. */
     handAt: (i, out = new THREE.Vector3()) => arms[i].hold.getWorldPosition(out),
     anim(f, c) {

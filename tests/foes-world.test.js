@@ -151,7 +151,9 @@ test('through Foes: spines and fire hurt a foe knocked into them as any blow doe
   assert.equal(b.hp, FOES.blot.hp - WORLD_HARM.fire, 'burnt');
   b.pos.set(-3, 0, 0); b.hazCool = 0;
   tick(foes, 0.05);
-  assert.ok(!b.alive && b.dead !== undefined, 'a second burn bursts it (ink, the tank’s charge)');
+  assert.ok(!b.alive && b.dying, 'a second burn finishes it: down it goes (src/enemies/defeat.js)');
+  tick(foes, 1);
+  assert.ok(b.dead !== undefined, 'then it bursts (ink, the tank’s charge)');
   assert.ok(sounds.includes('burst:blot'));
   assert.equal(said(), 1);
   foes.dispose(); offs.forEach((o) => o()); fresh();
