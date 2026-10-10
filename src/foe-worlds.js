@@ -10,8 +10,8 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 //   roster   its archetypes by weight (how often each leads a pack)
 //   late     archetypes that lead only from the third pack on; placed: one met where it is placed, not in packs
 //   temple   the kinds in its temple rooms (no archetype in its echo guardian's temple: the makers' machines stay)
-// An archetype not built yet runs on its stand-in's body (src/enemies/archetypes.js `kind`); one with nothing to
-// stand in for it (`planned`) is listed but passed over until it lands.
+// Since batch 5 (v1.17) every archetype is built on its own body: no stand-in is left, and every world runs on the new
+// roster (an archetype not built would run on a stand-in's body, src/enemies/archetypes.js `kind`, or wait, `planned`).
 //
 // rosterOf(world) turns a world's table into what spawning reads, in foe kinds:
 //   wild     the pack leads and how often each comes (a weight); a pack is its lead, then fillers
@@ -49,10 +49,12 @@ export const WORLDS = {
  * The encounters placed by hand (WORLDS[w].placed: one met where it stands, not in a pack): where each stands (x, z: its
  * ground found under it) and which way it faces (rad); met calm, as its archetype keeps to itself (src/foes.js
  * Foes.updatePosts); once cut down, gone for good (a flag per save). Lorn II's wood cutter stands rusted mid-task on the
- * dry bank of the lit path, between the root arches past the glass dome.
+ * dry bank of the lit path, between the root arches past the glass dome; the Garden of Spheres' glass puppet hangs at the
+ * white archway in the android wood (src/levels/spheres.js), just clear of its arch, swaying like a coat on a hook.
  */
 export const PLACED = {
   perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }],
+  spheres: [{ archetype: 'marionette', at: [-108.0, -411.7], heading: 1.4 }],
 };
 
 /** Worlds with no table of their own (a minigame's field, a test's): ink blots. */
@@ -60,9 +62,9 @@ export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', gu
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2 };
-export const FROM = { skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1 };
+export const FROM = { skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1 };
 /** A big lead takes this many of a pack's places. */
-export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2 };
+export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2 };
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
 export const BUDGET = [[1, 2], [2, 3], [3, 4], [4, 5]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */

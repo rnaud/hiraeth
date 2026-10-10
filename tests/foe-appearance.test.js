@@ -44,18 +44,16 @@ test('wing roots remain embedded throughout the flap, and machine arms have shou
 });
 
 
-test('the humanoid shade stays upright through a full turn, including after recoil', async()=>{
- const {loadAssets}=await import('./gait-sim.js');
- const {lib,human}=await loadAssets();
- const foes=new Foes({scene:new THREE.Scene(),level:{},levelId:'arena',physics:{groundAt:()=>0},player:{pos:new THREE.Vector3()},lib,humans:[human.m]});
+test('the shade (a cloak worn by nothing, src/enemies/plans/humanoid.js) stays upright through a full turn, including after recoil', ()=>{
+ const foes=new Foes({scene:new THREE.Scene(),level:{},levelId:'arena',physics:{groundAt:()=>0},player:{pos:new THREE.Vector3()}});
  const f=foes.add('shade',new THREE.Vector3());
  for(const heading of [0,Math.PI/3,Math.PI*.6,Math.PI,Math.PI*1.4,Math.PI*1.8]){
   f.heading=heading;
   for(const recoil of [0,1,0]){
    f.recoil=recoil;f.recoilDir.set(1,0,0);foes.look(f,1/60);
    f.model.group.updateMatrixWorld(true);
-   const head=f.model.shade.char.head.getWorldPosition(new THREE.Vector3());
-   assert.ok(head.y>1.5,`upright head at heading ${heading}, recoil ${recoil}: ${head.y}`);
+   const head=f.model.group.getObjectByName('head').getWorldPosition(new THREE.Vector3());
+   assert.ok(head.y>1.4,`upright hood at heading ${heading}, recoil ${recoil}: ${head.y}`);
    const up=new THREE.Vector3(0,1,0).applyQuaternion(f.model.group.quaternion);
    assert.ok(up.y>.98,'recoil is a small lean, never a flipped orientation');
   }

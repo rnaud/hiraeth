@@ -318,11 +318,9 @@ test('difficulty: gentle halves the harm, slows the wind-ups and lets one strike
   foes.dispose(); off.dispose(); clearTargets();
 });
 
-test('the shade: a person of living shadow, in later packs and in the Arena, tougher than a blot, cutting with a sword\'s swing', async () => {
+test('the shade: a cloak worn by nothing (batch 5), in later packs and in the Arena, tougher than a blot, its first move a sword\'s cut', async () => {
   const { packKinds, WAVES, waveWords } = await import('../src/foes.js');
-  const { SHADE_STRIKE } = await import('../src/shade.js');
   assert.ok(FOES.shade.hp > FOES.blot.hp && FOES.shade.attack.shape === 'cone');
-  assert.ok(SHADE_STRIKE.from < SHADE_STRIKE.cut && SHADE_STRIKE.cut < SHADE_STRIKE.to, 'the clip winds up to its cut, then follows through');
   // (the enemy roster: shades walk only the worlds whose table lists them, from the fourth pack: src/foe-worlds.js)
   const rng = (() => { let k = 5; return () => ((k = (k * 16807) % 2147483647) / 2147483647); })();
   assert.ok(Array.from({ length: 300 }, (_, n) => packKinds(4 + (n % 6), 'eclipse', rng)).flat().includes('shade'), 'shades in the Eclipse’s later packs');
@@ -330,7 +328,7 @@ test('the shade: a person of living shadow, in later packs and in the Arena, tou
   assert.ok(!packKinds(1, 'eclipse', () => 0.05).includes('shade'), 'never early on');
   assert.ok(WAVES.some((w) => w.includes('shade')), 'and in the Arena');
   assert.equal(waveWords(['shade', 'shade', 'blot']), '2 shades and 1 ink blot');
-  // without the game's bodies (here, in node) it still fights, drawn as a blot
+  // (its body is its own: src/enemies/plans/humanoid.js, built in node too)
   clearTargets();
   const foes = new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500), foes: { waves: true } }, levelId: 'arena', physics: flat, player: player(v()), settings: { enemies: 'normal' }, game: new GameState(null) });
   const s = foes.add('shade', v(0, 0, 2));

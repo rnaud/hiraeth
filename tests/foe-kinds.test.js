@@ -344,7 +344,7 @@ test('the worlds’ rosters: each world draws its packs, its relic guards and it
   assert.deepEqual(packOf(2, 'bazaar', () => 0.1), Array(GROUP.lizard).fill('lizard'), 'lizards come in pairs');
   assert.ok(!packOf(1, 'nowhere', () => 0.05).includes('worm'), 'a world with no roster: the classic mix');
   assert.deepEqual(rosterOf('nowhere').wild, CLASSIC.wild);
-  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'bell'], 'a dock winch stands by the harbour’s relic with the crab');
+  assert.deepEqual(guardKinds('saltharbour'), ['crab', 'roller'], 'a brine mollusk stands by the harbour’s relic with the crab (batch 5: the roller is built)');
   assert.equal(templeKind('garage', 1), 'machine'); assert.equal(templeKind('garage', 2), 'drone');
   assert.equal(templeKind('desert', 3), 'machine');
   assert.ok(Array.from({ length: 200 }, (_, n) => packKinds(4 + (n % 5), 'eclipse', () => (n % 10) / 10)).flat().includes('shade') || ROSTERS.eclipse.wild.shade > 0, 'the eclipse’s shades');

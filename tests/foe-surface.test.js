@@ -48,7 +48,7 @@ test('the table’s colours: hex, a palette key, darker or paler', () => {
 test('every skin’s surfaces resolve from its palette, on parts its body really makes', () => {
   for (const a of BUILT) {
     assert.ok(SKINS[a], `${a}: an archetype with skins`);
-    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater', toad: 'hopper', heron: 'stilt', skitter: 'skitterers', rootknot: 'tentacled', brute: 'brute', drone: 'hover', cart: 'tracked', bell: 'siege' }[a]}.js`, import.meta.url), 'utf8');
+    const src = readFileSync(new URL(`../src/enemies/plans/${{ crab: 'walker', lizard: 'quadruped', hound: 'quadruped', tripod: 'piston', blot: 'blob', centipede: 'centipede', worm: 'burrower', ray: 'glider', moth: 'flyer', jelly: 'floater', toad: 'hopper', heron: 'stilt', skitter: 'skitterers', rootknot: 'tentacled', brute: 'brute', drone: 'hover', cart: 'tracked', bell: 'siege', shade: 'humanoid', roller: 'roller', marionette: 'strings' }[a]}.js`, import.meta.url), 'utf8');
     const parts = new Set([...src.matchAll(/M\.(?:mat|own)\([`'"]([a-z0-9]+)/g)].map((m) => m[1]));
     for (const [skin, table] of Object.entries(SURFACES[a])) {
       if (skin !== '*') assert.ok(SKINS[a][skin], `${a}: a skin ${skin}`);

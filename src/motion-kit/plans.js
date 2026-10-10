@@ -209,6 +209,66 @@ export const PLANS = {
     },
     style: 'machine',
   },
+  // ---------------------------------------------------------------- phase 5 (cont.): the roster's batch 5, the late spirits and the roller
+  // plan 9: the humanoid spirit (the shade): a cloak worn by nothing on two empty boots; a biped on the gait planner
+  // (alternate), the knees bending forward (two-bone IK), the boots touching down late and lifting early (a short duty,
+  // a quick swing: it floats a little); the body rides the boots on soft springs and floats a hand over its hips, its
+  // empty sleeves swing against the legs, the cloak's strips trail on verlet chains (src/enemies/plans/humanoid.js)
+  humanoid: {
+    gait: { gait: 'alternate', drift: 0.36, stepTime: [0.14, 0.34], height: 0.14, arc: 'organic', duty: 0.55, reach: 0.5 },
+    knee: { lenA: 0.56, lenB: 0.57, pole: 'forward' },
+    body: { bob: 0.04, lean: 0.045, bank: 0.04, sway: 0.25, tilt: 0.14, spring: { f: 2.4, z: 0.5, r: 0 }, height: { f: 2.8, z: 0.45, r: 0 } },
+    float: 0.05,                                                       // (× L: the body hangs this far over its hips: feet that barely carry it)
+    poses: {
+      coil: { y: -0.05, z: -0.12, pitch: -0.1, yaw: 0.4, spread: 1.18 },   // (the cut: the sword drawn back over its shoulder, turning)
+      strike: { y: -0.08, z: 0.2, pitch: 0.16, yaw: -0.5 },              // (the cut across: it turns through and leans in)
+      recover: { y: -0.06, z: 0.04, pitch: 0.06 },
+      hurt: { y: -0.06, roll: 0.12 },
+      'coil:feint': { y: -0.14, z: -0.04, pitch: 0.08, yaw: 0.15, spread: 1.25 },  // (the feint: the cut stops halfway, it sinks to the hip)
+      'strike:feint': { y: -0.16, z: 0.34, pitch: 0.26, yaw: 0 },              // (the thrust: low and straight, all its weight behind it)
+      'coil:step': { y: -0.5, z: 0, pitch: 0, spread: 1 },                  // (the step: the cloak collapses into its pool)
+      'coil:recut': { y: -0.05, z: -0.1, pitch: -0.1, yaw: 0.45, spread: 1.15 },
+    },
+    style: 'organic',
+  },
+  // plan 16: the roller (the pearl roller): no legs. Unrolled it is a snail gliding on its foot, a ripple running back
+  // along the sole (by distance, so it never skates); rolled up it is a ball whose spin is locked to the ground it
+  // covers (angle = distance / radius: it never slips), wobbling on a spring over bumps and as it starts and stops
+  // (src/enemies/plans/roller.js)
+  roller: {
+    shell: { radius: 0.7, tuck: { f: 2.6, z: 0.7, r: 0 } },        // (m; the foot and head pulling in and out)
+    foot: { ripple: 0.28, waves: 3 },                                   // (m of sole a ripple travels per m glided; ripples along it)
+    wobble: { f: 2.2, z: 0.28, r: 0, kick: 0.9 },                      // (the ball's wobble over bumps and on stops)
+    stalks: { f: 3.2, z: 0.35, r: 0 },                                  // (the eye stalks lag its moves)
+    poses: {
+      coil: { y: 0, z: -0.12, pitch: -0.18 },                          // (the bowl: rocked back on its foot, three times)
+      strike: { y: 0, z: 0.1, pitch: 0.05 },
+      recover: { y: -0.03, pitch: 0.04 },
+      hurt: { y: -0.04, roll: 0.15 },
+      'coil:last': { y: 0.05, z: 0, pitch: 0 },                        // (the last roll: it spins in place, glowing)
+    },
+    style: 'organic',
+  },
+  // plan 21: suspended on strings (the marionette): a rigid puppet whose joints hang from four strings (head, both
+  // hands, its back) rising to an anchor in a knot of smoke 6 m up; the anchor glides, the body hangs from it as a
+  // pendulum (src/motion-kit/machines.js Pendulum) and its limbs swing on their own lag; it jerks when it moves (the
+  // strings pulled in tugs: a quantised drive) and never touches the ground (src/enemies/plans/strings.js)
+  strings: {
+    anchor: 6,                                                           // (m over its feet: the knot of smoke)
+    swing: { length: 3.6, damping: 0.9, drive: 0.7 },                  // (the whole puppet from its anchor)
+    limb: { f: 1.6, z: 0.22, r: 0 },                                   // (each limb's own swing: loose, underdamped)
+    jerk: { every: 0.32, tug: 0.22 },                                  // (s between tugs as it moves; rad each tug lifts a limb)
+    poses: {
+      coil: { y: 0.2, z: -0.1, pitch: -0.1 },                          // (the strings: drawn up, arms lifted, fingers curling)
+      strike: { y: 0.05, z: 0.1, pitch: 0.1 },
+      recover: { y: -0.5, pitch: 0.2 },                                // (slack: it slumps on its strings, open)
+      hurt: { y: -0.2, roll: 0.3 },
+      'coil:yank': { y: 0.1, z: -0.15, pitch: -0.15, yaw: 0.3 },
+      'coil:dance': { y: -0.6, z: 0, pitch: 0 },                       // (the dance: dropped low, its legs jerked up together)
+      'strike:dance': { y: -0.7, z: 0, pitch: 0 },
+    },
+    style: 'organic',
+  },
   // ---------------------------------------------------------------- the chain plans (kit phase 4: src/motion-kit/chain.js)
   // plan 3: the centipede: a follow-the-leader spine on the head's own path (PathTrail), a pair of legs per segment
   // stepping in a metachronal wave on distance (src/motion-kit/wave-legs.js), knees out and up

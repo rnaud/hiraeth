@@ -10,6 +10,8 @@
 //              feet still between hops, tucked in the air; the hop's rate follows its speed)
 //   batch 4    (kit phase 5, the machines) the furnace brute (two heavy legs, one at a time, the knee forward) and the bell
 //              walker (five spider legs round the ring, one at a time, in a machine's straight moves)
+//   batch 5    the shade (plan 9: a biped, its empty boots one at a time, the knees forward); the roller and the marionette
+//              have no feet (tests/archetypes-batch5.test.js: the roll locked to the ground, the puppet's pendulum)
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -37,6 +39,8 @@ const SUBJECTS = [
   { id: 'brute@glassdunes', legs: kitLegs, n: 2, groups: [[0], [1]] },
   { id: 'bell', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] }, // (the siege machine: five legs one at a time)
   { id: 'bell@saltharbour', legs: kitLegs, n: 5, groups: [[0], [1], [2], [3], [4]] },
+  { id: 'shade', legs: kitLegs, n: 2, groups: [[0], [1]] },              // (batch 5: the humanoid spirit, two empty boots one at a time)
+  { id: 'shade@eclipse', legs: kitLegs, n: 2, groups: [[0], [1]] },
 ];
 
 const sys = foeSystem();

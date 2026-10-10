@@ -68,11 +68,14 @@ export const SKINS = {
     mangrove: { name: 'root wader', palette: { body: '#efeae0', body2: '#f8f5ee', band: '#d8d0c0', neck: '#f2eee6', bill: '#b8ab92', tip: '#6a6050', leg: '#e2dccd', joint: '#b8ab92', eye: '#2a2820', crest: '#efeae0', dark: '#5a5040' }, props: ['feathers', 'roots'] },
   },
   roller: {
-    spheres: { name: 'pearl roller', palette: { body: '#f2ece2', accent: '#c8b8d8' } },
-    garage: { name: 'ball-bearing snail', palette: { body: '#a8b0b4', accent: '#3b5a5a' } },
-    saltharbour: { name: 'brine mollusk', palette: { body: '#dfe8ea', accent: '#4f7fa8' } },
-    spacecity: { name: 'magnetic mollusk', palette: { body: '#d8dff2', accent: '#5f7fd8' } },
-    mangrove: { name: 'salt mollusk', palette: { body: '#f4f1ea', accent: '#b8ab92' } },
+    // (sheet-1, the Hangar's ball-bearing snail: a polished steel shell with an oily rainbow sheen along its spiral, riveted
+    // plates and a band, a dark teal foot, black-teal shadows; sheet-2, the Garden of Spheres' pearl shell: ivory, blush
+    // pink and pale gold, its spiral faintly glowing gold, a pale lilac foot, a brass wind-up key in its back)
+    garage: { name: 'ball-bearing snail', palette: { shell: '#c3c8cc', shell2: '#e8ebee', band: '#8e979e', spiral: '#6f7882', foot: '#3c676c', foot2: '#2b4d52', stalk: '#477277', eye: '#1c2224', rain1: '#e9b4d6', rain2: '#9fdcdc', rain3: '#e6dc9a', flare: '#f3a361', dust: '#8a8a82' } },
+    spheres: { name: 'pearl roller', palette: { shell: '#f3e8dc', shell2: '#faf3ea', band: '#d6bd86', spiral: '#f0c062', foot: '#c9b1d9', foot2: '#a98fbd', stalk: '#c9b1d9', eye: '#3a2a22', rain1: '#f5c6d6', rain2: '#f2d995', rain3: '#d9ecf2', key: '#c9a35e', flare: '#ffd27a', dust: '#e6dccb' }, props: ['pearl', 'key'] },
+    saltharbour: { name: 'brine mollusk', palette: { shell: '#d8e2e4', shell2: '#f2f5f2', band: '#4f7fa8', spiral: '#3f6a8a', foot: '#4f7f8a', foot2: '#365f6a', stalk: '#5a8a94', eye: '#1e2a30', rain1: '#f2f5f2', rain2: '#bcd6dc', rain3: '#e8e2cc', dust: '#d8d0c0' }, props: ['salt'] },
+    spacecity: { name: 'magnetic mollusk', palette: { shell: '#d2daf0', shell2: '#eef1fa', band: '#5f7fd8', spiral: '#8fa8ff', foot: '#3a4a8a', foot2: '#2a3668', stalk: '#4a5aa0', eye: '#e8f0ff', rain1: '#b8c8ff', rain2: '#f0c8ff', rain3: '#c8f0ff', flare: '#8fdcff', dust: '#8a90a8' }, props: ['bands'] },
+    mangrove: { name: 'salt mollusk', palette: { shell: '#f2efe6', shell2: '#fbfaf5', band: '#b8ab92', spiral: '#a89a80', foot: '#c8bca8', foot2: '#a89c88', stalk: '#cfc3ae', eye: '#2a2620', rain1: '#efe8d8', rain2: '#e2dccb', rain3: '#f6f2e6', dust: '#e8e2d2' }, props: ['chalk'] },
   },
   rootknot: {
     // (sheet-1: a pale lilac cap with cream gills and a few pale warts, a reed-green bulb ribbed top to bottom with small
@@ -162,12 +165,16 @@ export const SKINS = {
     moonfoundry: { name: 'crucible hand', palette: { body: '#ece0c4', body2: '#f6ecd6', joint: '#5a4a3e', brass: '#8a6a3a', verd: '#4a3a30', tar: '#1d1a20', core: '#ff9a3e', glow: '#ff7a2e', seam: '#3a2e28', slab: '#5a4e46', dark: '#2a2220' }, props: ['ladle'] },
   },
   shade: {
-    perdide2: { name: 'hollow woodsman', palette: { body: '#15121c', accent: '#6b5a3a' } },
-    incal: { name: 'vagrant shade', palette: { body: '#15121c', accent: '#8a9bb8' } },
-    garage: { name: 'hooded mechanic', palette: { body: '#15121c', accent: '#b8603a' } },
-    spheres: { name: 'halo shade', palette: { body: '#15121c', accent: '#efe7f2' } },
-    glassdunes: { name: 'mirrored nomad', palette: { body: '#15121c', accent: '#8fd9c0' } },
-    eclipse: { name: 'pilgrim shade', palette: { body: '#15121c', accent: '#d6c2ff' } },
+    // (sheet-1, Lorn II's hollow woodsman: a pointed hood of rough olive bark, its point swept back; a moss-green and deep
+    // teal cloak, worn and mottled, its tatters breaking into violet-black smoke; khaki ribbons; a brass clasp; sage
+    // greaves ringed in brass; the sword ink-black and violet; sheet-2, the Eclipse's pilgrim: a tall round violet hood with
+    // a brass crescent on top, a violet and dusk-blue cloak with pale gold trim, a lantern on its belt, violet greaves)
+    perdide2: { name: 'hollow woodsman', palette: { cloak: '#4e8676', cloak2: '#6f9c6a', lining: '#2a2238', face: '#100d16', hood: '#8d9550', hood2: '#5f6236', strip: '#aaa65a', brass: '#b38d4e', boot: '#7d9c82', inner: '#3a2f4c', sword: '#1c1626', shine: '#7a5aa8', smoke: '#4a3a66', smoke2: '#7a66a0', eye: '#f7f2e6', flare: '#fff6d8', lit: '#ffb36a' }, props: ['bark'] },
+    incal: { name: 'vagrant shade', palette: { cloak: '#66768c', cloak2: '#8292a6', lining: '#262634', face: '#100f16', hood: '#56617a', hood2: '#3e475a', strip: '#a39c8a', brass: '#9a8a6a', boot: '#5a6272', inner: '#2e2c3c', sword: '#1a1822', shine: '#8a9bb8', smoke: '#3e3e56', smoke2: '#6a6a86', eye: '#f2f0e8' }, props: ['ragged'] },
+    garage: { name: 'hooded mechanic', palette: { cloak: '#3f5252', cloak2: '#566e6c', lining: '#1e2428', face: '#0e1012', hood: '#8a5a3a', hood2: '#5e3c26', strip: '#b8603a', brass: '#b08848', boot: '#4a4440', inner: '#262a2e', sword: '#161a1e', shine: '#4f7378', smoke: '#2f3a3e', smoke2: '#566a6e', eye: '#f2ece0' }, props: ['pointed', 'goggles', 'wrench'] },
+    spheres: { name: 'halo shade', palette: { cloak: '#e4dce8', cloak2: '#f4eef4', lining: '#2a2238', face: '#120f18', hood: '#d6cde2', hood2: '#bfb4d0', strip: '#dcb860', brass: '#dcb860', boot: '#cfc6da', inner: '#3a3050', sword: '#1c1626', shine: '#a88ad8', smoke: '#5a4a7e', smoke2: '#9a8ac0', eye: '#fffaf0' }, props: ['halo'] },
+    glassdunes: { name: 'mirrored nomad', palette: { cloak: '#d2b984', cloak2: '#e6d4a6', lining: '#2a2430', face: '#110e14', hood: '#c4a466', hood2: '#9a7e4a', strip: '#8fd9c0', brass: '#c9a35e', boot: '#a88e62', inner: '#3a3040', sword: '#1a1620', shine: '#8fd9c0', smoke: '#4a3e5a', smoke2: '#7a6e8e', eye: '#f7f2e6' }, props: ['veil'] },
+    eclipse: { name: 'pilgrim shade', palette: { cloak: '#5b62a6', cloak2: '#7a6eb4', lining: '#201b34', face: '#0e0c16', hood: '#7c6aa8', hood2: '#5c4e88', strip: '#cbb67c', brass: '#c9a35e', boot: '#6a68a4', inner: '#352c56', sword: '#191526', shine: '#9a86e0', smoke: '#3a3060', smoke2: '#6a5e9a', eye: '#f7f2e6', glow: '#ffd27a', trim: '#cbb67c' }, props: ['crescent', 'lantern'] },
   },
   hound: {
     // (sheet-1, the Garden of Spheres: matte ink-black with violet smoke, black antlers glinting gold, a thin pearl-and-
@@ -179,10 +186,13 @@ export const SKINS = {
     bazaar: { name: 'alley hound', palette: { ink: '#16141a', rim: '#3a3440', antler: '#b39464', eye: '#ffb8d0', glow: '#ff9ac0', smoke: '#3a3440', smoke2: '#5a4a58' }, props: ['wire'] },
   },
   marionette: {
-    bazaar: { name: 'parcel puppet', palette: { body: '#c9a46a', accent: '#15121c' } },
-    underside: { name: 'crane puppet', palette: { body: '#4c566a', accent: '#15121c' } },
-    saltharbour: { name: 'drowned sailor', palette: { body: '#4f7fa8', accent: '#15121c' } },
-    spheres: { name: 'glass puppet', palette: { body: '#e8f4f8', accent: '#c8d0e0' } },
+    // (sheet-1, the Garden of Spheres' glass puppet: clear glass with faint prism tints of pink, cyan and gold, glossy, pearl
+    // ball joints, fine silver threads, the smoke knot ink-black and violet; sheet-2, the Signal Market's parcel puppet:
+    // brown paper parcels tied with string for limbs, a paper-bag head, teal and brass wax seals, the knot black-grey)
+    spheres: { name: 'glass puppet', palette: { body: '#dfeaf0', body2: '#f4f8fa', joint: '#efe5d8', thread: '#cdd1d8', smoke: '#1e1a26', smoke2: '#6a4a9a', prism1: '#f2c8e0', prism2: '#c2ecf0', prism3: '#f2e6b0' }, props: ['silver'] },
+    bazaar: { name: 'parcel puppet', palette: { body: '#c8a368', body2: '#dcbd86', joint: '#a8865a', thread: '#8a6a48', smoke: '#262426', smoke2: '#4a4648', seal: '#5aa39b', seal2: '#d08a3a', twine: '#7a5a3a' }, props: ['parcel'] },
+    underside: { name: 'crane puppet', palette: { body: '#59636f', body2: '#6f7a86', joint: '#c9a35e', thread: '#2a2a2e', smoke: '#1e1a26', smoke2: '#4a3a5a', rust: '#a0603a' }, props: ['girder'] },
+    saltharbour: { name: 'drowned sailor', palette: { body: '#4f7aa2', body2: '#6a92b6', joint: '#d8cfb8', thread: '#b89a6a', smoke: '#1e2a34', smoke2: '#3f5a6a', salt: '#eef0ea' }, props: ['rope'] },
   },
 };
 

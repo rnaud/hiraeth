@@ -1,24 +1,14 @@
 import * as THREE from 'three';
-import { makeMaterial, releaseMaterial } from './materials.js';
-import { buildCharacter } from './player.js';
-import { Humanoid } from './humanoid.js';
-import { Animator } from './animator.js';
-import { Locomotion } from './locomotion.js';
+import { makeMaterial } from './materials.js';
 import { Dots } from './fluid-tool.js';
 import { Footprints } from './life.js';
 
-// A shade's body (src/foes.js, kind 'shade'; docs/systems/foes.md, "The shade"): a person of living shadow drawn as
-// a cartoon's negative. The game's own skinned body and its animator (walks, and the Sword and Shield pack's attack
-// as it strikes), flat black (materials.js fluid 'shadow') with a few white strokes for its folds, its lines white
-// (makeMaterial({ lineWhite }): post.js draws them in the paper's white, so it reads in the desert's noon and in a
-// dark hall alike). Its head is a black flame: tongues of black rising off the neck, flickering, streaming back as
-// it runs, flaring up as it winds up, whipping with its cut, guttering when it is hit or stilled, torn away into
-// black licks as it dies; two white eye-slits in it. Its feet run into the floor in drips, drops fall off it and
-// dark pools are left where it walks (a footprints decal: it darkens what it lands on, never inked).
+// The shadow's leavings (src/foes.js): ShadePools, the dark pools a blot or a shade leaves where it is cut down (and a
+// hound or a shade where it steps out of its shadow), the drops it sheds and the licks a cut leaves in the air.
 //
-//   const body = new ShadeBody(scene, { lib, human, pools })   (Foes makes one a shade; pools: shared ShadePools)
-//   body.update(dt, foe)       after the foe's mind: walks where it went, strikes as it winds up and strikes
-//   body.melt = 0..1           how much has run away (its coming and its going)
+// The shade's old body lived here until the enemy roster's batch 5 (v1.17): the game's skinned person drawn as a cartoon's
+// negative, a black flame for a head. The shade is now a cloak worn by nothing on its own body (src/enemies/plans/
+// humanoid.js); the flame's maths and its white-lined material stay (tests/shade-flame.test.js), unused by any foe.
 
 /** The strike from motion capture: the clip, its wind-up (start → the cut) and its follow-through. */
 export const SHADE_STRIKE = { clip: 'mixamo_ss_attack_1', from: 0.55, cut: 1.15, to: 1.7 };   // (the blade's first cut: moves.glb has it)
@@ -27,7 +17,6 @@ export const SHADE_TONES = ['#08070a', '#1a1720', '#f7f2e6'];
 /** The body's material: one per shade (its own time and melt), the flame's mesh shares it. fluidBox: fold strokes, neck cut (bind y). */
 export const SHADE_MATERIAL = { color: SHADE_TONES[0], fluid: 'shadow', fluidBox: [0, 1.8, 1, 1.5], line: 1, lineWhite: true };
 const UP = new THREE.Vector3(0, 1, 0);
-let uid = 0;
 
 // ------------------------------------------------------------------ the flame's maths (pure: tests/shade-flame.test.js)
 
@@ -255,96 +244,4 @@ export class ShadePools {
   }
   update(dt) { this.pools.update(dt); this.drops.update(dt, UP); this.licks.update(dt, UP); }
   dispose() { this.pools.mesh?.removeFromParent(); this.drops.mesh?.removeFromParent(); this.licks.mesh?.removeFromParent(); }
-}
-
-const _neck = new THREE.Vector3(), _inv = new THREE.Matrix4();
-
-export class ShadeBody {
-  constructor(scene, { lib, human, pools }) {
-    this.scene = scene; this.pools = pools; this.melt = 1; this.time = Math.random() * 10; this.dripT = 0; this.poolT = 0; this.lickT = 0;
-    this.char = buildCharacter({});
-    this.group = this.char.root;
-    this.group.userData.noCollide = true;
-    scene.add(this.group);
-    this.humanoid = new Humanoid(human, this.char, 'm', { skin: SHADE_TONES[0], build: 'average' });
-    // its own material (its own time and melt): the body, and the flame sharing it
-    this.mat = makeMaterial({ ...SHADE_MATERIAL, key: `shade-${uid++}` });
-    const eyes = makeMaterial({ color: SHADE_TONES[2], flat: true, glow: 0.95, lineWhite: true, key: 'shade-eyes' });
-    this.humanoid.model.traverse((o) => {
-      if (!o.isMesh) return;
-      o.userData.dynamic = true; o.userData.noCollide = true;
-      // (its head is the flame; a costume's pieces, a hat or a pack, are not its: only the skinned body is drawn)
-      if (o === this.humanoid.eyeMesh || o === this.humanoid.browMesh || !o.isSkinnedMesh) o.visible = false;
-      else o.material = this.mat;
-    });
-    this.flame = new ShadeFlame(this.group, this.mat, eyes);
-    this.neckBone = this.humanoid.b.neck_01 ?? this.humanoid.b.Head;
-    this.animator = new Animator(lib, this.char);
-    this.animator.bindBody(this.humanoid);
-    this.loco = new Locomotion({ walk: 1.4, style: { lean: 0.8, bank: 0.8 } });
-    this.last = null;
-  }
-
-  update(dt, f) {
-    this.time += dt;
-    const A = this.animator, N = A.lib.native ?? {};
-    const vx = this.last && dt > 0 ? (f.pos.x - this.last.x) / dt : 0, vz = this.last && dt > 0 ? (f.pos.z - this.last.z) / dt : 0;
-    const speed = Math.hypot(vx, vz);
-    (this.last ??= new THREE.Vector3()).copy(f.pos);
-    // its strike: the clip up to the cut as it winds up, on through the follow-through as it recovers
-    const S = SHADE_STRIKE;
-    if (f.state === 'wind') A.playUpper(S.clip, S.from + f.k * (S.cut - 0.16 - S.from), Math.min(1, f.k * 4));
-    else if (f.state === 'strike') A.playUpper(S.clip, S.cut - 0.16 + f.k * 0.29, 1);
-    else if (f.state === 'recover' && f._struck !== undefined) {
-      f._struck += dt;
-      const u = f._struck / 0.45;
-      if (u < 1) A.playUpper(S.clip, S.cut + 0.13 + u * (S.to - S.cut - 0.13), 1 - u * u);
-    }
-    if (f.state === 'wind') f._struck = 0;
-    A.update(dt, { speed, onGround: true, mode: 'ground', walkAt: (N.walk ?? 1.4) * 1.3, jogAt: N.jog ?? 3, sprintAt: (N.sprint ?? 6) * 1.2, strideScale: 1.05 });
-    this.group.position.copy(f.pos);
-    this.group.quaternion.setFromAxisAngle(UP, f.heading);
-    A.apply(this.group, { legScale: 1.04 });
-    this.loco.update(dt, { vf: speed, speed, heading: f.heading, ground: true });
-    this.loco.pose(this.char);
-    this.humanoid.update();
-    // its time, and how much of it has run away
-    const melt = THREE.MathUtils.clamp(this.melt, 0, 1);
-    this.mat.uniforms.uFluidA.value.z = this.time;
-    this.mat.uniforms.uFluidB.value.y = melt;
-    // the flame, rooted at its neck, answering how it moves and what it does (in its own frame: x right, z ahead)
-    const c = Math.cos(f.heading), s = Math.sin(f.heading);
-    const d = flameDrive(this.flame.drive, { vx: vx * c - vz * s, vz: vx * s + vz * c, state: f.state, k: f.k, stunned: f.stunned, flash: f.flash, melt }, dt);
-    this.group.updateMatrixWorld(true);
-    _inv.copy(this.group.matrixWorld).invert();
-    _neck.setFromMatrixPosition(this.neckBone.matrixWorld).applyMatrix4(_inv);
-    _neck.y = Math.min(_neck.y, 2.3 - 2.4 * melt);   // (as it pours away, its flame sinks with it)
-    this.flame.update(d, _neck);
-    if (!this.pools) return;
-    // its tips break off as small rising wisps, now and then at rest; often as it flares or gutters; a stream as it dies
-    this.lickT -= dt;
-    if (d.size > 0.05 && this.lickT <= 0) {
-      const dying = f.dead !== undefined, busy = d.size > 1.3 || d.gutter > 0.6;
-      this.lickT = dying ? 0.02 : busy ? 0.1 : 0.35 + Math.random() * 0.45;
-      const k = Math.floor(Math.random() * this.flame.tips.length);
-      d.snap[k] = 1;   // (the tongue it left jumps short)
-      const at = this.flame.tips[k].clone().applyMatrix4(this.group.matrixWorld);
-      const back = new THREE.Vector3(d.lx * c + d.lz * s, 0, -d.lx * s + d.lz * c);
-      const big = dying ? 1 : 0.6;
-      this.pools.licks.add({ pos: at, vel: new THREE.Vector3((Math.random() - 0.5) * 0.4, 1.1 + Math.random() * 0.8, (Math.random() - 0.5) * 0.4).addScaledVector(back, 2), drag: 1.5, grav: -1.2, size: (0.04 + Math.random() * 0.04) * big, stretch: 3.2, life: 0.4 + Math.random() * 0.3, color: SHADE_TONES[0] });
-    }
-    // drops fall off it; where it walks, it leaves dark pools
-    this.dripT -= dt; this.poolT -= dt;
-    if (this.dripT <= 0) {
-      this.dripT = 0.22;
-      const a = Math.random() * Math.PI * 2, at = new THREE.Vector3(f.pos.x + Math.cos(a) * 0.18, f.pos.y + 0.2 + Math.random() * 0.7, f.pos.z + Math.sin(a) * 0.18);
-      this.pools.drops.add({ pos: at, vel: new THREE.Vector3(0, -0.6, 0), grav: 9, size: 0.018 + Math.random() * 0.014, stretch: 2.5, life: 0.5, color: Math.random() < 0.8 ? SHADE_TONES[0] : SHADE_TONES[1] });
-    }
-    if (this.poolT <= 0 && (speed > 0.3 || Math.random() < 0.02)) {
-      this.poolT = speed > 0.3 ? 0.28 : 0.8;
-      this.pools.pools.add(new THREE.Vector3(f.pos.x + (Math.random() - 0.5) * 0.3, f.pos.y + 0.02, f.pos.z + (Math.random() - 0.5) * 0.3), Math.random() * Math.PI * 2, UP);
-    }
-  }
-
-  dispose() { this.group.removeFromParent(); releaseMaterial(this.mat); this.flame.mesh.geometry.dispose(); }
 }

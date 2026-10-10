@@ -36,7 +36,8 @@ const attackShape = (f) => foeHitboxes(f).find((s) => s.tag.startsWith('foe.atta
 test('a foe\'s strike is drawn where, and as big as, the combat code tests it: telegraph, then active, then spent', () => {
   for (const kind of ['blot', 'machine', 'skitter', 'shade']) {
     const f = new Foe(kind, v(), { rng: () => 0.5 }); f.state = 'chase'; f.cool = 0; f.heading = 0.7;
-    const P = { pos: v(Math.sin(0.7) * (f.def.reach - 0.2), 0, Math.cos(0.7) * (f.def.reach - 0.2)) };
+    const r = (f.def.attack.max ?? f.def.reach) - 0.2;   // (within its first attack's reach: the shade steps from further off)
+    const P = { pos: v(Math.sin(0.7) * r, 0, Math.cos(0.7) * r) };
     f.update(dt, P, env);
     assert.equal(f.state, 'wind', kind);
     let s = attackShape(f);

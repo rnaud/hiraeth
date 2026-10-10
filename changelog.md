@@ -2,6 +2,14 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.18 — 2026-10-09
+
+- In the Garden of Spheres a glass puppet hangs by the white archway in the android wood, swaying like a coat on a hook until you come near.
+- The marionette is a thin puppet hanging a metre off the ground from four strings that rise into a knot of black smoke: clear glass on silver threads in the Garden of Spheres, brown paper parcels tied with string in the Signal Market. It swings on its strings as it moves and jerks its limbs. When it lifts its arms and two strings unspool from its hands, they drop onto a creature near it, even a grazing one: its eyes go black and it fights faster and harder. Cut the strings, with an air cut, the boomerang or an ember, and the creature drops free and wanders off. It can also yank you off your feet with a string, and alone it drops low and whirls its legs, then hangs slack and open.
+- The pearl roller is a snail with a shell bigger than itself, gliding on a rippling foot with two long eye stalks: polished steel with an oily rainbow sheen in the Sealed Hangar, glowing pearl in the Garden of Spheres. When its stalks sink and its shell rocks three times, it pulls in and rolls at you, a perfect ball whose spin always matches the ground it covers; rolling, nothing hurts it. Guard and it bounces off stunned; sidestep it and it bounces off a wall once, and the next wall stops it cold. Hurt badly, it spins up glowing and shatters in a ring you jump. Left alone it grazes and keeps to itself.
+- The shade is an empty hooded cloak worn by nothing: two white eyes in the dark of the hood, wide sleeves bent at the elbow, empty boots that step with bending knees under a hem that breaks into smoke, long ribbons trailing behind, and a sword of poured ink drawn out of its sleeve as it comes for you. Lorn II’s hollow woodsman wears a pointed bark hood; the Eclipse’s pilgrim a round violet hood with a brass crescent and a lantern on its belt. It fights like you: parry its cut and riposte. When its cut stops halfway and the sword drops to its hip, it is about to thrust low: step aside. When its cloak sinks into a pool of shadow, the pool slides round and it comes up beside you, cutting; light it with an ember and it can’t step at all. Left alone, it walks a path back and forth and waits at its end, as at a doorway.
+- The last three foes of the new roster: the shade is remade, and the pearl roller and the marionette arrive. Every foe in every world now has a shape, a way of moving and a job in a fight of its own; none borrows another’s body any more.
+
 ## v1.17 — 2026-10-09
 
 - In Vael, a tall white mast flies the riders’ long streamer and a rust-red pennon on the slope under the crest west of the landing, where the standing stones lead. Oïa points to it when she sends you to the Aerie for wings, and from its foot the white house with the stone wings comes into view.

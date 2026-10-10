@@ -4,8 +4,8 @@
 // swarm with batch 3; the glass golem, the rust drone and the slag walker with batch 4, v1.16: the furnace brute, the
 // ring drone and the crucible cart). None is left: the tables stay for a stand-in that may come (KINDS, merged into
 // foes.js FOES; NOTES, what the game says the first time; kindModel, a model with its own anim(f, c), called by
-// Foes.look). The built archetypes' own are in src/enemies/archetypes.js and src/enemies/plans/; the shade still runs
-// on its own body in src/shade.js until its rework (batch 5).
+// Foes.look). The built archetypes' own are in src/enemies/archetypes.js and src/enemies/plans/; the shade, the last
+// body of its own (src/shade.js), was reworked onto the roster with batch 5 (v1.17: src/enemies/plans/humanoid.js).
 //
 // An attack (foes.js Foe; src/temples/boss.js inArea for the shapes):
 //   id, shape 'ring' | 'cone' | 'lane', radius / range / angle / width, damage, wind (s), strike (s), contact (0..1)

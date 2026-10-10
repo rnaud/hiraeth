@@ -16,7 +16,7 @@ import { fromPattern } from './attacks.js';
 //   moves     its attacks by name (the doc's); def.attacks holds the built ones' tuning
 //   answers   the traveller's moves that answer it best (the doc's "Best answers"; never only the charged cut)
 //   idle      how it lives when nobody fights it: calm ('graze' | 'bask' | 'patrol' | 'lie' | 'pool' | 'hang' |
-//             'drift' | 'wade' | 'sit' | 'root' | 'trundle' | 'stand' | 'toll' | 'walk' | 'circle' | 'wander'),
+//             'drift' | 'wade' | 'sit' | 'root' | 'trundle' | 'stand' | 'toll' | 'walk' | 'circle' | 'wander' | 'pace'),
 //             wild (wildlife: it fights only when provoked), provoke (m: closer and it fights), shy (m: it backs away),
 //             alarm (m: one of its own provoked near it provokes it), hunts (the share that hunt at all)
 //   sound     its hurt and burst family (combat-v1.4 rec. 2; src/audio.js plays two sets for now)
@@ -76,6 +76,20 @@ import { fromPattern } from './attacks.js';
 //   attack.opens    s it sits open after the strike (the bell's drop: tipped toward you, the clapper in reach)
 //   clapper         only the clapper takes harm: a cut, a bomb glance off the bell unless it sits open or is stilled (the bell)
 //   attack.whistle  the bell-note whistle sounded near it as it winds this up chokes it: it sits open (Foes.bellNote)
+// batch 5 (v1.17), the late spirits and the roller:
+//   attack.feint    the share of the wind-up its body spends on a fake (the shade's: the cut begun, stopped halfway, the
+//                   sword dropped to the hip for the thrust); the body's alone, the mind winds the real move up in full
+//   lights          an ember lights it solid a while (f.lit); attack.dark: only while it is not lit (the shade's step)
+//   attack.at 'beside'  it comes up at your side (the shade's step through its shadow)
+//   attack.rolls    it rolls through the strike: no harm reaches it then (a glance: the pearl roller); onParry 'bounce':
+//                   any guard bounces it off stunned (longer on a perfect one); attack.bounces: the walls it bounces off
+//                   back at you before the next one stalls it; attack.shatter { speed, reach, damage, width }: it breaks
+//                   at the strike's end (or on the wall) in a ring that runs out over the ground (its last roll)
+//   puppeteer       it drives others (the marionette): attack.possess { range, time }: it drops strings onto a creature
+//                   near it (a calm one too): the creature's eyes go black, its wind-ups shorter, light blows never stagger
+//                   it, until the strings are cut (the blade, the boomerang, an ember: Foes.possess) or run out;
+//                   attack.alone: only while it holds nothing and there is nothing near to hold (the dance)
+//   attack.lift     m/s a line that catches you lifts you off your feet (the marionette's yank)
 
 const S = (o) => ({ recover: 1.2, cool: [1.3, 2.3], hit: 0.4, sight: 17, giveUp: 40, ...o });
 
@@ -217,9 +231,27 @@ export const ARCHETYPES = {
   },
   roller: {
     name: 'pearl roller', family: 'creature', plan: 'roller', planNo: 16, role: 'charger', tier: 2, ranged: false,
-    status: 'planned', kind: null, was: [], sound: 'shell', drop: 4, art: 'pending',
-    moves: ['bowl', 'ricochet', 'last roll'], answers: ['guard and bounce, then the charged cut into its foot', 'walls', 'the bubble'],
+    status: 'built', kind: 'roller', was: [], sound: 'shell', drop: 4, art: { main: 'garage', alt: 'spheres' },
+    moves: ['bowl', 'ricochet', 'last roll'], answers: ['guard: it bounces off stunned (then the charged cut into its foot)', 'walls: sidestep it into one', 'the bubble (it floats, helpless)'],
     idle: 'grazes moss in slow glistening trails, and pulls in if you touch it',
+    def: S({
+      name: 'pearl roller', hp: 4, radius: 0.8, height: 0.9, speed: 1.5, sight: 16, giveUp: 30, reach: 9,
+      tone: '#e8d7f0', takes: { shoot: 1, fire: 1 },
+      calm: { mode: 'graze', wild: true, provoke: 2.4, alarm: 8 },
+      attacks: [
+        // its eye stalks sink and the shell rocks back on its foot three times; then it pulls in and rolls along a lane,
+        // bouncing off a wall once (the next stalls it, stunned); rolling, nothing harms it; a guard bounces it off stunned
+        { id: 'bowl', name: 'bowl', shape: 'lane', width: 1.6, range: 9, damage: 0.75, knock: 5, wind: 1.0, strike: 1.0, contact: 0.05, lunge: 9, sweep: true, rolls: true, bounces: 1, stall: 3, onParry: 'bounce', min: 2.5, max: 9, weight: 2,
+          tell: 'its eye stalks sink and the shell rocks back and forth on its foot, three times', counter: 'guard it and it bounces off stunned; or sidestep it into a wall' },
+        { id: 'ricochet', name: 'ricochet', shape: 'lane', width: 1.6, range: 9, damage: 0.75, knock: 5, wind: 1.0, strike: 1.0, contact: 0.05, lunge: 9, sweep: true, rolls: true, bounces: 2, stall: 3, onParry: 'bounce', min: 2.5, max: 9, weight: 1.5, skins: ['spheres', 'spacecity'],
+          tell: 'the same rocking, faster, and its spiral glows', counter: 'guard it; keep away from the walls it bounces off at you' },
+        // at a quarter of its health: it spins in place, glowing, rolls at you and shatters in a ring of pearl
+        { id: 'last', name: 'last roll', shape: 'lane', width: 1.8, range: 10, damage: 0.75, knock: 6, wind: 1.6, strike: 1.1, contact: 0.05, lunge: 10, sweep: true, rolls: true, onParry: 'bounce', shatter: { speed: 6, reach: 4.5, damage: 0.5, width: 0.55 }, below: 0.25, min: 1.5, max: 9, weight: 6,
+          tell: 'it pulls in and spins in place, faster and faster, its spiral glowing', counter: 'evade at the last moment and jump its ring; or let it hit a wall: it breaks there alone' },
+      ],
+      recover: 1.4, cool: [1.6, 2.8], hit: 0.4,
+    }),
+    note: 'A pearl roller grazes alone until you hit it or come too close. When its eye stalks sink and its shell rocks, it is about to roll at you: guard (LB / L1) and it bounces off stunned, or sidestep it into a wall. Rolling, nothing hurts it. Hurt badly, it spins up and shatters: jump the ring.',
   },
   rootknot: {
     name: 'root knot', family: 'creature', plan: 'tentacled', planNo: 12, role: 'grappler', tier: 2, ranged: false,
@@ -470,10 +502,29 @@ export const ARCHETYPES = {
   },
   shade: {
     name: 'shade', family: 'spirit', plan: 'humanoid', planNo: 9, role: 'duelist', tier: 3, ranged: false,
-    status: 'stand-in', kind: 'shade', was: ['shade'], sound: 'ink', drop: 8, art: 'pending',
+    status: 'built', kind: 'shade', was: ['shade'], sound: 'ink', drop: 8, art: { main: 'perdide2', alt: 'eclipse' },
     manifestation: 'a cloak of smoke worn by nothing; the sword is poured ink',
-    moves: ['cut', 'feint and thrust', 'step through the shade'], answers: ['parry and riposte', 'ember', 'light'],
+    moves: ['cut', 'feint and thrust', 'step through the shade'], answers: ['parry and riposte', 'ember (lit, it is solid: no step, and it burns)', 'an evade sideways from the thrust'],
     idle: 'walks a path it walked in life and stops at doorways',
+    def: S({
+      name: 'shade', hp: 5, radius: 0.45, height: 1.3, speed: 3.0, sight: 18, giveUp: 40, reach: 7, clamber: true, lights: true,
+      tone: '#3b2a5c', takes: { shoot: 1, fire: 2 },
+      calm: { mode: 'pace', provoke: 5, round: 5, wait: 2.5 },
+      attacks: [
+        // the sword drawn back over its shoulder, the body turning away, the hood turning to keep you in sight; the cut across
+        { id: 'cut', name: 'cut', shape: 'cone', range: 2.9, angle: 0.9, damage: 0.5, wind: 0.9, strike: 0.24, contact: 0.55, max: 2.8, weight: 2,
+          tell: 'the sword drawn back over its shoulder, its hood turning to keep you in sight', counter: 'parry, then riposte' },
+        // it starts the cut and stops halfway, the hood tilting; the sword drops to its hip; then the thrust, low and straight
+        { id: 'feint', name: 'feint and thrust', shape: 'lane', width: 1.0, range: 3.6, damage: 0.75, wind: 1.3, strike: 0.22, contact: 0.5, lunge: 1.4, feint: 0.45, min: 1.2, max: 3.4, weight: 1.5,
+          tell: 'it starts the cut and stops halfway, its hood tilting; the sword drops to its hip and it sinks', counter: 'evade sideways; or a parry timed on the thrust (not on the cut it never makes)' },
+        // it sinks into its own shadow, the pool slides round beside you, it pours up out of it there and cuts; lit, it can't
+        { id: 'step', name: 'step through the shade', shape: 'ring', at: 'beside', instant: true, radius: 1.3, track: 0.6, damage: 0, blink: true, dark: true, wind: 1.0, then: 'recut', min: 3.5, max: 7, weight: 1.2,
+          tell: 'its cloak collapses into a pool of shadow, and the pool slides round beside you', counter: 'turn and guard; an ember lights it solid and it can’t step at all' },
+        { id: 'recut', chain: true, shape: 'cone', range: 2.6, angle: 0.9, damage: 0.5, wind: 0.55, strike: 0.22, contact: 0.5 },
+      ],
+      recover: 1.1, cool: [1.2, 2.2], hit: 0.4,
+    }),
+    note: 'A shade fights like you: parry its cut (LB / L1 as it lands) and riposte. When its cut stops halfway and the sword drops to its hip, it is about to thrust: evade sideways. When its cloak sinks into a pool, it comes up beside you; an ember lights it solid, and then it can’t step.',
   },
   hound: {
     name: 'antler hound', family: 'spirit', plan: 'quadruped', planNo: 6, role: 'stalker', tier: 4, ranged: false,
@@ -500,10 +551,28 @@ export const ARCHETYPES = {
   },
   marionette: {
     name: 'marionette', family: 'spirit', plan: 'strings', planNo: 21, role: 'puppeteer', tier: 4, ranged: true,
-    status: 'planned', kind: null, was: [], sound: 'paper', drop: 8, art: 'pending',
+    status: 'built', kind: 'marionette', was: [], sound: 'paper', drop: 8, art: { main: 'spheres', alt: 'bazaar' },
     manifestation: 'the puppeteer: strings rise into a knot of smoke and drop onto other things',
-    moves: ['strings', 'yank', 'dance'], answers: ['air cut, wings or jets to its strings', 'boomerang', 'ember'],
+    moves: ['strings', 'yank', 'dance'], answers: ['cut the strings it drops (the air cut, the boomerang, an ember): the creature goes free', 'air cut, wings or jets to its body', 'evade the yank; a guard cuts its line'],
     idle: 'hangs still under bridges, cranes and arches, swaying like a coat on a hook',
+    def: S({
+      name: 'marionette', hp: 4, radius: 0.5, height: 1.4, hover: 1.1, speed: 2.4, sight: 20, giveUp: 40, reach: 12, keep: 5, puppeteer: true,
+      tone: '#8a6cc8', takes: { shoot: 1, fire: 2 }, escort: 'crab',
+      calm: { mode: 'hang', provoke: 9 },
+      attacks: [
+        // both arms lift, the fingers curl, two strings unspool down from its hands onto a creature near it: driven
+        { id: 'strings', name: 'strings', shape: 'ring', at: 'self', radius: 0.6, damage: 0, wind: 1.2, instant: true, possess: { range: 12, time: 14 }, max: 12, weight: 3,
+          tell: 'it lifts both arms, its fingers curling, and two strings unspool down from its hands', counter: 'cut the strings (the air cut, the boomerang, an ember): the creature drops free' },
+        // one arm rises and a string swings out toward you; caught, you are lifted off your feet toward it
+        { id: 'yank', name: 'yank', shape: 'lane', width: 1.2, range: 9, damage: 0.25, wind: 1.0, strike: 0.3, contact: 0.6, tether: { time: 0.7, pull: 8 }, lift: 4.5, min: 2.5, max: 9, weight: 2, onParry: 'cut',
+          tell: 'one arm rises high and a string swings out toward you', counter: 'evade; a guard cuts the line; caught, a cut frees you' },
+        // alone, with nothing to hold: it drops low and its legs jerk up together; then it whirls, kicking; slack after
+        { id: 'dance', name: 'dance', shape: 'ring', at: 'self', radius: 2.4, damage: 0.5, knock: 4, wind: 0.95, strike: 0.6, contact: 0.5, alone: true, recover: 2.4, max: 3.2, weight: 2,
+          tell: 'it drops low on its strings and its legs jerk up together', counter: 'guard; after the whirl it hangs slack, open' },
+      ],
+      recover: 1.4, cool: [1.4, 2.6], hit: 0.4,
+    }),
+    note: 'A marionette drives the creatures round it: when it lifts its arms and strings unspool from its hands, it is dropping them onto a creature, whose eyes go black. Cut the strings (an air cut, the boomerang, an ember) and the creature drops free. Its body hangs out of easy reach: jump for it, or wait for its dance and cut it while it hangs slack.',
   },
 };
 
