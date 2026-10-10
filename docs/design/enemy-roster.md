@@ -4,11 +4,13 @@
 the 15 old kinds (src/foes.js, src/foe-kinds.js) with **21 archetypes**. Each one has its own silhouette, body plan,
 way of moving and job in a fight, and each appears in several worlds with that world's skin.
 
-![The contact sheet: each archetype's reference crops, its black shape, name and role](enemy-roster-sheet.jpg)
+![The contact sheet: each archetype's two picked design sheets, its black shape, name and role](enemy-roster-sheet.jpg)
 
-*The contact sheet (`enemy-roster-sheet.jpg`; rebuild it with `node scripts/enemy-roster/sheet.cjs`, crops in
-`scripts/enemy-roster/archetypes.json`). The small black shape under each card is the first reference cut out
-against its paper, shrunk to roughly how it reads from 30 m away.*
+*The contact sheet (`enemy-roster-sheet.jpg`; rebuild it with `node scripts/enemy-roster/sheet.cjs`): each
+archetype's picked sheets (`references/enemy-archetypes/<id>/sheet-1.jpg`, the main skin, over `sheet-2.jpg`, the
+alternate), names and roles from `scripts/enemy-roster/archetypes.json`. The small black shape under each card is the
+main sheet's own black silhouette (found as its largest patch of plain black, or the `sil` crop in archetypes.json),
+shrunk to roughly how it reads from 30 m away.*
 
 ## Why
 

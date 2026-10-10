@@ -78,8 +78,8 @@ For Codex (which made the earlier Midjourney sheets) or the author:
    Keep the original export; a better re-roll is a new file (`sheet-1b.jpg`) and a new manifest entry, never an
    overwrite. Write down anything on the sheet that is *not* a design requirement (a stray prop, a wrong leg count
    on one view), as the old sources did in `notes`.
-6. When all 21 are in, point `scripts/enemy-roster/archetypes.json` at the new sheets and rebuild the contact sheet
-   (`node scripts/enemy-roster/sheet.cjs`).
+6. When all 21 are in, rebuild the contact sheet (`node scripts/enemy-roster/sheet.cjs`: it reads the picked
+   sheets themselves; done 2026-10-10).
 
 ---
 
