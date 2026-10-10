@@ -1,0 +1,27 @@
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_c4272c6dc8e271 780-789,864-866
+src/foe-worlds.js
+  s_9ca76055a220ed::t_efc239debc9861 8-11,29-30,33,36
+src/foes.js
+  s_9ca76055a220ed::t_b522c868bbe5a4 98-99,101,104-105,171-176,663,1425,1579-1581,2166-2167
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_214f2a0b265f70 11,158-177
+tests/resources.test.js
+  s_9ca76055a220ed::t_047d59baaf18c6 58-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "600ee44407b8462318244314cc00864e55737dfd",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
