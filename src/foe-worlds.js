@@ -49,10 +49,10 @@ export const WORLDS = {
  * The encounters placed by hand (WORLDS[w].placed: one met where it stands, not in a pack): where each stands (x, z: its
  * ground found under it) and which way it faces (rad); met calm, as its archetype keeps to itself (src/foes.js
  * Foes.updatePosts); once cut down, gone for good (a flag per save). Lorn II's wood cutter stands rusted mid-task on the
- * dry bank of the lit path, halfway between the moss domes and the glass dome.
+ * dry bank of the lit path, between the root arches past the glass dome.
  */
 export const PLACED = {
-  perdide2: [{ archetype: 'brute', at: [5.4, -200.9], heading: 1.12 }],
+  perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }],
 };
 
 /** Worlds with no table of their own (a minigame's field, a test's): ink blots. */

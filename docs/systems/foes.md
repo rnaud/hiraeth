@@ -510,8 +510,8 @@ The count is said every 5 ink.
 - **Placed by hand** (v1.16, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
-  `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the moss
-  domes and the glass dome; the Desert's cistern pump and the Garden's glass puppet are still to place.
+  `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
+  arches past the glass dome; the Desert's cistern pump and the Garden's glass puppet are still to place.
 
 ## Controls and the lock-on
 

@@ -214,15 +214,15 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
   assert.deepEqual(PLACED.perdide2.map((p) => p.archetype), ['brute']);
   assert.ok(WORLDS.perdide2.placed.includes('brute'));
   clearTargets();
-  const game = new GameState(null), P = player(v(5.4, 0, -120));
+  const game = new GameState(null), P = player(v(13.7, 0, -200));
   const make = () => new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, 0) }, levelId: 'perdide2', content: { npcs: [] }, physics: flat, player: P, settings: { enemies: 'normal' }, game });
   let foes = make(); foes.packRest = 1e9;
   foes.update(DT);
   assert.equal(foes.list.filter((f) => f.post).length, 0, 'far off: not out');
-  P.pos.set(5.4, 0, -160); foes.update(DT);
+  P.pos.set(13.7, 0, -240); foes.update(DT);
   const w = foes.list.find((f) => f.post);
   assert.ok(w && w.kind === 'brute' && w.skin === 'perdide2', 'near: the wood cutter, in its own skin');
-  assert.ok(Math.hypot(w.pos.x - 5.4, w.pos.z + 200.9) < 0.5 && w.state === 'idle', 'standing where it was placed, calm');
+  assert.ok(Math.hypot(w.pos.x - 13.7, w.pos.z + 280) < 0.5 && w.state === 'idle', 'standing where it was placed, calm');
   for (let i = 0; i < 60; i++) foes.update(DT);
   assert.equal(w.state, 'idle', 'it stands where it stopped working');
   while (w.alive) foes.hurt(w, 'blade', v(0, 0, 1), { damage: 2, breaks: true });
