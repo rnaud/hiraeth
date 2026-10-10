@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { game as sharedGame } from '../game-state.js';
 import { items } from '../items.js';
 import { TempleRuntime } from './runtime.js';
+import { templeLight } from './kit.js';
+import { KEYS, colourScript } from '../timeofday.js';
 import { DESERT_TEMPLE } from './desert.js';
 import * as DESERT_WORDS from './desert-data.js';
 import { INCAL_TEMPLE } from './incal.js';
@@ -112,6 +114,14 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
     if (o.fade) rt.fadeFn ??= o.fade;
     rt.change?.late?.(dt, t);   // (after the level's own movers: a change may move what they move)
   };
+  // the house's own light inside (its palette's `light`: kit.js templeLight): the colour script handed over with the
+  // air while the traveller is in its rooms, as the Lab's rooms hand theirs (main.js updateSky)
+  const light = T.def.palette?.light;
+  if (light && level.atmo) {
+    const script = templeLight(level.sky?.script ? colourScript(level.sky.script) : KEYS, light), atmo = level.atmo, p = new THREE.Vector3();
+    rt.lightScript = script;
+    level.atmo = (x, z, y = 0, ...rest) => { const a = atmo.call(level, x, z, y, ...rest); return rt.inside(p.set(x, y, z)) ? { ...a, script, ...(light.fog !== undefined ? { fog: light.fog } : {}) } : a; };
+  }
   // the world's makers' court: a box with its gadget, and what that gadget is for round it (src/finds/courts.js)
   attachCourt(levelId, scene, level, { clear: clearInstances });
   return level;

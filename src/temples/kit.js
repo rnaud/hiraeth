@@ -60,9 +60,40 @@ export function sector(r0, r1, a0, a1, t = 0.6) {
   return g.rotateX(Math.PI / 2);
 }
 
+/** A block's geometry without its top (unless `top`) and bottom (unless `bottom`) faces. */
+function capless(geo, top, bottom) {
+  const g = prep(geo), P = g.attributes.position, N = g.attributes.normal, pos = [], nor = [];
+  for (let t = 0; t < P.count; t += 3) {
+    const ny = (N.getY(t) + N.getY(t + 1) + N.getY(t + 2)) / 3;
+    if ((ny > 0.9 && !top) || (ny < -0.9 && !bottom)) continue;
+    for (let k = t; k < t + 3; k++) { pos.push(P.getX(k), P.getY(k), P.getZ(k)); nor.push(N.getX(k), N.getY(k), N.getZ(k)); }
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+  return out;
+}
+
+/** The bands (M.bands) that cross a wall wallH high between lo and hi (from its foot), in order, never into its cap. */
+export function bandsOver(bands, wallH, lo, hi) {
+  const out = [];
+  for (const b of Array.isArray(bands) ? bands : []) {
+    const h = b.h ?? 1.2, every = b.every ?? 0;
+    for (let c = b.y ?? (b.at ?? 0.72) * wallH; c - h / 2 < wallH - 0.5; c += every) {
+      const y0 = Math.max(c - h / 2, lo), y1 = Math.min(c + h / 2, hi, wallH - 0.5);
+      if (y1 - y0 > 0.05) out.push({ y0, y1, mat: b.mat });
+      if (!(every > 0)) break;
+    }
+  }
+  out.sort((a, b) => a.y0 - b.y0);
+  for (let i = 1; i < out.length; i++) if (out[i].y0 < out[i - 1].y1) { out[i].y0 = out[i - 1].y1; if (out[i].y1 - out[i].y0 < 0.05) out.splice(i--, 1); }
+  return out;
+}
+
 // Plain colours are paint: one vertex-coloured mesh for all of a temple's plain parts.
 const PAINT = {};
-const paintMaterial = (smooth, side) => PAINT[`${smooth}${side}`] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side === THREE.DoubleSide ? { side } : {}) });
+// (a house with a look of its own paints with its shade too: M.paintLook, its look's `all`; one mesh still)
+const paintMaterial = (smooth, side, look = null) => PAINT[`${smooth}${side}${look ? JSON.stringify(look) : ''}`] ??= makeMaterial({ color: '#ffffff', vertexColors: true, ...(smooth ? {} : { flat: true }), ...(side === THREE.DoubleSide ? { side } : {}), ...look });
 export const paint = (color, { smooth = false, side = THREE.FrontSide } = {}) => ({ paint: new THREE.Color(color), smooth, side });
 function painted(geo, c) {
   const n = geo.attributes.position.count, a = new Float32Array(n * 3);
@@ -73,25 +104,134 @@ function painted(geo, c) {
 
 /**
  * A world's temple materials from its palette:
- *   { wall, wall2, wall3, floor, floor2, trim, dark, stone, glow (the glyphs' light), accent, sand }
+ *   { wall, wall2, wall3, floor, floor2, trim, dark, stone, glow (the pieces' light), accent, sand }
+ * and what makes each house its own (the temple visual pass, docs/audits/temple-visuals-v1.31.md):
+ *   glyph      the frieze's glyphs' colour (default glow; the pieces keep glow)
+ *   fitting    the pieces' fittings (door bands, plate rims, braziers: trimMat; default trim)
+ *   look       makeMaterial options over the defaults: { all (every surface of the house: shade, shadeHue,
+ *              shadeFlat, lampTint…), wall, floor, stone, fitting, glyph, trim (a material of its own instead of
+ *              paint: a metal band, say) }
+ *   bands      [{ y | at (share of the wall's height), h, color, every (m: repeated up a tall wall) }]: courses of
+ *              another stone or paint across every plain wall, flush (the wall's blocks are cut at them; their
+ *              collision is the whole block, as before)
+ *   ornament   { kind, color, color2 } a small thing at every frieze glyph (ORNAMENTS)
+ *   light      the house's own shade and light inside (templeLight)
  */
 export function templeMaterials(P) {
-  return {
-    wall: makeMaterial({ color: P.wall, color2: P.wall2 ?? P.wall, color3: P.wall3 ?? P.wall, mode: MODE_STRATA, strataSize: P.strata ?? 2.2, flat: true }),
-    wallGlyph: makeMaterial({ color: P.wall, color2: P.wall2 ?? P.wall, color3: P.wall3 ?? P.wall, mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.6, glyphs: true }),
-    floor: makeMaterial({ color: P.floor, color2: P.floor2 ?? P.floor, color3: P.floor2 ?? P.floor, mode: MODE_STRATA, strataSize: 0.9, flat: true, grid: 2.4 }),
-    trim: paint(P.trim),
-    trimMat: makeMaterial({ color: P.trim, flat: true }),
-    stoneMat: makeMaterial({ color: P.stone ?? P.trim, color2: P.wall2 ?? P.trim, color3: P.stone ?? P.trim, mode: MODE_STRATA, strataSize: 0.7, flat: true }),
+  const L = P.look ?? {}, all = L.all ?? {};
+  const M = {
+    wall: makeMaterial({ color: P.wall, color2: P.wall2 ?? P.wall, color3: P.wall3 ?? P.wall, mode: MODE_STRATA, strataSize: P.strata ?? 2.2, flat: true, ...all, ...L.wall }),
+    wallGlyph: makeMaterial({ color: P.wall, color2: P.wall2 ?? P.wall, color3: P.wall3 ?? P.wall, mode: MODE_STRATA, strataSize: 1.2, flat: true, grid: 1.6, glyphs: true, ...all, ...L.wallGlyph }),
+    floor: makeMaterial({ color: P.floor, color2: P.floor2 ?? P.floor, color3: P.floor2 ?? P.floor, mode: MODE_STRATA, strataSize: 0.9, flat: true, grid: 2.4, ...all, ...L.floor }),
+    trim: L.trim ? makeMaterial({ color: P.trim, flat: true, ...all, ...L.trim }) : paint(P.trim),
+    trimMat: makeMaterial({ color: P.fitting ?? P.trim, flat: true, ...L.fitting }),
+    stoneMat: makeMaterial({ color: P.stone ?? P.trim, color2: P.wall2 ?? P.trim, color3: P.stone ?? P.trim, mode: MODE_STRATA, strataSize: 0.7, flat: true, ...all, ...L.stone }),
     dark: paint(P.dark),
     stone: paint(P.stone ?? P.trim),
     accent: paint(P.accent ?? P.trim),
     sand: makeMaterial({ color: P.sand ?? '#e8cf9c', color2: P.sand2 ?? '#dcbd86', color3: P.sand ?? '#e8cf9c', mode: MODE_STRATA, strataSize: 0.5, flat: true, sandInk: true }),
     ink: paint('#2b211f'),
-    glyph: makeMaterial({ color: P.glow ?? '#70e7df', glow: 0.85, flat: true }),
+    glyph: makeMaterial({ color: P.glyph ?? P.glow ?? '#70e7df', glow: 0.85, flat: true, ...L.glyph }),
     voidM: makeMaterial({ color: P.void ?? '#2b211f', side: THREE.DoubleSide }),
   };
+  // (the bands and the ornaments are paint, in the house's paint mesh, unless they are metal or lit)
+  if (L.all) M.paintLook = L.all;
+  M.bands = (P.bands ?? []).map((b) => ({ ...b, mat: b.mat ?? (b.look ? makeMaterial({ color: b.color, flat: true, ...all, ...b.look }) : paint(b.color)) }));
+  if (P.ornament) M.ornament = { ...P.ornament, mats: ornamentMaterials(P.ornament) };
+  return M;
 }
+
+/**
+ * The house's own light inside (P.light: { shadow, light, sun }): the world's colour script with the shade
+ * and light tints moved to the house's own, all the way by day, less at dusk and less again at night (a
+ * house is no lamp: its nights stay the world's). The sky through an oculus keeps the world's colours.
+ * index.js attachTemple hands it over with level.atmo while the traveller is inside.
+ */
+export function templeLight(base, { shadow, light, sun } = {}) {
+  const mix = (a, b, t) => (b ? '#' + new THREE.Color(a).lerp(new THREE.Color(b), t).getHexString() : a);
+  const share = (h) => (h >= 9 && h <= 16 ? 1 : (h >= 6.8 && h <= 18.2) ? 0.8 : (h >= 5.6 && h <= 19.4) ? 0.55 : 0.3);
+  return base.map(([h, top, hor, sh, li, disc]) => {
+    const k = share(h), hex = (c) => (typeof c === 'string' ? c : '#' + c.getHexString());
+    return [h, hex(top), hex(hor), mix(hex(sh), shadow, k), mix(hex(li), light, k), mix(hex(disc), sun, k)];
+  });
+}
+
+// ------------------------------------------------------------------ ornaments: each house's small signature
+// thing beside its frieze's glyphs (a bell in a niche, a hanging lamp, a crystal…), drawn only (all of them sit
+// within 0.3 m of the wall's face, over the height a climber reaches from the floor: the trim and the frieze
+// are there already), merged into the house's batches.
+function ornamentMaterials(o) {
+  const c = o.color ?? '#b08a4a', c2 = o.color2 ?? c;
+  const glowing = ['lamp', 'crystal', 'slot', 'window'].includes(o.kind);
+  return {
+    a: glowing ? makeMaterial({ color: c, glow: o.glow ?? 0.75, flat: true }) : o.metal ? makeMaterial({ color: c, flat: true, metal: o.metal }) : paint(c),
+    b: (glowing && o.kind !== 'lamp') || o.kind === 'pane' ? makeMaterial({ color: c2, glow: o.glow ?? 0.75, flat: true }) : paint(c2),
+  };
+}
+// Each is drawn in the wall's own frame (x along it, y up, z out of its face, from the frieze glyph's spot) as a
+// relief no more than 5 cm proud: drawn only, as the frieze is, within the contact audit's tolerance (a climber's
+// hands meet the wall, not a bell he passes through: src/contact-audit.js).
+const flat = (g, d) => g.scale(1, 1, d);   // (a round thing pressed into a relief d deep)
+const ORNAMENTS = {
+  /** a shallow arched niche lit warm, a little bronze bell hanging in it (the Founders' Belfry) */
+  bell(at, M) {
+    at(M.b, new THREE.BoxGeometry(1.1, 2.0, 0.02), 0, -2.3, 0.01);
+    at(M.b, new THREE.CylinderGeometry(0.55, 0.55, 0.02, 8, 1, false, Math.PI / 2, Math.PI).rotateX(Math.PI / 2), 0, -1.3, 0.01);
+    at(M.a, flat(lathe([[0.02, 0], [0.3, 0.02], [0.3, 0.12], [0.2, 0.42], [0.16, 0.6], [0.02, 0.66]], 8), 0.07), 0, -2.8, 0.025);
+  },
+  /** a lamp on a chain, glowing (the Lamp-House) */
+  lamp(at, M) {
+    at(M.b, new THREE.BoxGeometry(0.06, 0.9, 0.02), 0, -1.3, 0.01);
+    at(M.a, flat(new THREE.SphereGeometry(0.22, 8, 5), 0.08), 0, -1.9, 0.025);
+  },
+  /** three small crystals growing up the wall, two colours by turns (the Hush-House) */
+  crystal(at, M, i) {
+    for (const [x, h, k, lean] of [[-0.3, 0.9, 0, 0.25], [0.02, 1.5, 1, 0], [0.33, 0.7, 0, -0.3]]) {
+      at((k + i) % 2 ? M.b : M.a, flat(new THREE.OctahedronGeometry(0.24, 0).scale(1, h / 0.48, 1).rotateZ(lean), 0.07), x, -2.4 + h / 2, 0.025);
+    }
+  },
+  /** a tall narrow slot of coloured light from the market overhead, coral and teal by turns (the Undertower) */
+  slot(at, M, i) { at(i % 2 ? M.b : M.a, new THREE.BoxGeometry(0.34, 2.4, 0.03), 0, -2.0, 0.015); },
+  /** a tall slit window over the frieze, lit (the Warden's Well) */
+  window(at, M) {
+    at(M.a, new THREE.BoxGeometry(0.3, 2.2, 0.03), 0, 2.3, 0.015);
+    at(M.a, new THREE.CylinderGeometry(0.15, 0.15, 0.03, 8, 1, false, Math.PI / 2, Math.PI).rotateX(Math.PI / 2), 0, 3.4, 0.015);
+  },
+  /** a small clock face in a brass ring, its hands at four (the First Garage) */
+  clock(at, M) {
+    at(M.b, new THREE.CircleGeometry(0.4, 14), 0, -1.9, 0.012);
+    at(M.a, flat(new THREE.TorusGeometry(0.42, 0.07, 3, 14), 0.25), 0, -1.9, 0.025);
+    at(M.a, new THREE.BoxGeometry(0.05, 0.3, 0.02).translate(0, 0.15, 0).rotateZ(-Math.PI * 2 / 3), 0, -1.9, 0.03);
+    at(M.a, new THREE.BoxGeometry(0.05, 0.22, 0.02).translate(0, 0.11, 0), 0, -1.9, 0.03);
+  },
+  /** a riveted strap down the wall, a valve wheel on every other (the Engine-House) */
+  valve(at, M, i) {
+    at(M.b, new THREE.BoxGeometry(0.5, 3.2, 0.03), 0, -2.2, 0.015);
+    if (i % 2) return;
+    at(M.a, flat(new THREE.TorusGeometry(0.38, 0.06, 3, 12), 0.25), 0, -2.0, 0.03);
+    for (const r of [0, Math.PI / 2]) at(M.a, new THREE.BoxGeometry(0.72, 0.06, 0.015).rotateZ(r), 0, -2.0, 0.035);
+  },
+  /** a round porthole with a pale rim (the Footprint) */
+  porthole(at, M) {
+    at(M.b, new THREE.CircleGeometry(0.32, 12), 0, -2.1, 0.012);
+    at(M.a, flat(new THREE.TorusGeometry(0.34, 0.08, 3, 12), 0.25), 0, -2.1, 0.025);
+  },
+  /** a long feather carved in relief (the Aerie) */
+  feather(at, M) {
+    at(M.a, new THREE.SphereGeometry(1, 8, 5).scale(0.28, 1.25, 0.02), 0, -2.1, 0.02);
+    at(M.b, new THREE.BoxGeometry(0.04, 2.3, 0.015), 0, -2.1, 0.035);
+  },
+  /** the makers' three dots over an arc, cut into the stone (the Givers' House) */
+  mark(at, M) {
+    for (const x of [-0.42, 0, 0.42]) at(M.b, new THREE.CircleGeometry(0.13, 8), x, -1.35, 0.012);
+    at(M.b, flat(new THREE.TorusGeometry(0.55, 0.06, 3, 10, Math.PI * 0.8).rotateZ(Math.PI * 0.1), 0.3), 0, -2.05, 0.02);
+  },
+  /** a pane of glass between two white ribs (the Builders' Greenhouse) */
+  pane(at, M) {
+    at(M.b, new THREE.BoxGeometry(1.6, 2.6, 0.02), 0, -2.1, 0.01);
+    for (const x of [-0.85, 0.85]) at(M.a, new THREE.BoxGeometry(0.14, 2.9, 0.03), x, -2.1, 0.03);
+  },
+};
 
 export class TempleKit {
   constructor(root, name, origin, yaw = 0, materials = null) {
@@ -109,7 +249,7 @@ export class TempleKit {
   heading(h) { return h + this.yaw; }
   add(mat, geo) {
     let g = prep(geo).applyMatrix4(this.frame);
-    if (mat.paint) { g = painted(g, mat.paint); mat = paintMaterial(mat.smooth, mat.side); }
+    if (mat.paint) { g = painted(g, mat.paint); mat = paintMaterial(mat.smooth, mat.side, this.M?.paintLook); }
     if (!this.batches.has(mat)) this.batches.set(mat, []);
     this.batches.get(mat).push(g);
     return this;
@@ -117,6 +257,37 @@ export class TempleKit {
   solid(geo) { this.proxies.push(prep(geo).applyMatrix4(this.frame)); return this; }
   // (the proxy is cloned first: add() moves a non-indexed geometry into the world in place)
   both(mat, geo, proxy) { const p = proxy ?? geo.clone(); this.add(mat, geo); this.solid(p); return this; }
+  /**
+   * A block of plain wall from y0 up hgt (from the wall's foot) made by make(y, hgt): solid whole, drawn cut
+   * at the house's bands (M.bands, each drawn in its own stone or paint), over a wall of wallH.
+   */
+  banded(mat, y0, hgt, wallH, make) {
+    const B = mat === this.M?.wall ? bandsOver(this.M.bands, wallH, y0, y0 + hgt) : [];
+    if (!B.length) return this.both(mat, make(y0, hgt));
+    this.solid(make(y0, hgt));
+    // the pieces, stacked: no faces where one meets the next (they lie inside the wall, and read as tops to stand on)
+    const parts = [];
+    let c = y0;
+    for (const b of B) {
+      if (b.y0 - c > 1e-3) parts.push([mat, c, b.y0 - c]);
+      parts.push([b.mat, b.y0, b.y1 - b.y0]);
+      c = b.y1;
+    }
+    if (y0 + hgt - c > 1e-3) parts.push([mat, c, y0 + hgt - c]);
+    parts.forEach(([m, y, h], i) => this.add(m, capless(make(y, h), i === parts.length - 1, i === 0)));
+    return this;
+  }
+  /** The house's ornament (M.ornament: ORNAMENTS) beside a frieze glyph at p on a wall, facing yaw. */
+  ornament(p, yaw) {
+    const O = this.M?.ornament;
+    if (!O?.kind || !ORNAMENTS[O.kind]) return this;
+    this._orn = (this._orn ?? 0) + 1;
+    // (from the wall's face: the glyph stands 2-3 cm off it)
+    const n = [Math.sin(yaw), 0, Math.cos(yaw)], t = [n[2], 0, -n[0]], o = [p[0] - n[0] * 0.02, p[1], p[2] - n[2] * 0.02];
+    const at = (mat, geo, x, y, z) => this.add(mat, T(geo, [o[0] + t[0] * x + n[0] * z, o[1] + y, o[2] + t[2] * x + n[2] * z], [0, yaw, 0]));
+    ORNAMENTS[O.kind](at, O.mats, this._orn);
+    return this;
+  }
   flush() {
     const meshes = [];
     for (const [mat, list] of this.batches) {
@@ -161,7 +332,7 @@ export class TempleKit {
       const cut = H.filter((o) => o.x0 <= mid && o.x1 >= mid).sort((p, q) => p.y0 - q.y0);
       let y = 0;
       for (const o of [...cut, { y0: h, y1: h }]) {
-        if (o.y0 - y > 1e-3) this.both(mat, at(mid, y, o.y0 - y, b - a));
+        if (o.y0 - y > 1e-3) this.banded(mat, y, o.y0 - y, h, (yy, hh) => at(mid, yy, hh, b - a));
         y = Math.max(y, o.y1);
       }
     }
@@ -227,7 +398,7 @@ export class TempleKit {
       // a gap: this stone is cut from the gap's foot (y0, default the floor) to its top
       const gap = gaps.find((g) => Math.abs(Math.atan2(Math.sin(a - g.a), Math.cos(a - g.a))) * (r + t / 2) < g.w / 2);
       const spans = gap ? [[0, gap.y0 ?? 0], [(gap.y0 ?? 0) + gap.h, h]] : [[0, h]];
-      for (const [s0, s1] of spans) if (s1 - s0 > 0.05) this.both(this.M.wall, T(new THREE.BoxGeometry(chord, s1 - s0, t), [px, y + s0 + (s1 - s0) / 2, pz], [0, a, 0]));
+      for (const [s0, s1] of spans) if (s1 - s0 > 0.05) this.banded(this.M.wall, s0, s1 - s0, h, (yy, hh) => T(new THREE.BoxGeometry(chord, hh, t), [px, y + yy + hh / 2, pz], [0, a, 0]));
     }
     // the trim at the top, round the hall (solid: it overhangs the wall's outer face by 0.4 m, and a
     // climber used to hug the wall inside the drawn stone)
@@ -243,6 +414,7 @@ export class TempleKit {
       const a = (i + 0.5) * step;
       if (gaps.some((g) => Math.abs(Math.atan2(Math.sin(a - g.a), Math.cos(a - g.a))) * r < g.w / 2 + 1)) continue;
       this.glyph([x + Math.sin(a) * (r - 0.03), y + h * 0.7, z + Math.cos(a) * (r - 0.03)], 1.1, a + Math.PI);
+      this.ornament([x + Math.sin(a) * (r - 0.03), y + h * 0.7, z + Math.cos(a) * (r - 0.03)], a + Math.PI);
     }
     return this;
   }
@@ -300,6 +472,7 @@ export class TempleKit {
     for (let i = 0; i <= n; i++) {
       const k = n ? i / n : 0.5;
       this.glyph([a[0] + (b[0] - a[0]) * k, y, a[1] + (b[1] - a[1]) * k], 1.0, yaw);
+      this.ornament([a[0] + (b[0] - a[0]) * k, y, a[1] + (b[1] - a[1]) * k], yaw);
     }
     return this;
   }

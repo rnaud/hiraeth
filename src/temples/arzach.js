@@ -51,9 +51,23 @@ const TAU = Math.PI * 2;
 export const SITE = { x: -220, z: -20, r: 18, path: [-180, -12] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
+/**
+ * The Aerie's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/aerie):
+ * warm ivory in tall smooth panels, banded in ochre (a band under every frieze and one low), the frames ochre, a long
+ * feather carved under every frieze, the glyphs ochre-gold; its shade a peach-rose that keeps the ivory warm, its light
+ * warm.
+ */
 export const PALETTE = {
-  wall: '#efe6d2', wall2: '#e6dcc6', wall3: '#f4efe2', floor: '#e2cfae', floor2: '#d6c7a8', trim: '#d8a24a',
-  dark: '#4a4a5e', stone: '#d9cfc0', accent: '#b98f9a', glow: '#7cc1c4', lamp: '#f6c84e', sand: '#f0dcc0', sand2: '#e3bf9c', void: '#34405e',
+  wall: '#f3e7d3', wall2: '#eee0c8', wall3: '#f8efe0', floor: '#ecdcc2', floor2: '#e0cfb2', trim: '#dc9e44',
+  dark: '#4a4a5e', stone: '#efe3d0', accent: '#b98f9a', glow: '#7cc1c4', glyph: '#d0903a', lamp: '#f6c84e', sand: '#f0dcc0', sand2: '#e3bf9c', void: '#34405e',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.85, shade: 0.55, hatch: 0.5 },
+    wall: { mode: 0 },
+    glyph: { glow: 0.25 },
+  },
+  bands: [{ at: 0.72, h: 0.9, color: '#e2a446' }, { at: 0.3, h: 0.45, color: '#e2a446' }],
+  ornament: { kind: 'feather', color: '#eadcc4', color2: '#c98f3a' },
+  light: { shadow: '#dcb4aa', light: '#fff3e0', sun: '#ffe2b8' },
 };
 
 export const LOGIC = {

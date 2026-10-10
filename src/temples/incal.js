@@ -59,9 +59,23 @@ SITE.heading = Math.atan2(274 - SITE.x, 0 - SITE.z);
 /** The shaft's breath once the warden is stopped: a rising column from the bottom terrace to the rim. */
 export const BREATH = { a: 2.85, r: 197, bottom: -290, top: 200, R: 260, radius: 4.5 };
 
+/**
+ * The well's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/wardens-well):
+ * cream stone in big smooth blocks, banded in the makers' steel blue (a course under every frieze, gold glyphs on it, and
+ * at the foot), cream floors, lit slit windows over the friezes; its shade a soft lavender blue that keeps the cream
+ * (the shaft's world prints its shade flat in blue, and turned the house blue with it), its light warm.
+ */
 export const PALETTE = {
-  wall: '#f1e6cf', wall2: '#e6cfae', wall3: '#f6efe0', floor: '#d6c6a8', floor2: '#c9b596', trim: '#f3ead8',
-  dark: '#34405e', stone: '#9fb2c6', accent: '#25386c', glow: '#9fdcef', lamp: '#f6c84e', sand: '#cdb38e', sand2: '#c9b596',
+  wall: '#efe4cc', wall2: '#e9dcc1', wall3: '#f5eddb', floor: '#e4d9bf', floor2: '#d6c9ac', trim: '#f3ead8',
+  dark: '#34405e', stone: '#7d93c4', accent: '#3f5a9e', glow: '#9fdcef', glyph: '#e8c060', lamp: '#f6c84e', sand: '#cdb38e', sand2: '#c9b596',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.9, shade: 0.45 },
+    wall: { mode: 0, grid: 4.4, plates: true },
+    glyph: { glow: 0.45 },
+  },
+  bands: [{ at: 0.72, h: 1.4, color: '#7d93c4' }, { y: 0.4, h: 0.8, color: '#6f86ba' }],
+  ornament: { kind: 'window', color: '#fff0c8', glow: 0.75 },
+  light: { shadow: '#bdb6d6', light: '#fff2dc', sun: '#fff0d0' },
 };
 
 /**

@@ -52,9 +52,26 @@ const TAU = Math.PI * 2;
 export const SITE = { x: Math.cos(150 * Math.PI / 180) * 205, z: Math.sin(150 * Math.PI / 180) * 205, r: 9 };
 SITE.heading = Math.atan2(0 - SITE.x, 120 - SITE.z);
 
+/**
+ * The First Garage's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/first-garage):
+ * cream marble in big slabs, cream marble floors (the blue slate is gone), brass in the frames, inlaid in thin lines under
+ * every frieze and at the foot, and in the fittings, a little brass clock under every frieze, the eyes lit the makers'
+ * teal; its shade a cool grey-teal, its light warm sun.
+ */
 export const PALETTE = {
-  wall: '#d8c3a0', wall2: '#cdb38c', wall3: '#e4d3b2', floor: '#8aa0b8', floor2: '#7d93ab', trim: '#d8a24a',
-  dark: '#34405e', stone: '#62c3c9', accent: '#e6875f', glow: '#f2c54b', lamp: '#f2c54b', sand: '#e9d7b0', sand2: '#cfe0a8', void: '#2b2f4a',
+  wall: '#eee6d6', wall2: '#e7ddca', wall3: '#f4eee3', floor: '#e8dfcb', floor2: '#dcd1ba', trim: '#d2a648', fitting: '#d2a648',
+  dark: '#34405e', stone: '#62c3c9', accent: '#e6875f', glow: '#5fd8cc', glyph: '#d2a648', lamp: '#f2c54b', sand: '#e9d7b0', sand2: '#cfe0a8', void: '#2b2f4a',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.8, shade: 0.45 },
+    wall: { mode: 0, grid: 3.4, plates: true },
+    floor: { mode: 0, grid: 2.4, plates: true },
+    glyph: { glow: 0.3 },
+    trim: { metal: 'brass' },
+    fitting: { metal: 'brass' },
+  },
+  bands: [{ at: 0.72, h: 0.35, color: '#d2a648', look: { metal: 'brass' } }, { y: 0.55, h: 0.25, color: '#d2a648', look: { metal: 'brass' } }],
+  ornament: { kind: 'clock', color: '#d2a648', color2: '#f6f0e4', metal: 'brass' },
+  light: { shadow: '#b7bfc2', light: '#fff2d8', sun: '#ffe8c0' },
 };
 
 export const VOLLEY = 4.6;   // s: the six eyes (and the Foreman's six numerals) must all be hit inside this

@@ -48,9 +48,23 @@ const TAU = Math.PI * 2;
 export const SITE = { x: -250, z: 250, r: 26 };
 SITE.heading = Math.atan2(0 - SITE.x, 0 - SITE.z);
 
+/**
+ * The Footprint's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/footprint):
+ * white plaster in big smooth panels, pale lavender in its shade (the Garden's world prints its shade in sage, and turned
+ * the house green with it), warm cream light, the fittings (plate rims, door bands) the sage of its door, round
+ * portholes under the friezes, the glyphs lit amber.
+ */
 export const PALETTE = {
-  wall: '#f7f3ea', wall2: '#ece4d4', wall3: '#fffdf4', floor: '#e9e1d0', floor2: '#ddd3c0', trim: '#fffdf4',
-  dark: '#3c4f80', stone: '#f1ebdc', accent: '#e8b9c4', glow: '#a8e6ee', lamp: '#f6c84e', sand: '#e9e1d0', sand2: '#ddd3c0',
+  wall: '#f4f0f2', wall2: '#eee8ee', wall3: '#f9f6f6', floor: '#efe9e5', floor2: '#e3dbd7', trim: '#f7f3f4', fitting: '#93b29c',
+  dark: '#4f5a80', stone: '#f2ece8', accent: '#e8b9c4', glow: '#a8e6ee', glyph: '#f0b450', lamp: '#f6c84e', sand: '#e9e1d0', sand2: '#ddd3c0',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.75, shade: 0.42, spot: 0.25 },
+    wall: { mode: 0, grid: 4.5 },
+    glyph: { glow: 0.6 },
+  },
+  bands: [{ at: 0.72, h: 0.6, color: '#e8e1ee' }],
+  ornament: { kind: 'porthole', color: '#e6dfe8', color2: '#8794b8' },
+  light: { shadow: '#c3b6da', light: '#fff4e2', sun: '#ffeccc' },
 };
 
 export const LOGIC = {

@@ -8,6 +8,21 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.32', date: '2026-10-10', items: [
+    // the temple visual pass: each house its own stone, colours and light, after its design pictures
+    'The eleven temples no longer look alike: each has its own stone, colours and light inside, after its design picture. Inside a temple the shade takes the house’s own colour instead of the world’s, so a rose house stays rose in its shadows and a cream one stays cream, and each has a small thing of its own along its friezes.',
+    'The Givers’ House is warm rose stone laid in blocks, with a darker course under its frieze, the makers’ three dots over an arc cut along its walls and old green-bronze braziers.',
+    'The Warden’s Well is cream stone again, banded in the makers’ steel blue with gold glyphs, with cream floors and lit slit windows over its friezes. Its shadows had turned the whole house blue.',
+    'The Founders’ Belfry is bone-white stone with warm rose shadows. Its bells are old bronze, and little bronze bells hang in lit niches round its halls.',
+    'The Engine-House is riveted rust iron strapped in steel blue, with grey iron floor plates, brass fittings and valve wheels on its straps.',
+    'The Footprint is white plaster with pale lavender shadows and warm light, no longer sage green, with round portholes, amber glyphs and the sage of its door on its fittings.',
+    'The Lamp-House is dark slate with moss at the foot of its walls and lamps hanging along its friezes, and every lamp lays a warm amber pool on the flagstones.',
+    'The Hush-House is violet stone through and through, its floors no longer green, with moss at the walls’ foot and small teal and violet crystals along its friezes, under a dusky rose light.',
+    'The Aerie is warm ivory banded in ochre, with long feathers carved along its walls and peach-rose shadows.',
+    'The First Garage is cream marble, floors and all, with brass in its frames, thin brass lines along its walls and little brass clocks, and its eyes glow the makers’ teal.',
+    'The Builders’ Greenhouse is white stone and pale sky-blue glass, its frames and ribs white instead of teal and its floors pale stone instead of green, under crisp blue shadows.',
+    'The Undertower is heavy blue-grey masonry, its door frames the same stone, with grey flagstones and slots of the market’s coral and teal light along its walls.',
+  ] },
   { v: '1.31', date: '2026-10-10', items: [
     // the hints pass: the world teaches, the screen says as little as it can
     'Far fewer hints. What you can use shows a small button over it, without words; a quest no longer puts its next step on the screen, the gold column over a world’s goal is gone, and the game no longer explains each foe, the world’s edge or a fire the first time you meet them. Your drone still finds the way whenever you ask.',

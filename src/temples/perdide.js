@@ -50,9 +50,24 @@ const TAU = Math.PI * 2;
 export const SITE = { x: -135, z: 105, r: 16, path: [-108, 107] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
+/**
+ * The Hush-House's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/hush-house):
+ * violet stone in cracked beds, its frames and ribs a darker violet, violet-grey flags (no more green floors), olive moss at
+ * the walls' foot, little crystals of teal and violet growing under every frieze; its shade a deep violet, its light the
+ * dusk's rose.
+ */
 export const PALETTE = {
-  wall: '#6a5a8a', wall2: '#5d4f7e', wall3: '#7a6a9a', floor: '#4f6a5e', floor2: '#5a7a66', trim: '#d8c8e8',
-  dark: '#2a2448', stone: '#8a7aa0', accent: '#e0708a', glow: '#a8e6ee', lamp: '#d6ff9a', sand: '#4f6a5e', sand2: '#5a7a66', void: '#1a1630',
+  wall: '#6b5b8e', wall2: '#605184', wall3: '#77689b', floor: '#5d5375', floor2: '#53496a', trim: '#554679', fitting: '#9a8cc0',
+  dark: '#2a2448', stone: '#7b6d97', accent: '#e0708a', glow: '#a8e6ee', glyph: '#8fe6d6', lamp: '#d6ff9a', sand: '#4f6a5e', sand2: '#5a7a66', void: '#1a1630',
+  look: {
+    all: { shadeFlat: 0.15, shadeHue: 0.7, shade: 0.22 },
+    wall: { cracks: 0.5 },
+    floor: { mode: 0, grid: 2.2, plates: true },
+    glyph: { glow: 0.6 },
+  },
+  bands: [{ at: 0.72, h: 1.0, color: '#57497b' }, { y: 0.25, h: 0.5, color: '#6b7340' }],
+  ornament: { kind: 'crystal', color: '#9ee8dc', color2: '#b49ae8', glow: 0.6 },
+  light: { shadow: '#51468a', light: '#f2dcea', sun: '#ffd0c8' },
 };
 
 export const LOGIC = {

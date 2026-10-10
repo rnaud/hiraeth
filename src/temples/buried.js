@@ -54,9 +54,24 @@ const TAU = Math.PI * 2;
 export const SITE = { x: -122, z: 98, r: 22 };
 SITE.heading = Math.atan2(0 - SITE.x, 60 - SITE.z);
 
+/**
+ * The engine's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/engine-house):
+ * rust iron in riveted plates, strapped in steel blue (the frames, a strap under every frieze and at the foot, a strap
+ * down the wall with a brass valve wheel), grey iron floor plates, brass fittings, the pipes and rods blue steel; its
+ * shade a deep rust that keeps the iron's red, its light the furnace's warm.
+ */
 export const PALETTE = {
-  wall: '#c4553a', wall2: '#b04a33', wall3: '#d2694c', floor: '#c9b896', floor2: '#b9a684', trim: '#e9dcc0',
-  dark: '#33485a', stone: '#8e9fb2', accent: '#5fa6a0', glow: '#f6c84e', lamp: '#f6c84e', sand: '#e9dcc0', sand2: '#d6c8a6',
+  wall: '#ad5a3e', wall2: '#a04f36', wall3: '#b96549', floor: '#8f8676', floor2: '#827a6b', trim: '#5f7592', fitting: '#c09a48',
+  dark: '#2f3a48', stone: '#7d90a6', accent: '#4f9a98', glow: '#f6c84e', lamp: '#f6c84e', sand: '#e9dcc0', sand2: '#d6c8a6',
+  look: {
+    all: { shadeFlat: 0.05, shadeHue: 1, shade: 0.12 },
+    wall: { mode: 0, grid: 1.8, plates: true, detail: 'built' },
+    wallGlyph: { detail: 'built' },
+    floor: { mode: 0, grid: 1.6, plates: true },
+  },
+  bands: [{ at: 0.72, h: 0.8, color: '#5f7592' }, { y: 1.1, h: 0.6, color: '#5f7592' }],
+  ornament: { kind: 'valve', color: '#c09a48', color2: '#5f7592', metal: 'brass' },
+  light: { shadow: '#86636a', light: '#ffe6c8', sun: '#ffd9a8' },
 };
 
 /**

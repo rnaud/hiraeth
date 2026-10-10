@@ -52,9 +52,24 @@ const TAU = Math.PI * 2;
 /** The old doorway in the silent tower's back (the side away from the square's front), looking south down the avenue's end. */
 export const SITE = { x: 0, z: -267, r: 8, heading: Math.PI, tower: { x: 0, z: -255, top: 98 } };
 
+/**
+ * The Undertower's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/undertower):
+ * blue-grey masonry in heavy blocks, its frames the same stone (no more brass frames: brass is for the horns and
+ * fittings), grey flagstones, a darker course under every frieze and at the foot, slots of the market's coral and teal
+ * light by turns under the friezes; its shade a deep blue, its light the lamps' warm.
+ */
 export const PALETTE = {
-  wall: '#7d8f96', wall2: '#6f8189', wall3: '#8fa1a6', floor: '#c9b28a', floor2: '#b9a27a', trim: '#c99758', strata: 1.8,
-  dark: '#3a535b', stone: '#88b4b5', accent: '#f0a083', glow: '#fff0bd', lamp: '#ffe3aa', sand: '#a4c1be', sand2: '#94b1ae', void: '#243e59',
+  wall: '#61748b', wall2: '#596c83', wall3: '#6a7d94', floor: '#9c998f', floor2: '#8e8b81', trim: '#71859b', fitting: '#c99758', strata: 1.8,
+  dark: '#3a535b', stone: '#88b4b5', accent: '#f0a083', glow: '#fff0bd', glyph: '#ffd9a0', lamp: '#ffe3aa', sand: '#a4c1be', sand2: '#94b1ae', void: '#243e59',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.8, lampTint: ['#f0c890', 0.7] },
+    wall: { mode: 0, grid: 1.5, plates: true },
+    floor: { mode: 0, grid: 1.8, plates: true },
+    glyph: { glow: 0.6 },
+  },
+  bands: [{ at: 0.72, h: 1.2, color: '#506279' }, { y: 0.4, h: 0.8, color: '#506279' }],
+  ornament: { kind: 'slot', color: '#f0a083', color2: '#7fd6cf', glow: 0.85 },
+  light: { shadow: '#46527c', light: '#ffe9cc', sun: '#ffd9a8' },
 };
 
 /** The First Sign's line, a word (or two) at a time; each is a note of its own (the echo shell keeps one). */

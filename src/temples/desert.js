@@ -49,9 +49,23 @@ const UP = V(0, 1, 0);
 export const SITE = { x: 550, z: 376, r: 34 };
 SITE.heading = Math.atan2(STORY.city.x - SITE.x, STORY.city.z - SITE.z);
 
+/**
+ * The house's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/givers-house):
+ * warm rose stone laid in ashlar courses, a darker course under the frieze and at the plinth, rose-tan flags, the frames in
+ * the darker rose, the fittings (braziers, plate rims) old bronze gone green; its shade a deep rose, its light warm.
+ */
 export const PALETTE = {
-  wall: '#f0d7c3', wall2: '#e8c4ae', wall3: '#f6e6d6', floor: '#e3c6a8', floor2: '#d8b694', trim: '#f6efe0',
-  dark: '#34405e', stone: '#e9cdb6', accent: '#dd8f86', glow: '#70e7df', lamp: '#f6c84e', sand: '#e8cf9c', sand2: '#dcbd86',
+  wall: '#dc9583', wall2: '#d38976', wall3: '#e3a491', floor: '#d9a691', floor2: '#cc9681', trim: '#c47b6b', fitting: '#9c8a5c',
+  dark: '#5a3640', stone: '#e6ae9b', accent: '#dd8f86', glow: '#70e7df', glyph: '#8a4a4c', lamp: '#f6c84e', sand: '#e8cf9c', sand2: '#dcbd86',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.9, shade: 0.35, hatch: 0.6 },
+    wall: { mode: 0, grid: 2.2, plates: true },
+    wallGlyph: { grid: 2.2 },
+    glyph: { glow: 0.1 },
+  },
+  bands: [{ at: 0.72, h: 1.7, color: '#c98071' }, { y: 0.45, h: 0.9, color: '#bb7161' }],
+  ornament: { kind: 'mark', color: '#8a4a4c', color2: '#8a4a4c' },
+  light: { shadow: '#c79aa3', light: '#fff0e0', sun: '#ffe6c4' },
 };
 
 // ------------------------------------------------------------------ the puzzle, as logic (src/temples/logic.js)

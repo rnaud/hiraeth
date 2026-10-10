@@ -296,3 +296,36 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   you through; the echo shell and bloom mode have tests of their own.
 - In the browser, `temples.<world>` is the runtime (its `logic`, `guardian`,
   `piece(id)`), for poking at from the console.
+
+## Each house its own look (v1.31)
+
+The temple visual pass (docs/audits/temple-visuals-v1.32.md): every house was drawn with the same kit in the same
+strata stone, cream frames and cyan glyphs, nearly all of it in the shade, and the shade was the world's (Vael II,
+the City-Shaft and the Garden print theirs flat in grey-blue or sage), so six of the eleven read as one blue-grey
+house. Now each temple's `PALETTE` (its world file) carries, besides its colours, what makes it its own, read by
+`templeMaterials` (`kit.js`):
+
+- **`look`**: `makeMaterial` options over the defaults. `all` goes to every surface of the house, its paint too
+  (`M.paintLook`: the vertex-coloured paint mesh is the house's own, still one mesh): its shade kept in its own hue
+  (`shadeFlat` low, `shadeHue` high), lifted (`shade`), its spot blacks fewer (`spot`), the lamps' pools in a colour
+  (`lampTint`: the Lamp-House's amber). `wall` / `floor` change the stone itself: ashlar in staggered blocks
+  (`mode: 0, grid, plates`: the Givers' House, the Engine-House, the Undertower), big smooth panels (the Well, the
+  Belfry, the Garage), cracked beds (the Hush-House), riveted iron (`detail: 'built'`). `trim` makes the frames a
+  material of their own (the Garage's brass); `fitting` and `glyph` colour the pieces' fittings (door bands, plate
+  rims, braziers) and the frieze apart from the pieces' own glow.
+- **`bands`** `[{ at | y, h, color, every, look }]`: courses of another stone or paint across every plain wall and
+  round hall (the Well's steel blue, the Aerie's ochre, the Garage's brass inlay, moss at the Lamp-House's and the
+  Hush-House's foot). The wall's drawn blocks are cut at them (`TempleKit.banded`) with no faces where the pieces
+  meet (inside the wall they read as tops to stand on); the collision is the whole block as before.
+- **`ornament`** `{ kind, color, color2 }`: a small thing by every frieze glyph (`ORNAMENTS`: a bell in a lit niche,
+  a lamp, crystals, a slot of the market's light, a slit window, a clock, a valve on a strap, a porthole, a feather, the
+  makers' mark, a pane between ribs), drawn as a relief no more than 5 cm proud of the wall, within the contact
+  audit's tolerance (drawn only, as the frieze is).
+- **`light`** `{ shadow, light, sun, fog }`: the house's own light inside. `templeLight` moves the world's colour
+  script's shade and light tints to the house's (all the way by day, 0.8 at dusk, 0.55 at twilight, 0.3 at night:
+  a house is no lamp) and keeps its sky; `attachTemple` hands it over with `level.atmo` while the traveller is inside
+  the temple's bounds (as the Lab's rooms hand theirs: main.js `updateSky`), and the world's again outside.
+
+The pieces and the puzzles are untouched: the same rooms, collision and logic (the Lamp-House's six lamps sit lower
+and reach farther, light only). Cost: two to seven draw calls more in a frame (paint and bands share the house's paint
+mesh), frame time within the machine's spread (the audit's "Cost"). `tests/temple-visuals.test.js`.

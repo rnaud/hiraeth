@@ -2,6 +2,21 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.32 — 2026-10-10
+
+- The Undertower is heavy blue-grey masonry, its door frames the same stone, with grey flagstones and slots of the market’s coral and teal light along its walls.
+- The Builders’ Greenhouse is white stone and pale sky-blue glass, its frames and ribs white instead of teal and its floors pale stone instead of green, under crisp blue shadows.
+- The First Garage is cream marble, floors and all, with brass in its frames, thin brass lines along its walls and little brass clocks, and its eyes glow the makers’ teal.
+- The Aerie is warm ivory banded in ochre, with long feathers carved along its walls and peach-rose shadows.
+- The Hush-House is violet stone through and through, its floors no longer green, with moss at the walls’ foot and small teal and violet crystals along its friezes, under a dusky rose light.
+- The Lamp-House is dark slate with moss at the foot of its walls and lamps hanging along its friezes, and every lamp lays a warm amber pool on the flagstones.
+- The Footprint is white plaster with pale lavender shadows and warm light, no longer sage green, with round portholes, amber glyphs and the sage of its door on its fittings.
+- The Engine-House is riveted rust iron strapped in steel blue, with grey iron floor plates, brass fittings and valve wheels on its straps.
+- The Founders’ Belfry is bone-white stone with warm rose shadows. Its bells are old bronze, and little bronze bells hang in lit niches round its halls.
+- The Warden’s Well is cream stone again, banded in the makers’ steel blue with gold glyphs, with cream floors and lit slit windows over its friezes. Its shadows had turned the whole house blue.
+- The Givers’ House is warm rose stone laid in blocks, with a darker course under its frieze, the makers’ three dots over an arc cut along its walls and old green-bronze braziers.
+- The eleven temples no longer look alike: each has its own stone, colours and light inside, after its design picture. Inside a temple the shade takes the house’s own colour instead of the world’s, so a rose house stays rose in its shadows and a cream one stays cream, and each has a small thing of its own along its friezes.
+
 ## v1.31 — 2026-10-10
 
 - A new setting, Hints (Settings, Game): Off, Subtle (the new default) or Full, which brings back every prompt, every tip and the drone’s help at once.

@@ -4,7 +4,7 @@ import * as THREE from 'three';
 // carries the mood of each time of day, and at night the moon takes over as
 // the shadow-casting light so the player stays readable on the ground.
 
-const KEYS = [
+export const KEYS = [
   // hour, sky top, sky horizon, shadow tint, light tint, sun/moon disc
   [0.0, '#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],
   [4.5, '#1d2a52', '#4a5a8a', '#3d4380', '#8e9ccc', '#f2f0e6'],

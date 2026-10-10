@@ -49,9 +49,23 @@ const TAU = Math.PI * 2;
 export const SITE = { x: 46, z: -424, r: 14, path: [6, -414] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
+/**
+ * The Lamp-House's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/lamp-house):
+ * dark slate in blocks, grey flagstones, moss at the walls' foot and the frames mossy grey, hanging lamps under the friezes
+ * and every lamp's pool on the stone warm amber (lampTint); its shade a deep blue-violet, its light a dim warm grey.
+ */
 export const PALETTE = {
-  wall: '#4a4f7a', wall2: '#3f4470', wall3: '#5a5f8a', floor: '#5a5068', floor2: '#4e4560', trim: '#c9b8d8',
-  dark: '#1b1f3e', stone: '#7a7090', accent: '#f0927a', glow: '#8fe0d0', lamp: '#ffd6a0', sand: '#5a5068', sand2: '#4e4560', void: '#14162c',
+  wall: '#504f5e', wall2: '#484756', wall3: '#5a5966', floor: '#504e58', floor2: '#47454f', trim: '#6c6b55', fitting: '#a07a3e',
+  dark: '#1b1d33', stone: '#5e5c66', accent: '#f0927a', glow: '#8fe0d0', glyph: '#f0b450', lamp: '#ffd6a0', sand: '#5a5068', sand2: '#4e4560', void: '#14162c',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.7, shade: 0.15, lampTint: ['#f2b45a', 0.75] },
+    wall: { mode: 0, grid: 1.8, plates: true },
+    floor: { mode: 0, grid: 2.2, plates: true },
+    glyph: { glow: 0.5 },
+  },
+  bands: [{ at: 0.72, h: 1.0, color: '#3f4254' }, { y: 0.3, h: 0.6, color: '#5a6139' }],
+  ornament: { kind: 'lamp', color: '#f6c060', color2: '#3a3a40', glow: 0.85 },
+  light: { shadow: '#383a5e', light: '#e8dcc4', sun: '#f0d8a8' },
 };
 
 export const LOGIC = {
@@ -325,7 +339,8 @@ function layout(rt) {
     gadget: { at: W(0, 9.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 9.5, CL + HR + 9.6), r: 1.5 }],
     // dim: the house is dark (the pools and the lantern light it)
-    lights: [[0, 5, 6, 9], [0, 5, 28, 10], [0, 4, C2, 9], [0, 13, C3, 8], [0, 13, G0 + 16, 9], [0, 14, CL, 14]],
+    // (lower and wider since the visual pass: each a warm pool on the flags, lampTint, as the picked hall's lamps lay them)
+    lights: [[0, 3.5, 6, 12], [0, 3.5, 28, 14], [0, 3, C2, 12], [0, 12, C3, 11], [0, 12, G0 + 16, 12], [0, 12.5, CL, 17]],
     guardian: { def: { ...LAMPLESS, onHit: mothHit }, model, arena },
   };
 }

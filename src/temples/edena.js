@@ -52,10 +52,24 @@ const TAU = Math.PI * 2;
 export const SITE = { x: 110, z: 320, r: 22, path: [150, 100] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
+/**
+ * The Greenhouse's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/builders-greenhouse):
+ * white stone in big panels, pale stone floors (no more green), white frames and ribs (no more teal), the glass the sky's
+ * pale blue (GLASS), a pane of glass between white ribs under every frieze; its shade a crisp blue, its light white.
+ */
 export const PALETTE = {
-  wall: '#f7f4ec', wall2: '#efe8da', wall3: '#fbf8f0', floor: '#d6e8d0', floor2: '#c9e0c2', trim: '#62c3c9', strata: 2.8,
+  wall: '#f5f3ed', wall2: '#efece4', wall3: '#f9f7f2', floor: '#ebe7dc', floor2: '#dfdacd', trim: '#f8f6f0', fitting: '#dcd8cc', strata: 2.8,
   dark: '#4f8a5a', stone: '#f2a7b5', accent: '#f6c7a0', glow: '#7fcfa8', lamp: '#f6d36a', sand: '#b4d896', sand2: '#c9e4a8', void: '#2f4a3a',
+  look: {
+    all: { shadeFlat: 0.15, shadeHue: 0.5, shade: 0.3 },
+    wall: { mode: 0, grid: 3.2 },
+    glyph: { glow: 0.45 },
+  },
+  ornament: { kind: 'pane', color: '#f8f6f0', color2: '#cfe1f0', glow: 0.2 },
+  light: { shadow: '#b0c0e0', light: '#ffffff', sun: '#fff8e8' },
 };
+/** The greenhouse glass: the sky's pale blue, lit a little (the panes, the vault, the dome). */
+const GLASS = '#cfe1f0';
 
 export const LOGIC = {
   id: 'edena', entry: 'threshold', gadget: 'bloom',
@@ -182,7 +196,7 @@ function layout(rt) {
   const leaf = { paint: new THREE.Color('#7fcf72'), smooth: false, side: THREE.FrontSide };
   const leaf2 = { paint: new THREE.Color('#5f9a52'), smooth: false, side: THREE.FrontSide };
   const pink = { paint: new THREE.Color('#f2a7b8'), smooth: false, side: THREE.FrontSide };
-  const glassM = makeMaterial({ color: '#cfe9e0', glow: 0.12, flat: true, key: 'temple.edena.glass' });
+  const glassM = makeMaterial({ color: GLASS, glow: 0.12, flat: true, key: 'temple.edena.glass' });
   /** A potted shrub: a white tub, a round head of leaves, a few flowers (dead: bare twigs). */
   const pot = (x, y, z, s = 1, dead = false) => {
     K.both(M.wall, lathe([[0.9 * s, 0], [1.1 * s, 1.0 * s], [1.2 * s, 1.1 * s], [0.01, 1.1 * s]], 12).translate(x, y, z), new THREE.CylinderGeometry(1.1 * s, 0.9 * s, 1.1 * s, 10).translate(x, y + 0.55 * s, z));
@@ -273,7 +287,7 @@ function layout(rt) {
   K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 18, 0.8);
   K.hall({ x: 0, z: G0 + 22, w: 22, d: 44, y: -6, h: 44, floor: false, roof: false, doors: [{ side: 's', w: 5, h: 6.4, y0: 24 }, { side: 'n', w: 5, h: 6.4, y0: 33 }] });
   // its roof a barrel vault of greenhouse glass on white ribs, the daylight through it (the picked hall)
-  const vaultM = makeMaterial({ color: '#d8efe6', glow: 0.22, flat: true, side: THREE.DoubleSide, key: 'temple.edena.vault' });
+  const vaultM = makeMaterial({ color: '#d6e6f4', glow: 0.22, flat: true, side: THREE.DoubleSide, key: 'temple.edena.vault' });
   K.both(vaultM, T(new THREE.CylinderGeometry(12.2, 12.2, 45.2, 24, 1, true, -Math.PI / 2, Math.PI), [0, 38, G0 + 22], [-Math.PI / 2, 0, 0]));
   for (let i = 0; i <= 11; i++) K.both(M.trim, T(new THREE.TorusGeometry(12.05, 0.22, 4, 24, Math.PI), [0, 38, G0 + i * 4], [0, 0, 0]));
   for (const a of [0.45, 0.9, 1.35]) for (const s of [-1, 1]) K.add(M.trim, T(new THREE.BoxGeometry(0.18, 0.18, 44.6), [s * Math.cos(a) * 12.0, 38 + Math.sin(a) * 12.0, G0 + 22]));
@@ -365,7 +379,7 @@ function exterior(scene, level, rt) {
   const base = level.ground.baseAt(SITE.x, SITE.z, SITE.r) - 0.6;
   const K = new TempleKit(rt.root, 'The Builders’ Greenhouse', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M, sill = 2.4;
-  const glassM = makeMaterial({ color: '#cfe9e0', glow: 0.18, flat: true, key: 'temple.edena.dome' });
+  const glassM = makeMaterial({ color: GLASS, glow: 0.18, flat: true, key: 'temple.edena.dome' });
   const ribs = { paint: new THREE.Color('#fbf8f0'), smooth: false, side: THREE.FrontSide };
   const teal = { paint: new THREE.Color('#62c3c9'), smooth: true, side: THREE.FrontSide };
   // a white plinth, a drum of the builders' gridded stone, a ribbed dome of glass on it

@@ -485,7 +485,66 @@ const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': 
 const FROM_HINTS31 = 'headless Chrome (High, 1280 × 720) against this branch’s own dev server, the desert, the traveller placed 2.4 m from Naji with the camera behind him; before with the setting on Hints: Full (the prompts as they were), after on Subtle; cwebp -q 72 (10 October)';
 /** The guardians on the kit (v1.29): eight frames of a walk, a quarter second apart, side-on in the Arena; made by hand. */
 const FROM_GUARD29 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena, the guardian called into its ring and walked by hand in a straight line at 2.2 m/s, the camera beside it following, eight frames a quarter second apart; before at main before the change (c2324c58), after on the branch (10 October)';
+// the temple visual pass (v1.32, docs/audits/temple-visuals-v1.32.md): the same view of each house before and after, its
+// picked design picture beside it (references/temples/<id>/: the key hall, the entrance)
+const TV_FROM = 'headless Chrome against a dev server (High, 10:00, clear, the camera pinned, the traveller at a temple mark), the temple files as on main before the pass and after it';
+const TV = (lv, id, view, caption, sheet, ref) => ({ name: `tv-${lv}-${view}`, title: view === 'hall' ? 'Inside' : 'The door', caption, from: TV_FROM,
+  reference: { sheet: `references/temples/${id}/${sheet}`, caption: ref } });
 export const CHANGELOG_MEDIA = {
+  '1.32': [
+    { match: 'The eleven temples no longer look alike', numbers: [
+      { title: 'Draw calls a frame in two temples', unit: 'calls', better: 'lower', device: 'Mac, headless Chrome on the GPU, 1280 × 720, High and the Steam Deck preset',
+        rows: [{ where: 'Givers’ Cistern, High', before: 194, after: 199 }, { where: 'Hall of Fires, High', before: 292, after: 299 }, { where: 'Engine-House arena, High', before: 139, after: 142 }, { where: 'Crank Hall, High', before: 323, after: 326 },
+          { where: 'Givers’ Cistern, Deck', before: 169, after: 173 }, { where: 'Hall of Fires, Deck', before: 236, after: 241 }, { where: 'Engine-House arena, Deck', before: 122, after: 124 }, { where: 'Crank Hall, Deck', before: 260, after: 262 }],
+        source: 'docs/audits/temple-visuals-v1.32.md, “Cost” (24 frames averaged, the shadow maps taking turns)' },
+      { title: 'Frame time in two temples', unit: 'ms', better: 'lower', device: 'Mac, headless Chrome on the GPU, 1280 × 720, High and the Steam Deck preset',
+        note: 'six frames back to back to a one-pixel read, the median of five; the machine’s run-to-run spread is about ±30 %',
+        rows: [{ where: 'Givers’ Cistern, High', before: 3.18, after: 3.03 }, { where: 'Hall of Fires, High', before: 4.08, after: 4.05 }, { where: 'Engine-House arena, High', before: 3.58, after: 3.92 }, { where: 'Crank Hall, High', before: 3.47, after: 3.37 },
+          { where: 'Givers’ Cistern, Deck', before: 3.88, after: 2.45 }, { where: 'Hall of Fires, Deck', before: 3.3, after: 3.62 }, { where: 'Engine-House arena, Deck', before: 2.2, after: 2.23 }, { where: 'Crank Hall, Deck', before: 3.62, after: 3.58 }],
+        source: 'docs/audits/temple-visuals-v1.32.md, “Cost”' },
+    ], see: 'Walk into any temple by day: the shade inside takes its own colour (rose in the Givers’ House, cream in the Warden’s Well, violet in the Hush-House) and the light its own warmth, and step back out to see the world’s again. Look along the friezes for each house’s own small thing: bells, lamps, crystals, clocks, valves, feathers, portholes, panes, slots of light.' },
+    { match: 'The Givers’ House is warm rose stone', shots: [
+      TV('desert', 'givers-house', 'hall', 'The Cistern, the Keeper asleep in it: before, mauve-grey bands and cream frames; after, rose ashlar with a darker course under the frieze and at the foot, the makers’ mark along the walls, rose shade', 'sheet-1.jpg', 'The picked key hall: the cistern under its oculus, rose stone, bronze braziers'),
+      TV('desert', 'givers-house', 'door', 'The house in the dunes from the way up: before, brown and mauve strata; after, rose blocks', 'sheet-2.jpg', 'The picked entrance: a rose drum half sunk in the dunes'),
+    ] },
+    { match: 'The Warden’s Well is cream stone again', shots: [
+      TV('incal', 'wardens-well', 'hall', 'The Lamp Gallery, looking up: before, everything pale blue; after, cream stone, its steel-blue bands with gold glyphs, cream floor', 'sheet-1.jpg', 'The picked key hall: the cream shaft banded in steel blue, slit windows, ledges'),
+      TV('incal', 'wardens-well', 'door', 'The tower on the rim: before, blue-grey; after, cream blocks and blue bands', 'sheet-2.jpg', 'The picked entrance: the stepped cream tower banded in blue'),
+    ] },
+    { match: 'The Founders’ Belfry is bone-white stone', shots: [
+      TV('arzach2', 'founders-belfry', 'hall', 'The Bell Chamber: before, blue-grey walls and a white bell; after, bone-white blocks, rose-lavender shade, the bell in bronze, little bronze bells in lit niches', 'sheet-3.jpg', 'The picked key hall: the bell chamber, bone-white, a great bronze bell in the oculus, bells in niches'),
+      TV('arzach2', 'founders-belfry', 'door', 'The tower over the cloud: before, banded white; after, bone-white blocks, the belfry’s bell bronze', 'sheet-1.jpg', 'The picked entrance: the white tower and its bridge over the cloud sea'),
+    ] },
+    { match: 'The Engine-House is riveted rust iron', shots: [
+      TV('buried', 'engine-house', 'hall', 'The Crank Hall, the hammer over its walkway: before, flat orange walls and cream frames; after, riveted rust plates, steel-blue straps and frames, grey iron floor plates', 'sheet-1.jpg', 'The picked key hall: rust iron, steel-blue bands, brass pipes, the eyes'),
+      TV('buried', 'engine-house', 'door', 'The tank in the sand: before, smooth orange bands; after, riveted rust plates', 'sheet-2.jpg', 'The picked entrance: the riveted rust tank, its teal cap and blue band'),
+    ] },
+    { match: 'The Footprint is white plaster', shots: [
+      TV('spheres', 'footprint', 'hall', 'The Hall of Spheres: before, sage-green walls and shade; after, white plaster, lavender shade, portholes, amber glyphs, sage fittings', 'sheet-1.jpg', 'The picked key hall: white domed halls, lavender shade, warm light'),
+    ] },
+    { match: 'The Lamp-House is dark slate', shots: [
+      TV('perdide2', 'lamp-house', 'hall', 'The Hall of Dark Pools: before, flat indigo; after, slate blocks, moss at the foot, lamps along the frieze, an amber pool round the far pools', 'sheet-1.jpg', 'The picked key hall: dark stone, roots and moss, the lantern’s warm pools'),
+    ] },
+    { match: 'The Hush-House is violet stone', shots: [
+      TV('perdide', 'hush-house', 'hall', 'The Choir: before, green floors and pale lilac columns; after, violet stone and flags, darker violet frames, moss, small crystals along the frieze', 'sheet-1.jpg', 'The picked key hall: the violet ribbed dome, its crystals teal and violet'),
+    ] },
+    { match: 'The Aerie is warm ivory banded in ochre', shots: [
+      TV('arzach', 'aerie', 'hall', 'The Wind Well, looking up: before, grey-mauve walls; after, warm ivory, ochre bands round it, peach shade', 'sheet-1.jpg', 'The picked key hall: the ivory well banded in ochre, open to the sky'),
+      TV('arzach', 'aerie', 'door', 'The Aerie on the plain: before, banded grey-cream; after, warm ivory', 'sheet-2.jpg', 'The picked entrance: the ivory drum, its ochre band, the feather crown'),
+    ] },
+    { match: 'The First Garage is cream marble', shots: [
+      TV('garage', 'first-garage', 'hall', 'The Escapement: before, tan walls and blue slate floors; after, cream marble slabs and floors, brass frames and lines, small clocks', 'sheet-1.jpg', 'The picked key hall: cream marble, brass inlay, the great clock and its eyes'),
+      TV('garage', 'first-garage', 'door', 'The stair-house on the rim: before, tan; after, cream marble and brass', 'sheet-2.jpg', 'The picked entrance: the cream drum, its clock and brass bands'),
+    ] },
+    { match: 'The Builders’ Greenhouse is white stone', shots: [
+      TV('edena', 'builders-greenhouse', 'hall', 'The Vine Gulf: before, teal frames and green floors; after, white stone panels and frames, sky-blue glass, panes along the walls', 'sheet-1.jpg', 'The picked key hall: white stone, white ribs, the glass vault, the bud'),
+      TV('edena', 'builders-greenhouse', 'door', 'The greenhouse in the meadow: before, teal trim and green-tinted glass; after, white and sky-blue', 'sheet-2.jpg', 'The picked entrance: the white drum under its ribbed glass dome'),
+    ] },
+    { match: 'The Undertower is heavy blue-grey masonry', shots: [
+      TV('bazaar', 'undertower', 'hall', 'The Gallery of Voices: before, smooth teal-grey walls and brass frames; after, blue-grey masonry, stone frames, grey flags, coral and teal slots of light', 'sheet-1.jpg', 'The picked key hall: blue-grey blocks, the brass horn, coral and teal light from the market'),
+      TV('bazaar', 'undertower', 'door', 'The old doorway in the tower’s back: before, smooth; after, heavy masonry blocks', 'sheet-2.jpg', 'The picked entrance: the monolithic blue-grey portal in the market'),
+    ] },
+  ],
   '1.31': [
     // the hints pass (docs/systems/hints.md, docs/design/hints-audit.md)
     { match: 'Far fewer hints', shots: [

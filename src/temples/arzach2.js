@@ -53,10 +53,26 @@ const TAU = Math.PI * 2;
 export const SITE = { x: -128, z: -6, r: 18, rim: [-86, -6] };
 SITE.heading = Math.PI / 2;   // (the door faces +x, the plateau)
 
+/**
+ * The belfry's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/founders-belfry):
+ * bone-white stone in big smooth blocks, warm bone floors, the founders' bells in old bronze (BRONZE), little bronze bells
+ * in niches under every frieze, the glyphs carved and bronze; its shade a warm rose-lavender over the white (Vael II's
+ * sky prints its shade flat in grey-blue, and turned the tower blue with it), its light warm.
+ */
 export const PALETTE = {
-  wall: '#f4efe2', wall2: '#e8dfcb', wall3: '#fbf7ee', floor: '#e6d6bd', floor2: '#d9c7aa', trim: '#fbf7ee',
-  dark: '#383650', stone: '#efe2cc', accent: '#d99072', glow: '#a8e6ee', lamp: '#f6c84e', sand: '#e8dfcb', sand2: '#d9c7aa',
+  wall: '#f2e9dc', wall2: '#ece2d2', wall3: '#f7f0e6', floor: '#ece0cc', floor2: '#ded1bb', trim: '#f7f0e6', fitting: '#a8874a',
+  dark: '#4a3a4c', stone: '#efe6d8', accent: '#d99072', glow: '#a8e6ee', glyph: '#a8874a', lamp: '#f6c84e', sand: '#e8dfcb', sand2: '#d9c7aa',
+  look: {
+    all: { shadeFlat: 0.1, shadeHue: 0.85, shade: 0.45, spot: 0.4 },
+    wall: { mode: 0, grid: 3.6, plates: true },
+    glyph: { glow: 0.12 },
+  },
+  bands: [{ at: 0.72, h: 0.7, color: '#e6d8c4' }],
+  ornament: { kind: 'bell', color: '#a8874a', color2: '#e6c690', metal: 'brass' },
+  light: { shadow: '#d4bccb', light: '#fff4e6', sun: '#ffe8c8' },
 };
+/** The founders' bronze: the bells, old and warm, a little green. */
+const BRONZE = () => makeMaterial({ color: '#9c7c46', flat: true, metal: 'brass', refl: 0.35, key: 'temple.arzach2.bronze' });
 
 export const LOGIC = {
   id: 'arzach2', entry: 'threshold', gadget: 'bell',
@@ -331,7 +347,7 @@ function layout(rt) {
   // the founders' bell, low by the way in, with no clapper: the ball's groove runs into its mouth
   const BX = -6.2, BZ = C2 - 3;
   const bellS = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);
-  K.add(M.stone, T(bellS, [BX, 2.5, BZ]));
+  K.add(BRONZE(), T(bellS, [BX, 2.5, BZ]));
   K.add(M.trim, box(0.2, 19, 0.2, BX, 15.6, BZ));
   K.add(M.trim, T(new THREE.TorusGeometry(1.48, 0.08, 4, 28).rotateX(Math.PI / 2), [BX, 2.6, BZ]));
   K.add(M.dark, box(5.8, 0.04, 1.0, -3.6, 0.02, BZ));
@@ -354,7 +370,7 @@ function layout(rt) {
   // a bell hangs in the oculus, without a clapper: the whistle rings it, and three stones that fell up come down
   // round the dais while it sounds (a try: nothing is locked by it)
   const bell = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);
-  K.add(M.stone, T(bell, [0, 26, C3]));
+  K.add(BRONZE(), T(bell, [0, 26, C3]));
   K.add(M.trim, box(0.2, 4, 0.2, 0, 31.5, C3));
   add(BellEar, { id: 'eT', at: [0, 26, C3], reach: 14, heard: 'The bell in the oculus hums with your note, and three of the stones that fell up come down round the dais. They stay only while it sounds.', heardKey: 'eT.heard', fading: 'The hum is fading: the stones tremble.' });
   add(Bridge, { id: 'heap', a: [-6.4, 16.6, C3 - 3.2], b: [-6.4, 16.6, C3 + 3.2], w: 2.4, n: 3, from: 'above' });
@@ -365,7 +381,7 @@ function layout(rt) {
   K.slab(-3.2, C3 + 9.6, 3.2, A0 + 0.6, 16, 0.8);
   K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 16, h: 10, roof: 'oculus', oculus: 0.35, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
   const bellP = lathe([[0.02, 0], [1.1, 0.08], [1.2, 0.65], [0.85, 1.9], [0.7, 2.7], [0.02, 2.9]], 24);
-  K.add(M.stone, T(bellP, [0, 22.6, A0 + 6]));
+  K.add(BRONZE(), T(bellP, [0, 22.6, A0 + 6]));
   K.add(M.trim, box(0.2, 1.6, 0.2, 0, 26.2, A0 + 6));
   add(BellEar, { id: 'e1', at: [0, 23, A0 + 6], reach: 8.5, heard: 'The porch’s bell hums with your note, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
   add(Mark, { room: 'bell', at: [-4, 16, A0 + 4], yaw: Math.PI / 2 });
@@ -451,7 +467,7 @@ function exterior(scene, level, rt) {
   K.both(M.wall, T(annulus(4, R + 1, 1.4, 40), [0, B0 + 17.4, 0]));
   K.both(rose, new THREE.SphereGeometry(R, 32, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.6, 1).translate(0, B0 + 17, 0));
   K.add(M.trim, lathe([[2.6, 0], [2.6, 1], [1.8, 1.4], [0.01, 2.2]], 16).translate(0, B0 + 17 + R * 0.6 - 0.4, 0));
-  K.both(M.stone, T(lathe([[0.02, 0], [5, 0.3], [5.4, 3], [3.8, 8.5], [3.1, 12], [0.02, 12.8]], 32), [0, B0 + 2, 0]));
+  K.both(BRONZE(), T(lathe([[0.02, 0], [5, 0.3], [5.4, 3], [3.8, 8.5], [3.1, 12], [0.02, 12.8]], 32), [0, B0 + 2, 0]));
   K.add(M.dark, box(0.6, 3.4, 0.6, 0, B0 + 15.5, 0));
   // glyphs round the shaft, between flutes
   for (let i = 0; i < 12; i++) { const a = (i + 0.5) / 12 * TAU; K.add(M.glyph, T(glyphGeometry(2.4, 0.14), [Math.sin(a) * (R + 0.06), door + 18, Math.cos(a) * (R + 0.06)], [0, a, 0])); }
