@@ -25,9 +25,13 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 ## Traversal and gadgets
 
-- [ ] **The jetpack becomes a debug-only item**: too powerful (with the abilities rewrite).
 - [ ] **The City-Shaft's air pillars**: columns of rising air to carry you back up with the wings; inside an air shaft
   you only rise, no forward drift.
+  (Until they land, the Warden's Well's chest holds the Warden's harness, jets that fire in the City-Shaft only, v1.38:
+  with the pillars in, the harness can go and the shaft's way up be the wings.)
+- [ ] **The jets' trials outside the City-Shaft** (the Hangar's Pillar slalom, the Buried Machine's Canyon dive, the
+  Signal Market's Avenue run): since the jets became a debug item (v1.38) they want the debug jets, so their rewards
+  (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode.
 
 ## Look
 
@@ -64,10 +68,6 @@ User-approved Midjourney originals and provenance are indexed in
 Use the selected single-view designs as the source of truth; derive further views from them
 rather than mixing the earlier inconsistent exploration sheets.
 
-- [ ] **Redesign the in-game backpack after the round-backpack picks** (2026-10-10; in progress with the abilities
-  rewrite): `references/Core Objects/Round Backpack/` (sheet, worn, states and upgrade stages): the round glass sphere of
-  glowing jade fluid in a brass ring cradle, leather straps, olive canvas back plate, no hose; its fluid and glow tied to
-  the magic bar, the upgrade stages to the backpack upgrades (the double jump its first strength).
 - [ ] Extend the generated father beyond the recording bust for full-body walking and clothing motion; the procedural family is integrated (see DONE.md).
 # Singing light soundtrack follow-up
 

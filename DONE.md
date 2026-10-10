@@ -2298,3 +2298,19 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] **First Garage (1.78)** (reworked in v1.12): `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
   outside door); the ball pushed twice in a breath onto the swinging disc.
 
+## The progression and controls rewrite (v1.38, 2026-10-10)
+
+- [x] **Start with only the sword** (the author: "We shouldn't get the triple jump automatically, it should be a
+  double jump, have a flip animation when doing the second jump and be an item I get to make the backpack stronger.
+  Same for the fluid gun ..."). The sword needs no item; the backpack (Qanat's chest) is a container; the lift valve
+  (the double jump, with a procedural front flip: src/jump.js FLIP) waits in a chest beside the giant's pool, the
+  fluid gun (a gadget, src/gadgets/gun.js) in the Givers' Hearth by the stone ball; the old boost is gone.
+  docs/systems/progression.md.
+- [x] **The triggers work the gadget in hand**: LT aims, RT uses (each gadget's `trigger`), D-pad → its modes, Y / △
+  the whistle, the jets on jump held (`PAD_SCHEME` 5, `migratePad`). docs/systems/controls.md, gadgets.md.
+- [x] **The jetpack becomes a debug-only item** (the world debug menu's toggle, the dev menu); old saves lose it and
+  keep the Warden's harness, the City-Shaft's own jets, in the Warden's Well's chest.
+- [x] **Redesign the in-game backpack after the round-backpack picks**: the glass sphere in its brass cradle, the
+  canvas plate and straps, its glow and level following the magic bar, three charge lights, three stages for the
+  strengths (src/fluid-tool.js buildFlask, setStage). docs/systems/traveller-kit.md.
+- [x] **Saves keep what they earned** (src/save-migrate.js steps 8 and 9).

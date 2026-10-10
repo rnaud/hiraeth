@@ -132,8 +132,7 @@ the settings.
 
 In route order (`src/levels/names.js` ORDER): the desert, then Vael and Vael II
 (the wings and the winds), Lorn and Lorn II, Viridel, then, in the later half,
-the City-Shaft (the jets), the Sealed Hangar and the Buried Machine (which want
-them), the Garden of Spheres and the Signal Market. Vael II waits for Vael.
+the City-Shaft (its own jets, the Warden's harness), the Sealed Hangar and the Buried Machine, the Garden of Spheres and the Signal Market. Vael II waits for Vael.
 The sections below are numbered by that route (they keep the order they were
 written in).
 
@@ -231,7 +230,7 @@ written in).
   dispatcher on the rim, by collecting the fare Tobin owes him (until then no
   cab answers your whistle or lets you in; Wren, at its lamp, stops for anyone).
   You ride seated inside a cab and tell it where to go.
-- **Gift**: the fluid jets, in the Warden's Well on the rim. The route brings the
+- **Gift**: the Warden's harness (v1.38: the jets, firing in the City-Shaft only; the jets anywhere are a debug item), in the Warden's Well on the rim. The route brings the
   City-Shaft in its later half (the seventh world), so the jets come long after
   the wings; right after the chest, a line, the drone and rings rising through
   the oculus show the first flight, up into the gallery.
