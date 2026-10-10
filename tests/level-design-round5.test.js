@@ -1,4 +1,4 @@
-// The level design audit's fifth round (docs/audits/level-design-v1.21.md): the flat worlds' high places, climbed for
+// The level design audit's fifth round (docs/audits/level-design-v1.23.md): the flat worlds' high places, climbed for
 // real by the traveller (a short climb and a rest, each pitch), and the places pulled in toward the path.
 import test from 'node:test';
 import assert from 'node:assert/strict';

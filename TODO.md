@@ -210,7 +210,7 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
   the motion check for ink shimmer.
 
-# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20: 2026-10-09)
+# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20, v1.23: 2026-10-10)
 
 Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
 
@@ -248,22 +248,33 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
   to the red stair. The City-Shaft 3.89 → 4.44.
 - [x] **Vael: onboarding** (v1.17): the riders' mast over the slope where Oïa points; the route starts with her beside
   the landing. Vael 4.33 → 4.56.
-- [ ] **Left from v1.17:** the City-Shaft's Tobin → Lio hop (83 m, nothing new: loops 4); the desert's blind legs (Ama's
-  fire to the giant's mouth, the well to Marrow, Marrow's hollow to the Hearth: wayfinding 3) and its first goal 391 m
-  off (onboarding 3); both worlds' longest stretches sit at the density band's edge (20 s).
+- [x] **Left from v1.17** (v1.23, docs/audits/level-design-v1.23.md): the City-Shaft's Tobin → Lio hop (Tobin's
+  telescopes round the outer rim: loops 5); the desert's Ama's fire → the giant's mouth (the giant's breath over the
+  back gate: wayfinding 3 → 4). Left: the desert's well → Marrow and hollow → Hearth, its first goal 391 m off.
 - [x] **Sky Stones: the clapper's return arc** (v1.20: along the fallen-up tiles over the great table; the island
-  church's tower as a beacon). Loops 2→5. Left: Ondine, 490 m from anything.
+  church's tower as a beacon). Loops 2→5. Ondine (v1.23): out on the aqueduct under the island, by her tally; the
+  clapper's lantern over the porch.
 - [x] **Lorn II: lamp-lit stakes** (v1.20: the lit path declared, the saucer's beam a beacon, the water-way home).
   Wayfinding 1→5.
-- [ ] **The Signal Market's listeners' lane** (v1.20) has two long empty halves (149 m): a listener sitting under the
-  dishes, or a second thing to stop for. Density stays 5; the walk is long.
-- [ ] **Pull the remote loners into 30-150 m of the path**: Ondine, Gaspard, the
-  pyramid seed, Emrys. Optional pull +1.
-- [ ] **One high place per flat world** (Lorn 8 m, Lorn II 17 m, Spheres 25 m of height): a climbable viewpoint
-  with a box. Verticality +1-2.
-- [ ] Smaller: the Signal Market's tower seen down two more avenues and a second way back from Madame Sel's; Lorn's
-  Crystal ↔ Saba ping-pong merged; a weenie in each of the Hangar's far zones; answering spheres along the Garden's
-  572 m blind leg; a pipe leading to the Buried Machine's wheel. See the report.
+- [x] **The Signal Market's listeners' lane** (v1.23): Wynn, the last listener, under the dishes halfway (149 → 90 m);
+  the silent tower's aerial a beacon (landmarks 3 → 4, wayfinding 4 → 5). A second way back from Sel's: v1.20's lane.
+- [x] **Pull the remote loners into 30-150 m of the path** (v1.23): Ondine (Sky Stones), Gaspard (Hangar), the pyramid
+  seed (Viridel), Emrys (Garden, onto the meadow pyramid). Optional pull +1 in the Sky Stones and the Hangar.
+- [x] **One high place per flat world** (v1.23, src/lookouts.js): Wendel's lookout with the box (Lorn, 8 → 38 m), the
+  keepers' stalks (Lorn II, 17 → 32 m), Emrys on the meadow pyramid (Garden, 25 → 30 m). Verticality +1 each. The
+  Garden's meadow path home and the answering spheres in the avenue (density 4 → 5); Lorn's crown seen from Saba's stone
+  through a notch in the grove (wayfinding 4 → 5). The average 4.25 → 4.38.
+Left from v1.23 (docs/audits/level-design-v1.23.md, "The ranked edits that remain"), worst first:
+- [ ] **The desert's two long blind legs**: the well → Marrow (441 m) and Marrow's hollow → the Hearth (1.6 km), and its
+  first goal 391 m off the landing. Wayfinding 4 → 5, onboarding 3 → 4.
+- [ ] **Verticality 2 in Lorn, the Hangar and the Garden**: a stage or a box up high, or a path that climbs. +1 each.
+- [ ] **A weenie in each of the Hangar's far zones** (the ring, the upside-down quarter): landmarks 3 → 4.
+- [ ] **The Buried Machine's oculus → the wheel** (351 m, blind): an oil pipe from the valve would run beside the Tooth
+  Day posts, and the world sits at the contact audit's line (climbs inside 42 of 43); or the audit counts a canyon.
+- [ ] **Overhead goals as seen, in the audit**: Vael's window → the tower's foot, the City-Shaft's palace legs.
+- [ ] Smaller: Lorn's Great Crystal ↔ Saba ping-pong merged (saves at each stage must still work); the Signal Market's
+  tower down two more avenues (the west towers stand at every bearing from the back lane); Sel and the Sky Stones'
+  monastery over 300 m from their landings (onboarding 3).
 
 # Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16, v1.19: the worst reworked, two or three at a time)
 

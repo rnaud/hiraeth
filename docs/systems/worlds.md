@@ -470,6 +470,39 @@ the post's top.
   walk back to the ship follows it) and `stands` (where a stage's person will be by the time you get there).
   `tests/contact-audit.test.js` checks that every `via` and `home` names a line its world declares.
 
+## The loners pulled in, a high place in each flat world (level design audit, fifth round, v1.23)
+
+What v1.20 left (`docs/audits/level-design-v1.23.md`): the places far from everything, the flat worlds, the blind legs.
+- **High places** (`src/lookouts.js` `steppedColumns`): a stand of five flat-topped columns, four in a ring round a tall
+  middle one, each `step` m (6) over the last, side by side a hair apart: a short climb and a rest at a time, the climb's
+  stamina never runs out on one pitch, every column collides as drawn. `tests/level-design-round5.test.js` climbs each
+  pitch with the real traveller (`Player`, W held toward the next column). Dressed per world:
+  - **Lorn: Wendel's lookout** (`src/lorn-ways.js` `buildLookout`), hexagonal columns of the cave's teal crystal on the
+    rise east of the landing, two short crystals where the ring is open and a thin spire on the top; the makers' box
+    `perdide.reed` stands on the top (30 m over the rise).
+  - **Lorn II: the keepers' stalks** (`src/deep-wood-ways.js` `buildKeepersStalks`), twelve-sided dead giant stalks in
+    the shallows west of the landing, the keepers' lamp on the tallest, lit with the water-way (`level.waterWay.lit`
+    lights both).
+  - **The Garden of Spheres** had its high places already (the meadow pyramid's stair, the hill's stepped pyramid) with
+    nobody on them: **Emrys** stands on the meadow pyramid's summit (content `y: 29`).
+- **The loners**: **Ondine** walks out on Vael II's long aqueduct as far as the floating island (content `y: AQ2.y`), by
+  **her tally**, a parapet stone scratched in fives (`buildOndineTally`, a sight); **the clapper's lantern**, a
+  lantern stone over the island church's porch, lit while the clapper lies there (`A.clapperLamp.lit`). **Gaspard**
+  rests by the Hangar's signal board; **Oro's seed** rolls to the pond's south shore (`src/story/edena.js`).
+- **The Garden's meadow path**: a white path from the sphere-arch round the meadow pyramid to its stair's foot (`path`),
+  a line Ume sends you home along (`home` on `ume`), past **the chalked sphere** with Emrys's handprints; the plaza
+  stage's `via` (the white path and the avenue). Halfway down the avenue **the answering spheres**: splash one, the other
+  rings back (`spheres.answering`, `src/story/spheres.js`). Small spheres take `sphere(…, { seg })`: the collision budget.
+- **Lorn's crown window**: the landing island's grove (`crystals(…, cap)`) grows its crystals in a lane along the
+  sightline from Saba's stone to the cave's crown only as tall as the line allows (`crownWindow`); the grove draws the
+  same random numbers, so nothing else moves.
+- **The Signal Market**: **Wynn**, the last listener, under the dishes halfway up the listeners' lane
+  (`STREET.wynn`); the silent tower's aerial is a beacon.
+- **The City-Shaft: Tobin's telescopes** (`src/shaft-ways.js` `TOBIN_SCOPES`), three coin telescopes round the outer
+  rim between Tobin and Lio, the `back` stage's `via`; houses keep clear of them (`ways.clear`).
+- **The desert: the giant's breath** (`src/desert-city.js` `giantBreath`), a thin pale SmokeColumn from the skull's brow
+  over the back gate while the tree is cold (with the camps' smoke), a beacon then.
+
 ## Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning
