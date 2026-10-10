@@ -1,0 +1,55 @@
+changelog.md
+  s_9ca76055a220ed::t_37a62d058664b4 5-9
+docs/README.md
+  s_9ca76055a220ed::t_e25ad0c56aa096 55
+docs/story-bible.md
+  s_9ca76055a220ed::t_fa1878cdda176f 368-384
+docs/systems/story.md
+  s_9ca76055a220ed::t_ccb866954072a4 753-802
+src/levels/salt-harbour.js
+  s_9ca76055a220ed::t_f55b60296a811b 10,136-137
+src/save-migrate.js
+  s_9ca76055a220ed::t_42bf3e8d35c1ca 32-35,40,114-119
+src/story/balloons.js
+  s_9ca76055a220ed::t_a08d83f5e7bf4e 9-10,30-31
+src/story/fellow-data.js
+  s_9ca76055a220ed::t_aea35290bd9f7d 1-315
+src/story/fellow.js
+  s_9ca76055a220ed::t_dc99e91f6ac991 1-127
+src/story/index.js
+  s_9ca76055a220ed::t_0d80070bd25904 39,215-216,309
+src/story/people-book.js
+  s_9ca76055a220ed::t_97ae6bdd36a91a 201-223,622,642
+tests/fellow.test.js
+  s_9ca76055a220ed::t_b34110230998c9 1-263
+tests/people-page.test.js
+  s_9ca76055a220ed::t_248c6fc3dd4f2c 17,31-33
+src/changelog-media.js
+  s_e54185b84c67c6::t_92e17cce0a011d 481-484
+src/changelog.js
+  s_e54185b84c67c6::t_f931a40a14b5dc 11-15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1f1a7652a5f6c89c9e168d0e3e5a720e5cca797",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_e54185b84c67c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aeec9a7480836c8bd",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
