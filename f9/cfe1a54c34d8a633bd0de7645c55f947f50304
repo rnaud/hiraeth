@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_237e8304aea21e 7
+src/changelog.js
+  s_9ca76055a220ed::t_f314c9db8ec87c 19
+src/levels/edena.js
+  s_9ca76055a220ed::t_4dff3fe5648675 12,599-603,614-618
+src/levels/spheres.js
+  s_9ca76055a220ed::t_8a9d5c028a3120 630-633,981-983
+src/story/edena-data.js
+  s_9ca76055a220ed::t_6d4c0f7be28a17 52
+src/viridel-ways.js
+  s_9ca76055a220ed::t_1e0bd066403b4b 1-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9cfe1a54c34d8a633bd0de7645c55f947f50304",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
