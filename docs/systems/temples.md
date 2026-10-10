@@ -189,6 +189,15 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   glass's foot), and grown it roots and rolls no more. A `Bud` with `bloom: null` is opened by something else (the
   vine climbing into it: `d4` opens on `seed2`). The Gardener's dome louvre is a `Sunbeam` with `pick`: the quarter
   whose footstone (`fs1`-`fs4`) was last stood on (`rt.gardenSun`).
+- **One wind** (the Aerie, from the same audit): a stone in a vent's mouth stops the wind there, and it comes out of
+  another. `Gust` and `Updraft` take `when` (they blow only while it holds; a still updraft's rings settle, and
+  `still` says why when you open your wings over it), and a `Gust` carries an open-winged traveller along its way
+  (`carry` m/s: a tailwind) instead of shoving them back. The Hall of Winds blows until its stone (`ballW`, pushed up
+  the hall through the gusts) sits in its vent (`pH`); then the Wind Well's column rises and the feather raft rides
+  up on it to the Wing Chamber (`raft`, a door the logic opens on the same stone). The Gulf's tailwind blows once its
+  stone is out of the throat on the high balcony (`tail`: `not` on `drumOn`, a state that changes back), and the
+  column beside the perch once the perch's stone is out of its own (`rise`). The Roost's two vents share one stone
+  (`ROOST`).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets

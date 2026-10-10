@@ -10,6 +10,8 @@
 //   the Clockwork Foreman (the First Garage: count round from where the hand points)   its numerals from four
 //   the Gardener (the Builders' Greenhouse: nothing grows in the shade)   its back blooms only in the sun, brought onto
 //                     the quarter it kneels in from that quarter's footstone
+//   the Elder (the Aerie: one wind, out wherever no stone stops it)   she takes heart only in the wind, the roost's
+//                     stone rolled so it rises by her
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
@@ -23,6 +25,7 @@ import { updateHazards } from '../src/hazards.js';
 import { GROUNDED } from '../src/temples/arzach2.js';
 import { LURE } from '../src/temples/perdide2.js';
 import { SUN } from '../src/temples/edena.js';
+import { ROOST } from '../src/temples/arzach.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -390,5 +393,92 @@ test('the Gardener’s second phase teaches the sun: a bloom in the shade still 
   const m1 = G.meter;
   bloomIt(G);
   assert.ok(G.meter - m1 > SUN.shade[1] + 1e-6 || G.phaseIndex > 1, `in the sun, double (${(G.meter - m1).toFixed(2)})`);
+  A.done();
+});
+
+// ------------------------------------------------------------------ the Elder
+test('the Elder’s last phase: flown with on still air she does not follow; the roost’s stone rolled so the wind rises by her, ridden up beside her, and she takes heart', () => {
+  const A = arena('arzach', 'glider', 2);
+  const { rt, G, P, until, wait, said } = A;
+  const winds = rt.roostWinds;
+  const ball = rt.piece('ballR');
+  assert.ok(winds?.length === 2 && ball, 'two vents and one stone');
+  const nearest = () => winds.slice().sort((a, b) => Math.hypot(a.foot.x - G.model.pos.x, a.foot.z - G.model.pos.z) - Math.hypot(b.foot.x - G.model.pos.x, b.foot.z - G.model.pos.z));
+  const fly = (at) => {
+    const before = G.meter;
+    P.teleport(at, V(0, 1, 0), V(0, 0, 1)); P.heading = 0;
+    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) A.frame({ Space: true });
+    for (let i = 0; i < 5 / DT && !P.onGround; i++) A.frame();
+    return G.meter - before;
+  };
+  // the failure: beside her on still air (well away from the wind), she watches you sink
+  assert.equal(until(() => G.state === 'open', 40), true, 'she looks up, afraid');
+  assert.ok(G.openFor >= ROOST.open[2], `she hangs there long enough to bring the wind (${G.openFor})`);
+  const off = G.model.pos.clone().add(V(0, 5, 0));
+  const farFromWind = winds.every((w) => !w.on || Math.hypot(w.foot.x - off.x, w.foot.z - off.z) > w.r + 1);
+  if (!farFromWind) { const dir = off.clone().sub(winds.find((w) => w.on).foot).setY(0).normalize(); off.addScaledVector(dir, 4); }
+  assert.equal(fly(off), 0, 'on still air she does not take heart');
+  assert.ok(said(/still air/), 'and it says to bring the wind');
+  // the way: when the wind is on the far side, roll the stone across; then ride the column up beside her
+  let rolled = false;
+  for (let n = 0; n < 6 && G.state !== 'weary'; n++) {
+    if (G.state !== 'open') assert.equal(until(() => G.state === 'open', 40), true, `she looks up (${n})`);
+    const w = nearest()[0];
+    if (!w.on) {
+      const toward = Math.sign(rt.kit.local(w.foot).x);   // (the stone goes into the other vent: away from this one)
+      const d = ball.dir.clone().multiplyScalar(-toward);
+      P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+      ball.hit('push', d, { strength: 1 });
+      until(() => w.on, 8);
+      assert.equal(w.on, true, `the stone rolled across: the wind rises by her (${n})`);
+      rolled = true;
+      if (G.state !== 'open') continue;
+    }
+    assert.ok(fly(w.foot.clone().add(V(0, 4, 0))) > 0, `ridden up the wind beside her (${n}: ${G.meter.toFixed(2)})`);
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  if (!rolled) {
+    // (she happened to open by the wind each time: the stone still carries the wind across)
+    const before = winds.map((w) => w.on);
+    const d = ball.dir.clone().multiplyScalar(rt.logic.drumOn('ballR', 'pRW') ? 1 : -1);
+    P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+    ball.hit('push', d, { strength: 1 });
+    wait(4);
+    assert.deepEqual(winds.map((w) => w.on), before.map((x) => !x), 'rolled across, the wind changes vents');
+  }
+  A.done();
+});
+
+test('the Elder’s second phase teaches the wind: flown with on still air she still takes heart, and in the wind twice as much', () => {
+  const A = arena('arzach', 'glider', 1);
+  const { rt, G, P, until } = A;
+  const winds = rt.roostWinds;
+  const fly = (at) => {
+    const before = G.meter;
+    P.teleport(at, V(0, 1, 0), V(0, 0, 1)); P.heading = 0;
+    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) A.frame({ Space: true });
+    for (let i = 0; i < 5 / DT && !P.onGround; i++) A.frame();
+    return G.meter - before;
+  };
+  assert.equal(until(() => G.state === 'open', 40), true, 'she looks up');
+  const off = G.model.pos.clone().add(V(0, 5, 0));
+  const w = winds.find((x) => x.on);
+  if (Math.hypot(w.foot.x - off.x, w.foot.z - off.z) < w.r + 1) off.addScaledVector(off.clone().sub(w.foot).setY(0).normalize(), 4);
+  const still = fly(off);
+  assert.ok(Math.abs(still - ROOST.still[1]) < 1e-6, `on still air, as before (${still.toFixed(2)})`);
+  const ball = rt.piece('ballR');
+  let gained = null;
+  for (let n = 0; n < 5 && gained === null && G.phaseIndex === 1; n++) {
+    assert.equal(until(() => G.state === 'open', 40), true, `she looks up again (${n})`);
+    const w2 = winds.slice().sort((a, b) => Math.hypot(a.foot.x - G.model.pos.x, a.foot.z - G.model.pos.z) - Math.hypot(b.foot.x - G.model.pos.x, b.foot.z - G.model.pos.z))[0];
+    if (w2.on) { gained = fly(w2.foot.clone().add(V(0, 4, 0))); break; }
+    // the wind on her far side: the stone rolled across, for her next opening
+    const d = ball.dir.clone().multiplyScalar(-Math.sign(rt.kit.local(w2.foot).x));
+    P.teleport(ball.center.clone().addScaledVector(d, -2.3).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+    ball.hit('push', d, { strength: 1 });
+    until(() => w2.on, 8);
+    if (G.state === 'open') { gained = fly(w2.foot.clone().add(V(0, 4, 0))); break; }
+  }
+  assert.ok(gained !== null && (gained > ROOST.still[1] + 1e-6 || G.phaseIndex > 1), `in the wind, twice (${gained?.toFixed(2)})`);
   A.done();
 });

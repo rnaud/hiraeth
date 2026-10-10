@@ -82,10 +82,19 @@ export const BOSS_HINTS = {
         'When she spreads her wings and looks up, take to the air beside her.',
         'Ride the wind in the middle of the hall up, and glide close round her while her wings are spread.'],
       ['She is in the air now. Go up with her.',
-        'When she hangs in the air, glide near her again.',
-        'Ride the wind in the middle up, open your wings and stay close to her while she hangs there.'],
+        'When she hangs over a vent, fly in the wind beside her.',
+        'Ride the wind out of a vent up beside her while she hangs there: it counts twice.'],
+      ['She will not trust still air.',
+        'When she hangs over a vent, make the wind rise from it: the stone into the other.',
+        'Push the floor’s stone into the far vent, then open your wings in the column by her.'],
     ],
-    at: (g) => (g.state === 'open' ? _p.copy(g.model.pos).addScaledVector(UP, 4.4) : g.arena.center),
+    // (from her second phase: the stone, while the wind rises from the vent away from her)
+    at: (g, i) => {
+      if (g.state !== 'open') return g.arena.center;
+      const w = i >= 1 ? g.rt.roostWinds?.slice().sort((a, b) => a.foot.distanceTo(g.model.pos) - b.foot.distanceTo(g.model.pos))[0] : null;
+      if (w && !w.on) return g.rt.piece?.('ballR')?.center ?? g.arena.center;
+      return _p.copy(g.model.pos).addScaledVector(UP, 4.4);
+    },
   },
   // the Founders' Belfry: the Cloud-Mother (organic: answered with the bell)
   arzach2: {

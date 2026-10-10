@@ -34,6 +34,7 @@ const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones;
 import { HOLD as UNDERTOWER_HOLD } from '../src/temples/bazaar.js';
 const HOLD_HORN = UNDERTOWER_HOLD.horn;
 import { TempleKit } from '../src/temples/kit.js';
+import { GULF } from '../src/temples/arzach.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -1286,12 +1287,13 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   own();
 });
 
-test('the Aerie on foot: the gusts waited out behind the screens, the wall and the rising disc, the wings, the gulf glided, the wind well, the Elder flown with, the birds come back', () => {
+test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the feather raft, the wings, the column, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('arzach');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
-  rt.connect({ player: P, toast: () => {} });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -1304,71 +1306,119 @@ test('the Aerie on foot: the gusts waited out behind the screens, the wall and t
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   const local = () => rt.kit.local(P.pos);
+  const said = (re) => notes.some((n) => re.test(n));
+  const stand = (x, y, z) => { P.teleport(L(x, y + 0.05, z), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); };
+  /** Push a ball along its groove (way +1: toward its b end) until it rests on `plate`. */
+  const roll = (id, plate, way = 1, n = 12, between = () => {}) => {
+    const ball = rt.piece(id);
+    for (let k = 0; k < n && !rt.logic.drumOn(id, plate); k++) {
+      between();
+      const d = ball.dir.clone().multiplyScalar(way);
+      walk(ball.center.clone().addScaledVector(d, -2.3).setY(P.pos.y), { tol: 0.5, max: 4 });
+      ball.hit('push', d, { strength: 1 });
+      wait(2.4);
+    }
+    return rt.logic.drumOn(id, plate);
+  };
+  /** Glide (the wings open, heading h) until on the ground or fallen to a pit's mark; returns where it ended. */
+  const glide = (h, s = 12, held = () => true) => {
+    for (let i = 0; i < s / DT; i++) {
+      const z = local().z;
+      P.heading = h; frame(held() ? { Space: true } : {});
+      if (Math.abs(local().z - z) > 5) { wait(1); break; }   // (fell in, and back at the mark)
+      if (P.onGround && i > 10) break;
+    }
+    return local();
+  };
   wait(0.5);
   // ---- the Hall of Winds: in the open a gust shoves you back; screen to screen, in the calms, you get through
   const gust = rt.pieces.find((p) => p.shelters);
   const calmStart = () => { for (let i = 0; i < 12 / DT; i++) { const before = gust.state; frame(); if (before === 1 && gust.state === 0) return true; } return false; };
-  P.teleport(L(0, 0.05, 26), V(0, 1, 0), V(0, 0, 1));
+  stand(0, 0, 26);
   for (let i = 0; i < 6 / DT && gust.state !== 1; i++) frame();
   const z0 = local().z;
   for (let i = 0; i < 1.2 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, toward(L(0, 0, 50)));
   assert.ok(local().z < z0 - 2, `the gust shoves you back (${z0.toFixed(1)} -> ${where()})`);
-  P.teleport(L(0, 0.05, 10), V(0, 1, 0), V(0, 0, 1));
+  stand(0, 0, 10);
   for (const legs of [[[4.2, 20.4]], [[0, 23.2], [-4.2, 29.4]], [[0, 32.2], [4.2, 38.4]], [[0, 41.2], [0, 50]]]) {
     assert.ok(calmStart(), 'a calm');
     const t0 = t;
     for (const [x, z] of legs) assert.equal(walk(L(x, 0, z), { tol: 0.7, max: 3 }), true, `to the next screen in the calm (${where()})`);
     assert.ok(t - t0 < 3.2, `inside one calm (${(t - t0).toFixed(1)} s)`);
   }
-  rt.piece('s1').hit('shoot');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d1'), true);
-  // ---- the Feather Stair: up the wall, then the disc that rides straight up
-  assert.equal(walk(L(0, 0, 61)), true, `into the stair (${where()})`);
-  let up = false;
-  for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 71))); if (P.onGround && local().y > 8.5) { up = true; break; } }
-  assert.ok(up, `up the wall (${where()})`);
-  const disc = rt.pieces.find((p) => p.path);
-  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
-  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
-  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
-  assert.ok(local().y > 17.5, `carried up (${where()})`);
-  assert.equal(walk(L(0, 18, 76.4), { tol: 0.8 }), true, `onto the landing (${where()})`);
-  assert.equal(walk(L(0, 18, 84)), true, `into the wing chamber (${where()})`);
-  // ---- the wings; the Gulf: too far to jump, glided
+  // the well beyond: still air, the raft on the floor
+  assert.equal(walk(L(0, 0, 62)), true, `into the well (${where()})`);
+  const raft = rt.piece('raft'), r0 = raft.s;
+  wait(3);
+  assert.equal(raft.s, r0, 'in still air the raft lies on the floor');
+  assert.equal(rt.logic.isOpen('raft'), false);
+  // the stone, too heavy for the gusts, pushed up the hall into its vent a push at a time (in the calms)
+  stand(-1.5, 0, 13);
+  assert.equal(roll('ballW', 'pH', 1, 16, () => calmStart()), true, `the stone in the hall's vent (${where()})`);
+  wait(gust.calm + gust.blow + 0.5);
+  assert.equal(gust.state, 0, 'the hall falls calm');
+  // ---- the Wind Well: the wind rises; the raft rides it up to the Wing Chamber's balcony
+  const column = rt.pieces.find((p) => p.lift && p.o.when?.drumOn?.[0] === 'ballW');
+  assert.equal(column.on, true, 'the wind rises in the well');
+  assert.equal(walk(L(4, 0, 66)), true, `back in the well (${where()})`);
+  for (let i = 0; i < 30 / DT && !(raft.s < 0.2 && raft.wait > 0.8); i++) frame();
+  assert.equal(walk(raft.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the raft (${where()})`);
+  for (let i = 0; i < 30 / DT && !(raft.s > raft.total - 0.2); i++) frame();
+  assert.ok(local().y > 15.5, `carried up (${where()})`);
+  assert.equal(walk(L(11.6, 16, 68), { tol: 0.8 }), true, `onto the balcony (${where()})`);
+  assert.equal(walk(L(20.6, 16, 68)), true, `into the wing chamber (${where()})`);
   items.grant('glider'); game.emit('box:opened', { id: 'arzach.temple.glider' });
   assert.equal(rt.logic.gadget, true);
-  assert.equal(walk(L(0, 18, 102)), true, `to the gulf's edge (${where()})`);
-  let landed = false;
-  for (let i = 0; i < 12 / DT; i++) {
-    const z = local().z, edge = z > 104;
-    frame(z > 141 ? {} : edge ? { Space: true } : { KeyW: true, ShiftLeft: true }, toward(L(0, 18, 150)));
-    if (P.onGround && local().y > 8.5 && local().y < 10 && local().z > 138) { landed = true; break; }
-    if (local().y < 4) break;
-  }
-  assert.ok(landed, `glided across the gulf (${where()})`);
-  // ---- the Wind Well: open the wings in the column and it lifts you to the balcony
-  assert.equal(walk(L(0, 9, 163.2), { tol: 0.6 }), true, `to the well's middle (${where()})`);
-  rt.piece('s3').hit('shoot');
-  assert.equal(rt.logic.isLit('s3'), true, 'the eye over the balcony');
+  // ---- the column: off the balcony with the wings open, round and up to the high balcony
+  assert.equal(walk(L(11.4, 16, 68), { tol: 0.6 }), true, `back on the balcony (${where()})`);
   let top = false;
-  P.heading = 0;
-  for (let i = 0; i < 20 / DT; i++) {
-    frame({ Space: true });
-    if (local().y > 33.2) { top = true; break; }
-  }
+  for (let i = 0; i < 20 / DT; i++) { P.heading = -Math.PI / 2; frame({ Space: true, KeyW: i < 20 }, -Math.PI / 2); if (local().y > 33.2) { top = true; break; } }
   assert.ok(top, `lifted up the well (${where()})`);
-  let onBalcony = false;
-  for (let i = 0; i < 6 / DT; i++) {
-    P.heading = 0;
-    frame(local().z > 169 ? {} : { Space: true });
-    if (P.onGround && Math.abs(local().y - 30) < 0.6) { onBalcony = true; break; }
-  }
-  assert.ok(onBalcony, `onto the balcony (${where()})`);
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d3'), true);
-  // ---- the Roost: when she looks up, afraid, fly beside her
-  assert.equal(walk(L(0, 30, 182)), true, `into the roost (${where()})`);
+  assert.ok(Math.abs(glide(0, 6, () => local().z < 76.5).y - 32) < 0.6 && local().z > 75, `onto the high balcony (${where()})`);
+  assert.equal(walk(L(4.6, 32, 79.2), { tol: 0.8 }), true, `past its mark (${where()})`);
+  // ---- the Gulf: on still air the perch is too far
+  assert.equal(walk(L(0, 32, 85.6)), true, `to the gulf (${where()})`);
+  assert.equal(walk(L(6.5, 32, 86.6), { tol: 0.8 }), true, `past the mark (${where()})`);
+  stand(0, 32, 88.6);
+  const tail = rt.pieces.find((p) => p.o?.carry);
+  assert.equal(tail.on, false, 'the gulf’s air is still');
+  for (let i = 0; i < 0.5 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, 0);
+  let end = glide(0, 8);
+  assert.ok(end.z < 85 || end.y > 30 && end.z < 92, `on still air you fall short, and are back at the mark (${where()})`);
+  // the vent's stone, up on the balcony: rolled out of its throat, the gusts pour over the gulf
+  assert.equal(walk(L(0, 32, 86.2), { max: 6 }), true, `to the gulf's door (${where()})`);
+  assert.equal(walk(L(0, 32, 79), { max: 12 }), true, `back to the balcony (${where()})`);
+  assert.equal(walk(L(-5.9, 32, 77.4), { max: 4 }), true, `round the stone (${where()})`);
+  assert.equal(roll('ballB', 'pX', 1), true, `the stone out of the throat (${where()})`);
+  assert.equal(tail.on, true, 'the gulf’s vent blows');
+  assert.equal(walk(L(0, 32, 85.6), { max: 12 }), true, `to the gulf again (${where()})`);
+  stand(0, 32, 88.6);
+  for (let i = 0; i < 12 / DT && !(tail.state === 1 && tail.t % (tail.calm + tail.blow) < tail.calm + 0.15); i++) frame();
+  for (let i = 0; i < 0.3 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, 0);
+  const pz = rt.kit.local(rt.piece('ballP').a).z;
+  end = glide(0, 8, () => local().z < pz - 3);   // (the wings folded over the perch: down onto it)
+  assert.ok(P.onGround && Math.abs(end.y - GULF.perchY) < 0.6, `the gust carries you to the perch (${where()})`);
+  assert.ok(said(/carries you/), 'it says so');
+  // ---- the perch: a ledge higher than it, no glide climbs; its stone out of the column's throat, the column lifts you
+  wait(0.5);
+  for (const [x, z] of [[3.6, pz + 2.2], [3.8, pz - 2.6], [0.6, pz - 3.2]]) assert.equal(walk(L(x, GULF.perchY, z), { tol: 0.8, max: 5 }), true, `round the perch, past its mark (${where()})`);
+  stand(0, GULF.perchY, pz + 2.5);
+  for (let i = 0; i < 0.4 / DT; i++) frame({ KeyW: true, ShiftLeft: true }, 0);
+  end = glide(0, 8);
+  assert.ok(Math.abs(end.y - GULF.perchY) < 0.6, `the higher ledge is out of a glide's reach: back on the perch (${where()})`);
+  assert.equal(roll('ballP', 'pQ', 1), true, `the column's stone out of its throat (${where()})`);
+  const riser = rt.pieces.find((p) => p.lift && p.o.when?.not?.drumOn?.[0] === 'ballP');
+  assert.equal(riser.on, true, 'the column rises beside the perch');
+  stand(4.4, GULF.perchY, pz);
+  top = false;
+  for (let i = 0; i < 20 / DT; i++) { P.heading = Math.PI / 2; frame({ Space: true, KeyW: i < 12 }, Math.PI / 2); if (local().y > GULF.farY + 6) { top = true; break; } }
+  assert.ok(top, `lifted up past the perch (${where()})`);
+  end = glide(0, 8);
+  assert.ok(P.onGround && Math.abs(end.y - GULF.farY) < 0.6, `onto the higher ledge (${where()})`);
+  // ---- the Roost: when she looks up, afraid, fly beside her (in her last phase, only in the wind: roll the stone so it rises by her)
+  const fz = pz + GULF.perchR + GULF.leg2;
+  assert.equal(walk(L(0, GULF.farY, fz + 10), { max: 8 }), true, `across the ledge to its door (${where()})`);
+  assert.equal(walk(L(0, GULF.farY, fz + 30), { max: 12 }), true, `into the roost (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
@@ -1376,22 +1426,50 @@ test('the Aerie on foot: the gusts waited out behind the screens, the wall and t
   const before0 = G.meter;
   G.hit('body', 'shoot');
   assert.equal(G.meter, before0, 'fluid does not calm her');
-  for (let n = 0; n < 12 && G.state !== 'weary'; n++) {
+  const winds = rt.roostWinds;
+  const ventNear = () => winds.slice().sort((a, b) => Math.hypot(a.foot.x - G.model.pos.x, a.foot.z - G.model.pos.z) - Math.hypot(b.foot.x - G.model.pos.x, b.foot.z - G.model.pos.z))[0];
+  /** Into the column at w (or beside her if w is null), the wings open, until she takes heart or 2.5 s. */
+  const fly = (w) => {
+    const before = G.meter;
+    const at = w ? w.foot.clone().add(V(0, 4, 0)) : G.model.pos.clone().add(V(3, 5, 0));
+    P.teleport(at, V(0, 1, 0), V(0, 0, 1));
+    P.heading = 0;
+    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) frame({ Space: true });
+    for (let i = 0; i < 5 / DT && !P.onGround; i++) frame();
+    return G.meter - before;
+  };
+  let still = false, doubled = false;
+  for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `she looks up, afraid (${n})`);
-    const before = G.meter;
-    const c = G.model.pos.clone();
-    P.teleport(c.clone().add(V(3, G.model.floats ? 3 : 5, 0)), V(0, 1, 0), V(0, 0, 1));
-    P.heading = 0;
-    for (let i = 0; i < 2.5 / DT && G.meter === before && G.state === 'open'; i++) frame({ Space: true });
-    assert.ok(G.meter > before, `flown with (${n}: ${G.meter.toFixed(2)}, ${G.state})`);
-    for (let i = 0; i < 5 / DT && !P.onGround; i++) frame();
+    const phase = G.phaseIndex;
+    if (phase >= 2 && !still) {
+      // her last phase: beside her on still air, she does not follow
+      const gained = fly(null);
+      assert.equal(gained, 0, 'in her last phase, flown with on still air, she does not take heart');
+      assert.ok(said(/still air/), 'and it says why');
+      still = true;
+      continue;
+    }
+    if (phase >= 1) {
+      const w = ventNear();
+      if (!w.on) {
+        // the wind is on the far side: roll the stone across so it rises by her
+        assert.equal(roll('ballR', rt.kit.local(w.foot).x > 0 ? 'pRW' : 'pRE', rt.kit.local(w.foot).x > 0 ? -1 : 1, 4), true, `the stone rolled into the other vent (${n})`);
+        if (G.state !== 'open') continue;
+      }
+      const gained = fly(w);
+      assert.ok(gained > 0, `flown with in the wind (${n}: ${G.meter.toFixed(2)}, ${G.state})`);
+      if (phase === 1 && gained > 0.2) doubled = true;
+    } else assert.ok(fly(null) > 0, `flown with (${n}: ${G.meter.toFixed(2)})`);
   }
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  assert.ok(still, 'her last phase was tried on still air once');
+  assert.ok(doubled, 'in her second phase the wind doubled it');
   for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
   wait(2);
-  const head = G.model.mouth.clone().setY(L(0, 30, 0).y);
+  const head = G.model.mouth.clone().setY(G.arena.y);
   const out = head.clone().sub(G.model.pos).setY(0).normalize();
   P.teleport(head.clone().addScaledVector(out, 1.6).add(V(0, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
