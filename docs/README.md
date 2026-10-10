@@ -89,6 +89,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | File | What |
 |---|---|
 | [cloudflare.md](cloudflare.md) | the Cloudflare Worker that serves the game and its update feed |
+| [notes.md](systems/notes.md) | the private notebook: one-line notes backed by GitHub Issues, Worker secrets and access setup |
 | [steam-deck.md](steam-deck.md) | the Steam Deck package: install, release, its updates from the site and the settings' Updates section |
 | [makehuman.md](makehuman.md) | the MakeHuman / MPFB bodies pipeline (pictures in `makehuman/`) |
 | [motion-data.md](motion-data.md) | motion data: sources, terms, what is shipped |

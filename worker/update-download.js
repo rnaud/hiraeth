@@ -1,7 +1,9 @@
+import { handleIssues } from './issues.js';
 // Keep existing Android/Deck zip URLs while storing each asset below 25 MiB.
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    if (url.pathname.startsWith('/api/notes/')) return handleIssues(request, env);
     if (!/^\/updates\/web-\d+\.zip$/.test(url.pathname)) return env.ASSETS.fetch(request);
     if (!['GET', 'HEAD'].includes(request.method)) return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });
     const indexUrl = new URL(url);

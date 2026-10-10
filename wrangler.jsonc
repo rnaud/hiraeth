@@ -10,7 +10,7 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/updates/web-*.zip"],
+    "run_worker_first": ["/updates/web-*.zip", "/api/notes/*"],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "none"
   }

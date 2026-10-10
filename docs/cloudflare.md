@@ -55,6 +55,10 @@ changelog's pictures (`changelog-media/`, copied in after the content update), t
 
 ## One-time account setup
 
+The private [Notes page](systems/notes.md) uses this same Worker for `/api/notes/*`, backed by GitHub
+Issues. Its GitHub token and notebook password are separate Worker secrets; see that page for setup.
+They are not needed to serve the game or its updates. Without them the notebook stays closed.
+
 1. In Cloudflare, select the account that should own `memento`. Check that the
    name is not already used by another application in that account.
 2. Create an API token for GitHub Actions, scoped to that account, with

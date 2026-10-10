@@ -53,6 +53,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Overnight Train is on the move: it no longer waits at stations, it runs. The plain, the poles and the far buttes race past, signal gantries sweep their shadows along the roofs, the carriages rock gently and bump over the rail joints (watch the horizon from a window), and up on the roofs the wind blows from the nose.
 - The Overnight Train’s end doors are wider and its sleeping cars’ vestibules roomier, with space to turn from the corridor to the door; its windows are glazed (nobody steps out of one any more), and its strollers keep to the lounge and the landing wagon, out of the narrow aisles.
 - In tight places the camera no longer jumps about. Walking through the Overnight Train’s carriages it used to snap in and out at every door and porch and whip round behind your head; now it holds its place and turns to follow you through a doorway, glides in when a wall comes between you, and slides past rows of seats, window frames and compartment doors without pumping in and out. It stays inside the room it is in, rises more gently with a hop under a low ceiling, and tips down over your head when a corridor is too narrow to stand back in.
+- A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.
 
 ## v1.39 — 2026-10-10
 
