@@ -459,10 +459,53 @@ const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place�
 
 /** The v1.16 temples (the Greenhouse, the Aerie and the fix to their doorway and bud): after at the fix, before at v1.15. */
 const TEMPLES16 = { commit: '6d005223', before: 'cfaa2045' };
+const TEMPLES19 = { commit: 'd20992a7', before: '461ac5ea' };
 
 /** The level design audit's third round: the same view in headless Chrome against the commit before (bed64a68) and after. */
 const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280 × 720, High, noon) against this branch’s dev server and the commit before it (bed64a68), the same view each; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.19': [
+    // the Warden's Well and the Engine-House, rebuilt round one idea each (docs/audits/temple-design-v1.19.md): one pair
+    // a line, from where you come in, before (v1.16) and after; the picked references beside the gallery, the furnace and
+    // the two doorways
+    { match: 'The Warden’s Well is rebuilt round one idea', shots: [
+      { name: 'ww-floors', caption: 'The Turning Floors from the near ledge: before, a carved eye over the far door; after, the small vane in its blue ring there, the two discs still until it spins', ...TEMPLES19,
+        view: { level: 'incal', player: [420, 1400.2, 157], eye: [421.5, 1402.6, 156.4], target: [420, 1405.5, 185.8], fov: 70 } },
+    ], see: 'In the Warden’s Well, splash the vane over the Turning Floors’ far door: the discs ride while it spins, and stop with it. On the Climb, roll the ball up on the balcony: it stops at the slot. Splash the vane in the well’s floor from the balcony’s lip, then roll the ball over before it slows.' },
+    { match: 'With the jets, you are the wind', shots: [
+      { name: 'ww-gallery', caption: 'The Lamp Gallery from its floor: before, plain cream walls and shelves; after, steel-blue bands with the makers’ dots, slit windows, the great vane in the floor, the west shelf’s eye behind its stone lids and the iris in the ceiling', ...TEMPLES19,
+        view: { level: 'incal', player: [426, 1434.8, 213.4], eye: [427.5, 1437.2, 213.2], target: [409, 1438.5, 221.4], fov: 80 },
+        reference: { sheet: 'references/temples/wardens-well/sheet-1.jpg', caption: 'The picked reference for the Lamp Gallery' } },
+    ], see: 'In the Lamp Gallery, splash the great vane: it only rocks. Stand on it, rise on the jets and aim: they hold you, the vane turns under you, and the west eye’s lids lift; splash it. In the loft, hover over its vane and push the shelf’s ball over the gap from the air. In the crown, splash the little vane, then hover over the great one before it slows.' },
+    { match: 'The warden now backs onto one of four great vanes', shots: [
+      { name: 'ww-hall', caption: 'The Warden’s Hall from its door, the warden asleep: before, a bare floor under the four stone discs; after, four great vanes in the floor between them', ...TEMPLES19,
+        view: { level: 'incal', player: [420, 1462.8, 241], eye: [420, 1467.5, 240.5], target: [420, 1462.6, 258], fov: 80 } },
+    ], see: 'In the warden’s last phase, shoot into its crown hatch from above in still air: it slams shut. When it backs onto a vane, hover over that vane level with its crown, aiming, and the draught lifts the hatch.' },
+    { match: 'The Warden’s Well from outside', shots: [
+      { name: 'ww-entrance', caption: 'The Warden’s Well from its forecourt: before, square steel-blue pylons and a lintel; after, a tall pointed arch at the top of a short flight of steps, banded in blue at its foot, a lamp on a post beside the steps', ...TEMPLES19,
+        view: { level: 'incal', player: [305.1, 200.1, -44], eye: [304.6, 203.4, -42.5], target: [311, 206, -61.5], fov: 60 },
+        reference: { sheet: 'references/temples/wardens-well/sheet-2.jpg', caption: 'The picked reference for the Warden’s Well’s doorway' } },
+    ] },
+    { match: 'Riding the shaft’s breath up', see: 'Once the warden is stopped, step into the column of rings beside the Upward Shrine on the City-Shaft’s bottom terrace and let it carry you: over the top it now sets you down on the rim instead of letting you sink off its end.' },
+    { match: 'The Engine-House is rebuilt round one idea', shots: [
+      { name: 'eh-crank', caption: 'The Crank Hall from its doorway (before, the Counterweight): before, a ball in a groove to its plate; after, the engine’s hammer over the walkway across the pit, its crank wheel beside the way and the gantry’s ball’s groove running into its teeth', ...TEMPLES19,
+        view: { level: 'buried', player: [-150, 2207.2, -233.4], eye: [-148.6, 2209.6, -234], target: [-150, 2210, -225.4], fov: 75 } },
+    ], see: 'In the Engine-House, splash the valve’s eye: the pistons shudder and stay. Roll the ball by the first piston out of the crank’s teeth and they ride; roll it back and they stop. In the Crank Hall, roll the gantry’s ball down its groove into the hammer’s crank, and walk under the still hammer.' },
+    { match: 'With the fourth chamber, the Engine-House’s banks', shots: [
+      { name: 'eh-furnace', caption: 'The Furnace from the near lip: before, a bank of four eyes on the far wall; after, an iron parapet, four pistons behind it rising in turn, and on the near lip the two west pistons’ cranks with a ball by each', ...TEMPLES19,
+        view: { level: 'buried', player: [-150, 2207.2, -193], eye: [-151, 2210, -194.4], target: [-152, 2209, -164], fov: 75 },
+        reference: { sheet: 'references/temples/engine-house/sheet-1.jpg', caption: 'The picked reference for the Furnace' } },
+    ], see: 'In the Furnace, splash the four eyes as their pistons rise: never four in one breath. Roll a ball into each crank on the near lip: the two west pistons stand up. Then catch the other two as they rise, one after the other.' },
+    { match: 'The Tooth-Warden now turns on the great gear', shots: [
+      { name: 'eh-hall', caption: 'The Tooth-Warden’s hall from its door, the warden asleep: after, the great gear’s teeth round the floor and the ball in its groove from the west wall', ...TEMPLES19,
+        view: { level: 'buried', player: [-150, 2207.2, -155], eye: [-149, 2211.5, -155.6], target: [-158, 2207.5, -136], fov: 80 } },
+    ], see: 'In the Tooth-Warden’s last phase, try the four vents as it opens: it turns, one vent at a time. Push the ball by the west wall into the great gear’s teeth, and the next time it opens all four face you.' },
+    { match: 'The Engine-House from outside', shots: [
+      { name: 'eh-entrance', caption: 'The Engine-House’s door from the hollow: before, a dark opening in a teal ring; after, an oval in a riveted iron plate and the door swung back against the drum on two great hinges', ...TEMPLES19,
+        view: { level: 'buried', player: [-85.4, 6.5, 82.4], eye: [-85.9, 9.8, 83], target: [-101.4, 9, 91.6], fov: 60 },
+        reference: { sheet: 'references/temples/engine-house/sheet-2.jpg', caption: 'The picked reference for the Engine-House’s doorway' } },
+    ] },
+  ],
   '1.18': [
     // the enemy roster, part five: the last three, each alone in its main skin and its alternate (the shade against its
     // old body; the roller and the marionette had none), a wind-up each; the sheets beside them as their own pictures

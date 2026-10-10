@@ -199,7 +199,7 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   stone is out of the throat on the high balcony (`tail`: `not` on `drumOn`, a state that changes back), and the
   column beside the perch once the perch's stone is out of its own (`rise`). The Roost's two vents share one stone
   (`ROOST`).
-- **The tower breathes through its vanes** (the Warden's Well, from the v1.17 audit; the tower was built to keep the
+- **The tower breathes through its vanes** (the Warden's Well, from the v1.19 audit; the tower was built to keep the
   shaft breathing, and the breath turned its machines). A `Vane` is one of the makers' bellows, in a floor (facing
   up) or on a wall (`wall`, `yaw`): its element (type `vane`, logic.js: held like a held bell, lit only while it
   turns) drives what names it only as long. A splash spins a small one for `coast` seconds, slowing (`fading` warns);
@@ -214,7 +214,7 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   The audit reads a vane as a splash (or its item) and a timing, a state that changes back, and a ball's `gap` as a
   key of its plate's lock (`scripts/temple-design/lib.mjs`). The warden's hall has four (`rt.hallVanes`,
   docs/systems/foes.md).
-- **A ball in the teeth stops the engine there** (the Engine-House, from the v1.17 audit; the Tooth-Warden jams the
+- **A ball in the teeth stops the engine there** (the Engine-House, from the v1.19 audit; the Tooth-Warden jams the
   whole engine, and the makers' own jams are stone balls rolled into a crank's teeth). What a crank drives stops where
   it stands while a ball sits in its notch: the Piston Hall's pistons ride only while the valve is open and the ball
   is out of their crank (`ball0` on `pY`, a drum with two stops: rolled back into `pZ` they stop again); the Crank

@@ -266,7 +266,7 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
   Crystal ↔ Saba ping-pong merged; a weenie in each of the Hangar's far zones; answering spheres along the Garden's
   572 m blind leg; a pipe leading to the Buried Machine's wheel. See the report.
 
-# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16: the worst reworked, two or three at a time)
+# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16, v1.19: the worst reworked, two or three at a time)
 
 All eleven are one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
 with an older verb). Ranked; each re-runs `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js
@@ -306,9 +306,20 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
 - [ ] **Play the Greenhouse's and the Aerie's new rooms and last phases with a pad** (v1.16): the escort up the Hall of
   Winds (a push or two a calm), the tailwind's leap (as a gust comes), the perch's landing (fold the wings over it),
   the Gardener's footstones in its 6.2 s kneel, the Elder's stone rolled in her 6.6 s hang.
-- [ ] **Warden's Well, Engine-House, Footprint, Givers' House (2.00-2.22)**: jets against a gust in the Lamp Gallery;
-  `s1` seen only mid-ride; `k2` on pistons in turn; false lens stones with the clue a room back; a burning tar ball
-  pushed into `b3`; `b2` a room back. See the report for each (docs/audits/temple-design-v1.16.md, ranked).
+- [x] **Warden's Well (2.00 → 3.89, v1.19)**: the tower breathes through its vanes. The discs on the far door's vane,
+  the Climb's slot on the well's vane, the gallery's lidded eye on the great vane (hover on the jets), the loft's ball
+  pushed over the gap from the air, the crown's eye on two vanes at once; the warden's hatch opens only to a turning
+  vane's draught (docs/audits/temple-design-v1.19.md). Left: a hub off the gallery, the opening at 4.5.
+- [x] **Engine-House (2.11 → 4.00, v1.19)**: a ball in the teeth stops the engine there. The ball rolled out of the
+  pistons' crank, the gantry's ball into the hammer's, one crank holding the chamber's four piston-eyes up, two of the
+  Furnace's four jammed and the other two caught in turn; the Tooth-Warden on its jammed gear. Left: a shortcut back,
+  the gadget a third time.
+- [ ] **Footprint, Givers' House (2.22, 2.11)**: false lens stones with the clue a room back; a burning tar ball pushed
+  into `b3`; `b2` a room back. See the report for each (docs/audits/temple-design-v1.19.md, ranked).
+- [ ] **Play the Warden's Well's and the Engine-House's new rooms and last phases with a pad** (v1.19): the Turning
+  Floors' one splash (15 s), the hover-and-aim over a great vane, the shelf's ball pushed from the air, the crown's two
+  vanes (12 s), the warden's 7 s hatch; the hammer's stroke, the Furnace's piston tops (1.2 s each, 2 s apart), the
+  Tooth-Warden's gear rolled in its last phase.
 - [ ] **Play the five reworked guardians' last phases with a pad** (v1.15, docs/systems/foes.md "The guardians' last
   phases"): is ringing as the Cloud-Mother rises to dive (78 % of her wind-up at most) readable, is the Lampless's
   "stand back" (5 m) fair under its scales, are the Mother Snapper's crystals easy enough to tell apart by size from

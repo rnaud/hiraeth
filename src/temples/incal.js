@@ -17,7 +17,7 @@ import { registerTarget } from '../targets.js';
 // a machine: you may stop it for good.
 //
 // Inside (built far overhead, through its door), one idea from the first room to the last: THE TOWER BREATHES
-// THROUGH ITS VANES (reworked from the temple design audit, v1.17). The makers built it to keep the shaft breathing,
+// THROUGH ITS VANES (reworked from the temple design audit, v1.19). The makers built it to keep the shaft breathing,
 // and the breath turned the vanes of their bellows, and the vanes turned the tower's machines. The warden stopped the
 // breath. A vane still drives its machine, but only while it turns: a splash spins a small one a while, slowing; a
 // great one is too heavy for a splash, and turns only under a steady wind. With the jets, you are the wind.

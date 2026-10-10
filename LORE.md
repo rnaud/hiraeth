@@ -1350,7 +1350,7 @@ down: a well of the makers turned on its end.
   Afterwards: the wind came up the shaft, "warm, smelling of rain that never got
   down there"; the bottom folk stand along the parapet looking at the sky; she
   will light the lamp by the warden's door.
-- **Inside** (reworked round one idea, v1.17: the tower breathes through its vanes; the breath turned the
+- **Inside** (reworked round one idea, v1.19: the tower breathes through its vanes; the breath turned the
   makers' bellows, the bellows turned its machines, and a vane still drives its machine only while it turns): the
   Threshold; the Turning Floors (two riding discs over a drop, riding only while the small vane over the far door
   spins: a splash, and go before it slows); the Climb (climb the block's face; the ball's groove crosses a slot whose
@@ -1415,7 +1415,7 @@ the pipe-cart ran down the canyon to the oculus and back.
   way his father did ("A door wants grease anyway"). Afterwards: the pipe-cart
   lifting out of the sand "like it had been asleep"; Jot rode it nine times and
   says he is ten teeth old now, from the excitement.
-- **Inside** (reworked round one idea, v1.17: a ball in the teeth stops the
+- **Inside** (reworked round one idea, v1.19: a ball in the teeth stops the
   engine there; the Tooth-Warden jams the whole engine, and the makers' own
   jams are stone balls rolled into a crank's teeth): the Threshold; the Piston
   Hall (three pistons to the gantry: the valve's eye hisses, but a ball sits in

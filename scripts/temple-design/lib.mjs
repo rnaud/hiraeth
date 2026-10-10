@@ -15,6 +15,7 @@
 
 /** A piece's position (local [x, y, z]) from whatever its options name. */
 export function piecePos(o = {}) {
+  if (Array.isArray(o.at) && Array.isArray(o.at[0])) return centroid(o.at);   // (several places: the Engine-House's cranks)
   if (Array.isArray(o.at)) return o.at.slice(0, 3);
   if (Array.isArray(o.path) && o.path.length) return mid(o.path[0], o.path[o.path.length - 1]);
   if (Array.isArray(o.a) && Array.isArray(o.b)) return mid(o.a, o.b);

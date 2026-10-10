@@ -1988,3 +1988,15 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   white archway in the android wood (src/foe-worlds.js PLACED). The Arena's waves add the roller, the marionette with
   creatures to drive, the shade with a roller. Scored in docs/audits/combat-v1.18.md (4.3–4.8 by eye, mean 4.50); the
   shade answers combat-v1.4's "one cut, only the blade" (3.0 → 4.3).
+
+## Two more temples rebuilt round one idea: the Warden's Well and the Engine-House (2026-10-09, v1.19)
+
+- [x] The Warden's Well (the tower breathes through its vanes: the discs and the slot on splashed vanes, the great vanes
+  turned by the jets' wash, the lidded eyes, the two irises, the ball pushed over a gap from the air, two vanes at once
+  in the crown, the warden's hatch opened by a vane's draught) and the Engine-House (a ball in the teeth stops the
+  engine there: the pistons' crank unjammed, the hammer jammed, the piston-eyes held up, one crank and then two, the
+  Tooth-Warden's gear), each after the author's picked hall and doorway (references/temples/), their guardians' last
+  phases on the idea (docs/systems/foes.md); re-scored in docs/audits/temple-design-v1.19.md (2.00 → 3.89, 2.11 →
+  4.00, average 3.14 → 3.49). Engine: a held `vane` element, `Vane`, `Iris`, a `Switch`'s lids, a `Ball` gap's lip,
+  `Hammer`, a `Bank`'s piston eyes on a stroke; the shaft's breath fixed (it let riders sink off its crest);
+  tests/temples.test.js and tests/guardian-twists.test.js play them, failures first.

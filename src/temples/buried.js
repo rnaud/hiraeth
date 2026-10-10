@@ -15,7 +15,7 @@ import { sentinelModel } from './guardians.js';
 // turns one tooth a year and no more. It is a machine: you may stop it.
 //
 // Inside (built far overhead, through its oval door), one idea from the first room to the last: A BALL IN THE
-// TEETH STOPS THE ENGINE THERE (reworked from the temple design audit, v1.17). The Tooth-Warden jams the whole
+// TEETH STOPS THE ENGINE THERE (reworked from the temple design audit, v1.19). The Tooth-Warden jams the whole
 // engine; the makers' own jams are stone balls, rolled into a crank's teeth: what that crank drives stops where it
 // stands, and stays stopped while the ball sits there. Where the engine is in your way, jam it; where it hides what
 // you need, jam it showing.
