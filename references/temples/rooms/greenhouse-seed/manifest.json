@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round chamber of clean white stone under a small glass oculus, a dais in the middle with the makers' chest standing open, a low round chest of white stone carved with three dots over an upward arc, a leaf green and petal pink glow rising out of it. Beside the dais a seed in a ring of stones lies in the oculus's circle of sun. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, the tank now leaf green and petal pink, splashes the seed with a stream of glowing fluid, and a flowering plant bursts up out of it in the sunlight, dwarfed by the chamber. Dead sticks in pots round the walls. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, sunlit glass, leaf green, petal pink, sky blue, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#greenhouse-seed",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-31-25-ddca",
+      "candidate": "openai/1",
+      "sha256": "d31b685f69b65d15b66c159a051761fcaa4645ae76670932c73aef9e066f0f94",
+      "bytes": 218727,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -34,6 +34,23 @@
       "sha256": "94f844eec85e3d280c44400a301ee590c3a6809041f533715b70f1f415322dfb",
       "bytes": 223661,
       "costUSD": 0.041
+    },
+    {
+      "file": "sheet-3.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: the bell chamber inside a round tower of bone-white stone built by the makers to keep floating stones down, a tall circular hall with an oculus in its vaulted ceiling and a great ancient bronze bell hanging silent in the oculus against the sky. On a low dais in the middle a tiny whistle of blue-glazed clay shaped like a bell. On the far side a tall stone door has just sunk open while a clear ringing note spreads through the room, drawn as pale concentric rings of sound rippling out from the traveller, the lamps on its lintel lit; through it, glimpsed beyond, a chasm where great stones hang in the air above their places. Carved friezes of three dots over an upward arc, small bells carved in every niche, a stone ball resting in a groove in the floor. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands by the door with the whistle to their lips, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white stone, warm bronze, blue glaze, pale sky light, rose and lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-prompts.md#founders-belfry",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-09-21-38-20-9686",
+      "candidate": "openai/2",
+      "sha256": "7e03f5d75e0175a6f53af7f6327f33c3b6ebb5549a11747240db0f64515118e2",
+      "bytes": 227632,
+      "costUSD": 0.041
     }
   ]
 }

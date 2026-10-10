@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a tall stair hall inside a greenhouse of the white builders, clean gridded white stone and a ribbed glass roof with one great louvre. A stone ball sits on the east of two plates in the floor, and the louvre's sunbeam falls on a pale riding disc hovering over a wall of roots, which rides up in the light; on the west wall high up a carved stone eye stays in the shade, waiting for the ball on the other plate. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the sunlit disc as it rises, dwarfed by the hall, looking across at the eye. Dead vines on the glass, dust in the beam. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, white stone, sunlit glass, leaf green, petal pink, sky blue, soft blue shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#greenhouse-stair",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-30-54-080b",
+      "candidate": "openai/1",
+      "sha256": "8263066761ae4475cbe39b54e5e27db58fdda594f2a3701ace15211b65c840fc",
+      "bytes": 273522,
+      "costUSD": 0.041
+    }
+  ]
+}

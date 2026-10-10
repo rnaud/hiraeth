@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a dark gallery inside a tower of the makers split by a black chasm; inside the soft round circle of a lantern's light, glowing moss-stepping-stones appear across the chasm, and outside the circle there is nothing to see. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a little glowing lantern charm at their hip, stands on a stone midway across, dwarfed by the dark. On the far side, low in the west wall, a niche with a dark lamp, and a glass orb of pool water glowing soft gold rolls down a groove toward it before its glow fades. High over the way in behind, a carved eye seen only in the light. Friezes of three lamps over a hull. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep blue-violet darkness, warm lamp gold, moss green glow, coral glints, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#lamp-gallery",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-29-47-40f7",
+      "candidate": "openai/2",
+      "sha256": "bf45810463414b0f086349e8876cb1c9934c1f1c930acc96c169ee52dee413df",
+      "bytes": 196171,
+      "costUSD": 0.041
+    }
+  ]
+}
