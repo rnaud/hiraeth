@@ -53,6 +53,33 @@ function placeBeads(beads, points, g) {
   beads.forEach((b, i) => { _p.lerpVectors(points[i], points[i + 1], 0.5).applyMatrix4(_m); b.position.copy(_p); });
 }
 
+/**
+ * A body lofted through cross-sections along z: each [z, half-width, top y, bottom y] an ellipse (the sheet's side
+ * view gives the top and bottom lines, its front view the width), closed at both ends; one geometry.
+ */
+function loftGeometry(sections, radial = 12) {
+  const pos = [], idx = [], n = sections.length;
+  for (const [z, w, top, bot] of sections) {
+    const cy = (top + bot) / 2, ry = (top - bot) / 2;
+    for (let k = 0; k < radial; k++) { const a = (k / radial) * Math.PI * 2; pos.push(Math.sin(a) * w, cy + Math.cos(a) * ry, z); }
+  }
+  for (let i = 0; i < n - 1; i++) for (let k = 0; k < radial; k++) {
+    const a = i * radial + k, b = i * radial + ((k + 1) % radial), c = a + radial, d = b + radial;
+    idx.push(a, c, b, b, c, d);
+  }
+  // (the end caps: a fan to each end's centre)
+  for (const [i, flip] of [[0, true], [n - 1, false]]) {
+    const [z, , top, bot] = sections[i], ci = pos.length / 3;
+    pos.push(0, (top + bot) / 2, z);
+    for (let k = 0; k < radial; k++) { const a = i * radial + k, b = i * radial + ((k + 1) % radial); idx.push(...(flip ? [ci, a, b] : [ci, b, a])); }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 // --------------------------------------------------------------------------------------- the horn lizard
 /** The tail's tip: a tight spiral rising off the ground in the plane of the tail (local +z along it, +y up). */
 function spiralPoints(r0, turns = 1.15, n = 22) {
@@ -222,24 +249,32 @@ export function houndModel(skin) {
   const antlerM = M.mat('antler', P.antler, { flat: true, lineWhite: white }), eyeM = M.own('eye', P.eye, { glow: 0.95 });
   const smokeM = M.mat('smoke', P.smoke, { flat: true, side: THREE.DoubleSide }), smoke2M = M.mat('smoke2', P.smoke2 ?? P.smoke, { flat: true, side: THREE.DoubleSide });
   const glintM = props.has('glints') ? M.own('glint', P.glow, { glow: 0.9 }) : null;
-  const Q = quadBody(g, { name: 'hound', hipY: 1.2, hips: [0.44, -0.44], halfWidth: 0.12, feet: [0.15, 0.5, -0.5], legR: 0.052, knee: { lenA: 0.57, lenB: 0.56 }, mats: { joint: inkM, thigh: inkM, shin: inkM, foot: rimM } });
+  const Q = quadBody(g, { name: 'hound', hipY: 1.18, hips: [0.55, -0.55], halfWidth: 0.11, feet: [0.14, 0.62, -0.68], legR: 0.046, knee: { lenA: 0.57, lenB: 0.56 }, mats: { joint: inkM, thigh: inkM, shin: inkM, foot: rimM } });
   const { body, torso, legs, rig } = Q;
-  // a deep chest, a narrow waist tucked up under the loins, lean haunches
-  const chest = pivot(torso, 0, 0.0, 0.3, 'chest');
-  const trunk = add(torso, new THREE.SphereGeometry(1, 14, 10).scale(0.16, 0.18, 0.5), inkM, 0, 0.04, -0.1);
-  const chestM = add(chest, new THREE.SphereGeometry(1, 14, 10).scale(0.21, 0.33, 0.32), inkM, 0, -0.1, 0);
-  add(torso, new THREE.SphereGeometry(1, 12, 8).scale(0.18, 0.25, 0.25), inkM, 0, -0.02, -0.42);
-  // the neck forward and up off the chest, the head carried low on it with a long muzzle
-  const neck = pivot(chest, 0, 0.1, 0.18, 'neck');
-  tube(neck, [[0, 0, -0.04], [0, 0.14, 0.12], [0, 0.24, 0.3]], 0.11, inkM, 0.07);
-  const head = pivot(neck, 0, 0.25, 0.33, 'head');
-  add(head, new THREE.SphereGeometry(1, 10, 8).scale(0.11, 0.115, 0.16), inkM);
-  const muzzle = add(head, new THREE.ConeGeometry(0.078, 0.46, 7).rotateX(Math.PI / 2), inkM, 0, -0.05, 0.24); muzzle.rotation.x = 0.38;
+  // one lean body from the breast to the rump (the sheet's side view): the deep keel of the chest behind the front
+  // legs, the belly tucking up sharply to a narrow waist, the loins and haunches rising again, the back line nearly level
+  const chest = pivot(torso, 0, 0.0, 0.5, 'chest');
+  add(torso, loftGeometry([
+    [0.86, 0.02, -0.07, -0.11], [0.8, 0.09, 0.0, -0.22], [0.68, 0.15, 0.12, -0.36], [0.5, 0.17, 0.16, -0.45], [0.3, 0.16, 0.15, -0.42],
+    [0.08, 0.13, 0.12, -0.27], [-0.16, 0.11, 0.1, -0.12], [-0.38, 0.13, 0.13, -0.13], [-0.58, 0.14, 0.12, -0.18], [-0.74, 0.1, 0.07, -0.13], [-0.82, 0.03, 0.02, -0.05],
+  ]), inkM);
+  // the muscle of each leg: the shoulder and forearm in front, the great hams behind, thinning to the sheet's bony shins
+  legs.forEach((l, i) => {
+    const hind = i >= 2;
+    add(l.thigh, new THREE.SphereGeometry(1, 10, 8).scale(hind ? 0.085 : 0.065, hind ? 0.26 : 0.2, hind ? 0.13 : 0.095), inkM, 0, hind ? 0.17 : 0.13, hind ? -0.02 : 0.01);
+    add(l.shin, new THREE.SphereGeometry(1, 8, 6).scale(0.05, 0.16, 0.06), inkM, 0, 0.12, 0);
+  });
+  // the neck forward and up off the chest, deep at its root, the head carried low on it with a long muzzle
+  const neck = pivot(chest, 0, 0.08, 0.2, 'neck');
+  tube(neck, [[0, -0.06, -0.1], [0, 0.08, 0.08], [0, 0.17, 0.26]], 0.15, inkM, 0.075);
+  const head = pivot(neck, 0, 0.18, 0.3, 'head');
+  add(head, new THREE.SphereGeometry(1, 10, 8).scale(0.095, 0.1, 0.15), inkM);
+  const muzzle = add(head, new THREE.ConeGeometry(0.07, 0.46, 7).rotateX(Math.PI / 2), inkM, 0, -0.06, 0.25); muzzle.rotation.x = 0.42;
   pair((s) => { const ear = add(head, new THREE.ConeGeometry(0.035, 0.14, 5), inkM, s * 0.07, 0.11, -0.04); ear.rotation.set(-0.5, 0, -s * 0.5); });
   const eyes = pair((s) => add(head, new THREE.SphereGeometry(0.03, 8, 6), eyeM, s * 0.07, 0.02, 0.1));
   // the crown of antlers, far wider than its body (a crescent in the Eclipse, bleached driftwood in the Mangrove, a
   // tangle of wire in the Market; in the Garden of Spheres black, glinting gold, a pearl-and-gold halo caught in them)
-  const crown = pivot(head, 0, 0.08, -0.03, 'antlers');
+  const crown = pivot(head, 0, 0.08, -0.03, 'antlers'); crown.scale.setScalar(1.18);   // (the sheet's crown nearly as wide as the body is long)
   const { tines } = antlerCrown(crown, props, antlerM, glintM);
   if (props.has('halo')) {
     const h = pivot(crown, 0, 0.5, 0.0, 'halo'); h.rotation.set(-0.12, 0, 0.06);
@@ -249,20 +284,20 @@ export function houndModel(skin) {
   }
   // dripping like wet ink (the Mangrove): drops hanging off its chin, neck, chest and belly
   if (props.has('drips')) {
-    for (const [p, x, y, z, l] of [[head, 0, -0.1, 0.12, 0.14], [head, 0.05, -0.12, 0.3, 0.1], [neck, 0.06, 0.02, 0.12, 0.16], [neck, -0.06, 0.08, 0.2, 0.12], [chest, 0.1, -0.33, 0.05, 0.2], [chest, -0.08, -0.36, -0.05, 0.16], [torso, 0.08, -0.1, -0.12, 0.18], [torso, -0.07, -0.1, -0.3, 0.14], [torso, 0.06, -0.18, -0.45, 0.12], [crown, 0.3, 0.3, -0.06, 0.12], [crown, -0.42, 0.5, -0.08, 0.14]])
+    for (const [p, x, y, z, l] of [[head, 0, -0.1, 0.12, 0.14], [head, 0.05, -0.12, 0.3, 0.1], [neck, 0.06, 0.02, 0.12, 0.16], [neck, -0.06, 0.08, 0.2, 0.12], [chest, 0.1, -0.42, 0.0, 0.2], [chest, -0.08, -0.43, -0.12, 0.16], [torso, 0.08, -0.22, 0.05, 0.18], [torso, -0.07, -0.12, -0.2, 0.14], [torso, 0.06, -0.16, -0.5, 0.12], [crown, 0.3, 0.3, -0.06, 0.12], [crown, -0.42, 0.5, -0.08, 0.14]])
       add(p, new THREE.ConeGeometry(0.018, l, 5).rotateX(Math.PI).translate(0, -l / 2, 0), inkM, x, y, z);
   }
   // the mane: tongues of smoke streaming off its back from the withers to the rump
   const mane = [];
   for (let i = 0; i < 8; i++) {
-    const t = i / 7, z = lerp(0.5, -0.55, t), size = 0.55 + Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.55;
+    const t = i / 7, z = lerp(0.62, -0.62, t), size = 0.55 + Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.55;
     const fl = add(torso, new THREE.ShapeGeometry(FLAME).rotateY(-Math.PI / 2), i % 2 ? smoke2M : smokeM, (i % 2 ? 0.03 : -0.03), 0.12 + (i % 2 ? 0.07 : 0) + Math.sin(Math.PI * t) * 0.05, z);
     fl.scale.setScalar(size * (i % 2 ? 0.85 : 1));   // (the second smoke riding higher among the first)
     fl.userData.yaw = (i % 2 ? 1 : -1) * (0.18 + (i % 3) * 0.08);
     mane.push(fl);
   }
   // a thin long tail hanging behind
-  tube(torso, [[0, 0.06, -0.6], [0, -0.06, -0.8], [0, -0.32, -0.92], [0, -0.58, -0.96]], 0.028, inkM, 0.008);
+  tube(torso, [[0, 0.04, -0.76], [0, -0.08, -0.92], [0, -0.34, -1.02], [0, -0.6, -1.04]], 0.028, inkM, 0.008);
   // its shadow form: a ragged pool of shadow on the ground with its head and crown rising out of it, the eyes over the rim
   const poolShape = new THREE.Shape(); for (let i = 0; i <= 24; i++) { const a = (i / 24) * Math.PI * 2, r = 0.55 * (1 + (i % 2 ? 0.18 : -0.05) + Math.sin(i * 2.3) * 0.08); poolShape[i ? 'lineTo' : 'moveTo'](Math.sin(a) * r, Math.cos(a) * r); }
   const pool = add(g, new THREE.ShapeGeometry(poolShape).scale(0.9, 1.6, 1).rotateX(-Math.PI / 2), inkM, 0, 0.03, 0);
