@@ -1,0 +1,55 @@
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_5b6ecb5e449e9a 5-6,259-301
+scripts/bench/report.mjs
+  s_9ca76055a220ed::t_ed61cc92517ffc 17
+scripts/release-info.mjs
+  s_9ca76055a220ed::t_6deb03dbe90bbb 10,137,151-156
+scripts/unity-js-setup.sh
+  s_9ca76055a220ed::t_baf7a08e4767d5 2,5-7,11,14,18-23,25
+scripts/unity-publish.sh
+  s_9ca76055a220ed::t_80dc80b5987e17 5,12,18-22
+scripts/unity-uwp-natives.ps1
+  s_9ca76055a220ed::t_05696f338750e0 1-104
+tests/unity-ci.test.js
+  s_9ca76055a220ed::t_9c9025706bd426 128
+unity/Memento/Assets/MementoJS/Editor/BridgeBuild.cs
+  s_9ca76055a220ed::t_02fcf93fa8c031 24-25,64,162-224
+unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_25c3f0e3b43ddf 1-139
+unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs.meta
+  s_9ca76055a220ed::t_b480b0dee935a4 1-2
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_ce52b34aec7eea 60,140-141,147,149-150,166,169,245,284-285
+unity/Memento/Assets/MementoJS/Runtime/JsRuntime.cs
+  s_9ca76055a220ed::t_54bd0ecab63d4d 10,21-22,35-46
+unity/Memento/Assets/MementoJS/link.xml
+  s_9ca76055a220ed::t_32858226330be3 2,8
+.github/workflows/unity-xbox.yml
+  s_3b73ee71357e31::t_e6043afa9cc241 1-327
+tests/unity-xbox.test.js
+  s_3b73ee71357e31::t_3319a592953151 1-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e9b2f6e0e5b135e05108840690681b8fd8a0cc7a",
+  "prompts": {},
+  "sessions": {
+    "s_3b73ee71357e31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-adf23ef2aee0fd6f7",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
