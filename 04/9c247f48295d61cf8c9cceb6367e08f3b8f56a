@@ -1,0 +1,39 @@
+.claude/skills/ink-lines/SKILL.md
+  s_9ca76055a220ed::t_8066c8cfee365f 1-144
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_a0f6f9f55d1828 1-336
+.claude/skills/ink-lines/cost.mjs
+  s_9ca76055a220ed::t_50b03034c147c4 1-97
+.claude/skills/ink-lines/report.mjs
+  s_9ca76055a220ed::t_a0961f40c84f11 1-70
+scripts/ink-lines/lib.mjs
+  s_9ca76055a220ed::t_2737edd6f0e67c 1-223
+tests/ink-lines.test.js
+  s_9ca76055a220ed::t_8bb14c573831f8 1-69
+src/post.js
+  s_f1497e36479ff8::t_ee51fa3cd7f0fb 43,1332
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "049c247f48295d61cf8c9cceb6367e08f3b8f56a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_f1497e36479ff8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a99e225810ace9924",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
