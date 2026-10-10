@@ -1,0 +1,31 @@
+docs/systems/ship.md
+  s_9ca76055a220ed::t_5a3bc8909159ae 188-196
+scripts/unity-export/export-world.mjs
+  s_9ca76055a220ed::t_ffcfa396dd514a 568
+tests/unity-ship-points.test.js
+  s_9ca76055a220ed::t_6eeac27a8e726f 1-27
+unity/Memento/Assets/Memento/Editor/Tests/WorldsTests.cs
+  s_9ca76055a220ed::t_305b3e31a640c9 176-182
+unity/Memento/Assets/Memento/Runtime/BatchDriver.cs
+  s_9ca76055a220ed::t_6482a5964498d8 182-198
+unity/Memento/Assets/Memento/Runtime/ShipScene.cs
+  s_9ca76055a220ed::t_49d7480ed41675 9-17,19-22,34-35,58-60,75-77,84-85,117-192,265-267,269-270,287-288,292-297,300-302,304-311,321,335-336,358,363,366-368,382,386,388,397-402,406,408-413,416,418-427,430,432-445,447,451-455,457-462,468,470-471,473,478,480,484,486,492,498-499,504-506,512,525,581,589,600-601,603,606
+unity/Memento/Assets/Memento/Runtime/ShipTravel.cs
+  s_9ca76055a220ed::t_89c468423d490d 8,11-14,77-79,158-159,191-193,222,233-234,236-237,242-243,245-246,248-249,252,255-259,275,287
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9cfb5cdd647d71d3803a7ccdd5647a07a9639bd8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
