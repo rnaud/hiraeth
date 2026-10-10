@@ -31,7 +31,7 @@ namespace Memento.Bridge
         string readout = "";
         // the load
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
-        double warmSum, warmMax; int warmFrames, warmSlow;
+        double warmSum, warmMax, nativeSum, nativeMax, lastWait; int warmFrames, warmSlow, nativeSlow;
         public static float scriptEnvAt = -1, bundleAt = -1;
         // (seconds since launch from any thread: Unity's own clock may be read on the main thread only)
         static long baseTicks; static float baseAt;
@@ -88,6 +88,12 @@ namespace Memento.Bridge
             float now = Time.realtimeSinceStartup, dt = Time.unscaledDeltaTime * 1000;
             var scene = runner ? runner.scene : null;
             int nodes = scene ? scene.Nodes : 0;
+            // the frame without the main thread's wait on the script: Unity's own work (on D3D11 a shader's first use, the
+            // uploads, the draws). The wait is this Update's or the last one's: a frame's skew at most.
+            double waitNow = runner ? runner.waitMsTotal : 0, frameWait = waitNow - lastWait; lastWait = waitNow;
+            double native = Math.Max(0, dt - frameWait);
+            FrameTimingManager.CaptureFrameTimings();
+            bool timedNow = FrameTimingManager.GetLatestTimings(1, timing) > 0;
             // the load's stages
             if (firstNode < 0 && nodes > 0)
             {
@@ -98,18 +104,22 @@ namespace Memento.Bridge
             {
                 if (nodes > lastNodes) { lastNodes = nodes; lastGrowth = now; }
                 warmFrames++; warmSum += dt; if (dt > warmMax) warmMax = dt; if (dt > 50) warmSlow++;
+                nativeSum += native; if (native > nativeMax) nativeMax = native; if (native > 50) nativeSlow++;
+                if (warmFrames <= 10)
+                    Write($"load: frame {warmFrames} after the first node: {dt:0} ms, the script's wait {frameWait:0}, Unity's own {native:0}" +
+                          (timedNow ? $" (cpu main {timing[0].cpuMainThreadFrameTime:0.0} render {timing[0].cpuRenderThreadFrameTime:0.0} gpu {timing[0].gpuFrameTime:0.0} ms)" : ""));
                 if (now - lastGrowth > 2)
                 {
                     settled = lastGrowth;
                     Write($"load: world settled {settled * 1000:0} ms after launch ({nodes} nodes, {scene.Geometries} geometries); " +
-                          $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms");
+                          $"first frames: {warmFrames} in {warmSum:0} ms, longest {warmMax:0} ms, {warmSlow} over 50 ms; " +
+                          $"Unity's own part (without the wait on the script): {nativeSum:0} ms, longest {nativeMax:0} ms, {nativeSlow} over 50 ms");
                     windowStart = now; frames.Clear();
                 }
             }
             // the frame's numbers, from settled on (and before, so the readout shows something)
             frames.Add(dt);
-            FrameTimingManager.CaptureFrameTimings();
-            if (FrameTimingManager.GetLatestTimings(1, timing) > 0)
+            if (timedNow)
             { cpuMain += timing[0].cpuMainThreadFrameTime; cpuRender += timing[0].cpuRenderThreadFrameTime; gpu += timing[0].gpuFrameTime; timed++; }
             if (now - windowStart >= 5 && frames.Count > 0)
             {

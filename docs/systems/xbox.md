@@ -280,13 +280,15 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
 - **The numbers** (`BridgeMetrics`, on in the UWP build, `-metrics` elsewhere): `LocalState\unity.log`, new each launch
   (the last in `unity.prev.log`), and a readout at the top left. The load's stages apart: `script's engine made`,
   `the bundle loaded in`, `Memento.start returned in`, `load: first node` (the first mirrored object), `load: world
-  settled` (no new object for 2 s) with the **first frames** between (their sum, the longest, how many over 50 ms: a
+  settled` (no new object for 2 s), the first ten frames after the first node one by one (the frame, the script's
+  wait, **Unity's own part**, FrameTimingManager's CPU and GPU), and the **first frames** between (their sum, the longest, how many over 50 ms: a
   shader's first use on D3D11 shows there; the shaders themselves were compiled to DXBC when the player was built,
   where the web compiles GLSL → HLSL → DXBC on the console at run time). Then every 5 s: fps, the frame's median,
   95th and longest ms, FrameTimingManager's **CPU main / render thread and GPU** ms, and the **script**'s own time a
   frame and the main thread's **wait** on it.
 
-**Installing and measuring** (from the Mac; the portal has no password):
+**Installing and measuring** (from the Mac; the portal has no password). `node scripts/xbox-unity.mjs install <dir>`,
+`launch`, `stop` and `log [prev]` do steps 2, 4 and the fetch; by hand:
 1. Download `memento-unity-xbox.zip` from the `unity-xbox` prerelease and unpack it.
 2. Install: `GET https://192.168.68.64:11443/api/app/packagemanager/packages` for the `CSRF-Token` cookie, then
    `POST /api/app/packagemanager/package?package=memento-unity-xbox.msix` (multipart: the `.msix` and each `.appx`)
