@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.25', date: '2026-10-10', items: [
+    // the traveller's face, drawn the way his sheets draw him
+    'The traveller’s face is drawn the way his sheets draw him, not like a toy: smaller, narrower eyes under a heavy upper lid that cuts the top of a dark iris, a crease over the lid and no shine; a straight nose drawn with one line down its side and a hook round each nostril; a mouth that is one line; one even skin colour instead of a rosy nose and painted lips. He still blinks (now one clean stroke), looks about, smiles, frowns and talks, and his eyes go wide when he is surprised.',
+  ] },
   { v: '1.24', date: '2026-10-10', items: [
     // the guardians: a dive that misses
     'The Lampless, the Elder and the Cloud-Mother now pay for a dive that misses, as the Keeper does for a stamp: dodge it and the Lampless catches its wings on the floor, the Elder drives her beak into it, the Cloud-Mother ploughs in on her fins, and each stays down a while longer than after a dive that lands. The Lampless’s dust now also runs out along the floor in a ring you can jump.',

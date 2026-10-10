@@ -550,10 +550,12 @@ triangles and unused vertices are removed. The separate head uses the same
 `Head`, with a smooth neck blend to `neck_01`. The body, hand articulation,
 clothing simulation and equipment anchors keep their existing implementations.
 
-The accepted neutral face texture and skull/hair shape are preserved. Eight
-runtime shape keys move the lids, smile, brows, brow tilt, asymmetry, lower mouth
-and limited gaze; corresponding normal deltas follow them. The existing
-Humanoid expression, blink and TalkFace speech channels drive these keys.
+The skull/hair shape is preserved. Six runtime shape keys move the lids, smile,
+brows, brow tilt, asymmetry and lower mouth; corresponding normal deltas follow
+them. The existing Humanoid expression, blink and TalkFace speech channels drive
+these keys. Since v1.25 the face itself is drawn over the texture's painted one
+(`src/characters/head-ink.js`, docs/systems/faces.md, "His face redrawn the
+Moebius way"): the gaze moves only the drawn iris, so the two gaze keys are gone.
 Speech adds a small shaded mouth opening in the new material. The old
 `tripo-face.js` repaint is only retained for loading the original body without
 a replacement head (legacy tests/tools), and never touches the new head.

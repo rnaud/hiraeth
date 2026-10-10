@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.25 — 2026-10-10
+
+- The traveller’s face is drawn the way his sheets draw him, not like a toy: smaller, narrower eyes under a heavy upper lid that cuts the top of a dark iris, a crease over the lid and no shine; a straight nose drawn with one line down its side and a hook round each nostril; a mouth that is one line; one even skin colour instead of a rosy nose and painted lips. He still blinks (now one clean stroke), looks about, smiles, frowns and talks, and his eyes go wide when he is surprised.
+
 ## v1.24 — 2026-10-10
 
 - The Footprint after the picked pictures: a band of sage green round its round-headed door, the door’s round boss over it and white slabs along the print’s rim to the porch; inside, broken rock under the chasm’s lips and two pillars topped with spheres by the far door.

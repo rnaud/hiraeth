@@ -37,7 +37,8 @@
   "runtime_integration": {
     "module": "src/characters/tripo-head.js",
     "skeleton": "Existing fitted MakeHuman body skeleton: Head and neck_01",
-    "facial_keys": 8,
+    "facial_keys": 6,
+    "drawn_face": "src/characters/head-ink.js draws the eyes, nose and mouth over the painted face (v1.25)",
     "mouth": "Stylized surface ink; no oral cavity",
     "export_is_unmodified": true
   }

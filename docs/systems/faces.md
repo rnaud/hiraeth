@@ -302,3 +302,71 @@ alike.
 - Checked on the desert, home (Lou, Tove), Qanat (Nour, seated) and the Signal Market (Madame Sel,
   seated; Ferro), at 1280×720 and at 1920×1080 with the Handheld preset: happy, sad, angry, scared,
   surprised, solemn and the smirk each read at the close shot's size.
+
+## His face redrawn the Moebius way (v1.25)
+
+The playable traveller wears the generated Tripo head (docs/systems/characters.md, "Tripo head
+replacement"), whose face came painted the way a 3D render paints one. Beside the sheets
+(`references/main character/`, the expression sheets) it read as a toy or an anime figure, and the
+eyes were most of it:
+
+- **The eyes**: a wide almond (0.087 by 0.035 in the export's units, 2.5 : 1) open round a whole
+  round iris, a bright blue-white all round it, a soft gradient iris with a catchlight, and a dark
+  lash line drawn all the way round the opening, under the eye too (an eyeliner look). The sheets'
+  eyes are narrower, the heavy upper lid cuts the top of a flat dark iris, a crease runs over the lid,
+  the lower lid is hardly there, the white is cream, there is no shine.
+- **The nose**: a soft rounded tip painted rosier than the skin, with no line: a blob. The sheets tell
+  a strong straight nose by one line down its side into a hook round the wing.
+- **The mouth**: full lips painted pink. The sheets draw one line and a short stroke under the lip.
+- **The skin**: an airbrushed render's gradients and rosy patches (nose, lips, lids), where the sheets
+  have one flat colour.
+
+The head's proportions (a long lean adult face, the brows, the hair) already match the sheets and are
+kept. **`src/characters/head-ink.js`** draws the face over the paint in the head's fragment shader, in
+its rest coordinates (`hb`, the export's own; `HEAD_INK`, measured off a front orthographic render of
+the texture):
+
+1. **The painted eyes covered**: an oval over each painted opening is filled with the lid's skin, and
+   anything not skin round it (the white, the iris, the lash line) too.
+2. **One skin colour**: every skin pixel takes the cheek's hue at its own lightness, and 40% of the
+   baked light and shade is evened out (`HEAD_INK.flatten`), so the nose, the lips and the lids are no
+   longer rosy.
+3. **The eyes**: 0.93 the painted width and 0.69 its height (`EYE_CHANGE`; about 3.3 : 1), the iris 0.85
+   the painted one's radius, flat dark brown with a darker rim and pupil, cut at the top by the lid and
+   sitting on the lower one; the white cream, shaded under the lid; the upper lid one heavy stroke,
+   finer at the inner corner, a little past the outer one; a fine crease over it; the lower lid a light
+   line under its outer half only. No catchlight.
+4. **The nose**: one line down the side of the bridge into a hook round each wing, and the nostrils.
+   The line is drawn on the side turned from the camera (`uHeadSide`, `headSide`: worked out in the
+   head's `onBeforeRender` for each camera that draws him, portraits included); from in front both
+   sides are faint.
+5. **The mouth**: one line, finer toward the corners, and a short stroke under the lower lip. The
+   speech opening (`uHeadSpeech`) is drawn over it as before.
+
+**Detail by size**: `ha` is the size of a pixel in the export's units (the face is about 0.45 tall):
+the white of the eye, the crease, the lower lid and the lip stroke from about 110 px of face, the
+nose's lines from about 75 px; below that each eye is a dark mark (the lid and the iris), the mouth a
+line. Line widths have pixel floors, so the dialogue chip and the close shot still draw them.
+
+**The channels** (`headInkState`, pure): the head's shape keys still move the skin, and the drawing,
+in rest coordinates, rides them as the paint did (a smile lifts the corners, raised brows stretch the
+lids, the open mouth drops the lower lip). The blink is drawn: the upper lid comes down onto the
+lower one and draws one arc (`uHeadEye.y` -1), while the blink key only gathers the skin round the eye
+(`HEAD_INK.squeeze` 0.3: folded all the way, the drawn lid had no height left and a closed eye was a
+faint broken line). A squint half shuts the lids and lifts the lower one, a smile lifts the lower lid
+(`uHeadEye.x`), raised brows open the eyes wide (`uHeadEye.y` > 0: the white shows round the iris, a
+gasp). The gaze moves only the iris (`uHeadEye.zw`, `HEAD_INK.gaze`, within the eye), so the lids stay
+put; the two gaze shape keys are gone (`HEAD_KEYS`: six).
+
+**The family**: they don't share this kit. The father's recording bust is its own generated face
+(`father-v1.js`) with small dark eyes, a heavy brow and a strong nose, which the traveller's eyes and
+nose now echo; Lou, the mother, Ilen and Tove are MakeHuman people drawn by `face-ink.js` (Lou keeps a
+child's larger eyes on purpose).
+
+**Cost**: the head's pixels alone, a few box-gated strokes; one uniform vector and a float a frame,
+and a matrix inverse per draw of the head (`onBeforeRender`). Nothing on the CPU per pixel, no new
+texture, no new draw.
+
+`tests/head-ink.test.js` (the eye against the paint's, the channels, the gaze, the camera's side, the
+shader's parts); `tests/traveller-v1.test.js` (the drawn face on the real head, through `markHero`:
+the blink shuts the drawn lids, the gaze moves no skin, the side for a camera on either side).

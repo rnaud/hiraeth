@@ -1,10 +1,11 @@
 import * as T from 'three';
 import { cleanExpression } from '../expression.js';
+import { HEAD_INK_GLSL, headInkState, headSide } from './head-ink.js';
 
 // The approved H3.1 export is kept intact. This uniform fit puts its neck inside
-// the scarf; the skull/hair silhouette and neutral facial texture are unchanged.
+// the scarf; the skull/hair silhouette is unchanged, and the face is drawn over its paint (head-ink.js).
 export const HEAD_FIT = Object.freeze({ scale: 0.32, offset: [-0.001, 1.455, -0.006], neck: [1.495, 1.557] });
-export const HEAD_KEYS = ['blink', 'smile', 'brow', 'browTilt', 'asymmetry', 'open', 'gazeX', 'gazeY'];
+export const HEAD_KEYS = ['blink', 'smile', 'brow', 'browTilt', 'asymmetry', 'open'];
 const smooth = (a, b, x) => { const t = T.MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const patch = (x, y, w, h) => 1 - smooth(0.55, 1, Math.hypot(x / w, y / h));
 
@@ -57,7 +58,8 @@ export function makeTripoHead(asset, body) {
   g.setAttribute('skinIndex', new T.Uint16BufferAttribute(si, 4));
   g.setAttribute('skinWeight', new T.Float32BufferAttribute(sw, 4));
   // Small shape keys deform the generated features and carry their own UVs with
-  // them. They don't replace the accepted neutral eyes with the old almond shader.
+  // them; the drawn face (head-ink.js, in rest coordinates) rides them the same way.
+  // The gaze moves only the drawn iris (a uniform), not the lids.
   const keys = HEAD_KEYS.map(() => new Float32Array(p.count * 3));
   for (let i = 0; i < p.count; i++) {
     const x = original.getX(i), y = original.getY(i), z = original.getZ(i), side = Math.sign(x), ax = Math.abs(x);
@@ -74,10 +76,6 @@ export function makeTripoHead(asset, body) {
     delta(3, 0, (0.11 - ax) * 0.33 * brow);
     delta(4, 0, side * (0.009 * brow + 0.006 * corner));
     delta(5, 0, -0.05 * lower, -0.006 * lower);
-    // Limited pupil tracking: move the central textured eye surface, fading to
-    // zero before the eyelid boundary so the level corners remain fixed.
-    const iris = patch(eyeX, eyeY, 0.033, 0.021) * front;
-    delta(6, 0.007 * iris, 0); delta(7, 0, 0.0035 * iris);
   }
   g.morphAttributes.position = keys.map((a, i) => { const attr = new T.Float32BufferAttribute(a, 3); attr.name = HEAD_KEYS[i]; return attr; });
   // Normal deltas keep moving eyelids/lips lit with their deformed surface.
@@ -105,10 +103,13 @@ export function wearTripoHeadFace(mesh) {
   const mat = mesh.material;
   if (!mat.fragmentShader.includes(SRGB_LINE)) throw new Error('Head face needs the game ink material');
   mat.uniforms.uHeadSpeech = { value: new T.Vector4() };
-  mat.fragmentShader = mat.fragmentShader.replace('void main()', 'uniform vec4 uHeadSpeech;\nvoid main()').replace(SRGB_LINE, `${SRGB_LINE}
-    // The closed mouth retains the source exactly. Speech shades a small opening
-    // on the deformed lip surface; this is stylized ink, not an oral cavity.
+  mat.uniforms.uHeadEye = { value: new T.Vector4() };
+  mat.uniforms.uHeadSide = { value: 0 };
+  mat.fragmentShader = mat.fragmentShader.replace('void main()', `uniform vec4 uHeadSpeech;\n${HEAD_INK_GLSL}\nvoid main()`).replace(SRGB_LINE, `${SRGB_LINE}
     vec3 hb = (vBind - vec3(${HEAD_FIT.offset.join(',')})) / ${HEAD_FIT.scale};
+    // the face drawn over the paint (head-ink.js), with the size of a pixel in source units
+    albedo = headInk(albedo, hb, max(fwidth(hb.x) + fwidth(hb.y), 1e-6) * 0.75);
+    // Speech shades a small opening on the deformed lip surface; this is stylized ink, not an oral cavity.
     float ha = max(fwidth(hb.y), 0.001);
     float ho = uHeadSpeech.x;
     float hx = hb.x / (0.094 - 0.015 * ho);
@@ -121,9 +122,21 @@ export function wearTripoHeadFace(mesh) {
     albedo = mix(albedo, mix(oral, vec3(0.83,0.77,0.65), teeth), mouthInk);
   `);
   mat.needsUpdate = true;
-  const matrix = new T.Matrix4();
+  const matrix = new T.Matrix4(), view = new T.Matrix4(), cam = new T.Vector3();
+  const headBone = mesh.skeleton?.bones.findIndex(b => b.name === 'Head') ?? -1;
+  const centre = new T.Vector3(HEAD_FIT.offset[0], 1.619, 0.076);
+  // Which side of his face the camera is on (rest space: the sine of its angle off his nose, + his left),
+  // for the nose's line on the side turned away: worked out as each camera draws him (portraits too).
+  mesh.onBeforeRender = (renderer, scene, camera) => {
+    const u = mesh.material.uniforms?.uHeadSide;
+    if (!u || headBone < 0) return;
+    const sk = mesh.skeleton;
+    view.multiplyMatrices(sk.bones[headBone].matrixWorld, sk.boneInverses[headBone]).multiply(mesh.bindMatrix).premultiply(mesh.bindMatrixInverse).premultiply(mesh.matrixWorld).invert();
+    cam.setFromMatrixPosition(camera.matrixWorld).applyMatrix4(view).sub(centre);
+    u.value = headSide(cam);
+  };
   const face = {
-    mesh, expression: cleanExpression(), blink: 0, look: [0, 0],
+    mesh, expression: cleanExpression(), blink: 0, look: [0, 0], state: headInkState(cleanExpression()),
     set(e) { this.expression = cleanExpression(e); this.push(); },
     eyes(blink = 0, squint = null, look = null) {
       this.blink = blink;
@@ -132,11 +145,12 @@ export function wearTripoHeadFace(mesh) {
       this.push();
     },
     push() {
-      const e = this.expression, w = mesh.morphTargetInfluences;
-      w[0] = Math.max(this.blink, e.squint * 0.6) - Math.max(0, e.brow - 0.4) * 0.12 * (1 - this.blink);
-      w[1] = e.smile; w[2] = e.brow; w[3] = e.browTilt; w[4] = e.asymmetry; w[5] = e.open;
-      w[6] = T.MathUtils.clamp(this.look[0] / 0.3, -1, 1); w[7] = T.MathUtils.clamp(this.look[1] / 0.2, -1, 1);
-      mesh.material.uniforms.uHeadSpeech?.value.set(e.open, e.smile, 0, 0);
+      const s = headInkState(this.expression, { blink: this.blink, look: this.look }, this.state), w = mesh.morphTargetInfluences;
+      for (let i = 0; i < s.keys.length; i++) w[i] = s.keys[i];
+      // (the uniforms looked up each push: markHero gives the player copies of his materials)
+      const u = mesh.material.uniforms;
+      u.uHeadSpeech?.value.set(s.speech[0], s.speech[1], 0, 0);
+      u.uHeadEye?.value.set(...s.eye);
     },
     at(head, out) {
       const sk = mesh.skeleton, i = sk.bones.indexOf(head); if (i < 0) return null;

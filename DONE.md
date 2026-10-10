@@ -2065,3 +2065,12 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] Dark triangles of the Givers' Hearth's dome hung across the passage's mouth (visual-v1.21, finding 2): `cut()`
   splits a triangle that straddles the opening down to 0.3 m and drops only the small ones inside
   (src/desert-hearth.js). tests/cave-seams.test.js (nothing inside the mouth, the rest of the dome whole).
+- [x] The traveller's face redrawn the Moebius way (v1.25; TODO: "redo the character's face to match the references
+  more closely and feel less cartoony / anime, the eyes in particular"). The generated head's painted face was a 3D
+  render's: wide almond eyes open round a whole iris with a bright white, a catchlight and a lash line all round; a
+  rosy rounded nose tip with no line; pink painted lips; airbrushed skin. `src/characters/head-ink.js` covers the
+  painted eyes, evens the skin to one hue and draws the sheets' face in the head's rest coordinates: narrower eyes
+  (0.93 the width, 0.69 the height) whose heavy upper lid cuts a flat dark iris, a lid crease, a light lower lid, no
+  shine; one nose line on the side turned from the camera into a hook round each wing; a mouth line and a lower-lip
+  stroke. The blink is drawn (one arc), raised brows open the eyes wide, the gaze moves only the iris
+  (docs/systems/faces.md, "His face redrawn the Moebius way"). tests/head-ink.test.js, tests/traveller-v1.test.js.

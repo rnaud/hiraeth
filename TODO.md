@@ -3,11 +3,6 @@
 Open work only. Finished items move to DONE.md (with how they were done); the changelog
 (src/changelog.js) says when they reached players.
 
-# Visuals and controller menus (October 2026)
-
-- [ ] Redo the character's face to match the references more closely and feel less cartoony / anime.
-  Pay particular attention to the eyes as a possible cause of the style mismatch.
-
 # Selected characters, currency, ship and sword (2026-10-09)
 
 User-approved Midjourney originals and provenance are indexed in

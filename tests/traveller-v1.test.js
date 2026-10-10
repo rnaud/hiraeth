@@ -87,7 +87,8 @@ test('approved Tripo head replaces the old surface and follows the real head and
  const c=createTravellerV1(char,{gltf,data,report,colors,head:asset});
  const {head,mesh,humanoid:h}=c;
  assert.ok(head.isSkinnedMesh);assert.equal(head.skeleton,mesh.skeleton);
- assert.ok(head.material.isShaderMaterial);assert.ok(!head.material.fragmentShader.includes('tripoFace('),'accepted eyes are not painted over');
+ assert.ok(head.material.isShaderMaterial);assert.ok(!head.material.fragmentShader.includes('tripoFace('),'the old body\'s face repaint is not on the new head');
+ assert.ok(head.material.fragmentShader.includes('headInk('),'its own face is drawn over its paint (head-ink.js)');
  assert.ok(mesh.geometry.boundingBox.max.y<1.56,`the original head was actually removed: ${mesh.geometry.boundingBox.max.y}`);
  let source;asset.scene.traverse(o=>{if(o.isMesh)source=o;});
  assert.equal(source.geometry.morphAttributes.position,undefined,'original export is untouched');
@@ -122,7 +123,7 @@ test('approved Tripo head replaces the old surface and follows the real head and
  const at=h.drawnFace.at(bone,new T.Vector3());assert.ok(at.distanceTo(char.root.position)<2);
 });
 
-test('new head preserves neutral identity, closes its textured eyes, and responds to speech after hero material cloning',async()=>{
+test('new head preserves neutral identity, shuts its drawn eyes, and responds to speech after hero material cloning',async()=>{
  const asset=await loadHead(),char=buildCharacter();
  const {head,humanoid:h}=createTravellerV1(char,{gltf,data,report,colors,head:asset});
  const {markHero}=await import('../src/materials.js');const {TalkFace}=await import('../src/talk-face.js');
@@ -137,13 +138,38 @@ test('new head preserves neutral identity, closes its textured eyes, and respond
   }
   if(y>.77)for(const key of head.geometry.morphAttributes.position)assert.ok(Math.abs(key.getY(i))<1e-8,'expressions leave the hair silhouette alone');
  }
- assert.ok(tested>10&&closed<dy*.07,`actual central eye aperture closes (${tested} vertices, ${closed/dy})`);
+ assert.ok(tested>10&&closed<dy*.07,`the blink key folds the central eye shut (${tested} vertices, ${closed/dy})`);
  h.eyeLook.update=function(){this.blink=1;};h.updateEyes(1/60,null);
- assert.equal(head.morphTargetInfluences[0],1,'the game blink reaches the new mesh');
+ // (the drawn lids shut, head-ink.js; the key only gathers the skin round them a little)
+ assert.equal(head.material.uniforms.uHeadEye.value.y,-1,'the game blink shuts the drawn lids on the new mesh');
+ assert.ok(head.morphTargetInfluences[0]>0.2&&head.morphTargetInfluences[0]<0.5,'and gathers the skin round the eye a little');
  const talk=new TalkFace(h);let lo=1,hi=0;
  for(let i=0;i<90;i++){talk.update(1/60,{speaking:true,tone:'neutral',mouth:i%12<6?.9:0});if(i>30){lo=Math.min(lo,head.morphTargetInfluences[5]);hi=Math.max(hi,head.morphTargetInfluences[5]);}}
  assert.ok(hi>.2&&lo<hi*.5);assert.equal(head.material.uniforms.uHeadSpeech.value.x,head.morphTargetInfluences[5]);
  for(let i=0;i<400;i++)talk.update(1/60,{});
  assert.ok(head.morphTargetInfluences[5]<1e-4,'mouth returns shut');
  h.setExpression({smile:1,browTilt:1});assert.equal(head.morphTargetInfluences[1],1);assert.equal(head.morphTargetInfluences[3],1);
+});
+
+test('his drawn face: the gaze moves only the iris, the nose line follows the camera\'s side, after hero material cloning',async()=>{
+ const asset=await loadHead(),char=buildCharacter();
+ char.root.position.set(12,3,-40);char.root.rotation.set(0,0.7,0);
+ const {head,humanoid:h}=createTravellerV1(char,{gltf,data,report,colors,head:asset});
+ const {markHero}=await import('../src/materials.js');const {HEAD_KEYS}=await import('../src/characters/tripo-head.js');
+ markHero(char.root);char.root.updateMatrixWorld(true);
+ assert.deepEqual(HEAD_KEYS,['blink','smile','brow','browTilt','asymmetry','open'],'no gaze keys: the lids stay put as the eyes look about');
+ assert.equal(head.morphTargetInfluences.length,HEAD_KEYS.length);
+ h.drawnFace.eyes(0,0,null);const before=[...head.morphTargetInfluences];
+ h.drawnFace.eyes(0,0,{x:0.6,y:-0.5});
+ const u=head.material.uniforms.uHeadEye.value;
+ assert.ok(u.z>0&&u.w<0,'the iris goes the way he looks');
+ assert.deepEqual([...head.morphTargetInfluences],before,'and no skin moves with it');
+ // a camera on his left (+x in rest space), one on his right, one in front
+ const face=h.drawnFace.at(h.b.Head,new T.Vector3()),fwd=h.drawnFace.facing(new T.Vector3());
+ const cam=new T.PerspectiveCamera();
+ const side=(dir)=>{cam.position.copy(face).addScaledVector(dir,1);cam.updateMatrixWorld(true);head.onBeforeRender(null,null,cam);return head.material.uniforms.uHeadSide.value;};
+ const right=new T.Vector3().crossVectors(new T.Vector3(0,1,0),fwd).normalize();   // (+x of a body facing fwd, y up)
+ assert.ok(side(fwd)>-0.15&&side(fwd)<0.15,'in front: neither side');
+ assert.ok(side(right.clone().add(fwd).normalize())>0.5,'three-quarter from his left');
+ assert.ok(side(right.clone().negate().add(fwd).normalize())<-0.5,'three-quarter from his right');
 });

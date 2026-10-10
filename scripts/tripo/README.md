@@ -41,9 +41,9 @@ in a folder of its own) with `python3 scripts/tripo/sample-colors.py <that folde
 bones, trims the hidden foot, widens only a throat cylinder inside the lower neck to meet the scarf and
 removes the original head after the clothing split. Do not use a height-only neck
 flare: the low chin falls in that band too. Keep the jaw outside the flare and
-fully weighted to Head; the regression test compares it to the unchanged source. It creates eight facial shape
+fully weighted to Head; the regression test compares it to the unchanged source. It creates six facial shape
 keys and their normal deltas at runtime; Humanoid and TalkFace drive blinking,
-expressions, limited gaze and speech. The mouth opening is shaded surface ink,
+expressions and speech. The mouth opening is shaded surface ink,
 not an anatomical interior. Neither the fit nor the face keys are baked into the
 preserved original GLB. Native engine facial shader parity is not yet validated.
 
@@ -52,7 +52,9 @@ Reproduce the integration by loading the tracked assets in Character Studio:
 Use face/front/side/back views, expression presets, Talking and the walk/jog/sit
 animation controls. Run `node --test tests/traveller-v1.test.js tests/tripo-*.test.js`
 and `npx vite build`. Do not reuse the old `TRIPO_FACE` eye coordinates: the new
-head retains its own textured eyes and level corners.
+head's face is drawn over its paint in its own rest coordinates (`src/characters/head-ink.js`,
+`HEAD_INK`, measured off a front orthographic render of this texture), and the gaze moves only the
+drawn iris.
 
 ## Original full-body experiment
 
