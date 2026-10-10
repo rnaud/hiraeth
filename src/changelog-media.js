@@ -510,7 +510,14 @@ const TITLE38 = { device: 'a MacBook (Apple silicon), headless Chrome on the GPU
 const TITLE38_SHOTS = 'node scripts/title-shots.mjs (its own Vite, headless Chrome on the GPU, High, 1280 × 720) on the branch, before and after the covers’ skies and the print layer';
 const FROM_SKULL38 = 'headless Chrome (High, 1280 × 720, hour 10, clear) on the branch, the camera pinned and the traveller teleported beside it, the same views for both: before at its parent (a9858730), after with the rebuilt skull and cave';
 const COST38 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden, medians of 7, the same views as the pictures' };
+/** The v1.39 combat pictures: made by hand, headless Chrome (Medium, 1280 × 720) in the Arena, against this branch and its parent. */
+const FROM_FIGHT39 = 'headless Chrome (Medium, 1280 × 720, muted) in the Arena against this branch’s own dev server, the before with the parent commit’s files swapped back in, the same scratch script and the same moment';
 export const CHANGELOG_MEDIA = {
+  '1.39': [
+    { match: 'The third swing of the sword’s combo is a heavy blow', shots: [
+      { name: 'heavy-third', caption: 'The combo’s third swing near the end of its wind-up, seen from his side: before, both feet off the ground in a leap; after, planted, the sword raised for the chop', from: FROM_FIGHT39 },
+    ], see: 'Swing three times in a row (RB / R1, F): the third is the heavy chop, and you stay on the ground.' },
+  ],
   '1.38': [
     { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },
     { match: 'The double jump is the backpack’s first strength', shots: [

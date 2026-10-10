@@ -15,7 +15,12 @@ The first things in the game that fight back, and the tool's answer to them.
   to `MAGNET.max` (2.2 m) of ground; in reach, or further, nothing. Not the lunge (it carries you itself) nor in the air.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
   `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
-  0.25/0.17/0.26 for the second, 0.36/0.20/0.34 for the heavy third) onto source time.
+  0.25/0.17/0.26 for the second, 0.42/0.20/0.36 for the heavy third) onto source time.
+  **The heavy third** (v1.39): the pack's slash 5 (`ss_slash_5`), an overhead chop with both feet planted, the sword raised
+  high over the longer wind-up and brought down; a nudge of the camera (`kick` 0.12) as it comes down, landed or not, and on a
+  hit the third's damage 3, knockback 2.2× and 0.11 s hit-stop as before. It was attack 1 (`ss_attack_1`), a leaping overhead
+  that took both feet 1.4 m off the ground (the author: "I don't want the third attack to be a jump"; measured on the packs'
+  takes: `ss_slash_5`'s feet never rise more than 5 cm). `scripts/combat-reach.mjs --swings=3`: 0 misses of 84.
   Grounded swings use the legs and hips. `Animator.playCombat` blends clip changes (and the way back to
   locomotion) over 90 ms from the displayed pose, including motion matching when enabled (v1.3: it had
   blended nothing, `isBone` finding none of the library's plain-node joints; a swing into the next jumped up to
@@ -24,7 +29,7 @@ The first things in the game that fight back, and the tool's answer to them.
   the charge, the air cut, the riposte, the dash cut).
 - **On the clip's own swing frames** (v1.3): each attack's cut (`activeRange`: `activeFrom`–`activeTo`, else
   `hit` −0.08/+0.1) is where its clip's blade moves fastest, measured on the traveller (the tip's speed through
-  `from`–`to`): the three 47/36/30 m/s at 0.60/0.81/1.13 s, the whirl 27 at 1.06, the charge 22 at 0.66, the air
+  `from`–`to`): the three 47/37/37 m/s at 0.60/0.81/0.56 s, the whirl 27 at 1.06, the charge 22 at 0.66, the air
   cut 18 at 1.16, the riposte 33 at 1.39, the dash cut 43 at 0.56, each well over its speed round the cut. `tests/blade-attacks.test.js` checks it, so a clip's
   times can't drift off its swing. The trail follows the same window (`trailCut`): through the cut the fluid's wake and drops off the
   edge and sparks over the ground the edge crossed since the last frame (v1.7: "The look" below), else one glint

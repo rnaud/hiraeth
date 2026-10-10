@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.39 — 2026-10-10
+
+- The third swing of the sword’s combo is a heavy blow with both feet on the ground: the sword raised high over a longer wind-up and brought down hard, with a nudge of the camera, for the same three hearts and the same knock back. It was a leap into the air.
+
 ## v1.38 — 2026-10-10
 
 - The title screen looks more like the covers it was drawn from: each world’s sky takes its cover’s printed colour (turquoise over the desert, the salt harbour and the sky stones, peach over the garden of spheres), and the picture is printed on cream paper with a fine grain. The underwater city now follows its other cover, and the two desert covers that were set aside no longer show.

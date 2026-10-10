@@ -140,7 +140,10 @@ test('three wavy tips: one head tongue, two lesser ones out of its flanks; the c
   assert.ok(Math.abs(flame.mesh.rotation.y - Math.PI / 2) < 0.01, "a shadow's camera leaves it be");
 });
 
-test("its strike plays a clip the moves have (the blade's own)", () => {
-  assert.ok(SWINGS.some((s) => s.clip === SHADE_STRIKE.clip), SHADE_STRIKE.clip);
+test("its strike plays a clip the moves have (the blade's old leaping third: v1.39 gave the traveller a grounded one)", async () => {
+  const { readGLB } = await import('../scripts/mocap/glb.js');
+  const lib = readGLB(readFileSync(new URL('../public/anim/moves.glb', import.meta.url)));
+  assert.ok(lib.clips.some((c) => c.name === SHADE_STRIKE.clip), SHADE_STRIKE.clip);
+  assert.ok(!SWINGS.some((s) => s.clip === SHADE_STRIKE.clip), 'the traveller\'s combo no longer leaps');
   assert.ok(SHADE_STRIKE.from < SHADE_STRIKE.cut && SHADE_STRIKE.cut < SHADE_STRIKE.to);
 });

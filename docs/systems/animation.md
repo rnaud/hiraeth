@@ -359,6 +359,8 @@ node scripts/mocap/compare-people.mjs      # a person on each captured walk
   `Animator.playCombat` takes a `blend` (s, default 0.09) for a move's way in (the charge's draw: 0.2) and
   `ground` (the air cut); `blendCombat` now holds every joint of the library's skeleton (plain nodes, not
   Bones: it had held none, so nothing blended).
+- **The heavy third swing** (v1.39, docs/systems/foes.md): the Sword and Shield pack's slash 5 (`ss_slash_5`, `--add ss_slash_5`):
+  645 908 → 657 668 bytes. Attack 1 stays in the library (the shade's strike). The tip peaks at 37 m/s at 0.56 s.
 - **The blade's counters** (v1.4, docs/systems/foes.md): the Sword and Shield pack's slash 4 (`ss_slash_4`, the
   riposte, `until` 1.8 of its 2.4 s) and attack 2 (`ss_attack_2`, the dash cut, `until` 1.05 of 1.3 s), with
   `--add ss_slash_4,ss_attack_2`: 621 644 → 645 908 bytes (+24 KB, 3.9 %; gzip 412 874 → 427 094). The blade tip

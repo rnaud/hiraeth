@@ -11,7 +11,7 @@ import { Footprints } from './life.js';
 // humanoid.js); the flame's maths and its white-lined material stay (tests/shade-flame.test.js), unused by any foe.
 
 /** The strike from motion capture: the clip, its wind-up (start → the cut) and its follow-through. */
-export const SHADE_STRIKE = { clip: 'mixamo_ss_attack_1', from: 0.55, cut: 1.15, to: 1.7 };   // (the blade's first cut: moves.glb has it)
+export const SHADE_STRIKE = { clip: 'mixamo_ss_attack_1', from: 0.55, cut: 1.15, to: 1.7 };   // (the blade's old leaping third, v1.38 and before: moves.glb keeps it for the shade)
 /** Its black, a near-black for the drops, its eyes' white. */
 export const SHADE_TONES = ['#08070a', '#1a1720', '#f7f2e6'];
 /** The body's material: one per shade (its own time and melt), the flame's mesh shares it. fluidBox: fold strokes, neck cut (bind y). */

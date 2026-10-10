@@ -257,3 +257,30 @@ test('a press during an evade is a dash cut as it ends: carried through the foe\
   assert.equal(blade.special, DASH, 'pressed right at the end');
   tool.dispose(); clearTargets();
 });
+
+test('the combo\'s third swing is a heavy blow on the ground: a longer wind-up, both feet planted (the leap it was is not)', async () => {
+  const { p, tick } = await armed();
+  const S = SWINGS[2];
+  assert.ok(S.heavy && S.wind > SWINGS[0].wind && S.wind > SWINGS[1].wind, 'the longest wind-up of the three');
+  assert.equal(BLADE.damage[2], 3, 'its damage as before');
+  const feet = [];
+  p.object.traverse((o) => { if (/^(foot|ball)_[lr]$/i.test(o.name)) feet.push(o); });
+  assert.ok(feet.length >= 2, `the feet's bones (${feet.map((o) => o.name)})`);
+  const w = new THREE.Vector3();
+  /** The highest both feet are off the ground together (m) through a clip's range. */
+  const lift = (clip, from, to) => {
+    let top = 0, floor = Infinity;
+    for (let t = from; t <= to; t += 1 / 30) {
+      for (let k = 0; k < 3; k++) tick({}, { clip, t, w: 1, full: true, id: 'probe' });
+      p.object.updateMatrixWorld(true);
+      const ys = { l: Infinity, r: Infinity };
+      for (const o of feet) { const y = o.getWorldPosition(w).y - p.pos.y, s = /_l$/i.test(o.name) ? 'l' : 'r'; ys[s] = Math.min(ys[s], y); }
+      floor = Math.min(floor, ys.l, ys.r);
+      top = Math.max(top, Math.min(ys.l, ys.r));
+    }
+    return top - floor;
+  };
+  const planted = lift(S.clip, S.from, S.to), leap = lift('mixamo_ss_attack_1', 0.55, 1.7);
+  assert.ok(planted < 0.2, `the third: both feet up at most ${planted.toFixed(2)} m`);
+  assert.ok(leap > 0.5, `(the measure sees the old leap: ${leap.toFixed(2)} m)`);
+});

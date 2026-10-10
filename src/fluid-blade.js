@@ -80,12 +80,15 @@ export function aimTilt(lo, hi, d, sh, n = 0, A = AIM) {
  * The three swings from motion capture (Mixamo's Sword and Shield pack, in public/anim/moves.glb:
  * scripts/mocap/mixamo-clips.json): source ranges from anticipation through follow-through.
  * attackSample maps explicit phase durations onto the source, accelerating through `hit`. Right to left and down; a rising backhand, left
- * to right; an overhead cut from above the head. Without the clips (not loaded yet) the arcs below.
+ * to right; a heavy overhead chop, grounded (`heavy`: a longer wind-up, a nudge of the camera as it comes down, the third's damage and
+ * knockback, BLADE.damage, Foe.hit's combo 2). Without the clips (not loaded yet) the arcs below.
  */
 export const SWINGS = [
   { clip: 'mixamo_ss_slash_1', from: 0.12, to: 1.02, hit: 0.6, wind: 0.22, active: 0.16, recover: 0.24 },
   { clip: 'mixamo_ss_slash_3', from: 0.32, to: 1.35, hit: 0.87, wind: 0.25, active: 0.17, recover: 0.26 },
-  { clip: 'mixamo_ss_attack_1', from: 0.55, to: 1.7, hit: 1.15, wind: 0.36, active: 0.2, recover: 0.34 },
+  // (the third, v1.39: the pack's slash 5, an overhead chop with both feet planted: the sword raised high over a longer
+  // wind-up and brought straight down; it was attack 1, a leaping overhead that took both feet 1.4 m off the ground)
+  { clip: 'mixamo_ss_slash_5', from: 0.12, to: 1.05, hit: 0.6, wind: 0.42, active: 0.2, recover: 0.36, heavy: true },
 ];
 export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored phase timing.
 /**
@@ -535,6 +538,7 @@ export class FluidBlade {
       this.phase = this.sample.phase;
       if (!this.released && this.t * this.dur >= this.sample.wind) {
         this.released = true; T.sound?.fluidSlash?.(ENDS.has(this.special) ? 2 : this.n);
+        if (this.spec?.heavy) kick(0.12);   // (the heavy third comes down: a nudge of the camera, landed or not)
         if (this.special === AIR && !p.onGround) p.airKick = { up: -AIR.plunge, ...(this.airPull ? { dir: this.dir, speed: 1 } : {}) };   // (the air cut: driven down into it, the carry in spent)
       }
       // Player poses before the tool updates. Use the source time actually displayed, not
