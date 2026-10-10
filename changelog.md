@@ -4,7 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.40 — 2026-10-10
 
-- Worlds load faster on the Xbox: surfaces that differ only in small touches now share their drawing programs, so a world prepares about 25 of them instead of about 60, and the ink pass leaves out the sky’s eclipse, space, planets and dotted clouds where a world has none. Nothing looks different.
+- Worlds load faster on the Xbox: fewer drawing programs to prepare (no copy for a surface that only differs in which side faces you or in its colours), and the ink pass leaves out the sky’s eclipse, space, planets and dotted clouds where a world has none. Nothing looks different.
 - The galactic map fits twelve worlds and home on a small screen, and the Items page lays its gear out ten to a row.
 - Three new gifts in the makers’ boxes: the diver’s pearl (running tires you a third less), the pocket bellows (stamina comes back twice as fast) and the star-thread (you climb a third faster).
 - Three new trials: the Tube run through the Underwater City’s halls, the Floor round of the foundry, and the Courier’s round over the floating city’s bridges, each with a keepsake for the finish.

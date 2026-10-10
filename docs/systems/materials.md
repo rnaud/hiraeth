@@ -400,8 +400,8 @@ Found in the Lab, where some materials looked slow; all of it applies to every w
   compiles only the ones its options turn on; inside, its uniform still decides, as before. These
   options are never changed after `makeMaterial` (their uniforms are only read). Without
   `SURFACE_SPEC` (a shader made some other way) everything is compiled, as it always was.
-  Since October 2026 cheap features are shared again, measured on the Xbox (fewer programs to compile beats a few
-  idle uniform branches): `SURFACE_SHARED`, `SURFACE_LIGHT`, docs/systems/performance.md "Fewer surface programs".
+  Sharing cheap features again was tried in October 2026 and taken out: on the Xbox each feature made the first draw's
+  second compile slower than the merged programs saved (docs/systems/performance.md "Fewer surface programs").
   Brushed metal's streaks are their own define (`METAL_BRUSHED`): the other metals multiplied five
   noise taps a pixel by zero. `tests/surface-spec.test.js` preprocesses the shader per material.
 - **Local lights**: the loop over the eight slots stops at `uLightCount` (main.js packs the lit

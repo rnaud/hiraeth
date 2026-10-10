@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { makeMaterial, surfaceDefines, surfaceFeatures, SURFACE_FEATURES, SURFACE_SHARED, SURFACE_LIGHT, SURFACE_HEAVY, FACE_KEY_SLOTS, sharedUniforms, MODE_PLAIN, MODE_TERRAIN, MODE_STRATA, MODE_WATER, MODE_OUTFIT, MODE_RIBBON, MODE_EYE } from '../src/materials.js';
+import { makeMaterial, surfaceDefines, surfaceFeatures, SURFACE_FEATURES, FACE_KEY_SLOTS, sharedUniforms, MODE_PLAIN, MODE_TERRAIN, MODE_STRATA, MODE_WATER, MODE_OUTFIT, MODE_RIBBON, MODE_EYE } from '../src/materials.js';
 import { LAB_MATERIALS } from '../src/levels/lab.js';
 
 // A small GLSL preprocessor: #define, #ifdef, #ifndef, #if defined(A) || defined(B), #else, #endif
@@ -28,14 +28,12 @@ function preprocess(src, defines) {
 
 const mainOf = (s) => s.slice(s.lastIndexOf('void main()'));
 
-test('surface shader: a plain surface compiles none of the heavy features, only the shared ones', () => {
+test('surface shader: only the features a material uses are compiled, the rest is left out', () => {
   const plain = makeMaterial({ color: '#808080', key: 't.spec.plain' });
   assert.equal(plain.defines.SURFACE_SPEC, 1);
-  const S = Object.keys(plain.defines).filter((k) => k.startsWith('S_')).sort();
-  assert.deepEqual(S, [...SURFACE_SHARED, ...SURFACE_LIGHT].filter((k) => k.startsWith('S_')).sort(), 'the shared features, nothing else');
-  assert.ok(!SURFACE_HEAVY.some((k) => plain.defines[k]));
+  assert.deepEqual(Object.keys(plain.defines).filter((k) => k.startsWith('S_')), []);
   const frag = mainOf(preprocess(plain.fragmentShader, plain.defines));
-  for (const call of ['faceInk(', 'eyeball(', 'glyphs(glyphUV', 'facade(', 'biomeWeights(', 'sandRipples(', 'outfitCreases(', 'portraitInk(', 'weatherInk(', 'detailLod(', 'wallPatch(', 'metalAlbedo(']) {
+  for (const call of ['faceInk(', 'eyeball(', 'glyphs(glyphUV', 'rockCracks(', 'facade(', 'biomeWeights(', 'sandRipples(', 'outfitCreases(', 'portraitInk(', 'gridLines(', 'discard']) {
     assert.ok(!frag.includes(call), `a plain surface doesn't compile ${call}`);
   }
   // the shadows, the hatching, the lights are everyone's
@@ -44,51 +42,23 @@ test('surface shader: a plain surface compiles none of the heavy features, only 
   assert.ok(!vert.includes('faceRound(position'), 'nor rounds a face');
 });
 
-test('surface shader: materials share programs (docs/systems/performance.md, "Fewer surface programs")', () => {
-  const D = (o) => surfaceDefines(o);
-  // plain ones: one program whatever their cheap options
-  const key = (o) => JSON.stringify(D(o));
-  const plain = key({ color: '#808080' });
-  for (const o of [{ mode: MODE_STRATA }, { grid: 3, plates: true }, { glass: true }, { folds: 2, scrub: true }, { pattern: 'cracks' }, { thin: true }, { veil: 0.5 }, { lampTint: '#ffaa55' }, { mode: MODE_RIBBON }])
-    assert.equal(key({ color: '#808080', ...o }), plain, JSON.stringify(o));
+test('surface shader: what merges programs costs no code (docs/systems/performance.md, "Fewer surface programs")', () => {
+  // no feature in a material that doesn't use it: on the Xbox each feature made the G-buffer draw's compile slower
+  assert.deepEqual(surfaceDefines({ mode: MODE_STRATA }), { SURFACE_SPEC: 1, S_STRATA: 1 });
   // in one order, whatever order the options came in (three.js keys a program on the defines' order)
-  assert.deepEqual(Object.keys(D({ grid: 3, mode: MODE_STRATA })), Object.keys(D({ mode: MODE_STRATA, grid: 3 })));
-  assert.deepEqual(Object.keys(D({ grid: 3 })), Object.keys(D({})).sort());
-  // a heavy one keeps its own features, plus strata (weathering and inscriptions on rock as on walls)
-  const w = D({ pattern: 'facade' });
-  assert.ok(w.S_WEATHER && w.S_STRATA && !w.S_GLASS && !w.S_PLATES && !w.S_THIN, 'no light features on a heavy program');
-  assert.equal(key({ mode: MODE_STRATA, weathered: true }), key({ weathered: true, detail: 'built' }));
-  assert.equal(key({ glyphs: true, mode: MODE_STRATA }), key({ glyphs: true }));
-  // the ground's own features are inside the ground's code: every ground compiles one program
-  assert.equal(key({ mode: MODE_TERRAIN }), key({ mode: MODE_TERRAIN, biomes: true, ripples: true, sandInk: true, ticks: true }));
-  // metals: brushed or not, plated or not, one program; METAL itself is the metals' own (makeMaterial)
-  assert.equal(key({ metal: 'steel' }), key({ metal: 'brass', brushed: true, grid: 3, plates: true }));
-  assert.ok(!D({ color: '#fff' }).METAL);
-  assert.equal(makeMaterial({ metal: 'steel', key: 't.spec.metal' }).defines.METAL, 1);
-  // a fluid's trails share it
-  assert.equal(key({ fluid: 'glob' }), key({ fluid: 'glob', mode: MODE_RIBBON }));
-  // a define of its own: no light features (they would only slow its program); a crowd's attributes: not past D3D's 16
-  assert.ok(!D({ crowd: true }).S_THIN && !D({ fluid: 'glob' }).S_GLASS);
+  assert.deepEqual(Object.keys(surfaceDefines({ plates: true, mode: MODE_STRATA, glyphs: true })), ['SURFACE_SPEC', 'S_GLYPHS', 'S_GRID', 'S_PLATES', 'S_STRATA']);
+  assert.deepEqual(JSON.stringify(surfaceDefines({ grid: 3, mode: MODE_STRATA })), JSON.stringify(surfaceDefines({ mode: MODE_STRATA, grid: 3 })));
+  // three's keys: sides, normals and colours left out for the surfaces that can (scripts/three-program-keys.mjs)
   for (const o of [{ crowd: true }, { grass: true }, { perVertex: true }, { sway: 0.01 }, { nightPaint: true }]) assert.equal(makeMaterial({ ...o, key: `t.spec.own.${Object.keys(o)[0]}` }).userData.sharesProgram, false);
-  assert.equal(makeMaterial({ color: '#808080', key: 't.spec.shares' }).userData.sharesProgram, true);
-  // the shared features' uniforms are every material's (a program keeps the last material's values otherwise)
-  const m = makeMaterial({ color: '#808080', key: 't.spec.uniforms' });
-  for (const u of ['uMetal', 'uLampTint', 'uVertexColors', 'uThinPx', 'uGrid', 'uPlates', 'uGlass', 'uVeil', 'uFolds', 'uScrub', 'uHasMap', 'uPattern', 'uMode'])
-    assert.ok(m.uniforms[u], u);
-  assert.equal(m.uniforms.uMetal.value.w, 0); assert.equal(m.uniforms.uLampTint.value.w, 0); assert.equal(m.uniforms.uThinPx.value, 0);
+  const m = makeMaterial({ color: '#808080', key: 't.spec.shares' });
+  assert.equal(m.userData.sharesProgram, true);
+  assert.equal(m.clone().userData.sharesProgram, true, 'a clone shares too');
   assert.equal(m.uniforms.uVertexColors.value, 0);
   m.vertexColors = true;
   assert.equal(m.uniforms.uVertexColors.value, 1, 'follows the material');
   m.vertexColors = false;
   assert.equal(m.clone().uniforms.uVertexColors.value, 0);
-  assert.equal(m.clone().userData.sharesProgram, true, 'a clone shares too');
-  // gated by their uniforms inside
-  const src = m.fragmentShader, vsrc = m.vertexShader;
-  assert.match(vsrc, /if \(uThinPx > 0\.0 && aThin\.w > 0\.5/);
-  assert.match(vsrc, /#elif defined\(USE_COLOR\)\s+if \(uVertexColors > 0\.5\) vInstColor \*= color\.rgb;/);
-  assert.match(src, /if \(uMetal\.w > 0\.0\) albedo = metalAlbedo/);
-  assert.match(src, /if \(uLampTint\.a > 0\.0\) albedo = mix/);
-  assert.match(src, /if \(uMode == \d+\) \{\s*\/\/ \(a uniform branch[^\n]*\n\s*strataC = /);
+  assert.match(m.vertexShader, /#elif defined\(USE_COLOR\)\s+if \(uVertexColors > 0\.5\) vInstColor \*= color\.rgb;/);
   // the face keys: one count for every face
   const brows = makeMaterial({ color: '#555', figure: true, facePart: true, faceKeys: 6, key: 't.spec.brows' });
   assert.equal(brows.defines.FACE_KEYS, FACE_KEY_SLOTS);

@@ -1167,19 +1167,33 @@ goes in as `perf-new.html`, with the assets the console lacks, through the porta
 - Restructuring one program's shadow taps (a loop of two, `textureLod`) made it slower (650 → 810 ms). D3D's compile
   time doesn't follow the source's size.
 
-## Fewer surface programs (materials.js `SURFACE_SHARED`, `SURFACE_LIGHT`; scripts/three-program-keys.mjs)
+## Fewer surface programs (materials.js `surfaceDefines`; scripts/three-program-keys.mjs)
 
 The desert compiled 64 surface programs, most of them the plain über-shader split by a cheap option or by three.js's own
 keys. Now:
-- **Shared features.** Cheap features, each decided inside by its uniform (off, 0, on a material without them), are
-  compiled into more materials than use them, chosen by their measured cost on the console:
-  - `SURFACE_SHARED`: in every surface. Each costs a few ms; the ground's are inside the ground's code anyway.
-  - `SURFACE_LIGHT`: in every plain surface, about 40-70 ms each. They are kept off the heavy programs, because D3D's
-    compile time grows faster than the code: all of them in every program made a plain one 1.3 s, a weathered one 5.5 s.
-  - A heavy program always gets strata; a metal always gets brushing and plates; a fluid always gets its trails.
-- **Gates.** S_THIN, metal and lamp tint are gated by their uniforms (`uThinPx`, `uMetal.w`, `uLampTint.a`); every
-  material carries those uniforms, since a program keeps the last material's values. `surfaceFeatures` is what a
-  material uses; `surfaceDefines` adds what it shares.
+- **Shared features: tried, then taken out again.** Cheap uniform-gated features were first compiled into more
+  materials than used them (`SURFACE_SHARED`, `SURFACE_LIGHT`, 00f8a642): the desert's surface programs went 64 → 24
+  and the console's link time 81 → 42 s. But the first draws on the Xbox compile every drawn program a second time,
+  with all its outputs (below, "The first draws on the Xbox"), and there the shared features cost far more than at
+  link. For a plain surface, drawn once into the G-buffer:
+  - with none of them: 1.07 s;
+  - with all of them: 3.75 s;
+  - strata alone: +1.55 s; plates and grid: +0.94 s; glass and ribbon: +0.7 s; map, folds, veil, lamp tint and thin
+    bars together: +0.7 s;
+  - the ground's own (ripples, biomes, ticks, sand ink): 0 outside the ground, but the merged ground took 15.2 s
+    against 7.2 s for its biggest variant.
+
+  The programs the desert's spawn view draws, linked and then drawn once, one after another on the console:
+
+  | Build | Programs | Link | First draws | Total |
+  |---|---|---|---|---|
+  | Before | 39 | 34.0 s | 69.9 s | 104 s |
+  | Features shared | 22 | 26.2 s | 82.9 s | 109 s |
+  | Not shared, the rest kept | 32 | 28.4 s | 60.5 s | 89 s |
+
+  In each build 3-4 skinned programs aren't counted: the bench can't draw them.
+
+  So a material again compiles only its own features. Desert programs: 71 (46 surface), against 89 (64) before.
 - **One order.** The defines are added in one sorted order. three.js keys a program on the order its defines were
   added, so the same set in another order had compiled again.
 - **three's own keys.** A Vite plugin patches three's module (`threeProgramKeys`, which throws if three changes):
@@ -1239,3 +1253,42 @@ differ from each other (moving people and plants).
 
 The first frame then came about 51 s after "ready". In those two, single uploads and info-log queries block for 16-36 s:
 the first draws, not the compiles, are now the biggest part.
+
+## The first draws on the Xbox (ANGLE's second compile, October 2026)
+
+Traced on the console (DevTools `Tracing` with the `gpu.angle` category, a cold desert load). At link, ANGLE on D3D11
+compiles a program's pixel shader for one output only: `GetDefaultOutputLayoutFromShader` takes the first output
+variable's location. It does that on worker threads. The first draw into the G-buffer (three targets) needs a shader
+with all three outputs. ANGLE compiles it with `D3DCompile` on the GPU process's main thread (`CrGpuMain`), and every GL
+call waits behind it.
+
+The size of it:
+- About 30 such compiles of 1.2-15 s each came one after another from the passage warm-up through the first frame:
+  about 110 s of a 150 s load. A plain surface took 4.1 s; the merged ground took 15 s.
+- The 16-36 s blocking `texSubImage2D` and `getProgramInfoLog` calls were calls queued behind them.
+- Chrome caches a program's binary once, at link, so the draw-time shaders are compiled again on every load, warm ones
+  too.
+
+What doesn't help, tested in a bare repro (`--draw` below):
+- No ANGLE feature or flag changes this: `--use-angle=d3d11on12` goes through the same path.
+- Neither does an output array (`out vec4 o[3]`), nor having the three-target framebuffer bound at link.
+
+Drawing each program once as soon as it links does help. Six heavy programs:
+
+| | Total |
+|---|---|
+| Link all, then draw each | 9.6 s |
+| Draw each as it links | 7.7 s |
+
+The draw-time compiles stay one at a time on CrGpuMain, but overlap the other programs' links. The single-target
+G-buffer that would remove it is a bigger change, put to the author.
+
+`scripts/xbox-shaders.mjs --draw 1` times both halves on the console for dumped programs: the link, then one draw into a
+4 × 4 three-target half-float framebuffer (each sampler on its own unit, the shadow samplers on comparing depth
+textures). `scripts/load-breakdown.mjs` now also logs each program's first draw into each kind of target, and how many
+programs the spawn's view draws against those compiled. For the desert:
+
+| Build | Programs the view draws | Used by the scene | Compiled |
+|---|---|---|---|
+| Before | 39 | 75 | 89 |
+| Now | 32 | 57 | 71 |

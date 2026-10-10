@@ -73,7 +73,28 @@ export const PROBE = (slow, salt = false) => `(() => {
   const C = WebGL2RenderingContext.prototype;
   G.long = [];   // (every call over 300 ms: its name, when, how long)
   const wrap = (name, kind, f) => { const o = C[name]; C[name] = function (...a) { const t = performance.now(); try { return f ? f.call(this, o, a) : o.apply(this, a); } finally { const d = performance.now() - t; G[kind] += d; if (d > 300) G.long.push([name, Math.round(t), Math.round(d)]); if (kind === 'block') { G.blocks++; if (d > G.longestBlock) G.longestBlock = d; } } }; };
-  const src = new WeakMap(), ready = new WeakMap(), type = new WeakMap();
+  const src = new WeakMap(), ready = new WeakMap(), type = new WeakMap(), pindex = new WeakMap();
+  // each program's first draw into each kind of target (its colour attachments: ANGLE on D3D11 compiles the pixel
+  // shader again, on the GPU process's main thread, for a target with more outputs than its first)
+  G.firstDraws = [];
+  G.indexOf = (p) => pindex.get(p);
+  { let cur = null, fbo = null; const targets = new WeakMap(), seen = new Set();
+    const uo = C.useProgram; C.useProgram = function (p) { cur = p; return uo.call(this, p); };
+    const bf = C.bindFramebuffer; C.bindFramebuffer = function (t, f) { if (t === this.FRAMEBUFFER || t === this.DRAW_FRAMEBUFFER) fbo = f; return bf.call(this, t, f); };
+    const db = C.drawBuffers; C.drawBuffers = function (b) { if (fbo) targets.set(fbo, b.filter((x) => x !== this.NONE).length); return db.call(this, b); };
+    for (const n of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) {
+      const o = C[n];
+      C[n] = function (...a) {
+        const i = pindex.get(cur), k = fbo ? targets.get(fbo) ?? 1 : 0, key = i + ':' + k;
+        if (i !== undefined && !seen.has(key)) {
+          seen.add(key);
+          const t = performance.now();
+          try { return o.apply(this, a); } finally { G.firstDraws.push([i, k, Math.round(t)]); }
+        }
+        return o.apply(this, a);
+      };
+    }
+  }
   { const o = C.createShader; C.createShader = function (t) { const s = o.call(this, t); if (s) type.set(s, t); return s; }; }
   let lanes = slow ? new Array(slow.par).fill(0) : null;
   wrap('shaderSource', 'compile', function (o, [s, text]) { src.set(s, text); G.srcBytes += text.length; return o.call(this, s, salt ? text.replace(/^(#version[^\\n]*\\n)/, '$1#define LOAD_SALT_' + salt + '\\n') : text); });
@@ -83,6 +104,7 @@ export const PROBE = (slow, salt = false) => `(() => {
     const sh = this.getAttachedShaders(p) ?? [];
     const kinds = sh.map((s) => [type.get(s), src.get(s) ?? '']);
     const vs = kinds.find((k) => k[0] === this.VERTEX_SHADER)?.[1] ?? '', fs = kinds.find((k) => k[0] === this.FRAGMENT_SHADER)?.[1] ?? '';
+    pindex.set(p, G.programs.length);
     G.programs.push({ at: Math.round(performance.now()), vs, fs });
     if (slow) {   // ready when a lane is free and its cost has passed
       const cost = slow.base + slow.perKb * fs.length / 1024, now = performance.now();
@@ -195,13 +217,23 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     const keys = KEYS ? await c.ev(`(() => { const r = renderer, by = new Map();
       scene.traverse((o) => { for (const m of [o.material].flat()) { if (!m) continue; const p = r.properties.get(m).currentProgram; if (!p) continue; if (!by.has(p)) by.set(p, new Set()); by.get(p).add((m.name || m.type) + ' ' + (m.userData?.cacheKey ?? '').slice(0, 120) + ' obc:' + (m.onBeforeCompile?.toString().length ?? 0)); } });
       return r.info.programs.map((p) => ({ key: p.cacheKey, mats: [...(by.get(p) ?? [])].slice(0, 6) })); })()`) : null;
+    // the programs the spawn's view draws: the meshes in the camera's frustum (as the passage warm-up's first batch) and
+    // the shadow casters round it, against every program compiled
+    const view = await c.ev(`(() => { const T = THREE, r = renderer, f = new T.Frustum().setFromProjectionMatrix(new T.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+      const progs = new Set(), all = new Set(); let meshes = 0;
+      scene.traverse((o) => { if (!(o.isMesh || o.isPoints || o.isLine) || !o.material) return; for (const m of [o.material].flat()) { const p = r.properties.get(m).currentProgram; if (!p) continue; all.add(p);
+        let vis = true; for (let q = o; q; q = q.parent) if (q.visible === false) { vis = false; break; }
+        let inV = false; try { inV = !o.frustumCulled || f.intersectsObject(o); } catch { inV = false; }
+        if (vis && inV && (!o.isInstancedMesh || o.count > 0)) { progs.add(p); meshes++; } } });
+      const idx = [...progs].map((p) => window.__gl.indexOf(p.program)).filter((i) => i !== undefined).sort((a, b) => a - b);
+      return { inView: progs.size, meshesInView: meshes, used: all.size, compiled: r.info.programs.length, idx }; })()`);
     const stages = Object.fromEntries(g.stages.map((s) => { const m = s.match(/^(.*) (\d+) ms/); return m ? [m[1], +m[2]] : [s, 0]; }).filter(([k]) => k !== 'start'));
     const surface = g.programs.filter((p) => /\bSURFACE_SPEC\b|uWearLite/.test(p.vs) || p.fsLen > 100000);
     return {
       world, preset, wall, firstFrame: g.now, stages, lines: g.lines, gpu,
       programs: { linked: g.links, live: g.live, surface: surface.length, fsKb: Math.round(g.programs.reduce((n, p) => n + p.fsLen, 0) / 1024), vsKb: Math.round(g.programs.reduce((n, p) => n + p.vsLen, 0) / 1024), srcKb: Math.round(g.srcBytes / 1024) },
       gl: { compile: Math.round(g.compile), block: Math.round(g.block), blocks: g.blocks, longestBlock: Math.round(g.longestBlock), upload: Math.round(g.upload), uploadMB: +(g.uploadBytes / 2 ** 20).toFixed(1) },
-      long: g.long, links: g.programs.map((p) => p.at),
+      view, long: g.long, links: g.programs.map((p) => p.at), firstDraws: g.firstDraws,
       list: g.programs.map((p) => ({ at: p.at, vsLen: p.vsLen, fsLen: p.fsLen, defines: definesOf(p.vs), ...(dump ? { vs: p.vs, fs: p.fs } : {}) })),
       errors: c.errors.slice(0, 5), keys,
     };
@@ -223,12 +255,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         for (const k of Object.keys(r.stages)) r.stages[k] = median(runs.map((x) => x.stages[k] ?? 0));
         for (const k of Object.keys(r.gl)) r.gl[k] = median(runs.map((x) => x.gl[k]));
       }
-      if (DUMP) { mkdirSync(DUMP, { recursive: true }); writeFileSync(join(DUMP, `${w}.json`), JSON.stringify(r.list)); if (r.keys) writeFileSync(join(DUMP, `${w}.keys.json`), JSON.stringify(r.keys, null, 1)); }
+      if (DUMP) { mkdirSync(DUMP, { recursive: true }); writeFileSync(join(DUMP, `${w}.json`), JSON.stringify(r.list)); if (r.view) writeFileSync(join(DUMP, `${w}.view.json`), JSON.stringify(r.view.idx)); if (r.keys) writeFileSync(join(DUMP, `${w}.keys.json`), JSON.stringify(r.keys, null, 1)); }
       console.log(`${w} (${XBOX ? 'xbox' : PRESET}${SLOW ? `, slow ${SLOW.base}+${SLOW.perKb}/kB ×${SLOW.par}` : ''}): first frame ${r.firstFrame} ms`);
       console.log(`  stages  ${Object.entries(r.stages).map(([k, v]) => `${k.replace(/…$/, '')} ${v}`).join(' · ')}`);
       console.log(`  programs ${r.programs.linked} linked (${r.programs.surface} surface), fragment ${r.programs.fsKb} kB, vertex ${r.programs.vsKb} kB`);
       console.log(`  gl      compile ${r.gl.compile} ms · blocked ${r.gl.block} ms (${r.gl.blocks} calls, longest ${r.gl.longestBlock}) · upload ${r.gl.upload} ms (${r.gl.uploadMB} MB)`);
       for (const l of r.lines) console.log(`  ${l}`);
+      if (r.view) console.log(`  view    ${r.view.inView} programs draw the spawn's view (${r.view.meshesInView} meshes), ${r.view.used} used by the scene, ${r.view.compiled} compiled`);
       if (r.gpu) console.log(`  gpu     ${r.gpu.median} ms a frame (90%: ${r.gpu.p90}, ${r.gpu.frames} frames)`);
       if (r.errors.length) console.log(`  errors  ${r.errors.join(' | ').slice(0, 300)}`);
       delete r.list;

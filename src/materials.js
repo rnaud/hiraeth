@@ -282,7 +282,6 @@ const METAL_GLSL = /* glsl */ `
     // only for brushed metal (METAL_BRUSHED): on the others it multiplied by zero, five noise taps a pixel
     #ifdef METAL_BRUSHED
     float brushed = uMetal.y;
-    if (brushed > 0.5) {   // (a uniform branch: METAL_BRUSHED is in every metal, surfaceDefines)
     vec3 Bo = cross(uBrushAxis, normalize(vObjNormal));
     float u = dot(vObjPos, normalize(Bo + 1e-5)) * 70.0, along = dot(vObjPos, uBrushAxis);
     float fu = max(fwidth(u), 1e-4);
@@ -292,7 +291,6 @@ const METAL_GLSL = /* glsl */ `
     float hair = inkLine(abs(k - id) / max(fu / 9.0, 1e-5), 0.6) * step(0.82, hash(vec2(id, 3.3)))
                * smoothstep(0.35, 0.6, vnoise(vec2(id * 1.7, along * 2.5))) * (1.0 - smoothstep(0.06, 0.16, fu / 9.0));
     ink = hair * 0.3 * brushed;
-    }
     #else
     const float brushed = 0.0;
     #endif
@@ -301,14 +299,13 @@ const METAL_GLSL = /* glsl */ `
     float fs = max(fwidth(s), 1e-4);
     float spot = smoothstep(c0 - fs, c0 + fs, s);
     float c1 = cos(uMetal.w * 2.3), sheen = smoothstep(c1 - fs, c1 + fs, s) * (1.0 - brushed) * sunLit;   // a paler ring round it
-    float hl = spot * sunLit;
     #ifdef METAL_BRUSHED
-    if (brushed > 0.5) {
-      vec3 H = normalize(uSunDir + V);
-      float th = dot(vMetalT, H), fth = max(fwidth(th), 1e-4), wb = uMetal.w * 0.45;
-      float streak = (1.0 - smoothstep(wb - fth, wb + fth, abs(th))) * smoothstep(0.25, 0.4, dot(n, H));
-      hl = mix(spot, streak, brushed) * sunLit;
-    }
+    vec3 H = normalize(uSunDir + V);
+    float th = dot(vMetalT, H), fth = max(fwidth(th), 1e-4), wb = uMetal.w * 0.45;
+    float streak = (1.0 - smoothstep(wb - fth, wb + fth, abs(th))) * smoothstep(0.25, 0.4, dot(n, H));
+    float hl = mix(spot, streak, brushed) * sunLit;
+    #else
+    float hl = spot * sunLit;
     #endif
     vec3 hc = mix(vec3(1.0, 0.99, 0.95), base, kind > 2.5 && kind < 4.5 ? 0.22 : 0.06);
     c = mix(c, mix(c, hc, 0.38), sheen);
@@ -339,27 +336,16 @@ const SURFACE_ALL = /* glsl */ `
 `;
 const PATTERNS = { facade: 1, tiles: 2, leaves: 3, cracks: 4 };
 /**
- * Features compiled into more surfaces than use them (docs/systems/performance.md, "Fewer surface programs"), so that
- * materials share a program instead of each compiling one of its own (~650 ms each on the Xbox's D3D compiler). Each
- * is decided inside by its uniform, off (0) on a material that doesn't use it: the picture is the same.
- * - SURFACE_SHARED: in every surface (each a few ms more there, measured feature by feature; the ground's are inside
- *   the ground's own code, nothing elsewhere).
- * - SURFACE_LIGHT: in every plain surface, none of the heavy features (SURFACE_HEAVY, or a define of its own: a metal,
- *   a fluid, a person's face...): ~40-70 ms each, so a heavy program, which they would make slower still (the D3D
- *   compiler's time grows faster than the code), keeps only what it uses. A fluid always has S_RIBBON (its trails).
- * - A heavy one always has S_STRATA (weathering and inscriptions are on rock as on walls: two programs of 2-4 s
- *   became one); a metal always has METAL_BRUSHED and S_PLATES (METAL itself, 264 ms, stays the metals' own).
- * S_THIN (an attribute of its own, aThin: plain surfaces only) is gated by uThinPx, LAMP_TINT by uLampTint.a.
+ * No feature is compiled into a material that doesn't use it (docs/systems/performance.md, "Fewer surface programs",
+ * October 2026). Sharing cheap uniform-gated features merged programs (the desert's 64 surface programs became 24), but
+ * on the Xbox each program the view draws is compiled twice: at link with one output, then again with the G-buffer's
+ * three, on the GPU process's main thread, at its first draw (ANGLE on D3D11). That second compile grew from 1.1 s to
+ * 3.8 s for a plain surface with the shared features in (strata alone +1.5 s), more than the merged programs saved.
+ * What stays merged costs no code: the program keys (sides, normals, colours: scripts/three-program-keys.mjs), the
+ * defines' order, the face keys' slots.
  */
-export const SURFACE_SHARED = ['S_GRID', 'S_SCRUB', 'S_CRACKS', 'S_FOLDS', 'S_MAP', 'S_SANDINK', 'S_RIPPLES', 'S_TICKS', 'S_BIOMES', 'S_VEIL', 'LAMP_TINT'];
-export const SURFACE_LIGHT = ['S_STRATA', 'S_PLATES', 'S_GLASS', 'S_RIBBON', 'S_THIN'];
-export const SURFACE_HEAVY = ['S_FIGURE', 'S_EYE', 'S_PORTRAIT', 'S_CREASES', 'S_TERRAIN', 'S_WATERMODE', 'S_FACADE', 'S_TILES', 'S_LEAVES', 'S_GLYPHS',
-  'S_WEATHER', 'S_DETAIL', 'S_FORM', 'S_PATCH', 'S_VMAT'];
 /** The face keys' slots a face-keyed material compiles at least (makeMaterial faceKeys). */
 export const FACE_KEY_SLOTS = 12;
-/** A material that makeMaterial gives a define of its own (a program of its own whatever it shares). */
-const ownDefine = (o) => !!(o.metal || o.fluid || o.crowd || o.facePart || o.faceKeys > 0 || o.sway || o.grass || o.mode === MODE_WATER || o.fall || o.duneGlass ||
-  o.dunePool || o.crystal || o.foeSurface || o.makersBox || o.nightPaint || o.dissolve || o.strataObject);
 /**
  * Weathering (S_WEATHER, weatherInk): how worn a material's walls are, 0..1. Asked for with
  * o.weathered (true: 1), and on by default for house fronts (pattern 'facade'), never on metal,
@@ -496,19 +482,9 @@ export function surfaceFeatures(o) {
   return d;
 }
 
-/**
- * The defines a material made with these options compiles: its features (surfaceFeatures) and those it shares
- * with its neighbours so that they compile one program (SURFACE_SHARED, SURFACE_LIGHT), in one order.
- */
+/** The defines a material made with these options compiles: its features (surfaceFeatures), in one order. */
 export function surfaceDefines(o) {
   const d = surfaceFeatures(o);
-  for (const f of SURFACE_SHARED) d[f] = 1;
-  if (!ownDefine(o)) {
-    if (!SURFACE_HEAVY.some((f) => d[f])) for (const f of SURFACE_LIGHT) d[f] = 1;
-    else d.S_STRATA = 1;   // (weathered walls and the makers' inscriptions, on rock and on walls alike: one program each)
-  }
-  if (o.fluid) d.S_RIBBON = 1;
-  if (o.metal) { d.METAL_BRUSHED = 1; d.S_PLATES = 1; d.S_GRID = 1; }   // (brushed or not, plated or not: one program for the metals)
   // (in one order: three.js keys a program on its defines in the order they were added, so the same set added in
   // another order compiled a program of its own)
   return Object.fromEntries(Object.keys(d).sort().map((k) => [k, d[k]]));
@@ -682,7 +658,7 @@ const vertexShader = /* glsl */ `
     // a thin bar (a mast's strut, a wire, a vine) kept at least uThinPx pixels wide however far off: pushed out from
     // its axis where it would be thinner, so it never breaks into pixels that come and go as it slides under them
     // (a perspective view only: a shadow map's orthographic camera draws it as it is)
-    if (uThinPx > 0.0 && aThin.w > 0.5 && projectionMatrix[2][3] < -0.5) {   // (uThinPx 0: not a thin material, aThin not read)
+    if (aThin.w > 0.5 && projectionMatrix[2][3] < -0.5) {
       vec4 ax = vec4(aThin.xyz, 1.0);
       #ifdef USE_INSTANCING
         ax = instanceMatrix * ax;
@@ -2123,12 +2099,8 @@ const fragmentShader = /* glsl */ `
     #else
     vec3 strataP = vWorldPos;
     #endif
-    vec2 strataC = vec2(0.0);
-    float strataFw = 0.0;
-    if (uMode == ${MODE_STRATA}) {   // (a uniform branch: compiled into the plain surfaces, SURFACE_LIGHT; paid by strata alone)
-      strataC = vec2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * uStrataSize * 0.9 + (vnoise(vec2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
-      strataFw = fwidth(strataC.x);
-    }
+    vec2 strataC = vec2(strataP.y + (vnoise(strataP.xz * 0.04) - 0.5) * uStrataSize * 0.9 + (vnoise(vec2(faceX * 0.05, strataP.y * 0.1)) - 0.5) * 1.6, faceX);
+    float strataFw = fwidth(strataC.x);
     #endif
     // the makers' inscriptions: on upright faces, in cells of uGlyphs metres (the grid's)
     vec3 gg = vObjPos / max(uGlyphs, 1e-3), ggfw = fwidth(gg);
@@ -2445,8 +2417,8 @@ const fragmentShader = /* glsl */ `
       bladeLight(albedo, L, emit, n);   // (blade-shader.js: the fluid sword's breathing glow, rim and flecks)
     #endif
     #ifdef METAL
-      float metalInk = 0.0;
-      if (uMetal.w > 0.0) albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, metalInk);   // (uMetal 0: not a metal)
+      float metalInk;
+      albedo = metalAlbedo(albedo, n, ndl > 0.0 ? smoothstep(0.4, 0.6, sh) : 0.0, metalInk);
     #endif
     // carved inscriptions: the shadowed side of each groove drops into the shadow tone, the lit lip a shade lighter
     L = mix(L, min(L, uToon - 0.14), carve.y);
@@ -2466,7 +2438,7 @@ const fragmentShader = /* glsl */ `
     }
     L = max(L, mix(L, 0.97, smoothstep(0.15, 0.5, local)));
     #ifdef LAMP_TINT
-      if (uLampTint.a > 0.0) albedo = mix(albedo, uLampTint.rgb * mix(0.55, 1.0, dot(albedo, vec3(0.3, 0.55, 0.15))), uLampTint.a * uLampsOn * smoothstep(0.08, 0.55, local));   // (SURFACE_SHARED)
+      albedo = mix(albedo, uLampTint.rgb * mix(0.55, 1.0, dot(albedo, vec3(0.3, 0.55, 0.15))), uLampTint.a * uLampsOn * smoothstep(0.08, 0.55, local));
     #endif
     #ifdef WATER
       L = mix(L, max(L, 0.8), wl.lit);
@@ -2922,10 +2894,6 @@ export function makeMaterial(o) {
       uLineStep: { value: lineStep(o) },   // (glass: a thin line in its own colour, unless it says)
       uLineWhite: { value: o.lineWhite ? 1 : 0 },   // (the shade's inverted ink: white lines round a black shape)
       uThinPx: { value: o.thin === true ? 1.5 : +o.thin || 0 },
-      // (the shared features' uniforms, off unless the material is one: SURFACE_SHARED, SURFACE_LIGHT; a program's uniforms keep the
-      // last material's values, so every material sets its own)
-      uMetal: { value: new THREE.Vector4(0, 0, 0, 0) },
-      uLampTint: { value: new THREE.Vector4(0, 0, 0, 0) },
       uVertexColors: { get value() { return mat.vertexColors ? 1 : 0; }, set value(v) { /* (it follows mat.vertexColors) */ } },
     },
   });

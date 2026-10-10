@@ -8,7 +8,7 @@ import { Veils, VEIL } from '../src/veil.js';
 
 test('a veiled material compiles the rim cut; others do not, and the fallback never cuts', () => {
   assert.equal(surfaceDefines({ color: '#fff', veil: VEIL.cap }).S_VEIL, 1);
-  assert.equal(makeMaterial({ color: '#fff', key: 'veil-test-none' }).uniforms.uVeil.value, 0, 'compiled into every surface (SURFACE_SHARED): uVeil 0 never cuts');
+  assert.equal(surfaceDefines({ color: '#fff' }).S_VEIL, undefined);
   const m = makeMaterial({ color: '#c9c1ea', veil: VEIL.cap, key: 'veil-test' });
   assert.equal(m.uniforms.uVeil.value, VEIL.cap);
   assert.match(m.fragmentShader, /#ifdef S_VEIL\s+if \(uVeil > 0\.0 &&/);   // (a shader with everything compiled: uVeil 0 keeps it whole)
