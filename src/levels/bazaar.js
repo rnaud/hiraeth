@@ -9,6 +9,7 @@ import { LINES as STORY_LINES } from '../story/bazaar-data.js';
 import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
+import { buildListenersLane } from '../market-ways.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
 import { Puffs } from '../life.js';
@@ -385,12 +386,18 @@ export function* buildBazaar(scene) {
   // in the gap between two of the market's stalls, its counter and door turned to the avenue
   const cureStall = placeShop(scene, { def: SHOPS.curestall, at: new THREE.Vector3(-25, .3, -23.5), heading: Math.PI / 2 });
   lights.push(...cureStall.lights);
+  // the listeners' lane (src/market-ways.js, level design audit, fourth round): the back lane behind the west towers,
+  // its old dishes all turned to the silent tower: the way home Sel sends you once it speaks again
+  const lane = buildListenersLane(scene);
   // (the makers' Undertower under the silent tower: src/temples/bazaar.js)
   yield;
   return attachTemple('bazaar', scene, {
     portals: [...cureStall.portals],
     shops: [cureStall],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     id:'bazaar', floraAvoid:cureStall.avoid((x,z,r)=>Math.abs(x)<17+r||z>98-r),   // the flora keeps to the pavements (src/flora.js)
+    // what the level design audit reads (scripts/level-design/audit.mjs): the listeners' lane, followed home where Sel
+    // sends you along it, and the radio-mender's table on it, to look at
+    lines:[{ name:'the listeners’ lane', points:lane.points, auto:false }], sights:[{ name:'the radio-mender’s table', at:lane.stall }],
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},

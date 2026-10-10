@@ -44,7 +44,7 @@ export const QUESTS = [
       { id: 'kip', text: 'Find Kip the courier, up on the second skybridge, who never delivered the last recording', label: 'Kip, on the second skybridge', talk: 'kip' },
       { id: 'tune', text: 'Tune the antenna on the tower’s balcony: light its three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
       { id: 'play', text: 'Play the unsent recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
-      { id: 'sel2', text: 'Go down to Madame Sel', label: 'Madame Sel', talk: 'sel' },
+      { id: 'sel2', text: 'Go down to Madame Sel', label: 'Madame Sel', talk: 'sel', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
     ],
   },
   {
@@ -148,7 +148,8 @@ export const PEOPLE = {
         },
         home: {
           say: ["~solemn~ Thirty years crossing the dark, and it still found someone from the same house. I’ve never seen one do that.",
-            "~solemn~ (Across the square, the signs stop advertising. For once they share a message.)"],
+            "~solemn~ (Across the square, the signs stop advertising. For once they share a message.)",
+            "~neutral~ Go home the quiet way, love: west down the alley behind me, then up the back lane. The old dishes there have been turned to this tower for thirty years. Let them hear it with you."],
           do: { advance: [Q, 'sel2'] },
           choices: [{ text: '~happy~ Thank you, Sel.', end: true }],
         },

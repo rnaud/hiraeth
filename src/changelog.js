@@ -19,6 +19,7 @@ export const CHANGELOG = [
     'In Viridel, Mira’s water clock now spills into a narrow runnel of white stone that winds west round the meadow, through a sluice-gate and a round stone basin by the pond, down to the vines over the fallen ship. Once you have seen what the garden uncovered, Vey sends you back up it to Mira.',
     'In the Sealed Hangar’s upside-down quarter, the Major’s old signal mast now stands over his desk with a red flag and a lamp on its tip, seen from the ring’s portal (one tall house that hid it is gone). Halfway back to the portal home, his telescope still stands on its tripod beside a stool, trained on the portal’s light.',
     'In the Buried Machine, forty-one Tooth Day posts now cross the dunes from the great wheel’s foot to Wen’s dome, one for every year, each with that year’s sliver nailed on top: the counters’ way, and the quest sends you back along it with yours.',
+    'In the Signal Market, once the silent tower speaks again, Madame Sel sends you home the quiet way: down the alley behind Signal Square and up the back lane behind the west towers, where the market’s old dishes have stayed turned to the tower for thirty years, past the radio-mender’s table, and out by the lantern market.',
   ] },
   { v: '1.19', date: '2026-10-09', items: [
     // two more temples rebuilt round one idea each (the temple design audit), their guardians ending on it

@@ -430,6 +430,46 @@ Small fixes from `docs/audits/level-design-v1.15.md`'s "what's left" (`docs/audi
 - **The audit** reads a portal's `oneWay` (no way back through it is assumed) and a route step `{ act, at }` (an act the
   play-through does where someone stands: Vael's route starts by meeting Oïa beside the landing, as the scout does).
 
+## Every way home passes something new (level design audit, fourth round, v1.20)
+
+The eight worlds not reworked yet each got a way back that is not the way out, and a guide on their blind main-quest
+legs (`docs/audits/level-design-v1.20.md`). Each is its own small module, no rng (the world round it keeps its draws),
+built late in its level so the audits' sampling of the rest stays as it was. What stands on the ground collides as
+drawn (posts, curbs, a mast; not the Buried Machine's Tooth Day posts, drawn only, built after its temple: as solids
+they tipped the contact audit's sampling of that whole world over its line); what hangs in the air or rides the water is drawn only and marked `floats` mesh by mesh
+(the contact audit reads the flag on the mesh itself, not its group); lamps on posts are drawn only, within a hand of
+the post's top.
+- **Vael II** (`src/sky-stones-ways.js`): **the fallen-up tiles**, the monastery's roof tiles instanced in drifting
+  knots from the island church back over the great table to the bell tower (the `ring` stage's `via`; Calix's `bring`
+  line says to follow them); **the lantern stones**, eight floating stones with riders' lanterns from the rose cliff's
+  north lip past the Founders' Belfry to Aube's hermitage, dark until the bell rings (`A.lanterns.lit`, set from
+  `src/story/arzach2.js`), the way home Calix sends you by (`home` on `listen`). Beacons: the bell tower and the island
+  church's taller tower. Brother Calix's spot is 3 m off the cloister door he used to wander into.
+- **Lorn** (`src/lorn-ways.js`): **the cave's crown**, teal crystal spires through the cave's ridge in the cave's own
+  material (a beacon, solid); **Wendel's egg-lamps**, posts with glowing eggs from the cave's west mouth along the south
+  shore to the landing, **the gatherers' punt** moored at the fifth; the heart's page names them (`home` on `cave`).
+- **Lorn II** (`src/deep-wood-ways.js`): **the water-way**, the keepers' lamps for boats from **the water-gate** by the
+  root cave's lagoon round the deep water east of the wood to the landing, **the lamp-raft** halfway; lit once Hollin
+  has heard about the saucer (`level.waterWay.lit`), his last words send you home by it. The lit path is a `line`, the
+  saucer's 40 m beam a beacon; `pools` ends at the last pool (`ends: 'lastPool'`), and `tell` meets Hollin where he has
+  walked to (`stands: 'hollinEnd'`).
+- **Viridel** (`src/viridel-ways.js`): **Mira's runnel**, a white stone channel from the water clock west round the
+  meadow by the pond down to the vines over the fallen ship, a sluice-gate and a basin on it (`runnelDist` keeps the
+  flora out); `tell` sends you back up it.
+- **The Garden of Spheres**: its white paths from the lake to the grove's path, through the sphere-arch and down the
+  avenue, declared as one `line` (they were there; the audit could not see the plaza past the arch).
+- **The Sealed Hangar** (`src/hangar-ways.js`, in the upside-down slab's own frame): **the Major's mast** over his desk
+  (a beacon; one tall house that stood between it and the ring's portal is cleared like the story's spots, `B_VIEW`),
+  and **his telescope** halfway back to the portal home.
+- **The Buried Machine** (`src/buried-ways.js`): **the Tooth Day posts**, forty-one posts with the year's sliver on
+  top from the wheel's foot (outside its sand strip) to Wen's dome; `count` sends you along them.
+- **The Signal Market** (`src/market-ways.js`): **the listeners' lane**, the back lane behind the west towers by the
+  alleys behind Signal Square and by the lantern market, its old dishes all turned to the silent tower, the
+  radio-mender's table halfway; Sel sends you home that way (`home` on `sel2`).
+- **The audit** reads two more stage fields: `home` (the line the last stage that names one sends you home along: the
+  walk back to the ship follows it) and `stands` (where a stage's person will be by the time you get there).
+  `tests/contact-audit.test.js` checks that every `via` and `home` names a line its world declares.
+
 ## Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning
