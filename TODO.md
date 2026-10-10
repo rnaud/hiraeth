@@ -216,15 +216,18 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
   the motion check for ink shimmer.
 
-# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17: 2026-10-09)
+# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20: 2026-10-09)
 
 Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
 
-- [ ] **Every way home passes something new** (10 of 11 worlds walk back to the ship past nothing new): bring the
-  last stage nearer the ship, or another way back past an optional place, or the temple's change as the reason.
-  Loops +1-2.
-- [ ] **A weenie on every main-quest leg** (6 worlds guide under half their long legs; the drone does it): a tall,
-  unique, lit silhouette in sight from each leg's start, or a leading line. Wayfinding +1-2.
+- [x] **Every way home passes something new** (v1.20, docs/audits/level-design-v1.20.md): the Sky Stones' fallen-up
+  tiles and lantern stones, Lorn's egg-lamps, Lorn II's water-way, Viridel's runnel, the Hangar's telescope, the Buried
+  Machine's Tooth Day posts, the Signal Market's listeners' lane; the audit reads a stage's `home` and `stands`. Loops 5 in
+  ten of eleven worlds. Left: the City-Shaft's Tobin → Lio hop.
+- [x] **A weenie on every main-quest leg** (v1.20): the bell tower and the island church (the Sky Stones), the cave's
+  crown (Lorn), the saucer's beam and the lit path (Lorn II), the Major's mast (the Hangar), the Garden's white paths;
+  the average 4.04 → 4.25. Left, blind by the numbers: Lorn's Saba → the cave (a crystal grove in every bearing), the
+  Buried Machine's oculus → the wheel (inside the drum), the desert's three, Vael's window → the tower's foot.
 - [x] **Desert: the Hearth ride** (v1.9, docs/audits/level-design-v1.9.md): Yara's shade and a skiff's wreck on the
   straight ride out, home along the marked stones past the bowl and the camp. Longest gap 1,552 → 518 m, density 2→4,
   loops 1→2. Left: the wreck → Hearth stretch (518 m); the walk from the tree back to the ship.
@@ -254,10 +257,12 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
 - [ ] **Left from v1.17:** the City-Shaft's Tobin → Lio hop (83 m, nothing new: loops 4); the desert's blind legs (Ama's
   fire to the giant's mouth, the well to Marrow, Marrow's hollow to the Hearth: wayfinding 3) and its first goal 391 m
   off (onboarding 3); both worlds' longest stretches sit at the density band's edge (20 s).
-- [ ] **Sky Stones: Ondine onto the clapper's return arc** (490 m from anything), a lit marker at the clapper.
-  Loops 2→4.
-- [ ] **Lorn II: lamp-lit stakes** to the light across the water and Hollin's cave; a place by the landing.
-  Wayfinding 2→4.
+- [x] **Sky Stones: the clapper's return arc** (v1.20: along the fallen-up tiles over the great table; the island
+  church's tower as a beacon). Loops 2→5. Left: Ondine, 490 m from anything.
+- [x] **Lorn II: lamp-lit stakes** (v1.20: the lit path declared, the saucer's beam a beacon, the water-way home).
+  Wayfinding 1→5.
+- [ ] **The Signal Market's listeners' lane** (v1.20) has two long empty halves (149 m): a listener sitting under the
+  dishes, or a second thing to stop for. Density stays 5; the walk is long.
 - [ ] **Pull the remote loners into 30-150 m of the path**: Ondine, Gaspard, the
   pyramid seed, Emrys. Optional pull +1.
 - [ ] **One high place per flat world** (Lorn 8 m, Lorn II 17 m, Spheres 25 m of height): a climbable viewpoint
