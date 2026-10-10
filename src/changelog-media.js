@@ -504,9 +504,9 @@ const FROM_INK = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: hea
 const FROM_HIT35 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena on the branch, the foe standing where it was put (its mind off); the reach: the first swing, the world frozen on the frame the blade is nearest over it (or lands) and the game’s own camera pinned beside them, before with the v1.35 changes switched off in the same page (the sphere, no soft aim, the old pull: scripts/combat-reach.mjs --legacy does the same in node); the flash: three frames after a light cut, before with its reaction off (the old recoil); the defeats: the moment before the killing blow, then a quarter, a half, three quarters and the end of its defeat (src/enemies/defeat.js), the scratch script hrx-shots.mjs';
 /** The miss table (scripts/combat-reach.mjs): 21 archetypes, first swings from 1, 1.5, 2 and 2.5 m off the body, straight on and 40° off, locked on or not; the second and third swings straight on. */
 const REACH35 = { device: 'node, the game’s traveller (its motion capture, the real blade) and each archetype’s real model posed by Foes.look', source: 'node scripts/combat-reach.mjs (before: --legacy, the blade as it was)' };
-/** The v1.37 skull and cave pictures: made by hand on the branch (.local-tools scratch shooter, the views of the reference sheets). */
-const FROM_SKULL37 = 'headless Chrome (High, 1280 × 720, hour 10, clear) on the branch, the camera pinned and the traveller teleported beside it, the same views for both: before at its parent (a9858730), after with the rebuilt skull and cave';
-const COST37 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden, medians of 7, the same views as the pictures' };
+/** The v1.38 skull and cave pictures: made by hand on the branch (.local-tools scratch shooter, the views of the reference sheets). */
+const FROM_SKULL38 = 'headless Chrome (High, 1280 × 720, hour 10, clear) on the branch, the camera pinned and the traveller teleported beside it, the same views for both: before at its parent (a9858730), after with the rebuilt skull and cave';
+const COST38 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden, medians of 7, the same views as the pictures' };
 export const CHANGELOG_MEDIA = {
   '1.38': [
     { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },
@@ -531,26 +531,26 @@ export const CHANGELOG_MEDIA = {
         reference: { sheet: 'references/Core Objects/Round Backpack/states/sheet-2.jpg', caption: 'The stages it grows through (the states sheet’s second pick): plain, then a second ring and fins, then folding vanes and an extra valve' } },
     ] },
     { match: 'Saves keep what they earned', see: 'Load a save from before v1.38 that had come back from the giant’s pool: the double jump is there and the chest by the pool stands open; one past the Givers’ Hearth has the gun in hand.' },
-  ],
-  '1.37': [
     { match: 'The fallen giant’s skull beyond Qanat’s back gate is rebuilt', shots: [
-      { name: 'skull-approach', caption: 'The skull from the path to its mouth: before, a small round skull with goggle-like rings and a mouth at its foot; after, a temple-sized skull tipped forward, its sockets ringed in turquoise and ochre, ribbons hanging under them, great teeth over the mouth, steps up to it and cairns along the way', from: FROM_SKULL37,
+      { name: 'skull-approach', caption: 'The skull from the path to its mouth: before, a small round skull with goggle-like rings and a mouth at its foot; after, a temple-sized skull tipped forward, its sockets ringed in turquoise and ochre, ribbons hanging under them, great teeth over the mouth, steps up to it and cairns along the way', from: FROM_SKULL38,
         reference: { sheet: 'references/levels/The Desert/places/skull/sheet-1.jpg', caption: 'The picked reference: the fallen giant’s skull beyond the back gate' } },
-      { name: 'skull-mouth', caption: 'The mouth: before, a ring of capsule teeth over a flat bone tongue; after, the upper teeth hanging over a dark tunnel, the jaw’s teeth standing in the sand and worn stone steps leading in', from: FROM_SKULL37 },
-      { name: 'skull-gate', caption: 'Out of the back gate: the skull’s weathered crown over the dune, cracked, and the first cairns of the way', from: FROM_SKULL37 },
+      { name: 'skull-mouth', caption: 'The mouth: before, a ring of capsule teeth over a flat bone tongue; after, the upper teeth hanging over a dark tunnel, the jaw’s teeth standing in the sand and worn stone steps leading in', from: FROM_SKULL38 },
+      { name: 'skull-gate', caption: 'Out of the back gate: the skull’s weathered crown over the dune, cracked, and the first cairns of the way', from: FROM_SKULL38 },
     ], see: 'Leave Qanat by the back gate and follow the cairns round the skull’s side to its mouth.' },
     { match: 'The cave in the giant’s chest is rebuilt too', shots: [
-      { name: 'cave-entrance', caption: 'In from the passage: before, a low purple dome, dark roots and a basin you could hardly see; after, a tall vault of ribs, cracks of sky with light pooling on a sandy floor, the stone-stepped pool and the pale roots hanging into it, the trough and its fallen bone on the right', from: FROM_SKULL37,
+      { name: 'cave-entrance', caption: 'In from the passage: before, a low purple dome, dark roots and a basin you could hardly see; after, a tall vault of ribs, cracks of sky with light pooling on a sandy floor, the stone-stepped pool and the pale roots hanging into it, the trough and its fallen bone on the right', from: FROM_SKULL38,
         reference: { sheet: 'references/levels/The Desert/places/skull-cave/sheet-1.jpg', caption: 'The picked reference: the cave in the giant’s chest, the pool dry' } },
-      { name: 'cave-pool', caption: 'The pool: before, a shallow purple basin; after, four stone steps down to the damp bed, the roots’ curtains, the trough coming in from the crack', from: FROM_SKULL37 },
+      { name: 'cave-pool', caption: 'The pool: before, a shallow purple basin; after, four stone steps down to the damp bed, the roots’ curtains, the trough coming in from the crack', from: FROM_SKULL38 },
     ], numbers: [
-      { title: 'Draw calls each place adds to a frame (all passes)', unit: 'draws', better: 'lower', ...COST37, rows: [
+      { title: 'Draw calls each place adds to a frame (all passes)', unit: 'draws', better: 'lower', ...COST38, rows: [
         { where: 'the skull, from the path', before: 5, after: 6 }, { where: 'the skull, at its mouth', before: 7, after: 7 }, { where: 'the cave, from the entrance', before: 21, after: 19 },
       ], note: 'The cave’s plain-coloured parts share fewer materials now: two fewer draws.' },
-      { title: 'Triangles each place adds to a frame (all passes)', unit: 'thousand triangles', better: 'lower', ...COST37, rows: [
+      { title: 'Triangles each place adds to a frame (all passes)', unit: 'thousand triangles', better: 'lower', ...COST38, rows: [
         { where: 'the skull, from the path', before: 14.8, after: 23.7 }, { where: 'the skull, at its mouth', before: 22.0, after: 31.4 }, { where: 'the cave, from the entrance', before: 20.2, after: 32.6 },
       ], note: 'The ribs, roots, steps and cairns: a few percent of the frame (the cave view’s whole frame 257k → 270k triangles, the path’s 860k → 872k).' },
     ], see: 'Go down through the skull’s mouth: the pool is ahead of you past the light on the floor, the fallen bone on the trough to the right.' },
+  ],
+  '1.37': [
     { match: 'The Audits page in the Debug menu opens on the latest scores', shots: [
       { name: 'audits-dashboard', caption: 'The Audits page as it opens: before, every report as a card, newest first (two temple design audits side by side, the older combat ones further down); after, one card per kind with only its latest audit, its scores per item and their changes', from: 'headless Chrome (1280 × 720) on audits.html, a dev server on the branch: before at its parent (4a2be0b0), after with the dashboard' },
     ], see: 'Open the Debug menu, pick Audits under Pages. Move between cards with the D-pad, A opens the full audit, Y (or H) shows a card’s History, LB / RB switch to All audits, B goes back.' },

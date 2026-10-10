@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.38 — 2026-10-10
 
+- The cave in the giant’s chest is rebuilt too: a tall vault of ribs with rock between them, light falling through cracks onto a warm sandy floor, a round dry pool walled in stone steps with the tree’s pale roots hanging into it, and a stone trough from a crack in the wall, the great fallen bone lying across it and water glinting in the crack behind.
+- The fallen giant’s skull beyond Qanat’s back gate is rebuilt after its picture: as big as a temple and tipped face first into the sand, its eye sockets ringed in the pilgrims’ turquoise and ochre with ribbons and offerings hanging below, a row of great teeth over a dark mouth whose steps go down to a cool glow, and cairns marking the way from the gate.
 - Saves keep what they earned: past the giant’s pool you have the lift valve, past the Givers’ Hearth the gun, in hand. A controller layout you changed follows: whatever you had put on Y / △ now sounds the whistle.
 - The backpack is a round glass sphere of glowing jade fluid in a brass cradle, on an olive canvas plate with leather straps. Its glow follows your magic bar, three lights on its band count the units left, and it grows with each strength: a valve wheel and fins, then folding brass vanes, then a second valve and a brighter, quicker swirl.
 - The Warden’s Well in the City-Shaft now holds the Warden’s harness: jets that fly in the City-Shaft only. The jets that flew everywhere were too strong for the worlds and are out of play (a save that had them keeps the harness).
@@ -18,8 +20,6 @@ The same release notes shown in the game (press **N** or open settings).
 
 - On the Audits page, clicking a report’s tabs or a card’s History button works again; before, it threw you back to the dashboard.
 - The Audits page in the Debug menu opens on the latest scores of every kind of audit: a card each for the whole game, combat, level design, temple design, visuals, temple visuals, ink lines, cinematics, dialogue and performance, with its score, how much it moved since the audit before, and its scores per world, temple or creature, each with its own change. A card opens the full audit; History shows the earlier audits’ scores as a line and a list, and All audits lists every report as before.
-- The cave in the giant’s chest is rebuilt too: a tall vault of ribs with rock between them, light falling through cracks onto a warm sandy floor, a round dry pool walled in stone steps with the tree’s pale roots hanging into it, and a stone trough from a crack in the wall, the great fallen bone lying across it and water glinting in the crack behind.
-- The fallen giant’s skull beyond Qanat’s back gate is rebuilt after its picture: as big as a temple and tipped face first into the sand, its eye sockets ringed in the pilgrims’ turquoise and ochre with ribbons and offerings hanging below, a row of great teeth over a dark mouth whose steps go down to a cool glow, and cairns marking the way from the gate.
 
 ## v1.36 — 2026-10-10
 
