@@ -14,7 +14,9 @@
 //   clock        where the level's own clock starts (s): its mantas, boats, baskets where the cover has them
 //   mirror       true: the render flipped left to right (a cover whose world is built the other way round)
 //   sky          { planets, eclipse }: the cover's planets in place of the world's (src/post.js: az, el, size,
-//                color, ring), its eclipse's disc moved or resized
+//                color, ring), its eclipse's disc moved or resized; { top, horizon, mix }: the cover's printed sky
+//                (hex, sampled off the cover a little bluer, as the title's paper multiplies it warmer) mixed over
+//                the hour's by mix (1: all of it)
 //   look         the view's own touches on the world's ink preset (post.js uniforms), rarely
 //   menu         'mid': the title's menu higher, in the middle of the space under the name, for a cover whose
 //                lower left is busy (src/title-layout.js; left out: the lower left, calm in every shot so far)
@@ -33,56 +35,58 @@ export const SHOTS = [
   // in the gap between them, the traveller on a balcony over the pool
   { id: 'H1', ref: 'H1-waterfall-city.jpg', level: 'waterfall', hour: 10.5,
     camera: { eye: [-150, 9, 22], target: [44, 20, 8], fov: 55 }, traveller: { at: [-126, 0, 35], heading: 1.7 } },
-  // the underwater city: towers and their pods down the canal, the traveller on a pod's deck
-  { id: 'B2', ref: 'B2-underwater.jpg', level: 'underwater', hour: 11, clock: 62,
+  // the underwater city: towers and their pods down the canal, the traveller on a pod's deck (B4: B2, the
+  // cover first framed, was set aside; B4 is the same city from the same terrace)
+  { id: 'B4', ref: 'B4-underwater.jpg', level: 'underwater', hour: 11, clock: 62,
     camera: { eye: [-98, 21.5, -8], target: [0.9, 10, -30], fov: 55 }, traveller: { at: [-84, 15.7, -4], heading: 1.9 } },
   // the white mangrove at dusk: the trees over the still water, the traveller on the landing stage
   { id: 'F1', ref: 'F1-white-mangrove.jpg', level: 'mangrove', hour: 17.4,
-    camera: { eye: [-5, 6.5, 64], target: [-34, 2, -32], fov: 40 }, traveller: { at: [-3.6, 1.2, 51.5], heading: -2.85 } },
+    camera: { eye: [-5, 6.5, 64], target: [-34, 2, -32], fov: 40 }, traveller: { at: [-3.6, 1.2, 51.5], heading: -2.85 },
+    sky: { top: '#a19cbe', horizon: '#ecd2be', mix: 0.8 } },
   // the underside: the inhabited shelf over the sea of cloud, seen from the stair's landing (the world is
   // built the other way round from the cover: mirrored)
   { id: 'O1', ref: 'O1-underside.jpg', level: 'underside', hour: 7.6, mirror: true,
-    camera: { eye: [10, 4.6, 39], target: [70, 22, -60], fov: 52 }, traveller: { at: [12, 2, 30], heading: 2.8 } },
+    camera: { eye: [10, 4.6, 39], target: [70, 22, -60], fov: 52 }, traveller: { at: [12, 2, 30], heading: 2.8 },
+    sky: { top: '#0c8d85', horizon: '#909a72', mix: 0.85 } },
   // the sky stones: the monastery's table and its needle over the cloud, from a rose ledge
   { id: 'E3', ref: 'E3-sky-stones.jpg', level: 'arzach2', hour: 9,
-    camera: { eye: [-491, 85.6, -136], target: [-397.8, 78, -152], fov: 52 }, traveller: { at: [-484.5, 82, -133.5], heading: 1.75 } },
+    camera: { eye: [-491, 85.6, -136], target: [-397.8, 78, -152], fov: 52 }, traveller: { at: [-484.5, 82, -133.5], heading: 1.75 },
+    sky: { top: '#3c9d9e', horizon: '#f0e6c4', mix: 0.85 } },
   // the salt harbour: the two beached ships, the street between them, the gangway across
   { id: 'G4', ref: 'G4-salt-harbour.jpg', level: 'saltharbour', hour: 10.5,
-    camera: { eye: [-6, 1.8, 95], target: [-4, 26, -10], fov: 54 }, traveller: { at: [3, 0, 83], heading: 3.1 } },
+    camera: { eye: [-6, 1.8, 95], target: [-4, 26, -10], fov: 54 }, traveller: { at: [3, 0, 83], heading: 3.1 },
+    sky: { top: '#20acb0', horizon: '#5fb6b1', mix: 0.85 } },
   // the moon foundry: the hung moons, the broken one and the cradle under the gantries
   { id: 'I1', ref: 'I1-moon-foundry.jpg', level: 'moonfoundry', hour: 10.5,
     camera: { eye: [-20, 1.8, 60], target: [-14.9, 24, -36.5], fov: 54 }, traveller: { at: [-14.9, 0, 48.3], heading: 3.09 } },
   // the garden of spheres: the umbrella trees either side, the arch and the pyramids between
   { id: 'K4', ref: 'K4-garden-spheres.jpg', level: 'spheres', hour: 17.5,
-    camera: { eye: [0, 1.6, 30], target: [0, 22.4, -67.8], fov: 50 }, traveller: { at: [5, 0, 12], heading: Math.PI } },
+    camera: { eye: [0, 1.6, 30], target: [0, 22.4, -67.8], fov: 50 }, traveller: { at: [5, 0, 12], heading: Math.PI },
+    sky: { top: '#f2b898', horizon: '#f6c9a6', mix: 0.9 } },
   // the city floating in space: the balcony island before its great planet, from the bridge
   { id: 'L3', ref: 'L3-space-city.jpg', level: 'spacecity', hour: 8.5,
-    camera: { eye: [-2, 4, -108], target: [4, 6, -192], fov: 55 }, traveller: { at: [1.2, 0, -114], heading: 3.1 } },
+    camera: { eye: [-2, 4, -108], target: [4, 6, -192], fov: 55 }, traveller: { at: [1.2, 0, -114], heading: 3.1 },
+    sky: { top: '#1e504a', horizon: '#4b6c63', mix: 0.85 } },
   // the forest of antennas: the great receiver over the village, the path winding up to it
   { id: 'N4', ref: 'N4-forest-antennas.jpg', level: 'antennas', hour: 15.5,
-    camera: { eye: [4.1, 1.5, 23.5], target: [45.8, 17, -66], fov: 54 }, traveller: { at: [11.5, -0.87, 17], heading: 2.71 } },
-  // the desert: mesas either side, the leviathan's ribs on the left, the ringed planet over the dunes
-  { id: 'A1', ref: 'A1-desert.jpg', level: 'desert', hour: 9.5,
-    camera: { eye: [-560, 2.1, -470], target: [-631, 10, -541], fov: 40 }, traveller: { at: [-565, 1.3, -482], heading: 3.9 },
-    sky: { planets: [{ az: 220, el: 9, size: 2.2, color: '#ece4d2', ring: 0.3 }] } },
-  // a butte on the left, the ribs far off in the middle of the plain
-  { id: 'A2', ref: 'A2-desert.jpg', level: 'desert', hour: 15.5,
-    camera: { eye: [-1250, 14.9, -710], target: [-1152.3, 29.7, -694.5], fov: 36 }, traveller: { at: [-1235, 14.1, -702.4], heading: 1.51 },
-    sky: { planets: [{ az: 69, el: 10, size: 2.2, color: '#ece4d2', ring: 0.3 }] } },
+    camera: { eye: [4.1, 1.5, 23.5], target: [45.8, 17, -66], fov: 54 }, traveller: { at: [11.5, -0.87, 17], heading: 2.71 },
+    sky: { top: '#eccf89', horizon: '#ebca81', mix: 0.85 } },
   // the leviathan's spine across the middle, a mesa at the left
   { id: 'A4', ref: 'A4-desert.jpg', level: 'desert', hour: 9.5,
     camera: { eye: [-770.4, -2.6, -851.4], target: [-709.1, 7.5, -773], fov: 40 }, traveller: { at: [-766.2, -4.3, -836.9], heading: 0.6 },
-    sky: { planets: [{ az: 31, el: 9, size: 2.2, color: '#ece4d2', ring: 0.3 }] } },
+    sky: { top: '#51a8a6', horizon: '#67b7b9', mix: 0.85, planets: [{ az: 31, el: 9, size: 2.2, color: '#ece4d2', ring: 0.3 }] } },
   // the glass dunes: the breaker's curl over the north camp, the billows on the right
   { id: 'M1', ref: 'M1-glass-dunes.jpg', level: 'glassdunes', hour: 16.5,
-    camera: { eye: [-140, 5.3, -80], target: [-48.3, 20, -117.1], fov: 50 }, traveller: { at: [-128.4, 2.1, -80.7], heading: 2.25 } },
+    camera: { eye: [-140, 5.3, -80], target: [-48.3, 20, -117.1], fov: 50 }, traveller: { at: [-128.4, 2.1, -80.7], heading: 2.25 },
+    sky: { top: '#e2c2ab', horizon: '#eac4af', mix: 0.8 } },
   // the buried machine: the great wheel half sunk in the dunes, the ring of arches on the horizon
   { id: 'J3', ref: 'J3-buried-machine.jpg', level: 'buried', hour: 7.5,
-    camera: { eye: [45, 13, -75], target: [98, 30, -168], fov: 44 }, traveller: { at: [53.4, 12.5, -81.7], heading: 2.6 } },
+    camera: { eye: [45, 13, -75], target: [98, 30, -168], fov: 44 }, traveller: { at: [53.4, 12.5, -81.7], heading: 2.6 },
+    sky: { top: '#7e946e', horizon: '#7f9771', mix: 0.8 } },
   // the city during the eclipse: the market's lanterns on the left, the great stair, the black sun
   { id: 'P1', ref: 'P1-eclipse-city.jpg', level: 'eclipse', hour: 12,
     camera: { eye: [-2.5, 1.7, -17], target: [-16.1, 24.2, -113.5], fov: 48 }, traveller: { at: [1.6, 0, -28.4], heading: 3.32 },
-    sky: { eclipse: { size: 2.4, el: 17 } } },
+    sky: { top: '#0c6b78', horizon: '#68858c', mix: 0.85, eclipse: { size: 2.4, el: 17 } } },
 ];
 
 /** Is this a complete shot? Returns the list of what is wrong ([] when it is fine). */
@@ -102,6 +106,8 @@ export function shotProblems(s) {
     if (v3(c.eye) && v3(c.target) && Math.hypot(c.eye[0] - c.target[0], c.eye[1] - c.target[1], c.eye[2] - c.target[2]) < 1) out.push(`${name} looks at itself`);
   }
   for (const p of s.sky?.planets ?? []) if (![p.az, p.el, p.size].every(Number.isFinite)) out.push('sky.planets');
+  for (const k of ['top', 'horizon']) if (s.sky?.[k] !== undefined && !/^#[0-9a-f]{6}$/i.test(s.sky[k])) out.push(`sky.${k}`);
+  if (s.sky?.mix !== undefined && !(s.sky.mix >= 0 && s.sky.mix <= 1)) out.push('sky.mix');
   if (s.traveller !== null && s.traveller !== undefined) {
     if (!v3(s.traveller.at)) out.push('traveller.at');
     if (!Number.isFinite(s.traveller.heading ?? 0)) out.push('traveller.heading');

@@ -2,6 +2,7 @@
 // is in the bundle; the others are downloaded from the site in the background and kept (src/music-store.js).
 import { bundledGame } from './levels/reference-sheets.js';
 import { keepTheme, pageThemeStore, startThemeDownload, themeSources } from './music-store.js';
+import { runSteps, runStepsAsync } from './load-steps.js';
 export const SOUNDTRACKS = {
   home: 'home.mp3',
   lantern: 'home.mp3',   // (the Lantern: home's own theme, at Ilen's)
@@ -63,7 +64,11 @@ export async function loadCue(sound, id, fetcher = globalThis.fetch, { here = gl
 }
 
 /** Join the last two seconds to the opening and balance the score beneath speech. */
-export function prepareSoundtrack(ctx, original) {
+export function prepareSoundtrack(ctx, original) { return runSteps(prepareSoundtrackSteps(ctx, original)); }
+
+const CHUNK = 1 << 18;   // samples between yields (a few ms): a three-minute stereo track was one 170 ms task
+/** prepareSoundtrack in steps (src/load-steps.js runStepsAsync): the page keeps answering while it runs. */
+export function* prepareSoundtrackSteps(ctx, original) {
   const fade = Math.min(Math.floor(original.sampleRate * 2), Math.floor(original.length / 4));
   const length = original.length - fade;
   const buffer = ctx.createBuffer(original.numberOfChannels, length, original.sampleRate);
@@ -75,13 +80,17 @@ export function prepareSoundtrack(ctx, original) {
       const mix = i / Math.max(1, fade - 1);
       output[i] = input[length + i] * (1 - mix) + input[i] * mix;
     }
-    for (const value of output) { sum += value * value; peak = Math.max(peak, Math.abs(value)); }
+    for (let i = 0; i < output.length; i++) {
+      const value = output[i];
+      sum += value * value; peak = Math.max(peak, Math.abs(value));
+      if (i % CHUNK === CHUNK - 1) yield;
+    }
   }
   const rms = Math.sqrt(sum / (length * original.numberOfChannels));
   const gain = rms > 0 ? Math.min(10 ** (-27 / 20) / rms, 0.8 / peak, 4) : 1;
   for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
     const data = buffer.getChannelData(ch);
-    for (let i = 0; i < data.length; i++) data[i] *= gain;
+    for (let i = 0; i < data.length; i++) { data[i] *= gain; if (i % CHUNK === CHUNK - 1) yield; }
   }
   return buffer;
 }
@@ -109,7 +118,9 @@ export async function loadTitleTheme(sound, fetcher = globalThis.fetch, { here =
       try { decoded = await ctx.decodeAudioData(await blob.arrayBuffer()); }
       catch (error) { lastError = error; continue; }
       if (sound._disposed || ctx.state === 'closed') return false;
-      return !!sound.playTitleTheme?.(prepareSoundtrack(ctx, decoded));
+      const buffer = await runStepsAsync(prepareSoundtrackSteps(ctx, decoded));
+      if (sound._disposed || ctx.state === 'closed') return false;
+      return !!sound.playTitleTheme?.(buffer);
     }
   } catch (error) { lastError = error; }
   if (!sound._disposed) console.warn('Recorded title music unavailable; keeping the procedural menu music.', lastError ?? TITLE_THEME);

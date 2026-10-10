@@ -48,6 +48,25 @@ export function slicer(budget = LOAD_BUDGET) {
   return s;
 }
 
+/**
+ * A slicer that also stands aside while the player is pressing (the title's world, src/title-world.js: the
+ * menu answers first). After each yield, while busy() says so, it waits (polling every `poll` ms) and its
+ * budget starts afresh; stopped() ends the wait (the build was cancelled). Same API as slicer().
+ */
+export function gatedSlicer({ busy = () => false, stopped = () => false, budget = LOAD_BUDGET, poll = 50 } = {}) {
+  const raw = slicer(budget);
+  const quiet = async () => { while (busy() && !stopped()) await new Promise((r) => setTimeout(r, poll)); };
+  const s = async () => {
+    const yielded = await raw();
+    if (yielded && busy()) { await quiet(); raw.reset(); }
+    return yielded;
+  };
+  s.quiet = quiet;
+  s.reset = raw.reset;
+  Object.defineProperties(s, { slices: { get: () => raw.slices }, longest: { get: () => raw.longest } });
+  return s;
+}
+
 const isThenable = (v) => v && typeof v.then === 'function';
 
 /** Run a generator of steps straight through; returns what it returns. (A yielded promise is an error here.) */

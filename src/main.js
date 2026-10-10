@@ -108,6 +108,7 @@ import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
+import { warmShadersSliced as warmSliced } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -2001,40 +2002,11 @@ async function warmShaders(targetScene, targetCamera, target = null) {
   renderer.setRenderTarget(prev);
   clearTimeout(timer);
 }
-// The world's own surfaces, a slice at a time: compile() for the whole scene at once built every
-// program's source and key in one task (100-500 ms, far longer on a handheld). One object stands
-// for each kind of program (its material, and what of the mesh goes into the key: instanced,
-// skinned, points or lines, its optional attributes), compiled between yields; then the wait for
-// the driver, polled. (A combination missed here compiles at first sight, as it always would.)
-const programKind = (o, m) => `${m.id}|${o.isInstancedMesh ? 1 : 0}${o.instanceColor ? 1 : 0}${o.isSkinnedMesh ? 1 : 0}${o.isBatchedMesh ? 1 : 0}${o.isPoints ? 1 : 0}${o.isLine ? 1 : 0}${o.isSprite ? 1 : 0}|${Object.keys(o.geometry?.morphAttributes ?? {}).length}|${['color', 'uv1', 'uv2', 'uv3', 'tangent'].map((a) => (o.geometry?.attributes?.[a] ? 1 : 0)).join('')}`;
-// (the scene a program's key is taken from: no lights, fog or environment, as the world's own; an
-// empty one, so each compile doesn't walk the whole world looking for lights)
-const keyScene = new THREE.Scene();
+// The world's own surfaces, a slice at a time (src/warm-shaders.js: one object for each kind of program,
+// compiled between yields, then the wait for the driver, polled; a combination missed compiles at first sight)
 const gpuPace = gpuPacer(renderer.getContext());
-async function warmShadersSliced(targetScene, targetCamera, target = null, { wear = null } = {}) {
-  const reps = new Map();
-  targetScene.traverse((o) => {
-    if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
-    for (const m of [wear ?? o.material].flat()) { const k = programKind(o, m); if (!reps.has(k)) reps.set(k, o); }
-  });
-  const prev = renderer.getRenderTarget(), mats = new Set();
-  for (const o of reps.values()) {
-    const own = o.material;
-    if (wear) o.material = wear;
-    try {
-      renderer.setRenderTarget(target);
-      for (const m of renderer.compile(o, targetCamera, keyScene)) mats.add(m);
-    } finally { if (wear) o.material = own; }
-    await slice();
-    await gpuPace();   // (one compile queued at a time: the loading screen's pen keeps turning)
-  }
-  renderer.setRenderTarget(prev);
-  // the driver compiles in parallel (KHR_parallel_shader_compile): wait for it a while, yielding
-  const pending = () => [...mats].filter((m) => { const p = renderer.properties.get(m).currentProgram; return p && !p.isReady(); }).length;
-  const t0 = performance.now();
-  while (pending() && performance.now() - t0 < 2000) await new Promise((r) => setTimeout(r, 10));
-  return reps.size;
-}
+const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
+  warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them
 console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await slice();

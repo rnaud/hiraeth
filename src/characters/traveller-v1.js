@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { loadBody, makeBody } from '../makehuman/body.js';
 import { Humanoid } from '../humanoid.js';
 import { fitDonorToSurface } from './tripo-fit.js';
-import { makeTripoCloth } from './tripo-cloth.js';
+import { makeTripoClothSteps } from './tripo-cloth.js';
 import { makeReviewInkMaterial } from './tripo-material.js';
 import { relaxWalkArms, relaxWalkHands } from './tripo-walk.js';
 import { softenTripoHands } from './tripo-hands.js';
@@ -12,6 +12,7 @@ import { makeTripoHead, removeOriginalHead, wearTripoHeadFace } from './tripo-he
 import { wearTripoFace } from './tripo-face.js';
 import { cleanExpression } from '../expression.js';
 import { TRAVELLER } from '../traveller.js';
+import { runSteps } from '../load-steps.js';
 
 /** The fluid flask's place on his back (the chest anchor's frame; fluid-tool.js TANK.at is the rucksack's). */
 export const TRAVELLER_V1_TANK_AT = [0, 0.4, -0.1886];   // (v1.38: the round backpack, its slim canvas plate on his back where v1.37's sphere had its plate's back)
@@ -32,7 +33,9 @@ export async function loadTravellerV1(base) {
 
 // Build in the same origin/rest frame as the fitted export and review. Gameplay
 // can spawn at any position and orientation (including a sphere's far side).
-export function createTravellerV1(char, { gltf, data, report, colors, head: headAsset }, { gpu } = {}) {
+export function createTravellerV1(char, assets, o = {}) { return runSteps(createTravellerV1Steps(char, assets, o)); }
+/** createTravellerV1 in steps (src/load-steps.js runStepsAsync: the title builds him while its menu answers). */
+export function* createTravellerV1Steps(char, { gltf, data, report, colors, head: headAsset }, { gpu } = {}) {
   const skins = [];
   gltf.scene.traverse(o => { if (o.isSkinnedMesh) skins.push(o); });
   if (skins.length !== 1 || colors.length !== skins[0].geometry.attributes.position.count)
@@ -42,7 +45,9 @@ export function createTravellerV1(char, { gltf, data, report, colors, head: head
   const template = makeBody(data, report.params, { fresh: true }), surface = [];
   const source = skins[0], p = source.geometry.attributes.position;
   for (let i = 0; i < p.count; i++) surface.push(new T.Vector3().fromBufferAttribute(p, i));
+  yield;
   fitDonorToSurface(template, surface);
+  yield;
   const root = char.root, position = root.position.clone(), quaternion = root.quaternion.clone(), scale = root.scale.clone();
   root.position.set(0, 0, 0); root.quaternion.identity(); root.scale.setScalar(1); root.updateMatrixWorld(true);
   try {
@@ -61,9 +66,12 @@ export function createTravellerV1(char, { gltf, data, report, colors, head: head
     softenTripoHands(humanoid);
     root.updateMatrixWorld(true);
     markTripoHair(mesh.geometry, colors);
-    const cloth = makeTripoCloth(mesh, colors, gpu === undefined ? {} : { gpu });
+    yield;
+    const cloth = yield* makeTripoClothSteps(mesh, colors, gpu === undefined ? {} : { gpu });
+    yield;
     const head = headAsset ? makeTripoHead(headAsset, mesh) : null;
     if (head) removeOriginalHead(mesh);
+    yield;
     for (const part of [mesh, cloth.garment, cloth.underlayer, cloth.innerShirt, head].filter(Boolean)) {
       const standard = part.material;
       part.material = makeReviewInkMaterial(part, { lining: part === cloth.garment });

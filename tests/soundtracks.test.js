@@ -91,7 +91,7 @@ test('the title\'s recording: its record, its file, carried by the devices', asy
   assert.ok(ON_DEVICE_THEMES.includes(TITLE_THEME), 'the first thing a launch plays: in the package, not downloaded');
   assert.ok(!Object.values(SOUNDTRACKS).includes(TITLE_THEME), 'not a world\'s theme');
   const title = readFileSync(new URL('../src/title.js', import.meta.url), 'utf8');
-  assert.match(title, /new Sound\('title', \{ score: false, titleTheme: true \}\)/);
+  assert.match(title, /new Sound\('title', \{ score: false, titleTheme: true, autoStart: false \}\)/);
 });
 
 test('loadTitleTheme hands the balanced, looped recording over; a failure keeps the procedural tune', async () => {

@@ -196,7 +196,12 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
 - **The title's shots** (`src/title-shots.js` `SHOTS`): one per cover in `references/Title Screen/`
   whose world is in the game: a level, the hour, a camera (`eye`, `target`, vertical `fov` at 16:9), the
   traveller's spot and heading, and, when the cover's world is built the other way round, `mirror` (the
-  Underside's); `clock` starts the level's own motion where the cover has it (the underwater mantas).
+  Underside's); `clock` starts the level's own motion where the cover has it (the underwater mantas);
+  `sky.top` / `sky.horizon` (mixed over the hour's by `sky.mix`) paint the cover's own sky, sampled off
+  the cover a little bluer as the print layer warms it (v1.37: turquoise over the desert, the salt harbour,
+  the sky stones and the Underside, peach over the spheres, ochre over the antennas). The covers A1, A2
+  (the desert) and B2 (the underwater city) were set aside by the author: the desert keeps A4, the
+  underwater city follows B4, from the same terrace.
   `shotCamera(shot, aspect)` keeps the cover's height on wider screens and its width down to 4:3, and on a
   screen held upright turns the view toward the traveller, a little wider, slid up between the name and
   the menu (a shot may give its own `portrait`). Each opening shows a different one: `chooseShot` never
@@ -218,11 +223,31 @@ before / after pictures, numbers or how to see it ([changelog.md](changelog.md))
   shift small) and the arms set in `character.poseArms`, just before the body follows the rig, so the feet
   still plant on the ground. The shots' headings stand as authored (most turn his back to us). No people,
   wildlife, foes, ship, story, weather or sound: the title's menu music plays on.
-  - *Boot*: the name and the menu show at once over the paper (a cream page with a printed grain); the
-    module is imported after the menu has painted, builds in slices (input keeps working), compiles its
-    shaders (`compileAsync`) and the world fades in over the paper on its first frame. `window.title.timing`
-    has the times: in a dev server on the Mac, the title on the screen at 130–360 ms, the world in at
-    1.6–2.3 s.
+  - *Boot* (v1.37: the title answers at once): the name and the menu show at once over the paper (a cream
+    page with a printed grain), wired before anything heavy runs. What can wait goes in the browser's idle
+    time (`whenIdle`: `requestIdleCallback`, at most 500 ms off) and never while the player is pressing
+    (`busy()`: a key, a pointer, a touch or the pad in the last `TITLE_QUIET` = 400 ms): first the sound's start
+    (`new Sound(…, { autoStart: false })`, then `startIfAllowed()`: asking whether sound may start opens an
+    audio context, 100–250 ms, and the one that answers is the one it plays on, not a second), then the world.
+    Its build runs in a `gatedSlicer` (src/load-steps.js): 24 ms slices that stand aside while the player
+    presses, the WebGL context made only in a pause; the long pieces are in steps (the desert's sand drifts,
+    `SandDrifts.buildSteps` / `raiseSteps`; the traveller's body, `createTravellerV1Steps`, its overshirt
+    `makeTripoClothSteps`; the title's recording balanced in `prepareSoundtrackSteps`). Its shaders are made
+    as the loading screen makes them (src/warm-shaders.js `warmShadersSliced`: one object per kind of
+    program, with the target the pass draws into, the G-buffer's, the post's, the water's and the shadow
+    maps' with their depth-only material; the driver polled, never waited on), then what the view sees is
+    drawn once unseen in eights (`WarmDraw`, its buffers and textures uploaded), the levels of detail made,
+    and each program first used a slice at a time (`firstUse`), so the first frame has nothing left to wait
+    for. The bug it fixed: `compileAsync` and the first frame ran in one task, 0.6–0.9 s on the Mac (7 s in a
+    cold Chrome), the sound's two contexts 250 ms more before the menu showed, and presses waited.
+    `window.title.timing` has the times (and `stages`, `traveller:*` among them); `node
+    scripts/title-perf.mjs` measures the built game in a fresh headless Chrome a run, pressing ↓ every
+    0.7 s: on the Mac (High) the menu up at 44 ms (210 before), the longest task 119 ms (699), the slowest
+    press 10 ms (599), the world in at 4.2 s (2.8: it now gives way to the presses); `--cpu 4` for a
+    handheld's processor, roughly. `tests/title-ready.test.js`.
+  - *Print*: once the world is in, `.print` lays the covers' cream paper over it, multiplied (its whites
+    cream, a printed grain), CSS alone. The game keeps its world free of a screen grain (src/post.js: it would
+    swim as the camera moves); the title's camera never moves.
   - *Saves*: the world's modules (the Player, the flask, some levels' temples) read the game state as they
     load, so the slots are sandboxed first (`slots.sandbox(seed)`: the slot view reads and writes an
     in-memory save, past the prologue; the selector still reads the real ones), and once a save is chosen

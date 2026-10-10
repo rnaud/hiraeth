@@ -37,6 +37,9 @@ import { logoSvg } from './title-logo.js';
 import { titleLayout, layoutVars } from './title-layout.js';
 import { chooseShot } from './title-shots.js';
 
+/** ms after the player's last press before what can wait (the sound's start, the world's build) goes on. */
+export const TITLE_QUIET = 400;
+
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
 /** The tools' icons, inked like the covers' line work (24 × 24, the stroke in the button's colour). */
@@ -143,7 +146,8 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
   return new Promise((resolve) => {
     const settings = new Settings();
     // (the title's own recording takes over from the procedural menu music once it has loaded: src/soundtracks.js TITLE_THEME)
-    const sound = new Sound('title', { score: false, titleTheme: true });
+    // (started once the menu answers: startIfAllowed below; a press starts it at once, as anywhere)
+    const sound = new Sound('title', { score: false, titleTheme: true, autoStart: false });
     let vista = null, vistaQuality = settings.quality, worldStarted = false;
     // (a different world each opening, never the last one shown: src/title-shots.js)
     let ls = null;
@@ -152,6 +156,11 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     // (the boot's timings: the name on the screen, the world faded in; window.title.timing)
     const now = () => win.performance?.now?.() ?? Date.now();
     const timing = { shot: shot?.id ?? null, shown: null, world: null, stages: {} };
+    // the player's last press (a key, a touch, the pad): what can wait (the sound's start, the world's build)
+    // waits while they are pressing, so the menu answers first (TITLE_QUIET)
+    let lastInput = -Infinity;
+    const busy = () => now() - lastInput < TITLE_QUIET;
+    const pressed = () => { lastInput = now(); };
     settings.on(() => {
       sound.setVolumes(settings.music, settings.effects); setFaces(settings.padFaces);
       if (vista && settings.quality !== vistaQuality) vista.setQuality((vistaQuality = settings.quality));
@@ -166,7 +175,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     // screen already), nor in an installed web app already shown full screen)
     const fullscreen = () => !isNativeApp && !isDeckApp && !isXboxApp && !!doc.fullscreenEnabled
       && !(!doc.fullscreenElement && win.matchMedia?.('(display-mode: fullscreen)')?.matches);
-    root.innerHTML = `${BACKDROP}<div class="paper" aria-hidden="true"></div>
+    root.innerHTML = `${BACKDROP}<div class="paper" aria-hidden="true"></div><div class="print" aria-hidden="true"></div>
       <div class="front">
         <header>${LOGO}</header>
         <nav class="screen main-menu" data-screen="main"></nav>
@@ -353,7 +362,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     // what is in hand, for the world this opens (src/input-mode.js: no touch buttons there while a pad is used)
     const inputMode = new InputMode({ touchDevice: isTouch });
     // (and the body's classes: the glyphs in the buttons show the pad's buttons, the keys or nothing on a touch screen)
-    const onInput = (e) => { inputMode.event(e); inputMode.apply(doc.body.classList); };
+    const onInput = (e) => { pressed(); inputMode.event(e); inputMode.apply(doc.body.classList); };
     inputMode.apply(doc.body.classList);
     for (const ev of ['keydown', 'pointerdown', 'touchstart']) win.addEventListener(ev, onInput, { capture: true, passive: true });
 
@@ -361,7 +370,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const controller = new Controller({
       context: () => 'menu',
       look: () => {}, faces: () => padFaces(),
-      activity: () => { inputMode.pad(); inputMode.apply(doc.body.classList); sound.start(); root.classList.add('pad'); root.classList.remove('typed'); },
+      activity: () => { pressed(); inputMode.pad(); inputMode.apply(doc.body.classList); sound.start(); root.classList.add('pad'); root.classList.remove('typed'); },
       navigate,
       scroll: (amount) => { const r = navRoot(); (r.querySelector('.panel, .slots') ?? r).scrollTop += amount; },
       action: (name) => {
@@ -405,18 +414,29 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     // on a device: the recorded themes it hasn't got yet, in the background once the title has settled (src/music-store.js)
     startThemeDownload(THEME_FILES);
 
-    // the world behind the menu, once the menu has painted: built in small steps, faded in on its
-    // first frame; without WebGL (or on a software GPU) the drawn backdrop shows instead
+    // What can wait, once the menu has painted and answers: first the sound (asking whether it may start opens
+    // an audio context, 100-250 ms), then the world behind the menu, built in small steps that pause while the
+    // player presses (src/title-world.js), its shaders compiled and first used a slice at a time, faded in on
+    // its first frame; without WebGL (or on a software GPU) the drawn backdrop shows instead. Each in the
+    // browser's idle time (at most `timeout` ms away) and never while the player is pressing (busy).
+    const whenIdle = (fn, timeout = 500) => {
+      const go = () => { if (done) return; if (busy()) setTimeout(() => whenIdle(fn, timeout), 100); else fn(); };
+      if (win.requestIdleCallback) win.requestIdleCallback(go, { timeout }); else setTimeout(go, 30);
+    };
     const vistaAbort = new AbortController();
     const drawn = () => root.classList.remove('vista-wait', 'vista-on');
-    if (shot) win.requestAnimationFrame(() => setTimeout(() => {
+    (win.requestAnimationFrame ?? ((f) => setTimeout(f, 16))).call(win, () => whenIdle(() => {
+      sound.startIfAllowed();
+      if (shot) whenIdle(startWorld);
+    }));
+    function startWorld() {
       if (done) return;
       const still = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
       // (the world's modules read the game state as they load: an in-memory save, past the prologue, meanwhile: src/save-slots.js)
       slots.sandbox({ 'moebius.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }) });
       worldStarted = true;
       import('./title-world.js')
-        .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win,
+        .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win, busy,
           onStage: (name) => { timing.stages[name] = Math.round(now()); } }))
         .then((v) => {
           if (!v) { if (!done) drawn(); return; }
@@ -426,7 +446,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
           win.requestAnimationFrame(() => { root.classList.replace('vista-wait', 'vista-on'); timing.world = now(); });
         })
         .catch((e) => { console.warn('title world unavailable', e); if (!done) drawn(); });
-    }, 0));
+    }
     Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, shot, timing, relayout, get vista() { return vista; } } });
   });
 }

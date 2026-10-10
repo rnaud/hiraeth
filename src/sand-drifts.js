@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createNoise2D } from './noise.js';
+import { runSteps } from './load-steps.js';
 
 // ---------------------------------------------------------------------------
 // Sand banked against things (docs/systems/worlds.md, "Sand banked against things"): in a sandy world, what stands on
@@ -289,13 +290,15 @@ export class SandDrifts {
    * the collision's base height, people, plants and footprints stand on the sand banked up. Call once
    * the world is built (what was placed on the ground was placed before the sand came).
    */
-  raise(ground) {
+  raise(ground) { return runSteps(this.raiseSteps(ground)); }
+  /** raise() in steps (a world's build, src/load-steps.js: the title's, the loading screen's), a skirt at a time. */
+  *raiseSteps(ground) {
     const base = ground.heightAt.bind(ground);
     this.ground = base;
     ground.heightAt = (x, z) => base(x, z) + this.fieldAt(x, z);
     ground.drifts = this;   // (for measuring: the field behind the height)
     // where a built skirt is drawn over that height between its points, it collides there (misfits)
-    const fit = this.group ? this.misfits(ground.heightAt) : null;
+    const fit = this.group ? yield* this.misfitsSteps(ground.heightAt) : null;
     if (fit) {
       const m = new THREE.Mesh(fit, new THREE.MeshBasicMaterial());
       m.visible = false;
@@ -317,7 +320,8 @@ export class SandDrifts {
    * footprint (a skirt running into the next building) are left out: they are inside a solid (not a
    * footprint over 40 m across, whose hull may cover open ground).
    */
-  misfits(heightAt, tol = 0.06) {
+  misfits(heightAt, tol = 0.06) { return runSteps(this.misfitsSteps(heightAt, tol)); }
+  *misfitsSteps(heightAt, tol = 0.06) {
     if (!this.group) return null;
     const out = [], a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3(), p = new THREE.Vector3();
     const SAMPLES = [[1 / 3, 1 / 3], [0.5, 0], [0, 0.5], [0.5, 0.5], [2 / 3, 1 / 6], [1 / 6, 2 / 3], [1 / 6, 1 / 6]];
@@ -344,6 +348,7 @@ export class SandDrifts {
         if (insideOther(p.x, p.z)) continue;
         out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z);
       }
+      yield;
     }
     if (!out.length) return null;
     const g = new THREE.BufferGeometry();
@@ -494,7 +499,9 @@ export class SandDrifts {
    * The skirts in `material` (the ground's, made with drift: true): a group of meshes, one per
    * DRIFT.chunk square of the map (so the view culls them), or null if there are none.
    */
-  build(material) {
+  build(material) { return runSteps(this.buildSteps(material)); }
+  /** build() in steps (a world's build, src/load-steps.js), a footprint's skirt at a time. */
+  *buildSteps(material) {
     if (!this.sources.length) return null;
     const chunks = new Map();
     for (const s of this.sources) {
@@ -505,6 +512,7 @@ export class SandDrifts {
       for (const v of sk.nrm) c.nrm.push(v);
       for (const i of sk.idx) c.idx.push(base + i);
       c.n++;
+      yield;
     }
     const group = new THREE.Group();
     group.name = 'Sand banked against things (' + this.sources.length + ')';

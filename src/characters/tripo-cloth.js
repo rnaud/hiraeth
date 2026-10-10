@@ -1,6 +1,7 @@
 import { makeUnderlayer, makeInnerShirt, separateShirt, fitTrouserWeights, isShirtColor, shadeTrouserRepair, removeTrouserBand } from './tripo-garment-geometry.js';
 import * as T from 'three';
 import { CAP, CLOTH_STEP, segmentDistance2, pushOut, setCap, simulate } from './tripo-cloth-sim.js';
+import { runSteps } from '../load-steps.js';
 
 const V = () => new T.Vector3();
 const clamp = T.MathUtils.clamp;
@@ -163,7 +164,9 @@ export const CLOTH_HOST = { offload: null };
 // gpu: the garment is skinned and moved by the cage in its vertex shader (garmentShader: the game; its
 // material is patched once made, gpuMaterial), not rewritten here a vertex at a time (tests: the arrays, here)
 // offload: an engine's (CLOTH_HOST): the cage, the garment and its normals are its own (neither a worker nor gpu)
-export function makeTripoCloth(source, colors, { offload = CLOTH_HOST.offload, useWorker = !offload && typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = !offload && typeof window !== 'undefined' } = {}) {
+export function makeTripoCloth(...args) { return runSteps(makeTripoClothSteps(...args)); }
+/** makeTripoCloth in steps (src/load-steps.js runStepsAsync: the title builds the traveller while its menu answers). */
+export function* makeTripoClothSteps(source, colors, { offload = CLOTH_HOST.offload, useWorker = !offload && typeof window !== 'undefined' && typeof Worker !== 'undefined', gpu = !offload && typeof window !== 'undefined' } = {}) {
   const original = source.geometry, pos = original.attributes.position;
   const points = Array.from({length:pos.count}, (_,i) => V().fromBufferAttribute(pos,i));
   const shirt = points.map((p,i) => p.y > .66 && p.y < TOP + .035 && Math.abs(p.x) < .25 && red(colors[i]));
@@ -171,8 +174,10 @@ export function makeTripoCloth(source, colors, { offload = CLOTH_HOST.offload, u
   const skinSource=new T.SkinnedMesh(original,source.material);skinSource.bind(source.skeleton,source.bindMatrix);
   // Retain non-garment faces; repair missing surfaces below the fused hem separately.
   source.geometry=removeTrouserBand(separateShirt(original,shirt,TOP));
-  const underlayer=makeUnderlayer(skinSource,colors);source.parent.add(underlayer);fitTrouserWeights(source);fitTrouserWeights(underlayer);shadeTrouserRepair(source);
+  const underlayer=makeUnderlayer(skinSource,colors);source.parent.add(underlayer);yield;fitTrouserWeights(source);fitTrouserWeights(underlayer);shadeTrouserRepair(source);
+  yield;
   const innerShirt=makeInnerShirt(skinSource,colors);source.parent.add(innerShirt);
+  yield;
   const geo=new T.BufferGeometry();
   // The regular cage is hidden; the original textured folds follow its displacement.
   const material=new T.MeshStandardMaterial({color:0xcc7558,roughness:1,metalness:0,side:T.DoubleSide});
@@ -182,6 +187,7 @@ export function makeTripoCloth(source, colors, { offload = CLOTH_HOST.offload, u
   const section=[];
   for(let k=0;k<original.index.count;k+=3){const ids=[0,1,2].map(d=>original.index.getX(k+d));if(!ids.some(i=>shirt[i]))continue;for(let d=0;d<3;d++){const a=ids[d],b=ids[(d+1)%3],pa=points[a],pb=points[b];if((pa.y-TOP)*(pb.y-TOP)>=0)continue;const t=(TOP-pa.y)/(pb.y-pa.y),p=pa.clone().lerp(pb,t);section.push({p,a,b,t});}}
   if(!section.length)throw new Error('The shirt has no usable attachment section');
+  yield;
   const top=Array.from({length:COLS+1},(_,col)=>{const theta=T.MathUtils.lerp(START,END,col/COLS);return section.reduce((best,s)=>Math.abs(angleOf(s.p)-theta)<Math.abs(angleOf(best.p)-theta)?s:best);});
   const rest=[],positions=[],previous=[],edges=[],pins=[];
   const id=(row,col)=>row*(COLS+1)+col;
@@ -216,6 +222,7 @@ export function makeTripoCloth(source, colors, { offload = CLOTH_HOST.offload, u
   const inverseAttachment=attachment.matrixWorld.clone().invert();
   const attachmentRest=rest.map(p=>p.clone().applyMatrix4(source.matrixWorld).applyMatrix4(inverseAttachment));
   const target=rest.map(p=>p.clone());
+  yield;
   const detailed=separateShirt(original,shirt,TOP,true);
   const detailedRest=detailed.attributes.position.array.slice();
   const skinDetail=new T.SkinnedMesh(detailed,source.material);skinDetail.bind(source.skeleton,source.bindMatrix);
@@ -225,6 +232,7 @@ export function makeTripoCloth(source, colors, { offload = CLOTH_HOST.offload, u
   const garmentGeometry=compactGeometry(detailed,used,gpu?[]:['skinIndex','skinWeight']);
   // (its normals at rest as they were worked out each frame from the shape: the shader turns these)
   if(gpu)vertexNormals(garmentGeometry);
+  yield;
   const garmentMaterial=source.material.clone();garmentMaterial.side=T.DoubleSide;
   const lining=new T.Color().setHex(0xb46249, T.LinearSRGBColorSpace).convertSRGBToLinear();
   garmentMaterial.onBeforeCompile=shader=>{shader.fragmentShader=shader.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>\nif (!gl_FrontFacing) diffuseColor.rgb = vec3(${lining.r},${lining.g},${lining.b});`);};

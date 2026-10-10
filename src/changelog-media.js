@@ -505,6 +505,9 @@ const FROM_HIT35 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena on
 /** The miss table (scripts/combat-reach.mjs): 21 archetypes, first swings from 1, 1.5, 2 and 2.5 m off the body, straight on and 40° off, locked on or not; the second and third swings straight on. */
 const REACH35 = { device: 'node, the game’s traveller (its motion capture, the real blade) and each archetype’s real model posed by Foes.look', source: 'node scripts/combat-reach.mjs (before: --legacy, the blade as it was)' };
 /** The v1.38 skull and cave pictures: made by hand on the branch (.local-tools scratch shooter, the views of the reference sheets). */
+/** The v1.38 title measurements: scripts/title-perf.mjs, the built game, a fresh headless Chrome a run, presses every 0.7 s. */
+const TITLE38 = { device: 'a MacBook (Apple silicon), headless Chrome on the GPU, 1280 × 720, the built game; the median of 3 runs, each in a fresh Chrome', source: 'node scripts/title-perf.mjs (before: DIST= the build of the commit before)' };
+const TITLE38_SHOTS = 'node scripts/title-shots.mjs (its own Vite, headless Chrome on the GPU, High, 1280 × 720) on the branch, before and after the covers’ skies and the print layer';
 const FROM_SKULL38 = 'headless Chrome (High, 1280 × 720, hour 10, clear) on the branch, the camera pinned and the traveller teleported beside it, the same views for both: before at its parent (a9858730), after with the rebuilt skull and cave';
 const COST38 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden, medians of 7, the same views as the pictures' };
 export const CHANGELOG_MEDIA = {
@@ -549,6 +552,35 @@ export const CHANGELOG_MEDIA = {
         { where: 'the skull, from the path', before: 14.8, after: 23.7 }, { where: 'the skull, at its mouth', before: 22.0, after: 31.4 }, { where: 'the cave, from the entrance', before: 20.2, after: 32.6 },
       ], note: 'The ribs, roots, steps and cairns: a few percent of the frame (the cave view’s whole frame 257k → 270k triangles, the path’s 860k → 872k).' },
     ], see: 'Go down through the skull’s mouth: the pool is ahead of you past the light on the floor, the fallen bone on the trough to the right.' },
+    { match: 'The title screen answers at once', numbers: [
+      { title: 'Opening the title (the desert, shot A4), Graphics on High (the desktop default)', unit: 'ms', better: 'lower', ...TITLE38, rows: [
+        { where: 'the name and the menu on the screen', before: 210, after: 44 },
+        { where: 'time to interactive (no task over 100 ms after it)', before: 2791, after: 164 },
+        { where: 'the longest main-thread task', before: 699, after: 119 },
+        { where: 'the slowest press to be taken', before: 599, after: 10 },
+        { where: 'the world faded in behind the menu', before: 2792, after: 4240 },
+      ], note: 'Before, the world’s shaders were compiled and its first frame drawn in one task (0.6–0.9 s here; 7 s on a first run in a cold Chrome), and the sound’s start opened two audio contexts before the menu showed. The world now comes in about 1.5 s later: it is built a slice at a time and stands aside while a key is pressed (here one every 0.7 s), so the menu answers first. The task left over 100 ms is the sound’s start, once, just after the menu shows.' },
+      { title: 'The same, Graphics on Handheld', unit: 'ms', better: 'lower', ...TITLE38, rows: [
+        { where: 'the name and the menu on the screen', before: 206, after: 45 },
+        { where: 'time to interactive (no task over 100 ms after it)', before: 2741, after: 164 },
+        { where: 'the longest main-thread task', before: 660, after: 120 },
+        { where: 'the slowest press to be taken', before: 555, after: 13 },
+        { where: 'the world faded in behind the menu', before: 2742, after: 4246 },
+      ] },
+      { title: 'Handheld, Chrome’s processor slowed 4 times (a handheld’s, roughly)', unit: 'ms', better: 'lower', ...TITLE38, rows: [
+        { where: 'the name and the menu on the screen', before: 361, after: 146 },
+        { where: 'the longest main-thread task', before: 1597, after: 325 },
+        { where: 'the slowest press to be taken', before: 1518, after: 237 },
+        { where: 'time to interactive (no task over 100 ms after it)', before: 8368, after: 15967 },
+        { where: 'the world faded in behind the menu', before: 8371, after: 15971 },
+      ], note: 'Slowed down, a few pieces of the world’s build still run 150–330 ms (the desert’s ground, the traveller’s body), so no moment before the world is in counts as interactive by the 100 ms rule, before or after; what changed is how long a press can wait: 1.5 s before, a quarter of a second after.' },
+    ], see: 'Open the game and press ↓ / ↑ (or the D-pad) as soon as the title shows: the focus moves at once, also while the world behind is still coming in.' },
+    { match: 'The title screen looks more like the covers', shots: [
+      { name: 'title-a4', caption: 'The desert (cover A4): before, a pale blue sky over pale yellow sand; after, the cover’s turquoise sky, the sand warmer, printed on cream paper with its grain', from: TITLE38_SHOTS },
+      { name: 'title-e3', caption: 'The sky stones (cover E3): after, the turquoise sky over a cream sea of cloud, as the cover has it', from: TITLE38_SHOTS },
+      { name: 'title-g4', caption: 'The salt harbour (cover G4): after, the cover’s deep turquoise sky behind the beached ships', from: TITLE38_SHOTS },
+      { name: 'title-k4', caption: 'The garden of spheres (cover K4): after, the cover’s peach evening sky in place of a blue-grey one', from: TITLE38_SHOTS },
+    ], see: 'Open the game a few times: each opening shows another world, framed like one of the covers in references/Title Screen/.' },
   ],
   '1.37': [
     { match: 'The Audits page in the Debug menu opens on the latest scores', shots: [

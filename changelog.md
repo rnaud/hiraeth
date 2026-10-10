@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.38 — 2026-10-10
 
+- The title screen looks more like the covers it was drawn from: each world’s sky takes its cover’s printed colour (turquoise over the desert, the salt harbour and the sky stones, peach over the garden of spheres), and the picture is printed on cream paper with a fine grain. The underwater city now follows its other cover, and the two desert covers that were set aside no longer show.
+- The title screen answers at once: its menu is up in a blink and takes every press straight away, also while the world behind it is still being made. It no longer freezes for up to a second or more as that world comes in, and the world waits while you are moving through the menu, then carries on.
 - The cave in the giant’s chest is rebuilt too: a tall vault of ribs with rock between them, light falling through cracks onto a warm sandy floor, a round dry pool walled in stone steps with the tree’s pale roots hanging into it, and a stone trough from a crack in the wall, the great fallen bone lying across it and water glinting in the crack behind.
 - The fallen giant’s skull beyond Qanat’s back gate is rebuilt after its picture: as big as a temple and tipped face first into the sand, its eye sockets ringed in the pilgrims’ turquoise and ochre with ribbons and offerings hanging below, a row of great teeth over a dark mouth whose steps go down to a cool glow, and cairns marking the way from the gate.
 - Saves keep what they earned: past the giant’s pool you have the lift valve, past the Givers’ Hearth the gun, in hand. A controller layout you changed follows: whatever you had put on Y / △ now sounds the whistle.

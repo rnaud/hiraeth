@@ -83,9 +83,9 @@ export function* buildDesert(scene) {
   lights.push(...hearth.lights);
   portals.push(...hearth.portals);
   yield;
-  const drifts = sand.close().build(driftMaterial(makeMaterial, terrain.materialOptions));
+  const drifts = yield* sand.close().buildSteps(driftMaterial(makeMaterial, terrain.materialOptions));
   if (drifts) scene.add(drifts);
-  sand.raise(terrain);   // (from here on the ground's height is the sand's, drifts and all)
+  yield* sand.raiseSteps(terrain);   // (from here on the ground's height is the sand's, drifts and all)
   // Haddu's shop (src/shop-world.js, the interior kit): beside the way from the camps up to the main gate, its door
   // turned to the path and a little toward the camps you come from, out of the gate's waiting crowd and every quest's way
   const shop = (() => {

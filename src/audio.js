@@ -182,8 +182,10 @@ export class Sound {
   /**
    * score: false plays no world music (the title screen: only the menu music). titleTheme: the title's recording
    * (src/soundtracks.js TITLE_THEME) takes over from the procedural menu music once it has loaded (playTitleTheme).
+   * autoStart: false leaves the start before any press to the owner (startIfAllowed): the title calls it once its
+   * menu answers, as asking whether sound may start opens an audio context, 100-250 ms of the main thread.
    */
-  constructor(levelId, { score = true, titleTheme = false, muted = store.get('moebius.muted') === '1' } = {}) {
+  constructor(levelId, { score = true, titleTheme = false, autoStart = true, muted = store.get('moebius.muted') === '1' } = {}) {
     this.score = score;
     this.titleTheme = titleTheme;
     this.menuOn = false;
@@ -220,7 +222,17 @@ export class Sound {
     // Each world is a new page: without this, a landing (or anything before your first
     // press) would play in silence. Start now wherever sound is allowed without a press
     // (a world that loads while the app is away: on return, and asked then).
-    this.guard.whenBack(() => { if (!this._disposed && Sound.mayStart(window)) this.start(); });
+    if (autoStart) this.startIfAllowed();
+  }
+
+  /** Start now if sound is allowed without a press (the page away: on its return, and asked then). */
+  startIfAllowed() {
+    this.guard.whenBack(() => {
+      if (this._disposed || this.ctx) return;
+      // (the probe's own context, when it runs, is the one the sound starts on: one context opened, not two)
+      const ok = Sound.probe(window);
+      if (ok) this.start(ok === true ? null : ok);
+    });
   }
 
   /**
@@ -229,13 +241,21 @@ export class Sound {
    * only queue sounds that all burst out at the first press, so then we wait.
    */
   static mayStart(win) {
+    const ok = Sound.probe(win);
+    if (ok && ok !== true) ok.close?.();
+    return !!ok;
+  }
+
+  /** mayStart's answer: true or false from the browser's policy, else a context made to see (running: kept, for start). */
+  static probe(win) {
     const AC = win.AudioContext || win.webkitAudioContext;
     if (!AC) return false;
     if (win.navigator?.getAutoplayPolicy) return win.navigator.getAutoplayPolicy('audiocontext') === 'allowed';
     try {
-      const probe = new AC(), running = probe.state === 'running';
+      const probe = new AC();
+      if (probe.state === 'running') return probe;
       probe.close?.();
-      return running;
+      return false;
     } catch { return false; }
   }
 
@@ -251,16 +271,18 @@ export class Sound {
     else g.setTargetAtTime(this.masterLevel(), t, 0.15);
   }
 
-  start() {
+  /** Start the sound (on a press, or before one where allowed). adopt: a running context already made (Sound.probe). */
+  start(adopt = null) {
     // nothing starts or resumes while away (a press, a pad reconnecting, the frame loop): on return instead
     if (this.guard?.away()) {
+      adopt?.close?.();
       if (!this._startLater) { this._startLater = true; this.guard.whenBack(() => { this._startLater = false; if (!this._disposed) this.start(); }); }
       return;
     }
-    if (this.ctx) { if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
+    if (this.ctx) { adopt?.close?.(); if (this.ctx.state === 'suspended') this.ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    const ctx = (this.ctx = new AC());
+    if (!AC && !adopt) return;
+    const ctx = (this.ctx = adopt ?? new AC());
     this.master = ctx.createGain();
     this.master.gain.value = this.masterLevel();
     const comp = ctx.createDynamicsCompressor();

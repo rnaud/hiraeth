@@ -286,7 +286,8 @@ main thread is given back once `LOAD_BUDGET` (24 ms) has run, by a `MessageChann
   (`ReactiveWorld.make`) and the scene's tiling (`tileSceneSteps`) go a piece at a time;
 - the shader warm-up compiles one object per kind of program (its material and what of the mesh is
   in a program's key) between yields, against an empty scene for the key (no lights, fog or
-  environment, as the world's own), then polls the driver; the first frame's uploads (`WarmDraw`),
+  environment, as the world's own), then polls the driver (src/warm-shaders.js, shared with the title's
+  world since v1.37, which had compiled and drawn its first frame in one task); the first frame's uploads (`WarmDraw`),
   the grass's first patch, the room culler and the levels of detail are done behind the loading
   screen, so the first frame is an ordinary one;
 - the Lab's people (`labPeople()`) are worked out only when the Lab asks for them: every world paid

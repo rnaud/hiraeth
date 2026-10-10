@@ -26,6 +26,10 @@ export const CHANGELOG = [
     // the desert's fallen giant and the cave in its chest, after the picked references (docs/systems/worlds.md)
     'The fallen giant’s skull beyond Qanat’s back gate is rebuilt after its picture: as big as a temple and tipped face first into the sand, its eye sockets ringed in the pilgrims’ turquoise and ochre with ribbons and offerings hanging below, a row of great teeth over a dark mouth whose steps go down to a cool glow, and cairns marking the way from the gate.',
     'The cave in the giant’s chest is rebuilt too: a tall vault of ribs with rock between them, light falling through cracks onto a warm sandy floor, a round dry pool walled in stone steps with the tree’s pale roots hanging into it, and a stone trough from a crack in the wall, the great fallen bone lying across it and water glinting in the crack behind.',
+    // the title screen answers at once (docs/systems/ui.md "The title screen", Boot; scripts/title-perf.mjs)
+    'The title screen answers at once: its menu is up in a blink and takes every press straight away, also while the world behind it is still being made. It no longer freezes for up to a second or more as that world comes in, and the world waits while you are moving through the menu, then carries on.',
+    // the title screen nearer its covers (docs/systems/ui.md "The title screen", the title's shots)
+    'The title screen looks more like the covers it was drawn from: each world’s sky takes its cover’s printed colour (turquoise over the desert, the salt harbour and the sky stones, peach over the garden of spheres), and the picture is printed on cream paper with a fine grain. The underwater city now follows its other cover, and the two desert covers that were set aside no longer show.',
   ] },
   { v: '1.37', date: '2026-10-10', items: [
     // the audits page's dashboard (docs/systems/ui.md "The audits page")

@@ -24,6 +24,13 @@
   background-blend-mode: multiply; }
 #title.vista-wait .paper { opacity: 1; }
 #title.vista-on .paper { opacity: 0; }
+/* the world in print, once it is in: the covers' cream paper over it, multiplied (its whites cream, its tooth a
+   printed grain). The title's camera never moves, so a grain fixed to the screen doesn't swim as it would in the
+   game (src/post.js keeps the game's world free of one). CSS alone: nothing more to download. */
+#title .print { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.4s ease-out; mix-blend-mode: multiply;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .17 0 0 0 0 .13 0 0 0 0 .1 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse 95% 85% at 50% 45%, #fbf1dc, #f1dfbb 100%); }
+#title.vista-on .print { opacity: 1; }
 #title .clouds { animation: title-clouds 70s linear infinite alternate; }
 @keyframes title-clouds { to { transform: translateX(220px); } }
 #title .planet { animation: title-float 9s ease-in-out infinite alternate; }

@@ -14,7 +14,9 @@ import { buildFloraSteps, FLORA_WORLDS } from './flora.js';
 import { buildGrass } from './flora-grass.js';
 import { Flock } from './life.js';
 import { wallOpenings } from './wall-openings.js';
-import { slicer, runStepsAsync } from './load-steps.js';
+import { gatedSlicer, runStepsAsync, gpuPacer } from './load-steps.js';
+import { warmShadersSliced, firstUse } from './warm-shaders.js';
+import { WarmDraw, warmPasses } from './passage.js';
 import { shotCamera } from './title-shots.js';
 import { onXbox } from './xbox.js';
 import { playerHands } from './hands.js';
@@ -92,6 +94,7 @@ function snapshot(U) {
 }
 
 const V = (a) => new THREE.Vector3(...a);
+const _skyColor = new THREE.Color();
 
 /**
  * Start the world behind the title. Resolves with a handle ({ canvas, dispose, setQuality, ... })
@@ -103,11 +106,18 @@ const V = (a) => new THREE.Vector3(...a);
  * @param o.still     draw one frame and stop (reduced motion)
  * @param o.signal    an AbortSignal: the player went on before the view was ready (it stops building and frees itself)
  * @param o.onStage   (name) as each part of the build begins (the boot's timings)
+ * @param o.busy      () => true while the player is pressing: the build waits between its slices (the menu first)
  */
-export async function startTitleWorld({ parent, shot, settings, native = false, touch = false, still = false, signal = null, win = window, onStage = () => {} } = {}) {
+export async function startTitleWorld({ parent, shot, settings, native = false, touch = false, still = false, signal = null, win = window, onStage = () => {}, busy = () => false } = {}) {
   THREE.ColorManagement.enabled = false;   // (as the game: colours are authored as display values)
   const load = TITLE_LEVELS[shot?.level];
   if (!load) return null;
+  // a slice of the build at a time (src/load-steps.js: the main thread given back every 24 ms), and none while
+  // the player is pressing: the menu answers first, the build goes on once they stop (TITLE_QUIET in title.js)
+  const stopped = () => !!signal?.aborted;
+  const slice = gatedSlicer({ busy, stopped });
+  await slice.quiet();   // (making the context is one blocking task, 100-300 ms: not under a press)
+  if (stopped()) return null;
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance', alpha: false });
@@ -132,7 +142,6 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   let disposed = false, raf = 0, lost = false, torn = false;
   const cancelled = () => disposed || !!signal?.aborted;
   const ABORT = Symbol('abort');
-  const slice = slicer();
   const step = async () => { await slice(); if (cancelled()) throw ABORT; };
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(50, 1, 0.3, 5000);
@@ -193,7 +202,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     for (const f of level.life?.flocks ?? []) { const fl = new Flock(scene, f); flocks.push(fl); noShadow.push(fl.bodies, ...fl.wings); }
     if (shot.traveller) {
       onStage('traveller');
-      ({ player, tool } = await makeTraveller({ scene, physics, level, camera, waters, shot, step }));
+      ({ player, tool } = await makeTraveller({ scene, physics, level, camera, waters, shot, step, slice, onStage }));
     }
   } catch (e) {
     if (e !== ABORT) console.warn('title world failed to build', e);
@@ -228,6 +237,8 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     const eclipse = level.sky?.eclipse && { ...level.sky.eclipse, ...(shot.sky?.eclipse ?? {}) };
     if (eclipse) applyEclipse(hour, eclipse, U, SU.uSunDir.value);
     if (level.sky?.moon === false) U.uMoonVis.value = 0;
+    // the cover's own printed sky over the hour's (src/title-shots.js sky.top / sky.horizon, mixed by sky.mix)
+    for (const [k, u] of [['top', U.uSkyTop], ['horizon', U.uSkyHorizon]]) if (shot.sky?.[k]) u.value.lerp(_skyColor.set(shot.sky[k]), shot.sky.mix ?? 1);
     level.lightAt?.(focus, SU.uSunDir.value);
     const planets = shot.sky?.planets ?? level.sky?.planets ?? [];   // (a shot may hang its cover's planet: a ringed one over the desert)
     for (let i = 0; i < 3; i++) {
@@ -380,17 +391,38 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   const onLost = (e) => { e.preventDefault(); lost = true; cancelAnimationFrame(raf); handle.onLost?.(); };
   canvas.addEventListener('webglcontextlost', onLost);
 
-  // compile the shaders off the main thread where the driver can (a stuck warm-up is not waited for)
-  onStage('shaders');
-  const warm = async (s, c) => {
-    let timer;
-    await Promise.race([renderer.compileAsync(s, c).catch(() => {}), new Promise((r) => { timer = setTimeout(r, 4000); })]);
-    clearTimeout(timer);
-  };
   // (the traveller settles into his stance and the water bakes its bed round him before the first frame)
-  update(0.5); for (let i = 0; i < 20; i++) update(1 / 30);
-  await warm(scene, camera);
-  if (!cancelled()) await warm(post.scene, post.camera);
+  update(0.5);
+  for (let i = 0; i < 20; i++) { update(1 / 30); await slice(); }
+  // The first frame made ready a slice at a time, as the game's loading screen does (src/warm-shaders.js): each
+  // kind of program compiled with the target its pass draws into (the G-buffer, the post's, the water's, the
+  // shadow maps' with their depth-only material), the driver waited for without blocking, what the view sees drawn
+  // once unseen (its buffers and textures uploaded), the levels of detail made, then each program's first use.
+  // compileAsync and the first frame did all of that in one task: 0.5-7 s with the menu frozen, presses unanswered.
+  onStage('shaders');
+  const pace = gpuPacer(gl);
+  const passes = warmPasses({ makeGBuffer: createGBuffer, shadowOverride });
+  try {
+    await warmShadersSliced(renderer, scene, camera, { target: gbuffer, slice: step, pace, wait: 4000 });
+    await warmShadersSliced(renderer, post.scene, post.camera, { target: composeRT, slice: step, pace });
+    const wp = waters?.warmPass?.();
+    if (wp) await warmShadersSliced(renderer, wp.scene, wp.camera, { target: composeRT, slice: step, pace });
+    if (cascades.near.rt) await warmShadersSliced(renderer, scene, camera, { target: cascades.near.rt, wear: shadowOverride, slice: step, pace });
+    onStage('uploads');
+    const warmDraw = new WarmDraw(renderer, scene, { passes });
+    scene.updateMatrixWorld();
+    const view = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    const inView = (o) => { try { return !o.frustumCulled || view.intersectsObject(o); } catch { return false; } };
+    const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
+    for (let i = 0; i < seen.length; i += 8) { warmDraw.draw(seen.slice(i, i + 8)); await step(); await pace(); }
+    lod ??= new LodManager(scene, { keep: [player?.object, level.ground?.mesh].filter(Boolean) });
+    await step();
+    await firstUse(renderer, step);
+  } catch (e) {
+    if (e !== ABORT) console.warn('title world: warm-up', e);
+  } finally {
+    for (const p of passes) { p.target.depthTexture?.dispose(); p.target.dispose(); }
+  }
   if (cancelled()) return teardownAll();
   try { render(); } catch (e) { console.warn('title world failed to draw', e); return teardownAll(); }
 
@@ -512,23 +544,32 @@ function placeTraveller(player, { at, heading = 0 }, physics) {
  * body (characters/traveller-v1.js), his flask on his back (fluid-tool.js), the game's animation
  * library. Loaded only when the shot has him; the world shows without him if a file is missing.
  */
-async function makeTraveller({ scene, physics, level, camera, waters, shot, step }) {
+async function makeTraveller({ scene, physics, level, camera, waters, shot, step, slice, onStage = () => {} }) {
   const base = import.meta.env?.BASE_URL ?? '/';
-  const [{ Player }, { Animator, loadAnimationLibrary }, { loadTravellerV1, createTravellerV1 }, { FluidTool }] = await Promise.all([
+  const [{ Player }, { Animator, loadAnimationLibrary }, { loadTravellerV1, createTravellerV1Steps }, { FluidTool }] = await Promise.all([
     import('./player.js'), import('./animator.js'), import('./characters/traveller-v1.js'), import('./fluid-tool.js'),
   ]);
+  onStage('traveller:assets');
   const [lib, assets] = await Promise.all([
     loadAnimationLibrary().catch((e) => { console.warn('title world: animation library', e); return null; }),
     loadTravellerV1(base).catch((e) => { console.warn('title world: traveller', e); return null; }),
   ]);
   await step();
+  onStage('traveller:player');
   const at = shot.traveller;
   const player = new Player(physics, { climb: false, spawn: V(at.at), spawnHeading: at.heading ?? 0, gravityAt: level.gravityAt, water: waters, limit: Infinity });
+  await step();
+  onStage('traveller:animator');
   if (lib) player.animator = player._animator = new Animator(lib, player.char);
+  await step();
+  onStage('traveller:body');
   if (assets) {
-    player.character = createTravellerV1(player.char, assets);
+    // (his body fitted, his hair, cloth and head made a step at a time: in one, 130-350 ms)
+    player.character = await runStepsAsync(createTravellerV1Steps(player.char, assets), slice);
     player.humanoid = player.character.humanoid;
+    await step();
   }
+  onStage('traveller:stance');
   // (the stance: TITLE_STANCE, held calm, the arms set just before the body follows the rig)
   player.talking = true;
   if (player.character) player.character.poseArms = (p) => { holdStance(p.char, p.time); return []; };
@@ -536,6 +577,7 @@ async function makeTraveller({ scene, physics, level, camera, waters, shot, step
   const hero = markHero(player.char.root);
   markHero(player.cape?.mesh, hero);
   await step();
+  onStage('traveller:flask');
   let tool = null;
   try {
     // (his flask: owned and full, as in any world past the prologue; nothing listens and nothing is saved)
