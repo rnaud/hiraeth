@@ -1,14 +1,17 @@
 // The audits page (audits.html, Debug → Audits: src/world-picker.js PAGES; docs/systems/ui.md "The audits page"):
-// every audit report in docs/audits/ and the cinematics QC report, their scores, findings, ranked edits, the TODO
-// items they produced, and two versions of one kind compared. The data is built from the reports at build time
+// by default a dashboard, a card per theme with its latest report's scores and the change since the one before
+// (src/audits-page/dashboard.js, themes.js), each theme's earlier versions behind a History toggle; "All audits"
+// (#/all) every report in docs/audits/ and the cinematics QC report; a report's scores, findings, ranked edits,
+// the TODO items it produced, and two versions of one kind compared. The data is built from the reports at build time
 // (scripts/audits-data.mjs: audits/audits.json, site-only like the changelog's pictures); a bundled game reads
 // it from the site (mediaSrc).
 //
 // A controller: the D-pad and the stick move across what is on screen (data-grid-nav, menuNavigate: the cards,
 // the chips, the tabs, the blocks of a report; a block taller than the screen scrolls first), A opens, B goes
-// back (a picture, the report, then the Debug list), LB / RB the kind (index) or the tab (a report), X / Y the
-// audit before / after, the right stick scrolls. The keys: arrows, Enter, Esc, Q / E, [ / ]. Mouse and touch:
-// everything is a button or a link.
+// back (a picture, the report, All audits, the dashboard, then the Debug list), LB / RB the view (dashboard),
+// the kind (All audits) or the tab (a report), Y a dashboard card's History, X / Y the audit before / after in a
+// report, the right stick scrolls. The keys: arrows, Enter, Esc, Q / E, H, [ / ]. Mouse and touch: everything
+// is a button or a link.
 import { Controller, menuNavigate } from '../controller.js';
 import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
 import { installGlyphs } from '../pad-glyphs.js';
@@ -16,6 +19,8 @@ import { InputMode } from '../input-mode.js';
 import { mediaSrc } from '../changelog-page/view.js';
 import { DEBUG_MENU_HREF } from '../debug-back.js';
 import { indexHtml, kindChips, kindsOf, parseRoute, routeHash, tabHtml, tabsHtml, TABS } from './view.js';
+import { dashboardHtml, viewTabs, VIEWS } from './dashboard.js';
+import { latestByTheme } from './themes.js';
 
 /** Where the data is, beside the page (scripts/audits-data.mjs DATA_FILE). */
 export const DATA_PATH = 'audits/audits.json';
@@ -30,7 +35,7 @@ for (const ev of ['keydown', 'pointerdown', 'touchstart']) addEventListener(ev, 
 document.body.dataset.gridNav = '';   // (menuNavigate: what is on screen, by where it is drawn)
 
 const $ = (s) => document.querySelector(s);
-const state = { kind: 'all', route: parseRoute(location.hash), data: null, lastCard: null };
+const state = { kind: 'all', route: parseRoute(location.hash), data: null, lastCard: null, view: 'latest', openHistory: new Set() };
 
 let data;
 try {
@@ -43,6 +48,7 @@ try {
 }
 const { reports, index } = data;
 const reportOf = (id) => reports.find((r) => r.id === id);
+const themes = latestByTheme(reports);
 const visibleIds = () => index.filter((e) => state.kind === 'all' || e.kind === state.kind).map((e) => e.id);
 
 // ------------------------------------------------------------------ drawing
@@ -54,19 +60,52 @@ function setPics(root) {
   for (const f of root.querySelectorAll('figure')) { f.tabIndex = 0; f.dataset.nav = ''; }
 }
 
-function drawIndex() {
+/** The header and the main area as a list (the dashboard or All audits) wants them. */
+function listChrome(view) {
+  state.view = view;
   document.body.classList.remove('reading');
-  $('#title').innerHTML = `THE AUDITS <span>${index.length} reports</span>`;
+  document.body.dataset.view = view;
   $('#back').hidden = true;   // (the shared ◀ Debug button is the way out from here)
-  $('#nav').innerHTML = kindChips(index, state.kind);
-  $('#nav').setAttribute('aria-label', 'What kind of audit');
   $('#prev').hidden = $('#next').hidden = true;
   $('#index').hidden = false; $('#reader').hidden = true;
+  document.title = 'Hiraeth · the audits';
+}
+
+function drawIndex() {
+  listChrome('all');
+  $('#title').innerHTML = `THE AUDITS <span>all ${index.length} reports</span>`;
+  $('#nav').innerHTML = `${viewTabs('all', index.length, { glyphs: false })}<span class="sep" aria-hidden="true"></span>${kindChips(index, state.kind)}`;
+  $('#nav').setAttribute('aria-label', 'What kind of audit');
   $('#index').innerHTML = indexHtml(index, reports, state.kind);
   const back = state.lastCard && $(`.card[data-id="${CSS.escape(state.lastCard)}"]`);
   if (back) back.focus({ preventScroll: false });
-  document.title = 'Hiraeth · the audits';
 }
+
+function drawDashboard() {
+  listChrome('latest');
+  $('#title').innerHTML = `THE AUDITS <span>the latest of ${themes.length} themes</span>`;
+  $('#nav').innerHTML = viewTabs('latest', index.length);
+  $('#nav').setAttribute('aria-label', 'Which audits');
+  $('#index').innerHTML = dashboardHtml(themes, { open: state.openHistory });
+  const back = state.lastCard && $(`#index a[data-open="${CSS.escape(state.lastCard)}"]`);
+  if (back) back.focus({ preventScroll: false });
+}
+
+/** A card's History, shown or hidden (the pad's Y on the card, H, or its button). */
+function toggleHistory(kind) {
+  const card = $(`.theme[data-kind="${CSS.escape(kind)}"]`);
+  if (!card) return;
+  const open = !state.openHistory.has(kind);
+  if (open) state.openHistory.add(kind); else state.openHistory.delete(kind);
+  const btn = card.querySelector('.hist-toggle'), panel = card.querySelector('.history');
+  if (!btn || !panel) return;
+  btn.setAttribute('aria-expanded', String(open));
+  btn.querySelector('.caret').textContent = open ? '▴' : '▾';
+  panel.hidden = !open;
+  if (open) panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+/** The card the focus is in (or the one a pointer last opened), on the dashboard. */
+const focusedTheme = () => document.activeElement?.closest?.('.theme')?.dataset.kind ?? null;
 
 function drawReader() {
   const { id, tab, other } = state.route;
@@ -77,6 +116,7 @@ function drawReader() {
   document.body.classList.add('reading');
   $('#title').innerHTML = `${r.kindName.toUpperCase()} <span>v${r.version} · ${r.date}</span>`;
   $('#back').innerHTML = `<span class="glyph" data-glyph="back" aria-hidden="true"></span>◀ Audits`;
+  $('#back').setAttribute('href', routeHash({ view: state.view }));
   $('#back').hidden = false;
   $('#prev').hidden = $('#next').hidden = false;
   $('#nav').innerHTML = tabsHtml(r, tab);
@@ -94,7 +134,7 @@ function drawReader() {
 function draw() {
   state.route = parseRoute(location.hash);
   closePic();
-  if (state.route.id) drawReader(); else drawIndex();
+  if (state.route.id) drawReader(); else if (state.route.view === 'all') drawIndex(); else drawDashboard();
 }
 addEventListener('hashchange', draw);
 
@@ -103,8 +143,14 @@ const go = (route) => { location.hash = routeHash(route); };
 function openCard(id) { go({ id }); }
 function back() {
   if (picOpen()) return closePic();
-  if (state.route.id) return go({});
+  if (state.route.id) return go({ view: state.view });
+  if (state.route.view === 'all') return go({});
   location.href = DEBUG_HREF;
+}
+function stepView(d) {
+  const i = VIEWS.findIndex((v) => v.id === (state.route.view ?? 'latest'));
+  const view = VIEWS[(i + d + VIEWS.length) % VIEWS.length].id;
+  go({ view });
 }
 function stepKind(d) {
   const kinds = kindsOf(index);
@@ -176,6 +222,10 @@ document.addEventListener('click', (e) => {
   if (card) return openCard(card.dataset.id);
   const kind = t.closest('[data-kind]');
   if (kind && kind.matches('.chip')) { state.kind = kind.dataset.kind; drawIndex(); return; }
+  const view = t.closest('[data-view]');
+  if (view) return go({ view: view.dataset.view });
+  const hist = t.closest('[data-history]');
+  if (hist) return toggleHistory(hist.dataset.history);
   const tab = t.closest('[data-tab]');
   if (tab) return go({ id: state.route.id, tab: tab.dataset.tab });
   const cmp = t.closest('[data-compare]');
@@ -202,7 +252,8 @@ addEventListener('keydown', (e) => {
   if (dir) { e.preventDefault(); navigate(...dir); return; }
   if (e.key === 'Enter' || e.key === ' ') { if (document.activeElement?.matches('.card, figure, .sec') || picOpen()) { e.preventDefault(); confirm(); } return; }
   if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); back(); return; }
-  if (e.key === 'q' || e.key === 'Q' || e.key === 'e' || e.key === 'E') { const d = /e/i.test(e.key) ? 1 : -1; if (state.route.id) stepTab(d); else stepKind(d); return; }
+  if (e.key === 'q' || e.key === 'Q' || e.key === 'e' || e.key === 'E') { const d = /e/i.test(e.key) ? 1 : -1; if (state.route.id) stepTab(d); else if (state.route.view === 'all') stepKind(d); else stepView(d); return; }
+  if ((e.key === 'h' || e.key === 'H') && !state.route.id && state.route.view !== 'all') { const k = focusedTheme(); if (k) toggleHistory(k); return; }
   if (state.route.id && (e.key === '[' || e.key === ']')) stepAudit(e.key === ']' ? 1 : -1);
 });
 
@@ -215,8 +266,9 @@ const controller = new Controller({
   action: (name) => {
     if (name === 'back') back();
     else if (name === 'confirm') confirm();
-    else if (name === 'tabPrev' || name === 'tabNext') { const d = name === 'tabNext' ? 1 : -1; if (picOpen()) stepPic(d); else if (state.route.id) stepTab(d); else stepKind(d); }
+    else if (name === 'tabPrev' || name === 'tabNext') { const d = name === 'tabNext' ? 1 : -1; if (picOpen()) stepPic(d); else if (state.route.id) stepTab(d); else if (state.route.view === 'all') stepKind(d); else stepView(d); }
     else if ((name === 'x' || name === 'y') && state.route.id && !picOpen()) stepAudit(name === 'y' ? 1 : -1);
+    else if (name === 'y' && !state.route.id && state.route.view !== 'all') { const k = focusedTheme(); if (k) toggleHistory(k); }
   },
 });
 let last = performance.now();
@@ -229,4 +281,4 @@ const tick = (t) => {
 requestAnimationFrame(tick);
 
 draw();
-window.auditsPage = { data, state, go };   // (for the screenshots and the console)
+window.auditsPage = { data, state, go, themes, toggleHistory };   // (for the screenshots and the console)

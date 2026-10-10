@@ -11,6 +11,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildIndex, cinematicVerdicts, parseReport, todoSections } from '../src/audits-page/parse.js';
+import { themeOf } from '../src/audits-page/themes.js';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 export const AUDITS_DIR = 'docs/audits';
@@ -62,12 +63,14 @@ export function auditsData(root = ROOT) {
   const files = reportFiles(root);
   const reports = files.map((file) => {
     const cine = file === CINEMATICS_QC.file;
-    const r = parseReport(read(file), { file, link: linkFor(file), ...(cine ? { kind: 'cinematics', depth: 3 } : {}) });
+    const md = read(file);
+    const r = parseReport(md, { file, link: linkFor(file), ...(cine ? { kind: 'cinematics', depth: 3 } : {}) });
     if (cine && existsSync(join(root, CINEMATICS_QC.notes))) {
       const { by, counts } = cinematicVerdicts(JSON.parse(read(CINEMATICS_QC.notes)));
       r.verdicts = counts;
       for (const t of r.scoreTables) for (const row of t.rows) if (by[row.id]) row.verdict = by[row.id];
     }
+    r.theme = themeOf(r, md);   // (what the dashboard's card shows: src/audits-page/themes.js)
     return r;
   });
   const todo = {};

@@ -497,6 +497,11 @@ const FROM_HIT35 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena on
 /** The miss table (scripts/combat-reach.mjs): 21 archetypes, first swings from 1, 1.5, 2 and 2.5 m off the body, straight on and 40° off, locked on or not; the second and third swings straight on. */
 const REACH35 = { device: 'node, the game’s traveller (its motion capture, the real blade) and each archetype’s real model posed by Foes.look', source: 'node scripts/combat-reach.mjs (before: --legacy, the blade as it was)' };
 export const CHANGELOG_MEDIA = {
+  '1.37': [
+    { match: 'The Audits page in the Debug menu opens on the latest scores', shots: [
+      { name: 'audits-dashboard', caption: 'The Audits page as it opens: before, every report as a card, newest first (two temple design audits side by side, the older combat ones further down); after, one card per kind with only its latest audit, its scores per item and their changes', from: 'headless Chrome (1280 × 720) on audits.html, a dev server on the branch: before at its parent (4a2be0b0), after with the dashboard' },
+    ], see: 'Open the Debug menu, pick Audits under Pages. Move between cards with the D-pad, A opens the full audit, Y (or H) shows a card’s History, LB / RB switch to All audits, B goes back.' },
+  ],
   '1.35': [
     { match: 'Your sword lands where you see it meet a creature', shots: [
       { name: 'reach-lizard', caption: 'A horn lizard cut from 1.5 m: before, the blade passes over its back and the cut still counts (the old ball round it); after, he leans in and the blade lands on its back, where it flashes', from: FROM_HIT35 },
@@ -2898,19 +2903,19 @@ export const CHANGELOG_MEDIA = {
       { name: 'spacecity-sky', only: 'after', caption: 'Under the crescent: the stars printed all round, the planet’s lit edge, its dark side as black as the sky', from: 'the References’ second view of the City Floating in Space, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=spacecity&view=2; walk off the balcony’s edge with the camera and look down: the stars go on under the islands.' },
     { match: 'The References level has the Signal Market at night', shots: [
-      { name: 'marketnight-refs', only: 'after', size: [1464, 408], caption: 'The first picture (left) and its view in the game (right): the screen lane at midnight, the violet face, the scarlet portrait, the planet and the desert', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
-      { name: 'marketnight-refs-awning', only: 'after', size: [1464, 408], caption: 'The third: under the diagonal awning, the great scarlet portrait, the round planet, the white glyphs', from: 'the views\u2019 own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'marketnight-refs', only: 'after', size: [1464, 408], caption: 'The first picture (left) and its view in the game (right): the screen lane at midnight, the violet face, the scarlet portrait, the planet and the desert', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
+      { name: 'marketnight-refs-awning', only: 'after', size: [1464, 408], caption: 'The third: under the diagonal awning, the great scarlet portrait, the round planet, the white glyphs', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=marketnight and step through its four views with [ and ]; \\ lays the picture over the view.' },
     { match: 'The Signal Market has its night', shots: [
-      { name: 'marketnight-street', caption: 'The avenue at 23:00 from the cab stop: the towers\u2019 signs and the shop signs lit as screens, the black sky', commit: '6083d8e2',
+      { name: 'marketnight-street', caption: 'The avenue at 23:00 from the cab stop: the towers’ signs and the shop signs lit as screens, the black sky', commit: '6083d8e2',
         view: { level: 'bazaar', hour: 23, player: [0, 0, 88], heading: 3.1416, eye: [0, 1.99, 97.5], target: [0, 1.79, 87.5], fov: 55 } },
       { name: 'marketnight-square', caption: 'Signal Square at 23:00: the screens round the silent tower, which stays dark under its covers, and a thinner crowd', commit: '6083d8e2',
         view: { level: 'bazaar', hour: 23, player: [8, 0, -150], heading: 3.1416, eye: [6, 2.4, -140], target: [2, 6, -200], fov: 55 } },
-      { name: 'marketnight-stalls', caption: 'Along the stalls at 23:00: a lantern\u2019s warm pool on the sidewalk and the shop front, a shop sign lit lemon', commit: '6083d8e2',
+      { name: 'marketnight-stalls', caption: 'Along the stalls at 23:00: a lantern’s warm pool on the sidewalk and the shop front, a shop sign lit lemon', commit: '6083d8e2',
         view: { level: 'bazaar', hour: 23, player: [-20, 0.3, 30], eye: [-18, 3, 30], target: [-24, 4, 0], fov: 55 } },
       { name: 'marketnight-day', caption: 'And at 10:00 the same avenue as it was (only the walkers differ)', commit: '6083d8e2',
         view: { level: 'bazaar', hour: 10, player: [0, 0, 88], heading: 3.1416, eye: [0, 1.99, 97.5], target: [0, 1.79, 87.5], fov: 55 } },
-    ], see: 'In the Signal Market (?level=bazaar), set the hour past 21:00 in the developer panel\u2019s Time of day, or wait for the night. The signs light up from dusk; half the crowd is gone by midnight, only out of your sight.',
+    ], see: 'In the Signal Market (?level=bazaar), set the hour past 21:00 in the developer panel’s Time of day, or wait for the night. The signs light up from dusk; half the crowd is gone by midnight, only out of your sight.',
       numbers: [
         { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), 60 frames \u00d7 7 rounds, the day and the night alternated four times at each place, the median', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', source: 'docs/systems/worlds.md, \u201cThe Signal Market at night\u201d', rows: [
           { where: 'the spawn: by day (before) and by night (after)', before: 1.51, after: 1.48 },
@@ -2962,30 +2967,30 @@ export const CHANGELOG_MEDIA = {
       { name: 'fallenring-refs-arch', only: 'after', size: [1608, 448], caption: 'The third: the arch swooping to its broken vermilion end, the slanted segment over the village', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
     ], see: 'Open ?level=references&world=fallenring and step through its four views with [ and ]; \\ lays the picture over the view.' },
     { match: 'A new world off the route, the Moon Foundry', shots: [
-      { name: 'foundry-arrival', only: 'after', caption: 'Out of the ship on the apron: the hangar\u2019s mouth, the hung moons, the broken moon at the end of the aisle, the moon in its claws', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
-      { name: 'foundry-gantry', only: 'after', caption: 'On the gantry, 13 m up: the way straight into the broken moon, the bowl garden on the left, the moon on its pillar', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
-      { name: 'foundry-court', only: 'after', caption: 'Over the lip into the courtyard: the houses stacked under the shell\u2019s curve, mint trees, Wen counting moons', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
-      { name: 'foundry-quarter-dusk', only: 'after', caption: 'The workers\u2019 quarter at dusk: homes made in the old machinery, the polishing drum with its lit windows, the bowl garden beyond', from: 'the world\u2019s own screenshots, headless Chrome, High, 18:24 (7 October)' },
-    ], see: 'At the ship\u2019s holo table, choose the Moon Foundry on the galactic map (or open the game with ?level=moonfoundry). Walk north through the hangar\u2019s mouth; the gantry\u2019s stair rises on the right of the aisle, and the gantry goes straight into the broken moon, with a branch west to the bowl garden. Dun waits at the furnace, Wen in the courtyard, Emrys on the bowl.',
+      { name: 'foundry-arrival', only: 'after', caption: 'Out of the ship on the apron: the hangar’s mouth, the hung moons, the broken moon at the end of the aisle, the moon in its claws', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-gantry', only: 'after', caption: 'On the gantry, 13 m up: the way straight into the broken moon, the bowl garden on the left, the moon on its pillar', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-court', only: 'after', caption: 'Over the lip into the courtyard: the houses stacked under the shell’s curve, mint trees, Wen counting moons', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-quarter-dusk', only: 'after', caption: 'The workers’ quarter at dusk: homes made in the old machinery, the polishing drum with its lit windows, the bowl garden beyond', from: 'the world’s own screenshots, headless Chrome, High, 18:24 (7 October)' },
+    ], see: 'At the ship’s holo table, choose the Moon Foundry on the galactic map (or open the game with ?level=moonfoundry). Walk north through the hangar’s mouth; the gantry’s stair rises on the right of the aisle, and the gantry goes straight into the broken moon, with a branch west to the bowl garden. Dun waits at the furnace, Wen in the courtyard, Emrys on the bowl.',
       numbers: [
         { title: 'The Handheld preset (render scale 0.75, no dynamic resolution), a synced loop of 60 frames, median of 7 rounds', unit: 'ms', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', source: 'docs/systems/worlds.md, \u201cThe Moon Foundry\u201d', rows: [
-          { where: 'the Signal Market\u2019s start (the budget)', before: 1.66, after: null },
-          { where: 'the Signal Market\u2019s crowd', before: 1.51, after: null },
+          { where: 'the Signal Market’s start (the budget)', before: 1.66, after: null },
+          { where: 'the Signal Market’s crowd', before: 1.51, after: null },
           { where: 'by the ship (spawn)', before: null, after: 1.51 },
-          { where: 'the hangar\u2019s mouth, the widest view', before: null, after: 1.47 },
+          { where: 'the hangar’s mouth, the widest view', before: null, after: 1.47 },
           { where: 'the gantry', before: null, after: 1.63 },
           { where: 'the courtyard', before: null, after: 1.33 },
           { where: 'the furnace', before: null, after: 1.44 },
         ] },
         { title: 'Draw calls, same views', unit: 'draws', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, 1280 \u00d7 720', rows: [
-          { where: 'the Signal Market\u2019s start (the budget)', before: '361\u2013692', after: null },
+          { where: 'the Signal Market’s start (the budget)', before: '361\u2013692', after: null },
           { where: 'the Moon Foundry, six views', before: null, after: '281\u2013391' },
         ] },
       ] },
     { match: 'In the Moon Foundry the last furnace still pours', shots: [
-      { name: 'foundry-furnace', only: 'after', caption: 'The last furnace: the ladle tipped over the mould, the pour in bands of hot colour, the mouth glowing', from: 'the world\u2019s own screenshots, headless Chrome, High, 10:30 (7 October)' },
-      { name: 'foundry-furnace-night', only: 'after', caption: 'The furnace at night', from: 'the world\u2019s own screenshots, headless Chrome, High, 22:30 (7 October)' },
-    ], see: 'In the Moon Foundry, walk east from the aisle near the hangar\u2019s mouth to the furnace and stand by the mould: the bands march down the stream, and the drone rises as you come close.' },
+      { name: 'foundry-furnace', only: 'after', caption: 'The last furnace: the ladle tipped over the mould, the pour in bands of hot colour, the mouth glowing', from: 'the world’s own screenshots, headless Chrome, High, 10:30 (7 October)' },
+      { name: 'foundry-furnace-night', only: 'after', caption: 'The furnace at night', from: 'the world’s own screenshots, headless Chrome, High, 22:30 (7 October)' },
+    ], see: 'In the Moon Foundry, walk east from the aisle near the hangar’s mouth to the furnace and stand by the mould: the bands march down the stream, and the drone rises as you come close.' },
     { match: 'The References level has the Moon Foundry’s four pictures', shots: [
       { name: 'moonfoundry-refs-hung', only: 'after', size: [1938, 540], caption: 'The first picture (left) and its view in the game (right): the hung moon, the moon broken open round its courtyard, the bowl in its cradle', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },
       { name: 'moonfoundry-refs-claws', only: 'after', size: [1938, 540], caption: 'The third: two moons in their claws, the far moon between the pillars, the bridge across', from: 'the views’ own contact sheets, headless Chrome, High (7 October)' },

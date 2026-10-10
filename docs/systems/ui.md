@@ -526,7 +526,22 @@ carries it.
 Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` and the cinematics QC report
 (`docs/systems/cinematics-qc.md`, with the review page's verdicts from `cinematics-qc-notes.json`).
 
-- **The index:** a card a report, newest first: its kind, version and date, the overall score (or, for the
+- **The dashboard** (the default view, `#/`; v1.37, `src/audits-page/dashboard.js`, data `themes.js`): a card
+  per theme (each kind: the game audit's twelve themes, combat, level design, temple design, visual, temple
+  visuals, ink lines, cinematics QC, dialogue, performance; a new kind gets its card by itself) with only its
+  latest report (the highest version): the overall score (or, with none, a figure: the visual audit's
+  findings, the budgets over, the headline's "N of M"), the change since the last earlier report with a
+  score, and its items in a compact table (worlds, temples, archetypes and guardians, scenes, cinematics by
+  world, budgets, findings by severity, frame times), each with its change since the last report that judged
+  it (a batch combat audit judges some archetypes: the others are compared with the batch that did; rows
+  are matched by name without "the" or the (…) aside, or by an id aside such as `(arzach2)`). The card opens
+  the full report; **History** (its button, Y on a pad, H) unfolds the theme's overall scores as a trend
+  line scaled to their range and the list of versions, each opening its report. The items come from a small
+  parser per kind (`PARSERS` in `themes.js`, run at build time with the Markdown in hand: `report.theme` in
+  the JSON; a kind with none uses its biggest score table with a total). Tests:
+  `tests/audits-page-themes.test.js` (the latest per theme, the deltas, each parser on the real reports,
+  the cards, the routes and the wiring).
+- **All audits** (`#/all`, the view tab, LB / RB from the dashboard): a card a report, newest first: its kind, version and date, the overall score (or, for the
   reports with none, the visual and performance ones, its headline), a sparkline of the kind's overall
   scores and the change since the version before (▲ +0.26 since v1.4), its criteria as small bars, how
   many edits it ranked, its pictures and its open TODO items. Chips filter by kind.
@@ -551,9 +566,9 @@ Debug → Audits reads every audit report: `docs/audits/<kind>-v<version>.md` an
 - **Controller:** the D-pad or stick moves by where things are drawn (`data-grid-nav`, `menuNavigate`): the
   cards, the chips, the tabs, a report's blocks; a block taller than the screen scrolls before the focus
   leaves it, a wide table scrolls sideways. A opens a card or a picture (full size, LB / RB the others),
-  B steps back (the picture, the report, then the Debug list), LB / RB the kind (index) or the tab
-  (report), X / Y the report before / after, the right stick scrolls. Keys: arrows, Enter, Esc, Q / E,
-  [ / ]. Every control is a button or link for mouse and touch; the header wraps on a phone upright and
+  B steps back (the picture, the report, All audits, the dashboard, then the Debug list), LB / RB the view
+  (dashboard), the kind (All audits) or the tab (report), Y a dashboard card's History, X / Y the report
+  before / after in a report, the right stick scrolls. Keys: arrows, Enter, Esc, Q / E, H, [ / ]. Every control is a button or link for mouse and touch; the header wraps on a phone upright and
   stays two short rows sideways. Tests: `tests/audits-page.test.js` (the parser on the real reports,
   that every report in `docs/audits/` appears with its block, the index, comparisons, the wiring).
 

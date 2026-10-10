@@ -1,5 +1,6 @@
 // The audits page's screens as HTML, from the data alone (audits.html, src/audits-page/main.js; tested in
-// tests/audits-page.test.js): the index of every report, a report's tabs (its scores as tables and bars, its
+// tests/audits-page.test.js): the index of every report (the "All audits" view; the default is the dashboard,
+// src/audits-page/dashboard.js), a report's tabs (its scores as tables and bars, its
 // findings with their pictures, its ranked edits, the TODO items it produced, the whole report) and the
 // comparison of two versions of one kind.
 
@@ -24,15 +25,18 @@ export const tone = (n) => (n == null ? '' : `s${Math.max(1, Math.min(5, Math.ro
 const signed = (d) => (d > 0 ? `+${fmt(d)}` : d < 0 ? `−${fmt(-d)}` : '±0');
 const arrow = (d) => (d == null ? '' : d > 0 ? '▲' : d < 0 ? '▼' : '◆');
 
-/** The route a hash names: { id: null } the index; { id, tab, other } a report's tab (compare: `other` the version against). */
+/**
+ * The route a hash names: { id: null, view } the dashboard ('latest', #/) or every report ('all', #/all);
+ * { id, tab, other } a report's tab (compare: `other` the version against).
+ */
 export function parseRoute(hash = '') {
   const parts = String(hash).replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
-  if (!parts.length) return { id: null, tab: 'scores', other: null };
+  if (!parts.length || parts[0] === 'all') return { id: null, tab: 'scores', other: null, view: parts[0] === 'all' ? 'all' : 'latest' };
   const tab = TABS.some((t) => t.id === parts[1]) ? parts[1] : 'scores';
   return { id: parts[0], tab, other: tab === 'compare' ? parts[2] ?? null : null };
 }
-export function routeHash({ id = null, tab = 'scores', other = null } = {}) {
-  if (!id) return '#/';
+export function routeHash({ id = null, tab = 'scores', other = null, view = 'latest' } = {}) {
+  if (!id) return view === 'all' ? '#/all' : '#/';
   return `#/${encodeURIComponent(id)}${tab !== 'scores' ? `/${tab}` : ''}${tab === 'compare' && other ? `/${encodeURIComponent(other)}` : ''}`;
 }
 

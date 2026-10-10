@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.37', date: '2026-10-10', items: [
+    // the audits page's dashboard (docs/systems/ui.md "The audits page")
+    'The Audits page in the Debug menu opens on the latest scores of every kind of audit: a card each for the whole game, combat, level design, temple design, visuals, temple visuals, ink lines, cinematics, dialogue and performance, with its score, how much it moved since the audit before, and its scores per world, temple or creature, each with its own change. A card opens the full audit; History shows the earlier audits’ scores as a line and a list, and All audits lists every report as before.',
+  ] },
   { v: '1.36', date: '2026-10-10', items: [
     // the references page on the site (docs/systems/references.md "On the site")
     { text: 'The art references can be browsed from the Debug menu, on the website and in the app: every reference picture the worlds were drawn from, by world and folder, with a search, filters, and each picture full screen with its prompt and where it came from.',
