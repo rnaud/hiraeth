@@ -19,6 +19,7 @@ export const CHANGELOG = [
     'A white meadow path now runs from the sphere-arch round the meadow pyramid to the grove, and Ume sends you home by it, past a little sphere at the pyramid’s foot that Emrys practises on, his handprints all the way up its side.',
     'Halfway down the cypress avenue, two small spheres face each other across the road: splash one and the other rings back.',
     'In Viridel, Oro’s pyramid seed now rolls down to the pond’s south shore, in sight of the way to the fallen ship and the white runnel, instead of hiding on its far west bank.',
+    'In the Sealed Hangar, Gaspard, who walked round the ring, now rests his feet on the plateau in sight of the signal board and the portal, not alone far out at its edge.',
   ] },
   { v: '1.22', date: '2026-10-10', items: [
     // the enemy roster's last step: balance and sound (docs/audits/combat-v1.22.md)

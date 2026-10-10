@@ -336,7 +336,9 @@ export const CONTENT = {
     npcs: [
       { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ["~playful~ Gravity is a local arrangement here.", "~tired~ The Major built this world and forgot its purpose."] },
       { at: [-80, -20], palette: pal('#62c3c9'), lines: ["~angry~ Hands clear of the gears, please!", "~happy~ Grease today, grease tomorrow. Lovely."] },
-      { at: [120, -110], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left.", "~tired~ My feet have seen this whole world. Twice."], shy: true },
+      // (Gaspard, resting his feet on the plateau's edge in sight of the signal board and the portal: he stood 250 m off the
+      //  walk from the landing to the portal, 175 m from anyone: the level design audit's fifth round)
+      { at: [70, 95], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left.", "~tired~ My feet have seen this whole world. Twice."], shy: true },
     ],
   },
   edena: EDENA_CONTENT,
