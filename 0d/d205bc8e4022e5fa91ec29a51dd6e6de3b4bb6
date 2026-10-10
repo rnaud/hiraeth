@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_10e7337191d65b 7-10
+src/levels/content.js
+  s_9ca76055a220ed::t_8361626aece16a 32,297-299
+src/levels/incal.js
+  s_9ca76055a220ed::t_e2e76e074b2a35 1149,1163-1168
+src/shaft-ways.js
+  s_9ca76055a220ed::t_62415a4d122073 15-16,21-23,26-27,34-40,42-45,94-100,127-130,150-151,155,159
+src/story/incal-data.js
+  s_9ca76055a220ed::t_a0b5a89387934c 79-81,578-595,673-681
+src/story/incal.js
+  s_9ca76055a220ed::t_c4f7c3e654ba25 8,101,262-270
+src/story/people-book.js
+  s_9ca76055a220ed::t_fe3f517dabce2b 372,391-394
+tests/shaft-ways.test.js
+  s_9ca76055a220ed::t_bbdeec217a5338 9,58-85
+tests/shop-worlds.test.js
+  s_9ca76055a220ed::t_c39d1e8b7831a5 103-106
+tests/story-incal.test.js
+  s_9ca76055a220ed::t_03acd453d0a761 305-310,313-317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0dd205bc8e4022e5fa91ec29a51dd6e6de3b4bb6",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
