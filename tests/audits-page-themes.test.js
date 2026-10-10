@@ -99,8 +99,8 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 87, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests (not reviewed yet), less v1.39\'s five gone, less the Overnight Train\'s arrival by ship (v1.40: a sub-level now)');
 
   const perf = theme('perf');
-  assert.deepEqual(perf.latest.theme.figure, { text: '2/4', sub: 'budgets over' });
-  assert.deepEqual(group('perf', 'Budgets').rows.map((r) => r.status), ['over', 'over', 'unmeasured', 'ok']);
+  assert.deepEqual(perf.latest.theme.figure, { text: '2/5', sub: 'budgets over' });
+  assert.deepEqual(group('perf', 'Budgets').rows.map((r) => r.status), ['over', 'over', 'unmeasured', 'ok', 'unmeasured']);
   assert.deepEqual(theme('visual').latest.theme.figure, { text: '7', sub: 'findings' });
   assert.deepEqual(group('visual', 'Findings by severity').rows.map((r) => [r.label, r.value]), [['breaks the picture', 0], ['noticeable', 2], ['only when looking', 3], ['look', 2]]);
   assert.deepEqual(theme('temple-visuals').latest.theme.figure, { text: '11/11', sub: 'temples' });

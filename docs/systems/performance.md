@@ -1075,7 +1075,7 @@ Two changes help every platform's loads (the title and the game's loading screen
 The roster's bodies (`src/enemies/plans/`) are built of many small meshes on the motion kit's joints: a leg's
 segments, a jelly's tentacle beads, a centipede's legs. The 21 archetypes are about 1 100 meshes, each one a
 draw in the G-buffer and in every shadow map, so a full pack in the Arena was 2 750 draws a frame at High. The
-performance audit (`docs/audits/perf-v1.39.md`) found it the largest regression of v1.8–v1.36.
+performance audit (`docs/audits/perf-v1.40.md`) found it the largest regression of v1.8–v1.36.
 
 **`src/part-batch.js`** (`batchParts(root, { min, cell })`, `PartBatch`). Parts with the same shape (equal
 vertex arrays: each part builds its own geometry, so they are compared, not looked up) and the same material
