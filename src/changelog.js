@@ -88,14 +88,14 @@ export const CHANGELOG = [
     { text: 'Fights with many creatures run smoother: the parts of a creature that share a shape and a colour (a centipede’s legs, a jelly’s beads, a moth’s wing ribs, a tripod’s struts) are drawn together in one go instead of one by one. A full pack in the Arena takes about half the drawing work it did; the creatures look exactly as before.',
       numbers: [
         { title: 'The main thread’s time a frame, the Arena with all 21 kinds of creature in view', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome on ANGLE Metal, 1280 × 720 (the Deck at 1280 × 800)', rows: [
-          { where: 'High', before: 6.8, after: 5.9 },
-          { where: 'Steam Deck preset', before: 5.3, after: 4.6 },
-          { where: 'Handheld', before: 4.9, after: 4.5 },
-        ], source: 'the batches switched off and on in turns in the same page, six times each (medians); .claude/skills/perf-audit, docs/audits/perf-v1.39.md' },
+          { where: 'High', before: 7.0, after: 5.7 },
+          { where: 'Steam Deck preset', before: 5.6, after: 4.8 },
+          { where: 'Handheld', before: 6.3, after: 5.0 },
+        ], source: 'High and the Deck preset: the batches switched off and on in turns in the same page, six times each (medians); Handheld: the build before and after, one run each; measured while the Mac was shared (load average 5–25): docs/audits/perf-v1.39.md' },
         { title: 'Draw calls a frame, the same view', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
-          { where: 'High', before: 2753, after: 1463 },
-          { where: 'Steam Deck preset', before: 2048, after: 1075 },
-          { where: 'Handheld', before: 1763, after: 1011 },
+          { where: 'High', before: 2775, after: 1463 },
+          { where: 'Steam Deck preset', before: 2065, after: 1075 },
+          { where: 'Handheld', before: 1795, after: 1017 },
         ], source: 'renderer.info over the recorded frames (medians)' },
       ] },
     { text: 'Busy views draw less: the City-Shaft’s flying cabs, its cables and its billboards, every shop front, the makers’ runs’ moving pieces, the wind columns’ rings and the listening stones and flowers that wake as you pass are drawn in far fewer pieces. Nothing looks different.',

@@ -1684,8 +1684,9 @@ export class Foes {
     const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
     f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
     f.model.group.position.copy(at);
-    // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js)
-    f.batches = batchParts(f.model.group, { min: 2 });
+    // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js); every
+    // part, one alone in its shape too, so a body compiles one set of programs (instanced), not two the first time it is met
+    f.batches = batchParts(f.model.group);
     this.group.add(f.model.group);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
     if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)
