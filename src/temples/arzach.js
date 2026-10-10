@@ -116,9 +116,10 @@ export const ELDER = {
     buffet: { shape: 'cone', range: 11, angle: 0.8, wind: 1.3, track: 0.6, part: 'wings', rig: 'lean', damage: 0.75, knock: 13, recover: 0.7 },
     buffetEnd: { shape: 'cone', range: 11, angle: 0.8, wind: 1.1, track: 0.5, part: 'wings', rig: 'lean', pose: 'buffet', link: true, damage: 0.75, knock: 13, recover: 0.8, open: 4.2 },
     stamp: { shape: 'ring', at: 'self', radius: 7, wind: 1.4, part: 'feet', rig: 'rear', damage: 0.75, knock: 10, recover: 0.8, open: 4.2 },
-    dive: { shape: 'ring', at: 'player', radius: 4, wind: 1.6, track: 0.6, over: true, part: 'mouth', rig: 'rise', damage: 0.75, knock: 9, recover: 0.9, open: 4.2 },
+    // (a dive that misses you drives her beak into the floor: she is stuck there longer, missHint; ROOST.miss on top)
+    dive: { shape: 'ring', at: 'player', radius: 4, wind: 1.6, track: 0.6, over: true, part: 'mouth', rig: 'rise', damage: 0.75, knock: 9, recover: 0.9, open: 4.2, miss: 5.6 },
     gale: { shape: 'lane', range: 20, width: 5, wind: 1.3, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 16, recover: 0.7, then: 'diveEnd' },
-    diveEnd: { shape: 'ring', at: 'player', radius: 4, wind: 1.2, track: 0.6, over: true, part: 'mouth', rig: 'rise', pose: 'dive', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.2 },
+    diveEnd: { shape: 'ring', at: 'player', radius: 4, wind: 1.2, track: 0.6, over: true, part: 'mouth', rig: 'rise', pose: 'dive', link: true, damage: 0.75, knock: 9, recover: 0.9, open: 4.2, miss: 5.6 },
     feathers: { shape: 'ring', at: 'player', lob: true, volley: 3, radius: 2.2, wind: 1.4, track: 0.6, part: 'wings', rig: 'swell', pose: 'buffet', damage: 0.5, knock: 6, recover: 0.7 },
   },
 };
@@ -135,10 +136,15 @@ export const ELDER = {
  * the column beside the perch (its x and top).
  */
 export const GULF = { leg1: 46, perchR: 5.2, perchY: 28, leg2: 16, farY: 34, carry: 10, column: 8, top: 46 };
-export const ROOST = { vent: 8, near: 12, ride: 0.7, wind: [0.15, 0.3, 0.075], still: [0.15, 0.15, 0], open: [null, 5.2, 6.6], over: 4.5, drift: 3 };
+export const ROOST = { vent: 8, near: 12, ride: 0.7, wind: [0.15, 0.3, 0.075], still: [0.15, 0.15, 0], open: [null, 5.2, 6.6], miss: 1.4, over: 4.5, drift: 3 };
 /** Is p (the traveller) in the wind out of one of the roost's vents? */
 const inWind = (rt, p) => !!rt.roostWinds?.some((w) => w.contains(p));
-function elderOpenFor(g, a, s) { const o = ROOST.open[Math.min(g.phaseIndex, 2)]; return s && o ? Math.max(s, o) : s; }
+/** How long she hangs open: her phase's hang aloft at least; a dive that missed (her beak stuck) ROOST.miss longer. */
+export function elderOpenFor(g, a, s, missed = false) {
+  const o = ROOST.open[Math.min(g.phaseIndex, 2)];
+  const base = s && o ? Math.max(s, o) : s;
+  return missed && base ? Math.max(base, (o ?? 0) + ROOST.miss) : base;
+}
 
 function elderHit(g, part, mode) {
   if (mode === 'push') { g.add(-0.04, 'push'); g.rt.notice('She flinches from the shove and hisses, more frightened.', 'elder.push'); return true; }

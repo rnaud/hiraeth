@@ -150,6 +150,44 @@ test('a move told by the body: the glow on its part grows, it rears, the sound r
   g.dispose(); clearTargets();
 });
 
+test('the Lampless, the Elder and the Cloud-Mother: a dive that misses you wedges them, open longer than after one that lands, and says so', async () => {
+  // combat-v1.6: they were the three guardians whose dive opened them the same whether it met you or not
+  const { elderOpenFor, ROOST } = await import('../src/temples/arzach.js');
+  for (const [id, move] of [['perdide2', 'swoop'], ['arzach', 'dive'], ['arzach2', 'dive']]) {
+    const D = GUARDIANS.find((G) => G.id === id).def, a = D.attacks[move];
+    assert.ok(a.miss > a.open, `${id}.${move}: a miss opens it longer (${a.miss} s) than a hit (${a.open} s)`);
+    assert.ok(D.missHint && D.missHint !== D.openHint, `${id}: what a miss looks like, in words`);
+    for (const [far, want] of [[true, a.miss], [false, a.open]]) {
+      clearTargets();
+      const { g, rt, notes } = stub(D);
+      // (it aims its dive at where you stand for the first part of its wind-up: far, you step well aside once it has
+      // stopped aiming, and it misses; near, you stay under it, and it lands on you)
+      const P = { pos: V(0, 0, 9), health: 3, dead: false, down: null, hurt() {}, knockDown() {} };
+      rt.player = P; g.state = 'fight'; g.cool = 9;
+      g.begin(P, null, move);
+      const end = comboOf(D, move).at(-1);
+      let t = 0;
+      for (let i = 0; i < 12 / DT && g.state !== 'open'; i++) {
+        t += DT;
+        if (far && g.attack && g.at > g.windFor * (g.attack.track ?? 0.5) + 0.05) P.pos.set(-12, 0, -9);
+        g.update(DT, t); P.down = null;
+      }
+      assert.equal(g.state, 'open', `${id}: open after its ${move} (${far ? 'missed' : 'landed'})`);
+      assert.ok(Math.abs(g.openFor - (end === move ? want : D.attacks[end][far ? 'miss' : 'open'])) < 1e-9, `${id}: open ${g.openFor} s after a ${far ? 'miss' : 'hit'}`);
+      assert.equal(notes.includes(D.missHint), far, `${id}: the miss told by its words only when it missed`);
+      g.dispose();
+    }
+  }
+  // the Elder hangs aloft longer in her later phases: a miss adds ROOST.miss to that
+  const g = { phaseIndex: 1 };
+  assert.equal(elderOpenFor(g, null, 4.2, false), ROOST.open[1]);
+  assert.equal(elderOpenFor(g, null, 5.6, true), ROOST.open[1] + ROOST.miss);
+  // the Lampless's dust runs out along the floor in a ring you jump (its space scored 3)
+  const L = GUARDIANS.find((G) => G.id === 'perdide2').def;
+  assert.ok(L.attacks.dust.wave && L.attacks.dustEnd.wave, 'the Lampless’s dust: a shock ring');
+  clearTargets();
+});
+
 test('a phase change: it staggers (no moves, its marks lit), then fights on with the next phase\'s moves; a shockwave is jumped', () => {
   clearTargets();
   const W = GUARDIANS.find((G) => G.id === 'incal').def;

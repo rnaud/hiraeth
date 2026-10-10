@@ -845,8 +845,10 @@ export class Swing {
     rt.root.add(this.group);
     this.arm = new THREE.Group();
     this.group.add(this.arm);
-    this.arm.add(mesh([box(0.18, len - 1.6, 0.18, 0, -(len - 1.6) / 2, 0), new THREE.TorusGeometry(0.45, 0.12, 5, 14)], rt.M.trimMat));
-    this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true });
+    // (it swings near walls: a mover, so the spot blacks see past it and draw no halo on the wall behind it, as for
+    // a foe: src/materials.js MOVER, visual audit v1.21)
+    this.arm.add(mesh([box(0.18, len - 1.6, 0.18, 0, -(len - 1.6) / 2, 0), new THREE.TorusGeometry(0.45, 0.12, 5, 14)], own({ color: rt.P.trim ?? '#fffdf4', flat: true, mover: true })));
+    this.mat = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.3, flat: true, mover: true });
     const z = o.size ?? 1;
     this.arm.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, -len, 0], [0, 0.6, 0], [1.5 * z, 2.1 * z, 1.5 * z]), T(new THREE.OctahedronGeometry(1, 0), [0.9 * z, -len + 0.6 * z, 0.3 * z], [0, 0, 0.5], [0.6 * z, 1.0 * z, 0.6 * z])], this.mat));
     noCollide(this.group);

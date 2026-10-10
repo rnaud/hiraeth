@@ -662,6 +662,8 @@ the after-run is [visual-v1.21](../audits/visual-v1.21.md).
   flag is held to 1/16 steps by the half-float target (a foe's eye at 0.6 reads 0.5625-0.625: under the lights'
   0.62 threshold either way). The probe's machine in a City-Shaft temple hall (incal, High): the halo gone, the
   machine's own legs and plates still black (`tests/ground-ink.test.js`, `tests/occlusion-taps.test.js`).
+  The temples' crystal pendulums (pieces.js `Swing`: the Hush-House's gallery and the three over the Mother Snapper)
+  are movers too since v1.22 (visual audit v1.21, finding 1: the halo round the crystal on the hall's wall).
 - **Small square steps in the spot mass at the temple halls' pillar feet** (Edena, High): checked, nothing to fix.
   The hall the audit saw was rebuilt since (the Builders' Greenhouse, v1.16); in the new one the orbit swing (±32° in
   8° steps, every frame saved: `probes.mjs --save-all`) over its four spots at High holds the masks still (p95 step 0

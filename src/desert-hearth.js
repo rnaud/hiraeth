@@ -111,14 +111,28 @@ function inward(g) {
   g.computeVertexNormals();
   return g;
 }
-/** Drop the triangles whose centre passes test(x, y, z) (a doorway cut through a wall). */
-function cut(g, test) {
+/**
+ * Cut a doorway through a wall: drop the triangles inside test(x, y, z). A triangle that only straddles the opening
+ * (some of it in, some out) is split in four, again and again down to `fine` metres, and only the small ones whose
+ * centre is in are dropped: a big triangle of the dome kept whole because its centre lay outside the door hung its
+ * corner across the passage's mouth (visual audit v1.21).
+ */
+export function cut(g, test, { fine = 0.3, depth = 7 } = {}) {
   g = g.index ? g.toNonIndexed() : g;
   const p = g.attributes.position, keep = [];
-  for (let i = 0; i < p.count; i += 3) {
-    const cx = (p.getX(i) + p.getX(i + 1) + p.getX(i + 2)) / 3, cy = (p.getY(i) + p.getY(i + 1) + p.getY(i + 2)) / 3, cz = (p.getZ(i) + p.getZ(i + 1) + p.getZ(i + 2)) / 3;
-    if (!test(cx, cy, cz)) for (let k = 0; k < 3; k++) keep.push(p.getX(i + k), p.getY(i + k), p.getZ(i + k));
-  }
+  // (a triangle is touched when any of a few points over it is inside: its corners, its edges' middles, its centre
+  // and three more inside, so a large one whose middle crosses the opening is caught too)
+  const W = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0.5, 0.5, 0], [0, 0.5, 0.5], [0.5, 0, 0.5], [1 / 3, 1 / 3, 1 / 3], [0.66, 0.17, 0.17], [0.17, 0.66, 0.17], [0.17, 0.17, 0.66]];
+  const pt = (a, b, c, w) => [a.x * w[0] + b.x * w[1] + c.x * w[2], a.y * w[0] + b.y * w[1] + c.y * w[2], a.z * w[0] + b.z * w[1] + c.z * w[2]];
+  const emit = (a, b, c, d) => {
+    const ins = W.map((w) => test(...pt(a, b, c, w)));
+    if (!ins.some(Boolean)) { keep.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z); return; }
+    const big = Math.max(a.distanceTo(b), b.distanceTo(c), c.distanceTo(a)) > fine;
+    if (ins.every(Boolean) || !big || d >= depth) { if (!ins[6]) keep.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z); return; }
+    const ab = a.clone().lerp(b, 0.5), bc = b.clone().lerp(c, 0.5), ca = c.clone().lerp(a, 0.5);
+    emit(a, ab, ca, d + 1); emit(ab, b, bc, d + 1); emit(ca, bc, c, d + 1); emit(ab, bc, ca, d + 1);
+  };
+  for (let i = 0; i < p.count; i += 3) emit(new THREE.Vector3().fromBufferAttribute(p, i), new THREE.Vector3().fromBufferAttribute(p, i + 1), new THREE.Vector3().fromBufferAttribute(p, i + 2), 0);
   const o = new THREE.BufferGeometry();
   o.setAttribute('position', new THREE.Float32BufferAttribute(keep, 3));
   o.computeVertexNormals();

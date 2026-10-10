@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.24', date: '2026-10-10', items: [
+    // the guardians: a dive that misses
+    'The Lampless, the Elder and the Cloud-Mother now pay for a dive that misses, as the Keeper does for a stamp: dodge it and the Lampless catches its wings on the floor, the Elder drives her beak into it, the Cloud-Mother ploughs in on her fins, and each stays down a while longer than after a dive that lands. The Lampless’s dust now also runs out along the floor in a ring you can jump.',
+    // the pictures
+    'The crystal pendulums of the Hush-House no longer drag a jagged black halo across the wall behind them as they swing.',
+    'In the Givers’ Hearth, no dark corner of the dome hangs across the passage’s mouth any more: the doorway is cut cleanly through the rock.',
+  ] },
   { v: '1.23', date: '2026-10-10', items: [
     // the worlds, fifth round of the level design audit: the loners pulled in, a high place in each flat world, the blind legs
     'In Vael II, Ondine no longer waits alone far out on the plain: every day she walks out along the long aqueduct as far as the floating island, and you find her there, under the island church, beside the parapet stone where she scratches a mark for each day. Ask her why she stops there.',

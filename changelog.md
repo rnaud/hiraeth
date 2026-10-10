@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.24 — 2026-10-10
+
+- In the Givers’ Hearth, no dark corner of the dome hangs across the passage’s mouth any more: the doorway is cut cleanly through the rock.
+- The crystal pendulums of the Hush-House no longer drag a jagged black halo across the wall behind them as they swing.
+- The Lampless, the Elder and the Cloud-Mother now pay for a dive that misses, as the Keeper does for a stamp: dodge it and the Lampless catches its wings on the floor, the Elder drives her beak into it, the Cloud-Mother ploughs in on her fins, and each stays down a while longer than after a dive that lands. The Lampless’s dust now also runs out along the floor in a ring you can jump.
+
 ## v1.23 — 2026-10-10
 
 - In the desert, while the great tree is still cold, the cool air of the cave under the fallen giant breathes out through its skull: a thin pale column rising over Qanat’s back gate, which you can see from the camps over the city walls.

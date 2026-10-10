@@ -441,10 +441,10 @@ of its own, from its body and its temple's verb, on the same engine:
 |---|---|---|---|---|---|
 | The Keeper (ember, then water) | stamp, sweep | sweep, charge, stamp | burrow (ploughs under the sand at you), spit (3 clods) | sweep → sweepBack → stamp | stamp, charge |
 | The warden (jets: get above it) | beam, mortar, stomp | stomp, sweeping beam, mortar | flare (vents straight up at you over it), beam, 3 mortars | stomp → stomp → slam (wave); flare → slam | - |
-| The Elder (wings beside her) | peck, stamp, buffet | buffet, dive, gale | stone feathers (3), peck, gale | peck → peck → buffet; gale → dive | - |
-| The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | dive, hail (4), roll | roll → tail → wail; hail → dive | - |
+| The Elder (wings beside her) | peck, stamp, buffet | buffet, dive, gale | stone feathers (3), peck, gale | peck → peck → buffet; gale → dive | dive (her beak in the floor: her hang aloft + `ROOST.miss`, 1.4 s) |
+| The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | dive, hail (4), roll | roll → tail → wail; hail → dive | dive (on her fins, 4.4 s; in her last phase only a held stone opens her) |
 | The Mother Snapper (stilling) | lunge, sweep | snap, seed, sweep | thrash, seed, snap | sweep → sweepBack; snap → snap → lunge; thrash → 3 seeds | - |
-| The Lampless (the lantern) | swoop, gust, dust | flutter, scales (3), swoop | spiral, scales, gust | flutter → flutter → dust; spiral → spiral | - |
+| The Lampless (the lantern) | swoop, gust, dust (wave) | flutter, scales (3), swoop | spiral, scales, gust | flutter → flutter → dust (wave); spiral → spiral | swoop, spiral (its wings on the floor, 5.4 s) |
 | The Gardener (bloom) | sweep, stamp (wave), clods | sweep, roots, stamp | crush, clods, sweep | sweep → sweepL → stamp | roots, crush |
 | The Clockwork Foreman (six numerals in a breath) | jab, chime (wave), hammer | cog, spin, hammer | jab, cogs (3), spin | jab → jab → hammer | spin (dizzy: its face opens) |
 | The Tooth-Warden (four vents) | beam, mortar, stomp | grind, beam, stomp | charge, 3 mortars, grind | stomp → stomp → slam; grind → beam | charge (into the wall) |

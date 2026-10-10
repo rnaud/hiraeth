@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import { rough as roughCity } from '../src/desert-city.js';
-import { rough as roughHearth, hallDome, HEARTH } from '../src/desert-hearth.js';
+import { rough as roughHearth, hallDome, HEARTH, cut as cutHearth } from '../src/desert-hearth.js';
 
 const dome = (r, w, h, sy) => new THREE.SphereGeometry(r, w, h, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, sy, 1);
 
@@ -52,4 +52,36 @@ test('the giant’s heart: its floor runs on under the dome’s foot too', () =>
   for (let i = 0; i < p.count; i++) if (p.getY(i) <= 0) far = Math.max(far, Math.hypot(p.getX(i), p.getZ(i)));
   assert.ok(far > 32 && far < floor - 0.3, `the foot out to ${far.toFixed(2)} m, the floor to ${floor.toFixed(2)} m`);
   assert.match(readFileSync(new URL('../src/desert-city.js', import.meta.url), 'utf8'), /\[ROOM \+ 4, 0\], \[ROOM \+ 4, -1\]\];/);
+});
+
+test('the Givers’ Hearth: no triangle of the dome hangs across the passage’s mouth', () => {
+  // the doorway was cut by dropping the triangles whose centre lay in it, so a big one straddling the passage's walls
+  // or its lintel stayed whole and hung a dark corner across the mouth (visual audit v1.21): straddling ones are split
+  // finely now, and nothing is left inside the passage's open width (its walls' inner faces at ±2.5 m, its ceiling at 4.8)
+  const door = (x, y, z) => Math.abs(x) < 2.7 && y < 4.8 && z > 10;
+  const open = (x, y, z) => Math.abs(x) < 2.45 && y > 0.05 && y < 4.7 && z > 12;
+  const area = (q, where) => {
+    let s = 0;
+    const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3();
+    for (let i = 0; i < q.count; i += 3) {
+      A.fromBufferAttribute(q, i); B.fromBufferAttribute(q, i + 1); C.fromBufferAttribute(q, i + 2);
+      if (where(A.clone().add(B).add(C).divideScalar(3))) s += B.clone().sub(A).cross(C.clone().sub(A)).length() / 2;
+    }
+    return s;
+  };
+  for (const seg of [28, 14]) {
+    const whole = hallDome(seg), p = cutHearth(whole, door).attributes.position;
+    let inside = 0;
+    for (let i = 0; i < p.count; i += 3) {
+      for (let a = 0; a <= 6; a++) for (let b = 0; b <= 6 - a; b++) {
+        const u = a / 6, v = b / 6, w = 1 - u - v;
+        if (open(p.getX(i) * u + p.getX(i + 1) * v + p.getX(i + 2) * w, p.getY(i) * u + p.getY(i + 1) * v + p.getY(i + 2) * w, p.getZ(i) * u + p.getZ(i + 1) * v + p.getZ(i + 2) * w)) inside++;
+      }
+    }
+    assert.equal(inside, 0, `${seg} segments: ${inside} points of the dome inside the passage's mouth`);
+    // and the dome away from the door is all there (its area within 1 %)
+    const away = (c) => Math.abs(c.x) > 5 || c.y > 7 || c.z < 8;
+    const before = area((whole.index ? whole.toNonIndexed() : whole).attributes.position, away), after = area(p, away);
+    assert.ok(Math.abs(after - before) / before < 0.01, `${seg} segments: the dome away from the door unchanged (${before.toFixed(1)} → ${after.toFixed(1)} m²)`);
+  }
 });
