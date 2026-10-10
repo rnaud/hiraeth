@@ -5,6 +5,10 @@
   "compatibility_date": "2026-09-01",
   "workers_dev": true,
   "preview_urls": false,
+  "ratelimits": [
+    { "name": "NOTES_LOGIN_LIMITER", "namespace_id": "17291001", "simple": { "limit": 5, "period": 60 } },
+    { "name": "NOTES_WRITE_LIMITER", "namespace_id": "17291002", "simple": { "limit": 30, "period": 60 } }
+  ],
   // Large update archives stream from bounded assets; the game stays static.
   // Keep all three HTML entry points; missing assets must remain real 404s.
   "assets": {

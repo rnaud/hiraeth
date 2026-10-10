@@ -15,24 +15,40 @@ function json(data, status = 200, headers = {}) {
 const failure = (status, error) => json({ error }, status);
 const cookie = (value, age = SESSION_SECONDS) => `${COOKIE}=${value}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${age}`;
 const configured = (env) => typeof env.HIRAETH_ISSUES_TOKEN === 'string' && env.HIRAETH_ISSUES_TOKEN.length > 0
-  && typeof env.HIRAETH_NOTES_PASSWORD === 'string' && env.HIRAETH_NOTES_PASSWORD.length >= 24;
+  && typeof env.HIRAETH_NOTES_PASSWORD === 'string' && env.HIRAETH_NOTES_PASSWORD.length > 0
+  && typeof env.NOTES_LOGIN_LIMITER?.limit === 'function'
+  && typeof env.NOTES_WRITE_LIMITER?.limit === 'function';
 
 async function signingKey(password) {
   return crypto.subtle.importKey('raw', encoder.encode(password), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
 }
-function sessionBytes(origin, expiry) { return encoder.encode(`hiraeth-notes:v1:${origin}:${expiry}`); }
-async function issueSession(password, origin, now) {
+// A human password must not be enough to forge a cookie offline. Derive a
+// purpose-specific key from the server-only GitHub token and password together.
+async function sessionKey(env) {
+  const material = await crypto.subtle.sign('HMAC', await signingKey(env.HIRAETH_ISSUES_TOKEN), encoder.encode(`hiraeth-notes:session-key:v2:${env.HIRAETH_NOTES_PASSWORD}`));
+  return crypto.subtle.importKey('raw', material, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
+}
+function sessionBytes(origin, expiry) { return encoder.encode(`hiraeth-notes:v2:${origin}:${expiry}`); }
+async function issueSession(env, origin, now) {
   const expiry = Math.floor(now / 1000) + SESSION_SECONDS;
-  const signature = await crypto.subtle.sign('HMAC', await signingKey(password), sessionBytes(origin, expiry));
+  const signature = await crypto.subtle.sign('HMAC', await sessionKey(env), sessionBytes(origin, expiry));
   return `${expiry}.${Array.from(new Uint8Array(signature), (b) => b.toString(16).padStart(2, '0')).join('')}`;
 }
-async function signedIn(request, password, now) {
+async function signedIn(request, env, now) {
   const value = (request.headers.get('Cookie') ?? '').split(';').map((x) => x.trim()).find((x) => x.startsWith(`${COOKIE}=`))?.slice(COOKIE.length + 1);
   const match = /^(\d{10})\.([a-f0-9]{64})$/.exec(value ?? '');
   const seconds = Math.floor(now / 1000);
   if (!match || +match[1] <= seconds || +match[1] > seconds + SESSION_SECONDS) return false;
   const signature = Uint8Array.from(match[2].match(/../g), (b) => parseInt(b, 16));
-  return crypto.subtle.verify('HMAC', await signingKey(password), signature, sessionBytes(new URL(request.url).origin, match[1]));
+  return crypto.subtle.verify('HMAC', await sessionKey(env), signature, sessionBytes(new URL(request.url).origin, match[1]));
+}
+async function rateLimit(binding) {
+  try {
+    // One author notebook: sharing a key prevents IP rotation at the same edge
+    // from resetting the budget. Cloudflare counters are per location, not global.
+    if ((await binding.limit({ key: 'notebook' })).success === true) return null;
+    return json({ error: 'Please wait a minute before trying again.' }, 429, { 'Retry-After': '60' });
+  } catch { return failure(503, 'The notebook is temporarily unavailable. Please try again later.'); }
 }
 async function samePassword(given, expected) {
   if (typeof given !== 'string' || given.length > 1024) return false;
@@ -96,6 +112,10 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
   if (request.method !== 'GET' && request.headers.get('Origin') !== url.origin) return failure(403, 'Please open the notebook directly to make changes.');
   if (!configured(env)) return failure(503, 'The notebook is not connected yet. Please come back after setup.');
   if (session && request.method === 'DELETE') return json({ authenticated: false }, 200, { 'Set-Cookie': cookie('', 0) });
+  if (session && request.method === 'POST') {
+    const limited = await rateLimit(env.NOTES_LOGIN_LIMITER);
+    if (limited) return limited;
+  }
 
   let body;
   if (request.method === 'POST') {
@@ -104,11 +124,15 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
   }
   if (session && request.method === 'POST') {
     if (!await samePassword(body?.password, env.HIRAETH_NOTES_PASSWORD)) return failure(401, 'That password did not match.');
-    return json({ authenticated: true }, 200, { 'Set-Cookie': cookie(await issueSession(env.HIRAETH_NOTES_PASSWORD, url.origin, now)) });
+    return json({ authenticated: true }, 200, { 'Set-Cookie': cookie(await issueSession(env, url.origin, now)) });
   }
-  const authenticated = await signedIn(request, env.HIRAETH_NOTES_PASSWORD, now);
+  const authenticated = await signedIn(request, env, now);
   if (session) return json({ authenticated });
   if (!authenticated) return failure(401, 'Please unlock your notebook again. Your draft is still here.');
+  if (request.method === 'POST') {
+    const limited = await rateLimit(env.NOTES_WRITE_LIMITER);
+    if (limited) return limited;
+  }
 
   try {
     if (request.method === 'GET') {

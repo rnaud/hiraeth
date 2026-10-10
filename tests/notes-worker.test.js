@@ -4,7 +4,8 @@ import { handleIssues, COOKIE, REPOSITORY } from '../worker/issues.js';
 import worker from '../worker/update-download.js';
 
 const origin = 'https://notebook.example';
-const env = { HIRAETH_ISSUES_TOKEN: 'test-github-token', HIRAETH_NOTES_PASSWORD: 'test-only-notebook-password-32-characters' };
+const allow = { limit: async () => ({ success: true }) };
+const env = { HIRAETH_ISSUES_TOKEN: 'test-github-token', HIRAETH_NOTES_PASSWORD: 'testpw', NOTES_LOGIN_LIMITER: allow, NOTES_WRITE_LIMITER: allow };
 const now = Date.UTC(2026, 9, 10);
 const noFetch = () => { throw new Error('GitHub must not be called'); };
 const request = (path = 'issues', { method = 'GET', body, cookie, headers = {}, ...other } = {}) => new Request(`${origin}/api/notes/${path}`, {
@@ -19,7 +20,7 @@ async function login(options = {}) {
 const fixture = (number, title = 'Crabs have too much health') => ({ number, title, created_at: '2026-10-10T12:00:00Z', labels: [{ name: 'combat' }], comments: 2 });
 
 test('missing secrets fail closed while the existing static site still works', async () => {
-  for (const config of [{}, { ...env, HIRAETH_NOTES_PASSWORD: 'short' }, { ...env, HIRAETH_ISSUES_TOKEN: '' }]) {
+  for (const config of [{}, { ...env, HIRAETH_NOTES_PASSWORD: '' }, { ...env, HIRAETH_ISSUES_TOKEN: '' }, { ...env, NOTES_LOGIN_LIMITER: undefined }, { ...env, NOTES_WRITE_LIMITER: undefined }]) {
     const response = await handleIssues(request(), config, noFetch, now);
     assert.equal(response.status, 503);
     assert.equal(response.headers.get('Cache-Control'), 'no-store');
@@ -50,6 +51,7 @@ test('unauthenticated, forged, expired, other-origin and password-rotated cookie
   }
   assert.equal((await handleIssues(request('issues', { cookie: valid }), env, noFetch, now + 31 * 86400000)).status, 401);
   assert.equal((await handleIssues(request('issues', { cookie: valid }), { ...env, HIRAETH_NOTES_PASSWORD: `${env.HIRAETH_NOTES_PASSWORD}-rotated` }, noFetch, now)).status, 401);
+  assert.equal((await handleIssues(request('issues', { cookie: valid }), { ...env, HIRAETH_ISSUES_TOKEN: 'rotated-token' }, noFetch, now)).status, 401);
   const differentOrigin = new Request('https://other.example/api/notes/issues', { headers: { Cookie: valid } });
   assert.equal((await handleIssues(differentOrigin, env, noFetch, now)).status, 401);
 });
@@ -63,6 +65,35 @@ test('every write rejects foreign or missing Origin and rejects non-JSON bodies'
   }
   assert.equal((await handleIssues(request('issues', { method: 'POST', cookie: c, body: 'title=test', headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }), env, noFetch, now)).status, 400);
   assert.equal((await handleIssues(request('issues', { method: 'POST', cookie: c, body: '{bad' }), env, noFetch, now)).status, 400);
+});
+
+test('short passwords cannot forge sessions without the server token', async () => {
+  const expiry = Math.floor(now / 1000) + 3600;
+  const encode = (s) => new TextEncoder().encode(s);
+  const key = await crypto.subtle.importKey('raw', encode(env.HIRAETH_NOTES_PASSWORD), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  for (const version of ['v1', 'v2']) {
+    const signature = await crypto.subtle.sign('HMAC', key, encode(`hiraeth-notes:${version}:${origin}:${expiry}`));
+    const hex = Buffer.from(signature).toString('hex');
+    assert.equal((await handleIssues(request('issues', { cookie: `${COOKIE}=${expiry}.${hex}` }), env, noFetch, now)).status, 401);
+  }
+});
+
+test('rate limits cover correct and wrong logins and authenticated writes, and fail closed', async () => {
+  let calls = 0;
+  const limiter = { limit: async ({ key }) => { assert.equal(key, 'notebook'); calls++; return { success: false }; } };
+  for (const password of [env.HIRAETH_NOTES_PASSWORD, 'wrong']) {
+    const response = await handleIssues(request('session', { method: 'POST', body: { password } }), { ...env, NOTES_LOGIN_LIMITER: limiter }, noFetch, now);
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('Retry-After'), '60');
+    assert.equal(response.headers.get('Set-Cookie'), null);
+  }
+  const c = await login();
+  const limitedEnv = { ...env, NOTES_WRITE_LIMITER: limiter };
+  assert.equal((await handleIssues(request('issues', { method: 'POST', cookie: c, body: { title: 'note' } }), limitedEnv, noFetch, now)).status, 429);
+  assert.equal(calls, 3);
+  const broken = { limit: async () => { throw new Error('binding unavailable'); } };
+  assert.equal((await handleIssues(request('session', { method: 'POST', body: { password: env.HIRAETH_NOTES_PASSWORD } }), { ...env, NOTES_LOGIN_LIMITER: broken }, noFetch, now)).status, 503);
+  assert.equal((await handleIssues(request('issues', { method: 'POST', cookie: c, body: { title: 'note' } }), { ...env, NOTES_WRITE_LIMITER: broken }, noFetch, now)).status, 503);
 });
 
 test('listing is fixed to Hiraeth, excludes PRs, and preserves pagination without returning secrets', async () => {
