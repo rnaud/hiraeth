@@ -11,6 +11,10 @@ import { GameState } from '../src/game-state.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { items } from '../src/items.js';
 import { traveller, course, CAM_PLUS_Z } from './gait-sim.js';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 // How the fight feels and reads (docs/systems/foes.md, "Staying in the fight", "The lock-on"): foes press you rather
 // than run, the lock reads the foe, the blade meets you halfway.

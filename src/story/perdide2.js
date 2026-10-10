@@ -7,6 +7,7 @@ import { DARK_POOLS, DOMES, SAUCER, FEN, HOLLIN_END, CAVE } from '../levels/perd
 import { magicMaterial, magicPool, setMagic } from './magic-water.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, LINES, keepsakeFor } from './perdide2-data.js';
 import { setupPerdide2Moments } from './perdide2-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // Lorn II's story, alive (perdide2-data.js has the words): "The Lamps Are Kept".
 //
@@ -146,7 +147,7 @@ export function setupPerdide2(ctx) {
     registerTarget({ kind: 'pool', radius: 2.9, accepts: ['fire'], position: () => P.c, enabled: () => !P.on && flat(player.pos, P.c) < 120,
       onHit: (mode) => {
         if (mode === 'shoot' || mode === 'fire') return light(P);   // the lamp pools take an ember glob too
-        if (!P.pushed) { P.pushed = true; toast('The push ripples the dark water, and it settles. It wants your fluid itself: shoot it.'); }
+        if (!P.pushed) { P.pushed = true; toast(quietOr('The push ripples the dark water, and it settles.', 'The push ripples the dark water, and it settles. It wants your fluid itself: shoot it.')); }
         return true;
       } });
     registerInteractable({ id: `darkPool${P.i}`, priority: PRIORITY.use, range: 3.6, prompt: 'look at the dark pool', at: () => P.c, enabled: () => !P.on,
@@ -306,10 +307,10 @@ export function setupPerdide2(ctx) {
       if (mode === 'push') {
         if (lampOn()) return shutDoor();
         pd.rock = 1;
-        toast('The door rocks on its hinge and sticks: moss has crept into the frame. Moss shrinks from light, and the moss lamp over the door is asleep.');
+        toast(quietOr('The door rocks on its hinge and sticks: moss has crept into the frame.', 'The door rocks on its hinge and sticks: moss has crept into the frame. Moss shrinks from light, and the moss lamp over the door is asleep.'));
         return true;
       }
-      if (!doorShotTold) { doorShotTold = true; toast('The splash runs down the shell door. It wants a shove, not a soaking.'); }
+      if (!doorShotTold) { doorShotTold = true; toast(quietOr('The splash runs down the shell door.', 'The splash runs down the shell door. It wants a shove, not a soaking.')); }
       return true;
     } });
   const updatePimDoor = (dt) => {
@@ -437,7 +438,7 @@ export function setupPerdide2(ctx) {
     if (!ridden && !M.auto && fenLampOn()) { bt.glide = { t: 0 }; return; }
     if (bt.inside) return;
     bt.inside = true;
-    if (ridden) toast('Fen waves you off: “Not sailed in! Step off on my landing and let her come the last bit on her own. A nudge does it.”');
+    if (ridden) toast(quietOr('Fen waves you off: “Not sailed in! Let her come the last bit on her own.”', 'Fen waves you off: “Not sailed in! Step off on my landing and let her come the last bit on her own. A nudge does it.”'));
     else if (!M.auto) {
       toldDark();
       M.speed = -(Math.sign(M.speed) || 1) * 3;   // it backs out again

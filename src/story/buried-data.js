@@ -363,7 +363,7 @@ export const THINGS = {
       entry: [{ if: { flag: 'buried.oculus.lit' }, node: 'lit' }, { if: { flag: 'buried.valve.open' }, node: 'oil' }, { node: 'dry' }],
       nodes: {
         dry: {
-          say: ["~neutral~ A dry wick coils in an iron dish. Old oil has blackened the rim.", "~neutral~ The oil valve beside it is rusted shut. A *push* might turn it: switch the gun to push with {key:mode}, then aim and shoot."],
+          say: ["~neutral~ A dry wick coils in an iron dish. Old oil has blackened the rim.", "~curious~ The oil valve beside it is rusted shut. A hard enough *push* might turn it."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         oil: { say: ["~neutral~ Oil fills the dish and soaks the wick. *Shoot the Wick* to light it: aim with {key:aim}, fire with {key:fire}."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -388,8 +388,8 @@ export const THINGS = {
     talk: { nodes: { look: {
       say: [
         { if: { not: { flag: 'buried.jib.in' } }, text: "~neutral~ Dun’s key hangs from the crane hook, out over the drop." },
-        { if: { not: { flag: 'buried.jib.oiled' } }, text: "~neutral~ Rust locks the crane’s collar. *Shoot it with fluid* to wet it through: aim with {key:aim}, fire with {key:fire}." },
-        { if: { all: [{ flag: 'buried.jib.oiled' }, { not: { flag: 'buried.jib.in' } }] }, text: "~curious~ The wet collar is free. *Push the arm sideways* until the hook is above the platform: switch the gun to push with {key:mode}, then aim and shoot. The ratchet permits only one direction." },
+        { if: { not: { flag: 'buried.jib.oiled' } }, text: "~neutral~ Rust locks the crane’s collar, dry as an old bone." },
+        { if: { all: [{ flag: 'buried.jib.oiled' }, { not: { flag: 'buried.jib.in' } }] }, text: "~curious~ The wet collar is free, and the arm swings loose on it. The ratchet permits only one direction." },
         { if: { flag: 'buried.jib.in' }, text: "~neutral~ The hook now hangs over the platform, with the key in reach." },
       ],
       choices: [{ text: '~neutral~ (step back)', end: true }],

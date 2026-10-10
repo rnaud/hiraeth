@@ -16,6 +16,7 @@ import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
 import { standGround, moverCarrier } from './carriers.js';
 import { HEARTS, POTION, DAMAGE, quarters, sparing } from './resources.js';
+import { hintsFor } from './hint-level.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -1443,7 +1444,7 @@ export class Player {
     // leaning into the world's edge (src/edge.js): how hard, where; the first time, what holds you back
     const E = (this.edge ??= new EdgePush());
     E.update(dt, this._edgeStep, this._edgeN, this.pos, steering ? move : null);
-    if (E.wantsHint() && this.opts.edgeHint) this.notice(this.opts.edgeHint);
+    if (E.wantsHint() && this.opts.edgeHint && hintsFor('tip')) this.notice(this.opts.edgeHint);   // (the wind and the lean say it: the line, hints full)
     if (this.climbing) { this.finishFrame(dt, 0); return; }
     // stamina: the sprint spends it, the ground gives it back (faster standing than walking)
     if (this.sprinting && this.onGround) spendStamina(this, STAMINA.sprint * dt);

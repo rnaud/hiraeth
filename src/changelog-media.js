@@ -482,9 +482,21 @@ const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 't
 const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 /** A save whose temple flags have a latched way open (the pit's pillars, the Root Stair's stones, the Warden's Well's irises). */
 const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...Object.fromEntries(keys.map((k) => [k, true])) }, keepsakes: [] });
+const FROM_HINTS31 = 'headless Chrome (High, 1280 × 720) against this branch’s own dev server, the desert, the traveller placed 2.4 m from Naji with the camera behind him; before with the setting on Hints: Full (the prompts as they were), after on Subtle; cwebp -q 72 (10 October)';
 /** The guardians on the kit (v1.29): eight frames of a walk, a quarter second apart, side-on in the Arena; made by hand. */
 const FROM_GUARD29 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena, the guardian called into its ring and walked by hand in a straight line at 2.2 m/s, the camera beside it following, eight frames a quarter second apart; before at main before the change (c2324c58), after on the branch (10 October)';
 export const CHANGELOG_MEDIA = {
+  '1.31': [
+    // the hints pass (docs/systems/hints.md, docs/design/hints-audit.md)
+    { match: 'Far fewer hints', shots: [
+      { name: 'use-glyph', caption: 'Standing by Naji in the desert: before, “E talk to Naji” in a pill over her; after, the button alone, a small quiet glyph (Hints: Full brings the words back)', from: FROM_HINTS31 },
+    ], see: 'Walk up to anyone in a world: a small button floats over them, no words. Finish a quest step: a chime, and the step waits in the Quests page. Settings, Game, Hints: Full shows the old prompts and the gold column again.' },
+    { match: 'In a guardian’s fight your drone helps', see: 'In a temple, wake its guardian and press Q (R3 on a pad) at once: the drone rises and only watches (◇ …). Ask again after about 40 seconds of the same phase for a nudge, after 100 for a plainer line, after three minutes for the plainest.' },
+    { match: 'Things you look at, the guardians', see: 'In the desert, look at the stone ball by the Hearth or the bone pinning the drum (E): they say what is there, no more “switch the gun to push with X, then aim and shoot”. With Hints: Full, the lines name their buttons again.' },
+    { match: 'A new setting, Hints', shots: [
+      { name: 'hints-setting', only: 'after', caption: 'The settings’ Game group: Hints, on Subtle (Off, Subtle, Full)', from: FROM_HINTS31 },
+    ] },
+  ],
   '1.30': [
     { match: 'Lorn II’s giant mushrooms are pale glass', shots: [
       { name: 'lorn-glass-day', caption: 'From the landing towards the relic mushroom at dusk: before, solid lilac caps and stalks; after, glassy caps and stalks with the trunks and the sky showing through, their rims drawn', from: FROM_LORN_GLASS },

@@ -446,7 +446,7 @@ export const PERDIDE2_TEMPLE = {
         }
         rt.notice('It turns from you to the lit pool, and drifts down to it.', 'moth.lured');
         const close = Math.hypot(P.pos.x - lured.at.x, P.pos.z - lured.at.z) < LURE.back;
-        if (over && close && last) { drink = 0; rt.notice('It hangs over the pool, but will not come down to drink while you stand by it. Stand back.', 'moth.back'); return; }
+        if (over && close && last) { drink = 0; rt.notice('It hangs over the pool, but will not come down to drink while you stand by it.', 'moth.back'); return; }
         if (over && (drink += dt) > LURE.drink) {
           drink = 0;
           rt.lurePools.drain(lured); lured = null;

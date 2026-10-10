@@ -35,6 +35,7 @@ import { HOLD as UNDERTOWER_HOLD } from '../src/temples/bazaar.js';
 const HOLD_HORN = UNDERTOWER_HOLD.horn;
 import { TempleKit } from '../src/temples/kit.js';
 import { GULF } from '../src/temples/arzach.js';
+import { setHintLevel } from '../src/hint-level.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -2376,8 +2377,8 @@ test('the Greenhouse stands clear of Esk’s tea terraces, and every bloom targe
   assert.ok(seed && rt.piece('d3') && rt.piece('bed1'));
 });
 
-test('the echo shell: it keeps the last note sung within earshot (saved), plays it back on V, and does nothing without it', () => {
-  game.reset();
+test('the echo shell: it keeps the last note sung within earshot (saved), plays it back on V, and does nothing without it', (t) => {
+  game.reset(); setHintLevel('full'); t.after(() => setHintLevel('subtle'));   // (it checks the words with their buttons, as hints full says them: subtle takes the button out, the card having taught it)
   own('backpack');
   const P = { pos: V(0, 0, 0), hidden: false };
   const toasts = [], echoes = [];

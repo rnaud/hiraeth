@@ -11,6 +11,9 @@ import { planLine, spokenMask } from '../src/story/voice.js';
 import { lineChunks } from '../src/story/scripts.js';
 import { t, setLanguage, LANGUAGES } from '../src/i18n.js';
 import { ITEMS } from '../src/items.js';
+import { setHintLevel, quietKeys } from '../src/hint-level.js';
+
+setHintLevel('full');   // (how a key resolves: hints full name every one; subtle takes them out, its own test below)
 
 const LINE = '~neutral~ *Push the bone* aside: switch the gun to push with {key:mode}, aim with {key:aim}, fire with {key:fire}.';
 
@@ -138,5 +141,22 @@ test('no item card and no toast names a button in prose', () => {
   }
   assert.deepEqual(bad, []);
   // and the ones that teach use the placeholder, which resolves
-  assert.equal(keyText(ITEMS.stun.use, { kind: 'pad' }).startsWith('Switch modes with D-pad →.'), true);
+  assert.equal(keyText(ITEMS.stun.use, { kind: 'pad', teach: true }).startsWith('Switch modes with D-pad →.'), true);
+});
+
+test('hints subtle (the default) and off: a line keeps what it says and drops the controls it names; a card that teaches keeps them', () => {
+  setControlPrefs({});
+  try {
+    for (const lv of ['subtle', 'off']) {
+      setHintLevel(lv);
+      assert.equal(keyText(LINE, { kind: 'keys' }), '~neutral~ *Push the bone* aside.', `${lv}: the clause after the colon goes`);
+      assert.equal(keyText('Whistle for the skiff with {key:call}, out in the open.', { kind: 'pad' }), 'Whistle for the skiff, out in the open.');
+      assert.equal(keyText('Aim with {key:aim}, fire with {key:fire}. One shot a bulb.', { kind: 'keys' }), 'One shot a bulb.', 'a sentence that is only controls goes');
+      assert.equal(keyText('Open your wings (hold {key:jump} as you fall): it lifts you.', { kind: 'keys' }), 'Open your wings: it lifts you.');
+      assert.equal(keyText('{key:whistle} plays it back.', { kind: 'keys' }), '', 'nothing left: the toast is skipped (main.js showToast)');
+      assert.equal(keyText(ITEMS.stun.use, { kind: 'pad', teach: true }).startsWith('Switch modes with D-pad →.'), true, 'a new tool’s card still teaches');
+      assert.equal(keysHtml('Wash it: aim with {key:aim}.'), 'Wash it.');
+    }
+    assert.equal(quietKeys('No keys here: none.'), 'No keys here: none.');
+  } finally { setHintLevel('full'); }
 });

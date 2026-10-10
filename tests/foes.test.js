@@ -101,7 +101,7 @@ test('out in the wilds a pack of ink blots comes in (the first time one), out of
   const d = foes.list[0].pos.distanceTo(P.pos);
   assert.ok(d >= PACK.near - 0.01 && d <= PACK.far + 0.01, `it comes in ${d.toFixed(1)} m out`);
   assert.equal(notes.length, 1, 'and the game says what they are, once');
-  assert.match(keyText(notes[0], { kind: 'pad' }), /LB \/ L1/, 'with a pad in hand: its guard button (a {key:guard}, src/prompt-keys.js keyText)');
+  assert.match(notes[0], /^F or a left click cuts · CTRL guards · ALT evades\.$/, 'hints subtle: the fight\'s three new verbs, each with its key in hand (resolved as it is said: src/prompt-keys.js keyText, teach)');
   // an ordinary blow: half a heart; and none takes you from more than a heart to nothing
   const first = foes.list[0], dmg = (first.atk ?? first.def.attack).damage;
   foes.strike(first);

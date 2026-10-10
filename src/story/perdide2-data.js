@@ -368,7 +368,7 @@ export const THINGS = {
   pool: {
     id: 'darkPool', name: 'A dark pool', title: 'gone out', color: '#3a4560', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~sad~ Cold water, grey eggs. A Welcome mark is painted beside the unlit pool: {glyph}", "~neutral~ *Shoot the pool with glowing fluid* to relight it: aim with {key:aim}, fire with {key:fire}."],
+      say: ["~sad~ Cold water, grey eggs. A Welcome mark is painted beside the unlit pool: {glyph}", "~sad~ The pools along the path glow for travellers. This one has gone out."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

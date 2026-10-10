@@ -785,7 +785,7 @@ export const THINGS = {
   knuckle: {
     id: 'knuckle', name: 'A knuckle of bone', title: 'from the giant’s spine', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ A heavy round bone traps the drum against the rib behind it.", "~neutral~ *Push the bone from the side* to roll it clear: switch the gun to push with {key:mode}, then aim and shoot. Pushing toward the rib would crush the drum."],
+      say: ["~neutral~ A heavy round bone traps the drum against the rib behind it.", "~neutral~ Round enough to roll. Toward the rib, it would crush the drum."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -799,7 +799,7 @@ export const THINGS = {
   bone: {
     id: 'bone', name: 'The fallen rib', title: 'across the channel', color: '#f2ead6', voice: 0.6,
     talk: { nodes: { look: {
-      say: ["~neutral~ A fallen rib blocks the dry channel. Behind it, a crack in the wall is damp. The water is trapped on the other side.", "~neutral~ Too heavy to lift. Find *the keepers’ pole by the mural* and lever it over the carved post. Or, with a filled tank, *push it*: switch the gun to push with {key:mode}, then aim and shoot."],
+      say: ["~neutral~ A fallen rib blocks the dry channel. Behind it, a crack in the wall is damp. The water is trapped on the other side.", "~neutral~ Too heavy to lift by hand. The keepers who built this channel had a way of moving such things: *the mural* shows them at it."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },
@@ -929,7 +929,7 @@ export const THINGS = {
     id: 'weight', name: 'A stone ball', title: 'in a groove on a plinth', color: '#c9b8a0', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~neutral~ A stone ball rests in a groove leading to a hole. A bronze chain connects the mechanism to the grille guarding the light.",
-        "~neutral~ *Push the ball along the groove* with fluid: switch the gun to push with {key:mode}, aim with {key:aim}, shoot with {key:fire}."],
+        "~curious~ The groove is worn smooth, as if the ball has rolled down it many times."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

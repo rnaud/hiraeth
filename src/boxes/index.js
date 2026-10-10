@@ -8,6 +8,7 @@ import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
 import { migrateTemples } from '../temples/migrate.js';
 import { HUM } from '../story/hum.js';
+import { hintsFor } from '../hint-level.js';
 
 // Item boxes: the makers' boxes (docs/story-bible.md, "The boxes"). One smooth
 // dark blue shell with no edges, a pale star painted on its top and a compass
@@ -280,7 +281,7 @@ export function createBoxes({ levelId, scene, physics, level, player, sound = nu
     questsOffered = true;
     let n = 0;
     for (const { b, id } of boxQuests) if (!spent(b) && !quests.isStarted?.(id)) { quests.start(id); n++; }
-    if (n) toast(n > 1 ? 'There are more makers’ boxes in this world. The game menu’s Quests page says where to look.' : 'There is another makers’ box in this world. The game menu’s Quests page says where to look.');
+    if (n && hintsFor('tip')) toast(n > 1 ? 'There are more makers’ boxes in this world. The game menu’s Quests page says where to look.' : 'There is another makers’ box in this world. The game menu’s Quests page says where to look.');
   }
 
   const api = {

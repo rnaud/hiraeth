@@ -351,7 +351,7 @@ test('every hidden box has a quest that says where to look; it starts on arrival
   assert.equal(quests.isStarted(qid), false, 'not straight away');
   for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
   assert.equal(quests.isActive(qid), true, 'started after the landing');
-  assert.ok(toasts.length === 1 && /Quests page/.test(toasts[0]), toasts[0]);
+  assert.deepEqual(toasts, [], 'hints subtle: no nudge toward the Quests page (hints full says where to look: src/hint-level.js tip)');
   assert.ok(quests.journalHtml().includes('umbrella tree'), 'the sketchbook says where');
   boxes.open('edena.pouch', { instant: true });
   quests.update(pl);   // (the story runtime does this every frame)
@@ -458,7 +458,7 @@ test('nothing tells of the makers’ boxes before you find your first one', () =
   assert.equal(quests.isStarted(qid), false, 'not on the heels of the first');
   for (let i = 0; i < 30 * (BOX_QUEST_DELAY + 1); i++) boxes.update(1 / 30, i / 30);
   assert.equal(quests.isActive(qid), true, 'then the world’s other box is offered');
-  assert.ok(toasts.length === 1 && /(another|more) makers’ box/.test(toasts[0]), 'one toast for them (the canopy’s box and the makers’ court’s)');
+  assert.deepEqual(toasts, [], 'hints subtle: no toast pointing at them (hints full says one: src/hint-level.js tip)');
   assert.match(boxes.journalHtml(), /Item boxes/);
   boxes.dispose(); clearInteractables(); game.reset(); items.revoke('backpack');
 });

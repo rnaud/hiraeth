@@ -264,7 +264,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
       if (reward) items.grant(T.reward);
       const lines = [`The makers’ mark: ${formatTime(par)}${t <= par ? ' · beaten' : ''}`];
       if (first) lines.push(firstPurse(game, items));
-      const html = reward ? `<div class="trial-reward"><p class="kicker">Yours: ${esc(reward.name)}</p><p>${esc(reward.text)}</p><p><b>${keyText(esc(reward.use), { html: true })}</b></p></div>` : '';
+      const html = reward ? `<div class="trial-reward"><p class="kicker">Yours: ${esc(reward.name)}</p><p>${esc(reward.text)}</p><p><b>${keyText(esc(reward.use), { html: true, teach: true })}</b></p></div>` : '';
       ctx.finish({ lines, html });
       if (reward) notice(`${reward.name}: yours. ${reward.use}`);
     };

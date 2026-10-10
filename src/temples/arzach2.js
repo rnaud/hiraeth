@@ -158,7 +158,7 @@ export function motherBell(g, pos) {
     return;
   }
   if (g.state !== 'open') {
-    rt.notice(g.phaseIndex >= 2 ? 'She hears the note, and rises out of its reach. Ring as she rises to dive: bring a stone down under her.' : 'She hears the note, and turns her head. Sound it when she cries.', g.phaseIndex >= 2 ? 'mother.wait2' : 'mother.wait');
+    rt.notice(g.phaseIndex >= 2 ? 'She hears the note, and rises out of its reach.' : 'She hears the note, and turns her head. Sound it when she cries.', g.phaseIndex >= 2 ? 'mother.wait2' : 'mother.wait');
     return;
   }
   if (pos.distanceTo(g.model.pos) > 28) { rt.notice('She is too far to hear it. Get closer.', 'mother.far'); return; }
@@ -172,7 +172,7 @@ function motherStrike(g, a) {
   if (!s) return;
   g.grounded = true;
   g.rt.rumble?.(1.0, 0.5);
-  g.rt.notice('She dives onto the held stone and it takes her weight: she lies on it, dazed, crying. Sound the bell.', 'mother.grounded');
+  g.rt.notice('She dives onto the held stone and it takes her weight: she lies on it, dazed, crying.', 'mother.grounded');
 }
 /** How long a combo's end leaves her open: on a held stone, a while; in her last phase, only there. */
 function motherOpen(g, a, s) {

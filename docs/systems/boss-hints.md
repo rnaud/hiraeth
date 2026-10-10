@@ -17,6 +17,11 @@ you are inside, a ping (Q, R3 with no foe in reach, touch "ping") asks for a hin
   brazier, a dead bed, the hidden vent, the glowing sphere) or the guardian's weak point,
   `model.mouth`.
 
+**When the lines open** (`openHint`, the Hints setting: `docs/systems/hints.md`): on subtle (the default)
+none at first (the drone only watches, `◇ …`), then one more after each stretch of the phase
+(`STRUGGLE`: 40, 100, 180 s, counted by main.js's `Struggle`); on full all three at once; off, never. A
+line naming a button writes it `{key:verb}`, taken out unless hints are full.
+
 The drone rises over your shoulder (`HINT`), turns its lens on `at()` with a short beam, chirps
 (`sound.drone('hint')`) and calls `onHint(line)`; main.js puts it on the cue for `HINT.say` seconds.
 No flare is dropped. A find (no guardian) has no beam and no beak: the drone's own heading points

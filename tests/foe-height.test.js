@@ -10,6 +10,10 @@ import { clearTargets } from '../src/targets.js';
 import { clearHazards } from '../src/hazards.js';
 import { clearWorkings, workingsAt, registerWorking } from '../src/workings.js';
 import { GameState } from '../src/game-state.js';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 // Foes over the world's height (v1.4, docs/systems/foes.md "Foes over height"): the way up and down, the high
 // ground, knocked off a ledge.

@@ -227,7 +227,7 @@ function resonate(rt, res, mode) {
   if (mode === 'push' || !g) return true;
   rt.sound?.chime?.();
   if (g.state !== 'open') { rt.notice('The sphere rings, and nothing answers. Wait for it to sing.', 'echo.wait'); return true; }
-  if (rt.sing !== res.i) { rt.notice('A different note. It flinches. Listen for the sphere that glows.', 'echo.wrong'); g.add(-0.03, 'wrong'); return true; }
+  if (rt.sing !== res.i) { rt.notice('A different note. It flinches.', 'echo.wrong'); g.add(-0.03, 'wrong'); return true; }
   g.add(g.phaseIndex === 0 ? 0.15 : 0.15, 'answer');
   if (g.state === 'open') { g.enter('fight'); g.cool = 2; }
   return true;

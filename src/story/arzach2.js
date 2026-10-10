@@ -8,6 +8,7 @@ import { game as sharedGame } from '../game-state.js';
 import { audioAway } from '../audio-guard.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, CAIRN_STONES } from './arzach2-data.js';
 import { setupArzach2Moments } from './arzach2-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // Vael II's story, alive (arzach2-data.js has the words): "The Bell Under the Cloud".
 //
@@ -234,13 +235,13 @@ export function setupArzach2(ctx) {
   registerTarget({ kind: 'tiller', radius: 0.9, position: gripAt, enabled: () => flat(player.pos, lampAt) < 30,
     onHit: (mode, point, dir) => {
       if (mode !== 'push') {
-        if (!lampSt.splashed) { lampSt.splashed = true; toast('The fluid splashes the old tiller. It wants a shove, not a splash.'); }
+        if (!lampSt.splashed) { lampSt.splashed = true; toast(quietOr('The fluid splashes the old tiller.', 'The fluid splashes the old tiller. It wants a shove, not a splash.')); }
         return true;
       }
       const yaw = yawOf(notch());
       const h = Math.hypot(dir?.x ?? 0, dir?.z ?? 0) || 1, px = (dir?.x ?? 0) / h, pz = (dir?.z ?? 0) / h;
       const side = px * -Math.cos(yaw) + pz * Math.sin(yaw);
-      if (Math.abs(side) < 0.35) { lampSt.jam = 1; toast('The tiller shudders against its pin. Shoved straight along, it won’t turn: push it from the side.'); return true; }
+      if (Math.abs(side) < 0.35) { lampSt.jam = 1; toast(quietOr('The tiller shudders against its pin. Shoved straight along, it won’t turn.', 'The tiller shudders against its pin. Shoved straight along, it won’t turn: push it from the side.')); return true; }
       turn(side > 0 ? 1 : -1);
       return true;
     } });
@@ -283,7 +284,7 @@ export function setupArzach2(ctx) {
       onHit: (mode, point, dir) => {
         if (mode !== 'push') {
           for (const x of list) x.m.rotation.z += (Math.random() - 0.5) * 0.04;
-          if (!st.hinted) { st.hinted = true; toast('The fluid rattles off the tiles. They are wedged tight, so shove them off: switch the gun to push with {key:mode}, then aim and shoot.'); }
+          if (!st.hinted) { st.hinted = true; toast(quietOr('The fluid rattles off the tiles. They are wedged tight.', 'The fluid rattles off the tiles. They are wedged tight, so shove them off: switch the gun to push with {key:mode}, then aim and shoot.')); }
           return true;
         }
         scatterTiles(st, dir); off(); offLook();

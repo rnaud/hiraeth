@@ -172,7 +172,7 @@ function syncLight(g) {
 function keeperHit(g, part, mode) {
   const rt = g.rt;
   if (mode === 'push') { g.add(-0.05, 'push'); rt.notice('It flinches back from the shove, more frightened than before. Gently.', 'keeper.push'); if (g.state === 'fight' && !g.attack) g.cool = 0; return true; }
-  if (g.phaseIndex === 0) { if (mode !== 'fire' && (part === 'mouth' || part === 'body')) rt.notice('It snaps at the fluid, frightened. It is the dark it fears: light the braziers round the walls.', 'keeper.dark'); return true; }
+  if (g.phaseIndex === 0) { if (mode !== 'fire' && (part === 'mouth' || part === 'body')) rt.notice('It snaps at the fluid, frightened. It is the dark it fears.', 'keeper.dark'); return true; }
   if (g.phaseIndex >= 1) {
     if (part === 'mouth' && g.state === 'open' && (mode === 'shoot' || mode === 'stun')) {
       g.add(0.1, 'water');
@@ -181,8 +181,8 @@ function keeperHit(g, part, mode) {
       if (g.phaseIndex >= 1) rt.notice('It swallows. Its glyphs glow a little brighter.', null);
       return true;
     }
-    if (mode === 'fire') { rt.notice('It flinches from the ember on its shell. It wants a fire beside it, not on it, and water.', 'keeper.fire'); return true; }
-    if (part === 'mouth') rt.notice('Wait until it pants, its mouth open.', 'keeper.wait');
+    if (mode === 'fire') { rt.notice('It flinches from the ember on its shell.', 'keeper.fire'); return true; }
+    if (part === 'mouth') rt.notice('Its jaws are shut tight.', 'keeper.wait');
     return true;
   }
   return true;

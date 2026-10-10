@@ -512,7 +512,7 @@ export const GARAGE_TEMPLE = {
         if (last) {
           hits.fill(-1e9); dark();
           rt.sound?.critter?.('blip', 0.7);
-          rt.notice('The numerals ring out of step and all go dark. Its hands point at four: count round from there, the way a clock goes.', 'cf.wrong');
+          rt.notice('The numerals ring out of step and all go dark. Its hands point at four.', 'cf.wrong');
           return;
         }
         dark();

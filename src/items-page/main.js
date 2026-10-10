@@ -79,7 +79,7 @@ try {
     const it = ITEMS[id];
     full.querySelector('h2').textContent = it.name;
     full.querySelector('.short').innerHTML = `<b>${esc(KIND_NAMES[it.kind] ?? it.kind)}</b><span class="line">${esc(shortLine(it.text))}</span>`;
-    full.querySelector('.long').innerHTML = `<p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true })}</p>` : ''}`;
+    full.querySelector('.long').innerHTML = `<p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true, teach: true })}</p>` : ''}`;
   };
   const more = (on = !full.classList.contains('more')) => {
     full.classList.toggle('more', on);

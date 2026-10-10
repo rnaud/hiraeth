@@ -434,7 +434,7 @@ export class GameMenu {
       const to = this.state.neighbours()[at.edge > 0 ? 'next' : 'prev'];
       name.textContent = to.name; sub.textContent = ''; desc.textContent = t('gm.toPanel', { name: to.name });
     } else {
-      name.textContent = cell?.name ?? ''; sub.textContent = cell?.sub ?? ''; desc.textContent = keyText(cell?.desc ?? '');   // (a {key:verb}: the player's own key or button; the menu is .pad-raw, so it isn't renamed twice)
+      name.textContent = cell?.name ?? ''; sub.textContent = cell?.sub ?? ''; desc.textContent = keyText(cell?.desc ?? '', { teach: true });   // (a {key:verb}: the player's own key or button; the menu is .pad-raw, so it isn't renamed twice)
     }
     this.el.querySelector('.gm-keys').innerHTML = menuPrompts(at.edge ? ACT.turn : cell?.act ? ACT[cell.act] : null);
     // Items: the picked one, large

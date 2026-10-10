@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 // Pip's ration tin, hands-on (src/story/incal.js, the goods hoist): it hangs in the old hoist's
 // basket out over the void; shoot the rusted pin out of the collar, push the weight on the arm's

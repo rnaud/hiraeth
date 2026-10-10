@@ -13,7 +13,11 @@
 //   steps.looked() · steps.jumped()          // input seen (main.js wraps rig.look; the player's jump)
 //   steps.update(dt, { active, moved })  →  the line to show now, or ''
 
+// Hints (src/hint-level.js): the camera's line is a teaching one (subtle and full); the jump's is a tip
+// (full only: a jump is found by pressing the big button, and the first gap asks for it); off, neither.
+
 import { verbKey } from './prompt-keys.js';
+import { hintsFor, hintLevel } from './hint-level.js';
 
 export const LOOK = { after: 6, show: 5 };
 export const JUMP = { walk: 25, show: 5 };
@@ -23,11 +27,13 @@ export const lookLine = (kind) => `Look around with ${verbKey('look', kind)}`;
 export const jumpLine = (kind) => `Jump with ${verbKey('jump', kind)}`;
 
 export class FirstSteps {
-  constructor(state, { kind = undefined } = {}) {
-    this.state = state; this.kind = kind;
+  constructor(state, { kind = undefined, level = hintLevel } = {}) {
+    this.state = state; this.kind = kind; this.level = level;
     this.t = 0; this.walked = 0; this.line = null; this.left = 0;
   }
-  get done() { return !!(this.state.flag(TAUGHT.look) && this.state.flag(TAUGHT.jump)); }
+  get teachLook() { return hintsFor('teach', this.level()); }
+  get teachJump() { return hintsFor('tip', this.level()); }
+  get done() { return !!((this.state.flag(TAUGHT.look) || !this.teachLook) && (this.state.flag(TAUGHT.jump) || !this.teachJump)); }
   looked() { if (!this.state.flag(TAUGHT.look)) this.state.set(TAUGHT.look, true); if (this.line === 'look') this.left = Math.min(this.left, 0.6); }
   jumped() { if (!this.state.flag(TAUGHT.jump)) this.state.set(TAUGHT.jump, true); if (this.line === 'jump') this.left = Math.min(this.left, 0.6); }
 
@@ -40,13 +46,13 @@ export class FirstSteps {
     }
     if (!active || this.done) return '';
     this.t += dt; this.walked += moved;
-    if (!this.state.flag(TAUGHT.look)) {
+    if (!this.state.flag(TAUGHT.look) && this.teachLook) {
       if (this.t < LOOK.after) return '';
       this.state.set(TAUGHT.look, true);   // (said once: it counts as taught)
       this.line = 'look'; this.left = LOOK.show; this.walked = 0;
       return lookLine(this.kind);
     }
-    if (!this.state.flag(TAUGHT.jump) && this.walked >= JUMP.walk) {
+    if (!this.state.flag(TAUGHT.jump) && this.teachJump && this.walked >= JUMP.walk) {
       this.state.set(TAUGHT.jump, true);
       this.line = 'jump'; this.left = JUMP.show;
       return jumpLine(this.kind);

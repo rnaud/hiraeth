@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { textGeometry } from './sign-text.js';
 import { PEOPLE, THINGS } from './incal-data.js';
 import { DROPS } from '../shaft-ways.js';
+import { quietOr } from '../hint-level.js';
 
 // The halfway stall (the City-Shaft's middle levels, where the lamplighters' drops land halfway down: docs/systems/story.md,
 // "The halfway stall"; src/shaft-ways.js; it stood by the middle cab stop until the level design audit v1.15 moved it
@@ -146,7 +147,7 @@ export function setupHalfway(ctx, { terrace, ground, onGround }) {
         // pushed side-on it turns a notch (the way it was shoved); straight at the glass it only rocks
         const r = facing(), d = V(dir?.x ?? 0, 0, dir?.z ?? 0).normalize();
         const side = r.x * d.z - r.z * d.x;
-        if (Math.abs(side) < 0.3) { if (!st.jam) { st.jam = true; toast('The mirror rocks on its pole. Shoved straight at the glass it won’t turn: push the frame from the side.'); } return true; }
+        if (Math.abs(side) < 0.3) { if (!st.jam) { st.jam = true; toast(quietOr('The mirror rocks on its pole. Shoved straight at the glass it won’t turn.', 'The mirror rocks on its pole. Shoved straight at the glass it won’t turn: push the frame from the side.')); } return true; }
         turn(side > 0 ? -1 : 1);
         return true;
       }
@@ -155,7 +156,7 @@ export function setupHalfway(ctx, { terrace, ground, onGround }) {
         show();
         sound?.chime?.();
         toast(up() ? 'The smog runs off the glass. Clean, and already facing up the shaft.' : 'The smog runs off in grey streaks. Clean glass, showing a billboard: it faces the wrong way.');
-      } else if (!st.splashed) { st.splashed = true; toast('Clean already. It wants turning now: push the frame from the side.'); }
+      } else if (!st.splashed) { st.splashed = true; toast(quietOr('Clean already.', 'Clean already. It wants turning now: push the frame from the side.')); }
       return true;
     } });
   game.on('flag:incal.lit', () => show());

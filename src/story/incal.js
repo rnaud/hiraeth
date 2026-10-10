@@ -8,6 +8,7 @@ import { glyphGeometry, textGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN, TOBIN_PAYS } from './incal-data.js';
 import { setupHalfway, halfwayTerrace } from './halfway.js';
 import { setupIncalMoments } from './incal-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // The City-Shaft's story, alive (incal-data.js has the words).
 //
@@ -198,7 +199,7 @@ export function setupIncal(ctx) {
     const tq = (rz * dir.x - rx * dir.z) / (rl * dl);   // the push's turning part, round the post (+: rotation.y grows)
     if (Math.abs(tq) < 0.45) {
       ho.wobble = 1;
-      hoistHint('The weight shoves along the arm, and the arm rocks on its sleeve, but it doesn’t turn. Push the weight round the post, not along the arm.');
+      hoistHint(quietOr('The weight shoves along the arm, and the arm rocks on its sleeve, but it doesn’t turn.', 'The weight shoves along the arm, and the arm rocks on its sleeve, but it doesn’t turn. Push the weight round the post, not along the arm.'));
       return false;
     }
     game.set('incal.hoist.in', true);
@@ -211,7 +212,7 @@ export function setupIncal(ctx) {
     onHit: (mode) => {
       if (mode === 'shoot') return knockPin();
       ho.wobble = 1;
-      hoistHint('The pin is rusted fast: a push only rattles it. Something sharper might knock it out.');
+      hoistHint(quietOr('The pin is rusted fast: a push only rattles it.', 'The pin is rusted fast: a push only rattles it. Something sharper might knock it out.'));
       return true;
     } });
   registerTarget({ kind: 'hoistWeight', radius: 0.75, position: () => H.weight.getWorldPosition(hoistWorld.weight), enabled: () => !swungIn() && !ho.swing && hoistNear(),
@@ -454,7 +455,7 @@ export function setupIncal(ctx) {
       const up = _d.y > 0.4 || _d.dot(to) > 0.9;
       st.lookT = up ? st.lookT + dt : Math.max(0, st.lookT - dt * 2);
       if (st.lookT > 1.0) giveBack(camera);
-      if (!st.hinted && quests.stage(Q) === 'look') { st.hinted = true; toast('The splinter tugs upward. Look up at the light (move the camera up).'); }
+      if (!st.hinted && quests.stage(Q) === 'look') { st.hinted = true; toast(quietOr('The splinter tugs upward.', 'The splinter tugs upward. Look up at the light (move the camera up).')); }
     }
 
     updateHoist(dt, pp);

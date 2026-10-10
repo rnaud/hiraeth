@@ -164,7 +164,7 @@ function gardenerHit(g, part, mode, info) {
   if (g.state !== 'open') { g.rt.notice('The flowers catch on its moss and are torn off as it moves. Wait for it to kneel.', 'gd.moving'); return true; }
   // the sun: in its second phase it doubles the bloom, in its last nothing grows on it without it
   const i = Math.min(g.phaseIndex, 2), lit = sunOn(g), k = lit ? SUN.sun[i] : SUN.shade[i];
-  if (!k) { g.rt.notice('A few flowers start on its back and fold, and drop off it. It is kneeling in the shade: nothing grows on it there now. Bring the sun to it.', `gd.shade.${g.phaseIndex}`); return true; }
+  if (!k) { g.rt.notice('A few flowers start on its back and fold, and drop off it. It is kneeling in the shade: nothing grows on it there now.', `gd.shade.${g.phaseIndex}`); return true; }
   g.add(k, lit ? 'sun' : 'bloom');
   g.rt.sound?.chime?.();
   if (lit && i >= 1) g.rt.notice('In the sun the flowers take at once: they spread over its back, thick and bright, and it goes still under them, its face turned up to the light.', `gd.sun.${g.phaseIndex}`);

@@ -17,6 +17,10 @@ import { ORDER, SIDE, TITLES } from '../src/levels/names.js';
 import { VerletChain } from '../src/motion-kit/chain.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;

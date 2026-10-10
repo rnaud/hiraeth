@@ -4,6 +4,8 @@ import { Banner } from '../life.js';
 import { STORY } from '../desert-sites.js';
 import { items } from '../items.js';
 import { Paint, paintMaterial } from '../vehicle-kit.js';
+import { quietOr } from '../hint-level.js';
+import { keyText } from '../prompt-keys.js';
 
 // The desert's hoverbike isn't yours from the start. Marrow the salvager
 // dragged it into a hollow between the ship and the camps (STORY.bike, the dip
@@ -153,11 +155,11 @@ export function setupHoverbike(ctx) {
     toast(fuelled() ? 'A hoverbike, half in the sand, smelling of fluid. Its cradle is empty.' : 'A hoverbike, half in the sand. It won’t wake: it runs on fluid, and you have none.');
   };
   const wakeBike = () => {
-    if (!items.has('backpack')) { toast('It runs on fluid, and your back is bare. Something in the city might hold some.'); return; }
-    if (!fuelled()) { toast('It runs on fluid, and your tank is empty. Fill it first, where the water is: the giant’s pool, past Qanat’s back gate.'); return; }
+    if (!items.has('backpack')) { toast(quietOr('It runs on fluid, and your back is bare.', 'It runs on fluid, and your back is bare. Something in the city might hold some.')); return; }
+    if (!fuelled()) { toast(quietOr('It runs on fluid, and your tank is empty.', 'It runs on fluid, and your tank is empty. Fill it first, where the water is: the giant’s pool, past Qanat’s back gate.')); return; }
     game.set('desert.bike.found', true);
     sound.chime?.();
-    toast('Your pack clicks into the socket behind the seat. The hoverbike hums awake: call it from anywhere with {key:call}.');
+    toast(keyText('Your pack clicks into the socket behind the seat. The hoverbike hums awake: call it from anywhere with {key:call}.', { teach: true }));   // (a new verb, said once: src/hint-level.js teach)
     if (bike) setTimeout(() => { if (!player.ride && flat(player.pos, bike.pos) < 6) player.board?.(bike); }, 350);
   };
   registerInteractable({

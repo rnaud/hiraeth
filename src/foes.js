@@ -23,6 +23,8 @@ import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
 import { archetypeModel } from './enemies/plans/index.js';
 import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
+import { hintsFor, quietOr } from './hint-level.js';
+import { keyText } from './prompt-keys.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
 //
@@ -1815,7 +1817,7 @@ export class Foes {
     else if (e.type === 'swung') { info = { damage: 1, stun: WORKS.swing.stun, source: 'swing' }; worldSnd.thud(s, 0.8); hitStop(0.05); kick(0.3); }
     if (!info) return;
     this.hurt(f, 'world', e.dir ?? null, info);
-    if (!this.game.flag('foes.world')) {
+    if (!this.game.flag('foes.world') && hintsFor('tip')) {
       this.game.set('foes.world', true);
       this.notice?.('The world hurts them too: knock a foe into spines or fire, off a ledge, into the wind or a swinging weight.');
     }
@@ -1838,10 +1840,10 @@ export class Foes {
       this.animKit(f, 0, {}).dust(f.pos, '#cdb89a', 14, 0.9);
     }
     this.hurt(f, 'world', null, { damage: over ? f.hp : 0, stun: KNOCK.stun, source: 'fall' });   // (dazed: no harm, the stun is the opening)
-    if (swept && !this.game.flag('foes.swept')) {
+    if (swept && !this.game.flag('foes.swept') && hintsFor('tip')) {
       this.game.set('foes.swept', true);
       this.notice?.('Knocked into deep water, a foe is swept away.');
-    } else if (!swept && !this.game.flag('foes.knocked')) {
+    } else if (!swept && !this.game.flag('foes.knocked') && hintsFor('tip')) {
       this.game.set('foes.knocked', true);
       this.notice?.(over ? 'Off the edge and down: a long fall ends a foe outright.' : 'Knocked off a ledge, a foe lies dazed a long while: cut it while the stars turn, the cut lands double.');
     }
@@ -2092,7 +2094,7 @@ export class Foes {
     if (soft || !pos) return 0;
     let n = 0;
     for (const f of this.list) if (f.alive && f.dead === undefined && f.pos.distanceTo(pos) < 26 && f.hush()) { n++; this.sparks(f, f.chest); }
-    if (n && !this.game.flag('foes.hushed')) { this.game.set('foes.hushed', true); this.notice?.('The bell-note whistle answered its toll: the bell walker chokes on its own note and sits open. Strike the clapper.'); }
+    if (n && !this.game.flag('foes.hushed') && hintsFor('tip')) { this.game.set('foes.hushed', true); this.notice?.('The bell-note whistle answered its toll: the bell walker chokes on its own note and sits open. Strike the clapper.'); }
     return n;
   }
 
@@ -2112,7 +2114,7 @@ export class Foes {
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
       f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound);
-      if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
+      if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried') && hintsFor('tip')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
       // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
       // cut (the drone, the root knot dazed)
       if (a.onParry === 'flip') { f.flipped = f.stunned = Math.max(f.stunned, 2.6); f.vel.multiplyScalar(0.3); }
@@ -2178,7 +2180,7 @@ export class Foes {
     this.sparks(f, f.chest);
     const T = this.tool;
     T?.rings?.add({ from: f.chest.clone(), dir: dir ? _w.copy(dir).setY(0).normalize().negate() : _up, reach: 0.05, r0: f.def.radius * 0.6, r1: f.def.radius + ARMOUR.ring, life: 0.25, color: '#f2c54b', thick: 1 });
-    if (!this.game.flag('foes.armour')) {
+    if (!this.game.flag('foes.armour') && hintsFor('tip')) {
       this.game.set('foes.armour', true);
       this.notice?.('That one shrugs off a light cut: the heavy third swing, a perfect parry or a cut before it is fully wound up staggers it.');
     }
@@ -2289,7 +2291,7 @@ export class Foes {
     T.stunned = Math.max(T.stunned, POSSESS.free); T.state = 'chase'; T.k = 0; T.letGo = true;
     if (T.def.calm?.wild) { T.provoked = false; T.state = 'idle'; }   // (wildlife: back to grazing)
     if (by?.alive) by.cool = Math.max(by.cool, POSSESS.cut);
-    if (!this.game.flag('foes.unstrung')) { this.game.set('foes.unstrung', true); this.notice?.('Its strings cut, the creature drops free of the marionette and goes back to its own business.'); }
+    if (!this.game.flag('foes.unstrung') && hintsFor('tip')) { this.game.set('foes.unstrung', true); this.notice?.('Its strings cut, the creature drops free of the marionette and goes back to its own business.'); }
   }
   /** Let go of the strings on f (a creature driven) and those f drops (a marionette): their targets with them. */
   unstring(f) {
@@ -2459,7 +2461,7 @@ export class Foes {
   /** The first time each kind comes for you: what it is and how to beat it, once (NOTES, src/foe-kinds.js; the archetypes', src/enemies/archetypes.js). */
   meet(f) {
     const note = ARCHETYPE_NOTES[f.kind] ?? NOTES[f.kind];
-    if (!note || this.own) return;
+    if (!note || this.own || !hintsFor('tip')) return;   // (how to beat it: hints full only; subtle, the foe's tells teach it: src/hint-level.js)
     const id = `foes.met.${f.kind}`;
     if (this.game.flag(id)) return;
     this.game.set(id, true);
@@ -2493,11 +2495,15 @@ export class Foes {
     if ((p.rest -= dt) <= 0) { this.spawnKind(p.kind); p.rest = 2; }
   }
 
-  /** The first pack: say what they are and what cuts them, once. */
+  /**
+   * The first pack: the fight's three new verbs, once (a teaching line: hints subtle or full, src/hint-level.js;
+   * subtle names the buttons only, full says the rest too).
+   */
   firstSeen() {
-    if (this.game.flag('foes.seen')) return;
+    if (this.game.flag('foes.seen') || !hintsFor('teach')) return;
     this.game.set('foes.seen', true);
-    this.notice?.('Creatures, possessed machines and shadow spirits: watch their bodies wind up. {key:blade} cuts; {key:guard} guards; {key:evade} evades. A last-moment guard parries. Each foe cut gives the tank a charge back.');
+    this.notice?.(keyText(quietOr('{key:blade} cuts · {key:guard} guards · {key:evade} evades.',
+      'Creatures, possessed machines and shadow spirits: watch their bodies wind up. {key:blade} cuts; {key:guard} guards; {key:evade} evades. A last-moment guard parries. Each foe cut gives the tank a charge back.'), { teach: true }));
   }
 
   /** The look follows the mind: a blot wobbles and squashes into its lunge, a machine walks and raises its arms. */

@@ -480,7 +480,7 @@ export const ARZACH_TEMPLE = {
       const near = Math.hypot(P.pos.x - _c.x, P.pos.z - _c.z) < ROOST.near && Math.abs(P.pos.y - _c.y) < ROOST.near;
       const wind = inWind(rt, P.pos);
       if (near && P.gliding) {
-        if (!wind && !ROOST.still[i]) { flown = 0; rt.notice('She watches you sink past her on still air, and does not follow. She wants the wind under her wings: bring it to her.', `elder.still.${G.phaseIndex}`); return; }
+        if (!wind && !ROOST.still[i]) { flown = 0; rt.notice('She watches you sink past her on still air, and does not follow.', `elder.still.${G.phaseIndex}`); return; }
         if ((flown += dt) > ROOST.ride) {
           flown = 0;
           G.add(wind ? ROOST.wind[i] : ROOST.still[i], wind ? 'wind' : 'flown');
@@ -490,7 +490,7 @@ export const ARZACH_TEMPLE = {
           if (G.state === 'open') { G.enter('fight'); G.cool = 2.2; }
         }
       } else {
-        if (near && P.onGround) rt.notice('She will not go alone. Take to the air beside her.', 'elder.alone');
+        if (near && P.onGround) rt.notice('She will not go alone.', 'elder.alone');
         flown = Math.max(0, flown - dt);
       }
     };

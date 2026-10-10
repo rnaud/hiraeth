@@ -12,7 +12,8 @@ import { startThemeDownload } from './music-store.js';
 import { SOUNDTRACKS, THEME_FILES } from './soundtracks.js';
 import { ObservatoryQuest } from './observatory.js';
 import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js';
-import { guardianHint } from './temples/hints.js';
+import { guardianHint, openHint, Struggle } from './temples/hints.js';
+import { hintsFor, quietOr } from './hint-level.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick } from './hud.js';
 import { resources } from './resources.js';
 import { ChimeField, ChimeView, dropPolicy, connectDrops } from './chimes.js';
@@ -350,9 +351,10 @@ function potionGlow(got) {
 const _potP = new THREE.Vector3(), _potV = new THREE.Vector3();
 /** Once per save, the first time a hurt leaves you short: how to drink. */
 function potionHint() {
-  if (game.flag('hint.potion') || player.hearts > player.maxHearts - 1 || player.dead) return;
+  // (a genuinely new verb with nothing on the screen to find it by: taught once, hints subtle or full: src/hint-level.js)
+  if (game.flag('hint.potion') || player.hearts > player.maxHearts - 1 || player.dead || !hintsFor('teach')) return;
   game.set('hint.potion', true);
-  setTimeout(() => showToast(keyText(tr('potion.hint'))), 900);
+  setTimeout(() => showToast(keyText(tr('potion.hint'), { teach: true })), 900);
 }
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
 hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
@@ -605,7 +607,8 @@ const story = new Story(scene, { levelId, def: { ...content.story, next: reveale
 const expedition = level.observatory ? new ObservatoryQuest({ model: level.observatory, journal, traveler: npcs[5], story, capture, sound }) : null;
 await slice();
 // ---- story: conversations, quests, the world's people and places (src/story/, src/interact.js)
-const showToast = (text, o) => ship.cinema.toast(text, o);   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
+// (a line that was only a control to press, at a hint level that doesn't name them, has nothing left to say: src/hint-level.js)
+const showToast = (text, o) => { if (!text || (typeof text === 'string' && !keyText(text).trim())) return; ship.cinema.toast(text, o); };   // (o.kind 'quest': a quest's start, its own look)   // queued, and held while a scene has the screen dark (src/ship/cinema.js)
 // the hum, when words on the screen speak of it: a toast, a subtitle, a line of a conversation, a balloon (src/story/hum.js)
 const humCue = new HumCue();
 let lastBalloon = null;
@@ -659,13 +662,15 @@ const findGoal = (target) => {
 const scout = new Scout({ scene, player, physics, sound,
   getTarget: () => nextObjective({ player, expedition, story, ship: level.ship, level, quest: () => storyRt.objective() }),
   onFind: (target, d) => { scoutSays(findSummary({ goal: findGoal(target), step: findText(target, d) }), 6, 'quest'); storyRt.marker.reveal(); },
-  onShrug: () => scoutSays('Nothing to find here', 2.5),
-  // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js)
-  getHint: () => guardianHint(level.temple),
+  onShrug: () => scoutSays(guardianHint(level.temple) ? '◇ …' : 'Nothing to find here', 2.5),   // (in a fight, no hint open yet: it only watches with you)
+  // in a guardian's fight the ping is a hint: the lens on the weak point, the line on the cue (src/temples/hints.js);
+  // the hint level lets its lines out (subtle: none at first, then one by one as the struggle goes on: openHint)
+  getHint: () => openHint(guardianHint(level.temple), struggle.t),
   onHint: (line) => scoutSays(`◇ ${line}`, HINT.say),
 });
-// a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling)
-game.on('scout:ping', () => { if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });
+const struggle = new Struggle();   // (the seconds in the guardian's phase: ticked in the loop)
+// a world that wants to show you the way at once (the City-Shaft's jets, just found: up through the ceiling): a nudge, hints full only
+game.on('scout:ping', (e) => { if (e?.why && !hintsFor('nudge')) return; if (!ship.playing && !storyRt.dialogue.open) scout.ping(); });
 // ---- item boxes (src/boxes/): they notice you; E opens one (a Zelda-style scene on the ship's cinematic camera)
 const boxes = createBoxes({ levelId, scene, physics, level, player, sound, quests: storyRt.quests, toast: showToast,
   anchor: () => ship.arrivalSpot(),
@@ -1231,7 +1236,7 @@ const padSchemeNotice = () => {
     if (localStorage.getItem(PAD_SCHEME_KEY) === String(PAD_SCHEME)) return;
     localStorage.setItem(PAD_SCHEME_KEY, String(PAD_SCHEME));
   } catch { return; }
-  if (savedEarly) setTimeout(() => showToast(PAD_SCHEME_NOTE), 600);
+  if (savedEarly) setTimeout(() => showToast(quietOr('The controller layout changed. Menu, then Controls, lists every button.', PAD_SCHEME_NOTE)), 600);   // (the list itself: hints full)
 };
 const hintShown = { text: '', at: -1e9, active: false };
 const controllerHint = document.createElement('div');
@@ -1680,6 +1685,7 @@ function frame(ts) {
   trialsRt?.update(dt, t);   // the trials' wind columns and signs (src/trials/)
   scout.flare.eye = camera.position;
   scout.update(dt, busy() || photo.on);
+  if (level.temple) struggle.tick(guardianHint(level.temple)?.id, busy() ? 0 : dt);   // (how long this phase of a guardian's fight has gone on: the drone's hints open after a struggle)
   // flocks circle the player (also in photo mode, so you can fly up to them)
   // (none in orbit: the prologue's ship and a homecoming's are high above the map, and birds would circle it there)
   const orbit = !!ship.spaceCopy && player.pos.y > (level.ground.heightAt?.(player.pos.x, player.pos.z) ?? 0) + 1000;
@@ -1780,7 +1786,7 @@ function frame(ts) {
     trails.forEach((tr, i) => tr.update(dt, moving ? m.body.localToWorld(JETS[i].clone()) : null));
   }
   updateHud();
-  if (!busy() && !ship.playing) updateHazards(dt, player, { notice: showToast });   // fire and spines (src/hazards.js)
+  if (!busy() && !ship.playing) updateHazards(dt, player, { notice: (t) => { if (hintsFor('tip')) showToast(t); } });   // ("It burns!": the hurt says it; the line, hints full)   // fire and spines (src/hazards.js)
   updateHealth(dt);
   level.update(dt, t, { player, rig, camera, passage, fade: (k, secs) => ship.cinema?.fade(k, true, secs) });
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);

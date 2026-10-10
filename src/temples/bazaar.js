@@ -441,7 +441,7 @@ export const BAZAAR_TEMPLE = {
       if (!cabled && pos.distanceTo(G.model.mouth) > LISTEN) return;
       if (!cabled && G.phaseIndex >= 2) {
         // (played into a low dish, the dish carries it a moment later: say nothing yet)
-        if (!byDish(pos)) rt.notice('Its dish is turned up to the dark: it hears nothing near it now, only what its cables bring from the dishes on the wall. Play its word into a low dish.', 'fs.cables');
+        if (!byDish(pos)) rt.notice('Its dish is turned up to the dark: it hears nothing near it now, only what its cables bring from the dishes on the wall.', 'fs.cables');
         return;
       }
       if (G.state !== 'open') { rt.notice(G.phaseIndex >= 2 ? 'Its cables hum with the word, but it is not listening yet. Wait for it to stop.' : 'It hears you, but it is not listening yet. Wait for it to lower its dish.', G.phaseIndex >= 2 ? 'fs.notyet2' : 'fs.notyet'); return; }

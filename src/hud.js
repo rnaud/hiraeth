@@ -13,6 +13,7 @@
 import { badgeLine, escapeHtml, keysHtml } from './prompt-keys.js';
 import { page, screen } from './platform.js';
 import { t, t as tr } from './i18n.js';
+import { hintsFor } from './hint-level.js';
 
 /** The keyboard's names in a prompt (on foot), as a pad's (by position: the bottom button jumps, the left one uses: src/bindings.js). */
 export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('SHIFT', 'L3').replaceAll('W/S', t('hud.leftStick')).replaceAll('A/D', t('hud.leftStick')).replace(/\bE\b/g, 'X / □');
@@ -28,6 +29,8 @@ export const padCue = (text) => text.replaceAll('SPACE', 'A / ×').replaceAll('S
  * @param s.lens       the observatory's lens line, when one is in reach
  * @param s.boarding   the backpack slotting into a vehicle
  * @param s.controller a pad is in use: its button names
+ * @param s.words      the prompt's words as well as its button (hints full: src/hint-level.js 'words');
+ *                     otherwise a prompt is its button alone, a small glyph
  */
 export function cueText(s = {}) {
   if (s.quiet) return '';
@@ -38,8 +41,12 @@ export function cueText(s = {}) {
   else if (s.prompt && !s.promptAt) t = `E ${s.prompt}`;
   else if (s.boarding) t = tr('hud.boarding');
   if (!t) return '';
+  if (!(s.words ?? hintsFor('words'))) t = t.match(PROMPT_KEY)?.[1] ?? t;
   return s.controller ? padCue(t) : t;
 }
+// (a prompt's button at the start of the cue: kept alone when the words are not wanted)
+const PROMPT_KEY = /^(E|SPACE|X \/ □|A \/ ×|B \/ ○|Y \/ △)(?=\s)/;
+const PROMPT_ALONE = /^(E|SPACE|X \/ □|A \/ ×|B \/ ○|Y \/ △)$/;
 
 /**
  * A region's name as you cross into it: it has to hold for `settle` ms (no flicker along a
@@ -158,6 +165,7 @@ export class Cue {
       this.el.innerHTML = kind === 'place' ? `<span>${escapeHtml(text)}</span>`
         : goal != null ? `<small class="goal">${escapeHtml(goal)}</small><span class="step">${keysHtml(step)}</span>` : badgeLine(text);
       this.el.classList.toggle('place', kind === 'place');
+      this.el.classList.toggle('glyph', !kind && PROMPT_ALONE.test(text));   // (a prompt as its button alone: hints subtle or off)
       this.el.classList.toggle('quest', kind === 'quest');
     }
     if (!!text !== !!this.text) this.el.classList.toggle('show', !!text);

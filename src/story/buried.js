@@ -7,6 +7,7 @@ import { Flames, Embers } from './flames.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, AMBER } from './buried-data.js';
 import { setupBuriedMoments } from './buried-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // The Buried Machine's story, alive (buried-data.js has the words).
 //
@@ -180,7 +181,7 @@ export function setupBuried(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { openValve('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The handwheel rings, and doesn’t move. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.'); }
+      if (!st.hinted) { st.hinted = true; toast(quietOr('The handwheel rings, and doesn’t move.', 'The handwheel rings, and doesn’t move. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.')); }
       return true;
     } });
   registerInteractable({ id: 'valve', priority: PRIORITY.use, range: 3.4, at: () => K.valve.at, enabled: () => !valveOpen(),

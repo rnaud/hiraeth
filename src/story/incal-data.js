@@ -616,10 +616,10 @@ export const THINGS = {
       nodes: {
         stuck: {
           say: ["~neutral~ A *ration tin* hangs in a hoist basket over the drop. *A rusty pin* locks the hoist arm in place.",
-            "~neutral~ Free the pin with a *shot*: aim with {key:aim}, fire with {key:fire}. Then turn the arm with a *push*: switch the gun to push with {key:mode}, and shoot again."],
+            "~curious~ The pin looks brittle with rust. Free of it, the arm would swing round its post."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
-        loose: { say: ["~neutral~ The pin is out. *Push the counterweight sideways round the post* to swing the basket in. Pushing along the arm won’t help."], choices: [{ text: '~neutral~ (step back)', end: true }] },
+        loose: { say: ["~neutral~ The pin is out. The counterweight hangs on the arm, ready to go round the post."], choices: [{ text: '~neutral~ (step back)', end: true }] },
         in: { say: ["~neutral~ The basket is safely over the terrace. On the tin’s lid, someone has scratched DOV."], choices: [{ text: '~neutral~ (step back)', end: true }] },
       },
     },
@@ -631,11 +631,11 @@ export const THINGS = {
       nodes: {
         grimy: {
           say: ["~neutral~ A round mirror on a pole, in a brass frame that turns on a ring of eight notches. Smog has greased it over until it reflects nothing at all.",
-            "~neutral~ *Wash it* with a splash: aim with {key:aim}, fire with {key:fire}."],
+            "~neutral~ It would take a good splash to see anything in it."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         clean: {
-          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. *Push the frame from the side* to turn it, one notch at a time, until it faces up the shaft: switch the gun to push with {key:mode}, then aim and shoot." }],
+          say: [{ if: { not: { flag: 'incal.mirror.turned' } }, text: "~neutral~ Clean now. It faces sideways, at a billboard selling something bright. The frame turns on its ring, one notch at a time." }],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         up: {
@@ -653,7 +653,7 @@ export const THINGS = {
       nodes: {
         dark: {
           say: ["~neutral~ TAXI, in flaking paint. The call-lamp’s dark glass contains a small history of unsuccessful moths.",
-            "~neutral~ *Shoot the lamp with fluid* to light it: aim with {key:aim}, fire with {key:fire}. The cabs above will see it."],
+            "~neutral~ Lit, the cabs above would see it."],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         lit: { say: ["~neutral~ The yellow call-lamp shines up through the traffic lanes."], choices: [{ text: '~neutral~ (step back)', end: true }] },

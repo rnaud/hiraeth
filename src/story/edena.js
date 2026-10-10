@@ -8,6 +8,7 @@ import { QUESTS, PEOPLE, THINGS, ITEMS } from './edena-data.js';
 import { setupTerraces } from './terraces.js';
 import { setupWaterClock } from './water-clock.js';
 import { setupEdenaMoments } from './edena-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // Viridel's story, alive (edena-data.js has the words).
 //
@@ -145,7 +146,7 @@ export function setupEdena(ctx) {
   showSprout();
   registerTarget({ kind: 'sprout', radius: 1.4, position: () => sproutAt.clone().add(V(0, 0.3, 0)), enabled: () => !!game.flag('edena.seed.planted') && !game.flag('edena.seed.watered'),
     onHit: (mode) => {
-      if (mode !== 'shoot') { toast('The seed rocks in its little hollow. It wants water, not wind.'); return true; }
+      if (mode !== 'shoot') { toast(quietOr('The seed rocks in its little hollow.', 'The seed rocks in its little hollow. It wants water, not wind.')); return true; }
       game.set('edena.seed.watered', true);
       st.grow = Math.max(st.grow, 0.0011);
       bloom(sproutAt.clone().add(V(0, 0.5, 0)), 12, 2);

@@ -18,6 +18,7 @@ import { setupWay } from './desert-way.js';
 import { setupRoad } from './desert-road.js';
 import { bystanderSpot } from '../ship/landing.js';
 import { setupRepay } from './desert-repay.js';
+import { quietOr } from '../hint-level.js';
 
 // The desert's story, alive: who stands where, what reacts to you, and the
 // chain of the main quest (desert-data.js has the words).
@@ -387,7 +388,7 @@ export function setupDesert(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearChannel('push'); return true; }
       st.wobble = 1;
-      if (!st.hinted) { st.hinted = true; toast('The rib rocks, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.'); }
+      if (!st.hinted) { st.hinted = true; toast(quietOr('The rib rocks, and settles.', 'The rib rocks, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.')); }
       return true;
     } });
   void boneTarget;

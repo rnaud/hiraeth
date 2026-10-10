@@ -13,6 +13,7 @@ import { padCancel } from './menu-pad.js';
 import { glyph } from './pad-glyphs.js';
 import { onXbox, qualityChoices } from './xbox.js';
 import { rumbleSupported, rumblePlay } from './rumble.js';
+import { HINT_LEVELS, DEFAULT_HINTS, setHintLevel } from './hint-level.js';
 // Player-facing UI: settings (saved), the settings menu, touch controls and
 // the save file for "continue where you left off".
 
@@ -45,6 +46,8 @@ const DEFAULTS = {
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
   hitboxes: false,      // the fight's hitbox overlay (F4, L3 + R3, the dev menu, the Arena's board: src/hitboxes.js)
+  hints: DEFAULT_HINTS, // how much the game says (src/hint-level.js): off | subtle (a glyph on approach, the first-time prompts) | full
+  hintsV: 1,            // settings saved before v1 had no hints setting (the game said everything): they start on subtle once
   // accessibility (docs/systems/ui.md, "Accessibility"): applyAccess() hands them to the modules that use them
   lang: 'en',           // the menus' and the HUD's language (src/i18n.js): en | fr
   textSize: 'normal',   // the words on the screen (TEXT_SIZES: dialogue, toasts, story pages, the menus)
@@ -79,6 +82,7 @@ export function applyAccess(s, doc = globalThis.document) {
   const still = reducedMotion(s);
   setMotion({ reduce: still, shake: s.shake ?? 1 });
   setLanguage(s.lang);
+  setHintLevel(s.hints);
   const root = doc?.documentElement;
   if (!root) return;
   root.style?.setProperty?.('--ts', String(TEXT_SIZES[s.textSize] ?? 1));
@@ -112,6 +116,9 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   // (the pad's verbs saved before PAD_SCHEME 4: one job per button now, src/remap.js migratePad)
   if (!(out.padV >= PAD_SCHEME) && out.pad && typeof out.pad === 'object' && Object.keys(out.pad).length) { out.pad = migratePad(out.pad); out.padV = PAD_SCHEME; }
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
+  // (hints: none saved before hintsV 1, the game said everything; a player starts on the new default, and can turn them back up)
+  if (typeof out.hints === 'boolean') out.hints = out.hints ? 'full' : 'off';
+  if (!(out.hintsV >= 1) || !HINT_LEVELS.includes(out.hints)) { out.hints = HINT_LEVELS.includes(out.hints) ? out.hints : DEFAULT_HINTS; out.hintsV = 1; }
   return out;
 }
 
@@ -323,6 +330,7 @@ export class SettingsMenu {
           ${row(t('set.mute'), `<input data-k="mute" type="checkbox">`)}
           <h2>${t('set.group.game')}</h2>
           ${row(t('set.enemies'), opts('enemies', ['normal', 'gentle', 'off']))}
+          ${row(t('set.hints'), opts('hints', HINT_LEVELS))}
           ${game ? `${row(t('set.devPanel'), `<input data-k="devPanel" type="checkbox">`)}
           ${row(t('set.devMenu'), `<button data-a="dev" type="button">${t('set.devOpen')}</button>`)}
           <div class="danger">

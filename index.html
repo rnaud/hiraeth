@@ -299,6 +299,11 @@
         box-shadow: 2px 2px 0 #2b211f; border-radius: 14px; display: flex; align-items: center; gap: 6px;
       }
       #prompt.show { opacity: 1; }
+      /* hints subtle or off (src/hint-level.js): the button alone, a small quiet glyph, no words */
+      #prompt.glyph { background: none; border: 0; box-shadow: none; padding: 0; font-size: calc(11px * var(--ts, 1)); }
+      #prompt.glyph.show, #cue.glyph.show { opacity: 0.8; }
+      #prompt.glyph .key, #cue.glyph .key { box-shadow: 0 0 0 1.5px #fffaf0, 1.5px 1.5px 0 1.5px rgba(43, 33, 31, 0.35); }
+      #cue.glyph { background: none; border: 0; box-shadow: none; padding: 0; }
       /* a button, wherever a prompt names one: a small ink circle (a pill for the two-glyph "X / □" names) */
       .key {
         display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; min-width: 1.75em; height: 1.75em; padding: 0 0.45em;

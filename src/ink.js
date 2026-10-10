@@ -7,6 +7,7 @@
 //   inkOf(game) · hasUpgrade(id, game)
 
 import { game as sharedGame } from './game-state.js';
+import { hintsFor } from './hint-level.js';
 
 export const INK = { every: 5 };
 /** The blade's steps, in order: how much ink each wants, and what is said when it is reached. */
@@ -28,7 +29,7 @@ export function gainInk(n, { game = sharedGame, notice = null } = {}) {
   const reached = UPGRADES.filter((u) => was < u.at && now >= u.at);
   for (const u of reached) notice?.(u.text);
   if (!was && now > 0) notice?.('The blot leaves its ink, and it runs into the glove. Gather enough and the blade grows.');
-  else if (!reached.length && Math.floor(now / INK.every) > Math.floor(was / INK.every)) {
+  else if (!reached.length && Math.floor(now / INK.every) > Math.floor(was / INK.every) && hintsFor('tip')) {   // (the count on the way: hints full)
     const next = UPGRADES.find((u) => now < u.at);
     notice?.(next ? `Ink ${Math.floor(now)} of ${next.at}.` : `Ink ${Math.floor(now)}.`);
   }

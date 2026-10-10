@@ -2,6 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { keyText } from '../src/prompt-keys.js';
 import * as THREE from 'three';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 // The desert's hoverbike has to be found (src/story/desert-bike.js), and the
 // vehicles' new models keep their sockets, seats and budgets (src/vehicle-kit.js).
@@ -131,7 +135,7 @@ test('the quest: Rook or Marrow send you to the hollow; the tarp, then the backp
   assert.equal(bike.dormant, false);
   assert.equal(quests.isDone('desert.bike'), true);
   assert.notEqual(bestInteractable(player)?.entry.id, 'bike.tarp', 'the tarp is done with');
-  assert.ok(toasts.some((t) => /D-pad ↓/.test(keyText(t, { kind: 'pad' }))), 'the toast says how to call it (a {key:call}: D-pad ↓ with a pad in hand)');
+  assert.ok(toasts.some((t) => /call it from anywhere with E\./.test(t)), 'the toast says how to call it, a new verb taught once (resolved as it is said: the key in hand)');
 });
 
 test('the new models keep their seats, sockets and lights, within a handheld budget', () => {

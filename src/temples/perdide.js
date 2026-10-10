@@ -123,7 +123,7 @@ function motherHit(g, part, mode) {
   const rt = g.rt;
   if (mode === 'stun') {
     if (g.phaseIndex >= 2 && (part === 'mouth' && g.state === 'open')) {
-      rt.notice('The cold settles in her mouth, but she shakes her crown at the crystals ringing out of tune over her. Still them in turn, smallest first.', 'mother.tune');
+      rt.notice('The cold settles in her mouth, but she shakes her crown at the crystals ringing out of tune over her.', 'mother.tune');
       return true;
     }
     if (part === 'mouth' && g.state === 'open') {
@@ -136,9 +136,9 @@ function motherHit(g, part, mode) {
     if (g.attack && g.state === 'fight' && !g.struck) {
       // stilled mid-strike: it never lands; once she has begun to calm, it calms her more
       g.stop(); g.cool = 2.4;
-      if (g.phaseIndex >= 2) rt.notice('She stops mid-strike, frosted, and shakes it off: the cold no longer eases her. The crystals over her, smallest first.', 'mother.mid2');
+      if (g.phaseIndex >= 2) rt.notice('She stops mid-strike, frosted, and shakes it off: the cold no longer eases her.', 'mother.mid2');
       else if (g.phaseIndex >= 1) { g.add(0.15, 'still'); rt.sound?.chime?.(); rt.notice('She stops mid-strike, frosted, and sways. Her crown glows brighter.', 'mother.mid'); }
-      else rt.notice('She stops mid-strike, frosted, and shakes it off. Wait for her to lie spent.', 'mother.mid0');
+      else rt.notice('She stops mid-strike, frosted, and shakes it off.', 'mother.mid0');
       return true;
     }
     return true;
@@ -146,7 +146,7 @@ function motherHit(g, part, mode) {
   if (mode === 'push') { g.add(-0.04, 'push'); rt.notice('She rears from the shove and snaps the air, more frightened than before.', 'mother.push'); return true; }
   if (part === 'mouth' && g.state === 'open') {
     g.enter('fight'); g.cool = 1.2;
-    rt.notice('She snaps at the splash and rears up: it only startles her. Something colder, to still her.', 'mother.fluid');
+    rt.notice('She snaps at the splash and rears up: it only startles her.', 'mother.fluid');
     return true;
   }
   rt.notice('The fluid runs off her leaves. It does not calm her.', 'mother.leaves');

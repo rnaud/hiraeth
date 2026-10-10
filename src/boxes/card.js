@@ -65,7 +65,7 @@ export class BoxCard {
     if (!this.dom) return;
     this.card.querySelector('.name').textContent = def.name;
     this.card.querySelector('.text').innerHTML = esc(def.text);
-    this.card.querySelector('.use').innerHTML = keyText(esc(def.use), { html: true });   // (a {key:verb}: the player's own key or button)
+    this.card.querySelector('.use').innerHTML = keyText(esc(def.use), { html: true, teach: true });   // (a {key:verb}: the player's own key or button)
     this.go.textContent = hint;
     this.el.classList.add('card');
     try { this.go.focus({ preventScroll: true }); } catch { /* old browsers */ }

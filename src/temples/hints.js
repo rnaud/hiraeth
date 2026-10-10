@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { hintLinesOpen, hintLevel } from '../hint-level.js';
 
 // The drone's hints in a guardian's fight (src/scout.js: a ping while a guardian is awake and you are
 // in its hall asks for one instead of the objective). Each temple has, for each of its guardian's
@@ -8,6 +9,7 @@ import * as THREE from 'three';
 // first wherever the game has one: the living guardians are calmed, never hurt.
 //
 //   guardianHint(rt)  { id, lines, at } for the scout's getHint (main.js), or null
+//   openHint(h, secs) the hint as the hint level lets it out: subtle, the lines one by one after a struggle
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -110,10 +112,10 @@ export const BOSS_HINTS = {
     phases: [
       ['She cries, and nobody answers.',
         'When she sinks low and cries, answer her with your bell.',
-        'Get close while she cries, then ring the bell (V, or Y / △ with empty hands). Not the fluid, never a shove.'],
+        'Get close while she cries, then ring the bell ({key:whistle}). Not the fluid, never a shove.'],
       ['She is crying again.',
         'Answer every cry with the bell, near her.',
-        'Each time she sinks low and cries, run close and ring the bell (V, or Y / △ with empty hands).'],
+        'Each time she sinks low and cries, run close and ring the bell ({key:whistle}).'],
     ],
   },
   // the First Garage: the Clockwork Foreman (a robot: it can only be stopped)
@@ -204,10 +206,10 @@ export const BOSS_HINTS = {
     phases: [
       ['It is trying to say something.',
         'Catch its word with your shell, then give it back when it listens.',
-        'Stay near when it cries its word, then play the shell back (V, or Y / △ with empty hands) while its dish is lowered.'],
+        'Stay near when it cries its word, then play the shell back ({key:whistle}) while its dish is lowered.'],
       ['It has a new word.',
         'Catch the new word, and play it back when it lowers its dish.',
-        'Be close when it cries, then play the shell back (V, or Y / △ with empty hands) close to its dish while it listens.'],
+        'Be close when it cries, then play the shell back ({key:whistle}) close to its dish while it listens.'],
     ],
   },
 };
@@ -228,4 +230,22 @@ export function guardianHint(rt, hints = BOSS_HINTS) {
   const lines = H.phases[i];
   if (!lines?.length) return null;
   return { id: `${rt.id}.${i}`, lines, at: () => H.at?.(g, i) ?? g.model.mouth };
+}
+
+/**
+ * The hint as the hint level lets it out (src/hint-level.js), after `secs` in this phase of the fight: full,
+ * all its lines at once; subtle, none at first, then the nudge, the plainer line and the plainest one as the
+ * struggle goes on (STRUGGLE); off, none. With no line open the hint keeps its id and an empty list: the drone
+ * only watches with you (the ping shrugs). null stays null.
+ */
+export function openHint(hint, secs, lv = hintLevel()) {
+  if (!hint) return null;
+  const n = hintLinesOpen(secs, lv);
+  return n >= hint.lines.length ? hint : { ...hint, lines: hint.lines.slice(0, n) };
+}
+
+/** The seconds spent in the guardian's current phase (its hint id), counted while the fight is on: tick(id, dt). */
+export class Struggle {
+  constructor() { this.id = null; this.t = 0; }
+  tick(id, dt) { if (id !== this.id) { this.id = id ?? null; this.t = 0; } else if (id) this.t += dt; return this.t; }
 }

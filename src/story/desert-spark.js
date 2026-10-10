@@ -3,6 +3,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { HEARTH } from '../desert-hearth.js';
 import { THINGS, ITEMS } from './desert-data.js';
+import { quietOr } from '../hint-level.js';
 
 // The spark-stone's errand in the Givers' Hearth (src/desert-hearth.js builds the
 // place; src/story/desert.js sets this up and lights the tree with the stone).
@@ -54,7 +55,7 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     onHit: (mode) => {
       if (mode === 'push') { roll(); return true; }
       st.wobble = 1;
-      hint('The ball rocks in its groove, and settles. It wants a shove: switch the gun to push with {key:mode}, then aim and shoot.');
+      hint(quietOr('The ball rocks in its groove, and settles.', 'The ball rocks in its groove, and settles. It wants a shove: switch the gun to push with {key:mode}, then aim and shoot.'));
       return true;
     } });
   registerInteractable({ id: 'hearth.weight', priority: PRIORITY.use, range: 3, at: () => H.ball.position, enabled: () => !opened() && st.roll < 0,
@@ -62,7 +63,7 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     distance: (p) => (inside() && Math.abs(p.pos.y - H.ball.position.y) < 3 ? flat(p.pos, H.ball.position) : Infinity),
     use: () => {
       dialogue.start(THINGS.weight, null, H.ball.position.clone());
-      if (!hasPush()) setTimeout(() => hint('Your tank is empty: fill it where the water is (the giant’s pool, past Qanat’s back gate).', 0), 600);
+      if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it where the water is (the giant’s pool, past Qanat’s back gate).'), 0), 600);
     } });
   registerInteractable({ id: 'hearth.grille', priority: PRIORITY.use, range: 3, at: () => H.stone.position, enabled: () => !opened() && st.roll < 0,
     prompt: 'look at the grille', distance: (p) => (inside() && Math.abs(p.pos.y - H.stone.position.y) < 2.5 ? flat(p.pos, H.stone.position) : Infinity),

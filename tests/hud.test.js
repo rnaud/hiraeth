@@ -2,6 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { cueText, PlaceName, Fader, Cue, findSummary, padCue, healthHud, staminaHud } from '../src/hud.js';
+import { badgeLine } from '../src/prompt-keys.js';
+const cueTextOf = cueText;
 import { Quests } from '../src/story/quests.js';
 import { Controller, menuNavigate } from '../src/controller.js';
 
@@ -35,7 +37,19 @@ test('the page has no status box: no #hud, no #status, no scout label; only the 
   assert.doesNotMatch(main, /getElementById\('status'\)|getElementById\('scout-label'\)/);
 });
 
-test('the cue says nothing at rest, and only what the use button does right here when nothing else does', () => {
+test('hints subtle (the default) or off: a prompt on the cue is its button alone, a small glyph, no words', () => {
+  assert.equal(cueText({ prompt: 'turn the lens' }), 'E', 'the button, no sentence');
+  assert.equal(cueText({ prompt: 'turn the lens', controller: true }), 'X / □');
+  assert.equal(cueText({ shipHint: 'E go aboard' }), 'E');
+  assert.equal(cueText({ lens: 'E (X / □) turn lens 2 · 1/3 beams aligned' }), 'E');
+  assert.equal(cueText({ prompt: 'turn the lens', words: false }), 'E');
+  assert.equal(cueText({ prompt: 'talk to Ama', promptAt: { x: 1 } }), '', 'the floating glyph over Ama says it');
+  assert.equal(badgeLine('E'), '<b class="key">E</b>', 'drawn as the round badge');
+  assert.match(src('src/story/index.js'), /const words = hintsFor\('words'\)/, 'the floating prompt: words only with hints full');
+});
+
+test('hints full: the cue says nothing at rest, and only what the use button does right here when nothing else does', () => {
+  const cueText = (s) => cueTextOf({ words: true, ...s });
   assert.equal(cueText({}), '', 'walking about');
   assert.equal(cueText({ prompt: 'talk to Ama', promptAt: { x: 1 } }), '', 'the floating prompt over Ama says it');
   assert.equal(cueText({ prompt: 'turn the lens' }), 'E turn the lens', 'a prompt with nothing to float over');
@@ -114,8 +128,8 @@ test('the frame readout is off unless asked for (F, the settings, ?fps=1), and o
   const { Settings, migrateSettings } = await ui();
   globalThis.localStorage = { getItem: () => null, setItem() {} };
   try { assert.equal(new Settings().showFps, false); } finally { delete globalThis.localStorage; }
-  assert.deepEqual(migrateSettings({ showFps: true, music: 0.5 }), { music: 0.5, hudV: 1 }, 'saved before: the old default goes');
-  assert.deepEqual(migrateSettings({ showFps: true, hudV: 1 }), { showFps: true, hudV: 1 }, 'turned on since: kept');
+  assert.deepEqual(migrateSettings({ showFps: true, music: 0.5 }), { music: 0.5, hudV: 1, hints: 'subtle', hintsV: 1 }, 'saved before: the old default goes');
+  assert.deepEqual(migrateSettings({ showFps: true, hudV: 1, hints: 'full', hintsV: 1 }), { showFps: true, hudV: 1, hints: 'full', hintsV: 1 }, 'turned on since: kept');
   // the Steam Deck started on High before its own preset: Auto once; a lighter choice is kept
   assert.equal(migrateSettings({ hudV: 1, quality: 'high' }, { deck: true }).quality, 'auto');
   assert.equal(migrateSettings({ hudV: 1, quality: 'low' }, { deck: true }).quality, 'low');
@@ -155,7 +169,7 @@ test('R3 sends the scout on foot and riding when there is no foe to lock on to; 
   assert.match(src('src/ui.js'), /data-press="KeyQ" class="b-ping"/);
   // what it found: the cue, at once, and the quest marker for a while; nothing to find: a shrug, said
   assert.match(main, /onFind: \(target, d\) => \{ scoutSays\(findSummary\(\{ goal: findGoal\(target\), step: findText\(target, d\) \}\), 6, 'quest'\); storyRt\.marker\.reveal\(\); \}/);
-  assert.match(main, /onShrug: \(\) => scoutSays\('Nothing to find here', 2\.5\)/);
+  assert.match(main, /onShrug: \(\) => scoutSays\(guardianHint\(level\.temple\) \? '◇ …' : 'Nothing to find here', 2\.5\)/, 'in a fight with no hint open yet, it only watches');
 });
 
 test('the quest marker hangs over the objective only for a while after the scout has found it', async () => {

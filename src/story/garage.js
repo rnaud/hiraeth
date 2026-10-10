@@ -4,6 +4,7 @@ import { registerTarget } from '../targets.js';
 import { registerInteractable, PRIORITY } from '../interact.js';
 import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } from './garage-data.js';
 import { setupGarageMoments } from './garage-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // The Sealed Hangar's story, alive (garage-data.js has the words): "The Major Forgot".
 //
@@ -80,7 +81,7 @@ export function setupGarage(ctx) {
     registerTarget({ kind: 'machine', radius: m.radius, position: () => m.pos, enabled: () => m.target !== 1 && player.pos.distanceTo(m.pos) < 90,
       onHit: (mode) => {
         if (mode === 'shoot') startMachine(id);
-        else if (!m.nudged) { m.nudged = true; toast('It rocks on its bearings and settles. It wants something in the works, not a shove: shoot it.'); }
+        else if (!m.nudged) { m.nudged = true; toast(quietOr('It rocks on its bearings and settles.', 'It rocks on its bearings and settles. It wants something in the works, not a shove: shoot it.')); }
         return true;
       } });
   }

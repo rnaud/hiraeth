@@ -24,7 +24,7 @@ export function itemsPage(items, placements, fallbacks, titles) {
     const html = `<article data-id="${esc(id)}" data-kind="${esc(it.kind)}" tabindex="0" data-nav>
       <div class="pic" title="Drag to turn it; click to see it full screen"><img src="item-pictures/${esc(id)}.webp" alt="" loading="lazy"><canvas></canvas><span class="glyph on-focus" data-glyph="ok" aria-hidden="true"></span></div>
       <div class="txt"><h2>${esc(it.name)}</h2><div class="meta">${esc(KIND_NAMES[it.kind] ?? it.kind)}${it.needs ? ` · needs ${esc(items[it.needs]?.name ?? it.needs)}` : ''} · ${esc(id)}</div>
-      <p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true })}</p>` : ''}${whereHtml}</div>
+      <p>${esc(it.text)}</p>${it.use ? `<p class="use">${keyText(esc(it.use), { html: true, teach: true })}</p>` : ''}${whereHtml}</div>
     </article>`;
     return { id, kind: it.kind, html, search: [it.name, it.text, it.use, id, ...where.map((w) => `${w.title} ${w.note}`)].join(' ').toLowerCase() };
   });

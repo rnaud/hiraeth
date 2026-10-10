@@ -543,7 +543,7 @@ export const BURIED_TEMPLE = {
     rt.volley = (i) => {
       const clock = rt.time;
       if (G.state !== 'open') { rt.notice('Its vents are shut. Wait for them to open.', 'tw.shut'); return; }
-      if (!facing(i)) { rt.notice('That vent has turned away: it opens them one at a time as it turns on the gear. Jam the gear.', 'tw.turned'); return; }
+      if (!facing(i)) { rt.notice('That vent has turned away: it opens them one at a time as it turns on the gear.', 'tw.turned'); return; }
       hits[i] = clock;
       rt.sound?.critter?.('clank', 0.9);
       if (hits.every((h) => clock - h <= VOLLEY)) {

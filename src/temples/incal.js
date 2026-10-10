@@ -167,9 +167,9 @@ function wardenHit(g, part, mode) {
   if (mode === 'push') { rt.notice('The shove only rings off its hull.', 'warden.push'); return true; }
   if (part !== 'mouth') { if (g.state === 'fight') rt.notice('The fluid splashes off its hull. Wait for its vents to open.', 'warden.hull'); return true; }
   if (g.state !== 'open') { rt.notice('Its vents are shut. Wait for them to open.', 'warden.shut'); return true; }
-  if (g.phaseIndex >= 1 && P && P.pos.y < g.model.mouth.y - 1.2) { rt.notice('From down here you only hit its shut sides. Get above it.', 'warden.above'); return true; }
+  if (g.phaseIndex >= 1 && P && P.pos.y < g.model.mouth.y - 1.2) { rt.notice('From down here you only hit its shut sides.', 'warden.above'); return true; }
   const wind = g.phaseIndex >= 1 && !!draught(rt, g);
-  if (g.phaseIndex >= 2 && !wind) { rt.sound?.critter?.('clack', 0.8); rt.notice('Its hatch slams shut as the shot comes: in still air it will not open. Hover over the vane it stands by, so the draught lifts the hatch.', 'warden.still'); return true; }
+  if (g.phaseIndex >= 2 && !wind) { rt.sound?.critter?.('clack', 0.8); rt.notice('Its hatch slams shut as the shot comes: in still air it will not open.', 'warden.still'); return true; }
   g.add(wind && g.phaseIndex === 1 ? HALL.washed : HALL.hit, wind ? 'draught' : 'vent');
   if (wind) rt.notice('The draught off the vane holds its hatch wide, and the shot goes deep. It staggers.', `warden.draught.${g.phaseIndex}`);
   rt.sound?.critter?.('clank', 1);

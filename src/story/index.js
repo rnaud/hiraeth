@@ -20,6 +20,7 @@ import { expressionFor } from '../expression.js';
 import { viaPortal } from '../scout.js';
 import { backdropFor, portraitSize } from './portrait-bg.js';
 import { keyBadge, escapeHtml } from '../prompt-keys.js';
+import { hintsFor } from '../hint-level.js';
 import { setupDesert } from './desert.js';
 import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
@@ -373,9 +374,10 @@ export function createStory(o) {
       // (as data too, platform.js screen.prompt: where it floats, in the world)
       screen.set('prompt', on ? { text: rt.prompt, key: controller ? PAD.interact : 'E', at } : null);
       if (on) {
-        const key = controller ? PAD.interact : 'E', text = `${key} ${rt.prompt}`;
+        // (hints full: the button and what it does; otherwise the button alone, a small quiet glyph: src/hint-level.js)
+        const words = hintsFor('words'), key = controller ? PAD.interact : 'E', text = words ? `${key} ${rt.prompt}` : key;
         // (the button as a round badge; native-pad.js renames it in place, it rewrites text nodes)
-        if (promptEl.dataset.text !== text) { promptEl.dataset.text = text; promptEl.innerHTML = `${keyBadge(key)}<span>${escapeHtml(rt.prompt)}</span>`; }
+        if (promptEl.dataset.text !== text) { promptEl.dataset.text = text; promptEl.innerHTML = words ? `${keyBadge(key)}<span>${escapeHtml(rt.prompt)}</span>` : keyBadge(key); promptEl.classList.toggle('glyph', !words); }
         promptEl.style.transform = `translate(${((_p.x * 0.5 + 0.5) * innerWidth).toFixed(1)}px, ${((-_p.y * 0.5 + 0.5) * innerHeight).toFixed(1)}px) translate(-50%, -100%)`;
       }
       promptEl.classList.toggle('show', on);

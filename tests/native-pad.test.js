@@ -162,6 +162,6 @@ test('View / Select opens the game menu on your items: each one, the backpack fi
   assert.match(html, /Gear <span>4 of \d+<\/span>/);
   assert.match(html, /<em>in use<\/em>/);
   assert.equal(rows[0][0].name, 'Magic-fluid backpack');
-  assert.match(keyText(rows[0][0].desc, { kind: 'pad' }), /Aim with LT \/ L2/, 'what it is and what it does, at the bottom (its {key:aim} as the pad names it)');
+  assert.match(keyText(rows[0][0].desc, { kind: 'pad', teach: true }), /Aim with LT \/ L2/, 'what it is and what it does, at the bottom (its {key:aim} as the pad names it: an item\'s card teaches, at every hint level)');
   assert.match(itemsPanel(itemsData({ owned: [] })).html, /Nothing to deliver|Nothing of value yet/);
 });

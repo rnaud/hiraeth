@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { questGoal } from './quest-goals.js';
+import { hintsFor } from '../hint-level.js';
 
 // Quests: ids, stages, objective text and a place in the world. Progress is
 // kept in the shared game state (game-state.js), so it survives reloads and
@@ -138,7 +139,7 @@ export class Quests {
       if (stage === DONE) { this.toast(`${d.main ? 'Completed' : 'Done'}: ${d.title}`); d.onDone?.(this); }
       else if (stage === FAILED) { this.game.set(`failed.${id}`, d.title); this.toast(`What happened: ${d.title}`); d.onFail?.(this); }
       else if (prev === undefined || opening) this.startToast(d, st);
-      else this.toast(`${d.title}: ${st.text}`);
+      else if (hintsFor('objective')) this.toast(`${d.title}: ${st.text}`);   // (the next step pushed onto the screen: hints full; else its chime, and the quest log has it)
       if (stage === FAILED) this.sound?.fail?.(); else this.sound?.chime?.();
     }
     st?.onEnter?.(this);
@@ -148,10 +149,13 @@ export class Quests {
     return true;
   }
   onChange(f) { this.listeners.add(f); return () => this.listeners.delete(f); }
-  /** A quest begins: its toast in its own look (kind 'quest': src/ship/cinema.js questToastHtml), not as the other notices. */
+  /**
+   * A quest begins: its toast in its own look (kind 'quest': src/ship/cinema.js questToastHtml), not as the other notices.
+   * Its first step under the title with hints full (src/hint-level.js 'objective'); else the title alone, the quest log has the step.
+   */
   startToast(d, st) {
-    const big = d.main || d.major, step = st?.text ?? '';
-    this.toast(`${big ? 'Quest' : 'New errand'}: ${d.title} · ${step}`, { kind: 'quest', head: big ? 'New quest' : 'New errand', title: d.title, step });
+    const big = d.main || d.major, step = hintsFor('objective') ? st?.text ?? '' : '';
+    this.toast(`${big ? 'Quest' : 'New errand'}: ${d.title}${step ? ` · ${step}` : ''}`, { kind: 'quest', head: big ? 'New quest' : 'New errand', title: d.title, step });
   }
 
   // (only a quest of this world: one tracked in another, still under way there, has no marker here and

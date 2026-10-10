@@ -32,6 +32,10 @@ import { SUN } from '../src/temples/edena.js';
 import { ROOST } from '../src/temples/arzach.js';
 import { HALL, draught } from '../src/temples/incal.js';
 import { allTargets, hitTarget } from '../src/targets.js';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -259,7 +263,7 @@ test('the Lampless’s last phase: it shies from you; a pool lit earlier (your l
   wait(LURE.drink + 0.5);
   assert.equal(G.meter, m0, 'not while you stand by the pool');
   assert.equal(pools[0].lit, true, 'the pool still lit');
-  assert.ok(said(/Stand back/), 'it says to stand back');
+  assert.ok(said(/will not come down to drink while you stand by it/), 'it shows it will not come while you stand by (no longer told to stand back)');
   // the way: stand back
   stand(px > 0 ? px - 9 : px + 9, pz + 4);
   assert.equal(until(() => G.meter > m0 || G.state === 'weary', 10), true, 'it drinks there');

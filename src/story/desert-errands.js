@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { STORY } from '../desert-sites.js';
 import { Puffs } from './puffs.js';
 import { THINGS, ITEMS } from './desert-data.js';
+import { quietOr } from '../hint-level.js';
 
 // Two of the desert's errands, hands-on (src/story/desert.js sets them up).
 //
@@ -124,7 +125,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     if (d.dot(into) > 0.5) {
       // straight at the rib: it only jams tighter
       st.wobble = 1;
-      hint(how === 'push' ? 'The knuckle grinds into the drum, and the drum into the rib. Shoved that way it only jams tighter: try it from the side.'
+      hint(how === 'push' ? quietOr('The knuckle grinds into the drum, and the drum into the rib. Shoved that way it only jams tighter.', 'The knuckle grinds into the drum, and the drum into the rib. Shoved that way it only jams tighter: try it from the side.')
         : 'You lean on the bone. It grinds into the drum, and the drum into the rib. Not that way: from the side.');
       return false;
     }
@@ -134,7 +135,7 @@ export function setupDrum(ctx, { toolHasPush = () => false } = {}) {
     onHit: (mode, point, dir) => {
       if (mode === 'push') return shove(dir, 'push');
       st.wobble = 1;
-      hint('The knuckle of bone rocks against the drum, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.');
+      hint(quietOr('The knuckle of bone rocks against the drum, and settles.', 'The knuckle of bone rocks against the drum, and settles. It needs a shove: switch the gun to push with {key:mode}, then aim and shoot.'));
       return true;
     } };
   registerTarget(knuckleTarget);
@@ -268,7 +269,7 @@ export function setupMask(ctx) {
       // the wind sifts the sand back into an eye left open alone
       if (!solved() && e.open && st.clock - e.openAt > EYE_WINDOW) {
         e.open = false; e.want = 1;
-        hint('The wind sifts the sand back over the mask’s eye. Both eyes at once, then, and quickly.');
+        hint(quietOr('The wind sifts the sand back over the mask’s eye.', 'The wind sifts the sand back over the mask’s eye. Both eyes at once, then, and quickly.'));
       }
       if (e.k !== e.want) {
         const rate = e.want < e.k ? 1 / 0.7 : 1 / 2.6;   // the sand pours off fast and drifts back slowly

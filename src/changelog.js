@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.31', date: '2026-10-10', items: [
+    // the hints pass: the world teaches, the screen says as little as it can
+    'Far fewer hints. What you can use shows a small button over it, without words; a quest no longer puts its next step on the screen, the gold column over a world’s goal is gone, and the game no longer explains each foe, the world’s edge or a fire the first time you meet them. Your drone still finds the way whenever you ask.',
+    'In a guardian’s fight your drone helps only after a while: ask at once and it just watches with you; the longer a phase of the fight goes on, the more it tells you.',
+    'Things you look at, the guardians and the people of the worlds no longer spell out what to do: they say what is there and what is wrong, and leave the rest to you. Lines no longer name buttons, except the first time you need a new move or a new tool.',
+    'A new setting, Hints (Settings, Game): Off, Subtle (the new default) or Full, which brings back every prompt, every tip and the drone’s help at once.',
+  ] },
   { v: '1.30', date: '2026-10-10', items: [
     'Lorn II’s giant mushrooms are pale glass, as the wood’s pictures draw them: you see the dark trunks and the sky through their caps and stalks, their rims drawn in a soft line, the glowing ones lit from within, by day and by night. The relic mushroom and its stepping caps stay solid on top, so you can see where you land.',
     'The creatures gallery holds its view still: a sky ray, a moth or a jelly now glides, bobs and flaps in front of the camera instead of the whole picture riding along with it (or zooming in and out as it moved).',

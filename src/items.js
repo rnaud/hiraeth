@@ -224,7 +224,7 @@ export const items = {
   on(fn) { listeners.add(fn); return () => listeners.delete(fn); },
 };
 
-const keys = (t) => keyText(esc(t), { html: true });   // (a {key:verb}: the player's own key or button)
+const keys = (t) => keyText(esc(t), { html: true, teach: true });   // (a {key:verb}: the player's own key or button)
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 

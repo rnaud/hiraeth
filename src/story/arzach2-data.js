@@ -288,7 +288,7 @@ export const THINGS = {
           say: ["~neutral~ A bronze signal lamp sits on a turntable, a polished mirror behind it and a wooden tiller at its back. The oil still smells sweet.",
             { if: { flag: 'arzach2.lamp.notch', is: 0 }, text: "~curious~ There are eight notches. The mirror faces *the notch with a carved bell*: north, toward the monastery." },
             { if: { not: { flag: 'arzach2.lamp.notch', is: 0 } }, text: "~curious~ The mirror points away from *the carved bell*. *Push the tiller sideways* to turn it toward that notch and the monastery." },
-            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~neutral~ The wick needs a light. *Shoot it*: aim with {key:aim}, fire with {key:fire}." }],
+            { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~neutral~ The wick is dry and dark. It needs a light." }],
           choices: [{ text: '~neutral~ (step back)', end: true }],
         },
         answered: { say: ["~solemn~ The signal lamp faces the rose cliff. A tiny light answers from a monastery window."], choices: [{ text: '~neutral~ (step back)', end: true }] },
@@ -299,7 +299,7 @@ export const THINGS = {
     id: 'tiles', name: 'Fallen-up tiles', title: 'before the church door', color: '#c9765c', voice: 0.6,
     talk: { nodes: { look: {
       say: ["~neutral~ Fallen roof tiles pin the clapper down. One bright bronze end sticks out.",
-        "~neutral~ *Push the tiles aside* to free it: switch the gun to push with {key:mode}, then aim and shoot."],
+        "~neutral~ They are only heaped there, not set."],
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

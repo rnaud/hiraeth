@@ -3,6 +3,7 @@ import { makeMaterial } from './materials.js';
 import { slotStorage } from './save-slots.js';
 import { GameMenu } from './game-menu.js';
 import { inputKind } from './prompt-keys.js';
+import { hintsFor } from './hint-level.js';
 
 // Story, collectibles and the sketchbook journal (worlds are reached by the ship: src/ship/).
 //  - Story: one quiet goal per level, marked by a beacon. A first visit and
@@ -202,6 +203,8 @@ export class Story {
   }
 
   update(dt, t, camera) {
+    // the column of light over the goal: an objective marker, hints full only (src/hint-level.js); the scout finds it on request
+    if (this.beacon) this.beacon.visible = !this.done && !this.def.manual && hintsFor('objective');
     this.halo.scale.setScalar(1 + Math.sin(t * 2) * 0.08);
     // keep the beam at least ~4 px wide however far away you are
     if (camera) {
@@ -338,7 +341,7 @@ export class Errands {
           img = this.capture(new THREE.Vector3(P.x + Math.sin(h) * 3, P.y + 1.8, P.z + Math.cos(h) * 3), P.clone().add(new THREE.Vector3(0, 1.4, 0)), 240, 180);
         } catch { /* no sketch */ }
         this.journal.setErrand(d.id, { ...st, done: true, img });
-        this.say(`Delivered ${d.item} · ${errandMenuKey()} to see it in the Sketchbook`);
+        this.say(hintsFor('tip') ? `Delivered ${d.item} · ${errandMenuKey()} to see it in the Sketchbook` : `Delivered ${d.item}`);   // (where to look: hints full)
         this.sound?.chime?.();
       } else npc.lines = w.base;
     }

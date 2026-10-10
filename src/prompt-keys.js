@@ -9,6 +9,7 @@
 import { backKey } from './native-pad.js';
 import { verbKey as remapKey, verbButton, controlPrefs } from './remap.js';
 import { t } from './i18n.js';
+import { hintsFor, quietKeys } from './hint-level.js';
 
 /** What the player holds now: 'pad' (a controller is in use), 'touch', or 'keys' (the body's classes: main.js, ui.js). */
 export function inputKind(doc = typeof document !== 'undefined' ? document : null) {
@@ -36,7 +37,7 @@ export const keyBadge = (label) => `<b class="key">${escapeHtml(label)}</b>`;
 
 // a button name at the start of a prompt: "E go aboard", "B / ○ step outside", "A / × …", "SPACE hop", "W/S throttle"
 // (as a badge, native-pad.js renames it to the player's own key or button: src/remap.js)
-const LEAD = /^(E|SPACE|SHIFT|[WASD]\/[WASD]|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3|R3|D-pad [↑↓←→]) (?=\S)/;
+const LEAD = /^(E|SPACE|SHIFT|[WASD]\/[WASD]|X \/ □|A \/ ×|B \/ ○|Y \/ △|RT \/ R2|LT \/ L2|RB \/ R1|LB \/ L1|L3|R3|D-pad [↑↓←→])(?: (?=\S)|$)/;   // (alone: a prompt as its button only, hints subtle or off)
 
 /**
  * A status line as HTML: every " · "-separated part that starts with a
@@ -46,7 +47,8 @@ export function badgeLine(text) {
   return String(text ?? '').split('\n').map((line) => line.split(' · ').map((part) => {
     if (part.startsWith('✦ ')) return `<span class="charge">${escapeHtml(part)}</span>`;   // the father's charge, in its own gold (src/story/charge.js)
     const m = part.match(LEAD);
-    return m ? keyBadge(m[1]) + ' ' + keysHtml(part.slice(m[0].length)) : keysHtml(part);
+    const rest = m ? part.slice(m[0].length) : '';
+    return m ? keyBadge(m[1]) + (rest ? ' ' + keysHtml(rest) : '') : keysHtml(part);
   }).join(' · ')).join('\n');
 }
 
@@ -99,10 +101,13 @@ export const hasKeys = (text) => typeof text === 'string' && text.includes('{key
 /**
  * A text with its {key:verb} placeholders resolved for the input in hand (o.kind: 'keys' | 'pad' | 'touch').
  * o.html: each as a <kbd class="kp pad-raw"> (only the names are escaped: escape the rest first).
+ * Unless hints are full (src/hint-level.js, 'keys'), the controls a line names are taken out of it
+ * (quietKeys); o.teach keeps them: a new tool's card, the item pages, the few first-time prompts.
  */
-export function keyText(text, { kind = inputKind(), html = false } = {}) {
-  const s = String(text ?? '');
+export function keyText(text, { kind = inputKind(), html = false, teach = false } = {}) {
+  let s = String(text ?? '');
   if (!hasKeys(s)) return s;
+  if (!teach && !hintsFor('keys')) { s = quietKeys(s); if (!hasKeys(s)) return s; }
   return s.replace(KEY_TOKEN, (m, verb) => {
     const w = verbKey(verb, kind);
     return html ? `<kbd class="kp pad-raw">${escapeHtml(w)}</kbd>` : w;

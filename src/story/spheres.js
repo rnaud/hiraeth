@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs, ownMaterial } from './puffs.js';
 import { QUESTS, PEOPLE, THINGS, ITEMS, SOUNDS, orbDegree } from './spheres-data.js';
 import { setupSpheresMoments } from './spheres-moments.js';
+import { hintsFor } from '../hint-level.js';
 
 // The Garden of Spheres' story, alive (spheres-data.js has the words).
 //
@@ -260,7 +261,7 @@ export function setupSpheres(ctx) {
     // (standing still beside one does nothing: it wants the fluid, Linnet's "give one a splash")
     for (const s of L) {
       const d = flat(pp, s.centre), inRange = d < s.o.R + 30 && pp.y < s.centre.y + s.o.R + 3;
-      if (inRange && !s.near && !heard(s.id) && !s.hinted && game.flag('spheres.aube.heard')) { s.hinted = true; toast('Give it a splash of your fluid, and listen.'); }
+      if (inRange && !s.near && !heard(s.id) && !s.hinted && game.flag('spheres.aube.heard')) { s.hinted = true; if (hintsFor('nudge')) toast('Give it a splash of your fluid, and listen.'); }   // (a nudge on approach: hints full)
       s.near = inRange;
       s.flash = Math.max(0, (s.flash ?? 0) - dt * 0.8);
       // the ring: wide and dark until it has remembered, then closed round the foot, faintly lit, brightening near you

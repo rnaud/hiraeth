@@ -6,6 +6,8 @@ import { GadgetWorld } from './world.js';
 import { GadgetHud } from './hud.js';
 import { InkBursts, inkMat } from './kit.js';
 import { sfx } from './sfx.js';
+import { hintsFor } from '../hint-level.js';
+import { keyText } from '../prompt-keys.js';
 
 // The gadgets' runtime (docs/systems/gadgets.md): one per world, made in main.js after the foes. It holds
 // an instance of every registered gadget (src/gadgets/registry.js), the one in hand (the flag
@@ -37,6 +39,9 @@ export function gadgetInput(c = {}) {
   };
 }
 
+/** The gadgets' words that teach their own verb (how to draw the pen's line, how to pop your own bubble): said with their buttons. */
+const TEACH_NOTES = new Set(['pen-short', 'bubble.self']);
+
 const _v = new THREE.Vector3();
 const smooth = (k) => k * k * (3 - 2 * k);
 
@@ -59,8 +64,15 @@ export class Gadgets {
       scene, physics, player, camera, rig, sound, tool, level, foes, wind, game, items, relics, flammables,
       post, boxes,   // (the composite's uniforms: the seeing lens draws in it; the world's boxes it marks)
       world: this.world, fx: this.fx, hud: this.hud, bursts: this.bursts, sfx,
-      // a short word on the screen (src/main.js showToast), at most every few seconds for the same key
-      notice: (text, key = text) => { const t = performance.now(); if ((said.get(key) ?? -1e9) + 3000 > t) return; said.set(key, t); notice?.(text); },
+      // a short word on the screen (src/main.js showToast), at most every few seconds for the same key; unless hints
+      // are full (src/hint-level.js), each only once a session (the pen is dry, no bombs left: the sound says it after);
+      // a gadget's own new verb (TEACH_NOTES) keeps its buttons
+      notice: (text, key = text) => {
+        const t = performance.now();
+        if ((said.get(key) ?? -1e9) + 3000 > t || (said.has(key) && !hintsFor('tip'))) return;
+        said.set(key, t);
+        notice?.(TEACH_NOTES.has(key) ? (hintsFor('teach') ? keyText(text, { teach: true }) : '') : text);
+      },
       // where an aiming gadget points this frame (the traveller turns to it, the camera comes over the shoulder)
       aimAt: (point, dir) => { this.aimPoint.copy(point); this.aimDir.copy(dir); this.aimWanted = true; },
       // another gadget's instance (the hourglass rewinds the bombs in flight)

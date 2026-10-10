@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { textGeometry, glyphGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE, LANTERN_TONE, LANTERN_FLAG } from './bazaar-data.js';
 import { setupBazaarMoments, BROADCAST } from './bazaar-moments.js';
+import { quietOr } from '../hint-level.js';
 
 // The Signal Market's story, alive (bazaar-data.js has the words).
 //
@@ -111,7 +112,7 @@ export function setupBazaar(ctx) {
       st.bulbs[i] = BULB_LIFE;
       sound.toolClick?.(true);
       if (st.bulbs.every((x) => x > 0)) tune();
-      else if (!st.hinted) { st.hinted = true; toast('One bulb glows… and starts to fade. Light all three before the first goes dark.'); }
+      else if (!st.hinted) { st.hinted = true; toast(quietOr('One bulb glows… and starts to fade.', 'One bulb glows… and starts to fade. Light all three before the first goes dark.')); }
       return true;
     } }));
   const tune = () => {
@@ -157,7 +158,7 @@ export function setupBazaar(ctx) {
     onHit: (mode) => {
       if (mode === 'push') { clearCrates(); return true; }
       st.crateWobble = 1;
-      if (!st.crateHint) { st.crateHint = true; toast('The crates rock and settle. They need a shove: switch the gun to push with {key:mode}, then aim and shoot.'); }
+      if (!st.crateHint) { st.crateHint = true; toast(quietOr('The crates rock and settle.', 'The crates rock and settle. They need a shove: switch the gun to push with {key:mode}, then aim and shoot.')); }
       return true;
     } });
   const placeCrates = (k) => {

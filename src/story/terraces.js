@@ -6,6 +6,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Puffs } from './puffs.js';
 import { TERRACES } from '../levels/edena.js';
 import { PEOPLE } from './edena-data.js';
+import { quietOr } from '../hint-level.js';
 
 // Viridel's tea terraces: the quest you try, and fail (edena-data.js has the words;
 // LORE.md, "The quest that fails", says why here).
@@ -329,8 +330,8 @@ export function setupTerraces(ctx) {
     registerTarget({
       kind: 'clod', radius: 1.0, position: () => r.at, enabled: () => r.clod.visible && flat(player.pos, r.at) < 60,
       onHit: (mode) => {
-        if (!quests.isActive(Q) || !quests.reached(Q, 'runnels')) { r.shiver = 1; toast('A clod of silt chokes the runnel. Esk keeps these terraces: ask her first.'); return true; }
-        if (mode !== 'push') { r.shiver = 0.6; toast('The silt drinks it up and stays put. Shove it out instead (push).'); return true; }
+        if (!quests.isActive(Q) || !quests.reached(Q, 'runnels')) { r.shiver = 1; toast(quietOr('A clod of silt chokes the runnel. Esk keeps these terraces.', 'A clod of silt chokes the runnel. Esk keeps these terraces: ask her first.')); return true; }
+        if (mode !== 'push') { r.shiver = 0.6; toast(quietOr('The silt drinks it up and stays put.', 'The silt drinks it up and stays put. Shove it out instead (push).')); return true; }
         if (r.k !== cleared()) {
           r.shiver = 1;
           mud.burst(r.at, { n: 4, rise: 0.8, size: 0.35, spread: 0.6, life: 1.4, gravity: 3 });
@@ -356,7 +357,7 @@ export function setupTerraces(ctx) {
     onHit: (mode) => {
       if (!may('roots')) { toast(mode === 'push' ? 'The wheel doesn’t move: roots have grown through its spokes. The gate is shut, and not yours to open.' : 'The roots on the wheel drink, and hold on. The gate is shut, and not yours to open.'); return true; }
       if (roots.visible && !game.flag('edena.gate.roots')) {
-        if (mode === 'push') { toast('The wheel won’t move: roots have grown through its spokes. Water them first (shoot): they let go if you ask.'); return true; }
+        if (mode === 'push') { toast(quietOr('The wheel won’t move: roots have grown through its spokes.', 'The wheel won’t move: roots have grown through its spokes. Water them first (shoot): they let go if you ask.')); return true; }
         game.set('edena.gate.roots', true);
         st.rootsTo = 0;
         spray.burst(wheelAt, { n: 10, rise: 1, size: 0.3, spread: 1.2, life: 1.6, gravity: 2 });
@@ -364,7 +365,7 @@ export function setupTerraces(ctx) {
         sound.chime?.();
         return true;
       }
-      if (mode !== 'push') { spray.burst(wheelAt, { n: 4, rise: 0.8, size: 0.25, spread: 0.6, life: 1 }); toast('The wheel is free. One turn: shove it (push).'); return true; }
+      if (mode !== 'push') { spray.burst(wheelAt, { n: 4, rise: 0.8, size: 0.25, spread: 0.6, life: 1 }); toast(quietOr('The wheel is free.', 'The wheel is free. One turn: shove it (push).')); return true; }
       if (game.flag('edena.gate.turned')) return true;
       game.set('edena.gate.turned', true);
       st.flood = 0;

@@ -6,6 +6,7 @@ import { makeMaterial } from '../materials.js';
 import { starShape, BOX_COLORS } from './model.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { createEchoShell } from '../echo-shell.js';
+import { hintsFor } from '../hint-level.js';
 
 // What the boxes' special items do (src/items.js documents them). Kept cheap
 // and from the outside: nothing here edits the tool or the player.
@@ -107,8 +108,9 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
   keys?.addEventListener?.('keydown', onKey);
   const off = items.on((id, owned) => {
     applyTank();
-    if (owned && id === 'bell') setTimeout(() => toast('The bell-note whistle: sound it with {key:whistle}.'), 1800);
-    if (owned && id === 'echo') setTimeout(() => toast('The echo shell: let something sing near it, then play it back with {key:whistle}.'), 1800);
+    // (the box's card has just said how: these say it again, hints full only: src/hint-level.js)
+    if (owned && id === 'bell' && hintsFor('tip')) setTimeout(() => toast('The bell-note whistle: sound it with {key:whistle}.'), 1800);
+    if (owned && id === 'echo' && hintsFor('tip')) setTimeout(() => toast('The echo shell: let something sing near it, then play it back with {key:whistle}.'), 1800);
   });
   // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
   const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {

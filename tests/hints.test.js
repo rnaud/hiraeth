@@ -6,6 +6,7 @@ import { layoutCinema, overlaps, questToastHtml, OBSTACLES, Cinema } from '../sr
 import { GameState } from '../src/game-state.js';
 import { Quests } from '../src/story/quests.js';
 import { Errands } from '../src/quest.js';
+import { setHintLevel } from '../src/hint-level.js';
 
 const HEALTH = (top = 0) => ({ x0: 16, y0: 14 + top, x1: 170, y1: 31 + top });   // index.html #health, with its border and shadow
 
@@ -56,7 +57,8 @@ test('the toast queue keeps a quest\'s look with it (and plain notices stay plai
 
 const store = () => { const m = new Map(); return { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }; };
 
-test('starting a quest asks for the quest card; its later steps and its end are plain notices', () => {
+test('hints full: starting a quest asks for the quest card; its later steps and its end are plain notices', (t) => {
+  setHintLevel('full'); t.after(() => setHintLevel('subtle'));
   const said = [];
   const q = new Quests({ game: new GameState(store()), toast: (text, o) => said.push({ text, o }) });
   q.define({ id: 'bells', title: 'The bells', main: true, stages: [{ id: 'a', text: 'Find the clapper' }, { id: 'b', text: 'Ring it' }] });
@@ -77,6 +79,20 @@ test('starting a quest asks for the quest card; its later steps and its end are 
   assert.equal(said.length, 4, 'quiet during the talk');
   q.opened();
   assert.equal(said[4].o.kind, 'quest');
+});
+
+test('hints subtle (the default): a quest\'s card is its title alone; its later steps are not pushed on the screen (the chime, the quest log); its end still is', () => {
+  const said = [];
+  const q = new Quests({ game: new GameState(store()), toast: (text, o) => said.push({ text, o }) });
+  q.define({ id: 'bells', title: 'The bells', main: true, stages: [{ id: 'a', text: 'Find the clapper' }, { id: 'b', text: 'Ring it' }] });
+  q.start('bells');
+  assert.equal(said[0].text, 'Quest: The bells');
+  assert.deepEqual(said[0].o, { kind: 'quest', head: 'New quest', title: 'The bells', step: '' });
+  q.advance('bells');
+  assert.equal(said.length, 1, 'the next step: no notice');
+  assert.equal(q.stage('bells'), 'b', 'the quest moved on all the same');
+  q.complete('bells');
+  assert.equal(said[1].text, 'Completed: The bells');
 });
 
 test('an errand handed over by a villager is a quest card too', () => {

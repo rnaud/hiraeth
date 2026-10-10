@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 // Teo's drum and the mask in the sand, hands-on (src/story/desert-errands.js): the drum jammed
 // against a rib by a knuckle of bone, the mask's eyes drifted shut with sand.

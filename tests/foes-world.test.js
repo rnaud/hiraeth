@@ -9,6 +9,10 @@ import { GameState } from '../src/game-state.js';
 import { makeMaterial } from '../src/materials.js';
 import { TempleKit } from '../src/temples/kit.js';
 import { Updraft, Gust, Swing } from '../src/temples/pieces.js';
+import { setHintLevel } from '../src/hint-level.js';
+
+// (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
+setHintLevel('full');
 
 // Foes in the world's height and workings (v0.98, docs/systems/foes.md "Foes in the world's workings").
 

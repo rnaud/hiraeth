@@ -95,9 +95,24 @@ test('the ship’s walk: one quiet nudge after 20 s with the message unplayed, t
   assert.match(c, /C\.hint\(null\)/, 'and it goes');
 });
 
-test('the desert’s first steps: look and jump, each said once, only if not used yet', () => {
+test('hints subtle (the default): the desert’s first steps teach the camera once, never the jump; off, nothing', () => {
   const flags = {}, state = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } };
   let s = new FirstSteps(state, { kind: 'keys' });
+  const run = (sec, o) => { let last = ''; for (let t = 0; t < sec; t += 0.1) { const l = s.update(0.1, o); if (l) last = l; } return last; };
+  assert.equal(run(LOOK.after + 0.5, { active: true }), 'Look around with the mouse', 'the camera: a genuinely new verb, taught once');
+  run(LOOK.show + 0.5, { active: true });
+  assert.equal(run(30, { active: true, moved: JUMP.walk / 50 }), '', 'the jump: found by pressing, not told');
+  assert.equal(s.done, true);
+  for (const k of Object.keys(flags)) delete flags[k];
+  s = new FirstSteps(state, { kind: 'keys', level: () => 'off' });
+  assert.equal(run(60, { active: true, moved: 1 }), '', 'off: the world teaches alone');
+  assert.equal(s.done, true);
+});
+
+test('hints full: the desert’s first steps: look and jump, each said once, only if not used yet', () => {
+  const flags = {}, state = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; } };
+  const FirstStepsFull = class extends FirstSteps { constructor(st, o) { super(st, { ...o, level: () => 'full' }); } };
+  let s = new FirstStepsFull(state, { kind: 'keys' });
   const run = (sec, o) => { let last = ''; for (let t = 0; t < sec; t += 0.1) { const l = s.update(0.1, o); if (l) last = l; } return last; };
   assert.equal(run(LOOK.after - 0.5, { active: true }), '', 'a moment to find it alone');
   assert.equal(run(1, { active: true }), 'Look around with the mouse');
@@ -111,12 +126,12 @@ test('the desert’s first steps: look and jump, each said once, only if not use
   assert.equal(s.done, true);
   // used first: never said
   for (const k of Object.keys(flags)) delete flags[k];
-  s = new FirstSteps(state, { kind: 'pad' });
+  s = new FirstStepsFull(state, { kind: 'pad' });
   s.looked(); s.jumped();
   assert.equal(run(60, { active: true, moved: 1 }), '');
   // nothing while not active (a talk, the ship, a menu)
   for (const k of Object.keys(flags)) delete flags[k];
-  s = new FirstSteps(state, { kind: 'pad' });
+  s = new FirstStepsFull(state, { kind: 'pad' });
   assert.equal(run(30, { active: false }), '');
   assert.equal(run(LOOK.after + 0.2, { active: true }), 'Look around with the right stick');
 });

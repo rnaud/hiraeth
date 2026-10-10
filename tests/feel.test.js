@@ -6,6 +6,7 @@ import { STAMINA, spendStamina, restStamina, canSprint } from '../src/stamina.js
 import { jumpPhase, timeToGround, landSquash, squashCurve, JumpLayer } from '../src/jump.js';
 import { keepInside, EdgePush, EDGE_HINTS } from '../src/edge.js';
 import { course, traveller } from './gait-sim.js';
+import { setHintLevel } from '../src/hint-level.js';
 
 // Feel and look, October 2026 (TODO.md): one stamina for running and climbing, the jump by its
 // phase, and the world's edge you can feel (no more running on the spot against it).
@@ -169,7 +170,8 @@ test('keepInside: held at the edge, the outward speed gone, the speed along it k
   assert.equal(keepInside(new THREE.Vector3(1e6, 0, 0), new THREE.Vector3(), Infinity), false, 'no edge');
 });
 
-test('pushing into the world\'s edge: no running on the spot, no jitter; sliding along it is smooth; the hint once', () => {
+test('pushing into the world\'s edge: no running on the spot, no jitter; sliding along it is smooth; the hint once (hints full)', () => {
+  setHintLevel('full');
   const notices = [];
   const p = walker({ limit: 20, edgeHint: EDGE_HINTS.desert });
   p.onNotice = (t) => notices.push(t);
@@ -184,6 +186,11 @@ test('pushing into the world\'s edge: no running on the spot, no jitter; sliding
   assert.deepEqual(notices, [EDGE_HINTS.desert], 'what holds you back, once');
   run(p, 1, {}); run(p, 2, JOG);
   assert.equal(notices.length, 1, 'not again');
+  setHintLevel('subtle');
+  const quiet = walker({ limit: 20, edgeHint: EDGE_HINTS.desert }), heard = [];
+  quiet.onNotice = (t) => heard.push(t); quiet.pos.set(0, 0, -17);
+  run(quiet, 3, JOG);
+  assert.deepEqual(heard, [], 'hints subtle: the wind and the lean say it, no line');
   // along it, pushing in at 45°: a steady slide (no stutter), at the speed along the edge
   const s = walker({ limit: 20 }); s.pos.set(0, 0, -19.5);
   const along = [], jerk = [];
