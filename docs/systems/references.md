@@ -31,13 +31,13 @@ references/
 - The sheets the References level draws are bundled by Vite (`new URL('../../references/levels/…')`), so a
   wrong path also fails `npx vite build`.
 
-## The references page (references.html, dev server only)
+## The references page (references.html)
 
-Debug → References (`src/world-picker.js` `DEV_PAGES`: listed on the dev server only, like the reference lab):
-every picture under `references/` to browse. `references.html`, `src/references-page/` (`model.js` the pure
+Debug → References (`src/world-picker.js` `PAGES`, marked "reference material"; on the dev server, the site and
+the apps): every picture under `references/` to browse. `references.html`, `src/references-page/` (`model.js` the pure
 part: kinds, tree, filters, address; `view.js` the HTML; `main.js` the page), `scripts/references-index.mjs`.
 
-- **The index** is built by the dev server on each request (`GET /__references/index.json`, a Vite middleware,
+- **The index**, on the dev server, is built on each request (`GET /__references/index.json`, a Vite middleware,
   `apply: 'serve'`): a walk of `references/` (not `_candidates/`, not a 3D pick's `3d/` renders), each picture
   with its world and kind from its path (`classify`) and what its folder says of it (`metaFor`): its record in
   the JSON files beside it or above it (`manifest.json`: the lab's picks, provider, model, prompt, why, date;
@@ -47,7 +47,8 @@ part: kinds, tree, filters, address; `view.js` the HTML; `main.js` the page), `s
   `node scripts/references-index.mjs` prints its counts.
 - **Small pictures**: `GET /__references/thumb?p=<path>`, a 360 px WebP made by sharp and cached in the system's
   temp folder (`hiraeth-reference-thumbs/`), lazy-loaded in the grid; the viewer shows the file itself
-  (`/references/…`, served by Vite: commas stay unencoded, Vite does not decode `%2C`).
+  (`/references/…`, served by Vite: commas stay unencoded, Vite does not decode `%2C`). On the site both are
+  the static index's (below).
 - **The page**: the folders on the left (All; Levels → each world → environment / characters / places; the
   ship, the main character, core objects, enemy archetypes, title screen; the loose files; Lab picks; the
   Archive last, closed, and kept out of All and of the filters unless chosen); the pictures by folder; a
@@ -60,14 +61,39 @@ part: kinds, tree, filters, address; `view.js` the HTML; `main.js` the page), `s
   B / Esc goes back (the picture, the folders drawer, the search, then the Debug menu), LB / RB the picture
   before / after in the viewer (← / →, a swipe), else the folder before / after (`[` / `]`), X the search (`/`),
   Y the folders (`F`: a drawer below 900 px wide). The shared "◀ Debug" button, hidden while a picture is open.
-- **Why not on Pages**: `references/` (≈ 200 MB of originals) is not deployed: not in `BUILD_INPUT`, not in
-  `public/`, not copied by `deploy.yml`. Putting it there would mean a build step (like `changelog-media/`,
-  site-only, never the APK) writing the index as JSON, the 360 px thumbnails (≈ 475 × 15 KB ≈ 7 MB) and
-  1600 px WebP copies for the viewer (≈ 475 × 150 KB ≈ 70 MB) to `dist/references/`, and the page reading a
-  static index when the dev server's is absent. Not done: the page is the author's, on the dev server.
+- **On the site** (since v1.35): the originals (`references/`, ≈ 220 MB) are still never deployed; the deploys
+  write what the page needs into the built site with `node scripts/references-site.mjs dist`
+  (`deploy.yml` after the build, `cloudflare.yml` after the content update and the Deck's runtime, like the
+  changelog's pictures): `dist/references/index.json` (the dev server's index, `static: true`, each picture with
+  `thumb`, `web`, `width`, `height`), `references/t/<sha1>.webp` (360 px, q68) and `references/w/<sha1>.webp`
+  (1600 px long side, q80, never enlarged), named by content (a picture twice is one file). Every picture but the
+  lab's candidates, the archive included (the page keeps it closed; `--no-archive` leaves it out, ≈ 8 MB).
+  Measured (October 2026): 555 pictures, 1,111 files, **69.8 MB** (thumbnails 5.5, copies 63.5, index 0.8;
+  the archive 8.4 of it); 16 s to encode on an M-series Mac from nothing, 1 s from the cache; the whole site
+  1,815 files, far under Workers' 20,000 (the script checks the limits).
+- **The cache**: each WebP is kept in `.cache/references-site/` (not in the repository) under its content hash and
+  its settings (`<sha1>-t360q68.webp`, `-w1600q80.webp`, `<sha1>.json` the pixels); a run copies from it and encodes
+  only new pictures, then drops what it did not use (removed pictures, old settings). CI keeps the folder with
+  `actions/cache`, keyed on `hashFiles('references/**', 'scripts/references-site.mjs')` (restore-keys: any older
+  one, so a new picture costs one encode). `sharp` is a pinned devDependency.
+- **Site-only**: `REFERENCE_FILE` (`scripts/web-update.mjs`, `^references(/|$)`) keeps `dist/references/` out of the
+  over-the-air zip, and `scripts/site-only.mjs` (`siteOnly`, `leftOff`) out of the APK (stripped before
+  `cap sync`), the Steam Deck package and the Xbox package. The page itself (`references.html` and its script,
+  ≈ 30 KB) is in `BUILD_INPUT` and ships everywhere.
+- **Which index the page reads** (`model.js` `indexSources`, `loadIndex`): on the dev server the live one
+  (`/__references/index.json`) then the static file; on the site the static file beside the page
+  (`references/index.json`, relative: GitHub Pages' sub-path works) then the live one; in a game on a device
+  (`bundledGame()`: its own bundle has no `references/`) the site's (`SHEET_SITE` + `references/index.json`, its
+  picture paths made absolute; `public/_headers` gives `/references/*` CORS). The view takes an entry's `thumb` /
+  `web` when it has them (`thumbSrc`, `fullSrc`), the dev server's URLs otherwise; on the site the viewer's
+  "full size" link is "alone" (the web copy) and the size row still shows the original's bytes and pixels.
 - `tests/references-page.test.js`: kinds, the index's records from each kind of file, filters and the archive
   kept apart, the tree's order, the address, the middleware's limits (nothing outside `references/` or in the
-  candidates), dev server only, the ◀ Debug button and the glyphs.
+  candidates), built and in the Debug menu everywhere, the ◀ Debug button and the glyphs.
+  `tests/references-site.test.js`: the build on a small folder (the index's shape, thumbnails and copies written
+  at their sizes, one file for a picture twice, a cache hit, the cache pruned), the page's static mode (which
+  index where, a device's absolute paths, the view's URLs), the zip / APK / Deck / Xbox leaving it out, the
+  workflows' step and cache.
 
 ## The References: the reference pages rebuilt (v0.57)
 

@@ -47,6 +47,12 @@ They are another origin's requests, so `public/_headers` gives `/music/*` an `Ac
 puts the themes back in the zip for one hand-over update (`docs/systems/android.md`, "The music, downloaded once").
 A deploy only uploads files whose contents changed, so the previous zip costs nothing.
 
+**The site's own files** (never in the zip, the APK, the Deck or the Xbox package: `scripts/site-only.mjs`): the
+changelog's pictures (`changelog-media/`, copied in after the content update), the audits page's data
+(`audits/`) and the references page's index, thumbnails and web-size copies (`references/`, ≈ 70 MB, 1,111 files:
+`node scripts/references-site.mjs dist`, from `.cache/references-site/` kept by `actions/cache`;
+`docs/systems/references.md` "On the site"). `npm run check:deployment` fetches every file eight at a time.
+
 ## One-time account setup
 
 1. In Cloudflare, select the account that should own `memento`. Check that the

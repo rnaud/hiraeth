@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.36', date: '2026-10-10', items: [
+    // the references page on the site (docs/systems/references.md "On the site")
+    { text: 'The art references can be browsed from the Debug menu, on the website and in the app: every reference picture the worlds were drawn from, by world and folder, with a search, filters, and each picture full screen with its prompt and where it came from.',
+      see: 'Open the Debug menu and pick References under Pages (marked “reference material”). Choose a world on the left, open a picture with A and step through them with LB / RB.' },
+  ] },
   { v: '1.35', date: '2026-10-10', items: [
     // the sword reaches what it looks like it reaches
     'Your sword lands where you see it meet a creature: on its shell, its legs, its wings or its cloak, as it is drawn, instead of on an invisible ball round it. No more cuts counted through the air over a lizard’s back, nor missed on a heron’s stilts.',

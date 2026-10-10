@@ -35,16 +35,16 @@ export const PAGES = [
   { href: 'motion.html', label: 'Motion', hint: 'the traveller\'s loops against motion matching' },
   { href: 'cinematics.html', label: 'Cinematics', hint: 'replay the films and record quality-control notes' },
   { href: 'trailer.html', label: 'Trailer', hint: 'the in-engine trailer' },
+  // (reference material: the art references, read from the site: docs/systems/references.md)
+  { href: 'references.html', label: 'References', hint: 'every reference picture by world and folder, with its prompt and provenance', ref: true },
 ];
 
 /**
  * The pages a dev server alone has (`npx vite`: their middleware is the dev server's, and the build leaves them
- * out): the reference lab (reference-lab.html, docs/systems/reference-lab.md) and the references page
- * (references.html, docs/systems/references.md). Marked "dev server" in the list.
+ * out): the reference lab (reference-lab.html, docs/systems/reference-lab.md). Marked "dev server" in the list.
  */
 export const DEV_PAGES = [
   { href: 'reference-lab.html', label: 'Reference lab', hint: 'generate reference pictures with several AI providers and pick the best', dev: true },
-  { href: 'references.html', label: 'References', hint: 'every reference picture by world and folder, with its prompt and provenance', dev: true },
 ];
 /** Pages that may not be there yet: listed once the page answers (probePages). None now (references.html arrived). */
 export const MAYBE_PAGES = [
@@ -166,7 +166,7 @@ export function menuSections({ levels, current = null, cont = null, state = null
   const g = games.length ? gamesRow(games, state) : '';
   if (g) out.push({ key: 'games', title: 'Games', line: '', html: g, whole: true });
   const pages = pagesHere(dev).map((p) => rowHtml({ href: p.href, label: esc(p.label), hint: p.hint,
-    tag: p.dev ? '<small class="tag">dev server</small>' : '', cls: p.maybe ? 'maybe' : '', extra: p.maybe ? ' hidden data-maybe=""' : '' })).join('');
+    tag: p.dev ? '<small class="tag">dev server</small>' : p.ref ? '<small class="tag">reference material</small>' : '', cls: p.maybe ? 'maybe' : '', extra: p.maybe ? ' hidden data-maybe=""' : '' })).join('');
   out.push({ key: 'pages', title: 'Pages', line: 'the game\'s other pages · each has a ◀ Debug button back here', html: `<div class="rows">${pages}</div>` });
   out.push({ key: 'build', title: 'This build', line: '', html: `<div class="rows facts">${buildRows({ dev })}</div>` });
   return out;

@@ -2,10 +2,16 @@
 import { formatBytes, groupByFolder, LAB, LOOSE } from './model.js';
 
 export const esc = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-/** The dev server's small picture of a reference (scripts/references-index.mjs). */
-export const thumbSrc = (path) => `/__references/thumb?p=${encodeURIComponent(path)}`;
-/** The picture itself (Vite serves the checkout; it decodes %20 but not %2C, so commas stay as they are). */
-export const fullSrc = (path) => `/${path.split('/').map((s) => encodeURI(s).replace(/#/g, '%23').replace(/\?/g, '%3F')).join('/')}`;
+/**
+ * A reference's small picture (an entry, or its path): the site's thumbnail when the index has one
+ * (scripts/references-site.mjs), else the dev server's (scripts/references-index.mjs).
+ */
+export const thumbSrc = (e) => (e?.thumb ? e.thumb : `/__references/thumb?p=${encodeURIComponent(e?.path ?? e)}`);
+/**
+ * The picture shown full screen: the site's web-size copy when the index has one, else the picture itself
+ * (Vite serves the checkout; it decodes %20 but not %2C, so commas stay as they are).
+ */
+export const fullSrc = (e) => (e?.web ? e.web : `/${String(e?.path ?? e).split('/').map((s) => encodeURI(s).replace(/#/g, '%23').replace(/\?/g, '%3F')).join('/')}`);
 
 /** The folder tree: each node a button (data-id), its children under it while open. */
 export function treeHtml(tree, { sel = '', open = new Set(), all = '' } = {}) {
@@ -29,7 +35,7 @@ export function crumbHtml(sel, shown) {
 /** One picture in the grid. */
 export function thumbHtml(e) {
   const badges = `${e.lab ? '<i class="lab" title="a reference lab pick">lab</i>' : ''}${e.hasPrompt ? '<i title="has a prompt">P</i>' : ''}`;
-  return `<button class="thumb" data-path="${esc(e.path)}" title="${esc(e.rel)}"><span class="im"><img loading="lazy" decoding="async" alt="" src="${esc(thumbSrc(e.path))}"></span>`
+  return `<button class="thumb" data-path="${esc(e.path)}" title="${esc(e.rel)}"><span class="im"><img loading="lazy" decoding="async" alt="" src="${esc(thumbSrc(e))}"></span>`
     + `<span class="nm">${esc(e.meta?.title || e.name)}</span>${badges ? `<span class="bd">${badges}</span>` : ''}</button>`;
 }
 
@@ -48,7 +54,7 @@ export function infoHtml(e, { width = 0, height = 0 } = {}) {
   const where = [e.world, e.kind].filter(Boolean).join(' · ');
   return `<h3>${esc(m.title || e.name)}</h3><dl>`
     + row('path', `<code>${esc(e.path)}</code>`, true)
-    + row('size', `${formatBytes(e.bytes)}${width ? ` · ${width} × ${height}` : ''}`)
+    + row('size', `${formatBytes(e.bytes)}${(e.width || width) ? ` · ${e.width || width} × ${e.height || height}` : ''}${e.web ? ' · a web copy here' : ''}`)
     + row('where', where)
     + row('by', m.provider)
     + row('model', m.model)

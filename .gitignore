@@ -55,3 +55,6 @@ output/cinematics-qc/
 /xbox/out/
 /xbox/*.pfx
 /xbox/*.cer
+
+# the references page on the site: encoded WebPs kept between builds (scripts/references-site.mjs)
+/.cache/

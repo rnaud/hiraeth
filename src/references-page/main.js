@@ -1,9 +1,11 @@
-// The references page (references.html, Debug → References on the dev server: src/world-picker.js DEV_PAGES;
+// The references page (references.html, Debug → References: src/world-picker.js PAGES;
 // docs/systems/references.md "The references page"): every picture under references/ by folder (the levels,
 // each world's environment / characters / places, then the folders of no world, the lab's picks, the archive
 // closed at the bottom), small pictures in a grid, one full screen with what its folder says of it, a search
 // over the paths and filters; the address keeps the place (#path=…&q=…&world=…&kind=…&lab=1&prompt=1).
-// The index comes from the dev server (scripts/references-index.mjs): references/ is not deployed.
+// The index comes from the dev server (scripts/references-index.mjs, read again on each load) or, on the site,
+// from dist/references/ (scripts/references-site.mjs: the index, thumbnails and web-size copies; the originals
+// are not deployed). A game on a device reads the site's (model.js indexSources).
 //
 // A controller: the D-pad and the stick move across what is on screen (data-grid-nav, menuNavigate), A opens,
 // B goes back (the picture, the folders drawer, the search, then the Debug list), LB / RB the picture before /
@@ -14,10 +16,9 @@ import { installNativePad, watchLabels, padFaces } from '../native-pad.js';
 import { installGlyphs } from '../pad-glyphs.js';
 import { InputMode } from '../input-mode.js';
 import { DEBUG_MENU_HREF } from '../debug-back.js';
-import { KINDS, LOOSE, ancestors, buildTree, filterEntries, flatIds, formatHash, parseHash, worldsOf } from './model.js';
+import { SHEET_SITE, bundledGame } from '../levels/reference-sheets.js';
+import { KINDS, LOOSE, ancestors, buildTree, filterEntries, flatIds, formatHash, indexSources, loadIndex, parseHash, worldsOf } from './model.js';
 import { esc, fullSrc, gridHtml, infoHtml, treeHtml } from './view.js';
-
-export const INDEX_URL = '/__references/index.json';
 
 const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 installNativePad(); watchLabels(); installGlyphs();
@@ -32,13 +33,14 @@ const padOn = () => document.body.classList.contains('controller');
 
 let data;
 try {
-  const res = await fetch(INDEX_URL, { cache: 'no-store' });
-  if (!res.ok || !/json/.test(res.headers.get('content-type') ?? '')) throw new Error(`HTTP ${res.status}`);
-  data = await res.json();
+  // (the dev server's live index first there, the site's file first anywhere else)
+  ({ data } = await loadIndex(indexSources({ dev: !!import.meta.env?.DEV, bundled: bundledGame(), site: SHEET_SITE })));
 } catch (e) {
-  $('#grid').innerHTML = `<p class="empty">The references' index couldn't be read (${esc(e.message)}). This page needs the dev server (<code>npx vite</code>): references/ is not part of the site or the app.</p>`;
+  $('#grid').innerHTML = `<p class="empty">The references' index couldn't be read (${esc(e.message)}). The dev server builds it (<code>npx vite</code>); the site has it once a deploy wrote it (<code>node scripts/references-site.mjs</code>).</p>`;
   throw e;
 }
+// (the site has web-size copies, not the originals)
+if (data.static) { $('#original').textContent = 'alone'; $('#original').title = 'The picture alone (a web copy: the originals stay in the repository)'; }
 const entries = data.entries;
 const tree = buildTree(entries);
 const state = { ...parseHash(location.hash), open: new Set(['levels']) };
@@ -128,14 +130,14 @@ function show() {
   state.pic = e.rel;
   const img = viewer.querySelector('.stage img');
   img.onload = () => { $('#viewer .info').innerHTML = infoHtml(e, { width: img.naturalWidth, height: img.naturalHeight }); };
-  img.src = fullSrc(e.path); img.alt = e.name;
-  $('#original').href = fullSrc(e.path);
+  img.src = fullSrc(e); img.alt = e.name;
+  $('#original').href = fullSrc(e);
   viewer.querySelector('.cap').textContent = `${e.rel} (${at + 1} of ${shown.length})`;
   $('#viewer .info').innerHTML = infoHtml(e);
   $('#viewer .info').scrollTop = 0;
   saveHash();
   // the next one, ready
-  const next = shown[at + 1]; if (next) { const pre = new Image(); pre.src = fullSrc(next.path); }
+  const next = shown[at + 1]; if (next) { const pre = new Image(); pre.src = fullSrc(next); }
 }
 function stepPic(d) { if (shown.length) { at = (at + d + shown.length) % shown.length; show(); } }
 function closePic({ keepHash = false } = {}) {

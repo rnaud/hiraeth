@@ -44,6 +44,14 @@ jobs:
       - run: npm run build
       # the changelog's pictures, which changelog.html reads from the site (as cloudflare.yml does)
       - run: cp -R changelog-media dist/changelog-media
+      # the references page's index, thumbnails and web-size copies (scripts/references-site.mjs, as cloudflare.yml
+      # does): encoded once, kept in the cache between runs (keyed on the pictures and the script)
+      - uses: actions/cache@v4
+        with:
+          path: .cache/references-site
+          key: references-site-${{ hashFiles('references/**', 'scripts/references-site.mjs') }}
+          restore-keys: references-site-
+      - run: node scripts/references-site.mjs dist
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

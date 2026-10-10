@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.36 — 2026-10-10
+
+- The art references can be browsed from the Debug menu, on the website and in the app: every reference picture the worlds were drawn from, by world and folder, with a search, filters, and each picture full screen with its prompt and where it came from.
+
 ## v1.35 — 2026-10-10
 
 - The hitbox overlay (F4, or the Arena’s board) draws each creature’s body as the boxes your sword is tested against.

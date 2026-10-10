@@ -68,6 +68,18 @@ jobs:
           # never in the APK, the update zip or the Deck; changelog.html reads them from here)
           cp -R changelog-media dist/changelog-media
           du -sh dist/changelog-media
+      # the references page's pictures (scripts/references-site.mjs: the index, 360 px thumbnails and web-size
+      # copies in dist/references/, ≈ 70 MB; site-only like the changelog's, never the originals): encoded once,
+      # kept in the cache between runs (keyed on the pictures and the script)
+      - uses: actions/cache@v4
+        with:
+          path: .cache/references-site
+          key: references-site-${{ hashFiles('references/**', 'scripts/references-site.mjs') }}
+          restore-keys: references-site-
+      - name: The references' pictures on the site
+        run: |
+          node scripts/references-site.mjs dist
+          du -sh dist/references
       - name: Deploy
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

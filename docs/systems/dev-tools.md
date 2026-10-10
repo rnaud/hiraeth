@@ -15,7 +15,7 @@ page in sections, each a heading with one line, in this order (`menuSections`):
 | **Test rooms** | the `dev: true` levels: the Lab, the Arena, the Gadget Yard, the Arcade, the References |
 | **Worlds in progress** | the `WIP` worlds (off the galactic map) |
 | **Games** | the minigames (`gamesRow`), each with its best |
-| **Pages** | `PAGES` (What's new, Audits, Items, Creatures & spirits, Character studio, Motion, Cinematics, Trailer), `MAYBE_PAGES` (References, `references.html`: listed once the page answers, `probePages`) and on the dev server `DEV_PAGES` (the reference lab, tagged "dev server"; a build never lists it) |
+| **Pages** | `PAGES` (What's new, Audits, Items, Creatures & spirits, Character studio, Motion, Cinematics, Trailer, and References, `references.html`, tagged "reference material"), `MAYBE_PAGES` (pages listed once they answer, `probePages`; none now) and on the dev server `DEV_PAGES` (the reference lab, tagged "dev server"; a build never lists it) |
 | **This build** | version, build number and commit (`__HIRAETH_BUILD__`, defined by `vite.config.js` `gitBuildInfo`; the Android / Deck app's build line in the app), dev server or build, and the debug save's note |
 
 Worlds are cards (picture, number, name, source, the save it opens in; `cardHtml`); everything else is a

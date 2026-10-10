@@ -24,6 +24,9 @@ export const BUILD_INPUT = {
   items: fileURLToPath(new URL('./items.html', import.meta.url)),
   // the audit reports and their scores (src/audits-page/; the data and the pictures, audits/, are the site's alone)
   audits: fileURLToPath(new URL('./audits.html', import.meta.url)),
+  // the references page (src/references-page/; its index, thumbnails and web-size copies, dist/references/, are
+  // the site's alone: the deploy writes them, scripts/references-site.mjs)
+  references: fileURLToPath(new URL('./references.html', import.meta.url)),
 };
 const modules = existsSync('node_modules') ? realpathSync('node_modules') : null;
 /**
@@ -55,8 +58,8 @@ export default defineConfig({
   // The game, trailer, character studio (studio.html, src/studio/) and Motion page
   // (motion.html, src/motion/: the traveller's loops against motion matching): they ship with the game
   build: { target: 'es2022', rolldownOptions: { input: BUILD_INPUT } },
-  // (the reference lab, reference-lab.html, and the references page, references.html: dev server only, not built:
-  // docs/systems/reference-lab.md, docs/systems/references.md)
+  // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md; the
+  // references page's live index is the dev server's, the site's is written by the deploy: docs/systems/references.md)
   plugins: [dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

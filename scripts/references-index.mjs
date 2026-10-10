@@ -1,6 +1,7 @@
 // The references page's index and thumbnails (references.html, docs/systems/references.md "The references
-// page"). Dev server only (apply: 'serve'): references/ is not deployed (≈ 200 MB), so a build has neither the
-// page (not in BUILD_INPUT) nor these calls.
+// page"). The middleware is the dev server's (apply: 'serve'); the site has the same index as a file, with
+// thumbnails and web-size copies, written by the deploy (scripts/references-site.mjs: references/ itself, ≈ 220 MB,
+// is not deployed).
 //
 //   GET /__references/index.json       every picture under references/ (not the lab's _candidates), with what
 //                                      its folder says of it: read again on each request (a new pick shows at once)

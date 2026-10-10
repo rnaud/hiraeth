@@ -22,13 +22,18 @@ async function walk(dir) {
 }
 await walk(dist);
 assert.ok(files.length > 0, 'Build the game first');
-for (const file of files) {
-  const name = relative(dist, file).split(sep).map(encodeURIComponent).join('/');
-  const response = await fetch(new URL(name, base), { signal: AbortSignal.timeout(30_000) });
-  assert.equal(response.status, 200, `${name}: HTTP ${response.status}`);
-  assert.equal(new URL(response.url).origin, base.origin, `${name}: redirected to another host`);
-  assert.deepEqual(Buffer.from(await response.arrayBuffer()), await readFile(file), `${name}: differs from the build`);
-}
+// (eight at a time: the references page's pictures alone are over a thousand files, scripts/references-site.mjs)
+let next = 0;
+await Promise.all(Array.from({ length: 8 }, async () => {
+  while (next < files.length) {
+    const file = files[next++];
+    const name = relative(dist, file).split(sep).map(encodeURIComponent).join('/');
+    const response = await fetch(new URL(name, base), { signal: AbortSignal.timeout(30_000) });
+    assert.equal(response.status, 200, `${name}: HTTP ${response.status}`);
+    assert.equal(new URL(response.url).origin, base.origin, `${name}: redirected to another host`);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), await readFile(file), `${name}: differs from the build`);
+  }
+}));
 // Virtual archive URLs must also reconstruct the exact bytes declared by their indexes.
 for (const file of files.filter(file => /web-\d+\.zip\.json$/.test(file))) {
   const index = JSON.parse(await readFile(file, 'utf8'));

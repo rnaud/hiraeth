@@ -140,6 +140,9 @@ export const MEDIA_FILE = /^changelog-media(\/|$)/;
 /** The audits page's data and the reports' pictures (dist/audits/: scripts/audits-data.mjs) are the site's alone too:
  * audits.html, small, ships with the game and reads them from the site. */
 export const AUDIT_FILE = /^audits\//;
+/** The references page's index, thumbnails and web-size copies (dist/references/: scripts/references-site.mjs,
+ * ≈ 70 MB) are the site's alone: references.html, small, ships with the game and reads them from the site. */
+export const REFERENCE_FILE = /^references(\/|$)/;
 /** The site's own configuration (public/_headers: Cloudflare's headers by path, the themes' CORS). */
 export const SITE_CONFIG = /^_headers$/;
 /** The recorded themes a device fetches from the site the first time it needs one, and keeps (src/music-store.js):
@@ -167,7 +170,7 @@ export async function writeArchive(out, name, zip, partSize = UPDATE_PART) {
 export async function writeUpdate({ dist, build, version = CHANGELOG[0].v, site = SITE, previous = null, partSize = UPDATE_PART, music = process.env.OTA_MUSIC === '1' }) {
   const out = join(dist, UPDATES);
   await rm(out, { recursive: true, force: true });
-  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) || AUDIT_FILE.test(n) || SITE_CONFIG.test(n) || (!music && onDemand(n)) });
+  const { zip, names } = await zipDir(dist, { skip: (n) => n === UPDATES || n.startsWith(`${UPDATES}/`) || SHEET_FILE.test(n) || MEDIA_FILE.test(n) || AUDIT_FILE.test(n) || REFERENCE_FILE.test(n) || SITE_CONFIG.test(n) || (!music && onDemand(n)) });
   if (!names.includes('index.html')) throw new Error('no index.html in the build: run npm run build first');
   await mkdir(out, { recursive: true });
   const file = join(out, `web-${build}.zip`);

@@ -3,3 +3,7 @@
 # (src/music-store.js); fetch() needs CORS for that.
 /music/*
   Access-Control-Allow-Origin: *
+# The references page's index (scripts/references-site.mjs): a game on a device opens references.html from its
+# own bundle and reads the index from the site.
+/references/*
+  Access-Control-Allow-Origin: *

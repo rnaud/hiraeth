@@ -1,7 +1,7 @@
 // The references page's model (references.html, docs/systems/references.md "The references page"): pure
-// functions over the index the dev server builds (scripts/references-index.mjs): what kind of reference a
-// path is, the folder tree, the filters and search, the address (#path=…). The page (main.js) and the tests
-// share them.
+// functions over the index (the dev server's, scripts/references-index.mjs, or the site's, scripts/references-site.mjs):
+// what kind of reference a path is, the folder tree, the filters and search, the address (#path=…), where the
+// index is read from. The page (main.js) and the tests share them.
 
 /** The folders at the top of references/ that belong to no world: their kind and their label. */
 export const TOP_FOLDERS = {
@@ -158,6 +158,39 @@ export function formatHash(s = {}) {
   if (s.prompt) p.set('prompt', '1');
   const out = p.toString().replace(/\+/g, '%20');
   return out ? `#${out}` : '#';
+}
+
+/**
+ * Where the index is read from: the dev server builds it on each request (scripts/references-index.mjs, LIVE_INDEX);
+ * the built site has it as a file beside the page (scripts/references-site.mjs, STATIC_INDEX) with each picture's
+ * thumbnail and web-size copy; a game on a device (its own bundle: no references/) reads the site's.
+ * In order: [{ url, base }] (base: what the static index's picture paths are relative to; '' the page itself).
+ */
+export const LIVE_INDEX = '/__references/index.json';
+export const STATIC_INDEX = 'references/index.json';
+export function indexSources({ dev = false, bundled = false, site = '' } = {}) {
+  if (bundled && site) return [{ url: new URL(STATIC_INDEX, site).href, base: site }];
+  const live = { url: LIVE_INDEX, base: '' }, built = { url: STATIC_INDEX, base: '' };
+  return dev ? [live, built] : [built, live];
+}
+
+/**
+ * The first index that answers (JSON, with entries): { data, source }. A static index's picture paths are made
+ * absolute when it came from another place (the site, for a game on a device). Throws the last error.
+ */
+export async function loadIndex(sources, fetchFn = globalThis.fetch) {
+  let err = new Error('no index');
+  for (const s of sources) {
+    try {
+      const res = await fetchFn(s.url, { cache: 'no-store' });
+      if (!res.ok || !/json/.test(res.headers.get('content-type') ?? '')) throw new Error(`${s.url}: HTTP ${res.status}`);
+      const data = await res.json();
+      if (!Array.isArray(data?.entries)) throw new Error(`${s.url}: not the references' index`);
+      if (s.base) for (const e of data.entries) for (const k of ['thumb', 'web']) if (e[k]) e[k] = new URL(e[k], s.base).href;
+      return { data, source: s };
+    } catch (e) { err = e; }
+  }
+  throw err;
 }
 
 /** 1234567 → "1.2 MB". */

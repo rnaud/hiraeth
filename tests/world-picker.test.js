@@ -41,19 +41,19 @@ test('the sections, in order, with their cards numbered as shown', () => {
   assert.match(secs.find((s) => s.key === 'games').html, /href="\?game=ski"/);
 });
 
-test('pages: every link kept, the dev server\'s marked and only there, the References page with the reference lab (dev server only)', () => {
-  for (const f of ['changelog.html', 'audits.html', 'items.html', 'enemies.html', 'studio.html', 'motion.html', 'cinematics.html', 'trailer.html']) {
+test('pages: every link kept, the dev server\'s marked and only there, the References page everywhere (marked reference material)', () => {
+  for (const f of ['changelog.html', 'audits.html', 'items.html', 'enemies.html', 'studio.html', 'motion.html', 'cinematics.html', 'trailer.html', 'references.html']) {
     assert.ok(PAGES.some((p) => p.href === f), f);
   }
   assert.ok(DEV_PAGES.every((p) => p.dev));
-  assert.ok(DEV_PAGES.some((p) => p.href === 'references.html'), 'the references page: dev server only, like the lab');
+  assert.ok(!DEV_PAGES.some((p) => p.href === 'references.html'), 'the references page: on the site too (its index and pictures written by the deploy)');
   assert.ok(!MAYBE_PAGES.some((p) => p.href === 'references.html'), 'not listed twice');
   const prod = menuSections({ levels: LEVELS, dev: false, games: [] }).find((s) => s.key === 'pages').html;
   const dev = menuSections({ levels: LEVELS, dev: true, games: [] }).find((s) => s.key === 'pages').html;
   assert.doesNotMatch(prod, /reference-lab\.html/, 'a build has no reference lab');
   assert.match(dev, /href="reference-lab\.html"[\s\S]*?<small class="tag">dev server<\/small>/, 'the dev server lists it, marked');
-  assert.doesNotMatch(prod, /references\.html/, 'a build has no references page (references/ is not deployed)');
-  assert.match(dev, /href="references\.html"[\s\S]*?<small class="tag">dev server<\/small>/);
+  assert.match(prod, /href="references\.html"[\s\S]*?<small class="tag">reference material<\/small>/, 'a build lists the references page, marked');
+  assert.equal((dev.match(/href="references\.html"/g) ?? []).length, 1, 'once on the dev server');
   assert.ok(pagesHere(false).every((p) => !p.dev));
 });
 

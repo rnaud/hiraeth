@@ -184,13 +184,13 @@ test('the real folder: every world has its node, nothing in the levels is of no 
   assert.ok(entries.some((e) => e.lab), 'the lab’s picks are found');
 });
 
-test('the page: dev server only, in the Debug menu there, with the ◀ Debug button and controller glyphs', () => {
+test('the page: built, in the Debug menu everywhere (reference material), with the ◀ Debug button and controller glyphs', () => {
   const inputs = Object.values(BUILD_INPUT).map((p) => p.split('/').pop());
-  assert.ok(!inputs.includes('references.html'), 'never in the build: references/ is not deployed');
-  assert.ok(!PAGES.some((p) => p.href === 'references.html'));
-  assert.ok(DEV_PAGES.some((p) => p.href === 'references.html'));
+  assert.ok(inputs.includes('references.html'), 'built: the site has its index and pictures (scripts/references-site.mjs)');
+  assert.ok(PAGES.some((p) => p.href === 'references.html' && p.ref && !p.dev));
+  assert.ok(!DEV_PAGES.some((p) => p.href === 'references.html'));
   assert.ok(pagesHere(true).some((p) => p.href === 'references.html'));
-  assert.ok(!pagesHere(false).some((p) => p.href === 'references.html'));
+  assert.ok(pagesHere(false).some((p) => p.href === 'references.html'));
   assert.equal(cameFromDebug('http://localhost:5365/references.html', ''), true);
   const html = readFileSync(new URL('../references.html', import.meta.url), 'utf8');
   assert.match(html, /<script type="module" src="\/src\/debug-back-page\.js"><\/script>/);

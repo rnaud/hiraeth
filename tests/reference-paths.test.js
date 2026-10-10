@@ -40,7 +40,9 @@ const entries = (dir) => (existsSync(dir) && statSync(dir).isDirectory() ? readd
 const WORLDS = entries(join(REFS, 'levels'));
 const PLACEHOLDER = /^(\$\{|<|…|\*|\{|\.\.\.|\s|\(|:|$)/;
 /** The tests that build a references/ tree of their own in a temporary folder (x/, a b/…). */
-const FIXTURE_TREES = new Set(['tests/reference-lab.test.js', 'tests/reference-lab-3d.test.js', 'tests/references-page.test.js']);
+const FIXTURE_TREES = new Set(['tests/reference-lab.test.js', 'tests/reference-lab-3d.test.js', 'tests/references-page.test.js', 'tests/references-site.test.js']);
+/** The built site's references/ (dist/references/: the references page's index, thumbnails and web copies, scripts/references-site.mjs). */
+const BUILT_SITE = new Set(['references/index.json', 'references/t', 'references/w']);
 /** Folders named before this guard that were never committed (the traveller's sheets of 2026-10-05, lore/). */
 const NEVER_COMMITTED = new Set(['references/traveller']);
 
@@ -89,7 +91,7 @@ test('every path into references/ names a folder that is there', () => {
       const miss = missingIn(rest);
       // (a folder's own references/ beside the file: a skill's `references/repo-map.md`)
       const own = existsSync(join(ROOT, dirname(f), 'references', rest.split('/')[0]));
-      if (miss && !own && !NEVER_COMMITTED.has(miss)) bad.push(`${f}: ${miss}  (in "references/${m[1].slice(0, 60)}")`);
+      if (miss && !own && !NEVER_COMMITTED.has(miss) && !BUILT_SITE.has(miss)) bad.push(`${f}: ${miss}  (in "references/${m[1].slice(0, 60)}")`);
     }
   }
   assert.deepEqual(bad, [], `stale paths into references/:\n${bad.join('\n')}`);
