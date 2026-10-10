@@ -47,6 +47,13 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 - [ ] **Locked on: left or right + jump does a side hop.**
 - [ ] **A defeated foe vanishes in a little puff of smoke** a second or so after its defeat animation.
 
+## Temples
+
+- [ ] **Redo the temples with less linear paths** (2026-10-10): several rooms with puzzles of different complexity,
+  keys found in one room that open others, rooms that close behind you and hold a small arena challenge to reopen,
+  and so on: a temple you explore, not a corridor of rooms in order. Keep every temple and guardian (reuse their
+  rooms and kits); use the temple-design-qc skill to score the result.
+
 ## Camera and animation
 
 - [ ] **A camera skill** (`.claude/skills/`) that checks the camera behaves: e.g. on the train, walking makes it jump about.
