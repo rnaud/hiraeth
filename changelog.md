@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.30 — 2026-10-10
+
+- The creatures gallery holds its view still: a sky ray, a moth or a jelly now glides, bobs and flaps in front of the camera instead of the whole picture riding along with it (or zooming in and out as it moved).
+- Lorn II’s giant mushrooms are pale glass, as the wood’s pictures draw them: you see the dark trunks and the sky through their caps and stalks, their rims drawn in a soft line, the glowing ones lit from within, by day and by night. The relic mushroom and its stepping caps stay solid on top, so you can see where you land.
+
 ## v1.29 — 2026-10-10
 
 - The lamp tripod, the bell walker and the furnace brute are drawn on twos, like a hand-drawn film: they hold each pose for a moment and then move on, so their thin legs no longer shimmer as they walk. Their strikes still snap at full speed.

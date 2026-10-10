@@ -899,6 +899,7 @@ updateSky();
 
 // ------------------------------------------------------------------ GUI
 const U = post.uniforms;
+level.veils?.bind({ tNormal: gbuffer.textures[1], uniforms: U });   // (the see-through surfaces' wash reads the scene's depth and the ink pass's light and haze: src/veil.js)
 const params = {
   preset: level.defaults.preset ?? 'Moebius print',
   debug: 0,
@@ -1467,6 +1468,7 @@ function renderFrame() {
   // 4. wind-blown sand and drifting motes, drawn on top (depth-tested against the G-buffer)
   // (not in a portrait shot: just the person against a flat colour)
   if (!portraitShot) {
+    level.veils?.render(renderer, camera, composeRT);   // the see-through surfaces' bodies, a pale wash (src/veil.js: Lorn II's mushrooms)
     renderer.render(wind.scene, camera);
     if (motes) renderer.render(motes.scene, camera);
     if (HOLO.live()) HOLO.render(renderer, camera, composeRT);   // the recordings' hologram: light, not ink
@@ -1946,6 +1948,7 @@ await warmShaders(post.scene, post.camera, composeRT);
 await slice();
 loadStep = 'water';
 { const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
+if (level.veils) await warmShaders(level.veils.scene, camera, composeRT);   // the see-through surfaces' wash (src/veil.js)
 await slice();
 // the shadow passes draw everything with one depth-only material, a program per kind of mesh
 // (instanced, skinned, which attributes): compiled now too, each kind wearing it for the moment

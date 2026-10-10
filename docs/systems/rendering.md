@@ -894,6 +894,37 @@ ship flickered 62 pixels in 10 000 a frame on Handheld (the busiest world measur
 - `tests/antennas.test.js`: the views' sheet projection; `tests/surface-spec.test.js` and `vertex-material.test.js`
   unchanged.
 
+## Half-transparent surfaces (materials.js `S_VEIL`, `src/veil.js`; October 2026)
+
+Lorn II's sheets draw the giant mushrooms as pale glass: the trunks behind show through the caps and the stalks
+(references/levels/Lorn II The Deep Wood/environment/IMG_3798, IMG_3800). The game's surfaces are opaque (one
+G-buffer, the ink pass over it), and a dithered screen-door would put an ink line round every hole, so a see-through
+surface is drawn in two parts:
+
+- **Its rim, in the G-buffer** (`makeMaterial({ veil })`): where the surface faces the eye more squarely than the cut
+  (|n·v| > `veil`: `VEIL.cap` 0.42, `VEIL.stalk` 0.5) the fragment is discarded, as the bubble helmet's glass is. What
+  is left is a band round the silhouette, shaded, hatched and inked like any surface; the post pass draws its outline
+  and a thin inner line where the band gives way to what is behind (the sheets' double contour of glass). Its line is
+  0.7 in a shade of its own colour (`line`, `lineTint`). The shadow maps draw the whole shape (the wood is dark under
+  the caps). Not one of `SURFACE_FEATURES`, and guarded by `uVeil > 0`: a shader made without `SURFACE_SPEC` never cuts.
+- **Its body, after the ink pass** (`Veils`, main.js `renderFrame` step 4, before the wind and the motes): the same
+  geometry again (one wash mesh per veiled mesh, sharing its buffers), drawn over the finished picture at `alpha` a layer
+  (0.3 a cap skin, 0.4 a stalk wall, 0.4 where it glows; a cap's two skins or a stalk's near and far wall make about
+  half), lit flat between the world's shade and light tints by the sun (`uShadowTint`, `uLightTint`, `uNight`: the ink
+  pass's own uniform objects), glowing where the cap glows, and hazed as the ink pass hazes the world (its layers by
+  distance, the far fog, the low mist: `hazeAt`'s formulas, post.js 4 and 4b). Its depth is tested by hand against
+  the G-buffer's (RT1.w, the motes' way): hidden by anything nearer, and not laid over its own rim (`depthEps`).
+- **Where**: Lorn II's giants (the stalks, the gills, the caps). The relic mushroom's cap and its five stepping caps keep
+  their tops solid, so you see where you land rather than the ground below; the small mushrooms, the eggs and the
+  References views are as they were.
+- **People**: a person behind a cap or a stalk shows through it under the wash (Tansy by the ship, among the small
+  mushrooms and the reeds, reads as before); a person in front hides the wash.
+- **Cost** (M4 Pro, ANGLE Metal, 1280 × 633, the view from the landing towards the relic, `renderFrame` timed with a
+  pixel read-back, median of five runs of 40 frames, veils on / off in one page): High 3.37 → 3.46 ms, the Deck preset
+  2.64 → 2.74 ms; draw calls 728 → 737 a frame (one per wash mesh in view, 12 in all). The wash alone 0.10 ms.
+- `tests/veil.test.js`: the define and the fallback, one wash per mesh sharing its geometry, bound to the ink pass's
+  uniforms, drawn only while its mesh shows.
+
 ## The eclipse (post.js `drawEclipse`, `uEclipse`; src/eclipse.js; October 2026)
 
 The City During the Eclipse's sky: the sun covered by the moon at midday, drawn as the pictures draw it.

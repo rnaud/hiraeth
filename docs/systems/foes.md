@@ -842,6 +842,14 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
 - **Pictures:** `node scripts/enemy-roster/skins.mjs --out <dir>` draws each built archetype in each of its skins
   and its own skin winding up each attack, from the gallery (`enemies.html`: World, then the archetype in that
   world's skin; its moves with their tells and answers; Fight it in the Arena).
+  **The gallery's still camera** (`src/enemies/frame.js` `GalleryFrame`): framed on the body at rest (the walk's
+  progress taken off) and, showing a move, its ground; grown by every box the pose shows and eased to it, so it settles
+  within the first cycle and then holds still while the creature bobs, glides or flaps in front of it (it used to be
+  fitted to the body every frame, and the page seemed to ride along with a sky ray's flight). A walk is followed only
+  by its steady progress; a still pose (`viewer.fixed`, the capture) is framed on that pose alone, as before. The
+  orbit's yaw, pitch and zoom are the user's; the scripts that frame a wind-up on the body alone (compare.mjs,
+  changelog-shots' `view.foe`) still override `m.r` / `m.height` / the group's place after `model()`.
+  `tests/gallery-frame.test.js`.
   `node scripts/enemy-roster/compare.mjs --out <dir> [--tag after] [crab …]` sets the game's body under each of its
   reference sheets, in the sheet's skin and views (front, side facing left, three-quarter, the wind-up the sheet
   draws): the contact images the art pass is checked against (`compare-<archetype>-<1|2>.png`, a working tool

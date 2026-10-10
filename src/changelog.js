@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.30', date: '2026-10-10', items: [
+    'Lorn II’s giant mushrooms are pale glass, as the wood’s pictures draw them: you see the dark trunks and the sky through their caps and stalks, their rims drawn in a soft line, the glowing ones lit from within, by day and by night. The relic mushroom and its stepping caps stay solid on top, so you can see where you land.',
+    'The creatures gallery holds its view still: a sky ray, a moth or a jelly now glides, bobs and flaps in front of the camera instead of the whole picture riding along with it (or zooming in and out as it moved).',
+  ] },
   { v: '1.29', date: '2026-10-10', items: [
     'The Arena no longer opens with the controller drawing over the view (it hid the fight on a small screen): F6, or View + D-pad ← in the Arena, still shows it.',
     // the temple guardians on the locomotion kit

@@ -325,6 +325,7 @@ const REF = (id, n, skin) => ({ sheet: `references/enemy-archetypes/${id}/sheet-
 /** The roster's procedural surfaces: taken with the foe views below at the commit before them and at theirs (made
  *  before the branch was rebased: hence `from`, not `commit`). */
 const SURF = { from: 'node scripts/changelog-shots.mjs (view.foe, the creatures gallery) at the commit before the surfaces (“Changelog media for enemies…”) and at the surfaces’ own (“Procedural surfaces for the enemy roster…”), before the branch was rebased' };
+const FROM_LORN_GLASS = 'headless Chrome (muted, High, 1280 × 633, 17:42 or 22:30, clear) against this branch’s own dev server, the camera pinned; before with Lorn II built as on main, after with the glass; cwebp -q 72';
 const FELLOW_FROM = 'headless Chrome (muted, High, 10:00, clear) against this branch’s own dev server, one session for each pair: the before with the new thing taken out of the scene (Tansy, the course and its sign), the after with it back, the same pinned view; cwebp -q 72';
 /** Batch 1's art pass: from before compare.mjs (7dd178f7) to its last commit. */
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
@@ -484,6 +485,24 @@ const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': 
 /** The guardians on the kit (v1.29): eight frames of a walk, a quarter second apart, side-on in the Arena; made by hand. */
 const FROM_GUARD29 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena, the guardian called into its ring and walked by hand in a straight line at 2.2 m/s, the camera beside it following, eight frames a quarter second apart; before at main before the change (c2324c58), after on the branch (10 October)';
 export const CHANGELOG_MEDIA = {
+  '1.30': [
+    { match: 'Lorn II’s giant mushrooms are pale glass', shots: [
+      { name: 'lorn-glass-day', caption: 'From the landing towards the relic mushroom at dusk: before, solid lilac caps and stalks; after, glassy caps and stalks with the trunks and the sky showing through, their rims drawn', from: FROM_LORN_GLASS },
+      { name: 'lorn-glass-night', caption: 'The same view at night: the glass caps pale against the stars, the trunks behind them seen through', from: FROM_LORN_GLASS },
+      { name: 'lorn-glass-under', caption: 'Under the relic mushroom looking up: the stalk and the gills see-through, the cap’s top kept solid (you climb onto it)', from: FROM_LORN_GLASS },
+      { name: 'lorn-glass-tansy', caption: 'Tansy waiting by the ship among the reeds and the small mushrooms: she reads as before, the giants behind her glassy now', from: FROM_LORN_GLASS },
+    ], numbers: [
+      { title: 'Lorn II, a frame drawn (the landing towards the relic)', unit: 'ms', better: 'lower', device: 'M4 Pro, ANGLE Metal, headless Chrome, 1280 × 633', rows: [
+        { where: 'High', before: 3.37, after: 3.46 }, { where: 'Deck preset', before: 2.64, after: 2.74 },
+      ], source: 'renderFrame timed with a pixel read-back, median of five runs of 40 frames, the glass on and off in one page', note: 'Draw calls 728 → 737 a frame: one wash per mushroom colour in view.' },
+    ] },
+    { match: 'The creatures gallery holds its view still', see: 'Open the creatures gallery (enemies.html?world=roster&enemy=ray%40arzach) and watch the storm ray: it banks and bobs while the floor, its shadow and the frame stay put. Try Moving on the jelly or the moth, and the moves: the frame settles within the first few seconds of a pose and then never moves (drag and scroll still turn and zoom it).',
+      numbers: [
+        { title: 'How far the camera moved while the creature idled (after its first three seconds)', unit: 'm', better: 'lower', device: 'the gallery, headless Chrome, 10 s at 60 frames a second', rows: [
+          { where: 'sky ray', before: 0.27, after: 0 }, { where: 'moth', before: 0.22, after: 0 }, { where: 'jelly', before: 0.12, after: 0 }, { where: 'drone', before: 0.11, after: 0.005 }, { where: 'marionette', before: 0.18, after: 0.009 },
+        ], source: 'the frame’s offset sampled every frame from 3 s to 10 s of Standing', note: 'The zoom also stopped pumping: the moth’s framing radius had swung 1.19–1.36 m, the jelly’s walking 5.2–12.3 m; now each holds one value.' },
+      ] },
+  ],
   '1.29': [
     { match: 'The Arena no longer opens with the controller drawing', see: 'Open the Arena (?level=arena): the fight fills the screen. Press F6, or hold View and press D-pad ←, to bring the controller drawing back.' },
     // the temple guardians on the locomotion kit (docs/systems/procedural-animation.md, "Phase 6, the guardians")

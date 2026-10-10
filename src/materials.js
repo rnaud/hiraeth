@@ -462,6 +462,7 @@ export function surfaceDefines(o) {
   on('S_FOLDS', o.folds);
   on('S_SCRUB', o.scrub);
   on('S_GLASS', o.glass);
+  on('S_VEIL', o.veil > 0);   // (see-through but for its rim: the wash over it is src/veil.js)
   on('S_MAP', o.map);
   on('METAL_BRUSHED', o.metal && o.brushed);
   on('S_VMAT', o.perVertex);   // (merged meshes: their material values per vertex, src/vertex-material.js)
@@ -830,6 +831,7 @@ const fragmentShader = /* glsl */ `
   uniform float uSuit;    // puffy-suit crease lines at the joints
   uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
+  uniform float uVeil;    // see-through where |n·v| is over it (S_VEIL)
   uniform vec4 uOutfit;   // bootTop, beltY, neckY, wristX (rest pose, metres)
   uniform vec4 uTrim;     // outfit: the tunic's printed pattern (rgb, costumes.js TRIM_IDS; 0 none)
   #ifdef CROWD
@@ -1932,6 +1934,11 @@ const fragmentShader = /* glsl */ `
       if (fr < 0.72 && streak < 0.5) discard;
     }
     #endif
+    // see-through but for its rim (makeMaterial({ veil }): Lorn II's mushrooms): where it faces the eye more squarely
+    // than the cut, nothing here; src/veil.js lays its body over the finished picture as a pale wash
+    #ifdef S_VEIL
+    if (uVeil > 0.0 && abs(dot(normalize(vNormal), normalize(cameraPosition - vWorldPos))) > uVeil) discard;
+    #endif
     #ifdef S_RIBBON
     if (uMode == ${MODE_RIBBON} && bayer4(gl_FragCoord.xy / max(uPixelRatio, 1.0) * 0.5) < smoothstep(0.45, 0.95, vFold.y)) discard;
     #endif
@@ -2732,6 +2739,8 @@ const cache = new Map();
  *                              fade, belly, mottle, rust, grain, bands, stripes, scales, spots, spots2, drips, glow, gloss
  * @param {boolean|string} [o.dissolve] compile the DISSOLVE block: uDissolve (amount, edge, bottom y, top y in
  *                              world space) eats the surface from the top down with a bright edge (o.dissolve: its colour)
+ * @param {number}  [o.veil]    see-through but for its rim: discarded where |n·v| is over it (compiles S_VEIL); the body
+ *                              is a wash laid over the finished picture by src/veil.js (Lorn II's mushrooms, VEIL there)
  * @param {boolean} [o.nightPaint] compile the NIGHT_PAINT block: the geometry's aNight attribute (vec4: rgb its colour by
  *                              night, a how far it glows then) takes over from its colour as uNight comes up (the Signal Market)
  */
@@ -2794,6 +2803,7 @@ export function makeMaterial(o) {
       uSuit: { value: o.suit ? 1 : 0 },
       uGlassCenter: { value: o.glassCenter ?? new THREE.Vector3() },
       uGlass: { value: o.glass ? 1 : 0 },
+      uVeil: { value: o.veil ?? 0 },
       uOutfit: { value: new THREE.Vector4(...(o.outfit ?? [0.13, 0.97, 1.47, 0.64])) },
       uTrim: { value: new THREE.Vector4(...(o.trim ?? [0, 0, 0, 0])) },
       uFace: { value: new THREE.Vector4(...(o.face ?? [1.7, 0.032, 1.657, 1.577]).filter((_, i) => i !== 3)) },

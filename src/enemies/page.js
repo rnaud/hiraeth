@@ -8,6 +8,7 @@ import { WORLDS, worldArchetypes } from '../foe-worlds.js';
 import { TITLES } from '../levels/names.js';
 import { sharedUniforms } from '../materials.js';
 import { fitShadowExtent, FINE_CASCADE } from '../shadows.js';
+import { GalleryFrame, visibleBox } from './frame.js';
 
 // The creatures and spirits gallery (enemies.html): the enemy roster's archetypes (src/enemies/archetypes.js), each in
 // every world's skin (src/enemies/skins.js), turning, standing, walking on the locomotion kit or winding up each of
@@ -48,14 +49,15 @@ class EnemyViewer extends ItemViewer {
       const b = new T.Box3().setFromObject(f.model.group), centre = b.getCenter(new T.Vector3());
       const holder = new T.Group(); holder.add(owner.group);
       const size = b.getSize(new T.Vector3()), shadowExtent = fitShadowExtent(1.3 * Math.hypot(size.x, size.z) / 2, 1.15 * size.y + (f.def.hover ?? 0), sharedUniforms.uSunDir.value.y, {min:FINE_CASCADE.extent,max:2*FINE_CASCADE.extent});
-      m = { holder, owner, f, centre, r: b.getBoundingSphere(new T.Sphere()).radius, height: b.max.y - b.min.y, fluids: [], shadowExtent };
+      m = { holder, owner, f, centre, rest: visibleBox(f.model.group), frame: new GalleryFrame(), r: b.getBoundingSphere(new T.Sphere()).radius, height: b.max.y - b.min.y, fluids: [], shadowExtent };
       this.models.set(id, m);
     }
     this.fitShadow(m);
     m.holder.position.set(0, 0, 0); m.owner.group.position.set(0, 0, 0); m.holder.updateMatrixWorld(true);
     const f = m.f, dt = this.fixed ? 0 : 1 / 60, P = m.owner.player;
     f.heading = 0; f.stunned = 0; f.dist = 2;   // (close by: a hound is solid, a tripod aims its lamp at you)
-    // walking, it really walks (its feet are planted by the locomotion kit: src/motion-kit/), and the view follows it
+    // walking, it really walks (its feet are planted by the locomotion kit: src/motion-kit/), and the view follows its
+    // steady progress along the ground (not its body's bob or sway: src/enemies/frame.js)
     const walking = this.mode === 'walk' && !this.fixed; m.walkZ = walking ? (m.walkZ ?? 0) + f.def.speed * dt : 0; f.pos.set(0, 0, m.walkZ);
     let phase = this.fixed?.state ?? this.mode, k = this.fixed?.k ?? 0, a = null;
     if (this.mode.startsWith('attack')) {
@@ -68,17 +70,23 @@ class EnemyViewer extends ItemViewer {
     if (phase === 'strike' && a?.lunge) f.pos.z = a.lunge * (1 - (1 - k) ** 2);
     f.alt = f.def.hover ? (phase === 'strike' && a?.dive ? T.MathUtils.lerp(f.def.hover, 0.35, k) : phase === 'recover' ? 0.35 : f.def.hover) : 0;
     m.owner.look(f, dt);
-    // the view is fitted to the body and, showing a move, to the ground it covers
-    const b = new T.Box3().setFromObject(f.model.group);
+    // the view: the body at rest and, showing a move, the ground it covers; grown by what the pose shows and then
+    // held still while the creature moves in front of it (src/enemies/frame.js). A still pose: that pose alone.
+    const b = visibleBox(f.model.group), area = new T.Box3();
     if (a) {
       const o = a.at === 'target' || a.at === 'behind' ? f.attackAt : f.pos, h = f.attackH ?? 0;
-      if (a.shape === 'ring') { for (const x of [-1, 1]) for (const z of [-1, 1]) b.expandByPoint(new T.Vector3(o.x + x * a.radius, 0, o.z + z * a.radius)); }
-      else if (a.shape === 'cone') { b.expandByPoint(o); for (let i = 0; i <= 8; i++) { const an = h - a.angle + 2 * a.angle * i / 8; b.expandByPoint(new T.Vector3(o.x + Math.sin(an) * Math.min(a.range, 7), 0, o.z + Math.cos(an) * Math.min(a.range, 7))); } }
-      else for (const along of [0, Math.min(a.range, 8)]) for (const side of [-a.width / 2, a.width / 2]) b.expandByPoint(new T.Vector3(o.x + Math.sin(h) * along + Math.cos(h) * side, 0, o.z + Math.cos(h) * along - Math.sin(h) * side));
+      if (a.shape === 'ring') { for (const x of [-1, 1]) for (const z of [-1, 1]) area.expandByPoint(new T.Vector3(o.x + x * a.radius, 0, o.z + z * a.radius)); }
+      else if (a.shape === 'cone') { area.expandByPoint(o); for (let i = 0; i <= 8; i++) { const an = h - a.angle + 2 * a.angle * i / 8; area.expandByPoint(new T.Vector3(o.x + Math.sin(an) * Math.min(a.range, 7), 0, o.z + Math.cos(an) * Math.min(a.range, 7))); } }
+      else for (const along of [0, Math.min(a.range, 8)]) for (const side of [-a.width / 2, a.width / 2]) area.expandByPoint(new T.Vector3(o.x + Math.sin(h) * along + Math.cos(h) * side, 0, o.z + Math.cos(h) * along - Math.sin(h) * side));
     }
-    const centre = b.getCenter(new T.Vector3()); if (walking) { centre.x = m.centre.x + f.pos.x; centre.z = m.centre.z + f.pos.z; }
-    m.owner.group.position.copy(centre).negate();
-    m.r = b.getBoundingSphere(new T.Sphere()).radius; m.height = b.max.y - b.min.y;
+    const walk = new T.Vector3(0, 0, walking ? m.walkZ : 0);
+    b.translate(walk.clone().negate());   // (the body in its own frame: the walk's progress taken off)
+    const key = this.fixed ? `${this.mode}|${this.fixed.state}|${this.fixed.k}` : this.mode;
+    if (this.fixed) m.frame.reset(key, b.clone().union(area));
+    else if (m.frame.key !== key) m.frame.reset(key, m.rest.clone().union(b).union(area));
+    else m.frame.grow(b, dt);
+    m.owner.group.position.copy(m.frame.centre).add(walk).negate();
+    m.r = m.frame.r; m.height = m.frame.height;
     return m;
   }
 }

@@ -12,6 +12,7 @@ import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
 import { buildWaterWay, buildKeepersStalks } from '../deep-wood-ways.js';
+import { Veils, VEIL } from '../veil.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -278,10 +279,11 @@ export function* buildPerdide2(scene) {
   // ---------------------------------------------------------- giant pale mushrooms
   yield;
   const shroomGeo = { stalk: {}, under: {}, top: {} };
+  const veils = new Veils();   // (the giants' see-through bodies, laid over the finished picture: main.js)
   const STALK = ['#b9b3d9', '#a49cc8', '#c3bde2'];
   let lastShroom = null;
   const nestAt = [];   // the giants a nest could sit in: { pose, dp }
-  function shroom(x, z, s, { glow = false, sink = 0.6, tilt = 0.12, seed = 0 } = {}) {
+  function shroom(x, z, s, { glow = false, sink = 0.6, tilt = 0.12, seed = 0, step = false } = {}) {
     const g0 = H(x, z);
     const parts = shroomParts(s);
     const rx = R(-tilt, tilt), rz = R(-tilt, tilt), ry = rng() * 6;
@@ -293,7 +295,7 @@ export function* buildPerdide2(scene) {
       g.rotateY(ry).rotateX(rx).rotateZ(rz).translate(x, g0 - sink, z);
       g.deleteAttribute('uv');
       const c = key === 'stalk' ? stalkColor : key === 'under' ? (glow ? '#b5abe0' : '#9890c0') : (glow ? '#ddd6f6' : pick(['#c9c1ea', '#bdb4e2', '#d2cbef']));
-      const k = `${c}|${glow ? 1 : 0}`;
+      const k = `${c}|${glow ? 1 : 0}|${step && key === 'top' ? 1 : 0}`;   // (a cap you climb onto: its top solid underfoot)
       (shroomGeo[key][k] ??= []).push(g.toNonIndexed());
       // collision: the drawn cap and stalk themselves (a ten-sided copy without the drawn one's waver sat up to a
       // metre inside it: feet sank into the stepping caps, src/contact-audit.js)
@@ -304,7 +306,7 @@ export function* buildPerdide2(scene) {
     return g0 - sink + parts.topY;
   }
   // the relic mushroom and a spiral of stepping caps up to it
-  shroom(HERO_SHROOM.x, HERO_SHROOM.z, HERO_SHROOM, { glow: true, sink: 0.2, tilt: 0, seed: 1 });
+  shroom(HERO_SHROOM.x, HERO_SHROOM.z, HERO_SHROOM, { glow: true, sink: 0.2, tilt: 0, seed: 1, step: true });
   yield;
   for (let k = 0; k < 5; k++) {
     yield;
@@ -314,7 +316,7 @@ export function* buildPerdide2(scene) {
     const capR = 2.4 + k * 0.15;
     // height chosen so the cap top sits `top` above the ground
     const s = { sr: 0.45 + k * 0.05, capR, dome: 0.12, H: (top + 0.2 - capR * 0.12) / 0.9 };
-    shroom(x, z, s, { glow: k % 2 === 1, sink: 0.2, tilt: 0, seed: 10 + k });
+    shroom(x, z, s, { glow: k % 2 === 1, sink: 0.2, tilt: 0, seed: 10 + k, step: true });
   }
   // the forest of giants
   yield;
@@ -343,12 +345,18 @@ export function* buildPerdide2(scene) {
     }
     for (const key of ['stalk', 'under', 'top'])
       for (const [k, l] of Object.entries(shroomGeo[key])) {
-        const [c, glow] = k.split('|');
+        const [c, glow, solid] = k.split('|');
         const g = +glow ? (key === 'top' ? 0.45 : key === 'under' ? 0.3 : 0) : (key === 'top' ? 0.12 : 0);
-        // (pale even in their own shade, as the reference sheets draw them against the dark wood)
-        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4, detail: key === 'stalk' ? 'organic' : 0, detailDensity: 0.7, form: true }));
+        // (pale even in their own shade, as the reference sheets draw them against the dark wood; half see-through, as
+        // the sheets' glassy caps and stalks with the trunks showing through them: only the rim drawn and inked, the
+        // body a pale wash over the picture, softly glowing where they glow: src/veil.js)
+        // (the relic's cap and its stepping caps keep their tops solid: you see where you land, not the ground below)
+        const veil = +solid ? 0 : key === 'stalk' ? VEIL.stalk : VEIL.cap;
+        const m = new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true, glow: g, shade: key === 'under' ? 0.4 : 0.6, hatch: 0.4, detail: key === 'stalk' ? 'organic' : 0, detailDensity: 0.7, form: true, ...(veil ? { veil, line: 0.7, lineTint: 0.67 } : {}) }));
         m.userData.noCollide = true;
+        m.name = `shroom-${key}`;
         scene.add(m);
+        if (veil) veils.add(m, { color: c, glow: g, ...(key === 'stalk' ? { alpha: VEIL.stalkAlpha } : {}) });
       }
   }
 
@@ -857,6 +865,7 @@ export function* buildPerdide2(scene) {
     archTops,
     // for the story (src/story/perdide2.js)
     poolMesh, poolList, domeDoors, saucer, fenLanding,
+    veils,   // (the giant mushrooms' see-through bodies: src/veil.js, drawn by main.js after the ink pass)
     life: {
       flocks: [{ count: 8, color: '#1f2236', size: 1.0, radius: 45, height: [14, 40], speed: 0.22, seed: 21 }],
       motes: { count: 220, color: '#ffd6a0', size: 0.07, glow: 1, rise: 0.04, wind: [0.08, 0.05] },
