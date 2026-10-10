@@ -38,21 +38,22 @@ export function rollerModel(skin) {
   const body = pivot(g, 0, 0, 0, 'body');
   const shell = pivot(body, 0, UP_Y, -0.12, 'shell');
   const spin = pivot(shell, 0, 0, 0, 'spin');
-  const shellM = M.mat('shell', P.shell), bandM = M.mat('band', P.band, { metal: props.has('pearl') ? 'brass' : 'steel', color: P.band });
-  const spiralM = M.own('spiral', P.spiral, { glow: props.has('pearl') ? 0.35 : 0.02 });
-  const footB = M.mat('footBuild', P.foot), stalkB = M.mat('stalkBuild', P.stalk ?? P.foot);
+  // (the spiral and the band are drawn as the sheet's fine pen lines: a hairline in their own colour, not the heavy ink)
+  const shellM = M.mat('shell', P.shell), bandM = M.mat('band', P.band, { metal: props.has('pearl') ? 'brass' : 'steel', color: P.band, line: 0.45, lineTint: 1 });
+  const spiralM = M.own('spiral', P.spiral, { glow: props.has('pearl') ? 0.35 : 0.02, line: 0.25, lineTint: 1 });
+  const footB = M.mat('footBuild', P.foot), stalkB = M.mat('stalkBuild', P.stalk ?? P.foot), ballB = M.mat('eyeballBuild', P.eyeball ?? '#efe8d6');
   const footM = M.mat('foot', P.foot, { vertexColors: true });
-  const eyeM = M.own('eye', P.eye, { glow: 0.2 });
+  const eyeM = M.own('eye', P.eye, { glow: 0.2, vertexColors: true }), pupilB = M.mat('pupilBuild', P.eye);
   // the shell: a ball, its spiral raised on its sides (the axis it rolls on), a riveted band round it over the top
   add(spin, new THREE.SphereGeometry(R, 32, 22), shellM);
   const spiral = [];
   for (const s of [-1, 1]) {
     const pts = [];
     for (let i = 0; i <= 48; i++) {
-      const t = i / 48, th = 0.08 + t * 1.32, ph = t * Math.PI * 2 * 3.1 * s;
+      const t = i / 48, th = 0.05 + t * 0.95, ph = t * Math.PI * 2 * 2.4 * s;
       pts.push([s * R * Math.cos(th) * 1.004, R * Math.sin(th) * Math.sin(ph) * 1.004, R * Math.sin(th) * Math.cos(ph) * 1.004]);
     }
-    spiral.push(tubeGeometry(pts, 0.022));
+    spiral.push(tubeGeometry(pts, 0.014));
   }
   many(spin, spiral, spiralM);
   const band = [new THREE.TorusGeometry(R * 0.985, 0.028, 6, 48).rotateY(Math.PI / 2).translate(R * 0.17, 0, 0)];
@@ -72,20 +73,21 @@ export function rollerModel(skin) {
   // the shell, tapering to a point behind; the head rising in front, two long eye stalks, two short feelers
   const foot = pivot(body, 0, 0, 0, 'foot');
   const segs = [];
-  for (let i = 0; i < 7; i++) {
-    const t = i / 6, z = lerp(0.82, -1.05, t), w = 0.52 * Math.sin(Math.PI * Math.min(1, 0.18 + t * 0.9)) + 0.06, h = 0.13 + 0.05 * Math.sin(Math.PI * t);
+  for (let i = 0; i < 9; i++) {
+    // (overlapping, flat and wide: one soft skirt wider than the shell in front, thinning to a point behind)
+    const t = i / 8, z = lerp(0.78, -1.08, t), w = 0.64 * Math.sin(Math.PI * Math.min(1, 0.22 + t * 0.85)) + 0.05, h = 0.08 + 0.04 * Math.sin(Math.PI * t);
     const j = pivot(foot, 0, 0, z, `sole ${i}`);
-    add(j, new THREE.SphereGeometry(1, 14, 8).scale(w, h, 0.2), footB, 0, h * 0.6, 0);
+    add(j, new THREE.SphereGeometry(1, 16, 8).scale(w, h, 0.32), footB, 0, h * 0.55, 0);
     segs.push(j);
   }
-  const head = pivot(foot, 0, 0.12, 0.66, 'head');
-  add(head, new THREE.SphereGeometry(1, 14, 10).scale(0.27, 0.26, 0.32), footB, 0, 0.12, 0.08);
+  const head = pivot(foot, 0, 0.06, 0.62, 'head');
+  add(head, new THREE.SphereGeometry(1, 14, 10).scale(0.24, 0.2, 0.3), footB, 0, 0.1, 0.06);
   const stalks = pair((s) => {
     const base = pivot(head, s * 0.1, 0.3, 0.12, 'stalk');
     add(base, new THREE.CylinderGeometry(0.018, 0.034, 0.74, 7).translate(0, 0.37, 0), stalkB);
     const tip = pivot(base, 0, 0.74, 0, 'eye');
-    add(tip, new THREE.SphereGeometry(0.055, 10, 8), stalkB);
-    add(tip, new THREE.SphereGeometry(0.035, 8, 6), eyeM, 0, 0.005, 0.03);
+    add(tip, new THREE.SphereGeometry(0.058, 10, 8), ballB);   // (a pale eyeball, its dark pupil looking ahead: the eye's colour tells its state)
+    add(tip, new THREE.SphereGeometry(0.028, 8, 6), pupilB, 0, 0.005, 0.045);
     base.rotation.set(0.42, 0, -s * 0.28);
     return { base, tip, s };
   });
@@ -95,7 +97,7 @@ export function rollerModel(skin) {
     base.rotation.set(1.3, 0, -s * 0.5);
     return base;
   });
-  skinBy(g, [{ from: [footB, stalkB], into: footM }]);
+  skinBy(g, [{ from: [footB, stalkB, ballB], into: footM }, { from: [pupilB], into: eyeM }]);   // (the pupils one mesh: their colour tells its state)
   finish(g);
   const parts = [shell, spin, foot, head, ...stalks.map((x) => x.base)];
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });

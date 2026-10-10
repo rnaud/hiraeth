@@ -254,7 +254,7 @@ export const PLANS = {
   // pendulum (src/motion-kit/machines.js Pendulum) and its limbs swing on their own lag; it jerks when it moves (the
   // strings pulled in tugs: a quantised drive) and never touches the ground (src/enemies/plans/strings.js)
   strings: {
-    anchor: 6,                                                           // (m over its feet: the knot of smoke)
+    anchor: 4.6,                                                         // (m over its feet: the knot of smoke, ~6 m up as it hangs)
     swing: { length: 3.6, damping: 0.9, drive: 0.7 },                  // (the whole puppet from its anchor)
     limb: { f: 1.6, z: 0.22, r: 0 },                                   // (each limb's own swing: loose, underdamped)
     jerk: { every: 0.32, tug: 0.22 },                                  // (s between tugs as it moves; rad each tug lifts a limb)

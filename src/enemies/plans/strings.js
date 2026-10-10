@@ -48,7 +48,7 @@ function stringMesh(owner, pairs, mat, r = 0.006) {
     const ia = boneOf(ja), ib = boneOf(jb), d = B.clone().sub(A), base = pos.length / 3;
     q.setFromUnitVectors(_up, d.clone().normalize());
     for (let ring = 0; ring < 2; ring++) for (let s = 0; s < 4; s++) {
-      const t = (s / 4) * Math.PI * 2, n = new THREE.Vector3(Math.cos(t), 0, Math.sin(t)).applyQuaternion(q);
+      const t = (s / 4) * Math.PI * 2 + Math.PI / 4, n = new THREE.Vector3(Math.cos(t), 0, Math.sin(t)).applyQuaternion(q);
       const p = (ring ? B : A).clone().addScaledVector(n, r);
       pos.push(p.x, p.y, p.z); nrm.push(n.x, n.y, n.z); si.push(ring ? ib : ia, 0, 0, 0); sw.push(1, 0, 0, 0);
     }
@@ -74,32 +74,37 @@ export function marionetteModel(skin) {
   // the anchor: the knot of smoke where the strings go up into the dark, PL.anchor m over its feet
   const anchor = pivot(g, 0, PL.anchor, 0, 'anchor');
   // (the strings glow faintly: the possession's own light, and what you cut; they read against any ground)
-  const smokeM = M.mat('smoke', P.smoke), threadM = M.mat('thread', P.thread, { flat: true, glow: 0.55 });
+  const smokeM = M.mat('smoke', P.smoke), threadM = M.mat('thread', P.thread, { flat: true, glow: 0.55, line: 0.25, lineTint: 1 });
   const puffs = [];
-  for (let i = 0; i < 16; i++) { const a = i * 2.39996, r = 0.15 + (i % 4) * 0.12; puffs.push(new THREE.IcosahedronGeometry(0.22 + (i % 3) * 0.1, 1).translate(Math.sin(a) * r, 0.1 + (i % 5) * 0.09 - r * 0.3, Math.cos(a) * r)); }
-  for (let i = 0; i < 5; i++) puffs.push(new THREE.IcosahedronGeometry(0.07 - i * 0.008, 0).translate(Math.sin(i) * 0.04, -0.25 - i * 0.16, 0));   // (a wisp trailing down the strings)
+  // (a billowing knot wider than the puppet, heaped up, a wisp of it twisting down where the strings go in)
+  for (let i = 0; i < 34; i++) {
+    const a = i * 2.39996, r = 0.1 + Math.sqrt(i / 34) * 0.75, s = 0.12 + ((i * 7) % 5) * 0.045;
+    puffs.push(new THREE.IcosahedronGeometry(s, 1).scale(1.15, 0.85, 1.15).translate(Math.sin(a) * r, 0.3 + ((i * 3) % 7) * 0.06 - r * r * 0.35, Math.cos(a) * r * 0.85));
+  }
+  for (let i = 0; i < 6; i++) puffs.push(new THREE.IcosahedronGeometry(0.09 - i * 0.01, 0).translate(Math.sin(i * 1.3) * 0.05, -0.05 - i * 0.14, Math.cos(i) * 0.03));
   const smoke = new THREE.Group(); anchor.add(smoke); smoke.name = 'knot';
   many(smoke, puffs, smokeM);
   // the puppet hangs from the anchor (`hang`: the pendulum turns it about the knot)
   const hang = pivot(anchor, 0, 0, 0, 'hang');
   const body = pivot(hang, 0, CHEST - PL.anchor, 0, 'puppet');
   const bodyB = M.mat('bodyBuild', P.body), jointB = M.mat('jointBuild', P.joint), sealB = parcel ? M.mat('sealBuild', P.seal) : null;
-  const bodyM = M.mat('body', P.body, { vertexColors: true, flat: parcel || girder }), jointM = M.mat('joint', P.joint, { vertexColors: true });
+  // (glass catches the light even in its shade: a little of its own)
+  const bodyM = M.mat('body', P.body, { vertexColors: true, flat: parcel || girder, glow: props.has('silver') ? 0.22 : 0 }), jointM = M.mat('joint', P.joint, { vertexColors: true, glow: props.has('silver') ? 0.15 : 0 });
   // (a limb: a glass capsule, a parcel's box, a girder's I-beam; a joint: a pearl ball, a knot of twine, a bolt)
-  const limb = (len, r) => (parcel ? new THREE.BoxGeometry(r * 2.4, len * 0.92, r * 2.1) : girder ? new THREE.BoxGeometry(r * 1.6, len * 0.95, r * 2.2) : new THREE.CapsuleGeometry(r, Math.max(0.01, len - r * 2), 4, 8)).translate(0, -len / 2, 0);
-  const ball = (r) => (girder ? new THREE.CylinderGeometry(r * 0.9, r * 0.9, r * 1.6, 8).rotateZ(Math.PI / 2) : new THREE.SphereGeometry(r, 10, 8));
+  const limb = (len, r0) => { const r = r0 * 1.35; return (parcel ? new THREE.BoxGeometry(r * 2.4, len * 0.92, r * 2.1) : girder ? new THREE.BoxGeometry(r * 1.6, len * 0.95, r * 2.2) : new THREE.CapsuleGeometry(r, Math.max(0.01, len - r * 2), 4, 8)).translate(0, -len / 2, 0); };
+  const ball = (r0) => { const r = r0 * 1.3; return girder ? new THREE.CylinderGeometry(r * 0.9, r * 0.9, r * 1.6, 8).rotateZ(Math.PI / 2) : new THREE.SphereGeometry(r, 10, 8); };
   // the chest (its back string's hold behind it), the ringed waist, the pelvis
   if (parcel) add(body, new THREE.BoxGeometry(0.4, 0.42, 0.24).translate(0, -0.04, 0), bodyB);
-  else add(body, new THREE.SphereGeometry(1, 16, 12).scale(0.2, 0.25, 0.13).translate(0, -0.04, 0), bodyB);
+  else add(body, new THREE.SphereGeometry(1, 16, 12).scale(0.23, 0.27, 0.15).translate(0, -0.04, 0), bodyB);
   const waist = pivot(body, 0, -0.27, 0, 'waist');
   many(waist, [0, 1, 2].map((i) => new THREE.CylinderGeometry(0.085 - i * 0.004, 0.085 - i * 0.004, 0.045, 12).translate(0, -0.02 - i * 0.055, 0)), jointB);
   const pelvis = pivot(waist, 0, -0.2, 0, 'pelvis');
   if (parcel) add(pelvis, new THREE.BoxGeometry(0.34, 0.18, 0.22).translate(0, -0.06, 0), bodyB);
-  else add(pelvis, new THREE.SphereGeometry(1, 14, 10).scale(0.17, 0.11, 0.12).translate(0, -0.05, 0), bodyB);
+  else add(pelvis, new THREE.SphereGeometry(1, 14, 10).scale(0.19, 0.12, 0.14).translate(0, -0.05, 0), bodyB);
   // the head: tipped forward on its neck (limp); an egg of glass, a paper bag, a girder's block
   const neck = pivot(body, 0, NECK - CHEST, 0, 'neck');
   add(neck, ball(0.045), jointB);
-  const headM = parcel ? new THREE.BoxGeometry(0.22, 0.28, 0.2).translate(0, 0.17, 0) : girder ? new THREE.BoxGeometry(0.2, 0.26, 0.22).translate(0, 0.16, 0) : new THREE.SphereGeometry(1, 16, 12).scale(0.115, 0.15, 0.125).translate(0, 0.16, 0);
+  const headM = parcel ? new THREE.BoxGeometry(0.22, 0.28, 0.2).translate(0, 0.17, 0) : girder ? new THREE.BoxGeometry(0.2, 0.26, 0.22).translate(0, 0.16, 0) : new THREE.SphereGeometry(1, 16, 12).scale(0.13, 0.165, 0.14).translate(0, 0.17, 0);
   add(neck, headM, bodyB);
   // the wax seals and the twine knots on the parcel puppet; rivets on the girder's
   if (parcel) many(body, [new THREE.CylinderGeometry(0.05, 0.05, 0.015, 12).rotateX(Math.PI / 2).translate(0, 0.02, 0.125), new THREE.CylinderGeometry(0.045, 0.045, 0.015, 12).rotateX(Math.PI / 2).translate(0, -0.17, 0.125)], sealB);
@@ -137,9 +142,9 @@ export function marionetteModel(skin) {
   const headHold = pivot(neck, 0, 0.32, 0, 'head string'), backHold = pivot(body, 0, 0.06, -0.12, 'back string');
   const tops = [0, 1, 2, 3].map((i) => pivot(anchor, 0, 0, 0, `knot ${i}`));
   skinBy(g, [{ from: [bodyB], into: bodyM }, { from: [jointB, ...(sealB ? [sealB] : [])], into: jointM }]);
-  const strings = stringMesh(g, [[tops[0], headHold], [tops[1], backHold], [tops[2], arms[0].hold], [tops[3], arms[1].hold]], threadM, props.has('rope') ? 0.012 : 0.006);
+  const strings = stringMesh(g, [[tops[0], headHold], [tops[1], backHold], [tops[2], arms[0].hold], [tops[3], arms[1].hold]], threadM, props.has('rope') ? 0.02 : 0.012);
   // the strings it drops onto a creature (or swings at you): two lines from its hands, unspooling down
-  const drops = pair(() => { const m = add(g, new THREE.CylinderGeometry(0.008, 0.008, 1, 4).translate(0, -0.5, 0), threadM); m.visible = false; return m; });
+  const drops = pair(() => { const m = add(g, new THREE.CylinderGeometry(0.012, 0.012, 1, 5).translate(0, -0.5, 0), threadM); m.visible = false; return m; });
   finish(g);
   const parts = [body, waist, pelvis, neck, ...arms.flatMap((a) => [a.sh, a.el]), ...legs.flatMap((l) => [l.hip, l.kn])];
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });
@@ -185,14 +190,14 @@ export function marionetteModel(skin) {
         const [sx, sz] = limbs.arms[i];
         let x = sx.update(dt, THREE.MathUtils.clamp(-fwd * 0.12 + swing.va * 0.1, -0.8, 0.8) + sway(i)) - tugs[i] * 0.9;
         let z = sz.update(dt, THREE.MathUtils.clamp(side * 0.1, -0.6, 0.6)) + A.s * (0.06 + slack * 0.2);
-        let elb = -0.15 - tugs[i] * 0.8, curl = 0.2;
-        // the strings: both arms lifted out and up, elbows bent, hands up, the fingers curling
-        x = lerp(x, 0, up); z = lerp(z, A.s * 1.45, up); elb = lerp(elb, -1.6, up); curl = lerp(curl, 1.2, up);
+        let elb = -0.15 - tugs[i] * 0.8, curl = 0.2, raise = 0;
+        // the strings: both upper arms lifted out level, the forearms up, the hands high, the fingers curling
+        x = lerp(x, 0, up); z = lerp(z, A.s * 1.45, up); elb = lerp(elb, 0, up); raise = A.s * 1.5 * up; curl = lerp(curl, 1.2, up);
         // the yank: its right arm rises high, the string swinging out
         if (i === 0) { x = lerp(x, -2.4, yank); z = lerp(z, A.s * 0.3, yank); elb = lerp(elb, -0.3, yank); }
         // the dance: arms flung out
         z = lerp(z, A.s * 1.0, dance); elb = lerp(elb, -0.5, dance);
-        A.sh.rotation.set(x, 0, z); A.el.rotation.x = elb;
+        A.sh.rotation.set(x, 0, z); A.el.rotation.set(elb, 0, raise);
         A.fingers.rotation.x = curl + (wind ? Math.sin(c.now / 90 + i) * 0.15 : 0);
       });
       legs.forEach((L, i) => {

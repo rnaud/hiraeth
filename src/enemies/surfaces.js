@@ -388,18 +388,15 @@ Object.assign(SURFACES, {
       // sword wet ink with violet light on it, the smoke clouded)
       cloak: {
         mottle: { color: 'cloak2', scale: 0.14, amount: 0.35, soft: 0.15, detail: 0.6, strength: 0.6 },
-        stripes: { color: 'cloak*0.72', axis: 4, period: 0.11, width: 0.06, ink: 0.35 },
-        fade: { color: 'smoke', axis: 1, from: 0.98, to: 0.6 },
+        stripes: { color: 'cloak*0.78', axis: 4, period: 0.13, width: 0.08, ink: 0.15 },
+        fade: { color: 'smoke', axis: 1, from: 0.7, to: 0.44 },
         ...SPECKS('lining', 0.35, 0.05),
       },
-      lining: { mottle: { color: 'smoke', scale: 0.12, amount: 0.4, soft: 0.3, strength: 0.6 } },
       hood: { mottle: { color: 'hood2', scale: 0.08, amount: 0.3, soft: 0.15, strength: 0.6 }, ...SPECKS('face', 0.35, 0.04) },
       strip: { spots2: { color: 'lining', scale: 0.06, share: 0.35, size: 0.55, amount: 0.9 }, mottle: { color: 'strip*0.8', scale: 0.08, amount: 0.3, soft: 0.2, strength: 0.6 } },
       boot: { gloss: { size: 0.03, sky: 0.5, amount: 0.6 }, mottle: { color: 'boot*0.82', scale: 0.06, amount: 0.3, soft: 0.2, strength: 0.6 } },
-      inner: { mottle: { color: 'smoke', scale: 0.08, amount: 0.35, soft: 0.25, strength: 0.6 } },
       sword: { gloss: { size: 0.03, sky: 0.9, amount: 1, color: 'shine+0.4' }, mottle: { color: 'shine', scale: 0.06, amount: 0.3, soft: 0.25, strength: 0.6 } },
       smoke: { mottle: { color: 'smoke2', scale: 0.1, amount: 0.4, soft: 0.35, strength: 0.8, detail: 0.6 } },
-      brass: { gloss: { size: 0.025, sky: 0.4, amount: 0.6 } },
     },
     // (the woodsman's hood: rough bark, its grain running up to the point, darker in the furrows)
     perdide2: { hood: { grain: { color: 'hood2', spacing: 0.03, ink: 0.45, warp: 0.6, amount: 0.7 }, mottle: { color: 'hood2', scale: 0.07, amount: 0.3, soft: 0.1, strength: 0.6 } } },
@@ -408,14 +405,14 @@ Object.assign(SURFACES, {
       hood: { mottle: { color: 'hood2', scale: 0.12, amount: 0.3, soft: 0.25, strength: 0.5 }, bands: { color: 'trim', axis: 1, period: 0.5, width: 0.05, ink: 0.4, offset: 0.12 } },
       cloak: {
         mottle: { color: 'cloak2', scale: 0.16, amount: 0.4, soft: 0.2, detail: 0.6, strength: 0.7 },
-        stripes: { color: 'cloak*0.72', axis: 4, period: 0.11, width: 0.06, ink: 0.35 },
+        stripes: { color: 'cloak*0.78', axis: 4, period: 0.13, width: 0.08, ink: 0.15 },
         bands: { color: 'trim', axis: 4, period: 6.3, width: 0.012, ink: 0.4, offset: 0 },
-        fade: { color: 'smoke', axis: 1, from: 0.98, to: 0.6 },
+        fade: { color: 'smoke', axis: 1, from: 0.7, to: 0.44 },
       },
     },
     incal: { cloak: { scales: { color: 'cloak*0.8', size: 0.22, ink: 0.35, tone: 0.1, amount: 0.3, mode: 1 } } },   // (the vagrant's patched coat)
     garage: { hood: { gloss: { size: 0.03, sky: 0.4, amount: 0.5 } }, cloak: { rust: { color: 'strip', color2: 'cloak2', amount: 0.12, amount2: 0.08, scale: 0.1, down: 0.7, pits: 0.3 } } },
-    spheres: { cloak: { gloss: { size: 0.04, sky: 0.7, amount: 0.5 }, fade: { color: 'smoke', axis: 1, from: 0.98, to: 0.6 } } },
+    spheres: { cloak: { gloss: { size: 0.04, sky: 0.7, amount: 0.5 }, fade: { color: 'smoke', axis: 1, from: 0.7, to: 0.44 } } },
     glassdunes: { strip: { gloss: { size: 0.02, sky: 0.9, amount: 1 }, glow: { color: 'strip', amount: 0.3, rim: 0.6, core: 1.5, emit: 0.2 } } },
   },
   roller: {
@@ -424,16 +421,17 @@ Object.assign(SURFACES, {
       // highlights; the spiral groove darker; the foot dark teal, wet, rippled across its sole, darker in the folds)
       shell: {
         scales: { color: 'shell*0.75', size: 0.32, ink: 0.3, tone: 0.06, amount: 0.25, mode: 1 },
-        mottle: { color: 'rain1', scale: 0.3, amount: 0.25, soft: 0.45, detail: 0.5, strength: 0.6 },
-        spots2: { color: 'rain2', scale: 0.4, share: 0.5, size: 1.2, soft: 0.5, amount: 0.45 },
-        gloss: { size: 0.05, sky: 0.8, amount: 1 },
+        mottle: { color: 'rain2', scale: 0.3, amount: 0.22, soft: 0.45, detail: 0.5, strength: 0.55 },
+        spots: { color: 'rain1', scale: 0.45, share: 0.4, size: 1.0, soft: 0.5, jitter: 1, amount: 0.3 },
+        spots2: { color: 'rain3', scale: 0.38, share: 0.4, size: 1.0, soft: 0.5, amount: 0.3 },
+        gloss: { size: 0.01, sky: 0.35, amount: 0.4 },
       },
       spiral: { gloss: { size: 0.03, sky: 0.6, amount: 0.8 } },
       band: { gloss: { size: 0.03, sky: 0.5, amount: 0.7 }, ...SPECKS('spiral', 0.3, 0.04) },
       foot: {
-        bands: { color: 'foot2', axis: 2, period: 0.07, width: 0.3, ink: 0.4 },
+        bands: { color: 'foot2', axis: 2, period: 0.05, width: 0.22, ink: 0.15 },
         mottle: { color: 'foot2', scale: 0.1, amount: 0.3, soft: 0.2, strength: 0.6 },
-        gloss: { size: 0.04, sky: 0.7, amount: 0.7 },
+        gloss: { size: 0.012, sky: 0.4, amount: 0.4 },
       },
       key: { gloss: { size: 0.025, sky: 0.4, amount: 0.6 } },
     },
@@ -441,9 +439,9 @@ Object.assign(SURFACES, {
     spheres: {
       shell: {
         scales: { color: 'shell*0.85', size: 0.11, ink: 0.18, tone: 0.05, amount: 0.25, mode: 1 },
-        mottle: { color: 'rain1', scale: 0.25, amount: 0.35, soft: 0.45, detail: 0.5, strength: 0.7 },
-        spots2: { color: 'rain2', scale: 0.35, share: 0.5, size: 1.1, soft: 0.5, amount: 0.5 },
-        gloss: { size: 0.05, sky: 0.9, amount: 1 },
+        mottle: { color: 'rain1', scale: 0.25, amount: 0.25, soft: 0.45, detail: 0.5, strength: 0.6 },
+        spots2: { color: 'rain2', scale: 0.35, share: 0.5, size: 1.1, soft: 0.5, amount: 0.4 },
+        gloss: { size: 0.025, sky: 0.9, amount: 1 },
       },
       spiral: { glow: { color: 'spiral', amount: 0.6, rim: 0.2, core: 1.2, pulse: 1.2, emit: 0.6 }, gloss: { size: 0.03, sky: 0.6, amount: 0.8 } },
     },
@@ -462,7 +460,7 @@ Object.assign(SURFACES, {
         gloss: { size: 0.03, sky: 0.9, amount: 1 },
       },
       joint: { gloss: { size: 0.025, sky: 0.8, amount: 1 }, mottle: { color: 'body2', scale: 0.05, amount: 0.25, soft: 0.4, strength: 0.5 } },
-      smoke: { mottle: { color: 'smoke2', scale: 0.25, amount: 0.4, soft: 0.35, strength: 0.8, detail: 0.6 } },
+      smoke: { mottle: { color: 'smoke2', scale: 0.22, amount: 0.25, soft: 0.4, strength: 0.7, detail: 0.6 } },
     },
     // (sheet-2: brown paper creased and patched, string tied round every parcel; the seals' wax glossy)
     bazaar: {

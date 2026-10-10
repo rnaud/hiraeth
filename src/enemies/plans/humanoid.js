@@ -34,25 +34,27 @@ import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, sm
 // mechanic's pointed hood and goggles (the Hangar), a halo over the hood (the Garden of Spheres), a glinting veil (the
 // Glass Dunes), the pilgrim's crescent and belt lantern (the Eclipse).
 
-const HIP_Y = 0.98, SH = { x: 0.27, y: 1.5 }, NECK = 1.62, UPPER = 0.34, FORE = 0.36;
-const DEPTH = 0.78;   // (the cloak's depth to its width: the sheet's side view)
-/** The cloak's profile (r, y) from the neck down to the hem (the hem torn: jag()). */
-const CLOAK = [[0.13, 1.64], [0.25, 1.6], [0.32, 1.52], [0.35, 1.38], [0.37, 1.2], [0.41, 1.0], [0.47, 0.82], [0.52, 0.66]];
+const HIP_Y = 0.98, SH = { x: 0.26, y: 1.52 }, NECK = 1.6, UPPER = 0.32, FORE = 0.4;
+const DEPTH = 0.74;   // (the cloak's depth to its width: the sheet's side view)
+/** The cloak's profile (r, y) from the neck down to the hem, flaring wide below the knees (the hem torn: jag()). */
+const CLOAK = [[0.12, 1.62], [0.22, 1.585], [0.285, 1.51], [0.31, 1.36], [0.34, 1.18], [0.4, 1.0], [0.47, 0.84], [0.54, 0.72], [0.58, 0.64]];
+const HEM = 0.64;
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _mr = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0);
 
 /** The torn hem: how far above its line a tatter's tip ends at angle a (rad round the body; 0 ahead), m. */
-export const jag = (a, ragged = 1) => (0.1 * Math.abs(Math.sin(a * 5)) + 0.05 * Math.abs(Math.sin(a * 11 + 1)) - 0.12 * Math.max(0, -Math.cos(a))) * ragged;
+export const jag = (a, ragged = 1) => (0.13 * Math.abs(Math.sin(a * 5)) + 0.06 * Math.abs(Math.sin(a * 11 + 1))) * ragged - 0.26 * Math.max(0, -Math.cos(a));
 
 /** A lathe from (r, y) pairs, its bottom row torn (jag), its front open by `gap` rad, its depth squashed. */
-function cloakGeometry(profile, { gap = 0, ragged = 1, depth = DEPTH, seg = 28 } = {}) {
-  const pts = profile.map(([r, y]) => new THREE.Vector2(r, y));
+function cloakGeometry(profile, { gap = 0, ragged = 1, depth = DEPTH, seg = 32 } = {}) {
+  // (a lathe's faces look out when its profile runs bottom to top: the hem is its first row)
+  const pts = profile.map(([r, y]) => new THREE.Vector2(r, y)).reverse();
   const geo = new THREE.LatheGeometry(pts, seg, gap / 2, Math.PI * 2 - gap);
   const pos = geo.attributes.position, n = pts.length;
   for (let i = 0; i < pos.count; i++) {
     const row = i % n, x = pos.getX(i), z = pos.getZ(i), a = Math.atan2(x, z);
     let y = pos.getY(i);
-    if (row === n - 1) y += jag(a, ragged);
-    if (row >= n - 2) y -= 0.04 * Math.max(0, -Math.cos(a));   // (it trails a little longer behind)
+    if (row === 0) y += jag(a, ragged);
+    if (row <= 1) y -= 0.05 * Math.max(0, -Math.cos(a));   // (it trails a little longer behind)
     pos.setXYZ(i, x, y, z * depth);
   }
   geo.computeVertexNormals();
@@ -61,13 +63,43 @@ function cloakGeometry(profile, { gap = 0, ragged = 1, depth = DEPTH, seg = 28 }
 
 /** The hood: a lathe to a point, its point swept back (sweep m at the tip), or round and tall (the pilgrim's). */
 function hoodGeometry(round, sweep) {
-  const P = round ? [[0.2, -0.02], [0.215, 0.08], [0.205, 0.22], [0.17, 0.33], [0.11, 0.41], [0.03, 0.45], [0.001, 0.455]]
-    : [[0.2, -0.02], [0.215, 0.08], [0.195, 0.22], [0.15, 0.34], [0.095, 0.44], [0.045, 0.54], [0.001, 0.62]];
+  const P = round ? [[0.17, -0.02], [0.185, 0.08], [0.18, 0.2], [0.15, 0.31], [0.1, 0.39], [0.03, 0.43], [0.001, 0.435]]
+    : [[0.17, -0.02], [0.18, 0.08], [0.165, 0.2], [0.125, 0.31], [0.08, 0.41], [0.035, 0.5], [0.001, 0.57]];
   const geo = new THREE.LatheGeometry(P.map(([r, y]) => new THREE.Vector2(r, y)), 18);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) { const y = pos.getY(i), k = Math.max(0, y - 0.18); pos.setZ(i, pos.getZ(i) * 0.95 - k * k * sweep); }
   geo.computeVertexNormals();
   return geo;
+}
+
+/**
+ * Ribbons as one skinned mesh: each a strip of cloth whose row i of vertices (across its width, along the joint's x) is
+ * bound to joint i, so it bends continuously wherever its joints go (a chain's points). width(i): its width at row i.
+ */
+function ribbonMesh(owner, chains, mat, width) {
+  owner.updateMatrixWorld(true);
+  const bones = [], inv = new THREE.Matrix4().copy(owner.matrixWorld).invert(), pos = [], nrm = [], si = [], sw = [], idx = [], P = new THREE.Vector3();
+  for (const joints of chains) {
+    const base = pos.length / 3;
+    joints.forEach((j, i) => {
+      const b = bones.length; bones.push(j);
+      P.setFromMatrixPosition(j.matrixWorld).applyMatrix4(inv);
+      for (const s of [-1, 1]) { pos.push(P.x + s * width(i) / 2, P.y, P.z); nrm.push(0, 0, 1); si.push(b, 0, 0, 0); sw.push(1, 0, 0, 0); }
+      if (i > 0) { const a = base + (i - 1) * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3, a + 1, a + 2, a, a + 3, a + 2, a + 1); }
+    });
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array((pos.length / 3) * 2), 2));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(pos.length).fill(1), 3));
+  geo.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+  geo.setAttribute('skinWeight', new THREE.Float32BufferAttribute(sw, 4));
+  geo.setIndex(idx);
+  const sm = new THREE.SkinnedMesh(geo, mat); sm.name = 'ribbons'; sm.frustumCulled = false;
+  owner.add(sm); sm.updateMatrixWorld(true);
+  sm.bind(new THREE.Skeleton(bones));
+  return sm;
 }
 
 export function shadeModel(skin) {
@@ -79,58 +111,59 @@ export function shadeModel(skin) {
   const cloakB = M.mat('cloakBuild', P.cloak), liningB = M.mat('liningBuild', P.lining), faceB = M.mat('faceBuild', P.face);
   const hoodB = M.mat('hoodBuild', P.hood), stripB = M.mat('stripBuild', P.strip), brassB = M.mat('brassBuild', P.brass);
   const bootB = M.mat('bootBuild', P.boot), innerB = M.mat('innerBuild', P.inner), swordB = M.mat('swordBuild', P.sword), smokeB = M.mat('smokeBuild', P.smoke);
-  // (the dark inside, the void of the hood: white-lined, the cartoon's negative, so a shade reads on dark ground at night)
-  const cloakM = M.mat('cloak', P.cloak, { vertexColors: true }), liningM = M.mat('lining', P.lining, { vertexColors: true, flat: true, lineWhite: true });
-  const hoodM = M.mat('hood', P.hood, { vertexColors: true, flat: props.has('bark') }), stripM = M.mat('strip', P.strip, { vertexColors: true });
-  const brassM = M.mat('brass', P.brass, { metal: 'brass', color: P.brass, vertexColors: true });
-  const bootM = M.mat('boot', P.boot, { vertexColors: true }), innerM = M.mat('inner', P.inner, { vertexColors: true });
-  const swordM = M.own('sword', P.sword, { vertexColors: true, flat: false, glow: 0.05 }), smokeM = M.mat('smoke', P.smoke, { vertexColors: true });
+  const faceM = M.mat('face', P.face, { vertexColors: true, flat: true, hatch: 0 });
+  const cloakM = M.mat('cloak', P.cloak, { vertexColors: true });
+  const hoodM = M.mat('hood', P.hood, { vertexColors: true, flat: props.has('bark') }), stripM = M.mat('strip', P.strip, { vertexColors: true, line: 0.45, lineTint: 1 });
+  const bootM = M.mat('boot', P.boot, { vertexColors: true });
+  const swordM = M.own('sword', P.sword, { vertexColors: true, flat: false, glow: 0.05 }), smokeM = M.mat('smoke', P.smoke, { vertexColors: true, lineWhite: true, hatch: 0 });
+  // (the smoke its hem breaks into is drawn in negative, white-lined like the old shade: the spirit showing, and what
+  // reads of a dark shade on dark ground at night)
   const eyeM = M.own('eye', P.eye, { glow: 0.95 }), poolM = M.own('pool', P.face, { flat: true });
   const ragged = props.has('ragged') ? 1.7 : 1;
   // the cloak: hung from its shoulders (`drape`: it lags the body on springs), open down the front on the dark inside
   const drape = pivot(hull, 0, SH.y, 0, 'drape');
   const shoulder = (geo) => geo.translate(0, -SH.y, 0);
   add(drape, shoulder(cloakGeometry(CLOAK, { gap: 0.55, ragged })), cloakB);
-  add(drape, shoulder(cloakGeometry(CLOAK.map(([r, y]) => [r * 0.93, y]), { gap: 0, ragged: ragged * 0.9 })), liningB);
+  add(drape, shoulder(cloakGeometry(CLOAK.slice(2).map(([r, y]) => [r * 0.93, y]), { gap: 0, ragged: ragged * 0.9 })), liningB);   // (from the shoulders down: none of it shows under the hood)
   // (gold trim down the opening and round the hem: the pilgrim's; the woodsman's a darker hem)
   // the brass clasp at the chest, where the cloak closes under the capelet
   many(drape, [new THREE.TorusGeometry(0.055, 0.016, 6, 16).translate(0, 1.43 - SH.y, 0.29 * DEPTH + 0.06), new THREE.CircleGeometry(0.04, 12).translate(0, 1.43 - SH.y, 0.29 * DEPTH + 0.055)], brassB);
-  // smoke under the hem: puffs where the tatters break up, a few lower round the boots (they drift and drop)
-  const smoke = pivot(drape, 0, 0.62 - SH.y, 0, 'smoke'), puffs = [];
-  for (let i = 0; i < 22; i++) {
-    const a = i * 2.39996, r = 0.34 + (i % 3) * 0.06, y = -0.02 - (i % 4) * 0.07 + jag(a, ragged) * 0.5;
-    puffs.push(new THREE.IcosahedronGeometry(0.07 + (i % 3) * 0.03, 0).translate(Math.sin(a) * r, y, Math.cos(a) * r * DEPTH));
+  // smoke where the hem breaks up: wisps hanging off the tatters' tips, curling down and thinning to nothing, a few
+  // small puffs among them (the smoke drifts round and breathes; drops fall off it as it goes)
+  const smoke = pivot(drape, 0, HEM - SH.y, 0, 'smoke'), puffs = [];
+  for (let i = 0; i < 40; i++) {
+    const a = i * 2.39996, r = 0.44 + (i % 3) * 0.05, y = jag(a, ragged) * 0.85 - 0.02, l = 0.12 + (i % 5) * 0.05;
+    // (a wisp: a soft drop drawn out downward, leaning as the tatter it falls from)
+    puffs.push(new THREE.SphereGeometry(1, 8, 7).scale(0.026 + (i % 3) * 0.008, l * 0.55, 0.026 + (i % 3) * 0.008).rotateZ(Math.sin(a * 3) * 0.35).translate(Math.sin(a) * r, y - l * 0.45, Math.cos(a) * r * DEPTH));
   }
+  for (let i = 0; i < 10; i++) { const a = i * 1.7 + 0.4, r = 0.3 + (i % 2) * 0.1; puffs.push(new THREE.IcosahedronGeometry(0.045 + (i % 3) * 0.015, 0).translate(Math.sin(a) * r, -0.08 - (i % 3) * 0.08, Math.cos(a) * r * DEPTH)); }
   many(smoke, puffs, smokeB);
   // the head: a capelet over the shoulders, the hood (no face: the dark of it, two white eyes), its ribbons' roots
   const head = pivot(hull, 0, NECK, 0, 'head');
-  add(head, cloakGeometry([[0.12, 0.04], [0.24, -0.02], [0.33, -0.1], [0.37, -0.2], [0.38, -0.26]], { gap: 0, ragged: 0.6, depth: 0.85, seg: 22 }), hoodB);
+  add(head, cloakGeometry([[0.1, 0.05], [0.21, 0.0], [0.3, -0.08], [0.34, -0.17], [0.355, -0.24]], { gap: 0, ragged: 0.45, depth: 0.82, seg: 24 }), hoodB);
   const round = props.has('crescent');
   add(head, hoodGeometry(round, props.has('bark') || props.has('pointed') ? 1.3 : 0.6), hoodB, 0, 0.0, 0);
-  // (the face: the dark inside the hood's opening, a rim of hood round it)
-  many(head, [new THREE.CircleGeometry(1, 20).scale(0.13, 0.16, 1).translate(0, 0.17, 0.198)], faceB);
-  many(head, [new THREE.TorusGeometry(1, 0.13, 6, 20).scale(0.15, 0.18, 0.4).translate(0, 0.17, 0.2)], hoodB);
+  // (the face: the dark of the hood's opening, a black hollow; two white eyes in it)
+  many(head, [new THREE.SphereGeometry(1, 18, 12, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2).scale(0.135, 0.155, 0.03).translate(0, 0.15, 0.172)], faceB);
   const eyes = new THREE.Group(); head.add(eyes); eyes.name = 'eyes';
-  for (const s of [-1, 1]) add(eyes, new THREE.SphereGeometry(1, 8, 6).scale(0.024, 0.017, 0.01), eyeM, s * 0.05, 0.19, 0.21);
+  many(eyes, pair((s) => new THREE.SphereGeometry(1, 8, 6).scale(0.022, 0.02, 0.012).translate(s * 0.045, 0.17, 0.222)), eyeM);
   // the skins' dress on the hood: the pilgrim's crescent on a knob, the halo shade's ring, the mechanic's goggles, the
   // nomad's glinting veil
   if (round) {
-    many(head, [new THREE.TorusGeometry(0.075, 0.018, 6, 18, Math.PI * 1.3).rotateZ(-Math.PI * 0.15 + Math.PI).translate(0, 0.6, -0.02), new THREE.SphereGeometry(0.035, 8, 6).translate(0, 0.47, -0.02)], brassB);
+    many(head, [new THREE.TorusGeometry(0.085, 0.026, 6, 18, Math.PI * 1.2).rotateZ(Math.PI + Math.PI * 0.1).translate(0, 0.6, -0.02), new THREE.SphereGeometry(0.035, 8, 6).translate(0, 0.47, -0.02), new THREE.CylinderGeometry(0.012, 0.012, 0.06, 6).translate(0, 0.5, -0.02)], brassB);
   }
   if (props.has('halo')) many(head, [new THREE.TorusGeometry(0.2, 0.018, 6, 28).rotateX(Math.PI / 2 - 0.2).translate(0, 0.78, -0.12)], brassB);
   if (props.has('goggles')) many(head, pair((s) => new THREE.TorusGeometry(0.045, 0.014, 6, 14).translate(s * 0.06, 0.3, 0.17)), brassB);
   if (props.has('veil')) many(head, [new THREE.CylinderGeometry(0.17, 0.19, 0.12, 18, 1, true, -1, 2).translate(0, 0.08, 0.02)], stripB);
-  // its ribbons: four long strips from the hood and the shoulders, trailing on verlet chains (each link its own joint)
-  const STRIP = { n: 6, len: 0.15 };
-  const strips = [[-0.14, NECK + 0.12, -0.06], [0.14, NECK + 0.12, -0.06], [-0.3, SH.y + 0.02, -0.04], [0.3, SH.y + 0.02, -0.04]].map(([x, y, z], k) => {
-    const links = [];
-    for (let i = 0; i < STRIP.n; i++) {
-      const j = pivot(g, 0, 0, 0, `strip ${k}.${i}`);
-      add(j, new THREE.BoxGeometry(0.055 - i * 0.004, STRIP.len * 1.15, 0.008).translate(0, -STRIP.len / 2, 0), stripB);
-      links.push(j);
-    }
-    return { at: V(x, y, z), links, chain: new VerletChain({ n: STRIP.n, length: STRIP.len, stiffness: 0.08, damping: 0.9, gravity: 3.2 }), seed: k * 1.7 };
+  // its ribbons: four long strips from the hood and the shoulders, trailing on verlet chains; each one continuous cloth,
+  // its rows of vertices bound to the joints at its chain's points (ribbonMesh: one draw for all four)
+  const STRIP = { n: 7, len: 0.14 };
+  const strips = [[-0.16, NECK + 0.2, -0.02], [0.16, NECK + 0.2, -0.02], [-0.3, SH.y + 0.02, 0.0], [0.3, SH.y + 0.02, 0.0]].map(([x, y, z], k) => {
+    const joints = [];
+    for (let i = 0; i <= STRIP.n; i++) joints.push(pivot(g, 0, -i * STRIP.len, 0, `strip ${k}.${i}`));
+    return { at: V(x, y, z), joints, wave: [], chain: new VerletChain({ n: STRIP.n, length: STRIP.len, stiffness: 0.06, damping: 0.9, gravity: 3.4 }), seed: k * 1.7 };
   });
+  const ribbons = ribbonMesh(g, strips.map((S) => S.joints), stripM, (i) => 0.1 * (1 - i / (STRIP.n + 2)));
   // the sleeves: a ball of shoulder under the cloak, an upper sleeve bent at the elbow, a wide bell of a forearm sleeve
   // open at the cuff (dark inside); on the sword hand a gauntlet, and the ink sword in it
   const arms = pair((s) => {
@@ -139,9 +172,9 @@ export function shadeModel(skin) {
     add(sh, new THREE.CylinderGeometry(0.085, 0.1, UPPER, 10).translate(0, -UPPER / 2, 0), cloakB);
     const el = pivot(sh, 0, -UPPER, 0, 'elbow');
     add(el, new THREE.SphereGeometry(0.09, 10, 8), cloakB);
-    add(el, new THREE.CylinderGeometry(0.085, 0.17, FORE, 12, 1, true).translate(0, -FORE / 2, 0), cloakB);
-    add(el, new THREE.CylinderGeometry(0.078, 0.155, FORE * 0.96, 12, 1, true).translate(0, -FORE / 2, 0), liningB);
-    add(el, new THREE.CircleGeometry(0.15, 12).rotateX(Math.PI / 2).translate(0, -FORE + 0.04, 0), liningB);
+    add(el, new THREE.CylinderGeometry(0.085, 0.2, FORE, 14, 1, true).translate(0, -FORE / 2, 0), cloakB);
+    add(el, new THREE.CylinderGeometry(0.078, 0.185, FORE * 0.96, 14, 1, true).translate(0, -FORE / 2, 0), liningB);
+    add(el, new THREE.CircleGeometry(0.18, 14).rotateX(Math.PI / 2).translate(0, -FORE + 0.05, 0), faceB);   // (the dark in the cuff)
     const hand = pivot(el, 0, -FORE + 0.04, 0, 'hand');
     return { sh, el, hand, s };
   });
@@ -178,11 +211,15 @@ export function shadeModel(skin) {
   const rig = new Rig({ plan: PL, group: g, body, legs });
   // the pool it sinks into for the step (its own: it slides round beside you)
   const pool = add(g, new THREE.CircleGeometry(0.55, 18).rotateX(-Math.PI / 2), poolM, 0, 0.03, 0); pool.visible = false;
-  const [, , , , , , , swordS] = skinBy(g, [
-    { from: [cloakB], into: cloakM }, { from: [liningB, faceB], into: liningM }, { from: [hoodB], into: hoodM }, { from: [stripB], into: stripM },
-    { from: [brassB], into: brassM }, { from: [bootB], into: bootM }, { from: [innerB], into: innerM }, { from: [swordB], into: swordM }, { from: [smokeB], into: smokeM },
+  // (the boots, their brass and the dark cloth over the knees one mesh, each tinted its own colour; the lining and the
+  // smoke one: fewer draws, as many looks)
+  const [, faceS, , , , swordS, smokeS] = skinBy(g, [
+    { from: [cloakB], into: cloakM }, { from: [faceB, liningB], into: faceM }, { from: [hoodB], into: hoodM }, { from: [stripB], into: stripM },
+    { from: [bootB, brassB, innerB], into: bootM }, { from: [swordB], into: swordM }, { from: [smokeB], into: smokeM },
   ]);
   finish(g);
+  // (nothing casts a shadow that wouldn't show in one: the eyes, the pool, the smoke, the ribbons)
+  for (const o of [smokeS, faceS, ribbons, pool, ...eyes.children]) if (o) o.castShadow = false;
   const parts = [hull, head, drape, ...arms.flatMap((a) => [a.sh, a.el, a.hand]), ...legs.map((l) => l.root)];
   // the cloak's lag and the hood's turn: springs
   const lagP = new SecondOrder(1.4, 0.35, 0), lagR = new SecondOrder(1.4, 0.35, 0), look = new SecondOrder(2.5, 0.7, 0);
@@ -253,18 +290,26 @@ export function shadeModel(skin) {
       // the hood: turned to keep you in sight against the body's own turn (the cut turns it away), tilted in the feint
       const want = THREE.MathUtils.clamp(-o.yaw, -0.9, 0.9) + (f.state === 'idle' ? Math.sin(c.now / 1700 + f.home.x) * 0.25 : 0);
       head.rotation.set(-0.05, look.update(dt, want), tilt);
-      // the ribbons trail on their chains (world space), each link a joint of the skinned strips
+      // the ribbons trail on their chains (world space), each point a joint of the skinned strips
       g.updateMatrixWorld(true); _m.copy(g.matrixWorld).invert(); _mr.extractRotation(_m);
       for (const S of strips) {
         const root = head.localToWorld(_v.copy(S.at).sub(V(0, NECK, 0)));
-        const back = _w.set(-Math.sin(f.heading) * 0.35 + Math.sin(c.now / 500 + S.seed) * 0.12, -1, -Math.cos(f.heading) * 0.35);
+        // (they hang out to their side and back, fluttering)
+        const out = Math.sign(S.at.x) * (0.3 + Math.sin(c.now / 520 + S.seed) * 0.1), bk = 0.45 + Math.sin(c.now / 700 + S.seed * 2) * 0.12;
+        const back = _w.set(Math.cos(f.heading) * out - Math.sin(f.heading) * bk, -1, -Math.sin(f.heading) * out - Math.cos(f.heading) * bk);
         const pts = S.chain.update(dt, root, back);
-        for (let i = 0; i < S.links.length; i++) {
-          const a = pts[i], b = pts[i + 1], j = S.links[i];
-          j.position.copy(a).applyMatrix4(_m);
+        // (a ripple runs down each ribbon, sideways to its fall, growing toward its end: cloth, not a plank)
+        const n = S.joints.length;
+        for (let i = 0; i < n; i++) {
+          const q = (S.wave[i] ??= new THREE.Vector3()), w = Math.sin(i * 1.3 - c.now / 260 + S.seed) * 0.03 * i;
+          q.copy(pts[i]); q.x += Math.cos(f.heading) * w; q.z -= Math.sin(f.heading) * w;
+        }
+        for (let i = 0; i < n; i++) {
+          const a = S.wave[Math.max(0, i - 1)], b = S.wave[Math.min(n - 1, i + 1)], j = S.joints[i];
+          j.position.copy(S.wave[i]).applyMatrix4(_m);
           const dir = _w.subVectors(a, b).applyMatrix4(_mr).normalize();
           j.quaternion.setFromUnitVectors(_up, dir);
-          j.scale.setScalar(1);
+          j.rotateY(Math.sin(i * 0.7 + c.now / 450 + S.seed) * 0.35 + Math.sign(S.at.x) * 0.5);   // (it twists as it falls, its face turned out)
         }
       }
       // smoke drops off its hem as it goes, more as it is hurt; the eyes flare as it winds up
