@@ -479,9 +479,9 @@ export const BOOK = {
       'Cael walks the avenue from the arch to the plaza every day, slowly. The white bells open for those who do not hurry.',
       [done('spheres.avenue'), 'You walked it slowly, and every bell opened behind you.'],
     ], ['Along the avenue between the arch and the plaza.']),
-    P('ivo', 'Emrys', 'Climbs the white hill', [
+    P('ivo', 'Emrys', 'Climbs everything', [
       'Emrys climbs everything, and looks under spheres, where a mark is pressed into the ground like a footprint.',
-    ], ['Near the white hill.']),
+    ], ['On top of the meadow pyramid, by the head of its stair.']),
     P('hale', 'Hale', 'Listens to every cure before he sells it', [
       'Hale keeps the Listening Stall, a round white pavilion by the cypress avenue. He listens to every ware before he sells it.',
       [f('spheres.hale.listen'), 'He strikes a tuning fork and holds the flask to it: a good cure hums back the same note, and one that hums flat is poured away.'],

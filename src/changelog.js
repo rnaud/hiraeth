@@ -15,6 +15,9 @@ export const CHANGELOG = [
     'Lorn has a high place: Wendel’s lookout, a teal crystal grown in steps on the rise east of the landing. Climb it column by column, a short climb and a rest each time, to its top 30 m up, where the makers’ box from the rise now waits and the whole swamp lies below you.',
     'From Saba’s stone by the Great Crystal, the crystal cave’s crown now shows through a gap in the landing island’s crystal grove, so you can see where the cave is before you set off for it.',
     'In the Deep Wood, five dead giant stalks stand in the shallows west of the landing, broken off a climb apart: the lamp-keepers’ old lookout. Climb them one after another to the top, 30 m up, where the keepers’ lamp lights again with the water-way and you can see both their ways at once.',
+    'In the Garden of Spheres, Emrys, who climbs everything, now stands on top of the meadow pyramid by the head of its stair, in sight of the path to the sphere-arch, shouting about the view. Go up and he will show you the whole garden.',
+    'A white meadow path now runs from the sphere-arch round the meadow pyramid to the grove, and Ume sends you home by it, past a little sphere at the pyramid’s foot that Emrys practises on, his handprints all the way up its side.',
+    'Halfway down the cypress avenue, two small spheres face each other across the road: splash one and the other rings back.',
   ] },
   { v: '1.22', date: '2026-10-10', items: [
     // the enemy roster's last step: balance and sound (docs/audits/combat-v1.22.md)

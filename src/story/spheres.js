@@ -11,7 +11,7 @@ import { setupSpheresMoments } from './spheres-moments.js';
 //
 //   the grove    Linnet, the listener (a level person), near the start
 //   the lake     Nell on the south shore; the glint in the water (shoot it)
-//   the hill     Emrys, who has looked under a sphere
+//   the meadow   Emrys on the meadow pyramid's summit, who has looked under a sphere
 //   the spheres  every great sphere rings its own note when the fluid touches
 //                it (shoot them: the garden is an instrument); three remember
 //                more: splashed, a ring of light closes round its foot, it
@@ -98,7 +98,13 @@ export function setupSpheres(ctx) {
   const orbHit = (o) => (mode, point) => {
     const at = V(o.x, o.y, o.z), s = rememberer(o), soft = mode === 'push';
     motes.burst(point ?? at, { n: soft ? 2 : 5, rise: 1.6, size: 0.25 + Math.min(o.R, 40) * 0.006, spread: 1, life: 2.2 });
-    if (!s) { sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft }); return true; }
+    if (!s) {
+      sound.orbNote?.(orbDegree(o.R), at, { size: Math.min(1, o.R / 46), soft });
+      // the avenue's answering pair: the other one rings back across the road a moment later
+      const pair = G.answering ?? [], other = pair.includes(o) ? pair.find((q) => q && q !== o) : null;
+      if (other) setTimeout(() => { const oa = V(other.x, other.y, other.z); sound.orbNote?.(orbDegree(other.R), oa, { size: Math.min(1, other.R / 46), soft: true }); motes.burst(oa, { n: 3, rise: 1.6, size: 0.26, spread: 1, life: 2.2 }); }, 420);
+      return true;
+    }
     s.flash = 1;
     sound.remembered?.(SOUNDS[s.id].part, at, { vol: soft ? 0.6 : 1 });
     if (!heard(s.id)) remember(s);

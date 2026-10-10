@@ -111,7 +111,9 @@ export const SPHERES_CONTENT = {
   npcs: [
     { at: [12, 14], radius: 3, ...PEOPLE.aube },
     { at: [178, -44], radius: 4, ...PEOPLE.nell },
-    { at: [-212, -52], radius: 4, ...PEOPLE.ivo, shy: true },
+    // (Emrys, who climbs everything: on the meadow pyramid's summit by its stair's head, in sight of the path, 60 m off it;
+    //  he stood alone by the white hill, 160 m from anything: the level design audit's fifth round)
+    { at: [LAYOUT.meadowPyr.x - 2.6, LAYOUT.meadowPyr.z + 3.4], y: 29, radius: 0.4, ...PEOPLE.ivo, shy: true },   // (y: the summit, 29 m up)
     { at: [7, -350], radius: 3, ...PEOPLE.cael },
   ],
 };
@@ -375,9 +377,9 @@ export function* buildSpheres(scene) {
   // so the printed crescent has a clean round edge
   yield;
   const crescentSphere = (Rs, w, h, lit) => printedSphere(Rs, w, h, lit, '#a9c9c4', CRESCENT);
-  function sphere(x, z, Rs, lift, { yellow = false, collide = true, reflectIt = false, y } = {}) {
+  function sphere(x, z, Rs, lift, { yellow = false, collide = true, reflectIt = false, y, seg: segs } = {}) {
     const cy = y ?? terrain.baseAt(x, z, Rs * 0.6) + Rs * lift;
-    const seg = Rs > 60 ? 96 : 64;
+    const seg = segs ?? (Rs > 60 ? 96 : 64);
     const g = crescentSphere(Rs, seg, Math.round(seg * 0.6), yellow ? '#f3e3a0' : '#f6efd0');
     add(yellow ? M.yellow : M.cream, g.translate(x, cy, z));
     // (collides as drawn: a 20-sided stand-in lay up to metres inside a big sphere's top, where you stand: src/contact-audit.js)
@@ -950,6 +952,35 @@ export function* buildSpheres(scene) {
     }
   }
 
+  // ---------------------------------------------------------- the fifth round of the level design audit
+  // The meadow path home: from the sphere-arch's north mouth west round the meadow pyramid's east face to the foot of
+  // its stair, where the old pyramid path runs on to the grove. Ume sends you home by it (the 'ume' stage's home), past
+  // the pyramid where Emrys stands shouting about the view and the little sphere at its stair's foot he practises on,
+  // its side printed with his hands all the way up. And halfway down the avenue, where it ran 170 m with nothing on
+  // it, two small spheres face each other across the road: splash one and both ring, a fifth apart.
+  yield;
+  const MEADOW_PATH = [[-2, -258], [-14, -232], [-22, -195], [-25, -150], [-36, -128], [MP.x, MP.z + MP.half + 12]];
+  path(MEADOW_PATH, 2.4);
+  const CHALKED = { x: -40, z: -116, R: 2.6 };
+  const chalkY = sphere(CHALKED.x, CHALKED.z, CHALKED.R, 0.45, { seg: 28 });   // (small: fewer facets, the collision budget)
+  {
+    // his hands: small dark prints in pairs, climbing the side that faces the stair, then over the top
+    const prints = [];
+    const toStair = Math.atan2(MP.x - CHALKED.x, MP.z + MP.half - CHALKED.z);
+    for (let k = 0; k < 9; k++) {
+      const el = -0.15 + k * 0.2, side = k % 2 ? 0.16 : -0.16;
+      const n = new THREE.Vector3(Math.sin(toStair + side) * Math.cos(el), Math.sin(el), Math.cos(toStair + side) * Math.cos(el));
+      const g = new THREE.CylinderGeometry(0.11, 0.13, 0.02, 7).scale(1, 1, 1.35);
+      g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), n));
+      prints.push(g.translate(CHALKED.x + n.x * (CHALKED.R + 0.005), chalkY + n.y * (CHALKED.R + 0.005), CHALKED.z + n.z * (CHALKED.R + 0.005)).toNonIndexed());
+    }
+    const m = new THREE.Mesh(mergeGeometries(prints), makeMaterial({ color: '#5f7a6c', flat: true }));
+    m.userData.noCollide = true;
+    scene.add(m);
+  }
+  const ANSWERING = [[-6.4, -480, 1.5], [6.4, -480, 1.25]];   // (between two pairs of the avenue's olives, z -474 and -486)
+  for (const [x, z, Rs] of ANSWERING) sphere(x, z, Rs, 0.5, { seg: 24 });
+
   // ---------------------------------------------------------- flush batches
   yield;
   for (const { mat, collide, list } of batches.values()) {
@@ -980,12 +1011,17 @@ export function* buildSpheres(scene) {
     floraAvoid: shop.avoid((x, z, r) => !clear(x, z, r + 1)),   // the flora keeps off the lake, the paths, the stones and the shop (src/flora.js)
     // what the level design audit reads (scripts/level-design/audit.mjs): the white paths, leading lines: from the lake
     // (the spheres that remember) to the grove's path, through the sphere-arch and down the avenue to the plaza
-    lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) }],
+    lines: [{ name: 'the white path and the avenue', points: [...LAKE_PATH].reverse().concat(WAY.slice(1), AVENUE.slice(1)) },
+      // (fifth round: the meadow path home, from the plaza back up the avenue, through the arch, round the meadow pyramid and
+      //  up the pyramid path to the grove; followed only where Ume sends you along it)
+      { name: 'the meadow path', points: [...AVENUE].reverse().concat(MEADOW_PATH, [[MP.x, -110], [-24, -64], [-2, -30], [0, 8]]), auto: false }],
+    sights: [{ name: 'the chalked sphere', at: new THREE.Vector3(CHALKED.x, chalkY + CHALKED.R, CHALKED.z) }, { name: 'the answering spheres', at: new THREE.Vector3(0, H(0, -480) + 1, -480) }],
     // the story's handles (src/story/spheres.js): the spheres that remember, the plaza and its pole,
     // the great sphere on the horizon, the lake, the avenue
     spheres: {
       orbs, plaza, lake: { ...LAYOUT.lake, level: W }, avenue: { ...LAYOUT.avenue }, arch: { ...LAYOUT.arch },
       listen: { bell: orb(LAYOUT.pearl.x, LAYOUT.pearl.z), chant: orb(-120, -262), drum: orb(380, -320) },
+      answering: ANSWERING.map(([x, z]) => orb(x, z)),   // (the avenue's pair: splash one and the other answers, src/story/spheres.js)
       great: orb(0, -1320),
     },
     ground: terrain,

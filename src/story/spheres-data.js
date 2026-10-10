@@ -40,9 +40,9 @@ export const QUESTS = [
     stages: [
       { id: 'aube', text: 'Talk to Linnet, the listener, in the umbrella grove', label: 'Linnet, the listener', flag: 'spheres.aube.heard', at: 'aube' },
       { id: 'listen', text: 'Splash the three spheres that remember with your fluid, and listen to each play its sound', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
-      { id: 'plaza', text: 'Carry the sounds through the sphere-arch and down the avenue to the round plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza' },
+      { id: 'plaza', text: 'Carry the sounds through the sphere-arch and down the avenue to the round plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza', via: 'the white path and the avenue' },   // (via: the way its words send you, for the level design audit)
       { id: 'pole', text: 'Splash the humming pole, and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },
-      { id: 'ume', text: 'Tell Ume, who keeps the pole, what you heard', label: 'Ume, on the plaza', talk: 'ume', at: 'ume' },
+      { id: 'ume', text: 'Tell Ume, who keeps the pole, what you heard', label: 'Ume, on the plaza', talk: 'ume', at: 'ume', home: 'the meadow path' },   // (home: the way back she sends you, for the level design audit)
     ],
   },
   {
@@ -142,10 +142,11 @@ export const PEOPLE = {
   },
 
   ivo: {
-    id: 'ivo', name: 'Emrys', title: 'who climbs the white hill', color: '#f2c5b0', voice: 1.25, kind: 'm',
+    id: 'ivo', name: 'Emrys', title: 'who climbs everything', color: '#f2c5b0', voice: 1.25, kind: 'm',
     palette: { cloak: '#f2c5b0', lining: '#2b211f', cloth: '#4f6b3a', legs: '#3a3a3a', hat: '#f6efd0', hair: '#4a3226' }, head: 'hair', cape: 0.5,
     lines: ["~happy~ From the white hill’s middle terrace, you can reach the canopy.", '~curious~ Have you looked under a sphere?', '~shout~ The view! The VIEW.'],
     talk: { listen: [
+      ['~happy~ Come up! From up here you can see the whole garden: the lake, the sphere-arch, the plaza at the end of the avenue.', '~playful~ Ume says the plaza is where everything ends. From up here it looks like where it starts.'],
       ['~happy~ *Climb the white hill*! From the middle terrace you can step right out onto the great canopy.', '~playful~ Nobody believes me until they do it.'],
       ['~whisper~ Ever looked under a sphere? Where it touches the ground there’s a mark pressed in, like where a foot came down. {glyph}', '~playful~ The Footprint. Every sphere has one, underneath, where nobody looks. Except me.'],
       { if: { not: { flag: 'box.spheres.shell' } }, say: '~playful~ There’s a blue box with a star on top *up on the grove’s umbrella tree*. A left-behind. Ume says they’re presents. Ume says everything is a present.' },
@@ -231,7 +232,7 @@ export const PEOPLE = {
         },
         desert: { say: ["~surprised~ You heard that drum in the desert? Then both you and this sphere have been there. You’ve taken the longer route.", "~happy~ Keep the chord. You helped bring it together."], do: [{ advance: [Q, 'ume'] }, { keepsake: KEEPSAKE }], next: 'end' },
         where: { say: ["~curious~ I don’t know where they heard it. Have you been somewhere with sand and a procession drum? That might be part of their route.", "~happy~ Take the chord with you. Someone elsewhere may recognise another part."], do: [{ advance: [Q, 'ume'] }, { keepsake: KEEPSAKE }], next: 'end' },
-        end: { say: ['~happy~ Hm-mm-mm. The pole will be humming that for a week.'], choices: [{ text: '~happy~ Thank you, Ume.', end: true }] },
+        end: { say: ['~happy~ Hm-mm-mm. The pole will be humming that for a week.', '~playful~ Go home the meadow way: back through the arch, then the path to the west, round the white pyramid. Emrys will be on top of it, shouting about the view. Tell him what you heard. He’ll want to climb something about it.'], choices: [{ text: '~happy~ Thank you, Ume.', end: true }] },
         after: { say: ['~whisper~ Still humming it. Listen.'], choices: [{ text: '~whisper~ (listen)', end: true }] },
       },
     },
