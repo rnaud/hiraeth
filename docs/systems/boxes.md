@@ -39,6 +39,11 @@ a cut to past where the box stood, back at the item and his face; **high**, from
 on the box, then beside him. Where a plan's lens would stand behind a wall or a cliff (`clearPlan`: rays
 from his chest), the box falls back to the first plan. (The cinematics QC pass: the same shots for all 32.)
 
+**The card** (`card.js`): the item's name, what it is and what it does, or, for a placement with `found` (an i18n key:
+the desert's backpack, `box.found.backpack`), one short line said instead (it carries a tone, stripped when shown; FR in
+`src/i18n/fr.js`). Its buttons name what to press with the menus' glyphs (`src/pad-glyphs.js`): `A / ×` (Enter on the
+keyboard) on Continue, `B / ○` (Esc) on Skip, nothing on touch (v1.41).
+
 **The closing beat** (`beats.js`, v1.3): after the card, a short beat that depends on what the box held
 (`beatFor(id, def)`: `ITEM_BEATS`, then `KIND_BEATS` by the item's kind), on a closing shot that keeps
 to the plan (`closingShot`: mirrored for **left**, swung toward his side for **side**, raised for

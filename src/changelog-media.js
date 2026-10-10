@@ -516,7 +516,32 @@ const FROM_FIGHT39 = 'headless Chrome (Medium, 1280 × 720, muted) in the Arena 
 const FROM_TREE39 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own dev server, a save past the lighting (the tree burns), the camera pinned and the traveller teleported, the same views for both: the before with the parent commit’s files swapped back in (the ledge with the chest still closed on it)';
 const COST39 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden (the tree: its bark, its flame body and its leaves; the ribcage: its mesh), medians of 7, the same views as the pictures; batches per pass counted in node' };
 const C40 = '7ac449b9';   // (v1.40: the three detours on the route, one commit)
+// (the glass backpack's chest in Qanat, v1.41: opened from the shelf, the card held up; the pad's glyphs forced on for the pad picture)
+const BACKPACK_SAVE = { flags: { 'prologue.done': true, 'items.v': 2 }, keepsakes: [] };
+const OPEN_BACKPACK = `const L = level.qanat.city.ledge; player.teleport(L.at(0, 7.25, 1.3), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1));
+  await new Promise((r) => setTimeout(r, 1500)); boxes.open('desert.backpack');
+  for (let i = 0; i < 120 && boxes.scene?.phase !== 'card'; i++) await new Promise((r) => setTimeout(r, 250))`;
+const PAD_ON = `; const b = document.body; b.classList.add('controller'); new MutationObserver(() => { if (!b.classList.contains('controller')) b.classList.add('controller'); }).observe(b, { attributes: true })`;
+const SQUARE_SAVE = { flags: { ...SAVE_DESERT.flags, 'desert.tree.lit': true }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
+  '1.41': [
+    { match: 'The makers’ chest on Qanat’s tree keeps its secret now', shots: [
+      { name: 'backpack-card', caption: 'The card when the chest on the tree opens: before, what it is and what it does, the whole backpack explained; after, one line, and the button says what to press (Enter, on the keyboard)', commit: '6fb8d13b',
+        view: { level: 'desert', hud: true, save: BACKPACK_SAVE, setup: OPEN_BACKPACK, wait: 1500 } },
+    ] },
+    { match: 'Every makers’ box’s card shows what to press', shots: [
+      { name: 'backpack-card-pad', caption: 'The same card with a controller in hand: before, a plain “continue”; after, the A button drawn on it', commit: '6fb8d13b',
+        view: { level: 'desert', hud: true, save: BACKPACK_SAVE, setup: OPEN_BACKPACK + PAD_ON, wait: 1500 } },
+    ] },
+    { match: 'When the chest on the tree opens, only Nour calls out', see: 'Start a new game, go up to Qanat and climb to the chest on the tree’s ledge. Once it opens, Nour gets up off her bench and calls “Hey you!”; nobody else comes, and the people of Qanat stay by their doors.' },
+    { match: 'Qanat’s great tree stands rooted in the middle of the town’s square', shots: [
+      { name: 'qanat-square-avenue', caption: 'From the avenue, inside the gate: before, the tree high on three tiers of terraces with stairs up to it; after, rooted in the paved square, the ledge, the well and the stele at its foot, the houses round', commit: '40b9bfa5',
+        view: { level: 'desert', player: [208.1, 1.7, 361.9], eye: [210.1, 3, 365.3], target: [231.5, 13.2, 402.6], fov: 60, save: SQUARE_SAVE },
+        reference: { sheet: 'references/levels/The Desert/places/qanat-tree/sheet-1.jpg', caption: 'The picked reference (the only sheet): the tree in the middle of the town, its roots spread over the square' } },
+      { name: 'qanat-square-air', caption: 'Over the roofs: before, the stepped terraces filling the middle of the town; after, a paved square with the tree in it, the houses laid round it', commit: '40b9bfa5',
+        view: { level: 'desert', player: [208.1, 1.7, 361.9], eye: [174.6, 35.2, 371.9], target: [231.5, 5.2, 402.6], fov: 60, save: SQUARE_SAVE } },
+    ] },
+  ],
   '1.40': [
     { match: 'The Overnight Train’s end doors are wider', shots: [
       { name: 'train-vestibule', caption: 'A sleeping car’s vestibule seen from its end door: the last compartment came right up to the door (before); now there is room to turn from the corridor to the door, wider too', commit: '2e725295',

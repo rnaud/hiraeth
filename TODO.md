@@ -30,15 +30,6 @@ Author feedback; investigate reported artifacts and stutters rather than treatin
 - [ ] **Reduce crab health.** They currently take too many hits to defeat.
 - [ ] **Let the player hold a charged sword attack**, with an animation that clearly shows the held charge.
 
-### Qanat and the glass backpack
-
-- [ ] **Match the preferred Qanat tree reference.** The tree belongs directly in the center of town, not on a pedestal.
-- [ ] **Make the magic-backpack pickup text succinct and mysterious.** Use the author's proposed wording:
-  “A glass backpack? You’ve never seen anything like it. It’s empty though?”
-- [ ] **Show a clear controller button prompt to dismiss/continue the backpack pickup.** A button labelled
-  “Continue” alone does not tell the player which control to press.
-- [ ] **Only Nour calls out when the backpack is picked up**, saying just “hey you!”. No one else should come.
-
 ## Loading follow-up: procedural worlds, no baking (2026-10-10)
 
 Author decision: **do not bake geometry or worlds into shipped assets**. Keep procedural generation and

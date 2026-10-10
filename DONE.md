@@ -2328,3 +2328,28 @@ From the author's list of 2026-10-10 (never delete a temple or a character):
   `garage`), a story page, a shop, court, boxes, trial and run; **the Atelier is dismissed**. Both kept whole in
   `src/levels/dismissed/`. Saves move with them (src/save-migrate.js step 10). How: docs/systems/worlds.md, "Merged
   and dismissed worlds".
+
+## Qanat and the glass backpack (v1.41, October 2026)
+
+From the author's feedback of 2026-10-10 (TODO.md, "Combat, controls and world feedback"):
+
+- [x] **Match the preferred Qanat tree reference: the tree in the middle of town, not on a pedestal.** The only sheet
+  (`references/levels/The Desert/places/qanat-tree/sheet-1.jpg`, the v1.39 pick) is the one followed. The three terrace
+  tiers and their stairs are gone (`src/desert-city.js`): the tree is rooted in the paved square (`top` 0.02 m), and the
+  trunk, fins, low arm, ledge and chest, Nour's bench, the well, the stele, the lanterns, the fire's hazard and `setLit`
+  all come down with it under the same names; the fins' tails and the arm run into the paving. The square (23 m) is
+  paved to 26 m and the houses are laid round it from 24 m (they started at 31 m). Tests: the tree and the well at the
+  square's level and the ground round them flat (`tests/desert-story.test.js`); the contact audit's desert count
+  allowed for the moved samples. docs/systems/worlds.md, "Qanat's tree rooted in the town's square".
+- [x] **The backpack's pickup text, succinct and mysterious**: its box card says only the author's line, “A glass
+  backpack? You’ve never seen anything like it. It’s empty though?” (tone curious), instead of what it is and what it
+  does; FR “Un sac à dos de verre ? Vous n'avez jamais rien vu de pareil. Il est vide, pourtant ?” (the placement's
+  `found` key `box.found.backpack` in `src/i18n/en.js` / `fr.js`, shown by `src/boxes/card.js`).
+- [x] **A clear button prompt on the pickup card**: every makers' box card's Continue carries the menus' glyph
+  (`src/pad-glyphs.js`): `A / ×` as the pad in hand prints it, Enter on the keyboard, nothing on touch; Skip carries
+  `B / ○` (Esc). The buttons' words are translated (`box.continue`, `box.skip`). docs/systems/boxes.md.
+- [x] **Only Nour calls out when the backpack is picked up**: when the chest opens she alone gets up and shouts “Hey
+  you!” (`MURMURS.nour`, tone shout), then waits at the tree's foot as before and calls you down the same way; the
+  villagers no longer walk over or murmur, and Hessa no longer shouts (`gather` in `src/story/desert.js`; the gathering
+  spots are gone). `tests/desert-story.test.js` checks her line, that nobody else calls, and that the villagers stay by
+  their doors; the playthrough tests pass.
