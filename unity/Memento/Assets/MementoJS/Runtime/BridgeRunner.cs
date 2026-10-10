@@ -168,7 +168,7 @@ namespace Memento.Bridge
                     go.WaitOne();
                     if (quit) return;
                     long s0 = System.Diagnostics.Stopwatch.GetTimestamp();
-                    js.Tick();
+                    if (tickJs) js.Tick();
                     js.Eval($"Memento.frame({nextDt.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
                     double ms = (System.Diagnostics.Stopwatch.GetTimestamp() - s0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
                     scriptMsTotal += ms;
@@ -266,7 +266,7 @@ namespace Memento.Bridge
             }
             try
             {
-                js.Tick();
+                if (tickJs) js.Tick();
                 js.Eval($"Memento.frame({Time.unscaledDeltaTime.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
             }
             catch (Exception e) { Debug.LogError("Memento bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); }
@@ -290,6 +290,14 @@ namespace Memento.Bridge
         public double waitMs;
         /// <summary>The same wait summed for good, and the script's own time on its thread (ms; BridgeMetrics reads them).</summary>
         public double waitMsTotal, scriptMsTotal;
+        // (Puerts' Tick, not with QuickJS in an IL2CPP player: on the Xbox the first Tick after the start crashed, an access
+        // violation in Puerts' IL2CPP glue (its pending-kill cleanup), on the script's thread and before that on the sound's.
+        // Without it the script objects C# let go are only freed with the engine: a leak a measuring session can afford.)
+#if UNITY_EDITOR
+        static bool tickJs => true;
+#else
+        static bool tickJs => JsRuntime.Backend != "QuickJS";
+#endif
         int scriptFrames;
 
         public void Look(string json)

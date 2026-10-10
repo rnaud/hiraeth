@@ -5,6 +5,7 @@
 //                                                 memento-unity-xbox.zip of the unity-xbox prerelease), waits till done
 //   node scripts/xbox-unity.mjs launch          → starts the installed rnaud.HiraethUnity
 //   node scripts/xbox-unity.mjs stop            → stops it
+//   node scripts/xbox-unity.mjs uninstall       → removes rnaud.HiraethUnity (only that package: never rnaud.Hiraeth)
 //   node scripts/xbox-unity.mjs log [prev]      → LocalState\unity.log (or unity.prev.log, the launch before)
 //   node scripts/xbox-unity.mjs packages        → the installed Hiraeth packages
 //
@@ -68,6 +69,13 @@ if (cmd === 'packages') {
   }
   const p = await unityPackage();
   console.log(p.PackageFullName);
+} else if (cmd === 'uninstall') {
+  // (the Unity package only: never rnaud.Hiraeth, whose LocalState holds the web game's saves)
+  const p = await unityPackage();
+  if (!p.PackageFullName.startsWith(`${FAMILY}_`)) throw new Error(`refusing to uninstall ${p.PackageFullName}`);
+  await call('/api/app/packagemanager/packages');
+  const r = await call(`/api/app/packagemanager/package?package=${encodeURIComponent(p.PackageFullName)}`, { method: 'DELETE' });
+  console.log(`uninstall ${p.PackageFullName}: ${r.status} ${await r.text()}`);
 } else if (cmd === 'launch' || cmd === 'stop') {
   const p = await unityPackage();
   await call('/api/app/packagemanager/packages');

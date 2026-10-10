@@ -326,6 +326,17 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      # (GameAssembly's symbols, to read a crash dump from the console: a few days, apart)
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: memento-unity-xbox-symbols
+          path: |
+            ${{ env.PROJECT }}/Builds/unity-xbox/**/GameAssembly.pdb
+            ${{ env.PROJECT }}/Builds/unity-xbox/**/GameAssembly.dll
+          retention-days: 3
+          if-no-files-found: warn
+
       - name: Publish to the release unity-xbox
         shell: bash
         env:

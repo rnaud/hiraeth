@@ -405,8 +405,13 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
 - **Two QuickJS engines at once crash the IL2CPP player**: an access violation in GameAssembly on the "Memento
   sound" thread (the dump's thread names) while the script's engine loaded the bundle. With QuickJS the sound is
   rendered on the script's thread (`BridgeRunner`, `oneEngine`).
-- **As an App (1 GB) it doesn't fit**: committed memory climbs to ~635 MB during the build and past 877 MB as the
-  first frame creates the meshes; the system ends the app with no dump at ~230 s. It has to be a **Game**.
+- **The first `Tick` crashed it**, as an App and as a Game alike (~180–230 s, as the first frame began; committed memory
+  peaked near 890 MB, well inside either limit): an access violation (a read at 0x20) in GameAssembly on the "Memento
+  script" thread, with no QuickJS frame on the stack: Puerts' IL2CPP glue (`ScriptEnv.Tick` →
+  `NativeAPI.CleanupPendingKillScriptObjects`), the same signature as the sound's thread's crash. With QuickJS in a
+  player the bridge no longer calls Puerts' `Tick` (`BridgeRunner.tickJs`): the script objects C# drops are freed only
+  with the engine. Crash dumps are off again after each reinstall: turn them on before measuring. The workflow keeps
+  GameAssembly's `.pdb` as an artifact (`memento-unity-xbox-symbols`, 3 days) to read a dump.
 - Crash dumps: `POST /api/debug/dump/usermode/crashcontrol?packageFullName=<full name>` turns them on, `GET
   /api/debug/dump/usermode/dumps` lists them, `GET /api/debug/dump/usermode/crashdump?packageFullName=…&fileName=…`
   fetches one (the parameter is spelt `packageFullName` there). `UnityPlayer.log` is in `TempState`.
