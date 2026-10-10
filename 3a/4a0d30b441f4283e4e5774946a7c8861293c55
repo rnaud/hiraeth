@@ -1,0 +1,19 @@
+docs/design/chest-prompts.md
+  s_5af37db5dd0aa5::t_73c097da86133d 1-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3a4a0d30b441f4283e4e5774946a7c8861293c55",
+  "prompts": {},
+  "sessions": {
+    "s_5af37db5dd0aa5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-aadffc7b0eebfbfa0",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
