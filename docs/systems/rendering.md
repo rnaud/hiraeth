@@ -627,7 +627,7 @@ only showed in the light term) were each missed by still frames from fixed camer
 ## The visual probes' findings fixed (docs/audits/visual-v1.4.md; October 2026)
 
 The first run of the probes (visual-v1.4) found five things in the pictures and a few in the probes themselves;
-the after-run is [visual-v1.20](../audits/visual-v1.20.md).
+the after-run is [visual-v1.21](../audits/visual-v1.21.md).
 
 - **A dark copy of the traveller on the wall beside him in room corners** (Handheld; post.js `enclosure`,
   `spotLoop`, `planeAlong`, `spotBehind`). A tap landing on a person looked past them, twice as far along its

@@ -1,4 +1,4 @@
-# Visual audit, v1.20: the probes' findings fixed (2026-10-10)
+# Visual audit, v1.21: the probes' findings fixed (2026-10-10)
 
 <!-- audit-scores
 overall: none
@@ -14,7 +14,7 @@ measure as v1.4's, and where a flag went away because the probe was fixed rather
 
 ## Setup
 
-- This branch on main ac7600f6 (v1.19) plus the six fixes; headless Chrome (muted, ANGLE Metal, M4 Pro), 1280 × 720,
+- This branch on main ac7600f6 (v1.19) plus the six fixes (rebased since onto v1.20); headless Chrome (muted, ANGLE Metal, M4 Pro), 1280 × 720,
   9:30, clear weather, the HUD hidden; the 11 route worlds at **Handheld and High** with `--people marrow` (only the
   desert has him), a 10 s rest between runs; the 12 side worlds at Handheld (below). Another agent's combat review
   shared the machine: the runs waited for its Chrome each time (one headless Chrome at a time).
@@ -33,17 +33,17 @@ measure as v1.4's, and where a flag went away because the probe was fixed rather
 
 | before (ac7600f6) | after |
 |---|---|
-| ![](visual-v1.20/corner-before.webp) | ![](visual-v1.20/corner-after.webp) |
+| ![](visual-v1.21/corner-before.webp) | ![](visual-v1.21/corner-after.webp) |
 
 *The desert room corner at Handheld (debug 10, the spot mask green): the dark copy of him on the left wall is gone.*
 
 | before | after |
 |---|---|
-| ![](visual-v1.20/ramp-shadow-before.webp) | ![](visual-v1.20/ramp-shadow-after.webp) |
+| ![](visual-v1.21/ramp-shadow-before.webp) | ![](visual-v1.21/ramp-shadow-after.webp) |
 
 *His shadow by the ship's ramp, Handheld (debug 10): the ragged blob beside the shield → the dune foot's crease alone.*
 
-![](visual-v1.20/drone-after.webp)
+![](visual-v1.21/drone-after.webp)
 
 *The machine in the City-Shaft hall (incal, High, debug 10, without the traveller): no halo on the wall behind it; its
 own legs and plates keep their black. v1.4's picture: [drone-halo](visual-v1.4/drone-halo.webp).*
@@ -58,13 +58,13 @@ ray runs under it too) and are no longer reported. world.js `jitter`'s vertical 
 
 | # | severity | where | picture | likely cause | suggested fix |
 |---|---|---|---|---|---|
-| 1 | noticeable | the Lorn temple hall (perdide, inner-wall-3, both presets): a jagged spot-black halo round the floating crystal on the wall behind it, and the orbit flagged (p95 0.70 / 0.80) | [picture](visual-v1.20/lorn-crystal-halo.webp) | the crystal turns and floats but isn't a mover (finding 3's class: a moving prop near a wall) | make its material with `{ mover: true }` (src/temples, the crystal's makeMaterial) |
+| 1 | noticeable | the Lorn temple hall (perdide, inner-wall-3, both presets): a jagged spot-black halo round the floating crystal on the wall behind it, and the orbit flagged (p95 0.70 / 0.80) | [picture](visual-v1.21/lorn-crystal-halo.webp) | the crystal turns and floats but isn't a mover (finding 3's class: a moving prop near a wall) | make its material with `{ mover: true }` (src/temples, the crystal's makeMaterial) |
 | 2 | noticeable | the Givers' Hearth's passage: dark triangles of the dome hang across the passage's mouth (seen in the light pictures, both presets) | [v1.4's seam picture, right](visual-v1.4/hearth-hairline-seam.webp) | `cut()` drops a dome triangle only when its centre is in the door box; triangles straddling the passage walls stay | cut by any vertex inside the passage's inner width, or clip them to the passage walls (desert-hearth.js `door`) |
-| 3 | only when looking | the desert room corner at Handheld (and the ship's ramp rail in four side worlds, 380-840 px): a notch in the corner's foot band beside his legs (598 px pale, 0.03 of him; flagged on the 300 px floor) | [after](visual-v1.20/corner-after.webp) | where three planes meet (two walls and the floor) the planes seen round a hidden tap don't always include the one that hides it | a third look-past (along the other axis), or accept |
-| 4 | only when looking | Marrow at the same corner (Handheld): the floor at his robe's hem a little darker with him (2198 px, 0.09 of him) | [with](visual-v1.20/marrow-corner-with.webp), [without](visual-v1.20/marrow-corner-without.webp) | his wide hem hides several taps at once; their planes come from the corner's walls | as 3 |
+| 3 | only when looking | the desert room corner at Handheld (and the ship's ramp rail in four side worlds, 380-840 px): a notch in the corner's foot band beside his legs (598 px pale, 0.03 of him; flagged on the 300 px floor) | [after](visual-v1.21/corner-after.webp) | where three planes meet (two walls and the floor) the planes seen round a hidden tap don't always include the one that hides it | a third look-past (along the other axis), or accept |
+| 4 | only when looking | Marrow at the same corner (Handheld): the floor at his robe's hem a little darker with him (2198 px, 0.09 of him) | [with](visual-v1.21/marrow-corner-with.webp), [without](visual-v1.21/marrow-corner-without.webp) | his wide hem hides several taps at once; their planes come from the corner's walls | as 3 |
 | 5 | only when looking | the buried world's stairs-0 orbit at Handheld (p95 0.74), as in v1.4 | (v1.4) | not looked into by eye yet | look at the orbit frames (`--save-all`) |
-| 6 | look | a shop in the Signal Market (bazaar inside-3, both presets): the floor and the shelves inside lit white in the light term; the shelf edge flagged as a 138-199 px lit line | [picture](visual-v1.20/bazaar-shop-lit.webp) | sunlight through the open front, or the shop's shell not casting; new since v1.4 (the shops came later) | check the shop's shadow casting at noon |
-| 7 | look | his shadow on the sand by the ramp: a clean dark stripe where the dune's foot creases | [after](visual-v1.20/ramp-shadow-after.webp) | the crease's enclosure 0.25-0.4 on 4 taps; it only shows in shade, his shadow being the shade there | accept, or a lower spot share for terrain (an art call) |
+| 6 | look | a shop in the Signal Market (bazaar inside-3, both presets): the floor and the shelves inside lit white in the light term; the shelf edge flagged as a 138-199 px lit line | [picture](visual-v1.21/bazaar-shop-lit.webp) | sunlight through the open front, or the shop's shell not casting; new since v1.4 (the shops came later) | check the shop's shadow casting at noon |
+| 7 | look | his shadow on the sand by the ramp: a clean dark stripe where the dune's foot creases | [after](visual-v1.21/ramp-shadow-after.webp) | the crease's enclosure 0.25-0.4 on 4 taps; it only shows in shade, his shadow being the shade there | accept, or a lower spot share for terrain (an art call) |
 
 ## The probes, world by world
 

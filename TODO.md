@@ -35,7 +35,7 @@ rather than mixing the earlier inconsistent exploration sheets.
   in the existing `singing-light` cue slot. The synthesised motif, restaged opening,
   voicemail, Qanat repayment, signature search and rumble are implemented (DONE.md).
 
-# Visual probes (docs/audits/visual-v1.20.md, 2026-10-10; v1.4's done: DONE.md)
+# Visual probes (docs/audits/visual-v1.21.md, 2026-10-10; v1.4's done: DONE.md)
 
 - [ ] The Lorn temple's floating crystal draws a jagged spot-black halo on the wall behind it as it turns (perdide
   inner-wall-3, both presets; the orbit flags it): make its material with `{ mover: true }` (materials.js MOVER).
