@@ -1,0 +1,27 @@
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_43baadf71b9374 22-23,53,55
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_901c17c43ad21d 37-38,136
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_0b30c5cdb6061f 201-204
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_b519e29dfc064e 3,49-52
+src/changelog-media.js
+  s_9ca76055a220ed::t_80f0cabad142e4 527-534
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d6bbb9d9e0c9407340deafcea3b3f3d8a82e6c3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
