@@ -104,6 +104,8 @@ export function jellyModel(skin) {
   return {
     group: g, body, wave, parts: [cap, rim, ...lanterns.map((l) => l.lamp)], eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.bell, P.light, P.thread],
     tell: (id) => (id === 'curtain' ? rim : lanterns[0].lamp),
+    // (where lantern i hangs, in the foes' space: the ward's thread of light runs from it, and is cut half-way: Foes.support)
+    lanternAt: (i, out = new THREE.Vector3()) => out.copy(lanterns[Math.min(i, NL - 1)].lamp.position),
     anim(f, c) {
       const id = f.atk?.id, dt = Math.max(c.dt, 1e-4), wind = f.state === 'wind', strike = f.state === 'strike';
       const vx = prev.x == null ? 0 : (f.pos.x - prev.x) / dt, vz = prev.x == null ? 0 : (f.pos.z - prev.z) / dt;

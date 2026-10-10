@@ -15,7 +15,7 @@ import { windMin, groundMark, isProjectile } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
 import { ORDER, SIDE, TITLES } from '../src/levels/names.js';
 import { VerletChain } from '../src/motion-kit/chain.js';
-import { clearTargets } from '../src/targets.js';
+import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -590,6 +590,30 @@ test('the lantern jelly: it never starts a fight but joins one; it wards a neigh
   const ev = run(C, player(v(0.5, 0, 0)), 1.4);
   assert.ok(ev.some((e) => e.type === 'strike' && e.hit), 'under it: stung');
 });
+test('a cut across a lantern jelly’s thread of light breaks its ward (combat-v1.9 rec. 2)', () => {
+  clearTargets();
+  const P = player(v(0, 0, 0)), foes = world(P); foes.waveRest = 1e9;
+  const J = foes.add('jelly', v(0, 0, 8)), T = foes.add('blot', v(2, 0, 7));
+  foes.support(J, { type: 'ward', target: T, atk: attackOf('jelly', 'ward') });
+  assert.ok(T.ward?.by === J && J.wards.includes(T), 'warded');
+  // the thread: a thing to cut half-way from its lantern to the one it guards; only the blade cuts it
+  const threads = [...allTargets()].filter((t) => t.kind === 'rope' && t.enabled());
+  assert.equal(threads.length, 1, 'one thread of light');
+  const at = threads[0].position();
+  assert.ok(at.distanceTo(T.chest) < at.distanceTo(J.chest) + 3 && at.distanceTo(T.chest) > 0.3, 'between the lantern and the foe');
+  assert.equal(threads[0].onHit('shot', at, v(0, 0, 1), {}), false, 'a shot passes through the light (it pops the lantern instead)');
+  assert.ok(T.ward, 'still warded');
+  assert.equal(threads[0].onHit('blade', at, v(0, 0, 1), {}), true);
+  assert.equal(T.ward, null, 'cut: the ward is broken');
+  assert.ok(!J.wards.includes(T) && J.lanterns === J.def.lanterns, 'the jelly keeps its lantern (it may ward again)');
+  assert.equal([...allTargets()].filter((t) => t.kind === 'rope' && t.enabled()).length, 0, 'the thread gone');
+  // a ward that runs out takes its thread with it
+  foes.support(J, { type: 'ward', target: T, atk: attackOf('jelly', 'ward') });
+  T.unward();
+  assert.equal([...allTargets()].filter((t) => t.kind === 'rope' && t.enabled()).length, 0, 'no thread left over');
+  foes.dispose(); clearTargets();
+});
+
 
 // ------------------------------------------------------------------------------------------- batch 3
 const BATCH3 = ['toad', 'heron', 'skitter', 'rootknot'];

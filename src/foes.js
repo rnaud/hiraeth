@@ -412,7 +412,7 @@ export class Foe {
     if (Math.hypot(mx, mz) > 1e-4) { this.step(mx, mz, env); this.heading = Math.atan2(mx, mz); }
   }
   /** Its ward ends (run out, its jelly gone, or the lantern popped). */
-  unward() { const J = this.ward?.by; this.ward = null; if (J) J.wards = J.wards.filter((x) => x !== this); }
+  unward() { const J = this.ward?.by; this.wardCut?.(); this.wardCut = null; this.ward = null; if (J) J.wards = J.wards.filter((x) => x !== this); }
   /** A shot or the boomerang pops one of a support's lanterns: the lit one first, and the ward it held. True when one popped. */
   pop() {
     if (!(this.lanterns > 0)) return false;
@@ -1628,6 +1628,7 @@ export class Foes {
   remove(f) {
     f.target?.(); f.tele?.dispose(); f.glow?.dispose(); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
+    if (f.ward) f.unward(); for (const T of f.wards ?? []) if (T.ward?.by === f) T.unward();   // (a ward on it, or the ones it held: their threads with them)
     for (const t of f.teles ?? []) t.dispose();
     for (const g of f.globs ?? []) g.removeFromParent();
     f.stars?.removeFromParent();
@@ -2237,12 +2238,26 @@ export class Foes {
       T.ward?.by && T.unward();
       T.ward = { by: f, t: e.atk.ward.time };
       f.wards.push(T);
+      // its thread of light, a thing to cut (the doc's counter): half-way from its lantern to the one it guards; a blade
+      // swing across it breaks the ward, the jelly keeping its lantern (a shot still pops the lantern: Foe.pop)
+      const at = () => (T._ward ??= new THREE.Vector3()).lerpVectors(f.model?.lanternAt?.(Math.max(0, f.wards.indexOf(T)), _w) ?? f.chest, T.chest, 0.5);
+      T.wardCut = registerTarget({ kind: 'rope', lock: false, radius: 0.6, accepts: ['blade'], position: at,
+        enabled: () => T.ward?.by === f && f.alive && f.dead === undefined,
+        onHit: (mode) => { if (mode !== 'blade') return false; this.cutWard(T); return true; } });
       this.tool?.rings?.add({ from: T.chest.clone(), dir: _up, reach: 0.05, r0: T.def.radius * 0.5, r1: T.def.radius + 0.6, life: 0.4, color: f.def.tone, thick: 1 });
     } else {
       T.hp = Math.min(T.def.hp, T.hp + e.atk.mend.hp);
       this.animKit(f, 0, {}).spray(T.chest, [f.def.tone, '#ffffff'], 12, 2, -2);
     }
     this.sound?.chime?.();
+  }
+
+  /** A lantern jelly's thread of light cut (the blade): the ward on T is broken, a spark where it parted. */
+  cutWard(T) {
+    if (!T.ward) return;
+    this.sparks(T, T._ward ?? T.chest);
+    T.unward();
+    this.sound?.foeWarn?.(T.def.sound ?? T.kind, 0.15);
   }
 
   /**
