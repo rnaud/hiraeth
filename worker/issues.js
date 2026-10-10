@@ -3,7 +3,8 @@
 // with Wrangler secrets. Missing configuration fails closed. docs/systems/notes.md.
 export const REPOSITORY = 'rnaud/hiraeth';
 export const COOKIE = '__Host-hiraeth-notes';
-const SESSION_SECONDS = 30 * 24 * 60 * 60;
+// Renew on each visit; keep the password out of browser storage.
+const SESSION_SECONDS = 400 * 24 * 60 * 60;
 const encoder = new TextEncoder();
 const API = `https://api.github.com/repos/${REPOSITORY}/issues`;
 
@@ -87,7 +88,7 @@ function issueView(issue) {
   };
 }
 async function github(fetcher, env, url, options = {}) {
-  return fetcher(url, { ...options, redirect: 'error', signal: AbortSignal.timeout(12000), headers: {
+  return fetcher(url, { ...options, redirect: 'manual', signal: AbortSignal.timeout(12000), headers: {
     Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28',
     'User-Agent': 'Hiraeth-Notes', Authorization: `Bearer ${env.HIRAETH_ISSUES_TOKEN}`,
     ...(options.body ? { 'Content-Type': 'application/json' } : {}),
@@ -127,7 +128,8 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
     return json({ authenticated: true }, 200, { 'Set-Cookie': cookie(await issueSession(env, url.origin, now)) });
   }
   const authenticated = await signedIn(request, env, now);
-  if (session) return json({ authenticated });
+  if (session) return json({ authenticated }, 200, authenticated
+    ? { 'Set-Cookie': cookie(await issueSession(env, url.origin, now)) } : {});
   if (!authenticated) return failure(401, 'Please unlock your notebook again. Your draft is still here.');
   if (request.method === 'POST') {
     const limited = await rateLimit(env.NOTES_WRITE_LIMITER);

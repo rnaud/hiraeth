@@ -33,7 +33,7 @@ test('missing secrets fail closed while the existing static site still works', a
 test('password login produces a secure HttpOnly host cookie, and logout clears it', async () => {
   const response = await handleIssues(request('session', { method: 'POST', body: { password: env.HIRAETH_NOTES_PASSWORD } }), env, noFetch, now);
   const set = response.headers.get('Set-Cookie');
-  for (const s of [COOKIE, 'HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/', 'Max-Age=2592000']) assert.ok(set.includes(s), s);
+  for (const s of [COOKIE, 'HttpOnly', 'Secure', 'SameSite=Strict', 'Path=/', 'Max-Age=34560000']) assert.ok(set.includes(s), s);
   assert.deepEqual(await response.json(), { authenticated: true });
   const session = await handleIssues(request('session', { cookie: set.split(';')[0] }), env, noFetch, now);
   assert.deepEqual(await session.json(), { authenticated: true });
@@ -49,7 +49,7 @@ test('unauthenticated, forged, expired, other-origin and password-rotated cookie
   for (const c of [undefined, forged, `${name}=0.abc`]) {
     for (const method of ['GET', 'POST']) assert.equal((await handleIssues(request('issues', { cookie: c, method, ...(method === 'POST' ? { body: { title: 'note' } } : {}) }), env, noFetch, now)).status, 401);
   }
-  assert.equal((await handleIssues(request('issues', { cookie: valid }), env, noFetch, now + 31 * 86400000)).status, 401);
+  assert.equal((await handleIssues(request('issues', { cookie: valid }), env, noFetch, now + 401 * 86400000)).status, 401);
   assert.equal((await handleIssues(request('issues', { cookie: valid }), { ...env, HIRAETH_NOTES_PASSWORD: `${env.HIRAETH_NOTES_PASSWORD}-rotated` }, noFetch, now)).status, 401);
   assert.equal((await handleIssues(request('issues', { cookie: valid }), { ...env, HIRAETH_ISSUES_TOKEN: 'rotated-token' }, noFetch, now)).status, 401);
   const differentOrigin = new Request('https://other.example/api/notes/issues', { headers: { Cookie: valid } });
@@ -101,7 +101,7 @@ test('listing is fixed to Hiraeth, excludes PRs, and preserves pagination withou
   const response = await handleIssues(request('issues?page=2&repo=evil/repo', { cookie: c }), env, async (url, options) => {
     assert.equal(url, `https://api.github.com/repos/${REPOSITORY}/issues?state=open&sort=created&direction=desc&per_page=50&page=2`);
     assert.equal(options.headers.Authorization, `Bearer ${env.HIRAETH_ISSUES_TOKEN}`);
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     return Response.json([fixture(5), { ...fixture(6), pull_request: {} }], { headers: { Link: '<https://api.github.com/repos/rnaud/hiraeth/issues?page=3>; rel="next"' } });
   }, now);
   const data = await response.json();
@@ -138,7 +138,7 @@ test('invalid or oversized titles and streamed request bodies are rejected befor
 
 test('upstream errors are safe and uncertain writes are never retried', async () => {
   const c = await login();
-  for (const [status, expected] of [[401, 503], [403, 503], [404, 503], [422, 422], [429, 429], [500, 502]]) {
+  for (const [status, expected] of [[302, 502], [401, 503], [403, 503], [404, 503], [422, 422], [429, 429], [500, 502]]) {
     const response = await handleIssues(request('issues', { cookie: c }), env, async () => new Response('secret upstream detail', { status }), now);
     assert.equal(response.status, expected);
     assert.doesNotMatch(await response.text(), /secret upstream/);
@@ -149,4 +149,27 @@ test('upstream errors are safe and uncertain writes are never retried', async ()
   assert.match((await response.json()).error, /Refresh the list before trying again/);
   assert.equal((await handleIssues(request('unknown'), env, noFetch, now)).status, 404);
   assert.equal((await handleIssues(request('issues', { method: 'PUT' }), env, noFetch, now)).status, 405);
+});
+
+
+test('remembered devices renew on visits, including existing 30-day cookies', async () => {
+  const c = await login();
+  const later = now + 300 * 86400000;
+  const response = await handleIssues(request('session', { cookie: c }), env, noFetch, later);
+  assert.equal((await response.json()).authenticated, true);
+  const renewed = response.headers.get('Set-Cookie').split(';')[0];
+  assert.notEqual(renewed, c);
+  assert.equal((await (await handleIssues(request('session', { cookie: renewed }), env, noFetch, now + 500 * 86400000)).json()).authenticated, true);
+  // Issue an authentic old-format 30-day cookie: the signing format is unchanged.
+  const bytes = (s) => new TextEncoder().encode(s);
+  const importKey = (raw) => crypto.subtle.importKey('raw', raw, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const material = await crypto.subtle.sign('HMAC', await importKey(bytes(env.HIRAETH_ISSUES_TOKEN)), bytes(`hiraeth-notes:session-key:v2:${env.HIRAETH_NOTES_PASSWORD}`));
+  const expiry = Math.floor(now / 1000) + 30 * 86400;
+  const signature = await crypto.subtle.sign('HMAC', await importKey(material), bytes(`hiraeth-notes:v2:${origin}:${expiry}`));
+  const old = `${COOKIE}=${expiry}.${Buffer.from(signature).toString('hex')}`;
+  const upgraded = await handleIssues(request('session', { cookie: old }), env, noFetch, now);
+  assert.equal((await upgraded.json()).authenticated, true);
+  assert.match(upgraded.headers.get('Set-Cookie'), /Max-Age=34560000/);
+  const guest = await handleIssues(request('session'), env, noFetch, now);
+  assert.equal(guest.headers.get('Set-Cookie'), null);
 });

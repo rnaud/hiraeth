@@ -12,6 +12,8 @@ The same release notes shown in the game (press **N** or open settings).
 - The crowds in the towns wear their world’s colours a little softer now, so the people with a story to tell, the shopkeepers, Tansy and your family stand out among them.
 - A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.
 - The notebook accepts your chosen password and asks you to pause after too many sign-in attempts or rapid submissions.
+- Notes is now a compact to-do list, with more room to type and a sign-in remembered across visits.
+- The notebook can connect to GitHub again: loading and saving no longer fail before the request is sent.
 
 ## v1.41 — 2026-10-10
 

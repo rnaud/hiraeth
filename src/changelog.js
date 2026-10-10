@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.42', date: '2026-10-10', items: [
+    { text: 'The notebook can connect to GitHub again: loading and saving no longer fail before the request is sent.', see: 'With the notebook connected, open Notes to load your issues and add a new line.' },
+    { text: 'Notes is now a compact to-do list, with more room to type and a sign-in remembered across visits.', see: 'Open Notes: the entry field sits at the top, with slim margins and a compact list. Returning visits extend this device’s sign-in; Sign out forgets it.' },
     { text: 'The notebook accepts your chosen password and asks you to pause after too many sign-in attempts or rapid submissions.', see: 'After five sign-in attempts within a minute, wait a minute before trying again. An unsent note stays in the composer.' },
     { text: 'A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.', see: 'Open Notes from the Pages list, unlock your notebook, write a line and press Enter or Add. Each saved note opens its issue on GitHub.' },
     // the people's colours by how much they matter (src/costumes.js PROMINENCE; docs/systems/characters.md "Prominence")

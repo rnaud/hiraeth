@@ -15,7 +15,7 @@ function updateDraft() {
   try {
     if ($('new-note').value) localStorage.setItem(DRAFT, $('new-note').value);
     else localStorage.removeItem(DRAFT);
-    $('draft-hint').textContent = $('new-note').value ? 'Draft saved on this device.' : 'One line, then Enter. Keep going.';
+    $('draft-hint').textContent = $('new-note').value ? 'Draft saved' : 'Enter to add';
   } catch { $('draft-hint').textContent = 'Keep this page open to keep your draft.'; }
 }
 async function api(path, options = {}) {
@@ -101,7 +101,7 @@ $('note-form').addEventListener('submit', async (e) => {
     generation++; // an older in-flight refresh must not remove the note just created
     issues = [issue, ...issues.filter((i) => i.number !== issue.number)];
     $('new-note').value = ''; $('search').value = ''; updateDraft(); render();
-    notice('Saved. What else did you notice?');
+    notice('Saved.');
   } catch (e) { notice(e.message, true); }
   finally { saving = false; $('add').disabled = false; $('new-note').readOnly = false; if (!$('board').hidden) $('new-note').focus(); }
 });
@@ -112,7 +112,7 @@ $('more').addEventListener('click', () => { if (nextPage) load(nextPage); });
 $('lock').addEventListener('click', async () => {
   if (saving) return;
   $('lock').disabled = true;
-  try { await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; render(); signedIn(false); notice('Notebook locked.'); }
+  try { await api('session', { method: 'DELETE' }); generation++; issues = []; nextPage = null; render(); signedIn(false); notice('Signed out.'); }
   catch (e) { notice(e.message, true); }
   finally { $('lock').disabled = false; }
 });

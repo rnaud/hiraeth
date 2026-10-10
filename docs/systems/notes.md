@@ -41,16 +41,19 @@ credentials cross-origin. Local development uses `wrangler dev` on localhost wit
 ## Access and failure handling
 
 Both listing and creating require the notebook password. Sign-in issues a signed, origin-bound
-30-day cookie: Secure, HttpOnly, SameSite=Strict, host-only. The browser never receives the GitHub token
+400-day cookie, renewed whenever the page checks an authenticated session: Secure, HttpOnly, SameSite=Strict, host-only. The browser never receives the GitHub token
 or stores the notebook password. Writes check Origin and accept only JSON; bodies are limited to 4 KiB,
 titles to one nonempty line of at most 256 characters. Repository selection and labels cannot be supplied
 by a client. GitHub errors are translated to safe messages; no upstream secrets or response bodies are
-returned. API responses are never cached. Requests to GitHub time out after 12 seconds.
+returned. API responses are never cached. Requests to GitHub time out after 12 seconds. Redirects use `manual` and fail as upstream errors;
+Workers does not support fetch's `error` redirect mode. Credentials are never forwarded to a redirect target.
 
 The API fails closed if either secret or either rate-limit binding is absent. Cookie signing derives
 a purpose-specific key from the server-only GitHub token and notebook password together; knowing the
 password alone cannot forge cookies offline. Rotating either secret invalidates all sessions; Lock
-clears the current browser's cookie.
+clears the current browser's cookie. Existing unexpired 30-day cookies upgrade on the next visit.
+The browser can still forget a device if site data is cleared, private browsing ends, or a secret rotates;
+the password itself is never saved in localStorage. The UI calls this action Sign out.
 
 Wrangler configures `NOTES_LOGIN_LIMITER` (5 attempts/minute) and `NOTES_WRITE_LIMITER`
 (30 submissions/minute). Each uses a shared notebook key, so switching IPs at the same edge does not
