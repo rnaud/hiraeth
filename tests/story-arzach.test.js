@@ -135,12 +135,10 @@ test('the people stand on the plain, and the tower’s balcony, steps and sill c
 });
 
 
-// a real traveller: run at the next stone, jump, and (if asked) jump again in the air for the fluid boost
+// a real traveller: run at the next stone, jump, and (if asked) jump again in the air: the double jump (the lift valve)
 const { Player } = await import('../src/player.js');
-const { boostVelocity } = await import('../src/fluid-tool.js');
 function hop(from, to, boost) {
-  const P = new Player(physics, { unsafe: level.unsafe });
-  P.onAirJump = () => { boostVelocity(P.vel, P.frame.up, P.frame.dir(P.heading, new THREE.Vector3())); return true; };
+  const P = new Player(physics, { unsafe: level.unsafe, items: { has: (id) => id === 'backpack' || id === 'doublejump' } });   // (the double jump: the lift valve, v1.38)
   P.respawn(from.clone());
   P.heading = Math.atan2(to.x - from.x, to.z - from.z);
   let phase = 0;

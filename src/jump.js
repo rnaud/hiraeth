@@ -134,5 +134,67 @@ export class JumpLayer {
   }
 }
 
+/** The double jump's burst (m/s): up, and forward along the heading; keep: the share of a jump still rising that is kept. */
+export const DOUBLE_JUMP = { up: 15, forward: 4, keep: 0.35 };
+
+/**
+ * The double jump (the lift valve, Player.doubleJump; once the fluid boost): the velocity along up becomes a fresh
+ * burst (keeping a share of a jump that is still rising), plus a push along fwd (unit, tangent). Works in any gravity
+ * frame. Mutates and returns vel.
+ */
+export function boostVelocity(vel, up, fwd, { up: burst = DOUBLE_JUMP.up, forward = DOUBLE_JUMP.forward, keep = DOUBLE_JUMP.keep } = {}) {
+  const vu = vel.dot(up);
+  vel.addScaledVector(up, burst + Math.max(vu, 0) * keep - vu);
+  if (fwd) vel.addScaledVector(fwd, forward);
+  return vel;
+}
+
 /** For tests and the HUD: the phase's leading stage given plain numbers. */
 export const jumpStage = (s) => jumpPhase(s).stage;
+
+// ---- the double jump's flip (the lift valve: Player.doubleJump)
+// A front flip on the second jump, laid over everything else (it is the last turn of the body): the body turns once
+// head over heels about its hips (`pivot` m over the feet, the jets' lean turns about the same point), quick in the
+// middle and eased at both ends, tucked as it goes over (knees to the chest, arms round the shins) and opening out
+// to land. Short (`time` s: done before the double jump's top, 0.47 s up), so it never reaches the ground. Nothing
+// of it changes the flight.
+export const FLIP = { time: 0.44, pivot: 0.95, tuck: { legs: 1.5, knees: 2.0, arms: 1.1, elbows: 1.3, torso: 0.35, head: 0.3 } };
+
+/** The share of the turn done (0..1) at s seconds into the flip. */
+export function flipTurn(s) {
+  const e = THREE.MathUtils.clamp(s / FLIP.time, 0, 1);
+  return e * e * e * (e * (e * 6 - 15) + 10);   // (smootherstep: the turn eases in and out)
+}
+/** How tucked (0..1) at s seconds into the flip: in by the first third, open again by the end. */
+export function flipTuck(s) {
+  const e = s / FLIP.time;
+  if (e <= 0 || e >= 1) return 0;
+  return e < 0.3 ? sm(e, 0, 0.3) : 1 - sm(e, 0.62, 1);
+}
+
+const _fq = new THREE.Quaternion(), _fx = new THREE.Vector3(1, 0, 0), _fp = new THREE.Vector3();
+/**
+ * Lay the flip on the posed rig `c` (Player.animateClips, last): s seconds into it, k how much of it (0..1). The
+ * tuck bends the limbs; the turn goes round the body's x (its right: +x is a forward pitch, head first) about the
+ * pivot, so the hips stay where the flight carries them.
+ */
+export function flipPose(c, s, k = 1) {
+  if (s == null || s < 0 || s >= FLIP.time || !c?.body) return false;
+  const T = FLIP.tuck, q = flipTuck(s) * k;
+  for (let i = 0; i < 2; i++) {
+    const side = i === 0 ? -1 : 1;
+    turn(c.legs[i], -T.legs * q, 0, side * 0.12 * q);
+    turn(c.knees[i], T.knees * q, 0, 0);
+    turn(c.arms[i], -T.arms * q, 0, side * 0.25 * q);
+    turn(c.elbows[i], -T.elbows * q, 0, 0);
+  }
+  turn(c.torso, T.torso * q, 0, 0);
+  turn(c.head, T.head * q, 0, 0);
+  const a = Math.PI * 2 * flipTurn(s) * k;
+  _fq.setFromAxisAngle(_fx, a);
+  c.body.quaternion.premultiply(_fq);
+  // about the pivot: the body's origin is at the feet, so turn its offset from the pivot with it
+  _fp.set(0, FLIP.pivot, 0);
+  c.body.position.sub(_fp).applyQuaternion(_fq).add(_fp);
+  return true;
+}

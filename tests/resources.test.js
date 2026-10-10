@@ -129,7 +129,7 @@ test('the upgrades: the fourth chamber lengthens the bar a unit, the coil quicke
   assert.equal(meetsWith((x) => x === 'cell', 'magic:4'), true);
   // the requirements that wanted the fourth chamber now want the capacity
   assert.match(src('src/temples/buried.js'), /needs: \['magic:4'\]/);
-  assert.match(src('src/trials/kit-data.js'), /needs: \['backpack', 'magic:4'\]/);
+  assert.match(src('src/trials/kit-data.js'), /needs: \['backpack', 'gun', 'magic:4'\]/);
   assert.doesNotMatch(src('src/temples/buried.js'), /needs: \[[^\]]*'cell'/);
 });
 

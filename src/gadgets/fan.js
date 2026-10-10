@@ -154,9 +154,9 @@ function curlCurve() {
 }
 
 export default {
-  id: 'fan', name: 'Gust fan', glyph: '◗', order: 100,
+  id: 'fan', name: 'Gust fan', glyph: '◗', order: 100, trigger: 'use',
   text: 'A folding fan of the makers’ paper on black ribs, a swirl of wind inked on its leaf. One flick of it moves more air than a storm’s first breath.',
-  use: 'Press Y / △ (T, or the middle mouse button) to swing it; hold to keep swinging. The gust pushes crates and bombs, knocks foes back (a swarm of blots is blown apart), sends bubbles drifting, throws up sand and spray, spins pinwheels, fills a skiff’s sail and blows out fires. In the air with the wings open, swing it at the ground to lift yourself a little, three times before you land.',
+  use: 'Press RT / R2 (T, or the middle mouse button) to swing it; hold to keep swinging. The gust pushes crates and bombs, knocks foes back (a swarm of blots is blown apart), sends bubbles drifting, throws up sand and spray, spins pinwheels, fills a skiff’s sail and blows out fires. In the air with the wings open, swing it at the ground to lift yourself a little, three times before you land.',
   model: () => fanModel(),
   create(ctx) { return new Fan(ctx); },
 

@@ -48,7 +48,7 @@ test('the bubble wand and the gust fan are gadgets: items with models of their o
   assert.deepEqual(GADGETS.map((g) => g.id), ['hook', 'bomb', 'bubble', 'fan']);
   for (const id of ['bubble', 'fan']) {
     assert.equal(ITEMS[id].kind, 'gadget');
-    assert.ok(ITEMS[id].use.includes('Y / △'));
+    assert.ok(/RT \/ R2|LT \/ L2/.test(ITEMS[id].use));
     const m = buildItemModel(id), size = new THREE.Box3().setFromObject(m).getSize(v());
     assert.ok(m.children.length >= 3 && Math.max(size.x, size.y, size.z) < 0.6, `${id}: an item-sized model`);
   }

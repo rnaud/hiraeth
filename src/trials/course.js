@@ -47,7 +47,7 @@ export const MODES = {
   bike: { needs: ['backpack'], mount: 'bike', words: 'It wants the hoverbike.' },
   skiff: { needs: ['backpack'], mount: 'skiff', words: 'It wants the skiff.' },
   bird: { needs: [], mount: 'bird', words: 'It wants the bird.' },
-  eyes: { needs: ['backpack'], words: 'It wants the backpack.' },
+  eyes: { needs: ['backpack', 'gun'], words: 'It wants the fluid gun.' },
   kit: { needs: [], words: '' },   // (a makers' run, src/trials/kit-data.js: its own needs)
 };
 

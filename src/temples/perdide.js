@@ -102,7 +102,7 @@ export const LOGIC = {
     d3: { type: 'door', opens: { all: [{ lit: 'w1' }, { lit: 'w2' }, { lit: 'w3' }] }, latch: true },
     ps: { type: 'plate', room: 'galleryFar' },                     // the footstone behind the ledge's gate
     ds: { type: 'door', opens: { pressed: 'ps' }, latch: true },
-    mother: { type: 'boss', room: 'hall', needs: ['backpack', 'stun'] },
+    mother: { type: 'boss', room: 'hall', needs: ['gun', 'stun'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

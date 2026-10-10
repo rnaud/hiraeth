@@ -541,9 +541,9 @@ function start(ctx) {
   window.addEventListener('keydown', onKey);
   window.addEventListener('keyup', onKeyUp);
   window.addEventListener('pointerdown', onPointer);
-  // the pad: its face buttons by position (controller.js: A PadJump, B PadE, X PadEvade, Y PadGadget), the press
+  // the pad: its face buttons by position (controller.js: A PadJump, B PadE, X PadEvade, Y PadWhistle), the press
   // timed by the pad's own timestamp when it is this frame's
-  const PAD = ['PadJump', 'PadE', 'PadEvade', 'PadGadget'];
+  const PAD = ['PadJump', 'PadE', 'PadEvade', 'PadWhistle'];
   const padWas = [false, false, false, false];
   const padStamp = (dt) => {
     const now = performance.now();

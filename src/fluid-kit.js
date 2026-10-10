@@ -15,9 +15,9 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
  * almost still, fire boiling), and the splash's character.
  */
 export const MODES = {
-  shoot: { item: 'backpack', name: 'fluid', label: 'Fluid', tones: null, rate: 1, css: '' },
-  // the push: a cone of fluid shock along the aim (no glob), pale and quick; it comes with the backpack
-  push: { item: 'backpack', name: 'push', label: 'Push', tones: ['#e8f4ff', '#9ec9e8', '#52c8cf', '#ffffff'], rate: 1.8, css: 'push', glow: '#e8f4ff', cone: true },
+  shoot: { item: 'gun', name: 'fluid', label: 'Fluid', tones: null, rate: 1, css: '' },
+  // the push: a cone of fluid shock along the aim (no glob), pale and quick; it comes with the fluid gun
+  push: { item: 'gun', name: 'push', label: 'Push', tones: ['#e8f4ff', '#9ec9e8', '#52c8cf', '#ffffff'], rate: 1.8, css: 'push', glow: '#e8f4ff', cone: true },
   stun: { item: 'stun', name: 'stilling', label: 'Stilling', tones: ['#d6f0fa', '#86bfe8', '#5a8ed6', '#f2fbff'], rate: 0.12, css: 'stun', glow: '#bfe6f7' },
   fire: { item: 'fire', name: 'ember', label: 'Ember', tones: ['#f9c45a', '#e0644a', '#f39a45', '#fff0b8', '#b8433f'], rate: 2.6, css: 'fire', glow: '#ffb347' },
   // Viridel's: leaf green and petal pink, slow as sap (src/temples/edena.js: seeds, budded doors, vines)
@@ -26,9 +26,9 @@ export const MODES = {
 export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom'];
 export const STUN_SECONDS = 3.5;
 
-/** The owned modes in order (has: id -> bool). Without the backpack: none. */
+/** The owned modes in order (has: id -> bool). Without the fluid gun (a gadget, src/gadgets/gun.js) and the backpack it drinks from: none. */
 export function ownedModes(has) {
-  if (!has('backpack')) return [];
+  if (!has('gun') || !has('backpack')) return [];
   return MODE_ORDER.filter((m) => has(MODES[m].item));
 }
 /** The next owned mode after `mode` (dir +1 / -1); the same one if it is the only one. */

@@ -95,7 +95,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   const worldsCine = group('cinematics', 'By world').rows;
   assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 91, 'the 91 cinematics, by world');
   assert.ok(worldsCine.some((r) => r.label === 'desert') && worldsCine.some((r) => r.label === 'prologue'));
-  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 91);
+  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 93, 'the QC notes\' verdicts: the 91 and v1.38\'s two new chests (not reviewed yet)');
 
   const perf = theme('perf');
   assert.deepEqual(perf.latest.theme.figure, { text: '2/4', sub: 'budgets over' });

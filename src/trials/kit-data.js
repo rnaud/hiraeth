@@ -34,7 +34,7 @@ export const KIT_TRIALS = {
     rules: 'Walk the hall to its far end through the gusts: when the streaks come, get behind a screen. Under the porch at its end, wake all three eyes with the fluid in one breath.',
     origin: [-135, 21.4, -64], yaw: 0,
     marker: [4.4, -7.2], start: [0, -1.4], heading: 0, par: 42,
-    needs: ['backpack'], lacks: 'The eyes at its end want the fluid gun.',
+    needs: ['backpack', 'gun'], lacks: 'The eyes at its end want the fluid gun.',
     onFoot: true,
     voice: {
       who: 'pell', name: 'Pell', from: 'at the foot of the dune',
@@ -80,7 +80,7 @@ export const KIT_TRIALS = {
     rules: 'Jump from pillar to pillar across the furnace to the landing at its end; down on the grate, and the run is over. Then wake the door’s four eyes in one breath.',
     origin: [40, 11, 66], yaw: 0,
     marker: [4.8, -6], start: [0, 1.5], heading: 0, par: 34,
-    needs: ['backpack', 'magic:4'], lacks: 'The door at its end has four eyes to wake in one breath: it wants a longer magic bar (the fourth chamber).',
+    needs: ['backpack', 'gun', 'magic:4'], lacks: 'The door at its end has four eyes to wake in one breath: it wants a longer magic bar (the fourth chamber).',
     onFoot: true, offFeet: 'This one is jumped: no jets.',
     fall: { after: 0, below: -2.5, from: 6, words: 'Down on the grate' },
     voice: {
@@ -96,7 +96,7 @@ export const KIT_TRIALS = {
     rules: 'Weave the slalom of stone spheres to the arch at the far end. Then roll both white spheres onto the plates at the dais with the fluid’s push: one from each end.',
     origin: [140, 0.4, -22], yaw: Math.PI / 2,
     marker: [4.4, -3.6], start: [0, -0.4], heading: 0, par: 42,
-    needs: ['backpack'], lacks: 'Its spheres are rolled with the fluid’s push: it wants the fluid gun.',
+    needs: ['backpack', 'gun'], lacks: 'Its spheres are rolled with the fluid’s push: it wants the fluid gun.',
     onFoot: true,
     voice: {
       who: 'nell', name: 'Nell', from: 'who looks into the lake',
@@ -111,7 +111,7 @@ export const KIT_TRIALS = {
     rules: 'Roll the stone ball out along the balcony with the fluid’s push, walking (and jumping the gaps) behind it, onto the plate at the far end. There is no parapet: down the shaft, and the run is over.',
     origin: [266, 200.3, 61.44], yaw: -1.7978,
     marker: [4.2, -5.6], start: [0, -1.6], heading: 0, par: 40,
-    needs: ['backpack'], lacks: 'Its ball is rolled with the fluid’s push: it wants the fluid gun.',
+    needs: ['backpack', 'gun'], lacks: 'Its ball is rolled with the fluid’s push: it wants the fluid gun.',
     onFoot: true, offFeet: 'This one is walked: no jets.',
     fall: { after: 0, below: -3, from: 13.5, words: 'Down the shaft' },
     voice: {
@@ -127,7 +127,7 @@ export const KIT_TRIALS = {
     rules: 'Walk past the listening walls to the arch at the far end. Then give each horn its own note: splash a stone near enough for the echo shell to catch its song, carry it to the horn of its colour, and play it back. The shell holds one note at a time.',
     origin: [-42, 0.35, 75], yaw: -Math.PI / 2,
     marker: [4.4, -3.6], start: [0, -1.4], heading: 0, par: 38,
-    needs: ['backpack', 'echo'], lacks: 'Its stones sing for the fluid and its horns listen for the echo shell: it wants both.',
+    needs: ['backpack', 'gun', 'echo'], lacks: 'Its stones sing for the fluid and its horns listen for the echo shell: it wants both.',
     onFoot: true, offFeet: 'This one is walked: no jets.',
     controls: 'kitecho',
     voice: {
@@ -143,7 +143,7 @@ export const KIT_TRIALS = {
     rules: 'Cross the three gaps to the arch on the last deck. Switch the gun to bloom and wake the seed at each gap: its vine grows a bridge across. A bloom opens the flower-door too. Down in the meadow, or on your wings, and the run is over.',
     origin: [57, -3.2, 1], yaw: Math.PI / 2,
     marker: [4.4, -4.6], start: [0, 0.6], heading: 0, par: 28,
-    needs: ['backpack', 'bloom'], lacks: 'Its seeds and its flower-door want the bloom.',
+    needs: ['backpack', 'gun', 'bloom'], lacks: 'Its seeds and its flower-door want the bloom.',
     onFoot: true, noWings: true, offFeet: 'Feet only: the vines carry you over, not the wings or the jets.',
     fall: { after: 0, below: -2, from: 12, words: 'Down in the meadow' },
     voice: {
@@ -192,7 +192,7 @@ export const KIT_TRIALS = {
     rules: 'Ride the discs over to the landing: step on as one comes to you, step off at the far side. On the landing, wake all three eyes with the fluid in one breath. Down on the plain, or on your wings, and the run is over.',
     origin: [52, 6, 38], yaw: Math.PI / 2,
     marker: [4.6, -7.6], start: [0, 0.6], heading: 0, par: 54,
-    needs: ['backpack'], lacks: 'The eyes at its end want the fluid gun.',
+    needs: ['backpack', 'gun'], lacks: 'The eyes at its end want the fluid gun.',
     onFoot: true, noWings: true, offFeet: 'Feet only: the discs carry you over, not the wings or the jets.',
     fall: { after: 0, below: -2, from: 8, words: 'Down on the plain' },
     voice: {

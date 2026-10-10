@@ -250,9 +250,9 @@ export const penSfx = {
 };
 
 export default {
-  id: 'bridge', name: 'Ink bridge pen', glyph: '✒', order: 60,
+  id: 'bridge', name: 'Ink bridge pen', glyph: '✒', order: 60, trigger: 'use',
   text: 'A fountain pen as long as your forearm, its barrel lacquered night blue. What it draws in the air holds for a little while: long enough to walk across.',
-  use: 'Hold Y / △ (T, or the middle mouse button): a line of ink runs out from your feet the way you aim; sweep the aim to bend it, tip it up for a ramp. Let go and it sets into a plank you can walk on, up to 16 m long, for twelve seconds before it wears away from the ends. Aim up steeply as you start to draw a short wall instead (it stops foes and gusts). The ink flows back while you are not drawing.',
+  use: 'Hold RT / R2 (T, or the middle mouse button): a line of ink runs out from your feet the way you aim; sweep the aim to bend it, tip it up for a ramp. Let go and it sets into a plank you can walk on, up to 16 m long, for twelve seconds before it wears away from the ends. Aim up steeply as you start to draw a short wall instead (it stops foes and gusts). The ink flows back while you are not drawing.',
   model: penModel,
   create(ctx) { return new Pen(ctx); },
 

@@ -114,7 +114,7 @@ export function migrateSettings(saved = {}, { deck = false } = {}) {
   // (High was only ever the default there: a player who picked a lighter preset keeps it)
   if (typeof out.enemies === 'boolean') out.enemies = out.enemies ? 'normal' : 'off';   // (v0.87 saved it as on / off)
   // (the pad's verbs saved before PAD_SCHEME 4: one job per button now, src/remap.js migratePad)
-  if (!(out.padV >= PAD_SCHEME) && out.pad && typeof out.pad === 'object' && Object.keys(out.pad).length) { out.pad = migratePad(out.pad); out.padV = PAD_SCHEME; }
+  if (!(out.padV >= PAD_SCHEME) && out.pad && typeof out.pad === 'object' && Object.keys(out.pad).length) { out.pad = migratePad(out.pad, out.padV ?? 0); out.padV = PAD_SCHEME; }
   if (deck && !(out.deckV >= 1)) { if (['high', 'medium', undefined].includes(out.quality)) out.quality = 'auto'; out.deckV = 1; }
   // (hints: none saved before hintsV 1, the game said everything; a player starts on the new default, and can turn them back up)
   if (typeof out.hints === 'boolean') out.hints = out.hints ? 'full' : 'off';
@@ -133,16 +133,16 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   K.move = `${K.forward}${K.left}${K.back}${K.right}`;
   const rows = (prefix, ids, vars) => ids.map((id) => [t(`${prefix}.${id}`, vars), t(`${prefix}.${id}.how`, vars), id]);
   return {
-    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'aim', 'potion', 'dive', 'scout', 'gadget', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
-    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'lock', 'scout', 'aim', 'mode', 'potion', 'jets', 'gadget', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
-    touch: rows('ctl.t', ['move', 'jump', 'jets', 'run', 'scout', 'aim', 'fight', 'potion', 'gadget', 'pages'], {}),
+    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'gadget', 'aim', 'potion', 'dive', 'scout', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
+    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'lock', 'scout', 'gadget', 'aim', 'mode', 'potion', 'jets', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
+    touch: rows('ctl.t', ['move', 'jump', 'jets', 'run', 'scout', 'gadget', 'aim', 'fight', 'potion', 'pages'], {}),
   };
 }
 // (the pad's rows that name the menus' own buttons, which never move: native-pad.js leaves them as they are)
 const PAD_RAW_ROWS = new Set(['talk', 'menus', 'panels', 'photo']);
 
 /** The verbs on the Controls page's "your buttons" and "your keys", in the order shown. */
-export const REBIND_PAD = ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'modeNext'];
+export const REBIND_PAD = ['jump', 'evade', 'interact', 'whistle', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'modeNext'];
 export const REBIND_KEYS = ['forward', 'back', 'left', 'right', 'run', 'jump', 'interact', 'blade', 'guard', 'evade', 'lock', 'aim', 'fire', 'mode', 'scout', 'gadget', 'gadgetNext', 'whistle', 'potion', 'journal', 'menu', 'controls', 'photo', 'mute'];
 
 /**

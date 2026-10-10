@@ -15,14 +15,21 @@ the rucksack's outer face. The look and its reasons:
   are `Humanoid.packPocket`; `FluidTool.updateWorn` hides them while the flask is
   on the back (`where === 'back'`) and shows them again when it is not found
   yet or sits in a vehicle's socket. The rucksack itself never hides.
-- **The flask** (2026-10-08, selected Ivory and Jade study) is a flat rounded rectangular
-  glass reservoir on the upper back, about 26 cm wide and 29 cm high before its fittings.
-  Ivory enamel rims with thin brass piping frame both faces; a sage pad sits against the
-  body. Leather shoulder tabs and a brass stopper; no hose leaves it (below, "No hose").
-  `buildFlask` shares the same model between the worn kit and the inventory picture.
-  The fluid face stays clear, with three little etched charge marks at each edge.
-  The upright rails, scout dock, lantern, wing clearance and vehicle handoff retain their
-  existing attachment frames. Source: `references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`.
+- **The round backpack** (v1.38, the progression rewrite; `references/Core Objects/Round Backpack/`: the sheet's
+  first pick, the states sheets): `buildFlask` builds a glass sphere 30 cm across (`TANK.radius` 0.19 × `TANK.scale`)
+  of living jade fluid in a brass cradle: a ring round it in the plane of the back, a band round its equator with
+  three charge lights on its outer face (`flask.lights`: lit for the whole units of the magic bar left, as the glove's
+  knuckles are), a foot cup; a short capped brass neck with a turquoise cloth tied round it; worn, an olive canvas back
+  plate padded against the body (stitched round, two rivets) and two leather straps from its top corners up over the
+  shoulders, buckled. No hose. The same model is the item's picture (`worn: false`, stage 0). It replaced the Ivory and
+  Jade flat flask (`references/Core Objects/Backpack Colour Explorations/03 Ivory and Jade/`).
+- **Its stages** (`flask.stages`, `setStage`; src/items.js `BACKPACK_STAGES`, `backpackStage`): each strength found adds
+  its parts, as the states sheet's second pick draws them. 1, the lift valve (the double jump): the valve's wheel on
+  the cap, a second ring over the top, two small brass fins on the band. 2, the wings: folding brass vanes at its sides,
+  folded back. 3, the jets: a second capped valve on the cap's shoulder, the glass brighter (`STAGE_GLOW`) and its
+  fluid quicker (`STAGE_RATE`). A strength found flashes the fluid (FluidTool's item listener).
+- **Its glow and level follow the magic bar**: the fluid stands at the bar's level (empty: dry glass; full: up to the
+  neck), and the glass glows from `TANK.glow[0]` empty to `TANK.glow[1]` full (`uGlow`, FluidTool.updateWorn).
 - **Its fluid** (`materials.js flaskFluid`, kind 0) is jade green and alive. `uFluidBase` is
   `TANK.base`, or a gun mode's first tone: stilling's blue, ember's orange, bloom's leaf green.
   The blend's tones turn through it in slow, domain-warped streams with a core of the next tone,
@@ -31,8 +38,10 @@ the rucksack's outer face. The look and its reasons:
   over a thick green glass foot. The lava bands of the old tank are gone (`fluidLava` still draws
   the globs and the wings). `TANK.straps` is empty: no leather band crosses the fluid.
 - **Where it sits**: `Humanoid.tankAt` overrides `TANK.at`. The coral-shirt traveller
-  (`traveller-v1.js TRAVELLER_V1_TANK_AT`) has no rucksack, so the reservoir sits right on his back.
-  The old body keeps `TANK.at`, half sunk into its rucksack. A vehicle's socket and the hand-off
+  (`traveller-v1.js TRAVELLER_V1_TANK_AT`, z -0.355) has no rucksack, so the sphere's canvas plate sits right on his
+  back. The old body keeps `TANK.at` (z -0.37), standing out of its rucksack. The side struts' brackets are short so the
+  sword's frog behind the right shoulder stays clear (`tests/sword-sheath.test.js`: 1.8 cm at the least, to the plate's
+  stitching). A vehicle's socket and the hand-off
   keep `TANK.scale` either way.
 - **The scout's dock**: without the flask, on the rucksack's lid (`kit.dock`,
   `Gear.packDock`); with it, clamped to the top of the flask's left upright
@@ -57,7 +66,8 @@ the rucksack's outer face. The look and its reasons:
   wear it: the people's body (`wearOutfit`) and the coral-shirt one (`createTravellerV1`, on his own
   mesh). `fluid-tool.js` shows it with the tank and only then (`glove.show`: while it is on, the
   skin's triangles under the leather are left out of its index, else they show between the
-  fingers). The knuckles light for the whole units of magic left, the plate in the mode's tone, the vial
+  fingers). Since v1.38 the glove is the fluid gun (a gadget, src/gadgets/gun.js): it shows once the gun is found, with
+  the tank; before, the hand is bare and holds the sword's hilt alone. The knuckles light for the whole units of magic left, the plate in the mode's tone, the vial
   (`glove.vial`) in the fluid's second tone, brighter as the glass fills and flashing as it fires; the shot,
   the push and a dry press leave from `glove.muzzle`, just in front of the knuckles (the aiming fist's front). It replaces the old wrist bracer, whose brass
   barrel and lens lay along the back of the hand and read as a phone held in it; the old hero's

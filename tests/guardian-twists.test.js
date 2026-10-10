@@ -45,7 +45,7 @@ const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(
 /** A temple's world, a Player in its guardian's arena, and the guardian awake in phase `phase` (0, 1, 2…). */
 function arena(id, gadget, phase) {
   game.reset();
-  own('backpack', gadget);
+  own('backpack', 'gun', gadget);
   const scene = new THREE.Scene();
   const level = quiet(() => LEVELS.find((l) => l.id === id).create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
@@ -594,7 +594,7 @@ test('the Elder’s second phase teaches the wind: flown with on still air she s
 function hoverOver(A, v) {
   const { G, P } = A;
   P.teleport(v.center.clone().add(V(0, Math.max(6.5, G.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
-  for (let i = 0; i < 3; i++) A.frame({ PadThrust: 0.3 });
+  for (let i = 0; i < 3; i++) A.frame({ Space: true, PadJump: true });
   for (let i = 0; i < 0.5 / DT; i++) A.frame({ PadAim: true });
 }
 const nearestVane = (rt, G) => rt.hallVanes.slice().sort((a, b) => Math.hypot(a.center.x - G.model.pos.x, a.center.z - G.model.pos.z) - Math.hypot(b.center.x - G.model.pos.x, b.center.z - G.model.pos.z))[0];

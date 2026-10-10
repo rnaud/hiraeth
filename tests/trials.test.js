@@ -33,14 +33,15 @@ test('one trial in every route world, each with a reward that is an upgrade won 
   // the ten gadget upgrades: one for each gadget, each a real change to its tuning
   const ups = Object.keys(UPGRADES);
   assert.equal(ups.length, 10);
-  assert.deepEqual(new Set(ups.map((id) => ITEMS[id].needs)), new Set(GADGETS.map((g) => g.id)));
+  const found = GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id);   // (the fluid gun is the desert's main quest's own: no court, no trial)
+  assert.deepEqual(new Set(ups.map((id) => ITEMS[id].needs)), new Set(found));
   // the modes: a different way of getting about in most of them
   assert.ok(new Set(Object.values(TRIALS).map((T) => T.mode)).size >= 6);
 });
 
 test('a gadget a world, in the makers’ courts, each in a box', () => {
   const gadgets = Object.values(COURTS).map((c) => c.gadget);
-  assert.deepEqual(new Set(gadgets), new Set(GADGETS.map((g) => g.id)), 'every gadget once');
+  assert.deepEqual(new Set(gadgets), new Set(GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id)), 'every gadget once (but the fluid gun, the desert\'s main quest\'s own)');
   assert.equal(gadgets.length, 10);
   for (const [w, c] of Object.entries(COURTS)) {
     assert.ok(ORDER.includes(w), `${w}: on the route`);

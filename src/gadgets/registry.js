@@ -19,7 +19,9 @@ import { registerItemModel } from '../boxes/model.js';
 //   }
 // An instance (every method optional):
 //   equip() · unequip()                 taken in hand / put away
-//   press() · hold(dt) · release()      the use button (Y / △, T, the middle mouse button, touch ◆)
+//   press() · hold(dt) · release()      the triggers, by its `trigger` (src/gadgets/index.js): 'aim' (LT takes aim: press,
+//                                       hold; RT lets fly: release; lower() puts an unused aim away), 'use' (RT pressed,
+//                                       held, let go), 'look' (either trigger), 'tool' (the fluid gun: the tool reads them)
 //   update(dt)                          every frame while the world runs, equipped or not (things in flight)
 //   aiming → bool                       while true the camera comes over the shoulder (getter or field)
 //   hud() → { count, max, note }        the chip's counter (bombs left) and a word under it
@@ -61,7 +63,7 @@ export const gadgetById = (id) => GADGETS.find((g) => g.id === id) ?? null;
 
 /**
  * The next gadget round the list from `current` (dir 1 or -1) among the owned ones, with "none" (null) as
- * one stop of the round when `none` is set (with nothing in hand Y / △ sounds the bell-note whistle).
+ * one stop of the round when `none` is set (the runtime leaves it out since v1.38: the whistle has its own button).
  */
 export function nextGadget(owned, current, dir = 1, { none = true } = {}) {
   const ring = none ? [null, ...owned] : owned.slice();

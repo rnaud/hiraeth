@@ -74,10 +74,16 @@ test('teaching prompts name the input in your hands; on a pad the gun’s mode i
 test('the pool’s first fill and the chest’s dregs name the buttons as the player holds them', async () => {
   globalThis.document ??= undefined;
   const { filledText, dregsText } = await import('../src/story/desert.js');
-  assert.match(filledText('pad'), /switch the gun to push with D-pad →,/);
+  const { items } = await import('../src/items.js');
+  // (v1.38: the gun is found after the pool, in the Givers' Hearth; filled before it, the tank names no buttons)
+  assert.doesNotMatch(filledText('pad'), /RT \/ R2/);
+  assert.match(filledText('pad'), /hums back/, 'the chest beside the pool answers');
+  items.grant('gun');
+  assert.match(filledText('pad'), /its push with D-pad →\)/);
   assert.match(filledText('pad'), /aim with LT \/ L2, then RT \/ R2/);
-  assert.match(filledText('keys'), /push with X,/);
-  assert.match(dregsText('pad'), /One shot\. Aim with LT \/ L2, then RT \/ R2\./);
+  assert.match(filledText('keys'), /push with X\)/);
+  items.revoke('gun');
+  assert.match(dregsText('pad'), /dry: not a drop/, 'the chest\'s tank: dry glass, no dregs (no gun to shoot them)');
 });
 
 test('the ship’s walk: one quiet nudge after 20 s with the message unplayed, then never again', () => {

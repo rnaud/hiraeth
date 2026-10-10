@@ -113,7 +113,8 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
   assert.deepEqual(kitTrialsFor('desert').map((T) => T.id), ['kit-desert']);
   assert.deepEqual(kitTrialsFor('nowhere'), []);
   assert.match(lacks(KIT_TRIALS['kit-desert'], { has: () => false }), /fluid gun/);
-  assert.equal(lacks(KIT_TRIALS['kit-desert'], { has: (i) => i === 'backpack' }), '');
+  assert.match(lacks(KIT_TRIALS['kit-desert'], { has: (i) => i === 'backpack' }), /fluid gun/, 'the backpack alone does not shoot (v1.38: the gun is a gadget of its own)');
+  assert.equal(lacks(KIT_TRIALS['kit-desert'], { has: (i) => ['backpack', 'gun'].includes(i) }), '');
   assert.equal(lacks(KIT_TRIALS['kit-perdide'], { has: () => false }), '', 'the Hush walk wants nothing but your feet');
   assert.match(lacks(KIT_TRIALS['kit-arzach'], { has: (i) => i === 'backpack' }), /wings/);
   assert.equal(lacks(KIT_TRIALS['kit-arzach'], { has: (i) => ['backpack', 'glider'].includes(i) }), '');

@@ -35,7 +35,7 @@ function wearing(owned = true) {
   const scene = new THREE.Scene(); scene.add(char.root);
   const has = { v: owned };
   const player = { char, humanoid: h, object: char.root, pos: char.root.position, frame: { up: UP }, vel: V() };
-  const tool = new FluidTool({ scene, player, camera: new THREE.PerspectiveCamera(), state: new GameState(null), items: { has: (id) => id === 'backpack' && has.v, on: () => () => {} } });
+  const tool = new FluidTool({ scene, player, camera: new THREE.PerspectiveCamera(), state: new GameState(null), items: { has: (id) => (id === 'backpack' || id === 'gun') && has.v, on: () => () => {} } });
   return { h, char, tool, has, scene };
 }
 /** The skin's drawn triangles with every corner under the glove. */
@@ -49,7 +49,7 @@ function underGlove(h) {
   return n;
 }
 
-test('the glove is worn with the tank, and only then: its leather, band, plate, three knuckle lights, the cuff fitting and its vial', () => {
+test('the glove is the fluid gun, worn with the tank, and only then: its leather, band, plate, three knuckle lights, the cuff fitting and its vial', () => {
   const { h, tool, has } = wearing(false);
   const G = h.glove;
   assert.deepEqual(G.meshes.map((m) => m.name).sort(), ['Glove_band_r', 'Glove_fitting_r', 'Glove_light_0_r', 'Glove_light_1_r', 'Glove_light_2_r', 'Glove_plate_r', 'Glove_r', 'Glove_vial_r']);
@@ -60,7 +60,7 @@ test('the glove is worn with the tank, and only then: its leather, band, plate, 
   tool.updateWorn(1 / 60);
   assert.ok(G.meshes.every((m) => !m.visible), 'no tank: a bare hand');
   has.v = true; tool.updateWorn(1 / 60);
-  assert.ok(G.meshes.every((m) => m.visible), 'the tank found: the glove on');
+  assert.ok(G.meshes.every((m) => m.visible), 'the tank and the gun found: the glove on');
   assert.equal(underGlove(h), 0, 'the skin under the leather is not drawn (it showed between the fingers)');
   has.v = false; tool.updateWorn(1 / 60);
   assert.ok(G.meshes.every((m) => !m.visible) && underGlove(h) === bare, 'lost: the bare hand again, as it was');

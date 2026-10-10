@@ -111,7 +111,7 @@ export const LOGIC = {
     br1: { type: 'bridge', opens: { any: [{ lit: 'e1' }, { lit: 'e3' }] } },
     e2: { type: 'switch', room: 'galleryFar', needs: ['echo'] },     // the middle note, said by the dish over the far door
     d4: { type: 'door', opens: { all: [{ drumOn: ['ball2', 'p2'] }, { lit: 'e2' }] }, latch: true },   // (the arena's door too: it shuts behind you)
-    sign: { type: 'boss', room: 'hall', needs: ['backpack', 'echo'] },
+    sign: { type: 'boss', room: 'hall', needs: ['gun', 'echo'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

@@ -400,7 +400,8 @@ export class FluidBlade {
     if (!p || !this.guarding || !(arc ? inGuard(p.pos, arc.dir, from, arc.half) : inGuard(p.pos, this.dir, from))) return false;
     this.since = 0;
     const perfect = this.parryLive;
-    if (!perfect && !T.reserve.use(MAGIC_COST.shield)) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
+    // (the backpack's fluid takes the blow, a unit of the bar; before the backpack, the brass alone holds)
+    if (!perfect && T.owned !== false && !T.reserve.use(MAGIC_COST.shield)) { T.sputter?.(); this.device.s.hit('broken'); T.sound?.shieldBreak?.(); return false; }   // (it cracks: the fluid is not there to take it)
     p.perfectBlock = perfect; this.perfectReady = false;
     if (perfect) this.sinceParry = 0;   // (the riposte's window opens)
     this.guardRearm = GUARD.rearm;
@@ -634,7 +635,7 @@ export class FluidBlade {
   placeShield(dt = 0) {
     const T = this.tool, p = T.player, D = this.device;
     const U = p?.frame?.up, chest = U ? _f.copy(p.pos).addScaledVector(U, 1.1) : null;   // (the open shield slides to the chest's middle line)
-    const said = D.update(dt, { want: !!this.guardWant, worn: !!p && T.worn !== false, dir: this.dir, up: U, chest, time: T.time ?? 0 });
+    const said = D.update(dt, { want: !!this.guardWant, worn: !!p && !p.ride && !p.boarding && !p.unboarding, dir: this.dir, up: U, chest, time: T.time ?? 0 });
     if (said === 'open') T.sound?.shieldOpen?.();
     else if (said === 'close') T.sound?.shieldClose?.();
     if (p) p.shieldGrip = D.s.k;
@@ -915,8 +916,7 @@ export class FluidBlade {
   place(dt) {
     this.previousBlade = this.bladeSegment();
     const T = this.tool, p = T.player, S = this.sheath;
-    // (worn with the backpack: the hands and the back bare without it)
-    const on = p?.object?.visible !== false && T.owned !== false;
+    const on = p?.object?.visible !== false && T.swordOn !== false;   // (his from the start: no item; a scene may put it away, tool.swordOn)
     const held = S.held;
     this.group.visible = on;
     const frogOn = on && !!this.mountBack(this.frog);

@@ -74,7 +74,7 @@ const MINI = {
 };
 
 test('temple logic: plates, a ball that holds one, latched and held doors, fire, the guardian', () => {
-  const owned = new Set(['backpack']);
+  const owned = new Set(['backpack', 'gun']);
   const store = memoryStore();
   const L = new TempleLogic(MINI, { store, has: (i) => owned.has(i) });
   assert.deepEqual([...L.reachable()], ['a']);
@@ -126,7 +126,7 @@ test('the solver: the mini temple is solvable, and not without its gadget', () =
 test('every built temple is solvable through its state machine, its gadget found mid-way and the key to the rest', () => {
   for (const id of BUILT) {
     const def = TEMPLES[id].def, L = def.logic;
-    const r = solve(L, { items: ['backpack'] });
+    const r = solve(L, { items: ['backpack', 'gun'] });
     assert.equal(r.done, true, `${id}: solved (${r.log.join(' / ')})`);
     const gadget = Object.entries(L.elements).find(([, e]) => e.type === 'gadget');
     assert.ok(gadget, `${id}: a gadget inside`);
@@ -137,7 +137,7 @@ test('every built temple is solvable through its state machine, its gadget found
     const at = r.order.indexOf(gadget[1].room);
     assert.ok(at >= 2 && at <= r.order.length - 3, `${id}: the gadget's room comes mid-way (${r.order.join(' > ')})`);
     // the key: without it the arena is never reached, and nothing past the gadget's room opens
-    const no = solve(L, { items: ['backpack'], withhold: [def.gadget] });
+    const no = solve(L, { items: ['backpack', 'gun'], withhold: [def.gadget] });
     assert.equal(no.done, false, `${id}: not without ${def.gadget}`);
     assert.ok(!no.stuck.includes(boss[1].room), `${id}: the arena stays shut without ${def.gadget}`);
     const after = r.order.slice(at + 1);
@@ -344,7 +344,7 @@ test('a temple door is solid until it opens, and the doorway is free after', () 
 // ------------------------------------------------------------------ on foot: the desert temple, room by room
 test('the Givers’ House on foot: the tar ball through the pilot flame into the hooded bowl, back through the flame and into the thorns, the ember, the chest’s ball through the corridor, the long groove and its relay, the keepers’ door, the Keeper panting by a fire rolled to it, out', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('desert');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
   const notes = [];
@@ -541,7 +541,7 @@ test('the Givers’ House on foot: the tar ball through the pilot flame into the
 // ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
 test('the Warden’s Well on foot: the vane and the discs, the slot and the ball, the jets, the great vane and the lidded eye, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye (the little one in the loft below, too slow and in time), the warden broken over a vane, the shaft’s breath', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('incal');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, killY: level.killY });
   const notes = [];
@@ -564,21 +564,31 @@ test('the Warden’s Well on foot: the vane and the discs, the slot and the ball
    * ahead of height y (local); the stick forward tips the nose over to level, facing `to` (local [x, z]);
    * across on a squeeze that eases off as it nears; then let go: too slow to glide, you drop onto it.
    */
+  // the jets' throttle t (0..1) as a player gives it on jump held, all or nothing since v1.38: held on the share t of the frames
+  let acc = 0;
+  const thr = (t, extra = {}) => { acc += t; const on = acc >= 1; if (on) acc -= 1; return on ? { Space: true, PadJump: true, ...extra } : { ...extra }; };
   const fly = (y, to, { max = 14 } = {}) => {
     const target = L(to[0], y, to[1]);
     const face = () => { P.heading = P.frame.headingOf(target.clone().sub(P.pos).setY(0)); };
     const left = () => y - ly();
     let i = 0;
     face();
-    for (; i < max / DT && left() > 0.3; i++) frame({ PadThrust: Math.min(1, Math.max(0.05, (left() - P.vel.dot(P.frame.up) * 0.6) / 8)) }, 0);   // (easing off ahead of the height: the speed lags)
-    for (; i < max / DT && P.jetFlight?.pitch > 0.05; i++) { face(); frame({ PadThrust: 0.15, stick: { x: 0, y: 1 } }, 0); }
-    for (; i < max / DT && flat(target) > 0.8; i++) { face(); frame({ PadThrust: Math.min(1, Math.max(0.06, flat(target) / 30)) }, 0); }
-    for (; i < max / DT && !P.onGround; i++) frame({}, 0);
+    // (jump held: full throttle, let go a little short of the height, the speed carrying him on; then the nose tipped level)
+    for (; i < max / DT && left() > Math.max(0.3, P.vel.dot(P.frame.up) * 0.3); i++) { frame(thr(1), 0); }
+    for (; i < max / DT && P.jetFlight?.pitch > 0.05; i++) { face(); frame(thr(left() > 0 ? 0.3 : 0, { stick: { x: 0, y: 1 } }), 0); }
+    // (on along at full throttle, the nose kept level with the stick (the throttle is all or nothing since v1.38), until near enough to stop)
+    for (; i < max / DT && flat(target) > Math.max(0.8, Math.hypot(P.vel.x, P.vel.z) * 0.3) && !P.onGround; i++) {
+      face();
+      const pitch = P.jetFlight?.pitch ?? 0;
+      frame({ Space: true, PadJump: true, stick: { x: 0, y: pitch > 0.04 ? 0.6 : pitch < -0.04 ? -0.6 : 0 } }, 0);
+    }
+    // (over it: aiming, the jets hold him and he sinks onto it)
+    for (; i < max / DT && !P.onGround; i++) frame(P.jetFlight ? { PadAim: true } : {}, 0);
     return P.onGround && flat(target) < 2;
   };
   /** Straight up on the jets from where you stand to height y (local), then aim: the jets hold you there, sinking slowly. */
   const hover = (y) => {
-    for (let i = 0; i < 8 / DT && y - ly() > 0.3; i++) frame({ PadThrust: Math.min(1, Math.max(0.05, (y - ly() - P.vel.dot(P.frame.up) * 0.6) / 8)) }, 0);
+    for (let i = 0; i < 8 / DT && y - ly() > Math.max(0.3, P.vel.dot(P.frame.up) * 0.3); i++) frame(thr(1), 0);   // (jump held, let go a little short: the speed carries him on)
     for (let i = 0; i < 0.6 / DT; i++) frame({ PadAim: true }, 0);
     return !!P.jetHold;
   };
@@ -811,7 +821,7 @@ test('the Warden’s Well on foot: the vane and the discs, the slot and the ball
   const nearest = () => rt.hallVanes.slice().sort((a, b) => a.center.distanceTo(K.model.pos) - b.center.distanceTo(K.model.pos))[0];
   const hoverOver = (v) => {
     P.teleport(v.center.clone().add(V(0, Math.max(6.5, K.model.mouth.y - v.center.y + 1.2), 0)), V(0, 1, 0), V(0, 0, 1));
-    for (let i = 0; i < 3; i++) frame({ PadThrust: 0.3 }, 0);
+    for (let i = 0; i < 3; i++) frame({ Space: true, PadJump: true }, 0);
     for (let i = 0; i < 0.5 / DT; i++) frame({ PadAim: true }, 0);
   };
   let stillTried = false;
@@ -868,7 +878,7 @@ test('the Warden’s Well on foot: the vane and the discs, the slot and the ball
 // ------------------------------------------------------------------ on foot: Vael II's belfry, room by room
 test('the Founders’ Belfry on foot: two balls in the two stores, the founders’ bell struck by a ball and the great stone that falls up (and without you), the eye under the landing, the bell, its try in the chamber, the porch’s held door a room on, the held stones and the ball rolled across them, the Cloud-Mother calmed, the stones come down outside', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('arzach2');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, unsafe: level.unsafe });
   const notes = [];
@@ -1061,7 +1071,7 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the founders�
 // ------------------------------------------------------------------ on foot: the Garden of Spheres' Footprint, room by room
 test('the Footprint on foot: the sphere set down on the walker’s print and you on its print by the wall (and on the wrong prints), the floating sphere pushed over the stilled pool, the lens and its mural, the stones whose prints are the walker’s, the walker’s plate among plain ones and the eye across the chasm, the keepers’ gallery back, the Echo answered by the print', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('spheres');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
   const notes = [];
@@ -1228,7 +1238,7 @@ test('the Footprint on foot: the sphere set down on the walker’s print and you
 // ------------------------------------------------------------------ on foot: the Buried Machine's Engine-House, room by room
 test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the chamber’s four still eyes a try, the passage’s pistons held up a room on, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('buried');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
   const notes = [];
@@ -1415,7 +1425,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
 // ------------------------------------------------------------------ on foot: Lorn II's Lamp-House, room by room
 test('the Lamp-House on foot: three dark pools (the third up the roots, out of sight), the moss-stones the orb’s lamp wakes over the dark pool and the root-wall, the lantern, its try by the dais, the passage’s lamp a room on, the stones only its light shows, the pool-orb lit and rolled to the niche, the Lampless fed, the lamp lit', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('perdide2');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
   const notes = [];
@@ -1631,7 +1641,7 @@ test('a shut gate of jaws collides as its two halves are drawn, snapping with th
 
 test('the Hush-House on foot: the crystals sung low to high (the first by the door), the climbing disc and the eye on the root-wall, the stilling mode, the gate of jaws a room on, the pendulums stilled in turn, the Mother Snapper stilled, the swamp in flower', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('perdide');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
   const notes = [];
@@ -1780,7 +1790,7 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
 
 test('the Aerie on foot: the gusts waited out behind the screens, the stone pushed up the hall into its vent (the hall falls calm, the wind rises in the well), the feather raft, the wings, the column, the gulf vent’s stone rolled out of its throat and the gust that carries you to the perch, the perch’s stone and the column up to the higher ledge, the Elder flown with in the wind, the birds come back', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('arzach');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
   const notes = [];
@@ -2017,7 +2027,7 @@ test('the Hangar’s own portals still work round the temple’s: its list kept,
 
 test('the First Garage on foot: the escapement’s three eyes in turn from its hand, the climb and the counterweight, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the Foreman’s six numerals, the clock keeps time', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('garage');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, gravityAt: level.gravityAt, limit: Infinity });
   const notes = [];
@@ -2160,7 +2170,7 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
 
 test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and its try in the chamber’s sun, the bud in the sun a room on, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('edena');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
   const notes = [];
@@ -2379,7 +2389,7 @@ test('the Greenhouse stands clear of Esk’s tea terraces, and every bloom targe
 
 test('the echo shell: it keeps the last note sung within earshot (saved), plays it back on V, and does nothing without it', (t) => {
   game.reset(); setHintLevel('full'); t.after(() => setHintLevel('subtle'));   // (it checks the words with their buttons, as hints full says them: subtle takes the button out, the card having taught it)
-  own('backpack');
+  own('backpack', 'gun');
   const P = { pos: V(0, 0, 0), hidden: false };
   const toasts = [], echoes = [];
   const shell = createEchoShell({ player: P, game, items, toast: (s) => toasts.push(s) });
@@ -2392,7 +2402,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   assert.equal(shell.held, null, 'too far to hear');
   game.emit('note', { pos: V(10, 0, 0), note: 'low', label: 'the low stone’s note' });
   assert.equal(shell.held?.note, 'low', 'caught');
-  assert.ok(toasts.some((s) => /Y \/ △ with no gadget in hand plays it back/.test(keyText(s, { kind: 'pad' })) && /V plays it back/.test(keyText(s, { kind: 'keys' }))), 'it says how to play it back, on the keys and the pad');
+  assert.ok(toasts.some((s) => /Y \/ △ plays it back/.test(keyText(s, { kind: 'pad' })) && /V plays it back/.test(keyText(s, { kind: 'keys' }))), 'it says how to play it back, on the keys and the pad');
   assert.equal(game.flag('echo.held').note, 'low', 'kept in the save');
   P.pos.set(5, 0, 5);
   assert.equal(shell.play(), true);
@@ -2410,7 +2420,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
 
 test('the Undertower on foot: the singing ball and the dishes and the pillars over the cable pit, the well’s horn and the low stone, the echo shell, the chamber’s low stone carried a room on to the passage’s horn, the held pillars, the middle note sent over through the dish, the way back, the First Sign given its words back, the tower speaks once a night', () => {
   game.reset();
-  own('backpack');
+  own('backpack', 'gun');
   const { level, physics, rt } = world('bazaar');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit, killY: level.killY });
   const notes = [];

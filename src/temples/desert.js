@@ -117,7 +117,7 @@ export const LOGIC = {
     b7: { type: 'brazier', room: 'cistern', needs: ['fire'] },
     b8: { type: 'brazier', room: 'cistern', needs: ['fire'] },
     b9: { type: 'brazier', room: 'cistern', needs: ['fire'] },
-    keeper: { type: 'boss', room: 'cistern', needs: ['backpack', 'fire'], requires: { all: [{ lit: 'b6' }, { lit: 'b7' }, { lit: 'b8' }, { lit: 'b9' }] } },
+    keeper: { type: 'boss', room: 'cistern', needs: ['gun', 'fire'], requires: { all: [{ lit: 'b6' }, { lit: 'b7' }, { lit: 'b8' }, { lit: 'b9' }] } },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

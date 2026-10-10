@@ -99,7 +99,7 @@ export const LOGIC = {
     p4: { type: 'plate', room: 'galleryFar' },
     l2: { type: 'switch', room: 'galleryFar', needs: ['lantern'] },  // the niche's lamp: it wakes to the glowing orb
     d4: { type: 'door', opens: { all: [{ lit: 's4' }, { drumOn: ['orb', 'p4'] }, { lit: 'l2' }] }, latch: true },
-    moth: { type: 'boss', room: 'lamp', needs: ['backpack', 'lantern'] },
+    moth: { type: 'boss', room: 'lamp', needs: ['gun', 'lantern'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

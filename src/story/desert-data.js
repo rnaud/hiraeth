@@ -49,7 +49,7 @@ export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living wate
  * (desert.quest.v < 3) whose tree was already burning (the channel open, or the ship fed) skips them
  * (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
  */
-export const SPARK_STAGES = ['up', 'rise', 'spark', 'bike', 'hearth', 'stone', 'light'];
+export const SPARK_STAGES = ['valve', 'up', 'rise', 'spark', 'bike', 'hearth', 'gun', 'stone', 'light'];   // (valve and gun: v1.38's chests, the lift valve and the fluid gun)
 
 /**
  * Saves from before the backpack's box moved into the city (the stages were
@@ -85,7 +85,7 @@ export const QUESTS = [
       { id: 'box', text: 'Something is humming on a ledge up the great tree’s trunk. Climb up to it', label: 'The ledge on the tree', flag: 'item.backpack', at: 'box.desert.backpack' },
       // Qanat gathers; Nour, the eldest, comes to see who opened it (src/story/desert.js, the reaction); the tank is empty
       // (she has you listen at the dry well beside her, in the same talk: the well's own look is still there)
-      { id: 'elder', text: 'The chest opened, and its tank holds only a last swallow of old fluid. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
+      { id: 'elder', text: 'The chest opened on a round glass tank, dry as the well. Speak with Nour, the eldest of Qanat', label: 'Nour, the eldest', flag: 'desert.elder.heard', at: 'nour' },
       // outside the walls: Ama's jar (src/story/desert.js askedDone sets desert.asked). Nour has said the Speaker's verse
       // herself; walking with him is for the old words whole (October 2026: three talks in a row became two)
       { id: 'ask', text: 'Outside the walls: get the drinking jar from Ama at the camp fires, to carry the water back in', label: 'Ama’s jar, at the camp fires', flag: 'desert.asked', at: 'ama' },
@@ -94,6 +94,9 @@ export const QUESTS = [
       // a full tank (an older save) can still push it
       { id: 'channel', text: "The pool is dry. Find the old keepers’ pole by the mural and use the carved post to lever the fallen rib off the channel", label: 'The blocked channel', flag: 'desert.channel.open', at: 'rib' },
       { id: 'fill', text: 'The pool is rising. Wade in: fill your empty tank, and Ama’s jar', label: 'The pool', flag: 'desert.jar.filled', at: 'pool' },
+      // the progression rewrite (v1.38): beside the pool a makers' chest hums back at the full tank, the lift valve (the double
+      // jump, the backpack's first strength: src/boxes/placements.js desert.lift)
+      { id: 'valve', text: 'Something on the cave floor hums back at the full tank: a makers’ chest beside the pool. Open it', label: 'The chest by the pool', flag: 'item.doublejump', at: 'box.desert.lift' },
       // up the keepers' stair behind the pool, beside the root the water climbs, to the hatch in the back lane (src/desert-city.js
       // HATCH; level design audit, third round: the way out was the way down). Out by the skull instead, the well's rise skips it
       { id: 'up', text: 'The water is climbing the roots. Follow it up: the keepers’ stair climbs behind the pool, beside a root, into the dark', label: 'The keepers’ stair', goto: 'hatch', radius: 6, vertical: 4 },
@@ -104,7 +107,9 @@ export const QUESTS = [
       { id: 'bike', text: "Ask Marrow at the camps about his hidden hoverbike. You need it for the long journey to the Givers’ Hearth", label: 'Something faster than walking', flag: 'desert.bike.found', at: 'bikeWay', ends: 'bikeHollow' },
       { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth in the red rocks: its chimney stands over the dunes, and the marked stones lead there too', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
       // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
-      { id: 'stone', text: "Push the stone ball along its groove to lift the Hearth’s grille, then climb up and take the spark-stone", label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
+      // the Givers' chest in the hall: the fluid gun (a gadget, src/gadgets/gun.js; src/boxes/placements.js desert.gun), whose push rolls the ball
+      { id: 'gun', text: 'In the dark hall the Givers left a chest by their fire. Open it', label: 'The Givers’ chest', flag: 'item.gun', at: 'box.desert.gun' },
+      { id: 'stone', text: "Push the stone ball along its groove with the gun’s shove to lift the Hearth’s grille (the Givers’ chest in the hall holds the gun), then climb up and take the spark-stone", label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
       { id: 'light', text: 'Bring the spark-stone back to Qanat, home along the marked stones, and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well', via: 'the marked stones' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
       // (home by the pilgrims' road, the second way: its cairns lit from the gate down to the ship once the tree burns, src/desert-road.js)

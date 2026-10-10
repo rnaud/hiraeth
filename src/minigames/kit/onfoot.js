@@ -8,7 +8,7 @@
 //   const keep = tune(BLADE, { reach: 3.6 });  …  keep();   // a table of tunings changed for the game, put back after
 
 /**
- * The fluid tool lent for a game: worn and full even on a save that has not found the backpack yet (or
+ * The fluid tool lent for a game: worn and full, the fluid gun in hand, even on a save that has not found the backpack or the gun yet (or
  * whose tank is still dry), in plain shooting mode, with a magic bar of `max` units refilling `delay` s after
  * the last shot at `rate` units a second (all left out: the save's own bar, upgrades and all). Nothing is written to the save.
  * Returns the function that puts it all back.
@@ -17,8 +17,11 @@ export function lendTool(tool, { max = null, delay = null, rate = null, mode = '
   const none = () => {}; none.set = () => {};
   if (!tool) return none;
   const items = tool.items, had = items.has('backpack');
-  const lent = { ...items, has: (id) => id === 'backpack' || items.has(id), on: (fn) => items.on(fn), owned: () => items.owned() };
+  // (the fluid gun lent with it, and in hand for the game: src/gadgets/gun.js, FluidTool.gunInHand)
+  const lent = { ...items, has: (id) => id === 'backpack' || id === 'gun' || items.has(id), on: (fn) => items.on(fn), owned: () => items.owned() };
   tool.items = lent;
+  const gunWas = Object.getOwnPropertyDescriptor(tool, 'forceGun');
+  tool.forceGun = true;
   const dry = Object.getOwnPropertyDescriptor(tool, 'dry');   // (lent again inside a lending, the Arena's Ink tide: put back as it was)
   Object.defineProperty(tool, 'dry', { value: false, configurable: true, writable: true });
   // (the tank's size and its refill held for the game: the save's upgrades set them every frame, src/boxes/effects.js)
@@ -33,6 +36,8 @@ export function lendTool(tool, { max = null, delay = null, rate = null, mode = '
   if (!had) tool.shimmer?.();
   const back = () => {
     tool.items = items;
+    delete tool.forceGun;
+    if (gunWas) Object.defineProperty(tool, 'forceGun', gunWas);
     delete tool.dry;
     if (dry) Object.defineProperty(tool, 'dry', dry);
     if (hold) { delete R.max; delete R.delay; delete R.rate; R.max = was.max; R.delay = was.delay; R.rate = was.rate; }

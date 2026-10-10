@@ -63,7 +63,7 @@ test('every placement stands on reachable ground, with room to stand and rise', 
       assert.ok(at, `${p.id}: resolves`);
       reachable(physics, at.pos.clone().setY(at.pos.y - (p.lift ?? 0)), at.yaw, p.id);
       const d = Math.hypot(at.pos.x - level.spawn.x, at.pos.z - level.spawn.z);
-      assert.ok(d < 600, `${p.id}: within reach of the spawn (${d.toFixed(0)} m)`);
+      if (!p.story) assert.ok(d < 600, `${p.id}: within reach of the spawn (${d.toFixed(0)} m)`);   // (the story's interiors are built far off, through their doors)
     }
   }
   // ids are unique across worlds
@@ -335,7 +335,7 @@ test('the dev menu grants and revokes items, all and none', () => {
 
 test('every hidden box has a quest that says where to look; it starts on arrival and ends when the box opens', () => {
   for (const [id, list] of Object.entries(PLACEMENTS)) for (const p of list) {
-    if (p.id === 'desert.backpack') continue;   // (the story's own)
+    if (p.id === 'desert.backpack' || p.story) continue;   // (the story's own)
     if (p.temple) { assert.ok(!p.hint, `${p.id}: a temple's chest has no quest of its own (the temple's leads there)`); continue; }
     assert.ok(p.hint && p.hint.length > 20 && !/\*/.test(p.hint), `${p.id}: a plain hint`);
   }

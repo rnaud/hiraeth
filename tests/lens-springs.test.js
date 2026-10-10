@@ -49,7 +49,7 @@ test('the seeing lens and the spring boots are gadgets (items with models), in t
   assert.ok(ids.indexOf('monocle') > ids.indexOf('bomb') && ids.indexOf('springs') > ids.indexOf('monocle'));
   for (const id of ['monocle', 'springs']) {
     assert.equal(ITEMS[id].kind, 'gadget');
-    assert.ok(ITEMS[id].use.includes('Y / △'));
+    assert.ok(/RT \/ R2|LT \/ L2/.test(ITEMS[id].use));
   }
   assert.equal(ITEMS.lens.kind, 'charm', 'the old glyph-lens charm is still its own item');
 });

@@ -113,9 +113,12 @@ export function heartsOf(P) {
 }
 
 /** A requirement met by a set of items alone (the temple solver, src/temples/logic.js solve): 'magic:<n>' by the starting bar and the items that lengthen it. */
+/** The gun's modes: a requirement of one is met only with the fluid gun too (a mode is nothing without it: src/gadgets/gun.js). */
+const GUN_MODES = new Set(['stun', 'fire', 'bloom']);
+
 export function meetsWith(has, id, extra = 0) {
   const m = /^magic:(\d+(?:\.\d+)?)$/.exec(id ?? '');
-  if (!m) return has(id);
+  if (!m) return has(id) && (!GUN_MODES.has(id) || has('gun'));
   let n = MAGIC.start + extra;
   for (const [it, k] of Object.entries(MAGIC_ITEMS)) if (has(it)) n += k;
   return Math.min(MAGIC.cap, n) >= +m[1] - 1e-9;
@@ -192,7 +195,7 @@ export class Resources {
   meets(id) {
     const m = /^magic:(\d+(?:\.\d+)?)$/.exec(id ?? '');
     if (m) return this.maxMagic >= +m[1] - 1e-9;
-    return this.items.has(id);
+    return this.items.has(id) && (!GUN_MODES.has(id) || this.items.has('gun'));
   }
 }
 

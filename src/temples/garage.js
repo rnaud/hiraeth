@@ -106,7 +106,7 @@ export const LOGIC = {
     k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
     d4: { type: 'door', opens: null },                            // the arena's door: shut while the Foreman fights
-    foreman: { type: 'boss', room: 'hall', needs: ['backpack', 'coil'] },
+    foreman: { type: 'boss', room: 'hall', needs: ['gun', 'coil'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

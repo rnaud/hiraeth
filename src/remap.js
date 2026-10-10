@@ -32,8 +32,12 @@ const cleanKeys = (keys) => clean(keys, (v, c) => KEYS[v] && typeof c === 'strin
 const cleanPad = (pad) => clean(pad, (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.includes(b) && b !== PAD_VERBS[v]);
 
 /**
- * A pad layout saved before PAD_SCHEME 4 (src/ui.js migrateSettings, once), brought up to date: one job per button,
- * ↑ the gadgets, ← the potion, ↓ the mount, → the next gun mode.
+ * A pad layout saved before PAD_SCHEME (src/ui.js migrateSettings, once; `from`: the scheme it was saved under, its
+ * `padV`), brought up to date.
+ * - Before scheme 5 (v1.38, the progression rewrite: the triggers work the gadget in hand, the whistle has Y / △):
+ *   the top button's verb was 'gadget' (the gadget in hand, or the whistle with none); it is 'whistle' now, on the
+ *   button the player chose for it. (Using the gadget is RT's verb, 'fire'.)
+ * - Before scheme 4: one job per button, ↑ the gadgets, ← the potion, ↓ the mount, → the next gun mode.
  * - Scheme 3 (v1.11's first build; a saved 'potion' tells it, the potion was no pad verb before): the potion sat on
  *   ↓, so a verb the player put on ↓ swapped places with it; that verb goes to the potion's place now, ←, and the
  *   swap stays a swap (potion on LB, guard on ↓: potion on LB, guard on ←). The potion keeps the button chosen.
@@ -41,11 +45,14 @@ const cleanPad = (pad) => clean(pad, (v, b) => PAD_VERBS[v] && BINDABLE_BUTTONS.
  * Whatever then shares a button (a verb on the gun mode's or the potion's new place) goes back to its default:
  * no guessing.
  */
-export function migratePad(pad) {
+export function migratePad(pad, from = 0) {
   if (!pad || typeof pad !== 'object') return {};
   const out = { ...pad };
-  if ('potion' in out) for (const v of Object.keys(out)) if (v !== 'potion' && out[v] === '↓') out[v] = '←';
-  delete out.modePrev;
+  if (!(from >= 4)) {
+    if ('potion' in out) for (const v of Object.keys(out)) if (v !== 'potion' && out[v] === '↓') out[v] = '←';
+    delete out.modePrev;
+  }
+  if ('gadget' in out) { if (!('whistle' in out)) out.whistle = out.gadget; delete out.gadget; }
   for (let i = 0; i < Object.keys(PAD_VERBS).length; i++) {
     const clash = padConflicts(cleanPad(out));
     const moved = [...clash].filter((v) => v in out);

@@ -303,27 +303,29 @@ function runtime(owned) {
   return { G, drawn };
 }
 
-test('B only chooses gadgets (never the guard); with nothing in hand the use button sounds the whistle, and the chip and the wheel say so', () => {
+test('B only chooses gadgets (never the guard); Y / △ sounds the whistle whatever is in hand (touch ◆ with nothing in hand), and the chip says so', () => {
   const none = runtime([]), input = { KeyB: true };
   none.G.control(DT, input);
   assert.equal(input.KeyB, true, '(the input is left alone)');
   const game = new GameState(null), listeners = new Set();
   const its = { has: (id) => !!game.flag(`item.${id}`), grant(id) { game.set(`item.${id}`, true); for (const f of listeners) f(id, true); }, on(f) { listeners.add(f); return () => listeners.delete(f); } };
   let rang = 0;
-  const G = new Gadgets({ defs: [{ id: 'hook', name: 'hook', text: '', use: '', model: () => new THREE.Group(), create: () => ({}) }], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its, ring: () => { rang++; } });
-  G.control(DT, { KeyT: true }); G.control(DT, {});
+  const G = new Gadgets({ defs: [{ id: 'hook', name: 'hook', text: '', use: '', trigger: 'aim', model: () => new THREE.Group(), create: () => ({}) }], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its, ring: () => { rang++; } });
+  G.control(DT, { PadWhistle: true }); G.control(DT, {});
   assert.equal(rang, 1, 'nothing found: the button still asks (ring() itself does nothing without the whistle)');
+  G.control(DT, { KeyT: true }); G.control(DT, {});
+  assert.equal(rang, 1, 'RT / T is the gadget in hand\'s, never the whistle');
+  G.control(DT, { TouchGadget: true }); G.control(DT, {});
+  assert.equal(rang, 2, 'touch ◆ with nothing in hand: the whistle (touch has no Y)');
   assert.equal(G.instrument(), null);
   its.grant('bell');
   assert.equal(G.instrument().name, 'Bell-note whistle');
-  assert.match(G.wheelList()[0].name, /^Bell-note whistle/, 'the wheel\'s first slot is the whistle');
+  assert.equal(G.useKey(true), 'V', 'the chip names the whistle\'s key');
   its.grant('hook');
   assert.equal(G.equipped, 'hook');
-  G.control(DT, { PadGadget: true }); G.control(DT, {});
-  assert.equal(rang, 1, 'a gadget in hand: the button is its');
-  G.equip(null);
-  G.control(DT, { PadGadget: true }); G.control(DT, { PadGadget: true }); G.control(DT, {});
-  assert.equal(rang, 2, 'once per press');
+  G.control(DT, { PadWhistle: true }); G.control(DT, { PadWhistle: true }); G.control(DT, {});
+  assert.equal(rang, 3, 'a gadget in hand: Y / △ still whistles, once per press');
+  assert.deepEqual(G.wheelList().map((w) => w.id), ['hook'], 'the wheel holds the gadgets only');
   its.grant('echo');
   assert.equal(G.instrument().name, 'Bell-note whistle · echo shell');
 });

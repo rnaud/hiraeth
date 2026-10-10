@@ -116,7 +116,7 @@ export const LOGIC = {
     br1: { type: 'bridge', opens: { any: [{ lit: 'e2' }, { drumOn: ['ball3', 'p3'] }] } },
     e3: { type: 'bell', room: 'echoesFar', needs: ['bell'] },
     d4: { type: 'door', opens: { all: [{ drumOn: ['ball3', 'p3'] }, { lit: 'e3' }] }, latch: true },
-    mother: { type: 'boss', room: 'hall', needs: ['backpack', 'bell'] },
+    mother: { type: 'boss', room: 'hall', needs: ['gun', 'bell'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

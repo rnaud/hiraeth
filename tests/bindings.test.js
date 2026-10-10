@@ -31,7 +31,7 @@ function pad(context = 'game', faces = 'xbox') {
 }
 
 // what a press shows up as: a held flag the game reads, or an action main.js runs
-const FLAGS = ['Space', 'KeyE', 'PadEvade', 'PadGadget', 'PadBlade', 'PadGuard', 'PadAim', 'PadFire', 'PadGadgetPick', 'PadModeNext', 'JumpOff', 'Throttle', 'Brake', 'Boost', 'KeyQ'];
+const FLAGS = ['Space', 'KeyE', 'PadEvade', 'PadWhistle', 'PadRideGadget', 'PadBlade', 'PadGuard', 'PadAim', 'PadFire', 'PadGadgetPick', 'PadModeNext', 'JumpOff', 'Throttle', 'Brake', 'Boost', 'KeyQ'];
 const effects = ({ held, acts }) => [...FLAGS.filter((k) => held[k]), ...acts];
 
 test('the table: no button does two things in one context, and the free chords are free', () => {
@@ -55,7 +55,7 @@ test('the table: no button does two things in one context, and the free chords a
 
 test('on foot, each button does exactly what the table says, and only that', () => {
   const want = {
-    A: ['Space'], B: ['PadEvade'], X: ['KeyE'], Y: ['PadGadget'], RB: ['PadBlade'], LB: ['PadGuard'], LT: ['PadAim'], RT: ['PadFire'],
+    A: ['Space'], B: ['PadEvade'], X: ['KeyE'], Y: ['PadWhistle'], RB: ['PadBlade'], LB: ['PadGuard'], LT: ['PadAim'], RT: ['PadFire'],
     R3: ['lock'], '↑': ['PadGadgetPick'], '↓': ['call'], '←': ['potion'], '→': ['PadModeNext'], View: ['journal'], Menu: ['settings'],
     'View + ↑': ['photo'], 'View + ↓': ['viewDown'], 'View + ←': ['viewLeft'], 'View + →': ['viewRight'],
     'L3 + R3': ['worldDebug'],
@@ -76,7 +76,7 @@ test('on foot, each button does exactly what the table says, and only that', () 
 });
 
 test('riding, each button does what the table says', () => {
-  const want = { A: ['JumpOff'], B: ['KeyE'], X: ['Space'], RT: ['Throttle'], LT: ['Brake'], RB: ['Boost'], L3: ['Boost'], R3: ['lock'], View: ['journal'], Menu: ['settings'], 'View + ↑': ['photo'] };
+  const want = { A: ['JumpOff'], B: ['KeyE'], X: ['Space'], Y: ['PadRideGadget'], RT: ['Throttle'], LT: ['Brake'], RB: ['Boost'], L3: ['Boost'], R3: ['lock'], View: ['journal'], Menu: ['settings'], 'View + ↑': ['photo'] };
   for (const [b] of BINDINGS.ride) {
     const t = pad('ride');
     assert.deepEqual(effects(t.press(b)), want[b], `riding: ${b}`);
@@ -110,7 +110,11 @@ const STALE = [
   [/\(E, or B \/ ○\)|E \(B \/ ○\)/, 'interact is X / □ now'],
   [/X \/ □[)\s,]*(evade|evades)\b|evades?\b[^.'"]{0,24}X \/ □/i, 'evade is B / ○ now'],
   [/Y \/ △[^.'"]{0,40}\b(pings?|scout)\b|\b(ping|scout)\b[^.'"]{0,30}Y \/ △/i, 'the scout is R3 (no foe near) now'],
-  [/\bR3\b[^.'"]{0,30}\b(bell|shell|sound)|\b(bell|shell)\b[^.'"]{0,40}\bR3\b|RS \/ R3/i, 'the whistle is Y / △ with no gadget in hand now'],
+  [/\bR3\b[^.'"]{0,30}\b(bell|shell|sound)|\b(bell|shell)\b[^.'"]{0,40}\bR3\b|RS \/ R3/i, 'the whistle is Y / △ now'],
+  // (scheme 5, v1.38: the triggers work the gadget in hand, Y whistles, the jets on jump held)
+  [/Y \/ △[^.'"]{0,30}(uses? the gadget|the gadget in hand)|(hold|press) Y \/ △ \(T/i, 'the gadget in hand is LT / RT now; Y / △ whistles'],
+  [/RT \/ R2[^.'"]{0,20}(the jets|thrust)|jets[^.'"]{0,20}\(RT \//i, 'the jets fire on jump held in the air now'],
+  [/with no gadget in hand[^.'"]{0,20}(whistle|bell)|no gadget in hand: the (bell|whistle)/i, 'the whistle has Y / △ whatever is in hand now'],
   [/LT( \/ L2)? \+ X \/ □/, 'the mount (and the Arcade\'s and References\' boards) is D-pad ↓ now'],
   [/[Ww]histle[^.'"]{0,40}\(X \/ □/, 'the mount is D-pad ↓ now'],
   // (scheme 3, v1.11's first build: double duties, gone)
@@ -138,12 +142,14 @@ test('the Controls page names every verb\'s button, and the interact prompt is X
   const { controlsList } = await import('../src/ui.js');
   const L = controlsList('A / ×', 'B / ○');
   const text = L.pad.map(([, how]) => how).join(' · ');
-  for (const v of ['jump', 'evade', 'interact', 'gadget', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'mode', 'journal', 'menu']) assert.ok(text.includes(PAD[v]), `${v}: ${PAD[v]}`);
+  for (const v of ['jump', 'evade', 'interact', 'whistle', 'blade', 'guard', 'aim', 'fire', 'run', 'lock', 'pick', 'potion', 'call', 'mode', 'journal', 'menu']) assert.ok(text.includes(PAD[v]), `${v}: ${PAD[v]}`);
   assert.ok(L.pad.some(([what, how]) => /^Use, talk/.test(what) && how === 'X / □'));
   assert.ok(L.pad.some(([what, how]) => /^Evade/.test(what) && how === 'B / ○'));
   assert.ok(L.pad.some(([what, how]) => /^Call your mount/.test(what) && how === 'D-pad ↓'));
   assert.ok(L.pad.some(([what, how]) => /^Drink a healing potion/.test(what) && how === 'D-pad ←'));
-  assert.ok(L.pad.some(([what, how]) => /^Gun mode/.test(what) && how === 'D-pad →'));
+  assert.ok(L.pad.some(([what, how]) => /^The gadget in hand’s mode/.test(what) && how === 'D-pad →'));
+  assert.ok(L.pad.some(([what, how]) => /^Bell-note whistle/.test(what) && how === 'Y / △'));
+  assert.ok(L.pad.some(([what, how]) => /^Jets/.test(what) && how.startsWith('hold A / × in the air')));
   const main = readFileSync(join(ROOT, 'src/main.js'), 'utf8');
   assert.match(main, /name === 'call' && quickMenu\) quickMenu\.toggle\(true\)/, 'a level\'s quick menu (the Arena\'s foes, the Arcade\'s board, the References\' views) keeps D-pad ↓: no mount there');
   assert.match(main, /name === 'potion'\) drinkPotion\(\)/, 'D-pad ← drinks');

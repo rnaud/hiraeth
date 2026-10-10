@@ -52,7 +52,8 @@ test('every module in src/gadgets with a default export is a whole gadget, and b
   for (const g of GADGETS) {
     assert.deepEqual(checkGadget({ ...g, id: g.id }).filter((e) => !e.includes('already')), [], g.id);
     assert.equal(ITEMS[g.id].kind, 'gadget', `${g.id} is an item`);
-    assert.ok(ITEMS[g.id].use.includes('Y / △'), `${g.id}: its use says the pad's button in Xbox / PlayStation form`);
+    assert.ok(/RT \/ R2|LT \/ L2|\{key:fire\}/.test(ITEMS[g.id].use), `${g.id}: its use says the pad's trigger in Xbox / PlayStation form (or the player's own)`);
+    assert.ok(['aim', 'use', 'look', 'tool'].includes(g.trigger), `${g.id}: how it takes the triggers (${g.trigger})`);
     const m = buildItemModel(g.id);
     assert.ok(m.children.length >= 2, `${g.id} has a model of its own (not the gem)`);
     const box = new THREE.Box3().setFromObject(m), size = box.getSize(v());
@@ -88,20 +89,32 @@ test('choosing: the round goes through nothing in hand, and the wheel reads the 
   assert.equal(pips(2, 3), '●●○');
 });
 
-test('the pad: Y / △ is the gadget button, D-pad up chooses; the keyboard T and B, the middle mouse button, touch ◆', () => {
+test('the pad: LT / L2 aims and RT / R2 uses the gadget in hand, Y / △ whistles, D-pad ↑ chooses, → its mode; the keyboard R, T / G and B, the mouse, touch', () => {
   const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
   const actions = [];
   const c = new Controller({ pads: () => [pad], context: () => 'game', action: (a) => actions.push(a), look() {}, navigate() {}, scroll() {} });
   pad.buttons[3] = { pressed: true, value: 1 };
-  assert.equal(c.update(DT).PadGadget, true, 'Y held');
+  assert.equal(c.update(DT).PadWhistle, true, 'Y held: the whistle');
   pad.buttons[3] = { pressed: false, value: 0 }; pad.buttons[12] = { pressed: true, value: 1 };
   const h = c.update(DT);
-  assert.equal(h.PadGadget, false); assert.equal(h.PadGadgetPick, true, 'D-pad up held');
-  assert.deepEqual(actions, [], 'Y / △ and D-pad ↑ are the gadgets\' only: no ping, no bell (src/bindings.js)');
-  assert.deepEqual(gadgetInput({ KeyT: true }), { use: true, pick: false, back: false });
+  assert.equal(h.PadWhistle, false); assert.equal(h.PadGadgetPick, true, 'D-pad up held');
+  pad.buttons[12] = { pressed: false, value: 0 }; pad.buttons[6] = { pressed: true, value: 1 }; pad.buttons[7] = { pressed: true, value: 1 }; pad.buttons[15] = { pressed: true, value: 1 };
+  const t = c.update(DT);
+  assert.ok(t.PadAim && t.PadFire && t.PadModeNext, 'LT, RT and D-pad →');
+  assert.deepEqual(actions, [], 'none of them pings or calls (src/bindings.js)');
+  const none = { aim: false, use: false, pick: false, back: false, mode: false, whistle: false, touch: false };
+  assert.deepEqual(gadgetInput({ KeyT: true }), { ...none, use: true });
+  assert.deepEqual(gadgetInput({ PadFire: true }), { ...none, use: true }, 'RT');
+  assert.deepEqual(gadgetInput({ PadAim: true }), { ...none, aim: true }, 'LT');
+  assert.deepEqual(gadgetInput({ MouseRight: true, MouseLeft: true }), { ...none, aim: true, use: true }, 'a left click uses it only while aiming');
+  assert.equal(gadgetInput({ MouseLeft: true }).use, false, 'else it swings the sword');
   assert.equal(gadgetInput({ MouseMiddle: true }).use, true);
-  assert.equal(gadgetInput({ TouchGadget: true }).use, true);
-  assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { use: false, pick: true, back: true });
+  assert.equal(gadgetInput({ KeyG: true }).use, true);
+  assert.equal(gadgetInput({ TouchFire: true }).use, true);
+  assert.deepEqual(gadgetInput({ TouchGadget: true }), { ...none, use: true, touch: true });
+  assert.deepEqual(gadgetInput({ PadWhistle: true }), { ...none, whistle: true });
+  assert.deepEqual(gadgetInput({ PadModeNext: true }), { ...none, mode: true });
+  assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { ...none, pick: true, back: true });
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /ring: \(\) => itemFx\.ring\(\)/, 'with nothing in hand the use button sounds the whistle (V)');
   assert.ok(main.indexOf('gadgets.control(') < main.indexOf('player.update(dt, busy() ? noInput : ctl'), 'the reel acts before the traveller moves');
@@ -128,7 +141,7 @@ test('one job per button: D-pad ↑ takes the next gadget aiming or not, and its
   assert.equal(G.equipped, 'bomb', 'aiming (LT): the tap is still the next gadget');
   for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { PadGadgetPick: true });
   assert.ok(G.wheelOn);
-  assert.deepEqual(G.wheelList().map((l) => l.id), [null, 'hook', 'bomb'], 'nothing in hand and the gadgets: no gun modes');
+  assert.deepEqual(G.wheelList().map((l) => l.id), ['hook', 'bomb'], 'the gadgets only (the whistle has Y / △), no modes');
   G.control(DT, {});
 });
 
@@ -142,8 +155,7 @@ test('the runtime: the first gadget found is taken in hand; the use button press
   G.control(DT, { KeyB: true }); G.control(DT, {});
   assert.equal(G.equipped, 'bomb', 'a tap: the next');
   G.control(DT, { KeyB: true }); G.control(DT, {});
-  assert.equal(G.equipped, null, 'then nothing in hand');
-  assert.equal(G.wheelList()[0].name, 'nothing in hand', '(no whistle found yet)');
+  assert.equal(G.equipped, 'hook', 'then round again (nothing in hand is no stop: the whistle has its own button)');
   // held: the wheel; the stick points at a slot, letting go takes it
   for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { KeyB: true });
   assert.ok(G.wheelOn, 'the wheel is open');
@@ -152,11 +164,44 @@ test('the runtime: the first gadget found is taken in hand; the use button press
   assert.equal(input.stick, null, 'the stick chooses: the traveller does not walk');
   G.control(DT, {});
   assert.ok(!G.wheelOn);
-  assert.equal(G.equipped, 'hook', 'the slot to the right and down (none, hook, bomb round the wheel)');
+  assert.equal(G.equipped, 'bomb', 'the slot down (hook at the top, bomb under it)');
   // a menu opening lets go of everything
   log.length = 0;
   G.control(DT, { KeyT: true }, true);
   assert.deepEqual(log, ['hook cancel', 'bomb cancel']);
+});
+
+test('the triggers by the gadget: an aiming one takes aim on LT, lets fly on RT, puts an unused aim away; RT alone is a quick use; Y whistles; → its mode', () => {
+  const game = new GameState(null);
+  const listeners = new Set();
+  const its = { has: (id) => !!game.flag(`item.${id}`), grant(id) { game.set(`item.${id}`, true); for (const f of listeners) f(id, true); }, on(f) { listeners.add(f); return () => listeners.delete(f); } };
+  const log = [];
+  const spy = (id, trigger, extra = {}) => ({ id, name: id, text: '', use: '', trigger, model: () => new THREE.Group(),
+    create: () => ({ press: () => log.push(`${id} press`), hold: () => log.push(`${id} hold`), release: () => log.push(`${id} release`), lower: () => log.push(`${id} lower`), cancel() {}, equip() {}, unequip() {}, ...extra }) });
+  let rang = 0;
+  const G = new Gadgets({ defs: [spy('thrower', 'aim'), spy('fan', 'use'), spy('glass', 'look'), spy('gun', 'tool'), spy('dial', 'use', { modes: ['a', 'b'], cycleMode: () => { log.push('dial mode'); return true; } })], scene: new THREE.Scene(), physics: physicsOf(), player: player(), game, items: its, ring: () => rang++ });
+  for (const id of ['thrower', 'fan', 'glass', 'gun', 'dial']) its.grant(id);
+  assert.equal(G.equipped, 'thrower');
+  const run = (...frames) => { log.length = 0; for (const f of frames) G.control(DT, f); return log.slice(); };
+  assert.deepEqual(run({ PadAim: true }, { PadAim: true }, { PadAim: true, PadFire: true }, { PadAim: true }, {}), ['thrower press', 'thrower hold', 'thrower hold', 'thrower release'], 'LT aims, RT lets fly');
+  assert.deepEqual(run({ PadAim: true }, { PadAim: true }, {}), ['thrower press', 'thrower hold', 'thrower lower'], 'LT let go: put away unused');
+  assert.deepEqual(run({ PadFire: true }, {}), ['thrower press', 'thrower release'], 'RT alone: at once');
+  run({ PadWhistle: true }, {});
+  assert.equal(rang, 1, 'Y: the whistle, whatever is in hand');
+  G.equip('fan');
+  assert.deepEqual(run({ PadFire: true }, { PadFire: true }, {}), ['fan press', 'fan hold', 'fan release'], 'held on RT');
+  assert.deepEqual(run({ PadAim: true }, {}), [], 'LT does nothing to it');
+  G.equip('glass');
+  assert.deepEqual(run({ PadAim: true }, { PadAim: true }, {}), ['glass press', 'glass hold', 'glass release'], 'the lens on either trigger');
+  G.equip('gun');
+  assert.deepEqual(run({ PadAim: true }, { PadAim: true, PadFire: true }, {}), [], 'the gun: the fluid tool reads them');
+  G.equip('dial');
+  assert.deepEqual(run({ PadModeNext: true }, { PadModeNext: true }, {}), ['dial mode'], '→: its next mode, once a press');
+  G.equip('fan');
+  const said = [];
+  G.ctx.notice = (t) => said.push(t);
+  run({ KeyX: true }, {});
+  assert.match(said[0] ?? '', /no modes/, 'one without modes says so');
 });
 
 test('the menu shows a gadget in hand, and lets you take another', () => {

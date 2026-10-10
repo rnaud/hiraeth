@@ -2,8 +2,9 @@ import { keyText } from './prompt-keys.js';
 import { game } from './game-state.js';
 
 // The traveller's items: what they have found (in boxes, through quests) and
-// can use. Everything runs on the magic-fluid backpack: without it there is
-// no tool, no jetpack, no glider, and vehicles cannot be powered.
+// can use. He starts with the fluid sword alone (src/fluid-blade.js: no item). The magic-fluid
+// backpack holds the fluid: without it there is no double jump, no glider, no jetpack, no gun
+// (the glove drinks from it) and vehicles cannot be powered.
 //
 //   import { items } from './items.js';
 //   items.has('jetpack')                  // owned?
@@ -15,7 +16,8 @@ import { game } from './game-state.js';
 // Stored as game flags `item.<id>` = true. Systems read items.has() every
 // frame (cheap), so a grant takes effect at once.
 //
-// Kinds: core (the backpack), movement, mode (gun modes, MODE_ITEMS), and the
+// Kinds: core (the backpack), movement (its strengths: the lift valve's double jump, the wings, the
+// jets: BACKPACK_STAGES), mode (gun modes, MODE_ITEMS), gadget (src/gadgets/: the fluid gun is one), and the
 // (the mastery trials' rewards, `trial: '<world>'`: upgrades to the gadgets, won not found: src/trials/)
 // boxes' special items: upgrade (the tank), charm, cosmetic; and pass (`quest: true`: someone
 // gives it at the end of a quest, not a box: the City-Shaft's cab pass). Most items come
@@ -26,31 +28,42 @@ import { game } from './game-state.js';
 export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
-    text: "A makers’ glass tank and the leather glove that drinks from it: the glove is what shoots. Fill it with living water. Someone built it for a traveller they would never meet.",
-    use: 'Aim with {key:aim} and shoot bursts of fluid with {key:fire}; switch the gun’s mode with {key:mode} to push people and things away, and to the modes you find; boost-jump. Its glove draws the fluid blade: {key:blade} swings it, {key:guard} held guards, {key:evade} evades. Everything it does spends the magic bar (a shot, a push or a boost: a third of it), which refills by itself a moment after the last use. It also powers vehicles.'
+    text: "A makers’ glass sphere in a brass cradle, made to be filled with living water and carried a long way. Someone built it for a traveller they would never meet.",
+    use: 'It holds the magic bar, which refills by itself a moment after the last use, and powers vehicles. Its strengths come in later finds: the lift valve’s double jump first, then the wings and the jets. The fluid gun drinks from it.',
+  },
+  doublejump: {
+    name: 'Lift valve', kind: 'movement', needs: 'backpack',
+    text: "A brass valve that screws into the backpack’s ring. Opened, it lets one breath of the fluid out under your boots. The backpack’s first strength.",
+    use: 'Press {key:jump} again in the air for a second jump, with a flip. Once each time you leave the ground.',
+  },
+  // (a gadget, src/gadgets/gun.js registers it with its model; here too so node's tests and the save know it without the registry)
+  gun: {
+    name: 'Fluid gun', kind: 'gadget', needs: 'backpack', where: 'In the Givers’ Hearth, the desert’s old fire-house, by the stone ball.',
+    text: "The makers’ leather glove with a brass fitting on the wrist and a vial of the tank’s fluid on its cuff. It drinks from the backpack: the glove is what shoots.",
+    use: 'Choose it with {key:pick}. Aim with {key:aim} and shoot bursts of fluid with {key:fire}; {key:mode} takes the next mode: push people and things away, and the modes you find. A shot or a push spends a third of the magic bar.',
   },
   jetpack: {
     name: 'Fluid jets', kind: 'movement', needs: 'backpack',
     text: "Ancient nozzles that turn the tank’s fluid into thrust. Worn smooth, still reliable. The makers expected a long journey.",
-    use: 'They fly like a plane. {key:thrust} is the thrust, the harder the faster: from the ground it lifts you straight up. {key:move} flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on; aim with {key:aim} in flight and they hold you while you shoot. They burn the backpack’s fluid; land to let it recover.',
+    use: 'They fly like a plane. Hold {key:jump} in the air to fire them. {key:move} flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on (with the wings); aim with {key:aim} in flight and they hold you while you use a gadget. They burn the backpack’s fluid; land to let it recover. The backpack’s third strength.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
     text: "Folded membranes that open into bright wings. A whole sky tucked into very little luggage.",
-    use: 'Hold jump while falling to unfold the wings and glide.',
+    use: 'Hold {key:jump} while falling to unfold the wings and glide (with the jets, hold {key:run} too). The backpack’s second strength.',
   },
   stun: {
-    name: 'Stilling mode', kind: 'mode', needs: 'backpack',
+    name: 'Stilling mode', kind: 'mode', needs: 'gun',
     text: "A glyph-cut lens that chills the fluid. A small pause for things moving much too quickly.",
     use: 'Switch modes with {key:mode}. A stilling burst freezes creatures and people for a few seconds.',
   },
   fire: {
-    name: 'Ember mode', kind: 'mode', needs: 'backpack',
+    name: 'Ember mode', kind: 'mode', needs: 'gun',
     text: "A flint ring that turns fluid into ember bursts. Useful fire, small enough to wear on the glove.",
     use: 'Switch modes with {key:mode}. Ember bursts light lamps, braziers and fuses, and burn away dry brambles.',
   },
   bloom: {
-    name: 'Bloom mode', kind: 'mode', needs: 'backpack',
+    name: 'Bloom mode', kind: 'mode', needs: 'gun',
     text: "A green glass seed for the glove, with a tiny root curled inside. The makers grew their doorways as well as their gardens.",
     use: 'Switch modes with {key:mode}. A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
   },
@@ -199,8 +212,17 @@ export const ITEMS = {
   },
 };
 
-/** Gun modes: shoot is always there with the backpack; the others are unlocked by items. */
-export const MODE_ITEMS = { shoot: 'backpack', stun: 'stun', fire: 'fire', bloom: 'bloom' };
+/** Gun modes: shoot (and push) come with the fluid gun (a gadget: src/gadgets/gun.js); the others are unlocked by items. */
+export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bloom' };
+
+/**
+ * The backpack's strengths in the order the route brings them (docs/systems/progression.md): the lift valve's
+ * double jump (the desert's giant's cave), the wings (Vael's Aerie), the jets (the City-Shaft's Warden's Well).
+ * How many are owned is the backpack's stage (0..3): the round tank shows it (src/fluid-tool.js buildTank).
+ */
+export const BACKPACK_STAGES = ['doublejump', 'glider', 'jetpack'];
+/** The backpack's stage (0..3) from what is owned (has: id -> bool). */
+export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id)).length;
 
 const key = (id) => `item.${id}`;
 const listeners = new Set();
@@ -226,7 +248,7 @@ export const items = {
 
 const keys = (t) => keyText(esc(t), { html: true, teach: true });   // (a {key:verb}: the player's own key or button)
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const KIND_ORDER = ['core', 'movement', 'mode', 'gadget', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
+const KIND_ORDER = ['core', 'movement', 'gadget', 'mode', 'upgrade', 'charm', 'pass', 'cosmetic'];   // (gadget: src/gadgets/)
 
 /**
  * The gear you carry as a plain list: each item's name and what it does, the backpack

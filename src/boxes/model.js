@@ -126,7 +126,7 @@ const flatM = (color, o = {}) => makeMaterial({ color, flat: true, ...(METAL_OF[
 function tankModel() {
   // the flask as it is worn (fluid-tool.js buildFlask), in its own fluid material (not the worn tank's: the box animates its time)
   const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
-  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false });
+  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.6, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base, key: 'box.item.tank' }), { worn: false, stage: 0 });
   glass.userData.fluid = true;
   g.position.y = -0.22;
   const w = new THREE.Group(); w.add(g); w.scale.setScalar(0.7);
@@ -224,6 +224,26 @@ function whistleModel() {
   for (const x of [-0.05, 0, 0.05]) g.add(new THREE.Mesh(new THREE.SphereGeometry(0.009, 6, 5).translate(x, 0.025, 0), flatM(INK)));
   g.add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.6).translate(0.15, -0.05, 0), flatM(BRASS, { side: THREE.DoubleSide })));
   g.add(new THREE.Mesh(new THREE.TorusGeometry(0.015, 0.004, 3, 10).translate(0.15, -0.005, 0), flatM(BRASS_DARK)));
+  return g;
+}
+
+/** The lift valve (the double jump, v1.38): the backpack's brass valve, its wheel, a jade bead of fluid under it and the pair of small fins it adds to the ring (the round backpack's second stage). */
+function liftModel() {
+  const g = new THREE.Group();
+  const brass = flatM(BRASS), dark = flatM(BRASS_DARK), jade = flatM(FLUID_TONES[0], { glow: 0.7 });
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.05, 0.1, 16), brass));                                    // the body
+  for (const y of [-0.03, 0, 0.03]) g.add(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.004, 3, 16).rotateX(Math.PI / 2).translate(0, y, 0), dark));   // its thread
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.07, 8).translate(0, 0.085, 0), dark));            // the stem
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.008, 5, 20).rotateX(Math.PI / 2).translate(0, 0.12, 0), brass));   // the wheel
+  for (let i = 0; i < 3; i++) g.add(new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.008, 0.008).rotateY((i * Math.PI) / 3).translate(0, 0.12, 0), brass));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.035, 14, 10).translate(0, -0.07, 0), jade));                       // a bead of the fluid
+  for (const sx of [-1, 1]) {
+    const fin = new THREE.Shape(); fin.moveTo(0, -0.03); fin.lineTo(0.11, -0.005); fin.lineTo(0.1, 0.02); fin.lineTo(0, 0.03); fin.lineTo(0, -0.03);
+    const m = new THREE.Mesh(new THREE.ExtrudeGeometry(fin, { depth: 0.008, bevelEnabled: false }).translate(0, 0, -0.004), flatM(BRASS, { side: THREE.DoubleSide }));
+    m.position.set(sx * 0.045, -0.01, 0); m.rotation.y = sx < 0 ? Math.PI : 0;
+    g.add(m);
+  }
+  g.rotation.set(0.25, 0.5, 0);
   return g;
 }
 
@@ -368,7 +388,7 @@ function passModel() {
 }
 
 const MODELS = {
-  backpack: tankModel, jetpack: jetsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
+  backpack: tankModel, doublejump: liftModel, jetpack: jetsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
   bloom: bloomModel, echo: echoModel, level: levelModel,
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,

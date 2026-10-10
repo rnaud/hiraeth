@@ -105,7 +105,7 @@ export const LOGIC = {
     ballR: { type: 'drum', room: 'roost', plate: 'pRW', plateAt: 0, stops: { pRW: 0, pRE: 1 }, start: 0 },
     pRW: { type: 'plate', room: 'roost' },
     pRE: { type: 'plate', room: 'roost' },
-    elder: { type: 'boss', room: 'roost', needs: ['backpack', 'glider'] },
+    elder: { type: 'boss', room: 'roost', needs: ['gun', 'glider'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

@@ -191,7 +191,8 @@ export function abilities(W) {
   const f = (k) => game.flag(k);
   return {
     climb: W.level.features?.climb ?? true,
-    boost: items.has('backpack') && !f('tool.empty'),
+    doublejump: items.has('backpack') && items.has('doublejump'),   // (the lift valve, v1.38: it was the fluid boost, any full tank)
+    gun: items.has('backpack') && items.has('gun') && !f('tool.empty'),   // (the fluid gun, a gadget since v1.38: shots and pushes)
     glider: items.has('backpack') && items.has('glider'),
     jetpack: items.has('backpack') && items.has('jetpack'),
     bird: !!f('bird.promise') || (W.id === 'arzach' && !!f('arzach.bird.called')),
@@ -574,8 +575,8 @@ export async function generic(W, qid, st, raw) {
     W.step(5);
   }
   if (moved()) return;
-  // what is there to be hit
-  for (const mode of ['shoot', 'push']) {
+  // what is there to be hit (only with the fluid gun, and fluid in the tank: v1.38, it is a find of its own)
+  if (abilities(W).gun) for (const mode of ['shoot', 'push']) {
     for (const t of targetsNear(raw.position, 20)) { if (moved()) return; try { t.onHit(mode, t.position().clone(), V(0, 0, -1), { strength: 1, colours: 1, shove: 1 }); } catch { /* */ } W.step(10); }
   }
   // what takes time
@@ -662,6 +663,25 @@ export function shipTurn({ from, to, journal, issue }) {
 }
 
 /** E on what is here, if it is `id` (throws otherwise). Returns the entry. */
+/**
+ * Open a makers' box of this world by its id, as a player does: stand by its front (somewhere to stand there, or an
+ * issue), E (the box's own prompt, or an issue), and its scene played out. Returns the item, or null.
+ */
+export function openBox(W, id, issue) {
+  const box = W.boxes.list.find((b) => b.id === id);
+  if (!box) { issue('no-thing', `no box ${id}`); return null; }
+  if (box.opened()) return box.item;
+  const by = standNear(W, box.pos.clone().add(V(Math.sin(box.yaw) * 1.4, 0, Math.cos(box.yaw) * 1.4)), { radius: 2, up: 2 });
+  if (!by) issue('no-ground', `nowhere to stand by the box ${id} (${fmt(box.pos)})`);
+  else { W.at(by); W.step(2); }
+  const b = bestInteractable(W.player)?.entry;
+  if (b?.id !== `box.${id}`) { issue('box', `E by the box ${id} is ${b?.id ?? 'nothing'}`); W.boxes.open(id, { instant: true }); }
+  else { b.use(W.player); finishScenes(W); }
+  W.step(3);
+  if (!items.has(box.item)) issue('box', `the box ${id} opened, and ${box.item} is not carried`);
+  return box.item;
+}
+
 export function useHere(W, id, goal = null) {
   const e = bestInteractable(W.player)?.entry;
   if (!e || (id && e.id !== id)) throw new Error(`E is not "${id}" here (it is ${e?.id ?? 'nothing'})`);

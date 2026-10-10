@@ -124,7 +124,7 @@ export const LOGIC = {
     // the hall's great gear: a ball in its teeth stops the warden turning (its last phase wants it)
     bG: { type: 'drum', room: 'hall', plate: 'pG', plateAt: 1, start: 0 },
     pG: { type: 'plate', room: 'hall' },
-    warden: { type: 'boss', room: 'hall', needs: ['backpack', 'magic:4'], requires: { drumOn: ['bG', 'pG'] } },
+    warden: { type: 'boss', room: 'hall', needs: ['gun', 'magic:4'], requires: { drumOn: ['bG', 'pG'] } },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

@@ -9,8 +9,9 @@ npm install
 npm run dev     # http://localhost:5173
 ```
 
-Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
-hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
+Controls: click to capture the mouse · WASD move · Shift run · Space jump (again in the air: the double jump,
+once the lift valve is found) · hold Space while falling to glide (Shift + Space once the jets are owned) ·
+mouse wheel zoom · Esc releases the mouse.
 **Left click** (pointer captured, not aiming) or **F** swings the fluid blade, **Ctrl** or **Z** held (on
 land) guards, **Alt** evades, **Tab** locks on to a foe (docs/systems/foes.md). **F3** toggles the FPS
 counter, **F4** the hitboxes (docs/systems/foes.md, "Hitboxes"), **F2** the world debug menu (L3 + R3 on a pad:
@@ -23,16 +24,17 @@ sounds the bell-note whistle (and the echo shell). **C** drinks a healing potion
 the flask beside the hearts on touch: docs/systems/items.md). **P** photo mode. **L** opens the level picker. Each
 level's controls are listed in [worlds.md](worlds.md), "Levels".
 
-**The tool:** hold right mouse (or **R**) to aim, left click (or **G**) to fire while aiming, and **X** to
-switch modes (fluid, push, and those found). On a gamepad, LT aims, RT fires while aiming and D-pad →
-takes the next mode (round again after the last); on touch, use **◎ ✺ ◐**. The jets: Space held in the air (RT on a pad). The paralyze ray
+**The gadget in hand** (v1.38; the fluid gun is one, once found): hold right mouse (or **R**) to aim it, left
+click (or **G**) while aiming, or **T** / the middle mouse button any time, to use it (shoot, throw), and **X**
+for its next mode (the gun's: fluid, push, and those found). On a gamepad, LT aims, RT uses and D-pad → takes the
+next mode (round again after the last); on touch, use **◎ ✺ ◐**. The jets: jump held in the air (A / × on a pad
+too). The paralyze ray
 freezes wildlife and people briefly. Foam darts activate things from afar: reactive scenery, observatory
 lenses within 30 m, cruising taxis and Lorn's carnivorous plants.
 
-**Gadgets** (v0.90, docs/systems/gadgets.md): **T** or the middle mouse button uses the one in hand
-(hold to aim, let go), **B** takes the next (Shift + B the one before; held: the wheel); on a pad Y / △
-and D-pad ↑; on touch ◆, and the chip in the corner takes the next. With no gadget in hand the use
-button sounds the bell-note whistle.
+**Gadgets** (v0.90, docs/systems/gadgets.md): **B** takes the next (Shift + B the one before; held: the
+wheel); on a pad D-pad ↑; on touch the chip in the corner. The bell-note whistle and the echo shell: **V**,
+Y / △ on a pad, whatever is in hand (◆ on touch with nothing in hand).
 
 ## Controller
 
@@ -261,20 +263,20 @@ Conflicts and oddities:
 
 | button | on foot | in a fight | aiming | climbing · swimming · gliding · jets | riding | cab | menus · talking | photo |
 |---|---|---|---|---|---|---|---|---|
-| A / × | jump · boost · held: wings | same | same | as before | jump off | choose a stop | confirm · carry on | save |
+| A / × | jump · **again in the air: the double jump** · held in the air: **the jets**, or the wings (with L3 once the jets are owned) | same | same | as before | jump off | choose a stop | confirm · carry on | save |
 | B / ○ | **evade** (the stick's way, or a backstep) | evade | evade | | get off (moving: jump off) | get out | back · **leave** | leave |
 | X / □ | **interact, talk, pick up, get on** | same | same | | hop / flap / rise | where to | · **carry on** | |
-| Y / △ | the gadget in hand · **none in hand: the bell-note whistle / echo shell** | same | same | | | | | |
+| Y / △ | **the bell-note whistle / echo shell** (v1.38; to v1.37 the gadget in hand) | same | same | | the gadget in hand (the fan into a skiff's sail) | | | |
 | RB / R1 | the blade | same | | | boost | | panel after | up |
 | LB / L1 | + right stick: zoom (no foe near) | guard | | | | | panel before | down |
-| LT / L2 | aim | | | jets: hold to aim | brake | | | |
-| RT / R2 | the jets' throttle | | shoot | the jets' throttle | throttle | | | faster |
+| LT / L2 | **aim the gadget in hand** | | | jets: hold to aim | brake | | | |
+| RT / R2 | **use the gadget in hand** (an aiming one: at once) | | **let fly** (shoot, throw) | | throttle | | | faster |
 | L3 | run | | | as before | boost | | | |
 | R3 | lock on · **no foe in reach: the scout** | lock on, the next, let go | | **the scout** | **the scout** | | | |
 | D-pad ↑ | choose a gadget (tap: the next, held: the wheel) | | | | | | navigate | |
 | D-pad ↓ | **call the mount, hail a taxi** (the Arena, the Arcade, the References: their list) | | | | | | navigate | |
 | D-pad ← | **drink a healing potion** (v1.11; View + D-pad ↓ before) | | | | | | navigate | |
-| D-pad → | **the next gun mode** (round again after the last; ← took the one before until v1.11) | | | | | | navigate | |
+| D-pad → | **the gadget in hand's next mode** (the gun's; round again after the last; ← took the one before until v1.11) | | | | | | navigate | |
 | View (on release) | the sketchbook | | | | the sketchbook | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
 | View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
@@ -373,3 +375,41 @@ From the author's handheld sessions (TODO.md, "Controls").
   without wings, the refused taxi jump, the bike's momentum, the new tumble height),
   `tests/controller.test.js` (`triggers`, the ride buttons), `tests/fluid-tool.test.js`
   (the straight shot, aim-first, the lip).
+
+## The triggers and the gadget in hand (v1.38, the progression rewrite)
+
+From the author: "L2 and R2 work with whatever current gadget is selected (to aim and shoot or throw). The gun isn't
+always selected by default, it's just a gadget like everything else. D-pad right just changes the current gadget
+mode." The fluid gun became a gadget (docs/systems/gadgets.md, "The fluid gun"), and the pad was laid out round it
+(`PAD_SCHEME` 5):
+
+- **LT / L2 aims and RT / R2 uses the gadget in hand.** Each gadget says how it takes them (`trigger`: `aim`, `use`,
+  `look`, `tool`; src/gadgets/index.js): the throwers take aim on LT and let fly on RT (RT alone throws at once
+  where the camera looks), the held ones work on RT, the lens on either, the gun's triggers are the fluid tool's.
+  With nothing in hand the triggers do nothing. D-pad ↑ chooses (a tap the next, held the wheel), D-pad → is the
+  gadget's next mode.
+- **Y / △: the bell-note whistle and the echo shell, whatever is in hand.** Y was "the gadget in hand, or the whistle
+  with none"; using the gadget moved to RT, so Y keeps the whistle alone: the bell and the shell guardians always have
+  their button, and Y never changes job under you (the old layout's first oddity). A gadget that wants a press with
+  no aim presses RT. Riding, RT is the throttle, so Y is the gadget in hand there (the gust fan into a skiff's sail;
+  `PadRideGadget`).
+- **The jets: jump held in the air**, on a pad too (A / ×), as SPACE always was on a keyboard; RT is the gadget's.
+  The press itself is the double jump when it is still to spend; on the jets already, a press is the throttle at
+  once. Fired off a jump from the ground they go nose up, as RT from the ground did. The throttle is all or nothing
+  (it was RT's travel): let go to glide on, aim (LT) to be held. With the wings and the jets both owned, jump held
+  with run (L3, Shift) glides; jump held alone flies. The wind columns lift open wings, so riding one with the jets
+  owned is L3 + A held.
+- **The double jump** (the lift valve, src/player.js `doubleJump`): a fresh press of jump in the air, once each time
+  you leave the ground (a hold, the water or a mount gives it back), the old boost's burst (src/jump.js
+  `boostVelocity`) and a front flip (`FLIP`, `flipPose`: about the hips, tucked, 0.44 s, done before the top). It
+  replaced the fluid boost, which spent a third of the bar on every press and so went three times in a row.
+- **Players from before** see the one-time note (`PAD_SCHEME_NOTE`); buttons they had moved are brought up to date
+  once (`migratePad(pad, from)`: from scheme 4 the verb `gadget`, Y's, becomes `whistle` on the button chosen;
+  scheme 3's and 1–2's rules run only for saves from before 4).
+- **Teach once** (src/main.js `TEACH_ON_FIND`, hints subtle or full): when the lift valve, the gun or the jets come out
+  of their chest, a toast after the card names the verb as the player holds it (`hint.lift`, `hint.gun`,
+  `hint.jets`), and the first time a second gadget is carried, how to choose and use it (`hint.pick`).
+
+Tests: `tests/gadgets.test.js` (the triggers by the gadget), `tests/gadgets-qa.test.js` (the whistle),
+`tests/bindings.test.js`, `tests/controller.test.js`, `tests/accessibility.test.js` (the migration),
+`tests/jets.test.js`, `tests/fluid-tool.test.js` (the double jump), `tests/abilities.test.js`.

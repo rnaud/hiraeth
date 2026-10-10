@@ -132,7 +132,7 @@ export const LOGIC = {
     s4: { type: 'switch', room: 'crown', when: { all: [{ lit: 'vS' }, { lit: 'vC' }] } },
     d3: { type: 'door', opens: { lit: 's4' }, latch: true },
     // the hall's four vanes: in its last phase its hatch opens only to one's draught
-    warden: { type: 'boss', room: 'warden', needs: ['backpack', 'jetpack'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
+    warden: { type: 'boss', room: 'warden', needs: ['gun', 'jetpack'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
     vh0: { type: 'vane', room: 'warden', needs: ['jetpack'] },
     vh1: { type: 'vane', room: 'warden', needs: ['jetpack'] },
     vh2: { type: 'vane', room: 'warden', needs: ['jetpack'] },
@@ -193,7 +193,7 @@ function wardenHit(g, part, mode) {
 /** In its last two phases its hatch stays up a little longer: time to fly to the vane and hover. */
 function wardenOpenFor(g, a, s) { const o = HALL.open[Math.min(g.phaseIndex, 2)]; return s && o ? Math.max(s, o) : s; }
 /** What the jets are for, said a moment after the box's card closes in the Jets' Chamber. */
-export const JETS_NEXT = 'The jets hum on your back. Straight overhead the chamber’s ceiling is open: their thrust ({key:thrust}), without aiming, lifts you straight up through it. Tip the nose forward at the top to level out.';
+export const JETS_NEXT = 'The jets hum on your back. Straight overhead the chamber’s ceiling is open: jump and hold it ({key:thrust}), and they lift you straight up through it. Tip the nose forward at the top to level out.';
 
 /** Are you past the oculus? (in the gallery or beyond: its mark, an eye lit, the warden met, or simply up there) */
 export function jetsUsed(rt) {

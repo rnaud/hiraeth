@@ -52,12 +52,12 @@ test('a verb moved to another button: the controller reads it there, the old but
   t.set('Y', false); t.frame();
   t.set('A', true);
   assert.ok(!t.frame().Space, 'A no longer jumps');
-  // the gadget's own button (Y) is now the jump's, so the gadget is on no button: Y does both only when told to
+  // the whistle's own button (Y) is now the jump's, so the whistle is on no button: Y does both only when told to
   const both = pad({ pad: { jump: 'Y' } });
   both.set('Y', true);
   const h = both.frame();
-  assert.ok(h.Space && h.PadGadget, 'two verbs on one button: both');
-  assert.deepEqual([...padConflicts({ jump: 'Y' })].sort(), ['gadget', 'jump']);
+  assert.ok(h.Space && h.PadWhistle, 'two verbs on one button: both');
+  assert.deepEqual([...padConflicts({ jump: 'Y' })].sort(), ['jump', 'whistle']);
   // a swap: no conflict
   assert.equal(padConflicts({ jump: 'B', evade: 'A' }).size, 0);
   const sw = pad({ pad: { jump: 'B', evade: 'A' } });
@@ -150,15 +150,22 @@ test('a pad layout from before PAD_SCHEME 4 (one job per button): brought up to 
   assert.deepEqual(migratePad({ potion: '←' }), {}, 'the potion put on ← then: its default now');
   assert.deepEqual(migratePad({ jump: '→' }), {}, 'a verb on → (free then) would share the gun mode\'s button: back to its default');
   // schemes 1–2: the mount and the next gun mode where they were; the mode before is gone, its ← the potion's
-  assert.deepEqual(migratePad({ call: 'LB', guard: '↓', modePrev: 'RB', blade: '←', modeNext: 'Y', gadget: '→' }), { call: 'LB', guard: '↓', modeNext: 'Y', gadget: '→' },
+  assert.deepEqual(migratePad({ call: 'LB', guard: '↓', modePrev: 'RB', blade: '←', modeNext: 'Y', gadget: '→' }), { call: 'LB', guard: '↓', modeNext: 'Y', whistle: '→' },
     'the swaps with the mount and the next mode kept; the blade on the mode before\'s ← would share the potion\'s: back to RB');
   assert.deepEqual(migratePad({ modePrev: 'LB', modeNext: 'RB', blade: '→', jump: 'B', evade: 'A' }), { modeNext: 'RB', blade: '→', jump: 'B', evade: 'A' }, 'modePrev dropped, the rest as chosen');
   for (const old of [{ potion: 'LB', guard: '↓' }, { call: 'LB', guard: '↓', modePrev: 'RB', blade: '←' }, { jump: '→', evade: '↓', potion: 'X', interact: '↓' }]) assert.equal(padConflicts(migratePad(old)).size, 0, JSON.stringify(old));
   const { migrateSettings } = await import('../src/ui.js');
   const m = migrateSettings({ hudV: 1, pad: { potion: 'LB', guard: '↓' } });
   assert.deepEqual(m.pad, { potion: 'LB', guard: '←' }, 'the saved settings, once');
-  assert.equal(m.padV, 4);
+  assert.equal(m.padV, 5);
   assert.deepEqual(migrateSettings({ hudV: 1, padV: 4, pad: { guard: '↓', call: 'LB' } }).pad, { guard: '↓', call: 'LB' }, 'saved since: as chosen');
+  // scheme 4 (to v1.37): the top button's verb was the gadget in hand (or the whistle with none); it is the whistle now,
+  // on the button chosen (using the gadget is RT's, 'fire')
+  const s4 = migrateSettings({ hudV: 1, padV: 4, pad: { gadget: 'LB', guard: 'Y' } });
+  assert.deepEqual(s4.pad, { whistle: 'LB', guard: 'Y' }, 'a swap of the top button stays a swap');
+  assert.equal(s4.padV, 5);
+  assert.equal(padConflicts(s4.pad).size, 0);
+  assert.deepEqual(migratePad({ gadget: '↑', pick: 'Y' }, 4), { whistle: '↑', pick: 'Y' }, "not run through the old schemes' rules");
 });
 
 test('the key listener sends keys on as the verb\'s default key, toggles run, and hands one key to "press a key"', () => {
@@ -209,7 +216,7 @@ test('the Controls page lists every verb with its key or button, marks clashes i
   const html = rebindHtml('pad', normalisePrefs({ pad: { jump: 'Y' } }));
   assert.match(html, /data-rebind="pad" data-verb="jump"[^>]*>Y \/ △</);
   assert.match(html, /class="clash moved"/);
-  assert.match(html, /⚠ also Gadget in hand/);
+  assert.match(html, /⚠ also Whistle, echo shell/);
   assert.match(html, /data-a="rebind-reset" data-kind="pad"/);
   assert.match(html, /class="rebind pad-raw"/, 'its names are the bound ones already');
   assert.match(rebindHtml('keys', normalisePrefs({})), /data-verb="jump"[^>]*>SPACE</);

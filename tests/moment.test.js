@@ -274,8 +274,8 @@ test('the empty tank’s first fill is filmed once: it fills on its beat, the ja
   assert.ok(!rt.moments.playing);
   assert.equal(refills.length, 1, 'never twice');
   assert.ok(rt.quests.has('water'), 'the jar fills at its end');
-  // (named for the input in your hands: here the keyboard's; a pad's are RT / R2 and the D-pad, tests/first-run.test.js)
-  assert.ok(toasts.some((t) => /aim with R or the right mouse button, then G or a left click/.test(t) && /switch the gun to push with X,/.test(t)), 'and the controls (the push: a gun mode)');
+  // (v1.38: the gun is still ahead, in the Givers' Hearth: the tank's words point at the chest beside the pool)
+  assert.ok(toasts.some((t) => /empty tank fills/.test(t) && /hums back/.test(t)), 'and what answers it (the lift valve\'s chest)');
   assert.equal(W.dry(), false);
   offRefill?.();
 });

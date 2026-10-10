@@ -25,7 +25,7 @@ import { hintsFor } from '../hint-level.js';
 //   reed     you hold your breath twice as long under water (player.breathK: src/swim.js reads it)
 //   scarf    the fluid wings sink slower (player.sinkK: src/player.js's glide reads it)
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
-//   echo     the echo shell (src/echo-shell.js) keeps the last makers' note sung near you; V (Y / △ with no gadget in hand) plays it back
+//   echo     the echo shell (src/echo-shell.js) keeps the last makers' note sung near you; V (Y / △) plays it back
 //            with the bell (ring())
 //   level    the brass level: where down has turned (the Hangar's quarter and ring), a little level at the screen's
 //            edge shows how the floor lies under the view

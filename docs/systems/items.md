@@ -50,6 +50,19 @@ What the traveller carries and the boxes that give it.
 - **Dev menu** (`src/dev-menu.js`, the backquote key or settings): items,
   boxes, flags, teleport. Also `?items=all|none|a,b`.
 
+## The progression rewrite (v1.38): the backpack, the lift valve, the gun
+
+He starts with the fluid sword alone (no item: src/fluid-blade.js). `backpack` (Qanat's chest) is the round tank:
+it holds the magic bar and powers vehicles; its strengths are items of their own, `BACKPACK_STAGES` in
+src/items.js: `doublejump` (the lift valve, in a chest beside the giant's pool, `desert.lift`: a second jump in
+the air with a flip, player.js `doubleJump`), `glider` (Vael's Aerie) and `jetpack` (the City-Shaft's Warden's
+Well). `backpackStage(has)` counts them (0..3): the tank shows the stage (docs/systems/traveller-kit.md, "The round
+backpack"). `gun` (kind `gadget`, src/gadgets/gun.js) is the fluid gun, in the Givers' Hearth (`desert.gun`); the
+gun modes need it (`needs: 'gun'`, `MODE_ITEMS.shoot`). Both chests are the main quest's own (`story: true` in
+src/boxes/placements.js: no box quest, the quest's stages `valve` and `gun` lead there); later worlds have a
+fallback box by the ship for each (`FALLBACKS`, slots 2 and 3) for a save that arrives without them. Old saves:
+src/save-migrate.js step 8 (docs/systems/progression.md).
+
 ## Hearts, magic and potions (v1.5)
 
 `src/resources.js` holds the traveller's resources, so the shops (heart containers, magic expansions, potions

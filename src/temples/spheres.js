@@ -111,7 +111,7 @@ export const LOGIC = {
     d4: { type: 'door', opens: { all: [{ lit: 's2' }, { drumOn: ['ball4', 'p4'] }] }, latch: true },
     ssc: { type: 'switch', room: 'gallery', needs: ['lens'] },          // the gallery's eye by the door, its far side
     sc: { type: 'door', opens: { lit: 'ssc' }, latch: true },
-    echo: { type: 'boss', room: 'hall', needs: ['backpack', 'lens'] },
+    echo: { type: 'boss', room: 'hall', needs: ['gun', 'lens'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

@@ -357,6 +357,16 @@ function potionHint() {
   game.set('hint.potion', true);
   setTimeout(() => showToast(keyText(tr('potion.hint'), { teach: true })), 900);
 }
+// The progression's new verbs (v1.38: the lift valve's double jump, the fluid gun, the jets on jump held), each
+// taught once when its chest opens, after the card; and the choosing, once a second gadget is carried
+// (a genuinely new verb: hints subtle or full, src/hint-level.js)
+const TEACH_ON_FIND = { doublejump: 'hint.lift', gun: 'hint.gun', jetpack: 'hint.jets' };
+game.on('box:opened', ({ item } = {}) => {
+  const key = TEACH_ON_FIND[item] ?? (gadgets?.owned?.().length >= 2 && gadgets.owned().includes(item) ? 'hint.pick' : null);
+  if (!key || game.flag(`${key}.taught`) || !hintsFor('teach')) return;
+  game.set(`${key}.taught`, true);
+  setTimeout(() => showToast(keyText(tr(key), { teach: true })), 4200);
+});
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey) drinkPotion(); });   // (KEYS.potion: src/remap.js sends a moved key on as C)
 hpPotion?.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); drinkPotion(); });   // (the touch screen's flask)
 // Knocked out (a fatal fall, or the bar run out): you lie there a moment, then the screen
@@ -865,7 +875,7 @@ let eBlocked = false, wasBusy = false;
 window.addEventListener('keydown', (e) => { if (e.code === 'KeyE' && (wasBusy || busy())) eBlocked = true; });
 bindToolMouse(renderer.domElement, input);   // right button aims, left shoots, middle pushes
 renderer.domElement.addEventListener('mousedown', (e) => { if (e.button === 1) input.MouseMiddle = true; });   // the middle button: the gadget in hand (src/gadgets/)
-// the gadgets (src/gadgets/: the grappling hook, the ink bombs…): Y / △ or T uses the one in hand (none: the bell-note whistle), D-pad ↑ or B changes it
+// the gadgets (src/gadgets/: the fluid gun, the grappling hook, the ink bombs…): LT / L2 aims and RT / R2 uses the one in hand (R and T, G), D-pad ↑ or B changes it, D-pad → or X its mode; Y / △ (V) the bell-note whistle
 // the trials' rewards, upgrades to the gadgets' tuning while owned (src/trials/upgrades.js): before the gadgets are made
 syncUpgrades((id) => items.has(id));
 items.on(() => syncUpgrades((id) => items.has(id)));

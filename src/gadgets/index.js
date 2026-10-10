@@ -14,12 +14,22 @@ import { keyText } from '../prompt-keys.js';
 // `gadget.equipped`), the use button and the choosing, the camera's aim while a gadget aims, the chip, the
 // reticle and the wheel (src/gadgets/hud.js), and the world's loose things and cracked walls (world.js).
 //
-// The buttons (gadgetInput):
-//   use    Y / △ (the pad's top button), T, the middle mouse button, touch ◆: pressed, held, let go
-//          (with nothing in hand it sounds the bell-note whistle and the echo shell, once found: `ring`,
-//          the V key's job; the chip shows the whistle then)
-//   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before; nothing in hand is one stop
-//          of the round), held a moment it opens the wheel: point the left stick (WASD) at one, let go
+// The buttons (gadgetInput; the progression rewrite, v1.38: the triggers work the gadget in hand, the fluid gun
+// is one of them, docs/systems/controls.md "The triggers and the gadget in hand"):
+//   aim    LT / L2, R, the right mouse button, touch ◎: an aiming gadget (`trigger: 'aim'`: the hook, the bombs,
+//          the boomerang, the bubble wand, the hourglass) takes aim while it is held (press, hold), and is put
+//          away unused when it is let go (lower)
+//   use    RT / R2, G or T, the middle mouse button, a left click while aiming, touch ✺ or ◆: an aiming gadget
+//          throws or fires (release); pressed without aiming, it is used at once where the camera looks (press,
+//          release). A gadget used by holding (`trigger: 'use'`: the fan, the spring boots, the magnet, the pen)
+//          is pressed, held and let go on it; the lens (`'look'`) is held up on either trigger. The fluid gun
+//          (`'tool'`) leaves both triggers to the fluid tool, which shoots while it is in hand
+//   modes  D-pad → or X: the gadget in hand's next mode (the gun's: fluid, push and those found); one without
+//          modes says so
+//   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before), held a moment it opens the wheel:
+//          point the left stick (WASD) at one, let go. Only gadgets: nothing in hand is no stop of the round
+//   whistle Y / △ (V on the keyboard, boxes/effects.js): the bell-note whistle and the echo shell (`ring`);
+//          touch ◆ with nothing in hand too
 //
 //   const gadgets = new Gadgets({ scene, physics, player, camera, rig, sound, tool, level, foes, input, notice, post, relics, boxes })
 //   gadgets.control(dt, ctl, paused)   before the traveller moves (a reel sets his velocity)
@@ -32,11 +42,22 @@ export const EQUIPPED_FLAG = 'gadget.equipped';
 
 /** The gadget buttons from the merged input (keyboard, mouse, pad, touch). */
 export function gadgetInput(c = {}) {
+  const aim = !!(c.KeyR || c.MouseRight || c.PadAim);
   return {
-    use: !!(c.KeyT || c.MouseMiddle || c.PadGadget || c.TouchGadget),
+    aim,
+    use: !!(c.KeyT || c.KeyG || c.MouseMiddle || c.PadFire || c.PadRideGadget || c.TouchGadget || c.TouchFire || (c.MouseLeft && aim)),
     pick: !!(c.KeyB || c.PadGadgetPick),
     back: !!(c.ShiftLeft || c.ShiftRight) && !!c.KeyB,
+    mode: !!(c.KeyX || c.PadModeNext),
+    whistle: !!c.PadWhistle,
+    touch: !!(c.TouchGadget),
   };
+}
+
+/** How a gadget takes the triggers (its definition's `trigger`; the ones that aim by default when they have `lower`). */
+export function triggerKind(def, inst) {
+  if (def?.trigger) return def.trigger;
+  return typeof inst?.lower === 'function' ? 'aim' : 'use';
 }
 
 /** The gadgets' words that teach their own verb (how to draw the pen's line, how to pop your own bubble): said with their buttons. */
@@ -84,7 +105,7 @@ export class Gadgets {
     for (const d of defs) {
       try { this.inst.set(d.id, d.create(this.ctx)); } catch (e) { console.warn('gadget', d.id, e); }
     }
-    this.held = { use: false, pick: false }; this.pickT = 0; this.wheelOn = false; this.wheelHi = -1;
+    this.held = { use: false, pick: false, aim: false, mode: false, whistle: false }; this.pickT = 0; this.wheelOn = false; this.wheelHi = -1; this.armed = false;
     this.penT = 0;
     // found (a box, the dev menu, ?items=): nothing in hand yet, the first one found is taken in hand
     this.offs = [items.on?.((id, owned) => {
@@ -113,11 +134,21 @@ export class Gadgets {
     this.game.emit?.('gadget:equip', { id: id ?? null });
     return true;
   }
-  cycle(dir = 1) { return this.equip(nextGadget(this.owned(), this.equipped, dir)); }
+  cycle(dir = 1) { return this.equip(nextGadget(this.owned(), this.equipped, dir, { none: false })); }
+
+  /** The gadget in hand's next mode (D-pad →, X): the gun's own; one without modes says so. Returns true if it changed. */
+  nextMode() {
+    const id = this.equipped, cur = this.current;
+    if (!id || !cur) return false;
+    if (id === 'gun') return false;   // (the fluid tool takes it itself while the gun is in hand: FluidTool.update)
+    if (typeof cur.cycleMode === 'function' && (cur.modes?.length ?? 2) > 1) return cur.cycleMode(1);
+    this.ctx.notice?.(`${this.def(id)?.name ?? 'This gadget'} has no modes.`, `modes-${id}`);
+    return false;
+  }
 
   /**
-   * What the use button sounds with no gadget in hand: the bell-note whistle (or, with only the echo shell
-   * found, the shell) as a chip's { id, name, glyph }, or null while neither is owned.
+   * What Y / △ (V) sounds: the bell-note whistle (or, with only the echo shell found, the shell) as a chip's
+   * { id, name, glyph } (the chip shows it while nothing is in hand), or null while neither is owned.
    */
   instrument() {
     if (this.items.has?.('bell')) return { id: 'bell', name: this.items.has?.('echo') ? 'Bell-note whistle · echo shell' : 'Bell-note whistle', glyph: '♪' };
@@ -125,10 +156,9 @@ export class Gadgets {
     return null;
   }
 
-  /** What the wheel lists: nothing in hand first (the whistle, once found), then the gadgets owned. */
+  /** What the wheel lists: the gadgets owned (the whistle has its own button now, Y / △). */
   wheelList() {
-    const tune = this.instrument();
-    return [{ id: null, glyph: tune ? tune.glyph : 'none', name: tune ? `${tune.name} (no gadget in hand)` : 'nothing in hand', none: true, icon: tune ? this.icon?.(tune.id) ?? null : null }, ...this.owned().map((id) => ({ id, glyph: this.def(id).glyph ?? '◆', name: this.def(id).name, icon: this.icon?.(id) ?? null }))];
+    return this.owned().map((id) => ({ id, glyph: this.def(id).glyph ?? '◆', name: this.def(id).name, icon: this.icon?.(id) ?? null }));
   }
 
   /** Before the traveller moves: the buttons, the wheel, what the gadget in hand does to him. */
@@ -137,7 +167,7 @@ export class Gadgets {
       // a menu, a conversation, a scene: whatever was under way lets go, the wheel closes
       if (this.wheelOn) { this.wheelOn = false; this.hud.wheel(null); }
       for (const i of this.inst.values()) i.cancel?.();
-      this.held = { use: false, pick: false };
+      this.held = { use: false, pick: false, aim: false, mode: false, whistle: false }; this.armed = false;
       return;
     }
     const g = gadgetInput(input), cur = this.current;
@@ -162,14 +192,40 @@ export class Gadgets {
       }
     } else if (!g.pick && this.held.pick && this.pickT < WHEEL_HOLD) this.cycle(g.back || this.held.back ? -1 : 1);
     this.held.pick = g.pick; this.held.back = g.back;
-    // the use button: pressed, held, let go (to the gadget in hand)
-    if (cur && !this.wheelOn) {
-      if (g.use && !this.held.use) cur.press?.();
-      else if (g.use) cur.hold?.(dt);
-      else if (this.held.use) cur.release?.();
-    } else if (this.held.use && cur) cur.release?.();
-    else if (!cur && !this.wheelOn && g.use && !this.held.use) this.ring?.();   // nothing in hand: the bell-note whistle (V)
-    this.held.use = g.use;
+    // the whistle (Y / △): the bell-note whistle and the echo shell, whatever is in hand
+    if (g.whistle && !this.held.whistle && !this.wheelOn) this.ring?.();
+    this.held.whistle = g.whistle;
+    // D-pad → (X): the gadget in hand's next mode
+    if (g.mode && !this.held.mode && !this.wheelOn) this.nextMode();
+    this.held.mode = g.mode;
+    // the triggers, to the gadget in hand by how it takes them (triggerKind)
+    if (this._was !== cur) { if (this.armed) this._was?.lower?.(); this.armed = false; this._was = cur; }
+    const kind = cur ? triggerKind(this.def(this.equipped), cur) : null;
+    const usePress = g.use && !this.held.use;
+    const aimPress = g.aim && !this.held.aim, aimLet = !g.aim && this.held.aim;
+    if (!cur) {
+      // nothing in hand: touch's ◆ still sounds the whistle (touch has no Y)
+      if (!this.wheelOn && g.touch && usePress) this.ring?.();
+    } else if (this.wheelOn) {
+      if (this.armed) { cur.lower?.(); this.armed = false; }
+    } else if (kind === 'aim') {
+      // LT takes aim (press, hold) and puts it away unused (lower); RT throws (release), or without aiming is a quick use
+      if (aimPress) { cur.press?.(); this.armed = true; }
+      else if (g.aim && this.armed) cur.hold?.(dt);
+      if (usePress) {
+        if (this.armed) { cur.release?.(); this.armed = false; }
+        else { cur.press?.(); cur.release?.(); }
+      }
+      if (aimLet && this.armed) { cur.lower?.(); this.armed = false; }
+    } else if (kind === 'use' || kind === 'look') {
+      // held on RT (the lens: on either trigger): pressed, held, let go
+      const on = kind === 'look' ? g.use || g.aim : g.use, was = kind === 'look' ? this.held.use || this.held.aim : this.held.use;
+      if (on && !was) cur.press?.();
+      else if (on) cur.hold?.(dt);
+      else if (was) cur.release?.();
+    }
+    // (kind 'tool', the fluid gun: the fluid tool reads the triggers itself)
+    this.held.use = g.use; this.held.aim = g.aim;
     for (const i of this.inst.values()) i.control?.(dt, input);
   }
 
@@ -197,7 +253,7 @@ export class Gadgets {
     if (tune) {
       const url = this.icon?.(tune.id) ?? null;
       if (!url && !paused) this.drawPicture(tune.id);
-      this.hud.chip({ def: tune, icon: url, key: this.useKey() });
+      this.hud.chip({ def: tune, icon: url, key: this.useKey(true) });
     }
     else if (id && !busy) {
       const h = cur?.hud?.() ?? {};
@@ -213,10 +269,11 @@ export class Gadgets {
     this._pausedHud = paused;
   }
 
-  /** The use button's name on the chip: Y / △ on a pad, ◆ on a touch screen, else T. */
-  useKey() {
+  /** The use button's name on the chip: RT / R2 on a pad, ✺ on a touch screen, else T (the whistle's: Y / △, ◆, V). */
+  useKey(whistle = false) {
     const b = typeof document !== 'undefined' ? document.body?.classList : null;
-    return b?.contains?.('controller') ? 'Y / △' : b?.contains?.('touch') ? '◆' : 'T';
+    if (whistle) return b?.contains?.('controller') ? 'Y / △' : b?.contains?.('touch') ? '◆' : 'V';
+    return b?.contains?.('controller') ? 'RT / R2' : b?.contains?.('touch') ? '✺' : 'T';
   }
 
   /** Draw one gadget's picture (once: a capture that fails is not tried again). */

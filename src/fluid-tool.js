@@ -4,43 +4,46 @@ import { makeMaterial, markHero, MODE_RIBBON } from './materials.js';
 import { DRONE_BELLY, DOCK_ON_TOP, DOCK_ON_SIDE } from './drone.js';
 import { raycastTargets, hitTarget, registerTarget, targetsInCone } from './targets.js';
 import { game as sharedGame } from './game-state.js';
-import { items as sharedItems } from './items.js';
+import { items as sharedItems, backpackStage } from './items.js';
 import { triggers } from './controller.js';
 import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
 import { FluidBlade } from './fluid-blade.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
+import { boostVelocity, DOUBLE_JUMP } from './jump.js';
 
-// The magic-fluid backpack: the traveller's signature tool. A glass tank of
-// shifting, lava-lamp fluid rides on the back and feeds a glove on the right hand (no hose: it was cut
-// in October 2026, accurate but stiff in play; the glove's lit vial on the cuff shows the same fluid):
-// the glove is what shoots, the fluid leaving from just in front of its knuckles. Three abilities share one magic
-// bar (src/resources.js MAGIC: it was three charges, the tank's chambers; one unit is what a chamber was):
+// The magic-fluid backpack: the traveller's signature tool. A round glass tank of
+// shifting, lava-lamp fluid rides on the back (no hose: it was cut in October 2026, accurate but stiff in
+// play) and, once the fluid gun is found, feeds the glove on the right hand (its lit vial on the cuff shows
+// the same fluid): the glove is what shoots, the fluid leaving from just in front of its knuckles. The
+// progression rewrite (v1.38, docs/systems/progression.md): he starts with the fluid sword alone (the blade
+// below works without any item); the backpack is the desert's first find, empty; its strengths come later
+// (the lift valve's double jump, the wings, the jets: items.js BACKPACK_STAGES); the gun is a gadget
+// (src/gadgets/gun.js), found in the Givers' Hearth, and shoots only while it is the gadget in hand
+// (gunInHand). Its abilities share one magic bar (src/resources.js MAGIC: it was three charges, the tank's
+// chambers; one unit is what a chamber was):
 //   shoot  a glob of fluid, straight from the glove to the crosshair (no arc, no
 //          preview): it splashes on whatever it meets and leaves a short-lived
 //          colourful splat on surfaces (targets: onHit('shoot', point, dir, info)).
-//          Only while aiming (LT / L2, right mouse, R): the trigger that shoots
-//          then fires the jets when you are not aiming (controller.js triggers())
+//          Only while aiming (LT / L2, right mouse, R) and the gun is in hand: RT / R2 (G,
+//          a left click) shoots (controller.js triggers())
 //   push   a short cone of fluid shock (~6 m) that knocks people, creatures
 //          and loose things away (targets in the cone: onHit('push', point, dir, info))
-//   boost  a powered jump: press jump again in the air for a strong burst up
-//          (and a little forward) on a spray of fluid. Holding jump after it
-//          still opens the wings once you fall (with the glider). With the
-//          jets on the keyboard's Space, holding jump thrusts instead, and a quick
-//          double tap boosts (a pad's jump never fires the jets: RT does, so any
-//          second press in the air boosts).
+//   lift   the double jump (player.js, the lift valve): a puff of fluid from the tank under the boots and
+//          a flip; it costs nothing (liftFx is its look). It replaced the boost, a powered jump again
+//          and again while the bar lasted (the old "triple jump")
 // Like stamina, the bar refills by itself: MAGIC.delay s (1) after the last spend it starts to fill, the
 // starting bar empty to full in MAGIC.fill s (4); the quick coil quickens both (src/boxes/effects.js).
 //
-// Everything runs on the backpack (src/items.js): without items.has('backpack')
-// the tank and glove are not worn and nothing fires. The other items
-// grow out of it (fluid-kit.js):
-//   jetpack  two nozzles under the tank. Thrust burns the same bar smoothly
+// Everything but the blade runs on the backpack (src/items.js): without items.has('backpack')
+// the tank is not worn and nothing fires. The other items grow out of it (fluid-kit.js):
+//   jetpack  two nozzles under the tank. Thrust (jump held in the air) burns the same bar smoothly
 //            (FLUID.jet.drain units a second: the starting bar is ten seconds
 //            of flight); a shot needs a whole unit left. After a burn the bar
 //            waits until you land, then refills as usual (no endless flight).
 //   glider   fluid wings bloom out of the tank while gliding (hold jump while falling)
-//   stun / fire / bloom   gun modes (X, the pad's D-pad →, the touch ◐ button): the glob
+//   gun      the glove (a gadget): shown on the hand once found
+//   stun / fire / bloom   gun modes (X, the pad's D-pad → with the gun in hand, the touch ◐ button): the glob
 //            stills (onHit 'stun'), burns ('fire') or grows ('bloom') instead of splashing; all
 //            modes share the bar (targets.js: who accepts which mode)
 // Vehicles run on it too: boarding a powered vehicle swings the tank off the back into
@@ -62,12 +65,12 @@ import { MAGIC, MAGIC_COST } from './resources.js';
 //   tool.colours          colour bands added to the fluid (game flag tool.colours, 1 at the start)
 //   tool.tones            the tones in the blend, hex strings
 //   tool.enabled          false: put away, nothing fires (the ship prologue, cutscenes)
-//   tool.owned            the backpack is found (items.has('backpack'))
+//   tool.owned            the backpack is found (items.has('backpack')); tool.gunInHand: the gun is the gadget in hand
 //   tool.dry              the tank is empty (flag tool.empty): nothing until magical water fills it
 //   tool.mode / tool.modes / tool.setMode(id) / tool.cycleMode(±1)   'shoot' | 'push' | 'stun' | 'fire' | 'bloom' (push: the cone, fired as a shot)
 //   tool.refill({ addColour, tone })   fill now; addColour adds a band (tone: its colour, optional)
 //   game.emit('tool:refill', { addColour: true }) · game.emit('tool:enable', { on: false })
-//   emits 'tool:fire' { mode, point } (mode: shoot / stun / fire / push / boost / jet start),
+//   emits 'tool:fire' { mode, point } (mode: shoot / stun / fire / push / lift / jet start),
 //   'tool:refilled' { charges, colours, added }, 'tool:mode' { mode }, 'tool:dock' { vehicle, on },
 //   'tool:bloom' { point, normal } (a bloom glob landed on the world: src/boxes/effects.js grows a few flowers there)
 
@@ -78,7 +81,7 @@ export const FLUID = {
   maxColours: 5,          // colour bands magical water can add (the blend shows colours + 1 tones)
   shoot: { speed: 34, gravity: 0, range: 42, cooldown: 0.28, splatLife: 5, splatSize: 0.75 },   // gravity 0: a straight shot
   push: { range: 6, angle: 0.62, cooldown: 0.4, shove: 2.4, recoil: 2.2 },    // angle: cone half-angle (rad, ~35°); shove: metres people are knocked back (info.shove)
-  boost: { up: 15, forward: 4, keep: 0.35, doubleTap: 0.35 },              // keep: share of a rising jump's speed kept
+  boost: DOUBLE_JUMP,                                       // the double jump's burst (src/jump.js, player.js); keep: share of a rising jump's speed kept
   jet: { drain: MAGIC_COST.jets, min: 0.02 },  // units burnt per second of thrust (3 = 10 s); min: the gauge that still lights them
 };
 
@@ -271,17 +274,8 @@ export function clearLine(physics, from, dir, to, rayFrom, rayDir, kind = 'world
 }
 const _cl = new THREE.Vector3();
 
-/**
- * A boost: the velocity along up becomes a fresh burst (keeping a share of a
- * jump that is still rising), plus a push along fwd (unit, tangent). Works in
- * any gravity frame. Mutates and returns vel.
- */
-export function boostVelocity(vel, up, fwd, { up: burst = FLUID.boost.up, forward = FLUID.boost.forward, keep = FLUID.boost.keep } = {}) {
-  const vu = vel.dot(up);
-  vel.addScaledVector(up, burst + Math.max(vu, 0) * keep - vu);
-  if (fwd) vel.addScaledVector(fwd, forward);
-  return vel;
-}
+/** The double jump's burst (src/jump.js boostVelocity: the lift valve, player.js; once the fluid boost). */
+export { boostVelocity };
 
 // ---------------------------------------------------------------- visuals
 
@@ -495,27 +489,38 @@ class Rings {
 
 // The tank, in its own frame (y up the glass from its bottom, +z toward the
 // wearer's back), placed in the chest anchor's frame (y = 0 at the hips,
-// 0.74 at the collar, +z forward, the character's right at -x). The glass flask
-// follows the selected Ivory and Jade reference: a flat rounded rectangular reservoir,
-// framed in ivory enamel and brass over a sage pad. Jade living fluid holds turquoise
-// and pale lemon currents; charge height, vehicle socket and scout docks retain
-// their existing frames. The side uprights carry the scout and lantern.
+// 0.74 at the collar, +z forward, the character's right at -x). The round backpack (v1.38, the progression
+// rewrite; references/Core Objects/Round Backpack/, the sheet's first pick): a glass sphere of living jade fluid
+// in a brass cradle (a ring round it in the plane of the back, a band round its equator with three charge lights,
+// a foot cup), a short capped brass neck with a turquoise cloth tied round it, an olive canvas back plate padded
+// against the body and leather straps up over the shoulders; no hose. Its stages (items.js BACKPACK_STAGES, the
+// states sheet's second pick): 1 the lift valve (the valve's wheel on the neck, a second ring, two small fins),
+// 2 the wings (folding brass vanes at its sides), 3 the jets (a second valve on the cap, the glass brighter, the
+// fluid quicker). The side struts carry the scout and lantern; charge height, vehicle socket and scout docks keep
+// their frames.
+const SPHERE_R = 0.19, SPHERE_Y = SPHERE_R + 0.01;
 export const TANK = {
-  at: [0, 0.4, -0.283],     // glass bottom: on the upper back, its top under the shoulders
-  scale: 0.8,               // a shoulder-blade-wide reservoir on the adult body
-  height: 0.36,             // glass
-  full: 0.34,               // fluid height at three charges (a sliver of air under the collar)
+  at: [0, 0.4, -0.37],      // glass bottom: on the upper back, its top under the shoulders (half sunk in the old body's rucksack)
+  scale: 0.8,               // a sphere 30 cm across on the adult body (the sheet: "about the size of a large melon")
+  height: SPHERE_Y + SPHERE_R,   // glass
+  full: SPHERE_Y + SPHERE_R - 0.025,   // fluid height with the bar full (a sliver of air under the neck)
   squash: 1,                // across the back (x), of the round profile
-  depth: 0.55,              // front to back (z): a flat flask, not a drum
-  straps: [],               // leather bands round the glass (none: the collar and the shoulder tabs hold it)
-  // Conservative horizontal envelope for dock clearance: rounded corners, straight sides.
-  profile: [[0.125, 0], [0.15, 0.012], [0.1625, 0.035], [0.1625, 0.09], [0.1625, 0.21], [0.1625, 0.29], [0.16, 0.325], [0.15, 0.35], [0.125, 0.36]],
-  collar: { y: 0.318, h: 0.05 },   // shoulder-tab attachment frame; the glass stays unobscured
-  neck: { y: 0.374, h: 0.04, r: 0.046, stopper: 0.034 },
+  depth: 1,                 // front to back (z): a sphere
+  radius: SPHERE_R, center: SPHERE_Y,
+  straps: [],               // leather bands round the glass (none: the cradle holds it, the straps go over the shoulders)
+  // the sphere's profile (radius at height), for the dock clearance and tankRadiusAt
+  profile: Array.from({ length: 13 }, (_, i) => { const a = -Math.PI / 2 + (i / 12) * Math.PI; return [Math.max(0.02, SPHERE_R * Math.cos(a)), SPHERE_Y + SPHERE_R * Math.sin(a)]; }),
+  collar: { y: SPHERE_Y + SPHERE_R - 0.03, h: 0.05 },   // the straps' attachment frame, round the neck
+  neck: { y: SPHERE_Y + SPHERE_R - 0.03, h: 0.06, r: 0.05, stopper: 0.036 },
+  band: { y: SPHERE_Y, h: 0.042 },   // the brass band round the equator, its three charge lights on the outer face
+  plate: { w: 0.36, h: 0.46, d: 0.045 },   // the olive canvas back plate (worn)
   highlight: -1.05,         // streak angle (atan2(z, x) in tank space): on the back, to one side
   inked: true,              // blobs inked at full strength (not the player's softer interior lines)
   base: '#49ab83',          // the living fluid's own green (a gun mode tints it its first tone)
+  glow: [0.32, 0.62],       // the glass's glow: empty .. full (the magic bar); the jets' stage adds STAGE_GLOW
 };
+/** How much brighter the glass is at the jets' stage (3), and how much quicker its fluid. */
+export const STAGE_GLOW = 0.18, STAGE_RATE = 1.3;
 const profileCurve = new THREE.SplineCurve(TANK.profile.map(([r, y]) => new THREE.Vector2(r, y)));
 function radiusAt(y) {
   // the profile is monotonic in y: a few bisection steps are plenty
@@ -527,14 +532,13 @@ function radiusAt(y) {
 export const tankRadiusAt = radiusAt;
 /**
  * The scout's dock on the tank, in the tank's frame (it rides with the tank, into a vehicle's
- * socket too): clamped by its foot to the top of the flask's left upright (the wearer's left),
- * beside the neck and above the shoulder, over the upright's top bracket (the lantern hangs from
- * the upright below), off the glass. (The rucksack is slim: lower down the swinging arms would
- * reach it.)
+ * socket too): clamped by its foot to the top of the cradle's left strut (the wearer's left),
+ * beside the neck and above the shoulder, over the strut's top bracket (the lantern hangs from
+ * the strut below), off the glass.
  */
 // (the top and the dock where they were on the body with the old, taller tank: 0.645 and 0.624 of it over a
 // glass bottom 0.12 m lower; high enough that the swinging arms never reach the scout)
-export const TANK_RAIL = { x: TANK.profile.reduce((m, [r]) => Math.max(m, r), 0) * TANK.squash + 0.018, r: 0.012, z: -0.03, top: 0.495, brackets: [0.04, TANK.height - 0.07] };
+export const TANK_RAIL = { x: SPHERE_R * TANK.squash + 0.03, r: 0.012, z: -0.03, top: 0.495, brackets: [0.06, TANK.center + 0.1] };
 export const SCOUT_DOCK_Y = 0.474;
 export const SCOUT_DOCK_X = TANK_RAIL.x + TANK_RAIL.r + DRONE_BELLY / TANK.scale + 0.002;
 export const SCOUT_DOCK_Z = TANK_RAIL.z;
@@ -553,76 +557,121 @@ export function scoutDockPose(k, pos, quat) {
   return pos;
 }
 
-const LEATHER = '#5e4b37', STOPPER = '#e9dcbc';
+const LEATHER = '#6a4a33', CANVAS = '#7d8a5a', CANVAS_DARK = '#5f6c44', CLOTH = '#3f9a92', LIGHT_OFF = '#3d6b60';
 /**
- * The flask itself (the worn tank's and the item's picture, src/boxes/model.js): the glass in its fluid
- * material (`glassMat`), the collar, the neck and stopper, the foot ring and, worn
- * (`worn`), the leather tabs up over the shoulders. In the tank's frame. Returns { group, glass }.
+ * The round backpack itself (the worn tank's and the item's picture, src/boxes/model.js): the glass sphere in its
+ * fluid material (`glassMat`), the brass cradle (the ring in the plane of the back, the equator band with its three
+ * charge lights, the foot cup), the neck and its cap, the cloth tie and, worn (`worn`), the canvas back plate and the
+ * leather straps up over the shoulders. In the tank's frame. Returns { group, glass, lights, stages }: `lights` the
+ * band's three charge lights (lit for the units of the bar: FluidTool.updateWorn), `stages` [null, s1, s2, s3] the
+ * parts each backpack stage adds (shown by setStage), kept apart from the merged rest.
  */
-export function buildFlask(glassMat, { worn = true, mat = flatMat } = {}) {
+export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } = {}) {
   const g = new THREE.Group();
-  g.name = 'Fluid flask';
-  // (sq: the part takes the flask's flattening, across and front to back)
-  const add = (geo, m, x = 0, y = 0, z = 0, sq = true) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); if (sq) { o.scale.x = TANK.squash; o.scale.z = TANK.depth; } g.add(o); return o; };
-  // A shallow rounded rectangular reservoir: its broad glass face stays readable at play distance.
-  const outline = new THREE.Shape();
-  outline.moveTo(-0.125, 0); outline.lineTo(0.125, 0);
-  outline.quadraticCurveTo(0.1625, 0, 0.1625, 0.0375); outline.lineTo(0.1625, 0.3225);
-  outline.quadraticCurveTo(0.1625, 0.36, 0.125, 0.36); outline.lineTo(-0.125, 0.36);
-  outline.quadraticCurveTo(-0.1625, 0.36, -0.1625, 0.3225); outline.lineTo(-0.1625, 0.0375);
-  outline.quadraticCurveTo(-0.1625, 0, -0.125, 0);
-  const reservoir = new THREE.ExtrudeGeometry(outline, { depth: 0.12, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 3, steps: 1, curveSegments: 8 }).translate(0, 0, -0.06);
-  const glass = add(reservoir, glassMat, 0, 0, 0, false);
+  g.name = 'Round backpack';
+  const add = (geo, m, x = 0, y = 0, z = 0, to = g) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); to.add(o); return o; };
+  const R = SPHERE_R, CY = SPHERE_Y, N = TANK.neck, B = TANK.band;
+  // (its vertices in the tank's frame, the centre CY up: the shader reads the fill height off them)
+  const glass = add(new THREE.SphereGeometry(R, 40, 28).translate(0, CY, 0), glassMat);
   glass.name = 'Fluid glass';
-  const C = TANK.collar, N = TANK.neck;
-  // Ivory enamel rims on both faces, edged in aged brass; no band obscures the fluid.
-  const edge = outline.getPoints(12);
-  for (const z of [-0.066, 0.066]) {
-    const path = new THREE.CatmullRomCurve3(edge.slice(0, -1).map(p => new THREE.Vector3(p.x, p.y, z)), true);
-    add(new THREE.TubeGeometry(path, 96, 0.012, 6, true), mat(STOPPER), 0, 0, 0, false);
-    const piping = new THREE.CatmullRomCurve3(edge.slice(0, -1).map(p => new THREE.Vector3(p.x * 1.055, (p.y - 0.18) * 1.045 + 0.18, z)), true);
-    add(new THREE.TubeGeometry(piping, 96, 0.003, 4, true), mat(BRASS), 0, 0, 0, false);
-  }
+  const brass = mat(BRASS), dark = mat(BRASS_DARK);
+  // the cradle: a ring round the sphere in the plane of the back, and the band round its equator
+  add(new THREE.TorusGeometry(R + 0.012, 0.011, 6, 48), brass, 0, CY, 0.02);
+  const band = add(new THREE.CylinderGeometry(R + 0.012, R + 0.012, B.h, 48, 1, true), mat(BRASS, { side: THREE.DoubleSide }), 0, B.y, 0);
+  band.name = 'Band';
+  for (const y of [B.y - B.h / 2, B.y + B.h / 2]) add(new THREE.TorusGeometry(R + 0.013, 0.004, 3, 48).rotateX(Math.PI / 2), dark, 0, y, 0);
+  // rivets where the ring meets the band, and the foot cup under the glass
+  for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.011, 8, 6), dark, sx * (R + 0.016), CY, 0.02);
+  add(new THREE.CylinderGeometry(0.05, 0.035, 0.03, 16), brass, 0, 0.012, 0);
+  add(new THREE.SphereGeometry(0.014, 8, 6), dark, 0, -0.006, 0);
+  // the neck and its cap, a collar ring, and the turquoise cloth tied round it (its knot and a loose end)
+  add(new THREE.CylinderGeometry(N.r * 0.92, N.r, N.h, 18), brass, 0, N.y + N.h / 2, 0);
+  add(new THREE.TorusGeometry(N.r * 1.02, 0.007, 4, 18).rotateX(Math.PI / 2), dark, 0, N.y + N.h * 0.75, 0);
+  add(new THREE.CylinderGeometry(N.stopper, N.stopper * 1.05, 0.02, 14), brass, 0, N.y + N.h + 0.01, 0);
+  add(new THREE.TorusGeometry(N.r * 1.12, 0.014, 6, 18).rotateX(Math.PI / 2).scale(1, 0.8, 1), mat(CLOTH), 0, N.y + 0.012, 0);
+  add(new THREE.SphereGeometry(0.022, 8, 6).scale(1.3, 0.9, 0.8), mat(CLOTH), 0.04, N.y + 0.008, -0.035);
+  add(new THREE.BoxGeometry(0.018, 0.06, 0.008).rotateZ(-0.5), mat(CLOTH), 0.062, N.y - 0.03, -0.045);
+  // the band's three charge lights on its outer face (-z: away from the back), each its own material (lit by FluidTool)
+  const lights = [-1, 0, 1].map((i) => { const a = Math.PI + i * 0.2; const m = add(new THREE.SphereGeometry(0.0115, 8, 6), makeMaterial({ color: LIGHT_OFF, flat: true, glow: 0.2 }), Math.sin(a) * (R + 0.015), B.y, Math.cos(a) * (R + 0.015)); m.name = 'Charge light'; return m; });
   if (worn) {
-    const backing = reservoir.clone().scale(1.1, 1.04, 0.22).translate(0, 0, 0.09);
-    add(backing, mat('#99a987'), 0, 0, 0, false);
-  }
-  add(new THREE.BoxGeometry(0.13, 0.025, 0.11), mat(STOPPER), 0, 0.368, 0, false);
-  // Three etched charge marks on each side of the rear glass.
-  for (const x of [-0.142, 0.142]) for (let i = 1; i <= 3; i++)
-    add(new THREE.BoxGeometry(0.018, 0.003, 0.003), mat(BRASS_DARK), x, i * TANK.full / 3 - 0.02, -0.071, false);
-  // the neck, its stopper and a brass bead on it
-  add(new THREE.CylinderGeometry(N.r * 0.9, N.r, N.h, 16), mat(BRASS), 0, N.y + N.h / 2, 0, false);
-  add(new THREE.TorusGeometry(N.r * 0.92, 0.007, 4, 16).rotateX(Math.PI / 2), mat(INK), 0, N.y + N.h * 0.7, 0, false);
-  add(new THREE.CylinderGeometry(N.stopper * 0.86, N.stopper, 0.034, 12), mat(STOPPER), 0, N.y + N.h + 0.017, 0, false);
-  add(new THREE.SphereGeometry(0.014, 8, 6), mat(BRASS), 0, N.y + N.h + 0.04, 0, false);
-  if (worn) {
-    // the leather tabs from the collar's corners up over his shoulders (into the collar of his shirt)
+    // the olive canvas back plate between the glass and his back, padded, stitched round, two rivets
+    const P = TANK.plate;
+    const shape = new THREE.Shape(), w = P.w / 2, h = P.h, r = 0.06, y0 = CY - h / 2;
+    shape.moveTo(-w + r, y0); shape.lineTo(w - r, y0); shape.quadraticCurveTo(w, y0, w, y0 + r); shape.lineTo(w, y0 + h - r);
+    shape.quadraticCurveTo(w, y0 + h, w - r, y0 + h); shape.lineTo(-w + r, y0 + h); shape.quadraticCurveTo(-w, y0 + h, -w, y0 + h - r);
+    shape.lineTo(-w, y0 + r); shape.quadraticCurveTo(-w, y0, -w + r, y0);
+    add(new THREE.ExtrudeGeometry(shape, { depth: P.d, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 2, curveSegments: 6 }), mat(CANVAS), 0, 0, R + 0.012);
+    const edge = shape.getPoints(10).map((p) => new THREE.Vector3(p.x * 0.9, CY + (p.y - CY) * 0.92, R + 0.006));
+    add(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(edge.slice(0, -1), true), 72, 0.0035, 4, true), mat(CANVAS_DARK));
+    for (const sx of [-1, 1]) add(new THREE.SphereGeometry(0.012, 8, 6), dark, sx * (w - 0.04), y0 + h - 0.05, R + 0.004);
+    // the leather straps: from the plate's top corners up over his shoulders (into the collar of his shirt), buckled
     for (const sx of [-1, 1]) {
-      const a = new THREE.Vector3(sx * 0.1, C.y + C.h * 0.6, 0.03), b = new THREE.Vector3(sx * 0.105, 0.43, 0.27), d = b.clone().sub(a);
-      const tab = add(new THREE.BoxGeometry(0.042, 0.011, d.length()), mat(LEATHER), (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2, false);
-      tab.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
-      add(new THREE.BoxGeometry(0.03, 0.016, 0.02), mat(BRASS), a.x, a.y, a.z + 0.004, false).quaternion.copy(tab.quaternion);   // its buckle on the collar
+      const a = new THREE.Vector3(sx * (w - 0.05), y0 + h - 0.02, R + 0.04), b = new THREE.Vector3(sx * 0.105, 0.43 / TANK.scale + 0.05, 0.27 / TANK.scale + 0.12), d = b.clone().sub(a);
+      const strap = add(new THREE.BoxGeometry(0.046, 0.011, d.length()), mat(LEATHER), (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+      strap.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize());
+      add(new THREE.BoxGeometry(0.034, 0.018, 0.022), brass, a.x, a.y, a.z + 0.004).quaternion.copy(strap.quaternion);   // its buckle
     }
   }
-  return { group: g, glass };
+  // the stages' parts (setStage shows them): 1 the lift valve, 2 the wings' vanes, 3 the jets' valve
+  const stages = [null, new THREE.Group(), new THREE.Group(), new THREE.Group()];
+  stages.forEach((s, i) => { if (s) { s.name = `Backpack stage ${i}`; g.add(s); } });
+  {
+    const s = stages[1];
+    // the valve's wheel on the neck's cap (the sheet's), a second ring over the top (front to back), two small fins on the band
+    const top = N.y + N.h + 0.02;
+    add(new THREE.CylinderGeometry(0.008, 0.008, 0.035, 8), dark, 0, top + 0.017, 0, s);
+    add(new THREE.TorusGeometry(0.045, 0.007, 5, 20).rotateX(Math.PI / 2), brass, 0, top + 0.036, 0, s);
+    for (let i = 0; i < 3; i++) add(new THREE.BoxGeometry(0.09, 0.006, 0.006).rotateY((i * Math.PI) / 3), brass, 0, top + 0.036, 0, s);
+    add(new THREE.TorusGeometry(R + 0.016, 0.008, 5, 48).rotateY(Math.PI / 2), brass, 0, CY, 0, s);
+    for (const sx of [-1, 1]) {
+      const fin = new THREE.Shape(); fin.moveTo(0, -0.03); fin.lineTo(0.075, -0.006); fin.lineTo(0.07, 0.016); fin.lineTo(0, 0.03); fin.lineTo(0, -0.03);
+      const m = add(new THREE.ExtrudeGeometry(fin, { depth: 0.008, bevelEnabled: false }).translate(0, 0, -0.004), mat(BRASS, { side: THREE.DoubleSide }), sx * (R + 0.012), B.y, -0.02, s);
+      m.rotation.y = sx < 0 ? Math.PI : 0;
+    }
+  }
+  {
+    const s = stages[2];
+    // folding brass vanes at the sides like little wings, folded back along the band (three a side, on a hinge post)
+    for (const sx of [-1, 1]) {
+      add(new THREE.CylinderGeometry(0.009, 0.009, 0.12, 8), dark, sx * (R + 0.03), B.y + 0.02, 0.01, s);
+      for (let i = 0; i < 3; i++) {
+        const vane = new THREE.Shape(); vane.moveTo(0, -0.018); vane.lineTo(0.13 - i * 0.025, -0.01); vane.lineTo(0.12 - i * 0.025, 0.014); vane.lineTo(0, 0.018); vane.lineTo(0, -0.018);
+        const m = add(new THREE.ExtrudeGeometry(vane, { depth: 0.006, bevelEnabled: false }), mat(BRASS, { side: THREE.DoubleSide }), sx * (R + 0.03), B.y + 0.06 - i * 0.04, 0.01, s);
+        m.rotation.set(0, sx < 0 ? Math.PI - 1.1 : 1.1, sx * (0.35 - i * 0.3));
+      }
+    }
+  }
+  {
+    const s = stages[3];
+    // the jets' extra valve: a capped brass stack on the cap's shoulder, its own little wheel
+    add(new THREE.CylinderGeometry(0.018, 0.022, 0.07, 12), brass, 0.085, N.y + 0.01, 0.02, s);
+    add(new THREE.CylinderGeometry(0.026, 0.026, 0.014, 12), dark, 0.085, N.y + 0.05, 0.02, s);
+    add(new THREE.TorusGeometry(0.022, 0.005, 4, 14).rotateX(Math.PI / 2), brass, 0.085, N.y + 0.066, 0.02, s);
+  }
+  setStage({ stages }, stage);
+  return { group: g, glass, lights, stages };
 }
 
-function buildTank() {
-  const R = TANK.profile.reduce((m, [r]) => Math.max(m, r), 0);
-  const { group: g, glass } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: 0.5, fluidBox: [0, TANK.full, R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }));
+/** Show the parts of a backpack stage (0..3) and those below it (buildFlask's `stages`). */
+export function setStage(flask, stage = 0) {
+  (flask.stages ?? []).forEach((s, i) => { if (s) s.visible = i <= stage; });
+  return flask;
+}
+
+function buildTank(stage = 0) {
+  const { group: g, glass, lights, stages } = buildFlask(makeMaterial({ color: '#ffffff', fluid: 'tank', glow: TANK.glow[1], fluidBox: [0, TANK.full, SPHERE_R, TANK.highlight], fluidTones: FLUID_TONES, fluidBase: TANK.base }), { stage });
   g.name = 'Fluid tank';
   const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); g.add(o); return o; };
-  // the leather-bound uprights at the flask's sides, bracketed to his back: the scout rides the left one's top, the lantern hangs off it
+  // the cradle's brass struts at the sphere's sides, bracketed to the plate: the scout rides the left one's top, the lantern hangs off it
   const railX = TANK_RAIL.x;
   for (const sx of [-1, 1]) {
-    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK_RAIL.top + 0.035, 6), flatMat(LEATHER), sx * railX, (TANK_RAIL.top - 0.035) / 2, TANK_RAIL.z);
-    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.03, 0.026, 0.15), flatMat(LEATHER), sx * railX, y, TANK_RAIL.z + 0.07);
-    add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z);   // a brass knob on the upright's top
+    add(new THREE.CylinderGeometry(TANK_RAIL.r, TANK_RAIL.r, TANK_RAIL.top - 0.05, 6), flatMat(BRASS_DARK), sx * railX, 0.05 + (TANK_RAIL.top - 0.05) / 2, TANK_RAIL.z);
+    for (const y of TANK_RAIL.brackets) add(new THREE.BoxGeometry(0.026, 0.024, 0.12), flatMat(BRASS_DARK), sx * railX, y, TANK_RAIL.z + 0.06);   // (short: clear of the sword's frog behind the shoulder)
+    add(new THREE.SphereGeometry(0.018, 8, 6), flatMat(BRASS), sx * railX, TANK_RAIL.top, TANK_RAIL.z);   // a brass knob on the strut's top
   }
-  mergeParts(g, [glass]);
+  mergeParts(g, [glass, ...lights, ...stages.filter(Boolean)]);
   g.position.set(...TANK.at); g.scale.setScalar(TANK.scale);
-  return { group: noCollide(g), glass, top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
+  return { group: noCollide(g), glass, lights, stages, top: TANK.at[1] + (TANK.neck.y + TANK.neck.h + 0.05) * TANK.scale };
 }
 
 /**
@@ -669,7 +718,7 @@ export class FluidTool {
     this.pending = null; this.time = 0; this._enabled = true;
     this.held = { fire: false, quick: false, push: false, blade: false, mode: false };
     this.mode = 'shoot'; this.modeFlash = 0; this.fluidTime = 0; this.rate = 1;
-    this.appear = items.has('backpack') ? 1 : 0; this.jetBurnt = false; this.where = 'back'; this.power = new Map();
+    this.appear = items.has('backpack') ? 1 : 0; this.stage = this.stageNow(); this.jetBurnt = false; this.where = 'back'; this.power = new Map();
     this.aimPoint = new THREE.Vector3(); this.aimDir = new THREE.Vector3(0, 0, -1);
     this.globs = [];
     this.fill = items.has('backpack') && state.flag('tool.empty') ? 0 : 1; this.flash = 0; this.wave = 0; this.slosh = 0; this.lastHit = null; this.ringLit = [1, 1, 1];
@@ -717,11 +766,14 @@ export class FluidTool {
     // found (a box, a quest, the dev menu): the tank appears with a shimmer; a lost mode falls back to shoot
     this.offs.push(items.on((id, owned) => {
       if (id === 'backpack' && owned) this.shimmer();
+      // a strength found (the lift valve, the wings, the jets): the backpack's next stage, with a flash of fluid
+      const stage = this.stageNow();
+      if (stage !== this.stage) { const up = stage > this.stage; this.stage = stage; if (this.tank) setStage(this.tank, stage); if (up) { this.flash = 1; this.wave = 1; this.slosh = 1; } }
       if (!owned && !this.modes.includes(this.mode)) this.mode = 'shoot';
     }));
-    // boost: the player asks on a fresh press of jump in the air (player.js); the jets
+    // the double jump's puff of fluid (player.js asks for its look); the jets
     // burn the reserve (fuelSource) and boarding a vehicle swings the tank into it (handoff)
-    if (player) { player.onAirJump = (since, o) => this.boost(since, o); player.fuelSource = this; player.handoff = this; }
+    if (player) { player.onDoubleJump = () => this.liftFx(); player.fuelSource = this; player.handoff = this; }
   }
 
   /** Put the tank and glove on the traveller (needs the humanoid's chest anchor and arm bones). */
@@ -730,7 +782,7 @@ export class FluidTool {
     if (!H?.chestAnchor) return;
     // (the traveller keeps his canvas rucksack, the flask sits in its outer face: traveller.js, updateWorn())
     if (!H.outfit) for (const o of (p.gear?.packDockParent ?? p.gear?.scoutDock?.parent)?.children ?? []) if (o.isMesh) o.visible = false;   // the procedural pack
-    const tank = (this.tank = buildTank());
+    const tank = (this.tank = buildTank(this.stage ?? 0));
     tank.group.position.set(...this.tankAt);
     H.chestAnchor.add(tank.group);
     // the scout clings to the tank's left side (the cap would hide the helmet), folded, its foot on the glass
@@ -774,7 +826,7 @@ export class FluidTool {
     this.fx.removeFromParent(); this.tank?.group.removeFromParent();
     if (this.glove?.show) this.glove.show(false); else for (const o of this.glove?.meshes ?? []) o.visible = false;
     const p = this.player;
-    if (p?.onAirJump) p.onAirJump = null;
+    if (p?.onDoubleJump) p.onDoubleJump = null;
     if (p?.fuelSource === this) p.fuelSource = null;
     if (p?.handoff === this) p.handoff = null;
   }
@@ -796,8 +848,12 @@ export class FluidTool {
   get dregs() { return this.dry ? Math.max(0, Math.min(this.reserve.max, Math.floor(Number(this.state.flag('tool.dregs')) || 0))) : 0; }
   /** The tank is on the traveller's back (not in a vehicle's socket, nor swinging between). */
   get worn() { const p = this.player; return this.owned && !p?.ride && !p?.boarding && !p?.unboarding; }
-  /** The gun modes the traveller owns ('shoot' first); none without the backpack. */
+  /** The gun modes the traveller owns ('shoot' first); none without the gun (and the backpack it drinks from). */
   get modes() { return ownedModes((id) => this.items.has(id)); }
+  /** The gun is found and is the gadget in hand (src/gadgets/: the flag gadget.equipped): only then do the triggers shoot. */
+  get gunInHand() { return (!!this.forceGun || (this.items.has('gun') && this.state.flag('gadget.equipped') === 'gun')) && this.modes.length > 0; }   // (forceGun: a game on foot lends it in hand, src/minigames/kit/onfoot.js)
+  /** The backpack's stage (0..3): how many of its strengths are owned (items.js BACKPACK_STAGES); the tank shows it. */
+  stageNow() { return backpackStage((id) => this.items.has(id)); }
   get modeName() { return MODES[this.mode]?.name ?? 'fluid'; }
   /** Switch to an owned mode: the tank and the glove's plate retint, the HUD says so. Returns true if it changed. */
   setMode(mode) {
@@ -846,8 +902,12 @@ export class FluidTool {
 
   /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, flying on the jets (aiming in flight holds you: player.jetHold, and then it can), in menus and photo mode. */
   allowed(paused) {
+    return this.bodyFree(paused) && this.worn;
+  }
+  /** The body is free for the arm (the blade needs no item: it is his from the start): not riding, gliding, climbing, on the jets, knocked down, in a menu. */
+  bodyFree(paused) {
     const p = this.player;
-    return !paused && this._enabled && !!p && this.worn && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.onJets && !p.down && p.object?.visible !== false;   // (nor knocked down)
+    return !paused && this._enabled && !!p && !p.ride && !p.boarding && !p.unboarding && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.onJets && !p.down && p.object?.visible !== false;   // (nor knocked down)
   }
 
   /**
@@ -884,7 +944,10 @@ export class FluidTool {
   update(dt, ctl = {}, paused = false) {
     this.time += dt;
     const p = this.player, input = toolInput(paused ? {} : ctl);
-    const ok = this.allowed(paused);
+    // the triggers and the mode button are the gun's only while it is the gadget in hand (src/gadgets/: else the
+    // gadget in hand has them); the blade, the guard and the evade are always his
+    if (!this.gunInHand) { input.aim = input.shoot = input.fire = input.quick = input.mode = false; }
+    const ok = this.allowed(paused), bodyOk = this.bodyFree(paused);
     // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
     const quickPress = input.quick && !this.held.quick;
     // (the push is a gun mode: fired as a shot, it throws its cone instead of a glob)
@@ -936,7 +999,7 @@ export class FluidTool {
     } else if (p) p.aim = null;
     if (this.rig) this.rig.aimK = smooth(Math.min(this.k, this.camK));
     // the blade swings when the arm isn't up for a shot (it takes the aim pose for its arc)
-    this.blade.update(dt, bladePress && this.k < 0.3, ok && this.k < 0.5 && !this.player?.swim, input.guard, input.evade, !!input.blade && this.k < 0.3);   // (the guard: held; the blade button held: the charge)
+    this.blade.update(dt, bladePress && this.k < 0.3, bodyOk && this.k < 0.5 && !this.player?.swim, input.guard, input.evade, !!input.blade && this.k < 0.3);   // (the guard: held; the blade button held: the charge)
 
     this.updateGlobs(dt);
     const up = p?.frame.up ?? _y;
@@ -1098,7 +1161,8 @@ export class FluidTool {
     }
     // the mode's look: its tones, and how the lava moves (stilling: nearly still; ember: boiling)
     const look = MODES[this.mode] ?? MODES.shoot;
-    this.rate += (look.rate - this.rate) * (1 - Math.exp(-4 * dt));
+    const quick = (this.stage ?? 0) >= 3 ? STAGE_RATE : 1;   // (the jets' stage: the fluid swirls faster)
+    this.rate += (look.rate * quick - this.rate) * (1 - Math.exp(-4 * dt));
     this.fluidTime += dt * this.rate;
     const tones = this.modeTones, n = tones.length, key = tones.join();
     const retone = key !== this._tonesKey;
@@ -1131,10 +1195,12 @@ export class FluidTool {
     // the scout hops onto the cap while the wings are open, and back onto the rail when they fold
     const capK = THREE.MathUtils.clamp((this.scoutCapK ?? 0) + (owned && (p?.wingK ?? 0) > 0.02 ? 1 : -1) * dt / SCOUT_CAP.hop, 0, 1);
     if (capK !== (this.scoutCapK ?? 0)) { this.scoutCapK = capK; this.placeDock(owned); }
-    // the glove is worn with the tank (it is what shoots); the hand is bare without it
-    if (this.glove?.show) this.glove.show(owned);
-    else if (this.glove && this.glove.visible !== owned) for (const o of this.glove.meshes) o.visible = owned;
-    if (this.glove) this.glove.visible = owned;
+    // the glove is the fluid gun (src/gadgets/gun.js): worn once it is found, with the tank (it drinks from it);
+    // the hand is bare without it (the sword's hilt is held bare-handed)
+    const gloved = owned && this.items.has('gun');
+    if (this.glove?.show) this.glove.show(gloved);
+    else if (this.glove && this.glove.visible !== gloved) for (const o of this.glove.meshes) o.visible = gloved;
+    if (this.glove) this.glove.visible = gloved;
     if (owned && this.appear < 1 && where === 'back') {
       const e = this.appear, sc = 0.25 + 0.75 * e + Math.sin(Math.PI * e) * 0.18;
       this.tank.group.scale.setScalar(sc * TANK.scale);
@@ -1148,6 +1214,10 @@ export class FluidTool {
     this.updatePower(dt);
     if (!visible) return;
     if (where !== 'back') return;
+    // the backpack's glass glows with the bar (empty: dim; full: bright; the jets' stage brighter still), and the band's
+    // three charge lights light for the whole units left, as the glove's knuckles do
+    if (this.tankU?.uGlow) this.tankU.uGlow.value = THREE.MathUtils.lerp(TANK.glow[0], TANK.glow[1], THREE.MathUtils.clamp(this.fill, 0, 1)) + ((this.stage ?? 0) >= 3 ? STAGE_GLOW : 0);
+    for (let i = 0; i < (this.tank.lights?.length ?? 0); i++) lightGlove(this.tank.lights[i], tones[i % tones.length], THREE.MathUtils.clamp(this.ringLit[i], 0, 1), 0.9);
     // the glove's knuckles light for the charges left (in sequence as it refills), its plate in the
     // mode's tone, brighter for a moment as it fires or changes mode, dim with the tank empty
     for (let i = 0; i < 3; i++) {
@@ -1244,23 +1314,15 @@ export class FluidTool {
   }
 
   /**
-   * Called by the player on a fresh press of jump in the air (since: seconds
-   * since the previous press). Spends a charge on a boost; returns true if it
-   * did (the player then skips its glide for this press). With the jets on
-   * the same key (the keyboard's Space, touch's jump: o.jets) only a quick
-   * double tap boosts, so holding jump still thrusts; a pad's jump never fires
-   * the jets (RT does), so there any press in the air boosts.
+   * The double jump's look (player.js calls it as the lift valve opens: player.onDoubleJump): a puff of fluid
+   * down from the tank and under the boots, and a ring where it leaves. It costs nothing.
    */
-  boost(since = Infinity, { jets = true } = {}) {
+  liftFx() {
     const p = this.player;
-    if (!p || !this._enabled || !this.worn || p.climbing || p.mantle || p.object?.visible === false) return false;
-    if (this.canJet && jets && since > FLUID.boost.doubleTap) return false;
-    if (!this.reserve.use(MAGIC_COST.boost)) { this.sputter(); return false; }
-    const U = p.frame.up, fwd = p.frame.dir(p.heading, _f);
-    boostVelocity(p.vel, U, fwd);
-    this.used('boost', p.pos);
+    if (!p || p.object?.visible === false) return;
+    const U = p.frame.up;
+    this.used('lift', p.pos);
     this.sound?.fluidBoost?.();
-    // a spray of fluid down from the tank and under the boots, and a ring where it leaves
     const tones = this.modeTones;
     const base = this.tank ? this.tank.group.localToWorld(_o.set(0, -0.05, 0)) : _o.copy(p.pos).addScaledVector(U, 0.9);
     for (let i = 0; i < 34; i++) {

@@ -19,6 +19,8 @@
 //   note     where it is and how you get there (for people, not the code)
 //   temple   the box stands inside that world's temple (src/temples/): the gadget there is the key to
 //            the temple's later rooms; no box quest of its own (the temple's quest leads to it)
+//   story    the main quest leads there (the desert's lift valve and gun, in the cave and the Hearth: interiors
+//            built far from the world's ground, through their doorways): no box quest of its own
 //
 // The makers' gifts are split half and half: the tools that open a temple's later rooms wait inside
 // it, the small gifts in the open (src/temples/index.js GADGETS has the plan, world by world).
@@ -33,6 +35,16 @@ export const PLACEMENTS = {
     // of the well; the box's pale column shows the way.
     { id: 'desert.backpack', item: 'backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
       note: 'In Qanat, on the makers’ pedestal high on the burning tree’s trunk, left of the dry well: climb the buttress root, then the stone pier. The first find, and the elder’s.' },
+    // the progression rewrite (v1.38, docs/systems/progression.md): he comes with his sword alone. The backpack's first
+    // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main
+    // quest leads down there to fill the tank (and the box hums once it is full), on the dry floor between the basin and
+    // the cave's wall, facing the pool
+    { id: 'desert.lift', item: 'doublejump', site: (level) => level.qanat?.cave && { at: level.qanat.cave.local(16, 0, 13).toArray(), face: Math.atan2(-16, -13) }, story: true,
+      note: 'In the cave of the giant’s heart (the skull’s mouth, past Qanat’s back gate), on the floor beside the pool. The main quest goes there to fill the tank.' },
+    // the fluid gun (a gadget) in the Givers' Hearth, by the stone ball its push rolls (the main quest's spark-stone):
+    // on the hall's floor across from the plinth, facing the passage in
+    { id: 'desert.gun', item: 'gun', site: (level) => level.hearth?.local && { at: level.hearth.local(8.5, 0, -2).toArray(), face: 0 }, story: true,
+      note: 'In the Givers’ Hearth far out in the red rocks (the hoverbike’s ride), on the hall’s floor across from the stone ball. The main quest goes there for the spark-stone.' },
     // Qanat: on the flat roof of a domeless house inside the main gate (a 6 m climb)
     { id: 'desert.star', item: 'star', at: [246.9, 7.6, 363.6], lift: 0.5, toward: [230, 330],
       hint: 'A makers’ box sits on a flat roof just inside Qanat’s main gate. Climb the house wall',
@@ -210,6 +222,10 @@ export const PLACEMENTS = {
 export const FALLBACKS = [
   // the backpack powers everything; you could arrive anywhere without it (the worlds menu)
   { item: 'backpack', slot: 0, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
+  // the desert's two other finds (v1.38): the worlds after it are built for the double jump (the sky stones, the
+  // tower's steps, the crowns of trees) and the fluid gun (lamps, plates, the hands-on errands, the temples)
+  { item: 'doublejump', slot: 2, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
+  { item: 'gun', slot: 3, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
   // the jetpack worlds need jets
   { item: 'jetpack', slot: 1, when: ({ level }) => !!level?.features?.jetpack },
 ];
@@ -218,4 +234,6 @@ export const FALLBACKS = [
 export const FALLBACK_OFFSETS = [
   [[3.4, 4.2], [-3.4, 4.2], [4.6, 1.5], [-4.6, 1.5], [0, 6.5], [6, 6], [-6, 6], [2.5, 9], [-2.5, 9]],
   [[-3.6, 5.6], [3.6, 6.2], [-5, 2.8], [5, 3], [0, 9], [-7, 7], [7, 7], [-3, 11], [3, 11]],
+  [[6.4, 2.2], [-6.4, 2.6], [1.6, 7.8], [-8, 4.4], [8, 9], [-5.4, 10], [9.5, 2], [-9.5, 2], [5, 12.5]],
+  [[-1.6, 7.8], [6.8, 5.4], [-6.8, 6.2], [9, 5.2], [-9, 8.6], [1.4, 12.5], [-6, 13], [10.5, 11], [-11, 3]],
 ];

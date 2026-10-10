@@ -147,9 +147,9 @@ function wandModel() {
 }
 
 export default {
-  id: 'bubble', name: 'Bubble wand', glyph: '◯', order: 90,
+  id: 'bubble', name: 'Bubble wand', glyph: '◯', order: 90, trigger: 'aim',
   text: 'A brass loop on a turned handle and a little pot of the makers’ soap, which never runs dry. Its bubbles are tougher than they look, and lighter than air.',
-  use: 'Hold Y / △ (T, or the middle mouse button) to aim and let go to blow a bubble. It catches the first thing it meets (a foe, a crate, a bomb) and floats it up for six seconds: foes are helpless inside, crates can be lifted onto ledges, a bomb’s fuse waits until the bubble pops. Aim at your own feet, or press it in the air, to float up yourself and drift with the stick. Press again (or jump) to pop it. Spikes, fire and blades pop it too.',
+  use: 'Aim with LT / L2 (R, or the right mouse button) and blow a bubble with RT / R2 (T, or a left click). It catches the first thing it meets (a foe, a crate, a bomb) and floats it up for six seconds: foes are helpless inside, crates can be lifted onto ledges, a bomb’s fuse waits until the bubble pops. Aim at your own feet, or press it in the air, to float up yourself and drift with the stick. Press again (or jump) to pop it. Spikes, fire and blades pop it too.',
   model: wandModel,
   create(ctx) { return new Wand(ctx); },
 
@@ -216,6 +216,8 @@ class Wand {
   equip() { this.ctx.sfx?.equip?.(this.ctx.sound); }
   unequip() { this.aiming = false; }
   cancel() { this.aiming = false; }
+  /** The aim let go unused (LT / L2 released: src/gadgets/index.js). */
+  lower() { this.aiming = false; }
 
   press() {
     if (this.bubble) { this.pop('pressed'); this.cool = BUBBLE.cool * 0.5; return; }   // pressed again: popped

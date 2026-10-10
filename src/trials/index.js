@@ -40,17 +40,17 @@ const CONTROLS = {
   skiff: { pad: [['Left stick', 'steer'], ['RT / R2', 'throttle'], ['Y / △', 'the gust fan, into the sail']], keys: [['W A S D', 'steer'], ['T', 'the gust fan, into the sail']] },
   bird: { pad: [['Left stick', 'fly'], ['A / ×', 'beat the wings']], keys: [['W A S D', 'fly'], ['Space', 'beat the wings']] },
   glider: { pad: [['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer; back to float']], keys: [['Space', 'jump, then hold to glide'], ['W A S D', 'steer; S to float']] },
-  jets: { pad: [['RT / R2', 'thrust'], ['Left stick', 'fly the nose']], keys: [['Space held', 'thrust'], ['W A S D', 'fly the nose']] },
+  jets: { pad: [['A / × held in the air', 'thrust'], ['Left stick', 'fly the nose']], keys: [['Space held', 'thrust'], ['W A S D', 'fly the nose']] },
   foot: { pad: [['Left stick', 'run'], ['A / ×', 'jump']], keys: [['W A S D', 'run'], ['Space', 'jump']] },
   eyes: { pad: [['LT / L2', 'aim'], ['RT / R2', 'splash']], keys: [['Right mouse', 'aim'], ['Left mouse', 'splash']] },
   kitwings: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump, then hold to open the wings'], ['Left stick', 'steer the wings; back to float']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump, then hold to glide'], ['W A S D', 'steer the wings; S to float']] },
   kit: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['LT / L2', 'aim'], ['RT / R2', 'splash'], ['D-pad →', 'the gun’s mode']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['Right mouse', 'aim'], ['Left mouse', 'splash'], ['X', 'the gun’s mode']] },
   // (the echo relay: the stones splashed, the shell played back: src/echo-shell.js, the whistle's button)
   // (the bell crossing: the bell-note whistle on the same button, src/boxes/effects.js ring())
-  kitbell: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the bell (no gadget in hand)']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the bell']] },
+  kitbell: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the bell']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the bell']] },
   // (the lamp walk: the lantern charm wakes a lamp by itself; you only stand by it)
   kitlamp: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump']] },
-  kitecho: { pad: [['Left stick', 'walk; L3 to run'], ['LT / L2', 'aim'], ['RT / R2', 'splash a stone'], ['Y / △', 'play the shell back (no gadget in hand)']], keys: [['W A S D', 'walk; Shift to run'], ['Right mouse', 'aim'], ['Left mouse', 'splash a stone'], ['V', 'play the shell back']] },
+  kitecho: { pad: [['Left stick', 'walk; L3 to run'], ['LT / L2', 'aim'], ['RT / R2', 'splash a stone'], ['Y / △', 'play the shell back']], keys: [['W A S D', 'walk; Shift to run'], ['Right mouse', 'aim'], ['Left mouse', 'splash a stone'], ['V', 'play the shell back']] },
 };
 
 const COUNT = { 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six' };
@@ -189,6 +189,8 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
     try() {
       const why = world.lacks();
       if (why) { notice(`${T.name}: ${why} Come back with it.`); return false; }
+      // a run that wants the fluid gun starts with it in hand (the triggers are the gadget in hand's: src/gadgets/)
+      if ([...(MODES[T.mode]?.needs ?? []), ...(T.needs ?? [])].includes('gun') && items.has('gun')) game.set('gadget.equipped', 'gun');
       return open(world.game);
     },
     session: (ctx) => (kitRun ? kitSession(ctx) : session(ctx)),

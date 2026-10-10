@@ -12,8 +12,8 @@ import { Flammables, flammableSpots } from '../src/flammable.js';
 import { NPC } from '../src/npc.js';
 import { items, ITEMS, MODE_ITEMS } from '../src/items.js';
 
-// Everything runs on the magic-fluid backpack (src/items.js): the tool, the jets,
-// the wings, the gun modes and the powered vehicles.
+// Everything but the sword runs on the magic-fluid backpack (src/items.js): the double jump, the jets,
+// the wings, the fluid gun (a gadget, in hand: src/gadgets/gun.js) and its modes, and the powered vehicles.
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -51,12 +51,13 @@ function setup({ up = null, physics = ground(), mount = null } = {}) {
   const camera = new THREE.PerspectiveCamera();
   camera.position.copy(p.pos).add(v(0.8, 1.6, 3.4)); camera.lookAt(0.8, 1.6, -30); camera.updateMatrixWorld();
   const state = new GameState(null);
+  state.set('gadget.equipped', 'gun');   // (the gun in hand, once found: src/gadgets/index.js)
   const tool = new FluidTool({ scene, player: p, physics, camera, rig: { aimK: 0 }, state });
   const step = (n, ctl = {}) => { for (let i = 0; i < n; i++) { p.update(DT, ctl, 0); scene.updateMatrixWorld(); tool.update(DT, ctl); } };
   return { p, tool, scene, camera, state, step, calls };
 }
 
-test('no backpack: no tank or glove, nothing fires, nothing throws; found, it shimmers onto the back and works', () => {
+test('no backpack: no tank or glove, nothing fires, nothing throws, one jump; found, it shimmers onto the back; the gun found, it shoots', () => {
   own();
   const { p, tool, step } = setup();
   const pocket = new THREE.Object3D(); p.humanoid.packPocket = [pocket];   // (the rucksack's outer pocket, traveller.js)
@@ -69,8 +70,10 @@ test('no backpack: no tank or glove, nothing fires, nothing throws; found, it sh
   step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(1, { TouchFire: true }); step(10);
   assert.equal(tool.k, 0, 'the arm never comes up');
   assert.equal(tool.globs.length, 0); assert.equal(tool.charges, 3);
-  p.pos.set(0, 20, 0); p.onGround = false;
-  assert.equal(p.onAirJump(1), false, 'no boost');
+  p.pos.set(0, 20, 0); p.onGround = false; p.vel.set(0, 0, 0);
+  step(1, { Space: true });
+  assert.ok(p.vel.y < 0 && p.flipping == null, 'no double jump');
+  assert.equal(tool.blade.group.visible, true, 'the sword is his from the start');
   // found (a box, a quest, the dev menu): live
   items.grant('backpack');
   assert.equal(tool.appear, 0, 'the shimmer starts');
@@ -81,10 +84,19 @@ test('no backpack: no tank or glove, nothing fires, nothing throws; found, it sh
   step(70);
   assert.ok(Math.abs(tool.tank.group.scale.x - TANK.scale) < 1e-6 && tool.appear === 1);
   assert.equal(pocket.visible, false, 'the flask sits over the pocket');
+  assert.equal(tool.glove.visible, false, 'no glove: the gun is a find of its own');
+  assert.deepEqual(tool.modes, [], 'nothing to shoot with');
+  // the fluid gun found, and in hand (the gadgets' runtime takes the first gadget found in hand: src/gadgets/index.js)
+  items.grant('gun'); tool.state.set('gadget.equipped', 'gun');
+  step(2);
   assert.equal(tool.glove.visible, true, 'the glove on');
   p.pos.set(0, 0, 0); p.onGround = true; step(5);
   tool.setMode('push'); step(1, { TouchFire: true }); step(12);   // (the push: a gun mode, fired as a shot)
   assert.equal(tool.charges, 2, 'the push works now');
+  // another gadget in hand: the triggers are its, the gun is quiet
+  tool.state.set('gadget.equipped', 'hook'); step(60);
+  step(30, { KeyR: true }); step(1, { KeyR: true, KeyG: true }); step(10);
+  assert.ok(tool.k < 0.01, `the arm stays down (${tool.k})`); assert.equal(tool.globs.length, 0);
   tool.dispose();
 });
 
@@ -175,7 +187,7 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
   assert.equal(nextMode('shoot', ['shoot'], 1), 'shoot');
   assert.equal(nextMode('fire', ['shoot', 'stun', 'fire'], 1), 'shoot');
   assert.equal(nextMode('shoot', ['shoot', 'stun', 'fire'], -1), 'fire');
-  own('backpack');
+  own('backpack', 'gun');
   const { tool, step, state } = setup();
   const events = [];
   state.on('tool:mode', (e) => events.push(e.mode));
@@ -218,7 +230,7 @@ test('gun modes cycle through the owned ones only; the tank retints; all share t
 });
 
 test('a stilling glob freezes people; an ember glob lights a lamp and burns a bramble away; others get plain shoot', () => {
-  own('backpack', 'stun', 'fire');
+  own('backpack', 'gun', 'stun', 'fire');
   const hadDoc = 'document' in globalThis;
   if (!hadDoc) globalThis.document = { createElement: () => ({ className: '', style: {}, classList: { add() {}, remove() {}, toggle() {} } }), body: { appendChild() {} } };
   // the fallback: a target that doesn't accept a mode gets 'shoot' (with info.mode)
@@ -443,7 +455,7 @@ test('calling the mount whistles (also when it has no power to come); a dormant 
 });
 
 test('bloom mode: a fourth gun mode with its own leaf-and-petal band in the tank; its globs tell the makers’ seeds to grow, and leave flowers where they land', () => {
-  own('backpack', 'fire');
+  own('backpack', 'gun', 'fire');
   const { tool, step, state } = setup();
   assert.deepEqual(tool.modes, ['shoot', 'push', 'fire'], 'not without the item');
   items.grant('bloom');

@@ -13,7 +13,8 @@ import { quietOr } from '../hint-level.js';
 // in the floor that lead round to a plinth. On the plinth a stone ball sits in a
 // groove, a chain running from the hole at the groove's end up the wall and over
 // to the grille. Hands can't move it (E: a look); a shove of fluid (push: the
-// tank was filled at the giant's pool) rolls it down the groove and into the
+// tank was filled at the giant's pool; the fluid gun waits in a makers' chest in
+// this same hall, src/boxes/placements.js 'desert.gun') rolls it down the groove and into the
 // hole: the chain runs and the grille grinds up into the rock. Climb the shelf
 // (the wall's face is plain rock) and take the stone: it goes into your pack
 // (the gear page lists it: the quest items you carry), glowing faintly through
@@ -28,8 +29,8 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
 const ROLL = 1.3, DROP = 0.45, LIFT = 2.4;   // s: the ball rolls, drops, the grille rises
 
-/** ctx: the desert story's context; hasPush: () => the tank can push (full); lit: () => the tree burns. */
-export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {}) {
+/** ctx: the desert story's context; hasPush: () => the gun can push (found, the tank full); hasGun: () => the fluid gun is found; lit: () => the tree burns. */
+export function setupHearth(ctx, { hasPush = () => true, hasGun = () => true, lit = () => false } = {}) {
   const { level, player, quests, dialogue, game, sound, toast } = ctx;
   const H = level.hearth;
   if (!H) return null;
@@ -63,7 +64,8 @@ export function setupHearth(ctx, { hasPush = () => true, lit = () => false } = {
     distance: (p) => (inside() && Math.abs(p.pos.y - H.ball.position.y) < 3 ? flat(p.pos, H.ball.position) : Infinity),
     use: () => {
       dialogue.start(THINGS.weight, null, H.ball.position.clone());
-      if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it where the water is (the giant’s pool, past Qanat’s back gate).'), 0), 600);
+      if (!hasGun()) setTimeout(() => hint(quietOr('Hands won’t move it.', 'Hands won’t move it. A shove of fluid would: the makers’ chest in this hall holds the Givers’ gun.'), 0), 600);
+      else if (!hasPush()) setTimeout(() => hint(quietOr('Your tank is empty.', 'Your tank is empty: fill it where the water is (the giant’s pool, past Qanat’s back gate).'), 0), 600);
     } });
   registerInteractable({ id: 'hearth.grille', priority: PRIORITY.use, range: 3, at: () => H.stone.position, enabled: () => !opened() && st.roll < 0,
     prompt: 'look at the grille', distance: (p) => (inside() && Math.abs(p.pos.y - H.stone.position.y) < 2.5 ? flat(p.pos, H.stone.position) : Infinity),

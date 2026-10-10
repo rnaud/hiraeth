@@ -144,9 +144,9 @@ export const recallSfx = {
 // ------------------------------------------------------------------ the gadget
 
 export default {
-  id: 'recall', name: 'Recall hourglass', glyph: '⧗', order: 50,
+  id: 'recall', name: 'Recall hourglass', glyph: '⧗', order: 50, trigger: 'aim',
   text: 'A small hourglass in a frame of dark wood and brass, its sand running the wrong way. Held up to something, it remembers where that thing has been.',
-  use: 'Point at something that moved in the last few seconds (a crate knocked off a ledge, a thrown bomb, a cab in traffic): its path shows as a dotted line. Press Y / △ (T, or the middle mouse button) and it goes back along it, up to eight seconds, carrying whatever stands on it. Press again to stop it; if you started it with the button held, letting go stops it. Hold Y / △ with nothing in sight to aim over the shoulder.',
+  use: 'Point at something that moved in the last few seconds (a crate knocked off a ledge, a thrown bomb, a cab in traffic): its path shows as a dotted line. Press RT / R2 (T, or the middle mouse button) and it goes back along it, up to eight seconds, carrying whatever stands on it. Press again to stop it; if you started it with the button held, letting go stops it. Hold Y / △ with nothing in sight to aim over the shoulder.',
   model: hourglassModel,
   create(ctx) { return new Recall(ctx); },
 
@@ -253,6 +253,8 @@ class Recall {
   equip() { this.ctx.sfx?.equip?.(this.ctx.sound); }
   unequip() { if (this.state === 'aim') this.state = 'idle'; if (this.recalling) this.stop(); this.hide(); }
   cancel() { if (this.state === 'aim') this.state = 'idle'; if (this.recalling) this.stop(); }
+  /** The aim let go unused (LT / L2 released: src/gadgets/index.js); a rewind under way goes on. */
+  lower() { if (this.state === 'aim') this.state = 'idle'; }
 
   press() {
     if (this.recalling) { this.stop(); this.swallow = true; return; }

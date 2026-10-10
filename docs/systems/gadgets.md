@@ -45,20 +45,50 @@ Since v0.98 each is found in the worlds, one a world (below, "In the worlds"); a
 
 ## The buttons
 
+Since v1.38 (the progression rewrite, docs/systems/progression.md) the triggers work the gadget in hand, and the
+fluid gun is one of the gadgets (`gun.js`):
+
 | | pad (by position) | keyboard / mouse | touch |
 |---|---|---|---|
-| use (press, hold, let go) | Y / △ (`PadGadget`) | T, the middle mouse button | ◆ |
+| aim | LT / L2 (`PadAim`) | R, the right mouse button | ◎ (a toggle) |
+| use: shoot, throw, swing | RT / R2 (`PadFire`) | T or G, the middle mouse button, a left click while aiming | ✺ (◆ too) |
+| its next mode | D-pad → (`PadModeNext`) | X | ◐ |
 | next gadget (a tap) | D-pad ↑ (`PadGadgetPick`) | B (Shift + B: the one before) | tap the chip |
 | the wheel (held 0.32 s) | D-pad ↑ held, the left stick points | B held, W A S D point | |
+| the bell-note whistle, the echo shell | Y / △ (`PadWhistle`) | V | ◆ with nothing in hand |
+| riding: the gadget in hand (the fan into a skiff's sail) | Y / △ (`PadRideGadget`; RT is the throttle) | T | |
 
-With nothing in hand the use button sounds the bell-note whistle and plays the echo shell back, once found
-(`ring`, the V key's job: src/boxes/effects.js), and the chip shows the whistle; the wheel's first slot says
-so. B only chooses gadgets: it is not a guard key (v0.93, docs/systems/controls.md "The layout"). The game menu's Items panel takes a gadget in hand
-too (`onUse`).
+How a gadget takes the triggers is its definition's `trigger` (`triggerKind` in `index.js`):
 
-D-pad ↑ chooses gadgets and nothing else, aiming or not, and the wheel holds the gadgets only (one job per
-button, v1.11): the fluid tool's gun modes are D-pad → (the next, round again: src/fluid-tool.js), the
-potion D-pad ←, the mount D-pad ↓ (docs/systems/controls.md, "Why each is where it is").
+- `'aim'` (the hook, the bombs, the boomerang, the bubble wand, the hourglass): LT pressed is its `press()` (it takes
+  aim), held its `hold(dt)`; RT then is its `release()` (it lets fly). LT let go without RT is `lower()`: the aim put
+  away unused (each of these gadgets has one; a hook already out keeps its line). RT pressed without aiming is
+  `press()` and `release()` at once: thrown where the camera looks.
+- `'use'` (the fan, the spring boots, the magnet glove, the ink pen): RT pressed, held and let go; LT does nothing to it.
+- `'look'` (the seeing lens): held up on either trigger.
+- `'tool'` (the fluid gun): the runtime leaves the triggers alone; the fluid tool reads them while the gun is in hand
+  (`FluidTool.gunInHand`).
+
+D-pad → (X) is the gadget in hand's next mode (`Gadgets.nextMode`): the gun's are the fluid tool's own (fluid, push,
+and the modes found); a gadget with `modes` and `cycleMode()` takes its next; one without says so ("… has no
+modes"). Y / △ (V) sounds the bell-note whistle and plays the echo shell back whatever is in hand (`ring`:
+src/boxes/effects.js); the chip shows the whistle while nothing is in hand. Nothing in hand is no longer a stop of
+the round, and the wheel holds the gadgets only. B only chooses gadgets: it is not a guard key (v0.93,
+docs/systems/controls.md "The layout"). The game menu's Items panel takes a gadget in hand too (`onUse`). The first
+gadget found is taken in hand by itself (for a new game: the gun, in the Givers' Hearth).
+
+## The fluid gun (`gun.js`, v1.38)
+
+The glove the fluid comes out of (src/fluid-tool.js, docs/systems/traveller-kit.md "The fluid glove"), a gadget
+since the progression rewrite: found in the desert's Givers' Hearth (`desert.gun`, by the stone ball its push
+rolls), worn on the hand from then on. `trigger: 'tool'`: while it is the gadget in hand the fluid tool aims on LT,
+shoots (and pushes, a mode) on RT, and takes the next mode on D-pad →; with another gadget in hand the tool's
+triggers are quiet (`toolInput` zeroed but for the sword's buttons). Its item is in src/items.js too (kind
+`gadget`), so node's tests and the save know it without the registry; the registry replaces it with the same
+words and adds its model (`gunModel`). A game on foot lends it in hand (`tool.forceGun`,
+src/minigames/kit/onfoot.js); a makers' run or a trial that wants it takes it in hand as it starts
+(src/trials/index.js). The modes (`stun`, `fire`, `bloom`) need it: a requirement of one is met only with the gun
+too (src/resources.js `meetsWith`).
 
 ## Played together
 

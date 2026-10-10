@@ -398,7 +398,7 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.equal(quests.objective().label, 'Nour, the eldest');
   assert.equal(game.flag('desert.shrine.gathered'), true);
   assert.equal(game.flag('tool.empty'), true, 'the tank in it is empty');
-  assert.equal(game.flag('tool.dregs'), 1, 'but for one shot of the makers’ old fluid');
+  assert.equal(game.flag('tool.dregs'), undefined, 'no makers’ dregs any more (v1.38: no gun to shoot them with)');
   assert.equal(Q.city.lit, 0, 'the tree stays cold');
   assert.ok(W.gatherSpots.length >= W.villagers.length, `room for everyone to gather (${W.gatherSpots.length} spots)`);
   for (const p of W.gatherSpots) stand(p, 'a gathering spot');
@@ -439,7 +439,7 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   step(2);
   assert.equal(quests.stage('desert.power'), 'ask');
   t.mock.timers.tick(3400);
-  assert.ok(toasts.some((t) => /nearly empty: one last swallow/.test(t) && /One shot/.test(t)), 'it says the tank is nearly empty: one shot');
+  assert.ok(toasts.some((t) => /dry: not a drop/.test(t)), 'it says the tank is dry');
   assert.ok(!toasts.some((t) => /Try shooting/.test(t)), 'no nudge to try an empty tool');
   boxes.dispose();
 });
@@ -529,6 +529,11 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(W.dry(), false);
   assert.ok(toasts.some((t) => /empty tank fills/.test(t)), 'it says so');
   step(2);
+  // ---- the chest beside the pool (v1.38): the lift valve, the backpack's first strength (the double jump)
+  assert.equal(quests.stage('desert.power'), 'valve');
+  assert.ok(quests.objective().label.includes('chest'), 'the marker leads to the chest by the pool');
+  items.grant('doublejump');   // (the box: tests/boxes.test.js opens them; tests/playthrough.test.js walks to this one)
+  step(2);
   assert.equal(quests.stage('desert.power'), 'up');
 
   // ---- up the keepers' stair behind the pool to the hatch in the back lane (one way: it only lifts from below)
@@ -593,6 +598,10 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.ok(H.stones.length >= 8, `${H.stones.length} marked stones on the way`);
   for (let i = 1; i < H.stones.length; i++) assert.ok(H.stones[i].distanceTo(H.stones[i - 1]) < 200, 'a stone in sight of the last');
   at(H.doorFront); step(2);
+  // ---- the Givers' chest in the hall (v1.38): the fluid gun, whose push rolls the ball
+  assert.equal(quests.stage('desert.power'), 'gun');
+  items.grant('gun');
+  step(2);
   assert.equal(quests.stage('desert.power'), 'stone');
   const [inPortal] = level.portals.filter((p) => p.label === 'Givers’ Hearth');
   assert.ok(inPortal && inPortal.to.distanceTo(H.inside) < 0.1, 'its door leads into the hall');

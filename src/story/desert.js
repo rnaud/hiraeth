@@ -42,11 +42,13 @@ import { quietOr } from '../hint-level.js';
 // of the drinking, the smoke column climbs from it, and the feast begins
 // (the procession sings, the bands play double time).
 //
-// The backpack comes out of its chest empty (game flag tool.empty, src/fluid-tool.js):
-// no shot, no push, no boost. The rib is heaved off the channel with the old
-// keepers' pole over the carved post (three heaves); the pool rises and the first
-// wade fills the tank (and adds the giant's colour) and Ama's jar. The water climbs
-// the roots into the well while you watch (desert.well.watched).
+// The traveller comes with his sword alone (the progression rewrite, v1.38: docs/systems/progression.md).
+// The backpack comes out of its chest empty (game flag tool.empty, src/fluid-tool.js), and he has no gun yet.
+// The rib is heaved off the channel with the old keepers' pole over the carved post (three heaves); the pool
+// rises and the first wade fills the tank (and adds the giant's colour) and Ama's jar. The water climbs
+// the roots into the well while you watch (desert.well.watched). Beside the pool a makers' chest holds the
+// lift valve (the double jump, the backpack's first strength: src/boxes/placements.js 'desert.lift'); in the
+// Givers' Hearth a chest holds the fluid gun (a gadget, 'desert.gun'), whose push rolls the stone ball.
 //
 // The reaction at the tree: the first time you come near the closed chest, the
 // people on the terrace turn and murmur and the tree flares; when it opens
@@ -141,16 +143,18 @@ export function askedDone(game) {
   return true;
 }
 
-/** The chest's gift: an empty tank but for one shot of the makers' old fluid, with the buttons as the player holds them. */
-export function dregsText(kind = inputKind()) {
-  const k = (v) => verbKey(v, kind);
-  return `The tank on your back is nearly empty: one last swallow of the makers’ old fluid at the bottom of the glass. One shot. Aim with ${k('aim')}, then ${k('fire')}.`;
+/** The chest's gift: the backpack, its round glass dry (since v1.38 no makers' dregs: there is no gun to shoot them yet). */
+export function dregsText() {
+  return 'The glass sphere on your back is dry: not a drop in it. Where the water is, it fills (Nour says).';
 }
 
-/** The tank's first fill at the pool: what it does now, with the buttons as the player holds them (src/prompt-keys.js verbKey). */
+/** The tank's first fill at the pool: what it does now (src/prompt-keys.js verbKey: the buttons as the player holds them). */
 export function filledText(kind = inputKind()) {
   const k = (v) => verbKey(v, kind);
-  return `The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now it shoots (aim with ${k('aim')}, then ${k('fire')}) and pushes (switch the gun to push with ${k('mode')}, and shoot).`;
+  const gun = items.has('gun');
+  return gun
+    ? `The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. Now the gun shoots (aim with ${k('aim')}, then ${k('fire')}) and pushes (its push with ${k('mode')}).`
+    : 'The water rushes in, and the empty tank fills: cyan, violet, and the coral of the giant’s pool. It will power the old machines now. Something beside the pool hums back.';
 }
 
 export function setupDesert(ctx) {
@@ -346,8 +350,8 @@ export function setupDesert(ctx) {
   // ---------------------------------------------------------------- the tank: empty until the giant's pool
   // (src/fluid-tool.js reads the same flag: no charges, no refill, a press only sputters)
   const dry = () => (tool ? !!tool.dry : items.has('backpack') && !!game.flag('tool.empty'));
-  // the tool pushes once the backpack is found and filled; before that, hands (and the keepers' pole)
-  const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack')) && !dry();
+  // the tool pushes once the backpack is found and filled and the gun found (v1.38); before that, hands (and the keepers' pole)
+  const toolHasPush = () => !!tool && (tool.owned ?? items.has('backpack')) && items.has('gun') && !dry();
   let dryT = -1e9;
   game.on('tool:dry', () => {
     if (st.clock - dryT < 25) return;
@@ -356,9 +360,13 @@ export function setupDesert(ctx) {
     toast(open() ? 'The tank is empty. Wade into the giant’s pool to fill it.' : 'The tank is empty: dry glass, not a drop. Where the water is, it fills (Nour says).');
   });
 
-  // the Givers' House (src/temples/desert.js) wants the fluid from its first room (the push, the splash):
-  // walked in with an empty tank, you are told where to fill it
-  game.on('flag:temple.desert.entered', (v) => { if (v && dry()) setTimeout(() => toast('Your tank is empty, and nothing in the Givers’ House will answer an empty tank. Fill it first, at the giant’s pool past Qanat’s back gate.'), 2500); });
+  // the Givers' House (src/temples/desert.js) wants the fluid gun from its first room (the push, the splash):
+  // walked in without it, or with an empty tank, you are told where to find what it wants
+  game.on('flag:temple.desert.entered', (v) => {
+    if (!v) return;
+    if (!items.has('gun')) setTimeout(() => toast('Nothing in the Givers’ House moves for hands. Its balls and fires want the fluid gun: the Givers kept one by their fire, in the Hearth far out in the red rocks.'), 2500);
+    else if (dry()) setTimeout(() => toast('Your tank is empty, and nothing in the Givers’ House will answer an empty tank. Fill it first, at the giant’s pool past Qanat’s back gate.'), 2500);
+  });
 
   // ---------------------------------------------------------------- the drum, and the mask's eyes
   // jammed against a rib by a knuckle of spine; drifted shut with sand (src/story/desert-errands.js)
@@ -597,14 +605,13 @@ export function setupDesert(ctx) {
     feed: () => { if (quests.has('water')) quests.take('water'); game.set('desert.ship.fed', true); },
   });
   game.on('ship:enter', () => { feedShip(); repay.enter(); });
-  // the backpack found: its tank is empty but for the makers' dregs, one shot of old fluid (tool.dregs,
-  // src/fluid-tool.js), so the shot is felt at once; the giant's pool fills it for good (a new save;
-  // an older one carried a full tank already)
+  // the backpack found: its tank is empty (since v1.38 without the makers' dregs: no gun to shoot them with);
+  // the giant's pool fills it for good (a new save; an older one carried a full tank already)
   game.on('box:opened', ({ item, id } = {}) => {
     if (item !== 'backpack') return;
     const empty = id === 'desert.backpack' && !open() && !game.flag('desert.pool.tinted');
-    if (empty) { game.set('tool.empty', true); game.set('tool.dregs', 1); }
-    setTimeout(() => toast(empty ? dregsText() : `Try shooting (aim ${verbKey('aim')}, shoot ${verbKey('fire')}) or pushing (switch the gun to push with ${verbKey('mode')}, and shoot).`), 3200);
+    if (empty) game.set('tool.empty', true);
+    if (empty) setTimeout(() => toast(dregsText()), 3200);
   });
   // the dregs spent: the tank is dry glass until the pool (once)
   game.on('tool:dregs', ({ left } = {}) => {
@@ -890,7 +897,7 @@ export function setupDesert(ctx) {
 
   // ---------------------------------------------------------------- the spark-stone's errand
   // Nour's word sends you for the stone: the hoverbike's errand starts then (if it hasn't), the Hearth waits
-  const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry()), lit });
+  const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry() && items.has('gun')), hasGun: () => items.has('gun'), lit });
   // the bowl, the camp and the bell on the long ride there (src/story/desert-way.js)
   const way = setupWay(ctx);
   const road = setupRoad(ctx);   // the pilgrims' road home, its lamps lit once the tree burns

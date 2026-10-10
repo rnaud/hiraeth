@@ -55,3 +55,33 @@ test('a new game has nothing to migrate; loading runs the migration and saves it
   const g2 = new GameState(storage);
   assert.equal(g2.flag('met.lio.edena'), undefined, 'meeting the City-Shaft’s Lio in a new game marks nobody else');
 });
+
+test('the progression rewrite (v1.38): a save keeps the double jump and the gun it had earned; an earlier one follows the new order', () => {
+  const run = (flags) => { const f = { 'save.migrated': 7, ...flags }; migrateFlags(f); return f; };
+  // before the backpack: nothing to give (the sword was always his)
+  const fresh = run({ 'prologue.done': true });
+  assert.equal(fresh['item.doublejump'], undefined); assert.equal(fresh['item.gun'], undefined);
+  // the backpack, its tank still empty (between Qanat's chest and the pool): the new order from here on
+  const empty = run({ 'item.backpack': true, 'tool.empty': true, 'quest.desert.power.stage': 'down' });
+  assert.equal(empty['item.doublejump'], undefined, 'the lift valve waits by the pool');
+  assert.equal(empty['item.gun'], undefined, 'the gun waits in the Hearth');
+  // the tank filled at the pool (it could boost): the lift valve, its chest found open; the gun still ahead
+  const pool = run({ 'item.backpack': true, 'tool.empty': false, 'desert.pool.tinted': true, 'desert.channel.open': true });
+  assert.equal(pool['item.doublejump'], true); assert.equal(pool['box.desert.lift'], true);
+  assert.equal(pool['item.gun'], undefined, 'the Hearth is still ahead');
+  // past the Hearth: both, the gun in hand
+  const hearth = run({ 'item.backpack': true, 'desert.pool.tinted': true, 'desert.hearth.open': true });
+  assert.equal(hearth['item.doublejump'], true); assert.equal(hearth['item.gun'], true); assert.equal(hearth['box.desert.gun'], true);
+  assert.equal(hearth['gadget.equipped'], 'gun', 'in hand, as it always was');
+  // an older save (a full tank from the start, no empty-tank flag) out in the worlds, a gadget in hand: both, its gadget kept
+  const later = run({ 'item.backpack': true, 'world.desert.done': true, 'quest.arzach.bird.stage': 'tower', 'item.hook': true, 'gadget.equipped': 'hook' });
+  assert.equal(later['item.doublejump'], true); assert.equal(later['item.gun'], true);
+  assert.equal(later['gadget.equipped'], 'hook', 'another gadget in hand stays in hand');
+  // a gun mode or the wings found (another way in): the gun too
+  assert.equal(run({ 'item.backpack': true, 'item.glider': true })['item.gun'], true);
+  // once only: a revoked item (the dev menu) is not given back on the next load
+  const again = { ...hearth, 'item.gun': false };
+  migrateFlags(again);
+  assert.equal(again['item.gun'], false);
+  assert.equal(MIGRATED(), 8);
+});

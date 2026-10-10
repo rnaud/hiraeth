@@ -291,7 +291,7 @@ test('in every world, in the open air and in every room off the map, the push’
   const { GameState } = await import('../src/game-state.js');
   const { InteriorCuller } = await import('../src/perf.js');
   const { items } = await import('../src/items.js');
-  items.grant('backpack');
+  items.grant('backpack'); items.grant('gun');   // (the push is the fluid gun's, in hand: v1.38)
   const DT = 1 / 60, seen = [];
   for (const id of PUSH_WORLDS) {
     const { scene, level, physics } = builtWorld(id);
@@ -303,7 +303,8 @@ test('in every world, in the open air and in every room off the map, the push’
     for (const [where, at] of spots) {
       const camera = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 2000);
       const player = stubPlayer(at);
-      const tool = new FluidTool({ scene, player, physics, camera, rig: { aimK: 0 }, state: new GameState(null) });
+      const state = new GameState(null); state.set('gadget.equipped', 'gun');
+      const tool = new FluidTool({ scene, player, physics, camera, rig: { aimK: 0 }, state });
       tool.setMode('push');   // (the push is a gun mode: aimed and fired as a shot)
       for (const [how, ctl] of [['keyboard', { KeyR: true, KeyG: true }], ['pad', { PadAim: true, PadFire: true }]]) {
         camera.position.copy(at).add(V(0, 1.7, 3.4)); camera.lookAt(at.x, at.y + 1.4, at.z - 30); camera.updateMatrixWorld();

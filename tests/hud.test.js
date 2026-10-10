@@ -162,7 +162,7 @@ test('R3 sends the scout on foot and riding when there is no foe to lock on to; 
   tap(11); assert.deepEqual(actions, ['lock'], 'on foot');
   ctx = 'ride'; c.update(0.016); tap(11); assert.deepEqual(actions, ['lock', 'lock'], 'riding (a bike, the bird: flying too)');
   ctx = 'photo'; c.update(0.016); tap(11); assert.equal(actions.length, 2, 'not in photo mode');
-  tap(3); assert.equal(actions.length, 2, 'Y / △ is the gadget\'s: it never pings');
+  tap(3); assert.equal(actions.length, 2, 'Y / △ is the whistle\'s: it never pings');
   const main = src('src/main.js');
   assert.match(main, /e\.code === 'KeyQ' && !e\.repeat && !busy\(\) && !photo\.on && !ship\.playing\) scout\.ping\(\)/);
   assert.match(main, /const had = foes\.lock;\s*if \(!foes\.cycleLock\(\) && !had && !minigame\) scout\.ping\(\);/, 'R3: nothing to lock on to, the scout');

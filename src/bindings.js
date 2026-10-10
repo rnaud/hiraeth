@@ -24,14 +24,14 @@ export const BUTTON_NAME = {
  * (standing still, aiming), so a button always does what its row on the Controls page says.
  */
 export const PAD_VERBS = {
-  jump: 'A', evade: 'B', interact: 'X', gadget: 'Y', blade: 'RB', guard: 'LB', aim: 'LT', fire: 'RT',
+  jump: 'A', evade: 'B', interact: 'X', whistle: 'Y', blade: 'RB', guard: 'LB', aim: 'LT', fire: 'RT',
   run: 'L3', lock: 'R3', pick: '↑', potion: '←', call: '↓', modeNext: '→',
 };
 
 /** The button names the prompts use for each verb (Xbox / PlayStation form), from PAD_VERBS. */
 export const PAD = {
   ...Object.fromEntries(Object.entries(PAD_VERBS).map(([v, b]) => [v, BUTTON_NAME[b]])),
-  mode: BUTTON_NAME[PAD_VERBS.modeNext], journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
+  mode: BUTTON_NAME[PAD_VERBS.modeNext], gadget: BUTTON_NAME[PAD_VERBS.fire], journal: 'View', menu: 'Menu', photo: 'View + D-pad ↑',
 };
 
 /**
@@ -52,20 +52,20 @@ export const KEYS = {
  */
 export const BINDINGS = {
   foot: [
-    ['A', 'jump · again in the air: boost · held: the wings'],
+    ['A', 'jump · again in the air: the double jump (the lift valve) · held in the air: the jets, or the wings (with L3: the wings)'],
     ['B', 'evade (the stick\'s way, or a backstep)'],
     ['X', 'interact: use, talk, pick up, get on'],
-    ['Y', 'the gadget in hand (hold to aim, let go) · none in hand: the bell-note whistle'],
-    ['RB', 'the fluid blade (again: the next swing)'],
+    ['Y', 'the bell-note whistle · the echo shell'],
+    ['RB', 'the fluid sword (again: the next swing)'],
     ['LB', 'guard (held; at the blow: parry) · no foe near: with the right stick, zoom'],
-    ['LT', 'aim the fluid tool'],
-    ['RT', 'shoot while aiming · else the jets\' throttle'],
+    ['LT', 'aim the gadget in hand (the fluid gun, the hook, the bombs…)'],
+    ['RT', 'use the gadget in hand: shoot, throw · while aiming: let fly'],
     ['L3', 'run, until the stick is let go'],
     ['R3', 'lock on, the next, let go · no foe in reach: the scout finds the objective'],
-    ['↑', 'gadget: tap the next · hold the wheel'],
+    ['↑', 'choose the gadget in hand: tap the next · hold the wheel'],
     ['↓', 'call the mount · hail a taxi (the Arena, the Arcade, the References: their list)'],
     ['←', 'drink a healing potion'],
-    ['→', 'the next gun mode (round again after the last)'],
+    ['→', 'the gadget in hand\'s next mode (the gun\'s: fluid, push…; round again after the last)'],
     ['View', 'the sketchbook (items, quests, worlds)'],
     ['Menu', 'the Start menu (settings, controls)'],
     ['View + ↑', 'photo mode'],
@@ -82,6 +82,7 @@ export const BINDINGS = {
     ['LT', 'brake, reverse'],
     ['RB', 'boost'],
     ['L3', 'boost'],
+    ['Y', 'the gadget in hand (the gust fan, into a skiff\'s sail)'],
     ['R3', 'the scout finds the objective'],
     ['View', 'the sketchbook'],
     ['Menu', 'the Start menu'],
@@ -121,6 +122,6 @@ export const BINDINGS = {
 export const FREE = ['View + ↓', 'View + ←', 'View + →'];
 
 /** The layout's version, kept on the device so a player from before is told once what moved (main.js). */
-export const PAD_SCHEME = 4;   // (3, v1.11's first build: double duties on L3 and D-pad ↑, the potion on ↓)
+export const PAD_SCHEME = 5;   // (5, v1.38: the triggers work the gadget in hand, Y whistles, A held flies the jets; 4, v1.11: one job per button; 3, v1.11's first build: double duties on L3 and D-pad ↑, the potion on ↓)
 export const PAD_SCHEME_KEY = 'moebius.padScheme';
-export const PAD_SCHEME_NOTE = 'The controller layout changed, one job per button: D-pad ↑ chooses a gadget, D-pad ← drinks a potion, D-pad ↓ calls your mount, D-pad → takes the next gun mode, and L3 runs. Menu, then Controls, lists them all.';
+export const PAD_SCHEME_NOTE = 'The controller layout changed: LT / L2 aims and RT / R2 uses the gadget in hand (the fluid gun is one of them), D-pad → its next mode, Y / △ sounds the whistle, and A / × held in the air fires the jets. Menu, then Controls, lists them all.';

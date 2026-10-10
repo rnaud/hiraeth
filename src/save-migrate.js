@@ -33,6 +33,10 @@
 // marks a save that had already finished one of them as late (`fellow.late`), so she says she has been a world
 // behind him rather than ahead.
 //
+// The progression rewrite (v1.38) took the gun and the boost off the backpack: step 8 gives a save the lift valve
+// (the double jump) and the fluid gun if it was past the places they are found now (the giant's pool, the Givers'
+// Hearth), so nobody loses what they had.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
@@ -116,6 +120,25 @@ const STEPS = [
   // behind him, not ahead (`fellow.late`: her first meeting says so)
   (flags) => {
     if (flags['fellow.meet'] === undefined && FELLOW_STOPS.some((id) => flags[`world.${id}.done`])) flags['fellow.late'] = true;
+  },
+  // 8: the progression rewrite (v1.38, docs/systems/progression.md): he starts with the sword alone; the backpack's
+  // boost (the old "triple jump") became the lift valve's double jump (`doublejump`, by the giant's pool), and the
+  // gun, which came with the backpack, a gadget of its own (`gun`, in the Givers' Hearth). A save keeps what it had
+  // earned: past the pool (the backpack and a tank that had been filled: it could boost) it has the lift valve;
+  // past the Hearth (its grille up, the stone taken, the desert done, another world started, or anything found that
+  // only a gun could use) it has the gun, in hand if nothing else was, and both chests are found open. An earlier
+  // save follows the new order: the chests wait where the route brings it.
+  (flags) => {
+    if (!flags['item.backpack']) return;
+    const pastPool = !flags['tool.empty'] || !!flags['desert.pool.tinted'] || !!flags['desert.channel.open'];
+    const later = ORDER.filter((id) => id !== 'desert').some((id) => visited(flags, id));
+    const pastHearth = !!flags['desert.hearth.open'] || !!flags['desert.stone.taken'] || !!flags['desert.tree.lit'] || !!flags['world.desert.done'] || !!flags['ship.powered'] || later
+      || ['stun', 'fire', 'bloom', 'glider', 'jetpack'].some((id) => flags[`item.${id}`]) || !!flags['temple.desert.entered'];
+    if (pastPool || pastHearth) { flags['item.doublejump'] ??= true; flags['box.desert.lift'] ??= true; }
+    if (pastHearth) {
+      flags['item.gun'] ??= true; flags['box.desert.gun'] ??= true;
+      if (!flags['gadget.equipped']) flags['gadget.equipped'] = 'gun';   // (the gun in hand, as it always was; another gadget in hand stays)
+    }
   },
 ];
 

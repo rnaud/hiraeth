@@ -47,7 +47,7 @@ function ctxOf(P, physics, extra = {}) {
 test('the hourglass and the pen are gadgets with models, prompts in pad form and a bay each', () => {
   for (const id of ['recall', 'bridge']) {
     assert.equal(ITEMS[id].kind, 'gadget');
-    assert.ok(ITEMS[id].use.includes('Y / △'));
+    assert.ok(/RT \/ R2|LT \/ L2/.test(ITEMS[id].use));
     const m = buildItemModel(id), s = new THREE.Box3().setFromObject(m).getSize(v());
     assert.ok(m.children.length >= 2 && Math.max(s.x, s.y, s.z) < 0.6, `${id}: an item-sized model of its own`);
     assert.equal(typeof GADGETS.find((g) => g.id === id).yard, 'function');

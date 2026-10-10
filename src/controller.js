@@ -3,14 +3,14 @@
 // thumb does the same thing on every pad. The whole table, one job per button per context,
 // is src/bindings.js (the Controls page and docs/systems/controls.md read it):
 //
-//   walking   A jump (again in the air: boost; held: wings) · B evade · X interact, talk, get on
-//             · Y the gadget in hand (none: the bell-note whistle, once found)
-//             · LT aim · RT shoots while LT is held, and without it is the jets' throttle (analog)
+//   walking   A jump (again in the air: the double jump; held in the air: the jets, or the wings) · B evade
+//             · X interact, talk, get on · Y the bell-note whistle / echo shell
+//             · LT aims the gadget in hand · RT uses it (shoots, throws; the fluid gun is a gadget)
 //             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
 //             · L3 run until you stop · R3 lock on (nothing to lock: the scout finds the objective)
 //             · L3 + R3 (both sticks) the world debug menu (src/world-debug.js)
 //             · D-pad ↑ choose a gadget (tap: the next; held: the wheel) · ← drink a potion
-//             · ↓ call the mount / a taxi · → the next gun mode (one job per button)
+//             · ↓ call the mount / a taxi · → the gadget in hand's next mode (one job per button)
 //             · View the sketchbook (on release; View + D-pad: photo, free slots)
 //             · Menu the settings
 //   riding    RT throttle (analog) · LT brake / reverse · left stick steer, and on
@@ -149,6 +149,8 @@ export class Controller {
         // the bottom button jumps off (player.jumpOff); the vehicle's own hop / flap / rise is the left one's,
         // the right one (back) gets off
         h.Space = down(WEST); h.JumpOff = down(SOUTH); h.KeyE = down(EAST); h.PadE = h.KeyE;
+        // the top button: the gadget in hand, riding (RT is the throttle): the gust fan into a skiff's sail
+        h.PadRideGadget = down(NORTH);
         this.running = false;
       } else {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
@@ -161,23 +163,23 @@ export class Controller {
         else if (press(L3)) this.running = true;
         else if (!left.x && !left.y) this.running = false;
         h.ShiftLeft = this.running;
-        h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's, which climbs on the jets but never fires them)
+        h.Space = down(SOUTH); h.PadJump = h.Space;   // (PadJump: this Space is the pad's; held in the air it fires the jets, as SPACE does)
         h.KeyE = down(WEST); h.PadE = h.KeyE;   // X / □ interacts (it never whistles: that's D-pad ↓, 'call')
-        // the fluid tool: hold LT to aim, RT shoots while aiming (the push too: a gun mode) and fires the jets
-        // otherwise (triggers()); jump in the air boosts. The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
+        // the gadget in hand (src/gadgets/; the fluid gun is one, src/fluid-tool.js): LT aims it, RT uses it (shoots,
+        // throws; triggers()). The fluid blade (src/fluid-blade.js): RB swings, LB held blocks
         h.PadAim = down(LT); h.PadFire = down(RT);
-        h.PadThrust = this.blocked.has(RT) ? 0 : trigger(value(RT));   // (the jets' throttle: analog, a light squeeze flies slowly)
+        h.PadThrust = this.blocked.has(RT) ? 0 : trigger(value(RT));   // (RT's travel, analog: the minigames' throttle, src/minigames/kit/input.js)
         // (guard: held, or a toggle, a press up and the next down: GUARD_MODES)
         if (P.guard === 'toggle') { if (press(LB)) this.guarding = !this.guarding; } else this.guarding = false;
         h.PadBlade = down(RB); h.PadGuard = P.guard === 'toggle' ? this.guarding : down(LB);
         h.PadEvade = down(EAST);   // B / ○ evades (the stick's way, or a backstep)
         // the D-pad is the quick slots (none of them while View is held: View + D-pad is its own layer, below;
         // down() leaves the D-pad out then, whatever verb is bound to it)
-        // →: the next gun mode of the fluid tool, round again after the last (fluid-tool.js)
+        // →: the gadget in hand's next mode (the fluid gun's: fluid, push, those found), round again after the last
         h.PadModeNext = down(RIGHT);
-        // the gadget in hand (src/gadgets/): the top button uses it (pressed, held, let go; with none in hand it
-        // sounds the bell-note whistle), D-pad ↑ chooses one (a tap the next, held the wheel)
-        h.PadGadget = down(NORTH); h.PadGadgetPick = down(UP);
+        // the top button sounds the bell-note whistle and the echo shell (src/gadgets/ ring); D-pad ↑ chooses the
+        // gadget in hand (a tap the next, held the wheel)
+        h.PadWhistle = down(NORTH); h.PadGadgetPick = down(UP);
         // ↓ whistles for the mount, or hails a taxi (player.callMount; the References: the list of views)
         if (press(DOWN)) this.action('call');
         // ←: drink a healing potion (main.js drinkPotion)
@@ -215,20 +217,17 @@ export function padRide(input) {
 }
 
 /**
- * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys):
+ * What the aim and fire buttons do on foot (the pad's triggers, the mouse, the keys), for the fluid gun while it is
+ * the gadget in hand (src/fluid-tool.js; the other gadgets read the same buttons: src/gadgets/index.js gadgetInput):
  *   aim    LT / L2, the right mouse button, R (touch: the ◎ toggle)
  *   shoot  RT / R2, the left mouse button or G, only while aiming (a fresh press: fluid-tool.js)
- *   jets   RT / R2 while not aiming (player.js JET: they fly like a plane; Space held in the air is
- *          the keyboard's and touch's jets key; the left mouse button without aiming swings the blade)
- *   thrust the jets' throttle 0..1: RT / R2's travel (PadThrust, analog)
  *   quick  the touch ✺ button: a quick shot, aiming for you (touch has no trigger to hold)
+ * (Until v1.38 the jets' throttle was RT / R2 without aiming: they fire on jump held in the air now, player.js.)
  */
 export function triggers(c = {}) {
   const aim = !!(c.KeyR || c.MouseRight || c.PadAim);
   const fire = !!(c.KeyG || c.MouseLeft || c.PadFire);
-  const pad = c.PadThrust != null ? +c.PadThrust || (c.PadFire ? 1 : 0) : c.PadFire ? 1 : 0;
-  const thrust = aim ? 0 : pad;
-  return { aim, fire, shoot: aim && fire, jets: thrust > 0, thrust, quick: !!c.TouchFire };
+  return { aim, fire, shoot: aim && fire, quick: !!c.TouchFire };
 }
 
 export function mergeControls(keyboard, gamepad) {

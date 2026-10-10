@@ -43,7 +43,7 @@ const crateMesh = () => { const g = new THREE.Group(); g.add(new THREE.Mesh(new 
 
 test('the glove is a gadget; where a held thing is wanted, how it follows, how the stick moves it', () => {
   assert.equal(ITEMS.magnet.kind, 'gadget');
-  assert.ok(ITEMS.magnet.use.includes('Y / △'));
+  assert.ok(ITEMS.magnet.use.includes('RT / R2'));
   const p = holdPoint(v(0, 1.5, 0), v(0, 0, -1), 6);
   assert.deepEqual(p.toArray(), [0, 1.5, -6]);
   const low = holdPoint(v(0, 1.5, 0), v(0, -0.8, -0.6).normalize(), 8, 0.5);

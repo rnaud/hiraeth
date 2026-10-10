@@ -183,11 +183,11 @@ test('the input display names each press from the bindings table', () => {
     if (i < 0) continue;
     assert.ok(actionLabel(i, 'game').endsWith(`→ ${what.split(' · ')[0]}`), `${key}: ${actionLabel(i, 'game')}`);
   }
-  assert.equal(actionLabel(5, 'game'), 'RB / R1 → the fluid blade (again: the next swing)');
+  assert.equal(actionLabel(5, 'game'), 'RB / R1 → the fluid sword (again: the next swing)');
   assert.equal(actionLabel(1, 'menu'), `B / ○ → ${BINDINGS.menu.find(([b]) => b === 'B')[1]}`);
   assert.equal(actionLabel(0, 'ride'), `A / × → ${BINDINGS.ride.find(([b]) => b === 'A')[1].split(' · ')[0]}`);
   const rev = reverseSources(describeSources(PROFILES['8bitdo'], 'chrome', 9));
-  assert.equal(pressLine('button 7', rev.get('button 7'), 'game'), 'button 7 → RB / R1 → the fluid blade (again: the next swing)');
+  assert.equal(pressLine('button 7', rev.get('button 7'), 'game'), 'button 7 → RB / R1 → the fluid sword (again: the next swing)');
   assert.equal(pressLine('button 5', rev.get('button 5') ?? [], 'game'), 'button 5 → not mapped');
   assert.deepEqual(rev.get('axis 9'), [12, 13, 14, 15]);
 });

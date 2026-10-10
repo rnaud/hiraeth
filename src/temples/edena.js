@@ -119,7 +119,7 @@ export const LOGIC = {
     fs2: { type: 'plate', room: 'hall' },
     fs3: { type: 'plate', room: 'hall' },
     fs4: { type: 'plate', room: 'hall' },
-    gardener: { type: 'boss', room: 'hall', needs: ['backpack', 'bloom'] },
+    gardener: { type: 'boss', room: 'hall', needs: ['gun', 'bloom'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };

@@ -11,8 +11,9 @@ import { Physics } from '../src/physics.js';
 import { NPC } from '../src/npc.js';
 import { items } from '../src/items.js';
 
-// everything runs on the backpack (src/items.js): these tests wear it (tests/abilities.test.js covers going without)
-items.grant('backpack');
+// everything runs on the backpack (src/items.js): these tests wear it, and carry the fluid gun (a gadget,
+// src/gadgets/gun.js) in hand (tests/abilities.test.js covers going without either)
+items.grant('backpack'); items.grant('gun');
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const DT = 1 / 60;
@@ -45,6 +46,7 @@ function makeTool(o = {}) {
   const camera = new THREE.PerspectiveCamera();
   camera.position.set(0.8, 1.6, 3.4); camera.lookAt(0.8, 1.6, -30); camera.updateMatrixWorld();
   const state = new GameState(null);
+  if (o.gun !== false) state.set('gadget.equipped', 'gun');   // (the gun in hand: only then do the triggers shoot)
   const player = o.player ?? stubPlayer();
   const tool = new FluidTool({ scene: new THREE.Scene(), player, physics: o.physics ?? open, camera, rig: { aimK: 0 }, state, level: o.level });
   return { tool, player, camera, state };
@@ -121,28 +123,26 @@ test('each ability spends a charge from the one reserve; empty, nothing fires un
   // push: a press, no aiming needed
   pushOnce(tool, 10);
   assert.equal(tool.charges, 1);
-  // boost: the player asks on a fresh press of jump in the air
-  player.onGround = false; player.vel.set(0, -3, 0);
-  assert.equal(player.onAirJump(1), true);
+  // a second shot, then nothing left: a press only sputters
+  tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 30, { KeyR: true });
   assert.equal(tool.charges, 0);
-  assert.ok(player.vel.y > 10, 'up it goes');
-  assert.deepEqual(fired, ['shoot', 'push', 'boost']);
-  // nothing left: a press only sputters, and the boost declines (the player just glides)
-  frames(tool, 25, { KeyR: true });
+  assert.deepEqual(fired, ['shoot', 'push', 'shoot']);
   tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 20, { KeyR: true });
-  assert.equal(tool.globs.filter((g) => g.state === 'fly').length <= 1, true);
   assert.equal(fired.length, 3);
-  assert.equal(player.onAirJump(1), false);
+  // the double jump's puff (the lift valve, player.js) costs nothing
+  assert.equal(typeof player.onDoubleJump, 'function');
+  player.onDoubleJump();
+  assert.equal(tool.charges, 0); assert.equal(fired.at(-1), 'lift');
   // a moment after the last use the bar starts to fill, and is full again at its pace
   const until = FLUID.refillDelay - tool.reserve.since;
-  frames(tool, Math.floor(until / DT) - 2);
+  frames(tool, Math.floor(until / DT) - 3);
   assert.equal(tool.reserve.level, 0);
   frames(tool, Math.ceil(MAGIC.fill / DT) + 4);
   assert.equal(tool.charges, 3);
   // disabled (the ship prologue): nothing comes out
   tool.enabled = false;
   pushOnce(tool, 10);
-  assert.equal(tool.charges, 3); assert.equal(player.onAirJump(1), false);
+  assert.equal(tool.charges, 3);
   state.emit('tool:enable', { on: true });
   assert.equal(tool.enabled, true);
   tool.dispose();
@@ -158,13 +158,10 @@ test('an empty tank (the desert’s backpack, until the giant’s pool) holds no
   frames(tool, 10);
   assert.equal(tool.dry, true);
   assert.equal(tool.charges, 0, 'no charges');
-  // shoot, push, boost: nothing comes out, a press only sputters (and says why)
+  // shoot, push: nothing comes out, a press only sputters (and says why)
   frames(tool, 30, { KeyR: true });
   tool.update(DT, { KeyR: true, KeyG: true }); frames(tool, 20, { KeyR: true });
   pushOnce(tool, 10);
-  player.onGround = false;
-  assert.equal(player.onAirJump(1), false, 'no boost');
-  player.onGround = true;
   assert.deepEqual(fired, []);
   assert.ok(dry.length >= 1, 'the story hears the tank is dry');
   assert.match(tool.hudText(), /empty/);
@@ -344,8 +341,8 @@ test('push: only targets inside the cone (and in view) are pushed, away from the
   tool.dispose();
 });
 
-test('boost: a strong burst up and a little forward, in any gravity; with the jets, a double tap boosts', () => {
-  items.grant('glider');
+test('the double jump (the lift valve): a strong burst up and a little forward, in any gravity, once each time you leave the ground, with a flip', () => {
+  items.grant('glider'); items.grant('doublejump');
   // the pure velocity change
   for (const up of [v(0, 1, 0), v(1, 0, 0), v(0, -0.6, 0.8).normalize()]) {
     const fwd = new THREE.Vector3(0, 0, 1).addScaledVector(up, -up.z).normalize();
@@ -362,48 +359,51 @@ test('boost: a strong burst up and a little forward, in any gravity; with the je
     const p = new Player(new Physics(new THREE.Scene()), { gravityAt: () => up });
     p.frame.set(up, up.y > 0.5 ? v(0, 0, 1) : v(0, 1, 0));
     p.pos.copy(up).multiplyScalar(20); p.onGround = false; p.vel.copy(up).multiplyScalar(-4);
-    const { tool } = makeTool({ player: Object.assign(p, {}) });
+    const { tool, state } = makeTool({ player: Object.assign(p, {}) });
+    const fired = [];
+    state.on('tool:fire', (e) => fired.push(e.mode));
     p.update(DT, {}, 0);
     const before = p.vel.dot(up);
     p.update(DT, { Space: true }, 0);
-    assert.equal(tool.charges, 2, 'a charge spent');
-    assert.ok(p.vel.dot(up) > before + 10, `boosted along ${up.toArray()}: ${p.vel.dot(up).toFixed(1)}`);
+    assert.equal(tool.charges, 3, 'it costs nothing');
+    assert.deepEqual(fired, ['lift'], 'a puff of fluid from the tank');
+    assert.ok(p.vel.dot(up) > before + 10, `up along ${up.toArray()}: ${p.vel.dot(up).toFixed(1)}`);
+    assert.ok(p.flipping != null, 'the flip begins');
     assert.equal(p.gliding, false, 'the wing stays shut while rising');
+    // a third press does nothing: once each time you leave the ground
+    p.update(DT, {}, 0);
+    const v2 = p.vel.dot(up);
+    p.update(DT, { Space: true }, 0);
+    assert.ok(p.vel.dot(up) < v2, 'no third jump');
     // holding on still opens the wings once falling (with the glider)
     for (let i = 0; i < 120 && !p.gliding; i++) p.update(DT, { Space: true }, 0);
     assert.equal(p.gliding, true);
     tool.dispose();
   }
-  // a pad's jump never fires the jets (RT does): there one press in the air boosts, even with them
-  items.grant('jetpack');
+  // without the valve: no second jump
+  items.revoke('doublejump');
   {
     const q = new Player(new Physics(new THREE.Scene()), {});
     q.pos.set(0, 30, 0); q.onGround = false;
     const { tool: qt } = makeTool({ player: q });
-    q.update(DT, {}, 0); q.update(DT, { Space: true, PadJump: true }, 0);
-    assert.equal(qt.charges, 2, 'one press of the pad\'s jump: a boost');
-    for (let i = 0; i < 20; i++) q.update(DT, { Space: true, PadJump: true }, 0);
-    assert.equal(q.thrusting, false, 'holding the pad\'s jump does not fire the jets');
+    q.update(DT, {}, 0); const vy = q.vel.y; q.update(DT, { Space: true, PadJump: true }, 0);
+    assert.ok(q.vel.y < vy, 'only the one jump without the lift valve');
     qt.dispose();
   }
-  // the keyboard's Space: one press in the air thrusts (burning the gauge, not a whole charge), a quick double tap boosts
+  items.grant('doublejump');
+  // the jets: jump held in the air (a pad's too, since v1.38), burning the gauge; the press itself is the double jump
   items.grant('jetpack');
   const p = new Player(new Physics(new THREE.Scene()), {});
   p.pos.set(0, 30, 0); p.onGround = false;
   const { tool } = makeTool({ player: p });
-  p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
-  for (let i = 0; i < 40; i++) p.update(DT, { Space: true }, 0);
-  assert.ok(p.thrusting, 'holding thrusts');
+  p.update(DT, {}, 0); p.update(DT, { Space: true, PadJump: true }, 0);
+  assert.ok(p.flipping != null && !p.thrusting, 'the press: the double jump');
+  for (let i = 0; i < 40; i++) p.update(DT, { Space: true, PadJump: true }, 0);
+  assert.ok(p.thrusting, 'holding the pad\'s jump thrusts');
   const burnt = 3 - tool.reserve.level;
   assert.ok(burnt > 0.15 && burnt < 0.25, `~0.2 of a charge burnt in 2/3 s: ${burnt.toFixed(3)}`);
-  p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
-  for (let i = 0; i < 40; i++) p.update(DT, {}, 0);
-  const before = tool.reserve.level;
-  assert.ok(before > 2 && before < 3, 'a slow second press does not boost (it thrusts a moment)');
-  p.update(DT, { Space: true }, 0); p.update(DT, {}, 0); p.update(DT, {}, 0); p.update(DT, { Space: true }, 0);
-  assert.ok(Math.abs(tool.reserve.level - (before - 1)) < 0.05, 'a double tap spends a whole charge');
   tool.dispose();
-  items.revoke('jetpack'); items.revoke('glider');
+  items.revoke('jetpack'); items.revoke('glider'); items.revoke('doublejump');
 });
 
 test('refill: magical water fills the tank and adds a colour band for good', () => {

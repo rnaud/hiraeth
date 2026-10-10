@@ -8,6 +8,20 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.38', date: '2026-10-10', items: [
+    // the progression rewrite (docs/systems/progression.md): the sword alone at the start
+    'You start out with your sword alone. The backpack from Qanat’s chest is a container at first: its strengths come later, and the fluid gun is a find of its own.',
+    'The double jump is the backpack’s first strength, the lift valve, in a makers’ chest beside the giant’s pool: press jump again in the air for a second jump, with a front flip. Once each time you leave the ground: the old boost that went again and again while the magic lasted is gone.',
+    'The fluid gun waits in the Givers’ Hearth, by the stone ball it rolls. It is a gadget like the others: choose it with D-pad ↑ (B), aim with LT / L2 and shoot with RT / R2, and D-pad → (X) takes its next mode, push among them.',
+    // the triggers and the gadget in hand (docs/systems/controls.md)
+    'LT / L2 aims and RT / R2 uses whatever gadget is in hand. The hook, the bombs, the boomerang, the bubble wand and the hourglass take aim on LT and let fly on RT (RT alone uses them at once); the fan, the spring boots, the magnet glove and the ink pen work on RT; the seeing lens comes up on either. D-pad → takes the gadget’s next mode, and says so when it has none.',
+    'Y / △ sounds the bell-note whistle and the echo shell whatever is in hand, and the gadget wheel holds the gadgets only. Riding, Y / △ is still the gadget in hand (the fan into a skiff’s sail).',
+    'The jets fire when you hold jump in the air, on a controller too, instead of on RT / R2; with the wings found, jump held with L3 (Shift) glides.',
+    // the round backpack (references/Core Objects/Round Backpack)
+    'The backpack is a round glass sphere of glowing jade fluid in a brass cradle, on an olive canvas plate with leather straps. Its glow follows your magic bar, three lights on its band count the units left, and it grows with each strength: a valve wheel and fins, then folding brass vanes, then a second valve and a brighter, quicker swirl.',
+    // saves and buttons
+    'Saves keep what they earned: past the giant’s pool you have the lift valve, past the Givers’ Hearth the gun, in hand. A controller layout you changed follows: whatever you had put on Y / △ now sounds the whistle.',
+  ] },
   { v: '1.37', date: '2026-10-10', items: [
     // the audits page's dashboard (docs/systems/ui.md "The audits page")
     'The Audits page in the Debug menu opens on the latest scores of every kind of audit: a card each for the whole game, combat, level design, temple design, visuals, temple visuals, ink lines, cinematics, dialogue and performance, with its score, how much it moved since the audit before, and its scores per world, temple or creature, each with its own change. A card opens the full audit; History shows the earlier audits’ scores as a line and a list, and All audits lists every report as before.',

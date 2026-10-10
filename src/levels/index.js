@@ -207,7 +207,7 @@ export const LEVELS = [
     // a developer's world: every gadget (src/gadgets/) with something to try it on, a bay each (in the worlds list, L; never on the route)
     id: 'gadgetyard', create: createGadgetYard, build: buildGadgetYard, hidden: true, dev: true,
     title: 'The Gadget Yard', source: 'for trying the gadgets',
-    blurb: 'A round yard with a bay for each gadget: rings to hook, towers across a gap, cracked walls to blow open, crates to drag about, a pen of ink blots. Every gadget is yours here: Y / △ (T) uses the one in hand, D-pad ↑ (B) changes it.',
+    blurb: 'A round yard with a bay for each gadget: rings to hook, towers across a gap, cracked walls to blow open, crates to drag about, a pen of ink blots. Every gadget is yours here: LT / L2 (R) aims the one in hand and RT / R2 (T) uses it, D-pad ↑ (B) changes it.',
     moves: 'the gadgets · walk · climb · jetpack',
   },
   {

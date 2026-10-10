@@ -15,7 +15,6 @@ import * as THREE from 'three';
 const A = await import('./playthrough-agent.js');
 const { game, items, V } = A;
 const { windContains, windLift } = await import('../src/story/arzach.js');
-const { boostVelocity } = await import('../src/fluid-tool.js');
 
 export const SOLVERS = {}, WAYS = {}, CHECKS = {};
 const bird = (W) => (W.player.mount?.kind === 'bird' ? W.player.mount : null);
@@ -24,12 +23,26 @@ const bird = (W) => (W.player.mount?.kind === 'bird' ? W.player.mount : null);
 Object.assign(SOLVERS, {
   // through the gate and up the stairs: inside the walls
   'desert.power:city': (W) => { W.at(W.level.qanat.city.plinthStair); W.step(3); },
+  // the chest beside the pool (v1.38): the lift valve, the double jump; until then, one jump
+  'desert.power:valve': (W, { issue }) => {
+    if (A.abilities(W).doublejump) issue('ability', 'the double jump before the chest by the pool');
+    A.openBox(W, 'desert.lift', issue);
+    if (!A.abilities(W).doublejump) issue('ability', 'no double jump out of the chest by the pool');
+  },
+  // the Givers' chest in the Hearth's hall (v1.38): the fluid gun, which the ball's push wants
+  'desert.power:gun': (W, { issue }) => {
+    if (items.has('gun')) issue('ability', 'the gun before the Givers’ chest');
+    W.at(W.level.hearth.inside); W.step(2);
+    A.openBox(W, 'desert.gun', issue);
+    if (!A.abilities(W).gun) issue('ability', 'no fluid gun to push with out of the Givers’ chest');
+  },
   // the Hearth: the ball rolled down its groove by a push lifts the grille; up on the shelf, E takes the stone
   'desert.power:stone': (W, { issue }) => {
     const H = W.level.hearth;
     W.at(H.inside); W.step(2);
     const weight = A.allTargets().find((t) => t.kind === 'weight');
     if (!weight) return issue('no-thing', 'no stone ball to push');
+    if (!A.abilities(W).gun) return issue('ability', 'the stone ball wants the gun’s push, and he has no gun (or an empty tank)');
     W.at(H.plinthFront); W.step(1);
     weight.onHit('push');
     W.step(30 * 6);
@@ -53,17 +66,16 @@ function rideTheWind(W) {
   const P = new A.Player(W.physics, { health: false });
   P.respawn(wnd.foot.clone().add(V(0, 0.6, 0)));
   for (let i = 0; i < 60 * 45; i++) {
-    P.update(1 / 60, { Space: i > 2 && i < 6 ? true : i > 30 }, 0);   // jump, then hold it as you fall: the wings
+    P.update(1 / 60, { Space: i > 2 && i < 6 ? true : i > 30, ShiftLeft: i > 30 }, 0);   // jump, then hold it as you fall: the wings (with run held: with the jets owned, jump held alone fires them, v1.38)
     if (windContains(wnd, P.pos) && P.gliding) windLift(wnd, P, 1 / 60, T.balcony);
     if (P.onGround && Math.abs(P.pos.y - T.floor) < 1 && A.flat(P.pos, T) < 21) return P.pos.clone();
     if (P.onGround && i > 60 && P.pos.y < wnd.foot.y + 3 && !P.canGlide) return null;
   }
   return null;
 }
-/** Run at the next stone, jump, boost in the air (if he has the backpack): does he land on it? */
+/** Run at the next stone, jump, and jump again in the air (the double jump, if he carries the lift valve): does he land on it? */
 function hop(W, from, to) {
-  const P = new A.Player(W.physics, { unsafe: W.level.unsafe, health: false });
-  P.onAirJump = () => { if (!items.has('backpack')) return false; boostVelocity(P.vel, P.frame.up, P.frame.dir(P.heading, new THREE.Vector3())); return true; };
+  const P = new A.Player(W.physics, { unsafe: W.level.unsafe, health: false });   // (his items: the game's own, items.js)
   P.respawn(from.clone());
   P.heading = Math.atan2(to.x - from.x, to.z - from.z);
   let phase = 0;
@@ -79,8 +91,8 @@ const towerSteps = (W) => { const T = W.level.arzach.tower; return [V(T.x + Math
 Object.assign(WAYS, {
   // (the wings, in the wind; a save from before the reorder that has the jets may fly up on them)
   'arzach.bird:tower': { any: ['glider', 'jetpack'], how: 'the wind, on wings', check: (W) => (!items.has('glider') || rideTheWind(W) ? null : 'the wind does not carry him up to the balcony with what he has') },
-  'arzach.bird:window': { needs: ['boost'], how: 'boost-jumps up the steps', check: (W) => { const p = towerSteps(W); for (let i = 0; i < p.length - 1; i++) if (!hop(W, p[i], p[i + 1])) return `step ${i + 1} round the tower is out of a boost's reach`; return null; } },
-  'arzach.bird:call': { needs: ['boost'], how: 'on the sill' },
+  'arzach.bird:window': { needs: ['doublejump'], how: 'double jumps up the steps', check: (W) => { const p = towerSteps(W); for (let i = 0; i < p.length - 1; i++) if (!hop(W, p[i], p[i + 1])) return `step ${i + 1} round the tower is out of a double jump's reach`; return null; } },
+  'arzach.bird:call': { needs: ['doublejump'], how: 'on the sill' },
   'arzach.bird:promise': { air: true, needs: [], how: 'she comes down to the balcony' },
 });
 Object.assign(SOLVERS, {
@@ -192,7 +204,7 @@ function bulbsInSight(W) {
   return null;
 }
 Object.assign(WAYS, {
-  'bazaar.signal:tune': { air: true, needs: ['boost'], how: 'shot from the broadcast balcony', check: bulbsInSight },
+  'bazaar.signal:tune': { air: true, needs: ['gun'], how: 'shot from the broadcast balcony', check: bulbsInSight },
 });
 
 // ------------------------------------------------------------------ the route
@@ -223,5 +235,5 @@ export const each = (W, st, qid) => {
   return lacks.length ? `it says to use ${lacks.join(', ')}, which he does not have yet: “${st.text}”` : null;
 };
 /** Where each way of getting about is first had, by the route: nobody arrives anywhere before it with it. */
-export const FIRST = { glider: 'arzach', bird: 'arzach2', jetpack: 'incal', cab: 'incal' };
+export const FIRST = { glider: 'arzach', bird: 'arzach2', jetpack: 'incal', cab: 'incal' };   // (the double jump and the gun: the desert's own, checked by its steps)
 export const before = (a, b) => A.ORDER.indexOf(a) < A.ORDER.indexOf(b);
