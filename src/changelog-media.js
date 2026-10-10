@@ -447,7 +447,34 @@ const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place�
 /** The v1.16 temples (the Greenhouse, the Aerie and the fix to their doorway and bud): after at the fix, before at v1.15. */
 const TEMPLES16 = { commit: '6d005223', before: 'cfaa2045' };
 
+/** The level design audit's third round: the same view in headless Chrome against the commit before (bed64a68) and after. */
+const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280 × 720, High, noon) against this branch’s dev server and the commit before it (bed64a68), the same view each; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.17': [
+    // the worlds, third round of the level design audit (docs/audits/level-design-v1.17.md): own pictures, the same view
+    // before (bed64a68) and after
+    { match: 'In the City-Shaft, Basile waits at the middle levels’ cab stop', shots: [
+      { name: 'shaft-basile', caption: 'The middle levels’ cab stop by Fausta’s Basket-Shop: before, the shop alone on its stretch of terrace; after, Basile waiting at the stop with her baskets', from: FROM_LD3 },
+    ], see: 'Ride a cab to the middle levels (or glide down past the halfway landing and on round the terrace): Basile stands at the stop, a few steps from Fausta’s door. Stand by him to hear him.' },
+    { match: 'The lamplighters’ red lamp-posts now begin on the City-Shaft’s rim', shots: [
+      { name: 'shaft-rim-posts', caption: 'From the Warden’s Well’s door along the rim: before, the open plaza; after, the lamplighters’ red posts leading off along the edge toward the red stair', from: FROM_LD3 },
+    ], see: 'Come out of the Warden’s Well and look along the rim’s edge: the red posts lead past your ship to the red stair’s gate, and the stair goes down to Nima.' },
+    { match: 'On the climb from the shrine to the palace, a second lamplighters’ pad', shots: [
+      { name: 'shaft-upper-pad', caption: 'Looking up the spire from the relay lamp’s ring: before, the high ring and the sky; after, the upper pad hanging just off the ring’s edge', from: FROM_LD3 },
+    ], see: 'Carry the splinter up past the relay lamp on the shrine’s side and keep climbing: the upper pad hangs off the next ring. Look at the tally marks on its rail.' },
+    { match: 'Lio’s errand is quicker: walk up to Tobin', see: 'Hail a cab on the rim without a pass, ask Lio how to get one, then just walk up to Tobin along the rim: he pays as you come, and a line says so. Take the coin back to Lio.' },
+    { match: 'In the giant’s chest under Qanat, a stair of stone now climbs behind the pool', shots: [
+      { name: 'desert-keepers-stair', caption: 'In the giant’s chest, behind the pool, opposite the way in: before, the bare wall; after, the keepers’ stair up to a doorway framed in bone, a root climbing beside it', from: FROM_LD3 },
+      { name: 'desert-hatch', caption: 'Qanat’s back lane, halfway from the terraces to the back gate: before, the empty lane; after, the keepers’ hatch you come up through', from: FROM_LD3 },
+    ], see: 'Once the pool has filled, the quest says to follow the water up: climb the stair behind the pool and walk into the doorway. You come up in the back lane with the tree ahead; the hatch will not open from above.' },
+    { match: 'On the straight ride out to the Givers’ Hearth, between Yara’s shade and the wreck', shots: [
+      { name: 'desert-anchor', caption: 'Short of halfway on the straight ride from Marrow’s hollow to the Hearth (the audit’s longest empty stretch, 418 m): before, the dunes; after, the skiff’s stone anchor tipped in the sand, its rope trailing toward the wreck', from: FROM_LD3 },
+    ], see: 'Ride from Marrow’s hollow straight toward the Hearth’s chimney: after Yara’s shade a line names the anchor as it comes up. Stand by the stone ring to look at it.' },
+    { match: 'In Vael, a tall white mast flies the riders’ long streamer', shots: [
+      { name: 'vael-mast-landing', caption: 'From the landing, looking west where Oïa points: before, the slope and the standing stones; after, the riders’ mast and its streamer over the slope', from: FROM_LD3 },
+      { name: 'vael-mast-aerie', caption: 'Up the slope past the last standing stone, looking west: before, the white house with the stone wings over the crest; after, the riders’ mast in front of it, its streamer and pennon flying', from: FROM_LD3 },
+    ], see: 'Talk to Oïa beside the landing and ask about the tower: without wings she points up the standing stones to the white streamer. Walk up to it, and the Aerie shows over the crest.' },
+  ],
   '1.16': [
     // the enemy roster, part four: the possessed machines, each alone in its main skin and its alternate, the stand-in
     // before it (the bell walker had none), a wind-up each; the sheets beside them as their own pictures
