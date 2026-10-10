@@ -28,6 +28,9 @@ export async function warmShadersSliced(renderer, targetScene, targetCamera, { t
   const reps = new Map();
   targetScene.traverse((o) => {
     if (!o.material || !(o.isMesh || o.isPoints || o.isLine || o.isSprite)) return;
+    // (a mesh whose geometry is still empty, filled when first shown (a telegraph's mark): its program here would be
+    // keyed without a position attribute, one nothing draws with, ~0.7 s of the Xbox's compiler for nothing)
+    if (o.geometry && !o.isSprite && !o.geometry.attributes?.position) return;
     for (const m of [wear ?? o.material].flat()) { const k = programKind(o, m); if (!reps.has(k)) reps.set(k, o); }
   });
   const prev = renderer.getRenderTarget(), mats = new Set();

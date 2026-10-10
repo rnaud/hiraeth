@@ -91,7 +91,8 @@ test('lampTint: a material whose lamplit pools take the lamps\' colour', () => {
   const m = makeMaterial({ color: '#f0f0f0', lampTint: ['#ffa25a', 0.8] });
   assert.equal(m.defines.LAMP_TINT, 1);
   assert.ok(Math.abs(m.uniforms.uLampTint.value.w - 0.8) < 1e-6);
-  assert.equal(makeMaterial({ color: '#f0f0f0' }).defines.LAMP_TINT, undefined, 'off unless asked');
+  // (compiled into every surface, materials.js SURFACE_SHARED: off by its uniform unless asked)
+  assert.equal(makeMaterial({ color: '#f0f0f0' }).uniforms.uLampTint.value.w, 0, 'off unless asked');
 });
 
 test('the city kit: houses, terraces, stairs, tables, lamps, pale figures, flowers, washing, the far city', () => {

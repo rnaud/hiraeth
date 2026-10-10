@@ -167,7 +167,8 @@ Dev Home opens; under *Remote access* turn on the **Device Portal** (a user name
   pressure).
 - **The screen**: `GET /ext/screenshot?download=false` (a 1920 × 1080 PNG). **Load**: `/api/resourcemanager/processes`
   (the app's processes, `msedgewebview2.exe` among them) and `/api/resourcemanager/systemperf` (GPU memory and engines).
-- Launching through `POST /api/taskmanager/app` failed (`-2147219190`): start it from Dev Home.
+- Launching through `POST /api/taskmanager/app` failed (`-2147219190`) at first; it works with the portal's CSRF token (the
+  `CSRF-Token` cookie of any GET, sent back as `X-CSRF-Token`) and `Content-Length: 0` (October 2026).
 - The virtual host's files are not seen by DevTools' Fetch interception: a build can't be swapped in from the Mac.
 
 ## The slow load (October 2026)

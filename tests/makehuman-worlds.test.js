@@ -13,6 +13,7 @@ const { personTemplate, MakeHumanPeople } = await import('../src/makehuman/peopl
 const { Humanoid } = await import('../src/humanoid.js');
 const { buildCharacter } = await import('../src/player.js');
 const { TONE_EXPRESSIONS } = await import('../src/expression.js');
+const { FACE_KEY_SLOTS } = await import('../src/materials.js');
 
 const bin = readFileSync(new URL('../public/anim/mh/body.bin', import.meta.url));
 const data = parseBody(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
@@ -51,7 +52,8 @@ test('the face keys reach the material before each draw; a level of detail draws
   const h = new Humanoid(t, buildCharacter(), 'm');
   h.setExpression(TONE_EXPRESSIONS.happy);
   const u = h.body.material.uniforms;
-  assert.equal(h.body.material.defines.FACE_KEYS, keyTexture(data, 'body').count);
+  // (at least FACE_KEY_SLOTS: every face one program, materials.js; the slots past the mesh's own keys weigh 0)
+  assert.equal(h.body.material.defines.FACE_KEYS, Math.max(keyTexture(data, 'body').count, FACE_KEY_SLOTS));
   h.body.onBeforeRender.call(h.body);
   const i = h.body.userData.keyNames.indexOf('smile');
   assert.ok(u.uKeyW.value[i] > 0.5 && u.uKeyScale.value.w === 1 && u.uKeyTex.value === keyTexture(data, 'body').texture);

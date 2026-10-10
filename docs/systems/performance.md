@@ -1140,3 +1140,102 @@ devices: TODO).
   materials then compiled twice (the Arena 106 → 116 programs), a hitch the first time a kind is met;
 - the responsive world's parts in each node's own colour. Each node has its own material, because the node's
   colour and glow change as it wakes, so they would need a per-instance glow in the surface shader.
+
+## Where a load goes, and fewer programs for the Xbox (October 2026)
+
+**Tools.** `scripts/load-breakdown.mjs` loads worlds from a build and reports:
+- the loading screen's stages, and since then each stage's steps (main.js prints a `load steps:` line: surfaces,
+  post, water, shadows, first use, passage);
+- the programs linked and the size of their sources;
+- the time spent inside the WebGL calls that compile, that block on a program (its status, log and uniforms) and that
+  upload.
+
+It runs on the Mac (headless Chrome, ANGLE on Metal). `--dump` keeps every program's final GLSL;
+`scripts/xbox-shaders.mjs` then compiles and links each one on the console (in the game's page, through the Device
+Portal's DevTools relay, each salted with a define of its own so the cache can't answer) and can return the HLSL ANGLE
+made of it (`--log`). `--xbox https://hiraeth.example/perf-new.html` loads a build on the console itself, every shader
+salted: a first launch. The app opens only its own origin, so the build is put beside the console's bundle. Its index
+goes in as `perf-new.html`, with the assets the console lacks, through the portal's file API
+(`POST /api/filesystem/apps/file`, with the CSRF token as for `POST /api/taskmanager/app`, which launches the app).
+
+**What a program costs on the Xbox** (desert, web build 1698, measured one at a time):
+- A surface program is 0.65 s plain and 1-4 s with heavy features (weathering + pen detail + patches 3.7 s, the fluid
+  2.5 s, the blade 3.4 s, the inscriptions +1 s). The ink pass is 10.7 s. Depth and small programs are 10-200 ms.
+- Translating GLSL to HLSL takes 30-50 ms a program; the rest is D3D's compiler at link. ANGLE already leaves out
+  `#if`'d-out code and uncalled functions, so stripping the über-shader's source at build time would save next to
+  nothing. The variants are what cost.
+- Restructuring one program's shadow taps (a loop of two, `textureLod`) made it slower (650 → 810 ms). D3D's compile
+  time doesn't follow the source's size.
+
+## Fewer surface programs (materials.js `SURFACE_SHARED`, `SURFACE_LIGHT`; scripts/three-program-keys.mjs)
+
+The desert compiled 64 surface programs, most of them the plain über-shader split by a cheap option or by three.js's own
+keys. Now:
+- **Shared features.** Cheap features, each decided inside by its uniform (off, 0, on a material without them), are
+  compiled into more materials than use them, chosen by their measured cost on the console:
+  - `SURFACE_SHARED`: in every surface. Each costs a few ms; the ground's are inside the ground's code anyway.
+  - `SURFACE_LIGHT`: in every plain surface, about 40-70 ms each. They are kept off the heavy programs, because D3D's
+    compile time grows faster than the code: all of them in every program made a plain one 1.3 s, a weathered one 5.5 s.
+  - A heavy program always gets strata; a metal always gets brushing and plates; a fluid always gets its trails.
+- **Gates.** S_THIN, metal and lamp tint are gated by their uniforms (`uThinPx`, `uMetal.w`, `uLampTint.a`); every
+  material carries those uniforms, since a program keeps the last material's values. `surfaceFeatures` is what a
+  material uses; `surfaceDefines` adds what it shares.
+- **One order.** The defines are added in one sorted order. three.js keys a program on the order its defines were
+  added, so the same set in another order had compiled again.
+- **three's own keys.** A Vite plugin patches three's module (`threeProgramKeys`, which throws if three changes):
+  for a material whose `userData.sharesProgram` is set, DOUBLE_SIDED, FLIP_SIDED, HAS_NORMAL and USE_COLOR are left
+  out of the key. The shader reads none of the first three; it turns a back face's normal itself. The colour
+  attribute is read by `uVertexColors`, which follows `material.vertexColors`. Crowds, grass, merged meshes, sway and
+  night paint keep their own keys: a colour attribute added to them went past D3D's 16 vertex attributes ("Too many
+  attributes").
+- **Smaller fixes.** Face keys compile at least `FACE_KEY_SLOTS` (12), so the brows' 6 keys and another head's 9 share
+  one program. The warm-up skips a mesh whose geometry is still empty (a telegraph's mark): its program, keyed without
+  a position, was never drawn with.
+- **The ink pass's sky and spot blacks by look** (post.js `INK_STICKY`). The eclipse, space, the planets (a size *and*
+  a direction: THREE.Vector4's default (0, 0, 0, 1) is none), sky dots, cumulus and spot blacks are compiled in only
+  where the look uses them. Each was already decided by its uniform, so leaving it out changes nothing. Once drawn
+  with, a part stays (a zone or preset switching it off doesn't recompile). A look's values passed through while
+  loading don't count; `post.sync()` runs before the warm-up, for planets set in place. On the console: 10.8 s →
+  6.2 s without the eclipse, space and planets; the spot blacks' enclosure is another 2 s.
+
+**Results.** Program counts:
+
+| | before | after |
+|---|---|---|
+| Surface programs per world (ten worlds) | 52-66 | 22-30 |
+| Programs linked, desert | 89 | 49 |
+
+Xbox compile time, programs one after another (cold):
+
+| | before | after |
+|---|---|---|
+| Desert | 81.2 s | 41.9 s |
+| City-Shaft | 76.6 s | 53.1 s |
+| Lorn | 78.1 s | 46.3 s |
+| Buried Machine | 67.1 s | 48.5 s |
+| Signal Market | not measured | 39.5 s |
+
+A whole cold desert load on the console (`--xbox`, salted):
+
+| | before | after |
+|---|---|---|
+| First frame | 172.7 s | 150.7 s |
+| "mixing the inks" | 129 s | 91 s |
+
+On the Mac (median of 3, High), "mixing the inks" stayed 0.6-0.9 s and the first frame was the same or up to 0.5 s
+sooner. Screenshots of the desert, the market and Lorn differ from the old build no more than two runs of the old build
+differ from each other (moving people and plants).
+
+**What is left.** On the console the new build's "mixing the inks" breaks down as:
+
+| Step | Time |
+|---|---|
+| surfaces | 17.4 s |
+| post | 7.1 s |
+| water | 2.0 s |
+| shadows | 2.0 s |
+| first use | 9.7 s |
+| passage warm-up | 52.6 s, against its 8 s budget |
+
+The first frame then came about 51 s after "ready". In those two, single uploads and info-log queries block for 16-36 s:
+the first draws, not the compiles, are now the biggest part.

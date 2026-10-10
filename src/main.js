@@ -141,8 +141,18 @@ const loadWatch = loadWatchdog(() => (loadStep ? `${lastMsg} / ${loadStep}` : la
 // Between stages, the build gives the main thread back every LOAD_BUDGET ms (src/load-steps.js:
 // await slice() as often as you like; a world's own build yields from inside itself)
 const slice = slicer();
+// (a stage's steps timed too, logged as one line: the load's breakdown, docs/systems/performance.md "Where a load goes")
+const loadSteps = [];
+let tStep = 0;
+const setStep = (name) => {
+  const t = performance.now();
+  if (loadStep) loadSteps.push(`${loadStep} ${(t - tStep).toFixed(0)}`);
+  loadStep = name; tStep = t;
+};
 const stage = (msg) => {
   console.info(`load: ${lastMsg} ${(performance.now() - tStage).toFixed(0)} ms`);
+  setStep('');
+  if (loadSteps.length) console.info(`load steps: ${lastMsg} ${loadSteps.splice(0).join(' · ')}`);
   tStage = performance.now(); lastMsg = msg; loadStep = '';
   if (loadMsg) loadMsg.textContent = msg;
   // (a frame so the screen paints, or a moment if no frame comes: a window not shown may run none)
@@ -2052,24 +2062,26 @@ console.info(`bounds: ${fitBounds(scene)} instanced meshes made cullable`);
 await slice();
 {
   const t0 = performance.now();
-  loadStep = 'surfaces';
+  setStep('surfaces');
   const n = await warmShadersSliced(scene, camera, gbuffer);
   console.info(`shaders: ${n} kinds of surface, ${renderer.info.programs.length} programs, ${(performance.now() - t0).toFixed(0)} ms`);
 }
-loadStep = 'post';
+setStep('post');
+post.sync();   // (the ink pass's parts by the world's look, planets set in place included: post.js inkFeatures)
 await warmShaders(post.scene, post.camera, composeRT);
 await slice();
-loadStep = 'water';
+setStep('water');
 { const wp = waters.warmPass?.(); if (wp) await warmShaders(wp.scene, wp.camera, composeRT); }   // the water's sparkle pass
 if (level.veils) await warmShaders(level.veils.scene, camera, composeRT);   // the see-through surfaces' wash (src/veil.js)
 await slice();
 // the shadow passes draw everything with one depth-only material, a program per kind of mesh
 // (instanced, skinned, which attributes): compiled now too, each kind wearing it for the moment
 // (a person or a plant first seen in a shadow had stalled a frame on its compile)
-loadStep = 'shadows';
+setStep('shadows');
 await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null, { wear: shadowOverride });
 // each program's first use, once the driver says it is linked (src/warm-shaders.js firstUse): the warm draws below
 // asked for each one's uniforms at once, and the page froze till it was (the Xbox: 1-4 s a program)
+setStep('first use');
 await firstUse(renderer, slice);
 // The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
 // leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
@@ -2079,7 +2091,7 @@ await firstUse(renderer, slice);
 const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffer: createGBuffer, shadowOverride }), lodFull: (o) => lod?.fullOf?.(o) });
 {
   const t0 = performance.now();
-  loadStep = 'passage';
+  setStep('passage');
   scene.updateMatrixWorld();
   rig.update(player.pos, 0, player.frame);   // (the first frame's camera)
   camera.updateMatrixWorld();

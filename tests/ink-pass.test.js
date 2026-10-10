@@ -201,12 +201,14 @@ test('a flat facet edge-on to the sun is shaded whole (no lit specks on the toon
 });
 
 test('the haze and the cast shadows are compiled into the composite only while the look asks for them', async () => {
-  const { createPost, inkFeatures, PRESETS } = await import('../src/post.js');
+  const { createPost, inkFeatures, PRESETS, INK_STICKY } = await import('../src/post.js');
   const post = createPost(), m = post.scene.children[0].material;
   assert.deepEqual(m.defines, {}, 'none by default: the shader as without them');
   for (const p of Object.values(PRESETS)) {
     const U = Object.fromEntries(Object.entries(p).map(([k, v]) => [k, { value: v }]));
-    assert.deepEqual(inkFeatures(U), {}, 'no preset compiles them in');
+    const f = inkFeatures(U);
+    for (const k of INK_STICKY) delete f[k];   // (the sky's and the spot blacks' parts: as the preset's own values say, below)
+    assert.deepEqual(f, {}, 'no preset compiles them in');
   }
   const v = m.version;
   post.uniforms.uHazeLayers.value = [100, 2, 0.1, 3];
@@ -228,4 +230,41 @@ test('the haze and the cast shadows are compiled into the composite only while t
   const src = m.fragmentShader;
   for (const d of ['INK_HAZE', 'INK_LAYERS', 'INK_HFOG', 'INK_CAST', 'INK_SHADOW']) assert.ok(src.includes(`#ifdef ${d}`), d);
   assert.equal((src.match(/hazeAt\(/g) ?? []).length, 2, 'declared once, evaluated once a pixel');
+});
+
+test('the sky\'s and the spot blacks\' parts are compiled in only where the look uses them, and stay once drawn with', async () => {
+  const THREE = await import('three');
+  const { createPost, inkFeatures, INK_STICKY, PRESETS } = await import('../src/post.js');
+  const U = (o) => Object.fromEntries(Object.entries({ uHazeLayers: [300, 2, 0, 0], uHeightFog: [0, 20, 0, 0], uCast: [0, 0], uInkShadow: [0, 0], ...o }).map(([k, v]) => [k, { value: v }]));
+  assert.deepEqual(Object.keys(inkFeatures(U({ uSkyDots: 1, uCumulus: 0, uSpot: [1, 3, 0.3, 0.2] }))).sort(), ['INK_SKYDOTS', 'INK_SPOT']);
+  assert.deepEqual(Object.keys(inkFeatures(U({ uEclipse: [0.9, 0.05, 1, 0], uSpace: [1, 0.1, 0.3, 0.3] }))).sort(), ['INK_ECLIPSE', 'INK_SPACE']);
+  assert.deepEqual(inkFeatures(U({ uEclipse: new THREE.Vector4(0, 0, 0, 0), uSpace: new THREE.Vector4(0, 0, 0, 0) })), {}, 'a Vector4 read as well as an array');
+  // planets: a size and a direction (THREE.Vector4's default, (0, 0, 0, 1), is none: nothing drawn)
+  assert.deepEqual(inkFeatures(U({ uPlanet: [new THREE.Vector4(), new THREE.Vector4(0, -1, 0, 0)] })), {});
+  assert.deepEqual(Object.keys(inkFeatures(U({ uPlanet: [new THREE.Vector4(0.5, 0.4, 0.7, 0.05)] }))), ['INK_PLANETS']);
+  assert.ok(Object.keys(inkFeatures(U(PRESETS['Moebius print']))).every((k) => INK_STICKY.includes(k)), 'the print preset: sky dots, cumulus, spot blacks');
+  // in the shader, each behind its define (each was already decided by its uniform inside: leaving it out changes nothing)
+  const post = createPost(), quad = post.scene.children[0], m = quad.material, src = m.fragmentShader;
+  for (const d of INK_STICKY) assert.ok(src.includes(`#ifdef ${d}`), d);
+  assert.match(src, /#ifdef INK_SPOT\s+if \(uSpot\.x > 0\.0/);
+  assert.match(src, /#ifdef INK_SKYDOTS\s+if \(uSkyDots > 0\.0/);
+  assert.match(src, /#ifdef INK_CUMULUS\s+if \(uCumulus > 0\.0/);
+  assert.match(src, /#ifdef INK_SPACE\s+if \(uSpace\.x > 0\.0\) drawSpace/);
+  assert.match(src, /void drawPlanet[^{]*\{\s*if \(P\.w <= 0\.0\) return;/);
+  // a look passing through a value while loading doesn't compile it in; once drawn with, a part stays
+  post.uniforms.uCumulus.value = 1;
+  assert.ok('INK_CUMULUS' in m.defines);
+  post.uniforms.uCumulus.value = 0;
+  assert.ok(!('INK_CUMULUS' in m.defines), 'set and unset before any draw: out');
+  post.uniforms.uCumulus.value = 1;
+  quad.onBeforeRender();
+  const v = m.version;
+  post.uniforms.uCumulus.value = 0;
+  quad.onBeforeRender();
+  assert.ok('INK_CUMULUS' in m.defines, 'drawn with: kept (a zone turning it off doesn\'t recompile)');
+  assert.equal(m.version, v, 'no recompile');
+  // planets set in place (main.js setPlanets): sync before the warm-up
+  post.uniforms.uPlanet.value[0].set(0.3, 0.5, 0.8, 0.06);
+  post.sync();
+  assert.ok('INK_PLANETS' in m.defines);
 });

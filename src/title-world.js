@@ -406,6 +406,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   const passes = warmPasses({ makeGBuffer: createGBuffer, shadowOverride });
   try {
     await warmShadersSliced(renderer, scene, camera, { target: gbuffer, slice: step, pace, wait: 4000 });
+    post.sync?.();   // (the ink pass's parts by the shot's look: post.js inkFeatures)
     await warmShadersSliced(renderer, post.scene, post.camera, { target: composeRT, slice: step, pace });
     const wp = waters?.warmPass?.();
     if (wp) await warmShadersSliced(renderer, wp.scene, wp.camera, { target: composeRT, slice: step, pace });

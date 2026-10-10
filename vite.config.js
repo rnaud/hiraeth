@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { auditsPlugin } from './scripts/audits-data.mjs';
 import { referenceLabPlugin } from './scripts/reference-lab/server.mjs';
 import { referencesPlugin } from './scripts/references-index.mjs';
+import { threeProgramKeys } from './scripts/three-program-keys.mjs';
 
 // Relative asset paths so the build works both at a site root and under
 // GitHub Pages' /moebius/ sub-path.
@@ -60,6 +61,7 @@ export default defineConfig({
   build: { target: 'es2022', rolldownOptions: { input: BUILD_INPUT } },
   // (the reference lab, reference-lab.html: dev server only, not built: docs/systems/reference-lab.md; the
   // references page's live index is the dev server's, the site's is written by the deploy: docs/systems/references.md)
-  plugins: [dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
+  // (threeProgramKeys: the surfaces' programs keyed without their side, normals or colours: fewer programs to compile)
+  plugins: [threeProgramKeys(), dropMakeHuman(), auditsPlugin(), referenceLabPlugin(), referencesPlugin()],
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd()), ...(modules ? [modules] : [])] } },
 });

@@ -71,6 +71,15 @@ export const CHANGELOG = [
     'Three new trials: the Tube run through the Underwater City’s halls, the Floor round of the foundry, and the Courier’s round over the floating city’s bridges, each with a keepsake for the finish.',
     'Three new gifts in the makers’ boxes: the diver’s pearl (running tires you a third less), the pocket bellows (stamina comes back twice as fast) and the star-thread (you climb a third faster).',
     'The galactic map fits twelve worlds and home on a small screen, and the Items page lays its gear out ten to a row.',
+    // fewer shader programs to compile (docs/systems/performance.md "Fewer surface programs")
+    { text: 'Worlds load faster on the Xbox: surfaces that differ only in small touches now share their drawing programs, so a world prepares about 25 of them instead of about 60, and the ink pass leaves out the sky’s eclipse, space, planets and dotted clouds where a world has none. Nothing looks different.',
+      numbers: [{ title: 'Time the console spends compiling a world’s drawing programs, one after another', unit: 's', better: 'lower', device: 'Xbox Series X, Dev Mode (app type Game), ANGLE on D3D11, every program compiled cold', rows: [
+        { where: 'the Desert (89 → 49 programs)', before: 81.2, after: 41.9 },
+        { where: 'the City-Shaft', before: 76.6, after: 53.1 },
+        { where: 'Lorn', before: 78.1, after: 46.3 },
+        { where: 'the Buried Machine', before: 67.1, after: 48.5 },
+        { where: 'the ink pass alone (Desert)', before: 10.7, after: 6.6 },
+      ], source: 'scripts/xbox-shaders.mjs on the programs scripts/load-breakdown.mjs --dump took from each world', note: 'A whole cold Desert load on the console: first frame 172.7 → 150.7 s, “mixing the inks” 129 → 91 s (scripts/load-breakdown.mjs --xbox). What is left is mostly the first draws, the next step.' }] },
   ] },
   { v: '1.39', date: '2026-10-10', items: [
     // the fight, closer to Breath of the Wild's (docs/systems/foes.md)

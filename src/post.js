@@ -225,9 +225,25 @@ export function inkMass(ndl, ny, L, lit, [ground, other]) {
   return pot * (1 - lit) * ss(CAST.light, L);
 }
 
+/** A vec4 uniform's component, whether its value is an array or a THREE.Vector4. */
+const comp = (u, i) => { const v = u?.value; return v == null ? 0 : Array.isArray(v) ? v[i] ?? 0 : [v.x, v.y, v.z, v.w][i] ?? 0; };
+/**
+ * The sky's and the spot blacks' parts, compiled in only where a world's look uses them (docs/systems/performance.md,
+ * "The ink pass"): each is decided inside by its uniform, so leaving it out where that is 0 changes nothing, and once
+ * compiled in it stays (INK_STICKY: a zone or a preset turning it off again doesn't recompile). On the Xbox's D3D
+ * compiler the eclipse, space and the planets were 4.6 of the pass's 10.8 s, the spot blacks' enclosure 2 s.
+ */
+export const INK_STICKY = ['INK_ECLIPSE', 'INK_SPACE', 'INK_PLANETS', 'INK_SKYDOTS', 'INK_CUMULUS', 'INK_SPOT'];
 /** The composite's optional parts, as defines, from the uniforms the look set: the haze (4b) and the cast shadows (2). */
 export function inkFeatures(U) {
   const f = {};
+  if (comp(U.uEclipse, 1) > 0) f.INK_ECLIPSE = '';
+  if (comp(U.uSpace, 0) > 0) f.INK_SPACE = '';
+  // (a planet: a size and a direction; THREE.Vector4's default (0, 0, 0, 1) has no direction, nothing is drawn)
+  if ((U.uPlanet?.value ?? []).some((p) => { const [x, y, z, w] = Array.isArray(p) ? p : [p.x, p.y, p.z, p.w]; return w > 0 && x * x + y * y + z * z > 1e-8; })) f.INK_PLANETS = '';
+  if (U.uSkyDots && U.uSkyDots.value > 0) f.INK_SKYDOTS = '';
+  if (U.uCumulus && U.uCumulus.value > 0) f.INK_CUMULUS = '';
+  if (comp(U.uSpot, 0) > 0) f.INK_SPOT = '';
   if (U.uHazeLayers.value[3] > 0) f.INK_LAYERS = '';
   if (U.uHeightFog.value[3] > 0) f.INK_HFOG = '';
   if (f.INK_LAYERS !== undefined || f.INK_HFOG !== undefined) f.INK_HAZE = '';
@@ -835,6 +851,7 @@ const fragmentShader = /* glsl */ `
     // (an eclipse world: the rose light low all round the horizon, and the sun the moon's own size)
     float eclipse = step(1e-5, uEclipse.y), eCover = eclipse * uEclipse.x;
     vec3 sunAt = uSunDisc;
+    #ifdef INK_ECLIPSE
     if (eclipse > 0.0) {
       if (dot(uEclipseDir, uEclipseDir) > 0.25) { sunAt = normalize(uEclipseDir); ang = acos(clamp(dot(rd, sunAt), -1.0, 1.0)); aa = fwidth(ang); }
       float eh = rd.y, ew = fwidth(eh) * 1.2, top = uEclipseGlow.a;
@@ -842,10 +859,13 @@ const fragmentShader = /* glsl */ `
       col = mix(col, uEclipseGlow.rgb, band * step(-0.02, eh) * smoothstep(0.6, 1.0, eCover));
       r = uEclipse.y * 0.985;
     }
+    #endif
     col = mix(col, uSunColor, (1.0 - smoothstep(r - aa, r + aa, ang)) * (1.0 - smoothstep(0.93, 1.0, eCover)));
     ink = max(ink, (1.0 - smoothstep(0.0, aa * 1.2 * px, abs(ang - r))) * (1.0 - eCover));
     ink = max(ink, 0.5 * (1.0 - uNight) * (1.0 - smoothstep(0.0, aa * 0.7 * px, abs(ang - r * 1.6))) * (1.0 - eclipse) * (1.0 - uSpace.x));
+    #ifdef INK_ECLIPSE
     if (eclipse > 0.0) drawEclipse(rd, sunAt, ang, aa, r, col, ink);
+    #endif
 
     // Moon: smaller pale disc with a crescent shadow, drawn separately so it
     // never jumps when the lighting switches from sun to moon.
@@ -872,10 +892,15 @@ const fragmentShader = /* glsl */ `
       col = mix(col, mix(col, uSunColor, 0.6), wedge * near * low * uRays);
     }
 
+    #ifdef INK_SPACE
     if (uSpace.x > 0.0) drawSpace(rd, col);
+    #endif
+    #ifdef INK_PLANETS
     for (int i = 0; i < 3; i++) drawPlanet(rd, uPlanet[i], uPlanetColor[i], uPlanetCraters[i], col, ink);
+    #endif
 
     // printed sky: a field of fine dots, a bit denser up high
+    #ifdef INK_SKYDOTS
     if (uSkyDots > 0.0 && rd.y > 0.0) {
       // dots live on the sky dome (azimuth / elevation), not on the screen;
       // the grid spacing snaps to powers of two of ~3.4 px so they stay even
@@ -905,9 +930,11 @@ const fragmentShader = /* glsl */ `
       }
       col = mix(col, uSkyTop * 0.72, clamp(dots, 0.0, 1.0) * smoothstep(0.65, 1.6, uPixelRatio) * uSkyDots * (1.0 - uNight * 0.5));
     }
+    #endif
 
     // cumulus bank: puffy cream clouds sitting on the horizon, inked, each
     // puff drawn as an arc, undersides cut flat
+    #ifdef INK_CUMULUS
     if (uCumulus > 0.0 && rd.y > -0.02) {
       float az = atan(rd.x, rd.z);
       float e = rd.y;
@@ -931,6 +958,7 @@ const fragmentShader = /* glsl */ `
       ink = max(ink, (1.0 - smoothstep(0.0, 1.3 * uPixelRatio, abs(e - hgt) / fw)) * step(0.001, hgt) * uCumulus);
       ink = max(ink, (1.0 - smoothstep(0.0, 0.9 * uPixelRatio, inner)) * cloud * 0.55);   // inner puff arcs
     }
+    #endif
 
     // Stars: sparse inked-paper dots at night.
     // (and in an eclipse's totality, uCorona.a: not on the moon's disc)
@@ -1332,6 +1360,7 @@ const fragmentShader = /* glsl */ `
       // person, grass or a light; never in the light (the sheets keep their lit areas clean). It follows the
       // shade's own antialiased edge (1 - lit): switched on at lit < 0.5 it cut a hard, unfiltered step into
       // the darkened cast shadows' edges, a staircase that crawled as the camera moved.
+      #ifdef INK_SPOT
       if (uSpot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
         vec3 spotC = uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a);
         float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten) * (1.0 - lit);
@@ -1343,6 +1372,7 @@ const fragmentShader = /* glsl */ `
         col = mix(col, spotC, spot * k);
         if (DEBUG_VIEW(10)) { fragColor = vec4(castK * k, spot * k, 0.2, 1.0); return; }   // spot blacks: the cast (red) and spot (green) masks
       }
+      #endif
 
       // ---- 3d. ink shadows: a cast shadow printed as one flat mass of the world's darkest tone (uSpotTone,
       // the spot blacks'), hard-edged, over its hatching, its drawn detail and its crease shading, the way
@@ -1601,19 +1631,22 @@ export function createPost() {
   // (set as the look sets them, so the shader warm-up at load compiles the right one; and before each draw, should
   // a value have been changed in place)
   let features = null;
-  const sync = () => {
-    const f = inkFeatures(uniforms), key = Object.keys(f).join();
+  const sticky = new Set();   // (INK_STICKY: compiled in once drawn with, kept; not what a look passed through while loading)
+  const sync = (drawn = false) => {
+    const f = inkFeatures(uniforms);
+    for (const k of INK_STICKY) { if (f[k] !== undefined) { if (drawn === true) sticky.add(k); } else if (sticky.has(k)) f[k] = ''; }
+    const key = Object.keys(f).sort().join();
     if (key === features) return;
     features = key;
     material.defines = f;
     material.needsUpdate = true;
   };
-  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast', 'uInkShadow', 'uPostLite', 'uDebug']) {
+  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast', 'uInkShadow', 'uPostLite', 'uDebug', 'uEclipse', 'uSpace', 'uSkyDots', 'uCumulus', 'uSpot']) {
     let v = uniforms[k].value;
     Object.defineProperty(uniforms[k], 'value', { get: () => v, set: (x) => { v = x; sync(); }, enumerable: true });
   }
   sync();
-  quad.onBeforeRender = sync;
+  quad.onBeforeRender = () => sync(true);
   const scene = new THREE.Scene();
   scene.add(quad);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -1622,7 +1655,8 @@ export function createPost() {
   const lineNoise = lineNoiseTexture();
   uniforms.tLineNoise.value = lineNoise;
   const dispose = () => { lineNoise.dispose(); };
-  return { scene, camera, uniforms, dispose };
+  // (sync: before the load's warm-up, as a world may have changed a value in place: its planets)
+  return { scene, camera, uniforms, dispose, sync: () => sync() };
 }
 
 

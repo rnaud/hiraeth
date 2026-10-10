@@ -100,7 +100,7 @@ function fakeRenderer() {
   };
   return r;
 }
-const mesh = (name, material, extra = {}) => ({ name, material, isMesh: true, geometry: { attributes: {} }, ...extra });
+const mesh = (name, material, extra = {}) => ({ name, material, isMesh: true, geometry: { attributes: { position: {} } }, ...extra });
 const sceneOf = (list) => ({ traverse: (f) => list.forEach(f) });
 
 test('the shaders are compiled one kind at a time, a slice between, with the pass\'s target, then first used a slice each', async () => {
@@ -128,6 +128,8 @@ test('the shaders are compiled one kind at a time, a slice between, with the pas
   await firstUse(r, slice);
   assert.equal(r.log.filter((l) => l[0] === 'first use').length, r.info.programs.length);
   assert.equal(slices.length, r.info.programs.length);
+  // a mesh whose geometry is still empty (filled when shown: a telegraph's mark) isn't compiled: keyed with no position, nothing draws with it
+  assert.equal(await warmShadersSliced(r, sceneOf([mesh('e', { id: 3 }, { geometry: { attributes: {} } })]), {}, { slice }), 0);
 });
 
 test('the title\'s sound starts only when asked, on one audio context (the probe\'s own, when it runs)', async () => {
