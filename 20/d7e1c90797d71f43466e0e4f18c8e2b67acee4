@@ -1,0 +1,35 @@
+DONE.md
+  s_9ca76055a220ed::t_8853e5ecbb4e25 2018-2020
+changelog.md
+  s_9ca76055a220ed::t_33d9ca81c9cceb 7
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_d6de8320cf702d 653-663
+src/changelog.js
+  s_9ca76055a220ed::t_da836429c424b8 15
+src/drone.js
+  s_9ca76055a220ed::t_15a0ca97f3bb5f 3,261
+src/materials.js
+  s_9ca76055a220ed::t_e8a81fe0a51d7c 829,2533,2781,2892-2919
+src/post.js
+  s_9ca76055a220ed::t_bf03c0fdefde18 121,130-131,526-529,557,595,962-964,1016,1088,1226,1275
+tests/ground-ink.test.js
+  s_9ca76055a220ed::t_554a141c42080b 5-6,77,142-165
+tests/occlusion-taps.test.js
+  s_9ca76055a220ed::t_b29ba99e2b4ae7 50,69,81-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "20d7e1c90797d71f43466e0e4f18c8e2b67acee4",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
