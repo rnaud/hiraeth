@@ -12,6 +12,8 @@ export const CHANGELOG = [
     // the worlds, fifth round of the level design audit: the loners pulled in, a high place in each flat world, the blind legs
     'In Vael II, Ondine no longer waits alone far out on the plain: every day she walks out along the long aqueduct as far as the floating island, and you find her there, under the island church, beside the parapet stone where she scratches a mark for each day. Ask her why she stops there.',
     'One of the riders’ lantern stones fell up with the bell’s clapper. Its lantern burns over the island church’s porch while the clapper lies there, a point of light in the sky seen from the monastery, and goes out when you pick the clapper up.',
+    'Lorn has a high place: Wendel’s lookout, a teal crystal grown in steps on the rise east of the landing. Climb it column by column, a short climb and a rest each time, to its top 30 m up, where the makers’ box from the rise now waits and the whole swamp lies below you.',
+    'From Saba’s stone by the Great Crystal, the crystal cave’s crown now shows through a gap in the landing island’s crystal grove, so you can see where the cave is before you set off for it.',
   ] },
   { v: '1.22', date: '2026-10-10', items: [
     // the enemy roster's last step: balance and sound (docs/audits/combat-v1.22.md)

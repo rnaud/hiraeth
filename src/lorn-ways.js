@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { steppedColumns } from './lookouts.js';
 
 // Lorn's way home and the crystal cave's crown (level design audit, fourth round: the walk back from the cave to the
 // ship was the way out, and the cave, a tunnel, could not be seen from the Great Crystal). No rng: the swamp round
@@ -39,6 +40,25 @@ export function buildCaveCrown(scene, cave, mat) {
   crown.userData.castShadow = true;
   scene.add(crown);
   return { top: V(cave.x, ridge - 3 + 26, cave.z), height: 24 };
+}
+
+/**
+ * The crown's window (fifth round: Saba → the cave was blind, the landing island's crystal grove standing between her
+ * stone and every bearing on the cave). The grove's crystals in a narrow lane along the sightline from Saba's stone to
+ * the crown grow only as tall as the line allows, so from her stone the crown shows through a notch in the grove, framed
+ * by its tall crystals. Only the height changes (the grove draws the same random numbers), so nothing else moves.
+ *   crownWindow(cave) → (x, z, h, foot) => h, lowered where it would stand in the line
+ */
+export const SABA_STONE = [107, -131];
+export function crownWindow(cave, { eye = 3.7, half = 7 } = {}) {
+  const ridge = cave.y + cave.r + 7, aim = ridge - 3 + 26 - 0.2 * 24;   // (the crown's top, aimed at a fifth down: the audit's own aim)
+  const [ax, az] = SABA_STONE, dx = cave.x - ax, dz = cave.z - az, L2 = dx * dx + dz * dz;
+  return (x, z, h, foot = 0) => {
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+    const off = Math.hypot(x - (ax + dx * t), z - (az + dz * t));
+    if (off > half + h * 0.25) return h;   // (a crystal leans up to a quarter of its height)
+    return Math.max(2.5, Math.min(h, eye + (aim - eye) * t - 3 - foot));   // (its top 3 m under the line; foot: the ground it stands on)
+  };
 }
 
 export function buildEggLamps(scene, terrain) {
@@ -81,4 +101,36 @@ export function buildEggLamps(scene, terrain) {
   for (const m of punt.children) m.userData.floats = true;
   scene.add(g, punt);
   return { points, punt: V(P.x, 0.4, P.z), sight: V(...points[2]) };
+}
+
+/**
+ * Wendel's lookout (fifth round: Lorn was flat, 8 m between its lowest and highest places). A crystal of the cave's own
+ * teal grown in a honeycomb of flat-topped hexagonal columns on the rise east of the landing: four round a tall middle
+ * one, each a climb of 6 m above the last (6, 12, 18, 24, then the middle at 30), so you go up it step by step, a short
+ * climb and a rest. The egg-warden climbs it at dusk to count the gatherers home. From the top the whole swamp shows:
+ * the cave's crown over the fungus to the north-west, the Great Crystal to the south-east, the egg-lamps on the shore.
+ * The makers' box that sat on the rise sits on the top now. Every column collides as drawn.
+ *
+ *   buildLookout(scene, terrain, mat) → { top, steps (the columns' tops in climbing order), foot, height }
+ */
+export const LOOKOUT = { x: 62, z: -32, r: 3, step: 6 };
+export function buildLookout(scene, terrain, mat) {
+  const { x, z, r, step } = LOOKOUT;
+  // the ring climbs anticlockwise from the side that faces the landing (src/lookouts.js)
+  const S = steppedColumns({ x, z, r, step, sides: 6, ground: (px, pz) => terrain.heightAt(px, pz), face: Math.PI * 0.75 });
+  const parts = [...S.parts];
+  // two short pointed crystals where the ring is open, and a thin spire up from the middle's back edge
+  for (const [[ox, oz], h] of [[S.open[0], 4.5], [S.open[1], 3.2]]) {
+    const k = (S.d - 0.6) / S.d, cx = x + (ox - x) * k, cz = z + (oz - z) * k, f = terrain.heightAt(cx, cz) - 0.8;
+    parts.push(new THREE.CylinderGeometry(0, 1.6, h + 0.8, 6).translate(cx, f + (h + 0.8) / 2, cz).toNonIndexed());
+  }
+  {
+    const a = Math.PI * 0.75 + Math.PI * 1.5, cx = x + Math.cos(a) * (S.ap - 0.7), cz = z + Math.sin(a) * (S.ap - 0.7);
+    parts.push(new THREE.CylinderGeometry(0, 0.75, 8, 6).translate(cx, S.top.y - 0.5 + 4, cz).toNonIndexed());
+  }
+  const m = new THREE.Mesh(mergeGeometries(parts), mat);
+  m.name = 'Wendel’s lookout';
+  m.userData.castShadow = true;
+  scene.add(m);
+  return { top: S.top, steps: S.steps, foot: S.foot, height: step * 5 };
 }

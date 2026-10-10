@@ -10,7 +10,7 @@ import { attachTemple } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
-import { buildCaveCrown, buildEggLamps } from '../lorn-ways.js';
+import { buildCaveCrown, buildEggLamps, crownWindow, buildLookout } from '../lorn-ways.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
@@ -232,12 +232,12 @@ export function* buildPerdide(scene) {
   }
 
   // ---------------------------------------------------------- crystal forests
-  function crystals(cx, cz, count, spread, scale = 1) {
+  function crystals(cx, cz, count, spread, scale = 1, cap = null) {
     lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 4, cz, spread * 0.5 + 14));
     const parts = { };
     for (let i = 0; i < count; i++) {
       const x = cx + (rng() - 0.5) * spread, z = cz + (rng() - 0.5) * spread;
-      const h = (6 + rng() * rng() * 40) * scale, r = (0.8 + rng() * 2.5) * scale;
+      const h0 = (6 + rng() * rng() * 40) * scale, h = cap ? cap(x, z, h0, terrain.heightAt(x, z) - 0.5) : h0, r = (0.8 + rng() * 2.5) * scale;
       const g = new THREE.CylinderGeometry(0, r, h, 5, 1);
       g.translate(0, h / 2, 0);
       g.rotateX((rng() - 0.5) * 0.5).rotateZ((rng() - 0.5) * 0.5);
@@ -248,7 +248,8 @@ export function* buildPerdide(scene) {
     for (const [c, list] of Object.entries(parts))
       scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55 })));
   }
-  crystals(40, -70, 60, 50);
+  // (the landing island's grove, with a notch in it on the line from Saba's stone to the cave's crown: src/lorn-ways.js)
+  crystals(40, -70, 60, 50, 1, crownWindow(CAVE));
   yield;
   for (let i = 0; i < 24; i++) crystals((rng() * 2 - 1) * 1100, (rng() * 2 - 1) * 1100, 30 + Math.floor(rng() * 50), 40 + rng() * 60);
 
@@ -489,6 +490,10 @@ export function* buildPerdide(scene) {
   const crown = buildCaveCrown(scene, CAVE, caveMat);
   lights.push(new THREE.Vector4(crown.top.x, crown.top.y - 8, crown.top.z, 22));
   const eggLamps = buildEggLamps(scene, terrain);
+  // Wendel's lookout (src/lorn-ways.js, fifth round): a stepped crystal on the rise east of the landing, climbed 6 m at a
+  // time to the makers' box on its top (src/boxes/placements.js perdide.reed), the swamp's one high place
+  const lookout = buildLookout(scene, terrain, caveMat);
+  lights.push(new THREE.Vector4(lookout.top.x, lookout.top.y - 10, lookout.top.z, 18));
 
   // the Hush-House on the cave island, and its rooms far overhead (src/temples/perdide.js)
   yield;
@@ -503,6 +508,7 @@ export function* buildPerdide(scene) {
     // (`fed` counts the globs each has swallowed), the fireflies' nest; silence 0..1 shuts every
     // jaw (the crystal is singing), tame stops them snapping at you, calm only the bed's
     crystal, caveMat, plants, nest, silence: 0, tame: false, calm: false,
+    lookout,   // (Wendel's lookout: tests/level-design-round5.test.js climbs it)
     // a glob of the traveller's fluid makes a plant snap shut from afar (the push just rattles it)
     // an ember glob makes one recoil: it clamps shut and shudders (it doesn't feed it)
     targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, accepts: ['fire'], position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' || mode === 'fire' ? 2.5 : 0.8; if (mode === 'shoot') p.fed++; if (mode === 'fire') p.recoil = 1; return true; } })),

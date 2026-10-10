@@ -157,12 +157,13 @@ export const PLACEMENTS = {
       note: 'In the makers’ court in the grove south-west of the landing: a cracked wall, a cracked boulder, crates to throw.' },
   ],
   perdide: [
-    // the swamp of lights: a mossy rise above Wendel’s glowing eggs, where the creatures crowd
+    // the swamp of lights: on top of Wendel's lookout, the stepped crystal on the mossy rise east of the landing
+    // (src/lorn-ways.js; level design audit, fifth round: the swamp's one high place, 30 m up)
     // It held the stilling mode until the Hush-House was built (src/temples/perdide.js): the stilling mode is the
-    // house's key now, and the rise keeps the breathing reed, a gift in the open
-    { id: 'perdide.reed', item: 'reed', at: [30, 6.2, -30], toward: [0, 0],
-      hint: 'A makers’ box hides on the mossy rise south-east of the landing, among the creatures',
-      note: 'The mossy rise south-east of the landing, among the wildlife.' },
+    // house's key now, and the lookout keeps the breathing reed, a gift in the open
+    { id: 'perdide.reed', item: 'reed', at: [62, 37, -32], toward: [0, 0],
+      hint: 'A makers’ box sits on top of Wendel’s lookout, the stepped crystal on the rise east of the landing. Climb it a step at a time',
+      note: 'On top of Wendel’s lookout, the stepped teal crystal on the mossy rise east of the landing: four short climbs and the last.' },
     // the Hush-House (src/temples/perdide.js): in its round chamber over the bog well. The stilling mode is the key
     // to the rest: the gates of jaws, the pendulums, the Mother Snapper
     { id: 'perdide.temple.stun', item: 'stun', temple: 'perdide', site: (level) => level.temple?.gadgetSite,
