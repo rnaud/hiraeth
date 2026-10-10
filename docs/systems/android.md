@@ -34,6 +34,28 @@ the game in its own engine, GeckoView, and in the system WebView only where that
   npm run build && npx cap sync android && (cd android && ./gradlew assembleDebug)
   ```
 
+### When a release fails (October 2026)
+v1.35 never got a release: run 38046378533 built its APK, then GitHub answered `gh release create` with
+`HTTP 403: Resource not accessible by integration`, and v1.36 and v1.37 were made minutes later by the same
+workflow and token. The failure didn't show where the author looked: a `workflow_run` run's check doesn't
+land on the commit it built.
+- **Retries.** Every release and upload call goes through `retry` (`scripts/retry.sh`, sourced): up to four
+  attempts, 10, 30 and 60 seconds apart, giving up at once only on HTTP 400, 401, 404 and 422 (a bad request,
+  bad credentials, nothing there, "already exists"); 403, 429 and 5xx are retried. In `android.yml` the whole
+  publish (view, then upload or create) is one function retried as a whole, so a release an earlier attempt
+  made is updated, not made twice. The same in `steam-deck.yml` (each call), `scripts/unity-publish.sh`
+  (`unity-android.yml`), `cloudflare.yml` (`wrangler deploy`) and, in PowerShell, `xbox.yml`.
+- **The outcome on the commit.** The `workflow_run` deploys write a commit status on the tested commit
+  (`github.event.workflow_run.head_sha`) with `scripts/commit-status.sh`: `pending` once checked out, then
+  the job's status at the end (`if: always()`: success, failure, or error when cancelled), linking to the
+  run. The contexts: `release: android`, `release: steam deck`, `release: web (cloudflare)`. They need
+  `statuses: write` in the workflow's permissions; a status that can't be written is only a warning.
+  (`unity-android.yml` and `xbox.yml` run on the push itself, so their checks are already on the commit;
+  GitHub Pages, `deploy.yml`, is a mirror whose runs cancel each other, and has none.)
+  `tests/release-workflows.test.js` checks both.
+- **A missed version** is not made again afterwards: a later release exists, and an old tag made now would
+  become "Latest". The next push publishes the newest version as usual.
+
 ### Over-the-air updates and the handheld pass (v0.37)
 - **Game updates without an APK** (`android/.../WebBundles.java`, `src/native-app.js`):
   - On launch, when online, the app reads `web.json` from the newest release in

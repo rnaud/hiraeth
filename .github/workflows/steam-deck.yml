@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  statuses: write   # (scripts/commit-status.sh: "release: steam deck" on the tested commit)
 
 # (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
 # a group of its own and is skipped, so it can't replace a waiting deploy or cancel a running one.)
@@ -37,6 +38,12 @@ jobs:
         with:
           ref: ${{ env.SHA }}
           fetch-depth: 0   # the whole history: the packaged game's build number counts its commits
+      # (the outcome on the tested commit, as android.yml's: pending now, success or failure at the end)
+      - name: Commit status (pending)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/commit-status.sh pending "release: steam deck"
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -86,10 +93,21 @@ jobs:
         run: |
           # A separate channel avoids races with Android's version releases and
           # leaves GitHub's latest stable release pointing to the Android APK.
+          # Each call retried on a transient error (scripts/retry.sh); the package's name is this build's
+          # alone, so --clobber only replaces what an earlier attempt half-uploaded.
+          . scripts/retry.sh
           if ! gh release view steam-deck >/dev/null 2>&1; then
-            gh release create steam-deck --target "$SHA" --title 'Hiraeth for Steam Deck' \
-              --prerelease --latest=false --notes-file scripts/steam-deck/release-notes.md
+            retry gh release create steam-deck --target "$SHA" --title 'Hiraeth for Steam Deck' \
+              --prerelease --latest=false --notes-file scripts/steam-deck/release-notes.md \
+              || gh release view steam-deck >/dev/null   # (made by an attempt that reported a failure: fine)
           fi
-          gh release upload steam-deck output/steam-deck/*.tar.gz
-          gh release upload steam-deck output/steam-deck/install-moebius.py --clobber
-          gh release upload steam-deck output/steam-deck/steam-deck.json --clobber
+          retry gh release upload steam-deck output/steam-deck/*.tar.gz --clobber
+          retry gh release upload steam-deck output/steam-deck/install-moebius.py --clobber
+          retry gh release upload steam-deck output/steam-deck/steam-deck.json --clobber
+
+      - name: Commit status (the outcome)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/commit-status.sh "${{ job.status }}" "release: steam deck"

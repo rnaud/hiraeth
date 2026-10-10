@@ -76,7 +76,12 @@ cancelled once started; GitHub keeps only the newest waiting run and cancels tho
 - The steps: Puerts (`scripts/unity-js-setup.sh`), the bundle (`node scripts/engine-bundle.mjs
   unity`), then GameCI's `game-ci/unity-builder@v6` in Unity's Linux editor image (6000.6.4f1, read
   from `ProjectVersion.txt`): one editor run for Puerts' IL2CPP glue (`BridgeBuild.Il2cpp`: it is C#
-  too, compiled by the next start), one for the APK.
+  too, compiled by the next start), one for the APK. Every `unity-builder` step gets `GITHUB_TOKEN`: the
+  action looks up the latest game-ci CLI release through GitHub's API, and unsigned, on the runner's shared
+  IP, it ran out of the 60-an-hour limit (run 38042662102: both Linux player attempts failed in a fraction
+  of a second, "Failed to resolve the latest game-ci CLI release: GitHub API returned 403"). The cache
+  prunes are `continue-on-error` (housekeeping), and the publish retries transient errors
+  (`scripts/retry.sh`; android.md, "When a release fails").
 - **The caches** (a cold APK took 54 minutes: the image 2, the glue's editor run with a first import
   12, shaders 12, the IL2CPP C++ 20, Gradle 4): Unity's `Library` per platform (the imports, the
   shader cache, the IL2CPP build's objects in `Library/Bee`, rebuilt only where the C# changed; the

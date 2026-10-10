@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: write
+  statuses: write   # (scripts/commit-status.sh: "release: android" on the tested commit)
 
 # A run is never cancelled once it started: cancelling one while it published left the newest
 # release without its manifest (run 90 made v0.52 and was cancelled a second later, before its
@@ -49,6 +50,14 @@ jobs:
         with:
           ref: ${{ env.SHA }}
           fetch-depth: 0   # the whole history: the build number counts its commits
+
+      # The outcome shows on the tested commit as "release: android" (pending now, success or failure at the
+      # end): this workflow_run run's own check doesn't land on that commit, so a failed release went unseen
+      - name: Commit status (pending)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/commit-status.sh pending "release: android"
 
       - uses: actions/setup-node@v5
         with:
@@ -134,18 +143,31 @@ jobs:
         run: |
           TAG="v$VERSION"
           APK="$RUNNER_TEMP/moebius-v$VERSION.apk"
-          # the file first, the manifest that points at it last
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" --clobber
-            gh release upload "$TAG" "$RUNNER_TEMP/latest.json" --clobber
-            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest
-          else
-            # (one call: gh keeps the release a draft until every file is up, so the newest
-            # release never shows without its manifest)
-            gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$SHA" --title "Hiraeth v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest
-          fi
+          # retried on a transient error (scripts/retry.sh): v1.35's release was refused once, 403, and never made.
+          # The whole publish is retried, so a release an earlier attempt made is updated, not made twice.
+          . scripts/retry.sh
+          publish() {
+            # the file first, the manifest that points at it last
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              gh release upload "$TAG" "$APK" --clobber || return 1
+              gh release upload "$TAG" "$RUNNER_TEMP/latest.json" --clobber || return 1
+              gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --latest || return 1
+            else
+              # (one call: gh keeps the release a draft until every file is up, so the newest
+              # release never shows without its manifest)
+              gh release create "$TAG" "$APK" "$RUNNER_TEMP/latest.json" --target "$SHA" --title "Hiraeth v$VERSION" --notes-file "$RUNNER_TEMP/notes.md" --latest || return 1
+            fi
+          }
+          retry publish
 
       - uses: actions/upload-artifact@v5
         with:
           name: moebius-apk
           path: ${{ runner.temp }}/moebius-v${{ steps.meta.outputs.version }}.apk
+
+      - name: Commit status (the outcome)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/commit-status.sh "${{ job.status }}" "release: android"

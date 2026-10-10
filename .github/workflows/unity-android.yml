@@ -190,6 +190,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -205,6 +206,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -221,6 +223,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -244,6 +247,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: Android
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -284,6 +288,7 @@ jobs:
 
       - name: Unity Library (the older entries deleted)
         if: always() && steps.librarysave.outputs.key != ''
+        continue-on-error: true   # (housekeeping: a prune that fails never fails the build)
         env:
           GH_TOKEN: ${{ github.token }}
           KEY: ${{ steps.librarysave.outputs.key }}
@@ -302,6 +307,7 @@ jobs:
 
       - name: Gradle (the older entries deleted)
         if: always() && steps.gradlesave.outcome == 'success'
+        continue-on-error: true   # (housekeeping: a prune that fails never fails the build)
         env:
           GH_TOKEN: ${{ github.token }}
           KEY: ${{ steps.gradle.outputs.cache-primary-key }}
@@ -387,6 +393,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -404,6 +411,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -421,6 +429,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -438,6 +447,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}   # (unity-builder looks up the latest game-ci CLI with it: unsigned, the runner's shared IP ran out of GitHub's 60 calls an hour, 403)
         with:
           targetPlatform: StandaloneLinux64
           unityVersion: ${{ env.UNITY_VERSION }}
@@ -464,6 +474,7 @@ jobs:
 
       - name: Unity Library (the older entries deleted)
         if: always() && steps.librarysave.outputs.key != ''
+        continue-on-error: true   # (housekeeping: a prune that fails never fails the build)
         env:
           GH_TOKEN: ${{ github.token }}
           KEY: ${{ steps.librarysave.outputs.key }}

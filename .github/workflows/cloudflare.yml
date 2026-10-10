@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  statuses: write   # (scripts/commit-status.sh: "release: web (cloudflare)" on the tested commit)
 
 # Never cancelled once started; pushes meanwhile wait (GitHub keeps the newest one waiting).
 # (Only a run that will build takes the group: one whose tests failed, or a run for another branch or event, has
@@ -35,11 +36,19 @@ jobs:
     if: (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 30   # (a new Deck runtime: Electron packaged and 150 MB uploaded and checked)
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}   # the tested commit
+          ref: ${{ env.SHA }}
           fetch-depth: 0   # the whole history: the build number counts its commits (release-info.mjs build)
+      # (the outcome on the tested commit, as android.yml's: pending now, success or failure at the end)
+      - name: Commit status (pending)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/commit-status.sh pending "release: web (cloudflare)"
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -90,7 +99,9 @@ jobs:
             echo "::error::Set CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN in repository Actions secrets. See docs/cloudflare.md."
             exit 1
           fi
-          npx wrangler deploy
+          # (a deploy replaces every asset: a second attempt after a transient failure is the same deploy)
+          . scripts/retry.sh
+          retry npx wrangler deploy
       - name: Verify the public deployment
         run: |
           # every built file, the content update included
@@ -101,3 +112,9 @@ jobs:
             if [ "$attempt" -lt 3 ]; then sleep 10; fi
           done
           exit 1
+      - name: Commit status (the outcome)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          scripts/commit-status.sh "${{ job.status }}" "release: web (cloudflare)"
