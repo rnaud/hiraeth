@@ -927,6 +927,11 @@ const doodleMouse = {
 const canyonX = (z) => 28 * Math.sin((z + 40) / 95);
 const desertLizard = { ...puffLizard, count: 5 };
 
+/** The Underwater City's halls (src/levels/underwater.js level.halls): creatures live inside the glass, on the floors. */
+const hallAnchors = (L) => ['dock', 'avenue', 'plaza', 'garden'].map((k) => L.halls?.[k]).filter(Boolean).map((h) => ({ p: new THREE.Vector3(h.x, h.y, h.z), r: [4, h.r - 6], w: 1 }));
+/** The City Floating in Space's islands (src/levels/space-city.js ISLANDS): their decks, as there is no ground. */
+const islandAnchors = () => [[0, 0, 122], [0, 0, 32], [0, 0, -72], [98, 6, -84], [-92, -4, -60], [0, 0, -164]].map(([x, y, z]) => ({ p: new THREE.Vector3(x, y, z), r: [3, 14], w: 1 }));
+
 export const WILDLIFE = {
   desert: [desertLizard, { ...sandCrab, count: 5 }, { ...jerboa, count: 4 }],
   incal: [
@@ -959,6 +964,25 @@ export const WILDLIFE = {
   glassdunes: [
     { ...cogMouse, count: 6 },
     { ...portalHopper, id: 'glassHopper', name: 'glass hopper', main: '#8fd9c0', count: 5, trick: { ...portalHopper.trick, name: 'dives into a wall of glass and pops out of another' } },
+  ],
+  // the three worlds that joined the route in v1.40, each with creatures of its own kind (kin of the route's, in their
+  // world's colours, with a surprise of their own)
+  // the Underwater City: kelp crabs in the halls (inside the glass: their anchors are the domes) and glass snails that go
+  // clear when frightened
+  underwater: [
+    { ...cupCrab, id: 'kelpCrab', name: 'kelp crab', main: '#e0705a', count: 6, anchors: hallAnchors, trick: { ...cupCrab.trick, name: 'backs into a coffee cup on a café table' } },
+    { ...sporeShell, id: 'glassSnail', name: 'glass snail', main: '#a8e4e6', count: 5, anchors: hallAnchors, trick: { ...sporeShell.trick, name: 'draws in its eyes and goes as clear as the dome' } },
+  ],
+  // the Moon Foundry: rail beetles along the floor's rails, and moon mice that curl up into little moons
+  moonfoundry: [
+    { ...pipeBeetle, id: 'railBeetle', name: 'rail beetle', main: '#c9703e', count: 6, trick: { ...pipeBeetle.trick, name: 'runs along a rail like a cart and rings it' } },
+    { ...cogMouse, id: 'moonMouse', name: 'moon mouse', main: '#efe4cc', count: 6, trick: { ...cogMouse.trick, name: 'curls up into a little moon and rolls away' } },
+  ],
+  // the City Floating in Space: cable finches that hang upside down from the parapets, and lamp bugs on the decks (each on
+  // the islands' decks: there is no ground under the void)
+  spacecity: [
+    { ...ticketFinch, id: 'cableFinch', name: 'cable finch', main: '#f0ac94', count: 7, anchors: islandAnchors, trick: { ...ticketFinch.trick, name: 'drops off the edge and flutters back up, upside down' } },
+    { ...signBug, id: 'lampBug', name: 'lamp bug', main: '#f2c45a', count: 6, anchors: islandAnchors, trick: { ...signBug.trick, name: 'lights up like a lamp and goes out' } },
   ],
 };
 

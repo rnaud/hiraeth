@@ -114,7 +114,7 @@ export function heartsOf(P) {
 
 /** A requirement met by a set of items alone (the temple solver, src/temples/logic.js solve): 'magic:<n>' by the starting bar and the items that lengthen it. */
 /** The gun's modes: a requirement of one is met only with the fluid gun too (a mode is nothing without it: src/gadgets/gun.js). */
-const GUN_MODES = new Set(['stun', 'fire', 'bloom']);
+const GUN_MODES = new Set(['stun', 'fire', 'bloom', 'tether', 'tongs']);
 
 export function meetsWith(has, id, extra = 0) {
   const m = /^magic:(\d+(?:\.\d+)?)$/.exec(id ?? '');

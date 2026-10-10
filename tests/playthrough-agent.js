@@ -606,10 +606,19 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
   if (!game.flag(`temple.${T.id}.entered`)) issue('temple', `in through the door of ${T.def.name}, but it never counted as entered`);
   const reached = () => (until === 'gadget' ? L.gadget : L.resolved);
   for (let n = 0; n < 80 && !reached(); n++) {
-    const id = L.next();
+    let id = L.next();
+    // (in the arena with its guardian awake, its door held shut behind him: the arena's own work, a moon in its cradle,
+    // is done from inside, so the guardian is what is left)
+    if (!id && until === 'done' && T.guardian?.awake && !L.resolved) id = Object.keys(L.def.elements).find((k) => L.el(k).type === 'boss');
     if (!id) { issue('soft-lock', `${T.def.name}: nothing left to do, and ${until === 'gadget' ? 'the chest' : 'the guardian'} not reached (rooms open: ${[...L.reachable()].join(', ')})`); break; }
     const e = L.el(id), at = nextSpot(T);
-    const s = at ? standNear(W, at, { radius: 4, up: 3.5 }) : null;
+    // (by the thing itself, else by its plate: a ball out over the void that only a tether brings home, an eye set high in a
+    // mould that wakes when a moon sits in it: you stand where you work it from)
+    const plateOf = (el) => el?.plate ?? el?.when?.drumOn?.[1] ?? el?.when?.pressed ?? null;
+    const plateAt = plateOf(e) ? (T.piece(plateOf(e))?.center ?? T.piece(plateOf(e))?.pos ?? null) : null;
+    // (an eye shot from across a pool, high over the water behind a glass wall: from the floor in sight of it)
+    const s = (at ? standNear(W, at, { radius: 4, up: 3.5 }) : null) ?? (plateAt ? standNear(W, plateAt, { radius: 4, up: 3.5 }) : null)
+      ?? (at && e.type === 'switch' ? standNear(W, at, { radius: 12, up: 8 }) : null);
     if (!s && e.type !== 'boss') issue('no-ground', `${T.def.name}: ${e.type} ${id} (${fmt(at)}) has nowhere to stand by it`);
     if (s) { W.at(s); W.step(2); }
     if (e.type === 'gadget') {
@@ -622,7 +631,11 @@ export async function templeTo(W, until, issue, { nextSpot, id = null }) {
       if (b?.id === `box.${box.id}`) { b.use(W.player); finishScenes(W); } else W.boxes.open(box.id, { instant: true });
       log.push(`chest: ${box.item}`);
     } else if (['brazier', 'bramble', 'switch', 'bell', 'vane'].includes(e.type)) { L.light(id); T.onLit(id); log.push(`${e.type} ${id}`); }   // (a vane: set turning; nothing here runs it down)
-    else if (e.type === 'drum') { L.moveDrum(id, e.plateAt ?? 1); log.push(`roll ${id}`); }
+    else if (e.type === 'drum') {
+      // (a ball with several stops: to the one a shut door waits for, as logic.next chose it; else to its plate)
+      const stop = e.stops ? Object.entries(e.stops).find(([p]) => !L.drumOn(id, p) && L.awaited(p)) : null;
+      L.moveDrum(id, stop ? stop[1] : (e.plateAt ?? 1)); log.push(`roll ${id}${stop ? ` onto ${stop[0]}` : ''}`);
+    }
     else if (e.type === 'plate') { L.press(id, 'player'); T.applyDoors(); W.step(2); L.release(id, 'player'); log.push(`stand on ${id}`); }
     else if (e.type === 'boss') { if (T.guardian?.resolve) T.guardian.resolve(); else T.onBossResolved(); log.push(`guardian ${id}`); }
     T.applyDoors(); W.step(4);

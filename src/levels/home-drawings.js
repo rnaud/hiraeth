@@ -13,7 +13,7 @@ const PAPER = '#f7ecd2';
 const cache = new Map();
 
 /** The worlds Lou has drawn (her drawing of each: see paint()). */
-export const DRAWN = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'glassdunes', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
+export const DRAWN = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'glassdunes', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar', 'underwater', 'moonfoundry', 'spacecity'];
 
 function crayon(ctx, rng) {
   // a wobbly crayon line: each stroke drawn twice, a hair apart
@@ -130,6 +130,27 @@ function paint(ctx, kind) {
       line([[128, 40], [128, 14]], '#2b211f', 4); circle(128, 12, 6, '#c8483a', '#e6503a', 3);
       for (const [x, y] of [[40, 70], [190, 60], [60, 120], [200, 120]]) { scribble(x, y, 40, 22, '#f2c54b'); line([[x, y], [x + 40, y], [x + 40, y + 22], [x, y + 22], [x, y]], '#c8483a', 4); }
       for (let x = 20; x < 240; x += 26) circle(x, 172, 7, '#2b211f');
+      break;
+    case 'underwater':   // the city in bubbles at the bottom of the sea, a whale at the window
+      scribble(0, 0, W, H, '#2a7fae');
+      ground('#3f8088', 168);
+      for (const [x, r] of [[70, 34], [150, 26], [210, 20]]) { circle(x, 168, r, '#bfe8ee'); line([[x - 6, 168], [x - 6, 152], [x + 6, 152], [x + 6, 168]], '#e08a5a', 4); }
+      line([[20, 60], [70, 48], [120, 58], [140, 50], [130, 64], [70, 72], [20, 60]], '#5a7f96', 7);
+      circle(40, 58, 3, '#2b211f', '#2b211f', 3);
+      for (const [x, y] of [[180, 40], [190, 26], [200, 14]]) circle(x, y, 4, '#e9fbff', null, 3);
+      break;
+    case 'moonfoundry':   // moons hung on hooks under a roof, one in the claws
+      line([[10, 20], [246, 20]], '#7a5a4a', 7);
+      for (const [x, r] of [[60, 26], [140, 20], [205, 30]]) { line([[x, 20], [x, 80 - r]], '#2b211f', 3); circle(x, 80, r, '#2b211f', '#efe4cc'); circle(x - r * 0.3, 74, r * 0.2, '#c9a888', null, 3); }
+      ground('#c9703e', 160);
+      person(110, 160, 0.7, '#2b211f', true);
+      break;
+    case 'spacecity':   // islands in the dark with little houses, tied together with string
+      scribble(0, 0, W, H, '#1a1e2e');
+      for (const [x, y, w] of [[50, 80, 60], [150, 110, 70], [215, 60, 46]]) { line([[x - w / 2, y], [x + w / 2, y], [x, y + 30], [x - w / 2, y]], '#f4b49a', 6); circle(x, y - 10, 9, '#f2e2c4', '#f2e2c4', 4); }
+      line([[80, 80], [115, 110]], '#f6efd0', 3); line([[185, 110], [200, 60]], '#f6efd0', 3);
+      for (let k = 0; k < 12; k++) circle(rng() * W, rng() * 50, 2, '#f6f2e4', '#f6f2e4', 2);
+      circle(220, 160, 30, '#f2e6cc');
       break;
     case 'family':   // the one she made for the stone: the round house, the two of them, the two of you
       ground('#eebd8e', 150);

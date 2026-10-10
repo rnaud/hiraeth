@@ -34,7 +34,7 @@ export const EDGE_HINTS = {
   gadgetyard: 'The Gadget Yard ends here.',
   arcade: 'The Arcade ends here.',
   default: 'The wind pushes you back.',
-  underwater: 'The water darkens into the deep and turns you back.',
+  underwater: 'The glass holds the sea back; there is nowhere further to go.',
   eclipse: 'The dark beyond the lamps thickens and turns you back.',
   fallenring: 'The plain runs on toward the far pieces of the ring, and the wind turns you back.',
   moonfoundry: 'The plain runs on into the haze and the far moons, and turns you back.',

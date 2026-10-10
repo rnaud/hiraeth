@@ -48,6 +48,11 @@ const ROUTE = [
   { id: 'buried.hask', thread: 'light', world: 'buried', who: 'Hask', line: 'A Tuning Star, singing the wheel’s note. Nobody knows what they come to tune.', heard: { who: 'hask.buried', node: 'why' } },
   { id: 'spheres.ume', thread: 'light', world: 'spheres', who: 'Ume', line: 'An Answerer, matching the pole’s note. It turned directly over the plaza.', heard: { who: 'ume', node: 'strange' } },
   { id: 'bazaar.ferro', thread: 'light', world: 'bazaar', who: 'Ferro', line: 'It turned as though it were reading the signs. The antenna’s bulbs lit by themselves.', heard: { who: 'ferro', node: 'light' } },
+  // (the three worlds that joined the route in v1.40: their traces from their days as detours, each met by its own flag
+  // sight.<id>, set by the line that tells it, and a light of their own)
+  { id: 'underwater.maelle', thread: 'light', world: 'underwater', who: 'Maelle', line: 'A light came down through the sea singing one note. The whales sang it back, all at once, and went away.', heard: { who: 'maelle', node: 'hello' } },
+  { id: 'moonfoundry.wen', thread: 'light', world: 'moonfoundry', who: 'Wen', line: 'The night the sky rang, every hung moon turned on its hook toward where the light went.', heard: { who: 'wen', node: 'after' } },
+  { id: 'spacecity.tamar', thread: 'light', world: 'spacecity', who: 'Tamar', line: 'A ship with no name once hailed with one sung note. The night the sky rang, the same note passed again, going somewhere.' },
   // ---------------------------------------------------------------- the makers' sign
   { id: 'desert.hull', thread: 'glyph', world: 'desert', who: 'Marrow', line: 'Burned into your ship’s hull where the light brushed it, and still warm.', heard: { who: 'marrow', node: 'wreck' } },
   { id: 'desert.givers', thread: 'glyph', world: 'desert', who: 'Nour', line: 'The Givers’ mark: on the giants, the carved stones, the chests. The same signature.', heard: { who: 'nour', node: 'givers' } },
@@ -71,6 +76,8 @@ const ROUTE = [
   // ---------------------------------------------------------------- someone came this way before
   { id: 'perdide.two', thread: 'before', world: 'perdide', who: 'Saba', line: 'Two strangers came in a borrowed skiff, asking where the singing light had gone.', heard: { who: 'saba', node: 'two' } },
   { id: 'edena.lookout', thread: 'before', world: 'edena', who: 'Talo’s note', line: '“It turned once. It can turn again. If it does, I want to be looking.”', heard: { who: 'lookout', node: 'note' } },
+  { id: 'underwater.coralie', thread: 'before', world: 'underwater', who: 'Coralie', line: 'A woman from up top listened all night to the whales. One sang something she knew, and she hummed it back.' },
+  { id: 'moonfoundry.bertil', thread: 'before', world: 'moonfoundry', who: 'Bertil', line: 'He cast the mark on a plate for a lone woman’s ship. “So they’ll know me,” she said.' },
 ];
 
 export const SIGHTINGS = [...ROUTE, ...DETOUR_SIGHTINGS];

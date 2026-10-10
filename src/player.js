@@ -1490,8 +1490,9 @@ export class Player {
     if (E.wantsHint() && this.opts.edgeHint && hintsFor('tip')) this.notice(this.opts.edgeHint);   // (the wind and the lean say it: the line, hints full)
     if (this.climbing) { this.finishFrame(dt, 0); return; }
     // stamina: the sprint spends it, the ground gives it back (faster standing than walking)
-    if (this.sprinting && this.onGround) spendStamina(this, STAMINA.sprint * dt);
-    else if (this.onGround) restStamina(this, dt, Math.hypot(this.vel.x, this.vel.z) < 0.5 ? STAMINA.stand : STAMINA.walk);
+    // (sprintK: the diver's pearl, a third less; restK: the pocket bellows, twice as fast back)
+    if (this.sprinting && this.onGround) spendStamina(this, STAMINA.sprint * dt * (this.sprintK ?? 1));
+    else if (this.onGround) restStamina(this, dt * (this.restK ?? 1), Math.hypot(this.vel.x, this.vel.z) < 0.5 ? STAMINA.stand : STAMINA.walk);
     // ride along on whatever you're standing on (and the feet held on it, and the drawn body's step lag, with you)
     (this._ridden ??= new THREE.Vector3()).set(0, 0, 0);
     if (carrier && this.onGround) { this.pos.addScaledVector(carrier.vel, dt); this._ridden.copy(carrier.vel).multiplyScalar(dt); }
@@ -1998,7 +1999,7 @@ export class Player {
 
     const right = _v3.crossVectors(into, U).normalize();   // screen-right while facing the wall
     const fast = (input.ShiftLeft || input.ShiftRight) && canSprint(this);
-    const sp = fast ? 2.1 : 1.4;
+    const sp = (fast ? 2.1 : 1.4) * (this.climbSpeedK ?? 1);   // (the star-thread: a third faster)
     this._climbRate = sp / 1.4;
     this.pos.addScaledVector(U, f * sp * dt).addScaledVector(right, s * sp * 0.8 * dt);
     this.heading = this.frame.headingOf(into);

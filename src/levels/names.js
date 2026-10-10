@@ -36,14 +36,14 @@ export const TITLES = {
 // worlds that want them (the Glass Dunes' First Garage, the Buried Machine, the Signal Market) come after it.
 // (October 2026, the author's level changes: Vael and Vael II became one world, Lorn and Lorn II too; the
 // Sealed Hangar left the route for the Glass Dunes, which took its temple: MERGED, DISMISSED, PARTS below.)
-export const ORDER = ['desert', 'arzach', 'perdide', 'edena', 'incal', 'glassdunes', 'buried', 'spheres', 'bazaar'];
+export const ORDER = ['desert', 'arzach', 'perdide', 'edena', 'underwater', 'incal', 'glassdunes', 'buried', 'moonfoundry', 'spheres', 'spacecity', 'bazaar'];
 // the worlds off the route: on the ship's map from the start, never needed on the way home (no story to follow)
-export const SIDE = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity'];
+export const SIDE = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'eclipse', 'fallenring', 'underside'];
 // the worlds still being made: built in a rush in October 2026 and never vetted or finished. The galactic
 // map leaves them off (CHARTED_SIDE) and the Sightings page leaves their slots out; the worlds list (Debug)
 // and the dev menu still open them, and ?level=<id>. A world leaves this list once it has been played
 // through and signed off, and it is charted on the map from then on.
-export const WIP = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity'];
+export const WIP = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'eclipse', 'fallenring', 'underside'];
 /** Is this world still being made (not shown to players)? */
 export const isWip = (id) => WIP.includes(id);
 // the sub-levels: places off the ship's map, reached by a way through from a route world's quest, with the world they

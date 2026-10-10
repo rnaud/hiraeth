@@ -101,7 +101,7 @@ export const ILEN_AFTER_CALL = 'ilen.after';
 export const TRACE_CALL = 'trace';
 
 // (the places whose people spoke of the light: the parts of merged worlds keep their own flags, and the Hangar's stay counted for a save that went there)
-const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
+const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar', 'underwater', 'moonfoundry', 'spacecity'];
 const name = (k) => k?.name ?? 'nothing';
 /** A keepsake's name inside a sentence: “a rust gear tooth”, “the bell’s note”. */
 const nameIn = (k) => name(k).replace(/^(A|An|The) /, (m) => m.toLowerCase());
@@ -148,6 +148,16 @@ export const REEL = {
   perdide2: { word: 'lamp',
     find: "~angry~ Your mother keeps that lamp burning. Every night. I tell her it’s only a habit. She doesn’t answer.",
     you: "~whisper~ (Hollin keeps his lamps lit too. He asked me to come back.)" },
+  // (the three worlds that joined the route in v1.40)
+  underwater: { word: 'deep',
+    find: "~neutral~ Don’t swim out past the buoys. The water’s deeper than it looks, and the things that live in it don’t care whose son you are.",
+    you: '~whisper~ (They sang to me anyway. Through the glass.)' },
+  moonfoundry: { word: 'finish',
+    find: "~tired~ Another half-built thing in the shed. A moon, you said. A model of the moon. Finish something. Just once, finish something.",
+    you: '~whisper~ (Nobody finished theirs either. They kept them, and lived in them.)' },
+  spacecity: { word: 'drift',
+    find: "~tired~ Tie the boat up properly. Rope, a knot, then another knot. It drifts off otherwise, and then we’re all out at night with lamps looking for it.",
+    you: '~whisper~ (They pull whole islands home with rope there. Same knots.)' },
   bazaar: { word: 'listening',
     find: "~tired~ Are you listening? I can never tell. Say something when I’ve finished, at least.",
     you: '~whisper~ (I’m listening now.)' },

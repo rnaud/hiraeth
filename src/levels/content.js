@@ -28,6 +28,7 @@ import { RING_CONTENT } from './fallen-ring.js';
 import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
 import { UNDERSIDE_CONTENT } from './underside.js';
 import { SPACECITY_CONTENT } from './space-city.js';
+import { UNDERWATER_CONTENT } from './underwater.js';
 import { TRAIN_CONTENT } from './overnight-train.js';
 import { HANGAR_CONTENT } from './dismissed/hangar/content.js';
 import { ATELIER_CONTENT } from './dismissed/atelier/content.js';
@@ -128,30 +129,7 @@ export const CONTENT = {
     ],
   },
   eclipse: ECLIPSE_CONTENT,   // src/levels/eclipse.js: off the route, no quest; three visitors and the city's folk at their tables
-  // src/levels/underwater.js: off the route (names.js SIDE), no quest, no relics; a few of the city's people, in the cafés and the streets
-  underwater: {
-    weather: [],
-    story: { title: 'UNDER THE SEA', intro: 'A city on the floor of a sea, its towers ringed with lit windows. Nobody here is waiting for you; have a look round.', outro: 'You have walked the city under the sea.', label: 'the great column', goal: [0, 'ground', -112], radius: 8, manual: true },
-    relics: { spots: [], names: [] },
-    npcs: [
-      // (Coralie: the detour's trace, src/story/sightings-detours.js)
-      { id: 'coralie', name: 'Coralie', title: 'who keeps the café', color: '#d97a5e', kind: 'f', at: [22, 49], y: 0, radius: 1, facing: -Math.PI / 2, palette: pal('#d97a5e', { cloth: '#efd2a6' }),
-        lines: ['~happy~ Come in, come in, you’re dripping on my step. It’s dry inside, it always is: the dome keeps the sea out.', '~playful~ Tea, or soup? Everything tastes a little of salt down here. We call it seasoning.'],
-        talk: { listen: [
-          { after: () => true, say: [
-            '~neutral~ Years ago a woman from up top came in alone, very tired. She sat at that window all night, listening to the whales.',
-            '~solemn~ One was singing something she knew, she said. She hummed it back to it. I didn’t know the tune. By lamp-up she was gone.',
-          ], do: { set: { 'sight.underwater.coralie': true } } },
-          '~happy~ Come in, come in, you’re dripping on my step. It’s dry inside, it always is: the dome keeps the sea out.',
-          '~playful~ Tea, or soup? Everything tastes a little of salt down here. We call it seasoning.',
-          '~neutral~ Her cup is still on the shelf. Nobody uses it. Nobody decided that; it just happened.',
-        ] } },
-      { at: [2.5, -20], y: 0.9, radius: 2, facing: Math.PI / 2, palette: pal('#4f8f96', { cloth: '#f2e6d0' }), lines: ['~neutral~ I light the lamps on the bridge at dusk. The fish come to look at them, then they go home.', '~curious~ You walk like someone from up top. Lean into the water. It holds you.'] },
-      { at: [5, -104], y: 0, radius: 2, palette: pal('#e3b06a', { cloth: '#3f5a5e' }), lines: ['~surprised~ Did you see the manta? It goes round and round the city all day. I named it Biscuit.', '~whisper~ If you jump and keep going, you can swim right up to the top of the column. Don’t tell my mother.'] },
-      { at: [-80, -12], y: 6, radius: 2, facing: -Math.PI / 2, palette: pal('#7a6e9e', { cloth: '#efd2a6' }), lines: ['~solemn~ Past the terrace the floor falls away, deeper than anyone has been. We keep the lamps lit along the edge.', '~tired~ The kelp grows back faster than I can cut it. I have stopped minding.'] },
-      { at: [7, 118], y: -3, radius: 2, palette: pal('#5f8f7a', { cloth: '#efd2a6' }), lines: ['~surprised~ A ship, all the way down here? The last thing that sank onto this sand was a teapot.', '~playful~ The city’s up the slope, follow the lamps. You’ll see the lights before the towers.'] },
-    ],
-  },
+  underwater: UNDERWATER_CONTENT,   // src/levels/underwater.js: on the route since v1.40 (the city under glass); its story src/story/underwater.js
   arena: {
     weather: [],
     story: {
@@ -368,8 +346,9 @@ const personAt = ([w, i]) => (NPC_BASE[w] ? [NPC_BASE[w][0], NPC_BASE[w][1] + i]
 // world. Greeting the giver hands you the parcel; greeting the receiver
 // (npc index into that world's `npcs`: written by part, [part, index in the part's], ERRANDS has them where
 // they are now) delivers it. Each goes on along the route (ORDER), place by place: the desert, Vael, its sky
-// stones, Lorn, its Deep Wood, Viridel, the City-Shaft, the Glass Dunes (the Sealed Hangar's until October
-// 2026), the Buried Machine, the Garden of Spheres, the Signal Market (every place but the last gives one).
+// stones, Lorn, its Deep Wood, Viridel, the Underwater City, the City-Shaft, the Glass Dunes (the Sealed Hangar's
+// until October 2026), the Buried Machine, the Moon Foundry, the Garden of Spheres, the City Floating in Space, the
+// Signal Market (every place but the last gives one).
 /** The errands as written, by place: [part, index in the part's people] (ERRANDS has them where they are now). */
 export const ERRAND_PLACES = [
   { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['arzach', 1],
@@ -389,10 +368,16 @@ export const ERRAND_PLACES = [
     ask: "~neutral~ Take this brass gear to *Mira in Viridel*. It came out of an old dome pump we don’t use. Her water clock has been missing one for years.",
     wait: "~neutral~ *Mira, at the water clock in Viridel.*",
     thanks: "~happy~ A gear, from Lorn’s domes? *Fit it on the clock’s axle*, please. I’ve missed knowing when to water." },
-  { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['incal', 3],
-    ask: "~neutral~ Take this glass seed to *Nima in the City-Shaft*. Nothing grows in that smog, they say. This one doesn’t need sun.",
+  { id: 'seed', item: 'a glass seed', from: ['edena', 3], to: ['underwater', 2],
+    ask: "~neutral~ Going on, under the sea? Take this glass seed to *Mireille, who grows the glow-kelp in the Underwater City*. Nothing grows down there without the sun, they say. This one doesn’t need it.",
+    wait: "~neutral~ *Mireille, in the Underwater City’s kelp garden*, through the west tube from the Avenue.",
+    thanks: "~happy~ A seed, from a garden in the sun? Glass, so the damp can’t touch it. I’ll set it in the brightest trough, where the kelp can show it how it’s done." },
+  // (v1.40: the Underwater City between Viridel and the City-Shaft; the Moon Foundry after the Buried Machine; the City
+  // Floating in Space before the Signal Market: an errand into each and one on from each)
+  { id: 'kelpjar', item: 'a jar of glow-kelp', from: ['underwater', 0], to: ['incal', 3],
+    ask: "~curious~ The City-Shaft next? Take this jar of glow-kelp up the lock with you, for *Nima in the City-Shaft*. They live in the smog up there, they say. Kelp gives its own light. It doesn’t care about the sun.",
     wait: "~neutral~ *Nima, who sweeps the high terrace, down the red stair from the City-Shaft’s rim.*",
-    thanks: "~happy~ A seed, from Viridel’s gardens? Glass, so the smog can’t hurt it. I’ll keep it on my sill, where the Lodestar reaches. Thank you." },
+    thanks: "~surprised~ A jar that glows, from under the sea? (She holds it up; it lights her face green.) I’ll keep it by the glass seed. Between them I’ll never need the Lodestar again. Don’t tell anyone I said that." },
   { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['glassdunes', 0],
     ask: "~playful~ The Glass Dunes next? Take this taxi token to *Aster, who blows the floats at the west camp*. They’ve never seen a cab. Show them what a real city runs on.",
     wait: "~neutral~ *Aster, at the Glass Dunes’ west camp.* Under the awnings, by the kiln.",
@@ -406,14 +391,22 @@ export const ERRAND_PLACES = [
     ask: "~happy~ Off to the wheel under the sand that Wim talks about? Take this pot of kiln grease to *Tull, who oils the oval doors in the Buried Machine*. Old doors squeal. Grease is how we say hello.",
     wait: "~neutral~ *Tull, at the oval doors, in the Buried Machine.* Don’t lean on the pot.",
     thanks: "~happy~ Grease from the glass country? (Tull dabs the nearest hinge and swings the door. Not a sound.) No squeak. Lovely. Smells of hot sand." },
-  { id: 'pipewhistle', item: 'a whistle cut from an old pipe', from: ['buried', 1], to: ['spheres', 0],
-    ask: "~whisper~ Going on? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Linnet, the listener, in the Garden of Spheres*, collects sounds. Give her one from down here.",
-    wait: "~whisper~ *Linnet, in the Garden of Spheres’ umbrella grove.* Let her hear it first.",
-    thanks: "~happy~ A whistle from under the sand? (Linnet blows it softly: one low note that outlasts her breath.) I don’t think any sphere here remembers that one. Thank you." },
-  { id: 'mirror', item: 'a sliver of lake mirror', from: ['spheres', 1], to: ['bazaar', 1],
-    ask: "~playful~ Going on to the market with all the signs? Take this *sliver of lake mirror* to *Oyo, who sells lanterns there*. It holds a little sky. He sells little suns. They should meet.",
-    wait: "~neutral~ *Oyo, the lantern seller in the Signal Market.* Keep the sky side up.",
-    thanks: "~surprised~ A bit of sky, from a garden of spheres? (He sets it under a lantern. Two little suns look back.) Not for sale. The first thing on my stall that isn’t." },
+  { id: 'pipewhistle', item: 'a whistle cut from an old pipe', from: ['buried', 1], to: ['moonfoundry', 7],
+    ask: "~whisper~ Going on to the foundry where they made the moons? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Bertil, who pours at the last furnace there*, says a furnace likes to be whistled at.",
+    wait: "~whisper~ *Bertil, at the Moon Foundry’s last furnace.* Let it hear the whistle first.",
+    thanks: "~happy~ A pipe whistle, from under the dunes? (Bertil blows it into the furnace’s mouth. The furnace roars back, pleased.) She likes it. So do I. Thank you." },
+  { id: 'castbell', item: 'a bell cast at the last furnace', from: ['moonfoundry', 8], to: ['spheres', 0],
+    ask: "~happy~ Going on? Take this little bell. Bertil cast it at the last furnace from a moon’s offcut, and I mended its clapper. *Linnet, the listener, in the Garden of Spheres*, collects sounds. Give her one from the foundry.",
+    wait: "~neutral~ *Linnet, in the Garden of Spheres’ umbrella grove.* Ring it once for her, no more.",
+    thanks: "~surprised~ A bell made from a moon? (Linnet rings it once. Far off, a sphere answers on the same note.) Oh. They know each other. Thank you." },
+  { id: 'mirror', item: 'a sliver of lake mirror', from: ['spheres', 1], to: ['spacecity', 6],
+    ask: "~playful~ Going on to the city that floats in the dark? Take this *sliver of lake mirror* to *Tamar, who minds the cables there*. It holds a little sky. They have nothing but sky, and none of it blue.",
+    wait: "~neutral~ *Tamar, on the Towers island of the City Floating in Space.* Keep the sky side up.",
+    thanks: "~surprised~ A bit of blue sky, from a garden? (She holds it under a cable. The cable hums a little higher.) It likes it. I’ll hang it where the planet can see it." },
+  { id: 'lampoil', item: 'a flask of lamp oil', from: ['spacecity', 5], to: ['bazaar', 1],
+    ask: "~happy~ Going on to the market with all the signs? Take this flask of our lamp oil to *Oyo, who sells lanterns there*. We pay everything in lamp oil. He sells little suns. Fair trade.",
+    wait: "~neutral~ *Oyo, the lantern seller in the Signal Market.* Don’t spill it on the bridges.",
+    thanks: "~surprised~ Oil from the city that floats? (He fills a lantern with it. It burns pale blue, like a star.) Not for sale. The first thing on my stall that isn’t." },
 ];
 
 export const ERRANDS = ERRAND_PLACES.map((e) => ({ ...e, from: personAt(e.from), to: personAt(e.to) }));

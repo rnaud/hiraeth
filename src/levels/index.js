@@ -114,11 +114,11 @@ export const LEVELS = [
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
-    id: 'underwater', create: createUnderwater, build: buildUnderwater, hidden: true,
-    title: TITLES.underwater, source: 'a city on the sea floor',
-    blurb: 'Salmon towers ringed with amber pods stand on the sea floor, light falling on them in shafts from the surface far above. Walk the lamplit avenue, step into the dry cafés under their domes, and swim up among the towers while a manta glides over.',
-    moves: 'walk the sea floor · swim',
+    // on the route since v1.40, the fifth world (names.js ORDER), with its temple, the Whale-House
+    id: 'underwater', create: createUnderwater, build: buildUnderwater,
+    title: TITLES.underwater, source: 'a city under glass on the sea floor',
+    blurb: 'A city of glass domes on the floor of the sea, its halls joined by sealed tubes, towers of amber pods and whales on the other side of the glass. The whales used to sing against it; since the night the sky rang they keep away, and the glass hums one wrong note.',
+    moves: 'walk · climb · the lift',
   },
   {
     // off the route (names.js SIDE): on the ship's map from the start, no story to follow
@@ -135,10 +135,10 @@ export const LEVELS = [
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
-    id: 'moonfoundry', create: createMoonFoundry, build: buildMoonFoundry, hidden: true,
+    // on the route since v1.40, after the Buried Machine (names.js ORDER), with its temple, the Casting-House
+    id: 'moonfoundry', create: createMoonFoundry, build: buildMoonFoundry,
     title: TITLES.moonfoundry, source: 'a workshop for making moons',
-    blurb: 'Unfinished ivory moons hang from the cranes of a vast open hangar or rest in orange claws, and the workers live in the old machinery. Climb to the gantry and walk into the moon broken open round its courtyard; one furnace still pours.',
+    blurb: 'Unfinished ivory moons hang from the cranes of a vast open hangar or rest in orange claws, and the workers live in the old machinery. Since the night the sky rang every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
     moves: 'walk · climb',
   },
   {
@@ -149,11 +149,11 @@ export const LEVELS = [
     moves: 'walk · climb',
   },
   {
-    // off the route (names.js SIDE): on the ship's map from the start, no story to follow
-    id: 'spacecity', create: createSpaceCity, build: buildSpaceCity, hidden: true,
+    // on the route since v1.40, before the Signal Market (names.js ORDER), with its temple, the Mooring-House
+    id: 'spacecity', create: createSpaceCity, build: buildSpaceCity,
     title: TITLES.spacecity, source: 'a city of islands in the dark',
-    blurb: 'Rounded houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, their machinery and cables hanging into the void, a great pale planet over the roofs. Cross the Market Bridge and look out from the Balcony.',
-    moves: 'walk · climb',
+    blurb: 'Rounded houses in cream, salmon and coral heaped on islands that float in the black of space, joined by pale arched bridges, a great pale planet over the roofs. The islands are drifting apart a hand’s width a night, and the moorers’ cables have hummed one note since the sky rang.',
+    moves: 'walk · climb · glide',
   },
   {
     // off the route (names.js SIDE): on the ship's map from the start, no story to follow

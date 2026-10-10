@@ -51,6 +51,26 @@ export const CHANGELOG = [
         { where: 'the Buried Machine, the wide view', before: 547, after: 493 },
         { where: 'the Signal Market’s start', before: 817, after: 783 },
       ], source: 'one frame with every shadow map drawn again, counted object by object (renderer.info), before and after; docs/audits/perf-v1.40.md', note: 'On the Mac the main thread’s time hardly moves in these views (the City-Shaft about 0.4 ms less at High and Handheld, within the noise on the Deck preset); the fewer draws matter most where the processor is the limit, on the handhelds.' }] },
+    // the route: three detours become full worlds (docs/systems/worlds.md "Three detours on the route")
+    'The route is twelve places now: three worlds you could only visit as detours are full worlds on it, each with a story, people with errands, a temple, a shop, a trial, boxes, relics and creatures of their own. The Underwater City comes fifth, after Viridel; the Moon Foundry ninth, after the Buried Machine; the City Floating in Space eleventh, just before the Signal Market.',
+    // the Underwater City
+    'The Underwater City is rebuilt so you never swim: it is a city of glass domes on the sea floor, joined by sealed glass tubes. Your ship comes down through the city’s lock into the Dock. Walk the long tube to the Avenue and its cafés under the greatest dome, the kelp garden, the round Plaza with its column of glowing water, and down a sloping tube to the Whale Gallery over the deep. The sea, the towers of pods, the mantas and the whales are all on the other side of the glass.',
+    'A lift in the Plaza’s column carries you up to the Crown, a glass bubble just under the surface, where old Fabre keeps the city’s lamps.',
+    'In the Underwater City the whales have kept away since the night the sky rang, and the glass hums one wrong note. Maelle, who listens to them in the Whale Gallery, sends you to the makers’ Whale-House on the sea floor north of the Plaza.',
+    // the Moon Foundry
+    'The Moon Foundry is on the route: since the night the sky rang, every hung moon has turned toward where the light went, and at night the makers’ Casting-House on the east of the floor pours by itself. Ilse, who keeps the founders’ ledger at its door, sends you in. Inside, the founders’ tongs let your push roll the iron moons a plain push can’t move, and a moon rolled through a casting flame comes out hot.',
+    'At the bottom of the Casting-House the Last Founder still casts moons that crack. Splash its molten heart when its crucible opens; later it stops to look at an iron moon in its casting cradle.',
+    // the City Floating in Space
+    'The City Floating in Space is on the route, with a seventh island: the Moorings, up a bridge north of the Towers, and on it the makers’ Mooring-House, whose great capstan holds the islands together. Since the night the sky rang the islands drift apart a hand’s width a night. Joss the moorer sends you in, where tether mode, a fluid line that pulls things toward you instead of pushing them away, brings home balls you can’t reach and wakes the moorers’ rings.',
+    'Three tall lamp-masts stand over the floating city’s roofs, on the Market, the Garden and the Balcony; you can climb the Balcony’s to its crow’s nest.',
+    // people and errands
+    'New errands in each of the three: carry Mireille’s glow-kelp cutting up the lift to Fabre, and take his word down to Maelle; take Ottilie’s mended ladle-hook to Bertil at the furnace, and count the moons for Wen from the lookout on the pillar; take Madame Sel’s notes to Tamar under her cables, and hang one of Kip’s lamps in the Balcony’s crow’s nest. Parcels go on along the route into and out of each world too.',
+    'Each of the three speaks and writes its own way now: the Underwater City in bubble rows, the Moon Foundry in moon stamps, the floating city in knots on a cable.',
+    // shops, trials, gifts
+    'Three new shops: Odette’s Air-Shop in a shell house under the Avenue’s dome, Gunnar’s Crucible on the foundry floor, and Amaro’s Oil-Lamp Shop on the floating city’s Pier. The City-Shaft and the Buried Machine sell one heart container fewer, so every heart you can buy still fits.',
+    'Three new trials: the Tube run through the Underwater City’s halls, the Floor round of the foundry, and the Courier’s round over the floating city’s bridges, each with a keepsake for the finish.',
+    'Three new gifts in the makers’ boxes: the diver’s pearl (running tires you a third less), the pocket bellows (stamina comes back twice as fast) and the star-thread (you climb a third faster).',
+    'The galactic map fits twelve worlds and home on a small screen, and the Items page lays its gear out ten to a row.',
   ] },
   { v: '1.39', date: '2026-10-10', items: [
     // the fight, closer to Breath of the Wild's (docs/systems/foes.md)

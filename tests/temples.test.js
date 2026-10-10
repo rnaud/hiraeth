@@ -233,14 +233,16 @@ test('a robot sentinel: its meter is damage, and full it is resolved at once (br
 test('the gadgets: half in the temples, half in the open; the built temples hold theirs, as placed', () => {
   const temple = Object.values(GADGETS).map((g) => g.temple).filter(Boolean);
   const open = Object.values(GADGETS).flatMap((g) => g.world);
-  assert.equal(Object.keys(GADGETS).length, 11, 'every world but home has a temple planned');
+  // (the count follows the plan: eleven temples until v1.40 brought the three new route worlds' houses)
+  const n = Object.keys(GADGETS).length;
+  assert.ok(n >= 11, 'every world but home has a temple planned');
   assert.ok(Math.abs(temple.length - open.length) <= 1, `${temple.length} in temples, ${open.length} in the open`);
   assert.equal(new Set(temple).size, temple.length, 'no gadget in two temples');
-  assert.equal(temple.length, 11, 'a temple in every world');
-  assert.equal(open.length, 11, 'and eleven gifts in the open');
+  assert.equal(temple.length, n, 'a temple in every world');
+  assert.equal(open.length, n, 'and as many gifts in the open');
   assert.ok(Object.values(GADGETS).every((g) => g.built), 'every temple is built');
-  assert.equal(BUILT.length, 11);
-  assert.equal(new Set([...temple, ...open]).size, 22, 'no gift twice');
+  assert.equal(BUILT.length, n);
+  assert.equal(new Set([...temple, ...open]).size, 2 * n, 'no gift twice');
   const placed = Object.values(PLACEMENTS).flat();
   for (const [id, g] of Object.entries(GADGETS)) {
     if (!g.built) continue;
@@ -267,7 +269,7 @@ test('old saves that own a temple’s gadget find its chest open; the temple’s
   g.set('item.coil', true);
   assert.equal(migrateTemples(g), 1);
   assert.equal(g.flag('box.garage.temple.coil'), true);
-  for (const id of ['garage', 'edena', 'bazaar']) assert.ok(TEMPLE_BOXES.some(([b]) => b.startsWith(`${id}.temple.`)), `${id}: its chest migrates`);
+  for (const id of ['garage', 'edena', 'bazaar', 'moonfoundry', 'spacecity', 'underwater']) assert.ok(TEMPLE_BOXES.some(([b]) => b.startsWith(`${id}.temple.`)), `${id}: its chest migrates`);
 });
 
 // ------------------------------------------------------------------ the words
@@ -1421,6 +1423,356 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   const z0 = P.pos.z;
   wait(28);
   assert.ok(P.pos.z < z0 - 80 && P.onGround, `carried down the canyon (${(z0 - P.pos.z).toFixed(0)} m)`);
+  game.reset();
+  own();
+});
+
+// ------------------------------------------------------------------ on foot: the Moon Foundry's Casting-House, room by room
+test('the Casting-House on foot: the founders’ moon too heavy at the start, the test scale, the stone moon rolled into the great mould and its seam-eye, you in the hoist’s pan and the stone moon for you, the hoist, the tongs and their try, the passage’s cradle a room on, the iron moon under the door and through the pilot flame into the hooded mould, the press over the bridge, the keepers’ pan and eye and the way back, the founders’ moon hot into the great cradle, the Last Founder given a whole moon, the moon on the jib', () => {
+  game.reset();
+  own('backpack', 'gun');
+  const { level, physics, rt } = world('moonfoundry');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const said = (re) => notes.some((n) => re.test(n));
+  const roll = (ball, way, done, n = 8) => {
+    const d = ball.dir.clone().multiplyScalar(way);
+    for (let k = 0; k < n && !done(); k++) {
+      P.teleport(ball.center.clone().addScaledVector(d, -2.2).setY(ball.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+      wait(0.2);
+      ball.hit('push', d.clone(), { strength: 0.8 });
+      wait(2.6);
+    }
+    return done();
+  };
+  wait(0.5);
+  // ---- the Pouring Floor: the founders' moon is cast iron, too heavy for a plain push; the test scale tips, and nothing
+  const mG = rt.piece('mG');
+  mG.hit('push', mG.dir.clone(), { strength: 1 });
+  wait(1);
+  assert.ok(mG.t < 0.01, 'the founders’ moon only rocks on its rail');
+  assert.ok(said(/far too heavy/), 'and it says why');
+  assert.equal(roll(rt.piece('m0'), 1, () => rt.logic.drumOn('m0', 'p0')), true, 'the test cast into its little scale');
+  wait(0.3);
+  assert.ok(said(/test cast/), 'it tips, and nothing waits on it');
+  // ---- the Mould Room: the seam-eye stays lidded until the stone moon from the floor fills the great mould
+  const eM = rt.piece('eM');
+  eM.hit('shoot');
+  assert.equal(rt.logic.isLit('eM'), false, 'lidded over an empty mould');
+  const m1 = rt.piece('m1');
+  assert.equal(roll(m1, 1, () => rt.logic.drumOn('m1', 'pM')), true, `the stone moon rolled west into the great mould (${m1.t.toFixed(2)})`);
+  wait(1);
+  assert.ok(eM.lidsOpen(), 'the lids lift');
+  eM.hit('shoot');
+  assert.equal(rt.logic.isLit('eM'), true);
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dM'), true, 'the door to the Crucible Stair');
+  // ---- the hoist's pan: you are the weight, but not on the hoist; the stone moon stands in for you
+  const hoist = rt.pieces.find((p) => p.path && p.o.when?.pressed === 'pK');
+  P.teleport(L(-36.3, 4.6, 35), V(0, 1, 0), V(0, 0, 1));
+  wait(1.5);
+  assert.equal(rt.logic.pressed('pK'), true, 'you in the pan');
+  assert.ok(said(/You are the weight/), 'and the hoist rises without you');
+  P.teleport(L(-28, 4.6, 35), V(0, 1, 0), V(0, 0, 1));
+  wait(0.5);
+  assert.equal(roll(rt.piece('m2'), 1, () => rt.logic.drumOn('m2', 'pK')), true, 'the stone moon into the pan');
+  P.teleport(L(-21, 0.1, 33), V(0, 1, 0), V(0, 0, 1));
+  wait(0.5);
+  assert.equal(walk(L(-21, 0, 40)), true, `through the door to the stair (${where()})`);
+  for (let i = 0; i < 30 / DT && !(hoist.s < 0.1 && hoist.wait > 0.4); i++) frame();
+  assert.equal(walk(hoist.group.position, { tol: 0.6, run: false, max: 4, dy: 0.9 }), true, `onto the hoist (${where()})`);
+  for (let i = 0; i < 20 / DT && hoist.s < hoist.total - 0.05; i++) frame();
+  assert.equal(walk(L(-21, 9, 52.5), { max: 4 }), true, `onto the landing (${where()})`);
+  assert.equal(walk(L(-21, 9, 61)), true, `into the Tong Chamber (${where()})`);
+  // ---- the Tong Chamber: the tongs; the try by the dais
+  items.grant('tongs'); game.emit('box:opened', { id: 'moonfoundry.temple.tongs' });
+  wait(0.3);
+  assert.equal(rt.logic.gadget, true);
+  assert.equal(roll(rt.piece('mT'), 1, () => rt.logic.drumOn('mT', 'pT')), true, 'the try: the iron moon rolls for the tongs');
+  assert.ok(said(/take hold of the founders’ iron/));
+  // ---- the Pincer Passage: the iron moon on the hot rail stops at the shut door; the cradle's moon opens it
+  const mH = rt.piece('mH');
+  roll(mH, 1, () => mH.t >= mH.o.gap.from - 0.01, 3);
+  assert.ok(mH.t <= mH.o.gap.from + 0.01, `it stops at the shut door (${mH.t.toFixed(2)})`);
+  assert.ok(said(/Its rail runs on under it/));
+  assert.equal(roll(rt.piece('mP'), 1, () => rt.logic.drumOn('mP', 'pP')), true, 'the cradle’s moon home');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dP'), true, 'the passage’s door');
+  // ---- the Casting Furnace: on under the door, through the pilot flame, hot into the hooded mould
+  assert.equal(roll(mH, 1, () => rt.logic.drumOn('mH', 'pH')), true, `the iron moon into the mould’s mouth (${mH.t.toFixed(2)})`);
+  wait(1.5);
+  assert.ok(said(/comes out glowing/), 'it went through the flame');
+  assert.equal(rt.logic.isLit('bH'), true, 'the hot moon lights the hooded mould');
+  wait(3);
+  assert.equal(rt.logic.isOpen('brH'), true, 'the bridge over the channel');
+  // the press over the bridge: wait for it to rise, then cross
+  const press = rt.piece('hm');
+  P.teleport(L(11.5, 9.1, 61.9), V(0, 1, 0), V(0, 0, 1));
+  wait(0.5);
+  for (let i = 0; i < 8 / DT && !(press.phase > 0.45 && press.phase < 0.5); i++) frame();
+  assert.equal(walk(L(25, 9, 61.9), { max: 6 }), true, `over the bridge under the press (${where()})`);
+  assert.ok(P.pos.y > L(0, 8, 0).y, 'over it, not in the channel');
+  // ---- the far landing and the Weighing Hall: the iron moon into the keepers' pan; the keepers' eye; down and back
+  assert.equal(roll(rt.piece('mB'), 1, () => rt.logic.drumOn('mB', 'pB')), true, 'the third iron moon into the keepers’ pan on the gallery');
+  const eS = rt.piece('eS');
+  wait(1);
+  assert.ok(eS.lidsOpen(), 'the keepers’ eye unlids');
+  eS.hit('shoot');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dS'), true, 'the keepers’ door');
+  P.teleport(L(33, 9.1, 48), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  assert.equal(walk(L(38.6, 9, 44.2)) && walk(L(38.6, 0, 18.2), { max: 20 }), true, `down the gallery’s stair (${where()})`);
+  assert.equal(walk(L(24, 0, 28)) && walk(L(8, 0, 28)), true, `through the keepers’ door onto the Pouring Floor (${where()})`);
+  // ---- back on the floor: the founders' moon through the pilot flame into the great cradle
+  assert.equal(roll(mG, 1, () => rt.logic.drumOn('mG', 'pG')), true, `the founders’ moon home (${mG.t.toFixed(2)})`);
+  wait(1.5);
+  assert.equal(rt.logic.isLit('bG'), true, 'hot into the great cradle');
+  wait(3);
+  assert.equal(rt.logic.isOpen('dF'), true, 'the Founders’ Door');
+  P.teleport(L(0, 0.1, 40), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  assert.equal(walk(L(0, 0, 60)) && walk(L(0, 0, 97), { max: 30 }), true, `down the cold passage into the Last Casting (${where()})`);
+  // ---- the Last Founder
+  const G = rt.guardian, mA = rt.piece('mA');
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep');
+  P.opts.health = false;
+  const opening = () => { for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') return true; } return false; };
+  let tipped = false, hot = false, twice = false;
+  for (let n = 0; n < 14 && G.state !== 'resolved'; n++) {
+    assert.ok(opening(), `its crucible opens (${n}, phase ${G.phaseIndex})`);
+    if (G.phaseIndex === 1 && !rt.founderCradled()) {
+      const m = G.meter;
+      rt.quench();
+      assert.ok(Math.abs(G.meter - m - 0.175) < 1e-6, `free, a splash as before (${(G.meter - m).toFixed(3)})`);
+      roll(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
+      assert.equal(rt.founderCradled(), true, 'a whole moon in its cradle');
+      continue;
+    }
+    if (G.phaseIndex === 1 && rt.founderCradled()) {
+      const m = G.meter;
+      rt.quench();
+      twice = Math.abs(Math.min(0.7, m + 0.35) - G.meter) < 1e-6;
+      assert.ok(twice, `with the moon in its cradle it counts twice (${(G.meter - m).toFixed(3)})`);
+      continue;
+    }
+    if (G.phaseIndex === 2 && !hot) {
+      tipped = said(/tip the moon out/);
+      assert.ok(tipped, 'shifting into its last phase it tips the moon out of the cradle');
+      assert.equal(rt.founderCradled(), false);
+      hot = true;
+      const m = G.meter;
+      assert.equal(rt.quench(), false, 'too hot for water');
+      assert.equal(G.meter, m);
+      assert.ok(said(/too hot/), 'and it says why');
+      roll(mA, 1, () => rt.logic.drumOn('mA', 'pA'));
+      assert.equal(rt.founderCradled(), true, 'rolled back in');
+      continue;
+    }
+    const m = G.meter;
+    rt.quench();
+    assert.ok(G.meter > m, `a splash takes (${n}, phase ${G.phaseIndex})`);
+  }
+  assert.equal(G.state, 'resolved', `stopped (${G.meter})`);
+  assert.ok(twice && tipped && hot, 'its phases were met');
+  assert.equal(game.flag('temple.moonfoundry.done'), true);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('d5'));
+  // ---- outside: the one whole moon is lifted onto the jib over the door
+  assert.equal(rt.change.on, true);
+  wait(9);
+  const moon = rt.change.root.children[0];
+  assert.ok(rt.change.root.visible && moon.position.distanceTo(rt.outside.hook) < 3, `the moon on the hook (${moon.position.distanceTo(rt.outside.hook).toFixed(1)} m)`);  game.reset();
+  own();
+});
+
+// ------------------------------------------------------------------ on foot: the Underwater City's Whale-House, room by room
+test('the Whale-House on foot: its door sealing the last tube, the west door’s ball, the long groove across the hall and the lidded eye, the pool’s eye over the glass, the shell’s ball and eye, the Horn Door, the whale-horn and its try, the passage door held while its horn rings (a room on), the tank’s glass too smooth until the dish carries the note to the shelf’s ear and the rungs come out, the keepers’ door back, the landing’s dish to the ear over the Listener’s Door, the Listener calmed by the horn and through the dishes, the lamps lit', () => {
+  game.reset();
+  own('backpack', 'gun');
+  const { level, physics, rt } = world('underwater');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const at = (x, y, z) => { P.teleport(L(x, y + 0.1, z), V(0, 1, 0), V(0, 0, 1)); wait(0.3); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const said = (re) => notes.some((n) => re.test(n));
+  const horn = (pos = P.pos) => game.emit('echo', { pos: pos.clone(), note: 'deep', degree: -3, horn: true });
+  const roll = (id, n = 10) => {
+    const ball = rt.piece(id), plate = rt.logic.el(id).plate, done = () => rt.logic.drumOn(id, plate);
+    for (let k = 0; k < n && !done(); k++) {
+      P.teleport(ball.center.clone().addScaledVector(ball.dir, -2.2).setY(ball.group.position.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+      wait(0.2);
+      ball.hit('push', ball.dir.clone(), { strength: 0.8 });
+      wait(2.6);
+    }
+    return done();
+  };
+  // ---- outside: the facade seals the tube's end, the door in it
+  const door = rt.outside.door.at;
+  assert.ok(Math.abs(door.z - (-178)) < 0.05 && Math.abs(door.x) < 0.05 && Math.abs(door.y) < 0.05, 'the door where the last tube ends');
+  assert.ok(physics.rayDistance(V(4, 2, -174), V(0, 0, -1), 8) < 4.6, 'beside the doorway the tube runs into the facade (sealed)');
+  assert.ok(physics.rayDistance(V(-3.5, 3.5, -174), V(0, 0, -1), 8) < 4.6, 'and on the other side, up under the arch');
+  wait(0.5);
+  // ---- the Sounding Hall: the west door's ball into its cradle
+  assert.equal(rt.logic.isOpen('d1'), false);
+  assert.equal(roll('b1'), true, 'the ball into the west door’s cradle');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('d1'), true, 'the west door');
+  at(-12, 0, 26);
+  assert.equal(walk(L(-26, 0, 30)), true, `into the Pool Room (${where()})`);
+  // ---- the Pool Room: its glass can't be climbed; its eye over the glass; the ball for the east door
+  for (let i = 0; i < 4 / DT; i++) frame({ KeyW: true }, toward(L(-38, 3, 30)));
+  assert.ok(rt.kit.local(P.pos).x > -35.5, `you can't get over the pool's glass (${where()})`);
+  if (P.climbing) { P.stopClimb(false); wait(1); }
+  rt.piece('eP').hit('shoot');
+  assert.equal(rt.logic.isLit('eP'), true, 'the pool’s eye, splashed over the glass');
+  const eD = rt.piece('eD');
+  eD.hit('shoot');
+  assert.equal(rt.logic.isLit('eD'), false, 'the east door’s eye is lidded');
+  assert.equal(roll('b2', 24), true, `the pool’s ball rolled out across the whole hall into the east door’s cradle (${rt.piece('b2').t.toFixed(2)})`);
+  wait(1);
+  assert.ok(eD.lidsOpen(), 'the lids lift');
+  eD.hit('shoot');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('d2'), true, 'the east door');
+  // ---- the Shell Room: its ball unlids the shell's eye; both lamps on the Horn Door
+  at(14, 0, 26);
+  assert.equal(walk(L(26, 0, 30)), true, `into the Shell Room (${where()})`);
+  assert.equal(roll('bS'), true, 'the shell’s ball onto its plate');
+  wait(1);
+  rt.piece('eS').hit('shoot');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dH'), true, 'both wings’ eyes: the Horn Door');
+  // ---- the Horn Chamber: the whale-horn on the pulpit; the try
+  at(-13.8, 0, 42);
+  assert.equal(walk(L(-13.8, 0, 52)), true, `through the Horn Door (${where()})`);
+  assert.equal(rt.logic.next(), 'chest');
+  items.grant('horn'); game.emit('box:opened', { id: 'underwater.temple.horn' });
+  wait(0.3);
+  assert.equal(rt.logic.gadget, true);
+  at(-17, 0, 58);
+  horn();
+  wait(0.3);
+  assert.equal(rt.logic.isLit('eT'), true, 'the try: the little horn answers');
+  assert.ok(said(/Nothing opens/), 'and nothing waits on it');
+  // ---- the Song Passage: the door held while its horn rings; through it in time; it shuts behind
+  at(-15.5, 0, 69.5);
+  assert.equal(rt.logic.isOpen('d4'), false);
+  horn();
+  wait(0.2);
+  assert.equal(rt.logic.isLit('e4'), true, 'the passage horn rings');
+  assert.equal(walk(L(-13.8, 0, 80), { max: 9 }), true, `through the door before it rises (${where()})`);
+  wait(11);
+  assert.equal(rt.logic.isOpen('d4'), false, 'it rises again once the note fades');
+  // ---- the Tank Hall: the glass too smooth; the shelf's ear too far; the dish dark without its ball
+  at(-10.5, 0, 89);
+  for (let i = 0; i < 5 / DT; i++) frame({ KeyW: true }, toward(L(-6, 4, 89)));
+  assert.ok(rt.kit.local(P.pos).y < 4, `you can't get up the tank's glass (${where()})`);
+  assert.ok(said(/too smooth/i), 'and you slip off it');
+  if (P.climbing) { P.stopClimb(false); wait(1); }
+  horn();
+  wait(1);
+  assert.equal(rt.logic.isLit('e5'), false, 'the shelf’s ear is far out of the horn’s reach');
+  const dish = rt.piece('dishT');
+  horn(dish.ends[0].mouth);
+  wait(1);
+  assert.ok(said(/dark and deaf/), 'the dish is dark without its ball');
+  assert.equal(rt.logic.isLit('e5'), false);
+  assert.equal(roll('b5'), true, 'the ball onto the dish’s footstone');
+  at(-14, 0, 87.5);
+  horn(dish.ends[0].mouth);
+  wait(1);
+  assert.equal(rt.logic.isLit('e5'), true, 'the dish carries the note across the water to the shelf’s ear');
+  wait(1);
+  assert.ok(rt.logic.isOpen('rungs'));
+  at(-9.6, 0, 89);
+  let up = false;
+  for (let i = 0; i < 14 / DT; i++) { frame({ KeyW: true }, toward(L(-5, 9.5, 89))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
+  assert.ok(up, `up the rungs while the ear rings (${where()})`);
+  // ---- the Gallery and the landing: the keepers' door back; the landing's dish to the ear over the Listener's Door
+  assert.equal(walk(L(0.5, 9, 93)) && walk(L(8, 9, 93)), true, `into the Gallery of Horns (${where()})`);
+  assert.equal(walk(L(13, 9, 79)) && walk(L(13, 0, 56), { max: 15 }), true, `down the keepers’ stair (${where()})`);
+  rt.piece('eK').hit('shoot');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dK'), true, 'the keepers’ door');
+  assert.equal(walk(L(13, 0, 44)), true, `back into the hall (${where()})`);
+  at(0, 0, 43);
+  horn();
+  wait(1);
+  assert.equal(rt.logic.isLit('eL'), false, 'the Listener’s Door’s ear is too high to hear the horn from the floor');
+  assert.equal(roll('bL'), true, 'the landing’s ball onto its dish’s footstone');
+  const dL = rt.piece('dishL');
+  at(12, 0, 53.5);
+  horn(dL.ends[0].mouth);
+  wait(1);
+  assert.equal(rt.logic.isLit('eL'), true, 'the far dish over the Listener’s Door says the note, and its ear hears it');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('dL'), true, 'the Listener’s Door');
+  // ---- down the Throat into the Listener's Hall
+  at(0, 0, 44);
+  assert.equal(walk(L(0, 0, 49)) && walk(L(0, -15, 78), { max: 20 }) && walk(L(0, -15, 92)), true, `down the Throat (${where()})`);
+  // ---- the Listener
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep', 'it wakes');
+  P.opts.health = false;
+  const opening = () => { for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') return true; } return false; };
+  const near = () => horn(G.model.mouth.clone().add(V(0, -3, 0)));
+  let shut = false, folded = false, knocked = false;
+  for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
+    if (n === 0) { near(); shut = said(/folded shut/); }
+    assert.ok(opening(), `its ear opens (${n}, phase ${G.phaseIndex})`);
+    const m = G.meter;
+    if (G.phaseIndex === 0) { near(); assert.ok(G.meter > m, `the horn close by calms it (${n})`); continue; }
+    if (!folded) { near(); folded = G.meter === m && said(/won’t hear anything close/); assert.ok(folded, 'from its second phase it shuts its ear to the horn close by'); }
+    if (G.phaseIndex === 2 && !knocked) { knocked = said(/roll off the dishes’ footstones/); assert.ok(knocked, 'shifting it knocks the stones off'); }
+    if (!rt.listenerHomed()) { roll('bW'); assert.equal(rt.listenerHomed(), true, 'a stone on a footstone'); assert.ok(opening(), 'its ear opens again'); }
+    const m2 = G.meter;
+    horn(rt.piece('dishW').ends[0].mouth);
+    wait(0.8);
+    assert.ok(G.meter > m2, `the dish carries the note into its open ear (${n}, phase ${G.phaseIndex})`);
+  }
+  assert.ok(shut && folded && knocked, 'its phases were met');
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  for (let i = 0; i < 30 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
+  wait(2);
+  P.teleport(G.model.mouth.clone().setY(L(0, -15, 0).y + 0.1).add(V(0, 0, -4)), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  const hand = bestInteractable(P);
+  assert.equal(hand?.entry.id, 'temple.underwater.touch', 'a hand on its shell');
+  hand.entry.use(P);
+  assert.equal(G.state, 'resolved');
+  assert.equal(game.flag('temple.underwater.done'), true);
+  wait(2.5);
+  assert.ok(rt.logic.isOpen('d5'));
+  // ---- outside: the lamps in the horns lit
+  assert.equal(rt.change.on, true);
+  wait(4);
+  assert.ok(rt.outside.glowM.uniforms.uGlow.value > 0.6, `the Whale-House’s lamps are lit (${rt.outside.glowM.uniforms.uGlow.value.toFixed(2)})`);
   game.reset();
   own();
 });
@@ -2654,6 +3006,211 @@ test('the Undertower on foot: the singing ball and the dishes and the pillars ov
   rt.isNight = () => true; wait(0.5);
   assert.equal(C.spoken, 2, 'and again the next night');
   shell.dispose();
+  game.reset();
+  own();
+});
+
+// ------------------------------------------------------------------ on foot: the City Floating in Space's Mooring-House, room by room
+test('the Mooring-House on foot: the winch’s counterweight and the shaft’s gate, the void’s breath up the shaft to the lamp-eye, the great door, tether mode and its try, the passage’s ring a room on, the Drift’s ball pulled home off its cable-rail and the rising gangway, the Cable Walk, the Balance’s ball pushed out (the pan to the Gallery) and pulled home (the west door), the Gallery’s ring and the moorers’ gate back, the Anchor-Warden’s anchors pulled home (wound in over the void first), the cables taut', async () => {
+  const { BALANCE, DRIFT, FLOOR, MOOR_A } = await import('../src/temples/spacecity.js');
+  game.reset();
+  own('backpack', 'gun', 'glider');
+  const { level, physics, rt } = world('spacecity');
+  const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true, limit: level.limit ?? 1900 });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
+  let t = 0;
+  const L = (x, y, z) => rt.kit.world(x, y, z);
+  const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  const flat = (a) => Math.hypot(P.pos.x - a.x, P.pos.z - a.z);
+  const walk = (to, { tol = 0.6, max = 25, run = true, dy = 1.6 } = {}) => {
+    for (let i = 0; i < max / DT; i++) { if (flat(to) < tol && Math.abs(P.pos.y - to.y) < dy) return true; frame({ KeyW: true, ShiftLeft: run }, toward(to)); }
+    return false;
+  };
+  const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
+  const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const local = () => rt.kit.local(P.pos);
+  const said = (re) => notes.some((n) => re.test(n));
+  const stand = (x, y, z) => { P.teleport(L(x, y + 0.05, z), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); };
+  const hall = (a, d, y = 0) => L(Math.sin(a) * d, y, 30 + Math.cos(a) * d);
+  /** Push a ball along its groove (way +1: toward its b end) from behind it, until it rests on `plate`. */
+  const roll = (id, plate, way = 1, n = 10) => {
+    const ball = rt.piece(id);
+    for (let k = 0; k < n && !rt.logic.drumOn(id, plate); k++) {
+      const d = ball.dir.clone().multiplyScalar(way);
+      walk(ball.center.clone().addScaledVector(d, -1.9).setY(P.pos.y), { tol: 0.5, max: 4 });
+      ball.hit('push', d, { strength: 0.8 });
+      wait(0.5); for (let i = 0; i < 8 / DT && !ball.rest; i++) frame();
+    }
+    return rt.logic.drumOn(id, plate);
+  };
+  /** The tether from where you stand: the cone's way back to the hand, its strength by the distance (src/fluid-tool.js push). */
+  const tether = (target) => {
+    const c = target.center, from = P.pos.clone().add(V(0, 1.15, 0)), d = from.distanceTo(c) - (target.r ?? 0.8) - 0.15;
+    if (d > 6) return false;
+    return target.hit('tether', from.clone().sub(c).normalize(), { strength: 1 - Math.max(0, d) / 6 });
+  };
+  /** Pull a ball home from where you stand, until it rests on `plate`. */
+  const pull = (id, plate, n = 8) => {
+    const ball = rt.piece(id);
+    for (let k = 0; k < n && !rt.logic.drumOn(id, plate); k++) { tether(ball); wait(0.5); for (let i = 0; i < 8 / DT && !ball.rest; i++) frame(); }
+    return rt.logic.drumOn(id, plate);
+  };
+  wait(0.5);
+  // ---- the Capstan Hall: the great door and the shaft's gate both shut
+  assert.equal(walk(L(0, 0, 18)), true, `into the hall (${where()})`);
+  assert.equal(rt.logic.isOpen('d1'), false, 'the great door is shut');
+  assert.equal(rt.logic.isOpen('g1'), false, 'and the shaft’s gate');
+  // ---- the Winch Room: the counterweight rolled into its socket at the winch's mouth: the shaft's gate rises, and stays
+  assert.equal(walk(hall(-Math.PI * 3 / 4, 10)), true, `toward the winch (${where()})`);
+  assert.equal(walk(hall(-Math.PI * 3 / 4, 24)), true, `into the winch room (${where()})`);
+  const ballW = rt.piece('ballW');
+  assert.equal(walk(ballW.center.clone().addScaledVector(ballW.dir, -1.9).setY(P.pos.y), { tol: 0.5 }), true, `behind the counterweight (${where()})`);
+  assert.equal(roll('ballW', 'pG'), true, `the counterweight in its socket (${where()})`);
+  assert.equal(rt.logic.isOpen('g1'), true, 'the shaft’s gate rises');
+  // ---- the Lamp Shaft: the void's breath lifts open wings to the balcony; the lamp-eye there
+  assert.equal(walk(hall(-Math.PI * 3 / 4, 10)), true, `back in the hall (${where()})`);
+  assert.equal(walk(hall(Math.PI * 3 / 4, 12)), true, `across to the gate (${where()})`);
+  const shaft = hall(Math.PI * 3 / 4, 26);
+  assert.equal(walk(hall(Math.PI * 3 / 4, 20)), true, `through the gate (${where()})`);
+  assert.equal(walk(shaft, { tol: 0.8 }), true, `onto the grating (${where()})`);
+  let up = false;
+  for (let i = 0; i < 14 / DT; i++) { frame(i < 6 ? { Space: true } : { Space: true }, 0); if (local().y > 14.6) { up = true; break; } }
+  assert.ok(up, `the breath lifts the wings up the shaft (${where()})`);
+  const balcony = hall(Math.PI * 3 / 4, 30.6, 13);
+  for (let i = 0; i < 6 / DT && !(P.onGround && i > 5); i++) { P.heading = Math.atan2(balcony.x - P.pos.x, balcony.z - P.pos.z); frame({ Space: flat(balcony) > 2.6, KeyW: flat(balcony) > 0.8 }, toward(balcony)); }
+  assert.ok(P.onGround && Math.abs(local().y - 13) < 0.5, `onto the balcony (${where()})`);
+  rt.piece('s1').hit('shoot');
+  wait(0.2);
+  assert.equal(rt.logic.isLit('s1'), true, 'the lamp-eye wakes');
+  assert.equal(rt.logic.isOpen('d1'), true, 'the great door opens');
+  // ---- the Cord Loft: tether mode; its try, the ring that brings the lamp down
+  stand(...rt.kit.local(hall(Math.PI * 3 / 4, 12)).toArray());
+  assert.equal(walk(L(0, 0, 40)), true, `to the great door (${where()})`);
+  assert.equal(walk(L(0, 0, 52)), true, `into the loft (${where()})`);
+  items.grant('tether'); game.emit('box:opened', { id: 'spacecity.temple.tether' });
+  assert.equal(rt.logic.gadget, true);
+  const t0 = rt.piece('t0');
+  t0.hit('push');
+  assert.equal(rt.logic.isLit('t0'), false, 'a push only rings a moorers’ ring');
+  assert.ok(said(/wants pulling/), 'it says so');
+  assert.equal(walk(L(6.2, 0, 60)), true, `beside the loft's ring (${where()})`);
+  assert.ok(tether(t0) && rt.logic.isLit('t0'), 'the tether pulls it: its lamp comes down, and nothing else');
+  // ---- the Mooring Passage, a room on: the ring over the door into the Drift
+  assert.equal(walk(L(0, 0, 70)), true, `into the passage (${where()})`);
+  assert.equal(walk(L(-3.4, 0, 78)), true, `under the ring (${where()})`);
+  assert.equal(rt.logic.isOpen('d2'), false);
+  assert.ok(tether(rt.piece('r1')), 'in reach of the ring');
+  wait(0.2);
+  assert.equal(rt.logic.isOpen('d2'), true, 'pulled, the door into the Drift opens');
+  // ---- the Drift: the ball out on its cable-rail over the void; pulled home, the gangway rises
+  assert.equal(walk(L(-9, 0, 78)), true, `into the Drift (${where()})`);
+  assert.equal(rt.logic.isOpen('br2'), false, 'no gangway yet');
+  // on still air the far landing is out of reach: it stands six metres higher than a glide can climb
+  assert.equal(walk(L(DRIFT.lip + 2.5, 0, 81), { tol: 0.5 }), true, `back from the lip (${where()})`);
+  let far = false;
+  for (let i = 0; i < 8 / DT; i++) {
+    P.heading = -Math.PI / 2;
+    frame({ KeyW: i < 30, ShiftLeft: true, Space: i < 12 || i > 30 }, Math.PI / 2);
+    if (P.onGround && local().y > DRIFT.far - 0.5) far = true;
+    if (local().y < -6) break;
+  }
+  assert.equal(far, false, `no glide reaches the far landing (${where()})`);
+  wait(1);
+  stand(DRIFT.lip + 2.5, 0, 80);
+  assert.equal(walk(L(DRIFT.lip + 0.8, 0, DRIFT.z + 1.9), { tol: 0.4 }), true, `to the lip beside the cable-rail (${where()})`);
+  assert.equal(pull('ballD', 'pD'), true, `the ball pulled home along its cables (${where()})`);
+  wait(2);
+  assert.equal(rt.logic.isOpen('br2'), true, 'the gangway rises');
+  assert.equal(walk(L(DRIFT.lip + 0.4, 0, 81), { tol: 0.6 }), true, `to the gangway (${where()})`);
+  assert.equal(walk(L(-32, DRIFT.far, 81), { tol: 0.8, max: 16 }), true, `up the gangway to the far landing (${where()})`);
+  // ---- the Cable Walk, the Balance's north landing
+  assert.equal(walk(L(-38, DRIFT.far, 70)), true, `to the walk (${where()})`);
+  assert.equal(walk(L(-38, DRIFT.far, 44)), true, `along the Cable Walk (${where()})`);
+  assert.equal(walk(L(-36, BALANCE.north, 41)), true, `onto the Balance's north landing (${where()})`);
+  // the ball pushed OUT along its rail to the far cup over the void: the pan rides to the Gallery
+  assert.equal(rt.logic.drumOn('ballS', 'pHome'), true, 'the ball sits home');
+  assert.equal(rt.logic.isOpen('gN'), false, 'the west door is shut: it wants the Gallery’s ring as well');
+  const ballS = rt.piece('ballS');
+  assert.equal(walk(ballS.center.clone().addScaledVector(ballS.dir, -1.9).setY(P.pos.y), { tol: 0.5 }), true, `behind the ball (${where()})`);
+  assert.equal(roll('ballS', 'pOut'), true, `the ball out in the far cup (${where()})`);
+  assert.equal(rt.logic.isOpen('gW'), true, 'the balance tips');
+  const pan = rt.piece('gW');
+  for (let i = 0; i < 20 / DT && !(pan.s < 0.2 && pan.wait > 0.8); i++) frame();
+  assert.equal(walk(L(-40, BALANCE.north, 37.2), { tol: 0.5 }), true, `to the pan's berth (${where()})`);
+  for (let i = 0; i < 20 / DT && !(pan.s < 0.2 && pan.wait > 0.8); i++) frame();
+  assert.equal(walk(pan.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the pan (${where()})`);
+  for (let i = 0; i < 20 / DT && !(pan.s > pan.total - 0.2); i++) frame();
+  assert.equal(walk(L(-40, BALANCE.south, 22.6), { tol: 0.6, max: 6 }), true, `off it onto the Gallery (${where()})`);
+  // ---- the Moorers' Gallery: its ring, high on its davit (out of reach from the north landing, seen from the west door)
+  assert.ok(tether(rt.piece('r5')), 'the ring in reach from the Gallery');
+  wait(0.2);
+  assert.equal(rt.logic.isLit('r5'), true);
+  assert.equal(rt.logic.isOpen('sc'), true, 'the moorers’ gate home opens with it');
+  assert.equal(rt.logic.isOpen('gN'), false, 'but the west door still wants the ball home');
+  // (the gate back: the corridor to the Capstan Hall's balcony, the cradle down into the hall)
+  const moor = (d) => L(Math.sin(MOOR_A) * d, BALANCE.south, 30 + Math.cos(MOOR_A) * d);
+  assert.equal(walk(L(-25, BALANCE.south, 23)), true, `to the moorers' gate (${where()})`);
+  assert.equal(walk(moor(16), { max: 10 }), true, `through it to the hall's balcony (${where()})`);
+  const cradle = rt.piece('cradle'), c0 = cradle.s;
+  wait(4);
+  assert.notEqual(cradle.s, c0, 'the cradle rides between the balcony and the hall’s floor');
+  assert.equal(walk(L(-25, BALANCE.south, 23), { max: 10 }), true, `back to the Gallery (${where()})`);
+  // back over on the pan, and the ball pulled HOME from the lip: the west door opens (the Gallery's ring is out of reach from here)
+  assert.equal(walk(L(-40, BALANCE.south, 22.8), { tol: 0.5 }), true, `to the pan's upper berth (${where()})`);
+  for (let i = 0; i < 30 / DT && !(pan.s > pan.total - 0.2 && pan.wait > 0.8); i++) frame();
+  assert.equal(walk(pan.group.position, { tol: 0.5, run: false, max: 6 }), true, `onto the pan again (${where()})`);
+  for (let i = 0; i < 20 / DT && !(pan.s < 0.2); i++) frame();
+  assert.equal(walk(L(-40, BALANCE.north, 37.5), { tol: 0.6, max: 6 }), true, `back on the north landing (${where()})`);
+  assert.equal(tether(rt.piece('r5')), false, 'the Gallery’s ring hangs out of the tether’s reach from the north landing');
+  assert.equal(walk(L(BALANCE.x + 1.8, BALANCE.north, 35.8), { tol: 0.4 }), true, `to the lip beside the rail (${where()})`);
+  assert.equal(pull('ballS', 'pHome'), true, `the ball pulled home past you (${where()})`);
+  wait(1);
+  assert.equal(rt.logic.isOpen('gN'), true, 'the west door opens');
+  // ---- the Capstan Floor: the Anchor-Warden
+  assert.equal(walk(L(-44, BALANCE.north, 38)), true, `to the west door (${where()})`);
+  assert.equal(walk(L(-52, FLOOR.y, 38)), true, `along the ante (${where()})`);
+  assert.equal(walk(L(FLOOR.x + 10, FLOOR.y, FLOOR.z)), true, `onto the Capstan Floor (${where()})`);
+  const G = rt.guardian;
+  wait(0.3);
+  assert.notEqual(G.state, 'sleep', 'it wakes');
+  P.opts.health = false;
+  const m0 = G.meter;
+  G.hit('body', 'shoot');
+  assert.equal(G.meter, m0, 'fluid does nothing to it');
+  const anchorTarget = () => allTargets().find((x) => x.accepts?.includes('tether') && x.kind === 'sentinel');
+  let wound = false, refused = false;
+  for (let n = 0; n < 16 && G.state !== 'resolved'; n++) {
+    let open = false;
+    for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
+    assert.ok(open, `its drum stalls, an anchor out (${n})`);
+    const an = rt.anchor;
+    assert.equal(an.out, true, 'an anchor lies out');
+    const before = G.meter;
+    if (an.far > 0) {
+      // out over the void: too far; push its bars to wind it in, then pull
+      assert.equal(rt.anchorPull(), false, 'too far for the tether');
+      refused = true;
+      for (let k = 0; k < 4 && an.far > 0; k++) G.hit('body', 'push');
+      assert.equal(an.far, 0, 'wound in to the rim');
+      wound = true;
+    }
+    // stand near it, and pull (through its target, as the cone would)
+    const dir = an.at.clone().sub(G.arena.center).setY(0).normalize();
+    P.teleport(an.at.clone().addScaledVector(dir, -2.4).setY(G.arena.y + 0.1), V(0, 1, 0), V(0, 0, 1));
+    wait(0.1);
+    if (G.state !== 'open') continue;
+    anchorTarget().onHit('tether');
+    assert.ok(G.meter > before || G.state === 'resolved', `pulled home, it jams (${n}: ${G.meter.toFixed(2)})`);
+  }
+  assert.equal(G.state, 'resolved', `broken (${G.meter.toFixed(2)})`);
+  assert.ok(refused && wound, 'its last phase wanted the push before the pull');
+  assert.equal(game.flag('temple.spacecity.done'), true);
+  assert.equal(rt.logic.isOpen('d7'), true, 'the way out opens');
+  wait(4);
+  assert.equal(rt.change.root.visible, true, 'the cables hum taut, their lamps lit');
+  assert.equal(rt.change.slack.visible, false, 'no slack cable left');
   game.reset();
   own();
 });

@@ -86,9 +86,10 @@ export function mapEntries({ order, levels, flag, journal, current, home, relay,
 // ------------------------------------------------------------------ layout
 
 /** A world's footprint on the chart at scale s: the disc, then two lines of name and a line of tag under it. */
+// (no narrower than 70 px: twelve worlds and home in five columns on a small phone held sideways, since v1.40)
 export function worldBox(s = 1) {
   const disc = Math.round(58 * s), font = Math.max(9.5, 11.5 * s), line = font * 1.25;
-  return { disc, font, w: Math.max(84, Math.round(108 * s)), h: disc + 10 + 2 * line + line * 0.95 };
+  return { disc, font, w: Math.max(70, Math.round(108 * s)), h: disc + 10 + 2 * line + line * 0.95 };
 }
 
 /** The light's signature as the ship draws it: the glyph, three dots over an upward arc. */

@@ -21,7 +21,7 @@ import { meetsWith } from '../resources.js';
 //     rooms: { id: { checkpoint?: true, boss?: true } },
 //     links: [{ a, b, door?: id, needs?: ['jetpack'] }],        rooms you walk between (both ways)
 //     elements: { id: { type, room, needs?: [items], ... } } }
-//   types: plate · drum { plate, plateAt?, stops? } · brazier · bramble · switch · bell · gadget { item } · boss
+//   types: plate · drum { plate, plateAt?, stops?, needs? (an iron moon: the tongs; a ball only a tether reaches) } · brazier · bramble · switch · bell · gadget { item } · boss
 //          (a drum with `stops: { plate: t }` rests on any of several plates along its groove: one ball, two
 //           places, the Builders' Greenhouse's louvres and the Aerie's vents)
 //          (a latched element may come `after` another: it only takes once that one is lit; or `when` a
@@ -206,9 +206,9 @@ export class TempleLogic {
       if (!reach.has(e.room)) continue;
       if (e.type === 'gadget' && !this.gadget) return id;
       if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!held(e) || this.awaited(id))) return id;
-      if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && this.has('gun')) return id;
+      if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && this.has('gun') && (e.needs ?? []).every((it) => this.has(it))) return id;
       // (a ball with several stops: worth pushing when one it isn't on is awaited)
-      if (e.type === 'drum' && e.stops && this.has('gun') && Object.keys(e.stops).some((p) => !this.drumOn(id, p) && this.awaited(p))) return id;
+      if (e.type === 'drum' && e.stops && this.has('gun') && (e.needs ?? []).every((it) => this.has(it)) && Object.keys(e.stops).some((p) => !this.drumOn(id, p) && this.awaited(p))) return id;
       if (e.type === 'boss' && !this.resolved) return id;
     }
     // a plate still worth standing on: one a shut door is waiting for
@@ -256,13 +256,13 @@ export function solve(def, { items = ['backpack', 'gun'], withhold = [], maxStep
         gadgetAt = log.length; note(`take ${id}${e.item ? ` (${e.item})` : ''}`); did = true; break;
       }
       if (LATCHED.has(e.type) && !L.isLit(id) && L.canUse(id)) { L.light(id); note(`${e.type} ${id}`); did = true; break; }
-      if (e.type === 'drum' && e.plate && !e.stops && !L.drumOn(id, e.plate) && owned.has('gun')) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
+      if (e.type === 'drum' && e.plate && !e.stops && !L.drumOn(id, e.plate) && owned.has('gun') && (e.needs ?? []).every(has)) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
       if (e.type === 'boss' && !L.resolved && (e.needs ?? []).every(has) && L.check(e.requires)) { L.resolve(); note(`resolve ${id}`); did = true; break; }
     }
     if (did) continue;
     // a ball with several stops: roll it to one that lets something new be done (an eye's `when`, a door, a room)
     if (owned.has('gun')) for (const [id, e] of Object.entries(def.elements)) {
-      if (e.type !== 'drum' || !e.stops || !reach.has(e.room)) continue;
+      if (e.type !== 'drum' || !e.stops || !reach.has(e.room) || !(e.needs ?? []).every(has)) continue;
       // (tried without update(): a trial must not latch a door open)
       const score = () => {
         const rooms = new Set([def.entry]), todo = [def.entry];

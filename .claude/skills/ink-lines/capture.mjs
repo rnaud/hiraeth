@@ -55,8 +55,12 @@ export const SCENES = {
   'temple-hall': { kind: 'view', world: 'temple' },
   // (the start of the bench's ride-city path, at the hoverbike's hollow, looking up the valley past the camps to Qanat)
   'town-far': { kind: 'view', world: 'desert', view: { player: [132, 9.227, 150], eye: [130.593, 12.427, 143.143], target: [166.8, 11.4, 319.5], fov: 55 } },
+  // (the three worlds that joined the route in v1.40: a busy view each, for the frame's ink and the shimmer)
+  'uw-avenue': { kind: 'view', world: 'underwater', view: { player: [0, 0.05, 62], eye: [2, 3.2, 70], target: [0, 4, -20], fov: 55 } },
+  'mf-floor': { kind: 'view', world: 'moonfoundry', view: { player: [0, 0, 60], eye: [-4, 6, 72], target: [10, 20, -120], fov: 55 } },
+  'sc-bridges': { kind: 'view', world: 'spacecity', view: { player: [0, 0, 100], eye: [3, 4, 108], target: [0, 4, -70], fov: 55 } },
 };
-const WORLD_URL = { desert: 'desert', edena: 'edena', spheres: 'spheres', arena: 'arena', temple: 'desert' };
+const WORLD_URL = { desert: 'desert', edena: 'edena', spheres: 'spheres', arena: 'arena', temple: 'desert', underwater: 'underwater', moonfoundry: 'moonfoundry', spacecity: 'spacecity' };
 
 const RES = arg('res', Object.keys(RESOLUTIONS).join(',')).split(',').filter((k) => RESOLUTIONS[k]);
 const WANT = arg('scenes', Object.keys(SCENES).join(',')).split(',').filter((k) => SCENES[k]);

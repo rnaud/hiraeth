@@ -1022,7 +1022,63 @@ speak the Sealed Hangar's tongue (`lang: 'garage'`: a world off the route borrow
   flicker a little at a distance (the motion check's residual); the cables don't sway; the far forest is the same
   four shapes; no wildlife of its own (the game's flocks and motes only); the domes are plain where the pictures
   dress them with machinery, decks and ladders.
-## The Underwater City (`underwater`, off the route, October 2026)
+## Three detours on the route (v1.40)
+
+The author's list of 2026-10-10 promoted three worlds in progress onto the route, each a full world: a story page, people
+with errands, a temple with its gadget and guardian, boxes, a shop, a trial, foes, wildlife, a filmed climax, a reel line
+and a drawing of Lou's (`src/levels/names.js` ORDER; why each sits where it does: `docs/story-bible.md`, "World by world").
+
+| World | Place | Its temple (gadget) | Errands | Shop | Trial |
+|---|---|---|---|---|---|
+| The Underwater City | 5th, after Viridel | the Whale-House (`horn`, the whale-horn: the deep note) | Mireille's cutting up the lift to Fabre; Fabre's word down to Maelle | Odette's Air-Shop (`bubble`) | the Tube run (on foot, hall to hall) |
+| The Moon Foundry | 9th, after the Buried Machine | the Casting-House (`tongs`, the founders' tongs: the push takes iron) | Ottilie's ladle-hook to Bertil; Wen's count from the lookout to Ilse | the Crucible (`crucible`) | the Floor round (on foot) |
+| The City Floating in Space | 11th, before the Signal Market | the Mooring-House (`tether`, a cone that pulls) | Kip's lamp up the Balcony's mast; Sel's notes to Tamar | Amaro's Oil-Lamp Shop (`adobe`) | the Courier's round (on foot, over the bridges) |
+
+- **Stories**: `src/story/<id>.js` (the world done when its temple is: `world.<id>.done`, the keepsake, the page closed, the
+  climax filmed), `src/story/<id>-people.js` (the people with errands, the quests, the keepsake, the visitors' words),
+  `src/story/<id>-moments.js` (registered in `src/story/film.js`). Their tongues and scripts: `src/story/voice.js`
+  (glass-hum, founders' cant, moorers' whistle), `src/story/scripts.js` (bubble rows, moon stamps, cable knots).
+  Their traces of the light, from their days as detours, are the route's sightings now (`src/story/sightings.js`).
+- **Gifts in the open**: the diver's pearl (sprinting tires a third less), the pocket bellows (stamina back twice as
+  fast), the star-thread (climbing a third faster); `src/boxes/effects.js` sets `player.sprintK`, `restK`,
+  `climbSpeedK`. No makers' court: the ten gadgets stay in the ten places that had them (`tests/trials.test.js`).
+- **The route's tables** each grew an entry: errands (`src/levels/content.js`, one into and one out of each world),
+  the foes' rosters (`src/foe-worlds.js`), the signature, the reel (`src/story/calls.js`), the scores (`src/score.js`),
+  the credits and the debug save, the People page, the wildlife (kelp crabs and glass snails; rail beetles and moon mice;
+  cable finches and lamp bugs), the galactic map (its chart's world boxes 70 px at the narrowest, so thirteen places fit a
+  small phone held sideways), the gear grid (ten a row).
+- **Level design**: each world gives the audit its own `lines` (the Underwater City's tubes, the foundry's aisle and
+  gantry, the floating city's bridges), `sights` and `beacons` (the Breathing Tower; the moorers' three lamp-masts, the
+  Balcony's climbed to its crow's nest).
+
+## The Underwater City (`underwater`, on the route since v1.40, redesigned so nobody swims)
+
+`src/levels/underwater.js` (`?level=underwater`), its pieces in `src/levels/underwater-kit.js` (`bigDome`, `glassTube`,
+`whale` since v1.40). Until v1.40 the city stood in open water and you swam among its towers; the author's brief for the
+route was that the traveller is never outside swimming. Now every place you can stand is a dry hall under a great dome of
+the makers' glass, joined to the next by a sealed glass tube or the lift; the sea, the towers of pods, the kelp, the fish,
+the mantas and the whales are all on the other side of the glass.
+
+- **The halls** (`DOMES`, floors at y 0 but the Gallery's at -16 and the Crown's at 64): the **Dock** (the ship on its
+  floor, the moon pool railed, Bastien), the **Avenue** (the greatest dome, 46 m: Coralie's café and four more cafés as
+  domes inside it, a tower of pods to climb, Odette's Air-Shop), the **Garden** (glow-kelp troughs, Mireille), the
+  **Plaza** (the great column of luminous water, the Breathing Tower, the lift in its foot), the **Crown** (a bubble round
+  the column's head, 64 m up under the surface, Fabre) and the **Whale Gallery** (down a sloped tube over the deep, Maelle,
+  a listening horn). The last tube runs north from the Plaza to the makers' **Whale-House** (`src/temples/underwater.js`).
+- **Sealed**: a dome's doors are gaps at its foot narrower and lower than the tube's arch (6 × 3.9 m in a 5 m arch), and a
+  tube's ends push 2.4 m into the domes past them, so nothing is open to the sea (`glassTube`, `bigDome`). The glass is
+  solid as drawn and drawn from both sides (only its rim and a highlight: S_GLASS). The sea's air pockets (`sea.air`) are
+  every hall and tube, so nobody swims (swim.js finds no water where you can go); the bed under the sloped tube is cut a
+  metre under its floor (`seabed`).
+- **Water seen through glass**: the sea carries `glass: true` (water.js): inside its air pockets the camera still takes
+  the sea's look (the banded haze, the shafts, the caustics: `keepCamera`'s `surfaceAt(..., look)`), and the sound is only
+  a little muffled (`audio.js` `underwater(0.3)`: a 3.2 kHz low-pass instead of the swimmer's 520 Hz).
+- **The lift**: two doorways (`level.portals`, the paper hand-over, `toUp`) between the column's foot and the Crown.
+- **Whales**: two, out in the deep east of the Gallery (`whale`), their loops drawn in close to the glass once the
+  Whale-House's keeper is calmed (`level.whalesNear`, eased by `src/story/underwater.js`).
+- **Cost**: ~0.3 M triangles, ~110 meshes before the temple; the domes and tubes are glass (cheap: most of it discarded).
+
+### The Underwater City as a detour (October 2026: swum through; superseded by the sealed city above)
 
 `src/levels/underwater.js` (`?level=underwater`; a SIDE world in `src/levels/names.js`, charted on the ship's map from
 the start, no quest, no relics: `manual: true`), after its four pictures (`references/levels/The Underwater City`,
@@ -1185,7 +1241,9 @@ each. They speak Viridel's tongue (`lang: 'edena'`).
   wool, no legs moving); the arch and the tilted segment can't be climbed; the far ring is the same plain tubes; the
   cumulus are lumpy balls that pale a little with distance; the tilted segment's foot is a clean cylinder where the
   pictures crush it; nothing moves in the villages but the people standing there.
-## The Moon Foundry (`moonfoundry`, off the route, October 2026)
+## The Moon Foundry (`moonfoundry`, off the route October 2026, on the route since v1.40)
+
+*(Since v1.40 on the route after the Buried Machine: the Casting-House on the hangar's east side (`src/temples/moonfoundry.js`), Gunnar's Crucible west of the aisle, the Floor round, the lookout's count, the aisle's and the gantry's leading lines; Wen counts from the gantry now. "Three detours on the route" above. The notes below are its detour days'.)*
 
 `src/levels/moon-foundry.js` (`?level=moonfoundry`; a SIDE world in `src/levels/names.js`, charted on the ship's map from
 the start, no quest, no relics: `manual: true`), after its four pictures (`references/levels/The Moon Foundry`, references.md).
@@ -1308,7 +1366,9 @@ page names the place and closes on the tip deck). `?level=underside`.
   under it. The shelf's underside and faces in shade read flat (the shade printed flat); the pictures' pillows of rock
   have dark creases. The mountain is big plain cliffs. The banners don't move in the wind; the baskets carry nobody;
   the far shelf's town is a sketch. No interiors.
-## The City Floating in Space (`spacecity`, off the route, October 2026)
+## The City Floating in Space (`spacecity`, off the route October 2026, on the route since v1.40)
+
+*(Since v1.40 on the route before the Signal Market: the Moorings, a seventh island north of the Towers, and the Mooring-House on it (`src/temples/spacecity.js`); Amaro's shop on the Pier; three lamp-masts (the Balcony's climbed to its crow's nest, `MASTS`); the bridges as the audit's leading lines. "Three detours on the route" above. The notes below are its detour days'.)*
 
 `src/levels/space-city.js`, after the pictures in `references/levels/The City Floating in Space/` (their views:
 references.md; the shapes and the look: `src/levels/space-city-kit.js`, shared with the views). A city of rounded adobe

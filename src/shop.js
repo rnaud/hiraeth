@@ -45,7 +45,7 @@ export const WARES = {
  * world (the level id), its name (the cue's place name inside), its style (its front, src/shop-fronts.js, and its
  * room, src/shop-world.js SHOP_STYLES), and its wares with the stock of the limited ones. Potions everywhere; the
  * heart containers and the magic expansions a few a shop, a little more in the later worlds, so that every one
- * of them bought makes 18 hearts of the 20 (HEARTS.cap) and a bar of 9 (MAGIC.cap: with the Engine-House's cell
+ * of them bought makes 19 hearts of the 20 (HEARTS.cap) and a bar of 9 (MAGIC.cap: with the Engine-House's cell
  * the last expansion is never needed). STOCK_TOTAL sums them (tests/shop.test.js holds them under the caps).
  */
 export const SHOPS = {
@@ -55,14 +55,19 @@ export const SHOPS = {
   float: { id: 'float', keeper: 'nettle', world: 'perdide', style: 'raft', name: 'Nettle’s Float', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }, { id: 'magic', stock: 1 }] },
   welcome: { id: 'welcome', keeper: 'rowan', world: 'perdide2', style: 'mossdome', name: 'The Welcome-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   potting: { id: 'potting', keeper: 'clover', world: 'edena', style: 'potting', name: 'Clover’s Potting House', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
-  basket: { id: 'basket', keeper: 'fausta', world: 'incal', style: 'basket', name: 'Fausta’s Basket-Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
+  basket: { id: 'basket', keeper: 'fausta', world: 'incal', style: 'basket', name: 'Fausta’s Basket-Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }, { id: 'magic', stock: 1 }] },
   // (the Sealed Hangar's, kept with its world, dismissed in October 2026: src/levels/names.js DISMISSED; not counted)
   hatch: { id: 'hatch', keeper: 'odo', world: 'garage', style: 'kiosk', name: 'The Quartermaster’s Hatch', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   // (in the kiosk that stood by the First Garage's porch: it came to the dunes with the Clock-House)
   kilnstall: { id: 'kilnstall', keeper: 'marit', world: 'glassdunes', style: 'kiosk', name: 'Marit’s Kiln-Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
-  toothcounter: { id: 'toothcounter', keeper: 'mott', world: 'buried', style: 'rivetdome', name: 'Mott’s Tooth-Counter', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
+  toothcounter: { id: 'toothcounter', keeper: 'mott', world: 'buried', style: 'rivetdome', name: 'Mott’s Tooth-Counter', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }, { id: 'magic', stock: 1 }] },
   listening: { id: 'listening', keeper: 'hale', world: 'spheres', style: 'pavilion', name: 'The Listening Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   curestall: { id: 'curestall', keeper: 'pashka', world: 'bazaar', style: 'stall', name: 'Pashka’s Cure-Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
+  // (the three worlds that joined the route in v1.40: a heart each, the City-Shaft's basket and the Tooth-Counter one
+  // fewer to keep every heart bought under the cap)
+  airshop: { id: 'airshop', keeper: 'odette', world: 'underwater', style: 'bubble', name: 'Odette’s Air-Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  crucible: { id: 'crucible', keeper: 'gunnar', world: 'moonfoundry', style: 'crucible', name: 'The Crucible', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  oillamp: { id: 'oillamp', keeper: 'amaro', world: 'spacecity', style: 'adobe', name: 'Amaro’s Oil-Lamp Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
 };
 
 /** The shops a player can reach: one in each place on the route (a dismissed world's shop stays in the list, unvisited). */

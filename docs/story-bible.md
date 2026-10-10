@@ -132,9 +132,33 @@ the settings.
 
 In route order (`src/levels/names.js` ORDER): the desert, then Vael (the wings
 and the winds; the sky stones are its southern half now), Lorn (with the Deep
-Wood north of its swamp), Viridel, then, in the later half, the City-Shaft (its
-own jets, the Warden's harness), the Glass Dunes and the Buried Machine, the
-Garden of Spheres and the Signal Market: nine places. Since October 2026 Vael II
+Wood north of its swamp), Viridel, the Underwater City, then, in the later half,
+the City-Shaft (its own jets, the Warden's harness), the Glass Dunes and the
+Buried Machine, the Moon Foundry, the Garden of Spheres, the City Floating in
+Space and the Signal Market: twelve places.
+
+**Why the three newest sit where they do (v1.40).** The three were detours built
+in October 2026 and came onto the route with temples of their own.
+- **The Underwater City, fifth**, between Viridel and the City-Shaft. It asks for
+  nothing the first four worlds don't give (it is walked hall to hall under glass,
+  through sealed tubes and a lift: nobody swims), so it fits before the jets, and
+  it keeps the City-Shaft in the later half of the route (the seventh of fourteen
+  places). Story: Viridel leaves the traveller knowing the light struck a ship
+  before his; under the sea he hears that it sang to the whales, and the whales'
+  answer sends him on to "a city built down a well" (the City-Shaft). Its temple's
+  gadget, the whale-horn, plays one fixed note and so teaches listening, half a
+  route before the Signal Market's echo shell teaches carrying notes.
+- **The Moon Foundry, ninth**, right after the Buried Machine. Its folk speak the
+  machine's tongue, Dun and Wen come up from the domes to see it, and Wen's wheel
+  "one tooth a year" was cast somewhere: here. The foundry's ledger sends him on to
+  the Garden of Spheres, whose spheres are the first moons, sent and fallen short
+  (Emrys of the Garden already stands on the bowl, wondering at them).
+- **The City Floating in Space, eleventh**, between the Garden and the Signal
+  Market. It has no ground at all, so it comes late, for a traveller at ease on
+  his wings; its visitors, Kip and Madame Sel, are the Market's, and its cables
+  catch the planet's hum, which carries the broadcast of the Market's silent tower
+  (the last world). Its trace, a ship that hailed with a sung note, is the nearest
+  the route comes to Ilen before the Market says her name. Since October 2026 Vael II
 and Lorn II are parts of Vael and Lorn, and the Sealed Hangar and the Atelier are
 dismissed: kept whole (`src/levels/dismissed/`), off the route; the Hangar's
 temple, the First Garage, stands in the Glass Dunes as the Clock-House. Nothing
@@ -306,6 +330,30 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   time comes from a great wheel under a far desert that turns one tooth a year
   → the Buried Machine.
 
+### 5b. The Underwater City — "The Song Through the Glass" (v1.40)
+*(A detour until v1.40, swum through; on the route since, redesigned so nobody swims: `src/levels/underwater.js`.)*
+- **Local story**: A city of glass domes on the sea floor, its halls joined by
+  sealed tubes and a lift up the great column of the Plaza: the Dock where the
+  lock takes the ship down, the Avenue with its cafés under the greatest dome, the
+  kelp Garden, the Plaza, the Crown under the surface's ripples, and the Whale
+  Gallery hanging over the deep. Outside the glass the whales used to come close
+  and sing. The night the sky rang a light came down through the sea singing one
+  note; the whales sang it back, all at once, and went away. Since then the glass
+  hums that one note all over the city, and something in the makers' Whale-House
+  on the sea floor has been singing the light's note back at the whales.
+- **Quests**: the main one is the temple, **the Whale-House** (Anselme at its
+  door; Maelle in the Whale Gallery tells why the whales keep away): find the
+  makers' **whale-horn** inside and calm its keeper. Two errands of the city's
+  own: Mireille's glow-kelp cutting up the lift to Fabre in the Crown (*A Cutting
+  for the Crown*), and Fabre's word down to Maelle that he has lit the Crown's
+  lamps every dusk for the whales (*Lamps for the Whales*). Odette keeps the
+  Air-Shop; Bastien the lock; Coralie a café.
+- **Keepsake**: *song*: the whales' answer, the light's note first and then their own.
+- **Trace (from its detour days)**: Coralie: a woman from up top listened all night
+  to the whales, and hummed back the one that sang something she knew.
+- **Clue**: the old ones in the pod say the light went up, on to a city built down a
+  well where a light hangs that nobody looks at (`clue.underwater.incal`) → the City-Shaft.
+
 ### 9. The Buried Machine — "One Tooth a Year"
 - **Local story**: Below the dunes a great wheel turned one tooth a year; the
   dome people time their lives by it. The hanging city above is "its other
@@ -322,6 +370,28 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   turned while you were there.
 - **Clue**: oil-light in the oculus adds an amber band to the tank; the
   machine's maker's mark is the glyph.
+
+### 9b. The Moon Foundry — "The Moon Nobody Came For" (v1.40)
+*(A detour until v1.40; on the route since, after the Buried Machine: `src/levels/moon-foundry.js`.)*
+- **Local story**: Under a vast roof on rust pillars the founders cast small moons
+  for somebody's sky; nobody came for them. They hang from the cranes, lie in
+  orange claws, one is broken open with a street inside it, and the foundry's folk
+  live in the old machinery. One furnace is still warm (Bertil's). The night the
+  sky rang every hung moon turned on its hook toward where the light went, and
+  since then the makers' **Casting-House** on the east of the floor pours again by
+  itself at night, and the moulds crack, and the floor shakes.
+- **Quests**: the main one is the temple, **the Casting-House** (Ilse at its door
+  with the founders' ledger): find the **founders' tongs** inside (the push takes
+  hold of the iron moons) and stop the Last Founder. Two errands of the foundry's
+  own: Wen of the Buried Machine, on holiday, wants the moons counted from the
+  lookout on the pillar under the moon on its pillar (*Thirty-One Moons*: there are
+  thirty-two, one in the mould); Ottilie's mended ladle-hook to Bertil at the
+  furnace (*The Ladle-Hook*). Gunnar keeps the Crucible.
+- **Keepsake**: *thing*: a pocket moon, the last the Casting-House poured, still warm.
+- **Trace (from its detour days)**: Bertil cast the mark on a plate for a lone
+  woman's ship's nose: "So they'll know me."
+- **Clue**: the ledger's first page: the first moons were sent to a garden far off,
+  and fell short, and lie in its grass (`clue.moonfoundry.spheres`) → the Garden of Spheres.
 
 ### 6. Viridel — "The Garden Grows Over"
 - **Local story**: Odile and Talo's ship fell here; the gardeners let the
@@ -344,6 +414,28 @@ elsewhere; its temple went to the Glass Dunes, below. Its place on the route is 
   reflection (a mirrored pebble) to the plaza; walk the avenue slowly.
 - **Keepsake**: *song*: the chord the three spheres make together.
 - **Clue**: one sphere's sound is the desert's procession drum.
+
+### 10b. The City Floating in Space — "The Note That Passed" (v1.40)
+*(A detour until v1.40; on the route since, before the Signal Market: `src/levels/space-city.js`.)*
+- **Local story**: Heaped adobe houses on islands floating in the dark, joined by
+  bridges, a great pale planet over the roofs. The islands are moored to each
+  other by the moorers' cables, held by the great capstan in the makers'
+  **Mooring-House** on the last island. The night the sky rang its note ran down
+  every cable; since then the islands drift apart a hand's width a night and the
+  bridges creak.
+- **Quests**: the main one is the temple, **the Mooring-House** (Joss the moorer at
+  its door): find **tether mode** inside (a cone that pulls instead of pushing) and
+  resolve the Anchor-Warden. Two errands of the city's own: Madame Sel's notes on
+  the planet's hum to Tamar under her cables (*The Planet's Hum*), and one of Kip's
+  nine lamps hung at the far end of the Moorings bridge (*A Lamp at the Edge*).
+  Amaro keeps the Oil-Lamp Shop: the city pays in lamp oil.
+- **Keepsake**: *knowing*: what the cables are for: not holding the islands up, listening.
+- **Trace (from its detour days)**: Tamar: a ship with no name, one pilot alone,
+  hailed the city with a sung note; the night the sky rang the same note passed
+  again, fast and high, going somewhere.
+- **Clue**: with the cables taut, the planet's hum carries a broadcast from a
+  market of a thousand signs where one tower is silent (`clue.spacecity.bazaar`) →
+  the Signal Market.
 
 ### 4. Lorn — "The Great Crystal"
 - **Local story**: The crystal sings in the rain and the carnivorous plants
@@ -452,12 +544,12 @@ time it is told (`sight.<id>`; the route's own sightings are listed in src/story
 | The City Behind the Waterfall | Aldo: the night the falls went quiet and a light hung singing off the balcony, as if waiting for an answer | light |
 | The Salt Harbour | The harbour book (Hesper): the line before yours is in home letters, a woman who came alone; "…where the singing goes. If anyone from home…"; the salt has eaten her name | before |
 | The Forest of Antennas | Grete: her grandmother's dish caught a man's voice ("…older when you hear it…"), and under the hiss something singing his words back, as if learning them | signal |
-| The Underwater City | Coralie: a woman from up top listened all night to the whales; one sang something she knew, and she hummed it back | before |
+| The Underwater City (on the route since v1.40) | Coralie: a woman from up top listened all night to the whales; one sang something she knew, and she hummed it back | before |
 | The City During the Eclipse | Ansel: the light hung singing where the black sun sits; by morning every figure on the walls leaned the way it went | light |
 | The Fallen Ring | The makers' sign burned fresh into the tilted piece's foot, by a hand that learned it: the arc wavers and starts again | glyph |
 | The Moon Foundry | Bertil cast the mark on a plate for a lone woman's ship's nose; she drew it in soot like a new word: "So they'll know me" | before |
 | The Underside | Maudie: a woman wintered alone and played a man's voice every night, always stopping it before the end | signal |
-| The City Floating in Space | Tamar: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
+| The City Floating in Space (on the route since v1.40) | Tamar: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
 | The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it (Mireille, the night mail: she found it there, nearly gone, the night she boarded) | glyph |
 
 ## The recordings (built: src/story/calls.js, src/ship/hologram.js)

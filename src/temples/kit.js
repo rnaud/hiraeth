@@ -165,7 +165,7 @@ function ornamentMaterials(o) {
   const glowing = ['lamp', 'crystal', 'slot', 'window'].includes(o.kind);
   return {
     a: glowing ? makeMaterial({ color: c, glow: o.glow ?? 0.75, flat: true }) : o.metal ? makeMaterial({ color: c, flat: true, metal: o.metal }) : paint(c),
-    b: (glowing && o.kind !== 'lamp') || o.kind === 'pane' ? makeMaterial({ color: c2, glow: o.glow ?? 0.75, flat: true }) : paint(c2),
+    b: (glowing && o.kind !== 'lamp') || o.kind === 'pane' || o.kind === 'mooring' ? makeMaterial({ color: c2, glow: o.glow ?? 0.75, flat: true }) : paint(c2),
   };
 }
 // Each is drawn in the wall's own frame (x along it, y up, z out of its face, from the frieze glyph's spot) as a
@@ -230,6 +230,22 @@ const ORNAMENTS = {
   pane(at, M) {
     at(M.b, new THREE.BoxGeometry(1.6, 2.6, 0.02), 0, -2.1, 0.01);
     for (const x of [-0.85, 0.85]) at(M.a, new THREE.BoxGeometry(0.14, 2.9, 0.03), x, -2.1, 0.03);
+  },
+  /** a small cast moon of ivory in a ring of dark iron (the Casting-House) */
+  moon(at, M) {
+    at(M.b, flat(new THREE.TorusGeometry(0.44, 0.07, 3, 14), 0.25), 0, -1.9, 0.025);
+    at(M.a, flat(new THREE.SphereGeometry(0.34, 10, 6), 0.12), 0, -1.9, 0.02);
+  },
+  /** a moorers' ring hanging from a plate, a cable's starlight line under every other (the Mooring-House) */
+  mooring(at, M, i) {
+    at(M.a, new THREE.BoxGeometry(0.5, 0.36, 0.03), 0, -1.5, 0.015);
+    at(M.a, flat(new THREE.TorusGeometry(0.3, 0.06, 3, 14), 0.25), 0, -1.95, 0.03);
+    if (i % 2 === 0) at(M.b, new THREE.BoxGeometry(0.05, 1.3, 0.02), 0, -2.95, 0.012);
+  },
+  /** a little whorled shell, three chambers winding up, a coral band on the largest (the Whale-House) */
+  whorl(at, M) {
+    for (const [x, y, r] of [[0, -2.3, 0.34], [0.16, -1.96, 0.22], [0.05, -1.74, 0.13]]) at(M.a, flat(new THREE.SphereGeometry(r, 9, 6), 0.12), x, y, 0.02);
+    at(M.b, flat(new THREE.TorusGeometry(0.3, 0.04, 3, 14), 0.3), 0, -2.3, 0.03);
   },
 };
 

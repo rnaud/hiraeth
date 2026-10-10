@@ -1,6 +1,6 @@
 // The Underwater City (src/levels/underwater.js, docs/systems/worlds.md) and the sea it stands in (water.js SEA_LOOK,
-// swim.js SEA): the bed walked under the water, the jump kicking you off swimming, sinking back down, the air in the
-// cafés; the world builds, stands where it is drawn, is on the map off the route; its views are in the References.
+// swim.js SEA): the sea's own rules in a box (the bed walked, the kick, the air pockets), and the city as it is since
+// v1.40: sealed halls and tubes, dry wherever you can stand, the lift, the Dock; its views are in the References.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
@@ -9,7 +9,7 @@ import { Player } from '../src/player.js';
 import { makeMaterial, MODE_WATER } from '../src/materials.js';
 import { Waters, SEA_LOOK, SEA_SHAFTS, seaShafts, DEEP_UNDER } from '../src/water.js';
 import { SEA, deepSea } from '../src/swim.js';
-import { createUnderwater, SEA_Y, AVENUE, CANAL, TERRACE, PLAZA, SHIP_SITE, seabed, placeAt } from '../src/levels/underwater.js';
+import { createUnderwater, DOMES, SHIP_SITE, seabed, placeAt } from '../src/levels/underwater.js';
 import { SEA_DAY, UNDERWATER_LOOK } from '../src/levels/underwater-kit.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
@@ -114,69 +114,84 @@ const level = quiet(() => createUnderwater(scene));
 const physics = new Physics(scene, level.ground);
 const waters = new Waters(scene, { physics, drops: false });
 
-test('the world is registered off the route: in the worlds list, on the galactic map from the start, never counted', () => {
+test('the world is on the route since v1.40, fifth, after Viridel: a page, five relics', () => {
   const meta = LEVELS.find((l) => l.id === 'underwater');
-  assert.ok(meta && !meta.dev);
+  assert.ok(meta && !meta.dev && !meta.hidden);
   assert.equal(meta.title, TITLES.underwater);
-  assert.ok(SIDE.includes('underwater') && !ORDER.includes('underwater'), 'off the route');
-  assert.equal(CONTENT.underwater.relics.names.length, 0);
-  assert.equal(CONTENT.underwater.story.manual, true, 'no page closes by walking somewhere');
+  assert.ok(!SIDE.includes('underwater') && ORDER.indexOf('underwater') === ORDER.indexOf('edena') + 1, 'after Viridel');
+  assert.equal(CONTENT.underwater.relics.names.length, 5);
+  assert.equal(CONTENT.underwater.story.manual, true, 'its page closes when the Whale-House is calmed (src/story/underwater.js)');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: false, side: SIDE });
   const e = entries.find((x) => x.id === 'underwater');
-  assert.ok(e && e.known && e.side, 'charted from the first world on');
+  assert.ok(e && !e.side, 'on the dotted line');
 });
 
-test('the whole city is under the sea; the cafés are dry inside', () => {
+test('nobody swims: every hall and tube is dry, the sea is only on the other side of the glass', () => {
   assert.equal(waters.bodies.filter((b) => b.sea).length, 1, 'one sea');
-  assert.equal(waters.surfaceAt(0, 40, 1)?.y, SEA_Y, 'the avenue');
-  assert.equal(waters.surfaceAt(SHIP_SITE.x, SHIP_SITE.z, seabed(SHIP_SITE.x, SHIP_SITE.z) + 1)?.y, SEA_Y, 'the landing');
-  assert.ok(level.domes.length >= 6, `cafés: ${level.domes.length}`);
-  for (const d of level.domes) {
-    assert.equal(waters.surfaceAt(d.x, d.z, d.y + 1.2), null, `dry in the café at ${d.x}, ${d.z}`);
-    assert.ok(physics.groundAt(d.x, d.y + 2, d.z) > d.y - 0.15, 'its floor solid');
-    const [dx, dz] = d.door, ox = dx + Math.sin(d.doorYaw) * 1.5, oz = dz + Math.cos(d.doorYaw) * 1.5;
-    assert.ok(waters.surfaceAt(ox, oz, d.y + 1.2), 'the sea just out of its door');
-    // the door is open: a ray in through it at chest height meets nothing until the far side
-    const into = V(-Math.sin(d.doorYaw), 0, -Math.cos(d.doorYaw));
-    const hit = physics.rayHit(V(ox, d.y + 1.4, oz), into, d.r);
-    assert.ok(!hit || hit.distance > 2.5, `the door of the café at ${d.x}, ${d.z} is open`);
+  assert.ok(waters.bodies[0].sea.glass, 'seen through glass: its look on the view from inside');
+  for (const [id, d] of Object.entries(DOMES)) {
+    for (const [dx, dz] of [[0, 0], [0.5, 0.3], [-0.4, -0.5]]) {
+      const x = d.x + dx * d.r, z = d.z + dz * d.r;
+      assert.equal(waters.surfaceAt(x, z, d.y + 1.2), null, `${id}: dry at ${x.toFixed(0)}, ${z.toFixed(0)}`);
+    }
+    assert.ok(Math.abs(physics.groundAt(d.x + d.r * 0.3, d.y + 3, d.z - d.r * 0.3) - d.y) < 1.4, `${id}: its floor`);
+  }
+  for (const [id, t] of Object.entries(level.tubes)) for (const f of [0.05, 0.5, 0.95]) {
+    const [x, y, z] = t.at(f);
+    assert.equal(waters.surfaceAt(x, z, y + 1.2), null, `the ${id} tube: dry at ${f}`);
+    assert.ok(Math.abs(physics.groundAt(x, y + 2, z) - y) < 0.3, `the ${id} tube: its floor at ${f}`);
+    assert.ok(physics.rayDistance(V(x, y + 1.5, z), V(0, 1, 0), 10) < t.R, `the ${id} tube: glass over it`);
+  }
+  // outside the glass: the sea
+  assert.ok(waters.surfaceAt(60, 60, seabed(60, 60) + 1), 'the sea outside');
+  assert.ok(!level.air(60, seabed(60, 60) + 1, 60));
+  assert.equal(placeAt({ x: 0, y: 0, z: DOMES.dock.z }), 'The Dock');
+  assert.equal(placeAt({ x: DOMES.crown.x, y: DOMES.crown.y + 1, z: DOMES.crown.z }), 'The Crown');
+});
+
+test('sealed: from inside every hall, walking out in any direction meets glass before the sea', () => {
+  for (const [id, d] of Object.entries(DOMES)) {
+    for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+      const o = V(d.x, d.y + 1.4, d.z), dir = V(Math.sin(a), 0, Math.cos(a));
+      let p = o.clone(), ok = false;
+      // walk out until something stops you; a door leads into a tube, which is air too
+      for (let s = 0; s < 120; s += 1) {
+        p = o.clone().addScaledVector(dir, s);
+        if (physics.rayDistance(o, dir, s + 0.5) < s + 0.5) { ok = true; break; }
+        if (!level.air(p.x, p.y, p.z)) break;
+      }
+      assert.ok(ok || level.air(p.x, p.y, p.z), `${id}: out toward ${a.toFixed(2)} you reach the sea at ${p.x.toFixed(0)}, ${p.z.toFixed(0)}`);
+    }
   }
 });
 
-test('the streets, the bridge and the terrace are solid where they are drawn; the canal is deep', () => {
-  for (let z = AVENUE.z1 - 2; z > AVENUE.z0 + 2; z -= 6) {
-    const g = physics.groundAt(0, 3, z);
-    if (Math.abs(z - CANAL.z) <= CANAL.half + 2.4) assert.ok(g > -0.1 && g < 1, `the bridge at z ${z}: ${g}`);
-    else if (Math.hypot(z - PLAZA.z, 0) < 4) continue;   // (the great column)
-    else assert.ok(Math.abs(g) < 0.1, `the avenue at z ${z}: ${g}`);
-  }
-  assert.ok(physics.groundAt(40, 2, CANAL.z) < CANAL.bed + 1, 'the canal\'s bed');
-  assert.ok(Math.abs(physics.groundAt(-90, TERRACE.y + 3, 0) - TERRACE.y) < 0.1, 'the terrace');
-  for (const [x, y, z] of level.terraceStairs) assert.ok(Math.abs(physics.groundAt(x + 0.2, y + 2, z) - y) < 0.35, `the stair's top at ${x.toFixed(1)}, ${z}`);
-  // the pods' open decks: you land on them
-  assert.ok(level.decks.length > 20, `decks: ${level.decks.length}`);
-  for (const d of level.decks.slice(0, 12)) assert.ok(Math.abs(physics.groundAt(d.x, d.y + 2, d.z) - d.y) < 0.4, `a deck at ${d.x.toFixed(1)}, ${d.y.toFixed(1)}, ${d.z.toFixed(1)}`);
-  assert.equal(placeAt({ x: 0, y: 0, z: 140 }), 'The landing');
-  assert.equal(placeAt({ x: 0, y: 0, z: -20 }), 'The canal');
+test('the lift: up the column to the Crown and down again', () => {
+  const up = level.portals.find((p) => /up to the Crown/.test(p.label)), down = level.portals.find((p) => /down to the Plaza/.test(p.label));
+  assert.ok(up && down);
+  assert.ok(Math.abs(physics.groundAt(up.to.x, up.to.y + 2, up.to.z) - DOMES.crown.y) < 0.3, 'out on the Crown’s floor');
+  assert.ok(Math.abs(physics.groundAt(down.to.x, down.to.y + 2, down.to.z) - DOMES.plaza.y) < 0.6, 'out on the Plaza’s floor');
+  assert.ok(up.to.distanceTo(down.at) > down.r + 1.5 && down.to.distanceTo(up.at) > up.r + 1.5, 'never straight back');
 });
 
-test('the ship lands in the sandy hollow: flat, clear, nothing over it', () => {
+test('the ship stands on the Dock’s floor: flat, clear overhead under the dome', () => {
   const y0 = physics.groundAt(SHIP_SITE.x, 5, SHIP_SITE.z);
-  for (let a = 0; a < 6.28; a += 0.5) for (const r of [0, 8, 15]) {
+  for (let a = 0; a < 6.28; a += 0.5) for (const r of [0, 8, 13]) {
     const x = SHIP_SITE.x + Math.cos(a) * r, z = SHIP_SITE.z + Math.sin(a) * r, g = physics.groundAt(x, 5, z);
-    assert.ok(Math.abs(g - y0) < 0.9, `the hollow at ${x.toFixed(1)}, ${z.toFixed(1)}: ${g.toFixed(2)} (${y0.toFixed(2)})`);
-    assert.equal(physics.rayHit(V(x, g + 2, z), V(0, 1, 0), 200), null, `nothing over ${x.toFixed(1)}, ${z.toFixed(1)}`);
+    assert.ok(Math.abs(g - y0) < 0.2, `the Dock at ${x.toFixed(1)}, ${z.toFixed(1)}: ${g.toFixed(2)} (${y0.toFixed(2)})`);
+    assert.ok(physics.rayDistance(V(x, g + 0.5, z), V(0, 1, 0), 40) > 12, `room over ${x.toFixed(1)}, ${z.toFixed(1)}`);
   }
-  assert.ok(Math.abs(physics.groundAt(level.spawn.x, level.spawn.y + 2, level.spawn.z) - level.spawn.y) < 0.3, 'the spawn stands on the sand');
+  assert.ok(Math.abs(physics.groundAt(level.spawn.x, level.spawn.y + 2, level.spawn.z) - level.spawn.y) < 0.3, 'the spawn stands on the floor');
 });
 
 test('the people walk where it is solid, every line toned; within the collision budget', () => {
-  level.init?.(physics);
   const { routes } = quiet(() => buildPeople(physics, level.crowdSpots()));
-  assert.ok(routes.length >= 8, `walkable crowd routes: ${routes.length}`);
+  assert.ok(routes.length >= 6, `walkable crowd routes: ${routes.length}`);
   for (const line of level.crowdLines) assert.ok(toneOf(line), `toned: ${line}`);
   for (const n of CONTENT.underwater.npcs) for (const line of n.lines) assert.ok(toneOf(line), `toned: ${line}`);
-  assert.ok(physics.triangles < 220000, `static collision budget: ${physics.triangles}`);
+  assert.ok(physics.triangles < 260000, `static collision budget: ${physics.triangles}`);
+  // the pod tower's decks inside the Avenue: you climb to them
+  assert.ok(level.decks.length >= 2);
+  for (const d of level.decks) assert.ok(Math.abs(physics.groundAt(d.x, d.y + 2, d.z) - d.y) < 0.6, `a deck at ${d.x.toFixed(1)}, ${d.y.toFixed(1)}, ${d.z.toFixed(1)}`);
 });
 
 test('the Underwater City\'s views: four plates, one view each, in the References', async () => {

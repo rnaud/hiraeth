@@ -32,6 +32,10 @@ export const WORLD_MOMENTS = {
   buried: [{ id: 'buried.wheel', flag: 'buried.moment.wheel', beat: 'the great wheel turns, and goes on turning' }],
   spheres: [{ id: 'spheres.chord', flag: 'spheres.moment.chord', beat: 'the pole rings with the three spheres’ chord' }],
   bazaar: [{ id: 'bazaar.broadcast', flag: 'bazaar.moment.broadcast', beat: 'the silent tower broadcasts again' }],
+  // (the three worlds that joined the route in v1.40)
+  underwater: [{ id: 'underwater.whales', flag: 'underwater.moment.whales', beat: 'the whales come back to the glass and sing, the light’s note first' }],
+  moonfoundry: [{ id: 'moonfoundry.moon', flag: 'moonfoundry.moment.moon', beat: 'the last moon is lifted out of its mould onto a hook, and every hung moon turns to it' }],
+  spacecity: [{ id: 'spacecity.cables', flag: 'spacecity.moment.cables', beat: 'the cables draw taut and the islands come home together, lamps running along them' }],
 };
 /** The one entry for a moment id (its flag). */
 export const momentDef = (id) => Object.values(WORLD_MOMENTS).flat().find((m) => m.id === id) ?? null;

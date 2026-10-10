@@ -113,19 +113,20 @@ const built = () => world ??= (() => {
 const clearAt = (physics, p, y) => physics.pushCapsule(new THREE.Vector3(p.x, y + 0.05, p.z), 0.35, 0.6, 1.9) === null;
 const line = (a, b, step = 1) => { const A = V(...a), B = V(...b), n = Math.max(1, Math.ceil(A.distanceTo(B) / step)); return Array.from({ length: n + 1 }, (_, i) => A.clone().lerp(B, i / n)); };
 
-test('the Moon Foundry: off the route, on the map from the start, reached by ?level=moonfoundry', () => {
+test('the Moon Foundry: on the route since v1.40, after the Buried Machine, reached by ?level=moonfoundry', () => {
   const L = LEVELS.find((l) => l.id === 'moonfoundry');
-  assert.ok(L && L.hidden && !L.dev, 'a world, not on the route');
-  assert.ok(SIDE.includes('moonfoundry') && !ORDER.includes('moonfoundry'));
+  assert.ok(L && !L.hidden && !L.dev, 'a world on the route');
+  assert.ok(!SIDE.includes('moonfoundry') && ORDER.indexOf('moonfoundry') === ORDER.indexOf('buried') + 1, 'right after the Buried Machine');
   assert.equal(CONTENT.moonfoundry, MOONFOUNDRY_CONTENT);
-  assert.ok(MOONFOUNDRY_CONTENT.story.manual, 'no story to follow: no beacon, never in the way home');
+  assert.ok(MOONFOUNDRY_CONTENT.story.manual, 'its page closes when the Casting-House is quiet (src/story/moonfoundry.js)');
+  assert.equal(MOONFOUNDRY_CONTENT.relics.spots.length, 5, 'five relics, as every route world');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
   const e = entries.find((x) => x.id === 'moonfoundry');
-  assert.ok(e && e.known && e.side, 'charted, off the dotted line');
+  assert.ok(e && !e.side, 'on the dotted line');
   assert.ok(entries.at(-1).home, 'home still last');
   const named = MOONFOUNDRY_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id).sort();
   assert.deepEqual(named, ['dun', 'ivo', 'wen'], 'Dun and Wen of the Buried Machine, Emrys of the Garden of Spheres');
-  for (const p of MOONFOUNDRY_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes, `${p.id}: only words for the foundry, no errands`);
+  for (const id of ['bertil', 'ottilie']) assert.ok(MOONFOUNDRY_CONTENT.npcs.some((p) => p.id === id && p.talk?.nodes), `${id}: an errand of the foundry's own`);
   for (const p of MOONFOUNDRY_CONTENT.npcs) for (const l of p.lines) assert.match(l, /^~[a-z]+~ /, 'every line toned');
 });
 
@@ -195,9 +196,13 @@ test('solid as drawn: the pillars, the moons, the furnace; drawn only overhead; 
   assert.ok(physics.groundAt(HUNG.x + 0.1, HUNG.y + HUNG.R + 2, HUNG.z + 0.1, 4) > HUNG.y + HUNG.R - 1, 'the hung moon is solid');
   assert.ok(!clearAt(physics, V(FURNACE.x + FURNACE.r + 0.2, 0, FURNACE.z), 0), "the furnace stops you");
   assert.ok(!(physics.groundAt(0.1, HALL.roof + 5, 0.1, 10) > HALL.roof - 6), 'the roof is out of reach: drawn only');
-  let meshes = 0;
-  scene.traverse((o) => { if (o.isMesh && o.visible) meshes++; });
+  // (the Casting-House's rooms hang far overhead, out of the frustum: counted apart, src/temples/moonfoundry.js)
+  let meshes = 0, temple = 0;
+  const T = level.temple?.root;
+  const under = (o) => { for (let q = o; q; q = q.parent) if (q === T) return true; return false; };
+  scene.traverse((o) => { if (o.isMesh && o.visible) { if (T && under(o)) temple++; else meshes++; } });
   assert.ok(meshes < 260, `meshes ${meshes}`);
+  assert.ok(temple < 180, `the temple's meshes ${temple}`);
   assert.ok(physics.triangles < 200000, `collision triangles ${physics.triangles}`);
   // the furnace drones by its mouth; the pour's bands march down it
   assert.ok(level.hum(V(FURNACE.x - 8, 1, FURNACE.z)) > 0.5 && level.hum(V(0, 1, 60)) === 0);

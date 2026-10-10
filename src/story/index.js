@@ -37,6 +37,9 @@ import { setupHome } from './home.js';
 import { setupLantern } from './lantern.js';
 import { setupGlassDunes } from './glassdunes.js';
 import { setupTrainStory } from './night-train.js';
+import { setupUnderwater } from './underwater.js';
+import { setupMoonFoundry } from './moonfoundry.js';
+import { setupSpaceCity } from './spacecity.js';
 import { setupTempleStory } from '../temples/index.js';
 import { setupShops } from './shops.js';
 import { setupFellow } from './fellow.js';
@@ -74,6 +77,9 @@ const WORLDS = {
   lantern: setupLantern,
   glassdunes: setupGlassDunes,
   overnighttrain: setupTrainStory,   // (the night mail aboard: a sub-level of the Signal Market's, src/story/night-train.js)
+  underwater: setupUnderwater,
+  moonfoundry: setupMoonFoundry,
+  spacecity: setupSpaceCity,
 };
 /**
  * A merged world's stories (src/levels/names.js PARTS: Vael carries Vael II's, Lorn Lorn II's), made one: the first

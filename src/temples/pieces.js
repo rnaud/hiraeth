@@ -298,7 +298,12 @@ export class Ball {
    * back toward the groove's start at `pull` m/s² unless condition `still` holds (a plate stood on stills the pool);
    * at rest on its plate (a berth) it stays),
    * strike: { at, reach } (a clapper, the Founders' Belfry: rolled to rest on its plate in a bell's mouth it strikes the
-   * bell at `at`, a game 'bell' event there; and a splash on it as it lies there rocks it and strikes again) }
+   * bell at `at`, a game 'bell' event there; and a splash on it as it lies there rocks it and strikes again),
+   * heavy: item (an iron moon of the Moon Foundry's Casting-House: only a push, or a tether, made while carrying that
+   * item (the founders' tongs) rolls it; anything else rocks it where it lies; heavyLine: what it says then),
+   * iron: true (drawn as cast iron, dark with a rust ring) }
+   * A tether (the City Floating in Space's gun mode, 'tether') rolls any ball toward whoever pulled it: the cone hands
+   * it the way back to the hand as its `dir`.
    * Its element (logic.js) may have `stops`: several plates along the groove, and it settles into whichever it slows by.
    */
   constructor(rt, o) {
@@ -317,7 +322,8 @@ export class Ball {
     if (o.lamp) { this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0; }
     if (o.seed) this.husk = own({ color: '#a07a4e', flat: true });
     if (o.tar) { this.tarM = own({ color: '#4a3a33', flat: true }); this.burn = 0; }
-    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? this.husk ?? this.tarM ?? M.stoneMat));
+    if (o.heavy || o.iron) this.ironM = own({ color: '#3d3a40', flat: true, metal: 'iron' });
+    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? this.husk ?? (o.iron ? this.ironM : null) ?? this.tarM ?? this.ironM ?? M.stoneMat));   // (an iron moon that heats, the Casting-House's: drawn iron)
     this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : o.seed ? '#7fcf72' : o.tar ? '#e0844a' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
     if (o.seed) {
@@ -349,7 +355,7 @@ export class Ball {
     };
     this.place();
     this.off = registerTarget({
-      kind: 'ball', radius: this.r + 0.15, position: () => this.center, accepts: o.seed ? ['bloom'] : undefined,
+      kind: 'ball', radius: this.r + 0.15, position: () => this.center, accepts: o.seed ? ['bloom', 'tether'] : ['tether'],
       onHit: (mode, point, dir, info) => this.hit(mode, dir, info),
     });
     this.rest = true;
@@ -376,9 +382,16 @@ export class Ball {
     if (this.o.strike && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate)) { this.wobble = 0.4; this.strike(); return true; }
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
-    if (this.o.sings && mode !== 'push') this.sing();   // (a singing ball: a splash makes it sing, and nudges it)
+    const cone = mode === 'push' || mode === 'tether';
+    // an iron moon: only a push (or a tether) made with the founders' tongs takes hold of it
+    if (this.o.heavy && !(cone && this.rt.logic.has(this.o.heavy))) {
+      this.wobble = 0.25; this.rt.sound?.critter?.('clank', 0.6);
+      this.rt.notice?.(this.o.heavyLine ?? 'It rocks on its rail and settles back. Cast iron: far too heavy for a plain push.', `${this.id}.heavy`);
+      return true;
+    }
+    if (this.o.sings && !cone) this.sing();   // (a singing ball: a splash makes it sing, and nudges it)
     const along = dir.x * this.dir.x + dir.z * this.dir.z;
-    const k = mode === 'push' ? 4.2 + 4.5 * (info.strength ?? 1) : 1.2;   // m/s: a push rolls it a few metres, a splash nudges it
+    const k = cone ? 4.2 + 4.5 * (info.strength ?? 1) : 1.2;   // m/s: a push (or a tether's pull) rolls it a few metres, a splash nudges it
     if (Math.abs(along) < 0.25) { this.wobble = 0.4; return true; }
     this.v += Math.sign(along) * k * Math.min(1, Math.abs(along) + 0.3);
     this.rest = false;
@@ -733,7 +746,9 @@ export class Switch {
    * o: { id, at, yaw (the way it faces), size, crystal?: height, wrong?: text }: a carved eye that a splash of
    * fluid wakes. crystal: a singing crystal standing on the floor instead (its foot at `at`, this tall).
    * wrong: said when a splash does not wake it (it comes `after` another: logic.js). lids: stone lids over the eye,
-   * shut while its element's `when` fails (it can't wake now).
+   * shut while its element's `when` fails (it can't wake now). pull: a moorers' ring (the City Floating in Space's
+   * Mooring-House) instead of an eye: a brass ring on a post that only a tether wakes (its element `needs: ['tether']`);
+   * a splash or a push only rings it (o.wrong or its own line).
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o;
@@ -749,6 +764,12 @@ export class Switch {
       this.group.add(mesh([lathe([[s * 1.3, 0], [s * 1.3, 0.35], [s * 1.0, 0.5], [0.01, 0.5]], 12)], M.trimMat));
       this.group.add(mesh([T(new THREE.OctahedronGeometry(1, 0), [0, 0.5 + h / 2, 0], [0, 0.4, 0], [s * 0.7, h / 2, s * 0.7]), T(new THREE.OctahedronGeometry(1, 0), [s * 0.55, 0.5 + h * 0.25, 0.1], [0, 0, -0.35], [s * 0.35, h * 0.24, s * 0.35])], this.glow));
       this.center = this.group.position.clone().add(V(0, 0.5 + h / 2, 0));
+    } else if (o.pull) {
+      // a moorers' ring: a heavy brass ring standing out from a plate on the wall, its eye glowing in the middle
+      this.group.add(mesh([T(new THREE.CylinderGeometry(s * 0.7, s * 0.7, 0.3, 20), [0, 0, 0], [Math.PI / 2, 0, 0]), T(new THREE.BoxGeometry(0.3, 0.3, s * 0.7), [0, 0, s * 0.35])], M.trimMat));
+      this.group.add(mesh([T(new THREE.TorusGeometry(s * 0.75, s * 0.14, 8, 28), [0, 0, s * 0.75])], own({ color: '#d8a24a', flat: true, metal: 'brass' })));
+      this.group.add(mesh([T(new THREE.SphereGeometry(s * 0.3, 12, 8).scale(1, 1, 0.5), [0, 0, 0.2])], this.glow));
+      this.center = this.group.position.clone().add(new THREE.Vector3(0, 0, s * 0.6).applyQuaternion(this.group.quaternion));
     } else {
       this.group.add(mesh([T(new THREE.CylinderGeometry(s, s, 0.4, 24), [0, 0, 0], [Math.PI / 2, 0, 0])], M.trimMat));
       this.group.add(mesh([T(new THREE.SphereGeometry(s * 0.55, 16, 10).scale(1, 0.6, 0.35), [0, 0, 0.2]), T(glyphGeometry(s * 1.3, 0.06), [0, 0, 0.24])], this.glow));
@@ -769,12 +790,16 @@ export class Switch {
     this.on = rt.logic.isLit(o.id);
     this.hidden = !!o.hidden;
     const seen = () => !this.hidden || rt.logic.has(shownBy(o.hidden));
-    this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, onHit: (mode) => this.hit(mode) });
+    this.off = registerTarget({ kind: 'switch', radius: o.crystal ? Math.max(s, o.crystal * 0.45) : s, position: () => this.center, enabled: seen, accepts: o.pull ? ['tether'] : undefined, onHit: (mode) => this.hit(mode) });
     this.seen = seen;
     this.flash = 0;
   }
-  /** A splash (any mode: it is fluid) wakes it. */
-  hit() {
+  /** A splash (any mode: it is fluid) wakes it; a moorers' ring (o.pull) only a tether's pull. */
+  hit(mode) {
+    if (this.o.pull && mode !== 'tether') {
+      if (!this.on) { this.flash = 0.6; this.rt.sound?.critter?.('clank', 0.5); this.rt.notice?.(this.o.wrong ?? 'The ring clanks on its post and hangs still. It wants pulling, not wetting.', `wrong.${this.id}`); }
+      return true;
+    }
     if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.onLit?.(this.id); }
     else if (!this.on && this.o.wrong) { this.flash = 0.6; this.rt.sound?.critter?.('blip', 0.5); this.rt.notice?.(this.o.wrong, `wrong.${this.id}`); }
     return true;
@@ -1770,7 +1795,9 @@ export class Bud {
 /**
  * A pane of greenhouse glass over a wall (Viridel): too smooth to climb (you slip off it) until a vine has
  * grown up it, which happens when `when` holds (a seed at its foot, bloomed). o: { at (the foot's middle,
- * local, on the wall's face), yaw (facing out of the wall), w, h, when: condition, slip: text }
+ * local, on the wall's face), yaw (facing out of the wall), w, h, when: condition, slip: text, color }
+ * rungs: true (the Underwater City's Whale-House): brass rungs slide out of the pane's frame instead of a vine
+ * growing, and slide back in when `when` fails again (a held note: climbable only while it rings).
  */
 export class Glass {
   constructor(rt, o) {
@@ -1787,17 +1814,21 @@ export class Glass {
     for (let i = 0; i <= nx; i++) bars.push(box(0.12, h, 0.18, -w / 2 + (i / nx) * w, h / 2, 0.16));
     for (let j = 0; j <= ny; j++) bars.push(box(w, 0.12, 0.18, 0, (j / ny) * h, 0.16));
     this.group.add(mesh(bars, rt.M.trimMat));
-    // the vine that grows up it: stems in a lazy zigzag, leaves all along, a few flowers
+    // the vine that grows up it: stems in a lazy zigzag, leaves all along, a few flowers (or the brass rungs: o.rungs)
     this.vine = new THREE.Group();
     const stems = [], leaves = [], flowers = [];
-    for (const x0 of [-w * 0.22, w * 0.18]) {
+    if (o.rungs) {
+      const rungs = [];
+      for (let j = 1; j * 0.75 < h; j++) for (const x0 of [-w * 0.3, 0, w * 0.3]) rungs.push(box(1.1, 0.09, 0.3, x0, j * 0.75, 0.32));
+      this.vine.add(mesh(rungs, own({ color: '#c9973f', flat: true })));
+    } else for (const x0 of [-w * 0.22, w * 0.18]) {
       const pts = [];
       for (let j = 0; j <= 10; j++) pts.push(V(x0 + Math.sin(j * 1.3 + x0) * 0.9, (j / 10) * (h + 0.6), 0.45));
       stems.push(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.16, 5));
       for (let j = 0; j < 18; j++) { const p = pts[Math.floor(j / 18 * 10)]; leaves.push(T(new THREE.SphereGeometry(1, 7, 4).scale(0.5, 0.28, 0.1), [p.x + ((j % 2) * 2 - 1) * 0.45, p.y + (j % 3) * 0.3, 0.5], [0, 0, j * 0.9])); }
       for (let j = 2; j < 10; j += 3) flowers.push(T(new THREE.SphereGeometry(0.22, 8, 6), [pts[j].x + 0.4, pts[j].y, 0.6]));
     }
-    this.vine.add(mesh(stems, own({ color: '#4f8a5a', flat: true })), mesh(leaves, own({ color: '#7fcf72', flat: true })), mesh(flowers, own({ color: '#f2a7b8', glow: 0.25, flat: true })));
+    if (!o.rungs) this.vine.add(mesh(stems, own({ color: '#4f8a5a', flat: true })), mesh(leaves, own({ color: '#7fcf72', flat: true })), mesh(flowers, own({ color: '#f2a7b8', glow: 0.25, flat: true })));
     this.group.add(this.vine);
     noCollide(this.group);
     this.k = this.grown ? 1 : 0;
@@ -1807,8 +1838,9 @@ export class Glass {
   apply() { const k = ease(this.k); this.vine.scale.set(1, Math.max(0.001, k), 1); this.vine.visible = k > 0.002; }
   update(dt) {
     const g = this.grown;
-    if (g && this.k < 1) { this.k = Math.min(1, this.k + dt / 2.4); this.apply(); }
+    if (g && this.k < 1) { this.k = Math.min(1, this.k + dt / (this.o.rungs ? 0.8 : 2.4)); this.apply(); }
     if (g) return;
+    if (this.o.rungs && this.k > 0) { this.k = Math.max(0, this.k - dt / 0.6); this.apply(); }   // (the rungs slide back in)
     // too smooth to hold: you slip off it
     const P = this.rt.player;
     if (!P?.climbing) return;
@@ -1828,6 +1860,8 @@ export const NOTES = {
   low: { degree: 0, color: '#f2b14e', name: 'low' },
   mid: { degree: 2, color: '#62c3c9', name: 'middle' },
   high: { degree: 4, color: '#e58aa0', name: 'high' },
+  // the whales' note (the Underwater City's Whale-House): the whale-horn sounds it (src/items.js 'horn', src/boxes/effects.js)
+  deep: { degree: -3, color: '#6f8fd8', name: 'deep' },
 };
 
 /**

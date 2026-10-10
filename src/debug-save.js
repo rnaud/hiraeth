@@ -33,6 +33,9 @@
 
 import { ORDER, TITLES, partsOf } from './levels/names.js';
 import * as glassdunes from './story/glassdunes-people.js';
+import * as underwater from './story/underwater-people.js';
+import * as moonfoundry from './story/moonfoundry-people.js';
+import * as spacecity from './story/spacecity-people.js';
 import { PLACEMENTS } from './boxes/placements.js';
 import { ITEMS } from './items.js';
 import { MIGRATED } from './save-migrate.js';
@@ -64,6 +67,9 @@ import * as tGarage from './temples/garage-data.js';
 import * as tBuried from './temples/buried-data.js';
 import * as tSpheres from './temples/spheres-data.js';
 import * as tBazaar from './temples/bazaar-data.js';
+import * as tUnderwater from './temples/underwater-data.js';
+import * as tMoonfoundry from './temples/moonfoundry-data.js';
+import * as tSpacecity from './temples/spacecity-data.js';
 
 /** The URL parameter the worlds list adds (?level=<id>&debugsave=1): src/boot.js seeds the save, then drops it. */
 export const DEBUG_PARAM = 'debugsave';
@@ -75,6 +81,8 @@ export const WORLDS = {
   desert: [desert, tDesert], arzach: [arzach, tArzach], arzach2: [arzach2, tArzach2], perdide: [perdide, tPerdide],
   perdide2: [perdide2, tPerdide2], edena: [edena, tEdena], incal: [incal, tIncal], glassdunes: [glassdunes, tGarage],
   garage: [garage, {}], buried: [buried, tBuried], spheres: [spheres, tSpheres], bazaar: [bazaar, tBazaar],
+  // (the three worlds that joined the route in v1.40: their people's files and their temples' words)
+  underwater: [underwater, tUnderwater], moonfoundry: [moonfoundry, tMoonfoundry], spacecity: [spacecity, tSpacecity],
 };
 
 /** What the end of a world's main quest sets in code (its onDone in src/story/<world>.js), beyond world.<id>.done and its keepsake. */

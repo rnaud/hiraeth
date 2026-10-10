@@ -212,6 +212,59 @@ export const BOSS_HINTS = {
         'Be close when it cries, then play the shell back ({key:whistle}) close to its dish while it listens.'],
     ],
   },
+  // the Casting-House: the Last Founder (a machine, stopped)
+  moonfoundry: {
+    phases: [
+      ['Its crucible doors open after it pours.',
+        'When the doors swing open, splash the molten heart inside.',
+        'Wait out its ladle and its pour; when its chest opens, splash the glowing heart with water.'],
+      ['The iron moon by the west wall fits its cradle.',
+        'Roll the iron moon into the casting cradle: with a whole moon there, a splash counts twice.',
+        'Push the iron moon along its rail into the cradle (the tongs), then splash its heart when it opens.'],
+      ['It tipped the moon out. Its heart is too hot now.',
+        'Roll the moon back into the cradle. Only then does the water take.',
+        'Push the iron moon back into the casting cradle, then splash the heart while it stops to look.'],
+    ],
+    // (from its second phase, the moon out of the cradle: the moon)
+    at: (g, i) => (i >= 1 && !g.rt.founderCradled?.() ? g.rt.piece?.('mA')?.center ?? null : g.model.vent?.(0, V()) ?? null),
+  },
+  // the Mooring-House: the Anchor-Warden (a machine, stopped)
+  spacecity: {
+    phases: [
+      ['Its drum stalls after it throws its anchor.',
+        'When its cable runs slack, pull the anchor home with the tether.',
+        'Switch to the tether ({key:mode}), go near the anchor lying on the floor, and pull it while the drum is stalled.'],
+      ['Its anchors hook over the bollards now.',
+        'Pull the hooked anchor free and home while it hauls and stalls.',
+        'Wait for it to stall, stand by the bollard with the anchor on it, and pull with the tether.'],
+      ['Its anchor hangs out over the void.',
+        'Too far for the tether: push its bars to wind it in, then pull.',
+        'While it stalls, push the Warden twice, then tether the anchor home from the rim.'],
+    ],
+    // (an anchor out: the anchor; else its pawl)
+    at: (g) => (g.rt.anchor?.out ? g.rt.anchor.at.clone() : g.model.drumAt?.(V()) ?? null),
+  },
+  // the Whale-House: the Listener (a living guardian, calmed)
+  underwater: {
+    phases: [
+      ['Its great ear opens after it strikes.',
+        'When it stops and spreads its ear, sound the whale-horn close to it.',
+        'Wait out its fins and its slam; when the lips of its ear spread wide, stand near and sound the horn ({key:whistle}).'],
+      ['It shuts its ear to anything close now.',
+        'Roll a stone onto a dish’s footstone, then sound the horn into that dish while it listens.',
+        'Push a stone onto the footstone by the wall, then stand at its dish and sound the horn ({key:whistle}) as it listens.'],
+      ['It knocked the stones off the footstones.',
+        'Roll a stone back onto a footstone, and sound the horn into its dish while the ear is open.',
+        'Push a stone back onto a footstone, then sound the horn ({key:whistle}) into its dish when the ear spreads.'],
+    ],
+    // (its first phase: its ear; then a stone off its footstone, or the dish a stone wakes)
+    at: (g, i) => {
+      if (i < 1) return g.model.mouth.clone();
+      const home = ['W', 'E'].find((s) => g.rt.logic?.drumOn?.(`b${s}`, `p${s}`));
+      if (home) return g.rt.piece?.(`dish${home}`)?.ends?.[0]?.mouth?.clone() ?? null;
+      return g.rt.piece?.('bW')?.center ?? null;
+    },
+  },
 };
 
 /**

@@ -27,6 +27,8 @@ import { hintsFor } from '../hint-level.js';
 //   shell    every few seconds, unopened boxes within 45 m answer softly, as if to the bell (game event 'bell' { soft })
 //   echo     the echo shell (src/echo-shell.js) keeps the last makers' note sung near you; V (Y / △) plays it back
 //            with the bell (ring())
+//   horn     the whale-horn (the Underwater City's Whale-House) sounds the whales' deep note on the same button: a game
+//            'echo' { note: 'deep' } the makers' ears tuned to it answer
 //   level    the brass level: where down has turned (the Hangar's quarter and ring), a little level at the screen's
 //            edge shows how the floor lies under the view
 //   bloom    (the gun mode) where a bloom glob lands on the world, a few flowers come up (the seed pouch's pool)
@@ -38,6 +40,8 @@ export const LANTERN_AT = new THREE.Vector3(0.225, 0.37, -0.3);   // the lantern
 /** The makers' star pinned to the coral lapel (chest-anchor frame). */
 export const TRAVELLER_STAR = { at: new THREE.Vector3(-0.125, 0.61, 0.18), tilt: -0.12, scale: 0.55 };
 /** The same on the game's traveller (TravellerV1: no outfit flag; its chest anchor sits lower): measured on its overshirt's left lapel. */
+/** The whale-horn's note (src/temples/pieces.js NOTES.deep: the whales' own). */
+export const HORN = { degree: -3, color: '#6f8fd8' };
 export const LAPEL_STAR = { at: new THREE.Vector3(-0.075, 0.62, 0.12), tilt: -0.12, scale: 0.55 };
 
 export function createItemEffects({ player, tool = null, level = null, sound = null, camera = null, isNight = () => false, game: g = sharedGame, keys = typeof window !== 'undefined' ? window : null, toast = () => {} }) {
@@ -90,7 +94,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     (hooded ? H.headAnchor : H.chestAnchor).add(star);
   }
   // ---- the bell (and the listening shell's soft hum); the echo shell plays back on the same button
-  let bellT = 0, shellT = 3;
+  let bellT = 0, shellT = 3, hornT = 0;
   const echo = createEchoShell({ player, game: g, items, sound, toast });
   const ring = () => {
     let rang = false;
@@ -100,8 +104,15 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       g.emit('bell', { pos: player.pos.clone() });
       rang = true;
     }
+    // the whale-horn (the Underwater City's Whale-House): its one deep note, a game 'echo' the makers' ears that listen
+    // for it answer (src/temples/pieces.js EchoEar, note 'deep'); a breath after the bell, a breath before the shell
+    if (items.has('horn') && hornT <= 0 && player && !player.hidden) {
+      const blow = () => { hornT = 1.2; sound?.orbNote?.(HORN.degree, player.pos, { size: 1.4 }); g.emit('echo', { pos: player.pos.clone(), note: 'deep', degree: HORN.degree, color: HORN.color, horn: true }); };
+      if (rang) { hornT = 1.2; setTimeout(blow, 450); } else blow();
+      rang = true;
+    }
     // (the shell answers a breath after the bell, so the two notes can be told apart)
-    if (items.has('echo')) { if (rang) setTimeout(() => echo.play(), 450); else rang = echo.play(); }
+    if (items.has('echo')) { if (rang) setTimeout(() => echo.play(), items.has('horn') ? 900 : 450); else rang = echo.play(); }
     return rang;
   };
   const onKey = (e) => { if (e.code === 'KeyV' && !e.repeat && !(globalThis.document?.activeElement?.tagName === 'INPUT')) ring(); };
@@ -111,6 +122,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
     // (the box's card has just said how: these say it again, hints full only: src/hint-level.js)
     if (owned && id === 'bell' && hintsFor('tip')) setTimeout(() => toast('The bell-note whistle: sound it with {key:whistle}.'), 1800);
     if (owned && id === 'echo' && hintsFor('tip')) setTimeout(() => toast('The echo shell: let something sing near it, then play it back with {key:whistle}.'), 1800);
+    if (owned && id === 'horn' && hintsFor('tip')) setTimeout(() => toast('The whale-horn: sound its deep note with {key:whistle}.'), 1800);
   });
   // ---- a bloom glob on the world: a few flowers come up where it landed (the pouch's pool)
   const offBloom = g.on?.('tool:bloom', ({ point } = {}) => {
@@ -208,7 +220,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       updateBlooms(dt, t);
       echo.update(dt);
       updateLevel();
-      bellT = Math.max(0, bellT - dt);
+      bellT = Math.max(0, bellT - dt); hornT = Math.max(0, hornT - dt);
       // the listening shell: what the makers hid nearby hums back now and then, softly
       if (items.has('shell') && player && !player.hidden && (shellT -= dt) <= 0) { shellT = 7; g.emit('bell', { pos: player.pos.clone(), reach: 45, soft: true }); }
       applyTank();   // (cheap; the tool may rebuild its reserve)
@@ -230,7 +242,7 @@ export function createItemEffects({ player, tool = null, level = null, sound = n
       if (night && player && !player.hidden) light.set(player.pos.x, player.pos.y + (hasLantern ? 1.2 : 0.6), player.pos.z, hasLantern ? 7.5 + Math.sin(t * 7) * 0.3 : 4.2 + Math.sin(t * 1.3) * 0.2);
       else light.set(0, -1e5, 0, 0);
       if (star) { star.visible = items.has('star'); if (star.visible) placeStar(); }
-      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = items.has('scarf') ? 0.6 : 1; }
+      if (player) { player.climbK = items.has('resin') ? 0.5 : 1; player.fallGuard = items.has('soles') ? 1.3 : 1; player.hush = items.has('hush'); player.breathK = items.has('reed') ? 2 : 1; player.sinkK = items.has('scarf') ? 0.6 : 1; player.sprintK = items.has('pearl') ? 0.66 : 1; player.restK = items.has('bellows') ? 2 : 1; player.climbSpeedK = items.has('starthread') ? 1.33 : 1; }
     },
     dispose() { off(); offBloom?.(); echo.dispose(); levelEl?.remove?.(); keys?.removeEventListener?.('keydown', onKey); lantern?.grp.removeFromParent(); star?.removeFromParent(); blooms?.mesh.removeFromParent(); },
   };

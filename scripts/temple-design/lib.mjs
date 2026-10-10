@@ -70,7 +70,7 @@ export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', S
 export const MODIFIERS = ['reveal', 'volley', 'timed'];
 const baseOf = (mechs) => mechs.filter((m) => !MODIFIERS.includes(m));
 /** A gadget item's verb, for the reports. */
-export const GADGET_VERB = { fire: 'ember', jetpack: 'jets', glider: 'wings', bell: 'bell', cell: 'fourth unit (volley)', 'magic:4': 'fourth unit (volley)', lens: 'lens (reveal)', lantern: 'lantern (reveal)', stun: 'stilling', coil: 'quick coil (volley)', bloom: 'bloom', echo: 'echo shell' };
+export const GADGET_VERB = { fire: 'ember', jetpack: 'jets', glider: 'wings', bell: 'bell', cell: 'fourth unit (volley)', 'magic:4': 'fourth unit (volley)', lens: 'lens (reveal)', lantern: 'lantern (reveal)', stun: 'stilling', coil: 'quick coil (volley)', bloom: 'bloom', echo: 'echo shell', tongs: 'founders’ tongs (heavy push)', tether: 'tether (pull)', horn: 'whale-horn (deep note)' };
 const itemOf = (needs = []) => needs.find((n) => n !== 'backpack') ?? null;
 
 /**

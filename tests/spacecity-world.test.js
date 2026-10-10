@@ -1,4 +1,4 @@
-// The City Floating in Space, the world (src/levels/space-city.js; docs/systems/worlds.md): registered off the route,
+// The City Floating in Space, the world (src/levels/space-city.js; docs/systems/worlds.md): on the route since v1.40,
 // built without errors, every deck and bridge underfoot and the way through clear, the edges walled, the void below.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -20,19 +20,20 @@ const clearAt = (physics, p, y) => physics.pushCapsule(new THREE.Vector3(p.x, y 
 const line = (a, b, step = 1) => { const A = V(...a), B = V(...b), n = Math.max(1, Math.ceil(A.distanceTo(B) / step)); return Array.from({ length: n + 1 }, (_, i) => A.clone().lerp(B, i / n)); };
 const deckAt = (physics, p, from = 4) => physics.groundAt(p.x + 0.03, p.y + from, p.z + 0.02, from + 3);
 
-test('the City Floating in Space: off the route, on the map from the start, reached by ?level=spacecity', () => {
+test('the City Floating in Space: on the route since v1.40, before the Signal Market, reached by ?level=spacecity', () => {
   const L = LEVELS.find((l) => l.id === 'spacecity');
-  assert.ok(L && L.hidden && !L.dev, 'a world, not on the route');
-  assert.ok(SIDE.includes('spacecity') && !ORDER.includes('spacecity'));
+  assert.ok(L && !L.hidden && !L.dev, 'a world on the route');
+  assert.ok(!SIDE.includes('spacecity') && ORDER.indexOf('spacecity') === ORDER.indexOf('bazaar') - 1, 'right before the Signal Market');
   assert.equal(CONTENT.spacecity, SPACECITY_CONTENT);
-  assert.ok(SPACECITY_CONTENT.story.manual, 'no story to follow: no beacon, never in the way home');
+  assert.ok(SPACECITY_CONTENT.story.manual, 'its page closes when the Mooring-House is resolved (src/story/spacecity.js)');
+  assert.equal(SPACECITY_CONTENT.relics.spots.length, 5, 'five relics, as every route world');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
   const e = entries.find((x) => x.id === 'spacecity');
-  assert.ok(e && e.known && e.side, 'charted, off the dotted line');
+  assert.ok(e && !e.side, 'on the dotted line');
   assert.ok(entries.at(-1).home, 'home still last');
   const named = SPACECITY_CONTENT.npcs.filter((p) => p.id && p.world).map((p) => p.id).sort();
   assert.deepEqual(named, ['kip', 'nima', 'sel'], 'Kip and Madame Sel of the Signal Market, Nima of the City-Shaft');
-  for (const p of SPACECITY_CONTENT.npcs.filter((q) => q.talk)) assert.ok(p.talk.listen?.length >= 3 && !p.talk.nodes, `${p.id}: only words for the city, no errands`);
+  assert.ok(SPACECITY_CONTENT.npcs.some((p) => p.id === 'tamar' && p.talk?.nodes), 'Tamar: the trace, and Sel’s notes’ end');
   for (const p of SPACECITY_CONTENT.npcs) for (const l of p.lines) assert.match(l, /^~[a-z]+~ /, 'every line toned');
   for (const l of CROWD_LINES) assert.match(l, /^~[a-z]+~ /);
   assert.ok(PLANET.size > 15 && PLANET.craters === false, 'a great plain planet over the roofs');

@@ -29,10 +29,13 @@ import { QUESTS as buriedQ } from './buried-data.js';
 import { QUESTS as spheresQ } from './spheres-data.js';
 import { QUESTS as bazaarQ } from './bazaar-data.js';
 import { QUESTS as lanternQ } from './lantern-data.js';
+import { QUESTS as underwaterQ } from './underwater-people.js';
+import { QUESTS as moonfoundryQ } from './moonfoundry-people.js';
+import { QUESTS as spacecityQ } from './spacecity-people.js';
 import { ORDER, partsOf } from '../levels/names.js';
 
 /** Every quest of the route (and the Lantern's), with its stages. */
-const QUEST_DEFS = [desertQ, arzachQ, arzach2Q, perdideQ, perdide2Q, edenaQ, incalQ, garageQ, buriedQ, spheresQ, bazaarQ, lanternQ].flat();
+const QUEST_DEFS = [desertQ, arzachQ, arzach2Q, perdideQ, perdide2Q, edenaQ, incalQ, garageQ, buriedQ, spheresQ, bazaarQ, lanternQ, underwaterQ, moonfoundryQ, spacecityQ].flat();
 export const QUEST_BY_ID = new Map(QUEST_DEFS.map((q) => [q.id, q]));
 
 // ---- conditions (the save's flags only: a quest's stage is its flag quest.<id>, src/story/quests.js)
@@ -366,6 +369,35 @@ export const BOOK = {
       [f('edena.clover.hearts'), 'Once a season a red heart grows in the moss under the umbrella trees. She takes one and leaves the rest, and digs up nothing.'],
     ], ['In her potting house under the umbrella tree.']),
   ],
+  // (the three worlds that joined the route in v1.40; their temples' locals, Anselme, Ilse and Joss, are not listed,
+  // as Wim isn't, and the visitors from other worlds are listed under their own)
+  underwater: [
+    P('bastien', 'Bastien', 'Keeps the lock', [
+      'Bastien keeps the Underwater City’s lock and its Dock, where your ship came down like a stone down a well. Nobody walks outside there: they go hall to hall through the glass tubes.',
+      [f('temple.underwater.done'), 'Since the whales came back, one swims up to the lock some mornings to look in at the ship.'],
+    ], ['At the Dock, by the moon pool.']),
+    P('coralie', 'Coralie', 'Keeps the café', [
+      'Coralie keeps a glass café on the Avenue. Years ago a woman from up top sat at her window all night listening to the whales, and hummed back the one that sang something she knew.',
+    ], [[f('temple.underwater.done'), 'In her café; the cups rattle again when the whales sing close.'], 'In her glass café on the Avenue.']),
+    P('mireille', 'Mireille', 'Grows the glow-kelp', [
+      'Mireille grows the glow-kelp that lights every lamp in the city, in troughs under the Garden dome.',
+      [done('underwater.kelp'), 'You carried her cutting up the lift to Fabre’s window box in the Crown.'],
+    ], ['Among the kelp troughs in the Garden dome.']),
+    P('fabre', 'Fabre', 'Keeps the Crown’s lamps', [
+      'Fabre lights the six lamps round the Crown, at the top of the Plaza’s column, just under the surface he has never been through.',
+      [done('underwater.kelp'), 'Mireille’s glow-kelp grows in his window box now: the first green thing he has owned since he was a boy.'],
+      [done('underwater.lamps'), 'He has lit the lamps every dusk since the whales went away, so they could find the city again. Maelle says it’s a fine thing for a whale to see.'],
+    ], ['In the Crown, up the lift in the Plaza’s column.']),
+    P('maelle', 'Maelle', 'Listens to the whales', [
+      'Maelle listens to the whales from the gallery over the deep. The night the sky rang, a light came down through the sea singing one note; the whales sang it back and went away.',
+      [f('temple.underwater.done'), 'The whales came back to the glass, singing the light’s note first and then their own.'],
+      [f('clue.underwater.incal'), 'The old ones in the pod say the light went up, on to a city built down a well.'],
+    ], ['In the Whale Gallery, down the slope east of the Plaza.']),
+    P('odette', 'Odette', 'Keeps the Air-Shop', [
+      'Odette dived for forty years, and keeps the Air-Shop under the Avenue’s dome now, selling what the divers carried.',
+      [f('underwater.perrine.helmet'), 'The diving helmet over her door was her mother’s, who walked the sea floor carrying glass before the domes reached so far.'],
+    ], ['At the Air-Shop under the Avenue’s dome.']),
+  ],
   incal: [
     P('nima', 'Nima', 'Sweeps the high terrace', [
       'Nima has swept the high terrace’s steps for forty years, and before she starts she looks up at the Lodestar. It dimmed a little every year as people stopped looking up.',
@@ -493,6 +525,20 @@ export const BOOK = {
       [f('buried.mott.teeth'), 'She dates every sale by the great wheel’s tooth, as her mother and grandmother did. This is tooth nine hundred and twelve.'],
     ], ['At the Tooth-Counter, her dome among the domes.']),
   ],
+  moonfoundry: [
+    P('bertil', 'Bertil', 'Pours at the last furnace', [
+      'Bertil keeps the Moon Foundry’s last furnace warm. Years back he cast a plate for a lone woman’s ship, with the mark she drew for him in soot: “So they’ll know me.”',
+      [done('moonfoundry.hook'), 'Ottilie mended his ladle-hook and you carried it to him. He says the ladle pours a little kinder.'],
+    ], ['At the last furnace on the foundry floor.']),
+    P('ottilie', 'Ottilie', 'Mends in the quarter', [
+      'Ottilie mends kettles, hinges and hooks in a workshop that was a polishing drum, in the workers’ quarter.',
+      [f('temple.moonfoundry.done'), 'The floor doesn’t shake at night any more; she slept straight through.'],
+    ], ['In her workshop in the workers’ quarter.']),
+    P('gunnar', 'Gunnar', 'Keeps the Crucible', [
+      'Gunnar keeps a shop in an old crucible the founders poured small moons out of, and sells cures poured once and cooled slow.',
+      [f('moonfoundry.gunnar.crucible'), 'The founders tried their light in little moons first. Mostly it didn’t hold; he made a floor of the cracked ones.'],
+    ], ['At the Crucible on the foundry floor.']),
+  ],
   spheres: [
     P('aube.spheres', 'Linnet', 'Listens to the spheres', [
       'Linnet listens to the spheres: each holds the last sound it heard before it fell from the sky.',
@@ -519,6 +565,17 @@ export const BOOK = {
       'Hale keeps the Listening Stall, a round white pavilion by the cypress avenue. He listens to every ware before he sells it.',
       [f('spheres.hale.listen'), 'He strikes a tuning fork and holds the flask to it: a good cure hums back the same note, and one that hums flat is poured away.'],
     ], ['At the Listening Stall by the cypress avenue.']),
+  ],
+  spacecity: [
+    P('tamar', 'Tamar', 'Minds the cables', [
+      'Tamar minds the cables under the Towers; her grandmother hung the first. Long ago a ship with no name hailed the city with a sung note, and the night the sky rang the same note passed again, going somewhere.',
+      [done('spacecity.notes'), 'Madame Sel’s notes on the planet’s hum and Tamar’s cables wrote the same line.'],
+      [f('temple.spacecity.done'), 'The cables are taut again, and the islands have stopped drifting.'],
+    ], ['Under her cables on the Towers island.']),
+    P('amaro', 'Amaro', 'Keeps the Oil-Lamp Shop', [
+      'Amaro sells lamp oil, which in the floating city is also money, so he is the bank as well; the cures are a sideline.',
+      [f('spacecity.amaro.oil'), 'Out there the dark is the one thing there’s plenty of; light is what is worth something. And coins roll off the islands.'],
+    ], ['At the Oil-Lamp Shop by the Market plaza.']),
   ],
   bazaar: [
     P('sel', 'Madame Sel', 'Kept the broadcast tower', [
@@ -640,8 +697,10 @@ export const KEEPSAKE_FROM = {
 
 /** Each errand (ERRANDS in src/levels/content.js names them by their world's npc index) as [giver, receiver]. */
 export const ERRAND_PEOPLE = {
-  sand: ['pell', 'senn'], feather: ['hollin', 'aube'], crystal: ['ivo.perdide', 'bram'], gear: ['pim.perdide2', 'mira'], seed: ['lio.edena', 'nima'],
-  token: ['lio', 'aster'], handbell: ['calix', 'wendel'], grease: ['corin', 'tull'], pipewhistle: ['ossa.buried', 'aube.spheres'], mirror: ['nell', 'oyo'],
+  sand: ['pell', 'senn'], feather: ['hollin', 'aube'], crystal: ['ivo.perdide', 'bram'], gear: ['pim.perdide2', 'mira'], seed: ['lio.edena', 'mireille'],
+  token: ['lio', 'aster'], handbell: ['calix', 'wendel'], grease: ['corin', 'tull'], pipewhistle: ['ossa.buried', 'bertil'], mirror: ['nell', 'tamar'],
+  // (v1.40: the errands into and out of the three worlds that joined the route)
+  kelpjar: ['bastien', 'nima'], castbell: ['ottilie', 'aube.spheres'], lampoil: ['liane', 'oyo'],
 };
 
 /** The choices the stone remembers, and a smaller one, as the person would remember them (the first that holds). */

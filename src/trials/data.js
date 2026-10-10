@@ -100,6 +100,31 @@ export const TRIALS = {
     gates: [[40, -40, 4], [60, -100, 4], [0, -120, 4], [-50, -100, 4], [-90, -80, 4], [-165, -25, 4], [-110, 30, 4], [-90, 70, 4], [-20, 80, 4], [30, 70, 4], [20, 20, 4], [10, -2, 5]],
     reward: 'longsand',
   },
+  // (the three worlds that joined the route in v1.40)
+  underwater: {
+    id: 'trial-underwater', world: 'underwater', mode: 'foot', name: 'Tube run', color: '#6fc8d8',
+    blurb: 'Rings of light hung in the city’s halls, from the Dock through the tubes to the Garden and the Plaza.',
+    rules: 'Run through every ring in order, hall to hall through the glass tubes. Jump, climb, anything goes: just don’t miss one.',
+    marker: [8, 0, 116], start: [4, 0, 112], heading: 3.1, speed: 6,
+    gates: [[0, 2.7, 98, 3], [0, 2.7, 40, 3], [-34, 2.7, 22, 3], [-88, 2.7, 22, 3], [-10, 2.7, 22, 3], [0, 2.7, -14, 3], [0, 2.7, -78, 3], [20, 2.7, -100, 3.5]],
+    reward: 'divercap',
+  },
+  moonfoundry: {
+    id: 'trial-moonfoundry', world: 'moonfoundry', mode: 'foot', name: 'Floor round', color: '#e89a5a',
+    blurb: 'A round of the foundry floor on foot, under the hung moons and past the last furnace.',
+    rules: 'Run through every gate in order, round the floor and back to the mouth. Climb, jump, boost: anything goes.',
+    marker: [-10, 30], start: [-6, null, 24], heading: 3.1, speed: 6, ground: true, up: 1.3,
+    gates: [[20, -10, 4], [36, -70, 4], [30, -128, 4], [84, -140, 4], [120, -80, 4], [120, -20, 4], [80, 12, 4], [30, 12, 4], [0, 30, 5]],
+    reward: 'founderspin',
+  },
+  spacecity: {
+    id: 'trial-spacecity', world: 'spacecity', mode: 'foot', name: 'Courier’s round', color: '#f0c06a',
+    blurb: 'Kip’s round of the bridges: the Pier, the Gate, the Market, out to the Towers and the Garden and back.',
+    rules: 'Run through every ring in order, island to island over the bridges. Don’t fall off: the dark is a long way down.',
+    marker: [6, 106], start: [2, null, 102], heading: 3.1, speed: 6, ground: true, up: 1.3,
+    gates: [[0, 80, 3], [0, 34, 3], [0, -10, 3], [0, -44, 3], [24, -74, 3], [56, -77, 3], [24, -74, 3], [-24, -66, 3], [-58, -63, 3], [-24, -66, 3], [0, -76, 3], [0, -104, 3], [0, -136, 3.5]],
+    reward: 'courierribbon',
+  },
   bazaar: {
     id: 'trial-bazaar', world: 'bazaar', mode: 'jets', name: 'Avenue run', color: '#ff5fa2',
     blurb: 'Rings of light down the market’s avenue, between the towers and over the skybridges.',

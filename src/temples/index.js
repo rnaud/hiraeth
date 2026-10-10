@@ -26,6 +26,12 @@ import { EDENA_TEMPLE } from './edena.js';
 import * as EDENA_WORDS from './edena-data.js';
 import { BAZAAR_TEMPLE } from './bazaar.js';
 import * as BAZAAR_WORDS from './bazaar-data.js';
+import { SPACECITY_TEMPLE } from './spacecity.js';
+import * as SPACECITY_WORDS from './spacecity-data.js';
+import { MOONFOUNDRY_TEMPLE } from './moonfoundry.js';
+import * as MOONFOUNDRY_WORDS from './moonfoundry-data.js';
+import { UNDERWATER_TEMPLE } from './underwater.js';
+import * as UNDERWATER_WORDS from './underwater-data.js';
 import { runSteps } from '../load-steps.js';
 import { attachCourt } from '../finds/courts.js';
 import { partOf } from '../levels/names.js';
@@ -65,6 +71,9 @@ export const TEMPLES = {
   garage: { def: GARAGE_TEMPLE, words: GARAGE_WORDS },
   edena: { def: EDENA_TEMPLE, words: EDENA_WORDS },
   bazaar: { def: BAZAAR_TEMPLE, words: BAZAAR_WORDS },
+  spacecity: { def: SPACECITY_TEMPLE, words: SPACECITY_WORDS },
+  moonfoundry: { def: MOONFOUNDRY_TEMPLE, words: MOONFOUNDRY_WORDS },
+  underwater: { def: UNDERWATER_TEMPLE, words: UNDERWATER_WORDS },
 };
 
 /** Where a temple stands now, if not in its own world (or the world it became part of). */
@@ -93,6 +102,9 @@ export const GADGETS = {
   perdide: { temple: 'stun', world: ['reed'], built: true },          // the stilling mode moved inside from the mossy rise; the breathing reed is there now
   perdide2: { temple: 'lantern', world: ['moss'], built: true },      // the lantern moved here from Viridel; the glow-moss pin on the root arch
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
+  spacecity: { temple: 'tether', world: ['starthread'], built: true }, // the Mooring-House: tether mode inside; the star-thread on a roof in the Towers
+  moonfoundry: { temple: 'tongs', world: ['bellows'], built: true },  // the Casting-House: the founders' tongs inside; the pocket bellows on top of the cradled moon
+  underwater: { temple: 'horn', world: ['pearl'], built: true },      // the Whale-House: the whale-horn inside; the diver's pearl on the top deck of the Avenue's tower of pods
 };
 
 /** Build a temple (by its id: the world it was made for) into a level and join it to the level's hooks. */

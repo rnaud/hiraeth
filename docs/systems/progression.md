@@ -2,18 +2,20 @@
 
 ## The route (`src/levels/names.js`, `src/story/route.js`)
 
-`ORDER` is the route: the desert, Vael, Lorn, Viridel, the City-Shaft, the Glass
-Dunes, the Buried Machine, the Garden of Spheres, the Signal Market (nine places
-since October 2026: Vael II and Lorn II are parts of Vael and Lorn, the Sealed
-Hangar and the Atelier are dismissed; docs/systems/worlds.md, "Merged and dismissed
-worlds"). The desert is always known, then the next two unfinished worlds
+`ORDER` is the route: the desert, Vael, Lorn, Viridel, the Underwater City, the
+City-Shaft, the Glass Dunes, the Buried Machine, the Moon Foundry, the Garden of
+Spheres, the City Floating in Space, the Signal Market (twelve places since v1.40:
+Vael II and Lorn II are parts of Vael and Lorn, the Sealed Hangar and the Atelier
+are dismissed, docs/systems/worlds.md "Merged and dismissed worlds"; three
+detours joined, "Three detours on the route"). The desert is always known, then the next two unfinished worlds
 (`AHEAD`). `AFTER` can hold a world back, uncounted, until another is done (empty
 now: Vael II waited for Vael's bird until it became part of Vael).
 
 - **The wings first.** Vael is the second world. Its Aerie holds the fluid wings,
   and its main quest rides the wind up the lone tower on them.
-- **The City-Shaft's own jets in the later half.** The City-Shaft is fifth, and it is charted only once three
-  worlds are done. Its Warden's Well holds the Warden's harness (`harness`, v1.38): the jets, firing in the City-Shaft
+- **The City-Shaft's own jets in the later half.** The City-Shaft is sixth (the seventh of fourteen places), and it is
+  charted only once four worlds are done. None of the three worlds promoted in v1.40 wants the jets: the Underwater City
+  before it is walked under glass, the Moon Foundry and the floating city after it on foot and on the wings. Its Warden's Well holds the Warden's harness (`harness`, v1.38): the jets, firing in the City-Shaft
   only (`HARNESS_WORLD` in src/items.js; player.js `jetsOwned`, fluid-tool.js `canJet`). The jets anywhere
   (`jetpack`) were too strong for the worlds as they are drawn (the author, 2026-10-10): a debug item, given only by
   the world debug menu's toggle (L3 + R3, F2) and the dev menu; no box, shop or quest holds it, and there is no

@@ -217,6 +217,43 @@ export const SCORES = {
     // "you are not alone": a call up to the raised fourth, and an answer coming home
     motif: [[0, 0.5], [2, 0.5], [4, 1], [3, 0.5], [4, 0.5], [6, 2], [null, 1], [5, 0.5], [4, 0.5], [2, 1], [1, 0.5], [2, 0.5], [0, 3]],
   },
+  // The three worlds that joined the route in v1.40.
+  // The city under glass: a hum through the glass, an air-drone, a choir of the deep, vibes like drops on the dome, a
+  // clarinet that dips like a whale's song; a slow six, D dorian under the water.
+  underwater: {
+    title: 'The Song Through the Glass', root: 146.83, mode: 'dorian', level: 1.1, tempo: 58, meter: 6, bars: 2, chordBars: 2,
+    prog: [0, 3, 0, 4], drone: [[0, -1], [4, -2]],
+    pal: { drone: 'air', pad: 'choir', bass: 'sine', pluck: 'vibes', lead: 'clarinet', father: 'glass', echo: 'vibes' },
+    perc: { sub: 1, pattern: 'd.....s.....', hits: { d: 'drop', s: 'shaker' } },
+    arp: [0, 2, 4, 7], density: 0.25,
+    color: { every: 28, at: 9, kind: 'cry', degree: 0, octave: -1, vol: 0.5, chance: 0.7 },
+    // "the song through the glass": a long fall down to the low tonic, and the rise out of it, as a whale sings
+    motif: [[4, 1.5], [3, 0.5], [1, 1], [0, 2], [null, 1], [-1, 1], [0, 1], [2, 1], [4, 3]],
+  },
+  // The workshop of moons: bassoon and brass under the roof, an anvil struck where the moulds go down, a muted lead;
+  // E phrygian, heavy and patient.
+  moonfoundry: {
+    title: 'The Moon Nobody Came For', root: 164.81, mode: 'aeolian', level: 0.9, tempo: 64, meter: 4, bars: 4, chordBars: 2,
+    prog: [0, 5, 3, 4], drone: [[0, -1]],
+    pal: { drone: 'bassoon', pad: 'brass', bass: 'pizz', pluck: 'anvil', lead: 'muted', father: 'bowl', echo: 'anvil' },
+    perc: { sub: 2, pattern: 'K.......t.....t.', hits: { K: 'clank', t: 'tink' } },
+    arp: [0, 2, 4, 7], density: 0.22,
+    color: { every: 32, at: 6, kind: 'toll', degree: 0, octave: -1, vol: 0.55 },
+    // "thirty-two moons": a phrase that rises by fourths like a ladle lifted, and is set down unfinished
+    motif: [[0, 1.5], [3, 1], [6, 1.5], [5, 1], [3, 1], [null, 1], [4, 1], [2, 1], [3, 3]],
+  },
+  // The city of islands in the dark: an air drone over strings, a celesta like lamps along a cable, a flute calling
+  // across a gap, the moorers' handbell; G lydian, open and a little weightless.
+  spacecity: {
+    title: 'The Note That Passed', root: 196.0, mode: 'lydian', level: 1.15, tempo: 70, meter: 3, bars: 4, chordBars: 2,
+    prog: [0, 1, 0, 4], drone: [[0, -1]],
+    pal: { drone: 'air', pad: 'strings', bass: 'sine', pluck: 'celesta', lead: 'flute', father: 'handbell', echo: 'celesta' },
+    perc: null,
+    arp: [0, 3, 4, 6], density: 0.3,
+    color: { every: 24, at: 4, kind: 'shimmer', degree: 3, octave: 1, vol: 0.4, chance: 0.7 },
+    // "the note that passed": one high note held, then a line falling past it, going somewhere
+    motif: [[7, 3], [null, 0.5], [6, 0.5], [4, 0.5], [3, 1], [1, 1], [0, 2], [3, 3]],
+  },
   // The paper world and the artist at his table: a felt piano, a music box, soft strings,
   // a pencil on paper. C major.
   atelier: {

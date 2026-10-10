@@ -29,6 +29,8 @@ export const WORLDS = {
   perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
   perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1 }, placed: ['brute'] },
   edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
+  // (v1.40: the Underwater City between Viridel and the City-Shaft: crabs and jellies in the halls, a lamp tripod or two)
+  underwater: { stage: 2, budget: [3, 4], lead: 'crab', roster: { crab: 4, ray: 2.5, jelly: 3, tripod: 2 } },
   incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 1, lizard: 3.5, toad: 2.5, shade: 2.5 }, temple: ['machine', 'drone'] },
   // (the Sealed Hangar, dismissed in October 2026: its table kept with its skins, src/levels/dismissed/)
   garage: { stage: 2, budget: [4, 5], lead: 'drone', roster: { drone: 4, cart: 3.5, crab: 2.5, roller: 2, ray: 1, shade: 2.5 }, temple: ['machine', 'drone'] },
@@ -36,19 +38,20 @@ export const WORLDS = {
   // and nomads, and the Clock-House's drones, which came with the house; its rooms the makers' machines and drones)
   glassdunes: { stage: 2, budget: [4, 5], lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, drone: 2, shade: 1 }, temple: ['machine', 'drone'] },
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
+  // (v1.40: the Moon Foundry after the Buried Machine: the old carts and the walkers of the casting floor, skitters in the rails)
+  moonfoundry: { stage: 3, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2.5, brute: 2 }, temple: ['machine', 'drone'] },
   spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
+  // (v1.40: the City Floating in Space before the Signal Market: drones off the cables, moths round the lamps, rollers on the bridges)
+  spacecity: { stage: 3, budget: [4, 6], lead: 'drone', roster: { drone: 4, moth: 3, roller: 3 }, temple: ['machine', 'drone'] },
   bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5 }, late: ['marionette'] },
   // the side worlds (all still being made; their tables are set as each world is vetted)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   waterfall: { stage: 2, lead: 'toad', roster: { toad: 4, centipede: 2, brute: 2, rootknot: 2 } },
   saltharbour: { stage: 2, lead: 'crab', roster: { crab: 4, roller: 3, bell: 2, marionette: 1 } },
   antennas: { stage: 2, lead: 'moth', roster: { moth: 4, drone: 3, crab: 2, centipede: 2 } },
-  underwater: { stage: 2, lead: 'crab', roster: { crab: 4, ray: 3, tripod: 2, jelly: 2 } },
   eclipse: { stage: 2, lead: 'hound', roster: { hound: 4, lizard: 3, centipede: 2, shade: 2 } },
   fallenring: { stage: 2, lead: 'centipede', roster: { centipede: 4, jelly: 3, tripod: 2, drone: 2 } },
-  moonfoundry: { stage: 2, lead: 'cart', roster: { cart: 4, skitter: 3, lizard: 2, brute: 2 } },
   underside: { stage: 2, lead: 'marionette', roster: { marionette: 3, bell: 2, ray: 3, skitter: 2 } },
-  spacecity: { stage: 2, lead: 'drone', roster: { drone: 4, moth: 3, roller: 2 } },
 };
 
 /**

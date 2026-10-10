@@ -48,8 +48,10 @@ test('a gadget a world, in the makers’ courts, each in a box', () => {
     assert.ok(ROUTE_PARTS.includes(w), `${w}: on the route`);
     assert.ok(PLACEMENTS[w].some((p) => p.item === c.gadget && p.gadget && p.hint), `${w}: its box holds the ${c.gadget}, with a hint`);
   }
-  // spread along the route: no more than one gadget a place, and every place after the desert has one
-  assert.deepEqual(Object.keys(COURTS).sort(), ROUTE_PARTS.filter((w) => w !== 'desert').sort());
+  // spread along the route: no more than one gadget a place, and every place after the desert has one but the three
+  // worlds promoted in v1.40 (their temples bring new tools: the whale-horn, the founders' tongs, the tether)
+  const NO_COURT = ['underwater', 'moonfoundry', 'spacecity'];
+  assert.deepEqual(Object.keys(COURTS).sort(), ROUTE_PARTS.filter((w) => w !== 'desert' && !NO_COURT.includes(w)).sort());
 });
 
 test('gates: passed when the path goes through them, in order, the last the line', () => {

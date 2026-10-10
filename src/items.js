@@ -76,6 +76,24 @@ export const ITEMS = {
     text: "A green glass seed for the glove, with a tiny root curled inside. The makers grew their doorways as well as their gardens.",
     use: 'Switch modes with {key:mode}. A bloom burst tells the makers’ plants to grow: seeds sprout, budded doorways open, vines climb glass and bridge a gap. Anywhere else, a few flowers come up where it lands.',
   },
+  // the Moon Foundry's Casting-House (src/temples/moonfoundry.js): the push takes hold of the founders' iron moons
+  tongs: {
+    name: 'Founders’ tongs', kind: 'upgrade', needs: 'gun',
+    text: "A pair of black iron tongs shrunk to fit the glove’s cuff, their jaws worn bright. The founders rolled their moons with them.",
+    use: 'Your push takes hold of iron: the cast moons of the Moon Foundry, too heavy for a plain push, roll for it.',
+  },
+  // the City Floating in Space's Mooring-House (src/temples/spacecity.js): a gun mode that pulls
+  tether: {
+    name: 'Tether mode', kind: 'mode', needs: 'gun',
+    text: "A coil of pale cord that lives in the glove’s fluid and comes out of the nozzle as a line. The city’s moorers threw them to bring the drifting islands home.",
+    use: 'Switch modes with {key:mode}. A tether pulls toward you instead of pushing away: stone balls, the moorers’ rings, loose things.',
+  },
+  // the Underwater City's Whale-House (src/temples/underwater.js): the whales' deep note
+  horn: {
+    name: 'Whale-horn', kind: 'charm',
+    text: "A curled horn of grey shell, longer than your hand. Blown, it sounds one deep note, the one the whales sing outside the glass.",
+    use: 'Sound it with {key:whistle}: the deep note carries. The makers’ ears that listen for it answer, and the whales do.',
+  },
   // ---- special items, found in boxes across the worlds (src/boxes/placements.js; effects in src/boxes/effects.js)
   cell: {
     name: 'Fourth chamber', kind: 'upgrade', needs: 'backpack',
@@ -152,6 +170,22 @@ export const ITEMS = {
     text: "A brass spirit level bearing the Major’s initials. In the Hangar, even the bubble needs help finding down.",
     use: 'Where down is not where it was (the Hangar’s upside-down quarter and its ring), a small level in the corner of your eye shows how the floor lies.',
   },
+  // the three worlds that joined the route in v1.40: one gift each in the open (src/temples/index.js GADGETS)
+  pearl: {
+    name: 'Diver’s pearl', kind: 'charm',
+    text: "A grey pearl on a cord, cold to the touch. The divers of the drowned city wore them on the long walk through the tubes.",
+    use: 'Running tires you a third less.',
+  },
+  bellows: {
+    name: 'Pocket bellows', kind: 'charm',
+    text: "A bellows no bigger than a purse, its leather cracked and soft. The founders kept one at the belt to blow on their hands.",
+    use: 'Your stamina comes back twice as fast when you rest.',
+  },
+  starthread: {
+    name: 'Star-thread', kind: 'charm',
+    text: "A twist of pale thread that shines a little in the dark. The moorers of the floating city tied it round their wrists for luck on the long climbs.",
+    use: 'You climb a third faster.',
+  },
   // ---- won in the worlds' mastery trials (src/trials/: the first finish of each), upgrades to the gadgets
   clearglass: {
     name: 'Clear glass', kind: 'upgrade', needs: 'monocle', trial: 'desert', where: 'The first finish of the Dune line, the Desert’s hoverbike run.',
@@ -208,6 +242,22 @@ export const ITEMS = {
     text: "A ribbon in the market’s racing colours, stamped with the silent tower. The cab drivers nod at it.",
     use: 'It does nothing at all, and everyone in the market knows what it means.',
   },
+  // (the three worlds that joined the route in v1.40: their trials' rewards, worn for the finishing)
+  divercap: {
+    name: 'Diver’s cap', kind: 'cosmetic', trial: 'underwater', where: 'The first finish of the Tube run, the Underwater City’s run through its halls.',
+    text: "A close knitted cap in the divers’ teal, a brass ring sewn over one ear. The divers wore them under their helmets, and kept them on after.",
+    use: 'It does nothing at all, and every diver in the city nods at it.',
+  },
+  founderspin: {
+    name: 'Founder’s pin', kind: 'cosmetic', trial: 'moonfoundry', where: 'The first finish of the Floor round, the Moon Foundry’s run on foot.',
+    text: "A pin in the shape of a tiny moon, cast at the last furnace, its seam still showing. The founders gave them to whoever ran the floor fastest.",
+    use: 'It does nothing at all, and Bertil says it suits you.',
+  },
+  courierribbon: {
+    name: 'Courier’s ribbon', kind: 'cosmetic', trial: 'spacecity', where: 'The first finish of the Courier’s round, the City Floating in Space’s run over its bridges.',
+    text: "A strip of salmon cloth to tie round the wrist, the floating city’s couriers’ colour. Kip has nine and wears all of them.",
+    use: 'It does nothing at all, and the bridge-keepers wave you through.',
+  },
   // ---- given by people, through a quest (quests.give: the same item.<id> flag), not found in a box
   cabpass: {
     name: 'Cab pass', kind: 'pass', quest: true,
@@ -222,7 +272,7 @@ export const ITEMS = {
 };
 
 /** Gun modes: shoot (and push) come with the fluid gun (a gadget: src/gadgets/gun.js); the others are unlocked by items. */
-export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bloom' };
+export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bloom', tether: 'tether' };
 
 /**
  * The backpack's strengths in the order the route brings them (docs/systems/progression.md): the lift valve's

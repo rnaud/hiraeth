@@ -371,6 +371,59 @@ export const SHOP_STYLES = {
       for (const y of [1.2, 1.9, 2.6]) { B.add('#478e84', block(0.4, 0.05, 2.4, R.w / 2 - 0.3, y, -1.4)); for (let i = 0; i < 6; i++) { const f = flask(R.w / 2 - 0.3, y + 0.05, -2.4 + i * 0.4, 1.1); B.add(RED, f.glass, { soft: true }); B.add(CORK, f.cork, { soft: true }); } }
     },
   },
+  // ---- the three worlds that joined the route in v1.40
+  // The Underwater City: inside Odette's shell house: teal plaster lined warm, a round window onto the dark water with
+  // a fish going by, glass floats hung in a net, a curved coral counter, jars of glow-kelp on the shelves
+  bubble: {
+    room: { wall: { color: '#4f8d94', color2: '#467f86', grid: 0 }, floor: '#e08a5a', ceiling: '#3d727a', lamp: '#ffcf96',
+      windows: [{ side: 'right', x: 3.2, y: 1.1, w: 1.8, h: 1.8 }] },
+    counter: { shape: 'curved', color: '#e89a86', top: '#f6c2b0', band: '#3d727a', bulge: 0.3 },
+    heart: { holder: 'jar', color: '#3d727a' },
+    dress(B, R) {
+      shelf(B, R, -1.4, 2.35, 3.6, '#d98a7a', [RED, '#9fe0e4', RED]);
+      for (let i = 0; i < 5; i++) B.add('#7fe0b8', new THREE.CylinderGeometry(0.09, 0.09, 0.3, 8).translate(1.2 + i * 0.36, 2.56, -R.d / 2 + 0.36), { soft: true, glow: 0.6 });
+      for (let i = 0; i < 9; i++) hang(B, R, -3.2 + (i % 3) * 0.4, -2.4 + Math.floor(i / 3) * 0.45, 0.6 + (i % 2) * 0.35, 'lamp', { size: 0.12, color: '#9fe0e4' });
+      // the brass diving helmet on a stand by the window, a coil of air-hose
+      B.add(BRASS, new THREE.SphereGeometry(0.32, 12, 8).translate(R.w / 2 - 0.6, 1.5, 1.5), { soft: true });
+      B.add('#3d727a', new THREE.CylinderGeometry(0.08, 0.12, 1.2, 8).translate(R.w / 2 - 0.6, 0.6, 1.5));
+      B.add('#5a4a44', new THREE.TorusGeometry(0.35, 0.06, 6, 16).rotateX(Math.PI / 2).translate(R.w / 2 - 0.8, 0.08, 2.4), { soft: true });
+      hang(B, R, -0.2, SHOP_ROOM.counter + 0.3, 1.1, 'lamp', { size: 0.16, color: '#ffcf96' });
+    },
+  },
+  // The Moon Foundry: inside the crucible: rust walls in plates, a round floor, a slot of light from the spout, a
+  // counter cast in one piece with ingots for its foot, a row of tiny unfinished moons on a shelf, a ladle on the wall
+  crucible: {
+    room: { wall: { color: '#b8653c', color2: '#a85a33', grid: 1.2 }, floor: '#5a4a44', ceiling: '#8a4a2e', lamp: '#ffb46a', oculus: 1.4 },
+    counter: { shape: 'box', color: '#6a4a3a', top: '#8a5a3a', band: '#d6a13e', trim: '#d6a13e' },
+    heart: { holder: 'box', color: '#8a5a3a' },
+    dress(B, R) {
+      shelf(B, R, -1.5, 2.3, 3.4, '#6a4a3a');
+      for (let i = 0; i < 7; i++) B.add('#efe4cc', new THREE.SphereGeometry(0.11 + (i % 3) * 0.03, 10, 8).translate(-3.0 + i * 0.5, 2.48, -R.d / 2 + 0.36), { soft: true });
+      shelf(B, R, 1.8, 1.6, 2.4, '#6a4a3a', [RED, RED, '#e8e0cc']);
+      // the ladle on the right wall, ingots stacked by the counter, a brass lantern
+      B.add('#4a3a33', lathe([[0.01, 0], [0.4, 0.05], [0.45, 0.4]], 12).rotateZ(Math.PI / 2).translate(R.w / 2 - 0.15, 2.0, -0.6), { soft: true, side: THREE.DoubleSide });
+      B.add('#4a3a33', stick([R.w / 2 - 0.2, 2.0, -0.6], [R.w / 2 - 0.2, 3.4, 0.4], 0.04), { soft: true });
+      for (let i = 0; i < 4; i++) B.add('#a8a29a', block(0.5, 0.16, 0.22, -R.w / 2 + 0.8, i * 0.17, 1.6 + (i % 2) * 0.1));
+      hang(B, R, 0.3, SHOP_ROOM.counter + 0.4, 1.2, 'lamp', { size: 0.15, color: '#ffb46a' });
+    },
+  },
+  // The City Floating in Space: inside Amaro's house: cream walls, a vaulted ceiling hung with lamps of every kind, a
+  // round window full of stars, a salmon counter, jars of lamp oil on the shelves
+  adobe: {
+    room: { wall: { color: '#f2e2c4', color2: '#e6d2ae', grid: 0 }, floor: '#d9a07e', ceiling: '#efdcb8', lamp: '#ffe0a8',
+      windows: [{ side: 'left', x: 3.0, y: 1.2, w: 1.5, h: 1.5 }] },
+    counter: { shape: 'curved', color: '#e89a7e', top: '#f6dcc4', band: '#3f6f78', bulge: 0.35 },
+    heart: { holder: 'basket', color: '#c98a5a' },
+    dress(B, R) {
+      shelf(B, R, 0, 2.3, 5.0, '#c98a5a', ['#f2c45a', RED, '#f2c45a', '#e8e0cc']);
+      for (let i = 0; i < 12; i++) hang(B, R, -3.2 + (i % 6) * 1.2, -2.2 + Math.floor(i / 6) * 3.2, 0.7 + ((i * 5) % 4) * 0.2, 'lamp', { size: 0.12 + (i % 3) * 0.03, color: i % 2 ? '#ffe39a' : '#ffd0a0' });
+      // stars through the round window: a dark disc with a few bright points
+      B.add('#0a0f18', new THREE.CircleGeometry(0.72, 18).rotateY(Math.PI / 2).translate(-R.w / 2 + 0.06, 1.95, 3.0), { soft: true });
+      for (let i = 0; i < 6; i++) B.add('#f6f2e4', new THREE.CircleGeometry(0.035, 5).rotateY(Math.PI / 2).translate(-R.w / 2 + 0.07, 1.6 + (i * 0.37) % 0.8, 2.6 + (i * 0.29) % 0.8), { soft: true, glow: 1 });
+      B.add('#3f6f78', stick([-1.0, TOP, SHOP_ROOM.counter - 0.1], [-1.0, TOP + 0.4, SHOP_ROOM.counter - 0.1], 0.02), { soft: true });
+      B.add('#ffe39a', new THREE.SphereGeometry(0.1, 8, 6).translate(-1.0, TOP + 0.48, SHOP_ROOM.counter - 0.1), { soft: true, glow: 1 });
+    },
+  },
 };
 
 // ------------------------------------------------------------------ the wares on the counter

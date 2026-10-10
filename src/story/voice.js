@@ -107,6 +107,16 @@ export const LANGUAGES = {
     cons: ['gl', 'l', 'w', 'm', 'n', 'b'], vowels: ['o', 'u', 'a'] },
   bazaar:   { name: 'Market patter', wave: 'sawtooth', pitch: 1.04, rate: 1.22, len: 0.75, gain: 1.1, breath: 0.06, clip: 0.5, glide: 0.8, formant: 1.04, density: 0.9, radio: 0.6,
     cons: ['b', 'd', 'z', 'r', 'sh', 'p', 'y', 'n'], vowels: ['a', 'e', 'o', 'i', 'ae'] },
+  // (the three worlds that joined the route in v1.40, each its own tongue)
+  // the Underwater City: low and round, words that hum through the glass, gliding down like a whale's
+  underwater: { name: 'glass-hum', wave: 'sine', pitch: 0.92, rate: 0.84, len: 1.2, gain: 0.85, breath: 0.1, clip: 0, glide: -1.4, formant: 0.88, density: 0.75, ring: 0.45, wobble: [4.2, 0.6],
+    cons: ['m', 'l', 'w', 'r', 'v', 'n', ''], vowels: ['o', 'u', 'a', 'e'] },
+  // the Moon Foundry: the founders' cant, heavy and struck, short words hammered flat with a ring after each
+  moonfoundry: { name: 'founders’ cant', wave: 'sawtooth', pitch: 0.9, rate: 0.96, len: 0.86, gain: 0.85, breath: 0.1, clip: 0.55, glide: -0.3, formant: 0.9, density: 0.85, ring: 0.35, mech: 0.4,
+    cons: ['d', 'g', 'b', 'r', 'k', 'n', 'st'], vowels: ['o', 'a', 'oe', 'u'] },
+  // the City Floating in Space: the moorers' whistle-talk, high and thin, a lift at the end of each word like a call across a gap
+  spacecity: { name: 'moorers’ whistle', wave: 'triangle', pitch: 1.14, rate: 1.1, len: 0.8, gain: 0.8, breath: 0.22, clip: 0.1, glide: 1.8, formant: 1.12, density: 0.8,
+    cons: ['s', 'h', 'f', 'y', 't', 'w', 'l'], vowels: ['i', 'e', 'a', 'y'] },
   atelier:  { name: 'pen-and-paper', wave: 'triangle', pitch: 1.0, rate: 0.95, len: 0.9, gain: 0.8, breath: 0.3, clip: 0.2, glide: 0.3, formant: 1.0, density: 0.75,
     cons: ['s', 'f', 'sh', 'l', 't'], vowels: ['e', 'i', 'a'] },
   // the non-humanoid peoples (src/aliens/): their own tongues, wherever they live

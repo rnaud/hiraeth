@@ -231,6 +231,45 @@ export const SHOPKEEPERS = {
     topic: { ask: '~curious~ Why the board?', flag: 'bazaar.pashka.board', say: ['~playful~ In a market of signals, a stall without one is a stall nobody hears. So: a heart and a flask, and lights.', '~whisper~ (He leans in.) Between us, the bulbs cost more than the cures. But nobody buys from a dark stall.'] },
     bye: '~playful~ Keep it lit. Goodbye.',
   }),
+  // The three worlds that joined the route in v1.40.
+  // The Underwater City: Odette keeps the Air-Shop inside the Avenue's great dome, a round woman in a teal diving
+  // smock with a coral scarf; she was a diver till her knees said no, and sells what the divers carried.
+  odette: keeper({
+    id: 'odette', shop: 'airshop', name: 'Odette', title: 'who keeps the Air-Shop', color: '#4a8790', voice: 0.95, kind: 'f',
+    palette: { cloak: '#4a8790', lining: '#f0aa98', cloth: '#efd2a6', legs: '#3d727a', hat: '#f0aa98', accent: '#d6a13e', hair: '#5a3a2a' },
+    head: 'bun', cape: 0.3, look: { head: 'bun', body: 'scarf', trim: 'none', robe: 0.2, build: 'heavy', height: 0.96, mood: 'kind' },
+    lines: ['~happy~ Cures and a heart, under glass.', '~playful~ Everything here’s been to the bottom and back.', '~neutral~ Dry inside. Mind the floats.'],
+    hello: ['~happy~ A visitor from up top! Odette. I dived for forty years, and now I keep the Air-Shop and let others get wet.', '~neutral~ Cures in the red flasks, a heart in the glass jar. Chimes in the shell, love.'],
+    again: [{ if: { flag: 'temple.underwater.done' }, text: '~surprised~ Did you hear them this morning? The whole dome rang. I sold three cures to people who fell off their chairs.' }, '~happy~ Back again. The floats remember you.'],
+    topic: { ask: '~curious~ Why the diving helmet?', flag: 'underwater.odette.helmet', say: ['~solemn~ It was my mother’s. She walked the sea floor in it, before the domes reached this far, carrying glass from hall to hall.', '~playful~ Nobody walks out there now. We have tubes. Tubes are very good. Tubes are also very boring.'] },
+    bye: '~happy~ Keep your feet dry.',
+  }),
+
+  // The Moon Foundry: Gunnar keeps the Crucible on the floor, a tall bald founder with a leather apron scorched at the
+  // hem and forearms like ladle handles; he talks about cures the way founders talk about pours.
+  gunnar: keeper({
+    id: 'gunnar', shop: 'crucible', name: 'Gunnar', title: 'who keeps the Crucible', color: '#c9703e', voice: 0.7, kind: 'm',
+    palette: { cloak: '#6a4a3a', lining: '#c9703e', cloth: '#e8d2a8', legs: '#4a3a33', hat: '#6a4a3a', accent: '#d6a13e', hair: '#3a2a22' },
+    head: 'bald', cape: 0, look: { head: 'bald', body: 'apron', trim: 'bib', robe: 0, build: 'heavy', height: 1.08, mood: 'stern' },
+    lines: ['~neutral~ Cures, poured true. A heart, cast once.', '~solemn~ Nothing in here cracked in the cooling.', '~playful~ It’s a crucible. Of course it’s warm.'],
+    hello: ['~neutral~ Gunnar. This was a crucible once. The founders poured moons out of it. Now it holds cures, and me.', '~solemn~ Red flasks for the hurt, a heart in the box. Each poured once, cooled slow. Chimes on the ingot.'],
+    again: [{ if: { flag: 'temple.moonfoundry.done' }, text: '~surprised~ The floor’s still at night now. I slept through till the morning shift. First time in a year.' }, '~neutral~ Back. Good. The pour’s steady today.'],
+    topic: { ask: '~curious~ Moons came out of this?', flag: 'moonfoundry.gunnar.crucible', say: ['~solemn~ The small ones. Plums, apples. The founders tried their light in little moons first, to see if it would hold.', '~playful~ Mostly it didn’t. You’re standing on the cracked ones. I made a floor of them.'] },
+    bye: '~neutral~ Pour true.',
+  }),
+
+  // The City Floating in Space: Amaro keeps the Oil-Lamp Shop by the Market plaza, a thin man in a salmon waistcoat
+  // with a lamp-lighter's pole; the city pays in lamp oil, so his is the bank as well as the shop.
+  amaro: keeper({
+    id: 'amaro', shop: 'oillamp', name: 'Amaro', title: 'who keeps the Oil-Lamp Shop', color: '#e89a7e', voice: 1.1, kind: 'm',
+    palette: { cloak: '#e89a7e', lining: '#3f6f78', cloth: '#f2e2c4', legs: '#3f6f78', hat: '#f2e2c4', accent: '#d6a13e', hair: '#2b211f' },
+    head: 'hat', cape: 0.2, look: { head: 'hat', body: 'collar', trim: 'stripes', robe: 0.1, build: 'slim', height: 1.06, mood: 'amused' },
+    lines: ['~happy~ Cures, a heart, and lamps. Mostly lamps.', '~playful~ We pay in oil here. You can pay in chimes. I’ll allow it.', '~curious~ Don’t lean on the lamps. They’re lit.'],
+    hello: ['~happy~ A traveller across the dark! Amaro. I sell lamp oil, which here is also money, so I am the bank. The cures are a sideline.', '~neutral~ Red flasks for the hurt, a heart in the basket. Chimes will do, though oil would be nicer.'],
+    again: [{ if: { flag: 'temple.spacecity.done' }, text: '~surprised~ The bridges stopped creaking, and nobody needs a lamp to find their way home. Business is terrible. I’ve never been happier.' }, '~happy~ Welcome back. The lamps have missed you. I asked.'],
+    topic: { ask: '~curious~ Why pay in lamp oil?', flag: 'spacecity.amaro.oil', say: ['~solemn~ Out here, the dark is the one thing there’s plenty of. Light is what’s worth something.', '~playful~ Also, coins roll off the islands. Oil just makes things slippery.'] },
+    bye: '~happy~ Keep a light on.',
+  }),
 };
 
 /**
@@ -358,5 +397,34 @@ export const SHOP_LINES = {
     soldOut: ['~sad~ Gone! Sold! The case is empty, friend.', '~neutral~ None left. The board can’t light for nothing.'],
     full: ['~surprised~ Full pack! Drink one, friend, then buy another!', '~playful~ Any more and you’ll clink like my bulbs.'],
     bye: ['~shout~ COME BACK SOON!', '~happy~ Tell the avenue where you got it!'],
+  },  odette: {
+    open: ['~happy~ Look all you like, love. Mind the floats.', '~playful~ Everything here’s been to the bottom and back.'],
+    potion: ['~happy~ One cure. Drink it before you need it.', '~neutral~ Corked tight. Nothing gets in down here.'],
+    heart: ['~solemn~ A heart from the jar. Carry it like you’re walking the sea floor.', '~happy~ There. You’ll breathe easier.'],
+    magic: ['~curious~ More room in that tank. Feel it?', '~happy~ Deeper, like a good breath.'],
+    short: ['~sad~ Not quite enough, love. The shell wants a few more.', '~playful~ Short. Even divers count their air.'],
+    soldOut: ['~sad~ That was the last. The divers bring one a season.', '~neutral~ Gone, I’m afraid.'],
+    full: ['~surprised~ Your pack’s full of cures. Drink one first.', '~playful~ Any more and you’ll sink.'],
+    bye: ['~happy~ Keep your feet dry.', '~neutral~ Mind the tube’s step on the way out.'],
+  },
+  gunnar: {
+    open: ['~neutral~ Look. Touch what you buy.', '~solemn~ Poured once, cooled slow. All of it.'],
+    potion: ['~neutral~ One cure. Poured true.', '~happy~ Good. The floor bites.'],
+    heart: ['~solemn~ A heart, cast once. Don’t drop it.', '~happy~ There. A stronger casting.'],
+    magic: ['~curious~ More room in your tank. A bigger mould.', '~neutral~ Deeper. Good.'],
+    short: ['~sad~ Not enough chimes. The ingot stays bare.', '~neutral~ Short. Come back with more.'],
+    soldOut: ['~sad~ None left. I don’t pour what I can’t cool.', '~neutral~ Gone. The next one’s still cooling.'],
+    full: ['~surprised~ Full. Drink one first.', '~playful~ Any more and you’ll clank.'],
+    bye: ['~neutral~ Pour true.', '~solemn~ Mind the rails on your way out.'],
+  },
+  amaro: {
+    open: ['~happy~ Look, look! Lamps, cures, a heart. Mostly lamps.', '~playful~ Don’t lean on anything. It’s all lit.'],
+    potion: ['~happy~ One cure! In oil terms, a bargain.', '~playful~ Drink it on a bridge. Everything tastes better with a view.'],
+    heart: ['~solemn~ A heart from the basket. Brighter than any lamp.', '~happy~ There. Now you glow a little.'],
+    magic: ['~curious~ More room in your tank. A bigger wick.', '~happy~ Deeper! Burns longer.'],
+    short: ['~sad~ Not enough, friend. Not even in oil.', '~playful~ Short. The bank says no. I am the bank.'],
+    soldOut: ['~sad~ Gone. I had one, and now the dark has one less.', '~neutral~ None left.'],
+    full: ['~surprised~ Full pack! Drink one, then come back.', '~playful~ Any more and you’ll slosh off the edge.'],
+    bye: ['~happy~ Keep a light on.', '~neutral~ Mind the parapet. It leans.'],
   },
 };

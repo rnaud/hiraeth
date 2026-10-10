@@ -49,6 +49,10 @@ export const SIGNATURE_WORLDS = {
   spheres: { reading: 'many small echoes', where: 'over the round plaza' },
   perdide: { reading: 'the strongest yet', where: 'at the Great Crystal' },
   bazaar: { reading: 'on one channel only', where: 'at the silent tower' },
+  // (the three worlds that joined the route in v1.40)
+  underwater: { reading: 'muffled, under water, humming', where: 'in the Whale Gallery over the deep' },
+  moonfoundry: { reading: 'struck, like a bell, thirty-two times', where: 'at the Casting-House on the foundry’s floor' },
+  spacecity: { reading: 'thin and high, from every cable at once', where: 'under the islands, at the Mooring-House' },
 };
 
 /** The world carries the light's signature (home and the hidden places do not). */

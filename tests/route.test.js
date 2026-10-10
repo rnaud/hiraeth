@@ -52,7 +52,7 @@ test('the wings come first and the jets in the later half: no world before the j
   assert.ok(places >= 5, `it waits until ${places} places are done`);
   // the worlds before it never ask for the jets (features.jetpack: the debug jets fly there; since v1.38 no box of
   // them anywhere, the City-Shaft's own Warden's harness flies there only), and none of them comes earlier
-  const FILE = { glassdunes: 'glass-dunes' };
+  const FILE = { glassdunes: 'glass-dunes', moonfoundry: 'moon-foundry', spacecity: 'space-city' };
   const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(readFileSync(new URL(`../src/levels/${FILE[id] ?? id}.js`, import.meta.url), 'utf8'));
   for (const id of ORDER.slice(0, jets)) assert.equal(wants(id), false, `${id} comes before the jets and doesn't want them`);
   assert.equal(wants('incal'), true);

@@ -435,6 +435,66 @@
    "verdict": "Needs work",
    "text": "New with the Glass Dunes on the route (October 2026): not yet through a QC pass. The Clock-House clock comes round over its door, the cogs turn in the sand.",
    "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "underwater.whales": {
+   "verdict": "Needs work",
+   "text": "New with the Underwater City on the route (v1.40): not yet through a QC pass. Down the last tube from the Whale-House, a whale comes up to the glass and sings.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "moonfoundry.moon": {
+   "verdict": "Needs work",
+   "text": "New with the Moon Foundry on the route (v1.40): not yet through a QC pass. The Casting-House from the floor, the hung moon turning on its hook toward it.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "spacecity.cables": {
+   "verdict": "Needs work",
+   "text": "New with the City Floating in Space on the route (v1.40): not yet through a QC pass. The Mooring-House from over the void, the cables drawn taut under the island.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "call.10": {
+   "verdict": "Needs work",
+   "text": "New with the route of twelve worlds (v1.40): the tenth recording, not yet through a QC pass (it plays as the ninth does).",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "call.11": {
+   "verdict": "Needs work",
+   "text": "New with the route of twelve worlds (v1.40): the eleventh recording, not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "call.12": {
+   "verdict": "Needs work",
+   "text": "New with the route of twelve worlds (v1.40): the twelfth recording, not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "box.moonfoundry.bellows": {
+   "verdict": "Needs work",
+   "text": "New with the Moon Foundry on the route (v1.40): the pocket bellows on the crown of the moon in the claws; not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "box.moonfoundry.temple.tongs": {
+   "verdict": "Needs work",
+   "text": "New with the Moon Foundry on the route (v1.40): the founders’ tongs in the Casting-House; not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "box.spacecity.starthread": {
+   "verdict": "Needs work",
+   "text": "New with the City Floating in Space on the route (v1.40): the star-thread on a Towers roof; not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "box.spacecity.temple.tether": {
+   "verdict": "Needs work",
+   "text": "New with the City Floating in Space on the route (v1.40): tether mode in the Mooring-House; not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "box.underwater.pearl": {
+   "verdict": "Needs work",
+   "text": "New with the Underwater City on the route (v1.40): the diver’s pearl on the pod tower’s top deck in the Avenue; not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
+  },
+  "box.underwater.temple.horn": {
+   "verdict": "Needs work",
+   "text": "New with the Underwater City on the route (v1.40): the whale-horn in the Whale-House; not yet through a QC pass.",
+   "updated": "2026-10-10T12:00:00.000Z"
   }
  }
 }

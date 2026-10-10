@@ -34,8 +34,8 @@ import { chimeIcon } from './chime-icon.js';
 export const PANELS = ['items', 'quests', 'sketches', 'worlds', 'people'].map((id) => ({ id, get name() { return t(`gm.${id}`); } }));
 /** The people's cards: this many a row (as the cursor counts them without a page; on one, where they are drawn). */
 export const PEOPLE_COLS = 4;
-/** The gear's grid: this many slots a row. */
-export const GEAR_COLS = 8;
+/** The gear's grid: this many slots a row (ten since v1.40: the three new worlds' finds keep it to six rows). */
+export const GEAR_COLS = 10;
 /** The Sightings' notes: this many a row. */
 export const SIGHT_COLS = 5;
 /** The worlds' cards: this many a row. */

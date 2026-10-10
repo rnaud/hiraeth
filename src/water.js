@@ -142,11 +142,14 @@ export class Waters {
    * - 0.6 (you are in it), else the highest one under y (you are over it, up to
    * `below` m). { y, body } or null.
    */
-  surfaceAt(x, z, y = 0, below = 80) {
+  surfaceAt(x, z, y = 0, below = 80, look = false) {
     let inY = Infinity, inB = null, overY = -Infinity, overB = null;
     for (const b of this.bodies) {
-      if (b.top < y - below || b.box.min.y > y + 60) continue;
-      if (b.sea?.air?.(x, y, z)) continue;   // (a sea's air pockets: a dome, a covered street)
+      // (a sea's surface may stand far overhead: the Underwater City's is 78 m up, over its Whale Gallery at -16)
+      if (b.top < y - below || b.box.min.y > y + (b.sea ? 120 : 60)) continue;
+      // (a sea's air pockets: a dome, a covered street; for the look, a sea seen through glass (`sea.glass`, the
+      // Underwater City's halls since v1.40) keeps its water round the camera even in its pockets)
+      if (b.sea?.air?.(x, y, z) && !(look && b.sea.glass)) continue;
       const s = this.surfaceOf(b, x, z);
       if (s === null) continue;
       if (s >= y - 0.6) { if (s < inY) { inY = s; inB = b; } }
@@ -369,12 +372,13 @@ export class Waters {
    */
   keepCamera(camera, prefer = 'over') {
     const p = camera.position;
-    const w = this.surfaceAt(p.x, p.z, p.y, 2);
+    const w = this.surfaceAt(p.x, p.z, p.y, 2, true);
     this.camUnder = null;
     if (w) {
       const band = 0.22;
       if (Math.abs(p.y - w.y) < band) p.y = prefer === 'under' ? w.y - band : w.y + band;
-      if (p.y < w.y) this.camUnder = { y: w.y, body: w.body };
+      // (glass: in a sea's air pocket behind glass, the sea's look on the view, its sound only a little muffled)
+      if (p.y < w.y) this.camUnder = { y: w.y, body: w.body, glass: !!(w.body.sea?.glass && w.body.sea.air?.(p.x, p.y, p.z)) };
     }
     camera.updateMatrixWorld();
     _frustum.setFromProjectionMatrix(_pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
@@ -435,7 +439,7 @@ export class Waters {
    * marks it in the normals' length: drawn here it gets no ink outline).
    */
   renderOver(renderer, camera, { tNormal, tAlbedo, target, toon = 0.5 } = {}) {
-    this.sound?.underwater?.(this.camUnder ? 1 : 0);
+    this.sound?.underwater?.(this.camUnder ? (this.camUnder.glass ? 0.3 : 1) : 0);
     const sun = sharedUniforms.uSunDir.value.y > 0.02 && waterShared.uWaterLite.value < 0.5;   // (no sparkle on the handheld's low detail)
     if (!this.camUnder && !(sun && this.inView)) return;
     (this.pass ??= new WaterPass()).render(renderer, camera, { tNormal, tAlbedo, target, toon, under: this.camUnder });

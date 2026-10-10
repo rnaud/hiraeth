@@ -13,7 +13,10 @@ import { QUESTS as spheres } from './spheres-data.js';
 import { QUESTS as perdide } from './perdide-data.js';
 import { QUESTS as perdide2 } from './perdide2-data.js';
 import { QUESTS as bazaar } from './bazaar-data.js';
+import { QUESTS as underwater } from './underwater-people.js';
+import { QUESTS as moonfoundry } from './moonfoundry-people.js';
+import { QUESTS as spacecity } from './spacecity-people.js';
 
 /** [{ id, title, world, outro, failOutro }] of every world's quests. */
-export const ALL_QUESTS = [desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar]
+export const ALL_QUESTS = [desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, underwater, moonfoundry, spacecity]
   .flat().map(({ id, title, world, outro, failOutro }) => ({ id, title, world, outro, failOutro }));

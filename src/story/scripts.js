@@ -727,6 +727,102 @@ function shortEnd(form, y) {
   return y2 < 3.8 || y2 > 11.4 ? y - d : y2;
 }
 
+// ------------------------------------------------------------------ the three worlds that joined the route in v1.40
+/** Bubble rows (the Underwater City): a letter is a little rising column of bubbles, one to three, big or small, some
+ *  ringed with a ripple, some joined by a stem; a wave line runs along the foot of each word, like the glass's lead. */
+const BUBBLE_FORMS = [[1], [2], [1, 1], [2, 1], [1, 2], [1, 1, 1], [2, 2], [2, 1, 1], [1, 2, 1], [1, 1, 2]];
+const underwater = {
+  id: 'underwater', name: 'bubble rows', world: 'the Underwater City', ink: '#2f6f8a', dir: 'ltr', kind: 'bubbles', width: 0.85,
+  about: 'a letter a little column of rising bubbles, one to three, big or small, ringed with a ripple or joined by a stem; a wave runs under each word',
+  inventory: BUBBLE_FORMS.flatMap((col) => ['', 'ripple', 'stem'].map((mark) => ({ col, mark }))).slice(0, 30),
+  tokens: (w) => letterTokens(w),
+  draw(p, g, { x0, x1, k, n }) {
+    const xm = (x0 + x1) / 2;
+    p.m(x0 - (k ? 0 : 0.3), 10.6).q(xm, k % 2 ? 11.4 : 9.8, x1 + (k === n - 1 ? 0.3 : 0), 10.6);   // the wave under the word
+    let y = 9.2;
+    const pts = [];
+    for (const b of g.col) { const r = b === 2 ? 1.0 : 0.6; y -= r; pts.push([xm + (pts.length % 2 ? 0.5 : -0.4), y, r]); y -= r + 0.5; }
+    for (const [x, yy, r] of pts) p.ring(x, yy, r);
+    if (g.mark === 'ripple') { const [x, yy, r] = pts[pts.length - 1]; p.m(x - r - 0.8, yy - r - 0.6).q(x, yy - r - 1.8, x + r + 0.8, yy - r - 0.6); }
+    else if (g.mark === 'stem') { const [x, yy, r] = pts[0]; p.m(x, yy + r).l(x, 10.2); }
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.dot(c, 9.2, 0.9);
+    else if (kind === 'pause') p.ring(c, 9.4, 0.5);
+    else if (kind === 'ask') { p.ring(c, 5.6, 1.3); p.ring(c, 9.2, 0.5); }
+    else if (kind === 'exclaim') { p.ring(c, 4.4, 1.0); p.ring(c, 7.0, 0.7); p.dot(c, 9.6, 0.6); }
+    else if (kind === 'trail') for (const dx of [-1.5, 0, 1.5]) p.ring(c + dx, 9.6, 0.45);
+    else if (kind === 'dash') p.m(x0, 8).q(c, 7, x1, 8);
+    else if (kind === 'quote') p.ring(c, 3, 0.7);
+  },
+};
+
+/** Moon stamps (the Moon Foundry): the founders stamped their moulds with the moon's faces; a letter is a moon in one of
+ *  eight phases, struck small or full-size, sometimes with a pour-mark (a drop under it) or a crack across it, one after
+ *  another the way the moulds went down the line. */
+const PHASES = ['new', 'crescentR', 'halfR', 'gibbousR', 'full', 'gibbousL', 'halfL', 'crescentL'];
+const moonfoundry = {
+  id: 'moonfoundry', name: 'moon stamps', world: 'the Moon Foundry', ink: '#8a4a2e', dir: 'ltr', kind: 'stamps', width: 1.0,
+  about: 'a letter a moon in one of eight phases, struck small or full-size, with a drop of the pour under it or a crack across it, one after another down the casting line',
+  inventory: PHASES.flatMap((phase) => [[0, ''], [1, ''], [1, 'drop'], [0, 'crack']].map(([big, mark]) => ({ phase, big, mark }))).slice(0, 32),
+  tokens: (w) => letterTokens(w),
+  draw(p, g, { x0, x1 }) {
+    const c = (x0 + x1) / 2, cy = g.big ? 6.4 : 7.4, R = g.big ? 2.4 : 1.6;
+    p.ring(c, cy, R);
+    // the lit part: from the top round the lit side to the bottom, back up a terminator bowed by how full it is
+    const lit = (side, k) => p.filled((q) => q.m(c, cy - R).arc(R, 0, side > 0 ? 1 : 0, c, cy + R).q(c + side * (2 * k - 1) * R * 1.3, cy, c, cy - R));
+    if (g.phase === 'full') p.dot(c, cy, R);
+    else if (g.phase === 'halfR') lit(1, 0.5);
+    else if (g.phase === 'halfL') lit(-1, 0.5);
+    else if (g.phase === 'crescentR') lit(1, 0.2);
+    else if (g.phase === 'crescentL') lit(-1, 0.2);
+    else if (g.phase === 'gibbousR') lit(1, 0.85);
+    else if (g.phase === 'gibbousL') lit(-1, 0.85);
+    if (g.mark === 'drop') p.m(c, cy + R + 0.3).q(c + 0.7, cy + R + 1.5, c, cy + R + 2);
+    else if (g.mark === 'crack') p.m(c - R * 0.8, cy - R * 0.5).l(c - R * 0.1, cy).l(c + R * 0.8, cy + R * 0.4);
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.box(c - 0.9, 8.6, 1.8, 1.8);
+    else if (kind === 'pause') p.m(c - 0.8, 10).l(c + 0.8, 10);
+    else if (kind === 'ask') { p.ring(c, 5.8, 1.4); p.box(c - 0.5, 8.8, 1, 1); }
+    else if (kind === 'exclaim') { p.m(c, 3.4).l(c, 7.8); p.box(c - 0.5, 9, 1, 1); }
+    else if (kind === 'trail') for (const dx of [-1.6, 0, 1.6]) p.box(c + dx - 0.4, 9.2, 0.8, 0.8);
+    else if (kind === 'dash') p.m(x0 + 0.3, 6.6).l(x1 - 0.3, 6.6);
+    else if (kind === 'quote') p.m(c - 0.7, 2.6).l(c + 0.7, 2.6).l(c, 4.2).z();
+  },
+};
+
+/** Cable knots (the City Floating in Space): the moorers write as they tie: each word hangs from a cable along the top
+ *  of the line, a letter a short line dropped from it with one to three knots on it, bare or ending in a loop, a hook or a bar. */
+const KNOT_ENDS = ['', 'loop', 'hook', 'bar'];
+const spacecity = {
+  id: 'spacecity', name: 'cable knots', world: 'the City Floating in Space', ink: '#4a5f8a', dir: 'ltr', kind: 'knots', width: 0.9,
+  about: 'words hang from a cable along the top of the line; a letter a short line dropped from it, one to three knots on it, bare or ending in a loop, a hook or a bar',
+  inventory: [1, 2, 3].flatMap((knots) => KNOT_ENDS.flatMap((end) => [0, 1].map((long) => ({ knots, end, long })))).slice(0, 24),
+  tokens: (w) => letterTokens(w),
+  draw(p, g, { x0, x1 }) {
+    const xm = (x0 + x1) / 2, top = 2.4, foot = g.long ? 10.2 : 8.2;
+    p.m(x0, top).l(x1, top);   // the cable
+    p.m(xm, top).l(xm, foot);
+    for (let i = 0; i < g.knots; i++) p.dot(xm, top + 1.8 + i * ((foot - top - 2.6) / Math.max(1, g.knots)), 0.6);
+    if (g.end === 'loop') p.ring(xm, foot + 0.8, 0.8);
+    else if (g.end === 'hook') p.m(xm, foot).q(xm, foot + 1.4, xm + 1.3, foot + 0.6);
+    else if (g.end === 'bar') p.m(xm - 1.1, foot).l(xm + 1.1, foot);
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') { p.m(x0, 2.4).l(x1, 2.4); p.ring(c, 5.4, 1.0); }
+    else if (kind === 'pause') p.m(c, 2.4).l(c, 5);
+    else if (kind === 'ask') { p.m(c, 2.4).l(c, 4.4); p.m(c - 1.2, 5.6).q(c, 4.0, c + 1.2, 5.6).q(c, 7.2, c, 8.2); }
+    else if (kind === 'exclaim') { p.m(c, 2.4).l(c, 8); p.dot(c, 9.8, 0.7); }
+    else if (kind === 'trail') for (const dx of [-1.5, 0, 1.5]) p.m(c + dx, 2.4).l(c + dx, 4.6);
+    else if (kind === 'dash') p.m(x0, 2.4).l(x1, 2.4);
+    else if (kind === 'quote') p.m(c - 0.6, 1.2).l(c + 0.6, 1.2);
+  },
+};
+
 // ------------------------------------------------------------------ the non-humanoid peoples' writing (src/aliens/)
 /** Drifter threads (the Garden of Spheres' drifters): a line along the top of each word, a thread
  *  hanging from it for each syllable, curled, waved, zigzagged or forked, ending in a bead or a ring. */
@@ -853,7 +949,7 @@ const murmur = {
   },
 };
 
-export const SCRIPTS = Object.fromEntries([desert, incal, arzach, arzach2, garage, glassdunes, buried, edena, spheres, perdide, perdide2, bazaar, atelier, drifter, stilt, shell, murmur].map((S) => {
+export const SCRIPTS = Object.fromEntries([desert, incal, arzach, arzach2, garage, glassdunes, buried, edena, spheres, perdide, perdide2, bazaar, underwater, moonfoundry, spacecity, atelier, drifter, stilt, shell, murmur].map((S) => {
   S.cipher = makeCipher(S, S.order);
   S.pick = makePick(S);
   return [S.id, S];

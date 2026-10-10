@@ -105,13 +105,13 @@ test('the gear and the tank are what the route gave: the wings in Vael, the Ward
 });
 
 test('Viridel’s terraces end the only way they can (failed), the errands are delivered or still carried', () => {
-  const { flags, journal } = progressBefore('incal');
+  const { flags, journal } = progressBefore('underwater');
   assert.equal(flags['quest.edena.terraces'], 'failed');
   assert.ok(flags['failed.edena.terraces']);
   assert.equal(flags['edena.terraces.flooded'], true);
   assert.equal(journal.errands.gear.done, true);    // the Deep Wood (Lorn) → Viridel
-  assert.equal(journal.errands.seed.done, false);   // Viridel → the City-Shaft: in the pack
-  assert.equal(journal.errands.token, undefined);   // (the City-Shaft gives it)
+  assert.equal(journal.errands.seed.done, false);   // Viridel → the Underwater City (since v1.40): in the pack
+  assert.equal(journal.errands.kelpjar, undefined);   // (the Underwater City gives it)
 });
 
 test('the people of each world before are met, the keepsakes are kept in route order', () => {
@@ -133,7 +133,8 @@ test('every flag a world’s quest end sets in code is in the debug save after i
   for (const [i, world] of ORDER.entries()) for (const w of partsOf(world)) {
     if (i === ORDER.length - 1) continue;
     const { flags } = progressBefore(ORDER[i + 1]);
-    if (w === 'glassdunes') { assert.match(read(STORY_FILE(w)), /game\.set\('world\.glassdunes\.done', true\)/, 'the Clock-House kept in time ends the Glass Dunes'); assert.equal(flags['world.glassdunes.done'], true); continue; }
+    // (the worlds whose story is their temple: the Glass Dunes, and the three promoted in v1.40)
+    if (['glassdunes', 'underwater', 'moonfoundry', 'spacecity'].includes(w)) { assert.match(read(STORY_FILE(w)), new RegExp(`game\\.set\\('world\\.${w}\\.done', true\\)`), `the temple ends ${w}`); assert.equal(flags[`world.${w}.done`], true); continue; }
     const bodies = onDoneBodies(read(STORY_FILE(w)));
     assert.ok(bodies.some((b) => b.includes(`world.${w}.done`)), `${w}: its main quest's onDone found`);
     for (const body of bodies) {

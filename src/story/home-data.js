@@ -50,6 +50,10 @@ export const DRAWING_LINES = {
   perdide: "~sad~ The rainy wood. I got the paper wet on purpose. Then by accident. Then I put the crystal over the hole.",
   perdide2: "~whisper~ The lamps in the wood. I used my last yellow. They needed it more than the sun in the other drawing.",
   bazaar: "~happy~ The listening tower. I gave everyone big ears so the people at the back could hear too.",
+  // (the three worlds that joined the route in v1.40)
+  underwater: "~curious~ The city in bubbles under the sea. I put a whale outside every window, so nobody’s window is empty.",
+  moonfoundry: "~playful~ The moon factory. There are thirty-two moons. I counted them in your card. I drew thirty-three because one was for me.",
+  spacecity: "~whisper~ The islands floating in the dark. I tied them together with string so they don’t float off. That’s what the lines are.",
 };
 
 export const PEOPLE = {

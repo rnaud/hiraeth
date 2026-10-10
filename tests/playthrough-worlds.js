@@ -207,6 +207,58 @@ Object.assign(WAYS, {
   'bazaar.signal:tune': { air: true, needs: ['gun'], how: 'shot from the broadcast balcony', check: bulbsInSight },
 });
 
+// ------------------------------------------------------------------ the three worlds that joined the route in v1.40
+// Each one's thread is its temple; on the way the agent runs the world's two errands, as a player meeting its people
+// would (each started by talking to its giver: the act), so the route walks the world from its landing to its temple.
+/** Talk to `who` with quest `qid` as the goal (it starts the errand): an act of the route. */
+const meet = (who, qid) => (W, issue) => {
+  const r = A.talkTo(W, who, A.goalOf(W, qid));
+  if (r.error) return issue('soft-lock', r.error);
+  if (!W.quests.isStarted(qid)) issue('soft-lock', `talking to ${who} did not start ${qid}`);
+};
+Object.assign(WAYS, {
+  // (the Underwater City's Crown is up the lift in the Plaza's column: a doorway, src/levels/underwater.js level.portals)
+  'underwater.kelp:lift': { needs: [], how: 'up the lift in the Plaza’s column' },
+  'underwater.kelp:fabre': { needs: [], how: 'in the Crown, up the lift' },
+  // (the Moon Foundry's lookout is on the pillar under the moon on its pillar: up its rungs, 31 m)
+  'moonfoundry.count:climb': { needs: [], how: 'up the pillar’s rungs to the lookout' },
+  // (the floating city's crow's nest is up the Balcony's lamp-mast, by its rungs)
+  'spacecity.lamp:hang': { needs: [], how: 'up the lamp-mast’s rungs' },
+});
+Object.assign(SOLVERS, {
+  // up the lift: through the doorway at the column's foot, out at its head in the Crown
+  'underwater.kelp:lift': (W, { issue }) => {
+    const lift = W.level.portals?.find((pt) => /up to the Crown/.test(pt.label ?? ''));
+    if (!lift) return issue('no-thing', 'no lift in the column');
+    W.at(lift.at.clone()); W.step(3);
+    W.at(lift.to.clone()); W.step(3);
+  },
+  // the crow's nest: climbed (the agent stands where the rungs come out)
+  'spacecity.lamp:hang': (W, { issue }) => {
+    const at = A.objectiveAt(W, 'mast');
+    if (!at) return issue('no-thing', 'no crow’s nest');
+    const s = A.standNear(W, at, { radius: 2.2, up: 2 });
+    if (!s) return issue('no-ground', 'nowhere to stand in the crow’s nest');
+    W.at(s); W.step(3);
+  },
+  // the lookout: climbed (the agent stands where the climb comes out)
+  'moonfoundry.count:climb': (W, { issue }) => {
+    const at = A.objectiveAt(W, 'lookout');
+    if (!at) return issue('no-thing', 'no lookout');
+    const s = A.standNear(W, at, { radius: 6, up: 3 });
+    if (!s) return issue('no-ground', 'nowhere to stand on the lookout');
+    W.at(s); W.step(3);
+  },
+});
+Object.assign(ACTIONS, {
+  meetMireille: meet('mireille', 'underwater.kelp'),
+  meetFabre: meet('fabre', 'underwater.lamps'),
+  meetWen: meet('wen', 'moonfoundry.count'),
+  meetOttilie: meet('ottilie', 'moonfoundry.hook'),
+  meetSel: meet('sel', 'spacecity.notes'),
+  meetKip: meet('kip', 'spacecity.lamp'),
+});
+
 // ------------------------------------------------------------------ the route
 export const ROUTE = [
   { id: 'desert', play: ['desert.power'] },
@@ -215,11 +267,18 @@ export const ROUTE = [
   { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', 'arzach2.bell'] },
   { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps'] },
   { id: 'edena', play: ['edena.garden'] },
+  // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, Fabre's word down to the Whale Gallery, then the Whale-House)
+  { id: 'underwater', play: [{ act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', { act: 'meetFabre', at: 'fabre', label: 'Fabre, in the Crown' }, 'underwater.lamps', { temple: 'done', id: 'underwater' }] },
   { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the jets, the light, the pass
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
   { id: 'glassdunes', play: [{ temple: 'done', id: 'garage' }] },
   { id: 'buried', play: ['buried.tooth'] },
+  // (v1.40: the foundry: Ottilie's hook to Bertil at the furnace, Wen's count from the pillar's lookout, then the Casting-House)
+  { id: 'moonfoundry', play: [{ act: 'meetOttilie', at: 'ottilie', label: 'Ottilie, in the quarter' }, 'moonfoundry.hook', { act: 'meetWen', at: 'wen', label: 'Wen, in the broken moon' }, 'moonfoundry.count', { temple: 'done', id: 'moonfoundry' }] },
   { id: 'spheres', play: ['spheres.listen'] },
+  // (v1.40: the floating city: Kip's lamp up the Balcony's mast, Sel by its foot with her notes for Tamar on the Towers, then
+  // the Mooring-House north of the Towers)
+  { id: 'spacecity', play: [{ act: 'meetKip', at: 'kip', label: 'Kip, on the Market Bridge' }, 'spacecity.lamp', { act: 'meetSel', at: 'sel', label: 'Madame Sel, on the Balcony' }, 'spacecity.notes', { temple: 'done', id: 'spacecity' }] },
   { id: 'bazaar', play: ['bazaar.signal'] },
 ];
 

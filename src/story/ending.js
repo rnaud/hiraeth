@@ -59,6 +59,12 @@ import * as perdide from './perdide-data.js';
 import * as perdide2 from './perdide2-data.js';
 import * as bazaar from './bazaar-data.js';
 import * as lantern from './lantern-data.js';
+import * as underwaterPeople from './underwater-people.js';
+import * as moonfoundryPeople from './moonfoundry-people.js';
+import * as spacecityPeople from './spacecity-people.js';
+import { PEOPLE as WHALE_HOUSE } from '../temples/underwater-data.js';
+import { PEOPLE as CASTING_HOUSE } from '../temples/moonfoundry-data.js';
+import { PEOPLE as MOORING_HOUSE } from '../temples/spacecity-data.js';
 import { spoken } from './tone.js';
 import { LOU_AT_STONE } from './home-data.js';
 import { ITEMS } from '../items.js';
@@ -370,7 +376,13 @@ export function tombLines(tokens = [], ctx = {}) {
 /** Each world's people, from its story data. */
 // (the merged worlds' parts keep their own: peopleOf reads a world's parts; the Sealed Hangar's, dismissed, are kept for a
 // save that went there; the Glass Dunes' are its glassworkers and Wim at the Clock-House)
-export const WORLD_DATA = { desert, incal, arzach, arzach2, garage, glassdunes: { ...glassdunesLocals, PEOPLE: CLOCK_HOUSE }, buried, edena, spheres, perdide, perdide2, bazaar, lantern };
+export const WORLD_DATA = {
+  desert, incal, arzach, arzach2, garage, glassdunes: { ...glassdunesLocals, PEOPLE: CLOCK_HOUSE }, buried, edena, spheres, perdide, perdide2, bazaar, lantern,
+  // (the three worlds that joined the route in v1.40: their people, and their temples' locals)
+  underwater: { ...underwaterPeople, PEOPLE: { ...underwaterPeople.PEOPLE, ...WHALE_HOUSE } },
+  moonfoundry: { ...moonfoundryPeople, PEOPLE: { ...moonfoundryPeople.PEOPLE, ...CASTING_HOUSE } },
+  spacecity: { ...spacecityPeople, PEOPLE: { ...spacecityPeople.PEOPLE, ...MOORING_HOUSE } },
+};
 const PEOPLE_LISTS = ['PEOPLE', 'LANDING', 'LOCALS', 'KEEPERS', 'RIM', 'STREET'];
 
 /** [{ id, name, title }] for one world (people only: not signs, stones or bowls): its parts' (Vael's and the sky stones'). */

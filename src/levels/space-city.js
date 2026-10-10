@@ -5,7 +5,11 @@ import { colourScript } from '../timeofday.js';
 import { RoomKit } from './lab-kit.js';
 import { PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { PEOPLE as BAZAAR_PEOPLE } from '../story/bazaar-data.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
+import { PEOPLE as SC_PEOPLE, VISITORS as SC_VISITORS } from '../story/spacecity-people.js';
 import { table } from './eclipse-kit.js';
+import { attachTemple } from '../temples/index.js';
 import {
   spaceMats, island, quarter, heap, bridge, railing, pipeStack, crownTree, lantern, resident, awning, laundry, poleCloth,
   SPACE_LOOK, SPACE_DAY, PLANET_TONE,
@@ -36,6 +40,8 @@ export const ISLANDS = {
   towers: { x: 98, y: 6, z: -84, w: 46, d: 42, cr: 13, deep: 30 },
   garden: { x: -92, y: -4, z: -60, w: 42, d: 36, cr: 12, deep: 24 },
   balcony: { x: 0, y: 0, z: -164, w: 44, d: 40, cr: 13, deep: 30 },
+  // the Moorings: the Mooring-House's own island north of the Towers, higher than them (src/temples/spacecity.js)
+  moorings: { x: 96, y: 14, z: -176, w: 44, d: 44, cr: 14, deep: 30 },
 };
 const I0 = ISLANDS;
 /** The bridges between them: [from, to] as deck points ([x, y, z]), their width; each starts 1.5 m in on its decks. */
@@ -45,6 +51,7 @@ export const BRIDGES = [
   { name: 'the Towers bridge', a: [I0.market.x + 36.5, 0, -74], b: [I0.towers.x - 21.5, 6, -80], w: 4.2 },
   { name: 'the Garden bridge', a: [I0.market.x - 36.5, 0, -66], b: [I0.garden.x + 19.5, -4, -62], w: 4.2 },
   { name: 'the Balcony bridge', a: [0, 0, I0.market.z - 30.5], b: [0, 0, I0.balcony.z + 18.5], w: 4.6 },
+  { name: 'the Moorings bridge', a: [98, 6, I0.towers.z - 19.5], b: [96, 14, I0.moorings.z + 20.5], w: 4.2 },
 ];
 /** Where the ship lands (the Pier's middle, a little south of it: its ramp toward the bridge). */
 export const SHIP_SITE = { x: 0, z: 128 };
@@ -52,27 +59,30 @@ export const SHIP_SITE = { x: 0, z: 128 };
 export const UNSAFE_Y = -40;
 /** The Market's plaza (clear of houses): its middle and radius. */
 export const PLAZA = { x: 0, z: -70, r: 19 };
+/** The moorers' lamp-masts: the Balcony's by the railing (climbed: its crow's nest), the Market's over the plaza, the Garden's over the trees. */
+export const MASTS = { balcony: [-7, -180], market: [14, -58], garden: [-108, -48] };
+/** Amaro's Oil-Lamp Shop: on the Pier west of the ship, its door turned east to the way up to the bridge. */
+export const SC_SHOP = { x: -16, z: 112, heading: Math.PI / 2 };
 
 export const SPACECITY_CONTENT = {
   weather: [],
-  // no story to follow: the page names the place and closes at the Balcony's railing
+  // the world's page (on the route since v1.40, before the Signal Market): opened on arrival, closed when the
+  // Mooring-House's Anchor-Warden is resolved (src/story/spacecity.js)
   story: {
-    title: 'THE CITY FLOATING IN SPACE',
-    intro: 'A city of heaped houses on islands floating in the dark, joined by bridges, a great pale planet over its roofs. The Market Bridge leads north from the Gate Quarter into the middle of it.',
-    outro: 'From the Balcony the whole city shows against the stars: the islands and their lamps, the cables hanging under them into nothing, and the planet turning its lit face toward you.',
-    label: 'the Balcony’s railing', goal: [0, 0.2, I0.balcony.z - 15], radius: 8, verticalRadius: 4, manual: true,
+    title: 'THE NOTE THAT PASSED',
+    intro: 'A city of heaped houses on islands floating in the dark, joined by bridges, moored to each other by the moorers’ cables. Since the night the sky rang the cables have hummed one note, and the islands drift apart a hand’s width a night.',
+    outro: 'The cables are taut, the islands home, and lamps run along them in the dark. Joss says the planet’s hum on the cables carries a broadcast now: a market of a thousand signs, where one tower is silent.',
+    label: 'the Mooring-House', goal: [96, 14, -176], radius: 16, verticalRadius: 8, manual: true,
   },
-  relics: { spots: [], names: [] },
+  // (high and out of the way: a chimney top on the Gate, the Towers' roofs, the Garden's overlook, the Balcony's railing, the Pier's lamp)
+  relics: {
+    spots: [[-14, 40], [104, -92], { at: [I0.garden.x - 14, I0.garden.y + 2, I0.garden.z + 8], snap: true }, { at: [12, 2, I0.balcony.z - 14], snap: true }, [18, 118]],
+    names: ['Cable splice', 'Lamp-oil token', 'Pressed leaf', 'Star chart scrap', 'Mooring knot'],
+  },
   // three people from elsewhere, and the city's own folk
   npcs: [
-    { ...BAZAAR_PEOPLE.kip, at: [2.4, (I0.gate.z - 24.5 + I0.market.z + 30.5) / 2], y: 0.9, radius: 2, world: 'bazaar', lang: 'bazaar',
-      lines: ['~playful~ Bridges! A city of nothing but bridges! I could run messages here for ever.', '~shout~ Don’t look down. Or do, it’s great.'],
-      talk: { listen: [
-        '~happy~ Kip, courier of the skybridges. The Market’s skybridges were the best in the world. Then I came here.',
-        '~curious~ They don’t pay in fruit. They pay in lamp oil. I have nine lamps now and nowhere to put them.',
-        '~playful~ The Market Bridge is the fast way. The Garden bridge goes down, so it’s faster coming back up. That’s not how it works, they say. It is for me.',
-        { after: 'met.kip', say: '~neutral~ If you drop something off the edge, it doesn’t land. I tried with a pebble. Then with a better pebble.' },
-      ] } },
+    // (Kip's errand: one of her nine lamps out to the Moorings, src/story/spacecity-people.js VISITORS)
+    { ...BAZAAR_PEOPLE.kip, ...SC_VISITORS.kip, at: [2.4, (I0.gate.z - 24.5 + I0.market.z + 30.5) / 2], y: 0.9, radius: 2, world: 'bazaar', lang: 'bazaar' },
     { ...INCAL_PEOPLE.nima, at: [-6, I0.gate.z - 4], y: 0, radius: 2, world: 'incal', lang: 'incal',
       lines: ['~playful~ Up the shaft I swept the high terrace. Here every terrace is the high one.', '~neutral~ Mind the dust. It goes over the edge and just… floats.'],
       talk: { listen: [
@@ -80,31 +90,16 @@ export const SPACECITY_CONTENT = {
         '~curious~ The dust doesn’t fall here. You sweep it over the parapet and it hangs there in the dark, a little cloud of it, for days.',
         '~happy~ The people here sweep toward the planet. For luck, they say. I sweep toward the planet now too.',
       ] } },
-    { ...BAZAAR_PEOPLE.sel, at: [8, I0.balcony.z - 12], y: 0, radius: 2, world: 'bazaar', lang: 'bazaar',
-      lines: ['~solemn~ Listen. The planet hums. Very low. You need the old tower’s ears to hear it.', '~happy~ Mind the railing, love. There’s nothing under it for a long way.'],
-      talk: { listen: [
-        '~neutral~ Madame Sel. Forty years I listened to the sky from a tower. Here the sky is all round, even under your feet.',
-        '~curious~ The cables under the islands aren’t tied to anything. They’re antennas. The whole city is listening to the planet.',
-        '~solemn~ At night it turns its lit face to us. That’s when it speaks loudest. I write it down. I don’t know the language yet.',
-        { after: 'met.sel', say: '~whisper~ Come back at night. Stand here. Don’t say anything for a while.' },
-      ] } },
+    // (Madame Sel's errand: her notes on the planet's hum to Tamar on the Towers, src/story/spacecity-people.js VISITORS)
+    { ...BAZAAR_PEOPLE.sel, ...SC_VISITORS.sel, at: [8, I0.balcony.z - 12], y: 0, radius: 2, world: 'bazaar', lang: 'bazaar' },
     // the city's own folk
-    { at: [-5, I0.pier.z - 10], y: 0, radius: 3, lang: 'incal', lines: ['~curious~ A ship! Did you come across the dark? Nobody comes across the dark.', '~neutral~ The bridge goes north. Everything goes north from here.'] },
-    { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'incal', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It leans back.'] },
-    { at: [PLAZA.x + 10, PLAZA.z + 6], y: 0, radius: 3, lang: 'incal', lines: ['~happy~ Lamp oil, cloth, bread from the garden! Everything grows up here, even bread.', '~playful~ Sit, eat. Nothing falls off a table here. Things fall off the island.'] },
-    // (Tamar: the detour's trace, src/story/sightings-detours.js)
-    { id: 'tamar', name: 'Tamar', title: 'who minds the cables', color: '#d98a7a', kind: 'f', at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'incal',
-      lines: ['~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.', '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.'],
-      talk: { listen: [
-        { after: () => true, say: [
-          '~solemn~ Long ago a ship came by with no name to give: one pilot, on her own. It hailed us with a sung note instead.',
-          '~curious~ The cables kept the note. The night the sky rang it came by again, fast and very high. It didn’t stop this time.',
-          '~whisper~ It was going somewhere.',
-        ], do: { set: { 'sight.spacecity.tamar': true } } },
-        '~solemn~ My grandmother hung the first cable under this island. It still hums when she visits.',
-        '~neutral~ The Towers are older than the Market. We were here first. We say that a lot.',
-      ] } },
-    { at: [I0.garden.x + 4, I0.garden.z - 6], y: -4, radius: 3, lang: 'incal', lines: ['~tired~ Every tree here was carried over a bridge in a pot. Every one.', '~happy~ Sit under the dark ones. They grow toward the planet, not the sun.'] },
+    { at: [-5, I0.pier.z - 10], y: 0, radius: 3, lang: 'spacecity', lines: ['~curious~ A ship! Did you come across the dark? Nobody comes across the dark.', '~neutral~ The bridge goes north. Everything goes north from here.'] },
+    { at: [6, I0.gate.z + 12], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Welcome to the Gate. We sweep the lane every morning, so mind your boots.', '~whisper~ Don’t lean on the parapet at the corner. It leans back.'] },
+    // (Liane: her flask of lamp oil goes to the Signal Market, src/levels/content.js errands)
+    { id: 'liane', name: 'Liane', title: 'who sells at the plaza', color: '#e89a7e', kind: 'f', at: [PLAZA.x + 10, PLAZA.z + 6], y: 0, radius: 3, lang: 'spacecity', lines: ['~happy~ Lamp oil, cloth, bread from the garden! Everything grows up here, even bread.', '~playful~ Sit, eat. Nothing falls off a table here. Things fall off the island.'] },
+    // (Tamar: the light's trace from the world's detour days, and Sel's notes' end: src/story/spacecity-people.js)
+    { ...SC_PEOPLE.tamar, at: [I0.towers.x - 6, I0.towers.z + 10], y: 6, radius: 3, lang: 'spacecity' },
+    { at: [I0.garden.x + 4, I0.garden.z - 6], y: -4, radius: 3, lang: 'spacecity', lines: ['~tired~ Every tree here was carried over a bridge in a pot. Every one.', '~happy~ Sit under the dark ones. They grow toward the planet, not the sun.'] },
   ],
 };
 
@@ -153,6 +148,7 @@ export const LANES = {
   towers: { lanes: [[74, -80, 104, -84, 3], [98, -84, 98, -60, 2.6]], circles: [[98, -84, 6]] },
   garden: { lanes: [[-70, -62, -96, -58, 3]], circles: [[-98, -58, 12]] },
   balcony: { lanes: [[0, -144, 0, -178, 3.4]], circles: [[0, -176, 10], [0, -158, 6]] },
+  moorings: { lanes: [[96, -154, 96, -167, 3]], circles: [[96, -161, 5]] },   // (no houses: the Mooring-House stands on it)
 };
 
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
@@ -171,7 +167,8 @@ export function* buildSpaceCity(scene) {
     yield;
     const kit = kitFor(`the ${key}`, 71500 + kits.length * 13), M = spaceMats(kit);
     const extra = key === 'balcony' ? [[0, -20, 17]] : [];   // (the balcony's north edge: its railing instead of the parapet)
-    const D = island(kit, M, rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
+    // (the Moorings, added after the city was laid out, draw from their own dice: the islands before them keep theirs)
+    const D = island(kit, M, key === 'moorings' ? mulberry32(71950) : rng, { ...I, gaps: [...gapsOf(I), ...extra], cables: Math.round((I.w * I.d) / 70), lights: 6, seed: kits.length * 31 + 7, rim: 1.0 });
     decks[key] = { ...D, kit, M };
     const L = LANES[key], clearOf = (x, z, m) => L.lanes.every((s) => segDist(x, z, s) > s[4] + m * 0.9) && L.circles.every(([cx, cz, r]) => Math.hypot(x - cx, z - cz) > r + m * 0.85);
     const nearestLane = (x, z) => {
@@ -180,7 +177,7 @@ export function* buildSpaceCity(scene) {
       for (const [cx, cz, r] of L.circles) { const d = Math.hypot(x - cx, z - cz) - r; if (d < bd) { bd = d; best = [cx, cz]; } }
       return { p: best ?? [I.x, I.z], d: bd };
     };
-    if (key === 'pier') continue;
+    if (key === 'pier' || key === 'moorings') continue;
     const peak = { gate: 4, market: 4, towers: 7, garden: 1, balcony: 3 }[key];
     quarter(kit, M, rng, {
       x0: I.x - I.w / 2, x1: I.x + I.w / 2, z0: I.z - I.d / 2, z1: I.z + I.d / 2, y: I.y, n: { gate: 30, market: 44, towers: 30, garden: 10, balcony: 18 }[key], gap: 0,
@@ -274,6 +271,12 @@ export function* buildSpaceCity(scene) {
     for (const [x, z] of [[-88, -56], [-100, -66]]) lantern(kit, M, x, G.y, z, { kind: 'post', h: 2.8, r: 8 });
   }
 
+  // ---------------------------------------------------------- the Moorings: lamps up the lane from the bridge to the Mooring-House
+  {
+    const { kit, M } = decks.moorings, Mo = I0.moorings;
+    for (let z = Mo.z + 19; z > Mo.z + 8; z -= 5) for (const e of [-1, 1]) lantern(kit, M, Mo.x + e * 3.8, Mo.y, z, { kind: 'post', h: 2.8, r: 8, light: e > 0 });
+  }
+
   // ---------------------------------------------------------- the Balcony: its dark teal railing over the void, the tower of pipes
   yield;
   {
@@ -312,6 +315,31 @@ export function* buildSpaceCity(scene) {
     bridge(far, FM, a, b, { w: 4, end: 8, mid: 1.5, seg: 10 });
   }
 
+  let mastTop = null;
+  // ---------------------------------------------------------- the moorers' lamp-masts (v1.40): the city's tall marks over its roofs
+  // A square mast of the moorers' iron on the Balcony by the railing, rungs up its south face to a crow's nest 30 m up
+  // with its lamp (Kip's lamp is hung there: src/story/spacecity-people.js); two more, drawn, over the Market's plaza and
+  // the Garden's trees (beacons below: the level design audit aims at them).
+  yield;
+  {
+    const mast = (k, M, x, y, z, { h = 30, solid = false } = {}) => {
+      const o = { solid, shadow: true };
+      k.add(M.iron, new THREE.BoxGeometry(1.4, h, 1.4).translate(x, y + h / 2, z), o);
+      for (let r = 0.6; r < h - 0.4; r += 0.45) k.add(M.iron, new THREE.BoxGeometry(0.9, 0.07, 0.12).translate(x, y + r, z + 0.82), { solid: false, shadow: false });
+      for (const e of [-1, 1]) k.add(M.iron, new THREE.BoxGeometry(0.07, h, 0.07).translate(x + e * 0.45, y + h / 2, z + 0.8), { solid: false, shadow: false });
+      k.add(M.wood, new THREE.CylinderGeometry(2.4, 2.4, 0.3, 16).translate(x, y + h + 0.15, z), o);
+      k.add(M.iron, new THREE.TorusGeometry(2.35, 0.06, 4, 24).rotateX(Math.PI / 2).translate(x, y + h + 1.15, z), { solid: false, shadow: false });
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) k.add(M.iron, new THREE.BoxGeometry(0.06, 1.0, 0.06).translate(x + Math.cos(a) * 2.35, y + h + 0.65, z + Math.sin(a) * 2.35), { solid: false, shadow: false });
+      k.add(M.iron, new THREE.CylinderGeometry(0.1, 0.1, 2.4, 6).translate(x, y + h + 1.4, z), { solid: false, shadow: false });
+      k.add(M.lamp, new THREE.SphereGeometry(0.45, 12, 8).translate(x, y + h + 2.8, z), { solid: false, shadow: false });
+      k.light(x, y + h + 2.8, z, 14);
+      return [x, y + h + 0.3, z];
+    };
+    mastTop = mast(decks.balcony.kit, decks.balcony.M, MASTS.balcony[0], I0.balcony.y, MASTS.balcony[1], { solid: true });
+    mast(decks.market.kit, decks.market.M, MASTS.market[0], I0.market.y, MASTS.market[1], { h: 32 });
+    mast(decks.garden.kit, decks.garden.M, MASTS.garden[0], I0.garden.y, MASTS.garden[1], { h: 28 });
+  }
+
   // ---------------------------------------------------------- finishing
   yield;
   for (const k of kits) {
@@ -326,8 +354,22 @@ export function* buildSpaceCity(scene) {
   yield;
 
   const spawn = new THREE.Vector3(SHIP_SITE.x + 4, I0.pier.y + 0.05, SHIP_SITE.z - 18);
-  return {
+  // Amaro's Oil-Lamp Shop on the Pier, west of the ship, its door to the way up to the bridge (src/shop-world.js 'adobe')
+  const shop = placeShop(scene, { def: SHOPS.oillamp, at: new THREE.Vector3(SC_SHOP.x, I0.pier.y, SC_SHOP.z), heading: SC_SHOP.heading });
+  lights.push(...shop.lights);
+  const level = {
     id: 'spacecity',
+    portals: [...shop.portals],
+    shops: [shop],
+    floraAvoid: shop.avoid(),
+    edgeHint: 'Past the last islands there is only the dark, and it turns you back.',
+    // the far end of the bridge out to the Moorings (Kip's lamp: src/story/spacecity-people.js)
+    mooringsEnd: { x: BRIDGES.find((b) => b.name === 'the Moorings bridge').b[0], y: I0.moorings.y, z: BRIDGES.find((b) => b.name === 'the Moorings bridge').b[2] + 2 },
+    sights: [
+      { name: 'the Balcony’s railing over the void', at: [0, 0, I0.balcony.z - 16] },
+      { name: 'the Garden’s overlook', at: [I0.garden.x - 14, I0.garden.y, I0.garden.z] },
+      { name: 'the cables under the Towers', at: [I0.towers.x + 18, I0.towers.y, I0.towers.z] },
+    ],
     // no ground: only the islands' decks, the bridges and the houses (physics finds them as meshes)
     ground: { heightAt: () => -Infinity },
     collision: { strategy: 'SAH' },
@@ -365,9 +407,27 @@ export function* buildSpaceCity(scene) {
       for (let i = 0; i < 14; i++) { const a = r() * Math.PI * 2, d = 5 + r() * (PLAZA.r - 7); groups.push({ at: V(PLAZA.x + Math.sin(a) * d, 0, PLAZA.z + Math.cos(a) * d), n: 2 + Math.floor(r() * 2.4) }); }
       for (const [x, z] of [[0, 34], [0, 24], [96, -84], [-98, -56], [0, -160]]) groups.push({ at: V(x, x > 50 ? 6 : x < -50 ? -4 : 0, z), n: 2 });
       for (let a = -0.7; a <= 0.7; a += 0.35) edges.push({ at: V(Math.sin(a) * 17, 0, I0.balcony.z - Math.cos(a) * 17), heading: Math.PI + a, pose: 'rail' });
-      return { groups, walks, edges, avoid: [], farMax: 200, costume: 'spacecity', clear: [{ x: SHIP_SITE.x, z: SHIP_SITE.z, r: 16 }] };
+      return { groups, walks, edges, avoid: [], farMax: 200, costume: 'spacecity', clear: [{ x: SHIP_SITE.x, z: SHIP_SITE.z, r: 16 }, { x: I0.moorings.x, z: I0.moorings.z - 4, r: 15 }] };
     },
+    // the Mooring-House over the roofs, seen from across the city
+    beacons: [
+      { name: 'the Mooring-House', top: [I0.moorings.x, I0.moorings.y + 31, I0.moorings.z - 4], height: 5 },
+      { name: 'the Balcony’s lamp-mast', top: [MASTS.balcony[0], I0.balcony.y + 33, MASTS.balcony[1]], height: 33 },
+      { name: 'the Market’s lamp-mast', top: [MASTS.market[0], I0.market.y + 35, MASTS.market[1]], height: 35 },
+      { name: 'the Garden’s lamp-mast', top: [MASTS.garden[0], I0.garden.y + 31, MASTS.garden[1]], height: 31 },
+    ],
+    // the city's leading lines (the level design audit's `lines`): its lamplit bridges and the lanes between them, the
+    // one way island to island
+    lines: [
+      { name: 'the bridges north', points: [[0, 0, I0.pier.z - 10], [0, 0, I0.gate.z], [0, 0.9, -15], [0, 0, I0.market.z], [0, 0, I0.balcony.z + 18.5], [0, 0, I0.balcony.z - 8]] },
+      { name: 'the Towers bridge and the Moorings bridge', points: [[0, 0, I0.market.z], [I0.market.x + 36.5, 0, -74], [I0.towers.x - 21.5, 6, -80], [I0.towers.x, 6, I0.towers.z], [98, 6, I0.towers.z - 19.5], [96, 14, I0.moorings.z + 20.5], [96, 14, I0.moorings.z + 8]] },
+      { name: 'the Garden bridge', points: [[0, 0, I0.market.z], [I0.market.x - 36.5, 0, -66], [I0.garden.x + 19.5, -4, -62], [I0.garden.x, -4, I0.garden.z]] },
+    ],
+    // the crow's nest on the Balcony's mast (Kip's lamp: src/story/spacecity-people.js)
+    mastTop: mastTop && { x: mastTop[0], y: mastTop[1], z: mastTop[2] },
     update() {},
   };
+  // the makers' Mooring-House on the Moorings (src/temples/spacecity.js): its door, its rooms far overhead, its quest
+  return attachTemple('spacecity', scene, level);
 }
 export const createSpaceCity = stepped(buildSpaceCity);

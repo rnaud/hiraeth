@@ -220,6 +220,38 @@ export const PLACEMENTS = {
       hint: 'A makers’ court stands east of the start, by the market’s edge, a crate on a high ledge. A box waits at its edge',
       note: 'In the makers’ court east of the start: a crate on a high ledge to knock down, ride and send back up. The market’s cabs go back along their lanes too.' },
   ],
+  moonfoundry: [
+    // the pocket bellows, a gift in the open: on the crown of the moon in its cradle's claws (a climb up the claws and the shell)
+    { id: 'moonfoundry.bellows', item: 'bellows', at: [64, 46, -92], toward: [40, -60],
+      hint: 'A makers’ box sits on the very top of the moon held in the orange cradle’s claws, east of the aisle. Climb the claws',
+      note: 'The crown of the cradled moon (CRADLE), 42 m up: climb a claw of the cradle, then the shell.' },
+    // the Casting-House (src/temples/moonfoundry.js): in the round chamber at the top of the hoist. The tongs are the key
+    // to the rest: the iron moons that only roll for them, the hot moons through the pilot flames, the Last Founder's cradle
+    { id: 'moonfoundry.temple.tongs', item: 'tongs', temple: 'moonfoundry', site: templeSite('moonfoundry'),
+      note: 'Inside the Casting-House on the hangar’s east side, in the round chamber at the top of the hoist.' },
+  ],
+  spacecity: [
+    // the star-thread, a gift in the open: on the flat roof of a tall house on the Towers, just past the Towers bridge
+    // (a 12 m climb from the deck)
+    { id: 'spacecity.starthread', item: 'starthread', at: [87.5, 18.6, -70.5], toward: [98, -84],
+      hint: 'A makers’ box sits on the flat roof of a tall house on the Towers, on your right as you come over the bridge from the Market. Climb the house',
+      note: 'The flat roof of a tall house on the Towers, south-east of where the Towers bridge lands; climb its wall from the lane.' },
+    // the Mooring-House (src/temples/spacecity.js): in the Cord Loft past the great door. Tether mode is the key to the
+    // rest: the moorers' rings, the balls out on their cables over the void, the Anchor-Warden's anchors
+    { id: 'spacecity.temple.tether', item: 'tether', temple: 'spacecity', site: templeSite('spacecity'),
+      note: 'Inside the Mooring-House on the Moorings north of the Towers, in the round loft past the great door.' },
+  ],
+  underwater: [
+    // the diver's pearl, a gift in the open: on the top deck of the tower of pods inside the Avenue's dome (a climb up
+    // the pods from the street, three decks)
+    { id: 'underwater.pearl', item: 'pearl', at: [-22.0, 15.7, -21.3], toward: [-24, -16],
+      hint: 'A makers’ box sits on the highest open deck of the tower of pods inside the Avenue’s great dome. Climb the pods',
+      note: 'The top deck of the tower of pods in the Avenue (level.decks), 16 m up: climb from deck to deck.' },
+    // the Whale-House (src/temples/underwater.js): on the shell pulpit in the Horn Chamber. The horn is the key to the rest:
+    // the held door, the ear behind the tank's glass, the ear over the Listener's Door, the Listener itself
+    { id: 'underwater.temple.horn', item: 'horn', temple: 'underwater', site: templeSite('underwater'),
+      note: 'Inside the Whale-House at the end of the last tube north of the Plaza, on the shell pulpit in the round chamber.' },
+  ],
 };
 
 /**

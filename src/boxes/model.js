@@ -388,11 +388,98 @@ function passModel() {
   return g;
 }
 
+// ---- the three worlds that joined the route in v1.40
+function tongsModel() {
+  // a pair of black iron tongs, shrunk to fit a cuff, their jaws worn bright round a tiny moon
+  const g = new THREE.Group();
+  for (const s of [-1, 1]) {
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.016, 0.02).translate(-0.02, 0, 0).rotateZ(s * 0.12), flatM('#3d3a40')));
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.009, 4, 12, Math.PI).rotateZ(s > 0 ? 0 : Math.PI).translate(0.12, s * 0.025, 0), flatM('#c9c4bc')));
+  }
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 8).rotateX(Math.PI / 2).translate(-0.04, 0, 0), flatM('#d6a13e')));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.028, 12, 8).translate(0.14, 0, 0), flatM('#efe4cc')));
+  g.rotation.set(0.3, 0.2, 0.25);
+  return g;
+}
+function tetherModel() {
+  // a coil of pale cord with a brass hook on its end
+  const g = new THREE.Group();
+  for (let i = 0; i < 4; i++) g.add(new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.011, 5, 24).translate(0, 0, i * 0.018 - 0.027), flatM('#f4e9c8')));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.03, 0.008, 4, 12, Math.PI * 1.4).translate(0.11, -0.04, 0), flatM('#d6a13e')));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.06, 6).rotateZ(0.9).translate(0.085, -0.01, 0), flatM('#f4e9c8')));
+  g.rotation.set(1.0, 0.3, 0);
+  return g;
+}
+function hornModel() {
+  // a curled horn of grey shell, its mouth ringed in the whales' blue
+  const g = new THREE.Group();
+  const pts = [];
+  for (let i = 0; i <= 20; i++) { const t = i / 20, a = t * Math.PI * 1.3; pts.push(new THREE.Vector3(Math.cos(a) * (0.11 - t * 0.05), Math.sin(a) * (0.11 - t * 0.05), t * 0.04)); }
+  const curve = new THREE.CatmullRomCurve3(pts.reverse());
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 30, 0.012, 8), flatM('#a9b4b8')));
+  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.06, 14, 1, true).rotateZ(Math.PI / 2).translate(0.12, 0.0, 0), flatM('#c9d2d6', { side: THREE.DoubleSide })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.006, 4, 16).rotateY(Math.PI / 2).translate(0.15, 0, 0), flatM('#6f8fd8', { glow: 0.5 })));
+  g.rotation.set(0.4, -0.3, 0);
+  return g;
+}
+function pearlModel() {
+  // a grey pearl on a cord
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 12), flatM('#d8dde0', { glow: 0.15 })));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.005, 3, 30, Math.PI * 1.6).rotateZ(-Math.PI * 0.3).translate(0, 0.1, 0), flatM('#5a4a3a')));
+  return g;
+}
+function bellowsModel() {
+  // a pocket bellows: two boards, cracked leather pleats between, a brass nozzle
+  const g = new THREE.Group();
+  for (const y of [-0.035, 0.035]) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.012, 3, 1).rotateY(Math.PI / 6).scale(1.2, 1, 1).translate(0, y, 0), flatM('#8a5a3a')));
+  for (let i = 0; i < 3; i++) g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.07 - i * 0.004, 0.07 - i * 0.004, 0.018, 3, 1, true).rotateY(Math.PI / 6).scale(1.2, 1, 1).translate(0, -0.02 + i * 0.02, 0), flatM('#c98a5a', { side: THREE.DoubleSide })));
+  g.add(new THREE.Mesh(new THREE.ConeGeometry(0.014, 0.07, 8).rotateZ(-Math.PI / 2).translate(0.13, 0, 0), flatM('#d6a13e')));
+  g.rotation.set(0.5, 0.3, 0);
+  return g;
+}
+function starthreadModel() {
+  // a twist of pale thread that shines a little, looped round a peg
+  const g = new THREE.Group();
+  const pts = [];
+  for (let i = 0; i <= 40; i++) { const t = i / 40, a = t * Math.PI * 6; pts.push(new THREE.Vector3(Math.cos(a) * 0.05, -0.1 + t * 0.2, Math.sin(a) * 0.05)); }
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 80, 0.006, 4), flatM('#eef1fa', { glow: 0.45 })));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.24, 8), flatM('#8a6a4a')));
+  g.rotation.z = 0.3;
+  return g;
+}
+function capModel() {
+  // the divers' close knitted cap, teal, a brass ring over one ear
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), flatM('#3f8f96')));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.012, 4, 24).rotateX(Math.PI / 2), flatM('#2f6f78')));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.018, 0.005, 4, 12).rotateY(Math.PI / 2).translate(0.088, 0.02, 0), flatM('#d6a13e')));
+  g.rotation.x = -0.3;
+  return g;
+}
+function pinModel() {
+  // a pin like a tiny moon, its seam showing
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 14, 10), flatM('#efe4cc')));
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.003, 3, 24), flatM('#c9a888')));
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.12, 5).rotateZ(Math.PI / 2).translate(0, -0.06, -0.01), flatM(STEEL)));
+  return g;
+}
+function ribbonModel() {
+  // a strip of salmon cloth tied in a loop
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.015, 3, 24).scale(1, 1, 0.25), flatM('#e89a7e')));
+  for (const s of [-1, 1]) g.add(new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.09, 0.004).rotateZ(s * 0.3).translate(s * 0.02, -0.1, 0), flatM('#e89a7e')));
+  return g;
+}
+
 const MODELS = {
   backpack: tankModel, doublejump: liftModel, jetpack: jetsModel, harness: jetsModel, glider: wingsModel, stun: () => lensModel('#bfe8f2', { ice: true }), fire: flintModel,
   cell: cellModel, coil: coilModel, lantern: lanternModel, lens: () => lensModel('#d8d4c8', { glyph: true }), bell: whistleModel, star: starModel,
   bloom: bloomModel, echo: echoModel, level: levelModel,
   soles: solesModel, hush: hushModel, shell: shellModel, moss: mossModel, pouch: pouchModel, scarf: scarfModel, reed: reedModel, resin: resinModel, cabpass: passModel,
+  tongs: tongsModel, tether: tetherModel, horn: hornModel, pearl: pearlModel, bellows: bellowsModel, starthread: starthreadModel,
+  divercap: capModel, founderspin: pinModel, courierribbon: ribbonModel,
 };
 
 /** An item's model from elsewhere (the gadgets bring their own: src/gadgets/registry.js). */

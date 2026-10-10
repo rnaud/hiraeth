@@ -983,7 +983,7 @@ export class FluidTool {
     // a shot: a fresh press of the fire button while aiming (or the touch button's quick shot)
     const quickPress = input.quick && !this.held.quick;
     // (the push is a gun mode: fired as a shot, it throws its cone instead of a glob)
-    const firePress = (input.shoot && !this.held.fire) || quickPress, pushPress = firePress && this.mode === 'push', shootPress = firePress && !pushPress;
+    const firePress = (input.shoot && !this.held.fire) || quickPress, pushPress = firePress && !!MODES[this.mode]?.cone, shootPress = firePress && !pushPress;   // (a cone mode: the push, the tether's pull)
     const modePress = input.mode && !this.held.mode;
     const bladePress = input.blade && !this.held.blade;
     this.held.blade = input.blade;
@@ -1319,6 +1319,8 @@ export class FluidTool {
   /** The push: a cone of fluid shock from the hand. Returns the targets it touched. */
   push() {
     if (this.dry || !this.reserve.use(MAGIC_COST.push)) { this.sputter(); return []; }   // (an empty tank's dregs don't push)
+    // the tether (the City Floating in Space's mode): the same cone, pulling toward you: its targets get 'tether' and the way back to the hand
+    const pull = !!MODES[this.mode]?.pull, cone = pull ? this.mode : 'push';
     const p = this.player, U = p.frame.up;
     const origin = _o.copy(p.pos).addScaledVector(U, 1.15);
     // along the aim, flattened toward the ground plane when it's a quick push
@@ -1327,12 +1329,12 @@ export class FluidTool {
     if (dir.lengthSq() < 1e-6) p.frame.dir(p.heading, dir);
     dir.normalize();
     const hits = targetsInCone(origin, dir, FLUID.push.range, FLUID.push.angle, this.physics);
-    for (const h of hits) hitTarget(h, 'push', h.dir, this.info(1 - h.distance / FLUID.push.range));
+    for (const h of hits) hitTarget(h, cone, pull ? h.dir.clone().negate() : h.dir, this.info(1 - h.distance / FLUID.push.range));
     this.cooldown = FLUID.push.cooldown;
     this.used('push', origin);
     this.sound?.fluidPush?.();
     // recoil: a small step back (on the ground)
-    if (p.vel && p.onGround) p.vel.addScaledVector(_a.copy(dir).addScaledVector(U, -dir.dot(U)), -FLUID.push.recoil);
+    if (p.vel && p.onGround) p.vel.addScaledVector(_a.copy(dir).addScaledVector(U, -dir.dot(U)), -FLUID.push.recoil * (pull ? -0.5 : 1));
     // the shock front: three rings in the fluid's tones, and a fan of spray
     const from = this.muzzle(_m).clone(), tones = this.modeTones, tan = Math.tan(FLUID.push.angle);
     for (let i = 0; i < 3; i++) this.rings.add({ from, dir, reach: FLUID.push.range * (0.75 + i * 0.12), r0: 0.15, r1: FLUID.push.range * tan * (0.7 + i * 0.12), life: 0.32 + i * 0.07, delay: i * 0.05, color: tones[i % tones.length], thick: 0.9 });

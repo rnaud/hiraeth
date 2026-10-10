@@ -2097,12 +2097,12 @@ export class Sound {
     this.burst(t, { dur: 0.32, type: 'bandpass', freq: 1300, q: 1.4, vol: 0.07, rate: 1.1 });
   }
 
-  /** Under water (k 1) the world's sound goes dull and close; back out (k 0), bright again. */
+  /** Under water (k 1) the world's sound goes dull and close; back out (k 0), bright again; in between, the sea heard through glass (the Underwater City's halls: 0.3). */
   underwater(k = 0) {
     if (!this.ctx || !this.muffle || this._under === k) return;
     this._under = k;
     const t = this.ctx.currentTime;
-    this.muffle.frequency.setTargetAtTime(k ? 520 : 22000, t, k ? 0.06 : 0.15);
+    this.muffle.frequency.setTargetAtTime(k >= 1 ? 520 : k > 0 ? 3200 : 22000, t, k ? 0.06 : 0.15);
   }
 
   // ------------------------------------------------------------------ musicians in the world

@@ -7,11 +7,16 @@ import { RoomKit } from './lab-kit.js';
 import { mergeWithMaterials, restKey } from '../vertex-material.js';
 import { PEOPLE as BURIED_PEOPLE } from '../story/buried-data.js';
 import { PEOPLE as SPHERES_PEOPLE } from '../story/spheres-data.js';
+import { PEOPLE as MF_PEOPLE, VISITORS as MF_VISITORS } from '../story/moonfoundry-people.js';
 import {
   moon, courtyard, lipFloor, bowl, cradle, hangRig, pillar, roof, gantry, house, tree, jibCrane, pourStream, beam, bar, moveParts,
   MF_LOOK, MF_DAY, MF_DUSK, MF_NIGHT, MF_TONES,
 } from './moon-foundry-kit.js';
 import { trussStair, lathe } from './antennas-kit.js';
+import { attachTemple } from '../temples/index.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
+import { SITE as CASTING_HOUSE } from '../temples/moonfoundry.js';
 
 // ---------------------------------------------------------------------------
 // The Moon Foundry (?level=moonfoundry): an abandoned monumental workshop where miniature moons were made, after its
@@ -56,6 +61,8 @@ export const PMOON = { x: 108, z: -210, R: 12, h: 40 };
 export const FURNACE = { x: 70, z: -14, r: 6.5, h: 9 };
 export const QUARTER = { x: -102, z: -46, r: 26 };
 export const LIMIT = 330;
+/** Gunnar's Crucible: on the floor west of the aisle, in from the mouth, its door turned to the ship. */
+export const MF_SHOP = { x: -28, z: 14, heading: Math.atan2(0 - -28, 120 - 14) };
 
 const noise = createNoise2D(91101), noiseB = createNoise2D(91102);
 /** The ground: the hangar's floor level, the apron, the plain outside rolling gently up into low hills far off. */
@@ -91,16 +98,24 @@ function nearWay(pts, x, z) {
   return best;
 }
 
-// ------------------------------------------------------------------ content: a few people from elsewhere and the foundry's own
+// ------------------------------------------------------------------ content: the foundry's story page, relics, its folk and its visitors
+// (on the route since v1.40, after the Buried Machine: its story src/story/moonfoundry.js, its people and errands
+// src/story/moonfoundry-people.js; the Casting-House and Ilse at its door src/temples/moonfoundry.js)
+const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
 export const MOONFOUNDRY_CONTENT = {
   weather: [],
+  // the world's page: opened on arrival, closed when the Last Founder is stopped (src/story/moonfoundry.js)
   story: {
-    title: 'THE MOON FOUNDRY',
-    intro: 'A workshop for making moons, left unfinished. The moons still hang where the cranes stopped. People live in the old machinery now, and one furnace is still warm.',
-    outro: 'From the gantry the whole floor shows: moons on their hooks, moons in their claws, one broken open with a street inside it. Nobody finished them. Nobody minds.',
-    label: 'the courtyard in the broken moon', goal: [COURT.x, 'ground', COURT.z], radius: 8, manual: true,   // (no beacon: nothing to do here but look)
+    title: 'THE MOON NOBODY CAME FOR',
+    intro: 'A workshop for making moons, left unfinished; the workers live in the old machinery. Since the night the sky rang every hung moon has turned toward where the light went, and at night the makers’ Casting-House pours again by itself.',
+    outro: 'The Last Founder is still, the last moon is on its hook, and the hung moons turn slowly toward it. Ilse’s ledger says the first moons went to a garden far off, and fell short.',
+    label: 'the Casting-House', goal: [CASTING_HOUSE.x, 'ground', CASTING_HOUSE.z], radius: 18, manual: true,
   },
-  relics: { spots: [], names: [] },
+  // (high and out of the way: the pillar's lookout, the courtyard in the broken moon, the bowl's deck, the gantry, the quarter's roofs)
+  relics: {
+    spots: [{ at: [PMOON.x + 2, PMOON.h * 0.78 + 3, PMOON.z + 3], snap: true }, { at: [COURT.x + 6, COURT_Y + 3, COURT.z + 4], snap: true }, { at: [BOWL.x - 4, G + 3, BOWL.z], snap: true }, { at: [STAIR.x, G + 3, -64], snap: true }, [QUARTER.x, QUARTER.z]],
+    names: ['Moon shaving', 'Ledger page', 'Cooling pin', 'Bent rivet', 'Polishing rag'],
+  },
   npcs: [
     // Dun of the Buried Machine, at the last furnace; Wen, counting moons from the courtyard; Emrys of the Garden of Spheres on the bowl
     { ...BURIED_PEOPLE.dun, at: [FURNACE.x - 9, FURNACE.z + 6], radius: 1.5, world: 'buried', lang: 'buried',
@@ -111,37 +126,25 @@ export const MOONFOUNDRY_CONTENT = {
         '~playful~ The ladle tips by itself every so often. I asked who works it. Everyone pointed at someone else.',
         { after: 'met.dun', say: '~happy~ Still warm. Mind your eyebrows.' },
       ] } },
-    { ...BURIED_PEOPLE.wen, at: [COURT.x + COURT_DIR.x * 8 + 3, COURT.z + COURT_DIR.z * 8], y: COURT_Y + 0.05, radius: 1.5, world: 'buried', lang: 'buried',
-      lines: ['~happy~ Thirty-one moons on the floor. I counted twice.', '~neutral~ This one cracked in the casting, they say. Good thing, too: it makes a lovely street.'],
-      talk: { listen: [
-        '~happy~ Wen, who counts the teeth. I count moons now, on holiday. Thirty-one, not counting the far ones.',
-        '~curious~ Nobody knows who the moons were for. Somebody’s sky, somewhere, waiting for them.',
-        '~whisper~ At night the hung ones turn a little on their hooks. Very slowly. Like they are looking for where they should go.',
-      ] } },
+    // (Wen's errand: the moons counted from the pillar's lookout, the count to Ilse: src/story/moonfoundry-people.js VISITORS)
+    { ...BURIED_PEOPLE.wen, ...MF_VISITORS.wen, at: [WAYS.main[2][0] - 1.2, WAYS.main[2][2]], y: G + 0.05, radius: 0.8, world: 'buried', lang: 'buried' },   // (on the gantry, out over the floor before the broken moon)
     { ...SPHERES_PEOPLE.ivo, at: [BOWL.x + 4, BOWL.z + 3], y: G + 0.05, radius: 1.5, world: 'spheres', lang: 'spheres',
       lines: ['~curious~ Our spheres grow. These were built. I can’t decide which is stranger.', '~happy~ You can see the whole floor from up here.'],
       talk: { listen: [
         '~curious~ Emrys, from the Garden of Spheres. I climb the white hill at home. Here I climb gantries.',
         '~playful~ They planted a garden in half a moon. At home we would call that a very good idea that took too long.',
         '~neutral~ Follow the walkway north and it goes straight into the broken one. There’s a whole street in there.',
+        { after: 'clue.moonfoundry.spheres', say: '~surprised~ The first moons went to a garden and fell short? Our spheres? I’ve been climbing somebody’s sky all my life.' },
       ] } },
     // the foundry's own folk
-    { at: [QUARTER.x + 6, QUARTER.z + 4], radius: 3, lang: 'buried', lines: ['~happy~ We live in the old machines. They keep the rain off and they hum at night.', '~neutral~ That drum was a polishing wheel once. Now it is my kitchen.'] },
-    { at: [QUARTER.x - 8, QUARTER.z - 6], radius: 2, lang: 'buried', lines: ['~curious~ You came in from the apron? Most people come by the rails.', '~tired~ Sweeping a floor this size is not a job. It is a way of life.'] },
-    { at: [CRADLE.x - 20, CRADLE.z + 10], radius: 3, lang: 'buried', lines: ['~solemn~ The claws still hold. Nobody has told them to let go.', '~playful~ My grandmother polished that moon. One crater a day. She got to nine.'] },
-    { at: [10, 30], radius: 2, lang: 'buried', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
-    // (Bertil: the detour's trace, src/story/sightings-detours.js)
-    { id: 'bertil', name: 'Bertil', title: 'who pours at the last furnace', color: '#c8693c', kind: 'm', at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'buried',
-      lines: ['~happy~ Warm your hands. The furnace does not mind.', '~whisper~ If you listen at the mouth you can hear it talking to itself.'],
-      talk: { listen: [
-        { after: () => true, say: [
-          '~neutral~ Years back I cast a plate for a ship’s nose, for a woman who came on her own and asked nicely.',
-          '~curious~ She drew it in soot on the floor, slowly, like a new word: {glyph}. *So they’ll know me,* she said.',
-          '~solemn~ I didn’t ask who they were. I poured it twice to get the arc right.',
-        ], do: { set: { 'sight.moonfoundry.bertil': true } } },
-        '~happy~ Warm your hands. The furnace does not mind.',
-        '~whisper~ If you listen at the mouth you can hear it talking to itself.',
-      ] } },
+    { at: [QUARTER.x + 6, QUARTER.z + 4], radius: 3, lang: 'moonfoundry', lines: ['~happy~ We live in the old machines. They keep the rain off and they hum at night.', '~neutral~ That drum was a polishing wheel once. Now it is my kitchen.'] },
+    { at: [QUARTER.x - 8, QUARTER.z - 6], radius: 2, lang: 'moonfoundry', lines: ['~curious~ You came in from the apron? Most people come by the rails.', '~tired~ Sweeping a floor this size is not a job. It is a way of life.'] },
+    { at: [CRADLE.x - 20, CRADLE.z + 10], radius: 3, lang: 'moonfoundry', lines: ['~solemn~ The claws still hold. Nobody has told them to let go.', '~playful~ My grandmother polished that moon. One crater a day. She got to nine.'] },
+    { at: [10, 30], radius: 2, lang: 'moonfoundry', lines: ['~neutral~ Mind the rails on the floor. Nothing runs on them, but they trip you.', '~surprised~ A ship on the apron! We usually only get pigeons and inspectors.'] },
+    // Bertil at the last furnace (the light's trace from the world's detour days, and the ladle-hook's end): src/story/moonfoundry-people.js
+    { ...MF_PEOPLE.bertil, at: [FURNACE.x + 4, FURNACE.z + 12], radius: 2, lang: 'moonfoundry', palette: pal('#c8693c', { cloth: '#e8d2a8' }) },
+    // Ottilie mends in the quarter (her ladle-hook goes to Bertil; the cast bell to the Garden of Spheres: src/levels/content.js)
+    { ...MF_PEOPLE.ottilie, at: [QUARTER.x + 14, QUARTER.z - 10], radius: 1.5, lang: 'moonfoundry', palette: pal('#c9703e', { cloth: '#efe4cc' }) },
   ],
 };
 
@@ -270,7 +273,7 @@ export function* buildMoonFoundry(scene) {
   }
   // (the roof's front: a deep fascia girder over the mouth)
   put(0, MOUTH, { steel: [beam(V(HALL.x0, HALL.roof - 1.6, MOUTH), V(HALL.x1, HALL.roof - 1.6, MOUTH), 1.2, 4.5)] }, { solid: false, shadow: false });
-  const stations = [HUNG, CRADLE, { x: COURT.x, z: COURT.z, R: COURT.R + 8 }, { x: BOWL.x, z: BOWL.z, R: BOWL.R + 6 }, { x: PMOON.x, z: PMOON.z, R: 14 }, { x: FURNACE.x, z: FURNACE.z, R: 16 }, { x: QUARTER.x, z: QUARTER.z, R: QUARTER.r }, HUNG2];
+  const stations = [HUNG, CRADLE, { x: COURT.x, z: COURT.z, R: COURT.R + 8 }, { x: BOWL.x, z: BOWL.z, R: BOWL.R + 6 }, { x: PMOON.x, z: PMOON.z, R: 14 }, { x: FURNACE.x, z: FURNACE.z, R: 16 }, { x: QUARTER.x, z: QUARTER.z, R: QUARTER.r }, HUNG2, { x: CASTING_HOUSE.x, z: CASTING_HOUSE.z, R: 16 }];   // (the Casting-House: src/temples/moonfoundry.js)
   const pillars = [];
   for (const x of [-150, -100, -50, 50, 100, 150]) for (const z of [30, -50, -128, -206, -280]) {
     if (stations.some((s) => Math.hypot(s.x - x, s.z - z) < (s.R ?? 10) + 8) || (Math.abs(x) < 30 && z > -150) || nearWay(WAYS.main, x, z) < 8 || nearWay(WAYS.branch, x, z) < 8) continue;
@@ -530,8 +533,32 @@ export function* buildMoonFoundry(scene) {
     }
     Cl.needsUpdate = true;
   };
-  return {
+  // Gunnar's shop in an old crucible on the floor west of the aisle, a short walk in from the mouth, its door to the ship
+  // (src/shop-world.js, src/shop-fronts.js 'crucible')
+  const shop = placeShop(scene, { def: SHOPS.crucible, at: new THREE.Vector3(MF_SHOP.x, H(MF_SHOP.x, MF_SHOP.z), MF_SHOP.z), heading: MF_SHOP.heading });
+  lights.push(...shop.lights);
+  // (the makers' temple, the Casting-House on the hangar's east side: src/temples/moonfoundry.js)
+  return attachTemple('moonfoundry', scene, {
     id: 'moonfoundry',
+    portals: [...shop.portals],
+    shops: [shop],
+    floraAvoid: shop.avoid(),
+    edgeHint: 'The plain runs on into the haze and the far moons, and turns you back.',
+    // the lookout on the pillar under the moon on its pillar (Wen's count: src/story/moonfoundry-people.js), the hung moon
+    // the climax looks up at (src/story/moonfoundry-moments.js)
+    lookout: { x: PMOON.x, y: PMOON.h * 0.78, z: PMOON.z },
+    // the floor's leading lines (the level design audit's `lines`): the aisle's painted edges and lamps north from the
+    // mouth, the rails in the floor from the furnace to the gantry's stair, and the gantry's railed way to the broken moon
+    lines: [
+      { name: 'the aisle’s lamps', points: [[0, 0, MOUTH + 20], [0, 0, -40], [0, 0, -140]] },
+      { name: 'the rails and the gantry', points: [[FURNACE.x - 14, 0, FURNACE.z + 10], [STAIR.x + 6, 0, STAIR.z0 + 6], [STAIR.x, G, WAYS.top], ...WAYS.main.slice(1)] },
+    ],
+    hung: { x: HUNG.x, y: HUNG.y, z: HUNG.z },
+    sights: [
+      { name: 'the last furnace’s pour', at: [FURNACE.x - 8, 0, FURNACE.z] },
+      { name: 'the moon in the claws', at: [CRADLE.x, 0, CRADLE.z + CRADLE.R + 4] },
+      { name: 'the courtyard in the broken moon', at: [COURT.x, COURT_Y, COURT.z] },
+    ],
     ground: terrain,
     collision: { strategy: 'SAH' },
     spawn,
@@ -585,7 +612,7 @@ export function* buildMoonFoundry(scene) {
       for (const Cc of kits.values()) for (const m of Cc.kit.movers) m(t);
       updatePour(t);
     },
-  };
+  });
 }
 export const createMoonFoundry = stepped(buildMoonFoundry);
 

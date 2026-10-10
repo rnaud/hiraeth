@@ -454,6 +454,102 @@ export const FRONTS = {
     for (let i = 0; i < 14; i++) { const t = i / 13, x = -2.25 + t * 4.5; for (const y of [4.25, 5.85]) B.add('#fff2b0', bulb(x, y, -0.55, 0.07), { soft: true, glow: 1 }); }
     return { door: 1.95, lights: [[-1.15, 2.5, 1.3, 6], [0, 5.0, 0.6, 8], [1.95, 2.2, 0.7, 5]], size: { w: 10, d: 11, h: 11 } };
   },
+  // ---- the three worlds that joined the route in v1.40
+
+  /**
+   * The Underwater City, Odette's Air-Shop (inside the Avenue's great dome): a squat teal shell house, its round
+   * door in a thick coral frame, a lit porthole, a brass diving helmet for a sign over the door, glass floats in a
+   * net by the door, a shelf of wares on a coral bracket.
+   */
+  bubble(B) {
+    const teal = '#4a8790', teal2 = '#3d727a', coral = '#f0aa98', coral2 = '#d98a7a', c = [0, -0.6, -4.4], R = 3.8;
+    B.add(teal, new THREE.SphereGeometry(R, 26, 12, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.85, 1).translate(...c), { plates: true });
+    B.add(teal, new THREE.CylinderGeometry(R, R, 1.2, 26, 1, true).translate(c[0], c[1] - 0.6, c[2]));
+    for (const y of [0.9, 2.1]) B.add(coral2, new THREE.TorusGeometry(Math.sqrt(R * R - ((y - c[1]) / 0.85) ** 2) + 0.03, 0.07, 4, 26).rotateX(Math.PI / 2).translate(c[0], y, c[2]), { soft: true });
+    // the round door in a thick coral frame proud of the shell, solid behind
+    B.add(coral, archWall(2.6, 3.1, 0.9, { arch: true, door: { w: 1.4, h: 2.4, arch: true } }));
+    B.add(coral, new THREE.ExtrudeGeometry(archShape(2.6, 3.1), { depth: 1.1, bevelEnabled: false }).translate(0, 0, -2.0));
+    B.add(coral, block(2.8, 1.2, 2.2, 0, -1.2, -1.0));
+    lit(B, 1.4, 2.4, 0, 0, -0.88, { color: '#ffcf96' });
+    for (const g of archFrame(1.4, 2.4, { t: 0.12, d: 0.08 })) B.add(coral2, g, { soft: true });
+    // the porthole, lit
+    { const { p, n } = onDome(c, R, -2.2, 1.4, 0.85); B.add(BRASS, facing(new THREE.TorusGeometry(0.45, 0.08, 6, 18), p, n), { soft: true }); B.add('#ffd98a', facing(new THREE.CircleGeometry(0.4, 18), p.clone().addScaledVector(n, 0.02), n), { soft: true, glow: 0.85 }); }
+    // the diving helmet over the door: a brass globe with a round glass face
+    B.add(BRASS, new THREE.SphereGeometry(0.42, 14, 10).translate(0, 3.45, 0.15), { soft: true });
+    B.add('#bfe8ee', new THREE.CircleGeometry(0.22, 14).translate(0, 3.45, 0.58), { soft: true, glow: 0.3 });
+    B.add(BRASS, new THREE.TorusGeometry(0.24, 0.04, 5, 14).translate(0, 3.45, 0.56), { soft: true });
+    // glass floats in a net by the door, the shelf of wares on its coral bracket
+    for (let i = 0; i < 4; i++) B.add('#9fe0e4', new THREE.SphereGeometry(0.18, 10, 8).translate(1.75 + (i % 2) * 0.32, 0.5 + Math.floor(i / 2) * 0.34, 0.45), { soft: true, glow: 0.25 });
+    B.add(INK, cord(1.9, 1.6, 0.4, 0.4), { soft: true });
+    B.add(coral2, block(1.6, 0.07, 0.48, -2.3, 0.95, 0.3));
+    B.add(coral2, block(0.5, 0.95, 0.4, -2.3, 0, 0.2));
+    wares(B, -2.95, 1.02, 0.32, { flasks: 2, heart: 'jar', holder: '#3d727a', step: 0.32 });
+    return { lights: [[0, 2.3, 0.8, 6], [-2.2, 1.6, -1.4, 4]], size: { w: 9, d: 9, h: 5 } };
+  },
+
+  /**
+   * The Moon Foundry, the Crucible: a shop in an old casting crucible standing on the floor, a squat rust drum with
+   * a spout and a pouring lip, banded in brass, an arched door cut in its side, a tipped ladle hung for a sign, a
+   * cracked moon-shard over the door, a bench of wares made from an ingot mould.
+   */
+  crucible(B) {
+    const rust = '#c9703e', rust2 = '#a85a33', ivory = '#efe4cc', dark = '#4a3a33', cz = -4.6, R = 4.2;
+    B.add(rust, lathe([[R + 0.3, -1.4], [R + 0.2, -0.2], [R, 0.4], [R, 4.6], [R - 0.3, 5.2], [R + 0.3, 5.6], [R + 0.35, 5.9], [0.01, 5.9]], 28).translate(0, 0, cz), { plates: true });
+    for (const y of [0.9, 2.6, 4.3]) B.add(BRASS, new THREE.TorusGeometry(R + 0.04, 0.09, 5, 28).rotateX(Math.PI / 2).translate(0, y, cz), { soft: true });
+    // the pouring spout at the rim, toward the right
+    B.add(rust2, new THREE.CylinderGeometry(0.5, 0.9, 1.8, 10, 1, true).rotateZ(-1.0).translate(R - 0.2, 5.4, cz + 1.0), { side: THREE.DoubleSide });
+    // the arched door in its side, solid behind
+    B.add(rust, archWall(2.8, 3.4, 0.8, { arch: true, door: { w: 1.4, h: 2.5, arch: true } }), { plates: true });
+    B.add(rust, new THREE.ExtrudeGeometry(archShape(2.8, 3.4), { depth: 1.0, bevelEnabled: false }).translate(0, 0, -1.8));
+    B.add(rust, block(3.0, 1.4, 2.0, 0, -1.4, -0.9));
+    lit(B, 1.4, 2.5, 0, 0, -0.78, { color: '#ffb46a' });
+    for (const g of archFrame(1.4, 2.5, { t: 0.12, d: 0.08 })) B.add(dark, g, { soft: true });
+    // the moon-shard over the door: a piece of ivory shell, cratered
+    B.add(ivory, new THREE.SphereGeometry(0.8, 14, 8, 0, Math.PI * 0.9, 0.3, 1.2).translate(0, 3.2, -0.4), { soft: true });
+    for (const [x, y] of [[-0.25, 3.5], [0.2, 3.3]]) B.add('#d8c8a8', new THREE.CircleGeometry(0.1, 10).translate(x, y, 0.36), { soft: true });
+    // the ladle hung for a sign on a jib from the drum
+    B.add(dark, stick([-2.6, 3.6, -1.6], [-2.6, 3.6, 0.6], 0.06), { soft: true });
+    B.add(INK, cord(-2.6, 3.6, 2.8, 0.55), { soft: true });
+    B.add(dark, lathe([[0.01, 0], [0.42, 0.06], [0.48, 0.42], [0.5, 0.5]], 14).rotateZ(0.5).translate(-2.6, 2.4, 0.55), { soft: true, side: THREE.DoubleSide });
+    // the bench of wares: an ingot mould on two blocks
+    B.add(dark, block(1.8, 0.16, 0.55, 2.4, 0.86, 0.35));
+    for (const x of [1.7, 3.1]) B.add(rust2, block(0.4, 0.86, 0.5, x, 0, 0.35));
+    wares(B, 1.75, 1.02, 0.38, { flasks: 2, heart: 'box', holder: '#8a5a3a', step: 0.34 });
+    return { lights: [[0, 2.3, 0.8, 6], [2.4, 2.0, 0.9, 4]], size: { w: 10, d: 10, h: 7 } };
+  },
+
+  /**
+   * The City Floating in Space, Amaro's Oil-Lamp Shop: a rounded cream adobe house with a salmon band and a roof of
+   * heaped domes, a round-topped door, a window of lit lamps, a washing line strung to a pole, a lamp on a bracket
+   * for a sign, a little cart of wares out front.
+   */
+  adobe(B) {
+    const cream = '#f2e2c4', cream2 = '#e6d2ae', salmon = '#e89a7e', coral = '#d9775f', teal = '#3f6f78', cz = -3.4;
+    B.add(cream, block(6.0, 4.4, 5.0, 0, -0.8, cz - 0.6), { plates: false });
+    B.add(cream2, new THREE.SphereGeometry(2.4, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.7, 1).translate(-1.2, 3.6, cz - 0.6));
+    B.add(cream2, new THREE.SphereGeometry(1.7, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.8, 1).translate(1.7, 3.6, cz - 1.2));
+    B.add(salmon, new THREE.BoxGeometry(6.06, 0.32, 5.06).translate(0, 2.7, cz - 0.6), { soft: true });
+    B.add(cream, archWall(6.0, 3.6, 0.6, { door: { w: 1.4, h: 2.4, x: -1.4, arch: true }, windows: [{ w: 1.8, h: 1.2, x: 1.4, y: 1.1 }] }));
+    lit(B, 1.4, 2.4, -1.4, 0, -0.58, { color: '#ffd9a0' });
+    lit(B, 1.8, 1.2, 1.4, 1.1, -0.58, { arch: false, color: '#ffe0a8' });
+    for (const g of archFrame(1.4, 2.4, { t: 0.12, d: 0.08 })) B.add(coral, g.translate(-1.4, 0, 0), { soft: true });
+    // the lamps in the window, the lamp on its bracket over the door
+    for (let i = 0; i < 4; i++) B.add('#fff0b8', bulb(0.75 + i * 0.43, 1.6, -0.3, 0.09), { soft: true, glow: 1 });
+    B.add(teal, stick([-1.4, 3.0, 0.02], [-1.4, 3.0, 0.7], 0.035), { soft: true });
+    B.add(INK, cord(-1.4, 3.0, 2.7, 0.7), { soft: true });
+    B.add('#ffe39a', new THREE.CylinderGeometry(0.14, 0.14, 0.3, 8).translate(-1.4, 2.55, 0.7), { soft: true, glow: 1 });
+    B.add(teal, new THREE.ConeGeometry(0.2, 0.14, 8).translate(-1.4, 2.77, 0.7), { soft: true });
+    // the washing line to a pole, cloths on it
+    B.add(teal, stick([3.6, 0, 0.8], [3.6, 3.1, 0.8], 0.05));
+    B.add(INK, stick([2.9, 2.9, 0.05], [3.6, 3.0, 0.8], 0.01), { soft: true });
+    for (const [x, c] of [[3.05, salmon], [3.35, '#f6efe2']]) B.add(c, cloth([x - 0.12, 2.92, 0.3 + (x - 2.9)], [x + 0.12, 2.94, 0.35 + (x - 2.9)], [x + 0.12, 2.4, 0.35 + (x - 2.9)], [x - 0.12, 2.4, 0.3 + (x - 2.9)]), { soft: true, side: THREE.DoubleSide });
+    // the cart of wares out front
+    B.add(coral, block(1.7, 0.6, 0.7, 1.4, 0.35, 0.65));
+    B.add(cream2, block(1.8, 0.06, 0.8, 1.4, 0.95, 0.65));
+    for (const x of [0.75, 2.05]) B.add(teal, new THREE.CylinderGeometry(0.33, 0.33, 0.08, 14).rotateZ(Math.PI / 2).translate(x, 0.33, 1.05), { soft: true });
+    wares(B, 0.75, 1.01, 0.65, { flasks: 2, heart: 'basket', holder: '#c98a5a', step: 0.32 });
+    return { door: -1.4, lights: [[-1.4, 2.4, 0.8, 6], [1.4, 1.8, 0.9, 5]], size: { w: 9, d: 7, h: 6 } };
+  },
 };
 
 /** A world's shopfront (FRONTS[style]) at `at`, its door turned to `heading`; buildShopfront's shape. */

@@ -102,7 +102,7 @@ test('old saves keep their charted worlds; a new game searches', () => {
   assert.deepEqual(after.findable, []);
   // the next one the route opens after that is searched for
   const later = routeChart({ order: ORDER, done: (id) => !!old[`world.${id}.done`] || id === 'perdide', flag: (k) => old[k] });
-  assert.deepEqual(later.findable, ['incal']);
+  assert.deepEqual(later.findable, ['underwater'], 'Viridel charted already; the Underwater City (the fifth since v1.40) is searched for');
   // a brand-new game has nothing to migrate: it searches
   const fresh = {};
   migrateFlags(fresh);

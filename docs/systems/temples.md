@@ -254,6 +254,58 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   its groove lights it again as it passes, and wakes the keepers' door `sc` back to the near ledge. The Keeper turns
   to fire (`HEARTH_FIRE`, `rt.spokes`: a tar ball in each of four spokes, rolled in past its rim brazier). A link may
   be held by a latched element itself (thorns over a doorway): `logic.js` keeps it shut until it is lit.
+- **Where a moon rests, the house leans** (the Moon Foundry's Casting-House, `moonfoundry.js` + `moonfoundry-data.js`,
+  v1.40; its guardian's body `guardian-founder.js`). A round casting tower on the hangar's east side, its chimney up to
+  the girders; inside, every door, hoist and bridge is held by a moon's weight in a cradle. Stone moons (test casts) roll
+  for a plain push; iron moons (`Ball` `heavy: 'tongs'`, `iron`; their drum `needs: ['tongs']`) only for a push made with
+  the **founders' tongs** (item `tongs`); an iron moon with `tar` rolled through a pilot `Flame` comes out hot and lights a
+  hooded mould (`Brazier` `hood`). The Pouring Floor is the hub: the founders' moon seen from the first step, too heavy,
+  rolled at the end through its flame into the great cradle under the Founders' Door; the Mould Room's seam-eye wakes over
+  the stone moon rolled in from the hub; the hoist runs while its pan holds a weight (you in it rise nothing: a `Watch`
+  says so; the stone moon stands in); the Tong Chamber's try (an iron moon into a cradle nothing waits on); the Pincer
+  Passage's cradle a room on, and a second iron moon whose rail runs under that door (`gap` on the door) through the
+  furnace's pilot flame into the hooded mould (the twist); the founders' press (`Hammer`, `hm`, until the founder is
+  stopped) over the bridge; the Weighing Hall's keepers' pan and lidded eye, the keepers' door back onto the hub (the
+  shortcut). The **Last Founder** (`founderModel`, a robot): splash its molten heart when its crucible doors open; from
+  its second phase an iron moon in its casting cradle (`mA` on `pA`) makes it stop to look (a splash counts twice); in
+  its last it tips the moon out as it shifts and the water only takes with the moon back in. After: its one whole moon
+  hangs from the jib over the door and the chimney's glow is steady (`change`). Ilse, who keeps the founders' ledger, is
+  its local.
+- **Pulling things home across the void** (the City Floating in Space's Mooring-House, `spacecity.js` +
+  `spacecity-data.js`, v1.40; its guardian's body `guardian-anchor.js`). A round adobe drum with the moorers' great
+  capstan on its roof, on the Moorings (`ISLANDS.moorings`, a rising bridge from the Towers); inside, floors that stop
+  short over the stars. **Tether mode** (item `tether`, a gun mode: the push's cone, its targets handed `'tether'` and
+  the way back to the hand) rolls any `Ball` toward you and wakes a moorers' ring (`Switch` `pull: true`, element
+  `needs: ['tether']`); a drum with `needs: ['tether']` is a ball out on its cable-rail where nobody can stand behind it.
+  The Capstan Hall is the hub: the Winch Room's counterweight lifts the Lamp Shaft's gate, the void's breath (`Updraft`)
+  lifts the wings to the lamp-eye that opens the great door; the Cord Loft's chest and its try (a ring that lowers a
+  lamp); the Mooring Passage's ring a room on; the Drift's ball pulled home off its cables raises the gangway to a far
+  landing six metres higher than any glide; the Balance (the twist): one ball, pushed OUT to its far cup the balance's
+  pan (a `Platform`, `gW`) rides up to the Moorers' Gallery, pulled HOME it frees the west door with the Gallery's ring
+  (on a davit, seen from the door, out of reach but from the Gallery); the same ring opens the moorers' gate back to the
+  hall's balcony and its cradle (the shortcut, a `oneWay` link). The **Anchor-Warden** (`anchorModel`, a robot):
+  when its drum stalls after a throw, pull its anchor home (`rt.anchorPull`, a target that accepts `'tether'`); in its
+  second phase the anchor hooks over a bollard; in its last it lies out over the void past a window, out of reach:
+  push its bars (`rt.windAnchor`) to wind it in, then pull. After: the great cables from its roof to the Towers, the
+  Balcony and the far island hum taut, lamps along them, and the capstan turns (`change`). Joss the moorer is its local.
+- **The note crosses what you cannot** (the Underwater City's Whale-House, `underwater.js` + `underwater-data.js`, v1.40;
+  its guardian's body `guardian-listener.js`). A great whorled shell on the sea floor at the end of the last tube (its
+  flat facade seals the tube's end, `WHALE_HOUSE`), brass horns curling out of it. Your water stops at glass; a note
+  goes through glass and water. The **whale-horn** (item `horn`) sounds one fixed note, the deep one (`NOTES.deep`, an
+  `'echo'` from `effects.js`), and the house's `EchoEar`s with `note: 'deep'` (elements `needs: ['horn']`) answer it.
+  Before the horn: the Sounding Hall is the hub (the west door's ball; the Pool Room's ball rolled across the whole hall
+  under the east door's lidded eye; the Horn Door wants the pool's eye, splashed over a glass wall you can't climb, and
+  the Shell Room's eye, unlidded by its ball). The Horn Chamber's try (a little horn that answers); the Song Passage's
+  door held while its horn rings (`hold`: a short run, a room on); the Tank Hall's twist: a ball on the footstone wakes a
+  `Dish` whose twin on the shelf says the note to the shelf's ear across the water, and while that ear rings the tank's
+  glass is climbable (`Glass` `rungs: true`: brass rungs slide out of its frame instead of a vine, and back in when its
+  `when` fails); the keepers' door from the landing (the loop back); the landing's dish, woken by its ball, carries the
+  note to its twin high over the Listener's Door, whose ear (out of the horn's reach from the floor, and deaf without
+  that ball) opens it: the key seen from the lock, reached elsewhere. The **Listener** (`listenerModel`, organic): when
+  it spreads its great ear, sound the horn close by; from its second phase it shuts its ear to anything near and only the
+  hall's dishes reach it (`ARENA_DISHES`, a ball on a footstone each); shifting into its last it knocks the balls off.
+  After: the lamps in the house's horns and along its seam are lit (`change`), and the whales come back to the glass
+  (`src/story/underwater.js`, `level.whalesNear`). Anselme, who keeps its door, is its local.
 - **The lens shows where the walker set things down** (the Footprint, from the same audit). What is real carries the
   walker's print (`printGeometry(toes)`: three toes, like the Footprint itself); look-alikes carry two or four. The
   Lens Chamber's `Mural` (lens only, the element `mural` of type `clue`, which a gate names in `clue` so the audit
@@ -319,7 +371,7 @@ house. Now each temple's `PALETTE` (its world file) carries, besides its colours
   meet (inside the wall they read as tops to stand on); the collision is the whole block as before.
 - **`ornament`** `{ kind, color, color2 }`: a small thing by every frieze glyph (`ORNAMENTS`: a bell in a lit niche,
   a lamp, crystals, a slot of the market's light, a slit window, a clock, a valve on a strap, a porthole, a feather, the
-  makers' mark, a pane between ribs), drawn as a relief no more than 5 cm proud of the wall, within the contact
+  makers' mark, a pane between ribs, a moorers' ring, a little whorled shell), drawn as a relief no more than 5 cm proud of the wall, within the contact
   audit's tolerance (drawn only, as the frieze is).
 - **`light`** `{ shadow, light, sun, fog }`: the house's own light inside. `templeLight` moves the world's colour
   script's shade and light tints to the house's (all the way by day, 0.8 at dusk, 0.55 at twilight, 0.3 at night:

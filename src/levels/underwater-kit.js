@@ -644,3 +644,130 @@ export function farCity(kit, M, rng, { x = 0, z = 0, rMin = 150, rMax = 420, n =
     }
   }
 }
+
+// ------------------------------------------------------------------ the sealed city (v1.40): great domes, glass tubes, whales
+
+/**
+ * A great dome of glass on the sea floor at (x, y, z) (y its floor), r round, sy its height over r: the city's halls
+ * (the Dock, the Avenue, the Plaza, the Garden, the Whale Gallery, the Crown). Glass all over (only its rim and a
+ * highlight drawn: S_GLASS), solid as drawn, on ribs and a base ring; `doors` [{ yaw, w, h }] are left open where a
+ * tube comes in (a tube's arch is wider and taller than its door, so the tube seals it: glassTube). The floor a solid
+ * disc of paving (`floor`: its material) 4 cm over y. Returns { x, y, z, r, sy, air(x, y, z), door(i) → [x, y, z] (the
+ * door's middle on the floor, at the dome's foot), doors }.
+ */
+export function bigDome(kit, M, { x, y = 0, z, r = 30, sy = 0.6, doors = [], ribs = 16, floor = M.street, tint = UW_PAL.domeGlass, seg = 48 }) {
+  const glassMat = kit.mat({ color: tint, glass: true, glassCenter: new THREE.Vector3(x, y + r * sy * 0.4, z), line: 0.5, lineTint: 0.7, side: THREE.DoubleSide });   // (seen from inside: its rim and highlight)
+  const H = r * sy, at = (g) => g.translate(x, y, z);
+  const gaps = doors.map((d) => ({ yaw: d.yaw, half: Math.asin(Math.min(0.95, (d.w ?? 6) / 2 / r)), y0: 0, y1: Math.min(d.h ?? 4, H * 0.9) }));
+  const cuts = [...new Set([0, H, ...gaps.flatMap((g) => [g.y0, g.y1])])].filter((v) => v >= 0 && v <= H).sort((a, b) => a - b);
+  for (let k = 0; k < cuts.length - 1; k++) {
+    const ya = cuts[k], yb = cuts[k + 1];
+    if (yb - ya < 0.05) continue;
+    const open = gaps.filter((g) => g.y0 <= ya + 1e-3 && g.y1 >= yb - 1e-3);
+    const { shell } = domeRow(r, sy, ya, yb, open.map((g) => [g.yaw, g.half]), seg);
+    for (const geo of shell) kit.add(glassMat, at(geo), { solid: true, shadow: false });
+  }
+  // ribs from the foot to the crown (round the doors), two rings, the base ring and the floor
+  const free = (a) => gaps.every((g) => Math.abs(Math.atan2(Math.sin(a - g.yaw), Math.cos(a - g.yaw))) > g.half + 0.04);
+  for (let i = 0; i < ribs; i++) {
+    const a = (i / ribs) * TAU + 0.11;
+    if (!free(a)) continue;
+    kit.add(M.frame, at(onDome(r, sy, Array.from({ length: 11 }, (_, k) => [a, (H * k) / 10 * 0.985]), 0.16)), NS);
+  }
+  for (const f of [0.38, 0.78]) kit.add(M.frame, at(new THREE.TorusGeometry(Math.sin(thetaAt(H * f, r, sy)) * r * 1.012, 0.16, 4, seg).rotateX(Math.PI / 2).translate(0, H * f * 1.012, 0)), NS);
+  // the base ring, broken at the doors (a tube's floor runs on through them, level or sloping: no lip to trip on)
+  const ringPts = [[r * 1.04, -1.2], [r * 1.07, -0.5], [r * 1.02, 0.08], [r * 0.985, 0.08]].map(([rr, yy]) => new THREE.Vector2(rr, yy));
+  const cutsA = gaps.map((g) => ({ a: phiOf(g.yaw - g.half - 0.02), b: phiOf(g.yaw + g.half + 0.02) })).sort((p, q) => p.a - q.a);
+  if (!cutsA.length) kit.add(M.frame, lathe([[r * 1.04, -1.2], [r * 1.07, -0.5], [r * 1.02, 0.08], [r * 0.985, 0.08]], seg).translate(x, y, z), SOLID);
+  else for (let k = 0; k < cutsA.length; k++) {
+    const from = cutsA[k].b, to = k + 1 < cutsA.length ? cutsA[k + 1].a : cutsA[0].a + TAU;
+    if (to - from > 1e-3) kit.add(M.frame, new THREE.LatheGeometry(ringPts, Math.max(2, Math.ceil(seg * (to - from) / TAU)), from, to - from).translate(x, y, z), SOLID);
+  }
+  kit.add(floor, new THREE.CylinderGeometry(r * 0.995, r * 0.995, 0.4, seg).translate(x, y - 0.16, z), SOLID);
+  // the doors' frames: two posts and a lintel at the dome's foot
+  const doorAt = gaps.map((g) => [x + Math.sin(g.yaw) * r, y, z + Math.cos(g.yaw) * r]);
+  for (const [i, g] of gaps.entries()) {
+    for (const e of [-1, 1]) { const a = g.yaw + e * g.half; kit.add(M.frame, new THREE.BoxGeometry(0.45, g.y1 + 0.4, 0.45).translate(x + Math.sin(a) * r, y + g.y1 / 2, z + Math.cos(a) * r), SOLID); }
+    kit.add(M.frame, put(new THREE.BoxGeometry((doors[i].w ?? 6) + 0.8, 0.45, 0.45), doorAt[i][0], y + g.y1, doorAt[i][2], g.yaw), SOLID);
+  }
+  const R2 = (r - 0.2) ** 2;
+  return {
+    x, y, z, r, sy, doors: gaps,
+    door: (i) => doorAt[i],
+    air: (px, py, pz) => py > y - 1.5 && py < y + H + 1 && (px - x) ** 2 + (pz - z) ** 2 + (Math.max(0, py - y) / sy) ** 2 < R2,
+  };
+}
+
+/**
+ * A sealed glass tube from a to b ([x, y, z]: the middle of its floor at each end; it may climb or fall), R its arch's
+ * radius (its floor 2R wide, its crown R over it): a floor of paving, an arch of glass over it (solid as drawn), ribs
+ * every `every` m and a lamp at every other. Its ends push `into` m into the domes they join, past their doors, so
+ * nothing is open to the sea. Returns { a, b, R, len, dir, air(x, y, z), at(t) → [x, y, z] on its floor }.
+ */
+export function glassTube(kit, M, { a, b, R = 5, every = 4.5, into = 2.4, floor = M.street, tint = UW_PAL.domeGlass, lamps = true }) {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), d = B.clone().sub(A), L0 = d.length(), dir = d.clone().normalize();
+  const A2 = A.clone().addScaledVector(dir, -into), B2 = B.clone().addScaledVector(dir, into), L = L0 + into * 2;
+  const c = A2.clone().add(B2).multiplyScalar(0.5);
+  const yaw = Math.atan2(dir.x, dir.z), pitch = -Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1));
+  const glassMat = kit.mat({ color: tint, glass: true, glassCenter: c.clone(), line: 0.5, lineTint: 0.7, side: THREE.DoubleSide });
+  // the arch: the upper half of a cylinder along local z (three.js's theta from +z round +x: π/2 … 3π/2 is the top once laid down)
+  const arch = new THREE.CylinderGeometry(R, R, L, 20, Math.max(1, Math.round(L / 12)), true, Math.PI / 2, Math.PI).rotateX(Math.PI / 2);
+  kit.add(glassMat, put(arch, c.x, c.y, c.z, yaw, 1, pitch, 0), { solid: true, shadow: false });
+  kit.add(floor, put(new THREE.BoxGeometry(R * 2 - 0.1, 0.5, L).translate(0, -0.25, 0), c.x, c.y, c.z, yaw, 1, pitch, 0), SOLID);
+  for (const e of [-1, 1]) kit.add(M.frame, put(new THREE.BoxGeometry(0.35, 0.3, L).translate(e * (R - 0.4), 0.15, 0), c.x, c.y, c.z, yaw, 1, pitch, 0), NS);
+  const n = Math.max(1, Math.floor(L0 / every));
+  for (let i = 0; i <= n; i++) {
+    const t = i / n, p = A.clone().lerp(B, t);
+    kit.add(M.frame, put(new THREE.TorusGeometry(R + 0.05, 0.14, 4, 20, Math.PI), p.x, p.y, p.z, yaw, 1, pitch, 0), NS);   // (in the plane across the tube: the half ring over its floor)
+    if (lamps && i % 2 === 1) { kit.add(M.lamp, new THREE.SphereGeometry(0.26, 8, 6).translate(p.x, p.y + R - 0.45, p.z), NS); kit.light(p.x, p.y + R - 0.6, p.z, R * 2.2); }
+  }
+  const side = new THREE.Vector3(dir.z, 0, -dir.x).normalize(), _p = new THREE.Vector3();
+  return {
+    a: A, b: B, R, len: L0, dir,
+    at: (t) => A.clone().lerp(B, t).toArray(),
+    // inside: along it (its ends a little into the domes), across its floor and under its arch
+    air: (px, py, pz) => {
+      _p.set(px, py, pz).sub(A2);
+      const s = _p.dot(dir);
+      if (s < 0 || s > L) return false;
+      const fy = A2.y + dir.y * s, ly = py - fy, sx = _p.dot(side);
+      return ly > -1.5 && sx * sx + Math.max(0, ly) ** 2 < (R - 0.15) ** 2;
+    },
+  };
+}
+
+/**
+ * A whale, the sheets' grey giant of the deep (the Underwater City's: they sing outside the glass): a long lathed body,
+ * pale belly, two long flippers, flukes; drawn only, its own group, gliding round a loop (centre at, radius R, speed m/s;
+ * `near`: read each frame (0..1), draws its loop in closer by `come` m: the temple's change).
+ */
+export function whale(kit, M, { at, R = 90, len = 22, speed = 2.2, phase = 0, near = () => 0, come = 0, bob = 3 } = {}) {
+  const g = new THREE.Group();
+  g.name = 'Whale';
+  g.userData.noCollide = true;
+  const body = lathe([[0.01, 0], [0.12, 0.04], [0.19, 0.14], [0.21, 0.32], [0.19, 0.55], [0.13, 0.78], [0.06, 0.94], [0.025, 1]], 14).rotateX(Math.PI / 2).scale(len, len * 0.85, len);
+  body.translate(0, 0, -len * 0.5);
+  const mat = kit.mat({ color: '#5a7f96', flat: true, shadeHue: 0.4 });
+  const belly = kit.mat({ color: '#b9d6dc', flat: true });
+  const b = new THREE.Mesh(body, mat);
+  const bel = new THREE.Mesh(new THREE.SphereGeometry(len * 0.17, 12, 6, 0, TAU, Math.PI * 0.55, Math.PI * 0.45).scale(1, 0.7, 2.6).translate(0, -len * 0.02, len * 0.08), belly);
+  const fl = new THREE.BoxGeometry(len * 0.32, len * 0.012, len * 0.07).translate(len * 0.16, 0, 0);
+  const fL = new THREE.Mesh(fl, mat), fR = new THREE.Mesh(fl.clone().scale(-1, 1, 1), mat);
+  fL.position.set(len * 0.15, -len * 0.06, len * 0.18); fR.position.set(-len * 0.15, -len * 0.06, len * 0.18);
+  const flukes = new THREE.Mesh(new THREE.BoxGeometry(len * 0.36, len * 0.01, len * 0.08).translate(0, 0, -len * 0.04), mat);
+  flukes.position.set(0, 0, -len * 0.5);
+  g.add(b, bel, fL, fR, flukes);
+  g.traverse((o) => { o.userData.noCollide = true; });
+  kit.group.add(g);
+  for (const m of [b, bel, fL, fR, flukes]) kit.noShadow?.push?.(m);
+  const place = (t) => {
+    const k = near(), rr = R - come * k, a = phase + (t * speed) / rr;
+    g.position.set(at[0] + Math.cos(a) * rr, at[1] + Math.sin(t * 0.21 + phase) * bob, at[2] + Math.sin(a) * rr);
+    g.rotation.set(Math.sin(t * 0.3 + phase) * 0.06, -a + (speed > 0 ? Math.PI : 0), 0.1 * Math.sign(speed), 'YXZ');
+    const sw = Math.sin(t * 0.9 + phase);
+    flukes.rotation.x = sw * 0.3; fL.rotation.z = sw * 0.15 - 0.2; fR.rotation.z = -sw * 0.15 + 0.2;
+  };
+  place(0);
+  kit.mover(place);
+  return g;
+}

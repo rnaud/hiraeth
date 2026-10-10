@@ -19,6 +19,9 @@ export const TEMPLE_BOXES = [
   ['garage.temple.coil', 'coil'],
   ['edena.temple.bloom', 'bloom'],
   ['bazaar.temple.echo', 'echo'],
+  ['spacecity.temple.tether', 'tether'],
+  ['moonfoundry.temple.tongs', 'tongs'],
+  ['underwater.temple.horn', 'horn'],
 ];
 
 export function migrateTemples(g) {

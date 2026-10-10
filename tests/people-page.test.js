@@ -22,17 +22,23 @@ import { TANSY, STOPS as FELLOW_STOPS } from '../src/story/fellow-data.js';
 
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
+/** The worlds whose people are in src/story/<world>-people.js (no -data.js of their own). */
+const PEOPLE_FILE = ['glassdunes', 'underwater', 'moonfoundry', 'spacecity'];
 /** Every talking person of a world, from the story's own data (as the conversation panel sees them). */
 async function peopleOf(world) {
-  // (a merged world's: each of its parts' story data, src/levels/names.js PARTS; the Glass Dunes' are its people's file)
+  // (a merged world's: each of its parts' story data, src/levels/names.js PARTS; the Glass Dunes' and the three worlds
+  // promoted in v1.40 are their people's files)
   const out = new Map();
   for (const part of partsOf(world)) {
-    const m = await import(part === 'glassdunes' ? '../src/story/glassdunes-people.js' : `../src/story/${part}-data.js`);
+    const m = await import(PEOPLE_FILE.includes(part) ? `../src/story/${part}-people.js` : `../src/story/${part}-data.js`);
     // (and the keepers of the world's shops: src/story/shop-data.js, placed by src/story/shops.js)
     const keepers = Object.values(SHOPS).filter((s) => s.world === part).map((s) => SHOPKEEPERS[s.keeper]);
     // (and the fellow traveller, listed where the route first puts her: src/story/fellow-data.js)
     const fellow = part === FELLOW_STOPS[0] ? [TANSY] : null;
-    for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[part]?.npcs, m.WREN ? [m.WREN] : null, keepers, fellow]) {
+    // (a visitor in a world's content from another world, `world` naming it, is listed under their own: the Moon Foundry's
+    // Wen, the floating city's Kip)
+    const npcs = (CONTENT[part]?.npcs ?? []).filter((p) => !(p.world && p.world !== part));
+    for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, npcs, m.WREN ? [m.WREN] : null, keepers, fellow]) {
       for (const p of Array.isArray(list) ? list : Object.values(list ?? {})) if (p?.id && p.talk && !out.has(p.id)) out.set(p.id, p);
     }
   }

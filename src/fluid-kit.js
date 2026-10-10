@@ -22,8 +22,10 @@ export const MODES = {
   fire: { item: 'fire', name: 'ember', label: 'Ember', tones: ['#f9c45a', '#e0644a', '#f39a45', '#fff0b8', '#b8433f'], rate: 2.6, css: 'fire', glow: '#ffb347' },
   // Viridel's: leaf green and petal pink, slow as sap (src/temples/edena.js: seeds, budded doors, vines)
   bloom: { item: 'bloom', name: 'bloom', label: 'Bloom', tones: ['#7fcf72', '#f2a7b8', '#4f9a5a', '#f6d36a', '#fff1f4'], rate: 0.55, css: 'bloom', glow: '#c6eba8' },
+  // the City Floating in Space's: a cone like the push's that pulls toward you (src/temples/spacecity.js: balls, the moorers' rings)
+  tether: { item: 'tether', name: 'tether', label: 'Tether', tones: ['#f4e9c8', '#c9b48a', '#e8c66a', '#fffaf0'], rate: 1.4, css: 'push', glow: '#f4e9c8', cone: true, pull: true },
 };
-export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom'];
+export const MODE_ORDER = ['shoot', 'push', 'stun', 'fire', 'bloom', 'tether'];
 export const STUN_SECONDS = 3.5;
 
 /** The owned modes in order (has: id -> bool). Without the fluid gun (a gadget, src/gadgets/gun.js) and the backpack it drinks from: none. */
