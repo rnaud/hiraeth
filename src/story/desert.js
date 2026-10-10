@@ -624,6 +624,10 @@ export function setupDesert(ctx) {
   quests.locate('cityGate', () => city.gate);
   quests.locate('well', () => city.wellLook);
   quests.locate('caveIn', () => cave.inside);
+  // the keepers' hatch in the back lane, where their stair from the cave comes up (the 'up' stage: src/desert-city.js HATCH)
+  if (Q.hatch) quests.locate('hatch', () => Q.hatch.out);
+  // out by the skull's mouth instead, the well rising while you watch passes the way up over
+  game.on('flag:desert.well.watched', (v) => { if (v && quests.stage('desert.power') === 'up') quests.advance('desert.power', 'up'); });
   quests.locate('skull', () => Q.giant.door);
   quests.locate('bone', () => cave.bone.position);
   // the rib, until your arms have failed on it with an empty tank: then the keepers' pole (by the mural), then the post
@@ -1052,6 +1056,14 @@ export function setupDesert(ctx) {
       cave.setWater(st.flow, st.level);
     }
     cave.poolLight.w = 10 + 20 * st.drink + (st.glow ?? 0);   // (st.glow: a moment's light cue)
+    // up the keepers' stair: you push the hatch up into the back lane, and it drops shut behind you
+    if (Q.hatch && cave.stairTop) {
+      if (pp.distanceTo(cave.stairTop) < 4) st.upT = st.clock;
+      if (st.upT !== undefined && st.clock - st.upT < 4 && flat(pp, Q.hatch.out) < 3.5 && Math.abs(pp.y - Q.hatch.out.y) < 3) {
+        st.upT = undefined;
+        toast('You push up a heavy hatch into Qanat’s back lane, the tree ahead. It drops shut behind you: it only lifts from below.');
+      }
+    }
     const inCave = camPos.distanceTo(cave.origin) < 300;
     if (inCave) {
       // the same fluid as the tank: dull and slow while the channel is blocked, alive once the water runs

@@ -529,6 +529,16 @@ test('the main quest, end to end: an empty tank, the rib levered off, the tank f
   assert.equal(W.dry(), false);
   assert.ok(toasts.some((t) => /empty tank fills/.test(t)), 'it says so');
   step(2);
+  assert.equal(quests.stage('desert.power'), 'up');
+
+  // ---- up the keepers' stair behind the pool to the hatch in the back lane (one way: it only lifts from below)
+  const stair = level.portals.find((p) => p.label === 'the keepers’ stair');
+  assert.ok(stair && stair.oneWay && stair.to.distanceTo(Q.hatch.out) < 0.01, 'the stair comes up at the hatch');
+  assert.ok(!level.portals.some((p) => p.at.distanceTo(Q.hatch.out) < 6), 'and nothing goes down it');
+  assert.ok(quests.objective().position.distanceTo(Q.hatch.out) < 0.01, 'the marker at the hatch');
+  at(Q.cave.stairTop.clone()); step(2);
+  at(stair.to.clone()); step(2);
+  assert.ok(toasts.some((t) => /only lifts from below/.test(t)), 'it says the hatch drops shut');
   assert.equal(quests.stage('desert.power'), 'rise');
 
   // ---- not yet: the ship won't take still water

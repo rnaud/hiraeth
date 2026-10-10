@@ -135,6 +135,9 @@ export const HEARTH = {
 /** The Hearth outside and in. Returns its places, lights, portals and the pieces the story moves. */
 export function buildDesertHearth(scene, terrain) {
   const root = new THREE.Group(); root.name = 'Givers’ Hearth'; scene.add(root);
+  // (what the level design audit's third round added: put in the scene last, src/levels/desert.js, so the contact audit's
+  // samples of everything built before stay where they were)
+  const late = new THREE.Group(); late.name = 'Givers’ Hearth (added in v1.16)';
   const M = {
     rose: makeMaterial({ color: '#e29a7c', color2: '#c97b63', color3: '#f0c19c', flat: true, mode: MODE_STRATA, strataSize: 5 }),
     roseCarved: makeMaterial({ color: '#e7a587', color2: '#d48a6e', color3: '#f3cdb0', flat: true, mode: MODE_STRATA, strataSize: 1.2, grid: 1.4, glyphs: true }),
@@ -296,6 +299,25 @@ export function buildDesertHearth(scene, terrain) {
     for (const [x, z, r] of [[2.9, -3.6, 0.45], [3.5, -2.4, 0.35], [-2.8, 3.5, 0.4]]) wk.both(salt, box(r * 1.6, r, r * 1.2, x, r * 0.5 + 0.5, z));   // spilled salt blocks
     wk.flush();
     ride.wreck = { at: wreckAt, look: wk.world(0.5, 2.2, -1.5), stand: wk.world(3.4, 0.5, -1.5) };
+    // the skiff's stone anchor, short of halfway (level design audit, third round: Yara's shade to the wreck was 418 m with
+    // nothing on it): a great ring of stone dragged loose, tipped half into the sand, the stub of its rope trailing off
+    // over the dunes toward the wreck it was meant to hold
+    const anchorAt = at(P.anchor), toWreck = Math.atan2(wreckAt.x - anchorAt.x, wreckAt.z - anchorAt.z);
+    const ak = new Kit(late, 'The skiff’s anchor', anchorAt.clone().setY(anchorAt.y - 0.4), toWreck);
+    const ring = new THREE.TorusGeometry(1.25, 0.42, 6, 14).rotateX(Math.PI / 2 - 0.5).translate(0, 0.55, 0);
+    ak.both(M.marker, rough(ring, 0.06, 1.3, 11), new THREE.CylinderGeometry(1.4, 1.5, 1.2, 10).translate(0, 0.5, 0));
+    const ropeGeos = [];
+    for (let k = 0; k < 6; k++) {
+      const z0 = 1.2 + k * 1.6, z1 = z0 + 1.6, wob = (q) => Math.sin(q * 0.9) * 0.35;
+      ropeGeos.push(new THREE.CylinderGeometry(0.06, 0.06, 1.65, 4).rotateX(Math.PI / 2).translate((wob(z0) + wob(z1)) / 2, 0, (z0 + z1) / 2));
+    }
+    for (const g of ropeGeos) {   // (lying on the sand under it)
+      g.computeBoundingBox(); const c = g.boundingBox.getCenter(V()), p = ak.world(c.x, 0, c.z);
+      g.translate(0, terrain.heightAt(p.x, p.z) - ak.origin.y + 0.05, 0);
+      ak.add(wood, g);
+    }
+    ak.flush();
+    ride.anchor = { at: anchorAt, look: ak.world(0, 0.9, 0), stand: ak.world(1.9, 0, -1.2) };
     // the tusk gate, four fifths of the way, where the red rocks begin (level design audit v1.15: 518 m from the wreck
     // to the Hearth with nothing on it): two great tusks the Givers stood in the sand either side of the way, leaning in
     // until their tips cross high over it, so it shows from the wreck. In their shade a low wall of red stones to sit
@@ -416,7 +438,7 @@ export function buildDesertHearth(scene, terrain) {
     stone, stoneRest: stone.position.clone(), stoneLight, plinthLight, doorLight,
     shelfFront: L(0, HEARTH.shelf, -11.6), plinthFront: L(HEARTH.plinth.x, 0, HEARTH.plinth.z0 + 1.6),
     materials: { marks: M.marks, slit: M.slit, spark: M.spark, wayMark: M.wayMark, wayFluid: M.wayFluid, glint: M.glint }, way, ride,
-    lights, portals,
+    lights, portals, late,
     /** Show the hall only when the camera is down there; the butte is always drawn (it is a landmark). */
     update(dt, t, { camera } = {}) {
       if (!camera) return;

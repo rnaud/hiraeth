@@ -41,6 +41,7 @@ export const CALLS = {
   camp: 'Off the way ahead: a ring of blackened stones and two poles leaning together. Somebody camped here once.',
   bell: 'Something glints in the sand ahead, a few metres off the way.',
   shade: 'A red pennant over the dunes ahead: somebody’s sunshade, the only shade out here.',
+  anchor: 'Ahead, a great ring of stone lies tipped in the sand, a rope trailing from it over the dunes.',
   wreck: 'Ahead, a mast leans out of the sand with a rag of sail on it.',
   tusks: 'Ahead, two great tusks stand out of the sand, leaning together until their tips cross: a gate, and shade under it.',
   hearth: 'Ahead, on its hill of red rock: the Givers’ Hearth, a dark slit near the top of its chimney.',
@@ -63,6 +64,7 @@ export function setupWay(ctx) {
     { id: 'bell', at: W.bell.at, open: () => !game.flag('desert.way.bell') },
     // (the straight ride out, where the marked stones run off to the north: src/desert-sites.js ridePlaces)
     ...(R ? [{ id: 'shade', at: R.shade.at, range: 110, open: () => !game.flag('met.yara') }, { id: 'wreck', at: R.wreck.at, range: 110, open: () => !game.flag('desert.ride.wreck') }] : []),
+    ...(R?.anchor ? [{ id: 'anchor', at: R.anchor.at, range: 100, open: () => !game.flag('desert.ride.anchor') }] : []),
     ...(R?.tusks ? [{ id: 'tusks', at: R.tusks.at, range: 140, open: () => !game.flag('desert.ride.tusks') }] : []),
     { id: 'hearth', at: level.hearth.doorFront, range: CALL.hearth, open: () => game.flag('quest.desert.power') === 'hearth' },
   ];
@@ -93,6 +95,7 @@ export function setupWay(ctx) {
   look(THINGS.wayCamp, W.camp.at, 'look at the cold camp', W.camp.look);
   look(THINGS.wayBell, W.bell.at, 'pick up what glints', W.bell.at.clone().add(new THREE.Vector3(0, 0.2, 0)));
   if (R) look(THINGS.rideWreck, R.wreck.stand, 'look at the wreck', R.wreck.look);
+  if (R?.anchor) look(THINGS.rideAnchor, R.anchor.stand, 'look at the stone ring', R.anchor.look);
   if (R?.tusks) look(THINGS.rideTusks, R.tusks.stand, 'look at the jar in the shade', R.tusks.look);
 
   const fillBowl = () => {

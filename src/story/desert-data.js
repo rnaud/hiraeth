@@ -45,11 +45,11 @@ const TEMPLE = { flag: 'temple.desert.done' }, BACKPACK = { flag: 'item.backpack
 export const ITEMS = { jar: 'Ama’s drinking jar', water: 'a jar of living water', drum: 'Teo’s drum', cord: 'Oum’s knotted cord', pole: 'the keepers’ pole', stone: 'the spark-stone' };
 
 /**
- * The stages of the spark-stone's errand, between the full well and the ship: a save from before it
+ * The stages of the spark-stone's errand, between the full pool and the ship (the way up the keepers' stair first): a save from before it
  * (desert.quest.v < 3) whose tree was already burning (the channel open, or the ship fed) skips them
  * (src/story/desert.js migrateDesertQuest, and the skip in setupDesert).
  */
-export const SPARK_STAGES = ['rise', 'spark', 'bike', 'hearth', 'stone', 'light'];
+export const SPARK_STAGES = ['up', 'rise', 'spark', 'bike', 'hearth', 'stone', 'light'];
 
 /**
  * Saves from before the backpack's box moved into the city (the stages were
@@ -94,8 +94,11 @@ export const QUESTS = [
       // a full tank (an older save) can still push it
       { id: 'channel', text: "The pool is dry. Find the old keepers’ pole by the mural and use the carved post to lever the fallen rib off the channel", label: 'The blocked channel', flag: 'desert.channel.open', at: 'rib' },
       { id: 'fill', text: 'The pool is rising. Wade in: fill your empty tank, and Ama’s jar', label: 'The pool', flag: 'desert.jar.filled', at: 'pool' },
+      // up the keepers' stair behind the pool, beside the root the water climbs, to the hatch in the back lane (src/desert-city.js
+      // HATCH; level design audit, third round: the way out was the way down). Out by the skull instead, the well's rise skips it
+      { id: 'up', text: 'The water is climbing the roots. Follow it up: the keepers’ stair climbs behind the pool, beside a root, into the dark', label: 'The keepers’ stair', goto: 'hatch', radius: 6, vertical: 4 },
       // back in the city: the water climbs the roots and fills the well while you watch, and the tree stays cold
-      { id: 'rise', text: 'The water is climbing the roots. Go back to the well at the tree’s foot', label: 'The well, filling', flag: 'desert.well.watched', at: 'well' },
+      { id: 'rise', text: 'The water is coming up under the city. Go to the well at the tree’s foot, and watch', label: 'The well, filling', flag: 'desert.well.watched', at: 'well' },
       { id: 'spark', text: 'The tree drank, and stands cold. Ask Nour why it will not burn', label: 'Nour, the eldest', flag: 'desert.spark.heard', at: 'nour' },
       // the Givers' Hearth is far out in the red rocks: Marrow's hoverbike first (src/story/desert-bike.js)
       { id: 'bike', text: "Ask Marrow at the camps about his hidden hoverbike. You need it for the long journey to the Givers’ Hearth", label: 'Something faster than walking', flag: 'desert.bike.found', at: 'bikeWay', ends: 'bikeHollow' },
@@ -883,6 +886,17 @@ export const THINGS = {
         "~neutral~ On its bow, scoured nearly away, a painted eye: the Givers’ mark. Someone sailed out toward the Hearth once, faster than walking, and walked the rest.",
         { if: { flag: 'desert.bike.found' }, text: "~playful~ Marrow would have it in pieces by sundown. Better not to mention it." }],
       do: { set: { 'desert.ride.wreck': true } },
+      choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  // the skiff's stone anchor, short of halfway on the straight ride out (src/desert-hearth.js ride.anchor)
+  rideAnchor: {
+    id: 'rideAnchor', name: 'The skiff’s anchor', title: 'on the ride to the red rocks', color: '#c9b8a0', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~curious~ A ring of stone as wide as your arms, tipped half into the sand. A rope is knotted through it, and runs off over the dunes, frayed at the end.",
+        "~neutral~ It held something once, against a wind that won. Follow the rope with your eye: far ahead, a mast leans out of the sand.",
+        { if: { flag: 'desert.ride.wreck' }, text: "~sad~ The wreck out there dragged this ring all the way from here, and still it went over." }],
+      do: { set: { 'desert.ride.anchor': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
     } } },
   },

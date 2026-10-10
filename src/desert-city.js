@@ -29,6 +29,13 @@ import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
 // from coarse hidden proxies (like desert-landmarks.js).
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
+/**
+ * The keepers' way up (level design audit, third round): in the giant's chest a stair of stone blocks climbs from the
+ * floor behind the pool to a doorway in the dome's far wall (`stair`: local z of its foot and of the ledge, the ledge's
+ * height), and comes out under a hatch in Qanat's back lane (`z`: city-local, on the back lane's axis). One way: the
+ * hatch only lifts from below.
+ */
+export const HATCH = { z: -42, stair: { foot: -17.5, ledge: -25.6, door: -28.4, y: 3.0 } };
 const UP = V(0, 1, 0);
 const PROXY = makeMaterial({ color: '#ff00ff' });
 const _e = new THREE.Euler(), _q = new THREE.Quaternion(), _m = new THREE.Matrix4();
@@ -215,7 +222,10 @@ export function buildDesertCity(scene, terrain) {
   const root = new THREE.Group(); root.name = 'Desert story'; scene.add(root);
   const M = materials();
   const lights = [], portals = [], banners = [], smokes = [], updaters = [];
-  const out = { root, lights, portals, banners, sites: {}, seats: [], fires: [] };
+  // (what the level design audit's third round added, the keepers' hatch and stair: put in the scene last, src/levels/desert.js,
+  // so the contact audit's samples of everything built before stay where they were)
+  const late = new THREE.Group(); late.name = 'Desert story (added in v1.16)';
+  const out = { root, lights, portals, banners, sites: {}, seats: [], fires: [], late };
   const rng = mulberry32(3301);
   const floor = cityFloor();
 
@@ -282,6 +292,19 @@ export function buildDesertCity(scene, terrain) {
     for (const s of [-1, 1]) city.both(M.wall, new THREE.BoxGeometry(4, 13, 5).translate(s * 5.4, 5.5, -R));
     city.both(M.wall, new THREE.BoxGeometry(14.8, 3, 5.4).translate(0, 11.5, -R));
     city.add(M.glyph, glyphGeometry(1.0).translate(0, 11.4, -R - 2.75).rotateY(0));
+    // the keepers' hatch in the back lane, halfway from the terraces to the back gate: where the keepers' stair from the
+    // giant's chest comes up (level design audit, third round: the walk out of the cave to the well was the way you went
+    // down). A kerb of stone round a heavy wooden lid with an iron ring; it only lifts from below
+    {
+      const HZ = HATCH.z, hk = new Kit(late, 'The keepers’ hatch', V(C.x, floor, C.z), C.yaw);
+      for (const [w, d, x, z] of [[2.6, 0.4, 0, HZ - 1.1], [2.6, 0.4, 0, HZ + 1.1], [0.4, 1.8, -1.1, HZ], [0.4, 1.8, 1.1, HZ]]) hk.both(M.wall, new THREE.BoxGeometry(w, 0.34, d).translate(x, 0.17, z));
+      hk.both(M.wood, new THREE.BoxGeometry(1.8, 0.14, 1.8).translate(0, 0.25, HZ));
+      hk.add(M.ink, new THREE.BoxGeometry(1.84, 0.02, 0.06).translate(0, 0.33, HZ - 0.45)).add(M.ink, new THREE.BoxGeometry(1.84, 0.02, 0.06).translate(0, 0.33, HZ + 0.45));   // its iron straps
+      hk.add(M.ink, new THREE.TorusGeometry(0.16, 0.03, 4, 10).rotateX(Math.PI / 2).translate(0, 0.34, HZ));   // the ring
+      hk.add(M.glyph, glyphGeometry(0.45).rotateX(-Math.PI / 2).translate(0, 0.35, HZ + 0.62));   // the keepers' eye on the lid
+      hk.flush();
+      out.hatch = { at: hk.world(0, 0, HZ), out: hk.world(0, 0, HZ + 2.8), look: hk.world(0, 0.3, HZ) };
+    }
 
     // paving in the avenue and round the terraces (flush with the ground you walk on: 2 cm proud)
     city.add(M.paving, new THREE.BoxGeometry(11, 0.12, 40).translate(0, -0.04, 45));
@@ -904,7 +927,25 @@ export function buildDesertCity(scene, terrain) {
     cave.add(M.mural, T(new THREE.BoxGeometry(9, 4.6, 0.5), [-17.5, 3.4, 20.5], [0, Math.PI * 0.8, 0]));
     cave.add(M.ink, mural(8.4, 4.0, true).applyMatrix4(new THREE.Matrix4().compose(V(-17.5, 3.2, 20.5), new THREE.Quaternion().setFromAxisAngle(UP, Math.PI * 0.8), V(1, 1, 1)).multiply(new THREE.Matrix4().makeTranslation(0, 0, 0.26))));
     cave.add(M.glyph, glyphGeometry(1.4).applyMatrix4(new THREE.Matrix4().compose(V(-25.5, 7.5, -12), new THREE.Quaternion().setFromAxisAngle(UP, 1.1), V(1, 1, 1))));
+    // the keepers' stair behind the pool, opposite the way in (HATCH.stair): eight blocks up to a ledge, a doorway framed in
+    // bone in the dome's wall, dark beyond, and a root climbing beside it into the dark, the way the water goes up
     cave.flush();
+    {
+      const S = HATCH.stair, n = 8, run = (S.foot - S.ledge) / n, sk = new Kit(late, 'The keepers’ stair', O, 0);
+      for (let k = 0; k < n; k++) {
+        const top = (k + 1) * S.y / n, z = S.foot - (k + 0.5) * run;
+        sk.both(M.stone, new THREE.BoxGeometry(3.0, top, run + 0.02).translate(0, top / 2, z));
+      }
+      sk.both(M.stone, new THREE.BoxGeometry(3.6, S.y, S.ledge - S.door + 1.4).translate(0, S.y / 2, (S.ledge + S.door - 1.4) / 2));   // the ledge, into the wall
+      for (const s of [-1, 1]) sk.both(M.bone, new THREE.BoxGeometry(0.55, 3.2, 0.6).translate(s * 1.35, S.y + 1.6, S.door + 0.2));   // the jambs
+      sk.both(M.bone, new THREE.BoxGeometry(3.3, 0.55, 0.7).translate(0, S.y + 3.45, S.door + 0.2));   // the lintel
+      sk.add(M.ink, new THREE.PlaneGeometry(2.2, 3.2).translate(0, S.y + 1.6, S.door - 0.05));   // the dark beyond
+      sk.solid(new THREE.BoxGeometry(2.4, 3.4, 0.4).translate(0, S.y + 1.7, S.door - 0.4));
+      sk.add(M.bark, taper([V(2.2, -0.2, S.foot + 1.5), V(2.4, 1.6, S.ledge + 2), V(2.0, S.y + 1.2, S.door + 0.6), V(1.6, S.y + 6, S.door - 0.4)], 0.42, 0.18, 14, 6));
+      sk.add(M.glyph, glyphGeometry(0.6).translate(0, S.y + 3.45, S.door + 0.56));   // the keepers' eye on the lintel
+      sk.flush();
+      cv.stairGroup = sk.group;
+    }
 
     const pl = cave.world(0, 2, 0);
     const poolLight = new THREE.Vector4(pl.x, pl.y, pl.z, 26);
@@ -921,6 +962,8 @@ export function buildDesertCity(scene, terrain) {
       // the stream's way: its head at u (0 the crack, 1 the pool's edge), and the crack it runs out of (a moment frames them: desert.js)
       streamAt: (u, out = V(0, 0, 0)) => out.copy(cave.world(...along(THREE.MathUtils.clamp(u, 0, 1), -1.0).toArray())), crack: cave.world(29.6, 3.6, -6.4), mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
       inside: cave.world(0, 0.05, ROOM + 5.5), exit: cave.world(0, 0, ROOM + 9.3), group: cave.group, root,
+      // the keepers' stair: its foot, and the doorway at its top (the way up to the hatch in the back lane)
+      stairFoot: cave.world(0, 0, HATCH.stair.foot + 1), stairTop: cave.world(0, HATCH.stair.y, HATCH.stair.door + 0.9),
       // the water (desert.js drives these): dry (the bed) until the channel opens, then up to high
       levels: { dry: -1.7, high: -0.35 }, level: -1.7, flow: 0, basinR,
       /** Lay the stream (flow 0..1 of the way from the crack) and the pool (standing at `level`) as they are. */
@@ -940,6 +983,8 @@ export function buildDesertCity(scene, terrain) {
   portals.push(
     { at: gd.clone().addScaledVector(fwd, -0.3).add(V(0, 0.4, 0)), r: 1.5, to: cv.inside.clone(), heading: Math.PI, label: 'giant’s mouth' },
     { at: cv.exit.clone().add(V(0, 0.5, 0)), r: 1.6, to: gd.clone().addScaledVector(fwd, 3.2), heading: G.yaw, label: 'passage up' },
+    // the keepers' stair up to the hatch in the back lane, coming out facing the tree (one way: the hatch only lifts from below)
+    { at: cv.stairTop.clone().add(V(0, 0.5, 0)), r: 1.4, to: out.hatch.out.clone(), heading: C.yaw, label: 'the keepers’ stair', oneWay: true },
   );
 
   // ---------------------------------------------------------------- per frame
@@ -977,7 +1022,7 @@ export function buildDesertCity(scene, terrain) {
     if (csOn && frameNo % 2 === 0 && seen(smokeMid.copy(cs.at).setY(cs.at.y + cs.height * 0.5), cs.height * 0.7)) { cs.update(campDt, t, player?.wind, camera); campDt = 0; }
     // the cave: drawn only when you're down there
     const inCave = _cam.distanceTo(O) < 300;
-    cv.group.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;
+    cv.group.visible = inCave; if (cv.stairGroup) cv.stairGroup.visible = inCave; cv.pool.visible = inCave && cv.wet; cv.stream.visible = inCave && cv.flow > 0; cv.bone.visible = inCave;
   };
   return out;
 }

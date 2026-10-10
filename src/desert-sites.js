@@ -70,16 +70,18 @@ export function wayPlaces() {
   return out;
 }
 /**
- * Three stops on the straight ride out, from Marrow's hollow (where the bike wakes) to the Hearth's door: the
+ * Four stops on the straight ride out, from Marrow's hollow (where the bike wakes) to the Hearth's door: the
  * way most riders take, the butte's chimney ahead, while the marked stones run home to Qanat a little to the
  * north (the level design audit, v1.9: the ride was 1.5 km with nothing on it). A third of the way, a
- * salt-carrier resting in the shade of her sunshade (src/levels/content.js: Yara); two thirds, a sand-skiff's
+ * salt-carrier resting in the shade of her sunshade (src/levels/content.js: Yara); not quite halfway, the skiff's
+ * stone anchor, dragged loose and left in the sand, its rope trailing on toward the wreck (the level design audit,
+ * third round: Yara's shade to the wreck was 418 m with nothing on it); two thirds, a sand-skiff's
  * wreck, its mast still standing; four fifths, the tusk gate the Givers stood where the red rocks begin, right
  * over the way (v1.15: the wreck to the Hearth was 518 m with nothing on it) (src/desert-hearth.js `ride`,
  * src/story/desert-way.js).
  * Each: { x, z, f } (f: how far along the ride; side: metres to its right).
  */
-export const RIDE = { shade: { f: 0.3, side: 9 }, wreck: { f: 0.61, side: -12 }, tusks: { f: 0.81, side: 0 } };
+export const RIDE = { shade: { f: 0.3, side: 9 }, anchor: { f: 0.455, side: -7 }, wreck: { f: 0.61, side: -12 }, tusks: { f: 0.81, side: 0 } };
 export function ridePlaces() {
   const a = STORY.bike, b = STORY.hearth, dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz), out = {};
   for (const [id, w] of Object.entries(RIDE)) out[id] = { x: a.x + dx * w.f - (dz / L) * w.side, z: a.z + dz * w.f + (dx / L) * w.side, f: w.f, heading: Math.atan2(dx, dz) };

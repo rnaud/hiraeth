@@ -426,7 +426,14 @@ test('the straight ride out (level design audit v1.9): Yara’s shade and a skif
     D.step(1);
     if (D.toasts.length > before && Object.values(CALLS).includes(D.toasts.at(-1))) said.push(D.toasts.at(-1));
   }
-  assert.deepEqual(said.filter((t) => t === CALLS.shade || t === CALLS.wreck || t === CALLS.tusks), [CALLS.shade, CALLS.wreck, CALLS.tusks], 'all three named, in order, once');
+  assert.deepEqual(said.filter((t) => [CALLS.shade, CALLS.anchor, CALLS.wreck, CALLS.tusks].includes(t)), [CALLS.shade, CALLS.anchor, CALLS.wreck, CALLS.tusks], 'all four named, in order, once');
+  // (the level design audit, third round: the skiff's anchor between Yara's shade and the wreck, under 400 m from each)
+  assert.ok(along(P.anchor) - along(P.shade) < 400 && along(P.wreck) - along(P.anchor) < 400, 'no stretch of the ride over 400 m with nothing on it');
+  D.player.pos.copy(R.anchor.stand);
+  assert.equal(bestInteractable(D.player)?.entry.id, 'way.rideAnchor');
+  const ra = new DialogueRunner(THINGS.rideAnchor, { game, quests: D.quests });
+  while (!ra.ended && (!ra.lastPage || !ra.choices().length) && ra.advance());
+  assert.equal(game.flag('desert.ride.anchor'), true);
   // the wreck is something to look at
   D.player.pos.copy(R.wreck.stand);
   assert.equal(bestInteractable(D.player)?.entry.id, 'way.rideWreck');

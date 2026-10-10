@@ -127,7 +127,7 @@ export function* buildDesert(scene) {
     // things to stop for that are neither people nor quests (scripts/level-design/audit.mjs counts them as places)
     sights: () => [
       { name: 'the keepers’ bowl', at: hearth.way.bowl.at }, { name: 'the keepers’ cold camp', at: hearth.way.camp.at }, { name: 'a bell in the sand', at: hearth.way.bell.at },
-      { name: 'a sand-skiff’s wreck', at: hearth.ride.wreck.at }, { name: 'the tusk gate', at: hearth.ride.tusks.at },
+      { name: 'the skiff’s anchor', at: hearth.ride.anchor.at }, { name: 'a sand-skiff’s wreck', at: hearth.ride.wreck.at }, { name: 'the tusk gate', at: hearth.ride.tusks.at },
       { name: 'the pilgrims’ resting stone', at: road.rest.at },
     ],
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
@@ -188,6 +188,8 @@ export function* buildDesert(scene) {
   });
   const channel = buildDryChannel(scene, terrain, level.temple?.outside);
   level.dryChannel = channel?.userData.line ?? null;
+  // (the level design audit's third round: the keepers' hatch and stair, the skiff's anchor, last of all)
+  scene.add(qanat.late, hearth.late);
   return level;
 }
 export const createDesert = stepped(buildDesert);

@@ -14,6 +14,9 @@ export const CHANGELOG = [
     'The lamplighters’ red lamp-posts now begin on the City-Shaft’s rim: from the Warden’s Well’s door along the edge past your ship to the red stair, down which Nima’s corner lies, so the walk to her is marked from the first step.',
     'On the climb from the shrine to the palace, a second lamplighters’ pad hangs just off the high ring past the relay lamp, its rail scratched with tally marks like the first, and a note beside the newest.',
     'Lio’s errand is quicker: walk up to Tobin on the rim and he pays the fare as you come, grumbling, with no conversation to sit through between Lio’s two.',
+    // the desert
+    'In the giant’s chest under Qanat, a stair of stone now climbs behind the pool, beside one of the tree’s roots, to a doorway in the far wall, and comes up under a hatch in the city’s back lane, a short walk from the well. Once the water runs, the quest sends you up it; the hatch only lifts from below, so the skull’s mouth is still the way in.',
+    'On the straight ride out to the Givers’ Hearth, between Yara’s shade and the wreck, the skiff’s stone anchor lies tipped in the sand, its frayed rope trailing off toward the wreck it failed to hold. It is named as it comes up, and you can look at it.',
   ] },
   { v: '1.16', date: '2026-10-09', items: [
     // the enemy roster, part four: the possessed machines
