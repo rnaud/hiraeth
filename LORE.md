@@ -1317,22 +1317,27 @@ fields went to sand.
   light Qanat's tree: ember fire is the tank's own water set alight, and the tree's living water
   takes only the spark-stone's fire (section 6, the desert). The house's world change (the
   cistern, the channel to the city, the green fields) is its own, before or after the tree.
-- **Inside**: the Threshold (a stair hall, the first mark, the way out); the
-  Hall of Weights (two plates before a shut door; a stone ball in a groove that
-  the fluid's push rolls onto one; you stand on the other); the Dry Channel (a
-  sand pit crossed by a riding disc, a wall to climb to the gallery); the Chest
-  Chamber (**ember mode** on a dais under the oculus; the door on is between two
-  cold braziers); the Hall of Fires (light the brazier across the chasm and the
-  bridge rises; dry thorns over the far door burn away, and prick you back if
-  you try them); the Cistern.
+- **Inside** (rebuilt round one idea in v1.22: the Givers carried their fire): the Threshold (a stair hall, the
+  first mark, the way out); the Hall of the Flame (the Givers' pilot flame, the one fire in the house that never went
+  out, burns in the floor on a tar ball's groove: roll the ball through it and on into the hooded bowl by the door,
+  which no ember reaches; a ball that burns out on the way rolls into the bowl cold and is tipped back); the Dry
+  Channel (a sand pit; dry thorns choke the bridge's sockets at the end of a ball's groove, and the flame is behind
+  the ball: back through it first, then into the thorns; a wall to climb to the gallery); the Chest Chamber (**ember
+  mode** on a dais under the oculus; thorns choke the corridor on, and a tar ball by the dais runs through them to
+  the Hall of Fires); the Hall of Fires (the hooded bowl on the near lip at the end of that ball's groove wakes the
+  bridge); the Hall of Channels (the Givers' dry water-channels in its floor, and a long groove out to the bowl by
+  the far door: lit at the start, the ball burns out short of it; the relay brazier beside the groove lights it
+  again as it passes, and wakes the keepers' door back to the near ledge); the Cistern.
 - **The Keeper of the cistern** (organic): a great pale beast of the Givers, a
   shell of bone plates on six long legs, a swan's neck and a long soft muzzle,
   its shell carved with glyphs that are dim and flickering while it is afraid.
   It stamps where you stand and sweeps the floor with its head; later it dives
   into the dry basin and bursts up under you. Calm it in three steps: light the
-  four braziers round the walls (it was afraid of the dark), splash water into
+  four tall bronze braziers round the walls (it was afraid of the dark), splash water into
   its mouth each time it pants (it was thirsty), then lay a hand on its brow
-  when it lies down by the dry spout.
+  when it lies down by the dry spout. It turns to fire: a tar ball rolled in down one of the four spokes past a lit
+  brazier makes it pant in the light, and at the last it will pant no other way (Sabri's grandmother's lamp, left
+  lit in the fields for it).
 - **After**: the stone under the spout sweats, the cistern fills with living
   water, a stream runs out of the house's door and down toward the city, green
   creepers climb the drum, and round Qanat six old fields come up green in
@@ -1451,18 +1456,22 @@ pale sphere, half sunk, with a round-headed door toward the grove.
   heel. She has heard the one note under the grass ("as if it had forgotten all
   the others"). Afterwards: the toes full of still water, "I saw myself in every
   toe"; the spheres humming together at dusk; "Linnet cried".
-- **Inside**: the Threshold; the Hall of Spheres (two white spheres in grooves,
-  both onto their plates); the Still Pool (a sunken pool crossed on a riding
-  disc that wakes when you splash the eye over the far door); the Lens Chamber
-  (**the glyph lens**; the way on is plain wall to anyone without it); the Hall
-  of the Unseen (a chasm crossed by a bridge of pale glass only the lens shows,
-  and an eye only the lens shows, which opens the last door); the Echo's Hall.
+- **Inside** (rebuilt round one idea in v1.22: the lens shows where the walker set things down; what is real carries
+  the walker's print, three toes like the Footprint itself): the Threshold; the Hall of Spheres (two white spheres in
+  grooves, both onto their plates); the Still Pool (a sphere floating in it, which the stirring water draws back
+  unless you stand on the stone that stills it: then it crosses to its berth, and stepping stones rise); the Lens
+  Chamber (**the glyph lens**; through it, the walker's print on the wall and its prints over the floor); the Hall of
+  the Unseen (a chasm, and a field of stepping stones only the lens shows, each with a print: only the walker's hold,
+  the rest crumble; on the far landing a sphere's groove past two plain prints and the walker's, which only the lens
+  shows, and an eye only the lens shows high on the near wall across the chasm); the keepers' gallery round to the
+  Lens Chamber (its door opens from the far side); the Echo's Hall.
 - **The Echo** (organic, after its fashion: a being of sound): what an Answerer
   left when it turned over the plaza the night the sky rang and went on. A pale
   heart inside three turning rings of glass, a veil under it; it sings one loud
   lost note. Each time it sings, one of the three resonant spheres round its hall
   glows with that note: splash that sphere (the wrong one makes it flinch;
-  fluid on the Echo itself passes through its light). Calm, it sinks to the
+  fluid on the Echo itself passes through its light). Through the lens the sphere that answers wears the walker's
+  print; at the last it sings three notes at once, all three glow, and only the print tells. Calm, it sinks to the
   floor humming: hold out your hand to it.
 - **After**: the Footprint's toes fill with still water, and every sphere in
   the garden wears a ring of the glyph's light at its foot, breathing in step.

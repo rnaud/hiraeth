@@ -76,6 +76,103 @@ function arena(id, gadget, phase) {
   return { level, rt, G, P, notes, frame, wait, until, said, stand, away, done: () => { rt.dispose?.(); game.reset(); own(); } };
 }
 
+// ------------------------------------------------------------------ the Keeper
+/** Roll the cistern's spoke ball nearest the Keeper in toward the basin (from its start), until it pants (tries). */
+function fireToKeeper(A, tries = 6) {
+  const { rt, G, until } = A;
+  for (let k = 0; k < tries; k++) {
+    const m = G.model.pos, ball = rt.spokes.slice().sort((a, b) => a.b.distanceTo(m) - b.b.distanceTo(m))[0];
+    if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; ball.v = 0; }   // (walked back to its start)
+    ball.hit('push', ball.dir.clone(), { strength: 1 });
+    if (until(() => G.state === 'open', 12)) return ball;
+  }
+  return null;
+}
+
+test('the Keeper’s last phase: it no longer pants in the dark; a cold ball rolled to it is nothing; one rolled past a lit brazier down the spoke nearest it burns, and by that fire it pants and drinks', () => {
+  const A = arena('desert', 'fire', 2);
+  const { rt, G, until, said } = A;
+  // the failure first: its own openings come to nothing, in the dark
+  assert.equal(until(() => G.state === 'open', 25), false, 'it never pants by itself now');
+  assert.ok(said(/will not pant without a fire/), 'it shakes its head at the dark, and says so');
+  // a spoke ball rolled cold (its brazier unlit) stays cold, and is nothing to it
+  const cold = fireToKeeper(A, 2);
+  assert.equal(cold, null, 'a cold ball by it: still no panting');
+  assert.ok(rt.spokes.every((b) => b.burn === 0), 'no ball caught');
+  // the rim braziers lit: rolled in past one, a ball catches, and by its fire it pants
+  for (const b of ['b6', 'b7', 'b8', 'b9']) rt.piece(b).hit('fire');
+  for (let n = 0; n < 2 && G.state !== 'weary'; n++) {
+    const ball = fireToKeeper(A);
+    assert.ok(ball && ball.burn > 0, `a burning ball by it: it pants (${n})`);
+    assert.ok(said(/turns to the fire by it/), 'it turns to the fire');
+    const m = G.meter;
+    G.hit('mouth', 'shoot');
+    assert.ok(G.meter > m || G.state === 'weary', 'and drinks');
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  A.done();
+});
+
+test('the Keeper’s second phase teaches the fire: its own panting still opens it, and a burning ball rolled to it makes it pant at once', () => {
+  const A = arena('desert', 'fire', 1);
+  const { rt, G, until } = A;
+  assert.equal(until(() => G.state === 'open', 40), true, 'it pants by itself, as before');
+  const m0 = G.meter;
+  G.hit('mouth', 'shoot');
+  assert.ok(G.meter > m0, 'and drinks');
+  for (const b of ['b6', 'b7', 'b8', 'b9']) rt.piece(b).hit('fire');
+  assert.ok(until(() => G.state === 'fight', 10));
+  const ball = fireToKeeper(A);
+  assert.ok(ball && ball.burn > 0, 'a burning ball rolled to it: it pants');
+  G.hit('mouth', 'shoot');
+  A.wait(0.5);
+  assert.equal(G.phaseIndex, 2, 'into its last phase');
+  A.done();
+});
+
+// ------------------------------------------------------------------ the Echo
+test('the Echo’s last phase: it sings three notes at once and all three spheres glow; a glowing one without the walker’s print is the wrong note, the one wearing it (through the lens) calms it', () => {
+  const A = arena('spheres', 'lens', 2);
+  const { rt, G, until, said } = A;
+  for (let n = 0; n < 4 && G.state !== 'weary'; n++) {
+    assert.equal(until(() => G.state === 'open', 40), true, `it sings (${n})`);
+    A.wait(0.4);
+    assert.ok(rt.resonators.every((r) => r.k > 0.5), 'all three glow');
+    const prints = rt.resonators.filter((r) => r.print.visible);
+    assert.equal(prints.length, 1, 'one wears the walker’s print');
+    assert.equal(prints[0].i, rt.sing);
+    if (n === 0) {
+      // the failure: a glowing sphere without the print
+      const m = G.meter;
+      rt.resonators[(rt.sing + 1) % 3].hit('shoot');
+      assert.ok(G.meter <= m, 'the wrong note: no answer, it flinches');
+      assert.ok(said(/different note/), 'it says so');
+    }
+    const m = G.meter;
+    prints[0].hit('shoot');
+    assert.ok(G.meter > m || G.state === 'weary', 'the walker’s: an answer');
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  A.done();
+});
+
+test('the Echo’s second phase teaches the print: only the sphere that answers glows, and through the lens it wears the walker’s print; without the lens, no print', () => {
+  const A = arena('spheres', 'lens', 1);
+  const { rt, G, until } = A;
+  assert.equal(until(() => G.state === 'open', 40), true, 'it sings');
+  A.wait(0.4);
+  assert.equal(rt.resonators.filter((r) => r.k > 0.5).length, 1, 'one glows');
+  assert.ok(rt.resonators[rt.sing].print.visible, 'wearing the walker’s print');
+  items.revoke('lens');
+  A.wait(0.1);
+  assert.equal(rt.resonators.some((r) => r.print.visible), false, 'the print shows only through the lens');
+  items.grant('lens');
+  const m = G.meter;
+  rt.resonators[rt.sing].hit('shoot');
+  assert.ok(G.meter > m, 'answered');
+  A.done();
+});
+
 // ------------------------------------------------------------------ the Cloud-Mother
 test('the Cloud-Mother’s last phase: she never sinks to cry by herself; a ring as she rises to dive brings a stone down where she dives, she lies on it, and the bell calms her', () => {
   const A = arena('arzach2', 'bell', 2);

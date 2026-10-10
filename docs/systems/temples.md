@@ -225,7 +225,31 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   Chamber's four share one crank (one ball holds all four up); the Furnace's two west pistons have a crank each, the
   other two are caught in turn. The cranks are a `Cranks` (buried.js: wheels that turn unless jammed, rods to their
   pistons) and the hall's great gear a `Gear`; the Tooth-Warden turns on it (docs/systems/foes.md).
-- Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
+- **The Givers carried their fire** (the Givers' House, from the v1.22 audit; the house's one fire, the pilot flame,
+  never went out). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
+  fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
+  floor, or a lit `Brazier`); it burns `burns` s, its flames shrinking, then goes out. A `Brazier` with `hood: { ball }`
+  takes no ember: only its ball, at rest in its mouth (its plate) and burning, lights it; cold, the mouth tips the ball
+  back out (`tipBack`). A ball with `thorns: { id, at }` stops against a `Bramble` across its groove, or burns through
+  it if it burns. The Hall of the Flame teaches it before the gadget (the ball through the pilot flame into the bowl by
+  the door, `b0`, whose element has no `needs`: only `when` the ball is there); the Dry Channel's flame is behind its
+  ball (back through it first, then into the thorns over the bridge's sockets, `bw2`); the chest's thorns `bw0` are
+  the gadget alone, and the chest's ball rolls on through them to the Hall of Fires' bowl (`b3`, the bridge); in the
+  Hall of Channels a ball lit at the start burns out short of the far door's bowl (`b4`): the relay brazier `b10` by
+  its groove lights it again as it passes, and wakes the keepers' door `sc` back to the near ledge. The Keeper turns
+  to fire (`HEARTH_FIRE`, `rt.spokes`: a tar ball in each of four spokes, rolled in past its rim brazier). A link may
+  be held by a latched element itself (thorns over a doorway): `logic.js` keeps it shut until it is lit.
+- **The lens shows where the walker set things down** (the Footprint, from the same audit). What is real carries the
+  walker's print (`printGeometry(toes)`: three toes, like the Footprint itself); look-alikes carry two or four. The
+  Lens Chamber's `Mural` (lens only, the element `mural` of type `clue`, which a gate names in `clue` so the audit
+  counts it as a key a room back) shows the print; the Hall of the Unseen's `LensStones` are a field of stepping stones
+  only the lens shows, the walker's holding, the rest crumbling a moment after you step on one (you fall, back to the
+  mark; it rises again). A `Plate` may carry a `print` and be `hidden` (only the lens shows it): on the far landing the
+  sphere's `stops` are two plain prints and the walker's. The Still Pool's sphere floats (`Ball` `current`: the water
+  draws it back unless a plate stills it, `pS`); the keepers' gallery runs from the far landing back to the Lens
+  Chamber, its door (`sc`, hidden) opened by an eye on its far side. The Echo's resonant spheres wear the print on the
+  one that answers (docs/systems/foes.md).
+- Pieces can be `hidden` (Door, Switch, Bridge, Plate): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets
   `player.inDark` inside, and the lantern charm glows there day or night.

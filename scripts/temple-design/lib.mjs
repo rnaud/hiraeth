@@ -63,7 +63,7 @@ export function reversible(c, el = {}) {
 }
 
 /** The traversal a piece asks for (it stands in a room and you must get past it): null for the puzzle's own parts. */
-export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets' };
+export const TRAVERSAL = { Platform: 'ride', Updraft: 'updraft', Gust: 'gust', Swing: 'swing', Hammer: 'hammer', Pit: 'pit', Glass: 'glass', JetGuide: 'jets', LensStones: 'stones' };
 /** Tags that qualify a verb rather than add one: a reveal (lens, lantern), a volley (eyes inside one breath), a
  * timed hold (a held bell: what it opens stays only while it rings). */
 export const MODIFIERS = ['reveal', 'volley', 'timed'];
@@ -154,6 +154,9 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
       else if (E[k.id]) keys.push({ id: k.id, how: k.how, room: E[k.id].room ?? null, mech: mechanicOf(k.id, E[k.id], { elements: E, piece: byId.get(k.id) }), hidden: !!byId.get(k.id)?.o?.hidden });
     }
     for (const n of l.needs ?? []) if (n !== 'backpack') keys.push({ id: n, how: 'needs', room: l.a, mech: [`gadget:${n === 'magic:4' ? 'cell' : n}`], traversal: true });
+    // a clue the lock needs read, elsewhere (the Footprint's mural: which prints are the walker's): a key with no verb
+    // of its own, whose distance and sight count as any key's
+    for (const c of [lockEl?.clue].flat().filter(Boolean)) if (E[c]) keys.push({ id: c, how: 'clue', room: E[c].room ?? null, mech: [] });
     // a key that takes only `when` something else holds (a ball on a louvre's plate): that is a key of the lock too
     for (const k of [...keys]) for (const w of conditionKeys(E[k.id]?.when)) if (E[w.id] && !keys.some((x) => x.id === w.id)) keys.push({ id: w.id, how: w.how, room: E[w.id].room ?? null, mech: mechanicOf(w.id, E[w.id], { elements: E, piece: byId.get(w.id) }), when: true });
     // a ball whose groove crosses a bridge (its `gap`: it only passes while the bridge stands): what holds that bridge
@@ -166,8 +169,12 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     const merged = [];
     for (const k of keys) {
       const drum = k.how === 'pressed' ? Object.entries(E).find(([, e]) => drumFor(e, k.id)) : null;
-      const q = drum ? { id: drum[0], how: 'drumOn', room: drum[1].room ?? k.room, mech: ['push'], plate: k.id } : k;
-      if (!merged.some((x) => x.id === q.id)) merged.push(q);
+      // (a plate only the lens shows, among plain ones: the push and the reveal, the Footprint's walker's print)
+      const shown = byId.get(k.id)?.o?.hidden, seenBy = shown ? [`gadget:${shown === true ? 'lens' : shown}`, 'reveal'] : [];
+      const q = drum ? { id: drum[0], how: 'drumOn', room: drum[1].room ?? k.room, mech: ['push', ...seenBy], plate: k.id } : k;
+      const had = merged.find((x) => x.id === q.id);
+      if (!had) merged.push(q);
+      else if (had.how === 'drumOn' && q.how === 'drumOn') had.mech = [...new Set([...had.mech, ...q.mech])];   // (its plate's reveal too)
     }
     const arena = !!isGate && lockEl.opens == null;   // the arena's door: shut while the guardian fights (no puzzle)
     const isBossDoor = keys.some((k) => k.how === 'resolved');

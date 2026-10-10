@@ -19,8 +19,9 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 //            bell-note whistle, sounded near it, opens it).
 //   Plate    a disc in the floor that a weight holds down (you, or a stone ball on it)
 //   Ball     a stone ball in a groove (a "drum"): the fluid push rolls it along; at rest on its
-//            plate it holds the plate down, and where it stopped is saved
-//   Brazier  a cold bowl: an ember glob lights it for good (it answers 'fire' only)
+//            plate it holds the plate down, and where it stopped is saved (a tar ball burns a while: `tar`)
+//   Brazier  a cold bowl: an ember glob lights it for good (it answers 'fire' only); hooded, only a burning ball
+//   Flame    the Givers' pilot flame in the floor: a tar ball rolled through it catches
 //   Bramble  dry thorns across a doorway: an ember glob burns them away for good
 //   Switch   a carved eye on a wall: a splash of fluid wakes it for good
 //   Bank     four eyes that wake only together, inside a breath: it wants the fourth chamber
@@ -173,17 +174,33 @@ export class Door {
 // ---------------------------------------------------------------------------------------- plates
 const PLATE_TOP = 0.17;   // m: a plate's disc top over the floor, up
 
+/**
+ * The walker's print (the Footprint): a heel and `toes` toes, flat, `s` m long, pointing +z, lying in the xz plane at
+ * y 0. The temple's own print has three; the lens shows which marks are the walker's.
+ */
+export function printGeometry(toes = 3, s = 1) {
+  const parts = [new THREE.CircleGeometry(0.32 * s, 14).scale(1, 1.3, 1).rotateX(-Math.PI / 2).translate(0, 0, -0.15 * s)];
+  for (let i = 0; i < toes; i++) {
+    const a = toes > 1 ? (i / (toes - 1) - 0.5) * 1.1 : 0;
+    parts.push(new THREE.CircleGeometry(0.13 * s, 10).scale(1, 2.1, 1).rotateZ(-a).rotateX(-Math.PI / 2).translate(Math.sin(a) * 0.42 * s, 0, 0.18 * s + Math.cos(a) * 0.28 * s));
+  }
+  return mergeGeometries(parts.map((g) => { g.deleteAttribute('uv'); return g.index ? g.toNonIndexed() : g; }));
+}
+
 export class Plate {
+  /** o: { id, at, r, print: toes (a print pressed in it instead of the glyph), hidden (only the lens shows it) } */
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id; this.r = o.r ?? 1.3;
+    this.rt = rt; this.id = o.id; this.r = o.r ?? 1.3; this.o = o;
     const K = rt.kit, M = rt.M;
     this.pos = K.world(...o.at);
     this.group = new THREE.Group();
     this.group.position.copy(this.pos);
+    this.group.rotation.y = K.heading(o.yaw ?? 0);
     rt.root.add(this.group);
     this.group.add(mesh([T(new THREE.CylinderGeometry(this.r + 0.35, this.r + 0.45, 0.12, 24), [0, 0.04, 0])], M.trimMat));
     this.glow = own({ color: rt.P.glow ?? '#70e7df', glow: 0.1, flat: true });
-    this.disc = mesh([T(new THREE.CylinderGeometry(this.r, this.r, 0.14, 24), [0, 0.1, 0]), T(glyphGeometry(this.r * 1.2, 0.04).rotateX(-Math.PI / 2), [0, 0.18, 0])], this.glow);
+    const mark = o.print ? T(printGeometry(o.print, this.r * 1.5), [0, 0.18, 0]) : T(glyphGeometry(this.r * 1.2, 0.04).rotateX(-Math.PI / 2), [0, 0.18, 0]);
+    this.disc = mesh([T(new THREE.CylinderGeometry(this.r, this.r, 0.14, 24), [0, 0.1, 0]), mark], this.glow);
     this.group.add(this.disc);
     noCollide(this.group);
     this.k = 0;
@@ -199,6 +216,62 @@ export class Plate {
     this.disc.position.y = -0.07 * this.k;
     this.solid.top = this.pos.y + PLATE_TOP + this.disc.position.y;
     this.glow.uniforms.uGlow.value = 0.1 + 0.85 * this.k;
+    if (this.o.hidden) this.group.visible = L.has(shownBy(this.o.hidden));
+  }
+}
+
+/**
+ * A field of stepping stones over a chasm that only the lens shows (the Footprint's Hall of the Unseen): each stone
+ * carries a print; the walker's (three toes, `real`) hold, the rest crumble a moment after you step on one and you
+ * fall (back to the mark), and rise again a while later. Without the lens none is there at all.
+ * o: { id, cells: [{ x, z, toes, real }] (local, their tops at y), y, size, a, b (the field's ends, for the audit),
+ *      crumble: s, back: s, said }
+ */
+export class LensStones {
+  constructor(rt, o) {
+    this.rt = rt; this.id = o.id; this.o = o;
+    const K = rt.kit, s = o.size ?? 3, y = o.y ?? 0;
+    this.ghost = own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.4, flat: true });
+    this.mark = own({ color: rt.P.lamp ?? '#f6c84e', glow: 0.7, flat: true });
+    this.root = new THREE.Group();
+    rt.root.add(this.root);
+    this.cells = o.cells.map((c) => {
+      const g = new THREE.Group();
+      g.position.copy(K.world(c.x, y, c.z));
+      g.rotation.y = K.heading(0);
+      g.add(mesh([box(s, 0.5, s, 0, -0.25, 0)], this.ghost));
+      g.add(mesh([T(printGeometry(c.toes, s * 0.7), [0, 0.015, 0])], this.mark));
+      this.root.add(g);
+      const block = new THREE.Mesh(box(s, 0.5, s, 0, -0.25, 0), new THREE.MeshBasicMaterial());
+      block.position.copy(g.position); block.rotation.copy(g.rotation);
+      return { ...c, g, y0: g.position.y, block, handle: null, on: 0, down: 0 };
+    });
+    noCollide(this.root);
+    this.s = s;
+  }
+  init(physics) { this.physics = physics; }
+  seen() { return this.rt.logic.has(shownBy(true)); }
+  /** Is p standing on cell c? */
+  on(c, p) {
+    if (!p?.pos) return false;
+    const l = this.rt.kit.local(p.pos), cl = this.rt.kit.local(c.g.position);
+    return Math.abs(l.x - cl.x) < this.s / 2 + 0.1 && Math.abs(l.z - cl.z) < this.s / 2 + 0.1 && l.y > cl.y - 0.3 && l.y < cl.y + 0.6 && (p.onGround ?? true);
+  }
+  update(dt) {
+    const seen = this.seen(), P = this.rt.player, o = this.o;
+    this.root.visible = seen;
+    for (const c of this.cells) {
+      // a false stone stood on crumbles after a moment, drops, and rises again later
+      if (!c.real && c.down <= 0 && seen && this.on(c, P)) { c.on += dt; if (c.on > (o.crumble ?? 0.35)) { c.down = o.back ?? 4; c.on = 0; this.rt.sound?.critter?.('clack', 0.7); this.rt.notice?.(o.said ?? 'The stone crumbles under you: its print is not the walker’s.', `${this.id}.false`); } }
+      else if (!this.on(c, P)) c.on = 0;
+      if (c.down > 0) c.down = Math.max(0, c.down - dt);
+      const solid = seen && c.down <= 0;
+      if (solid && !c.handle && this.physics) c.handle = this.physics.addCollider?.(c.block) ?? null;
+      if (!solid && c.handle) { this.physics?.removeCollider?.(c.handle); c.handle = null; }
+      const drop = c.down > 0 ? Math.min(1, ((o.back ?? 4) - c.down) / 0.8) : 0;
+      c.g.position.y = c.y0 - drop * 12;
+      c.g.visible = drop < 0.99;
+    }
   }
 }
 
@@ -214,7 +287,16 @@ export class Ball {
    * sing that note, game event 'note', as a singing stone does), seed: { id, shade, grew } (a seed-ball, Viridel's
    * Greenhouse: a bloom glob makes it grow, lighting element `id`, a 'switch' that needs the bloom mode, whose `when`
    * says where it must lie (in a sunbeam: on its plate); bloomed elsewhere it sprouts pale and folds back (`shade`).
-   * Grown, it roots where it lies and rolls no more) }
+   * Grown, it roots where it lies and rolls no more),
+   * tar: { burns, caught, out, back } (a tar ball, the Givers' House: an ember glob sets it alight, and so does rolling
+   * it through a fire beside its groove (a Flame, a lit Brazier: their `fire`); it burns `burns` s, then goes out.
+   * Burning, it lights the hooded bowl it comes to rest in (Brazier `hood`) and burns the thorns on its groove; cold,
+   * the bowl tips it back out (`back` m/s)),
+   * thorns: { id, at } (dry thorns across the groove at t = at, a Bramble: the ball stops against them while they
+   * stand; burning, it burns them as it reaches them and rolls on),
+   * current: { pull, still, stirs, stilled } (a sphere floating in a pool that stirs, the Footprint's: the water draws it
+   * back toward the groove's start at `pull` m/s² unless condition `still` holds (a plate stood on stills the pool);
+   * at rest on its plate (a berth) it stays) }
    * Its element (logic.js) may have `stops`: several plates along the groove, and it settles into whichever it slows by.
    */
   constructor(rt, o) {
@@ -232,8 +314,9 @@ export class Ball {
     this.group.add(this.spin);
     if (o.lamp) { this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0; }
     if (o.seed) this.husk = own({ color: '#a07a4e', flat: true });
-    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? this.husk ?? M.stoneMat));
-    this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : o.seed ? '#7fcf72' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
+    if (o.tar) { this.tarM = own({ color: '#4a3a33', flat: true }); this.burn = 0; }
+    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? this.husk ?? this.tarM ?? M.stoneMat));
+    this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : o.seed ? '#7fcf72' : o.tar ? '#e0844a' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
     if (o.seed) {
       // what a seed-ball grows when it is bloomed in the sun: a crown of leaves and a stem out of its top (it stays upright)
@@ -285,6 +368,7 @@ export class Ball {
         return true;
       }
     }
+    if (this.o.tar && mode === 'fire') { this.ignite(); return true; }   // (a tar ball catches: it doesn't roll for it)
     if (!dir) return false;
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
@@ -305,9 +389,10 @@ export class Ball {
     this.rt.game?.emit?.('note', { pos: this.center.clone(), note: this.o.sings, degree: N.degree, color: N.color, label: `the singing ball’s ${N.name} note` });
     return true;
   }
-  update(dt) {
+  update(dt, time = 0) {
     if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.spin.rotation.z = Math.sin(this.wobble * 30) * this.wobble * 0.1; }
     if (this.o.lamp) this.lamp(dt);
+    if (this.o.tar) this.tarTick(dt, time);
     if (this.o.seed) {
       const lit = this.rt.logic.isLit(this.o.seed.id);
       if (lit && this.grown < 1) this.grown = Math.min(1, this.grown + dt / 1.4);
@@ -323,6 +408,15 @@ export class Ball {
     if (this.drop) { this.falling(dt); return; }
     const G = this.o.gap;
     if (G && this.t > G.from + 1e-3 && this.t < G.to - 1e-3 && !this.rt.logic.isOpen(G.bridge)) { this.startDrop(); return; }
+    const Cu = this.o.current;
+    this.pulled = false;
+    if (Cu) {
+      // the pool stirs: it draws the sphere back toward the start, unless something stills it or it lies in its berth
+      const Lg = this.rt.logic, berth = Lg.drumOn(this.id, Lg.el(this.id)?.plate) && this.rest;
+      const still = Lg.check(Cu.still);
+      if (!still && !berth && this.t > 0.004) { this.v -= (Cu.pull ?? 0.7) * dt; this.rest = false; this.pulled = true; if (Cu.stirs && this.v < -0.5) this.rt.notice?.(Cu.stirs, `${this.id}.stirs`); }
+      if (still !== this.wasStill) { if (still && Cu.stilled) this.rt.notice?.(Cu.stilled, `${this.id}.stilled`); this.wasStill = still; }
+    }
     if (this.rest) { this.solid.vel.set(0, 0, 0); return; }
     // rolling friction, and a gentle settle into the plate's dip when it is slow and close
     const L = this.rt.logic, e = L.el(this.id);
@@ -333,6 +427,16 @@ export class Ball {
     this.v *= Math.exp(-(near < 1.6 ? 1.6 : this.o.friction ?? 1.6) * dt);   // (the plate's dip holds it, whatever the groove)
     let t = this.t + (this.v * dt) / this.len;
     if (t <= 0 || t >= 1) { t = THREE.MathUtils.clamp(t, 0, 1); this.v = -this.v * 0.25; this.rt.sound?.critter?.('clack', 0.5); }
+    // thorns across the groove: it stops against them, or, burning, burns them and rolls on
+    const Th = this.o.thorns;
+    if (Th && t > this.t && this.t <= Th.at + 1e-4 && t >= Th.at - 1e-4) {
+      const br = this.rt.piece(Th.id);
+      if (br && !br.burnt) {
+        L.moveDrum(this.id, Th.at);   // (it stands at the thorns: a bramble that takes `when` the ball is there)
+        if (this.burn > 0) br.hit('fire');
+        if (!br.burnt) { t = Th.at; this.v = 0; this.rt.sound?.critter?.('creak', 0.5); if (this.o.thorns.stopped) this.rt.notice?.(this.o.thorns.stopped, `${this.id}.thorns`); }
+      }
+    }
     // a groove over a bridge: the stones are up, so the ball stops at the lip; or they went from under it
     if (G && !L.isOpen(G.bridge)) {
       if (this.t <= G.from + 1e-3 && t > G.from) { t = G.from; this.v = -Math.abs(this.v) * 0.25; this.rt.sound?.critter?.('clack', 0.5); if (G.lip) this.rt.notice?.(G.lip, `${this.id}.lip`); }
@@ -343,7 +447,7 @@ export class Ball {
     this.spin.rotateOnWorldAxis(this.axis, moved / this.r);
     this.place();
     this.solid.vel.copy(this.dir).multiplyScalar(this.v);
-    if (Math.abs(this.v) < 0.05 && (near < 0.05 || near > 1.6)) {
+    if (Math.abs(this.v) < 0.05 && (near < 0.05 || near > 1.6) && !(this.pulled && this.t > 0.004)) {
       this.v = 0; this.rest = true;
       if (L.moveDrum(this.id, this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) this.rt.sound?.chime?.();
     }
@@ -374,6 +478,44 @@ export class Ball {
     const lit = L.isLit(o.id), k = lit ? 1 : Math.min(1, this.charge / 4) * (0.85 + 0.15 * Math.sin(this.rt.time * 4));
     this.orb.uniforms.uGlow.value = 0.08 + 0.85 * k + (by ? 0.25 * Math.min(1, this.near / (o.hold ?? 2)) : 0);
   }
+  /** A tar ball catches (an ember glob, or rolled through a fire): it burns `tar.burns` s from now. */
+  ignite() {
+    const o = this.o.tar;
+    if (!o || this.drop) return false;
+    const was = this.burn > 0;
+    this.burn = o.burns ?? 12;
+    if (!this.flames) {
+      this.flames = new Flames(this.group, [{ at: V(0, this.r * 1.75, 0), h: 1.3, r: 0.42 }, { at: V(0.2, this.r * 1.6, 0.1), h: 0.9, r: 0.28, phase: 2 }, { at: V(-0.18, this.r * 1.65, -0.12), h: 1.0, r: 0.26, phase: 4 }], { seed: this.id?.length ?? 3 });
+      this.flames.mesh.userData.dynamic = true;
+      this.light = new THREE.Vector4(0, -1e5, 0, 0);
+      this.rt.lights.push(this.light);
+    }
+    this.flames.mesh.visible = true;
+    if (!was) { this.rt.sound?.whoosh?.(); this.rt.notice?.(o.caught ?? 'The tar ball catches, and burns.', `${this.id}.caught`); }
+    return true;
+  }
+  /** Burning: it burns down, and goes out; rolled past a fire (a Flame, a lit Brazier), it catches again. */
+  tarTick(dt, time) {
+    const o = this.o.tar;
+    // a fire beside the groove: within its reach, level with it
+    for (const p of this.rt.pieces) {
+      const f = p !== this && p.fire;
+      if (f && Math.hypot(f.x - this.center.x, f.z - this.center.z) < (p.fireReach ?? 1.7) && Math.abs(f.y - this.center.y) < 3) { if (this.burn < (o.burns ?? 12) - 0.25) this.ignite(); break; }
+    }
+    if (this.burn > 0) {
+      this.burn = Math.max(0, this.burn - dt);
+      if (this.burn === 0) { this.flames.mesh.visible = false; this.light.set(0, -1e5, 0, 0); this.rt.notice?.(o.out ?? 'The tar ball’s flame gutters, and goes out.', `${this.id}.out`); }
+    }
+    if (this.burn > 0) {
+      // (it burns down: smaller toward the end)
+      this.flames.intensity = 0.45 + 0.75 * Math.min(1, this.burn / ((o.burns ?? 12) * 0.5));
+      this.flames.update(dt, time);
+      this.light.set(this.center.x, this.center.y + this.r + 0.6, this.center.z, 7 + 5 * this.flames.intensity);
+    }
+    this.glow.uniforms.uGlow.value = this.burn > 0 ? 0.9 : 0.35;
+  }
+  /** A hooded bowl tips a cold ball back out the way it came. */
+  tipBack() { this.v = -(this.o.tar?.back ?? 6); this.rest = false; this.rt.sound?.critter?.('creak', 0.6); }
   /** The stones went from under it: it falls into the chasm, and a new one rolls out where the groove starts. */
   startDrop() {
     this.drop = { y: 0, v: 0, back: 0 };
@@ -400,15 +542,38 @@ export class Ball {
 
 // ---------------------------------------------------------------------------------------- fire
 export class Brazier {
+  /**
+   * o: { id, at, scale, tripod (a tall bronze stand of three legs round its stem), hood: { ball, yaw, said, cold }
+   * (a hooded bowl, the Givers' House: a stone hood over it with a low mouth on its groove, facing `yaw`; no ember
+   * glob reaches the coals, only the tar ball `ball` rolled burning into its mouth (at rest on its plate) lights it;
+   * cold, the mouth tips the ball back out) }. Lit, it is a `fire` a tar ball rolled past it catches from.
+   */
   constructor(rt, o) {
-    this.rt = rt; this.id = o.id;
+    this.rt = rt; this.id = o.id; this.o = o;
     const K = rt.kit, M = rt.M, s = o.scale ?? 1;
     this.pos = K.world(...o.at);
     this.group = new THREE.Group();
     this.group.position.copy(this.pos);
+    this.group.rotation.y = K.heading(o.hood?.yaw ?? 0);
     rt.root.add(this.group);
     const bowl = lathe([[0.25, 0], [0.5, 0.15], [0.9, 0.55], [1.1, 0.95], [1.0, 1.0], [0.75, 0.62], [0.2, 0.55]].map(([r, y]) => [r * s, y * s + 1.1 * s]), 18);
     this.group.add(mesh([lathe([[0.7, 0], [0.7, 0.2], [0.35, 0.4], [0.3, 1.15], [0.5, 1.2]].map(([r, y]) => [r * s, y * s]), 14), bowl], M.trimMat));
+    if (o.tripod) {
+      // three bronze legs splayed round the stem, a ring binding them under the bowl (the cistern's, as drawn)
+      const bronze = own({ color: '#b08a4a', flat: true }), legs = [];
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2, foot = V(Math.sin(a) * 0.95 * s, 0, Math.cos(a) * 0.95 * s), top = V(Math.sin(a) * 0.45 * s, 1.15 * s, Math.cos(a) * 0.45 * s);
+        legs.push(new THREE.TubeGeometry(new THREE.LineCurve3(foot, top), 1, 0.07 * s, 5));
+      }
+      legs.push(T(new THREE.TorusGeometry(0.55 * s, 0.05 * s, 4, 16), [0, 0.75 * s, 0], [Math.PI / 2, 0, 0]));
+      this.group.add(mesh(legs, bronze));
+    }
+    if (o.hood) {
+      // the hood: a stone cap over the bowl, open only on its mouth side (+z), where the groove comes in low
+      this.group.add(mesh([T(new THREE.SphereGeometry(1.25 * s, 16, 8, Math.PI * 0.75, Math.PI * 1.5, 0.45, Math.PI / 2 - 0.45), [0, 1.62 * s, 0]),
+        T(new THREE.CylinderGeometry(1.3 * s, 1.3 * s, 0.25, 16, 1, false, Math.PI * 0.25, Math.PI * 1.5), [0, 1.62 * s, 0])], M.stoneMat));
+      this.group.add(mesh([T(glyphGeometry(0.8 * s, 0.05), [0, 2.35 * s, -0.95 * s], [0, Math.PI, 0])], M.trimMat));
+    }
     this.coals = own({ color: '#5a4a40', glow: 0, flat: true });
     this.group.add(mesh([T(new THREE.CylinderGeometry(0.75 * s, 0.6 * s, 0.12, 14), [0, 1.62 * s, 0])], this.coals));
     noCollide(this.group);
@@ -418,14 +583,35 @@ export class Brazier {
       kind: 'flammable', flammable: 'brazier', radius: 1.0 * s, accepts: ['fire'], position: () => this.center,
       onHit: (mode) => this.hit(mode),
     });
+    this.wait = 0;
+    this.fireReach = o.fireReach ?? 2.0;   // (m, level: how near a tar ball rolls past its flame to catch)
     if (rt.logic.isLit(o.id)) this.ignite(true);
   }
+  /** Lit: where its flame is, for a tar ball rolled past it (pieces.js Ball `tar`). */
+  get fire() { return this.flames ? this.center : null; }
   hit(mode) {
     const L = this.rt.logic;
     if (L.isLit(this.id)) return true;
+    if (this.o.hood) { if (mode === 'fire') this.rt.notice?.(this.o.hood.said ?? 'The ember spatters on the stone hood. Its mouth opens low, on the groove: only something burning rolled into it would reach the coals.', `hood.${this.id}`); return true; }
     if (mode !== 'fire') { this.rt.notice?.('The bowl is cold, and dry. It wants fire.', `cold.${this.id}`); return true; }
     if (L.light(this.id)) { this.ignite(false); this.rt.onLit?.(this.id); }
     return true;
+  }
+  /** A hooded bowl: is its tar ball at rest in its mouth? Burning, it lights the bowl; cold, it is tipped back out. */
+  hooded(dt) {
+    const L = this.rt.logic, H = this.o.hood, b = this.rt.piece(H.ball);
+    if (!b || L.isLit(this.id)) return;
+    const home = b.rest && !b.drop && L.drumOn(b.id, H.plate ?? L.el(b.id)?.plate);
+    if (!home) { this.wait = 0; return; }
+    if (b.burn > 0) {
+      if (L.light(this.id)) { this.ignite(false); this.rt.onLit?.(this.id); }
+      return;
+    }
+    if ((this.wait += dt) > 1.2) {
+      this.wait = 0;
+      this.rt.notice?.(H.cold ?? 'The ball rolls into the bowl’s mouth cold, and the mouth tips it back out. It wants fire.', `hoodcold.${this.id}`);
+      b.tipBack();
+    }
   }
   ignite(instant) {
     if (this.flames) return;
@@ -436,8 +622,31 @@ export class Brazier {
     this.rt.lights.push(this.light);
     if (!instant) { this.rt.sound?.whoosh?.(); this.rt.sound?.chime?.(); }
   }
-  update(dt, t) { this.flames?.update(dt, t); }
+  update(dt, t) { if (this.o.hood) this.hooded(dt); this.flames?.update(dt, t); }
   dispose() { this.off?.(); }
+}
+
+/** The Givers' pilot flame: a fire that never went out, in a stone ring sunk in the floor; a tar ball rolled through it catches. o: { at, r } */
+export class Flame {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, M = rt.M, r = o.r ?? 0.9;
+    this.pos = K.world(...o.at);
+    this.group = new THREE.Group();
+    this.group.position.copy(this.pos);
+    rt.root.add(this.group);
+    this.group.add(mesh([T(annulus(r, r + 0.35, 0.16, 20), [0, 0.02, 0])], M.trimMat));
+    const coals = own({ color: '#e0644a', glow: 0.8, flat: true });
+    this.group.add(mesh([T(new THREE.CircleGeometry(r, 16).rotateX(-Math.PI / 2), [0, 0.06, 0])], coals));
+    noCollide(this.group);
+    this.flames = new Flames(this.group, [{ at: V(0, 0.05, 0), h: 1.7, r: 0.5 }, { at: V(0.3, 0.05, 0.15), h: 1.1, r: 0.3, phase: 2 }, { at: V(-0.28, 0.05, -0.2), h: 1.25, r: 0.3, phase: 4 }, { at: V(0, 0.05, 0), h: 0.9, r: 0.22, core: 1, phase: 1 }], { seed: 17 });
+    this.flames.mesh.userData.dynamic = true;
+    this.center = this.pos.clone().addScaledVector(UP, 0.9);
+    this.fire = this.center;
+    this.fireReach = r + 0.9;
+    rt.lights.push(new THREE.Vector4(this.pos.x, this.pos.y + 1.6, this.pos.z, 12));
+  }
+  update(dt, t) { this.flames.update(dt, t); }
 }
 
 export class Bramble {

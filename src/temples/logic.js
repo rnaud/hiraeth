@@ -178,6 +178,8 @@ export class TempleLogic {
   // ---------------------------------------------------------------- the rooms
   linkOpen(l) {
     if (l.door && !this.isOpen(l.door)) return false;
+    // (a link held by an element itself, thorns over a doorway: open once it is burnt)
+    if (l.door && !isGate(this.el(l.door)) && LATCHED.has(this.el(l.door)?.type) && !this.isLit(l.door)) return false;
     return (l.needs ?? []).every((it) => this.has(it));
   }
   /** The rooms you can walk to from the entrance now. */

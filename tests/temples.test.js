@@ -341,7 +341,7 @@ test('a temple door is solid until it opens, and the doorway is free after', () 
 });
 
 // ------------------------------------------------------------------ on foot: the desert temple, room by room
-test('the Givers’ House on foot: in, the ball and the plates, the disc and the wall, the ember, the bridge and the thorns, the Keeper calmed, out', () => {
+test('the Givers’ House on foot: the tar ball through the pilot flame into the hooded bowl, back through the flame and into the thorns, the ember, the chest’s ball through the corridor, the long groove and its relay, the keepers’ door, the Keeper panting by a fire rolled to it, out', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('desert');
@@ -359,61 +359,130 @@ test('the Givers’ House on foot: in, the ball and the plates, the disc and the
   };
   const wait = (s, input = {}, yaw = 0) => { for (let i = 0; i < s / DT; i++) frame(input, yaw); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const said = (re) => notes.some((s) => re.test(s));
+  /** Walk up behind a ball (sign: along its groove, or back) and push it that way. */
+  const push = (ball, sign = 1) => {
+    const dir = ball.dir.clone().multiplyScalar(sign);
+    walk(ball.group.position.clone().addScaledVector(dir, -(ball.r + 1.4)), { tol: 1.2, max: 10 });
+    ball.hit('push', dir, { strength: 1 });
+  };
+  /** Frames until a ball has slowed (or s seconds). */
+  const settle = (ball, s = 8) => { for (let i = 0; i < s / DT; i++) { frame(); if (Math.abs(ball.v) < 0.3) return; } };
+  /** Push a ball along until it rests on its plate (at most n pushes). */
+  const roll = (ball, n = 6) => { for (let k = 0; k < n && !(ball.rest && rt.logic.drumOn(ball.id, rt.logic.el(ball.id).plate)); k++) { push(ball, 1); settle(ball); } for (let i = 0; i < 4 / DT && !ball.rest; i++) frame(); };
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), 'standing in the Threshold');
-  // ---- the Hall of Weights: the door is shut; roll the ball onto its plate with the push
+
+  // ---- the Hall of the Flame: the door is shut; the ball rolled through the pilot flame catches, and lights the bowl
   assert.equal(walk(L(0, 0, 49)), true, `walk to the door (${where()})`);
   assert.ok(rt.kit.local(P.pos).z < 51.5, 'the shut door stops you');
-  const ball = rt.piece('ball1');
-  for (let k = 0; k < 12 && !rt.logic.drumOn('ball1', 'p2'); k++) {
-    // stand behind it and push along the groove
-    const behind = ball.center.clone().add(V(0, 0, -2.3));
-    walk(behind, { tol: 0.5 });
-    ball.hit('push', ball.dir.clone(), { strength: 1 });
-    wait(2.5);
-  }
-  assert.ok(rt.logic.drumOn('ball1', 'p2'), `the ball rests on its plate (t ${ball.t.toFixed(2)})`);
-  assert.equal(rt.logic.isOpen('d1'), false, 'one plate is not enough');
-  assert.equal(walk(L(-5.5, 0, 46), { tol: 0.4 }), true);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('d1'), true, 'standing on the other: the door opens');
+  const ball1 = rt.piece('ball1'), b0 = rt.piece('b0');
+  assert.equal(ball1.burn, 0, 'the tar ball is cold');
+  push(ball1); settle(ball1);
+  assert.ok(ball1.burn > 0 && rt.kit.local(ball1.center).z > 27.5, 'rolled through the pilot flame, it burns');
+  assert.ok(said(/Givers’ flame and catches/), 'and says so');
+  // the failure: let it burn out before it reaches the bowl, and the bowl tips the cold ball back out
+  wait(15);
+  assert.equal(ball1.burn, 0, 'it burns out');
+  roll(ball1);
   wait(2);
-  // ---- the Dry Channel: ride the disc over the sand, climb the gallery's wall
+  assert.equal(rt.logic.isLit('b0'), false, 'cold, it lights nothing');
+  assert.ok(said(/tips it back out/) && rt.kit.local(ball1.center).z < 44.5, 'the hooded bowl tips the cold ball back out');
+  // back through the flame, and on into the bowl while it burns
+  for (let k = 0; k < 4 && rt.kit.local(ball1.center).z > 25; k++) { push(ball1, -1); settle(ball1); }
+  assert.ok(ball1.burn > 0, `pushed back through the flame, it burns again (${rt.kit.local(ball1.center).z.toFixed(1)})`);
+  roll(ball1);
+  wait(1);
+  assert.equal(rt.logic.isLit('b0'), true, 'burning, it lights the hooded bowl');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('d1'), true, 'and the door opens');
+
+  // ---- the Dry Channel: the thorns over the bridge's sockets; the flame is behind the ball
   assert.equal(walk(L(0, 0, 56.5)), true, `through the door (${where()})`);
-  const disc = rt.pieces.find((p) => p.path);
-  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.4); i++) frame();
-  assert.equal(walk(disc.group.position, { tol: 0.5, run: false }), true, 'onto the disc');
-  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
-  assert.ok(rt.kit.local(P.pos).z > 74, `carried over the sand (${where()})`);
-  assert.equal(walk(L(0, 0, 82)), true, `off onto the far landing (${where()})`);
+  const ball2 = rt.piece('ball2');
+  push(ball2, 1); settle(ball2); roll(ball2);
+  assert.ok(ball2.rest && rt.logic.drumOn('ball2', 'pb2'), 'the cold ball reaches the thorns');
+  assert.equal(rt.logic.isLit('bw2'), false, 'and stops against them: they stand');
+  assert.ok(said(/cold ball stops against the thorns/));
+  assert.equal(rt.logic.isOpen('br0'), false, 'the bridge stays down');
+  // back west through the flame, to the groove's end
+  for (let k = 0; k < 4 && ball2.t > 0.02; k++) { push(ball2, -1); settle(ball2); }
+  assert.ok(ball2.burn > 0, 'through the flame: it burns');
+  roll(ball2);
+  wait(3);
+  assert.equal(rt.logic.isLit('bw2'), true, 'burning, it burns the thorns');
+  assert.equal(rt.logic.isOpen('br0'), true, 'and the bridge rises');
+  assert.equal(walk(L(9.5, 0, 56.4)), true, `to the bridge’s foot, where the thorns were (${where()})`);
+  assert.equal(walk(L(9.5, 0, 82)), true, `over the bridge to the far landing (${where()})`);
   assert.ok(P.pos.y > L(0, -1, 0).y, 'not in the pit');
-  // climb: walk into the wall and keep going up
   let climbed = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 7, 90))); if (P.onGround && rt.kit.local(P.pos).y > 6.5) { climbed = true; break; } }
   assert.ok(climbed, `up the gallery's wall (${where()})`);
-  // ---- the Chest Chamber: the chest gives ember mode (here: as the box system does it)
-  assert.equal(walk(L(0, 7, 101)), true, `into the chest chamber (${where()})`);
+
+  // ---- the Chest Chamber: ember mode; the corridor's thorns; the chest's tar ball
+  assert.equal(walk(L(-2, 7, 101)), true, `into the chest chamber (${where()})`);
   assert.equal(rt.logic.next(), 'chest');
   items.grant('fire'); game.set('box.desert.temple.fire', true); game.emit('box:opened', { id: 'desert.temple.fire' });
   assert.equal(rt.logic.gadget, true);
-  assert.equal(walk(L(0, 7, 112)), true);
-  assert.ok(rt.kit.local(P.pos).z < 115.8, 'the door between the braziers is shut');
-  rt.piece('b1').hit('shoot');
-  assert.equal(rt.logic.isLit('b1'), false, 'plain fluid does not light it');
-  rt.piece('b1').hit('fire'); rt.piece('b2').hit('fire');
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d2'), true, 'lit: the door opens');
-  // ---- the Hall of Fires: light the brazier across the chasm; the bridge rises; burn the thorns
-  assert.equal(walk(L(0, 7, 125)), true, `into the hall of fires (${where()})`);
-  rt.piece('b3').hit('fire');
+  assert.equal(walk(L(-1.5, 7, 121), { max: 5 }), false, 'the thorns are in the way');
+  const ball3 = rt.piece('ball3');
+  roll(ball3, 3);
+  assert.equal(rt.logic.isLit('bw0'), false, 'pushed cold, the ball stops against the thorns');
+  assert.ok(ball3.t < 0.6, `(at ${ball3.t.toFixed(2)})`);
+  rt.piece('bw0').hit('shoot');
+  assert.equal(rt.logic.isLit('bw0'), false, 'plain fluid only beads on the thorns');
+  // the ball lit and rolled: it burns through the thorns and on to the bowl on the near lip
+  ball3.hit('fire');
+  assert.ok(ball3.burn > 0, 'an ember glob lights the ball');
+  roll(ball3);
+  wait(1.5);
+  assert.equal(rt.logic.isLit('bw0'), true, 'it burns through the thorns');
+  assert.equal(rt.logic.isLit('b3'), true, 'and on into the hooded bowl, which catches');
   wait(3.5);
-  assert.equal(walk(L(0, 7, 147)), true, `over the bridge (${where()})`);
+  assert.equal(rt.logic.isOpen('br1'), true, 'the bridge rises');
+  // ---- the Hall of Fires: the hooded bowl takes no ember; over the bridge
+  assert.equal(walk(L(-5, 7, 125)), true, `into the hall of fires (${where()})`);
+  assert.equal(walk(L(-5, 7, 147)), true, `over the bridge (${where()})`);
   assert.ok(P.pos.y > L(0, 6, 0).y, 'over it, not into the chasm');
-  assert.equal(walk(L(0, 7, 160), { max: 4 }), false, 'the thorns are in the way');
-  rt.piece('bw1').hit('fire');
-  wait(3);
-  assert.equal(walk(L(0, 7, 162)), true, `past the burnt thorns (${where()})`);
-  // ---- the Cistern: the Keeper wakes; light its braziers, water it when it pants, a hand on its brow
+  const b4 = rt.piece('b4');
+  b4.hit('fire');
+  assert.equal(rt.logic.isLit('b4'), false, 'the far door’s bowl is hooded: an ember glob does nothing');
+  assert.ok(said(/stone hood/), 'it says why');
+  assert.equal(walk(L(0, 7, 160), { max: 4 }), false, 'the far door is shut');
+
+  // ---- the Hall of Channels: the long groove burns the ball out short; the relay lights it again
+  assert.equal(walk(L(12, 7, 149)), true, `to the far landing's east doorway (${where()})`);
+  assert.equal(walk(L(30, 7, 149)), true, `into the Hall of Channels (${where()})`);
+  const ball4 = rt.piece('ball4');
+  ball4.hit('fire');
+  walk(ball4.group.position.clone().add(V(1.6, 0, 0)), { tol: 1.0, max: 8 });
+  ball4.hit('push', ball4.dir.clone(), { strength: 1 });
+  let outAt = null;
+  for (let i = 0; i < 14 / DT; i++) { frame(); if (ball4.burn === 0 && outAt == null) outAt = ball4.t; if (ball4.v < -0.5) break; }
+  assert.ok(outAt != null && outAt < 0.98, `lit at the start, it burns out short of the bowl (t ${outAt?.toFixed(2)})`);
+  assert.equal(rt.logic.isLit('b4'), false, 'cold, the bowl stays dark');
+  for (let i = 0; i < 25 / DT && !ball4.rest; i++) frame();
+  // the relay brazier beside the groove: lit, it wakes the keepers' door; the ball rolled past it catches
+  assert.equal(rt.logic.isOpen('sc'), false, 'the keepers’ door is shut');
+  rt.piece('b10').hit('fire');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('sc'), true, 'the relay wakes the keepers’ door: the way back to the near ledge');
+  walk(ball4.group.position.clone().add(V(1.6, 0, 0)), { tol: 1.0, max: 20 });
+  assert.equal(ball4.burn, 0, 'the ball is cold');
+  ball4.hit('push', ball4.dir.clone(), { strength: 1 });
+  for (let i = 0; i < 16 / DT && !rt.logic.isLit('b4'); i++) frame();
+  assert.equal(rt.logic.isLit('b4'), true, 'pushed cold past the relay, it catches and burns on into the far door’s bowl');
+  wait(2.5);
+  assert.equal(rt.logic.isOpen('d3'), true, 'the far door opens');
+  // the shortcut: through the keepers' door to the near ledge, and back
+  assert.equal(walk(L(20, 7, 124)), true, `down the Hall of Channels (${where()})`);
+  assert.equal(walk(L(9, 7, 124)), true, `through the keepers’ door onto the near ledge (${where()})`);
+  assert.equal(walk(L(20, 7, 124)), true);
+  assert.equal(walk(L(20, 7, 149)), true);
+  assert.equal(walk(L(8, 7, 149)), true, `back onto the far landing (${where()})`);
+  assert.equal(walk(L(0, 7, 162)), true, `through the far door (${where()})`);
+
+  // ---- the Cistern: the Keeper wakes; light its braziers, water it when it pants, then by a fire rolled to it
   const K = rt.guardian;
   assert.equal(K.state, 'sleep');
   assert.equal(walk(L(0, 7, 172)), true, 'into the cistern');
@@ -425,10 +494,23 @@ test('the Givers’ House on foot: in, the ball and the plates, the disc and the
   wait(3.5);
   for (const b of ['b6', 'b7', 'b8', 'b9']) rt.piece(b).hit('fire');
   assert.equal(K.meter, 0.4, 'light round the walls: the first phase');
-  for (let n = 0; n < 4; n++) {
+  for (let n = 0; n < 2; n++) {
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } if (P.dead) P.restart(); }
     assert.ok(open, `it pants (${n})`);
+    K.hit('mouth', 'shoot');
+  }
+  assert.equal(K.phaseIndex, 2, 'its last phase');
+  // its last: no panting in the dark; a burning ball rolled down the spoke nearest it, and it pants by the fire
+  for (let n = 0; n < 2; n++) {
+    let open = false;
+    for (let tries = 0; tries < 6 && !open; tries++) {
+      const m = K.model.pos, ball = rt.spokes.slice().sort((a, b) => a.b.distanceTo(m) - b.b.distanceTo(m))[0];
+      if (!ball.rest || ball.t > 0.3) { ball.t = 0; rt.logic.moveDrum(ball.id, 0); ball.place(); ball.rest = true; }   // (back at its start: the test's shortcut for walking it back)
+      ball.hit('push', ball.dir.clone(), { strength: 1 });
+      for (let i = 0; i < 12 / DT; i++) { frame(); if (K.state === 'open') { open = true; break; } if (P.dead) P.restart(); }
+    }
+    assert.ok(open, `a fire rolled to it: it pants (${n})`);
     K.hit('mouth', 'shoot');
   }
   assert.equal(K.state, 'weary', 'calm: it lies down by the spout');
@@ -919,12 +1001,13 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
 });
 
 // ------------------------------------------------------------------ on foot: the Garden of Spheres' Footprint, room by room
-test('the Footprint on foot: two spheres on two plates, the still pool, the lens, the door that is wall without it, the bridge and the eye only it shows, the Echo answered', () => {
+test('the Footprint on foot: two spheres on two plates, the floating sphere pushed over the stilled pool, the lens and its mural, the stones whose prints are the walker’s, the walker’s plate among plain ones and the eye across the chasm, the keepers’ gallery back, the Echo answered by the print', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('spheres');
   const P = new Player(physics, { spawn: rt.arrival.pos.clone(), dynamic: level.dynamic, health: true });
-  rt.connect({ player: P, toast: () => {} });
+  const notes = [];
+  rt.connect({ player: P, toast: (s) => notes.push(s) });
   let t = 0;
   const L = (x, y, z) => rt.kit.world(x, y, z);
   const frame = (input = {}, yaw = 0) => { t += DT; physics.syncMovers(DT); rt.update(DT, t); P.update(DT, input, yaw); updateHazards(DT, P); };   // (as main.js: the moving colliders first)
@@ -936,6 +1019,7 @@ test('the Footprint on foot: two spheres on two plates, the still pool, the lens
   };
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
+  const said = (re) => notes.some((s) => re.test(s));
   wait(0.5);
   // ---- the Hall of Spheres
   for (const [id, plate] of [['ball1', 'p1'], ['ball2', 'p2']]) {
@@ -949,43 +1033,106 @@ test('the Footprint on foot: two spheres on two plates, the still pool, the lens
   }
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true);
-  // ---- the Still Pool: wake the disc with the eye over the far door, ride it over
-  assert.equal(walk(L(0, 0, 49)), true, `to the pool (${where()})`);
-  rt.piece('s1').hit('shoot');
-  const disc = rt.pieces.find((p) => p.path);
-  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
-  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
-  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
-  assert.equal(walk(L(0, 0, 72), { max: 4 }), true, `over the pool (${where()})`);
-  // ---- the Lens Chamber: the way on is wall until you carry the lens
-  assert.equal(walk(L(0, 0, 92)), true, `into the chamber (${where()})`);
-  assert.equal(walk(L(0, 0, 98.5), { max: 4 }), false, 'a wall');
-  assert.equal(rt.piece('br1').stones.some((s) => s.g.visible), false, 'no bridge to see');
-  assert.equal(rt.piece('s2').seen(), false, 'no eye to see');
+  // ---- the Still Pool: pushed while the water stirs, the sphere drifts back; from the stilling stone it crosses
+  assert.equal(walk(L(-2.5, 0, 49.2)), true, `to the pool (${where()})`);
+  const ball3 = rt.piece('ball3');
+  ball3.hit('push', ball3.dir.clone(), { strength: 1 });
+  let far = 0;
+  for (let i = 0; i < 12 / DT; i++) { frame(); far = Math.max(far, ball3.t); }
+  assert.ok(far > 0.3 && far < 0.9, `pushed in the stirring water it gets part way (${far.toFixed(2)})`);
+  for (let i = 0; i < 15 / DT && !ball3.rest; i++) frame();
+  assert.ok(ball3.t < 0.1, `and the water draws it back to you (${ball3.t.toFixed(2)})`);
+  assert.ok(said(/water stirs/), 'it says so');
+  assert.equal(rt.logic.isOpen('stones'), false, 'no stones');
+  assert.equal(walk(L(-4.5, 0, 48), { tol: 0.4 }), true, 'onto the stilling stone');
+  wait(0.4);
+  assert.ok(rt.logic.pressed('pS') && said(/glassy still/), 'the pool goes still');
+  ball3.hit('push', ball3.dir.clone(), { strength: 1 });
+  for (let i = 0; i < 14 / DT && !rt.logic.drumOn('ball3', 'p3'); i++) frame();
+  for (let i = 0; i < 4 / DT && !ball3.rest; i++) frame();
+  assert.ok(rt.logic.drumOn('ball3', 'p3'), `over the still water into its berth (${ball3.t.toFixed(2)})`);
+  wait(2);
+  assert.equal(rt.logic.isOpen('stones'), true, 'the stepping stones rise');
+  assert.equal(walk(L(3.5, 0, 49)), true);
+  wait(0.5);
+  for (let i = 0; i < 4 / DT && !ball3.rest; i++) frame();
+  assert.ok(rt.logic.drumOn('ball3', 'p3'), 'off the stone, the sphere stays in its berth');
+  assert.equal(walk(L(3.5, 0, 72)), true, `over the stones (${where()})`);
+  assert.ok(P.pos.y > L(0, -1, 0).y, 'not in the pool');
+  // ---- the Lens Chamber: plain wall and floor, until you carry the lens
+  assert.equal(walk(L(0, 0, 84)), true, `into the chamber (${where()})`);
+  wait(0.2);
+  assert.equal(rt.piece('mural').mesh.visible, false, 'no mural to see');
+  assert.equal(rt.piece('br1').root.visible, false, 'no stones to see');
+  assert.equal(rt.piece('p4').group.visible, false, 'no walker’s plate to see');
   items.grant('lens'); game.emit('box:opened', { id: 'spheres.temple.lens' });
-  wait(2.2);
-  assert.equal(rt.logic.isOpen('d2'), true, 'with the lens it is a door, and it opens');
-  // ---- the Hall of the Unseen: the bridge the lens shows; the eye the lens shows
-  assert.equal(walk(L(0, 0, 101)), true, `to the chasm (${where()})`);
+  wait(0.2);
+  assert.equal(rt.piece('mural').mesh.visible, true, 'through the lens: the walker’s print on the wall, and on the floor');
+  assert.equal(walk(L(-10.6, 0, 86.6), { max: 4 }), false, 'the keepers’ door will not open from this side');
+  // ---- the Hall of the Unseen: the stones only the lens shows; a print not the walker's crumbles
+  const S = rt.piece('br1');
+  const U0 = 97, row = (r) => S.cells.filter((c) => Math.abs(c.z - (U0 + 7.6 + r * 3.35)) < 0.1);
+  assert.equal(walk(L(0, 0, 100)), true, `to the chasm (${where()})`);
+  assert.equal(walk(L(-5, 0, 100.5)), true, `past the hall's mark (${where()})`);
+  wait(0.5);
+  assert.equal(rt.checkpoint?.room, 'unseen');
+  assert.equal(S.root.visible, true, 'the stones show through the lens');
+  const wrong = row(0).find((c) => !c.real);
+  assert.ok(wrong.toes !== 3, 'a stone whose print has two or four toes');
+  walk(L(wrong.x, 0, wrong.z), { tol: 0.5, max: 4 });
   wait(1.5);
-  assert.equal(walk(L(0, 0, 126)), true, `over the unseen bridge (${where()})`);
-  assert.ok(P.pos.y > L(0, -1, 0).y, 'on it, not in the chasm');
-  assert.equal(rt.piece('s2').seen(), true);
+  assert.ok(said(/not the walker’s/), `it crumbles under you (${where()})`);
+  assert.ok(rt.kit.local(P.pos).z < 103, `and you are back at the mark (${where()})`);
+  wait(4.5);
+  // the walker's prints, row by row
+  for (let r = 0; r < 6; r++) {
+    const c = row(r).find((q) => q.real);
+    assert.equal(c.toes, 3);
+    assert.equal(walk(L(c.x, 0, c.z), { tol: 0.4, max: 6 }), true, `onto row ${r}'s walker’s stone (${where()})`);
+    wait(0.5);
+    assert.ok(P.pos.y > L(0, -0.6, 0).y, `it holds (${r})`);
+  }
+  assert.equal(walk(L(0, 0, 128.5)), true, `onto the far landing (${where()})`);
+  // ---- the far landing: a plain print is nothing; the walker's, which only the lens shows, and the eye across the chasm
+  const ball4 = rt.piece('ball4');
+  const pushOn = () => { walk(ball4.group.position.clone().add(V(-2.4, 0, 0)), { tol: 0.8, max: 6 }); ball4.hit('push', ball4.dir.clone(), { strength: 1 }); for (let i = 0; i < 6 / DT && !(ball4.rest && i > 30); i++) frame(); };
+  pushOn();
+  assert.ok(rt.logic.drumOn('ball4', 'pf1'), `the sphere settles on the two-toed print (${ball4.t.toFixed(2)})`);
+  assert.equal(rt.logic.isOpen('d4'), false, 'nothing');
+  pushOn();
+  assert.ok(rt.logic.drumOn('ball4', 'p4'), `then on the walker’s, which only the lens shows (${ball4.t.toFixed(2)})`);
+  assert.equal(rt.logic.isOpen('d4'), false, 'the far door wants its eye too');
+  assert.equal(rt.piece('s2').seen(), true, 'the eye high on the near wall, across the chasm');
   rt.piece('s2').hit('shoot');
   wait(2.2);
-  assert.equal(rt.logic.isOpen('d4'), true);
-  // ---- the Echo's Hall: answer each note on the sphere that glows with it
+  assert.equal(rt.logic.isOpen('d4'), true, 'the far door opens');
+  // ---- the keepers' gallery: from the far landing round to the Lens Chamber; its eye on this side opens the door
+  assert.equal(walk(L(-10.4, 0, 129)), true, `to the far landing's west door (${where()})`);
+  assert.equal(walk(L(-13.8, 0, 129)), true, `into the gallery (${where()})`);
+  assert.equal(walk(L(-13.8, 0, 86.6)), true, `down the gallery (${where()})`);
+  assert.equal(rt.logic.isOpen('sc'), false);
+  rt.piece('ssc').hit('shoot');
+  wait(2.2);
+  assert.equal(rt.logic.isOpen('sc'), true, 'the eye by the door wakes it');
+  assert.equal(walk(L(-6, 0, 86.6)), true, `through it into the Lens Chamber (${where()})`);
+  assert.equal(walk(L(-13.8, 0, 86.6)), true);
+  assert.equal(walk(L(-13.8, 0, 129)), true);
+  assert.equal(walk(L(-6, 0, 129)), true, `back on the far landing (${where()})`);
+  assert.equal(walk(L(0, 0, 129.5)), true, `before the far door (${where()})`);
+  // ---- the Echo's Hall: answer each note; through the lens the one that answers wears the walker's print
   assert.equal(walk(L(0, 0, 140)), true, `into the hall (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
   P.opts.health = false;
-  let shaded = false;
-  for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
+  for (let n = 0; n < 16 && G.state !== 'weary'; n++) {
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it sings (${n})`);
-    assert.ok(rt.sing >= 0, 'one sphere glows with its note');
+    assert.ok(rt.sing >= 0, 'one sphere answers its note');
+    wait(0.1);
+    if (G.phaseIndex >= 1) assert.ok(rt.resonators[rt.sing].print.visible && rt.resonators.filter((r) => r.print.visible).length === 1, 'the walker’s print on the one that answers');
+    if (G.phaseIndex >= 2) assert.ok(rt.resonators.every((r) => r.k > 0.3), 'its last phase: all three glow');
     if (n === 0) { const m = G.meter; rt.resonators[(rt.sing + 1) % 3].hit('shoot'); assert.ok(G.meter <= m, 'the wrong note does not calm it'); }
     rt.resonators[rt.sing].hit('shoot');
   }

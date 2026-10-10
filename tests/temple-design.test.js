@@ -123,6 +123,33 @@ test('the shapes: identical skeletons are alike, a rising complexity has a posit
   assert.ok(rankTrend([4, 3, 2, 1]) < 0);
 });
 
+test('a clue read a room back is a key of its lock; a plate only the lens shows is the push and the reveal; the lens stones are a traversal', () => {
+  // the Footprint's: the stones' bridge names the mural (a `clue`) in the chest's room; the far door's plate is hidden
+  const L = {
+    id: 'clue', entry: 'a', gadget: 'lens',
+    rooms: { a: {}, b: {}, c: {}, d: { boss: true } },
+    links: [{ a: 'a', b: 'b', door: 'br1' }, { a: 'b', b: 'c', door: 'd4' }, { a: 'c', b: 'd', door: 'd5' }],
+    elements: {
+      chest: { type: 'gadget', room: 'a', item: 'lens' },
+      mural: { type: 'clue', room: 'a' },
+      br1: { type: 'bridge', opens: { item: 'lens' }, clue: 'mural' },
+      p4: { type: 'plate', room: 'b' }, pf: { type: 'plate', room: 'b' },
+      ball: { type: 'drum', room: 'b', stops: { p4: 0.6, pf: 0.3 } },
+      d4: { type: 'door', opens: { drumOn: ['ball', 'p4'] }, latch: true },
+      boss: { type: 'boss', room: 'd', needs: ['lens'] },
+      d5: { type: 'door', opens: { resolved: true } },
+    },
+  };
+  const pieces = [{ cls: 'Mural', o: { id: 'mural', at: [8, 3, 0] } }, { cls: 'LensStones', o: { id: 'br1', a: [0, 0, 10], b: [0, 0, 30] } },
+    { cls: 'Plate', o: { id: 'p4', at: [2, 0, 36], hidden: true } }, { cls: 'Plate', o: { id: 'pf', at: [-2, 0, 36] } }, { cls: 'Ball', o: { id: 'ball', a: [-5, 0, 36], b: [5, 0, 36] } }];
+  const g = puzzleGraph(L, pieces);
+  const br1 = g.locks.find((l) => l.id === 'br1'), d4 = g.locks.find((l) => l.id === 'd4');
+  assert.ok(br1.keys.some((k) => k.id === 'mural' && k.how === 'clue'), 'the mural is a key of the stones');
+  assert.deepEqual(d4.keys.find((k) => k.id === 'ball').mech, ['push', 'gadget:lens', 'reveal'], 'the hidden plate: the push and the lens');
+  assert.equal(skeleton(g)[1], 'R');
+  assert.ok(g.traversal.a.includes('stones') || g.traversal.b.includes('stones'), 'the lens stones are a way across');
+});
+
 test('the plan draws every room and every lock', () => {
   const g = puzzleGraph(LINEAR, LIN_PIECES), m = templeMetrics(g);
   const svg = planSvg(g, m, { title: 'linear' });
