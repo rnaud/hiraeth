@@ -1,0 +1,53 @@
+changelog.md
+  s_3bb798c8af39ad::t_45a8c69816d34e 56
+docs/README.md
+  s_9ca76055a220ed::t_0f9c78c1d11b2d 92
+docs/cloudflare.md
+  s_9ca76055a220ed::t_7a7b94a7b92bfe 58-61
+docs/systems/notes.md
+  s_9ca76055a220ed::t_ccaee1f3a4b4cd 1-57
+src/changelog.js
+  s_9ca76055a220ed::t_c63900cd4d9732 113
+src/notes-page/main.js
+  s_9ca76055a220ed::t_9c36c4bba54b37 1-130
+src/world-picker.js
+  s_9ca76055a220ed::t_71d8f944e6cdda 30
+tests/notes-worker.test.js
+  s_9ca76055a220ed::t_8700be1b92b5c6 1-121
+vite.config.js
+  s_9ca76055a220ed::t_7ba23207052ae3 16
+worker/issues.js
+  s_9ca76055a220ed::t_93a92956ef9320 1-138
+worker/update-download.js
+  s_9ca76055a220ed::t_bc3704003c053a 1,6
+wrangler.jsonc
+  s_9ca76055a220ed::t_8136f1b50ecd75 13
+notes.html
+  s_3bb798c8af39ad::t_2b125821d98ab9 1-48
+src/notes-page/style.css
+  s_3bb798c8af39ad::t_dc549abc40d3d3 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f903518781de10882f83cb05d1f478232424354c",
+  "prompts": {},
+  "sessions": {
+    "s_3bb798c8af39ad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1269b-2218-7421-bc61-95f69c291ec6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

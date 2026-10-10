@@ -1,0 +1,37 @@
+changelog.md
+  s_3bb798c8af39ad::t_e14d29a2fa4dc0 57
+docs/systems/notes.md
+  s_9ca76055a220ed::t_12129eefc0ff99 23,50-60
+tests/notes-worker.test.js
+  s_9ca76055a220ed::t_c8723773942a42 7-8,23,54,70-98
+worker/issues.js
+  s_9ca76055a220ed::t_67973d3ccff066 18-20,25-32,34,37,43-51,115-118,127,129,132-135
+wrangler.jsonc
+  s_9ca76055a220ed::t_ad6079d4d55949 8-11
+src/changelog.js
+  s_3bb798c8af39ad::t_7a772d7be051bf 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8c92f6909778b905bdcbacbb45db8ea491f7c5a3",
+  "prompts": {},
+  "sessions": {
+    "s_3bb798c8af39ad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1269b-2218-7421-bc61-95f69c291ec6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
