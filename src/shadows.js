@@ -247,7 +247,9 @@ export class ShadowCuller {
         if (!local || !Number.isFinite(local.radius)) return;
         if (!o.frustumCulled && !o.isSkinnedMesh) return;
       }
-      items.push({ o, local, pad: o.isSkinnedMesh ? 1.4 : 1, c: new THREE.Vector3(), r: 0 });
+      // (a batch of a body's parts, src/part-batch.js: its bounds hold all of them, but it is as small as one of
+      // them for a cascade's texel, as each part was when it drew itself)
+      items.push({ o, local, pad: o.isSkinnedMesh ? 1.4 : 1, c: new THREE.Vector3(), r: 0, part: o.userData.batch ? o.partRadius ?? null : null, size: 0 });
     });
     this.items = items;
     this.ground = ground;
@@ -285,6 +287,7 @@ export class ShadowCuller {
       if (!o.visible) { it.r = -1; continue; }
       it.c.copy(it.local.center).applyMatrix4(o.matrixWorld);
       it.r = it.local.radius * o.matrixWorld.getMaxScaleOnAxis() * it.pad + (it.pad > 1 ? 0.3 : 0);
+      it.size = it.part ? it.part * o.matrixWorld.getMaxScaleOnAxis() : it.r;
     }
     this.sweepTo = this.floor - 1;   // nothing lies lower to receive a shadow
   }
@@ -313,7 +316,7 @@ export class ShadowCuller {
       if (it.r < 0) continue;
       tested++;
       const c = it.c, r = it.r;
-      let skip = r < minR;
+      let skip = it.size < minR;
       if (!skip) {
         // sweep: from the caster away from the sun, down to the lowest ground (or maxSweep)
         let len = maxSweep;

@@ -12,6 +12,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.39 — 2026-10-10
 
+- Fights with many creatures run smoother: the parts of a creature that share a shape and a colour (a centipede’s legs, a jelly’s beads, a moth’s wing ribs, a tripod’s struts) are drawn together in one go instead of one by one. A full pack in the Arena takes about half the drawing work it did; the creatures look exactly as before.
 - The giant ribcage south of the start is rebuilt too: a fallen giant lying on its side, a long spine of vertebrae half sunk in the sand, nine great ribs arching over you like a ruined hall, one broken, holes worn through the bone, and the skull at the head end with two horns curving up and two tusks reaching forward. A scrap of red cloth and a faint track of footprints lead to Teo’s drum under its middle rib.
 - The makers’ chest on the tree now waits on a plank shelf on the buttress root, the makers’ glyph painted on its boards and cloths tied to its corners; pilgrims’ lanterns stand round the terrace. The climb up to it is the same.
 - Qanat’s great tree is rebuilt after its picture: an enormous pale trunk, fluted and cracked, great roots flowing out over the square, one low arm arching down over Nour’s bench, and a wide crown whose leaves are the fire itself, violet, teal and gold, glowing over the city once the tree burns again. While it is cold its limbs stand bare.

@@ -39,7 +39,7 @@ export function presenceOf(group, groundY = 0) {
   group.updateMatrixWorld(true);
   const all = new THREE.Box3(), lit = new THREE.Box3();
   group.traverse((o) => {
-    if (!o.isMesh || !drawn(o)) return;
+    if (!o.isMesh || o.userData.batch || !drawn(o)) return;   // (a batch draws parts measured on their own: src/part-batch.js)
     if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
     _box.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
     if (_box.max.y <= groundY + 0.005) return;   // (under the ground, or flat on it)

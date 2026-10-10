@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { makeMaterial, releaseMaterial } from './materials.js';
+import { batchParts } from './part-batch.js';
 import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
@@ -1683,6 +1684,8 @@ export class Foes {
     const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
     f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
     f.model.group.position.copy(at);
+    // its parts drawn as instances, a draw for each shape and material instead of one a part (src/part-batch.js)
+    f.batches = batchParts(f.model.group, { min: 2 });
     this.group.add(f.model.group);
     f.tele = new Telegraph(this.group, f.def.tone ?? '#6d4fa8');
     if (f.def.flanks) f.flanker = this.list.some((x) => x.alive && x.kind === f.kind && !x.flanker && x.pos.distanceTo(at) < 12);   // (the second of a pair circles behind you)
@@ -1716,6 +1719,7 @@ export class Foes {
     // (each foe's shapes and its warning's glow are its own: let go with it, or every wave of a fight leaves
     // its GPU buffers and materials behind)
     for (const o of [f.model.group, ...(f.globs ?? [])]) o?.traverse((m) => m.geometry?.dispose());
+    for (const b of f.batches ?? []) b.dispose();
     if (f.model.dispose && this.debris?.some((d) => d.owner === f)) f.awaitingDebrisDisposal = true;   // (its pieces still fly: their materials go with the last)
     else if (f.model.dispose) f.model.dispose(); else if (f.model.eyeMat) releaseMaterial(f.model.eyeMat);
     this.list.splice(this.list.indexOf(f), 1);
