@@ -6,7 +6,9 @@
 
 /** The player's moves, from the tuning the game exports (src/fluid-blade.js, src/fluid-tool.js FLUID, src/fluid-kit.js MODES). */
 export function movesFrom({ BLADE, SWINGS, CHARGE, AIR, RIPOSTE, DASH, FLUID, MODES }) {
-  const span = (S) => (S.to ?? 0) - (S.from ?? 0);
+  // a move's length as played: its authored phases (wind, active, recover: src/fluid-blade.js attackSample) when it has
+  // them, else its clip's span (an older tuning)
+  const span = (S) => (S.wind != null && S.active != null && S.recover != null ? S.wind + S.active + S.recover : (S.to ?? 0) - (S.from ?? 0));
   const combo = SWINGS.map(span), comboTime = combo.reduce((a, b) => a + b, 0) + BLADE.cooldown;
   const comboDamage = BLADE.damage.reduce((a, b) => a + b, 0);
   // the gun: `charges` shots a tank, each mode's cost (rate) out of it, `cooldown` s apart, then the refill's delay
@@ -166,3 +168,45 @@ export function table(head, rows) {
 
 /** A median (the observed wind-ups). */
 export const median = (xs) => { const s = xs.filter(Number.isFinite).sort((a, b) => a - b); return s.length ? s[Math.floor(s.length / 2)] : null; };
+
+// ---------------------------------------------------------------- the difficulty curve (arena.mjs --packs)
+
+/**
+ * The hearts a traveller can have arriving in each world of the route: the start, and every heart container of the shops
+ * in the worlds before it bought (src/shop.js SHOPS: { world, wares: [{ id: 'heart', stock }] }); `own`: with its own
+ * shop's too. An upper bound: what a careful player who buys every container has.
+ */
+export function heartsOnArrival(SHOPS, order, start = 3) {
+  const per = {};
+  for (const s of Object.values(SHOPS)) per[s.world] = (per[s.world] ?? 0) + (s.wares.find((w) => w.id === 'heart')?.stock ?? 0);
+  const out = {}; let h = start;
+  for (const w of order) { out[w] = { arrival: h, own: h + (per[w] ?? 0) }; h += per[w] ?? 0; }
+  return out;
+}
+
+const mean = (a) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN);
+/**
+ * The curve by world: the packs' means (size, hearts a minute, attacks a minute, time to kill), the threat in bars of the
+ * hearts on arrival, and the **cost**: the hearts a pack takes from a traveller who trades blows with it standing still
+ * (its hearts a minute × the time to kill all of it with each one's best move), as a share of the hearts on arrival.
+ * A row's own stage and budget (what the page ran: --packs records them) win over the tables given.
+ */
+export function curveTable(rows, { hearts = {}, WORLDS = {}, BUDGET = [], order = [], startHearts = 3 } = {}) {
+  return order.map((w) => {
+    const R = rows.filter((r) => r.world === w), stage = R[0]?.stage ?? WORLDS[w]?.stage ?? null, H = hearts[w]?.arrival ?? startHearts;
+    const hpm = mean(R.map((r) => r.heartsPerMin)), cost = mean(R.map((r) => (r.heartsPerMin * r.ttkBest) / 60));
+    return {
+      world: w, stage, budget: R[0]?.budget ?? (stage === null ? null : WORLDS[w]?.budget ?? BUDGET[Math.min(BUDGET.length - 1, stage)]), strikers: R[0]?.strikers ?? null, lead: WORLDS[w]?.lead ?? null,
+      size: +mean(R.map((r) => r.pack.length)).toFixed(1), heartsPerMin: +hpm.toFixed(2), attacksPerMin: +mean(R.map((r) => r.attacksPerMin)).toFixed(1),
+      ttkBest: +mean(R.map((r) => r.ttkBest)).toFixed(1), ttkCombo: +mean(R.map((r) => r.ttkCombo ?? Infinity)).toFixed(1),   // (∞: a member the combo alone never kills, a crab from the front; JSON keeps it as null)
+      hearts: H, barsPerMin: +(hpm / H).toFixed(2), cost: +cost.toFixed(2), share: Math.round((cost / H) * 100), packs: R.map((r) => r.pack),
+    };
+  });
+}
+/** The curve as a Markdown table (world by world, the route's order). */
+export function curveMarkdown(curve) {
+  const say = (p) => Object.entries(p.reduce((o, k) => ((o[k] = (o[k] ?? 0) + 1), o), {})).map(([k, n]) => (n > 1 ? `${n} ${k}` : k)).join(' + ');
+  const n = (x) => (Number.isFinite(x) ? x : '∞');
+  return table(['world', 'stage', 'budget', 'strikers', 'lead', 'pack size', 'hearts/min (still)', 'attacks/min', 'ttk best (s)', 'ttk combo (s)', 'hearts on arrival', 'bars/min', 'cost (hearts)', 'cost share', 'packs watched'],
+    curve.map((c) => [c.world, c.stage, c.budget ? c.budget.join('–') : '-', c.strikers ?? '-', c.lead ?? '-', c.size, c.heartsPerMin, c.attacksPerMin, n(c.ttkBest), n(c.ttkCombo), c.hearts, c.barsPerMin, c.cost, `${c.share} %`, c.packs.map(say).join('; ')]));
+}

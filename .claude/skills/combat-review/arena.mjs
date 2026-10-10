@@ -123,7 +123,9 @@ const setup = await ev(`(async () => {
   const s = document.createElement('style'); s.textContent = '#toast, #inputs, #foe-spawner { visibility: hidden !important; }'; document.head.appendChild(s);
   const P = window.player, hurt = P.hurt.bind(P);
   window.__dmg = [];
-  P.hurt = (d, why) => { window.__dmg.push({ t: performance.now(), d, why }); return hurt(d, why); };
+  // (every hurt counted; topped up after it so a still player is never knocked out: two blows at once, a shatter's ring
+  // on top of a roll, left him out cold and every kind after him had nobody to fight)
+  P.hurt = (d, why) => { window.__dmg.push({ t: performance.now(), d, why }); const r = hurt(d, why); if (P.hearts < 1.5 && !P.dead) P.hearts = P.maxHearts; return r; };
   window.__keep = setInterval(() => { if (P.health < 0.7) P.health = 1; }, 50);
   const plain = (o) => JSON.parse(JSON.stringify(o, (k, v) => (typeof v === 'function' ? undefined : v)));
   const { rosterOf } = await import('/src/foe-worlds.js');
@@ -134,7 +136,10 @@ const setup = await ev(`(async () => {
     tuning: plain({ BLADE: blade.BLADE, SWINGS: blade.SWINGS, CHARGE: blade.CHARGE, AIR: blade.AIR, RIPOSTE: blade.RIPOSTE, DASH: blade.DASH, FLUID: tool.FLUID, MODES: kit.MODES }),
     extra: plain({ GUARD: blade.GUARD, EVADE: blade.EVADE, LOCK: (await import('/src/foes.js')).LOCK }) };
 })()`);
-const KINDS = (arg('kinds') ?? setup.kinds.join(',')).split(',').filter((k) => setup.kinds.includes(k));
+// --packs route|desert,arzach…: the difficulty curve instead: each world's packs (src/foe-worlds.js packOf, seeded, in the
+// world's skins) watched against the still player, then scored with each kind's time to kill from a kinds run (--ttk)
+const PACKS = arg('packs') ? (arg('packs') === 'route' ? (await import(join(ROOT, 'src/levels/names.js'))).ORDER : arg('packs').split(',')) : null;
+const KINDS = PACKS && !arg('kinds') ? [] : (arg('kinds') ?? setup.kinds.join(',')).split(',').filter((k) => setup.kinds.includes(k));
 const MOVES = L.movesFrom(setup.tuning);
 console.log(`${KINDS.length} kinds, ${guardians.length} guardians, ${MOVES.length} moves`);
 
@@ -144,7 +149,7 @@ for (const kind of KINDS) {
   // ---- watch it fight a still player: a group kind as its group (the practice calls in its `group`: a skitter flock of
   // eight, three moths), every member watched, and a support with what it supports (def.escort: the jelly and a blot,
   // as the Arena's aloneWave); the wind-ups and the attacks a minute are its own kind's, the harm all of it
-  await ev(`(() => { foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); window.__dmg.length = 0; player.health = 1; return true; })()`);
+  await ev(`(() => { if (player.dead || player.down) player.restart(); foes.setPractice(${JSON.stringify(kind)}); const e = foes.list.find((x) => x.kind === ${JSON.stringify(kind)})?.def.escort; if (e) foes.spawnKind(e, { n: 1, dist: 7 }); window.__dmg.length = 0; player.health = 1; return true; })()`);
   await sleep(600);
   const t0 = Date.now(), samples = [];
   let shot = null;
@@ -186,7 +191,7 @@ for (const kind of KINDS) {
         if (from === 'front' && landed === 0 && wasted >= 6) from = 'behind';
         const dir = from === 'front' ? f.pos.clone().sub(player.pos).setY(0).normalize() : new THREE.Vector3(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0));
         ${m.stunned ? 'f.stunned = Math.max(f.stunned ?? 0, 1);' : ''}
-        const hp = f.hp, r = foes.hurt(f, ${JSON.stringify(m.mode)}, dir, { damage: ${m.hits ? `[${m.hits}][i % ${m.hits.length}]` : m.damage}, source: ${JSON.stringify(m.source)}, breaks: ${!!m.breaks} });
+        const hp = f.hp, r = foes.hurt(f, ${JSON.stringify(m.mode)}, dir, { damage: ${m.hits ? `[${m.hits}][i % ${m.hits.length}]` : m.damage}, source: ${JSON.stringify(m.source)}, breaks: ${!!m.breaks}, air: ${m.source === 'air'}${m.hits ? `, combo: i % ${m.hits.length}` : ''} });   // (as the blade sends them: the air cut's air, the swing's place in the combo)
         if (!f.alive) { dead = true; break; }
         if (r && f.hp < hp) landed++; else wasted++;
         await new Promise((r) => setTimeout(r, 30));
@@ -211,13 +216,66 @@ for (const kind of KINDS) {
   if (shot) shots.push({ kind, png: shot });
   console.log(`${kind.padEnd(10)} wind ${row.windSeen?.toFixed(2) ?? '-'} s · ${row.attacksPerMin}/min · ${row.damagePerMin} health/min · ttk combo ${ttk.combo?.s ?? '-'} charge ${ttk.charge?.s ?? '-'} shoot ${ttk.shoot?.s ?? '-'}`);
 }
+// ---------------------------------------------------------------- the difficulty curve (--packs): each world's packs
+// Packs 2.. of a visit (src/foe-worlds.js packOf, seeded so two runs field the same packs), each kind in the world's skin,
+// set round the still player 6-10 m out and watched --pack-watch s: the hearts a minute it loses and the attacks a minute
+// of the whole pack; each pack's time to kill is the sum of its members' from a kinds run (--ttk <combat.json>).
+if (PACKS) {
+  const NPACK = +arg('pack-count', 4), PW = +arg('pack-watch', 20);
+  const TTK = arg('ttk') ? JSON.parse((await import('node:fs')).readFileSync(resolve(arg('ttk')), 'utf8')) : null;
+  const { heartsOnArrival } = L, { SHOPS } = await import(join(ROOT, 'src/shop.js')), { ORDER } = await import(join(ROOT, 'src/levels/names.js'));
+  const packRows = [];
+  let meta = null;
+  for (const world of PACKS) for (let j = 0; j < NPACK; j++) {
+    const pack = await ev(`(async () => {
+      const { packOf, WORLDS, BUDGET } = await import('/src/foe-worlds.js'), { skinned } = await import('/src/enemies/archetypes.js');
+      let s = ${(j + 1) * 7919 + world.length * 104729}; const rng = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+      const kinds = packOf(${j + 1}, ${JSON.stringify(world)}, rng);
+      if (player.dead || player.down) player.restart();
+      foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x));
+      const P = player, h = P.heading ?? 0;
+      kinds.forEach((k, i) => { const id = WORLDS[${JSON.stringify(world)}] ? skinned(k, ${JSON.stringify(world)}) : k;
+        const at = foes.openSpot(id, P.pos, h + (i - (kinds.length - 1) / 2) * 0.5, 6 + (i % 3) * 2, 20, 40), f = foes.add(id, at);
+        f.heading = Math.atan2(P.pos.x - at.x, P.pos.z - at.z); f.provoked = true; });
+      foes.stage = WORLDS[${JSON.stringify(world)}]?.stage;   // (the world's turns: TURNS, more strikers at once late on)
+      window.__dmg.length = 0; P.health = 1;
+      const T = WORLDS[${JSON.stringify(world)}];
+      return { kinds, stage: T?.stage ?? null, budget: T ? T.budget ?? BUDGET[Math.min(BUDGET.length - 1, T.stage)] : null, strikers: foes.strikers }; })()`).then((r) => { meta = r; return r.kinds; });
+    await sleep(400);
+    const t0 = Date.now(), samples = [];
+    while (Date.now() - t0 < PW * 1000) {
+      const s = await ev(`(() => { const now = performance.now(); return foes.list.filter((x) => x.alive && x.dead === undefined).map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state })); })()`);
+      if (s?.length) samples.push(...s);
+      await sleep(60);
+    }
+    const dmg = await ev('window.__dmg.splice(0)');
+    let winds = 0;
+    for (const id of new Set(samples.map((s) => s.id))) { const own = samples.filter((s) => s.id === id); for (let i = 1; i < own.length; i++) if (own[i].state === 'wind' && own[i - 1].state !== 'wind') winds++; }
+    const span = samples.length ? Math.max(1e-3, (samples.at(-1).t - samples[0].t) / 60000) : PW / 60;
+    const ttkOf = (k, pick) => { const r = TTK?.foes?.find((x) => x.kind === k); if (!r) return null; return pick(r.ttk); };
+    const best = (t) => Math.min(...Object.values(t).filter((x) => x?.dead).map((x) => x.s));
+    // (a group's time is the group's: the kinds run kills one of it, so each member counts)
+    const sum = (pick) => pack.reduce((a, k) => a + (ttkOf(k, pick) ?? NaN), 0);
+    const row = { world, n: j + 1, pack, stage: meta.stage, budget: meta.budget, strikers: meta.strikers, heartsPerMin: +(dmg.reduce((a, d) => a + d.d, 0) / span).toFixed(2), attacksPerMin: +(winds / span).toFixed(1),
+      ttkBest: +sum(best).toFixed(1), ttkCombo: +sum((t) => (t.combo?.dead ? t.combo.s : Infinity)).toFixed(1) };
+    packRows.push(row);
+    console.log(`${world.padEnd(10)} pack ${j + 1}: ${pack.join(', ')} · ${row.heartsPerMin} hearts/min · ${row.attacksPerMin} attacks/min · ttk ${row.ttkBest} s`);
+  }
+  const hearts = heartsOnArrival(SHOPS, ORDER);
+  const { WORLDS, BUDGET } = await import(join(ROOT, 'src/foe-worlds.js'));
+  const curve = L.curveTable(packRows, { hearts, WORLDS, BUDGET, order: PACKS, startHearts: setup.hearts });
+  writeFileSync(join(OUT, 'packs.json'), JSON.stringify({ version: VERSION, date: new Date().toISOString(), watch: PW, packs: packRows, curve }, null, 2));
+  writeFileSync(join(OUT, 'curve.md'), L.curveMarkdown(curve));
+  console.log(L.curveMarkdown(curve));
+}
+
 await ev('(() => { foes.setPractice(""); clearInterval(window.__keep); return true; })()').catch(() => {});
 
 // ---------------------------------------------------------------- the guardians, phase by phase (a second sheet)
 // Each guardian called into a ring (src/arena-guardians.js), its meter set to each phase's start, held at 85 % of
 // that phase's first move's wind-up and seen from the side: guardians.png / .webp, a row each, a column a phase.
 const gShots = [];
-if (arg('guardians', 'yes') !== 'no') {
+if (arg('guardians', PACKS ? 'no' : 'yes') !== 'no') {
   const list = await ev(`(async () => { const { GUARDIANS } = await import('/src/arena-guardians.js'); return GUARDIANS.map((G) => ({ id: G.id, phases: G.def.phases.filter((p) => !p.weary).map((p, i, all) => ({ from: i ? all[i - 1].to : 0, atk: p.attacks[0] })) })); })()`);
   for (const G of list) for (const [i, ph] of G.phases.entries()) {
     await ev(`(async () => {

@@ -45,7 +45,17 @@ PORT (default 5333) and CDP (Chrome's debugging port, default 5391). For each ki
 - **a contact sheet**: each kind at the height of its wind-up, tiled 4 across (`telegraphs.png` / `.webp`) in the order
   of the table.
 
-It writes `combat.json`, `combat.md` (the scored tables) and the contact sheet. Guardians are scored from their tuning
+It writes `combat.json`, `combat.md` (the scored tables) and the contact sheet.
+
+**The difficulty curve, world by world** (`--packs route` or `--packs desert,arzach`, with `--ttk <a kinds run's
+combat.json>`; `--pack-count 4`, `--pack-watch 20`): each world's packs (src/foe-worlds.js `packOf`, packs 1.. of a visit,
+seeded so two runs field the same draws), each kind in the world's skin and the world's turns (`foes.stage`: three
+strikers at once late on), set round the still player and watched: the pack's **hearts a minute** and **attacks a
+minute**; its **time to kill** (the sum of its members' best moves from the kinds run); the **hearts on arrival** (the
+start and every earlier shop's heart containers: src/shop.js, `heartsOnArrival`); and its **cost**, the hearts it takes
+from a traveller who trades blows with it standing still (hearts a minute × the time to kill), as a share of those
+hearts. Two strikers at a time cap a pack's pressure, so a bigger pack shows in the time and the cost more than in the
+hearts a minute. It writes `packs.json` and `curve.md`. Guardians are scored from their tuning
 (telegraphs, attacks, openings, phases); play their temples for the rest (`?level=<world>` and the temple's door, or the
 dev menu's temple jump).
 
@@ -81,7 +91,8 @@ in an Arena ring, phase by phase, at 85 % of the phase's first move (`--guardian
 - **Move variety**: light combo, charged cut, air cut, riposte, dash cut, guard and parry, the gun's modes: is each one
   the best answer somewhere (the time-to-kill table: a move no foe wants is dead weight)?
 - **Difficulty curve across worlds**: walk the route (`ORDER`) with each world's roster (`src/foe-worlds.js`): the leads'
-  hp, threat and telegraph by world; does it rise, teach one idea at a time, and peak at the end?
+  hp, threat and telegraph by world, and the `--packs` run's cost share; does it rise, teach one idea at a time, and peak
+  at the end (the Signal Market)?
 - **Camera and lock-on**: `LOCK` (reach, lose), the flick to switch (`FLICK`), the reticle, the camera during a lock and
   with several foes; play it with a pad.
 
