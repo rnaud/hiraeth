@@ -2050,3 +2050,18 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] The damage table re-checked against every attack (combat-v1.6 rec. 2): the drone's ram is a dive (¾), the shade's
   cut its sword (¾, a 0.95 s wind-up); the crucible cart's slag tuned (combat-v1.16 rec. 2: 7.1 → 4.4–5.2 bars a minute
   on a still traveller).
+
+## The last two temples, the visual probes' temple findings, the dives that miss (2026-10-10, v1.24)
+
+- [x] The Givers' House and the Footprint reworked round one idea each (docs/audits/temple-design-v1.24.md: 2.11 →
+  4.22, 2.22 → 4.33; the eleven's average 3.49 → 3.87), their guardians' last phases on it; the four rules checked
+  across the eleven (TODO.md "Temple design (audit)" keeps what is left). tests/temples.test.js,
+  tests/guardian-twists.test.js, tests/temple-design.test.js.
+- [x] A miss-opening for the Lampless, the Elder and the Cloud-Mother: a dive that misses wedges them, open longer than
+  after one that lands (5.4 s; her hang aloft + `ROOST.miss`; 4.4 s, her last phase still only on a held stone), told by
+  a `missHint`; the Lampless's dust a shock ring you jump (combat-v1.6). tests/telegraphs.test.js.
+- [x] The Lorn temple's crystal pendulums drew a jagged spot-black halo on the wall behind them (visual-v1.21, finding 1):
+  `Swing` makes its crystal and its arm with `{ mover: true }`.
+- [x] Dark triangles of the Givers' Hearth's dome hung across the passage's mouth (visual-v1.21, finding 2): `cut()`
+  splits a triangle that straddles the opening down to 0.3 m and drops only the small ones inside
+  (src/desert-hearth.js). tests/cave-seams.test.js (nothing inside the mouth, the rest of the dome whole).

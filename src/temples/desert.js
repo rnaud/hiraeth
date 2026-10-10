@@ -15,7 +15,7 @@ import { keeperModel } from './guardians.js';
 // ago; the fields went to sand; the beast the Givers left to keep the cistern
 // is still down there in the dark, and it is afraid.
 //
-// One idea (docs/audits/temple-design-v1.22.md): the Givers carried their fire. A tar ball set burning lights what it
+// One idea (docs/audits/temple-design-v1.24.md): the Givers carried their fire. A tar ball set burning lights what it
 // rolls into (a hooded bowl no ember reaches, the thorns on its groove) until it burns out; rolled past a fire, it
 // catches again. Taught before the gadget with the house's one fire, the pilot flame; with ember mode you are the fire.
 //
@@ -248,7 +248,7 @@ function layout(rt) {
   for (let i = 0; i < 3; i++) K.add(M.trim, box(5, 0.25, 0.4, 0, 1.8 + i * 1.8, 83.9));
   K.frieze([-12.9, 56], [-12.9, 88], 10, 'e', 6);
   K.frieze([12.9, 56], [12.9, 88], 10, 'w', 6);
-  add(Mark, { room: 'channel', at: [-9.5, 0, 55], yaw: Math.PI / 2 });
+  add(Mark, { room: 'channel', at: [-6.5, 0, 53.8], yaw: Math.PI / 2 });
 
   // ---- the corridor and the Chest Chamber (a rotunda, floor at 7)
   K.slab(-3.2, 92, 3.2, 95, 7, 0.8);

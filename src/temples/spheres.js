@@ -13,7 +13,7 @@ import { echoModel } from './guardians.js';
 // spheres down had stepped here; in its heel stands a great pale sphere with a
 // door. Nobody goes in: the garden says the heel is where the walker waits.
 //
-// One idea (docs/audits/temple-design-v1.22.md): the lens shows where the walker set things down. What is real
+// One idea (docs/audits/temple-design-v1.24.md): the lens shows where the walker set things down. What is real
 // carries the walker's print, three toes like the Footprint itself; the look-alikes carry two or four, or nothing the
 // lens can see. Taught at the chest (its mural, the prints on the floor), then asked of stones, plates and spheres.
 //
@@ -272,7 +272,7 @@ function layout(rt) {
   add(Plate, { id: 'pS', at: [-4.5, 0, 48.0], r: 1.0 });
   K.add(M.trim, T(new THREE.TorusGeometry(1.8, 0.18, 5, 20, Math.PI), [-4.5, -2.45, 68.6], [Math.PI / 2, 0, Math.PI]));   // the berth's lip
   add(Bridge, { id: 'stones', a: [3.5, 0, 49.9], b: [3.5, 0, 69.3], w: 3.4, n: 7 });
-  add(Mark, { room: 'pool', at: [-6.5, 0, 47.4], yaw: Math.PI / 2 });
+  add(Mark, { room: 'pool', at: [-7.6, 0, 46.6], yaw: Math.PI / 2 });
 
   // ---- the corridor and the Lens Chamber (floor 0): the chest; the way on is wall without the lens
   K.slab(-3.2, 74.2, 3.2, 76.6, 0, 0.8);
@@ -329,7 +329,7 @@ function layout(rt) {
   K.both(M.wall, box(GX1 - GX0 + 0.8, 0.8, GALLERY_Z + 2.4 - GALLERY_S + 0.8, (GX0 + GX1) / 2, 6.9, (GALLERY_S + GALLERY_Z + 2.4) / 2));
   K.both(M.wall, box(2.8, 0.8, 4.6, -10.8, 6.9, C3));
   for (let i = 0; i < 5; i++) K.glyph([GX0 + 0.45, 3.4, C3 + 8 + i * 8.5], 1.0, Math.PI / 2);
-  add(Switch, { id: 'ssc', at: [-11.0, 2.6, C3 + 1.75], yaw: Math.PI, size: 0.9, hidden: true });
+  add(Switch, { id: 'ssc', at: [-11.0, 2.6, C3 + 1.5], yaw: Math.PI, size: 0.9, hidden: true });
 
   // ---- the corridor, and the Echo's Hall (floor 0, a round hall under a great oculus)
   const H0 = U0 + 35;     // 132

@@ -1317,7 +1317,7 @@ fields went to sand.
   light Qanat's tree: ember fire is the tank's own water set alight, and the tree's living water
   takes only the spark-stone's fire (section 6, the desert). The house's world change (the
   cistern, the channel to the city, the green fields) is its own, before or after the tree.
-- **Inside** (rebuilt round one idea in v1.22: the Givers carried their fire): the Threshold (a stair hall, the
+- **Inside** (rebuilt round one idea in v1.24: the Givers carried their fire): the Threshold (a stair hall, the
   first mark, the way out); the Hall of the Flame (the Givers' pilot flame, the one fire in the house that never went
   out, burns in the floor on a tar ball's groove: roll the ball through it and on into the hooded bowl by the door,
   which no ember reaches; a ball that burns out on the way rolls into the bowl cold and is tipped back); the Dry
@@ -1456,7 +1456,7 @@ pale sphere, half sunk, with a round-headed door toward the grove.
   heel. She has heard the one note under the grass ("as if it had forgotten all
   the others"). Afterwards: the toes full of still water, "I saw myself in every
   toe"; the spheres humming together at dusk; "Linnet cried".
-- **Inside** (rebuilt round one idea in v1.22: the lens shows where the walker set things down; what is real carries
+- **Inside** (rebuilt round one idea in v1.24: the lens shows where the walker set things down; what is real carries
   the walker's print, three toes like the Footprint itself): the Threshold; the Hall of Spheres (two white spheres in
   grooves, both onto their plates); the Still Pool (a sphere floating in it, which the stirring water draws back
   unless you stand on the stone that stills it: then it crosses to its berth, and stepping stones rise); the Lens

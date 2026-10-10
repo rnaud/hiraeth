@@ -225,7 +225,7 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   Chamber's four share one crank (one ball holds all four up); the Furnace's two west pistons have a crank each, the
   other two are caught in turn. The cranks are a `Cranks` (buried.js: wheels that turn unless jammed, rods to their
   pistons) and the hall's great gear a `Gear`; the Tooth-Warden turns on it (docs/systems/foes.md).
-- **The Givers carried their fire** (the Givers' House, from the v1.22 audit; the house's one fire, the pilot flame,
+- **The Givers carried their fire** (the Givers' House, from the v1.24 audit; the house's one fire, the pilot flame,
   never went out). A `Ball` with `tar: { burns }` is a tar ball: an ember glob lights it, and so does rolling it past a
   fire beside its groove (any piece with a `fire` point within its `fireReach`: a `Flame`, the pilot flame sunk in the
   floor, or a lit `Brazier`); it burns `burns` s, its flames shrinking, then goes out. A `Brazier` with `hood: { ball }`

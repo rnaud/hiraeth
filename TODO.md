@@ -37,10 +37,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.21.md, 2026-10-10; v1.4's done: DONE.md)
 
-- [ ] The Lorn temple's floating crystal draws a jagged spot-black halo on the wall behind it as it turns (perdide
-  inner-wall-3, both presets; the orbit flags it): make its material with `{ mover: true }` (materials.js MOVER).
-- [ ] Dark triangles of the Givers' Hearth's dome hang across the passage's mouth: `cut()` keeps a triangle whose centre
-  is outside the door box; cut by any vertex inside the passage, or clip to its walls (desert-hearth.js).
 - [ ] A shop in the Signal Market (bazaar inside-3) is lit white inside in the light term (floor, shelves): check the
   shop shell's shadow casting with the sun through the open front.
 - [ ] Small pale notches still left at a corner's foot beside a person (300-600 px, Handheld) and Marrow's wide hem
@@ -131,8 +127,6 @@ the new roster.
 
 - [ ] Play the eleven guardians' new fights in their temples with a pad and tune by hand: the combo starters' 1.0 s,
   the miss-openings' lengths, the shock rings' 9 m/s against the jump.
-- [ ] A miss-opening for the Lampless, the Elder and the Cloud-Mother (a dive that misses could wedge them as the
-  Keeper's stamp does), and a shock ring for the Lampless's dust (its space scores 3).
 
 
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
@@ -276,20 +270,42 @@ Left from v1.23 (docs/audits/level-design-v1.23.md, "The ranked edits that remai
   tower down two more avenues (the west towers stand at every bearing from the back lane); Sel and the Sky Stones'
   monastery over 300 m from their landings (onboarding 3).
 
-# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16, v1.19: the worst reworked, two or three at a time)
+# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16, v1.19, v1.24: the worst reworked, two or three at a time)
 
-All eleven are one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
-with an older verb). Ranked; each re-runs `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js
-passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md, "Combat telegraphs").
+All eleven were one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
+with an older verb); since v1.24 every one has its own idea (average 1.84 → 3.87). Ranked; each re-runs
+`node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js passing (skill: temple-design-qc). The fights
+themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24
+(docs/audits/temple-design-v1.24.md, "The four rules"):
 
-- [ ] **A twist room in every temple** after the gadget's test: the gadget plus the temple's pre-gadget verb in one
-  lock (keys of two kinds). Combination 1→3, teach→test→twist 3→4.
+- [x] **A twist room in every temple** after the gadget's test: the gadget plus the temple's pre-gadget verb in one
+  lock (keys of two kinds). All eleven (v1.24).
 - [ ] **One key per temple out of its lock's room**, in sight from it but reached from elsewhere (a shortcut that
-  opens from the far side, a disc mid-ride). Decoupling 1→3, structure 1→2.
+  opens from the far side, a disc mid-ride). Ten of eleven (v1.24); left: the Warden's Well (the crown's little vane in
+  the loft below, seen through the second iris, splashed and then flown up to the great one inside its 12 s).
 - [ ] **No gadget door beside the chest**: the chest room's way out teaches the gadget somewhere failure is cheap;
-  its next use a room later. Non-obvious +1.
+  its next use a room later. Done in the Givers' House and the Footprint (v1.24); left: the Belfry (`d3`), the
+  Engine-House (`d3`), the Undertower (`d3`), the Greenhouse (`d3`), the Hush-House (`d2`), the Lamp-House (`d2`), the
+  First Garage (`d3`), each a gadget door a room on and a lock-free try by the chest (one gadget lock fewer each unless
+  a new one is added a room later: a batch of its own); the Aerie's and the Warden's Well's are traversals (a miss
+  drops you back), fine as they are.
 - [ ] **Break the shared opening** (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
-  Garage = the Engine-House, 100 %): each first room from its world's own idea. Identity → 3-4.
+  Garage = the Engine-House, 100 %): each first room from its world's own idea. Done: the Givers' House (the pilot flame),
+  the Engine-House, the Greenhouse, the Hush-House; the Footprint's disc gone (it still opens with two balls on plates).
+  Left: the Belfry, the Undertower and the Lamp-House (their discs), the Warden's Well, the Aerie and the First Garage
+  (a disc or a raft after their own first step).
+- [x] **Givers' House (2.11 → 4.22, v1.24)**: the Givers carried their fire. A tar ball rolled through the pilot flame
+  into the hooded bowl by the door (taught before the gadget), back through the flame first in the Dry Channel (its disc
+  gone), the chest's ball burning through the corridor's thorns to the bridge's bowl, the Hall of Channels' long groove
+  and its relay brazier (which wakes the keepers' door back: a loop); the Keeper panting only by a fire rolled to it.
+  Left: the curve (3), `d3` at 1.5 (watch players).
+- [x] **Footprint (2.22 → 4.33, v1.24)**: the lens shows where the walker set things down. The floating sphere and the
+  stilling stone (the disc gone), the mural (the clue), the stones only the lens shows where the walker's prints hold,
+  the walker's plate among plain prints and the eye across the chasm, the keepers' gallery back (a loop); the Echo
+  answered by the print. Left: its opening (two balls), its shape like the Lamp-House's (86 %).
+- [ ] **Play the Givers' House's and the Footprint's new rooms and last phases with a pad** (v1.24): the tar balls'
+  14 s and their pushes, the Hall of Channels' 4.6 s burn and the relay, the stilling stone and the floating sphere, the
+  stones' 0.35 s crumble, the Keeper's 3.4 s pant by a fire, the Echo's print read across its hall.
 - [x] **Founders' Belfry (1.44 → 4.00, v1.8)**: held bells (the Bell Chamber's door, the Hall of Echoes' stones
   only while it rings), the ball rolled across the held stones holds them (bell + push), the Hall of Stones a hub
   with `d1`'s balls in two stores, a high door whose eye is under the landing. Left: its opening (balls and a
@@ -324,8 +340,6 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
   pistons' crank, the gantry's ball into the hammer's, one crank holding the chamber's four piston-eyes up, two of the
   Furnace's four jammed and the other two caught in turn; the Tooth-Warden on its jammed gear. Left: a shortcut back,
   the gadget a third time.
-- [ ] **Footprint, Givers' House (2.22, 2.11)**: false lens stones with the clue a room back; a burning tar ball pushed
-  into `b3`; `b2` a room back. See the report for each (docs/audits/temple-design-v1.19.md, ranked).
 - [ ] **Play the Warden's Well's and the Engine-House's new rooms and last phases with a pad** (v1.19): the Turning
   Floors' one splash (15 s), the hover-and-aim over a great vane, the shelf's ball pushed from the air, the crown's two
   vanes (12 s), the warden's 7 s hatch; the hammer's stroke, the Furnace's piston tops (1.2 s each, 2 s apart), the
@@ -334,8 +348,8 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
   phases"): is ringing as the Cloud-Mother rises to dive (78 % of her wind-up at most) readable, is the Lampless's
   "stand back" (5 m) fair under its scales, are the Mother Snapper's crystals easy enough to tell apart by size from
   the floor, can the First Sign's low dishes be reached in its 4.4 s opening (or is waiting by one the read), do six
-  numerals from four fit the Foreman's 5.6 s opening with the coil. The other six guardians' last phases still ask
-  only for their temple's one verb.
+  numerals from four fit the Foreman's 5.6 s opening with the coil. (Since v1.24 all eleven guardians' last phases ask
+  for their temple's idea.)
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 

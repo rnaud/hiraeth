@@ -465,7 +465,57 @@ const TEMPLES19 = { commit: 'd20992a7', before: '461ac5ea' };
 const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280 × 720, High, noon) against this branch’s dev server and the commit before it (bed64a68), the same view each; cwebp -q 72';
 /** The visual probes' fixes (docs/audits/visual-v1.21.md): the probes' own views, at their hour (9:30), the commit before each fix and the fix. */
 const PROBES20 = { hour: 9.5, wait: 3000 };
+/** The v1.24 temples (the Givers' House and the Footprint, docs/audits/temple-design-v1.24.md): after at the rework, before at its parent. */
+const TEMPLES24 = { commit: 'ffb77734', before: '80c2627c' };
+/** A save that carries the glyph lens (the Footprint's rooms only it shows). */
+const WITH_LENS = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.lens': true, 'items.v': 2 }, keepsakes: [] };
 export const CHANGELOG_MEDIA = {
+  '1.24': [
+    // the guardians' miss-openings and the Hush-House's pendulums show in motion: notes; the Hearth's passage, a pair
+    { match: 'The Lampless, the Elder and the Cloud-Mother now pay for a dive', see: 'In the Lamp-House, the Aerie or the Founders’ Belfry, wait for the guardian to rise for its dive and step well aside as it comes down: it lands on the floor and stays there a while longer than after a dive that catches you, and a line says so. In the Lamp-House, jump the ring of dust it beats down along the floor.' },
+    { match: 'The crystal pendulums of the Hush-House', see: 'In the Hush-House’s Pendulum Gallery, or in the Mother Snapper’s hall, watch the wall behind a swinging crystal: no jagged black edge follows it across the stone any more.' },
+    // (a pair from the hall's middle at hour 10 was too dark to show the passage's mouth: a note; the test proves it)
+    { match: 'In the Givers’ Hearth, no dark corner of the dome', see: 'In the Givers’ Hearth, turn back toward the passage you came in by: its mouth is clean, with no corner of the dome hanging across it.' },
+    { match: 'The Givers’ House is rebuilt round one idea', shots: [
+      { name: 'gh-flame', caption: 'The Hall of the Flame (before, the Hall of Weights) from the archway: before, two plates and a ball in a groove; after, the pilot flame burning in the floor on the tar ball’s groove, the hooded bowl by the door', ...TEMPLES24,
+        view: { level: 'desert', player: [150, 2400.2, -234], eye: [151, 2402.6, -234.5], target: [155, 2401.2, -206], fov: 70 } },
+      { name: 'gh-channel', caption: 'The Dry Channel from the near ledge: before, a riding disc over the sand; after, the ball’s groove along the ledge, the pilot flame behind it and the thorns over the bridge’s sockets', ...TEMPLES24,
+        view: { level: 'desert', player: [144, 2400.2, -195.5], eye: [142.5, 2402.8, -197], target: [158, 2400.2, -183], fov: 70 } },
+    ], see: 'In the Givers’ House, push the tar ball through the pilot flame and on into the hooded bowl by the door. Let it burn out on the way to see the bowl tip it back. In the Dry Channel, roll the ball the other way first, back through the flame.' },
+    { match: 'With ember mode you are the fire', shots: [
+      { name: 'gh-chest', caption: 'The Chest Chamber, looking at the way on: before, a door between two cold braziers; after, the corridor choked with thorns and the tar ball’s groove running into them', ...TEMPLES24,
+        view: { level: 'desert', player: [147, 2407.2, -150], eye: [146, 2409.4, -151.5], target: [151.5, 2408, -131], fov: 70 } },
+      { name: 'gh-wing', caption: 'The Hall of Fires’ far landing, looking east: before, a plain wall; after, the doorway into the Hall of Channels, the long groove out of it to the hooded bowl by the far door', ...TEMPLES24,
+        view: { level: 'desert', player: [152, 2407.2, -103], eye: [151, 2409.4, -102.5], target: [176, 2407.5, -99], fov: 75 } },
+    ], see: 'Light the tar ball by the chest with an ember glob and push it north: it burns through the corridor’s thorns and on into the bowl that raises the bridge. In the Hall of Channels, light the ball at the start and push it: it goes out short of the far door’s bowl. Light the brazier beside the groove, and push it cold.' },
+    { match: 'The Keeper now turns to fire', shots: [
+      { name: 'gh-cistern', caption: 'The cistern from its door, the Keeper asleep: before, four plain braziers round a bare floor; after, tall bronze braziers on tripods, a spoke’s groove from behind each in to the basin, the Givers’ muzzle on the far wall', ...TEMPLES24,
+        view: { level: 'desert', player: [150, 2407.2, -79.5], eye: [150, 2411, -80.5], target: [150, 2408, -60], fov: 80 },
+        reference: { sheet: 'references/temples/givers-house/sheet-1.jpg', caption: 'The picked reference for the cistern' } },
+    ], see: 'In the Keeper’s second phase, push a spoke’s ball in past its lit brazier to where it stands: it pants at once by the fire. In its last, watch it heave with its mouth shut, then roll a burning ball to it.' },
+    { match: 'The Givers’ House after the picked pictures', shots: [
+      { name: 'gh-entrance', caption: 'The Givers’ House’s door from its forecourt: before, the plain jambs and the great glyph on the lintel; after, the stepped frame round the opening and the panel with three deep round holes over an arc', ...TEMPLES24,
+        view: { level: 'desert', player: [504, 35.3, 379.6], eye: [500.5, 38.6, 380], target: [517.7, 43.5, 378.4], fov: 60 },
+        reference: { sheet: 'references/temples/givers-house/sheet-2.jpg', caption: 'The picked reference for the Givers’ House’s doorway' } },
+    ] },
+    { match: 'The Footprint is rebuilt round one idea', shots: [
+      { name: 'fp-pool', caption: 'The Still Pool from the near ledge: before, a riding disc and the eye over the far door; after, the sphere floating in the pool, the stilling stone at the ledge’s edge, the berth at the far side', ...TEMPLES24,
+        view: { level: 'spheres', player: [-118, 2000.2, -212.5], eye: [-117, 2002.6, -214], target: [-122, 1999, -194], fov: 70 } },
+      { name: 'fp-chamber', caption: 'The Lens Chamber with the lens: after, the walker’s print on the east wall over a stone carrying the same, and its prints leading on over the floor', ...TEMPLES24,
+        view: { level: 'spheres', player: [-124, 2000.2, -176], eye: [-125.5, 2002.4, -176.8], target: [-111.1, 2003.2, -173.4], fov: 70, save: WITH_LENS } },
+    ], see: 'In the Still Pool, push the floating sphere from the ledge: the water draws it back. Stand on the stone at the ledge’s edge and push again. In the Lens Chamber, look at the east wall once the lens is yours.' },
+    { match: 'The Hall of the Unseen no longer has a plain glass bridge', shots: [
+      { name: 'fp-unseen', caption: 'The Hall of the Unseen from the near ledge, with the lens: before, a bridge of pale glass; after, a field of stepping stones, each with a print, and the walker’s three-toed ones in a line across', ...TEMPLES24,
+        view: { level: 'spheres', player: [-118, 2000.2, -160], eye: [-118.5, 2003.4, -161.5], target: [-120, 1998.5, -142], fov: 70, save: WITH_LENS },
+        reference: { sheet: 'references/temples/footprint/sheet-1.jpg', caption: 'The picked reference for the Hall of the Unseen' } },
+    ], see: 'With the lens, step on a stone whose print has two or four toes: it crumbles. Cross on the three-toed ones. On the far landing, roll the sphere past the plain prints onto the one only the lens shows, and splash the eye high on the near wall.' },
+    { match: 'The Echo now ends on the print', see: 'In the Echo’s second phase, look at the sphere that glows as it sings: through the lens it wears a three-toed print. In its last, all three glow: splash the one with the print.' },
+    { match: 'The Footprint after the picked pictures', shots: [
+      { name: 'fp-entrance', caption: 'The Footprint’s door from the meadow: before, the plain round-headed porch; after, the band of sage green round it, the door’s round boss over it and white slabs leading off along the rim', ...TEMPLES24,
+        view: { level: 'spheres', player: [-230.6, 1.6, 230.6], eye: [-227.6, 4.4, 227.8], target: [-238, 5.5, 238.3], fov: 60 },
+        reference: { sheet: 'references/temples/footprint/sheet-2.jpg', caption: 'The picked reference for the Footprint’s doorway' } },
+    ] },
+  ],
   '1.23': [
     // the worlds, fifth round of the level design audit (docs/audits/level-design-v1.23.md): the same view before and
     // after each world's commit
