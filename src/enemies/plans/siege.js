@@ -31,6 +31,29 @@ import { materials, add, tubeGeometry, many, skinBy, pivot, lerp, ease, eyeColor
 const HUB_Y = 1.05, PIV_Y = 3.95, BELL = [[0.001, -0.06], [0.36, -0.08], [0.53, -0.18], [0.6, -0.38], [0.62, -0.7], [0.66, -1.0], [0.76, -1.28], [0.88, -1.48], [0.95, -1.6]];
 const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 
+/**
+ * A flat band swept along a curve in the xy plane: `thick` m across (in the plane), `wide` m deep (along z), each of
+ * its four faces its own strip (crisp edges); one geometry.
+ */
+function bandGeometry(curve, thick, wide, n) {
+  const faces = [[1, 1, 1, -1], [1, -1, -1, -1], [-1, -1, -1, 1], [-1, 1, 1, 1]];   // (corners: [n sign, z sign] a → b)
+  const pos = [], idx = [];
+  for (const [na, za, nb, zb] of faces) {
+    const base = pos.length / 3;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, p = curve.getPointAt(t), tg = curve.getTangentAt(t), nx = -tg.y, ny = tg.x;
+      for (const [sn, sz] of [[na, za], [nb, zb]]) pos.push(p.x + nx * sn * thick / 2, p.y + ny * sn * thick / 2, sz * wide / 2);
+      if (i) { const a = base + (i - 1) * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array((pos.length / 3) * 2), 2));   // (merged with primitives that have one)
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export function bellModel(skin) {
   const PL = PLANS.siege, P = skin.palette, props = new Set(skin.props), M = materials('bell', skin);
   const g = new THREE.Group(); g.name = skin.name;
@@ -45,10 +68,15 @@ export function bellModel(skin) {
   many(frame, [new THREE.CylinderGeometry(0.42, 0.46, 0.38, 18).translate(0, HUB_Y, 0), new THREE.SphereGeometry(0.42, 16, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, HUB_Y - 0.19, 0)], darkM);
   // the yoke: a closed loop of brass round the bell, from the hub up to the hanging ring; riveted plates; the hanger block
   const loop = [[0, 1.12], [0.62, 1.2], [1.0, 1.55], [1.1, 2.2], [1.1, 3.1], [0.98, 3.65], [0.62, 4.05], [0, 4.22]];
-  const yoke = [tubeGeometry([...loop.map(([x, y]) => [x, y, 0]), ...loop.slice(0, -1).reverse().map(([x, y]) => [-x, y, 0])], 0.13)];
+  // (the sheet's: a flat band, broad face out front and back, edged, two rows of rivets down each face)
+  const loopCurve = new THREE.CatmullRomCurve3([...loop.map(([x, y]) => V(x, y, 0)), ...loop.slice(0, -1).reverse().map(([x, y]) => V(-x, y, 0))]);
+  const yoke = [bandGeometry(loopCurve, 0.15, 0.36, 64)];
+  for (const z of [-0.185, 0.185]) for (const off of [-0.045, 0.045]) for (let i = 0; i <= 34; i++) {
+    const t = i / 34, pt = loopCurve.getPointAt(t), tg = loopCurve.getTangentAt(t);
+    yoke.push(new THREE.SphereGeometry(0.022, 5, 4).translate(pt.x - tg.y * off, pt.y + tg.x * off, z));
+  }
   yoke.push(new THREE.BoxGeometry(0.46, 0.4, 0.42).translate(0, 4.08, 0), new THREE.TorusGeometry(0.17, 0.05, 8, 18).translate(0, 4.44, 0), new THREE.BoxGeometry(0.32, 0.22, 0.32).translate(0, HUB_Y + 0.3, 0));
-  for (const s of [-1, 1]) for (let i = 0; i < 6; i++) { const y = 1.5 + i * 0.4; yoke.push(new THREE.BoxGeometry(0.3, 0.06, 0.32).translate(s * 1.08, y, 0)); }
-  for (let i = 0; i < 26; i++) { const t = i / 25, pt = loop[Math.min(loop.length - 1, Math.floor(t * (loop.length - 1)))]; for (const s of [-1, 1]) yoke.push(new THREE.SphereGeometry(0.03, 5, 4).translate(s * pt[0], pt[1], 0.13)); }
+  for (const s of [-1, 1]) for (let i = 0; i < 6; i++) { const y = 1.5 + i * 0.4; yoke.push(new THREE.BoxGeometry(0.21, 0.07, 0.4).translate(s * 1.1, y, 0)); }
   many(frame, yoke, yokeM);
   // the coins on cords and the patched pennants hung from the yoke (the Market's); salt crust (the harbour's: painted)
   if (props.has('coins')) {
