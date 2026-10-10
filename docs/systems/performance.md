@@ -1069,3 +1069,74 @@ Two changes help every platform's loads (the title and the game's loading screen
   (`POST_LITE`, `INK_LITE`) are defines (`inkFeatures`, recompiled when `uDebug` or `uPostLite` change), not
   branches on a uniform: on the Xbox's D3D compiler 28.0 → 16.5 s. `#pragma optimize(off)` and `textureLod` in
   its loops made no difference there (17.7 and 24.8 s).
+
+## A body's repeated parts in one draw, and the worlds' props in fewer (October 2026, v1.39)
+
+The roster's bodies (`src/enemies/plans/`) are built of many small meshes on the motion kit's joints: a leg's
+segments, a jelly's tentacle beads, a centipede's legs. The 21 archetypes are about 1 100 meshes, each one a
+draw in the G-buffer and in every shadow map, so a full pack in the Arena was 2 750 draws a frame at High. The
+performance audit (`docs/audits/perf-v1.39.md`) found it the largest regression of v1.8–v1.36.
+
+**`src/part-batch.js`** (`batchParts(root, { min, cell })`, `PartBatch`). Parts with the same shape (equal
+vertex arrays: each part builds its own geometry, so they are compared, not looked up) and the same material
+are drawn by one `InstancedMesh`. Its instances are the parts' own world matrices, so `modelMatrix ×
+instanceMatrix` is each part's `matrixWorld` and the surface shader sees exactly what it saw (`vObjPos`, the
+facet normals, the hatching). The parts stay in place, moved by the kit as before; their layers are off.
+- **When it reads them:** when the scene's matrices update (`renderFrame`'s `scene.updateMatrixWorld()`). The
+  batch is its root's last child, so the parts are this frame's by then. This composes with the matrix cache
+  (`src/matrix-cache.js`): a part that did not move keeps its matrix, the comparison finds nothing to write,
+  and the batch uploads nothing.
+- **What it draws:** only the shown parts (it and its parents up to the root visible). A batch with none shown
+  is hidden. A batch whose whole body is hidden is skipped. A part taken out of the body (a machine's pieces
+  flying apart) draws itself again.
+- **Shadows:** `ShadowCuller` judges a batch by the size of one part (`partRadius`), so a batch of small parts
+  still stays out of a coarse shadow map, as each part did.
+- **Left out:** skinned meshes (already one draw), self-lit parts (`shadows.js selfLitSkips`: they stay out of
+  the shadow passes by their own rule), see-through parts (their draw order is kept), multi-material meshes.
+- **For measuring:** `batch.enabled = false` gives the parts their own draws back. The numbers below are the
+  batches switched off and on in turns in the same page, six times each.
+
+Where it is used:
+- every foe's body (`foes.add`, every part, one alone in its shape too: a body then compiles only the instanced
+  programs, not both kinds, the first time it is met, a hitch on the handheld);
+- the City-Shaft's ~80 cabs (one group);
+- the responsive world's shared stone, brass and stems, by 64 m cells, so a batch is culled with what is
+  round it;
+- the makers' runs' pieces, the wind columns' rings and Vael's wind rings.
+
+Merged outright (each piece already in its parent's frame, so the merged mesh is drawn as before):
+- the City-Shaft's 26 cables;
+- the dismissed Hangar's gear teeth.
+
+Merged per vertex (`vertex-material.js`, as the towers):
+- the City-Shaft's 40 billboards;
+- every shop front's colour buckets. `buckets().build(group, { merge: true })` uses
+  `mergeWithMaterials(items, { local: true })`: the geometry stays in the front's frame, and its place and turn
+  are written for the facet normals. Every front is at most 10 meshes; the Buried Machine's dome went from 38 to
+  12 draws.
+
+Headless Chrome on the M4 Pro (ANGLE Metal), each view's frames' medians, measured while the Mac was shared
+(load average 5–25: differences under ~0.4 ms are noise):
+
+| view | preset | main thread, ms: off → on | draws: off → on |
+|---|---|---|---|
+| the Arena, all 21 archetypes | High | 7.0 → 5.7 | 2 775 → 1 463 |
+| | Steam Deck | 5.6 → 4.8 | 2 065 → 1 075 |
+| | Handheld (two builds, one run each) | 6.3 → 5.0 | 1 795 → 1 017 |
+| the City-Shaft, wide (cabs, stones, runs) | High / Deck / Handheld | 11.7 → 11.3 / 9.0 → 9.3 / 8.4 → 7.9 | 1 560 → 1 340 / 1 293 → 1 120 / 1 384 → 1 186 |
+| Vael's start (stones, runs, winds) | High / Deck / Handheld | 7.0 → 7.0 / 5.8 → 5.9 / 5.2 → 5.3 | 1 037 → 999 / 867 → 812 / 812 → 785 |
+| the Market's start | High / Deck / Handheld | 7.3 → 7.4 / 4.6 → 4.6 / 4.4 → 4.4 | 817 → 783 / 675 → 632 / 686 → 642 |
+
+**Where it pays, and where it doesn't.** The gain is in fights: a dense pack saves about 1 ms a frame on the Mac.
+In a quiet view, the world's props save 30–200 draws, but the main thread hardly moves on the Mac: reading the
+parts costs about 0.1 ms a frame for 600 parts, and most of the parts it saves were frustum-culled anyway. On
+the handhelds, where a draw costs the main thread more, the saving should be larger (not yet measured on the
+devices: TODO).
+
+**Tried and dropped:**
+- batching every part, a batch of one included: no draw saved, and an upload and a read a frame for each moving
+  part;
+- foes at min 2 (a part alone in its shape drawing itself): 0.2 ms more saved in the Arena, but each foe's
+  materials then compiled twice (the Arena 106 → 116 programs), a hitch the first time a kind is met;
+- the responsive world's parts in each node's own colour. Each node has its own material, because the node's
+  colour and glow change as it wakes, so they would need a per-instance glow in the surface shader.
