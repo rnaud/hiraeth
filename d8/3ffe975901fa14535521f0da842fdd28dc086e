@@ -1,0 +1,21 @@
+DONE.md
+  s_9ca76055a220ed::t_d5773749fc5aea 2143-2281
+TODO.md
+  s_9ca76055a220ed::t_a2c2dadb7299b4 13-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d83ffe975901fa14535521f0da842fdd28dc086e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
