@@ -14,6 +14,8 @@ namespace Memento.Rendering
     /// Composite, the port of src/post.js) inks the page; FXAA smooths it into the camera's target.
     /// The G-buffer's normal + depth stays bound as _GNormalTex for what is drawn after (the
     /// hologram, the wind's wisps test themselves against the scene with it).
+    /// The water (its materials in WaterQueue, writing no depth: WorldLoader.MakeMaterial) is drawn last, over
+    /// a copy of the scene's view depth without it (_MementoSceneDepth), for its contact foam (water.md).
     /// </summary>
     public class MementoFeature : ScriptableRendererFeature
     {
@@ -46,6 +48,7 @@ namespace Memento.Rendering
             if (fxaaMaterial == null) { var fs = Shader.Find("Hidden/Memento/FXAA"); if (fs != null) fxaaMaterial = CoreUtils.CreateEngineMaterial(fs); }
             if (!logged) { logged = true; Debug.Log($"Memento: ink feature: bloom {(bloom && bloomMaterial != null)}, fxaa {(fxaa && fxaaMaterial != null)}"); }
             composite.material = compositeMaterial;
+            gbuffer.copy = bloomMaterial;   // (its third pass copies the scene's depth for the water's contact foam)
             composite.bloom = bloom ? bloomMaterial : null;
             composite.fxaa = fxaa && Settings.fxaa ? fxaaMaterial : null;
             renderer.EnqueuePass(shadows);
@@ -55,8 +58,21 @@ namespace Memento.Rendering
 
         protected override void Dispose(bool disposing) { CoreUtils.Destroy(compositeMaterial); CoreUtils.Destroy(bloomMaterial); CoreUtils.Destroy(fxaaMaterial); }
 
-        /// <summary>Switches the game can flip (the settings: FXAA).</summary>
-        public static class Settings { public static bool fxaa = true; }
+        /// <summary>Switches the game can flip (the settings: FXAA). `waterContact`: the water's contact foam, **off by default
+        /// until it has been seen working** (TODO.md); on with `-waterContact` on the command line (read once, before the
+        /// world's materials are made: WorldLoader.MakeMaterial). Off, the water's materials and the G-buffer pass are as
+        /// before it existed.</summary>
+        public static class Settings
+        {
+            public static bool fxaa = true;
+            public static bool waterContact = System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-waterContact") >= 0;
+        }
+
+        /// <summary>The render queue of the water's materials: drawn after everything else in the G-buffer, over the
+        /// scene's depth (the contact foam), still in the opaque G-buffer pass's tag.</summary>
+        public const int WaterQueue = 2600;
+        /// <summary>A water material has been made (WorldLoader.MakeMaterial): the scene's depth is copied for its foam.</summary>
+        public static bool WaterSeen;
 
         /// <summary>The G-buffer textures of this frame, shared by the passes.</summary>
         public class GBufferData : ContextItem
@@ -113,10 +129,17 @@ namespace Memento.Rendering
 
         static ShaderTagId Tag => new ShaderTagId("MementoGBuffer");
         static readonly int GNormalTex = Shader.PropertyToID("_GNormalTex");
+        static readonly int SceneDepthTex = Shader.PropertyToID("_MementoSceneDepth"), ContactOn = Shader.PropertyToID("_MementoContact");
+        static readonly int DepthSrc = Shader.PropertyToID("_GDepthSrc"), SceneZParams = Shader.PropertyToID("_SceneZParams");
 
         class GBufferPass : ScriptableRenderPass
         {
-            class PassData { public RendererListHandle list; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; }
+            class PassData { public RendererListHandle list, water; public WorldDetail detail; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; }
+            class DepthData { public Material mat; public TextureHandle src; public Vector4 zp; public MaterialPropertyBlock mpb; }
+            class WaterData { public RendererListHandle list; public TextureHandle scene; public TextureHandle[] shadowMaps; public Matrix4x4 view, proj; }
+            readonly MaterialPropertyBlock depthMpb = new();
+            /// <summary>Hidden/Memento/Bloom, whose third pass copies the scene's depth (null: no contact foam).</summary>
+            public Material copy;
 
             public override void RecordRenderGraph(RenderGraph rg, ContextContainer frame)
             {
@@ -141,11 +164,18 @@ namespace Memento.Rendering
                 ddesc.depthStencilFormat = GraphicsFormat.D32_SFloat;
                 data.depth = UniversalRenderer.CreateRenderGraphTexture(rg, ddesc, "_GDepth", true);
 
+                // the water's contact foam needs the scene's depth without the water (below): then the water is drawn in a pass
+                // of its own after a copy of it; without (the handheld, a world with no water) in this one, after the rest
+                bool split = Settings.waterContact && WaterSeen;   // (the water in its own queue: MakeMaterial with the foam on)
+                bool contact = split && copy != null;
+                var waterDraw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonTransparent);
+                var waterFilter = new FilteringSettings(new RenderQueueRange(WaterQueue, WaterQueue));
                 using (var builder = rg.AddRasterRenderPass<PassData>("Memento G-buffer", out var pass))
                 {
                     var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
                     var filter = new FilteringSettings(RenderQueueRange.opaque);
                     pass.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, filter));
+                    pass.water = split && !contact ? rg.CreateRendererList(new RendererListParams(rend.cullResults, waterDraw, waterFilter)) : default;
                     pass.detail = WorldDetail.DrawsWorld(cam.camera) ? WorldDetail.Current : null;
                     // the sun's maps (drawn by ShadowPass this frame or an earlier one): read here
                     var sm = ShadowMaps.Of(rg, frame);
@@ -153,13 +183,14 @@ namespace Memento.Rendering
                     foreach (var m in sm.maps) if (m.IsValid()) builder.UseTexture(m, AccessFlags.Read);
                     pass.view = cam.GetViewMatrix(); pass.proj = cam.GetProjectionMatrix();
                     builder.UseRendererList(pass.list);
+                    if (split && !contact) builder.UseRendererList(pass.water);
                     builder.SetRenderAttachment(data.albedo, 0, AccessFlags.Write);
                     builder.SetRenderAttachment(data.normal, 1, AccessFlags.Write);
                     builder.SetRenderAttachment(data.hatch, 2, AccessFlags.Write);
                     builder.SetRenderAttachmentDepth(data.depth, AccessFlags.Write);
                     if (res.mainShadowsTexture.IsValid()) builder.UseTexture(res.mainShadowsTexture, AccessFlags.Read);
                     builder.AllowGlobalStateModification(true);
-                    builder.SetGlobalTextureAfterPass(data.normal, GNormalTex);
+                    if (!contact) builder.SetGlobalTextureAfterPass(data.normal, GNormalTex);
                     builder.SetRenderFunc((PassData d, RasterGraphContext ctx) =>
                     {
                         // (the shadow passes drew from the sun: the camera's matrices again)
@@ -168,6 +199,53 @@ namespace Memento.Rendering
                         ctx.cmd.ClearRenderTarget(RTClearFlags.All, Color.clear, 1f, 0);
                         ctx.cmd.DrawRendererList(d.list);
                         d.detail?.DrawGBuffer(ctx.cmd);   // (the flora: instanced, one draw a species)
+                        if (d.water.IsValid()) { ctx.cmd.SetGlobalFloat(ContactOn, 0); ctx.cmd.DrawRendererList(d.water); }
+                    });
+                }
+                if (!contact) return;
+
+                // ---- the scene's view depth without the water, for the water's contact foam (water-shader.js contactFoam):
+                // the depth buffer as the opaques left it, linear (m; the sky 0). (The web reads last frame's, reprojected,
+                // to spare a tiled GPU the store and reload in the middle of its pass; here a copy between two passes.)
+                var sdesc = new TextureDesc(desc.width, desc.height) { colorFormat = GraphicsFormat.R32_SFloat, filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "_MementoSceneDepth" };
+                var scene = rg.CreateTexture(sdesc);
+                using (var builder = rg.AddRasterRenderPass<DepthData>("Memento scene depth", out var d))
+                {
+                    // (Unity's _ZBufferParams for this camera: linear eye depth = 1 / (z * raw + w))
+                    float n = cam.camera.nearClipPlane, f = cam.camera.farClipPlane;
+                    d.zp = SystemInfo.usesReversedZBuffer ? new Vector4(-1 + f / n, 1, (-1 + f / n) / f, 1 / f) : new Vector4(1 - f / n, f / n, (1 - f / n) / f, 1 / n);
+                    d.mat = copy; d.src = data.depth; d.mpb = depthMpb;
+                    builder.UseTexture(data.depth, AccessFlags.Read);
+                    builder.SetRenderAttachment(scene, 0, AccessFlags.WriteAll);
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetRenderFunc((DepthData x, RasterGraphContext ctx) => { x.mpb.SetTexture(DepthSrc, x.src); x.mpb.SetVector(SceneZParams, x.zp); ctx.cmd.DrawProcedural(Matrix4x4.identity, x.mat, 2, MeshTopology.Triangles, 3, 1, x.mpb); });
+                }
+
+                // ---- the water, last: over the rest, tested against its depth, writing none of its own, reading the copy
+                using (var builder = rg.AddRasterRenderPass<WaterData>("Memento G-buffer water", out var pass))
+                {
+                    pass.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, waterDraw, waterFilter));
+                    pass.scene = scene;
+                    var sm = ShadowMaps.Of(rg, frame);
+                    pass.shadowMaps = sm.maps;
+                    foreach (var m in sm.maps) if (m.IsValid()) builder.UseTexture(m, AccessFlags.Read);
+                    pass.view = cam.GetViewMatrix(); pass.proj = cam.GetProjectionMatrix();
+                    builder.UseRendererList(pass.list);
+                    builder.UseTexture(scene, AccessFlags.Read);
+                    builder.SetRenderAttachment(data.albedo, 0, AccessFlags.Write);
+                    builder.SetRenderAttachment(data.normal, 1, AccessFlags.Write);
+                    builder.SetRenderAttachment(data.hatch, 2, AccessFlags.Write);
+                    builder.SetRenderAttachmentDepth(data.depth, AccessFlags.Read);
+                    if (res.mainShadowsTexture.IsValid()) builder.UseTexture(res.mainShadowsTexture, AccessFlags.Read);
+                    builder.AllowGlobalStateModification(true);
+                    builder.SetGlobalTextureAfterPass(data.normal, GNormalTex);
+                    builder.SetRenderFunc((WaterData w, RasterGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetViewProjectionMatrices(w.view, w.proj);
+                        MementoShadows.Instance.SetGlobals(ctx.cmd, w.shadowMaps);
+                        ctx.cmd.SetGlobalTexture(SceneDepthTex, w.scene);
+                        ctx.cmd.SetGlobalFloat(ContactOn, 1);
+                        ctx.cmd.DrawRendererList(w.list);
                     });
                 }
             }

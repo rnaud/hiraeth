@@ -169,8 +169,22 @@ props) had nothing. Now wherever anything meets the water (`contactFoam` in `src
 - **Left**: a jump shadow or other multiply decal lying on a water surface that is in the collision world is
   drawn before the water now and lost under it (where water is not solid it lies on the bed, as before). Walkways
   whose sides stop at the surface (Lorn's) have nothing under the water for the ray to meet: their edge keeps the
-  bed map's foam. The Unity port's water (`unity/…/Surface.shader` `waterLook`) has the shore foam but not this
-  (TODO.md).
+  bed map's foam.
+- **In Unity** (the C# port and the JS bridge's player, which draw through the same look; off unless
+  `-waterContact`, below): `contactFoam` in
+  `unity/…/Shaders/Surface.shader`, the same numbers, called from `waterLook`. The water's materials
+  (`WorldLoader.MakeMaterial`) go in their own queue (`MementoFeature.WaterQueue`, past the opaque range) and write
+  no depth (`_ZWrite` 0); `MementoFeature`'s G-buffer draws everything else, copies its depth as a view depth in
+  metres (`Bloom.shader`'s third pass, `_MementoSceneDepth`, the sky 0), then draws the water over it reading the
+  copy at its own pixel (this frame's: no reprojection). The ray's run is the scene's view depth less the water's
+  over the ray's share of it, as here. With the foam off (`MementoFeature.Settings.waterContact`: off on mobile
+  players and in the bench's handheld preset, as the web's Handheld; or no water material made yet) the water is
+  drawn at the end of the one G-buffer pass, without it. **Built but off by default** until it has been seen
+  running: only `-waterContact` on the player's or editor's command line turns it on (read before the world's
+  materials are made); without it the water's materials and the G-buffer pass are exactly as before, in both the
+  C# port and the bridge's players. Checked so far by compiling the C# against the project's assemblies and the
+  HLSL with glslang (2026-10-10; no editor run, TODO.md).
 - Tests: `tests/water-contact.test.js` (the band by distance, the fades, the presets, `screenRect`, the passes in
   order with a mock renderer, the blit and the reuse, the shader's intersection term behind its gate, no screen
-  position in it).
+  position in it); `tests/unity-water-contact.test.js` (the Unity shader's CONTACT numbers, the water's queue and
+  depth writes, the passes' order).

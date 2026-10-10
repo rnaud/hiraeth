@@ -64,5 +64,27 @@ Shader "Hidden/Memento/Bloom"
       }
       ENDHLSL
     }
+    Pass
+    {
+      // (not the glow's: MementoFeature's copy of the scene's depth before the water is drawn, for its contact foam,
+      // water-shader.js contactFoam) the G-buffer's depth as the opaques left it, as a view depth in metres; the sky 0
+      Name "SceneDepth"
+      HLSLPROGRAM
+      #pragma vertex vert
+      #pragma fragment frag
+      Texture2D<float> _GDepthSrc;
+      float4 _SceneZParams;   // this camera's _ZBufferParams: view depth = 1 / (z * raw + w)
+      float4 frag(V2F i) : SV_Target
+      {
+        float raw = _GDepthSrc.Load(int3(int2(i.pos.xy), 0));
+        #if UNITY_REVERSED_Z
+          bool sky = raw <= 0.0;
+        #else
+          bool sky = raw >= 1.0;
+        #endif
+        return sky ? 0.0 : 1.0 / (_SceneZParams.z * raw + _SceneZParams.w);
+      }
+      ENDHLSL
+    }
   }
 }

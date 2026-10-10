@@ -248,6 +248,13 @@ namespace Memento
                 var wo = water.L("uWaterOpt"); var wb = water.L("uWaterBed");
                 if (wo != null && wo.Count >= 4) mat.SetVector("_WaterOpt", new Vector4(Mathf.Max(Json.Num(wo[0]), 0.01f), Json.Num(wo[1]), Json.Num(wo[2]), Json.Num(wo[3])));
                 if (wb != null && wb.Count >= 3) mat.SetVector("_WaterBed", new Vector4(Json.Num(wb[0]), Json.Num(wb[1]), Json.Num(wb[2]), 1));
+                // with the contact foam on (-waterContact; off by default until seen working): drawn last in the G-buffer,
+                // writing no depth, over the scene's depth (MementoFeature)
+                if (Rendering.MementoFeature.Settings.waterContact)
+                {
+                    mat.renderQueue = Rendering.MementoFeature.WaterQueue; mat.SetFloat("_ZWrite", 0);
+                    Rendering.MementoFeature.WaterSeen = true;
+                }
             }
             int side = m.I("side");
             mat.SetFloat("_Cull", side == 2 ? (float)CullMode.Off : side == 1 ? (float)CullMode.Front : (float)CullMode.Back);

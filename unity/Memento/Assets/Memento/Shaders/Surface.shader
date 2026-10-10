@@ -54,6 +54,7 @@ Shader "Memento/Surface"
     _BoxMark ("Box: the marks", Vector) = (0.86, 0.93, 0.95, 1)
     _BoxLight ("Box: the ray", Vector) = (1, 0.98, 0.92, 1)
     _Cull ("Cull", Float) = 2
+    _ZWrite ("ZWrite (0: the water, drawn last over the scene's depth)", Float) = 1
   }
   SubShader
   {
@@ -163,7 +164,7 @@ Shader "Memento/Surface"
       Name "MementoGBuffer"
       Tags { "LightMode" = "MementoGBuffer" }
       Cull [_Cull]
-      ZWrite On
+      ZWrite [_ZWrite]
       ZTest LEqual
 
       HLSLPROGRAM
@@ -523,7 +524,54 @@ Shader "Memento/Surface"
         float dash = smoothstep(0.6, 0.66, vnoise(float2(q.y * 1.3, lane * 3.7 + seed) + float2(t * 0.05, 0.0)) + 0.08 * min(str, 2.0));
         return inkLine(d, 0.95) * dash * (1.0 - smoothstep(0.12, 0.3, fw));
       }
-      float3 waterLook(float3 p, bool front, out float ink, out float lit)
+      // The contact foam (water-shader.js contactFoam, CONTACT; docs/systems/water.md "Contact foam"): little waves round
+      // whatever stands in the water. Foam where the view ray's run through the water to what is behind it is short (the
+      // scene's view depth there, _MementoSceneDepth: MementoFeature copies it before drawing the water, which writes no
+      // depth), over how fast that run grows across the water (fwidth, held in CONTACT.slope): the distance to the contact
+      // in metres. Raises `foam`, returns the wavelets' ink. All its noise is on p.xz (three space): anchored in the world.
+      Texture2D<float> _MementoSceneDepth;
+      float _MementoContact;   // 1 while the water is drawn over this frame's copy
+      float contactFoam(float3 p, float t, float px, float2 wd, float2 pix, float vd, inout float foam)
+      {
+        if (_MementoContact < 0.5) return 0.0;   // (a uniform branch)
+        uint sw, sh; _MementoSceneDepth.GetDimensions(sw, sh);
+        float sd = _MementoSceneDepth.Load(int3(clamp(int2(pix), int2(0, 0), int2(sw, sh) - 1), 0));
+        float run = sd - vd;
+        // the sky, or something in front of the water here (under water, seen from below): nothing to meet
+        bool none = vd <= 1e-3 || sd <= 0.0 || run < -(0.3 + 0.01 * vd);
+        float ray = none ? 64.0 : min(max(run, 0.0) * length(p - toThree(_WorldSpaceCameraPos)) / max(vd, 1e-3), 64.0);
+        float dist = ray / clamp(fwidth(ray) / max(px, 1e-4), 0.4, 1.0);   // (CONTACT.slope)
+        float pr = max(_PixelRatio, 1.0);
+        float bw = clamp(max(0.3, 6.0 * pr * px), 0.3, 1.2);              // (CONTACT.band, minPx, maxBand)
+        float g = max(0.18, 5.0 * pr * px);                                // (CONTACT.gap, gapPx)
+        float keep = 1.0 - smoothstep(0.1, 0.2, px);                       // (CONTACT.far)
+        if (keep <= 0.0 || dist > bw * (1.0 + 0.22) + g * 4.0) return 0.0;   // (CONTACT.breathe)
+        float near = 1.0 - smoothstep(0.03, 0.07, px);                     // (CONTACT.detail: close up only)
+        // each stretch of the band breathes in its own time: out, and back
+        float ph = vnoise(p.xz * 0.45) * 6.2832;
+        float edge = bw * (1.0 + 0.22 * sin(t * 1.3 + ph));
+        float body = 1.0 - smoothstep(edge - px, edge + px, dist);
+        float inner = 1.0 - smoothstep(edge * 0.45 - px, edge * 0.45 + px, dist);
+        // small gaps in its outer part, drifting with the wind (only where the band is thick enough on screen)
+        float gaps = smoothstep(0.3, 0.38, vnoise(p.xz * 2.4 + wd * t * 0.3 + float2(0.0, t * 0.08)));
+        float c = max(inner, body * lerp(1.0, gaps, near * smoothstep(9.0, 14.0, bw / max(px, 1e-4))));
+        // foam flecks just off the band: world-fixed cells, each a speck that comes and goes
+        float cs = 0.22;
+        float2 id = floor(p.xz / cs), f = (frac(p.xz / cs) - 0.5 - (hash2(id + 4.1) - 0.5) * 0.4) * cs;
+        float h = hash(id + floor(t * 0.7 + hash(id + 2.3) * 9.0) * 0.173);
+        float r = 0.022 + 0.02 * hash(id + 7.7);
+        float zone = step(edge, dist) * (1.0 - smoothstep(edge + g * 2.0, edge + g * 2.6, dist));
+        float fleck = (1.0 - smoothstep(r - px, r + px, length(f))) * step(0.7, h) * zone * near * smoothstep(2.5, 4.0, r / px);
+        foam = max(foam, max(c, fleck) * keep);
+        // two broken inked wavelets off the band, swelling out after it and back
+        float at1 = edge + g * (1.0 + 0.5 * sin(t * 1.3 + ph - 0.9));
+        float at2 = at1 + g * (1.5 + 0.6 * sin(t * 1.3 + ph - 2.0));
+        float d1 = step(0.36, vnoise(p.xz * 1.3 + 5.0 - wd * t * 0.2));
+        float d2 = step(0.5, vnoise(p.xz * 1.1 + 11.0 + wd * t * 0.15));
+        float wl = max(inkLine(abs(dist - at1) / max(px, 1e-4), 1.3) * d1, inkLine(abs(dist - at2) / max(px, 1e-4), 1.1) * d2 * 0.8);
+        return wl * near * keep * (1.0 - fleck);
+      }
+      float3 waterLook(float3 p, bool front, float2 pix, float vd, out float ink, out float lit)
       {
         float t = _MTime;
         float2 wd = length(_Wind.xy) > 1e-4 ? normalize(_Wind.xy) : float2(1, 0);
@@ -568,7 +616,10 @@ Shader "Memento/Surface"
           float lapAt = 0.95 + 0.35 * sin(t * 1.15 + vnoise(p.xz * 0.25) * 6.2832);
           lap = inkLine(abs(shore - lapAt) / max(px, 1e-4), 0.9) * step(0.42, vnoise(p.xz * 0.8 + 3.0 + t * 0.1)) * known * (1.0 - smoothstep(0.06, 0.2, px));
         }
-        ink = max(ink * (1.0 - foam), lap * 0.85);
+        // contact: little waves lapping round whatever stands in the water, from the scene's depth behind it (rocks and
+        // walls the bed map has too, and what it doesn't: the ship, piers, people)
+        float wavelets = contactFoam(p, t, px, wd, pix, vd, foam);
+        ink = max(max(ink * (1.0 - foam), lap * 0.85), wavelets * 0.85);
         col = lerp(col, lerp(float3(0.97, 0.98, 0.95), shallow, 0.18), foam);
         lit = foam * 0.6;
         return col;
@@ -688,7 +739,7 @@ Shader "Memento/Surface"
           albedo = w > 0.55 ? _Color2.rgb : _Color.rgb;
         }
         float waterInk = 0.0, waterLit = 0.0;
-        UNITY_BRANCH if (mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
+        UNITY_BRANCH if (mode == MODE_WATER && _WaterOpt.x > 0.0) albedo = waterLook(i.worldPos, frontFace, i.positionCS.xy, i.viewDepth, waterInk, waterLit); else if (mode == MODE_OUTFIT) {
           // a person's printed outfit (materials.js MODE_OUTFIT): boots, trousers, belt, tunic, skin at the neck and hands
           albedo = outfitAlbedo(i.bind, _Color.rgb, _Color2.rgb, _Color3.rgb);
         } else if (mode == MODE_EYE) {

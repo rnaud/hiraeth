@@ -197,6 +197,7 @@ namespace Memento
             urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
             // (the shadow maps, levels of detail and culling follow Quality: the web's own cascades, MementoShadows)
             if (urp) urp.renderScale = preset == "handheld" ? 0.75f : 1;
+            if (preset == "handheld") Rendering.MementoFeature.Settings.waterContact = false;   // (the web's perf.js waterContactOn: off on Handheld)
             if (game.look) { game.look.hour = vp.F("hour", 10); game.look.hoursPerMinute = 0; }
             if (game.ambient) { game.ambient.forced = vp.S("weather", "clear"); game.ambient.intensity = 0; game.ambient.target = 0; }
             // the backpack on his back, as the web side's save has it (item.backpack)

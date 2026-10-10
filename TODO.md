@@ -11,18 +11,6 @@ Use the selected single-view designs as the source of truth; derive further view
 rather than mixing the earlier inconsistent exploration sheets.
 
 - [ ] Extend the generated father beyond the recording bust for full-body walking and clothing motion; the procedural family is integrated (see DONE.md).
-- [ ] **The angular ship in the Unity port**: the web game's ship is the angular hull (DONE.md, docs/systems/ship.md)
-  and the export writes its mesh, its new interaction points (`threshold`, `aboard`, `tableFoot`, `wakeRoom`) and its
-  extents (`shipOut.hull`), but `unity/Memento/Assets/Runtime/ShipScene.cs` and `ShipTravel.cs` still place their
-  cameras, the step-out point and the smoke for the ball (`Polar(9.0, HATCH_A, DECK)`, `R * 0.6`, the call camera at
-  `(-1.3, DECK + 1.95, -4.8)`, three thrusters in `WorldsTests.cs`). Re-derive them from the exported points (as
-  `src/ship/cinematics.js` `cockpitFrame` does) and regenerate the export.
-  Since the rooms were laid out as the picked reference-lab sheet (docs/systems/ship.md, "The picked layout"),
-  `shipOut.points` moved: `cockpit` (where he stands for the voicemail) is now behind the console's tail amidships
-  at (0.28, 0, 0.15), still facing forward; `projector` and `voicemail` are on the console (z -1.1 / -0.8), not the
-  dash; `table`/`tableFoot` at (0.2, -3.1); the bunk is in the main room's starboard alcove (`bunkStand`, `wakeEye`,
-  `wakeLook`, `wakeRoom`) and there is a new `wakeSit` (sitting up, inside the alcove); `aboard` is (-1.4, 0, 0.45);
-  `seat` is the left of two seats. The Unity scene's call camera and wake-up need re-deriving from these.
 # Singing light soundtrack follow-up
 
 - [ ] **Generate the singing light theme with Suno** using the brief in
@@ -432,12 +420,17 @@ glows and lines, the crowd's GPU figures, the cave's rounded walls, and players 
 Deck's) and Android, and what differed from the web is drawn now (DONE.md; engine-bridge.md, "What
 still differs"). What is left needs a device or a policy:
 
-- [ ] **The water's contact foam in Unity** (docs/systems/water.md, "Contact foam"): the web's water draws a band
-  of little waves round whatever stands in it from the scene's depth behind it (`contactFoam` in
-  `src/water-shader.js`, the passes in `Waters.renderGBuffer`). The Unity twin of the water look
-  (`unity/Memento/Assets/Memento/Shaders/Surface.shader` `waterLook`) has the shore foam from the bed map only:
-  mirror it with `_CameraDepthTexture` (the water drawn after the opaques, writing no depth), the same `CONTACT`
-  numbers, and the band's distance as there (the run through the water over its `fwidth`, clamped).
+- [ ] **See the Unity port's angular ship and the water's contact foam run** (both written 2026-10-10 and checked only
+  by compiling: the C# against the project's assemblies, the HLSL with glslang; no editor run was possible here: an
+  editor needs its own `Library`, and the disk and the shared checkout ruled out a second one). In the main checkout,
+  regenerate the exports (`node scripts/unity-export/export-all.mjs`: the ones there are from 2026-10-05, the ball),
+  then `scripts/unity-export/unity-batch.sh Play -out /tmp/play` (the prologue's shots: `prologue_the_pause`,
+  `_the_light`, `_the_drain`, `_the_glide`, `_the_landing`, the arrival's), the EditMode tests (`WorldsTests` expects
+  the four bells, the hull and its points), and shots of water round something standing in it (Viridel's lake,
+  Lorn II's tree) with `-waterContact` added to the batch command (the foam is off without it) and without, to see
+  the band and that the water is still drawn (docs/systems/water.md, "In Unity"; docs/systems/ship.md). Once it
+  works, turn it on by default (`MementoFeature.Settings.waterContact`, off on mobile as the web's Handheld) and add
+  the changelog line for the Unity test build.
 
 - [ ] Run the Unity APK on the Retroid once it builds through the bridge
   (`scripts/bench/android-run.sh`). **Blocked**: no Android device is attached. (2026-10-07: the bridge's

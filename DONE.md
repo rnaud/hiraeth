@@ -2101,3 +2101,16 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   from its lantern to the foe it guards (src/foes.js `support`, `cutWard`), the jelly keeping its lantern.
 - [x] The combat-review script: a clapper-only foe's time to kill through its openings (combat-v1.16 rec. 4; the bell
   walker's combo ∞ → about 13 s), and each kind framed side-on for the contact sheet.
+
+## The Unity port's ship and water (2026-10-10)
+
+- [x] **The angular ship in the Unity port**: `ShipScene.cs` and `ShipTravel.cs` place the traveller and their cameras
+  from the export's points (the recordings' cameras from `cockpitFrame`, the wake-up in the alcove, the walk ending
+  at the console's reach, the step-out from `threshold`, boarding to `aboard`, the map at the holo table) and the
+  hull's extents (the glide's vapour, the jets under the belly); the prologue's new stages (pause, pass, drain,
+  glide, land) and the arrival nose first on four bells. The export also writes the belly. `WorldsTests` expects
+  the four bells, the hull and its points; `tests/unity-ship-points.test.js` (docs/systems/ship.md).
+- [x] **The water's contact foam in Unity**: `contactFoam` in `Surface.shader` with the web's numbers; the water drawn
+  last, writing no depth, over a copy of the scene's depth (`MementoFeature`); built but off by default (only
+  `-waterContact` turns it on) until seen working; `tests/unity-water-contact.test.js` (docs/systems/water.md,
+  "In Unity"). Seeing both run, and turning the foam on, is left in TODO.md.
