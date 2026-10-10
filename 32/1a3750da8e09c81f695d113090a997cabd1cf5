@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_abf691631a6367 7
+src/changelog.js
+  s_9ca76055a220ed::t_aa10f0cd88ecda 28-29
+src/levels/arzach.js
+  s_9ca76055a220ed::t_490c1c25df5192 12,350-352,357,369,372-373,378,402,404-405
+src/story/arzach-data.js
+  s_9ca76055a220ed::t_6762197ad953a7 122,126,248-256
+src/story/arzach.js
+  s_9ca76055a220ed::t_8cf42c91038c0e 193
+src/vael-ways.js
+  s_9ca76055a220ed::t_b67620df22bcc1 16-19,23,35-36,120-148
+tests/level-design-round3.test.js
+  s_9ca76055a220ed::t_0beaca86b14956 1-73
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_646d68432b2fe7 149-155,201-202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "321a3750da8e09c81f695d113090a997cabd1cf5",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
