@@ -15,6 +15,9 @@
 //     [--runs n]         each world n times (the median of each number)
 //     [--gpu s]          then the frame's GPU time for s seconds at the spawn (EXT_disjoint_timer_query_webgl2 round
 //                        each animation frame; the hour held at 10, uncapped): median and 90th percentile, ms
+//     [--warm]           with --xbox: shaders not salted (a second load, the GPU process's cache kept)
+//     [--salt word]      with --xbox: this salt, not a random one (run twice: a cold load, then a warm one of the same)
+//     [--after s]        wait s seconds after the first frame before reading (what comes after it: warm rest)
 //     [--keys]           with --dump, each live program's three.js key and the materials using it (dir/<world>.keys.json)
 //     [--xbox https://hiraeth.example/perf-new.html]   on the Xbox instead (its page navigated there through the Device
 //                        Portal's DevTools relay, scripts/xbox-shaders.mjs connect): the app opens only its own origin,
@@ -38,7 +41,7 @@ const arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i
 const WORLDS = arg('worlds', 'desert,garage,lantern').split(',').filter(Boolean);
 const PRESET = arg('preset', 'high');
 const RUNS = Number(arg('runs', 1));
-const OUT = arg('json'), DUMP = arg('dump'), KEYS = args.includes('--keys'), GPU = Number(arg('gpu', 0));
+const WARM = args.includes('--warm'), OUT = arg('json'), DUMP = arg('dump'), KEYS = args.includes('--keys'), GPU = Number(arg('gpu', 0));
 const SLOW = arg('slow') ? { base: Number(arg('slow')), perKb: Number(arg('slow-kb', 4)), par: Number(arg('slow-par', 2)) } : null;
 const LIMIT = Number(arg('limit', 400)) * 1000;
 const CHROME = process.env.CHROME ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
@@ -68,7 +71,7 @@ export function serveDist(dist = DIST, port = PORT, host = '127.0.0.1') {
  */
 export const PROBE = (slow, salt = false) => `(() => {
   const G = window.__gl = { compile: 0, block: 0, upload: 0, uploadBytes: 0, srcBytes: 0, links: 0, blocks: 0, longestBlock: 0, programs: [] };
-  const salt = ${salt ? `'${Math.random().toString(36).slice(2, 10)}'` : 'null'};
+  const salt = ${salt ? `'${typeof salt === 'string' ? salt : Math.random().toString(36).slice(2, 10)}'` : 'null'};
   const slow = ${JSON.stringify(slow)};
   const C = WebGL2RenderingContext.prototype;
   G.long = [];   // (every call over 300 ms: its name, when, how long)
@@ -121,7 +124,7 @@ export const PROBE = (slow, salt = false) => `(() => {
     wrap(n, 'upload', function (o, a) { const b = a.find((x) => x && x.byteLength !== undefined); if (b) G.uploadBytes += b.byteLength; return o.apply(this, a); });
   const info = console.info, warn = console.warn;
   G.stages = []; G.lines = [];
-  console.info = function (...a) { const s = String(a[0] ?? ''); if (s.startsWith('load: ')) { G.stages.push(s.slice(6)); G.lines.push(Math.round(performance.now()) + ' ' + s); } else if (/^(shaders|passage|bounds|bake|load steps)/.test(s)) G.lines.push(s); return info.apply(this, a); };
+  console.info = function (...a) { const s = String(a[0] ?? ''); if (s.startsWith('load: ')) { G.stages.push(s.slice(6)); G.lines.push(Math.round(performance.now()) + ' ' + s); } else if (/^(shaders|passage|bounds|bake|load steps|warm rest)/.test(s)) G.lines.push(Math.round(performance.now()) + ' ' + s); return info.apply(this, a); };
   console.warn = function (...a) { const s = String(a[0] ?? ''); if (/passage|pacer|bake/.test(s)) G.lines.push('warn: ' + s); return warn.apply(this, a); };
 })();`;
 
@@ -188,14 +191,14 @@ export async function measure(world, { base, preset = PRESET, slow = SLOW, dump 
     const root = page.replace(/[^/]*$/, '');
     await c.send('Page.navigate', { url: `${root}manifest.webmanifest` }); await sleep(xbox ? 1500 : 300);
     await c.ev(`${storage(xbox ? null : preset)}; true`);
-    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox) });
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: PROBE(slow, xbox && !WARM && (arg('salt') ?? true)) });
     const t0 = Date.now();
     await c.send('Page.navigate', { url: `${page}?level=${world}` });
     let up = false;
     while (!up && Date.now() - t0 < LIMIT) { try { up = await c.ev('!!window.__moebiusBooted'); } catch { /* loading */ } if (!up) await sleep(250); }
     if (!up) throw new Error(`${world}: no first frame in ${LIMIT / 1000} s (${c.errors.slice(-1)[0] ?? 'no error'})`);
     const wall = Date.now() - t0;
-    await sleep(500);
+    await sleep(500 + Number(arg('after', 0)) * 1000);
     const gpu = GPU && !xbox ? await c.ev(`(async () => {
       if (window.sky) { sky.hour = 10; sky.speed = 0; window.updateSky?.(); }
       const gl = renderer.getContext(), X = gl.getExtension('EXT_disjoint_timer_query_webgl2');

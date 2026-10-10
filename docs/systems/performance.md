@@ -1292,3 +1292,21 @@ programs the spawn's view draws against those compiled. For the desert:
 |---|---|---|---|
 | Before | 39 | 75 | 89 |
 | Now | 32 | 57 | 71 |
+
+**Cold, warm and after a relaunch.** Desert loads on the console (`load-breakdown.mjs --xbox`, October 2026). `--salt`
+fixes the salt, so a second run loads the same sources warm; `--warm` doesn't salt at all.
+
+Build 1715, which compiles only each material's own features again:
+
+| Load | First frame | Steps |
+|---|---|---|
+| Cold, the first load in a fresh app session | 139.7 s | surfaces 45.8 s, first use 5.4 s, passage 49.3 s against its 8 s budget; the first frame ~28 s after ready |
+| The same again, in the same session | 29.0 s | surfaces 2.3 s, passage 10.1 s |
+| After the app is relaunched | 51.0 s | surfaces 16.1 s, the ink pass 2.0 s again, passage 10.4 s |
+
+So the GPU process's cache keeps most programs within a session, but only part of them across a relaunch.
+
+Tried and not kept (step (a)): compiling only the start view's kinds (the view, plus 60 m round the traveller), each
+drawn once as it links, and the rest after the first frame. A cold load was the same, 135.7 s: the draw-time compiles
+run one at a time on CrGpuMain whenever they happen (start surfaces 113 s, then passage 2.1 s, the first frame 4.7 s
+after ready). A warm one was 4 s slower, and the deferred kinds would each stall the GPU 1-15 s during play.
