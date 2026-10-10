@@ -1,0 +1,43 @@
+docs/systems/temples.md
+  s_9ca76055a220ed::t_31d5eb33c69b42 202,217
+docs/systems/foes.md
+  s_9ca76055a220ed::t_86a5be95bc21e5 457,459,473-474
+TODO.md
+  s_9ca76055a220ed::t_c266c6a621adbd 310-311,314-317,320-322
+  s_9ca76055a220ed::t_475136502d313d 269,309,312-313,318-319
+docs/audits/temple-design-v1.19.md
+  s_9ca76055a220ed::t_3ff2caaaae75f5 1-142
+  s_9ca76055a220ed::t_d7b1b2b69646b2 143-209
+src/changelog-media.js
+  s_9ca76055a220ed::t_ab0aaac3b77fd1 462,467-468,472,476,481,485,491,495,500,504,508
+  s_9ca76055a220ed::t_16d682e6675a05 469-471,473-475,477-480,482-484,486-490,492-494,496-499,501-503,505-507
+src/temples/buried.js
+  s_9ca76055a220ed::t_dac14c91e714f3 18
+DONE.md
+  s_9ca76055a220ed::t_ac885c5072994f 1991,1993-1998,2000-2002
+  s_9ca76055a220ed::t_21b4ea63014fdd 1992,1999
+src/temples/incal.js
+  s_9ca76055a220ed::t_7d807ab69ea2c2 20
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_2f12dee70d5bb6 18
+LORE.md
+  s_9ca76055a220ed::t_7e8afbad17742e 1353,1418
+docs/README.md
+  s_9ca76055a220ed::t_4f2b96aa655c03 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac7600f6c28af29b8febfdfeeb51abcbbaf316d9",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
