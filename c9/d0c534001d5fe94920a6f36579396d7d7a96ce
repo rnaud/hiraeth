@@ -1,0 +1,35 @@
+changelog.md
+  s_9ca76055a220ed::t_4c0026003e23f3 7-9
+src/changelog.js
+  s_9ca76055a220ed::t_0cda42eb3ddda7 16-18
+src/deep-wood-ways.js
+  s_9ca76055a220ed::t_0e44eae2a61364 1-71
+src/levels/perdide.js
+  s_9ca76055a220ed::t_82fac48f98a4d8 13,486-492,509-513
+src/levels/perdide2.js
+  s_9ca76055a220ed::t_5a4f810f5fd685 14,800-804,816-822
+src/lorn-ways.js
+  s_9ca76055a220ed::t_5e85e6a36bbea6 1-84
+src/story/perdide-data.js
+  s_9ca76055a220ed::t_14c7015a07055b 39,474
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_2f0aee6d5c8ed8 57-59,61,154,168
+src/story/perdide2.js
+  s_9ca76055a220ed::t_09942a650ebfc2 462-464,530-531
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c9d0c534001d5fe94920a6f36579396d7d7a96ce",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
