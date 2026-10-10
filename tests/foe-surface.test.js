@@ -36,6 +36,20 @@ test('a foe surface compiles only the features it names, with their uniforms', (
   assert.match(m.fragmentShader, /foeGloss\(albedo, L, n\)/);
 });
 
+test('clustered spots, streaked gloss and rivets: their uniforms and their shader blocks', () => {
+  // (the anchor crab's barnacles in patches, the blot's streaked shine, the centipede's rivets: v1.24)
+  const m = makeMaterial({ color: '#76b8aa', foeSurface: { spots: { color: '#eee2c2', cluster: 0.38, clusterShare: 0.5 }, spots2: { color: '#eee2c2' }, gloss: { streaks: 9, streakWidth: 0.22 }, rivets: { color: '#d8d2c0', axis: 2, period: 0.19, count: 16, size: 0.035 } }, key: 'test.foe-surface.v124' });
+  assert.deepEqual([m.uniforms.uFs_spotsK.value.x, m.uniforms.uFs_spotsK.value.y], [0.38, 0.5]);
+  assert.equal(m.uniforms.uFs_spots2K.value.x, 0, 'unclustered by default');
+  assert.equal(m.uniforms.uFsGloss.value.w, 9);
+  assert.equal(m.uniforms.uFsGlossW.value, 0.22);
+  assert.ok(m.defines.FS_RIVETS);
+  assert.deepEqual(m.uniforms.uFsRivets.value.toArray(), [2, 0.19, 0, 16]);
+  assert.match(FOE_SURFACE_GLSL, /k2\.x > 0\.0 && fsNoise/, 'the cells outside a patch skipped');
+  assert.match(FOE_SURFACE_GLSL, /if \(uFsGloss\.w > 0\.0\)/, 'the highlight cut into strokes');
+  assert.equal(foeSurfaceOf({ gloss: true }).gloss.streaks, 0, 'a plain gloss by default');
+});
+
 test('the table’s colours: hex, a palette key, darker or paler', () => {
   const P = { shell: '#808080' };
   assert.equal(surfaceColor('#123456', P), '#123456');

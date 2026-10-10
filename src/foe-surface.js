@@ -31,12 +31,18 @@ import * as THREE from 'three';
 //            (its lower edge darker, in color)
 //   spots    round spots on the part: scale (the cell), share (of cells with one), size (of the cell, 0..1),
 //            jitter, star (0 round … 1 a six-pointed lichen star), ring (0 filled … a ring's width share), soft
+//            cluster: m (0 off): the spots gather in patches that size (a noise over the cells), clusterShare the
+//            share of the part the patches cover (barnacle crusts, lichen colonies)
 //   spots2   a second layer (specks over stars, eye-spots over mottling)
+//   rivets   rows of round rivet heads ringed round an axis (axis 0 x, 1 y, 2 z): a row every `period` m along it
+//            (offset in periods), `count` heads round each row, `size` m across; a pen line round each (ink) and a
+//            lit top (shine)
 //   drips    runs of another colour down the part from y `from` (m), `length` long, `width` m apart, with a bulb
 //   glow     translucent: a light inside, brightest where you look straight through (core: its falloff), a
 //            rim; or a lantern at `center` (object space) of `radius`; pulse (rad/s); emit (how far it blooms)
 //   gloss    a crisp highlight (the blot's wet ink, enamel): the sun's and the sky's, size (of the sphere), sky
-//            (the share from the sky, so it shows in shade too)
+//            (the share from the sky, so it shows in shade too); streaks (0 off): the highlight broken into that many
+//            curving strokes round the part's y axis (wet ink's streaked shine), streakWidth their share
 //   cracks   a hull cracked like a dropped jar (the furnace brute's): a fine net of seams between cells `scale` m across
 //            (3D Voronoi: the pen-thin `width` of the cell's size, in `ink`, each cell its own shade `tone`: glass
 //            facets too), and over it a wider net of veins (`veins` m cells, `vein` width) glowing `color` (emit
@@ -45,7 +51,7 @@ import * as THREE from 'three';
 // or 3 projections); a whole pack is a few thousand pixels. Nothing is drawn twice and nothing is downloaded.
 // ---------------------------------------------------------------------------
 
-export const FOE_SURFACE_FEATURES = ['fade', 'belly', 'mottle', 'rust', 'grain', 'bands', 'stripes', 'scales', 'spots', 'spots2', 'drips', 'cracks', 'glow', 'gloss'];
+export const FOE_SURFACE_FEATURES = ['fade', 'belly', 'mottle', 'rust', 'grain', 'bands', 'stripes', 'scales', 'spots', 'spots2', 'rivets', 'drips', 'cracks', 'glow', 'gloss'];
 /** The fade-out: a pattern's cells under this many pixels go to its mean colour (from `far[1]` to `far[0]` px). */
 export const FOE_SURFACE = { far: [2.5, 6] };
 
@@ -58,12 +64,13 @@ const DEFAULTS = {
   bands: { color: '#000000', amount: 1, axis: 1, period: 0.2, width: 0.3, ink: 0, offset: 0 },
   stripes: { color: '#000000', amount: 1, axis: 1, period: 0.2, width: 0.3, ink: 0, offset: 0 },
   scales: { color: '#000000', amount: 0.3, size: 0.06, ink: 0.4, tone: 0.08, mode: 0 },
-  spots: { color: '#ffffff', amount: 1, scale: 0.12, share: 0.6, size: 0.7, jitter: 1, star: 0, ring: 0, soft: 0 },
-  spots2: { color: '#000000', amount: 1, scale: 0.05, share: 0.4, size: 0.4, jitter: 1, star: 0, ring: 0, soft: 0 },
+  spots: { color: '#ffffff', amount: 1, scale: 0.12, share: 0.6, size: 0.7, jitter: 1, star: 0, ring: 0, soft: 0, cluster: 0, clusterShare: 0.4 },
+  spots2: { color: '#000000', amount: 1, scale: 0.05, share: 0.4, size: 0.4, jitter: 1, star: 0, ring: 0, soft: 0, cluster: 0, clusterShare: 0.4 },
+  rivets: { color: '#d8d2c0', amount: 1, axis: 2, period: 0.2, offset: 0, count: 12, size: 0.04, ink: 0.6, shine: 0.3 },
   drips: { color: '#000000', amount: 1, width: 0.12, from: 0, length: 0.3, bulb: 0.4 },
   cracks: { color: '#b07aff', amount: 1, ink: '#2a2235', inkAmount: 0.8, scale: 0.09, width: 0.06, tone: 0.06, veins: 0.42, vein: 0.07, glow: 0.8, open: 0 },
   glow: { color: '#ffd27a', amount: 0.6, rim: 0.3, core: 2, pulse: 0, emit: 0.6, center: null, radius: 0 },
-  gloss: { color: '#ffffff', amount: 1, size: 0.06, sky: 0.5, sharp: 1 },
+  gloss: { color: '#ffffff', amount: 1, size: 0.06, sky: 0.5, sharp: 1, streaks: 0, streakWidth: 0.35 },
 };
 const col = (c) => new THREE.Color(c ?? '#000000');
 const v4 = (...a) => new THREE.Vector4(...a.map((x) => +x || 0));
@@ -89,7 +96,7 @@ export function foeSurfaceMaterial(mat, o) {
   mat.defines = { ...mat.defines, ...foeSurfaceDefines(o.foeSurface) };
   const U = mat.uniforms, layer = (name, s) => {   // (bands and stripes, spots and spots2: one layout each)
     if (name === 'bands' || name === 'stripes') { U[`uFs_${name}C`] = { value: cv(s.color, s.amount) }; U[`uFs_${name}`] = { value: v4(s.axis, s.period, s.width, s.ink) }; U[`uFs_${name}O`] = { value: s.offset }; }
-    else { U[`uFs_${name}C`] = { value: cv(s.color, s.amount) }; U[`uFs_${name}`] = { value: v4(s.scale, s.share, s.size, s.jitter) }; U[`uFs_${name}S`] = { value: v4(s.star, s.ring, s.soft, name === 'spots' ? 7.1 : 31.7) }; }
+    else { U[`uFs_${name}C`] = { value: cv(s.color, s.amount) }; U[`uFs_${name}`] = { value: v4(s.scale, s.share, s.size, s.jitter) }; U[`uFs_${name}S`] = { value: v4(s.star, s.ring, s.soft, name === 'spots' ? 7.1 : 31.7) }; U[`uFs_${name}K`] = { value: new THREE.Vector2(+s.cluster || 0, +s.clusterShare || 0) }; }
   };
   if (f.fade) { U.uFsFadeC = { value: cv(f.fade.color, f.fade.amount) }; U.uFsFade = { value: v4(f.fade.axis, f.fade.from, f.fade.to, 0) }; }
   if (f.belly) { U.uFsBellyC = { value: cv(f.belly.color, f.belly.amount) }; U.uFsBelly = { value: v4(f.belly.edge, f.belly.soft, f.belly.seams, f.belly.ink) }; U.uFsBellyW = { value: f.belly.world ? 1 : 0 }; }
@@ -101,6 +108,7 @@ export function foeSurfaceMaterial(mat, o) {
   if (f.scales) { U.uFsScalesC = { value: cv(f.scales.color, f.scales.amount) }; U.uFsScales = { value: v4(f.scales.size, f.scales.ink, f.scales.tone, f.scales.mode) }; }
   if (f.spots) layer('spots', f.spots);
   if (f.spots2) layer('spots2', f.spots2);
+  if (f.rivets) { const r = f.rivets; U.uFsRivetsC = { value: cv(r.color, r.amount) }; U.uFsRivets = { value: v4(r.axis, r.period, r.offset, r.count) }; U.uFsRivetsS = { value: v4(r.size, r.ink, r.shine, 0) }; }
   if (f.drips) { U.uFsDripsC = { value: cv(f.drips.color, f.drips.amount) }; U.uFsDrips = { value: v4(f.drips.width, f.drips.from, f.drips.length, f.drips.bulb) }; }
   if (f.cracks) {
     const c = f.cracks;
@@ -113,7 +121,7 @@ export function foeSurfaceMaterial(mat, o) {
     U.uFsGlow = { value: v4(f.glow.rim, f.glow.core, f.glow.pulse, f.glow.emit) };
     U.uFsGlowP = { value: v4(...(f.glow.center ?? [0, 0, 0]), f.glow.center ? f.glow.radius || 0.3 : 0) };
   }
-  if (f.gloss) { U.uFsGlossC = { value: cv(f.gloss.color, f.gloss.amount) }; U.uFsGloss = { value: v4(f.gloss.size, f.gloss.sky, f.gloss.sharp, 0) }; }
+  if (f.gloss) { U.uFsGlossC = { value: cv(f.gloss.color, f.gloss.amount) }; U.uFsGloss = { value: v4(f.gloss.size, f.gloss.sky, f.gloss.sharp, f.gloss.streaks) }; U.uFsGlossW = { value: f.gloss.streakWidth }; }
   return mat;
 }
 
@@ -151,7 +159,7 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
     return vec2(mix(w, cov, near), b.w * inkLine(e, 1.0) * near);
   }
   // round spots on the part (3D: no seam, no projection): the 8 cells round the point, each with a spot or not
-  float fsSpots(vec3 p, vec3 nO, vec4 s, vec4 t, float px) {
+  float fsSpots(vec3 p, vec3 nO, vec4 s, vec4 t, vec2 k2, float px) {
     vec3 q = p / max(s.x, 1e-4), b = floor(q - 0.5);
     float aa = max(px / max(s.x, 1e-4), t.z * 0.25);
     float cov = 0.0;
@@ -160,6 +168,9 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
       vec3 c = b + vec3(float(i & 1), float((i >> 1) & 1), float((i >> 2) & 1));
       vec4 h = fsHash4(c + t.w);
       if (h.x > s.y) continue;
+      // (clustered: only the cells inside a patch of the noise, k2.x m across, covering k2.y of the part; the same
+      // patches for both layers, so the specks crowd round the rosettes)
+      if (k2.x > 0.0 && fsNoise((c + 0.5) * s.x / k2.x + 3.3) < 1.0 - k2.y) continue;
       // (a spot is at most half a cell across with its jitter: size 1 a quarter-cell radius, jittered; up to 2, still)
       float rMax = clamp(s.z, 0.0, 2.0) * 0.25;
       vec3 v = q - (c + 0.5 + (h.yzw - 0.5) * 2.0 * min(0.25 * s.w, 0.5 - rMax));
@@ -175,7 +186,7 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
       if (t.y > 0.0) k *= smoothstep(r * (1.0 - t.y) - aa, r * (1.0 - t.y) + aa, d);
       cov = max(cov, k);
     }
-    float mean = s.y * (t.y > 0.0 ? 0.1 : 0.2) * s.z * s.z * (1.0 - t.x * 0.5);   // (the share a far patch is covered)
+    float mean = s.y * (t.y > 0.0 ? 0.1 : 0.2) * s.z * s.z * (1.0 - t.x * 0.5) * (k2.x > 0.0 ? k2.y : 1.0);   // (the share a far patch is covered)
     return mix(mean, cov, fsNear(s.x * s.z * 0.5, px));
   }
   // scales (mode 0) or staggered plates (1) on one plane: x the scale's own tone (-1..1), y its edge (0 at the line),
@@ -276,10 +287,25 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
     }
     #endif
     #ifdef FS_SPOTS
-    albedo = mix(albedo, uFs_spotsC.rgb, uFs_spotsC.a * fsSpots(p, nO, uFs_spots, uFs_spotsS, px));
+    albedo = mix(albedo, uFs_spotsC.rgb, uFs_spotsC.a * fsSpots(p, nO, uFs_spots, uFs_spotsS, uFs_spotsK, px));
     #endif
     #ifdef FS_SPOTS2
-    if (lite < 0.5 || uFs_spots2.x > 0.08) albedo = mix(albedo, uFs_spots2C.rgb, uFs_spots2C.a * fsSpots(p, nO, uFs_spots2, uFs_spots2S, px));
+    if (lite < 0.5 || uFs_spots2.x > 0.08) albedo = mix(albedo, uFs_spots2C.rgb, uFs_spots2C.a * fsSpots(p, nO, uFs_spots2, uFs_spots2S, uFs_spots2K, px));
+    #endif
+    #ifdef FS_RIVETS
+    {
+      // (the nearest head: its row along the axis, its place round the row; distances in metres on the part)
+      float ax = uFsRivets.x;
+      vec3 q = ax < 0.5 ? p.yzx : ax < 1.5 ? p.zxy : p;   // (q.z along the axis, q.xy round it)
+      float u = q.z / max(uFsRivets.y, 1e-4) - uFsRivets.z, dz = (fract(u + 0.5) - 0.5) * uFsRivets.y;
+      float rad = length(q.xy), cnt = max(uFsRivets.w, 1.0), w = atan(q.y, q.x) / 6.2832 * cnt;
+      float da = (fract(w + 0.5) - 0.5) * 6.2832 * rad / cnt;
+      float d = length(vec2(dz, da)), r = uFsRivetsS.x * 0.5, aa = px;
+      float near = fsNear(uFsRivetsS.x * 2.0, px);
+      float head = 1.0 - smoothstep(r - aa, r + aa, d);
+      albedo = mix(albedo, uFsRivetsC.rgb * (1.0 + uFsRivetsS.z * clamp(nO.y + 0.3, 0.0, 1.0)), uFsRivetsC.a * mix(0.0, head, near));
+      ink = max(ink, uFsRivetsS.y * inkLine(abs(d - r) / max(px, 1e-6), 1.0) * near);
+    }
     #endif
     #ifdef FS_DRIPS
     {
@@ -358,6 +384,12 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
     float th = 1.0 - uFsGloss.x;
     float aaS = mix(fs * 4.0, fs, clamp(uFsGloss.z, 0.0, 1.0)), aaK = mix(fk * 4.0, fk, clamp(uFsGloss.z, 0.0, 1.0));
     float hl = max(smoothstep(th - aaS, th + aaS, sun) * step(0.0, uSunDir.y), smoothstep(th - aaK, th + aaK, sky) * uFsGloss.y);
+    if (uFsGloss.w > 0.0) {
+      // (streaks: strokes round the y axis, wavering as they run down, the highlight only where one passes)
+      float u = atan(vObjPos.z, vObjPos.x) / 6.2832 * uFsGloss.w + sin(vObjPos.y * 9.0) * 0.18 + fsNoise(vObjPos * 6.0) * 0.3;
+      float d = abs(fract(u) - 0.5) * 2.0, aa = fwidth(u) * 2.0 + 1e-4;
+      hl *= 1.0 - smoothstep(uFsGlossW - aa, uFsGlossW + aa, d);
+    }
     hl *= uFsGlossC.a;
     albedo = mix(albedo, uFsGlossC.rgb, hl);
     L = mix(L, 1.0, hl);
@@ -394,10 +426,13 @@ export const FOE_SURFACE_PARS = /* glsl */ `
   uniform vec4 uFsScalesC; uniform vec4 uFsScales;
   #endif
   #ifdef FS_SPOTS
-  uniform vec4 uFs_spotsC; uniform vec4 uFs_spots; uniform vec4 uFs_spotsS;
+  uniform vec4 uFs_spotsC; uniform vec4 uFs_spots; uniform vec4 uFs_spotsS; uniform vec2 uFs_spotsK;
   #endif
   #ifdef FS_SPOTS2
-  uniform vec4 uFs_spots2C; uniform vec4 uFs_spots2; uniform vec4 uFs_spots2S;
+  uniform vec4 uFs_spots2C; uniform vec4 uFs_spots2; uniform vec4 uFs_spots2S; uniform vec2 uFs_spots2K;
+  #endif
+  #ifdef FS_RIVETS
+  uniform vec4 uFsRivetsC; uniform vec4 uFsRivets; uniform vec4 uFsRivetsS;
   #endif
   #ifdef FS_DRIPS
   uniform vec4 uFsDripsC; uniform vec4 uFsDrips;
@@ -409,7 +444,7 @@ export const FOE_SURFACE_PARS = /* glsl */ `
   uniform vec4 uFsGlowC; uniform vec4 uFsGlow; uniform vec4 uFsGlowP;
   #endif
   #ifdef FS_GLOSS
-  uniform vec4 uFsGlossC; uniform vec4 uFsGloss;
+  uniform vec4 uFsGlossC; uniform vec4 uFsGloss; uniform float uFsGlossW;
   #endif
 #endif
 `;

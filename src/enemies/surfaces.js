@@ -30,8 +30,9 @@ export const SURFACES = {
     saltharbour: {
       shell: {
         mottle: { color: '#c9a35e', scale: 0.16, amount: 0.25, soft: 0.1, detail: 0.5, strength: 0.7 },
-        spots: { color: 'accent', scale: 0.1, share: 0.45, size: 1.6, ring: 0.5, jitter: 1, soft: 0.12 },
-        spots2: { color: 'accent', scale: 0.045, share: 0.5, size: 1.2, amount: 0.95, soft: 0.1 },
+        // (sheet-2: cream barnacle rosettes crusted in patches, petals round a teal heart, cream specks round them)
+        spots: { color: 'accent', scale: 0.12, share: 0.95, size: 1.8, star: 0.5, ring: 0.6, jitter: 0.7, soft: 0.5, cluster: 0.38, clusterShare: 0.5 },
+        spots2: { color: 'accent', scale: 0.05, share: 0.7, size: 1.0, amount: 0.95, soft: 0.5, cluster: 0.38, clusterShare: 0.6 },
       },
       claw: { fade: { color: 'leg', axis: 2, from: 0.22, to: 0.04 }, mottle: { color: 'arm', scale: 0.05, amount: 0.3, soft: 0.06, strength: 0.7 }, ...SPECKS('dark', 0.6, 0.045) },
       leg: { mottle: { color: 'joint', scale: 0.06, amount: 0.2, soft: 0.08, strength: 0.5 }, ...SPECKS('dark', 0.5, 0.05) },
