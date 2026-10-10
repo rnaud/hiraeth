@@ -1,0 +1,19 @@
+TODO.md
+  s_3bb798c8af39ad::t_6b98a28d4f94ee 10-73,114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "45399ef4b0accab9978e150b4d3c80400dda5f2e",
+  "prompts": {},
+  "sessions": {
+    "s_3bb798c8af39ad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1269b-2218-7421-bc61-95f69c291ec6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
