@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_8b71f792076b54 7-9
+docs/systems/foes.md
+  s_9ca76055a220ed::t_b48ad1f6b74037 718-727,926
+docs/systems/living-world.md
+  s_9ca76055a220ed::t_a0b462f93a08c4 58-66
+src/changelog.js
+  s_9ca76055a220ed::t_4d07df1e11494a 47-68
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_9a7ea07d9e988e 105-106,108
+src/fluid-blade.js
+  s_9ca76055a220ed::t_fb6dc8e862039b 870-879
+src/foes.js
+  s_9ca76055a220ed::t_edc2f2859c1750 130-148,910,1222-1225,1230,2214,2240-2260
+src/wildlife.js
+  s_9ca76055a220ed::t_542e3c79555195 55-69,317-330,346,365,410,440,457-468,762,764,787,807,818,833-841
+tests/blade-attacks.test.js
+  s_9ca76055a220ed::t_6cb22ec9f11233 331-342
+tests/body-block.test.js
+  s_9ca76055a220ed::t_fda62025fc47e2 1-48
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_283855a3bbe053 197,200-207
+tests/wildlife.test.js
+  s_9ca76055a220ed::t_6867755c35613c 191-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2091faa2234aed3522d08a72d08fd8126a55a4bf",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
