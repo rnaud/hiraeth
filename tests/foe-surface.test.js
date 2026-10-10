@@ -37,7 +37,7 @@ test('a foe surface compiles only the features it names, with their uniforms', (
 });
 
 test('clustered spots, streaked gloss and rivets: their uniforms and their shader blocks', () => {
-  // (the anchor crab's barnacles in patches, the blot's streaked shine, the centipede's rivets: v1.24)
+  // (the anchor crab's barnacles in patches, the blot's streaked shine, the centipede's rivets: v1.26)
   const m = makeMaterial({ color: '#76b8aa', foeSurface: { spots: { color: '#eee2c2', cluster: 0.38, clusterShare: 0.5 }, spots2: { color: '#eee2c2' }, gloss: { streaks: 9, streakWidth: 0.22 }, rivets: { color: '#d8d2c0', axis: 2, period: 0.19, count: 16, size: 0.035 } }, key: 'test.foe-surface.v124' });
   assert.deepEqual([m.uniforms.uFs_spotsK.value.x, m.uniforms.uFs_spotsK.value.y], [0.38, 0.5]);
   assert.equal(m.uniforms.uFs_spots2K.value.x, 0, 'unclustered by default');

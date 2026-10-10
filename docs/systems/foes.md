@@ -520,7 +520,9 @@ The count is said every 5 ink.
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
   `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
   arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.18) hangs by the white archway in the
-  android wood, just clear of its arch; the Desert's cistern pump is still to place.
+  android wood, just clear of its arch; the Desert's cistern pump (a lamp tripod, v1.26) stands on the far shore of the
+  mineral basin under the lavender cliffs (src/desert-vistas.js `BASIN`, opposite the fishing sign), its lamp turned
+  out over the water: the one deep water the dunes hold.
 
 ## Controls and the lock-on
 
@@ -730,7 +732,8 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   (cut from behind under two thirds, two skitterers break off its tail, once: `Foes.shedTail`); `support`,
   `lanterns`, `ward` / `mend` (the jelly: it keeps over its neighbours, `Foe.allies`, and works on them; a ward halves
   the harm to its foe and takes its staggers, `Foe.ward`; a shot or the boomerang pops the lit lantern and its ward,
-  `Foe.pop`; it mends only in its tier-2 skins, coming down within reach); `escort` (what comes with it alone in the
+  `Foe.pop`; its thread of light is a target half-way from its lantern (`model.lanternAt`) to the foe it guards, and a
+  blade swing across it breaks the ward, the jelly keeping its lantern (`Foes.cutWard`, v1.26); it mends only in its tier-2 skins, coming down within reach); `escort` (what comes with it alone in the
   Arena: `aloneWave`); `calm.joins` (it joins any fight near it; the jelly never starts one: `provoke: 0`); the calm
   modes `circle` (the ray in its thermals, the moth round its lamp), `drift` (the jelly) and `coil` (the centipede,
   still on its rock, laid out as a crescent). The air cut (`info.air`) onto a buried worm flushes it, the blow double.
@@ -855,7 +858,7 @@ part read too far from them, so every built archetype's parts carry a **painted 
 shader itself, with no texture, no UVs and no extra draw:
 
 - **The shader** (`src/foe-surface.js`, the `FOE_SURFACE` block of materials.js, added after the material's own
-  colour; its gloss once the light term is known): thirteen features, each compiled only where a material names it
+  colour; its gloss once the light term is known): fourteen features, each compiled only where a material names it
   (`FS_*` defines, as `S_*`): `fade` (a colour along an axis: the crab's apricot claw tips), `belly` (the underside
   another colour, inked seams across it), `mottle` (two octaves of value noise), `rust` (rust and verdigris patches,
   denser low, with pits), `grain` (wood grain with pen lines), `bands` and `stripes` (rings across an axis, inked
@@ -863,7 +866,11 @@ shader itself, with no texture, no UVs and no extra draw:
   `spots` and `spots2` (round spots, rings or six-pointed lichen stars on the surface: 8 cells of a 3D lattice, each
   spot's centre seen along the normal, so no projection and no seam), `drips`, `glow` (translucent: a light inside,
   brightest where you look straight through, a rim, a pulse, blooming), `gloss` (a crisp highlight of the sun and of
-  the sky over you, off the smooth normal so a faceted blot gets a spot, not a lit facet).
+  the sky over you, off the smooth normal so a faceted blot gets a spot, not a lit facet). v1.26 added `rivets` (rows
+  of rivet heads ringed round an axis, inked: the centipede's plates, the cistern jug's ochre dabs), spots `cluster`
+  (the spots only in patches of a noise that many metres across, covering `clusterShare`; both layers share the
+  patches: the anchor crab's barnacle crusts) and the gloss's `streaks` (the highlight cut into curving strokes round
+  the part's y axis: the blot's streaked wet shine).
 - **Anchored to the part:** object space with the scale baked in (`vObjPos`: metres), so a pattern moves with the
   body and keeps its size on a big skin; random numbers from pcg4d on the float's bits (a fract-of-product hash
   clumps at small coordinates).

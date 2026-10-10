@@ -49,22 +49,17 @@ skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/
 furnace brute, the ring drone, the crucible cart, the bell walker, drawn to both their sheets; scored in
 docs/audits/combat-v1.16.md) and batch 5 (the shade reworked, the pearl roller, the marionette, drawn to both their
 sheets; scored in docs/audits/combat-v1.18.md). All 21 are built: no stand-in is left and every world runs wholly on
-the new roster.
+the new roster. v1.26: the contact sheet rebuilt from the picked sheets, the biggest gaps against them closed, the
+Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets").
 
-- [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
-  (`references/enemy-archetypes/<id>/sheet-1.jpg`) instead of the old reference crops.
-- [ ] **Art match pending its sheet** (batch 1): the shellback crab, the horn lizard, the antler hound, the lamp tripod,
-  the ink blot were built from the doc's descriptions and the old references; match each body and its skins to its own
-  sheet, then set `art: 'sheet-1'` in src/enemies/archetypes.js. Batch 2 is drawn to its sheets; the alternate skins
-  (`sheet-2.jpg`) are not used yet by either batch.
 - [ ] Play batch 3 with a pad (combat-v1.13 recs. 1 and 4): the heron's 0.9 s spear from 4 m up and 5 m away (1.0 s if
   it reads late); wading through the toad's spores on Lorn's slopes.
-- [ ] Batch 3 against its sheets (docs/design/enemy-roster.md "Status"): the jug's ochre marks between its bands; the
-  skitters' curved bony legs; the heron flying off when you run at it (it strides away now).
+- [ ] Batch 3 against its sheets (docs/design/enemy-roster.md "Status"; the jug's ochre marks done in v1.26): the
+  skitters' curved bony legs (the kit's leg segments are straight cylinders: a bowed shin needs the segment's own bend
+  plane); the heron flying off when you run at it (it strides away now); the toad's swollen sac see-through, the glob
+  inside it (no see-through surface yet).
 - [ ] Play the ring centipede's ring with a pad in the Buried Machine (combat-v1.9 rec. 1): is the gap readable before
   it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
-- [ ] A cut on a lantern jelly's thread of light breaks its ward (the doc's counter; combat-v1.9 rec. 2): now only a
-  shot, the boomerang or killing the jelly break it. A blade swing crossing the segment from the lantern to the foe.
 - [ ] Play the bell walker with a pad (combat-v1.16 rec. 1): is the drop's 2.5 s opening long enough to strike the
   clapper without the whistle, and is a guarded drop found? If the fight drags, open it longer or let a stilling glob
   tip it over.
@@ -75,14 +70,10 @@ the new roster.
 - [ ] Measure the machines' CPU on the Retroid and the Deck (combat-v1.16 rec. 3: +0.25 ms a machine in headless Chrome,
   a pack of six 2.5 → 4.0 ms): the cart's ground rays every other frame and its wheels' instance upload first (a far cart
   could skip both).
-- [ ] The combat-review script: a clapper-only foe needs its opening to measure the time to kill (drive the whistle or
-  wait for the drop's opening before the blows: combat-v1.16 rec. 4).
-- [ ] Batch 4 against its sheets (docs/design/enemy-roster.md "Status"): the cart's canvas sagging in folds over the
-  tracks, a toothed sprocket, a billowing smoke column; the brute's crack net lighter, its fingers in plates, its fists
-  meeting over its head for the slam; the bell's yoke a flat riveted band, its spirit seen from above; the drone's
-  cloud spreading in wisps at its sides.
-- [ ] The placed ones (`PLACED` in src/foe-worlds.js: Lorn II's wood cutter by the lit path, v1.16; the Garden's glass
-  puppet by the white archway in the android wood, v1.18): the Desert's cistern pump (a lamp tripod by the deep cistern).
+- [ ] Batch 4 against its sheets (docs/design/enemy-roster.md "Status"; v1.26 draped the cart's canvas, toothed its
+  sprockets and wound its smoke, plated the brute's fingers and met its fists over its head, banded the bell's yoke):
+  the brute's crack net lighter; the bell's spirit seen from above, its legs' plating; the drone's cloud spreading in
+  wisps at its sides.
 - [ ] Play the shade's feint with a pad (combat-v1.18 rec. 1): is the thrust's parry found after the false cut, or does
   every early guard simply block it? If the feint never pays, a guard held through the false cut is broken by the thrust
   (staggered, not hurt).
@@ -92,10 +83,10 @@ the new roster.
   boomerang; if the air cut can't reach, lower the cut point or widen it.
 - [ ] The combat-review script (combat-v1.18 rec. 4): drive the marionette with a host and time freeing it (strings cut)
   as well as killing it; the roller's shot and ember times assume it unrolled (rolling, they glance).
-- [ ] Batch 5 against its sheets (docs/design/enemy-roster.md "Status"): the shade's cloak a soft drape with folds, not a
-  flared cone with painted ones, its smoke in flame-like curls; the roller's spiral on one side only and sheet-2's
-  rocking runners in its wind-up, a glistening trail where it grazes; the marionette's glass see-through and its knot
-  billowing ink, not heaped puffs.
+- [ ] Batch 5 against its sheets (docs/design/enemy-roster.md "Status"; v1.26 hung the shade's cloak as a drape in
+  folds and poured the marionette's knot down in a funnel): the shade's smoke in flame-like curls (tried as curling
+  tubes in v1.26: they read as a white-lined fence, kept the wisps); the roller's spiral on one side only and sheet-2's
+  rocking runners in its wind-up, a glistening trail where it grazes; the marionette's glass see-through.
 - [ ] Play batch 6's balance with a pad (combat-v1.22 recs. 1–3): the full charged cut at 0.85 s (was 0.6): does it still
   feel worth holding? The light combo's third swing at 3 (was 2) and the air cut double on a flyer: do they now get
   used? Three strikers at once, three quarters of the wait between strikes and the heavier blows (a heavy blow a heart;
@@ -115,8 +106,8 @@ the new roster.
 
 - [ ] The dash cut is the best answer nowhere (combat-v1.22: 1.5 s a blow by its cooldown; the air cut, the combo and the
   charged cut now each lead somewhere): a dash cut through a foe's back could land double, or its cooldown shorten.
-- [ ] The combat-review script: frame each kind side-on for the contact sheet; drive guard, parry and evade timing
-  against each attack; batch and group the report when the larger roster lands.
+- [ ] The combat-review script: drive guard, parry and evade timing against each attack; batch and group the report
+  when the larger roster lands (each kind is framed side-on for the contact sheet since v1.26).
 
 # Combat review (docs/audits/combat-v1.6.md, 2026-10-09)
 

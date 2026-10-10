@@ -8,6 +8,23 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.26', date: '2026-10-10', items: [
+    // the enemies, closer to their design sheets
+    'The antler hound now looks like its drawing: a lean, long body with a deep chest and a narrow waist, muscled thighs, a longer neck and muzzle and a wider crown of antlers, where it was a ball on sticks.',
+    'The shade’s cloak hangs as a long soft drape, narrow at the shoulders and falling in folds past its knees to a torn hem, instead of a stiff flared cone.',
+    'The lantern jelly’s bell is a tall dome now, its sides bulging over its rim, and the cloud jelly’s swells in soft lobes.',
+    'The crucible cart’s canvas sags over it and hangs over its tracks in folds, its drive wheels have teeth, and its smoke climbs in a taller, winding column flecked with soot.',
+    'The bell walker’s bell hangs in a flat riveted band of brass, not a round tube.',
+    'The furnace brute’s fingers are plated like a gauntlet’s, and its fists meet over its head as it winds up its slam.',
+    'The marionette’s knot of smoke pours down in a twisting funnel of ink into its strings.',
+    'The Salt Harbour’s anchor crabs wear their barnacles in crusted patches of cream rosettes.',
+    'The ink blot’s wet shine runs in curving streaks.',
+    'The ring centipede’s plates are riveted along their edges.',
+    'The cistern heron’s clay jug has its ochre marks between its two painted lines.',
+    // the fights
+    'A blade swing across the thread of light a lantern jelly holds to another creature now breaks its ward; the jelly keeps its lantern and may ward again.',
+    'In the Desert, an old lamp tripod of the makers, the cistern pump, now keeps watch on the far shore of the mineral basin under the lavender cliffs.',
+  ] },
   { v: '1.25', date: '2026-10-10', items: [
     // the traveller's face, drawn the way his sheets draw him
     'The traveller’s face is drawn the way his sheets draw him, not like a toy: smaller, narrower eyes under a heavy upper lid that cuts the top of a dark iris, a crease over the lid and no shine; a straight nose drawn with one line down its side and a hook round each nostril; a mouth that is one line; one even skin colour instead of a rosy nose and painted lips. He still blinks (now one clean stroke), looks about, smiles, frowns and talks, and his eyes go wide when he is surprised.',

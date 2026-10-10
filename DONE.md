@@ -2074,3 +2074,25 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   shine; one nose line on the side turned from the camera into a hook round each wing; a mouth line and a lower-lip
   stroke. The blink is drawn (one arc), raised brows open the eyes wide, the gaze moves only the iris
   (docs/systems/faces.md, "His face redrawn the Moebius way"). tests/head-ink.test.js, tests/traveller-v1.test.js.
+
+## Enemy roster: the art against the sheets (2026-10-10, v1.26)
+
+- [x] The roster's contact sheet rebuilt from the 21 picked sheets (`node scripts/enemy-roster/sheet.cjs`: sheet-1 over
+  sheet-2, each sheet's own black silhouette found as its largest patch of plain black, or archetypes.json's `sil` crop).
+- [x] The biggest gaps against the sheets (docs/design/enemy-roster.md "Status"; the `enemy-rework` skill): the antler
+  hound's lofted lean body (a deep chest, a narrow waist, muscled thighs, a longer neck and muzzle, a wider crown); the
+  shade's cloak a long drape in folds; the lantern jelly's tall dome, the cloud jelly's in lobes; the crucible cart's
+  draped canvas, toothed sprockets and winding smoke; the bell walker's yoke a flat riveted band; the brute's plated
+  fingers and its fists meeting for the slam; the marionette's knot pouring down in a funnel; and painted: the anchor
+  crab's barnacles in crusts, the blot's streaked shine, the centipede's rivets, the cistern jug's ochre marks (three new
+  options of the foe surface: clustered spots, a streaked gloss, rivets; src/foe-surface.js).
+  Cost (`node scripts/enemy-roster/bench.mjs`, a pack of the eleven changed held in view, Mac M4 Pro headless, two
+  alternating runs each, before = the main branch): draw calls 1691 → 1671 on High and 1636 → 1614 on the Deck preset
+  (the jelly's eight puffs gone, the cart's teeth one more), triangles +2.3 % (604k → 618k), CPU 5.6–6.7 → 5.8–6.0 ms on
+  High and 5.4–5.6 → 5.6 ms on the Deck preset, GPU within the run-to-run spread (4.4–7.6 → 4.4–8.4 ms High, 2.0–4.0 →
+  2.0–3.1 ms Deck).
+- [x] The Desert's cistern pump placed (src/foe-worlds.js `PLACED`): a lamp tripod on the mineral basin's far shore.
+- [x] A blade swing across a lantern jelly's thread of light breaks its ward (combat-v1.9 rec. 2): a target half-way
+  from its lantern to the foe it guards (src/foes.js `support`, `cutWard`), the jelly keeping its lantern.
+- [x] The combat-review script: a clapper-only foe's time to kill through its openings (combat-v1.16 rec. 4; the bell
+  walker's combo ∞ → about 13 s), and each kind framed side-on for the contact sheet.

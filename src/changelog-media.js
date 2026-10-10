@@ -478,6 +478,58 @@ const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 't
   window.storyRt.dialogue.start(ns[0].def, ns[0]); await new Promise((r) => setTimeout(r, 2500));`;
 
 export const CHANGELOG_MEDIA = {
+  '1.26': [
+    // the enemies against their design sheets: the body alone before and after, one camera, the sheet as its own picture
+    { match: 'The antler hound now looks like its drawing', shots: [
+      { name: 'art-hound', title: 'Garden of Spheres', caption: 'The halo hound side-on, before and after: a round body on stick legs, then one lean body from a deep chest to a narrow waist and the haunches, muscled thighs, a longer neck and muzzle, a wider crown', commit: '58a28aee443e5cee0e1eaa20f480dd8842decdf3', before: '58a28aee443e5cee0e1eaa20f480dd8842decdf3^',
+        view: { foe: { id: 'hound@spheres', yaw: 1.5708, pitch: 0.08 } }, reference: REF('hound', 1, 'the halo hound (the Garden of Spheres)') },
+      { name: 'art-hound-alt', title: 'White Mangrove', caption: 'The driftwood hound three-quarter, before and after: the same lean body under its bleached antlers and sage and lilac smoke', commit: '58a28aee443e5cee0e1eaa20f480dd8842decdf3', before: '58a28aee443e5cee0e1eaa20f480dd8842decdf3^',
+        view: { foe: { id: 'hound@mangrove', yaw: 0.9, pitch: 0.08 } }, reference: REF('hound', 2, 'the driftwood hound (the White Mangrove)') },
+    ] },
+    { match: 'The shade’s cloak hangs as a long soft drape', shots: [
+      { name: 'art-shade', title: 'Lorn II', caption: 'The hollow woodsman, before and after: a wide flared cone of a cloak, its hem high over the boots, then a narrower drape falling in folds to a lower torn hem, the smoke hanging lower', commit: '97704796a57194ef460cc5d07c9c80e4fa99378a', before: '97704796a57194ef460cc5d07c9c80e4fa99378a^',
+        view: { foe: { id: 'shade@perdide2', yaw: 0.6, pitch: 0.1, zoom: 0.72 } }, reference: REF('shade', 1, 'the hollow woodsman (Lorn II)') },
+    ] },
+    { match: 'The lantern jelly’s bell is a tall dome now', shots: [
+      { name: 'art-jelly', title: 'Vael II', caption: 'The cloud jelly, before and after: a flat cap with eight puffs round it, then a tall dome bulging over its rim, swollen in lobes creased between', commit: 'ec619f55a9d99154dd185253647f341ebc10d2d4', before: 'ec619f55a9d99154dd185253647f341ebc10d2d4^',
+        view: { foe: { id: 'jelly@arzach2', yaw: 0.6, pitch: 0.05 } }, reference: REF('jelly', 1, 'the cloud jelly (Vael II)') },
+    ] },
+    { match: 'The crucible cart’s canvas sags over it', shots: [
+      { name: 'art-cart', title: 'Sealed Hangar', caption: 'The welding cart three-quarter, before and after: a box of canvas, then one cloth sagging over the chassis and hanging over the tracks in folds; teeth round the sprocket, a taller winding smoke column', commit: 'd00deaaffffa4539f71010b07fb674591cedb56a', before: 'd00deaaffffa4539f71010b07fb674591cedb56a^',
+        view: { foe: { id: 'cart@garage', yaw: 1.1, pitch: 0.12 } }, reference: REF('cart', 1, 'the welding cart (the Sealed Hangar)') },
+    ] },
+    { match: 'The bell walker’s bell hangs in a flat riveted band', shots: [
+      { name: 'art-bell', title: 'Signal Market', caption: 'The sign automaton three-quarter, before and after: a round tube of a yoke, then a flat band with two rows of rivets down its face', commit: 'a32fecc7bdd20d91d92926425b81243b6ee310c5', before: 'a32fecc7bdd20d91d92926425b81243b6ee310c5^',
+        view: { foe: { id: 'bell@bazaar', yaw: 0.6, pitch: 0.1 } }, reference: REF('bell', 1, 'the sign automaton (the Signal Market)') },
+    ] },
+    { match: 'The furnace brute’s fingers are plated', shots: [
+      { name: 'art-brute-slam', title: 'Lorn II', caption: 'The wood cutter winding up its slam, before and after: its fists apart over its head, then meeting; its fingers capsules, then plated segments', commit: '22474349e267dbf9f06a818af363a65dde7bbcd0', before: '22474349e267dbf9f06a818af363a65dde7bbcd0^',
+        view: { foe: { id: 'brute@perdide2', yaw: 0.6, pitch: 0.1, zoom: 1.05, pose: 'slam' } }, reference: REF('brute', 1, 'the wood cutter (Lorn II), its slam wound up on the right') },
+    ] },
+    { match: 'The marionette’s knot of smoke pours down', shots: [
+      { name: 'art-marionette', title: 'Garden of Spheres', caption: 'The glass puppet, before and after: a heaped cloud with a short wisp under it, then the ink pouring down from the cloud in a twisting funnel into its strings', commit: '0f2306cf5b949903972b4398b128f43455d8b877', before: '0f2306cf5b949903972b4398b128f43455d8b877^',
+        view: { foe: { id: 'marionette@spheres', yaw: 0.6, pitch: 0.08 } }, reference: REF('marionette', 1, 'the glass puppet (the Garden of Spheres)') },
+    ] },
+    { match: 'The Salt Harbour’s anchor crabs wear their barnacles', shots: [
+      { name: 'art-crab-barnacles', title: 'Salt Harbour', caption: 'The anchor crab three-quarter, before and after: ringed spots scattered evenly over its shell, then cream rosettes crusted in patches with specks round them', commit: 'cb6055888a212a56189d1b3f8232b0c84d619b13', before: 'cb6055888a212a56189d1b3f8232b0c84d619b13^',
+        view: { foe: { id: 'crab@saltharbour', yaw: 0.75, pitch: 0.2 } }, reference: REF('crab', 2, 'the anchor crab (the Salt Harbour)') },
+    ] },
+    { match: 'The ink blot’s wet shine runs in curving streaks', shots: [
+      { name: 'art-blot', title: 'Desert', caption: 'The Desert’s blot three-quarter, before and after: its highlight two ovals, then curving streaks of violet shine', commit: '46b4d6a14404aeeea328ae6bd02a1f5f454c0f1a', before: '46b4d6a14404aeeea328ae6bd02a1f5f454c0f1a^',
+        view: { foe: { id: 'blot@desert', yaw: 0.75, pitch: 0.1 } }, reference: REF('blot', 1, 'the ink blot (the Desert)') },
+    ] },
+    { match: 'The ring centipede’s plates are riveted', shots: [
+      { name: 'art-centipede', title: 'Buried Machine', caption: 'The ring centipede close, before and after: plain plates, then a ring of rivet heads by each plate’s edge', commit: '82b0439d858a27fe340341659a1718d1dd4d45f3', before: '82b0439d858a27fe340341659a1718d1dd4d45f3^',
+        view: { foe: { id: 'centipede@buried', yaw: 0.75, pitch: 0.12, zoom: 0.3 } }, reference: REF('centipede', 1, 'the ring centipede (the Buried Machine)') },
+    ] },
+    { match: 'The cistern heron’s clay jug has its ochre marks', shots: [
+      { name: 'art-heron', title: 'Desert', caption: 'The cistern heron’s jug, before and after: two ochre lines, then a ring of ochre dabs between them', commit: 'b09c682fc17ae3405c146086a49b4066cda04e5b', before: 'b09c682fc17ae3405c146086a49b4066cda04e5b^',
+        view: { foe: { id: 'heron@desert', yaw: 0.3, pitch: 0.05, zoom: 0.4 } }, reference: REF('heron', 1, 'the cistern heron (the Desert)') },
+    ] },
+    // the fights: notes
+    { match: 'A blade swing across the thread of light', see: 'In a fight with a lantern jelly, wait for it to send a thread of light from one of its lanterns to another creature, then swing the blade through the thread between them: it breaks with a spark, and the creature takes full harm again.' },
+    { match: 'In the Desert, an old lamp tripod of the makers', see: 'In the Desert, go round the mineral basin under the lavender cliffs to its far shore from the fishing sign: the cistern pump stands there calm, its lamp turned out over the water, until you come close.' },
+  ],
   '1.25': [
     { match: 'The traveller’s face is drawn the way his sheets draw him', shots: [
       { name: 'face-front', caption: 'Close up, from in front: before, wide eyes open round a whole iris, a bright white and a shine, a rosy nose tip, painted lips; after, narrower eyes under a heavy lid, a dark iris, a crease, the nose’s hooks and nostrils, a mouth line', ...FACE25,
@@ -804,7 +856,7 @@ export const CHANGELOG_MEDIA = {
       { name: 'roster4-brute-alt', title: 'Glass Dunes', caption: 'The Glass Dunes’ furnace walker, before (the glass golem) and after: faceted pale aqua glass over a sand-gold hull, orange light in its cracks, a glowing furnace door in its chest', ...B4,
         view: { foe: { id: 'brute@glassdunes', yaw: 0.75, pitch: 0.1 }, before: { foe: { id: 'golem', yaw: 0.75, pitch: 0.1 } } }, reference: REF('brute', 2, 'the furnace walker (the Glass Dunes)') },
       { name: 'roster4-brute-slam', only: 'after', title: 'The slam', caption: 'The wood cutter winding up its slam: both fists high over the top of its body, the torso arched back, the veins blazing', commit: B4.commit,
-        view: { foe: { id: 'brute@perdide2', yaw: 0.6, pitch: 0.1, pose: 'slam' } }, reference: REF('brute', 1, 'the wood cutter (Lorn II), its slam wound up on the right') },
+        view: { foe: { id: 'brute@perdide2', yaw: 0.6, pitch: 0.1, zoom: 1.05, pose: 'slam' } }, reference: REF('brute', 1, 'the wood cutter (Lorn II), its slam wound up on the right') },
     ] },
     { match: 'The ring drone is a floating cake stand', shots: [
       { name: 'roster4-drone', title: 'City-Shaft', caption: 'Before: the rust drone that stood in for it. After: the City-Shaft’s rust drone, three-quarter: three brass plates with pink rust and ivory rims round a brass spindle, black smoke with two eyes caught between them, three thin jointed arms with claws', ...B4,
