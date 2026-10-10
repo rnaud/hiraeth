@@ -1,0 +1,87 @@
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_edb7374cc70cdc 1-95
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_3eebef8142c059 1-245
+changelog.md
+  s_9ca76055a220ed::t_b4f09430ca7b9d 5-12
+docs/README.md
+  s_9ca76055a220ed::t_32498a8387b0fd 39
+docs/story-bible.md
+  s_9ca76055a220ed::t_be3034e72c39eb 395-423,461
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_25d79adf5d758c 47-111
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_628d8f9cbc3988 1407,1411-1441,1451-1453
+scripts/camera-qc/lib.mjs
+  s_9ca76055a220ed::t_c7b0622be70e20 1-167
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_74f7cdcc98a399 1-52
+scripts/camera-qc/sim-train.mjs
+  s_9ca76055a220ed::t_fef1003270a333 1-57
+scripts/camera-qc/sim.mjs
+  s_9ca76055a220ed::t_a424fd355fdf8c 1-70
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_7514f67f901146 27-29,43-44,93
+src/changelog.js
+  s_9ca76055a220ed::t_b5059eb0477310 11-33
+src/levels/bazaar.js
+  s_9ca76055a220ed::t_a5692fc9b6e51d 4,370-371,391,400-401
+src/levels/names.js
+  s_9ca76055a220ed::t_8cf54ad1dd81f3 41,46,49-54
+src/levels/night-halt.js
+  s_9ca76055a220ed::t_b8861000cd083b 1-61
+src/levels/overnight-train-kit.js
+  s_9ca76055a220ed::t_83df00b88972a1 36-42,218,240-242,254,257-264,302,699,893
+src/levels/overnight-train-run.js
+  s_9ca76055a220ed::t_7ce059bebaca0e 4-10,18-19,22,46-98
+src/levels/overnight-train.js
+  s_9ca76055a220ed::t_70ca16c76fbe58 14,24-31,72-88,130-132,172,217-224,226,228-231,242,282-288,295,321-324,326-327,329,334-337,342-345,370,378-389,405-415,422-424,439,441-447,460-464
+src/main.js
+  s_9ca76055a220ed::t_52db05f5952b97 545,856-865,868,1804
+src/physics.js
+  s_9ca76055a220ed::t_c0b6ebdff4cea0 24,319-360
+src/player.js
+  s_9ca76055a220ed::t_21d5be95adc29b 379,2604-2619,2857-2860,2984,3010-3013,3020,3026-3059,3063-3064,3079,3081-3090,3109-3115,3120-3131,3139-3145,3158-3164,3180-3192,3194-3196,3223-3270,3275,3287-3313
+src/story/bazaar.js
+  s_9ca76055a220ed::t_03458cd6880735 10,342-345,347
+src/story/index.js
+  s_9ca76055a220ed::t_20557e69a72614 39,76
+src/story/night-train-data.js
+  s_9ca76055a220ed::t_b011d92df6c9c2 1-212
+src/story/night-train.js
+  s_9ca76055a220ed::t_75d9feeb4ac066 1-148
+src/wind.js
+  s_9ca76055a220ed::t_c0d9e24f4e5d6c 173
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_52214550cd3692 99
+tests/camera-qc.test.js
+  s_9ca76055a220ed::t_ab59088bec6adc 1-111
+tests/detour-traces.test.js
+  s_9ca76055a220ed::t_90b88c51bf1348 15,40
+tests/night-mail.test.js
+  s_9ca76055a220ed::t_eaa080196b80bf 1-131
+tests/overnight-train-world.test.js
+  s_9ca76055a220ed::t_d4c5a8a28c6a30 7,10-11,25,28-29,31,33,53-91,165-168,170,172-181
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_fac86cf9e3ce0f 226-233
+tests/scripts.test.js
+  s_9ca76055a220ed::t_8e424133676bcc 3,20
+tests/sightings.test.js
+  s_9ca76055a220ed::t_54821345011793 14,44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e725295506a70dfd18bd3aa05a4a9ddb4cc74cf",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
