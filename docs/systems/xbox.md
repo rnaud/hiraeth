@@ -219,6 +219,88 @@ the ink pass compiles without its debug views and lite path (28 → 16.5 s here)
 two as well. Measuring: the probes' method is the salted reload above; `scripts/xbox-devtools.mjs js` reads
 `title.timing` (`still`: the picture shown; `live: false`: no world built).
 
+## Design note: a packed single-target G-buffer for the Xbox (proposed, October 2026; not built)
+
+**Why.** ANGLE on D3D11 links a program's pixel shader for its first output only. The first draw into the three-target
+G-buffer then compiles the full three-output shader on the GPU process's main thread, synchronously, at 1-15 s each
+(docs/systems/performance.md, "The first draws on the Xbox"). That is the floor of a cold load today: the desert's view
+draws ~32 programs, about 60 s of draw-time compiles. A G-buffer of one target makes the shader compiled at link the one
+the draws use, so it is compiled in parallel on the workers and never again at draw time.
+
+**First, a repro on the console** (to do before any of this; `scripts/xbox-shaders.mjs`). A heavy surface program
+writing one packed RGBA32UI target, against the same program writing three RGBA16F targets: its link time, its first
+draw's time, and whether the first draw still compiles anything on CrGpuMain (a `gpu.angle` trace).
+
+**Shape: pack in the writers, unpack once, readers untouched.**
+- The Xbox's G-buffer pass draws into one RGBA32UI target (plus the same depth texture).
+- One full-screen unpack pass then writes today's three RGBA16F textures. It is the only three-output program, and a
+  tiny one: its draw-time compile is milliseconds. It costs about one extra full-screen pass a frame (read 128 bits,
+  write 192 bits a pixel), under a millisecond at the console's resolution; to measure.
+- post.js, the bloom, veil.js, water.js (`gbuffer.textures[1]`, the depth texture), the ship's hologram and the rest
+  read the unpacked textures as now: no reader changes.
+- Behind a flag (`gbufferPacked`, on for the Xbox by `src/xbox.js`, `?gbuf=packed` to try it anywhere). Every other
+  platform keeps MRT: their compilers don't have this flaw.
+
+**Bit layout: 128 bits, against 192 today.**
+
+| Field | Bits | Today (RGBA16F) | Packed |
+|---|---|---|---|
+| albedo r, g, b | 3 × 8 = 24 | half | 8-bit each: flat print colours; post.js's colour-edge threshold is 0.08, and 1/255 steps are far below it |
+| light term + line step + white-line flag | 14 | half, signed | L in 0..1 at 10 bits, line step 3 bits (materials.js `lineStep`; check its range), 1 bit white line |
+| normal | 2 × 11 = 22 | 3 halves | octahedral; error ~0.05°, below what the normal edge test and the shading see |
+| view depth | 16 | half (the `.a` of tNormal) | half, as now: same precision |
+| hatch r, g (strokes + shade steps) | 2 × 13 = 26 | half: at values 16-32 the fraction keeps only ~5 bits today | stroke fraction 8 bits + hue/flat step 5 bits (`SHADE.hues` 8 + `flats` 5 + 2 < 32); g: fraction 8 + lift step 4 bits (`SHADE.lifts` 15) |
+| hatch b (drawn detail + spot step + weathered) | 12 | half | detail 0..2 at 8 bits, spot step 2 bits (`SPOT.steps` 2), weathered 1 bit, 1 spare |
+| hatch a (glow + flags) | 12 | half | glow 6 bits (64 levels: it feeds the bloom's halo, check for banding), 6 flags (hero, figure, soft ink, face, drift, mover) |
+| **total** | **126** | | 2 bits spare |
+
+What is squeezed to fit, against my first estimate of 131 bits:
+- the normal from 2 × 12 to 2 × 11;
+- the light term to 14 bits;
+- the glow to 6 bits.
+
+The hatch fields come out better than today's halves: integer steps and fraction no longer share one mantissa.
+
+**Writers to change** (each keeps its three vec4 locals; a shared GLSL snippet declares the outputs and packs at the end):
+- `src/materials.js`: the surface shader, which carries grass (`grass-shader.js`), the blade (`blade-shader.js`), the
+  crystal (`crystal-shader.js`), dune glass, foe surfaces and face ink;
+- the shaders with G-buffer outputs of their own: `src/chimes.js`, `src/jump-shadow.js`, `src/life.js`,
+  `src/ship/approach.js`, `src/story/flames.js`;
+- `src/passage.js` (`writesGBuffer` looks for `location = 2`) and the warm passes' 4 × 4 G-buffer (`warmPasses`);
+- `src/pipeline.js` (`createGBuffer` gains the packed variant) and main.js's G-buffer pass, plus the unpack pass before
+  the ink pass.
+
+The studio, the trailer, the items page and the motion page don't run on the Xbox: they keep MRT. title-world.js keeps
+MRT too: the Xbox shows its stills.
+
+**Precision risks, to check with pixel diffs** of packed against MRT on the Mac (both paths run there; the probes'
+views, three worlds):
+- the colour-edge lines on gentle albedo gradients (the ground's biome blends);
+- the bloom's halos from the 6-bit glow;
+- normal-edge lines on large smooth forms;
+- the line step's and the white line's encoding (signed today).
+
+Depth is unchanged.
+
+**Estimate.**
+
+| Part | Time |
+|---|---|
+| The console repro first | half a day |
+| The snippet, the flag, the pipeline and the unpack pass | 1 day |
+| The seven writers | 1 day |
+| Diffs, tests (the packing and unpacking round trip in node, every writer declaring the packed output) and the console's cold/warm measures | 1 day |
+| **Total** | about 3-4 days |
+
+Expected win: the ~60 s of draw-time compiles for the desert's view, and 1-15 s freezes on first sight in play. What
+stays is the links on the workers (~28 s serial, in parallel two at a time) and the ink pass.
+
+**Alternatives considered.**
+- Three single-output passes: three times the geometry a frame on a console already at 22 fps.
+- Two targets: the default layout would still cover one, so it doesn't help.
+- An ANGLE flag: none exists (`GetDefaultOutputLayoutFromShader` takes the first output, unconditionally).
+- Caching: Chrome stores the binary at link, without the draw-time shaders; a relaunched app still took 51 s warm.
+
 ## The controller drove a cursor (October 2026)
 
 Reported on the first install (1660). Seen over DevTools: the page's Gamepad API has the pad
