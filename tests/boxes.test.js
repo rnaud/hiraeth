@@ -73,34 +73,32 @@ test('every placement stands on reachable ground, with room to stand and rise', 
 
 test('the jetpack, glider, stun and fire unlocks each have a box; every special item too', () => {
   const where = Object.fromEntries(Object.values(PLACEMENTS).flat().map((p) => [p.item, p.id]));
-  for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest && !ITEMS[id].trial) assert.ok(where[id], `${id} is in a box somewhere`);   // (a trial's reward is won: src/trials/)
+  for (const id of Object.keys(ITEMS)) if (!ITEMS[id].quest && !ITEMS[id].trial && !ITEMS[id].debug) assert.ok(where[id], `${id} is in a box somewhere`);   // (a trial's reward is won: src/trials/)
   assert.ok(!where.cabpass, 'the cab pass is a quest’s, not a box’s');
-  assert.match(where.jetpack, /^incal\./);
+  assert.match(where.harness, /^incal\./, 'the Warden’s harness in the City-Shaft (the jets anywhere are a debug item: no box)');
+  assert.equal(where.jetpack, undefined);
   assert.match(where.glider, /^arzach2?\./);
   assert.match(where.stun, /^(perdide|spheres)\./);
   assert.match(where.fire, /^(buried|desert)\./);
 });
 
-test('jetpack worlds without the jets get a box with them beside the ship', () => {
+test('worlds after the desert give a box of what the route brought by the ship to a save without it; never the debug jets', () => {
   game.reset();
   for (const id of ['garage', 'buried', 'bazaar']) {
     const { level, physics } = world(id);
     const list = placementsFor(id, { level });
-    const fb = list.find((p) => p.item === 'jetpack');
-    assert.ok(fb?.fallback, `${id}: a jetpack fallback`);
-    assert.ok(list.find((p) => p.item === 'backpack')?.fallback, `${id}: and the backpack, which you don't have either`);
-    const s = ship(id);
+    assert.ok(!list.some((p) => p.item === 'jetpack'), `${id}: no jets (a debug item since v1.38)`);
+    for (const it of ['backpack', 'doublejump', 'gun']) assert.ok(list.find((p) => p.item === it)?.fallback, `${id}: the ${it}, which you don't have either`);
+    const s = ship(id), at = new Set();
     for (const p of list.filter((x) => x.fallback)) {
-      const at = resolvePlacement(p, { physics, level, anchor: s.arrivalSpot() });
-      assert.ok(at, `${id}: ${p.item} fallback resolves`);
-      assert.ok(at.pos.distanceTo(s.rampFoot) < 14, `${id}: next to the ramp`);
-      reachable(physics, at.pos, at.yaw, `${id} ${p.item}`);
+      const spot = resolvePlacement(p, { physics, level, anchor: s.arrivalSpot() });
+      assert.ok(spot, `${id}: ${p.item} fallback resolves`);
+      assert.ok(spot.pos.distanceTo(s.rampFoot) < 16, `${id}: next to the ramp`);
+      for (const q of at) assert.ok(q.distanceTo(spot.pos) > 1.5, `${id}: ${p.item}'s box apart from the others`);
+      at.add(spot.pos);
+      reachable(physics, spot.pos, spot.yaw, `${id} ${p.item}`);
     }
   }
-  // the City-Shaft has its own box; with the jets you get no fallback
-  assert.ok(!placementsFor('incal', { level: world('incal').level }).some((p) => p.fallback && p.item === 'jetpack'));
-  items.grant('jetpack');
-  assert.ok(!placementsFor('garage', { level: world('garage').level }).some((p) => p.item === 'jetpack'));
   game.reset();
 });
 

@@ -80,7 +80,7 @@ import { birdAnswers, promisedBird } from './bird.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
-import { items, ITEMS } from './items.js';
+import { items, ITEMS, HARNESS_WORLD } from './items.js';
 import { menuSources } from './game-menu-data.js';
 import { ItemIcons } from './item-icons.js';
 import { PortraitCache } from './portrait-cache.js';
@@ -302,7 +302,7 @@ await stage('waking the people…');
 // the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
 const player = new Player(physics, {
-  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
+  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true, harnessWorld: levelId === HARNESS_WORLD,   // (the Warden's harness fires here only: src/items.js)
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
@@ -360,7 +360,7 @@ function potionHint() {
 // The progression's new verbs (v1.38: the lift valve's double jump, the fluid gun, the jets on jump held), each
 // taught once when its chest opens, after the card; and the choosing, once a second gadget is carried
 // (a genuinely new verb: hints subtle or full, src/hint-level.js)
-const TEACH_ON_FIND = { doublejump: 'hint.lift', gun: 'hint.gun', jetpack: 'hint.jets' };
+const TEACH_ON_FIND = { doublejump: 'hint.lift', gun: 'hint.gun', harness: 'hint.jets' };
 game.on('box:opened', ({ item } = {}) => {
   const key = TEACH_ON_FIND[item] ?? (gadgets?.owned?.().length >= 2 && gadgets.owned().includes(item) ? 'hint.pick' : null);
   if (!key || game.flag(`${key}.taught`) || !hintsFor('teach')) return;
@@ -1145,7 +1145,7 @@ window.addEventListener('keydown', (e) => {
 // ------------------------------------------------------------------ the world debug menu
 // L3 + R3 (both sticks) or F2, in any world (src/world-debug.js, docs/systems/dev-tools.md "The world debug menu"):
 // teleport to this world's points of interest, play its cinematics, set a quest's stage, the debug toggles
-const worldToggles = () => ({ hitboxes: hitboxes.on, inputs: inputDisplay.on, god: player.opts.health === false, potions: !!resources.potions.infinite, clock: sky.speed > 0 });
+const worldToggles = () => ({ hitboxes: hitboxes.on, inputs: inputDisplay.on, god: player.opts.health === false, potions: !!resources.potions.infinite, clock: sky.speed > 0, jets: items.has('jetpack') });
 /** Put the traveller at a point of interest: on the ground near it (or on its spot in a room), under the passage's paper, out of the doorways. */
 function worldTeleport(point) {
   const spot = landingSpot(physics, point, { portals: level.portals ?? [], killY: level.killY ?? -Infinity });
@@ -1213,6 +1213,8 @@ const worldDebug = new WorldDebugMenu({
       else if (a.key === 'god') { player.opts.health = player.opts.health === false ? undefined : false; showToast(player.opts.health === false ? 'God mode: nothing hurts you.' : 'God mode off.'); }
       else if (a.key === 'potions') resources.setPotionsInfinite(!resources.potions.infinite);
       else if (a.key === 'clock') sky.speed = sky.speed > 0 ? 0 : 1;
+      // the jets anywhere: a debug item since v1.38 (too strong for the worlds), given and taken here only (and the dev menu)
+      else if (a.key === 'jets') { if (items.has('jetpack')) items.revoke('jetpack'); else { if (!items.has('backpack')) items.grant('backpack'); items.grant('jetpack'); } showToast(items.has('jetpack') ? 'The fluid jets (debug): hold jump in the air.' : 'The fluid jets put away.'); }
       worldDebug.states(worldToggles());
     }
     else if (a.do === 'heal') { player.restore(player.maxHearts); showToast('Every heart back.'); }

@@ -17,7 +17,7 @@ import { game } from './game-state.js';
 // frame (cheap), so a grant takes effect at once.
 //
 // Kinds: core (the backpack), movement (its strengths: the lift valve's double jump, the wings, the
-// jets: BACKPACK_STAGES), mode (gun modes, MODE_ITEMS), gadget (src/gadgets/: the fluid gun is one), and the
+// Warden's harness, the City-Shaft's own jets: BACKPACK_STAGES; the jets anywhere, `jetpack`, are a debug item), mode (gun modes, MODE_ITEMS), gadget (src/gadgets/: the fluid gun is one), and the
 // (the mastery trials' rewards, `trial: '<world>'`: upgrades to the gadgets, won not found: src/trials/)
 // boxes' special items: upgrade (the tank), charm, cosmetic; and pass (`quest: true`: someone
 // gives it at the end of a quest, not a box: the City-Shaft's cab pass). Most items come
@@ -42,10 +42,19 @@ export const ITEMS = {
     text: "The makers’ leather glove with a brass fitting on the wrist and a vial of the tank’s fluid on its cuff. It drinks from the backpack: the glove is what shoots.",
     use: 'Choose it with {key:pick}. Aim with {key:aim} and shoot bursts of fluid with {key:fire}; {key:mode} takes the next mode: push people and things away, and the modes you find. A shot or a push spends a third of the magic bar.',
   },
+  // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
+  // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it
+  // (src/save-migrate.js step 9). In play the City-Shaft has
+  // its own, the Warden's harness below
   jetpack: {
-    name: 'Fluid jets', kind: 'movement', needs: 'backpack',
-    text: "Ancient nozzles that turn the tank’s fluid into thrust. Worn smooth, still reliable. The makers expected a long journey.",
-    use: 'They fly like a plane. Hold {key:jump} in the air to fire them. {key:move} flies the nose: forward dives, back climbs, left and right bank and turn. Let go to glide on (with the wings); aim with {key:aim} in flight and they hold you while you use a gadget. They burn the backpack’s fluid; land to let it recover. The backpack’s third strength.',
+    name: 'Fluid jets (debug)', kind: 'movement', needs: 'backpack', debug: true, where: 'Only from the debug menus (L3 + R3, F2: Toggles).',
+    text: "Ancient nozzles that turn the tank’s fluid into thrust, anywhere. Too strong for the worlds as they are drawn: a debugging aid.",
+    use: 'Debug only. They fly like a plane, in every world: hold {key:jump} in the air to fire them, {key:move} flies the nose. Let go to glide on; aim with {key:aim} and they hold you.',
+  },
+  harness: {
+    name: 'Warden’s harness', kind: 'movement', needs: 'backpack',
+    text: "The makers’ nozzles for the City-Shaft, clamped under the tank in a brass harness. They answer the shaft’s own breath, and nowhere else: out of the City-Shaft they hang cold.",
+    use: 'In the City-Shaft, hold {key:jump} in the air to fly on the jets: {key:move} flies the nose (forward dives, back climbs, left and right bank and turn). Let go to glide on; aim with {key:aim} and they hold you. They burn the backpack’s fluid; land to let it recover. The backpack’s third strength.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
@@ -220,9 +229,11 @@ export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bl
  * double jump (the desert's giant's cave), the wings (Vael's Aerie), the jets (the City-Shaft's Warden's Well).
  * How many are owned is the backpack's stage (0..3): the round tank shows it (src/fluid-tool.js buildTank).
  */
-export const BACKPACK_STAGES = ['doublejump', 'glider', 'jetpack'];
-/** The backpack's stage (0..3) from what is owned (has: id -> bool). */
-export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id)).length;
+export const BACKPACK_STAGES = ['doublejump', 'glider', 'harness'];
+/** The backpack's stage (0..3) from what is owned (has: id -> bool); the debug jets count as the harness. */
+export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id) || (id === 'harness' && has('jetpack'))).length;
+/** The world the harness's jets fire in (the City-Shaft: src/player.js canJet, src/fluid-tool.js canJet). */
+export const HARNESS_WORLD = 'incal';
 
 const key = (id) => `item.${id}`;
 const listeners = new Set();

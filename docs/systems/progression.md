@@ -1,4 +1,4 @@
-# Progression: the route, the wings before the jets, the cab pass, Vael's bird
+# Progression: the route, the sword and the backpack's strengths, the cab pass, Vael's bird
 
 ## The route (`src/levels/names.js`, `src/story/route.js`)
 
@@ -10,15 +10,49 @@ Vael II waits for Vael, because it needs her bird.
 
 - **The wings first.** Vael is the second world. Its Aerie holds the fluid wings,
   and its main quest rides the wind up the lone tower on them.
-- **The jets in the later half.** The City-Shaft is seventh, and it is charted
-  only once five worlds are done. Its Warden's Well holds the fluid jets. Every
-  world that wants the jets (`features.jetpack`, which gets a safety-net box of
-  jets by the ship from `FALLBACKS` in `src/boxes/placements.js`) comes after it.
-  `tests/route.test.js` checks this order against the level files.
+- **The City-Shaft's own jets in the later half.** The City-Shaft is seventh, and it is charted only once five
+  worlds are done. Its Warden's Well holds the Warden's harness (`harness`, v1.38): the jets, firing in the City-Shaft
+  only (`HARNESS_WORLD` in src/items.js; player.js `jetsOwned`, fluid-tool.js `canJet`). The jets anywhere
+  (`jetpack`) were too strong for the worlds as they are drawn (the author, 2026-10-10): a debug item, given only by
+  the world debug menu's toggle (L3 + R3, F2) and the dev menu; no box, shop or quest holds it, and there is no
+  fallback box of it. `tests/route.test.js` still checks that no world before the City-Shaft wants them.
 - **After the route:** the first homecoming at six worlds, and the final chapter (the Lantern, past the
   Signal Market) once the market is heard: docs/systems/story.md, "Two homecomings".
-- Saves keep what they have: items are flags, nothing is taken away, and worlds
-  already visited or done stay on the chart.
+- Saves keep what they have: items are flags, and worlds already visited or done stay on the chart. The one thing
+  taken away is the debug jets (step 9 of src/save-migrate.js: a save that owned them has the Warden's harness instead,
+  and `jets.lost`).
+
+## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
+
+From the author: "We shouldn't get the triple jump automatically, it should be a double jump, have a flip animation
+when doing the second jump and be an item I get to make the backpack stronger. Same for the fluid gun, we shouldn't
+get that by default. By default we should just get the sword."
+
+| what | where | why there |
+|---|---|---|
+| the fluid sword (and the shield's guard) | from the start | the one thing he carries off the ship |
+| the backpack (the round tank, empty) | Qanat's chest on the tree's ledge (`desert.backpack`), the main quest's `box` stage | as before: the story's first find, a container until the pool |
+| the lift valve: the double jump with a flip, the backpack's first strength | a makers' chest beside the giant's pool (`desert.lift`), the new stage `valve` after `fill` | the tank first fills there, so its first strength wakes beside the water; nothing in the desert before it asks for a second jump, and Vael's tower steps and Vael II's sky stones (each a double jump above the last), Viridel's crown and the kits after it are drawn for it |
+| the fluid gun (a gadget) | a makers' chest in the Givers' Hearth's hall (`desert.gun`), the new stage `gun` before `stone` | its first use is right there: the push that rolls the stone ball and lifts the grille; everything before it (the rib, the drum) is done by hand, and every world after it wants shots |
+| the wings, the second strength | Vael's Aerie (unchanged) | |
+| the Warden's harness, the third strength (the City-Shaft's own jets) | the Warden's Well (unchanged chest, `incal.temple.jetpack`) | the City-Shaft is built round flying its shaft; the jets anywhere are a debug item |
+
+The old boost (a powered jump on every press in the air while the bar lasted: with three units, three more jumps)
+is gone; the double jump costs nothing and comes once each time you leave the ground. Every place that wanted a
+boost-jump wanted one (the tower's steps, the sky stones: `tests/story-arzach.test.js`, `tests/story-arzach2.test.js`
+hop them with the double jump), so the levels are unchanged. Gun modes, temples' guardians, drums and the makers'
+runs that shoot or push need the gun (`needs: ['gun', …]`, src/resources.js `meetsWith`); the Givers' House (the
+desert's temple, off the route) says so when walked into without it.
+
+**Saves** (src/save-migrate.js step 8): the backpack and a tank that had been filled (it could boost) → the lift
+valve, its chest open; past the Hearth (its grille up, the stone taken, the tree lit, the desert done, another world
+started, a gun mode or the wings found, the Givers' House entered) → the gun too, in hand unless another gadget was.
+An earlier save follows the new order. `tests/save-migrate.test.js`.
+
+**Completability** (`tests/playthrough.test.js`): the agent opens the two chests on the way (`openBox`: somewhere to
+stand by its front, E), checks the double jump and the gun are not had before them, and shoots or pushes only with
+the gun and fluid in the tank; the Hearth's ball wants the gun. The route plays to the end, both homecomings
+included.
 
 ## After the jets (`src/temples/incal.js`)
 

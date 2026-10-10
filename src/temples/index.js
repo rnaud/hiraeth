@@ -70,7 +70,7 @@ export const TEMPLES = {
  */
 export const GADGETS = {
   desert: { temple: 'fire', world: ['backpack', 'star'], built: true },   // (and, the main quest's own since v1.38, the lift valve by the giant's pool and the fluid gun in the Givers' Hearth: src/boxes/placements.js)
-  incal: { temple: 'jetpack', world: ['soles'], built: true },
+  incal: { temple: 'harness', world: ['soles'], built: true },   // (the Warden's harness, the City-Shaft's own jets: v1.38; the jets anywhere are a debug item)
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
   arzach: { temple: 'glider', world: ['hush'], built: true },         // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire
   arzach2: { temple: 'bell', world: ['scarf'], built: true },         // the bell moved here from Vael's spire; the wind-silk scarf on the balanced stack (the wings went to the Aerie)

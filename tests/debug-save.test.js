@@ -79,11 +79,12 @@ test('every world before the chosen one is played through, the chosen one and th
   }
 });
 
-test('the gear and the tank are what the route gave: the wings in Vael, the jets in the City-Shaft, a band per magical water', () => {
+test('the gear and the tank are what the route gave: the wings in Vael, the Warden\'s harness in the City-Shaft (never the debug jets), a band per magical water', () => {
   assert.equal(progressBefore('arzach').flags['item.glider'], undefined);
   assert.equal(progressBefore('arzach2').flags['item.glider'], true);
-  assert.equal(progressBefore('incal').flags['item.jetpack'], undefined);
-  assert.equal(progressBefore('garage').flags['item.jetpack'], true);
+  assert.equal(progressBefore('incal').flags['item.harness'], undefined);
+  assert.equal(progressBefore('garage').flags['item.harness'], true);
+  assert.equal(progressBefore('garage').flags['item.jetpack'], undefined, 'the jets anywhere: a debug item');
   assert.equal(progressBefore('garage').flags['item.cabpass'], true);   // (Lio's, at the end of a City-Shaft quest: a conversation gives it)
   assert.equal(progressBefore('arzach').flags['ship.powered'], true);
   assert.equal(progressBefore('arzach2').flags['bird.promise'], true);
@@ -193,7 +194,7 @@ test('seeding writes the debug slot only, makes it the active one, and the game 
   assert.equal(state.flag('world.buried.done'), undefined);
   assert.equal(state.flag('stale'), undefined);
   assert.equal(st.getItem(slotKey('moebius.save.v1', DEBUG_SLOT)), null);
-  assert.equal(new GameState(store.view(DEBUG_SLOT)).flag('item.jetpack'), true);
+  assert.equal(new GameState(store.view(DEBUG_SLOT)).flag('item.harness'), true);
   assert.ok(JSON.parse(st.getItem(slotKey('moebius.journal.v1', DEBUG_SLOT))).stories.incal);
   // the title's list never shows it
   assert.equal(store.list().length, SLOT_COUNT);

@@ -399,6 +399,11 @@ walkthroughs and local names; each data file's header lists its flags.
   keepsake chosen keep it. Coming back later, the stone keeps its tokens.
 
 ## The desert reworked: an empty tank, a cold tree, the spark-stone
+
+(v1.38, the progression rewrite: docs/systems/progression.md. He comes with the sword alone; the chest's tank is dry
+with no makers' dregs; beside the pool a chest holds the lift valve, the double jump, stage `valve`; in the Hearth's
+hall a chest holds the fluid gun, stage `gun`, whose push rolls the stone ball. `filledText` names the gun's buttons
+only once the gun is carried; the Hearth's ball says where the gun is when E looks at it without one.)
 The desert's main quest (`desert.power`, `src/story/desert-data.js`) now runs: the city, the
 chest (the backpack, **empty**), Nour, the well, Ama's jar, the Speaker, the skull, the rib
 (levered off without fluid), the pool (the tank and the jar fill), **the well filling** while

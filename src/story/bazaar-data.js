@@ -205,7 +205,7 @@ export const PEOPLE = {
         },
         said: { say: ["~whisper~ A man underneath the singing. Saying a name. Nobody here answered to it."], choices: [{ text: '~neutral~ I’ll take it up.', goto: 'up' }] },
         up: {
-          say: ["~playful~ *Cream balcony, halfway up the tower.* Climb the blue ledges, use your jets, or take a cab. *Help Ferro tune the antenna* before trying the console."],
+          say: ["~playful~ *Cream balcony, halfway up the tower.* Climb the blue ledges, or take a cab. *Help Ferro tune the antenna* before trying the console."],
           choices: [{ text: '~happy~ Thanks, Kip.', end: true }],
         },
         again: { say: ['~curious~ Did you play it yet? Is it still singing?'], do: { advance: [Q, 'kip'] }, choices: [{ text: '~neutral~ Not yet.', end: true }] },

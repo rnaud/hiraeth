@@ -276,7 +276,7 @@ export const EN = {
   'potion.hint': 'Hearts don’t come back by themselves: drink a potion with {key:potion} (two hearts).',
   'hint.lift': 'Press {key:jump} again in the air for a second jump.',
   'hint.gun': 'The fluid gun is in hand: aim with {key:aim}, shoot with {key:fire}; {key:mode} takes the push. {key:pick} chooses another gadget.',
-  'hint.jets': 'Hold {key:jump} in the air to fly on the jets.',
+  'hint.jets': 'The Warden’s harness: in the City-Shaft, hold {key:jump} in the air to fly on its jets.',
   'hint.pick': 'Two gadgets now: {key:pick} chooses the one in hand, {key:aim} aims it and {key:fire} uses it.',
   // the shop (src/shop-panel.js)
   'shop.leave': 'Leave the shop',

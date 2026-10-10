@@ -234,7 +234,7 @@ export const PEOPLE = {
           ],
         },
         light: { say: ["~scared~ It glowed and hummed like the wheel. Turned above the canyon, then went south. I’d had enough of looking by then."], choices: [{ text: '~neutral~ I’ll fetch your key.', do: { start: 'buried.key' }, goto: 'thanks' }] },
-        thanks: { say: ["~playful~ You’ll fetch it? You’ve got jets. I’ve got a newly discovered fear of heights. An excellent division of labour.",
+        thanks: { say: ["~playful~ You’ll fetch it? You’ve got climbing arms. I’ve got a newly discovered fear of heights. An excellent division of labour.",
           "~neutral~ The crane arm has swung over the drop. *Shoot its rusty collar*, then *push the arm sideways* until the hook is over the platform. The ratchet turns only one way."], choices: [{ text: '~neutral~ Back soon.', end: true }] },
         waiting: { say: [{ if: { flag: 'buried.jib.in' }, text: "~playful~ *The floating derrick, east.* My key hangs from *the crane hook*. Please bring both it and yourself down." },
           { if: { not: { flag: 'buried.jib.in' } }, text: "~playful~ *East, on the floating derrick.* Wet the rusty collar, then *push the crane arm sideways* until the key hangs over the platform." }], choices: [{ text: '~neutral~ On my way.', end: true }] },

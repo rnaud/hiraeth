@@ -35,7 +35,8 @@
 //
 // The progression rewrite (v1.38) took the gun and the boost off the backpack: step 8 gives a save the lift valve
 // (the double jump) and the fluid gun if it was past the places they are found now (the giant's pool, the Givers'
-// Hearth), so nobody loses what they had.
+// Hearth), so nobody loses what they had. Step 9 takes the jets (a debug item since) out of play: the save keeps the
+// Warden's harness instead, the City-Shaft's own.
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -139,6 +140,17 @@ const STEPS = [
       flags['item.gun'] ??= true; flags['box.desert.gun'] ??= true;
       if (!flags['gadget.equipped']) flags['gadget.equipped'] = 'gun';   // (the gun in hand, as it always was; another gadget in hand stays)
     }
+  },
+  // 9: the jets anywhere became a debug item (v1.38, the author: too strong for the worlds). A save that owned them loses
+  // them from play; it had them from the Warden's Well's chest (or a fallback box by the ship), so it has the Warden's
+  // harness, the City-Shaft's own jets, and that chest counts as opened. `jets.lost` remembers it (the debug menu gives
+  // the jets back to whoever wants them).
+  (flags) => {
+    if (!flags['item.jetpack']) return;
+    flags['item.jetpack'] = false;
+    flags['jets.lost'] = true;
+    flags['item.harness'] ??= true;
+    flags['box.incal.temple.jetpack'] ??= true;
   },
 ];
 

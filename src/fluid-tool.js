@@ -1015,7 +1015,7 @@ export class FluidTool {
 
   // ------------------------------------------------------------ the jets (player.fuelSource)
   /** The jets own the item and the tank is on the back. */
-  get canJet() { return this.worn && this.items.has('jetpack'); }
+  get canJet() { return this.worn && (this.items.has('jetpack') || (this.items.has('harness') && !!this.player?.opts?.harnessWorld)); }   // (the debug jets, or the Warden's harness in the City-Shaft)
   /** The gauge the jets burn, 0..1 of the tank. */
   jetLevel() { return this.reserve.level / this.reserve.max; }
   /** A frame of thrust: burns FLUID.jet.drain charges a second; false when there's nothing left to burn. */

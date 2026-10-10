@@ -285,6 +285,7 @@ export function debugSections({ points = [], films = [], quests = [], toggles = 
     + tog('inputs', 'Controller inputs', 'the input display (F6)')
     + tog('god', 'God mode', 'nothing hurts you, no fall is fatal')
     + tog('potions', 'Endless potions', 'the flask never runs dry (D-pad ←)')
+    + tog('jets', 'Fluid jets (debug)', 'the jets in every world: hold jump in the air (out of play since v1.38; kept in the save)')
     + row({ do: 'heal' }, { label: '♥ Full hearts', hint: 'every heart back', q: 'heal hearts' })
     + tog('clock', 'Time runs', 'the sky\'s clock goes on (off: it stands still)')
     + hours()

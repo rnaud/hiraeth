@@ -83,5 +83,17 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 8);
+  assert.equal(MIGRATED(), 9);
+});
+
+test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness', () => {
+  const f = { 'save.migrated': 8, 'item.backpack': true, 'item.jetpack': true, 'world.incal.done': true };
+  migrateFlags(f);
+  assert.equal(f['item.jetpack'], false, 'out of play');
+  assert.equal(f['item.harness'], true, 'the City-Shaft\'s own jets instead');
+  assert.equal(f['box.incal.temple.jetpack'], true, 'its chest counts as opened');
+  assert.equal(f['jets.lost'], true);
+  const none = { 'save.migrated': 8, 'item.backpack': true };
+  migrateFlags(none);
+  assert.equal(none['item.harness'], undefined, 'nothing for a save that never had them');
 });

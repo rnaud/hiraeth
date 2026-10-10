@@ -44,7 +44,9 @@ const SAVES = [
     play: { world: 'arzach', quests: [{ temple: 'gadget' }, 'arzach.bird'] },
     knownAfter: ['desert', 'arzach', 'arzach2', 'perdide', 'incal'],
     after: (issue) => {
-      if (!items.has('jetpack')) issue('the jets were taken away');
+      // (v1.38: the jets anywhere are a debug item: the save keeps the Warden's harness, the City-Shaft's own)
+      if (items.has('jetpack')) issue('the debug jets kept in play');
+      if (!items.has('harness')) issue('the Warden\'s harness not given for the jets it had');
       if (!game.flag('box.incal.temple.jetpack')) issue('the Warden’s Well chest is shut again');
     },
   },

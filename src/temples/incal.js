@@ -27,7 +27,8 @@ import { registerTarget } from '../targets.js';
 //   the Climb              a round well: climb its wall to the balcony. The stone ball's groove there crosses a slot
 //                          whose stones stand only while the vane in the well's floor, far below, turns: splash it,
 //                          then roll the ball over the slot before it stops (the vane with the push)
-//   the Jets' Chamber      the makers' chest: the FLUID JETS (src/items.js 'jetpack'). The only way on is up,
+//   the Jets' Chamber      the makers' chest: the WARDEN'S HARNESS, the City-Shaft's own jets (src/items.js 'harness';
+//                          the jets anywhere, 'jetpack', are a debug item since v1.38). The only way on is up,
 //                          through the oculus in its ceiling: the jets are the key
 //   the Lamp Gallery       a tall drum over the chamber, banded in steel blue, slit windows, shelves with carved eyes
 //                          over them. An iris in its ceiling opens on the eye over the west shelf, hidden from the
@@ -91,13 +92,13 @@ export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, ir
 export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7] };
 
 export const LOGIC = {
-  id: 'incal', entry: 'threshold', gadget: 'jetpack',
+  id: 'incal', entry: 'threshold', gadget: 'harness',
   rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, warden: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'turning' },
     { a: 'turning', b: 'climb', door: 'discs' },    // the riding discs, only while the vane over the far door turns
     { a: 'climb', b: 'jets', door: 'd1' },          // the ball on its plate, rolled over the slot while the well's vane turned
-    { a: 'jets', b: 'gallery', needs: ['jetpack'] }, // up through the oculus
+    { a: 'jets', b: 'gallery', needs: ['harness'] }, // up through the oculus
     { a: 'gallery', b: 'loft', door: 'iris' },      // the iris in the gallery's ceiling: the eye whose lids the great vane lifts
     { a: 'loft', b: 'crown', door: 'iris2' },       // the ball pushed over the gap from the air, over the loft's vane
     { a: 'crown', b: 'warden', door: 'd3' },         // the eye whose lids lift only while two vanes turn at once
@@ -113,13 +114,13 @@ export const LOGIC = {
     ball1: { type: 'drum', room: 'climb', plate: 'p1', plateAt: 1, start: 0, gap: 'slot' },
     p1: { type: 'plate', room: 'climb' },
     d1: { type: 'door', opens: { pressed: 'p1' }, latch: true },
-    chest: { type: 'gadget', room: 'jets', item: 'jetpack' },
+    chest: { type: 'gadget', room: 'jets', item: 'harness' },
     // the gallery: the great vane (only the jets' wash turns it) lifts the lids of the eye over the west shelf
-    vG: { type: 'vane', room: 'gallery', needs: ['jetpack'] },
+    vG: { type: 'vane', room: 'gallery', needs: ['harness'] },
     s2: { type: 'switch', room: 'gallery', when: { lit: 'vG' } },
     iris: { type: 'door', opens: { lit: 's2' }, latch: true },
     // the loft: the great vane stands the gap's stones; the ball pushed over them (from the air) onto its plate
-    vE: { type: 'vane', room: 'loft', needs: ['jetpack'] },
+    vE: { type: 'vane', room: 'loft', needs: ['harness'] },
     span: { type: 'bridge', opens: { lit: 'vE' } },
     ball3: { type: 'drum', room: 'loft', plate: 'p3', plateAt: 1, start: 0, gap: 'span' },
     p3: { type: 'plate', room: 'loft' },
@@ -128,15 +129,15 @@ export const LOGIC = {
     // (hovered over) turn at once: the small one first, it slows while you fly. The small one is in the loft below, on a
     // post under the second iris: seen from the crown, splashed from the loft (or down through the iris)
     vS: { type: 'vane', room: 'loft' },
-    vC: { type: 'vane', room: 'crown', needs: ['jetpack'] },
+    vC: { type: 'vane', room: 'crown', needs: ['harness'] },
     s4: { type: 'switch', room: 'crown', when: { all: [{ lit: 'vS' }, { lit: 'vC' }] } },
     d3: { type: 'door', opens: { lit: 's4' }, latch: true },
     // the hall's four vanes: in its last phase its hatch opens only to one's draught
-    warden: { type: 'boss', room: 'warden', needs: ['gun', 'jetpack'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
-    vh0: { type: 'vane', room: 'warden', needs: ['jetpack'] },
-    vh1: { type: 'vane', room: 'warden', needs: ['jetpack'] },
-    vh2: { type: 'vane', room: 'warden', needs: ['jetpack'] },
-    vh3: { type: 'vane', room: 'warden', needs: ['jetpack'] },
+    warden: { type: 'boss', room: 'warden', needs: ['gun', 'harness'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
+    vh0: { type: 'vane', room: 'warden', needs: ['harness'] },
+    vh1: { type: 'vane', room: 'warden', needs: ['harness'] },
+    vh2: { type: 'vane', room: 'warden', needs: ['harness'] },
+    vh3: { type: 'vane', room: 'warden', needs: ['harness'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -638,14 +639,14 @@ function change(scene, level, rt) {
 
 export const INCAL_TEMPLE = {
   id: 'incal', levelId: 'incal', name: 'The Warden’s Well', doorLabel: 'door of the makers’ tower',
-  gadget: 'jetpack', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3',
+  gadget: 'harness', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3',
   origin: [420, 1400, 140], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
   local: { person: 'vell', out: 7, side: 6 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the tower it is cool and very tall, and something far overhead hums, round and round.',
   // you can't get about the City-Shaft without the jets, and they are in here: the quest starts when you land
-  startsOnArrival: () => !items.has('jetpack'),
+  startsOnArrival: () => !items.has('harness') && !items.has('jetpack'),
   arrivalLine: 'The jets the makers left for this city are in their tower on the rim, round from the ship.',
   used: jetsUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
   pitLine: 'You climb back up to the last glyph stone.',

@@ -7,7 +7,7 @@ import { gameMarkerModel, signPlate } from '../minigames/kit/marker.js';
 import { standAt } from '../minigames/kit/onfoot.js';
 import { formatTime, bestScore } from '../minigames/kit/scores.js';
 import { PURSE } from '../chimes.js';
-import { ITEMS } from '../items.js';
+import { ITEMS, HARNESS_WORLD } from '../items.js';
 import { Resources } from '../resources.js';
 import { TRIALS } from './data.js';
 import { CourseRun, lacks, inMode, parTime, MODES } from './course.js';
@@ -182,7 +182,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
     trial: T, gates, start, par, sign, winds, course, running: null,
     game: null,
     /** What the traveller lacks for it now ('' if nothing). */
-    lacks: () => lacks(T, { has: (id) => new Resources(game, items).meets(id), mount: player?.mount ?? null }),   // ('magic:4': src/resources.js)
+    lacks: () => lacks(T, { has: (id) => (id === 'jets' ? items.has('jetpack') || (items.has('harness') && levelId === HARNESS_WORLD) : new Resources(game, items).meets(id)), mount: player?.mount ?? null }),   // ('magic:4': src/resources.js; 'jets': the debug jets, or the Warden's harness in the City-Shaft)
     best: () => bestScore(game, { id: T.id }),
     done: () => !!game.flag(doneKey),
     /** The interact button at the sign. */

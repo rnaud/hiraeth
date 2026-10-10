@@ -64,7 +64,8 @@ export const PLACEMENTS = {
       note: 'On top of the makers’ pillar on the rim, round from the ship: climb the column.' },
     // the Warden's Well (src/temples/incal.js): in the chamber half-way up. The jets are the key to the rest: the way
     // up through its ceiling, the eyes over their shelves, the warden's crown
-    { id: 'incal.temple.jetpack', item: 'jetpack', temple: 'incal', site: (level) => level.temple?.gadgetSite,
+    { id: 'incal.temple.jetpack', item: 'harness', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
+      site: (level) => level.temple?.gadgetSite,
       note: 'Inside the makers’ tower on the rim, in the round chamber over the climbing well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
     { id: 'incal.bridge', item: 'bridge', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
@@ -226,8 +227,7 @@ export const FALLBACKS = [
   // tower's steps, the crowns of trees) and the fluid gun (lamps, plates, the hands-on errands, the temples)
   { item: 'doublejump', slot: 2, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
   { item: 'gun', slot: 3, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
-  // the jetpack worlds need jets
-  { item: 'jetpack', slot: 1, when: ({ level }) => !!level?.features?.jetpack },
+  // (the jets anywhere are a debug item since v1.38: no fallback box of them; the City-Shaft has its harness in its temple)
 ];
 
 /** Offsets tried for a fallback box: [right, forward] metres from the ramp's foot, facing out of the ship. */

@@ -6,6 +6,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 - Saves keep what they earned: past the giant’s pool you have the lift valve, past the Givers’ Hearth the gun, in hand. A controller layout you changed follows: whatever you had put on Y / △ now sounds the whistle.
 - The backpack is a round glass sphere of glowing jade fluid in a brass cradle, on an olive canvas plate with leather straps. Its glow follows your magic bar, three lights on its band count the units left, and it grows with each strength: a valve wheel and fins, then folding brass vanes, then a second valve and a brighter, quicker swirl.
+- The Warden’s Well in the City-Shaft now holds the Warden’s harness: jets that fly in the City-Shaft only. The jets that flew everywhere were too strong for the worlds and are out of play (a save that had them keeps the harness).
 - The jets fire when you hold jump in the air, on a controller too, instead of on RT / R2; with the wings found, jump held with L3 (Shift) glides.
 - Y / △ sounds the bell-note whistle and the echo shell whatever is in hand, and the gadget wheel holds the gadgets only. Riding, Y / △ is still the gadget in hand (the fan into a skiff’s sail).
 - LT / L2 aims and RT / R2 uses whatever gadget is in hand. The hook, the bombs, the boomerang, the bubble wand and the hourglass take aim on LT and let fly on RT (RT alone uses them at once); the fan, the spring boots, the magnet glove and the ink pen work on RT; the seeing lens comes up on either. D-pad → takes the gadget’s next mode, and says so when it has none.

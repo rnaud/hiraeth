@@ -635,8 +635,10 @@ export class Player {
   has(id) { return !!this.items?.has(id); }
   /** The backpack is on the traveller's back and usable (owned, not in a vehicle's socket or being swung, not put away by the story). */
   get packWorn() { return this.has('backpack') && !this.ride && !this.boarding && !this.unboarding && (this.fuelSource?.enabled ?? true); }
+  /** The jets are his here: the debug jets anywhere, or the Warden's harness in the City-Shaft (opts.harnessWorld: items.js HARNESS_WORLD). */
+  get jetsOwned() { return this.has('jetpack') || (this.has('harness') && !!this.opts.harnessWorld); }
   /** The jets (they burn the backpack's fluid). */
-  get canJet() { return this.packWorn && this.has('jetpack'); }
+  get canJet() { return this.packWorn && this.jetsOwned; }
   /** The fluid wings. */
   get canGlide() { return this.packWorn && this.has('glider'); }
   /** The double jump (the lift valve, the backpack's first strength: items.js BACKPACK_STAGES). */
@@ -1087,7 +1089,7 @@ export class Player {
   /** Something to break a long fall once off: the wings, or the jets with fluid in the tank (the pack is back on at once in the air). */
   get fallSaver() {
     const pack = this.has('backpack') && (this.fuelSource?.enabled ?? true);
-    return pack && (this.has('glider') || (this.has('jetpack') && this.jetFuel > 0.1));
+    return pack && (this.has('glider') || (this.jetsOwned && this.jetFuel > 0.1));
   }
 
   /**

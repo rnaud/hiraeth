@@ -44,8 +44,8 @@ test('the wings come first and the jets in the later half: no world before the j
   const done = new Set(['desert']);
   for (const id of ORDER.slice(1)) { if (knownWorlds({ order: ORDER, done: (x) => done.has(x) }).includes('incal')) break; done.add(id); }
   assert.ok(done.size >= 5, `it waits until ${done.size} worlds are done`);
-  // the worlds before it never ask for the jets: a world that wants them (features.jetpack) gets the
-  // safety-net box of jets by the ship (src/boxes/placements.js FALLBACKS), and none of them comes earlier
+  // the worlds before it never ask for the jets (features.jetpack: the debug jets fly there; since v1.38 no box of
+  // them anywhere, the City-Shaft's own Warden's harness flies there only), and none of them comes earlier
   const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(readFileSync(new URL(`../src/levels/${id}.js`, import.meta.url), 'utf8'));
   for (const id of ORDER.slice(0, jets)) assert.equal(wants(id), false, `${id} comes before the jets and doesn't want them`);
   assert.equal(wants('incal'), true);
