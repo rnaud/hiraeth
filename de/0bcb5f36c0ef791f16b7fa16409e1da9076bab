@@ -1,0 +1,43 @@
+changelog.md
+  s_9ca76055a220ed::t_3b56dcc1b645b3 9
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_4c9d93c38d9767 45-47,92-94,200-226
+src/changelog-media.js
+  s_9ca76055a220ed::t_a6015daa54280c 558
+src/changelog.js
+  s_9ca76055a220ed::t_31aea8efb12008 44
+src/xbox.js
+  s_9ca76055a220ed::t_aaad1b949c6193 15-16,63-146
+tests/xbox.test.js
+  s_9ca76055a220ed::t_491d4bb0e5ad6a 299-402
+xbox/Hiraeth/Hiraeth.csproj
+  s_9ca76055a220ed::t_cbd070e3497389 68
+xbox/Hiraeth/MainPage.xaml.cs
+  s_9ca76055a220ed::t_84faf888256834 12-15,29,51,60-100,153-158,267,311,345
+xbox/Hiraeth/HostPad.cs
+  s_6516ce63451a31::t_ef28988d5af7a6 1-130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de0bcb5f36c0ef791f16b7fa16409e1da9076bab",
+  "prompts": {},
+  "sessions": {
+    "s_6516ce63451a31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a70f4dc6f78779da8",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
