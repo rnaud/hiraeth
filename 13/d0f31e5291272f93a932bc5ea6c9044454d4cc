@@ -1,0 +1,37 @@
+changelog.md
+  s_9ca76055a220ed::t_016a34ad4c89cd 7-9
+src/levels/spheres.js
+  s_9ca76055a220ed::t_decc53e855af82 114-116,380,382,955-983,1014-1018,1024
+src/story/people-book.js
+  s_9ca76055a220ed::t_1b38e92b22e6fa 482,484
+src/story/spheres-data.js
+  s_9ca76055a220ed::t_eb008a1fb7b3b6 43,45,145,149,235
+src/story/spheres.js
+  s_9ca76055a220ed::t_e14f80c0f03322 14,101-107
+src/changelog.js
+  s_126dba1e825fe2::t_cacba859ac36dd 18-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "13d0f31e5291272f93a932bc5ea6c9044454d4cc",
+  "prompts": {},
+  "sessions": {
+    "s_126dba1e825fe2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e25fce308c93d52",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
