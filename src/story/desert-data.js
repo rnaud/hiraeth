@@ -102,7 +102,7 @@ export const QUESTS = [
       { id: 'hearth', text: 'Ride south-east to the Givers’ Hearth in the red rocks: its chimney stands over the dunes, and the marked stones lead there too', label: 'The Givers’ Hearth', flag: 'desert.hearth.seen', at: 'hearth' },
       // (src/desert-hearth.js: dark; the stone pulses behind a grille; a shove of fluid rolls the weight that lifts it)
       { id: 'stone', text: "Push the stone ball along its groove to lift the Hearth’s grille, then climb up and take the spark-stone", label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
-      { id: 'light', text: 'Bring the spark-stone back to Qanat, home along the marked stones, and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well' },
+      { id: 'light', text: 'Bring the spark-stone back to Qanat, home along the marked stones, and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well', via: 'the marked stones' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
       { id: 'ship', text: 'The tree burns again. Qanat is repaying you: its people are carrying what they can spare to your ship. Go and meet them there', label: 'Your ship, and Qanat’s gift', flag: 'desert.ship.fed', at: 'ship' },
     ],

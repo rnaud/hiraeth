@@ -130,6 +130,12 @@ export function* buildDesert(scene) {
       return [qanat.city.lit < 0.5 ? { name: 'the camps’ smoke', top: [cs.x, cs.y + 70, cs.z], height: 70 } : { name: 'the tree’s smoke', top: [cr.x, cr.y + 120, cr.z], height: 120 },
         { name: 'the Givers’ Hearth’s chimney', top: [ch.x, ch.y, ch.z], height: 40 }];
     },
+    // what the eye follows on the sand (the audit walks a leg one carries along it, and counts it as guiding): the
+    // fire-bearers' marked stones from Qanat to the Hearth, the Givers' dry channel from the city to their house
+    lines: () => [
+      { name: 'the marked stones', points: hearth.stones.map((s) => [s.x, s.y, s.z]) },
+      ...(level.dryChannel ? [{ name: 'the Givers’ dry channel', points: level.dryChannel }] : []),
+    ],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
@@ -171,7 +177,8 @@ export function* buildDesert(scene) {
       }
     },
   });
-  buildDryChannel(scene, terrain, level.temple?.outside);
+  const channel = buildDryChannel(scene, terrain, level.temple?.outside);
+  level.dryChannel = channel?.userData.line ?? null;
   return level;
 }
 export const createDesert = stepped(buildDesert);
@@ -188,7 +195,7 @@ export function buildDryChannel(scene, terrain, O) {
   const H = (x, z) => terrain.heightAt(x, z);
   const from = O.door.at.clone(), toward = new THREE.Vector3(STORY.city.x - from.x, 0, STORY.city.z - from.z).normalize();
   const steps = Math.floor((Math.hypot(STORY.city.x - from.x, STORY.city.z - from.z) - STORY.city.r - 4) / 3);
-  const bed = [], kerb = [];
+  const bed = [], kerb = [], line = [[from.x, O.doorY, from.z]];
   const side = new THREE.Vector3(-toward.z, 0, toward.x);
   let a = from.clone(); a.y = O.doorY + 0.03;
   for (let i = 1; i <= steps; i++) {
@@ -205,6 +212,7 @@ export function buildDryChannel(scene, terrain, O) {
       const k = 1.35 + ((i * 13) % 5) * 0.04, x = b.x + side.x * s * k, z = b.z + side.z * s * k;
       kerb.push(new THREE.BoxGeometry(0.5, 0.32, 0.9 + (i % 3) * 0.25).rotateY(Math.atan2(toward.x, toward.z) + (i % 4 - 1.5) * 0.08).translate(x, H(x, z) + 0.08, z).toNonIndexed());
     }
+    if (i % 10 === 0 || i === steps) line.push([b.x, b.y, b.z]);   // (its line, every 30 m: the level design audit follows it)
     a = b;
   }
   const group = new THREE.Group(); group.name = 'The Givers’ dry channel';
@@ -213,6 +221,7 @@ export function buildDryChannel(scene, terrain, O) {
     m.userData.noCollide = true; m.receiveShadow = true;
     group.add(m);
   }
+  group.userData.line = line;
   scene.add(group);
   return group;
 }

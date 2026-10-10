@@ -1141,6 +1141,8 @@ export function* buildIncal(scene) {
     // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
     beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
+    // what the eye follows (the audit walks a leg a line carries along it, and counts it as guiding): the red stair
+    lines: () => (places.stair ? [{ name: 'the red stair', points: places.stair.path.map((p) => [p.x, p.y, p.z]) }] : []),
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)

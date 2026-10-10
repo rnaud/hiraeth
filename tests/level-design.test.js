@@ -2,7 +2,7 @@
 // each function shown the case it is for, on small made-up worlds.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN } from '../scripts/level-design/lib.mjs';
+import { dedupe, spacing, samplePath, pathLength, interestGaps, returnLegs, remote, gravity, landmarksFrom, visibleCount, legGuidance, vertical, pacing, scoreWorld, viaPortals, portalRoute, encodePNG, mapPng, RUN, TRAVEL, lonelyFor, lineFor, followLines } from '../scripts/level-design/lib.mjs';
 
 const P = (name, x, z, o = {}) => ({ name, kind: o.kind ?? 'person', pos: [x, o.y ?? 0, z], ...o });
 const S = (label, x, z, kind = 'go', y = 0) => ({ label, kind, pos: [x, y, z] });
@@ -117,6 +117,62 @@ test('the rubric: a world with long empty walks and blind legs scores low there,
   assert.equal(s.criteria.density.score, 1);
   assert.equal(s.criteria.wayfinding.score, 1);
   assert.equal(s.criteria.loops.score, 1);
+});
+
+test('a loner is 18 s from anything at the world’s travel speed: 150 m running, 366 m on the bike', () => {
+  assert.equal(lonelyFor(RUN), 150);
+  assert.equal(lonelyFor(TRAVEL.bike), 366);
+  const pois = [P('a', 0, 0), P('b', 20, 0), P('stop on the ride', 300, 0)];
+  assert.equal(spacing(pois).loners.length, 1, 'on foot, 280 m out is a loner');
+  assert.equal(spacing(pois, { lonely: lonelyFor(TRAVEL.bike) }).loners.length, 0, 'on the bike it is 14 s away');
+});
+
+test('a leading line carries a leg laid from beside its start to beside its goal; one that ends elsewhere, or wanders, does not', () => {
+  const stones = { name: 'stones', points: [[10, 0, 0], [100, 0, 60], [200, 0, 80], [290, 0, 10]] };
+  const hit = lineFor([0, 0, 0], [300, 0, 0], [stones]);
+  assert.equal(hit.name, 'stones');
+  assert.equal(hit.points.length, 4);
+  assert.equal(lineFor([0, 0, 0], [300, 0, 300], [stones]), null, 'it ends nowhere near that goal');
+  const wander = { name: 'maze', points: [[5, 0, 0], [0, 0, 400], [300, 0, 400], [295, 0, 0]] };
+  assert.equal(lineFor([0, 0, 0], [300, 0, 0], [wander]), null, 'far longer than the straight way: nobody walks it');
+  assert.deepEqual(lineFor([300, 0, 0], [0, 0, 0], [stones]).points[0], [290, 0, 10], 'walked the other way, the line is reversed');
+});
+
+test('followLines: a leg is walked along its line; a stage that names its line follows it from farther off', () => {
+  const road = { name: 'the road', points: [[100, 0, 50], [60, 0, 200], [0, 0, 300]] };
+  const stops = [S('tree', 160, 20), S('ship', 0, 310, 'ship')];
+  assert.equal(followLines(stops, [road])[1].via, undefined, 'the road starts 67 m from the tree: not picked up by itself');
+  const named = followLines([stops[0], { ...stops[1], via: 'the road' }], [road]);
+  assert.equal(named[1].line, 'the road');
+  assert.equal(named[1].via.length, 3);
+  assert.ok(pathLength(named) > pathLength(stops), 'the way along the road is longer than the straight one');
+  assert.ok(Math.abs(samplePath(named, 10).at(-1).at - pathLength(named)) < 0.1);
+  assert.equal(followLines([stops[0], { ...stops[1], via: 'no such line' }], [road])[1].via, undefined);
+});
+
+test('a way home along a different line, past new things, is a loop, not a walk back', () => {
+  const pois = [P('ship', 0, 0), P('tree', 0, 400), P('on the way out', 0, 200), P('cairn shrine', 150, 200)];
+  const cairns = { name: 'cairns', points: [[10, 0, 390], [150, 0, 200], [10, 0, 10]] };
+  const stops = [S('ship', 0, 0, 'ship'), S('tree', 0, 400), S('back to the ship', 0, 0, 'ship')];
+  assert.equal(returnLegs(stops, pois)[0].empty, true);
+  // a line laid from the ship to the tree carries the way out as well: nothing on the way home is new
+  assert.equal(returnLegs(followLines(stops, [cairns]), pois)[0].empty, true, 'out and home by the same cairns');
+  // the way home named by its stage, the line not followed by itself (`auto: false`: its lamps are lit for the way home)
+  const home = [stops[0], stops[1], { ...stops[2], via: 'cairns' }];
+  const r = returnLegs(followLines(home, [{ ...cairns, auto: false }]), pois)[0];
+  assert.equal(r.empty, false, JSON.stringify(r));
+  assert.equal(r.along, 'cairns');
+  assert.ok(r.metres > 450);
+});
+
+test('a leg whose goal is out of sight but a leading line runs there is guided by the line', () => {
+  const blind = () => false;
+  const stones = { name: 'stones', points: [[20, 0, 0], [200, 0, 0], [380, 0, 0]] };
+  const g = legGuidance([S('a', 0, 0), S('b', 400, 0)], [], blind, { lines: [stones] });
+  assert.equal(g.legs[0].how, 'leading line (stones)');
+  assert.equal(g.guidedShare, 1);
+  const short = { name: 'short', points: [[20, 0, 0], [120, 0, 0]] };
+  assert.equal(legGuidance([S('a', 0, 0), S('b', 400, 0)], [], blind, { lines: [short] }).legs[0].how, 'blind', 'a line that stops short, the goal still out of sight, is not enough');
 });
 
 test('the map is a real PNG', () => {

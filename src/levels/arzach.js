@@ -32,6 +32,9 @@ function height(x, z) {
   return h;
 }
 
+/** The standing stones up the slope from the landing toward the Aerie: [x, z, height]. */
+const STANDING_STONES = [[-24, 5, 4.2], [-42, 3, 5.4], [-60, 1, 4.6], [-78, -1, 6.0]];
+
 export const BONE = [
   ['#f4efe2', '#e6dcc6', '#d6c7a8'],
   ['#f2d6c4', '#e8c0aa', '#f8ecdf'],   // the book's rose-tinted stone
@@ -325,7 +328,7 @@ export function* buildArzach(scene) {
   // into view (level design audit v1.9: the first leg was blind). No rng: the world round them stays as it was.
   {
     const mat = makeMaterial({ color: BONE[0][0], color2: BONE[0][1], color3: BONE[0][2], mode: MODE_STRATA, strataSize: 2, flat: true }), geos = [];
-    [[-24, 5, 4.2], [-42, 3, 5.4], [-60, 1, 4.6], [-78, -1, 6.0]].forEach(([x, z, h], i) => {
+    STANDING_STONES.forEach(([x, z, h], i) => {
       const g = new THREE.CylinderGeometry(0.7, 1.15, h, 5, 2).translate(0, h / 2, 0).rotateZ((i % 2 ? 1 : -1) * 0.05).rotateY(i * 1.3);
       jitter(g, 0.12, 0.05, 70 + i);
       geos.push(g.translate(x, terrain.baseAt(x, z, 1.2) - 0.5, z));
@@ -360,6 +363,8 @@ export function* buildArzach(scene) {
     // the lone tower is the weenie, but the audit's height grid ranks it out behind the floating ruins
     // (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks): its spire's tip
     beacons: [{ name: 'the lone tower', top: [towerInfo.x, towerInfo.base - 2 + towerInfo.H + 49, towerInfo.z], height: 60 }],
+    // what the eye follows on the ground (the audit counts a line that leads to where a goal comes into view as guiding)
+    lines: [{ name: 'the standing stones', points: STANDING_STONES.map(([x, z]) => [x, z]) }],
     mount: (physics) => new Bird(physics),
     mountName: 'bird',
     // (v0.95: the cast shadows on the open sand lifted halfway, as the sheets leave them pale or out)

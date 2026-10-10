@@ -74,7 +74,8 @@ for (const id of worlds) {
     if (typeof p !== 'string') continue;
     const q = W.quests.def(p);
     for (const s of q?.stages ?? []) {
-      const w = arr(W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w });
+      // (a stage whose words send you along a leading line, "home along the marked stones": `via` names the line)
+      const w = arr(W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w, ...(s.via ? { via: s.via } : {}) });
       // (a stage whose marker moves on as you go, ask Marrow, then find his bike in the hollow: `ends` names where it is done)
       const e = s.ends && arr(W.quests.resolve(s.ends)); if (e && !inTemple(e)) stops.push({ label: `${s.label ?? s.id} (done)`, kind: 'do', pos: e });
     }
@@ -83,10 +84,15 @@ for (const id of worlds) {
   const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal' })).filter((p) => p.at && p.to);
   // (a doorway is walked both ways: where a world lists only the way in, its way out is the same door backwards)
   const portals = [...oneWay, ...oneWay.filter((p) => !oneWay.some((q) => q !== p && L.flat(q.at, p.to) < 12)).map((p) => ({ at: p.to, to: p.at, label: `${p.label} (out)` }))];
-  const path = L.viaPortals(stops.filter((s, i) => i === 0 || L.dist(s.pos, stops[i - 1].pos) > 15 || i === stops.length - 1), portals);
+  // the level's leading lines (`lines`: [{ name, points: [[x, z] or [x, y, z], …] }], a row of marked stones, a dry
+  // channel, cairns: what the eye follows on the ground): a leg one carries is walked along it (lib.mjs followLines)
+  const lines = ((typeof level.lines === 'function' ? level.lines() : level.lines) ?? [])
+    .map((l) => ({ name: l.name, auto: l.auto, points: (l.points ?? []).map((p) => (p.length === 2 ? onGround(p[0], p[1]) : arr(p))).filter(Boolean) }))
+    .filter((l) => l.points.length > 1);
+  const path = L.followLines(L.viaPortals(stops.filter((s, i) => i === 0 || L.dist(s.pos, stops[i - 1].pos) > 15 || i === stops.length - 1), portals), lines);
 
   // ---- the height grid (the collision's tops seen from above), for landmarks and the map
-  const pts = [...places.map((p) => p.pos), ...path.map((s) => s.pos)].filter((p) => L.flat(p, spawn) < 1500);   // (the Hangar's far zones: off this map)
+  const pts = [...places.map((p) => p.pos), ...path.flatMap((s) => [...(s.via ?? []), s.pos])].filter((p) => L.flat(p, spawn) < 1500);   // (the Hangar's far zones: off this map)
   const xs = pts.map((p) => p[0]), zs = pts.map((p) => p[2]);
   let x0 = Math.min(...xs) - 120, x1 = Math.max(...xs) + 120, z0 = Math.min(...zs) - 120, z1 = Math.max(...zs) + 120;
   const side = Math.min(2000, Math.max(x1 - x0, z1 - z0));
@@ -136,14 +142,15 @@ for (const id of worlds) {
   const by = mount === 'bird' ? 'bird' : /bike/i.test(mount ?? '') ? 'bike' : /skiff/i.test(mount ?? '') ? 'skiff' : 'foot';
   const m = {
     travel: { by: by === 'foot' ? 'running' : `on the ${by}`, speed: L.TRAVEL[by], mount },
-    spacing: L.spacing(places),
+    spacing: L.spacing(places, { lonely: L.lonelyFor(L.TRAVEL[by]) }),   // (a loner: 18 s from anything at the travel speed)
     path: { stops: path.length, metres: Math.round(metres), seconds: Math.round(metres / L.RUN) },
     gaps,
     returns: L.returnLegs(path, places, { drape }),
     remote: L.remote(places, samples),
     gravity: L.gravity(places, samples),
     landmarks: { count: landmarks.length, fromSpawn, seenShare: seen.length ? +(seen.filter((n) => n > 0).length / seen.length).toFixed(2) : 0, meanSeen: seen.length ? +(seen.reduce((a, b) => a + b, 0) / seen.length).toFixed(1) : 0 },
-    guidance: L.legGuidance(path, landmarks, los),
+    guidance: L.legGuidance(path, landmarks, los, { lines }),
+    lines: lines.map((l) => ({ name: l.name, metres: Math.round(L.polyLength(l.points)) })),
     vertical: L.vertical(places.filter((p) => L.flat(p.pos, spawn) < 1500 && p.pos[1] < 900), samples.filter((q) => L.flat(q.pos, spawn) < 1500 && q.pos[1] < 900), ground),   // (interiors far overhead or away: left out)
     pacing: L.pacing(path),
     spawn: { firstGoal: path[1] ? Math.round(L.dist(path[0].pos, path[1].pos)) : 0, near: places.filter((p) => p.kind !== 'ship' && L.dist(p.pos, spawn) < 80).length },
@@ -152,7 +159,7 @@ for (const id of worlds) {
   report.worlds.push({ id, title: W.meta.title, places: places.map((p) => ({ names: p.names, kinds: p.kinds, pos: p.pos.map(r1), main: p.main, optional: p.optional })), path: path.map((s) => ({ ...s, pos: s.pos.map(r1) })), landmarks, metrics: m, scores });
 
   // ---- the map, and its names
-  const map = L.mapPng(grid, { path: path.map((s) => s.pos), gaps: gaps.gaps.slice(0, 4), pois: places.filter((p) => p.kind !== 'ship'), landmarks, spawn });
+  const map = L.mapPng(grid, { path: path.flatMap((s) => [...(s.via ?? []), s.pos]), lines: lines.map((l) => l.points), gaps: gaps.gaps.slice(0, 4), pois: places.filter((p) => p.kind !== 'ship'), landmarks, spawn });
   writeFileSync(join(OUT, `${id}-map.png`), map.png);
   const label = (p, t, c) => { const [x, y] = map.toPx(p); return `<text x="${(x + 6).toFixed(0)}" y="${(y + 3).toFixed(0)}" fill="${c}" font-size="10" font-family="sans-serif" paint-order="stroke" stroke="#fff" stroke-width="2.5">${String(t).replace(/[&<>]/g, '')}</text>`; };
   writeFileSync(join(OUT, `${id}-map.svg`), `<svg xmlns="http://www.w3.org/2000/svg" width="${map.w}" height="${map.h}"><image href="${id}-map.png" width="${map.w}" height="${map.h}"/>${path.map((s, i) => label(s.pos, `${i}. ${s.label}`, '#2b211f')).join('')}${places.filter((p) => p.optional).map((p) => label(p.pos, p.names[0], '#3a7a5a')).join('')}</svg>`);

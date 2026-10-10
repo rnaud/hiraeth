@@ -90,7 +90,7 @@ and move a score by one where the numbers miss something, *writing why beside it
 | **Landmarks** | none tall enough, none from the landing | a few; half the path sees one | 3+; the landing and 90 % of the path see one | `landmarks.count`, `fromSpawn`, `seenShare` |
 | **Wayfinding** | under 20 % of the long legs see their goal or a landmark by it | 40-60 % | over 80 % | `guidance.guidedShare` |
 | **Density** | an empty stretch over 100 s at the world's travel speed | 35-60 s | 20 s or less | `gaps.longest` / `travel.speed` |
-| **Spacing** | under 12 places, a 90th-percentile neighbour over 200 m, loners | some loners | evenly clustered, no loners | `spacing` |
+| **Spacing** | under 12 places, a 90th-percentile neighbour over 200 m, loners (18 s from anything at the travel speed) | some loners | evenly clustered, no loners | `spacing` |
 | **Loops** | walks back with nothing new, remote dead ends | one empty walk back | none: every return passes something new | `returns`, `remote` |
 | **Optional pull** | little optional, all remote | some, half pulling | many, mostly 30-150 m off the path | `gravity` |
 | **Verticality** | flat (under 30 m of range, nothing raised) | 30-80 m, some raised | 80 m+, 15 %+ raised, real climbs | `vertical` |
@@ -123,7 +123,15 @@ a wreck: counted as optional places), its **`beacons`** (`[{ name, top, height }
 the collision doesn't make tall, a smoke column, a chimney past the map's edge: aimed at as landmarks), and a
 quest stage's **`ends`** (a locator: where a stage whose marker moves on is done, "ask Marrow, then find his
 bike in the hollow"). And a leg over 200 m between two stops on the ground is **draped** over the ground under
-it (up to 70 m down), so a ride across a basin is measured down in the basin, not in the air over it. The pure logic is `scripts/level-design/lib.mjs`
+it (up to 70 m down), so a ride across a basin is measured down in the basin, not in the air over it. Since v1.15 it
+also reads a level's **`lines`** (`[{ name, points, auto }]`: leading lines on the ground, a row of marked stones, a dry
+channel, cairns, the red stair): a leg is **guided** by one that starts within 60 m of it and ends by its goal (or where
+the goal comes into sight), and a leg a line runs along from beside its start (30 m) to beside its goal (30 m) is
+**walked along it** (`followLines`: the stop gets the line's points as `via`, so the path, the gaps and the walks back
+follow the line). A quest stage whose words send you along one names it (`via: 'the marked stones'`) and is walked
+along it from farther off; a line marked `auto: false` is followed only where a stage names it (a way home lit for
+the way home). The **loner** rule scales with the travel speed: 18 s from anything (150 m running, 366 m on the bike,
+`lonelyFor`). The pure logic is `scripts/level-design/lib.mjs`
 (`tests/level-design.test.js`).
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`

@@ -6,6 +6,9 @@
 //
 //   dedupe(pois, r)                       points of interest closer than r merged (their kinds kept)
 //   spacing(pois)                         each one's nearest neighbour, and the spread
+//   lonelyFor(speed)                      how far from anything a place is a loner, at the world's travel speed
+//   lineFor(a, b, lines, reach)           a leading line (stones, a channel, cairns) that runs from beside a to beside b
+//   followLines(stops, lines)             the legs a leading line carries, walked along it (a stop's `via`)
 //   samplePath(stops, step, drape)        points every `step` m along the critical path (drape: laid on the ground where it rides over a dip)
 //   interestGaps(samples, pois, r)        the stretches of the path with nothing within r: the empty walks
 //   returnLegs(stops, pois)               legs that come back the way you went, and whether anything new is on them
@@ -35,6 +38,9 @@ export function dedupe(pois, r = 6) {
   }
   return out;
 }
+
+/** A loner is over 150 m from anything at a run (18 s); on a faster mount the same 18 s reach farther (the bike's: 366 m). */
+export const lonelyFor = (speed = RUN) => Math.round(150 * Math.max(1, speed / RUN));
 
 const pct = (a, q) => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(q * (s.length - 1) + 0.5))]; };
 /** Each place's nearest neighbour; the median, the 90th percentile and the loners (over `lonely` m from anything). */
@@ -83,6 +89,52 @@ export function portalRoute(a, b, portals) {
   return via.length ? { cost: cost[1], via } : null;
 }
 
+/** The length of a polyline. */
+export const polyLength = (pts) => pts.slice(1).reduce((s, p, i) => s + dist(pts[i], p), 0);
+/**
+ * A leading line (a level's `lines`: { name, points }, a row of stones, a dry channel, cairns) that carries the leg
+ * from a to b: its nearest point to a within `reach.a` m of it, its nearest point to b within `reach.b` m of b, the
+ * two different, and the way along it (a to the line, along it, off it to b) no more than `slack` times the straight
+ * leg. Returns { name, points (in walking order), metres } or null.
+ */
+export function lineFor(a, b, lines = [], { reach = { a: 30, b: 30 }, slack = 1.6 } = {}) {
+  const L = dist(a, b);
+  let best = null;
+  for (const line of lines) {
+    const P = line.points ?? [];
+    if (P.length < 2) continue;
+    const near = (q) => P.reduce((k, p, i) => (dist(p, q) < dist(P[k], q) ? i : k), 0);
+    const iA = near(a), iB = near(b), dA = dist(a, P[iA]), dB = dist(b, P[iB]);
+    if (iA === iB || dA > reach.a || dB > reach.b) continue;
+    const pts = iA < iB ? P.slice(iA, iB + 1) : P.slice(iB, iA + 1).reverse();
+    const metres = dA + polyLength(pts) + dB;
+    if (metres > slack * L) continue;
+    if (!best || metres < best.metres) best = { name: line.name, points: pts.map((p) => p.slice(0, 3)), metres: Math.round(metres) };
+  }
+  return best;
+}
+/**
+ * The legs a leading line carries, walked along it: a stop reached along a line gets `via` (the line's points, in
+ * order) and `line` (its name). A stop may name its line (`via: 'the marked stones'`: the quest's own words send you
+ * along it), and then the line need only start within 80 m (or a tenth of the leg) of where the leg starts and end
+ * within 80 m (or a third of the leg) of its goal; otherwise a line is followed only when it runs from beside the leg's
+ * start (30 m) to beside its goal (30 m): players walk a line laid from here to there. A line marked `auto: false` is
+ * followed only where a stage names it (a way home whose lamps are lit for the way home, not the way out).
+ */
+export function followLines(stops, lines = [], { reach = 30, slack = 1.6 } = {}) {
+  return stops.map((s, i) => {
+    const { via, ...rest } = s;
+    if (!i || s.jump || !lines.length) return rest;
+    const a = stops[i - 1].pos, L = dist(a, s.pos);
+    const named = typeof via === 'string' ? lines.filter((l) => l.name === via) : null;
+    const hit = named ? lineFor(a, s.pos, named, { reach: { a: Math.max(80, 0.1 * L), b: Math.max(80, 0.35 * L) }, slack })
+      : lineFor(a, s.pos, lines.filter((l) => l.auto !== false), { reach: { a: reach, b: reach }, slack });
+    return hit ? { ...rest, via: hit.points, line: hit.name } : rest;
+  });
+}
+/** A stop's leg as the points walked: from the stop before, through its `via`, to it. */
+export const legPoints = (a, b) => [a.pos, ...(Array.isArray(b.via) ? b.via : []), b.pos];
+
 /**
  * Points every `step` m along the path through the stops: { pos, at (m from the start), leg }. A stop marked `jump` is
  * reached by a hop (nothing between). `drape(pos, a, b)`, when given, may move a point between stops a and b (to the
@@ -93,18 +145,21 @@ export function samplePath(stops, step = 10, drape = null) {
   let run = 0;
   for (let i = 0; i + 1 < stops.length; i++) {
     if (stops[i + 1].jump) continue;
-    const a = stops[i].pos, b = stops[i + 1].pos, d = dist(a, b), n = Math.max(1, Math.ceil(d / step));
-    for (let k = i === 0 ? 0 : 1; k <= n; k++) {
-      const t = k / n;
-      const pos = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
-      out.push({ pos: drape ? drape(pos, stops[i], stops[i + 1]) : pos, at: +(run + d * t).toFixed(1), leg: i });
+    const pts = legPoints(stops[i], stops[i + 1]);
+    for (let j = 0; j + 1 < pts.length; j++) {
+      const a = pts[j], b = pts[j + 1], d = dist(a, b), n = Math.max(1, Math.ceil(d / step));
+      for (let k = i === 0 && j === 0 ? 0 : 1; k <= n; k++) {
+        const t = k / n;
+        const pos = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+        out.push({ pos: drape ? drape(pos, stops[i], stops[i + 1]) : pos, at: +(run + d * t).toFixed(1), leg: i });
+      }
+      run += d;
     }
-    run += d;
   }
   if (!out.length && stops.length) out.push({ pos: stops[0].pos, at: 0, leg: 0 });
   return out;
 }
-export const pathLength = (stops) => stops.slice(1).reduce((s, p, i) => s + (p.jump ? 0 : dist(stops[i].pos, p.pos)), 0);
+export const pathLength = (stops) => stops.slice(1).reduce((s, p, i) => s + (p.jump ? 0 : polyLength(legPoints(stops[i], p))), 0);
 
 /**
  * The empty stretches: runs of samples with no place within r. Each gap's length in metres and seconds
@@ -144,7 +199,8 @@ export function returnLegs(stops, pois, { near = 40, long = 80, corridor = 35, d
     const before = samplePath(stops.slice(0, i + 1), 10, drape);
     const leg = samplePath([stops[i], stops[i + 1]], 10, drape);
     const fresh = pois.filter((p) => leg.some((s) => dist(s.pos, p.pos) < corridor) && !before.some((s) => dist(s.pos, p.pos) < corridor));
-    out.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seconds: Math.round(d / RUN), backTo: stops[back].label, fresh: fresh.length, empty: fresh.length === 0 });
+    const walked = pathLength([stops[i], stops[i + 1]]);
+    out.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(walked), seconds: Math.round(walked / RUN), backTo: stops[back].label, ...(stops[i + 1].line ? { along: stops[i + 1].line } : {}), fresh: fresh.length, empty: fresh.length === 0 });
   }
   return out;
 }
@@ -217,9 +273,20 @@ export function visibleCount(points, landmarks, los, { far = 900, eye = 1.7 } = 
   });
 }
 
-/** For each leg: from its start, can you see its end (2 m or 8 m over it), or a landmark within `by` m of it? */
-export function legGuidance(stops, landmarks, los, { by = 80, eye = 1.7 } = {}) {
+/**
+ * For each leg: from its start, can you see its end (2 m or 8 m over it), or a landmark within `by` m of it, or does a
+ * leading line take you there: a leg walked along one (`followLines`), or a line that starts within `lineBy` m of the
+ * leg's start and ends within `lineBy` m (or 15 % of the leg) of its goal, or where its goal comes into sight?
+ */
+export function legGuidance(stops, landmarks, los, { by = 80, eye = 1.7, lines = [], lineBy = 60 } = {}) {
   const legs = [];
+  const up = (p, h) => [p[0], p[1] + h, p[2]];
+  const lineTo = (a, b, d) => {
+    const hit = lineFor(a, b, lines, { reach: { a: lineBy, b: Infinity }, slack: 1.8 });
+    if (!hit) return null;
+    const end = hit.points.at(-1);
+    return dist(end, b) <= Math.max(lineBy, 0.15 * d) || los(up(end, eye), up(b, 2)) || los(up(end, eye), up(b, 8)) ? hit : null;
+  };
   for (let i = 0; i + 1 < stops.length; i++) {
     const a = stops[i].pos, b = stops[i + 1].pos, e = [a[0], a[1] + eye, a[2]];
     const d = dist(a, b);
@@ -227,7 +294,8 @@ export function legGuidance(stops, landmarks, los, { by = 80, eye = 1.7 } = {}) 
     if (d < 25) { legs.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seen: true, how: 'close' }); continue; }
     const direct = los(e, [b[0], b[1] + 2, b[2]]) || los(e, [b[0], b[1] + 8, b[2]]);   // (the place, or what stands over it: a roof, a tower)
     const mark = direct ? null : landmarks.find((l) => flat(l.pos, b) < by && los(e, [l.pos[0], l.pos[1] - l.height * 0.2, l.pos[2]]));
-    legs.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seen: direct || !!mark, how: direct ? 'goal in sight' : mark ? 'landmark by it' : 'blind' });
+    const line = direct || mark ? null : stops[i + 1].line ? { name: stops[i + 1].line } : lineTo(a, b, d);
+    legs.push({ from: stops[i].label, to: stops[i + 1].label, metres: Math.round(d), seen: direct || !!mark || !!line, how: direct ? 'goal in sight' : mark ? 'landmark by it' : line ? `leading line (${line.name})` : 'blind' });
   }
   const long = legs.filter((l) => l.how !== 'close');
   return { legs, guidedShare: long.length ? +(long.filter((l) => l.seen).length / long.length).toFixed(2) : 1 };
@@ -289,11 +357,11 @@ export function encodePNG(w, h, rgb) {
 }
 
 /**
- * The world from above: relief shaded from the height grid, then the path (dark line), the empty
+ * The world from above: relief shaded from the height grid, then the leading lines (ochre), the path (dark line), the empty
  * stretches (red), the places (blue: on the route; green: optional), the landmarks (triangles), the
  * landing (a white ring). Returns { png, w, h, toPx } (toPx: world [x, z] to pixels, for labels).
  */
-export function mapPng(grid, { path = [], gaps = [], pois = [], landmarks = [], spawn = null, px = 640 } = {}) {
+export function mapPng(grid, { path = [], lines = [], gaps = [], pois = [], landmarks = [], spawn = null, px = 640 } = {}) {
   const { nx, nz, top, x0, z0, cell } = grid;
   const k = px / Math.max(nx, nz), w = Math.round(nx * k), h = Math.round(nz * k);
   const rgb = Buffer.alloc(w * h * 3);
@@ -311,6 +379,7 @@ export function mapPng(grid, { path = [], gaps = [], pois = [], landmarks = [], 
   const toPx = (p) => [((p[0] - x0) / cell) * k, h - ((p[2] - z0) / cell) * k];
   const dot = (cx, cy, r, col) => { for (let y = Math.floor(cy - r); y <= cy + r; y++) for (let x = Math.floor(cx - r); x <= cx + r; x++) { if (x < 0 || y < 0 || x >= w || y >= h || (x - cx) ** 2 + (y - cy) ** 2 > r * r) continue; const o = (y * w + x) * 3; rgb[o] = col[0]; rgb[o + 1] = col[1]; rgb[o + 2] = col[2]; } };
   const line = (a, b, r, col) => { const [ax, ay] = toPx(a), [bx, by] = toPx(b), n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay))); for (let s = 0; s <= n; s++) dot(ax + (bx - ax) * s / n, ay + (by - ay) * s / n, r, col); };
+  for (const l of lines) for (let i = 0; i + 1 < l.length; i++) line(l[i], l[i + 1], 1.1, [190, 112, 52]);   // (the leading lines, under the path)
   for (let i = 0; i + 1 < path.length; i++) line(path[i], path[i + 1], 1.6, [43, 33, 31]);
   for (const g of gaps) line(g.from, g.to, 2.4, [209, 73, 91]);
   for (const l of landmarks) { const [cx, cy] = toPx(l.pos); for (let r = 0; r < 7; r++) for (let x = -r; x <= r; x++) dot(cx + x * 0.8, cy - 6 + r * 1.4, 0.8, [90, 60, 140]); }
