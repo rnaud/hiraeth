@@ -171,6 +171,28 @@ export class WarmDraw {
     return out;
   }
 
+  /**
+   * Compile (not draw) the programs draw(list) would use, each pass with its target and its override worn: returns
+   * their materials, to wait on (src/warm-shaders.js settle) before the draw, whose first use of a program not yet
+   * linked blocks the page till it is (the Xbox: 1-4 s a program; docs/systems/xbox.md "The 100-second title").
+   */
+  compile(list) {
+    const todo = list.filter((o) => !this.done.has(o));
+    const R = this.renderer, H = this.holder, mats = new Set(), prev = R.getRenderTarget();
+    try {
+      for (const pass of this.passes) {
+        const kids = pass.accepts ? todo.filter(pass.accepts) : todo;
+        if (!kids.length) continue;
+        const worn = [];
+        if (pass.override) for (const o of kids) o.traverse((c) => { if (c.material) { worn.push([c, c.material]); c.material = pass.override; } });
+        H.children = kids;
+        R.setRenderTarget(pass.target);
+        try { for (const m of R.compile(H, pass.camera)) mats.add(m); } finally { for (const [c, m] of worn) c.material = m; }
+      }
+    } finally { H.children = []; R.setRenderTarget(prev); }
+    return mats;
+  }
+
   /** Draw them once (each pass), then put everything back as it was. Returns how many were drawn. */
   draw(list) {
     const todo = list.filter((o) => !this.done.has(o));

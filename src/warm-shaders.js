@@ -58,7 +58,15 @@ export async function settle(renderer, mats, wait = 2000) {
 /**
  * Each program's first use now, a slice at a time: it asks the GPU process for the program's uniforms and log,
  * a wait on everything queued, which the first frame would otherwise do for every program in one task.
+ * Each waits (polling, `wait` ms at most) until the driver says its program is linked (isReady:
+ * KHR_parallel_shader_compile): asked before, the query blocks the page until it is. On the Xbox (ANGLE on D3D11,
+ * a second or more for each program, compiled two at a time) that was the menu frozen 0.6-4 s at a time, for a
+ * minute (docs/systems/xbox.md, "The 100-second title").
  */
-export async function firstUse(renderer, slice) {
-  for (const p of renderer.info.programs) { p.getUniforms?.(); await slice(); }
+export async function firstUse(renderer, slice, { wait = 60000 } = {}) {
+  for (const p of renderer.info.programs) {
+    const t0 = performance.now();
+    while (p.isReady && !p.isReady() && performance.now() - t0 < wait) await new Promise((r) => setTimeout(r, 10));
+    p.getUniforms?.(); await slice();
+  }
 }

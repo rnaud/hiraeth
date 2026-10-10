@@ -42,6 +42,18 @@ export const CHANGELOG = [
     // the Xbox app (docs/systems/xbox.md)
     'On the Xbox the controller works on the title screen and in the game: the console told the game it never had the focus, so every press was ignored.',
     'On the Xbox, A, B and the D-pad’s right reach the game: the app reads the controller itself and passes every press on, since the console’s web view only ever saw some of the D-pad.',
+    // the 100-second title (docs/systems/xbox.md "The 100-second title")
+    { text: 'The title screen shows its world at once: a picture of the shot, drawn by the game ahead of time, is there from the first moment, and the living world fades in over it when it is ready. On the Xbox the picture stays: making the world there took one to two minutes on a first launch, and the menu froze for seconds at a time meanwhile. Any computer that took that long once keeps the picture from then on.',
+      numbers: [{ title: 'Until the title’s world shows', unit: 's', better: 'lower', device: 'Xbox Series X, Developer Mode, WebView2 150 (ANGLE on D3D11)', rows: [
+        { where: 'first launch (no shader cache)', before: '100–131', after: 'at once (the picture)' },
+        { where: 'launched again (cache kept)', before: '20–46', after: 'at once (the picture)' },
+        { where: 'the longest the menu froze meanwhile', before: 22.6, after: 0 },
+      ], source: 'window.title.timing and long tasks over the console’s DevTools relay (scripts/xbox-devtools.mjs); first launch measured with every shader made new (B4, the underwater city)', note: 'Each of the world’s 38 graphics programs took about a second to prepare on the console, and the ink pass 22–28 s.' }],
+      see: 'Open the game: the title’s world is there at once instead of plain paper; on a computer it comes alive a few seconds later.' },
+    { text: 'The ink pass that draws every frame’s lines is quicker to prepare: its debug views and the handheld’s lighter version are only built in when they are used. On the Xbox that pass took 28 s to get ready before a world could show; now 16.5 s.',
+      numbers: [{ title: 'Preparing the ink pass', unit: 's', better: 'lower', device: 'Xbox Series X, WebView2 150 (ANGLE on D3D11), Vael’s look', rows: [
+        { where: 'compile and link, from nothing', before: 28.0, after: 16.5 },
+      ], source: 'the pass compiled on the console with and without them, over the DevTools relay' }] },
     // the Arena (docs/systems/foes.md "The Arena")
     'The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.',
     'The title screen shows the build number and commit after the version, so you can tell which build a device runs.',

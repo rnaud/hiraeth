@@ -24,7 +24,7 @@ test('the title draws and wires its menu first; the sound and the world wait for
   assert.ok(at('markBooted(win)') < at('sound.startIfAllowed()'));
   // both in whenIdle: requestIdleCallback (with a timeout), put off while busy()
   assert.match(t, /const whenIdle = \(fn, timeout = \d+\) => \{[\s\S]*?if \(busy\(\)\) setTimeout\(\(\) => whenIdle\(fn, timeout\), \d+\); else fn\(\);[\s\S]*?requestIdleCallback\(go, \{ timeout \}\)/);
-  assert.match(t, /whenIdle\(\(\) => \{\s*sound\.startIfAllowed\(\);\s*if \(shot\) whenIdle\(startWorld\);/);
+  assert.match(t, /whenIdle\(\(\) => \{\s*sound\.startIfAllowed\(\);[\s\S]{0,200}?if \(shot && liveWorld\([^)]*\)\) whenIdle\(startWorld\);/);
   // every press counts: keys, pointers, touches (the capture listeners) and the pad (the Controller's activity)
   assert.match(t, /const onInput = \(e\) => \{ pressed\(\);/);
   assert.match(t, /activity: \(\) => \{ pressed\(\);/);
@@ -44,7 +44,7 @@ test('the title world never compiles in one task with its first frame', () => {
   const draw = w.indexOf('try { render(); }');
   assert.ok(warm > 0 && first > warm && draw > first, 'compiled, then first used, then drawn');
   assert.match(w, /warmShadersSliced\(renderer, scene, camera, \{ target: cascades\.near\.rt, wear: shadowOverride/, 'the shadow passes\' programs too');
-  assert.match(w, /warmDraw\.draw\(seen\.slice\(i, i \+ 8\)\); await step\(\); await pace\(\);/, 'what the view sees uploaded a few at a time');
+  assert.match(w, /const batch = seen\.slice\(i, i \+ 8\);\s*await settle\(renderer, warmDraw\.compile\(batch\), \d+\);\s*warmDraw\.draw\(batch\); await step\(\); await pace\(\);/, 'what the view sees uploaded a few at a time, its programs linked first');
   // and the long pieces of the build go in steps: the traveller's body, the sand's drifts
   assert.match(w, /await runStepsAsync\(createTravellerV1Steps\(player\.char, assets\), slice\)/);
   assert.match(src('levels/desert.js'), /yield\* sand\.close\(\)\.buildSteps\(/);

@@ -35,6 +35,8 @@ const KNOWN = [
   [/^new GLTFLoader\(\)\.loadAsync\(/, 'an asset load, its failure caught', (after) => /\.catch\(/.test(after.split('\n')[0])],
   [/^warmShaders\(/, 'the race below: compileAsync or 2 s'],
   [/^warmShadersSliced\(/, 'slices and the pacer per kind, then the pending() poll with its 2 s cap'],
+  [/^firstUse\(/, 'slices, and for each program a poll of isReady() capped at its `wait` (60 s)'],
+  [/^settle\(renderer, [^,]+, PASSAGE\.loadBudget\)/, 'a poll of the programs\' isReady() capped at the passage budget'],
   [/^Promise\.race\(\[/, 'a race with a timer', (after) => /setTimeout\(/.test(after.slice(0, 300))],
   [/^new Promise\(\(r\) => setTimeout\(r, \d+\)\)/, 'a poll in a loop with a time cap', (_, line) => /while \(.*performance\.now\(\) - t0 < \d+/.test(line)],
 ];

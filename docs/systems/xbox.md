@@ -187,6 +187,36 @@ surface, 75 programs, 53228 ms`, `passage warm-up: 2472 meshes in 158965 ms`, `m
   872 MB shared; Chromium logged `Memory Pressure: Critical` two seconds in. Set it to **Game** (Dev Home → Hiraeth →
   View details → App type); `page.log`'s first line now says which.
 
+## The 100-second title (October 2026)
+
+Build 1687, a first launch: the title's world (shot B4) showed at 99.9 s. Measured over DevTools
+(`window.title.timing`, the GL calls timed by a script added before the page loads; "cold" = every shader salted
+with a `#define`, so the GPU process compiles it afresh, as on a first launch):
+
+- **38 programs**: 27 surface variants (materials.js, the same über-shader with different `S_*` defines: 39 kB
+  vertex, 203 kB fragment, 210 uniforms each), the ink pass (78 kB), the water's, five depth-only shadow
+  programs, the blit, bloom and garment ones. The ink look multiplies the surfaces only through their
+  defines; the line pass is one program.
+- **Per program** (compile + link to `COMPLETION_STATUS_KHR`, the GPU otherwise idle): a surface 0.7-1.2 s,
+  **the ink pass 22-28 s** (HLSL warnings X3595: texture reads in loops), small ones 15-70 ms. Four surfaces
+  queued at once finished in 1.96 s against 1.1 s alone: about two at a time. A second program with the same
+  source in the same session took the full time again.
+- **Where the time went** (cold, B4: world at 131 s): the compile stage 5.3 → 36.3 s, then the warm draws and
+  first uses 36 → 131 s, nearly all of it inside `getProgramInfoLog` / `getShaderInfoLog` (three.js's first use
+  of each program) blocking till the program was linked: 0.8-12 s each, about 89 s in all, the longest task
+  **22.6 s** (the menu dead meanwhile). The uploads themselves were negligible; the pacer waited 234 ms once
+  (its fences do signal on D3D11).
+- **Warm** (the cache kept since the app stopped clearing it): the same shot reloaded showed at 20.2 s, a
+  different shot at 45.7 s. The compile stage passed in 1.2 s (cache hits), but each first use still blocked
+  0.6-3.8 s: what remains is the driver's own work on each program, not kept across loads.
+
+So no cache makes the live title quick here. The fix (performance.md, "The title's world on a slow shader
+compiler"): the title shows the shot's still at once (`public/title-stills/`, `src/title-still.js`) and on the
+Xbox never builds the live world (`?vista=live` to try it); first uses wait for the driver instead of blocking;
+the ink pass compiles without its debug views and lite path (28 → 16.5 s here). The game's own load gets the last
+two as well. Measuring: the probes' method is the salted reload above; `scripts/xbox-devtools.mjs js` reads
+`title.timing` (`still`: the picture shown; `live: false`: no world built).
+
 ## The controller drove a cursor (October 2026)
 
 Reported on the first install (1660). Seen over DevTools: the page's Gamepad API has the pad

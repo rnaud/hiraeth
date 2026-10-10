@@ -111,7 +111,7 @@ import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
-import { warmShadersSliced as warmSliced } from './warm-shaders.js';
+import { warmShadersSliced as warmSliced, firstUse, settle } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -2056,6 +2056,9 @@ await slice();
 // (a person or a plant first seen in a shadow had stalled a frame on its compile)
 loadStep = 'shadows';
 await warmShadersSliced(scene, camera, Object.values(cascades).find((c) => c.enabled && c.rt)?.rt ?? null, { wear: shadowOverride });
+// each program's first use, once the driver says it is linked (src/warm-shaders.js firstUse): the warm draws below
+// asked for each one's uniforms at once, and the page froze till it was (the Xbox: 1-4 s a program)
+await firstUse(renderer, slice);
 // The ways through, drawn once ahead (src/passage.js): every room, cave and hall a door or a portal
 // leads to, and the ship's rooms, with their geometry and textures on the GPU and the driver's
 // pipelines built before the first frame (they used to arrive with the first sight of them); and
@@ -2079,7 +2082,9 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   let n = 0, i = 0;
   for (; i < todo.length; i += 8) {   // (8 at a time: a batch's uploads are one piece of the GPU's work)
     if (performance.now() - t0 > PASSAGE.loadBudget) break;
-    n += warmDraw.draw(todo.slice(i, i + 8)); await slice(); await gpuPace();
+    const batch = todo.slice(i, i + 8);
+    await settle(renderer, warmDraw.compile(batch), PASSAGE.loadBudget);   // (its programs linked before the draw asks: no blocking)
+    n += warmDraw.draw(batch); await slice(); await gpuPace();
   }
   if (i < todo.length) console.warn(`passage warm-up: stopped after ${PASSAGE.loadBudget} ms, ${todo.length - i} meshes left to draw as you come near them`);
   // what the first frame would set up for itself: the rooms off the map, the levels of detail

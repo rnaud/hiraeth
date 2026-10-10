@@ -1047,3 +1047,25 @@ unchanged), his textures 45 MB and 90–100 ms, and levels of detail outside 3 m
 64 k triangles a frame behind him at Handheld (220 k at High). The numbers, the method and the
 pictures' comparison: characters.md, "What the traveller costs"; the bench: `scripts/bench/traveller.mjs`.
 Not measured: the Retroid and the Deck, and the frame-time gain (under the Mac's noise).
+
+## The title's world on a slow shader compiler (October 2026)
+
+The title opens on a still of its shot (`public/title-stills/<id>.jpg`, the world's own pixels, made by
+`node scripts/title-shots.mjs --stills`, ~140 kB each) and the live world fades in over it. Where making the
+world costs too much the still stays: on the Xbox always, and on any GPU whose last build ran past
+`TITLE_SLOW_MS` (25 s; remembered per GPU in `moebius.title.slow`, `src/title-still.js`; `?vista=live` /
+`?vista=still` override). Measured on the Xbox (docs/systems/xbox.md, "The 100-second title"): 38 programs,
+~1 s each for the surfaces and 22-28 s for the ink pass, 100-131 s to the world cold and 20-46 s warm, the
+menu frozen up to 22.6 s at a time.
+
+Two changes help every platform's loads (the title and the game's loading screen):
+- **No blocking first use.** `firstUse` (`src/warm-shaders.js`) waits, polling `isReady()`
+  (KHR_parallel_shader_compile), before asking for a program's uniforms, and runs before the warm draws;
+  `WarmDraw.compile` (`src/passage.js`) compiles a batch's programs with each pass's target and override, and
+  the loads `settle` on them before drawing. A query on a program not yet linked blocks the page till it is.
+  With a simulated 1.5 s link (serialised, queries blocking, as the console), the title's longest task went from
+  the whole queue to 6 s (the first frame's small bloom and blit programs, a few ms each on real hardware).
+- **The ink pass compiles less.** Its debug views (`DEBUG_VIEW(n)`, `INK_DEBUG`) and the handheld's lite path
+  (`POST_LITE`, `INK_LITE`) are defines (`inkFeatures`, recompiled when `uDebug` or `uPostLite` change), not
+  branches on a uniform: on the Xbox's D3D compiler 28.0 → 16.5 s. `#pragma optimize(off)` and `textureLod` in
+  its loops made no difference there (17.7 and 24.8 s).

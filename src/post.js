@@ -233,6 +233,8 @@ export function inkFeatures(U) {
   if (f.INK_LAYERS !== undefined || f.INK_HFOG !== undefined) f.INK_HAZE = '';
   if (U.uCast.value[0] > 0 || U.uCast.value[1] > 0) f.INK_CAST = '';
   if (U.uInkShadow.value[0] > 0 || U.uInkShadow.value[1] > 0) f.INK_SHADOW = '';
+  if (U.uPostLite && U.uPostLite.value > 0.5) f.INK_LITE = '';   // (the handheld's one-kernel lines, 4 spot taps)
+  if (U.uDebug && U.uDebug.value) f.INK_DEBUG = '';                // (a debug view: ?debug=N, the debug menu)
   return f;
 }
 // The value noise.
@@ -354,6 +356,19 @@ const fragmentShader = /* glsl */ `
   uniform float uAerial;      // distant layers lose saturation and drift to the sky colour
   uniform float uLineVary;    // thick silhouettes / thin interior lines / pen pressure
   uniform float uPostLite;    // 1 = one ink-line kernel instead of two (the handheld preset)
+  // (the debug views and the lite path are compiled in only when asked for (inkFeatures: INK_DEBUG, INK_LITE). As
+  // branches on a uniform every one of them was compiled in: on the Xbox's D3D compiler this pass took 28 s to
+  // compile, 16.5 s without them; docs/systems/xbox.md "The 100-second title")
+  #ifdef INK_DEBUG
+  #define DEBUG_VIEW(n) (uDebug == n)
+  #else
+  #define DEBUG_VIEW(n) false
+  #endif
+  #ifdef INK_LITE
+  #define POST_LITE true
+  #else
+  #define POST_LITE false
+  #endif
   uniform sampler2D tLineNoise; // the lines' noise, tiling random texels (LINE_NOISE)
   uniform float uSkyFlat;     // flat printed sky (vs gradient)
   uniform float uSkyDots;     // stipple dots in the sky
@@ -1031,15 +1046,15 @@ const fragmentShader = /* glsl */ `
     #endif
 
     // ---- debug views
-    if (uDebug == 2) { fragColor = vec4(isSky ? skyBase(rd) : A.rgb, 1.0); return; }
-    if (uDebug == 3) { fragColor = vec4(isSky ? vec3(0.0) : N.rgb * 0.5 + 0.5, 1.0); return; }
-    if (uDebug == 4) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
-    if (uDebug == 5) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
-    if (uDebug == 9) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8, mover)), 1.0); return; }   // spot blacks: how enclosed
+    if (DEBUG_VIEW(2)) { fragColor = vec4(isSky ? skyBase(rd) : A.rgb, 1.0); return; }
+    if (DEBUG_VIEW(3)) { fragColor = vec4(isSky ? vec3(0.0) : N.rgb * 0.5 + 0.5, 1.0); return; }
+    if (DEBUG_VIEW(4)) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
+    if (DEBUG_VIEW(5)) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
+    if (DEBUG_VIEW(9)) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8, mover)), 1.0); return; }   // spot blacks: how enclosed
     // (the strokes and the detail with their packed steps taken off, above)
-    if (uDebug == 8) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - surface.b), 1.0); return; }
-    if (uDebug == 7) { vec3 H = isSky ? vec3(0.0) : surface.rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
-    if (uDebug == 1) {
+    if (DEBUG_VIEW(8)) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - surface.b), 1.0); return; }
+    if (DEBUG_VIEW(7)) { vec3 H = isSky ? vec3(0.0) : surface.rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
+    if (DEBUG_VIEW(1)) {
       vec3 c = isSky ? skyBase(rd) : A.rgb * (0.35 + 0.75 * A.a);
       if (!isSky) c = mix(c, skyBase(rd), 1.0 - exp(-max(depth * toRange - uFogStart, 0.0) * uFogDensity * uFogMul));
       fragColor = vec4(c, 1.0);
@@ -1050,7 +1065,7 @@ const fragmentShader = /* glsl */ `
     float boilT = floor(uTime * 8.0) * uBoil;
     // (on the view's direction, not the screen: it turns with the world, LINE_NOISE)
     vec4 sn = lineNoise(rd, boilT);
-    if (uDebug == 13) { fragColor = vec4(sn.xyz, 1.0); return; }   // the lines' noise: it turns with the world
+    if (DEBUG_VIEW(13)) { fragColor = vec4(sn.xyz, 1.0); return; }   // the lines' noise: it turns with the world
     vec2 wob = sn.xy - 0.5;
     vec2 euv = uv + wob * uWobble * 2.0 * uPixelRatio / uRes;
     float nearD;
@@ -1081,7 +1096,7 @@ const fragmentShader = /* glsl */ `
     vec3 ownK, ownK2;   // the nearest surface in the silhouette kernel, and which side of an edge this is (1b)
     vec4 eS, eI;
     vec4 slS, slI;   // (gSliver of each kernel)
-    if (uPostLite > 0.5) {
+    if (POST_LITE) {
       // handheld: one kernel between the two weights serves silhouettes and interior lines (half the taps)
       eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio * frameK, true, nearD2, ownK);
       eS = eI; nearD = nearD2; slS = slI = gSliver;
@@ -1153,7 +1168,7 @@ const fragmentShader = /* glsl */ `
         float nd;
         vec3 nk;
         vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio * frameK, k), false, nd, nk);
-        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio * frameK, k), true, nd, nk);
+        vec4 fI = POST_LITE ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio * frameK, k), true, nd, nk);
         float outline = fS.x * alpha * mix(1.0 - figure, 1.0, k);
         ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8 * (1.0 - face)) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
       }
@@ -1179,9 +1194,9 @@ const fragmentShader = /* glsl */ `
       }
       // inverted ink (the shade, src/shade.js: RT0.a's sign bit): its lines drawn in the paper's white
       if (Ao.a < 0.0) lineC = vec3(${INK_WHITE.map((v) => v.toFixed(3)).join(', ')});
-      if (uDebug == 11) { fragColor = vec4(own ? 1.0 : 0.0, lq / 15.0, ink, 1.0); return; }   // lines: owned here (red), the owner's step (green), the ink (blue)
+      if (DEBUG_VIEW(11)) { fragColor = vec4(own ? 1.0 : 0.0, lq / 15.0, ink, 1.0); return; }   // lines: owned here (red), the owner's step (green), the ink (blue)
     }
-    if (uDebug == 11) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }
+    if (DEBUG_VIEW(11)) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }
 
     float heroInk = max(heroBoundary * 0.82, max(eI.y, eI.z) * 0.22 * heroDetail * hero);
     ink = mix(ink, heroInk, heroNear);
@@ -1219,7 +1234,7 @@ const fragmentShader = /* glsl */ `
       #ifdef INK_SHADOW
       inkMass = inkPot * (1.0 - lit) * smoothstep(${CAST.light[0]}, ${CAST.light[1]}, L) * (1.0 - emitHere) * (1.0 - uFlatten) * (1.0 - uNight * 0.5);
       #endif
-      if (uDebug == 12) { fragColor = vec4(castPot, castLift, inkMass, 1.0); return; }   // cast shadows: could lift (red), lifted (green), inked (blue)
+      if (DEBUG_VIEW(12)) { fragColor = vec4(castPot, castLift, inkMass, 1.0); return; }   // cast shadows: could lift (red), lifted (green), inked (blue)
       // during the sun -> moon hand-over both tones converge, so shadows fade
       // a face's shade (its skin, its eyes' whites) is a warm darker tone of itself, not the world's
       // blue-violet shadow: the shadow tint's own darkness, turned warm (less so at night)
@@ -1320,13 +1335,13 @@ const fragmentShader = /* glsl */ `
       if (uSpot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
         vec3 spotC = uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a);
         float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten) * (1.0 - lit);
-        float encl = enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8, mover);
+        float encl = enclosure(uv, N.xyz, depth, uSpot.y, POST_LITE ? 4 : 8, mover);
         float spot = smoothstep(uSpot.z - 0.03, uSpot.z + 0.03, encl) * (1.0 - shadeLift);
         // in cast shadow (facing the sun, yet dark): toward the spot tone, keeping its strokes
         float castK = smoothstep(0.05, 0.2, dot(N.xyz, uSunDir)) * (1.0 - shadeLift) * uSpot.w;
         col = mix(col, spotC, castK * k);
         col = mix(col, spotC, spot * k);
-        if (uDebug == 10) { fragColor = vec4(castK * k, spot * k, 0.2, 1.0); return; }   // spot blacks: the cast (red) and spot (green) masks
+        if (DEBUG_VIEW(10)) { fragColor = vec4(castK * k, spot * k, 0.2, 1.0); return; }   // spot blacks: the cast (red) and spot (green) masks
       }
 
       // ---- 3d. ink shadows: a cast shadow printed as one flat mass of the world's darkest tone (uSpotTone,
@@ -1362,7 +1377,7 @@ const fragmentShader = /* glsl */ `
       #endif
     }
 
-    if (uDebug == 6) col = vec3(0.97, 0.94, 0.86);
+    if (DEBUG_VIEW(6)) col = vec3(0.97, 0.94, 0.86);
     // no ink eats a light: its inner lines go, its outline thins
     ink *= 1.0 - emitHere * 0.7;
     // grass: its edges drawn in a darker shade of the green, not black, and only on the blade's
@@ -1376,7 +1391,7 @@ const fragmentShader = /* glsl */ `
     }
     // where banked sand meets a wall: a light line in a darker shade of the sand, not a hard contact line
     if (driftNear > 0.5 && softNear < 0.5) { inkC = mix(uInk, col * 0.6, 0.55); ink *= 0.45; }
-    if (uDebug == 14) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }   // the lines as drawn: blue (the ink-lines audit)
+    if (DEBUG_VIEW(14)) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }   // the lines as drawn: blue (the ink-lines audit)
     col = mix(col, inkC, ink);
 
     // ---- 4b. light: a halo round glowing things, in flat rings like a printed glow, and a
@@ -1593,7 +1608,7 @@ export function createPost() {
     material.defines = f;
     material.needsUpdate = true;
   };
-  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast', 'uInkShadow']) {
+  for (const k of ['uHazeLayers', 'uHeightFog', 'uCast', 'uInkShadow', 'uPostLite', 'uDebug']) {
     let v = uniforms[k].value;
     Object.defineProperty(uniforms[k], 'value', { get: () => v, set: (x) => { v = x; sync(); }, enumerable: true });
   }

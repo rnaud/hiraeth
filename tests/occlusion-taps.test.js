@@ -95,7 +95,7 @@ test('a mover (a foe, the drone) is seen past as a person is: no dark halo on th
   // every reader of gHatch.a takes the mover's 64 off first (the main decode, the line kernel's drift test)
   assert.ok(shader.indexOf('surface.a -= 64.0 * mover;') < shader.indexOf('float drift = step(31.5, surface.a);'));
   assert.ok(shader.includes('vec4 fa = mod(vec4(t1.a, t2.a, t3.a, t4.a), 64.0);'));
-  assert.ok(shader.includes('enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8, mover)') && shader.includes('creaseAO(uv, N.xyz, depth, fc, mover)'));
+  assert.ok(shader.includes('enclosure(uv, N.xyz, depth, uSpot.y, POST_LITE ? 4 : 8, mover)') && shader.includes('creaseAO(uv, N.xyz, depth, fc, mover)'));
 });
 
 test('a person in front leaves no pale ghost in the shading behind them (Marrow by the ship, the tree’s stairs)', () => {

@@ -45,7 +45,7 @@ test('the constants stay sensible: lighter, never gone; a step a line would be d
 
 test('debug 14 shows the lines as drawn, after every fade and before they are laid on', () => {
   assert.equal(DEBUG_VIEWS['Lines as drawn (the ink-lines audit)'], 14);
-  const d = shader.indexOf('if (uDebug == 14)');
+  const d = shader.indexOf('if (DEBUG_VIEW(14))');
   assert.ok(d > shader.indexOf('// grass: its edges drawn in a darker shade') && d < shader.indexOf('col = mix(col, inkC, ink);'));
 });
 

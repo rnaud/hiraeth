@@ -6,6 +6,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 - The title screen shows the build number and commit after the version, so you can tell which build a device runs.
 - The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.
+- The ink pass that draws every frame’s lines is quicker to prepare: its debug views and the handheld’s lighter version are only built in when they are used. On the Xbox that pass took 28 s to get ready before a world could show; now 16.5 s.
+- The title screen shows its world at once: a picture of the shot, drawn by the game ahead of time, is there from the first moment, and the living world fades in over it when it is ready. On the Xbox the picture stays: making the world there took one to two minutes on a first launch, and the menu froze for seconds at a time meanwhile. Any computer that took that long once keeps the picture from then on.
 - On the Xbox, A, B and the D-pad’s right reach the game: the app reads the controller itself and passes every press on, since the console’s web view only ever saw some of the D-pad.
 - On the Xbox the controller works on the title screen and in the game: the console told the game it never had the focus, so every press was ignored.
 - Loading a world on the Steam Deck is about a second quicker: the loading screen stops waiting for a signal the Deck’s graphics driver never sends, once it has found that out the first time.

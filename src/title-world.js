@@ -15,7 +15,7 @@ import { buildGrass } from './flora-grass.js';
 import { Flock } from './life.js';
 import { wallOpenings } from './wall-openings.js';
 import { gatedSlicer, runStepsAsync, gpuPacer } from './load-steps.js';
-import { warmShadersSliced, firstUse } from './warm-shaders.js';
+import { warmShadersSliced, firstUse, settle } from './warm-shaders.js';
 import { WarmDraw, warmPasses } from './passage.js';
 import { shotCamera } from './title-shots.js';
 import { onXbox } from './xbox.js';
@@ -107,8 +107,9 @@ const _skyColor = new THREE.Color();
  * @param o.signal    an AbortSignal: the player went on before the view was ready (it stops building and frees itself)
  * @param o.onStage   (name) as each part of the build begins (the boot's timings)
  * @param o.busy      () => true while the player is pressing: the build waits between its slices (the menu first)
+ * @param o.skip      (gpu) => true: don't build here (a GPU remembered as slow: src/title-still.js); resolves null
  */
-export async function startTitleWorld({ parent, shot, settings, native = false, touch = false, still = false, signal = null, win = window, onStage = () => {}, busy = () => false } = {}) {
+export async function startTitleWorld({ parent, shot, settings, native = false, touch = false, still = false, signal = null, win = window, onStage = () => {}, busy = () => false, skip = () => false } = {}) {
   THREE.ColorManagement.enabled = false;   // (as the game: colours are authored as display values)
   const load = TITLE_LEVELS[shot?.level];
   if (!load) return null;
@@ -128,6 +129,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     try { return String(gl.getParameter(ext ? ext.UNMASKED_RENDERER_WEBGL : gl.RENDERER) ?? ''); } catch { return ''; }
   })();
   if (/SwiftShader|llvmpipe|softpipe/i.test(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // a software GPU: the paper
+  if (skip(gpu)) { renderer.dispose(); renderer.forceContextLoss(); return null; }   // a GPU whose last build ran long: the still (src/title-still.js)
   const handheld = detectHandheld({ native, touch, gpu });
   const onDeck = detectDeck({ app: win.location?.protocol === 'moebius:', gpu }), xbox = onXbox(win);
   const hiDPI = (win.devicePixelRatio ?? 1) >= 2;
@@ -408,13 +410,21 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
     const wp = waters?.warmPass?.();
     if (wp) await warmShadersSliced(renderer, wp.scene, wp.camera, { target: composeRT, slice: step, pace });
     if (cascades.near.rt) await warmShadersSliced(renderer, scene, camera, { target: cascades.near.rt, wear: shadowOverride, slice: step, pace });
+    // (each program first used once it is linked, before the draws below would ask for it and block till it is)
+    onStage('linking');
+    await firstUse(renderer, step);
     onStage('uploads');
     const warmDraw = new WarmDraw(renderer, scene, { passes });
     scene.updateMatrixWorld();
     const view = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     const inView = (o) => { try { return !o.frustumCulled || view.intersectsObject(o); } catch { return false; } };
     const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
-    for (let i = 0; i < seen.length; i += 8) { warmDraw.draw(seen.slice(i, i + 8)); await step(); await pace(); }
+    for (let i = 0; i < seen.length; i += 8) {
+      // (a pass may key programs of its own: compiled first and waited for, so the draw doesn't block on them)
+      const batch = seen.slice(i, i + 8);
+      await settle(renderer, warmDraw.compile(batch), 60000);
+      warmDraw.draw(batch); await step(); await pace();
+    }
     lod ??= new LodManager(scene, { keep: [player?.object, level.ground?.mesh].filter(Boolean) });
     await step();
     await firstUse(renderer, step);
@@ -469,7 +479,7 @@ export async function startTitleWorld({ parent, shot, settings, native = false, 
   }
 
   const handle = {
-    canvas, renderer, scene, camera, post, level, player, shot, frameStats, handheld,
+    canvas, renderer, scene, camera, post, level, player, shot, frameStats, handheld, gpu,
     get preset() { return preset.key; },
     get resolution() { return { ...size }; },
     onLost: null,

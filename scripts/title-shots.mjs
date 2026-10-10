@@ -9,6 +9,7 @@
 //
 //   node scripts/title-shots.mjs                    every shot
 //   node scripts/title-shots.mjs H1,E3 [--sizes] [--clean]   those (clean: the world alone, no name or menu)
+//   node scripts/title-shots.mjs [ids] --stills       the title's stills, public/title-stills/<id>.jpg (QUALITY=high)
 //   CAM='{"camera":{"eye":[…],"target":[…],"fov":50},"traveller":{…}}' node scripts/title-shots.mjs H1   (try a pose)
 // PORT (default 5345) is Vite's, CDP (default 5395) Chrome's debugging port.
 import { execFileSync } from 'node:child_process';
@@ -27,6 +28,7 @@ const PORT = Number(process.env.PORT);
 const BASE = `http://127.0.0.1:${PORT}/`;
 const DOCS = join(ROOT, 'docs/title-shots');
 const REFS = join(ROOT, 'references/Title Screen');
+const STILLS = join(ROOT, 'public/title-stills');
 export const SIZES = [[1920, 1080], [2560, 1080], [1280, 800], [1024, 768], [812, 375], [375, 812], [412, 915]];
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const args = process.argv.slice(2);
@@ -38,7 +40,7 @@ const tryCam = process.env.CAM ? JSON.parse(process.env.CAM) : null;
 const tryCams = process.env.CAMS ? JSON.parse(process.env.CAMS) : null;
 
 const storage = `localStorage.clear(); localStorage.setItem('moebius.muted', '1');
-  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${process.env.QUALITY ?? 'medium'}', showFps: false, music: 0, effects: 0, voices: 0 }));`;
+  localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${process.env.QUALITY ?? (flag('stills') ? 'high' : 'medium')}', showFps: false, music: 0, effects: 0, voices: 0 }));`;
 
 /** Open the title on `id` at w × h; resolves once its world is on the screen (or it gave up). */
 async function open(c, id, [w, h], { dpr = 1, mobile = false } = {}) {
@@ -116,6 +118,18 @@ const report = [];
 try {
   for (const shot of shots) {
     const png = join(OUT, `${shot.id}.png`);
+    if (flag('stills')) {
+      // the title's still (src/title-still.js): the world's own pixels, read straight off its canvas (no name, menu
+      // or print over it: the title lays those over the picture), at 1920 × 1080
+      const r = await open(c, shot.id, [1920, 1080]);
+      const url = r.state === 'on' && await c.ev(`(() => { const v = window.title.vista; v.draw(); return v.canvas.toDataURL('image/png'); })()`);
+      if (!url) { console.warn(`${shot.id}: no still (${r.state})`); continue; }
+      mkdirSync(OUT, { recursive: true }); mkdirSync(STILLS, { recursive: true });
+      writeFileSync(png, Buffer.from(url.split(',')[1], 'base64'));
+      jpg(png, join(STILLS, `${shot.id}.jpg`), 1600, 52);   // (~150 kB each)
+      console.log(`${shot.id}: still written (world in ${Math.round(r.timing?.world ?? -1)} ms)`);
+      continue;
+    }
     const r = await open(c, shot.id, [1280, 720]);
     if (tryCams) {
       for (const [i, cam] of tryCams.entries()) {

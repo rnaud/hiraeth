@@ -38,6 +38,7 @@ import { padConfirm } from './menu-pad.js';
 import { logoSvg } from './title-logo.js';
 import { titleLayout, layoutVars } from './title-layout.js';
 import { chooseShot } from './title-shots.js';
+import { stillUrl, showStill, liveWorld, rememberBuild } from './title-still.js';
 
 /** ms after the player's last press before what can wait (the sound's start, the world's build) goes on. */
 export const TITLE_QUIET = 400;
@@ -150,7 +151,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     // (the title's own recording takes over from the procedural menu music once it has loaded: src/soundtracks.js TITLE_THEME)
     // (started once the menu answers: startIfAllowed below; a press starts it at once, as anywhere)
     const sound = new Sound('title', { score: false, titleTheme: true, autoStart: false });
-    let vista = null, vistaQuality = settings.quality, worldStarted = false;
+    let vista = null, vistaQuality = settings.quality, worldStarted = false, noWorld = false;
     // (a different world each opening, never the last one shown: src/title-shots.js)
     let ls = null;
     try { ls = win.localStorage; } catch { /* private mode */ }
@@ -173,6 +174,18 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     root.id = 'title';
     root.className = shot ? 'vista-wait' : '';   // (the paper until the world fades in)
     if (shot) root.dataset.shot = shot.id;
+    // the shot's still (src/title-still.js): its world as the game draws it, at once; the live world fades in over
+    // it, or never comes where it would take too long to make (the Xbox, a GPU remembered as slow)
+    const still = showStill(shot, win.innerWidth, win.innerHeight) ? doc.createElement('img') : null;
+    if (still) {
+      still.className = 'still';
+      still.alt = '';
+      still.setAttribute('aria-hidden', 'true');
+      if (shot.mirror) still.style.transform = 'scaleX(-1)';
+      still.onload = () => { timing.still = now(); if (!done) root.classList.add('still-on'); };
+      still.onerror = () => { still.remove(); if (noWorld && !done) drawn(); };   // (no picture and no world: the drawn land)
+      still.src = stillUrl(shot);
+    }
     // (Full screen only where it does something: not in the apps (the Deck's, the Xbox's, Android's are full
     // screen already), nor in an installed web app already shown full screen)
     const fullscreen = () => !isNativeApp && !isDeckApp && !isXboxApp && !!doc.fullscreenEnabled
@@ -192,6 +205,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
         <div class="row"><button data-a="keep">${glyph('back', { key: 'Esc' })}<span data-t="title.keep">${t('title.keep')}</span></button><button data-a="delete" class="danger">${glyph('ok', { focus: true })}<span data-t="title.delete">${t('title.delete')}</span></button></div>
       </div></div>
       <div id="title-settings"></div>`;
+    if (still) root.prepend(still);
     doc.body.appendChild(root);
     const settingsMenu = new SettingsMenu(settings, { sound, el: root.querySelector('#title-settings'), title: true });
     // (a new language, chosen in the settings: the title's own words in it; the menu and saves draw as they show)
@@ -429,25 +443,32 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
     const drawn = () => root.classList.remove('vista-wait', 'vista-on');
     (win.requestAnimationFrame ?? ((f) => setTimeout(f, 16))).call(win, () => whenIdle(() => {
       sound.startIfAllowed();
-      if (shot) whenIdle(startWorld);
+      // (the live world only where it is worth making: not on the Xbox, nor on a GPU remembered as slow; src/title-still.js)
+      if (shot && liveWorld({ xbox: isXboxApp, search: win.location?.search ?? '' })) whenIdle(startWorld);
+      else if (shot) { noWorld = true; timing.live = false; if (!still?.isConnected) drawn(); }
     }));
     function startWorld() {
       if (done) return;
-      const still = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
+      const stillOnly = reducedMotion(settings, win);   // (the "Reduce motion" setting; not set: prefers-reduced-motion)
       // (the world's modules read the game state as they load: an in-memory save, past the prologue, meanwhile: src/save-slots.js)
       slots.sandbox({ 'moebius.game.v1': JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] }) });
       worldStarted = true;
       import('./title-world.js')
-        .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still, signal: vistaAbort.signal, win, busy,
+        .then(({ startTitleWorld }) => startTitleWorld({ parent: root, shot, settings, native: isNativeApp, touch: isTouch, still: stillOnly, signal: vistaAbort.signal, win, busy,
+          skip: (gpu) => !liveWorld({ search: win.location?.search ?? '', storage: ls, gpu }),
           onStage: (name) => { timing.stages[name] = Math.round(now()); } }))
         .then((v) => {
-          if (!v) { if (!done) drawn(); return; }
+          if (!v) { noWorld = true; if (!done) drawn(); return; }
           if (done) { v.dispose(); return; }
           vista = v;
           v.onLost = () => { drawn(); v.dispose(); if (vista === v) vista = null; };
-          win.requestAnimationFrame(() => { root.classList.replace('vista-wait', 'vista-on'); timing.world = now(); });
+          win.requestAnimationFrame(() => {
+            root.classList.replace('vista-wait', 'vista-on'); timing.world = now();
+            // (a build that ran long: this GPU's next titles keep the still)
+            rememberBuild(ls, v.gpu, timing.world - (timing.stages.world ?? timing.world));
+          });
         })
-        .catch((e) => { console.warn('title world unavailable', e); if (!done) drawn(); });
+        .catch((e) => { console.warn('title world unavailable', e); noWorld = true; if (!done) drawn(); });
     }
     Object.assign(win, { title: { root, store, choose, show, askDelete, settingsMenu, sound, shot, timing, relayout, get vista() { return vista; } } });
   });
