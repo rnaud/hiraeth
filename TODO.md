@@ -7,6 +7,70 @@ Playtests are not listed here: the author plays all the time.
 
 # The author's list (2026-10-10), before the full game audit
 
+## Combat, controls and world feedback (2026-10-10)
+
+Author feedback; investigate reported artifacts and stutters rather than treating their causes as confirmed.
+
+- [ ] **Reduce hit-effect noise.** Hits during enemy combat produce too much visual noise and too many particles.
+  Investigate the suspected shadow artifacts that appear when hits land.
+- [ ] **Make the lock-on reticle easier to notice.** Keep it elegant, but prioritize clear target readability;
+  this supersedes the earlier request for a subtler reticle if that makes it harder to see.
+- [ ] **Select gadgets with the right stick** after opening the gadget picker with D-pad Up.
+- [ ] **Fix lock-on strafe animation artifacts** when moving left and right.
+- [ ] **Speed up the main character's attacks** and investigate the first attack's occasional strange wind-up.
+- [ ] **Investigate stutters when new enemies appear.** Measure spawning and first-use rendering costs.
+- [ ] **Keep gun aim attached to the locked target** when aiming with L2 while locked on.
+- [ ] **Make small critters hittable with a sword** and reduce their excessive fleeing.
+- [ ] **Investigate shimmering arena ground lines** when approaching or walking away; check whether aliasing is the cause.
+- [ ] **Let enemies sometimes drop potions.**
+- [ ] **Run a flora and fauna reference pass across every world.** Follow the project's reference workflow.
+- [ ] **Add a visual and audio low-health cue** at one heart or less.
+- [ ] **Prevent the player from walking through enemies.**
+- [ ] **Allow mid-air sword combos** after jumping and attacking.
+- [ ] **Reduce crab health.** They currently take too many hits to defeat.
+- [ ] **Let the player hold a charged sword attack**, with an animation that clearly shows the held charge.
+
+### Qanat and the glass backpack
+
+- [ ] **Match the preferred Qanat tree reference.** The tree belongs directly in the center of town, not on a pedestal.
+- [ ] **Make the magic-backpack pickup text succinct and mysterious.** Use the author's proposed wording:
+  “A glass backpack? You’ve never seen anything like it. It’s empty though?”
+- [ ] **Show a clear controller button prompt to dismiss/continue the backpack pickup.** A button labelled
+  “Continue” alone does not tell the player which control to press.
+- [ ] **Only Nour calls out when the backpack is picked up**, saying just “hey you!”. No one else should come.
+
+## Loading follow-up: procedural worlds, no baking (2026-10-10)
+
+Author decision: **do not bake geometry or worlds into shipped assets**. Keep procedural generation and
+focus on faster first-install/cold loads as well as repeat loads. This supersedes the baking portion of
+any earlier faster-loading plan. Codex stopped its overlapping implementation; continue in Claude's
+existing loading/performance worktrees rather than starting another competing shader implementation.
+
+- [ ] **Prepare the starting view and nearby area first.** Compile only the surface/shadow variants needed
+  for the initial view and its safety margin; prepare upcoming variants incrementally before they are
+  seen. Include off-screen shadow casters, a quick camera turn, saved spawn positions, flight, portals
+  and cutscene cameras. Do not simply defer the same blocking work to the first movement or doorway.
+- [ ] **Finish shader consolidation and inspect the expensive algorithms.** Reuse the current shader
+  work, profile individual programs on Xbox, and investigate whether the ink pass's nested sampling and
+  large surface feature combinations need restructuring. Keep rare expensive features separate, share
+  cheap uniform-controlled features where measured worthwhile, and preserve the look with before/after
+  images. Moving shader strings to separate files alone does not reduce driver compilation cost.
+- [ ] **Defer distant procedural detail.** Generate nearby detail before it becomes visible; delay remote
+  interiors, decorative geometry and full crowd bodies where safe. Keep collision, quest state, routes,
+  landmarks and silhouettes available when required. Bound main-thread work and GPU preparation per frame,
+  handle cancellation and newly attached objects, and verify entrances, teleports and fast traversal.
+- [ ] **Audit and extend the existing LOD rather than replacing it blindly.** `src/lod.js` already provides
+  screen-size-based static simplification, a worker, hysteresis and shadow LOD; `src/skinned-lod.js` and
+  `src/crowd.js` cover character geometry, animation rates and crowd tiers. They generally start from
+  already-created full geometry: that helps frame rate but does not remove upfront generation. Evaluate
+  procedural coarse-first generation and spatial activation together with LOD; consider grouped distant
+  geometry only if draw-call measurements justify it. Keep everything procedural; no baked exports.
+- [ ] **Measure the result.** Compare matching builds, levels and quality on Mac, Nova and Xbox, separating
+  genuinely cold first-install loads from warm repeats. Split loading into module/assets, world creation,
+  collision, characters, shader compile/link/first use and GPU warm-up. Record first playable frame,
+  memory, and traversal p95/p99 stalls. Shader caching alone is not an acceptable explanation or solution
+  for the reported 3-second Nova versus 230-second Xbox load. Confirm the Xbox resource allocation.
+
 ## Worlds
 
 Never delete a temple or a character: a dismissed world moves whole to a dismissed-levels folder
@@ -47,7 +111,7 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 ## Combat, more like Breath of the Wild
 
-- [ ] **A subtler, more elegant lock-on reticle.**
+- [ ] **A clear, elegant lock-on reticle.** See the newer readability feedback above; it is currently too hard to notice.
 - [ ] **Locked on: back + jump does a back flip**; timed right against an attack it slows time for a few free hits.
 - [ ] **Locked on: left or right + jump does a side hop.**
 - [ ] **A defeated foe vanishes in a little puff of smoke** a second or so after its defeat animation.
