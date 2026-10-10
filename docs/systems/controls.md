@@ -121,7 +121,7 @@ pressed, both sticks where they are, the triggers' travel as bars; under it the 
 right stick's), the raw state live (pressed button indices, every axis), and the last six presses as
 `raw → button → what it does`: `button 7 → RB / R1 → the fluid blade`, `axis 9 = 0.14 → D-pad ↓ → call
 the mount`, `button 5 → not mapped`. What it does is the first clause of `src/bindings.js` `BINDINGS`
-for the controller's context (`actionLabel`). On in the Arena; View + D-pad ← there (a free chord), **F6**
+for the controller's context (`actionLabel`). Off by default (it covered the Arena on small screens); View + D-pad ← in the Arena (a free chord), **F6**
 anywhere, the dev menu, `?inputs=1` (`?inputs=0` keeps it off in the Arena). Off, `update()` returns at
 once and nothing is built.
 

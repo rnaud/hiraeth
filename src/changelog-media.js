@@ -485,6 +485,7 @@ const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': 
 const FROM_GUARD29 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena, the guardian called into its ring and walked by hand in a straight line at 2.2 m/s, the camera beside it following, eight frames a quarter second apart; before at main before the change (c2324c58), after on the branch (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.29': [
+    { match: 'The Arena no longer opens with the controller drawing', see: 'Open the Arena (?level=arena): the fight fills the screen. Press F6, or hold View and press D-pad ←, to bring the controller drawing back.' },
     // the temple guardians on the locomotion kit (docs/systems/procedural-animation.md, "Phase 6, the guardians")
     { match: 'The temple guardians walk on jointed legs', shots: [
       { name: 'guardian-walk-keeper', caption: 'The Cistern-Keeper walking, two seconds left to right and top to bottom: before, six straight legs swung from the hip on a clock, their feet sliding; after, knees out and up, each foot planted where it lands, three down while three step', from: FROM_GUARD29 },

@@ -9,6 +9,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The Cloud-Mother’s fins, the Lampless’s wings, the Elder’s stone feathers and the Echo’s veils ripple out from the body to their tips, and the Mother Snapper’s neck lags behind her lunges and whips after them.
 - When a guardian rears, crouches or coils for a move, its feet stay planted: it braces them wide first, the Cistern-Keeper rears on four legs with its forelegs off the floor, the Gardener on its hind pair, and the Elder hops up to stamp. The Clockwork Foreman and the Tooth-Warden lift their feet off the floor to spin.
 - The temple guardians walk on jointed legs that plant where they step and stay there until they step again: the Cistern-Keeper’s six legs in two tripods, the Gardener’s root legs, the Clockwork Foreman’s and the sentinels’ legs on their pistons, the First Sign’s, and the Elder’s long bird’s legs, which bend back. Their bodies ride on their feet, dipping and swaying as they go, and their necks and heads lag behind their turns.
+- The Arena no longer opens with the controller drawing over the view (it hid the fight on a small screen): F6, or View + D-pad ← in the Arena, still shows it.
 
 ## v1.28 — 2026-10-10
 

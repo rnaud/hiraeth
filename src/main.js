@@ -1257,9 +1257,10 @@ const closeControllerMenu = () => {
   else if (storyRt.dialogue.open) storyRt.dialogue.close();
   else pageEl.click();
 };
-// the input display (src/input-display.js): the pad drawn, every press with its raw index and what it does. On in
-// the Arena; F6 anywhere, View + D-pad ← in the Arena (a free chord, src/bindings.js), the dev menu, ?inputs=1
-inputDisplay.set(query.has('inputs') ? query.get('inputs') !== '0' : levelId === 'arena');
+// the input display (src/input-display.js): the pad drawn, every press with its raw index and what it does. Off by
+// default everywhere (it covered the view on a small screen in the Arena); F6 anywhere, View + D-pad ← in the Arena
+// (a free chord, src/bindings.js), the dev menu, ?inputs=1
+inputDisplay.set(query.has('inputs') && query.get('inputs') !== '0');
 inputDisplay.listen(() => devMenu.render());
 const toggleInputs = () => showToast(inputDisplay.toggle() ? 'Controller inputs shown (F6).' : 'Controller inputs hidden.');
 window.addEventListener('keydown', (e) => { if (e.code === 'F6' && !e.repeat) { e.preventDefault(); toggleInputs(); } });
