@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.23 — 2026-10-10
 
+- In the City-Shaft, Tobin now sends you back to Lio with his coin round the outer rim, past three more of his coin telescopes, each with its little yellow price board. A look through them is on the house.
 - In the Signal Market’s listeners’ lane, Wynn, the last of the old listeners, sits on a crate under the dishes halfway up, still listening to the silent tower after thirty years. He has something to say once it speaks.
 - In the Sealed Hangar, Gaspard, who walked round the ring, now rests his feet on the plateau in sight of the signal board and the portal, not alone far out at its edge.
 - In Viridel, Oro’s pyramid seed now rolls down to the pond’s south shore, in sight of the way to the fallen ship and the white runnel, instead of hiding on its far west bank.

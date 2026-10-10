@@ -37,6 +37,9 @@ export const CLIMB = { pad: 0.26, relay: { y: 92, r: 44, a: Math.PI }, upper: { 
  * edge, then along it to the red stair's gate (src/levels/incal.js STAIR.top, 0.51 rad). None on the rim's cab stop
  * (0 rad, where the cabs set you down) nor on the makers' trial by it.
  */
+/** Tobin's telescopes on the outer rim between him and Lio ([x, z]; the rim's top: RIM_TOP). */
+export const TOBIN_SCOPES = [[344, 108], [353, 93], [358, 74]];
+export const RIM_TOP = 200;
 export const RIM_POSTS = [[-0.19, 298], [-0.175, 280], [-0.15, 264], [-0.095, 264], [0.05, 264], [0.11, 264], [0.17, 264], [0.23, 264], [0.29, 264], [0.35, 264], [0.41, 264], [0.47, 264]];
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 /** The rim posts on the rim at height `top`: each { at (its foot), out (toward the shaft's middle) }. */
@@ -145,6 +148,19 @@ export function buildShaftWays(scene, { terraces, places }) {
   scene.add(scope);
   const sign = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 0.06).translate(0, 1.3, 0), makeMaterial({ color: '#f2c54b', flat: true }));
   sign.position.copy(viewAt).add(V(-1.6, 0, 1.4)); sign.rotation.y = scope.rotation.y; scene.add(sign);
+  // Tobin's telescopes (level design audit, fifth round: the hop from Tobin back to Lio was the 83 m you had just walked):
+  // three more of his coin telescopes round the outer rim between them, each on its post turned to the shaft and the
+  // palace over it, with a little yellow price board: the way he sends you back with his coin
+  const scopeGeo = mergeGeometries([new THREE.CylinderGeometry(0.08, 0.1, 1.2, 6).translate(0, 0.6, 0), new THREE.CylinderGeometry(0.14, 0.2, 1.3, 8).rotateX(-0.35).translate(0, 1.45, 0.3), new THREE.BoxGeometry(0.4, 0.3, 0.3).translate(0, 1.0, 0)].map(flat0));
+  const boardGeo = new THREE.BoxGeometry(0.9, 0.5, 0.05).translate(0.7, 1.0, -0.2);
+  const yellow = makeMaterial({ color: '#f2c54b', flat: true });
+  const scopes = TOBIN_SCOPES.map(([x, z]) => {
+    const g = new THREE.Group();
+    g.add(new THREE.Mesh(scopeGeo, brass), new THREE.Mesh(boardGeo, yellow));
+    g.position.set(x, RIM_TOP, z); g.rotation.y = Math.atan2(-x, -z); g.name = 'Tobin’s telescope';
+    scene.add(g);
+    return g.position.clone();
+  });
   return {
     landings, lights, locker,
     /** The rim posts, [x, y, z] from the Well's door to the red stair's gate (the level's line goes on down the stair to Nima). */
@@ -155,7 +171,9 @@ export function buildShaftWays(scene, { terraces, places }) {
     upper: { at: upperAt.clone(), stand: upperAt.clone().add(V(1.5, 0, 0)) },
     relay: { at: relayAt.clone(), glass: relayGlass, light: relayLight, look: relayAt.clone().add(V(0, 2.4, 0)) },
     view: { at: viewAt.clone(), stand: viewAt.clone().add(V(0.4, 0, 0.6)), scope: scope.position.clone().add(V(0, 1.6, 0)) },
+    /** Tobin's telescopes on the outer rim, and the way back past them from Tobin to Lio, [x, y, z]. */
+    scopes: { at: scopes[1].clone().add(V(0, 1, 0)), line: [[304, RIM_TOP, 114], ...scopes.map((p) => [p.x, RIM_TOP, p.z]), [340, RIM_TOP, 45]] },
     /** No house or tree on a landing (the ring and the post), the level's clearing (houses still drawn, not kept). */
-    clear: [...landings.map((L) => ({ x: L.at.x, y: L.y, z: L.at.z, r: 6 })), ...rim.map(({ at: p }) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 }))],
+    clear: [...landings.map((L) => ({ x: L.at.x, y: L.y, z: L.at.z, r: 6 })), ...rim.map(({ at: p }) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 })), ...scopes.map((p) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 }))],
   };
 }

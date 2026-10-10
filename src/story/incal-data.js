@@ -79,7 +79,7 @@ export const QUESTS = [
       // (walk up to Tobin and he pays as you come, grumbling: no conversation to sit through between Lio's two. The level
       // design audit v1.15 read three talks in a row here: Nima told, Lio, Tobin. src/story/incal.js; talking to him works too)
       { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Tobin, who sells views along the rim, owes him one: go and collect it', label: 'Tobin, seller of views', goto: 'tobin', radius: 4.5, vertical: 4 },
-      { id: 'back', text: 'Bring Tobin’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
+      { id: 'back', text: 'Bring Tobin’s coin back to Lio for your cab pass, round the outer rim past Tobin’s telescopes', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio', via: 'Tobin’s telescopes' },   // (via: the way his words send you, for the level design audit)
     ],
   },
   {
@@ -569,7 +569,7 @@ export const RIM = {
       { if: { not: { flag: 'box.incal.soles' } }, say: '~whisper~ A free one, since you’re not buying: there’s a box on top of *the lone stone pillar*, round the rim from your ship. A good climb. A terrible view, of a box.' },
       { after: LOOKED, if: { not: { quest: 'incal.pass', stage: 'fare' } }, say: '~playful~ Now they all look up, and for free. I’m ruined. I sell views of the light now. Same price.' },
       // (last: the list's places are the save's memory of what was said)
-      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Tobin counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio.* Tell him I tipped."],
+      { after: { quest: 'incal.pass', stage: 'fare' }, say: ["~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.", "~tired~ (Tobin counts out one bent coin, slowly, as if it were the last view on the rim.) *Take it to Lio, round the outer rim past my telescopes.* Have a look on the house. Tell him I tipped."],
         do: [{ give: 'fare' }, { advance: ['incal.pass', 'fare'] }] },
     ] },
   },

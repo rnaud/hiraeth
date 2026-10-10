@@ -266,7 +266,7 @@ export function setupIncal(ctx) {
     if (id !== 'incal.pass' || prev !== 'fare' || stage !== 'back' || quests.has('fare')) return;
     quests.give('fare');
     if (tobin) tobin.shout = { text: TOBIN_PAYS, until: (tobin.time ?? 0) + 4.5 };
-    toast('Tobin counts out one bent coin, slowly, as if it were the last view on the rim. Take it to Lio.');
+    toast('Tobin counts out one bent coin, slowly, as if it were the last view on the rim. Take it to Lio, he says, round the outer rim past his telescopes: a look through them is on the house.');
   });
 
   // the cabs don't stop in the depths; after Wren, hailing down there brings Wren
