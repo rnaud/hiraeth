@@ -4,6 +4,10 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.39 — 2026-10-10
 
+- A defeated foe lies where it fell for a second, then goes out in a little puff of pastel smoke instead of shrinking away.
+- You can lock on to a temple guardian in its fight, as to any foe: the mark frames it and reads its moves, and the camera keeps it ahead.
+- Flip or hop away just before a blow lands and time slows round you for a few seconds: the foe and the world crawl, a soft pastel haze closes in at the edges of the screen, nothing can touch you, and your sword reaches it from further off, swing after swing. It works against every creature and machine and against the temple guardians.
+- Locked on, jump with the stick held back is a back flip away from the foe, and held to a side a quick side hop. Each slips through a blow for a moment. Not locked on, or toward the foe, jump is still a jump, and the double jump stays.
 - A new game no longer sits for minutes on “mixing the inks…” when the graphics chip can’t keep up: the load draws what you will see first and spends at most a few seconds drawing ahead the rooms behind the doors, which are drawn as you come near them instead. On the Xbox the app also keeps its compiled shaders from one launch to the next.
 - Saves carry over: a save left in the sky stones or the Deep Wood wakes in Vael or Lorn where you stood, one left in the Sealed Hangar wakes at the Glass Dunes’ landing, and everything you had done there stays done.
 - The route is nine places now: the desert, Vael, Lorn, Viridel, the City-Shaft, the Glass Dunes, the Buried Machine, the Garden of Spheres and the Signal Market. The Sealed Hangar and the Atelier leave the map and the world list; their people are kept for later.

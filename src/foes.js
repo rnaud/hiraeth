@@ -4,7 +4,9 @@ import { registerTarget } from './targets.js';
 import { screened } from './wind-screens.js';
 import { hazardAt } from './hazards.js';
 import { workingsAt } from './workings.js';
-import { Telegraph, inArea } from './temples/boss.js';
+import { Telegraph, inArea, GUARDIANS_LIVE } from './temples/boss.js';
+import { foeThreat, guardianThreat, perfectAgainst } from './flurry.js';
+import { SmokePuffs, SMOKE } from './smoke-puff.js';
 import { ChargeGlow, TELL, groundMark, poseK } from './telegraph.js';
 import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
@@ -1414,6 +1416,32 @@ const BURST_TONES = {
   ray: ['#c98d4f', '#e8c58f', '#2b211f'], moth: ['#ff5fa2', '#5ff0e8', '#241a2e'],
 };
 
+/**
+ * A guardian as the lock-on sees it (v1.39; src/temples/boss.js Guardian, GUARDIANS_LIVE): the lock, the reticle, the
+ * camera and the blade read a foe's fields, so it answers them from the guardian: where it is, its chest, its body
+ * (the reticle frames its model), its wind-up (state 'wind' with its k), open (stunned), and pips for its phases left.
+ */
+export class GuardianLock {
+  constructor(g) { this.g = g; this.guardian = true; this._chest = new THREE.Vector3(); this.dead = undefined; }
+  get model() { return this.g.model; }
+  get alive() { const s = this.g.state; return (s === 'fight' || s === 'open' || s === 'shift' || s === 'wake') && !!this.g.model?.group?.parent; }
+  get pos() { return this.g.model.pos; }
+  get chest() { const m = this.g.model; return this._chest.copy(m.pos).addScaledVector(_up, m.floats ? 0 : (m.height ?? 3) * 0.5); }
+  get state() { const g = this.g; return g.state === 'fight' && g.attack ? (g.struck ? 'strike' : 'wind') : 'chase'; }
+  get k() { return this.g.attackK ?? 0; }
+  get stunned() { return this.g.state === 'open' ? 1 : 0; }
+  get def() {
+    const g = this.g, n = g.def.phases.filter((p) => !p.weary).length;
+    this._def ??= { radius: 1, hp: 1 };
+    this._def.radius = g.model.bodyR ?? (g.model.radius ?? 2.6) * 0.75; this._def.hp = n;
+    return this._def;
+  }
+  get hp() { const n = this.def.hp; return Math.max(0, n - Math.min(this.g.phaseIndex, n)); }
+}
+const _guardLocks = new WeakMap();
+/** The lock's stand-in for guardian g (one each). */
+export const guardianLock = (g) => { let L = _guardLocks.get(g); if (!L) _guardLocks.set(g, (L = new GuardianLock(g))); return L; };
+
 /** Every foe in a world: the packs of ink blots in the wilds, the machines in the temple, their looks and their targets. */
 export class Foes {
   constructor({ scene, level, levelId, content = null, physics, player, tool = null, sound = null, npcs = [], settings = null, notice = null, camera = null, lib = null, humans = null, waters = null, game = sharedGame, rng = Math.random }) {
@@ -1493,7 +1521,9 @@ export class Foes {
     const fwd = cam ? cam.getWorldDirection(new THREE.Vector3()) : null;
     // those ahead of the camera first, nearest the middle of the view and nearest you (a buried ray too: the
     // reticle follows its fin, dimmed: src/lock-reticle.js)
-    const cands = this.list.filter((f) => f.alive && f.dead === undefined && f.pos.distanceTo(P.pos) < LOCK.reach)
+    // (a guardian in its fight too: its body's edge within reach, GuardianLock)
+    const guards = [...GUARDIANS_LIVE].map(guardianLock).filter((L) => L.alive && L.pos.distanceTo(P.pos) - L.def.radius < LOCK.reach);
+    const cands = [...this.list.filter((f) => f.alive && f.dead === undefined && f.pos.distanceTo(P.pos) < LOCK.reach), ...guards]
       .map((f) => {
         const d = f.pos.distanceTo(P.pos), dot = fwd ? _v.subVectors(f.pos, P.pos).setY(0).normalize().dot(_w.copy(fwd).setY(0).normalize()) : 1;
         return { f, d, ahead: dot > 0.2, score: d * (1.6 - dot) };
@@ -1505,6 +1535,25 @@ export class Foes {
     this.lock = i >= 0 && i < cands.length - 1 ? cands[i + 1].f : i === -1 ? cands[0].f : null;
     if (this.lock) this.reticle?.acquire();
     return this.lock;
+  }
+
+  /**
+   * A back flip or a side hop begun now (Player.hop): is it a perfect dodge? The foe (or a guardian's GuardianLock) whose
+   * blow it slips, or null (src/flurry.js: the blow lands within dodgeLead of its wind-up, and you are in its way).
+   */
+  perfectDodge() {
+    const P = this.player;
+    if (!P) return null;
+    const slow = this.env?.slow?.() ?? 1, gentle = this.gentle;
+    if (this.on) for (const f of this.list) if (perfectAgainst(foeThreat(f, P, slow, f.possessed ? POSSESS.wind : 1), gentle)) return f;
+    for (const g of GUARDIANS_LIVE) if (g.model?.group?.parent && perfectAgainst(guardianThreat(g, P), gentle)) return guardianLock(g);
+    return null;
+  }
+  /** Is anything still fighting you (a foe up and near, a guardian awake)? The flurry ends early once nothing is. */
+  anyFighting(r = 28) {
+    const P = this.player;
+    if (!P) return false;
+    return this.list.some((f) => f.alive && f.dead === undefined && f.pos.distanceTo(P.pos) < r) || [...GUARDIANS_LIVE].some((g) => guardianLock(g).alive);
   }
 
   /** The locked foe as a target the blade turns to (fluid-blade.js lockTarget), or null. */
@@ -1524,7 +1573,7 @@ export class Foes {
     if (this.lockSlip > 0) { this.lockSlip = Math.max(0, this.lockSlip - dt); this.lock = null; }
     const f = this.lock, P = this.player;
     if (f && (!f.alive || f.dead !== undefined)) this.lock = this.nextLock(f);
-    else if (f && f.pos.distanceTo(P.pos) > LOCK.lose) this.lock = null;
+    else if (f && f.pos.distanceTo(P.pos) - (f.guardian ? f.def.radius : 0) > LOCK.lose) this.lock = null;
     if (typeof document === 'undefined' || !this.camera) return;
     (this.reticle ??= new LockReticle()).update(this.lock, this.camera, dt);
   }
@@ -2049,9 +2098,17 @@ export class Foes {
     if (f.id) this.game.set(f.id, true);
     if (f.guard && !this.list.some((x) => x !== f && x.guard === f.guard && x.alive)) this.game.set(f.guard.id, true);   // (the relic's guards are gone for good)
     if (!this.level?.foes?.noInk) gainInk(INK_OF[f.kind] ?? 1, { game: this.game, notice: this.notice });   // (src/ink.js: the blade grows with it; not from a game's endless waves)
-    f.dead = 0.8;   // (the look fades out over this)
+    // (it lies a while after its own defeat, then goes up in a puff of smoke: src/smoke-puff.js; gone at once, the puff at once)
+    f.dead = (f.dying ? SMOKE.linger : 0) + SMOKE.fade; f.puffed = false;
     // (src/chimes.js, main.js: what it leaves; `lost` when it went out of the world or into deep water)
     this.game.emit?.('foe:burst', { kind: f.kind, skin: f.skin, archetype: f.archetype, pos: f.pos.clone(), lost: !!f.lost, practice: !!this.practice?.kind, waves: !!this.waves });
+  }
+
+  /** The puff of smoke a defeated foe goes out in (src/smoke-puff.js: pooled, one mesh for all). */
+  puff(f) {
+    this.puffs ??= new SmokePuffs(this.scene ?? this.group);
+    const size = Math.max(0.5, (f.def.radius ?? 0.6) * 2 * Math.min(1.6, f.model.size ?? 1));
+    this.puffs.add(f.dying ? _w.copy(f.pos).addScaledVector(_up, Math.min(0.6, f.def.radius ?? 0.5)) : f.chest, size, f.model.tones ?? BURST_TONES[f.kind]);
   }
 
   update(dt, paused = false) {
@@ -2077,9 +2134,10 @@ export class Foes {
       else this.packRest = 3;
     }
     for (const f of this.list.slice()) {
-      if (f.dead !== undefined) {   // bursting: shrink away, then gone
+      if (f.dead !== undefined) {   // done: it lies a moment (SMOKE.linger), then shrinks away inside a puff of smoke, then gone
         f.dead -= dt;
-        f.model.group.scale.setScalar(Math.max(0.01, f.dead / 0.8) * (f.model.size ?? 1));
+        if (!f.puffed && f.dead <= SMOKE.fade) { f.puffed = true; this.puff(f); }
+        f.model.group.scale.setScalar(Math.max(0.01, Math.min(1, f.dead / SMOKE.fade)) * (f.model.size ?? 1));
         f.tele.hide(); f.glow?.hide();
         if (f.dead <= 0) this.remove(f);
         continue;
@@ -2131,6 +2189,7 @@ export class Foes {
     this.updateLock(dt);
     this.updateDebris(dt);
     this.shadePools?.update(dt);
+    this.puffs?.update(dt);
     if (this.level?.temple?.inside?.(P.pos)) this.templeKit();
     // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
     const fighting = this.list.some((f) => f.alive && (['chase', 'wind', 'strike', 'recover'].includes(f.state)) && f.pos.distanceTo(P.pos) < 28);
@@ -2781,5 +2840,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { this.offBell?.(); this.offBell = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.shadePools?.dispose(); this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
+  dispose() { this.offBell?.(); this.offBell = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
 }

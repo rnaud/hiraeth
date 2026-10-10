@@ -537,6 +537,17 @@ export const CHANGELOG_MEDIA = {
     ] },
     { match: 'The route is nine places now', see: 'Open the galactic map in the ship: nine places on the dotted line, the Glass Dunes between the City-Shaft and the Buried Machine.' },
     { match: 'Saves carry over', see: 'Load a save last played in the Sky Stones, the Deep Wood or the Sealed Hangar: it resumes in Vael, Lorn or the Glass Dunes, with your finds and pages kept.' },
+    { match: 'Locked on, jump with the stick held back is a back flip', shots: [
+      { name: 'back-flip', only: 'after', title: 'Back flip', caption: 'Locked on to an ink blot, back + jump: a fifth of a second into the back flip, seen from his side, carried away from the blot head over heels', from: FROM_FIGHT39 },
+      { name: 'side-hop', only: 'after', title: 'Side hop', caption: 'Right + jump: the side hop, leaning into it, from behind him; the blot was winding up, so it was a perfect dodge too (the haze at the edges)', from: FROM_FIGHT39 },
+    ], see: 'Lock on (R3 / Tab), hold the left stick back (S) and press jump (A / ×, Space): a back flip; to a side (A, D): a side hop. Toward the foe, it is a plain jump.' },
+    { match: 'Flip or hop away just before a blow lands', shots: [
+      { name: 'flurry', only: 'after', caption: 'A crab three fifths into winding up its spin, the slow time on: the pastel haze at the edges of the screen (the picture starts the slow time by hand at that moment)', from: FROM_FIGHT39 },
+    ], see: 'Lock on to a foe, wait for its wind-up (the mark turns coral and closes in) and flip or hop away just before it strikes: everything but you slows for three and a half seconds; swing. The combat review’s dodge.mjs did it against every archetype and guardian in the Arena.' },
+    { match: 'You can lock on to a temple guardian', see: 'In the Arena, call a guardian from the list (D-pad ↓), step into its ring and press R3 / Tab once it wakes: the mark frames it, and the back flip and the side hop work against its moves.' },
+    { match: 'A defeated foe lies where it fell for a second', shots: [
+      { name: 'smoke-puff', caption: 'A toad a second after its defeat ran out (the practice’s next toad already called in behind it): before, shrunk away to nothing; after, going out in its puff of pastel smoke', from: FROM_FIGHT39 },
+    ] },
   ],
   '1.38': [
     { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },

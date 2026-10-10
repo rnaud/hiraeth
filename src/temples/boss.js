@@ -199,6 +199,12 @@ export class PhaseMarks {
   dispose() { for (const l of this.lines) { l.removeFromParent(); l.geometry.dispose(); } releaseMaterial(this.mat); }
 }
 
+/**
+ * The guardians in play (a temple's, the Arena's sparring one): src/foes.js locks on to them (GuardianLock) and reads their
+ * moves for the perfect dodge (src/flurry.js guardianThreat). Added as one is made, gone with dispose().
+ */
+export const GUARDIANS_LIVE = new Set();
+
 export class Guardian {
   /**
    * @param rt     the temple runtime (player, sound, notice, root, rumble, logic)
@@ -254,6 +260,7 @@ export class Guardian {
       }));
     }
     this.place();
+    GUARDIANS_LIVE.add(this);
   }
 
   get phaseIndex() { const P = this.def.phases; for (let i = 0; i < P.length; i++) if (this.meter < P[i].to - 1e-6) return i; return P.length; }
@@ -521,6 +528,7 @@ export class Guardian {
     if (a.dash) this.dashing = a.dash;
     if (a.wave) this.addWave(a);
     if (P.dead || P.down) return false;
+    if (P.untouchable?.()) return false;   // (a perfect dodge's flurry: src/flurry.js)
     if (P.pos.y - this.arena.y > (a.reachUp ?? (a.shape === 'lane' ? 3.5 : HIT.airborne))) return false;   // jumped clear (a beam reaches a little higher)
     const at = this.points(a).find((p) => inArea(a, p, this.attackH, P.pos));
     if (!at) return false;
@@ -552,7 +560,7 @@ export class Guardian {
       w.r += w.W.speed * dt;
       w.mesh.scale.set(w.r, 1 + 6 * (1 - w.r / (w.W.reach + 0.01)) * 0.3, w.r);
       const d = P ? Math.hypot(P.pos.x - w.at.x, P.pos.z - w.at.z) : Infinity;
-      if (!w.hit && P && !P.dead && !P.down && Math.abs(d - w.r) < (w.W.width ?? 0.6) && P.pos.y - this.arena.y < 0.6) { w.hit = true; this.catch(w.a, P, w.at, w.W.damage ?? 0.5, w.W.knock ?? 7); }
+      if (!w.hit && P && !P.dead && !P.down && !P.untouchable?.() && Math.abs(d - w.r) < (w.W.width ?? 0.6) && P.pos.y - this.arena.y < 0.6) { w.hit = true; this.catch(w.a, P, w.at, w.W.damage ?? 0.5, w.W.knock ?? 7); }
       if (w.r > w.W.reach) { w.mesh.removeFromParent(); this.waves.splice(this.waves.indexOf(w), 1); }
     }
   }
@@ -631,6 +639,7 @@ export class Guardian {
     R.scale.set(K.s, K.s * K.sy, K.s);
   }
   dispose() {
+    GUARDIANS_LIVE.delete(this);
     for (const f of this.offs) f();
     this.tele.group.removeFromParent(); this.tele.dispose?.();
     for (const T of this.teles) T.dispose();

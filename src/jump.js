@@ -152,35 +152,48 @@ export function boostVelocity(vel, up, fwd, { up: burst = DOUBLE_JUMP.up, forwar
 /** For tests and the HUD: the phase's leading stage given plain numbers. */
 export const jumpStage = (s) => jumpPhase(s).stage;
 
-// ---- the double jump's flip (the lift valve: Player.doubleJump)
-// A front flip on the second jump, laid over everything else (it is the last turn of the body): the body turns once
-// head over heels about its hips (`pivot` m over the feet, the jets' lean turns about the same point), quick in the
-// middle and eased at both ends, tucked as it goes over (knees to the chest, arms round the shins) and opening out
-// to land. Short (`time` s: done before the double jump's top, 0.47 s up), so it never reaches the ground. Nothing
-// of it changes the flight.
-export const FLIP = { time: 0.44, pivot: 0.95, tuck: { legs: 1.5, knees: 2.0, arms: 1.1, elbows: 1.3, torso: 0.35, head: 0.3 } };
+// ---- the flips (the double jump's front flip: Player.doubleJump; locked on, the back flip and the side hop: Player.hop)
+// A flip laid over everything else (it is the last turn of the body): the body turns about its hips (`pivot` m over the
+// feet, the jets' lean turns about the same point), quick in the middle and eased at both ends, tucked as it goes over
+// (knees to the chest, arms round the shins) and opening out to land. Short (`time` s), so it never reaches the ground.
+// Nothing of it changes the flight. A spec says which way: `axis` 'x' (head over heels: `turns` +1 a front flip, −1 a back
+// flip) or 'z' (a roll to a side: `lean`, rad, out and back rather than all the way round: the side hop), and how much it tucks.
+export const FLIP = { time: 0.44, pivot: 0.95, axis: 'x', turns: 1, tuck: { legs: 1.5, knees: 2.0, arms: 1.1, elbows: 1.3, torso: 0.35, head: 0.3 } };
+/** Locked on, back + jump: the evade's back flip, the front flip turned the other way, a little longer (its hop is higher). */
+export const BACK_FLIP = { ...FLIP, time: 0.5, turns: -1, tuck: { ...FLIP.tuck, torso: -0.25, head: -0.2 } };
+/** Locked on, left or right + jump: the side hop, a lean into the hop and back, the legs gathered (`side` set per hop: ±1, + his right). */
+export const SIDE_HOP = { time: 0.36, pivot: 0.95, axis: 'z', lean: 0.42, side: 1, tuck: { legs: 0.7, knees: 1.1, arms: 0.35, elbows: 0.6, torso: 0.12, head: 0.08 } };
 
 /** The share of the turn done (0..1) at s seconds into the flip. */
-export function flipTurn(s) {
-  const e = THREE.MathUtils.clamp(s / FLIP.time, 0, 1);
+export function flipTurn(s, F = FLIP) {
+  const e = THREE.MathUtils.clamp(s / F.time, 0, 1);
   return e * e * e * (e * (e * 6 - 15) + 10);   // (smootherstep: the turn eases in and out)
 }
 /** How tucked (0..1) at s seconds into the flip: in by the first third, open again by the end. */
-export function flipTuck(s) {
-  const e = s / FLIP.time;
+export function flipTuck(s, F = FLIP) {
+  const e = s / F.time;
   if (e <= 0 || e >= 1) return 0;
   return e < 0.3 ? sm(e, 0, 0.3) : 1 - sm(e, 0.62, 1);
 }
-
-const _fq = new THREE.Quaternion(), _fx = new THREE.Vector3(1, 0, 0), _fp = new THREE.Vector3();
 /**
- * Lay the flip on the posed rig `c` (Player.animateClips, last): s seconds into it, k how much of it (0..1). The
- * tuck bends the limbs; the turn goes round the body's x (its right: +x is a forward pitch, head first) about the
- * pivot, so the hips stay where the flight carries them.
+ * The body's turn (rad) about the spec's axis at s seconds (pure: tests): a flip goes all the way round, `turns` × 2π,
+ * signed (+ forward, head first; − backward); the side hop leans out and comes back (a sine of the time: none at the ends),
+ * signed by `side` (rolling toward the side it hops to).
  */
-export function flipPose(c, s, k = 1) {
-  if (s == null || s < 0 || s >= FLIP.time || !c?.body) return false;
-  const T = FLIP.tuck, q = flipTuck(s) * k;
+export function flipAngle(s, F = FLIP) {
+  if (F.axis === 'z') { const e = THREE.MathUtils.clamp(s / F.time, 0, 1); return (F.side ?? 1) * F.lean * Math.sin(Math.PI * e); }   // (+ about z: the head toward his right, -x)
+  return Math.PI * 2 * flipTurn(s, F) * (F.turns ?? 1);
+}
+
+const _fq = new THREE.Quaternion(), _fx = new THREE.Vector3(1, 0, 0), _fz = new THREE.Vector3(0, 0, 1), _fp = new THREE.Vector3();
+/**
+ * Lay a flip on the posed rig `c` (Player.animateClips, last): s seconds into it, k how much of it (0..1), F the spec
+ * (FLIP, BACK_FLIP, SIDE_HOP). The tuck bends the limbs; the turn goes round the body's x (its right: + a forward pitch,
+ * head first) or z (its forward: a roll) about the pivot, so the hips stay where the flight carries them.
+ */
+export function flipPose(c, s, k = 1, F = FLIP) {
+  if (s == null || s < 0 || s >= F.time || !c?.body) return false;
+  const T = F.tuck, q = flipTuck(s, F) * k;
   for (let i = 0; i < 2; i++) {
     const side = i === 0 ? -1 : 1;
     turn(c.legs[i], -T.legs * q, 0, side * 0.12 * q);
@@ -190,11 +203,34 @@ export function flipPose(c, s, k = 1) {
   }
   turn(c.torso, T.torso * q, 0, 0);
   turn(c.head, T.head * q, 0, 0);
-  const a = Math.PI * 2 * flipTurn(s) * k;
-  _fq.setFromAxisAngle(_fx, a);
+  _fq.setFromAxisAngle(F.axis === 'z' ? _fz : _fx, flipAngle(s, F) * k);
   c.body.quaternion.premultiply(_fq);
   // about the pivot: the body's origin is at the feet, so turn its offset from the pivot with it
-  _fp.set(0, FLIP.pivot, 0);
+  _fp.set(0, F.pivot, 0);
   c.body.position.sub(_fp).applyQuaternion(_fq).add(_fp);
   return true;
+}
+
+// ---- the locked-on hops (Player.hop; docs/systems/controls.md, docs/systems/foes.md "The back flip and the side hop")
+/**
+ * Locked on, jump with the stick held back or to a side is an evade in the air: `up` m/s up and `out` m/s away (back, or to
+ * that side), carried through the air without steering, with the evade's dodge frames (`iframes`, s into it: FluidBlade.hop);
+ * `stick` the least tilt that counts, `back` the angle (rad off straight ahead) past which it is the back flip, `side` the
+ * angle past which it is the side hop (in between and ahead: the plain jump). `rest` s on the ground before the next hop.
+ */
+export const HOP = {
+  back: { up: 9, out: 7.5, iframes: [0.02, 0.32], spec: BACK_FLIP },
+  side: { up: 6.5, out: 8, iframes: [0.02, 0.26], spec: SIDE_HOP },
+  stick: 0.5, backAt: 2.1, sideAt: 0.85, rest: 0.12,
+};
+/**
+ * Which hop a jump is, locked on (pure: tests): `along` and `aside` the stick's way along the line to the foe (+ toward it)
+ * and across it (+ his right). 'back' | 'left' | 'right', or null (no lock, the stick barely tilted, or toward the foe: a jump).
+ */
+export function hopKind(along, aside, locked = true, H = HOP) {
+  if (!locked || Math.hypot(along, aside) < H.stick) return null;
+  const a = Math.abs(Math.atan2(aside, along));   // (0 straight at the foe, π straight away)
+  if (a >= H.backAt) return 'back';
+  if (a >= H.sideAt) return aside > 0 ? 'right' : 'left';
+  return null;
 }

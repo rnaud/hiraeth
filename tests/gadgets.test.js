@@ -117,7 +117,7 @@ test('the pad: LT / L2 aims and RT / R2 uses the gadget in hand, Y / △ whistle
   assert.deepEqual(gadgetInput({ KeyB: true, ShiftLeft: true }), { ...none, pick: true, back: true });
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /ring: \(\) => itemFx\.ring\(\)/, 'with nothing in hand the use button sounds the whistle (V)');
-  assert.ok(main.indexOf('gadgets.control(') < main.indexOf('player.update(dt, busy() ? noInput : ctl'), 'the reel acts before the traveller moves');
+  assert.ok(main.indexOf('gadgets.control(') < main.indexOf('player.update(pdt, busy() ? noInput : ctl'), 'the reel acts before the traveller moves');
   assert.ok(main.indexOf('tool.update(dt, ctl') < main.indexOf('gadgets.update('), 'the gadgets aim after the fluid tool');
 });
 

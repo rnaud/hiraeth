@@ -96,7 +96,8 @@ import { Foes } from './foes.js';
 import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
-import { feelDt, shakeCamera, kick } from './feel.js';
+import { feelDt, shakeCamera, kick, selfDt, flurry, endFlurry, flurryLeft } from './feel.js';
+import { FLURRY, FlurryFx } from './flurry.js';
 import { DevMenu } from './dev-menu.js';
 import { HitboxOverlay } from './hitbox-overlay.js';
 import { hitboxes, registerHitboxes } from './hitboxes.js';
@@ -815,6 +816,21 @@ connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound });
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
 const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
+// Locked on, the back flip and the side hop (src/jump.js HOP, Player.hop): their dodge frames (FluidBlade.hop), and begun
+// just before a blow lands, a perfect dodge: the flurry, the world slowed round you a few seconds (src/flurry.js)
+const flurryFx = new FlurryFx();
+let flurryAgainAt = 0;
+function startFlurry() {
+  const now = performance.now() / 1000;
+  if (flurryLeft() > 0 || now < flurryAgainAt) return;
+  flurry(FLURRY.time, FLURRY.rate, FLURRY.ease);
+  flurryAgainAt = now + FLURRY.time + FLURRY.again;
+  sound.flurry?.(true); kick(0.1); rumblePlay('flurry');
+  if (!game.flag('hint.flurry') && hintsFor('tip')) { game.set('hint.flurry', true); showToast(tr('hint.flurry')); }   // (said after the fact, hints full)
+}
+player.onHop = (kind, win) => { tool.blade?.hop(win); if (foes.perfectDodge()) startFlurry(); };
+if (tool.blade) tool.blade.onHopDodge = () => startFlurry();
+player.untouchable = () => flurryLeft() > 0;   // (a guardian's blows and rings pass you by: src/temples/boss.js)
 { // locked on, the look's sideways motion is the lock's: a quick flick (the right stick, the mouse, a drag) switches to the next foe that way (src/foes.js FLICK)
   const look = rig.look.bind(rig);
   rig.look = (dx, dy) => { if (dx || dy) firstSteps?.looked(); if (foes.lock && !busy() && foes.flickLook(dx)) dx = 0; look(dx, dy); };
@@ -1417,6 +1433,7 @@ const controller = new Controller({
       // finds the objective (Q; src/scout.js), as a scan does in other games
       const had = foes.lock;
       if (!foes.cycleLock() && !had && !minigame) scout.ping();
+      else if (foes.lock && !had && !game.flag('hint.hop.taught') && hintsFor('teach')) { game.set('hint.hop.taught', true); showToast(keyText(tr('hint.hop'), { teach: true })); }   // (locked on, a new verb: the hops, taught once)
     }
     if (name === 'l3' && level.jump) level.jump(-1);
     if (name === 'worldDebug' && (worldDebug.open || !busy() || menuRoot() === picker)) worldDebug.toggle();   // L3 + R3: the world debug menu (F2; the hitbox overlay is in it, and F4)
@@ -1715,7 +1732,8 @@ function frame(ts) {
   const rawDt = timer.getDelta();
   const realDt = Math.min(rawDt, 1 / 20);
   const dt = feelDt(realDt);   // (a hit-stop slows the world for a few hundredths of a second: src/feel.js)
-  const padInput = controller.update(dt, !document.hidden && document.hasFocus());
+  const pdt = selfDt();   // (the traveller's own step: a perfect dodge's flurry slows the world round him, not him: src/flurry.js)
+  const padInput = controller.update(pdt, !document.hidden && document.hasFocus());
   inputDisplay.update();   // (off: nothing)
   inputMode.frame(controller.index !== null);
   controllerActive = inputMode.controller;
@@ -1760,16 +1778,16 @@ function frame(ts) {
     const usingLens = expedition?.update(dt, player, ctl, busy());
     if (usingLens && ctl.KeyE) player._eHeld = true; // the same press must not whistle after the last turn
     if (interacted) player._eHeld = true;
-    gadgets.control(dt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
-    player.update(dt, busy() ? noInput : ctl, rig.yaw);
+    gadgets.control(pdt, busy() ? noInput : ctl, busy() || ship.playing || (!!minigame && !minigame.def.trial));   // (a trial in the world keeps the gadgets: the fan in the skiff's sail)   // (before the traveller moves: the hook's reel sets his velocity; a game takes the buttons)
+    player.update(pdt, busy() ? noInput : ctl, rig.yaw);
     // (a wider arm for what needs to see ahead and below: gliding, the jets the more the faster; a little for climbing and swimming)
     const jets = player.onJets, jetSpeed = jets ? player.vel.length() : 0;
     const wide = player.riding ? null : player.gliding ? 7 : jets || player.jetHold ? 3.5 + Math.min(jetSpeed, 30) * 0.12 : player.climbing ? 1.5 : player.swim ? 0.8 : 0;
     // flying on the jets the camera comes round behind the nose and tips with it, as a ride's does (the right stick or the mouse take it for a moment)
     const jetShot = jets ? (jetShotK.pitch = jetCameraPitch(player.jetFlight.pitch), jetShotK) : null;
-    rig.follow(player.ride?.heading ?? player.heading, dt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
+    rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
-    rig.update(player.pos, dt, player.frame);
+    rig.update(player.pos, pdt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
     if (minigame) minigame.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): its clock, targets, waves; after the rig, so it may take the camera (src/minigames/)
     shakeCamera(camera, realDt);   // a blow's jolt (src/feel.js)
@@ -1777,8 +1795,8 @@ function frame(ts) {
   boxes.update(dt, t, { camera });   // (after the player: it poses the kneel; before the ship, which places its camera)
   itemFx.update(dt, t);
   ship.update(dt, t, mergedInput, { photo: photo.on });   // inside / outside, its scenes and their camera
-  tool.update(dt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
-  gadgets.update(dt, busy() || photo.on || ship.playing || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
+  tool.update(pdt, ctl, busy() || photo.on || !!minigame?.drives);   // (a game on foot keeps the blade and the gun)
+  gadgets.update(pdt, busy() || photo.on || ship.playing || (!!minigame && !minigame.def.trial));   // (after the tool: an aiming gadget's camera and pose win)
   flammables.update(dt, t, player.pos);
   chemistry.update(dt, player.pos);
   trialsRt?.update(dt, t);   // the trials' wind columns and signs (src/trials/)
@@ -1891,6 +1909,8 @@ function frame(ts) {
   reactiveWorld.update(dt, t, player, camera, busy() || photo.on);
   wildlife.update(dt, t, player, camera, busy() || photo.on);
   foes.update(dt, busy() || photo.on || ship.playing);
+  if (flurryLeft() > 0 && !foes.anyFighting()) endFlurry();   // (nothing left to cut: the world comes back to speed)
+  flurryFx.update();
   if (!(busy() || photo.on || ship.playing)) chimes.update(dt, player.dead ? null : player.pos);   // (src/chimes.js: picked up walking over them, or drawn in)
   chimeView.update(chimes, camera);
   // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)

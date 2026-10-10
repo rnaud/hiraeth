@@ -8,6 +8,10 @@ import * as THREE from 'three';
 //   slowMo(0.4, 0.35)      the world runs at 35% for the next 0.4 s (of real time), after any hit-stop (the last foe of a fight)
 //   kick(0.4)              the camera jolts (0..1, adds up to 1) and settles over FEEL.settle s
 //   feelDt(dt) → dt        per frame, the world's time step
+//   selfDt() → dt          this frame's step for the traveller (his body, his blade, the camera): the world's, but not
+//                          slowed by a flurry
+//   flurry(s, rate)        the perfect dodge's slow time (src/flurry.js): the world (the foes, the guardians, everything
+//                          but the traveller) at `rate` for s seconds of his time, easing in and out (FLURRY.ease)
 //   shakeCamera(camera, dt)
 //
 // The player's motion settings (src/ui.js: "Reduce motion", "Camera shake"; docs/systems/ui.md) turn them down:
@@ -15,7 +19,7 @@ import * as THREE from 'three';
 //   setMotion({ shake: 0.5 })     the kicks at half their size (0: none)
 
 export const FEEL = { slow: 0, settle: 0.28, reach: 0.14, maxStop: 0.14 };
-const state = { stop: 0, shake: 0, t: 0, slow: 0, rate: 1 };
+const state = { stop: 0, shake: 0, t: 0, slow: 0, rate: 1, self: 0, flurry: 0, flurryFor: 0, flurryRate: 1, flurryEase: 0.2 };
 const motion = { reduce: false, shake: 1 };
 
 /** The motion settings (src/ui.js applyAccess). */
@@ -32,16 +36,50 @@ export function hitStop(s) { if (motion.reduce) return; state.stop = Math.min(FE
 /** Slow motion for s seconds of real time at `rate` of the world's speed (eases back to full over its last third). */
 export function slowMo(s, rate = 0.35) { if (motion.reduce) return; state.slow = Math.max(state.slow, s); state.slowFor = state.slow; state.rate = rate; }
 export function kick(k) { if (motion.reduce) return; state.shake = Math.min(1, state.shake + k * motion.shake); }
-/** The world's step this frame: nothing during a hit-stop (the frame freezes). */
+/**
+ * The world's step this frame: nothing during a hit-stop (the frame freezes); slowed under slowMo and under a flurry. The
+ * traveller's own step (selfDt) is the same but for the flurry: it is the world that slows round him, not he.
+ */
 export function feelDt(dt) {
+  let step;
   if (state.stop <= 0) {
-    if (state.slow <= 0) return dt;
-    state.slow = Math.max(0, state.slow - dt);
-    const ease = Math.min(1, state.slow / (state.slowFor / 3));   // (1 until the last third, then back to full speed)
-    return dt * THREE.MathUtils.lerp(1, state.rate, ease);
+    if (state.slow <= 0) step = dt;
+    else {
+      state.slow = Math.max(0, state.slow - dt);
+      const ease = Math.min(1, state.slow / (state.slowFor / 3));   // (1 until the last third, then back to full speed)
+      step = dt * THREE.MathUtils.lerp(1, state.rate, ease);
+    }
+  } else {
+    state.stop -= dt;
+    step = Math.max(dt * FEEL.slow, 1e-5);   // (frozen, but never a zero step: some systems divide by it)
   }
-  state.stop -= dt;
-  return Math.max(dt * FEEL.slow, 1e-5);   // (frozen, but never a zero step: some systems divide by it)
+  state.self = step;
+  return step * flurryScale(dt);
+}
+/** The traveller's step this frame (after feelDt): the world's without the flurry's slowing. */
+export const selfDt = () => state.self;
+/**
+ * The flurry's slow time: the world at `rate` of the traveller's speed for `s` s of his (real) time, eased in and out
+ * over `ease` s. Not turned off by Reduce motion: it is a move, not a flourish (its screen treatment is: src/flurry.js).
+ */
+export function flurry(s, rate = 0.12, ease = 0.2) { state.flurry = s; state.flurryFor = s; state.flurryRate = rate; state.flurryEase = ease; }
+/** End a flurry now (its foe gone: it eases back over its ease). */
+export function endFlurry() { if (state.flurry > state.flurryEase) state.flurry = state.flurryEase; }
+/** A flurry is on: s left (of his time), or 0. */
+export const flurryLeft = () => Math.max(0, state.flurry);
+/** How slowed the world is now by a flurry (1: not at all), the clock run on by dt (real seconds). */
+function flurryScale(dt) {
+  if (state.flurry <= 0) return 1;
+  const into = state.flurryFor - state.flurry, e = state.flurryEase;
+  state.flurry = Math.max(0, state.flurry - dt);
+  const k = Math.min(1, into / e, state.flurry / e);   // (in over its first `ease` s, out over its last)
+  return THREE.MathUtils.lerp(1, state.flurryRate, Math.max(0, k));
+}
+/** (tests, the screen treatment) how far into the slow time it is now: 0 none .. 1 fully slowed. */
+export function flurryK() {
+  if (state.flurry <= 0) return 0;
+  const into = state.flurryFor - state.flurry, e = state.flurryEase;
+  return Math.max(0, Math.min(1, into / e, state.flurry / e));
 }
 const _o = new THREE.Vector3();
 /** The camera's jolt (after the rig placed it): a quick wobble, smaller as it settles. */
@@ -55,4 +93,4 @@ export function shakeCamera(camera, dt) {
 }
 /** (tests) */
 export const feelState = () => ({ ...state });
-export function resetFeel() { state.stop = 0; state.shake = 0; state.t = 0; state.slow = 0; state.rate = 1; }
+export function resetFeel() { state.stop = 0; state.shake = 0; state.t = 0; state.slow = 0; state.rate = 1; state.flurry = 0; state.flurryFor = 0; state.self = 0; }

@@ -1845,6 +1845,15 @@ export class Sound {
     this.sweep(t, 140, 55, 0.35, 0.12, 'sine');
   }
 
+  /** A perfect dodge's flurry (src/flurry.js): a breath of air drawn in and a slow falling glass note as the world slows. */
+  flurry() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.32, type: 'bandpass', freq: 1400, q: 0.8, vol: 0.09, rate: 0.6 });
+    this.sweep(t, 1900, 620, 0.9, 0.05, 'sine');
+    [12, 7].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.04 + i * 0.16, 0.05, 'sine', this.fx));
+  }
+
   /** The dash cut (src/fluid-blade.js DASH): a low rush of air under the swing. */
   fluidDash() {
     if (!this.ctx) return;

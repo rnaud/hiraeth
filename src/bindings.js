@@ -52,7 +52,7 @@ export const KEYS = {
  */
 export const BINDINGS = {
   foot: [
-    ['A', 'jump · again in the air: the double jump (the lift valve) · held in the air: the jets, or the wings (with L3: the wings)'],
+    ['A', 'jump · again in the air: the double jump (the lift valve) · held in the air: the jets, or the wings (with L3: the wings) · locked on, with the stick back or to a side: the back flip, the side hop'],
     ['B', 'evade (the stick\'s way, or a backstep)'],
     ['X', 'interact: use, talk, pick up, get on'],
     ['Y', 'the bell-note whistle · the echo shell'],

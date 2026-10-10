@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { allTargets, targetsInCone } from './targets.js';
-import { hitStop, kick } from './feel.js';
+import { hitStop, kick, flurryLeft } from './feel.js';
+import { FLURRY } from './flurry.js';
 import { hasUpgrade, UPGRADES } from './ink.js';
 import { fistGrip, carry, fitScale } from './blade-grip.js';
 import { buildSword, BladeWake, wakeStyle, WAKE_TONES, HILT } from './fluid-sword.js';
@@ -360,6 +361,8 @@ export class FluidBlade {
     this.evadeHeld = false; this.evadeT = 0; this.evadeCool = 0; this.evadeDir = new THREE.Vector3();
     // its i-frames: how long it has run, whether it was given them, the rest before the next can be, a blow swallowed
     this.evadeAge = Infinity; this.evadeGranted = false; this.iframeRest = 0; this.dodged = false; this.gentle = false;
+    // the locked-on hops' own dodge frames (hop(): the back flip, the side hop; src/jump.js HOP): how long it has run, its window
+    this.hopAge = Infinity; this.hopWin = null; this.hopGranted = false;
     this.hitTargets = new Set(); this.previousBlade = null; this.buffered = 0; this.closeIn = 0;
     // the counters: the riposte's window after a perfect parry, the dash cut's after an evade (and its cooldown)
     this.sinceParry = Infinity; this.sinceEvade = Infinity; this.dashWant = false; this.dashCool = 0;
@@ -425,7 +428,22 @@ export class FluidBlade {
   }
 
   /** The evade's i-frames are on now (`gentle`: the Gentle setting's longer window). */
-  iframes(gentle = this.gentle) { return this.evadeT > 0 && evadeInvulnerable(this.evadeAge, gentle, this.evadeGranted); }
+  iframes(gentle = this.gentle) { return (this.evadeT > 0 && evadeInvulnerable(this.evadeAge, gentle, this.evadeGranted)) || this.hopFrames(gentle); }
+  /** A hop's dodge frames are on now (Gentle: to its end, as the evade's). */
+  hopFrames(gentle = this.gentle) {
+    const W = this.hopWin;
+    return !!W && this.hopGranted && this.hopAge >= W[0] && this.hopAge < (gentle ? W[1] + 0.06 : W[1]);
+  }
+  /**
+   * A locked-on hop begins (Player.hop: the back flip, the side hop): its dodge frames `win` [from, to] s into it, unless a
+   * window closed less than EVADE.rest ago (spamming hops is never unbroken cover, as with the evade). The guard drops, a
+   * swing in its follow-through stops.
+   */
+  hop(win) {
+    this.hopAge = 0; this.hopWin = win; this.hopGranted = this.iframeRest === 0; this.dodged = false;
+    if (this.swinging && (this.phase === 'recover' || this.charging)) this.stop();
+    this.guardK = 0; this.since = 0;
+  }
 
   /**
    * A blow (`kind`: 'strike', 'grab', 'shockwave', 'burn') from `from` while evading: swallowed by the i-frames
@@ -434,9 +452,11 @@ export class FluidBlade {
    */
   dodge(from, kind = 'strike', gentle = this.gentle) {
     this.gentle = !!gentle;
+    if (flurryLeft() > 0) return true;   // (the flurry: nothing touches you while the world is slowed, src/flurry.js)
     if (!this.iframes(gentle)) return false;
     if (this.dodged || kind === 'burn') return true;
     this.dodged = true;
+    if (this.hopFrames(gentle)) this.onHopDodge?.(from, kind);   // (a hop's frames swallowed a blow: a perfect dodge too, main.js starts the flurry)
     const T = this.tool, p = T.player;
     hitStop(EVADE.perfect); kick(0.08);
     T.sound?.fluidMode?.('stun');
@@ -470,6 +490,10 @@ export class FluidBlade {
     this.evadeAge = this.evadeT > 0 ? this.evadeAge + dt : Infinity;
     this.iframeRest = Math.max(0, this.iframeRest - dt);
     if (wasOn && !(this.evadeT > 0 && this.evadeAge < iframeWindow(this.gentle)[1])) this.iframeRest = EVADE.rest;
+    const hopWas = this.hopFrames();
+    this.hopAge += dt;
+    if (hopWas && !this.hopFrames()) this.iframeRest = EVADE.rest;
+    if (this.hopWin && this.hopAge > this.hopWin[1] + 1) this.hopWin = null;
     this.guardRearm = Math.max(0, this.guardRearm - dt);
     this.guardAge += dt;
     if (held && !this.guardHeld) { this.guardAge = 0; this.perfectReady = this.guardRearm === 0; this.guardRearm = GUARD.rearm; }
@@ -551,7 +575,7 @@ export class FluidBlade {
       } else if (this.t * this.dur >= this.sample.wind && previousTime < this.sample.wind + this.sample.active) this.strike();
       if (this.t >= 1) {
         this.last = this.n; this.n = -1; p.swingMove = null;
-        if (this.last === 2 || ENDS.has(this.special)) { this.cool = BLADE.cooldown; this.chainT = 0; }
+        if (this.last === 2 || ENDS.has(this.special)) { this.cool = BLADE.cooldown * (flurryLeft() > 0 ? FLURRY.cool : 1); this.chainT = 0; }   // (a flurry's blows come quicker)
         else { this.chainT = BLADE.chain; if (this.queued) this.start(this.last + 1); }
         this.queued = false;
       }
@@ -673,7 +697,7 @@ export class FluidBlade {
     const rise = foe && this.special !== LUNGE && !force && p.onGround ? riseTo(foe.position().dot(U) - p.pos.dot(U) - 1.1, flat, time) : null;
     this.rising = !!rise;
     if (rise) p.riseKick = { up: rise.up, speed: rise.speed, dir: this.dir.clone().normalize() };
-    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : MAGNET) : 0;
+    this.closeIn = foe && !rise && this.special !== LUNGE && this.special !== DASH && p.onGround ? closeInSpeed(flat, foe.reach ?? foe.radius ?? 0.6, pullT, force === RIPOSTE ? { ideal: RIPOSTE.ideal, max: MAGNET.max } : flurryLeft() > 0 ? { ...MAGNET, max: FLURRY.reach } : MAGNET) : 0;   // (in a flurry: from further, src/flurry.js)
     this.closeLeft = this.closeIn * pullT;
     this.aimAt(foe, flat - this.closeLeft, !rise && p.onGround && this.special !== AIR);   // (aimed from where the pull will have him)
     if (force === DASH) {

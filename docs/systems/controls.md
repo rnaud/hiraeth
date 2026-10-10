@@ -376,6 +376,14 @@ From the author's handheld sessions (TODO.md, "Controls").
   `tests/controller.test.js` (`triggers`, the ride buttons), `tests/fluid-tool.test.js`
   (the straight shot, aim-first, the lip).
 
+## Locked on, the back flip and the side hop (v1.39)
+
+No new button: jump (A / ×, Space, ⤒) while locked on (R3, Tab, ◉), with the stick held back, is the back flip, held to a side
+the side hop (`src/jump.js` `hopKind`; docs/systems/foes.md "The back flip, the side hop and the flurry"). Toward the foe, or not
+locked on, jump is the jump. It follows jump wherever the Controls page moves it, so `PAD_SCHEME` is unchanged. The Controls
+page has a row for it on every device (`ctl.k.hop`, `ctl.p.hop`, `ctl.t.hop`, EN and FR); `BINDINGS.foot`'s A row names it.
+The first lock-on says it once (`hint.hop`).
+
 ## The triggers and the gadget in hand (v1.38, the progression rewrite)
 
 From the author: "L2 and R2 work with whatever current gadget is selected (to aim and shoot or throw). The gun isn't

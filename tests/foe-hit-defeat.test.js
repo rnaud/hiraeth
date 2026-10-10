@@ -3,6 +3,7 @@
 // (src/foe-react.js); every archetype goes down its own way in 0.8-1.5 s and bursts at the end (src/enemies/defeat.js),
 // harmless and out of the way meanwhile, cheap with many at once; an armoured glance keeps its own look.
 import test from 'node:test';
+import { SMOKE } from '../src/smoke-puff.js';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { Foes, FOES } from '../src/foes.js';
@@ -137,8 +138,12 @@ test('every archetype goes down its own way: 0.8-1.5 s, harmless and out of the 
     assert.ok(Math.abs(t - R.time) < 0.05, `${id}: burst after ${t.toFixed(2)} s`);
     assert.deepEqual(bursts, [id], `${id}: then the burst, with its chimes`);
     assert.ok(changed > 0.15, `${id}: its body went down (${changed.toFixed(2)})`);
-    for (let i = 0; i < 60; i++) foes.update(DT);
+    // (it lies a while, SMOKE.linger, then shrinks away in its puff of smoke, SMOKE.fade, and is gone)
+    for (let i = 0; i < Math.round(SMOKE.linger / DT) - 2; i++) foes.update(DT);
+    assert.ok(foes.list.includes(f) && f.model.group.scale.x > 0.9 * (f.model.size ?? 1), `${id}: still lying there a second after`);
+    for (let i = 0; i < Math.round((SMOKE.fade + 0.1) / DT); i++) foes.update(DT);
     assert.ok(!foes.list.includes(f), `${id}: gone`);
+    assert.ok(foes.puffs?.live > 0, `${id}: in a puff of smoke`);
   }
   assert.ok(seen.size >= 12, `the plans go down in many ways (${seen.size})`);
   foes.dispose(); clearTargets();

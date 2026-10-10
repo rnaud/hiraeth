@@ -48,6 +48,8 @@ export const PATTERNS = {
   /** full: the charge was full. */
   charged: ({ full = false } = {}) => (full ? [pulse(0, 200, 0.85, 0.7)] : [pulse(0, 140, 0.5, 0.45)]),
   chime: () => [pulse(0, 35, 0, 0.14)],
+  /** A perfect dodge: a tap, then a long soft hum as the world slows (src/flurry.js). */
+  flurry: () => [pulse(0, 80, 0.5, 0.3), pulse(130, 480, 0.1, 0.2)],
   /** The ship lifting off its feet: a kick, then the engines' roar fading as it climbs away (~2.4 s). */
   takeoff: () => [pulse(0, 420, 0.95, 0.7), ...[0, 1, 2, 3, 4, 5].map((i) => pulse(450 + i * 330, 330, 0.7 - i * 0.11, 0.5 - i * 0.07))],
   /** s: the search's cue strength (0..1): the signature's three pulses, stronger and closer together nearer. */

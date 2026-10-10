@@ -218,7 +218,7 @@ test('main.js, the Lab and the Hangar hand over through the passage; it is warme
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /passage\.go\(\{ to: pt\.to, heading: pt\.heading \}\)/, 'the doorways');
   assert.doesNotMatch(main, /rig\._curDist = 2/, 'no camera snapped in close');
-  assert.ok(main.indexOf('passage.update(dt)') < main.indexOf('player.update(dt, busy()'), 'the move before the traveller and the camera move');
+  assert.ok(main.indexOf('passage.update(dt)') < main.indexOf('player.update(pdt, busy()'), 'the move before the traveller and the camera move');
   assert.ok(main.indexOf('warmDraw.draw(') < main.indexOf("stage('ready')"), 'destinations drawn during the load');
   assert.match(main, /level\.update\(dt, t, \{[^}]*passage/, 'levels get the passage');
   const lab = readFileSync(new URL('../src/levels/lab.js', import.meta.url), 'utf8');

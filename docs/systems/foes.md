@@ -569,7 +569,12 @@ The author: "it's not always obvious that an enemy was hit; all enemies should h
   sinking body) and tip, venting; the cart grinds down and lists; the drone spins down; the brute drops to its knees and
   falls on its face; the blot spreads into a puddle; the shade's cloak falls into an empty heap on its boots; the hound
   drops and rolls over; the marionette's strings snap, its knot of smoke thins away and the puppet folds up where it
-  lands. Its eyes go out over the first half; dust where it lands, a machine's steam, a spirit's ink. A foe that went out
+  lands. Its eyes go out over the first half; dust where it lands, a machine's steam, a spirit's ink. **Then the smoke** (v1.39,
+  `src/smoke-puff.js`): it lies `SMOKE.linger` (1 s) after its defeat, then shrinks away over `fade` (0.35 s) inside a small
+  puff of ink-outlined pastel blobs (cream, lavender, a pale teal, a blush, and a pale tone of its own) that swell, rise and
+  thin out, and it is removed (its model out of the scene). One instanced mesh for every puff (`SMOKE.max` 96 blobs, the
+  oldest reused), one draw call. The guardians don't: they are calmed or broken, not killed, and stay in their temple after
+  their final moment (a touch, the break). A foe that went out
   of the world, the roller's own last-roll shatter and the old kinds burst at once; the guardians keep their finishers.
 - **Cost** (the Arena, High, headless Chrome on the M4 Pro): `Foes.update` for twelve foes standing 0.5 ms a frame, 0.7
   while they flinch, 0.8 while all twelve go down at once; the blade's body test 0.1 ms on a cut frame against a crab (the
@@ -631,6 +636,10 @@ The count is said every 5 ink.
   into short strokes pointing in and the diamond becomes a hollow ring, the strike's burst, veiled dashes them. Before v1.39:
   four thick gold chevrons on a dashed ring over the foe's chest, which covered the body it marked. Tests:
   `tests/combat-feel.test.js` (the frame always outside the body's box), `tests/accessibility.test.js` (five shapes).
+- **Guardians** (v1.39, `GuardianLock`, `src/temples/boss.js` `GUARDIANS_LIVE`): a guardian in its fight is locked on as a foe is
+  (its body's edge within `LOCK.reach`), through a stand-in that answers the lock's, the reticle's and the blade's fields from
+  it: its chest, its model (the reticle frames it), its wind-up as `wind`, open as stunned, pips for its phases left; weary or
+  calmed, the lock lets go. So the back flip and the side hop work against it.
 - **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
   right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
   instead of the camera, into a leaky sum (decay 8/s). Past `FLICK.px` (70) the lock jumps to the nearest foe on
@@ -671,6 +680,48 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
   `ss_strafe_2` right) or its walk back (`ss_walk_2`) over the whole body, their time following the ground
   covered.
 - A fast approach toward the locked foe counts as a run for the lunge.
+
+## The back flip, the side hop and the flurry (v1.39: `src/jump.js` `HOP`, `src/flurry.js`, `src/feel.js` `flurry`)
+
+Breath of the Wild's evade, asked for by the author (2026-10-10). Locked on, jump is an evade when the stick says so:
+
+- **Which** (`hopKind`): the stick (at least `HOP.stick` 0.5 of its tilt) more than `backAt` (2.1 rad, 120°) off the line to
+  the foe is the **back flip**; more than `sideAt` (0.85 rad, 49°) the **side hop** to that side; toward the foe, barely
+  tilted, or not locked on, jump is the jump (and the double jump stays). The keyboard: Space with S, A or D while locked (Tab).
+- **The move** (`Player.hop`): `HOP.back` 9 m/s up and 7.5 m/s straight away from the foe (≈4.2 m, 0.56 s in the air);
+  `HOP.side` 6.5 up and 8 to the side (≈3.3 m, 0.4 s). Carried its own way: no steering in the air, no double jump, no jets
+  or wings from the jump held; still facing the foe. `HOP.rest` 0.12 s on the ground before the next.
+- **The flips** (`flipPose(c, s, k, spec)`, the double jump's machinery with a spec): `BACK_FLIP` the front flip turned the
+  other way (`turns: -1`, 0.5 s, done before it lands), `SIDE_HOP` a lean into the hop and back (`axis: 'z'`, `lean` 0.42 rad,
+  0.36 s), the legs gathered. `flipAngle` says the turn; tests check each way.
+- **Dodge frames** (`FluidBlade.hop`, `hopFrames`): `HOP.back.iframes` 0.02–0.32 s, `side` 0.02–0.26 s (Gentle: 0.06 s longer),
+  under the evade's own rule (`EVADE.rest`: hopping again before a window has rested 0.3 s gives none).
+- **The perfect dodge** (`Foes.perfectDodge`, `foeThreat`, `guardianThreat`, `perfectAgainst`): a hop begun while a blow is
+  due within `dodgeLead(wind)` = clamp(`DODGE.share` 0.35 × its wind-up, `min` 0.2 s, `max` 0.42 s) (× `gentle` 1.3), and
+  you in its way (its area grown by `DODGE.margin` 1.2 m, or within its reach and 1.2 m). "Due" is `landsIn`: the rest of
+  its wind-up plus its strike phase up to its `contact` (a lob, a flash, a blink: at the wind-up's end; a charge's sweep: any
+  time in its strike). A blow the hop's frames swallow (a shockwave's front, anything `Foes.strike` asks `Player.dodge`
+  about) counts too (`onHopDodge`). Why these numbers: a third of the tell lets a hop answer the body's wind-up, not a
+  frame; a blot's 0.6–0.8 s tell gives 0.21–0.28 s, a guardian's 1.2 s gives 0.42 s; under 0.2 s a jab would be a guess,
+  over 0.42 s a slow wind-up would be a free flurry. Generous next to the perfect parry's 0.18 s (`GUARD.perfect`), as a hop
+  must also read the blow's way. Every archetype's attacks and every guardian's opening move are checked
+  (`tests/flurry-hops.test.js`), and in the running game by `.claude/skills/combat-review/dodge.mjs`.
+- **The flurry** (`FLURRY`, main.js `startFlurry`): the world at `rate` 0.12 of your speed for `time` 3.5 s of yours, eased
+  in and out over `ease` 0.2 s; a breath and a falling glass note (`sound.flurry`), a soft rumble (`flurry`), and a pastel
+  vignette closing in from the edges, cream to lavender with a thin ink rim (`FlurryFx`, a CSS gradient over the canvas: no
+  pass, no draw call), its opacity the slow time's. While it lasts nothing touches you (`FluidBlade.dodge`, the guardians'
+  `P.untouchable`), a combo swing pulls you in from up to `reach` 6 m (`MAGNET.max` is 2.2) and the third swing's rest is
+  × `cool` 0.3: a few free blows. It ends early when nothing is left fighting (`Foes.anyFighting`), and another may only
+  begin `time` + `again` (1.2 s) after one began. Said once after the fact with Hints full (`hint.flurry`).
+- **Slow time, simulated right** (`feelDt`, `selfDt`): main.js gives the world (the foes, the guardians, physics' movers,
+  the weather, every system on `dt`) the slowed step and the traveller's own systems (`controller`, `player`, `rig`,
+  `tool`, `gadgets`) `selfDt()`: the same step but for the flurry. Everything stays a plain function of its own `dt`, so a
+  wind-up, a charge or a shockwave runs exactly as at full speed, only slower; a hit-stop still freezes both. Reduce motion
+  leaves the flurry (it is a move, not a flourish).
+- **Not the evade's**: the evade (B / ○) keeps its own perfect dodge (the hit-stop, the ring), no flurry; the guard and the
+  perfect parry are untouched.
+- **Teaching**: the first lock-on says it once (`hint.hop`, hints subtle or full): "Locked on: jump with the stick back flips
+  away, to a side hops aside." Nothing else.
 
 ## More foes, the perfect parry, combos
 

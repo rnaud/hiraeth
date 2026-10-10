@@ -59,6 +59,11 @@ hearts a minute. It writes `packs.json` and `curve.md`. Guardians are scored fro
 (telegraphs, attacks, openings, phases); play their temples for the rest (`?level=<world>` and the temple's door, or the
 dev menu's temple jump).
 
+**The perfect dodge, foe by foe** (`node .claude/skills/combat-review/dodge.mjs <scratch>/dodge [--kinds …] [--guardians no] [--side]`;
+PORT 5335, CDP 5393): each archetype and each guardian in turn, locked on, a still player; when a blow is due inside the
+window (src/flurry.js `dodgeLead`) the keyboard presses back (or D: `--side`) and jump, and the page reads whether the hop
+went off and the flurry began. Every foe should dodge into a flurry; a timeout means it never struck within `--wait` s.
+
 ## 2. The rubric, per foe (1-5 each)
 
 | | 1 | 3 | 5 |

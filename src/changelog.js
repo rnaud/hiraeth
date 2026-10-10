@@ -23,6 +23,10 @@ export const CHANGELOG = [
     'Saves carry over: a save left in the sky stones or the Deep Wood wakes in Vael or Lorn where you stood, one left in the Sealed Hangar wakes at the Glass Dunes’ landing, and everything you had done there stays done.',
     // the load on a slow graphics chip (the Xbox app: docs/systems/xbox.md "The slow load")
     { text: 'A new game no longer sits for minutes on “mixing the inks…” when the graphics chip can’t keep up: the load draws what you will see first and spends at most a few seconds drawing ahead the rooms behind the doors, which are drawn as you come near them instead. On the Xbox the app also keeps its compiled shaders from one launch to the next.', see: 'On the Xbox app (or any slow graphics chip), start a new game: the loading screen goes past “mixing the inks…” in seconds rather than minutes; the second launch is quicker still.' },
+    'Locked on, jump with the stick held back is a back flip away from the foe, and held to a side a quick side hop. Each slips through a blow for a moment. Not locked on, or toward the foe, jump is still a jump, and the double jump stays.',
+    'Flip or hop away just before a blow lands and time slows round you for a few seconds: the foe and the world crawl, a soft pastel haze closes in at the edges of the screen, nothing can touch you, and your sword reaches it from further off, swing after swing. It works against every creature and machine and against the temple guardians.',
+    'You can lock on to a temple guardian in its fight, as to any foe: the mark frames it and reads its moves, and the camera keeps it ahead.',
+    'A defeated foe lies where it fell for a second, then goes out in a little puff of pastel smoke instead of shrinking away.',
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

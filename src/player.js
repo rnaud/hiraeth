@@ -11,7 +11,7 @@ import { AirMoves } from './air-moves.js';
 import { SWIM, swimFrame, swimPose, leaveSwim } from './swim.js';
 import { Locomotion, StepLag, gaitFeet } from './locomotion.js';
 import { triggers } from './controller.js';
-import { JumpLayer, FLIP, flipPose, boostVelocity } from './jump.js';
+import { JumpLayer, FLIP, flipPose, boostVelocity, HOP, hopKind } from './jump.js';
 import { keepInside, EdgePush } from './edge.js';
 import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './stamina.js';
 import { standGround, moverCarrier } from './carriers.js';
@@ -557,6 +557,8 @@ export class Player {
     this.onDoubleJump = null;                      // () => the double jump's puff of fluid (fluid-tool.js liftFx)
     this._airJumped = false;                       // the double jump spent since leaving the ground (canDoubleJump)
     this._flipAt = -Infinity;                      // when the last double jump's flip began (src/jump.js FLIP)
+    this._hop = null;                              // locked on, the back flip or side hop under way (hop(): src/jump.js HOP)
+    this._hopReady = 0;                            // (this.time) when the next hop may begin
     // Everything runs on the backpack (src/items.js). The fluid tool plugs in:
     //   fuelSource { jetLevel() 0..1, burnJet(dt) -> bool }  the jets burn the tank's reserve
     //   handoff { handPoint(out) }   boarding a powered vehicle swings the tank into its socket
@@ -645,6 +647,24 @@ export class Player {
   get canDoubleJump() { return this.packWorn && this.has('doublejump'); }
   /** The flip of a double jump under way (s into it), or null (src/jump.js FLIP). */
   get flipping() { const t = this.time - this._flipAt; return t >= 0 && t < FLIP.time ? t : null; }
+  /** The locked-on hop under way: { kind, s (s into it), spec (its flip: src/jump.js) }, or null. */
+  get hopping() { const H = this._hop; if (!H) return null; H.s = this.time - H.at; return H; }
+
+  /**
+   * Locked on, jump with the stick back or to a side (src/jump.js hopKind): a quick hop away, the back flip ('back') or the
+   * side hop ('left' | 'right'), carried through the air at its own speed (no steering) with its flip laid over the body,
+   * and the dodge frames of FluidBlade.hop (onHop: main.js, which also asks the foes whether it was a perfect dodge: the
+   * flurry, src/flurry.js). Sets the velocity's along-up `vu` and its flat part `tv` (returned: { vu }). No double jump in it.
+   */
+  hop(kind, tv, U) {
+    const H = kind === 'back' ? HOP.back : HOP.side, D = this.lockOn.dir;
+    const right = _g6.crossVectors(D, U).normalize();
+    tv.copy(kind === 'back' ? _g5.copy(D).negate() : right.multiplyScalar(kind === 'right' ? 1 : -1)).multiplyScalar(H.out);
+    this._hop = { kind, at: this.time, s: 0, spec: kind === 'back' ? H.spec : { ...H.spec, side: kind === 'right' ? 1 : -1 }, iframes: H.iframes };
+    this._airJumped = true; this._jumped = true; this._jumpedNow = false; this._groundJumpAt = -Infinity;
+    this.onHop?.(kind, H.iframes);
+    return H.up;
+  }
 
   /**
    * A fresh press of jump in the air: the double jump, once each time you leave the ground (the lift valve): a
@@ -1324,7 +1344,7 @@ export class Player {
     const jetOn = canJet && fuel > 0.004;
     const freshJump = !!input.Space && !this._jumpHeld;
     // (on the jets already, a press is the throttle at once: there is no double jump in flight)
-    const spaceT = jetOn && !this.onGround && input.Space && (!freshJump || !!this.jetFlight) && !(canGlide && run) ? 1 : 0;
+    const spaceT = jetOn && !this.onGround && !this._hop && input.Space && (!freshJump || !!this.jetFlight) && !(canGlide && run) ? 1 : 0;   // (not in a hop: A / × held from it)
     const T = jetOn ? spaceT : 0;
     if (!this.jetFlight && jetOn && !this.climbing && !this.onGround && T > 0) this.startJets(false);
     const flying = !!this.jetFlight && this.flyJets(dt, input, { f, s, T, tr, run, freshJump, canGlide, jetOn });
@@ -1346,7 +1366,9 @@ export class Player {
       speed *= this.wadeSlow;                                                   // wading (src/swim.js)
       steering = move.lengthSq() > .001;
       if (this.onGround || this.gliding) this._carry = false;   // (jumped off something fast: its speed carries you until you land)
-      const accel = this.onGround ? (steering ? 8 : 16) : this._carry ? 0.5 : 2.5;
+      // (in a locked-on hop, none: it carries you its own way)
+      if (this._hop && this.onGround && this.time - this._hop.at > 0.1) { this._hop = null; this._hopReady = this.time + HOP.rest; }
+      const accel = this.onGround ? (steering ? 8 : 16) : this._hop ? 0 : this._carry ? 0.5 : 2.5;
       // (the motion matcher predicts the body's path with this same spring: animateClips)
       this._wantSpeed = move.lengthSq() > 0 ? speed : 0;
       this._accel = accel;
@@ -1378,7 +1400,14 @@ export class Player {
 
       // jump / glide
       let jumped = false;
-      if (input.Space && this.onGround && !this._jumpHeld) {
+      // locked on, the stick back or to a side: the back flip, the side hop (hop: src/jump.js HOP), instead of the jump
+      const hk = input.Space && this.onGround && !this._jumpHeld && this.lockOn && this.time >= this._hopReady && !this.down
+        ? hopKind(move.dot(this.lockOn.dir) * stickScale, move.dot(_g6.crossVectors(this.lockOn.dir, U).normalize()) * stickScale) : null;
+      if (hk) {
+        vu = this.hop(hk, tv, U);
+        this.onGround = false;
+        jumped = true;
+      } else if (input.Space && this.onGround && !this._jumpHeld) {
         vu = JUMP;
         this.onGround = false;
         jumped = true;
@@ -1400,7 +1429,7 @@ export class Player {
       // it fires the jets). You fly forward with momentum along your heading: A/D bank and turn, W dives
       // (faster, sinks more), S flares (slow, floaty).
       const air = !this.onGround;
-      const wingsBtn = (input.Space && (run || !jetOn)) || this._autoGlide;
+      const wingsBtn = ((input.Space && (run || !jetOn)) || this._autoGlide) && !this._hop;
       const wantGlide = canGlide && air && wingsBtn;
       const wasGliding = this.gliding;
       this.gliding = wantGlide && (vu < 0 || wasGliding);
@@ -2338,7 +2367,7 @@ export class Player {
     A.idleMoves = captured && !this.talking;
     const air = (this.airMoves ??= new AirMoves());
     air.update(dt, { onGround: this.onGround, airT: this._clipAirT, tLand: J.phase?.tLand ?? Infinity, jumped: !!this._jumpedNow, wallKick: !!this._wallKick, speed: hs, impact: this._impact ?? 0,
-      free: captured && !R && !this._gesture && !this.ride && !this.swim && !this.gliding && !this.onJets && !this.aim && this.flipping == null });   // (the flip is procedural: src/jump.js)
+      free: captured && !R && !this._gesture && !this.ride && !this.swim && !this.gliding && !this.onJets && !this.aim && this.flipping == null && !this._hop });   // (the flip is procedural: src/jump.js)
     this._jumpedNow = this._wallKick = false;
     if (!R) air.play(A);
     // starts, stops, turns on the spot and the pivot at a run from motion capture (src/loco-moves.js),
@@ -2376,8 +2405,10 @@ export class Player {
     }
     J.pose(c, 1 - 0.6 * (A.legsW ?? 0));   // (a captured jump in the air, or its landing, has its own: a little of the tuck stays)
     // the double jump's front flip (src/jump.js FLIP), last: the whole body turns about the hips
-    const flip = this.flipping;
+    const flip = this.flipping, hop = this.hopping;
     if (flip != null && !this.onGround && !this.climbing && !this.swim && !this.ride && !this.down) flipPose(c, flip);
+    // the locked-on hop's flip: the back flip, the side hop's lean (src/jump.js BACK_FLIP, SIDE_HOP)
+    else if (hop && !this.climbing && !this.swim && !this.ride && !this.down) flipPose(c, hop.s, 1, hop.spec);
     if (this.edge?.k > 0.01 && this.onGround) this.edge.pose(c, 1 - THREE.MathUtils.smoothstep(hs, 0.6, 2.6));
     this.idleLayer(dt, hs);
     if (this.onGround && !this.humanoid) this.footIK(dt);
