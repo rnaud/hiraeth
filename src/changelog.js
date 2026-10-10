@@ -30,6 +30,27 @@ export const CHANGELOG = [
     'The Overnight Train is on the move: it no longer waits at stations, it runs. The plain, the poles and the far buttes race past, signal gantries sweep their shadows along the roofs, the carriages rock gently and bump over the rail joints (watch the horizon from a window), and up on the roofs the wind blows from the nose.',
     'A new errand in the Signal Market, The Night Mail: past the landing at the south end, a line of rail runs out into the dark to a night halt, where Edda keeps the lamp. Ring the bell and the Overnight Train stops for you. Take her letter to her grandmother Mireille, who rides the roofs at the very back by her chalk mark, ask Ambrose the conductor to stop at the market, and step down with her answer.',
     'The Overnight Train has left the ship’s map: it is reached from the Signal Market’s night halt now, and a save made aboard wakes on the moving train.',
+    // the performance pass (docs/audits/perf-v1.40.md, docs/systems/performance.md "A body's repeated parts in one draw")
+    { text: 'Fights with many creatures run smoother: the parts of a creature that share a shape and a colour (a centipede’s legs, a jelly’s beads, a moth’s wing ribs, a tripod’s struts) are drawn together in one go instead of one by one. A full pack in the Arena takes about half the drawing work it did; the creatures look exactly as before.',
+      numbers: [
+        { title: 'The main thread’s time a frame, the Arena with all 21 kinds of creature in view', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome on ANGLE Metal, 1280 × 720 (the Deck at 1280 × 800)', rows: [
+          { where: 'High', before: 7.0, after: 5.7 },
+          { where: 'Steam Deck preset', before: 5.6, after: 4.8 },
+          { where: 'Handheld', before: 6.3, after: 5.0 },
+        ], source: 'High and the Deck preset: the batches switched off and on in turns in the same page, six times each (medians); Handheld: the build before and after, one run each; measured while the Mac was shared (load average 5–25): docs/audits/perf-v1.40.md' },
+        { title: 'Draw calls a frame, the same view', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+          { where: 'High', before: 2775, after: 1463 },
+          { where: 'Steam Deck preset', before: 2065, after: 1075 },
+          { where: 'Handheld', before: 1795, after: 1017 },
+        ], source: 'renderer.info over the recorded frames (medians)' },
+      ] },
+    { text: 'Busy views draw less: the City-Shaft’s flying cabs, its cables and its billboards, every shop front, the makers’ runs’ moving pieces, the wind columns’ rings and the listening stones and flowers that wake as you pass are drawn in far fewer pieces. Nothing looks different.',
+      numbers: [{ title: 'Draw calls a frame', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High, 1280 × 720', rows: [
+        { where: 'the City-Shaft, the wide view down the shaft', before: 1640, after: 1342 },
+        { where: 'the Buried Machine’s shop front (Ilse’s dome)', before: 38, after: 12 },
+        { where: 'the Buried Machine, the wide view', before: 547, after: 493 },
+        { where: 'the Signal Market’s start', before: 817, after: 783 },
+      ], source: 'one frame with every shadow map drawn again, counted object by object (renderer.info), before and after; docs/audits/perf-v1.40.md', note: 'On the Mac the main thread’s time hardly moves in these views (the City-Shaft about 0.4 ms less at High and Handheld, within the noise on the Deck preset); the fewer draws matter most where the processor is the limit, on the handhelds.' }] },
   ] },
   { v: '1.39', date: '2026-10-10', items: [
     // the fight, closer to Breath of the Wild's (docs/systems/foes.md)
@@ -84,27 +105,6 @@ export const CHANGELOG = [
     'Qanat’s great tree is rebuilt after its picture: an enormous pale trunk, fluted and cracked, great roots flowing out over the square, one low arm arching down over Nour’s bench, and a wide crown whose leaves are the fire itself, violet, teal and gold, glowing over the city once the tree burns again. While it is cold its limbs stand bare.',
     'The makers’ chest on the tree now waits on a plank shelf on the buttress root, the makers’ glyph painted on its boards and cloths tied to its corners; pilgrims’ lanterns stand round the terrace. The climb up to it is the same.',
     'The giant ribcage south of the start is rebuilt too: a fallen giant lying on its side, a long spine of vertebrae half sunk in the sand, nine great ribs arching over you like a ruined hall, one broken, holes worn through the bone, and the skull at the head end with two horns curving up and two tusks reaching forward. A scrap of red cloth and a faint track of footprints lead to Teo’s drum under its middle rib.',
-    // the performance pass (docs/audits/perf-v1.39.md, docs/systems/performance.md "A body's repeated parts in one draw")
-    { text: 'Fights with many creatures run smoother: the parts of a creature that share a shape and a colour (a centipede’s legs, a jelly’s beads, a moth’s wing ribs, a tripod’s struts) are drawn together in one go instead of one by one. A full pack in the Arena takes about half the drawing work it did; the creatures look exactly as before.',
-      numbers: [
-        { title: 'The main thread’s time a frame, the Arena with all 21 kinds of creature in view', unit: 'ms', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome on ANGLE Metal, 1280 × 720 (the Deck at 1280 × 800)', rows: [
-          { where: 'High', before: 7.0, after: 5.7 },
-          { where: 'Steam Deck preset', before: 5.6, after: 4.8 },
-          { where: 'Handheld', before: 6.3, after: 5.0 },
-        ], source: 'High and the Deck preset: the batches switched off and on in turns in the same page, six times each (medians); Handheld: the build before and after, one run each; measured while the Mac was shared (load average 5–25): docs/audits/perf-v1.39.md' },
-        { title: 'Draw calls a frame, the same view', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
-          { where: 'High', before: 2775, after: 1463 },
-          { where: 'Steam Deck preset', before: 2065, after: 1075 },
-          { where: 'Handheld', before: 1795, after: 1017 },
-        ], source: 'renderer.info over the recorded frames (medians)' },
-      ] },
-    { text: 'Busy views draw less: the City-Shaft’s flying cabs, its cables and its billboards, every shop front, the makers’ runs’ moving pieces, the wind columns’ rings and the listening stones and flowers that wake as you pass are drawn in far fewer pieces. Nothing looks different.',
-      numbers: [{ title: 'Draw calls a frame', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High, 1280 × 720', rows: [
-        { where: 'the City-Shaft, the wide view down the shaft', before: 1640, after: 1342 },
-        { where: 'the Buried Machine’s shop front (Ilse’s dome)', before: 38, after: 12 },
-        { where: 'the Buried Machine, the wide view', before: 547, after: 493 },
-        { where: 'the Signal Market’s start', before: 817, after: 783 },
-      ], source: 'one frame with every shadow map drawn again, counted object by object (renderer.info), before and after; docs/audits/perf-v1.39.md', note: 'On the Mac the main thread’s time hardly moves in these views (the City-Shaft about 0.4 ms less at High and Handheld, within the noise on the Deck preset); the fewer draws matter most where the processor is the limit, on the handhelds.' }] },
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.40 — 2026-10-10
 
+- Busy views draw less: the City-Shaft’s flying cabs, its cables and its billboards, every shop front, the makers’ runs’ moving pieces, the wind columns’ rings and the listening stones and flowers that wake as you pass are drawn in far fewer pieces. Nothing looks different.
+- Fights with many creatures run smoother: the parts of a creature that share a shape and a colour (a centipede’s legs, a jelly’s beads, a moth’s wing ribs, a tripod’s struts) are drawn together in one go instead of one by one. A full pack in the Arena takes about half the drawing work it did; the creatures look exactly as before.
 - The Overnight Train has left the ship’s map: it is reached from the Signal Market’s night halt now, and a save made aboard wakes on the moving train.
 - A new errand in the Signal Market, The Night Mail: past the landing at the south end, a line of rail runs out into the dark to a night halt, where Edda keeps the lamp. Ring the bell and the Overnight Train stops for you. Take her letter to her grandmother Mireille, who rides the roofs at the very back by her chalk mark, ask Ambrose the conductor to stop at the market, and step down with her answer.
 - The Overnight Train is on the move: it no longer waits at stations, it runs. The plain, the poles and the far buttes race past, signal gantries sweep their shadows along the roofs, the carriages rock gently and bump over the rail joints (watch the horizon from a window), and up on the roofs the wind blows from the nose.
@@ -12,8 +14,6 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.39 — 2026-10-10
 
-- Busy views draw less: the City-Shaft’s flying cabs, its cables and its billboards, every shop front, the makers’ runs’ moving pieces, the wind columns’ rings and the listening stones and flowers that wake as you pass are drawn in far fewer pieces. Nothing looks different.
-- Fights with many creatures run smoother: the parts of a creature that share a shape and a colour (a centipede’s legs, a jelly’s beads, a moth’s wing ribs, a tripod’s struts) are drawn together in one go instead of one by one. A full pack in the Arena takes about half the drawing work it did; the creatures look exactly as before.
 - The giant ribcage south of the start is rebuilt too: a fallen giant lying on its side, a long spine of vertebrae half sunk in the sand, nine great ribs arching over you like a ruined hall, one broken, holes worn through the bone, and the skull at the head end with two horns curving up and two tusks reaching forward. A scrap of red cloth and a faint track of footprints lead to Teo’s drum under its middle rib.
 - The makers’ chest on the tree now waits on a plank shelf on the buttress root, the makers’ glyph painted on its boards and cloths tied to its corners; pilgrims’ lanterns stand round the terrace. The climb up to it is the same.
 - Qanat’s great tree is rebuilt after its picture: an enormous pale trunk, fluted and cracked, great roots flowing out over the square, one low arm arching down over Nour’s bench, and a wide crown whose leaves are the fire itself, violet, teal and gold, glowing over the city once the tree burns again. While it is cold its limbs stand bare.
