@@ -26,9 +26,8 @@ const HELPERS = {
   'desert-city rough': [(g) => roughCity(g, 1.2, 0.18, 5), (g) => roughCity(g, 2.5, 0.4, 1)],
   'desert-hearth rough': [(g) => roughHearth(g, 0.9, 0.22, 4), (g) => roughHearth(g, 1.6, 0.18, 2)],
   'sky-stones lumpy': [(g) => lumpy(g, 0.12, 0.08, 3), (g) => lumpy(g, 0.3, 0.5, 9)],
-  // (as the worlds call it: no vertical noise. jitter's own `vertical` moves the foot ring up as well as down: no
-  // world uses it today; TODO.md has it, so the day one does this test gets its case: (g) => jitter(g, 0.3, 0.2, 3, 1.5))
-  'world jitter': [(g) => jitter(g, 0.22, 0.05, 7), (g) => jitter(g, 0.3, 0.2, 3)],
+  // (as the worlds call it, and with its vertical noise: the foot ring only goes down, into the floor)
+  'world jitter': [(g) => jitter(g, 0.22, 0.05, 7), (g) => jitter(g, 0.3, 0.2, 3), (g) => jitter(g, 0.3, 0.2, 3, 1.5)],
   'world soften': [(g) => soften(g, 0.08), (g) => soften(g, -0.14, 0.2)],
 };
 // helpers that move vertices but never of a shell on a floor (a reason each)
@@ -54,15 +53,11 @@ for (const [name, fns] of Object.entries(HELPERS)) for (const [shell, make] of O
   });
 }
 
-test('no world calls jitter with its vertical noise (it would lift a foot ring)', () => {
-  const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(join(d, e.name)) : e.name.endsWith('.js') ? [join(d, e.name)] : []));
-  for (const f of walk(new URL('../src/', import.meta.url).pathname)) {
-    for (const m of readFileSync(f, 'utf8').matchAll(/\bjitter\(([^()]|\([^()]*\))*\)/g)) {
-      if (/function \s*$/.test(readFileSync(f, "utf8").slice(Math.max(0, m.index - 9), m.index))) continue;
-      const parts = m[0].slice(7, -1).split(/,(?![^(]*\))/);
-      assert.ok(parts.length <= 4 || /^\s*0\s*$/.test(parts[4]), `${f}: ${m[0]} (a fifth argument lifts the foot ring: make jitter keep y = 0 down first)`);
-    }
-  }
+test('jitter\'s vertical noise still moves the rest of a shell up and down', () => {
+  const before = SHELLS.drum().attributes.position, after = jitter(SHELLS.drum(), 0, 0.2, 3, 1.5).attributes.position;
+  let up = 0, down = 0;
+  for (let i = 0; i < after.count; i++) if (before.getY(i) > 0.5) { const d = after.getY(i) - before.getY(i); if (d > 0.01) up++; else if (d < -0.01) down++; }
+  assert.ok(up > 10 && down > 10, `up ${up}, down ${down}`);
 });
 
 test('every helper in src/ that moves a geometry\'s vertices is checked here, or named as not a shell', () => {

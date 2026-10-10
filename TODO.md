@@ -37,8 +37,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
-- [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
-  tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
 # Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.16) built)
 

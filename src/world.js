@@ -241,7 +241,9 @@ export class Terrain {
 
 // ------------------------------------------------------------------ helpers
 
-// Deterministic per-position jitter so duplicated seam/cap vertices stay welded.
+// Deterministic per-position jitter so duplicated seam/cap vertices stay welded. `vertical` moves vertices up and
+// down too, but a foot ring (y = 0) only down, into the floor, as desert-city.js `rough` does: lifted, it opened a slit
+// under a shell standing on a floor (tests/shell-seams.test.js).
 export function jitter(geo, amount, freq, seed = 0, vertical = 0) {
   const p = geo.attributes.position;
   for (let i = 0; i < p.count; i++) {
@@ -250,7 +252,8 @@ export function jitter(geo, amount, freq, seed = 0, vertical = 0) {
     if (r < 1e-4) continue;
     const a = Math.atan2(z, x);
     const k = 1 + amount * noise(Math.cos(a) * 1.7 + seed + y * freq, Math.sin(a) * 1.7 - seed + y * freq * 0.7);
-    p.setXYZ(i, x * k, y + vertical * noiseB(x * 0.1 + seed, z * 0.1), z * k);
+    const dy = vertical * noiseB(x * 0.1 + seed, z * 0.1);
+    p.setXYZ(i, x * k, y + (Math.abs(y) < 0.01 ? -Math.abs(dy) : dy), z * k);
   }
   geo.computeVertexNormals();
   return geo;

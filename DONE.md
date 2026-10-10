@@ -2031,3 +2031,5 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   (a cream robe on a pale wall); foot rays at 0.3 m too (`floorSlits`: furniture on legs is no slit); `--people
   marrow` puts a story person where the traveller stood; known spots for his shadow by the ship; `--save-all`. The
   side worlds were run at Handheld (docs/audits/visual-v1.20.md). tests/visual-probes.test.js.
+- [x] world.js `jitter`'s `vertical` noise lifted a foot ring as well as lowered it: y = 0 now only goes down, as
+  `rough` does; tests/shell-seams.test.js runs it with its vertical noise (the guard against any world using it is gone).

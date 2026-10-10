@@ -621,7 +621,8 @@ only showed in the light term) were each missed by still frames from fixed camer
   reads the last frame's depth reprojected, so a turn moves nothing across the surface (orbit probe at three water
   spots, nothing flagged).
 - **A shell standing on a floor** keeps its foot ring at or under it, whatever roughens it: `tests/shell-seams.test.js`
-  runs every displacement helper on domes, drums and mounds, and fails on a new helper it doesn't know.
+  runs every displacement helper on domes, drums and mounds, and fails on a new helper it doesn't know (world.js
+  `jitter`'s `vertical` noise too, since visual-v1.4: its foot ring only goes down).
 
 ## The visual probes' findings fixed (docs/audits/visual-v1.4.md; October 2026)
 
