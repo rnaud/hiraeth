@@ -9,6 +9,8 @@ import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
   { v: '1.42', date: '2026-10-10', items: [
+    { text: 'The notebook accepts your chosen password and asks you to pause after too many sign-in attempts or rapid submissions.', see: 'After five sign-in attempts within a minute, wait a minute before trying again. An unsent note stays in the composer.' },
+    { text: 'A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.', see: 'Open Notes from the Pages list, unlock your notebook, write a line and press Enter or Add. Each saved note opens its issue on GitHub.' },
     // the people's colours by how much they matter (src/costumes.js PROMINENCE; docs/systems/characters.md "Prominence")
     'The crowds in the towns wear their world’s colours a little softer now, so the people with a story to tell, the shopkeepers, Tansy and your family stand out among them.',
   ] },
@@ -110,8 +112,6 @@ export const CHANGELOG = [
       see: 'In the Arena walk slowly from the centre mark toward a gate, then back, watching the big ring on the floor: it stays a steady line.' },
   ] },
   { v: '1.40', date: '2026-10-10', items: [
-    { text: 'The notebook accepts your chosen password and asks you to pause after too many sign-in attempts or rapid submissions.', see: 'After five sign-in attempts within a minute, wait a minute before trying again. An unsent note stays in the composer.' },
-    { text: 'A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.', see: 'Open Notes from the Pages list, unlock your notebook, write a line and press Enter or Add. Each saved note opens its issue on GitHub.' },
     // the camera in tight places (docs/systems/movement-and-camera.md "The camera QC and what it fixed")
     { text: 'In tight places the camera no longer jumps about. Walking through the Overnight Train’s carriages it used to snap in and out at every door and porch and whip round behind your head; now it holds its place and turns to follow you through a doorway, glides in when a wall comes between you, and slides past rows of seats, window frames and compartment doors without pumping in and out. It stays inside the room it is in, rises more gently with a hop under a low ceiling, and tips down over your head when a corridor is too narrow to stand back in.',
       numbers: [
