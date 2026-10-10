@@ -1,0 +1,223 @@
+changelog.md
+  s_9ca76055a220ed::t_4cc09a4375eaba 5-15
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_81590d0fe5fbdc 299-308
+docs/systems/controls.md
+  s_9ca76055a220ed::t_23d78cc42a7b5e 12-14,27-31,35-37,266,269,272-273,279,378-415
+docs/systems/gadgets.md
+  s_9ca76055a220ed::t_cba997a58ced55 48-50,53-55,58-78,80,82-91
+docs/systems/items.md
+  s_9ca76055a220ed::t_2fe7a218bdbe2f 53-65
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_d9d4f2d159f98e 18-32,41-44,69-70
+src/bindings.js
+  s_9ca76055a220ed::t_a6f4aa3260d313 27,34,55,58-59,61-62,65,68,85,125,127
+src/boxes/effects.js
+  s_9ca76055a220ed::t_7f0e25b61f77a2 28
+src/boxes/model.js
+  s_9ca76055a220ed::t_114c7f2ab4b7fc 129,230-249,391
+src/boxes/placements.js
+  s_9ca76055a220ed::t_2257fe059492a5 22-23,38-47,225-228,237-238
+src/changelog.js
+  s_9ca76055a220ed::t_6691df050bfc1d 11-24
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_928775b5a85941 17
+src/controller.js
+  s_9ca76055a220ed::t_d685659eb4377b 6-8,13,152-153,166,168-169,171,178,180-182,220-221,225,230
+src/fluid-blade.js
+  s_9ca76055a220ed::t_4155e6e8a0d8b7 403-404,638,919
+src/fluid-kit.js
+  s_9ca76055a220ed::t_797c4bd6bf30db 18-20,29,31
+src/fluid-tool.js
+  s_9ca76055a220ed::t_eb9f510e02bc41 7,13,15-24,28-29,32-34,38-40,45-46,68,73,84,277-278,492-501,503-506,508-516,520,522-523,535-537,541,560,562-567,569,571-575,577-595,597-613,615-625,627-629,632-652,655-662,665,668-670,672,674,721,769-771,774,776,785,829,851,853-856,905-908,910,947-950,1002,1164-1165,1198-1203,1217-1220,1317-1318,1320,1322-1324
+src/gadgets/bomb.js
+  s_9ca76055a220ed::t_0e3cc4401daf69 66,68,131-132
+src/gadgets/boomerang.js
+  s_9ca76055a220ed::t_756ce895a1c532 140,142,271-272
+src/gadgets/bridge.js
+  s_9ca76055a220ed::t_d14bb073fb982b 253,255
+src/gadgets/bubble.js
+  s_9ca76055a220ed::t_9f3721e25fa024 150,152,219-220
+src/gadgets/fan.js
+  s_9ca76055a220ed::t_914424ac1cc3fb 157,159
+src/gadgets/hook.js
+  s_9ca76055a220ed::t_5065bb6c18ae89 89,91,220-221
+src/gadgets/index.js
+  s_9ca76055a220ed::t_b65d29e3c89019 17-32,45,47-48,51-53,57-62,108,137-147,150-151,159,161,170,195-228,256,272-273,275-276
+src/gadgets/lens.js
+  s_9ca76055a220ed::t_97e5b5d7ea55ff 124,126
+src/gadgets/magnet.js
+  s_9ca76055a220ed::t_0d8540a8261f3f 174,176
+src/gadgets/recall.js
+  s_9ca76055a220ed::t_195a049242cd91 147,149,256-257
+src/gadgets/registry.js
+  s_9ca76055a220ed::t_50a802a05da500 22-24,66
+src/gadgets/springs.js
+  s_9ca76055a220ed::t_6e3abb9232ecb2 168,170
+src/i18n/en.js
+  s_9ca76055a220ed::t_e05b97e3a95eb6 109-110,112-114,120,125,154-155,166-167,174-175,191-192,203-205,210-212,214,224,246,252-253,259-261,277-280
+src/i18n/fr.js
+  s_9ca76055a220ed::t_123aa70e6b11c9 109-110,112-114,120,125,153-154,165-166,173-174,190-191,202-204,208-211,213,223,245,251-252,257-259,275-278
+src/jump.js
+  s_9ca76055a220ed::t_f2545020feff7a 137-151,154-200
+src/levels/content.js
+  s_9ca76055a220ed::t_2230b70ddf5513 165
+src/levels/index.js
+  s_9ca76055a220ed::t_2d7c396f68581a 210
+src/main.js
+  s_9ca76055a220ed::t_2466eb62088637 360-369,878
+src/minigames/drums.js
+  s_9ca76055a220ed::t_3afa6fd1b8ce95 544,546
+src/minigames/kit/onfoot.js
+  s_9ca76055a220ed::t_6cadbf4e66332c 11,20-21,23-24,39-40
+src/player.js
+  s_9ca76055a220ed::t_32f91c5dd1c50d 14,38-39,557-559,642-660,1179-1181,1199,1298,1317-1319,1324-1327,1385,1389,1391,1397-1398,1401,1417-1418,1453,2339,2376-2378
+src/prompt-keys.js
+  s_9ca76055a220ed::t_958ce6da03df28 64,69-70,72,76
+src/remap.js
+  s_9ca76055a220ed::t_087528cee2fc11 35-40,48,51-55
+src/resources.js
+  s_9ca76055a220ed::t_eadf90cf5b1b12 116-118,121,198
+src/save-migrate.js
+  s_9ca76055a220ed::t_0965990d9f9e6e 36-39,124-142
+src/story/desert-data.js
+  s_9ca76055a220ed::t_0e324a31a3d00d 52,88,97-99,110-112
+src/story/desert-spark.js
+  s_9ca76055a220ed::t_3faeac46720886 16-17,32-33,67-68
+src/story/desert.js
+  s_9ca76055a220ed::t_ae0caff6e193e9 45-51,146-148,151,154-157,353-354,363-369,608-609,613-614,900
+src/temples/arzach.js
+  s_9ca76055a220ed::t_06c01c61a66436 108
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_9c8e3215890c60 119
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_acf84e4d9d0951 114
+src/temples/buried.js
+  s_9ca76055a220ed::t_1061af9e1259e6 127
+src/temples/desert.js
+  s_9ca76055a220ed::t_df8d81b8b74593 120
+src/temples/edena.js
+  s_9ca76055a220ed::t_979278cafe34dc 122
+src/temples/garage.js
+  s_9ca76055a220ed::t_4c3a206a659b6d 109
+src/temples/incal.js
+  s_9ca76055a220ed::t_113ccb2f543dd7 135,196
+src/temples/index.js
+  s_9ca76055a220ed::t_cb3757e3cbffd5 72
+src/temples/logic.js
+  s_9ca76055a220ed::t_9fb22f9ab311a7 209,211,241,259,264
+src/temples/perdide.js
+  s_9ca76055a220ed::t_1c732f33839295 105
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_11d3c4c522d156 102
+src/temples/spheres.js
+  s_9ca76055a220ed::t_2b6e4e7dda3ba7 114
+src/trials/course.js
+  s_9ca76055a220ed::t_b1db4e266632cd 50
+src/trials/index.js
+  s_9ca76055a220ed::t_792138aaa5ef30 43,50,53,192-193
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_fe8a7331eeac3e 37,83,99,114,130,146,195
+src/ui.js
+  s_9ca76055a220ed::t_0e9d79041bcb73 117,136-138,145
+tests/abilities.test.js
+  s_9ca76055a220ed::t_c6c5ff0ef846e7 15-16,54,60,73-76,87-91,96-99,190,233,458
+tests/accessibility.test.js
+  s_9ca76055a220ed::t_6c81989780f14a 55,59-60,153,160,162-168,219
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_d538ace8723b96 98
+tests/bindings.test.js
+  s_9ca76055a220ed::t_ba85f8cf2d4d88 34,58,79,113-117,145,150-152
+tests/bosses.test.js
+  s_9ca76055a220ed::t_933dc78e19f465 127
+tests/boxes.test.js
+  s_9ca76055a220ed::t_8c21e767d170da 66,338
+tests/bubble-fan.test.js
+  s_9ca76055a220ed::t_b9040916ba8716 51
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_415c4ce3305f8e 294,306-307
+tests/controller.test.js
+  s_9ca76055a220ed::t_20b4b4b3620097 22,31,100,104,107,109,126-130,176
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_bac672db80f231 401,442,532-536,601-604
+tests/drone.test.js
+  s_9ca76055a220ed::t_ed448319c692c0 266-267
+tests/first-run.test.js
+  s_9ca76055a220ed::t_521383ed532e7e 77-82,84-86
+tests/flask.test.js
+  s_9ca76055a220ed::t_521712232aa646 4,8,10-12,14-15,17,19-25,27,30-31,34-40,49-68
+tests/fluid-tool.test.js
+  s_9ca76055a220ed::t_7c49fb6c1fc187 14-16,49,126-127,129,132-135,138,145,161,344-345,362-364,368-371,373-377,383-384,389-390,393-394,399-402,406
+tests/gadgets-qa.test.js
+  s_9ca76055a220ed::t_3bd20700397a31 306,313-314,316-319,323,326-328
+tests/gadgets.test.js
+  s_9ca76055a220ed::t_c3813a791082b8 55-56,92,97,100-110,112-117,144,158,167,174-206
+tests/glove.test.js
+  s_9ca76055a220ed::t_47c8588260a124 38,52,63
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_f708a1ede05641 48,597
+tests/hud.test.js
+  s_9ca76055a220ed::t_b556cef28b8d2a 165
+tests/jets.test.js
+  s_9ca76055a220ed::t_749a734ea72552 7-9,124-126,139-141,146,151,157,160-163,168,171,173,180,186,191,193-194,199-200,204,210-211,213,219-221,232,239,241-242,244-247,252-253,258,262,266-267,269-272,277-278,285,289,293-295,297,299-300,302,320,322
+tests/lens-springs.test.js
+  s_9ca76055a220ed::t_20d2feeb11371b 52
+tests/magnet.test.js
+  s_9ca76055a220ed::t_6b591f1e43ef18 46
+tests/moment.test.js
+  s_9ca76055a220ed::t_34953974aff32a 277-278
+tests/native-pad.test.js
+  s_9ca76055a220ed::t_d9b90d29cd6fab 165-167
+tests/pad-maps.test.js
+  s_9ca76055a220ed::t_62028de4f639bf 186,190
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_08f418da0dbb3b 194-195,578-579,666-684
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_92fb5df9cfa9dd 26-38,45,69,76,78,94-95,207,238
+tests/recall-bridge.test.js
+  s_9ca76055a220ed::t_2453bb8964bfb1 50
+tests/resources.test.js
+  s_9ca76055a220ed::t_b3151448c49161 132
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_7f58733f21e999 58-87
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_ab72fe1c169dd6 138,141
+tests/story-arzach2.test.js
+  s_9ca76055a220ed::t_fbe7c03f1094fb 72,75
+tests/temples.test.js
+  s_9ca76055a220ed::t_3eb935b68cdae7 77,129,140,347,544,567-569,576-586,591,824,881,1074,1241,1428,1644,1793,2030,2173,2392,2405,2423
+tests/traveller.test.js
+  s_9ca76055a220ed::t_d55ecad484bfca 333,348-352,354-359
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_63e217be9678ae 116-117
+tests/trials.test.js
+  s_9ca76055a220ed::t_26f695371ff122 36-37,44
+src/gadgets/gun.js
+  s_30629f52762784::t_79e730571ddd7a 1-64
+src/items.js
+  s_30629f52762784::t_8a860447a74ab2 5-7,19-20,31-43,48,53,56,61,66,215-225,251
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e4b4dd6c890a42f839f3fe0e0e31309292843558",
+  "prompts": {},
+  "sessions": {
+    "s_30629f52762784": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a25e7d726d633194f",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
