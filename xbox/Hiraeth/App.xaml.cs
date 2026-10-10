@@ -16,6 +16,9 @@ namespace Hiraeth
             // (read when WebView2 starts its browser process: sound without a press first, as on the other apps)
             Environment.SetEnvironmentVariable("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--autoplay-policy=no-user-gesture-required");
             InitializeComponent();
+            // (App.xaml says it too; set here as well, where nothing can leave it out: no mouse-mode cursor on the
+            // console, the pad goes to the page's Gamepad API. Only the constructor may set it.)
+            RequiresPointerMode = ApplicationRequiresPointerMode.WhenRequested;
             EnteredBackground += OnEnteredBackground;
             LeavingBackground += OnLeavingBackground;
         }

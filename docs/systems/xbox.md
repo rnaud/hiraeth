@@ -9,8 +9,10 @@ Not for players: there is no Store listing; it is for measuring the game on the 
 
 C# with .NET Native (C# 7.3: keep newer language features out), WinUI 2.8 and its WebView2 control.
 
-- **`App.xaml(.cs)`**: one page; `RequiresPointerMode="WhenRequested"` (no mouse-mode cursor: the system's mouse
-  mode stays off, the game reads the pad itself); `SetDesiredBoundsMode(UseCoreWindow)`, so the picture fills the TV
+- **`App.xaml(.cs)`**: one page; `RequiresPointerMode="WhenRequested"`, in App.xaml and again in the constructor
+  (no mouse-mode cursor: the system's mouse mode stays off, the game reads the pad itself; the page and the web view
+  say `RequiresPointer="Never"`, the web view takes the focus when it is ready, on every page load, on activation and on
+  a return); `SetDesiredBoundsMode(UseCoreWindow)`, so the picture fills the TV
   to its edges (by default an Xbox app is drawn inside the TV-safe area with a border); `EnteredBackground` /
   `LeavingBackground` → `MainPage.Away`; `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--autoplay-policy=no-user-gesture-required`
   (sound without a press first, as in the other apps).
@@ -34,6 +36,12 @@ C# with .NET Native (C# 7.3: keep newer language features out), WinUI 2.8 and it
     `{ hiraeth: 'call', id, method }` → `{ hiraeth: 'reply', id, result | error }`, with Android's AppShell calls
     (`info`, `check`, `download`, `restart`); `info` has AppShell.info's fields with `platform: 'xbox'`.
   - Links to other sites open in the console's browser.
+  - **The page's log**: `{ hiraeth: 'log', level, text }` messages (src/xbox.js `forwardLogs`: the page's warnings and
+    errors, the load's stages and timings, the pad's id, and a warning at the first mouse event, the sign of the
+    system's mouse mode) go to `LocalState\web\page.log`, new each launch (the last one in `page.prev.log`), with the
+    app's own lines first: its memory limit (**about 1 GB means the app type is App**), the WebView2 runtime, the
+    pointer mode, where the focus goes. The page gets the limit too (`__hiraethXbox.memory`, MB): the frame readout
+    ends ` · app 1.0 GB` or ` · game 5.0 GB`.
 - **`WebBundles.cs`**: the updates (below).
 - **`Package.appxmanifest`**: `rnaud.Hiraeth`, display name *Hiraeth*, the `Windows.Xbox` device family (and
   `Windows.Desktop`, to try it on a PC), the `internetClient` capability. Identity's `Version` and `Publisher` are
@@ -50,7 +58,9 @@ The same feed as the Android app and the Deck: the site's `updates/web.json` and
 - After the first frame (`window.__moebiusBooted`), and on a return after 15 min, the app reads `web.json`. A build
   newer than everything on the console that this app can run (`minXbox <= XboxApi`) is downloaded, checked against
   its sha256, unpacked to `LocalState\web\<build>\` and used from the next launch, or at once with *Restart now* (the
-  app maps the host onto the new folder, clears the HTTP cache and opens the title).
+  app maps the host onto the new folder, clears the HTTP cache and opens the title). The cache is cleared only when the
+  build served changes (`served.txt`): clearing WebView2's disk cache clears the GPU's shader cache with it, and the
+  console compiled all its shaders again at every launch (53 s of "mixing the inks…").
 - A downloaded build that doesn't reach its first frame in 60 s goes back to the packaged game and is never tried
   again (`bad.txt`); one that booted once is kept (`good.txt`) and the older ones are deleted.
 - **`XboxApi`** (`WebBundles.cs`, 1): the app's level, like Android's `NATIVE_API`. Raise it when the page starts to
@@ -68,7 +78,7 @@ the session). Nothing changes elsewhere.
 - **Prompts**: the Xbox family always (`pageFamily`, `platformFamily` in `src/native-pad.js`), whatever id WebView2
   gives the pad.
 - **Quality**: the default is Auto, which is the **Xbox** preset there (`QUALITY_PRESETS.xbox`): High's full recipe at
-  scale 1 (WebView2 on the console reports a pixel ratio of 2 at 1080p, where High renders 1× too), with dynamic
+  scale 1 (WebView2 on the console reports a pixel ratio of 1.5 at 1080p output, a 1280 × 720 page, measured October 2026), with dynamic
   resolution down to 0.6. The Graphics menu lists it only in the app.
 - **The TV's safe area**: `.tv-safe` on the root raises every `--safe-*` inset (index.html; the menus' CSS reads them
   first) to 5 % of the screen, Xbox's guidance (48 × 27 of 960 × 540). The 3D picture still fills the TV.
@@ -136,14 +146,58 @@ Dev Home opens; under *Remote access* turn on the **Device Portal** (a user name
 6. **Updates**: the settings' update section (*Check for updates*, *Restart now*), and that the saves are there after.
 7. The TV's safe area: the hearts, the menus and the cues inside the screen on the TV; the picture to the edges.
 
+## Debugging on the console
+
+- **DevTools from the Mac**: the Device Portal relays WebView2's DevTools at `https://<console>:11443/msedge` (the
+  targets' list; their `webSocketDebuggerUrl` is `wss://<console>:11443/msedge/<pid>/devtools/page/<id>`), with no flag
+  in the app (Developer Mode; the documented switch, `--enable-features=msEdgeDevToolsWdpRemoteDebugging`, wasn't
+  needed with runtime 150). `node scripts/xbox-devtools.mjs js '<expr>'` evaluates in the game's page, `console [s]`
+  prints its console, `load [url]` opens a page (`index.html?start`: the save played last) and prints its load until
+  the first frame, `log [page|update]` fetches the app's logs. Edge's `edge://inspect` → *Connect to a remote
+  Windows device* works too.
+- **Files**: `GET /api/filesystem/apps/files?knownfolderid=LocalAppData&packagefullname=<package>&path=\LocalState\web`
+  lists, `/api/filesystem/apps/file?…&filename=page.log&path=\LocalState\web` fetches.
+  `LocalState\EBWebView\Breadcrumbs` is Chromium's own trail of the last session (navigations, cache clears, memory
+  pressure).
+- **The screen**: `GET /ext/screenshot?download=false` (a 1920 × 1080 PNG). **Load**: `/api/resourcemanager/processes`
+  (the app's processes, `msedgewebview2.exe` among them) and `/api/resourcemanager/systemperf` (GPU memory and engines).
+- Launching through `POST /api/taskmanager/app` failed (`-2147219190`): start it from Dev Home.
+- The virtual host's files are not seen by DevTools' Fetch interception: a build can't be swapped in from the Mac.
+
+## The slow load (October 2026)
+
+A new game sat about four minutes on "mixing the inks…" (build 1660, packaged, the Desert): `shaders: 861 kinds of
+surface, 75 programs, 53228 ms`, `passage warm-up: 2472 meshes in 158965 ms`, `mixing the inks… 220788 ms`, total
+230 s. Loaded again without relaunching the app: shaders 2.5 s, passage 30-31 s, total 42 s. Three causes:
+
+- **The shader cache cleared at every launch** (the app cleared the disk cache before each load, and the GPU's shader
+  cache went with it; Breadcrumbs: `ClearBrowsingData_ShaderCache`, `Begin_GpuCache`). Fixed in the app: only when the
+  build changes.
+- **The passage warm-up drew everything** behind every door (2472 meshes, 8 at a time) on a GPU that couldn't keep up:
+  ~100 ms a batch, its fences late (the pacer gave up after three 250 ms waits). Now it draws what the first frame sees
+  first, then round the traveller, the ship and the doors, and stops at `PASSAGE.loadBudget` (8 s); the rest is drawn
+  as you come near a door, as anything new always was.
+- **The app type was most likely App**: the GPU the app saw had 512 MB of its own memory, all of it used, and 832 of
+  872 MB shared; Chromium logged `Memory Pressure: Critical` two seconds in. Set it to **Game** (Dev Home → Hiraeth →
+  View details → App type); `page.log`'s first line now says which.
+
+## The controller drove a cursor (October 2026)
+
+Reported on the first install (1660). Seen over DevTools: the page's Gamepad API has the pad
+(`Xbox 360 Controller (XInput STANDARD GAMEPAD)`, standard mapping) and the page has the focus; `(pointer: fine)` and
+`(hover: hover)` are false. WinUI 2's WebView2 asks for no pointer of its own (its source has no Xbox or
+`RequiresPointer` code), so the mouse mode came from XAML: the app now sets `RequiresPointerMode` in code as well as in
+App.xaml, `RequiresPointer="Never"` on the page too, no focus engagement on the web view, and puts the focus on the web
+view whenever it could have gone (a focus on nothing, or on the page, can bring the cursor back). If it still happens,
+`page.log` says so: `mouse input: … the system's mouse mode is on`, and where the focus went.
+
 ## Unknowns (to check on the console)
 
-- Whether WebView2 on the console passes the pad to the Gamepad API (reported working: WebView2Feedback#4366) and
-  whether it also sends the pad as keys (then the page sees both; the injected `gamepadInputEmulation` may not apply
-  to WebView2).
+- WebView2 on the console passes the pad to the Gamepad API (seen, runtime 150); whether it also sends it as keys or
+  mouse in some state (the page's log says so now).
 - Whether the WebView2 runtime on the console takes `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` (autoplay) and has the
   newer settings (each is set alone, logged when refused).
-- The pixel ratio at 4K output, and whether the app runs its swap chain at 1080p (the Xbox preset assumes 1080p).
+- The pixel ratio: 1.5 at 1080p output (a 1280 × 720 page, the canvas 1920 × 1080), not 2; at 4K output, unknown.
 - The first Windows build: the runner image's UWP tools and SDK (the workflow's first step says what it found).
 - Tests: `tests/xbox.test.js` (detection, defaults, the bridge, the rules, the package script, the C# app's
   agreement with the page, the workflow).

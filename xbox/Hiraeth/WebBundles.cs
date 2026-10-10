@@ -378,6 +378,49 @@ namespace Hiraeth
 
         static string Short(string s) { return s == null ? "" : s.Length > 200 ? s.Substring(0, 200) : s; }
 
+        /// <summary>
+        /// Whether `game` is another build than the one served last time (LocalState\web\served.txt), noting it: the
+        /// HTTP cache is cleared only then (clearing it clears the GPU's shader cache too).
+        /// </summary>
+        public bool SwitchServed(Choice game)
+        {
+            var path = Path.Combine(root, "served.txt");
+            var now = game.Build + (game.Bundle ? " downloaded" : " packaged") + " " + AppBuild;
+            string last = null;
+            try { if (File.Exists(path)) last = File.ReadAllText(path).Trim(); } catch { }
+            if (last == now) return false;
+            try { File.WriteAllText(path, now); } catch { }
+            return true;
+        }
+
+        /// <summary>A new page.log for this launch (the last one kept as page.prev.log).</summary>
+        public void StartPageLog()
+        {
+            try
+            {
+                var path = Path.Combine(root, "page.log");
+                if (File.Exists(path)) File.Copy(path, Path.Combine(root, "page.prev.log"), true);
+                File.WriteAllText(path, "");
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// The page's log (src/xbox.js forwardLogs: warnings, errors, the load's stages) and the app's own findings,
+        /// in LocalState\web\page.log: fetched through the Device Portal (docs/systems/xbox.md).
+        /// </summary>
+        public void PageLog(string line)
+        {
+            var text = (line ?? "").Replace("\n", " | ");
+            if (text.Length > 500) text = text.Substring(0, 500);
+            var stamped = DateTimeOffset.Now.ToString("HH:mm:ss.fff") + " " + text;
+            System.Diagnostics.Debug.WriteLine("HiraethPage " + stamped);
+            lock (gate)
+            {
+                try { File.AppendAllText(Path.Combine(root, "page.log"), stamped + "\n"); } catch { }
+            }
+        }
+
         /// <summary>The update log (the last 40 steps): the settings' Details, and LocalState\web\update.log.</summary>
         public void Log(string line)
         {

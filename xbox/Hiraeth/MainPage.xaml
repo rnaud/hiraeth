@@ -4,9 +4,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
-    Background="#F7ECD2">
+    Background="#F7ECD2"
+    RequiresPointer="Never">
     <Grid Background="#F7ECD2">
-        <controls:WebView2 x:Name="Web" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsTabStop="True" RequiresPointer="Never" />
+        <controls:WebView2 x:Name="Web" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsTabStop="True" RequiresPointer="Never"
+                             IsFocusEngagementEnabled="False" UseSystemFocusVisuals="False" />
         <TextBlock x:Name="Status" Visibility="Collapsed" Margin="96,54" TextWrapping="Wrap"
                    Foreground="#2B211F" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Center" />
     </Grid>

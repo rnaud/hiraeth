@@ -7,7 +7,9 @@
 //   - leaving the app (the guide, another app, standby) pauses the game's sound: moebius:pause / moebius:resume,
 //     as Android sends them (src/audio-guard.js);
 //   - the settings' update section answered over web messages (src/xbox.js xboxCall: info, check, download, restart);
-//   - a downloaded build that doesn't boot in time goes back to the packaged one (the boot watch).
+//   - a downloaded build that doesn't boot in time goes back to the packaged one (the boot watch);
+//   - the page's warnings, errors and load timings written to LocalState\web\page.log (src/xbox.js forwardLogs),
+//     with what the app knows (its memory limit: an App or a Game, the WebView2 runtime, where the focus is).
 // C# 7.3 (.NET Native): no newer language features here.
 using System;
 using System.Threading.Tasks;
@@ -16,9 +18,11 @@ using Windows.ApplicationModel.Core;
 using Windows.Data.Json;
 using Windows.Foundation;
 using Windows.System;
+using Windows.System.Profile;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 namespace Hiraeth
@@ -48,14 +52,38 @@ namespace Hiraeth
             NavigationCacheMode = NavigationCacheMode.Required;
             SystemNavigationManager.GetForCurrentView().BackRequested += OnBack;
             Loaded += OnLoaded;
+            Window.Current.Activated += (s, e) => { if (e.WindowActivationState != CoreWindowActivationState.Deactivated) FocusWeb("activated"); };
+        }
+
+        /// <summary>The pad's input to the page: the web view holds the focus (a focus elsewhere may bring the system's mouse mode back).</summary>
+        void FocusWeb(string why)
+        {
+            try
+            {
+                if (!Web.Focus(FocusState.Programmatic)) bundles.PageLog("app: the web view refused the focus (" + why + ")");
+            }
+            catch (Exception e) { bundles.PageLog("app: focus: " + e.Message); }
         }
 
         async void OnLoaded(object sender, RoutedEventArgs e)
         {
             try
             {
+                bundles.StartPageLog();
+                var limit = MemoryManager.AppMemoryUsageLimit / 1048576;
+                // (about 1 GB: the app type is App, with a shared slice of the GPU and its memory; about 5 GB: Game)
+                bundles.PageLog("app: build " + bundles.AppBuild + ", " + AnalyticsInfo.VersionInfo.DeviceFamily + ", memory limit " + limit + " MB"
+                    + (limit < 2048 ? " (the app type is App: set it to Game in Dev Home)" : "") + ", pointer mode " + Application.Current.RequiresPointerMode);
+                Web.GotFocus += (s2, e2) => bundles.PageLog("app: focus on the web view");
+                Web.LostFocus += (s2, e2) =>
+                {
+                    var f = FocusManager.GetFocusedElement();
+                    bundles.PageLog("app: the web view lost the focus to " + (f == null ? "nothing" : f.GetType().Name));
+                };
                 await Web.EnsureCoreWebView2Async();
                 core = Web.CoreWebView2;
+                try { bundles.PageLog("app: WebView2 " + core.Environment.BrowserVersionString); } catch { }
+                FocusWeb("web view ready");
                 var s = core.Settings;
                 // (each alone: a console whose WebView2 runtime is older than the SDK lacks the newer ones)
                 Try("context menus", () => s.AreDefaultContextMenusEnabled = false);   // (no right-click menu)
@@ -102,6 +130,7 @@ namespace Hiraeth
             info["api"] = JsonValue.CreateNumberValue(WebBundles.XboxApi);
             info["app"] = JsonValue.CreateNumberValue(bundles.AppBuild);
             info["tvSafe"] = JsonValue.CreateBooleanValue(true);
+            info["memory"] = JsonValue.CreateNumberValue(MemoryManager.AppMemoryUsageLimit / 1048576);   // (MB: about 1024 as an App, 5000 as a Game)
             return "window.__hiraethXbox = " + info.Stringify() + ";"
                 + "if (window.__moebiusAway === undefined) window.__moebiusAway = false;"
                 // (the old Xbox WebView turned the pad into mouse and keys unless asked not to; harmless where unknown)
@@ -115,11 +144,14 @@ namespace Hiraeth
             bundles.Log("serving build " + game.Build + (game.Bundle ? " (downloaded)" : " (packaged)") + ": " + why);
             try { core.ClearVirtualHostNameToFolderMapping(Host); } catch { }
             core.SetVirtualHostNameToFolderMapping(Host, game.Folder, CoreWebView2HostResourceAccessKind.Allow);
-            _ = ClearCacheThen(() => core.Navigate(Origin + "index.html"));
+            // (only when the build changes: clearing the disk cache clears the GPU's shader cache too, and the
+            // console then compiled every shader again at each launch, a minute of "mixing the inks…")
+            if (bundles.SwitchServed(game)) _ = ClearCacheThen(() => core.Navigate(Origin + "index.html"));
+            else core.Navigate(Origin + "index.html");
             StartBootWatch();
         }
 
-        /// <summary>The HTTP cache may hold the last build's unhashed files (index.html, public/): cleared before switching.</summary>
+        /// <summary>The HTTP cache may hold the last build's unhashed files (index.html, public/): cleared before switching builds.</summary>
         async Task ClearCacheThen(Action then)
         {
             try { await core.Profile.ClearBrowsingDataAsync(CoreWebView2BrowsingDataKinds.DiskCache); }
@@ -180,7 +212,7 @@ namespace Hiraeth
 
         void OnNavigationCompleted(CoreWebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
         {
-            Web.Focus(FocusState.Programmatic);   // (the pad's input goes to the page)
+            FocusWeb("page loaded");   // (the pad's input goes to the page)
             if (away) { _ = Send(true); }         // (a page that loads while away is told again)
         }
 
@@ -228,7 +260,7 @@ namespace Hiraeth
                 try { core.MemoryUsageTargetLevel = on ? CoreWebView2MemoryUsageTargetLevel.Low : CoreWebView2MemoryUsageTargetLevel.Normal; } catch { }
                 if (!on)
                 {
-                    Web.Focus(FocusState.Programmatic);
+                    FocusWeb("back");
                     if (checkedOnce && DateTimeOffset.Now - lastCheck > TimeSpan.FromMinutes(15)) AutoCheck("resume");
                 }
             }
@@ -249,7 +281,15 @@ namespace Hiraeth
         async void OnMessage(CoreWebView2 sender, CoreWebView2WebMessageReceivedEventArgs args)
         {
             JsonObject msg;
-            if (!JsonObject.TryParse(args.WebMessageAsJson, out msg) || msg.GetNamedString("hiraeth", "") != "call") return;
+            if (!JsonObject.TryParse(args.WebMessageAsJson, out msg)) return;
+            var kind = msg.GetNamedString("hiraeth", "");
+            if (kind == "log")
+            {
+                // (src/xbox.js forwardLogs: the page's warnings, errors, load timings, what the pad looks like from there)
+                bundles.PageLog(msg.GetNamedString("level", "info") + ": " + msg.GetNamedString("text", ""));
+                return;
+            }
+            if (kind != "call") return;
             var id = msg.GetNamedNumber("id", 0);
             var method = msg.GetNamedString("method", "");
             var reply = new JsonObject();
