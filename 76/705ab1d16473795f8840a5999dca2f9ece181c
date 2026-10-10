@@ -1,0 +1,23 @@
+DONE.md
+  s_9ca76055a220ed::t_e7f6dcc2546b6f 2331-2355
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_71e1c4c393e41f 42-46
+src/changelog-media.js
+  s_9ca76055a220ed::t_62d97d41dad65f 519-525,527-544
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "76705ab1d16473795f8840a5999dca2f9ece181c",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
