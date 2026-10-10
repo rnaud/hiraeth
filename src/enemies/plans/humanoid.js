@@ -36,23 +36,33 @@ import { materials, add, tubeGeometry, many, skinBy, pivot, pair, lerp, ease, sm
 
 const HIP_Y = 0.98, SH = { x: 0.26, y: 1.52 }, NECK = 1.6, UPPER = 0.32, FORE = 0.4;
 const DEPTH = 0.74;   // (the cloak's depth to its width: the sheet's side view)
-/** The cloak's profile (r, y) from the neck down to the hem, flaring wide below the knees (the hem torn: jag()). */
-const CLOAK = [[0.12, 1.62], [0.22, 1.585], [0.285, 1.51], [0.31, 1.36], [0.34, 1.18], [0.4, 1.0], [0.47, 0.84], [0.54, 0.72], [0.58, 0.64]];
-const HEM = 0.64;
+/** The cloak's profile (r, y) from the neck down to the hem: narrow at the shoulders, falling nearly straight past the
+ * knees as heavy cloth does, flaring only a little at the hem (the hem torn: jag(); hung in folds: cloakGeometry). */
+const CLOAK = [[0.12, 1.62], [0.22, 1.585], [0.28, 1.51], [0.3, 1.36], [0.32, 1.18], [0.345, 1.0], [0.37, 0.84], [0.395, 0.7], [0.42, 0.56], [0.445, 0.44]];
+const HEM = 0.44;
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m = new THREE.Matrix4(), _mr = new THREE.Matrix4(), _up = new THREE.Vector3(0, 1, 0);
 
 /** The torn hem: how far above its line a tatter's tip ends at angle a (rad round the body; 0 ahead), m. */
-export const jag = (a, ragged = 1) => (0.13 * Math.abs(Math.sin(a * 5)) + 0.06 * Math.abs(Math.sin(a * 11 + 1))) * ragged - 0.26 * Math.max(0, -Math.cos(a));
+export const jag = (a, ragged = 1) => (0.17 * Math.abs(Math.sin(a * 5)) + 0.07 * Math.abs(Math.sin(a * 11 + 1))) * ragged - 0.24 * Math.max(0, -Math.cos(a));
 
-/** A lathe from (r, y) pairs, its bottom row torn (jag), its front open by `gap` rad, its depth squashed. */
-function cloakGeometry(profile, { gap = 0, ragged = 1, depth = DEPTH, seg = 32 } = {}) {
+/**
+ * A lathe from (r, y) pairs, its bottom row torn (jag), its front open by `gap` rad, its depth squashed; hung in soft
+ * folds (`folds` m deep at the hem, none at the top: the cloth's vertical folds, gathered at the shoulders).
+ */
+function cloakGeometry(profile, { gap = 0, ragged = 1, depth = DEPTH, seg = 32, folds = 0 } = {}) {
   // (a lathe's faces look out when its profile runs bottom to top: the hem is its first row)
   const pts = profile.map(([r, y]) => new THREE.Vector2(r, y)).reverse();
   const geo = new THREE.LatheGeometry(pts, seg, gap / 2, Math.PI * 2 - gap);
   const pos = geo.attributes.position, n = pts.length;
   for (let i = 0; i < pos.count; i++) {
-    const row = i % n, x = pos.getX(i), z = pos.getZ(i), a = Math.atan2(x, z);
-    let y = pos.getY(i);
+    const row = i % n, a = Math.atan2(pos.getX(i), pos.getZ(i));
+    let x = pos.getX(i), z = pos.getZ(i), y = pos.getY(i);
+    if (folds) {
+      // (the folds deepen down the cloth, irregular: two waves round the body; the hem's tatters hang from their ridges)
+      const t = Math.max(0, Math.min(1, (pts[n - 1].y - y) / Math.max(0.01, pts[n - 1].y - pts[0].y)));
+      const f = 1 + (folds / Math.hypot(x, z || 1e-6)) * t * t * (0.7 * Math.sin(a * 9 + 0.6) + 0.3 * Math.sin(a * 17 + 2.1));
+      x *= f; z *= f;
+    }
     if (row === 0) y += jag(a, ragged);
     if (row <= 1) y -= 0.05 * Math.max(0, -Math.cos(a));   // (it trails a little longer behind)
     pos.setXYZ(i, x, y, z * depth);
@@ -123,8 +133,8 @@ export function shadeModel(skin) {
   // the cloak: hung from its shoulders (`drape`: it lags the body on springs), open down the front on the dark inside
   const drape = pivot(hull, 0, SH.y, 0, 'drape');
   const shoulder = (geo) => geo.translate(0, -SH.y, 0);
-  add(drape, shoulder(cloakGeometry(CLOAK, { gap: 0.55, ragged })), cloakB);
-  add(drape, shoulder(cloakGeometry(CLOAK.slice(2).map(([r, y]) => [r * 0.93, y]), { gap: 0, ragged: ragged * 0.9 })), liningB);   // (from the shoulders down: none of it shows under the hood)
+  add(drape, shoulder(cloakGeometry(CLOAK, { gap: 0.5, ragged, folds: 0.085, seg: 48 })), cloakB);
+  add(drape, shoulder(cloakGeometry(CLOAK.slice(2).map(([r, y]) => [r * 0.9, y]), { gap: 0, ragged: ragged * 0.9, folds: 0.07, seg: 40 })), liningB);   // (from the shoulders down: none of it shows under the hood)
   // (gold trim down the opening and round the hem: the pilgrim's; the woodsman's a darker hem)
   // the brass clasp at the chest, where the cloak closes under the capelet
   many(drape, [new THREE.TorusGeometry(0.055, 0.016, 6, 16).translate(0, 1.43 - SH.y, 0.29 * DEPTH + 0.06), new THREE.CircleGeometry(0.04, 12).translate(0, 1.43 - SH.y, 0.29 * DEPTH + 0.055)], brassB);
@@ -132,11 +142,11 @@ export function shadeModel(skin) {
   // small puffs among them (the smoke drifts round and breathes; drops fall off it as it goes)
   const smoke = pivot(drape, 0, HEM - SH.y, 0, 'smoke'), puffs = [];
   for (let i = 0; i < 40; i++) {
-    const a = i * 2.39996, r = 0.44 + (i % 3) * 0.05, y = jag(a, ragged) * 0.85 - 0.02, l = 0.12 + (i % 5) * 0.05;
+    const a = i * 2.39996, r = 0.38 + (i % 3) * 0.04, y = jag(a, ragged) * 0.85 - 0.02, l = 0.12 + (i % 5) * 0.05;
     // (a wisp: a soft drop drawn out downward, leaning as the tatter it falls from)
     puffs.push(new THREE.SphereGeometry(1, 8, 7).scale(0.026 + (i % 3) * 0.008, l * 0.55, 0.026 + (i % 3) * 0.008).rotateZ(Math.sin(a * 3) * 0.35).translate(Math.sin(a) * r, y - l * 0.45, Math.cos(a) * r * DEPTH));
   }
-  for (let i = 0; i < 10; i++) { const a = i * 1.7 + 0.4, r = 0.3 + (i % 2) * 0.1; puffs.push(new THREE.IcosahedronGeometry(0.045 + (i % 3) * 0.015, 0).translate(Math.sin(a) * r, -0.08 - (i % 3) * 0.08, Math.cos(a) * r * DEPTH)); }
+  for (let i = 0; i < 10; i++) { const a = i * 1.7 + 0.4, r = 0.28 + (i % 2) * 0.09; puffs.push(new THREE.IcosahedronGeometry(0.045 + (i % 3) * 0.015, 0).translate(Math.sin(a) * r, -0.08 - (i % 3) * 0.08, Math.cos(a) * r * DEPTH)); }
   many(smoke, puffs, smokeB);
   // the head: a capelet over the shoulders, the hood (no face: the dark of it, two white eyes), its ribbons' roots
   const head = pivot(hull, 0, NECK, 0, 'head');
