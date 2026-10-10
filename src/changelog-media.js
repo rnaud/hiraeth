@@ -331,6 +331,19 @@ const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
 const B3 = { commit: '5a1659cd', before: '890913ce' };
 /** The roster's batch 4 (the machines): the after at the batch's own commit, the before (the stand-ins) at main's before it. */
 const B4 = { commit: '67713bf9', before: '36f6d588' };
+const B5 = { commit: 'a4c9b043', before: 'a1373f07' };   // (batch 5: its last commit, the commit before it)
+/** A shade called in the Arena for a before / after on the same camera (the old body only draws in the game, not the gallery):
+ *  the Arena's foes gone and its waves stopped, the shade 4.5 m ahead of the traveller turned three-quarter to the camera,
+ *  posed each frame where it stands, chasing (its sword drawn), the camera pinned on it. */
+const SHADE_SHOT = (id) => `const { THREE, camera, player, foes } = window; for (const x of [...foes.list]) foes.remove(x);
+  foes.update = () => { for (const x of foes.list) { x.state = 'chase'; x.provoked = true; foes.look(x, 1 / 60); } };
+  const P = player.pos.clone(), f = new THREE.Vector3(Math.sin(player.heading ?? 0), 0, Math.cos(player.heading ?? 0)), at = P.clone().addScaledVector(f, 4.5);
+  const s = foes.add('${id}', at); s.heading = Math.atan2(-f.x, -f.z) + 0.75; foes.look(s, 0);
+  const eye = P.clone().addScaledVector(f, 1.2).add(new THREE.Vector3(0, 1.5, 0)), t = at.clone().add(new THREE.Vector3(0, 1.05, 0));
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(eye, t, new THREE.Vector3(0, 1, 0)));
+  const base = THREE.PerspectiveCamera.prototype.updateMatrixWorld;
+  camera.updateMatrixWorld = function (force) { this.position.copy(eye); this.quaternion.copy(q); if (this.fov !== 40) { this.fov = 40; this.updateProjectionMatrix(); } return base.call(this, force); };
+  player.object && (player.object.visible = false);`;
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
@@ -450,6 +463,51 @@ const TEMPLES16 = { commit: '6d005223', before: 'cfaa2045' };
 /** The level design audit's third round: the same view in headless Chrome against the commit before (bed64a68) and after. */
 const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280 × 720, High, noon) against this branch’s dev server and the commit before it (bed64a68), the same view each; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.18': [
+    // the enemy roster, part five: the last three, each alone in its main skin and its alternate (the shade against its
+    // old body; the roller and the marionette had none), a wind-up each; the sheets beside them as their own pictures
+    { match: 'The last three foes of the new roster', see: 'In the Arena (?level=arena) open the FOES list (K, or D-pad ↓) and pick a shade, a pearl roller or a marionette in any of their skins (a marionette comes with a crab to drive); or pick the Garden of Spheres for its rollers, then its glass puppet late. Every world’s list is now all the new roster.',
+      numbers: [
+        { title: 'Meshes in one foe’s body', unit: 'meshes', better: 'lower', device: 'any (counted in node)', rows: [
+          { where: 'shade (the old body: a skinned person and its flame)', before: '3–4', after: '8–9' }, { where: 'pearl roller', before: null, after: '6–7' }, { where: 'marionette', before: null, after: 6 },
+        ], source: 'archetypeModel(kind) in each of its skins, its meshes counted (each is a draw, again in each shadow pass); tests/archetypes-batch5.test.js' },
+        { title: 'Draw calls, four shades in view', unit: 'calls', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, 1280 × 720', rows: [
+          { where: 'High', before: 227, after: 272 }, { where: 'Steam Deck preset', before: '188–232', after: 277 },
+        ], source: 'node scripts/enemy-roster/bench.mjs --pack shade ×4 at the commit before batch 5 against shade@perdide2, shade@eclipse, shade@incal, shade@spheres; two runs each', note: 'CPU 3.1–3.2 → 3.3–3.7 ms on High, 2.7–2.9 → 3.0–3.1 ms on the Deck preset; the first build of the new body cost 312 calls on High before its parts were merged. Six of batch 5 in view (two shades, two rollers, two marionettes): 292 calls on High, 296 on the Deck preset.' },
+      ] },
+    { match: 'The shade is an empty hooded cloak worn by nothing', shots: [
+      { name: 'roster5-shade', title: 'In the Arena', caption: 'The same shade called in the Arena, the same camera. Before: its old body, a person of living shadow with a black flame for a head. After: Lorn II’s hollow woodsman, a cloak worn by nothing, its sword drawn as it comes for you', ...B5,
+        view: { level: 'arena', size: [1280, 720], wait: 2500, setup: SHADE_SHOT('shade@perdide2') }, reference: REF('shade', 1, 'the hollow woodsman (Lorn II)') },
+      { name: 'roster5-shade-body', only: 'after', title: 'Lorn II', caption: 'Lorn II’s hollow woodsman alone, three-quarter: a pointed bark hood swept back over a black hollow with two white eyes, a moss-green and teal cloak open on the dark inside, a brass clasp, khaki ribbons trailing, the torn hem breaking into white-lined smoke, empty boots with brass-ringed greaves', commit: B5.commit,
+        view: { foe: { id: 'shade@perdide2', yaw: 0.75, pitch: 0.1, zoom: 0.72 } }, reference: REF('shade', 1, 'the hollow woodsman (Lorn II)') },
+      { name: 'roster5-shade-alt', only: 'after', title: 'Eclipse', caption: 'The Eclipse’s pilgrim: a tall round violet hood with a brass crescent on top and gold trim, a dusk-blue cloak, a lantern on its belt', commit: B5.commit,
+        view: { foe: { id: 'shade@eclipse', yaw: 0.6, pitch: 0.1, zoom: 0.72 } }, reference: REF('shade', 2, 'the pilgrim (the City During the Eclipse)') },
+      { name: 'roster5-shade-cut', only: 'after', title: 'The cut', caption: 'The hollow woodsman winding up its cut: the sword of poured ink drawn back over its shoulder, its body turned away and its hood turned to keep you in sight', commit: B5.commit,
+        view: { foe: { id: 'shade@perdide2', yaw: 0.35, pitch: 0.1, zoom: 0.72, pose: 'cut' } }, reference: REF('shade', 1, 'the hollow woodsman (Lorn II), its cut wound up on the right') },
+      { name: 'roster5-shade-feint', only: 'after', title: 'The feint', caption: 'The feint, late in its wind-up: the cut stopped halfway, the sword dropped to its hip and the body sunk for the low thrust', commit: B5.commit,
+        view: { foe: { id: 'shade@perdide2', yaw: 0.9, pitch: 0.1, zoom: 0.72, pose: 'feint', at: 0.85 } }, reference: REF('shade', 1, 'the hollow woodsman (Lorn II)') },
+    ], see: 'Pick a shade in the Arena’s FOES list. Guard (LB / L1) its cut as it lands for a parry, then cut back. When its cut stops halfway and the sword drops to its hip, step aside from the thrust. When its cloak sinks into a pool, turn: it comes up beside you. Throw an ember at it first and it can’t step at all.' },
+    { match: 'The pearl roller is a snail', shots: [
+      { name: 'roster5-roller', only: 'after', title: 'Sealed Hangar', caption: 'The Hangar’s ball-bearing snail, three-quarter: a ball of polished steel with an oily sheen, a fine spiral raised on its side, a riveted band over the top, a wide dark teal foot and two eye stalks (nothing stood in for it before)', commit: B5.commit,
+        view: { foe: { id: 'roller@garage', yaw: 1.0, pitch: 0.12 } }, reference: REF('roller', 1, 'the ball-bearing snail (the Sealed Hangar)') },
+      { name: 'roster5-roller-alt', only: 'after', title: 'Garden of Spheres', caption: 'The Garden of Spheres’ pearl roller: a pearl shell of fine tiles with blush and gold lustre, its spiral glowing gold, a pale lilac foot and a brass wind-up key in its back', commit: B5.commit,
+        view: { foe: { id: 'roller@spheres', yaw: 1.0, pitch: 0.12 } }, reference: REF('roller', 2, 'the pearl roller (the Garden of Spheres)') },
+      { name: 'roster5-roller-bowl', only: 'after', title: 'The bowl', caption: 'The ball-bearing snail winding up its bowl: its eye stalks sunk, the shell rocked back on its foot (three times), about to pull in and roll', commit: B5.commit,
+        view: { foe: { id: 'roller@garage', yaw: 1.3, pitch: 0.12, pose: 'bowl', at: 0.42 } }, reference: REF('roller', 1, 'the ball-bearing snail (the Sealed Hangar), rolled up and rocked back below') },
+    ], see: 'Pick a pearl roller in the Arena’s FOES list and stand off: when its stalks sink and it rocks, guard (LB / L1) as it reaches you and it bounces off stunned; cut it then. Hurt it badly and it spins up glowing: jump the ring it shatters into.' },
+    { match: 'The marionette is a thin puppet', shots: [
+      { name: 'roster5-marionette', only: 'after', title: 'Garden of Spheres', caption: 'The Garden of Spheres’ glass puppet: a thin puppet of clear glass with pearl ball joints, its head tipped forward, hanging a metre off the ground from four silver threads that rise into a knot of black smoke (nothing stood in for it before)', commit: B5.commit,
+        view: { foe: { id: 'marionette@spheres', yaw: 0.6, pitch: 0.08 } }, reference: REF('marionette', 1, 'the glass puppet (the Garden of Spheres)') },
+      { name: 'roster5-marionette-alt', only: 'after', title: 'Signal Market', caption: 'The Signal Market’s parcel puppet: brown paper parcels tied with string for limbs, a paper-bag head, teal and amber wax seals, on string under a black-grey knot', commit: B5.commit,
+        view: { foe: { id: 'marionette@bazaar', yaw: 0.6, pitch: 0.08 } }, reference: REF('marionette', 2, 'the parcel puppet (the Signal Market)') },
+      { name: 'roster5-marionette-strings', only: 'after', title: 'The strings', caption: 'The glass puppet winding up its strings: both arms lifted, the fingers curling, two strings unspooling down from its hands toward a creature to drive (the glow at its hand: the move’s tell)', commit: B5.commit,
+        view: { foe: { id: 'marionette@spheres', yaw: 0.3, pitch: 0.08, pose: 'strings' } }, reference: REF('marionette', 1, 'the glass puppet (the Garden of Spheres), its strings wound up on the right') },
+    ], see: 'Pick a marionette in the Arena’s FOES list: it comes with a crab. When it lifts its arms, strings drop onto the crab and its eyes go black; jump and cut a string with the air cut, throw the boomerang through them, or throw an ember: the crab drops free and wanders off.' },
+    { match: 'In the Garden of Spheres a glass puppet hangs', shots: [
+      { name: 'roster5-glass-puppet', only: 'after', caption: 'The Garden of Spheres’ android wood: after, the glass puppet hanging by the white archway, its strings rising into its knot of smoke (placed there by hand, alone)', commit: B5.commit,
+        view: { level: 'spheres', player: [-97, 0.9, -404], heading: -2.1, eye: [-96.5, 2.8, -401.5], target: [-108, 3.4, -411.7], fov: 55, wait: 5000 } },
+    ] },
+  ],
   '1.17': [
     // the worlds, third round of the level design audit (docs/audits/level-design-v1.17.md): own pictures, the same view
     // before (bed64a68) and after
