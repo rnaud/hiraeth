@@ -19,6 +19,14 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 - [ ] **A Star Fox-style space level**: the ship fights space pirates ("They are after your chimes!"); it plays as the
   passage the first time you fly from the ship to a new destination.
 
+- [ ] **The merged worlds' follow-ups** (v1.39 level-design audit: Vael 4.56 → 3.89, Lorn 4.44 → 3.89, Glass Dunes 3.22):
+  the long empty walks back (Vael's 760 m from the monastery to the clapper), a weenie and a reason to cross each join;
+  the Glass Dunes' spread of places and height. Can the sky stones be reached on foot from Vael's plain? Frame rate of
+  the bigger terrains on Android.
+- [ ] **Story loose ends from the merge**: the Buried Machine's lines about the Major and the Hangar; Fen's "the skiff
+  is his" (you use your own now); Vael II's and Lorn II's stories no longer close a journal page; recordings 10 and 11
+  never play (the reel words bell, lamp, why unused); the ending's world data covers 6 of the 9 places.
+
 ## Traversal and gadgets
 
 - [ ] **The City-Shaft's air pillars**: columns of rising air to carry you back up with the wings; inside an air shaft
