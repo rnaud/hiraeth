@@ -95,8 +95,9 @@ function Place([string]$package, [string]$file, [string]$guid) {
   $dir = Join-Path $plugins 'WSA/x64'
   New-Item -ItemType Directory -Force $dir | Out-Null
   Copy-Item (Join-Path $Cache $file) (Join-Path $dir $file) -Force
-  # (LF and no BOM, written as bytes: the first CI run's metas, through Set-Content, "could not be parsed" by Unity)
-  $text = $meta.Replace("`r`n", "`n").Replace('GUID', $guid)
+  # (LF, no BOM, and a newline at the end: Unity's YAML parser fails on a last "key:" with nothing after it, "Parser
+  # Failure at line 33: Expect ':' between key and value", and then ignores the DLL; a here-string drops its last newline)
+  $text = $meta.Replace("`r`n", "`n").Replace('GUID', $guid).TrimEnd() + "`n"
   [IO.File]::WriteAllText((Join-Path $dir "$file.meta"), $text, (New-Object System.Text.UTF8Encoding($false)))
   Write-Host "$package/Plugins/WSA/x64/$file.meta: $(($text -split "`n")[0..1] -join ' | ')"
 }
