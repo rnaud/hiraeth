@@ -62,7 +62,7 @@ namespace Memento.Bridge
             Write($"launch {DateTime.Now:yyyy-MM-dd HH:mm:ss}; {Application.productName} {Application.version} ({Application.platform}); " +
                   $"{SystemInfo.graphicsDeviceType} {SystemInfo.graphicsDeviceName} ({SystemInfo.graphicsMemorySize} MB); {SystemInfo.processorType} x{SystemInfo.processorCount}; " +
                   $"{SystemInfo.systemMemorySize} MB; {Screen.width}x{Screen.height}; frame timing {(FrameTimingManager.IsFeatureEnabled() ? "on" : "off")}");
-            Write($"metrics started {Time.realtimeSinceStartup * 1000:0} ms after launch");
+            Write($"metrics started {Time.realtimeSinceStartup * 1000:0} ms after launch; {AppLimit()}");
         }
 
         void OnDestroy()
@@ -135,6 +135,21 @@ namespace Memento.Bridge
                 Write((settled < 0 ? "loading: " : "frames: ") + readout);
                 frames.Clear(); windowStart = now; cpuMain = cpuRender = gpu = 0; timed = 0;
             }
+        }
+
+        /// <summary>The app's memory limit on the console: about 1 GB says its type is App (a share of the GPU too), about 5 GB Game.</summary>
+        static string AppLimit()
+        {
+#if ENABLE_WINMD_SUPPORT
+            try
+            {
+                ulong limit = Windows.System.MemoryManager.AppMemoryUsageLimit;
+                return $"the app's memory limit {limit / 1048576} MB ({(limit < 2UL << 30 ? "app type App: set it to Game in Dev Home" : "app type Game")})";
+            }
+            catch (Exception e) { return "the app's memory limit: " + e.Message; }
+#else
+            return "no app memory limit here";
+#endif
         }
 
         static string Ms(float at) => at < 0 ? "?" : $"{at * 1000:0} ms";
