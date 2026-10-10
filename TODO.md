@@ -10,6 +10,10 @@ User-approved Midjourney originals and provenance are indexed in
 Use the selected single-view designs as the source of truth; derive further views from them
 rather than mixing the earlier inconsistent exploration sheets.
 
+- [ ] **Redesign the in-game backpack after the round-backpack picks** (2026-10-10; in progress with the abilities
+  rewrite): `references/Core Objects/Round Backpack/` (sheet, worn, states and upgrade stages): the round glass sphere of
+  glowing jade fluid in a brass ring cradle, leather straps, olive canvas back plate, no hose; its fluid and glow tied to
+  the magic bar, the upgrade stages to the backpack upgrades (the double jump its first strength).
 - [ ] Extend the generated father beyond the recording bust for full-body walking and clothing motion; the procedural family is integrated (see DONE.md).
 # Singing light soundtrack follow-up
 
@@ -23,7 +27,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 - [ ] Small pale notches still left at a corner's foot beside a person (300-600 px, Handheld) and Marrow's wide hem
   darkening the floor a little: where three planes meet, the planes round a hidden tap can miss the one hiding it
   (a third look-past along the other axis?). The buried world's stairs-0 orbit (Handheld, 0.74) not looked at by eye.
-
 
 # Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.16) built)
 
@@ -100,7 +103,6 @@ Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets
 - [ ] Play the eleven guardians' new fights in their temples with a pad and tune by hand: the combo starters' 1.0 s,
   the miss-openings' lengths, the shock rings' 9 m/s against the jump.
 
-
 # Cinematics (QC pass, 2026-10-09: docs/systems/cinematics-qc.md)
 
 - [ ] The prologue and the homecomings run 2–3 minutes with choices inside: review them by hand on the
@@ -122,7 +124,6 @@ Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets
   close up — for the author to say. The far town shimmers half a pixel over (Qanat at 150 m, 0.44 of its ink, 12-14 %
   pops, before and after): check it in motion (scripts/motion-check, the zoom path) and look at the haze layers and
   the wobble on thin far shapes.
-
 
 # Xbox (queued 2026-10-09)
 
@@ -152,96 +153,16 @@ docs/systems/procedural-animation.md, "The audit"). Build a small locomotion kit
 new ~20 body plans and the guardians onto it. Review every step with the `procedural-animation` skill
 (`node scripts/motion-audit/run.mjs`, the rubric). Sessions are rough estimates.
 
-- [x] **1. Kit core** (1 session): `spring.js` (second-order f/ζ/r with the stability clamp, expDamp,
-  quantise), `ik.js` (two-bone with a stable pole, replacing `kneeOf`; FABRIK for 3+ joints), `gait.js`
-  (rest targets, groups that lift only when the others are down, distance/time/turn triggers, smootherstep +
-  sine arc, one ground ray per step, touchdown events for dust / sound / rumble). Tests: IK clamp and pole
-  through a straight leg, springs stable at 10–240 fps, a planted foot never moves, tripod and tetrapod form.
-- [x] **2. Body and poses** (1 session): `body.js` (ride height over planted feet, pitch/roll from the foot
-  plane, bob per lift, lean into acceleration and turns), `pose.js` (a plan's key poses blended by the mind's
-  state; wind-up locks stepping, plants wide, counter-moves via r < 0; strike snaps with overshoot; recover
-  settles). Ties into the body telegraphs.
-- [x] **3. First three plans end to end** (1–2 sessions): multi-legged walker, quadruped beast, piston-legged
-  machine in the enemies viewer and the Arena; targets slide/m < 0.05, reach span > 15 % of leg length, lift
-  ≥ 6 %, right groups, cadence following speed; before/after motion strips for the changelog. Done
-  (procedural-animation.md §6): the salt crab and the six-legged world enemies, the shadow hound and the newts,
-  the makers' machine and the possessed machines; every target met (tests/motion-plans.test.js).
-- [x] **4. Chains** (1 session): `chain.js` (`PathTrail`, `FollowChain`, `Wave`; `wave-legs.js` for metachronal
-  legs) with the roster's batch 2 on them (procedural-animation.md, "Phase 4, the chains"). Left for later: the
-  serpent (the Mother Snapper, phase 6) and cloaks / cables on the older plans.
 - [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md): each body plan a table entry and
   its poses, scored with the rubric (≥ 2 on every row). Done for batch 3 (procedural-animation.md, "Phase 5": the
   hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor) and batch 4 ("Phase 5, the
   machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints) and batch 5 ("Phase
   5, the late spirits and the roller": the humanoid spirit, the roller, the strings): every archetype is on the kit.
-- [x] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
-  bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
-  each fight's new attacks. Done (procedural-animation.md, "Phase 6, the guardians"): the six walkers on jointed planted
-  legs (slide 0.00 m/m, reach 21–33 %, lift 12–17 %, knees 60–96°, the right groups), the body in its own tell rig over
-  planted feet, the wind-up's brace and lock, the fliers on travelling waves, the Snapper's neck a FABRIK chain; every
-  fight's timing unchanged. Left: the guardians' own coil pose per move (they keep their hand-made ones on top of the kit's).
-- [x] **7. LOD and style** (1 session): the tiers (held 30 frames) and the stepped clock are built in
-  `src/motion-kit/rig.js`; left: on-screen as well as distance, a far tier that skips drawing the legs, the
-  stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
-  the motion check for ink shimmer. Done (procedural-animation.md, "Phase 7, LOD and style"): out of view nothing solved,
-  far IK one frame in four, the machines on twos; the kit 0.24 → 0.13 ms a frame on High and 1.03 → 0.52 on the Deck
-  preset at CPU ×4 with a guardian and 28 foes; shimmer round a walking tripod 515 → 6–26 per 10 000 px. Measured in headless
-  Chrome (no Retroid now).
 
 # Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20, v1.23: 2026-10-10)
 
 Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
 
-- [x] **Every way home passes something new** (v1.20, docs/audits/level-design-v1.20.md): the Sky Stones' fallen-up
-  tiles and lantern stones, Lorn's egg-lamps, Lorn II's water-way, Viridel's runnel, the Hangar's telescope, the Buried
-  Machine's Tooth Day posts, the Signal Market's listeners' lane; the audit reads a stage's `home` and `stands`. Loops 5 in
-  ten of eleven worlds. Left: the City-Shaft's Tobin → Lio hop.
-- [x] **A weenie on every main-quest leg** (v1.20): the bell tower and the island church (the Sky Stones), the cave's
-  crown (Lorn), the saucer's beam and the lit path (Lorn II), the Major's mast (the Hangar), the Garden's white paths;
-  the average 4.04 → 4.25. Left, blind by the numbers: Lorn's Saba → the cave (a crystal grove in every bearing), the
-  Buried Machine's oculus → the wheel (inside the drum), the desert's three, Vael's window → the tower's foot.
-- [x] **Desert: the Hearth ride** (v1.9, docs/audits/level-design-v1.9.md): Yara's shade and a skiff's wreck on the
-  straight ride out, home along the marked stones past the bowl and the camp. Longest gap 1,552 → 518 m, density 2→4,
-  loops 1→2. Left: the wreck → Hearth stretch (518 m); the walk from the tree back to the ship.
-- [x] **Desert: landing → Qanat is blind** (v1.9): the camps' smoke over the dune while the tree is cold, the Givers'
-  dry channel, Oum on a dune in sight of the way in. Wayfinding 2→3, the desert 2.56 → 3.11.
-- [x] **Vael: the plain** (v1.9): Senn and the hush-cloth's box on the capped spire halfway to the tower, standing
-  stones up to the Aerie. Vael 2.89 → 3.56. Left: both walks back are still the way you came (Oïa or the last
-  stage off the landing–tower line, or the bird's first flight home past the colossus); Oïa from the Aerie's door.
-- [x] **City-Shaft** (v1.15, docs/audits/level-design-v1.15.md): the lamplighters' drops (a lamp-post and ring on every
-  terrace, a `down` stage between Nima and Ossa), Perrine's stall and relic on the middle landing, the lamplighters'
-  locker, a pad and the relay lamp on the climb, Tobin's view pad on the way back down, Wren's marker at its stop.
-  Longest gap 564 → 178 m, the City-Shaft 3.56 → 3.89. Left: Fausta's shop by the middle cab stop is now a remote
-  loner (a person waiting for a cab, or the drops passing it); the relay lamp alone on the climb; Nima/Lio/Tobin.
-- [x] **The audit** (v1.15): leading lines (`level.lines`, a stage's `via`, `auto: false`) guide legs and carry the walk
-  along them; the loner rule scales with the travel speed (18 s from anything).
-- [x] **A second way home in the desert and Vael** (v1.15): the pilgrims' road of lamp-lit cairns from Qanat's gate to
-  the ship, the tusk gate on the Hearth ride; the bird's tracks from the Aerie to Oïa past the mounting stone, the rider's
-  roost on the way home from the tower. The desert 3.33 → 3.56, Vael 3.78 → 4.33.
-- [x] **Desert: the ride's Yara → wreck stretch and the cave's walk back** (v1.17, docs/audits/level-design-v1.17.md):
-  the skiff's anchor between Yara and the wreck; the keepers' stair from the cave up to a hatch in the back lane (an `up`
-  stage, a "go" in the ten "do" stops). The desert 3.56 → 3.89 (density 4→5, loops 4→5, pacing 3→4).
-- [x] **City-Shaft: the shop by the cab stop, the relay lamp, Nima/Lio/Tobin, the Well → Nima** (v1.17): Basile at the
-  cab stop, a second pad past the relay lamp, Tobin pays as you walk up, the lamplighters' rim posts from the Well's door
-  to the red stair. The City-Shaft 3.89 → 4.44.
-- [x] **Vael: onboarding** (v1.17): the riders' mast over the slope where Oïa points; the route starts with her beside
-  the landing. Vael 4.33 → 4.56.
-- [x] **Left from v1.17** (v1.23, docs/audits/level-design-v1.23.md): the City-Shaft's Tobin → Lio hop (Tobin's
-  telescopes round the outer rim: loops 5); the desert's Ama's fire → the giant's mouth (the giant's breath over the
-  back gate: wayfinding 3 → 4). Left: the desert's well → Marrow and hollow → Hearth, its first goal 391 m off.
-- [x] **Sky Stones: the clapper's return arc** (v1.20: along the fallen-up tiles over the great table; the island
-  church's tower as a beacon). Loops 2→5. Ondine (v1.23): out on the aqueduct under the island, by her tally; the
-  clapper's lantern over the porch.
-- [x] **Lorn II: lamp-lit stakes** (v1.20: the lit path declared, the saucer's beam a beacon, the water-way home).
-  Wayfinding 1→5.
-- [x] **The Signal Market's listeners' lane** (v1.23): Wynn, the last listener, under the dishes halfway (149 → 90 m);
-  the silent tower's aerial a beacon (landmarks 3 → 4, wayfinding 4 → 5). A second way back from Sel's: v1.20's lane.
-- [x] **Pull the remote loners into 30-150 m of the path** (v1.23): Ondine (Sky Stones), Gaspard (Hangar), the pyramid
-  seed (Viridel), Emrys (Garden, onto the meadow pyramid). Optional pull +1 in the Sky Stones and the Hangar.
-- [x] **One high place per flat world** (v1.23, src/lookouts.js): Wendel's lookout with the box (Lorn, 8 → 38 m), the
-  keepers' stalks (Lorn II, 17 → 32 m), Emrys on the meadow pyramid (Garden, 25 → 30 m). Verticality +1 each. The
-  Garden's meadow path home and the answering spheres in the avenue (density 4 → 5); Lorn's crown seen from Saba's stone
-  through a notch in the grove (wayfinding 4 → 5). The average 4.25 → 4.38.
 Left from v1.23 (docs/audits/level-design-v1.23.md, "The ranked edits that remain"), worst first:
 - [ ] **The desert's two long blind legs**: the well → Marrow (441 m) and Marrow's hollow → the Hearth (1.6 km), and its
   first goal 391 m off the landing. Wayfinding 4 → 5, onboarding 3 → 4.
@@ -262,16 +183,6 @@ with an older verb); since v1.24 every one has its own idea (average 1.84 → 3.
 themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24 and done in v1.27 but
 three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
-- [x] **A twist room in every temple** after the gadget's test: the gadget plus the temple's pre-gadget verb in one
-  lock (keys of two kinds). All eleven (v1.24).
-- [x] **One key per temple out of its lock's room**, in sight from it but reached from elsewhere (a shortcut that
-  opens from the far side, a disc mid-ride). All eleven (v1.27): the Warden's Well's little vane stands on a post in the
-  loft, seen from the crown down through the second iris, splashed and then flown up to the great one inside its 15 s.
-- [x] **No gadget door beside the chest**: the chest room's way out teaches the gadget somewhere failure is cheap;
-  its next use a room later. All eleven (v1.27): the Belfry, the Engine-House, the Undertower, the Greenhouse, the
-  Hush-House, the Lamp-House and the First Garage each have a passage a room on with the old door at its far end, and a
-  try that locks nothing in five of the chest rooms (docs/audits/temple-design-v1.27.md); the Aerie's and the Warden's
-  Well's are traversals (a miss drops you back), left as they are.
 - [ ] **Break the shared opening** (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
   Garage = the Engine-House, 100 %): each first room from its world's own idea. Done: the Givers' House (the pilot flame),
   the Engine-House, the Greenhouse, the Hush-House, the Footprint (v1.27: the sphere on the walker's print, you on its
@@ -282,53 +193,16 @@ three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 - [ ] **Play the v1.27 changes with a pad**: the Belfry's great stone (12 s, falling up with you), the Warden's Well's
   little vane from the loft to the crown (15 s), the Footprint's carved prints read from the hall's door, the seven
   passages.
-- [x] **Givers' House (2.11 → 4.22, v1.24)**: the Givers carried their fire. A tar ball rolled through the pilot flame
-  into the hooded bowl by the door (taught before the gadget), back through the flame first in the Dry Channel (its disc
-  gone), the chest's ball burning through the corridor's thorns to the bridge's bowl, the Hall of Channels' long groove
-  and its relay brazier (which wakes the keepers' door back: a loop); the Keeper panting only by a fire rolled to it.
-  Left: the curve (3), `d3` at 1.5 (watch players).
-- [x] **Footprint (2.22 → 4.33, v1.24)**: the lens shows where the walker set things down. The floating sphere and the
-  stilling stone (the disc gone), the mural (the clue), the stones only the lens shows where the walker's prints hold,
-  the walker's plate among plain prints and the eye across the chasm, the keepers' gallery back (a loop); the Echo
-  answered by the print. Its opening and its shape: done in v1.27 (the walker's
-  prints; 71 %).
 - [ ] **Play the Givers' House's and the Footprint's new rooms and last phases with a pad** (v1.24): the tar balls'
   14 s and their pushes, the Hall of Channels' 4.6 s burn and the relay, the stilling stone and the floating sphere, the
   stones' 0.35 s crumble, the Keeper's 3.4 s pant by a fire, the Echo's print read across its hall.
-- [x] **Founders' Belfry (1.44 → 4.00, v1.8)**: held bells (the Bell Chamber's door, the Hall of Echoes' stones
-  only while it rings), the ball rolled across the held stones holds them (bell + push), the Hall of Stones a hub
-  with `d1`'s balls in two stores, a high door whose eye is under the landing. Its opening: done in v1.27 (the founders' bell
-  and the great stone). (The Cloud-Mother's falling stone: done in v1.15.)
-- [x] **Hush-House (1.67 → 3.44, v1.8)**: the first crystal in the Threshold; the root-wall's door and its eye seen
-  from the disc; the far door wants the pendulums stilled in turn (stilling + order). Left: a shortcut or a
-  reversible state; `d2`'s jaws stilled from the passing disc. (The Mother stilled through the order: v1.15.)
-- [x] **Lamp-House (1.67 → 3.11, v1.8)**: the third pool on a loft hidden by its edge; the pool-orb, lit by the
-  lantern and rolled into the niche (lantern + push). Left: a lock before the chest (the chest at 25 %); `s4` on
-  the near side. (The Lampless lured to pools lit earlier: v1.15.)
 - [ ] **Undertower (1.67)**: `br1` stands only while the high note is held, so the one-note rule bites twice (a
   catch, then a second high stone); teach the stones before the shell.
 - [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
   outside door); the ball pushed twice in a breath onto the swinging disc.
-- [x] **Builders' Greenhouse (1.89 → 3.78, v1.16)**: nothing grows in the shade. Louvres a ball's plate turns; the
-  eye in the shade (`s1` `when`), one ball and two plates on the Glass Stair (the eye, then the disc), the bud in a
-  sunbeam, the seed at the lip lit by the sun-ball's louvre, the seed-ball rolled into the beam at the glass's foot,
-  its vine into the bud; the Gardener bloomed only in the sun of its quarter's footstone (docs/audits/temple-design-v1.16.md).
-  Left: a loop (structure 2), `d2`'s eye a room back at 1.5 (watch players), a decoy at the chest's bud (`d3` at 5).
-- [x] **Aerie (1.89 → 3.78, v1.16)**: one wind, out wherever no stone stops it. The hall's stone pushed through the
-  gusts into its vent (the hall calms, the Wind Well's column and raft rise), the column with the wings, the Gulf in
-  two legs (a tailwind from the balcony's throat, a column from the perch's), the Elder flown with only in the wind
-  of the vent she hangs over. Left: the column step alone (`wings>top`, 5), a loop.
 - [ ] **Play the Greenhouse's and the Aerie's new rooms and last phases with a pad** (v1.16): the escort up the Hall of
   Winds (a push or two a calm), the tailwind's leap (as a gust comes), the perch's landing (fold the wings over it),
   the Gardener's footstones in its 6.2 s kneel, the Elder's stone rolled in her 6.6 s hang.
-- [x] **Warden's Well (2.00 → 3.89, v1.19)**: the tower breathes through its vanes. The discs on the far door's vane,
-  the Climb's slot on the well's vane, the gallery's lidded eye on the great vane (hover on the jets), the loft's ball
-  pushed over the gap from the air, the crown's eye on two vanes at once; the warden's hatch opens only to a turning
-  vane's draught (docs/audits/temple-design-v1.19.md). Left: a hub off the gallery, the opening at 4.5.
-- [x] **Engine-House (2.11 → 4.00, v1.19)**: a ball in the teeth stops the engine there. The ball rolled out of the
-  pistons' crank, the gantry's ball into the hammer's, one crank holding the chamber's four piston-eyes up, two of the
-  Furnace's four jammed and the other two caught in turn; the Tooth-Warden on its jammed gear. Left: a shortcut back,
-  the gadget a third time.
 - [ ] **Play the Warden's Well's and the Engine-House's new rooms and last phases with a pad** (v1.19): the Turning
   Floors' one splash (15 s), the hover-and-aim over a great vane, the shelf's ball pushed from the air, the crown's two
   vanes (12 s), the warden's 7 s hatch; the hammer's stroke, the Furnace's piston tops (1.2 s each, 2 s apart), the
