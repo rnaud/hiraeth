@@ -1,0 +1,35 @@
+.claude/skills/level-design-qc/SKILL.md
+  s_9ca76055a220ed::t_769659e7db3ca8 134-136
+TODO.md
+  s_9ca76055a220ed::t_718e9701e7fe29 209,236-246
+docs/README.md
+  s_9ca76055a220ed::t_0b4936ffba8836 26
+docs/audits/level-design-v1.17.md
+  s_9ca76055a220ed::t_c5eaaf525ee860 1-164
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_aad72e737e965d 408-432
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_5f9be1dbb1e946 74-75,86-89
+src/desert-city.js
+  s_9ca76055a220ed::t_c165e6c6ddced1 227
+src/desert-hearth.js
+  s_9ca76055a220ed::t_cb331f398513bc 140
+tests/level-design-round3.test.js
+  s_9ca76055a220ed::t_de6454126d94d0 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f4ba5ff0f9c0eafff88f1557bf2501444d141a4d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
