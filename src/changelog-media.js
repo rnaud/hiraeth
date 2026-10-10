@@ -469,7 +469,27 @@ const PROBES20 = { hour: 9.5, wait: 3000 };
 const TEMPLES24 = { commit: 'ffb77734', before: '80c2627c' };
 /** A save that carries the glyph lens (the Footprint's rooms only it shows). */
 const WITH_LENS = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.lens': true, 'items.v': 2 }, keepsakes: [] };
+// the traveller's face redrawn (v1.25): the studio close up (front, three-quarter), at play distance, and a conversation in the desert
+const FACE25 = { commit: 'e12b61c5' };
+const FACE_SHEET = { sheet: 'references/main character/Facial Expressions/expression-sheet-1.jpeg', caption: 'The expression sheets his face is drawn to (references/main character/): narrow eyes under a heavy lid, a dark iris, a nose told by one line' };
+// (a conversation with the nearest story person in the desert, the panel up)
+const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 'traveller' && n.object?.visible !== false).sort((a, b) => a.pos.distanceTo(window.player.pos) - b.pos.distanceTo(window.player.pos));
+  window.player.pos.copy(ns[0].pos).add(new THREE.Vector3(1.4, 0, 1.4)); await new Promise((r) => setTimeout(r, 1500));
+  window.storyRt.dialogue.start(ns[0].def, ns[0]); await new Promise((r) => setTimeout(r, 2500));`;
+
 export const CHANGELOG_MEDIA = {
+  '1.25': [
+    { match: 'The traveller’s face is drawn the way his sheets draw him', shots: [
+      { name: 'face-front', caption: 'Close up, from in front: before, wide eyes open round a whole iris, a bright white and a shine, a rosy nose tip, painted lips; after, narrower eyes under a heavy lid, a dark iris, a crease, the nose’s hooks and nostrils, a mouth line', ...FACE25,
+        view: studio('view=face&blink=false&gaze=fixed&yaw=0&bg=flat', [900, 900]), reference: FACE_SHEET },
+      { name: 'face-three-quarter', caption: 'Three-quarter: the nose’s line on the side turned away, into the hook round the wing; the eyes narrow almonds, the lid cutting the iris', ...FACE25,
+        view: studio('view=face&blink=false&gaze=fixed&yaw=0.6&bg=flat', [900, 900]) },
+      { name: 'face-talk', caption: 'A conversation in the desert, his face at the size the game shows it', ...FACE25,
+        view: { level: 'desert', hud: true, setup: FACE_TALK, wait: 1500 } },
+      { name: 'face-play', caption: 'At play distance: each eye a dark mark under the brow instead of two white dots', ...FACE25,
+        view: studio('view=full&blink=false&gaze=fixed&yaw=0.3', [900, 900]) },
+    ], see: 'Talk to anyone and watch his face when the camera comes to him: he blinks with one stroke, looks about with his eyes alone, and his eyes go wide at a surprise. In the studio (studio.html?view=face) try the tones.' },
+  ],
   '1.24': [
     // the guardians' miss-openings and the Hush-House's pendulums show in motion: notes; the Hearth's passage, a pair
     { match: 'The Lampless, the Elder and the Cloud-Mother now pay for a dive', see: 'In the Lamp-House, the Aerie or the Founders’ Belfry, wait for the guardian to rise for its dive and step well aside as it comes down: it lands on the floor and stays there a while longer than after a dive that catches you, and a line says so. In the Lamp-House, jump the ring of dust it beats down along the floor.' },
