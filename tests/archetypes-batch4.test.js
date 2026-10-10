@@ -190,7 +190,7 @@ test('the bell walker: only the clapper takes harm (a cut rings off unless it si
 });
 
 test('cheap to draw: each of batch 4 is a handful of meshes (its moving parts skinned on the kit’s joints), the skitter five (44 before)', () => {
-  const most = { brute: 11, drone: 10, cart: 16, bell: 14, skitter: 6 };
+  const most = { brute: 11, drone: 10, cart: 17, bell: 14, skitter: 6 };   // (the cart: its sprockets' teeth one more, v1.24)
   for (const [a, n] of Object.entries(most)) for (const w of skinWorlds(a)) {
     const m = archetypeModel(a, w);
     let meshes = 0; m.group.traverse((o) => { meshes += o.isMesh ? 1 : 0; });

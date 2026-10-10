@@ -3,7 +3,7 @@ import { PLANS } from '../../motion-kit/plans.js';
 import { PoseBlend } from '../../motion-kit/pose.js';
 import { SecondOrder, SecondOrderAngle, quantise } from '../../motion-kit/spring.js';
 import { TrackDrive } from '../../motion-kit/machines.js';
-import { materials, add, many, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
+import { materials, add, many, merged, skinBy, pivot, pair, lerp, ease, eyeColor, finish, V } from './kit.js';
 
 // Plan 17, the tracked machine (docs/systems/procedural-animation.md §4, the kit's `tracked`): the crucible cart
 // (docs/design/enemy-roster.md, archetype 14), drawn to its sheets (references/enemy-archetypes/cart/: sheet-1 the Sealed
@@ -38,6 +38,46 @@ const POT = [[0.001, -0.42], [0.3, -0.4], [0.5, -0.33], [0.64, -0.2], [0.72, 0],
 const _v = new THREE.Vector3(), _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _p = new THREE.Vector3(), _e = new THREE.Euler();
 const WHEELS = [[0.68, 0.28, 0.22, 'sprocket'], [-0.68, 0.27, 0.2, 'idler'], ...[-0.48, -0.24, 0, 0.24, 0.48].map((z) => [z, 0.17, 0.15, 'road'])];
 
+/**
+ * The canvas cover (the sheet's): one cloth laid over the chassis, sagging between its straps, rounding over the
+ * shoulders and hanging down over the tracks in folds to a torn hem, longer and lower toward the back.
+ */
+export function drapeGeometry() {
+  const half = [[0, 0.43], [0.5, 0.43], [0.78, 0.41], [0.96, 0.34], [1.05, 0.2], [1.07, 0.04], [1.08, -0.16]];
+  const path = new THREE.CatmullRomCurve3([...half.slice(1).reverse().map(([x, y]) => new THREE.Vector3(-x, y, 0)), ...half.map(([x, y]) => new THREE.Vector3(x, y, 0))]);
+  const NU = 34, NZ = 18, pos = [], idx = [], v = new THREE.Vector3();
+  for (let j = 0; j <= NZ; j++) {
+    const z = -0.82 + (j / NZ) * 1.64;
+    for (let i = 0; i <= NU; i++) {
+      path.getPoint(i / NU, v);
+      const side = Math.sign(v.x) || 1, hang = Math.max(0, Math.min(1, (0.32 - v.y) / 0.5));
+      let { x, y } = v;
+      // (the top sags between the straps at z ±0.45; the hanging cloth falls in folds, deeper toward its hem)
+      if (Math.abs(z) < 0.45 && y > 0.38) y -= 0.035 * Math.cos((z / 0.45) * Math.PI / 2);
+      x += side * hang * (0.05 * Math.sin(z * 13 + side * 1.7) + 0.025 * Math.sin(z * 29 + 0.4));
+      // (the torn hem: higher at the front, low at the back corners, ragged)
+      const hem = 0.02 - 0.2 * Math.max(0, -z - 0.35) - 0.05 * Math.abs(Math.sin(z * 9 + side)) + 0.08 * Math.max(0, z - 0.4);
+      y = Math.max(y, hem);
+      pos.push(x, y, z);
+    }
+  }
+  for (let j = 0; j < NZ; j++) for (let i = 0; i < NU; i++) { const a = j * (NU + 1) + i, b = a + 1, c = a + NU + 1, d = c + 1; idx.push(a, b, c, b, d, c); }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  return geo;
+}
+/** The smoke column's lean at puff i: off to one side, then back, winding as it rises. */
+const SMOKE_LEAN = (i) => (i ? (i % 5 < 3 ? -0.17 : 0.2) : 0);
+/** The sprocket's teeth: a ring of them round the wheel's rim, in the wheel's own frame (axis y, radius 1). */
+const TEETH = 11;
+function teethGeometry() {
+  const parts = [];
+  for (let k = 0; k < TEETH; k++) parts.push(new THREE.BoxGeometry(0.2, TW * 0.5, 0.32).translate(0, 0, 1.08).rotateY((k / TEETH) * Math.PI * 2));
+  return merged(parts);
+}
+
 export function cartModel(skin) {
   const PL = PLANS.tracked, P = skin.palette, props = new Set(skin.props), M = materials('cart', skin);
   const g = new THREE.Group(); g.name = skin.name;
@@ -69,10 +109,12 @@ export function cartModel(skin) {
   const wheelGeo = new THREE.CylinderGeometry(1, 1, TW * 0.7, 16);
   const wheels = new THREE.InstancedMesh(wheelGeo, M.mat('wheel', P.wheel, { metal: P.wheelMetal ?? undefined }), WHEELS.length * 2);
   wheels.frustumCulled = false; body.add(wheels);
+  // (the sprockets' teeth: their own instanced mesh, turned with the sprockets)
+  const teeth = new THREE.InstancedMesh(teethGeometry(), M.mat('wheel', P.wheel, { metal: P.wheelMetal ?? undefined }), 2);
+  teeth.frustumCulled = false; body.add(teeth);
   // the chassis: a riveted box under canvas covers draped over the tracks, brass straps, a patch or two
   add(chassis, new THREE.BoxGeometry(T.gauge - TW + 0.1, 0.5, 1.5), hullM, 0, 0.62, 0);
-  const cover = new THREE.Shape(); cover.moveTo(-1.05, 0); cover.lineTo(-0.98, 0.32); cover.lineTo(-0.7, 0.42); cover.lineTo(0.7, 0.42); cover.lineTo(0.98, 0.32); cover.lineTo(1.05, 0); cover.lineTo(0.96, 0.02); cover.lineTo(0.9, 0.3); cover.lineTo(-0.9, 0.3); cover.lineTo(-0.96, 0.02);
-  if (!props.has('trolley')) add(chassis, new THREE.ExtrudeGeometry(cover, { depth: 1.62, bevelEnabled: false, steps: 1 }).translate(0, 0, -0.81), canvasM, 0, 0.5, 0);
+  if (!props.has('trolley')) add(chassis, drapeGeometry(), canvasM, 0, 0.5, 0);
   many(chassis, [-0.45, 0.45].flatMap((z) => [new THREE.BoxGeometry(2.12, 0.05, 0.08).translate(0, 0.93, z), ...pair((s) => new THREE.BoxGeometry(0.05, 0.36, 0.08).translate(s * 1.02, 0.7, z))]), brassM);
   // (rivets along the chassis' front and back plates)
   many(chassis, [-1, 1].flatMap((z) => Array.from({ length: 8 }, (_, k) => new THREE.SphereGeometry(0.025, 5, 4).translate(-0.5 + k * (1 / 7), 0.8, z * 0.76))), brassM);
@@ -99,13 +141,15 @@ export function cartModel(skin) {
   // they rise; each puff a cluster of lumps, the upper ones a lighter grey)
   const puffs = [], smokeHi = M.mat('smokeHiBuild', P.smoke2 ?? P.smoke);
   let parent = pot;
-  const R0 = [0.46, 0.42, 0.36, 0.32, 0.28, 0.24, 0.2];
+  // (the sheet's: a tall column winding up out of the pot and thinning, flecks of soot flung off round its foot)
+  const R0 = [0.46, 0.4, 0.33, 0.28, 0.24, 0.21, 0.18, 0.16, 0.14];
   for (let i = 0; i < R0.length; i++) {
-    const p = pivot(parent, i ? 0.04 : 0, i === 0 ? 0.6 : 0.3, 0, `smoke ${i}`), r = R0[i];
+    const p = pivot(parent, i ? 0.03 : 0, i === 0 ? 0.6 : 0.27, 0, `smoke ${i}`), r = R0[i];
     const lumps = [new THREE.IcosahedronGeometry(r, 1).scale(1.15, 0.85, 1)];
     for (let k = 0; k < 5; k++) { const a = k * 1.26 + i * 0.7; lumps.push(new THREE.IcosahedronGeometry(r * (0.5 + (k % 2) * 0.18), 1).translate(Math.sin(a) * r * 0.9, ((k % 3) - 1) * r * 0.35, Math.cos(a) * r * 0.7)); }
+    if (i < 3) for (let k = 0; k < 6; k++) { const a = k * 2.1 + i * 1.3; lumps.push(new THREE.IcosahedronGeometry(0.025 + (k % 3) * 0.012, 0).translate(Math.sin(a) * r * 1.7, ((k % 3) - 0.5) * r * 0.8, Math.cos(a) * r * 1.5)); }
     many(p, lumps, i < 3 ? smokeB : smokeHi);
-    p.rotation.z = i ? -0.16 : 0;
+    p.rotation.z = SMOKE_LEAN(i);
     puffs.push(p); parent = p;
   }
   const face = pivot(puffs[1], 0, 0, 0.36, 'eyes');
@@ -146,13 +190,14 @@ export function cartModel(skin) {
     let n = 0;
     for (const s of [1, -1]) {
       const ang = drive.wheelAngle(s) + (s > 0 ? spinRun : spinRun);
-      for (const [z, y, r] of WHEELS) {
+      for (const [z, y, r, kind] of WHEELS) {
         _e.set(ang * (T.wheel / r), 0, Math.PI / 2, 'XYZ');
         _m.compose(_p.set(s * G, y, z), _q.setFromEuler(_e), _s.set(r, 1, r));
         wheels.setMatrixAt(n++, _m);
+        if (kind === 'sprocket') teeth.setMatrixAt(s > 0 ? 0 : 1, _m);
       }
     }
-    wheels.instanceMatrix.needsUpdate = true;
+    wheels.instanceMatrix.needsUpdate = true; teeth.instanceMatrix.needsUpdate = true;
   };
   placeWheels();
   return {
@@ -187,7 +232,7 @@ export function cartModel(skin) {
       rise = ease(rise, f.state === 'idle' ? 0.55 + 0.45 * Math.max(0, Math.sin(c.now / 2600 + f.home.x)) : 1, 1.5, dt);
       const l = lean.update(dt, pour * 0.22 - (o.speed ?? 0) * 0.04);
       puffs.forEach((p, i) => {
-        p.rotation.set(l + Math.sin(c.now / 900 + i * 0.8) * 0.06, 0, (i ? -0.16 : 0) + Math.sin(c.now / 1100 + i * 1.1) * 0.08);
+        p.rotation.set(l + Math.sin(c.now / 900 + i * 0.8) * 0.06, 0, SMOKE_LEAN(i) + Math.sin(c.now / 1100 + i * 1.1) * 0.08);
         p.scale.setScalar(lerp(0.35, 1, rise) * (1 + Math.sin(c.now / 300 + i) * 0.04));
       });
       face.rotation.x = -pot.rotation.x * 0.7;   // (it keeps looking at you as the pot tips)
