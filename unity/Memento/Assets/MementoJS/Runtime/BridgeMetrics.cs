@@ -33,6 +33,9 @@ namespace Memento.Bridge
         float firstNode = -1, settled = -1, lastGrowth; int lastNodes;
         double warmSum, warmMax; int warmFrames, warmSlow;
         public static float scriptEnvAt = -1, bundleAt = -1;
+        // (seconds since launch from any thread: Unity's own clock may be read on the main thread only)
+        static long baseTicks; static float baseAt;
+        public static float Now() => baseTicks == 0 ? -1 : baseAt + (float)((System.Diagnostics.Stopwatch.GetTimestamp() - baseTicks) / (double)System.Diagnostics.Stopwatch.Frequency);
 
         public static bool Wanted()
         {
@@ -45,6 +48,7 @@ namespace Memento.Bridge
 
         void Awake()
         {
+            baseAt = Time.realtimeSinceStartup; baseTicks = System.Diagnostics.Stopwatch.GetTimestamp();
             try
             {
                 var dir = Application.persistentDataPath;
@@ -76,7 +80,7 @@ namespace Memento.Bridge
 
         void Write(string line)
         {
-            lock (gate) { try { log?.WriteLine($"[{Time.realtimeSinceStartupAsDouble:0.000}] {line}"); } catch { } }
+            lock (gate) { try { log?.WriteLine($"[{Now():0.000}] {line}"); } catch { } }
         }
 
         void Update()

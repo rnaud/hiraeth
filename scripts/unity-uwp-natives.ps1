@@ -32,7 +32,7 @@ if (-not ((Test-Path $core) -and (Test-Path $qjs))) {
   $native = Join-Path $src 'unity/native/papi-quickjs'
   $build = Join-Path $native 'build-uwp'
   # (papi-quickjs takes ../puerts, PuertsCore, as a subdirectory: one configure builds both)
-  cmake -S $native -B $build -G 'Visual Studio 17 2022' -A x64 -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0
+  cmake -S $native -B $build -G 'Visual Studio 17 2022' -A x64 '-DCMAKE_SYSTEM_NAME=WindowsStore' '-DCMAKE_SYSTEM_VERSION=10.0'   # (quoted: PowerShell splits 10.0 at the dot)
   if ($LASTEXITCODE) { throw "cmake (WindowsStore x64) failed: the runner needs Visual Studio's C++ UWP tools" }
   cmake --build $build --config Release --parallel
   if ($LASTEXITCODE) { throw 'building PuertsCore / PapiQuickjs for UWP failed' }

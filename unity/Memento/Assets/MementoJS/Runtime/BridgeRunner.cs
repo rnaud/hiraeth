@@ -137,7 +137,7 @@ namespace Memento.Bridge
             int port = BridgeArgs.Arg("-jsinspect") is string ps && int.TryParse(ps, out int pp) ? pp : -1;
             js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
             scriptEnvMade.Set();
-            BridgeMetrics.scriptEnvAt = Time.realtimeSinceStartup;
+            BridgeMetrics.scriptEnvAt = BridgeMetrics.Now();   // (the script's thread: Unity's clock is the main thread's only)
             Debug.Log($"Memento bridge: the script's engine made ({JsRuntime.Backend})");
             if (port > 0) Debug.Log($"Memento bridge: V8's inspector on {port}");
             var t0 = DateTime.UtcNow;
@@ -146,7 +146,7 @@ namespace Memento.Bridge
             Debug.Log($"Memento bridge: the bundle loaded in {(DateTime.UtcNow - t0).TotalMilliseconds:0} ms");
             var t1 = DateTime.UtcNow;
             js.Eval($"Memento.start({Quote(args)})", "start");
-            BridgeMetrics.bundleAt = Time.realtimeSinceStartup;
+            BridgeMetrics.bundleAt = BridgeMetrics.Now();
             Debug.Log($"Memento bridge: Memento.start returned in {(DateTime.UtcNow - t1).TotalMilliseconds:0} ms");
         }
 
@@ -166,7 +166,10 @@ namespace Memento.Bridge
                     long s0 = System.Diagnostics.Stopwatch.GetTimestamp();
                     js.Tick();
                     js.Eval($"Memento.frame({nextDt.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
-                    scriptMsTotal += (System.Diagnostics.Stopwatch.GetTimestamp() - s0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+                    double ms = (System.Diagnostics.Stopwatch.GetTimestamp() - s0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+                    scriptMsTotal += ms;
+                    // (the first frames, and any slow one: the load's tail runs in them; QuickJS on the Xbox interprets them)
+                    if (++scriptFrames <= 5 || ms > 1000) Debug.Log($"Memento bridge: script frame {scriptFrames} took {ms:0} ms");
                     Finish();
                 }
             }
@@ -283,6 +286,7 @@ namespace Memento.Bridge
         public double waitMs;
         /// <summary>The same wait summed for good, and the script's own time on its thread (ms; BridgeMetrics reads them).</summary>
         public double waitMsTotal, scriptMsTotal;
+        int scriptFrames;
 
         public void Look(string json)
         {

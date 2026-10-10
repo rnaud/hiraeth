@@ -64,7 +64,7 @@ test('Puerts runs QuickJS where its V8 package is missing, and the setup can ins
   const setup = read('scripts/unity-js-setup.sh');
   assert.match(setup, /BACKENDS=\$\{PUERTS_BACKENDS:-V8\}/);
   const natives = read('scripts/unity-uwp-natives.ps1');
-  assert.match(natives, /-DCMAKE_SYSTEM_NAME=WindowsStore/);
+  assert.match(natives, /'-DCMAKE_SYSTEM_NAME=WindowsStore' '-DCMAKE_SYSTEM_VERSION=10\.0'/);
   assert.match(natives, /--branch "Unity_v\$Version"/);
   assert.match(natives, /Windows Store Apps: WindowsStoreApps/);
 });
