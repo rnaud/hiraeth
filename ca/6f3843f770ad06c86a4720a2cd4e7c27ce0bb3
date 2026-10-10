@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_554a1bbfde2af4 7-8
+src/boxes/placements.js
+  s_9ca76055a220ed::t_50a20813991951 160-161,163-166
+src/levels/perdide.js
+  s_9ca76055a220ed::t_b4a4078763fadf 13,235,240,251-252,493-496,511
+src/lookouts.js
+  s_9ca76055a220ed::t_27afb144c38a52 1-37
+src/lorn-ways.js
+  s_9ca76055a220ed::t_2bc92dfed60a98 4,45-63,105-136
+tests/level-design-round5.test.js
+  s_9ca76055a220ed::t_a7c0f6d5680685 1-56
+src/changelog.js
+  s_126dba1e825fe2::t_a4988382c993bd 15-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ca6f3843f770ad06c86a4720a2cd4e7c27ce0bb3",
+  "prompts": {},
+  "sessions": {
+    "s_126dba1e825fe2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e25fce308c93d52",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
