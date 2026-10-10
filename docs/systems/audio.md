@@ -311,3 +311,41 @@ small bank of CC0 recordings (`public/sfx/`, 74 mono MP3s at 64 kb/s, about 360 
   surges, with small sine bubbles gliding up an octave; the desert's cave channel and city well and the
   Buried Machine's oil dish play it instead of the quest `whoosh`.
 
+
+## The foes' voices (v1.20, the enemy roster's step 8)
+
+Every archetype sounds like itself when a blow lands and when it comes apart (combat-v1.4 rec. 2: until v1.19 the
+whole roster shared two sets, the machine's clang and the ink's splat). All synthesised on the Web Audio graph, no
+samples: `src/foe-voices.js` holds the data, `src/audio.js` plays it.
+
+- **`FOE_VOICES[kind]`**: `{ family, hurt, burst }`, the family being the archetype's `sound`
+  (src/enemies/archetypes.js). A voice is a few layers of four recipes, each `at` s after the blow: `noise` (filtered
+  noise whose filter can glide: a wheeze, a whoosh, steam), `tone` (an oscillator gliding: a yelp, a whine, a string),
+  `ring` (struck partials: `GLASS`, `BRONZE`, `CRACKED`, `CLAY`), `clicks` (a run of short bandpass ticks: a clack, a
+  rattle, paper crinkling). A hurt lasts under 0.4 s, a burst under 1.6 s.
+- **The families**: the crab's **shell** (two hard clacks; the dome cracking and its legs clattering), the roller's
+  shell (a knock and a glassy ring; a glassy shatter over a low rumble), the skitters' and the centipede's **chitin**
+  (a beetle's tick; plates rattling down the body), the toad's **bellows** (a wheeze swept down; the sac popping and
+  sighing empty), the lizard's **scale** (a hiss and a chirp; its horn's small blare), the heron's **clay** (a glazed jug
+  knocked and a squawk; the jug breaking), the root knot's **roots** (wood creaking, a twig snapping; a splintering
+  crack and a groan), the jelly's **glass** (a wet bloop and its lanterns ringing; a bubble bursting), the moth's
+  **paper** (crinkling; paper torn and a lantern's tink), the ray's **hide** (a leathery slap; a long falling whoosh),
+  the worm's **earth** (grit and a groan; sand pouring), the tripod's **steam** (an iron clank and a jet; the boiler
+  bursting), the cart's **slag** (sizzling and the pot's dull bong; boiling over), the bell's **brass** (the bronze
+  struck; the bell cracking, its partials pulled apart and beating), the drone's **tin** (its whine jolted and a plate
+  pinged; the whine spinning down), the brute's **iron** (a deep cracked clang; a crunch and a rumble), the blot's
+  **ink** (the old splat, kept), the shade's **cloth** (its empty cloak swished, a whisper; fluttering down with a sigh),
+  the hound's **smoke** (a yelp and a huff; a howl into a splat), the marionette's **strings** (a string twanged and
+  paper crumpled; the strings snapping one by one).
+- **Calls**: `foeHurt(kind, sound)` and `foeBurst(kind, sound)` (src/foes.js passes the foe's kind and its def's
+  sound; `voiceOf` falls back to the def's sound, the makers' machine's clang, then the ink's). **`foeGlance()`**: a
+  blow that does nothing (a shot on armour, a cut off a shell or the bronze, a rolling shell): a spark's bright tick
+  over a dull thunk, with the sparks (src/foes.js `Foe.hit` returns `'glance'` for a shot or an ember a kind takes
+  nothing from, unless it does something else: the cart's crust, the shade or the hound lit).
+- `sweep` and the struck partials set their gain silent before their first event (the engine's renderer starts a
+  source on a block: no click at full level).
+- Tests: `tests/foe-voices.test.js` renders every voice in memory on the engine's Web Audio (never a speaker): each
+  archetype has its own hurt and burst in its family, each sounds, stays under the old sets' level and dies away, the
+  families' character (the clack short, the bronze ringing on with the bell's partials, the roller's glass partials
+  over a rumble, hisses brighter than thuds), every two hurts apart by loudness over time and brightness, and the
+  glance.

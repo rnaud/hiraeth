@@ -23,7 +23,7 @@ export const BLADE = {
   chain: 0.45,         // s after a swing in which the next press chains
   reach: 2.9, angle: 1.15,   // the swing's cone: metres from the chest, half-angle (rad, ~65°)
   lock: 6,             // m: the soft lock turns you to a foe this close
-  damage: [1, 1, 2],   // the combo's three swings
+  damage: [1, 1, 3],   // the combo's three swings (v1.20: the third lands three, the combo's niche: the mid-weight foes on the ground)
   cooldown: 0.5,       // after the third swing
   buffer: 0.2,         // s a press is remembered while the blade can't swing yet (an evade, the cooldown): it swings as soon as it can
 };
@@ -142,7 +142,7 @@ export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 
  * ping). Let go: the clip's own swing from `hold`, a wide diagonal sweep (`angle`, `reach`), `damage[1]` full, else
  * `damage[0]`, and it staggers even an armoured foe (`breaks`: src/foes.js Foe.hit). Then the cooldown, as after a third swing.
  */
-export const CHARGE = { clip: 'mixamo_gs_slash_1', raiseFrom: 0.3, hold: 0.45, raise: 0.18, draw: 0.2, after: 0.2, full: 0.6, move: 0.3,
+export const CHARGE = { clip: 'mixamo_gs_slash_1', raiseFrom: 0.3, hold: 0.45, raise: 0.18, draw: 0.2, after: 0.2, full: 0.85, move: 0.3,
   from: 0.45, hit: 0.65, activeFrom: 0.54, activeTo: 0.76, to: 1.05, wind: 0.07, active: 0.17, recover: 0.36, angle: 1.5, reach: 3.3, damage: [2, 3] };
 /**
  * The air cut (v1.3, the Great Sword pack's jump attack): a swing begun in the air (not the rising cut) raises the sword

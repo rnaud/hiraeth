@@ -24,13 +24,13 @@ export const WORLDS = {
   arzach: { stage: 0, lead: 'ray', roster: { ray: 4, heron: 2, blot: 3 } },
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
   perdide: { stage: 1, lead: 'toad', roster: { toad: 4, rootknot: 3, heron: 2, skitter: 2 } },
-  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 0.6 }, placed: ['brute'] },
-  edena: { stage: 2, lead: 'moth', roster: { moth: 4, rootknot: 3, brute: 2, blot: 2 } },
-  incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 3, lizard: 3, toad: 2, shade: 1 }, temple: ['machine', 'drone'] },
-  garage: { stage: 2, lead: 'drone', roster: { drone: 4, cart: 2, crab: 2, roller: 2, ray: 2, shade: 1 }, temple: ['machine', 'drone'] },
-  buried: { stage: 3, lead: 'worm', roster: { worm: 4, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 2 }, temple: ['machine', 'drone'] },
-  spheres: { stage: 3, lead: 'roller', roster: { roller: 4, drone: 3, jelly: 2, centipede: 2, shade: 1, hound: 2 }, late: ['hound', 'marionette'], placed: ['marionette'] },
-  bazaar: { stage: 3, lead: 'lizard', roster: { lizard: 4, moth: 3, crab: 2, bell: 2, marionette: 1, hound: 2 }, late: ['hound', 'marionette'] },
+  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 1, moth: 2.5, shade: 2.5 }, placed: ['brute'] },
+  edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
+  incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 1, lizard: 3.5, toad: 2.5, shade: 2.5 }, temple: ['machine', 'drone'] },
+  garage: { stage: 2, lead: 'drone', roster: { drone: 4, cart: 3, crab: 2.5, roller: 2, ray: 1, shade: 2 }, temple: ['machine', 'drone'] },
+  buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
+  spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
+  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 2, bell: 2, marionette: 2.5, hound: 3.5 }, late: ['marionette'] },
   // the side worlds (all still being made; their tables are set as each world is vetted)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   glassdunes: { stage: 2, lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, shade: 1 } },
@@ -62,11 +62,13 @@ export const CLASSIC = { wild: { blot: 1 }, fill: { blot: 1 }, first: 'blot', gu
 
 /** How many of a kind come together (a pack of them alone); and the packs before a kind may lead one. */
 export const GROUP = { skitter: 8, moth: 3, hound: 2, lizard: 2 };
+/** The places a group takes in a pack from the third stage on (the rest filled round it): a flock of feeble skitters two. */
+export const GROUP_COST = { skitter: 2, moth: 3, hound: 2, lizard: 2 };
 export const FROM = { skitter: 1, machine: 2, brute: 1, cart: 1, bell: 2, shade: 3, tripod: 1, centipede: 1, marionette: 3, roller: 1 };
 /** A big lead takes this many of a pack's places. */
 export const COSTS = { machine: 2, brute: 2, cart: 2, bell: 2, crab: 1.5, tripod: 2, centipede: 2, marionette: 2 };
 /** The pack's places by stage of the route (docs/design/enemy-roster.md, "Difficulty curve"). */
-export const BUDGET = [[1, 2], [2, 3], [3, 4], [4, 5]];
+export const BUDGET = [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]];
 /** Is a kind a ranged or area one (the archetype it is or stands in for)? Early packs hold at most one. */
 export const rangedKind = (k) => !!ARCHETYPES[archetypeOfKind(k)]?.ranged && k !== 'blot';   // (the blot's spit is a teacher's, not a ranged role)
 
@@ -90,7 +92,7 @@ export const ROSTERS = Object.fromEntries(Object.entries(WORLDS).map(([w, T]) =>
   fill.blot = (fill.blot ?? 0) + 1;     // (the blot: in every world, few)
   const second = Object.entries(early).filter(([k]) => k !== lead && !GROUP[k]).sort((a, b) => b[1] - a[1])[0]?.[0] ?? 'blot';
   const late = Object.fromEntries((T.late ?? []).map((a) => [spawnKindOf(a), 2]).filter(([k]) => k));
-  return [w, { wild, fill, first: lead, guards: [lead, second], temple: T.temple ?? ['machine'], shade: 0, stage: T.stage ?? 2, late }];
+  return [w, { wild, fill, first: lead, guards: [lead, second], temple: T.temple ?? ['machine'], shade: 0, stage: T.stage ?? 2, late, ...(T.budget ? { budget: T.budget } : {}) }];
 }));
 
 /** A world's roster: its own, over the classic mix. */
@@ -115,15 +117,16 @@ export function pick(weights, rng = Math.random) {
 export function packOf(n, levelId, rng = Math.random) {
   const R = rosterOf(levelId);
   if (n === 0) return [R.first];
-  const [lo, hi] = BUDGET[Math.max(0, Math.min(BUDGET.length - 1, R.stage ?? 1))];
+  const [lo, hi] = R.budget ?? BUDGET[Math.max(0, Math.min(BUDGET.length - 1, R.stage ?? 1))];
   const size = lo + Math.floor(rng() * (hi - lo + 1));
   if (n >= 3 && rng() < R.shade) return ['shade'];
   let lead = pick(R.wild, rng);
   if ((FROM[lead] ?? 0) > n || (R.late?.[lead] && n < 3)) lead = pick(R.fill, rng);
-  if (GROUP[lead]) return Array(GROUP[lead]).fill(lead);
-  const out = [lead];
+  // a group comes as its group: alone in the first half of the route, with fillers to the stage's places after (v1.19)
+  if (GROUP[lead] && (R.stage ?? 1) < 2) return Array(GROUP[lead]).fill(lead);
+  const out = GROUP[lead] ? Array(GROUP[lead]).fill(lead) : [lead];
   let ranged = rangedKind(lead) ? 1 : 0;
-  for (let left = size - (COSTS[lead] ?? 1); left >= 1 - 1e-9; left--) {
+  for (let left = size - (GROUP[lead] ? GROUP_COST[lead] ?? GROUP[lead] : COSTS[lead] ?? 1); left >= 1 - 1e-9; left--) {
     let k = pick(R.fill, rng);
     if ((R.stage ?? 1) <= 1 && rangedKind(k) && ranged >= 1) k = 'blot';
     if (rangedKind(k)) ranged++;

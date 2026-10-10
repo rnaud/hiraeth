@@ -57,7 +57,7 @@ test('the blade cuts a blot in two swings and a machine in a full combo; fluid w
   for (let i = 0; i < 3; i++) m.hit('shoot', v(0, 0, 1));
   assert.equal(m.hp, FOES.machine.hp, 'globs only stagger a machine');
   const dmg = BLADE.damage;
-  assert.equal(dmg.reduce((a, b) => a + b, 0), FOES.machine.hp, 'a whole combo breaks one');
+  assert.ok(dmg.reduce((a, b) => a + b, 0) >= FOES.machine.hp && dmg.slice(0, -1).reduce((a, b) => a + b, 0) < FOES.machine.hp, 'a whole combo breaks one, on its third swing');
   for (const d of dmg.slice(0, -1)) assert.equal(m.hit('blade', v(), { damage: d }), true);
   assert.equal(m.hit('blade', v(), { damage: dmg.at(-1) }), 'burst');
   const s = new Foe('blot', v()), P = player(v(0, 0, 1.5));

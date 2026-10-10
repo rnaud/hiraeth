@@ -16,6 +16,7 @@ import { playVoice, playColour, hit } from './score-voices.js';
 import { audioGuard } from './audio-guard.js';
 import { loadSoundtrack, loadTitleTheme } from './soundtracks.js';
 import { SampleBank } from './sfx.js';
+import { voiceOf, GLANCE } from './foe-voices.js';
 import { MusicMoments, lightScore, musicMode } from './music-moments.js';
 import { HUM, boxHumWait } from './story/hum.js';
 import { lightThemeNotes, lightBeat } from './story/light-theme.js';
@@ -1749,6 +1750,7 @@ export class Sound {
     const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain();
     o.type = type;
     o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.value = 0;   // (silent from the start: a gain is 1 until its first event, a click on a renderer that starts the source a block early)
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
     o.connect(g).connect(this.fx);
     o.start(t); o.stop(t + dur + 0.02);
@@ -1901,12 +1903,58 @@ export class Sound {
     this.burst(t + d * 0.75, { dur: 0.05, type: 'bandpass', freq: kind === 'robot' ? 1800 : 900, q: 2, vol: 0.08 * v });
   }
 
-  /** A foe takes a cut: a splat of ink, or a clang. */
-  foeHurt(kind = 'blot') {
+  /**
+   * A foe takes a cut: its archetype's own voice (src/foe-voices.js: a shell's clack, glass ringing, a bellows wheezing,
+   * brass, ink, cloth…), by its kind; a kind without one by its def's sound (the makers' machine's clang) or the ink's.
+   */
+  foeHurt(kind = 'blot', sound = null) {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    if (kind === 'machine') { [1, 1.5].forEach((m, i) => this.sweep(t + i * 0.01, 620 * m, 540 * m, 0.25, 0.06, 'square')); return; }
-    this.burst(t, { dur: 0.14, type: 'lowpass', freq: 700, q: 0.6, vol: 0.2, rate: 0.6 });
+    this.foeVoice(voiceOf(kind, sound).hurt);
+  }
+
+  /** A blow that does nothing (a shot on armour, a cut off a shell or the bronze): a spark's bright tick over a dull thunk. */
+  foeGlance() {
+    if (!this.ctx) return;
+    this.foeVoice(GLANCE);
+  }
+
+  /** A foe voice's layers (src/foe-voices.js), synthesised from now: filtered noise, gliding tones, struck partials, ticks. */
+  foeVoice(layers, t0 = this.ctx.currentTime) {
+    for (const L of layers) {
+      const t = t0 + (L.at ?? 0);
+      if (L.p === 'noise') this.noiseGlide(t, L);
+      else if (L.p === 'tone') this.sweep(t, L.f, L.f1 ?? L.f, L.dur, L.vol, L.wave);
+      else if (L.p === 'ring') this.struck(t, L.f, L.partials, L.dur, L.vol);
+      else if (L.p === 'clicks') for (let i = 0; i < L.n; i++) {
+        const k = L.n > 1 ? i / (L.n - 1) : 0, f = L.f1 ? L.f * (L.f1 / L.f) ** k : L.f;
+        this.burst(t + i * L.every, { dur: L.dur, type: 'bandpass', freq: f, q: L.q ?? 4, vol: L.vol, rate: L.rate ?? 1 });
+      }
+    }
+  }
+
+  /** Filtered noise whose filter glides from f to f1 over dur (a wheeze, a whoosh, steam): burst() with a moving filter. */
+  noiseGlide(t, { type = 'lowpass', f = 700, f1 = null, q = 0.8, dur = 0.1, vol = 0.2, rate = 1 }) {
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource(); src.buffer = this.noiseBuf; src.playbackRate.value = rate;
+    const flt = ctx.createBiquadFilter(); flt.type = type; flt.frequency.value = f; flt.Q.value = q;
+    if (f1) { flt.frequency.setValueAtTime(f, t); flt.frequency.exponentialRampToValueAtTime(f1, t + dur); }
+    const g = ctx.createGain(); g.gain.value = vol;
+    src.connect(flt).connect(g).connect(this.fx);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0005, t + dur);
+    src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
+  }
+
+  /** Struck partials (src/foe-voices.js GLASS, BRONZE, CLAY): one sine each at f × ratio, its level, dying over its share of dur. */
+  struck(t, f, partials, dur, vol) {
+    const ctx = this.ctx;
+    for (const [k, v, d] of partials) {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f * k;
+      g.gain.value = 0.0001; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(1e-4, vol * v), t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur * d);
+      o.connect(g).connect(this.fx);
+      o.start(t); o.stop(t + dur * d + 0.02);
+    }
   }
 
   /** A cut that lands and doesn't stop the foe (src/foes.js armour): a dull, short thunk, a knock on a door. */
@@ -1917,14 +1965,10 @@ export class Sound {
     this.burst(t, { dur: 0.07, type: 'bandpass', freq: 520, q: 2.5, vol: 0.18, rate: 0.5 });
   }
 
-  /** A foe is done: an ink blot bursts back into ink (a wet pop and a falling sigh), a machine comes apart. */
-  foeBurst(kind = 'blot') {
+  /** A foe is done: its archetype's own (src/foe-voices.js: the crab's dome cracking, the bell cracked, the strings snapping…). */
+  foeBurst(kind = 'blot', sound = null) {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    if (kind === 'machine') { this.burst(t, { dur: 0.6, type: 'bandpass', freq: 1200, q: 0.5, vol: 0.22, rate: 0.8 }); this.sweep(t, 520, 60, 0.7, 0.1, 'square'); return; }
-    this.burst(t, { dur: 0.3, type: 'lowpass', freq: 1200, q: 0.7, vol: 0.24, rate: 0.5 });
-    this.sweep(t, 700, 140, 0.4, 0.09);
-    [7, 11].forEach((d, i) => this.pluck(this.freq(d, 2), t + 0.08 + i * 0.08, 0.05, 'triangle', this.fx));
+    this.foeVoice(voiceOf(kind, sound).burst);
   }
 
   /** Push: a deep whump with a rush of spray. */

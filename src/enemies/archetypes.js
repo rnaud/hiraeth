@@ -19,7 +19,8 @@ import { fromPattern } from './attacks.js';
 //             'drift' | 'wade' | 'sit' | 'root' | 'trundle' | 'stand' | 'toll' | 'walk' | 'circle' | 'wander' | 'pace'),
 //             wild (wildlife: it fights only when provoked), provoke (m: closer and it fights), shy (m: it backs away),
 //             alarm (m: one of its own provoked near it provokes it), hunts (the share that hunt at all)
-//   sound     its hurt and burst family (combat-v1.4 rec. 2; src/audio.js plays two sets for now)
+//   sound     its hurt and burst family (combat-v1.4 rec. 2): a shell's clack, glass ringing, a bellows wheezing, brass,
+//             ink, cloth…; its own voice in it is src/foe-voices.js FOE_VOICES[kind] (src/audio.js foeHurt / foeBurst)
 //   drop      chimes it leaves (src/chimes.js DROP_OF)
 //   was       the old kinds it replaces or folds in
 //   art       'pending': its fresh reference sheet (docs/design/enemy-roster-prompts.md) is not matched yet; the
@@ -162,7 +163,7 @@ export const ARCHETYPES = {
   },
   toad: {
     name: 'bellows toad', family: 'creature', plan: 'hopper', planNo: 5, role: 'lobber', tier: 1, ranged: true,
-    status: 'built', kind: 'toad', was: ['spitting blot (its lobber role)'], sound: 'soft', drop: 3, art: { main: 'perdide', alt: 'incal' },
+    status: 'built', kind: 'toad', was: ['spitting blot (its lobber role)'], sound: 'bellows', drop: 3, art: { main: 'perdide', alt: 'incal' },
     moves: ['spore lob', 'volley', 'belly flop'], answers: ['a shot in the swollen throat', 'air cut', 'closing in'],
     idle: 'sits by water with its throat pulsing, croaking in chorus; fights only within 4 m or if one near it is hurt',
     def: S({
@@ -186,7 +187,7 @@ export const ARCHETYPES = {
   },
   lizard: {
     name: 'horn lizard', family: 'creature', plan: 'quadruped', planNo: 6, role: 'flanker', tier: 2, ranged: false,
-    status: 'built', kind: 'lizard', was: [], sound: 'soft', drop: 4, art: { main: 'incal', alt: 'bazaar' },
+    status: 'built', kind: 'lizard', was: [], sound: 'scale', drop: 4, art: { main: 'incal', alt: 'bazaar' },
     moves: ['blare', 'flank bite', 'tail whip'],
     answers: ['parry and riposte on the bite', 'dash cut past the blarer', 'split the pair (the hook)'],
     idle: 'basks on warm stones and blares at the others in turn; territorial near its stones, harmless away from them',
@@ -208,7 +209,7 @@ export const ARCHETYPES = {
   },
   heron: {
     name: 'stilt heron', family: 'creature', plan: 'stilt', planNo: 7, role: 'reach', tier: 1, ranged: false,
-    status: 'built', kind: 'heron', was: [], sound: 'soft', drop: 3, art: { main: 'desert', alt: 'arzach' },
+    status: 'built', kind: 'heron', was: [], sound: 'clay', drop: 3, art: { main: 'desert', alt: 'arzach' },
     moves: ['spear', 'sweep', 'wing buffet'], answers: ['dash cut inside its reach', 'charged cut at a leg topples it', 'parry the spear'],
     idle: 'wades and fishes, stabbing at the water; walks off if you come near; fights only if you corner it',
     def: S({
@@ -278,7 +279,7 @@ export const ARCHETYPES = {
   },
   jelly: {
     name: 'lantern jelly', family: 'creature', plan: 'floater', planNo: 11, role: 'support', tier: 2, ranged: true,
-    status: 'built', kind: 'jelly', was: [], sound: 'soft', drop: 4, art: 'sheet-1',
+    status: 'built', kind: 'jelly', was: [], sound: 'glass', drop: 4, art: 'sheet-1',
     moves: ['ward', 'mend', 'sting curtain'], answers: ['shot (each lantern)', 'boomerang', 'air cut when it sinks', 'the push knocks it off a mend'],
     idle: 'drifts with the wind in slow herds; never starts a fight',
     def: S({
@@ -320,7 +321,7 @@ export const ARCHETYPES = {
   },
   ray: {
     name: 'sky ray', family: 'creature', plan: 'glider', planNo: 14, role: 'air striker', tier: 1, ranged: false,
-    status: 'built', kind: 'ray', was: ['winged blot'], sound: 'soft', drop: 3, art: 'sheet-1',
+    status: 'built', kind: 'ray', was: ['winged blot'], sound: 'hide', drop: 3, art: 'sheet-1',
     moves: ['skim', 'tail lash', 'downdraft'], answers: ['parry grounds it', 'air cut as it passes low', 'wings or jets'],
     idle: 'circles in the thermals over cliffs and lands on warm rock with its wings spread flat',
     def: S({
@@ -341,7 +342,7 @@ export const ARCHETYPES = {
   },
   worm: {
     name: 'mound worm', family: 'creature', plan: 'burrower', planNo: 15, role: 'ambusher', tier: 1, ranged: false,
-    status: 'built', kind: 'worm', was: ['dune ray'], sound: 'soft', drop: 4, art: 'sheet-1',
+    status: 'built', kind: 'worm', was: ['dune ray'], sound: 'earth', drop: 4, art: 'sheet-1',
     moves: ['erupt', 'spit stones', 'dive'], answers: ['flush it out (stomp, gust, bomb, a cut at the fin)', 'air cut onto the mound', 'cut it while it is up'],
     idle: 'its mound wanders the dunes slowly, surfacing to eat thorn bushes; ignores you unless you stand on it',
     def: S({
@@ -363,7 +364,7 @@ export const ARCHETYPES = {
   // ----------------------------------------------------------------------------- possessed machines (always hostile)
   tripod: {
     name: 'lamp tripod', family: 'machine', plan: 'machine', planNo: 18, role: 'sniper', tier: 2, ranged: true,
-    status: 'built', kind: 'tripod', was: ['makers’ machine (its sentinel role)'], sound: 'metal', drop: 6, art: { main: 'incal', alt: 'underwater' },
+    status: 'built', kind: 'tripod', was: ['makers’ machine (its sentinel role)'], sound: 'steam', drop: 6, art: { main: 'incal', alt: 'underwater' },
     possession: 'a face at the porthole: the dark presses against the boiler’s window from inside, its steam comes out black',
     moves: ['beam and bolt', 'stamp', 'steam vent'],
     answers: ['cover breaks the beam', 'dash under it', 'magnet glove (it is metal)', 'parry sends the bolt back'],
@@ -392,12 +393,12 @@ export const ARCHETYPES = {
     idle: 'trundles its old route between the furnaces, pouring into moulds that are no longer there',
     def: S({
       name: 'crucible cart', hp: 6, radius: 1.1, height: 1.0, speed: 2.0, sight: 16, giveUp: 30, reach: 8, heavy: true, breaks: true,
-      trail: { every: 1.5, r: 0.7, life: 4.5 }, douse: 4, jams: 5, tracks: true,
+      trail: { every: 1.5, r: 0.7, life: 3.5 }, douse: 4, jams: 5, tracks: true,
       tone: '#ff8a2e', sound: 'machine', takes: { shoot: 1, fire: 0 }, weak: { bomb: 1.5 },
       calm: { mode: 'trundle', provoke: 10, round: 6 },
       attacks: [
         // the crucible tips toward you on its trunnions, the lip glowing; a cone of burning slag that stays a while
-        { id: 'pour', name: 'pour', shape: 'cone', range: 4.6, angle: 0.55, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.4, leave: 'cone', leaveLife: 6, max: 4.6, weight: 2,
+        { id: 'pour', name: 'pour', shape: 'cone', range: 4.6, angle: 0.55, damage: 0.75, wind: 1.2, strike: 0.6, contact: 0.4, leave: 'cone', leaveLife: 4, max: 4.6, weight: 2,
           tell: 'its crucible tips toward you on its trunnions, the lip glowing and the smoke leaning the same way', counter: 'get behind it or to the side of the lip; the slag stays a while: keep off it' },
         // it backs up, its tracks spinning in place and spitting gravel; then a charge along a line (a wall stalls it)
         { id: 'ram', name: 'ram', shape: 'lane', width: 2.0, range: 8, damage: 0.75, knock: 5, wind: 1.3, strike: 0.9, contact: 0.05, lunge: 10, sweep: true, reverse: 1.2, stall: 1.8, min: 3, max: 8, weight: 1.3,
@@ -409,7 +410,7 @@ export const ARCHETYPES = {
   },
   bell: {
     name: 'bell walker', family: 'machine', plan: 'siege', planNo: 19, role: 'siege', tier: 3, ranged: true,
-    status: 'built', kind: 'bell', was: [], sound: 'metal', drop: 8, art: { main: 'bazaar', alt: 'saltharbour' },
+    status: 'built', kind: 'bell', was: [], sound: 'brass', drop: 8, art: { main: 'bazaar', alt: 'saltharbour' },
     possession: 'the clapper is the spirit, swinging inside the bell; ink drips from its mouth',
     moves: ['toll', 'drop', 'opening'], answers: ['the bell-note whistle chokes its toll', 'strike the clapper while it sits open', 'jump the rings', 'guard its drop (it tips open)'],
     idle: 'stands in a square and tolls the hours, softly',
@@ -431,7 +432,7 @@ export const ARCHETYPES = {
   },
   drone: {
     name: 'ring drone', family: 'machine', plan: 'hover', planNo: 13, role: 'tether', tier: 3, ranged: true,
-    status: 'built', kind: 'drone', was: ['rust drone'], sound: 'metal', drop: 4, art: { main: 'incal', alt: 'spheres' },
+    status: 'built', kind: 'drone', was: ['rust drone'], sound: 'tin', drop: 4, art: { main: 'incal', alt: 'spheres' },
     possession: 'a caught cloud between its plates, leaking at the gaps, two eyes drifting in it',
     moves: ['harpoon', 'ram', 'hide'], answers: ['guard the harpoon (the line is cut)', 'stilling (it drops)', 'magnet glove (it is metal)', 'the hook pulls it down'],
     idle: 'circles its old post polishing a dome that isn’t there; drifts after anything that shines',
@@ -444,7 +445,7 @@ export const ARCHETYPES = {
         { id: 'harpoon', name: 'harpoon', shape: 'lane', width: 1.1, range: 9.5, damage: 0.5, wind: 1.1, strike: 0.3, contact: 0.7, tether: { time: 0.9, pull: 7.5 }, min: 3, max: 9.5, weight: 2, onParry: 'cut',
           tell: 'its plates part and slow, and a reel with a harpoon slides out between them, clicking round', counter: 'guard it and the line is cut (the drone dazed); evade; caught, a cut or stilling frees you' },
         // the plates lock and spin up, whining higher, as it rises rocked back; then it dives at you
-        { id: 'ram', name: 'ram', shape: 'lane', width: 1.4, range: 6, damage: 0.5, wind: 0.95, strike: 0.35, contact: 0.8, dive: true, max: 6, weight: 1.2, onParry: 'cut',
+        { id: 'ram', name: 'ram', shape: 'lane', width: 1.4, range: 6, damage: 0.75, wind: 0.95, strike: 0.35, contact: 0.8, dive: true, max: 6, weight: 1.2, onParry: 'cut',
           tell: 'its plates lock together and spin up, whining higher, as it rises rocked back', counter: 'guard it (a perfect parry dazes it); or evade' },
       ],
       recover: 1.4, cool: [1.6, 2.6], hit: 0.35,
@@ -453,7 +454,7 @@ export const ARCHETYPES = {
   },
   brute: {
     name: 'furnace brute', family: 'machine', plan: 'brute', planNo: 8, role: 'heavy', tier: 3, ranged: false,
-    status: 'built', kind: 'brute', was: ['glass golem', 'makers’ machine (its slam and quake)'], sound: 'metal', drop: 8, art: { main: 'perdide2', alt: 'glassdunes' },
+    status: 'built', kind: 'brute', was: ['glass golem', 'makers’ machine (its slam and quake)'], sound: 'iron', drop: 8, art: { main: 'perdide2', alt: 'glassdunes' },
     possession: 'ink in the cracks: the hull cracked like a dropped jar, the dark seeping from every seam',
     moves: ['slam', 'hurl', 'sweep'], answers: ['riposte (×2 on the stunned)', 'bombs ×2 crack the hull', 'charged cut on a glowing crack', 'jump the quake'],
     idle: 'stands where it stopped working, rusted mid-task; wakes with a groan when you come close',
@@ -502,7 +503,7 @@ export const ARCHETYPES = {
   },
   shade: {
     name: 'shade', family: 'spirit', plan: 'humanoid', planNo: 9, role: 'duelist', tier: 3, ranged: false,
-    status: 'built', kind: 'shade', was: ['shade'], sound: 'ink', drop: 8, art: { main: 'perdide2', alt: 'eclipse' },
+    status: 'built', kind: 'shade', was: ['shade'], sound: 'cloth', drop: 8, art: { main: 'perdide2', alt: 'eclipse' },
     manifestation: 'a cloak of smoke worn by nothing; the sword is poured ink',
     moves: ['cut', 'feint and thrust', 'step through the shade'], answers: ['parry and riposte', 'ember (lit, it is solid: no step, and it burns)', 'an evade sideways from the thrust'],
     idle: 'walks a path it walked in life and stops at doorways',
@@ -512,7 +513,7 @@ export const ARCHETYPES = {
       calm: { mode: 'pace', provoke: 5, round: 5, wait: 2.5 },
       attacks: [
         // the sword drawn back over its shoulder, the body turning away, the hood turning to keep you in sight; the cut across
-        { id: 'cut', name: 'cut', shape: 'cone', range: 2.9, angle: 0.9, damage: 0.5, wind: 0.9, strike: 0.24, contact: 0.55, max: 2.8, weight: 2,
+        { id: 'cut', name: 'cut', shape: 'cone', range: 2.9, angle: 0.9, damage: 0.75, wind: 0.95, strike: 0.24, contact: 0.55, max: 2.8, weight: 2,
           tell: 'the sword drawn back over its shoulder, its hood turning to keep you in sight', counter: 'parry, then riposte' },
         // it starts the cut and stops halfway, the hood tilting; the sword drops to its hip; then the thrust, low and straight
         { id: 'feint', name: 'feint and thrust', shape: 'lane', width: 1.0, range: 3.6, damage: 0.75, wind: 1.3, strike: 0.22, contact: 0.5, lunge: 1.4, feint: 0.45, min: 1.2, max: 3.4, weight: 1.5,
@@ -528,7 +529,7 @@ export const ARCHETYPES = {
   },
   hound: {
     name: 'antler hound', family: 'spirit', plan: 'quadruped', planNo: 6, role: 'stalker', tier: 4, ranged: false,
-    status: 'built', kind: 'hound', was: ['shadow hound'], sound: 'ink', drop: 4, art: { main: 'spheres', alt: 'mangrove' },
+    status: 'built', kind: 'hound', was: ['shadow hound'], sound: 'smoke', drop: 4, art: { main: 'spheres', alt: 'mangrove' },
     manifestation: 'a shadow cast by nothing: it runs as a flat shadow and rises out of it into a body',
     moves: ['pounce', 'step behind', 'antler rake'], answers: ['ember (solid, and it burns: 2)', 'the lantern', 'parry'],
     idle: 'shadows lie under trees and arches where there shouldn’t be any; one stands up and watches you go; not every one hunts',
@@ -551,7 +552,7 @@ export const ARCHETYPES = {
   },
   marionette: {
     name: 'marionette', family: 'spirit', plan: 'strings', planNo: 21, role: 'puppeteer', tier: 4, ranged: true,
-    status: 'built', kind: 'marionette', was: [], sound: 'paper', drop: 8, art: { main: 'spheres', alt: 'bazaar' },
+    status: 'built', kind: 'marionette', was: [], sound: 'strings', drop: 8, art: { main: 'spheres', alt: 'bazaar' },
     manifestation: 'the puppeteer: strings rise into a knot of smoke and drop onto other things',
     moves: ['strings', 'yank', 'dance'], answers: ['cut the strings it drops (the air cut, the boomerang, an ember): the creature goes free', 'air cut, wings or jets to its body', 'evade the yank; a guard cuts its line'],
     idle: 'hangs still under bridges, cranes and arches, swaying like a coat on a hook',

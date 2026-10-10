@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spawnKindOf, archetypeOfKind, parseKind, skinned } from '../src/enemies/archetypes.js';
 import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
-import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, rangedKind, worldArchetypes } from '../src/foe-worlds.js';
+import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes } from '../src/foe-worlds.js';
 import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
@@ -124,15 +124,34 @@ test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the
   for (const w of ['desert', 'arzach']) assert.ok(Object.keys(WORLDS[w].roster).every((a) => ARCHETYPES[a].tier === 1), `${w}: tier 1 alone`);
   for (const w of ORDER.slice(0, 8)) assert.ok(tiers(w).every((t) => t < 4), `${w}: no tier 4 before the last three`);
   for (const w of ['spheres', 'bazaar']) assert.ok(tiers(w).includes(4), `${w}: tier 4`);
-  assert.deepEqual(BUDGET, [[1, 2], [2, 3], [3, 4], [4, 5]]);
+  // (v1.19, the roster's step 8: the third stage up to five places, the last three four to five, the Market a summit of its own)
+  assert.deepEqual(BUDGET, [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]]);
   const rng = (() => { let s = 11; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
   for (const w of ORDER) {
-    const stage = WORLDS[w].stage, [, hi] = BUDGET[stage];
+    const stage = WORLDS[w].stage, [, hi] = WORLDS[w].budget ?? BUDGET[stage];
     for (let n = 1; n < 60; n++) {
       const p = packOf(n, w, rng);
-      if (!GROUP[p[0]] && p[0] !== 'shade') assert.ok(p.length <= hi, `${w} pack ${n}: ${p.length} ≤ ${hi}`);
+      if (!GROUP[p[0]] && p[0] !== 'shade') assert.ok(p.length - 1 + (COSTS[p[0]] ?? 1) <= hi + 1e-9, `${w} pack ${n}: ${p} in ${hi} places`);
+      if (GROUP[p[0]]) assert.ok(stage < 2 ? p.length === GROUP[p[0]] : p.length - GROUP[p[0]] + GROUP_COST[p[0]] <= hi, `${w} pack ${n}: a group (${p}), alone early, filled later`);
       if (stage <= 1 && !GROUP[p[0]]) assert.ok(p.filter(rangedKind).length <= 1, `${w} pack ${n}: at most one ranged early (${p})`);
     }
+  }
+});
+
+test('the route\'s difficulty rises to the Market: stages never fall, packs grow, the late kinds lead at the end (the roster\'s step 8)', () => {
+  const stages = ORDER.map((w) => WORLDS[w].stage);
+  stages.forEach((s, i) => i && assert.ok(s >= stages[i - 1], `${ORDER[i]}: stage ${s} after ${stages[i - 1]}`));
+  assert.ok(WORLDS.bazaar.stage > WORLDS.spheres.stage, 'the Signal Market stands alone at the top');
+  const rng = (() => { let s = 5; return () => ((s = (s * 16807) % 2147483647) / 2147483647); })();
+  const size = (w) => { let n = 0; for (let i = 1; i <= 600; i++) n += packOf(i, w, rng).filter((k) => k !== 'skitter').length; return n / 600; };
+  const mean = (ws) => ws.reduce((a, w) => a + size(w), 0) / ws.length;
+  const early = mean(ORDER.slice(0, 5)), middle = mean(ORDER.slice(5, 8)), late = mean(ORDER.slice(8));
+  assert.ok(early < middle && middle < late, `packs grow: ${early.toFixed(2)} < ${middle.toFixed(2)} < ${late.toFixed(2)} (a flock of skitters not counted)`);
+  assert.ok(ORDER.every((w) => w === 'bazaar' || size(w) < size('bazaar')), 'the Market\'s packs are the biggest on the route');
+  // the hounds and the marionettes lead in the last two (from the third pack on in the Garden)
+  for (const [w, kinds] of [['spheres', ['hound']], ['bazaar', ['hound', 'marionette']]]) {
+    let n = 0; for (let i = 3; i < 603; i++) if (kinds.includes(packOf(i, w, rng)[0])) n++;
+    assert.ok(n / 600 > 0.15, `${w}: ${kinds} lead ${Math.round((n / 600) * 100)} % of the later packs`);
   }
 });
 

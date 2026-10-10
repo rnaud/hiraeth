@@ -21,7 +21,7 @@ import { PLANS } from './motion-kit/plans.js';
 import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, parseKind, skinned } from './enemies/archetypes.js';
 import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
 import { archetypeModel } from './enemies/plans/index.js';
-import { WORLDS, PLACED, worldArchetypes, packOf } from './foe-worlds.js';
+import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 
 // Foes (docs/systems/foes.md): the first things in the game that fight back.
@@ -91,8 +91,15 @@ export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Arra
   // batch 5 (v1.18): the pearl roller, the marionette with creatures to drive, the shade on its new body with company
   ['roller'], ['roller', 'roller', 'blot'], ['marionette', 'crab'], ['marionette', 'lizard', 'lizard'], ['shade', 'roller']];
 export const WAVE = { near: 10, far: 14, rest: 3 };
-/** How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. */
-export const TURNS = { strikers: 2, apart: 0.3 };
+/**
+ * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
+ * route's fourth stage (`late.stage`: the Buried Machine, the Garden of Spheres, the Signal Market; src/foe-worlds.js
+ * WORLDS stage) three may (v1.19, the roster's step 8: the packs there are combinations, and two at a time made a pack of
+ * five no more pressing than a pair). Gentle: one, everywhere.
+ */
+export const TURNS = { strikers: 2, apart: 0.3, late: { stage: 3, strikers: 3 } };
+/** The strikers at once in a world of `stage` (src/foe-worlds.js; the Arena's: its world's, or 1), Gentle or not. */
+export const strikersAt = (stage = 1, gentle = false, T = TURNS) => (gentle ? 1 : stage >= T.late.stage ? T.late.strikers : T.strikers);
 /** Relics out in the wilds are guarded (placed, not by chance): a few blots gather round as you come near; cut down, they are gone for good. */
 export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 /** A foe placed by hand (src/foe-worlds.js PLACED): it comes out as you come within `near` m, calm where it stands. */
@@ -152,6 +159,13 @@ export const GROUNDED = 2.5;
  */
 export const CHOKE = 2.2, LEAP_FLIP = 2.6, TOPPLE = 3, OPEN = { guard: 1.2, perfect: 2.6 };
 export const SPORES = { life: 3, r: 1.4, slow: 7 };
+/**
+ * Balance (v1.19, the enemy roster's step 8): the slag a cart pours or drips burns you every `burn` s you stand in it
+ * (combat-v1.16 rec. 2: 0.7 s made the cart the roster's worst on a still traveller, 7 bars a minute); the air cut on a
+ * hovering foe (a flyer in its own air) lands AIR_MEETS times (combat-v1.4 rec. 1: a niche of its own).
+ */
+export const SLAG = { burn: 1.1 };
+export const AIR_MEETS = 2;
 /** A creature a marionette's strings drive: its eyes go black (src/foes.js look). */
 const POSSESS_EYE = '#050407';
 /** Batch 4 (v1.16): a bell walker whose toll the bell-note whistle answered sits open this long (s), the clapper in reach. */
@@ -1175,6 +1189,7 @@ export class Foe {
       }
       // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
       dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1);
+      if (info.air && D.hover) dmg *= AIR_MEETS;   // (the air cut meets a flyer in its own air: the ray, the moth, the jelly, the drone, the marionette)
       if (D.segmented && dir && src !== 'parry') {
         // plated (the centipede): from behind or the side the plates take half and it never reels; its head,
         // turned in for the ring, takes the cut double; cut from behind once it is hurt, its tail breaks off
@@ -1194,6 +1209,13 @@ export class Foe {
       if (mode === 'shoot' && D.douse) this.crust = D.douse;   // (water on slag: a cold crust)
       if (mode === 'fire' && D.phase) this.lit = 3;            // (an ember lights a hound solid)
       if (mode === 'fire' && D.lights) this.lit = LIT;         // (and a shade: solid, it can't step through its shadow)
+      // a shot that does nothing (armour, a shell, a machine's iron: takes 0, and nothing else it does) says so: a glance,
+      // the spark and the armour's tick (Foes.hurt), no flinch (combat-v1.4 rec. 4)
+      if (!dmg && !(mode === 'shoot' && D.douse) && !(mode === 'fire' && (D.phase || D.lights))) {
+        this.flash = 0.3; this.recoil = 0.25; this.heavyRecoil = false; if (dir) this.recoilDir.copy(dir).setY(0).normalize();
+        if (this.state === 'idle' || this.state === 'home') this.state = 'chase';
+        return 'glance';
+      }
     } else if (mode === 'push') dmg = D.takes.push ?? 0;       // (the push, a gust: a swarm, a moth, a splinter is blown apart)
     else if (mode === 'world') {
       // the world's harm (v0.98): spines, fire, a hard landing, a pendulum: info.damage, and a stun held a while
@@ -1543,7 +1565,8 @@ export class Foes {
   }
 
   /** How many may strike at once. */
-  get strikers() { return this.difficulty === 'gentle' ? 1 : TURNS.strikers; }
+  /** How many may strike at once here (TURNS): by the world's stage (the Arena's world when it plays one's waves; `stage` set by hand wins). */
+  get strikers() { return strikersAt(this.stage ?? (this._stage ??= rosterOf(WORLDS[this.level?.foes?.world] ? this.level.foes.world : this.levelId).stage), this.difficulty === 'gentle'); }
 
   /** The Enemies setting: 'normal', 'gentle' (half the harm, slower wind-ups, one striking at a time, smaller and rarer packs) or 'off'. */
   /** The Gentle setting (the evade's i-frames are a little longer). */
@@ -1866,14 +1889,14 @@ export class Foes {
     if (mode === 'fire' && f.def.flock) for (const x of this.list) if (x !== f && x.kind === f.kind && x.alive && !x.riding && x.pos.distanceTo(f.pos) < 6) x.scatter = 1.4 + this.rng() * 0.6;
     const r = f.hit(mode, dir, info);
     if (!r) return false;
-    if (r === 'choked') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
-    if (r === 'glance') { this.sound?.foeHurt?.('machine'); this.sparks(f, f.chest); return true; }   // (off a crab's shell)
-    if (r === 'popped') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
+    if (r === 'choked') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.animKit(f, 0, {}).spray(f.chest, [f.model.spore ?? f.def.tone, '#ffffff'], 18, 3, 3); return true; }   // (its glob bursts in its throat)
+    if (r === 'glance') { this.sound?.foeGlance?.(); this.sparks(f, f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
+    if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
     if (f.shedNow) this.shedTail(f);
-    if (r === 'flushed') { this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
-    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.def.sound ?? f.kind); this.burst(f); return true; }
+    if (r === 'flushed') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
+    if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound); this.burst(f); return true; }
     if (f.shrugged) { this.armour(f, dir); return true; }
-    if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.def.sound ?? f.kind);
+    if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound);
     return true;
   }
 
@@ -1890,7 +1913,7 @@ export class Foes {
 
   /** Done: a blot bursts back into ink, a machine comes apart; the magic bar gets a unit back. */
   burst(f) {
-    this.sound?.foeBurst?.(f.def.sound ?? f.kind);
+    this.sound?.foeBurst?.(f.kind, f.def.sound);
     // the blow that ends one lands harder (a longer freeze, a bigger kick); the last of a fight, a moment of
     // slow motion to mark it done (src/feel.js)
     const P = this.player, last = !this.list.some((x) => x !== f && x.alive && x.dead === undefined && x.state !== 'idle' && (!P || x.pos.distanceTo(P.pos) < 28));
@@ -2075,7 +2098,7 @@ export class Foes {
       const perfect = guarded === 'perfect';
       // a perfect parry chips a piece off a glass golem (before the stun, which would double it)
       if (a.onParry === 'chip' && perfect) { this.hurt(f, 'blade', _w.set(-Math.sin(f.heading), 0, -Math.cos(f.heading)), { damage: 1, source: 'parry' }); this.sparks(f, f.chest); if (!f.alive) return false; }   // (a glass golem, a crab's claw)
-      f.staggered(perfect); this.sound?.foeHurt?.(f.def.sound ?? f.kind);
+      f.staggered(perfect); this.sound?.foeHurt?.(f.kind, f.def.sound);
       if (perfect) { f.stunned = PARRY_STUN; if (!this.game.flag('foes.parried')) { this.game.set('foes.parried', true); this.notice?.('A perfect parry: raised just as the strike came, the guard costs nothing and leaves the foe stunned.'); } }
       // what a guard does to some attacks: a crab's spin is turned onto its back; a harpoon's or a root's line is
       // cut (the drone, the root knot dazed)
@@ -2251,7 +2274,7 @@ export class Foes {
     this.ringOut(f, W, f.pos.clone(), 0.8);
     this.animKit(f, 0, {}).spray(f.chest, f.model.tones ?? ['#f3e8dc', '#ffffff'], 30, 6, 9);
     worldSnd.thud(this.sound, 0.8); kick(0.3);
-    this.sound?.foeHurt?.(f.def.sound ?? f.kind);
+    this.sound?.foeHurt?.(f.kind, f.def.sound);
     this.burst(f);
   }
 
@@ -2380,7 +2403,7 @@ export class Foes {
       }
       // (an evade's i-frames carry you over it unburnt; standing in it after, it burns)
       if (this.burnCool === 0 && ground && !P.dead && !P.down && Math.hypot(P.pos.x - p.pos.x, P.pos.z - p.pos.z) < p.r && Math.abs(P.pos.y - p.pos.y) < 0.8 && !P.dodge?.(p.pos, 'burn', this.gentle)) {
-        this.burnCool = 0.7; this.harm(this.harmOf(DAMAGE.graze)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
+        this.burnCool = SLAG.burn; this.harm(this.harmOf(DAMAGE.graze)); P.vel?.addScaledVector(_up, 2.5); P.flinch?.();
         this.sound?.foeHurt?.('blot');
       }
       if (p.life <= 0) p.mesh.removeFromParent();
