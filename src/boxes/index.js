@@ -6,6 +6,7 @@ import { buildBox, buildBeacon, BOX, BOX_SCALE, RAY_PASS } from './model.js';
 import { BoxScene } from './scene.js';
 import { BoxCard } from './card.js';
 import { PLACEMENTS, FALLBACKS, FALLBACK_OFFSETS } from './placements.js';
+import { partsOf, shiftAt } from '../levels/names.js';
 import { migrateTemples } from '../temples/migrate.js';
 import { HUM } from '../story/hum.js';
 import { hintsFor } from '../hint-level.js';
@@ -148,9 +149,12 @@ export function settle(physics, x, z, g, yaw, { reach = 1.2 } = {}) {
   return best ?? { x, z, y: g };
 }
 
-/** This world's placements, with the fallbacks it needs right now. */
+/** A part's placement where it stands in its world (a merged world moves a part's places: src/levels/names.js PART_OFFSET). */
+export const shiftPlacement = (part, p) => ({ ...p, ...(p.at ? { at: shiftAt(part, p.at) } : {}), ...(p.toward ? { toward: shiftAt(part, p.toward) } : {}) });
+
+/** This world's placements (its parts': a merged world has two tables), with the fallbacks it needs right now. */
 export function placementsFor(levelId, { level, has = (id) => items.has(id), table = PLACEMENTS } = {}) {
-  const list = (table[levelId] ?? []).map((p) => ({ ...p }));
+  const list = partsOf(levelId).flatMap((part) => (table[part] ?? []).map((p) => shiftPlacement(part, p)));
   for (const fb of FALLBACKS) {
     if (!fb.when({ levelId, level })) continue;
     if (has(fb.item)) continue;

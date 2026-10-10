@@ -365,6 +365,59 @@ const garage = {
   },
 };
 
+/** Kiln marks (the Glass Dunes, on the route since October 2026): beads of glass fused on a wire, the way the
+ *  glassworkers tally a firing: a bent wire a letter (one of eight shapes) and two to four beads strung on it,
+ *  big or small; a cooled drop for a stop. */
+const WIRES = ['hook', 'arch', 'bowl', 'step', 'slope', 'wave', 'post', 'loop'];
+function kilnInventory() {
+  const out = [];
+  for (const wire of WIRES) for (const n of [2, 3, 4]) for (const big of [0, 1]) out.push({ wire, n, big });
+  return seeded(out, 'glassdunes:kiln').slice(0, 34);
+}
+/** A wire's points (in the glyph's box: x from x0 + 1 to x0 + 5, y from 3 to 10), and where its beads sit along it. */
+function wirePath(wire, x0) {
+  const X0 = x0 + 1.2, X1 = x0 + 4.8, XC = x0 + 3;
+  switch (wire) {
+    case 'hook': return [[X0, 3.4], [X0, 9.6], [X1, 9.6], [X1, 7]];
+    case 'arch': return [[X0, 9.8], [X0, 5], [XC, 3.2], [X1, 5], [X1, 9.8]];
+    case 'bowl': return [[X0, 3.6], [X0, 8.4], [XC, 10], [X1, 8.4], [X1, 3.6]];
+    case 'step': return [[X0, 9.8], [X0, 6.6], [X1, 6.6], [X1, 3.4]];
+    case 'slope': return [[X0, 9.8], [X1, 3.4]];
+    case 'wave': return [[X0, 6.6], [x0 + 2.1, 4.2], [XC, 6.6], [x0 + 3.9, 9], [X1, 6.6]];
+    case 'post': return [[XC, 3.2], [XC, 10]];
+    default: return [[XC, 3.4], [X1, 5.4], [XC, 7.4], [X0, 5.4], [XC, 3.4], [XC, 10]];   // loop
+  }
+}
+const glassdunes = {
+  id: 'glassdunes', name: 'kiln marks', world: 'the Glass Dunes', ink: '#2f6f5c', dir: 'ltr', kind: 'beaded', width: 1.1, cap: 'round',
+  about: 'beads of glass fused on a bent wire: the wire a letter, its beads counted big and small, a cooled drop for a stop',
+  inventory: kilnInventory(),
+  tokens: (w) => letterTokens(w),
+  draw(p, g, { x0 }) {
+    const pts = wirePath(g.wire, x0);
+    p.m(...pts[0]);
+    for (const q of pts.slice(1)) p.l(...q);
+    // the beads, evenly along the wire
+    const seg = pts.slice(1).map((q, i) => Math.hypot(q[0] - pts[i][0], q[1] - pts[i][1])), L = seg.reduce((a, b) => a + b, 0);
+    for (let k = 0; k < g.n; k++) {
+      let d = (L * (k + 0.5)) / g.n, i = 0;
+      while (i < seg.length - 1 && d > seg[i]) { d -= seg[i]; i++; }
+      const t = Math.min(1, d / seg[i]), x = pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t, y = pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t;
+      p.dot(x, y, g.big && k === 0 ? 0.95 : 0.6);
+    }
+  },
+  punct(p, kind, x0, x1) {
+    const c = (x0 + x1) / 2;
+    if (kind === 'stop') p.dot(c, 9.6, 0.9);
+    else if (kind === 'pause') { p.dot(c, 9.6, 0.7); p.m(c, 10.3).l(c - 0.5, 11.6); }
+    else if (kind === 'ask') { p.m(c - 1.4, 4.2).q(c, 2.2, c + 1.4, 4.2).l(c, 6.8); p.dot(c, 9.6, 0.7); }
+    else if (kind === 'exclaim') { p.m(c, 3.4).l(c, 7.6); p.dot(c, 9.6, 0.8); }
+    else if (kind === 'trail') for (const dx of [-1.6, 0, 1.6]) p.dot(c + dx, 9.8, 0.45);
+    else if (kind === 'dash') { p.m(x0 + 0.3, 6.7).l(x1 - 0.3, 6.7); p.dot((x0 + x1) / 2, 6.7, 0.6); }
+    else if (kind === 'quote') { p.dot(c - 0.8, 3.4, 0.5); p.dot(c + 0.8, 3.4, 0.5); }
+  },
+};
+
 /** The Deep-wheel tongue (the Buried Machine): teeth standing on a rail, right to left, the way
  *  the great wheel counts; a gear's hub for a full stop. */
 const T_H = { l: 7.4, m: 5.4, h: 3.4 };
@@ -800,7 +853,7 @@ const murmur = {
   },
 };
 
-export const SCRIPTS = Object.fromEntries([desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, atelier, drifter, stilt, shell, murmur].map((S) => {
+export const SCRIPTS = Object.fromEntries([desert, incal, arzach, arzach2, garage, glassdunes, buried, edena, spheres, perdide, perdide2, bazaar, atelier, drifter, stilt, shell, murmur].map((S) => {
   S.cipher = makeCipher(S, S.order);
   S.pick = makePick(S);
   return [S.id, S];

@@ -311,7 +311,7 @@ test('Vael II\'s people are MakeHuman bodies: Tiv a novice of ten, Mother Ysolde
 
 test("The Hangar's people are MakeHuman bodies: Zazie a child of nine, Ambroise's stacked-paper cap", async () => {
   assert.ok(MH_WORLDS.has('garage'));
-  const { PEOPLE } = await import('../src/story/garage-data.js');
+  const { PEOPLE } = await import('../src/levels/dismissed/hangar/story-data.js');
   const pip = onBody('garage', PEOPLE.pip);
   assert.equal(ageClassOf({ def: PEOPLE.pip }), 'child');
   assert.ok(pip.height > 1.05 && pip.height < 1.45, `Zazie ${pip.height.toFixed(2)} m`);

@@ -71,10 +71,13 @@ const reachable = (() => {
 })();
 
 test('the swamp’s people and places stand on walkable or wadeable ground', () => {
-  assert.equal(CONTENT.perdide, PERDIDE_CONTENT);
-  assert.deepEqual(CONTENT.perdide.npcs.map((n) => n.id), ['wendel', 'sedge', 'ivo.perdide']);
+  // (Lorn's own people first, then the Deep Wood's: it is part of Lorn since October 2026, src/levels/names.js PARTS)
+  assert.deepEqual(CONTENT.perdide.npcs.slice(0, 3), PERDIDE_CONTENT.npcs);
+  assert.deepEqual(CONTENT.perdide.npcs.map((n) => n.id), ['wendel', 'sedge', 'ivo.perdide', 'hollin.perdide2', 'pim.perdide2', 'bram']);
+  assert.equal(CONTENT.perdide.story, PERDIDE_CONTENT.story, 'the world’s page is Lorn’s');
   // (but the keeper behind Nettle's counter, in her shop's room far over the map: tests/shop-worlds.test.js)
-  for (const n of npcs) for (const p of n.route) if (!interiorAt(p)) stand(p, n.def.name);
+  // (the Deep Wood's people speak its tongue and stand where its own test checks them: tests/story-perdide2.test.js)
+  for (const n of npcs) if (n.def?.lang !== 'perdide2') for (const p of n.route) if (!interiorAt(p)) stand(p, n.def.name);
   for (const id of ['saba', 'corm', 'ysse']) { const n = W.people[id]; for (const p of n.route) stand(p, n.def.name); }
   stand(W.places.heart, 'the cave’s heart');
   stand(W.places.splinterAt, 'the splinter');
@@ -95,8 +98,8 @@ test('the swamp’s people and places stand on walkable or wadeable ground', () 
     const [x, z] = Array.isArray(s) ? s : [s.at[0], s.at[2]];
     assert.ok(terrain.heightAt(x, z) > -0.5, `relic at ${x},${z} is above the water`);
   }
-  // the errands still find their people: Ivo gives the crystal (on to Lorn II)
-  assert.deepEqual(ERRANDS.find((e) => e.id === 'crystal').to, ['perdide2', 2]);
+  // the errands still find their people: Ivo gives the crystal (on into the Deep Wood, to Bram: Lorn's sixth person now)
+  assert.deepEqual(ERRANDS.find((e) => e.id === 'crystal').to, ['perdide', 5]);
   assert.equal(ERRANDS.find((e) => e.id === 'crystal').from[1], 2);
 });
 

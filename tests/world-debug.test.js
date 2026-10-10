@@ -15,6 +15,7 @@ import { GameState } from '../src/game-state.js';
 import { Physics } from '../src/physics.js';
 import { Controller } from '../src/controller.js';
 import { BINDINGS } from '../src/bindings.js';
+import { partOf, isDismissed } from '../src/levels/names.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
@@ -164,10 +165,12 @@ test('the quest jump: the stages before it count as done (their flags, as the de
 });
 
 test('the cinematics: each of this world\'s on the Cinematics page, how it plays; the ship\'s only with the ship', () => {
-  for (const world of Object.keys(WORLD_MOMENTS)) {
+  // (by the world a part's moments and boxes play in: Vael carries the sky stones'; a dismissed world's are not played)
+  for (const part of Object.keys(WORLD_MOMENTS).filter((w) => !isDismissed(w))) {
+    const world = partOf(part);
     const films = cinematicsFor(world);
-    for (const m of WORLD_MOMENTS[world]) assert.equal(films.find((e) => e.id === m.id)?.how, 'here', `${world}: ${m.id} played in place`);
-    for (const b of PLACEMENTS[world] ?? []) assert.ok(films.some((e) => e.id === `box.${b.id}`), `${world}: the box ${b.id}`);
+    for (const m of WORLD_MOMENTS[part]) assert.equal(films.find((e) => e.id === m.id)?.how, 'here', `${world}: ${m.id} played in place`);
+    for (const b of PLACEMENTS[part] ?? []) assert.ok(films.some((e) => e.id === `box.${b.id}`), `${world}: the box ${b.id}`);
     assert.equal(films.find((e) => e.id === `arrival.${world}`)?.how, 'reload', 'an arrival: the world again, by ship');
     assert.ok(films.some((e) => e.id === 'takeoff') && films.some((e) => e.id === 'call.1'), 'the ship\'s recordings and takeoff');
     assert.ok(!films.some((e) => e.id === 'trailer'));

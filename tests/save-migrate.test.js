@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { migrateFlags, RENAMED_PEOPLE, MOVED_PEOPLE, MIGRATED } from '../src/save-migrate.js';
+import { migrateFlags, migrateWorlds, migrateWhere, migrateJournal, layoutOf, RENAMED_PEOPLE, MOVED_PEOPLE, MIGRATED } from '../src/save-migrate.js';
+import { ORDER, MERGED, DISMISSED, worldFor } from '../src/levels/names.js';
 import { GameState } from '../src/game-state.js';
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 const { peopleOf } = await import('../src/story/ending.js');
 
-const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
+// (the worlds you fly to, each with its parts' people (Vael's and the sky stones'), and the dismissed Hangar's)
+const WORLDS = [...ORDER, 'garage'];
 
 test('no two people in different worlds share an id (meeting one never marks the other)', () => {
   const seen = new Map();
@@ -83,7 +85,7 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 9);
+  assert.equal(MIGRATED(), 10);
 });
 
 test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness', () => {
@@ -96,4 +98,88 @@ test('the jets anywhere became a debug item (v1.38): a save that owned them lose
   const none = { 'save.migrated': 8, 'item.backpack': true };
   migrateFlags(none);
   assert.equal(none['item.harness'], undefined, 'nothing for a save that never had them');
+});
+
+// ------------------------------------------------------------------ the author's level changes (October 2026)
+
+test('merged and dismissed worlds: a save sitting in one loads into its replacement (step 10)', () => {
+  assert.deepEqual(MERGED, { arzach2: 'arzach', perdide2: 'perdide' });
+  assert.deepEqual(DISMISSED, { garage: 'glassdunes', atelier: null });
+  assert.equal(worldFor('arzach2'), 'arzach');
+  assert.equal(worldFor('perdide2'), 'perdide');
+  assert.equal(worldFor('garage'), 'glassdunes');
+  assert.equal(worldFor('atelier', 'incal'), 'incal', 'the Atelier has no replacement: the fallback (the ship’s world)');
+  assert.equal(worldFor('edena'), 'edena');
+  // an old save left in Vael II, with the Hangar done and Lorn II found on the map
+  const f = { 'prologue.done': true, 'save.migrated': 7, 'ship.level': 'arzach2', 'world.garage.done': true, 'map.found.perdide2': true, 'fellow.stop.perdide2': 2, 'world.arzach2.done': true, 'quest.arzach2.bell': 'done' };
+  assert.equal(migrateFlags(f), true);
+  assert.equal(f['ship.level'], 'arzach', 'the ship is in Vael now');
+  assert.equal(f['world.glassdunes.done'], true, 'the Hangar’s slot counts as done: the route does not take a world back');
+  assert.equal(f['map.found.perdide'], true, 'Lorn II found: Lorn found');
+  assert.equal(f['fellow.stop.perdide'], 2, 'met Tansy in Lorn II: met in Lorn');
+  assert.equal(f['world.arzach2.done'], true, 'the part’s own flags keep their names');
+  assert.equal(f['quest.arzach2.bell'], 'done');
+  assert.equal(f['save.migrated'], MIGRATED());
+  // a save in the Hangar or the Atelier
+  assert.equal(migrateWorlds({ 'ship.level': 'garage' })['ship.level'], 'glassdunes');
+  assert.equal(migrateWorlds({ 'ship.level': 'atelier' })['ship.level'], 'desert');
+  assert.equal(migrateWorlds({ 'ship.level': 'bazaar' })['ship.level'], 'bazaar', 'the others as they were');
+  // every merged or dismissed world's replacement is on the route (or none)
+  for (const [id, to] of Object.entries({ ...MERGED, ...DISMISSED })) assert.ok(to === null || ORDER.includes(to), `${id} → ${to}`);
+});
+
+test('steps 8, 9 and 10 compose: an old save left in the Hangar with the jets wakes in the Glass Dunes with the gun, the lift valve and the harness', () => {
+  const f = { 'prologue.done': true, 'save.migrated': 7, 'ship.level': 'garage', 'item.backpack': true, 'item.jetpack': true, 'world.desert.done': true, 'world.incal.done': true, 'world.garage.done': true };
+  migrateFlags(f);
+  assert.equal(f['ship.level'], 'glassdunes');
+  assert.equal(f['world.glassdunes.done'], true);
+  assert.equal(f['item.gun'], true, 'step 8: past the Hearth');
+  assert.equal(f['item.doublejump'], true);
+  assert.equal(f['item.jetpack'], false, 'step 9: the jets out of play');
+  assert.equal(f['item.harness'], true);
+  assert.equal(f['save.migrated'], MIGRATED());
+});
+
+test('where a save stood: a merged or dismissed world loads its replacement at the ship; a world laid out again forgets the spot', () => {
+  const at = { pos: [1, 2, 3], up: [0, 1, 0], fwd: [0, 0, 1], heading: 1, yaw: 2, hour: 9 };
+  // Lorn II: Lorn, at the ship (its places moved: the Deep Wood lies north of the swamp now)
+  const a = migrateWhere({ level: 'perdide2', ...at });
+  assert.equal(a.level, 'perdide');
+  assert.equal(a.pos, undefined, 'no old position: the game lands it at the spawn');
+  assert.equal(a.hour, 9, 'the hour is kept');
+  // the Hangar: the Glass Dunes; the Atelier: no world (the game opens the ship's)
+  assert.equal(migrateWhere({ level: 'garage', ...at }).level, 'glassdunes');
+  assert.equal(migrateWhere({ level: 'atelier', ...at }, { fallback: null }).level, null);
+  assert.equal(migrateWhere({ level: 'atelier', ...at }).level, 'desert');
+  // Vael itself was laid out again (its plain moved north of the sky stones): an old spot in it is forgotten
+  assert.equal(layoutOf('arzach'), 2);
+  const v = migrateWhere({ level: 'arzach', ...at });
+  assert.equal(v.level, 'arzach'); assert.equal(v.pos, undefined); assert.equal(v.layout, 2);
+  // a spot saved since stays
+  const v2 = { level: 'arzach', layout: 2, ...at };
+  assert.equal(migrateWhere(v2), v2);
+  // a world that kept its places keeps the spot
+  const d = { level: 'desert', ...at };
+  assert.equal(migrateWhere(d), d);
+  assert.equal(migrateWhere({ level: 'perdide', ...at }).pos, at.pos, 'Lorn kept its coordinates');
+  assert.equal(migrateWhere(null), null);
+});
+
+test('the sketchbook: a merged part’s relics join its world’s list after the parts before it', () => {
+  const data = { relics: { arzach: { 0: { img: 'a' } }, arzach2: { 0: { img: 'b' }, 3: { img: 'c' } }, perdide2: { 4: { img: 'd' } } }, stories: { arzach2: { t: 1 } }, seen: { arzach2: 1 } };
+  const bases = { arzach: ['arzach', 0], arzach2: ['arzach', 5], perdide: ['perdide', 0], perdide2: ['perdide', 5] };
+  assert.equal(migrateJournal(data, bases), true);
+  assert.deepEqual(Object.keys(data.relics.arzach).sort(), ['0', '5', '8']);
+  assert.equal(data.relics.arzach[5].img, 'b');
+  assert.equal(data.relics.perdide[9].img, 'd');
+  assert.equal(data.relics.arzach2, undefined, 'moved, not copied');
+  assert.equal(data.seen.arzach, 1, 'seen the part: seen the world');
+  assert.equal(migrateJournal(data, bases), false, 'once');
+});
+
+test('the merged worlds’ relic and people bases match their content', async () => {
+  const { CONTENT, RELIC_BASE, NPC_BASE } = await import('../src/levels/content.js');
+  assert.deepEqual(RELIC_BASE.arzach2, ['arzach', CONTENT.arzach.relics.spots.length - CONTENT.arzach2.relics.spots.length]);
+  assert.deepEqual(NPC_BASE.perdide2, ['perdide', CONTENT.perdide.npcs.length - CONTENT.perdide2.npcs.length]);
+  assert.equal(CONTENT.arzach.relics.names.at(-1), CONTENT.arzach2.relics.names.at(-1));
 });

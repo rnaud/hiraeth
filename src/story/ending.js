@@ -1,7 +1,7 @@
 // The ending, in two homecomings (docs/story-bible.md, "The ending"; docs/game-brief.md,
 // working decision 5).
 //
-// THE FIRST HOMECOMING (ENDING_WORLDS worlds done, any six of the route's eleven):
+// THE FIRST HOMECOMING (ENDING_WORLDS worlds done, any six of the route's nine):
 //  - the last recording on the reel asks the traveller home (src/story/calls.js) and the galactic
 //    map shows Home at its centre, where the route starts (src/ship/starmap.js);
 //  - choosing Home flies there (?level=home&via=ship, src/levels/home.js). Out of the jump the ship
@@ -48,7 +48,10 @@ import * as desert from './desert-data.js';
 import * as incal from './incal-data.js';
 import * as arzach from './arzach-data.js';
 import * as arzach2 from './arzach2-data.js';
-import * as garage from './garage-data.js';
+import * as garage from '../levels/dismissed/hangar/story-data.js';
+import * as glassdunesLocals from './glassdunes-people.js';
+import { PEOPLE as CLOCK_HOUSE } from '../temples/garage-data.js';
+import { partsOf } from '../levels/names.js';
 import * as buried from './buried-data.js';
 import * as edena from './edena-data.js';
 import * as spheres from './spheres-data.js';
@@ -69,7 +72,7 @@ export const endingUnlocked = (completed) => (Array.isArray(completed) ? complet
 
 /**
  * Is Home on the galactic map? The one rule the map, the charge card and the ending share:
- * any six worlds done (of the eleven on the route, in any order), and the last recording on
+ * any six worlds done (of the nine on the route, in any order), and the last recording on
  * the reel heard ("Come home": `calls.home`, or `calls.<ENDING_WORLDS>` on older saves); or
  * the ending already played. The voicemail button blinks on the dash while that message waits
  * (the holo table's map opens either way); the worlds not yet seen stay open, before home or after.
@@ -365,11 +368,18 @@ export function tombLines(tokens = [], ctx = {}) {
 // ------------------------------------------------------------------ the credits
 
 /** Each world's people, from its story data. */
-export const WORLD_DATA = { desert, incal, arzach, arzach2, garage, buried, edena, spheres, perdide, perdide2, bazaar, lantern };
+// (the merged worlds' parts keep their own: peopleOf reads a world's parts; the Sealed Hangar's, dismissed, are kept for a
+// save that went there; the Glass Dunes' are its glassworkers and Wim at the Clock-House)
+export const WORLD_DATA = { desert, incal, arzach, arzach2, garage, glassdunes: { ...glassdunesLocals, PEOPLE: CLOCK_HOUSE }, buried, edena, spheres, perdide, perdide2, bazaar, lantern };
 const PEOPLE_LISTS = ['PEOPLE', 'LANDING', 'LOCALS', 'KEEPERS', 'RIM', 'STREET'];
 
-/** [{ id, name, title }] for one world (people only: not signs, stones or bowls). */
+/** [{ id, name, title }] for one world (people only: not signs, stones or bowls): its parts' (Vael's and the sky stones'). */
 export function peopleOf(world) {
+  const parts = partsOf(world);
+  if (parts.length > 1) { const seen = new Set(); return parts.flatMap(peopleOfPart).filter((p) => !seen.has(p.name) && seen.add(p.name)); }
+  return peopleOfPart(world);
+}
+function peopleOfPart(world) {
   const m = WORLD_DATA[world];
   if (!m) return [];
   const out = [], seen = new Set();

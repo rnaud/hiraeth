@@ -178,6 +178,19 @@ export const SHOPKEEPERS = {
     bye: '~neutral~ Carry on, quartermaster.',
   }),
 
+  // The Glass Dunes: Marit keeps the kiln-stall on the valley floor, a glassworker in a sand-coloured wrap with a
+  // green glass bead at her throat; she sells what the kiln can spare and prices it by how long it took to cool.
+  marit: keeper({
+    id: 'marit', shop: 'kilnstall', name: 'Marit', title: 'who keeps the kiln-stall', color: '#5fb7ad', voice: 1.04, kind: 'f',
+    palette: { cloak: '#d9b48a', lining: '#5fb7ad', cloth: '#e6d3b8', legs: '#5a4a3a', hat: '#ead6b4', accent: '#4f8a7f', hair: '#3a2a22' },
+    head: 'hair', cape: 0.4, look: { head: 'hair', body: 'scarf', trim: 'none', robe: 0.3, build: 'slim', height: 1.0, mood: 'kind' },
+    lines: ['~neutral~ Cures, cooled slow. A heart, if you have the chimes.', '~happy~ Mind the counter. It’s still warm.', '~curious~ Glass floats? No. Those are for the kiln.'],
+    hello: ['~happy~ A traveller, from the ship! Marit. I keep the kiln-stall. What the kiln can spare, I sell.', '~neutral~ Cures in the green flasks, a heart in the clay jar. Priced by how long they took to cool. Chimes in the bowl.'],
+    again: [{ if: { flag: 'temple.garage.done' }, text: '~surprised~ The clocks agree now. My kiln cools on time for the first time in my life. Everything costs the same, though.' }, '~happy~ Back again. The kiln’s been busy.'],
+    topic: { ask: '~curious~ Priced by how long they took to cool?', flag: 'glassdunes.marit.cooling', say: ['~solemn~ The slower glass cools, the less it cracks. A slow cure is a good cure.', '~playful~ Since the clocks went wrong, nobody knows how long anything took. So I guess. Generously.'] },
+    bye: '~neutral~ Keep cool.',
+  }),
+
   // The Buried Machine: Mott keeps the Tooth-Counter, a small dome among the domes: an old dome-woman with brass
   // goggles pushed up on her forehead and a rust-orange quilted apron. She counts on an abacus of gear teeth and
   // dates every sale by the great wheel's tooth.
@@ -305,6 +318,16 @@ export const SHOP_LINES = {
     soldOut: ['~sad~ Out of stock. The requisition stands, the goods don’t.', '~neutral~ None left. Forms in triplicate won’t change it.'],
     full: ['~surprised~ Pack at capacity. Consume one first.', '~neutral~ Full. Regulations say drink before you buy.'],
     bye: ['~neutral~ Dismissed.', '~solemn~ Carry on.'],
+  },
+  marit: {
+    open: ['~happy~ Look. Mind the warm ones.', '~neutral~ Flasks on the left, the jar on the right.'],
+    potion: ['~happy~ One cure, cooled slow.', '~neutral~ A good one. It took all morning.'],
+    heart: ['~solemn~ The heart. I only keep one. Look after it.', '~happy~ It cooled a whole week, that one.'],
+    magic: ['~curious~ More room in your tank. The glass would like that too.', '~neutral~ Deeper. Mind it doesn’t crack.'],
+    short: ['~sad~ Not quite enough. Glass doesn’t haggle.', '~playful~ A few chimes short. Come back warmer.'],
+    soldOut: ['~sad~ Gone. The kiln needs a week.', '~neutral~ None left. Ask again after the next firing.'],
+    full: ['~surprised~ Your pack is full. Drink one, it won’t keep in the heat.', '~playful~ Any more and you’ll clink when you walk.'],
+    bye: ['~neutral~ Keep cool.', '~happy~ Off you go. Mind the flows.'],
   },
   mott: {
     open: ['~happy~ Look all you like. The abacus is ready.', '~neutral~ Everything dated. Everything fresh. This tooth.'],

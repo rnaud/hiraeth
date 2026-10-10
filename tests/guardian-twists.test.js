@@ -33,6 +33,8 @@ import { ROOST } from '../src/temples/arzach.js';
 import { HALL, draught } from '../src/temples/incal.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 import { setHintLevel } from '../src/hint-level.js';
+import { buildableById } from '../src/levels/buildable.js';
+import { TEMPLE_HOME, templeOf } from '../src/temples/index.js';
 
 // (these check the game's words as hints full says them, every tip and step; subtle, the default, is checked in tests/hint-level.test.js)
 setHintLevel('full');
@@ -47,10 +49,10 @@ function arena(id, gadget, phase) {
   game.reset();
   own('backpack', 'gun', gadget);
   const scene = new THREE.Scene();
-  const level = quiet(() => LEVELS.find((l) => l.id === id).create(scene));
+  const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
-  const rt = level.temple;
+  const rt = templeOf(level, id) ?? level.temple;
   const G = rt.guardian;
   const notes = [];
   const P = new Player(physics, { spawn: G.arena.center.clone().add(V(0, 0.2, -G.arena.r * 0.6)), dynamic: level.dynamic, health: true, unsafe: level.unsafe });

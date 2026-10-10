@@ -9,7 +9,8 @@ import './register-gadgets.js';   // (the gadgets as items: the makers' courts' 
 import * as THREE from 'three';
 import { TempleLogic, solve, memoryStore, flagStore } from '../src/temples/logic.js';
 import { strikeDamage, inArea, HIT, Guardian } from '../src/temples/boss.js';
-import { TEMPLES, GADGETS, nextSpot } from '../src/temples/index.js';
+import { TEMPLES, GADGETS, TEMPLE_HOME, templeOf, nextSpot } from '../src/temples/index.js';
+import { buildableById } from '../src/levels/buildable.js';
 import { TEMPLE_BOXES, migrateTemples } from '../src/temples/migrate.js';
 import { LEVELS } from '../src/levels/index.js';
 import { Physics } from '../src/physics.js';
@@ -44,13 +45,15 @@ const own = (...ids) => { for (const id of Object.keys(ITEMS)) if (ids.includes(
 const BUILT = Object.keys(TEMPLES);
 
 const worlds = new Map();
+// (a temple by its id, in the world it stands in: the First Garage's, `garage`, is the Clock-House in the Glass Dunes;
+// a merged world's part's temple is built in the part on its own, src/levels/buildable.js)
 function world(id) {
   if (worlds.has(id)) return worlds.get(id);
   const scene = new THREE.Scene();
-  const level = quiet(() => LEVELS.find((l) => l.id === id).create(scene));
+  const level = quiet(() => buildableById(TEMPLE_HOME[id] ?? id).create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   level.init?.(physics);
-  const w = { scene, level, physics, rt: level.temple };
+  const w = { scene, level, physics, rt: templeOf(level, id) ?? level.temple };
   worlds.set(id, w);
   return w;
 }
@@ -245,7 +248,7 @@ test('the gadgets: half in the temples, half in the open; the built temples hold
     const box = placed.find((p) => p.temple === id);
     assert.ok(box && box.item === g.temple && box.id.startsWith(`${id}.`), `${id}: its temple chest holds ${g.temple}`);
     assert.equal(TEMPLES[id].def.gadgetBox, box.id);
-    for (const it of g.world) assert.ok(PLACEMENTS[id].some((p) => p.item === it && !p.temple), `${id}: ${it} waits in the open`);
+    for (const it of g.world) assert.ok(PLACEMENTS[TEMPLE_HOME[id] ?? id].some((p) => p.item === it && !p.temple), `${id}: ${it} waits in the open`);
     assert.ok(TEMPLE_BOXES.some(([b, it]) => b === box.id && it === g.temple), `${id}: old saves migrate`);
   }
   // every placed item is a real item, and every temple box sits in a built temple
@@ -2002,22 +2005,21 @@ function tankShots(frame, n, hit) {
   return t - first;
 }
 
-test('the Hangar’s own portals still work round the temple’s: its list kept, a copy in one shape for the scout and the rest', () => {
-  const { level } = world('garage');
+// (the Sealed Hangar is dismissed, src/levels/dismissed/hangar/, built whole for its tests: its temple went to the
+// Glass Dunes, a court of light stands in its place)
+test('the Hangar’s own portals still work, dismissed: its list kept, a copy in one shape for the scout and the rest', () => {
+  const scene = new THREE.Scene();
+  const level = quiet(() => buildableById('garage').create(scene));
+  level.init?.(new Physics(scene, level.ground.heightAt ? level.ground : null));
   const own = level.garage.portals;
   assert.equal(own.length, 3, 'the three gravity portals, as they were');
   assert.ok(own.every((p) => p.pos && p.toUp && p.toFwd && !p.temple), 'its own list has no temple doorway in it');
+  assert.ok(!level.temples?.some((t) => t.id === 'garage'), 'the First Garage stands in the Glass Dunes now');
   const nav = level.navigationPortals;
-  assert.ok(nav.length >= own.length + 3, 'the temple’s doorways join the list the scout reads');
   for (const p of own) assert.ok(nav.includes(p), 'every gravity portal is still in it');
   for (const p of nav) assert.ok(p.pos?.isVector3 && p.to?.isVector3 && p.toUp?.isVector3 && p.toFwd?.isVector3, `${p.label}: the same shape (pos, to, toUp, toFwd)`);
   const shopDoors = level.shops?.[0]?.portals ?? [];
-  assert.ok(level.portals.every((p) => (p.temple === 'garage' || shopDoors.includes(p)) && p.at && p.r), 'the doorways the game walks through are the temple’s (and Odo’s shop’s door)');
   for (const p of shopDoors) assert.ok(nav.some((q) => q.at === p.at && q.to === p.to), 'the shop’s door is in the scout’s list too, in its shape');
-  // the scout routes into the temple through its door
-  const rt = level.temple;
-  const route = viaPortal(V(0, 0, 120), { id: 'in', label: 'inside', position: rt.kit.world(0, 9, 90) }, nav);
-  assert.match(route.label, /First Garage/, `the scout goes by the door (${route.label})`);
   // and a gravity portal still sends you through to its zone
   const po = own[0];
   const player = { pos: po.pos.clone(), vel: V(0, 0, 3), frame: { up: V(0, 1, 0) }, riding: false, teleport(pos, up) { this.pos.copy(pos); this.frame.up = up.clone(); } };

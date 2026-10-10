@@ -70,9 +70,9 @@ test('progression: the route opens worlds in the same order, a new one is findab
   assert.ok(isCharted({ id: 'perdide', index: 3, visited: true }));
   assert.ok(isCharted({ id: 'perdide', index: 3, done: true }));
   assert.ok(isCharted({ id: 'desert', index: 0 }), 'the crash site is always charted');
-  // finishing Vael opens Vael II (the route's own rule), to be found too
+  // finishing Vael opens the next on the route (Viridel: Vael's sky stones are part of it since October 2026), to be found too
   const c = routeChart({ order: ORDER, done: set('desert', 'arzach'), flag: flags({ [foundFlag('arzach')]: true, [foundFlag('perdide')]: true }) });
-  assert.deepEqual(c.findable, ['arzach2']);
+  assert.deepEqual(c.findable, ['edena']);
   // a world the route has not opened can't be found yet, a flag or not
   const d = routeChart({ order: ORDER, current: 'desert', flag: flags({ [foundFlag('bazaar')]: true }) });
   assert.ok(!d.charted.includes('bazaar') && !d.findable.includes('bazaar'));
@@ -102,7 +102,7 @@ test('old saves keep their charted worlds; a new game searches', () => {
   assert.deepEqual(after.findable, []);
   // the next one the route opens after that is searched for
   const later = routeChart({ order: ORDER, done: (id) => !!old[`world.${id}.done`] || id === 'perdide', flag: (k) => old[k] });
-  assert.deepEqual(later.findable, ['perdide2']);
+  assert.deepEqual(later.findable, ['incal']);
   // a brand-new game has nothing to migrate: it searches
   const fresh = {};
   migrateFlags(fresh);

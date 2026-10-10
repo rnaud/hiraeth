@@ -63,10 +63,10 @@ test('Home appears on the galactic map once the ending is open, at the centre of
   assert.equal(list.length, ORDER.length + 1);
   assert.ok(!home.current);
   assert.ok(homeEntry({ unlocked: false, current: HOME_ID })?.current, 'standing at home, it is on the map anyway');
-  // the level exists, hidden like the Atelier, with its people
+  // the level exists, hidden, with its people (the Atelier, hidden like it, was dismissed in October 2026: src/levels/dismissed/)
   const L = LEVELS.find((l) => l.id === HOME_ID);
   assert.ok(L && L.hidden && L.title === 'Home');
-  assert.equal(LEVELS.find((l) => l.id === 'atelier')?.hidden, true, 'the Atelier stays as it is');
+  assert.equal(LEVELS.find((l) => l.id === 'atelier'), undefined, 'the Atelier is not a level any more');
   assert.deepEqual(CONTENT.home.npcs, [], 'the family comes with the story (src/story/home.js)');
   assert.match(homeEntry({ unlocked: true }).blurb, /Nobody lives in the round house now/);
   assert.match(homeEntry({ unlocked: true }).blurb, /lamp lit/, 'and across the yard, the small house');
@@ -233,7 +233,9 @@ test('the credits roll the worlds in order and the people from the story data', 
   const c = credits({ order: ORDER, titles, storyTitles, flag: (k) => flags[k], keepsake: GEAR_TOOTH });
   assert.deepEqual(c.worlds.map((w) => w.id), ORDER);
   const names = c.worlds.flatMap((w) => w.people.map((p) => p.name));
-  for (const n of ['Madame Sel', 'Teo', 'Ama', 'Nima', 'Oïa', 'Mother Ysolde', 'Ottla', 'Wen', 'Mira', 'Ume', 'Wendel', 'Hollin', 'Kip']) assert.ok(names.includes(n), `${n} is in the credits`);
+  // (Vael's credits carry the sky stones' people, Lorn's the Deep Wood's; the Glass Dunes' its glassworkers and Wim; the Sealed Hangar's left with it)
+  for (const n of ['Madame Sel', 'Teo', 'Ama', 'Nima', 'Oïa', 'Mother Ysolde', 'Wim', 'Aster', 'Wen', 'Mira', 'Ume', 'Wendel', 'Hollin', 'Kip']) assert.ok(names.includes(n), `${n} is in the credits`);
+  assert.ok(!names.includes('Ottla'), 'the Hangar’s are not');
   assert.ok(!names.some((n) => /^The (broadcast|root stone|Upward Shrine)/.test(n)), 'people only');
   const desert = c.worlds.find((w) => w.id === 'desert');
   assert.ok(desert.done && desert.people.find((p) => p.name === 'Teo').met && !desert.people.find((p) => p.name === 'Ama').met);

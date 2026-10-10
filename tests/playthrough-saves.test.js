@@ -42,7 +42,7 @@ const SAVES = [
     journal: { stories: { desert: {}, incal: {} }, seen: { desert: 1, incal: 1 } },
     known: ['desert', 'arzach', 'perdide', 'incal'],
     play: { world: 'arzach', quests: [{ temple: 'gadget' }, 'arzach.bird'] },
-    knownAfter: ['desert', 'arzach', 'arzach2', 'perdide', 'incal'],
+    knownAfter: ['desert', 'arzach', 'perdide', 'edena', 'incal'],
     after: (issue) => {
       // (v1.38: the jets anywhere are a debug item: the save keeps the Warden's harness, the City-Shaft's own)
       if (items.has('jetpack')) issue('the debug jets kept in play');
@@ -58,7 +58,7 @@ const SAVES = [
     },
     journal: { stories: { desert: {}, incal: {} }, seen: { desert: 1, incal: 1, arzach: 1 } },
     known: ['desert', 'arzach', 'perdide', 'incal'],
-    knownAfter: ['desert', 'arzach', 'arzach2', 'perdide', 'incal'],
+    knownAfter: ['desert', 'arzach', 'perdide', 'edena', 'incal'],
     // (moved on to the wind: the step and Oïa send it to the Aerie for the wings first)
     play: { world: 'arzach', quests: [{ temple: 'gadget' }, 'arzach.bird'], stage: 'tower' },
     after: (issue) => { if (game.flag('arzach.rode')) issue('it rode the bird it never had'); },
@@ -72,7 +72,7 @@ const SAVES = [
     },
     journal: { stories: { desert: {} }, seen: { desert: 1, arzach: 1 } },
     known: ['desert', 'arzach', 'perdide'],
-    knownAfter: ['desert', 'arzach', 'arzach2', 'perdide'],
+    knownAfter: ['desert', 'arzach', 'perdide', 'edena'],
     play: { world: 'arzach', quests: [{ temple: 'gadget' }, 'arzach.bird'], stage: 'tower' },
     after: (issue) => { if (items.has('jetpack')) issue('it was given the jets'); },
   },

@@ -7,18 +7,21 @@ import { planetSvg, PLANETS } from '../src/ship/planets.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { HOME_ID } from '../src/story/ending.js';
+import { ROUTE_PARTS, partsOf, MERGED } from '../src/levels/names.js';
 
 const set = (...ids) => (id) => ids.includes(id);
 
 test('the route: the desert and the next two worlds at first, one more for each world done', () => {
   assert.equal(AHEAD, 2);
-  assert.deepEqual(knownWorlds({ order: ORDER }), ['desert', 'arzach', 'perdide'], 'a new game: the crash site and a choice of two (Vael II waits for Vael)');
+  assert.deepEqual(knownWorlds({ order: ORDER }), ['desert', 'arzach', 'perdide'], 'a new game: the crash site and a choice of two');
   // the desert done (the ship has power): still two to choose from
   assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), current: 'desert' }), ['desert', 'arzach', 'perdide']);
-  // Vael done: Vael II, its sequel, is charted next
-  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'arzach') }), ['desert', 'arzach', 'arzach2', 'perdide']);
-  // Lorn done instead: Lorn II joins Vael (Vael II still waits for Vael)
-  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'perdide') }), ['desert', 'arzach', 'perdide', 'perdide2']);
+  // Vael done (its sky stones are part of it since October 2026: no sequel waits for it): Viridel is charted next
+  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'arzach') }), ['desert', 'arzach', 'perdide', 'edena']);
+  // Lorn done instead (its Deep Wood is part of it): the same
+  assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert', 'perdide') }), ['desert', 'arzach', 'perdide', 'edena']);
+  // the merged worlds' old ids are not on the route
+  for (const id of Object.keys(MERGED)) assert.ok(!ORDER.includes(id), id);
   // visiting is not finishing: no new world
   assert.deepEqual(knownWorlds({ order: ORDER, done: set('desert'), visited: set('perdide') }), ['desert', 'arzach', 'perdide']);
   // always two unfinished worlds ahead, until the route runs out
@@ -30,8 +33,8 @@ test('the route: the desert and the next two worlds at first, one more for each 
     done.add(id);
   }
   assert.deepEqual(knownWorlds({ order: ORDER, done: () => true }), ORDER, 'all done: all known');
-  // a world that follows another (AFTER) is skipped while that one is unfinished, then charted
-  assert.equal(AFTER.arzach2, 'arzach');
+  // a world that follows another (AFTER) is skipped while that one is unfinished, then charted (none on the route now)
+  assert.deepEqual(AFTER, {});
   assert.deepEqual(knownWorlds({ order: ['a', 'b', 'c', 'd'], after: { b: 'c' } }), ['a', 'c', 'd']);
   assert.deepEqual(knownWorlds({ order: ['a', 'b', 'c', 'd'], after: { b: 'c' }, done: set('a', 'c') }), ['a', 'b', 'c', 'd']);
 });
@@ -39,14 +42,18 @@ test('the route: the desert and the next two worlds at first, one more for each 
 test('the wings come first and the jets in the later half: no world before the jets’ own wants them', () => {
   const wings = ORDER.indexOf('arzach'), jets = ORDER.indexOf('incal');
   assert.equal(wings, 1, 'Vael (the wings in its Aerie) is the second world');
-  assert.ok(jets >= Math.ceil(ORDER.length / 2), `the City-Shaft (the jets) is in the later half: world ${jets + 1} of ${ORDER.length}`);
-  // the earliest the City-Shaft is charted: with this many worlds done
+  // (counted by places, the old worlds a world carries: Vael and Lorn each carry two since October 2026)
+  const jetsAt = ROUTE_PARTS.indexOf('incal');
+  assert.ok(jetsAt >= Math.ceil(ROUTE_PARTS.length / 2), `the City-Shaft (the jets) is in the later half: place ${jetsAt + 1} of ${ROUTE_PARTS.length}`);
+  // the earliest the City-Shaft is charted: with this many places done
   const done = new Set(['desert']);
   for (const id of ORDER.slice(1)) { if (knownWorlds({ order: ORDER, done: (x) => done.has(x) }).includes('incal')) break; done.add(id); }
-  assert.ok(done.size >= 5, `it waits until ${done.size} worlds are done`);
+  const places = [...done].flatMap(partsOf).length;
+  assert.ok(places >= 5, `it waits until ${places} places are done`);
   // the worlds before it never ask for the jets (features.jetpack: the debug jets fly there; since v1.38 no box of
   // them anywhere, the City-Shaft's own Warden's harness flies there only), and none of them comes earlier
-  const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(readFileSync(new URL(`../src/levels/${id}.js`, import.meta.url), 'utf8'));
+  const FILE = { glassdunes: 'glass-dunes' };
+  const wants = (id) => /features:\s*\{[^}]*jetpack:\s*true/.test(readFileSync(new URL(`../src/levels/${FILE[id] ?? id}.js`, import.meta.url), 'utf8'));
   for (const id of ORDER.slice(0, jets)) assert.equal(wants(id), false, `${id} comes before the jets and doesn't want them`);
   assert.equal(wants('incal'), true);
   for (const id of ORDER.filter(wants)) assert.ok(ORDER.indexOf(id) >= jets, `${id} wants the jets: after the City-Shaft`);
@@ -56,7 +63,7 @@ test('the route: worlds you have been to stay known, and so does the one you sta
   const k = knownWorlds({ order: ORDER, done: set('desert'), visited: set('incal'), current: 'bazaar' });
   assert.deepEqual(k, ['desert', 'arzach', 'perdide', 'incal', 'bazaar']);
   assert.ok(knownWorlds({ order: ORDER, current: HOME_ID }).every((id) => ORDER.includes(id)), 'home is not on the route');
-  assert.deepEqual(newlyKnown(['desert', 'arzach', 'perdide'], ['desert', 'arzach', 'arzach2', 'perdide']), ['arzach2']);
+  assert.deepEqual(newlyKnown(['desert', 'arzach', 'perdide'], ['desert', 'arzach', 'perdide', 'edena']), ['edena']);
   assert.deepEqual(newlyKnown(['a'], ['a']), []);
   // an old save that went to the City-Shaft second keeps it on the chart, and its other worlds
   const old = knownWorlds({ order: ORDER, done: set('desert', 'incal'), visited: set('incal') });
@@ -75,8 +82,9 @@ test('the galactic map names only the worlds you know; home still opens after si
   // world.<id>.done flags count too
   const flags = { 'world.arzach.done': true };
   const f = mapEntries({ order: ORDER, levels: LEVELS, journal: journal(['desert']), current: 'arzach', flag: (k) => flags[k] });
-  assert.ok(f.find((e) => e.id === 'arzach2').findable, 'opened: to be found');
-  assert.ok(!f.find((e) => e.id === 'garage').known);
+  assert.ok(f.find((e) => e.id === 'edena').findable, 'opened: to be found');
+  assert.ok(!f.find((e) => e.id === 'glassdunes').known);
+  assert.ok(!f.some((e) => ['arzach2', 'perdide2', 'garage'].includes(e.id)), 'the merged and dismissed worlds are not on the map');
 });
 
 test('every world on the route has its own drawn planet (no screenshots)', () => {

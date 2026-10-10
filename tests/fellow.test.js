@@ -93,13 +93,13 @@ test('where she is: the first four of her stops landed in, one meeting each, in 
   // met in Vael: she stays there till the next, and waits with the next in every stop not yet had
   const one = { 'fellow.meet': 1, 'fellow.stop.arzach': 1 };
   assert.deepEqual(fellowHere(one, 'arzach'), { meeting: 1, again: true });
-  assert.deepEqual(fellowHere(one, 'perdide2'), { meeting: 2, again: false });
+  assert.deepEqual(fellowHere(one, 'perdide'), { meeting: 2, again: false });
   assert.deepEqual(fellowHere(one, 'incal'), { meeting: 2, again: false }, 'a stop landed in out of order holds the next meeting, never a later one');
   const two = { ...one, 'fellow.meet': 2, 'fellow.stop.incal': 2 };
   assert.equal(fellowHere(two, 'arzach'), null, 'moved on from Vael');
   assert.deepEqual(fellowHere(two, 'incal'), { meeting: 2, again: true });
-  assert.deepEqual(fellowHere(two, 'perdide2'), { meeting: 3, again: false });
-  const four = { 'fellow.meet': 4, 'fellow.stop.arzach': 1, 'fellow.stop.perdide2': 2, 'fellow.stop.incal': 3, 'fellow.stop.bazaar': 4, 'fellow.end': 'home' };
+  assert.deepEqual(fellowHere(two, 'perdide'), { meeting: 3, again: false });
+  const four = { 'fellow.meet': 4, 'fellow.stop.arzach': 1, 'fellow.stop.perdide': 2, 'fellow.stop.incal': 3, 'fellow.stop.bazaar': 4, 'fellow.end': 'home' };
   for (const w of STOPS) assert.equal(fellowHere(four, w), null, `gone from ${w} after the last meeting`);
   assert.deepEqual(fellowHere(four, HOME.world), { meeting: 'home', again: true }, 'home at the Salt Harbour');
   assert.equal(fellowHere({ ...four, 'fellow.end': 'on' }, HOME.world), null, 'gone on: not at home');
@@ -122,10 +122,10 @@ test('four meetings, each changed by the last: a world ahead, sent home, the com
   assert.match(t.said, /water, sorry, and which way/, 'again in Vael: a word, no second meeting');
   assert.equal(ctx.game.flag('fellow.meet'), 1);
   // 2. Lorn II: she opens on his answer from Vael; send word home
-  const p2 = fellowPerson('perdide2', fellowHere(ctx.game.data.flags, 'perdide2'));
+  const p2 = fellowPerson('perdide', fellowHere(ctx.game.data.flags, 'perdide'));
   ctx.game.set('met.tansy', true);
   assert.equal(balloonReason(p2, ctx), 'new', 'a meeting waiting: her balloon, though she has been met');
-  t = talk('perdide2', ctx, ['Too long', 'Send word']);
+  t = talk('perdide', ctx, ['Too long', 'Send word']);
   assert.match(t.said, /something of value yet/, 'his answer in Vael, remembered');
   assert.match(t.said, /goat ship/);
   assert.equal(ctx.game.flag('fellow.advice'), 'write');
@@ -166,10 +166,10 @@ test('the other way: a race, the needle back, on past the charts, a letter for H
   assert.equal(ctx.game.flag('fellow.after'), 'light');
   assert.equal(ctx.game.flag('fellow.signed'), undefined);
   // walked off halfway through a meeting: it is had again next time
-  const half = new DialogueRunner(fellowPerson('perdide2', fellowHere(ctx.game.data.flags, 'perdide2')), ctx);
+  const half = new DialogueRunner(fellowPerson('perdide', fellowHere(ctx.game.data.flags, 'perdide')), ctx);
   assert.equal(half.nodeId, 'm2');
   assert.equal(ctx.game.flag('fellow.meet'), 1, 'not had until its last answer');
-  t = talk('perdide2', ctx, ['That’s not really', 'You’ve come this far']);
+  t = talk('perdide', ctx, ['That’s not really', 'You’ve come this far']);
   assert.match(t.said, /Still racing\? You’re winning/, 'his race, remembered');
   assert.equal(ctx.game.flag('fellow.advice'), 'go');
   t = talk('incal', ctx, ['Nobody', 'Find where it goes']);
@@ -196,11 +196,11 @@ test('the other way: a race, the needle back, on past the charts, a letter for H
 
 test('the last meeting away from the market says how she goes home from there', () => {
   const ctx = fresh({ 'fellow.meet': 3, 'fellow.stop.arzach': 1, 'fellow.stop.incal': 2, 'fellow.stop.bazaar': 3, 'fellow.heart': 'home' });
-  const t = talk('perdide2', ctx, ['Keep the page']);
+  const t = talk('perdide', ctx, ['Keep the page']);
   assert.match(t.said, /postal hulk/);
-  assert.match(t.said, /under the trees/, 'Lorn II\'s scene');
+  assert.match(t.said, /under a fungus tree/, 'Lorn\'s scene');
   assert.ok(!/towers/.test(t.said));
-  assert.equal(ctx.game.flag('fellow.stop.perdide2'), 4);
+  assert.equal(ctx.game.flag('fellow.stop.perdide'), 4);
 });
 
 test('an older save that had finished one of her stops meets her late: a world behind him, not ahead', () => {
@@ -211,9 +211,9 @@ test('an older save that had finished one of her stops meets her late: a world b
   migrateFlags(early);
   assert.equal(early['fellow.late'], undefined, 'none of her stops done: she is ahead, as for anyone');
   const ctx = fresh(old);
-  const t = talk('perdide2', ctx, ['So you followed', 'I’m not sure', 'Another time']);
+  const t = talk('perdide', ctx, ['So you followed', 'I’m not sure', 'Another time']);
   assert.match(t.said, /world behind you/);
-  assert.equal(ctx.game.flag('fellow.stop.perdide2'), 1, 'her first meeting where she waited');
+  assert.equal(ctx.game.flag('fellow.stop.perdide'), 1, 'her first meeting where she waited');
 });
 
 test('in each of her stops she waits a few steps from the ship, on ground you can walk to, looking the same', () => {

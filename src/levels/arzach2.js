@@ -150,39 +150,64 @@ export function bridge(o) {
 }
 
 // ---------------------------------------------------------------- terrain
-function height(x, z) {
-  const edge = plainEdge(x);
-  const floor = -110 + fbm(nB, x * 0.003, z * 0.003, 3) * 12;
-  let plain = PLAIN_Y + fbm(nA, x * 0.0016, z * 0.0016, 3) * 4 + nB(x * 0.02, z * 0.02) * 0.4;
-  // the far plain rises a touch toward the horizon
-  plain += smoothstep(-1900, -2500, z) * 18;
-  const dl = Math.hypot((x - AQ2.b[0]) * 1.2, Math.min(z - AQ2.b[1], 0) * 0.8);
-  plain = lerp(AQ2.y - 0.15, plain, smoothstep(26, 70, dl));
-  // dark fissures cracking the plain
-  const wx = x + nB(x * 0.003, z * 0.003) * 90, wz = z + nA(x * 0.003 + 5, z * 0.003) * 90;
-  const f = 1 - Math.abs(nC(wx * 0.0024, wz * 0.0024));
-  let crack = smoothstep(0.95, 0.985, f) * 16;
-  crack *= smoothstep(edge - 50, edge - 130, z) * smoothstep(60, 110, Math.hypot(x - TOWER.x, z - TOWER.z)) * smoothstep(50, 90, dl);
-  plain -= crack;
-  const h = lerp(floor, plain, smoothstep(edge + 22, edge - 22, z));
-  // low far mesas close the horizon
-  const rim = Math.max(Math.abs(x), Math.abs(z));
-  return h + smoothstep(2000, 2550, rim) * (55 + fbm(nA, x * 0.0015, z * 0.0015, 2) * 25);
+/**
+ * The ground: the chasm's floor under the cloud, the peach plain past its edge, low mesas closing the horizon.
+ * `district(x, z)` -> { h, w } | null lays another ground over the plain, weight w (Vael's plain round its landing,
+ * in the world the sky stones are part of now: src/levels/arzach.js); the fissures stay out of it.
+ */
+export function skyStonesHeight(district = null) {
+  return (x, z) => {
+    const edge = plainEdge(x);
+    const floor = -110 + fbm(nB, x * 0.003, z * 0.003, 3) * 12;
+    let plain = PLAIN_Y + fbm(nA, x * 0.0016, z * 0.0016, 3) * 4 + nB(x * 0.02, z * 0.02) * 0.4;
+    // the far plain rises a touch toward the horizon
+    plain += smoothstep(-1900, -2500, z) * 18;
+    let own = 1;
+    const d = district?.(x, z);
+    if (d && d.w > 0) { plain = lerp(plain, d.h, d.w); own = 1 - d.w; }
+    const dl = Math.hypot((x - AQ2.b[0]) * 1.2, Math.min(z - AQ2.b[1], 0) * 0.8);
+    plain = lerp(AQ2.y - 0.15, plain, smoothstep(26, 70, dl));
+    // dark fissures cracking the plain
+    const wx = x + nB(x * 0.003, z * 0.003) * 90, wz = z + nA(x * 0.003 + 5, z * 0.003) * 90;
+    const f = 1 - Math.abs(nC(wx * 0.0024, wz * 0.0024));
+    let crack = smoothstep(0.95, 0.985, f) * 16;
+    crack *= smoothstep(edge - 50, edge - 130, z) * smoothstep(60, 110, Math.hypot(x - TOWER.x, z - TOWER.z)) * smoothstep(50, 90, dl) * own;
+    plain -= crack;
+    const h = lerp(floor, plain, smoothstep(edge + 22, edge - 22, z));
+    // low far mesas close the horizon
+    const rim = Math.max(Math.abs(x), Math.abs(z));
+    return h + smoothstep(2000, 2550, rim) * (55 + fbm(nA, x * 0.0015, z * 0.0015, 2) * 25);
+  };
 }
+const height = skyStonesHeight();
+/** The sky stones' layout (the world they are part of reads it: src/levels/arzach.js). */
+export const SKY_STONES = { PLAIN_Y, PLAIN_EDGE, plainEdge, TOWER, AQ2, START, MONASTERY, NEEDLES, TABLE, ISLAND, CLOUD_Y, UNSAFE_Y };
 
 // ---------------------------------------------------------------- the level
+/** The ground's look: the peach plain, its fissures' walls red-brown (printed flat, as the rock). */
+export const SKY_STONES_GROUND = { color: '#eda584', color2: '#f2b48f', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes, shadeFlat: SKY_STONES_FLAT };
+
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+// The sky stones on their own (their tests); the game plays them as part of Vael (src/levels/arzach.js).
 export function* buildArzach2(scene) {
+  const terrain = yield* Terrain.make({ size: 5200, seg: 320, height, material: SKY_STONES_GROUND });
+  scene.add(terrain.mesh);
+  const part = yield* buildSkyStones(scene, terrain);
+  return attachTemple('arzach2', scene, part);
+}
+
+/**
+ * Everything of the sky stones but the ground and the temple: the level's settings, ready for attachTemple.
+ * `merged`: built into Vael (src/levels/arzach.js), whose lone tower stands where theirs did: the tower's shaft
+ * is left out (its plinth and the sleeping face on it stay, at the foot of Vael's), and so is a table on the
+ * plain where Vael's stone hand rises now.
+ */
+export function* buildSkyStones(scene, terrain, { merged = false } = {}) {
   const rng = mulberry32(2026);
   const R = (a, b) => a + rng() * (b - a);
   // the sheets print every shade of the rock, the plain and the buildings flat in one grey-blue at the
   // surface's value (makeMaterial shadeFlat), whatever its colour; the people, the bird and the flowers keep theirs
   const PRINT = { shadeFlat: SKY_STONES_FLAT };
-  const terrain = yield* Terrain.make({
-    size: 5200, seg: 320, height,
-    material: { color: '#eda584', color2: '#f2b48f', color3: CREVASSE.wall, mode: MODE_TERRAIN, ripples: true, spot: 0, strataHatch: CREVASSE.strokes, ...PRINT },
-  });
-  scene.add(terrain.mesh);
 
   const DS = THREE.DoubleSide;
   const M = {
@@ -277,6 +302,7 @@ export function* buildArzach2(scene) {
   // tables standing on the peach plain, framing the tower
   const PLAIN_HOODOOS = [[150, -1060, 46, 58], [80, -1020, 18, 17], [-140, -1090, 30, 30], [330, -1210, 24, 22], [-330, -1260, 36, 34]];
   PLAIN_HOODOOS.forEach(([x, z, r, h], i) => {
+    if (merged && (i === 2 || i === 4)) return;   // (Vael's landing and its stone hand are there)
     const base = terrain.baseAt(x, z, r * 0.4);
     addTable(M.cap, { x, z, R: r, top: base + h, base: base - 4, dome: r * 0.08, stalk: r * R(0.32, 0.42), capT: r * 0.13, under: r * 0.3,
       seed: 30 + i * 2.9, rib: r * 0.045, ribK: 32, seg: 128, colSeg: 18, flute: 0.11, fluteK: 10 + i, foot: 1.5, neckR: 1.25, waist: 0.2,
@@ -347,6 +373,7 @@ export function* buildArzach2(scene) {
   CLOUD_NEEDLES.forEach(([x, z, h, r, n], i) => { if (h) cluster(x, -70, z, h + 70, r, n, 10 + i, false); });
   // needle clusters on the plain
   [[-280, -1030, 120, 10, 6], [380, -1140, 150, 12, 6], [-60, -1650, 110, 9, 5], [260, -1700, 90, 8, 4], [-420, -1410, 170, 14, 6]].forEach(([x, z, h, r, n], i) => {
+    if (merged && i === 0) return;   // (over Vael's standing stones and the riders' mast)
     cluster(x, terrain.baseAt(x, z, r * 2) + 0.5, z, h, r, n, 30 + i);
   });
 
@@ -551,7 +578,7 @@ export function* buildArzach2(scene) {
   yield;
   {
     const x = TOWER.x, z = TOWER.z, base = terrain.baseAt(x, z, 12), H = 150;
-    const parts = [
+    const parts = merged ? [place(new THREE.CylinderGeometry(14, 16, 3, 16), x, base, z)] : [
       place(new THREE.CylinderGeometry(5.5, 9, H, 14, 1), x, base - 2 + H / 2, z),
       place(new THREE.CylinderGeometry(15, 13, 2, 18), x, base + H - 10, z),             // the lower balcony
       place(new THREE.CylinderGeometry(8, 8, 9, 14), x, base + H - 4.5, z),              // the top room
@@ -562,7 +589,7 @@ export function* buildArzach2(scene) {
       place(new THREE.CylinderGeometry(14, 16, 3, 16), x, base, z),                     // plinth
     ];
     for (const p of parts) add(M.tower, p);
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4 && !merged; i++) {
       const a = i * TAU / 4 + 0.4;
       add(M.dark, place(new THREE.BoxGeometry(2.2, 4, 1), x + Math.cos(a) * 7.9, base + H - 6, z + Math.sin(a) * 7.9, -a + Math.PI / 2));
     }
@@ -833,11 +860,12 @@ export function* buildArzach2(scene) {
 
   // Sister Perpetue's Almonry (src/shop-world.js, src/shop-fronts.js 'almonry'): the monastery's gatehouse with its
   // hatch, on the cliff-top in front of the white monastery, facing the start plateau the bird comes in from
-  const shop = placeShop(scene, { def: SHOPS.almonry, at: new THREE.Vector3(-224, topAt(-224, -197), -197), heading: 0.85 });
+  // (in Vael its room takes the second slot over the map: Vael's own Wind-Shelf has the first, src/interior-kit.js interiorSlot)
+  const shop = placeShop(scene, { def: SHOPS.almonry, at: new THREE.Vector3(-224, topAt(-224, -197), -197), heading: 0.85, slot: merged ? 1 : 0 });
 
   // the Founders' Belfry out of the cloud west of the plateau, and its rooms far overhead (src/temples/arzach2.js)
   yield;
-  return attachTemple('arzach2', scene, {
+  return {
     id: 'arzach2',
     portals: [...shop.portals],
     lights: [...shop.lights],
@@ -901,7 +929,8 @@ export function* buildArzach2(scene) {
       tiles, lanterns, clapperLamp,
     },
     atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Vael II · the peach plain' : 'Vael II · the sky stones' }),
+    movers,
     update(dt, t) { for (const m of movers) m(t); },
-  });
+  };
 }
 export const createArzach2 = stepped(buildArzach2);

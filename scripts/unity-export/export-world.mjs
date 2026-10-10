@@ -582,7 +582,7 @@ const shipOut = (() => {
 })();
 
 // gravity that turns (the Sealed Hangar: the upside-down quarter, the ring where it points outward): the shapes
-// gravityAt reads (src/levels/garage.js), for the Unity port's own copy
+// gravityAt reads (src/levels/dismissed/hangar/level.js), for the Unity port's own copy
 let gravity = null;
 if (level.gravityAt && level.garage) {
   const G = level.garage;

@@ -11,12 +11,19 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { buildCaveCrown, buildEggLamps, crownWindow, buildLookout } from '../lorn-ways.js';
+import { buildDeepWood, deepWoodHeight, deepWoodWeight, DEEP_WOOD_HAZE, DEEP_WOOD } from './perdide2.js';
+import { FLORA_WORLDS } from '../flora.js';
 
 // ---------------------------------------------------------------------------
 // Lorn:
 // a swamp planet of humming crystal forests, carnivorous plants and glowing
 // eggs, lit at twilight. Cross the deep water on a hover-skiff, or swim it
 // (src/swim.js). A crystal cave glows from within.
+//
+// Since October 2026 Lorn and Lorn II are one world (docs/systems/worlds.md, "Merged and dismissed worlds"):
+// the landing's open swamp of crystals and glowing eggs leads south, past the Great Crystal, into the Deep
+// Wood (src/levels/perdide2.js buildDeepWood): the giant pale mushrooms, half see-through, the lit path to
+// the root cave. Lorn keeps its coordinates; the wood lies DEEP_WOOD south of them (names.js PART_OFFSET).
 // ---------------------------------------------------------------------------
 
 const WATER = 0;
@@ -35,7 +42,8 @@ export const ISLE = { x: -50, z: 112, r: 15 };
 const noise = createNoise2D(1982);
 const noiseB = createNoise2D(44);
 
-function height(x, z) {
+/** Lorn's own ground: channels of open water, dry islands round the landing and the cave, mountains far off. */
+export function lornHeight(x, z, far = 1200) {
   let h = fbm(noise, x * 0.0022, z * 0.0022, 4) * 14 - 2.5;
   // channels of open water
   const ch = 1 - Math.abs(noiseB(x * 0.0035, z * 0.0035));
@@ -49,9 +57,18 @@ function height(x, z) {
   const di = Math.hypot(x - ISLE.x, z - ISLE.z);
   h = Math.max(h, THREE.MathUtils.lerp(-6, 1.3 + noise(x * 0.05, z * 0.05) * 0.3, smoothstep(ISLE.r + 12, ISLE.r - 3, di)));
   const edge = Math.max(Math.abs(x), Math.abs(z));
-  h += smoothstep(1200, 1900, edge) * (150 + fbm(noise, x * 0.004, z * 0.004, 3) * 120);
+  h += smoothstep(far, far + 700, edge) * (150 + fbm(noise, x * 0.004, z * 0.004, 3) * 120);
   return h;
 }
+/** The world's ground: Lorn's, the Deep Wood's south of the Great Crystal (its mountains closer in, inside the 3.2 km ground). */
+export function height(x, z) {
+  const own = lornHeight(x, z, 950), w = deepWoodWeight(x, z);
+  return w > 0 ? THREE.MathUtils.lerp(own, deepWoodHeight(x, z), w) : own;
+}
+/** In the Deep Wood (where Lorn's own scatter stays out). */
+const inWood = (x, z) => deepWoodWeight(x, z) > 0.3;
+/** Lorn's own ground as its scatter was laid out on (what grows where is decided on it, so it grows as it always did). */
+const ownAt = (x, z) => lornHeight(x, z);
 
 /**
  * The hover-skiff: a long low hull in orange with a cream gunwale, its prow
@@ -213,8 +230,9 @@ export function jawShell({ r, wall, skin, lip, throat } = JAW) {
 export function* buildPerdide(scene) {
   const rng = mulberry32(1982);
   const pick = (a) => a[Math.floor(rng() * a.length)];
+  // (3.2 km at 5.3 m: the Deep Wood's path banks want its old resolution)
   const terrain = yield* Terrain.make({
-    size: 4000, seg: 480, height,
+    size: 3200, seg: 600, height,
     material: { color: '#748660', color2: '#8a9a6c', color3: '#7a6a86', mode: MODE_TERRAIN, ticks: true },   // olive moss with violet mud (a step greyer: October 2026)
   });
   scene.add(terrain.mesh);
@@ -232,8 +250,8 @@ export function* buildPerdide(scene) {
   }
 
   // ---------------------------------------------------------- crystal forests
-  function crystals(cx, cz, count, spread, scale = 1, cap = null) {
-    lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 4, cz, spread * 0.5 + 14));
+  function crystals(cx, cz, count, spread, scale = 1, cap = null, skip = false) {
+    if (!skip) lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 4, cz, spread * 0.5 + 14));
     const parts = { };
     for (let i = 0; i < count; i++) {
       const x = cx + (rng() - 0.5) * spread, z = cz + (rng() - 0.5) * spread;
@@ -245,13 +263,17 @@ export function* buildPerdide(scene) {
       const c = pick(CRYSTAL);
       (parts[c] ??= []).push(g.toNonIndexed());
     }
+    if (skip) return;   // (its draws taken all the same: the rest of the swamp grows where it always did)
     for (const [c, list] of Object.entries(parts))
       scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: c, flat: true, glow: 0.55 })));
   }
   // (the landing island's grove, with a notch in it on the line from Saba's stone to the cave's crown: src/lorn-ways.js)
   crystals(40, -70, 60, 50, 1, crownWindow(CAVE));
   yield;
-  for (let i = 0; i < 24; i++) crystals((rng() * 2 - 1) * 1100, (rng() * 2 - 1) * 1100, 30 + Math.floor(rng() * 50), 40 + rng() * 60);
+  for (let i = 0; i < 24; i++) {
+    const cx = (rng() * 2 - 1) * 1100, cz = (rng() * 2 - 1) * 1100;
+    crystals(cx, cz, 30 + Math.floor(rng() * 50), 40 + rng() * 60, 1, null, inWood(cx, cz));
+  }
 
   // ---------------------------------------------------------- carnivorous plants (they snap when you come close)
   yield;
@@ -268,10 +290,11 @@ export function* buildPerdide(scene) {
       return new THREE.ConeGeometry(0.2, 0.8, 4).rotateX(side > 0 ? Math.PI : 0).translate(Math.cos(a) * 1.8, side * -0.3, Math.sin(a) * 1.8).toNonIndexed();
     }));
   }
-  function plant(x, z, { bed = false, h: hh = null, r = rng } = {}) {
+  function plant(x, z, { bed = false, h: hh = null, r = rng, skip = false } = {}) {
     const base = terrain.heightAt(x, z);
     const h = hh ?? 6 + r() * 8;
     const p0 = new THREE.Vector3(0, 0, 0), p1 = new THREE.Vector3((r() - 0.5) * 3, h * 0.6, (r() - 0.5) * 3), p2 = new THREE.Vector3(0, h, 0);
+    if (skip) return;
     // the stalks don't move: one mesh for all of them (below)
     stalks.push(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(p0, p1, p2), 12, 0.45, 6).translate(x, base, z).toNonIndexed());
     const grp = new THREE.Group();
@@ -295,7 +318,7 @@ export function* buildPerdide(scene) {
   for (let i = 0; i < 40; i++) {
     yield;
     const x = (rng() * 2 - 1) * 900, z = (rng() * 2 - 1) * 900;
-    if (terrain.heightAt(x, z) > 0.3 && Math.hypot(x, z) > 25) plant(x, z);
+    if (ownAt(x, z) > 0.3 && Math.hypot(x, z) > 25) plant(x, z, { skip: inWood(x, z) });
   }
   plant(22, 18);
   // the snapping bed by the landing: a ring of low jaws round a patch of bare mud
@@ -310,21 +333,22 @@ export function* buildPerdide(scene) {
   scene.add(new THREE.Mesh(mergeGeometries(stalks), stalkMat));
 
   // ---------------------------------------------------------- glowing egg clutches
-  function eggs(cx, cz) {
-    lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 1.5, cz, 11));
+  function eggs(cx, cz, skip = false) {
+    if (!skip) lights.push(new THREE.Vector4(cx, terrain.heightAt(cx, cz) + 1.5, cz, 11));
     const list = [];
     for (let i = 0; i < 5 + Math.floor(rng() * 8); i++) {
       const x = cx + (rng() - 0.5) * 8, z = cz + (rng() - 0.5) * 8, s = 0.7 + rng() * 0.9;
       list.push(new THREE.SphereGeometry(1, 10, 8).scale(s, s * 1.4, s).translate(x, terrain.heightAt(x, z) + s, z).toNonIndexed());
     }
-    scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color: pick(['#f6c7a0', '#f2a7b5', '#f2e38f']), glow: 1 })));
+    const color = pick(['#f6c7a0', '#f2a7b5', '#f2e38f']);
+    if (!skip) scene.add(new THREE.Mesh(mergeGeometries(list), makeMaterial({ color, glow: 1 })));
   }
   eggs(-14, -22);
   yield;
   for (let i = 0; i < 30; i++) {
     yield;
     const x = (rng() * 2 - 1) * 1000, z = (rng() * 2 - 1) * 1000;
-    if (terrain.heightAt(x, z) > 0.3) eggs(x, z);
+    if (ownAt(x, z) > 0.3) eggs(x, z, inWood(x, z));
   }
 
   // ---------------------------------------------------------- hero: the Great Crystal
@@ -419,8 +443,8 @@ export function* buildPerdide(scene) {
     for (let i = 0; i < 70; i++) {
       const x = (rng() * 2 - 1) * 1200, z = (rng() * 2 - 1) * 1200;
       if (Math.hypot(x, z) < 45) continue;
-      const g0 = terrain.heightAt(x, z);
-      if (g0 < DEEP - 2) continue;
+      if (ownAt(x, z) < DEEP - 2) continue;
+      const g0 = terrain.heightAt(x, z), skip = inWood(x, z);
       const s = 0.6 + rng() * 1.8, H = (14 + rng() * 22) * s;
       const geo = new THREE.LatheGeometry(prof.map(([pr, py]) => new THREE.Vector2(pr * s, py * H)), 12);
       jitter(geo, 0.12, 0.03, i);
@@ -430,8 +454,10 @@ export function* buildPerdide(scene) {
       const idx = geo.index.array, st = [], cp = [];
       for (let t = 0; t < idx.length; t += 3) (Math.max(pos.getY(idx[t]), pos.getY(idx[t + 1]), pos.getY(idx[t + 2])) > cut ? cp : st).push(idx[t], idx[t + 1], idx[t + 2]);
       const part = (list) => { const g = geo.clone(); g.setIndex(list); return g.toNonIndexed(); };
-      (stalks[pick(STALK)] ??= []).push(part(st));
-      (caps[pick(CAP)] ??= []).push(part(cp));
+      const sc = pick(STALK), cc = pick(CAP);
+      if (skip) continue;
+      (stalks[sc] ??= []).push(part(st));
+      (caps[cc] ??= []).push(part(cp));
       if (s > 1.4) lights.push(new THREE.Vector4(x, g0 + H * 0.75, z, 10 * s));
     }
     for (const [c, l] of Object.entries(stalks)) scene.add(new THREE.Mesh(mergeGeometries(l), makeMaterial({ color: c, flat: true })));
@@ -439,18 +465,21 @@ export function* buildPerdide(scene) {
     // reeds
     const N = 3200, dummy = new THREE.Object3D(), col = new THREE.Color();
     const reeds = new THREE.InstancedMesh(new THREE.ConeGeometry(0.09, 1, 4).translate(0, 0.5, 0), makeMaterial({ color: '#ffffff' }), N);
-    let n = 0;
-    for (let tries = 0; tries < N * 6 && n < N; tries++) {
-      const cx = (rng() * 2 - 1) * 1100, cz = (rng() * 2 - 1) * 1100, h0 = terrain.heightAt(cx, cz);
+    let n = 0, drawn = 0;   // (drawn: every reed the rng gave, whether it grows here or stands in the Deep Wood)
+    for (let tries = 0; tries < N * 6 && drawn < N; tries++) {
+      const cx = (rng() * 2 - 1) * 1100, cz = (rng() * 2 - 1) * 1100, h0 = ownAt(cx, cz);
       if (h0 < -1.2 || h0 > 0.9) continue;   // only along the waterline
-      for (let k = 0; k < 12 && n < N; k++) {
+      const skip = inWood(cx, cz);
+      for (let k = 0; k < 12 && drawn < N; k++, drawn++) {
         const x = cx + (rng() - 0.5) * 4, z = cz + (rng() - 0.5) * 4;
         dummy.position.set(x, terrain.heightAt(x, z) - 0.2, z);
         dummy.rotation.set((rng() - 0.5) * 0.35, 0, (rng() - 0.5) * 0.35);
         dummy.scale.set(1, 1.6 + rng() * 2.8, 1);
         dummy.updateMatrix();
+        const c = pick(['#3f5a3a', '#4f6b34', '#5a4a6a']);
+        if (skip) continue;
         reeds.setMatrixAt(n, dummy.matrix);
-        reeds.setColorAt(n++, col.set(pick(['#3f5a3a', '#4f6b34', '#5a4a6a'])));
+        reeds.setColorAt(n++, col.set(c));
       }
     }
     reeds.count = n;
@@ -495,15 +524,21 @@ export function* buildPerdide(scene) {
   const lookout = buildLookout(scene, terrain, caveMat);
   lights.push(new THREE.Vector4(lookout.top.x, lookout.top.y - 10, lookout.top.z, 18));
 
-  // the Hush-House on the cave island, and its rooms far overhead (src/temples/perdide.js)
+  // the Deep Wood south of the Great Crystal (src/levels/perdide2.js): its mushrooms, its lit path, its root cave
   yield;
-  return attachTemple('perdide', scene, {
+  const W = yield* buildDeepWood(scene, terrain, { merged: true });
+  const avoidL = shop.avoid((x, z, r) => Math.hypot(x - GREAT.x, z - GREAT.z) < 22 + r || Math.hypot(x - BED.x, z - BED.z) < BED.r + 5 + r
+    || Math.hypot(x - ISLE.x, z - ISLE.z) < ISLE.r * 0.6 + r), avoidW = W.floraAvoid;
+  // the Lamp-House in the shallows by the root cave and the Hush-House on the cave island, their rooms far overhead
+  // (src/temples/perdide2.js, src/temples/perdide.js)
+  const level = {
+    ...W,
     id: 'perdide',
-    portals: [...shop.portals],
-    shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
-    // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own (and the shop its own)
-    floraAvoid: shop.avoid((x, z, r) => Math.hypot(x - GREAT.x, z - GREAT.z) < 22 + r || Math.hypot(x - BED.x, z - BED.z) < BED.r + 5 + r
-      || Math.hypot(x - ISLE.x, z - ISLE.z) < ISLE.r * 0.6 + r),
+    portals: [...shop.portals, ...W.portals],
+    shops: [shop, ...W.shops],   // (src/story/shops.js: the keepers behind their counters; main.js: the shop panel)
+    // the flora (src/flora.js) leaves the Great Crystal, the snapping bed and the fireflies' isle their own (and the shops theirs);
+    // in the wood, its lit path and its keep-outs
+    floraAvoid: (x, z, r = 0) => (inWood(x, z) ? !!avoidW?.(x, z, r) : !!avoidL(x, z, r)),
     // for the story (src/story/perdide.js): the Great Crystal, the cave's crystals, the plants
     // (`fed` counts the globs each has swallowed), the fireflies' nest; silence 0..1 shuts every
     // jaw (the crystal is singing), tame stops them snapping at you, calm only the bed's
@@ -514,11 +549,17 @@ export function* buildPerdide(scene) {
     targets: plants.map((p) => ({ kind: 'plant', radius: 2.2, accepts: ['fire'], position: () => p.pos, onHit: (mode) => { p.snap = mode === 'shoot' || mode === 'fire' ? 2.5 : 0.8; if (mode === 'shoot') p.fed++; if (mode === 'fire') p.recoil = 1; return true; } })),
     // what the level design audit reads (scripts/level-design/audit.mjs): the cave's crown, aimed at; the egg-lamps,
     // followed home where the cave's stage sends you along them; and the punt, something to look at on the way
-    beacons: [{ name: 'the cave’s crown', top: crown.top.toArray(), height: crown.height }],
-    lines: [{ name: 'Wendel’s egg-lamps', points: eggLamps.points, auto: false }],
-    sights: [{ name: 'the gatherers’ punt', at: eggLamps.punt }, { name: 'Wendel’s egg-lamps', at: eggLamps.sight }],
+    beacons: [{ name: 'the cave’s crown', top: crown.top.toArray(), height: crown.height }, ...W.beacons],
+    lines: [{ name: 'Wendel’s egg-lamps', points: eggLamps.points, auto: false }, ...W.lines],
+    sights: [{ name: 'the gatherers’ punt', at: eggLamps.punt }, { name: 'Wendel’s egg-lamps', at: eggLamps.sight }, ...W.sights],
     ground: terrain,
     spawn: new THREE.Vector3(0, terrain.heightAt(0, 0), 0),
+    partSpawns: { perdide2: W.spawn },   // (the Deep Wood's island, where its own landing was: its creatures live round it)
+    // the flora of both (src/flora.js level.flora): Lorn's over its swamp, north of the wood; the Deep Wood's under its trees
+    flora: [
+      { ...FLORA_WORLDS.perdide, world: 'perdide', regions: [{ x: 0, z: 0, r0: 18, r: 300, w: 1.4 }, { x0: -1100, x1: 1100, z0: DEEP_WOOD[2] + 160, z1: 1100, w: 3 }] },
+      { ...FLORA_WORLDS.perdide2, world: 'perdide2', regions: [{ x0: -760, x1: 760, z0: DEEP_WOOD[2] - 910, z1: DEEP_WOOD[2] + 100, w: 1 }] },
+    ],
     spawnHeading: Math.PI,
     camYaw: 0,
     features: { mount: true, wind: false, jetpack: false, climb: true },
@@ -526,7 +567,8 @@ export function* buildPerdide(scene) {
     mountName: 'skiff',
     // (October 2026 colour pass: the long evening shadows a violet, not near-black stripes over the moss: cast shadows
     //  lifted a little and fewer spot blacks in them; Lorn's people are drawn in muted olive, violet and navy)
-    defaults: { hour: 18.4, preset: 'Moebius print', cloudShadows: 0, look: LORN_LOOK },
+    // (and the Deep Wood's low mist over the water and its paths: DEEP_WOOD_HAZE, its height fog)
+    defaults: { hour: 18.4, preset: 'Moebius print', cloudShadows: 0, look: { ...LORN_LOOK, uHeightFog: DEEP_WOOD_HAZE.uHeightFog, uHeightFogTone: DEEP_WOOD_HAZE.uHeightFogTone } },
     sky: {
       // violet shadows, teal light
       script: {
@@ -537,14 +579,18 @@ export function* buildPerdide(scene) {
       planets: [{ az: 70, el: 22, size: 16, color: '#c7a6f2', ring: 0.35 }],
     },
     killY: -Infinity,
+    // the foes of the part you stand in: the swamp's (Lorn's), the Deep Wood's under the mushrooms (src/foes.js worldHere)
+    foes: { partAt: (x, z) => (deepWoodWeight(x, z) > 0.5 ? 'perdide2' : 'perdide') },
     unsafe,
-    lights,
+    lights: [...lights, ...W.lights],
+    limit: undefined,
     life: {
       flocks: [{ count: 10, color: '#2b211f', size: 1.3, radius: 50, height: [8, 25], speed: 0.25, seed: 11 }],
       motes: { count: 170, color: '#d6ff9a', size: 0.07, glow: 1, rise: 0.05, wind: [0.15, 0.1] },
       footprints: '#5f7a4f',
     },
-    atmo: () => ({ tint: [0.92, 1.0, 1.0], fog: 1.5, name: 'Lorn' }),
+    // the swamp of lights, and under the giant mushrooms the Deep Wood (its haze a step thicker)
+    atmo: (x, z) => { const w = deepWoodWeight(x, z); return { tint: [0.92 + 0.08 * w, 1.0 - 0.03 * w, 1.0 - 0.02 * w], fog: 1.5 + 0.2 * w, name: w > 0.5 ? 'Lorn · the Deep Wood' : 'Lorn' }; },
     update(dt, t, ctx) {
       for (const m of movers) m(t);
       // carnivorous plants snap shut when the player comes close
@@ -561,6 +607,8 @@ export function* buildPerdide(scene) {
         for (const j of p.jaws) j.jaw.rotation.z = j.side * (p.open * 0.75 + breathe) + shudder;
       }
     },
-  });
+  };
+  attachTemple('perdide2', scene, level);
+  return attachTemple('perdide', scene, level);
 }
 export const createPerdide = stepped(buildPerdide);

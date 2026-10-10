@@ -9,7 +9,7 @@ globalThis.document ??= { createElement: el, body: el(), getElementById: () => n
 await import('./register-gadgets.js');   // (the gadgets as items: the makers' courts' boxes hold them)
 
 const { progressBefore, seedDebugSave, worldsBefore, WORLDS, WORLD_ENDS, TANK_BANDS, opensInDebugSave } = await import('../src/debug-save.js');
-const { ORDER, SIDE } = await import('../src/levels/names.js');
+const { ORDER, SIDE, partsOf } = await import('../src/levels/names.js');
 const { PLACEMENTS } = await import('../src/boxes/placements.js');
 const { ITEMS } = await import('../src/items.js');
 const { knownWorlds } = await import('../src/story/route.js');
@@ -34,7 +34,7 @@ test('the debug save is for the route worlds only: the dev worlds, the side worl
     assert.equal(alongLine(id), 'in your save');
   }
   for (const id of ORDER) assert.equal(pickHref(id), `?level=${id}&debugsave=1`);
-  assert.match(alongLine('incal'), /6 worlds done before it/);
+  assert.match(alongLine('incal'), new RegExp(`${ORDER.indexOf('incal')} worlds done before it`));
 });
 
 test('the desert starts a new journey: past the prologue, nothing found', () => {
@@ -52,20 +52,25 @@ test('every world before the chosen one is played through, the chosen one and th
     assert.deepEqual(worldsBefore(id), before);
     for (const w of before) {
       assert.equal(flags[`world.${w}.done`], true, `${id}: ${w} done`);
-      for (const q of WORLDS[w][0].QUESTS) assert.ok(['done', 'failed'].includes(flags[`quest.${q.id}`]), `${id}: quest ${q.id} over`);
-      for (const p of PLACEMENTS[w] ?? []) {
-        assert.equal(flags[`box.${p.id}`], true, `${id}: box ${p.id} open`);
-        assert.equal(flags[`item.${p.item}`], true, `${id}: ${p.item} owned`);
-        if (p.hint) assert.equal(flags[`quest.box.${p.id}`], 'done');
+      // (a merged world part by part: src/levels/names.js PARTS)
+      for (const part of partsOf(w)) {
+        assert.equal(flags[`world.${part}.done`], true, `${id}: ${part} done`);
+        for (const q of WORLDS[part][0].QUESTS ?? []) assert.ok(['done', 'failed'].includes(flags[`quest.${q.id}`]), `${id}: quest ${q.id} over`);
+        for (const p of PLACEMENTS[part] ?? []) {
+          assert.equal(flags[`box.${p.id}`], true, `${id}: box ${p.id} open`);
+          assert.equal(flags[`item.${p.item}`], true, `${id}: ${p.item} owned`);
+          if (p.hint) assert.equal(flags[`quest.box.${p.id}`], 'done');
+        }
+        const T = WORLDS[part][1].QUEST;
+        assert.equal(flags[`temple.${T.id.replace(/^temple\./, '')}.done`], true);
+        assert.equal(flags[`quest.${T.id}`], 'done');
       }
-      assert.equal(flags[`temple.${w}.done`], true);
-      assert.equal(flags[`quest.${WORLDS[w][1].QUEST.id}`], 'done');
       assert.ok(journal.stories[w] && journal.seen[w], `${id}: ${w}'s story page`);
     }
     for (const w of after) {
-      assert.ok(!started(flags, w), `${id}: nothing of ${w} yet`);
+      for (const part of partsOf(w)) assert.ok(!started(flags, part), `${id}: nothing of ${part} yet`);
       assert.ok(!keepsakes.some((k) => k.level === w), `${id}: no keepsake of ${w}`);
-      for (const p of PLACEMENTS[w] ?? []) if (!before.some((b) => (PLACEMENTS[b] ?? []).some((q) => q.item === p.item))) assert.ok(!flags[`item.${p.item}`], `${id}: ${p.item} not yet`);
+      for (const p of partsOf(w).flatMap((part) => PLACEMENTS[part] ?? [])) if (!before.some((b) => partsOf(b).some((part) => (PLACEMENTS[part] ?? []).some((q) => q.item === p.item)))) assert.ok(!flags[`item.${p.item}`], `${id}: ${p.item} not yet`);
       assert.ok(!journal.seen[w]);
     }
     // the chosen world is on the ship's chart (and is where the ship last flew)
@@ -81,16 +86,18 @@ test('every world before the chosen one is played through, the chosen one and th
 
 test('the gear and the tank are what the route gave: the wings in Vael, the Warden\'s harness in the City-Shaft (never the debug jets), a band per magical water', () => {
   assert.equal(progressBefore('arzach').flags['item.glider'], undefined);
-  assert.equal(progressBefore('arzach2').flags['item.glider'], true);
+  assert.equal(progressBefore('perdide').flags['item.glider'], true);
+  assert.equal(progressBefore('perdide').flags['item.bell'], true, 'and the sky stones’ bell (Vael’s, since October 2026)');
   assert.equal(progressBefore('incal').flags['item.harness'], undefined);
-  assert.equal(progressBefore('garage').flags['item.harness'], true);
-  assert.equal(progressBefore('garage').flags['item.jetpack'], undefined, 'the jets anywhere: a debug item');
-  assert.equal(progressBefore('garage').flags['item.cabpass'], true);   // (Lio's, at the end of a City-Shaft quest: a conversation gives it)
+  assert.equal(progressBefore('glassdunes').flags['item.harness'], true);
+  assert.equal(progressBefore('glassdunes').flags['item.jetpack'], undefined, 'the jets anywhere: a debug item');
+  assert.equal(progressBefore('glassdunes').flags['item.cabpass'], true);   // (Lio's, at the end of a City-Shaft quest: a conversation gives it)
+  assert.equal(progressBefore('buried').flags['item.coil'], true, 'the Clock-House’s coil, in the Glass Dunes');
   assert.equal(progressBefore('arzach').flags['ship.powered'], true);
-  assert.equal(progressBefore('arzach2').flags['bird.promise'], true);
+  assert.equal(progressBefore('perdide').flags['bird.promise'], true);
   for (const [i, id] of ORDER.entries()) {
     const { flags } = progressBefore(id);
-    const bands = TANK_BANDS.filter((b) => ORDER.indexOf(b.world) < i);
+    const bands = TANK_BANDS.filter((b) => ORDER.findIndex((w) => partsOf(w).includes(b.world)) < i);
     assert.equal(flags['tool.colours'] ?? 1, Math.min(5, 1 + bands.length), id);
     for (const [k, b] of bands.entries()) if (b.tone) assert.equal(flags['tool.tones'][2 + k], b.tone);
     assert.equal(flags['tool.empty'], undefined);
@@ -102,7 +109,7 @@ test('Viridel’s terraces end the only way they can (failed), the errands are d
   assert.equal(flags['quest.edena.terraces'], 'failed');
   assert.ok(flags['failed.edena.terraces']);
   assert.equal(flags['edena.terraces.flooded'], true);
-  assert.equal(journal.errands.gear.done, true);    // Lorn II → Viridel
+  assert.equal(journal.errands.gear.done, true);    // the Deep Wood (Lorn) → Viridel
   assert.equal(journal.errands.seed.done, false);   // Viridel → the City-Shaft: in the pack
   assert.equal(journal.errands.token, undefined);   // (the City-Shaft gives it)
 });
@@ -110,7 +117,7 @@ test('Viridel’s terraces end the only way they can (failed), the errands are d
 test('the people of each world before are met, the keepsakes are kept in route order', () => {
   const { flags, keepsakes } = progressBefore('bazaar');
   for (const id of ['ama', 'teo', 'oia', 'lio', 'sabri', 'lark']) assert.equal(flags[`met.${id}`], true, id);
-  const levels = keepsakes.map((k) => ORDER.indexOf(k.level));
+  const levels = keepsakes.map((k) => ORDER.findIndex((w) => partsOf(w).includes(k.level)));
   assert.deepEqual(levels, [...levels].sort((a, b) => a - b));
   assert.equal(new Set(keepsakes.map((k) => k.id)).size, keepsakes.length);
 });
@@ -122,9 +129,11 @@ const STORY_FILE = (w) => `story/${w}.js`;
 const onDoneBodies = (src) => [...src.matchAll(/\.onDone = \(\) => \{([\s\S]*?)\n {2}\};/g)].map((m) => m[1]);
 
 test('every flag a world’s quest end sets in code is in the debug save after it', () => {
-  for (const [i, w] of ORDER.entries()) {
+  // (part by part: a merged world's parts each end their own story; the Glass Dunes' ends with its temple, below)
+  for (const [i, world] of ORDER.entries()) for (const w of partsOf(world)) {
     if (i === ORDER.length - 1) continue;
     const { flags } = progressBefore(ORDER[i + 1]);
+    if (w === 'glassdunes') { assert.match(read(STORY_FILE(w)), /game\.set\('world\.glassdunes\.done', true\)/, 'the Clock-House kept in time ends the Glass Dunes'); assert.equal(flags['world.glassdunes.done'], true); continue; }
     const bodies = onDoneBodies(read(STORY_FILE(w)));
     assert.ok(bodies.some((b) => b.includes(`world.${w}.done`)), `${w}: its main quest's onDone found`);
     for (const body of bodies) {
@@ -141,7 +150,7 @@ test('every flag a world’s quest end sets in code is in the debug save after i
 test('every keepsake the story code gives is kept', () => {
   const all = progressBefore('bazaar').keepsakes.map((k) => k.id);
   const last = 'bazaar';
-  for (const w of ORDER) {
+  for (const w of ORDER.flatMap(partsOf)) {
     const src = read(STORY_FILE(w));
     const ids = [...src.matchAll(/addKeepsake\(\{\s*id:\s*'([^']+)'/g)].map((m) => m[1]);
     if (/addKeepsake\((KEEPSAKE|keepsakeFor)/.test(src)) {
@@ -190,7 +199,7 @@ test('seeding writes the debug slot only, makes it the active one, and the game 
   // the player's own save is as it was
   for (const [k, v] of before) assert.equal(st.getItem(k), v, k);
   // the shared state now reads the debug save, the old debug save is gone (and its position: the world starts at its start)
-  assert.equal(state.flag('world.garage.done'), true);
+  assert.equal(state.flag('world.glassdunes.done'), true);
   assert.equal(state.flag('world.buried.done'), undefined);
   assert.equal(state.flag('stale'), undefined);
   assert.equal(st.getItem(slotKey('moebius.save.v1', DEBUG_SLOT)), null);

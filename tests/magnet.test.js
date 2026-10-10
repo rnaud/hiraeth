@@ -75,7 +75,7 @@ test('metal is tagged where it is built: a block\'s middle, or spots of its own'
   assert.ok(spots[0].pos.distanceTo(v(5, 3, 0)) < 1e-6 && Math.abs(spots[0].radius - 1) < 1e-6, 'the block: its middle, a face a metre out');
   assert.deepEqual(spots.slice(1, 3).map((s) => s.pos.toArray()), [[1, 0, -10], [0, 0, -6]]);
   // the Sealed Hangar's brass machinery is tagged
-  assert.match(readFileSync(new URL('../src/levels/garage.js', import.meta.url), 'utf8'), /tagMetal\(new THREE\.Mesh\(mergeGeometries\(bits\), brass\), \{ points: pumps/);
+  assert.match(readFileSync(new URL('../src/levels/dismissed/hangar/level.js', import.meta.url), 'utf8'), /tagMetal\(new THREE\.Mesh\(mergeGeometries\(bits\), brass\), \{ points: pumps/);
 });
 
 test('held, a metal crate is lifted and follows the aim; the stick sends it out; let go, it drops', () => {

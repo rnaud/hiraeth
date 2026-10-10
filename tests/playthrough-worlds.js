@@ -211,13 +211,13 @@ Object.assign(WAYS, {
 export const ROUTE = [
   { id: 'desert', play: ['desert.power'] },
   // (Oïa sits by the landing and opens the main quest: she points the way to the Aerie for the wings, then the tower)
-  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird'] },
-  { id: 'arzach2', play: ['arzach2.bell'] },
-  { id: 'perdide', play: ['perdide.crystal'] },
-  { id: 'perdide2', play: ['perdide2.lamps'] },
+  // (since October 2026 Vael carries the sky stones, Lorn the Deep Wood: each part's main quest in turn; src/levels/names.js PARTS)
+  { id: 'arzach', play: [{ act: 'meetOia', at: 'oia', label: 'Oïa, by the landing' }, { temple: 'gadget' }, 'arzach.bird', 'arzach2.bell'] },
+  { id: 'perdide', play: ['perdide.crystal', 'perdide2.lamps'] },
   { id: 'edena', play: ['edena.garden'] },
   { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the jets, the light, the pass
-  { id: 'garage', play: ['garage.signal'] },
+  // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
+  { id: 'glassdunes', play: [{ temple: 'done', id: 'garage' }] },
   { id: 'buried', play: ['buried.tooth'] },
   { id: 'spheres', play: ['spheres.listen'] },
   { id: 'bazaar', play: ['bazaar.signal'] },
@@ -235,5 +235,5 @@ export const each = (W, st, qid) => {
   return lacks.length ? `it says to use ${lacks.join(', ')}, which he does not have yet: “${st.text}”` : null;
 };
 /** Where each way of getting about is first had, by the route: nobody arrives anywhere before it with it. */
-export const FIRST = { glider: 'arzach', bird: 'arzach2', jetpack: 'incal', cab: 'incal' };   // (the double jump and the gun: the desert's own, checked by its steps)
+export const FIRST = { glider: 'arzach', bird: 'arzach', jetpack: 'incal', cab: 'incal' };   // (the double jump and the gun: the desert's own, checked by its steps)
 export const before = (a, b) => A.ORDER.indexOf(a) < A.ORDER.indexOf(b);

@@ -39,7 +39,7 @@ for (const [k, R] of ROUTE.entries()) {
     const fallback = W.boxes.list.filter((b) => b.fallback).map((b) => b.item);
     if (fallback.length) issue('box', `a fallback box by the ship (${fallback.join(', ')}): the route should have brought them`);
     for (const p of R.play) {
-      if (p.temple) { const log = await A.templeTo(W, p.temple, issue, { nextSpot }); say(`  temple: ${log.join(' / ')}`); continue; }
+      if (p.temple) { const log = await A.templeTo(W, p.temple, issue, { nextSpot, id: p.id }); say(`  temple: ${log.join(' / ')}`); continue; }
       if (p.act) { ACTIONS[p.act](W, issue); continue; }
       const r = await A.playQuest(W, p, { solvers: SOLVERS, ways: WAYS, checks: CHECKS, each });
       say(`  ${p}${r.done ? ' (done)' : ' (NOT DONE)'}:\n    ${r.steps.join('\n    ')}`);

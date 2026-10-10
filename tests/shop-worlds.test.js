@@ -10,8 +10,8 @@ import * as THREE from 'three';
 
 await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
-const { ORDER } = await import('../src/levels/names.js');
-const { SHOPS, shopOf } = await import('../src/shop.js');
+const { ORDER, ROUTE_PARTS } = await import('../src/levels/names.js');
+const { SHOPS, shopOf, shopsIn, OPEN_SHOPS } = await import('../src/shop.js');
 const { FRONTS, buildStyledFront } = await import('../src/shop-fronts.js');
 const { interiorAt, buildInterior } = await import('../src/interior-kit.js');
 const { inTightRoom } = await import('../src/interiors.js');
@@ -57,9 +57,11 @@ test('every route world has its shop where the play-through builds it: on the gr
     const W = A.loadWorld(world);
     try {
       const { level, physics } = W;
-      const def = shopOf(world);
-      assert.ok(level.shops?.length === 1, `${world}: one shop`);
-      const shop = level.shops[0];
+      // (a merged world has its parts' shops: Vael's Wind-Shelf and the sky stones' Almonry, src/shop.js shopsIn)
+      const defs = shopsIn(world);
+      assert.ok(level.shops?.length === defs.length && defs.length >= 1, `${world}: a shop for each of its places`);
+      for (const [si, shop] of level.shops.entries()) {
+      const def = defs[si];
       assert.ok(shop.def === def, `${world}: ${def.id}`);
       const { at: door, heading } = shop.interior.door, f = fwdOf(heading);
       // on the ground: the threshold where the ground is, and the step in front
@@ -87,7 +89,7 @@ test('every route world has its shop where the play-through builds it: on the gr
       assert.ok(inTightRoom(inside) && isIndoors(inside), `${world}: the camera frames it tight, no rain falls`);
       W.step(60);   // (two seconds: past the doorways' cool-down, so the way out below takes)
       assert.ok(interiorAt(W.player.pos) === shop.interior, `${world}: still inside two seconds later (nothing sends you back out)`);
-      const keeper = W.rt.shops?.list[0];
+      const keeper = W.rt.shops?.list.find((k) => k.shop === shop || k.def?.id === def.keeper || k.npc?.def?.id === def.keeper) ?? W.rt.shops?.list[si];
       assert.ok(keeper?.npc, `${world}: ${def.keeper} is there`);
       assert.ok(interiorAt(keeper.npc.pos) === shop.interior, `${world}: ${def.keeper} in the shop`);
       assert.ok(keeper.npc.pos.distanceTo(shop.keeper.at) < 1.5, `${world}: ${def.keeper} behind the counter`);
@@ -106,6 +108,8 @@ test('every route world has its shop where the play-through builds it: on the gr
       assert.ok(near < 200, `${world}: by the way (${near.toFixed(0)} m from the landing or a person)`);
       // nothing grows through it
       assert.ok(level.floraAvoid?.(door.x, door.z), `${world}: no plant on its doorstep`);
+      W.step(60);   // (past the doorways' cool-down before the next shop's door)
+      }
     } finally { W.dispose(); }
   }
 });
@@ -114,6 +118,6 @@ test('the shops\' rooms never leave the world: the edge (Player opts.limit) and 
   const { readFileSync } = await import('node:fs');
   const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
   assert.match(src('src/player.js'), /!inTightRoom\(this\.pos, 0\.3\)\s*\n?\s*&& keepInside/, 'the world\'s edge holds no one in a room built past it');
-  assert.match(src('src/levels/garage.js'), /Math\.hypot\(p\.x, p\.z\) > 900 && !interiorAt\(p\)/);
-  assert.equal(Object.keys(SHOPS).length, ORDER.length);
+  assert.match(src('src/levels/dismissed/hangar/level.js'), /Math\.hypot\(p\.x, p\.z\) > 900 && !interiorAt\(p\)/);
+  assert.equal(OPEN_SHOPS.length, ROUTE_PARTS.length, 'a shop for each place on the route');
 });

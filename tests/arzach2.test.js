@@ -5,15 +5,20 @@ import { createArzach2, ARZACH2_CONTENT } from '../src/levels/arzach2.js';
 import { Physics } from '../src/physics.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { LEVELS } from '../src/levels/index.js';
+import { PART_LEVELS } from '../src/levels/buildable.js';
+import { MERGED, PARTS } from '../src/levels/names.js';
 
 const scene = new THREE.Scene();
 const level = createArzach2(scene);
 const physics = new Physics(scene, level.ground);
 
-test('arzach2 builds and is registered', () => {
+test('arzach2 builds on its own (for its tests), and is part of Vael', () => {
   assert.equal(level.id, 'arzach2');
-  assert.ok(ORDER.includes('arzach2'));
-  assert.ok(LEVELS.some((l) => l.id === 'arzach2'));
+  // (since October 2026 the sky stones are Vael's, north of its plain over the cloud: src/levels/names.js MERGED)
+  assert.ok(!ORDER.includes('arzach2') && ORDER.includes('arzach'));
+  assert.equal(MERGED.arzach2, 'arzach');
+  assert.deepEqual(PARTS.arzach, ['arzach', 'arzach2']);
+  assert.ok(!LEVELS.some((l) => l.id === 'arzach2') && PART_LEVELS.some((l) => l.id === 'arzach2'));
   assert.equal(CONTENT.arzach2, ARZACH2_CONTENT);
   assert.equal(level.mountName, 'bird');
   for (const k of ['spawn', 'ground', 'defaults', 'life', 'sky', 'atmo', 'update']) assert.ok(level[k], `missing ${k}`);

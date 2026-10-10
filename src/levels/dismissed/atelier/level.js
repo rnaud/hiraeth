@@ -1,10 +1,14 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
-import { Terrain } from '../world.js';
-import { stepped } from '../load-steps.js';
+import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../../../materials.js';
+import { Terrain } from '../../../world.js';
+import { stepped } from '../../../load-steps.js';
 
 // ---------------------------------------------------------------------------
+// DISMISSED (October 2026): out of the Debug menu's story places and every list (src/levels/names.js DISMISSED,
+// docs/systems/worlds.md "Merged and dismissed worlds"); kept whole here to reuse, built by its tests. A save
+// left here wakes in the world the ship last flew to.
+//
 // The Atelier: a hidden place off the route (reached only from the worlds
 // list, ?level=atelier): nothing on the journey leads here and the story never
 // mentions it. A blank paper world; sketches of every landmark you visited

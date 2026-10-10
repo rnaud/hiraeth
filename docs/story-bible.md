@@ -130,10 +130,16 @@ the settings.
 
 ## World by world
 
-In route order (`src/levels/names.js` ORDER): the desert, then Vael and Vael II
-(the wings and the winds), Lorn and Lorn II, Viridel, then, in the later half,
-the City-Shaft (its own jets, the Warden's harness), the Sealed Hangar and the Buried Machine, the Garden of Spheres and the Signal Market. Vael II waits for Vael.
-The sections below are numbered by that route (they keep the order they were
+In route order (`src/levels/names.js` ORDER): the desert, then Vael (the wings
+and the winds; the sky stones are its southern half now), Lorn (with the Deep
+Wood north of its swamp), Viridel, then, in the later half, the City-Shaft (its
+own jets, the Warden's harness), the Glass Dunes and the Buried Machine, the
+Garden of Spheres and the Signal Market: nine places. Since October 2026 Vael II
+and Lorn II are parts of Vael and Lorn, and the Sealed Hangar and the Atelier are
+dismissed: kept whole (`src/levels/dismissed/`), off the route; the Hangar's
+temple, the First Garage, stands in the Glass Dunes as the Clock-House. Nothing
+was deleted: the sections of the old worlds stay below, marked.
+The sections below are numbered by the old route (they keep the order they were
 written in).
 
 ### 1. The Desert — "The Tree That Drinks"
@@ -252,10 +258,13 @@ written in).
 - **Keepsake**: *person*: the bird lets you ride, and will come if called
   from any world with sky (a promise, not an item); calling her plays the
   rider's tune.
-- **Clue**: through the window, a map of the sky stones on the wall → Vael II
-  (which is charted only once Vael is done: it needs her).
+- **Clue**: through the window, a map of the sky stones on the wall → the sky
+  stones, south of the plain over the cloud (once their own world, Vael II; one
+  world with Vael since October 2026: the bird carries you there).
 
 ### 3. Vael II — "The Bell Under the Cloud"
+*(Vael's southern half since October 2026: the sky stones' plateaus over the cloud, its story, temple and people
+as they were, in the one world.)*
 - **Local story**: The monastery bell has not rung since the cloud rose,
   thirty years ago; the monks believe its ringing kept the world down, and
   that when it stopped everything loose fell *up* (the sky stones themselves
@@ -269,6 +278,8 @@ written in).
   sleeping head → the giants were here too.
 
 ### 8. The Sealed Hangar — "The Major Forgot"
+*(Dismissed in October 2026, kept whole in `src/levels/dismissed/hangar/` with its people and story, to be used
+elsewhere; its temple went to the Glass Dunes, below. Its place on the route is the Glass Dunes'.)*
 - **Local story**: Major Brask built this pocket universe and forgot why.
   His people keep the machines turning out of habit, passing a signal around
   the three zones that nobody can read.
@@ -279,6 +290,21 @@ written in).
   it. I still don't know. That is the point."
 - **Clue**: the signal decodes to coordinates of a buried wheel → the Buried
   Machine.
+
+### 8b. The Glass Dunes — "The Clock in the Glass"
+- **Local story**: Glassworkers camp in a sand valley walled by waves of green
+  glass that broke and never fell. East of the valley stands the Clock-House, a
+  round stair-house of the makers with a clock over its door; its works set the
+  pace for the camps' clocks, and they all stopped the night the singing light
+  passed. Something underneath has been winding tighter ever since.
+- **Quests**: Wim, who winds the clocks, sends you down the Clock-House: the
+  Clockwork Foreman at its heart wants six numerals lit together (the makers'
+  quick coil inside makes it possible).
+- **Keepsake**: *sound*: Wim's tick, every clock in the dunes keeping the same
+  time.
+- **Clue**: Wim's word after: the Foreman keeps only the small time; the slow
+  time comes from a great wheel under a far desert that turns one tooth a year
+  → the Buried Machine.
 
 ### 9. The Buried Machine — "One Tooth a Year"
 - **Local story**: Below the dunes a great wheel turned one tooth a year; the
@@ -329,6 +355,8 @@ written in).
   of whatever passed the ship.
 
 ### 5. Lorn II — "The Lamps Are Kept"
+*(Lorn's northern half since October 2026: the crystal swamp opens into the Deep Wood, its half-transparent
+giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **Local story**: In the deep wood people keep the pools lit for travellers
   who never come. You are the first in a long time.
 - **Quests**: relight three dark pools (shoot them); return the moss-dome
@@ -373,7 +401,7 @@ the coins in Hesper's biscuit tin, and hitches world to world after the needle. 
 the harbour writes her name in letters the salt can't eat (the salt eats every name in the end, if nobody
 reads it). Loud in Vael, brave and broke, learns three words first in every world: water, sorry, which way.
 
-Met four times, in the first four of Vael, Lorn II, the City-Shaft and the Signal Market the traveller lands in,
+Met four times, in the first four of Vael, Lorn, the City-Shaft and the Signal Market the traveller lands in,
 a few steps from his ship. *A world ahead* (what is he after; sign her book), *the needle stops* (her ride gone,
 thirty-one days from home: send word, or keep going?), *looking up* (who is waiting for him; does Hesper still
 read her page?), *something to show*: home (word sent ahead, her compass to him, it still points after the light)
@@ -421,9 +449,10 @@ a recording, and hopes it is about where he has been.
 **How it plays.** At the console, E plays a recording (`calls.<n>`, one waiting
 after each finished world, as the calls were). The traveller asks the reel for
 a word that belongs to the world just finished (the desert: *water*; the
-City-Shaft: *looking up*; Vael: *quiet*; Vael II: *bell*; the Hangar: *why*;
+City-Shaft: *looking up*; Vael: *quiet*; the Glass Dunes: *time*;
 the Buried Machine: *patience*; Viridel: *garden*; the spheres: *remember*;
-Lorn: *rain*; Lorn II: *lamp*; the Signal Market: *listening*). The ship finds
+Lorn: *rain*; the Signal Market: *listening*; the old words *bell*, *lamp* and
+*why*, of Vael II, Lorn II and the Hangar, wait unplayed). The ship finds
 one match and plays it: the parents rise over the projector on the dash as a
 hologram, as they were when they made it, and the traveller stands facing them.
 The recording fits loosely, sometimes oddly (he asks for water and gets his
@@ -587,7 +616,7 @@ gadget at its heart; half the makers' gifts wait inside them, half in the open
 | Desert | the mark between the giant's eyes; the Givers' mark (the keepers) | the singing light that turned (Oum); the chest hummed back to it all night (Nour) | the Givers' chest (Nour, Hessa) |
 | Vael | the bird's track (Oïa) | heard in the stones (Senn) | a square with a star, drawn in the sand (Oïa, who hardly speaks: three words) |
 | Vael II | the Three Notes (Calix) | the bell hummed by itself for it | a bell-chest: it hummed back too (Calix) |
-| Hangar | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
+| Hangar (dismissed) | the maker's rivets (Ottla), the Major's thumbprint (Clemence) | seen through the ring's slit (Lune); three machines stopped that night | "for the next one": the Major found it and never opened it (Ottla) |
 | Buried Machine | the Maker's Thumb | the Tuning Star (Hask, Dun) | thumb-boxes (Wen) |
 | Viridel | the Builders' mark (Oro) | the Singer (Talo's word, Sol) | Builders' gifts (Oro) |
 | Garden of Spheres | the Footprint, under every sphere (Emrys) | an Answerer (Ume) | left-behinds (Emrys) |

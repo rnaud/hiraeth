@@ -6,7 +6,9 @@
 // lore: every line retells what they say in their own conversation (src/story/<world>-data.js and the
 // people in src/levels/*), shortened. English only for now (the story is not localised yet: TODO fr).
 //
-//   BOOK            { world: [{ id, name, role, story: [part], now: [part] }] } in the route's order
+//   BOOK            { world: [{ id, name, role, story: [part], now: [part] }] } in the route's order, by the part
+//                   (the old world) they live in: a merged world lists its parts' (Vael's and the sky stones');
+//                   a dismissed world's (the Sealed Hangar's) are kept, and not listed
 //                   (a part: 'text' known once met, or [cond, 'text']); `now`: the first that holds says
 //                   where they are and how they are doing
 //   test(cond, flags)   a condition over the save's flags (the dialogue's own shapes: { flag, is },
@@ -22,12 +24,12 @@ import { QUESTS as perdideQ } from './perdide-data.js';
 import { QUESTS as perdide2Q } from './perdide2-data.js';
 import { QUESTS as edenaQ } from './edena-data.js';
 import { QUESTS as incalQ } from './incal-data.js';
-import { QUESTS as garageQ } from './garage-data.js';
+import { QUESTS as garageQ } from '../levels/dismissed/hangar/story-data.js';
 import { QUESTS as buriedQ } from './buried-data.js';
 import { QUESTS as spheresQ } from './spheres-data.js';
 import { QUESTS as bazaarQ } from './bazaar-data.js';
 import { QUESTS as lanternQ } from './lantern-data.js';
-import { ORDER } from '../levels/names.js';
+import { ORDER, partsOf } from '../levels/names.js';
 
 /** Every quest of the route (and the Lantern's), with its stages. */
 const QUEST_DEFS = [desertQ, arzachQ, arzach2Q, perdideQ, perdide2Q, edenaQ, incalQ, garageQ, buriedQ, spheresQ, bazaarQ, lanternQ].flat();
@@ -450,6 +452,14 @@ export const BOOK = {
       [f('garage.odo.stamps'), 'The Major signed a crate of blank requisitions “for whatever the people need” before he went up into the keep. Odo has three thousand and six left.'],
     ], ['At the quartermaster’s hatch on the plateau.']),
   ],
+  // (on the route since October 2026, in the Sealed Hangar's place; Wim, at the Clock-House's door, is a temple's local,
+  // and the glassworkers only call out as you pass)
+  glassdunes: [
+    P('marit', 'Marit', 'Keeps the kiln-stall', [
+      'Marit sells what the glassworkers’ kiln can spare from a stall on the valley floor, and prices it by how long it took to cool.',
+      [f('glassdunes.marit.cooling'), 'Since the clocks went wrong nobody knows how long anything took, so she guesses. Generously.'],
+    ], [[f('temple.garage.done'), 'At her stall; the clocks agree now, and her kiln cools on time.'], 'At her kiln-stall on the valley floor, up from the ship.']),
+  ],
   buried: [
     P('wen', 'Wen', 'Counts the teeth', [
       'Wen counts age in teeth: once a year, on Tooth Day, the great wheel turns one tooth and sheds a sliver of metal. Wen was forty-one teeth old when you came.',
@@ -631,7 +641,7 @@ export const KEEPSAKE_FROM = {
 /** Each errand (ERRANDS in src/levels/content.js names them by their world's npc index) as [giver, receiver]. */
 export const ERRAND_PEOPLE = {
   sand: ['pell', 'senn'], feather: ['hollin', 'aube'], crystal: ['ivo.perdide', 'bram'], gear: ['pim.perdide2', 'mira'], seed: ['lio.edena', 'nima'],
-  token: ['lio', 'clemence'], handbell: ['calix', 'wendel'], grease: ['nikko', 'tull'], pipewhistle: ['ossa.buried', 'aube.spheres'], mirror: ['nell', 'oyo'],
+  token: ['lio', 'aster'], handbell: ['calix', 'wendel'], grease: ['corin', 'tull'], pipewhistle: ['ossa.buried', 'aube.spheres'], mirror: ['nell', 'oyo'],
 };
 
 /** The choices the stone remembers, and a smaller one, as the person would remember them (the first that holds). */
@@ -651,13 +661,15 @@ export const personStory = (p, flags = {}) => allThat(p.story, flags);
 /** Where they are and how they are doing now. */
 export const personNow = (p, flags = {}) => firstThat(p.now, flags) ?? '';
 
+/** A world's people: its parts' (a merged world's, Vael's then the sky stones'). */
+export const bookOf = (world) => partsOf(world).flatMap((part) => BOOK[part] ?? []);
 /** Every person in the book, with their world: [{ ...p, world }]. */
-export const EVERYONE = WORLD_ORDER.flatMap((world) => (BOOK[world] ?? []).map((p) => ({ ...p, world })));
+export const EVERYONE = WORLD_ORDER.flatMap((world) => bookOf(world).map((p) => ({ ...p, world })));
 export const PERSON = new Map(EVERYONE.map((p) => [p.id, p]));
 
 /** The people met so far (`met.<id>`), grouped by world in the route's order: [{ world, people }]. */
 export function metPeople(flags = {}) {
-  return WORLD_ORDER.map((world) => ({ world, people: (BOOK[world] ?? []).filter((p) => flags[`met.${p.id}`]).map((p) => ({ ...p, world })) }))
+  return WORLD_ORDER.map((world) => ({ world, people: bookOf(world).filter((p) => flags[`met.${p.id}`]).map((p) => ({ ...p, world })) }))
     .filter((g) => g.people.length);
 }
 

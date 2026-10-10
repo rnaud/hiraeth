@@ -17,7 +17,7 @@
 // stone, from the ending), home.visits.
 
 import { FAMILY } from '../characters/family.js';
-import { ORDER } from '../levels/names.js';
+import { ROUTE_PARTS } from '../levels/names.js';
 
 /** How many keepsakes he has brought, as Lou sees it: 0 a few, 1 a good many, 2 lots, 3 everything. */
 export function keepsakeBand(n) { return n < 6 ? 0 : n < 11 ? 1 : n < 17 ? 2 : 3; }
@@ -31,8 +31,9 @@ const ended = (ctx) => !!ctx.game.flag('ending.done');
 const final = (ctx) => !!ctx.game.flag('ending.final');
 const between = (ctx) => ended(ctx) && !final(ctx);
 // the drawing Lou talks about: the furthest world along the route he has written from (the route's order stands in
-// for "newest": the save keeps no dates), the desert's if none
-const FURTHEST = [...ORDER].reverse();
+// for "newest": the save keeps no dates), the desert's if none; by place, so Vael's sky stones and Lorn's Deep Wood
+// keep their drawings (src/levels/names.js ROUTE_PARTS)
+const FURTHEST = [...ROUTE_PARTS].reverse();
 const newest = (w) => (ctx) => (w === 'desert' || done(w)(ctx)) && FURTHEST.slice(0, FURTHEST.indexOf(w)).every((v) => !done(v)(ctx));
 
 /** What Lou says about her drawing of each world (her newest one first). */
@@ -41,7 +42,8 @@ export const DRAWING_LINES = {
   incal: "~curious~ That’s the city with people at the bottom. I gave them a bit of sky. I know your card didn’t say they had one.",
   arzach: "~surprised~ The giant bird! That tiny red bit is you. I ran out of paper before I ran out of bird.",
   arzach2: "~curious~ Floating stones and a bell. Those lines mean LOUD. You have to imagine them in your ears.",
-  garage: "~playful~ The Major’s machine. Tove said machines don’t need faces. I put one on the back where she won’t check.",
+  garage: "~playful~ The Major’s machine. Tove said machines don’t need faces. I put one on the back where she won’t check.",   // (a save from the Sealed Hangar's days: on her wall, never her newest now)
+  glassdunes: "~curious~ The glass desert with the clock house. I drew all the clocks saying the same time. That’s the happy ending.",
   buried: "~curious~ The underground wheel. All those teeth! I drew a lamp so it doesn’t bite anyone by mistake.",
   edena: "~happy~ The garden eating a ship. Can ours eat something? We could start with Tove’s bad chair.",
   spheres: "~curious~ The spheres. You said round, so I did round. Your next card needs more details.",

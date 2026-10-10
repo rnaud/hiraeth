@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { gadgetById } from '../gadgets/registry.js';
 import { YardKit } from '../gadgets/yard-kit.js';
+import { shiftAt, offsetOf } from '../levels/names.js';
 
 // The makers' courts (docs/systems/gadgets.md, "In the worlds"): one in each route world after the desert,
 // a paved square of the makers' pale stone where a box holds a gadget, and round it the very things that
@@ -20,16 +21,20 @@ import { YardKit } from '../gadgets/yard-kit.js';
 // way you come (src/boxes/placements.js, `site: courtBox`).
 //
 // Each court: { gadget, at: [x, z], y: the ground's top there (the pavement sits on it), toward: [x, z] (the
-// court's front faces it; default the spawn) }. The box's hint and note are its placement's (placements.js).
+// court's front faces it; default the spawn) }, in its part's own coordinates (a merged world moves a part's:
+// courtOf, src/levels/names.js PART_OFFSET); keyed by the part (the old world) it was made for, the Sealed
+// Hangar's by the Glass Dunes, where it went with the First Garage. The box's hint and note are its
+// placement's (placements.js).
 
 export const COURTS = {
   arzach: { gadget: 'hook', at: [-124, -16], y: 23.1 },
-  arzach2: { gadget: 'springs', at: [-22, -60], y: 40.8 },
+  arzach2: { gadget: 'springs', at: [-22, -60], y: 40.8, toward: [0, 22] },   // (facing the plateau's old landing: the ship comes down on Vael's plain now)
   perdide: { gadget: 'fan', at: [80, 8], y: 2.3 },
-  perdide2: { gadget: 'boomerang', at: [86, -136], y: 0.6 },
+  perdide2: { gadget: 'boomerang', at: [86, -136], y: 0.6, toward: [0, 0] },   // (facing the Deep Wood's way in, its island)
   edena: { gadget: 'bubble', at: [-70, -64], y: 0 },
   incal: { gadget: 'bridge', at: [362, 10], y: 200 },
-  garage: { gadget: 'magnet', at: [-86, 120], y: 0 },
+  // (the Sealed Hangar's, at [-86, 120] on its plain until October 2026: it went to the Glass Dunes with the First Garage)
+  glassdunes: { gadget: 'magnet', at: [60, -140], y: null, toward: [10, -60] },
   buried: { gadget: 'monocle', at: [-88, 38], y: 6.4 },
   spheres: { gadget: 'bomb', at: [-58, -70], y: 1.1 },
   bazaar: { gadget: 'recall', at: [86, 66], y: 0 },
@@ -43,7 +48,9 @@ export function courtFrame(c, level) {
   const [x, z] = c.at;
   const to = c.toward ?? [level?.spawn?.x ?? 0, level?.spawn?.z ?? 0];
   const yaw = Math.atan2(to[0] - x, to[1] - z);
-  return { origin: new THREE.Vector3(x, c.y + COURT.thick, z), yaw };
+  // (y null: on the ground there, its lowest under the pavement)
+  const y = c.y ?? level?.ground?.baseAt?.(x, z, COURT.w / 2) ?? 0;
+  return { origin: new THREE.Vector3(x, y + COURT.thick, z), yaw };
 }
 
 /** The box's spot on a court: { at: [x, y, z], face } (src/boxes/placements.js reads it from level.finds). */
@@ -53,8 +60,18 @@ export function courtBoxSite(frame) {
   return { at: [p.x, p.y, p.z], face: frame.yaw };
 }
 
+/** A court where it stands in its world (its part's offset added), or null. */
+export function courtOf(id, courts = COURTS) {
+  const c = courts[id];
+  if (!c) return null;
+  const o = offsetOf(id);
+  if (!o[0] && !o[1] && !o[2]) return c;
+  return { ...c, at: shiftAt(id, c.at), y: c.y + o[1], ...(c.toward ? { toward: shiftAt(id, c.toward) } : {}) };
+}
 /** The box placement's site (placements.js `site`): the court built into this level, else nothing. */
 export const courtBox = (level) => level?.finds?.court?.box ?? null;
+/** The same for a world with more than one court (a merged world): the court made for `id`. */
+export const courtBoxOf = (id) => (level) => level?.finds?.courts?.[id]?.box ?? (level?.finds?.court?.id === id ? level.finds.court.box : null);
 
 let mats = null;
 const courtMats = () => (mats ??= {
@@ -84,7 +101,7 @@ function pavement(group) {
  * `clear(scene, circles)` scales away the world's own trees and rocks standing where the court is.
  */
 export function attachCourt(levelId, scene, level, { clear = null, courts = COURTS } = {}) {
-  const c = courts[levelId], def = c && gadgetById(c.gadget);
+  const c = courtOf(levelId, courts), def = c && gadgetById(c.gadget);
   if (!c || !def?.yard || !level) return null;
   const frame = courtFrame(c, level);
   const yard = new YardKit(scene);
@@ -106,8 +123,9 @@ export function attachCourt(levelId, scene, level, { clear = null, courts = COUR
   (level.targets ??= []).push(...targets);
   (level.flammables ??= []).push(...flammables);
   const box = courtBoxSite(frame);
-  const court = { gadget: def.id, frame, box, group: kit.group };
+  const court = { id: levelId, gadget: def.id, frame, box, group: kit.group };
   (level.finds ??= {}).court = court;
+  (level.finds.courts ??= {})[levelId] = court;
   const circle = { x: frame.origin.x - Math.sin(frame.yaw) * (COURT.back - COURT.front) / 2, z: frame.origin.z - Math.cos(frame.yaw) * (COURT.back - COURT.front) / 2, r: COURT.clear };
   clear?.(scene, [circle], kit.group);
   const avoid = level.floraAvoid;

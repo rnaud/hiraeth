@@ -16,6 +16,7 @@ import { LANGUAGES, planLine, voiceOf } from '../src/story/voice.js';
 import { SCRIPTS, scriptOf, writeChunk } from '../src/story/scripts.js';
 import { selfLitSkips } from '../src/shadows.js';
 import { talkSpace, stepBack } from '../src/story/spacing.js';
+import { partOf } from '../src/levels/names.js';
 
 const flat = { groundAt: () => 0, groundNormal: () => new THREE.Vector3(0, 1, 0), pushCapsule: () => null };
 const LEVELS = [...readFileSync(new URL('../src/levels/index.js', import.meta.url), 'utf8').matchAll(/^\s+id: '(\w+)'/gm)].map((m) => m[1]);
@@ -43,7 +44,8 @@ test('four peoples, each in a few worlds (not all), each with its own tongue and
   assert.ok(worlds.size >= 3 && worlds.size < LEVELS.length / 2, `${worlds.size} worlds`);
   for (const id of ids) {
     const S = SPECIES[id];
-    for (const w of S.worlds) assert.ok(LEVELS.includes(w), `${id}: ${w} is a level`);
+    // (a world, or a part of one: the shellbacks' Deep Wood is Lorn's since October 2026, src/levels/names.js PARTS)
+    for (const w of S.worlds) assert.ok(LEVELS.includes(partOf(w)), `${id}: ${w} is a level (or a part of one)`);
     assert.ok(LANGUAGES[S.lang] && !LANGUAGES[S.lang].native, `${id} speaks ${S.lang}`);
     assert.equal(scriptOf(S.lang), SCRIPTS[S.lang], `${id} writes its own script`);
     assert.ok(S.lod.near < S.lod.mid && S.lod.mid < S.lod.far && S.lod.far < S.lod.hide, `${id}: levels of detail in order`);

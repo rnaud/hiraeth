@@ -28,6 +28,7 @@ const canvas = () => Object.assign(el(), { width: 1, height: 1, getContext: () =
 globalThis.document ??= { createElement: (tag) => (tag === 'canvas' ? canvas() : el()), body: el(), getElementById: () => null, querySelector: () => null, querySelectorAll: () => [], addEventListener() {}, hidden: false };
 
 const { LEVELS } = await import('../src/levels/index.js');
+const { buildableById } = await import('../src/levels/buildable.js');
 const { CONTENT, ORDER } = await import('../src/levels/content.js');
 const { Physics } = await import('../src/physics.js');
 const { Player } = await import('../src/player.js');
@@ -90,7 +91,8 @@ export function loadSave(data) {
  */
 export function loadWorld(id, { journal = memoryJournal(), report = () => {} } = {}) {
   clearInteractables(); clearTargets(); freshListeners();
-  const meta = LEVELS.find((l) => l.id === id);
+  // (a level; a merged world's part on its own, or a dismissed world, for their own tests: src/levels/buildable.js)
+  const meta = LEVELS.find((l) => l.id === id) ?? buildableById(id);
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
@@ -590,8 +592,9 @@ export async function generic(W, qid, st, raw) {
  * he does it (a chest: E; a brazier, a switch, a bell: lit with the right mode; a drum: rolled onto
  * its plate; a plate: stood on; the guardian: resolved). Returns the log; issues go to `issue`.
  */
-export async function templeTo(W, until, issue, { nextSpot }) {
-  const T = W.level.temple, L = T?.logic, log = [];
+export async function templeTo(W, until, issue, { nextSpot, id = null }) {
+  // (a temple by its id: a merged world has two, and the Glass Dunes' is the Clock-House, `garage`)
+  const T = (id ? W.level.temples?.find((t) => t.id === id) : null) ?? W.level.temple, L = T?.logic, log = [];
   if (!T) { issue('no-temple', `${W.id} has no temple`); return log; }
   const door = T.outside?.door?.at;
   if (door) {
@@ -610,7 +613,7 @@ export async function templeTo(W, until, issue, { nextSpot }) {
     if (!s && e.type !== 'boss') issue('no-ground', `${T.def.name}: ${e.type} ${id} (${fmt(at)}) has nowhere to stand by it`);
     if (s) { W.at(s); W.step(2); }
     if (e.type === 'gadget') {
-      const box = W.boxes.list.find((b) => b.place.temple === W.id);
+      const box = W.boxes.list.find((b) => b.place.temple === T.id);
       if (!box) { issue('no-thing', `${T.def.name}: no chest`); break; }
       const by = standNear(W, box.pos.clone().add(V(Math.sin(box.yaw) * 1.4, 0, Math.cos(box.yaw) * 1.4)), { radius: 2, up: 2 });
       if (by) W.at(by);

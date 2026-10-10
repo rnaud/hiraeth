@@ -522,6 +522,21 @@ export const CHANGELOG_MEDIA = {
       { name: 'lock-reticle-windup', title: 'Winding up', caption: 'The same brute three quarters into its slam: before, red chevrons doubled and closing over it; after, coral ticks doubled and closing in round it', from: FROM_FIGHT39 },
       { name: 'lock-reticle-handheld', title: 'Handheld, far', caption: 'The brute 16 m away on a handheld-sized screen (732 × 412 CSS px, the Retroid’s): it stays readable without covering it', from: FROM_FIGHT39 },
     ], see: 'Lock on to a foe (R3 / Tab): the mark eases in round it; watch it tint and close in as the foe winds up, and turn pale blue after a parry.' },
+    { match: 'Vael and the sky stones are one world now', shots: [
+      { name: 'vael-sky-stones', caption: 'The first sky stone from above: the Belfry, the stack and the aqueduct, the plain beyond the cloud', only: 'after', from: 'headless Chrome capture of the merged world (scripts/design-qc/capture.mjs, High, 960 × 540), October 2026 QC pass' },
+    ] },
+    { match: 'Lorn opens into the Deep Wood', shots: [
+      { name: 'lorn-into-wood', caption: 'From Lorn’s water, the Deep Wood’s trunks and its pale mushrooms ahead', only: 'after', from: 'headless Chrome capture of the merged world (scripts/design-qc/capture.mjs, High, 960 × 540), October 2026 QC pass' },
+      { name: 'lorn-deep-wood', caption: 'Under the Deep Wood’s see-through giant mushrooms', only: 'after', from: 'headless Chrome capture of the merged world (scripts/design-qc/capture.mjs, High, 960 × 540), October 2026 QC pass' },
+    ] },
+    { match: 'The Glass Dunes are on the route now', shots: [
+      { name: 'glass-dunes-clock-house', caption: 'From the ship’s flat: the Clock-House east of the valley, its cogs in the sand', only: 'after', from: 'headless Chrome capture of the merged world (scripts/design-qc/capture.mjs, High, 960 × 540), October 2026 QC pass' },
+    ] },
+    { match: 'The Glass Dunes have more to find', shots: [
+      { name: 'glass-dunes-stall', caption: 'Marit’s Kiln-Stall on the sand near the landing', only: 'after', from: 'headless Chrome capture of the merged world (scripts/design-qc/capture.mjs, High, 960 × 540), October 2026 QC pass' },
+    ] },
+    { match: 'The route is nine places now', see: 'Open the galactic map in the ship: nine places on the dotted line, the Glass Dunes between the City-Shaft and the Buried Machine.' },
+    { match: 'Saves carry over', see: 'Load a save last played in the Sky Stones, the Deep Wood or the Sealed Hangar: it resumes in Vael, Lorn or the Glass Dunes, with your finds and pages kept.' },
   ],
   '1.38': [
     { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },

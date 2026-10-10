@@ -40,13 +40,14 @@ export const SIGNATURE_WORLDS = {
   desert: { reading: 'in the scar itself', where: 'under the great tree' },
   incal: { reading: 'strong, and ringing', where: 'at the Lodestar, over the palace' },
   arzach: { reading: 'faint, very steady', where: 'among the humming standing stones' },
-  arzach2: { reading: 'faint, on one low note', where: 'at the bell on the rose cliff' },
-  garage: { reading: 'folded in on itself', where: 'at the slit in the ring' },
+  // (the worlds you fly to: Vael carries the sky stones since October 2026, their reading 'faint, on one low note, at the bell
+  // on the rose cliff'; Lorn the Deep Wood, 'faint, under water, at a saucer in the deep pool'; the Sealed Hangar, dismissed,
+  // read 'folded in on itself, at the slit in the ring', and the Glass Dunes took its place)
+  glassdunes: { reading: 'held in the glass, ticking', where: 'at the Clock-House east of the valley' },
   buried: { reading: 'slow, one beat a year', where: 'down at the great wheel' },
   edena: { reading: 'old, overgrown', where: 'at a fallen ship in the south meadow' },
   spheres: { reading: 'many small echoes', where: 'over the round plaza' },
   perdide: { reading: 'the strongest yet', where: 'at the Great Crystal' },
-  perdide2: { reading: 'faint, under water', where: 'at a saucer in the deep pool' },
   bazaar: { reading: 'on one channel only', where: 'at the silent tower' },
 };
 

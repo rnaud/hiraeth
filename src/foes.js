@@ -22,6 +22,7 @@ import { ARCHETYPES, ARCHETYPE_KINDS, ARCHETYPE_NOTES, BUILT, archetypeOfKind, p
 import { skinFor, skinOf, skinWorlds } from './enemies/skins.js';
 import { archetypeModel } from './enemies/plans/index.js';
 import { WORLDS, PLACED, worldArchetypes, packOf, rosterOf } from './foe-worlds.js';
+import { partsOf, shiftAt } from './levels/names.js';
 import { CLIMB, HOP, ROUTE, PERCH, KNOCK, reachOf, findRoute, findPerch, hopAt, hopTime, knockedOff, knockedInto } from './foe-height.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { keyText } from './prompt-keys.js';
@@ -1463,8 +1464,12 @@ export class Foes {
       const y = a.length === 2 ? level?.ground?.heightAt?.(x, z) ?? 0 : a[1];
       return { i, pos: new THREE.Vector3(x, y, z), id: `foes.${levelId}.r${i}` };
     });
-    // the encounters placed by hand (src/foe-worlds.js PLACED): Lorn II's wood cutter
-    this.posts = this.peaceful || level?.foes?.waves || level?.foes?.own ? [] : (PLACED[levelId] ?? []).map((p, i) => ({ ...p, i, pos: new THREE.Vector3(p.at[0], level?.ground?.heightAt?.(p.at[0], p.at[1]) ?? 0, p.at[1]), id: `foes.${levelId}.p${i}` }));
+    // the encounters placed by hand (src/foe-worlds.js PLACED): the Deep Wood's wood cutter (by part: a merged world
+    // carries its parts', each where its part lies, its id its part's as it always was: src/levels/names.js PARTS)
+    this.posts = this.peaceful || level?.foes?.waves || level?.foes?.own ? [] : partsOf(levelId).flatMap((part) => (PLACED[part] ?? []).map((p0, i) => {
+      const p = { ...p0, at: shiftAt(part, p0.at) };
+      return { ...p, i, pos: new THREE.Vector3(p.at[0], level?.ground?.heightAt?.(p.at[0], p.at[1]) ?? 0, p.at[1]), id: `foes.${part}.p${i}` };
+    }));
   }
 
   /** Is f on the screen (in front of the camera, inside its edges)? No camera (tests): yes. */
@@ -1583,7 +1588,16 @@ export class Foes {
   /** How many may strike at once here (TURNS): by the world's stage (the Arena's world when it plays one's waves; `stage` set by hand wins). */
   get strikers() { return strikersAt(this.stageHere, this.difficulty === 'gentle'); }
   /** The stage on the route's curve here (src/foe-worlds.js): the world's, the Arena's world's when it plays one's waves, or `stage` set by hand. */
-  get stageHere() { return this.stage ?? (this._stage ??= rosterOf(WORLDS[this.level?.foes?.world] ? this.level.foes.world : this.levelId).stage); }
+  get stageHere() { return this.stage ?? rosterOf(WORLDS[this.level?.foes?.world] ? this.level.foes.world : this.worldHere).stage; }
+  /**
+   * The world whose table fields the foes here: the level's, or in a merged world the part the traveller stands in
+   * (level.foes.partAt: Vael's plain or its sky stones, Lorn's swamp or its Deep Wood: src/levels/names.js PARTS).
+   */
+  get worldHere() {
+    const at = this.level?.foes?.partAt, P = this.player?.pos;
+    const w = at && P ? at(P.x, P.z) : null;
+    return w && WORLDS[w] ? w : this.levelId;
+  }
 
   /** The Enemies setting: 'normal', 'gentle' (half the harm, slower wind-ups, one striking at a time, smaller and rarer packs) or 'off'. */
   /** The Gentle setting (the evade's i-frames are a little longer). */
@@ -1616,7 +1630,7 @@ export class Foes {
    */
   add(kind, at, o = {}) {
     const p = parseKind(kind), a = archetypeOfKind(p.kind);
-    const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.levelId) : null);
+    const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
     const f = new Foe(p.kind, at, { rng: this.rng, ...o, skin });
     f.model = archetypeModel(f.kind, skin) ?? (f.kind === 'machine' ? machineModel() : kindModel(f.kind) ?? blotModel(f.kind));
     f.model.group.position.copy(at);
@@ -1660,12 +1674,17 @@ export class Foes {
 
   /** The machines: one by each of the temple's checkpoints past the first (the rooms), unless broken already. */
   placeMachines() {
-    const rt = this.level?.temple, phys = this.physics;
+    // (every temple of the level: a merged world has two; each machine's id by its temple, as it always was)
+    for (const rt of this.level?.temples ?? (this.level?.temple ? [this.level.temple] : [])) this.placeMachinesIn(rt);
+  }
+  placeMachinesIn(rt) {
+    const phys = this.physics;
     if (!rt?.marks?.length || !phys) return;
     const arena = rt.guardian?.arena?.center ?? rt.guardian?.model?.pos ?? null;
+    const world = WORLDS[rt.id] ? rt.id : this.levelId;
     rt.marks.forEach((m, i) => {
       if (i === 0) return;
-      const id = `foes.${this.levelId}.m${i}`;
+      const id = `foes.${rt.id ?? this.levelId}.m${i}`;
       if (this.game.flag(id)) return;
       if (arena && m.pos.distanceTo(arena) < 14) return;
       for (const a of [0.9, -0.9, 2.2, -2.2, Math.PI]) {
@@ -1674,7 +1693,7 @@ export class Foes {
         if (!Number.isFinite(y) || Math.abs(y - m.pos.y) > 1.2) continue;
         const from = _v.copy(m.pos).setY(m.pos.y + 1), to = _w.set(x, y + 1, z);
         if (phys.rayDistance?.(from, to.clone().sub(from).normalize(), from.distanceTo(to)) < from.distanceTo(to) - 0.3) continue;
-        this.add(templeKind(this.levelId, i), new THREE.Vector3(x, y, z), { id }).placed = true;
+        this.add(templeKind(world, i), new THREE.Vector3(x, y, z), { id }).placed = true;
         break;
       }
     });
@@ -1715,7 +1734,7 @@ export class Foes {
    * packOf), each in the world's skin. Out here wildlife and the others keep to their calm until provoked.
    */
   spawnPack() {
-    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.levelId, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
+    const P = this.player, phys = this.physics, kinds = packKinds(this.packs, this.worldHere, this.rng).slice(0, this.difficulty === 'gentle' ? GENTLE.pack : 99), n = kinds.length;
     const base = this.rng() * Math.PI * 2;
     let made = 0, flock = null;
     for (let tries = 0; tries < 24 && made < n; tries++) {
@@ -1742,7 +1761,7 @@ export class Foes {
       if (this.game.flag(g.id) || P.pos.distanceTo(g.pos) > GUARDS.near) continue;
       if (this.list.some((f) => f.guard === g && f.alive)) continue;
       if (!this.wild(g.pos)) { g.tame = true; continue; }
-      const kinds = guardKinds(this.levelId, GUARDS.size);   // (the world's own: src/foe-worlds.js)
+      const kinds = guardKinds(this.worldHere, GUARDS.size);   // (the world's own: src/foe-worlds.js)
       for (let k = 0; k < GUARDS.size; k++) {
         const at = this.openSpot(kinds[k], g.pos, (k / GUARDS.size) * Math.PI * 2 + 0.7, GUARDS.ring, 4, 12);
         const f = this.add(kinds[k], at);

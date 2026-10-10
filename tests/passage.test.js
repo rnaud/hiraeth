@@ -223,7 +223,7 @@ test('main.js, the Lab and the Hangar hand over through the passage; it is warme
   assert.match(main, /level\.update\(dt, t, \{[^}]*passage/, 'levels get the passage');
   const lab = readFileSync(new URL('../src/levels/lab.js', import.meta.url), 'utf8');
   assert.match(lab, /P\.go\(\{ to, heading, speed/);
-  const garage = readFileSync(new URL('../src/levels/garage.js', import.meta.url), 'utf8');
+  const garage = readFileSync(new URL('../src/levels/dismissed/hangar/level.js', import.meta.url), 'utf8');
   assert.match(garage, /P\.go\(\{ to: po\.to, up: po\.toUp, fwd: po\.toFwd/);
 });
 

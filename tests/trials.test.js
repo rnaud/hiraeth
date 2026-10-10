@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import './register-gadgets.js';
-import { ORDER } from '../src/levels/names.js';
+import { ORDER, ROUTE_PARTS } from '../src/levels/names.js';
 import { ITEMS } from '../src/items.js';
 import { GADGETS } from '../src/gadgets/registry.js';
 import { TRIALS } from '../src/trials/data.js';
@@ -21,8 +21,9 @@ import { PLACEMENTS } from '../src/boxes/placements.js';
 
 const P = (x, y, z) => ({ x, y, z });
 
-test('one trial in every route world, each with a reward that is an upgrade won there', () => {
-  assert.deepEqual(Object.keys(TRIALS).sort(), [...ORDER].sort());
+// (by place: a merged world carries its parts' trials, Vael the Wind ladder and the sky stones' Stone circuit: ROUTE_PARTS)
+test('one trial in every place on the route, each with a reward that is an upgrade won there', () => {
+  assert.deepEqual(Object.keys(TRIALS).sort(), [...ROUTE_PARTS].sort());
   for (const [w, T] of Object.entries(TRIALS)) {
     assert.equal(T.world, w); assert.equal(T.id, `trial-${w}`);
     assert.ok(MODES[T.mode], `${w}: a known mode`);
@@ -44,11 +45,11 @@ test('a gadget a world, in the makers’ courts, each in a box', () => {
   assert.deepEqual(new Set(gadgets), new Set(GADGETS.filter((g) => g.id !== 'gun').map((g) => g.id)), 'every gadget once (but the fluid gun, the desert\'s main quest\'s own)');
   assert.equal(gadgets.length, 10);
   for (const [w, c] of Object.entries(COURTS)) {
-    assert.ok(ORDER.includes(w), `${w}: on the route`);
+    assert.ok(ROUTE_PARTS.includes(w), `${w}: on the route`);
     assert.ok(PLACEMENTS[w].some((p) => p.item === c.gadget && p.gadget && p.hint), `${w}: its box holds the ${c.gadget}, with a hint`);
   }
-  // spread along the route: no more than one gadget a world, and every world after the desert has one
-  assert.deepEqual(Object.keys(COURTS).sort(), ORDER.filter((w) => w !== 'desert').sort());
+  // spread along the route: no more than one gadget a place, and every place after the desert has one
+  assert.deepEqual(Object.keys(COURTS).sort(), ROUTE_PARTS.filter((w) => w !== 'desert').sort());
 });
 
 test('gates: passed when the path goes through them, in order, the last the line', () => {

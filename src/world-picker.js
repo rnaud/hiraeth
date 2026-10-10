@@ -7,7 +7,7 @@
 // before it had been played through; the others open in the save being played.
 //
 //   Play            Continue, then the route's worlds in story order (each in the debug save)
-//   Story places    the worlds off the route that are finished (Home, the Lantern, the Atelier)
+//   Story places    the worlds off the route that are finished (Home, the Lantern; the Atelier was dismissed in October 2026)
 //   Test rooms      the rooms for trying things (levels with dev: true)
 //   Worlds in progress   the worlds still being made (names.js WIP)
 //   Games           the minigames, each with its best
@@ -110,7 +110,7 @@ export const alongLine = (id, order = ORDER) => {
 };
 
 // the story places, in the order they come (the rest of the finished worlds off the route after them)
-const PLACES = ['home', 'lantern', 'atelier'];
+const PLACES = ['home', 'lantern'];
 /**
  * The worlds by section (pure): the route in story order, the story places, the test rooms, the worlds in
  * progress. Every level is in exactly one.

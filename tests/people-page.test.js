@@ -5,12 +5,12 @@ import { BOOK, EVERYONE, PERSON, WORLD_ORDER, metPeople, personStory, personNow,
 import { peopleData, menuSources } from '../src/game-menu-data.js';
 import { GameMenu, PANELS, peoplePanel, ACT } from '../src/game-menu.js';
 import { PortraitCache } from '../src/portrait-cache.js';
-import { CONTENT, ERRANDS } from '../src/levels/content.js';
-import { ORDER } from '../src/levels/names.js';
+import { CONTENT, ERRANDS, ERRAND_PLACES } from '../src/levels/content.js';
+import { ORDER, partsOf } from '../src/levels/names.js';
 import * as arzach from '../src/story/arzach-data.js';
 import * as arzach2 from '../src/story/arzach2-data.js';
 import * as perdide2 from '../src/story/perdide2-data.js';
-import * as garage from '../src/story/garage-data.js';
+import * as garage from '../src/levels/dismissed/hangar/story-data.js';
 import * as incal from '../src/story/incal-data.js';
 import { SHOPKEEPERS } from '../src/story/shop-data.js';
 import { SHOPS } from '../src/shop.js';
@@ -24,14 +24,17 @@ const src = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
 
 /** Every talking person of a world, from the story's own data (as the conversation panel sees them). */
 async function peopleOf(world) {
-  const m = await import(`../src/story/${world}-data.js`);
+  // (a merged world's: each of its parts' story data, src/levels/names.js PARTS; the Glass Dunes' are its people's file)
   const out = new Map();
-  // (and the keepers of the world's shops: src/story/shop-data.js, placed by src/story/shops.js)
-  const keepers = Object.values(SHOPS).filter((s) => s.world === world).map((s) => SHOPKEEPERS[s.keeper]);
-  // (and the fellow traveller, listed where the route first puts her: src/story/fellow-data.js)
-  const fellow = world === FELLOW_STOPS[0] ? [TANSY] : null;
-  for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[world]?.npcs, m.WREN ? [m.WREN] : null, keepers, fellow]) {
-    for (const p of Array.isArray(list) ? list : Object.values(list ?? {})) if (p?.id && p.talk && !out.has(p.id)) out.set(p.id, p);
+  for (const part of partsOf(world)) {
+    const m = await import(part === 'glassdunes' ? '../src/story/glassdunes-people.js' : `../src/story/${part}-data.js`);
+    // (and the keepers of the world's shops: src/story/shop-data.js, placed by src/story/shops.js)
+    const keepers = Object.values(SHOPS).filter((s) => s.world === part).map((s) => SHOPKEEPERS[s.keeper]);
+    // (and the fellow traveller, listed where the route first puts her: src/story/fellow-data.js)
+    const fellow = part === FELLOW_STOPS[0] ? [TANSY] : null;
+    for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[part]?.npcs, m.WREN ? [m.WREN] : null, keepers, fellow]) {
+      for (const p of Array.isArray(list) ? list : Object.values(list ?? {})) if (p?.id && p.talk && !out.has(p.id)) out.set(p.id, p);
+    }
   }
   return out;
 }
@@ -41,7 +44,7 @@ test('the book: every talking person of the route, under their own world, by the
   assert.equal(new Set(EVERYONE.map((p) => p.id)).size, EVERYONE.length, 'one entry a person');
   for (const world of WORLD_ORDER) {
     const real = await peopleOf(world);
-    const listed = new Map((BOOK[world] ?? []).map((p) => [p.id, p]));
+    const listed = new Map(partsOf(world).flatMap((part) => BOOK[part] ?? []).map((p) => [p.id, p]));
     for (const [id, p] of real) {
       assert.ok(listed.has(id), `${world}: ${p.name} (${id}) is in the book`);
       assert.equal(listed.get(id).name, p.name, `${id}: the name they say`);
@@ -59,7 +62,7 @@ test('which people appear: only the ones met, grouped by world in the route\'s o
   assert.deepEqual(metPeople({}), [], 'nobody before a conversation');
   const flags = { 'met.dov': true, 'met.ama': true, 'met.nour': true, 'met.hollin.perdide2': true, 'quest.incal.light': 'done', 'met.nobody': true };
   const groups = metPeople(flags);
-  assert.deepEqual(groups.map((g) => g.world), ['desert', 'perdide2', 'incal'], 'the route\'s order, not the order met');
+  assert.deepEqual(groups.map((g) => g.world), ['desert', 'perdide', 'incal'], 'the route\'s order, not the order met (the Deep Wood’s Hollin under Lorn: src/levels/names.js PARTS)');
   assert.deepEqual(groups[0].people.map((p) => p.id), ['ama', 'nour'], 'in the book\'s order within a world');
   assert.ok(!groups.flatMap((g) => g.people).some((p) => p.id === 'nima'), 'a quest done says nothing of someone not met');
   const data = peopleData({ flags, titles: { desert: 'The Desert' } });
@@ -113,7 +116,9 @@ test('the story unlocks part by part as the save hears it, and says where they a
     }
   };
   for (const p of EVERYONE) for (const x of [...p.story, ...p.now]) if (Array.isArray(x)) walk(x[0], p.id);
-  for (const [id, list] of Object.entries(QUESTS_OF)) { assert.ok(PERSON.has(id), id); for (const q of list) assert.ok(QUEST_BY_ID.has(q), q); }
+  // (the Sealed Hangar's people stay in the book, unlisted: the world was dismissed in October 2026)
+  const hangar = new Set((BOOK.garage ?? []).map((p) => p.id));
+  for (const [id, list] of Object.entries(QUESTS_OF)) { assert.ok(PERSON.has(id) || hangar.has(id), id); for (const q of list) assert.ok(QUEST_BY_ID.has(q), q); }
 });
 
 test('what passed between you, from the save: talks, quests, things given, keepsakes, errands, choices', () => {
@@ -145,7 +150,9 @@ test('what passed between you, from the save: talks, quests, things given, keeps
 });
 
 test('the errands\' and keepsakes\' people are the ones the content names', () => {
-  for (const e of ERRANDS) {
+  // (by place, as written: a merged world's part's people by their index in the part, src/levels/content.js ERRAND_PLACES)
+  assert.equal(ERRAND_PLACES.length, ERRANDS.length);
+  for (const e of ERRAND_PLACES) {
     const [from, to] = ERRAND_PEOPLE[e.id] ?? [];
     assert.ok(from && to, e.id);
     const at = (world, i) => CONTENT[world].npcs[i]?.id ?? { arzach: arzach.LOCALS, arzach2: arzach2.LOCALS, garage: garage.LOCALS }[world]?.[i]?.id;

@@ -28,6 +28,7 @@ import { BAZAAR_TEMPLE } from './bazaar.js';
 import * as BAZAAR_WORDS from './bazaar-data.js';
 import { runSteps } from '../load-steps.js';
 import { attachCourt } from '../finds/courts.js';
+import { partOf } from '../levels/names.js';
 
 // The makers' temples: one great building in each world, a Zelda-style
 // dungeon of rooms and puzzles in that world's architecture, with a gadget
@@ -37,14 +38,18 @@ import { attachCourt } from '../finds/courts.js';
 // the system.
 //
 // Two hooks bring them into the game:
-//   attachTemple(levelId, scene, level)   at level build (src/levels/index.js wraps every create):
-//                                         builds the temple and joins it to the level (portals, lights,
-//                                         init, dynamic, update); level.temple is the runtime
+//   attachTemple(id, scene, level)        at level build (each world's builder): builds the temple `id` and
+//                                         joins it to the level (portals, lights, init, dynamic, update);
+//                                         level.temples lists the runtimes, level.temple is the one you are
+//                                         in (or the world's own: a merged world has two, Vael's Aerie and the
+//                                         sky stones' Founders' Belfry: src/levels/names.js PARTS)
 //   setupTempleStory(ctx)                 in the story runtime (src/story/index.js): the temple's quest,
 //                                         its local, the locators for the marker and the scout, and the
 //                                         per-frame update
 //
-// TEMPLES: by level id, each { def (the temple: layout, logic, guardian, exterior, change), words }.
+// TEMPLES: by temple id (the world it was built for), each { def (the temple: layout, logic, guardian, exterior,
+// change), words }. TEMPLE_HOME: where a temple stands now when its own world is gone (the First Garage, the
+// Sealed Hangar's, in the Glass Dunes); templesIn(world): the temples a world builds.
 // GADGETS: which of the makers' gifts each world keeps in its temple and which it leaves in the open
 // (the 50/50 split; src/boxes/placements.js places them).
 
@@ -62,6 +67,13 @@ export const TEMPLES = {
   bazaar: { def: BAZAAR_TEMPLE, words: BAZAAR_WORDS },
 };
 
+/** Where a temple stands now, if not in its own world (or the world it became part of). */
+export const TEMPLE_HOME = { garage: 'glassdunes' };
+/** The world a temple stands in. */
+export const templeWorld = (id) => TEMPLE_HOME[id] ?? partOf(id);
+/** The temples a world builds (its parts' and those moved to it). */
+export const templesIn = (world) => Object.keys(TEMPLES).filter((id) => templeWorld(id) === world);
+
 /**
  * The gifts, world by world: `temple` is the gadget inside the world's temple (the key to its
  * later rooms and its guardian), `world` the gifts left in the open. `built: false` marks a
@@ -74,7 +86,7 @@ export const GADGETS = {
   // planned (LORE.md, "Temples"): until a temple is built its world keeps its box as it was
   arzach: { temple: 'glider', world: ['hush'], built: true },         // the wings moved here from Vael II's stack; the hush-cloth on Vael's spire
   arzach2: { temple: 'bell', world: ['scarf'], built: true },         // the bell moved here from Vael's spire; the wind-silk scarf on the balanced stack (the wings went to the Aerie)
-  garage: { temple: 'coil', world: ['level'], built: true },          // the quick coil moved inside from the keep's wall; the brass level is there now
+  garage: { temple: 'coil', world: ['level'], built: true },          // the Clock-House (the Sealed Hangar's First Garage, in the Glass Dunes now: TEMPLE_HOME): the coil inside; the brass level on a glass mound
   buried: { temple: 'cell', world: ['resin'], built: true },          // the fourth chamber moved here from Lorn II
   edena: { temple: 'bloom', world: ['pouch'], built: true },          // a new gun mode, found in the Greenhouse; the seed pouch is on the canopy (the lantern went to Lorn II)
   spheres: { temple: 'lens', world: ['shell'], built: true },
@@ -83,12 +95,12 @@ export const GADGETS = {
   bazaar: { temple: 'echo', world: [], built: true },                // a new tool, found in the Undertower; the market has no chest in the open
 };
 
-/** Build the world's temple into its level (if it has one) and join it to the level's hooks. */
-export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) {
-  const T = TEMPLES[levelId];
+/** Build a temple (by its id: the world it was made for) into a level and join it to the level's hooks. */
+export function attachTemple(id, scene, level, { game = sharedGame } = {}) {
+  const T = TEMPLES[id];
   if (!T || !level) return level;
   const rt = new TempleRuntime({ scene, level, def: T.def, game, items });
-  level.temple = rt;
+  addTemple(level, rt);
   // (first in the list: a level's own doorways keep their places at its end, where its story and tests look)
   (level.portals ??= []).unshift(...rt.portals);
   // (the scout and the quest marker route through the temple's door like any doorway)
@@ -122,10 +134,29 @@ export function attachTemple(levelId, scene, level, { game = sharedGame } = {}) 
     rt.lightScript = script;
     level.atmo = (x, z, y = 0, ...rest) => { const a = atmo.call(level, x, z, y, ...rest); return rt.inside(p.set(x, y, z)) ? { ...a, script, ...(light.fog !== undefined ? { fog: light.fog } : {}) } : a; };
   }
-  // the world's makers' court: a box with its gadget, and what that gadget is for round it (src/finds/courts.js)
-  attachCourt(levelId, scene, level, { clear: clearInstances });
+  // the world's makers' court: a box with its gadget, and what that gadget is for round it (src/finds/courts.js;
+  // by the temple's world, or its part: a moved temple's court went with it)
+  attachCourt(TEMPLE_HOME[id] ?? id, scene, level, { clear: clearInstances });
   return level;
 }
+
+/**
+ * A temple runtime joins a level's list. With one, level.temple is it; with more (a merged world), level.temple is
+ * the one the traveller is inside (each knows him once its story is connected), else the world's own (its id the
+ * level's), else the first.
+ */
+export function addTemple(level, rt) {
+  const list = (level.temples ??= []);
+  list.push(rt);
+  if (list.length === 1) { level.temple = rt; return; }
+  Object.defineProperty(level, 'temple', {
+    configurable: true, enumerable: true,
+    get: () => list.find((t) => t.player && t.inside(t.player.pos)) ?? list.find((t) => t.id === level.id) ?? list[0],
+    set: (v) => { if (v && !list.includes(v)) list.push(v); },
+  });
+}
+/** A level's temple by its id (null if it has none). */
+export const templeOf = (level, id) => level?.temples?.find((t) => t.id === id) ?? (level?.temple?.id === id ? level.temple : null);
 
 /** A temple doorway in the shape of a level's own navigation portals (pos, toUp, toFwd: src/levels/garage.js). */
 export function navigationPortal(p) {
@@ -160,17 +191,34 @@ export function clearInstances(scene, circles, except = null) {
   return n;
 }
 
-/** The story side: the temple's quest, its people, the locators; returns { update } or null. */
+/**
+ * The story side of every temple in the level (a merged world has two): returns { update, dispose, people, rt, all }
+ * (rt: the first's runtime) or null.
+ */
 export function setupTempleStory(ctx) {
-  const { level, levelId, quests, spawn, player, sound, toast, game = sharedGame, physics, isNight = null } = ctx;
-  const rt = level?.temple;
-  const T = TEMPLES[levelId];
+  // (the world's own temple first: its quest, its local, rt below)
+  const list = [...(ctx.level?.temples ?? (ctx.level?.temple ? [ctx.level.temple] : []))].sort((a, b) => (b.id === ctx.levelId) - (a.id === ctx.levelId));
+  const all = list.map((rt) => setupOneTemple(ctx, rt)).filter(Boolean);
+  if (!all.length) return null;
+  if (all.length === 1) return { ...all[0], all };
+  return {
+    rt: all[0].rt, people: all.flatMap((t) => t.people), all,
+    dispose() { for (const t of all) t.dispose?.(); },
+    update(dt, t) { for (const one of all) one.update(dt, t); },
+  };
+}
+
+/** The story side of one temple: its quest, its people, the locators; returns { update } or null. */
+function setupOneTemple(ctx, rt) {
+  const { level, quests, spawn, player, sound, toast, game = sharedGame, physics, isNight = null } = ctx;
+  const T = rt && TEMPLES[rt.id];
   if (!rt || !T) return null;
+  const levelId = rt.id;   // (the temple's own world: the desert's Sabri waits at the qanat's camps)
   rt.connect({ player, sound, toast, quests, fade: rt.fadeFn, isNight });
   const W = T.words, id = rt.id, Q = W.QUEST;
   // the quest: find the house, find what is inside, go down to its heart
   quests?.define?.({
-    id: Q.id, title: Q.title, world: levelId, outro: Q.outro,
+    id: Q.id, title: Q.title, world: Q.world ?? levelId, outro: Q.outro, ...(Q.main ? { main: true } : {}),
     stages: [
       { id: 'find', text: Q.find, label: T.def.name, flag: `temple.${id}.entered`, at: `temple.${id}.door` },
       { id: 'gadget', text: Q.gadget, label: 'Inside the house', when: () => rt.logic.gadget, at: `temple.${id}.next` },

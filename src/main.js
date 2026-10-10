@@ -54,7 +54,8 @@ import { spawnNPCsSteps, pooledNPC, registerNPCTargets } from './npc.js';
 import { spawnAliens, alienSpots } from './aliens/index.js';
 import { Crowd, CROWD_DIST_CELL, CROWD_BUDGET, buildPeopleSteps } from './crowd.js';
 import { Journal, Relics, Story, Errands } from './quest.js';
-import { CONTENT, ERRANDS } from './levels/content.js';
+import { CONTENT, ERRANDS, RELIC_BASE } from './levels/content.js';
+import { migrateJournal } from './save-migrate.js';
 import { loadAnimationLibrary, Animator } from './animator.js';
 import { loadMotionLibrary, matchingSetting } from './motion-match.js';
 import { movesSetting } from './loco-moves.js';
@@ -599,6 +600,8 @@ registerNPCTargets(npcs);   // the fluid tool can splash or shove anyone
 npcs.push(...spawnAliens(scene, physics, levelId));   // the world's non-humanoid people (src/aliens/: their own targets, talkable by their def.talk)
 await slice();
 const journal = new Journal(LEVELS.map((l) => ({ id: l.id, title: l.title, hidden: l.hidden, relicNames: CONTENT[l.id].relics.names, storyTitle: CONTENT[l.id].story.title })));
+// (a merged world's parts kept their relics apart before: they join its list, src/save-migrate.js)
+if (migrateJournal(journal.data, RELIC_BASE)) journal.save();
 const errands = new Errands({ levelId, defs: ERRANDS, npcs, journal, toast: (t, o) => showToast(t, o), titles: Object.fromEntries(LEVELS.map((l) => [l.id, l.title])), capture: (e, l, w, h) => captureView(e, l, w, h), sound });
 const capture = (eye, look, w, h) => captureView(eye, look, w, h);
 const relics = new Relics(scene, physics, { levelId, spots: content.relics.spots, names: content.relics.names, journal, sound, capture, lights: levelLights });
@@ -1952,8 +1955,8 @@ let lastZone = null;
 let eWasDown = false;
 
 // ------------------------------------------------------------------ the ending
-// Every world's story page and every relic found: a closing page, and the
-// final page (the Atelier) opens in the picker.
+// Every world's story page and every relic found: a closing page. (It used to point at the Atelier, a last page
+// opened in the picker: the Atelier was dismissed in October 2026, src/levels/names.js DISMISSED.)
 let endingOpen = false;
 const allDone = () => ORDER.every((id) => journal.storyDone(id) && journal.relicCount(id) >= CONTENT[id].relics.names.length);
 setInterval(() => {
@@ -1971,7 +1974,7 @@ setInterval(() => {
   page.innerHTML = `<div class="sheet">
     <div class="p p1"><img src="${imgs[0]}" alt=""><div class="cap"><b>THE END OF THE ROAD</b><br>Every world, ${ORDER.reduce((n, id) => n + CONTENT[id].relics.names.length, 0)} small things kept.</div></div>
     <div class="p p2"><img src="${imgs[1]}" alt=""></div>
-    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The final page has opened.<br>(L → The Atelier)</div></div>
+    <div class="p p3"><img src="${imgs[2]}" alt=""><div class="cap">The sketchbook is full.<br>Home is on the ship’s map, whenever you are ready.</div></div>
     <div class="hint" aria-label="continue">▸</div></div>`;
   page.classList.add('open');
   endingOpen = true;

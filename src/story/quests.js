@@ -205,18 +205,21 @@ export class Quests {
    * place or locator for it (default: the first of `who`).
    */
   opensWith(id, who, { label = null, at = null } = {}) {
-    this.opener = { id, who: [].concat(who), label, at };
-    return this.opener;
+    // (a merged world's parts each have one, src/levels/names.js PARTS: they wait in turn, the world's own first)
+    const o = { id, who: [].concat(who), label, at };
+    this.openers = [...(this.openers ?? []).filter((x) => x.id !== id), o];
+    this.opener = this.openers[0];
+    return o;
   }
-  /** The opening quest still waiting for its conversation (or null). */
+  /** The opening quest still waiting for its conversation (or null): the first of the world's whose talk has not come. */
   pendingOpener() {
-    const o = this.opener;
-    return o && this.def(o.id) && !this.isStarted(o.id) ? o : null;
+    const list = this.openers ?? (this.opener ? [this.opener] : []);
+    return list.find((o) => this.def(o.id) && !this.isStarted(o.id)) ?? null;
   }
   /** A conversation with `personId` begins (before they speak): it starts the opening quest if they are one who opens it. */
   opening(personId) {
-    const o = this.pendingOpener();
-    if (!o || !o.who.includes(personId)) return false;
+    const o = (this.openers ?? (this.opener ? [this.opener] : [])).find((x) => x.who.includes(personId) && this.def(x.id) && !this.isStarted(x.id));
+    if (!o) return false;
     this._quiet = o.id;
     this.start(o.id);
     return true;

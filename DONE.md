@@ -2314,3 +2314,17 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   canvas plate and straps, its glow and level following the magic bar, three charge lights, three stages for the
   strengths (src/fluid-tool.js buildFlask, setStage). docs/systems/traveller-kit.md.
 - [x] **Saves keep what they earned** (src/save-migrate.js steps 8 and 9).
+
+## Worlds merged and dismissed (v1.39, October 2026)
+
+From the author's list of 2026-10-10 (never delete a temple or a character):
+
+- **Vael and Vael II are one world** (`arzach`; `arzach2` an alias): built in the sky stones' frame, Vael's plain
+  1080 m north of them, its lone tower on the sky stones' tower's spot; both temples, stories, courts, trials, runs
+  and shops kept.
+- **Lorn and Lorn II are one world** (`perdide`): the crystal swamp opens north into the Deep Wood (480 m north), its
+  half-transparent mushrooms kept; both temples and stories kept.
+- **The Sealed Hangar left the route** for the Glass Dunes (6th), which took its temple (the Clock-House, ids
+  `garage`), a story page, a shop, court, boxes, trial and run; **the Atelier is dismissed**. Both kept whole in
+  `src/levels/dismissed/`. Saves move with them (src/save-migrate.js step 10). How: docs/systems/worlds.md, "Merged
+  and dismissed worlds".

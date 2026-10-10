@@ -7,7 +7,7 @@ import { QUALITY_PRESETS } from '../src/perf.js';
 import { Physics } from '../src/physics.js';
 import { CONTENT } from '../src/levels/content.js';
 import { createEdena } from '../src/levels/edena.js';
-import { createGarage } from '../src/levels/garage.js';
+import { createGarage } from '../src/levels/dismissed/hangar/level.js';
 import { createBazaar } from '../src/levels/bazaar.js';
 
 const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];

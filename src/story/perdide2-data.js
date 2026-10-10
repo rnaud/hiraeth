@@ -27,7 +27,7 @@
 // Conversations: src/story/dialogue.js. Quests: src/story/quests.js.
 // Flags (game-state.js): perdide2.* (see src/story/perdide2.js).
 
-import { ORDER } from '../levels/names.js';
+import { ORDER, offsetOf } from '../levels/names.js';
 
 const Q = 'perdide2.lamps';
 
@@ -84,9 +84,11 @@ const P = (cloak, cloth, extra = {}) => ({ cloak, lining: '#2b211f', cloth, legs
 
 // ------------------------------------------------------------------ the level's own people
 // CONTENT.perdide2.npcs (src/levels/perdide2.js): kind by index (spawnNPCs: even m, odd f).
+// (where they stand: the Deep Wood's own coordinates, moved to where the wood lies in Lorn: src/levels/names.js PART_OFFSET)
+const [WX, , WZ] = offsetOf('perdide2');
 export const KEEPERS = [
   {
-    at: [-8, 10], radius: 2, palette: P('#f2a07a', '#3e5a6a'), look: { prop: 'lamppole' },
+    at: [-8 + WX, 10 + WZ], radius: 2, palette: P('#f2a07a', '#3e5a6a'), look: { prop: 'lamppole' },
     lines: ["~neutral~ Follow the lit pools to the root cave, especially after dark.", '~surprised~ A traveller. A traveller!', '~playful~ The eggs are warm. Don’t ask what’s inside.'],
     id: 'hollin.perdide2', name: 'Hollin', title: 'keeper of the lamps', color: '#f2a07a', voice: 0.8,
     talk: {
@@ -186,7 +188,7 @@ export const KEEPERS = [
     },
   },
   {
-    at: [-24, -126], radius: 2, palette: P('#3f6a6a', '#a49cc8'), shy: true,
+    at: [-24 + WX, -126 + WZ], radius: 2, palette: P('#3f6a6a', '#a49cc8'), shy: true,
     lines: ['~neutral~ We live in the domes. The moss keeps them cool.', "~playful~ The latch is on the roof. I put it somewhere safe again.", "~scared~ Don’t look at the door. It can tell."],
     id: 'pim.perdide2', name: 'Pim', title: 'who lives in a moss dome', color: '#3f6a6a', voice: 1.25,
     talk: {
@@ -232,7 +234,7 @@ export const KEEPERS = [
     },
   },
   {
-    at: [-22, -406], radius: 2, palette: P('#f6b08a', '#3a4560'),
+    at: [-22 + WX, -406 + WZ], radius: 2, palette: P('#f6b08a', '#3a4560'),
     lines: ['~neutral~ The skiff is moored in the shallows by the cave.', '~neutral~ Whistle and it will come. It knows the deep water.', '~playful~ Sitting is a skill. I’ve trained for years.', '~tired~ Root cave. Still here.'],
     id: 'bram', name: 'Bram', title: 'who minds the cave mouth', color: '#f6b08a', voice: 0.95,
     talk: {

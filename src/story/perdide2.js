@@ -42,7 +42,7 @@ const UP = new THREE.Vector3(0, 1, 0), _q = new THREE.Quaternion();
 
 export function setupPerdide2(ctx) {
   const { level, physics, player, quests, dialogue, game, sound, story, spawn, scene, toast, npcs, moments = null } = ctx;
-  if (level.id !== 'perdide2' || !level.saucer) return null;
+  if (!level.saucer) return null;   // (the Deep Wood on its own, or in Lorn: src/levels/perdide.js)
   for (const q of QUESTS) quests.define(q);
   quests.itemNames = { ...(quests.itemNames ?? {}), ...ITEMS };
   // the main quest doesn't just appear: it starts when you talk to Hollin (the scout finds them till then: src/story/quests.js opensWith)

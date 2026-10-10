@@ -12,7 +12,7 @@ import * as THREE from 'three';
 
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
-const { createGarage } = await import('../src/levels/garage.js');
+const { createGarage } = await import('../src/levels/dismissed/hangar/level.js');
 const { Physics } = await import('../src/physics.js');
 const { Player, HANG } = await import('../src/player.js');
 const { items } = await import('../src/items.js');

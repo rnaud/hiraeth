@@ -9,7 +9,7 @@ import { formatTime, bestScore } from '../minigames/kit/scores.js';
 import { PURSE } from '../chimes.js';
 import { ITEMS, HARNESS_WORLD } from '../items.js';
 import { Resources } from '../resources.js';
-import { TRIALS } from './data.js';
+import { TRIALS, trialsFor } from './data.js';
 import { CourseRun, lacks, inMode, parTime, MODES } from './course.js';
 import { gatePoints, startPoint } from './check.js';
 import { WindColumn } from './winds.js';
@@ -116,7 +116,7 @@ export function trialGame(T, world) {
 
 /** This world's vehicle trial alone (the tests' way in; main.js makes them all with createChallenges). */
 export function createTrials(args) {
-  const T = (args.trials ?? TRIALS)[args.levelId];
+  const T = args.trials ? args.trials[args.levelId] : trialsFor(args.levelId)[0];
   if (!T || !args.physics) return { trial: null, update() {}, dispose() {} };
   return makeTrial(T, args);
 }
@@ -128,7 +128,8 @@ export function createTrials(args) {
 export function createChallenges(args) {
   const { levelId, physics } = args;
   const kits = args.kits ? args.kits.filter((T) => T.world === levelId) : kitTrialsFor(levelId);
-  const defs = physics ? [(args.trials ?? TRIALS)[levelId], ...kits].filter(Boolean) : [];
+  // (a merged world's parts each bring theirs: src/trials/data.js trialsFor)
+  const defs = physics ? [...(args.trials ? [args.trials[levelId]] : trialsFor(levelId)), ...kits].filter(Boolean) : [];
   const list = defs.map((T) => makeTrial(T, args));
   return {
     list,
@@ -165,7 +166,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   const start = course ? course.start : startPoint(T, { physics, surfaceAt });
   const eyesAt = (T.eyes ?? []).map(([x, z]) => V(x, physics.groundAt(x, 1e4, z, 2e4), z));
   const par = T.par ?? (T.eyes ? Math.ceil(eyesAt.reduce((d, p, i) => d + p.distanceTo(i ? eyesAt[i - 1] : start), 0) / T.speed * 1.4 + 10) : parTime(gates, start, T.speed));
-  const doneKey = kitRun ? `trial.${T.id}.done` : `trial.${levelId}.done`;
+  const doneKey = kitRun ? `trial.${T.id}.done` : `trial.${T.world ?? levelId}.done`;   // (by the trial's own world: a merged world has two)
   // the sign: a makers' post with the run's colour, a step from the line
   let mPos;
   if (course) mPos = course.markerAt.clone();
@@ -214,7 +215,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   world.game = trialGame(T, world);
   if (kitRun) world.plate();
   offs.push(registerInteractable({
-    id: kitRun ? `trial.${T.id}` : `trial.${levelId}`, priority: PRIORITY.use, range: 3,
+    id: kitRun ? `trial.${T.id}` : `trial.${T.world ?? levelId}`, priority: PRIORITY.use, range: 3,   // (by its own world: a merged world has two)
     prompt: `try the ${T.name.toLowerCase()}`,
     at: () => (world._at ??= mPos.clone().add(V(0, 1.6, 0))),
     enabled: () => !world.running && (!player?.riding || (!!MODES[T.mode]?.mount && player.ride === player.mount)),   // (a run on a mount: ride up to the sign)

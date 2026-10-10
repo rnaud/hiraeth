@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { V, closeUp, smooth } from './film.js';
+import { V, closeUp, smooth } from '../../../story/film.js';
 
 // The Sealed Hangar's climax, filmed (src/story/moment.js): once per save, skippable, and never
 // in the way (when it can't play, the Hangar goes on as it always did: Lune's words tell it).

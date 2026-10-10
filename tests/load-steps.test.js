@@ -76,11 +76,12 @@ test('the collision bake, in steps: the same triangles as mergeGeometries made',
 });
 
 test('every world has a build in steps, and its create runs it straight through', async () => {
-  const { LEVELS } = await import('../src/levels/index.js');
+  // (every world still built: the route's, the merged worlds' parts on their own, the dismissed ones: src/levels/buildable.js)
+  const { BUILDABLE, buildableById } = await import('../src/levels/buildable.js');
   const Gen = Object.getPrototypeOf(function* () {}).constructor;
-  for (const l of LEVELS) assert.ok(l.build instanceof Gen, `${l.id}: build is a generator`);
-  // one world both ways: the same world
-  const garage = LEVELS.find((l) => l.id === 'garage');
+  for (const l of BUILDABLE) assert.ok(l.build instanceof Gen, `${l.id}: build is a generator`);
+  // one world both ways: the same world (the Sealed Hangar, dismissed but still built whole)
+  const garage = buildableById('garage');
   const a = garage.create(new THREE.Scene());
   const s2 = new THREE.Scene();
   const b = await runStepsAsync(garage.build(s2), slicer(0));

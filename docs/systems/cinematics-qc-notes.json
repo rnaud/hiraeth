@@ -46,11 +46,6 @@
    "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. Panel C’s billboard read blank: the review page called the film alone, so the light never landed and LOOK UP never showed; at 85 m and 26° the words would have been a smudge anyway; camera jammed against his head after the hand-back. Fixed: v1.2: staged as play (giveBack, on the terrace, looking up); C framed from about 45 m at 22°, LOOK UP reads; hands back behind him (`behind`).",
    "updated": "2026-10-09T18:00:00.000Z"
   },
-  "garage.signal": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 5/5. Star by his face. Fixed: Star fixed.",
-   "updated": "2026-10-09T12:00:00.000Z"
-  },
   "buried.wheel": {
    "verdict": "Pass",
    "text": "QC pass 2026-10-09: tech 5/5, interest 5/5. Star by his face. Fixed: Star fixed.",
@@ -136,16 +131,6 @@
    "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
    "updated": "2026-10-09T18:00:00.000Z"
   },
-  "call.10": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
-   "updated": "2026-10-09T18:00:00.000Z"
-  },
-  "call.11": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
-   "updated": "2026-10-09T18:00:00.000Z"
-  },
   "call.ilen": {
    "verdict": "Pass",
    "text": "QC pass 2026-10-09 (v1.2 fixes): tech 5/5, interest 4/5. A quest’s card over the recording (every recording reviewed in the desert); one continuous push-in for 25–77 s. Fixed: Notices wait for the scene’s end; v1.2: cuts at the start of lines while the busts are up (callCuts: the two faces close, his face from over the dash, wide with the window; his own lines on his face; 4.5 s at least each), back behind him as they fold.",
@@ -171,17 +156,7 @@
    "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
    "updated": "2026-10-09T12:00:00.000Z"
   },
-  "arrival.arzach2": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
-   "updated": "2026-10-09T12:00:00.000Z"
-  },
   "arrival.perdide": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
-   "updated": "2026-10-09T12:00:00.000Z"
-  },
-  "arrival.perdide2": {
    "verdict": "Pass",
    "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
    "updated": "2026-10-09T12:00:00.000Z"
@@ -192,11 +167,6 @@
    "updated": "2026-10-09T12:00:00.000Z"
   },
   "arrival.incal": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
-   "updated": "2026-10-09T12:00:00.000Z"
-  },
-  "arrival.garage": {
    "verdict": "Pass",
    "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
    "updated": "2026-10-09T12:00:00.000Z"
@@ -465,6 +435,11 @@
    "verdict": "Pass",
    "text": "QC pass 2026-10-09: tech 5/5, interest 5/5. Frames only (scrubbed); no problems seen. Fixed: —.",
    "updated": "2026-10-09T12:00:00.000Z"
+  },
+  "glassdunes.clock": {
+   "verdict": "Needs work",
+   "text": "New with the Glass Dunes on the route (October 2026): not yet through a QC pass. The Clock-House clock comes round over its door, the cogs turn in the sand.",
+   "updated": "2026-10-10T12:00:00.000Z"
   }
  }
 }

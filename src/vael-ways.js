@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { glyphGeometry } from './story/sign-text.js';
+import { offsetOf } from './levels/names.js';
 
 // Vael's ways home (level design audit v1.15: both walks back were the way you came). No rng: the world round them
 // stays as it was.
@@ -22,18 +23,20 @@ import { glyphGeometry } from './story/sign-text.js';
 //   buildRidersRoost(scene, terrain) → { top, look, stand, streamer }
 //   buildRidersMast(scene, terrain)  → { at, top, look, wave }
 
+// (in Vael's own coordinates, moved to where its plain lies in the world it shares with the sky stones: names.js PART_OFFSET)
+const [OX, OY, OZ] = offsetOf('arzach');
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const flat0 = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); if (!g.attributes.normal) g.computeVertexNormals(); return g; };
 
 /** The tracks' line, [x, z]: from the Aerie's door (it looks east), north-east over the plateau, down to Oïa's stone. */
-export const TRACKS = [[-188, 4], [-170, 30], [-145, 52], [-112, 64], [-80, 60], [-50, 48], [-24, 30], [-2, 12]];
+export const TRACKS = [[-188, 4], [-170, 30], [-145, 52], [-112, 64], [-80, 60], [-50, 48], [-24, 30], [-2, 12]].map(([x, z]) => [x + OX, z + OZ]);
 /** The rider's mounting stone on the plateau's lip, by the tracks ([x, z]; it faces the tower). */
-export const MOUNT = { x: -116, z: 55 };
+export const MOUNT = { x: -116 + OX, z: 55 + OZ };
 /** The rider's roost: the floating stone's top, on the line from the tower's window to the landing (about 45 % of the way). */
-export const ROOST = { x: 143, y: 142, z: -222 };
-const TOWER = { x: 260, z: -420 };
+export const ROOST = { x: 143 + OX, y: 142 + OY, z: -222 + OZ };
+const TOWER = { x: 260 + OX, z: -420 + OZ };
 /** The riders' mast: on the slope under the crest past the last standing stone ([x, z]), and how tall (m). */
-export const MAST = { x: -100, z: -6, h: 16 };
+export const MAST = { x: -100 + OX, z: -6 + OZ, h: 16 };
 
 export function buildBirdTracks(scene, terrain) {
   const H = (x, z) => terrain.heightAt(x, z);

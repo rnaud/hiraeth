@@ -275,12 +275,14 @@ test('the wiring: main.js opens the panel on shop:open, it takes the controller 
 // ------------------------------------------------------------------ a shop in every route world (batch 4)
 
 test('a shop in every route world: one each, its keeper, its style, its wares (potions everywhere)', async () => {
-  const { ORDER } = await import('../src/levels/names.js');
-  const { STOCK_TOTAL, shopOf } = await import('../src/shop.js');
+  // (by place: a merged world has its parts' shops, src/levels/names.js ROUTE_PARTS; the dismissed Hangar's stays, unvisited)
+  const { ROUTE_PARTS: ORDER } = await import('../src/levels/names.js');
+  const { STOCK_TOTAL, shopOf, OPEN_SHOPS } = await import('../src/shop.js');
   const { FRONTS } = await import('../src/shop-fronts.js');
   const { SHOP_STYLES } = await import('../src/shop-world.js');
   const { BOOK } = await import('../src/story/people-book.js');
-  const all = Object.values(SHOPS);
+  const all = OPEN_SHOPS;
+  assert.deepEqual(Object.values(SHOPS).filter((s) => !all.includes(s)).map((s) => s.world), ['garage'], 'only the dismissed Hangar’s is closed');
   assert.deepEqual([...new Set(all.map((s) => s.world))].sort(), [...ORDER].sort(), 'a shop in each route world, none elsewhere');
   for (const world of ORDER) {
     const list = all.filter((s) => s.world === world);
@@ -308,7 +310,7 @@ test('a shop in every route world: one each, its keeper, its style, its wares (p
 });
 
 test('the prices up the route: every container a few dozen packs of its own world\'s foes at most, never a handful', async () => {
-  const { ORDER } = await import('../src/levels/names.js');
+  const { ROUTE_PARTS: ORDER } = await import('../src/levels/names.js');
   const { shopOf } = await import('../src/shop.js');
   const { rosterOf, BUDGET } = await import('../src/foe-worlds.js');
   // a pack of the world's foes: its wild kinds' drops (src/chimes.js, the tiers only change how they look), the

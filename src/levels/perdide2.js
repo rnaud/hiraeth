@@ -13,6 +13,7 @@ import { SHOPS } from '../shop.js';
 import { braid, caveFrame, bankBush, nest } from './wood-kit.js';
 import { buildWaterWay, buildKeepersStalks } from '../deep-wood-ways.js';
 import { Veils, VEIL } from '../veil.js';
+import { offsetOf } from './names.js';
 
 // ---------------------------------------------------------------------------
 // Lorn II: the Deep Wood. The far side of the swamp planet from
@@ -21,7 +22,16 @@ import { Veils, VEIL } from '../veil.js';
 // pools and egg heaps winds beside a teal stream, under enormous root arches,
 // past moss domes and a crashed saucer pod, to a cave glowing coral inside,
 // where a teal hover-skiff waits in the shallows.
+//
+// Since October 2026 the Deep Wood is part of Lorn (docs/systems/worlds.md, "Merged and dismissed worlds"):
+// south of Lorn's crystal swamp, its island is where the wood begins. Its places are laid out in its own
+// coordinates moved by DEEP_WOOD (src/levels/names.js PART_OFFSET.perdide2): built here as before, for its
+// own tests (buildPerdide2), or into Lorn's world (buildDeepWood, from src/levels/perdide.js).
 // ---------------------------------------------------------------------------
+
+/** Where the Deep Wood's own coordinates sit in Lorn ([dx, dy, dz]). */
+export const DEEP_WOOD = offsetOf('perdide2');
+const [OX, , OZ] = DEEP_WOOD;
 
 /** The world's touches on the print preset (its reference sheets, docs/systems/references.md). */
 /**
@@ -46,7 +56,7 @@ const noise = createNoise2D(3797);
 const noiseB = createNoise2D(3800);
 
 // the lit path, from the spawn island south (-z, towards the low sun) to the cave
-const PATH_PTS = [[0, -10], [4, -34], [-6, -70], [-22, -108], [-15, -148], [6, -188], [21, -228], [13, -268], [-9, -304], [-23, -340], [-19, -376], [-7, -408]];
+const PATH_PTS = [[0, -10], [4, -34], [-6, -70], [-22, -108], [-15, -148], [6, -188], [21, -228], [13, -268], [-9, -304], [-23, -340], [-19, -376], [-7, -408]].map(([x, z]) => [x + OX, z + OZ]);
 const PATH = new THREE.CatmullRomCurve3(PATH_PTS.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal');
 const N_PATH = 180;
 const pathPts = PATH.getSpacedPoints(N_PATH);
@@ -75,20 +85,21 @@ const pathDist = (x, z) => polyDist(pathPts, x, z);
 const streamDist = (x, z) => polyDist(streamPts, x, z);
 
 // hero places (module level, so the content can point at them)
-export const CAVE = { x: -7, z: -432, len: 40, r: 8.5, T: 7, y: 0.4 };   // mouth at z = -412, facing +z
+export const CAVE = { x: -7 + OX, z: -432 + OZ, len: 40, r: 8.5, T: 7, y: 0.4 };   // mouth at z = -412 (+ OZ), facing +z
 CAVE.mouth = CAVE.z + CAVE.len / 2;
-const LAGOON = { x: 8, z: -403, r: 11 };
-export const SKIFF = { x: 8, z: -404, heading: 0.35 };
-const ISLAND = { x: 0, z: 2, r: 26, y: 1.8 };
-export const SAUCER = { x: 58, z: -262, r: 7.5, y: -0.1, tilt: 0.2 };
-const SAUCER_POOL = { x: 58, z: -262, r: 17 };
+const LAGOON = { x: 8 + OX, z: -403 + OZ, r: 11 };
+export const SKIFF = { x: 8 + OX, z: -404 + OZ, heading: 0.35 };
+/** The island where the path begins (the Deep Wood's landing before it was part of Lorn). */
+export const ISLAND = { x: 0 + OX, z: 2 + OZ, r: 26, y: 1.8 };
+export const SAUCER = { x: 58 + OX, z: -262 + OZ, r: 7.5, y: -0.1, tilt: 0.2 };
+const SAUCER_POOL = { x: 58 + OX, z: -262 + OZ, r: 17 };
 export const DOMES = [
   { x: -44, z: -126, R: 9, kind: 'moss' },
   { x: -33, z: -156, R: 6, kind: 'moss' },
   { x: 33, z: -176, R: 7.5, kind: 'moss' },
   { x: -6, z: -232, R: 10, kind: 'glass' },
   { x: 36, z: -300, R: 6.5, kind: 'moss' },
-];
+].map((d) => ({ ...d, x: d.x + OX, z: d.z + OZ }));
 // root arches straddle path and stream; u = fraction along the path
 export const ARCHES = [0.2, 0.33, 0.47, 0.6, 0.72, 0.85].map((u, k) => {
   const i = Math.round(u * N_PATH), p = pathPts[i], n = pathNrm[i], off = streamOff(i / N_PATH);
@@ -96,7 +107,7 @@ export const ARCHES = [0.2, 0.33, 0.47, 0.6, 0.72, 0.85].map((u, k) => {
   return { x: c.x, z: c.z, nx: n.x, nz: n.z, span: 30 + Math.abs(off), apex: 13 + (k % 3) * 3, r: 2.6 + (k % 2) * 0.6 };
 });
 // the relic mushroom and its stepping-stool cluster
-export const HERO_SHROOM = { x: -30, z: -40, H: 13.5, capR: 8, sr: 1.3, dome: 0.12 };
+export const HERO_SHROOM = { x: -30 + OX, z: -40 + OZ, H: 13.5, capR: 8, sr: 1.3, dome: 0.12 };
 // the story's places (src/story/perdide2.js): three pools that went dark the night the sky rang,
 // on the dry bank of the path (the side away from the stream), the far dome's landing stage where
 // old Fen lives, and where Hollin waits at the end, by the cave mouth
@@ -104,27 +115,30 @@ export const DARK_POOLS = [0.264, 0.699, 0.916].map((u) => {
   const i = Math.round(u * N_PATH), p = pathPts[i], n = pathNrm[i], side = -Math.sign(streamOff(i / N_PATH)) || 1;
   return { x: p.x + n.x * side * 3.2, z: p.z + n.z * side * 3.2, r: 2.3, u };
 });
-export const FEN = { dome: 4, x: 36, z: -300 };
-export const HOLLIN_END = { x: -14, z: -402 };
+export const FEN = { dome: 4, x: 36 + OX, z: -300 + OZ };
+export const HOLLIN_END = { x: -14 + OX, z: -402 + OZ };
 export const PATH_POINTS = pathPts;
 
-function height(x, z) {
+/** The wood's ground (in the world: its places moved by DEEP_WOOD; the noise is the world's, as Lorn's swamp's is). */
+export function deepWoodHeight(x, z) {
+  // (its noise read where it always was, in the wood's own coordinates: the ground round its places is as it was drawn)
+  const lx = x - OX, lz = z - OZ;
   // swamp floor: shallow mud flats and pools, with deeper channels for the skiff
-  let h = fbm(noise, x * 0.004, z * 0.004, 3) * 2.6 - 0.7;
-  const ch = 1 - Math.abs(noiseB(x * 0.0045, z * 0.0045));
+  let h = fbm(noise, lx * 0.004, lz * 0.004, 3) * 2.6 - 0.7;
+  const ch = 1 - Math.abs(noiseB(lx * 0.0045, lz * 0.0045));
   h -= Math.pow(ch, 6) * 4.5;
-  h += fbm(noiseB, x * 0.03, z * 0.03, 2) * 0.35;
+  h += fbm(noiseB, lx * 0.03, lz * 0.03, 2) * 0.35;
   const dp = pathDist(x, z);
   // around the path it's always wadeable
   if (dp < 30) h = Math.max(h, THREE.MathUtils.lerp(-1.35, h, smoothstep(18, 30, dp)));
   // the dry path bank
-  h = THREE.MathUtils.lerp(h, PATH_Y + noise(x * 0.05, z * 0.05) * 0.12, smoothstep(9, 3.5, dp));
+  h = THREE.MathUtils.lerp(h, PATH_Y + noise(lx * 0.05, lz * 0.05) * 0.12, smoothstep(9, 3.5, dp));
   // the stream: shallow teal water cutting through, wade across where it crosses
   const ds = streamDist(x, z);
   h = THREE.MathUtils.lerp(h, -1.0, smoothstep(5.5, 2.2, ds));
   // dry spawn island
   const di = Math.hypot(x - ISLAND.x, z - ISLAND.z);
-  h = Math.max(h, THREE.MathUtils.lerp(-2, ISLAND.y + noise(x * 0.04, z * 0.04) * 0.2, smoothstep(ISLAND.r + 14, ISLAND.r, di)));
+  h = Math.max(h, THREE.MathUtils.lerp(-2, ISLAND.y + noise(lx * 0.04, lz * 0.04) * 0.2, smoothstep(ISLAND.r + 14, ISLAND.r, di)));
   // the saucer's pool
   const dsp = Math.hypot(x - SAUCER_POOL.x, z - SAUCER_POOL.z);
   h = THREE.MathUtils.lerp(h, -1.2, smoothstep(SAUCER_POOL.r, SAUCER_POOL.r * 0.55, dsp));
@@ -136,10 +150,13 @@ function height(x, z) {
   const dl = Math.hypot(x - LAGOON.x, z - LAGOON.z);
   h = THREE.MathUtils.lerp(h, -1.1, smoothstep(LAGOON.r, LAGOON.r * 0.5, dl));
   // dense wooded hills close the world
-  const edge = Math.hypot(x, (z + 200) * 0.85);
-  h += smoothstep(560, 820, edge) * (55 + fbm(noise, x * 0.006, z * 0.006, 3) * 40);
+  const edge = Math.hypot(lx, (lz + 200) * 0.85);
+  h += smoothstep(560, 820, edge) * (55 + fbm(noise, lx * 0.006, lz * 0.006, 3) * 40);
   return h;
 }
+const height = deepWoodHeight;
+/** How much of the wood's ground is its own at (x, z): all of it inside its hills, none north of its island (Lorn's swamp). */
+export const deepWoodWeight = (x, z) => smoothstep(140 + OZ, 80 + OZ, z) * smoothstep(900, 700, Math.abs(x - OX));
 
 // a sleek teal speedboat with a dark windscreen (the reference's skiff; the References' views build it too)
 export function buildSkiff() {
@@ -175,6 +192,7 @@ export function shroomParts({ sr, capR, H, dome }) {
 export const lathe = (pts, seg) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
 
 export const PERDIDE2_CONTENT = {
+  coords: 'world',   // (its places are the wood's constants, already where the wood lies: levels/content.js leaves them)
   weather: ['fog'],
   // the story is a quest (src/story/perdide2-data.js): this page opens on the first visit and
   // closes when Hollin, waiting at the root cave, asks you to come back one day
@@ -198,17 +216,30 @@ export const PERDIDE2_CONTENT = {
   npcs: KEEPERS,
 };
 
+/** The wood's ground's look: teal moss, violet mud (greener and a step lighter, as IMG_3797–3800's swamp floor: October 2026). */
+export const DEEP_WOOD_GROUND = { color: '#4d786e', color2: '#588276', color3: '#55588a', mode: MODE_TERRAIN, ticks: true };
+
 // (built in steps, src/load-steps.js: the game's load gives the main thread back between them)
+// The Deep Wood on its own (its tests); the game plays it as part of Lorn (src/levels/perdide.js).
 export function* buildPerdide2(scene) {
+  // (centred on the world's origin: the wood lies DEEP_WOOD from it, so the ground reaches that much farther)
+  const terrain = yield* Terrain.make({ size: 1800 + 2 * Math.max(Math.abs(OX), Math.abs(OZ)), seg: 360 + Math.round(Math.max(Math.abs(OX), Math.abs(OZ)) / 2.5), height, material: DEEP_WOOD_GROUND });
+  scene.add(terrain.mesh);
+  const part = yield* buildDeepWood(scene, terrain);
+  return attachTemple('perdide2', scene, part);
+}
+
+/**
+ * Everything of the Deep Wood but the ground and the temple: the level's settings, ready for attachTemple.
+ * `merged`: built into Lorn (src/levels/perdide.js): its water is Lorn's (no second sheet), and what it scatters
+ * far from its path stays out of Lorn's open swamp (north of its island).
+ */
+export function* buildDeepWood(scene, terrain, { merged = false } = {}) {
   const rng = mulberry32(3798);
   const R = (a, b) => a + rng() * (b - a);
   const pick = (a) => a[Math.floor(rng() * a.length)];
-  const terrain = yield* Terrain.make({
-    size: 1800, seg: 360, height,
-    material: { color: '#4d786e', color2: '#588276', color3: '#55588a', mode: MODE_TERRAIN, ticks: true },   // teal moss, violet mud (greener and a step lighter, as IMG_3797–3800's swamp floor: October 2026)
-  });
-  scene.add(terrain.mesh);
   const H = (x, z) => terrain.heightAt(x, z);
+  const inLorn = (x, z) => merged && deepWoodWeight(x, z) < 0.5;
   const lights = [];
   const dummy = new THREE.Object3D(), col = new THREE.Color();
   const proxies = [];   // coarse collision stand-ins for detailed scenery (invisible)
@@ -234,8 +265,8 @@ export function* buildPerdide2(scene) {
 
   // ---------------------------------------------------------- water
   yield;
-  {
-    const water = new THREE.Mesh(new THREE.PlaneGeometry(1800, 1800, 1, 1).rotateX(-Math.PI / 2),
+  if (!merged) {
+    const water = new THREE.Mesh(new THREE.PlaneGeometry(1800 + 2 * Math.max(Math.abs(OX), Math.abs(OZ)), 1800 + 2 * Math.max(Math.abs(OX), Math.abs(OZ)), 1, 1).rotateX(-Math.PI / 2),
       makeMaterial({ color: '#4f8a8f', color2: '#5f9a9a', mode: MODE_WATER }));
     water.position.y = WATER;
     water.userData.noCollide = true;
@@ -251,9 +282,10 @@ export function* buildPerdide2(scene) {
     let n = 0;
     for (let tries = 0; tries < 6000 && n < 420; tries++) {
       const far = rng() < 0.3;
-      const x = R(-1, 1) * (far ? 760 : 420), z = -200 + R(-1, 1) * (far ? 700 : 330);
+      const x = R(-1, 1) * (far ? 760 : 420) + OX, z = -200 + R(-1, 1) * (far ? 700 : 330) + OZ;
       const dp = pathDist(x, z);
       if (dp < 13 || streamDist(x, z) < 7 || !clear(x, z, 3)) continue;
+      if (inLorn(x, z)) continue;   // (the wood's trunks stop at its edge: Lorn's open swamp is north of it)
       // denser near the path, so they frame it like a nave
       if (dp > 60 && rng() < 0.45) continue;
       const r = R(1.6, 4.2) * (dp > 80 ? 1.3 : 1), Ht = R(110, 170), g0 = H(x, z);
@@ -324,7 +356,7 @@ export function* buildPerdide2(scene) {
     let n = 0;
     for (let tries = 0; tries < 3000 && n < 46; tries++) {
       const near = n < 30;
-      const x = R(-1, 1) * (near ? 140 : 380), z = near ? R(-150, 40) : R(-430, 60);
+      const x = R(-1, 1) * (near ? 140 : 380) + OX, z = (near ? R(-150, 40) : R(-430, 60)) + OZ;
       const dp = pathDist(x, z);
       if (dp < 9 || dp > (near ? 90 : 160) || !clear(x, z, 6) || H(x, z) < DEEP - 1.5) continue;
       const big = rng() < 0.55;
@@ -443,10 +475,10 @@ export function* buildPerdide2(scene) {
       heap(x, z, 6 + Math.floor(rng() * 16), R(1.5, 3.2));
     }
     // great heaps
-    heap(-14, -20, 40, 4.5, 1.2);
-    heap(18, -214, 50, 5, 1.3);
-    heap(-30, -392, 45, 4.5, 1.2);
-    heap(-20, -330, 30, 4, 1.1);
+    heap(-14 + OX, -20 + OZ, 40, 4.5, 1.2);
+    heap(18 + OX, -214 + OZ, 50, 5, 1.3);
+    heap(-30 + OX, -392 + OZ, 45, 4.5, 1.2);
+    heap(-20 + OX, -330 + OZ, 30, 4, 1.1);
     // lines of single eggs in the shallows
     for (let k = 2; k < N_PATH; k += 2) {
       const q = streamPts[k];
@@ -798,11 +830,12 @@ export function* buildPerdide2(scene) {
   }
 
   const unsafe = (p) => terrain.heightAt(p.x, p.z) < DEEP && p.y < WATER + 0.5;
-  const spawnY = H(0, 0);
+  const spawnY = H(ISLAND.x, ISLAND.z);
 
   // Rowan's Welcome-Shelf (src/shop-world.js, src/shop-fronts.js 'mossdome'): a moss dome on the lit path's west
   // bank, a third of the way to the first dark pool, its door and stall turned to the path and the landing
-  const shop = placeShop(scene, { def: SHOPS.welcome, at: new THREE.Vector3(-10, H(-10, -65), -65), heading: Math.PI / 4 });
+  // (in Lorn its room takes the second slot over the map: Lorn's own Float has the first, src/interior-kit.js interiorSlot)
+  const shop = placeShop(scene, { def: SHOPS.welcome, at: new THREE.Vector3(-10 + OX, H(-10 + OX, -65 + OZ), -65 + OZ), heading: Math.PI / 4, slot: merged ? 1 : 0 });
   lights.push(...shop.lights);
 
   // the water-way (src/deep-wood-ways.js, level design audit, fourth round): the keepers' lamps for boats, from the root
@@ -818,7 +851,7 @@ export function* buildPerdide2(scene) {
 
   // the Lamp-House in the shallows east of the root cave, and its rooms far overhead (src/temples/perdide2.js)
   yield;
-  return attachTemple('perdide2', scene, {
+  return {
     id: 'perdide2',
     portals: [...shop.portals],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
@@ -836,7 +869,7 @@ export function* buildPerdide2(scene) {
     stalks,   // (the keepers' stalks: tests/level-design-round5.test.js climbs them)
     waterWay,
     ground: terrain,
-    spawn: new THREE.Vector3(0, spawnY, 0),
+    spawn: new THREE.Vector3(ISLAND.x, spawnY, ISLAND.z),
     spawnHeading: Math.PI,
     camYaw: 0,
     limit: 820,
@@ -873,6 +906,6 @@ export function* buildPerdide2(scene) {
     },
     atmo: () => ({ tint: [1.0, 0.97, 0.98], fog: 1.7, name: 'The Deep Wood' }),
     update() {},
-  });
+  };
 }
 export const createPerdide2 = stepped(buildPerdide2);

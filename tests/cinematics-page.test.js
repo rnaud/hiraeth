@@ -5,12 +5,13 @@ import { reviewStorage, mergeNotes } from '../src/cinematics-page/storage.js';
 import { readFileSync } from 'node:fs';
 import { WORLD_MOMENTS } from '../src/story/film.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
-import { ORDER, SIDE } from '../src/levels/names.js';
+import { ORDER, SIDE, isDismissed } from '../src/levels/names.js';
 test('review covers every registered moment, item box and destination without duplicate links', () => {
   const ids = new Set(CINEMATICS.map(e => e.id));
   assert.equal(ids.size, CINEMATICS.length);
-  for (const m of Object.values(WORLD_MOMENTS).flat()) assert.ok(ids.has(m.id));
-  for (const b of Object.values(PLACEMENTS).flat()) assert.ok(ids.has(`box.${b.id}`));
+  // (a dismissed world's moments and boxes are not played: src/levels/names.js DISMISSED)
+  for (const m of Object.entries(WORLD_MOMENTS).filter(([w]) => !isDismissed(w)).flatMap(([, ms]) => ms)) assert.ok(ids.has(m.id), m.id);
+  for (const b of Object.entries(PLACEMENTS).filter(([w]) => !isDismissed(w)).flatMap(([, bs]) => bs)) assert.ok(ids.has(`box.${b.id}`), b.id);
   for (const world of [...ORDER, ...SIDE, 'home', 'lantern']) assert.ok(ids.has(`arrival.${world}`));
   for (const e of CINEMATICS.filter(e => e.id !== 'trailer')) assert.equal(new URL(reviewURL(e), 'https://example.com/game/').searchParams.get('cinematicReview'), e.id);
 });

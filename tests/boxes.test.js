@@ -5,12 +5,14 @@ import './register-gadgets.js';   // (the gadgets as items: the makers' courts' 
 import { Physics } from '../src/physics.js';
 import { Player } from '../src/player.js';
 import { Ship } from '../src/ship/ship.js';
-import { LEVELS } from '../src/levels/index.js';
+import { buildableById } from '../src/levels/buildable.js';
+import { partOf } from '../src/levels/names.js';
+import { templeOf } from '../src/temples/index.js';
 import { CONTENT } from '../src/levels/content.js';
 import { game, GameState } from '../src/game-state.js';
 import { items, ITEMS } from '../src/items.js';
 import { PLACEMENTS } from '../src/boxes/placements.js';
-import { createBoxes, migrateSave, resolvePlacement, placementsFor, boxesFound, BOX_QUEST_DELAY } from '../src/boxes/index.js';
+import { createBoxes, migrateSave, resolvePlacement, placementsFor, boxesFound, BOX_QUEST_DELAY, shiftPlacement } from '../src/boxes/index.js';
 import { Quests } from '../src/story/quests.js';
 import { BoxScene, STAND_AT, LIFT, TIMES, WOBBLES, wobbleAngle } from '../src/boxes/scene.js';
 import { BOX, BOX_SCALE, buildBox, roundedBox } from '../src/boxes/model.js';
@@ -23,7 +25,7 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const worlds = new Map();
 function world(id) {
   if (worlds.has(id)) return worlds.get(id);
-  const meta = LEVELS.find((l) => l.id === id);
+  const meta = buildableById(id);   // (a level, a merged world's part on its own, a dismissed world: src/levels/buildable.js)
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
@@ -54,15 +56,21 @@ function reachable(physics, p, yaw, label) {
 }
 
 test('every placement stands on reachable ground, with room to stand and rise', () => {
+  // (a merged world's part's boxes in the merged world, where they are placed, measured from the part's own landing;
+  // the Glass Dunes' Clock-House boxes keep the temple's 'garage.' ids, as the saves know them)
   for (const [id, list] of Object.entries(PLACEMENTS)) {
-    const { level, physics } = world(id);
-    for (const p of list) {
+    const { level, physics } = world(partOf(id));
+    const home = level.partSpawns?.[id] ?? level.spawn;
+    for (const raw of list) {
+      const p = shiftPlacement(id, raw);
       assert.ok(ITEMS[p.item], `${p.id}: a real item`);
-      assert.ok(p.id.startsWith(`${id}.`), `${p.id}: named for its world`);
+      assert.ok(p.id.startsWith(`${id}.`) || (id === 'glassdunes' && p.id.startsWith('garage.')), `${p.id}: named for its world`);
       const at = resolvePlacement(p, { physics, level });
       assert.ok(at, `${p.id}: resolves`);
       reachable(physics, at.pos.clone().setY(at.pos.y - (p.lift ?? 0)), at.yaw, p.id);
-      const d = Math.hypot(at.pos.x - level.spawn.x, at.pos.z - level.spawn.z);
+      // (a temple's chest by its door: the rooms lie off the map, reached through it)
+      const door = p.temple ? templeOf(level, p.temple)?.outside?.door?.at : null;
+      const d = Math.min(...[at.pos, door].filter(Boolean).map((q) => Math.hypot(q.x - home.x, q.z - home.z)));
       if (!p.story) assert.ok(d < 600, `${p.id}: within reach of the spawn (${d.toFixed(0)} m)`);   // (the story's interiors are built far off, through their doors)
     }
   }
@@ -84,7 +92,7 @@ test('the jetpack, glider, stun and fire unlocks each have a box; every special 
 
 test('worlds after the desert give a box of what the route brought by the ship to a save without it; never the debug jets', () => {
   game.reset();
-  for (const id of ['garage', 'buried', 'bazaar']) {
+  for (const id of ['glassdunes', 'buried', 'bazaar']) {
     const { level, physics } = world(id);
     const list = placementsFor(id, { level });
     assert.ok(!list.some((p) => p.item === 'jetpack'), `${id}: no jets (a debug item since v1.38)`);

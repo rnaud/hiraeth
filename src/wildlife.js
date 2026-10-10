@@ -3,6 +3,28 @@ import { makeMaterial, MODE_WATER } from './materials.js';
 import { registerTarget } from './targets.js';
 import { mulberry32 } from './noise.js';
 import { WILDLIFE, SPECIES } from './wildlife/species.js';
+import { partsOf } from './levels/names.js';
+
+/**
+ * A world's creatures: its own, or a merged world's parts' (src/levels/names.js PARTS), each part's living round its
+ * own places: the first part's round the landing and its people, a later part's round where its own landing was
+ * (level.partSpawns) and its own people (their content's `world`), so the sky stones' crabs stay on the sky stones.
+ */
+export function wildlifeOf(level, content = null) {
+  const parts = partsOf(level?.id);
+  if (parts.length === 1) return WILDLIFE[level?.id] ?? [];
+  return parts.flatMap((part, i) => (WILDLIFE[part] ?? []).map((d) => {
+    const home = i ? level.partSpawns?.[part] : level.spawn;
+    if (!home) return d;
+    const at = { ...level, spawn: home };
+    const own = (content?.npcs ?? []).filter((n) => (i ? n.world === part : !n.world));
+    const near = () => [{ p: home.clone(), r: [10, 42], w: 4 }, ...own.map((n) => {
+      const h = n.y ?? level.ground?.heightAt?.(n.at[0], n.at[1]);
+      return { p: new THREE.Vector3(n.at[0], Number.isFinite(h) ? h : home.y, n.at[1]), r: [4, 22], w: 1 };
+    })];
+    return { ...d, anchors: d.anchors ? (L, W) => d.anchors(at, W) : near };
+  }));
+}
 
 // Wildlife: two or three small species per world, each with a surprise when
 // it is scared (a balloon lizard floats off, a crab digs in, a moth splits in
@@ -446,7 +468,7 @@ export class Wildlife {
     scene.traverse((o) => { if (o.isMesh && o.material?.uniforms?.uMode?.value === MODE_WATER) this.waters.push(o); });
     this.waterCache = new Map();
     this.avoid = this.clutter(content);
-    const list = defs ?? WILDLIFE[level.id] ?? [];
+    const list = defs ?? wildlifeOf(level, content);
     for (const def of list) this.populate(def);
   }
 

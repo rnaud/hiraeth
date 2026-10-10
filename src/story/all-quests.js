@@ -6,7 +6,7 @@ import { QUESTS as desert } from './desert-data.js';
 import { QUESTS as incal } from './incal-data.js';
 import { QUESTS as arzach } from './arzach-data.js';
 import { QUESTS as arzach2 } from './arzach2-data.js';
-import { QUESTS as garage } from './garage-data.js';
+import { QUESTS as garage } from '../levels/dismissed/hangar/story-data.js';
 import { QUESTS as buried } from './buried-data.js';
 import { QUESTS as edena } from './edena-data.js';
 import { QUESTS as spheres } from './spheres-data.js';

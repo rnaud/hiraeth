@@ -27,6 +27,8 @@
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
 
+import { partsOf, shiftAt } from '../levels/names.js';
+
 export const KIT_TRIALS = {
   'kit-desert': {
     id: 'kit-desert', world: 'desert', mode: 'kit', course: 'windhall', name: 'Wind hall', color: '#9fd6ee',
@@ -186,23 +188,27 @@ export const KIT_TRIALS = {
       again: '~solemn~ Again? Good. A lamp likes to be needed.',
     },
   },
-  'kit-garage': {
-    id: 'kit-garage', world: 'garage', mode: 'kit', course: 'discrun', name: 'Disc run', color: '#62c3c9',
-    blurb: 'The First Garage’s riding discs stood out on the plain east of the clerk’s board: two islands and a landing on blocks over the plain, a disc shuttling across each gap, and a bank of eyes at the end.',
-    rules: 'Ride the discs over to the landing: step on as one comes to you, step off at the far side. On the landing, wake all three eyes with the fluid in one breath. Down on the plain, or on your wings, and the run is over.',
-    origin: [52, 6, 38], yaw: Math.PI / 2,
+  // (the Sealed Hangar's until October 2026, stood on its plain: its world dismissed, it moved to the Glass Dunes with the house)
+  'kit-glassdunes': {
+    id: 'kit-glassdunes', world: 'glassdunes', mode: 'kit', course: 'discrun', name: 'Disc run', color: '#62c3c9',
+    blurb: 'The Clock-House’s riding discs stood out on the sand east of the ship: two islands and a landing on blocks over the sand, a disc shuttling across each gap, and a bank of eyes at the end.',
+    rules: 'Ride the discs over to the landing: step on as one comes to you, step off at the far side. On the landing, wake all three eyes with the fluid in one breath. Down on the sand, or on your wings, and the run is over.',
+    origin: [40, 7.5, 222], yaw: Math.PI / 2,
     marker: [4.6, -7.6], start: [0, 0.6], heading: 0, par: 54,
     needs: ['backpack', 'gun'], lacks: 'The eyes at its end want the fluid gun.',
     onFoot: true, noWings: true, offFeet: 'Feet only: the discs carry you over, not the wings or the jets.',
-    fall: { after: 0, below: -2, from: 8, words: 'Down on the plain' },
+    fall: { after: 0, below: -2, from: 8, words: 'Down on the sand' },
     voice: {
-      who: 'clemence', name: 'Clemence', from: 'who remembers the Major',
-      first: '~happy~ The Major rode discs like those to his desk every morning, and was late every morning. You were not.',
-      beaten: '~surprised~ Under the makers’ own mark! The Major would have written that down, and lost the paper.',
+      who: 'oren', name: 'Oren', from: 'who carries the floats',
+      first: '~happy~ The old ones say the makers rode discs like those over the hot sand at noon. You kept your feet cooler than they did.',
+      beaten: '~surprised~ Under the makers’ own mark! I’ll tell the kiln. The kiln will not care, but I’ll tell it.',
       again: '~playful~ Round again? The discs don’t mind. They have nowhere else to be either.',
     },
   },
 };
 
-/** The makers' runs standing in a world. */
-export const kitTrialsFor = (world) => Object.values(KIT_TRIALS).filter((T) => T.world === world);
+/** The makers' runs standing in a world (its parts': a merged world has two), each where its part lies in it (names.js PART_OFFSET). */
+export const kitTrialsFor = (world) => {
+  const parts = partsOf(world);
+  return Object.values(KIT_TRIALS).filter((T) => parts.includes(T.world)).map((T) => ({ ...T, origin: shiftAt(T.world, T.origin) }));
+};

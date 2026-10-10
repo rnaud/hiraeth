@@ -1,4 +1,6 @@
-// Where the item boxes stand, world by world (src/boxes/index.js builds them).
+// Where the item boxes stand, world by world (src/boxes/index.js builds them): by the part (the old world) they
+// were placed for, in its own coordinates; a merged world places its parts' boxes, each moved by its part's
+// offset (src/levels/names.js PARTS, PART_OFFSET; placementsFor). The Sealed Hangar's went to the Glass Dunes.
 // Every box is an artifact of the makers (docs/story-bible.md, "The boxes"):
 // left where their giants walked, for a traveller who comes a long way, so
 // they sit in sacred or out-of-the-way places, never in the open by chance.
@@ -27,6 +29,11 @@
 //
 // tests/boxes.test.js checks that every one stands on reachable ground.
 
+/** A temple's chest (the temple by its id: a merged world has two). */
+const templeSite = (id) => (level) => (level.temples?.find((t) => t.id === id) ?? level.temple)?.gadgetSite;
+/** A makers' court's box (the court by the part it was made for: src/finds/courts.js courtBoxOf). */
+const courtSite = (id) => (level) => level?.finds?.courts?.[id]?.box ?? level?.finds?.court?.box ?? null;
+
 export const PLACEMENTS = {
   desert: [
     // the makers' pedestal in Qanat: a carved stone dais high on the burning tree's trunk (7 m up), on
@@ -51,7 +58,7 @@ export const PLACEMENTS = {
       note: 'A house roof just inside the main gate of the old city; climb its wall.' },
     // the Givers' House (src/temples/desert.js): on the dais in its Chest Chamber, half-way through. Ember mode
     // is the key to the rest: the braziers by the door beyond, the bridge, the thorns, the Keeper's cistern.
-    { id: 'desert.temple.fire', item: 'fire', temple: 'desert', site: (level) => level.temple?.gadgetSite,
+    { id: 'desert.temple.fire', item: 'fire', temple: 'desert', site: templeSite('desert'),
       note: 'Inside the rose-stone house in the eastern dunes, in the round chamber past the sand pit.' },
   ],
   incal: [
@@ -65,10 +72,10 @@ export const PLACEMENTS = {
     // the Warden's Well (src/temples/incal.js): in the chamber half-way up. The jets are the key to the rest: the way
     // up through its ceiling, the eyes over their shelves, the warden's crown
     { id: 'incal.temple.jetpack', item: 'harness', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
-      site: (level) => level.temple?.gadgetSite,
+      site: templeSite('incal'),
       note: 'Inside the makers’ tower on the rim, in the round chamber over the climbing well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'incal.bridge', item: 'bridge', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'incal.bridge', item: 'bridge', site: courtSite('incal'), beacon: 160, gadget: true,
       hint: 'A makers’ court stands on the plateau beyond the rim, behind the landing, towers across a gap. A box waits at its edge',
       note: 'In the makers’ court on the plateau beyond the rim behind the landing: towers across a gap, a rise to a lamp. The pen spans the shaft’s terraces too.' },
   ],
@@ -83,10 +90,10 @@ export const PLACEMENTS = {
       note: 'The flat cap of the needle spire on the plain halfway from the landing to the lone tower, where Senn listens; climb it or land the bird on it.' },
     // the Aerie (src/temples/arzach.js): in its round chamber over the feather stair. The wings are the key to the
     // rest: the gulf, the wind well, the Elder, who will not fly alone
-    { id: 'arzach.temple.glider', item: 'glider', temple: 'arzach', site: (level) => level.temple?.gadgetSite,
+    { id: 'arzach.temple.glider', item: 'glider', temple: 'arzach', site: templeSite('arzach'),
       note: 'Inside the Aerie on the plain west of the landing, in the round chamber at the top of the feather stair.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'arzach.hook', item: 'hook', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'arzach.hook', item: 'hook', site: courtSite('arzach'), beacon: 160, gadget: true,
       hint: 'A makers’ court of pale stone stands on the rise west of the landing, rings high on its towers. A box waits at its edge',
       note: 'In the makers’ court on the rise west of the landing, at its front edge: rings on its wall and towers to reel up to.' },
   ],
@@ -95,32 +102,32 @@ export const PLACEMENTS = {
     // It held the fluid wings until Vael's Aerie was built (src/temples/arzach.js): the wings are the Aerie's key
     // now, and the stack keeps the wind-silk scarf, a gift in the open
     { id: 'arzach2.scarf', item: 'scarf', at: [35, 65.3, -43.5], toward: [0, 22],
-      hint: 'A makers’ box teeters on the top stone of the balanced stack on the starting plateau. Climb the stones',
-      note: 'The top stone of the balanced stack on the starting plateau: a teetering climb.' },
+      hint: 'A makers’ box teeters on the top stone of the balanced stack on the first of the sky stones, the plateau over the cloud south of the plain. Climb the stones',
+      note: 'The top stone of the balanced stack on the first sky stone, the plateau over the cloud south of the plain: a teetering climb.' },
     // the Founders' Belfry (src/temples/arzach2.js): in the bell chamber half-way up. The whistle is the key to the
     // rest: the bell-tuned doors, the stones that come down into a bridge, the Cloud-Mother's calm
-    { id: 'arzach2.temple.bell', item: 'bell', temple: 'arzach2', site: (level) => level.temple?.gadgetSite,
-      note: 'Inside the Founders’ Belfry, out of the cloud west of the starting plateau, in the round chamber over the stone stair.' },
+    { id: 'arzach2.temple.bell', item: 'bell', temple: 'arzach2', site: templeSite('arzach2'),
+      note: 'Inside the Founders’ Belfry, out of the cloud west of the first sky stone, in the round chamber over the stone stair.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'arzach2.springs', item: 'springs', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
-      hint: 'A makers’ court stands at the north end of the starting plateau, its tall blocks over the cloud. A box waits at its edge',
-      note: 'In the makers’ court at the north end of the starting plateau: blocks of 4, 8 and 12 m and a tower to bounce up.' },
+    { id: 'arzach2.springs', item: 'springs', site: courtSite('arzach2'), beacon: 160, gadget: true,
+      hint: 'A makers’ court stands at the north end of the first sky stone, its tall blocks over the cloud. A box waits at its edge',
+      note: 'In the makers’ court at the north end of the first sky stone: blocks of 4, 8 and 12 m and a tower to bounce up.' },
   ],
-  garage: [
-    // on the keep's south curtain wall, facing the spawn (a 14 m climb)
-    // It held the quick coil until the First Garage was built (src/temples/garage.js): the coil is its key now, and
-    // the wall keeps the brass level, a gift in the open (a new box: saves that opened the coil's find it there)
-    { id: 'garage.level', item: 'level', at: [8, 14, 24], toward: [0, 120],
-      hint: 'A makers’ box stands on top of the keep’s south curtain wall. Climb the wall',
-      note: 'The top of the keep’s south curtain wall.' },
-    // the First Garage (src/temples/garage.js): in its round chamber over the winding well. The coil is the key to the
+  glassdunes: [
+    // (the Sealed Hangar's three, moved with the First Garage, now the Clock-House, when the Hangar was dismissed in
+    // October 2026: src/levels/names.js DISMISSED; their ids stay, so a save that opened one keeps it opened)
+    // the brass level, a gift in the open: on top of the glass mound west of the valley (a 14 m climb)
+    { id: 'garage.level', item: 'level', at: [-110, -60], toward: [-20, -60],
+      hint: 'A makers’ box sits on top of the glass mound west of the valley, under the cliffs of the giants. Climb the glass',
+      note: 'The top of the glass mound west of the valley floor, under the cliffs of the giants.' },
+    // the Clock-House (src/temples/garage.js): in its round chamber over the winding well. The coil is the key to the
     // rest: the banks of six eyes that wake only together (two tanks in one breath), the Foreman's six numerals
-    { id: 'garage.temple.coil', item: 'coil', temple: 'garage', site: (level) => level.temple?.gadgetSite,
-      note: 'Inside the First Garage on the plateau’s rim west of the keep, in the round chamber over the winding well.' },
+    { id: 'garage.temple.coil', item: 'coil', temple: 'garage', site: templeSite('garage'),
+      note: 'Inside the Clock-House east of the valley, in the round chamber over the winding well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'garage.magnet', item: 'magnet', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
-      hint: 'A makers’ court stands on the plain west of the landing, an iron block on a pillar. A box waits at its edge',
-      note: 'In the makers’ court on the plain west of the landing: a plate only metal presses, an iron block across a gap. The Hangar’s brass pumps pull you up too.' },
+    { id: 'garage.magnet', item: 'magnet', site: courtSite('glassdunes'), beacon: 160, gadget: true,
+      hint: 'A makers’ court stands on the sand north of the Clock-House, an iron block on a pillar. A box waits at its edge',
+      note: 'In the makers’ court on the sand north of the Clock-House, toward the north camp: a plate only metal presses, an iron block across a gap.' },
   ],
   buried: [
     // the ring platform round the smoking chimney stack (jets or a climb up the stack). It held ember mode
@@ -130,10 +137,10 @@ export const PLACEMENTS = {
       note: 'The lower ring platform of the chimney stack north-east of the spawn, on its +z side.' },
     // the Engine-House (src/temples/buried.js): in the round chamber past the counterweight. The fourth chamber
     // is the key to the rest: the banks of four eyes that wake only together, the Tooth-Warden's four vents
-    { id: 'buried.temple.cell', item: 'cell', temple: 'buried', site: (level) => level.temple?.gadgetSite,
+    { id: 'buried.temple.cell', item: 'cell', temple: 'buried', site: templeSite('buried'),
       note: 'Inside the Engine-House on the dunes west of the domes, in the round chamber past the counterweight.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'buried.monocle', item: 'monocle', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'buried.monocle', item: 'monocle', site: courtSite('buried'), beacon: 160, gadget: true,
       hint: 'A makers’ court stands on the dunes west of the landing, two towers and a plank between them. A box waits at its edge',
       note: 'In the makers’ court on the dunes west of the landing: a false plank, a true path of glass, writing only the lens reads. The canyon’s glass bridge too.' },
   ],
@@ -146,10 +153,10 @@ export const PLACEMENTS = {
       note: 'Up the umbrella tree west of the spawn, on its top canopy.' },
     // the Builders' Greenhouse (src/temples/edena.js): in its round chamber over the glass stair. Bloom mode (a new
     // gun mode) is the key to the rest: the budded doors, the vine bridge, the vine up the glass, the Gardener
-    { id: 'edena.temple.bloom', item: 'bloom', temple: 'edena', site: (level) => level.temple?.gadgetSite,
+    { id: 'edena.temple.bloom', item: 'bloom', temple: 'edena', site: templeSite('edena'),
       note: 'Inside the Builders’ Greenhouse in the meadow hollow north of the white ruins, in the round chamber over the glass stair.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'edena.bubble', item: 'bubble', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'edena.bubble', item: 'bubble', site: courtSite('edena'), beacon: 160, gadget: true,
       hint: 'A makers’ court stands in the meadow south-west of the landing, a ledge with a gate on it. A box waits at its edge',
       note: 'In the makers’ court in the meadow south-west of the landing: a crate to float up onto the ledge’s plate.' },
   ],
@@ -162,10 +169,10 @@ export const PLACEMENTS = {
       note: 'On the canopy of the grove’s umbrella tree east of the spawn.' },
     // the Footprint (src/temples/spheres.js): in the round chamber half-way in. The lens is the key to the rest:
     // the door that is wall without it, the bridge and the eye only it shows
-    { id: 'spheres.temple.lens', item: 'lens', temple: 'spheres', site: (level) => level.temple?.gadgetSite,
+    { id: 'spheres.temple.lens', item: 'lens', temple: 'spheres', site: templeSite('spheres'),
       note: 'Inside the Footprint north of the grove, in the heel, in the round chamber past the still pool.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'spheres.bomb', item: 'bomb', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'spheres.bomb', item: 'bomb', site: courtSite('spheres'), beacon: 160, gadget: true,
       hint: 'A makers’ court stands in the grove south-west of the landing, a cracked wall closing an alcove. A box waits at its edge',
       note: 'In the makers’ court in the grove south-west of the landing: a cracked wall, a cracked boulder, crates to throw.' },
   ],
@@ -179,10 +186,10 @@ export const PLACEMENTS = {
       note: 'On top of Wendel’s lookout, the stepped teal crystal on the mossy rise east of the landing: four short climbs and the last.' },
     // the Hush-House (src/temples/perdide.js): in its round chamber over the bog well. The stilling mode is the key
     // to the rest: the gates of jaws, the pendulums, the Mother Snapper
-    { id: 'perdide.temple.stun', item: 'stun', temple: 'perdide', site: (level) => level.temple?.gadgetSite,
+    { id: 'perdide.temple.stun', item: 'stun', temple: 'perdide', site: templeSite('perdide'),
       note: 'Inside the Hush-House on the cave island, in the round chamber over the bog well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'perdide.fan', item: 'fan', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'perdide.fan', item: 'fan', site: courtSite('perdide'), beacon: 160, gadget: true,
       hint: 'A makers’ court stands on the dry ground east of the landing, three pinwheels on its posts. A box waits at its edge',
       note: 'In the makers’ court on the dry ground east of the landing: pinwheels, a fire in a hut’s door, a ledge to hover up to. Its gusts fill the skiff’s sail too.' },
   ],
@@ -195,21 +202,21 @@ export const PLACEMENTS = {
       note: 'On top of the first root arch over the path; climb its root.' },
     // the Lamp-House (src/temples/perdide2.js): in its dark round chamber over the root stair. The lantern is the
     // key to the rest: the lamps that wake to it, the moss-stones and the eye only its light shows, the Lampless
-    { id: 'perdide2.temple.lantern', item: 'lantern', temple: 'perdide2', site: (level) => level.temple?.gadgetSite,
+    { id: 'perdide2.temple.lantern', item: 'lantern', temple: 'perdide2', site: templeSite('perdide2'),
       note: 'Inside the Lamp-House in the shallows east of the root cave, in the dark chamber over the root stair.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'perdide2.boomerang', item: 'boomerang', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
-      hint: 'A makers’ court stands on the dry ground south-east of the landing, crates hung from its beam. A box waits at its edge',
-      note: 'In the makers’ court on the dry ground south-east of the landing: targets, lanterns, crates on ropes and pots of ink out of reach.' },
+    { id: 'perdide2.boomerang', item: 'boomerang', site: courtSite('perdide2'), beacon: 160, gadget: true,
+      hint: 'A makers’ court stands on the dry ground south-east of the Deep Wood’s island, crates hung from its beam. A box waits at its edge',
+      note: 'In the makers’ court on the dry ground south-east of the Deep Wood’s island: targets, lanterns, crates on ropes and pots of ink out of reach.' },
   ],
   bazaar: [
     // the market has no chest in the open. The Undertower (src/temples/bazaar.js), under the silent tower: in its
     // round chamber over the cable well. The echo shell (a new tool) is the key to the rest: the doors and the
     // bridge that listen for a note played back, the First Sign that wants its own word
-    { id: 'bazaar.temple.echo', item: 'echo', temple: 'bazaar', site: (level) => level.temple?.gadgetSite,
+    { id: 'bazaar.temple.echo', item: 'echo', temple: 'bazaar', site: templeSite('bazaar'),
       note: 'Inside the Undertower, through the old doorway in the silent tower’s back, in the round chamber over the cable well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
-    { id: 'bazaar.recall', item: 'recall', site: (level) => level.finds?.court?.box ?? null, beacon: 160, gadget: true,
+    { id: 'bazaar.recall', item: 'recall', site: courtSite('bazaar'), beacon: 160, gadget: true,
       hint: 'A makers’ court stands east of the start, by the market’s edge, a crate on a high ledge. A box waits at its edge',
       note: 'In the makers’ court east of the start: a crate on a high ledge to knock down, ride and send back up. The market’s cabs go back along their lanes too.' },
   ],

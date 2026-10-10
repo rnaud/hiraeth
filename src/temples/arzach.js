@@ -6,6 +6,7 @@ import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Ball, Plate, Gust, Updraft, Platform, Mark, Pit } from './pieces.js';
 import { elderModel } from './guardians.js';
 import { items } from '../items.js';
+import { shiftAt } from '../levels/names.js';
 
 // Vael's temple: the Aerie, a great white house of the makers on the plain
 // west of the landing, two drums of bone-white stone and a crown of stone
@@ -47,8 +48,9 @@ import { items } from '../items.js';
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
-/** On the plain west of the landing; its door looks east, back toward the landing. */
-export const SITE = { x: -220, z: -20, r: 18, path: [-180, -12] };
+/** On the plain west of the landing; its door looks east, back toward the landing (Vael's own coordinates, moved to where its plain lies now: names.js PART_OFFSET). */
+const [SX, SZ] = shiftAt('arzach', [-220, -20]);
+export const SITE = { x: SX, z: SZ, r: 18, path: shiftAt('arzach', [-180, -12]) };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
@@ -461,7 +463,7 @@ function change(scene, level, rt) {
 export const ARZACH_TEMPLE = {
   id: 'arzach', levelId: 'arzach', name: 'The Aerie', doorLabel: 'door of the Aerie',
   gadget: 'glider', gadgetBox: 'arzach.temple.glider', arenaDoor: 'd3',
-  origin: [-200, 1600, 300], yaw: 0,
+  origin: shiftAt('arzach', [-200, 1600, 300]), yaw: 0,   // (its rooms over Vael's plain, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
   local: { person: 'lark', out: 16, side: 7 },

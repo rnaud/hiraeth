@@ -9,7 +9,7 @@
 // was going (traders, a postal hulk, a ship full of goats), following the needle. She means to get where the
 // singing goes first, so they will write her name in the book in letters the salt can't eat.
 //
-// She is met four times, in the first four of her stops the traveller lands in (STOPS: Vael, Lorn II, the
+// She is met four times, in the first four of her stops the traveller lands in (STOPS: Vael, Lorn, the
 // City-Shaft, the Signal Market, in the route's order), a few steps from his ship: she saw it come down.
 // Each meeting is changed by what he said at the last:
 //   1. "A world ahead": brash, a race. What is he after (fellow.after)? Will he sign her book (fellow.signed)?
@@ -34,7 +34,7 @@
 // world she stands in); a node with `meet` is a meeting, and marks it had (and where) as it opens.
 
 /** Her stops, in the route's order: she is met in the first four of these the traveller lands in. */
-export const STOPS = ['arzach', 'perdide2', 'incal', 'bazaar'];
+export const STOPS = ['arzach', 'perdide', 'incal', 'bazaar'];   // (her Lorn stop was the Deep Wood's landing until it became part of Lorn: October 2026)
 /** How many meetings there are. */
 export const MEETINGS = 4;
 
@@ -75,7 +75,7 @@ export const TANSY = {
         meet: 1,
         say: [
           { world: 'arzach', text: '~whisper~ (A girl in a sailcloth coat too big for her is writing in a book. She waves at you with her whole arm, remembers where she is, and waves smaller.)' },
-          { world: 'perdide2', text: '~curious~ (A girl in a sailcloth coat too big for her stands with a book open on her arm. She looks up at your footsteps as if she has been listening for some.)' },
+          { world: 'perdide', text: '~curious~ (A girl in a sailcloth coat too big for her stands with a book open on her arm. She looks up at your footsteps as if she has been listening for some.)' },
           { world: 'incal', text: '~curious~ (A girl in a sailcloth coat too big for her stands with a book open on her arm, well back from the drop. She looks at your ship, then at you.)' },
           { world: 'bazaar', text: '~curious~ (A girl in a sailcloth coat too big for her stands under the dishes, counting coins into her palm. There are not many to count.)' },
           { if: not({ flag: 'fellow.late' }), text: '~happy~ I saw your ship come down. You’re following the singing too! I’m Tansy, from the Salt Harbour. I’ve been a world ahead of you the whole way.' },
@@ -126,7 +126,7 @@ export const TANSY = {
       again1: {
         say: [
           { world: 'arzach', text: '~whisper~ They keep shushing me here. I’ve learned their word for sorry. It’s a nod. (She nods at you, very sorry.)' },
-          { world: 'perdide2', text: '~curious~ The lamp-keeper asked if I was the traveller he keeps the lamps for. I said probably not. He lit one anyway.' },
+          { world: 'perdide', text: '~curious~ The lamp-keeper in the wood asked if I was the traveller he keeps the lamps for. I said probably not. He lit one anyway.' },
           { world: 'incal', text: '~playful~ Nobody up here looks up. I’ve been doing it for them. My neck hurts.' },
           { world: 'bazaar', text: '~playful~ Everybody here is selling something. I tried to sell my book. Nobody wanted the names.' },
           '~neutral~ I learn three words first in every world: water, sorry, and which way. You’d be surprised how far they go.',
@@ -138,7 +138,7 @@ export const TANSY = {
         meet: 2,
         say: [
           { world: 'arzach', text: '~tired~ (Tansy stands hugging her coat round herself. Nobody here has said a word to her in days, and it shows.)' },
-          { world: 'perdide2', text: '~tired~ (Tansy stands hugging her coat round herself in the gloom under the trees. The compass lies open in her palm.)' },
+          { world: 'perdide', text: '~tired~ (Tansy stands hugging her coat round herself in the twilight under a fungus tree. The compass lies open in her palm.)' },
           { world: 'incal', text: '~tired~ (Tansy stands hugging her coat round herself in the wind off the shaft. The compass lies open in her palm.)' },
           { world: 'bazaar', text: '~tired~ (Tansy stands hugging her coat round herself, the compass open in her palm. All round her a thousand signs are shouting.)' },
           { if: is('fellow.after', 'value'), text: '~playful~ Found your something of value yet? (She pats her pockets: a feather, a stone that hums, a twist of water that glows a little less every day.) Pockets full. None of it’s the thing.' },
@@ -178,7 +178,7 @@ export const TANSY = {
         meet: 3,
         say: [
           { world: 'arzach', text: '~solemn~ (Tansy stands with her head tipped right back, looking up at the haze where the great bird flies.)' },
-          { world: 'perdide2', text: '~solemn~ (Tansy stands with her head tipped right back, looking up through the branches at the little piece of sky the wood leaves.)' },
+          { world: 'perdide', text: '~solemn~ (Tansy stands with her head tipped right back, looking up past the glowing caps at the twilight that never quite ends here.)' },
           { world: 'incal', text: '~solemn~ (Tansy stands with her head tipped right back. High over the shaft the Lodestar turns.)' },
           { world: 'bazaar', text: '~solemn~ (Tansy stands with her head tipped right back, looking up at the dishes while the market shouts round her.)' },
           { if: is('fellow.advice', 'write'), text: '~sad~ I wrote it. (A folded letter, soft from her pocket.) I haven’t sent it. Every word I wrote is the wrong one.' },
@@ -202,7 +202,7 @@ export const TANSY = {
         say: [
           { world: 'incal', text: '~solemn~ A sweeper up here told me a light nobody looks at goes out. (She looks up at the Lodestar a long time.)' },
           { world: 'arzach', text: '~solemn~ The bird keeps to the sky because nobody called her down, they say. (She looks up at the haze a long time.)' },
-          { world: 'perdide2', text: '~solemn~ The lamp-keeper keeps his lamps lit for travellers who never come. Forty years. (She looks up at the branches a long time.)' },
+          { world: 'perdide', text: '~solemn~ The lamp-keeper in the wood keeps his lamps lit for travellers who never come. Forty years. (She looks toward the wood a long time.)' },
           { world: 'bazaar', text: '~solemn~ They say the silent tower was the only one here that told the truth. (She looks up at it a long time.)' },
           '~solemn~ At home we say the salt eats every name in the end, if nobody reads it. Do you think Hesper still reads mine? At night, when she does the book?',
         ],
@@ -227,7 +227,7 @@ export const TANSY = {
         say: [
           { world: 'bazaar', text: '~happy~ (Tansy is waiting under the market’s dishes with her book under her arm. She waves with her whole arm and doesn’t make it smaller.)' },
           { world: 'arzach', text: '~happy~ (Tansy is waiting near your ship with her book under her arm. She waves with her whole arm, and this time she doesn’t make it smaller.)' },
-          { world: 'perdide2', text: '~happy~ (Tansy is waiting under the trees with her book under her arm. She waves with her whole arm.)' },
+          { world: 'perdide', text: '~happy~ (Tansy is waiting under a fungus tree with her book under her arm. She waves with her whole arm.)' },
           { world: 'incal', text: '~happy~ (Tansy is waiting on the rim with her book under her arm. She waves with her whole arm.)' },
           { world: 'bazaar', text: '~happy~ I bought a minute on one of the towers. It cost everything left in Hesper’s biscuit tin, and my boot laces. (She shows you: no laces.)' },
           { world: 'bazaar', text: '~solemn~ I said: *Hesper, it’s Tansy. I’m coming home. Keep the lamp lit.* Then I told her about the bird. That used most of the minute.' },
@@ -252,7 +252,7 @@ export const TANSY = {
         say: [
           { world: 'bazaar', text: '~happy~ (Tansy is waiting under the market’s dishes with her book under her arm. She waves with her whole arm and doesn’t make it smaller.)' },
           { world: 'arzach', text: '~happy~ (Tansy is waiting near your ship with her book under her arm and her pack on her back.)' },
-          { world: 'perdide2', text: '~happy~ (Tansy is waiting under the trees with her book under her arm and her pack on her back.)' },
+          { world: 'perdide', text: '~happy~ (Tansy is waiting under a fungus tree with her book under her arm and her pack on her back.)' },
           { world: 'incal', text: '~happy~ (Tansy is waiting on the rim with her book under her arm and her pack on her back.)' },
           { world: 'bazaar', text: '~happy~ This is where the charts stop. Past the market nobody’s drawn anything. (She taps her book.) Except me, soon.' },
           { notWorld: 'bazaar', text: '~happy~ My needle points somewhere no chart goes. Past the last world anybody’s drawn. (She taps her book.) I’ll draw it.' },

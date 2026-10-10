@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 globalThis.window ??= { innerWidth: 1200, innerHeight: 800 };
-const { createGarage } = await import('../src/levels/garage.js');
+const { createGarage } = await import('../src/levels/dismissed/hangar/level.js');
 
 test('a portal: a fade into its light, then out the far side at your pace, the camera upright behind you', () => {
   const level = createGarage(new THREE.Scene());

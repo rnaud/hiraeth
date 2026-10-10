@@ -8,7 +8,7 @@ import { bankBush } from './wood-kit.js';
 import { walkway } from './mangrove-kit.js';
 import { groundRibbon } from './reference-kit.js';
 import { mergeWithMaterials, restKey } from '../vertex-material.js';
-import { PEOPLE as HANGAR_PEOPLE } from '../story/garage-data.js';
+import { PEOPLE as HANGAR_PEOPLE } from './dismissed/hangar/story-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 import {
   latticeTower, dish, saucer, aimAt, dirOf, column, dome, egg, vineCable, cable, trussStair, deck, bird, rimSpots, bar, moveParts, tipToward,

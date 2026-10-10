@@ -16,7 +16,6 @@ export const DETOUR_SIGHTINGS = [
   { id: 'eclipse.ansel', thread: 'light', world: 'eclipse', who: 'Ansel', line: 'It hung singing where the black sun sits. By morning every figure on the walls leaned the way it went.' },
   { id: 'spacecity.tamar', thread: 'light', world: 'spacecity', who: 'Tamar', line: 'A ship with no name once hailed with one sung note. The night the sky rang, the same note passed again, going somewhere.' },
   // ---------------------------------------------------------------- the makers' sign
-  { id: 'glassdunes.mark', thread: 'glyph', world: 'glassdunes', who: 'a mark in the glass', line: 'Fused into the sand from above, in a skin of glass newer than the dunes. The camp leaves the sand round it untouched.' },
   { id: 'fallenring.mark', thread: 'glyph', world: 'fallenring', who: 'a mark on the fallen ring', line: 'Burned into the hull, and not long ago: by a hand that learned it, the arc drawn twice.' },
   { id: 'overnighttrain.chalk', thread: 'glyph', world: 'overnighttrain', who: 'a mark on the last carriage', line: 'Chalked on the last carriage’s roof, drawn again over the old chalk many times, by someone who keeps it.' },
 ];

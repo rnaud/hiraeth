@@ -14,6 +14,8 @@
 //   speed    an easy pace along it (m/s): the par is the length at that pace, with room to spare
 //   reward   the item the first finish gives (src/items.js, kind 'upgrade', `trial`)
 
+import { partsOf, offsetOf, shiftAt } from '../levels/names.js';
+
 export const TRIALS = {
   desert: {
     id: 'trial-desert', world: 'desert', mode: 'bike', name: 'Dune line', color: '#f0a54a',
@@ -73,12 +75,13 @@ export const TRIALS = {
     gates: [[-20, 10, 140, 9], [70, 40, 130, 9], [130, 70, 60, 9], [140, 100, -30, 9], [80, 130, -120, 9], [-20, 155, -150, 9], [-120, 175, -90, 9], [-150, 195, 10, 9], [-120, 215, 110, 10]],
     reward: 'deepwell',
   },
-  garage: {
-    id: 'trial-garage', world: 'garage', mode: 'jets', name: 'Pillar slalom', color: '#d6a94a',
-    blurb: 'A slalom of the plain’s pillars on the jets, low and fast.',
-    rules: 'Fly through every ring in order, round the pillars and back over the plain.',
-    marker: [18, 108], start: [24, null, 100], heading: 3.1, speed: 12,
-    gates: [[-30, 14, 60, 8], [-60, 20, 0, 8], [-30, 30, -60, 8], [60, 32, -100, 8], [140, 30, -80, 8], [150, 16, 10, 8], [80, 14, 60, 8], [30, 12, 90, 9]],
+  // (the Sealed Hangar's Pillar slalom until October 2026, its world dismissed: the jets' run moved to the Glass Dunes)
+  glassdunes: {
+    id: 'trial-glassdunes', world: 'glassdunes', mode: 'jets', name: 'Glass slalom', color: '#d6a94a',
+    blurb: 'A slalom of the glass dunes on the jets: up the valley, over the frozen wave, round the breaking one and home.',
+    rules: 'Fly through every ring in order, round the walls of glass and back down the valley to the ship.',
+    marker: [14, 212], start: [18, null, 204], heading: 3.1, speed: 12,
+    gates: [[36, 16, 150, 8], [96, 24, 104, 8], [128, 32, 20, 8], [80, 46, -60, 8], [10, 44, -110, 8], [-70, 34, -120, 8], [-110, 30, -10, 8], [-50, 44, 60, 8], [-24, 18, 140, 8], [10, 12, 190, 9]],
     reward: 'lodestone',
   },
   buried: {
@@ -110,3 +113,20 @@ export const TRIALS = {
 /** The trials as a list, in the route's order. */
 export const trialList = () => Object.values(TRIALS);
 export const trialFor = (world) => TRIALS[world] ?? null;
+
+/** A part's trial where it lies in its world (a merged world moves a part's places: src/levels/names.js PART_OFFSET). */
+export function shiftTrial(part, T) {
+  const o = offsetOf(part);
+  if (!o[0] && !o[1] && !o[2]) return T;
+  const xz = ([x, z, ...rest]) => [x + o[0], z + o[2], ...rest];
+  return {
+    ...T,
+    marker: shiftAt(part, T.marker),
+    start: shiftAt(part, T.start),
+    ...(T.gates ? { gates: T.gates.map((g) => (T.ground ? xz(g) : [g[0] + o[0], g[1] + o[1], g[2] + o[2], g[3]])) } : {}),
+    ...(T.winds ? { winds: T.winds.map(xz) } : {}),
+    ...(T.eyes ? { eyes: T.eyes.map(xz) } : {}),
+  };
+}
+/** The trials standing in a world: its parts' (Vael has its Wind ladder and the sky stones' Stone circuit), each where it lies. */
+export const trialsFor = (world, table = TRIALS) => partsOf(world).filter((p) => table[p]).map((p) => shiftTrial(p, table[p]));

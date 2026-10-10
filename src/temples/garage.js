@@ -6,21 +6,24 @@ import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Plate, Ball, Switch, Bank, Platform, Bridge, Mark, Pit } from './pieces.js';
 import { foremanModel } from './guardians.js';
 
-// The Sealed Hangar's temple: the First Garage, a round stair-house of the
-// makers on the rim of Brask's plateau, a great clock over its door, the
-// makers' clockwork set into the cliff below it. The Major found it when he
-// made the place (or the place made itself round it: nobody is sure), set up
-// his first garage in its porch, and copied the glyph off its door stone "for
-// luck, or for somebody". Everything that turns in his pocket universe took
-// its beat from the clockwork under the plateau, kept by the makers' Clockwork
-// Foreman; the night the light passed it jumped its escapement, three machines
-// stopped, and it has been wound wrong ever since. It is a machine: you may
-// stop it, or set it right.
+// The Glass Dunes' temple: the Clock-House, a round stair-house of the makers
+// standing in the sand east of the valley, a great clock over its door, the
+// makers' great cogs half sunk in the sand round it. The glassworkers found it
+// standing there when the desert turned to glass (nobody is sure which came
+// first), and keep their own clocks by it. Everything in the dunes took its beat
+// from its clockwork, kept by the makers' Clockwork Foreman; the night the light
+// passed it jumped its escapement, the camps' clocks stopped, and it has been
+// wound wrong ever since. It is a machine: you may stop it, or set it right.
+//
+// (It was the Sealed Hangar's First Garage until October 2026, on the rim of Major Brask's plateau, his first
+// garage in its porch. The Hangar left the route for the Glass Dunes (src/levels/names.js DISMISSED; its world is
+// kept in src/levels/dismissed/hangar/) and the house moved with its rooms, its Foreman and its gadget; its ids
+// stay 'garage' (the saves' temple.garage.*, the box garage.temple.coil).)
 //
 // Inside (built far overhead, through its door). The temple's one idea (reworked from the temple design audit,
 // docs/audits/temple-design-v1.12.md): the makers' clock counts round from where its hand points, and every
 // clock in the house stopped at the same hour the night the light passed (four, as the clock over the door).
-//   the Threshold        the Major's old bench, the first mark, the way out
+//   the Threshold        an old workbench (the Major's, when the house stood in his Hangar), the first mark, the way out
 //   the Escapement       a pit crossed by a disc that swings over it like a clock's escapement, still until the
 //                        three eyes round the dial over the far door wake in turn: from the one its hand points
 //                        at, round the way a clock goes (out of turn an eye only ticks)
@@ -42,15 +45,15 @@ import { foremanModel } from './guardians.js';
 //                        numerals inside a breath. Open, its hands come round to four; numerals hit in the clock's
 //                        order counted from four ring in step (taught in its second phase, where any order still
 //                        does); in its last phase only that order takes, and out of step they all go dark
-// After: the clock over the First Garage's door keeps the true time, and the makers' cogs in the cliff
-// below turn in step, their lamps lit (the world change).
+// After: the clock over the Clock-House's door keeps the true time, and the makers' cogs in the sand round it
+// turn in step, their lamps lit (the world change).
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
-/** On the plateau's rim, west of the keep, past the windmill; its door looks back across the plateau toward the start. */
-export const SITE = { x: Math.cos(150 * Math.PI / 180) * 205, z: Math.sin(150 * Math.PI / 180) * 205, r: 9 };
-SITE.heading = Math.atan2(0 - SITE.x, 120 - SITE.z);
+/** In the Glass Dunes (src/levels/glass-dunes.js): on the sand east of the valley, south of the frozen wave's end; its door looks back down the valley toward the ship. */
+export const SITE = { x: 118, z: 72, r: 9 };
+SITE.heading = Math.atan2(0 - SITE.x, 200 - SITE.z);
 
 /**
  * The First Garage's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/first-garage):
@@ -346,37 +349,33 @@ function layout(rt) {
   };
 }
 
-// ------------------------------------------------------------------ outside: the First Garage on the rim
-/** The plateau's cliff along `dir` at height y (its jitter makes the rim wander): the radius where the rock is. */
-function cliffAt(scene, dir, y) {
-  const rock = scene.children.find((o) => o.isMesh && o.geometry?.parameters?.radiusTop === 210);
-  if (!rock) return 210;
-  const ray = new THREE.Raycaster(V(dir.x * 400, y, dir.z * 400), V(-dir.x, 0, -dir.z), 0, 400);
-  const hit = ray.intersectObject(rock, false)[0];
-  return hit ? Math.hypot(hit.point.x, hit.point.z) : 210;
-}
-
+// ------------------------------------------------------------------ outside: the Clock-House in the sand
 function exterior(scene, level, rt) {
   const yaw = SITE.heading, R = 7, sill = 0.4;
-  const K = new TempleKit(rt.root, 'The First Garage', V(SITE.x, 0, SITE.z), yaw, rt.M);
+  // (on the sand, its apron sunk to the lowest of it)
+  const base = level.ground?.baseAt ? level.ground.baseAt(SITE.x, SITE.z, R + 5) - 0.3 : 0;
+  const K = new TempleKit(rt.root, 'The Clock-House', V(SITE.x, base, SITE.z), yaw, rt.M);
   const M = rt.M;
   const brass = { paint: new THREE.Color('#d8a24a'), smooth: false, side: THREE.FrontSide };
   const teal = { paint: new THREE.Color('#62c3c9'), smooth: true, side: THREE.FrontSide };
   const tin = { paint: new THREE.Color('#62c3c9'), smooth: false, side: THREE.DoubleSide };
   const cream = { paint: new THREE.Color('#f3ead8'), smooth: false, side: THREE.FrontSide };
-  // a broad flagged apron round it, a round stair-house of pale stone, bands of brass, a teal cap
+  // a broad flagged apron round it, a round stair-house of pale stone, bands of brass, a teal cap. In the dunes it
+  // is the open sand's one tall thing, a clock tower seen from the ship's flat (the level design audit: a drum of
+  // 23 m and its cap stand 25 m and more over the dunes, a landmark over the way to it)
+  const HW = 23;
   K.both(M.floor, new THREE.CylinderGeometry(R + 5, R + 5, 1.0, 32).translate(0, sill - 0.5, 0));
-  K.both(M.wall, new THREE.CylinderGeometry(R, R + 0.4, 15, 28).translate(0, sill + 7.5, 0));
-  for (const y of [5, 10.5]) K.both(brass, new THREE.CylinderGeometry(R + 0.2, R + 0.2, 0.6, 28).translate(0, sill + y, 0));
-  K.both(teal, new THREE.SphereGeometry(R + 0.3, 28, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.55, 1).translate(0, sill + 15, 0));
-  K.both(brass, new THREE.CylinderGeometry(0.4, 0.6, 3.2, 8).translate(0, sill + 19.4, 0));
-  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.6) continue; K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [Math.sin(a) * (R + 0.42), sill + 13, Math.cos(a) * (R + 0.42)], [0, a, 0])); }
+  K.both(M.wall, new THREE.CylinderGeometry(R, R + 0.4, HW, 28).translate(0, sill + HW / 2, 0));
+  for (const y of [5, 10.5, 16.5, 22]) K.both(brass, new THREE.CylinderGeometry(R + 0.2, R + 0.2, 0.6, 28).translate(0, sill + y, 0));
+  K.both(teal, new THREE.SphereGeometry(R + 0.3, 28, 10, 0, TAU, 0, Math.PI / 2).scale(1, 0.55, 1).translate(0, sill + HW, 0));
+  K.both(brass, new THREE.CylinderGeometry(0.4, 0.6, 3.2, 8).translate(0, sill + HW + 4.4, 0));
+  for (let i = 0; i < 14; i++) { const a = (i + 0.5) / 14 * TAU; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.6) continue; K.add(M.glyph, T(glyphGeometry(1.4, 0.12), [Math.sin(a) * (R + 0.42), sill + 19.2, Math.cos(a) * (R + 0.42)], [0, a, 0])); }
   // the great clock over the door: a cream dial in a brass ring, twelve ticks, two hands (the change turns them)
   const cy = sill + 11.4, cz = R + 0.55, cr = 2.6;
   K.both(cream, T(new THREE.CylinderGeometry(cr, cr, 0.3, 40).rotateX(Math.PI / 2), [0, cy, cz]));
   K.both(brass, T(new THREE.TorusGeometry(cr + 0.1, 0.28, 6, 40), [0, cy, cz + 0.1]));
   for (let i = 0; i < 12; i++) { const a = (i / 12) * TAU; K.both(M.dark, T(new THREE.BoxGeometry(0.2, 0.5, 0.1).translate(0, cr * 0.8, 0).rotateZ(-a), [0, cy, cz + 0.2])); }
-  // the doorway: a porch of two pillars and a lintel, the glyph over it (the stone the Major copied)
+  // the doorway: a porch of two pillars and a lintel, the glyph over it
   const z0 = R - 1.2, z1 = R + 2.6;
   for (const s of [-1, 1]) K.both(M.wall, box(2.4, 8, z1 - z0, s * 3.6, sill + 4, (z0 + z1) / 2));
   K.both(M.wall, box(9.6, 1.6, z1 - z0, 0, sill + 7.6, (z0 + z1) / 2));
@@ -389,7 +388,7 @@ function exterior(scene, level, rt) {
   for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + Math.PI / 4; K.add(brass, T(new THREE.SphereGeometry(0.28, 8, 6), [Math.sin(a) * (cr + 0.7), cy + Math.cos(a) * (cr + 0.7), cz + 0.15])); }
   K.add(M.voidM, T(new THREE.PlaneGeometry(4.8, 6.8).translate(0, 3.4, 0), [0, sill, R + 0.25]));
   K.solid(box(4.8, 6.8, 0.1, 0, sill + 3.4, R + 0.25));
-  // the Major's lean-to against the drum: a tin roof on posts, a bench, a painted board (his first garage)
+  // a lean-to against the drum: a tin roof on posts, a bench, a painted board (the glassworkers' clock-bench)
   const sx = -(R + 3.4), sz = 1.4;
   for (const [x, z] of [[sx - 2.4, sz - 2.6], [sx - 2.4, sz + 2.6]]) K.both(M.trim, box(0.3, 3.6, 0.3, x, sill + 1.8, z));
   K.add(tin, T(new THREE.BoxGeometry(5.6, 0.12, 6.4), [sx, sill + 3.8, sz], [0, 0, -0.18]));
@@ -398,17 +397,18 @@ function exterior(scene, level, rt) {
   K.add(cream, box(2.0, 0.18, 0.12, sx, sill + 3.2, sz + 3.32)); K.add(cream, box(1.4, 0.18, 0.12, sx - 0.2, sill + 2.9, sz + 3.32));
   K.flush();
 
-  // the makers' clockwork in the cliff below: great cogs half out of the rock, facing out (they turn after)
-  const dir = V(Math.sin(Math.atan2(SITE.x, SITE.z)), 0, Math.cos(Math.atan2(SITE.x, SITE.z)));
-  const side = V(dir.z, 0, -dir.x);
+  // the makers' clockwork: great cogs half sunk in the sand round the house, standing on edge, facing out (they turn after)
   const cogM = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass', key: 'temple.garage.cogs' });
   const lampM = makeMaterial({ color: '#f2c54b', glow: 0.05, flat: true, key: 'temple.garage.lamps' });
   const cogs = [];
-  for (const [i, [off, y, r]] of [[-14, -14, 9], [2, -24, 12], [15, -11, 7], [-4, -40, 8]].entries()) {
-    const c = cliffAt(scene, dir, y) + 1.0;
+  for (const [i, [a, r]] of [[-2.0, 9], [-2.75, 12], [2.1, 7], [2.9, 8]].entries()) {
+    // (round from the door: behind and to the sides of the house, clear of its porch and the way in)
+    const dir = V(Math.sin(yaw + a), 0, Math.cos(yaw + a)), d = R + 7 + r * 0.5;
+    const x = SITE.x + dir.x * d, z = SITE.z + dir.z * d;
+    const gy = level.ground?.baseAt ? level.ground.baseAt(x, z, r * 0.5) : base;
     const g = new THREE.Group();
-    g.position.copy(dir).multiplyScalar(c).addScaledVector(side, off).setY(y);
-    g.quaternion.setFromUnitVectors(V(0, 0, 1), dir);
+    g.position.set(x, gy + r * 0.25, z);
+    g.quaternion.setFromUnitVectors(V(0, 0, 1), V(-dir.z, 0, dir.x));   // (its face to the way round the house: you see it walking past)
     const teeth = [new THREE.TorusGeometry(r, 0.9, 6, 36).toNonIndexed()];
     for (let k = 0; k < Math.round(r * 2.4); k++) { const a = (k / Math.round(r * 2.4)) * TAU; teeth.push(new THREE.BoxGeometry(1.6, 1.6, 1.2).translate(0, r + 1.0, 0).rotateZ(a).toNonIndexed()); }
     for (let k = 0; k < 4; k++) teeth.push(new THREE.BoxGeometry(0.7, r * 2, 0.6).rotateZ((k / 4) * Math.PI).toNonIndexed());
@@ -447,16 +447,16 @@ function mergeAll(list) {
   return g;
 }
 
-// ------------------------------------------------------------------ the world change: the Hangar keeps time again
+// ------------------------------------------------------------------ the world change: the dunes keep time again
 /**
- * Once the Foreman is set right, the First Garage's clock keeps the true time (until then its hands stutter
- * back and forth, stuck where they jumped the night the light passed), the makers' cogs in the cliff turn in
+ * Once the Foreman is set right, the Clock-House's clock keeps the true time (until then its hands stutter
+ * back and forth, stuck where they jumped the night the light passed), the makers' cogs in the sand turn in
  * step, their hub lamps lit, and a pendulum swings in the porch.
  */
 function change(scene, level, rt) {
   const O = rt.outside;
   const root = new THREE.Group();
-  root.name = 'The First Garage keeps time (the world change)';
+  root.name = 'The Clock-House keeps time (the world change)';
   rt.root.add(root);
   root.visible = false;
   // the pendulum in the porch, a brass bob on a rod
@@ -494,15 +494,15 @@ function change(scene, level, rt) {
 }
 
 export const GARAGE_TEMPLE = {
-  id: 'garage', levelId: 'garage', name: 'The First Garage', doorLabel: 'door of the First Garage',
+  id: 'garage', levelId: 'glassdunes', name: 'The Clock-House', doorLabel: 'door of the Clock-House',
   gadget: 'coil', gadgetBox: 'garage.temple.coil', arenaDoor: 'd4',
   origin: [-300, 1800, -420], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
   local: { person: 'wim', out: 7, side: 6 },
-  enterLine: 'Inside the First Garage everything ticks, but out of step, like a room full of clocks that have quarrelled.',
+  enterLine: 'Inside the Clock-House everything ticks, but out of step, like a room full of clocks that have quarrelled.',
   pitLine: 'You climb back up to the last glyph stone.',
-  onResolved(rt) { rt.notice('Out on the rim, the clock over the First Garage’s door has begun to keep time.', 'resolved.out'); },
+  onResolved(rt) { rt.notice('Out in the dunes, the clock over the Clock-House’s door has begun to keep time.', 'resolved.out'); },
   // the Foreman's six numerals: each a target while its face is open; all six inside a breath is a hit. In step (the
   // clock's order counted from four, where its hands come round to as it opens) each rings and its ring lights; in
   // its last phase only in step takes, and a numeral out of step puts them all out

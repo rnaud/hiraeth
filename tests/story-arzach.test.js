@@ -83,10 +83,11 @@ test('the ways home (level design audit v1.15): the bird’s tracks from the Aer
   assert.ok(Math.hypot(P[0].x - door.x, P[0].z - door.z) < 30, 'the tracks start at the Aerie’s door');
   assert.ok(Math.hypot(P.at(-1).x - oia.x, P.at(-1).z - oia.z) < 30, 'and end by Oïa’s stone');
   // the standing stones lead up from the landing along z ≈ 0; the tracks come down the plateau’s north side
-  const off = (p) => Math.abs(p.x * door.z - p.z * door.x) / Math.hypot(door.x, door.z);
+  // (measured from the landing: Vael's plain lies round it, src/levels/names.js PART_OFFSET)
+  const o = level.spawn, off = (p) => Math.abs((p.x - o.x) * (door.z - o.z) - (p.z - o.z) * (door.x - o.x)) / Math.hypot(door.x - o.x, door.z - o.z);
   assert.ok(P.slice(2, -2).every((p) => off(p) > 40), `the middle of the tracks stands off the way up (${P.map((p) => off(p).toFixed(0)).join(', ')} m)`);
   assert.equal(QUESTS[0].stages[0].via, 'the bird’s tracks', 'Oïa’s stage names them (the audit walks back along them)');
-  assert.deepEqual(level.lines.map((l) => l.name), ['the standing stones', 'the bird’s tracks']);
+  assert.deepEqual(level.lines.map((l) => l.name).slice(0, 2), ['the standing stones', 'the bird’s tracks'], 'Vael’s own (the sky stones’ come after)');
   // the mounting stone on the tracks: something to look at, on solid ground
   const m = allInteractables().find((x) => x.id === 'mounting');
   assert.ok(m && m.at().distanceTo(T.mount.stand) < 0.01);

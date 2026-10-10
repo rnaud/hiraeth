@@ -4,6 +4,7 @@ import { SPECIES } from './species.js';
 import { ALIENS, ALIEN_LINES } from '../story/aliens-data.js';
 import { registerTarget } from '../targets.js';
 import { mulberry32 } from '../noise.js';
+import { partsOf, offsetOf, shiftAt } from '../levels/names.js';
 
 // The non-humanoid people of a world (docs/systems/aliens.md): main.js spawns them with the
 // world's people and adds them to its `npcs`, so they are updated, balloon, can be talked to
@@ -14,8 +15,18 @@ import { mulberry32 } from '../noise.js';
 
 export { SPECIES, ALIENS };
 
+/**
+ * A world's aliens, where they stand in it: by the part (the old world) they were placed for, its places moved
+ * where a merged world carries it (src/levels/names.js PARTS, PART_OFFSET: Lorn's Deep Wood has the shellbacks).
+ */
+export function aliensIn(levelId) {
+  return partsOf(levelId).flatMap((part) => {
+    const o = offsetOf(part), moved = o[0] || o[1] || o[2];
+    return (ALIENS[part] ?? []).map((d) => (moved ? { ...d, at: shiftAt(part, d.at), ...(d.y !== undefined ? { y: d.y + o[1] } : {}), ...(d.route ? { route: d.route.map((p) => shiftAt(part, p)) } : {}) } : d));
+  });
+}
 /** Where this world's aliens live, for the crowd and the flora to keep clear of. */
-export const alienSpots = (levelId) => (ALIENS[levelId] ?? []).map((d) => ({ x: d.at[0], y: d.y, z: d.at[1], r: (d.wander ?? 6) * 0.5 + 2 }));
+export const alienSpots = (levelId) => aliensIn(levelId).map((d) => ({ x: d.at[0], y: d.y, z: d.at[1], r: (d.wander ?? 6) * 0.5 + 2 }));
 
 /** The ground at x, z (from `from` down), on gentle ground only (null on a bank or a wall). */
 function groundOf(physics, x, z, from) {
@@ -48,7 +59,7 @@ export function routeOf(def, physics) {
 /** This world's aliens, placed and with their reactions to the tool; their targets registered. */
 export function spawnAliens(scene, physics, levelId) {
   const out = [];
-  for (const d of ALIENS[levelId] ?? []) {
+  for (const d of aliensIn(levelId)) {
     const { at, route } = routeOf(d, physics);
     const def = { ...d, reactions: ALIEN_LINES[d.species] };
     const a = new Alien(scene, physics, { def, at, route });

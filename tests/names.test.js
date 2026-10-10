@@ -28,6 +28,11 @@ async function everyone() {
       }
     }
   }
+  // (the Sealed Hangar's people, kept with the dismissed world: src/levels/dismissed/hangar/)
+  {
+    const m = await import('../src/levels/dismissed/hangar/story-data.js');
+    for (const key of LISTS) { const v = m[key]; if (v && typeof v === 'object') for (const p of v.name ? [v] : Array.isArray(v) ? v : Object.values(v)) add('garage', `levels/dismissed/hangar/story-data.js ${key}`, p); }
+  }
   for (const [world, c] of Object.entries(CONTENT)) for (const n of c.npcs ?? []) add(world, 'content.js npcs', n);
   for (const a of Object.values(ALIENS)) for (const p of Array.isArray(a) ? a : [a]) add(p.world ?? 'aliens', 'aliens-data.js', p);
   // (the same person listed twice, by the same id, is one person)

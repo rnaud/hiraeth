@@ -1,20 +1,16 @@
-import { TITLES } from './names.js';
+import { TITLES, worldFor } from './names.js';
 import { createDesert, buildDesert } from './desert.js';
 import { createIncal, buildIncal } from './incal.js';
 import { createArzach, buildArzach } from './arzach.js';
-import { createGarage, buildGarage } from './garage.js';
 import { createEdena, buildEdena } from './edena.js';
 import { createPerdide, buildPerdide } from './perdide.js';
 import { createBazaar, buildBazaar } from './bazaar.js';
-import { createAtelier, buildAtelier } from './atelier.js';
 import { createArena, buildArena } from './arena.js';
 import { createArcade, buildArcade } from './arcade.js';
 import { createGadgetYard, buildGadgetYard } from './gadget-yard.js';
 import { createLab, buildLab } from './lab.js';
-import { createArzach2, buildArzach2 } from './arzach2.js';
 import { createBuried, buildBuried } from './buried.js';
 import { createSpheres, buildSpheres } from './spheres.js';
-import { createPerdide2, buildPerdide2 } from './perdide2.js';
 import { createHome, buildHome } from './home.js';
 import { createLantern, buildLantern } from './lantern.js';
 import { createReferences, buildReferences } from './references.js';
@@ -46,22 +42,18 @@ export const LEVELS = [
     moves: 'jetpack · climb · glide · taxis (with a pass)',
   },
   {
+    // (with Vael II's sky stones since October 2026: names.js MERGED)
     id: 'arzach', create: createArzach, build: buildArzach,
     title: TITLES.arzach, source: 'a silent world of needles',
-    blurb: 'A silent bone-white world of needle spires, floating ruins and a lone tower. Find the makers’ wings, ride the wind up the tower, and learn the call that brings the great bird down.',
+    blurb: 'A silent bone-white plain of needle spires and a lone tower, and past its cliff, stones that fell up over a sea of cloud. Find the makers’ wings, ride the wind up the tower, learn the call that brings the great bird down, and ride her to the silent bell on the rose cliff.',
     moves: 'glide · winds · climb · flying mount',
   },
   {
-    id: 'arzach2', create: createArzach2, build: buildArzach2,
-    title: TITLES.arzach2, source: 'stones that fell up',
-    blurb: 'Bone-white needles and balanced stones rise from a sea of cloud. Ride the bird between cliff-top monasteries and broken aqueducts, then cross the peach plain to the lone tower.',
-    moves: 'flying mount · climb',
-  },
-  {
-    id: 'garage', create: createGarage, build: buildGarage,
-    title: TITLES.garage, source: 'a pocket universe that keeps turning',
-    blurb: "Major Brask's pocket universe: portals to an upside-down quarter and a ring where gravity points outward. Machines pass a signal between these strange places.",
-    moves: 'portals · shifting gravity · jetpack',
+    // on the route since October 2026, in the Sealed Hangar's place (names.js ORDER), with its temple
+    id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes,
+    title: TITLES.glassdunes, source: 'a desert that turned to glass',
+    blurb: 'Dunes of fused green glass, great shapes held inside them, and the glassworkers’ camps at their feet. East of the valley a round house of the makers stands in the sand with a stopped clock over its door, and every clock in the camps keeps the wrong time.',
+    moves: 'walk · climb · jetpack',
   },
   {
     id: 'buried', create: createBuried, build: buildBuried,
@@ -85,12 +77,6 @@ export const LEVELS = [
     id: 'perdide', create: createPerdide, build: buildPerdide,
     title: TITLES.perdide, source: 'a twilight swamp that hums',
     blurb: 'A twilight swamp of humming crystal forests, carnivorous plants and glowing eggs. Cross it by skiff; shy fungi close and send glowing spores through the reeds.',
-    moves: 'hover-skiff · wading · caves',
-  },
-  {
-    id: 'perdide2', create: createPerdide2, build: buildPerdide2,
-    title: TITLES.perdide2, source: 'the wood under the swamp',
-    blurb: 'A violet swamp under giant pale mushrooms. Glowing eggs, crystal reeds and moss domes line it. Follow the lit pools under root arches to the cave where the skiff waits.',
     moves: 'hover-skiff · wading · caves',
   },
   {
@@ -125,19 +111,6 @@ export const LEVELS = [
     id: 'antennas', create: createAntennas, build: buildAntennas, hidden: true,
     title: TITLES.antennas, source: 'a plain of listening masts',
     blurb: 'Abandoned masts by the thousand on a plain of violet grass, great dishes turned up like flowers, birds nesting in them. Walk to the workshops under the immense receiver and climb the stair to the observation deck.',
-    moves: 'walk · climb',
-  },
-  {
-    id: 'atelier', create: createAtelier, build: buildAtelier, hidden: true,
-    title: TITLES.atelier, source: 'the last page',
-    blurb: 'A blank page where every world you crossed is sketched in pencil. Someone is still drawing. Pale paper-like growths stir when you look at them.',
-    moves: 'off the route: a page for the curious',
-  },
-  {
-    // a detour off the route (names.js SIDE): charted on the galactic map, no story to finish
-    id: 'glassdunes', create: createGlassDunes, build: buildGlassDunes, hidden: true,
-    title: TITLES.glassdunes, source: 'a desert that turned to glass',
-    blurb: 'Dunes of fused green glass, great shapes held inside them, and the glassworkers’ camps at their feet. Walk the sandy paths between the walls while the low sun comes through.',
     moves: 'walk · climb',
   },
   {
@@ -242,4 +215,5 @@ export const LEVELS = [
   },
 ];
 
-export const levelById = (id) => LEVELS.find((l) => l.id === id);
+/** A level by its id; a merged or dismissed world's id finds the world that took its place (names.js worldFor; nothing for one with none). */
+export const levelById = (id) => LEVELS.find((l) => l.id === id) ?? (id != null && worldFor(id, null) !== id ? LEVELS.find((l) => l.id === worldFor(id, null)) : undefined);

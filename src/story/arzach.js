@@ -8,6 +8,7 @@ import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, KNUCKLE_ORDER, KNUCKLE_LINES, KN
 import { riddleState, strikeKnuckle, nextKnuckle, glinting, dots, knuckleRadius } from './knuckle-riddle.js';
 import { stripTone } from './tone.js';
 import { setupArzachMoments } from './arzach-moments.js';
+import { shiftAt } from '../levels/names.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
@@ -42,7 +43,8 @@ function ownMaterial(o) {
 }
 
 // where the shed feathers lie: the caps of two spires (arzach.js spires, by their place), and the hand's palm
-const FEATHER_SPIRES = [[170, -282], [414, -543]];
+// (in Vael's own coordinates, moved to where its plain lies now: src/levels/names.js PART_OFFSET)
+const FEATHER_SPIRES = [[170, -282], [414, -543]].map((p) => shiftAt('arzach', p));
 /** The rider's roost (src/vael-ways.js), named once as you fly near it (m: within range, not on it, about its height). */
 export const ROOST_CALL = { range: 120, near: 14, height: 70, text: 'Off to one side, on a floating stone: a little lean-to and a long white streamer. Somebody camped in the sky.' };
 
@@ -140,7 +142,7 @@ export function setupArzach(ctx) {
   // ---------------------------------------------------------------- the people
   const people = {};
   // Oïa on a stone beside where the bird waits, facing the tower
-  const oiaAt = V(17, 0, 2); oiaAt.y = ground(oiaAt.x, oiaAt.z);
+  const oiaAt = V(...shiftAt('arzach', [17, 0, 2])); oiaAt.y = ground(oiaAt.x, oiaAt.z);
   people.oia = spawn(PEOPLE.oia, { route: [oiaAt.clone()], seat: 0.45, heading: angleTo(oiaAt, T) });
   {
     const st = new THREE.Mesh(new THREE.IcosahedronGeometry(0.6, 0).scale(1.2, 0.75, 1), makeMaterial({ color: '#efe4cf', flat: true }));

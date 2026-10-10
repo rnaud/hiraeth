@@ -4,7 +4,7 @@
 // drawing, share it from here instead of building it again. Only for tests that leave the world as
 // they found it (or run last): a test that plays a world's story or changes its state builds its own.
 import * as THREE from 'three';
-import { LEVELS } from '../src/levels/index.js';
+import { buildableById } from '../src/levels/buildable.js';
 import { Physics } from '../src/physics.js';
 
 /** Run f with the console quiet; the three.js warnings it printed go to `warned` when given. */
@@ -24,7 +24,8 @@ const built = new Map();
 export function builtWorld(id) {
   if (!built.has(id)) {
     const scene = new THREE.Scene(), warned = [];
-    const level = quiet(() => LEVELS.find((l) => l.id === id).create(scene), warned);
+    // (a level, a merged world's part on its own, a dismissed world: src/levels/buildable.js)
+    const level = quiet(() => buildableById(id).create(scene), warned);
     const physics = new Physics(scene, level.ground?.heightAt ? level.ground : null);
     quiet(() => level.init?.(physics), warned);
     built.set(id, { id, scene, level, physics, warned });

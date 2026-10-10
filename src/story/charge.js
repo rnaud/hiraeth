@@ -71,7 +71,7 @@ export function chargeHud(st, { kept = null } = {}) {
 export function chargeJournalHtml(st) {
   if (!st?.stage) return '';
   const done = st.stage === 'done';
-  // six worlds open the way home; past six, the count goes on (the route has eleven, and they stay open)
+  // six worlds open the way home; past six, the count goes on (the route has nine, and they stay open)
   const worlds = st.worlds >= st.of ? `${st.worlds} worlds done` : `${st.worlds} of ${st.of} worlds before home`;
   const steps = [
     st.stage !== 'out' && `<li class="done">${worlds}</li>`,

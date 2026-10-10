@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
 import { steppedColumns } from './lookouts.js';
+import { offsetOf } from './levels/names.js';
 
 // Lorn II's way home (level design audit, fourth round: the walk back from the root cave to the ship was the lit path
 // you came down). The lamp-keepers kept two ways lit: the path for those on foot, and the water-way for boats, lamps on
@@ -19,10 +20,12 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const nonIdx = (g) => (g.index ? g.toNonIndexed() : g);
 
 /** The water-gate ([x, z]), and the water-way's lamps after it ([x, z]), from the lagoon home. */
-export const WATER_GATE = { x: 18, z: -372, heading: 0.9 };
-export const WATER_WAY = [[56, -368], [95, -342], [118, -296], [120, -232], [108, -172], [84, -114], [60, -60], [28, -26]];
+// (the Deep Wood's own coordinates, moved to where the wood lies in Lorn: src/levels/names.js PART_OFFSET)
+const [OX, , OZ] = offsetOf('perdide2');
+export const WATER_GATE = { x: 18 + OX, z: -372 + OZ, heading: 0.9 };
+export const WATER_WAY = [[56, -368], [95, -342], [118, -296], [120, -232], [108, -172], [84, -114], [60, -60], [28, -26]].map(([x, z]) => [x + OX, z + OZ]);
 /** The lamp-raft, under the fourth lamp. */
-export const LAMP_RAFT = { x: 124, z: -236 };
+export const LAMP_RAFT = { x: 124 + OX, z: -236 + OZ };
 
 export function buildWaterWay(scene, terrain) {
   const wood = makeMaterial({ color: '#3a3446', flat: true });
@@ -81,7 +84,7 @@ export function buildWaterWay(scene, terrain) {
  *
  *   buildKeepersStalks(scene, terrain) → { top, steps, foot, height, lamp, lit(on), isLit() }
  */
-export const KEEPERS_STALKS = { x: -52, z: -56, r: 2.6, step: 6 };
+export const KEEPERS_STALKS = { x: -52 + OX, z: -56 + OZ, r: 2.6, step: 6 };
 export function buildKeepersStalks(scene, terrain) {
   const { x, z, r, step } = KEEPERS_STALKS;
   const S = steppedColumns({ x, z, r, step, sides: 12, ground: (px, pz) => terrain.heightAt(px, pz), face: Math.atan2(-z, -x) });

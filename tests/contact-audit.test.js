@@ -266,7 +266,7 @@ test('every way a quest sends you along is a line its world declares', async () 
   for (const id of ROUTE_WORLDS) {
     const { level } = builtWorld(id);
     const lines = new Set(((typeof level.lines === 'function' ? level.lines() : level.lines) ?? []).map((l) => l.name));
-    const { QUESTS } = await import(`../src/story/${id}-data.js`);
+    const { QUESTS } = await import(id === 'garage' ? '../src/levels/dismissed/hangar/story-data.js' : `../src/story/${id}-data.js`);   // (the Hangar's, dismissed whole: src/levels/dismissed/)
     for (const q of QUESTS.filter((q) => q.world === id)) for (const s of q.stages) for (const k of ['via', 'home']) {
       if (!s[k]) continue;
       named++;

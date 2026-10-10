@@ -15,8 +15,8 @@ import { drawingMesh, DRAWN } from './home-drawings.js';
 import { stepped } from '../load-steps.js';
 
 // ---------------------------------------------------------------------------
-// Home: where the route begins (src/story/ending.js). Hidden, like the
-// Atelier: it opens on the galactic map once enough worlds are done.
+// Home: where the route begins (src/story/ending.js). Hidden: it opens on the
+// galactic map once enough worlds are done.
 //
 // A small round house on a small round hill at dusk: a cream dome with its
 // round window dark and the antenna the old recorder sent through, a tall

@@ -29,7 +29,7 @@
 import { reviewStorage } from './cinematics-page/storage.js';
 const cinematicStorage = reviewStorage();
 
-import { TITLES, ORDER } from './levels/names.js';
+import { TITLES, ORDER, worldFor } from './levels/names.js';
 
 export const SLOT_COUNT = 3;
 export const SLOT_KEY = 'moebius.slot';
@@ -136,7 +136,8 @@ export class SlotStore {
     const save = parse(this.get(slotKey('moebius.save.v1', n)));
     const meta = this.meta(n);
     const flags = game.flags ?? {};
-    const level = empty ? null : save?.level ?? flags['ship.level'] ?? 'desert';
+    // (a merged or dismissed world's id: the world that took its place, src/levels/names.js worldFor)
+    const level = empty ? null : worldFor(save?.level ?? flags['ship.level'] ?? 'desert', worldFor(flags['ship.level'] ?? 'desert'));
     const worldsDone = ORDER.filter((id) => flags[`world.${id}.done`] || journal.stories?.[id]).length;
     const relics = Object.values(journal.relics ?? {}).reduce((s, r) => s + Object.keys(r ?? {}).length, 0);
     // items found (src/items.js: `item.<id>` = true; a quest's carried things are counts)
@@ -181,7 +182,7 @@ export function formatDate(ms, now = Date.now()) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-/** "Prologue", or "3 / 11 worlds · 12 relics · 4 items" */
+/** "Prologue", or "3 / 9 worlds · 12 relics · 4 items" */
 export function progressLine(s) {
   if (s.empty) return 'New game';
   if (s.prologue) return 'Prologue';

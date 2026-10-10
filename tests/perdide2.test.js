@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { createPerdide2, PERDIDE2_CONTENT, CAVE, SKIFF } from '../src/levels/perdide2.js';
+import { createPerdide2, PERDIDE2_CONTENT, CAVE, SKIFF, DEEP_WOOD } from '../src/levels/perdide2.js';
 import { Physics } from '../src/physics.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
 import { LEVELS } from '../src/levels/index.js';
+import { PART_LEVELS } from '../src/levels/buildable.js';
+import { MERGED, PARTS } from '../src/levels/names.js';
 
 const scene = new THREE.Scene(), level = createPerdide2(scene), physics = new Physics(scene, level.ground);
 
@@ -16,10 +18,14 @@ function resolve(s) {
   return p;
 }
 
-test('the deep wood builds and is registered', () => {
+test('the deep wood builds (on its own, for its tests), and is part of Lorn', () => {
   assert.equal(level.id, 'perdide2');
-  assert.ok(ORDER.includes('perdide2'));
-  assert.ok(LEVELS.some((l) => l.id === 'perdide2' && !l.hidden));
+  // (since October 2026 a part of Lorn: src/levels/names.js MERGED, PARTS; built on its own only here)
+  assert.ok(!ORDER.includes('perdide2') && ORDER.includes('perdide'));
+  assert.equal(MERGED.perdide2, 'perdide');
+  assert.deepEqual(PARTS.perdide, ['perdide', 'perdide2']);
+  assert.ok(!LEVELS.some((l) => l.id === 'perdide2'), 'not a level of its own');
+  assert.ok(PART_LEVELS.some((l) => l.id === 'perdide2'));
   assert.equal(CONTENT.perdide2, PERDIDE2_CONTENT);
   assert.ok(level.lights.length > 40, 'eggs, pools and the cave light the swamp');
   assert.ok(level.sky.script.dusk.length === 5 && level.defaults.hour > 17 && level.defaults.hour < 18.5);
@@ -57,7 +63,8 @@ test('the lit path leads dry or wadeable to the cave goal', () => {
   // under the vault: a roof overhead
   assert.ok(physics.rayHit(new THREE.Vector3(g[0], gy + 1, g[2]), new THREE.Vector3(0, 1, 0), 30), 'the cave has a roof');
   // walking from spawn to the cave never needs deep water
-  const pts = [[0, -10], [4, -34], [-6, -70], [-22, -108], [-15, -148], [6, -188], [21, -228], [13, -268], [-9, -304], [-23, -340], [-19, -376], [-7, -408]];
+  // (the wood's own coordinates, moved to where it lies in Lorn: DEEP_WOOD)
+  const pts = [[0, -10], [4, -34], [-6, -70], [-22, -108], [-15, -148], [6, -188], [21, -228], [13, -268], [-9, -304], [-23, -340], [-19, -376], [-7, -408]].map(([x, z]) => [x + DEEP_WOOD[0], z + DEEP_WOOD[2]]);
   const curve = new THREE.CatmullRomCurve3(pts.map(([x, z]) => new THREE.Vector3(x, 0, z)), false, 'centripetal');
   for (let u = 0; u <= 1; u += 0.005) {
     const p = curve.getPointAt(u);

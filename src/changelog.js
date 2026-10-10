@@ -12,6 +12,15 @@ export const CHANGELOG = [
     // the fight, closer to Breath of the Wild's (docs/systems/foes.md)
     'The third swing of the sword’s combo is a heavy blow with both feet on the ground: the sword raised high over a longer wind-up and brought down hard, with a nudge of the camera, for the same three hearts and the same knock back. It was a leap into the air.',
     'The lock-on’s mark is quieter: four fine ink ticks at the corners of the foe and a small diamond over its head that settles onto it, instead of thick gold chevrons over its body. It still turns coral and closes in as a blow winds up, pale blue with its ticks turned in when the foe is open, and dashed when it can’t be cut; the pips over it count what is left.',
+    // merged worlds (docs/systems/worlds.md "Merged and dismissed worlds")
+    'Vael and the sky stones are one world now: the needle plain lies north, and the plateaus over the cloud lie south of it. The lone tower stands where the sky stones’ tower stood. Both temples, both stories, both trials and both shops are there, and one trip to Vael covers them all.',
+    'Lorn opens into the Deep Wood: go north from the swamp and it turns into the wood, its half-transparent giant mushrooms glowing among the trunks. Its lamp-keepers, its Lamp-House and its people are all there, in the same world as the swamp.',
+    // the Glass Dunes on the route
+    'The Glass Dunes are on the route now, in place of the Sealed Hangar, sixth on the map. East of the valley a clock tower stands in the sand, the Clock-House, its great cogs half buried round it; Wim, who winds the glassworkers’ clocks, sends you down to the Clockwork Foreman. Set it right and every clock in the dunes keeps the same time.',
+    'The Glass Dunes have more to find: Marit’s Kiln-Stall by the ship, a makers’ court, makers’ boxes, a slalom round the glass pillars and a makers’ run, relics in the sand, three glassworkers to talk to, cog mice and glass hoppers, and a keepsake of their own.',
+    // the route
+    'The route is nine places now: the desert, Vael, Lorn, Viridel, the City-Shaft, the Glass Dunes, the Buried Machine, the Garden of Spheres and the Signal Market. The Sealed Hangar and the Atelier leave the map and the world list; their people are kept for later.',
+    'Saves carry over: a save left in the sky stones or the Deep Wood wakes in Vael or Lorn where you stood, one left in the Sealed Hangar wakes at the Glass Dunes’ landing, and everything you had done there stays done.',
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

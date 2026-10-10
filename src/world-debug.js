@@ -18,7 +18,7 @@
 // them its live objects; tests/world-debug.test.js and tests/contact-audit.test.js feed them built worlds.
 
 import * as THREE from 'three';
-import { TRIALS } from './trials/data.js';
+import { TRIALS, trialsFor } from './trials/data.js';
 import { kitTrialsFor } from './trials/kit-data.js';
 import { SITES, STORY } from './desert-sites.js';
 import { CINEMATICS } from './cinematics-page/catalog.js';
@@ -133,11 +133,9 @@ export function gatherPoints(w) {
   for (const b of list(level.beacons)) { const t = xyz(b.top); if (t) put('sight', b.name, [t[0], t[1] - (b.height ?? 0), t[2]], { hint: 'a beacon (at its foot)' }); }
   for (const l of list(level.lines)) if (l.points?.length) put('sight', `${l.name}: its start`, l.points[0], { hint: 'a leading line' });
   // the runs: the world's trial, the makers' runs, the makers' court
-  const T = TRIALS[levelId];
-  if (T) put('run', `trial: ${T.name}`, T.start ?? T.marker, { hint: T.blurb ?? '', heading: T.heading });
+  for (const T of trialsFor(levelId)) put('run', `trial: ${T.name}`, T.start ?? T.marker, { hint: T.blurb ?? '', heading: T.heading });
   for (const K of kitTrialsFor(levelId)) put('run', `makers' run: ${K.name}`, K.origin, { hint: K.blurb ?? '', heading: K.yaw });
-  const C = level.finds?.court;
-  if (C) put('run', 'the makers\' court', C.at ?? C.box ?? C.frame?.origin, { hint: 'a court and its box' });
+  for (const C of Object.values(level.finds?.courts ?? (level.finds?.court ? { one: level.finds.court } : {}))) put('run', 'the makers\' court', C.at ?? C.box ?? C.frame?.origin, { hint: 'a court and its box' });
   // the places: the doors into rooms, caves and halls (outside, and inside), the story's goal, named places
   for (const pt of level.portals ?? []) {
     if (pt.temple || !pt.at || pt.toUp || /shop/i.test(pt.label ?? '')) continue;

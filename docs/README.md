@@ -47,7 +47,7 @@ References to other sections read `docs/systems/<file>.md, "Section"`.
 | [rendering.md](systems/rendering.md) | how the look is built (the passes), the developer panel, time of day, the print look, drawn textures, the beauty pass, who casts a shadow, stable in motion (the motion check), thin bars at any distance, half-transparent surfaces (Lorn II's glass mushrooms) |
 | [materials.md](systems/materials.md) | shade and hatching by surface, weathered walls, ground ink by distance, metals and the makers' inscriptions, faster surfaces and shader compiles |
 | [performance.md](systems/performance.md) | phone rendering, quality, culling and the Handheld preset, rooms off the map, levels of detail, hand-overs and loads without a hitch |
-| [worlds.md](systems/worlds.md) | the levels, regions and wind, interiors, the terrain, each world's places, sand drifts, the singing spheres, Qanat, the ship's deck, Home |
+| [worlds.md](systems/worlds.md) | the levels, regions and wind, interiors, the terrain, each world's places, sand drifts, the singing spheres, Qanat, the ship's deck, Home, merged and dismissed worlds (`src/levels/dismissed/`) |
 | [living-world.md](systems/living-world.md) | responsive worlds, birds, wildlife, flora, brushing past plants, flowers with room to open |
 | [water.md](systems/water.md) | the water look and swimming |
 | [temples.md](systems/temples.md) | the makers' temples |

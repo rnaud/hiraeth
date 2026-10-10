@@ -2,8 +2,12 @@
 // A world on the route picked there opens in a save of its own, as if every world before it on
 // the route (ORDER, src/levels/names.js) had been played through, and the world itself not yet:
 //
-//   progressBefore('garage')   → { flags, keepsakes, journal } (pure; null off the route)
-//   seedDebugSave('garage')    → writes it into the debug slot and makes that slot the active one
+//   progressBefore('glassdunes')   → { flags, keepsakes, journal } (pure; null off the route)
+//   seedDebugSave('glassdunes')    → writes it into the debug slot and makes that slot the active one
+//
+// A merged world (src/levels/names.js PARTS: Vael with the sky stones, Lorn with the Deep Wood) is played through
+// part by part, each with its own story data, temple, boxes and `world.<part>.done`; the world's page is its first
+// part's. A temple is counted by its own id (the Glass Dunes' Clock-House is `temple.garage`).
 //
 // It is built from the game's own data, world by world, so it follows the content as it changes:
 //  - every quest of the world's story (QUESTS in src/story/<world>-data.js): done (failed, for the one a
@@ -27,7 +31,8 @@
 // answers (`said.*`). Off the route (the dev worlds, the side worlds, home) nothing changes: the
 // list opens them in the save being played.
 
-import { ORDER, TITLES } from './levels/names.js';
+import { ORDER, TITLES, partsOf } from './levels/names.js';
+import * as glassdunes from './story/glassdunes-people.js';
 import { PLACEMENTS } from './boxes/placements.js';
 import { ITEMS } from './items.js';
 import { MIGRATED } from './save-migrate.js';
@@ -44,7 +49,7 @@ import * as perdide from './story/perdide-data.js';
 import * as perdide2 from './story/perdide2-data.js';
 import * as edena from './story/edena-data.js';
 import * as incal from './story/incal-data.js';
-import * as garage from './story/garage-data.js';
+import * as garage from './levels/dismissed/hangar/story-data.js';
 import * as buried from './story/buried-data.js';
 import * as spheres from './story/spheres-data.js';
 import * as bazaar from './story/bazaar-data.js';
@@ -64,10 +69,12 @@ import * as tBazaar from './temples/bazaar-data.js';
 export const DEBUG_PARAM = 'debugsave';
 
 /** Each route world's story data and its temple's words. */
+// (by part: the merged worlds' parts each have theirs; the Glass Dunes' story is its temple, the Clock-House, and
+// its people; the Sealed Hangar's, dismissed, is kept for the tests that read every world's data)
 export const WORLDS = {
   desert: [desert, tDesert], arzach: [arzach, tArzach], arzach2: [arzach2, tArzach2], perdide: [perdide, tPerdide],
-  perdide2: [perdide2, tPerdide2], edena: [edena, tEdena], incal: [incal, tIncal], garage: [garage, tGarage],
-  buried: [buried, tBuried], spheres: [spheres, tSpheres], bazaar: [bazaar, tBazaar],
+  perdide2: [perdide2, tPerdide2], edena: [edena, tEdena], incal: [incal, tIncal], glassdunes: [glassdunes, tGarage],
+  garage: [garage, {}], buried: [buried, tBuried], spheres: [spheres, tSpheres], bazaar: [bazaar, tBazaar],
 };
 
 /** What the end of a world's main quest sets in code (its onDone in src/story/<world>.js), beyond world.<id>.done and its keepsake. */
@@ -123,7 +130,6 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
   const keep = (k) => { if (k && !keepsakes.some((o) => o.id === k.id)) keepsakes.push({ ...k, t: t++ }); };
   const state = { flag: (k) => flags[k], set: (k, v) => { flags[k] = v; }, keepsakes: () => keepsakes };
   before.forEach((w, n) => {
-    const [data, temple] = WORLDS[w] ?? [{}, {}];
     if (n > 0) {
       // flown here from the last: the map's first line, the ship's word on arrival
       flags['ship.launched'] = true;
@@ -131,8 +137,23 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
       for (const [k, v] of Object.entries(arrivalLine(w, state.flag)?.set ?? {})) flags[k] = v;
     }
     flags['ship.level'] = w;
-    // the people met
+    // the people met (every part's: peopleOf reads them)
     for (const p of peopleOf(w)) flags[`met.${p.id}`] = true;
+    for (const part of partsOf(w)) playPart(part);
+    journal.stories[w] = { img: null, t: t++ };
+    journal.seen[w] = 1;
+    // back at the ship: the recordings waiting at the console, in turn (src/ship/ship.js useConsole)
+    const done = before.slice(0, n + 1);
+    for (let guard = 0; guard < 4; guard++) {
+      const c = pendingCall({ flag: state.flag, completed: done.length });
+      if (c == null) break;
+      applyCall(state, callLines(c, callContext(state, { titles: TITLES, completed: done, lastWorld: w })));
+      flags[`calls.${c}`] = true;
+    }
+  });
+  /** One part of a world played through (a world that is not merged is its own only part). */
+  function playPart(w) {
+    const [data, temple] = WORLDS[w] ?? [{}, {}];
     for (const p of Object.values(temple.PEOPLE ?? {})) flags[`met.${p.id}`] = true;
     // what its conversations do (a flag keeps the first value written: the answers that differ, Hollin's promise, are 'yes')
     const written = new Set(), fails = new Set();
@@ -149,10 +170,11 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
       flags[`quest.${q.id}`] = fails.has(q.id) ? 'failed' : 'done';
       if (fails.has(q.id)) flags[`failed.${q.id}`] = q.title;
     }
-    // its temple: entered, the guardian resolved
+    // its temple: entered, the guardian resolved (by the temple's own id: the Clock-House's is garage)
     if (temple.QUEST) {
-      flags[`temple.${w}.entered`] = true;
-      flags[`temple.${w}.done`] = true;
+      const id = temple.QUEST.id.replace(/^temple\./, '');
+      flags[`temple.${id}.entered`] = true;
+      flags[`temple.${id}.done`] = true;
       flags[`quest.${temple.QUEST.id}`] = 'done';
     }
     // its boxes opened
@@ -174,17 +196,7 @@ export function progressBefore(levelId, { order = ORDER, now = Date.now() } = {}
     Object.assign(flags, WORLD_ENDS[w] ?? {});
     flags[`world.${w}.done`] = true;
     keep(endKeepsake(data, flags));
-    journal.stories[w] = { img: null, t: t++ };
-    journal.seen[w] = 1;
-    // back at the ship: the recordings waiting at the console, in turn (src/ship/ship.js useConsole)
-    const done = before.slice(0, n + 1);
-    for (let guard = 0; guard < 4; guard++) {
-      const c = pendingCall({ flag: state.flag, completed: done.length });
-      if (c == null) break;
-      applyCall(state, callLines(c, callContext(state, { titles: TITLES, completed: done, lastWorld: w })));
-      flags[`calls.${c}`] = true;
-    }
-  });
+  }
   if (before.length) { flags['ship.launched'] = true; flags['signature.told'] = true; }
   flags['ship.level'] = levelId;
   // the errands, carried from world to world (src/quest.js Errands): delivered, or still in the pack

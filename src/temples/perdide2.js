@@ -5,6 +5,7 @@ import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
 import { Door, Switch, LightEar, Bridge, Ball, Plate, Mark, Pit } from './pieces.js';
 import { mothModel } from './guardians.js';
+import { offsetOf } from '../levels/names.js';
 
 // Lorn II's temple: the Lamp-House, a dark tower of the makers standing in the
 // shallow water east of the root cave, a causeway of flat stones out to it from
@@ -46,7 +47,9 @@ const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const TAU = Math.PI * 2;
 
 /** In the shallow water east of the root cave; its door looks west, down the causeway to the path's end. */
-export const SITE = { x: 46, z: -424, r: 14, path: [6, -414] };
+// (the Deep Wood's own coordinates, moved to where the wood lies in Lorn: src/levels/names.js PART_OFFSET)
+const [OX, , OZ] = offsetOf('perdide2');
+export const SITE = { x: 46 + OX, z: -424 + OZ, r: 14, path: [6 + OX, -414 + OZ] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
@@ -425,7 +428,7 @@ function change(scene, level, rt) {
 export const PERDIDE2_TEMPLE = {
   id: 'perdide2', levelId: 'perdide2', name: 'The Lamp-House', doorLabel: 'door of the Lamp-House',
   gadget: 'lantern', gadgetBox: 'perdide2.temple.lantern', arenaDoor: 'd4', dark: true,
-  origin: [-140, 1800, -300], yaw: 0,
+  origin: [-140 + OX, 1800, -300 + OZ], yaw: 0,   // (its rooms over the wood, where they always were from it: names.js PART_OFFSET)
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
   local: { person: 'tamsy', out: 33, side: 2 },

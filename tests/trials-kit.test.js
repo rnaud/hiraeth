@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import './register-gadgets.js';
 import { LEVELS } from '../src/levels/index.js';
-import { ORDER } from '../src/levels/names.js';
+import { ORDER, ROUTE_PARTS, partOf, partsOf } from '../src/levels/names.js';
+import { courtOf } from '../src/finds/courts.js';
 import { Physics } from '../src/physics.js';
 import { Waters } from '../src/water.js';
 import { KIT_TRIALS, kitTrialsFor } from '../src/trials/kit-data.js';
@@ -14,7 +15,7 @@ import { TRIALS } from '../src/trials/data.js';
 import { lacks } from '../src/trials/course.js';
 import { recordScore, bestScore } from '../src/minigames/kit/scores.js';
 import { parseLine } from '../src/story/tone.js';
-import { CONTENT } from '../src/levels/content.js';
+import { CONTENT, NPC_BASE } from '../src/levels/content.js';
 import { clearInteractables, allInteractables } from '../src/interact.js';
 import { clearTargets } from '../src/targets.js';
 import { clearWorkings, workingsAt } from '../src/workings.js';
@@ -31,13 +32,15 @@ import { COURTS, COURT } from '../src/finds/courts.js';
 
 /** Where the one who speaks lives in a world: a person of its own (CONTENT npcs, by id), or a story local
  * (src/story/<world>-data.js LOCALS, standing on the world's spawn spots in order) → [x, z], or null. */
-const STORY = { arzach: await import('../src/story/arzach-data.js'), arzach2: await import('../src/story/arzach2-data.js'), garage: await import('../src/story/garage-data.js') };
+const STORY = { arzach: await import('../src/story/arzach-data.js'), arzach2: await import('../src/story/arzach2-data.js'), garage: await import('../src/levels/dismissed/hangar/story-data.js') };
 function homeOf(world, who) {
-  const npcs = CONTENT[world].npcs;
+  // (a merged world's part: its people come after the parts before it in the world's list, src/levels/content.js NPC_BASE)
+  const [w, base] = NPC_BASE[world] ?? [world, 0];
+  const npcs = CONTENT[w].npcs;
   const own = npcs.filter((n) => n.id === who);
   if (own.length === 1) return own[0].at;
   const i = (STORY[world]?.LOCALS ?? []).findIndex((d) => d.id === who);
-  return i >= 0 && npcs[i] && !npcs[i].id ? npcs[i].at : null;
+  return i >= 0 && npcs[base + i] && !npcs[base + i].id ? npcs[base + i].at : null;
 }
 
 const quiet = (f) => { const w = console.warn, i = console.info; console.warn = console.info = () => {}; try { return f(); } finally { console.warn = w; console.info = i; } };
@@ -94,7 +97,7 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
   assert.ok(Object.keys(KIT_TRIALS).length >= 2);
   for (const [id, T] of Object.entries(KIT_TRIALS)) {
     assert.equal(T.id, id); assert.equal(id, `kit-${T.world}`);
-    assert.ok(ORDER.includes(T.world), `${id}: on the route`);
+    assert.ok(ROUTE_PARTS.includes(T.world), `${id}: on the route (a place of a route world)`);
     assert.ok(TRIALS[T.world], `${id}: its world has its ride’s trial too`);
     assert.notEqual(TRIALS[T.world].id, T.id);
     assert.equal(T.mode, 'kit');
@@ -127,7 +130,7 @@ const worlds = {};
 function world(id) {
   if (worlds[id]) return worlds[id];
   clearInteractables(); clearTargets(); clearWorkings();
-  const meta = LEVELS.find((l) => l.id === id);
+  const meta = LEVELS.find((l) => l.id === partOf(id));   // (a merged world's part: the world that carries it)
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
@@ -173,13 +176,15 @@ function walk(sess, ctx, player, p, step = 0.5) {
 
 for (const T of Object.values(KIT_TRIALS)) {
   test(`${T.id}: the ${T.name.toLowerCase()} stands in ${T.world}, fair, and plays start to finish`, () => {
-    const { scene, physics, surfaceAt } = world(T.world);
+    // (in the world that carries its place: Vael carries the sky stones', Lorn the Deep Wood's)
+    const W0 = partOf(T.world), parts = partsOf(W0);
+    const { scene, physics, surfaceAt } = world(W0);
     const game = new GameState();
     const items = { has: () => true, grant() {} };
     const player = traveller();
     const pell = { def: { id: T.voice.who }, time: 10, shout: null };
-    const C = createChallenges({ levelId: T.world, scene, physics, player, items, game, surfaceAt, npcs: [pell] });
-    assert.equal(C.list.length, 2, 'its ride’s trial and its makers’ run');
+    const C = createChallenges({ levelId: W0, scene, physics, player, items, game, surfaceAt, npcs: [pell] });
+    assert.equal(C.list.length, 2 * parts.length, 'its ride’s trial and its makers’ run (a merged world’s parts each bring theirs)');
     const W = C.byId(T.id);
     const course = W.course;
     assert.ok(allInteractables().some((e) => e.id === `trial.${T.id}`), 'its sign opens its card');
@@ -197,12 +202,12 @@ for (const T of Object.values(KIT_TRIALS)) {
       if (T.wet) assert.ok(!(surfaceAt(gt.x, gt.z, gt.y, 10)?.y > f), `gate ${i + 1}: dry`);
     }
     // nobody of the world's own stands in it
-    for (const n of CONTENT[T.world].npcs) {
+    for (const n of CONTENT[W0].npcs) {
       const [x, z] = n.at.length === 2 ? n.at : [n.at[0], n.at[2]];
       assert.ok(!course.contains(V(x, course.start.y + 1, z)), `${n.id ?? 'someone'} is not standing in the course`);
     }
     // clear of the ship where it lands in this world (src/ship/sites.js: Vael's search put it on the plain)
-    const site = findShipSite({ level: worlds[T.world].level, physics, levelId: T.world, avoid: siteAvoid({ level: worlds[T.world].level, content: CONTENT[T.world] }) });
+    const site = findShipSite({ level: worlds[W0].level, physics, levelId: W0, avoid: siteAvoid({ level: worlds[W0].level, content: CONTENT[W0] }) });
     if (site) {
       const lo = course.kit.local(V(site.x, course.start.y, site.z));
       const [[x0, , z0], [x1, , z1]] = [[-8, 0, -10], [8, 0, 105]];
@@ -210,7 +215,7 @@ for (const T of Object.values(KIT_TRIALS)) {
       assert.ok(Math.hypot(dx, dz) > HULL + 6, `clear of the ship (${Math.hypot(dx, dz).toFixed(0)} m from the course)`);
     }
     // clear of the world's makers' court (src/finds/courts.js: its pavement, its box and the ground it keeps clear)
-    const court = COURTS[T.world];
+    const court = courtOf(T.world);
     if (court) {
       const lo = course.kit.local(V(court.at[0], course.start.y, court.at[1])), cs = course.clear.map((p) => course.kit.local(p));
       const [x0, x1] = [Math.min(...cs.map((p) => p.x)), Math.max(...cs.map((p) => p.x))], [z0, z1] = [Math.min(...cs.map((p) => p.z)), Math.max(...cs.map((p) => p.z))];
@@ -863,11 +868,11 @@ test('the lamp walk: a lamp woken by the lantern raises its moss-stones out of t
 });
 
 test('the disc run: a disc shuttles across each gap edge to edge (the last up to the landing), floors for the traveller; the plain and the wings end it', () => {
-  const { scene, physics } = world('garage');
-  const T = KIT_TRIALS['kit-garage'];
+  const { scene, physics } = world('glassdunes');   // (the Sealed Hangar's until October 2026: in the Glass Dunes with the Clock-House)
+  const T = KIT_TRIALS['kit-glassdunes'];
   const pl = traveller();
   pl.opts = {};
-  const C = createChallenges({ levelId: 'garage', scene, physics, player: pl, items: { has: () => true }, game: new GameState(), kits: [T], trials: {} });
+  const C = createChallenges({ levelId: 'glassdunes', scene, physics, player: pl, items: { has: () => true }, game: new GameState(), kits: [T], trials: {} });
   const W = C.list[0], course = W.course, K = course.kit;
   const floor = (x, z) => { const p = K.world(x, 8, z), g = physics.groundAt(p.x, p.y, p.z, 30); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
   assert.equal(course.discs.length, 3);
@@ -898,7 +903,7 @@ test('the disc run: a disc shuttles across each gap edge to edge (the last up to
   let sess = W.session(ctx);
   pl.pos.copy(K.world(0, -6, 15));
   sess.update(1 / 60, {}, { live: true, phase: 'play' });
-  assert.equal(ctx.result?.title, 'Down on the plain');
+  assert.equal(ctx.result?.title, 'Down on the sand');
   sess.end(); ctx.result = null;
   sess = W.session(ctx);
   pl.gliding = true;

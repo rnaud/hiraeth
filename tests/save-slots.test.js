@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { SlotStore, slotKey, PROGRESS_KEYS, SLOT_KEY, SLOTS_VERSION_KEY, formatPlaytime, formatDate, progressLine } from '../src/save-slots.js';
 import { GameState } from '../src/game-state.js';
+import { ORDER } from '../src/levels/names.js';
 
 const mem = (init = {}) => {
   const m = new Map(Object.entries(init));
@@ -56,7 +57,7 @@ test('the summary: world, worlds done, relics, items, playtime, last played', ()
   assert.equal(s.relics, 3);
   assert.equal(s.items, 2);        // the backpack and the glider; the jar is a carried count
   assert.equal(s.prologue, false);
-  assert.equal(progressLine(s), '2 / 11 worlds · 3 relics · 2 items');
+  assert.equal(progressLine(s), `2 / ${ORDER.length} worlds · 3 relics · 2 items`);
   assert.equal(progressLine(slots.summary(2)), 'New game');
   slots.touch(1, { addSeconds: 125, now: 1759100000000 });
   slots.touch(1, { addSeconds: 60, now: 1759200000000 });

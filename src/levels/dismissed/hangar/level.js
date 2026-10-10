@@ -1,17 +1,24 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { mulberry32 } from '../noise.js';
-import { makeMaterial, MODE_STRATA } from '../materials.js';
-import { jitter, soften } from '../world.js';
-import { attachTemple, navigationPortal } from '../temples/index.js';
-import { placeShop } from '../shop-world.js';
-import { interiorAt } from '../interior-kit.js';
-import { SHOPS } from '../shop.js';
-import { stepped } from '../load-steps.js';
-import { tagMetal } from '../gadgets/metal.js';
-import { buildHangarWays } from '../hangar-ways.js';
+import { mulberry32 } from '../../../noise.js';
+import { makeMaterial, MODE_STRATA } from '../../../materials.js';
+import { jitter, soften } from '../../../world.js';
+import { navigationPortal, clearInstances } from '../../../temples/index.js';
+import { attachCourt } from '../../../finds/courts.js';
+import { HANGAR_COURTS } from './finds.js';
+import { placeShop } from '../../../shop-world.js';
+import { interiorAt } from '../../../interior-kit.js';
+import { SHOPS } from '../../../shop.js';
+import { stepped } from '../../../load-steps.js';
+import { tagMetal } from '../../../gadgets/metal.js';
+import { buildHangarWays } from './ways.js';
 
 // ---------------------------------------------------------------------------
+// DISMISSED (October 2026): the Sealed Hangar left the route; the Glass Dunes took its slot and its temple
+// (src/levels/names.js DISMISSED, docs/systems/worlds.md "Merged and dismissed worlds"). Kept whole here, with
+// its story (story.js, story-data.js, moments.js), its ways (ways.js) and its finds (finds.js), to reuse; built
+// by its tests, never on the route or in the Debug menu. A save left here wakes in the Glass Dunes.
+//
 // The Sealed Hangar: Major Brask's pocket universe.
 // Three zones linked by portals, each with its own gravity and ink style:
 //   A  Brask's plateau   normal gravity, a floating island
@@ -494,9 +501,10 @@ export function* buildGarage(scene) {
   // plateau beside the way from the landing to the keep, its door and hatch turned to the way and the landing
   const shop = placeShop(scene, { def: SHOPS.hatch, at: new THREE.Vector3(13, 0, 86), heading: -1.1 });
 
-  // (the makers' First Garage on the rim: src/temples/garage.js)
+  // (the makers' First Garage stood on the rim: since the Hangar was dismissed (October 2026) it stands in the Glass
+  // Dunes as the Clock-House, src/temples/garage.js; the Hangar keeps its makers' court, from its own finds)
   yield;
-  return attachTemple('garage', scene, {
+  return withCourt(scene, {
     id: 'garage',
     // (the shop's door: a doorway in the level's list, which main.js walks; the gravity portals are the level's own, below)
     portals: [...shop.portals],
@@ -606,5 +614,10 @@ export function* buildGarage(scene) {
       if (z === 'A' && Math.hypot(p.x, p.z) > 900 && !interiorAt(p)) player.teleport(aSpawn, Y, new THREE.Vector3(0, 0, -1));
     },
   });
+}
+/** The Hangar's makers' court, as the temple used to bring it (src/temples/index.js attachTemple). */
+function withCourt(scene, level) {
+  attachCourt('garage', scene, level, { clear: clearInstances, courts: HANGAR_COURTS });
+  return level;
 }
 export const createGarage = stepped(buildGarage);

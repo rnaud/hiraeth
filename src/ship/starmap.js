@@ -96,7 +96,7 @@ export const SIG_GLYPH = '<svg class="glyph" viewBox="0 0 20 16" aria-hidden="tr
 
 const HEADER = 62;   // the title and the count, top left of the field
 const PAD = 6;
-const RING = { a0: -2.4, span: 6, r0: 0.75, p: 0.6 };   // tuned so 11 worlds fit an 860 x 650 field at full size
+const RING = { a0: -2.4, span: 6, r0: 0.75, p: 0.6 };   // tuned so 11 worlds fit an 860 x 650 field at full size (nine since October 2026: room to spare)
 
 /** The footprint rectangle of a world whose disc centre is (x, y). */
 export function boxRect(x, y, b) {

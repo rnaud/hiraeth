@@ -13,6 +13,8 @@ const DATA = readdirSync(new URL('story/', SRC)).filter((f) => f.endsWith('-data
 const { CONTENT } = await import('../src/levels/content.js');
 const mod = {};
 for (const f of DATA) mod[f.replace('-data.js', '')] = await import(new URL(`story/${f}`, SRC));
+// (the Sealed Hangar's, dismissed in October 2026, kept with its world: src/levels/dismissed/hangar/)
+mod.garage = await import(new URL('levels/dismissed/hangar/story-data.js', SRC));
 
 /** A save and a quest log in a few lines: flags, items (item.<id>) and quests (quest.<id> = stage | 'done'). */
 function world(flags = {}) {

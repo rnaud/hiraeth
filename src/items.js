@@ -189,7 +189,7 @@ export const ITEMS = {
     use: 'The ink bridge pen holds half as much ink again: longer bridges, more of them.',
   },
   lodestone: {
-    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'garage', where: 'The first finish of the Pillar slalom, the Hangar’s jet run.',
+    name: 'Strong lodestone', kind: 'upgrade', needs: 'magnet', trial: 'glassdunes', where: 'The first finish of the Glass slalom, the Glass Dunes’ jet run.',
     text: "A darker lodestone for the glove’s palm, from deep in the Hangar’s floor. Spoons follow you about.",
     use: 'The magnet glove reaches 26 m instead of 18.',
   },

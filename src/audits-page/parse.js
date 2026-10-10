@@ -7,7 +7,7 @@
 //
 //   <!-- audit-scores
 //   overall: 3.66 / 5
-//   label: the average across the eleven route worlds
+//   label: the average across the route worlds
 //   headline: (a report with no score: what it found, in one line; overall: none)
 //   date: 2026-10-09            (optional: the title's date otherwise)
 //   version: 1.6                (optional: the file name's otherwise)

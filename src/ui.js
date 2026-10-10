@@ -3,6 +3,7 @@ import { VERSION } from './changelog.js';
 import { confirmKey, backKey } from './native-pad.js';
 import { PAD, PAD_VERBS, KEYS, BUTTON_NAME, PAD_SCHEME } from './bindings.js';
 import { slotStorage } from './save-slots.js';
+import { migrateWhere, layoutOf } from './save-migrate.js';
 import { UpdatePanel } from './update-panel.js';
 import { devMode } from './dev-gate.js';
 import { t, setLanguage, onLanguage, LANGUAGES } from './i18n.js';
@@ -591,9 +592,10 @@ export const GAUGE_DRY = 3;
 
 // ---------------------------------------------------------------------------
 
-// where you stand, in the active save slot (src/save-slots.js)
+// where you stand, in the active save slot (src/save-slots.js); a merged or dismissed world's, or one laid out again,
+// is brought up to date as it loads (src/save-migrate.js migrateWhere: the world that took its place, by the ship)
 export const SaveGame = {
-  load() { try { return JSON.parse(slotStorage.getItem(SAVE_KEY)); } catch { return null; } },
-  write(state) { try { slotStorage.setItem(SAVE_KEY, JSON.stringify({ ...state, t: Date.now() })); } catch { /* ignore */ } },
+  load() { try { return migrateWhere(JSON.parse(slotStorage.getItem(SAVE_KEY)), { fallback: null }); } catch { return null; } },
+  write(state) { try { slotStorage.setItem(SAVE_KEY, JSON.stringify({ layout: layoutOf(state?.level), ...state, t: Date.now() })); } catch { /* ignore */ } },
   clear() { slotStorage.removeItem(SAVE_KEY); },
 };

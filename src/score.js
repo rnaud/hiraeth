@@ -132,6 +132,18 @@ export const SCORES = {
     // "the Major forgot": a question that climbs, stops, and is left hanging
     motif: [[0, 0.5], [1, 0.5], [2, 1], [4, 1.5], [3, 0.5], [2, 1], [null, 1], [2, 0.5], [1, 0.5], [0, 0.5], [5, 2.5]],
   },
+  // The Glass Dunes (on the route since October 2026, in the Hangar's place, with its temple): the Clock-House's
+  // quarrelling clocks over warm sand. The Hangar's clockwork score carried over to the house it kept time by: a
+  // sequenced pulse in sevens, a ticking clock; whole tone, no home, until the Foreman keeps time.
+  glassdunes: {
+    title: 'The Clock in the Glass', root: 130.81, mode: 'wholeTone', level: 1.05, tempo: 80, meter: 7, bars: 2, chordBars: 1,
+    prog: [0, 2, 0, 1], drone: [[0, -1]],
+    pal: { drone: 'synth', pad: 'synth', bass: 'sine', pluck: 'pulse', lead: 'analog', father: 'celesta', echo: 'pulse' },
+    perc: { sub: 2, pattern: 'K.t.t.tK.t.t.t', hits: { K: 'tock', t: 'tick' } }, percAlways: 0.3,
+    arp: [0, 2, 1, 3, 4], density: 0.45,
+    // "every clock a different time": a figure that ticks round and lands on a note it did not start from
+    motif: [[2, 0.5], [3, 0.5], [2, 0.5], [3, 0.5], [4, 1], [null, 0.5], [1, 1], [0, 0.5], [1, 0.5], [5, 2.5]],
+  },
   // The machine under the dunes and its wheel, one tooth a year: low brass drones, a horn,
   // metal struck in the canyons, the tooth's groan. B hungarian minor, slow.
   buried: {

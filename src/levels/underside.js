@@ -5,7 +5,7 @@ import { stepped } from '../load-steps.js';
 import { RoomKit } from './lab-kit.js';
 import { stairs } from './mangrove-kit.js';
 import { stall, herbs } from './salt-harbour-kit.js';
-import { PEOPLE as GARAGE_PEOPLE } from '../story/garage-data.js';
+import { PEOPLE as GARAGE_PEOPLE } from './dismissed/hangar/story-data.js';
 import { PEOPLE as SKY_STONES_PEOPLE } from '../story/arzach2-data.js';
 import { PEOPLE as BAZAAR_PEOPLE } from '../story/bazaar-data.js';
 import {

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 
-const { createPerdide2, PERDIDE2_CONTENT, DARK_POOLS, CAVE } = await import('../src/levels/perdide2.js');
+const { createPerdide2, PERDIDE2_CONTENT, DARK_POOLS, CAVE, DEEP_WOOD } = await import('../src/levels/perdide2.js');
 const { Physics } = await import('../src/physics.js');
 const { spawnNPCs } = await import('../src/npc.js');
 const { createStory } = await import('../src/story/index.js');
@@ -55,15 +55,17 @@ const stand = (p, label) => {
   assert.ok(physics.rayDistance(V(p.x, g + 0.3, p.z), V(0, 1, 0), 1.6) > 1.55, `${label} has headroom`);
   return g;
 };
+// (a walk from the wood's island: the wood lies DEEP_WOOD from the world's origin, src/levels/names.js PART_OFFSET)
 const reachable = (() => {
-  const S = 2, R = 500, N = (2 * R) / S + 1, ok = (i, j) => terrain.heightAt(-R + i * S, -R + j * S) > -1.45;
+  const [CX, , CZ] = DEEP_WOOD;
+  const S = 2, R = 500, N = (2 * R) / S + 1, ok = (i, j) => terrain.heightAt(CX - R + i * S, CZ - R + j * S) > -1.45;
   const seen = new Uint8Array(N * N), q = [((R / S) | 0) * N + ((R / S) | 0)];
   seen[q[0]] = 1;
   for (let h = 0; h < q.length; h++) {
     const c = q[h], i = c % N, j = (c / N) | 0;
     for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ni = i + a, nj = j + b; if (ni < 0 || nj < 0 || ni >= N || nj >= N || seen[nj * N + ni] || !ok(ni, nj)) continue; seen[nj * N + ni] = 1; q.push(nj * N + ni); }
   }
-  return (x, z) => { for (let dz = -4; dz <= 4; dz += 2) for (let dx = -4; dx <= 4; dx += 2) { const i = Math.round((x + dx + R) / S), j = Math.round((z + dz + R) / S); if (seen[j * N + i]) return true; } return false; };
+  return (x, z) => { for (let dz = -4; dz <= 4; dz += 2) for (let dx = -4; dx <= 4; dx += 2) { const i = Math.round((x - CX + dx + R) / S), j = Math.round((z - CZ + dz + R) / S); if (seen[j * N + i]) return true; } return false; };
 })();
 
 test('the deep wood’s people and places stand on walkable or wadeable ground', () => {

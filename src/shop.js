@@ -1,5 +1,6 @@
 import { game as sharedGame } from './game-state.js';
 import { resources as sharedResources, POTION, HEARTS, MAGIC } from './resources.js';
+import { isDismissed, partsOf } from './levels/names.js';
 
 // The shops (docs/systems/items.md, "Shops"): what they sell for chimes, at what price, and how much is left.
 // Pure over the save's flags and the resources (src/resources.js), so the tests drive it without a page, and
@@ -55,20 +56,27 @@ export const SHOPS = {
   welcome: { id: 'welcome', keeper: 'rowan', world: 'perdide2', style: 'mossdome', name: 'The Welcome-Shelf', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   potting: { id: 'potting', keeper: 'clover', world: 'edena', style: 'potting', name: 'Clover’s Potting House', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   basket: { id: 'basket', keeper: 'fausta', world: 'incal', style: 'basket', name: 'Fausta’s Basket-Shop', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
+  // (the Sealed Hangar's, kept with its world, dismissed in October 2026: src/levels/names.js DISMISSED; not counted)
   hatch: { id: 'hatch', keeper: 'odo', world: 'garage', style: 'kiosk', name: 'The Quartermaster’s Hatch', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
+  // (in the kiosk that stood by the First Garage's porch: it came to the dunes with the Clock-House)
+  kilnstall: { id: 'kilnstall', keeper: 'marit', world: 'glassdunes', style: 'kiosk', name: 'Marit’s Kiln-Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   toothcounter: { id: 'toothcounter', keeper: 'mott', world: 'buried', style: 'rivetdome', name: 'Mott’s Tooth-Counter', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
   listening: { id: 'listening', keeper: 'hale', world: 'spheres', style: 'pavilion', name: 'The Listening Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 1 }] },
   curestall: { id: 'curestall', keeper: 'pashka', world: 'bazaar', style: 'stall', name: 'Pashka’s Cure-Stall', wares: [{ id: 'potion' }, { id: 'heart', stock: 2 }, { id: 'magic', stock: 1 }] },
 };
 
+/** The shops a player can reach: one in each place on the route (a dismissed world's shop stays in the list, unvisited). */
+export const OPEN_SHOPS = Object.values(SHOPS).filter((s) => !isDismissed(s.world));
 /** How many heart containers and magic expansions all the shops hold together. */
-export const STOCK_TOTAL = Object.values(SHOPS).reduce((t, s) => {
+export const STOCK_TOTAL = OPEN_SHOPS.reduce((t, s) => {
   for (const w of s.wares) if (w.id !== 'potion') t[w.id] = (t[w.id] ?? 0) + (w.stock ?? 0);
   return t;
 }, { heart: 0, magic: 0 });
 
 /** A world's shop (its level id), or null. */
 export const shopOf = (world) => Object.values(SHOPS).find((s) => s.world === world) ?? null;
+/** The shops in a world (a merged world has its parts': Vael's Wind-Shelf and the sky stones' Almonry). */
+export const shopsIn = (world) => partsOf(world).map(shopOf).filter(Boolean);
 
 const num = (v, d = 0) => (Number.isFinite(+v) && v !== null && v !== undefined && v !== '' ? +v : d);
 

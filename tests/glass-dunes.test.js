@@ -142,23 +142,29 @@ const built = async () => {
   return (world = { scene, level, physics: new Physics(scene, level.ground) });
 };
 
-test('the Glass Dunes: a detour on the map, off the route, with its people and no quest', async () => {
+test('the Glass Dunes: on the route in the Sealed Hangar’s place, with its temple, its people and its relics', async () => {
   const { LEVELS } = await import('../src/levels/index.js');
-  const { ORDER, SIDE, TITLES } = await import('../src/levels/names.js');
+  const { ORDER, SIDE, WIP, TITLES, DISMISSED } = await import('../src/levels/names.js');
   const { CONTENT } = await import('../src/levels/content.js');
   const { mapEntries } = await import('../src/ship/starmap.js');
+  const { TEMPLE_HOME, templesIn } = await import('../src/temples/index.js');
   const meta = LEVELS.find((l) => l.id === 'glassdunes');
-  assert.ok(meta && meta.hidden && meta.title === TITLES.glassdunes);
-  assert.ok(SIDE.includes('glassdunes') && !ORDER.includes('glassdunes'), 'off the route: nothing to finish, never counted');
+  assert.ok(meta && !meta.hidden && meta.title === TITLES.glassdunes);
+  // (October 2026: the Hangar left the route, the Glass Dunes took its slot and its temple, src/levels/names.js)
+  assert.ok(ORDER.includes('glassdunes') && !SIDE.includes('glassdunes') && !WIP.includes('glassdunes'), 'on the route, finished, charted');
+  assert.equal(ORDER.indexOf('glassdunes'), ORDER.indexOf('incal') + 1, 'after the City-Shaft, where the Hangar was');
+  assert.equal(DISMISSED.garage, 'glassdunes', 'a save left in the Hangar wakes here');
+  assert.equal(TEMPLE_HOME.garage, 'glassdunes');
+  assert.deepEqual(templesIn('glassdunes'), ['garage'], 'the Hangar’s temple, the Clock-House now');
   const c = CONTENT.glassdunes;
-  assert.ok(c.npcs.length >= 3 && c.relics.names.length === 0 && c.story.manual, 'people, no relics, no quest');
+  assert.ok(c.npcs.length >= 3 && c.relics.names.length === 5 && c.story.manual, 'people, five relics, a page its temple closes');
   for (const n of c.npcs) assert.ok(n.lines.every((l) => /^~\w+~ /.test(l)), 'toned lines');
-  // the map: the detour charted after the route, known from the start, no signature, before home
+  // the map: on the route, found by the signature search like the others, before home
   const e = mapEntries({ order: ORDER, side: SIDE, levels: LEVELS, flag: () => false, journal: null, current: 'desert', home: true });
   const g = e.find((x) => x.id === 'glassdunes');
-  assert.ok(g && g.known && g.side && !g.signature && !g.done);
-  assert.ok(e.indexOf(g) > e.findIndex((x) => x.id === ORDER.at(-1)) && e.at(-1).home, 'after the route, home last');
-  assert.equal(e.filter((x) => !x.side && !x.home).length, ORDER.length, 'the route unchanged');
+  assert.ok(g && !g.side && g.signature && !g.done);
+  assert.ok(e.at(-1).home, 'home last');
+  assert.equal(e.filter((x) => !x.side && !x.home).length, ORDER.length, 'the route, nine worlds');
 });
 
 test('the Glass Dunes build: the glass solid as drawn, the camps, the arches lit, the ship on its flat', async () => {
@@ -200,7 +206,9 @@ test('the Glass Dunes build: the glass solid as drawn, the camps, the arches lit
 test('the Glass Dunes: what you stand on and climb is the drawn glass (the contact audit)', async () => {
   const { auditContact, formatContact } = await import('../src/contact-audit.js');
   const { scene, physics } = await built();
-  const r = quiet(() => auditContact({ physics, scene, max: 12000 }));
+  // (the glass and the camps: the Clock-House's rooms are the temple's, audited with the others in tests/contact-audit.test.js)
+  const { level } = await built();
+  const r = quiet(() => auditContact({ physics, scene, max: 12000, exclude: (level.temples ?? []).map((t) => t.root) }));
   assert.ok(r.checked.walk > 400 && r.checked.wall > 1000, JSON.stringify(r.checked));
   const c = r.counts;
   // (known: the camps' awnings and floats are drawn only; the kiln's mouth; the sand banked at a stone's foot;

@@ -55,6 +55,7 @@
 import { ENDING_WORLDS, peopleOf, chosenKeepsake, finaleOpen, marketHeard } from './ending.js';
 import { spoken } from './tone.js';
 import { relaySignal, RELAY_COME_HOME } from './relay.js';
+import { ORDER } from '../levels/names.js';
 
 export const KINDS = ['thing', 'song', 'word', 'person', 'knowing'];
 export const isQuiet = (k) => !!k && k.kind !== 'thing' && k.kind !== 'nothing' && k.kind !== 'all';
@@ -90,8 +91,8 @@ export const PROLOGUE_CALL = [
  */
 export const REEL_FROM = 4;
 
-/** One recording per world on the route; recording ENDING_WORLDS asks you home. */
-export const CALL_COUNT = 11;
+/** One recording per world on the route (nine since October 2026: Vael and Lorn each carry their second worlds); recording ENDING_WORLDS asks you home. */
+export const CALL_COUNT = ORDER.length;
 /** The mother's own recording, about Ilen ("For when he asks"). */
 export const ILEN_CALL = 'ilen';
 /** The father on Ilen, the next he finds after hers (it waits on its own when no world is left to finish). */
@@ -99,6 +100,7 @@ export const ILEN_AFTER_CALL = 'ilen.after';
 /** The ship's log after the first homecoming: the light over the hill, its trace, and the father at the window. */
 export const TRACE_CALL = 'trace';
 
+// (the places whose people spoke of the light: the parts of merged worlds keep their own flags, and the Hangar's stay counted for a save that went there)
 const WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 const name = (k) => k?.name ?? 'nothing';
 /** A keepsake's name inside a sentence: “a rust gear tooth”, “the bell’s note”. */
@@ -125,6 +127,10 @@ export const REEL = {
   garage: { word: 'why',
     find: "~tired~ Why did you start it? The boat, the radio. There’s no room in the shed for another thing you’ve given up on.",
     you: '~whisper~ (So did the Major. He kept going anyway.)' },
+  // (the Glass Dunes, on the route since October 2026 in the Sealed Hangar's place: the Hangar's 'why' is kept above)
+  glassdunes: { word: 'time',
+    find: "~tired~ Every clock in this house says a different time. I’ve stopped asking them. Your mother goes by the kettle, and the kettle is always right.",
+    you: '~whisper~ (The clocks agree there now. I wound the one they all listen to.)' },
   buried: { word: 'patience',
     find: "~neutral~ Patience. One tooth at a time, your grandfather said. Never explained the teeth. I suppose that was part of the lesson.",
     you: '~surprised~ (One tooth at a time.)' },

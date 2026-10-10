@@ -29,10 +29,12 @@ import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
 import { UNDERSIDE_CONTENT } from './underside.js';
 import { SPACECITY_CONTENT } from './space-city.js';
 import { TRAIN_CONTENT } from './overnight-train.js';
+import { HANGAR_CONTENT } from './dismissed/hangar/content.js';
+import { ATELIER_CONTENT } from './dismissed/atelier/content.js';
 import { RIM as INCAL_RIM, MIDDLE as INCAL_MIDDLE, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
-import { ORDER } from './names.js';
+import { ORDER, PARTS, offsetOf, shiftAt } from './names.js';
 import { ridePlaces } from '../desert-sites.js';
 const RIDE_SHADE = ridePlaces().shade;
 export { ORDER };
@@ -54,6 +56,9 @@ export const CONTENT = {
   underside: UNDERSIDE_CONTENT,   // src/levels/underside.js: off the route (names.js SIDE), no quest
   spacecity: SPACECITY_CONTENT,   // src/levels/space-city.js: a detour, no quest
   overnighttrain: TRAIN_CONTENT,   // src/levels/overnight-train.js: off the route (names.js SIDE), no quest
+  // the dismissed worlds' (src/levels/dismissed/: off the route and the Debug menu, kept for their tests and to reuse)
+  garage: HANGAR_CONTENT,
+  atelier: ATELIER_CONTENT,
   bazaar: {
     weather: [],
     // the Signal Market's story is a quest (src/story/bazaar-data.js): this page opens on the
@@ -179,20 +184,6 @@ export const CONTENT = {
     },
     relics: { spots: [], names: [] },
     npcs: [],
-  },
-  atelier: {
-    weather: [],
-    story: {
-      title: 'THE LAST PAGE',
-      intro: 'Every world you crossed was drawn here.',
-      outro: 'The pen lifts. The page is yours now.',
-      label: 'the pen', goal: [0, 'ground', 0], radius: 18,
-    },
-    relics: { spots: [], names: [] },
-    npcs: [
-      { at: [22, 26], radius: 3, palette: { cloak: '#2b211f', cloth: '#f3ead8', legs: '#2b2f45' },
-        lines: ["~happy~ Found my atelier? Mind the ink.", "~playful~ I drew those deserts. You did the difficult walking bit.", "~solemn~ Go on. There’s room for another line."] },
-    ],
   },
   desert: {
     weather: ['storm'],
@@ -322,40 +313,65 @@ export const CONTENT = {
       { at: [-130, -183], palette: pal('#b0705a'), lines: ["~sad~ That stone hand once moved. They say.", "~tired~ Small to tall. Always.", "~solemn~ (He taps his knuckles, little finger first, and listens.)"] },
     ],
   },
-  garage: {
-    weather: ['rain'],
-    // the story is a quest (src/story/garage-data.js): this page closes when the Major's note is found
-    story: {
-      title: 'THE MAJOR FORGOT',
-      intro: 'Major Brask built this pocket universe, and forgot why. His people keep the machines turning, and pass round a signal nobody can read.',
-      outro: "The Major’s note says he still doesn’t know what his world is for. On its back: coordinates for a wheel buried in sand. The machines keep working.",
-      label: 'the great machine', goal: [90, 86, -60], radius: 12, manual: true,
-    },
-    relics: {
-      spots: [[0, -40], [-120, 60], [150, 40], { at: [60, 898.8, 2940] }, { at: [2940, -148.8, 0] }],
-      names: ['Brask’s cog', 'Portal fuse', 'Ring compass', 'Upside-down coin', 'Gravity marble'],
-    },
-    npcs: [
-      { at: [40, 60], palette: pal('#e6875f', { cloth: '#3f8f8a' }), lines: ["~playful~ Gravity is a local arrangement here.", "~tired~ The Major built this world and forgot its purpose."] },
-      { at: [-80, -20], palette: pal('#62c3c9'), lines: ["~angry~ Hands clear of the gears, please!", "~happy~ Grease today, grease tomorrow. Lovely."] },
-      // (Gaspard, resting his feet on the plateau's edge in sight of the signal board and the portal: he stood 250 m off the
-      //  walk from the landing to the portal, 175 m from anyone: the level design audit's fifth round)
-      { at: [70, 95], palette: pal('#f2c54b'), lines: ["~playful~ Walk round the ring and arrive where you left.", "~tired~ My feet have seen this whole world. Twice."], shy: true },
-    ],
-  },
   edena: EDENA_CONTENT,
   // the swamp's story and its people: src/levels/perdide.js, src/story/perdide-data.js
   perdide: PERDIDE_CONTENT,
   fallenring: RING_CONTENT,   // src/levels/fallen-ring.js: off the route (names.js SIDE), no quest
 };
 
+// ---------------------------------------------------------------------------
+// The merged worlds (src/levels/names.js PARTS): a world's content is its parts', each moved to where the
+// part lies in it (PART_OFFSET): the first part's story page (the world's one goal), every part's relics and
+// people in turn (a part's npcs come after the parts before it: NPC_BASE, which the errands count on). The
+// parts' own (CONTENT.arzach2, CONTENT.perdide2) stay, for their tests.
+
+/** A part's content where the part lies in its world. */
+export function shiftContent(part, c) {
+  const o = offsetOf(part);
+  if ((!o[0] && !o[1] && !o[2]) || c.coords === 'world') return c;
+  const spot = (s) => (Array.isArray(s) ? shiftAt(part, s) : { ...s, at: shiftAt(part, s.at) });
+  return {
+    ...c,
+    story: c.story && { ...c.story, ...(c.story.goal ? { goal: shiftAt(part, c.story.goal) } : {}) },
+    relics: c.relics && { ...c.relics, spots: c.relics.spots.map(spot) },
+    npcs: (c.npcs ?? []).map((n) => ({ ...n, ...(n.at ? { at: shiftAt(part, n.at) } : {}), ...(typeof n.y === 'number' ? { y: n.y + o[1] } : {}) })),
+    ...(c.traces ? { traces: c.traces.map((t) => ({ ...t, at: shiftAt(part, t.at) })) } : {}),
+  };
+}
+/** A merged world's content: its first part's story, every part's weather, relics and people (their parts' own coordinates moved). */
+export function mergeContent(parts, table) {
+  // (each part's people dressed as their part's people, and speaking its tongue: `world`, src/npc.js; `lang`,
+  // src/story/dialogue.js; the first part's are the world's own)
+  const all = parts.map((p, i) => { const c = shiftContent(p, table[p]); return i ? { ...c, npcs: (c.npcs ?? []).map((n) => ({ world: p, lang: p, ...n })) } : c; });
+  const [first] = all;
+  return {
+    ...first,
+    weather: [...new Set(all.flatMap((c) => c.weather ?? []))],
+    story: first.story,
+    relics: { spots: all.flatMap((c) => c.relics?.spots ?? []), names: all.flatMap((c) => c.relics?.names ?? []) },
+    npcs: all.flatMap((c) => c.npcs ?? []),
+  };
+}
+/** Where each part's people start in its world's list: { part: [world, index of its first] }. */
+export const NPC_BASE = {};
+/** Where each part's relics start in its world's list (a journal kept by part moves over: src/save-migrate.js migrateJournal). */
+export const RELIC_BASE = {};
+for (const [world, parts] of Object.entries(PARTS)) {
+  let n = 0, r = 0;
+  for (const p of parts) { NPC_BASE[p] = [world, n]; RELIC_BASE[p] = [world, r]; n += CONTENT[p].npcs?.length ?? 0; r += CONTENT[p].relics?.spots?.length ?? 0; }
+  CONTENT[world] = mergeContent(parts, { ...CONTENT });
+}
+/** An errand's person, [part, index in the part's people], where they are now: [world, index in its list]. */
+const personAt = ([w, i]) => (NPC_BASE[w] ? [NPC_BASE[w][0], NPC_BASE[w][1] + i] : [w, i]);
+
 // Errands: villagers asking you to carry something to someone in another
 // world. Greeting the giver hands you the parcel; greeting the receiver
-// (npc index into that world's `npcs`) delivers it. Each goes on to the next
-// world on the route (ORDER): the desert, Vael, Vael II, Lorn, Lorn II, Viridel,
-// the City-Shaft, the Sealed Hangar, the Buried Machine, the Garden of Spheres, the
-// Signal Market (every world but the last gives one).
-export const ERRANDS = [
+// (npc index into that world's `npcs`: written by part, [part, index in the part's], ERRANDS has them where
+// they are now) delivers it. Each goes on along the route (ORDER), place by place: the desert, Vael, its sky
+// stones, Lorn, its Deep Wood, Viridel, the City-Shaft, the Glass Dunes (the Sealed Hangar's until October
+// 2026), the Buried Machine, the Garden of Spheres, the Signal Market (every place but the last gives one).
+/** The errands as written, by place: [part, index in the part's people] (ERRANDS has them where they are now). */
+export const ERRAND_PLACES = [
   { id: 'sand', item: 'a jar of singing sand', from: ['desert', 1], to: ['arzach', 1],
     ask: "~curious~ Vael is next for you? Take this sand from between the great ribs. It sings when the wind crosses it. Give it to *Senn in Vael*, the woman who listens to stones. They say nothing there makes a sound. Let her hear something sing.",
     wait: "~neutral~ *Senn, in Vael.* The one with her ear to the stones.",
@@ -366,8 +382,8 @@ export const ERRANDS = [
     wait: "~neutral~ (Kesh points to the sky again: the feather goes on, to the sky stones.)",
     thanks: "~surprised~ A feather from Vael, off your bird? I’ll tie it over my door. If she ever comes up here without you, she’ll know which plateau is friendly." },
   { id: 'crystal', item: 'a humming crystal', from: ['perdide', 2], to: ['perdide2', 2],
-    ask: "~neutral~ Going on into the deep wood? Take this crystal to *Bram, who minds the root cave’s mouth in Lorn II*. It hums before storms. He sits out in all weathers; he’ll want the warning.",
-    wait: "~neutral~ *Bram, at the mouth of the root cave, in Lorn II.*",
+    ask: "~neutral~ Going on into the deep wood? Take this crystal to *Bram, who minds the root cave’s mouth at the far end of the Deep Wood*. It hums before storms. He sits out in all weathers; he’ll want the warning.",
+    wait: "~neutral~ *Bram, at the mouth of the root cave, at the end of the Deep Wood’s lit path.*",
     thanks: "~happy~ A storm stone, from Ivo? Now I’ll hear the weather coming before it sits on me. Thank you." },
   { id: 'gear', item: 'a brass gear', from: ['perdide2', 1], to: ['edena', 0],
     ask: "~neutral~ Take this brass gear to *Mira in Viridel*. It came out of an old dome pump we don’t use. Her water clock has been missing one for years.",
@@ -377,19 +393,19 @@ export const ERRANDS = [
     ask: "~neutral~ Take this glass seed to *Nima in the City-Shaft*. Nothing grows in that smog, they say. This one doesn’t need sun.",
     wait: "~neutral~ *Nima, who sweeps the high terrace, down the red stair from the City-Shaft’s rim.*",
     thanks: "~happy~ A seed, from Viridel’s gardens? Glass, so the smog can’t hurt it. I’ll keep it on my sill, where the Lodestar reaches. Thank you." },
-  { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['garage', 0],
-    ask: "~playful~ The Sealed Hangar next? Take this taxi token to *Clemence* there. They’ve never seen a cab. Show them what a real city runs on.",
-    wait: "~neutral~ *Clemence, in the Sealed Hangar.* The one who remembers the man who built it.",
-    thanks: "~playful~ A cab token? We don’t have cabs. We have walls that turn into floors. The Major would have taken it apart to see how it paid. I’ll keep it whole." },
-  // the later half: Vael II → Lorn, the Hangar → the Buried Machine → the Garden of Spheres → the Signal Market
+  { id: 'token', item: 'a taxi token', from: ['incal', 1], to: ['glassdunes', 0],
+    ask: "~playful~ The Glass Dunes next? Take this taxi token to *Aster, who blows the floats at the west camp*. They’ve never seen a cab. Show them what a real city runs on.",
+    wait: "~neutral~ *Aster, at the Glass Dunes’ west camp.* Under the awnings, by the kiln.",
+    thanks: "~playful~ A cab token? We don’t have cabs. We have sand that turns into glass. I’ll melt a little ring round it and hang it by the kiln. It will be the only token in the dunes." },
+  // the later half: the sky stones → Lorn, the Glass Dunes → the Buried Machine → the Garden of Spheres → the Signal Market
   { id: 'handbell', item: 'a muffled hand bell', from: ['arzach2', 1], to: ['perdide', 0],
-    ask: "~playful~ Going on, after the sky stones? Take my little hand bell to *Wendel, the egg-warden at Lorn’s landing*. I stuffed it with cloth thirty years ago so it would stop reminding me. Someone down there may want a quiet one.",
+    ask: "~playful~ Going on, past the cloud? Take my little hand bell to *Wendel, the egg-warden at Lorn’s landing*. I stuffed it with cloth thirty years ago so it would stop reminding me. Someone down there may want a quiet one.",
     wait: "~neutral~ *Wendel, the egg-warden, at Lorn’s landing.* Leave the cloth in. He’ll know when to take it out.",
     thanks: "~playful~ A bell with a sock in it, from the monks over the cloud? Very considerate. I’ll hang it over the eggs, and take the sock out on a special occasion." },
-  { id: 'grease', item: 'a tin of gear grease', from: ['garage', 1], to: ['buried', 2],
-    ask: "~happy~ Off to the Major’s wheel under the sand? Take this tin of my gear grease to *Tull, who oils the oval doors in the Buried Machine*. The Major said they squeal. Grease is how we say hello.",
-    wait: "~neutral~ *Tull, at the oval doors, in the Buried Machine.* Don’t lean on the tin.",
-    thanks: "~happy~ Grease from the Major’s own world? (Tull dabs the nearest hinge and swings the door. Not a sound.) No squeak. Lovely. Same smell as his boots." },
+  { id: 'grease', item: 'a pot of kiln grease', from: ['glassdunes', 1], to: ['buried', 2],
+    ask: "~happy~ Off to the wheel under the sand that Wim talks about? Take this pot of kiln grease to *Tull, who oils the oval doors in the Buried Machine*. Old doors squeal. Grease is how we say hello.",
+    wait: "~neutral~ *Tull, at the oval doors, in the Buried Machine.* Don’t lean on the pot.",
+    thanks: "~happy~ Grease from the glass country? (Tull dabs the nearest hinge and swings the door. Not a sound.) No squeak. Lovely. Smells of hot sand." },
   { id: 'pipewhistle', item: 'a whistle cut from an old pipe', from: ['buried', 1], to: ['spheres', 0],
     ask: "~whisper~ Going on? Take this whistle, cut from an old pipe. It sounds like the pipes on Tooth Day. *Linnet, the listener, in the Garden of Spheres*, collects sounds. Give her one from down here.",
     wait: "~whisper~ *Linnet, in the Garden of Spheres’ umbrella grove.* Let her hear it first.",
@@ -399,3 +415,5 @@ export const ERRANDS = [
     wait: "~neutral~ *Oyo, the lantern seller in the Signal Market.* Keep the sky side up.",
     thanks: "~surprised~ A bit of sky, from a garden of spheres? (He sets it under a lantern. Two little suns look back.) Not for sale. The first thing on my stall that isn’t." },
 ];
+
+export const ERRANDS = ERRAND_PLACES.map((e) => ({ ...e, from: personAt(e.from), to: personAt(e.to) }));

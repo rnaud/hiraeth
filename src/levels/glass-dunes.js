@@ -7,14 +7,20 @@ import { RoomKit } from './lab-kit.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { DUNE_HAZE } from '../desert-sites.js';
 import { glassRidge, glassArch, glassPassage, awningCamp, boulders, glassOptions, glassBatch, glassPools, SAND } from './glass-dunes-kit.js';
+import { attachTemple } from '../temples/index.js';
+import { placeShop } from '../shop-world.js';
+import { SHOPS } from '../shop.js';
+import { LOCALS } from '../story/glassdunes-people.js';
 
 // ---------------------------------------------------------------------------
-// The Glass Dunes (?level=glassdunes; docs/systems/worlds.md "The Glass Dunes"): a world off the
-// route, a detour on the galactic map (src/levels/names.js SIDE). A basin of amber sand walled in by
-// dunes of fused green glass: high frozen waves, cliffs holding great dark silhouettes, billows, a
-// wave breaking over its own hollow; sandy paths wind between them; the glassworkers keep two camps
-// of fabric awnings at the walls' feet; archways glow in the walls' feet; low glass flows run over
-// the sand. No quest: people, light, wind. Built from the References' kit (glass-dunes-kit.js), the
+// The Glass Dunes (?level=glassdunes; docs/systems/worlds.md "The Glass Dunes"): on the route since
+// October 2026, in the Sealed Hangar's place (src/levels/names.js ORDER; the Hangar was dismissed).
+// A basin of amber sand walled in by dunes of fused green glass: high frozen waves, cliffs holding
+// great dark silhouettes, billows, a wave breaking over its own hollow; sandy paths wind between them;
+// the glassworkers keep two camps of fabric awnings at the walls' feet; archways glow in the walls'
+// feet; low glass flows run over the sand. The Hangar's temple stands east of the valley now, the
+// Clock-House (src/temples/garage.js), with Wim at its door, its makers' court north of it, its trial
+// and its makers' run on the valley floor. Built from the References' kit (glass-dunes-kit.js), the
 // plates in references/levels/The Glass Dunes/environment/.
 //
 // Layout (m; +z south): the ship lands on a flat in the south (0, 250), its hatch to the north. The
@@ -55,8 +61,13 @@ export function glassHeight(x, z) {
   h += ramp(x, z, GLASS_CAMPS.west.ramp) + ramp(x, z, GLASS_CAMPS.north.ramp);
   h += 14 * smoothstep(470, 600, r);   // (sand banked up the ring's foot)
   const pad = smoothstep(55, 30, Math.hypot(x - GLASS_SHIP.x, z - GLASS_SHIP.z));
-  return h * (1 - pad) + 0.4 * pad;
+  h = h * (1 - pad) + 0.4 * pad;
+  // a level floor of sand under the Clock-House (src/temples/garage.js SITE) and its apron, so its door sits on the sand
+  const house = smoothstep(26, 15, Math.hypot(x - CLOCK_HOUSE.x, z - CLOCK_HOUSE.z));
+  return h * (1 - house) + CLOCK_HOUSE.y * house;
 }
+/** Where the Clock-House stands (src/temples/garage.js SITE) and the height of the sand floor under it. */
+export const CLOCK_HOUSE = { x: 118, z: 72, y: 2 };
 
 /**
  * The ridges (glass-dunes-kit.js glassRidge; the face looks to the right of the way the path runs).
@@ -170,8 +181,17 @@ export function* buildGlassDunes(scene) {
 
   const spawn = new THREE.Vector3(GLASS_SHIP.x, 0, GLASS_SHIP.z - 24);
   spawn.y = terrain.heightAt(spawn.x, spawn.z);
-  return {
+  // Marit's kiln-stall (src/shop-world.js, src/shop-fronts.js 'kiosk': the riveted cabin that stood by the First
+  // Garage's porch, come to the dunes with the Clock-House): on the valley floor a short walk up from the ship,
+  // between the near flows and the mound, its hatch turned to the ship
+  const shop = placeShop(scene, { def: SHOPS.kilnstall, at: new THREE.Vector3(GLASS_SHOP.x, terrain.heightAt(GLASS_SHOP.x, GLASS_SHOP.z), GLASS_SHOP.z), heading: GLASS_SHOP.heading });
+  lights.push(...shop.lights);
+  // the Clock-House east of the valley, and its rooms far overhead (src/temples/garage.js); its court north of it
+  const level = {
     id: 'glassdunes',
+    portals: [...shop.portals],
+    shops: [shop],
+    floraAvoid: shop.avoid(),
     ground: terrain,
     ridges,
     camps,
@@ -179,7 +199,7 @@ export function* buildGlassDunes(scene) {
     spawnHeading: Math.PI,
     camYaw: 0,
     shipSite: { ...GLASS_SHIP },
-    features: { mount: false, wind: true, jetpack: false, climb: true },
+    features: { mount: false, wind: true, jetpack: true, climb: true },   // (the jets: the Pillar slalom over the valley, and the Clock-House's later rooms)
     defaults: { hour: 16.5, preset: 'Moebius print', look: GLASS_WORLD_LOOK },
     limit: 560,
     edgeHint: 'The glass closes the dunes in; the wind turns you back.',
@@ -198,9 +218,15 @@ export function* buildGlassDunes(scene) {
       planets: [{ az: 120, el: 30, size: 4, color: '#d6f0d8' }],
     },
     atmo: () => ({ tint: [1, 1, 1], fog: 0.3, name: 'The Glass Dunes' }),
+    // the Clock-House's brass finial over the sand, seen from the ship's flat (scripts/level-design/audit.mjs aims at a
+    // level's beacons as landmarks: the height grid's peak of the drum lies inside it, behind its own wall)
+    beacons: [{ name: 'the Clock-House', top: [CLOCK_HOUSE.x, CLOCK_HOUSE.y + 30.5, CLOCK_HOUSE.z], height: 5 }],
     update() {},
   };
+  return attachTemple('garage', scene, level);
 }
+/** Marit's kiln-stall: on the valley floor up from the ship, turned to it. */
+export const GLASS_SHOP = { x: 26, z: 152, heading: Math.atan2(GLASS_SHIP.x - 26, GLASS_SHIP.z - 152) };
 export const createGlassDunes = stepped(buildGlassDunes);
 
 /** What the camps' people say as you pass (toned: src/story/tone.js). */
@@ -225,21 +251,28 @@ export function glassCrowdSpots(terrain) {
 }
 
 const pal = (cloak, extra = {}) => ({ cloak, lining: extra.lining ?? '#2b211f', ...extra });
-/** The world's content (src/levels/content.js): no quest, no relics; a page for the sketchbook, the glassworkers. */
+/** The world's content (src/levels/content.js): its page (closed when the Clock-House keeps time: src/story/glassdunes.js), its relics, the glassworkers. */
 export const GLASS_CONTENT = {
   weather: ['storm'],
   story: {
-    title: 'THE GLASS DUNES',
-    intro: 'A desert that turned to glass. Something stands inside the dunes; the glassworkers camp at their feet and do not ask what.',
-    outro: 'You walked the glass.',
-    label: 'the west camp', goal: [GLASS_CAMPS.west.x, 'ground', GLASS_CAMPS.west.z], radius: 12, manual: true,
+    title: 'THE CLOCK IN THE GLASS',
+    intro: 'A desert that turned to glass. Something stands inside the dunes; the glassworkers camp at their feet and do not ask what. East of the valley a round house of the makers wears a stopped clock, and every clock in the camps keeps the wrong time.',
+    outro: 'The Clockwork Foreman keeps time again. The clock over the Clock-House door agrees with every clock in the camps, and Wim says the slow time comes from a wheel under some other desert.',
+    label: 'the Clock-House', goal: [118, 'ground', 72], radius: 16, manual: true,
   },
-  relics: { spots: [], names: [] },
+  // (on the glass mounds by the paths: climbed, and looked from)
+  relics: {
+    spots: [[-60, 150], [70, 140], [-150, 30], [100, -100], [40, -40]],   // (and the west camp's sand ramp: the mound west of the valley keeps the makers' box)
+    names: ['Glass float', 'Kiln shard', 'Clock key', 'Fused coin', 'Wind-blown bead'],
+  },
   npcs: [
-    { at: [-118, 26], radius: 2, palette: pal('#d9b48a', { cloth: '#5a4a3a' }), lines: ['~neutral~ We blow floats from the drifts. The dunes give the sand; the kiln does the rest.', '~curious~ Have you looked into the cliffs at dusk? The big ones are clearer then.'] },
-    { at: [-112, 38], radius: 2, palette: pal('#4f8a7f'), lines: ['~whisper~ My grandmother said they were asleep in there. My mother said they were only shapes.', '~playful~ I say they are good company. They never want the last float.'] },
+    // (Aster and Corin: an errand comes to Aster from the City-Shaft, one goes from Corin to the Buried Machine: src/levels/content.js)
+    { ...LOCALS.aster, at: [-118, 26], radius: 2, palette: pal('#d9b48a', { cloth: '#5a4a3a' }) },
+    { ...LOCALS.corin, at: [-112, 38], radius: 2, palette: pal('#4f8a7f') },
     { at: [16, -186], radius: 3, palette: pal('#c98a4a', { cloth: '#3f4b44' }), lines: ['~solemn~ The wave has been breaking over this camp for longer than we have names.', '~happy~ It has not finished yet. We are in no hurry.'] },
     { at: [-66, -214], radius: 2, palette: pal('#e6d3b8'), lines: ['~curious~ The archways only open to the light. Stand here when the sun is low.', '~neutral~ Beyond? More glass. It is always more glass.'], shy: true },
+    // (Oren, resting by the makers' discs east of the ship: src/trials/kit-data.js kit-glassdunes speaks in his voice)
+    { ...LOCALS.oren, at: [24, 228], radius: 2, palette: pal('#5fb7ad', { cloth: '#e6d3b8' }) },
   ],
   // the detour's trace (src/story/sightings-detours.js): the mark pressed into the glass from above, by the west camp
   traces: [{

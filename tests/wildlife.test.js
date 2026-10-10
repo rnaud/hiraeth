@@ -6,13 +6,15 @@ import { allTargets, clearTargets, raycastTargets, hitTarget } from '../src/targ
 import { Physics } from '../src/physics.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT } from '../src/levels/content.js';
+import { buildableById } from '../src/levels/buildable.js';
+import { wildlifeOf } from '../src/wildlife.js';
 
 const Y = new THREE.Vector3(0, 1, 0);
 const built = new Map();
 /** a real level with its collision and wildlife (cached per id) */
 function world(id) {
   if (!built.has(id)) {
-    const meta = LEVELS.find((l) => l.id === id), scene = new THREE.Scene();
+    const meta = buildableById(id), scene = new THREE.Scene();   // (a merged world's part on its own too: src/levels/buildable.js)
     const level = meta.create(scene);
     const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
     level.init?.(physics);
@@ -41,6 +43,12 @@ test('every visible world has two or three species of its own, each with a diffe
     }
   }
   assert.ok((WILDLIFE.atelier ?? []).length <= 1, 'the atelier stays quiet');
+  // a merged world's creatures: its parts', each round its own places (Vael's on the plain, the sky stones' on their plateau)
+  const vael = world('arzach');
+  const ids = wildlifeOf(vael.level, CONTENT.arzach).map((d) => d.id);
+  for (const d of [...WILDLIFE.arzach, ...WILDLIFE.arzach2]) assert.ok(ids.includes(d.id), `Vael has the ${d.id}`);
+  const crab = vael.wildlife.creatures.find((c) => c.species.id === WILDLIFE.arzach2[0].id);
+  assert.ok(crab && crab.pos.z > -900, `the sky stones’ ${WILDLIFE.arzach2[0].id} lives over the cloud, not on Vael’s plain (z ${crab?.pos.z.toFixed(0)})`);
 });
 
 for (const id of ['spheres', 'bazaar', 'perdide2', 'incal']) {

@@ -12,10 +12,6 @@ Playtests are not listed here: the author plays all the time.
 Never delete a temple or a character: a dismissed world moves whole to a dismissed-levels folder
 (`src/levels/dismissed/`), out of the route and the Debug menu's worlds, so its pieces can be reused elsewhere.
 
-- [ ] **Vael and Vael II become one world**, keeping the key areas of both.
-- [ ] **Lorn and Lorn II become one world**: the open area with the crystals leading into the forest of mushrooms.
-- [ ] **The Sealed Hangar leaves the route**, replaced by the Green Dunes (its temple moves there); **the Atelier is
-  dismissed**. Both go to the dismissed folder.
 - [ ] **Promote the Moon Foundry** to a world on the route.
 - [ ] **Promote the city in space and the city underwater**; redesign the underwater one so you are never outside swimming.
 - [ ] **The train level moves**: a moving train, not a station, and a sub-level reached by a quest from another world.
@@ -29,9 +25,10 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
   you only rise, no forward drift.
   (Until they land, the Warden's Well's chest holds the Warden's harness, jets that fire in the City-Shaft only, v1.38:
   with the pillars in, the harness can go and the shaft's way up be the wings.)
-- [ ] **The jets' trials outside the City-Shaft** (the Hangar's Pillar slalom, the Buried Machine's Canyon dive, the
+- [ ] **The jets' trials outside the City-Shaft** (the Glass Dunes' Glass slalom, the Buried Machine's Canyon dive, the
   Signal Market's Avenue run): since the jets became a debug item (v1.38) they want the debug jets, so their rewards
-  (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode.
+  (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode. (The
+  Hangar's Pillar slalom is out of play with the Hangar, dismissed in v1.39; its lodestone went to the Glass slalom.)
 
 ## Look
 

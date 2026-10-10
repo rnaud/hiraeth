@@ -38,7 +38,7 @@ import { PALETTE as HANGAR } from '../temples/garage.js';
 //   course.update(dt, t) · course.dispose()
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY, perdide2: LAMPHOUSE, garage: HANGAR };
+const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY, perdide2: LAMPHOUSE, garage: HANGAR, glassdunes: HANGAR };   // (the Clock-House, the First Garage that was: its palette)
 
 /**
  * What a temple piece asks of its temple (src/temples/runtime.js), for a piece stood in the open. Its logic is

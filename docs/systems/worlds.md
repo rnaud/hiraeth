@@ -13,17 +13,19 @@ in [story.md](story.md)); `?level=<id>` and the dev menu still open any world. E
 | # | Level | Tagline | Getting around |
 |---|---|---|---|
 | 1 | **The Desert** (`desert`) | after *Sable* (Shedworks) | walk, climb, glide, hoverbike |
-| 2 | **Vael** (`arzach`) | a silent world of needles | the wings, the flying bird (after her call), climb |
-| 3 | **Vael II: The Sky Stones** (`arzach2`) | stones that fell up | the flying bird, climb |
-| 4 | **Lorn** (`perdide`) | a twilight swamp that hums | hover-skiff, wading, caves |
-| 5 | **Lorn II: The Deep Wood** (`perdide2`) | the wood under the swamp | hover-skiff, wading, caves |
-| 6 | **Viridel** (`edena`) | a garden that keeps what falls | climbing with stamina |
-| 7 | **The City-Shaft** (`incal`) | a city stacked down a pit | jetpack, climb, flying taxis (with a pass) |
-| 8 | **The Sealed Hangar** (`garage`) | a pocket universe that keeps turning | portals, shifting gravity, jetpack |
-| 9 | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
-| 10 | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
-| 11 | **The Signal Market** (`bazaar`) | a market where everything talks | walk, taxis (with a pass) |
+| 2 | **Vael** (`arzach`, with the sky stones, once `arzach2`) | a silent world of needles, and stones that fell up | the wings, the flying bird (after her call), climb |
+| 3 | **Lorn** (`perdide`, with the Deep Wood, once `perdide2`) | a twilight swamp that hums, and the wood under it | hover-skiff, wading, caves |
+| 4 | **Viridel** (`edena`) | a garden that keeps what falls | climbing with stamina |
+| 5 | **The City-Shaft** (`incal`) | a city stacked down a pit | jetpack, climb, flying taxis (with a pass) |
+| 6 | **The Glass Dunes** (`glassdunes`) | glass waves over a sand valley, a clock-house | walk, climb, jetpack |
+| 7 | **The Buried Machine** (`buried`) | a machine under the dunes | climb, jetpack |
+| 8 | **The Garden of Spheres** (`spheres`) | spheres that answer | walk, climb |
+| 9 | **The Signal Market** (`bazaar`) | a market where everything talks | walk, taxis (with a pass) |
 | – | **The White Mangrove** (`mangrove`, off the route) | a village in the white roots | walk, climb, swim |
+| – | *dismissed:* **The Sealed Hangar** (`garage`), **The Atelier** (`atelier`) | kept whole in `src/levels/dismissed/` | see "Merged and dismissed worlds" |
+
+Since October 2026 the route has nine places: the two second takes were merged into their originals and the
+Sealed Hangar and the Atelier were dismissed (below, "Merged and dismissed worlds").
 
 Nothing in the game is named after a Moebius work (v0.39): the worlds, people and
 places all have names of their own. The level ids (`arzach`, `edena`, `garage`,
@@ -705,6 +707,56 @@ and five of the lake's folk stand on its walks and decks, each with a few toned 
   planks as the bed: a per-mesh "not a bed" mark in water.js would drop it); the lanterns light no colour on the
   roots (the shader's local lights only lift the shade); the creatures are flat spots, not a soft glow under
   the surface; the houses can't be entered; the boats pass through the stilts.
+
+## Merged and dismissed worlds (October 2026)
+
+The author's rule: no temple and no character is ever deleted; a world that leaves the route is kept whole, to be
+reused elsewhere. `src/levels/names.js` says what became of each id:
+
+- **`MERGED`** `{ arzach2: 'arzach', perdide2: 'perdide' }`: a part merged into another world. `PARTS` lists a merged
+  world's parts in order (`partsOf`, `partOf`), `PART_OFFSET` where a part's own coordinates lie in the merged world
+  (`offsetOf`, `shiftAt`). The old id stays an alias: `levelById('arzach2')` opens Vael, `worldFor` maps any id to the
+  world that holds it now.
+- **`DISMISSED`** `{ garage: 'glassdunes', atelier: null }`: a world off the route and off the Debug menu, its
+  modules moved whole into `src/levels/dismissed/<name>/` (the level, its story, people, sightings, finds), still
+  built by the tests (`src/levels/buildable.js` `BUILDABLE`: the levels, the parts on their own, the dismissed worlds).
+  The value is the world that took its place (the Glass Dunes took the Hangar's), or `null`.
+- **Saves** (`src/save-migrate.js` step 10 `migrateWorlds`, `migrateWhere`, `migrateJournal`): a save standing in a
+  merged part or a dismissed world resumes in the world that holds it now (where it stood, shifted into the merged
+  world's frame; a dismissed world's save at its replacement's landing), its `world.*.done` and quest flags kept, its
+  journal pages folded into the merged world's. `tests/save-migrate.test.js` covers every case.
+
+**Vael** (`src/levels/arzach.js`) is built in the sky stones' frame: Vael II's plateaus and cloud sea stay where
+they were (`buildSkyStones(scene, terrain, { merged: true })`, `src/levels/arzach2.js`) and Vael's plain is laid
+1080 m north of them (`PART_OFFSET.arzach`), its lone tower standing on the spot where the sky stones' tower stood
+(that tower's shaft is cut; its plinth and face stay). One terrain (5200 m, 480 segments) joins the plain to the
+plateaus' foot. Both temples (the Aerie, `arzach`, and the Belfry, `arzach2`), both stories, both courts, trials,
+makers' runs and shops stand in the one world; Vael's look and captions read "Vael" on the plain and "Vael · the
+sky stones" over the cloud. Cut: two of the sky stones' hoodoos and one needle cluster on their low plain (where Vael's plain
+lies now), Vael's edge mountains on that side, the sky stones' own landing and mount.
+
+**Lorn** (`src/levels/perdide.js`) keeps its coordinates; the Deep Wood (`buildDeepWood`, `src/levels/perdide2.js`)
+is laid 480 m north (`PART_OFFSET.perdide2`): the crystal swamp opens into the wood, and the wood's half-transparent
+giant mushrooms (the Veils, `src/veil.js`) stand in it as before. One terrain (3200 m, 600 segments) blends the two
+grounds (`deepWoodWeight`). Both temples (the Lamp-House, `perdide2`, and Lorn's), both stories, keepers, courts,
+trials and shops are kept. Cut: the Deep Wood's own water sheet (Lorn's water serves both), its mist bands (Lorn's
+height fog serves), its moored skiff (the traveller's own skiff from Lorn is used), its own look.
+
+**Multi-temple levels** (`src/temples/index.js`): `level.temples` lists every temple a world holds; `level.temple`
+is the one the player is inside (else the world's own); `templeOf(level, id)`, `templesIn(world)`; `TEMPLE_HOME`
+says where a temple stands when it moved (`garage` → `glassdunes`). Per-part data tables (box placements, courts,
+trials, kit runs, foes' posts, aliens, wildlife, flora, content) stay keyed by part and are shifted into the merged
+world as they load (`shiftPlacement`, `courtOf`, `trialsFor`, `kitTrialsFor`, `wildlifeOf`, `level.foes.partAt`).
+
+**The Glass Dunes** took the Hangar's place on the route (6th, before the Buried Machine), and its temple: the First
+Garage became **the Clock-House** (`src/temples/garage.js`, ids unchanged so saves keep `temple.garage.*`), a round
+clock tower east of the valley with its cogs half sunk in the sand (a level floor of sand under it,
+`CLOCK_HOUSE`). Wim winds the glassworkers' clocks now (`src/temples/garage-data.js`); the Hangar's words for her are
+kept in `src/levels/dismissed/hangar/temple-words.js`. The dunes gained a story page ("The Clock in the Glass",
+`src/story/glassdunes.js`: the world done when the Foreman keeps time, Wim's tick as its keepsake, the clock filmed
+coming round), Marit's Kiln-Stall (the kiosk), a court, boxes, a trial (the Glass slalom), a makers' run, five
+relics, three locals (Aster, Corin, Oren), cog mice and glass hoppers. **The Atelier** left the picker (home and
+the Lantern remain).
 
 ## The Glass Dunes: a detour off the route (October 2026)
 

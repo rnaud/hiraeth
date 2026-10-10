@@ -37,11 +37,18 @@
 // (the double jump) and the fluid gun if it was past the places they are found now (the giant's pool, the Givers'
 // Hearth), so nobody loses what they had. Step 9 takes the jets (a debug item since) out of play: the save keeps the
 // Warden's harness instead, the City-Shaft's own.
+// The author's level changes (October 2026, src/levels/names.js MERGED, DISMISSED): Vael II became part of Vael,
+// Lorn II of Lorn, and the Sealed Hangar left the route for the Glass Dunes. Step 10 moves a save's own world
+// (`ship.level`) and the worlds it had found on the map to the world each became; a Hangar it had finished
+// counts as the Glass Dunes' slot finished (`world.glassdunes.done`), so the route does not take a world back.
+// The part's own flags (`arzach2.*`, `world.arzach2.done`, `quest.arzach2.*`, the temples', the boxes') keep
+// their names: the merged world carries its parts' quests and finds under them. Where you stand
+// (src/ui.js SaveGame) goes through migrateWhere, and the sketchbook's relics through migrateJournal.
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
-import { ORDER } from './levels/names.js';
+import { ORDER, MERGED, DISMISSED, worldFor } from './levels/names.js';
 import { STOPS as FELLOW_STOPS } from './story/fellow-data.js';
 
 /** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
@@ -152,7 +159,71 @@ const STEPS = [
     flags['item.harness'] ??= true;
     flags['box.incal.temple.jetpack'] ??= true;
   },
+  // 10: merged and dismissed worlds (src/levels/names.js): the ship's world and the map's finds move to their
+  // replacements; a finished Hangar is the Glass Dunes' slot finished
+  (flags) => migrateWorlds(flags),
 ];
+
+/** Step 10 (pure, in place): a save's worlds moved to the ones that took their place. */
+export function migrateWorlds(flags) {
+  const moved = { ...MERGED, ...DISMISSED };
+  const ship = flags['ship.level'];
+  if (ship != null && Object.hasOwn(moved, ship)) flags['ship.level'] = worldFor(ship, 'desert');
+  for (const [from, to] of Object.entries(moved)) {
+    if (!to) continue;
+    if (flags[`map.found.${from}`]) flags[`map.found.${to}`] ??= true;
+    // (the fellow traveller met in Lorn II was met in Lorn: src/story/fellow-data.js STOPS)
+    if (flags[`fellow.stop.${from}`] !== undefined) flags[`fellow.stop.${to}`] ??= flags[`fellow.stop.${from}`];
+  }
+  if (flags['world.garage.done']) flags['world.glassdunes.done'] ??= true;
+  return flags;
+}
+
+/**
+ * Which worlds were laid out again (their places moved), by version: a save made before stood somewhere else.
+ * Vael's plain moved north of the sky stones (October 2026: src/levels/names.js PART_OFFSET).
+ */
+export const LAYOUT = { arzach: 2 };
+/** The layout version of a world (1 for one never moved). */
+export const layoutOf = (id) => LAYOUT[id] ?? 1;
+
+/**
+ * Where a save stood (src/ui.js SaveGame: { level, pos, heading, yaw, hour, up, fwd, layout }), brought up to date:
+ * a merged or dismissed world's id becomes the world that took its place (a dismissed one without one: `fallback`;
+ * null leaves the level unset, and the game opens the ship's world), and where it stood is forgotten (it lands at the ship, by its spawn) if that world was laid
+ * out again since. Pure; returns a new object (or what it was given, if nothing changed).
+ */
+export function migrateWhere(saved, { fallback = 'desert' } = {}) {
+  if (!saved || typeof saved !== 'object' || saved.level == null) return saved;
+  const level = worldFor(saved.level, fallback) ?? null;
+  const moved = level !== saved.level, relaid = level != null && (saved.layout ?? 1) !== layoutOf(level);
+  if (!moved && !relaid) return saved;
+  const { pos, up, fwd, heading, yaw, ...rest } = saved;
+  return level == null ? { ...rest, level } : { ...rest, level, layout: layoutOf(level) };
+}
+
+/**
+ * The sketchbook (src/quest.js Journal data: { relics: { world: { i: entry } }, stories, seen }) brought up to date:
+ * a merged part's relics move into its world's list after the parts before it (`bases`: { part: [world, first
+ * index] }, src/levels/content.js RELIC_BASE), and having seen the part is having seen the world. In place;
+ * returns true if anything moved.
+ */
+export function migrateJournal(data, bases) {
+  if (!data) return false;
+  let moved = false;
+  for (const [part, [world, base]] of Object.entries(bases ?? {})) {
+    if (part === world) continue;
+    const own = data.relics?.[part];
+    if (own && Object.keys(own).length) {
+      const into = (data.relics[world] ??= {});
+      for (const [i, entry] of Object.entries(own)) into[base + Number(i)] ??= entry;
+      delete data.relics[part];
+      moved = true;
+    }
+    if (data.seen?.[part] && !data.seen[world]) { data.seen[world] = 1; moved = true; }
+  }
+  return moved;
+}
 
 /** The step a fresh save starts at (src/game-state.js reset): nothing to migrate. */
 export const MIGRATED = () => STEPS.length;

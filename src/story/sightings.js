@@ -16,7 +16,9 @@
 // Each is saved as the flag sight.<id> (in the save, like every flag), so it stays met.
 
 import { DETOUR_SIGHTINGS } from './sightings-detours.js';
-import { isWip } from '../levels/names.js';
+import { isWip, partOf } from '../levels/names.js';
+// (the Sealed Hangar's three, Lune's and Clemence's, left with the dismissed world in October 2026: they cannot be met
+// now; a save that met them keeps their flags. Kept in src/levels/dismissed/hangar/sightings.js.)
 
 export const THREADS = [
   { id: 'light', name: 'The singing light', ask: 'What drained the ship as it passed, and why did it turn?' },
@@ -43,7 +45,6 @@ const ROUTE = [
   { id: 'incal.nima', thread: 'light', world: 'incal', who: 'Nima', line: 'It flew low across the shaft. The Lodestar answered, and a splinter fell, singing.', heard: { who: 'nima', node: 'rang' } },
   { id: 'incal.dov', thread: 'light', world: 'incal', who: 'Dov', line: 'When it turned over the palace, he saw the mark on it.', heard: { who: 'dov', node: 'night' } },
   { id: 'incal.wren', thread: 'light', world: 'incal', who: 'Wren', line: 'Slow, then a sharp turn. A cab’s compass spun for an hour.', heard: { who: 'wren', node: 'light' } },
-  { id: 'garage.lune', thread: 'light', world: 'garage', who: 'Lune', line: 'It crossed the ring’s slit, low and slow, and the metal sang back. Then it turned, deliberately.', heard: { who: 'lune', node: 'light' } },
   { id: 'buried.hask', thread: 'light', world: 'buried', who: 'Hask', line: 'A Tuning Star, singing the wheel’s note. Nobody knows what they come to tune.', heard: { who: 'hask.buried', node: 'why' } },
   { id: 'spheres.ume', thread: 'light', world: 'spheres', who: 'Ume', line: 'An Answerer, matching the pole’s note. It turned directly over the plaza.', heard: { who: 'ume', node: 'strange' } },
   { id: 'bazaar.ferro', thread: 'light', world: 'bazaar', who: 'Ferro', line: 'It turned as though it were reading the signs. The antenna’s bulbs lit by themselves.', heard: { who: 'ferro', node: 'light' } },
@@ -56,13 +57,14 @@ const ROUTE = [
   { id: 'perdide2.welcome', thread: 'glyph', world: 'perdide2', who: 'Hollin', line: 'The Welcome: three lamps over a hull. Someone here expects you.', heard: { who: 'hollin.perdide2', node: 'glyph' } },
   { id: 'edena.scar', thread: 'glyph', world: 'edena', who: 'Odile and Talo’s ship', line: 'Under the vines, scorched metal, and the same mark burned into it.', heard: { who: 'scar', node: 'look' } },
   { id: 'incal.three', thread: 'glyph', world: 'incal', who: 'Ossa', line: 'The Three Who Look Up, cut into the Lodestar’s underside where only the bottom can see.', heard: { who: 'ossa', node: 'glyph' } },
-  { id: 'garage.thumb', thread: 'glyph', world: 'garage', who: 'Clemence', line: 'The Major found it scratched on a stone and copied it onto everything. For luck. Or for somebody.', heard: { who: 'clemence', node: 'listen', has: 'thumbprint' } },
+  // (the Glass Dunes, on the route since October 2026: the mark fused into the sand by the west camp, its own flag set by
+  // its trace, src/levels/glass-dunes.js GLASS_CONTENT.traces; it was a detour's until then)
+  { id: 'glassdunes.mark', thread: 'glyph', world: 'glassdunes', who: 'a mark in the glass', line: 'Fused into the sand from above, in a skin of glass newer than the dunes. The camp leaves the sand round it untouched.' },
   { id: 'buried.thumb', thread: 'glyph', world: 'buried', who: 'Wen', line: 'The Maker’s Thumb, on the buried pipes, painted on the doors.', heard: { who: 'wen', node: 'mark' } },
   { id: 'spheres.footprint', thread: 'glyph', world: 'spheres', who: 'Emrys', line: 'The Footprint, pressed under every sphere, where nobody looks.', heard: { who: 'ivo', node: 'listen', has: 'Footprint' } },
   { id: 'bazaar.heard', thread: 'glyph', world: 'bazaar', who: 'the oldest sign', line: 'Under the mark, four words: WE HEARD YOU.', heard: { who: 'oldSign', node: 'awake' } },
   // ---------------------------------------------------------------- the father's signal
   { id: 'ship.signature', thread: 'signal', world: 'desert', who: 'the ship', line: 'The scar is magnetised. Its field beats slowly, in threes.', flag: 'signature.told' },
-  { id: 'garage.signal', thread: 'signal', world: 'garage', who: 'Lune', line: 'A signal passed round for years that nobody could read, read at last through the slit.', heard: { who: 'lune', node: 'signal' } },
   { id: 'bazaar.kip', thread: 'signal', world: 'bazaar', who: 'Kip', line: 'The unsent recording arrived singing, a man’s voice under the note, saying a name.', heard: { who: 'kip', node: 'recording' } },
   { id: 'bazaar.voice', thread: 'signal', world: 'bazaar', who: 'the broadcast', line: 'Your father’s voice, younger, sent a long time ago to someone called Ilen.', heard: { who: 'broadcast', node: 'play' } },
   { id: 'bazaar.sel', thread: 'signal', world: 'bazaar', who: 'Sel', line: 'Thirty years crossing the dark, looking for someone. It reached you instead.', heard: { who: 'sel', node: 'name' } },
@@ -119,7 +121,9 @@ export function sightingsData({ game, known = () => true, titles = {}, list = SI
     // (a world still being made is off the map: its slots are left out, unless already met there)
     const entries = list.filter((s) => s.thread === t.id && (!wip(s.world) || seen(s.id, game))).map((s) => {
       const found = seen(s.id, game);
-      return { id: s.id, found, line: found ? s.line : '?', who: found ? s.who : '', world: found || known(s.world) ? titles[s.world] ?? s.world : '' };
+      // (a merged world's part is named by its world: the sky stones' are Vael's, src/levels/names.js MERGED)
+      const w = partOf(s.world);
+      return { id: s.id, found, line: found ? s.line : '?', who: found ? s.who : '', world: found || known(w) ? titles[w] ?? w : '' };
     });
     // (the ones met first, in the route's order; then the open slots)
     entries.sort((a, b) => Number(b.found) - Number(a.found));

@@ -26,7 +26,7 @@ import { setupPerdide } from './perdide.js';
 import { setupPerdide2 } from './perdide2.js';
 import { setupArzach } from './arzach.js';
 import { setupArzach2 } from './arzach2.js';
-import { setupGarage } from './garage.js';
+import { setupGarage } from '../levels/dismissed/hangar/story.js';
 import { setupBuried } from './buried.js';
 import { setupEdena } from './edena.js';
 import { setupSpheres } from './spheres.js';
@@ -35,9 +35,12 @@ import { setupBazaar } from './bazaar.js';
 import { setupCabs } from './cab.js';
 import { setupHome } from './home.js';
 import { setupLantern } from './lantern.js';
+import { setupGlassDunes } from './glassdunes.js';
 import { setupTempleStory } from '../temples/index.js';
 import { setupShops } from './shops.js';
 import { setupFellow } from './fellow.js';
+import { partsOf } from '../levels/names.js';
+import { NPC_BASE } from '../levels/content.js';
 
 // The story runtime for a world: quests, conversations, the objective
 // marker, the E prompt, and the world's own story (src/story/<world>.js).
@@ -68,7 +71,29 @@ const WORLDS = {
   bazaar: setupBazaar,
   home: setupHome,
   lantern: setupLantern,
+  glassdunes: setupGlassDunes,
 };
+/**
+ * A merged world's stories (src/levels/names.js PARTS: Vael carries Vael II's, Lorn Lorn II's), made one: the first
+ * part's fields win, every part's update / onTalk / hold / camera runs, their people are one list; `parts` has each.
+ */
+export function combineWorlds(list) {
+  const ws = list.filter(([, w]) => w);
+  if (ws.length <= 1) return ws[0]?.[1] ?? null;
+  const rev = ws.slice().reverse().map(([, w]) => w);
+  const all = (k) => (...a) => { for (const [, w] of ws) w[k]?.(...a); };
+  return {
+    ...Object.assign({}, ...rev),
+    parts: Object.fromEntries(ws),
+    people: Object.assign({}, ...rev.map((w) => w.people ?? {})),
+    update: all('update'), onTalk: all('onTalk'), hold: all('hold'), frameCamera: all('frameCamera'),
+    busy: () => ws.some(([, w]) => !!w.busy?.()),
+    crowdTalk: ws.some(([, w]) => w.crowdTalk) ? (p) => { for (const [, w] of ws) { const d = w.crowdTalk?.(p); if (d) return d; } return null; } : undefined,
+  };
+}
+/** The story page as a later part sees it: its own ending does not close the world's page (the first part's story does). */
+const quietPage = (story) => (story ? Object.assign(Object.create(story), { complete() {} }) : story);
+
 const UP = new THREE.Vector3(0, 1, 0);
 const _p = new THREE.Vector3(), _d = new THREE.Vector3(), _eyes = new THREE.Vector3();
 
@@ -156,8 +181,9 @@ export function createStory(o) {
   }
 
   /** E talks to this person. */
-  function talkable(npc, def) {
-    if (npc.identify) npc.identify(def, levelId);
+  // (world: the place they belong to, for their look: a merged world's second part's people keep theirs, src/levels/names.js PARTS)
+  function talkable(npc, def, world = levelId) {
+    if (npc.identify) npc.identify(def, world);
     else npc.def = def;
     return registerInteractable({
       id: `talk.${def.id}`, priority: PRIORITY.talk, range: def.range ?? 3.4, npc,
@@ -169,20 +195,20 @@ export function createStory(o) {
     });
   }
   /** A story person: a full NPC standing, seated or following. */
-  function spawn(def, { route, seat = null, heading = null, follow = null, speed = 1.1 }) {
+  function spawn(def, { route, seat = null, heading = null, follow = null, speed = 1.1, world = null }) {
     const kind = def.body ?? def.kind ?? 'm';   // (def.body: the body, when it isn't the voice's kind: a child)
     const npc = new NPC(scene, physics, {
       route, palette: def.palette, lines: def.lines ?? ['…'], lib, human: humans ? humans[kind === 'm' ? 0 : 1] : null, kind,
-      scale: def.scale, seat, follow, head: def.head ?? null, cape: def.cape ?? null, speed, def,
+      scale: def.scale, seat, follow, head: def.head ?? null, cape: def.cape ?? null, speed, def, world,
     });
     if (heading !== null) npc.heading = heading;
     npcs.push(npc);
     registerNPCTargets([npc]);
-    talkable(npc, def);
+    talkable(npc, def, world ?? levelId);
     return npc;
   }
   // the level's own people who have something to say
-  for (const n of npcs) if (n.def?.talk) talkable(n, n.def);
+  for (const n of npcs) if (n.def?.talk) talkable(n, n.def, n.def.world ?? levelId);   // (a merged world's second part's people: their own place's look)
   // what the traveller writes down as he meets it: the light, the makers' sign, the father's signal (src/story/sightings.js)
   recordSightings(game, { toast });
   // the world's traces (a detour world's: a mark, a fragment, something left; its content's `traces`, src/levels/<world>.js):
@@ -206,7 +232,17 @@ export function createStory(o) {
 
   // a world's first times, filmed (src/story/moment.js): on the ship's camera, never over a conversation
   const moments = new MomentStage({ ship: o.ship ?? null, game, player, physics, quiet: () => dialogue.open || !!story?.pageOpen });
-  world = WORLDS[levelId]?.({ ...o, quests, dialogue, game, spawn, talkable, moments }) ?? null;
+  // (a merged world runs each of its parts' stories, the first with the world's page)
+  // (each part's people dressed as their part's: spawn and talkable know where they belong)
+  // (a later part's own people come after the parts before it in the world's list: its `npcs` start at them, so its
+  // LOCALS bind to its own spawn spots, src/levels/content.js NPC_BASE)
+  world = combineWorlds(partsOf(levelId).map((part, i) => [part, WORLDS[part]?.({
+    ...o, story: i ? quietPage(story) : story, quests, dialogue, game, moments,
+    npcs: i && NPC_BASE[part] ? npcs.slice(NPC_BASE[part][1]) : npcs,
+    // (and speaking their part's tongue: the sky stones' monks chant, they do not hush as Vael does)
+    spawn: i ? (def, opt = {}) => spawn(def.lang ? def : { ...def, lang: part }, { world: part, ...opt }) : spawn,
+    talkable: i ? (npc, def) => talkable(npc, def.lang ? def : { ...def, lang: part }, part) : talkable,
+  }) ?? null]));
   // the cabs (src/taxi.js): they drive themselves, and ask where to as you get in (src/story/cab.js)
   const cabs = setupCabs({ player, dialogue, level, toast });
   // the world's temple (src/temples/): its quest, its local, its rooms and guardian

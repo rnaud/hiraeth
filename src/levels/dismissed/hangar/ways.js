@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { makeMaterial } from './materials.js';
+import { makeMaterial } from '../../../materials.js';
 
 // The Sealed Hangar's upside-down quarter, its far edge (level design audit, fourth round: the walk to the Major's
 // desk could not see where it went, and the walk back from it to the portal home passed nothing new). Built in the

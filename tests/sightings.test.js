@@ -11,7 +11,7 @@ const { SIGHTINGS, THREADS, seen, sightingsOf, recordSightings, sightingsData, s
 const { Dialogue } = await import('../src/story/dialogue.js');
 const { sketchesPanel, SIGHT_COLS } = await import('../src/game-menu.js');
 const { sketchesData } = await import('../src/game-menu-data.js');
-const { ORDER, SIDE } = await import('../src/levels/names.js');
+const { ORDER, SIDE, ROUTE_PARTS, partOf } = await import('../src/levels/names.js');
 const { parseLine } = await import('../src/story/tone.js');
 
 /** A save of its own (the GameState of src/game-state.js, on a storage we hold). */
@@ -30,7 +30,7 @@ async function everyone() {
     if (o.talk && o.id) { if (!out.has(o.id)) out.set(o.id, []); out.get(o.id).push(o.talk); }
     for (const [k, v] of Object.entries(o)) if (k !== 'palette') walk(v, seenSet);
   };
-  for (const w of ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'garage', 'buried', 'spheres', 'bazaar']) walk(await import(`../src/story/${w}-data.js`));
+  for (const w of ['desert', 'arzach', 'arzach2', 'perdide', 'perdide2', 'edena', 'incal', 'buried', 'spheres', 'bazaar']) walk(await import(`../src/story/${w}-data.js`));
   walk((await import('../src/levels/content.js')).CONTENT);
   return out;
 }
@@ -41,11 +41,13 @@ test('every sighting is in a thread, unique, short, and every route world has so
   for (const s of SIGHTINGS) {
     assert.ok(!ids.has(s.id), `unique: ${s.id}`); ids.add(s.id);
     assert.ok(THREADS.some((t) => t.id === s.thread), `${s.id}: a thread`);
-    assert.ok([...ORDER, ...SIDE].includes(s.world), `${s.id}: a world`);
+    assert.ok([...ROUTE_PARTS, ...SIDE].includes(s.world), `${s.id}: a world (or a part of one)`);
     assert.ok(s.line && s.line.length <= 140 && s.who, `${s.id}: a short line and who`);
     assert.doesNotMatch(s.line, /\bsister\b/i, 'it hints, it never says');
   }
-  for (const w of ORDER) assert.ok(SIGHTINGS.some((s) => s.world === w), `a sighting in ${w}`);
+  for (const w of ORDER) assert.ok(SIGHTINGS.some((s) => partOf(s.world) === w), `a sighting in ${w}`);
+  // (the Sealed Hangar's left with it: src/levels/dismissed/hangar/sightings.js)
+  assert.ok(!SIGHTINGS.some((s) => s.world === 'garage'), 'none in a dismissed world');
 });
 
 test('every route sighting is keyed on a real line: the person, the node, the words', async () => {

@@ -9,7 +9,7 @@ import { PASTELS, RUST, ROOFS, STEEL, sectorGeometry } from './incal.js';
 import { BONE } from './arzach.js';
 import { table, needle, boulder } from './sky-stones-kit.js';
 import { bridge } from './arzach2.js';
-import { PALETTE as HANGAR, hangarHouse, hangarTower, hangarMachine } from './garage.js';
+import { PALETTE as HANGAR, hangarHouse, hangarTower, hangarMachine } from './dismissed/hangar/level.js';
 import { cylBetween, elbow } from './buried.js';
 import { padForm } from '../form.js';
 import { edenaTree, edenaPyramid, edenaRuins, LEAVES } from './edena.js';

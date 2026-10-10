@@ -953,8 +953,13 @@ export const WILDLIFE = {
   ],
   waterfall: [{ ...sprayNewt, count: 7, anchors: fallsAnchors }, { ...cupCrab, count: 6, anchors: fallsAnchors }],
   atelier: [{ ...doodleMouse, count: 5 }],
-  // a detour (src/levels/glass-dunes.js): the desert's crabs and jerboas, come over the glass
-  glassdunes: [{ ...sandCrab, count: 6 }, { ...jerboa, count: 5 }],
+  // the Glass Dunes (on the route since October 2026, in the Sealed Hangar's place): the cog mice that came with the
+  // Clock-House, and the glass hoppers that slip into one wall of glass and out of another (the Hangar's portal
+  // hoppers' kin, green as the glass)
+  glassdunes: [
+    { ...cogMouse, count: 6 },
+    { ...portalHopper, id: 'glassHopper', name: 'glass hopper', main: '#8fd9c0', count: 5, trick: { ...portalHopper.trick, name: 'dives into a wall of glass and pops out of another' } },
+  ],
 };
 
 /** every species definition by id */

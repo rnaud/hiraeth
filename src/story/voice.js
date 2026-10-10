@@ -91,6 +91,10 @@ export const LANGUAGES = {
     cons: ['m', 'n', 'ng', 'h', 'l', ''], vowels: ['o', 'u', 'a', 'o'] },
   garage:   { name: 'Hangar clatter', wave: 'square', pitch: 1.0, rate: 1.15, len: 0.75, gain: 0.8, breath: 0, clip: 0.7, glide: 0, formant: 1.0, density: 0.9, mech: 1,
     cons: ['t', 'k', 'd', 'g', 'z', 'tk', 'b'], vowels: ['e', 'i', 'o', 'a'] },
+  // (the Glass Dunes, on the route since October 2026: the glassworkers' cant, clinking and warm, words clipped short
+  // like beads on a wire)
+  glassdunes: { name: 'glass-cant', wave: 'triangle', pitch: 1.02, rate: 1.06, len: 0.82, gain: 0.85, breath: 0.18, clip: 0.25, glide: 0.6, formant: 1.02, density: 0.85, ring: 0.3,
+    cons: ['k', 'l', 's', 'n', 'v', 't', 'r'], vowels: ['e', 'a', 'i', 'ae'] },
   buried:   { name: 'Deep-wheel tongue', wave: 'sawtooth', pitch: 0.82, rate: 0.85, len: 1.0, gain: 0.8, breath: 0.15, clip: 0.4, glide: -0.6, formant: 0.82, density: 0.8,
     cons: ['g', 'd', 'r', 'b', 'm', 'k'], vowels: ['o', 'u', 'a', 'oe'] },
   edena:    { name: 'Edenic', wave: 'sine', pitch: 1.1, rate: 1.02, len: 0.95, gain: 0.95, breath: 0.08, clip: 0.1, glide: 2.2, formant: 1.1, density: 0.85,

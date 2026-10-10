@@ -13,7 +13,7 @@ import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile } from '../src/telegraph.js';
 import { DROP_OF } from '../src/chimes.js';
-import { ORDER, SIDE, TITLES } from '../src/levels/names.js';
+import { ORDER, SIDE, TITLES, ROUTE_PARTS } from '../src/levels/names.js';
 import { VerletChain } from '../src/motion-kit/chain.js';
 import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
@@ -104,7 +104,7 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
     const roles = new Set(list.map((a) => ARCHETYPES[a].role));
     assert.equal(roles.size, list.length, `${w}: a role each`);
   }
-  for (const w of ORDER) {
+  for (const w of ROUTE_PARTS) {
     assert.ok(WORLDS[w], `${w}: on the route, it has a table`);
     assert.ok(worldArchetypes(w).some((a) => ARCHETYPES[a].ranged), `${w}: a ranged or area role`);
   }
@@ -113,7 +113,7 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
   assert.ok(!WORLDS.home && !WORLDS.atelier && !WORLDS.overnighttrain, 'the peaceful worlds field none');
   // each archetype in 3–7 worlds, 1–4 of them on the route (the blot: every world)
   for (const a of ARCHETYPE_IDS.filter((x) => x !== 'blot')) {
-    const all = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes(a)), route = all.filter((w) => ORDER.includes(w));
+    const all = Object.keys(WORLDS).filter((w) => worldArchetypes(w).includes(a)), route = all.filter((w) => ROUTE_PARTS.includes(w));
     assert.ok(all.length >= 3 && all.length <= 7, `${a}: in ${all.length} worlds`);
     assert.ok(route.length >= 1 && route.length <= 4, `${a}: on the route in ${route.length}`);
   }
@@ -126,7 +126,7 @@ test('every world’s table is valid and diverse: 3–6 archetypes, a ranged or 
 test('the difficulty curve: tier 1 alone in the first worlds, tier 4 only in the last; pack budgets by stage', () => {
   const tiers = (w) => worldArchetypes(w).map((a) => ARCHETYPES[a].tier);
   for (const w of ['desert', 'arzach']) assert.ok(Object.keys(WORLDS[w].roster).every((a) => ARCHETYPES[a].tier === 1), `${w}: tier 1 alone`);
-  for (const w of ORDER.slice(0, 8)) assert.ok(tiers(w).every((t) => t < 4), `${w}: no tier 4 before the last three`);
+  for (const w of ORDER.slice(0, -3)) assert.ok(tiers(w).every((t) => t < 4), `${w}: no tier 4 before the last three`);
   for (const w of ['spheres', 'bazaar']) assert.ok(tiers(w).includes(4), `${w}: tier 4`);
   // (v1.22, the roster's step 8: the third stage up to five places, the last three four to five, the Market a summit of its own)
   assert.deepEqual(BUDGET, [[1, 2], [2, 3], [3, 5], [4, 5], [5, 6]]);

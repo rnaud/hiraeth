@@ -9,8 +9,8 @@
 //  - finishing a world (its `world.<id>.done` flag or its story page) takes it
 //    out of that pair, and the next world in ORDER takes its place;
 //  - a world you have been to (or are standing in) stays known, done or not;
-//  - a world that follows another's story (AFTER, src/levels/names.js: Vael II after Vael, whose bird
-//    it needs) waits, uncounted, until that one is done.
+//  - a world that follows another's story (AFTER, src/levels/names.js; empty since Vael II became part of
+//    Vael in October 2026) waits, uncounted, until that one is done.
 //
 // The order puts the fluid wings first (Vael, the second world: its Aerie, and the wind at its lone
 // tower) and the fluid jets in the later half (the City-Shaft, seventh): no world before it needs them.

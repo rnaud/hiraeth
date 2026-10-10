@@ -13,7 +13,7 @@ const PAPER = '#f7ecd2';
 const cache = new Map();
 
 /** The worlds Lou has drawn (her drawing of each: see paint()). */
-export const DRAWN = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
+export const DRAWN = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'glassdunes', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
 
 function crayon(ctx, rng) {
   // a wobbly crayon line: each stroke drawn twice, a hair apart
@@ -89,6 +89,14 @@ function paint(ctx, kind) {
       circle(90, 110, 40, '#2b211f'); for (let a = 0; a < 6.3; a += 1.05) line([[90, 110], [90 + Math.cos(a) * 40, 110 + Math.sin(a) * 40]], '#2b211f', 4);
       scribble(140, 80, 80, 60, '#c8553d'); line([[140, 80], [220, 80], [220, 140], [140, 140], [140, 80]], '#2b211f', 5);
       person(200, 165, 0.7, '#2b211f', true);
+      break;
+    case 'glassdunes':   // green glass waves over the sand, and the round clock house with its clock
+      ground('#e3c58f', 160);
+      for (const [x0, h] of [[10, 70], [150, 90]]) line([[x0, 160], [x0 + 30, 160 - h], [x0 + 70, 160 - h * 0.7], [x0 + 95, 160]], '#5fbf9f', 7);
+      line([[100, 160], [100, 110], [140, 110], [140, 160]], '#2b211f', 5);
+      circle(120, 96, 14, '#d2a648', '#f3ead8', 4);
+      line([[120, 96], [120, 86]], '#2b211f', 3); line([[120, 96], [128, 96]], '#2b211f', 3);
+      sun(220, 36);
       break;
     case 'buried':   // the great wheel's teeth, and a lamp underground
       scribble(0, 0, W, H, '#8a6a5a');

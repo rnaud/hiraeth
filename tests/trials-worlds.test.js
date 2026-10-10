@@ -7,7 +7,9 @@ import { CONTENT } from '../src/levels/content.js';
 import { ORDER } from '../src/levels/names.js';
 import { Physics } from '../src/physics.js';
 import { Waters } from '../src/water.js';
-import { TRIALS } from '../src/trials/data.js';
+import { TRIALS, trialsFor } from '../src/trials/data.js';
+import { courtOf } from '../src/finds/courts.js';
+import { partsOf } from '../src/levels/names.js';
 import { checkCourse } from '../src/trials/check.js';
 import { createTrials } from '../src/trials/index.js';
 import { COURTS, COURT } from '../src/finds/courts.js';
@@ -34,11 +36,13 @@ for (const id of ORDER) {
     quiet(() => level.init?.(physics));
     const waters = quiet(() => new Waters(scene, { physics, drops: false }));
     const surfaceAt = (x, z, y, b) => waters.surfaceAt(x, z, y, b);
-    // the court
-    const C = COURTS[id];
+    // the courts (a merged world has its parts': src/levels/names.js PARTS)
+    const parts = partsOf(id);
+    for (const part of parts) {
+    const C = courtOf(part);
     if (C) {
-      const court = level.finds?.court;
-      assert.ok(court, 'the court is built');
+      const court = level.finds?.courts?.[part];
+      assert.ok(court, `${part}: the court is built`);
       assert.equal(court.gadget, C.gadget);
       const [x, y, z] = court.box.at;
       const g = physics.groundAt(x, y + 1.5, z, 4);
@@ -50,14 +54,17 @@ for (const id of ORDER) {
       const n = ['props', 'breakables', 'anchors', 'plates', 'ropes', 'pickups', 'pinwheels'].reduce((s, k) => s + (W[k]?.length ?? 0), 0);
       assert.ok(n > 0 || C.gadget === 'bridge' || C.gadget === 'monocle' || C.gadget === 'springs', `${C.gadget}: its pieces join the world (${n})`);
     } else assert.equal(level.finds?.court, undefined, 'no court in the desert (its box is the backpack’s)');
-    // the trial
-    const T = TRIALS[id];
-    assert.deepEqual(checkCourse(T, { physics, surfaceAt }), [], `${T.name}: a fair course`);
+    }
+    // the trials (each part's, where it lies in the world)
+    const trials = trialsFor(id);
+    assert.equal(trials.length, parts.length, 'a trial for every part');
+    for (const T of trials) assert.deepEqual(checkCourse(T, { physics, surfaceAt }), [], `${T.name}: a fair course`);
+    const T = trials[0];
     const game = new GameState();
     const items = { has: () => true, grant() {} };
     const world = createTrials({ levelId: id, scene, physics, level, player: { pos: V(0, 0, 0), mount: { kind: MODE_MOUNT[T.mode] ?? 'none' } }, items, game, surfaceAt });
     assert.ok(Number.isFinite(world.sign.position.y), 'its sign stands somewhere');
-    assert.ok(allInteractables().some((e) => e.id === `trial.${id}`), 'and opens its card');
+    assert.ok(allInteractables().some((e) => e.id === `trial.${T.world}`), 'and opens its card');
     assert.equal(world.lacks(), '');
     assert.ok(world.par > 10, `a par (${world.par} s)`);
     world.dispose();

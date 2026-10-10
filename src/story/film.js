@@ -27,7 +27,8 @@ export const WORLD_MOMENTS = {
   perdide2: [{ id: 'perdide2.pools', flag: 'perdide2.moment.pools', beat: 'the last dark pool is lit and the saucer blinks back across the water' }],
   edena: [{ id: 'edena.terraces', flag: 'edena.moment.terraces', beat: 'the cistern gate gives way and the flood takes the terraces' }],
   incal: [{ id: 'incal.lodestar', flag: 'incal.moment.lodestar', beat: 'the Lodestar lights again over the shaft' }],
-  garage: [{ id: 'garage.signal', flag: 'garage.moment.signal', beat: 'the signal is read through the ring’s slit' }],
+  garage: [{ id: 'garage.signal', flag: 'garage.moment.signal', beat: 'the signal is read through the ring’s slit' }],   // (the Sealed Hangar's, dismissed: kept with its world)
+  glassdunes: [{ id: 'glassdunes.clock', flag: 'glassdunes.moment.clock', beat: 'the clock over the Clock-House comes round and keeps time, and the great cogs turn in the sand' }],
   buried: [{ id: 'buried.wheel', flag: 'buried.moment.wheel', beat: 'the great wheel turns, and goes on turning' }],
   spheres: [{ id: 'spheres.chord', flag: 'spheres.moment.chord', beat: 'the pole rings with the three spheres’ chord' }],
   bazaar: [{ id: 'bazaar.broadcast', flag: 'bazaar.moment.broadcast', beat: 'the silent tower broadcasts again' }],

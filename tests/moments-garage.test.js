@@ -1,4 +1,4 @@
-// The Sealed Hangar's climax, filmed (src/story/garage-moments.js): the signal read through the
+// The Sealed Hangar's climax, filmed (src/levels/dismissed/hangar/moments.js): the signal read through the
 // ring's slit, nine dots of light on the floor. Played in the real story runtime with a fake ship.
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -7,15 +7,15 @@ import * as THREE from 'three';
 const el = () => ({ classList: { add() {}, remove() {}, toggle() {}, contains: () => false }, style: {}, dataset: {}, remove() {}, addEventListener() {}, querySelector: () => null, appendChild() {}, set textContent(v) {}, set innerHTML(v) {} });
 globalThis.document ??= { createElement: el, body: el(), getElementById: () => null, querySelector: () => null };
 
-const { createGarage } = await import('../src/levels/garage.js');
+const { createGarage } = await import('../src/levels/dismissed/hangar/level.js');
 const { Physics } = await import('../src/physics.js');
 const { NPC } = await import('../src/npc.js');
 const { createStory } = await import('../src/story/index.js');
 const { game } = await import('../src/game-state.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
-const { PEOPLE } = await import('../src/story/garage-data.js');
+const { PEOPLE } = await import('../src/levels/dismissed/hangar/story-data.js');
 const { CONTENT } = await import('../src/levels/content.js');
-const { SIGNAL, MOMENTS } = await import('../src/story/garage-moments.js');
+const { SIGNAL, MOMENTS } = await import('../src/levels/dismissed/hangar/moments.js');
 const { WORLD_MOMENTS } = await import('../src/story/film.js');
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -128,7 +128,7 @@ test('skipped, it lands the same: all nine dots on the floor, back to you', () =
 });
 
 test('show, don’t tell: no lines for him, a slight smirk at most', async () => {
-  const src = (await import('node:fs')).readFileSync(new URL('../src/story/garage-moments.js', import.meta.url), 'utf8');
+  const src = (await import('node:fs')).readFileSync(new URL('../src/levels/dismissed/hangar/moments.js', import.meta.url), 'utf8');
   assert.ok(!/spoken\(\s*'you'|line\s*:/.test(src), 'nothing said in his voice');
   const looks = [...src.matchAll(/\.look\s*=\s*([^;\n]+)/g)].map((m) => m[1]);
   assert.ok(looks.length >= 1);

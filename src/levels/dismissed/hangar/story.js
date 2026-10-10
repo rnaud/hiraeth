@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { makeMaterial } from '../materials.js';
-import { registerTarget } from '../targets.js';
-import { registerInteractable, PRIORITY } from '../interact.js';
-import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } from './garage-data.js';
-import { setupGarageMoments } from './garage-moments.js';
-import { quietOr } from '../hint-level.js';
+import { makeMaterial } from '../../../materials.js';
+import { registerTarget } from '../../../targets.js';
+import { registerInteractable, PRIORITY } from '../../../interact.js';
+import { QUESTS, PEOPLE, LOCALS, THINGS, ITEMS, MACHINES, SIGNAL, BOARD_GLYPH } from './story-data.js';
+import { setupGarageMoments } from './moments.js';
+import { quietOr } from '../../../hint-level.js';
 
 // The Sealed Hangar's story, alive (garage-data.js has the words): "The Major Forgot".
 //

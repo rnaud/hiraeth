@@ -25,7 +25,8 @@ import { clearInteractables } from '../src/interact.js';
 const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
 const memory = () => { const store = new Map(); return new GameState({ getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) }); };
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
-const keepsakes = (g, n) => { for (let i = 0; i < n; i++) g.addKeepsake({ id: `k${i}`, level: ORDER[i % ORDER.length], name: `K${i}`, kind: ['thing', 'song', 'word', 'person', 'knowing'][i % 5], text: '“K.”' }); };
+// (from the worlds before the last two: the drawing tests below say which of those is the newest)
+const keepsakes = (g, n) => { for (let i = 0; i < n; i++) g.addKeepsake({ id: `k${i}`, level: ORDER[i % (ORDER.length - 2)], name: `K${i}`, kind: ['thing', 'song', 'word', 'person', 'knowing'][i % 5], text: '“K.”' }); };
 
 /** Lou's pages at a node, reached the way the talk goes: hello, then "I brought a lot". */
 function brought(n, { met = false, flags = {} } = {}) {

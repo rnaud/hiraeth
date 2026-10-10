@@ -16,6 +16,7 @@ import { ENDING_WORLDS } from '../src/story/ending.js';
 import { Prologue, PROLOGUE_STAGES } from '../src/ship/prologue.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
+import { buildableById } from '../src/levels/buildable.js';
 
 const quiet = (fn) => { const w = console.warn; console.warn = () => {}; try { return fn(); } finally { console.warn = w; } };
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -136,8 +137,8 @@ test('the ramp reaches the ground and the hatch is open to walk through', () => 
 });
 
 test('a flat, clear spot is found near the spawn in real levels', () => {
-  for (const id of ['spheres', 'edena', 'bazaar', 'buried', 'garage']) {
-    const meta = LEVELS.find((l) => l.id === id);
+  for (const id of ['spheres', 'edena', 'bazaar', 'buried', 'garage']) {   // (the Glass Dunes sets its own site, GLASS_SHIP)
+    const meta = buildableById(id);   // (the Sealed Hangar, dismissed: built from src/levels/dismissed/)
     const scene = new THREE.Scene();
     const level = quiet(() => meta.create(scene));
     const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
@@ -154,7 +155,7 @@ test('a flat, clear spot is found near the spawn in real levels', () => {
 });
 
 test('the site search does not hang on float noise (the browser and node found different Hangar spots)', () => {
-  const meta = LEVELS.find((l) => l.id === 'garage');
+  const meta = buildableById('garage');   // (the Sealed Hangar, dismissed in October 2026: still built for this)
   const scene = new THREE.Scene();
   const level = quiet(() => meta.create(scene));
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
