@@ -237,10 +237,11 @@ function layout(rt) {
   {
     // the eye: a great carved lid and iris in the wall to the balcony's left, as the makers carved their birds
     const a = -0.42, ex = Math.sin(a) * (WR - 0.2), ez = C2 + Math.cos(a) * (WR - 0.2);
-    K.add(M.trim, T(new THREE.TorusGeometry(2.2, 0.28, 6, 28).scale(1.4, 0.8, 1), [ex, 36, ez], [0, a, 0]));
-    K.add(M.stone, T(new THREE.SphereGeometry(1.3, 16, 10).scale(1, 1, 0.35), [ex, 36, ez], [0, a, 0]));
+    // (solid as drawn: a climber up the well meets it)
+    K.both(M.trim, T(new THREE.TorusGeometry(2.2, 0.28, 6, 28).scale(1.4, 0.8, 1), [ex, 36, ez], [0, a, 0]));
+    K.both(M.stone, T(new THREE.SphereGeometry(1.3, 16, 10).scale(1, 1, 0.35), [ex, 36, ez], [0, a, 0]));
     K.add(M.dark, T(new THREE.SphereGeometry(0.55, 12, 8).scale(1, 1, 0.3), [ex - Math.sin(a) * 0.35, 36, ez - Math.cos(a) * 0.35], [0, a, 0]));
-    K.add(M.trim, T(new THREE.TorusGeometry(2.6, 0.18, 4, 24, Math.PI).scale(1.5, 0.9, 1), [ex, 36.7, ez], [0, a, 0]));
+    K.both(M.trim, T(new THREE.TorusGeometry(2.6, 0.18, 4, 24, Math.PI).scale(1.5, 0.9, 1), [ex, 36.7, ez], [0, a, 0]));
   }
   add(Mark, { room: 'top', at: [5.2, 32, C2 + WR - 0.4], yaw: -Math.PI / 2 });
 
@@ -264,7 +265,7 @@ function layout(rt) {
   // a pipe along the corridor's roof between them)
   K.add(M.voidM, T(new THREE.CircleGeometry(2.4, 24), [0, 41.5, G0 + 0.05]));
   K.both(M.trim, T(new THREE.TorusGeometry(2.6, 0.3, 6, 28), [0, 41.5, G0 + 0.1]));
-  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; feather(M.wall, Math.sin(a) * 3.2, 41.5 + Math.cos(a) * 3.2, G0 + 0.3, 2.2, 0, 0); }
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; feather(M.wall, Math.sin(a) * 3.2, 41.5 + Math.cos(a) * 3.2, G0 + 0.3, 2.2, 0, 0, true); }
   K.add(M.trim, T(new THREE.CylinderGeometry(0.7, 0.7, G0 - (C2 + WR) + 1.4, 12), [0, 40.2, (G0 + C2 + WR) / 2 - 0.2], [Math.PI / 2, 0, 0]));
   add(Gust, { min: [-11, 16, G0 + 6.6], max: [11, 48, PZ - perchR], dir: [0, 0, 1], calm: 1.8, warn: 0.6, blow: 3.6, push: 6, carry: GULF.carry,
     when: { not: { drumOn: ['ballB', 'pB'] } },
@@ -369,9 +370,10 @@ function exterior(scene, level, rt) {
   for (const s of [-1, 1]) K.add(ochre, box(0.4, dh, 0.3, s * (dw / 2 + 0.15), sill + dh / 2, z1 + 0.06));
   K.add(ochre, T(new THREE.TorusGeometry(dw / 2 + 0.75, 0.12, 4, 24, Math.PI), [0, sill + dh, z1 + 0.05]));
   K.add(M.glyph, T(glyphGeometry(2.0, 0.15), [0, sill + dh + dw / 2 + 1.4, z1 + 0.06]));
-  K.add(M.voidM, T(new THREE.PlaneGeometry(dw, dh).translate(0, dh / 2, 0), [0, sill, R + 0.4]));
-  K.add(M.voidM, T(new THREE.CircleGeometry(dw / 2, 16, 0, Math.PI), [0, sill + dh, R + 0.4]));
-  K.solid(box(dw, dh + dw / 2, 0.6, 0, sill + (dh + dw / 2) / 2, R + 0.1));
+  // (the dark in the doorway stands in front of the drum, which widens toward its foot)
+  K.add(M.voidM, T(new THREE.PlaneGeometry(dw, dh).translate(0, dh / 2, 0), [0, sill, R + 1.0]));
+  K.add(M.voidM, T(new THREE.CircleGeometry(dw / 2, 16, 0, Math.PI), [0, sill + dh, R + 1.0]));
+  K.solid(box(dw, dh + dw / 2, 0.3, 0, sill + (dh + dw / 2) / 2, R + 0.9));
   // the great steps down to the plain
   const foot = level.ground.heightAt(...(() => { const p = K.world(0, 0, R + 16); return [p.x, p.z]; })()) - base;
   K.stairs([0, sill, R + 7.2], [0, Math.max(0.2, foot), R + 16], 9, { rise: 0.4 });

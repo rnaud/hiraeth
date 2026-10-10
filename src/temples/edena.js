@@ -295,7 +295,7 @@ function layout(rt) {
   add(Plate, { id: 'pG', at: [-2.4, 18, G0 + 36.4], r: 1.2 });
   add(Sunbeam, { from: [-1.5, 49.4, G0 + 33], w: 2.6, spots: [{ at: [-2.4, 18.02, G0 + 36.3], r: 1.9 }] });
   add(Bud, { id: 'd4', bloom: null, at: [0, 27, G0 + 44], w: 5, h: 6.4, color: '#f2c6e0', dry: 'The bud only beads with it, high and dry over the glass. Nothing reaches it to grow from.' });
-  for (const s of [-1, 1]) K.add(M.trim, T(new THREE.BoxGeometry(0.4, 5.6, 0.5), [s * 1.5, 27 + 7.2, G0 + 43.75], [0, 0, -s * 0.5]));   // its pointed arch
+  for (const s of [-1, 1]) K.add(M.trim, T(new THREE.BoxGeometry(0.4, 4.2, 0.5), [s * 1.45, 27 + 6.4 + 1.6, G0 + 43.75], [0, 0, s * 0.62]));   // its pointed arch
   add(Mark, { room: 'gulf', at: [-7, 18, G0 + 3], yaw: 0 });
   add(Mark, { room: 'gulfFar', at: [7, 18, G0 + 31], yaw: Math.PI });
   add(Mark, { room: 'gulfTop', at: [-6, 27, G0 + 41], yaw: Math.PI / 2 });

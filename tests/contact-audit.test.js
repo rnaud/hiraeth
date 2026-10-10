@@ -154,8 +154,9 @@ test('Vael and Vael II: what you climb and stand on is the drawn rock (no stand-
   for (const id of ['arzach', 'arzach2']) {
     const r = audit(id);
     assert.ok(r.checked.wall > 8000 && r.checked.top > 4000, `${id}: ${JSON.stringify(r.checked)}`);
-    // (and the Aerie's rotunda trim, whose 0.3 m lip over the oculus is drawn-only on purpose: src/temples/kit.js)
-    assert.ok((r.counts['climbs inside'] ?? 0) <= 6, `${id}: ${formatContact(r)}`);
+    // (and the Aerie's rotunda trim, whose 0.3 m lip over the oculus is drawn-only on purpose: src/temples/kit.js; since
+    // v1.16 the Aerie has two tall rotundas, the Wind Well and the Roost, and their friezes: 8)
+    assert.ok((r.counts['climbs inside'] ?? 0) <= (id === 'arzach' ? 8 : 6), `${id}: ${formatContact(r)}`);
     assert.ok((r.counts['feet sink'] ?? 0) + (r.counts['feet hover'] ?? 0) <= 8, `${id}: ${formatContact(r)}`);
   }
 });
