@@ -1,0 +1,57 @@
+scripts/tripo/README.md
+  s_096d9f4127f346::t_d63da030abb86c 44,46,55
+  s_9ca76055a220ed::t_2300c372d094a4 56-57
+tests/traveller-v1.test.js
+  s_9ca76055a220ed::t_f3d3256d1f77d7 90-91,126,141,143-145,153-175
+docs/systems/characters.md
+  s_096d9f4127f346::t_acb164dd2d9767 553-556
+  s_9ca76055a220ed::t_e26d65bb58c582 557-558
+public/characters/traveller-v1/head-v2/provenance.json
+  s_096d9f4127f346::t_b2f5ee22a24aad 40-41
+tests/head-ink.test.js
+  s_26e8081cf1f70b::t_f3fdbb3edf130c 1-90
+src/characters/head-ink.js
+  s_26e8081cf1f70b::t_b30524ddb2158e 1-176
+src/characters/tripo-head.js
+  s_26e8081cf1f70b::t_a3dd16b5bddfcb 3,6,8,61-62,106-108,110-112,125-137,139,148-153
+DONE.md
+  s_9ca76055a220ed::t_90c38ffc48519c 2068-2076
+changelog.md
+  s_9ca76055a220ed::t_92fe1c7a9303bb 5-8
+docs/systems/faces.md
+  s_9ca76055a220ed::t_59ec0be023a0ae 305-372
+src/changelog.js
+  s_9ca76055a220ed::t_07da09e93aae9e 11-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a6cdd35c39c81c590c9be5f9554e3b890991f179",
+  "prompts": {},
+  "sessions": {
+    "s_096d9f4127f346": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a11c1c-fa66-7b63-bdfb-d94262f7dff8",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_26e8081cf1f70b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a6abb53a506665d74",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
