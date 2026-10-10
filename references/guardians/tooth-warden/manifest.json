@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Tooth-Warden, the makers' machine that minds a buried engine and has been jamming it, drawn four times at one scale on plain cream paper. A tall drum body of riveted rust-red iron plates banded in blue-grey on four long jointed legs, each with a hip, a knee bending outward and a heavy round foot; round its waist four vents spaced evenly, each a round furnace mouth behind a hinged iron cover; a narrower drum above and a domed head with one big round golden lamp-eye; a toothed collar like a gear's rim round its middle; brass rivets and pipes, scorch marks, the makers' glyph of three dots over an upward arc engraved on its chest. About nine metres tall. Views: front, side, three-quarter, and its signature pose: all four vent covers flung open, the vents glowing ember orange, its body turning; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the machine five times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rust red iron, blue-grey bands, brass, ember orange glow, golden lamp light, deep umber shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#tooth-warden",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-20-51-5469",
+      "candidate": "openai/2",
+      "sha256": "5782680424d23b71e4f6dfbcab507ae62439fc72b5a7a777c5061f1910816b7c",
+      "bytes": 211668,
+      "costUSD": 0.041
+    }
+  ]
+}

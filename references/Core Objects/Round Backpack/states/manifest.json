@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object state reference sheet for a science fiction exploration game: the same round glass backpack of living jade-green fluid drawn five times side by side at the same scale on a plain cream background, showing its states: almost empty with a thin layer of dull green fluid at the bottom and no glow; one third full with a faint glow; two thirds full, swirling, glowing; full to the neck, bright green glow and bubbles; and overflowing with power, the fluid spinning in a vortex, light spilling from the brass ring's three lit charge marks and a soft halo around the sphere. Same brass ring cradle, leather straps, olive canvas back plate in every view. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass and leather, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/backpack-prompts.md#states",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-27-54-4c19",
+      "candidate": "openai/1",
+      "sha256": "59adaa5d49cfb67880b2646700468bfb881160fbd933e95c2028922a0853d945",
+      "bytes": 194601,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object design reference sheet for a science fiction exploration game: a round glass backpack of living jade-green fluid shown as it is upgraded in three stages, side by side at the same scale on a plain cream background: the plain one, a brass ring cradle and leather straps; the second with a pair of small brass fins and a second ring added round the sphere; the third with folding brass vanes like little wings, an extra valve and brighter green light, its fluid swirling faster. Each in three-quarter view, worn on a padded olive canvas back plate. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass, leather and canvas, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/backpack-prompts.md#states/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-28-20-2c7d",
+      "candidate": "openai/1",
+      "sha256": "1dae184a678095c64e46062c498a9ec33bf7dcfc551a8bf719bb9f24b2ccd8d0",
+      "bytes": 205088,
+      "costUSD": 0.041
+    }
+  ]
+}

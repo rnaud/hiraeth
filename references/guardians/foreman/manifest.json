@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Clockwork Foreman, the makers' machine that kept the time of everything that turns, wound wrong, drawn four times at one scale on plain cream paper. A squat round drum of polished brass on four short stout legs with flat feet; its whole chest a great clock face of cream enamel under a glass cover hinged at the top, two teal hands racing, and round the face six round amber lamps in place of numerals, no numbers or letters anywhere; two thick jointed arms each ending in a heavy brass hammer; on its crown a little brass bell on a post that it strikes; teal trim, rivets, a dark navy underside, the makers' glyph of three dots over an upward arc stamped on its back. About eight and a half metres tall. Views: front, side, three-quarter, and its signature pose: both hammers raised high over its head about to strike its crown bell, the glass over its face swung up and the six lamps glowing; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the machine five times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, brass, cream enamel, teal accents, amber lamp glow, dark navy, warm light, deep umber shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#foreman",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-20-23-8588",
+      "candidate": "openai/1",
+      "sha256": "90c7d9ed1d93e1423631940740028dfdc104dcd7dd22882d998d7cf1f9dd2f0e",
+      "bytes": 189026,
+      "costUSD": 0.041
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a long gallery of violet stone split by a deep chasm, a narrow stone bridge across it, and three great crystal pendulums of three sizes swinging across the bridge on long chains from the vault, out of order: the biggest nearest. The smallest, at the far end, hangs stilled and frosted pale icy blue, glowing and ringing true in faint rings of sound. Along the east wall a keeper's ledge runs back over the chasm to a shut gate. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the far landing, turned back toward the bridge, a stream of pale icy blue fluid arcing toward the middle pendulum, dwarfed by the gallery. Swamp crystals in the walls, carvings of three drops of rain over a shut mouth. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone, teal and violet crystal glow, icy pale blue, moss green, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#hush-pendulums",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-28-13-7f9a",
+      "candidate": "openai/1",
+      "sha256": "d8e623b7a7574db8130aa78384c1e14a3f5e8aca49cd2f5e60f0158e6a8c5bdd",
+      "bytes": 257385,
+      "costUSD": 0.041
+    }
+  ]
+}

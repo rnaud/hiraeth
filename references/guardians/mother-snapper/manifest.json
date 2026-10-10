@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Mother Snapper, the oldest carnivorous plant of the swamp, as big as a house and rooted to the floor, drawn four times at one scale on plain cream paper. A fat green bulb sunk in a ring of broad lobed leaves lying flat; out of it a long flexible neck made of a chain of green beads, each bead a joint; a great head of two hinged jaws, rose red outside with pale pink lips and deep crimson inside, each rim ringed with cream teeth like a flytrap; a crown of violet crystal shards growing from the top of the head, faintly glowing. About six metres tall with her neck raised, her bite reaching twelve metres along the floor. Views: front, side, three-quarter, and her signature wind-up: neck coiled high and head drawn back, jaws open, about to lunge; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the plant more than three times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, moss and leaf greens, rose red, pink, crimson, cream teeth, violet crystal glow, deep indigo shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#mother-snapper",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-18-27-9f6d",
+      "candidate": "openai/1",
+      "sha256": "99c82428ce1becb57c12bbb999b14d80c59fce487c145fe4e190c580badd1c41",
+      "bytes": 195915,
+      "costUSD": 0.041
+    }
+  ]
+}

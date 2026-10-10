@@ -1,0 +1,39 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character turnaround sheet for a science fiction exploration game: a slim young adult traveller with messy short black curly hair, a coral overshirt, a tan neckerchief, cream trousers and small suede boots, a sword in a sheath across his back, wearing a round glass backpack of living jade-green fluid between his shoulder blades, drawn in four full-body views side by side at the same scale on a plain cream background: back view, side view, back three-quarter view, and front view with the straps over his shoulders. The glass sphere is about 32 centimetres across, held in a brass ring cradle on a padded olive canvas back plate with worn brown leather straps, its fluid swirling and glowing softly green from within so the glow lights the back of his shirt and neck. No hose or cable to his hands. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, coral and cream clothes, jade green glow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/backpack-prompts.md#worn",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-27-01-ae05",
+      "candidate": "openai/2",
+      "sha256": "63a01caf54a4745f504101e1e1729d9e9c933c7c1723910d4fbe98c371b21e69",
+      "bytes": 174684,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Game scene concept art for a science fiction exploration game, seen from behind the player character at play distance: a slim young traveller in a coral overshirt walking across golden desert dunes at dusk toward a distant city of domes, a round glass backpack of living jade-green fluid between his shoulder blades glowing softly, its green light pooling on his shoulders and on the sand around his feet, a sword across his back, long lavender shadows, the first stars. The backpack reads clearly as a glowing round shape from a distance. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, golden sand, lavender dusk, jade green glow, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/backpack-prompts.md#worn/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-27-28-c78a",
+      "candidate": "openai/2",
+      "sha256": "fb42de7e7e7c9033a05e948bf39fbd4efd3b93aef7dd3252cf52d0878aa3cb6a",
+      "bytes": 191071,
+      "costUSD": 0.041
+    }
+  ]
+}

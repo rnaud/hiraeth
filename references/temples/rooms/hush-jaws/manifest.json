@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a short passage of violet stone, crystals grown up through its floor, ending in a doorway filled by a living gate of jaws, two great green leaf-jaws ringed with cream teeth growing from the door's sides, rose red inside, snapping shut and open again. One jaw has just been hit by a pale icy blue frost glob and hangs open, stilled, rimed with frost. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a stream of pale icy blue fluid arcing from the nozzle, steps toward the gap, dwarfed by the jaws. Carvings of three drops of rain over a shut mouth over the door. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, violet stone, leaf green, rose red, cream teeth, icy pale blue, teal crystal glow, deep indigo shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#hush-jaws",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-27-44-9372",
+      "candidate": "openai/1",
+      "sha256": "27026d0beb75dad392a48212ee3c7aaec6dd048083c335339d50299cdc7875af",
+      "bytes": 294900,
+      "costUSD": 0.041
+    }
+  ]
+}

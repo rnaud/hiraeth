@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the warden, a tall old guardian machine of the makers, broken and still at its post, drawn four times at one scale on plain cream paper. A tall drum body of pale steel-blue plates banded in dark navy on three long jointed legs, each with a hip, a knee bending outward and a flat round foot; round its waist a ring of three hinged vent covers over glowing furnace mouths; a narrower drum above and a domed head with one big round golden lamp-eye; on its crown a round vent under a hatch hinged at one side, brass trim and rivets, the makers' glyph of three dots over an upward arc engraved on its chest. About nine metres tall. Views: front, side, three-quarter, and its signature wind-up: legs braced, side vents shut, crown hatch flung open and a column of orange glow venting straight up out of it, the flare; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the machine five times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale steel blue, dark navy, cream, brass, golden lamp glow, vent orange, lavender shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#warden",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-19-53-1594",
+      "candidate": "openai/1",
+      "sha256": "e431beca609bb582e1c92cba79e1a7754765c91ec681326ba2998c53b61077cb",
+      "bytes": 189102,
+      "costUSD": 0.041
+    }
+  ]
+}

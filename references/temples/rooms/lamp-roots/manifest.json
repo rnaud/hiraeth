@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a dark hall inside a tower of the makers, almost black, a still dark pool filling the floor with no way across, a wall of great twisted roots climbing the far side. At the pool's near edge a lamp in a carved stone socket has just caught: a glass orb of pool water, glowing soft gold, has rolled down a groove through the doorway into the socket, and out of the dark water a line of round moss-covered stepping stones rises glowing toward the roots. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a little glowing lantern charm at their hip, stands at the edge watching the stones rise, dwarfed by the hall, their light a soft circle round them. Friezes of three lamps over a hull. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, deep blue-violet darkness, warm lamp gold, moss green glow, coral glints, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#lamp-roots",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-28-44-a252",
+      "candidate": "openai/2",
+      "sha256": "f45d0c8c58a5ddf81d39e065cc30d0fb8ff9b302747eb0d275bf9b6f530b8b7b",
+      "bytes": 243456,
+      "costUSD": 0.041
+    }
+  ]
+}

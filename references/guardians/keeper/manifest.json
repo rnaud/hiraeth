@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Keeper of the cistern, a great pale gentle beast of the makers, drawn four times at one scale on plain cream paper. A rounded shell of ivory bone plates in overlapping rows over a rose belly, faint turquoise glyph marks of three dots over an upward arc glowing on the shell; six long legs in two tripods, each a straight thigh and a thinner shin with a forward-bending knee and a small dark hoof; a long heron-like neck in five rings, alternating bone plate and warm tan skin; a head with a long soft muzzle, a lower jaw that drops open, two small dark eyes, a flat brow plate with two short horns swept back; a short curled tail. About four and a half metres tall at the back and eleven metres from muzzle to tail. Views: front, side, three-quarter, and its signature wind-up: reared up on its four hind legs, forefeet raised high and neck drawn back before it stamps; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the beast's back more than twice their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, ivory bone, rose belly, warm tan skin, rose and ochre accents, turquoise glyph glow, deep lavender shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#keeper",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-16-41-1419",
+      "candidate": "openai/1",
+      "sha256": "4122dc12dd1a79778e8bb7246aba1cb2b7700a3e27147521c82f6fd5188b3ce0",
+      "bytes": 164051,
+      "costUSD": 0.041
+    }
+  ]
+}

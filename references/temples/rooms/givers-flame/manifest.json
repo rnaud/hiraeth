@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a long hall inside an ancient temple of the makers, rose stone walls with a heavy carved cornice and vertical fins, dusty light from a high slot. Sunk in the middle of the floor the pilot flame, a small steady ember-orange flame in a stone ring that has never gone out; a stone groove runs through the flame's ring from a tar ball resting at one end to a hooded bronze bowl beside the far door, its hood too low for any splash to reach inside. The tar ball has just rolled through the flame and caught, small flames wreathing it as it rolls on toward the bowl. A cloaked adult human traveller of ordinary height with a round jade fluid backpack walks behind the rolling ball, having pushed it, dwarfed by the hall. Friezes of three dots over an upward arc, dry channels under the walls, drifts of sand in the corners. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose and ochre stone, ember orange, bronze, turquoise traces, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#givers-flame",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-22-22-de15",
+      "candidate": "openai/2",
+      "sha256": "5493e31270110090f80160ecf8754485c82e2d2cfd8f5006b70fa3a640cba438",
+      "bytes": 259062,
+      "costUSD": 0.041
+    }
+  ]
+}

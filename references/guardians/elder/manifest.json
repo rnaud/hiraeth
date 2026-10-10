@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Elder, the oldest of the great birds, so old her feathers have turned to stone, drawn four times at one scale on plain cream paper. A heavy rounded body of bone-white stone feathers on two long thin legs like a heron's, the visible joint the backward-bending ankle halfway down, long splayed three-toed feet; a long curved neck; a longer straight beak of warm ochre; small dark eyes under a heavy brow; broad wings of overlapping stone feathers with rose-mauve tips that fold flat against her sides, each feather a carved slab, faint teal glyph lines running along the wings like the lines on a wing. About seven metres tall standing, a wingspan of some sixteen metres. Views: front with wings folded, side, three-quarter, and her signature wind-up: wings flung wide and raised, neck pulled back, about to beat a gale; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the bird four times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white stone, ochre beak, rose-mauve feather tips, teal glyph glow, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#elder",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-17-29-4d41",
+      "candidate": "openai/1",
+      "sha256": "f0151afe691d7bf2b762daa628da887d062da186fd55c7a52587da38331e3b95",
+      "bytes": 187669,
+      "costUSD": 0.041
+    }
+  ]
+}

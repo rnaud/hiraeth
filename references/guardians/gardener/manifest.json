@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Gardener, the moss giant the white builders left to keep their greenhouse, gone wild and bare, drawn four times at one scale on plain cream paper. A great hunched mound of thick moss in three greens on four short legs of gnarled root, two long arms of root and moss reaching the ground, each ending in a spread of root claws; set into the front of the mound a calm face of clean white builders' stone, smooth, two deep eye hollows and a carved glyph of three dots over an upward arc on its brow; brown bare patches on its back where nothing grows, and over a few of them small leaf-green shoots and petal-pink flowers just coming up. About seven metres tall and nine wide. Views: front, side, three-quarter, and its signature pose: kneeling spent, arms down, its bare back turned up to the sky; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the giant four times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, moss greens, bark brown, bare earth brown, white stone, leaf green, petal pink, soft blue shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#gardener",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-19-23-e8cd",
+      "candidate": "openai/1",
+      "sha256": "46d081ddc33193558216c99fb56aaa08c6a90cab111afc52738b571ed13ed532",
+      "bytes": 229577,
+      "costUSD": 0.041
+    }
+  ]
+}

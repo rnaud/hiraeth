@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a long hall inside a great white temple of the makers, bone-white stone walls banded in ochre, glyph lines running along them like the lines on a wing. Out of a round vent in the far end's mouth a gust of wind blows down the hall, drawn as pale streaming lines of dust and loose feathers; low curved stone screens stand staggered along the floor. A stone ball sits in a groove by the near end, waiting to be pushed up the hall into the vent. A cloaked adult human traveller of ordinary height with a round jade fluid backpack crouches in the lee of a screen, cloak whipping, waiting out the gust before the run to the next, dwarfed by the hall. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky light, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#aerie-winds",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-23-54-ab95",
+      "candidate": "openai/1",
+      "sha256": "15a3ed1bfdd87c6328a5d99165ac00f2df48454b0226e3cfcd33822ec1021bb3",
+      "bytes": 217026,
+      "costUSD": 0.041
+    }
+  ]
+}

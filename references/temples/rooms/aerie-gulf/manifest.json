@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a vast gulf inside a white temple of the makers, a ledge of bone-white stone on one side and far across a stone perch standing alone on a pillar over a deep drop, a higher ledge beyond it. Over the doorway behind the near ledge a vent's mouth pours a gust of wind out over the gulf, drawn as pale streaming lines; a stone ball has been pushed out of its throat in the ledge's floor and lies beside the hole. A cloaked adult human traveller of ordinary height with a round jade fluid backpack glides out over the drop on wide translucent wings of glowing fluid, carried by the gust toward the perch, tiny against the gulf but drawn as an ordinary adult. Banded ochre walls, glyph lines like a wing's, light from above. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#aerie-gulf",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-24-55-573f",
+      "candidate": "openai/2",
+      "sha256": "e1a5e874a01e7d733a7972d9a8d7bb0a7282fa87d6f47a4b9152153b9d5f2471",
+      "bytes": 214238,
+      "costUSD": 0.041
+    }
+  ]
+}

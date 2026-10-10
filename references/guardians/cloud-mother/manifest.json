@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Cloud-Mother, a great pale sky-whale that rose with the floating stones and has not come down, drawn four times at one scale on plain cream paper, floating. A long soft body of pale lavender-grey skin over a cream belly, small dark gentle eyes far forward, a long mouth that opens wide when she cries; two pairs of long soft fins like sails that row the air, a broad tail fluke; a fringe of small white cumulus puffs along her spine like a cloud she carries; faint turquoise glyph spots of three dots over an upward arc along her flanks. About thirteen metres long and five tall. Views: front, side, three-quarter, and her signature wind-up: risen high and arched nose-down, fins swept back, about to dive; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands on the ground beside the front view for scale, an ordinary adult, the whale's body three times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, pale lavender grey, cream belly, cloud white, turquoise glyph glow, warm bronze accents, rose and lavender shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#cloud-mother",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-17-57-7645",
+      "candidate": "openai/1",
+      "sha256": "010b267facddf62242f24dea55f67e861d501fe8d49d266f599a76a6a760f855",
+      "bytes": 151625,
+      "costUSD": 0.041
+    }
+  ]
+}

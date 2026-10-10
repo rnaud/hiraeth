@@ -1,0 +1,40 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object design reference sheet for a science fiction exploration game: a round backpack made of a glass sphere of living jade-green fluid held in a brass and leather cradle, drawn four times side by side at the same scale on a plain cream background: front view, side view, back view, and a three-quarter view with the top cap open. The sphere is about the size of a large melon, 32 centimetres across, its glass thick and slightly faceted, the fluid inside swirling in slow green and cyan currents with a soft green glow coming from within, tiny bubbles rising. A brass ring around its equator with three small charge marks that light up, a short capped brass neck on top with a valve wheel, two worn brown leather shoulder straps and a padded olive canvas back plate, small brass rivets, a turquoise cloth tie. A cloaked adult traveller of ordinary height stands at the side for scale. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass and leather, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/backpack-prompts.md#sheet",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-26-07-b7dd",
+      "candidate": "openai/2",
+      "sha256": "33252fd3e970904eedd5540097d1ad330062e81a05b43ee9d881ff5f4b926361",
+      "bytes": 185565,
+      "costUSD": 0.041
+    },
+    {
+      "file": "sheet-2.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Object design exploration sheet for a science fiction exploration game: three alternative designs of a round glowing backpack of living jade-green fluid, drawn side by side at the same scale on a plain cream background, each in front and three-quarter view: first, a clear glass sphere in a brass ring cradle with leather straps; second, a slightly flattened round glass flask half-wrapped in stitched olive canvas with a brass collar and valve; third, a round glass dome set on a curved brass back plate with ribbed metal bands and small charge lights. All three glow softly green from within, fluid swirling, with worn brown leather shoulder straps. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, jade green glow, brass, leather and canvas, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, hose, cable, tube.",
+      "from": "docs/design/backpack-prompts.md#sheet/v2",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-26-35-e726",
+      "candidate": "openai/2",
+      "sha256": "caa4dc0b742936ebbff4415b325a0d292421a7be2916334b29da8020a865de8e",
+      "bytes": 222843,
+      "costUSD": 0.041,
+      "why": "top left but I prefer the previous one we just did"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a high chamber of bone-white stone banded in ochre, its walls carved with great folded stone wings, a dais in the middle with the makers' chest standing open, a low round chest of white stone carved with three dots over an upward arc. An archway opens onto a balcony over the great shaft of the wind well, a column of rising wind spiralling past it with feathers and dust, aqua sky high above. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands at the balcony's edge with wide translucent wings of glowing fluid unfolding from the backpack for the first time, about to step off into the column, dwarfed by the chamber. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, bone white, ochre bands, aqua sky, peach light, rose-mauve shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#aerie-wings",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-24-24-c24a",
+      "candidate": "openai/1",
+      "sha256": "4cb98823ec63959d7d7de4cfa9609ac745fc56a95a1662c6ffdf85f9d43b712f",
+      "bytes": 237991,
+      "costUSD": 0.041
+    }
+  ]
+}

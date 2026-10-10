@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the First Sign, the oldest broadcasting machine of the makers, made to say one line into the dark and stuck on one word of it, drawn four times at one scale on plain cream paper. A tall slender mast of teal-grey plates on three long jointed legs splayed like a tripod, each with a knee and a flat foot; thick old cables trailing from its foot; for a head a great round listening dish of cream enamel on a brass yoke that tilts and turns, a ring of small pale yellow lamps round the dish's rim, a brass horn at its focus pointing back into the dish; dark slate joints, brass rivets, the makers' glyph of three dots over an upward arc engraved on the back of the dish. About twelve metres tall. Views: front, side, three-quarter, and its signature pose: its dish lowered and tipped forward to listen, the lamps dim; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack stands beside the front view for scale, an ordinary adult, the machine seven times their height. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, teal grey, dark slate, brass, cream dish, pale yellow lamp glow, coral glints, deep blue shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#first-sign",
+      "refs": [],
+      "ar": "3:2",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-21-50-d35e",
+      "candidate": "openai/2",
+      "sha256": "335b3d6174ed30c732c40ab8ec0ba121df563a8fc581251e9693f499dbe28a73",
+      "bytes": 204131,
+      "costUSD": 0.041
+    }
+  ]
+}

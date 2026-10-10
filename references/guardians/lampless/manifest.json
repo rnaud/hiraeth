@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Character design sheet for a science fiction exploration game: the Lampless, a great pale moth that drank the light of a lighthouse of the makers and is frightened of how dark it made everything, drawn four times at one scale on plain cream paper, hovering. A thick soft furred body of lavender white, a furred collar round a small head with large dark navy compound eyes and a short curled tongue; two long feathered antennae; four broad wings, the fore pair pale lavender and the hind pair deeper violet, each with a round eye-spot shaped as the glyph of three dots over an upward arc that glows warm gold; six thin jointed legs tucked under. A body three and a half metres tall, a wingspan of about ten metres. Views: front with wings spread, side, three-quarter, and its signature wind-up: wings swept high and forward, body tipped down, about to swoop; a solid black silhouette of the side view beneath it. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, a little glowing lantern charm at the hip, stands beside the front view for scale, an ordinary adult, the moth's wings six times their width. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, lavender white fur, pale violet wings, warm lamp gold eye-spots, deep navy, coral glints, deep blue shadows, restrained cream paper grain, clear readable construction, fully visible bodies, evenly spaced views, no scenery, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels, numbers, scenery.",
+      "from": "docs/design/guardian-prompts.md#lampless",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-18-55-93e4",
+      "candidate": "openai/1",
+      "sha256": "f87665841f68cd6dd7b696a5bffae0cd208edab245589336bcf677a81c970b91",
+      "bytes": 194131,
+      "costUSD": 0.041
+    }
+  ]
+}

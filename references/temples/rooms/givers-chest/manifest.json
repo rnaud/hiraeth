@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-10",
+  "sheets": [
+    {
+      "file": "sheet-1.jpg",
+      "service": "Reference lab",
+      "provider": "openai",
+      "providerLabel": "OpenAI GPT Image",
+      "model": "gpt-image-2",
+      "prompt": "Interior concept art for a science fiction exploration game: a round chamber of rose stone under a low dome, a shaft of dusty light from the oculus falling on a dais in the middle, where the makers' chest stands open, a low round chest of rose stone carved with three dots over an upward arc, an ember glow rising out of it. Beside the dais a tar ball rests at the head of a stone groove that runs out through the far doorway, and the doorway is choked with a thicket of dry grey thorns. A cloaked adult human traveller of ordinary height with a round jade fluid backpack, the tank now glowing ember orange, stands by the chest firing a burning splash of fluid at the thorns, which catch with small cool flames, dwarfed by the chamber. Moebius science-fiction, Franco-Belgian ligne claire, exquisite fine pen contours, sparse delicate hatching only in shadows, luminous flat pastel gouache colours, rose and ochre stone, ember orange, dry thorn grey, turquoise traces, deep lavender shadows, restrained cream paper grain, clear readable construction, no lettering. Avoid: photorealism, 3d render, text, watermark, lettering, labels.",
+      "from": "docs/design/temple-interior-prompts.md#givers-chest",
+      "refs": [],
+      "ar": "16:9",
+      "date": "2026-10-10",
+      "batch": "2026-10-10-09-22-52-7778",
+      "candidate": "openai/1",
+      "sha256": "b0c3265aeb69127df85607a5ddc7cd097150d95237ec9141192fbec543362219",
+      "bytes": 233934,
+      "costUSD": 0.041
+    }
+  ]
+}
