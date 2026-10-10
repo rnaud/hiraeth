@@ -4,6 +4,7 @@ import { makeMaterial } from './materials.js';
 import { registerTarget } from './targets.js';
 import { slotStorage } from './save-slots.js';
 import { runSteps } from './load-steps.js';
+import { batchParts } from './part-batch.js';
 
 const UP = new THREE.Vector3(0,1,0);
 const FLUID_DEFAULT=['#52c8cf','#966ede'];   // the fluid's first tones (fluid-tool.js), if a hit brings none
@@ -274,6 +275,10 @@ export class ReactiveWorld {
     this.spores=new THREE.InstancedMesh(new THREE.SphereGeometry(.055,5,4),pm,72);
     this.spores.userData.noCollide=true;this.spores.frustumCulled=false;this.spores.count=0;this.root.add(this.spores);
     this.matrix=new THREE.Matrix4();this.quaternion=new THREE.Quaternion();this.scale=new THREE.Vector3();this.forward=new THREE.Vector3();
+    // the nodes' shared parts (stone, brass, stems, leaves: the same shapes over and over) drawn as instances, by the
+    // 64 m round them: a draw for each shape near you, not one a node (src/part-batch.js); the parts in a node's own
+    // colour (it wakes in it) stay its own
+    this.batches=batchParts(this.root,{min:2,cell:64});
   }
   addNode(pos,up,cluster,rotation,index){
     const obj=objectFor(this.theme);

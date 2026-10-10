@@ -43,3 +43,31 @@ test('towers merged: each vertex carries its own colours, bands, grid, flat shad
   const local = new THREE.Vector3(c * d.x - s * d.z, d.y, s * d.x + c * d.z), want = cam.clone().applyMatrix4(o.matrixWorld.clone().invert());
   assert.ok(local.distanceTo(want) < 1e-4, `the camera in its frame (${local.distanceTo(want)})`);   // (its place and turn stored as 32-bit floats)
 });
+
+test('a shopfront\'s colour buckets merged (shop-kit.js build merge): fewer meshes, each piece its own colour and object point, solid and soft kept apart', async () => {
+  const { buckets } = await import('../src/shop-kit.js');
+  const { buildStyledFront, FRONT_STYLES } = await import('../src/shop-fronts.js');
+  const B = buckets(), g = new THREE.Group();
+  g.position.set(120, 4, -60); g.rotation.y = 0.7;
+  B.add('#d9503f', new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0));
+  B.add('#70e7df', new THREE.BoxGeometry(1, 2, 1).translate(2, 1, 0));
+  B.add('#b07a45', new THREE.SphereGeometry(0.3, 8, 6), { soft: true });
+  B.add('#f2c54b', new THREE.SphereGeometry(0.3, 8, 6).translate(1, 0, 0), { soft: true });
+  B.add('#ffd9a0', new THREE.BoxGeometry(1, 1, 0.1), { soft: true, glow: 1 });
+  const meshes = B.build(g, { merge: true });
+  assert.equal(meshes.length, 3, 'the solid pair, the soft pair, the lit one');
+  const solid = meshes.find((m) => !m.userData.noCollide);
+  assert.ok(solid.material.defines?.S_VMAT !== undefined || JSON.stringify(solid.material.defines ?? {}).includes('S_VMAT'), 'a per-vertex material');
+  const c = solid.geometry.attributes.aMatC1, p = solid.geometry.attributes.position, op = solid.geometry.attributes.aObjP;
+  const cols = new Set(); for (let i = 0; i < c.count; i++) cols.add(new THREE.Color(c.getX(i), c.getY(i), c.getZ(i)).getHexString());
+  assert.deepEqual([...cols].sort(), ['70e7df', 'd9503f'].map((h) => new THREE.Color(`#${h}`).getHexString()).sort());
+  for (let i = 0; i < p.count; i++) assert.equal(p.getY(i), op.getY(i), 'drawn in the group\'s frame, its object point as before');
+  const M = solid.geometry.attributes.aObjM;
+  assert.ok(Math.abs(M.getX(0) - 120) < 1e-6 && Math.abs(M.getW(0) - 0.7) < 1e-6, 'the group\'s place and turn');
+  // every route world's front in at most 10 meshes (a mesh a colour before)
+  for (const style of FRONT_STYLES) {
+    const scene = new THREE.Scene(), f = buildStyledFront(scene, { at: new THREE.Vector3(10, 0, 10), heading: 1.2, style });
+    let n = 0; f.group.traverse((o) => { if (o.isMesh) n++; });
+    assert.ok(n <= 10, `${style}: ${n} meshes`);
+  }
+});

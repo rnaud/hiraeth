@@ -9,6 +9,7 @@ import { riddleState, strikeKnuckle, nextKnuckle, glinting, dots, knuckleRadius 
 import { stripTone } from './tone.js';
 import { setupArzachMoments } from './arzach-moments.js';
 import { shiftAt } from '../levels/names.js';
+import { batchParts } from '../part-batch.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
@@ -231,6 +232,7 @@ export function setupArzach(ctx) {
     const stone = new THREE.Mesh(new THREE.TorusGeometry(wind.r, 0.35, 4, 28).rotateX(Math.PI / 2), makeMaterial({ color: '#efe6d2', color2: '#e0d2b8', flat: true }));
     stone.position.copy(wind.foot).add(V(0, 0.1, 0)); stone.userData.noCollide = true; windRoot.add(stone);
   }
+  batchParts(windRoot, { min: 2 });   // (the rings: one draw, src/part-batch.js)
   scene.add(windRoot);
   const told = new Set();
   const once = (key, text) => { if (!told.has(key)) { told.add(key); toast(text); } };

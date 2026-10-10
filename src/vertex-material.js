@@ -23,9 +23,10 @@ export function restKey(m) {
  * items: [{ geometry (its object space), x, y, z, rotY, material }], all with the same restKey: one geometry in
  * world space carrying each one's material values (aMatC1-3, aMatS: band size, grid, flat), object-space point
  * and normal (aObjP, aObjN) and place and turn (aObjM). Placed as Object3D would place it (position, a turn
- * about y, no scale).
+ * about y, no scale). local: the geometry left in the items' own frame (for a mesh under a parent that stands at x, y, z
+ * turned rotY, every item already in that parent's frame); the place and turn are still written, for the facet normals.
  */
-export function mergeWithMaterials(items) {
+export function mergeWithMaterials(items, { local = false } = {}) {
   const q = new THREE.Quaternion(), e = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), p = new THREE.Vector3(), M = new THREE.Matrix4();
   const geos = items.map(({ geometry: src, x, y, z, rotY, material: m }) => {
     const g = new THREE.BufferGeometry();
@@ -42,7 +43,7 @@ export function mergeWithMaterials(items) {
     g.setAttribute('aObjP', src.attributes.position.clone());
     g.setAttribute('aObjN', src.attributes.normal.clone());
     g.setAttribute('aObjM', fill(4, (a, j) => { a[j] = x; a[j + 1] = y; a[j + 2] = z; a[j + 3] = rotY; }));
-    g.applyMatrix4(M.compose(p.set(x, y, z), q.setFromEuler(e.set(0, rotY, 0)), one));
+    if (!local) g.applyMatrix4(M.compose(p.set(x, y, z), q.setFromEuler(e.set(0, rotY, 0)), one));
     return g;
   });
   // (all indexed or none, as mergeGeometries wants)

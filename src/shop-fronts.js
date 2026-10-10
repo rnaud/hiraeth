@@ -471,7 +471,7 @@ export function buildStyledFront(scene, { at, heading = 0, style }) {
   const inner = new THREE.Group();
   inner.position.x = -(made.door ?? 0);
   grp.add(inner);
-  B.build(inner);
+  B.build(inner, { merge: true });   // (its colours in a few draws: shop-kit.js buckets)
   scene.add(grp);
   grp.updateMatrixWorld(true);
   const wp = (x, y, z) => grp.localToWorld(new THREE.Vector3(x, y, z));

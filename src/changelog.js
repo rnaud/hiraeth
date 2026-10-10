@@ -98,6 +98,13 @@ export const CHANGELOG = [
           { where: 'Handheld', before: 1763, after: 1011 },
         ], source: 'renderer.info over the recorded frames (medians)' },
       ] },
+    { text: 'Busy views draw less: the City-Shaft’s flying cabs, its cables and its billboards, every shop front, the makers’ runs’ moving pieces, the wind columns’ rings and the listening stones and flowers that wake as you pass are drawn in far fewer pieces. Nothing looks different.',
+      numbers: [{ title: 'Draw calls a frame', unit: 'draws', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, High, 1280 × 720', rows: [
+        { where: 'the City-Shaft, the wide view down the shaft', before: 1640, after: 1342 },
+        { where: 'the Buried Machine’s shop front (Ilse’s dome)', before: 38, after: 12 },
+        { where: 'the Buried Machine, the wide view', before: 547, after: 493 },
+        { where: 'the Signal Market’s start', before: 817, after: 783 },
+      ], source: 'one frame with every shadow map drawn again, counted object by object (renderer.info), before and after; docs/audits/perf-v1.39.md', note: 'On the Mac the main thread’s time hardly moves in these views (the City-Shaft about 0.4 ms less at High and Handheld, within the noise on the Deck preset); the fewer draws matter most where the processor is the limit, on the handhelds.' }] },
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

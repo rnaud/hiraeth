@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerWorking } from '../workings.js';
+import { batchParts } from '../part-batch.js';
 
 // A column of rising air out in a world (a mastery trial's: src/trials/data.js `winds`), the temples' Updraft
 // (src/temples/pieces.js) on the open ground: pale rings drift up it, a ring of the makers' stone marks its
@@ -41,6 +42,7 @@ export class WindColumn {
     band.position.copy(base.position).add(new THREE.Vector3(0, 0.3, 0));
     this.root.add(base, band);
     this.root.traverse((o) => { o.userData.noCollide = true; o.userData.dynamic = true; });
+    this.batches = batchParts(this.root, { min: 2 });   // (the rings: one draw, src/part-batch.js)
     scene?.add(this.root);
     this.off = registerWorking({ kind: 'updraft', foot: this.foot, r, top: this.top, lift, contains: (p) => this.contains(p) });
   }
@@ -65,5 +67,5 @@ export class WindColumn {
     }
     return true;
   }
-  dispose() { this.off?.(); this.root.removeFromParent(); }
+  dispose() { this.off?.(); for (const b of this.batches) b.dispose(); this.root.removeFromParent(); }
 }

@@ -283,13 +283,16 @@ export function* buildGarage(scene) {
       const r = 12 + i * 3 + rng() * 4;
       const gear = new THREE.Group();
       gear.position.set(mx, 12 + i * 14, mz);
-      gear.add(new THREE.Mesh(new THREE.TorusGeometry(r, 1.4, 6, 40).rotateX(Math.PI / 2), gearMat));
+      // the rim and its 14 teeth one mesh, the 3 spokes another: each piece already in the gear's frame, so merged they
+      // are drawn exactly as before, in 2 draws a pass instead of 18 (docs/systems/performance.md)
+      const rim = [new THREE.TorusGeometry(r, 1.4, 6, 40).rotateX(Math.PI / 2)];
       for (let k = 0; k < 14; k++) { // teeth
         const a = (k / 14) * Math.PI * 2;
-        gear.add(new THREE.Mesh(new THREE.BoxGeometry(2.4, 2, 2.4).translate(Math.cos(a) * (r + 1.8), 0, Math.sin(a) * (r + 1.8)), gearMat));
+        rim.push(new THREE.BoxGeometry(2.4, 2, 2.4).translate(Math.cos(a) * (r + 1.8), 0, Math.sin(a) * (r + 1.8)));
       }
-      for (let k = 0; k < 3; k++) // spokes
-        gear.add(new THREE.Mesh(new THREE.BoxGeometry(r * 2, 0.8, 0.8).rotateY((k / 3) * Math.PI), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
+      gear.add(new THREE.Mesh(mergeGeometries(rim), gearMat));
+      const spokes = [0, 1, 2].map((k) => new THREE.BoxGeometry(r * 2, 0.8, 0.8).rotateY((k / 3) * Math.PI));
+      gear.add(new THREE.Mesh(mergeGeometries(spokes), makeMaterial({ color: '#34405e', flat: true, metal: 'iron' })));
       gear.userData.noCollide = true;
       scene.add(gear);
       const sp = (i % 2 ? -1 : 1) * (0.15 + rng() * 0.15);

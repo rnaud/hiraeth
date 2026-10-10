@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from './materials.js';
+import { mergeWithMaterials, restKey } from './vertex-material.js';
 
 // The shops' small kit (docs/systems/interiors.md, "A shop in every world"): the pieces every world's shopfront
 // (src/shop-fronts.js) and every shop's room (src/shop-world.js) are drawn with, and the buckets that merge them.
@@ -35,18 +36,48 @@ export function buckets() {
       if (!map.has(key)) map.set(key, { color, o, geos: [] });
       map.get(key).geos.push(geo);
     },
-    /** One mesh a bucket under `group`; returns the meshes. */
-    build(group) {
-      const out = [];
+    /**
+     * One mesh a bucket under `group`; returns the meshes. merge: the buckets that differ only in their colours (and
+     * strata tones) drawn as one mesh, each piece keeping its own material values per vertex (src/vertex-material.js:
+     * a front's dozen colours in a few draws); `group` must already stand where it will (turned about y only).
+     */
+    build(group, { merge = false } = {}) {
+      const out = [], made = [];
       for (const { color, o, geos } of map.values()) {
         const crystal = color === null;
         const keep = crystal ? Object.keys(geos[0].attributes) : ['position', 'normal'];
         const geo = mergeGeometries(geos.map((g) => tidy(g, keep)));
         if (!geo) continue;
         const { soft, ...mo } = o;
-        const mat = crystal ? makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.5, key: 'chime-crystal' }) : makeMaterial({ color, flat: true, ...mo });
-        const mesh = new THREE.Mesh(geo, mat);
-        if (soft || crystal) mesh.userData.noCollide = true;
+        const opts = crystal ? null : { color, flat: true, ...mo };
+        made.push({ geo, mat: crystal ? makeMaterial({ color: '#ffffff', vertexColors: true, glow: 0.5, key: 'chime-crystal' }) : makeMaterial(opts), opts, soft: !!(soft || crystal), crystal });
+      }
+      // (the frame the merged pieces are measured in: the group's place and turn in the world)
+      let frame = null;
+      if (merge) {
+        group.updateWorldMatrix(true, false);
+        const pos = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3();
+        group.matrixWorld.decompose(pos, q, sc);
+        const e = new THREE.Euler().setFromQuaternion(q, 'YXZ');
+        if (Math.abs(e.x) < 1e-6 && Math.abs(e.z) < 1e-6 && Math.abs(sc.x - 1) + Math.abs(sc.y - 1) + Math.abs(sc.z - 1) < 1e-6) frame = { pos, yaw: e.y };
+      }
+      const sets = [], byKey = new Map();
+      for (const m of made) {
+        const key = frame && !m.crystal ? `${m.soft}|${restKey(m.mat)}` : null;
+        if (key !== null && byKey.has(key)) { byKey.get(key).push(m); continue; }
+        const list = [m];
+        sets.push(list);
+        if (key !== null) byKey.set(key, list);
+      }
+      for (const list of sets) {
+        let mesh;
+        if (list.length === 1) mesh = new THREE.Mesh(list[0].geo, list[0].mat);
+        else {
+          const items = list.map((m) => ({ geometry: m.geo, x: frame.pos.x, y: frame.pos.y, z: frame.pos.z, rotY: frame.yaw, material: m.mat }));
+          mesh = new THREE.Mesh(mergeWithMaterials(items, { local: true }), makeMaterial({ ...list[0].opts, perVertex: true }));
+          for (const m of list) m.geo.dispose();
+        }
+        if (list[0].soft) mesh.userData.noCollide = true;
         group.add(mesh);
         out.push(mesh);
       }

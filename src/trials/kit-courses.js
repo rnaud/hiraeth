@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { TempleKit, templeMaterials, box, annulus, lathe, paint, T as tf } from '../temples/kit.js';
 import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud, BellEar, Door, LightEar, Platform } from '../temples/pieces.js';
 import { TempleLogic, memoryStore } from '../temples/logic.js';
+import { batchParts } from '../part-batch.js';
 import { PALETTE as DESERT } from '../temples/desert.js';
 import { PALETTE as LORN } from '../temples/perdide.js';
 import { PALETTE as VAEL } from '../temples/arzach.js';
@@ -779,6 +780,9 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   kit.flush();
   const collider = physics?.addCollider?.(kit.group) ?? null;
   for (const p of pieces) p.init?.(physics);
+  // the pieces' repeated parts (a gust's streaks, an updraft's rings, a swing's crystals) drawn as instances: a draw for
+  // each shape, not one a part (src/part-batch.js)
+  const batches = batchParts(rt.root, { min: 2 });
   const at = (x, y, z) => kit.world(x, y, z);
   const gates = C.gates.map(([x, y, z, r]) => { const p = at(x, y, z); return { x: p.x, y: p.y, z: p.z, r }; });
   const [sx, sz] = T.start;
@@ -823,6 +827,7 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
     dispose() {
       for (const p of pieces) { p.dispose?.(); if (p.handle) { physics?.removeCollider?.(p.handle); p.handle = null; } }   // (a shut bud's, a grown vine's)
       if (collider) physics.removeCollider?.(collider);
+      for (const b of batches) b.dispose();
       parent.removeFromParent();
     },
   };

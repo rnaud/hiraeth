@@ -16,6 +16,7 @@ import { stepped, runSteps } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { greebles } from './greeble-kit.js';
+import { batchParts } from '../part-batch.js';
 import { DROPS, DROP_RING, buildShaftWays } from '../shaft-ways.js';
 import { HALFWAY } from '../story/halfway.js';
 
@@ -471,7 +472,7 @@ export function* buildIncal(scene) {
 
   // ---------------------------------------------------------- cables across the shaft
   yield;
-  const cableMat = makeMaterial({ color: '#8aa0b8' });
+  const cableMat = makeMaterial({ color: '#8aa0b8' }), cables = [];
   yield;
   for (let i = 0; i < 26; i++) {
     yield;
@@ -482,23 +483,28 @@ export function* buildIncal(scene) {
     const mid = p0.clone().lerp(p1, 0.5);
     mid.y -= 20 + rng() * 40;
     const curve = new THREE.QuadraticBezierCurve3(p0, mid, p1);
-    scene.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.25, 5), cableMat));
+    cables.push(new THREE.TubeGeometry(curve, 40, 0.25, 5));
   }
+  // (one mesh: each tube is built where it hangs, so merged they are drawn as before, 1 draw a pass instead of 26)
+  scene.add(new THREE.Mesh(mergeGeometries(cables), cableMat));
 
   // ---------------------------------------------------------- billboards on the wall
   yield;
-  const billboards = [];   // { pos, quat, w, h }: the story writes on them once the light burns again
+  const billboards = [], bills = [];   // { pos, quat, w, h }: the story writes on them once the light burns again
   yield;
   for (let i = 0; i < 40; i++) {
     yield;
     const a = rng() * TAU, y = BOTTOM + 30 + rng() * (TOP - BOTTOM - 30);
-    const m = new THREE.Mesh(new THREE.BoxGeometry(14 + rng() * 10, 8 + rng() * 6, 0.8),
-      makeMaterial({ color: pick(['#d9784f', '#9fb2c6', '#f2c54b']), flat: true, grid: 2.2 }));   // (bills, not the makers' carving: no inscriptions)
+    const o = { color: pick(['#d9784f', '#9fb2c6', '#f2c54b']), flat: true, grid: 2.2 };   // (bills, not the makers' carving: no inscriptions)
+    const m = new THREE.Mesh(new THREE.BoxGeometry(14 + rng() * 10, 8 + rng() * 6, 0.8), makeMaterial(o));
     m.position.set(Math.cos(a) * (R - 1.2), y, Math.sin(a) * (R - 1.2));
     m.lookAt(0, y, 0);
-    scene.add(m);
+    bills.push({ geometry: m.geometry, x: m.position.x, y, z: m.position.z, rotY: new THREE.Euler().setFromQuaternion(m.quaternion, 'YXZ').y, material: m.material, o });
     billboards.push({ pos: m.position.clone(), quat: m.quaternion.clone(), w: m.geometry.parameters.width, h: m.geometry.parameters.height });
   }
+  // (the forty bills one mesh, each keeping its own colour, grid and object space per vertex as the towers do: 1 draw a
+  //  pass instead of 40, src/vertex-material.js)
+  scene.add(new THREE.Mesh(mergeWithMaterials(bills), makeMaterial({ ...bills[0].o, perVertex: true })));
 
   // ---------------------------------------------------------- hero: the Lodestar
   // The light Lodestar and its dark twin, turning slowly high above the palace.
@@ -1174,13 +1180,19 @@ export function* buildIncal(scene) {
     *initSteps(physics) {
       // trees a clump put inside a house (or a crown through a wall) are left out
       for (const m of treeMeshes) yield* dropBuriedInstancesSteps(m, physics, [1, 3.5, 6], { ring: 0.9 });
+      // (the cabs in one group, their parts drawn as instances: each cab's body, trim, tail and seat a draw for all the
+      // cabs of one colour, not one a cab; some 80 cabs were ~500 meshes, src/part-batch.js)
+      const cabs = new THREE.Group();
+      cabs.name = 'The cabs';
+      scene.add(cabs);
       for (const spec of taxiSpecs) {
         const taxi = new Taxi(physics, spec.color, spec.scale, spec.lane);
         taxi.routes = shaftRoutes;
         taxi.update(0, null, 0);
-        scene.add(taxi.object);
+        cabs.add(taxi.object);
         vehicles.push(taxi);
       }
+      batchParts(cabs, { min: 2 });
     },
     // (as its plates: barely hatched, a clean sky, the shade printed flat in the shaft's own blue as the
     //  sheets do — a pink wall's turned side goes blue, not dark pink; the trees say their own, above)
