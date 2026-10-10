@@ -7,6 +7,7 @@ import { RoomKit } from './lab-kit.js';
 import { stairs } from './mangrove-kit.js';
 import { PEOPLE as DESERT_PEOPLE } from '../story/desert-data.js';
 import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
+import { HESPER_AFTER } from '../story/fellow-data.js';
 import {
   hull, portholes, houseStack, superstructure, cloth, gangway, rope, stake, stall, archDoor, herbs, stick,
   SALT_LOOK, SALT_DAY, SALT_TONES,
@@ -132,6 +133,8 @@ export const SALT_CONTENT = {
         '~happy~ Morning. The awnings are up.',
         '~neutral~ The street runs north to the standing ship. Everything else is salt.',
         '~playful~ Sign the book before you go. The salt gets to every page in the end, but it takes its time.',
+        // (her niece Tansy, the fellow traveller: her letter carried home, or Tansy home herself; src/story/fellow-data.js)
+        ...HESPER_AFTER,
       ] } },
     { at: [9, -60], radius: 3, lang: 'desert', lines: ['~curious~ You came by the sky? We came by sea, a long time ago. The sea left first.', '~playful~ Don’t pull the ropes. The ship pulls back.'] },
     { at: [-8, -150], radius: 3, lang: 'desert', lines: ['~neutral~ The cross-street goes out to the flats. Take water.', '~whisper~ Out past the red ship the crust has ridges. Something under it, they say. Nobody digs.'] },

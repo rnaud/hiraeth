@@ -365,6 +365,23 @@ written in).
 - **Keepsake**: *person*: Ilen herself (she walks to the stone; she is never
   set on it).
 
+## The fellow traveller: Tansy (built: src/story/fellow-data.js; docs/systems/story.md)
+
+One person travels too. **Tansy**, about nineteen, from the Salt Harbour: the harbour book's old line in home
+letters (*…where the singing goes*) was the dare she grew up on, and the night the sky rang her compass swung
+round and never swung back. She left her aunt Hesper one line in the book, *Gone where the singing goes*, took
+the coins in Hesper's biscuit tin, and hitches world to world after the needle. She wants to get there first, so
+the harbour writes her name in letters the salt can't eat (the salt eats every name in the end, if nobody
+reads it). Loud in Vael, brave and broke, learns three words first in every world: water, sorry, which way.
+
+Met four times, in the first four of Vael, Lorn II, the City-Shaft and the Signal Market the traveller lands in,
+a few steps from his ship. *A world ahead* (what is he after; sign her book), *the needle stops* (her ride gone,
+thirty-one days from home: send word, or keep going?), *looking up* (who is waiting for him; does Hesper still
+read her page?), *something to show*: home (word sent ahead, her compass to him, it still points after the light)
+or on past the last chart (a letter for Hesper). If he told her of someone he never said goodbye to, she sends
+him to say it. She mirrors him at seventeen and the sister he never knew, and names neither; she has no theory
+of the light, only the needle. Afterwards, in the Salt Harbour, Hesper takes the letter, or Tansy is home.
+
 ## The detours' traces (built: src/story/sightings-detours.js, each world's content)
 
 The twelve worlds off the route each hold one trace of the singing light or of whoever came this way

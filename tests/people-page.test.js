@@ -14,6 +14,7 @@ import * as garage from '../src/story/garage-data.js';
 import * as incal from '../src/story/incal-data.js';
 import { SHOPKEEPERS } from '../src/story/shop-data.js';
 import { SHOPS } from '../src/shop.js';
+import { TANSY, STOPS as FELLOW_STOPS } from '../src/story/fellow-data.js';
 
 // The game menu's People page (src/story/people-book.js, src/game-menu.js peoplePanel): who the people of the
 // route are, as far as the save says the traveller knows them. Spoiler-safe: only people met, and only the
@@ -27,7 +28,9 @@ async function peopleOf(world) {
   const out = new Map();
   // (and the keepers of the world's shops: src/story/shop-data.js, placed by src/story/shops.js)
   const keepers = Object.values(SHOPS).filter((s) => s.world === world).map((s) => SHOPKEEPERS[s.keeper]);
-  for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[world]?.npcs, m.WREN ? [m.WREN] : null, keepers]) {
+  // (and the fellow traveller, listed where the route first puts her: src/story/fellow-data.js)
+  const fellow = world === FELLOW_STOPS[0] ? [TANSY] : null;
+  for (const list of [m.PEOPLE, m.LOCALS, m.KEEPERS, CONTENT[world]?.npcs, m.WREN ? [m.WREN] : null, keepers, fellow]) {
     for (const p of Array.isArray(list) ? list : Object.values(list ?? {})) if (p?.id && p.talk && !out.has(p.id)) out.set(p.id, p);
   }
   return out;

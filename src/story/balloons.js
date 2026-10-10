@@ -6,7 +6,8 @@ import { check } from './dialogue.js';
 //
 //   'objective'  the quest you follow points at them (they are the next step)
 //   'quest'      they open the world's quest that is still waiting for its first conversation
-//   'new'        a person with a conversation you have never talked to (their first greeting)
+//   'new'        a person with a conversation you have never talked to (their first greeting), or one with a
+//                new conversation waiting (`person.fresh(ctx)`: the fellow traveller's next meeting)
 //   'news'       a listen-only person with news you have not heard yet (an `after` entry: dialogue.js pickListen)
 //
 // Everyone else (people you have met who have nothing new, bystanders and the crowd with nothing new,
@@ -26,6 +27,8 @@ export function balloonReason(person, { game, quests = null, objective = null, a
   const talk = person?.talk;
   if (!talk) return null;
   const ctx = { game, quests };
+  // someone met before with a new conversation waiting (the fellow traveller's next meeting: src/story/fellow.js)
+  if (typeof person.fresh === 'function' && person.fresh(ctx)) return 'new';
   if (talk.listen) {
     const key = `heard.${person.heard ?? person.id}`;
     const news = talk.listen.some((e, k) => isEntry(e) && e.after && check(e.if, ctx) && check(e.after, ctx) && !game.flag?.(`${key}.n${k}`));

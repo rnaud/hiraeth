@@ -481,6 +481,10 @@ const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 /** A save whose temple flags have a latched way open (the pit's pillars, the Root Stair's stones, the Warden's Well's irises). */
 const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...Object.fromEntries(keys.map((k) => [k, true])) }, keepsakes: [] });
 export const CHANGELOG_MEDIA = {
+  '1.28': [
+    { match: 'Someone else follows the singing light', see: 'Land in Vael (or whichever of Vael, Lorn II, the City-Shaft and the Signal Market you reach first) and step down the ramp: a girl in a sailcloth coat too big for her waves from a few steps off to one side. Talk to her; in the next of those worlds she opens on what you told her. Four meetings in all; the last gives you her compass or a letter for her aunt.' },
+    { match: 'Tansy has a page in the People book', see: 'Open the game menu’s People page after meeting her: she is under Vael, and her page gains a part with every answer you give her.' },
+  ],
   '1.27': [
     // the temple design audit's rules (docs/audits/temple-design-v1.27.md): the same view before and after the rework
     { match: 'No temple keeps its new tool’s first door beside the chest', shots: [

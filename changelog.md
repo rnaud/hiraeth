@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.28 — 2026-10-10
+
+- Tansy has a page in the People book that grows with every meeting. If your save had already passed one of her stops, you still meet her: she has been a world behind you, not ahead.
+- Someone else follows the singing light: Tansy, a girl from the Salt Harbour whose compass has pointed after it since the night the sky rang. She waits a few steps from your ship in Vael, Lorn II, the City-Shaft and the Signal Market. Each time you meet she remembers what you told her the time before, and what you tell her decides whether she goes home or on past the last chart, and what she leaves in your hands.
+
 ## v1.27 — 2026-10-10
 
 - In the Warden’s Well’s crown, the little vane is no longer on the crown’s wall: it stands on a post in the loft below, seen down through the second iris. Splash it there, then fly up to the great vane and hover before it slows (it now spins for 15 seconds).

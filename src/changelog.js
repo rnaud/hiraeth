@@ -8,6 +8,11 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.28', date: '2026-10-10', items: [
+    // a fellow traveller, met along the route
+    'Someone else follows the singing light: Tansy, a girl from the Salt Harbour whose compass has pointed after it since the night the sky rang. She waits a few steps from your ship in Vael, Lorn II, the City-Shaft and the Signal Market. Each time you meet she remembers what you told her the time before, and what you tell her decides whether she goes home or on past the last chart, and what she leaves in your hands.',
+    'Tansy has a page in the People book that grows with every meeting. If your save had already passed one of her stops, you still meet her: she has been a world behind you, not ahead.',
+  ] },
   { v: '1.27', date: '2026-10-10', items: [
     // the temples: no gadget door beside the chest (the temple design audit's third rule)
     'No temple keeps its new tool’s first door beside the chest any more. In the Founders’ Belfry, the Engine-House, the Undertower, the Builders’ Greenhouse, the Hush-House, the Lamp-House and the First Garage the way out of the chest’s room is open, into a short room of its own, and the first door that wants the new tool waits at its far end, where a miss costs nothing.',

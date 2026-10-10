@@ -29,10 +29,15 @@
 // on the ship's map (`map.found.<id>`). A save from before keeps every world it had charted: step 6 marks the
 // worlds the route had opened for it (src/story/route.js knownWorlds, from its flags) as found.
 //
+// The fellow traveller (v1.28, src/story/fellow.js) is met in the first four of her stops a save lands in: step 7
+// marks a save that had already finished one of them as late (`fellow.late`), so she says she has been a world
+// behind him rather than ahead.
+//
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
 import { knownWorlds } from './story/route.js';
 import { ORDER } from './levels/names.js';
+import { STOPS as FELLOW_STOPS } from './story/fellow-data.js';
 
 /** The resources' format (src/resources.js RES_VERSION; kept here so the migration needs no game modules). */
 export const RES_VERSION = 2;
@@ -105,6 +110,12 @@ const STEPS = [
   (flags) => {
     const done = (id) => !!flags[`world.${id}.done`];
     for (const id of knownWorlds({ order: ORDER, done, visited: (id) => visited(flags, id) })) flags[`map.found.${id}`] ??= true;
+  },
+  // 7: the fellow traveller (v1.28, src/story/fellow.js): a save that had already finished one of her stops before
+  // she came meets her all the same, in the next of them it lands in (she waits there); she has been a world
+  // behind him, not ahead (`fellow.late`: her first meeting says so)
+  (flags) => {
+    if (flags['fellow.meet'] === undefined && FELLOW_STOPS.some((id) => flags[`world.${id}.done`])) flags['fellow.late'] = true;
   },
 ];
 

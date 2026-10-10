@@ -750,3 +750,53 @@ says what they pour in (a balloon, a chime and a splash, `REPAY_TIMING.gap` 3.4 
 gave us back our light, child. So Qanat gives your ship its own."), then `desert.ship.fed`: the quest ends
 and the ship wakes. They go home, out of sight, once he has gone. Before the tree burns his jar alone does
 nothing ("nothing in it wants to burn"). `tests/desert-repay.test.js`, `tests/desert-story.test.js`.
+
+## A fellow traveller: Tansy (v1.28)
+
+The worlds were islands (docs/fun-and-story-review.md, problem 4): each cast lived and died inside its world.
+Now one person travels too, follows the same light, and is met four times along the route, each meeting
+changed by what the traveller said at the last (`src/story/fellow-data.js`, `src/story/fellow.js`).
+
+- **Who.** Tansy, about nineteen, from the Salt Harbour (a harbour with no sea, src/levels/salt-harbour.js).
+  The harbour book has an old line in home letters, half eaten by the salt: *…where the singing goes.* The night
+  the sky rang, every compass in the harbour swung round; hers never swung back. She left her aunt Hesper (who
+  keeps the book) one line in it, *Gone where the singing goes*, took the coins in Hesper's biscuit tin, and
+  hitches from world to world on whatever is going, following the needle. She wants to get where the singing
+  goes first, so the harbour writes her name in letters the salt can't eat. She mirrors the traveller (he left
+  at seventeen, after a fight) and the sister he never knew, without naming either: she has no theory of the
+  light, only a needle that shivers in threes (the signature, src/story/signature.js).
+- **Her look,** the same in every world: dressed for the Salt Harbour (`world: 'saltharbour'`, src/costumes.js)
+  with every piece named (a sailcloth coat too big for her, a basil-green tunic, a terracotta knitted cap over a
+  copper braid, a satchel); made by `setupFellow` itself rather than the story's `spawn`, which would dress her
+  as each world's people dress.
+- **Where.** Her stops are Vael, Lorn II, the City-Shaft and the Signal Market (`STOPS`, in the route's
+  order): she is met in the first four of them the traveller lands in, one meeting each, a few steps out from
+  the ship's ramp and to one side (`fellowSpot`: on walkable ground the ramp can see, out of the water, nobody on
+  the spot; she saw the ship come down). `fellowHere(flags, world)` says whether she is there and with which
+  meeting; once a meeting is had she stays for the visit and any visit after until the next stop, and after
+  the last she is gone. A meeting is had only at its last answer (its node's `had`), so walking off halfway
+  leaves it to be had again. Nothing blocks on her: no quest, no gate. Her balloon shows whenever a meeting is
+  waiting (`person.fresh`, src/story/balloons.js), though she has been met.
+- **The meetings.** Each opens on a picture of her in that stop (a page per world), then:
+  1. *A world ahead*: brash, a race. What are you after (`fellow.after`: value, light, unsure)? Sign her book
+     (`fellow.signed`)?
+  2. *The needle stops*: she opens on his answer from last time; her ride has left without her; send word home,
+     keep going, or yours to decide (`fellow.advice`: write, go, self)?
+  3. *Looking up*: the letter written and not sent, the needle back and her alone with it, or a mind made up
+     eleven times (by her advice). Who is waiting for you (`fellow.told`: nobody, someone you didn't say goodbye
+     to, rather not say)? Does Hesper still read her page (`fellow.heart`: home, or on: find where it goes
+     first, then you'll have something to show her, the father's words in the traveller's mouth)?
+  4. *Something to show*, the payoff: home, she has sent word ahead (a minute on a tower in the market, a
+     postal hulk elsewhere) and gives him her compass (`saltcompass`); on, she goes past where the charts end
+     and gives him a letter for Hesper (`saltletter`). If he told her of someone he never said goodbye to, she
+     sends him to say it. An unsigned book's last page is his to sign (`fellow.end`).
+- **Afterwards.** In the Salt Harbour (still being made) Hesper takes the letter and puts it in the book after
+  Tansy's line (`fellow.letter.given`), or, if Tansy went home, she is there beside the book (`HOME`,
+  `HOME_TALK`) and Hesper has soup for him.
+- **The People page** lists her under Vael (where the route first puts her) and grows a part with every answer;
+  what changed hands (the compass, the letter) and her advice as the choice she remembers.
+- **Old saves.** src/save-migrate.js step 7: a save that had already finished one of her stops meets her in the
+  next it lands in all the same, and she says she has been a world behind him, not ahead (`fellow.late`).
+- Tests: `tests/fellow.test.js` (her stops and meetings in order, each changed by the last, both ways through,
+  a meeting walked off halfway, the last meeting away from the market, the migration, the People page,
+  Hesper, and her place by the ship in each stop and at home, built in the world with the real ship).

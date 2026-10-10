@@ -198,6 +198,29 @@ export const BOOK = {
       'Brin keeps a shop carved into the foot of a hoodoo on the way to the lone tower: cures, a heart, wares hung on cords that turn in the wind. She says one word at a time, as Vael does, and draws her prices in a tray of sand.',
       [f('arzach.brin.words'), 'Few words go far, she says: the wind carries them.'],
     ], ['At the Wind-Shelf, behind its curved stone counter.']),
+    // the fellow traveller (src/story/fellow-data.js): met four times along the route, listed where the route
+    // first puts her (Vael), her story growing a meeting at a time
+    P('tansy', 'Tansy', 'From the Salt Harbour, following the singing too', [
+      'A girl from the Salt Harbour, a harbour with no sea. The night the sky rang, every compass there swung round the same way, and hers never swung back. She follows its needle from world to world on whatever is going, a world ahead of you, she says.',
+      [f('fellow.after', 'value'), 'You told her you were after something of value. She wants something nobody has yet.'],
+      [f('fellow.after', 'light'), 'You told her you were after whatever brought your ship down. She made it a race.'],
+      [f('fellow.after', 'unsure'), 'You told her you were not sure any more. Nobody had told her that was allowed.'],
+      [f('fellow.signed'), 'You signed her book. Everybody signs, where she comes from: the salt eats every name in the end, if nobody reads it.'],
+      [f('fellow.advice'), 'Then her needle stopped pointing and her ride left without her. Her aunt Hesper does not know where she is: all she left was a line in the harbour book, “Gone where the singing goes.”'],
+      [f('fellow.advice', 'write'), 'You told her to send word home that night.'],
+      [f('fellow.advice', 'go'), 'You told her she had come this far, and to keep going.'],
+      [f('fellow.advice', 'self'), 'You told her it was hers to decide. She did not thank you for it.'],
+      [f('fellow.told', 'someone'), 'She asked who was waiting for you. You told her: someone you did not say goodbye to.'],
+      [f('fellow.heart', 'home'), 'You told her Hesper still reads her page every night. One more world, she said, then home.'],
+      [f('fellow.heart', 'on'), 'You told her to find where the singing goes first, and have something to show for it.'],
+      [f('fellow.end', 'home'), 'She sent word ahead to Hesper that she is coming home, and gave you her compass. It still points after the light.'],
+      [f('fellow.end', 'on'), 'She went on, past where the charts end, and gave you a letter for Hesper at the Salt Harbour.'],
+      [f('fellow.letter.given'), 'You gave Hesper the letter. She put it in the harbour book, after Tansy’s line.'],
+    ], [
+      [f('fellow.end', 'home'), 'Home at the Salt Harbour, with Hesper.'],
+      [f('fellow.end', 'on'), 'Somewhere past the last chart, where the singing goes.'],
+      'A world ahead of you on the route, she says.',
+    ]),
   ],
   arzach2: [
     P('aube', 'Sister Aube', 'Hermit of the edge, watches the cloud', [
@@ -596,6 +619,7 @@ export const GIFTS = {
   dun: [[done('buried.key'), 'You brought back the chimney key.']],
   kip: [[f('bazaar.kip.gave'), 'Kip gave you the tower’s last recording.']],
   oyo: [[f('bazaar.tank.lantern'), 'He poured his last lantern into your tank.']],
+  tansy: [[f('fellow.end', 'home'), 'She gave you her compass.'], [f('fellow.end', 'on'), 'She gave you a letter to carry to her aunt.']],
 };
 
 /** The keepsakes (game.keepsakes()) and who gave them. */
@@ -615,6 +639,7 @@ export const CHOICES = {
   dov: [[f('incal.token', 'kept'), 'You kept the lift token he gave you.'], [f('incal.token', 'returned'), 'You pressed his lift token back into his hand: go down and see Pip.']],
   'hollin.perdide2': [[f('perdide2.promise.kept'), 'You promised to come back, and you came back.'], [f('perdide2.promise', 'yes'), 'You promised to come back.'], [f('perdide2.promise', 'maybe'), 'You would not promise to come back. A welcome isn’t a debt, he said.']],
   esk: [[failed('edena.terraces'), 'You turned the builders’ gate once, as she asked. Her hill went down into the hollow.']],
+  tansy: [[f('fellow.advice', 'write'), 'You told her to send word home.'], [f('fellow.advice', 'go'), 'You told her to keep going.'], [f('fellow.advice', 'self'), 'You told her it was hers to decide.']],
   ilo: [[f('desert.ilo.told', 'true'), 'You told Ilo the truth about the giant’s well.'], [f('desert.ilo.told', 'monster'), 'You told Ilo there is a monster under the city.'], [f('desert.ilo.told', 'secret'), 'You kept it a secret until Ilo is older.']],
 };
 
