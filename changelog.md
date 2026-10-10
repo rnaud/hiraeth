@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.23 — 2026-10-10
+
+- One of the riders’ lantern stones fell up with the bell’s clapper. Its lantern burns over the island church’s porch while the clapper lies there, a point of light in the sky seen from the monastery, and goes out when you pick the clapper up.
+- In Vael II, Ondine no longer waits alone far out on the plain: every day she walks out along the long aqueduct as far as the floating island, and you find her there, under the island church, beside the parapet stone where she scratches a mark for each day. Ask her why she stops there.
+
 ## v1.22 — 2026-10-10
 
 - The crucible cart’s slag burns you a little less often and cools sooner; the ring drone’s diving ram and the shade’s sword cut hit as hard as the other heavy blows, and the shade winds its cut up a touch longer.

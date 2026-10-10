@@ -102,3 +102,69 @@ export function buildLanternStones(scene) {
   const update = (t) => { g.position.y = Math.sin(t * 0.3 + 1.1) * 0.9; };
   return { points: LANTERN_STONES.map((p) => [p[0], p[1] + 2, p[2]]), sight: tops[3].clone(), stones: tops, group: g, lit, update };
 }
+
+/**
+ * The clapper's lantern (level design audit, fifth round: a lit marker at the clapper, seen from the bell at bird height).
+ * One of the riders' lantern stones fell up with the clapper and hangs over the island church's porch, its lantern lit
+ * by the clapper's own warmth: the one light in the sky the whole time the bell is silent. It goes dark when the clapper
+ * is lifted (lit(false)). Drawn three times a lantern stone's size, so the flame shows across the cloud from the cliff.
+ *
+ *   buildClapperLantern(scene, at) → { at, lit(on), update(t) }
+ */
+export function buildClapperLantern(scene, at) {
+  const S = 2.4;   // (the lantern's own scale: a point of light at 550 m)
+  const x = at.x - 3, y = at.y + 11, z = at.z + 2;
+  const stone = makeMaterial({ color: '#f3ead8', color2: '#f0e4cf', color3: '#f5ede0', flat: true });
+  const iron = makeMaterial({ color: '#3c4660', flat: true });
+  const dark = makeMaterial({ color: '#8a7a62', flat: true });
+  const lamp = makeMaterial({ color: '#ffd9a0', glow: 1 });
+  const r = 2.2;
+  const rock = mergeGeometries([flat0(new THREE.CylinderGeometry(r, r * 0.86, 1.1, 9).translate(0, -0.55, 0)), flat0(new THREE.ConeGeometry(r * 0.86, r * 2, 8).rotateX(Math.PI).translate(0, -1.1 - r, 0))]);
+  const crook = mergeGeometries([flat0(new THREE.CylinderGeometry(0.08, 0.1, 3.6, 5).translate(0, 1.8, 0)), flat0(new THREE.CylinderGeometry(0.06, 0.06, 1.3, 5).rotateZ(Math.PI / 2).translate(0.6, 3.5, 0)),
+    flat0(new THREE.ConeGeometry(0.42 * S, 0.4 * S, 6).translate(1.2, 3.45 - 0.2 * S, 0)), flat0(new THREE.BoxGeometry(0.62 * S, 0.08, 0.62 * S).translate(1.2, 3.45 - 1.1 * S, 0))]);
+  const glassGeo = flat0(new THREE.CylinderGeometry(0.3 * S, 0.3 * S, 0.7 * S, 6).translate(1.2, 3.45 - 0.75 * S, 0));   // (hung under the crook's arm, its cap just below it)
+  const g = new THREE.Group();
+  g.name = 'The clapper’s lantern';
+  const unlit = new THREE.Mesh(glassGeo, dark), litGlass = new THREE.Mesh(glassGeo, lamp);
+  unlit.visible = false;
+  g.add(new THREE.Mesh(rock, stone), new THREE.Mesh(crook, iron), unlit, litGlass);
+  g.position.set(x, y, z);
+  g.rotation.y = -0.7;
+  // (the clipping and contact audits: it hangs in the air on purpose, out of reach)
+  g.userData.noCollide = true;
+  for (const m of g.children) m.userData.floats = true;
+  scene.add(g);
+  const lit = (on) => { litGlass.visible = !!on; unlit.visible = !on; };
+  const update = (t) => { g.position.y = y + Math.sin(t * 0.35 + 0.4) * 0.6; g.rotation.y = -0.7 + Math.sin(t * 0.12) * 0.15; };
+  return { at: V(x, y, z), lit, update };
+}
+
+/**
+ * Where Ondine turns back (fifth round): a block set on the long aqueduct's east edge just south of the floating island,
+ * its inner face scratched with tally marks in fives, row under row, one for every day she has walked out this far
+ * from the plain. Collides as drawn (a parapet stone); the marks are drawn only, a finger's depth proud of its face.
+ *
+ *   buildOndineTally(scene, topAt) → { at }
+ */
+export const TALLY = { x: 218.6, z: -569 };
+export function buildOndineTally(scene, topAt) {
+  const { x, z } = TALLY;
+  const y = topAt(x, z, 46);
+  const stone = makeMaterial({ color: '#efe4cf', color2: '#e8dcc4', color3: '#f3ead8', flat: true });
+  const ink = makeMaterial({ color: '#7a5a48', flat: true });
+  const block = new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.05, 2.6).translate(x, y + 0.52, z), stone);
+  const marks = [];
+  // rows of four strokes and a fifth across them, on the face toward the deck (west, -x)
+  for (let row = 0; row < 5; row++) for (let k = 0; k < 6; k++) {
+    const cz = z - 1.05 + k * 0.38 + (row % 2) * 0.1, cy = y + 0.9 - row * 0.17;
+    for (let i = 0; i < 4; i++) marks.push(flat0(new THREE.BoxGeometry(0.012, 0.12, 0.018).translate(x - 0.405, cy, cz + i * 0.05)));
+    marks.push(flat0(new THREE.BoxGeometry(0.012, 0.018, 0.24).rotateX(0.5).translate(x - 0.405, cy, cz + 0.075)));
+  }
+  const tally = new THREE.Mesh(mergeGeometries(marks), ink);
+  tally.userData.noCollide = true;
+  const g = new THREE.Group();
+  g.name = 'Ondine’s tally';
+  g.add(block, tally);
+  scene.add(g);
+  return { at: V(x - 0.8, y + 0.6, z) };
+}

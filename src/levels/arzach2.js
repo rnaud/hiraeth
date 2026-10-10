@@ -11,7 +11,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { rockKnobs } from './greeble-kit.js';
-import { buildFallenTiles, buildLanternStones } from '../sky-stones-ways.js';
+import { buildFallenTiles, buildLanternStones, buildClapperLantern, buildOndineTally } from '../sky-stones-ways.js';
 
 // ---------------------------------------------------------------------------
 // Vael II: The Sky Stones. Bone-white needle clusters, balanced stones and
@@ -99,7 +99,9 @@ export const ARZACH2_CONTENT = {
     { at: [MONASTERY.x - 21, MONASTERY.z - 25], y: MONASTERY.top, radius: 2,   // (Brother Calix: clear of the cloister's door, which he used to wander into)
       palette: { cloak: '#f3ead8', lining: '#2b211f', cloth: '#6a3a4a', legs: '#4a3a2a' },
       lines: ['~sad~ The bell has not rung since the cloud rose.', '~sad~ From the tower roof you can see the plain. Only Ondine lives out there, and nobody goes to see her.', '~neutral~ The yoke is oiled. The yoke is always oiled.', '~sad~ Thirty years of dawns with nothing to ring at them.'] },
-    { at: [195, -1010], radius: 6, palette: { cloak: '#e9a17f', lining: '#2b211f', cloth: '#343a56', legs: '#3a3a3a' },
+    // (Ondine: out on the long aqueduct just south of the floating island, as far as she walks from the plain each day, under
+    //  the church where the clapper lies: the level design audit's fifth round, 490 m from anything on the plain)
+    { at: [215, -560], y: AQ2.y, radius: 2.5, palette: { cloak: '#e9a17f', lining: '#2b211f', cloth: '#343a56', legs: '#3a3a3a' },
       lines: ['~tired~ Walk toward the tower. It does not get closer for a long time.', '~solemn~ The cracks in the plain are older than the sky.', '~curious~ The face on the tower has a mark on its brow. Three dots and an arc. Look.', '~happy~ Some evenings a lamp burns on the rose cliff. I wave. My sister pretends not to see.'], shy: true },
   ],
 };
@@ -819,7 +821,12 @@ export function* buildArzach2(scene) {
   // riders' lantern stones from the rose cliff past the Founders' Belfry to Aube's hermitage, lit again when the bell rings
   yield;
   const tiles = buildFallenTiles(scene), lanterns = buildLanternStones(scene);
-  movers.push(tiles.update, lanterns.update);
+  // (fifth round: the lantern stone that fell up with the clapper, lit over the island church's porch until it is lifted)
+  const clapperAt = new THREE.Vector3(CLAPPER.x, topAt(CLAPPER.x, CLAPPER.z, ISLAND.top + 20), CLAPPER.z);
+  const clapperLamp = buildClapperLantern(scene, clapperAt);
+  movers.push(tiles.update, lanterns.update, clapperLamp.update);
+  // (and on the long aqueduct under the island, the parapet stone where Ondine turns back each day, scratched with her tally)
+  const tally = buildOndineTally(scene, topAt);
 
   const spawn = new THREE.Vector3(0, 0, 22);
   spawn.y = topAt(spawn.x, spawn.z);
@@ -876,7 +883,7 @@ export function* buildArzach2(scene) {
     // only where a stage names them (the clapper's along the tiles, the way home along the lanterns); and what to look at
     beacons: [{ name: 'the monastery’s bell tower', top: [BELL.x, BELL.y + BELL.h + 6, BELL.z], height: 10 }, { name: 'the island church’s tower', top: [ISLAND.x - 9, ISLAND.top + 25, ISLAND.z - 10], height: 22 }],
     lines: [{ name: 'the fallen-up tiles', points: tiles.points, auto: false }, { name: 'the lantern stones', points: lanterns.points, auto: false }],
-    sights: [{ name: 'the fallen-up tiles', at: tiles.sight }, { name: 'the lantern stones', at: lanterns.sight }],
+    sights: [{ name: 'the fallen-up tiles', at: tiles.sight }, { name: 'the lantern stones', at: lanterns.sight }, { name: 'Ondine’s tally', at: tally.at }],
     // the story's handles (src/story/arzach2.js): the bell and its rope, the cloud sea (it settles when the
     // bell rings), the floating stones, the sky stones and the cairn, the clapper's island, the tower's face
     arzach2: {
@@ -885,13 +892,13 @@ export function* buildArzach2(scene) {
       sky: SKY.map(([x, z, top, r]) => ({ pos: new THREE.Vector3(x, top, z), r })),
       cairn: new THREE.Vector3(CAIRN.x, CAIRN.y, CAIRN.z),
       table: new THREE.Vector3(TABLE.x, tableTop(TABLE), TABLE.z),
-      clapper: new THREE.Vector3(CLAPPER.x, topAt(CLAPPER.x, CLAPPER.z, ISLAND.top + 20), CLAPPER.z),
+      clapper: clapperAt,
       island: new THREE.Vector3(ISLAND.x, ISLAND.top, ISLAND.z),
       monastery: new THREE.Vector3(MONASTERY.x, MONASTERY.top, MONASTERY.z),
       face: new THREE.Vector3(FACE.x, FACE.y, FACE.z),
       tower: new THREE.Vector3(TOWER.x, terrain.heightAt(TOWER.x, TOWER.z), TOWER.z),
       plainEdge: PLAIN_EDGE,
-      tiles, lanterns,
+      tiles, lanterns, clapperLamp,
     },
     atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Vael II · the peach plain' : 'Vael II · the sky stones' }),
     update(dt, t) { for (const m of movers) m(t); },

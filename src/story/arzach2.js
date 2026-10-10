@@ -18,7 +18,8 @@ import { setupArzach2Moments } from './arzach2-moments.js';
 //                      tiles that fell up with it (push them off)
 //   the great table    Tiv by his cairn's footing stone; the sky stones climb
 //                      round from the table's east rim, three cairn stones on them
-//   the plain          Ondine, walking to the lone tower; the face on its plinth,
+//   the aqueduct       Ondine, out on it under the island, as far as she walks from the plain
+//   the plain          the lone tower; the face on its plinth,
 //                      and the monks' old signal lamp beside it: push its tiller
 //                      round until the mirror looks at the carved bell (the rose
 //                      cliff), light it with a shot, and Ysolde's lamp answers
@@ -321,8 +322,11 @@ export function setupArzach2(ctx) {
         toast(`Picked up ${ITEMS.clapper}. It is warm, and it hums very faintly against your hand.`);
         if (!quests.reached(Q, 'clapper')) quests.set(Q, 'clapper');
         lying.removeFromParent(); off(); light.set(0, -1e5, 0, 0); sound.chime();
+        A.clapperLamp?.lit(false);   // (its lantern stone goes dark with the clapper's warmth gone: src/sky-stones-ways.js)
       } });
   }
+  // the clapper's lantern over the porch burns only while the clapper lies there
+  A.clapperLamp?.lit(!!lying);
   // the clapper back in the bell (once Calix has hung it)
   const hungClapper = makeClapper();
   hungClapper.rotation.x = Math.PI;

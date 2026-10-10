@@ -216,7 +216,7 @@ export const BOOK = {
     ]),
     P('ysolde', 'Mother Ysolde', 'Writes letters to her sister', [
       'She writes to her sister every winter: thirty letters, none sent. Ondine left, she stayed, and since the cloud rose only the aqueduct lies between them.',
-      [started('arzach2.letter'), 'She gave you the shortest letter to carry to Ondine on the plain.'],
+      [started('arzach2.letter'), 'She gave you the shortest letter to carry to Ondine, out on the aqueduct.'],
       [f('arzach2.lamp.answered'), 'Ondine’s tower lamp lit up, and Ysolde answered the old way, three long flashes and one short.'],
       [done('arzach2.letter'), 'She has started another letter: “Come for supper.”'],
     ], ['At the monastery, watching the tower from its wall.']),
@@ -224,7 +224,7 @@ export const BOOK = {
       'Ysolde’s sister has walked to the tower every day for thirty years to study how old it is. The face carved in its base was there long before the monastery, the same mark on its brow.',
       [past('arzach2.letter', 'lamp'), 'She read her sister’s letter twice, then sat down and laughed. She will come home when the bell rings.'],
       [all(started('arzach2.letter'), f('arzach2.bell.rung')), 'She heard the bell: that means supper.'],
-    ], ['Out on the peach plain, by the lone tower.']),
+    ], ['Out on the long aqueduct under the floating island, as far as she walks from the lone tower each day.']),
     P('tiv', 'Tiv', 'A novice who balances stones', [
       'A novice whose cairn fell up the night the light went over: the bell hummed and three stones landed on the little sky stones.',
       [done('arzach2.cairn'), 'You brought the stones back and the cairn stands, widest first. It hums.'],

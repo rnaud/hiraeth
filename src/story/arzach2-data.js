@@ -59,7 +59,7 @@ export const QUESTS = [
     id: 'arzach2.letter', title: 'A Letter Across the Aqueduct', world: 'arzach2',
     outro: 'Ondine read it twice. Then she sat down and laughed.',
     stages: [
-      { id: 'carry', text: 'Carry Mother Ysolde’s letter across the long aqueduct to her sister Ondine, on the peach plain', label: 'Ondine, on the plain', bring: 'letter', to: 'ondine' },
+      { id: 'carry', text: 'Carry Mother Ysolde’s letter out along the long aqueduct to her sister Ondine, who walks out on it every day from the peach plain', label: 'Ondine, on the aqueduct', bring: 'letter', to: 'ondine' },
       // (new: saves already at 'face' skip it, and can still light the lamp)
       { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: switch the gun to push with {key:mode}, then aim and shoot), and light it with a shot', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
       { id: 'face', text: 'Look at the face carved on the lone tower’s plinth', label: 'The face on the tower', flag: 'arzach2.face.seen', at: 'face' },
@@ -234,12 +234,14 @@ export const LOCALS = [
       entry: [{ if: { has: 'letter' }, node: 'letter' }, { if: { quest: 'arzach2.letter', stage: 'lamp' }, node: 'lamp' }, { if: { quest: 'arzach2.letter', started: true }, node: 'after' }, { node: 'hello' }],
       nodes: {
         hello: {
-          say: ["~surprised~ Hello! Someone out on the plain! Heading for the tower? It’s a long walk. I’ve made it every day for thirty years.", "~playful~ I’m Ondine. Thirty years studying how old it is. All I’ve established is that we’re both older now."],
+          say: ["~surprised~ Hello! Someone out on the aqueduct! I walk out this far every day from the tower on the plain, as far as the island. Then I walk back.", "~playful~ I’m Ondine. Thirty years studying how old that tower is. All I’ve established is that we’re both older now."],
           choices: [
             { text: '~curious~ What’s so special about the tower?', goto: 'tower' },
+            { text: '~curious~ Why stop here?', goto: 'island' },
             { text: '~neutral~ Your sister is at the monastery.', goto: 'sister' },
           ],
         },
+        island: { say: ["~solemn~ Look up. The bell’s tongue is on that island, under a heap of roof tiles. I watched it fall up the night the cloud rose.", "~sad~ A lantern stone went up with it and has burned over it ever since. It’s the nearest thing to the bell I can get to without wings."], choices: [{ text: '~curious~ What’s at the tower?', goto: 'tower' }, { text: '~neutral~ I’ll look.', end: true }] },
         tower: { say: ["~solemn~ Look at *the face carved in its base*. The monastery didn’t make that. It was here long before them, with the same mark on its brow."], choices: [{ text: '~neutral~ I’ll look.', end: true }] },
         sister: { say: ["~sad~ My sister Ysolde still writes letters she won’t send. Her lamp burns half the night every winter. I know her thinking light."], choices: [{ text: '~curious~ What’s at the tower?', goto: 'tower' }] },
         letter: {
@@ -249,7 +251,7 @@ export const LOCALS = [
         },
         clue: {
           say: ["~happy~ Tell her I’ll come when the bell rings. Actually, help me answer her myself. We used to signal across the plain.",
-            "~playful~ Use *the signal lamp on the tower’s base*. *Push its tiller from the side* until the mirror faces *the carved bell*, toward the rose cliff. Then *light it*. My arms won’t turn it anymore."],
+            "~playful~ Use *the signal lamp on the tower’s base*, out on the plain. *Push its tiller from the side* until the mirror faces *the carved bell*, toward the rose cliff. Then *light it*. My arms won’t turn it anymore."],
           next: 'giants',
         },
         giants: {
@@ -259,7 +261,7 @@ export const LOCALS = [
         lamp: { say: [{ if: { flag: 'arzach2.lamp.lit' }, text: "~curious~ It’s burning! Now *push the tiller from the side*. Turn the mirror toward *the carved bell* so Ysolde can see it." },
           { if: { not: { flag: 'arzach2.lamp.lit' } }, text: "~playful~ *Push the lamp’s tiller sideways*, aim its mirror at *the carved bell*, then *light it*. She’ll be watching from the monastery wall." }],
           choices: [{ text: '~neutral~ All right.', end: true }] },
-        after: { say: [{ if: { flag: 'arzach2.lamp.answered' }, text: "~happy~ Her window answered the moment we lit ours. All these years, and she was watching too." }, { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ I heard the bell! That means supper. I’ll set out at first light, and I won’t stop at the tower." }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~playful~ I said I’d come when the bell rings. Now I find myself rather hoping it will." }],
+        after: { say: [{ if: { flag: 'arzach2.lamp.answered' }, text: "~happy~ Her window answered the moment you lit ours. I saw it from here. All these years, and she was watching too." }, { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ I heard the bell! That means supper. I’ll set out at first light, and I won’t stop at the tower." }, { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~playful~ I said I’d come when the bell rings. Now I find myself rather hoping it will." }],
           choices: [{ text: '~neutral~ Goodbye, Ondine.', end: true }] },
       },
     },
