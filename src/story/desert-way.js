@@ -20,7 +20,8 @@ import { THINGS } from './desert-data.js';
 // Most riders go straight from Marrow's hollow toward the butte's chimney, and the stones run off to the
 // north of that, so the straight ride has its own two (src/desert-sites.js ridePlaces, level design audit
 // v1.9): Yara the salt-carrier in her sunshade's shade a third of the way (src/levels/content.js), and a
-// sand-skiff's wreck two thirds of the way (desert.ride.wreck). The stones then lead home: the way back
+// sand-skiff's wreck two thirds of the way (desert.ride.wreck), and (v1.15) the tusk gate four fifths of the way,
+// right over the ride where the red rocks begin, with the Givers' jar in its shade (desert.ride.tusks). The stones then lead home: the way back
 // to Qanat passes the bowl and the camp you rode wide of on the way out.
 //
 // Called out on the ride (October 2026: the ride was "empty" at 34 m/s, the three blinked past): heading
@@ -41,6 +42,7 @@ export const CALLS = {
   bell: 'Something glints in the sand ahead, a few metres off the way.',
   shade: 'A red pennant over the dunes ahead: somebody’s sunshade, the only shade out here.',
   wreck: 'Ahead, a mast leans out of the sand with a rag of sail on it.',
+  tusks: 'Ahead, two great tusks stand out of the sand, leaning together until their tips cross: a gate, and shade under it.',
   hearth: 'Ahead, on its hill of red rock: the Givers’ Hearth, a dark slit near the top of its chimney.',
 };
 const ERRAND = ['hearth', 'stone', 'light'];
@@ -61,6 +63,7 @@ export function setupWay(ctx) {
     { id: 'bell', at: W.bell.at, open: () => !game.flag('desert.way.bell') },
     // (the straight ride out, where the marked stones run off to the north: src/desert-sites.js ridePlaces)
     ...(R ? [{ id: 'shade', at: R.shade.at, range: 110, open: () => !game.flag('met.yara') }, { id: 'wreck', at: R.wreck.at, range: 110, open: () => !game.flag('desert.ride.wreck') }] : []),
+    ...(R?.tusks ? [{ id: 'tusks', at: R.tusks.at, range: 140, open: () => !game.flag('desert.ride.tusks') }] : []),
     { id: 'hearth', at: level.hearth.doorFront, range: CALL.hearth, open: () => game.flag('quest.desert.power') === 'hearth' },
   ];
   const callOut = (pos) => {
@@ -90,6 +93,7 @@ export function setupWay(ctx) {
   look(THINGS.wayCamp, W.camp.at, 'look at the cold camp', W.camp.look);
   look(THINGS.wayBell, W.bell.at, 'pick up what glints', W.bell.at.clone().add(new THREE.Vector3(0, 0.2, 0)));
   if (R) look(THINGS.rideWreck, R.wreck.stand, 'look at the wreck', R.wreck.look);
+  if (R?.tusks) look(THINGS.rideTusks, R.tusks.stand, 'look at the jar in the shade', R.tusks.look);
 
   const fillBowl = () => {
     if (filled()) return false;

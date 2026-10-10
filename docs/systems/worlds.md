@@ -349,6 +349,21 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
   its `beacons` (the camps' smoke or the tree's column, the Hearth's chimney), and the bike stage's `ends`
   (`bikeHollow`: the stage is done at the hollow, not at Marrow).
 
+## The desert's second round (level design audit v1.15)
+
+- **The tusk gate** (`src/desert-sites.js` `RIDE.tusks`, `src/desert-hearth.js` `ride.tusks`): four fifths of the straight
+  ride, where the red rocks begin, two great tusks the Givers stood either side of the way, their tips crossed 13 m
+  over it (the bike rides under). In their shade a low wall, the Givers' sealed jar (`THINGS.rideTusks`,
+  `desert.ride.tusks`) and a riders' cairn. Named on the ride as it comes up (`CALLS.tusks`); it stands 50 m off the
+  marked stones, so the stones' ride names it too. The wreck to the Hearth was 518 m with nothing on it.
+- **The pilgrims' road home** (`src/desert-road.js`, `src/story/desert-road.js`): eleven cairns of stacked stones, each
+  with a clay lamp, from just west of Qanat's main gate over the dunes past Oum's stone and the crest of the last big
+  dune (the pilgrims' resting stone, `THINGS.roadStone`, faces the tree) down to the landing from the north-west: a
+  second way home, 100 m off the straight way in. Dead while the tree is cold; 14 s after it catches the lamps light one
+  after another from the gate down (`ROAD_LAMPS`, a line says so once), and the last stage (`ship`) sends you down it.
+- For the audit: the stones and the road are the level's `lines` (the road `auto: false`: only the last stage's `via`
+  follows it), the tusk gate and the resting stone are `sights`.
+
 ## Vael's layout, from the level design audit (v1.9)
 
 - **The plain** between the landing and the lone tower (445 m with nothing on it): Senn (`src/levels/content.js`) listens

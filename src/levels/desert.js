@@ -15,6 +15,7 @@ import { SHOPS } from '../shop.js';
 import { buildDesertCity, desertCrowdSpots } from '../desert-city.js';
 import { LINES } from '../story/desert-data.js';
 import { attachTemple, clearInstances } from '../temples/index.js';
+import { buildPilgrimsRoad } from '../desert-road.js';
 import { buildDesertHearth } from '../desert-hearth.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { STORY, DESERT_WORLD_LOOK } from '../desert-sites.js';
@@ -102,7 +103,11 @@ export function* buildDesert(scene) {
   const shopClear = [{ x: shop.interior.front.local(0, 0, -2.4).x, z: shop.interior.front.local(0, 0, -2.4).z, r: 6.5 }];
   clearInstances(scene, shopClear, shop.interior.front.group);
   const avoidWorld = floraAvoid;
-  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || avoidWorld(x, z, r);
+  // the pilgrims' road home (src/desert-road.js): its cairns from the main gate down to the landing, lit once the tree burns
+  const road = buildPilgrimsRoad(scene, terrain, { tree: qanat.city.crown });
+  lights.push(...road.cairns.map((c) => c.light));
+  clearInstances(scene, road.clear, road.group);
+  const avoidShop = (x, z, r = 0) => shopClear.some((c) => Math.hypot(x - c.x, z - c.z) < c.r + r) || road.avoid(x, z, r) || avoidWorld(x, z, r);
   // the arcade signs of two games, out of the story's way (src/minigames/): Fishing on the basin's shore,
   // the Canyon run under the lavender cliffs by the rope bridge
   for (const [id, x, z, heading] of [['fishing', BASIN.x + BASIN.rx * 0.74, BASIN.z + 6, Math.PI / 2], ['canyon', -398, -446, 2.6]]) {
@@ -115,13 +120,15 @@ export function* buildDesert(scene) {
     observatory,
     qanat,
     hearth,
+    road,
     vistas,
     landmarks,
     maskRooms,
     // things to stop for that are neither people nor quests (scripts/level-design/audit.mjs counts them as places)
     sights: () => [
       { name: 'the keepers’ bowl', at: hearth.way.bowl.at }, { name: 'the keepers’ cold camp', at: hearth.way.camp.at }, { name: 'a bell in the sand', at: hearth.way.bell.at },
-      { name: 'a sand-skiff’s wreck', at: hearth.ride.wreck.at },
+      { name: 'a sand-skiff’s wreck', at: hearth.ride.wreck.at }, { name: 'the tusk gate', at: hearth.ride.tusks.at },
+      { name: 'the pilgrims’ resting stone', at: road.rest.at },
     ],
     // tall things seen over the dunes that the collision doesn't make tall (the audit aims at them as at landmarks): the camps'
     // smoke while the tree is cold, then the tree's own column; the Hearth's chimney, out past the audit's map
@@ -135,6 +142,8 @@ export function* buildDesert(scene) {
     lines: () => [
       { name: 'the marked stones', points: hearth.stones.map((s) => [s.x, s.y, s.z]) },
       ...(level.dryChannel ? [{ name: 'the Givers’ dry channel', points: level.dryChannel }] : []),
+      // (the way home: its lamps are lit once the tree burns, and the last stage sends you down it; not the way in)
+      { name: 'the pilgrims’ road', points: road.points, auto: false },
     ],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter, the wares on it; main.js: the shop panel)
     ground: terrain,

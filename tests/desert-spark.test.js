@@ -49,7 +49,7 @@ function desert(flags = {}) {
       level.update?.(dt, t, { camera, player });
     }
   };
-  return { level, Q: level.qanat, H: level.hearth, player, rt, quests: rt.quests, step, toasts };
+  return { level, Q: level.qanat, H: level.hearth, player, physics, rt, quests: rt.quests, step, toasts };
 }
 
 test('saves from before the rework: a tree that already drank keeps burning, and the spark-stone’s errand is skipped', () => {
@@ -385,16 +385,16 @@ test('the ride to the Hearth: each thing on the way is named once as it comes up
   const W = D.H.way;
   const out = ride(D, city.clone().addScaledVector(dir, 200), D.H.doorFront.clone().addScaledVector(dir, -30));
   const named = (t) => out.find((s) => s.text === t);
-  for (const id of ['bowl', 'camp', 'bell', 'hearth']) assert.ok(named(CALLS[id]), `${id} is named on the way out`);
-  assert.equal(out.length, 4, 'each once');
+  for (const id of ['bowl', 'camp', 'tusks', 'bell', 'hearth']) assert.ok(named(CALLS[id]), `${id} is named on the way out`);
+  assert.equal(out.length, 5, 'each once (the tusk gate stands on the straight ride, 50 m off the stones: seen from both)');
   // ahead of you, with time to stop: between the near and the far reach
   for (const [id, at] of [['bowl', W.bowl.at], ['camp', W.camp.at], ['bell', W.bell.at]]) {
     const d = Math.hypot(named(CALLS[id]).at.x - at.x, named(CALLS[id]).at.z - at.z);
     assert.ok(d > CALL.near && d <= CALL.range + 2, `${id} named ${d.toFixed(0)} m ahead`);
   }
-  assert.deepEqual(out.map((s) => s.text), ['bowl', 'camp', 'bell', 'hearth'].map((id) => CALLS[id]), 'in order along the ride');
-  // what is done is not named again (the bowl filled, the camp seen), nor the butte on the way home
-  D = desert({ ...errand, 'quest.desert.power': 'light', 'item.stone': 1, 'desert.way.bowl': true, 'desert.way.camp': true });
+  assert.deepEqual(out.map((s) => s.text), ['bowl', 'camp', 'tusks', 'bell', 'hearth'].map((id) => CALLS[id]), 'in order along the ride');
+  // what is done is not named again (the bowl filled, the camp seen, the gate looked at), nor the butte on the way home
+  D = desert({ ...errand, 'quest.desert.power': 'light', 'item.stone': 1, 'desert.way.bowl': true, 'desert.way.camp': true, 'desert.ride.tusks': true });
   const home = ride(D, D.H.doorFront.clone().addScaledVector(dir, -30), city.clone().addScaledVector(dir, 200));
   assert.deepEqual(home.map((s) => s.text), [CALLS.bell], 'on the way home only the bell, not rung yet');
   // and nothing is named off the errand (before Nour sends you for the stone)
@@ -426,12 +426,86 @@ test('the straight ride out (level design audit v1.9): Yara’s shade and a skif
     D.step(1);
     if (D.toasts.length > before && Object.values(CALLS).includes(D.toasts.at(-1))) said.push(D.toasts.at(-1));
   }
-  assert.deepEqual(said.filter((t) => t === CALLS.shade || t === CALLS.wreck), [CALLS.shade, CALLS.wreck], 'both named, in order, once');
+  assert.deepEqual(said.filter((t) => t === CALLS.shade || t === CALLS.wreck || t === CALLS.tusks), [CALLS.shade, CALLS.wreck, CALLS.tusks], 'all three named, in order, once');
   // the wreck is something to look at
   D.player.pos.copy(R.wreck.stand);
   assert.equal(bestInteractable(D.player)?.entry.id, 'way.rideWreck');
   const r = new DialogueRunner(THINGS.rideWreck, { game, quests: D.quests });
   while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
   assert.equal(game.flag('desert.ride.wreck'), true);
+  game.reset();
+});
+
+test('the tusk gate (level design audit v1.15): right over the straight ride four fifths of the way, a bike passes under it, its jar in the shade to look at', async () => {
+  const { STORY, ridePlaces } = await import('../src/desert-sites.js');
+  const { THINGS } = await import('../src/story/desert-data.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const P = ridePlaces(), bike = V(STORY.bike.x, 0, STORY.bike.z), hearth = V(STORY.hearth.x, 0, STORY.hearth.z);
+  const along = (p) => Math.hypot(p.x - bike.x, p.z - bike.z);
+  // between the wreck and the Hearth, near the middle of what was the ride's longest empty stretch
+  assert.ok(along(P.tusks) - along(P.wreck) > 250 && Math.hypot(hearth.x - P.tusks.x, hearth.z - P.tusks.z) > 250, 'well apart from the wreck and the butte');
+  const D = desert({ 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 4, 'desert.bike.v': 1, 'quest.desert.power': 'hearth' });
+  const G = D.H.ride.tusks;
+  // the way under the arch is open: nothing between 0.5 m and 10 m up over the straight line
+  const dir = V(hearth.x - bike.x, 0, hearth.z - bike.z).normalize();
+  for (const s of [-6, -3, 0, 3, 6]) {
+    const p = G.at.clone().addScaledVector(dir, s), g = D.physics.groundAt(p.x, G.at.y + 11, p.z, 14);
+    assert.ok(!Number.isFinite(g) || g < D.level.ground.heightAt(p.x, p.z) + 1.5, `open under the gate ${s} m along (ground ${g?.toFixed?.(1)})`);
+  }
+  assert.ok(G.top.y - G.at.y > 12, 'the tips cross high');
+  D.player.pos.copy(G.stand);
+  assert.equal(bestInteractable(D.player)?.entry.id, 'way.rideTusks');
+  const r = new DialogueRunner(THINGS.rideTusks, { game, quests: D.quests });
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  assert.equal(game.flag('desert.ride.tusks'), true);
+  game.reset();
+});
+
+test('the pilgrims’ road home (level design audit v1.15): cairns from the gate to the landing, off the way in, dark until the tree burns, then lit one after another down to the ship', async () => {
+  const { STORY } = await import('../src/desert-sites.js');
+  const { ROAD_LAMPS, ROAD_CUE, lampsLit } = await import('../src/story/desert-road.js');
+  const { THINGS } = await import('../src/story/desert-data.js');
+  const { DialogueRunner } = await import('../src/story/dialogue.js');
+  const errand = { 'prologue.done': true, 'item.backpack': true, 'box.desert.backpack': true, 'desert.quest.v': 4, 'desert.bike.v': 1, 'desert.channel.open': true, 'desert.spark.heard': true };
+  let D = desert({ ...errand, 'quest.desert.power': 'light', 'item.stone': 1 });
+  const R = D.level.road, C = R.cairns;
+  // from beside the main gate down to beside the ship, a different way from the straight way in: the middle of the road
+  // stands well off the line from the landing to the gate (it bends west over the dunes, past Oum's stone)
+  const gate = V(STORY.city.x, 0, STORY.city.z).addScaledVector(V(-STORY.city.x, 0, -STORY.city.z).normalize(), STORY.city.r);
+  assert.ok(Math.hypot(C[0].at.x - gate.x, C[0].at.z - gate.z) < 50, 'it starts by the gate');
+  assert.ok(Math.hypot(C.at(-1).at.x, C.at(-1).at.z) < 40, 'it ends by the ship');
+  const off = (p) => Math.abs(p.x * gate.z - p.z * gate.x) / Math.hypot(gate.x, gate.z);
+  assert.ok(C.slice(2, -2).every((c) => off(c.at) > 40), `the middle cairns stand off the way in (${C.map((c) => off(c.at).toFixed(0)).join(', ')} m)`);
+  assert.ok(C.some((c) => Math.hypot(c.at.x - STORY.pilgrim.x, c.at.z - STORY.pilgrim.z) < 15), 'past Oum’s stone');
+  for (let i = 1; i < C.length; i++) assert.ok(C[i].at.distanceTo(C[i - 1].at) < 60, `cairn ${i} in sight of the last`);
+  // dark while the tree is cold
+  D.step(30);
+  assert.ok(C.every((c) => !c.flame.visible && c.light.w === 0), 'no lamp lit before the tree burns');
+  // the tree catches: a little later, one after another from the gate down
+  game.set('desert.tree.lit', true);
+  D.step(Math.round(30 * (ROAD_LAMPS.after - 1)));
+  assert.ok(C.every((c) => !c.flame.visible), 'not yet: the lighting plays first');
+  D.step(Math.round(30 * (1 + ROAD_LAMPS.gap * 2.5)));
+  const lit = C.map((c) => c.flame.visible);
+  assert.ok(lit[0] && lit[1] && !lit.at(-1), `the first ones lit, from the gate (${lit.map(Number).join('')})`);
+  assert.ok(D.toasts.includes(ROAD_CUE), 'a line says so, once');
+  D.step(Math.round(30 * ROAD_LAMPS.gap * C.length));
+  assert.ok(C.every((c) => c.flame.visible && c.light.w > 0), 'all the way to the ship');
+  assert.equal(D.toasts.filter((t) => t === ROAD_CUE).length, 1);
+  assert.equal(lampsLit(0, 11), 0);
+  assert.equal(lampsLit(1e9, 11), 11);
+  // a save with the tree already burning finds them lit, and says nothing
+  D = desert({ ...errand, 'quest.desert.power': 'ship', 'desert.tree.lit': true });
+  D.step(2);
+  assert.ok(D.level.road.cairns.every((c) => c.flame.visible));
+  assert.ok(!D.toasts.includes(ROAD_CUE));
+  // the resting stone on the last dune's crest is something to look at
+  D.player.pos.copy(D.level.road.rest.at);
+  assert.equal(bestInteractable(D.player)?.entry.id, 'road.rest');
+  const r = new DialogueRunner(THINGS.roadStone, { game, quests: D.quests });
+  while (!r.ended && (!r.lastPage || !r.choices().length) && r.advance());
+  assert.equal(game.flag('desert.road.rested'), true);
+  // the quest's last stage sends you down it
+  assert.match(QUESTS.find((q) => q.id === 'desert.power').stages.find((s) => s.id === 'ship').text, /pilgrims’ road/);
   game.reset();
 });

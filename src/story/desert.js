@@ -15,6 +15,7 @@ import { setupHoverbike } from './desert-bike.js';
 import { setupDrum, setupMask } from './desert-errands.js';
 import { setupHearth } from './desert-spark.js';
 import { setupWay } from './desert-way.js';
+import { setupRoad } from './desert-road.js';
 import { bystanderSpot } from '../ship/landing.js';
 import { setupRepay } from './desert-repay.js';
 
@@ -887,6 +888,7 @@ export function setupDesert(ctx) {
   const hearth = setupHearth(ctx, { hasPush: () => toolHasPush() || (!!tool && !dry()), lit });
   // the bowl, the camp and the bell on the long ride there (src/story/desert-way.js)
   const way = setupWay(ctx);
+  const road = setupRoad(ctx);   // the pilgrims' road home, its lamps lit once the tree burns
 
   // the well fills while you watch: the roots drink (pale motes climb the trunk), Hessa calls out, the tree stays cold
   const drinkAt = [0, 1, 2, 3, 4, 5].map((i) => { const a = i / 6 * Math.PI * 2; return city.treeBase.clone().add(V(Math.sin(a) * 4.2, 0.6, Math.cos(a) * 4.2)); });
@@ -1093,10 +1095,11 @@ export function setupDesert(ctx) {
     lever.update(dt);
     hearth?.update(dt, t);
     way?.update(dt, t, camPos);
+    road?.update(dt, t);
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, repay, gatherSpots, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, repay, gatherSpots, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, road, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;

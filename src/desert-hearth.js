@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial, MODE_STRATA } from './materials.js';
 import { glyphGeometry } from './story/sign-text.js';
 import { STORY, hearthStones, wayPlaces, WAY, ridePlaces } from './desert-sites.js';
+import { taper } from './desert-city.js';
 
 // The Givers' Hearth: where the Givers kept their fire, and the keepers put the
 // spark-stone back after they lit Qanat's tree with it (src/story/desert.js has
@@ -295,6 +296,33 @@ export function buildDesertHearth(scene, terrain) {
     for (const [x, z, r] of [[2.9, -3.6, 0.45], [3.5, -2.4, 0.35], [-2.8, 3.5, 0.4]]) wk.both(salt, box(r * 1.6, r, r * 1.2, x, r * 0.5 + 0.5, z));   // spilled salt blocks
     wk.flush();
     ride.wreck = { at: wreckAt, look: wk.world(0.5, 2.2, -1.5), stand: wk.world(3.4, 0.5, -1.5) };
+    // the tusk gate, four fifths of the way, where the red rocks begin (level design audit v1.15: 518 m from the wreck
+    // to the Hearth with nothing on it): two great tusks the Givers stood in the sand either side of the way, leaning in
+    // until their tips cross high over it, so it shows from the wreck. In their shade a low wall of red stones to sit
+    // on, a sealed jar the Givers left for whoever came this far, and a little cairn of offerings riders leave
+    const gateAt = at(P.tusks), gk = new Kit(root, 'The tusk gate', gateAt.clone().setY(gateAt.y - 0.6), P.tusks.heading);
+    const ivory = makeMaterial({ color: '#f2ead6' });   // (the bone of the desert's giants: src/desert-landmarks.js)
+    for (const s of [-1, 1]) {
+      // (each from its socket of stones, out and up, then curving in over the way; its tip past the middle; its foot set
+      // in the sand where the sand is, on a dune's slope one side stands lower than the other)
+      const foot = gk.world(s * 7.6, 0, 0.6 * s), gy = terrain.heightAt(foot.x, foot.z) - gk.origin.y;
+      const pts = [V(s * 7.6, gy - 1.6, 0.6 * s), V(s * 7.9, Math.max(4.5, gy + 4.2), 0.3 * s), V(s * 6.2, 9.6, 0), V(s * 2.6, 13.2, -0.4 * s), V(-s * 1.8, 13.9, -0.8 * s)];
+      gk.both(ivory, taper(pts, 1.25, 0.32, 22, 9));
+      for (let j = 0; j < 5; j++) {
+        const a = j / 5 * Math.PI * 2 + s, sx = s * 7.6 + Math.sin(a) * 1.7, sz = 0.6 * s + Math.cos(a) * 1.7, sp = gk.world(sx, 0, sz);
+        gk.both(M.marker, rough(new THREE.IcosahedronGeometry(0.75, 0).scale(1.2, 0.7, 1).translate(sx, terrain.heightAt(sp.x, sp.z) - gk.origin.y + 0.1, sz), 0.08, 2, j));
+      }
+    }
+    const gyAt = (lx, lz) => { const p = gk.world(lx, 0, lz); return terrain.heightAt(p.x, p.z) - gk.origin.y; };
+    const w0 = Math.min(gyAt(1.2, -2.6), gyAt(5.6, -2.6)) - 0.4, w1 = Math.max(gyAt(1.2, -2.6), gyAt(5.6, -2.6)) + 0.5;
+    gk.both(M.marker, rough(box(4.4, w1 - w0, 0.9, 3.4, (w0 + w1) / 2, -2.6), 0.06, 1.2, 7));   // the low wall in the shade (sunk where the sand slopes)
+    const jar = new THREE.LatheGeometry([[0.05, 0], [0.32, 0.06], [0.42, 0.4], [0.34, 0.74], [0.16, 0.86], [0.18, 0.96], [0.02, 0.98]].map(([r, y]) => new THREE.Vector2(r, y)), 12);
+    gk.both(M.marker, jar.translate(1.6, w1, -2.6));   // the Givers' jar, sealed with a stone, the eye painted on it
+    gk.add(M.ink, glyphGeometry(0.3).translate(1.6, w1 + 0.4, -2.17));
+    for (let j = 0; j < 4; j++) gk.add(M.stone, rough(new THREE.IcosahedronGeometry(0.34 - j * 0.06, 0).scale(1.2, 0.6, 1).translate(5.6, gyAt(5.6, -1.9) + 0.16 + j * 0.22, -1.9), 0.02, 4, j));   // the cairn
+    gk.add(cloth, new THREE.PlaneGeometry(0.22, 0.9).translate(0, -0.45, 0).rotateZ(0.3).translate(5.6, gyAt(5.6, -1.9) + 1.15, -1.9));   // a strip of red cloth tied on it
+    gk.flush();
+    ride.tusks = { at: gateAt, look: gk.world(1.6, w1 + 0.45, -2.6), stand: gk.world(1.6, gyAt(1.6, -1.2), -1.2), top: gk.world(0, 13.6, 0) };
   }
 
   // ================================================================ inside: the hall

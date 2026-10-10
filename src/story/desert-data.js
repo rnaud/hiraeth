@@ -104,7 +104,8 @@ export const QUESTS = [
       { id: 'stone', text: "Push the stone ball along its groove to lift the Hearth’s grille, then climb up and take the spark-stone", label: 'The spark-stone', flag: 'desert.stone.taken', at: 'sparkStone' },
       { id: 'light', text: 'Bring the spark-stone back to Qanat, home along the marked stones, and set it in the full well at the tree’s roots', label: 'The well at the tree', flag: 'desert.tree.lit', at: 'well', via: 'the marked stones' },
       // the tree burns: Qanat repays you, its people carrying what they can spare to your ship (src/story/desert-repay.js)
-      { id: 'ship', text: 'The tree burns again. Qanat is repaying you: its people are carrying what they can spare to your ship. Go and meet them there', label: 'Your ship, and Qanat’s gift', flag: 'desert.ship.fed', at: 'ship' },
+      // (home by the pilgrims' road, the second way: its cairns lit from the gate down to the ship once the tree burns, src/desert-road.js)
+      { id: 'ship', text: 'The tree burns again. Qanat is repaying you: its people are carrying what they can spare to your ship. Go and meet them there, down the pilgrims’ road west of the gate: Qanat has lit its cairns for you', label: 'Your ship, and Qanat’s gift', flag: 'desert.ship.fed', at: 'ship', via: 'the pilgrims’ road' },
     ],
   },
   {
@@ -883,6 +884,30 @@ export const THINGS = {
         { if: { flag: 'desert.bike.found' }, text: "~playful~ Marrow would have it in pieces by sundown. Better not to mention it." }],
       do: { set: { 'desert.ride.wreck': true } },
       choices: [{ text: '~neutral~ (step back)', end: true }],
+    } } },
+  },
+  // the pilgrims' resting stone on the last dune's crest, on the road home (src/desert-road.js rest)
+  roadStone: {
+    id: 'roadStone', name: 'The pilgrims’ resting stone', title: 'on the last dune before Qanat', color: '#cdb38f', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A broad slab on two stones, worn smooth and dished in the middle by a great many people sitting on it. It faces the city.",
+        { if: { not: { flag: 'desert.tree.lit' } }, text: "~sad~ From up here the pilgrims saw the tree for the first time. Today it stands over the walls, dark." },
+        { if: { flag: 'desert.tree.lit' }, text: "~happy~ From up here the pilgrims saw the tree for the first time. Its crown burns over the walls, and the cairns’ little lamps run down the dunes toward your ship." },
+        "~curious~ Strips of cloth are tied to a stake beside it, faded to the colour of the sand. One looks new."],
+      do: { set: { 'desert.road.rested': true } },
+      choices: [{ text: '~solemn~ (sit, and look at the tree a while)', end: true }],
+    } } },
+  },
+  // the tusk gate where the red rocks begin (src/desert-hearth.js ride.tusks): the last shade before the Hearth
+  rideTusks: {
+    id: 'rideTusks', name: 'The tusk gate', title: 'where the red rocks begin', color: '#e6d8b8', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~solemn~ Two tusks, each longer than a house, stand in rings of red stones either side of the way. Their tips cross high overhead. Somebody stood them there on purpose.",
+        "~curious~ In their shade, on a low wall, a clay jar sealed with a flat stone. The Givers’ eye is painted on its side. It is still cool to the touch.",
+        "~neutral~ Beside it a small cairn, a strip of red cloth tied round the top stone. Riders leave something here, it seems, on the way in.",
+        { if: { flag: 'desert.stone.taken' }, text: "~happy~ The spark-stone warms in your pack as you pass under. The gate is the right way round now: you are going home." }],
+      do: { set: { 'desert.ride.tusks': true } },
+      choices: [{ text: '~solemn~ (sit in the shade a moment)', end: true }],
     } } },
   },
   // the Givers' Hearth (src/desert-hearth.js, src/story/desert.js): the weight that lifts the grille, the grille itself
