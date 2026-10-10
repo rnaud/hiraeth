@@ -1696,6 +1696,26 @@ export class Sound {
     [0, 4, 7, 12].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.28 + i * 0.06, 0.06, 'sine', this.fx));
   }
 
+  /**
+   * The low-health heartbeat (src/low-health.js, v1.41): a soft low double thump, lub-dub, felt more than heard (two
+   * falling sines and a muffled knock), under the world's sounds.
+   */
+  heartbeat() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.sweep(t, 78, 44, 0.16, 0.16);
+    this.sweep(t + 0.2, 70, 40, 0.14, 0.1);
+    this.burst(t, { dur: 0.06, type: 'lowpass', freq: 160, q: 0.7, vol: 0.05, rate: 0.6 });
+  }
+
+  /** A potion picked up from where a foe fell (src/potion-drops.js): the glass's clink and a small rising pair. */
+  potionPickup() {
+    if (!this.ctx || this.muted) return;
+    const t = this.ctx.currentTime;
+    this.burst(t, { dur: 0.04, type: 'bandpass', freq: 3400, q: 3, vol: 0.05, rate: 1.4 });
+    [0, 7].forEach((d, i) => this.pluck(this.freq(d, 1), t + 0.04 + i * 0.07, 0.05, 'sine', this.fx));
+  }
+
   /** A small struck-metal ring (two partials, bell-like): the shop's counter bell. */
   ting(t, f, vol = 0.05, dur = 0.5) {
     const ctx = this.ctx;

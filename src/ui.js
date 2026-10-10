@@ -134,8 +134,8 @@ export function controlsList(ok = confirmKey(), back = backKey()) {
   K.move = `${K.forward}${K.left}${K.back}${K.right}`;
   const rows = (prefix, ids, vars) => ids.map((id) => [t(`${prefix}.${id}`, vars), t(`${prefix}.${id}.how`, vars), id]);
   return {
-    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'hop', 'gadget', 'aim', 'potion', 'dive', 'scout', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
-    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'lock', 'hop', 'scout', 'gadget', 'aim', 'mode', 'potion', 'jets', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
+    keyboard: rows('ctl.k', ['move', 'look', 'jump', 'jets', 'climb', 'use', 'cab', 'fight', 'charge', 'hop', 'gadget', 'aim', 'potion', 'dive', 'scout', 'whistle', 'pages', 'photo', 'mute', 'debug'], K),
+    pad: rows('ctl.p', ['move', 'look', 'jump', 'use', 'evade', 'fight', 'charge', 'lock', 'hop', 'scout', 'gadget', 'aim', 'mode', 'potion', 'jets', 'whistle', 'call', 'pages', 'panels', 'photo', 'ride', 'cab', 'swim', 'talk', 'menus', 'debug'], P),
     touch: rows('ctl.t', ['move', 'jump', 'jets', 'run', 'scout', 'gadget', 'aim', 'fight', 'hop', 'potion', 'pages'], {}),
   };
 }

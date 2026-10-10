@@ -52,6 +52,21 @@ const WHITE = new THREE.Color(1, 1, 1);
 const NEAR = 60, SLEEP = 140;
 const SCALE = 2.5;    // well larger than life, so they are easy to notice at play distance
 const STUN = [4, 6];
+/**
+ * How wary they are (v1.41, the author: "small critters can be hit with the sword, and flee less"): each species'
+ * `notice` and `wary` distances × `notice` / `wary`, its back-off × `backoff`; a sprint frightens within `sprint` m (was 9),
+ * a hard landing within `landing` m (+2 a second of fall, was 9); walking right up to one sets off its surprise only
+ * within `touch` × its own reach (was the whole of it: 1.1 m × its size + 0.5, about 3.2 m for most, further than the
+ * blade's 2.9 m, so one could never be cut); a flight lasts `flee` s. Before, a creature backed off from 4-5 m and fled
+ * from a run 9 m away: you never got near one.
+ */
+export const WARY = { notice: 0.6, wary: 0.45, backoff: 0.75, sprint: 5.5, landing: 5.5, touch: 0.42, flee: [0.8, 1.4] };
+/**
+ * A cut of the sword on a creature (Creature.bonk): no harm, a bonk. Knocked `knock` m/s away from the blade (fading at
+ * `drag`), it tumbles head over heels in a little hop (`hop` of its size, over `tumble` s), lands dazed (stars) and sits
+ * `time` s in all, then trots off a moment. Sword-proof: a creature in its surprise (a burrowed crab, a floated lizard).
+ */
+export const BONK = { knock: 4.5, drag: 5, hop: 0.35, tumble: 0.45, time: 1.9, flee: 0.9 };
 const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _u = new THREE.Vector3(), _to = new THREE.Vector3();
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _s = new THREE.Vector3(), _p = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _e = new THREE.Euler(), _col = new THREE.Color();
@@ -299,6 +314,20 @@ export class Creature {
     this.world.fx.play('daze', this.pos, this.world.ear);
     return true;
   }
+  /** A cut of the sword (BONK): knocked away from the blade along `dir`, a tumble, then dazed a moment. No harm. */
+  bonk(point, dir) {
+    if (this.removed || this.state === 'trick' || this.state === 'gone' || this.hidden) return false;
+    this.state = 'bonk'; this.timer = BONK.time; this.bonkT = 0; this.speed = 0;
+    (this.knock ??= new THREE.Vector3()).copy(dir ?? this.fwd); tangent(this.knock, this.up);
+    if (this.knock.lengthSq() < 1e-6) this.knock.copy(this.fwd).negate();
+    this.knock.normalize().multiplyScalar(BONK.knock);
+    if (dir) this.faceAway(_o.copy(this.pos).sub(this.knock));   // (its back to the blow: it tumbles away head over heels)
+    this.tones = ['#fff6dc', '#f2c54b'];
+    this.world.fx.play('squeak', this.pos, this.world.ear);
+    this.world.fx.burst(point ?? this.center, this.up, { n: 7, color: ['#fff6dc', '#e8d8b8'], speed: 1.6, rise: 0.8, size: 0.06, life: 0.5, gravity: 3 });
+    this.world.onBonk?.(this);
+    return true;
+  }
   /** A splash of plain fluid: a glint of its colours and a scamper away from where it landed. */
   splashed(from, tones = null) {
     if (this.removed || this.state === 'trick' || this.state === 'gone' || this.hidden || this.state === 'stun') return false;
@@ -314,6 +343,7 @@ export class Creature {
     if (mode === 'stun') return this.stun(undefined, info?.colours);
     if (mode === 'push' || mode === 'fire') return this.scare(from);
     if (mode === 'shoot') return this.splashed(from, info?.colours);
+    if (mode === 'blade') return this.bonk(point, dir);
     return false;
   }
   /** take it out of the world for good (and out of the target registry) */
@@ -332,7 +362,7 @@ export class Creature {
     if (end === 'gone') {
       this.state = 'gone'; this.hidden = true; this.timer = 14 + this.rng() * 14;
       this.herd.hide(this.index);
-    } else { this.state = 'flee'; this.timer = 1.5 + this.rng(); }
+    } else { this.state = 'flee'; this.timer = WARY.flee[0] + this.rng() * (WARY.flee[1] - WARY.flee[0]); }
   }
 
   /** steer toward a world direction (projected on the ground plane), move at speed */
@@ -377,7 +407,7 @@ export class Creature {
     this.cool = Math.max(0, this.cool - dt);
     this.appear = Math.min(1, this.appear + dt * 1.6);
     this.tint = damp(this.tint, this.state === 'stun' ? 1 : 0, this.state === 'stun' ? 8 : 2, dt);
-    const notice = sp.notice ?? 8, wary = sp.wary ?? 4.5, walk = sp.speed ?? 1;
+    const notice = (sp.notice ?? 8) * WARY.notice, wary = (sp.wary ?? 4.5) * WARY.wary, walk = sp.speed ?? 1;
     const s = this.state;
     if (s === 'idle' || s === 'walk' || s === 'wary' || s === 'flee') {
       const src = W.disturbanceFor(this, dist);
@@ -407,7 +437,7 @@ export class Creature {
       }
       case 'wary': {
         this.calm = W.playerSpeed < 0.4 ? this.calm + dt : 0;
-        if (dist < wary * 0.9) this.steer(_v.copy(_to).negate(), walk * (sp.backoff ?? 1.5), dt);
+        if (dist < wary * 0.9) this.steer(_v.copy(_to).negate(), walk * (sp.backoff ?? 1.5) * WARY.backoff, dt);
         else this.steer(_to, 0, dt);   // turn to watch
         if (dist > notice * 1.3 || (this.calm > 4 && dist > wary)) { this.state = 'idle'; this.timer = 1 + this.rng() * 2; this.home.copy(this.pos); }
         break;
@@ -422,6 +452,18 @@ export class Creature {
         this.speed = 0;
         this.timer -= dt;
         if (this.timer < 0) { this.state = 'flee'; this.timer = 3; this.cool = 1.5; }
+        break;
+      }
+      case 'bonk': {
+        // (knocked along the ground, fading; it stops at anything it can't walk onto)
+        this.speed = 0; this.bonkT += dt; this.timer -= dt;
+        const k = this.knock;
+        if (k && k.lengthSq() > 0.01) {
+          const next = _sa.copy(this.pos).addScaledVector(k, dt);
+          if (W.walkable(this, next, next)) this.pos.copy(next); else k.set(0, 0, 0);
+          k.multiplyScalar(Math.exp(-BONK.drag * dt));
+        }
+        if (this.timer < 0) { this.state = 'flee'; this.timer = BONK.flee; this.cool = 2; }
         break;
       }
       case 'trick': {
@@ -717,9 +759,9 @@ export class Wildlife {
     this.playerGround = !!player.onGround || !!player.riding;
     if (!player.riding) {
       if (player.onGround) {
-        if (this.air > 0.5) D.push({ p: player.pos, r: 9 + Math.min(this.air, 2) * 2, why: 'landing' });
+        if (this.air > 0.5) D.push({ p: player.pos, r: WARY.landing + Math.min(this.air, 2) * 2, why: 'landing' });
         this.air = 0;
-        if (this.playerSpeed > 5.2) D.push({ p: player.pos, r: 9, why: 'sprint' });
+        if (this.playerSpeed > 5.2) D.push({ p: player.pos, r: WARY.sprint, why: 'sprint' });
       } else this.air += dt;
     }
     const seen = new Set();
@@ -742,7 +784,7 @@ export class Wildlife {
   disturbanceFor(c, dist) {
     for (const d of this.disturb) if (d.p.distanceTo(c.pos) < d.r * (c.species.skittish ?? 1)) return d.p;
     for (const d of this.fears ?? []) if (d.p.distanceTo(c.pos) < d.r * (c.species.skittish ?? 1)) return d.p;
-    if (dist < (c.species.touch ?? 1.1) * c.size + 0.5 && this.playerGround) return this.playerPos;
+    if (dist < ((c.species.touch ?? 1.1) * c.size + 0.5) * WARY.touch && this.playerGround) return this.playerPos;
     return null;
   }
 
@@ -762,7 +804,7 @@ export class Wildlife {
         if (c.state === 'gone') continue;
       }
       const d = c.pos.distanceTo(player.pos);
-      const busy = c.state === 'trick' || c.state === 'stun';
+      const busy = c.state === 'trick' || c.state === 'stun' || c.state === 'bonk';
       if (d > SLEEP && !busy) {
         if (!c.asleep) { c.asleep = true; c.herd.hide(c.index); for (const k in c.shown) c.shown[k] = false; }
         continue;
@@ -773,7 +815,7 @@ export class Wildlife {
       const step = Math.min(c.acc, 0.25); c.acc = 0;
       c.update(step, t, player, d);
       if (!c.hidden) this.write(c, t, step);
-      if (c.state === 'stun' && !c.hidden) this.writeStars(c, t, stunned++);
+      if ((c.state === 'stun' || (c.state === 'bonk' && c.bonkT > BONK.tumble)) && !c.hidden) this.writeStars(c, t, stunned++);
     }
     this.stars.mesh.count = stunned * 3; this.stars.swirl.count = stunned;
     this.stars.mesh.visible = this.stars.swirl.visible = stunned > 0;
@@ -788,6 +830,15 @@ export class Wildlife {
     this.ctx.dt = dt;
     gait(c, P, t);
     if (c.state === 'trick') c.trick.pose?.(c, c.k, P, this.ctx);
+    else if (c.state === 'bonk') {
+      // (head over heels in a little hop, then dazed: a wobble)
+      const u = Math.min(1, c.bonkT / BONK.tumble), e = u * u * (3 - 2 * u);
+      P.root.p.y += Math.sin(Math.PI * u) * BONK.hop;
+      P.root.r.x -= e * Math.PI * 2;
+      const w = u >= 1 ? Math.min(1, c.timer * 2) : 0;
+      P.root.r.z += Math.sin(t * 9 + c.seed) * 0.2 * w;
+      P.root.s.y *= 1 - 0.1 * w;
+    }
     else if (c.state === 'stun') {
       const w = Math.min(1, c.timer * 2) * Math.min(1, (STUN[1] - c.timer) * 3 + 0.3);
       P.root.r.z += Math.sin(t * 9 + c.seed) * 0.16 * w;

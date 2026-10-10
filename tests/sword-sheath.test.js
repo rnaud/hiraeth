@@ -89,7 +89,7 @@ test('a swing pressed with the sword on the back: the hilt in the fist in DRAW.q
   // every attack's cut opens later than that (its wind-up; not the charged cut's: it is let go from a swing held 0.2 s)
   const winds = Object.entries(ATTACKS).filter(([k]) => k !== 'charge').map(([k, s]) => [k, attackSample(s, 0).wind]);
   for (const [k, wind] of winds) assert.ok(t <= wind + 1e-9, `in the fist (${t.toFixed(3)} s) before the ${k}'s cut opens (${wind.toFixed(2)} s)`);
-  assert.ok(Math.min(...SWINGS.map((s) => s.wind)) - t >= 0.1, 'a first swing: a tenth of a second to spare');
+  assert.ok(Math.min(...SWINGS.map((s) => s.wind)) - t >= 0.08, 'a first swing: most of its wind-up to spare');
   // pressed while a slow draw is on its way: it hurries
   const Q = new SheathState();
   Q.update(dt, true);

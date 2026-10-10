@@ -88,7 +88,8 @@ test('every archetype flinches on its body when cut (its own family\'s flash and
     assert.ok(cut(foes, f, 1), `${id}: the cut told`);
     assert.ok(f.react?.live, `${id}: reacting`);
     assert.equal(f.react.family, A.family);
-    assert.ok(drops.length >= 6, `${id}: a splash where it was cut (${drops.length})`);
+    // (v1.41: fewer, HIT_SPLASH: the author found the hits too noisy)
+    assert.ok(drops.length >= 3 && drops.length <= 14, `${id}: a small splash where it was cut (${drops.length})`);
     let moved = 0;
     for (let i = 0; i < 12; i++) { foes.update(DT); M.group.updateMatrixWorld(true); moved = Math.max(moved, M.body.getWorldPosition(v()).distanceTo(base)); }
     assert.ok(moved > 0.03, `${id}: its body moves (${moved.toFixed(3)} m)`);

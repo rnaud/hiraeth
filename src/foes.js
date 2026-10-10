@@ -125,8 +125,33 @@ export const LOCK = { reach: 18, lose: 26 };
  * at half tilt or less it settles below (≤ 56), so leaning on the stick never switches.
  */
 export const FLICK = { px: 70, decay: 8, rest: 0.35 };
+/**
+ * How much a blow throws off a foe (v1.41, the author: "too much visual noise and too many particles on hits"; Foes.react,
+ * burst, sparks): its own splash per blow by how it took it (was 16 / 10 / 6), the burst as it goes (was 46), the glints
+ * that fly to the tank (was 10), a guard's or a glance's sparks (was 14).
+ */
+export const HIT_SPLASH = { stagger: 9, flinch: 5, shrug: 3, burst: 24, toTank: 6, sparks: 8 };
 /** A cut that lands and doesn't stop it (a heavy foe, a late wind-up, a strike): its armour's answer, a dull thunk and sparks. */
 export const ARMOUR = { ring: 0.9 };
+/**
+ * A crab's shell (def.shell, Foe.hit) from the front: a light cut glances off; a heavy blow (damage 2+, or one that
+ * `breaks`: the third swing, the charged cut, the air cut, the riposte) or a bomb bites through, the blade at `heavy` of
+ * its harm (v1.41: every frontal cut glanced; with the crab's hp down from 4 to 3 it takes about half the blows it did).
+ */
+export const SHELL = { heavy: 0.5 };
+/** Does a blow bite through a shell from the front (SHELL)? */
+export const shellBites = (info = {}, src = info.source) => src === 'bomb' || (info.damage ?? 1) >= 2 || !!info.breaks;
+
+/**
+ * You can't walk through a foe (v1.41, the author: "the player can't walk through enemies"; Foes.keepOff): within `k` ×
+ * its radius + `player` m of its middle (flat), and overlapping it in height, you are pushed out to that ring and your
+ * speed into it taken away. A light foe (a skitter, a moth) gives way, taking `light` of the push; an ordinary one
+ * `share`; a heavy, rooted one or a guardian none. Not during an evade, a dash cut or a hop (you slip past), riding, or
+ * from a foe going down, buried, a shadow, riding another or out of the world.
+ */
+export const BODY_BLOCK = { k: 0.8, player: 0.4, share: 0.25, light: 0.85, head: 1.7 };
+/** The push (m, flat) that keeps you at `want` from a body `d` m off: 0 outside it. */
+export const blockPush = (d, want) => (d < want ? want - d : 0);
 /** A hovering foe (`hover`) the blade cuts is knocked low this long (s), within the blade's reach. */
 export const KNOCKED_LOW = 2.6;
 /**
@@ -888,7 +913,7 @@ export class Foe {
     if (!this.def.rooted) this.vel.set(-Math.sin(this.heading), 0, -Math.cos(this.heading)).multiplyScalar(this.def.heavy ? 2 : 5);   // (a root knot is rooted)
   }
 
-  /** A blow travelling against its face (dir: the blow's way): what a shell turns. */
+  /** A blow travelling against its face (dir: the blow's way): what a shell turns (Foe.hit, shellBites). */
   frontal(dir) { return dir.x * Math.sin(this.heading) + dir.z * Math.cos(this.heading) < -0.3; }
 
   face(dx, dz, dt, rate = 6) {
@@ -1200,13 +1225,15 @@ export class Foe {
     }
     let dmg = 0;
     if (mode === 'blade') {
-      if (this.shelled && !(this.flipped > 0) && dir && this.frontal(dir) && src !== 'parry') {
-        // the shell turns the blade from the front: a glance, no harm
+      // the shell turns a light cut from the front: a glance, no harm; a heavy blow (the third swing, the charged cut, the
+      // air cut, a bomb) bites through it at SHELL.heavy (v1.41: every frontal cut glanced, and a crab took too many)
+      const shellHit = this.shelled && !(this.flipped > 0) && dir && this.frontal(dir) && src !== 'parry';
+      if (shellHit && !shellBites(info, src)) {
         this.flash = 0.5; this.recoil = 0.5; this.heavyRecoil = false; this.recoilDir.copy(dir).setY(0).normalize();
         return 'glance';
       }
       // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
-      dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1);
+      dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1) * (shellHit && src !== 'bomb' ? SHELL.heavy : 1);
       if (info.air && D.hover) dmg *= AIR_MEETS;   // (the air cut meets a flyer in its own air: the ray, the moth, the jelly, the drone, the marionette)
       if (D.segmented && dir && src !== 'parry') {
         // plated (the centipede): from behind or the side the plates take half and it never reels; its head,
@@ -1708,6 +1735,39 @@ export class Foes {
     return f;
   }
 
+  /**
+   * The kinds this world can field (its roster, src/foe-worlds.js: the first, the wild and the fill, the guards, the
+   * temple's, a shade if it has them), each `kind@skin` as add() would skin it here; `all`: every kind (the Arena's list).
+   */
+  rosterKinds({ all = this.levelId === 'arena' } = {}) {
+    const R = rosterOf(this.worldHere), kinds = new Set(all ? Object.keys(FOES) : [R.first, ...Object.keys(R.wild ?? {}), ...Object.keys(R.fill ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])]);
+    return [...kinds].filter((k) => k && FOES[parseKind(k).kind]);
+  }
+  /**
+   * The foes' bodies before they are met, for a warm pass (v1.41, measured: the first time a kind comes in, its first
+   * draws compile 1-5 new GPU programs, a 50-180 ms frame on the Mac against 3-18 ms of building it, and seconds on a
+   * console; the second of a kind costs nothing). Builds each kind's model as add() does (its parts batched, its skin
+   * here) and a telegraph's glow, out of the world, in one group for a pass to draw (or compile) once: the loading work's
+   * warm (src/warm-shaders.js, main.js) decides when; nothing here adds it to the scene. Returns { group, kinds,
+   * dispose() }.
+   */
+  warmModels(kinds = this.rosterKinds()) {
+    const group = new THREE.Group();
+    group.name = 'Foes to warm';
+    const made = [];
+    for (const kind of kinds) {
+      const p = parseKind(kind), a = archetypeOfKind(p.kind);
+      if (!FOES[p.kind]) continue;
+      const skin = p.skin ?? (a && ARCHETYPES[a].status === 'built' ? skinFor(a, this.worldHere) : null);
+      const model = archetypeModel(p.kind, skin) ?? (p.kind === 'machine' ? machineModel() : kindModel(p.kind) ?? blotModel(p.kind));
+      batchParts(model.group);
+      group.add(model.group);
+      made.push(kind);
+    }
+    const tele = new Telegraph(group, '#6d4fa8');
+    return { group, kinds: made, dispose: () => { tele.dispose?.(); group.removeFromParent(); group.traverse((o) => o.geometry?.dispose?.()); } };
+  }
+
   remove(f) {
     f.target?.(); f.tele?.dispose(); f.glow?.dispose(); f.model.group.removeFromParent();
     this.unstring(f);   // (its strings on a creature, or a marionette's on it)
@@ -2017,7 +2077,7 @@ export class Foes {
     if (mode !== 'blade' && mode !== 'world') return;
     const T = this.tool, at = point ?? f.chest, tones = splashTones(R.family, f.model.tones);
     if (!T?.drops) return;
-    const n = kind === 'stagger' ? 16 : kind === 'shrug' ? 6 : 10, back = dir ? _w.copy(dir).setY(0).normalize() : _w.set(0, 0, 0);
+    const n = HIT_SPLASH[kind] ?? HIT_SPLASH.flinch, back = dir ? _w.copy(dir).setY(0).normalize() : _w.set(0, 0, 0);
     for (let i = 0; i < n; i++) {
       const spark = R.family === 'machine' && i % 3 !== 2;
       T.drops.add({ pos: at, vel: _v.randomDirection().multiplyScalar(spark ? 4.5 : 2.6).addScaledVector(back, spark ? 2 : 2.4).addScaledVector(_up, 1.6), drag: spark ? 3.5 : 2.2, grav: spark ? 6 : 10,
@@ -2085,12 +2145,12 @@ export class Foes {
     f.state = 'dead'; f.k = 0;
     const T = this.tool, at = f.chest.clone();
     const tones = f.model.tones ?? BURST_TONES[f.kind] ?? [INK, '#3b3350', '#6d4fa8'];   // (an archetype's from its skin)
-    for (let i = 0; i < 46; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
+    for (let i = 0; i < HIT_SPLASH.burst; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(2 + Math.random() * 6).addScaledVector(_up, 3), drag: 2, grav: 9, size: 0.05 + Math.random() * 0.06, stretch: 2, life: 0.6 + Math.random() * 0.5, color: tones[i % 3] });
     if (T?.reserve) {
       T.reserve.level = Math.min(T.reserve.max, T.reserve.level + 1);
       T.flash = 1; T.wave = Math.max(T.wave ?? 0, 0.6);
       const tank = T.tank?.group ? T.tank.group.localToWorld(_w.set(0, 0.3, 0)) : null;
-      if (tank) for (let i = 0; i < 10; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
+      if (tank) for (let i = 0; i < HIT_SPLASH.toTank; i++) T.glow?.add({ pos: at, vel: _v.subVectors(tank, at).multiplyScalar(1.6).add(_w.clone().randomDirection()), drag: 1, size: 0.06, life: 0.6, color: T.modeTones?.[i % 2] ?? '#52c8cf', grow: true });
     }
     if (f.def.breaks) this.breakApart(f);   // (a machine, glass, a shell, a drone: its pieces fly)
     else this.stain(f);
@@ -2190,6 +2250,7 @@ export class Foes {
     this.corral();
     this.updateHazards(dt);
     this.keepApart();
+    this.keepOff();
     this.warnings();
     this.updateLock(dt);
     this.updateDebris(dt);
@@ -2212,6 +2273,27 @@ export class Foes {
       if (d >= want || d < 1e-4) continue;
       const push = (want - d) / 2 / d;
       a.step(-dx * push, -dz * push, this.env); b.step(dx * push, dz * push, this.env);
+    }
+  }
+
+  /** You don't walk through a foe (BODY_BLOCK): pushed out of its body, your speed into it taken away; a light one gives way. */
+  keepOff() {
+    const P = this.player, B = BODY_BLOCK;
+    if (!P?.pos || P.ride || P.dead || P.climbing || P.down) return;
+    const M = P.combatMotion;
+    if (M?.evade || M?.dash || P.hopping || P._hop) return;
+    for (const f of this.list) {
+      if (!f.alive || f.dead !== undefined || f.state === 'dead' || f.dying || f.buried || f.phased || f.riding || f.lost || f.def.noBlock) continue;
+      const lo = f.pos.y + (f.alt ?? 0), hi = lo + (f.def.height ?? 1);
+      if (P.pos.y > hi - 0.1 || P.pos.y + B.head < lo) continue;
+      const dx = P.pos.x - f.pos.x, dz = P.pos.z - f.pos.z, d = Math.hypot(dx, dz);
+      const push = blockPush(d, f.def.radius * B.k + B.player);
+      if (!push) continue;
+      const nx = d > 1e-4 ? dx / d : Math.sin(P.heading ?? 0), nz = d > 1e-4 ? dz / d : Math.cos(P.heading ?? 0);
+      const share = f.def.light ? B.light : f.def.heavy || f.def.rooted || f.guardian ? 0 : B.share;
+      P.pos.x += nx * push * (1 - share); P.pos.z += nz * push * (1 - share);
+      if (share > 0) f.step(-nx * push * share, -nz * push * share, this.env);
+      if (P.vel) { const vn = P.vel.x * nx + P.vel.z * nz; if (vn < 0) { P.vel.x -= vn * nx; P.vel.z -= vn * nz; } }
     }
   }
 
@@ -2357,7 +2439,7 @@ export class Foes {
   sparks(f, at) {
     const T = this.tool;
     if (!T?.drops || !at) return;
-    for (let i = 0; i < 14; i++) T.drops.add({ pos: at, vel: _v.randomDirection().multiplyScalar(3).addScaledVector(_up, 2), drag: 3, grav: 8, size: 0.035, stretch: 2, life: 0.4, color: i % 2 ? '#fff6dc' : f.def.tone ?? '#f2c54b' });
+    for (let i = 0; i < HIT_SPLASH.sparks; i++) T.drops.add({ pos: at, vel: _v.randomDirection().multiplyScalar(3).addScaledVector(_up, 2), drag: 3, grav: 8, size: 0.035, stretch: 2, life: 0.4, color: i % 2 ? '#fff6dc' : f.def.tone ?? '#f2c54b' });
   }
 
   /** A line or a grip holding you: pulled toward the foe until it lets go (cut, stilled, flipped), or the time is up. */

@@ -108,6 +108,20 @@ for sale: "Shops" below) and the currency plug in without touching what spends t
   chamber still open; hearts are not saved (a load starts whole, as the bar did). Step 5 (the first shop): a save
   whose potions were infinite gets a full stock (the cap, 5) and finite potions, `res.v` 2; a save the dev menu
   had made infinite on purpose stays so.
+- **Potions from foes** (v1.41, the author: "enemies sometimes drop potions"; `src/potion-drops.js` `POTION_DROP`,
+  `potionChance`, `PotionDrops`, main.js on 'foe:burst'): each foe cut down rolls for a potion: 10 %, 22 % with half your
+  hearts or fewer, 10 % more with none left; never with a full pack (`POTION.cap`), an endless stock, a game's own waves,
+  a foe lost out of the world, or where chimes don't drop (`dropPolicy` 'off'); after 9 foes in a row with none, the next
+  surely. It pops up out of the foe and lands: the shop's corked red flask (src/shop-kit.js `flask`, the shop's own
+  materials: nothing new to compile) at 2.2 ×, turning and bobbing over a small warm glow; walked over (1.2 m) it goes into
+  the pack (`resources.addPotions`, a clink, "A healing potion! Into your pack."); left 45 s, it fades. Tests:
+  `tests/potion-drops.test.js`.
+- **The low-health cue** (v1.41, the author: "a visual and audio low-health cue at one heart or less, tasteful and not
+  nagging"; `src/low-health.js` `LOW_HEALTH`, `lowHealthStep`, `LowHealthCue`; `sound.heartbeat`): at one heart or less
+  (and fewer than all of them), a soft low double thump at 66 a minute and the screen's edges darkening in the ink's warm
+  red, pulsing with it, for six beats when you fall to it and again when a blow lands while you are there; then only a
+  faint tint of the edges (0.18) while you stay low, and the last heart's pulse in the HUD as before. Eased out when you
+  heal past it, die, or a menu or a scene is up. A `#low-health` div over the game, under the HUD.
 - **The Arena** (src/minigames/waves.js): a wave cleared gives a heart back (`TIDE.heal`); Second wind gives
   all of them back and lends a slow mend (`TIDE.mend`, 0.1 hearts a second per pick, through `FALL.regen`);
   Deeper well lengthens the bar a unit, Quick refill shortens the wait and quickens the fill.

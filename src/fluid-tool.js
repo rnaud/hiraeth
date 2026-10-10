@@ -8,7 +8,7 @@ import { items as sharedItems, backpackStage } from './items.js';
 import { triggers } from './controller.js';
 import { decalBasis, gatherTriangles, projectSplat, flatSplat, splatMaterial, drawnHit, DrawnSurfaces, SPLAT_REACH } from './splat-decal.js';
 import { MODES, STUN_SECONDS, FluidWings, FluidJets, HANDOFF, handoffPose, nextMode, ownedModes } from './fluid-kit.js';
-import { FluidBlade } from './fluid-blade.js';
+import { FluidBlade, HIT_FX } from './fluid-blade.js';
 import { MAGIC, MAGIC_COST } from './resources.js';
 import { boostVelocity, DOUBLE_JUMP } from './jump.js';
 
@@ -242,6 +242,26 @@ export class Glob {
     if ((this.travel += len) > range * 1.6 || this.age > 4) { this.state = 'gone'; return { type: 'expire' }; }
     return null;
   }
+}
+
+/**
+ * Aiming locked on (v1.41, the author: "gun aim stays on the locked target when aiming with L2 while locked on"): main.js
+ * turns the camera to the locked foe's chest from where the camera stands (lockAim: the over-the-shoulder camera's own
+ * yaw and pitch, CameraRig's convention: yaw about the frame's up from its forward, pitch + looking down) at `rate`;
+ * and the crosshair's ray passing within `snap` m of that chest takes it (updateAimPoint), the line to it clear.
+ */
+export const LOCK_AIM = { rate: 14, snap: 1.4 };
+/** The camera's yaw and pitch to look from `from` at `to` in frame F ({ up, fwd, right }). */
+export function lockAim(from, to, F) {
+  const dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z, len = Math.hypot(dx, dy, dz) || 1;
+  const r = dx * F.right.x + dy * F.right.y + dz * F.right.z, a = dx * F.fwd.x + dy * F.fwd.y + dz * F.fwd.z, u = dx * F.up.x + dy * F.up.y + dz * F.up.z;
+  return { yaw: Math.atan2(-r, -a), pitch: Math.asin(THREE.MathUtils.clamp(-u / len, -1, 1)) };
+}
+/** How far (m) the ray from `o` along unit `dir` passes from `p`, and whether `p` is ahead of it. */
+export function rayMiss(o, dir, p) {
+  const along = (p.x - o.x) * dir.x + (p.y - o.y) * dir.y + (p.z - o.z) * dir.z;
+  if (along <= 0) return Infinity;
+  return Math.hypot(p.x - o.x - dir.x * along, p.y - o.y - dir.y * along, p.z - o.z - dir.z * along);
 }
 
 /**
@@ -969,6 +989,13 @@ export class FluidTool {
     const shot = traceShot(this.physics, o, this.aimDir, FLUID.shoot.range + 4);
     this.aimPoint.copy(shot.point);
     this.aimKind = shot.kind;
+    // locked on: the crosshair near the foe's chest takes it, if nothing stands between (LOCK_AIM)
+    const lockAt = this.lockOn?.()?.position?.();
+    if (lockAt && rayMiss(o, this.aimDir, lockAt) < LOCK_AIM.snap) {
+      const to = _t2.subVectors(lockAt, o), d = to.length();
+      if (d < FLUID.shoot.range + 4 && !(this.physics?.rayDistance?.(o, to.divideScalar(d), d) < d - 0.6)) { this.aimPoint.copy(lockAt); this.aimKind = 'target'; this.aimLocked = true; return shot; }
+    }
+    this.aimLocked = false;
     return shot;
   }
 
@@ -1399,6 +1426,15 @@ export class FluidTool {
   splash(point, normal, scale = 1, mode = 'shoot', onTarget = false) {
     const tones = MODES[mode]?.tones ?? this.tones;
     const sc = (this.camera ? THREE.MathUtils.clamp(point.distanceTo(this.camera.position) / 14, 1, 2.5) : 1) * scale;
+    if (mode === 'cut') {
+      // a blade's cut (src/fluid-blade.js HIT_FX): a few drops of the blade's fluid off the edge, a glint; no ring
+      for (let i = 0; i < HIT_FX.cut; i++) {
+        const v = _a.randomDirection().addScaledVector(normal, 1.2).normalize().multiplyScalar((2.5 + Math.random() * 4) * sc);
+        this.drops.add({ pos: point, vel: v, drag: 2.4, grav: 9, size: (0.035 + Math.random() * 0.035) * sc, stretch: 2.5, life: 0.35 + Math.random() * 0.25, color: tones[i % tones.length] });
+      }
+      for (let i = 0; i < HIT_FX.cutGlow; i++) this.glow.add({ pos: point, vel: _a.randomDirection().multiplyScalar(0.8 * sc), drag: 3, size: 0.07 * sc, life: 0.3, color: tones[1 % tones.length], grow: true });
+      return;
+    }
     if (mode === 'stun') {
       // shards fly out and stop dead, hanging a moment like frost in the air
       for (let i = 0; i < 26; i++) {

@@ -358,7 +358,7 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
     #ifdef FS_GLOW
     {
       vec3 Vw = normalize(cameraPosition - vWorldPos);
-      float facing = abs(dot(n, Vw));
+      float facing = min(abs(dot(n, Vw)), 1.0);   // (held to 1: pow(1 - facing) of a hair under 0 is NaN, black blocks in the bloom; v1.41)
       float pulse = uFsGlow.z > 0.0 ? 0.82 + 0.18 * sin(uTime * uFsGlow.z + dot(vWorldPos, vec3(0.7, 0.3, 0.5))) : 1.0;
       float core = pow(facing, max(uFsGlow.y, 0.1));
       if (uFsGlowP.w > 0.0) core *= 1.0 - smoothstep(0.0, uFsGlowP.w, length(p - uFsGlowP.xyz));

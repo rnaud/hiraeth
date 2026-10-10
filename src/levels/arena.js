@@ -79,8 +79,62 @@ function standsGeometry() {
   return mergeGeometries(parts);
 }
 
-/** The floor's markings, flat on the sand (one mesh): the border, the waves' ring, the centre ring and cross, ticks. */
-function markingsGeometry() {
+/**
+ * The floor's markings painted into the floor (v1.41; the author: "shimmering arena ground lines when approaching or
+ * walking away"): the same border, waves' ring, centre ring and cross, ticks and gate bars as markingsGeometry, drawn
+ * into a texture over the floor's disc (`size` texels across its 2 × `R` m) with their edges' coverage worked out per
+ * texel, multiplied into the sand's colour (makeMaterial `map`), mipmapped and filtered at a slant. A line far off now
+ * thins and fades as the mip levels average it, where the strips of geometry 2 cm over the sand (v1.39) were a pixel or
+ * two tall at 20 m and broke into dashes that crawled as the camera moved (their two ink edges and the colour between
+ * them falling on or off the pixels): 523 changed pixels a frame on the floor walking back 4 cm a frame, 0 without them.
+ * The paint is a dark umber near the ink's (it was a mid brown, #8a6a48, whose strips read as ink lines anyway): the
+ * band's fill and the ink pass's lines along its edges are then one tone, and a line coming or going inside it barely
+ * shows. Measured walking back 4 cm a frame (the floor's band of the screen, pixels changing a lot between frames):
+ * 523 a frame with the strips, 171 painted in (230 with the old brown paint).
+ * Returns a THREE.DataTexture (RGBA, the mark's colour over the sand's as a factor; white where there is none).
+ */
+export function markingsTexture(size = 1024, R = ARENA.floor + 0.2, { mark = '#4d3b2b', sand = '#f1dcb0' } = {}) {
+  const M = ARENA.marks, px = (2 * R) / size, data = new Uint8Array(size * size * 4);
+  const m = new THREE.Color(mark), s0 = new THREE.Color(sand);
+  const f = [m.r / s0.r, m.g / s0.g, m.b / s0.b].map((x) => Math.min(1, x));
+  // the shapes, as markingsGeometry lays them: rings [inner, outer], and rects { w, h, d, a } (w across, h along the
+  // radius, centred d m out at angle a: PlaneGeometry(w, h) laid flat, moved out along +z, turned a about y)
+  const rings = [M.border, M.waves, M.centre];
+  const rects = [];
+  for (let i = 0; i < 4; i++) rects.push({ w: 0.26, h: 2.6, d: M.centre[1] + 1.6, a: i * Math.PI / 2 });
+  for (let i = 0; i < 16; i++) rects.push({ w: 0.3, h: 1.8, d: M.border[0] - 1.2, a: (i + 0.5) * Math.PI / 8 });
+  for (const a of [0, Math.PI]) rects.push({ w: 2 * ARENA.gate, h: 0.5, d: M.border[1] + 0.6, a });
+  for (const r of rects) { r.c = Math.cos(r.a); r.s = Math.sin(r.a); }
+  const cover = (d) => Math.min(1, Math.max(0, d / px + 0.5));   // (a signed distance inside the shape, m: its share of the texel)
+  for (let j = 0; j < size; j++) {
+    // (the disc's uv: u along x, v up its plane, which lies as -z: CircleGeometry turned flat)
+    const z = -((j + 0.5) / size * 2 - 1) * R;
+    for (let i = 0; i < size; i++) {
+      const x = ((i + 0.5) / size * 2 - 1) * R, r = Math.hypot(x, z);
+      let k = 0;
+      for (const [a, b] of rings) { if (r > a - px && r < b + px) k = Math.max(k, cover(Math.min(r - a, b - r))); }
+      if (k < 1 && (r < M.centre[1] + 3.2 || r > M.border[0] - 2.4)) for (const q of rects) {   // (the rects lie only near the centre and the border)
+        // (into the rect's frame: turned back by its angle; PlaneGeometry.rotateY(a) maps (x, z) to (x c + z s, -x s + z c))
+        const u = x * q.c - z * q.s, v = x * q.s + z * q.c - q.d;
+        if (Math.abs(u) > q.w / 2 + px || Math.abs(v) > q.h / 2 + px) continue;
+        k = Math.max(k, cover(Math.min(q.w / 2 - Math.abs(u), q.h / 2 - Math.abs(v))));
+      }
+      const o = (j * size + i) * 4;
+      data[o] = Math.round(255 * (1 - k + k * f[0])); data[o + 1] = Math.round(255 * (1 - k + k * f[1])); data[o + 2] = Math.round(255 * (1 - k + k * f[2])); data[o + 3] = 255;
+    }
+  }
+  const t = new THREE.DataTexture(data, size, size, THREE.RGBAFormat);
+  // (mipmapped and filtered at a slant: far off the line is averaged into a continuous band instead of a pixel or two
+  // that come and go; a faded mip chain was tried and was worse: a half-contrast band is still over the ink pass's
+  // colour-edge threshold, and its two edge lines then crawled inside it)
+  t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 8;
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true;
+  t.name = 'arena markings';
+  return t;
+}
+
+/** The floor's markings as strips of geometry over the sand (v1.39 to v1.40; kept for the markings' shape in tests). */
+export function markingsGeometry() {
   const M = ARENA.marks, parts = [];
   const ring = ([a, b], n = 128) => new THREE.RingGeometry(a, b, n).rotateX(-Math.PI / 2);
   parts.push(ring(M.border), ring(M.waves, 96), ring(M.centre, 48));
@@ -139,14 +193,14 @@ export function* buildArena(scene) {
   yield;
   // the fighting floor: raked, packed sand a shade paler than the desert's, flat to the wall (drawn over the ground,
   // which stays the solid floor), and its markings on it
-  const floor = new THREE.Mesh(new THREE.CircleGeometry(ARENA.floor + 0.2, 128).rotateX(-Math.PI / 2), makeMaterial({ color: '#f1dcb0', color2: '#e8cd99', key: 'arena.floor' }));
+  // (the markings painted into it: markingsTexture, mipmapped, so far-off lines fade rather than flicker)
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(ARENA.floor + 0.2, 128).rotateX(-Math.PI / 2), makeMaterial({ color: '#f1dcb0', color2: '#e8cd99', key: 'arena.floor', map: markingsTexture() }));
   floor.position.y = 0.015; floor.userData.noCollide = true; floor.name = 'Arena floor';
-  const marks = new THREE.Mesh(markingsGeometry(), makeMaterial({ color: '#8a6a48', flat: true, key: 'arena.marks' }));
-  marks.position.y = 0.035; marks.userData.noCollide = true; marks.name = 'Arena markings';
+  floor.userData.markings = true;
   // the wall and its tiers of stone seats, the two gates
   const stands = new THREE.Mesh(standsGeometry(), stone);
   stands.name = 'Arena stands';
-  scene.add(floor, marks, stands);
+  scene.add(floor, stands);
   yield;
   // braziers at the gates (their flames glow: no light) and the banners along the top tier, a mesh per material
   const F = furniture(), solid = [];

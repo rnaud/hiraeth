@@ -9,26 +9,14 @@ Playtests are not listed here: the author plays all the time.
 
 ## Combat, controls and world feedback (2026-10-10)
 
-Author feedback; investigate reported artifacts and stutters rather than treating their causes as confirmed.
+Author feedback; investigate reported artifacts and stutters rather than treating their causes as confirmed. (The
+combat and controls items were done in v1.41: DONE.md.)
 
-- [ ] **Reduce hit-effect noise.** Hits during enemy combat produce too much visual noise and too many particles.
-  Investigate the suspected shadow artifacts that appear when hits land.
-- [ ] **Make the lock-on reticle easier to notice.** Keep it elegant, but prioritize clear target readability;
-  this supersedes the earlier request for a subtler reticle if that makes it harder to see.
-- [ ] **Select gadgets with the right stick** after opening the gadget picker with D-pad Up.
-- [ ] **Fix lock-on strafe animation artifacts** when moving left and right.
-- [ ] **Speed up the main character's attacks** and investigate the first attack's occasional strange wind-up.
-- [ ] **Investigate stutters when new enemies appear.** Measure spawning and first-use rendering costs.
-- [ ] **Keep gun aim attached to the locked target** when aiming with L2 while locked on.
-- [ ] **Make small critters hittable with a sword** and reduce their excessive fleeing.
-- [ ] **Investigate shimmering arena ground lines** when approaching or walking away; check whether aliasing is the cause.
-- [ ] **Let enemies sometimes drop potions.**
 - [ ] **Run a flora and fauna reference pass across every world.** Follow the project's reference workflow.
-- [ ] **Add a visual and audio low-health cue** at one heart or less.
-- [ ] **Prevent the player from walking through enemies.**
-- [ ] **Allow mid-air sword combos** after jumping and attacking.
-- [ ] **Reduce crab health.** They currently take too many hits to defeat.
-- [ ] **Let the player hold a charged sword attack**, with an animation that clearly shows the held charge.
+- [ ] **Warm the foes' programs before they are met** (from the v1.41 stutter investigation): call
+  `foes.warmModels(foes.rosterKinds())` from the loading work's warm pass (`warmRest`) so the first of each kind no longer
+  compiles 1–5 programs on the frame it appears (50–183 ms on the Mac, seconds on a console). docs/systems/foes.md,
+  "The stutter when a new foe comes in".
 
 ## Loading follow-up: procedural worlds, no baking (2026-10-10)
 

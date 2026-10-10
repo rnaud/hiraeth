@@ -24,14 +24,30 @@ test('a round fighting floor, clear: nothing stands inside the wall but the flat
     }
   });
   assert.deepEqual(inside, [], `standing on the floor: ${inside.join(', ')}`);
-  const floor = scene.getObjectByName('Arena floor'), marks = scene.getObjectByName('Arena markings');
-  assert.ok(floor && marks, 'the floor and its markings');
-  assert.ok(floor.userData.noCollide && marks.userData.noCollide, 'drawn over the ground, which stays the solid floor');
+  const floor = scene.getObjectByName('Arena floor');
+  assert.ok(floor && floor.userData.markings, 'the floor, its markings painted in (v1.41)');
+  assert.ok(floor.userData.noCollide, 'drawn over the ground, which stays the solid floor');
+  assert.ok(!scene.getObjectByName('Arena markings'), 'no strips of geometry over the sand any more (they flickered)');
   const fb = new THREE.Box3().setFromObject(floor);
   assert.ok(fb.max.x >= ARENA.floor && fb.max.y < 0.05, 'flat, out to the wall');
-  // the markings: the border, the waves' ring, the centre
-  const mb = new THREE.Box3().setFromObject(marks);
-  assert.ok(mb.max.x > ARENA.marks.border[0] && mb.max.y < 0.06);
+});
+
+test('the markings painted into the floor: where the strips were, mipmapped so far lines fade instead of flickering', async () => {
+  const { markingsTexture } = await import('../src/levels/arena.js');
+  const size = 512, R = ARENA.floor + 0.2, t = markingsTexture(size, R), d = t.image.data;
+  assert.ok(t.generateMipmaps && t.minFilter === THREE.LinearMipmapLinearFilter && t.anisotropy >= 4, 'mipmapped, filtered at a slant');
+  // the texel at world (x, z) (the disc's uv: u along x, v as -z)
+  const at = (x, z) => { const i = Math.floor((x / R + 1) / 2 * size), j = Math.floor((-z / R + 1) / 2 * size); return d[(j * size + i) * 4]; };
+  const mid = (a) => (a[0] + a[1]) / 2;
+  for (const ring of [ARENA.marks.border, ARENA.marks.waves]) for (const a of [0.3, 1.9, 4.1]) {
+    assert.ok(at(Math.sin(a) * mid(ring), Math.cos(a) * mid(ring)) < 200, `a mark on the ring at ${mid(ring)} m`);
+    assert.equal(at(Math.sin(a) * (mid(ring) - 1.5), Math.cos(a) * (mid(ring) - 1.5)), 255, 'bare sand beside it');
+  }
+  assert.ok(at(0, mid(ARENA.marks.centre)) < 200 && at(0, 0) === 255, 'the centre ring, and nothing at the very middle');
+  assert.ok(at(0, ARENA.marks.centre[1] + 1.6) < 200, 'the cross\'s arm');
+  // its edges soft: a texel's share of the line (no hard step to alias)
+  let soft = 0; for (let i = 0; i < size; i++) { const v = d[(Math.floor(size / 2) * size + i) * 4]; if (v > 120 && v < 250) soft++; }
+  assert.ok(soft >= 4, `edges with in-between texels (${soft})`);
 });
 
 test('a wall with tiers of seats round it, two gates through it, braziers at the gates and banners on the top tier', () => {

@@ -269,6 +269,15 @@ test('the lock-on reticle frames the body and never sits on it: its ticks outsid
   const far = reticleFrame({ x0: 640, y0: 360, x1: 643, y1: 366 });
   assert.ok(far.hw >= RETICLE.min && far.hh >= RETICLE.min);
   assert.ok(reticleFrame({ x0: -900, y0: -900, x1: 2000, y1: 2000 }).hw <= RETICLE.max);
-  // thin: a fine line over a soft ink one
-  assert.ok(RETICLE.line <= 2 && RETICLE.under <= 4);
+  // (v1.41: easy to notice, still fine: a coloured line over an ink one over a pale halo, bolder than v1.39's 1.8 / 3.6 px)
+  assert.ok(RETICLE.line >= 2.5 && RETICLE.line <= 3.5 && RETICLE.under >= 2 * RETICLE.line - 0.01 && RETICLE.halo > RETICLE.under);
+  // drawn larger on a bigger screen, and larger again on a small one (a handheld's CSS pixels are tiny); a far foe's frame
+  // grows with it
+  const { reticleScale } = await import('../src/lock-reticle.js');
+  assert.equal(reticleScale(1280, 720), 1);
+  assert.ok(reticleScale(1920, 1080) > 1.4 && reticleScale(3840, 2160) <= RETICLE.scale.hi + 1e-9);
+  assert.ok(reticleScale(860, 420) > 1.2, `a handheld (${reticleScale(860, 420).toFixed(2)})`);
+  const farK = reticleFrame({ x0: 640, y0: 360, x1: 643, y1: 366 }, 1, 1, {}, 1.5);
+  assert.ok(farK.hw >= RETICLE.min * 1.5 - 1e-9, 'a far foe\'s frame no smaller than min × the scale');
+  assert.ok(RETICLE.min * reticleScale(860, 420) >= 26, 'on a handheld a far foe is framed at least 52 px across');
 });

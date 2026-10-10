@@ -188,3 +188,33 @@ test('targets unregister when a creature is removed', () => {
   assert.equal(mine(), 0);
   assert.equal(w.root.parent, null);
 });
+
+test('the sword bonks a creature: knocked away head over heels, dazed with stars, then off a moment; no harm (v1.41)', async () => {
+  const { BONK } = await import('../src/wildlife.js');
+  clearTargets();
+  const { scene, level, physics } = world('bazaar');
+  const w = new Wildlife(scene, level, physics, { content: CONTENT.bazaar });
+  const c = w.creatures[0], p = player(c.pos.clone().add(new THREE.Vector3(30, 0, 0))), cam = camera(c.pos);
+  run(w, p, cam, 0.5);
+  const target = allTargets().find((t) => t.creature === c), at = c.pos.clone();
+  assert.ok(target.onHit('blade', c.center.clone(), new THREE.Vector3(1, 0, 0), { damage: 1 }), 'the cut lands');
+  assert.equal(c.state, 'bonk');
+  let hopped = 0, starred = false;
+  for (let i = 0; i < 60; i++) { run(w, p, cam, 1 / 60, 1 + i / 60); hopped = Math.max(hopped, c.bonkT ?? 0); if (w.stars.mesh.count) starred = true; }
+  assert.ok(c.pos.distanceTo(at) > 0.4, `knocked along (${c.pos.distanceTo(at).toFixed(2)} m)`);
+  assert.ok(starred, 'dazed: stars over its head after the tumble');
+  run(w, p, cam, BONK.time, 3);
+  assert.notEqual(c.state, 'bonk', 'up again');
+  assert.ok(c.alive && !c.removed, 'unharmed');
+});
+
+test('creatures let you come within a sword\'s reach: their surprise only close, a sprint or a landing only nearby (v1.41)', async () => {
+  const { WARY, SPECIES } = await import('../src/wildlife.js');
+  const { BLADE } = await import('../src/fluid-blade.js');
+  for (const [id, sp] of Object.entries(SPECIES)) {
+    const size = (sp.size ?? 1) * 2.5, touch = ((sp.touch ?? 1.1) * size + 0.5) * WARY.touch;
+    assert.ok(touch < BLADE.reach - 0.4 || (sp.size ?? 1) > 1.4, `${id}: its surprise within ${touch.toFixed(2)} m, inside the blade's ${BLADE.reach} m`);
+    assert.ok((sp.wary ?? 4.5) * WARY.wary <= 2.5, `${id}: backs off only within ${((sp.wary ?? 4.5) * WARY.wary).toFixed(1)} m`);
+  }
+  assert.ok(WARY.sprint < 9 && WARY.landing < 9 && WARY.flee[1] < 2.5);
+});

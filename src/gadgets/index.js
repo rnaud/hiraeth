@@ -27,7 +27,9 @@ import { keyText } from '../prompt-keys.js';
 //   modes  D-pad → or X: the gadget in hand's next mode (the gun's: fluid, push and those found); one without
 //          modes says so
 //   choose D-pad ↑ or B: a tap takes the next one (Shift + B the one before), held a moment it opens the wheel:
-//          point the left stick (WASD) at one, let go. Only gadgets: nothing in hand is no stop of the round
+//          point the right stick at one (v1.41; WASD on the keyboard), let go. With a pad the left stick still walks
+//          and the camera holds while the wheel is open (main.js: the controller's stickTaken). Only gadgets: nothing
+//          in hand is no stop of the round
 //   whistle Y / △ (V on the keyboard, boxes/effects.js): the bell-note whistle and the echo shell (`ring`);
 //          touch ◆ with nothing in hand too
 //
@@ -52,6 +54,16 @@ export function gadgetInput(c = {}) {
     whistle: !!c.PadWhistle,
     touch: !!(c.TouchGadget),
   };
+}
+
+/**
+ * What points at a slot of the open wheel (v1.41, the author: "select gadgets with the right stick"): a pad's right stick
+ * (input.lookStick, there whenever a pad is in use: src/controller.js), the left one free to walk (`walk`); else the
+ * keys (WASD) or a touch stick, the traveller standing still. { x, y (up +), walk }.
+ */
+export function wheelStick(input = {}) {
+  if (input.lookStick) return { x: input.lookStick.x ?? 0, y: input.lookStick.y ?? 0, walk: true };
+  return { x: input.stick?.x ?? ((input.KeyD ? 1 : 0) - (input.KeyA ? 1 : 0)), y: input.stick?.y ?? ((input.KeyW ? 1 : 0) - (input.KeyS ? 1 : 0)), walk: false };
 }
 
 /** How a gadget takes the triggers (its definition's `trigger`; the ones that aim by default when they have `lower`). */
@@ -178,14 +190,15 @@ export class Gadgets {
       if (!this.wheelOn && this.pickT >= WHEEL_HOLD && this.owned().length) { this.wheelOn = true; this.wheelHi = -1; cur?.cancel?.(); }
     }
     if (this.wheelOn) {
-      const list = this.wheelList();
-      const sx = input.stick?.x ?? ((input.KeyD ? 1 : 0) - (input.KeyA ? 1 : 0)), sy = input.stick?.y ?? ((input.KeyW ? 1 : 0) - (input.KeyS ? 1 : 0));
+      const list = this.wheelList(), { x: sx, y: sy, walk } = wheelStick(input);
       const s = wheelSlot(sx, sy, list.length);
       if (s >= 0) this.wheelHi = s;
       this.hud.wheel(list, this.wheelHi);
-      // (the stick chooses: the traveller stands still meanwhile)
-      for (const k of ['KeyW', 'KeyA', 'KeyS', 'KeyD']) input[k] = false;
-      if ('stick' in input) input.stick = null;
+      // (the keys choose: the traveller stands still meanwhile; a pad's right stick chooses and the left one still walks)
+      if (!walk) {
+        for (const k of ['KeyW', 'KeyA', 'KeyS', 'KeyD']) input[k] = false;
+        if ('stick' in input) input.stick = null;
+      }
       if (!g.pick) {
         this.wheelOn = false; this.hud.wheel(null);
         if (this.wheelHi >= 0) this.equip(list[this.wheelHi].id);

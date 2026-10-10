@@ -273,7 +273,7 @@ Conflicts and oddities:
 | RT / R2 | **use the gadget in hand** (an aiming one: at once) | | **let fly** (shoot, throw) | | throttle | | | faster |
 | L3 | run | | | as before | boost | | | |
 | R3 | lock on · **no foe in reach: the scout** | lock on, the next, let go | | **the scout** | **the scout** | | | |
-| D-pad ↑ | choose a gadget (tap: the next, held: the wheel) | | | | | | navigate | |
+| D-pad ↑ | choose a gadget (tap: the next, held: the wheel, the right stick pointing at one since v1.41) | | | | | | navigate | |
 | D-pad ↓ | **call the mount, hail a taxi** (the Arena, the Arcade, the References: their list) | | | | | | navigate | |
 | D-pad ← | **drink a healing potion** (v1.11; View + D-pad ↓ before) | | | | | | navigate | |
 | D-pad → | **the gadget in hand's next mode** (the gun's; round again after the last; ← took the one before until v1.11) | | | | | | navigate | |

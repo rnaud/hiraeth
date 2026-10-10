@@ -11,7 +11,10 @@ import { HILT } from './fluid-sword.js';
 // right hand reaches back over the shoulder, takes it and brings it forward (DRAW, 0.34 s); when the fight
 // is over (the same moment it used to be put away into the glove) it goes back (SHEATHE). A swing pressed
 // with the sword on the back never waits: the swing starts that frame, as before, and the hilt comes to the
-// hand within DRAW.quick (0.12 s), before the earliest cut opens (the riposte's wind-up, 0.12 s; a first swing's 0.22).
+// hand within DRAW.quick (0.06 s), before the earliest cut opens (the riposte's wind-up, 0.12 s; a first swing's 0.16).
+// (v1.41: it took 0.12 s with the arm reaching 45 % of the way back through the first swing's wind-up, so a first
+// attack from the back wound up oddly, the arm pulled over the shoulder as the swing began: the author's "strange
+// wind-up" of the first attack. Now the hilt is snatched into the fist with no reach, and the swing is the swing.)
 //
 //   SHEATH               where it sits (the chest anchor's frame: y 0 at the hips, the collar at ~0.76, +z
 //                        forward, the wearer's right at -x; fluid-tool.js TANK's frame)
@@ -32,8 +35,8 @@ export const SHEATH = {
 /** The draw and the sheathe (s), and when in them the arm is at the back and the hilt changes hands (shares of the time). */
 export const DRAW = {
   time: 0.34,               // reach back over the shoulder, take it, bring it round
-  quick: 0.12,              // a swing pressed with the sword on the back: in the fist (at 0.8 of it) before any cut opens
-  quickReach: 0.45,         // (and the arm only starts back toward it: the swing's own wind-up carries it)
+  quick: 0.06,              // a swing pressed with the sword on the back: in the fist (at 0.8 of it) before any cut opens
+  quickReach: 0,            // (no reach: the swing's own wind-up plays untouched; it was 0.45 to v1.40)
   reach: [0, 0.38, 0.56, 1], // the arm: out to the back over [0, 0.38], held, back over [0.56, 1]
   take: [0.38, 0.56],       // the hilt from the frog to the fist (the hand there)
   quickTake: [0.1, 0.8],

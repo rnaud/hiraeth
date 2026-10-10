@@ -165,6 +165,14 @@ test('the runtime: the first gadget found is taken in hand; the use button press
   G.control(DT, {});
   assert.ok(!G.wheelOn);
   assert.equal(G.equipped, 'bomb', 'the slot down (hook at the top, bomb under it)');
+  // a pad: the right stick points at the slot (v1.41), the left one still walks
+  for (let t = 0; t < WHEEL_HOLD + 0.05; t += DT) G.control(DT, { PadGadgetPick: true, lookStick: { x: 0, y: 0 } });
+  assert.ok(G.wheelOn, 'open again, from D-pad ↑');
+  const pad = { PadGadgetPick: true, stick: { x: 0.3, y: 0.8 }, lookStick: { x: 0, y: 1 } };
+  G.control(DT, pad);
+  assert.deepEqual(pad.stick, { x: 0.3, y: 0.8 }, 'the left stick still walks');
+  G.control(DT, { lookStick: { x: 0, y: 0 } });
+  assert.equal(G.equipped, 'hook', 'the right stick up: the slot at the top');
   // a menu opening lets go of everything
   log.length = 0;
   G.control(DT, { KeyT: true }, true);

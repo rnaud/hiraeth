@@ -4,6 +4,22 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.41 — 2026-10-10
 
+- The Arena’s floor lines no longer shimmer as you walk toward or away from them: the rings and ticks are painted into the sand, so a far line stays one steady band instead of breaking into crawling dashes.
+- Hits are cleaner: a sword cut throws a few drops instead of a burst, foes splash less when struck and when they fall, and the swing’s own sparks are fewer, so you can see the fight through the effects.
+- No more black blotches flashing round your sword in a fight: now and then, mid-swing, dark blocks would flicker over you, the foe and the glowing braziers nearby. They came from a tiny maths slip in how the blade (and a glowing foe’s rim) was lit, not from shadows, and they are gone.
+- At one heart or less you hear a soft heartbeat and the edges of the screen darken with it, for a few beats when you fall that low and again if you are hit there; then only a faint tint stays until you heal.
+- Foes sometimes leave a healing potion where they fall, more often when you are hurt or out of potions: a little red flask that pops out, lands and bobs over a warm glow until you walk over it.
+- You can no longer walk through enemies: you bump against them and slide round their sides, while small ones like skitters are nudged aside. An evade or a dash cut still slips past.
+- Shellback crabs are quicker to beat: they have less health, and a heavy blow (the combo’s third swing, a charged cut, a plunge from the air) bites through the shell from the front for half its harm instead of glancing off.
+- Small creatures let you come closer and run off less: they only back away when you are almost on top of them, a run or a landing startles only the ones nearby, and a sword swing that catches one bonks it head over heels. It sits a moment, dazed under twinkling stars, then trots off unharmed.
+- Aiming the fluid gun while locked on keeps the crosshair on your foe: the camera turns over your shoulder to hold it in the sights, and a shot near it goes to it.
+- On a controller you pick from the gadget wheel with the right stick now: hold D-pad ↑ to open it, point the right stick at a gadget and let go. The camera holds still while the wheel is open.
+- The lock-on mark is easier to see: bolder corners with a soft light edge that reads on dark rock and bright sand alike, a pointed marker over the foe that bobs gently, and a quick pulse as the lock lands. It is drawn larger on a handheld’s small screen and still frames a far-off foe clearly.
+- Locked on, stepping left and right no longer jerks between the steps: changing sides eases from one into the other, and no forward stop or turn plays under your feet any more.
+- Mid-air sword combos: jump and attack for two quick cuts that hold you up in the air, then a third that plunges you down onto your foe.
+- Hold the attack button to charge your sword: the swing cuts, then you sink into your knees with the blade drawn back as motes of fluid gather into it, and once it is full you tremble with it. Let go to unleash it.
+- The first swing no longer winds up strangely now and then: the sword is snatched from your back straight into the cut, and a press held a moment too long is just a swing.
+- Your sword swings are about a quarter quicker: each cut comes out sooner and the full three-swing combo is over in well under two seconds.
 - Qanat’s great tree stands rooted in the middle of the town’s square, as in its picture, with no terraces or stairs under it; the houses gather closer round the square, and the well, the stele, Nour’s bench and the ledge with the chest stand at its foot.
 - When the chest on the tree opens, only Nour calls out, “Hey you!”, and comes to the tree’s foot to wait for you; nobody else crowds over.
 - Every makers’ box’s card shows what to press: A / × (Enter on the keyboard) beside Continue, and B / ○ (Esc) beside Skip.

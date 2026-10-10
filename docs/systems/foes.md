@@ -14,8 +14,10 @@ The first things in the game that fight back, and the tool's answer to them.
   a little out of reach steps you in through the wind-up and cut, to stand `MAGNET.ideal` (1.05 m since v1.35; 1.2 before) off its body, up
   to `MAGNET.max` (2.2 m) of ground; in reach, or further, nothing. Not the lunge (it carries you itself) nor in the air.
 - **The swings:** `SWINGS` retains anticipation through follow-through from three Mixamo clips.
-  `attackSample` maps separate wind/active/recover durations (0.22/0.16/0.24 s for the first,
-  0.25/0.17/0.26 for the second, 0.42/0.20/0.36 for the heavy third) onto source time.
+  `attackSample` maps separate wind/active/recover durations (0.16/0.13/0.18 s for the first,
+  0.18/0.14/0.19 for the second, 0.32/0.16/0.27 for the heavy third; v1.41, the author: "speed up the main
+  character's attacks": each phase about a quarter quicker, the whole combo 1.73 s against 2.28, the cooldown after
+  it 0.4 s against 0.5) onto source time.
   **The heavy third** (v1.39): the pack's slash 5 (`ss_slash_5`), an overhead chop with both feet planted, the sword raised
   high over the longer wind-up and brought down; a nudge of the camera (`kick` 0.12) as it comes down, landed or not, and on a
   hit the third's damage 3, knockback 2.2× and 0.11 s hit-stop as before. It was attack 1 (`ss_attack_1`), a leaping overhead
@@ -36,12 +38,19 @@ The first things in the game that fight back, and the tool's answer to them.
   at the tip; while charging, sparks drawn in to the blade. (The studio's paused `time` is not the clip's: its
   0.4 s is about 0.85 s of the clip. Measure in the game, as the test does.)
 - **The charged cut** (`CHARGE`, v1.3, the Great Sword pack's slash `gs_slash_1`): the blade button still held
-  `CHARGE.after` (0.2 s) into the first swing's wind-up (not chained, on the ground) turns it into a charge
-  (`FluidBlade.charging`): the clip drawn from 0.3 s to its cocked pose (`hold` 0.45 s, the sword back over
-  the right shoulder) over 0.18 s, blended in from the swing over 0.2 s (`playCombat`'s `blend`), and held
-  there with a slow breath (`chargePose`) as long as the button is; a slow step at most (`combatMotion.scale`
-  0.3), turned to the nearest foe; the blade pulses; full after `CHARGE.full` (0.85 s since v1.22; 0.6 before): a white ring and a ping
-  (`sound.fluidCharge`). Let go (or leave the ground): `release()` plays the clip's swing from 0.45 s (cut
+  `CHARGE.after` (0.3 s) after the press that began a combo swing (on the ground) turns it into a charge once that
+  swing has cut (`chargeOpen`: its wind-up or its follow-through, never mid-cut; `FluidBlade.charging`): the clip
+  drawn from 0.3 s to its cocked pose (`hold` 0.45 s, the sword back over the right shoulder) over 0.18 s, blended
+  in from the swing over 0.2 s (`playCombat`'s `blend`), and held there with a slow breath (`chargePose`) as long
+  as the button is; a slow step at most (`combatMotion.scale` 0.3), turned to the nearest foe; the blade pulses;
+  full after `CHARGE.full` (0.85 s since v1.22; 0.6 before): a white ring and a ping (`sound.fluidCharge`), and a
+  ring of the fluid at his feet. **The held charge shows** (v1.41, `CHARGE_LOOK`, `chargeBody`; the author: "an
+  animation that clearly shows the held charge"): he sinks 9 cm into his knees over the first 0.25 s
+  (`player.chargeHold`, laid over the body after the clips), motes of fluid drift into the blade from 0.75 m round
+  it (14 a second, more once full), and once full he trembles with it (0.018 rad at 31 Hz). Until v1.41 the charge
+  took over the first swing's wind-up 0.2 s after the press, while that wind-up lasted 0.22 s: a press held a
+  little long turned the first attack into a half-drawn charge let go at once, the strange wind-up the author saw
+  now and then. Now a tap is always the swing, and a hold is the swing and then the charge. Let go (or leave the ground): `release()` plays the clip's swing from 0.45 s (cut
   0.54–0.76 s, 0.07/0.17/0.36 s), cone half-angle 1.5 rad, reach 3.3 m, the cut's pull as a swing's;
   `CHARGE.damage` [2, 3] (not full / full), heavy (combo 2: the knockback, the hit-stop 0.11, full 0.15), and
   `breaks`: Foe.hit reels any foe it touches, armoured or committed to its blow. Then the cooldown, as after a
@@ -53,6 +62,12 @@ The first things in the game that fight back, and the tool's answer to them.
   stand `ideal` (0.7 m) off its body; as the cut starts (0.98 s) the body is driven down at `plunge` (12 m/s)
   and the overhead cleave (to 1.24 s) lands with it, its cone tipped `down` 0.6 rad. Damage 2, heavy. One an
   airtime (`airUsed`, reset on the ground): a press in the air after it waits for the ground (the buffer).
+- **Mid-air combos** (`AIR_COMBO`, v1.41, the author: "mid-air sword combos after jumping and attacking"): in the
+  air the first two presses play the combo's first two swings over the jump's legs (upper body; light, damage 1,
+  `info.air` so they meet a flyer double; their cone tipped 0.35 rad down), each lifting him to 2.4 m/s as it starts,
+  then holding his fall to 0.8 m/s through its wind-up and cut (2.4 through its follow-through) and carrying him in to
+  a foe up to 2.6 m out of reach; the next one pressed for cuts the follow-through short. The third press is the air
+  cut above, the plunge, ending it (`airN` counts them, reset on the ground). Tests: `tests/blade-attacks.test.js`.
 - **The riposte** (`RIPOSTE`, v1.4, the Sword and Shield pack's slash 4 `ss_slash_4`): a perfect parry
   (`block()` → `'perfect'`) opens a `window` of 0.6 s (`riposteOpen(sinceParry)`); a blade press in it (the
   guard may still be held) plays the clip's overhead chop from 1.05 s (cut 1.30–1.43 s, 0.12/0.12/0.30 s). The
@@ -101,6 +116,23 @@ The first things in the game that fight back, and the tool's answer to them.
   a swept segment from the glove to the blade tip checks contact with target volumes. Each target
   is hit once per swing. Without a loaded character clip, the original cone is the fallback.
   Wildlife scatters once per swing; other non-blade targets do not take damage.
+- **Quieter hits, and the black blocks** (v1.41, the author: "too much visual noise and too many particles on hits …
+  investigate the suspected shadow artifacts when hits land"). *The artifacts were not shadows.* A few frames in every
+  hundred through a swing (hit or miss; none standing still) dark blocks and discs covered the blade, the traveller and
+  the braziers by the Arena's gate: hunted by counting near-black pixels at the middle of the screen every ~45 ms through
+  scripted combos (3–5 frames in 144 at v1.40), then hiding parts in turn: the traveller's rigid parts, then the sword,
+  then the blade alone took them all away. The blade's light (`src/blade-shader.js` `bladeLight`) took `pow(1.0 - ndv,
+  3.0)` for its rim with `ndv = |n·v|`, and an interpolated normal a hair longer than 1 made the base negative: pow() of a
+  negative is NaN in GLSL, the NaN went into the G-buffer's albedo and the bloom's blurs (`createBloom`) spread it into
+  blocks round the blade and the other glowing things it reached. `ndv` is held to 1 and the base to 0 now (0 frames in
+  288); the foes' surface glow had the same rim (`src/foe-surface.js` FS_GLOW: `facing` held to 1), and
+  `tests/shader-nan.test.js` keeps every `pow(1.0 - x, …)` in both with `x` held. *The noise*: a blade's cut now lands
+  its own small splash (`HIT_FX`: 7 drops and a glint, no ring; it was the gun shot's, 28 drops, 5 glints and a ring,
+  on top of the foe's own), the foes splash less (`src/foes.js` `HIT_SPLASH`: 9 / 5 / 3 drops by how a blow told, was
+  16 / 10 / 6; the burst 24, was 46; the glints to the tank 6, was 10; sparks 8, was 14), a block throws 10 drops (18),
+  a parry 8 glints (12), and every cut lays at most 3 sparks a frame over the ground it crosses (6) and a landing drop
+  pops one droplet (2). Measured through three combos into a blot: 161 → 99 drops and 45 → 25 glints at the busiest,
+  93.5 → 56.9 on average.
 - **The look** (v1.7, `src/fluid-sword.js`; the selected design, `references/Core Objects/Reviewed Gadgets/Fluid
   Sword - Selected 2026-10-09/reference-3.jpeg`): a broad blade of turquoise fluid out of a brass cup, on a
   leather-wrapped hilt (the hilt: `docs/systems/traveller-kit.md`, "The fluid sword").
@@ -622,12 +654,22 @@ The count is said every 5 ink.
   is lost past `LOCK.lose`; when its foe falls it moves on to the nearest still standing in reach (`nextLock`, v0.96).
 - While locked, main.js turns `rig.yaw` to keep the foe ahead, the reticle marks it, and the blade's soft
   lock, the guard and the cut's pull turn to it first (`tool.lockOn`; `lockTarget()` carries its body's radius).
-- **The reticle** (`src/lock-reticle.js`, `#foe-lock`; v0.96, made thin and quiet in v1.39): an SVG over the game, a fine
-  coloured line (`RETICLE.line` 1.8 px) over a softer ink one (`under` 3.6 px, half opacity) so it reads on bright sand and in
-  the dark. Four corner ticks (`tick` 11 px arms) frame the foe's drawn body: its parts' box as posed (`foe-body.js`
-  `bodySpan`) projected to the screen and grown by `RETICLE.gap` (9 px) × the look's spread (`reticleFrame`, `min`–`max`
-  px half-size; no parts to measure: its sphere); nothing is drawn on the body. Over its head a small diamond, and over the
-  diamond a row of tiny pips for its hp (up to 8; more, each a share). `reticleLook(f)` reads the foe: `calm` (gold,
+- **Aiming locked on** (v1.41, the author: "gun aim stays on the locked target when aiming with L2 while locked on";
+  `src/fluid-tool.js` `LOCK_AIM`, `lockAim`): aiming (the tool's `k` and `camK` up), main.js turns the rig's yaw *and*
+  pitch so the camera, from where it stands over the shoulder, looks at the foe's chest (at `LOCK_AIM.rate` 14/s); before,
+  only the yaw was turned, from the traveller, so the over-the-shoulder crosshair sat off to one side and the pitch was
+  the player's. And `updateAimPoint` gives the crosshair the chest when its ray passes within `snap` (1.4 m) of it, the
+  line clear (`aimLocked`). Measured in the Arena on a crab 10 m off to one side: the crosshair settles within 0.1° of its
+  chest. Tests: `tests/lock-aim.test.js`.
+- **The reticle** (`src/lock-reticle.js`, `#foe-lock`; v0.96, made thin and quiet in v1.39, bolder again in v1.41: the
+  author found v1.39's too hard to see, "easy to notice but still elegant … at Handheld size and from far away"): an SVG
+  over the game, each stroke three times: a soft pale halo (`halo` 9 px at 0.4), an ink line (`under` 5.6 px) and the
+  coloured one (`RETICLE.line` 2.8 px; v1.39: 1.8 over 3.6, no halo), so it reads on bright sand and on dark rock. The
+  drawing scales with the screen (`reticleScale`: 1 at 720 px on the shorter side, up to 1.7, × 1.25 under 560 px, a
+  handheld's or a phone's small CSS pixels). Four corner ticks (`tick` 16 px arms; 11 before) frame the foe's drawn body: its parts' box as posed (`foe-body.js`
+  `bodySpan`) projected to the screen and grown by `RETICLE.gap` (10 px) × the look's spread (`reticleFrame`, `min`–`max`
+  px half-size × the scale, `min` 22 so a far foe's frame stays visible; no parts to measure: its sphere); nothing is drawn on the body. Over its head a pointed marker, its tip down at the foe, bobbing `bob` px while calm or open,
+  and over it a row of pips for its hp (up to 8; more, each a share). A new lock lands with one pulse of the marks (`pulse`). `reticleLook(f)` reads the foe: `calm` (gold,
   breathing), `wind` (coral, the gap closing to `RETICLE.close` (0.35) as k²: never onto the body), `strike` (a white flash, a
   small four-point burst for the diamond), `open` (stunned, reeling, flipped, asleep: pale blue, held wide at `RETICLE.open`),
   `veiled` (buried, phased: dimmed, dashed). A new lock eases in over `snap` (0.32 s): from wider and faint, the diamond
@@ -679,7 +721,42 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
 - Sideways and backwards, `updateStrafe` plays the Sword and Shield pack's strafes (`ss_strafe_1` left,
   `ss_strafe_2` right) or its walk back (`ss_walk_2`) over the whole body, their time following the ground
   covered.
+- **No artifacts changing side** (v1.41, the author: "lock-on strafe animation artifacts when moving left and
+  right"). Measured in Node (`tests/strafe.test.js`, left, right and still in turn): the worst turn of a bone in a
+  frame was 1.64 rad (the thighs), with 263 of 450 frames under a start, stop or pivot clip; now 0.38 rad and none.
+  The causes: a change of side swapped one step for the other in a frame at full weight; a diagonal near the line
+  flipped between the steps and the loops frame to frame; and the starts, stops and the run's 180° pivot
+  (`src/loco-moves.js`: a strafe reversal at the lock's 4.2 m/s is a pivot's speed) and the chest's lead into the
+  stick's way (`src/locomotion.js`) still played. Now `strafeSide` keeps a side until another is clearly wanted,
+  `strafeStep` fades the old step out (`LOCK_MOVE.swap`) before the new one comes in, and locked on the starts,
+  stops, pivots and the chest's lead are off.
 - A fast approach toward the locked foe counts as a run for the lunge.
+
+## Bodies: you can't walk through a foe (v1.41, `src/foes.js` `BODY_BLOCK`, `Foes.keepOff`)
+
+The author: "the player can't walk through enemies". Each frame, after the foes keep apart from each other, the traveller is
+pushed out of any standing foe's body: flat, to `BODY_BLOCK.k` (0.8) × its radius + `player` (0.4 m) from its middle, if
+he overlaps it in height (over it, jumping, he passes); his speed into it is taken away. A light foe (skitters, moths,
+splinters: `def.light`) gives way, taking 85 % of the push; an ordinary one 25 %; a heavy or rooted one or a guardian none.
+Never during an evade, a dash cut (which goes past the foe on purpose) or a locked-on hop, riding, knocked down, or against
+a foe going down, buried, a running shadow, riding another or out of the world. The cut's pull (`MAGNET.ideal` 1.05 m off
+the body's reach) stops outside the ring, so a swing never pushes into it. Tests: `tests/body-block.test.js`.
+
+## The stutter when a new foe comes in (v1.41: measured; `Foes.rosterKinds`, `Foes.warmModels`)
+
+The author: "investigate stutters when new enemies appear". Measured in the Arena (Mac, headless Chrome on the GPU,
+Medium; each kind called once with nothing else in play, the frames for 1.5 s after): building a foe is 3–18 ms of JS
+(`spawnKind`: its model, its parts batched, its target); the hitch is its **first draws compiling GPU programs**: the
+first of a kind compiled 1–5 new programs (its surface's feature combination, `src/foe-surface.js` FS_*, in each pass)
+and its worst frame was 50–183 ms (the drone 183, the moth 150, the cart 83, the crab and the brute 67); the second of
+the same kind compiled nothing and never dropped a frame (16.8 ms, as idle). On a console each program is a second or
+more (docs/systems/xbox.md), so a new kind there is a long freeze. Drawing every kind's body once up front (28 programs,
+421 ms on the Mac) took every first appearance afterwards to 16.8 ms and 0–1 programs. `Foes.warmModels(kinds)` builds
+those bodies (as `add` does, batched, skinned for the world, and a telegraph's glow) in a group out of the world and out
+of the target registry, for the loading work's warm pass (src/warm-shaders.js `warmRest`, main.js) to draw or compile
+once; `rosterKinds()` lists the kinds a world can field (every kind in the Arena). Nothing here adds them to the scene:
+when to pay the compile (behind the loading screen, or a slice at a time after the first frame) is the loading work's
+call. Tests: `tests/foe-warm.test.js`.
 
 ## The back flip, the side hop and the flurry (v1.39: `src/jump.js` `HOP`, `src/flurry.js`, `src/feel.js` `flurry`)
 
@@ -879,7 +956,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
 
   | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
   |---|---|---|---|---|
-  | shellback crab (`crab`) | a low wide dome, two raised pincers, six legs splayed like a table | snap (0.75 s; a parry chips it), shell spin (1.1 s; guarded, it flips), burrow and pinch (1.2 s; Salt Harbour and Underwater only) | parry, dash cut to its side, bombs, ember; the shell glances the blade from the front | grazes, backs away, fights at 3.2 m or cornered |
+  | shellback crab (`crab`) | a low wide dome, two raised pincers, six legs splayed like a table | snap (0.75 s; a parry chips it), shell spin (1.1 s; guarded, it flips), burrow and pinch (1.2 s; Salt Harbour and Underwater only) | parry, dash cut to its side, bombs, ember; the shell glances a light cut from the front, a heavy blow bites through at half (`SHELL`, v1.41; hp 3, was 4: the author found it took too many hits) | grazes, backs away, fights at 3.2 m or cornered |
   | horn lizard (`lizard`) | long and low, a curled tail, a brass trumpet for a snout | blare (1.0 s; shoves you toward its partner), flank bite (0.8 s; only from behind you), tail whip (1.15 s; only at its back) | parry and riposte on the bite, dash cut past the blarer, split the pair | basks on its stones; territorial within 6 m |
   | antler hound (`hound`) | lean, tall, a crown of antlers wider than its body; running, a shadow | pounce (0.8 s), step behind (0.9 s) then bite, antler rake (1.0 s; under two thirds of its health) | ember (solid, 2), parry; the blade passes through its running shadow | lies as a shadow; some only watch |
   | lamp tripod (`tripod`) | a lighthouse on stilts, 3.5 m: a boiler, a searchlight, three piston legs; a face at the porthole | beam and bolt (1.4 s; the light follows, then locks), stamp (1.35 s), steam vent (1.0 s) | cover breaks the beam, dash under it, the magnet glove, a perfect parry sends the bolt back | patrols sweeping its lamp; always hostile |
@@ -1052,10 +1129,19 @@ waves' ring at 18 m, a centre ring and cross, sixteen ticks, a bar across each g
 stand at the floor's edge by the south gate, facing the middle. **Nothing stands or grows on the floor**:
 `level.keepClear` (`arenaKeepClear`, the floor and the stands, 50 m) keeps the responsive world's flowers
 (src/reactive-world.js), flora and wildlife off it; they bloom out in the desert beyond. The old standing stones and the
-ledge with its ramp are gone (the tiers' faces are walls to climb). It is drawn in eight merged meshes (the floor, its
-markings, the stone, the bronze, the flames, the poles, the two banner cloths) and adds no light, so it stays the
-performance audit's quiet stage. Tests: `tests/arena-floor.test.js` (nothing on the floor inside the wall, the wall and
-tiers round it and the gates open, eight meshes and no light, no flowers inside). The desert's golden sand stays the
+ledge with its ramp are gone (the tiers' faces are walls to climb). It is drawn in seven merged meshes (the floor with
+its markings, the stone, the bronze, the flames, the poles, the two banner cloths) and adds no light, so it stays the
+performance audit's quiet stage. **The markings are painted into the floor** (v1.41, the author: "shimmering arena
+ground lines when approaching or walking away"; `markingsTexture`): they were strips of geometry 2 cm over the sand,
+a pixel or two tall at 20 m, whose two ink edges and the colour between them fell on and off the pixels as the camera
+moved, so a far ring broke into crawling dashes (aliasing, confirmed: 523 sharply changing pixels a frame on the floor's
+band walking back 4 cm a frame, 0 with the markings hidden). Now a 1024² texture over the floor's disc carries them,
+each texel its share of the line (coverage from the shapes' signed distances), mipmapped and filtered at a slant, in a
+dark umber near the ink's (the band's fill and its edge lines one tone): 171 a frame. A faded mip chain was tried and
+was worse (410–519: a half-contrast band still trips the ink pass's colour-edge test and its edge lines crawl inside
+it). Building it costs ~50 ms on the Mac at load. Tests: `tests/arena-floor.test.js` (nothing on the floor inside the
+wall, the markings painted where the strips were with soft edges, the wall and tiers round it and the gates open, no
+light, no flowers inside). The desert's golden sand stays the
 ground under it (flat out to 150 m) under an open sky. `level.foes.waves` makes
 `Foes` send the Arena's cycle round you, whatever the setting, `WAVE.rest` s after the last one falls (`ARENA_WAVES`,
 `arenaWave(n)`, v1.5): first the old `WAVES` (one blot, three blots, a spitter and a blot, a swarm, a machine, a shade,

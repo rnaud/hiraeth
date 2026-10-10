@@ -194,11 +194,17 @@ test('the shellback crab: the blade glances off its shell from the front; from b
   assert.equal(foes.strike(s, attackOf('crab', 'spin')), false);
   assert.ok(s.flipped > 2 && s.stunned > 2, 'on its back');
   assert.equal(s.hit('blade', v(0, 0, 1), { damage: 1 }), true, 'flipped: the front is open');
-  const b = new Foe('crab', v()); b.heading = 0;
+  const b = new Foe('crab', v()); b.heading = 0; b.hp = 6;
   b.hit('blade', v(0, 0, -1), { damage: 2, source: 'bomb' });
   assert.equal(b.shelled, false, 'a bomb cracks it');
-  assert.equal(b.hp, FOES.crab.hp - 3, 'and bites half again as deep');
-  assert.equal(b.hit('blade', v(0, 0, -1), { damage: 1 }), 'burst', 'cracked: no more glancing');
+  assert.equal(b.hp, 3, 'and bites half again as deep');
+  assert.equal(b.hit('blade', v(0, 0, -1), { damage: 1 }), true, 'cracked: no more glancing');
+  // (v1.41) a heavy blow bites through the shell from the front, at half; hp 3, so a crab takes about half the blows
+  assert.equal(FOES.crab.hp, 3);
+  const h = new Foe('crab', v()); h.heading = 0;
+  assert.equal(h.hit('blade', v(0, 0, -1), { damage: 3, combo: 2 }), true, 'the heavy third from the front');
+  assert.equal(h.hp, FOES.crab.hp - 1.5);
+  assert.equal(h.hit('blade', v(0, 0, -1), { damage: 1 }), 'glance', 'a light cut still glances');
   // the spin: a charge along its lane; stepping off the lane, it runs past
   const r = only('crab', 'spin'), Q = player(v(0, 0, 6));
   assert.ok(untilWind(r, Q, 'spin'));

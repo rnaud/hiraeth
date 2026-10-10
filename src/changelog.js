@@ -14,6 +14,96 @@ export const CHANGELOG = [
     'Every makers’ box’s card shows what to press: A / × (Enter on the keyboard) beside Continue, and B / ○ (Esc) beside Skip.',
     'When the chest on the tree opens, only Nour calls out, “Hey you!”, and comes to the tree’s foot to wait for you; nobody else crowds over.',
     'Qanat’s great tree stands rooted in the middle of the town’s square, as in its picture, with no terraces or stairs under it; the houses gather closer round the square, and the well, the stele, Nour’s bench and the ledge with the chest stand at its foot.',
+    // the sword (docs/systems/foes.md "The swings", "The charged cut", "Mid-air combos")
+    { text: 'Your sword swings are about a quarter quicker: each cut comes out sooner and the full three-swing combo is over in well under two seconds.',
+      numbers: [
+        { title: 'The sword’s combo', unit: 's', better: 'lower', device: 'the blade’s tuning (src/fluid-blade.js SWINGS), the same on every device', rows: [
+          { where: 'from the press to the first cut', before: 0.22, after: 0.16 },
+          { where: 'from the press to the heavy third’s cut', before: 1.72, after: 1.30 },
+          { where: 'the whole combo, first press to the end of the third', before: 2.28, after: 1.73 },
+          { where: 'the pause after it', before: 0.5, after: 0.4 },
+        ], source: 'SWINGS wind / active / recover, BLADE.cooldown' },
+      ],
+      see: 'In the Arena (?level=arena) call a foe and press RB / R1 three times: the three cuts follow each other faster than before.' },
+    { text: 'The first swing no longer winds up strangely now and then: the sword is snatched from your back straight into the cut, and a press held a moment too long is just a swing.',
+      see: 'Stand out of a fight until the sword goes onto your back, then press RB / R1 (or a left click): the first cut comes straight out, with no reach over the shoulder first. Press and hold for about a quarter of a second: still a plain swing, not a half-drawn charge.' },
+    { text: 'Hold the attack button to charge your sword: the swing cuts, then you sink into your knees with the blade drawn back as motes of fluid gather into it, and once it is full you tremble with it. Let go to unleash it.',
+      see: 'In the Arena hold RB / R1 (or the left mouse button): after the first cut he draws the sword back over his shoulder, crouches a little and the blade gathers drops of light; after nearly a second a ring flashes at his feet and he starts to tremble. Let go to sweep.' },
+    { text: 'Mid-air sword combos: jump and attack for two quick cuts that hold you up in the air, then a third that plunges you down onto your foe.',
+      see: 'In the Arena jump (A / ×) and press RB / R1 three times while in the air: two cuts keep you aloft, the third drives you down in an overhead cleave. Try it on a moth or a drone.' },
+    { text: 'Locked on, stepping left and right no longer jerks between the steps: changing sides eases from one into the other, and no forward stop or turn plays under your feet any more.',
+      numbers: [
+        { title: 'Locked on, stepping left, right and standing still in turn (8 s)', unit: '', better: 'lower', device: 'Node, the coral-shirt traveller with the captured moves (tests/strafe.test.js’s walk)', rows: [
+          { where: 'the largest turn of a bone in one frame (rad)', before: 1.64, after: 0.38 },
+          { where: 'frames where a bone turned more than 0.25 rad', before: 151, after: 34 },
+          { where: 'frames with a start, stop or pivot playing under the steps', before: 263, after: 0 },
+        ], source: 'a script driving the real Player and Animator, before and after the fix' },
+      ],
+      see: 'In the Arena call a foe, lock on (R3) and walk left, then right, then left again: the steps change over smoothly.' },
+    // the lock-on's mark (docs/systems/foes.md "The lock-on")
+    { text: 'The lock-on mark is easier to see: bolder corners with a soft light edge that reads on dark rock and bright sand alike, a pointed marker over the foe that bobs gently, and a quick pulse as the lock lands. It is drawn larger on a handheld’s small screen and still frames a far-off foe clearly.',
+      see: 'In the Arena call a foe from the FOES list and press R3 (Tab): the four corners frame it and the marker over its head points down at it. Try it on a crab across the ring, and on a small screen.' },
+    // the gadget wheel (docs/systems/gadgets.md "On the screen")
+    { text: 'On a controller you pick from the gadget wheel with the right stick now: hold D-pad ↑ to open it, point the right stick at a gadget and let go. The camera holds still while the wheel is open.',
+      see: 'With two or more gadgets, hold D-pad ↑: the wheel opens; push the right stick toward a gadget and let go of D-pad ↑ to take it in hand.' },
+    // the gun locked on (docs/systems/foes.md "The lock-on")
+    { text: 'Aiming the fluid gun while locked on keeps the crosshair on your foe: the camera turns over your shoulder to hold it in the sights, and a shot near it goes to it.',
+      see: 'In the Arena take the fluid gun in hand, call a foe, lock on (R3) and hold LT / L2: the crosshair settles on the foe and stays there as it moves; RT / R2 hits it.' },
+    // creatures, crabs and bodies (docs/systems/living-world.md, docs/systems/foes.md "Bodies")
+    { text: 'Small creatures let you come closer and run off less: they only back away when you are almost on top of them, a run or a landing startles only the ones nearby, and a sword swing that catches one bonks it head over heels. It sits a moment, dazed under twinkling stars, then trots off unharmed.',
+      numbers: [
+        { title: 'How close a creature lets you come', unit: 'm', better: 'lower', device: 'the creatures’ tuning (src/wildlife.js WARY), most species', rows: [
+          { where: 'it starts backing away', before: '4–5', after: '1.4–2.3' },
+          { where: 'walking up sets off its surprise', before: 3.2, after: 1.3 },
+          { where: 'a run startles it from', before: 9, after: 5.5 },
+          { where: 'the sword’s reach, for comparison', before: 2.9, after: 2.9 },
+        ], source: 'WARY, BONK' },
+      ],
+      see: 'In the desert walk up to a puff lizard: it lets you stand right next to it. Swing the sword (RB / R1) through it: it flips over, lands dazed with stars over its head, and wanders off after a couple of seconds.' },
+    { text: 'Shellback crabs are quicker to beat: they have less health, and a heavy blow (the combo’s third swing, a charged cut, a plunge from the air) bites through the shell from the front for half its harm instead of glancing off.',
+      numbers: [
+        { title: 'A shellback crab', unit: '', better: 'lower', device: 'the crab’s tuning (src/enemies/archetypes.js, src/foes.js SHELL)', rows: [
+          { where: 'health', before: 4, after: 3 },
+          { where: 'light cuts from the side or behind to beat it', before: 4, after: 3 },
+          { where: 'harm of the heavy third swing from the front', before: 0, after: 1.5 },
+        ], source: 'Foe.hit' },
+      ],
+      see: 'In the Arena call a shellback crab: a light cut still glances off its shell from the front, but the third swing of the combo or a charged cut gets through.' },
+    { text: 'You can no longer walk through enemies: you bump against them and slide round their sides, while small ones like skitters are nudged aside. An evade or a dash cut still slips past.',
+      see: 'In the Arena call a crab and walk straight into it: you stop at its shell. Walk into a skitter swarm and they scatter out of your way.' },
+    // potions and the low-health cue (docs/systems/items.md "Hearts, magic and potions")
+    { text: 'Foes sometimes leave a healing potion where they fall, more often when you are hurt or out of potions: a little red flask that pops out, lands and bobs over a warm glow until you walk over it.',
+      see: 'Fight a few foes in any world with fewer than five potions: now and then one leaves a red flask; walk over it and the potion count by your hearts goes up.' },
+    { text: 'At one heart or less you hear a soft heartbeat and the edges of the screen darken with it, for a few beats when you fall that low and again if you are hit there; then only a faint tint stays until you heal.',
+      see: 'In the Arena let a foe hit you down to one heart: a low double thump plays six times while the screen’s edges pulse a warm red, then settles to a faint tint. Drink a potion (D-pad ←) and it fades away.' },
+    // hits: the black blocks and the noise (docs/systems/foes.md "The look")
+    { text: 'No more black blotches flashing round your sword in a fight: now and then, mid-swing, dark blocks would flicker over you, the foe and the glowing braziers nearby. They came from a tiny maths slip in how the blade (and a glowing foe’s rim) was lit, not from shadows, and they are gone.',
+      numbers: [
+        { title: 'Frames with black blocks while swinging in the Arena', unit: '', better: 'lower', device: 'Mac, headless Chrome on the GPU, Medium, 1280 × 720; a frame every ~45 ms through combos', rows: [
+          { where: 'swinging into a blot (144 frames)', before: '3–5', after: 0 },
+          { where: 'swinging at the air (144 frames)', before: 3, after: 0 },
+          { where: 'standing still (90 frames)', before: 0, after: 0 },
+        ], source: 'a script counting near-black pixels in the middle of the screen, before and after the fix' },
+      ],
+      see: 'In the Arena swing the sword a few dozen times near the braziers by the gate: no dark blocks flicker over the picture any more.' },
+    { text: 'Hits are cleaner: a sword cut throws a few drops instead of a burst, foes splash less when struck and when they fall, and the swing’s own sparks are fewer, so you can see the fight through the effects.',
+      numbers: [
+        { title: 'Bits of fluid in the air through three combos into a blot', unit: '', better: 'lower', device: 'Mac, headless Chrome, the Arena, 45 samples', rows: [
+          { where: 'drops at the busiest moment', before: 161, after: 99 },
+          { where: 'glints at the busiest moment', before: 45, after: 25 },
+          { where: 'drops and glints on average', before: 93.5, after: 56.9 },
+        ], source: 'tool.drops and tool.glow counted during the same scripted combos' },
+      ],
+      see: 'In the Arena cut a blot a few times: each hit leaves a small splash of its own colour and a ripple up the blade, and the screen stays readable.' },
+    // the Arena's floor lines (docs/systems/foes.md "The Arena")
+    { text: 'The Arena’s floor lines no longer shimmer as you walk toward or away from them: the rings and ticks are painted into the sand, so a far line stays one steady band instead of breaking into crawling dashes.',
+      numbers: [
+        { title: 'The Arena floor’s lines walking back 4 cm a frame', unit: 'px', better: 'lower', device: 'Mac, headless Chrome on the GPU, Medium, 1280 × 720, the floor’s band of the screen, 30 frames', rows: [
+          { where: 'pixels that change sharply between frames (the far rings)', before: 523, after: 171 },
+          { where: 'the same with no markings at all (the floor alone)', before: 0, after: 0 },
+        ], source: 'a script stepping the camera back and diffing neighbouring frames' },
+      ],
+      see: 'In the Arena walk slowly from the centre mark toward a gate, then back, watching the big ring on the floor: it stays a steady line.' },
   ] },
   { v: '1.40', date: '2026-10-10', items: [
     // the camera in tight places (docs/systems/movement-and-camera.md "The camera QC and what it fixed")

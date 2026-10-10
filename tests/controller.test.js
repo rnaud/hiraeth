@@ -130,6 +130,17 @@ test('the mouse and keys: right aims, left shoots while aiming (and swings the b
   assert.equal('jets' in triggers({ Space: true }), false, 'Space held in the air is the jets in player.js itself');
   assert.equal(triggers({ TouchFire: true }).quick, true, 'the touch button: a quick shot that aims for you');
 });
+test('the right stick is in the input as such (the gadget wheel reads it), and while the wheel has it the camera holds', () => {
+  const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, -1], buttons: Array.from({length:17}, () => ({pressed:false,value:0})) };
+  const looks = []; let taken = false;
+  const c = new Controller({ pads: () => [pad], context: () => 'game', action: () => {}, look: (...v) => looks.push(v), navigate: () => {}, scroll: () => {}, faces: () => ({ faces: 'xbox', byLabel: false }), stickTaken: () => taken });
+  let h = c.update(1 / 60);
+  assert.ok(h.lookStick.y > 0.9, 'up is +'); assert.equal(looks.length, 1, 'it looks');
+  taken = true; h = c.update(1 / 60);
+  assert.ok(h.lookStick.y > 0.9); assert.equal(looks.length, 1, 'the wheel has it: no look');
+  pad.axes = [0, 0, 0, 0]; h = c.update(1 / 60);
+  assert.deepEqual(mergeControls({}, h).lookStick, { x: 0, y: 0 }, 'kept at rest through the merge: a pad is in use');
+});
 test('LB held: the right stick zooms instead of looking', () => {
   const t=setup(); t.button(LB,true); t.pad.axes=[0,0,0,.8];
   t.c.update(.016);

@@ -102,8 +102,10 @@ export const ARCHETYPES = {
     moves: ['snap', 'shell spin', 'burrow and pinch'],
     answers: ['parry (the spin flips it)', 'dash cut to its side', 'bombs crack the shell', 'ember'],
     idle: 'picks along the tide line pinching at weed; backs away when you come near; fights only if you corner it',
+    // (hp 3 since v1.41, was 4; the author: "they take too many hits". A heavy blow bites through its shell from the
+    // front too, at half: src/foes.js SHELL)
     def: S({
-      name: 'shellback crab', hp: 4, radius: 0.85, height: 0.6, speed: 3.2, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
+      name: 'shellback crab', hp: 3, radius: 0.85, height: 0.6, speed: 3.2, sight: 15, giveUp: 30, reach: 8, heavy: true, shell: true, breaks: true,
       tone: '#b8553a', sound: 'machine', takes: { shoot: 0, fire: 1 }, weak: { bomb: 1.5 },
       calm: { mode: 'graze', wild: true, provoke: 3.2, shy: 7, alarm: 10 }, burst: [0.75, 0.45], sideways: true,
       attacks: [

@@ -78,7 +78,7 @@ test('buffered combo lands three distinct contacts and cannot be evaded out of i
  clearTargets(); const {p,tool,tick}=await combatPlayer(); const hits=[];
  registerTarget({kind:'foe',lock:true,accepts:['blade'],radius:.8,position:()=>v(0,1,-58.6),onHit:(_m,_p,_d,info)=>hits.push(info.combo)});
  tick({KeyF:true}); tick({}); tick({KeyF:true});
- for(let i=0;i<18;i++)tick({});
+ for(let i=0;i<12;i++)tick({});
  assert.equal(tool.blade.phase,'strike'); tick({AltLeft:true});assert.equal(tool.blade.evadeT,0,'cannot dodge-cancel the cut');
  for(let i=0;i<25;i++)tick({});
  assert.equal(tool.blade.n,1);tick({KeyF:true});

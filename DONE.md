@@ -2353,3 +2353,55 @@ From the author's feedback of 2026-10-10 (TODO.md, "Combat, controls and world f
   villagers no longer walk over or murmur, and Hessa no longer shouts (`gather` in `src/story/desert.js`; the gathering
   spots are gone). `tests/desert-story.test.js` checks her line, that nobody else calls, and that the villagers stay by
   their doors; the playthrough tests pass.
+## Combat, controls and world feedback (v1.41, 2026-10-10)
+
+From the author's feedback of 2026-10-10 ("investigate reported artifacts and stutters rather than treating their causes
+as confirmed"). How each works: docs/systems/foes.md, living-world.md, items.md, gadgets.md; the numbers are in the
+changelog's v1.41 lines.
+
+- [x] **Reduce hit-effect noise; investigate the suspected shadow artifacts when hits land.** *Found: not shadows.* A few
+  frames in every hundred through a swing (hit or miss), black blocks and discs covered the blade, the traveller and the
+  glowing braziers: hunted by counting near-black pixels every ~45 ms through scripted combos, then hiding parts until
+  only the blade was left; its light took `pow(1.0 - |n·v|, 3.0)` and a normal a hair longer than 1 made the base
+  negative, NaN in GLSL, spread by the bloom's blurs. Held now (`src/blade-shader.js`; the foes' surface glow had the
+  same, `src/foe-surface.js`; `tests/shader-nan.test.js`): 3–5 black frames in 144 → 0 in 288. The noise: a cut lands
+  its own small splash (`HIT_FX`), the foes splash less (`HIT_SPLASH`), fewer trail sparks and landing droplets: 161 → 99
+  drops and 45 → 25 glints at the busiest.
+- [x] **Make the lock-on reticle easier to notice** (over v1.39's "subtler"): bolder strokes over a pale halo, scaled to
+  the screen and a quarter larger on a handheld, a bobbing pointed marker, a pulse as a lock lands
+  (`src/lock-reticle.js` `reticleScale`).
+- [x] **Select gadgets with the right stick** after D-pad ↑ opens the wheel: the controller passes the right stick
+  (`lookStick`) and holds the camera while the wheel has it (`stickTaken`); the left stick still walks
+  (`src/gadgets/index.js` `wheelStick`).
+- [x] **Fix lock-on strafe animation artifacts.** Found three causes: a change of side swapped one captured step for the
+  other at full weight, a diagonal flickered between steps and loops, and the starts, stops, the run's pivot and the
+  chest's lead still played underneath. Hysteresis, a fade-through, and none of those locked on (`strafeSide`,
+  `strafeStep`): the worst bone turn in a frame 1.64 → 0.38 rad (`tests/strafe.test.js`); the camera QC's arena-lock
+  green.
+- [x] **Speed up the attacks; investigate the first attack's odd wind-up.** Each swing phase about a quarter quicker
+  (the combo 2.28 → 1.73 s). The odd wind-up was two things: the charge took over the first swing's wind-up 0.2 s after
+  the press while that wind-up lasted 0.22 s (a press held a little long became a half-drawn charge), and a swing from
+  the back pulled the arm 45 % of the way over the shoulder. Now the charge begins only after the swing has cut
+  (`chargeOpen`, 0.3 s held) and the hilt is snatched into the fist with no reach (`DRAW.quick` 0.06 s).
+- [x] **Investigate stutters when new enemies appear.** Measured: building a foe is 3–18 ms; the first of a kind
+  compiles 1–5 GPU programs and its worst frame is 50–183 ms on the Mac (the second costs nothing). Drawing every kind
+  once up front (28 programs, 421 ms) took every first appearance to 16.8 ms. `Foes.warmModels` / `rosterKinds` are the
+  hook for the loading work's warm pass (`warmRest`); not wired here, by agreement.
+- [x] **Keep gun aim on the locked target** with L2 locked on: the camera's yaw and pitch from over the shoulder onto
+  the foe's chest, and the crosshair snapping to it within 1.4 m (`LOCK_AIM`, `lockAim`): within 0.1° in the Arena.
+- [x] **Small critters hittable with the sword, fleeing less**: wariness distances about halved (`WARY`); a cut bonks
+  one head over heels, dazed under stars, unharmed (`BONK`).
+- [x] **Investigate shimmering arena ground lines.** Aliasing, confirmed: the markings were strips of geometry a pixel or
+  two tall far off (523 sharply changing pixels a frame walking back, 0 with them hidden). Painted into the floor now, a
+  mipmapped texture in a dark umber (`markingsTexture`): 171.
+- [x] **Let enemies sometimes drop potions**: 10 %, 22 % when hurt, more with none left, never with a full pack, sure
+  after 9 without (`src/potion-drops.js`).
+- [x] **A visual and audio low-health cue at one heart or less**: a soft heartbeat and darkening edges for six beats when
+  you fall to it or are hit there, then a faint tint (`src/low-health.js`).
+- [x] **Prevent walking through enemies**: pushed out of a foe's body, a light one giving way; an evade, a dash cut or a
+  hop slips past (`BODY_BLOCK`, `Foes.keepOff`).
+- [x] **Allow mid-air sword combos**: two light swings that hold you up in the air, then the plunge (`AIR_COMBO`).
+- [x] **Reduce crab health**: 4 → 3, and a heavy blow bites through the shell from the front at half (`SHELL`).
+- [x] **Hold a charged sword attack with an animation that shows the held charge**: the swing, then the charge held as
+  long as the button is, sinking into the knees, motes of fluid drifting into the blade, a tremble once full
+  (`CHARGE_LOOK`). Controls page: "Charged cut … in the air: two cuts, then a plunge" (EN, FR).

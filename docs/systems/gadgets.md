@@ -54,7 +54,7 @@ fluid gun is one of the gadgets (`gun.js`):
 | use: shoot, throw, swing | RT / R2 (`PadFire`) | T or G, the middle mouse button, a left click while aiming | ✺ (◆ too) |
 | its next mode | D-pad → (`PadModeNext`) | X | ◐ |
 | next gadget (a tap) | D-pad ↑ (`PadGadgetPick`) | B (Shift + B: the one before) | tap the chip |
-| the wheel (held 0.32 s) | D-pad ↑ held, the left stick points | B held, W A S D point | |
+| the wheel (held 0.32 s) | D-pad ↑ held, the right stick points (v1.41; the left one still walks, the camera holds: `wheelStick`, the controller's `stickTaken`) | B held, W A S D point | |
 | the bell-note whistle, the echo shell | Y / △ (`PadWhistle`) | V | ◆ with nothing in hand |
 | riding: the gadget in hand (the fan into a skiff's sail) | Y / △ (`PadRideGadget`; RT is the throttle) | T | |
 

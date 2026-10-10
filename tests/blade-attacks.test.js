@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
-import { ATTACKS, SWINGS, CHARGE, AIR, LUNGE, RIPOSTE, DASH, BLADE, attackSample, activeRange, chargePose, trailCut, riposteOpen, dashOpen } from '../src/fluid-blade.js';
+import { ATTACKS, SWINGS, CHARGE, AIR, AIR_COMBO, LUNGE, RIPOSTE, DASH, BLADE, attackSample, activeRange, chargePose, chargeOpen, chargeBody, CHARGE_LOOK, trailCut, riposteOpen, dashOpen } from '../src/fluid-blade.js';
 import { Foe } from '../src/foes.js';
 import { FluidTool } from '../src/fluid-tool.js';
 import { GameState } from '../src/game-state.js';
@@ -34,7 +34,17 @@ test('every attack has its clip shipped, its phases and its cut inside the clip'
   assert.ok(CHARGE.raiseFrom < CHARGE.hold && CHARGE.hold === CHARGE.from && CHARGE.hold < activeRange(CHARGE)[0]);
   assert.ok(Math.abs(chargePose(0) - CHARGE.raiseFrom) < 1e-9);
   for (let t = CHARGE.raise; t < 5; t += 0.37) assert.ok(Math.abs(chargePose(t) - CHARGE.hold) < 0.03, `held at ${t.toFixed(2)} s`);
-  assert.ok(CHARGE.after < SWINGS[0].wind, 'the charge takes over before the first swing cuts');
+  // (v1.41: a tap is always the swing; held past CHARGE.after the swing, once it has cut, turns into the charge)
+  assert.ok(CHARGE.after > SWINGS[0].wind + SWINGS[0].active, 'a first swing held turns into the charge only after it has cut');
+  assert.ok(CHARGE.after >= 0.25, 'longer than a tap held a little long');
+  assert.ok(chargeOpen({ n: 0, phase: 'recover', held: CHARGE.after }) && chargeOpen({ n: 1, phase: 'recover', held: 1 }));
+  assert.ok(!chargeOpen({ n: 0, phase: 'strike', held: 1 }), 'never in the middle of a cut');
+  assert.ok(!chargeOpen({ n: 0, phase: 'recover', held: CHARGE.after - 0.05 }), 'not before CHARGE.after');
+  assert.ok(!chargeOpen({ n: 0, phase: 'recover', held: 1, special: AIR }) && !chargeOpen({ n: 0, phase: 'recover', held: 1, onGround: false }), 'not in the air');
+  // the held charge shows: he sinks into his knees, and once full trembles
+  const b0 = chargeBody(0, false), b1 = chargeBody(1, false), bf = chargeBody(1, true, 0.37);
+  assert.equal(b0.crouch, 0); assert.ok(Math.abs(b1.crouch - CHARGE_LOOK.crouch) < 1e-9); assert.equal(b1.shake, 0);
+  assert.ok(Math.abs(bf.shake) > 0 && Math.abs(bf.shake) <= CHARGE_LOOK.shake);
   assert.deepEqual(CHARGE.damage, [2, 3]);
 });
 
@@ -76,7 +86,7 @@ test('each attack cuts on its clip\'s own swing: the blade\'s tip is fastest ins
   tool.dispose();
 });
 
-test('held through the wind-up the first swing charges; let go, the sweep: full it deals 3 and staggers, early 2; then the cooldown', async () => {
+test('held, the swing cuts and then charges; let go, the sweep: full it deals 3 and staggers, early 2; then the cooldown', async () => {
   clearTargets();
   const { p, tool, tick } = await armed();
   const hits = [];
@@ -87,26 +97,28 @@ test('held through the wind-up the first swing charges; let go, the sweep: full 
   for (let i = 0; i < 60; i++) { tick({}); assert.ok(!blade.charging, 'a tap never charges'); }
   assert.equal(hits.length, 1); assert.equal(hits[0].damage, BLADE.damage[0]); assert.ok(!hits[0].breaks);
   for (let i = 0; i < 60; i++) tick({});
-  // held: charging by CHARGE.after, the clip drawn back to its cocked pose and held there
-  let at = null;
-  for (let i = 0; i < 80; i++) { tick({ KeyF: true }); if (blade.charging && at === null) at = i * dt; }
+  // held: the swing cuts as a tap's would, then by CHARGE.after the charge, the clip drawn back to its cocked pose and held there
+  let at = null, crouched = 0;
+  for (let i = 0; i < 80; i++) { tick({ KeyF: true }); if (blade.charging && at === null) at = i * dt; crouched = Math.max(crouched, p.chargeHold?.crouch ?? 0); }
   assert.ok(at !== null && at >= CHARGE.after - dt && at <= CHARGE.after + 3 * dt, `charging at ${at?.toFixed(3)} s`);
   assert.ok(blade.charging.full, 'full after CHARGE.full');
   assert.equal(p.swingMove.clip, CHARGE.clip); assert.ok(Math.abs(p.swingMove.t - CHARGE.hold) < 0.03, `held at ${p.swingMove.t.toFixed(3)}`);
-  assert.equal(hits.length, 1, 'no cut while it gathers');
+  assert.equal(hits.length, 2, 'the swing cut first; no cut while it gathers'); assert.equal(hits[1].damage, BLADE.damage[0]);
+  assert.ok(crouched > 0.05, `he sinks into his knees as it gathers (${crouched.toFixed(3)} m)`);
   assert.ok(p.combatMotion && p.combatMotion.scale <= CHARGE.move, 'a slow step at most while gathering');
   // let go: the sweep
   let cut = 0, off = 0;
   for (let i = 0; i < 50; i++) { tick({}); if (trailCut(blade)) cut++; if (blade.cutting && !trailCut(blade)) off++; }
   assert.ok(cut >= 8 && off <= 2, `the trail sweeps on the cut's frames (${cut} frames, ${off} cutting without it)`);
-  assert.equal(hits.length, 2); assert.equal(hits[1].damage, CHARGE.damage[1]); assert.ok(hits[1].breaks, 'it staggers even an armoured foe');
+  assert.equal(hits.length, 3); assert.equal(hits[2].damage, CHARGE.damage[1]); assert.ok(hits[2].breaks, 'it staggers even an armoured foe');
+  assert.equal(p.chargeHold, null, 'let go, he stands up');
   assert.ok(blade.cool > 0 || !blade.swinging, 'then the cooldown, as after a third swing');
   for (let i = 0; i < 60; i++) tick({});
   // let go early: not full, 2
-  for (let i = 0; i < 20; i++) tick({ KeyF: true });
+  for (let i = 0; i < 24; i++) tick({ KeyF: true });
   assert.ok(blade.charging && !blade.charging.full);
   for (let i = 0; i < 60; i++) tick({});
-  assert.equal(hits.length, 3); assert.equal(hits[2].damage, CHARGE.damage[0]);
+  assert.equal(hits.length, 5); assert.equal(hits[4].damage, CHARGE.damage[0]);
   // evading out of a charge
   for (let i = 0; i < 40; i++) tick({});
   for (let i = 0; i < 25; i++) tick({ KeyF: true });
@@ -122,7 +134,7 @@ test('the charged cut staggers a heavy foe and one committed to its blow, which 
   f.hit('blade', v(0, 0, 1), { damage: 2, combo: 2, breaks: true }); assert.equal(f.state, 'recover', 'the charged cut: it reels');
 });
 
-test('in the air a swing is the jump attack: the whole body, held at the top, driven down onto a foe below; one an airtime', async () => {
+test('the air combo ends in the jump attack: the whole body, held at the top, driven down onto a foe below; one an airtime', async () => {
   clearTargets();
   const { p, tool, tick } = await armed();
   const hits = [];
@@ -132,6 +144,7 @@ test('in the air a swing is the jump attack: the whole body, held at the top, dr
   for (let i = 0; i < 12; i++) tick({});
   assert.ok(!p.onGround);
   const z0 = p.pos.z;
+  blade.airN = AIR_COMBO.swings.length;   // (the air combo's light swings done: the next press is its finisher, the air cut)
   tick({ KeyF: true }); tick({});
   assert.equal(blade.special, AIR); assert.equal(p.swingMove.clip, AIR.clip);
   let legs = 0, top = p.pos.y, landed = null, again = false;
@@ -148,6 +161,37 @@ test('in the air a swing is the jump attack: the whole body, held at the top, dr
   assert.equal(hits.length, 1, 'the slam lands on the foe below'); assert.equal(hits[0].damage, AIR.damage);
   // a second press in the air started nothing (the same swing ran on), and the cooldown follows
   assert.equal(blade.swingId, again);
+  tool.dispose(); clearTargets();
+});
+
+test('mid-air combos: jump and the presses play two light swings held up in the air, then the air cut; one combo an airtime', async () => {
+  clearTargets();
+  const { p, tool, tick } = await armed();
+  const hits = [];
+  registerTarget({ kind: 'foe', lock: true, accepts: ['blade'], radius: 0.7, position: () => v(0, 2.9, -58.4), onHit: (_m, _p, _d, info) => hits.push(info) });
+  const blade = tool.blade;
+  for (let i = 0; i < 3; i++) tick({ Space: true });
+  for (let i = 0; i < 10; i++) tick({});
+  assert.ok(!p.onGround);
+  const specs = [], airT = [];
+  let t = 0, fallWorst = 0, landedAt = null;
+  // a press every 0.3 s: each chains into the next
+  for (let i = 0; i < 140; i++) {
+    const press = i % 18 === 0 && i < 60;
+    tick(press ? { KeyF: true } : {});
+    t += dt;
+    if (blade.swinging && specs.at(-1) !== blade.special) specs.push(blade.special);
+    if (!p.onGround && blade.swinging && AIR_COMBO.swings.includes(blade.special) && blade.phase !== 'recover') fallWorst = Math.min(fallWorst, p.vel.y);
+    if (p.onGround && landedAt === null) landedAt = t;
+    if (!p.onGround) airT.push(t);
+  }
+  assert.deepEqual(specs.slice(0, 3), [...AIR_COMBO.swings, AIR], 'two light swings, then the plunge');
+  assert.ok(fallWorst > -3, `held up while each light swing winds up and cuts (fastest fall ${fallWorst.toFixed(2)} m/s)`);
+  assert.ok(landedAt !== null, 'and down again');
+  assert.ok(hits.length >= 2, `the air swings reach a foe in the air (${hits.length} hits)`);
+  assert.ok(hits.filter((h) => h.damage === 1).every((h) => h.air && h.combo < 2), 'the light ones count as the combo\'s own swings');
+  // landed: a fresh combo on the next jump
+  assert.equal(blade.airN, 0);
   tool.dispose(); clearTargets();
 });
 
@@ -283,4 +327,16 @@ test('the combo\'s third swing is a heavy blow on the ground: a longer wind-up, 
   const planted = lift(S.clip, S.from, S.to), leap = lift('mixamo_ss_attack_1', 0.55, 1.7);
   assert.ok(planted < 0.2, `the third: both feet up at most ${planted.toFixed(2)} m`);
   assert.ok(leap > 0.5, `(the measure sees the old leap: ${leap.toFixed(2)} m)`);
+});
+
+test('a swing through a small creature bonks it (the blade, not a scare from anywhere in the cone); one beside the cut is left alone', async () => {
+  clearTargets();
+  const { tool, tick } = await armed();
+  const got = [];
+  registerTarget({ kind: 'wildlife', radius: 0.5, accepts: ['stun', 'fire'], position: () => v(0, 0.9, -58.3), enabled: () => true, onHit: (mode) => { got.push(['near', mode]); return true; } });
+  registerTarget({ kind: 'wildlife', radius: 0.4, accepts: ['stun', 'fire'], position: () => v(2.6, 0.4, -57.6), enabled: () => true, onHit: (mode) => { got.push(['far', mode]); return true; } });
+  tick({ KeyF: true }); tick({});
+  for (let i = 0; i < 50; i++) tick({});
+  assert.deepEqual(got, [['near', 'blade']]);
+  tool.dispose(); clearTargets();
 });

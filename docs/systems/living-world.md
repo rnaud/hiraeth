@@ -55,6 +55,15 @@ and screen behavior. Performance on a physical iPhone still needs confirmation.
   Sprinting, hard landings, passing vehicles and darts scare them; the ray stuns
   them. Creatures that leave return out of view 14–28 s later, sleep beyond
   140 m, and update coarsely beyond 60 m.
+- **Closer, and the sword** (v1.41, the author: "small critters can be hit with the sword, and flee less"; `WARY`,
+  `BONK`): every species' notice and wary distances are 0.6 and 0.45 of what they were (they back off only within
+  about 2 m, slower), a sprint frightens them within 5.5 m (was 9), a hard landing within 5.5 + 2 a second of fall,
+  and walking right up to one sets its surprise off only within 0.42 of its old reach (which was about 3.2 m, further
+  than the blade's 2.9: one could never be cut); a flight lasts 0.8–1.4 s. A sword cut that passes through one (the
+  swept blade against its sphere, `src/fluid-blade.js` strike) bonks it: knocked 4.5 m/s away from the blade, it
+  tumbles head over heels in a little hop over 0.45 s, sits dazed under stars until 1.9 s, then trots off a moment. No
+  harm. Before, any creature anywhere in the swing's cone was only scared off. Tests: `tests/wildlife.test.js`,
+  `tests/blade-attacks.test.js`.
 - **The tool** (`src/blaster.js`): a hitscan paralyze ray (40 m, energy gauge)
   and a ballistic foam dart that follows the level's gravity. Anything can
   register in `src/targets.js` (`registerTarget`) to be hit; levels can add

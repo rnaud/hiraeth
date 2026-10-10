@@ -26,7 +26,7 @@ export const BLADE = {
   reach: 2.9, angle: 1.15,   // the swing's cone: metres from the chest, half-angle (rad, ~65°)
   lock: 6,             // m: the soft lock turns you to a foe this close
   damage: [1, 1, 3],   // the combo's three swings (v1.22: the third lands three, the combo's niche: the mid-weight foes on the ground)
-  cooldown: 0.5,       // after the third swing
+  cooldown: 0.4,       // after the third swing (v1.41: 0.5)
   buffer: 0.2,         // s a press is remembered while the blade can't swing yet (an evade, the cooldown): it swings as soon as it can
 };
 /**
@@ -85,11 +85,13 @@ export function aimTilt(lo, hi, d, sh, n = 0, A = AIM) {
  * knockback, BLADE.damage, Foe.hit's combo 2). Without the clips (not loaded yet) the arcs below.
  */
 export const SWINGS = [
-  { clip: 'mixamo_ss_slash_1', from: 0.12, to: 1.02, hit: 0.6, wind: 0.22, active: 0.16, recover: 0.24 },
-  { clip: 'mixamo_ss_slash_3', from: 0.32, to: 1.35, hit: 0.87, wind: 0.25, active: 0.17, recover: 0.26 },
+  // (v1.41, the author: "speed up the main character's attacks": each phase about a quarter quicker; it was 0.22 / 0.16 /
+  // 0.24, 0.25 / 0.17 / 0.26 and 0.42 / 0.2 / 0.36, the combo 2.28 s from the first press to the end of the third)
+  { clip: 'mixamo_ss_slash_1', from: 0.12, to: 1.02, hit: 0.6, wind: 0.16, active: 0.13, recover: 0.18 },
+  { clip: 'mixamo_ss_slash_3', from: 0.32, to: 1.35, hit: 0.87, wind: 0.18, active: 0.14, recover: 0.19 },
   // (the third, v1.39: the pack's slash 5, an overhead chop with both feet planted: the sword raised high over a longer
   // wind-up and brought straight down; it was attack 1, a leaping overhead that took both feet 1.4 m off the ground)
-  { clip: 'mixamo_ss_slash_5', from: 0.12, to: 1.05, hit: 0.6, wind: 0.42, active: 0.2, recover: 0.36, heavy: true },
+  { clip: 'mixamo_ss_slash_5', from: 0.12, to: 1.05, hit: 0.6, wind: 0.32, active: 0.16, recover: 0.27, heavy: true },
 ];
 export const SWING_SPEED = 1; // Legacy consumers; attacks now have authored phase timing.
 /**
@@ -166,13 +168,19 @@ export function sweptBladeTouches(point, radius, before, after) {
 export const WHIRL = { clip: 'mixamo_gs_high_spin', from: 0.55, to: 1.45, hit: 1.06, activeFrom: 0.65, activeTo: 1.38, wind: 0.25, active: 0.42, recover: 0.28, angle: Math.PI, damage: 2 };
 export const LUNGE = { clip: 'mixamo_gs_slide_attack', from: 0.0, to: 0.9, hit: 0.5, dash: 9, damage: 2, reach: 3.6 };
 /**
- * The charged cut (v1.3, the Great Sword pack's slash): the blade button still held `after` s into the first swing's
- * wind-up turns it into a charge: the sword drawn back over the right shoulder (the clip from `raiseFrom` to its cocked
- * pose `hold` over `raise` s, blended in from the swing begun over `draw` s) and held there, gathering, as long as the button is; `full` s and it is full (a ring, a
- * ping). Let go: the clip's own swing from `hold`, a wide diagonal sweep (`angle`, `reach`), `damage[1]` full, else
- * `damage[0]`, and it staggers even an armoured foe (`breaks`: src/foes.js Foe.hit). Then the cooldown, as after a third swing.
+ * The charged cut (v1.3, the Great Sword pack's slash): the blade button still held `after` s after the press that began a
+ * combo swing turns it into a charge once that swing has cut (in its follow-through, `chargeOpen`): the sword drawn back
+ * over the right shoulder (the clip from `raiseFrom` to its cocked pose `hold` over `raise` s, blended in from the swing
+ * over `draw` s) and held there, gathering, as long as the button is; `full` s and it is full (a ring, a ping). Let go:
+ * the clip's own swing from `hold`, a wide diagonal sweep (`angle`, `reach`), `damage[1]` full, else `damage[0]`, and it
+ * staggers even an armoured foe (`breaks`: src/foes.js Foe.hit). Then the cooldown, as after a third swing.
+ * (Until v1.41 it took over the first swing's wind-up 0.2 s after the press: a press held a little long turned the first
+ * attack into a strange half-drawn charge let go at once, the "odd wind-up" the author saw now and then. Now a tap is
+ * always the swing, and a hold is the swing and then the charge: `after` is longer than any tap.)
+ * While it gathers (CHARGE_LOOK): he sinks into his knees, motes of fluid drift into the blade, and once full he trembles
+ * with it and the blade burns brighter.
  */
-export const CHARGE = { clip: 'mixamo_gs_slash_1', raiseFrom: 0.3, hold: 0.45, raise: 0.18, draw: 0.2, after: 0.2, full: 0.85, move: 0.3,
+export const CHARGE = { clip: 'mixamo_gs_slash_1', raiseFrom: 0.3, hold: 0.45, raise: 0.18, draw: 0.2, after: 0.3, full: 0.85, move: 0.3,
   from: 0.45, hit: 0.65, activeFrom: 0.54, activeTo: 0.76, to: 1.05, wind: 0.07, active: 0.17, recover: 0.36, angle: 1.5, reach: 3.3, damage: [2, 3] };
 /**
  * The air cut (v1.3, the Great Sword pack's jump attack): a swing begun in the air (not the rising cut) raises the sword
@@ -203,6 +211,41 @@ export const RIPOSTE = { clip: 'mixamo_ss_slash_4', window: 0.6, from: 1.05, hit
  */
 export const DASH = { clip: 'mixamo_ss_attack_2', late: 0.15, cooldown: 1.5, speed: 9, pull: 5, side: 1.1, past: 1.0, fastest: 16, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.16, active: 0.14, recover: 0.26,
   angle: 1.7, reach: 3.2, damage: 2 };
+/**
+ * Does a swing turn into the charge now (CHARGE)? A combo swing (`n` 0..2, not a special: the air cuts, the riposte, the
+ * dash cut, the whirl or the lunge), on the ground, its blade button held `held` s since the press that began it, past
+ * CHARGE.after, and not in the middle of its cut (`phase` 'wind' or 'recover').
+ */
+export const chargeOpen = ({ n = -1, special = null, phase = '', held = -Infinity, onGround = true } = {}, C = CHARGE) =>
+  n >= 0 && !special && onGround && held >= C.after && (phase === 'wind' || phase === 'recover');
+/**
+ * The held charge as it shows (v1.41: the author wanted "an animation that clearly shows the held charge"): `crouch` m
+ * he sinks into his knees over the first `sink` s, `motes` a second drifting into the blade from `from` m off it, and
+ * once full a tremble (`shake` rad at `rate` Hz) and the blade's glow up to `glow`.
+ */
+export const CHARGE_LOOK = { crouch: 0.09, sink: 0.25, motes: 14, from: 0.75, shake: 0.018, rate: 31, glow: 1 };
+/** The crouch (m) and the tremble (rad) of a charge held `t` s (`full`), at time `time` (pure: tests). */
+export function chargeBody(t, full, time = t, L = CHARGE_LOOK) {
+  const k = THREE.MathUtils.smoothstep(t / L.sink, 0, 1);
+  return { crouch: L.crouch * k, shake: full ? L.shake * Math.sin(time * L.rate * Math.PI * 2) : 0, k };
+}
+/**
+ * Mid-air combos (v1.41, the author: "mid-air sword combos after jumping and attacking"): in the air the first two
+ * presses are the combo's first two swings, upper body over the jump (`swings`: each the ground swing's timing, light,
+ * its cone tipped `down` toward foes below), each holding him up in the air through its wind-up and cut (his fall held to
+ * `drift` m/s, `sink` through its follow-through, the rise kept at `keep` of itself, lifted to `lift` m/s as it starts) and
+ * carried in to a foe up to `pull` m out of reach; the next one pressed for starts `cancel` s into the follow-through. The
+ * third is the air cut (AIR), the plunge, ending it. One combo an airtime.
+ */
+export const AIR_COMBO = {
+  swings: [
+    { ...SWINGS[0], air: true, light: true, damage: 1, down: 0.35 },
+    { ...SWINGS[1], air: true, light: true, damage: 1, down: 0.35 },
+  ],
+  lift: 2.4, drift: -0.8, sink: -2.4, keep: 0.82, pull: 2.6, ideal: 1.0, cancel: 0.05,
+};
+/** Is `S` one of the mid-air combo's light swings? */
+export const airLight = (S) => !!S?.light && AIR_COMBO.swings.includes(S);
 /** Is a press now a riposte: `since` s after a perfect parry (RIPOSTE.window)? */
 export const riposteOpen = (since, R = RIPOSTE) => since >= 0 && since < R.window;
 /** Is a press now a dash cut: evading, or `late` s at most after an evade (`since` s; 0 while evading), the dash cut's cooldown `cool` over. */
@@ -216,6 +259,15 @@ export function chargePose(t, C = CHARGE) {
   const k = smooth01(t / C.raise);
   return C.raiseFrom + (C.hold - C.raiseFrom) * k - 0.012 * k * (1 - Math.cos(t * 7));
 }
+/**
+ * How many bits of fluid a blow throws (v1.41, the author: "too much visual noise and too many particles on hits"): a
+ * blade's cut lands its own light splash (`cut` drops, `cutGlow` glints, no ring; it was the shot's splash, 28 drops, 5
+ * glints and a ring, on top of the foe's own); a block `block` drops, a perfect parry `parry` glints (were 18 and 12);
+ * through every cut at most `trail` sparks a frame over the ground the edge crossed (was 6), and a drop off the edge
+ * landing pops `landing` droplet with its flat splash (was 2).
+ * The foes' share is src/foes.js HIT_SPLASH.
+ */
+export const HIT_FX = { cut: 7, cutGlow: 1, block: 10, parry: 8, trail: 3, landing: 1 };
 /** The reach step: the blade this much longer, its swing this much further. */
 export const REACH_UP = 1.3;
 /**
@@ -421,9 +473,9 @@ export class FluidBlade {
     if (perfect) this.lit = Math.max(this.lit, 0.9);
     const at = this.device.root.visible ? this.device.centre : _o.copy(p.pos).addScaledVector(p.frame.up, 1.2).addScaledVector(this.dir, GUARD.reach), tones = T.modeTones;
     T.rings?.add({ from: at, dir: this.dir, reach: 0.1, r0: 0.2, r1: 1.1, life: 0.3, color: tones[0], thick: 1 });
-    for (let i = 0; i < 18; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
+    for (let i = 0; i < HIT_FX.block; i++) T.drops?.add({ pos: at, vel: _a.copy(this.dir).multiplyScalar(-2).add(_b.randomDirection().multiplyScalar(3)), drag: 3, grav: 6, size: 0.03, life: 0.4, color: tones[i % tones.length] });
     p.vel?.addScaledVector(this.dir, -2);   // pushed back a step
-    if (perfect) { T.sound?.fluidMode?.('stun'); for (let i = 0; i < 12; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
+    if (perfect) { T.sound?.fluidMode?.('stun'); for (let i = 0; i < HIT_FX.parry; i++) T.glow?.add({ pos: at, vel: _a.randomDirection().multiplyScalar(2), drag: 3, size: 0.07, life: 0.5, color: '#fff6dc', grow: true }); }
     return perfect ? 'perfect' : true;
   }
 
@@ -477,9 +529,10 @@ export class FluidBlade {
   update(dt, press, ok, held = false, evade = false, bladeHeld = false) {
     const T = this.tool, p = T.player;
     this.cutNow = false; this.pose.dir = this.dir; this.pose.lead = true; this.pose.tilt = 0;
+    if (p) p.chargeHold = null;
     // (how long the blade button has been down since its press: CHARGE.after)
     this.holdT = bladeHeld ? (press ? 0 : (this.holdT ?? -Infinity) + dt) : -Infinity;
-    if (p?.onGround) this.airUsed = false;
+    if (p?.onGround) { this.airUsed = false; this.airN = 0; }
     this.cool = Math.max(0, this.cool - dt);
     this.evadeCool = Math.max(0, this.evadeCool - dt);
     this.evadeT = Math.max(0, this.evadeT - dt);
@@ -534,12 +587,13 @@ export class FluidBlade {
     else this.buffered = Math.max(0, this.buffered - dt);
     if (this.buffered > 0 && !held && !this.evadeT) {
       if (this.swinging) { this.queued = this.n < 2 && !ENDS.has(this.special); this.buffered = 0; }   // chained: the next swing follows this one (not after the charged or the air cut)
-      else if (this.cool === 0 && !(this.airUsed && !p.onGround)) { this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0); this.buffered = 0; }
+      else if (this.cool === 0 && !(this.airUsed && !p.onGround)) { this.start(this.chainT > 0 ? Math.min(this.last + 1, 2) : 0); this.buffered = 0; }   // (in the air: the air combo's next, start())
     }
-    // held through the first swing's wind-up: the charge (CHARGE), on the ground, the clip there
-    if (this.swinging && !this.charging && this.n === 0 && !this.special && !this.chained && this.phase === 'wind' && bladeHeld && this.holdT >= CHARGE.after
-      && p.onGround && p.animator?.moveClip?.(CHARGE.clip)) {
-      this.charging = { t: 0, full: false }; this.phase = 'charge'; T.sound?.fluidCharge?.(false);
+    // held past CHARGE.after since the press that began a combo swing, once it has cut: the charge (CHARGE, chargeOpen), on
+    // the ground, the clip there
+    if (this.swinging && !this.charging && bladeHeld && chargeOpen({ n: this.n, special: this.special, phase: this.phase, held: this.holdT, onGround: p.onGround })
+      && p.animator?.moveClip?.(CHARGE.clip)) {
+      this.charging = { t: 0, full: false, mote: 0 }; this.phase = 'charge'; this.queued = false; T.sound?.fluidCharge?.(false);
     }
     if (this.charging) {
       const C = this.charging;
@@ -549,7 +603,18 @@ export class FluidBlade {
         this.rippleAt(0, BLADE_LOOK.ripple.charge);
         const at = _o.copy(p.pos).addScaledVector(p.frame.up, 1.2);
         T.rings?.add({ from: at, dir: p.frame.up, reach: 0.05, r0: 0.25, r1: 1.2, life: 0.3, color: '#fff6dc', thick: 1 });
+        T.rings?.add({ from: _a.copy(p.pos).addScaledVector(p.frame.up, 0.05), dir: p.frame.up, reach: 0.02, r0: 0.3, r1: 1.0, life: 0.35, color: T.modeTones?.[0] ?? '#52c8cf', thick: 0.8 });
       }
+      // (gathering: motes of fluid drift into the blade from round it, faster once full: CHARGE_LOOK)
+      C.mote += dt * CHARGE_LOOK.motes * (C.full ? 1.6 : 1);
+      const seg = C.mote >= 1 ? this.bladeSegment(1) : null;
+      while (C.mote >= 1) {
+        C.mote -= 1;
+        if (!seg || !T.glow) continue;
+        const to = _tip.lerpVectors(seg.a, seg.b, 0.3 + 0.7 * Math.random()), from = _back.copy(to).add(_vel.randomDirection().multiplyScalar(CHARGE_LOOK.from));
+        T.glow.add({ pos: from, vel: _lag.subVectors(to, from).multiplyScalar(2.6), drag: 0.6, size: 0.035, life: 0.38, color: Math.random() < 0.5 ? '#fff6dc' : T.modeTones?.[0] ?? '#52c8cf', grow: true });
+      }
+      p.chargeHold = chargeBody(C.t, C.full, T.time ?? C.t);
       // turned to the nearest foe while it gathers
       const foe = lockTarget(p.pos, BLADE.lock, allTargets(), T.lockOn?.() ?? null);
       if (foe) { _a.subVectors(foe.position(), p.pos); _a.addScaledVector(p.frame.up, -_a.dot(p.frame.up)); if (_a.lengthSq() > 1e-6) this.dir.copy(_a).normalize(); }
@@ -564,6 +629,13 @@ export class FluidBlade {
         this.released = true; T.sound?.fluidSlash?.(ENDS.has(this.special) ? 2 : this.n);
         if (this.spec?.heavy) kick(0.12);   // (the heavy third comes down: a nudge of the camera, landed or not)
         if (this.special === AIR && !p.onGround) p.airKick = { up: -AIR.plunge, ...(this.airPull ? { dir: this.dir, speed: 1 } : {}) };   // (the air cut: driven down into it, the carry in spent)
+      }
+      // (the air combo's light swings: held up in the air through the wind-up and the cut, sinking a little through the
+      // follow-through, AIR_COMBO; the next one pressed for cuts the follow-through short)
+      if (airLight(this.special) && !p.onGround) {
+        const vu = p.vel ? p.vel.dot(p.frame.up) : 0, rec = this.phase === 'recover';
+        p.airKick = { up: Math.max(vu > 0 ? vu * AIR_COMBO.keep : vu, rec ? AIR_COMBO.sink : AIR_COMBO.drift), ...(this.airPull && this.phase === 'wind' ? { dir: this.dir, speed: this.airPull } : {}) };
+        if (rec && this.queued && this.t * this.dur >= this.sample.wind + this.sample.active + AIR_COMBO.cancel) { this.last = this.n; this.queued = false; this.chainT = BLADE.chain; this.start(this.last + 1); }
       }
       // Player poses before the tool updates. Use the source time actually displayed, not
       // the next requested pose, so damage follows the visible hand even on a long frame.
@@ -679,10 +751,13 @@ export class FluidBlade {
     // the captured swing if the clip is there, else the arc; grown: the whirl for the third, the lunge from a run
     // (the lunge: a swing begun at a run, or locked on and closing in fast)
     const closing = p.lockOn && p.vel && p.vel.dot(p.lockOn.dir) > 2.5;
-    // (in the air: the air cut, once an airtime, if its clip is there)
+    // (in the air: the air combo, two light swings and then the air cut, once an airtime, if its clip is there: AIR_COMBO)
     const A = p.animator, air = !force && !p.onGround && !!A?.moveClip?.(AIR.clip);
-    this.special = force ? force : air ? AIR : !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
-    if (air) this.airUsed = true;
+    const airStep = air ? Math.min(this.airN ?? 0, AIR_COMBO.swings.length) : -1;
+    if (air) { this.airN = airStep + 1; this.n = n = airStep; }
+    const airSpec = air ? AIR_COMBO.swings[airStep] ?? AIR : null;
+    this.special = force ? force : air ? airSpec : !this.chained && n === 0 && (p.sprinting || closing) && hasUpgrade('lunge', T.state) ? LUNGE : n === 2 && hasUpgrade('whirl', T.state) ? WHIRL : null;
+    if (airSpec === AIR) this.airUsed = true;
     const S = this.special ?? SWINGS[n];
     this.move = S && A?.moveClip?.(S.clip) ? S : null;
     this.spec = S; this.sample = attackSample(S, 0); this.dur = this.sample.duration;
@@ -719,8 +794,15 @@ export class FluidBlade {
       const at = _o.copy(p.pos).addScaledVector(U, 1.2);
       T.rings?.add({ from: at, dir: U, reach: 0.05, r0: 0.3, r1: 1.5, life: 0.28, color: RIPOSTE_GOLD, thick: 1 });
     }
+    // the air combo's light swings: lifted a little as each starts, carried in to a foe out of reach (AIR_COMBO.pull)
+    this.airPull = 0;
+    if (air && airSpec !== AIR) {
+      const reach = foe ? closeInSpeed(flat, foe.radius ?? 0.6, this.sample.wind, { ideal: AIR_COMBO.ideal, max: AIR_COMBO.pull }) : 0;
+      this.airPull = reach;
+      p.airKick = { up: Math.max(p.vel ? p.vel.dot(U) : 0, AIR_COMBO.lift), ...(reach > 0 ? { dir: this.dir.clone().normalize(), speed: reach } : {}) };
+    }
     // the air cut: held a moment at the top, and carried in to a foe a little out of reach (AIR.pull) as the ground's pull does
-    if (air) {
+    else if (air) {
       const reach = foe ? closeInSpeed(flat, foe.radius ?? 0.6, this.sample.wind, { ideal: AIR.ideal, max: AIR.pull }) : 0;
       this.airPull = reach > 0;
       p.airKick = { up: Math.max(p.vel ? p.vel.dot(U) : 0, AIR.lift), ...(reach > 0 ? { dir: this.dir.clone().normalize(), speed: reach } : {}) };
@@ -791,13 +873,22 @@ export class FluidBlade {
     hits = hits.filter((h) => !this.hitTargets.has(h.target));
     for (const h of hits) this.hitTargets.add(h.target);
     const damage = S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1;
-    const info = { ...T.info(), damage, combo: S ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}) };
+    const light = airLight(S), heavy = this.n === 2 || (!!S && !light);   // (the air combo's light swings count as the combo's own)
+    const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}) };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
-    // wildlife in the cone scatters (it doesn't list the blade: it never feels it, it just runs)
-    for (const h of targetsInCone(origin, this.dir, BLADE.reach, BLADE.angle, T.physics)) if (h.target.kind === 'wildlife' && !this.hitTargets.has(h.target)) { this.hitTargets.add(h.target); h.target.onHit?.('push', h.point, h.dir, info); }
+    // a creature the blade passes through is bonked (v1.41: it was only scared off, from anywhere in the cone): knocked
+    // away head over heels, dazed a moment, no harm (src/wildlife.js BONK); the cut's sphere test as for a foe with no body
+    let bonked = 0;
+    for (const h of targetsInCone(origin, C.dir, C.reach, C.angle, T.physics)) {
+      if (h.target.kind !== 'wildlife' || this.hitTargets.has(h.target)) continue;
+      if (pose && !sweptBladeTouches(h.target.position(), bladeTouchRadius(h.target), this.previousBlade ?? pose, pose)) continue;
+      this.hitTargets.add(h.target);
+      if (h.target.onHit?.('blade', h.point, h.dir, info)) bonked++;
+    }
+    if (bonked && !hits.length) { hitStop(0.035); T.sound?.fluidSlashHit?.(true, false); }
     if (hits.length) {
       T.lastHit = 'target';
-      hitStop((S === CHARGE && this.chargeFull) || S === RIPOSTE ? 0.15 : this.n === 2 || S ? 0.11 : 0.06); kick(S === CHARGE || S === RIPOSTE ? 0.7 : this.n === 2 || S ? 0.5 : 0.25);   // (the cut lands: the frame freezes, src/feel.js)
+      hitStop((S === CHARGE && this.chargeFull) || S === RIPOSTE ? 0.15 : heavy ? 0.11 : 0.06); kick(S === CHARGE || S === RIPOSTE ? 0.7 : heavy ? 0.5 : 0.25);   // (the cut lands: the frame freezes, src/feel.js)
       if (S === RIPOSTE) {
         // (the riposte lands: a gold burst off the foe, a ring-out)
         T.sound?.fluidRiposte?.(true);
@@ -806,11 +897,11 @@ export class FluidBlade {
           for (let i = 0; i < 14; i++) T.glow?.add({ pos: h.point, vel: _a.randomDirection().multiplyScalar(3), drag: 3, size: 0.06, life: 0.45, color: i % 2 ? '#fff6dc' : RIPOSTE_GOLD, grow: true });
         }
       }
-      for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6);
+      for (const h of hits) T.splash(h.point, h.dir.clone().negate(), 0.6, 'cut');   // (a light splash of the blade's fluid: the foe's own splash says the rest, Foes.react)
       this.hit = true;
       // (a ring runs along the blade from where it struck, both ways)
       const at = pose ? _tip.copy(hits[0].point).sub(pose.a).dot(_vel.subVectors(pose.b, pose.a)) / Math.max(pose.a.distanceToSquared(pose.b), 1e-6) : 0.75;
-      this.rippleAt(THREE.MathUtils.clamp(at, 0.2, 1), this.n === 2 || S ? BLADE_LOOK.ripple.heavy : BLADE_LOOK.ripple.hit, S === RIPOSTE ? 1 : 0);
+      this.rippleAt(THREE.MathUtils.clamp(at, 0.2, 1), heavy ? BLADE_LOOK.ripple.heavy : BLADE_LOOK.ripple.hit, S === RIPOSTE ? 1 : 0);
     }
     T.sound?.fluidSlashHit?.(hits.length > 0, info.combo === 2);
     return hits;
@@ -1006,7 +1097,7 @@ export class FluidBlade {
       } else if (cut) {
         // the cut (the clip's own swing frames: activeRange): sparks over the ground the edge crossed since the
         // last frame (fewer than before the wake: it draws the sweep), and drops of fluid flung off the edge
-        const steps = Math.min(6, Math.max(1, Math.ceil(from.b.distanceTo(seg.b) / 0.12)));
+        const steps = Math.min(HIT_FX.trail, Math.max(1, Math.ceil(from.b.distanceTo(seg.b) / 0.2)));   // (v1.41: up to 6 a frame, one every 12 cm)
         for (let k = 1; k <= steps; k++) {
           const u = k / steps, x = 0.7 + 0.3 * ((k + n) % 2);
           _a.lerpVectors(from.a, seg.a, u); _b.lerpVectors(from.b, seg.b, u);
@@ -1030,7 +1121,7 @@ export class FluidBlade {
   /** A drop off the blade meets the ground (tool.drops `land`): two droplets pop up off it, a little flat splash spreads and fades. */
   splash(d) {
     const T = this.tool, up = T.player?.frame?.up ?? _Y;
-    for (let i = 0; i < 2; i++) T.drops?.add({ pos: d.pos, vel: _a.randomDirection().multiplyScalar(0.6).addScaledVector(up, 1 + Math.random()), grav: 9, size: d.size * 0.5, life: 0.2, color: d.color });
+    for (let i = 0; i < HIT_FX.landing; i++) T.drops?.add({ pos: d.pos, vel: _a.randomDirection().multiplyScalar(0.6).addScaledVector(up, 1 + Math.random()), grav: 9, size: d.size * 0.5, life: 0.2, color: d.color });
     T.drops?.add({ pos: d.pos, flat: true, grow: true, size: d.size * 2.4, life: 0.35, color: d.color });
   }
 

@@ -52,8 +52,8 @@ export class Controller {
    * @param o.context () => 'menu' | 'talk' | 'photo' | 'ride' | 'game'
    * @param o.faces   () => ({ faces: 'xbox' | 'nintendo', byLabel }) (native-pad.js padFaces)
    */
-  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap }) {
-    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap });   // (combat: a foe is near, LB blocks rather than zooms)
+  constructor({ pads = () => navigator.getGamepads?.() ?? [], context, action, look, navigate, scroll, activity = () => {}, faces = () => ({ faces: 'xbox', byLabel: false }), combat = null, prefs = controlPrefs, padMap = currentPadMap, stickTaken = null }) {
+    Object.assign(this, { pads, context, action, look, navigate, scroll, activity, faces, combat, prefs, padMap, stickTaken });   // (combat: a foe is near, LB blocks rather than zooms; stickTaken: the right stick chooses on the gadget wheel, it doesn't look)
     this.previous = []; this.held = {}; this.index = null; this.repeat = 0;
     this.blocked = new Set(); this.lastContext = null; this.running = false; this.guarding = false; this.view = null;
   }
@@ -132,8 +132,10 @@ export class Controller {
       // LB held: the right stick zooms (pull back: out) instead of looking
       // (in a fight LB blocks: the stick looks)
       if (down(LB) && ctx !== 'photo' && !this.combat?.()) { if (right.y) this.action(right.y > 0 ? 'zoomOut' : 'zoomIn', dt * Math.abs(right.y) * 1.6); }
-      else this.look(right.x * dt * 900, right.y * dt * 900);
+      else if (!this.stickTaken?.()) this.look(right.x * dt * 900, right.y * dt * 900);
       h.stick = { x: left.x, y: -left.y };
+      // (the right stick as such, up positive: the gadget wheel reads it, src/gadgets/index.js; always there with a pad)
+      h.lookStick = { x: right.x, y: right.y ? -right.y : 0 };
       if (ctx === 'photo') {
         h.KeyW = left.y < -0.15; h.KeyS = left.y > 0.15;
         h.KeyA = left.x < -0.15; h.KeyD = left.x > 0.15;
@@ -234,6 +236,7 @@ export function mergeControls(keyboard, gamepad) {
   const merged = { ...keyboard };
   for (const [key, value] of Object.entries(gamepad)) {
     if (key === 'stick') { if (value.x || value.y) merged.stick = value; }
+    else if (key === 'lookStick') merged.lookStick = value;   // (kept even at rest: it says a pad is in use, the gadget wheel's stick)
     else if (typeof value === 'number') merged[key] = Math.max(+keyboard[key] || 0, value);
     else merged[key] = !!keyboard[key] || value;
   }

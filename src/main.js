@@ -16,7 +16,9 @@ import { Scout, nextObjective, findText, roughDistance, HINT } from './scout.js'
 import { guardianHint, openHint, Struggle } from './temples/hints.js';
 import { hintsFor, quietOr } from './hint-level.js';
 import { cueText, Cue, PlaceName, Fader, healthHud, staminaHud, findSummary, heartsSvg, magicHud, walletTick } from './hud.js';
-import { resources } from './resources.js';
+import { resources, POTION } from './resources.js';
+import { PotionDrops } from './potion-drops.js';
+import { LowHealthCue } from './low-health.js';
 import { ChimeField, ChimeView, dropPolicy, connectDrops } from './chimes.js';
 import { screen } from './platform.js';
 import { inputKind, keyText } from './prompt-keys.js';
@@ -71,7 +73,7 @@ import { Changelog, VERSION } from './changelog.js';
 import { Settings, SettingsMenu, TouchControls, SaveGame, isTouch, isNativeApp, isDeckApp, isXboxApp, ToolHud } from './ui.js';
 import { xboxReadout } from './xbox.js';
 import { InputMode } from './input-mode.js';
-import { FluidTool, bindToolMouse } from './fluid-tool.js';
+import { FluidTool, bindToolMouse, lockAim, LOCK_AIM } from './fluid-tool.js';
 import { ORDER } from './levels/content.js';
 import { createStory } from './story/index.js';
 import { knownWorlds, newlyKnown } from './story/route.js';
@@ -445,6 +447,7 @@ function updateStamina(dt) {
 function updateHealth(dt) {
   updateRestart(dt);
   updateStamina(dt);
+  lowHealth.update(dt, { hearts: player.hearts, max: player.maxHearts, dead: player.dead, paused: busy() || photo.on || ship.playing });
   if (!hpEl) return;
   player.setMaxHearts(resources.maxHearts);
   const h = player.health ?? 1, R = tool.owned && !tool.dry ? tool.reserve : null, pot = resources.potions;
@@ -827,6 +830,14 @@ const purseAt = (pos) => {
   return at;
 };
 connectDrops(game, chimes, { policy: chimePolicy, purseAt, sound });
+// potions a foe leaves now and then (src/potion-drops.js): walked over, into the pack; none from a game's own foes
+const potionDrops = new PotionDrops(scene, {
+  groundAt: (x, y, z) => physics.groundAt(x, y + 2, z, 8),
+  onTake: () => { if (resources.addPotions(1)) { sound.potionPickup?.(); hpShown = 3; showToast(tr('potion.found')); rumblePlay('chime'); } },
+});
+if (chimePolicy !== 'off') game.on('foe:burst', (e) => { const pot = resources.potions; potionDrops.maybe(e, { hearts: player.hearts, max: player.maxHearts, potions: pot.count, cap: POTION.cap, infinite: pot.infinite }); });
+// at one heart or less: a short heartbeat and the screen's edges darkening with it (src/low-health.js)
+const lowHealth = new LowHealthCue({ sound });
 let trialsRt = null;   // this world's mastery trial (src/trials/), made once the world is up (below)
 const chemistry = new Chemistry({ flammables, wildlife, tool, game, wind: player.wind });   // fire spreads on the wind, creatures flee it, foes catch it (src/chemistry.js)
 tool.lockOn = () => foes.lockTarget();   // (the blade and its guard turn to the locked foe)
@@ -1412,6 +1423,7 @@ const controller = new Controller({
   context: () => busy() ? (menuRoot() === storyRt.dialogue.el ? 'talk' : 'menu') : photo.on ? 'photo' : player.ride ? 'ride' : 'game',
   faces: () => padFaces(),
   combat: () => foes.near(20),   // (a foe near: LB blocks, the right stick only looks)
+  stickTaken: () => !!gadgets?.wheelOn,   // (the gadget wheel open: the right stick chooses, the camera holds: src/gadgets/index.js wheelStick)
   look: (x, y) => { if (x || y) rig.look(x, y); },
   activity: () => { inputMode.pad(); controllerActive = true; sound.start(); padSchemeNotice(); },   // (where a pad press may start sound: the Android app)
   navigate: (x, y, fresh) => { if (changelog.pad('navigate', x, y)) return; const root = menuRoot(); if (quickMenu && root === quickMenu.el) quickMenu.navigate(x, y); else if (root === journal.el) journal.menu.navigate(x, y); else menuNavigate(root, x, y, fresh); },
@@ -1937,16 +1949,22 @@ function frame(ts) {
   if (flurryLeft() > 0 && !foes.anyFighting()) endFlurry();   // (nothing left to cut: the world comes back to speed)
   flurryFx.update();
   if (!(busy() || photo.on || ship.playing)) chimes.update(dt, player.dead ? null : player.pos);   // (src/chimes.js: picked up walking over them, or drawn in)
+  if (!(busy() || photo.on || ship.playing)) potionDrops.update(dt, player.dead ? null : player.pos);   // (src/potion-drops.js)
   chimeView.update(chimes, camera);
   // locked on (R3 / Tab): the camera turns to keep the foe ahead (src/foes.js)
   // and the traveller faces it, strafing round it (player.lockOn: src/player.js LOCK_MOVE)
   player.lockOn = foes.lock && !busy() ? Object.assign(player._lockOn ??= { dir: new THREE.Vector3() }, {}) : null;
   if (player.lockOn) player.lockOn.dir.set(foes.lock.pos.x - player.pos.x, 0, foes.lock.pos.z - player.pos.z).normalize();
   if (foes.lock && !busy() && !photo.on) {
-    const f = foes.lock, F = player.frame, dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
+    const f = foes.lock, F = player.frame;
+    // aiming the gun locked on (LT / L2): the crosshair kept on the foe's chest, the camera turned (yaw and pitch) from
+    // where it stands over the shoulder, not from the traveller (lockAim; v1.41, the author: "gun aim stays on the locked target")
+    const aim = tool.camK > 0.2 && tool.k > 0.2 ? lockAim(camera.position, f.chest, F) : null;
+    const dx = f.pos.x - player.pos.x, dz = f.pos.z - player.pos.z;
     const r = dx * F.right.x + dz * F.right.z, a = dx * F.fwd.x + dz * F.fwd.z;
-    const want = Math.atan2(-r, -a), da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
-    rig.yaw += da * (1 - Math.exp(-6 * realDt));
+    const want = aim ? aim.yaw : Math.atan2(-r, -a), da = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
+    rig.yaw += da * (1 - Math.exp(-(aim ? LOCK_AIM.rate : 6) * realDt));
+    if (aim) rig.pitch += (aim.pitch - rig.pitch) * (1 - Math.exp(-LOCK_AIM.rate * realDt));
   }
   // levels with zones (the Hangar) switch ink style as you cross between them
   if (level.zoneAt) {
@@ -2209,5 +2227,5 @@ window.contactAudit = async (o = {}) => {
   if (o.print !== false) console.log(formatContact(r));
   return r;
 };
-Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, resources, itemIcons, gadgets,
+Object.assign(window, { waters, flora, blades, bloom, shelter, items, flammables, THREE, renderer, scene, camera, player, rig, post, sky, updateSky, terrain, params, wind, input, level, physics, photo, setPhoto, quality, resize, flocks, npcs, relics, story, journal, errands, expedition, scout, weather, sound, captureView, settings, menu, trails, reactiveWorld, tool, crowd, wildlife, foes, chimes, potionDrops, lowHealth, resources, itemIcons, gadgets,
   storyRt, quests: storyRt.quests, dialogue: storyRt.dialogue, ship, game, passage, warmDraw, boxes, devMenu, slots, paused, quitToTitle, clock: () => simT, sharedUniforms, cascades, shadowCull, applyQuality, preset: () => preset, frameStats, renderFrame, lod: () => lod, skinnedLods, interiorCull });

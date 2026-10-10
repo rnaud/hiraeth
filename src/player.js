@@ -132,7 +132,33 @@ const JET_PIVOT = 1.0;
 const FLINCH = { clip: 'mixamo_ss_impact_1', from: 0, for: 0.6 };
 // locked on (main.js sets player.lockOn = { dir }): you face the foe and the stick strafes round it or backs
 // away, at a jog at most; sideways and backwards play captured steps (the Sword and Shield pack), m/s each covers
-export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe_1', speed: 1.14 }, right: { clip: 'mixamo_ss_strafe_2', speed: 1.01 }, back: { clip: 'mixamo_ss_walk_2', speed: 1.08 } };
+export const LOCK_MOVE = { speed: 4.2, turn: 12, left: { clip: 'mixamo_ss_strafe_1', speed: 1.14 }, right: { clip: 'mixamo_ss_strafe_2', speed: 1.01 }, back: { clip: 'mixamo_ss_walk_2', speed: 1.08 },
+  in: 10, out: 10, swap: 18, keep: 0.55, side: 1.0 };
+/**
+ * Which captured step a locked-on move wants (pure: tests): 'left' / 'right' / 'back' / null (forward: the loops), from
+ * the speed along the facing `vf` and to the right `vr` (m/s). The side `was` playing is kept until the move is clearly
+ * another's (its sideways share under LOCK_MOVE.keep of the forward one; a new side needs LOCK_MOVE.side of it).
+ */
+export function strafeSide(vf, vr, was = null, L = LOCK_MOVE) {
+  const side = vr > 0 ? 'right' : 'left', k = was === side ? L.keep : L.side;
+  if (Math.abs(vr) > Math.abs(vf) * k && Math.abs(vr) > 0.3) return side;
+  if (vf < -0.3) return 'back';
+  if ((was === 'left' || was === 'right') && Math.abs(vr) > 0.3 && Math.abs(vr) > Math.abs(vf) * L.keep) return was;
+  return null;
+}
+/**
+ * One frame of the step's weight (pure: tests): S { w, side }, the side wanted (or null). A different side wanted while one
+ * plays: the one playing fades out first (LOCK_MOVE.swap), and only then the new one comes in, never one swapped for the
+ * other at weight. Returns the side to play this frame, or null.
+ */
+export function strafeStep(S, want, dt, L = LOCK_MOVE) {
+  if (want && !S.side) S.side = want;
+  const swapping = want && S.side && want !== S.side;
+  const target = want && !swapping ? 1 : 0;
+  S.w += (target - S.w) * (1 - Math.exp(-(swapping ? L.swap : target ? L.in : L.out) * dt));
+  if (S.w < 0.03) { S.w = swapping ? 0 : S.w < 0.02 ? 0 : S.w; if (swapping || !want) { S.side = want ?? null; if (!want) return null; } }
+  return S.side && S.w > 0 ? S.side : null;
+}
 // the gestures (Player.gesture): Mixamo's kneeling inspection (kneeling from its first frame: eased
 // in over `in` s, held, eased out over `out`, its hands' bit of `loop` s round and round), and for
 // petting the petting's stroking arm over it
@@ -949,19 +975,26 @@ export class Player {
    * petting's arms over it: stroking the dog). Played over `hold` s, eased in and out; walking off
    * ends it. Returns false without the clips (or with the captured moves off).
    */
-  /** Locked on and stepping sideways or back: play that step (its time follows the ground covered), eased in and out. */
+  /**
+   * Locked on and stepping sideways or back: play that step (its time follows the ground covered), eased in and out.
+   * (v1.41, the author: "lock-on strafe animation artifacts when moving left and right". Three causes, fixed: a change of
+   * side swapped one captured step for the other in a frame at full weight, a pop; a diagonal near the line between two
+   * steps flipped between them, and between the steps and the loops, frame to frame; and the starts, stops and pivots
+   * (src/loco-moves.js) and the chest turned to where you steer (src/locomotion.js) still played under it, a forward
+   * walk's start or a run's 180° pivot laid over each change of side. Now a side is kept until another is clearly
+   * wanted (strafeSide: hysteresis), a change of side fades the old step out before the new one fades in (`swap` its
+   * rate), and locked on neither the starts, stops and pivots nor the chest's lead play.)
+   */
   updateStrafe(dt, A, hs, R) {
     const S = (this._strafe ??= { w: 0, t: 0, side: null });
     let want = null;
     if (this.lockOn && this.onGround && hs > 0.4 && !R && !this.down && !this.ride && !this.swim && !this.climbing) {
       const F = this.frame.dir(this.heading, _g1), U = this.frame.up, Rt = _g2.crossVectors(F, U).normalize();
-      const vf = this.vel.dot(F), vr = this.vel.dot(Rt);
-      want = Math.abs(vr) > Math.abs(vf) * 0.8 ? (vr > 0 ? 'right' : 'left') : vf < -0.3 ? 'back' : null;
+      want = strafeSide(this.vel.dot(F), this.vel.dot(Rt), S.side);
     }
-    if (want && want !== S.side) { S.side = want; }
-    S.w += ((want ? 1 : 0) - S.w) * (1 - Math.exp(-10 * dt));
-    if (S.w < 0.02 || !S.side) { S.w = want ? S.w : 0; if (!want) S.side = null; return; }
-    const M = LOCK_MOVE[S.side], clip = A.moveClip?.(M.clip);
+    const st = strafeStep(S, want, dt);
+    if (!st) return;
+    const M = LOCK_MOVE[st], clip = A.moveClip?.(M.clip);
     if (!clip) return;
     S.t = (S.t + dt * hs / M.speed) % clip.duration;
     A.play(M.clip, S.t, S.w, { full: true });
@@ -2377,7 +2410,8 @@ export class Player {
     const steering = !!(this._moveDir && this._moveDir.lengthSq() > 0.01 && (this._wantSpeed ?? 0) > 0);
     if (this.locoMoves !== false && A.lib.motion?.clips?.length) {
       if (this.moves?.A !== A) this.moves = new LocoMoves(A);
-      const free = this.onGround && !this.aim && !this.ride && !this.swim && !this.overlay && !this.down && !this.climbing && !A.matching && !R && !air.cur && !this._gesture;
+      // (locked on: none of them, the captured steps sideways and back play instead: updateStrafe)
+      const free = this.onGround && !this.aim && !this.ride && !this.swim && !this.overlay && !this.down && !this.climbing && !A.matching && !R && !air.cur && !this._gesture && !this.lockOn;
       this.moves.update(dt, { speed: hs, steering, wantSpeed: this._wantSpeed ?? 0, heading: this.heading, want: steering ? this.frame.headingOf(this._moveDir) : null, ground: free, size: A.legRatio });
       this.moves.play(A);
     }
@@ -2397,13 +2431,19 @@ export class Player {
     // curve, the head and chest turned to where you steer before the hips get there
     const U = this.frame.up, fwd = this.frame.dir(this.heading, _g1);
     const vf = this.vel.dot(fwd);
-    const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim ? this.frame.headingOf(this._moveDir) : null;
+    const want = this.onGround && this._moveDir && this._moveDir.lengthSq() > 0.01 && !this.aim && !this.lockOn ? this.frame.headingOf(this._moveDir) : null;   // (locked on: the chest stays on the foe)
     (this.loco ??= new Locomotion({ walk: WALK })).update(dt, { vf, speed: hs, heading: this.heading, want, ground: this.onGround && !this.swim });
     this.loco.pose(c);
     if (this.combatMotion?.evade) {
       const e = Math.sin(Math.PI * this.combatMotion.evade);
       c.body.position.y -= e * 0.16;
       c.body.rotation.z += e * 0.18 * this.combatMotion.dir.dot(this.frame.right);
+    }
+    // the blade's charge held (src/fluid-blade.js CHARGE_LOOK, chargeBody): sunk into his knees, trembling with it once full
+    if (this.chargeHold && this.onGround) {
+      c.body.position.y -= this.chargeHold.crouch;
+      c.body.rotation.z += this.chargeHold.shake;
+      c.body.rotation.x += this.chargeHold.shake * 0.5;
     }
     J.pose(c, 1 - 0.6 * (A.legsW ?? 0));   // (a captured jump in the air, or its landing, has its own: a little of the tuck stays)
     // the double jump's front flip (src/jump.js FLIP), last: the whole body turns about the hips

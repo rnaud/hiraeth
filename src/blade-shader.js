@@ -204,11 +204,14 @@ export const BLADE_FLUID_GLSL = /* glsl */ `
   // its light (after the light term, as the chimes' crystal): the rim, the sun's flecks, the breathing inner glow
   void bladeLight(inout vec3 albedo, inout float L, inout float emit, vec3 n) {
     vec3 V = normalize(-vWorldRel);
-    float ndv = abs(dot(n, V));
+    // (held to 1: an interpolated normal a hair longer than 1 made 1 - ndv negative, and pow() of a negative is NaN in
+    // GLSL; the NaN went into the G-buffer and the bloom's blurs spread it into black blocks round the blade and the
+    // glowing things near it now and then through a swing: the "shadow artifacts" on hits, v1.41)
+    float ndv = min(abs(dot(n, V)), 1.0);
     float sun = smoothstep(-0.04, 0.12, uSunDir.y) * (1.0 - 0.8 * uNight);
     float dark = max(uNight, 1.0 - sun);
     // a pale rim where the faces turn away (the water's thickness seen edge-on)
-    float rim = pow(1.0 - ndv, 3.0);
+    float rim = pow(max(1.0 - ndv, 0.0), 3.0);
     albedo = mix(albedo, fluidTone(5), 0.45 * rim);
     // flecks of sunlight on the ripples (the face's mirror ray near the sun, broken up by the ripples' field);
     // no sun: a softer glint off a light over your shoulder
