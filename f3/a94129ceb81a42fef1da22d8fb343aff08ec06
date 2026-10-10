@@ -1,0 +1,39 @@
+changelog.md
+  s_9ca76055a220ed::t_78379c2269c535 8
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_4ad3683599eb1e 18-32,35-54,56-61
+src/boxes/model.js
+  s_9ca76055a220ed::t_d2e8a5b4e5f41c 132
+src/changelog.js
+  s_9ca76055a220ed::t_b6d3f6bc2a1792 23
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_7444bcf917b8fc 17
+src/fluid-kit.js
+  s_9ca76055a220ed::t_1be35e2f2847ef 175
+src/fluid-tool.js
+  s_9ca76055a220ed::t_1af9d1c24854b6 493-501,503-506,508-509,513-514,517,519-524,537,539-548,556-558,569,579-585,591-594,596-609,611-623,625,627,633-634,636,638-639,641,652,654-657,660,666,668,671,678-681,701
+src/materials.js
+  s_9ca76055a220ed::t_5b060e170383e8 1784,1791-1869,1955-1956,1959-1968,2379-2381,2713-2716,2910-2911
+tests/drone.test.js
+  s_9ca76055a220ed::t_8b6ea55df2a607 267
+tests/flask.test.js
+  s_9ca76055a220ed::t_3b7ad0a23de85c 11,17,20,22-32,40,50
+tests/traveller.test.js
+  s_9ca76055a220ed::t_df7aecdadbb578 348-352,354-355
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3a94129ceb81a42fef1da22d8fb343aff08ec06",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
