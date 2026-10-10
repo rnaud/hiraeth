@@ -1,0 +1,31 @@
+references/shops/lorn/manifest.json
+  s_9ca76055a220ed::t_eeaaf7b9954863 20-36
+references/temples/founders-belfry/manifest.json
+  s_9ca76055a220ed::t_255627df9e7548 37-53
+references/temples/rooms/greenhouse-potting/manifest.json
+  s_9ca76055a220ed::t_434551831171b6 1-22
+references/temples/rooms/greenhouse-seed/manifest.json
+  s_9ca76055a220ed::t_cfe7cc6317f5c6 1-22
+references/temples/rooms/greenhouse-stair/manifest.json
+  s_9ca76055a220ed::t_46df7ad3666b5a 1-22
+references/temples/rooms/lamp-gallery/manifest.json
+  s_9ca76055a220ed::t_5c05bf799ea0da 1-22
+references/temples/rooms/lamp-lantern/manifest.json
+  s_9ca76055a220ed::t_c7c19c9e2dd455 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e1608358592290435651aa8f0a589caa58632372",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
