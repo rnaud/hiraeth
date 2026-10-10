@@ -1,0 +1,25 @@
+scripts/unity-uwp-natives.ps1
+  s_9ca76055a220ed::t_363c2f5b02d2ff 35
+tests/unity-xbox.test.js
+  s_9ca76055a220ed::t_25b5cf7812c8f7 67
+unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs
+  s_9ca76055a220ed::t_4a9e2371f6f571 36-38,51,83
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_18be30aa93e6f3 140,149,169-172,289
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "709db7ab9a67c51b199a0245349cbc8f6a938eec",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
