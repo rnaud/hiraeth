@@ -1,0 +1,63 @@
+changelog.md
+  s_9ca76055a220ed::t_fdc7b642c81e55 5-9
+docs/systems/controls.md
+  s_9ca76055a220ed::t_8002293ceed571 16-17,281,319-321
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_a9470de1bf9afe 39-72
+docs/systems/foes.md
+  s_9ca76055a220ed::t_57bfc53a2324e7 1128
+src/bindings.js
+  s_9ca76055a220ed::t_31204b0e875bfd 75
+src/changelog.js
+  s_9ca76055a220ed::t_82e1f60488c726 11-17
+src/cinematics-page/runtime.js
+  s_9ca76055a220ed::t_36ed51a7645e0b 48,54-118
+src/controller.js
+  s_9ca76055a220ed::t_4f6a6f4dc77da1 11,118-119,189-191
+src/dev-menu.js
+  s_9ca76055a220ed::t_c00d431f764e14 128
+src/i18n/en.js
+  s_9ca76055a220ed::t_48bfaf8a19231c 233,309
+src/i18n/fr.js
+  s_9ca76055a220ed::t_f9eca53acf25d6 232,307
+src/levels/arena-hitbox-board.js
+  s_9ca76055a220ed::t_e84b9e322157b3 8
+src/main.js
+  s_9ca76055a220ed::t_9895b511def03f 104,874,1062,1135-1213,1304,1331,1341,1376-1377,1406,2087,2102
+src/ui.js
+  s_9ca76055a220ed::t_34eac41a9c319d 48
+src/world-debug.js
+  s_9ca76055a220ed::t_c27d6777dd88e8 1-364
+src/world-picker.css
+  s_9ca76055a220ed::t_248e62e80aeb4b 3-5,12-14,17,23-33,35-39,42-51,54-57,60-61,65-75,78-80,84-99,102,104,108-114,118-122,124-131
+src/world-picker.js
+  s_9ca76055a220ed::t_f3458d3ab58104 206,209-210,214,324
+tests/bindings.test.js
+  s_9ca76055a220ed::t_d27ae918fd101e 61
+tests/hitboxes.test.js
+  s_9ca76055a220ed::t_2a3e26dd3042cd 262
+tests/pad-glyphs.test.js
+  s_9ca76055a220ed::t_f5152e70524c9d 144
+tests/world-debug-worlds.test.js
+  s_9ca76055a220ed::t_fa578ce0f3d467 1-40
+tests/world-debug.test.js
+  s_9ca76055a220ed::t_3e2a0939d977ad 1-236
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_a95c649e305f3e 126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a5a699d7bc2f5548c9bc6b3bf82dd933daa2c401",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
