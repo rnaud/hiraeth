@@ -39,6 +39,6 @@ else {
   console.log(`subject                                  legs  speed  slide/m  worst  reachSpan reach%  lift  lift%  steps/s  bob    ${pack ? 'unison ' : ''}${cost ? 'µs/foe µs/leg ' : ''}groups`);
   for (const [id, r] of Object.entries(out)) {
     const extra = (pack ? `${f2(r.unison).padStart(6)} ` : '') + (cost ? `${f2(r.kitUs).padStart(6)} ${f2(r.kitUs / r.legs.length).padStart(6)} ` : '');
-    console.log(`${(id + (r.form ? ` (${r.form})` : '')).padEnd(40)} ${String(r.legs.length).padStart(4)}  ${f2(r.speed).padStart(5)}  ${f2(r.slidePerMetre).padStart(7)}  ${f2(r.worstSlide).padStart(5)}  ${f2(r.reachSpan).padStart(9)} ${pc(r.reachShare).padStart(6)} ${f2(r.lift).padStart(5)} ${pc(r.liftShare).padStart(5)}  ${f2(r.cadence).padStart(7)}  ${f2(r.bob).padStart(5)}  ${extra}${JSON.stringify(r.groups)}`);
+    console.log(`${(id + (r.form ? ` (${r.form})` : '')).padEnd(40)} ${String(r.legs.length).padStart(4)}  ${f2(r.speed).padStart(5)}  ${f2(r.slidePerMetre).padStart(7)}  ${f2(r.worstSlide).padStart(5)}  ${f2(r.reachSpan).padStart(9)} ${pc(r.reachShare).padStart(6)} ${f2(r.lift).padStart(5)} ${pc(r.liftShare).padStart(5)}  ${f2(r.cadence).padStart(7)}  ${f2(r.bob).padStart(5)}  ${extra}${JSON.stringify(r.groups)}${r.knee ? `  knee ${Math.round(r.knee.mean)}° (least ${Math.round(r.knee.least)}°)` : ""}`);
   }
 }

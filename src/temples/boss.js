@@ -50,7 +50,8 @@ import { ChargeGlow, TELL, groundMark, poseK, POSE_DONE } from '../telegraph.js'
 //        onStrike(g, a), onCatch(g, a), onReset(g), openFor(g, a, s, missed) -> s (how long a combo's end leaves it open),
 //        touch: 'prompt', wake: text, weary: text, resolved: text }
 // model: { group, pos (Vector3 on the floor), heading, mouth (Vector3), radius, height, part?(name, out, side),
-//          marks? { c, r } (where its phase marks go), animate(dt, t, { state, attack, k, speed, meter, phase }) }
+//          marks? { c, r } (where its phase marks go), tellRig? (its own frame for the moves' generic motions: a walker
+//          keeps its legs out of it, planted), animate(dt, t, { state, attack, k, speed, meter, phase, kit: { eye, ground } }) }
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const UP = V(0, 1, 0);
@@ -399,7 +400,10 @@ export class Guardian {
     this.solid.vel.subVectors(m.pos, this.prev).divideScalar(Math.max(dt, 1e-4));
     this.prev.copy(m.pos);
     this.poseRig(dt, t);
-    m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex });
+    // (the locomotion kit's view of the world, src/temples/guardians.js: where you are for its detail tiers, the floor under a step)
+    const kit = (this.motionKit ??= { eye: null, ground: (x, y, z) => { const g = this.rt.physics?.groundAt?.(x, y, z, 6); return Number.isFinite(g) ? g : null; } });
+    kit.eye = P?.pos ?? null;
+    m.animate(dt, t, { state: this.state, attack: this.view, k: this.attackK, speed, meter: this.meter, phase: this.phaseIndex, kit });
     this.marks.set(Math.min(this.phaseIndex, this.def.phases.filter((p) => !p.weary).length - 1), t, this.state);
     this.tells(t);
   }

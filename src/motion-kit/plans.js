@@ -343,6 +343,101 @@ export const PLANS = {
   },
 };
 
+/**
+ * The temple guardians on the kit (kit phase 6: src/temples/guardians.js, docs/systems/procedural-animation.md,
+ * "Phase 6, the guardians"). Each is one of the roster's plans at a guardian's size: slower steps, heavier springs.
+ * Their poses are small: the models keep their own hand-made telegraph poses (and the fight's generic `rig` motion,
+ * src/temples/boss.js poseRig) and the kit adds what those lacked: the feet brace wide and plant through the wind-up,
+ * the body sits back against the strike and snaps through it with overshoot, and slumps after.
+ */
+export const GUARDIAN_PLANS = {
+  // the Cistern-Keeper: plan 7/1, six long legs in a tripod, knees out and up over a shell of bone; slow and careful
+  keeper: {
+    gait: { gait: 'alternate', drift: 0.3, stepTime: [0.2, 0.55], height: 0.17, arc: 'organic', duty: 0.65, reach: 0.55, maxStance: 4.5 },
+    knee: { lenA: 0.64, lenB: 0.7, pole: 'out-up' },
+    body: { bob: 0.035, lean: 0.03, bank: 0.03, sway: 0.12, tilt: 0.18, spring: { f: 1.8, z: 0.5, r: 0 }, height: { f: 2.2, z: 0.45, r: 0 } },
+    poses: {
+      coil: { y: -0.05, z: -0.06, pitch: -0.05, spread: 1.15 },
+      strike: { y: -0.02, z: 0.07, pitch: 0.05 },
+      recover: { y: -0.05, z: 0.02, pitch: 0.03 },
+      hurt: { y: -0.04, roll: 0.06 },
+      'coil:charge': { y: -0.08, z: -0.08, pitch: 0.04, spread: 1.2 },   // (low and back on its hind legs before the run)
+      'coil:stamp': { y: 0.02, z: -0.08, pitch: 0, spread: 1.1 },
+      'strike:stamp': { y: -0.06, z: 0.04, pitch: 0.04 },
+    },
+    style: 'organic',
+  },
+  // the Gardener: plan 8 on four root legs, a heavy mound on soft underdamped springs (it dips and overshoots)
+  gardener: {
+    gait: { gait: 'alternate', drift: 0.3, stepTime: [0.3, 0.62], height: 0.15, arc: 'organic', duty: 0.72, reach: 0.5 },
+    knee: { lenA: 0.62, lenB: 0.62, pole: 'beast' },
+    body: { bob: 0.07, lean: 0.035, bank: 0.02, sway: 0.4, tilt: 0.14, spring: { f: 1.4, z: 0.4, r: 0 }, height: { f: 1.9, z: 0.34, r: 0 } },
+    poses: {
+      coil: { y: -0.05, z: -0.06, pitch: -0.05, spread: 1.16 },
+      strike: { y: -0.1, z: 0.08, pitch: 0.08 },
+      recover: { y: -0.08, z: 0.02, pitch: 0.05 },
+      hurt: { y: -0.05, roll: 0.06 },
+      'coil:roots': { y: -0.1, z: 0, pitch: 0.06, spread: 1.2 },
+      'strike:roots': { y: -0.14, z: 0.02, pitch: 0.1 },
+    },
+    style: 'organic',
+  },
+  // the Clockwork Foreman: plan 18 on four short legs, a drum of brass stepping in a machine's straight moves
+  foreman: {
+    gait: { gait: 'alternate', drift: 0.26, stepTime: [0.16, 0.42], height: 0.16, arc: 'machine', duty: 0.7, reach: 0.45 },
+    knee: { lenA: 0.72, lenB: 0.72, pole: 'out-up' },
+    body: { bob: 0.04, lean: 0.02, bank: 0.02, sway: 0.2, tilt: 0.14, spring: { f: 3.2, z: 0.42, r: 0 }, height: { f: 3.6, z: 0.4, r: 0 } },
+    poses: {
+      coil: { y: -0.08, z: -0.06, pitch: -0.06, spread: 1.14 },
+      strike: { y: -0.03, z: 0.08, pitch: 0.08 },
+      recover: { y: -0.08, pitch: 0.05 },
+      hurt: { y: -0.05, roll: 0.06 },
+    },
+    style: 'machine',
+  },
+  // the sentinel (and the Tooth-Warden on four): plan 18/19, a tall hull on long struts, a wave on three
+  sentinel: {
+    gait: { gait: (n) => (n === 3 ? 'wave' : 'alternate'), drift: 0.26, stepTime: [0.24, 0.55], height: 0.15, arc: 'machine', duty: 0.75, reach: 0.45, maxStance: 4.5 },
+    knee: { lenA: 0.62, lenB: 0.84, pole: 'out-up' },               // (a strut out of the hull to a high knee, a long column down)
+    body: { bob: 0.03, lean: 0.02, bank: 0.02, sway: 0.2, tilt: 0.12, spring: { f: 2.6, z: 0.45, r: 0 }, height: { f: 3, z: 0.45, r: 0 } },
+    poses: {
+      coil: { y: -0.05, z: -0.05, pitch: -0.05, spread: 1.12 },
+      strike: { y: -0.02, z: 0.06, pitch: 0.06 },
+      recover: { y: -0.05, pitch: 0.04 },
+      hurt: { y: -0.04, roll: 0.05 },
+    },
+    style: 'machine',
+  },
+  // the First Sign: the sentinel's plan under a mast and a dish (heavier on top: a slower sway)
+  sign: {
+    gait: { gait: 'wave', drift: 0.26, stepTime: [0.26, 0.58], height: 0.15, arc: 'machine', duty: 0.75, reach: 0.45, maxStance: 4.5 },
+    knee: { lenA: 0.62, lenB: 0.84, pole: 'out-up' },
+    body: { bob: 0.03, lean: 0.025, bank: 0.02, sway: 0.25, tilt: 0.12, spring: { f: 2.1, z: 0.42, r: 0 }, height: { f: 2.6, z: 0.45, r: 0 } },
+    poses: {
+      coil: { y: -0.05, z: -0.06, pitch: -0.04, spread: 1.12 },
+      strike: { y: -0.02, z: 0.06, pitch: 0.05 },
+      recover: { y: -0.04, pitch: 0.03 },
+      hurt: { y: -0.04, roll: 0.05 },
+    },
+    style: 'machine',
+  },
+  // the Elder: plan 7 grounded (two long bird's legs, the joint two thirds up bending back, a high body on a soft
+  // spring), her legs tucked back under her in the air (plan 14's beat is in her wings)
+  elder: {
+    gait: { gait: 'alternate', drift: 0.42, stepTime: [0.3, 0.6], height: 0.12, arc: 'organic', duty: 0.7, reach: 0.6, maxStance: 4.5 },
+    knee: { lenA: 0.42, lenB: 0.74, pole: 'back' },
+    body: { bob: 0.03, lean: 0.05, bank: 0.04, sway: 0.35, tilt: 0.14, spring: { f: 1.5, z: 0.4, r: 0 }, height: { f: 2.2, z: 0.5, r: 0 } },
+    poses: {
+      coil: { y: -0.03, z: -0.06, pitch: -0.05, spread: 1.15 },
+      strike: { y: -0.05, z: 0.08, pitch: 0.08 },
+      recover: { y: -0.04, pitch: 0.04 },
+      hurt: { y: -0.05, roll: 0.06 },
+    },
+    air: { front: { y: 0.05, z: -0.14 }, hind: { y: 0.05, z: -0.14 } },
+    style: 'organic',
+  },
+};
+
 /** The pole (the knee's side) for a leg whose rest foot is at {x, z} (body frame), by the plan's rule. */
 export function poleFor(rule, foot) {
   const side = Math.sign(foot.x) || 1;

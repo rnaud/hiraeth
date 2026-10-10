@@ -127,7 +127,7 @@ export class Rig {
     this.planner = new GaitPlanner({
       homes: legs.map((l) => ({ x: l.home.x * scale, y: 0, z: l.home.z * scale })),
       gait: typeof G.gait === 'function' ? G.gait(legs.length) : G.gait, drift: G.drift * L, stepTime: G.stepTime, height: G.height * L, arc: G.arc, seed,
-      reach: G.reach ? G.reach * L : undefined,
+      reach: G.reach ? G.reach * L : undefined, maxStance: G.maxStance,   // (maxStance: a big slow walker stands longer before a settling step)
     });
     const B = plan.body;
     this.bodyFeet = new BodyFromFeet({ bob: B.bob * L, lean: B.lean, bank: B.bank, sway: B.sway, tilt: B.tilt, spring: B.spring, height: B.height });
@@ -156,7 +156,8 @@ export class Rig {
 
   /**
    * One frame of planning. f: the foe ({ pos, heading, state, k, atk, stunned }); ctx: { eye (where the camera
-   * or the player is), ground(x, fromY, z), air (0..1: off the ground: tucked or hanging), recovery, touch(at) }.
+   * or the player is), ground(x, fromY, z), air (0..1: off the ground: tucked or hanging), recovery, touch(at), free (a
+   * wind-up still aiming: the feet brace but may step round as it turns) }.
    * Returns the body's offsets { y, x, z, pitch, roll, yaw } for the model to draw (with its own moves on top).
    */
   update(f, dt, ctx = {}) {
@@ -172,7 +173,7 @@ export class Rig {
     this.tier = ctx.eye ? this.tiers.update(Math.hypot(ctx.eye.x - p.x, ctx.eye.z - p.z)) : 'near';
     if (this.minTier === 'mid' && this.tier === 'near') this.tier = 'mid';   // (a swarm's members: every 2nd frame)
     const pose = this.pose.update(dt, { state: f.state, k: f.k, atk: f.atk, recovery: ctx.recovery, stunned: f.stunned });
-    this.planner.setStance(pose.lock, pose.spread);
+    this.planner.setStance(pose.lock && !ctx.free, pose.spread);   // (ctx.free: still aiming, the feet may step round)
     const air = ctx.air ?? 0;
     if (air > 0.01) { this.air = air; this.planner.ready = false; }
     else if (this.air > 0) {

@@ -1,7 +1,12 @@
 import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
-import { ell, dome, cyl, cone, box, tube, torus, merge, leg } from '../wildlife/geo.js';
+import { ell, dome, cyl, cone, box, tube, torus, merge } from '../wildlife/geo.js';
 import { glyphGeometry } from '../story/sign-text.js';
+import { GUARDIAN_PLANS } from '../motion-kit/plans.js';
+import { SecondOrder, quantise } from '../motion-kit/spring.js';
+import { Wave } from '../motion-kit/chain.js';
+import { fabrik } from '../motion-kit/ik.js';
+import { tellFrame, flatMats, GuardianLegs, TurnLag } from './guardian-motion.js';
 
 // The bodies of what waits in the temples, built from the wildlife's little
 // modelling kit (flat printed colours per piece, merged per moving part), and
@@ -20,13 +25,21 @@ import { glyphGeometry } from '../story/sign-text.js';
 //                    of vents and a lamp-eye, broken and still guarding (see incal.js)
 //
 // A model: { group, pos (on the floor), heading, home, rest, restHeading, mouth (Vector3, world),
-//            mouthR, radius, height, animate(dt, t, { state, attack, k, speed, meter }) }
+//            mouthR, radius, height, animate(dt, t, { state, attack, k, speed, meter, kit }) }
+//
+// They move on the locomotion kit (src/motion-kit/, docs/systems/procedural-animation.md "Phase 6, the guardians"):
+// the walkers' legs are jointed and planted (GuardianLegs: two-bone IK from hips on the body to feet on the floor, a
+// gait planner, the body riding on its feet), their heads and necks lag and steady on springs; the fliers' wings,
+// fins and veils beat on travelling waves whose tips lag their roots; the Snapper's neck is a FABRIK chain. Each
+// walker keeps its body in its own `tellRig` (the fight's generic wind-up motions move the body; the legs stay
+// planted outside it). `kit` (from src/temples/boss.js): { eye, ground } for the kit's tiers and its foot rays.
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 let uid = 0;
 const vc = () => makeMaterial({ color: '#ffffff', vertexColors: true, flat: true, key: `guardian.${uid++}` });
 const noCollide = (o) => { o.traverse((c) => { c.userData.noCollide = true; c.userData.dynamic = true; }); return o; };
 const lerp = THREE.MathUtils.lerp;
+const _up = new THREE.Vector3(0, 1, 0);
 
 const NECK_UP = [0.75, 0.2, -0.15, -0.25, -0.3], NECK_LOW = [1.0, 0.55, 0.3, 0.12, 0.0];
 
@@ -61,19 +74,13 @@ export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9
   }
   spots.push(glyphGeometry(1.6, 0.08).rotateX(-Math.PI / 2).translate(0, 2.02, 0));
   body.add(new THREE.Mesh(merge(...spots.map((g) => g.index ? g.toNonIndexed() : g)), glowM));
-  // six long legs, each a thigh and a shin, stepping in two tripods
-  const legs = [];
-  for (const [side, z, ph] of [[-1, 2.2, 0], [1, 2.2, Math.PI], [-1, 0, Math.PI], [1, 0, 0], [-1, -2.2, 0], [1, -2.2, Math.PI]]) {
-    const hip = new THREE.Group();
-    hip.position.set(side * 2.3, -0.2, z);
-    body.add(hip);
-    hip.add(new THREE.Mesh(merge(cyl(0.32, 0.26, 2.2, skin, [0, -1.1, 0], null, 7), ell([0.4, 0.4, 0.4], skin, [0, -2.2, 0])), mat));
-    const knee = new THREE.Group();
-    knee.position.y = -2.2;
-    hip.add(knee);
-    knee.add(new THREE.Mesh(merge(cyl(0.24, 0.16, 2.0, skin, [0, -1.0, 0], null, 7), ell([0.38, 0.16, 0.5], dark, [0, -2.05, 0.1])), mat));
-    legs.push({ hip, knee, side, ph });
-  }
+  // six long legs on the kit, each a thigh and a shin (knees out and up), planted, stepping in two tripods
+  const tellRig = tellFrame(group);
+  const legM = flatMats('keeper', { joint: skin, thigh: skin, shin: skin, foot: dark });
+  const kit = new GuardianLegs({ plan: GUARDIAN_PLANS.keeper, group, body, legs: [[-1, 2.2], [1, 2.2], [-1, 0], [1, 0], [-1, -2.2], [1, -2.2]].map(([side, z]) => ({
+    hip: { x: side * 2.3, y: -0.2, z }, foot: { x: side * 4.5, z: z * 1.25 }, radius: 0.3, mats: legM,
+  })) });
+  const legs = kit.legs;
   // the neck in five rings and the head: a long soft muzzle, a jaw that opens, two dark eyes
   const neck = [];
   let parent = body;
@@ -103,18 +110,20 @@ export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9
   const mouth = V(), _w = V();
   noCollide(group);
 
+  const neckLag = new TurnLag(0.9, 0.5);
   const M = {
-    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0,
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, tellRig, kit,
     mouth, mouthR: 1.3, radius: 3.4, height: 4.4,
     head, jaw, body, neck, legs, eyes, glowM, eyeM, gait: 0, rise: 0, open: 0, rear: 0, low: 0, sink: 0,
     marks: { c: [0, 3.9, 0], r: [2.9, 1.7, 3.6] },
     /** Where a move's glow gathers: its forefeet, its head (src/temples/boss.js partAt). */
     part(name, out, side = 1) {
-      if (name === 'feet') { const L = legs[side > 0 ? 1 : 0]; return out.copy(L.knee.localToWorld(_w.set(0, -2.0, 0.1))); }
+      if (name === 'feet') return kit.footAt(side > 0 ? 1 : 0, out);
       if (name === 'head') return out.copy(head.localToWorld(_w.set(0, 0.7, 0.2)));
       return null;
     },
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+    animate(dt, t, opts) {
+      const { state, attack, k = 0, meter = 0 } = opts;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, side = attack?.side ?? 1;
       // how it holds itself in each state
@@ -124,31 +133,27 @@ export function keeperModel({ shell = '#efe2c6', plate = '#e2c9a2', belly = '#d9
       M.rear = ease(M.rear, id === 'stamp' ? (k < 1 ? k : 0) : 0, id === 'stamp' && k >= 1 ? 20 : 4);
       M.low = ease(M.low, state === 'open' || weary || id === 'sweep' || id === 'charge' ? 1 : id === 'spit' ? -0.3 * k : asleep ? 1.3 : 0, 3);
       M.sink = ease(M.sink, id === 'burrow' && k < 1 ? Math.min(1, k * 1.6) : 0, id === 'burrow' && k >= 1 ? 9 : 2.5);
-      M.gait += dt * speed * 1.4;
+      // the kit: the stamp lifts its forelegs off the floor (the other four planted), the burrow tucks them all under it
+      for (const L of legs) { const front = L.home.z > 1; L.lift = front ? M.rear : 0; L.air.set(0, M.rear * 1.4, M.rear * 1.3); }
+      const o = kit.update(M, dt, opts, { air: M.sink > 0.02 ? 1 + M.sink : 0 });
       const breathe = Math.sin(t * (asleep || weary ? 0.9 : 1.6)) * 0.06;
-      body.position.y = lerp(1.55, 3.4, M.rise) + breathe - M.sink * 4.2;
-      body.rotation.x = -M.rear * 0.45;
-      body.rotation.z = Math.sin(M.gait * 0.5) * 0.04 * Math.min(1, speed);
-      for (const L of legs) {
-        const sw = Math.sin(M.gait + L.ph) * Math.min(1, speed * 0.6);
-        const front = L.hip.position.z > 1;
-        L.hip.rotation.x = sw * 0.45 + (front ? -M.rear * 0.9 : 0);
-        L.hip.rotation.z = L.side * lerp(1.15, 0.38, M.rise);
-        L.knee.rotation.z = -L.side * lerp(1.3, 0.22, M.rise) + (front ? 0 : 0);
-        L.knee.rotation.x = Math.max(0, -sw) * 0.5 + (front ? M.rear * 0.6 : 0);
-      }
-      // the neck: up and searching when it fights, down to the floor asleep, low and open when it pants
-      const sway = Math.sin(t * 0.7) * 0.2 + (id === 'sweep' ? side * Math.sin(Math.min(1, k) * Math.PI * 2.2) * (k >= 1 ? 0.2 : 0.7) : 0);
+      body.position.set(o.x, lerp(1.55, 3.4, M.rise) + breathe - M.sink * 4.2 + o.y, o.z);
+      body.rotation.set(-M.rear * 0.45 + o.pitch, o.yaw, o.roll);
+      // the neck: up and searching when it fights, down to the floor asleep, low and open when it pants; it lags a turn
+      const lag = neckLag.update(dt, M.heading);
+      const sway = Math.sin(t * 0.7) * 0.2 + (id === 'sweep' ? side * Math.sin(Math.min(1, k) * Math.PI * 2.2) * (k >= 1 ? 0.2 : 0.7) : 0) - lag * 1.6;
       // a swan's neck: forward from the shell, then up, the head level; low, it droops to the ground ahead
       neck.forEach((g, i) => {
-        g.rotation.x = lerp(NECK_UP[i], NECK_LOW[i], Math.min(1, M.low)) + (M.low > 1 ? (M.low - 1) * 0.3 : 0) + (i === 0 ? M.rear * 0.4 : 0);
+        g.rotation.x = lerp(NECK_UP[i], NECK_LOW[i], Math.min(1, M.low)) + (M.low > 1 ? (M.low - 1) * 0.3 : 0) + (i === 0 ? M.rear * 0.4 - o.pitch * 0.6 : 0);
         g.rotation.y = sway * (0.25 + i * 0.06);
       });
-      head.rotation.x = lerp(-0.1, -0.9, Math.min(1, M.low)) + (asleep ? 0.3 : 0);
+      // (the head held steady against the body's tilt)
+      head.rotation.x = lerp(-0.1, -0.9, Math.min(1, M.low)) + (asleep ? 0.3 : 0) - o.pitch * 0.4;
       jaw.rotation.x = M.open * 0.75 + (state === 'open' ? Math.sin(t * 7) * 0.06 : 0);
       // the glyphs on its shell: dim and flickering afraid, steady and bright as it calms
       const calm = state === 'resolved' ? 1 : meter;
       glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (calm < 0.5 ? Math.max(0, Math.sin(t * 9)) * 0.08 : 0.08 * Math.sin(t * 1.5));
+      kit.write();
       // the mouth (for the fluid) is the muzzle's tip
       group.updateMatrixWorld(true);
       mouth.copy(jaw.localToWorld(_w.set(0, 0.1, 1.4)));
@@ -182,19 +187,33 @@ export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb
   const spots = [];
   for (let i = 0; i < 6; i++) for (const s of [-1, 1]) spots.push(glyphGeometry(0.85, 0.08).rotateY(s * Math.PI / 2).translate(s * 2.95, 0.4 - (i % 2) * 0.5, -3.2 + i * 1.3));
   body.add(new THREE.Mesh(merge(...spots.map((g) => (g.index ? g.toNonIndexed() : g))), glowM));
-  // the fins: long soft sails that row the air
+  // the fins: long soft sails that row the air, each three strips hinged one to the next (a travelling wave runs out
+  // along them, the tip behind the root: plan 14)
   const fins = [];
   for (const s of [-1, 1]) {
     const f = new THREE.Group();
     f.position.set(s * 2.6, -0.4, 1.2);
+    f.rotation.y = s * 0.3;
     body.add(f);
-    f.add(new THREE.Mesh(merge(ell([2.8, 0.18, 1.5], fin, [s * 2.4, 0, -0.4], [0, s * 0.3, 0])), mat));
-    fins.push({ f, s });
+    const joints = [];
+    let parent = f;
+    for (let i = 0; i < 3; i++) {
+      const j = i === 0 ? f : new THREE.Group();
+      if (i > 0) { j.position.set(s * 1.55, 0, 0); parent.add(j); }
+      j.add(new THREE.Mesh(merge(ell([1.0, 0.18 - i * 0.03, 1.5 - i * 0.28], fin, [s * 0.85, 0, -0.4 + i * 0.1])), mat));
+      joints.push(j); parent = j;
+    }
+    fins.push({ f, s, joints });
   }
   const tail = new THREE.Group();
   tail.position.set(0, 0.2, -6.0);
   body.add(tail);
-  tail.add(new THREE.Mesh(merge(ell([0.9, 0.7, 1.6], skin, [0, 0, -1.2]), ell([2.6, 0.16, 1.0], fin, [0, 0.1, -2.6])), mat));
+  tail.add(new THREE.Mesh(merge(ell([0.9, 0.7, 1.6], skin, [0, 0, -1.2])), mat));
+  // (the fluke on its own hinge: it trails the tail's stroke)
+  const fluke = new THREE.Group();
+  fluke.position.set(0, 0.05, -2.1);
+  tail.add(fluke);
+  fluke.add(new THREE.Mesh(merge(ell([2.6, 0.16, 1.0], fin, [0, 0.05, -0.5])), mat));
   // the head end: small dark eyes, a long mouth that opens
   const eyes = new THREE.Mesh(merge(ell([0.2, 0.24, 0.12], '#ffffff', [-1.9, 0.5, 4.6]), ell([0.2, 0.24, 0.12], '#ffffff', [1.9, 0.5, 4.6])), eyeM);
   body.add(eyes);
@@ -204,13 +223,17 @@ export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb
   jaw.add(new THREE.Mesh(merge(ell([2.0, 0.45, 2.6], belly, [0, -0.2, 1.4])), mat));
   noCollide(group);
   const mouth = V(), _w = V();
+  const finWave = new Wave(), tailWave = new Wave(0.16);
+  const bank = new SecondOrder(0.9, 0.6, 0), tilt = new SecondOrder(1.1, 0.55, 0), turn = new TurnLag(1.6, 1);
+  let lastY = null;
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
     mouth, mouthR: 1.8, radius: 4.2, height: 5.2, bodyR: 3.4,
-    body, fins, tail, jaw, glowM, eyeM, open: 0, low: 0, swim: 0, roll: 0,
+    body, fins, tail, fluke, jaw, glowM, eyeM, open: 0, low: 0, swim: 0, roll: 0,
     marks: { c: [0, 0.3, 0], r: [2.9, 2.3, 5.8] },
     part(name, out, side = 1) {
-      if (name === 'wings') return out.copy(fins[side > 0 ? 1 : 0].f.localToWorld(_w.set(side * 4.6, 0, -0.4)));
+      // (the fin is turned on its hinge now: the same spot on it as before, out at its tip)
+      if (name === 'wings') return out.copy(fins[side > 0 ? 1 : 0].f.localToWorld(_w.set(side * 4.6, 0, -0.4).applyAxisAngle(_up, -side * 0.3)));
       if (name === 'tail') return out.copy(tail.localToWorld(_w.set(0, 0.1, -2.8)));
       return null;
     },
@@ -224,10 +247,21 @@ export function whaleModel({ skin = '#d8d4e6', belly = '#f3ead8', fin = '#c4bedb
       M.open = ease(M.open, state === 'open' ? 1 : id === 'gust' && k > 0.5 ? 0.6 : id === 'wail' ? Math.min(1, k * 1.3) : 0, 5);
       M.roll = ease(M.roll, id === 'roll' ? (k >= 1 ? -1 : 1.1 * k) * (attack?.side ?? 1) : 0, k >= 1 ? 9 : 3);
       M.swim += dt * (0.8 + speed * 0.6);
-      body.rotation.z = Math.sin(M.swim * 0.7) * 0.08 + M.roll;
-      body.rotation.x = Math.sin(M.swim * 0.5) * 0.05 + (state === 'open' ? -0.15 : 0);
-      for (const F of fins) F.f.rotation.z = F.s * (Math.sin(M.swim * 1.6) * 0.35 * (weary ? 0.3 : 1) - 0.1);
-      tail.rotation.x = Math.sin(M.swim * 1.6 + 1) * 0.3;
+      // she banks into her turns and tips with her climb and fall, on soft springs (the lag of something so big)
+      const behind = turn.update(dt, M.heading);
+      const vy = lastY == null || !(dt > 0) ? 0 : (M.pos.y - lastY) / dt; lastY = M.pos.y;
+      const b = bank.update(dt, THREE.MathUtils.clamp(behind * 1.4, -0.3, 0.3)), p = tilt.update(dt, THREE.MathUtils.clamp(-vy * 0.08, -0.25, 0.25));
+      body.rotation.z = Math.sin(M.swim * 0.7) * 0.08 + M.roll + b;
+      body.rotation.x = Math.sin(M.swim * 0.5) * 0.05 + (state === 'open' ? -0.15 : 0) + p;
+      // the fins row on a travelling wave, the tips a third of a beat behind the roots; the fluke trails the tail
+      const rate = ((0.8 + speed * 0.6) * 1.6) / (Math.PI * 2), amp = 0.35 * (weary ? 0.3 : 1);
+      finWave.update(dt, rate); tailWave.update(dt, rate);
+      for (const F of fins) {
+        F.f.rotation.z = F.s * (finWave.angle(0, amp, 0) - 0.1);
+        for (let i = 1; i < F.joints.length; i++) F.joints[i].rotation.z = F.s * (finWave.angle(i, amp * 0.8, 0.7) - finWave.angle(i - 1, amp * 0.8, 0.7));
+      }
+      tail.rotation.x = tailWave.angle(0, 0.3, 0);
+      fluke.rotation.x = tailWave.angle(1, 0.3, 0.9) - tailWave.angle(0, 0.3, 0.9);
       jaw.rotation.x = M.open * 0.5 + (state === 'open' ? Math.sin(t * 6) * 0.05 : 0);
       const calm = resolved ? 1 : meter;
       glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (calm < 0.5 ? Math.max(0, Math.sin(t * 7)) * 0.08 : 0.06 * Math.sin(t * 1.3));
@@ -263,7 +297,8 @@ export function echoModel({ core = '#fbf3d8', ring = '#d6e6ee', veil = '#e9dff2'
     r.add(new THREE.Mesh(merge(...marks.map((g) => (g.index ? g.toNonIndexed() : g))), glowM));
     rings.push(r);
   }
-  // the veil: soft panels hanging under it, swaying
+  // the veil: soft panels hanging under it, each three hinged lengths: a ripple runs down them (a travelling wave, the
+  // hem behind the top) and they trail behind as it drifts (plan 11's threads)
   const veils = [];
   for (let i = 0; i < 7; i++) {
     const v = new THREE.Group();
@@ -271,11 +306,19 @@ export function echoModel({ core = '#fbf3d8', ring = '#d6e6ee', veil = '#e9dff2'
     v.position.set(Math.cos(a) * 1.0, -1.2, Math.sin(a) * 1.0);
     v.rotation.y = -a;
     body.add(v);
-    v.add(new THREE.Mesh(merge(ell([0.5, 2.2, 0.08], veil, [0, -2.0, 0])), mat));
+    const joints = [v];
+    let parent = v;
+    for (let s = 0; s < 3; s++) {
+      if (s > 0) { const j = new THREE.Group(); j.position.y = -1.42; parent.add(j); joints.push(j); parent = j; }
+      parent.add(new THREE.Mesh(merge(ell([0.5 - s * 0.05, 0.82, 0.08], veil, [0, -0.68, 0])), mat));
+    }
+    v.userData.a = a; v.userData.joints = joints;
     veils.push(v);
   }
   noCollide(group);
   const mouth = V();
+  const veilWave = new Wave(), drift = { x: new SecondOrder(0.8, 0.45, 0), z: new SecondOrder(0.8, 0.45, 0) }, spinRate = new SecondOrder(0.7, 0.4, 0, 0.9);
+  const lastPos = V(); let started = false;
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
     mouth, mouthR: 2.0, radius: 3.6, height: 5, bodyR: 2.2, touchR: 3.0,
@@ -286,11 +329,24 @@ export function echoModel({ core = '#fbf3d8', ring = '#d6e6ee', veil = '#e9dff2'
       M.low = ease(M.low, weary ? 1 : state === 'open' ? 0.6 : asleep ? 0.3 : 0, 2.2);
       M.hover = THREE.MathUtils.lerp(6.5, 2.2, M.low) + Math.sin(t * 1.1) * 0.35;
       M.open = ease(M.open, state === 'open' ? 1 : 0, 4);
-      M.spin += dt * (asleep || weary ? 0.2 : resolved ? 0.4 : 0.9 + (attack ? k * 2.5 : 0));
+      // (the rings spin up on a spring as it winds up: they lag, overshoot a little, and settle)
+      M.spin += dt * spinRate.update(dt, asleep || weary ? 0.2 : resolved ? 0.4 : 0.9 + (attack ? k * 2.5 : 0));
       // its chord: the rings tilt flat, one over another, into a single lens aimed at you
       M.align = ease(M.align ?? 0, attack?.id === 'chord' ? Math.min(1, k * 1.3) : 0, 4);
       rings.forEach((r, i) => { r.rotation.z = M.spin * (i % 2 ? -1 : 1) * (0.6 + i * 0.25); r.rotation.x = lerp(0.6 + i * 0.9, 0, M.align); r.rotation.y = lerp(i * 1.1, 0, M.align); });
-      veils.forEach((v, i) => { v.rotation.x = Math.sin(t * 1.3 + i) * 0.18 + speed * 0.05; });
+      // the veils: its drift (in its own frame) trails them back on springs; a ripple runs down each, the hem last
+      if (!started) { lastPos.copy(M.pos); started = true; }
+      const vx = dt > 0 ? (M.pos.x - lastPos.x) / dt : 0, vz = dt > 0 ? (M.pos.z - lastPos.z) / dt : 0; lastPos.copy(M.pos);
+      const sh = Math.sin(M.heading), ch = Math.cos(M.heading);
+      const fwd = drift.z.update(dt, THREE.MathUtils.clamp(vx * sh + vz * ch, -6, 6)), side = drift.x.update(dt, THREE.MathUtils.clamp(vx * ch - vz * sh, -6, 6));
+      veilWave.update(dt, 1.3 / (Math.PI * 2) + speed * 0.05);
+      veils.forEach((v, i) => {
+        const a = v.userData.a, J = v.userData.joints, off = i;
+        // (how much of the drift sweeps this panel back: it hangs from the ring at angle a)
+        const trail = (Math.cos(a) * fwd - Math.sin(a) * side) * 0.06;
+        v.rotation.x = Math.sin(2 * Math.PI * veilWave.phase + off) * 0.18 + speed * 0.05 + trail;
+        for (let s = 1; s < J.length; s++) J[s].rotation.x = (Math.sin(2 * Math.PI * veilWave.phase + off - s * 0.8) - Math.sin(2 * Math.PI * veilWave.phase + off - (s - 1) * 0.8)) * 0.18 + trail * 0.5;
+      });
       const calm = resolved ? 1 : meter;
       coreM.uniforms.uGlow.value = 0.35 + 0.5 * M.open * (0.6 + 0.4 * Math.sin(t * 9)) + 0.15 * calm;
       glowM.uniforms.uGlow.value = 0.15 + 0.75 * calm;
@@ -334,18 +390,26 @@ export function mothModel({ fur = '#e9dff2', wing = '#d6c8e6', wing2 = '#b9a6d4'
     const pts = [[s * 0.3, 0.7, 2.3], [s * 0.9, 1.6, 3.0], [s * 1.6, 2.2, 3.3]];
     body.add(new THREE.Mesh(merge(tube(pts, 0.05, fur, 8, 4), ell([0.5, 0.06, 0.25], fur, [s * 1.4, 2.0, 3.25], [0, s * 0.4, 0])), mat));
   }
-  // four wings, each a broad flat oval with a glyph eye-spot, hinged at the shoulder
+  // four wings, each a broad flat oval with a glyph eye-spot, hinged at the shoulder and again halfway out (the outer
+  // half trails the inner on a travelling wave: plan 13)
   const wings = [];
   for (const [s, z, len, back] of [[-1, 0.6, 4.6, 0], [1, 0.6, 4.6, 0], [-1, -0.9, 3.6, 1], [1, -0.9, 3.6, 1]]) {
     const w = new THREE.Group();
     w.position.set(s * 0.7, 0.35, z);
     body.add(w);
-    w.add(new THREE.Mesh(merge(ell([len, 0.08, back ? 1.6 : 2.2], back ? wing2 : wing, [s * len * 0.95, 0, back ? -0.6 : 0.2], [0, s * (back ? -0.35 : 0.25), 0])), mat));
-    w.add(new THREE.Mesh(merge(glyphGeometry(back ? 1.0 : 1.4, 0.05).rotateX(-Math.PI / 2).translate(s * len * 1.1, 0.07, back ? -0.6 : 0.2)), glowM));
-    wings.push({ w, s, back });
+    const ry = s * (back ? -0.35 : 0.25), wd = back ? 1.6 : 2.2, z0 = back ? -0.6 : 0.2, col = back ? wing2 : wing;
+    const u = V(Math.cos(ry), 0, -Math.sin(ry)).multiplyScalar(s * len), e0 = V(s * len * 0.95, 0, z0).sub(u);
+    const at = (k) => e0.clone().addScaledVector(u, k);
+    w.add(new THREE.Mesh(merge(ell([len * 0.55, 0.08, wd], col, at(0.55).toArray(), [0, ry, 0])), mat));
+    const outer = new THREE.Group(); outer.position.copy(at(1.0)); w.add(outer);
+    outer.add(new THREE.Mesh(merge(ell([len * 0.52, 0.08, wd * 0.92], col, at(1.48).sub(outer.position).toArray(), [0, ry, 0])), mat));
+    outer.add(new THREE.Mesh(merge(glyphGeometry(back ? 1.0 : 1.4, 0.05).rotateX(-Math.PI / 2).translate(s * len * 1.1 - outer.position.x, 0.07, z0 - outer.position.z)), glowM));
+    wings.push({ w, s, back, outer });
   }
   noCollide(group);
   const mouth = V(), _w = V();
+  const flapWave = new Wave(), bank = new SecondOrder(1.8, 0.5, 0), tilt = new SecondOrder(2, 0.5, 0), turn = new TurnLag(2.4, 1);
+  let lastY = null;
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: true, hover: 6,
     mouth, mouthR: 1.6, radius: 3.4, height: 3.4, bodyR: 2.2, touchR: 1.6,
@@ -359,10 +423,21 @@ export function mothModel({ fur = '#e9dff2', wing = '#d6c8e6', wing2 = '#b9a6d4'
       const asleep = state === 'sleep', weary = state === 'weary', resolved = state === 'resolved';
       M.low = ease(M.low, weary ? 1 : state === 'open' ? 0.65 : asleep ? 0.8 : attack?.id === 'swoop' ? Math.min(1, k * 1.2) : 0, 2.4);
       M.hover = THREE.MathUtils.lerp(7, 1.6, M.low) + Math.sin(t * 2.2) * 0.3;
-      M.flap += dt * (asleep || weary ? 1.2 : state === 'open' ? 3 : 7 + speed);
+      const rate = asleep || weary ? 1.2 : state === 'open' ? 3 : 7 + speed;
+      M.flap += dt * rate;
+      flapWave.update(dt, rate / (Math.PI * 2));
       const amp = asleep || weary ? 0.12 : state === 'open' ? 0.35 : 0.65;
-      for (const W of wings) W.w.rotation.z = W.s * (Math.sin(M.flap + (W.back ? 0.5 : 0)) * amp + (weary ? -0.25 : 0.15));
-      body.rotation.x = state === 'open' ? -0.25 : 0;
+      // the beat: the hind wings a little behind the fore, each outer half trailing its inner half
+      for (const W of wings) {
+        const ph = 2 * Math.PI * flapWave.phase + (W.back ? 0.5 : 0);
+        W.w.rotation.z = W.s * (Math.sin(ph) * amp + (weary ? -0.25 : 0.15));
+        W.outer.rotation.z = W.s * (Math.sin(ph - 0.9) - Math.sin(ph)) * amp * 0.55;
+      }
+      // it banks into its turns and noses up as it climbs, on quick light springs
+      const behind = turn.update(dt, M.heading);
+      const vy = lastY == null || !(dt > 0) ? 0 : (M.pos.y - lastY) / dt; lastY = M.pos.y;
+      body.rotation.z = bank.update(dt, THREE.MathUtils.clamp(behind * 1.2, -0.35, 0.35));
+      body.rotation.x = (state === 'open' ? -0.25 : 0) + tilt.update(dt, THREE.MathUtils.clamp(-vy * 0.1, -0.3, 0.3));
       const calm = resolved ? 1 : meter;
       glowM.uniforms.uGlow.value = 0.12 + 0.75 * calm + (state === 'open' ? 0.15 * Math.sin(t * 8) : 0);
       group.updateMatrixWorld(true);
@@ -388,12 +463,7 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
   // the body, the tail fan, the legs
   const tail = [];
   for (let i = 0; i < 5; i++) { const a = -0.5 + i * 0.25; tail.push(ell([0.55, 0.12, 2.2], i % 2 ? feather : tip, [Math.sin(a) * 1.4, 3.9 + Math.abs(a) * 0.3, -3.6 - Math.cos(a) * 1.2], [0.25, a, 0])); }
-  const legs = [];
-  for (const s of [-1, 1]) {
-    legs.push(cyl(0.22, 0.3, 3.4, beak, [s * 1.0, 1.7, 0.4], [0, 0, s * 0.08]));
-    for (const a of [-0.5, 0, 0.5]) legs.push(cyl(0.08, 0.12, 1.1, beak, [s * 1.0 + Math.sin(a) * 0.5, 0.08, 0.4 + Math.cos(a) * 0.5], [Math.PI / 2, a, 0]));
-  }
-  rig.add(new THREE.Mesh(merge(ell([2.3, 1.9, 3.4], stone, [0, 4.4, 0], null, [14, 9]), ell([1.7, 1.5, 1.6], feather, [0, 4.2, 2.2]), tail, legs), mat));
+  rig.add(new THREE.Mesh(merge(ell([2.3, 1.9, 3.4], stone, [0, 4.4, 0], null, [14, 9]), ell([1.7, 1.5, 1.6], feather, [0, 4.2, 2.2]), tail), mat));
   // the neck and the head: a long beak, dark eyes, a crest of three plumes
   const neck = new THREE.Group();
   neck.position.set(0, 5.4, 2.6);
@@ -405,34 +475,44 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
   head.add(new THREE.Mesh(merge(ell([0.75, 0.7, 0.95], stone, [0, 0, 0]), cone(0.32, 3.4, beak, [0, -0.15, 2.3], [Math.PI / 2, 0, 0]),
     ell([0.13, 0.17, 0.13], dark, [0.55, 0.15, 0.35]), ell([0.13, 0.17, 0.13], dark, [-0.55, 0.15, 0.35]),
     [-0.3, 0, 0.3].map((x, i) => ell([0.1, 0.12, 1.1], i === 1 ? tip : feather, [x, 0.75, -0.6], [0.7, x, 0]))), mat));
-  // the wings: three long stone feathers each, hinged at the shoulder; glyph lines along them
+  // the wings: four long stone feathers each, hinged at the shoulder and at each other (nested), so a beat runs out
+  // along the wing as a travelling wave, the tip behind the root; glyph lines along them
   const wings = [-1, 1].map((s) => {
     const w = new THREE.Group();
     w.position.set(s * 1.9, 5.1, 0.9);
     rig.add(w);
-    const parts = [], lines = [];
+    const joints = [];
+    let parent = w, at = 0;
     for (let i = 0; i < 4; i++) {
-      const x = s * (1.4 + i * 1.5), z = -0.35 * i;
-      parts.push(ell([1.6, 0.16, 1.1 - i * 0.12], i === 3 ? tip : i % 2 ? feather : stone, [x, 0, z], [0, s * (0.15 + i * 0.12), 0]));
-      lines.push(box([1.8, 0.05, 0.08], '#ffffff', [x, 0.17, z], [0, s * (0.15 + i * 0.12), 0]));
+      const x = s * (1.4 + i * 1.5), z = -0.35 * i, jx = i === 0 ? 0 : s * (0.65 + i * 1.5);
+      const p = new THREE.Group(); p.position.set(jx - at, 0, 0); parent.add(p); joints.push(p);
+      p.add(new THREE.Mesh(merge(ell([1.6, 0.16, 1.1 - i * 0.12], i === 3 ? tip : i % 2 ? feather : stone, [x - jx, 0, z], [0, s * (0.15 + i * 0.12), 0])), mat));
+      p.add(new THREE.Mesh(merge(box([1.8, 0.05, 0.08], '#ffffff', [x - jx, 0.17, z], [0, s * (0.15 + i * 0.12), 0])), glowM));
+      parent = p; at = jx;
     }
-    w.add(new THREE.Mesh(merge(parts), mat));
-    w.add(new THREE.Mesh(merge(lines), glowM));
-    return { w, s };
+    return { w, s, joints };
   });
+  // two long bird's legs on the kit (plan 7: the joint two thirds up bends back), three toes on each foot
+  const tellRig = tellFrame(group);
+  const legM = flatMats('elder', { joint: beak, thigh: beak, shin: beak, foot: beak });
+  const kit = new GuardianLegs({ plan: GUARDIAN_PLANS.elder, group, body: rig, legs: [-1, 1].map((s) => ({ hip: { x: s * 1.0, y: 3.6, z: 0.3 }, foot: { x: s * 1.05, z: 0.45 }, radius: 0.24, pad: 'point', mats: legM })) });
+  const legs = kit.legs;
+  for (const L of legs) for (const a of [-0.5, 0, 0.5]) { const toe = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1.1, 6).rotateX(Math.PI / 2).translate(0, 0.08, 0.5).rotateY(a), legM.foot); L.foot.add(toe); }
   noCollide(group);
   const mouth = V(), _w = V();
+  const beatWave = new Wave(), neckLag = new TurnLag(1, 0.5);
   const M = {
-    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: false, hover: 3.5,
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, floats: false, hover: 3.5, tellRig, kit,
     mouth, mouthR: 1.4, radius: 3.0, height: 7, bodyR: 2.6, touchR: 1.0,
-    rig, neck, head, wings, glowM, spread: 0, raise: 0, lift: 0, pitch: 0, beat: 0, marks: { c: [0, 4.4, 0], r: [2.3, 1.9, 3.4] },
+    rig, neck, head, wings, legs, glowM, spread: 0, raise: 0, lift: 0, pitch: 0, beat: 0, marks: { c: [0, 4.4, 0], r: [2.3, 1.9, 3.4] },
     part(name, out, side = 1) {
       if (name === 'wings') { const W = wings.find((w) => w.s === side); return out.copy(W.w.localToWorld(_w.set(side * 5.8, 0, -1))); }
       if (name === 'mouth') return out.copy(head.localToWorld(_w.set(0, -0.15, 3.6)));
-      if (name === 'feet') return out.copy(rig.localToWorld(_w.set(side * 1.0, 0.3, 0.9)));
+      if (name === 'feet') return kit.footAt(side > 0 ? 1 : 0, out);
       return null;
     },
-    animate(dt, t, { state, attack, k = 0, meter = 0, phase = 0 }) {
+    animate(dt, t, opts) {
+      const { state, attack, k = 0, meter = 0, phase = 0 } = opts;
       const id = attack?.id, struck = !!attack && k >= 1;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       // in the air from her second phase (she has left the floor, but can't bring herself to fly)
@@ -448,17 +528,27 @@ export function elderModel({ stone = '#efe6d2', feather = '#e2d6bf', tip = '#b98
       else if (id === 'dive') { spread = 1; raise = struck ? -0.2 : 0.6; lift = struck ? -M.hover + 0.4 : 2.8 * k; pitch = struck ? 0.3 : -0.2; beat = struck ? 0 : 1; }
       M.spread = ease(M.spread, spread, 5); M.raise = ease(M.raise, raise, struck ? 14 : 5);
       M.lift = ease(M.lift, lift, struck ? 12 : 3); M.pitch = ease(M.pitch, pitch, 5); M.beat = ease(M.beat, beat, 3);
-      rig.position.y = M.lift + (M.floats ? Math.sin(t * 3.2) * 0.35 : 0);
-      rig.rotation.x = M.pitch;
-      const flap = M.beat * Math.sin(t * 6.5) * 0.55;
-      for (const { w, s } of wings) {
+      // the kit: her feet hang (tucked back) in the air, as she hops up to stamp, and as she rises to dive
+      const rising = attack?.rig === 'rise' && state === 'fight' && !struck ? Math.min(1, k * 3) : 0;
+      const air = M.floats ? 1 : Math.max(rising, THREE.MathUtils.clamp((M.lift - 0.35) / 0.8, 0, 1));
+      const o = kit.update(M, dt, opts, { air });
+      rig.position.set(o.x, M.lift + (M.floats ? Math.sin(t * 3.2) * 0.35 : 0) + o.y, o.z);
+      rig.rotation.set(M.pitch + o.pitch, o.yaw, o.roll);
+      // the beat runs out along each wing, the tip behind the root (a travelling wave: plan 14)
+      beatWave.update(dt, 6.5 / (Math.PI * 2));
+      const flap = M.beat * beatWave.angle(0, 0.55, 0);
+      for (const { w, s, joints } of wings) {
         // folded: swept back along the body and down; spread: out and level; raise lifts them
         w.rotation.set(0, s * (1 - M.spread) * 1.25, s * (M.raise + flap) - s * (1 - M.spread) * 0.9, 'YXZ');
+        for (let i = 1; i < joints.length; i++) joints[i].rotation.z = s * M.beat * (beatWave.angle(i, 0.55, 0.45) - beatWave.angle(i - 1, 0.55, 0.45)) * M.spread;
       }
+      // the neck lags her turns; the head is held steady against her body's tilt
       neck.rotation.x = neckK * 0.7;
-      head.rotation.x = -neckK * 0.5 + Math.sin(t * 0.9) * 0.05;
+      neck.rotation.y = -neckLag.update(dt, M.heading) * 0.9;
+      head.rotation.x = -neckK * 0.5 + Math.sin(t * 0.9) * 0.05 - o.pitch * 0.7;
       const calm = state === 'resolved' ? 1 : meter;
       glowM.uniforms.uGlow.value = 0.12 + 0.8 * calm + (state === 'open' ? 0.1 * Math.max(0, Math.sin(t * 5)) : 0);
+      kit.write();
       group.updateMatrixWorld(true);
       mouth.copy(head.localToWorld(_w.set(0, 0, 0.6)));
     },
@@ -502,11 +592,13 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
   noCollide(group);
   // where the head goes (group frame), how wide the jaws, its pitch and turn: eased toward these
   const at = V(0, 3.5, 3), want = V(), ctrl = V(), root = V(0, 2.4, 0), back = V(), f = V(), _w = V();
+  const chain = beads.map(() => V()).concat([V()]), shape = chain.map(() => V()), links = new Array(beads.length).fill(1);
+  let neckSet = false;
   const mouth = V();
   const M = {
     group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, rooted: true, reach,
     mouth, mouthR: 1.9, radius: 3.6, height: 6, bodyR: 2.8, touchR: 1.6,
-    H, upper, lower, beads, glowM, gape: 0, pitch: 0.6, turn: 0, head: at, marks: { c: [0, 1.3, 0], r: [2.7, 1.8, 2.7] },
+    H, upper, lower, beads, neckChain: chain, neckShape: shape, glowM, gape: 0, pitch: 0.6, turn: 0, head: at, marks: { c: [0, 1.3, 0], r: [2.7, 1.8, 2.7] },
     animate(dt, t, { state, attack, k = 0, meter = 0 }) {
       const id = attack?.id, struck = !!attack && k >= 1;
       let gape = 0.12 + 0.06 * Math.sin(t * 2.2), pitch = 0.35, turn = 0, rate = 3.5;
@@ -544,10 +636,22 @@ export function snapperModel({ stalk = '#3f6a52', stalk2 = '#4c7d5c', leaf = '#5
       f.set(Math.sin(M.turn) * Math.cos(M.pitch), -Math.sin(M.pitch), Math.cos(M.turn) * Math.cos(M.pitch));
       back.copy(at).addScaledVector(f, -1.4);
       ctrl.set(back.x * 0.2, Math.max(back.y, 5) + 2.2, back.z * 0.25);
-      for (let i = 0; i < beads.length; i++) {
-        const u = (i + 0.6) / beads.length, a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u;
-        beads[i].position.set(root.x * a + ctrl.x * b + back.x * c, root.y * a + ctrl.y * b + back.y * c, root.z * a + ctrl.z * b + back.z * c);
+      // (the curve is the shape it wants; the neck itself is a FABRIK chain of beads that follows it, its middle a beat
+      // behind its ends: it lags a lunge and whips after it, and never stretches past the curve's own length)
+      const N = beads.length;
+      let len = 0;
+      for (let j = 0; j <= N; j++) {
+        const u = j / N, a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u;
+        shape[j].set(root.x * a + ctrl.x * b + back.x * c, root.y * a + ctrl.y * b + back.y * c, root.z * a + ctrl.z * b + back.z * c);
+        if (j) len += shape[j].distanceTo(shape[j - 1]);
       }
+      if (!neckSet) { for (let j = 0; j <= N; j++) chain[j].copy(shape[j]); neckSet = true; }
+      for (let j = 1; j < N; j++) chain[j].lerp(shape[j], 1 - Math.exp(-dt * lerp(16, 5, Math.sin((Math.PI * j) / N))));
+      chain[0].copy(root);
+      links.fill(len / N);
+      chain[N].copy(chain[N - 1]);   // (off the target, so FABRIK runs at least once and the links come out even)
+      fabrik(chain, links, back, 8, 1e-3);
+      for (let i = 0; i < N; i++) beads[i].position.lerpVectors(chain[i], chain[i + 1], 0.6);
       const calm = state === 'resolved' ? 1 : meter;
       glowM.uniforms.uGlow.value = 0.15 + 0.75 * calm + (calm < 0.5 && state !== 'sleep' ? Math.max(0, Math.sin(t * 7)) * 0.12 : 0);
       group.updateMatrixWorld(true);
@@ -608,39 +712,46 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
   head.add(plume);
   head.add(new THREE.Mesh(merge(cyl(0.9, 1.1, 0.9, hull2, [0, 0, 0], null, 12)), mat));
   head.add(new THREE.Mesh(merge(ell([0.45, 0.45, 0.25], '#ffffff', [0, 0, 1.0])), eyeM));
-  const legs = [];
-  for (let i = 0; i < nL; i++) {
-    const a = (i / nL) * Math.PI * 2 + Math.PI / nL;
-    const hip = new THREE.Group();
-    hip.position.set(Math.sin(a) * 1.9, -1.7, Math.cos(a) * 1.9);
-    hip.rotation.y = a;
-    body.add(hip);
-    hip.add(new THREE.Mesh(merge(leg([0, 0, 0], [0, 0.1, 2.6], 0.35, hull2), ell([0.38, 0.38, 0.38], dark, [0, 0.1, 2.6]), cyl(0.35, 0.25, 3.4, dark, [0, -1.6, 2.6], null, 8), cyl(0.7, 0.8, 0.3, dark, [0, -3.3, 2.6], null, 10)), mat));
-    legs.push(hip);
-  }
+  // its legs on the kit (plan 18/19): a strut out of the hull to a high knee, a long column down to a round foot, a
+  // piston from the hull to each strut; a wave on three legs (one at a time), diagonal pairs on four (the Tooth-Warden)
+  const tellRig = tellFrame(group);
+  const legM = flatMats('sentinel', { joint: dark, thigh: hull2, shin: dark, foot: dark, piston: brass, rod: dark });
+  const kit = new GuardianLegs({ plan: GUARDIAN_PLANS.sentinel, group, body, legs: Array.from({ length: nL }, (_, i) => {
+    const a = (i / nL) * Math.PI * 2 + Math.PI / nL, sx = Math.sin(a), cz = Math.cos(a);
+    return { hip: { x: sx * 1.9, y: -1.7, z: cz * 1.9 }, foot: { x: sx * 4.4, z: cz * 4.4 }, radius: 0.35, pad: 'disc', mats: legM,
+      piston: { at: { x: sx * 1.7, y: -0.8, z: cz * 1.7 } } };
+  }) });
+  const legs = kit.legs;
   noCollide(group);
   const mouth = V(), _w = V();
+  let spinLift = 0;
   const M = {
-    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9,
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.5, radius: 3.0, height: 9, tellRig, kit,
     head, body, vents, shutters, legs, eyeM, ventM, hatch, plume, open: 0, slump: 0, gait: 0, crown: 0, only: null, marks: { c: [0, 5, 0], r: [2.35, 1.7, 2.35] },
     part(name, out, side = 1) {
       if (name === 'eye') return out.copy(head.localToWorld(_w.set(0, 0, 1.25)));
       if (name === 'head') return out.copy(head.localToWorld(_w.set(0, 1.3, 0)));
-      if (name === 'feet') return out.copy(legs[side > 0 ? 0 : 1 % legs.length].localToWorld(_w.set(0, -3.3, 2.6)));
+      if (name === 'feet') return kit.footAt(side > 0 ? 0 : 1 % legs.length, out);
       return null;
     },
     /** Where vent i is, in the world (a target each, for a guardian that wants them all hit at once). */
     vent(i, out = V()) { const a = (i / nV) * Math.PI * 2; return body.localToWorld(out.set(Math.sin(a) * 2.5, 0.4, Math.cos(a) * 2.5)); },
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
+    animate(dt, t, opts) {
+      const { state, attack, k = 0, meter = 0, phase = 0 } = opts;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const off = state === 'sleep' || state === 'resolved' || state === 'weary';
       M.guard = ease(M.guard ?? 0, guarded && phase >= 1 && state !== 'resolved' ? 1 : 0, 3);   // the second phase: its sides shut, its top vent open
       M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
       M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.6 : 0, 1.5);
-      M.gait += dt * speed * 2;
-      body.position.y = 5 - M.slump * 2.2 + Math.sin(M.gait) * 0.08;
-      body.rotation.z = M.slump * 0.25;
-      head.rotation.y = attack ? 0 : Math.sin(t * 0.8) * 0.5;
+      // the kit: a spin (the Tooth-Warden's grind) lifts its feet and it turns on its struts
+      spinLift = ease(spinLift, attack?.rig === 'spin' && state === 'fight' && k > 0.2 ? 1 : 0, 6);
+      for (const L of legs) { L.lift = spinLift > 0.02 ? spinLift : 0; L.air.set(0, 0.5, 0); }
+      const o = kit.update(M, dt, opts);
+      body.position.set(o.x, 5 - M.slump * 2.2 + o.y + spinLift * 0.4, o.z);
+      body.rotation.z = M.slump * 0.25 + o.roll;
+      body.rotation.y = o.yaw;
+      // (its head turns in a servo's notches)
+      head.rotation.y = quantise(attack ? 0 : Math.sin(t * 0.8) * 0.5, 0.07);
       head.rotation.x = M.slump * 0.6;
       const sideOpen = M.open * (1 - M.guard);
       // (M.only: one vent open at a time, the rest shut: the Tooth-Warden turning on its gear, buried.js)
@@ -656,12 +767,12 @@ export function sentinelModel({ hull = '#9fb2c6', hull2 = '#8aa0b8', dark = '#34
       plume.visible = M.crown > 0.05;
       if (plume.visible) { plume.scale.set(0.8 + 0.2 * Math.sin(t * 9), 3.6 * M.crown, 0.8 + 0.2 * Math.sin(t * 9 + 1)); plumeM.uniforms.uGlow.value = 0.55 + 0.45 * Math.sin(t * 13); }
       // the damage shows: it leans, and its hull dulls toward soot
-      body.rotation.x = meter * 0.12 * Math.sin(t * 0.7);
-      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
+      body.rotation.x = meter * 0.12 * Math.sin(t * 0.7) + o.pitch;
       const blink = attack && (attack.shape === 'lane' || attack.part === 'eye') ? 0.6 + 0.4 * Math.sin(t * (10 + 30 * Math.min(1, k))) : 0.9;
       eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.15) : blink;
       eyeM.uniforms.uColor.value.set(attack ? '#e0644a' : '#f6c84e');
       ventM.uniforms.uGlow.value = 0.2 + 0.8 * sideOpen * (0.7 + 0.3 * Math.sin(t * 12));
+      kit.write();
       group.updateMatrixWorld(true);
       // the target: its side vents, then (guarded) the vent on its crown
       if (M.guard > 0.5) mouth.copy(head.localToWorld(_w.set(0, 1.25, 0))); else mouth.copy(body.localToWorld(_w.set(0, 0.4, 2.2)));
@@ -724,19 +835,22 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
     sh.add(new THREE.Mesh(merge(ell([0.55, 0.55, 0.55], dark, [0, 0, 0]), box([0.38, 2.6, 0.38], brass2, [s * 0.25, -1.4, 0.4], [0.3, 0, 0]), cyl(0.5, 0.5, 1.5, dark, [s * 0.35, -2.75, 0.9], [0, 0, Math.PI / 2], 10), cyl(0.56, 0.56, 0.3, brass, [s * 1.1, -2.75, 0.9], [0, 0, Math.PI / 2], 10), cyl(0.56, 0.56, 0.3, brass, [s * -0.4, -2.75, 0.9], [0, 0, Math.PI / 2], 10)), mat));
     return sh;
   });
-  // four short legs
-  const legs = [];
-  for (let i = 0; i < 4; i++) {
-    const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.9, -1.9, Math.cos(a) * 1.9); hip.rotation.y = a; body.add(hip);
-    hip.add(new THREE.Mesh(merge(box([0.55, 0.55, 1.6], brass2, [0, -0.3, 0.6], [-0.6, 0, 0]), cyl(0.32, 0.26, 1.9, dark, [0, -1.4, 1.1], null, 8), cyl(0.75, 0.85, 0.3, dark, [0, -2.4, 1.1], null, 10)), mat));
-    legs.push(hip);
-  }
+  // four short legs on the kit (plan 18 on four: diagonal pairs in a machine's straight moves), a piston to each thigh
+  const tellRig = tellFrame(group);
+  const legM = flatMats('foreman', { joint: dark, thigh: brass2, shin: dark, foot: dark, piston: brass, rod: dark });
+  const kit = new GuardianLegs({ plan: GUARDIAN_PLANS.foreman, group, body, legs: [0, 1, 2, 3].map((i) => {
+    const a = (i / 4) * Math.PI * 2 + Math.PI / 4, sx = Math.sin(a), cz = Math.cos(a);
+    return { hip: { x: sx * 1.9, y: -1.9, z: cz * 1.9 }, foot: { x: sx * 3.1, z: cz * 3.1 }, radius: 0.32, pad: 'disc', mats: legM,
+      piston: { at: { x: sx * 1.55, y: -1.2, z: cz * 1.55 } } };
+  }) });
+  const legs = kit.legs;
   noCollide(group);
   const mouth = V(), _w = V();
   let race = 0, hourA = 0, minA = 0;
+  const armLag = [new SecondOrder(1.8, 0.3, 0), new SecondOrder(1.8, 0.3, 0)];
+  let spinLift = 0;
   const M = {
-    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 0.01, radius: 3.0, height: 8.5, bodyR: 2.4,
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 0.01, radius: 3.0, height: 8.5, bodyR: 2.4, tellRig, kit,
     body, hands, hour, minute, lid, arms, legs, lampM, eyeM, steps, open: 0, slump: 0, gait: 0, numbers: NUM, marks: { c: [0, 4.4, 0], r: [2.7, 1.8, 2.7] },
     /** Numeral i's ring lit (hit in step) or dark. */
     step(i, on) { if (steps[i]) steps[i].visible = !!on; },
@@ -747,14 +861,18 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
     },
     /** Where numeral lamp i is, in the world. */
     vent(i, out = V()) { const p = numAt(i); return body.localToWorld(out.set(p.x, p.y, p.z + 0.1)); },
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+    animate(dt, t, opts) {
+      const { state, attack, k = 0, speed = 0, meter = 0 } = opts;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, struck = !!attack && k >= 1;
       M.open = ease(M.open, state === 'open' ? 1 : 0, 6);
       M.slump = ease(M.slump, state === 'resolved' ? 1 : state === 'sleep' ? 0.5 : 0, 1.5);
-      M.gait += dt * speed * 2.4;
-      body.position.y = 4.4 - M.slump * 1.6 + Math.abs(Math.sin(M.gait)) * 0.12;
-      body.rotation.z = Math.sin(M.gait) * 0.05;
+      // the kit: its spin lifts its feet off the floor and it turns on its pistons (they hang and turn with the drum)
+      spinLift = ease(spinLift, attack?.rig === 'spin' && state === 'fight' && (k > 0.2) ? 1 : 0, 6);
+      for (const L of legs) { L.lift = spinLift > 0.02 ? spinLift : 0; L.air.set(0, 0.45, 0); }
+      const o = kit.update(M, dt, opts);
+      body.position.set(o.x, 4.4 - M.slump * 1.6 + o.y + spinLift * 0.4, o.z);
+      body.rotation.set(o.pitch, o.yaw, o.roll);
       // the hands: wound wrong they race and stutter; asleep they twitch; set right they come round to the true time and stop
       if (state === 'resolved') {
         const now = new Date(), wantH = -((now.getHours() % 12) + now.getMinutes() / 60) / 12 * Math.PI * 2, wantM = -(now.getMinutes() / 60) * Math.PI * 2;
@@ -772,15 +890,20 @@ export function foremanModel({ brass = '#d8a24a', brass2 = '#b8862f', teal = '#6
       if (id === 'hammer') up = struck ? -0.4 : 0.15 + 2.4 * k;
       if (id === 'cog') one = struck ? -0.2 : 2.0 * k;
       if (state === 'sleep' || state === 'resolved') up = -0.25;
-      arms[0].rotation.x = ease(arms[0].rotation.x, -up - one, struck ? 18 : 6);
-      arms[1].rotation.x = ease(arms[1].rotation.x, -up, struck ? 18 : 6);
-      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.18 * Math.min(1, speed) + M.slump * 0.25; });
+      // (the hammers are its loose parts: they swing on a spring as it walks and lag the drum's lean)
+      const walk = Math.sin((kit.rig.walked / Math.max(0.5, kit.length * 0.75)) * Math.PI) * Math.min(1, speed * 0.5);
+      const lag0 = armLag[0].update(dt, walk * 0.14 + o.pitch * 1.5), lag1 = armLag[1].update(dt, -walk * 0.14 + o.pitch * 1.5);
+      M.armL = ease(M.armL ?? 0, -up - one, struck ? 18 : 6);
+      M.armR = ease(M.armR ?? 0, -up, struck ? 18 : 6);
+      arms[0].rotation.x = M.armL + lag0;
+      arms[1].rotation.x = M.armR + lag1;
       lampM.uniforms.uGlow.value = state === 'resolved' ? 0.25 : 0.08 + 0.9 * M.open * (0.75 + 0.25 * Math.sin(t * 10));
       if (state !== 'open') for (const r of steps) r.visible = false;
       const off = state === 'sleep' || state === 'resolved';
       eyeM.uniforms.uGlow.value = off ? (state === 'resolved' ? 0 : 0.12) : id === 'chime' ? 0.6 + 0.4 * Math.sin(t * 30) : 0.85;
       eyeM.uniforms.uColor.value.set(state === 'resolved' ? '#f6c84e' : '#e0644a');
       glassM.uniforms.uGlow.value = 0.15 + 0.2 * (1 - meter);
+      kit.write();
       group.updateMatrixWorld(true);
       mouth.copy(body.localToWorld(_w.set(0, 0.1, 2.9)));
     },
@@ -837,34 +960,43 @@ export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7
     ), mat));
     return sh;
   });
-  // four root legs
-  const legs = [];
-  for (let i = 0; i < 4; i++) {
+  // four root legs on the kit (plan 8 on four: diagonal pairs, the front knees forward and the hind hocks back), planted
+  const tellRig = tellFrame(group);
+  const legM = flatMats('gardener', { joint: bark, thigh: bark, shin: bark, foot: bark });
+  const kit = new GuardianLegs({ plan: { ...GUARDIAN_PLANS.gardener, knee: { ...GUARDIAN_PLANS.gardener.knee, lenA: 0.72, lenB: 0.72 } }, group, body, legs: [0, 1, 2, 3].map((i) => {
     const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
-    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 2.6, -1.6, Math.cos(a) * 2.3); body.add(hip);
-    hip.add(new THREE.Mesh(merge(cyl(0.7, 0.9, 2.0, bark, [0, -0.8, 0], null, 8), ell([1.0, 0.35, 1.2], bark, [0, -1.8, 0.2])), mat));
-    legs.push(hip);
-  }
+    return { hip: { x: Math.sin(a) * 2.6, y: -1.6, z: Math.cos(a) * 2.3 }, foot: { x: Math.sin(a) * 3.3, z: Math.cos(a) * 3.0 }, radius: 0.5, taper: 0.8, mats: legM };
+  }) });
+  const legs = kit.legs;
   noCollide(group);
   const mouth = V(), _w = V();
+  const headLag = new TurnLag(1.1, 0.5);
+  const armSwing = [new SecondOrder(1.6, 0.35, 0), new SecondOrder(1.6, 0.35, 0)];
   const M = {
-    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.6, radius: 4.4, height: 7, bodyR: 3.8, touchR: 1.4,
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.6, radius: 4.4, height: 7, bodyR: 3.8, touchR: 1.4, tellRig, kit,
     body, head, arms, legs, bloom, bareMesh, eyeM, kneel: 0, rear: 0, gait: 0, marks: { c: [0, 3.4, 0], r: [4.0, 2.9, 3.7] },
     part(name, out, side = 1) {
       if (name === 'arms') return out.copy(arms[side > 0 ? 1 : 0].localToWorld(_w.set(side * 1.2, -3.6, 2.2)));
       return null;
     },
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0 }) {
+    animate(dt, t, opts) {
+      const { state, attack, k = 0, speed = 0, meter = 0 } = opts;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, struck = !!attack && k >= 1;
       const calm = state === 'resolved' ? 1 : meter;
       M.kneel = ease(M.kneel, state === 'open' ? 1 : state === 'weary' || state === 'resolved' ? 1.4 : state === 'sleep' ? 0.8 : 0, 3);
       M.rear = ease(M.rear, id === 'stamp' ? (struck ? -0.4 : k) : 0, struck ? 14 : 4);
-      M.gait += dt * speed * 1.8;
-      body.position.y = 3.4 - M.kneel * 1.3 + M.rear * 1.6 + Math.abs(Math.sin(M.gait)) * 0.15;
-      body.rotation.x = -M.rear * 0.35 + M.kneel * 0.18;
-      body.rotation.z = Math.sin(M.gait) * 0.04;
-      head.rotation.x = M.kneel * 0.45 + Math.sin(t * 0.9) * 0.04;
+      // the kit: the stamp lifts its forelegs off the floor (it rears on the hind pair); the body rides on the feet
+      for (const L of legs) { const front = L.home.z > 0; L.lift = front ? Math.max(0, M.rear) : 0; L.air.set(0, Math.max(0, M.rear) * 1.2, Math.max(0, M.rear) * 0.8); }
+      const o = kit.update(M, dt, opts);
+      body.position.set(o.x, 3.4 - M.kneel * 1.3 + M.rear * 1.6 + o.y, o.z);
+      body.rotation.set(-M.rear * 0.35 + M.kneel * 0.18 + o.pitch, o.yaw, o.roll);
+      // (its stone face steadied against the body's tilt, lagging a turn)
+      head.rotation.x = M.kneel * 0.45 + Math.sin(t * 0.9) * 0.04 - o.pitch * 0.6;
+      head.rotation.y = -headLag.update(dt, M.heading) * 0.8;
+      // the long arms swing from the shoulders against the legs by the distance walked, loose on springs
+      const walk = Math.sin((kit.rig.walked / Math.max(0.5, kit.length * 0.9)) * Math.PI) * Math.min(1, speed * 0.5);
+      const sw0 = armSwing[0].update(dt, walk * 0.22), sw1 = armSwing[1].update(dt, -walk * 0.22);
       // the arms: one raised then swept across for the sweep; both dug in for the roots
       let lx = 0, rx = 0, rz = 0;
       let lz = 0;
@@ -872,16 +1004,18 @@ export function gardenerModel({ moss = '#5f9a52', moss2 = '#4f8a5a', moss3 = '#7
       if (id === 'sweep' && (attack?.side ?? 1) < 0) { lx = struck ? -0.6 : -1.6 * k; lz = struck ? -1.2 : 0.6 * k; }
       if (id === 'roots') { lx = rx = struck ? 0.9 : -1.2 * k; }
       if (state === 'open' || state === 'weary' || state === 'resolved') { lx = rx = 0.5; }
-      arms[0].rotation.x = ease(arms[0].rotation.x, lx + Math.sin(t * 1.3) * 0.05, struck ? 12 : 5);
-      arms[1].rotation.x = ease(arms[1].rotation.x, rx + Math.sin(t * 1.1 + 1) * 0.05, struck ? 12 : 5);
+      M.armL = ease(M.armL ?? 0, lx + Math.sin(t * 1.3) * 0.05, struck ? 12 : 5);
+      M.armR = ease(M.armR ?? 0, rx + Math.sin(t * 1.1 + 1) * 0.05, struck ? 12 : 5);
+      arms[0].rotation.x = M.armL + sw0;
+      arms[1].rotation.x = M.armR + sw1;
       arms[1].rotation.z = ease(arms[1].rotation.z, rz, struck ? 12 : 5);
       arms[0].rotation.z = ease(arms[0].rotation.z, lz, struck ? 12 : 5);
-      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 1.6) * 0.2 * Math.min(1, speed); });
       // calmer: the bare patches close over, the flowers come up, its eyes go from ember to leaf
       M.bareMesh.scale.setScalar(Math.max(0.05, 1 - calm * 0.95));
       M.bloom.scale.setScalar(Math.max(0.001, calm));
       eyeM.uniforms.uColor.value.set(calm > 0.5 || state === 'sleep' ? '#7fcfa8' : '#ef7e62');
       eyeM.uniforms.uGlow.value = state === 'sleep' ? 0.12 : 0.45 + (calm < 0.5 && state !== 'resolved' ? Math.max(0, Math.sin(t * 6)) * 0.3 : 0.2);
+      kit.write();
       group.updateMatrixWorld(true);
       mouth.copy(head.localToWorld(_w.set(0, 0.2, 0.4)));
     },
@@ -925,26 +1059,30 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
     ...[0, 1, 2].map((k) => { const a = (k / 3) * Math.PI * 2; return box([0.12, 0.12, 2.6], dark, [Math.sin(a) * 1.4, Math.cos(a) * 1.4, 0.9], [Math.cos(a) * 0.45, -Math.sin(a) * 0.45, 0]); })), mat));
   head.add(new THREE.Mesh(merge(cone(0.45, 1.1, '#ffffff', [0, 0, 2.0], [-Math.PI / 2, 0, 0], 10)), hornM));
   head.add(new THREE.Mesh(merge(...Array.from({ length: 10 }, (_, i) => { const a = (i / 10) * Math.PI * 2; return ell([0.2, 0.2, 0.14], '#ffffff', [Math.sin(a) * 3.25, Math.cos(a) * 3.25, 0.62]); })), lampM));
-  // three legs
-  const legs = [];
-  for (let i = 0; i < 3; i++) {
-    const a = (i / 3) * Math.PI * 2 + Math.PI / 3;
-    const hip = new THREE.Group(); hip.position.set(Math.sin(a) * 1.8, -0.9, Math.cos(a) * 1.8); hip.rotation.y = a; body.add(hip);
-    hip.add(new THREE.Mesh(merge(leg([0, 0, 0], [0, -0.1, 2.1], 0.35, hull2), ell([0.36, 0.36, 0.36], dark, [0, -0.1, 2.1]), cyl(0.32, 0.24, 3.0, dark, [0, -1.6, 2.1], null, 8), cyl(0.8, 0.9, 0.3, dark, [0, -3.2, 2.1], null, 10)), mat));
-    legs.push(hip);
-  }
+  // three legs on the kit (the sentinel's plan): a strut to a high knee, a column down to a round foot, one at a time
+  const tellRig = tellFrame(group);
+  const legM = flatMats('sign', { joint: dark, thigh: hull2, shin: dark, foot: dark, piston: brass, rod: dark });
+  const kit = new GuardianLegs({ plan: GUARDIAN_PLANS.sign, group, body, legs: [0, 1, 2].map((i) => {
+    const a = (i / 3) * Math.PI * 2 + Math.PI / 3, sx = Math.sin(a), cz = Math.cos(a);
+    return { hip: { x: sx * 1.8, y: -0.9, z: cz * 1.8 }, foot: { x: sx * 3.9, z: cz * 3.9 }, radius: 0.34, pad: 'disc', mats: legM,
+      piston: { at: { x: sx * 1.5, y: 0.1, z: cz * 1.5 } } };
+  }) });
+  const legs = kit.legs;
   noCollide(group);
   const mouth = V(), _w = V();
+  const mastLag = new SecondOrder(1.1, 0.35, 0), dishLag = new TurnLag(1.4, 0.45);
   const M = {
-    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.4, radius: 3.4, height: 12, bodyR: 2.4,
+    group, pos: V(), heading: 0, home: null, rest: null, restHeading: 0, mouth, mouthR: 1.4, radius: 3.4, height: 12, bodyR: 2.4, tellRig, kit,
     body, head, legs, lampM, hornM, open: 0, slump: 0, gait: 0, pitch: 0.6, marks: { c: [0, 4.2, 0], r: [2.1, 0.9, 2.1] },
-    animate(dt, t, { state, attack, k = 0, speed = 0, meter = 0, phase = 0 }) {
+    animate(dt, t, opts) {
+      const { state, attack, k = 0, meter = 0, phase = 0 } = opts;
       const ease = (cur, want, rate) => cur + (want - cur) * Math.min(1, dt * rate);
       const id = attack?.id, struck = !!attack && k >= 1;
       M.open = ease(M.open, state === 'open' ? 1 : 0, 5);
       M.slump = ease(M.slump, state === 'sleep' ? 0.6 : 0, 1.5);
-      M.gait += dt * speed * 2;
-      body.position.y = 4.2 - M.slump * 1.2 + Math.sin(M.gait) * 0.08;
+      const o = kit.update(M, dt, opts);
+      body.position.set(o.x, 4.2 - M.slump * 1.2 + o.y, o.z);
+      body.rotation.y = o.yaw; body.rotation.z = o.roll;
       // the dish: slumped toward the floor asleep; up and searching in the fight; drawn back, then thrust, for its cry;
       // lowered to you, listening, when it is open (in its last phase turned up instead: it listens only through its
       // cables, to the dishes on the wall, src/temples/bazaar.js); turned up to the sky once it has its whole line again
@@ -955,13 +1093,16 @@ export function signModel({ hull = '#88b4b5', hull2 = '#6f9a9b', dark = '#3a535b
       else if (id === 'cry') { pitch = struck ? 0.1 : -0.5 * k; yaw = 0; }
       else if (id === 'beam') { pitch = 0.15; yaw = 0; }
       M.pitch = ease(M.pitch, pitch, struck ? 14 : 3);
-      head.rotation.set(M.pitch, ease(head.rotation.y, yaw, 3), 0);
-      legs.forEach((L, i) => { L.rotation.x = Math.sin(M.gait + i * 2.1) * 0.15 * Math.min(1, speed) + M.slump * 0.3; });
+      // (the heavy dish nods on its yoke after the mast's lean, and lags its turns)
+      const nod = mastLag.update(dt, o.pitch) - o.pitch;
+      M.yaw = ease(M.yaw ?? 0, yaw, 3);
+      head.rotation.set(M.pitch + nod * 1.4, M.yaw - dishLag.update(dt, M.heading) * 0.6, 0);
       const flash = (id === 'cry' || id === 'beam') && !struck ? (0.4 + 0.6 * Math.max(0, Math.sin(t * (10 + 20 * k)))) * Math.min(1, 0.4 + k) : 0;
       hornM.uniforms.uColor.value.set(attack && !struck ? '#ffd0a0' : '#f0a083');
       lampM.uniforms.uGlow.value = state === 'resolved' ? 0.9 : state === 'sleep' ? 0.08 : 0.25 + flash + 0.5 * M.open;
       hornM.uniforms.uGlow.value = state === 'resolved' ? 0.6 : 0.2 + 0.8 * M.open * (0.7 + 0.3 * Math.sin(t * 8));
-      body.rotation.x = meter * 0.05 * Math.sin(t * 0.9);
+      body.rotation.x = meter * 0.05 * Math.sin(t * 0.9) + o.pitch;
+      kit.write();
       group.updateMatrixWorld(true);
       mouth.copy(head.localToWorld(_w.set(0, 0, 2.2)));
     },

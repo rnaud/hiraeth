@@ -622,6 +622,62 @@ Measured (`node scripts/motion-audit/run.mjs shade shade@eclipse --pack`, `--pac
 −0.32). `tests/motion-plans.test.js` holds the shade (two skins); `tests/archetypes-batch5.test.js` the roller's roll
 locked to the ground (spin × radius = distance, to 10⁻⁶ m) and the puppet's swing.
 
+### Phase 6, the guardians (2026-10-10)
+
+The temple guardians (src/temples/guardians.js) ride the kit through `src/temples/guardian-motion.js`; their plans are
+`GUARDIAN_PLANS` in `src/motion-kit/plans.js` (the roster's plans at a guardian's size: slower steps, heavier springs).
+The fight (src/temples/boss.js) still only moves `pos` and `heading` and says its state; it now hands the model `kit:
+{ eye, ground }` (the traveller for the tiers, the floor for a step's ray). Nothing in a fight changed: the moves, their
+timings, the openings and the last phases' twists are the same code (tests/guardian-twists.test.js, tests/temples.test.js
+unchanged).
+
+- **`tellFrame`**: a walker makes its own `tellRig` (the frame boss.js's generic wind-up motions move: rear, crouch, coil,
+  lean, rise, swell, spin) round its body only. Its legs hang from the model's root outside it, so the body rears,
+  crouches, swells and coils over feet that stay planted (before, the tell rig carried the legs with it and they slid).
+- **`GuardianLegs`**: a `Rig` (src/motion-kit/rig.js) on the plan, with planLeg legs in the model's colours (flat
+  materials, so they print as the vertex-coloured parts do). Its state: a move winding up is the kit's `wind` (the coil
+  pose, then the brace: the feet step to homes 12–20 % wider and lock), struck is `strike`, open is `recover`. While a
+  wind-up still aims (`k` under the move's `track`) the feet stay free to step round as it turns to you (`ctx.free`, new
+  in the kit); a move that travels (`dash`, `over`) never locks them. `maxStance` (a plan's, new in the kit): a big slow
+  walker stands longer before a settling step, so its cadence still halves at half speed.
+- **`TurnLag`**: a neck or head behind the body's turns on a spring.
+
+| guardian | plan | what moved onto the kit |
+|---|---|---|
+| Cistern-Keeper | 7/1 | six legs in a tripod, knees out and up (they swung on a clock); the body from its feet; the stamp lifts its forelegs off the floor while the other four stay planted (they were rotated at the hip, all six sliding); the burrow tucks them under it; the neck lags its turns and the head is held level against the shell's tilt |
+| Gardener | 8 on four | four root legs on diagonal pairs (front knees forward, hind hocks back), the mound on soft underdamped springs (it dips and overshoots); the stamp rears it on its hind pair, the front legs lifted; the long arms swing against the legs by the distance walked, loose on springs; its stone face lags a turn and stays level |
+| Clockwork Foreman | 18 on four | four short legs on diagonal pairs in a machine's straight moves, a piston from the drum to each thigh; its spin lifts its feet and it turns on them; the hammers (its loose parts) swing on an underdamped spring as it walks and lag the drum's lean |
+| sentinel / Tooth-Warden | 18/19 | three legs one at a time (the Warden's four on diagonal pairs): a strut to a high knee, a long column down, a piston to each strut; the Warden's grind lifts its feet; the head turns in a servo's notches |
+| First Sign | 18/19 | the sentinel's legs under its mast; the heavy dish nods on its yoke after the mast's lean (a spring) and lags its turns |
+| Elder | 7 | two bird's legs (they were part of her body and slid with it), the joint two thirds up bending back, three toes; tucked back under her in the air, as she hops up to stamp and as she rises to dive; her wings' four feathers hinged one to the next, so a beat runs out along the wing (the tip behind the root); the neck lags her turns, the head steady |
+| Cloud-Mother | 14 | each fin three strips on a travelling wave (the tips behind), the fluke on its own hinge trailing the tail; she banks into turns and tips with her climb on soft springs |
+| Lampless | 13 | each wing hinged halfway out, the outer half trailing the inner; banks and noses up on quick springs |
+| Echo | 11 | each veil three lengths, a ripple running down them (the hem last) and its drift trailing them back; the rings spin up on a spring |
+| Mother Snapper | 4 | the neck a FABRIK chain of beads (src/motion-kit/ik.js) following the curve it wants, its middle a beat behind its ends: it lags a lunge and whips after it, and never stretches; the head (and its mouth, the fight's target) where the fight puts it |
+
+Measured (`node scripts/motion-audit/run.mjs keeper gardener foreman sentinel warden sign elder`, 10 s each, `--pace=0.5`
+for the cadence; the knee: its mean bend from straight and the least any leg bends):
+
+| guardian | slide/m before → after | worst contact (m) | reach span, % of leg | lift, % of leg | knee | steps/s full → half | groups |
+|---|---|---|---|---|---|---|---|
+| Cistern-Keeper | 0.07 → 0.00 | 1.42 → 0.00 | 0.10 m → 23 % | 17 % | 84° (least 62°) | 0.50 → 0.35 | a tripod |
+| Gardener | 0.08 → 0.00 | 0.36 → 0.00 | 0.11 m → 27 % | 15 % | 93° (51°) | 1.10 → 0.55 | diagonals (was each alone) |
+| Clockwork Foreman | 0.62 → 0.00 | 5.08 → 0.00 | 0.20 m → 25 % | 16 % | 94° (58°) | 0.85 → 0.50 | diagonals (was each alone) |
+| sentinel | 0.14 → 0.00 | 0.61 → 0.00 | 0.29 m → 33 % | 15 % | 95° (44°) | 0.53 → 0.33 | one at a time |
+| Tooth-Warden | (the sentinel's) → 0.00 | 0.00 | 28 % | 15 % | 96° (66°) | 0.55 → 0.35 | diagonals |
+| First Sign | 0.16 → 0.00 | 0.65 → 0.00 | 0.29 m → 32 % | 15 % | 96° (53°) | 0.60 → 0.33 | one at a time |
+| Elder | (legs part of her body: 1 m a metre) → 0.00 | 0.00 | 21 % | 12 % | 60° (41°) | 0.40 → 0.20 | one at a time |
+
+Their cost (each model's `animate`, walking, M4 in node, after a warm-up): the Keeper 2.3 → 6.7 µs a frame, the
+Gardener 1.2 → 4.5, the Foreman 1.4 → 6.2, the sentinel 1.2 → 5.0, the Sign 0.8 → 4.0, the Elder 0.6 → 3.7; the fliers
+0.6 → 1.0–1.1 (the Cloud-Mother, the Lampless), 1.2 → 2.6 (the Echo), 0.6 → 2.2 (the Snapper's FABRIK neck). One
+guardian is on screen at a time.
+
+`tests/motion-guardians.test.js` holds these, the Keeper's stamp (the hind feet planted through the hold while the
+forelegs lift, and while the tell rig rears and swells the body), the free-then-locked wind-up, the Snapper's neck (no
+link longer than its share of the curve, its middle lagging a lunge by over 0.3 m and settling on the curve) and the
+fliers' tips trailing their roots.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of

@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.29', date: '2026-10-10', items: [
+    // the temple guardians on the locomotion kit
+    'The temple guardians walk on jointed legs that plant where they step and stay there until they step again: the Cistern-Keeper’s six legs in two tripods, the Gardener’s root legs, the Clockwork Foreman’s and the sentinels’ legs on their pistons, the First Sign’s, and the Elder’s long bird’s legs, which bend back. Their bodies ride on their feet, dipping and swaying as they go, and their necks and heads lag behind their turns.',
+    'When a guardian rears, crouches or coils for a move, its feet stay planted: it braces them wide first, the Cistern-Keeper rears on four legs with its forelegs off the floor, the Gardener on its hind pair, and the Elder hops up to stamp. The Clockwork Foreman and the Tooth-Warden lift their feet off the floor to spin.',
+    'The Cloud-Mother’s fins, the Lampless’s wings, the Elder’s stone feathers and the Echo’s veils ripple out from the body to their tips, and the Mother Snapper’s neck lags behind her lunges and whips after them.',
+  ] },
   { v: '1.28', date: '2026-10-10', items: [
     // a fellow traveller, met along the route
     'Someone else follows the singing light: Tansy, a girl from the Salt Harbour whose compass has pointed after it since the night the sky rang. She waits a few steps from your ship in Vael, Lorn II, the City-Shaft and the Signal Market. Each time you meet she remembers what you told her the time before, and what you tell her decides whether she goes home or on past the last chart, and what she leaves in your hands.',

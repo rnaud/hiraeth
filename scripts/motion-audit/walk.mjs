@@ -7,7 +7,8 @@
 import * as THREE from 'three';
 import { Foes } from '../../src/foes.js';
 import { GameState } from '../../src/game-state.js';
-import { keeperModel, sentinelModel, foremanModel, gardenerModel, signModel } from '../../src/temples/guardians.js';
+import { keeperModel, sentinelModel, foremanModel, gardenerModel, signModel, elderModel } from '../../src/temples/guardians.js';
+import { jointAngle } from './metrics.mjs';
 import { walkReport, correlation } from './metrics.mjs';
 import { Dog } from '../../src/dog.js';
 
@@ -46,9 +47,9 @@ export function lowest(obj, out) {
 }
 
 /** Record feet, hips and body over the run; step(dt, t) advances the subject one frame. */
-export function record({ root, legs, step, torso = root, seconds = FRAMES * DT, extra = null }) {
+export function record({ root, legs, step, torso = root, frames = FRAMES, seconds = frames * DT, extra = null }) {
   const feet = legs.map(() => []), hips = legs.map(() => []), body = [], f = new THREE.Vector3(), h = new THREE.Vector3(), b = new THREE.Vector3();
-  for (let i = 0; i < SETTLE + FRAMES; i++) {
+  for (let i = 0; i < SETTLE + frames; i++) {
     step(DT, i * DT);
     root.updateMatrixWorld(true);
     extra?.root.updateMatrixWorld(true);
@@ -103,22 +104,43 @@ export function foeSubject(sys, kind, legsOf, { pace = 1, pack = false, cost = f
   };
 }
 
-/** A guardian model (src/temples/guardians.js) walking: its animate() with a speed, the group moved by us. */
+/**
+ * A guardian model (src/temples/guardians.js) walking as its fight moves it (src/temples/boss.js place): its pos and
+ * heading set, the group put there, then its animate() with the speed. `knee`: the legs' mean bend (degrees from
+ * straight) and the least any leg bends, read from the kit's joints.
+ */
 export function guardianSubject(make, legsOf, speed = 2.2, pace = 1) {
   const m = make();
   speed *= pace;
   const legs = legsOf(m);
-  let z = 0;
-  const run = record({ root: m.group, legs, torso: m.body ?? m.group, step: (dt, t) => { z += speed * dt; m.animate(dt, t, { state: 'fight', speed }); m.group.position.set(0, 0, z); } });
-  return { speed, ...run };
+  let z = 0, n = 0, bends = 0, least = Infinity;
+  const h = new THREE.Vector3(), k = new THREE.Vector3(), f = new THREE.Vector3();
+  const run = record({ root: m.group, legs, torso: m.body ?? (m.rig?.isObject3D ? m.rig : m.group), frames: 600, step: (dt, t) => {
+    z += speed * dt;
+    m.pos.set(0, 0, z); m.heading = 0;
+    m.group.position.copy(m.pos); m.group.rotation.y = m.heading;
+    m.animate(dt, t, { state: 'fight', speed });
+    if (m.kit && t >= SETTLE * DT) for (const L of m.kit.legs) {
+      m.group.updateMatrixWorld(true);
+      L.root.getWorldPosition(h); L.shin.getWorldPosition(k); L.foot.getWorldPosition(f); f.y += L.ankle;
+      const bend = 180 - (jointAngle(h.toArray(), k.toArray(), f.toArray()) * 180) / Math.PI;
+      bends += bend; n++; least = Math.min(least, bend);
+    }
+  } });
+  const L = m.kit?.length;
+  return { speed, ...run, legLength: L, reachShare: L ? run.reachSpan / L : null, liftShare: L ? run.lift / L : null, knee: n ? { mean: bends / n, least } : null, legsN: legs.length };
 }
 
+// (on the kit since phase 6: each leg's chain, hung from the model's root; the Tooth-Warden is the sentinel on four legs)
+const guardianLegs = (m) => m.kit.legs.map((l) => l.root);
 export const GUARDIANS = {
-  keeper: (pace) => guardianSubject(keeperModel, (m) => m.legs.map((L) => L.hip), 2.2, pace),
-  sentinel: (pace) => guardianSubject(sentinelModel, (m) => m.legs, 2.4, pace),
-  foreman: (pace) => guardianSubject(foremanModel, (m) => m.legs, 2.4, pace),
-  gardener: (pace) => guardianSubject(gardenerModel, (m) => m.legs, 2.4, pace),
-  sign: (pace) => guardianSubject(signModel, (m) => m.legs, 2.4, pace),
+  keeper: (pace) => guardianSubject(keeperModel, guardianLegs, 2.2, pace),
+  sentinel: (pace) => guardianSubject(sentinelModel, guardianLegs, 2.4, pace),
+  warden: (pace) => guardianSubject(() => sentinelModel({ vents: 4, legs: 4, guarded: false }), guardianLegs, 2.4, pace),
+  foreman: (pace) => guardianSubject(foremanModel, guardianLegs, 2.4, pace),
+  gardener: (pace) => guardianSubject(gardenerModel, guardianLegs, 2.4, pace),
+  sign: (pace) => guardianSubject(signModel, guardianLegs, 2.4, pace),
+  elder: (pace) => guardianSubject(elderModel, guardianLegs, 1.8, pace),
 };
 
 /**
