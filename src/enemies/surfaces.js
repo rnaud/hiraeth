@@ -120,7 +120,8 @@ export const SURFACES = {
   },
   centipede: {
     '*': {
-      plate: { rust: { color: 'plate*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.12, down: 0.5, pits: 0.4 }, gloss: { size: 0.02, sky: 0.4, amount: 0.6 } },
+      // (the sheet's rivets: a ring of them near each plate's front and back edge)
+      plate: { rust: { color: 'plate*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.12, down: 0.5, pits: 0.4 }, gloss: { size: 0.02, sky: 0.4, amount: 0.6 }, rivets: { color: 'plate+0.25', axis: 2, period: 0.19, offset: 0.5, count: 16, size: 0.035, ink: 0.55, shine: 0.25 } },
       head: { rust: { color: 'head*0.8', color2: 'accent', amount: 0.15, amount2: 0, scale: 0.1, down: 0.5, pits: 0.4 }, gloss: { size: 0.02, sky: 0.4, amount: 0.6 } },
     },
     fallenring: { plate: { gloss: { size: 0.03, sky: 0.5 }, mottle: { color: 'plate2', scale: 0.1, amount: 0.3, soft: 0.06, strength: 0.6 } } },
