@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_eb82c279087944 7
+src/changelog.js
+  s_9ca76055a220ed::t_6ca7a5d2cff61b 17
+src/deep-wood-ways.js
+  s_9ca76055a220ed::t_0ef2ef5b470138 4,73-108
+src/levels/perdide2.js
+  s_9ca76055a220ed::t_a8ecbc7a7168e5 14,804-809,827-828
+tests/level-design-round5.test.js
+  s_9ca76055a220ed::t_fd4a57f1751d41 57-76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2d850d33fb225842c0b66aa5d976bbe31fbe3ca8",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
