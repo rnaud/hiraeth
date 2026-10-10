@@ -18,6 +18,20 @@ combat and controls items were done in v1.41: DONE.md.)
   compiles 1–5 programs on the frame it appears (50–183 ms on the Mac, seconds on a console). docs/systems/foes.md,
   "The stutter when a new foe comes in".
 
+## Xbox: resume the Unity comparison after the Game-default change (2026-10-10)
+
+- [ ] **Reinstall/update Hiraeth (Unity), verify Game allocation, and resume Xbox testing.** The author
+  authorized enabling `DefaultUWPContentTypeToGame` at `https://192.168.68.64:11443` and restarting the
+  console to apply it. The default is now saved as `true`; verify it after reboot and confirm the installed
+  Unity package actually receives Game resources before measuring (the new default may not reclassify an
+  existing installation). Install the latest successful Unity Xbox package over the existing one; preserve
+  the WebView app and saves. Resume Claude's existing Unity worktree, not a parallel implementation.
+  Record cold launch, relaunch, world-generation time, shader warm-up, first playable frame, memory limit/peak,
+  and sustained desert-spawn FPS with script/GPU frame times. Compare against WebView at matching settings,
+  verifying its Game allocation too. Keep the previous 215.6-second QuickJS world build and first-frame
+  termination explicitly labelled **App-mode results**, not Game-mode measurements. Report back with actual
+  results and blockers. **No geometry baking.**
+
 ## Loading follow-up: procedural worlds, no baking (2026-10-10)
 
 Author decision: **do not bake geometry or worlds into shipped assets**. Keep procedural generation and
