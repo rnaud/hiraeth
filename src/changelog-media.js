@@ -463,7 +463,24 @@ const TEMPLES19 = { commit: 'd20992a7', before: '461ac5ea' };
 
 /** The level design audit's third round: the same view in headless Chrome against the commit before (bed64a68) and after. */
 const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280 × 720, High, noon) against this branch’s dev server and the commit before it (bed64a68), the same view each; cwebp -q 72';
+/** The visual probes' fixes (docs/audits/visual-v1.20.md): the probes' own views, at their hour (9:30), the commit before each fix and the fix. */
+const PROBES20 = { hour: 9.5, wait: 3000 };
 export const CHANGELOG_MEDIA = {
+  '1.21': [
+    { match: 'Standing near a room’s corner in shade', shots: [
+      { name: 'corner-copy', caption: 'A room corner inside a doorway in the desert, Handheld: before, a dark copy of the traveller on the wall to his left; after, the corner’s black stays as it is', commit: 'cebcfa5d',
+        view: { ...PROBES20, level: 'desert', quality: 'handheld', player: [157.08, 2400, -249.08], heading: -0.785, eye: [154.46, 2402.2, -246.46], target: [157.08, 2400.9, -249.08] } },
+    ], see: 'On Handheld, stand a step out from a shaded room corner and swing the camera round you: the black in the corner no longer grows a dark copy of you beside you.' },
+    { match: 'Inside the Givers’ Hearth, and in the cave', shots: [
+      { name: 'hearth-hairline', caption: 'Inside the Givers’ Hearth, the light alone (debug view 5, white where daylight reaches), looking at the floor’s edge left of the passage: before, a hairline of sky under the wall; after, none (the bright marks on the floor glow with the stone’s breath)',
+        from: 'the visual probes’ seams check (.claude/skills/visual-audit/probes.mjs, the Hearth’s first look, High, 9:30) on the commit before c593bd17 and on c593bd17; cwebp -q 72' },
+    ], see: 'Inside the Givers’ Hearth, look along the foot of the wall either side of the passage: no bright line where the floor meets the rock.' },
+    { match: 'The makers’ machines hovering and stalking in the temple halls', see: 'In a temple hall where the makers’ machines roam (the City-Shaft’s, the Builders’ Greenhouse), watch one pass in front of a shaded wall: the wall’s deep shadows stay put round it instead of a jagged black halo following it.' },
+    { match: 'Your own shadow on the sand no longer carries', shots: [
+      { name: 'own-shadow', caption: 'By the ship’s ramp, Handheld: before, a ragged black blotch in the traveller’s shadow beside the shield on his wrist; after, only the crease at the dune’s foot', commit: '9623e704',
+        view: { ...PROBES20, level: 'desert', quality: 'handheld', player: [31.05, 23.54, 134.05], heading: 0.785, eye: [33.67, 25.5, 136.67], target: [31.05, 24.44, 134.05] } },
+    ], see: 'At the foot of your ship’s ramp in the morning, look at your shadow on the sand beside your shield hand: no black blotch in it.' },
+  ],
   '1.20': [
     // the worlds, fourth round of the level design audit (docs/audits/level-design-v1.20.md): the same view before and
     // after each world's commit; the ways home seen from where they begin
