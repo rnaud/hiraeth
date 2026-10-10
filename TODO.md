@@ -168,13 +168,19 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor) and batch 4 ("Phase 5, the
   machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints) and batch 5 ("Phase
   5, the late spirits and the roller": the humanoid spirit, the roller, the strings): every archetype is on the kit.
-- [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
+- [x] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
   bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
-  each fight's new attacks.
-- [ ] **7. LOD and style** (1 session): the tiers (held 30 frames) and the stepped clock are built in
+  each fight's new attacks. Done (procedural-animation.md, "Phase 6, the guardians"): the six walkers on jointed planted
+  legs (slide 0.00 m/m, reach 21–33 %, lift 12–17 %, knees 60–96°, the right groups), the body in its own tell rig over
+  planted feet, the wind-up's brace and lock, the fliers on travelling waves, the Snapper's neck a FABRIK chain; every
+  fight's timing unchanged. Left: the guardians' own coil pose per move (they keep their hand-made ones on top of the kit's).
+- [x] **7. LOD and style** (1 session): the tiers (held 30 frames) and the stepped clock are built in
   `src/motion-kit/rig.js`; left: on-screen as well as distance, a far tier that skips drawing the legs, the
   stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
-  the motion check for ink shimmer.
+  the motion check for ink shimmer. Done (procedural-animation.md, "Phase 7, LOD and style"): out of view nothing solved,
+  far IK one frame in four, the machines on twos; the kit 0.24 → 0.13 ms a frame on High and 1.03 → 0.52 on the Deck
+  preset at CPU ×4 with a guardian and 28 foes; shimmer round a walking tripod 515 → 6–26 per 10 000 px. Measured in headless
+  Chrome (no Retroid now).
 
 # Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20, v1.23: 2026-10-10)
 

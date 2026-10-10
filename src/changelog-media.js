@@ -481,7 +481,38 @@ const FACE_TALK = `const ns = window.npcs.filter((n) => n.def && n.def.id !== 't
 const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 /** A save whose temple flags have a latched way open (the pit's pillars, the Root Stair's stones, the Warden's Well's irises). */
 const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...Object.fromEntries(keys.map((k) => [k, true])) }, keepsakes: [] });
+/** The guardians on the kit (v1.29): eight frames of a walk, a quarter second apart, side-on in the Arena; made by hand. */
+const FROM_GUARD29 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena, the guardian called into its ring and walked by hand in a straight line at 2.2 m/s, the camera beside it following, eight frames a quarter second apart; before at main before the change (c2324c58), after on the branch (10 October)';
 export const CHANGELOG_MEDIA = {
+  '1.29': [
+    // the temple guardians on the locomotion kit (docs/systems/procedural-animation.md, "Phase 6, the guardians")
+    { match: 'The temple guardians walk on jointed legs', shots: [
+      { name: 'guardian-walk-keeper', caption: 'The Cistern-Keeper walking, two seconds left to right and top to bottom: before, six straight legs swung from the hip on a clock, their feet sliding; after, knees out and up, each foot planted where it lands, three down while three step', from: FROM_GUARD29 },
+      { name: 'guardian-walk-sentinel', caption: 'The City-Shaft’s sentinel walking: before, three rigid struts swinging together; after, a strut to a high knee and a column down to a round foot, one leg at a time in a machine’s straight moves, a piston to each strut', from: FROM_GUARD29 },
+    ], see: 'In the Arena (?level=arena) open the FOES list (K, or D-pad ↓) and call in a temple guardian: watch its feet as it circles you. Each stays where it landed until it steps again, and the body dips and sways over them.',
+      numbers: [
+        { title: 'Foot slide while walking (lower is planted)', unit: 'm per metre walked', better: 'lower', device: 'node, the game’s own models (scripts/motion-audit/run.mjs)', rows: [
+          { where: 'Cistern-Keeper', before: 0.07, after: 0 }, { where: 'Gardener', before: 0.08, after: 0 }, { where: 'Clockwork Foreman', before: 0.62, after: 0 },
+          { where: 'sentinel', before: 0.14, after: 0 }, { where: 'First Sign', before: 0.16, after: 0 },
+        ], source: 'node scripts/motion-audit/run.mjs keeper gardener foreman sentinel sign, each walking 10 s at its own pace', note: 'Their knees now bend 60–96° on average (the Elder’s 60°, the machines’ 94–96°), the feet lift 12–17 % of a leg, and the steps halve at half speed.' },
+      ] },
+    { match: 'When a guardian rears, crouches or coils for a move', see: 'Call in the Cistern-Keeper and wait for its stamp: it shifts its feet wider, then rears with its two forelegs in the air while the other four stay where they stand. The Clockwork Foreman’s spin lifts its feet off the sand.' },
+    { match: 'The Cloud-Mother’s fins, the Lampless’s wings', see: 'Call in the Lampless or the Cloud-Mother and watch a wing or a fin: the beat starts at the body and runs out to the tip. Call in the Mother Snapper and step out of her lunge: her neck arrives after her head and settles.' },
+    // the kit's detail tiers and its stepped clock (docs/systems/procedural-animation.md, "Phase 7, LOD and style")
+    { match: 'Creatures on legs cost less to animate when they are far off', see: 'Nothing to see: that is the point. A foe coming round the camera is already standing right.',
+      numbers: [
+        { title: 'The locomotion kit a frame, a guardian and a pack on screen and twenty more far off (savings off → on)', unit: 'ms', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, the Arena (the Cistern-Keeper, eight of the roster, twenty at 70–110 m)', rows: [
+          { where: 'High', before: 0.24, after: 0.13 }, { where: 'High, CPU ×4', before: 1.12, after: 0.66 },
+          { where: 'Steam Deck preset', before: 0.24, after: 0.12 }, { where: 'Steam Deck preset, CPU ×4', before: 1.03, after: 0.52 },
+        ], source: 'node scripts/motion-audit/lod-page.mjs --presets high,deck --slow 1,4 (the savings switched off and on in turns in one page, three turns of 6 s each, the median)', note: 'The JS a frame moved with it, within the noise of a shared machine: 7.4 → 6.8 ms on High, 24.5 → 23.6 ms on the Deck preset at CPU ×4. In node: 40 foes (10 near, 30 far) 167 → 71 µs a frame, 51 µs with the camera looking one way.' },
+      ] },
+    { match: 'The lamp tripod, the bell walker and the furnace brute are drawn on twos', see: 'In the Arena call in a lamp tripod or a bell walker and watch it walk: it moves in held poses, twelve a second, while the camera stays smooth.',
+      numbers: [
+        { title: 'Ink shimmer round a walking foe (pixels that flicker and come straight back)', unit: 'per 10 000 px a frame', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, High, the game’s clock stepped by hand', rows: [
+          { where: 'lamp tripod', before: 515, after: '6–26' }, { where: 'bell walker', before: 353, after: '4–5' }, { where: 'furnace brute', before: 1185, after: 243 },
+        ], source: 'node scripts/motion-audit/shimmer.mjs --frames 120: one foe walked past a still camera, a box round it, the motion check’s flicker (docs/systems/rendering.md, “Stable in motion”)', note: 'The brute keeps some: its arms swing every frame. Two runs each; the tripod’s possessed twitch and its steam are random.' },
+      ] },
+  ],
   '1.28': [
     { match: 'Someone else follows the singing light', shots: [
       { name: 'tansy-vael', caption: 'Down the ramp in Vael: before, the sand; after, Tansy waiting a few steps off to one side', from: FELLOW_FROM },
