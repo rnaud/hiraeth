@@ -2417,3 +2417,66 @@ changelog's v1.41 lines.
 - [x] **The Warden's harness retired**: the Warden's Well's chest holds the Warden's bellows (the wings' third strength:
   their wash turns the great vanes; rising air holds you to aim); the temple is played on the wings, the Shaft climb
   trial up the halfway pillar, and the route has no jets at all (save step 11 turns a harness into the bellows).
+
+# Found done in the TODO → GitHub issues port (2026-10-10)
+
+Landed today (see the changelog, v1.38–v1.42): the three new route worlds (v1.40), the moving train and its quest (v1.40), the quieter crowds (v1.42), the light title (v1.38), the lock-on, hops, flurry and smoke (v1.39, the reticle then made clearer in v1.41), the camera-qc skill (v1.40), release failures on the commit (v1.38), the Xbox package installed and running (v1.39), the Deck's load hang confirmed gone and its preset pass (v1.39).
+
+- [x] **Promote the Moon Foundry** to a world on the route.
+- [x] **Promote the city in space** to a world on the route.
+- [x] **Promote and redesign the underwater city as connected, walkable enclosed hubs.** City districts
+  sit inside bulb-like domes, joined by enclosed tubes and pedestrian passages. You walk from one part
+  of the city to another; normal city traversal is not swimming in open water. Outside the enclosures,
+  water surrounds the city, with fish and other sea animals drifting past in view.
+  **Ideas to explore, not settled requirements:** a small-submarine mission or minigame to retrieve
+  something outside the city; the temple could be outside too, reached by submarine, with a partly
+  submerged layout that mixes flooded and dry spaces as its central theme.
+- [x] **The train level moves**: a moving train, not a station, and a sub-level reached by a quest from another world.
+- [x] **Most world characters a little less colourful**, so the quest and main characters stand out.
+- [x] **The title screen**: it hangs on load and ignores the buttons. Make it very light, then a quality pass against its
+  references.
+- [x] **A clear, elegant lock-on reticle.** See the newer readability feedback above; it is currently too hard to notice.
+- [x] **Locked on: back + jump does a back flip**; timed right against an attack it slows time for a few free hits.
+- [x] **Locked on: left or right + jump does a side hop.**
+- [x] **A defeated foe vanishes in a little puff of smoke** a second or so after its defeat animation.
+- [x] **A camera skill** (`.claude/skills/`) that checks the camera behaves: e.g. on the train, walking makes it jump about.
+- [x] **Failed releases visible on the commit**: the v1.35 Android release failed (HTTP 403 creating the release, run
+  38046378533; no v1.35 release exists, v1.36 and v1.37 went out) and the Unity testers' release failed in its cache
+  prune step (run 38042662102). Retry the release creation, fix the prune, and mark the tested commit red when a release
+  fails.
+- [x] **An Xbox Dev Mode package** — built, waiting for the console (docs/systems/xbox.md). Done: the UWP app
+  (`xbox/`: WebView2 at https://hiraeth.example, the packaged game as the fallback, the site's web bundles over the
+  air with `minXbox`, the boot watch, Back kept, pause when away, no mouse mode, the update section), the game side
+  (`src/xbox.js`: the Xbox prompts, the Xbox preset, the TV's safe area, XBOX and a JIT probe on the frame readout),
+  the workflow (`xbox.yml` → the prerelease `xbox`), `scripts/xbox-cert.sh`. Needs: the first Windows run (the runner's
+  UWP tools), the signing secrets (`scripts/xbox-cert.sh`), then on the console: Dev Mode, deploy, set to Game, and the
+  first-run checklist (frame readout, JIT, GPU share App vs Game, controller, memory). The decision, kept:
+  (decided 2026-10-09: the packaged web game, not the Unity build): the web
+  game in a UWP app with WebView2 (like the Android app's wrapper: the same web bundle and over-the-air
+  updates), x64, set to the **Game** app type after deploying (Dev Home / Device Portal: ~5 GB and the full
+  GPU instead of an App's 1 GB and 45 %), built on GitHub (a Windows runner) and published to a prerelease;
+  the author deploys it through Device Portal (Dev Mode: a Partner Center individual account, the green
+  "Xbox Dev Mode" app). First measure on the console with the frame readout: JavaScript's JIT on inside
+  WebView2, the Game-mode GPU share reaching the WebView, the controller (WebView2's gamepad bug is
+  desktop-only by reports: WebView2Feedback#4366). Why not Unity: Puerts has no UWP/Xbox V8 (it would need a
+  V8 port or QuickJS without a JIT, several times slower on a frame the script limits), for at most ~0.9 ms
+  of gain measured on the Mac (docs/systems/engine-bridge.md).
+- [x] **Performance pass on the Steam Deck** (2026-10-09, once the Deck is plugged in so it doesn't sleep):
+  every world in Gaming Mode on the installed build, the FPS and frame times against the targets, the worst
+  views profiled (GPU vs JS), fixes for the biggest costs, before/after numbers in the changelog. First confirm
+  the "mixing the inks…" hang (below) is gone. (2026-10-10: the hang is gone; every world measured before on the
+  Steam Deck preset, profiled, the fixes in: performance.md "The Steam Deck, round 2". Left: the **after** run
+  across the worlds (the Deck slept before it), with the player's game closed, and High at 1.5× for reference;
+  then the desert's camps and the City-Shaft, still under 40 fps: their draws and the people's per-frame work.)
+- [x] Every level hangs on "mixing the inks…" on the Deck (2026-10-08, runtime 1294001, its packaged game,
+  gamescope GL): no error in the console, the first shader warm-up never logs. Suspect: the load's GPU pacer
+  (src/load-steps.js gpuPacer) waiting its full 250 ms on fences the driver never signals, every piece.
+  Check on the device with `PORT=5312 scripts/bench/deck-run.sh start headless` and the console over CDP.
+  Found and fixed (2026-10-08, not yet confirmed on the Deck): with fences forced never to signal, headless
+  Chrome's desert load took 185 s (the first warm-up alone 97 s: 741 surface kinds × up to 250 ms), the
+  Deck's exact symptom; a page with no frame callbacks hung at the very first stage instead (not the
+  Deck's). Now the pacer gives up after 3 full waits in a row or 3 s in all (one "gpu pacer: …" warning),
+  a stage waits for a frame or 250 ms, and a stage over 15 s names its step ("load: still on …"): 3.8 s
+  with silent fences. On the Deck, look for the "gpu pacer" warning to confirm the cause.
+  (2026-10-10, confirmed on the Deck: every world loads, 13–32 s, each with that warning, 751–1544 ms waited;
+  the give-up is remembered per GPU now. Done: move to DONE.md.)
