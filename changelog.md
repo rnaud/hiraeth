@@ -14,6 +14,7 @@ The same release notes shown in the game (press **N** or open settings).
 - The notebook accepts your chosen password and asks you to pause after too many sign-in attempts or rapid submissions.
 - Notes is now a compact to-do list, with more room to type and a sign-in remembered across visits.
 - The notebook can connect to GitHub again: loading and saving no longer fail before the request is sent.
+- The Notes box grows as you write. Sending clears it immediately for your next thought, while pending or failed notes stay in the list.
 
 ## v1.41 — 2026-10-10
 

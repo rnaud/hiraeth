@@ -25,8 +25,8 @@
       <section id="board" hidden>
         <form id="note-form" class="composer">
           <label class="sr-only" for="new-note">Add a note</label>
-          <div class="input-row"><input id="new-note" name="note" type="text" placeholder="Add a note…" maxlength="256" autocomplete="off" enterkeyhint="send" required><button id="add" type="submit">Add</button></div>
-          <div class="composer-foot"><span id="draft-hint">Enter to add</span><span id="length" aria-hidden="true">0 / 256</span></div>
+          <div class="input-row"><textarea id="new-note" name="note" rows="1" placeholder="Add a note…" maxlength="4000" autocomplete="off" required></textarea><button id="add" type="submit">Add</button></div>
+          <div class="composer-foot"><span id="draft-hint">Enter for a new line · ⌘/Ctrl + Enter to add</span><span id="length" aria-hidden="true">0 / 4000</span></div>
         </form>
         <section class="open-notes" aria-labelledby="open-title">
           <div class="list-heading"><h2 id="open-title">To do <span id="count"></span></h2><button id="refresh" class="text-button">Refresh <span aria-hidden="true">↻</span></button></div>

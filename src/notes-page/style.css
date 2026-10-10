@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.45 ui-sans-serif, system-ui, sans-serif; }
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: wait; opacity: .55; }
@@ -26,8 +26,8 @@ main { padding: 12px 0 24px; }
 .signin label { display: block; font-size: 12px; margin-bottom: 4px; }
 .composer { padding: 0; }
 .input-row { display: flex; gap: 8px; }
-.input-row input { min-width: 0; width: 100%; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 11px 12px; border-radius: 6px; }
-input::placeholder { color: var(--soft); opacity: 1; }
+.input-row input, .input-row textarea { min-width: 0; width: 100%; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 11px 12px; border-radius: 6px; }
+input::placeholder, textarea::placeholder { color: var(--soft); opacity: 1; }
 .input-row button { flex: none; color: #fff; background: var(--green); border: 0; border-radius: 6px; padding: 10px 16px; min-height: 44px; }
 .input-row button:hover { background: #304c40; }
 .composer-foot { display: flex; justify-content: space-between; gap: 12px; color: var(--soft); font-size: 11px; margin-top: 5px; }
@@ -50,3 +50,11 @@ h2 { font-size: 13px; font-weight: 600; margin: 0; }
 footer { padding: 0 0 calc(12px + env(safe-area-inset-bottom)); font-size: 11px; color: var(--soft); }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 @media (min-width: 800px) { .notebook { padding-left: max(24px, env(safe-area-inset-left)); padding-right: max(24px, env(safe-area-inset-right)); } }
+
+.input-row { align-items: flex-start; }
+#new-note { resize: none; overflow-y: hidden; min-height: 46px; line-height: 1.45; }
+.pending-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.pending .issue-dot { background: transparent; border: 1px solid var(--soft); }
+.pending.failed .issue-dot { border-color: #984631; }
+.pending .issue-meta { align-items: center; }
+.pending .text-button { min-height: 32px; padding: 4px; }

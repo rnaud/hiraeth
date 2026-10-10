@@ -132,7 +132,7 @@ test('invalid or oversized titles and streamed request bodies are rejected befor
     assert.equal((await handleIssues(request('issues', { method: 'POST', cookie: c, body: { title } }), env, noFetch, now)).status, 400);
   }
   // A chunked body, without Content-Length, must still be bounded.
-  const streamed = new Request(`${origin}/api/notes/issues`, { method: 'POST', duplex: 'half', headers: { Origin: origin, Cookie: c, 'Content-Type': 'application/json' }, body: new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array(4097)); controller.close(); } }) });
+  const streamed = new Request(`${origin}/api/notes/issues`, { method: 'POST', duplex: 'half', headers: { Origin: origin, Cookie: c, 'Content-Type': 'application/json' }, body: new ReadableStream({ start(controller) { controller.enqueue(new Uint8Array(20001)); controller.close(); } }) });
   assert.equal((await handleIssues(streamed, env, noFetch, now)).status, 413);
 });
 
@@ -172,4 +172,17 @@ test('remembered devices renew on visits, including existing 30-day cookies', as
   assert.match(upgraded.headers.get('Set-Cookie'), /Max-Age=34560000/);
   const guest = await handleIssues(request('session'), env, noFetch, now);
   assert.equal(guest.headers.get('Set-Cookie'), null);
+});
+
+
+test('expanded notes keep their complete multiline text in the issue body', async () => {
+  const text = 'A long first line '.repeat(20) + '\nDetails on another line.';
+  const r = await handleIssues(request('issues', { method: 'POST', cookie: await login(), body: { text } }), env, async (url, options) => {
+    const body = JSON.parse(options.body);
+    assert.equal(body.title.length, 256);
+    assert.equal(body.body, `${text}\n\nAdded from the Hiraeth notebook.`);
+    return Response.json(fixture(30, body.title), { status: 201 });
+  }, now);
+  assert.equal(r.status, 201);
+  assert.equal((await handleIssues(request('issues', { method: 'POST', cookie: await login(), body: { text: 'a'.repeat(4001) } }), env, noFetch, now)).status, 400);
 });

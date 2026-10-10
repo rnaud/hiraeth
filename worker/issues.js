@@ -69,7 +69,7 @@ async function readJson(request) {
       const { value, done } = await reader.read();
       if (done) break;
       size += value.length;
-      if (size > 4096) { await reader.cancel(); throw new Error('large'); }
+      if (size > 20000) { await reader.cancel(); throw new Error('large'); }
       chunks.push(value);
     }
   } finally { reader.releaseLock(); }
@@ -147,11 +147,16 @@ export async function handleIssues(request, env, fetcher = fetch, now = Date.now
       if (!Array.isArray(issues)) return failure(502, 'The notes could not be loaded. Please try again.');
       return json({ issues: issues.filter((i) => !i.pull_request).map(issueView), nextPage: /rel="next"/.test(response.headers.get('Link') ?? '') ? page + 1 : null });
     }
-    const title = body?.title;
+    const text = body?.text;
+    if (text !== undefined && (typeof text !== 'string' || !text.trim() || text.length > 4000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(text))) {
+      return failure(400, 'Write a note, up to 4,000 characters.');
+    }
+    const title = text === undefined ? body?.title : text.trim().split(/\r?\n/)[0].trim().slice(0, 256);
+    const description = text === undefined ? 'Added from the Hiraeth notebook.' : `${text.trim()}\n\nAdded from the Hiraeth notebook.`;
     if (typeof title !== 'string' || !title.trim() || title.trim().length > 256 || /[\r\n\u0000-\u001f\u007f]/.test(title)) {
       return failure(400, 'Write one line, up to 256 characters.');
     }
-    const response = await github(fetcher, env, API, { method: 'POST', body: JSON.stringify({ title: title.trim(), body: 'Added from the Hiraeth notebook.' }) });
+    const response = await github(fetcher, env, API, { method: 'POST', body: JSON.stringify({ title: title.trim(), body: description }) });
     if (!response.ok) return githubFailure(response, true);
     const issue = await response.json();
     if (!Number.isSafeInteger(issue.number)) return failure(502, 'We could not confirm whether the note was saved. Refresh the list before trying again.');

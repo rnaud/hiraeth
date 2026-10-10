@@ -2,13 +2,16 @@
 
 `notes.html` is the phone-friendly Notes page in the game's Pages list. It shows open GitHub issues
 (excluding pull requests), 50 records per page with a Load more button. Search filters the loaded notes.
-Write one line and press Enter or Add to create an issue; the composer stays ready for the next thought.
+Write up to 4,000 characters in the expanding composer. Enter adds a line; Add or Ctrl/⌘ + Enter sends.
+The first line (up to 256 characters) becomes the issue title; the full text is preserved in its body.
+The composer clears immediately, and pending notes appear in the list while you type the next one.
 Labels and reply counts come from GitHub, and each note links to its issue. Closing an issue on GitHub
 removes it on the next refresh. The page does not start the game or its audio system.
 
 GitHub is the only task store: no second database and no automatic TODO.md import. Creating a note does
 not wake Claude; issue polling/assignment is a separate workflow that must be configured explicitly.
-Unsent drafts are kept in localStorage on that device. A failed or uncertain submission keeps the draft;
+Unsent drafts and the optimistic outbox are kept in localStorage on that device. Failed submissions stay
+in the list with Check GitHub, Retry and Remove draft actions. Reloaded pending notes become unconfirmed;
 there are no automatic write retries. If delivery is uncertain, refresh the list before resending.
 
 ## Worker setup
@@ -42,8 +45,8 @@ credentials cross-origin. Local development uses `wrangler dev` on localhost wit
 
 Both listing and creating require the notebook password. Sign-in issues a signed, origin-bound
 400-day cookie, renewed whenever the page checks an authenticated session: Secure, HttpOnly, SameSite=Strict, host-only. The browser never receives the GitHub token
-or stores the notebook password. Writes check Origin and accept only JSON; bodies are limited to 4 KiB,
-titles to one nonempty line of at most 256 characters. Repository selection and labels cannot be supplied
+or stores the notebook password. Writes check Origin and accept only JSON; request bodies are limited to 20,000 bytes; notes to 4,000 characters.
+Legacy single-line title requests remain supported up to 256 characters. Repository selection and labels cannot be supplied
 by a client. GitHub errors are translated to safe messages; no upstream secrets or response bodies are
 returned. API responses are never cached. Requests to GitHub time out after 12 seconds. Redirects use `manual` and fail as upstream errors;
 Workers does not support fetch's `error` redirect mode. Credentials are never forwarded to a redirect target.
