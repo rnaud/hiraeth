@@ -1,0 +1,43 @@
+DONE.md
+  s_9ca76055a220ed::t_64d4654853680a 1973,1989
+TODO.md
+  s_9ca76055a220ed::t_f4544b6a2fe445 67,103-104,107,109,111
+docs/README.md
+  s_9ca76055a220ed::t_999e79392c55ff 26
+docs/audits/combat-v1.18.md
+  s_9ca76055a220ed::t_eb2323be6f47ba 1,19,28
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_cc65ccca2d5c9a 895,939
+docs/systems/foes.md
+  s_9ca76055a220ed::t_74fdf695634d9d 516,593,595,613,630,632,634,763,777,791
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_8b274c25779afe 351
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_b68d7838a52eee 79
+src/enemies/surfaces.js
+  s_9ca76055a220ed::t_ae29b4fd12dda5 382
+src/foe-kinds.js
+  s_9ca76055a220ed::t_7264ce714b35a8 8
+src/foe-worlds.js
+  s_9ca76055a220ed::t_0ed9a30174ba5a 13
+src/foes.js
+  s_9ca76055a220ed::t_ec1dc256649dc0 87,91,160,267
+src/shade.js
+  s_9ca76055a220ed::t_ba0ab3484b9275 9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4c9b043c237edad001d309c8aebb247e86c20d3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
