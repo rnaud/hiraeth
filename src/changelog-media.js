@@ -444,6 +444,33 @@ const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place�
 
 export const CHANGELOG_MEDIA = {
   '1.15': [
+    // the temple guardians' last phases: each arena's new pieces from its doorway (the guardian asleep), and the
+    // First Sign's and the Foreman's tells held open (their setups force the opening, before and after alike)
+    { match: 'Five temple guardians now end their fight', shots: [
+      { name: 'belfry-hall-stones', caption: 'The Cloud-Mother’s hall from its doorway, looking up: after, four stones that fell up hang under the dome; a ring as she rises to dive brings one down where she will dive', commit: 'd7a83578',
+        view: { level: 'arzach2', player: [80, 1616.2, 278], eye: [80, 1620, 279], target: [80, 1630, 303], fov: 75 } },
+    ], see: 'In the Founders’ Belfry, get the Cloud-Mother to her second phase and sound the bell as she rises high to dive: the nearest hanging stone drops onto the spot under her and glows while the note holds it; she dives onto it and lies there crying, and a second ring calms her. In her last phase she no longer sinks to cry on her own: a ring between her moves brings nothing down.' },
+    { match: 'In the Lamp-House’s lamp-room three dark pools', shots: [
+      { name: 'lamp-room-pools', caption: 'The Lamp-Room from its doorway: after, three pools round the floor, two of them lit (a splash, or your lantern held by one), each a light the Lampless drifts down to', commit: 'd7a83578',
+        view: { level: 'perdide2', player: [-140, 1809.2, -174.6], eye: [-140, 1814, -173], target: [-140, 1808, -150], fov: 75,
+          setup: 'const P = window.temples?.perdide2?.lurePools; if (P) { P.light(P.list[0]); P.light(P.list[2]); }' } },
+    ], see: 'In the Lamp-House’s lamp-room, splash a pool (or stand by it a moment with the lantern) and step well away: the next time the Lampless hangs low, searching, it drifts over to the lit pool and drinks it dark. In its last phase stand by the lit pool and it hangs over it and waits; step five metres back and it drinks.' },
+    { match: 'Three crystal pendulums now swing high over the Mother Snapper', shots: [
+      { name: 'hush-hall-crystals', caption: 'The Mother’s Hall from its doorway: after, three crystal pendulums of three sizes swinging high over her, out of order round the hall', commit: 'd7a83578',
+        view: { level: 'perdide', player: [-100, 1709.2, 425.6], eye: [-100, 1712, 428], target: [-100, 1718, 449], fov: 75 } },
+    ], see: 'In the Hush-House’s last hall, still the middle crystal first: it rings flat and the Mother snaps up. Still the smallest, then the middle, then the biggest, and each rings true and glows on; after the third her jaws ease. In her last phase a cold glob in her open mouth no longer calms her.' },
+    { match: 'The First Sign’s hall in the Undertower has two low dishes', shots: [
+      { name: 'sign-hall-dishes', caption: 'The First Sign’s hall from its doorway: after, a low dish on each side wall with its twin high over it and a cable from them to the Sign’s foot', commit: 'd7a83578',
+        view: { level: 'bazaar', player: [-200, 1612.2, -386.5], eye: [-200, 1616, -386], target: [-200, 1614, -363.5], fov: 62 } },
+      { name: 'sign-listens-up', caption: 'The First Sign listening in its last phase: before, its dish lowered to you; after, turned up to the dark (it hears only through the dishes on the wall)', commit: 'd7a83578',
+        view: { level: 'bazaar', player: [-200, 1612.2, -387], eye: [-193, 1619, -374], target: [-200, 1620.5, -360.5], fov: 60,
+          setup: 'const G = window.temples?.bazaar?.guardian; if (G) { G.meter = G.floor = 0.75; G.state = "open"; G.t = 0; G.openFor = 1e9; }' } },
+    ], see: 'In the First Sign’s last phase, play its word at its face: nothing; it says to use the dishes. Stand under a low dish on the wall and play it there while it listens: a moment later the twin over it rings and the Sign takes the word.' },
+    { match: 'When the Clockwork Foreman’s face opens in the First Garage', shots: [
+      { name: 'foreman-four', caption: 'The Clockwork Foreman with its face open: before, its hands still turning; after, both come round to four (hour hand on four, minute on twelve), and the numerals at four, six and eight ringed, hit in step', commit: 'd7a83578',
+        view: { level: 'garage', player: [-300, 1809.2, -289], eye: [-300, 1813.6, -274.5], target: [-300, 1813.4, -262], fov: 50,
+          setup: 'const G = window.temples?.garage?.guardian; if (G) { G.meter = G.floor = 0.75; G.state = "open"; G.t = 0; G.openFor = 1e9; for (const i of [2, 3, 4]) G.model.step?.(i, true); }' } },
+    ], see: 'In the First Garage’s workshop, when the Foreman’s face opens, watch its hands stop at four. In its last phase splash the numeral at twelve first: they all go dark. Splash four, six, eight, ten, twelve and two inside one breath (the quick coil) and it staggers.' },
     { match: 'The antler hound’s smoke mane moves again', see: 'In the Arena (the worlds list, or ?level=arena) open the FOES list (K, or D-pad ↓) and pick a world the antler hound lives in (the Eclipse, the Mangrove, the Signal Market or the Garden of Spheres): the tongues of smoke along its back now sway and stretch, each on its own beat, and lie back flatter when it runs. A still picture shows nothing of it; before, they stood rigid. Its cost: 8 flames turned a frame, about 1.4 µs more per hound (Mac M4 Pro, Node), no new draws.' },
   ],
   '1.14': [
