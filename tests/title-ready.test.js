@@ -173,3 +173,10 @@ test('the title\'s recording is balanced in steps, the page answering meanwhile'
   assert.equal(r.value.getChannelData(1)[123], whole.getChannelData(1)[123]);
   await sleep(0);
 });
+
+test('the title shows the build and commit after the version, so a device shows which build it runs', async () => {
+  const { buildLabel } = await import('../src/build-label.js');
+  assert.equal(buildLabel({ build: 1694, commit: 'f56f0a51abc' }), ' · build 1694 · f56f0a5');
+  assert.equal(buildLabel({ commit: 'f56f0a51' }), ' · f56f0a5', 'a shallow clone: no build number');
+  assert.equal(buildLabel({}), '');
+});

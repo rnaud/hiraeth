@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.39 — 2026-10-10
 
+- The title screen shows the build number and commit after the version, so you can tell which build a device runs.
 - The Arena is a real arena now: a round fighting floor of packed sand with its ring markings, a stone wall with tiers of seats round it, two gates with braziers burning beside them and banners along the top. Nothing grows or stands in the ring any more; the Ink tide sign and the hitbox board wait by the south gate.
 - On the Xbox the controller works on the title screen and in the game: the console told the game it never had the focus, so every press was ignored.
 - Loading a world on the Steam Deck is about a second quicker: the loading screen stops waiting for a signal the Deck’s graphics driver never sends, once it has found that out the first time.

@@ -31,6 +31,8 @@ import { markBooted } from './native-app.js';
 import { startThemeDownload } from './music-store.js';
 import { THEME_FILES } from './soundtracks.js';
 import { VERSION } from './changelog.js';
+import { buildLabel } from './build-label.js';
+
 import { devMode } from './dev-gate.js';
 import { padConfirm } from './menu-pad.js';
 import { logoSvg } from './title-logo.js';
@@ -183,7 +185,7 @@ export function showTitle({ store = slots, doc = document, win = window, vista: 
           <div class="head"><h2 data-t="title.savesHead">${t('title.savesHead')}</h2><button data-a="back">${glyph('back', { key: 'Esc' })}<span data-t="title.back">${t('title.back')}</span></button></div>
           <ol class="slots"></ol>
         </section>
-        <p class="version">v${VERSION}</p>
+        <p class="version">v${VERSION}${buildLabel()}</p>
       </div>
       <div class="confirm" hidden><div class="card" role="alertdialog" aria-labelledby="title-confirm-q">
         <h3 id="title-confirm-q"></h3><p class="what"></p><p data-t="title.undone">${t('title.undone')}</p>
