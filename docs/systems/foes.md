@@ -513,7 +513,8 @@ The count is said every 5 ink.
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
   `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the root
-  arches past the glass dome; the Desert's cistern pump and the Garden's glass puppet are still to place.
+  arches past the glass dome; the Garden of Spheres' glass puppet (a marionette, v1.17) hangs by the white archway in the
+  android wood, just clear of its arch; the Desert's cistern pump is still to place.
 
 ## Controls and the lock-on
 
@@ -589,48 +590,14 @@ Foes press you rather than run (enemies that flee are a chore to chase, not a fi
   stuns the foe `PARRY_STUN` s.
 - **Combos:** a stilled foe takes the blade double (and the stilling breaks); a push ends a swarm blot.
 
-## The shade (`src/shade.js`)
+## The shade (v1.17: `src/enemies/plans/humanoid.js`)
 
-A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
-- **Body:** the game's own skinned body (`buildCharacter`, `Humanoid`, `Animator`, `Locomotion`, as an NPC's).
-  It walks where its mind went, and plays the Sword and Shield pack's attack (`SHADE_STRIKE`): up to the cut
-  as it winds up, through the cut during its strike phase, then the follow-through as it recovers.
-- **The look:** a cartoon drawn in negative. One material per shade (`SHADE_MATERIAL`, the `'shadow'` fluid,
-  kind 5 in materials.js): flat black, always lit flat (no shade side, so no shadow-edge line across it), a few
-  white fold strokes (contours of a stretched noise in bind space, masked to a few short ones, a few mm wide,
-  never under a pixel). Its lines are white: `makeMaterial({ lineWhite })` stores RT0.a as −(1 + L + 2 × step)
-  (the sign bit, rendering.md "The G-buffer's layout"), and post.js 1b draws the line's owner's line in
-  `INK_WHITE` instead of the ink, so the contour round it, both sides of the silhouette, and its creases are
-  white in any world's light. No extra pass: one more tap was already there.
-- **Its head, a black flame** (`ShadeFlame`): drawn as a cartoon draws a flame, three flat tongues (`TONGUES`:
-  the head's onion, rising from behind the collar so the chest and shoulders hide its root, and two lesser tips
-  out of its flanks, leaning out and curling in) on one card that turns to the eye round its upright as it is
-  drawn (`onBeforeRender`, a perspective camera's only: the shadow's leaves it), 525 vertices rewritten on the CPU
-  each frame, sharing the body's material. Overlapping on the card they make one silhouette with three wavy tips.
-  Its normals bulge it out to its edges, so the material's inner white contour runs round it; each edge is
-  scalloped by licks travelling up it out of step left and right (`lickWave`), and its axis by an S-wave
-  travelling up (`tongueAxis`); a white lick is drawn up each tongue (the head's only up its tip, clear of the
-  eyes), from its `aFold` (x 1 + across a tongue, 3 + the head's; y up it), which also keeps the body's cuts off
-  it. The body's head is cut at the neck (`fluidBox.w`, 1.5 m in bind space). Two white eye-slits (`EYES`) sit on
-  the card. The drive is pure maths (`flameTarget`, `flameDrive`, `FLAME`): it leans from its velocity (across
-  the card; toward or away from the eye it foreshortens), flares to `1 + flare` over the wind-up (eyes
-  narrowing), whips across with the cut (`sin 2πk`), gutters (smaller, choppier, eyes shut to lines) while stunned
-  or just hit, and is gone as it melts; it flares fast and dies down slower, on its own clock. Every 0.35–0.8 s a
-  tip breaks off as a small rising wisp (`ShadePools.licks`, white-lined), its tongue jumping short a moment
-  (`drive.snap`); oftener as it flares or gutters, a stream as it dies.
-- **The contour:** post.js' white line on both sides of its silhouette, and inside it a white band ~1.4 px wide
-  (`SHADE_RIM`, × the render scale) where its surface turns from the eye (n·v over its own screen derivative: how
-  many pixels to the edge): about 2–3 px of clean white in all, as rubber-hose cartoons draw it.
-- **Its strike** (`SHADE_STRIKE`) is the blade's first cut (`mixamo_ss_attack_1`: moves.glb has it; the attack
-  it named before was gone, so it never moved its arms).
-- **Coming and going:** `uFluidB.y` (melt) pours it up out of the floor and back down into it under a dripping
-  edge; its flame's root sinks with it, and black licks tear off the tips and rise. Its feet run into the floor in
-  wavering drips.
-- **On the floor:** a few plain black drops fall off it (`ShadePools.drops`, smooth spheres, inked as anything is), and it leaves dark pools where it walks (`ShadePools.pools`: a `Footprints` decal with a blob shape,
-  so it darkens the ground and is never inked). The costume's pieces (a hat, a pack) are hidden: only the
-  skinned body is drawn.
-- **Where:** a lone shade in a later pack (`packKinds`, n ≥ 3), and in the Arena. Without the game's bodies
-  (tests) it is drawn as a blot.
+Until v1.17 the shade was the game's own skinned person drawn as a cartoon's negative, flat black with white lines and
+a black flame for a head (src/shade.js `ShadeBody`, with the Sword and Shield pack's cut). The enemy roster's batch 5
+reworked it onto a body of its own, archetype 19 (below, "Batch 5"): a cloak worn by nothing on two empty boots, with a
+feint and a step through its shadow beside its cut. src/shade.js keeps what the shadow leaves (`ShadePools`: the pools a
+blot or a shade stains the ground with where it falls, the drops, the licks) and the flame's maths and white-lined
+material (tests/shade-flame.test.js); no foe draws the flame now. The white contour lives on in the new shade's smoke.
 
 ## Polish
 
@@ -643,7 +610,7 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## The enemy roster (v1.8–v1.16, `src/enemies/`)
+## The enemy roster (v1.8–v1.17, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
@@ -660,11 +627,11 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
     (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`). Batch 3 (v1.13): the **bellows toad**
     (`toad`), the **stilt heron** (`heron`), the **skitter swarm** (`skitter`), the **root knot** (`rootknot`). Batch 4
     (v1.16), the possessed machines: the **furnace brute** (`brute`), the **ring drone** (`drone`), the **crucible
-    cart** (`cart`), the **bell walker** (`bell`);
-  - `stand-in`: not built yet, an old kind runs as its body meanwhile (only the shade, on its own body in
-    src/shade.js, until its batch-5 rework; src/foe-kinds.js has no stand-in left);
-  - `planned`: nothing stands in (the pearl roller, the marionette): the world tables list them, spawning passes them
-    over until they land.
+    cart** (`cart`), the **bell walker** (`bell`). Batch 5 (v1.17), the late spirits and the roller: the **shade**
+    (`shade`, reworked), the **pearl roller** (`roller`), the **marionette** (`marionette`). **All 21 are built.**
+  - `stand-in`: not built yet, an old kind runs as its body meanwhile; none since v1.17 (src/foe-kinds.js holds no
+    kind, the shade's old body is retired);
+  - `planned`: nothing stands in, the world tables list it and spawning passes it over; none since v1.17.
 - **Skins** (`src/enemies/skins.js` `SKINS[archetype][world]`): a name, a palette, props (lichen, a beetle's
   antennae, a hermit's awning, barnacles and rope, glass facets, coral, patina; a pipe-elbow horn, coins, soot;
   crescent, driftwood, halo or wire antlers; a drill lamp, a diving bell, gyroscope rings, a cistern pump), and
@@ -691,7 +658,11 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   its antennae on chains), `floater.js` (plan 11: the jelly's bell pulsing on a `Wave` that quickens as it winds up,
   threads and lanterns on verlet chains). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
   `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
-  (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum). **Skinned on the
+  (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum); batch 5's:
+  `humanoid.js` (plan 9: the shade's empty boots on the gait planner, its cloak on lagging springs, its ribbons on
+  verlet chains as continuous skinned strips), `roller.js` (plan 16: a rippling foot by distance, the roll locked to the
+  ground), `strings.js` (plan 21: a puppet hung from a knot as a pendulum, its strings one mesh skinned between the knot
+  and what they hold). **Skinned on the
   kit's joints** (v1.16, `kit.js` `skinned`, `skinBy`): a body's moving parts of one material are one skinned mesh
   whose bones are the kit's own joints (a leg's thigh, shin and foot, an arm's pivots, a plate's), each tinted by its
   own colour (vertex colours), one skeleton a body; its bounds follow the joints. The machines are 6–16 meshes each,
@@ -789,13 +760,37 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | crucible cart (`cart`) | a squat pot of boiling ink on a turntable over two tracks, a smoke column with eyes | pour (1.2 s; the crucible tips, the lip glows; slag stays 6 s), ram (1.3 s; it backs up, tracks spinning; a wall stalls it) | get behind it or aside; a plain shot douses it (cuts double); a bomb jams its tracks; walls; don't follow its dripped trail | trundles its round; always hostile (10 m) |
   | bell walker (`bell`) | a 4.4 m bell in a riveted yoke on five spider legs, the spirit at the lip; a winch drum in the Salt Harbour | toll (1.6 s; reared back, the clapper swinging higher three times; three rings run out 12 m), drop (1.2 s; the legs straighten, the bell rises; it slams where you stood, then tips up open 2.5 s) | jump each ring; the bell-note whistle chokes the toll; strike the clapper while it sits open; guard the drop | stands in its square, tolling softly; always hostile (12 m) |
 
+- **Batch 5's fields** (v1.17): `feint` (the share of the wind-up the shade's body spends on a false cut before the
+  thrust: the body's alone, the mind winds the thrust up in full); `lights` (an ember lights it solid `LIT` s, `Foe.lit`)
+  with `dark` (a move only while unlit: the shade's step); `at: 'beside'` (it comes up at your side: the step's blink);
+  `rolls` (it rolls through the strike: a cut, a shot, an ember glance off, `Foe.rolling`), `onParry: 'bounce'` (any
+  guard bounces it off stunned, `BOUNCE`), `bounces` (the walls a roll bounces off back at you before the next stalls it,
+  a `bounced` event) and `shatter` (`{ speed, reach, damage, width }`: the last roll ends, or hits a wall, in a ring that
+  runs out over the ground: `Foe.shatter`, `Foes.shatter`); `puppeteer` (the marionette: it sees the creatures near it,
+  `Foe.allies`, and hangs back instead of hiding) with `possess` (`{ range, time }`: its strings dropped onto a creature,
+  a calm one too, `Foes.possess`: the creature's eyes go black, its wind-ups × `POSSESS.wind`, light blows never stagger
+  it; each string a target of kind `'rope'` the blade, the boomerang and an ember cut, `Foes.cutStrings`: it drops free,
+  stunned `POSSESS.free` s, wildlife back to its calm; the marionette gone or the time out, it is let go, `Foes.unstring`),
+  `alone` (a move only with nothing held and nothing near to hold: the dance) and `lift` (m/s a line that catches you
+  lifts you: the yank); the calm modes `pace` (a path walked back and forth through its home, waiting `wait` s at each
+  end: the shade) and `hang` (the marionette hangs where it is).
+- **Batch 5** (v1.17):
+
+  | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
+  |---|---|---|---|---|
+  | shade (`shade`) | an empty hooded cloak 2.2 m to its point, two white eyes in a black hollow, wide sleeves, empty boots, ribbons trailing, the hem breaking into white-lined smoke | cut (0.9 s; the sword back over its shoulder, the hood turning to you), feint and thrust (1.3 s; the cut stopped halfway, the sword dropped to the hip; a low lane), step through the shade (1.0 s; the cloak sinks into a pool that slides round beside you; then the recut) | parry and riposte on the cut, evade the thrust sideways, an ember (solid: no step, and it burns ×2) | walks its path back and forth, waits at its ends; turns on you at 5 m |
+  | pearl roller (`roller`) | a snail under a shell bigger than itself; rolled up, a perfect ball | bowl (1.0 s; the stalks sink, the shell rocks three times; a roll that bounces off one wall back at you), ricochet (1.0 s; the Garden, Space City: two bounces), last roll (1.6 s; under a quarter, spinning in place; it shatters in a ring) | guard (it bounces off stunned), sidestep it into a wall (stalled, open), jump the ring; rolling, nothing harms it | grazes; fights if hit or touched (2.4 m) |
+  | marionette (`marionette`) | a thin puppet hanging a metre off the ground on four strings rising into a knot of smoke | strings (1.2 s; both arms up, fingers curling, strings unspool onto a creature: driven), yank (1.0 s; one arm rises: a line that lifts you), dance (0.95 s; alone: dropped low, legs jerked up, a whirl) | cut the strings (the air cut, the boomerang, an ember: the creature drops free), guard the yank (the line cut), cut it while it hangs slack after its dance | hangs still under arches; comes for you at 9 m; escorted by a crab in the Arena |
+
 - **Retired:** the 100 world enemies (src/enemies/roster.js, models.js, their tests and capture scripts: gone from
   spawning, the Arena, the FOES list and the gallery) and the glass splinter (v1.8); the dune ray, the sign moth's old
   body and the winged blot (v1.9: the mound worm, the signal moth and the sky ray took their places; the Arena's old
   waves and Ink tide field the sky ray where the winged blot came); the spitting blot, the blot swarm and the root
   stalker (v1.13: the bellows toad, the skitter swarm and the root knot took their places in the Arena's old waves, Ink
   tide and the centipede's shed tail); the glass golem and the slag walker (v1.16: the furnace brute and the crucible
-  cart took their places; the rust drone's kind is the ring drone's). The spitting blot's spit is the blot's.
+  cart took their places; the rust drone's kind is the ring drone's); the shade's old body (v1.17: the skinned person
+  with the flame head, src/shade.js `ShadeBody`; the shade's kind and its flags are kept, on its new body). The
+  spitting blot's spit is the blot's.
   Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and
   the kept kinds kept their ids.
 - **Tests:** `tests/archetypes.test.js` (the tables, every world's roster valid and diverse, the curve, each built

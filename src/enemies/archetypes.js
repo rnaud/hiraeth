@@ -235,7 +235,7 @@ export const ARCHETYPES = {
     moves: ['bowl', 'ricochet', 'last roll'], answers: ['guard: it bounces off stunned (then the charged cut into its foot)', 'walls: sidestep it into one', 'the bubble (it floats, helpless)'],
     idle: 'grazes moss in slow glistening trails, and pulls in if you touch it',
     def: S({
-      name: 'pearl roller', hp: 4, radius: 0.8, height: 0.9, speed: 1.5, sight: 16, giveUp: 30, reach: 9,
+      name: 'pearl roller', hp: 4, radius: 0.8, height: 0.9, speed: 2.4, sight: 16, giveUp: 30, reach: 9,
       tone: '#e8d7f0', takes: { shoot: 1, fire: 1 },
       calm: { mode: 'graze', wild: true, provoke: 2.4, alarm: 8 },
       attacks: [

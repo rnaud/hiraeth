@@ -63,8 +63,9 @@ docs/audits/combat-v1.8.md), batch 2 (the mound worm, the sky ray, the signal mo
 jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md), batch 3 (the bellows toad, the stilt heron, the
 skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/combat-v1.13.md) and batch 4 (the
 furnace brute, the ring drone, the crucible cart, the bell walker, drawn to both their sheets; scored in
-docs/audits/combat-v1.16.md). The Desert, Vael, Vael II, Lorn and Viridel run wholly on the new roster; Lorn II all
-but its rare shade (the batch-5 rework).
+docs/audits/combat-v1.16.md) and batch 5 (the shade reworked, the pearl roller, the marionette, drawn to both their
+sheets; scored in docs/audits/combat-v1.17.md). All 21 are built: no stand-in is left and every world runs wholly on
+the new roster.
 
 - [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
   (`references/enemy-archetypes/<id>/sheet-1.jpg`) instead of the old reference crops.
@@ -95,13 +96,24 @@ but its rare shade (the batch-5 rework).
   tracks, a toothed sprocket, a billowing smoke column; the brute's crack net lighter, its fingers in plates, its fists
   meeting over its head for the slam; the bell's yoke a flat riveted band, its spirit seen from above; the drone's
   cloud spreading in wisps at its sides.
-- [ ] **Batch 5** (the doc's step 7): the shade rework (feint, shadow step), the pearl roller, the marionette (strings,
-  a host's `possessed` state).
 - [ ] **Batch 6** (the doc's step 8): balance and sound: the pack budgets per world played through, the hurt/burst
-  sound families (`sound` per archetype), re-scored with the combat-review skill; retire each old kind as its
-  archetype lands (src/foe-kinds.js says which stands in for which).
-- [ ] The placed ones (`PLACED` in src/foe-worlds.js, v1.16: Lorn II's wood cutter stands by the lit path): the Desert's
-  cistern pump (a lamp tripod by the deep cistern), the Garden's glass puppet (a marionette, with batch 5).
+  sound families (`sound` per archetype: the roller's rolling rumble and glassy shatter, the marionette's paper and
+  strings), re-scored with the combat-review skill. (Every old kind is retired since batch 5.)
+- [ ] The placed ones (`PLACED` in src/foe-worlds.js: Lorn II's wood cutter by the lit path, v1.16; the Garden's glass
+  puppet by the white archway in the android wood, v1.17): the Desert's cistern pump (a lamp tripod by the deep cistern).
+- [ ] Play the shade's feint with a pad (combat-v1.17 rec. 1): is the thrust's parry found after the false cut, or does
+  every early guard simply block it? If the feint never pays, a guard held through the false cut is broken by the thrust
+  (staggered, not hurt).
+- [ ] The pearl roller in a world with walls (combat-v1.17 rec. 2): the Hangar's corridors, the Garden's terraces; does
+  the bounce aim fairly at you, does a wall stall read as an opening?
+- [ ] The marionette's strings as targets (combat-v1.17 rec. 3): cut them with the air cut from the ground and with the
+  boomerang; if the air cut can't reach, lower the cut point or widen it.
+- [ ] The combat-review script (combat-v1.17 rec. 4): drive the marionette with a host and time freeing it (strings cut)
+  as well as killing it; the roller's shot and ember times assume it unrolled (rolling, they glance).
+- [ ] Batch 5 against its sheets (docs/design/enemy-roster.md "Status"): the shade's cloak a soft drape with folds, not a
+  flared cone with painted ones, its smoke in flame-like curls; the roller's spiral on one side only and sheet-2's
+  rocking runners in its wind-up, a glistening trail where it grazes; the marionette's glass see-through and its knot
+  billowing ink, not heaped puffs.
 - [ ] Play the horn lizards' pair with a pad (combat-v1.8 rec. 1): the flanker's circle and its hiss read before the
   bite? The blare's shove toward the partner fair? The antler hound's threat on a still player is the highest (4.6
   bars a minute, rec. 2): lengthen its `cool` if the playtest agrees.
@@ -114,8 +126,6 @@ but its rare shade (the batch-5 rework).
   ink's) for the whole roster; glass, shell, paper, roots, slag and shadow each want their own.
 - [ ] The route's difficulty falls at the end: the Garden of Spheres and the Signal Market field the softest kinds (the
   sign moth: 1.0 bar a minute, one blow). Bring a late kind or a mixed lead to them.
-- [ ] The shade (one cut, 3.75 bars a minute on a still player in v1.6, only the blade answers it) wants a second
-  attack and another answer. (The hound's pounce is 0.8 s now: v1.6.)
 - [ ] A shot that does nothing (machine, ray, golem, drone, crab, hound) should say so: a glance spark and the armour's
   thunk.
 - [ ] The combat-review script: frame each kind side-on for the contact sheet; drive guard, parry and evade timing
@@ -196,8 +206,8 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
 - [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md): each body plan a table entry and
   its poses, scored with the rubric (≥ 2 on every row). Done for batch 3 (procedural-animation.md, "Phase 5": the
   hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor) and batch 4 ("Phase 5, the
-  machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints); left: batch 5's
-  plans (tracks, the brute, the siege machine, the roller, the humanoid spirit, the strings).
+  machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints) and batch 5 ("Phase
+  5, the late spirits and the roller": the humanoid spirit, the roller, the strings): every archetype is on the kit.
 - [ ] **6. Guardians** (1–2 sessions): keeper, gardener, foreman, sentinel, First Sign onto the kit (IK legs,
   bodies from feet); whale, moth, Elder, echo onto waves with lag; the Snapper's neck on FABRIK; key poses for
   each fight's new attacks.

@@ -1970,3 +1970,21 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   (docs/systems/foes.md); re-scored in docs/audits/temple-design-v1.16.md (1.89 → 3.78 each, average 2.80 → 3.14).
   Engine: drums with `stops`, `when` on latched elements, `Sunbeam`, seed-balls, `Gust` / `Updraft` `when` and a
   gust's `carry`; tests/temples.test.js and tests/guardian-twists.test.js play them, failures first.
+## Enemy roster: batch 5, the late spirits and the roller, and the kit's last plans (2026-10-09, v1.17)
+
+- [x] Batch 5 (src/enemies/plans/), drawn to both its sheets and painted in every skin: the shade reworked (humanoid.js,
+  plan 9: a cloak worn by nothing on two empty boots, its cloak on lagging springs, its ribbons continuous strips on
+  verlet chains, the hem's smoke white-lined), the pearl roller (roller.js, plan 16: a rippling foot by distance, the roll
+  locked to the ground, a wobble on a spring), the marionette (strings.js, plan 21: a puppet hung from a knot of smoke as a
+  pendulum, its four strings one mesh skinned between the knot and what they hold). Their minds (src/foes.js): the shade's
+  feint and its step through its shadow to your side that an ember stops (`lights`, `dark`, `at: 'beside'`); the roller's
+  roll that glances everything, bounces off one wall back at you, stalls on the next, bounces off a guard stunned, and
+  its last roll's shattering ring (`rolls`, `bounces`, `onParry: 'bounce'`, `shatter`); the marionette's strings on a
+  creature (a calm one too: driven, its eyes black, quicker, unstaggered by light blows), cut with the blade, the
+  boomerang or an ember to free it, its yank that lifts you and its dance alone (`puppeteer`, `possess`, `alone`, `lift`);
+  the calm modes `pace` and `hang` (docs/systems/foes.md, "Batch 5's fields").
+- [x] No stand-in is left: every archetype is built, the shade's old body (src/shade.js ShadeBody) is retired, and every
+  world runs wholly on the new roster (tests/archetypes-batch5.test.js). The Garden of Spheres' glass puppet placed by the
+  white archway in the android wood (src/foe-worlds.js PLACED). The Arena's waves add the roller, the marionette with
+  creatures to drive, the shade with a roller. Scored in docs/audits/combat-v1.17.md (4.3–4.8 by eye, mean 4.50); the
+  shade answers combat-v1.4's "one cut, only the blade" (3.0 → 4.3).

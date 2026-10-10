@@ -348,7 +348,7 @@ springs; **VC** verlet chain; **FL** follow-the-leader spine; **WV** wave driver
 | 6 | Quadruped beast (hound, lizard) | trot (diagonals) / walk (lateral sequence) / gallop bound at speed; spine flexes | IK2 (hocks back on hind), GP, BFF, SO for head and tail, VC tail | head stabilised against the body bob; tail on VC |
 | 7 | Stilt-walker (harvestman, heron) | wave gait, one leg at a time, long step time | IK2 (knees high), GP, BFF; the existing `StiltMotor` generalised | slow and deliberate; the sway of the high body on SO |
 | 8 | Giant slow brute (golem, ogre) | biped/quadruped with long stance, big body dip at each touchdown, camera shake/rumble | IK2, GP, BFF (heavy springs: low f), PB | weight: slow f, hips over stance foot, overshoot on stops |
-| 9 | Humanoid spirit (shades) | biped: the skinned `Humanoid` + `Locomotion` + `plantFeet` (as the shade does); for rigid shadow figures, biped GP + IK2 knees forward + arm swing counter-phase | IK2, GP, BFF, VC for cloak strips and smoke | float a little: feet that touch late and lift early; cloth lags |
+| 9 | Humanoid spirit (shades) | biped GP + IK2 knees forward + arm swing counter-phase (the shade since v1.17: an empty cloak on two boots, src/enemies/plans/humanoid.js; before, the skinned `Humanoid` + `Locomotion` + `plantFeet`) | IK2, GP, BFF, VC for cloak strips and smoke | float a little: feet that touch late and lift early; cloth lags |
 | 10 | Shelled turtle-like | slow 4-leg walk, one leg at a time; head/legs retract into the shell (the shellback's `inK`) | IK2 (short), GP, PB, SO | retraction is the guard pose; peek out as the telegraph |
 | 11 | Floater / jelly | no legs: bell pulse (scale), bob, tentacles trailing | VC or WV tentacles, SO tilt into motion (the drifter's) | pulse rate rises as the telegraph |
 | 12 | Tentacled (octopus, root knot) | arms that reach and plant (FAB per arm with a planted tip), body pulled between them | FAB, GP (arms as feet, slow), SO, VC for idle arms | arms curl (FAB with a curl pole); suckers plant |
@@ -605,6 +605,22 @@ Measured (`node scripts/motion-audit/run.mjs brute bell --pack`, `--pace=0.5`): 
 0.03 m, reach span 23 %, lift 14 %, one leg at a time, 1.38 → 0.75 steps/s), the bell's 0.00 (worst 0.05 m, reach 36 %,
 lift 20 %, one leg at a time round the ring, 0.70 → 0.45). `tests/motion-plans.test.js` holds these (two skins of
 each); `tests/motion-kit.test.js` the tracks and the pendulum.
+
+### Phase 5, the late spirits and the roller: batch 5 (2026-10-09)
+
+The last three plans of the roster, each a table entry in `src/motion-kit/plans.js` and its body in `src/enemies/plans/`;
+with them every archetype is on the kit.
+
+| plan | archetype | how it moves |
+|---|---|---|
+| 9 humanoid | shade | a biped on the gait planner (`alternate`): two empty boots, the knee forward (pole `forward`, thigh and shin 0.56 / 0.57 of the hip-to-foot span), a quick swing (0.14–0.34 s) on a short duty (0.55: they touch down late and lift early, so it floats a little); the body rides them on soft springs; the cloak hangs from its shoulders on its own lagging springs (it sways back as it goes and swings out as it turns); its sleeves swing against the legs by the distance walked; four ribbons on verlet chains, each drawn as one continuous strip of cloth whose rows are bound to the chain's points (`ribbonMesh`), a ripple running down them; poses: the cut (`coil`: turned away, the sword back over its shoulder while the hood turns to keep you in sight), the feint (`coil:feint`: the cut stopped halfway, then sunk, the sword at the hip; `strike:feint` the low thrust), the step (`coil:step`: collapsed into its pool) |
+| 16 roller | pearl roller | no legs: unrolled it glides on a foot of nine overlapping segments, a ripple running back along them by the distance glided (it never skates); its eye stalks lag its moves on springs and sink as it winds up; rolled up, its spin is locked to the ground it covers (`rollAngle` = distance / radius) and it wobbles on a spring kicked by starts, stops and bumps; unrolling, the spin settles upright; the bowl's wind-up rocks the shell back and forth on its foot three times |
+| 21 strings | marionette | it never touches the ground: the puppet hangs from an anchor in a knot of smoke 4.6 m over its feet (about 6 m up) as a pendulum (`Pendulum`, 3.6 m: it swings behind as it sets off and past as it stops); each limb swings on its own loose spring (f 1.6, ζ 0.22) after its drift and the swing; moving, it jerks (every ~0.3 s a string tugs a limb up and drops it); its four strings are one mesh skinned between the knot and the parts they hold (two rings a string, each bound to one end), so they stretch as it moves; poses: the strings (both upper arms out level, the forearms up, the fingers curling), the yank (one arm high), the dance (dropped low, the legs jerked up together, then a whirl) |
+
+Measured (`node scripts/motion-audit/run.mjs shade shade@eclipse --pack`, `--pace=0.5`): the shade's boots slide
+0.01 m/m (worst 0.02 m, reach span 19 %, lift 13 %, one boot at a time, 2.50 → 1.50 steps/s, two of a pack out of step:
+−0.32). `tests/motion-plans.test.js` holds the shade (two skins); `tests/archetypes-batch5.test.js` the roller's roll
+locked to the ground (spin × radius = distance, to 10⁻⁶ m) and the puppet's swing.
 
 ## Measuring
 
