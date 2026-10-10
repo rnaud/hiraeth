@@ -1,0 +1,61 @@
+changelog.md
+  s_9ca76055a220ed::t_f746f58e0e290b 6,8-12
+docs/systems/foes.md
+  s_9ca76055a220ed::t_101cce7864aeff 501-534,536-577,1217
+scripts/combat-reach.mjs
+  s_9ca76055a220ed::t_f922b2a2f38736 1-9,11-48,50-143
+src/changelog-media.js
+  s_9ca76055a220ed::t_124d2c7a1db338 497,501,503,505-508,510,512-516,520-521,526,614
+src/changelog.js
+  s_9ca76055a220ed::t_3e95e7e73c0ca6 12-17,54
+src/enemies/defeat.js
+  s_9ca76055a220ed::t_b4a93b5a4c0ce7 1-2,4-107
+src/enemies/plans/centipede.js
+  s_9ca76055a220ed::t_4972faf3631194 137-141,154-155
+src/enemies/plans/flyer.js
+  s_9ca76055a220ed::t_666a8a2d104096 122-131
+src/enemies/plans/kit.js
+  s_9ca76055a220ed::t_bec2ac84b54260 119
+src/enemies/plans/strings.js
+  s_9ca76055a220ed::t_f0cf764f4b4131 165-179
+src/fluid-blade.js
+  s_9ca76055a220ed::t_19ca6b93e5c660 12,34,36,54,56-61,63-77,283-307,455,567,614-615,667,671-673,716-745,754-761
+src/foe-body.js
+  s_9ca76055a220ed::t_465f6cf29c090b 1-2,4-161
+src/foe-react.js
+  s_9ca76055a220ed::t_162d0069e75438 1-3,5-154
+src/foes.js
+  s_9ca76055a220ed::t_23f988a31b0023 28-30,1626-1636,1638-1639,1915,1926-1927,1929,1933-1990,2006-2012,2063,2068-2075,2596-2604,2617-2618,2620-2621,2650-2651,2677-2692
+src/hitbox-overlay.js
+  s_9ca76055a220ed::t_9aee3b42b9e2c9 78-84
+src/hitboxes.js
+  s_9ca76055a220ed::t_86bb26f50fbc37 6,22,87-92
+src/humanoid.js
+  s_9ca76055a220ed::t_ce21ba351fdcfd 1541-1561
+src/player.js
+  s_9ca76055a220ed::t_e454d83424aa73 1692-1693
+tests/combat-reach.test.js
+  s_9ca76055a220ed::t_405de9e4a3a87b 2-102,104-105
+tests/foe-hit-defeat.test.js
+  s_9ca76055a220ed::t_3a2608319a1cc8 2-167
+tests/foe-voices.test.js
+  s_9ca76055a220ed::t_c76d9f440652e2 147
+tests/foes-world.test.js
+  s_9ca76055a220ed::t_3003819184573f 154-156
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a0ed9b8ed1e919724bdf71dd735da07b90fff7d2",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
