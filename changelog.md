@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.41 — 2026-10-10
+
+- When the chest on the tree opens, only Nour calls out, “Hey you!”, and comes to the tree’s foot to wait for you; nobody else crowds over.
+- Every makers’ box’s card shows what to press: A / × (Enter on the keyboard) beside Continue, and B / ○ (Esc) beside Skip.
+- The makers’ chest on Qanat’s tree keeps its secret now: its card says only “A glass backpack? You’ve never seen anything like it. It’s empty though?”
+
 ## v1.40 — 2026-10-10
 
 - Worlds load faster on the Xbox: fewer drawing programs to prepare (no copy for a surface that only differs in which side faces you or in its colours), and the ink pass leaves out the sky’s eclipse, space, planets and dotted clouds where a world has none. Nothing looks different.

@@ -178,7 +178,7 @@ export class BoxScene {
     }
     if (phase === 'dissolve') { s?.boxBurst?.(); this.model.visible = true; this.sparkles.visible = true; }
     if (phase === 'reveal') { this.setDissolve(1); s?.fanfare?.(); this.fanfared = true; }
-    if (phase === 'card') { this.card?.show(this.def); this.cardT = 0; }
+    if (phase === 'card') { this.card?.show(this.def, { found: this.box?.place?.found ?? null }); this.cardT = 0; }
     if (phase === 'beat') {
       this.card?.hide();
       // granted now: the star is on his lapel for the look at it worn

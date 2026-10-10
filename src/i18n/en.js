@@ -403,6 +403,12 @@ export const EN = {
   'gm.notToldMark': '… story',
   'gm.noWorlds': 'No worlds yet.',
 
+  // ---------------------------------------------------------------- the makers' boxes (src/boxes/card.js)
+  'box.continue': 'Continue',
+  'box.skip': 'Skip',
+  // (the backpack's card, its first find in Qanat: the line said instead of what it is and does; its tone, src/story/tone.js)
+  'box.found.backpack': '~curious~ A glass backpack? You’ve never seen anything like it. It’s empty though?',
+
   // ---------------------------------------------------------------- the title screen
   'title.continue': 'Continue',
   'title.new': 'New game',

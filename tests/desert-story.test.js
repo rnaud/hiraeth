@@ -367,7 +367,7 @@ test('a new game steps out with a bare back to a cold tree: no flame, no smoke, 
   assert.equal(quests.current('desert.power').label, 'The ledge on the tree');
 });
 
-test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) gathers Qanat at the foot and brings Nour', async (t) => {
+test('the makers’ chest is on its ledge up the tree; opening it (its tank empty) brings Nour alone, calling “Hey you!”', async (t) => {
   t.mock.timers.enable({ apis: ['setTimeout'] });   // (the story's delayed toasts and turns run on the test's clock: WAIT)
   const { items } = await import('../src/items.js');
   const { createBoxes } = await import('../src/boxes/index.js');
@@ -400,16 +400,18 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.equal(game.flag('tool.empty'), true, 'the tank in it is empty');
   assert.equal(game.flag('tool.dregs'), undefined, 'no makers’ dregs any more (v1.38: no gun to shoot them with)');
   assert.equal(Q.city.lit, 0, 'the tree stays cold');
-  assert.ok(W.gatherSpots.length >= W.villagers.length, `room for everyone to gather (${W.gatherSpots.length} spots)`);
-  for (const p of W.gatherSpots) stand(p, 'a gathering spot');
-  // they walk over (the ones in the avenue up the main stairs); Nour gets up and waits at the tree's foot
+  const homeOf = new Map(W.villagers.map((n) => [n, n.pos.clone()]));
+  // nobody else comes (the author's call, October 2026): Nour alone gets up, calls out and waits at the tree's foot
   // while you're still up on the ledge, calling you down; once you're down, she comes to you and calls you
   // over (a "psst", every few seconds), but never starts talking herself: that is yours, on the prompt
   assert.equal(nour.seat, null, 'Nour stands');
-  for (let i = 0; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
+  step(60, 1 / 30, { people: true });
+  assert.match(nour.shout?.text ?? '', /^(~shout~ )?Hey you!$/, 'Nour calls out, just “Hey you!”');
+  assert.ok(![...W.villagers, W.people.hessa].some((n) => n.shout && /open|Nour/i.test(n.shout.text)), 'and only Nour');
+  for (let i = 60; i < 12 * 30; i += 10) step(10, 1 / 30, { people: true });
   assert.ok(!rt.dialogue.open, 'not while you are up there');
   assert.ok(flat(nour.pos, L.foot) < 3 && Math.abs(nour.pos.y - L.foot.y) < 0.6, 'she waits at the foot of the ledge');
-  assert.match(nour.shout?.text ?? '', /Come down/, 'and calls you down');
+  assert.match(nour.shout?.text ?? '', /Hey you/, 'and calls you down');
   at(L.foot.clone().addScaledVector(V(Math.sin(L.yaw), 0, Math.cos(L.yaw)), 1.5));
   const p0 = sound.pssts;
   for (let i = 0; i < 30 * 30 && sound.pssts - p0 < 2; i += 10) step(10, 1 / 30, { people: true });
@@ -427,8 +429,7 @@ test('the makers’ chest is on its ledge up the tree; opening it (its tank empt
   assert.match(rt.dialogue.runner.pages.join(' '), /opened/);
   rt.dialogue.close();
   step(18 * 30, 1 / 30, { people: true });
-  const near = W.villagers.filter((n) => flat(n.pos, box.pos) < 7).length;
-  assert.ok(near >= 4, `Qanat gathers at the tree’s foot under the ledge (${near} of ${W.villagers.length})`);
+  for (const n of W.villagers) assert.ok(flat(n.pos, homeOf.get(n)) < 8, `${n.id ?? 'a villager'} stays by their door: no crowd walks over`);
   // a real conversation, with choices
   // (and the well beside her, listened at with her: it was a stage of its own)
   const r = talk(PEOPLE.nour, ['Who are the Givers?', 'Why a star?', 'My ship has no power', 'Why me?', 'All right', 'The well is right here', 'Ama’s jar']);

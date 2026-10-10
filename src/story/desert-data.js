@@ -989,8 +989,8 @@ export const REPAY_CALL = '~shout~ There you are, child! Qanat has come to pay w
 /** What they say as they gather (balloons), and when the traveller first comes near the chest. */
 export const MURMURS = {
   near: ['~whisper~ Look, the one from the sky-ball.', '~whisper~ It’s humming louder. Listen.', '~curious~ Is that the one who fell?', '~surprised~ The chest, listen to the chest!'],
-  gather: ['~shout~ It opened!', '~surprised~ The Givers’ chest… it’s open!', '~shout~ Fetch Nour! Somebody wake Nour!', '~solemn~ For the sky-stranger. It opened for the sky-stranger.', '~playful~ Sixty years and it opens on a Tuesday.', '~curious~ Did you see the light come out?'],
-  nour: ['~surprised~ Eh? What—', '~angry~ Let me through. Let an old woman through.', '~surprised~ It opened. It opened!', '~shout~ Come down, child! Come down and let an old woman look at you.'],
+  // the chest opened: only Nour calls out, and just this (the author's wording, October 2026)
+  nour: ['~shout~ Hey you!'],
   // the spark-stone in the well: the tree catches (src/story/desert.js)
   lit: ['~shout~ It burns! It burns!', '~surprised~ Look at the colours!', '~happy~ It’s cool! The fire’s cool, feel it!', '~shout~ Ring the bells! Somebody ring the bells!', '~solemn~ It came back. It came back.', '~playful~ I said it would. I said so.'],
 };

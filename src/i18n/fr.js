@@ -401,6 +401,11 @@ export const FR = {
   'gm.notToldMark': '… histoire',
   'gm.noWorlds': 'Aucun monde pour l\'instant.',
 
+  // ---------------------------------------------------------------- les boîtes des bâtisseurs (src/boxes/card.js)
+  'box.continue': 'Continuer',
+  'box.skip': 'Passer',
+  'box.found.backpack': '~curious~ Un sac à dos de verre ? Vous n\'avez jamais rien vu de pareil. Il est vide, pourtant ?',
+
   // ---------------------------------------------------------------- l'écran titre
   'title.continue': 'Continuer',
   'title.new': 'Nouvelle partie',

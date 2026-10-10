@@ -40,7 +40,7 @@ export const PLACEMENTS = {
     // a stone pier standing on a buttress root's shoulder: two pitches to climb (src/desert-city.js
     // builds it), above the terrace beside the dry well. Up the main stairs from the gate, on the left
     // of the well; the box's pale column shows the way.
-    { id: 'desert.backpack', item: 'backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
+    { id: 'desert.backpack', item: 'backpack', found: 'box.found.backpack', site: (level) => level.qanat?.city.ledge && { at: level.qanat.city.ledge.box.toArray(), face: level.qanat.city.ledge.yaw }, beacon: 170,
       note: 'In Qanat, on the makers’ pedestal high on the burning tree’s trunk, left of the dry well: climb the buttress root, then the stone pier. The first find, and the elder’s.' },
     // the progression rewrite (v1.38, docs/systems/progression.md): he comes with his sword alone. The backpack's first
     // strength, the lift valve (the double jump), waits by the giant's pool in the cave of the giant's heart: the main

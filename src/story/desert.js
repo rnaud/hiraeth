@@ -51,10 +51,9 @@ import { quietOr } from '../hint-level.js';
 // Givers' Hearth a chest holds the fluid gun (a gadget, 'desert.gun'), whose push rolls the stone ball.
 //
 // The reaction at the tree: the first time you come near the closed chest, the
-// people on the terrace turn and murmur and the tree flares; when it opens
-// (box:opened), Qanat gathers at the tree's foot under the ledge, the tree
-// flares high, everyone in the avenue looks up, and Nour gets up off her bench
-// and waits for you to climb down, comes over and calls you ("Psst. Child."),
+// people in the square turn and murmur and the tree flares; when it opens
+// (box:opened), the tree flares high and only Nour calls out ("Hey you!": no
+// crowd comes over); she gets up off her bench and waits for you to climb down, comes over and calls you ("Psst. Child."),
 // a little sound and a turn of her head every few seconds, until you talk to her
 // (the 'elder' stage: she never starts talking by herself). Until the
 // chest is open, the camps, the gate and the procession wave you on toward
@@ -262,21 +261,9 @@ export function setupDesert(ctx) {
   const villagers = VILLAGERS.map((v, i) => {
     const n = spawn({ ...VILLAGER_TALK, ...v }, { route: homes[i], speed: 0.9 });
     n.home = homes[i];
-    n.below = i >= 2;   // down in the avenue: up the main stairs to gather
     return n;
   });
-  // where they gather: on the terrace at the tree's foot, in front of the ledge and round its sides,
-  // looking up at it; clear of the well, Nour's bench and the buttress's face (where you climb)
-  // (ledge-local: x across, z out from the chest; the buttress's face is at ledge.face. Since the v1.39 tree, whose
-  // trunk is wider, the ledge stands further out and the well is nearer its right side: the spots lean left)
-  const terraceY = ledge.foot.y;
-  const gatherSpots = [[-2.3, 3.9], [1.2, 3.2], [-3.4, 2.6], [-0.6, 4.9], [0.9, 5.2], [-2.6, 5.4], [2.0, 4.6], [-1.6, 6.2], [-3.9, 4.2]]
-    .map(([x, z]) => ledge.at(x, 0, ledge.face + z - 2))
-    .filter((p) => {
-      const g = physics.groundAt(p.x, terraceY + 1.5, p.z, 3);
-      return Number.isFinite(g) && Math.abs(g - terraceY) < 0.3 && flat(p, city.well) > 3.4 && flat(p, ledge.bench.at) > 1.3 && flat(p, ledge.foot) > 1.2;
-    })
-    .map((p) => p.setY(terraceY));
+  const terraceY = ledge.foot.y;   // (the square at the tree's foot, where you climb from)
   // a stone for Oum to sit on, and her staff
   {
     const st = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55, 0).scale(1.2, 0.8, 1), makeMaterial({ color: '#c9b8a0', flat: true }));
@@ -733,20 +720,11 @@ export function setupDesert(ctx) {
     } });
   void treeTarget;
 
-  // ---------------------------------------------------------------- the ledge: Qanat notices, gathers, and Nour comes
+  // ---------------------------------------------------------------- the ledge: Qanat notices, and Nour calls out
   const say = (n, text, secs = 3) => { n.shout = { text, until: n.time + secs }; };
   const pick = (list, i) => list[i % list.length];
   const boxAt = ledge.box;
   const faceBox = (p) => Math.atan2(boxAt.x - p.x, boxAt.z - p.z);
-  /** Walk an NPC along points (the stairs), then stand at the last one facing `face`. */
-  const walkPath = (n, pts, { speed = 1.25, face = null } = {}) => {
-    let i = 0;
-    n.follow = () => {
-      while (i < pts.length - 1 && flat(n.pos, pts[i]) < 0.9) i++;
-      return { pos: pts[i], speed, near: i < pts.length - 1 ? 0.5 : 0.35, max: speed + 0.6, face: face ?? undefined };
-    };
-  };
-  const stairs = [city.plinthStair.clone(), city.local(0, T * 0.5, 22), city.stairTop.clone()];
   const sh = { noticed: false, gather: null, nour: null, timers: [] };
   const later = (secs, fn) => sh.timers.push({ at: secs, fn });
   const boxOpen = () => !!game.flag('box.desert.backpack') || items.has('backpack');
@@ -776,30 +754,16 @@ export function setupDesert(ctx) {
     crowd?.lookAt(boxAt.clone().setY(boxAt.y + 1), 6, { near: boxAt, r: 60 });
   };
   const gather = () => {
-    // the chest is open: everyone comes to the tree's foot to look up at it, the tree flares high, Nour gets up
+    // the chest is open: the tree flares, and only Nour gets up off her bench and calls out (the author's call,
+    // October 2026: no crowd walking over, just her "hey you!"); she comes to the foot of the ledge
     game.set('desert.shrine.gathered', true);
     sh.gather = { t: 0 };
     st.flare = Math.max(st.flare, 2.4);
     sound.chime?.();
-    crowd?.lookAt(boxAt.clone().setY(boxAt.y + 2), 14, { near: boxAt, r: 90 });
-    villagers.forEach((n, i) => {
-      const spot = gatherSpots[i % Math.max(1, gatherSpots.length)];
-      if (!spot) return;
-      walkPath(n, n.below ? [...stairs, spot] : [spot], { speed: n.below ? 1.6 : 1.2, face: faceBox(spot) });
-      later(0.6 + i * 0.75, () => say(n, pick(MURMURS.gather, i), 3.2));
-    });
-    later(1.2, () => say(people.hessa, '~shout~ Grandmother! It opened!', 3));
-    // Nour: up off her bench, to the foot of the ledge (you come down to her, or she comes to you)
     sh.nour = { t: 0, talked: false, mode: 'foot' };
     nour.seat = null;
-    later(0.4, () => say(nour, MURMURS.nour[0], 2));
-    later(2.6, () => say(nour, MURMURS.nour[1], 3));
+    later(1.2, () => say(nour, MURMURS.nour[0], 3));
     nour.follow = nourToFoot;
-  };
-  const disperse = () => {
-    // back to their doors and their sweeping, a while after
-    for (const n of villagers) walkPath(n, n.below ? [...stairs].reverse().concat([n.home[0]]) : [n.home[0]], { speed: 1.0 });
-    later(45, () => { for (const n of villagers) n.follow = null; });
   };
   const nourHome = () => {
     // back to her bench and down onto it
@@ -822,11 +786,7 @@ export function setupDesert(ctx) {
     const onTerrace = Math.abs(pp.y - terraceY) < 1.2, up = !onTerrace && pp.y > terraceY;   // (up: on the ledge, or climbing to it)
     sh.up = up && dBox < 12;
     if (!sh.noticed && !boxOpen() && dBox < 13 && pp.y > terraceY - 1 && pp.y < boxAt.y + 2.5) notice();
-    if (sh.gather) {
-      sh.gather.t += dt;
-      // they stay a while (all through Nour's talk), then drift back to their doors
-      if (!sh.gather.dispersed && ((sh.gather.talked && sh.gather.t > 50) || sh.gather.t > 120)) { sh.gather.dispersed = true; disperse(); }
-    }
+    if (sh.gather) sh.gather.t += dt;
     const N = sh.nour;
     if (N) {
       N.t += dt;
@@ -835,7 +795,7 @@ export function setupDesert(ctx) {
         // there too, where the marker finds her; you're down on the terrace near the tree: she comes to you
         const want = up || dBox > (N.mode === 'you' ? 16 : 12) ? 'foot' : 'you';
         if (want !== N.mode) { N.mode = want; nour.follow = want === 'foot' ? nourToFoot : nourToYou; }
-        if (up && !N.called && N.t > 6 && dBox < 6) { N.called = true; say(nour, MURMURS.nour[3], 3.5); }
+        if (up && !N.called && N.t > 6 && dBox < 6) { N.called = true; say(nour, MURMURS.nour[0], 3.5); }
         // (she reaches you and waits by you, calling you over: the talk is yours to start, below)
       }
       if (N.talked && dBox > 30) nourHome();
@@ -1122,7 +1082,7 @@ export function setupDesert(ctx) {
   };
 
   return {
-    people, update, state: st, villagers, ledge: sh, repay, gatherSpots, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, road, rise, lighting, setStone, applyLit, film,
+    people, update, state: st, villagers, ledge: sh, repay, calls: { marrow: marrowCall, nour: nourCall, ama: amaCall }, hollow, drum, mask, lever, hearth, way, road, rise, lighting, setStone, applyLit, film,
     /** E on a crowd person: their short conversation (by where they stand). */
     crowdTalk(p) {
       const id = p.spot?.id, zone = id === 'procession' && st.drinking ? 'drinking' : id;
