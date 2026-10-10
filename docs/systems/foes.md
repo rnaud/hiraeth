@@ -617,16 +617,20 @@ The count is said every 5 ink.
   is lost past `LOCK.lose`; when its foe falls it moves on to the nearest still standing in reach (`nextLock`, v0.96).
 - While locked, main.js turns `rig.yaw` to keep the foe ahead, the reticle marks it, and the blade's soft
   lock, the guard and the cut's pull turn to it first (`tool.lockOn`; `lockTarget()` carries its body's radius).
-- **The reticle** (`src/lock-reticle.js`, `#foe-lock`, v0.96): an SVG drawn as the prompts are, gold in a thick ink
-  line: four chevrons on a hand-drawn dashed ring, sized to the foe's body on the screen (`RETICLE.min`–`max` px),
-  a centre diamond, and pips over it for its hp (up to 8; more, each a share). `reticleLook(f)` reads the foe:
-  `calm` (turning slowly, breathing), `wind` (red, the chevrons closing to `RETICLE.close` as k², the ring filling
-  in; meeting at the strike with a white flash), `open` (stunned, reeling, flipped, asleep: pale blue, spread to
-  `RETICLE.open`, pulsing, still), `veiled` (buried, phased: dimmed, dashed). A new lock snaps in (from twice the
-  size, a quick turn, `acquire()`). Off the screen it waits small at the edge on its side. Each state has its own
-  shape as well as its colour (`reticleShape`, for colour-blind players): winding up the chevrons double (»), the
-  strike puts a four-point burst in the centre, open turns the chevrons round (tips in, like brackets) round a hollow ring,
-  veiled dashes them.
+- **The reticle** (`src/lock-reticle.js`, `#foe-lock`; v0.96, made thin and quiet in v1.39): an SVG over the game, a fine
+  coloured line (`RETICLE.line` 1.8 px) over a softer ink one (`under` 3.6 px, half opacity) so it reads on bright sand and in
+  the dark. Four corner ticks (`tick` 11 px arms) frame the foe's drawn body: its parts' box as posed (`foe-body.js`
+  `bodySpan`) projected to the screen and grown by `RETICLE.gap` (9 px) × the look's spread (`reticleFrame`, `min`–`max`
+  px half-size; no parts to measure: its sphere); nothing is drawn on the body. Over its head a small diamond, and over the
+  diamond a row of tiny pips for its hp (up to 8; more, each a share). `reticleLook(f)` reads the foe: `calm` (gold,
+  breathing), `wind` (coral, the gap closing to `RETICLE.close` (0.35) as k²: never onto the body), `strike` (a white flash, a
+  small four-point burst for the diamond), `open` (stunned, reeling, flipped, asleep: pale blue, held wide at `RETICLE.open`),
+  `veiled` (buried, phased: dimmed, dashed). A new lock eases in over `snap` (0.32 s): from wider and faint, the diamond
+  dropping `drop` px onto its head; no spin, no pop. Off the screen it waits small at the edge on its side. Each state has
+  its own shape as well as its colour (`reticleShape`, for colour-blind players): winding up the ticks double, open they turn
+  into short strokes pointing in and the diamond becomes a hollow ring, the strike's burst, veiled dashes them. Before v1.39:
+  four thick gold chevrons on a dashed ring over the foe's chest, which covered the body it marked. Tests:
+  `tests/combat-feel.test.js` (the frame always outside the body's box), `tests/accessibility.test.js` (five shapes).
 - **Switching with a flick** (`FLICK`, `Foes.flickLook`, `switchLock`, v0.97): main.js wraps `rig.look` (the
   right stick, the mouse, a touch drag all pass through it); while locked, the sideways part goes to `flickLook`
   instead of the camera, into a leaky sum (decay 8/s). Past `FLICK.px` (70) the lock jumps to the nearest foe on

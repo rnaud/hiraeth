@@ -252,3 +252,23 @@ test('the rising cut: a swing from the ground at a foe hovering over you leaps u
   assert.equal(hits, 1, 'and the cut found it');
   tool.dispose(); clearTargets();
 });
+
+test('the lock-on reticle frames the body and never sits on it: its ticks outside the body\'s box in every look, closing in only as far as the box', async () => {
+  const { reticleFrame, reticleShape } = await import('../src/lock-reticle.js');
+  const box = { x0: 500, y0: 200, x1: 620, y1: 420 };
+  for (const look of [{ mode: 'calm' }, { mode: 'wind', k: 0 }, { mode: 'wind', k: 0.6 }, { mode: 'wind', k: 1 }, { mode: 'strike', k: 1 }, { mode: 'open' }, { mode: 'veiled' }]) {
+    for (const ease of [0, 0.5, 1]) {
+      const f = reticleFrame(box, chevronSpread(look, 1.3), ease);
+      assert.ok(f.cx - f.hw < box.x0 && f.cx + f.hw > box.x1 && f.cy - f.hh < box.y0 && f.cy + f.hh > box.y1, `${look.mode} at ${ease}: outside the body`);
+    }
+    assert.ok(reticleShape(look));
+  }
+  // easing in: from wider, settling onto the body
+  assert.ok(reticleFrame(box, 1, 0).hw > reticleFrame(box, 1, 1).hw);
+  // far away (a body a few px across) it still frames something you can see; close, it never grows past its max
+  const far = reticleFrame({ x0: 640, y0: 360, x1: 643, y1: 366 });
+  assert.ok(far.hw >= RETICLE.min && far.hh >= RETICLE.min);
+  assert.ok(reticleFrame({ x0: -900, y0: -900, x1: 2000, y1: 2000 }).hw <= RETICLE.max);
+  // thin: a fine line over a soft ink one
+  assert.ok(RETICLE.line <= 2 && RETICLE.under <= 4);
+});

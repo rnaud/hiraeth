@@ -1,29 +1,35 @@
 import * as THREE from 'three';
+import { bodySpan } from './foe-body.js';
 
-// The lock-on's reticle (#foe-lock, docs/systems/foes.md "The lock-on"): drawn as the game's prompts are, gold in a
-// thick ink line. Four chevrons round the foe on a hand-drawn ring, a row of pips over it for what is left of it.
+// The lock-on's reticle (#foe-lock, docs/systems/foes.md "The lock-on"; v1.39: thin and quiet, it was four thick gold
+// chevrons on a ring over the foe's chest). Four fine ink ticks frame the foe's drawn body at its corners, a small diamond
+// settles over its head, and a row of tiny pips over the diamond counts what is left of it. Nothing is drawn on the body:
+// the frame is the body's own box on the screen (src/foe-body.js bodySpan, its parts as posed) grown by a gap.
 // It is not only a marker: it reads the foe for you.
-// - calm: the chevrons turn slowly round it, breathing;
-// - winding up: they turn red and close in on it as the strike comes (at the strike they meet: guard, or go);
-// - open (stunned, parried, flipped, asleep, reeling): pale blue, spread wide and pulsing: now cut;
+// - calm: gold, breathing a little;
+// - winding up: the ticks tint coral, double and close in on the body as the strike comes (at the strike: guard, or go);
+// - open (stunned, parried, flipped, asleep, reeling): pale blue, the ticks turned in toward it, held wide;
 // - out of the blade's reach (a ray under the sand, a hound running as a shadow): dimmed and dashed.
-// Never by colour alone (docs/systems/foes.md; a colour-blind player reads the shapes): winding up, each chevron
-// doubles (»), and closes in; open, the chevrons turn round (tips in, like brackets) and the centre's diamond becomes a hollow
-// ring; veiled, all of it dashed (reticleShape).
-// It snaps in on a new foe (from wide, with a quick turn) and is sized to the foe on the screen. Off the screen it
-// waits at the edge on its side, small.
+// Never by colour alone (a colour-blind player reads the shapes): winding up, each tick doubles and closes in; open, the
+// corner ticks turn into short strokes pointing in, and the diamond becomes a hollow ring; at the strike a small four-point
+// burst; veiled, all of it dashed (reticleShape).
+// It eases in on a new foe (from wider and faint, the diamond dropping onto it). Off the screen it waits at the edge on
+// its side, small. Each stroke is a coloured line over a softer ink one, so it reads on bright sand and in the dark.
 //
 //   const r = new LockReticle(); r.update(foe | null, camera, dt); r.acquire(); r.dispose()
 
 export const RETICLE = {
-  min: 30, max: 76,           // px: its radius on the screen, from the foe's size there
-  margin: 0.35,               // m round the foe's body
-  spin: 0.5,                  // rad/s calm
-  close: 0.5,                 // the chevrons' radius at the strike, × the calm one
-  open: 1.25,                 // × spread while it is open
-  snap: 0.24,                 // s the snap-in takes
+  min: 14, max: 260,          // px: the frame's half-size on the screen, at least / at most
+  margin: 0.35,               // m round the foe's body (the frame of a body with no parts to measure: its sphere)
+  gap: 9,                     // px between the body's box and the ticks (× the spread)
+  tick: 11,                   // px: each corner tick's arms
+  line: 1.8, under: 3.6,      // px: the coloured stroke, the ink one under it
+  close: 0.35,                // the gap at the strike, × the calm one (the ticks close in, never onto the body)
+  open: 1.7,                  // × the gap while it is open
+  snap: 0.32,                 // s the ease-in takes
+  drop: 16,                   // px the diamond settles from
   pips: 8,                    // most pips drawn (more hp: each stands for more)
-  ink: '#2b211f', gold: '#f2c54b', cream: '#f7ecd2', red: '#f05a3c', blue: '#bfe9ff',
+  ink: '#2b211f', gold: '#f2c54b', cream: '#f7ecd2', red: '#ef6a4c', blue: '#bfe9ff',
 };
 
 /**
@@ -42,8 +48,9 @@ export function reticleLook(f) {
 }
 
 /**
- * The shape of each look, besides its colour (pure: tests): the chevrons' tips point 'out' (calm, winding up) or 'in' (open: turned round, like brackets), are single or
- * doubled, dashed or not, round a 'diamond' or a hollow 'ring'. Every mode differs from the others in shape.
+ * The shape of each look, besides its colour (pure: tests): the ticks point 'out' (corners round the body: calm, winding
+ * up) or 'in' (open: short strokes pointing at it), are single or doubled, dashed or not, under a 'diamond', a hollow
+ * 'ring' or a 'burst'. Every mode differs from the others in shape.
  */
 export function reticleShape(look) {
   const mode = look?.mode ?? 'calm';
@@ -55,13 +62,26 @@ export function reticleShape(look) {
   };
 }
 
-/** How far the chevrons sit from the middle (× the radius) and how fast they turn, for a look (pure: tests). */
+/** The gap between the body and the ticks, × RETICLE.gap, for a look (pure: tests; the name is the old chevrons'). */
 export function chevronSpread(look, t = 0) {
   if (!look) return 1;
   if (look.mode === 'wind') return THREE.MathUtils.lerp(1, RETICLE.close, look.k * look.k);
   if (look.mode === 'strike') return RETICLE.close * 0.9;
-  if (look.mode === 'open') return RETICLE.open + Math.sin(t * 9) * 0.06;
-  return 1 + Math.sin(t * 2.4) * 0.04;
+  if (look.mode === 'open') return RETICLE.open + Math.sin(t * 6) * 0.08;
+  return 1 + Math.sin(t * 2.4) * 0.05;
+}
+
+/**
+ * The frame round a body box on the screen (pure: tests): `box` { x0, y0, x1, y1 } in px, the spread, the ease-in (0..1).
+ * Returns { cx, cy, hw, hh }: its centre and half-size, the body's box grown by the gap on every side (the ticks sit on
+ * its corners, outside the body), at least RETICLE.min, at most RETICLE.max.
+ */
+export function reticleFrame(box, spread = 1, ease = 1, out = {}) {
+  const R = RETICLE, g = R.gap * spread + (1 - ease) * 2.2 * R.gap;
+  out.cx = (box.x0 + box.x1) / 2; out.cy = (box.y0 + box.y1) / 2;
+  out.hw = THREE.MathUtils.clamp((box.x1 - box.x0) / 2 + g, R.min, R.max);
+  out.hh = THREE.MathUtils.clamp((box.y1 - box.y0) / 2 + g, R.min, R.max);
+  return out;
 }
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -71,85 +91,98 @@ const el = (tag, attrs = {}, parent = null) => {
   parent?.appendChild(e);
   return e;
 };
-/** A ring as drawn by hand: a closed path whose radius wavers a little and whose ends overlap (seeded). */
-function wobblyRing(r, seed = 1) {
-  const n = 40, pts = [];
-  for (let i = 0; i <= n + 3; i++) {
-    const a = (i / n) * Math.PI * 2 - 0.4;
-    const rr = r * (1 + 0.035 * Math.sin(a * 3 + seed) + 0.02 * Math.sin(a * 7 + seed * 2.3)) + (i > n ? (i - n) * 0.6 : 0);
-    pts.push(`${(Math.cos(a) * rr).toFixed(2)},${(Math.sin(a) * rr).toFixed(2)}`);
-  }
-  return `M${pts.join('L')}`;
+/** A stroke as drawn: a soft ink line under a fine coloured one. Returns the coloured one (the ink one is .under). */
+function inked(d, parent, R = RETICLE) {
+  const under = el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': R.under, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: 0.5 }, parent);
+  const top = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': R.line, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, parent);
+  top.under = under;
+  return top;
 }
 
-const _p = new THREE.Vector3(), _c = new THREE.Vector3();
+const _p = new THREE.Vector3(), _c = new THREE.Vector3(), _k = new THREE.Vector3(), _box = { x0: 0, y0: 0, x1: 0, y1: 0 }, _fr = {};
 
 export class LockReticle {
   constructor(parent = document.body) {
-    const R = RETICLE;
+    const R = RETICLE, L = R.tick;
     this.root = Object.assign(document.createElement('div'), { id: 'foe-lock' });
     this.root.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:24;display:none';
-    // drawn round 0,0 at a radius of 50 (scaled to the foe)
-    this.svg = el('svg', { width: 220, height: 220, viewBox: '-110 -110 220 220', style: 'position:absolute;left:-110px;top:-110px;overflow:visible' });
+    this.svg = el('svg', { width: 2, height: 2, style: 'position:absolute;left:0;top:0;overflow:visible' });
     this.root.appendChild(this.svg);
-    this.scaleG = el('g', {}, this.svg);
-    this.ringG = el('g', {}, this.scaleG);
-    const ring = wobblyRing(50, 2.1);
-    el('path', { d: ring, fill: 'none', stroke: R.ink, 'stroke-width': 5, 'stroke-linecap': 'round', opacity: 0.55 }, this.ringG);
-    this.ring = el('path', { d: ring, fill: 'none', stroke: R.gold, 'stroke-width': 1.8, 'stroke-linecap': 'round', 'stroke-dasharray': '10 7' }, this.ringG);
-    this.spinG = el('g', {}, this.scaleG);
-    // four chevrons pointing in, each an ink stroke under a coloured one
-    this.chevrons = [0, 1, 2, 3].map((i) => {
-      const g = el('g', { transform: `rotate(${45 + i * 90})` }, this.spinG);
-      const inner = el('g', {}, g);
-      const d = 'M-13,-9 L0,0 L-13,9';
-      const flip = el('g', {}, inner);   // (open: turned round, the tips in)
-      el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': 9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, flip);
-      const top = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': 4.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, flip);
-      // the second chevron behind it (winding up: »)
-      const second = el('g', { transform: 'translate(10,0)', style: 'display:none' }, flip);
-      el('path', { d, fill: 'none', stroke: R.ink, 'stroke-width': 8, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, second);
-      const top2 = el('path', { d, fill: 'none', stroke: R.gold, 'stroke-width': 3.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, second);
-      return { inner, flip, top, second, top2 };
+    // the four corners, each drawn as the top left one turned: an L along the frame's edges (out), or a short stroke
+    // pointing in at the body (in); a second L outside it while winding up
+    this.corners = [0, 1, 2, 3].map((i) => {
+      const g = el('g', {}, this.svg), turn = el('g', { transform: `rotate(${i * 90})` }, g);
+      const ell = inked(`M0,${L} L0,0 L${L},0`, turn);
+      const second = el('g', { transform: 'translate(-3.6,-3.6)', style: 'display:none' }, turn);
+      const ell2 = inked(`M0,${L * 0.8} L0,0 L${L * 0.8},0`, second);
+      const stroke = inked('M-1.5,-1.5 L5,5', turn);
+      return { g, ell, second, ell2, stroke };
     });
-    // the centre: a small diamond (open: a hollow ring; the strike: a four-point burst)
-    this.diamond = el('g', {}, this.scaleG);
-    el('path', { d: 'M0,-5 L5,0 L0,5 L-5,0Z', fill: R.ink }, this.diamond);
-    this.dot = el('path', { d: 'M0,-2.8 L2.8,0 L0,2.8 L-2.8,0Z', fill: R.gold }, this.diamond);
-    this.ringC = el('g', { style: 'display:none' }, this.scaleG);
-    el('circle', { r: 9, fill: 'none', stroke: R.ink, 'stroke-width': 5 }, this.ringC);
-    this.ringDot = el('circle', { r: 9, fill: 'none', stroke: R.blue, 'stroke-width': 2.2 }, this.ringC);
-    this.burst = el('g', { style: 'display:none' }, this.scaleG);
-    el('path', { d: 'M0,-11 L2.6,-2.6 L11,0 L2.6,2.6 L0,11 L-2.6,2.6 L-11,0 L-2.6,-2.6Z', fill: R.ink }, this.burst);
-    this.burstDot = el('path', { d: 'M0,-7.5 L1.6,-1.6 L7.5,0 L1.6,1.6 L0,7.5 L-1.6,1.6 L-7.5,0 L-1.6,-1.6Z', fill: R.red }, this.burst);
-    // what is left of it: pips on an arc under it
-    this.pipsG = el('g', {}, this.svg);
+    // over its head: the diamond (open: a hollow ring; the strike: a small four-point burst), the pips above it
+    this.crown = el('g', {}, this.svg);
+    this.diamond = el('g', {}, this.crown);
+    el('path', { d: 'M0,-6 L4.6,0 L0,6 L-4.6,0Z', fill: R.ink, opacity: 0.6 }, this.diamond);
+    this.dot = el('path', { d: 'M0,-4.4 L3.2,0 L0,4.4 L-3.2,0Z', fill: R.gold }, this.diamond);
+    this.ringC = el('g', { style: 'display:none' }, this.crown);
+    this.ringDot = inked('M4,0 A4,4 0 1 1 -4,0 A4,4 0 1 1 4,0Z', this.ringC);
+    this.burst = el('g', { style: 'display:none' }, this.crown);
+    el('path', { d: 'M0,-7 L1.8,-1.8 L7,0 L1.8,1.8 L0,7 L-1.8,1.8 L-7,0 L-1.8,-1.8Z', fill: R.ink, opacity: 0.6 }, this.burst);
+    this.burstDot = el('path', { d: 'M0,-5 L1.1,-1.1 L5,0 L1.1,1.1 L0,5 L-1.1,1.1 L-5,0 L-1.1,-1.1Z', fill: R.red }, this.burst);
+    this.pipsG = el('g', {}, this.crown);
     this.pips = [];
     parent.appendChild(this.root);
-    this.t = 0; this.snap = 1; this.foe = null; this.spin = 0; this.flash = 0; this.lastMode = null;
+    this.t = 0; this.snap = 1; this.foe = null; this.flash = 0; this.lastMode = null;
+    this.span = { lo: 0, hi: 0, centre: new THREE.Vector3(), radius: 0 };
   }
 
-  /** A new foe locked: the reticle snaps in on it. */
+  /** A new foe locked: the reticle eases in on it. */
   acquire() { this.snap = 0; }
 
-  /** The pips: one per hp up to RETICLE.pips (more: each stands for a share), on an arc over the ring. */
-  drawPips(look, r) {
+  /** The pips: one per hp up to RETICLE.pips (more: each stands for a share), in a row over the diamond. */
+  drawPips(look) {
     const R = RETICLE, n = Math.min(R.pips, Math.max(1, look.max)), per = look.max / n;
     while (this.pips.length < n) {
       const g = el('g', {}, this.pipsG);
-      el('circle', { r: 5, fill: R.ink }, g);
-      this.pips.push({ g, fill: el('circle', { r: 2.9, fill: R.cream }, g) });
+      el('circle', { r: 2.5, fill: R.ink, opacity: 0.6 }, g);
+      this.pips.push({ g, fill: el('circle', { r: 1.6, fill: R.cream }, g) });
     }
-    const span = Math.min(Math.PI * 0.75, n * 0.2), rr = r + 16;
+    const gap = 6;
     this.pips.forEach((p, i) => {
       if (i >= n) { p.g.style.display = 'none'; return; }
-      const a = -Math.PI / 2 - (n > 1 ? (0.5 - i / (n - 1)) * span : 0);   // (over it: under it the traveller stands in the way)
       p.g.style.display = '';
-      p.g.setAttribute('transform', `translate(${(Math.cos(a) * rr).toFixed(1)},${(Math.sin(a) * rr).toFixed(1)})`);
+      p.g.setAttribute('transform', `translate(${((i - (n - 1) / 2) * gap).toFixed(1)},-12)`);
       const left = look.hp / per - i;   // (this pip's share left: 1 full, 0 gone)
       p.fill.setAttribute('fill', left > 0.5 ? (look.mode === 'open' ? R.blue : R.cream) : R.ink);
-      p.fill.setAttribute('r', left > 0.5 ? 2.9 : 1.2);
+      p.fill.setAttribute('r', left > 0.5 ? 1.6 : 0.8);
     });
+  }
+
+  /** The foe's drawn body as a box on the screen (px), or null (behind the camera: the caller holds it at the edge). */
+  screenBox(f, camera, W, H) {
+    const model = f.model;
+    let box = null;
+    if (model?.group) {
+      try { bodySpan(model, this.span); box = this.span._box; } catch { box = null; }
+      if (box?.isEmpty()) box = null;
+    }
+    const b = _box; b.x0 = b.y0 = Infinity; b.x1 = b.y1 = -Infinity;
+    const put = (v) => {
+      _p.copy(v).project(camera);
+      if (_p.z > 1) return false;
+      const x = (_p.x * 0.5 + 0.5) * W, y = (0.5 - _p.y * 0.5) * H;
+      b.x0 = Math.min(b.x0, x); b.x1 = Math.max(b.x1, x); b.y0 = Math.min(b.y0, y); b.y1 = Math.max(b.y1, y);
+      return true;
+    };
+    if (box) {
+      for (let k = 0; k < 8; k++) if (!put(_k.set(k & 1 ? box.max.x : box.min.x, k & 2 ? box.max.y : box.min.y, k & 4 ? box.max.z : box.min.z))) return null;
+      return b;
+    }
+    // (no parts to measure: its sphere round the chest)
+    if (!put(f.chest)) return null;
+    const dist = Math.max(0.5, camera.position.distanceTo(f.chest)), fov = THREE.MathUtils.degToRad(camera.fov ?? 60);
+    const r = ((f.def?.radius ?? 0.6) + RETICLE.margin) / dist * (H / 2) / Math.tan(fov / 2);
+    b.x0 -= r; b.x1 += r; b.y0 -= r; b.y1 += r;
+    return b;
   }
 
   update(f, camera, dt = 0) {
@@ -161,50 +194,44 @@ export class LockReticle {
     if (look.mode === 'strike' && this.lastMode !== 'strike') this.flash = 1;   // (the strike: a white flash as they meet)
     this.lastMode = look.mode;
     this.flash = Math.max(0, this.flash - dt * 5);
-    // where: the foe's chest on the screen; off it (or behind), held at the edge on its side, small
-    _c.copy(f.chest);
-    _p.copy(_c).project(camera);
-    const behind = _p.z > 1;
-    let x = behind ? -_p.x : _p.x, y = behind ? -_p.y : _p.y;
-    const off = behind || Math.abs(x) > 0.92 || Math.abs(y) > 0.9;
-    if (off) { const k = 1 / Math.max(Math.abs(x) / 0.88, Math.abs(y) / 0.84, 1e-3); if (k < 1 || behind) { x *= k; y *= k; } }
     const W = window.innerWidth, H = window.innerHeight;
-    // how big: the foe's body (and a margin) at its distance, in pixels
-    const dist = Math.max(0.5, camera.position.distanceTo(_c)), fov = THREE.MathUtils.degToRad(camera.fov ?? 60);
-    const px = ((f.def.radius + R.margin) / dist) * (H / 2) / Math.tan(fov / 2);
-    const r = THREE.MathUtils.clamp(px, R.min, R.max) * (off ? 0.6 : 1);
-    this.root.style.display = '';
-    this.root.style.transform = `translate(${((x * 0.5 + 0.5) * W).toFixed(1)}px,${((0.5 - y * 0.5) * H).toFixed(1)}px)`;
-    // the snap-in: from wide and faint, an overshoot, a quick quarter turn
-    const s = this.snap, ease = 1 - (1 - s) ** 3, pop = 1 + Math.sin(Math.min(1, s * 1.15) * Math.PI) * 0.12;
-    const scale = (r / 50) * THREE.MathUtils.lerp(2, 1, ease) * pop * (1 + this.flash * 0.12);
-    this.scaleG.setAttribute('transform', `scale(${scale.toFixed(3)})`);
-    this.root.style.opacity = String((look.mode === 'veiled' ? 0.55 : 1) * Math.min(1, s * 2.5));
-    // the turn: slow when calm, quicker winding up, stopped while it is open (it holds wide, pulsing)
-    this.spin += dt * (look.mode === 'wind' ? R.spin * 3 : look.mode === 'open' ? 0 : R.spin) + (1 - ease) * dt * 6;
-    this.spinG.setAttribute('transform', `rotate(${(this.spin * 57.3).toFixed(1)})`);
-    this.ringG.setAttribute('transform', `rotate(${(-this.t * 12).toFixed(1)})`);
-    const spread = chevronSpread(look, this.t), colour = this.flash > 0.3 ? '#ffffff' : look.mode === 'wind' || look.mode === 'strike' ? R.red : look.mode === 'open' ? R.blue : R.gold;
-    const shape = reticleShape(look);
-    for (const c of this.chevrons) {
-      c.inner.setAttribute('transform', `translate(${(50 * spread + 4).toFixed(1)},0)`);
-      c.flip.setAttribute('transform', shape.point === 'in' ? 'translate(-13,0) scale(-1,1)' : '');
-      c.second.style.display = shape.double ? '' : 'none';
-      for (const top of [c.top, c.top2]) {
-        top.setAttribute('stroke', colour);
-        top.setAttribute('stroke-dasharray', shape.dash ? '5 5' : 'none');
-      }
+    const s = this.snap, ease = 1 - (1 - s) ** 3;
+    // where: the body's box on the screen; off it (or behind), held small at the edge on its side
+    const box = this.screenBox(f, camera, W, H);
+    let fr;
+    const onScreen = box && box.x1 > W * 0.04 && box.x0 < W * 0.96 && box.y1 > H * 0.05 && box.y0 < H * 0.95;
+    if (onScreen) fr = reticleFrame(box, chevronSpread(look, this.t), ease, _fr);
+    else {
+      _c.copy(f.chest); _p.copy(_c).project(camera);
+      const behind = _p.z > 1;
+      let x = behind ? -_p.x : _p.x, y = behind ? -_p.y : _p.y;
+      const k = 1 / Math.max(Math.abs(x) / 0.88, Math.abs(y) / 0.84, 1e-3); if (k < 1 || behind) { x *= k; y *= k; }
+      fr = Object.assign(_fr, { cx: (x * 0.5 + 0.5) * W, cy: (0.5 - y * 0.5) * H, hw: R.min, hh: R.min });
     }
+    this.root.style.display = '';
+    this.root.style.transform = `translate(${fr.cx.toFixed(1)}px,${fr.cy.toFixed(1)}px)`;
+    this.root.style.opacity = String((look.mode === 'veiled' ? 0.55 : 1) * ease);
+    const colour = this.flash > 0.3 ? '#ffffff' : look.mode === 'wind' || look.mode === 'strike' ? R.red : look.mode === 'open' ? R.blue : R.gold;
+    const shape = reticleShape(look), dash = shape.dash ? '2.5 3' : 'none';
+    const at = [[-fr.hw, -fr.hh], [fr.hw, -fr.hh], [fr.hw, fr.hh], [-fr.hw, fr.hh]];
+    this.corners.forEach((c, i) => {
+      c.g.setAttribute('transform', `translate(${at[i][0].toFixed(1)},${at[i][1].toFixed(1)})`);
+      const out = shape.point === 'out';
+      c.ell.style.display = c.ell.under.style.display = out ? '' : 'none';
+      c.stroke.style.display = c.stroke.under.style.display = out ? 'none' : '';
+      c.second.style.display = shape.double && out ? '' : 'none';
+      for (const top of [c.ell, c.ell2, c.stroke]) { top.setAttribute('stroke', colour); top.setAttribute('stroke-dasharray', dash); top.under.setAttribute('stroke-dasharray', dash); }
+    });
+    // the crown over its head, settling onto it as it eases in
+    this.crown.setAttribute('transform', `translate(0,${(-fr.hh - 9 - (1 - ease) * R.drop).toFixed(1)})`);
     this.diamond.style.display = shape.centre === 'diamond' ? '' : 'none';
     this.ringC.style.display = shape.centre === 'ring' ? '' : 'none';
     this.burst.style.display = shape.centre === 'burst' ? '' : 'none';
-    this.burstDot.setAttribute('fill', colour);
-    this.ring.setAttribute('stroke', look.mode === 'open' ? R.blue : look.mode === 'wind' ? R.red : R.gold);
-    this.ring.setAttribute('opacity', look.mode === 'wind' ? String(0.35 + 0.65 * look.k) : '0.8');
     this.dot.setAttribute('fill', colour);
-    this.pipsG.style.display = off ? 'none' : '';
-    this.pipsG.setAttribute('transform', `scale(${((r / 50) * THREE.MathUtils.lerp(2, 1, ease)).toFixed(3)})`);
-    if (!off) this.drawPips(look, 50);
+    this.ringDot.setAttribute('stroke', colour);
+    this.burstDot.setAttribute('fill', colour);
+    this.pipsG.style.display = onScreen ? '' : 'none';
+    if (onScreen) this.drawPips(look);
   }
 
   dispose() { this.root.remove(); }

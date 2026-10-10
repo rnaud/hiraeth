@@ -517,6 +517,11 @@ export const CHANGELOG_MEDIA = {
     { match: 'The third swing of the sword’s combo is a heavy blow', shots: [
       { name: 'heavy-third', caption: 'The combo’s third swing near the end of its wind-up, seen from his side: before, both feet off the ground in a leap; after, planted, the sword raised for the chop', from: FROM_FIGHT39 },
     ], see: 'Swing three times in a row (RB / R1, F): the third is the heavy chop, and you stay on the ground.' },
+    { match: 'The lock-on’s mark is quieter', shots: [
+      { name: 'lock-reticle', title: 'Calm', caption: 'Locked on to a furnace brute 6 m away in the Arena: before, the gold chevrons and ring over its chest; after, the ticks round its body and the diamond over its head', from: FROM_FIGHT39 },
+      { name: 'lock-reticle-windup', title: 'Winding up', caption: 'The same brute three quarters into its slam: before, red chevrons doubled and closing over it; after, coral ticks doubled and closing in round it', from: FROM_FIGHT39 },
+      { name: 'lock-reticle-handheld', title: 'Handheld, far', caption: 'The brute 16 m away on a handheld-sized screen (732 × 412 CSS px, the Retroid’s): it stays readable without covering it', from: FROM_FIGHT39 },
+    ], see: 'Lock on to a foe (R3 / Tab): the mark eases in round it; watch it tint and close in as the foe winds up, and turn pale blue after a parry.' },
   ],
   '1.38': [
     { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },

@@ -11,6 +11,7 @@ export const CHANGELOG = [
   { v: '1.39', date: '2026-10-10', items: [
     // the fight, closer to Breath of the Wild's (docs/systems/foes.md)
     'The third swing of the sword’s combo is a heavy blow with both feet on the ground: the sword raised high over a longer wind-up and brought down hard, with a nudge of the camera, for the same three hearts and the same knock back. It was a leap into the air.',
+    'The lock-on’s mark is quieter: four fine ink ticks at the corners of the foe and a small diamond over its head that settles onto it, instead of thick gold chevrons over its body. It still turns coral and closes in as a blow winds up, pale blue with its ticks turned in when the foe is open, and dashed when it can’t be cut; the pips over it count what is left.',
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start
