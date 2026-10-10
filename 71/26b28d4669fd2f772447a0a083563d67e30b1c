@@ -1,0 +1,33 @@
+changelog.md
+  s_9ca76055a220ed::t_3781b98d09243b 7
+src/story/edena-data.js
+  s_9ca76055a220ed::t_0a6d45232bbabf 59,261,269
+src/story/edena.js
+  s_9ca76055a220ed::t_60eba2facf14ce 68-70
+src/changelog.js
+  s_126dba1e825fe2::t_947983f8f7d1bf 21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7126b28d4669fd2f772447a0a083563d67e30b1c",
+  "prompts": {},
+  "sessions": {
+    "s_126dba1e825fe2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e25fce308c93d52",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
