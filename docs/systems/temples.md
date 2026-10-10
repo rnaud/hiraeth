@@ -9,7 +9,10 @@ House**, the City-Shaft's **Warden's Well**, Vael II's **Founders' Belfry**, the
 Buried Machine's **Engine-House**, the Garden of Spheres' **Footprint**, Lorn
 II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar's
 **First Garage**, Viridel's **Builders' Greenhouse** and the Signal Market's
-**Undertower**. Everything lives in `src/temples/`:
+**Undertower**. Reference pictures (the reference lab's prompts, the author's picks beside them): each temple's
+hall and entrance, `docs/design/temple-prompts.md` (`references/temples/<id>/`); three more rooms of each,
+`docs/design/temple-interior-prompts.md` (`references/temples/rooms/<room>/`); the guardians' design sheets and
+arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everything lives in `src/temples/`:
 
 - **`kit.js`**: the architecture. `TempleKit` batches render meshes per material
   (noCollide) and hidden collision proxies, in a local frame; pieces: `hall` (walls
