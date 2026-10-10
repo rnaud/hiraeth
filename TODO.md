@@ -108,10 +108,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 ## Traversal and gadgets
 
-- [ ] **The City-Shaft's air pillars**: columns of rising air to carry you back up with the wings; inside an air shaft
-  you only rise, no forward drift.
-  (Until they land, the Warden's Well's chest holds the Warden's harness, jets that fire in the City-Shaft only, v1.38:
-  with the pillars in, the harness can go and the shaft's way up be the wings.)
 - [ ] **The jets' trials outside the City-Shaft** (the Glass Dunes' Glass slalom, the Buried Machine's Canyon dive, the
   Signal Market's Avenue run): since the jets became a debug item (v1.38) they want the debug jets, so their rewards
   (the strong lodestone, the fourth pouch, the racer's ribbon) can't be won in play. Give each another mode. (The

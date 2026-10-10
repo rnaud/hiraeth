@@ -13,6 +13,26 @@ export const CHANGELOG = [
     { text: 'A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.', see: 'Open Notes from the Pages list, unlock your notebook, write a line and press Enter or Add. Each saved note opens its issue on GitHub.' },
     // the people's colours by how much they matter (src/costumes.js PROMINENCE; docs/systems/characters.md "Prominence")
     'The crowds in the towns wear their world’s colours a little softer now, so the people with a story to tell, the shopkeepers, Tansy and your family stand out among them.',
+    // rising air (docs/systems/movement-and-camera.md "Rising air")
+    { text: 'In a column of rising air your wings now carry you straight up: no more drifting on forward and out of it. Let go of the stick and it settles you onto its middle and holds you near its top; push the stick to drift out of it the way you want to go.',
+      numbers: [
+        { title: 'Gliding into a column of rising air and letting go of the stick', unit: '', better: 'lower', device: 'Node, the real traveller gliding into a column 6 m wide and 60 m tall (src/updraft.js, tests/updraft.test.js)', rows: [
+          { where: 'how far from its middle you drift while rising, a trial’s wind column (m)', before: 5.8, after: 1.2 },
+          { where: 'carried on forward out of its top within 12 s (times)', before: 1, after: 0 },
+          { where: 'how high you hang at its top (m below it)', before: 6, after: 0.1 },
+        ], source: 'the old columns’ code against the shared ride, the same glide in' },
+      ],
+      see: 'In Vael’s Aerie, or the makers’ trial columns in Vael, glide into a column of rising rings and let go of the stick: you rise straight up its middle and hang at its top; push the stick to drift out.' },
+    // the City-Shaft's air pillars (docs/systems/worlds.md "The City-Shaft's air pillars")
+    { text: 'The City-Shaft has pillars of rising air: pale columns of drifting rings and streaks that carry your wings straight back up the shaft. One rises beside the spire from the bottom viaduct to the palace landing, a short one lifts you from the landing past the dome to its crown, and three by the terraces’ edges climb from the depths to above the rim. Fall into one and your wings open by themselves; steer off onto any terrace on the way.',
+      see: 'In the City-Shaft, look across the shaft from the rim: the pale columns are the pillars. Glide into one (or fall into it), let go of the stick and you rise; push the stick to drift out over a terrace or the rim.' },
+    // the Warden's harness retired (docs/systems/progression.md, docs/systems/temples.md "The tower breathes through its vanes")
+    { text: 'The City-Shaft is played on your wings now, with no jets at all: the Warden’s Well’s chest holds the Warden’s bellows instead of the harness. With your wings open they breathe a steady wind down under you that turns the makers’ great vanes. A save that had the harness has the bellows.',
+      see: 'Open the chest in the Warden’s Well: the card is the Warden’s bellows, and the backpack keeps its third strength. In a save that had the harness, the gear lists the bellows instead.' },
+    { text: 'Inside the Warden’s Well a draught rises from the chest’s plinth up through the ceiling, and on through each iris as it opens: ride it on your wings. A thin breath rises through each great vane and holds you over it, and in rising air your wings hold you still enough to aim and shoot.',
+      see: 'In the Warden’s Well, open the chest, jump onto the plinth and hold A / ×: the draught carries you up into the gallery. Walk onto the great vane in its floor, jump and hold A / ×: you hang over it and it turns; aim with LT / L2 and splash the eye over the west shelf.' },
+    { text: 'The City-Shaft’s Shaft climb is flown on your wings: from the middle terrace into the halfway air pillar, up through its rings, and out of its top over the rim.',
+      see: 'Start the Shaft climb at its stone on the rim by the ship: you begin on the middle terrace; glide into the pillar and rise through the rings.' },
   ] },
   { v: '1.41', date: '2026-10-10', items: [
     // the glass backpack's find in Qanat (TODO.md "Qanat and the glass backpack")

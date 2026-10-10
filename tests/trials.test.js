@@ -77,7 +77,8 @@ test('what a trial wants: the items, the mount found, staying on it', () => {
   assert.equal(lacks(TRIALS.desert, { has: has('backpack'), mount: bike }), '');
   assert.match(lacks(TRIALS.arzach2, { has: has(), mount: null }), /bird/);
   assert.equal(lacks(TRIALS.arzach2, { has: has(), mount: { kind: 'bird' } }), '');
-  assert.match(lacks(TRIALS.incal, { has: has('backpack') }), /jets/);
+  assert.match(lacks(TRIALS.incal, { has: has('backpack') }), /wings/, 'the Shaft climb rides the halfway air pillar (on the jets until v1.42)');
+  assert.equal(lacks(TRIALS.incal, { has: has('backpack', 'glider') }), '');
   const mount = { kind: 'skiff' };
   assert.equal(inMode(TRIALS.perdide, { mount, ride: mount }), true);
   assert.equal(inMode(TRIALS.perdide, { mount, ride: null }), false, 'off the skiff');

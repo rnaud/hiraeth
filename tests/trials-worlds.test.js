@@ -58,7 +58,7 @@ for (const id of ORDER) {
     // the trials (each part's, where it lies in the world)
     const trials = trialsFor(id);
     assert.equal(trials.length, parts.length, 'a trial for every part');
-    for (const T of trials) assert.deepEqual(checkCourse(T, { physics, surfaceAt }), [], `${T.name}: a fair course`);
+    for (const T of trials) assert.deepEqual(checkCourse(T, { physics, surfaceAt, columns: level.columns ?? [] }), [], `${T.name}: a fair course`);
     const T = trials[0];
     const game = new GameState();
     const items = { has: () => true, grant() {} };

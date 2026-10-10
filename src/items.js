@@ -17,7 +17,7 @@ import { game } from './game-state.js';
 // frame (cheap), so a grant takes effect at once.
 //
 // Kinds: core (the backpack), movement (its strengths: the lift valve's double jump, the wings, the
-// Warden's harness, the City-Shaft's own jets: BACKPACK_STAGES; the jets anywhere, `jetpack`, are a debug item), mode (gun modes, MODE_ITEMS), gadget (src/gadgets/: the fluid gun is one), and the
+// Warden's bellows, `wardenbellows` (not the pocket bellows, a charm): BACKPACK_STAGES; the jets anywhere, `jetpack`, are a debug item), mode (gun modes, MODE_ITEMS), gadget (src/gadgets/: the fluid gun is one), and the
 // (the mastery trials' rewards, `trial: '<world>'`: upgrades to the gadgets, won not found: src/trials/)
 // boxes' special items: upgrade (the tank), charm, cosmetic; and pass (`quest: true`: someone
 // gives it at the end of a quest, not a box: the City-Shaft's cab pass). Most items come
@@ -29,7 +29,7 @@ export const ITEMS = {
   backpack: {
     name: 'Magic-fluid backpack', kind: 'core',
     text: "A makers’ glass sphere in a brass cradle, made to be filled with living water and carried a long way. Someone built it for a traveller they would never meet.",
-    use: 'It holds the magic bar, which refills by itself a moment after the last use, and powers vehicles. Its strengths come in later finds: the lift valve’s double jump first, then the wings and the jets. The fluid gun drinks from it.',
+    use: 'It holds the magic bar, which refills by itself a moment after the last use, and powers vehicles. Its strengths come in later finds: the lift valve’s double jump first, then the wings and the bellows. The fluid gun drinks from it.',
   },
   doublejump: {
     name: 'Lift valve', kind: 'movement', needs: 'backpack',
@@ -44,22 +44,24 @@ export const ITEMS = {
   },
   // the jets anywhere: too powerful for the worlds (the author, 2026-10-10), so a debug item since v1.38, given only by the
   // debug menus (the world debug menu's toggle, the dev menu): no box, shop or quest holds it, and old saves lose it
-  // (src/save-migrate.js step 9). In play the City-Shaft has
-  // its own, the Warden's harness below
+  // (src/save-migrate.js step 9). The City-Shaft's own, the Warden's harness, went too in v1.42: its air pillars
+  // carry the wings (src/shaft-pillars.js)
   jetpack: {
     name: 'Fluid jets (debug)', kind: 'movement', needs: 'backpack', debug: true, where: 'Only from the debug menus (L3 + R3, F2: Toggles).',
     text: "Ancient nozzles that turn the tank’s fluid into thrust, anywhere. Too strong for the worlds as they are drawn: a debugging aid.",
     use: 'Debug only. They fly like a plane, in every world: hold {key:jump} in the air to fire them, {key:move} flies the nose. Let go to glide on; aim with {key:aim} and they hold you.',
   },
-  harness: {
-    name: 'Warden’s harness', kind: 'movement', needs: 'backpack',
-    text: "The makers’ nozzles for the City-Shaft, clamped under the tank in a brass harness. They answer the shaft’s own breath, and nowhere else: out of the City-Shaft they hang cold.",
-    use: 'In the City-Shaft, hold {key:jump} in the air to fly on the jets: {key:move} flies the nose (forward dives, back climbs, left and right bank and turn). Let go to glide on; aim with {key:aim} and they hold you. They burn the backpack’s fluid; land to let it recover. The backpack’s third strength.',
+  // the backpack's third strength (v1.42: the City-Shaft's air pillars carry the wings, so the Warden's harness, the
+  // City-Shaft's own jets, went: src/save-migrate.js step 11 turns a save's harness into these)
+  wardenbellows: {
+    name: 'Warden’s bellows', kind: 'movement', needs: 'backpack',
+    text: "The makers’ bellows for the wings, clamped under the tank in a brass harness. They kept the City-Shaft breathing once; now they breathe for you.",
+    use: 'With your wings open they breathe a steady wind down under you: hold it over one of the makers’ great vanes and the vane turns. In rising air your wings climb quicker, and hold you still enough to aim with {key:aim}. The backpack’s third strength.',
   },
   glider: {
     name: 'Fluid wings', kind: 'movement', needs: 'backpack',
     text: "Folded membranes that open into bright wings. A whole sky tucked into very little luggage.",
-    use: 'Hold {key:jump} while falling to unfold the wings and glide (with the jets, hold {key:run} too). The backpack’s second strength.',
+    use: 'Hold {key:jump} while falling to unfold the wings and glide (with the jets, hold {key:run} too). In a column of rising air they carry you straight up: {key:move} drifts you out of it. The backpack’s second strength.',
   },
   stun: {
     name: 'Stilling mode', kind: 'mode', needs: 'gun',
@@ -276,14 +278,12 @@ export const MODE_ITEMS = { shoot: 'gun', stun: 'stun', fire: 'fire', bloom: 'bl
 
 /**
  * The backpack's strengths in the order the route brings them (docs/systems/progression.md): the lift valve's
- * double jump (the desert's giant's cave), the wings (Vael's Aerie), the jets (the City-Shaft's Warden's Well).
+ * double jump (the desert's giant's cave), the wings (Vael's Aerie), the bellows (the City-Shaft's Warden's Well).
  * How many are owned is the backpack's stage (0..3): the round tank shows it (src/fluid-tool.js buildTank).
  */
-export const BACKPACK_STAGES = ['doublejump', 'glider', 'harness'];
-/** The backpack's stage (0..3) from what is owned (has: id -> bool); the debug jets count as the harness. */
-export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id) || (id === 'harness' && has('jetpack'))).length;
-/** The world the harness's jets fire in (the City-Shaft: src/player.js canJet, src/fluid-tool.js canJet). */
-export const HARNESS_WORLD = 'incal';
+export const BACKPACK_STAGES = ['doublejump', 'glider', 'wardenbellows'];
+/** The backpack's stage (0..3) from what is owned (has: id -> bool); the debug jets count as the bellows (they turn a great vane too). */
+export const backpackStage = (has) => BACKPACK_STAGES.filter((id) => has(id) || (id === 'wardenbellows' && has('jetpack'))).length;
 
 const key = (id) => `item.${id}`;
 const listeners = new Set();

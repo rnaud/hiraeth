@@ -69,9 +69,9 @@ export const PLACEMENTS = {
     { id: 'incal.soles', item: 'soles', at: [Math.cos(0.45) * 286, 216, Math.sin(0.45) * 286], toward: [274, 0], beacon: true,
       hint: 'A makers’ box waits on top of the lone stone pillar on the rim, round from the ship. Climb it',
       note: 'On top of the makers’ pillar on the rim, round from the ship: climb the column.' },
-    // the Warden's Well (src/temples/incal.js): in the chamber half-way up. The jets are the key to the rest: the way
-    // up through its ceiling, the eyes over their shelves, the warden's crown
-    { id: 'incal.temple.jetpack', item: 'harness', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
+    // the Warden's Well (src/temples/incal.js): in the chamber half-way up, the Warden's bellows (the jets until v1.42).
+    // They are the key to the rest: the draught up through its ceiling, the great vanes, the warden's crown
+    { id: 'incal.temple.jetpack', item: 'wardenbellows', temple: 'incal',   // (its id from when it held the jets: the saves' flag)
       site: templeSite('incal'),
       note: 'Inside the makers’ tower on the rim, in the round chamber over the climbing well.' },
     // the makers' court (src/finds/courts.js): the gadget, with what it is for round it
@@ -266,7 +266,7 @@ export const FALLBACKS = [
   // tower's steps, the crowns of trees) and the fluid gun (lamps, plates, the hands-on errands, the temples)
   { item: 'doublejump', slot: 2, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
   { item: 'gun', slot: 3, when: ({ levelId }) => levelId !== 'desert' && levelId !== 'home' },
-  // (the jets anywhere are a debug item since v1.38: no fallback box of them; the City-Shaft has its harness in its temple)
+  // (the jets anywhere are a debug item since v1.38: no fallback box of them; the City-Shaft has its bellows in its temple)
 ];
 
 /** Offsets tried for a fallback box: [right, forward] metres from the ramp's foot, facing out of the ship. */

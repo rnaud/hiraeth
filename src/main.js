@@ -84,7 +84,7 @@ import { birdAnswers, promisedBird } from './bird.js';
 import { RIDER_CALL, RIDER_CALL_BEAT } from './story/arzach-data.js';
 import { game } from './game-state.js';
 import { BodyFoley } from './foley.js';
-import { items, ITEMS, HARNESS_WORLD } from './items.js';
+import { items, ITEMS } from './items.js';
 import { menuSources } from './game-menu-data.js';
 import { ItemIcons } from './item-icons.js';
 import { PortraitCache } from './portrait-cache.js';
@@ -320,7 +320,7 @@ await stage('waking the people…');
 // the bird's promise: under open sky, in a world with no mount of its own, the whistle calls her down (src/bird.js)
 if (birdAnswers(levelId, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
 const player = new Player(physics, {
-  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true, harnessWorld: levelId === HARNESS_WORLD,   // (the Warden's harness fires here only: src/items.js)
+  mount: level.mount, jetpack: level.features.jetpack, climb: level.features.climb ?? true,
   killY: level.killY, limit: level.limit ?? 1900, edgeHint: level.edgeHint ?? EDGE_HINTS[levelId] ?? EDGE_HINTS.default, spawn: level.spawn, spawnHeading: level.spawnHeading,
   gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, water: waters,
   // a hurt: a thud; knocked over (a hard landing: the ragdoll, src/ragdoll.js): a heavier one;
@@ -378,7 +378,7 @@ function potionHint() {
 // The progression's new verbs (v1.38: the lift valve's double jump, the fluid gun, the jets on jump held), each
 // taught once when its chest opens, after the card; and the choosing, once a second gadget is carried
 // (a genuinely new verb: hints subtle or full, src/hint-level.js)
-const TEACH_ON_FIND = { doublejump: 'hint.lift', gun: 'hint.gun', harness: 'hint.jets' };
+const TEACH_ON_FIND = { doublejump: 'hint.lift', gun: 'hint.gun', wardenbellows: 'hint.bellows' };
 game.on('box:opened', ({ item } = {}) => {
   const key = TEACH_ON_FIND[item] ?? (gadgets?.owned?.().length >= 2 && gadgets.owned().includes(item) ? 'hint.pick' : null);
   if (!key || game.flag(`${key}.taught`) || !hintsFor('teach')) return;

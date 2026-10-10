@@ -27,7 +27,8 @@ export function startPoint(trial, { physics, surfaceAt = null }) {
   return V(x, Math.max(g, w), z);
 }
 
-export function checkCourse(trial, { physics, surfaceAt = null, glide = 5.2 } = {}) {
+/** columns: the world's own rising air the wings ride ([{ x, z, r, foot, top }]: the City-Shaft's air pillars, level.columns). */
+export function checkCourse(trial, { physics, surfaceAt = null, glide = 5.2, columns = [] } = {}) {
   const out = [];
   if (trial.eyes) {
     // a game of eyes: each on the ground, in the open
@@ -42,7 +43,7 @@ export function checkCourse(trial, { physics, surfaceAt = null, glide = 5.2 } = 
   const pts = gatePoints(trial, { physics, surfaceAt });
   const s = startPoint(trial, { physics, surfaceAt });
   if (!Number.isFinite(s.y)) out.push('the start has no ground');
-  const winds = (trial.winds ?? []).map(([x, z, r, h]) => { const g = physics.groundAt(x, 1e4, z, 2e4); return { x, z, r, top: g + h, foot: g }; });
+  const winds = [...(trial.winds ?? []).map(([x, z, r, h]) => { const g = physics.groundAt(x, 1e4, z, 2e4); return { x, z, r, top: g + h, foot: g }; }), ...columns];
   const inWind = (p) => winds.find((w) => Math.hypot(p.x - w.x, p.z - w.z) < w.r && p.y > w.foot - 1 && p.y < w.top + 1);
   let prev = { x: s.x, y: s.y + 1.2, z: s.z };
   pts.forEach((g, i) => {

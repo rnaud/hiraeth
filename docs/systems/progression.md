@@ -13,18 +13,20 @@ now: Vael II waited for Vael's bird until it became part of Vael).
 
 - **The wings first.** Vael is the second world. Its Aerie holds the fluid wings,
   and its main quest rides the wind up the lone tower on them.
-- **The City-Shaft's own jets in the later half.** The City-Shaft is sixth (the seventh of fourteen places), and it is
-  charted only once four worlds are done. None of the three worlds promoted in v1.40 wants the jets: the Underwater City
-  before it is walked under glass, the Moon Foundry and the floating city after it on foot and on the wings. Its Warden's Well holds the Warden's harness (`harness`, v1.38): the jets, firing in the City-Shaft
-  only (`HARNESS_WORLD` in src/items.js; player.js `jetsOwned`, fluid-tool.js `canJet`). The jets anywhere
+- **The City-Shaft on the wings, in the later half.** The City-Shaft is sixth (the seventh of fourteen places), and it
+  is charted only once four worlds are done. Since v1.42 no world in play wants the jets: the City-Shaft's air pillars
+  (src/shaft-pillars.js, docs/systems/worlds.md) carry the wings back up the shaft, to the palace and its crown, and its
+  Warden's Well holds the Warden's bellows (`wardenbellows`, the wings' third strength: their steady wash turns the
+  makers' great vanes). From v1.38 to v1.41 that chest held the Warden's harness (`harness`), jets that fired in the
+  City-Shaft only; step 11 of src/save-migrate.js gives a save that had it the bellows. The jets anywhere
   (`jetpack`) were too strong for the worlds as they are drawn (the author, 2026-10-10): a debug item, given only by
   the world debug menu's toggle (L3 + R3, F2) and the dev menu; no box, shop or quest holds it, and there is no
   fallback box of it. `tests/route.test.js` still checks that no world before the City-Shaft wants them.
 - **After the route:** the first homecoming at six worlds, and the final chapter (the Lantern, past the
   Signal Market) once the market is heard: docs/systems/story.md, "Two homecomings".
 - Saves keep what they have: items are flags, and worlds already visited or done stay on the chart. The one thing
-  taken away is the debug jets (step 9 of src/save-migrate.js: a save that owned them has the Warden's harness instead,
-  and `jets.lost`).
+  taken away is the debug jets (step 9 of src/save-migrate.js: a save that owned them had the Warden's harness instead,
+  and `jets.lost`; step 11 turns that harness into the Warden's bellows, `harness.lost`).
 
 ## The progression rewrite (v1.38): the sword alone, then the backpack's strengths
 
@@ -39,7 +41,7 @@ get that by default. By default we should just get the sword."
 | the lift valve: the double jump with a flip, the backpack's first strength | a makers' chest beside the giant's pool (`desert.lift`), the new stage `valve` after `fill` | the tank first fills there, so its first strength wakes beside the water; nothing in the desert before it asks for a second jump, and Vael's tower steps and Vael II's sky stones (each a double jump above the last), Viridel's crown and the kits after it are drawn for it |
 | the fluid gun (a gadget) | a makers' chest in the Givers' Hearth's hall (`desert.gun`), the new stage `gun` before `stone` | its first use is right there: the push that rolls the stone ball and lifts the grille; everything before it (the rib, the drum) is done by hand, and every world after it wants shots |
 | the wings, the second strength | Vael's Aerie (unchanged) | |
-| the Warden's harness, the third strength (the City-Shaft's own jets) | the Warden's Well (unchanged chest, `incal.temple.jetpack`) | the City-Shaft is built round flying its shaft; the jets anywhere are a debug item |
+| the Warden's bellows, the third strength (the wings' steady wash, v1.42; the Warden's harness, jets for the City-Shaft only, v1.38 to v1.41) | the Warden's Well (unchanged chest, `incal.temple.jetpack`) | the temple's great vanes turn under it, the shaft's air pillars carry the wings; the jets anywhere are a debug item |
 
 The old boost (a powered jump on every press in the air while the bar lasted: with three units, three more jumps)
 is gone; the double jump costs nothing and comes once each time you leave the ground. Every place that wanted a
@@ -58,14 +60,17 @@ stand by its front, E), checks the double jump and the gun are not had before th
 the gun and fluid in the tank; the Hearth's ball wants the gun. The route plays to the end, both homecomings
 included.
 
-## After the jets (`src/temples/incal.js`)
+## After the bellows (`src/temples/incal.js`)
 
-A `JetGuide` piece in the Jets' Chamber does three things once the chest is
-open. A moment after the box's card, a line says what the jets are for
-(`JETS_NEXT`). The drone flies up and points (`game.emit('scout:ping')`,
-handled in `main.js`). Pale rings rise from the plinth up through the oculus.
-The temple quest gets a `use` stage (`QUEST.use` in the temple's words, done when
-`def.used(rt)`: you reached the gallery). The guide fades once you are up there.
+Opening the chest in the Bellows Chamber (room id `jets`) unstops the plinth under it: a draught (an `Updraft`,
+`when: { gadget: true }`) rises up through the oculus, the only way on, and on up through each iris as it opens. An
+`UpGuide` piece says what to do a moment after the box's card (`BELLOWS_NEXT`), and the drone flies up and points
+(`game.emit('scout:ping')`, handled in `main.js`). The temple quest gets a `use` stage (`QUEST.use` in the temple's
+words, done when `def.used(rt)`, `upUsed`: you reached the gallery). (The jets until v1.42: `JetGuide`, `JETS_NEXT`.)
+The playthrough (`tests/playthrough.test.js`) plays the City-Shaft with no jets at all: its light quest's `palace` and
+`look` stages ride the spire's and the crown's air pillars for real (`ridePillar`, tests/playthrough-worlds.js), and
+tests/temples.test.js plays the Warden's Well on the wings and the bellows, room by room, the warden broken over a
+vane.
 
 ## The cab pass (`src/taxi.js`, `src/story/incal-data.js`)
 

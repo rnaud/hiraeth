@@ -9,7 +9,7 @@ import { makeMaterial } from './materials.js';
 //   the lamplighters' drops  before the cabs, the lamplighters went down the shaft terrace by terrace; each landing they
 //                            dropped to is still marked on the edge of its terrace with a red lamp-post and a cream
 //                            ring painted on the promenade, a spiral from Nima's corner of the high terrace down to the
-//                            bottom terrace by the Upward Shrine: the way down on the jets. Halfway, on the middle
+//                            bottom terrace by the Upward Shrine: the way down on the wings. Halfway, on the middle
 //                            levels, Perrine keeps her tea stall where they land (src/story/halfway.js HALFWAY).
 //   the lamplighters' pad    a floating pad with a lamp a quarter of the way up from the bottom terrace toward the
 //                            spire: the first rest on the climb to the palace; and the upper pad three quarters of the way,

@@ -1,6 +1,6 @@
 // The camera QC's scenarios (.claude/skills/camera-qc/SKILL.md): where each starts and what the hands do, segment by
 // segment. A segment: { for (s), path: [[x, z] | [x, y, z], …] (walked to in turn), stick: [x, y] (camera-relative),
-// wander: true (forward, turning away from what it meets), run, jumpEvery (s), turn / pitch (deg/s of the camera,
+// wander: true (forward, turning away from what it meets), run, jumpEvery (s), hold (jump held: the wings), turn / pitch (deg/s of the camera,
 // as the right stick), steer (deg/s: the camera turned after where you walk, as a player does), lock (Tab: lock on) }.
 // A scenario: { name, world, about, at ([x, y, z]: teleported there), yaw (the camera's), setup (page code run first),
 // flags (the save it boots with), query, settle (s), segs }.
@@ -46,6 +46,10 @@ export const SCENARIOS = [
     segs: [{ for: 24, path: 'shop', steer: 100 }, { for: 3, turn: 100 }] },
   { name: 'bazaar-streets', world: 'bazaar', about: 'the Signal Market’s streets from the landing: wandering between the stalls with the camera after the way',
     segs: [{ for: 30, wander: true, heading: Math.PI, steer: 90 }] },
+  // ---------------------------------------------------------------- rising air (src/updraft.js): the City-Shaft's halfway air pillar
+  { name: 'incal-pillar', world: 'incal', about: 'riding the City-Shaft’s halfway air pillar on the wings: straight up past the terraces, the camera turned while rising, then steered out of it',
+    flags: { 'item.backpack': true, 'item.glider': true }, at: [-53.3, -60, 179.2], yaw: 5.0, settle: 2,
+    segs: [{ for: 12, hold: true }, { for: 6, hold: true, turn: 50 }, { for: 3, hold: true, pitch: 25 }, { for: 4, hold: true, stick: [1, 0] }] },
   { name: 'arena-lock', world: 'arena', about: 'locked on to an ink blot: circling it, stepping in and back',
     setup: `foes.setPractice('blot'); player.health = 1;`, settle: 3,
     segs: [{ for: 1, lock: true }, { for: 8, stick: [1, 0] }, { for: 3, stick: [0, 1] }, { for: 3, stick: [0, -1] }, { for: 6, stick: [-1, 0.3], run: true }] },

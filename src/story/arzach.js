@@ -10,6 +10,7 @@ import { stripTone } from './tone.js';
 import { setupArzachMoments } from './arzach-moments.js';
 import { shiftAt } from '../levels/names.js';
 import { batchParts } from '../part-batch.js';
+import { rideColumn } from '../updraft.js';
 
 // Vael's story, alive (arzach-data.js has the words): "The Waiting Bird".
 //
@@ -63,13 +64,10 @@ export const windContains = (W, p) => Math.hypot(p.x - W.foot.x, p.z - W.foot.z)
  * balcony and lets you glide onto it (the temple's Updraft, src/temples/pieces.js, on a tower's scale).
  */
 export function windLift(W, P, dt, onto) {
-  const k = THREE.MathUtils.clamp((W.top - P.pos.y) / 4, 0, 1), want = W.lift * k;
-  P.vel.y = Math.max(P.vel.y, want * 0.5) + (want - P.vel.y) * Math.min(1, dt * 3);
-  if (k > 0.5) {
-    P.glideSpeed = Math.min(P.glideSpeed ?? 1.5, 1.5);
-    const c = Math.min(1, dt * 1.5);
-    P.pos.x += (W.foot.x - P.pos.x) * c; P.pos.z += (W.foot.z - P.pos.z) * c;
-  } else if (onto) {
+  const k = THREE.MathUtils.clamp((W.top - P.pos.y) / 4, 0, 1);
+  // straight up its middle (src/updraft.js: no forward run in it), until the crest
+  rideColumn(P, dt, { x: W.foot.x, z: W.foot.z, top: W.top, lift: W.lift, ease: 4, r: W.r, bellows: false }, { hold: k > 0.5 || !onto });
+  if (k <= 0.5 && onto) {
     // the crest: it turns you toward the balcony and lets you go
     const h = angleTo(P.pos, onto);
     P.heading += wrap(h - P.heading) * Math.min(1, dt * 4);

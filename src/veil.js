@@ -49,7 +49,7 @@ const fragmentShader = /* glsl */ `
   uniform sampler2D tNormal;
   uniform vec2 uRes;
   uniform vec3 uColor;
-  uniform vec2 uWash;   // alpha, glow
+  uniform vec3 uWash;   // alpha, glow, and how near the eye it fades out (m: 0 never; the City-Shaft's air pillars, ridden)
   uniform vec3 uLightTint, uShadowTint, uSunDir, uSkyHorizon;
   uniform float uNight, uFogDensity, uFogStart, uFogMul;
   uniform vec4 uHaze, uHazeLayers, uHazeTone, uHeightFog, uHeightFogTone;
@@ -84,7 +84,7 @@ const fragmentShader = /* glsl */ `
       float k = abs(x) > 1e-3 ? (1.0 - exp(-x)) / x : 1.0;
       col = mix(col, mix(hazeC, uHeightFogTone.rgb, uHeightFogTone.a * (1.0 - 0.7 * uNight)), (1.0 - exp(-uHeightFog.z * d * base * k)) * uHeightFog.w);
     }
-    outColor = vec4(col, uWash.x);
+    outColor = vec4(col, uWash.x * (uWash.z > 0.0 ? smoothstep(uWash.z, uWash.z * 2.0, vDepth) : 1.0));
   }
 `;
 
@@ -95,12 +95,15 @@ export class Veils {
     this.uniforms = { tNormal: { value: null }, uRes: { value: new THREE.Vector2(1, 1) } };
     this.list = [];
   }
-  /** The wash over `mesh` (a G-buffer mesh made with makeMaterial({ veil })): its colour, glow 0..1, alpha a layer. */
-  add(mesh, { color, glow = 0, alpha = glow > 0 ? VEIL.glowAlpha : VEIL.alpha } = {}) {
+  /**
+   * The wash over `mesh` (a G-buffer mesh made with makeMaterial({ veil })): its colour, glow 0..1, alpha a layer, `near`
+   * (m: it fades out within twice that of the eye, so riding inside it doesn't wash the view) and `side` (both by default).
+   */
+  add(mesh, { color, glow = 0, alpha = glow > 0 ? VEIL.glowAlpha : VEIL.alpha, near = 0, side = THREE.DoubleSide } = {}) {
     const mat = new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3, vertexShader, fragmentShader,
-      uniforms: { ...this.uniforms, uColor: { value: new THREE.Color(color) }, uWash: { value: new THREE.Vector2(alpha, glow) } },
-      transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: { ...this.uniforms, uColor: { value: new THREE.Color(color) }, uWash: { value: new THREE.Vector3(alpha, glow, near) } },
+      transparent: true, depthTest: false, depthWrite: false, side,
     });
     const wash = new THREE.Mesh(mesh.geometry, mat);
     mesh.updateMatrixWorld(true);

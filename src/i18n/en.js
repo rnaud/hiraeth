@@ -289,7 +289,7 @@ export const EN = {
   'hint.flurry': 'A perfect dodge: time slows round you. Cut while it lasts.',
   'hint.lift': 'Press {key:jump} again in the air for a second jump.',
   'hint.gun': 'The fluid gun is in hand: aim with {key:aim}, shoot with {key:fire}; {key:mode} takes the push. {key:pick} chooses another gadget.',
-  'hint.jets': 'The Warden’s harness: in the City-Shaft, hold {key:jump} in the air to fly on its jets.',
+  'hint.bellows': 'The Warden’s bellows: with your wings open they breathe a steady wind under you. In rising air your wings hold you still enough to aim ({key:aim}).',
   'hint.pick': 'Two gadgets now: {key:pick} chooses the one in hand, {key:aim} aims it and {key:fire} uses it.',
   // the shop (src/shop-panel.js)
   'shop.leave': 'Leave the shop',

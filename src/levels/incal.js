@@ -19,13 +19,15 @@ import { greebles } from './greeble-kit.js';
 import { batchParts } from '../part-batch.js';
 import { DROPS, DROP_RING, buildShaftWays } from '../shaft-ways.js';
 import { HALFWAY } from '../story/halfway.js';
+import { ShaftPillars } from '../shaft-pillars.js';
+import { Veils } from '../veil.js';
 
 // ---------------------------------------------------------------------------
 // The City-Shaft: a city stacked down a 600 m pit.
 // An enormous vertical pit lined with terraces, the rich at the sunny top,
 // the poor in the depths, an acid lake at the bottom, a central spire with
 // rings and bridges, floating landing pads and flying taxis on circular lanes.
-// Traverse it with the jetpack.
+// Traverse it on the wings: down the lamplighters' drops, back up the air pillars (src/shaft-pillars.js).
 // ---------------------------------------------------------------------------
 
 const R = 260;          // shaft radius
@@ -40,7 +42,7 @@ const TOP = 200;        // rim / surface level
 const BOTTOM = -380;    // acid lake
 const LEVELS = [150, 92, 36, -24, -86, -150, -218, -290];
 const SPIRE_R = 24;
-/** The makers' pillar on the rim (the jets' box sits on it): its angle round the shaft, radius and height (m). */
+/** The makers' pillar on the rim (a box sits on it: the soft-fall soles): its angle round the shaft, radius and height (m). */
 export const PILLAR = { a: 0.45, r: 286, h: 14 };
 const SPIRE_RING = 48;
 // the story's corners (src/story/incal.js): the Upward Shrine and the call-lamp on the bottom
@@ -997,7 +999,7 @@ export function* buildIncal(scene) {
   }
 
   // ---------------------------------------------------------- the lamplighters' drops, the climb's pad and relay lamp, Tobin's view pad
-  // (src/shaft-ways.js: the way down on the jets, marked terrace by terrace; level design audit v1.15)
+  // (src/shaft-ways.js: the way down on the wings, marked terrace by terrace; level design audit v1.15)
   const ways = buildShaftWays(scene, { terraces, places });
   {
     const mid = terraces.find((t) => t.y === LEVELS[3] && ((HALFWAY.a - t.a0) % TAU + TAU) % TAU <= t.a1 - t.a0);
@@ -1111,7 +1113,7 @@ export function* buildIncal(scene) {
     scene.add(roof);
   }
   // the makers' pillar: a lone stone column on the rim, 130 m round from the ship, its dark blue
-  // capital carved with the glyph ring. The jets' box waits on top (src/boxes/placements.js): a climb.
+  // capital carved with the glyph ring. A makers' box waits on top (src/boxes/placements.js): a climb.
   yield;
   {
     const a = PILLAR.a, px = Math.cos(a) * PILLAR.r, pz = Math.sin(a) * PILLAR.r, H = PILLAR.h;
@@ -1134,6 +1136,11 @@ export function* buildIncal(scene) {
 
   // ---------------------------------------------------------- level description
   yield;
+  // the air pillars (src/shaft-pillars.js): the shaft's rising air, gathered into columns the wings ride straight up
+  yield;
+  const veils = new Veils();   // (their see-through bodies, laid over the finished picture: main.js)
+  const pillars = new ShaftPillars(scene, { veils });
+
   const spawn = new THREE.Vector3(R + 14, TOP, 0);
   // Fausta's Basket-Shop (src/shop-world.js, src/shop-fronts.js 'basket'): a narrow house on the middle terrace by the
   // middle levels' cab stop, its door and shop window turned to the promenade and the void
@@ -1160,8 +1167,11 @@ export function* buildIncal(scene) {
     camYaw: Math.PI / 2,
     features: { mount: false, wind: false, jetpack: true, climb: true, taxis: true },
     vehicles,
+    veils,   // (the air pillars' see-through bodies: src/veil.js, drawn by main.js after the ink pass)
+    // the rising air the wings ride (the trials' course check: src/trials/check.js)
+    columns: pillars.pillars.map((c) => ({ x: c.x, z: c.z, r: c.w, foot: c.foot, top: c.top })),
     // the city's shape, for its story (src/story/incal.js): terraces, bridges, the palace and the Lodestar
-    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways },
+    shaft: { R, TOP, BOTTOM, LEVELS, SPIRE_R, SPIRE_RING, terraces, bridges, stallSpots, viaducts, billboards, incal: incalRig, places, ways, pillars },
     // the Lodestar hangs over the open shaft, seen from every terrace that looks up (the story is about looking up), but
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
     beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
@@ -1308,6 +1318,7 @@ export function* buildIncal(scene) {
       for (const m of movers) m.update(t);
       for (const b of banners) b.update(t);
       steam.update(dt);
+      pillars.update(dt, t, ctx ?? {});
     },
     constrainCamera(pos) {
       if (pos.y > TOP - 0.5) return;

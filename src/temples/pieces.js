@@ -9,6 +9,7 @@ import { Flames } from '../story/flames.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { T, box, lathe, prep, annulus, sector } from './kit.js';
 import { sparing, heartsOf, DAMAGE } from '../resources.js';
+import { rideColumn } from '../updraft.js';
 
 // The temple's moving and answering parts. Each piece is built by the
 // runtime (runtime.js) from a temple's layout, in the temple's local frame,
@@ -30,7 +31,7 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 //   Swing    a crystal pendulum over a bridge: it knocks you off; a stilling glob stops it a while
 //   Updraft  a column of rising wind: it lifts the fluid wings, round and up, and lets you go at its top
 //   Gust     gusts down a hall that shove you back unless you wait them out behind a screen
-//   Vane     a vane of the makers' bellows: it drives its machine only while it turns (a splash, or the jets' wash)
+//   Vane     a vane of the makers' bellows: it drives its machine only while it turns (a splash, or the bellows' wash)
 //   Iris     an iris in a ceiling: blades round a hole that slide back into the ceiling when it opens
 //   Hammer   a piston-hammer of the engine slamming down on a walkway; a ball jammed in its crank stops it
 //   Seed     a husk in a stone ring that only a bloom glob wakes: it sprouts (a vine, a planter's flowers)
@@ -1158,22 +1159,25 @@ export class Swing {
 // ---------------------------------------------------------------------------------------- wind
 /**
  * A column of rising wind (Vael's Aerie): pale rings drift up it. It catches the fluid wings: gliding in it
- * you are lifted, held near its middle, slowed, until near its top it lets you go (you fly out the way you
- * face). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift, when (a
- * condition: it rises only while that holds, the Aerie's vents: a stone in another mouth), still (said when you
- * open your wings over it while it is still) }
+ * you go straight up its middle (src/updraft.js) and hang near its top until you steer off (the stick drifts you; the
+ * glide takes up again out of it). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift, when (a
+ * condition: it rises only while that holds, the Aerie's vents: a stone in another mouth), heights ([[condition, h]]:
+ * the first that holds sets how high it rises), still (said when you open your wings over it while it is still) }
  */
 export class Updraft {
   constructor(rt, o) {
     this.rt = rt; this.o = o;
     const K = rt.kit;
-    this.r = o.r ?? 4.5; this.h = o.h ?? 22; this.lift = o.lift ?? 7;
+    this.r = o.r ?? 4.5; this.h0 = o.h ?? 22; this.lift = o.lift ?? 7;
+    // (`heights`: [[condition, h], …], the first that holds sets how high it rises now: the Warden's Well's draught
+    // rises higher as each iris over it opens)
+    this.hMax = Math.max(this.h0, ...(o.heights ?? []).map(([, h]) => h));
     this.foot = K.world(...o.at);
     this.root = new THREE.Group();
     rt.root.add(this.root);
     this.mat = own({ color: '#f4f8f6', glow: 0.35, flat: true });
     this.rings = [];
-    const N = Math.max(6, Math.round(this.h / 2.4));
+    const N = Math.max(6, Math.round(this.hMax / 2.4));
     const g = new THREE.TorusGeometry(this.r * 0.75, 0.07, 4, 32).rotateX(Math.PI / 2);
     for (let i = 0; i < N; i++) { const m = new THREE.Mesh(g, this.mat); this.root.add(m); this.rings.push({ m, s: i / N, w: 0.6 + (i % 3) * 0.2 }); }
     const stone = mesh([T(annulus(this.r - 0.3, this.r + 0.4, 0.05, 36), [0, 0.04, 0])], rt.M.trimMat);
@@ -1182,8 +1186,11 @@ export class Updraft {
     noCollide(this.root);
     this.rideT = 0;
     // a working (src/workings.js): it throws a foe up out of it, or tumbles a flying one
-    this.offWorking = registerWorking({ kind: 'updraft', contains: (p) => this.contains(p), foot: this.foot, r: this.r, top: this.foot.y + this.h, lift: this.lift });
+    const self = this;
+    this.offWorking = registerWorking({ kind: 'updraft', contains: (p) => this.contains(p), foot: this.foot, r: this.r, get top() { return self.foot.y + self.h; }, lift: this.lift });
   }
+  /** How high it rises now (m over its foot). */
+  get h() { return this.o.heights?.find(([c]) => this.rt.logic?.check(c))?.[1] ?? this.h0; }
   dispose() { this.offWorking?.(); }
   /** Does it blow now (its `when` holds)? */
   get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
@@ -1194,9 +1201,10 @@ export class Updraft {
     // (still: the rings settle and fade; rising again, they come back from the floor)
     this.k = THREE.MathUtils.clamp((this.k ?? (this.on ? 1 : 0)) + (this.on ? dt / 1.2 : -dt / 0.8), 0, 1);
     this.root.visible = this.k > 0.01 || !!this.o.when;
+    const h = this.h;
     for (const r of this.rings) {
-      r.s = (r.s + dt * 0.09) % 1;
-      r.m.position.set(this.foot.x, this.foot.y + 0.5 + r.s * this.h, this.foot.z);
+      r.s = (r.s + dt * 0.09 * (this.hMax / Math.max(h, 1))) % 1;
+      r.m.position.set(this.foot.x, this.foot.y + 0.5 + r.s * h, this.foot.z);
       const fade = Math.min(1, r.s * 8, (1 - r.s) * 6) * this.k;
       r.m.scale.setScalar(Math.max(0.01, fade * (r.w + 0.08 * Math.sin(t * 2 + r.s * 20))));
       r.m.visible = fade > 0.02;
@@ -1210,15 +1218,9 @@ export class Updraft {
       if (!P.onGround && P.vel.y < 0) this.rt.notice?.(this.o.hint ?? 'The wind rushes up past you. Open your wings in it.', 'updraft.hint');
       return;
     }
-    // the wings catch it: up, near its middle, slowly; at its top it eases, and lets you go
-    const top = this.foot.y + this.h, k = THREE.MathUtils.clamp((top - P.pos.y) / 3, 0, 1);
-    const want = this.lift * k;
-    P.vel.y = Math.max(P.vel.y, want * 0.5) + (want - P.vel.y) * Math.min(1, dt * 3);
-    if (k > 0.5) {
-      P.glideSpeed = Math.min(P.glideSpeed ?? 1.5, 1.5);
-      const c = Math.min(1, dt * 1.5);
-      P.pos.x += (this.foot.x - P.pos.x) * c; P.pos.z += (this.foot.z - P.pos.z) * c;
-    }
+    // the wings catch it: straight up, settling onto its middle (src/updraft.js); at its top it eases and holds you
+    // there until you steer off it
+    rideColumn(P, dt, { x: this.foot.x, z: this.foot.z, top: this.foot.y + this.h, lift: this.lift, r: this.r });
     if ((this.rideT += dt) > 0.4) this.rt.notice?.(this.o.ride ?? 'The wind fills your wings and lifts you, round and up.', 'updraft.ride');
   }
 }
@@ -1312,11 +1314,12 @@ export class Gust {
  * turned its machines on that breath until the warden stopped it). Element `id` (a 'vane', logic.js: held) is lit
  * only while it turns, and what it drives (a riding disc, a bridge of stones, an eye's lids) works only as long.
  * A splash of fluid (any mode) spins a small vane for `coast` seconds, slowing as it goes; a great one (`great`) is
- * too heavy for a splash (it rocks and stops: `heavy` says so) and turns only under a steady wash: the jets burning
- * (thrust, or holding you while you aim) within `reach` metres over it, and `linger` seconds after. Any vane turns
- * under the jets' wash. Set in a floor it faces up; `wall` sets it on a wall, facing `yaw`.
+ * too heavy for a splash (it rocks and stops: `heavy` says so) and turns only under a steady wash: open wings with the
+ * Warden's bellows (v1.42; the rising air over a great vane holds you there) or the debug jets burning, within `reach`
+ * metres over it, and `linger` seconds after. Any vane turns under such a wash. Set in a floor it faces up; `wall` sets
+ * it on a wall, facing `yaw`.
  * o: { id, at (its centre), wall, yaw, r, coast, great, reach, linger, heavy, turning (said the first time it turns),
- *      washed (said the first time the jets turn it), fading (said as a splashed one slows) }
+ *      washed (said the first time a wash turns it), fading (said as a splashed one slows) }
  */
 export class Vane {
   constructor(rt, o) {
@@ -1376,9 +1379,10 @@ export class Vane {
     if (s > this.left) { this.left = s; this.warned = false; }
     return true;
   }
-  /** The jets' wash over it: burning, within reach over its face and not far off its axis. */
+  /** A steady wash over it: the bellows' off open wings (the Warden's bellows), or the debug jets burning; within reach over its face and not far off its axis. */
   washedBy(P) {
-    if (!P?.jetFlight || !(P.jetPower > 0) || P.dead) return false;
+    if (!P || P.dead) return false;
+    if (!(P.gliding && P.has?.('wardenbellows')) && !(P.jetFlight && P.jetPower > 0)) return false;
     const d = _dl.copy(P.pos).sub(this.center), along = d.dot(this.normal);
     if (along < 0.3 || along > this.reach) return false;
     return d.addScaledVector(this.normal, -along).length() < this.r + 1.2;

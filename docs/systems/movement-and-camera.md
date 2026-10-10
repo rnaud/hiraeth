@@ -185,6 +185,24 @@ diving and pulling up, the glide and the stall, the wings, the aim hold, landing
 squeeze, skimming a slope, a ceiling and a wall, the burn, the keyboard and touch);
 `tests/temples.test.js` flies up through the Warden's Well's oculus with them.
 
+## Rising air: straight up (v1.42, `src/updraft.js`)
+
+Every column of rising air shares one ride (`rideColumn`): the temples' `Updraft` (src/temples/pieces.js), Vael's wind
+up the lone tower (src/story/arzach.js `windLift`), the trials' wind columns (src/trials/winds.js) and the City-Shaft's
+air pillars (src/shaft-pillars.js). From the author (2026-10-10): "when in an air shaft I should go just up, not keep
+going forward." A column runs after the traveller each frame: it eases his vertical speed toward its lift (`liftAt`:
+full low down, nothing over its top `ease` m, so he hangs just under its top) and marks him (`P.updraft`, fresh for
+`UPDRAFT.fresh` s). While the mark is fresh the glide (`Player.update`, the wings' branch) drops its forward run:
+its flat velocity is `columnDrift`, the stick (camera-relative) at `UPDRAFT.steer` m/s plus, with the stick let go,
+a pull onto the column's axis (`UPDRAFT.centre` 1/s); pushing the stick lets go of the pull, so he always gets out.
+He turns to face the way he steers, and leaves at `UPDRAFT.exit` m/s, the glide taking up from there. Vael's tower
+column keeps its crest: over its top quarter it lets go of the mark (`hold: false`) and turns him to the balcony.
+Columns no longer move the traveller's position themselves (it went through collision): the pull is a velocity.
+Tests: `tests/updraft.test.js` (the lift, the drift, no forward run once in, held at the top, steered out). Rising
+air also holds the wings still enough to aim (`Player.hovering`: the gun's arm may come up, `FluidTool.bodyFree`
+`{ hover }`, not the blade). The camera QC rides the City-Shaft's halfway pillar (`incal-pillar`, 18 m/s straight up,
+the camera turned while rising, then steered out): green, no pops, one small kink (0.21 m) as the wings open, 0.8 cm rough.
+
 ## Aiming straight up (`CameraRig.pitchUpLimit`, `PITCH_UP_AIM`)
 
 Close in (tight spaces: most temple rooms, the ship), the look up is limited to

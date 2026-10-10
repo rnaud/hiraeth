@@ -56,12 +56,12 @@ test('its cradle, neck, cloth, back plate and straps; three charge lights on its
   assert.ok(fluid && fluid.geometry.attributes.position.count === glass.geometry.attributes.position.count);
 });
 
-test('the stages: the lift valve, the wings and the Warden\'s harness each add their parts (the valve\'s wheel, the vanes, the second valve)', () => {
-  assert.deepEqual(BACKPACK_STAGES, ['doublejump', 'glider', 'harness'], 'the double jump is its first strength (the harness the City-Shaft\'s jets)');
+test('the stages: the lift valve, the wings and the Warden\'s bellows each add their parts (the valve\'s wheel, the vanes, the second valve)', () => {
+  assert.deepEqual(BACKPACK_STAGES, ['doublejump', 'glider', 'wardenbellows'], 'the double jump is its first strength (the bellows the wings\' third)');
   assert.equal(backpackStage(() => false), 0);
   assert.equal(backpackStage((id) => id === 'doublejump'), 1);
-  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'harness'].includes(id)), 3);
-  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'jetpack'].includes(id)), 3, 'the debug jets count as the harness');
+  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'wardenbellows'].includes(id)), 3);
+  assert.equal(backpackStage((id) => ['doublejump', 'glider', 'jetpack'].includes(id)), 3, 'the debug jets count as the bellows');
   const f = buildFlask(glassMat(), { stage: 0 });
   assert.equal(f.stages.length, 4);
   const heights = [];

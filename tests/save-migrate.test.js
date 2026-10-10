@@ -85,19 +85,35 @@ test('the progression rewrite (v1.38): a save keeps the double jump and the gun 
   const again = { ...hearth, 'item.gun': false };
   migrateFlags(again);
   assert.equal(again['item.gun'], false);
-  assert.equal(MIGRATED(), 10);
+  assert.equal(MIGRATED(), 11);
 });
 
-test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness', () => {
+test('the jets anywhere became a debug item (v1.38): a save that owned them loses them from play and keeps the Warden\'s harness (since v1.42 its bellows)', () => {
   const f = { 'save.migrated': 8, 'item.backpack': true, 'item.jetpack': true, 'world.incal.done': true };
   migrateFlags(f);
   assert.equal(f['item.jetpack'], false, 'out of play');
-  assert.equal(f['item.harness'], true, 'the City-Shaft\'s own jets instead');
+  assert.equal(f['item.wardenbellows'], true, 'the harness step 9 gave, turned by step 11 into the Warden\'s bellows');
+  assert.equal(f['item.harness'], undefined);
   assert.equal(f['box.incal.temple.jetpack'], true, 'its chest counts as opened');
   assert.equal(f['jets.lost'], true);
   const none = { 'save.migrated': 8, 'item.backpack': true };
   migrateFlags(none);
   assert.equal(none['item.harness'], undefined, 'nothing for a save that never had them');
+  assert.equal(none['item.wardenbellows'], undefined);
+});
+
+test('the Warden\'s harness went with the City-Shaft\'s air pillars (v1.42, step 11): a save that had it has the Warden\'s bellows', () => {
+  const f = { 'save.migrated': 10, 'item.backpack': true, 'item.glider': true, 'item.harness': true, 'box.incal.temple.jetpack': true, 'temple.incal.gadget': true };
+  assert.equal(migrateFlags(f), true);
+  assert.equal(f['item.harness'], undefined, 'the harness is gone');
+  assert.equal(f['item.wardenbellows'], true, 'the bellows instead');
+  assert.equal(f['box.incal.temple.jetpack'], true, 'its chest stays opened');
+  assert.equal(f['harness.lost'], true);
+  assert.equal(f['save.migrated'], MIGRATED());
+  const before = { 'save.migrated': 10, 'item.backpack': true, 'item.glider': true };
+  migrateFlags(before);
+  assert.equal(before['item.wardenbellows'], undefined, 'a save that never opened the chest finds the bellows in it');
+  assert.equal(before['harness.lost'], undefined);
 });
 
 // ------------------------------------------------------------------ the author's level changes (October 2026)
@@ -128,7 +144,7 @@ test('merged and dismissed worlds: a save sitting in one loads into its replacem
   for (const [id, to] of Object.entries({ ...MERGED, ...DISMISSED })) assert.ok(to === null || ORDER.includes(to), `${id} → ${to}`);
 });
 
-test('steps 8, 9 and 10 compose: an old save left in the Hangar with the jets wakes in the Glass Dunes with the gun, the lift valve and the harness', () => {
+test('steps 8 to 11 compose: an old save left in the Hangar with the jets wakes in the Glass Dunes with the gun, the lift valve and the Warden\'s bellows', () => {
   const f = { 'prologue.done': true, 'save.migrated': 7, 'ship.level': 'garage', 'item.backpack': true, 'item.jetpack': true, 'world.desert.done': true, 'world.incal.done': true, 'world.garage.done': true };
   migrateFlags(f);
   assert.equal(f['ship.level'], 'glassdunes');
@@ -136,7 +152,7 @@ test('steps 8, 9 and 10 compose: an old save left in the Hangar with the jets wa
   assert.equal(f['item.gun'], true, 'step 8: past the Hearth');
   assert.equal(f['item.doublejump'], true);
   assert.equal(f['item.jetpack'], false, 'step 9: the jets out of play');
-  assert.equal(f['item.harness'], true);
+  assert.equal(f['item.wardenbellows'], true, 'step 11: the harness it got for them, the bellows now');
   assert.equal(f['save.migrated'], MIGRATED());
 });
 

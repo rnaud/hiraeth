@@ -84,12 +84,13 @@ test('every world before the chosen one is played through, the chosen one and th
   }
 });
 
-test('the gear and the tank are what the route gave: the wings in Vael, the Warden\'s harness in the City-Shaft (never the debug jets), a band per magical water', () => {
+test('the gear and the tank are what the route gave: the wings in Vael, the Warden\'s bellows in the City-Shaft (never the debug jets), a band per magical water', () => {
   assert.equal(progressBefore('arzach').flags['item.glider'], undefined);
   assert.equal(progressBefore('perdide').flags['item.glider'], true);
   assert.equal(progressBefore('perdide').flags['item.bell'], true, 'and the sky stones’ bell (Vael’s, since October 2026)');
-  assert.equal(progressBefore('incal').flags['item.harness'], undefined);
-  assert.equal(progressBefore('glassdunes').flags['item.harness'], true);
+  assert.equal(progressBefore('incal').flags['item.wardenbellows'], undefined);
+  assert.equal(progressBefore('glassdunes').flags['item.wardenbellows'], true);
+  assert.equal(progressBefore('glassdunes').flags['item.harness'], undefined, 'the Warden’s harness went in v1.42');
   assert.equal(progressBefore('glassdunes').flags['item.jetpack'], undefined, 'the jets anywhere: a debug item');
   assert.equal(progressBefore('glassdunes').flags['item.cabpass'], true);   // (Lio's, at the end of a City-Shaft quest: a conversation gives it)
   assert.equal(progressBefore('buried').flags['item.coil'], true, 'the Clock-House’s coil, in the Glass Dunes');
@@ -204,7 +205,7 @@ test('seeding writes the debug slot only, makes it the active one, and the game 
   assert.equal(state.flag('world.buried.done'), undefined);
   assert.equal(state.flag('stale'), undefined);
   assert.equal(st.getItem(slotKey('moebius.save.v1', DEBUG_SLOT)), null);
-  assert.equal(new GameState(store.view(DEBUG_SLOT)).flag('item.harness'), true);
+  assert.equal(new GameState(store.view(DEBUG_SLOT)).flag('item.wardenbellows'), true);
   assert.ok(JSON.parse(st.getItem(slotKey('moebius.journal.v1', DEBUG_SLOT))).stories.incal);
   // the title's list never shows it
   assert.equal(store.list().length, SLOT_COUNT);

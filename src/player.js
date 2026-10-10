@@ -17,6 +17,7 @@ import { STAMINA, spendStamina, restStamina, canSprint, fillStamina } from './st
 import { standGround, moverCarrier } from './carriers.js';
 import { HEARTS, POTION, DAMAGE, quarters, sparing } from './resources.js';
 import { hintsFor } from './hint-level.js';
+import { UPDRAFT, inColumn, columnDrift } from './updraft.js';
 
 const RADIUS = 0.45;
 const STEP = 0.6;    // obstacles lower than this are stepped onto
@@ -664,12 +665,14 @@ export class Player {
   has(id) { return !!this.items?.has(id); }
   /** The backpack is on the traveller's back and usable (owned, not in a vehicle's socket or being swung, not put away by the story). */
   get packWorn() { return this.has('backpack') && !this.ride && !this.boarding && !this.unboarding && (this.fuelSource?.enabled ?? true); }
-  /** The jets are his here: the debug jets anywhere, or the Warden's harness in the City-Shaft (opts.harnessWorld: items.js HARNESS_WORLD). */
-  get jetsOwned() { return this.has('jetpack') || (this.has('harness') && !!this.opts.harnessWorld); }
+  /** The jets are his: the debug jets (the Warden's harness, the City-Shaft's own, went in v1.42: its air pillars carry the wings). */
+  get jetsOwned() { return this.has('jetpack'); }
   /** The jets (they burn the backpack's fluid). */
   get canJet() { return this.packWorn && this.jetsOwned; }
   /** The fluid wings. */
   get canGlide() { return this.packWorn && this.has('glider'); }
+  /** On the wings in rising air (src/updraft.js): it holds him still enough to aim and shoot (src/fluid-tool.js bodyFree). */
+  get hovering() { return this.gliding && inColumn(this); }
   /** The double jump (the lift valve, the backpack's first strength: items.js BACKPACK_STAGES). */
   get canDoubleJump() { return this.packWorn && this.has('doublejump'); }
   /** The flip of a double jump under way (s into it), or null (src/jump.js FLIP). */
@@ -1475,6 +1478,15 @@ export class Player {
         this.glideTurn = THREE.MathUtils.lerp(this.glideTurn ?? 0, -s * 1.25, 1 - Math.exp(-4 * dt));
         this.heading += this.glideTurn * dt;
         tv.copy(F.dir(this.heading, _g6)).multiplyScalar(this.glideSpeed);
+        // in a column of rising air (src/updraft.js): straight up, no forward run; the stick drifts you out of it
+        if (inColumn(this)) {
+          const D = this.updraft;
+          columnDrift(tv.set(0, 0, 0), _g5.copy(move).multiplyScalar(Math.min(1, stickScale)), this.pos, D);
+          tv.addScaledVector(U, -tv.dot(U));
+          if (move.lengthSq() > 0.01) { const d = F.headingOf(move) - this.heading; this.heading += Math.atan2(Math.sin(d), Math.cos(d)) * Math.min(1, dt * 4); }   // (leave it facing the way you steer)
+          this.glideSpeed = UPDRAFT.exit;
+          this.glideTurn = 0;
+        }
         vu += GRAVITY * dt;                                  // the wing carries you: no free fall
         vu += (-sink - vu) * (1 - Math.exp(-3 * dt));
       } else this.glideTurn = 0;
@@ -1548,7 +1560,7 @@ export class Player {
       // locked on: face the foe square, whichever way you move (strafing, backing off): no lead into the step
       const d = Math.atan2(Math.sin(this.frame.headingOf(this.lockOn.dir) - this.heading), Math.cos(this.frame.headingOf(this.lockOn.dir) - this.heading));
       this.heading += d * (1 - Math.exp(-LOCK_MOVE.turn * dt));
-    } else if (this.aim && !this.gliding) this.faceAim(dt, tvel, hs);
+    } else if (this.aim && (!this.gliding || this.hovering)) this.faceAim(dt, tvel, hs);
     else if (hs > 0.5 && !this.gliding) {
       let d = F.headingOf(tvel) - this.heading;
       d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -1765,7 +1777,7 @@ export class Player {
         this._feetGround ??= this.opts.dynamic ? standGround(this.physics, () => this.opts.dynamic(), () => this.ride) : this.physics;
         H.plantFeet(dt, this._feetGround, U, this.object.position, this.frame.dir(this.heading, _g1).clone(), (p, side, n) => this.stepped(p.clone(), 0, n), o);
       } else H.resetFeet();
-      if (this.aim && !this.aim.noArm && !this.climbing && !this.mantle && !this.gliding) H.aimAt?.(this.aim.point, this.aim.k, U);   // (noArm: a captured blade swing moves the arm itself)
+      if (this.aim && !this.aim.noArm && !this.climbing && !this.mantle && (!this.gliding || this.hovering)) H.aimAt?.(this.aim.point, this.aim.k, U);   // (noArm: a captured blade swing moves the arm itself)
       // the soft aim: a swing's plane tilted toward its target's body, low or high (src/fluid-blade.js AIM)
       if (this.aim?.tilt && !this.climbing && !this.mantle && !this.gliding) H.swingTilt?.(this.aim.tilt, this.aim.dir, U);
       // the fluid sword drawn from (or put back on) his back: the right hand reaches back over the shoulder (src/sword-sheath.js)

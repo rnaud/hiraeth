@@ -548,6 +548,12 @@ export const CHANGELOG_MEDIA = {
       { name: 'crowd-square', title: 'Under the silent tower', caption: 'Madame Sel in the Signal Market’s square, the market round her: before, the crowd in strong reds, yellows and greens; after, the same colours softer, her coral and gold reading first', commit: C42_PEOPLE,
         view: { level: 'bazaar', setup: FACING('sel', 15, 4.5), wait: 3000 } },
     ] },
+    { match: 'The City-Shaft has pillars of rising air', shots: [
+      { name: 'shaft-pillars', caption: 'The City-Shaft from the rim by the ship: three air pillars rising across the shaft', commit: 'ffcfc427',
+        view: { level: 'incal', player: [274, 200, 0], eye: [268, 206, 10], target: [0, 40, 0], fov: 60 } },
+      { name: 'shaft-pillar-close', caption: 'From the middle terrace: the halfway air pillar, its rings, streaks and motes rising', commit: 'ffcfc427',
+        view: { level: 'incal', player: [-79.6, -24, 199.7], eye: [-86.3, -21, 204.5], target: [-53.3, 10, 179.2], fov: 60 } },
+    ] },
   ],
   '1.41': [
     { match: 'The makers’ chest on Qanat’s tree keeps its secret now', shots: [

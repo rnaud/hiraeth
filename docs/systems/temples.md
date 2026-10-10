@@ -216,8 +216,12 @@ arenas, `docs/design/guardian-prompts.md` (`references/guardians/<id>/`). Everyt
   shaft breathing, and the breath turned its machines). A `Vane` is one of the makers' bellows, in a floor (facing
   up) or on a wall (`wall`, `yaw`): its element (type `vane`, logic.js: held like a held bell, lit only while it
   turns) drives what names it only as long. A splash spins a small one for `coast` seconds, slowing (`fading` warns);
-  a `great` one only rocks to a splash (`heavy`) and turns under the jets' wash: the jets burning (thrust, or
-  holding you while you aim) within `reach` metres over its face, and `linger` s after. The Turning Floors' discs ride
+  a `great` one only rocks to a splash (`heavy`) and turns under a steady wash: open wings with the Warden's bellows
+  (`wardenbellows`, v1.42; the debug jets burning do it too) within `reach` metres over its face, and `linger` s after.
+  Each great vane has an `Updraft` through its frame (`VANES.breath`, `HALL.breath` m): it bears open wings and holds
+  you over the vane, and rising air holds you still enough to aim (player.js `hovering`, fluid-tool.js `bodyFree`).
+  The way up is a draught over the chest's plinth (`when: { gadget: true }`), rising on through each iris as it opens
+  (`heights`, the Updraft's: the first condition that holds sets its top). The Turning Floors' discs ride
   on the far door's vane; the Climb's ball crosses a slot (`Ball` `gap`, the slot a `Bridge`) only while the vane in
   the well's floor turns (the gap's `lip` says why it stops); the gallery's eye has stone lids (`Switch` `lids`:
   shut while its `when` fails) that the great vane in the floor lifts, and opens the `Iris` in the ceiling (blades

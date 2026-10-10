@@ -7,7 +7,7 @@ import { gameMarkerModel, signPlate } from '../minigames/kit/marker.js';
 import { standAt } from '../minigames/kit/onfoot.js';
 import { formatTime, bestScore } from '../minigames/kit/scores.js';
 import { PURSE } from '../chimes.js';
-import { ITEMS, HARNESS_WORLD } from '../items.js';
+import { ITEMS } from '../items.js';
 import { Resources } from '../resources.js';
 import { TRIALS, trialsFor } from './data.js';
 import { CourseRun, lacks, inMode, parTime, MODES } from './course.js';
@@ -80,6 +80,8 @@ function gateMesh(g, from, M) {
   if (dir.lengthSq() > 1e-6) grp.rotation.y = Math.atan2(dir.x, dir.z);
   const ring = new THREE.Mesh(new THREE.TorusGeometry(g.r, Math.max(0.12, g.r * 0.03), 6, 40), M.ink);
   const band = new THREE.Mesh(new THREE.TorusGeometry(g.r * 0.93, Math.max(0.08, g.r * 0.018), 4, 40), M.glow);
+  // (a way up more than across, the City-Shaft's air pillar: the ring lies flat, to rise through)
+  if (Math.abs(g.y - from.y) > 2 * Math.sqrt(dir.lengthSq())) { ring.rotation.x = band.rotation.x = Math.PI / 2; }
   const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 60, 6).translate(0, g.r + 30, 0), M.glow);
   grp.add(ring, band, beam);
   grp.userData.band = band; grp.userData.beam = beam;
@@ -183,7 +185,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
     trial: T, gates, start, par, sign, winds, course, running: null,
     game: null,
     /** What the traveller lacks for it now ('' if nothing). */
-    lacks: () => lacks(T, { has: (id) => (id === 'jets' ? items.has('jetpack') || (items.has('harness') && levelId === HARNESS_WORLD) : new Resources(game, items).meets(id)), mount: player?.mount ?? null }),   // ('magic:4': src/resources.js; 'jets': the debug jets, or the Warden's harness in the City-Shaft)
+    lacks: () => lacks(T, { has: (id) => (id === 'jets' ? items.has('jetpack') : new Resources(game, items).meets(id)), mount: player?.mount ?? null }),   // ('magic:4': src/resources.js; 'jets': the debug jets, or the Warden's harness in the City-Shaft)
     best: () => bestScore(game, { id: T.id }),
     done: () => !!game.flag(doneKey),
     /** The interact button at the sign. */

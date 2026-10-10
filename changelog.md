@@ -4,6 +4,11 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.42 — 2026-10-10
 
+- The City-Shaft’s Shaft climb is flown on your wings: from the middle terrace into the halfway air pillar, up through its rings, and out of its top over the rim.
+- Inside the Warden’s Well a draught rises from the chest’s plinth up through the ceiling, and on through each iris as it opens: ride it on your wings. A thin breath rises through each great vane and holds you over it, and in rising air your wings hold you still enough to aim and shoot.
+- The City-Shaft is played on your wings now, with no jets at all: the Warden’s Well’s chest holds the Warden’s bellows instead of the harness. With your wings open they breathe a steady wind down under you that turns the makers’ great vanes. A save that had the harness has the bellows.
+- The City-Shaft has pillars of rising air: pale columns of drifting rings and streaks that carry your wings straight back up the shaft. One rises beside the spire from the bottom viaduct to the palace landing, a short one lifts you from the landing past the dome to its crown, and three by the terraces’ edges climb from the depths to above the rim. Fall into one and your wings open by themselves; steer off onto any terrace on the way.
+- In a column of rising air your wings now carry you straight up: no more drifting on forward and out of it. Let go of the stick and it settles you onto its middle and holds you near its top; push the stick to drift out of it the way you want to go.
 - The crowds in the towns wear their world’s colours a little softer now, so the people with a story to tell, the shopkeepers, Tansy and your family stand out among them.
 - A notebook for your thoughts: see the open issues and add a new one a line at a time. Unsent notes stay on your device until you are ready to send them.
 - The notebook accepts your chosen password and asks you to pause after too many sign-in attempts or rapid submissions.

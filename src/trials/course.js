@@ -43,7 +43,7 @@ export class CourseRun {
 export const MODES = {
   foot: { needs: [], words: '' },
   glider: { needs: ['backpack', 'glider'], words: 'It wants the fluid wings.' },
-  jets: { needs: ['backpack', 'jets'], words: 'It wants the fluid jets (in the City-Shaft: the Warden’s harness).' },   // ('jets': the debug jets, or the harness in its world: src/trials/index.js)
+  jets: { needs: ['backpack', 'jets'], words: 'It wants the fluid jets.' },   // ('jets': the debug jets, src/trials/index.js; the City-Shaft's harness went in v1.42)
   bike: { needs: ['backpack'], mount: 'bike', words: 'It wants the hoverbike.' },
   skiff: { needs: ['backpack'], mount: 'skiff', words: 'It wants the skiff.' },
   bird: { needs: [], mount: 'bird', words: 'It wants the bird.' },

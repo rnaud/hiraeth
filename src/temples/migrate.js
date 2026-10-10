@@ -9,7 +9,7 @@
 /** [box id, item] of every temple chest. */
 export const TEMPLE_BOXES = [
   ['desert.temple.fire', 'fire'],
-  ['incal.temple.jetpack', 'harness'],
+  ['incal.temple.jetpack', 'wardenbellows'],
   ['arzach2.temple.bell', 'bell'],
   ['spheres.temple.lens', 'lens'],
   ['buried.temple.cell', 'cell'],

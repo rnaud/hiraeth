@@ -18,6 +18,8 @@ import { quietOr } from '../hint-level.js';
 //                    fell; Pip plays round it; the dead taxi call-lamp at the edge
 //   the palace       Dov guards the landing ring round the gold dome (y 320); the
 //                    crown on top of the dome, under the Lodestar
+//   the air pillars  rising air the wings ride straight up (src/shaft-pillars.js): the spire's from the bottom
+//                    viaduct to the palace landing, the crown's from the landing past the dome, three by the terraces
 //   the middle       Perrine's halfway tea stall and the halfway mirror, where the lamplighters' drops land
 //                    halfway down (y −24: src/story/halfway.js, src/shaft-ways.js)
 //
@@ -289,6 +291,13 @@ export function setupIncal(ctx) {
       refuse();
     };
   }
+
+  // the air pillars (src/shaft-pillars.js): the first ride says what they do, and how to get out of one
+  if (S.pillars) S.pillars.onRide = () => {
+    if (game.flag('incal.pillar.ridden')) return;
+    game.set('incal.pillar.ridden', true);
+    toast('The pillar of rising air fills your wings and carries you straight up. Push the left stick to drift out of it.');
+  };
 
   // ---------------------------------------------------------------- the light, given back
   const incalPos = () => V(rig.pos.x, rig.pos.y, rig.pos.z);

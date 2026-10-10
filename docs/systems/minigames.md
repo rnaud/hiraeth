@@ -418,7 +418,7 @@ One optional **mastery trial** in each route world, built from what that world g
 wings up two columns of rising air and through rings between them), the Sky Stones' **Stone circuit** (the bird,
 round the Needles, the great Table and the Monastery), Lorn's **Reed race** and Lorn II's **Lagoon laps** (the skiff;
 the gust fan fills its sail), Viridel's **Eye garden** (eight sleeping eyes to splash), the City-Shaft's **Shaft
-climb** (the jets, from a ledge far down to the rim), the Hangar's **Pillar slalom**, the Buried Machine's **Canyon
+climb** (the wings, up the halfway air pillar from the middle terrace to the rim, v1.42; the jets before), the Hangar's **Pillar slalom**, the Buried Machine's **Canyon
 dive** and the Signal Market's **Avenue run** (the jets), and the Garden of Spheres' **Garden round** (on foot).
 
 - **Data** (`data.js` `TRIALS`): mode, the sign, the start, gates (`[x, y, z, r]`, or `ground: true` laid `up` m over

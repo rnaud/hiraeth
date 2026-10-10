@@ -118,7 +118,7 @@ const GUN_MODES = new Set(['stun', 'fire', 'bloom', 'tether', 'tongs']);
 
 export function meetsWith(has, id, extra = 0) {
   const m = /^magic:(\d+(?:\.\d+)?)$/.exec(id ?? '');
-  if (!m) return (has(id) || (id === 'harness' && has('jetpack'))) && (!GUN_MODES.has(id) || has('gun'));   // (the debug jets do what the harness does)
+  if (!m) return (has(id) || (id === 'wardenbellows' && has('jetpack'))) && (!GUN_MODES.has(id) || has('gun'));   // (the debug jets' wash turns a great vane as the bellows' does)
   let n = MAGIC.start + extra;
   for (const [it, k] of Object.entries(MAGIC_ITEMS)) if (has(it)) n += k;
   return Math.min(MAGIC.cap, n) >= +m[1] - 1e-9;
@@ -195,7 +195,7 @@ export class Resources {
   meets(id) {
     const m = /^magic:(\d+(?:\.\d+)?)$/.exec(id ?? '');
     if (m) return this.maxMagic >= +m[1] - 1e-9;
-    return (this.items.has(id) || (id === 'harness' && this.items.has('jetpack'))) && (!GUN_MODES.has(id) || this.items.has('gun'));
+    return (this.items.has(id) || (id === 'wardenbellows' && this.items.has('jetpack'))) && (!GUN_MODES.has(id) || this.items.has('gun'));
   }
 }
 

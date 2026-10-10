@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { makeMaterial } from '../materials.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus, sector } from './kit.js';
-import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Iris, Mark, Pit } from './pieces.js';
+import { Door, Plate, Ball, Switch, Platform, Bridge, Vane, Iris, Mark, Pit, Updraft } from './pieces.js';
 import { sentinelModel } from './guardians.js';
 import { items } from '../items.js';
 import { registerTarget } from '../targets.js';
@@ -20,35 +20,39 @@ import { registerTarget } from '../targets.js';
 // THROUGH ITS VANES (reworked from the temple design audit, v1.19). The makers built it to keep the shaft breathing,
 // and the breath turned the vanes of their bellows, and the vanes turned the tower's machines. The warden stopped the
 // breath. A vane still drives its machine, but only while it turns: a splash spins a small one a while, slowing; a
-// great one is too heavy for a splash, and turns only under a steady wind. With the jets, you are the wind.
+// great one is too heavy for a splash, and turns only under a steady wind. With the makers' bellows on your back and
+// your wings open, you are the wind (v1.42: the bellows replace the Warden's harness, the City-Shaft's own jets; the
+// thin breath still rising through each great vane's frame bears open wings and holds you over it, and rising air
+// holds you still enough to aim).
 //   the Threshold          the first mark, the way back out
 //   the Turning Floors     a drop crossed on two riding discs that ride only while the small vane over the far door
 //                          turns: splash it, and go before it slows (the vane, taught where failing costs a wait)
 //   the Climb              a round well: climb its wall to the balcony. The stone ball's groove there crosses a slot
 //                          whose stones stand only while the vane in the well's floor, far below, turns: splash it,
 //                          then roll the ball over the slot before it stops (the vane with the push)
-//   the Jets' Chamber      the makers' chest: the WARDEN'S HARNESS, the City-Shaft's own jets (src/items.js 'harness';
-//                          the jets anywhere, 'jetpack', are a debug item since v1.38). The only way on is up,
-//                          through the oculus in its ceiling: the jets are the key
+//   the Bellows Chamber    the makers' chest: the WARDEN'S BELLOWS, the wings' third strength (src/items.js 'wardenbellows';
+//                          room id 'jets', from when it held the jets). Lifting them out unstops the plinth: a draught
+//                          rises up through the oculus in the ceiling, the only way on (the wings in rising air)
 //   the Lamp Gallery       a tall drum over the chamber, banded in steel blue, slit windows, shelves with carved eyes
 //                          over them. An iris in its ceiling opens on the eye over the west shelf, hidden from the
 //                          floor, its stone lids shut: they lift only while the great vane in the floor turns, and
-//                          that is too heavy for a splash. Hover over it on the jets (aim: they hold you) and it
-//                          turns; the lids lift; splash the eye from the air
-//   the loft               over the iris: a shelf high on the east wall, its ball, a gap in the shelf whose stones
-//                          stand only while the loft's great vane turns. Land on the shelf and the ball stops at the
-//                          gap; hover over the vane, and push the ball across from the air (the jets with the push);
-//                          on its plate it opens a second iris over the loft
+//                          that is too heavy for a splash. Ride the thin breath over it on your wings: the bellows'
+//                          wash turns it; the lids lift; splash the eye from the air
+//   the loft               over the iris (the draught rises on through it once it opens): a shelf high on the east
+//                          wall, its ball, a gap in the shelf whose stones stand only while the loft's great vane turns.
+//                          Land on the shelf and the ball stops at the gap; hover over the vane, and push the ball
+//                          across from the air (the bellows with the push); on its plate it opens a second iris
 //   the crown              the top of the drum, the high door to the warden: its eye's lids lift only while two vanes
-//                          turn at once, a great one in the crown's floor (the jets) and a small one that is not
+//                          turn at once, a great one in the crown's floor (the bellows) and a small one that is not
 //                          here: it stands on a post in the loft below, seen down through the second iris (a splash:
-//                          it slows). Splash the small one, fly up to the great one and hover, and splash the eye
-//                          before the small one stops
+//                          it slows). Splash the small one, ride the draught up and over to the great one and hover,
+//                          and splash the eye before the small one stops
 //   the Warden's Hall      the sentinel (a robot: its meter is damage). It beams and slams; its side vents open after
-//                          a beam: shoot them. Then it guards its sides and only the hatch on its crown is open: fly
-//                          above it, and shoot down; over a turning vane the draught holds the hatch wide (a hit
-//                          counts twice). In its last phase it keeps the hatch shut against still air: when it backs
-//                          onto a vane, hover over the vane until its draught lifts the hatch, and shoot down into it
+//                          a beam: shoot them. Then it guards its sides and only the hatch on its crown is open: get
+//                          above it (the breath over the hall's four vanes holds open wings) and shoot down; over a
+//                          turning vane the draught holds the hatch wide (a hit counts twice). In its last phase it
+//                          keeps the hatch shut against still air: when it backs onto a vane, hover over the vane
+//                          until its draught lifts the hatch, and shoot down into it
 // After: the warden's hum stops, and the shaft's old breath comes back: a column of rising air from
 // the bottom terrace to the rim, beside the Upward Shrine, that carries anyone up (the world change).
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -81,24 +85,25 @@ export const PALETTE = {
 
 /**
  * The vanes: how long a splash spins a small one (s: the Turning Floors' across both discs, the Climb's over the
- * slot, the crown's while you fly up from the loft to the crown's great vane), how far over a great one the jets' wash turns it (m); the
+ * slot, the crown's while you fly up from the loft to the crown's great vane), how far over a great one the bellows' wash turns it (m); the
  * gallery's ceiling over its floor, the loft's shelf over the ceiling, the crown's floor over the gallery's (m) and
  * the two irises' radii; the hall's four vanes, how far from its middle (m), how near the warden must stand to
  * one for its draught to reach the hatch (m), how near it backs onto one when its hatch opens (m) and how fast (m/s),
  * what a hit in the crown is worth (plain, over a turning vane; in its last phase only over a turning vane), and how
- * long its hatch stays up in its last two phases (s: time to fly to the vane and hover).
+ * long its hatch stays up in its last two phases (s: time to fly to the vane and hover); `breath`: how high the thin breath
+ * through a great vane rises (m: it bears open wings and holds you over the vane, within its reach).
  */
-export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15 };
-export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7] };
+export const VANES = { floors: 15, climb: 14, reach: 9.5, ceil: 15, shelf: 6, iris: 5.6, crown: 24, iris2: 7, small: 15, breath: 9 };
+export const HALL = { vane: 10, reach: 13, near: 8, back: 5, drift: 2.2, hit: 0.125, washed: 0.25, open: [null, 5.5, 7], breath: 10 };
 
 export const LOGIC = {
-  id: 'incal', entry: 'threshold', gadget: 'harness',
+  id: 'incal', entry: 'threshold', gadget: 'wardenbellows',
   rooms: { threshold: { checkpoint: true }, turning: { checkpoint: true }, climb: { checkpoint: true }, jets: { checkpoint: true }, gallery: { checkpoint: true }, loft: { checkpoint: true }, crown: { checkpoint: true }, warden: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'turning' },
     { a: 'turning', b: 'climb', door: 'discs' },    // the riding discs, only while the vane over the far door turns
     { a: 'climb', b: 'jets', door: 'd1' },          // the ball on its plate, rolled over the slot while the well's vane turned
-    { a: 'jets', b: 'gallery', needs: ['harness'] }, // up through the oculus
+    { a: 'jets', b: 'gallery', needs: ['wardenbellows'] }, // up through the oculus, on the draught the chest unstops
     { a: 'gallery', b: 'loft', door: 'iris' },      // the iris in the gallery's ceiling: the eye whose lids the great vane lifts
     { a: 'loft', b: 'crown', door: 'iris2' },       // the ball pushed over the gap from the air, over the loft's vane
     { a: 'crown', b: 'warden', door: 'd3' },         // the eye whose lids lift only while two vanes turn at once
@@ -114,13 +119,13 @@ export const LOGIC = {
     ball1: { type: 'drum', room: 'climb', plate: 'p1', plateAt: 1, start: 0, gap: 'slot' },
     p1: { type: 'plate', room: 'climb' },
     d1: { type: 'door', opens: { pressed: 'p1' }, latch: true },
-    chest: { type: 'gadget', room: 'jets', item: 'harness' },
-    // the gallery: the great vane (only the jets' wash turns it) lifts the lids of the eye over the west shelf
-    vG: { type: 'vane', room: 'gallery', needs: ['harness'] },
+    chest: { type: 'gadget', room: 'jets', item: 'wardenbellows' },
+    // the gallery: the great vane (only the bellows' wash turns it) lifts the lids of the eye over the west shelf
+    vG: { type: 'vane', room: 'gallery', needs: ['wardenbellows'] },
     s2: { type: 'switch', room: 'gallery', when: { lit: 'vG' } },
     iris: { type: 'door', opens: { lit: 's2' }, latch: true },
     // the loft: the great vane stands the gap's stones; the ball pushed over them (from the air) onto its plate
-    vE: { type: 'vane', room: 'loft', needs: ['harness'] },
+    vE: { type: 'vane', room: 'loft', needs: ['wardenbellows'] },
     span: { type: 'bridge', opens: { lit: 'vE' } },
     ball3: { type: 'drum', room: 'loft', plate: 'p3', plateAt: 1, start: 0, gap: 'span' },
     p3: { type: 'plate', room: 'loft' },
@@ -129,15 +134,15 @@ export const LOGIC = {
     // (hovered over) turn at once: the small one first, it slows while you fly. The small one is in the loft below, on a
     // post under the second iris: seen from the crown, splashed from the loft (or down through the iris)
     vS: { type: 'vane', room: 'loft' },
-    vC: { type: 'vane', room: 'crown', needs: ['harness'] },
+    vC: { type: 'vane', room: 'crown', needs: ['wardenbellows'] },
     s4: { type: 'switch', room: 'crown', when: { all: [{ lit: 'vS' }, { lit: 'vC' }] } },
     d3: { type: 'door', opens: { lit: 's4' }, latch: true },
     // the hall's four vanes: in its last phase its hatch opens only to one's draught
-    warden: { type: 'boss', room: 'warden', needs: ['gun', 'harness'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
-    vh0: { type: 'vane', room: 'warden', needs: ['harness'] },
-    vh1: { type: 'vane', room: 'warden', needs: ['harness'] },
-    vh2: { type: 'vane', room: 'warden', needs: ['harness'] },
-    vh3: { type: 'vane', room: 'warden', needs: ['harness'] },
+    warden: { type: 'boss', room: 'warden', needs: ['gun', 'wardenbellows'], requires: { any: [0, 1, 2, 3].map((i) => ({ lit: `vh${i}` })) } },
+    vh0: { type: 'vane', room: 'warden', needs: ['wardenbellows'] },
+    vh1: { type: 'vane', room: 'warden', needs: ['wardenbellows'] },
+    vh2: { type: 'vane', room: 'warden', needs: ['wardenbellows'] },
+    vh3: { type: 'vane', room: 'warden', needs: ['wardenbellows'] },
     d5: { type: 'door', opens: { resolved: true } },
   },
 };
@@ -150,10 +155,10 @@ export const WARDEN = {
   missHint: 'Its slam went wide and it rocks on its legs, venting: its vents open, glowing.',
   phases: [
     { to: 0.5, attacks: ['beam', 'mortar', 'stomp'], pause: 1.6, hint: 'Its eye burns before it fires: keep out of its line. When its side vents open, shoot them.' },
-    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.3, hint: 'It shuts its sides, and its eye sweeps the hall. Only the hatch on its crown opens now: get above it, and shoot down. It backs toward a vane in the floor: over a turning vane the draught holds its hatch wide, and a hit counts twice.',
-      openHint: 'The hatch on its crown swings up, glowing, and it backs toward a vane. Get above it and shoot down: hover over the vane and the draught holds the hatch wide.' },
-    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.1, hint: 'Cracks glow along its hull, and it keeps its hatch shut against still air. When it backs onto a vane, hover over the vane with the jets until the draught lifts the hatch, then shoot down into it.',
-      openHint: 'It backs onto a vane, its hatch shut tight against still air. Hover over the vane with the jets: its draught lifts the hatch. Then shoot down into it.' },
+    { to: 0.75, attacks: ['stomp', 'sweepBeam', 'mortar'], pause: 1.3, hint: 'It shuts its sides, and its eye sweeps the hall. Only the hatch on its crown opens now: get above it, and shoot down. It backs toward a vane in the floor: over a turning vane the draught holds its hatch wide, and a hit counts twice. The breath over each vane bears open wings.',
+      openHint: 'The hatch on its crown swings up, glowing, and it backs toward a vane. Get above it and shoot down: ride the breath over the vane on your wings, and the bellows turn it; its draught holds the hatch wide.' },
+    { to: 1.0, attacks: ['flare', 'beam', 'mortars'], pause: 1.1, hint: 'Cracks glow along its hull, and it keeps its hatch shut against still air. When it backs onto a vane, hover over the vane on your wings, the bellows breathing, until the draught lifts the hatch, then shoot down into it.',
+      openHint: 'It backs onto a vane, its hatch shut tight against still air. Hover over the vane on your wings: the bellows turn it, and its draught lifts the hatch. Then shoot down into it.' },
   ],
   attacks: {
     beam: { shape: 'lane', range: 28, width: 2.6, wind: 1.4, track: 0.7, part: 'eye', rig: 'lean', damage: 1, knock: 10, recover: 0.8, open: 2.8 },
@@ -193,11 +198,11 @@ function wardenHit(g, part, mode) {
 }
 /** In its last two phases its hatch stays up a little longer: time to fly to the vane and hover. */
 function wardenOpenFor(g, a, s) { const o = HALL.open[Math.min(g.phaseIndex, 2)]; return s && o ? Math.max(s, o) : s; }
-/** What the jets are for, said a moment after the box's card closes in the Jets' Chamber. */
-export const JETS_NEXT = 'The jets hum on your back. Straight overhead the chamber’s ceiling is open: jump and hold it ({key:thrust}), and they lift you straight up through it. Tip the nose forward at the top to level out.';
+/** What the bellows are for, said a moment after the box's card closes in the Bellows Chamber. */
+export const BELLOWS_NEXT = 'The bellows breathe on your back, and the plinth under the chest breathes with them: a draught rises straight up through the open ceiling. Jump into it and open your wings ({key:thrust}): it carries you up. In rising air your wings hold you still enough to aim.';
 
 /** Are you past the oculus? (in the gallery or beyond: its mark, an eye lit, the warden met, or simply up there) */
-export function jetsUsed(rt) {
+export function upUsed(rt) {
   const cp = rt.game.flag(`temple.${rt.id}.checkpoint`);
   if (cp === 'gallery' || cp === 'hall' || rt.logic.resolved || ['s2', 's3', 's4'].some((id) => rt.logic.isLit(id))) return true;
   const P = rt.player;
@@ -205,48 +210,24 @@ export function jetsUsed(rt) {
 }
 
 /**
- * After the jets: the way on, shown. A column of pale rings rises from the chest's plinth up through
- * the oculus into the gallery, where the jets take you; a moment after the box's card a line says what
- * to do with them, and the drone flies up and points (main.js 'scout:ping'). It fades once you're up.
+ * After the bellows: the way on, said. The chest's plinth unstopped, the draught rises up through the oculus (its own
+ * pale rings: the Updraft over the plinth); a moment after the box's card a line says what to do, and the drone flies
+ * up and points (main.js 'scout:ping').
  */
-class JetGuide {
-  constructor(rt, { from, to, r }) {
-    this.rt = rt;
-    this.foot = rt.kit.world(...from);
-    this.h = to - from[1];
-    this.root = new THREE.Group();
-    this.root.name = 'The way up (after the jets)';
-    rt.root.add(this.root);
-    this.mat = makeMaterial({ color: '#bfe6f2', flat: true, glow: 0.7, key: 'incal.temple.guide' });
-    const g = new THREE.TorusGeometry(r, 0.07, 4, 36).rotateX(Math.PI / 2);
-    this.rings = Array.from({ length: 10 }, (_, i) => { const m = new THREE.Mesh(g, this.mat); m.userData.noCollide = true; this.root.add(m); return { m, s: i / 10 }; });
-    this.root.visible = false;
-    this.k = 0; this.since = 0; this.told = false;
-  }
-  get wanted() { return this.rt.logic.gadget && !jetsUsed(this.rt); }
-  update(dt, t) {
-    const rt = this.rt, want = this.wanted;
-    this.k = THREE.MathUtils.clamp(this.k + (want ? dt / 1.2 : -dt / 0.8), 0, 1);
-    this.root.visible = this.k > 0.01;
-    // a moment after the chest (its card closes first): what the jets are for, and the drone shows where
-    if (want && !this.told && rt.player?.pos && rt.inside(rt.player.pos)) {
-      if ((this.since += dt) > 1.2) {
-        this.told = true;
-        rt.notice(JETS_NEXT, 'jets.next');
-        rt.quests?.track?.(`temple.${rt.id}`);
-        rt.game.emit('scout:ping', { why: 'jets' });
-      }
+class UpGuide {
+  constructor(rt) { this.rt = rt; this.since = 0; this.told = false; }
+  get wanted() { return this.rt.logic.gadget && !upUsed(this.rt); }
+  update(dt) {
+    const rt = this.rt;
+    // a moment after the chest (its card closes first): what the bellows are for, and the drone shows where
+    if (this.wanted && !this.told && rt.player?.pos && rt.inside(rt.player.pos) && (this.since += dt) > 1.2) {
+      this.told = true;
+      rt.notice(BELLOWS_NEXT, 'bellows.next');
+      rt.quests?.track?.(`temple.${rt.id}`);
+      rt.game.emit('scout:ping', { why: 'bellows' });
     }
-    if (!this.root.visible) return;
-    for (const r of this.rings) {
-      r.s = (r.s + dt * 0.22) % 1;
-      r.m.position.set(this.foot.x, this.foot.y + r.s * this.h, this.foot.z);
-      const fade = Math.min(1, r.s * 6, (1 - r.s) * 5) * this.k;
-      r.m.scale.setScalar(Math.max(0.01, fade * (0.85 + 0.15 * Math.sin(t * 2.4 + r.s * 12))));
-    }
-    if (this.mat.uniforms?.uGlow) this.mat.uniforms.uGlow.value = (0.45 + 0.25 * Math.sin(t * 3)) * this.k;
   }
-  dispose() { this.root.removeFromParent(); }
+  dispose() {}
 }
 
 // ------------------------------------------------------------------ inside
@@ -330,7 +311,7 @@ function layout(rt) {
     fading: 'The vane below is slowing.' });
   add(Mark, { room: 'climb', at: [5.5, 0, C2 - 4.5], yaw: -Math.PI * 0.8 });
 
-  // ---- the corridor and the Jets' Chamber (floor 11, an oculus in its ceiling at 33)
+  // ---- the corridor and the Bellows Chamber (floor 11, an oculus in its ceiling at 33)
   K.slab(-3.2, C2 + 9.6, 3.2, C2 + 12.4, 11, 0.8);
   K.wall(-3.2, C2 + 10.3, -3.2, C2 + 12.4, 11, 6.5, { t: 0.8 }); K.wall(3.2, C2 + 12.4, 3.2, C2 + 10.3, 11, 6.5, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 17.9, C2 + 11.4));
@@ -342,8 +323,8 @@ function layout(rt) {
   for (let i = 0; i < 8; i++) { const a = (i / 8) * TAU; K.add(M.glyph, T(glyphGeometry(0.9, 0.04).rotateX(-Math.PI / 2), [Math.sin(a) * 5.2, 11.03, C3 + Math.cos(a) * 5.2], [0, a + Math.PI, 0])); }
   band(0, C3, 10, 19, 1.1, 0.4, [[Math.PI, 0.4]]);
   add(Mark, { room: 'jets', at: [6.2, 11, C3 - 5], yaw: -Math.PI * 0.75 });
-  // once the jets are yours: the way on, shown (a column of rising rings up through the oculus, a line, the drone)
-  add(JetGuide, { from: [0, 11.7, C3], to: 34.6 + 2.5, r: 2.5 });
+  // once the bellows are yours: the way on, said (a line, the drone); the draught itself rises over the plinth (below)
+  add(UpGuide, {});
 
   // ---- the Lamp Gallery: a tall drum over the chamber (floor 34.6, round the oculus below), after the picked
   // reference: cream stone banded in steel blue, slit windows, stone shelves jutting from the wall with carved eyes
@@ -379,7 +360,9 @@ function layout(rt) {
   add(Switch, { id: 's2', at: [Math.sin(ea) * (GR - 0.15), ey, C3 + Math.cos(ea) * (GR - 0.15)], yaw: ea + Math.PI, size: 1.0, lids: true,
     wrong: 'The splash patters on the eye’s stone lids. They are shut: they lift only while the great vane in the floor turns.' });
   add(Vane, { id: 'vG', at: [-8.2, G0, C3], r: 2.3, great: true, reach: VANES.reach,
-    washed: 'The jets’ wash catches the great vane, and it turns under you; over the west shelf an eye’s stone lids lift. Aim: the jets hold you here.' });
+    washed: 'The bellows’ wash off your wings catches the great vane, and it turns under you; over the west shelf an eye’s stone lids lift. The rising air holds you: aim from here.' });
+  // the thin breath through its frame: it bears open wings, and holds you over the vane (too thin to turn it)
+  add(Updraft, { at: [-8.2, G0, C3], r: 2.6, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.', ride: 'The breath through the vane’s frame bears your wings, and holds you over it.' });
   // the iris in the ceiling, over the oculus: it opens on the west eye
   K.both(M.floor, T(annulus(VANES.iris + 0.1, GR + 0.4, 0.6, 48), [0, GC, C3]));
   K.add(M.trim, T(annulus(VANES.iris + 0.1, VANES.iris + 0.7, 0.04, 40), [0, GC + 0.02, C3]));
@@ -401,7 +384,8 @@ function layout(rt) {
     dropped: 'The stones sink from under the ball, and it drops. Another rolls out of the wall where the groove begins.' });
   add(Plate, { id: 'p3', at: [SX, SY, B1], r: 1.2 });
   add(Vane, { id: 'vE', at: [6.4, GC, C3 - 9.4], r: 2.1, great: true, reach: VANES.reach,
-    washed: 'The great vane turns under your jets, and up on the east shelf stones grind up into the gap.' });
+    washed: 'The great vane turns under the bellows’ wash, and up on the east shelf stones grind up into the gap.' });
+  add(Updraft, { at: [6.4, GC, C3 - 9.4], r: 2.5, h: VANES.breath - 1, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
   // the second iris, over the loft: it opens on the shelf's ball, home on its plate
   const GK = G0 + VANES.crown;
   // the crown's little vane, on a post in the loft under the second iris's rim: seen from the crown down through the
@@ -426,7 +410,11 @@ function layout(rt) {
   add(Switch, { id: 's4', at: [Math.sin(ca) * (GR - 0.15), cy, C3 + Math.cos(ca) * (GR - 0.15)], yaw: ca + Math.PI, size: 1.0, lids: true,
     wrong: 'The splash patters on the eye’s lids. They lift only while two vanes turn at once: the great one in the floor, and a little one somewhere below.' });
   add(Vane, { id: 'vC', at: [6.2, GK, C3 + 5.4], r: 2.2, great: true, reach: VANES.reach,
-    washed: 'The great vane turns under your jets. Over the east shelf, the eye’s lids stir.' });
+    washed: 'The great vane turns under the bellows’ wash. Over the east shelf, the eye’s lids stir.' });
+  add(Updraft, { at: [6.2, GK, C3 + 5.4], r: 2.5, h: VANES.breath, lift: 8, hint: 'A thin breath rises through the great vane’s frame. Open your wings in it.' });
+  // the draught the chest unstops: from the plinth up through the oculus, on up through each iris as it opens
+  add(Updraft, { at: [0, 11.62, C3], r: 2.5, h: G0 + 3 - 11.62, heights: [[{ open: 'iris2' }, GK + 3 - 11.62], [{ open: 'iris' }, GC + 3 - 11.62]], lift: 12, when: { gadget: true },
+    hint: 'The draught rushes up past you. Open your wings in it.', ride: 'The draught off the plinth fills your wings and carries you straight up.' });
   add(Door, { id: 'd3', at: [0, G0 + 28, C3 + GR + 0.7], w: 5, h: 6, lamps: [{ lit: 's4' }] });
 
   // ---- the Warden's Hall (floor 62.6, a great drum), its corridor from the high door
@@ -452,6 +440,8 @@ function layout(rt) {
   for (let i = 0; i < 4; i++) {
     const a = (i / 4) * TAU;
     rt.hallVanes.push(add(Vane, { id: `vh${i}`, at: [Math.sin(a) * HALL.vane, H0, CW + Math.cos(a) * HALL.vane], r: 2.2, great: true, reach: HALL.reach, linger: 1.2 }));
+    // (the breath through each: open wings ride it up over the warden's crown, and hover there to shoot down)
+    add(Updraft, { at: [Math.sin(a) * HALL.vane, H0, CW + Math.cos(a) * HALL.vane], r: 2.5, h: HALL.breath, lift: 9, hint: 'A breath rises through the vane’s frame. Open your wings in it.' });
   }
   add(Door, { id: 'd5', at: [0, H0, CW + HR + 0.7], w: 5, h: 6 });
   // the way out: a corridor to a dark doorway
@@ -639,16 +629,17 @@ function change(scene, level, rt) {
 
 export const INCAL_TEMPLE = {
   id: 'incal', levelId: 'incal', name: 'The Warden’s Well', doorLabel: 'door of the makers’ tower',
-  gadget: 'harness', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3',
+  gadget: 'wardenbellows', gadgetBox: 'incal.temple.jetpack', arenaDoor: 'd3',
   origin: [420, 1400, 140], yaw: 0,
   palette: PALETTE, logic: LOGIC, site: SITE,
   layout, exterior, change,
   local: { person: 'vell', out: 7, side: 6 },   // (src/temples/index.js: who stands by the door and points you in)
   enterLine: 'Inside the tower it is cool and very tall, and something far overhead hums, round and round.',
-  // you can't get about the City-Shaft without the jets, and they are in here: the quest starts when you land
-  startsOnArrival: () => !items.has('harness') && !items.has('jetpack'),
-  arrivalLine: 'The jets the makers left for this city are in their tower on the rim, round from the ship.',
-  used: jetsUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
+  // the makers left the city its bellows in here: the quest starts when you land (the shaft itself is the wings' and its
+  // air pillars': src/shaft-pillars.js)
+  startsOnArrival: () => !items.has('wardenbellows'),
+  arrivalLine: 'The makers left something for this city in their tower on the rim, round from the ship: the bellows that kept the shaft breathing.',
+  used: upUsed,   // (the temple quest's 'use' stage: src/temples/index.js)
   pitLine: 'You climb back up to the last glyph stone.',
   onResolved(rt) { rt.notice('Far below the rim, by the Upward Shrine, the shaft has begun to breathe again.', 'resolved.out'); },
   // its side vents: each a target while they are open in the first phase (the guardian's own weak point is

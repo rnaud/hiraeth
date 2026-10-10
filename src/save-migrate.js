@@ -44,6 +44,9 @@
 // The part's own flags (`arzach2.*`, `world.arzach2.done`, `quest.arzach2.*`, the temples', the boxes') keep
 // their names: the merged world carries its parts' quests and finds under them. Where you stand
 // (src/ui.js SaveGame) goes through migrateWhere, and the sketchbook's relics through migrateJournal.
+// The City-Shaft's air pillars (v1.42, src/shaft-pillars.js) carry the wings up the shaft, so the Warden's harness
+// went: step 11 gives a save that had it the Warden's bellows, the Warden's Well's chest's new find (the chest stays
+// opened).
 //
 // Each step runs once per save (flag `save.migrated` holds the last step done).
 
@@ -162,6 +165,16 @@ const STEPS = [
   // 10: merged and dismissed worlds (src/levels/names.js): the ship's world and the map's finds move to their
   // replacements; a finished Hangar is the Glass Dunes' slot finished
   (flags) => migrateWorlds(flags),
+  // 11: the Warden's harness (the City-Shaft's own jets, v1.38) went in v1.42: the City-Shaft's air pillars carry the
+  // wings, and the Warden's Well's chest holds the Warden's bellows (the wings' third strength). A save that had the
+  // harness (its chest opened, or step 9's) has the bellows instead; `harness.lost` remembers it.
+  (flags) => {
+    if (!flags['item.harness']) return;
+    delete flags['item.harness'];
+    flags['harness.lost'] = true;
+    flags['item.wardenbellows'] ??= true;
+    flags['box.incal.temple.jetpack'] ??= true;
+  },
 ];
 
 /** Step 10 (pure, in place): a save's worlds moved to the ones that took their place. */

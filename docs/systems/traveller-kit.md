@@ -33,8 +33,8 @@ the rucksack's outer face. The look and its reasons:
 - **Its stages** (`flask.stages`, `setStage`; src/items.js `BACKPACK_STAGES`, `backpackStage`): each strength found adds
   its parts, as the states sheet's second pick draws them. 1, the lift valve (the double jump): the valve's wheel on
   the cap, a second half ring over the dome top to bottom, two small brass fins on the band. 2, the wings: folding brass
-  vanes at its sides, folded back along the ring. 3, the Warden's harness (the City-Shaft's jets; the debug jets count
-  too): a second capped valve on the ring's shoulder, the glass brighter (`STAGE_GLOW`) and its nebula turning quicker
+  vanes at its sides, folded back along the ring. 3, the Warden's bellows (the wings' third strength, since v1.42; the
+  debug jets count too): a second capped valve on the ring's shoulder, the glass brighter (`STAGE_GLOW`) and its nebula turning quicker
   (`STAGE_RATE`). A strength found flashes the fluid (FluidTool's item listener).
 - **Its glow and level follow the magic bar**: the nebula stands at the bar's level (empty: dry glass and a dreg;
   full: up to the neck), and the glass glows from `TANK.glow[0]` empty to `TANK.glow[1]` full (`uGlow`,

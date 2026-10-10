@@ -35,7 +35,8 @@ for (const [k, R] of ROUTE.entries()) {
     // nothing he could not have found yet
     for (const [m, at] of Object.entries(FIRST)) if (A.owned(W).includes(m) && before(R.id, at) && R.id !== at) issue('ability', `he arrives with ${m} before ${at}`);
     if (items.has('jetpack')) issue('ability', 'the jets anywhere (a debug item since v1.38) in play');
-    if (items.has('harness') && before(R.id, 'incal')) issue('ability', 'the Warden’s harness before the City-Shaft');
+    if (items.has('harness')) issue('ability', 'the Warden’s harness (gone since v1.42: the City-Shaft’s air pillars carry the wings) in play');
+    if (items.has('wardenbellows') && before(R.id, 'incal')) issue('ability', 'the Warden’s bellows before the City-Shaft');
     const fallback = W.boxes.list.filter((b) => b.fallback).map((b) => b.item);
     if (fallback.length) issue('box', `a fallback box by the ship (${fallback.join(', ')}): the route should have brought them`);
     for (const p of R.play) {

@@ -19,7 +19,8 @@ export PATH="/Users/anf/Library/Application Support/Zed/node/node-v24.11.0-darwi
 node .claude/skills/camera-qc/run.mjs <scratch>/camera [--only train-walk,desert-shop] [--worlds overnighttrain] [--preset medium]
 ```
 
-PORT (default 5361; **never 5173**, the author's own server) and CDP (default 5362). One muted headless Chrome
+PORT (default 5361; **never 5173**, the author's own server) and CDP (default 5362); VITE_CACHE a dependency cache inside the
+checkout when the temporary one can't resolve the packages (a worktree whose node_modules is a link). One muted headless Chrome
 (`--mute-audio`, the game's volumes at 0) and one Vite server with its own dependency cache, both closed at the end;
 worlds one after another with a rest between. A full run (11 scenarios, 5 worlds) takes about 8 minutes.
 
@@ -49,8 +50,9 @@ the real player's physics, frame times and crowd differ.
 | desert-shop | desert | inside Qanat's shop: wandering against its walls and counter |
 | bazaar-streets | bazaar | wandering the market's street with the camera after the way |
 | arena-lock | arena | locked on to an ink blot: circling, stepping in and back |
+| incal-pillar | incal | riding the City-Shaft's halfway air pillar on the wings (`hold`: jump held): straight up past the terraces, the camera turned while rising, then steered out |
 
-A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, run, jumpEvery, turn / pitch (°/s), steer (°/s), lock }`;
+A segment: `{ for, path: [[x, z]…] | stick: [x, y] | wander, run, jumpEvery, hold (jump held), turn / pitch (°/s), steer (°/s), lock }`;
 a scenario: `{ name, world, at, yaw, setup (page code), flags, settle, segs }`. Add one for any new tight space.
 
 ## 3. What is measured (`scripts/camera-qc/lib.mjs`, tested by `tests/camera-qc.test.js`)

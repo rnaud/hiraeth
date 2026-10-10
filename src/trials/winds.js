@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { makeMaterial } from '../materials.js';
 import { registerWorking } from '../workings.js';
 import { batchParts } from '../part-batch.js';
+import { rideColumn } from '../updraft.js';
 
 // A column of rising air out in a world (a mastery trial's: src/trials/data.js `winds`), the temples' Updraft
 // (src/temples/pieces.js) on the open ground: pale rings drift up it, a ring of the makers' stone marks its
-// foot. Open wings in it and you are lifted toward its middle, slowed, and let go near its top. It is a
+// foot. Open wings in it and you go straight up its middle (src/updraft.js), held near its top until you steer off. It is a
 // working (src/workings.js), so a foe knocked or flying into it is thrown up too (src/foes.js).
 //
 //   const w = new WindColumn(scene, { foot: Vector3, r, h, lift })
@@ -57,14 +58,9 @@ export class WindColumn {
       r.m.rotation.y = t * 0.4 + r.s * 3;
     }
     if (!P || P.dead || P.down || P.ride || !P.gliding || !this.contains(P.pos)) return false;
-    // the wings catch it: up, toward its middle, slowly; near its top it eases and lets you go
-    const want = windLift(this.lift, this.foot.y, this.h, P.pos.y);
-    P.vel.y = Math.max(P.vel.y, want * 0.5) + (want - P.vel.y) * Math.min(1, dt * 3);
-    if (want > this.lift * 0.5) {
-      P.glideSpeed = Math.min(P.glideSpeed ?? 7, 7);
-      const c = Math.min(1, dt * 1.2);
-      P.pos.x += (this.foot.x - P.pos.x) * c; P.pos.z += (this.foot.z - P.pos.z) * c;
-    }
+    // the wings catch it: straight up, settling onto its middle (src/updraft.js: no forward run in it); near its top
+    // it eases and holds you until you steer off
+    rideColumn(P, dt, { x: this.foot.x, z: this.foot.z, top: this.top, lift: this.lift, r: this.r });
     return true;
   }
   dispose() { this.off?.(); for (const b of this.batches) b.dispose(); this.root.removeFromParent(); }

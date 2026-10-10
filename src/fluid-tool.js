@@ -664,7 +664,7 @@ export function buildFlask(glassMat, { worn = true, mat = flatMat, stage = 3 } =
       add(new THREE.BoxGeometry(0.034, 0.018, 0.022), brass, a.x, a.y, a.z + 0.004).quaternion.copy(strap.quaternion);   // its buckle
     }
   }
-  // the stages' parts (setStage shows them): 1 the lift valve, 2 the wings' vanes, 3 the jets' valve
+  // the stages’ parts (setStage shows them): 1 the lift valve, 2 the wings’ vanes, 3 the bellows’ valve
   const stages = [null, new THREE.Group(), new THREE.Group(), new THREE.Group()];
   stages.forEach((s, i) => { if (s) { s.name = `Backpack stage ${i}`; g.add(s); } });
   {
@@ -952,14 +952,14 @@ export class FluidTool {
 
   get aiming() { return this.k > 0.5; }
 
-  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding, climbing, flying on the jets (aiming in flight holds you: player.jetHold, and then it can), in menus and photo mode. */
+  /** Can the arm come up right now? Not without the backpack (or with it in a vehicle), while gliding (but in rising air), climbing, flying on the jets (aiming in flight holds you: player.jetHold, and then it can), in menus and photo mode. */
   allowed(paused) {
-    return this.bodyFree(paused) && this.worn;
+    return this.bodyFree(paused, { hover: true }) && this.worn;
   }
   /** The body is free for the arm (the blade needs no item: it is his from the start): not riding, gliding, climbing, on the jets, knocked down, in a menu. */
-  bodyFree(paused) {
+  bodyFree(paused, { hover = false } = {}) {
     const p = this.player;
-    return !paused && this._enabled && !!p && !p.ride && !p.boarding && !p.unboarding && !p.gliding && !p.climbing && !p.mantle && !p.thrusting && !p.onJets && !p.down && p.object?.visible !== false;   // (nor knocked down)
+    return !paused && this._enabled && !!p && !p.ride && !p.boarding && !p.unboarding && (!p.gliding || (hover && !!p.hovering)) && !p.climbing && !p.mantle && !p.thrusting && !p.onJets && !p.down && p.object?.visible !== false;   // (nor knocked down; the gun on the wings in rising air, which holds him: player.js hovering)
   }
 
   /**
@@ -1074,7 +1074,7 @@ export class FluidTool {
 
   // ------------------------------------------------------------ the jets (player.fuelSource)
   /** The jets own the item and the tank is on the back. */
-  get canJet() { return this.worn && (this.items.has('jetpack') || (this.items.has('harness') && !!this.player?.opts?.harnessWorld)); }   // (the debug jets, or the Warden's harness in the City-Shaft)
+  get canJet() { return this.worn && this.items.has('jetpack'); }   // (the debug jets only: the Warden's harness went in v1.42)
   /** The gauge the jets burn, 0..1 of the tank. */
   jetLevel() { return this.reserve.level / this.reserve.max; }
   /** A frame of thrust: burns FLUID.jet.drain charges a second; false when there's nothing left to burn. */

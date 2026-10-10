@@ -287,7 +287,7 @@ export const FR = {
   'hint.flurry': 'Une esquive parfaite : le temps ralentit autour de vous. Frappez tant qu\'il dure.',
   'hint.lift': 'Appuyez de nouveau sur {key:jump} en l\'air pour un second saut.',
   'hint.gun': 'Le pistolet à fluide est en main : visez avec {key:aim}, tirez avec {key:fire} ; {key:mode} prend la poussée. {key:pick} choisit un autre gadget.',
-  'hint.jets': 'Le harnais du Gardien : dans la Cité-Puits, maintenez {key:jump} en l\'air pour voler avec ses réacteurs.',
+  'hint.bellows': 'Le soufflet du Gardien : ailes ouvertes, il souffle sous vous un vent régulier. Dans l\'air qui monte, vos ailes vous tiennent assez immobile pour viser ({key:aim}).',
   'hint.pick': 'Deux gadgets maintenant : {key:pick} choisit celui en main, {key:aim} vise avec et {key:fire} l\'utilise.',
   // la boutique (src/shop-panel.js)
   'shop.leave': 'Quitter la boutique',

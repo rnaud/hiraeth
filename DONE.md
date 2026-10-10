@@ -2405,3 +2405,15 @@ changelog's v1.41 lines.
 - [x] **Hold a charged sword attack with an animation that shows the held charge**: the swing, then the charge held as
   long as the button is, sinking into the knees, motes of fluid drifting into the blade, a tremble once full
   (`CHARGE_LOOK`). Controls page: "Charged cut … in the air: two cuts, then a plunge" (EN, FR).
+
+## The City-Shaft's air pillars (v1.42, the author's list, 2026-10-10)
+
+- [x] **"City shaft should have pillars of air coming up to help me come back up with my wings"**: five columns of rising
+  air (`src/shaft-pillars.js`): the spire's from the bottom viaduct to the palace landing, the crown's from the landing
+  past the dome, three by the terraces' edges from the lake to over the rim. A fall into one opens the wings.
+- [x] **"When in an air shaft I should go just up, not keep going forward"**: one ride for every column (`src/updraft.js`):
+  no forward run in it, held at its top, the stick steers out; the temples' updrafts, Vael's tower wind and the trials'
+  columns too.
+- [x] **The Warden's harness retired**: the Warden's Well's chest holds the Warden's bellows (the wings' third strength:
+  their wash turns the great vanes; rising air holds you to aim); the temple is played on the wings, the Shaft climb
+  trial up the halfway pillar, and the route has no jets at all (save step 11 turns a harness into the bellows).

@@ -395,6 +395,27 @@ hidden collider stands for are skipped): Vael and the Buried Machine. In the des
 - **Wren**'s quest marker sits at the call-lamp's stop until the lamp is lit (it circles far off till then).
 - For the audit: the drops are a `line` (from beside Nima to the shrine), the pads, the relay and the locker `sights`.
 
+## The City-Shaft's air pillars (v1.42, `src/shaft-pillars.js`)
+
+From the author (2026-10-10): "City shaft should have pillars of air coming up to help me come back up with my wings."
+The shaft's rising air, gathered into five columns (`PILLARS`) that carry the wings straight up (the shared ride,
+src/updraft.js; movement-and-camera.md "Rising air"). Falling into one opens the wings by themselves (`_autoGlide`, as
+off a flyer); without wings it only breaks the fall. Each rises at about half its `lift` (36: some 18 m/s, half a
+minute up the shaft) and eases to a stop over its top (`easeOf`), so you hang there until you steer off.
+- **The spire's** (4.29 rad, 58 m out): from the bottom viaduct's deck (−286, beside the spire's bottom ring) past
+  every level's spire ring (step off onto any of them) to 7 m over the palace landing: Ossa to the palace.
+- **The crown's** (on the palace landing, 4.6 rad): up past the dome to glide down onto its crown (Dov says so).
+- **Three by the terraces' inner edges** (the depths' by the Upward Shrine, the halfway one by Perrine's landing, the
+  rim's by the Warden's Well), from the acid lake (they catch a fall) to over the rim, high enough to glide back over
+  the high terrace's tallest houses; steer off onto any terrace on the way.
+Their angles are clear of the spire's bridges, the floating pads and the terraces' edges all the way up
+(`tests/shaft-pillars.test.js`, which also rides each with a real traveller to where it lets him off).
+Drawn as the house draws wind, instanced (`LOOK`: rings, pastel streaks, ink strokes, motes, laid out only in a window
+round the camera's height, each piece anchored to the world), and from afar by a see-through body each (`BODY`, src/veil.js:
+inked down both sides, a pale wash, put away within 32 m so its rim never fills the view while you ride). The first
+ride says how to steer out (`incal.pillar.ridden`, src/story/incal.js). The main quest's `palace` and `look` stages and
+Nima's and Dov's lines point at them.
+
 ## Vael's ways home (level design audit v1.15)
 
 Both walks back were the way you came (`src/vael-ways.js`, no rng):

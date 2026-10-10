@@ -10,7 +10,7 @@ import { quietOr } from '../hint-level.js';
 
 // The halfway stall (the City-Shaft's middle levels, where the lamplighters' drops land halfway down: docs/systems/story.md,
 // "The halfway stall"; src/shaft-ways.js; it stood by the middle cab stop until the level design audit v1.15 moved it
-// onto the way down). Most players pass the middle levels in a cab or on the jets; this is the
+// onto the way down). Most players pass the middle levels in a cab or on the wings; this is the
 // small place there to stop at.
 //
 //   Perrine's tea stall   a counter under a flat awning, a kettle, a bench, a board: HALFWAY TEA

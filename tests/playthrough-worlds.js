@@ -129,15 +129,47 @@ Object.assign(CHECKS, {
   'arzach2.bell:monastery': (W) => (!bird(W) ? 'no bird in Vael II' : bird(W).dormant ? 'the bird sleeps in Vael II' : null),
 });
 
-// ------------------------------------------------------------------ the City-Shaft: 600 m deep, the jets (its temple's) the way down and up
+// ------------------------------------------------------------------ the City-Shaft: 600 m deep, the wings down and its air pillars up
+/**
+ * A fresh traveller with what this one carries, in one of the City-Shaft's air pillars (src/shaft-pillars.js): from its
+ * foot (a jump: falling, the wings open by themselves) up to its top, then the stick toward `onto` (a point on the
+ * ground) out of it, the wings folded once over it. Where he lands (on the ground within 6 m of it), or null.
+ */
+function ridePillar(W, id, onto) {
+  const pillars = W.level.shaft.pillars, c = pillars.pillars.find((p) => p.id === id);
+  const P = new A.Player(W.physics, { health: false, climb: false });
+  P.respawn(V(c.x, c.foot + 0.3, c.z));
+  const toward = (to) => Math.atan2(-(to.x - P.pos.x), -(to.z - P.pos.z));
+  let phase = 'jump';
+  for (let i = 0; i < 60 * 120; i++) {
+    let input = {}, yaw = 0;
+    if (phase === 'jump') { if (P.gliding) phase = 'up'; else if (i > 120) return null; else input = { Space: P.onGround && i % 12 < 4 }; }   // (a jump; falling, the wings open by themselves)
+    else if (phase === 'up') { if (P.pos.y > c.top - 2) phase = 'off'; else if (P.onGround) return null; }
+    else {
+      if (P.onGround) return flat(P.pos, onto) < 6 && Math.abs(P.pos.y - onto.y) < 1 ? P.pos.clone() : null;
+      // (the stick toward it while in the column, out of it; then the glide carries him over it, and the wings fold)
+      if (flat(P.pos, onto) > 3.5) { input = { Space: true, KeyW: !!P.updraft && P.time - P.updraft.at < 0.2 }; yaw = toward(onto); }
+    }
+    P.update(1 / 60, input, yaw);
+    pillars.carry(1 / 60, P);
+  }
+  return null;
+}
+const flat = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
+/** Where the spire's pillar lets you off: the palace landing beside it. */
+const palaceLanding = (W) => { const S = W.level.shaft, c = S.pillars.pillars.find((p) => p.id === 'spire'); return V(Math.cos(c.a) * 44, S.places.palace.y, Math.sin(c.a) * 44); };
 Object.assign(WAYS, {
   // (the drone's first find, Nima on the high terrace 50 m under the rim, is reached on foot from the ship,
   // down the red stair in the shaft's wall: no way declared; tests/incal-stair.test.js walks it, and glides it)
   // (the cabs don't stop in the depths: src/story/incal.js)
-  'incal.light:down': { needs: ['jetpack'], how: 'down the lamplighters’ drops on the jets, landing to landing' },
-  'incal.light:ossa': { needs: ['jetpack'], how: 'down the shaft on the jets' },
-  'incal.light:palace': { needs: ['jetpack'], how: 'up to the palace on the jets' },
-  'incal.light:look': { needs: ['jetpack'], how: 'up on the palace crown' },
+  'incal.light:down': { needs: ['glider'], how: 'gliding down the lamplighters’ drops, landing to landing' },
+  'incal.light:ossa': { needs: ['glider'], how: 'gliding down the shaft' },
+  // up: the spire's air pillar from the bottom viaduct to the palace landing, the crown's from the landing past the dome
+  // (v1.42: no jets; tests/shaft-pillars.test.js rides them all)
+  'incal.light:palace': { needs: ['glider'], how: 'up the spire’s air pillar to the palace landing',
+    check: (W) => (ridePillar(W, 'spire', palaceLanding(W)) ? null : 'the spire’s air pillar does not set him on the palace landing') },
+  'incal.light:look': { needs: ['glider'], how: 'up the crown’s air pillar, and down onto the crown',
+    check: (W) => (ridePillar(W, 'crown', W.level.shaft.places.palace.crown) ? null : 'the crown’s air pillar does not set him on the dome’s crown') },
 });
 Object.assign(SOLVERS, {
   // stand on the palace's crown and look up at the Lodestar
@@ -269,7 +301,7 @@ export const ROUTE = [
   { id: 'edena', play: ['edena.garden'] },
   // (v1.40: the city under glass: the Garden's cutting up the lift to the Crown, Fabre's word down to the Whale Gallery, then the Whale-House)
   { id: 'underwater', play: [{ act: 'meetMireille', at: 'mireille', label: 'Mireille, in the kelp garden' }, 'underwater.kelp', { act: 'meetFabre', at: 'fabre', label: 'Fabre, in the Crown' }, 'underwater.lamps', { temple: 'done', id: 'underwater' }] },
-  { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the jets, the light, the pass
+  { id: 'incal', play: [{ temple: 'gadget' }, 'incal.light', { act: 'hailCab' }, 'incal.pass', { act: 'cabTakesYou' }] },   // the bellows, the light (the air pillars up), the pass
   // (the Glass Dunes in the Sealed Hangar's slot: its thread is the Clock-House, the Hangar's temple, to its guardian)
   { id: 'glassdunes', play: [{ temple: 'done', id: 'garage' }] },
   { id: 'buried', play: ['buried.tooth'] },
@@ -302,5 +334,5 @@ export const each = (W, st, qid) => {
   return lacks.length ? `it says to use ${lacks.join(', ')}, which he does not have yet: “${st.text}”` : null;
 };
 /** Where each way of getting about is first had, by the route: nobody arrives anywhere before it with it. */
-export const FIRST = { glider: 'arzach', bird: 'arzach', jetpack: 'incal', cab: 'incal' };   // (the double jump and the gun: the desert's own, checked by its steps)
+export const FIRST = { glider: 'arzach', bird: 'arzach', cab: 'incal' };   // (the jets: a debug item since v1.38, and the City-Shaft's own harness went in v1.42)   // (the double jump and the gun: the desert's own, checked by its steps)
 export const before = (a, b) => A.ORDER.indexOf(a) < A.ORDER.indexOf(b);

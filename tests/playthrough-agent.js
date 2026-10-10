@@ -98,7 +98,7 @@ export function loadWorld(id, { journal = memoryJournal(), report = () => {} } =
   const physics = new Physics(scene, level.ground.heightAt ? level.ground : null);
   quiet(() => level.init?.(physics));
   if (birdAnswers(id, level, (k) => game.flag(k))) { level.mount = (p) => promisedBird(p, level.spawn); level.mountName = 'bird'; }
-  const player = quiet(() => new Player(physics, { mount: level.mount, jetpack: level.features?.jetpack, harnessWorld: id === 'incal', climb: level.features?.climb ?? true, spawn: level.spawn, spawnHeading: level.spawnHeading,
+  const player = quiet(() => new Player(physics, { mount: level.mount, jetpack: level.features?.jetpack, climb: level.features?.climb ?? true, spawn: level.spawn, spawnHeading: level.spawnHeading,
     gravityAt: level.gravityAt, unsafe: level.unsafe, dynamic: level.dynamic, killY: level.killY, health: false }));
   player.respawn?.(level.spawn.clone());
   player.vehicles.push(...(level.vehicles ?? []));
@@ -196,7 +196,7 @@ export function abilities(W) {
     doublejump: items.has('backpack') && items.has('doublejump'),   // (the lift valve, v1.38: it was the fluid boost, any full tank)
     gun: items.has('backpack') && items.has('gun') && !f('tool.empty'),   // (the fluid gun, a gadget since v1.38: shots and pushes)
     glider: items.has('backpack') && items.has('glider'),
-    jetpack: items.has('backpack') && (items.has('jetpack') || (items.has('harness') && W.id === 'incal')),   // (v1.38: the jets anywhere are a debug item; the Warden's harness flies in the City-Shaft)
+    jetpack: items.has('backpack') && items.has('jetpack'),   // (the jets anywhere: a debug item since v1.38; the City-Shaft's Warden's harness went in v1.42: its air pillars carry the wings)
     bird: !!f('bird.promise') || (W.id === 'arzach' && !!f('arzach.bird.called')),
     cab: !!f('item.cabpass'),
   };

@@ -43,11 +43,11 @@ export const QUESTS = [
     outro: 'The Lodestar burns bright. For a moment, every level looked up.',
     stages: [
       { id: 'nima', text: 'The light above the palace is dimming. Find the sweeper on the high terrace, who still watches it', label: 'Nima, the sweeper', talk: 'nima' },
-      // (the way down on the jets, marked terrace by terrace: src/shaft-ways.js; talking to Ossa first skips it)
+      // (the way down on the wings, marked terrace by terrace: src/shaft-ways.js; talking to Ossa first skips it)
       { id: 'down', text: 'Go down the shaft by the lamplighters’ drops: a red lamp on the edge of every terrace, landing to landing. Halfway, Perrine keeps a tea stall where they land', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
       { id: 'ossa', text: 'Go down to the bottom terrace and ask at the Upward Shrine what fell the night the sky rang', label: 'Ossa, at the bottom of the shaft', talk: 'ossa' },
-      { id: 'palace', text: 'Carry the splinter up the whole shaft to the palace, under the Lodestar', label: 'The palace gate', talk: 'dov' },
-      { id: 'look', text: 'Stand on the palace and look up at the Lodestar', label: 'Look up', flag: 'incal.lit', at: 'crown' },
+      { id: 'palace', text: 'Carry the splinter up the whole shaft to the palace, under the Lodestar: the air pillar beside the spire rises from the bottom viaduct to the palace landing', label: 'The palace gate', talk: 'dov' },
+      { id: 'look', text: 'Stand on the palace’s crown and look up at the Lodestar: the little air pillar on the landing lifts you past the dome', label: 'Look up', flag: 'incal.lit', at: 'crown' },
       { id: 'tell', text: 'The Lodestar burns again. Go down and tell Nima', label: 'Nima, on the high terrace', talk: 'nima' },
     ],
   },
@@ -150,7 +150,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ How do I get down?', goto: 'down' }, { text: '~neutral~ I’ll go down.', end: true }],
         },
         down: {
-          say: ["~neutral~ *Follow the lamplighters’ drops.* A red lamp on the edge of every terrace, from my corner here down to the shrine. They dropped landing to landing before there were cabs.", "~angry~ *Glide down or take a cab*, if you like. Coming back is harder. Most cabs refuse to stop below the smog."],
+          say: ["~neutral~ *Follow the lamplighters’ drops.* A red lamp on the edge of every terrace, from my corner here down to the shrine. They dropped landing to landing before there were cabs.", "~angry~ *Glide down or take a cab*, if you like. Coming back is harder: most cabs refuse to stop below the smog. *The air pillars carry wings back up*, if you have any."],
           choices: [{ text: '~neutral~ I’ll manage.', end: true }],
         },
         sweep: {
@@ -434,7 +434,7 @@ export const PEOPLE = {
           say: ["~whisper~ Level minus two-nine-zero. Stall nineteen, above the cabbage man. That’s where I grew up. Go on. Before I start being a guard again."],
           choices: [{ text: '~whisper~ I won’t tell.', end: true }],
         },
-        allowed: { say: ["~playful~ *Use your jets to reach the dome’s crown.* No stairs. Very exclusive, stairs apparently."], choices: [{ text: '~neutral~ (go up)', end: true }] },
+        allowed: { say: ["~playful~ *Ride the little air pillar on the landing up past the dome*, and glide down onto the crown. No stairs. Very exclusive, stairs apparently."], choices: [{ text: '~neutral~ (go up)', end: true }] },
         ration: {
           say: ["~surprised~ Smog-cabbage. My sister’s writing on the lid. I haven’t seen that in years.",
             "~sad~ Pip sent it? Says he’s taller? I left before he was born. Of course he’s taller."],

@@ -67,12 +67,13 @@ export const TRIALS = {
     eyes: [[-30, -20], [-60, 10], [-95, 30], [-120, -10], [-80, -40], [-40, -60], [20, -40], [40, 20]],
     reward: 'longbreath',
   },
+  // (on the jets until v1.42, when the Warden's harness went: now up the halfway air pillar, src/shaft-pillars.js)
   incal: {
-    id: 'trial-incal', world: 'incal', mode: 'jets', name: 'Shaft climb', color: '#ffd36a',
-    blurb: 'Rings of light up the City-Shaft, from a ledge far down to the rim.',
-    rules: 'On the jets, fly up through every ring in order to the rim. Land if the tank runs dry; it fills again.',
-    marker: [262, -12], start: [-50, null, 125], heading: 1.1, speed: 9,
-    gates: [[-20, 10, 140, 9], [70, 40, 130, 9], [130, 70, 60, 9], [140, 100, -30, 9], [80, 130, -120, 9], [-20, 155, -150, 9], [-120, 175, -90, 9], [-150, 195, 10, 9], [-120, 215, 110, 10]],
+    id: 'trial-incal', world: 'incal', mode: 'glider', name: 'Shaft climb', color: '#ffd36a',
+    blurb: 'Rings of light up the halfway air pillar, from the middle terrace to the rim.',
+    rules: 'Glide into the air pillar and ride it up through every ring in order, then steer out of its top and glide over the rim through the last.',
+    marker: [262, -12], start: [-61.0, -24, 205.1], heading: 2.85, speed: 9,
+    gates: [[-53.3, -6, 179.2, 6], [-53.3, 40, 179.2, 6], [-53.3, 90, 179.2, 6], [-53.3, 140, 179.2, 6], [-53.3, 190, 179.2, 6], [-72.7, 211, 244.4, 9]],
     reward: 'deepwell',
   },
   // (the Sealed Hangar's Pillar slalom until October 2026, its world dismissed: the jets' run moved to the Glass Dunes)
