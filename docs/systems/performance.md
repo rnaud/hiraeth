@@ -1310,3 +1310,10 @@ Tried and not kept (step (a)): compiling only the start view's kinds (the view, 
 drawn once as it links, and the rest after the first frame. A cold load was the same, 135.7 s: the draw-time compiles
 run one at a time on CrGpuMain whenever they happen (start surfaces 113 s, then passage 2.1 s, the first frame 4.7 s
 after ready). A warm one was 4 s slower, and the deferred kinds would each stall the GPU 1-15 s during play.
+
+**The passage warm-up's budget, kept** (main.js, after the trace). The first view's meshes are always drawn, as the
+first frame would draw them anyway. Past them, within `PASSAGE.loadBudget`, a mesh of a kind not drawn yet is drawn
+only if its first draw still fits. Its cost is taken as the average first draw of the view's new kinds so far.
+- On the Mac that average is a few ms, and everything round the traveller, the ship and the ways through is drawn as
+  before (desert: 2685 meshes in 254 ms).
+- On the Xbox it is seconds, so the ahead part keeps to kinds already drawn. The 8 s budget had become 48 s.

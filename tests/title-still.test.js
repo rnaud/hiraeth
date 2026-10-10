@@ -75,6 +75,10 @@ test('a program is first used only once the driver says it is linked (no blockin
   assert.ok(w.indexOf('await firstUse(renderer, step)') < w.indexOf("onStage('uploads')"));
   const m = src('main.js');
   assert.ok(m.indexOf('await firstUse(renderer, slice)') > 0 && m.indexOf('await firstUse(renderer, slice)') < m.indexOf('const warmDraw = new WarmDraw('));
+  // the passage warm-up: the first view whatever it takes; past it, a new kind only if its first draw (as long as the
+  // view's took on average) still fits the budget (the Xbox: 1-15 s each, docs/systems/performance.md)
+  assert.match(m, /const first = i < seen\.length;\s*if \(!first && performance\.now\(\) - t0 > PASSAGE\.loadBudget\) break;/);
+  assert.match(m, /if \(ks\.length && \(fresh\.size \+ ks\.length\) \* per > left\) return false;/);
 });
 
 test('the ink pass compiles its debug views and its lite path in only when asked for', async () => {

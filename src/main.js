@@ -111,7 +111,7 @@ import { slots, formatPlaytime, DEBUG_SLOT } from './save-slots.js';
 import { Waters, BreathMeter } from './water.js';
 import { Passage, PassageCover, WarmDraw, warmPasses, carryAcross, PASSAGE } from './passage.js';
 import { slicer, runStepsAsync, gpuPacer, nextFrame, loadWatchdog } from './load-steps.js';
-import { warmShadersSliced as warmSliced, firstUse, settle } from './warm-shaders.js';
+import { warmShadersSliced as warmSliced, firstUse, settle, programKind } from './warm-shaders.js';
 import { waterShared } from './water-shader.js';
 import { gameById, GAMES } from './minigames/index.js';
 import { placeGameMarker } from './minigames/kit/marker.js';
@@ -2099,18 +2099,39 @@ const warmDraw = new WarmDraw(renderer, scene, { passes: warmPasses({ makeGBuffe
   const view = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
   const inView = (o) => { try { return !o.frustumCulled || view.intersectsObject(o); } catch { return false; } };
   const seen = warmDraw.meshes().filter((o) => o.visible !== false && (!o.isInstancedMesh || o.count > 0) && inView(o));
-  // (what the first frame sees first, then round the traveller, the ship, the ways through: a GPU that can't keep up
-  // (the Xbox as an App, its graphics memory full: 159 s) stops at PASSAGE.loadBudget, and the rest is drawn ahead
-  // as you come near a door, as it is for anything new)
-  const todo = [...seen, ...warmDraw.near([player.pos], 120), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near(dests)];
-  let n = 0, i = 0;
+  // What the first frame sees, whatever it takes: the first frame would draw it anyway. Then, within PASSAGE.loadBudget,
+  // round the traveller, the ship, the ways through: meshes of the kinds already drawn, and of a new kind only if its
+  // first draw, as long as the view's took on average, still fits. A kind's first draw is what costs: on the Xbox its
+  // pixel shader is compiled again, 1-15 s on the GPU process's main thread (docs/systems/performance.md "The first
+  // draws on the Xbox"), and those had blown the budget (8 s → 48 s); elsewhere it is a few ms and all of it is drawn.
+  // The rest is drawn ahead as you come near a door, as it is for anything new.
+  const drawnKinds = new Set();
+  const kinds = (o) => [o.material].flat().map((m) => programKind(o, m));
+  const ahead = [...warmDraw.near([player.pos], 120), ...warmDraw.of(...(ship.parked?.indoor ?? [])), ...warmDraw.near(dests)];
+  const todo = [...seen, ...ahead];
+  let n = 0, i = 0, skipped = 0, newTime = 0, newCount = 0;
   for (; i < todo.length; i += 8) {   // (8 at a time: a batch's uploads are one piece of the GPU's work)
-    if (performance.now() - t0 > PASSAGE.loadBudget) break;
-    const batch = todo.slice(i, i + 8);
+    const first = i < seen.length;
+    if (!first && performance.now() - t0 > PASSAGE.loadBudget) break;
+    let batch = todo.slice(i, i + 8);
+    if (!first) {
+      const per = newCount ? newTime / newCount : 0, left = PASSAGE.loadBudget - (performance.now() - t0), fresh = new Set();
+      const keep = batch.filter((o) => {
+        const ks = kinds(o).filter((k) => !drawnKinds.has(k) && !fresh.has(k));
+        if (ks.length && (fresh.size + ks.length) * per > left) return false;
+        for (const k of ks) fresh.add(k);
+        return true;
+      });
+      skipped += batch.length - keep.length; batch = keep;
+      if (!batch.length) continue;
+    }
+    const tb = performance.now(), newKinds = new Set(batch.flatMap(kinds).filter((k) => !drawnKinds.has(k)));
     await settle(renderer, warmDraw.compile(batch), PASSAGE.loadBudget);   // (its programs linked before the draw asks: no blocking)
     n += warmDraw.draw(batch); await slice(); await gpuPace();
+    for (const k of newKinds) drawnKinds.add(k);
+    if (newKinds.size) { newTime += performance.now() - tb; newCount += newKinds.size; }
   }
-  if (i < todo.length) console.warn(`passage warm-up: stopped after ${PASSAGE.loadBudget} ms, ${todo.length - i} meshes left to draw as you come near them`);
+  if (i < todo.length || skipped) console.warn(`passage warm-up: ${i < todo.length ? `stopped after ${PASSAGE.loadBudget} ms, ` : ''}${todo.length - Math.min(i, todo.length) + skipped} meshes left to draw as you come near them (${skipped} of kinds not drawn yet)`);
   // what the first frame would set up for itself: the rooms off the map, the levels of detail
   roomCull ??= makeRoomCull();
   await slice();
