@@ -34,7 +34,7 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   `Bud` (a flower-door: a great bud over a doorway, petals hinged round its rim,
   that a bloom glob opens; it can be held shut behind you as an arena's door),
   `Glass` (a greenhouse pane you slip off when you try to climb it, until a vine
-  has grown up it: `when`), `EchoStone` (a singing stone: splash it and it sings
+  has grown up it: `when`), `Sunbeam` (a louvre in the roof and its beam, on whichever spot its condition picks), `EchoStone` (a singing stone: splash it and it sings
   its note, game event `'note'`) and `EchoEar` (a brass horn that lights its
   element when its own note is played back close by: game event `'echo'`; the
   `NOTES` low / mid / high each have a degree and a colour). `Bank` takes any
@@ -100,11 +100,14 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   the gallery's way in, the well's, and the one over the door), the **Clockwork Foreman** (`foremanModel`: hit its
   six numerals inside one breath when its face opens); after, the clock keeps
   the true time and the cogs turn. The **Builders' Greenhouse** (`edena.js`) in
-  the meadow hollow north of the white ruins, far from the tea terraces: the
-  stone seed and the eye, the root-wall and the rising disc, **bloom mode**,
-  budded doors, the vine bridge, the glass a vine has to grow up, the
-  **Gardener** (`gardenerModel`: bloom the four dead beds, then its bare back
-  when it kneels; a hand on its brow); after, flowers and vines on every slab of
+  the meadow hollow north of the white ruins, far from the tea terraces (reworked
+  from the temple design audit, v1.16: "Nothing grows in the shade" below): the
+  eye that wakes only in the sun the ball's louvre lets in, the Glass Stair's one
+  ball and two plates (the eye, then the disc), **bloom mode** and the bud in a
+  sunbeam, the seed in the shade and the sun-ball, the seed-ball rolled into the
+  light at the glass's foot, its vine into the bud, the **Gardener**
+  (`gardenerModel`: bloom the four dead beds, then its bare back when it kneels,
+  in the sun; a hand on its brow); after, flowers and vines on every slab of
   the white ruins (`level.edena.ruins`, two instanced pools whose counts grow)
   and on the dome. The **Undertower** (`bazaar.js`) through an old doorway in
   the silent tower's back (reworked from the temple design audit: "Notes that
@@ -175,6 +178,17 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   side's own horn is the way back). A `Ball` with `sings: note` is a singing ball: a splash makes it sing.
   A `Bridge` with `pillar` rises as tall pillars; a bridge from below that shuts sinks, the far stones
   first, and waits for whoever stands on it. `EchoStone` `shape: 'egg'` is the gallery's eggs.
+- **Nothing grows in the shade** (the Builders' Greenhouse, from the v1.16 audit). A `Sunbeam` is a louvre in the roof
+  and the beam through it: thin pale rays to a pool of light, falling on the first of its `spots` whose condition
+  holds (or `pick()`'s), swinging over in a second or so when that changes. The light is the logic's: a latched
+  element may take only `when` a condition holds (`logic.js`), so the Potting Hall's eye wakes only with the ball on
+  its louvre's plate (`when: { drumOn }`), and a `Seed` or a seed-ball bloomed outside its `when` sprouts pale and
+  folds back (`shade`). A drum may rest on several plates (`stops: { plate: t }`; the Glass Stair's one ball and two
+  plates: the sun on the eye, or on the disc, a `Platform` that rides only `when` it holds). A `Ball` with `seed`
+  is a seed-ball: a bloom glob grows it where it lies if its element's `when` holds (in the far sunbeam at the
+  glass's foot), and grown it roots and rolls no more. A `Bud` with `bloom: null` is opened by something else (the
+  vine climbing into it: `d4` opens on `seed2`). The Gardener's dome louvre is a `Sunbeam` with `pick`: the quarter
+  whose footstone (`fs1`-`fs4`) was last stood on (`rt.gardenSun`).
 - Pieces can be `hidden` (Door, Switch, Bridge): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets

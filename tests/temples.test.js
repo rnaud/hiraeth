@@ -25,7 +25,7 @@ import { Reserve } from '../src/fluid-tool.js';
 import { viaPortal } from '../src/scout.js';
 import { VOLLEY, FROM_FOUR } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
-import { SITE as SITE_EDENA } from '../src/temples/edena.js';
+import { SITE as SITE_EDENA, SUN } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
 import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
@@ -813,6 +813,7 @@ test('the Footprint on foot: two spheres on two plates, the still pool, the lens
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
   P.opts.health = false;
+  let shaded = false;
   for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
@@ -1585,7 +1586,7 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
   own();
 });
 
-test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-wall and the rising disc, bloom mode, the budded doors, the vine bridge, the glass you can’t climb until a vine grows up it, the Gardener bloomed, the ruins in flower', () => {
+test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and the bud in the sun, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('edena');
@@ -1604,42 +1605,73 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   const wait = (s) => { for (let i = 0; i < s / DT; i++) frame(); };
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   const local = () => rt.kit.local(P.pos);
+  const said = (re) => notes.some((n) => re.test(n));
+  /** Push a ball along its groove (way +1: toward its b end, -1: toward a) until it rests on `plate` (a few pushes). */
+  const roll = (id, plate, way = 1, n = 12) => {
+    const ball = rt.piece(id);
+    for (let k = 0; k < n && !rt.logic.drumOn(id, plate); k++) {
+      const d = ball.dir.clone().multiplyScalar(way);
+      walk(ball.center.clone().addScaledVector(d, -2.3).setY(P.pos.y), { tol: 0.5, max: 8 });
+      ball.hit('push', d, { strength: 1 });
+      wait(2.8);
+    }
+    return rt.logic.drumOn(id, plate);
+  };
+  const beams = rt.pieces.filter((p) => p.spots);
+  /** The sunbeam (in the room nearest `near`) has swung onto the spot whose condition is cond. */
+  const beamOn = (b, at) => b.k > 0.9 && !b.moving && b.at.distanceTo(at) < 0.3;
   wait(0.5);
   assert.ok(P.onGround && rt.inside(P.pos), `standing in the Threshold (${where()})`);
-  // ---- the Potting Hall: the stone seed onto its plate, and the eye over the benches; both
+  // ---- the Potting Hall: the eye in the shade won't wake; the ball onto its plate turns the louvre, the sun swings onto the eye
   assert.equal(walk(L(0, 0, 15)), true, `into the potting hall (${where()})`);
-  const ball = rt.piece('ball1');
-  for (let k = 0; k < 12 && !rt.logic.drumOn('ball1', 'p1'); k++) {
-    walk(ball.center.clone().addScaledVector(ball.dir, -2.3).setY(P.pos.y), { tol: 0.5 });
-    ball.hit('push', ball.dir.clone(), { strength: 1 });
-    wait(2.6);
-  }
-  assert.ok(rt.logic.drumOn('ball1', 'p1'), `the seed on its plate (${ball.t.toFixed(2)}) (${where()})`);
-  wait(0.3);
-  assert.equal(rt.logic.isOpen('d1'), false, 'the plate alone is not enough');
+  rt.piece('s1').hit('shoot');
+  assert.equal(rt.logic.isLit('s1'), false, 'in the shade the eye stays shut');
+  assert.ok(said(/in the shade/i), 'and says why');
+  const beam1 = beams.find((b) => b.spots.some((s) => s.when?.drumOn?.[0] === 'ball1'));
+  wait(1);
+  assert.ok(beam1.at.distanceTo(rt.piece('s1').center) > 4, 'the sunbeam falls on the floor, not the eye');
+  assert.equal(roll('ball1', 'p1'), true, `the ball on its plate (${where()})`);
+  for (let i = 0; i < 4 / DT && !beamOn(beam1, beam1.spots[0].pos); i++) frame();
+  assert.ok(beamOn(beam1, beam1.spots[0].pos), 'the louvre turns: the sun swings onto the eye');
   rt.piece('s1').hit('shoot');
   wait(2.2);
-  assert.equal(rt.logic.isOpen('d1'), true, 'and the eye: the door opens');
-  // ---- the Glass Stair: up the root-wall, then the rising disc
+  assert.equal(rt.logic.isOpen('d1'), true, 'woken in the sun: the door opens');
+  // ---- the Glass Stair: one ball, two plates. East: the disc rides, but the landing's door wants the eye; west: the eye
   assert.equal(walk(L(0, 0, 42)), true, `to the door (${where()})`);
-  assert.equal(walk(L(0, 0, 53)), true, `into the stair (${where()})`);
+  assert.equal(walk(L(-2, 0, 51)), true, `into the stair (${where()})`);
+  const disc = rt.piece('lift');
+  const s0 = disc.s;
+  wait(4);
+  assert.equal(disc.s, s0, 'in the shade the disc does not ride');
+  rt.piece('s2').hit('shoot');
+  assert.equal(rt.logic.isLit('s2'), false, 'nor does the eye wake');
+  assert.equal(roll('ball2', 'pE', 1), true, `the ball east (${where()})`);
+  wait(3);
+  assert.notEqual(disc.s, s0, 'in the sun the disc rides');
+  rt.piece('s2').hit('shoot');
+  assert.equal(rt.logic.isLit('s2'), false, 'the eye is still in the shade: the sun is on the disc');
+  assert.equal(roll('ball2', 'pW', -1), true, `the ball west (${where()})`);
+  wait(3);
+  rt.piece('s2').hit('shoot');
+  assert.equal(rt.logic.isLit('s2'), true, 'the sun on the eye: it wakes, and stays woken');
+  assert.equal(roll('ball2', 'pE', 1), true, `and back east (${where()})`);
+  assert.equal(rt.logic.isLit('s2'), true, 'the eye stays open with the sun gone');
   let up = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 63))); if (P.onGround && local().y > 8.5) { up = true; break; } }
   assert.ok(up, `up the root-wall (${where()})`);
-  const disc = rt.pieces.find((p) => p.path);
   for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.8); i++) frame();
   assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
   for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
   assert.ok(local().y > 17.5, `carried up (${where()})`);
   assert.equal(walk(L(0, 18, 66.8), { tol: 0.8 }), true, `onto the landing (${where()})`);
+  wait(1.5);
+  assert.equal(rt.logic.isOpen('d2'), true, 'the landing’s door, open on the eye');
   assert.equal(walk(L(0, 18, 76)), true, `into the seed chamber (${where()})`);
-  // ---- the flower-door: water runs off it, fire curls it shut; a bloom glob opens it
+  // ---- the flower-door in its sunbeam: water runs off it, fire curls it shut; a bloom glob opens it
   const bud = rt.piece('d3');
   bud.hit('shoot'); bud.hit('fire');
   assert.equal(rt.logic.isLit('bud1'), false, 'water and ember do nothing');
   assert.equal(walk(L(0, 18, 92), { max: 4 }), false, 'the bud keeps the way');
-  // (pushing at it for 4 s, he starts up it: let go, back on the floor, before it opens; where a climb half
-  // way up a door that vanishes ends is not this test's business, and hangs on the last centimetre)
   if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
   assert.ok(local().y < 18.5, `back on the floor before the bud (${where()})`);
   bud.hit('bloom');
@@ -1649,29 +1681,45 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   bud.hit('bloom');
   wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true, 'bloomed, it opens');
-  // ---- the Vine Gulf: a seed at its edge grows the bridge
+  // ---- the Vine Gulf: the seed at the lip is in the shade; the sun-ball turns the great louvre onto it
   assert.equal(walk(L(0, 18, 93.7)), true, `to the gulf's edge (${where()})`);
-  rt.piece('seed1').hit('shoot');
-  assert.equal(rt.logic.isOpen('vine1'), false, 'water only soaks it');
-  rt.piece('seed1').hit('bloom');
+  const seed1 = rt.piece('seed1');
+  seed1.hit('shoot');
+  seed1.hit('bloom');
+  assert.equal(rt.logic.isOpen('vine1'), false, 'bloomed in the shade, it sprouts pale and folds back');
+  assert.ok(said(/folds back/), 'and says so');
+  const great = beams.find((b) => b.spots.some((s) => s.when?.drumOn?.[0] === 'sun'));
+  assert.ok(great.at.y < L(0, 0, 0).y + 5, 'the great beam falls into the dark below');
+  assert.equal(roll('sun', 'pS', 1), true, `the sun-ball onto its plate (${where()})`);
+  for (let i = 0; i < 5 / DT && !beamOn(great, great.spots[0].pos); i++) frame();
+  assert.ok(beamOn(great, great.spots[0].pos), 'the beam swings up onto the lip');
+  seed1.hit('bloom');
   wait(3.5);
+  assert.equal(rt.logic.isOpen('vine1'), true, 'in the sun the seed grows the bridge');
+  assert.equal(walk(L(0, 18, 95.6)), true, `back to the lip (${where()})`);
   assert.equal(walk(L(0, 18, 121.5)), true, `over the vine bridge (${where()})`);
   assert.ok(local().y > 17, 'on it, not in the chasm');
-  // the glass: too smooth to climb; a seed at its foot grows a vine up it
-  let slipped = 0;
-  for (let i = 0; i < 6 / DT; i++) { frame({ KeyW: true }, toward(L(0, 27, 132))); if (P.climbing) slipped = -1; if (slipped === -1 && !P.climbing) { slipped = 1; } }
+  // the glass: too smooth to climb; the seed-ball beside it lies in the shade
+  for (let i = 0; i < 5 / DT; i++) frame({ KeyW: true }, toward(L(0, 27, 132)));
   assert.ok(local().y < 22, `you can't get up the glass (${where()})`);
-  assert.ok(notes.some((s) => /too smooth/i.test(s)), 'and you slip off it');
-  rt.piece('seed2').hit('bloom');
+  assert.ok(said(/too smooth/i), 'and you slip off it');
+  if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
+  const sb = rt.piece('sb');
+  sb.hit('bloom', null);
+  assert.equal(rt.logic.isLit('seed2'), false, 'bloomed where it lies, in the shade, the seed-ball only sprouts pale');
+  assert.equal(roll('sb', 'pG', 1), true, `rolled into the sunbeam at the glass's foot (${where()})`);
+  sb.hit('bloom', null);
+  assert.equal(rt.logic.isLit('seed2'), true, 'bloomed in the sun, it roots and grows');
+  sb.hit('push', sb.dir.clone().negate(), { strength: 1 });
+  wait(1);
+  assert.equal(rt.logic.drumOn('sb', 'pG'), true, 'rooted: it rolls no more');
   wait(3);
-  assert.equal(walk(L(0, 18, 126.4), { tol: 0.8 }), true, `back to its foot (${where()})`);
+  assert.equal(rt.logic.isOpen('d4'), true, 'its vine climbs into the bud, and the bud opens');
+  assert.equal(walk(L(1.5, 18, 126.4), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
   up = false;
-  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(0, 27, 132))); if (P.onGround && local().y > 26.5) { up = true; break; } }
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 132))); if (P.onGround && local().y > 26.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
-  rt.piece('d4').hit('bloom');
-  wait(2.6);
-  assert.equal(rt.logic.isOpen('d4'), true);
-  // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels
+  // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels: in the sun
   assert.equal(walk(L(0, 27, 141)), true, `into the glasshouse (${where()})`);
   const G = rt.guardian;
   wait(0.3);
@@ -1680,20 +1728,42 @@ test('the Builders’ Greenhouse on foot: the stone seed and the eye, the root-w
   assert.equal(rt.logic.isOpen('d4'), false, 'the bud shuts behind you');
   P.opts.health = false;
   // a glob as the tool fires it: through the guardian's own target (it takes fire and stilling as theirs; bloom arrives as fluid, its mode in info)
-  const glob = (mode) => { const t = allTargets().find((x) => x.kind === 'guardian' && x.enabled() && x.position().distanceTo(G.model.pos) < 12 && x.position().distanceTo(G.model.mouth) > 0.5); assert.ok(t, 'its body is a target'); hitTarget({ target: t, point: t.position() }, mode, V(0, 0, 1)); };
+  const glob = (mode) => { const tg = allTargets().find((x) => x.kind === 'guardian' && x.enabled() && x.position().distanceTo(G.model.pos) < 12 && x.position().distanceTo(G.model.mouth) > 0.5); assert.ok(tg, 'its body is a target'); hitTarget({ target: tg, point: tg.position() }, mode, V(0, 0, 1)); };
   for (let i = 0; i < 6 / DT && G.state !== 'fight'; i++) frame();   // (awake and fighting: its targets take globs)
   glob('bloom');
   assert.equal(G.meter, 0, 'its back first: it shakes the flowers off');
   for (const [i, b] of ['bed1', 'bed2', 'bed3', 'bed4'].entries()) { rt.piece(b).hit('bloom'); assert.ok(Math.abs(G.meter - (i + 1) * 0.1) < 1e-6, `a tenth for each bed (${G.meter})`); }
-  for (let n = 0; n < 10 && G.state !== 'weary'; n++) {
+  // the sun on the quarter it kneels in: the footstone of that quarter (the one nearest it)
+  const sun = rt.gardenSun;
+  const sunOnIt = () => {
+    const fs = ['fs1', 'fs2', 'fs3', 'fs4'].map((id) => rt.piece(id)).sort((a, b) => a.pos.distanceTo(G.model.pos) - b.pos.distanceTo(G.model.pos))[0];
+    P.teleport(fs.pos.clone().add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0);
+    for (let i = 0; i < 4 / DT && !sun.lights(G.model.pos, SUN.pad); i++) frame();
+    P.teleport(G.arena.center.clone().add(V(0, 0.2, 0)).lerp(fs.pos, 0.3), V(0, 1, 0), V(0, 0, 1));
+    return sun.lights(G.model.pos, SUN.pad);
+  };
+  let shaded = false;
+  for (let n = 0; n < 14 && G.state !== 'weary'; n++) {
     let open = false;
     for (let i = 0; i < 40 / DT; i++) { frame(); if (G.state === 'open') { open = true; break; } }
     assert.ok(open, `it kneels (${n})`);
-    const before = G.meter;
+    const before = G.meter, last = G.phaseIndex >= 2;
     if (n === 0) { glob('shoot'); assert.equal(G.meter, before, 'water does not calm it'); }
+    if (last && !shaded) {
+      // (its last phase: once, the sun turned away from it first, to see the bloom fail in the shade)
+      const fs = ['fs1', 'fs2', 'fs3', 'fs4'].map((id) => rt.piece(id)).sort((a, b) => b.pos.distanceTo(G.model.pos) - a.pos.distanceTo(G.model.pos))[0];
+      P.teleport(fs.pos.clone().add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0);
+      for (let i = 0; i < 3 / DT && sun.want() !== sun.spots[['fs1', 'fs2', 'fs3', 'fs4'].indexOf(fs.id)]; i++) frame();
+      wait(1.6);
+      if (!sun.lights(G.model.pos, SUN.pad)) { glob('bloom'); assert.equal(G.meter, before, 'in its last phase, kneeling in the shade, nothing grows on it'); assert.ok(said(/kneeling in the shade/), 'and it says why'); shaded = true; }
+    }
+    if (G.phaseIndex >= 1) assert.ok(sunOnIt(), `the sun brought onto it from the footstone (${n})`);
+    const phase = G.phaseIndex;
     glob('bloom');
-    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)}), by a bloom glob as the tool fires it`);
+    assert.ok(G.meter > before, `bloomed (${n}: ${G.meter.toFixed(2)}, phase ${G.phaseIndex})`);
+    if (phase === 1) assert.ok(G.meter - before > 0.2 || G.phaseIndex > 1, `in its second phase the sun doubles it (${(G.meter - before).toFixed(2)})`);
   }
+  assert.ok(shaded, 'its last phase was tried in the shade once');
   assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
   for (let i = 0; i < 20 / DT && Math.hypot(G.model.pos.x - G.model.rest.x, G.model.pos.z - G.model.rest.z) > 0.6; i++) frame();
   wait(2);

@@ -47,13 +47,16 @@ export function conditionKeys(c, out = []) {
   if (c.gadget) out.push({ id: 'gadget', how: 'gadget' });
   return out;
 }
+/** Does a drum rest on this plate (its own, or one of its `stops`: one ball, several places)? */
+export const drumFor = (e, plate) => e?.type === 'drum' && (e.plate === plate || (e.stops && e.stops[plate] != null));
+
 /** A condition that can go false again once met (a plate stood on, not a ball resting on it; a held bell; an `any`, a `not`). */
 export function reversible(c, el = {}) {
   if (c == null) return false;
   if (Array.isArray(c)) return c.some((x) => reversible(x, el));
   if (c.not || c.any) return true;
   if (c.all) return c.all.some((x) => reversible(x, el));
-  if (c.pressed) return !Object.values(el).some((e) => e.type === 'drum' && e.plate === c.pressed);
+  if (c.pressed) return !Object.values(el).some((e) => drumFor(e, c.pressed));
   if (c.lit) return !!el[c.lit]?.hold;   // (a bell that rings a while, then falls quiet: logic.js `hold`)
   return false;
 }
@@ -80,13 +83,19 @@ export function mechanicOf(id, el, { elements = {}, piece = null } = {}) {
   if (item) tags.push(`gadget:${item === 'magic:4' ? 'cell' : item}`);
   if (piece?.cls === 'Bank' || item === 'magic:4' || item === 'coil') tags.push('volley');
   if (el.type === 'drum') tags.push('push');
-  else if (el.type === 'plate') tags.push(Object.values(elements).some((e) => e.type === 'drum' && e.plate === id) ? 'push' : 'weight');
+  else if (el.type === 'plate') tags.push(Object.values(elements).some((e) => drumFor(e, id)) ? 'push' : 'weight');
   else if (el.type === 'switch' && (el.after || el.order || Object.values(elements).some((e) => e.after === id))) tags.push('sequence');   // (in turn: with a gadget too, the gadget and the order; `order`: a bank's eyes in turn)
   else if (el.type === 'switch' && !item) tags.push('shot');
   else if (el.type === 'brazier' || el.type === 'bramble') { if (!item) tags.push('ember'); }
   else if (el.type === 'bell' && !item) tags.push('bell');
   if (piece?.o?.hidden) tags.push('reveal');
   if (el.hold) tags.push('timed');
+  // `when` a condition holds (an eye that wakes only in the sun a ball's louvre lets in): that condition's verbs too
+  for (const k of conditionKeys(el.when)) {
+    if (k.how === 'drumOn') tags.push('push');
+    else if (k.how === 'pressed') tags.push(Object.values(elements).some((e) => drumFor(e, k.id)) ? 'push' : 'weight');
+    else if (k.how === 'lit' && elements[k.id]) tags.push(...mechanicOf(k.id, elements[k.id], { elements }).filter((m) => m !== 'sequence'));
+  }
   return [...new Set(tags)];
 }
 
@@ -143,10 +152,12 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
       else if (E[k.id]) keys.push({ id: k.id, how: k.how, room: E[k.id].room ?? null, mech: mechanicOf(k.id, E[k.id], { elements: E, piece: byId.get(k.id) }), hidden: !!byId.get(k.id)?.o?.hidden });
     }
     for (const n of l.needs ?? []) if (n !== 'backpack') keys.push({ id: n, how: 'needs', room: l.a, mech: [`gadget:${n === 'magic:4' ? 'cell' : n}`], traversal: true });
+    // a key that takes only `when` something else holds (a ball on a louvre's plate): that is a key of the lock too
+    for (const k of [...keys]) for (const w of conditionKeys(E[k.id]?.when)) if (E[w.id] && !keys.some((x) => x.id === w.id)) keys.push({ id: w.id, how: w.how, room: E[w.id].room ?? null, mech: mechanicOf(w.id, E[w.id], { elements: E, piece: byId.get(w.id) }), when: true });
     // a plate a ball is meant for: the key is the ball's push (the plate is where it must go)
     const merged = [];
     for (const k of keys) {
-      const drum = k.how === 'pressed' ? Object.entries(E).find(([, e]) => e.type === 'drum' && e.plate === k.id) : null;
+      const drum = k.how === 'pressed' ? Object.entries(E).find(([, e]) => drumFor(e, k.id)) : null;
       const q = drum ? { id: drum[0], how: 'drumOn', room: drum[1].room ?? k.room, mech: ['push'], plate: k.id } : k;
       if (!merged.some((x) => x.id === q.id)) merged.push(q);
     }
@@ -273,7 +284,7 @@ export function templeMetrics(g, { guardian = null } = {}) {
   const E = g.elements;
   // the steps a player solves, in order, with how obvious each is
   const steps = puzzles.map((l) => {
-    const keyOf = (k) => [k.id, k.plate, E[k.id]?.type === 'drum' ? E[k.id].plate : null].filter(Boolean);   // (a ball's plate is part of its key)
+    const keyOf = (k) => [k.id, k.plate, ...(E[k.id]?.type === 'drum' ? [E[k.id].plate, ...Object.keys(E[k.id].stops ?? {})] : [])].filter(Boolean);   // (a ball's plates are part of its key)
     const keyIds = new Set(l.keys.flatMap(keyOf));
     const decoys = Object.entries(E).filter(([id, e]) => e.room === l.a && ['plate', 'switch', 'brazier', 'bramble', 'bell', 'drum'].includes(e.type) && !keyIds.has(id) && !puzzles.some((p) => p !== l && p.keys.some((k) => keyOf(k).includes(id)))).length;
     const o = obviousness(l, { decoys });

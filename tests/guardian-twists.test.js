@@ -8,6 +8,8 @@
 //   the Mother Snapper (the Hush-House: low to high)   the crystals over her stilled in turn, smallest first
 //   the First Sign (the Undertower: a note travels)   it hears only through the dishes on its hall's wall
 //   the Clockwork Foreman (the First Garage: count round from where the hand points)   its numerals from four
+//   the Gardener (the Builders' Greenhouse: nothing grows in the shade)   its back blooms only in the sun, brought onto
+//                     the quarter it kneels in from that quarter's footstone
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import './register-gadgets.js';
@@ -20,6 +22,7 @@ import { items, ITEMS } from '../src/items.js';
 import { updateHazards } from '../src/hazards.js';
 import { GROUNDED } from '../src/temples/arzach2.js';
 import { LURE } from '../src/temples/perdide2.js';
+import { SUN } from '../src/temples/edena.js';
 import { allTargets, hitTarget } from '../src/targets.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
@@ -328,4 +331,64 @@ test('the Foreman’s second phase teaches the order: any order still sets it ba
   assert.ok(B.G.meter > 0.5);
   assert.ok(B.said(/in step, round from four/), 'in step: it says so');
   B.done();
+});
+
+// ------------------------------------------------------------------ the Gardener
+/** The Gardener's footstones, nearest its body first (or farthest, `far`). */
+const footstones = (rt, G, far = false) => ['fs1', 'fs2', 'fs3', 'fs4'].map((id) => rt.piece(id)).sort((a, b) => (far ? -1 : 1) * (a.pos.distanceTo(G.model.pos) - b.pos.distanceTo(G.model.pos)));
+/** A bloom glob on its back, as the tool fires it (through its own target). */
+function bloomIt(G) {
+  const tg = allTargets().find((x) => x.kind === 'guardian' && x.enabled() && x.position().distanceTo(G.model.pos) < 12 && x.position().distanceTo(G.model.mouth) > 0.5);
+  assert.ok(tg, 'its body is a target');
+  hitTarget({ target: tg, point: tg.position() }, 'bloom', V(0, 0, 1));
+}
+
+test('the Gardener’s last phase: nothing grows on it in the shade; the footstone of the quarter it kneels in turns the dome’s louvre onto it, and in the sun its back blooms', () => {
+  const A = arena('edena', 'bloom', 2);
+  const { rt, G, P, until, wait, said } = A;
+  const sun = rt.gardenSun;
+  const standOn = (fs) => { P.teleport(fs.pos.clone().add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); };
+  assert.ok(sun && sun.spots.length === 4, 'the dome’s louvre has four quarters');
+  // the failure: the sun turned away from where it kneels, a bloom only falls off it
+  assert.equal(until(() => G.state === 'open', 40), true, 'it kneels');
+  assert.ok(G.openFor >= SUN.open[2], `it kneels long enough to bring the sun (${G.openFor})`);
+  standOn(footstones(rt, G, true)[0]);
+  wait(2);
+  assert.equal(sun.lights(G.model.pos, SUN.pad), false, 'the sun on the far quarter');
+  const m0 = G.meter;
+  bloomIt(G);
+  assert.equal(G.meter, m0, 'in the shade nothing grows on it');
+  assert.ok(said(/kneeling in the shade/), 'and it says to bring the sun');
+  // the way: each time it kneels, the footstone of its quarter, the sun settles on it, then the bloom
+  for (let n = 0; n < 4 && G.state !== 'weary'; n++) {
+    if (G.state !== 'open') assert.equal(until(() => G.state === 'open', 40), true, `it kneels (${n})`);
+    standOn(footstones(rt, G)[0]);
+    assert.equal(until(() => sun.lights(G.model.pos, SUN.pad), 4), true, `the louvre turns the sun onto it (${n})`);
+    const before = G.meter;
+    bloomIt(G);
+    assert.ok(G.meter > before, `in the sun its back blooms (${n}: ${G.meter.toFixed(2)})`);
+    assert.ok(said(/In the sun the flowers take/), 'and it says so');
+  }
+  assert.equal(G.state, 'weary', `calm (${G.meter.toFixed(2)})`);
+  A.done();
+});
+
+test('the Gardener’s second phase teaches the sun: a bloom in the shade still counts, and in the sun it counts double', () => {
+  const A = arena('edena', 'bloom', 1);
+  const { rt, G, P, until, wait } = A;
+  const sun = rt.gardenSun;
+  const standOn = (fs) => { P.teleport(fs.pos.clone().add(V(0, 0.2, 0)), V(0, 1, 0), V(0, 0, 1)); P.vel.set(0, 0, 0); };
+  assert.equal(until(() => G.state === 'open', 40), true, 'it kneels');
+  standOn(footstones(rt, G, true)[0]);
+  wait(2);
+  const m0 = G.meter;
+  bloomIt(G);
+  assert.ok(Math.abs(G.meter - m0 - SUN.shade[1]) < 1e-6, `in the shade, as before (${(G.meter - m0).toFixed(2)})`);
+  assert.equal(until(() => G.state === 'open', 40), true, 'it kneels again');
+  standOn(footstones(rt, G)[0]);
+  assert.equal(until(() => sun.lights(G.model.pos, SUN.pad), 4), true, 'the sun onto it');
+  const m1 = G.meter;
+  bloomIt(G);
+  assert.ok(G.meter - m1 > SUN.shade[1] + 1e-6 || G.phaseIndex > 1, `in the sun, double (${(G.meter - m1).toFixed(2)})`);
+  A.done();
 });

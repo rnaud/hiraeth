@@ -32,6 +32,7 @@ import { sparing, heartsOf, DAMAGE } from '../resources.js';
 //   Seed     a husk in a stone ring that only a bloom glob wakes: it sprouts (a vine, a planter's flowers)
 //   Bud      a flower-door: a great bud over a doorway that a bloom glob opens, petals folded back
 //   Glass    a greenhouse pane too smooth to climb, until a vine has grown up it
+//   Sunbeam  a louvre in the roof and the sunbeam through it, falling on whichever spot its condition picks
 //   EchoStone a singing stone: splash it and it sings its note (the echo shell catches it)
 //   EchoEar  a horn that listens for its note played back close by (the echo shell), or sung (hears: 'note')
 //   Dish     a pair of receiving dishes: a note sung into the near one's mouth comes out of the far one's
@@ -207,7 +208,11 @@ export class Ball {
    * lamp: { id, reach, pool, hold, lasts, caught, dark, woke } (a pool-orb: stand by it at rest with the lantern `hold` s, or let it rest by a lit pool (pool: { id, at, reach }) as long,
    * and it glows for `lasts` s; at rest on its plate while it glows it wakes element `id`, a 'switch' that
    * needs the lantern; dark, it wakes nothing), sings: 'low' | 'mid' | 'high' (a singing ball: a splash makes it
-   * sing that note, game event 'note', as a singing stone does) }
+   * sing that note, game event 'note', as a singing stone does), seed: { id, shade, grew } (a seed-ball, Viridel's
+   * Greenhouse: a bloom glob makes it grow, lighting element `id`, a 'switch' that needs the bloom mode, whose `when`
+   * says where it must lie (in a sunbeam: on its plate); bloomed elsewhere it sprouts pale and folds back (`shade`).
+   * Grown, it roots where it lies and rolls no more) }
+   * Its element (logic.js) may have `stops`: several plates along the groove, and it settles into whichever it slows by.
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id; this.o = o; this.r = o.r ?? 1.1;
@@ -223,9 +228,21 @@ export class Ball {
     this.spin = new THREE.Group();
     this.group.add(this.spin);
     if (o.lamp) { this.orb = own({ color: rt.P.glow ?? '#8fe0d0', glow: 0.08, flat: true }); this.charge = 0; this.near = 0; }
-    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? M.stoneMat));
-    this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
+    if (o.seed) this.husk = own({ color: '#a07a4e', flat: true });
+    this.spin.add(mesh([new THREE.SphereGeometry(this.r, 18, 12)], this.orb ?? this.husk ?? M.stoneMat));
+    this.glow = own({ color: o.sings ? NOTES[o.sings]?.color ?? '#62c3c9' : o.seed ? '#7fcf72' : rt.P.glow ?? '#70e7df', glow: 0.35, flat: true });
     this.spin.add(mesh([T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, 0, 0]), T(new THREE.TorusGeometry(this.r * 1.005, 0.06, 4, 36), [0, 0, 0], [0, Math.PI / 2, 0])], this.glow));
+    if (o.seed) {
+      // what a seed-ball grows when it is bloomed in the sun: a crown of leaves and a stem out of its top (it stays upright)
+      this.sprout = new THREE.Group();
+      const leafM = own({ color: '#7fcf72', flat: true }), stemM = own({ color: '#4f8a5a', flat: true }), petal = own({ color: '#f2a7b8', glow: 0.25, flat: true });
+      const lv = [];
+      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2; lv.push(T(new THREE.SphereGeometry(1, 8, 5).scale(0.7, 0.12, 0.32).translate(0.6, 0, 0), [0, this.r * 1.9, 0], [0, a, 0.5])); }
+      this.sprout.add(mesh([T(new THREE.CylinderGeometry(0.1, 0.16, 1.6, 6), [0, this.r * 1.8 + 0.4, 0])], stemM), mesh(lv, leafM), mesh([T(new THREE.SphereGeometry(0.3, 8, 6), [0, this.r * 1.8 + 1.25, 0])], petal));
+      this.sprout.visible = false;
+      this.group.add(this.sprout);
+      this.grown = rt.logic.isLit(o.seed.id) ? 1 : 0;
+    }
     noCollide(this.group);
     this.center = V();
     // (round, src/carriers.js: its top a dome, where a disc at its crest had you stand on air at its sides)
@@ -244,7 +261,7 @@ export class Ball {
     };
     this.place();
     this.off = registerTarget({
-      kind: 'ball', radius: this.r + 0.15, position: () => this.center,
+      kind: 'ball', radius: this.r + 0.15, position: () => this.center, accepts: o.seed ? ['bloom'] : undefined,
       onHit: (mode, point, dir, info) => this.hit(mode, dir, info),
     });
     this.rest = true;
@@ -257,6 +274,14 @@ export class Ball {
     this.solid.bottom = this.group.position.y; this.solid.top = this.group.position.y + this.r * 2;
   }
   hit(mode, dir, info = {}) {
+    if (this.o.seed) {
+      if (this.rt.logic.isLit(this.o.seed.id)) { this.wobble = 0.3; return true; }   // (grown: rooted where it lies)
+      if (mode === 'bloom') {
+        if (this.rest && this.rt.logic.light(this.o.seed.id)) { this.v = 0; this.rt.sound?.chime?.(); this.rt.sound?.whoosh?.(); this.rt.onLit?.(this.o.seed.id); this.rt.notice?.(this.o.seed.grew ?? 'The seed splits in the sun, and roots, and grows.', `${this.id}.grew`); }
+        else { this.pale = 1.2; this.rt.notice?.(this.o.seed.shade ?? 'The seed sprouts, pale, reaching for light that isn’t there, and folds back into its husk. Nothing grows in the shade.', `${this.id}.shade`); }
+        return true;
+      }
+    }
     if (!dir) return false;
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
@@ -280,13 +305,26 @@ export class Ball {
   update(dt) {
     if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.spin.rotation.z = Math.sin(this.wobble * 30) * this.wobble * 0.1; }
     if (this.o.lamp) this.lamp(dt);
+    if (this.o.seed) {
+      const lit = this.rt.logic.isLit(this.o.seed.id);
+      if (lit && this.grown < 1) this.grown = Math.min(1, this.grown + dt / 1.4);
+      this.pale = Math.max(0, (this.pale ?? 0) - dt);
+      // grown: the leaves; bloomed in the shade: a pale shoot that comes and folds back
+      const k = lit ? this.grown : Math.sin(Math.min(1, this.pale / 1.2) * Math.PI) * 0.45;
+      this.sprout.visible = k > 0.01;
+      this.sprout.position.copy(this.spin.position).setY(0);
+      this.sprout.scale.setScalar(Math.max(0.01, k));
+      if (lit) { this.solid.vel.set(0, 0, 0); this.v = 0; this.rest = true; return; }
+    }
     if (this.o.sings) { this.flash = Math.max(0, (this.flash ?? 0) - dt); this.glow.uniforms.uGlow.value = 0.35 + 0.6 * (this.flash / 1.6); }
     if (this.drop) { this.falling(dt); return; }
     const G = this.o.gap;
     if (G && this.t > G.from + 1e-3 && this.t < G.to - 1e-3 && !this.rt.logic.isOpen(G.bridge)) { this.startDrop(); return; }
     if (this.rest) { this.solid.vel.set(0, 0, 0); return; }
     // rolling friction, and a gentle settle into the plate's dip when it is slow and close
-    const L = this.rt.logic, e = L.el(this.id), at = e?.plateAt ?? 1;
+    const L = this.rt.logic, e = L.el(this.id);
+    // (several stops: the one it is nearest)
+    const at = e?.stops ? Object.values(e.stops).reduce((b, x) => (Math.abs(x - this.t) < Math.abs(b - this.t) ? x : b)) : e?.plateAt ?? 1;
     const near = Math.abs(this.t - at) * this.len;
     if (Math.abs(this.v) < 1.2 && near < 1.6) this.v += Math.sign(at - this.t) * 3.5 * dt * Math.min(1, near);
     this.v *= Math.exp(-(near < 1.6 ? 1.6 : this.o.friction ?? 1.6) * dt);   // (the plate's dip holds it, whatever the groove)
@@ -304,7 +342,7 @@ export class Ball {
     this.solid.vel.copy(this.dir).multiplyScalar(this.v);
     if (Math.abs(this.v) < 0.05 && (near < 0.05 || near > 1.6)) {
       this.v = 0; this.rest = true;
-      if (L.moveDrum(this.id, this.t) && L.drumOn(this.id, e?.plate)) this.rt.sound?.chime?.();
+      if (L.moveDrum(this.id, this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) this.rt.sound?.chime?.();
     }
   }
   /** A pool-orb: it catches the lantern's light, glows a while, and on its plate, glowing, wakes its lamp. */
@@ -831,7 +869,9 @@ export class Swing {
 /**
  * A column of rising wind (Vael's Aerie): pale rings drift up it. It catches the fluid wings: gliding in it
  * you are lifted, held near its middle, slowed, until near its top it lets you go (you fly out the way you
- * face). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift }
+ * face). Without the wings it only ruffles you. o: { at: its foot (the floor's middle), r, h, lift, when (a
+ * condition: it rises only while that holds, the Aerie's vents: a stone in another mouth), still (said when you
+ * open your wings over it while it is still) }
  */
 export class Updraft {
   constructor(rt, o) {
@@ -855,18 +895,26 @@ export class Updraft {
     this.offWorking = registerWorking({ kind: 'updraft', contains: (p) => this.contains(p), foot: this.foot, r: this.r, top: this.foot.y + this.h, lift: this.lift });
   }
   dispose() { this.offWorking?.(); }
-  /** Is p (feet) in the column? */
-  contains(p) { return Math.hypot(p.x - this.foot.x, p.z - this.foot.z) < this.r && p.y > this.foot.y - 1 && p.y < this.foot.y + this.h; }
+  /** Does it blow now (its `when` holds)? */
+  get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
+  /** Is p (feet) in the column (and is it rising)? */
+  contains(p) { return this.on && this.inside(p); }
+  inside(p) { return Math.hypot(p.x - this.foot.x, p.z - this.foot.z) < this.r && p.y > this.foot.y - 1 && p.y < this.foot.y + this.h; }
   update(dt, t) {
+    // (still: the rings settle and fade; rising again, they come back from the floor)
+    this.k = THREE.MathUtils.clamp((this.k ?? (this.on ? 1 : 0)) + (this.on ? dt / 1.2 : -dt / 0.8), 0, 1);
+    this.root.visible = this.k > 0.01 || !!this.o.when;
     for (const r of this.rings) {
       r.s = (r.s + dt * 0.09) % 1;
       r.m.position.set(this.foot.x, this.foot.y + 0.5 + r.s * this.h, this.foot.z);
-      const fade = Math.min(1, r.s * 8, (1 - r.s) * 6);
+      const fade = Math.min(1, r.s * 8, (1 - r.s) * 6) * this.k;
       r.m.scale.setScalar(Math.max(0.01, fade * (r.w + 0.08 * Math.sin(t * 2 + r.s * 20))));
+      r.m.visible = fade > 0.02;
       r.m.rotation.y = t * 0.4 + r.s * 3;
     }
     this.mat.uniforms.uGlow.value = 0.3 + 0.1 * Math.sin(t * 1.7);
     const P = this.rt.player;
+    if (P && !this.on && this.o.still && P.gliding && this.inside(P.pos)) this.rt.notice?.(this.o.still, `updraft.still.${this.o.id ?? ''}`);
     if (!P || P.dead || P.down || !this.contains(P.pos)) { this.rideT = 0; return; }
     if (!P.gliding) {
       if (!P.onGround && P.vel.y < 0) this.rt.notice?.(this.o.hint ?? 'The wind rushes up past you. Open your wings in it.', 'updraft.hint');
@@ -888,7 +936,9 @@ export class Updraft {
 /**
  * Gusts down a hall (Vael's Aerie): calm a while, then a warning (pale streaks start), then the wind blows
  * along `dir` (local) and shoves whoever stands in the open back along it. Behind a screen (a `shelter`
- * box) it can't reach you. o: { min, max: the hall (local), dir: [x, 0, z], shelters: [[min, max]], calm, blow, push }
+ * box) it can't reach you. o: { min, max: the hall (local), dir: [x, 0, z], shelters: [[min, max]], calm, blow, push,
+ * when (a condition: it blows only while that holds, the Aerie's vents), carry (m/s: with the wings open it carries you
+ * along `dir` instead of shoving you back, a tailwind: push by default), carried (said the first time it does) }
  */
 export class Gust {
   constructor(rt, o) {
@@ -925,8 +975,11 @@ export class Gust {
     this.offWorking = registerWorking(this.working);
   }
   dispose() { this.offWorking?.(); }
+  /** Does it blow at all now (its `when` holds)? */
+  get on() { return !this.o.when || !!this.rt.logic?.check(this.o.when); }
   /** 0 calm, a warning ramp, 1 blowing. */
   get state() {
+    if (!this.on) return 0;
     const c = this.t % (this.calm + this.blow);
     if (c < this.calm - this.warn) return 0;
     if (c < this.calm) return 0.5;
@@ -949,6 +1002,13 @@ export class Gust {
     if (!P || P.dead || st < 1) return;
     const l = this.rt.kit.local(P.pos);
     if (!this.box.containsPoint(l) || this.sheltered(l) || screened(P.pos, this.dirW)) return;   // (or behind a wall drawn in ink: src/wind-screens.js)
+    if (P.gliding) {
+      // the wings open: it carries you along with it (the glide keeps its own way and sink; the wind adds its own)
+      const c = (this.o.carry ?? this.push) * dt;
+      P.pos.x += this.dirW.x * c; P.pos.z += this.dirW.z * c;
+      this.rt.notice?.(this.o.carried ?? 'The gust fills your wings and carries you with it.', 'gust.carried');
+      return;
+    }
     // shoved back down the hall (your own legs win a little of it back)
     P.vel.x = this.dirW.x * this.push; P.vel.z = this.dirW.z * this.push;
     if (P.climbing) P.climbing = false;
@@ -957,6 +1017,89 @@ export class Gust {
 }
 
 // ---------------------------------------------------------------------------------------- bloom (Viridel)
+/**
+ * A sunbeam through a louvre in the roof (Viridel's Greenhouse: nothing grows in the shade). The louvre's slats
+ * turn, and the beam falls on the first of its spots whose condition holds (a spot with none is where it rests);
+ * none: the slats shut and there is no beam. It swings from spot to spot, slowly, so you see where the light went.
+ * The light itself is the logic's (an eye's or a seed's `when`); this is how it looks: thin pale rays from the
+ * louvre to a pool of light, and the warmth of it on what it lands on.
+ * o: { from: [x, y, z] (the louvre, in the roof), w (its width), spots: [{ at, r, normal: [x, y, z], when }], yaw,
+ * pick() (instead of the spots' conditions: the index of the spot it falls on, the Glasshouse's footstones) }
+ */
+export class Sunbeam {
+  constructor(rt, o) {
+    this.rt = rt; this.o = o;
+    const K = rt.kit, M = rt.M;
+    this.from = K.world(...o.from);
+    this.spots = o.spots.map((p) => ({ ...p, pos: K.world(...p.at), n: V(...(p.normal ?? [0, 1, 0])).applyAxisAngle(UP, K.yaw).normalize() }));
+    this.group = new THREE.Group();
+    rt.root.add(this.group);
+    this.mat = own({ color: '#fff1c2', glow: 0.75, flat: true });
+    this.poolMat = own({ color: '#fff4cf', glow: 0.7, flat: true });
+    // the louvre: a frame of trim round five slats that turn
+    const w = o.w ?? 3.2;
+    this.louvre = new THREE.Group();
+    this.louvre.position.copy(this.from);
+    this.louvre.rotation.y = K.heading(o.yaw ?? 0);
+    this.louvre.add(mesh([box(w + 0.5, 0.25, 0.25, 0, 0, -w / 2 - 0.1), box(w + 0.5, 0.25, 0.25, 0, 0, w / 2 + 0.1), box(0.25, 0.25, w + 0.4, -w / 2 - 0.1, 0, 0), box(0.25, 0.25, w + 0.4, w / 2 + 0.1, 0, 0)], M.trimMat));
+    this.slats = [];
+    for (let i = 0; i < 5; i++) { const sl = mesh([box(w, 0.08, w / 5 + 0.05)], M.trimMat); sl.position.z = -w / 2 + (i + 0.5) * w / 5; this.louvre.add(sl); this.slats.push(sl); }
+    this.group.add(this.louvre);
+    // the rays: thin pale bars from the louvre's rim to the pool's rim
+    this.rays = [];
+    const g = new THREE.BoxGeometry(0.05, 0.05, 1).translate(0, 0, 0.5);
+    for (let i = 0; i < 9; i++) { const m = new THREE.Mesh(g, this.mat); this.group.add(m); this.rays.push({ m, a: (i / 9) * Math.PI * 2, top: i % 3 === 0 ? 0.2 : 0.75 }); }
+    this.pool = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 0.04, 28), this.poolMat);
+    this.group.add(this.pool);
+    noCollide(this.group);
+    this.light = new THREE.Vector4(0, -1e5, 0, 0);
+    rt.lights?.push(this.light);
+    const s = this.want();
+    this.at = (s?.pos ?? this.from).clone(); this.r = s?.r ?? 0.1; this.n = (s?.n ?? UP).clone();
+    this.k = s ? 1 : 0;
+    this._a = V(); this._b = V(); this._c = V();
+  }
+  /** The spot it falls on now (the first whose condition holds; o.pick() → its index, when the temple decides), or null. */
+  want() { if (this.o.pick) return this.spots[this.o.pick()] ?? null; return this.spots.find((p) => !p.when || this.rt.logic.check(p.when)) ?? null; }
+  /** Is a point (world) in its light now (in the pool, within r, settled there)? */
+  lights(p, pad = 0) { return this.k > 0.9 && !this.moving && Math.hypot(p.x - this.at.x, p.z - this.at.z) < this.r + pad && Math.abs(p.y - this.at.y) < 3; }
+  update(dt, t) {
+    const s = this.want();
+    this.k = THREE.MathUtils.clamp(this.k + (s ? dt / 0.8 : -dt / 0.8), 0, 1);
+    if (s) {
+      // it swings over to the new spot (1.5 s or so), its pool easing to the new size and the surface's way
+      const d = this.at.distanceTo(s.pos);
+      this.moving = d > 0.05;
+      if (this.moving) this.at.lerp(s.pos, Math.min(1, dt * 2.6 + (d < 0.4 ? 0.2 : 0)));
+      this.r += ((s.r ?? 2) - this.r) * Math.min(1, dt * 3);
+      this.n.lerp(s.n, Math.min(1, dt * 3)).normalize();
+    }
+    const k = this.k;
+    for (const sl of this.slats) sl.rotation.x = k * 1.15;   // (open: the slats turned edge-on to the sun)
+    const show = k > 0.02;
+    this.pool.visible = show;
+    for (const r of this.rays) r.m.visible = show;
+    if (!show) { this.light.set(0, -1e5, 0, 0); return; }
+    // the pool, flush on what it lights (a floor, a wall)
+    this.pool.position.copy(this.at).addScaledVector(this.n, 0.05);
+    this.pool.quaternion.setFromUnitVectors(UP, this.n);
+    this.pool.scale.set(this.r * k, 1, this.r * k);
+    this.poolMat.uniforms.uGlow.value = 0.45 + 0.3 * k + 0.05 * Math.sin(t * 1.3);
+    // the rays: from round the louvre to round the pool (a pool's rim: two axes across its normal)
+    const u = this._a.set(1, 0, 0); if (Math.abs(this.n.x) > 0.9) u.set(0, 0, 1);
+    const v = this._b.crossVectors(this.n, u).normalize(); u.crossVectors(v, this.n).normalize();
+    for (const r of this.rays) {
+      const top = this._c.set(Math.cos(r.a) * r.top, 0, Math.sin(r.a) * r.top).add(this.from);
+      const bot = (this._d ??= V()).copy(this.at).addScaledVector(u, Math.cos(r.a) * this.r * 0.85).addScaledVector(v, Math.sin(r.a) * this.r * 0.85);
+      r.m.position.copy(top);
+      r.m.lookAt(bot);
+      r.m.scale.set(1, 1, Math.max(0.01, top.distanceTo(bot) * k));
+    }
+    this.mat.uniforms.uGlow.value = 0.55 + 0.2 * k;
+    this.light.set(this.at.x, this.at.y + 2, this.at.z, 7 * k);
+  }
+}
+
 const BLOOMS = ['#f2a7b8', '#f6d36a', '#ffffff', '#b7a0cf', '#ef7e62'];
 
 /**
@@ -1001,6 +1144,7 @@ export class Seed {
     if (this.on) return false;
     if (mode === 'bloom') {
       if (this.rt.logic.light(this.id)) { this.on = true; this.rt.sound?.chime?.(); this.rt.sound?.whoosh?.(); this.rt.onLit?.(this.id); }
+      else if (this.rt.logic.el(this.id)?.when) { this.pale = 1.2; this.rt.notice?.(this.o.shade ?? 'It sprouts, pale, reaching for light that isn’t there, and folds back into its husk. Nothing grows in the shade.', `${this.id}.shade`); }
       return true;
     }
     if (mode === 'fire') { this.rt.notice?.(this.o.burn ?? 'The husk only blackens at the edges. A seed wants to grow, not to burn.', 'seed.burn'); return true; }
@@ -1017,6 +1161,8 @@ export class Seed {
   update(dt, t) {
     this.on ||= this.rt.logic.isLit(this.id);
     if (this.on && this.k < 1) { this.k = Math.min(1, this.k + dt / 1.4); this.apply(); }
+    // bloomed in the shade: a pale shoot comes up and folds back
+    if (!this.on && this.pale > 0) { this.pale = Math.max(0, this.pale - dt); this.k = Math.sin(Math.min(1, this.pale / 1.2) * Math.PI) * 0.35; this.apply(); }
     if (this.wobble) { this.wobble = Math.max(0, this.wobble - dt); this.huskMesh.rotation.z = Math.sin(this.wobble * 28) * this.wobble * 0.3; }
     if (this.on) this.sprout.rotation.z = Math.sin(t * 1.3 + (this.o.seed ?? 0)) * 0.04;
   }
@@ -1027,7 +1173,8 @@ export class Seed {
  * A flower-door (Viridel's Greenhouse): a doorway shut by a great bud, its petals hinged round the rim and
  * folded in over the opening. A bloom glob opens it: element `bloom` (a 'switch' that needs the bloom mode)
  * is lit, and the door `id` (which opens on it) folds its petals back against the wall, for good. Plain fluid
- * only beads on it, fire makes it curl tighter. Solid while shut. o: { id, bloom, at (the doorway's foot), yaw, w, h, color }
+ * only beads on it, fire makes it curl tighter. Solid while shut. o: { id, bloom, at (the doorway's foot), yaw, w, h, color,
+ * dry (bloom: null, a bud something else opens, the Greenhouse's vine into it: what a bloom glob says) }
  */
 export class Bud {
   constructor(rt, o) {
@@ -1074,7 +1221,8 @@ export class Bud {
   hit(mode) {
     if (this.open) return false;
     if (mode === 'bloom') {
-      if (this.rt.logic.light(this.bloom)) { this.rt.sound?.chime?.(); this.rt.onLit?.(this.bloom); this.rt.notice?.(this.o.opened ?? 'The bud swells, and splits, and its petals fold back against the wall like a hand opening.', `bud.${this.id}`); }
+      if (this.bloom && this.rt.logic.light(this.bloom)) { this.rt.sound?.chime?.(); this.rt.onLit?.(this.bloom); this.rt.notice?.(this.o.opened ?? 'The bud swells, and splits, and its petals fold back against the wall like a hand opening.', `bud.${this.id}`); }
+      else if (!this.bloom && this.o.dry) { this.curl = 0.4; this.rt.notice?.(this.o.dry, `bud.dry.${this.id}`); }
       return true;
     }
     if (mode === 'fire') { this.curl = 1.5; this.rt.notice?.(this.o.burnt ?? 'The petals curl away from the ember and close tighter.', 'bud.fire'); return true; }

@@ -21,8 +21,11 @@ import { meetsWith } from '../resources.js';
 //     rooms: { id: { checkpoint?: true, boss?: true } },
 //     links: [{ a, b, door?: id, needs?: ['jetpack'] }],        rooms you walk between (both ways)
 //     elements: { id: { type, room, needs?: [items], ... } } }
-//   types: plate · drum { plate, plateAt? } · brazier · bramble · switch · bell · gadget { item } · boss
-//          (a latched element may come `after` another: it only takes once that one is lit)
+//   types: plate · drum { plate, plateAt?, stops? } · brazier · bramble · switch · bell · gadget { item } · boss
+//          (a drum with `stops: { plate: t }` rests on any of several plates along its groove: one ball, two
+//           places, the Builders' Greenhouse's louvres and the Aerie's vents)
+//          (a latched element may come `after` another: it only takes once that one is lit; or `when` a
+//           condition holds: an eye that wakes only in the sun a ball's louvre lets in)
 //          (a bell with `hold: s` is not latched: it rings for s seconds, then falls quiet. The piece keeps
 //           the time and calls quiet(id); nothing is saved. The Founders' Belfry's held doors and stones.)
 //          door / bridge { opens: condition, latch? }   (latch: once open, open for good, saved)
@@ -89,8 +92,10 @@ export class TempleLogic {
   }
   drumOn(drum, plate) {
     const e = this.el(drum);
-    if (e?.type !== 'drum' || e.plate !== plate) return false;
-    return Math.abs(this.drumT(drum) - (e.plateAt ?? 1)) <= (e.tolerance ?? 0.06);
+    if (e?.type !== 'drum') return false;
+    const at = stopOf(e, plate);
+    if (at == null) return false;
+    return Math.abs(this.drumT(drum) - at) <= (e.tolerance ?? 0.06);
   }
   /** Light a brazier, burn brambles, splash a switch, ring a bell door. Needs: the element's items (fire, bell…). */
   light(id) {
@@ -105,8 +110,8 @@ export class TempleLogic {
   /** A held bell's note has faded (its piece kept the time). */
   quiet(id) { return this.ringing.delete(id); }
   isLit(id) { return this.el(id)?.hold ? this.ringing.has(id) : !!this.store.get(`lit.${id}`); }
-  /** Its items are carried, and the one it comes `after` (a sequence: crystals sung low to high) is lit. */
-  canUse(id) { const e = this.el(id); return (e?.needs ?? []).every((it) => this.has(it)) && (!e?.after || this.isLit(e.after)); }
+  /** Its items are carried, the one it comes `after` (a sequence: crystals sung low to high) is lit, and its `when` holds. */
+  canUse(id) { const e = this.el(id); return (e?.needs ?? []).every((it) => this.has(it)) && (!e?.after || this.isLit(e.after)) && (!e?.when || this.check(e.when)); }
   takeGadget() {
     if (this.store.get('gadget')) return false;
     this.store.set('gadget', true);
@@ -195,15 +200,23 @@ export class TempleLogic {
       if (!reach.has(e.room)) continue;
       if (e.type === 'gadget' && !this.gadget) return id;
       if (LATCHED.has(e.type) && !this.isLit(id) && this.canUse(id) && (!e.hold || this.awaited(id))) return id;
-      if (e.type === 'drum' && e.plate && !this.drumOn(id, e.plate) && this.has('backpack')) return id;
+      if (e.type === 'drum' && e.plate && !e.stops && !this.drumOn(id, e.plate) && this.has('backpack')) return id;
+      // (a ball with several stops: worth pushing when one it isn't on is awaited)
+      if (e.type === 'drum' && e.stops && this.has('backpack') && Object.keys(e.stops).some((p) => !this.drumOn(id, p) && this.awaited(p))) return id;
       if (e.type === 'boss' && !this.resolved) return id;
     }
     // a plate still worth standing on: one a shut door is waiting for
     for (const [id, e] of Object.entries(this.def.elements)) if (e.type === 'plate' && reach.has(e.room) && !this.pressed(id) && this.awaited(id)) return id;
     return null;
   }
-  /** A shut door or bridge is waiting for this element (a plate, a held bell: worth going to). */
-  awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => isGate(g) && !this.isOpen(d) && mentions(g.opens, id)); }
+  /** A shut door or bridge is waiting for this element (a plate, a held bell: worth going to), or an unlit eye's `when` is. */
+  awaited(id) { return Object.entries(this.def.elements).some(([d, g]) => (isGate(g) && !this.isOpen(d) && mentions(g.opens, id)) || (LATCHED.has(g.type) && g.when && !this.isLit(d) && mentions(g.when, id))); }
+}
+
+/** Where along its groove a drum rests on `plate` (t), or null: its own plate, or one of its `stops`. */
+export function stopOf(e, plate) {
+  if (e?.stops && e.stops[plate] != null) return e.stops[plate];
+  return e?.plate === plate ? e.plateAt ?? 1 : null;
 }
 
 const isGate = (e) => e?.type === 'door' || e?.type === 'bridge';
@@ -237,8 +250,37 @@ export function solve(def, { items = ['backpack'], withhold = [], maxSteps = 400
         gadgetAt = log.length; note(`take ${id}${e.item ? ` (${e.item})` : ''}`); did = true; break;
       }
       if (LATCHED.has(e.type) && !L.isLit(id) && L.canUse(id)) { L.light(id); note(`${e.type} ${id}`); did = true; break; }
-      if (e.type === 'drum' && e.plate && !L.drumOn(id, e.plate) && owned.has('backpack')) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
+      if (e.type === 'drum' && e.plate && !e.stops && !L.drumOn(id, e.plate) && owned.has('backpack')) { L.moveDrum(id, e.plateAt ?? 1); note(`roll ${id} onto ${e.plate}`); did = true; break; }
       if (e.type === 'boss' && !L.resolved && (e.needs ?? []).every(has) && L.check(e.requires)) { L.resolve(); note(`resolve ${id}`); did = true; break; }
+    }
+    if (did) continue;
+    // a ball with several stops: roll it to one that lets something new be done (an eye's `when`, a door, a room)
+    if (owned.has('backpack')) for (const [id, e] of Object.entries(def.elements)) {
+      if (e.type !== 'drum' || !e.stops || !reach.has(e.room)) continue;
+      // (tried without update(): a trial must not latch a door open)
+      const score = () => {
+        const rooms = new Set([def.entry]), todo = [def.entry];
+        while (todo.length) {
+          const r = todo.pop();
+          for (const l of def.links) {
+            const o = l.a === r ? l.b : l.b === r && !l.oneWay ? l.a : null;
+            if (o && !rooms.has(o) && (!l.door || L.computeOpen(l.door)) && (l.needs ?? []).every(has)) { rooms.add(o); todo.push(o); }
+          }
+        }
+        // (an eye that can be woken now first: it stays woken, and the ball can go on to its next place; then rooms, then doors)
+        const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
+        return usable * 1e6 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
+      };
+      const t0 = L.drumT(id), base = score();
+      let best = null;
+      for (const [plate, at] of Object.entries(e.stops)) {
+        if (L.drumOn(id, plate)) continue;
+        L.moveDrum(id, at);
+        const s = score();
+        if (s > base && (!best || s > best.s)) best = { plate, at, s };
+        L.moveDrum(id, t0);
+      }
+      if (best) { L.moveDrum(id, best.at); note(`roll ${id} onto ${best.plate}`); did = true; break; }
     }
     if (did) continue;
     // stand on each reachable plate in turn: does a door open, and stay open once you step off?

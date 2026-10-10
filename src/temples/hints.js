@@ -26,6 +26,18 @@ function nearestUnlit(g, ids) {
   return best;
 }
 
+/** The nearest of the pieces `ids` (their positions: pos or center) to a point. */
+function nearestPiece(g, ids, to) {
+  let best = null, bd = Infinity;
+  for (const id of ids) {
+    const p = g.rt.piece?.(id), at = p?.pos ?? p?.center;
+    if (!at) continue;
+    const d = at.distanceTo(to);
+    if (d < bd) { bd = d; best = at; }
+  }
+  return best;
+}
+
 /** The vent the guardian hides from you: the one farthest from where you stand (model.vent(i)). */
 function hiddenVent(g, n) {
   const P = g.rt.player;
@@ -116,10 +128,16 @@ export const BOSS_HINTS = {
         'Make the dead beds bloom.',
         'Switch the tool to bloom and shoot each dead bed round the glasshouse.'],
       ['Its back is bare. Wait for it to kneel.',
-        'When it kneels, make its back bloom.',
-        'Let it strike and kneel, then shoot bloom onto its bare back. Never the ember here.'],
+        'When it kneels, make its back bloom: in the sun the flowers take at once.',
+        'Let it kneel. Its quarter’s footstone turns the sun onto it; then shoot bloom onto its back.'],
+      ['Nothing grows on it in the shade now.',
+        'When it kneels, bring the sun to it first: the footstone of its quarter.',
+        'Let it kneel, stand on the footstone nearest it till the sun settles on it, then bloom its back.'],
     ],
-    at: (g, i) => (i === 0 ? nearestUnlit(g, ['bed1', 'bed2', 'bed3', 'bed4']) : _p.copy(g.model.pos).addScaledVector(UP, (g.model.height ?? 3) * 0.5)),
+    // (from its second phase: the footstone that brings the sun, while it kneels in the shade)
+    at: (g, i) => (i === 0 ? nearestUnlit(g, ['bed1', 'bed2', 'bed3', 'bed4'])
+      : g.state === 'open' && !g.rt.gardenSun?.lights(g.model.pos, 1.4) ? nearestPiece(g, ['fs1', 'fs2', 'fs3', 'fs4'], g.model.pos)
+        : _p.copy(g.model.pos).addScaledVector(UP, (g.model.height ?? 3) * 0.5)),
   },
   // the Footprint: the Echo (organic: answered note for note)
   spheres: {
