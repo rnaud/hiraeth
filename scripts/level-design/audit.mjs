@@ -69,6 +69,7 @@ for (const id of worlds) {
   const stops = [{ label: 'landing', kind: 'ship', pos: spawn }];
   const people = new Set(W.npcs.map((n) => n.def?.id).filter(Boolean));
   const kindOf = (s) => (s.talk || people.has(s.at) ? 'talk' : s.goto ? 'go' : s.bring ? 'bring' : 'do');
+  let home = null;   // (a route quest's stage whose words send you home along a leading line names it: `home`)
   for (const p of ROUTE.find((r) => r.id === id)?.play ?? []) {
     if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); continue; }
     // (an act the route plays where someone stands, Vael's Oïa by the landing opening the main quest: a talk there)
@@ -77,12 +78,15 @@ for (const id of worlds) {
     const q = W.quests.def(p);
     for (const s of q?.stages ?? []) {
       // (a stage whose words send you along a leading line, "home along the marked stones": `via` names the line)
-      const w = arr(W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w, ...(s.via ? { via: s.via } : {}) });
+      // (a stage whose person has walked on by the time you get there, Hollin down to the root cave: `stands` names where)
+      const w = arr(s.stands ? W.quests.resolve(s.stands) : W.quests.where(s)); if (w && !inTemple(w)) stops.push({ label: s.label ?? s.id, kind: kindOf(s), pos: w, ...(s.via ? { via: s.via } : {}) });
       // (a stage whose marker moves on as you go, ask Marrow, then find his bike in the hollow: `ends` names where it is done)
       const e = s.ends && arr(W.quests.resolve(s.ends)); if (e && !inTemple(e)) stops.push({ label: `${s.label ?? s.id} (done)`, kind: 'do', pos: e });
+      if (s.home) home = s.home;
     }
   }
-  stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn });
+  // (the walk back to the ship: along the line the last stage that names one sends you home by, "fly home along the lanterns")
+  stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn, ...(home ? { via: home } : {}) });
   const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal', only: !!p.oneWay })).filter((p) => p.at && p.to);
   // (a doorway is walked both ways: where a world lists only the way in, its way out is the same door backwards; not a
   // way marked `oneWay`, a hatch that only lifts from below)

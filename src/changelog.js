@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.20', date: '2026-10-09', items: [
+    // the worlds, fourth round of the level design audit: every way home passes something new, and a landmark on every long leg
+    'In Vael II, the monastery’s roof tiles that fell up with the bell’s clapper now hang in a long drifting string from the floating island’s church back over Tiv’s great table to the bell tower. Brother Calix asks you to follow them home with the clapper.',
+    'Eight small floating stones carrying the riders’ old lanterns now hang from the rose cliff’s north lip past the Founders’ Belfry to Sister Aube’s hermitage by the landing. Dark for thirty years, they light again when the bell rings, and Calix sends you home along them.',
+    'Brother Calix no longer wanders into the cloister’s door: he keeps to the courtyard beside it.',
+  ] },
   { v: '1.19', date: '2026-10-09', items: [
     // two more temples rebuilt round one idea each (the temple design audit), their guardians ending on it
     'The Warden’s Well is rebuilt round one idea: the tower breathes through its vanes. The makers’ bellows turned its machines on the shaft’s breath, and a vane still drives its machine only while it turns; a splash spins a small one, and it slows as it goes. The Turning Floors’ discs ride only while the vane over the far door spins, and on the Climb the ball’s groove crosses a slot whose stones stand only while the vane in the well’s floor turns: splash it, then roll the ball over before it stops.',

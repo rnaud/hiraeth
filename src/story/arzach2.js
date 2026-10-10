@@ -506,6 +506,8 @@ export function setupArzach2(ctx) {
     // the cloud settles once the bell has rung (and dips again, a little, each time you ring it)
     // (a moment holds it until the bell is heard, then lets it go a little quicker: bell.hold, bell.settleFor)
     if (game.flag('arzach2.bell.rung') && bell.settle < 1 && !bell.hold) bell.settle = Math.min(1, bell.settle + dt / (bell.settleFor ?? 12));
+    // the riders' lantern stones light again once the bell has rung (src/sky-stones-ways.js): the way home
+    A.lanterns?.lit(!!game.flag('arzach2.bell.rung'));
     bell.dip = Math.max(0, bell.dip - dt / 6);
     const k = THREE.MathUtils.smootherstep(bell.settle, 0, 1), dip = Math.sin(Math.PI * bell.dip) * 2.5;
     const drop = SETTLE * k + dip;

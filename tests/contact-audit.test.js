@@ -257,6 +257,25 @@ test('the worlds build without three.js warnings', () => {
   assert.deepEqual([...new Set(warned)], [], `${warned.length} warnings`);
 });
 
+// The ways a quest's words send you along (a stage's `via`, or its `home`: the way back to the ship it sends you by)
+// are leading lines its world declares (`lines`, read by the level design audit: scripts/level-design/audit.mjs), so
+// the audit walks them.
+test('every way a quest sends you along is a line its world declares', async () => {
+  const ROUTE_WORLDS = ['desert', 'incal', 'arzach', 'arzach2', 'garage', 'buried', 'edena', 'spheres', 'perdide', 'perdide2', 'bazaar'];
+  let named = 0;
+  for (const id of ROUTE_WORLDS) {
+    const { level } = builtWorld(id);
+    const lines = new Set(((typeof level.lines === 'function' ? level.lines() : level.lines) ?? []).map((l) => l.name));
+    const { QUESTS } = await import(`../src/story/${id}-data.js`);
+    for (const q of QUESTS.filter((q) => q.world === id)) for (const s of q.stages) for (const k of ['via', 'home']) {
+      if (!s[k]) continue;
+      named++;
+      assert.ok(lines.has(s[k]), `${id}: ${q.id}:${s.id} sends you ${k === 'home' ? 'home ' : ''}along "${s[k]}", which ${id} doesn't declare (${[...lines].join(', ')})`);
+    }
+  }
+  assert.ok(named >= 9, `ways named: ${named}`);
+});
+
 // The push's rings and spray (RB / R1, keyboard C) are drawn in every world: in the open air and in every room
 // off the map (temples, the cave, the Hearth), where the interior culler once hid them (DONE.md). The fluid tool
 // fires through its own input path (the pad's and the keyboard's), and nothing the frame hides is the push.

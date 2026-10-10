@@ -133,7 +133,11 @@ along it from farther off; a line marked `auto: false` is followed only where a 
 the way home). The **loner** rule scales with the travel speed: 18 s from anything (150 m running, 366 m on the bike,
 `lonelyFor`). Since v1.17 a portal marked `oneWay` (a hatch that only lifts from below) is not assumed to be walked
 back, and a route step `{ act, at, label }` (`tests/playthrough-worlds.js` `ROUTE`) is a stop where `at` stands (a talk
-if it is a person: Vael's route starts by meeting Oïa beside the landing, who opens the main quest). The pure logic is `scripts/level-design/lib.mjs`
+if it is a person: Vael's route starts by meeting Oïa beside the landing, who opens the main quest). Since v1.20 a stage may name
+the line its words send you **home** along (`home: 'the lantern stones'`: the walk back to the ship after the last stage
+that names one follows it, as a named `via` does), and where its person **stands** by the time you get there (`stands:
+'hollinEnd'`, a locator: Hollin walks down to the root cave while you are at the saucer; without it the audit measures
+him where he stood at the start). The pure logic is `scripts/level-design/lib.mjs`
 (`tests/level-design.test.js`).
 
 It writes `report.json` (every place, the path, the landmarks, the measures, the scores), `<world>-map.png`

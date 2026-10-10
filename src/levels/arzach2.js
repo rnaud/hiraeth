@@ -11,6 +11,7 @@ import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
 import { rockKnobs } from './greeble-kit.js';
+import { buildFallenTiles, buildLanternStones } from '../sky-stones-ways.js';
 
 // ---------------------------------------------------------------------------
 // Vael II: The Sky Stones. Bone-white needle clusters, balanced stones and
@@ -95,7 +96,8 @@ export const ARZACH2_CONTENT = {
   npcs: [
     { at: [-14, 30], y: START.top, radius: 5, palette: { cloak: '#b9a7d8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45' },
       lines: ['~solemn~ The stones fell up, long ago. Some of them never came down.', '~neutral~ Whistle and the bird will come. She does not like the cloud.', '~scared~ A hand’s width higher than last spring. I wrote it down.', '~playful~ If the cloud reaches my door, I’m moving in with Calix.'] },
-    { at: [MONASTERY.x - 20, MONASTERY.z - 22], y: MONASTERY.top, radius: 4, palette: { cloak: '#f3ead8', lining: '#2b211f', cloth: '#6a3a4a', legs: '#4a3a2a' },
+    { at: [MONASTERY.x - 21, MONASTERY.z - 25], y: MONASTERY.top, radius: 2,   // (Brother Calix: clear of the cloister's door, which he used to wander into)
+      palette: { cloak: '#f3ead8', lining: '#2b211f', cloth: '#6a3a4a', legs: '#4a3a2a' },
       lines: ['~sad~ The bell has not rung since the cloud rose.', '~sad~ From the tower roof you can see the plain. Only Ondine lives out there, and nobody goes to see her.', '~neutral~ The yoke is oiled. The yoke is always oiled.', '~sad~ Thirty years of dawns with nothing to ring at them.'] },
     { at: [195, -1010], radius: 6, palette: { cloak: '#e9a17f', lining: '#2b211f', cloth: '#343a56', legs: '#3a3a3a' },
       lines: ['~tired~ Walk toward the tower. It does not get closer for a long time.', '~solemn~ The cracks in the plain are older than the sky.', '~curious~ The face on the tower has a mark on its brow. Three dots and an arc. Look.', '~happy~ Some evenings a lamp burns on the rose cliff. I wave. My sister pretends not to see.'], shy: true },
@@ -812,6 +814,13 @@ export function* buildArzach2(scene) {
     cloud.push(deck);
   }
 
+  // the ways home (src/sky-stones-ways.js, level design audit, fourth round): the roof tiles that fell up with the clapper,
+  // strung out from the island's church back over the great table to the bell tower (the clapper's way home), and the
+  // riders' lantern stones from the rose cliff past the Founders' Belfry to Aube's hermitage, lit again when the bell rings
+  yield;
+  const tiles = buildFallenTiles(scene), lanterns = buildLanternStones(scene);
+  movers.push(tiles.update, lanterns.update);
+
   const spawn = new THREE.Vector3(0, 0, 22);
   spawn.y = topAt(spawn.x, spawn.z);
 
@@ -861,6 +870,13 @@ export function* buildArzach2(scene) {
     smallProps,
     noShadow,
     topAt,
+    // what the level design audit reads (scripts/level-design/audit.mjs): the bell tower over the rose cliff and the
+    // island church's taller tower, seen over the cloud (their tops: the collision's plateaus stand on the chasm's floor,
+    // so the audit's own landmarks are aimed low into the rock); the two ways home as leading lines, flown, followed
+    // only where a stage names them (the clapper's along the tiles, the way home along the lanterns); and what to look at
+    beacons: [{ name: 'the monastery’s bell tower', top: [BELL.x, BELL.y + BELL.h + 6, BELL.z], height: 10 }, { name: 'the island church’s tower', top: [ISLAND.x - 9, ISLAND.top + 25, ISLAND.z - 10], height: 22 }],
+    lines: [{ name: 'the fallen-up tiles', points: tiles.points, auto: false }, { name: 'the lantern stones', points: lanterns.points, auto: false }],
+    sights: [{ name: 'the fallen-up tiles', at: tiles.sight }, { name: 'the lantern stones', at: lanterns.sight }],
     // the story's handles (src/story/arzach2.js): the bell and its rope, the cloud sea (it settles when the
     // bell rings), the floating stones, the sky stones and the cairn, the clapper's island, the tower's face
     arzach2: {
@@ -875,6 +891,7 @@ export function* buildArzach2(scene) {
       face: new THREE.Vector3(FACE.x, FACE.y, FACE.z),
       tower: new THREE.Vector3(TOWER.x, terrain.heightAt(TOWER.x, TOWER.z), TOWER.z),
       plainEdge: PLAIN_EDGE,
+      tiles, lanterns,
     },
     atmo: (x, z) => ({ tint: [1.02, 0.99, 0.96], fog: 0.65, name: z < PLAIN_EDGE - 40 ? 'Vael II · the peach plain' : 'Vael II · the sky stones' }),
     update(dt, t) { for (const m of movers) m(t); },

@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.20 — 2026-10-09
+
+- Brother Calix no longer wanders into the cloister’s door: he keeps to the courtyard beside it.
+- Eight small floating stones carrying the riders’ old lanterns now hang from the rose cliff’s north lip past the Founders’ Belfry to Sister Aube’s hermitage by the landing. Dark for thirty years, they light again when the bell rings, and Calix sends you home along them.
+- In Vael II, the monastery’s roof tiles that fell up with the bell’s clapper now hang in a long drifting string from the floating island’s church back over Tiv’s great table to the bell tower. Brother Calix asks you to follow them home with the clapper.
+
 ## v1.19 — 2026-10-09
 
 - The Engine-House from outside: its oval door is set in a riveted iron plate, and the door itself stands swung back against the drum on two great greased hinges.
