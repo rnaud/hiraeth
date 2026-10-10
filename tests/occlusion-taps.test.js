@@ -47,7 +47,7 @@ test('no skip (continue / break), cos or sin inside the occlusion loops', () => 
   assert.equal((ao.match(/\bcos\(/g) ?? []).length, 2, 'crease shading: one turn per pixel (and the spiral\'s own constant steps)');
   // the surface flags (is the tap on a grass blade, or a person?) only read for a tap that would close something in,
   // or one nearer than the point (a person hiding what stands behind them)
-  assert.match(ao, /if \(c > 0\.0 \|\| \(sd > 0\.0 && sd < d\)\) \{ float t = mod\(texture\(tHatch, suv\)\.a, 16\.0\); np = step\(mod\(t, 8\.0\), 1\.5\); c \*= step\(t, 7\.5\) \* np; \}/);
+  assert.ok(ao.includes('if (c > 0.0 || (sd > 0.0 && sd < d)) { float a = texture(tHatch, suv).a, t = mod(a, 16.0); np = step(mod(t, 8.0), 1.5) * max(step(a, 63.5), self); c *= step(t, 7.5) * np; }'));
   assert.equal((ao.match(/texture\(tHatch/g) ?? []).length, 1);
 });
 
@@ -66,7 +66,7 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   // both loops (8 taps, 4 on the handheld): a tap on a person stands for what the person hides (spotBehind, below):
   // the planes of what is seen two and four times as far out and of the other taps, met along its ray
   for (const n of [8, 4]) {
-    assert.ok(enc.includes(`tp[i] = notPerson(tuv[i]);`) && enc.includes(`vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];`), `${n} taps: read first`);
+    assert.ok(enc.includes(`tp[i] = notStanding(tuv[i], self);`) && enc.includes(`vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];`), `${n} taps: read first`);
     assert.ok(enc.includes(`return occ / ${n}.0;`), `${n} taps: every tap counts`);
   }
   assert.equal((enc.match(/if \(tp\[i\] < 0\.5\) \{/g) ?? []).length, 2);
@@ -76,6 +76,26 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   assert.equal((enc.match(/occ \+= spotTapAt\(tuv\[i\], sd, P, nV, rA, rB, r1, r2\);/g) ?? []).length, 2);
   assert.match(body('planeAlong'), /return t > lo && t < hi \? t : hi;/);
   assert.ok(!/texture\(tHatch/.test(enc + body('spotTapAt')));
+});
+
+test('a mover (a foe, the drone) is seen past as a person is: no dark halo on the wall behind a hovering drone', () => {
+  // gHatch.a + 64 (materials.js MOVER): notStanding is 0 on a mover's pixel, unless the point is on a mover itself
+  // (self = 1: its own pockets keep their spot blacks), and 0 on a person whatever the point
+  const notStanding = (a, self) => ((a % 8) <= 1.5 ? 1 : 0) * Math.max(a <= 63.5 ? 1 : 0, self);
+  for (const glow of [0, 0.5, 0.875]) for (const soft of [0, 8]) for (const face of [0, 16]) for (const drift of [0, 32]) {
+    const rest = glow + soft + face + drift;
+    assert.equal(notStanding(rest, 0), 1);
+    assert.equal(notStanding(rest + 64, 0), 0, `a mover: ${rest + 64}`);
+    assert.equal(notStanding(rest + 64, 1), 1, `seen from the mover itself: ${rest + 64}`);
+    assert.equal(notStanding(rest + 4, 1), 0, 'a person, from a mover');
+  }
+  assert.ok(shader.includes('float notStanding(vec2 suv, float self) { float a = texture(tHatch, suv).a; return step(mod(a, 8.0), 1.5) * max(step(a, 63.5), self); }'));
+  const enc = body('enclosure');
+  assert.equal((enc.match(/notStanding\((p2|p4), self\)/g) ?? []).length, 4, 'what is seen past a person or a mover is not one either');
+  // every reader of gHatch.a takes the mover's 64 off first (the main decode, the line kernel's drift test)
+  assert.ok(shader.indexOf('surface.a -= 64.0 * mover;') < shader.indexOf('float drift = step(31.5, surface.a);'));
+  assert.ok(shader.includes('vec4 fa = mod(vec4(t1.a, t2.a, t3.a, t4.a), 64.0);'));
+  assert.ok(shader.includes('enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8, mover)') && shader.includes('creaseAO(uv, N.xyz, depth, fc, mover)'));
 });
 
 test('a person in front leaves no pale ghost in the shading behind them (Marrow by the ship, the tree’s stairs)', () => {

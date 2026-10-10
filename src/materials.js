@@ -826,6 +826,7 @@ const fragmentShader = /* glsl */ `
   uniform vec4 uGlove;    // rgb, a = 1: gloved hands
   uniform float uHero;    // player-only flag, packed above the glow range in gHatch.a
   uniform float uFigure;  // a person (NPC, crowd, costume parts): +4 in gHatch.a, post.js thins their ink with projected size
+  uniform float uMover;   // something that moves about near walls (a foe): +64 in gHatch.a, post.js's occlusion taps see past it (MOVER)
   uniform float uSuit;    // puffy-suit crease lines at the joints
   uniform vec3 uGlassCenter;
   uniform float uGlass;   // glass: only the rim and a highlight streak are drawn
@@ -2529,7 +2530,7 @@ const fragmentShader = /* glsl */ `
     #ifdef S_WEATHER
     if (uWeather > 0.0) gHatch.b += 16.0;   // weathered: post.js darkens the dust splashed up its foot
     #endif
-    gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure;
+    gHatch.a = max(max(uGlow, emit), smoothstep(0.15, 0.6, local) * 0.6) + 2.0 * uHero + 4.0 * uFigure + 64.0 * uMover;
     // a face (its skin and its eyes, and the neck's skin under it): post.js shades it in a warm tone of
     // its own (FACE_SHADE) and leaves out the line round its shade and the crease shading
     bool facePart = false;
@@ -2777,6 +2778,7 @@ export function makeMaterial(o) {
       uGlove: { value: o.gloves ? new THREE.Vector4(...new THREE.Color(o.gloves).toArray(), 1) : new THREE.Vector4(0, 0, 0, 0) },   // w = 1 means gloved: bare hands by default
       uHero: { value: 0 },
       uFigure: { value: o.figure || o.crowd || o.mode === MODE_OUTFIT ? 1 : 0 },
+      uMover: { value: isMover(o) ? 1 : 0 },
       uPortrait: { value: 0 },
       uExpression: { value: new THREE.Vector4() },
       uGaze: { value: new THREE.Vector2() },
@@ -2887,6 +2889,15 @@ export function releaseMaterial(mat) {
 export const materialCount = () => cache.size;
 
 
+/**
+ * Things that move about near walls without being people (gHatch.a + 64; docs/systems/rendering.md, "The visual
+ * probes' findings fixed"): the screen-space occlusion of the spot blacks and the crease shading sees past them as it
+ * sees past a person (post.js spotBehind), so a hovering drone draws no jagged dark halo on the wall behind it that
+ * moves with it. Every foe's materials (their keys: 'foe-...' in src/foes.js, 'arch....' in the roster's kit) and any
+ * material made with { mover: true }. (The scout drone is the player's: markHero, a person already.)
+ */
+export const MOVER = { key: /^(foe[-.]|arch\.)/ };
+export function isMover(o) { return o.mover ?? MOVER.key.test(o.key ?? ''); }
 /** Tag only the player's materials, preserving live shared shader uniforms. */
 export function markHero(root, copies = new Map()) {
   root?.traverse((o) => {

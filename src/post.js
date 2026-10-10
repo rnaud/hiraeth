@@ -118,7 +118,7 @@ export function spotBehind(own, person, ray, planes) {
  */
 const spotLoop = (n) => `{
       vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];
-      for (int i = 0; i < ${n}; i++) { tuv[i] = spotUv(P + SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, rA, rB); tq[i] = texture(tNormal, tuv[i]); tp[i] = notPerson(tuv[i]); }
+      for (int i = 0; i < ${n}; i++) { tuv[i] = spotUv(P + SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, rA, rB); tq[i] = texture(tNormal, tuv[i]); tp[i] = notStanding(tuv[i], self); }
       float occ = 0.0;
       for (int i = 0; i < ${n}; i++) {
         float sd = tq[i].w;
@@ -127,8 +127,8 @@ const spotLoop = (n) => `{
           float lo = sd;
           sd = -(P.z + o.z);
           vec2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
-          if (notPerson(p2) > 0.5) sd = planeAlong(p2, texture(tNormal, p2), r, toView, rA, rB, lo, sd);
-          if (notPerson(p4) > 0.5) sd = planeAlong(p4, texture(tNormal, p4), r, toView, rA, rB, lo, sd);
+          if (notStanding(p2, self) > 0.5) sd = planeAlong(p2, texture(tNormal, p2), r, toView, rA, rB, lo, sd);
+          if (notStanding(p4, self) > 0.5) sd = planeAlong(p4, texture(tNormal, p4), r, toView, rA, rB, lo, sd);
           for (int j = 0; j < ${n}; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);
         }
         occ += spotTapAt(tuv[i], sd, P, nV, rA, rB, r1, r2);
@@ -523,7 +523,10 @@ const fragmentShader = /* glsl */ `
   // reverse, pale copies of a person in the dark masses behind them (a white "shadow" of Marrow on the shaded
   // sand by the ship, of the traveller on the tree's stairs), sliding with the camera.
   float notPerson(vec2 suv) { return step(mod(texture(tHatch, suv).a, 8.0), 1.5); }
-  float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc) {
+  // the same for a mover (gHatch.a + 64: a foe, the drone; materials.js MOVER): seen past like a person, unless the
+  // point itself is on one (self = 1: its own pockets are its own)
+  float notStanding(vec2 suv, float self) { float a = texture(tHatch, suv).a; return step(mod(a, 8.0), 1.5) * max(step(a, 63.5), self); }
+  float creaseAO(vec2 uv, vec3 nW, float d, vec2 fc, float self) {
     vec3 P = viewPos(uv, d);
     vec3 nV = normalize(transpose(mat3(uCamWorld)) * nW);
     float R = 1.3;
@@ -551,7 +554,7 @@ const fragmentShader = /* glsl */ `
       // (the flags only read for a tap that would close something in, or that stands nearer than the point:
       // a person hiding what is behind them is nearer; most other taps skip the read, docs/systems/performance.md)
       float np = 1.0;
-      if (c > 0.0 || (sd > 0.0 && sd < d)) { float t = mod(texture(tHatch, suv).a, 16.0); np = step(mod(t, 8.0), 1.5); c *= step(t, 7.5) * np; }
+      if (c > 0.0 || (sd > 0.0 && sd < d)) { float a = texture(tHatch, suv).a, t = mod(a, 16.0); np = step(mod(t, 8.0), 1.5) * max(step(a, 63.5), self); c *= step(t, 7.5) * np; }
       ao += c; seen += np;
     }
     return clamp(ao / max(seen, 1.0) * 2.2, 0.0, 1.0);
@@ -589,7 +592,7 @@ const fragmentShader = /* glsl */ `
     float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, vec3(at * rA + rB, -1.0) * q.w) / facing : hi;
     return t > lo && t < hi ? t : hi;
   }
-  float enclosure(vec2 uv, vec3 nW, float d, float R, int taps) {
+  float enclosure(vec2 uv, vec3 nW, float d, float R, int taps, float self) {
     vec2 rB = viewPos(vec2(0.0), 1.0).xy, rA = viewPos(vec2(1.0), 1.0).xy - rB;
     vec3 P = vec3(uv * rA + rB, -1.0) * d;
     mat3 toView = transpose(mat3(uCamWorld));
@@ -956,6 +959,9 @@ const fragmentShader = /* glsl */ `
     // gHatch.a packs glow (0..1) + 2 hero (the player) + 4 figure (any other person) + 8 soft ink (grass blades)
     // + 16 a face (its skin and eyes: flat colour and one shadow tone, no line round the shade, no crease shading)
     // + 32 sand banked against something (sand-drifts.js: the line where it meets a wall drawn softly)
+    // + 64 a mover (a foe, the drone: materials.js MOVER; the occlusion taps see past it)
+    float mover = step(63.5, surface.a);
+    surface.a -= 64.0 * mover;
     float drift = step(31.5, surface.a);
     surface.a -= 32.0 * drift;
     float face = step(15.5, surface.a);
@@ -1007,7 +1013,7 @@ const fragmentShader = /* glsl */ `
     if (uDebug == 3) { fragColor = vec4(isSky ? vec3(0.0) : N.rgb * 0.5 + 0.5, 1.0); return; }
     if (uDebug == 4) { fragColor = vec4(vec3(isSky ? 1.0 : pow(depth / 3000.0, 0.4)), 1.0); return; }
     if (uDebug == 5) { fragColor = vec4(vec3(isSky ? 1.0 : A.a), 1.0); return; }
-    if (uDebug == 9) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8)), 1.0); return; }   // spot blacks: how enclosed
+    if (uDebug == 9) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - enclosure(uv, N.xyz, depth, uSpot.y, 8, mover)), 1.0); return; }   // spot blacks: how enclosed
     // (the strokes and the detail with their packed steps taken off, above)
     if (uDebug == 8) { fragColor = vec4(vec3(isSky ? 1.0 : 1.0 - surface.b), 1.0); return; }
     if (uDebug == 7) { vec3 H = isSky ? vec3(0.0) : surface.rgb; fragColor = vec4(vec3(1.0 - max(max(H.r, H.g), H.b)), 1.0); return; }
@@ -1079,7 +1085,7 @@ const fragmentShader = /* glsl */ `
       vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
       vec4 t1 = texture(tHatch, euv + vec2(fo.x, 0)), t2 = texture(tHatch, euv - vec2(fo.x, 0)),
            t3 = texture(tHatch, euv + vec2(0, fo.y)), t4 = texture(tHatch, euv - vec2(0, fo.y));
-      vec4 fa = vec4(t1.a, t2.a, t3.a, t4.a);
+      vec4 fa = mod(vec4(t1.a, t2.a, t3.a, t4.a), 64.0);   // (+64, a mover: nothing to the lines)
       driftNear = max(drift, max(max(step(31.5, fa.x), step(31.5, fa.y)), max(step(31.5, fa.z), step(31.5, fa.w))));
       fa = mod(fa, 16.0);
       vec4 faSoft = step(vec4(7.5), fa);
@@ -1217,7 +1223,7 @@ const fragmentShader = /* glsl */ `
 
       // ---- 3b. crease shading: darker tone + accent strokes where geometry closes in
       if (uAO > 0.0 && depth < 260.0 && hero < 0.5 && soft < 0.5 && face < 0.5) {   // (not between grass blades: they'd go grey; a face's sockets are hatched instead)
-        float ao = creaseAO(uv, N.xyz, depth, fc) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
+        float ao = creaseAO(uv, N.xyz, depth, fc, mover) * (1.0 - smoothstep(80.0, 260.0, depth)) * uAO * (1.0 - emitHere);
         col = mix(col, col * uShadowTint * 0.85, smoothstep(0.15, 0.7, ao) * 0.55);
         ink = max(ink, smoothstep(0.6, 0.9, ao) * 0.45 * innerK);
         // the deepest crevices (between ribs, into a hull's machinery) filled solid, as an inker does
@@ -1266,7 +1272,7 @@ const fragmentShader = /* glsl */ `
       if (uSpot.x > 0.0 && lit < 0.99 && spotMat > 0.0 && depth < 600.0 && face + figure + hero + soft < 0.5 && emitHere < 0.5) {
         vec3 spotC = uSpotTone.rgb * mix(vec3(1.0), clamp(albedo * 2.2, 0.0, 1.6), uSpotTone.a);
         float k = uSpot.x * spotMat * (1.0 - uNight * 0.5) * (1.0 - smoothstep(350.0, 600.0, depth)) * (1.0 - uFlatten) * (1.0 - lit);
-        float encl = enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8);
+        float encl = enclosure(uv, N.xyz, depth, uSpot.y, uPostLite > 0.5 ? 4 : 8, mover);
         float spot = smoothstep(uSpot.z - 0.03, uSpot.z + 0.03, encl) * (1.0 - shadeLift);
         // in cast shadow (facing the sun, yet dark): toward the spot tone, keeping its strokes
         float castK = smoothstep(0.05, 0.2, dot(N.xyz, uSunDir)) * (1.0 - shadeLift) * uSpot.w;

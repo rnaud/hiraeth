@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { GROUND, penLine, lineField } from '../src/ground-ink.js';
 import { makeMaterial, MODE_OUTFIT, MODE_TERRAIN } from '../src/materials.js';
+import { readFileSync } from 'node:fs';
 import { createPost } from '../src/post.js';
 
 // average ink of a line field over one period (u in periods), sampled finely
@@ -73,7 +74,7 @@ test('people are flagged for the outline pass; post.js decodes the flag before t
   assert.equal(makeMaterial({ color: '#3a2a22', figure: true }).uniforms.uFigure.value, 1);
   assert.equal(makeMaterial({ color: '#3a2a22' }).uniforms.uFigure.value, 0, 'a plain prop is not a person (and is a separate cached material)');
   const m = makeMaterial({ color: '#ffffff' });
-  assert.ok(m.fragmentShader.includes('+ 2.0 * uHero + 4.0 * uFigure'));
+  assert.ok(m.fragmentShader.includes('+ 2.0 * uHero + 4.0 * uFigure + 64.0 * uMover'));
   const post = createPost().scene.children[0].material.fragmentShader;
   const flag = post.indexOf('float figure = step(3.5, surface.a)'), hero = post.indexOf('float hero = step(1.5, surface.a)');
   assert.ok(flag > 0 && hero > flag, 'figure bit removed before the hero bit is read');
@@ -137,4 +138,18 @@ test('pebbles: a high sun lays more of them, a little bigger; a low sun none mor
   assert.match(f, new RegExp(`smoothstep\\(${PEBBLES.noon.from.toFixed(2)}, ${PEBBLES.noon.to.toFixed(2)}, uSunDir\\.y\\)`));
   assert.equal((f.match(/\* nc, vec2\(/g) ?? []).length, 3);
   assert.equal((f.match(/\) \* ns, /g) ?? []).length, 3);
+});
+
+test('movers (foes) are flagged (+64) for the occlusion taps to see past; a prop is not', () => {
+  // (visual audit v1.4, finding 3: a hovering makers' drone drew a jagged spot-black halo on the wall behind it)
+  assert.equal(makeMaterial({ color: '#b08a4a', key: 'foe-brass' }).uniforms.uMover.value, 1);
+  assert.equal(makeMaterial({ color: '#b08a4a', key: 'arch.drone.0.plate' }).uniforms.uMover.value, 1);
+  assert.equal(makeMaterial({ color: '#b08a4a', mover: true }).uniforms.uMover.value, 1);
+  assert.equal(makeMaterial({ color: '#b08a4a' }).uniforms.uMover.value, 0);
+  assert.equal(makeMaterial({ color: '#b08a4a', key: 'scout-lens' }).uniforms.uMover.value, 0);
+  // every foe material is keyed so (src/foes.js 'foe-...', the roster's kit 'arch....')
+  const foes = readFileSync(new URL('../src/foes.js', import.meta.url), 'utf8'), kit = readFileSync(new URL('../src/enemies/plans/kit.js', import.meta.url), 'utf8');
+  const calls = (src) => src.split('makeMaterial(').slice(1).map((c) => c.slice(0, c.indexOf('\n')));   // (to the end of its line)
+  assert.ok(calls(foes).length > 5 && calls(foes).every((c) => /key: [`']foe-/.test(c)), 'src/foes.js');
+  assert.ok(calls(kit).length >= 2 && calls(kit).every((c) => /key: `arch\./.test(c)), 'the kit');
 });

@@ -650,6 +650,17 @@ the after-run is [visual-v1.20](../audits/visual-v1.20.md).
   in four places (its foot out to 32.8 m, the floor to 32): its floor's lathe now runs to `ROOM + 4`. The seams probe:
   the Hearth's longest sky-white line 44-73 px → none (the 73 px it still reports at High is a glowing floor mark);
   `tests/cave-seams.test.js` (the floor reaches past each dome's foot).
+- **A jagged spot-black halo round the makers' drones in the temple halls**, moving with them (incal, edena, spheres;
+  both presets). A foe isn't a person, so the enclosure counted the taps landing on a hovering machine as standing in
+  front of the wall behind it. Foes are now **movers**: gHatch.a + 64 (`uMover`; materials.js `MOVER`, `isMover`:
+  every material keyed 'foe-...' in src/foes.js or 'arch....' in the roster's kit, or made with `{ mover: true }`; the
+  scout drone is the player's, marked hero since v0.17, so a person already).
+  The spot taps and the crease shading see past a mover as they see past a person (`notStanding`), unless the point
+  is on a mover itself (`self`: a machine's own pockets keep their spot blacks). Every reader of gHatch.a takes the
+  64 off first (the main decode, the line kernel's drift test; the others read it mod 16). The glow under a mover's
+  flag is held to 1/16 steps by the half-float target (a foe's eye at 0.6 reads 0.5625-0.625: under the lights'
+  0.62 threshold either way). The probe's machine in a City-Shaft temple hall (incal, High): the halo gone, the
+  machine's own legs and plates still black (`tests/ground-ink.test.js`, `tests/occlusion-taps.test.js`).
 
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 

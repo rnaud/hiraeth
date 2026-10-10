@@ -37,8 +37,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
-- [ ] Hovering makers' drones in the temple halls draw a jagged spot-black halo on the wall behind them, moving with
-  them: give them (and other moving props near walls) the figure flag, or leave them out of the enclosure as people are.
 - [ ] Small square steps in the spot mass at the temple halls' pillar feet (Edena, High): check with the motion check's
   swing on a hall.
 - [ ] A spot-black blob in the traveller's own cast shadow on open sand by the ship: check `notPerson` for the taps

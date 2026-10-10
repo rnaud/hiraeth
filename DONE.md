@@ -2015,3 +2015,6 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   the wall. The floor now runs 3.5 m past the hall under the whole foot (src/desert-hearth.js `HEARTH.floorOut`,
   `hallDome`); the giant's heart had the same gap in four places, its floor now runs to ROOM + 4. The seams probe:
   no sky-white line left; tests/cave-seams.test.js.
+- [x] Hovering makers' drones in the temple halls drew a jagged spot-black halo on the wall behind them: foes are now
+  movers (gHatch.a + 64, materials.js `MOVER`: the 'foe-' and 'arch.' material keys), seen past by the spot taps and
+  the crease shading as people are, their own pockets kept (post.js `notStanding`). The incal hall's machine: no halo.
