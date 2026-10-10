@@ -65,8 +65,9 @@ export function setupEdena(ctx) {
   quests.locate('veil', () => veilLook);
   quests.locate('veilLook', () => veilLook);
   quests.locate('lookout', () => T.lookout);
-  // the seed: on the pond's far shore (west), where the bank comes out of the water
-  const P = E.pond, dir = V(-0.8, 0, -0.6).normalize();
+  // the seed: on the pond's south shore, where the bank comes out of the water (the level design audit's fifth round:
+  // on the far west shore it lay 160 m from anything; here it is in sight of the walk to the fallen ship and the runnel)
+  const P = E.pond, dir = V(0.5, 0, -0.87).normalize();
   let r = 0;
   while (r < P.r * 1.4 && ground(P.x + dir.x * r, P.z + dir.z * r) < P.y + 0.15) r += 1;
   const seedAt = onGround(P.x + dir.x * (r + 2), P.z + dir.z * (r + 2));

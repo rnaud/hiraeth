@@ -56,7 +56,7 @@ export const QUESTS = [
     id: 'edena.seed', title: 'The Pyramid Seed', world: 'edena',
     outro: 'A small white pyramid stands where the seed was planted. It will take a thousand years to be big.',
     stages: [
-      { id: 'find', text: 'Oro’s pyramid seed rolled away downhill, toward water: look along the pond’s far shore', label: 'The pyramid seed', bring: 'seed', at: 'seed', to: 'oro' },
+      { id: 'find', text: 'Oro’s pyramid seed rolled away downhill, toward water: look along the pond’s south shore', label: 'The pyramid seed', bring: 'seed', at: 'seed', to: 'oro' },
       { id: 'return', text: 'Bring the seed back to Oro by the white ruins', label: 'Oro, by the ruins', bring: 'seed', to: 'oro' },
       { id: 'water', text: 'Water the planted seed (shoot)', label: 'The planted seed', flag: 'edena.seed.watered', at: 'sprout' },
     ],
@@ -258,7 +258,7 @@ export const PEOPLE = {
           ],
         },
         seeds: {
-          say: ["~neutral~ A little white, stepped seed rolled downhill from my hand. They seek water. Look on the pond’s far shore, west of your landing."],
+          say: ["~neutral~ A little white, stepped seed rolled downhill from my hand. They seek water. Look along the pond’s south shore, south-west of your landing, past where the white runnel comes down."],
           choices: [{ text: '~happy~ I’ll look for it.', do: { start: 'edena.seed' }, goto: 'thanks' }, { text: '~neutral~ Maybe later.', end: true }],
         },
         androids: {
@@ -266,7 +266,7 @@ export const PEOPLE = {
           choices: [{ text: '~curious~ Pyramids grow from seeds, you said?', goto: 'seeds' }],
         },
         thanks: { say: ["~happy~ Please do! *The seed glows when you get close.* Bring it back. We can plant it together, and I can finally stop searching the grass."], choices: [{ text: '~happy~ Back soon.', end: true }] },
-        waiting: { say: ["~neutral~ The far shore of the pond, west of the landing. Look for a faint glow as you approach."], choices: [{ text: '~neutral~ On my way.', end: true }] },
+        waiting: { say: ["~neutral~ The pond’s south shore, south-west of the landing. Look for a faint glow as you approach."], choices: [{ text: '~neutral~ On my way.', end: true }] },
         back: {
           say: ['~happy~ My seed! You found it. Look at it, all its little steps.', "~whisper~ (Oro kneels and presses the seed gently into the soil.)", "~playful~ Now *shoot a little fluid onto the seed*. A pyramid’s first drink is an occasion."],
           do: [{ take: 'seed' }, { advance: 'edena.seed' }, { set: { 'edena.seed.planted': true } }],

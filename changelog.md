@@ -4,6 +4,7 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.23 — 2026-10-10
 
+- In Viridel, Oro’s pyramid seed now rolls down to the pond’s south shore, in sight of the way to the fallen ship and the white runnel, instead of hiding on its far west bank.
 - Halfway down the cypress avenue, two small spheres face each other across the road: splash one and the other rings back.
 - A white meadow path now runs from the sphere-arch round the meadow pyramid to the grove, and Ume sends you home by it, past a little sphere at the pyramid’s foot that Emrys practises on, his handprints all the way up its side.
 - In the Garden of Spheres, Emrys, who climbs everything, now stands on top of the meadow pyramid by the head of its stair, in sight of the path to the sphere-arch, shouting about the view. Go up and he will show you the whole garden.
