@@ -25,8 +25,10 @@ import { gardenerModel } from './guardians.js';
 //   the Glass Stair      one louvre, one ball, two places: on the west plate the sun falls on an eye high on the
 //                        wall (the landing's door wants it), on the east plate on the disc over the root-wall (it
 //                        rides only in the sun). The eye stays open once woken; the disc does not ride in the shade
-//   the Seed Chamber     the makers' chest: BLOOM MODE (src/items.js 'bloom', a new gun mode). The way on is a
-//                        flower-door in a sunbeam: a bloom glob opens it (the gadget alone, where failing is cheap)
+//   the Seed Chamber     the makers' chest: BLOOM MODE (src/items.js 'bloom', a new gun mode). Its way on is open;
+//                        a seed in a stone ring lies in the oculus's sun by the dais: bloom it, and it flowers (a try)
+//   the Bud Passage      a room on: the door into the Vine Gulf is a flower-door in a sunbeam: a bloom glob opens it
+//                        (the gadget alone, where failing is cheap)
 //   the Vine Gulf        the reference's hall: a chasm under a ribbed glass vault. The great louvre's beam falls
 //                        into the green dark below; the seed at the near lip is in the shade (bloomed, it sprouts
 //                        pale and folds back). The sun-ball on the near ledge turns the louvre: the beam swings up
@@ -63,7 +65,7 @@ export const LOGIC = {
     { a: 'potting', b: 'stair', door: 'd1' },
     { a: 'stair', b: 'landing', door: 'lift' },        // the disc over the root-wall: it rides only in the sun
     { a: 'landing', b: 'seed', door: 'd2' },
-    { a: 'seed', b: 'gulf', door: 'd3' },
+    { a: 'seed', b: 'gulf', door: 'd3' },              // the Bud Passage's flower-door, a room on from the chest (one room with it)
     { a: 'gulf', b: 'gulfFar', door: 'vine1' },        // the vine bridge
     { a: 'gulfFar', b: 'hall', door: 'd4' },           // up the vine on the glass, into the bud it opens
     { a: 'hall', b: 'out', door: 'd5' },
@@ -82,7 +84,8 @@ export const LOGIC = {
     lift: { type: 'door', opens: { drumOn: ['ball2', 'pE'] } },
     d2: { type: 'door', opens: { lit: 's2' }, latch: true },
     chest: { type: 'gadget', room: 'seed', item: 'bloom' },
-    bud1: { type: 'switch', room: 'seed', needs: ['bloom'] },      // the flower-door, in a sunbeam
+    seed0: { type: 'switch', room: 'seed', needs: ['bloom'] },     // the seed in the chamber's sun: a try, nothing waits on it
+    bud1: { type: 'switch', room: 'seed', needs: ['bloom'] },      // the passage's flower-door, in a sunbeam
     d3: { type: 'door', opens: { lit: 'bud1' }, latch: true },
     // the Vine Gulf: the light brought to the seed, then the seed brought to the light
     sun: { type: 'drum', room: 'gulf', plate: 'pS', plateAt: 1, start: 0 },
@@ -252,13 +255,22 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: 18, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.4 });
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 18, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 18.31, C3));
   for (const [x, z] of [[-6, C3 - 3], [6, C3 - 3], [-6.4, C3 + 3.5], [6.4, C3 + 3.5]]) pot(x, 18, z, 0.7, true);
-  add(Bud, { id: 'd3', bloom: 'bud1', at: [0, 18, C3 + 10.0], w: 5, h: 6.4 });
-  add(Sunbeam, { from: [0, 31.2, C3 + 1.5], w: 2.6, spots: [{ at: [0, 18.02, C3 + 7.6], r: 2.4 }] });   // (the bud in the sun: bloom it)
+  // a seed in a stone ring, in the oculus's sun beside the dais: bloom it and it flowers (a try: nothing waits on it)
+  add(Seed, { id: 'seed0', at: [-4.2, 18, C3 + 4.2], size: 0.8, seed: 2 });
+  add(Sunbeam, { from: [-1.4, 31.2, C3 + 1.4], w: 2.2, spots: [{ at: [-4.2, 18.02, C3 + 4.2], r: 2.0 }] });
   add(Mark, { room: 'seed', at: [6, 18, C3 - 5], yaw: -Math.PI * 0.75 });
 
+  // ---- the Bud Passage (floor 18), a room on: the door into the Vine Gulf is a bud in a sunbeam
+  const A0 = C3 + 10.9;
+  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 18, 0.8);
+  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 18, h: 10, roof: 'oculus', oculus: 0.4, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
+  for (const s of [-1, 1]) pot(s * 4.4, 18, A0 + 3, 0.6, true);
+  const G0 = A0 + 12 + 1.2;
+  add(Bud, { id: 'd3', bloom: 'bud1', at: [0, 18, G0 - 0.6], w: 5, h: 6.4 });
+  add(Sunbeam, { from: [0, 28.6, A0 + 6.4], w: 2.4, spots: [{ at: [0, 18.02, G0 - 3.0], r: 2.4 }] });   // (the bud in the sun: bloom it)
+
   // ---- the Vine Gulf: from the ledge at 18 across a chasm (a seed grows the bridge); a glass wall up to 27 (a seed grows a vine up it)
-  const G0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 9.2, 3.2, G0 + 0.6, 18, 0.8);
+  K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 18, 0.8);
   K.hall({ x: 0, z: G0 + 22, w: 22, d: 44, y: -6, h: 44, floor: false, roof: false, doors: [{ side: 's', w: 5, h: 6.4, y0: 24 }, { side: 'n', w: 5, h: 6.4, y0: 33 }] });
   // its roof a barrel vault of greenhouse glass on white ribs, the daylight through it (the picked hall)
   const vaultM = makeMaterial({ color: '#d8efe6', glow: 0.22, flat: true, side: THREE.DoubleSide, key: 'temple.edena.vault' });

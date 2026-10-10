@@ -112,9 +112,10 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   the white ruins (`level.edena.ruins`, two instanced pools whose counts grow)
   and on the dome. The **Undertower** (`bazaar.js`) through an old doorway in
   the silent tower's back (reworked from the temple design audit: "Notes that
-  travel" below): the singing ball and the dish pair over the cable pit, the
-  riding well and its horn for the low stone, the **echo shell**, the low note
-  carried up to the door, the held pillar bridge, the far door that listens
+  travel" below): the singing ball and the dish pair, whose note raises the
+  pillars over the cable pit (v1.27: no disc), the riding well and its horn for
+  the low stone, the **echo shell**, the chamber's low stone carried a room on to
+  the Listening Passage's door, the held pillar bridge, the far door that listens
   through a dish, the **First Sign** (`signModel`: it cries one word of its
   line; when it lowers its dish, play the word back into it and it says the
   next); after, a lamp on the silent tower, and once a night it speaks the line.
@@ -157,6 +158,13 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   starts) and stay put once home (`lock`). The Belfry's bridge opens on `{ any: [the held bell, the
   ball on the far plate] }`, so the ball's weight holds it for good. The audit reads a held bell as a
   timing and as a state that changes back (`scripts/temple-design/lib.mjs`).
+  Before the whistle (v1.27) the house teaches it with its own bell: in the Stone Stair a `Ball` with `strike: { at }` is
+  a clapper; rolled to rest on its plate in the founders' bell's mouth it strikes the bell (a game `'bell'` event at
+  `at`; a splash on it as it lies there strikes again), whose held element `e0` (`when` the ball is in the mouth) brings
+  down a `FallUpStone` (arzach2.js: a `Platform` that comes down only while its `held` condition holds and falls up
+  again, carrying its rider, when it fails) to lift you to the high door. The Bell Chamber's own bell is a try (three
+  stones from `'above'` come down round the dais while it rings; nothing waits on them); the held door is a room on, in
+  the Bell Porch.
 - **The pool-orb** (the Lamp-House, from the same audit): a `Ball` with `lamp: { id }` is a glass orb of
   pool water. Stood by at rest with the lantern for `hold` s it glows for `lasts` s; at rest on its plate
   while it glows it lights element `id` (a lantern `switch`, shown by a `LightEar` with `reach: 0`, which
@@ -164,7 +172,9 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   dead state), and it only locks in its socket once its lamp is lit. With `lamp.pool: { id, at, reach }` it also
   drinks a lit pool's light, resting beside it: the Root Stair's disc (v1.12) waits for such an orb, rolled from
   the Hall of Dark Pools through the doorway (`gap` on the door `d1`: it stops at the shut door), so light is
-  carried before the chest, and the gallery's niche twists it with the lantern where no pool is.
+  carried before the chest, and the gallery's niche twists it with the lantern where no pool is. Since v1.27 the
+  socket's lamp wakes moss-stones sunk in the dark pool instead of a disc (a `Bridge` with `glow`: drawn glowing, as a
+  hidden bridge is, but there for everyone).
 - **Shortcuts back** (v1.12): the Hush-House's Pendulum Gallery has a keeper's ledge along its east wall from the
   far landing to a gate by the near one, its footstone (`ps`) behind the gate: a second link between the two
   landings (`ds`) that only the far side can open, so the walk back never means the pendulums again.
@@ -210,7 +220,9 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   shut while its `when` fails) that the great vane in the floor lifts, and opens the `Iris` in the ceiling (blades
   that slide back into it, solid while shut); the loft's ball is pushed over a gap from the air, hovering over the
   loft's great vane, and on its plate opens a second iris onto the crown, whose eye wants two vanes turning at once
-  (`when: { all: [vS, vC] }`: the small wall vane splashed first, then the great one hovered over before it slows).
+  (`when: { all: [vS, vC] }`: the small vane splashed first, then the great one hovered over before it slows). Since
+  v1.27 the small one (`vS`, 15 s) stands on a post in the loft below, seen from the crown down through the second iris
+  and splashed from the loft: a key a room away, in sight of its lock.
   The audit reads a vane as a splash (or its item) and a timing, a state that changes back, and a ball's `gap` as a
   key of its plate's lock (`scripts/temple-design/lib.mjs`). The warden's hall has four (`rt.hallVanes`,
   docs/systems/foes.md).
@@ -245,10 +257,21 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   counts it as a key a room back) shows the print; the Hall of the Unseen's `LensStones` are a field of stepping stones
   only the lens shows, the walker's holding, the rest crumbling a moment after you step on one (you fall, back to the
   mark; it rises again). A `Plate` may carry a `print` and be `hidden` (only the lens shows it): on the far landing the
-  sphere's `stops` are two plain prints and the walker's. The Still Pool's sphere floats (`Ball` `current`: the water
+  sphere's `stops` are two plain prints and the walker's. Since v1.27 the Hall of Spheres opens with the idea before the
+  lens: one sphere whose `stops` are carved prints of two, three and four toes, and three prints by the wall to stand
+  on; the door wants the sphere on the walker's and you on the walker's (`solve` tries a ball's stops with you standing
+  on each plate). The Still Pool's sphere floats (`Ball` `current`: the water
   draws it back unless a plate stills it, `pS`); the keepers' gallery runs from the far landing back to the Lens
   Chamber, its door (`sc`, hidden) opened by an eye on its far side. The Echo's resonant spheres wear the print on the
   one that answers (docs/systems/foes.md).
+- **A room on** (v1.27, the temple design audit's third rule): no temple's chest room has a gadget door any more. Its
+  way on is open into a short room of its own (the Belfry's Bell Porch, the Engine-House's Crank Passage, the
+  Undertower's Listening Passage, the Greenhouse's Bud Passage, the Hush-House's Snapping Passage, the Lamp-House's Lamp
+  Passage, the First Garage's Winding Passage), and the old door, with its key, stands at that room's far end: the
+  gadget's first lock, where a miss costs nothing. The chest room keeps a try where one was cheap (a target that
+  answers the gadget and locks nothing: the Bell Chamber's bell and its stones, the Fourth Chamber's four still eyes,
+  the Seed Chamber's seed in the sun, the Lantern Chamber's lamp, the Shell Chamber's low stone). In the logic the
+  passage is part of the chest's room (the way between is open, and nothing past the passage opens without the gadget).
 - Pieces can be `hidden` (Door, Switch, Bridge, Plate): only the glyph lens shows them.
   (`hidden: 'lantern'`: only the lantern charm's light.) `LightEar`: a lamp that
   wakes when you stand by it with the lantern; a temple with `dark: true` sets

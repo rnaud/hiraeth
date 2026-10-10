@@ -23,8 +23,10 @@ import { snapperModel } from './guardians.js';
 //                          not in the Choir: it was sung at the door (the Threshold's crystal, a room back)
 //   the Bog Well           a riding disc that climbs over dark water, then a wall of roots to climb; the door
 //                          at its top wants the eye on the root-wall's face, seen from the disc (not from the top)
-//   the Stilling Chamber   the makers' chest: the STILLING MODE (src/items.js 'stun'). The way on is a gate of
-//                          jaws that snaps, and snaps: a stilling glob stills it, and it rests open
+//   the Stilling Chamber   the makers' chest: the STILLING MODE (src/items.js 'stun'). Its way on is open
+//   the Snapping Passage   a room on, crystals grown up through its floor: the door into the gallery is a gate of
+//                          jaws that snaps, and snaps: a stilling glob stills it, and it rests open (the stilling
+//                          mode's first lock, where failing costs a nip)
 //   the Pendulum Gallery   a narrow bridge over a chasm, three crystal pendulums swinging across it (still
 //                          them, one by one, to cross); the far door wants their notes, and a pendulum's note
 //                          only takes stilled in turn, low to high, smallest crystal first, as the Choir taught.
@@ -60,7 +62,7 @@ export const LOGIC = {
     { a: 'threshold', b: 'choir' },
     { a: 'choir', b: 'well', door: 'd1' },
     { a: 'well', b: 'stilling', door: 'dw' },
-    { a: 'stilling', b: 'gallery', door: 'd2' },
+    { a: 'stilling', b: 'gallery', door: 'd2' },         // the Snapping Passage's jaws, a room on from the chest (one room with it)
     { a: 'gallery', b: 'galleryFar', needs: ['stun'] },   // the pendulums: still them to cross
     { a: 'galleryFar', b: 'hall', door: 'd3' },
     { a: 'galleryFar', b: 'gallery', door: 'ds' },        // the keeper's ledge back along the east wall: its gate opens from the far side
@@ -76,7 +78,7 @@ export const LOGIC = {
     sw: { type: 'switch', room: 'well' },                          // the eye on the root-wall's face
     dw: { type: 'door', opens: { lit: 'sw' }, latch: true },
     chest: { type: 'gadget', room: 'stilling', item: 'stun' },
-    j1: { type: 'switch', room: 'stilling', needs: ['stun'] },     // the jaws stilled
+    j1: { type: 'switch', room: 'stilling', needs: ['stun'] },     // the passage's jaws stilled
     d2: { type: 'door', opens: { lit: 'j1' }, latch: true },
     // the pendulums' notes, stilled in turn: smallest crystal (lowest) first
     w1: { type: 'switch', room: 'gallery', needs: ['stun'] },
@@ -243,13 +245,19 @@ function layout(rt) {
   // alone gave no top a ray from above could land on, so the chest sank into the dais: the QC pass)
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3), new THREE.CylinderGeometry(2.5, 2.5, 0.62, 28).translate(0, 9.31, C3));
   K.solid(new THREE.CylinderGeometry(3, 3, 0.3, 28).translate(0, 9.15, C3));
-  add(Jaw, { id: 'd2', still: 'j1', at: [0, 9, C3 + 10.1], w: 5.2, h: 6.4, seed: 1 });
   add(Mark, { room: 'stilling', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
   spike(-6.5, 9, C3 + 3, 4.5, 0.7, 0.25); spike(6.2, 9, C3 + 4, 3.2, 0.6, -0.2, 2);
 
-  // ---- the Pendulum Gallery (z 91..125): a narrow bridge over a chasm, three crystal pendulums across it
-  const G0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 9.2, 3.2, G0 + 0.6, 9, 0.8);
+  // ---- the Snapping Passage (floor 9), a room on: the door into the gallery is a gate of jaws
+  const A0 = C3 + 10.9;
+  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 9, 0.8);
+  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 9, h: 9, roof: true, omit: ['n'], doors: [{ side: 's', w: 5.4, h: 6.6 }] });
+  spike(-5, 9, A0 + 4, 3.6, 0.6, 0.2, 3); spike(5.1, 9, A0 + 8.5, 2.8, 0.5, -0.25, 4);
+
+  // ---- the Pendulum Gallery (z 104..138): a narrow bridge over a chasm, three crystal pendulums across it
+  const G0 = A0 + 12 + 1.2;
+  K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 9, 0.8);
+  add(Jaw, { id: 'd2', still: 'j1', at: [0, 9, G0 - 0.7], w: 5.2, h: 6.4, seed: 1 });
   K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 28, floor: false, roof: true, doors: [{ side: 's', w: 5.4, h: 6.6, y0: 12 }, { side: 'n', w: 5.4, h: 6.6, y0: 12 }] });
   K.slab(-11, G0, 11, G0 + 6, 9, 12);
   K.slab(-11, G0 + 26, 11, G0 + 34.4, 9, 12);

@@ -3,7 +3,7 @@ import { makeMaterial } from '../materials.js';
 import { registerTarget } from '../targets.js';
 import { glyphGeometry } from '../story/sign-text.js';
 import { TempleKit, T, box, lathe, annulus } from './kit.js';
-import { Door, Switch, LightEar, Platform, Bridge, Ball, Plate, Mark, Pit } from './pieces.js';
+import { Door, Switch, LightEar, Bridge, Ball, Plate, Mark, Pit } from './pieces.js';
 import { mothModel } from './guardians.js';
 
 // Lorn II's temple: the Lamp-House, a dark tower of the makers standing in the
@@ -18,13 +18,17 @@ import { mothModel } from './guardians.js';
 //   the Threshold           the first mark, the way out
 //   the Hall of Dark Pools  three pool-lamps for the door's three lamps: two on the floor, the third up on a
 //                           loft at the top of the west roots, out of sight from the floor (climb to find it)
-//   the Root Stair          a riding disc over a dark pool, still and dark until the lamp in its socket wakes,
-//                           and only light wakes it. A pool-orb waits in the Hall of Dark Pools beside a small
-//                           pool by the door; its groove runs through the doorway to the socket. Light the pool,
-//                           let the orb drink its light, then roll it through to the socket before it fades
-//                           (push + shot, before the chest: light can be carried); then a root-wall to climb
-//   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'). The door on is a
-//                           lamp that wakes when you stand by it with the lantern
+//   the Root Stair          a dark pool, and no way over it: moss-stones lie sunk in it, dark until the lamp in
+//                           their socket wakes, and only light wakes it. A pool-orb waits in the Hall of Dark Pools
+//                           beside a small pool by the door; its groove runs through the doorway to the socket.
+//                           Light the pool, let the orb drink its light, then roll it through to the socket before
+//                           it fades: the lamp catches and the moss-stones rise glowing out of the pool (push +
+//                           shot, before the chest: light can be carried, and light wakes the stones); then a
+//                           root-wall to climb
+//   the Lantern Chamber     the makers' chest: the LANTERN CHARM (src/items.js 'lantern'). Its way on is open; a
+//                           lamp by the dais wakes when you stand by it with the lantern (a try: nothing is locked)
+//   the Lamp Passage        a room on: the door into the gallery is a lamp that wakes when you stand by it with the
+//                           lantern, at the far end of a passage dark even to the lantern's light
 //   the Dark Gallery        a chasm crossed by moss-stones that only the lantern's light shows; an eye only it
 //                           shows, high over the way in (behind you as you cross, in sight from the far door);
 //                           and the far door's lamp, in a niche low in the west wall, wakes only to the
@@ -57,8 +61,8 @@ export const LOGIC = {
     { a: 'threshold', b: 'pools' },
     { a: 'pools', b: 'loft' },                                        // up the west roots
     { a: 'pools', b: 'roots', door: 'd1' },
-    { a: 'roots', b: 'lantern', door: 'disc' },                      // the disc over the dark pool, once its lamp is lit
-    { a: 'lantern', b: 'gallery', door: 'd2' },
+    { a: 'roots', b: 'lantern', door: 'disc' },                      // the moss-stones over the dark pool, once their lamp is lit
+    { a: 'lantern', b: 'gallery', door: 'd2' },                      // the Lamp Passage's door, a room on (one room with the chamber)
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'galleryFar', b: 'lamp', door: 'd4' },
     { a: 'lamp', b: 'out', door: 'd5' },
@@ -72,7 +76,8 @@ export const LOGIC = {
     l5: { type: 'switch', room: 'roots' },                            // the socket's lamp: it wakes to a glowing orb
     disc: { type: 'bridge', opens: { all: [{ lit: 's5' }, { drumOn: ['orb5', 'p5'] }, { lit: 'l5' }] }, latch: true },
     chest: { type: 'gadget', room: 'lantern', item: 'lantern' },
-    l1: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // a lamp that wakes to the lantern
+    l0: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // the lamp by the dais: a try, nothing waits on it
+    l1: { type: 'switch', room: 'lantern', needs: ['lantern'] },     // the passage's lamp that wakes to the lantern
     d2: { type: 'door', opens: { lit: 'l1' }, latch: true },
     br1: { type: 'bridge', opens: { item: 'lantern' } },             // moss-stones only its light shows
     s4: { type: 'switch', room: 'gallery', needs: ['lantern'] },     // an eye only its light shows, high on the near wall: seen from the far door, looking back
@@ -225,7 +230,7 @@ function layout(rt) {
   const pool2 = makeMaterial({ color: '#2a2f58', glow: 0.18, flat: true, key: 'temple.p2.deep' });
   K.add(pool2, T(new THREE.CylinderGeometry(9.8, 9.8, 0.2, 32), [0, -2.4, C2]));
   add(Pit, { room: 'roots', min: [-11, -8, C2 - 7], max: [11, -1.5, C2 + 3] });
-  add(Platform, { id: 'disc', path: [[0, 0, C2 - 4.8], [0, 0, C2 + 0.6]], r: 2.2, speed: 1.6, pause: 1.6, when: { open: 'disc' } });
+  add(Bridge, { id: 'disc', a: [0, 0, C2 - 7.15], b: [0, 0, C2 + 2.95], w: 3.0, n: 6, glow: { color: '#8fd6a8', k: 0.5 } });   // moss-stones, sunk in the pool
   add(Plate, { id: 'p5', at: [1.4, 0, 49.4], r: 1.0 });
   add(LightEar, { id: 'l5', at: [2.9, 0, 49.4], reach: 0 });   // (the disc's lamp: only the glowing orb wakes it)
   root([[-6, 9, C2 + 3.2], [-5, 5, C2 + 3.1], [-6.2, 1, C2 + 3.15], [-6, -3, C2 + 3.1]], 0.45);
@@ -243,13 +248,21 @@ function layout(rt) {
   // alone gave no top a ray from above could land on, so the chest sank into the dais: the QC pass)
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 9, C3), new THREE.CylinderGeometry(2.5, 2.5, 0.62, 28).translate(0, 9.31, C3));
   K.solid(new THREE.CylinderGeometry(3, 3, 0.3, 28).translate(0, 9.15, C3));
-  add(Door, { id: 'd2', at: [0, 9, C3 + 10.2], w: 5, h: 6.4, lamps: [{ lit: 'l1' }] });
-  add(LightEar, { id: 'l1', at: [2.6, 9, C3 + 8.4], reach: 3.6 });
+  add(LightEar, { id: 'l0', at: [-5.4, 9, C3 + 3.4], reach: 3.6 });   // (a try: it wakes to the lantern, and nothing waits on it)
   add(Mark, { room: 'lantern', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
 
-  // ---- the Dark Gallery (z 91..125): a chasm, moss-stones only the lantern shows, an eye only it shows
-  const G0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 10.1, 3.2, G0 + 0.6, 9, 0.8);
+  // ---- the Lamp Passage (floor 9), a room on: the door into the gallery is a lamp that wakes to the lantern
+  const A0 = C3 + 10.9;
+  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 9, 0.8);
+  K.hall({ x: 0, z: A0 + 6, w: 10, d: 12, y: 9, h: 8, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
+  root([[-4.6, 17, A0 + 2], [-4.2, 13, A0 + 4.5], [-4.7, 9, A0 + 3.6]], 0.35);
+  root([[4.5, 17, A0 + 8], [4.1, 12, A0 + 9.5], [4.6, 9, A0 + 8.4]], 0.3);
+
+  // ---- the Dark Gallery (z 104..138): a chasm, moss-stones only the lantern shows, an eye only it shows
+  const G0 = A0 + 12 + 1.2;
+  K.slab(-3.2, G0 - 1.6, 3.2, G0 + 0.6, 9, 0.8);
+  add(Door, { id: 'd2', at: [0, 9, G0 - 0.6], w: 5, h: 6.4, lamps: [{ lit: 'l1' }] });
+  add(LightEar, { id: 'l1', at: [3.6, 9, G0 - 2.6], reach: 3.0 });   // (beside the door, not on the way to it: you go and stand by it)
   K.hall({ x: 0, z: G0 + 17.2, w: 22, d: 34.4, y: -3, h: 24, floor: false, roof: true, doors: [{ side: 's', w: 5, h: 6.4, y0: 12 }, { side: 'n', w: 5, h: 6.4, y0: 12 }, { side: 'w', at: 12.8, w: 2.8, h: 2.8, y0: 12 }] });
   K.slab(-11, G0, 11, G0 + 6, 9, 12);
   K.slab(-11, G0 + 26, 11, G0 + 34.4, 9, 12);

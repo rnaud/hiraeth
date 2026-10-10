@@ -19,7 +19,11 @@ import { echoModel } from './guardians.js';
 //
 // Inside (built far overhead, through its door):
 //   the Threshold          the first mark, the way out
-//   the Hall of Spheres    two white spheres in grooves: roll both onto their plates
+//   the Hall of Spheres    where the walker set a sphere down, and where it stood: one white sphere in a groove that
+//                          runs past three prints carved in the floor (two toes, three, four), and three prints by
+//                          the east wall. The door wants the sphere on the walker's print and your weight on the
+//                          walker's print by the wall: three toes, like the Footprint outside and the print carved
+//                          over the door (the push and your weight, before the lens; the decoys plain to see)
 //   the Still Pool         a sphere floating in the sunken pool: push it across the still water onto the far berth,
 //                          and the stepping stones rise
 //   the Lens Chamber       the makers' chest: the GLYPH LENS (src/items.js 'lens'). Through it the wall shows the
@@ -66,10 +70,15 @@ export const LOGIC = {
   ],
   elements: {
     p1: { type: 'plate', room: 'spheres' },
-    p2: { type: 'plate', room: 'spheres' },
-    ball1: { type: 'drum', room: 'spheres', plate: 'p1', plateAt: 1, start: 0 },
-    ball2: { type: 'drum', room: 'spheres', plate: 'p2', plateAt: 1, start: 0 },
-    d1: { type: 'door', opens: { all: [{ pressed: 'p1' }, { pressed: 'p2' }] }, latch: true },
+    // the Hall of Spheres: the sphere set down on the walker's print (among two- and four-toed ones), and you standing
+    // on the walker's print by the wall
+    pa: { type: 'plate', room: 'spheres' },
+    pb: { type: 'plate', room: 'spheres' },
+    ball1: { type: 'drum', room: 'spheres', stops: { pa: 0.3, p1: 0.62, pb: 0.92 }, start: 0 },
+    pW: { type: 'plate', room: 'spheres' },
+    pX: { type: 'plate', room: 'spheres' },
+    pY: { type: 'plate', room: 'spheres' },
+    d1: { type: 'door', opens: { all: [{ drumOn: ['ball1', 'p1'] }, { pressed: 'pW' }] }, latch: true },
     // the Still Pool: the water stirs and draws the floating sphere back, unless you stand on the stone that stills it;
     // pushed across onto its berth meanwhile, it raises the stepping stones
     pS: { type: 'plate', room: 'pool' },
@@ -243,17 +252,17 @@ function layout(rt) {
   add(Mark, { room: 'threshold', at: [-4.6, 0, 6], yaw: Math.PI / 2 });
   K.wall(-12.2, 12.6, 12.2, 12.6, 0, 13, { t: 1.2, holes: [{ at: 12.2, w: 6, h: 7 }] });
 
-  // ---- the Hall of Spheres (z 12.6..44): two white spheres in two grooves
+  // ---- the Hall of Spheres (z 12.6..44): one white sphere in a groove past three carved prints; three prints by the
+  // east wall; the walker's print (three toes) carved over the door
   K.hall({ x: 0, z: 28.3, w: 22, d: 31.4, y: 0, h: 13, roof: 'oculus', oculus: 0.25, columns: 3, omit: ['s'], doors: [{ side: 'n', w: 5, h: 6.6 }] });
-  for (const [x, z0, z1] of [[-5, 20, 39], [5, 16, 39]]) {
-    K.add(M.dark, box(1.0, 0.04, z1 - z0, x, 0.02, (z0 + z1) / 2));
-    for (const s of [-1, 1]) K.add(M.trim, box(0.25, 0.12, z1 - z0, x + s * 0.75, 0.06, (z0 + z1) / 2));
-  }
-  add(Ball, { id: 'ball1', a: [-5, 0.04, 20], b: [-5, 0.04, 39], r: 1.2 });
-  add(Ball, { id: 'ball2', a: [5, 0.04, 16], b: [5, 0.04, 39], r: 0.9 });
-  add(Plate, { id: 'p1', at: [-5, 0, 39], r: 1.4 });
-  add(Plate, { id: 'p2', at: [5, 0, 39], r: 1.1 });
-  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.6, lamps: [{ pressed: 'p1' }, { pressed: 'p2' }] });
+  const SZ0 = 18, SZ1 = 40.4, SL = SZ1 - SZ0;
+  K.add(M.dark, box(1.0, 0.04, SL, -4, 0.02, (SZ0 + SZ1) / 2));
+  for (const s of [-1, 1]) K.add(M.trim, box(0.25, 0.12, SL, -4 + s * 0.75, 0.06, (SZ0 + SZ1) / 2));
+  add(Ball, { id: 'ball1', a: [-4, 0.04, SZ0], b: [-4, 0.04, SZ1], r: 1.2 });
+  for (const [id, t, toes] of [['pa', 0.3, 2], ['p1', 0.62, 3], ['pb', 0.92, 4]]) add(Plate, { id, at: [-4, 0, SZ0 + SL * t], r: 1.4, print: toes });
+  for (const [id, z, toes] of [['pX', 22, 4], ['pW', 29, 3], ['pY', 36, 2]]) add(Plate, { id, at: [7.4, 0, z], r: 1.3, print: toes });
+  K.add(M.glyph, T(printGeometry(3, 2.4).rotateX(-Math.PI / 2), [0, 9.6, 43.95]));   // the walker's print over the door
+  add(Door, { id: 'd1', at: [0, 0, 44.6], w: 5, h: 6.6, lamps: [{ drumOn: ['ball1', 'p1'] }, { pressed: 'pW' }] });
   add(Mark, { room: 'spheres', at: [-7.5, 0, 15.5], yaw: Math.PI / 2 });
 
   // ---- the Still Pool (z 44..74): a sunken pool, a sphere floating in it, stepping stones that rise

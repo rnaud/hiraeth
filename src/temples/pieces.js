@@ -296,7 +296,9 @@ export class Ball {
    * stand; burning, it burns them as it reaches them and rolls on),
    * current: { pull, still, stirs, stilled } (a sphere floating in a pool that stirs, the Footprint's: the water draws it
    * back toward the groove's start at `pull` m/s² unless condition `still` holds (a plate stood on stills the pool);
-   * at rest on its plate (a berth) it stays) }
+   * at rest on its plate (a berth) it stays),
+   * strike: { at, reach } (a clapper, the Founders' Belfry: rolled to rest on its plate in a bell's mouth it strikes the
+   * bell at `at`, a game 'bell' event there; and a splash on it as it lies there rocks it and strikes again) }
    * Its element (logic.js) may have `stops`: several plates along the groove, and it settles into whichever it slows by.
    */
   constructor(rt, o) {
@@ -370,6 +372,8 @@ export class Ball {
     }
     if (this.o.tar && mode === 'fire') { this.ignite(); return true; }   // (a tar ball catches: it doesn't roll for it)
     if (!dir) return false;
+    // a clapper lying in its bell's mouth: a splash rocks it, and it strikes the bell again
+    if (this.o.strike && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate)) { this.wobble = 0.4; this.strike(); return true; }
     if (this.o.lock && this.rest && this.rt.logic.drumOn(this.id, this.rt.logic.el(this.id)?.plate) && (!this.o.lamp || this.rt.logic.isLit(this.o.lamp.id))) { this.wobble = 0.4; return true; }   // (settled in its socket)
     if (this.drop) return true;
     if (this.o.sings && mode !== 'push') this.sing();   // (a singing ball: a splash makes it sing, and nudges it)
@@ -379,6 +383,13 @@ export class Ball {
     this.v += Math.sign(along) * k * Math.min(1, Math.abs(along) + 0.3);
     this.rest = false;
     this.rt.sound?.critter?.('creak', 0.7);
+    return true;
+  }
+  /** A clapper (o.strike): it strikes its bell, a game 'bell' event at the bell (heard by its BellEar). */
+  strike() {
+    this.strikeAt ??= this.rt.kit.world(...this.o.strike.at);
+    this.rt.sound?.critter?.('clack', 0.8);
+    this.rt.game?.emit?.('bell', { pos: this.strikeAt.clone(), reach: this.o.strike.reach ?? 12, struck: true });
     return true;
   }
   /** A singing ball (o.sings: a note of NOTES): it sings like a singing stone, from where it lies. */
@@ -449,7 +460,7 @@ export class Ball {
     this.solid.vel.copy(this.dir).multiplyScalar(this.v);
     if (Math.abs(this.v) < 0.05 && (near < 0.05 || near > 1.6) && !(this.pulled && this.t > 0.004)) {
       this.v = 0; this.rest = true;
-      if (L.moveDrum(this.id, this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) this.rt.sound?.chime?.();
+      if (L.moveDrum(this.id, this.t) && [e?.plate, ...Object.keys(e?.stops ?? {})].some((p) => p && L.drumOn(this.id, p))) { this.rt.sound?.chime?.(); if (this.o.strike && L.drumOn(this.id, e.plate)) this.strike(); }
     }
   }
   /** A pool-orb: it catches the lantern's light, glows a while, and on its plate, glowing, wakes its lamp. */
@@ -2083,6 +2094,7 @@ export class Bridge {
    * note fading) sinks back, the far stones first, but not while someone stands on it: it waits for them.
    * from 'above': the stones hang high over the gap (they fell up), bobbing, and come down into place.
    * from 'grow' (a vine bridge, Viridel's bloom): woven vine that grows out from `a`, a span at a time.
+   * glow: { color, k } stones of glowing moss (the Lamp-House's, lit by the orb's lamp), drawn as a hidden bridge is.
    */
   constructor(rt, o) {
     this.rt = rt; this.id = o.id;
@@ -2111,7 +2123,7 @@ export class Bridge {
         if (flowers.length) g.add(mesh(flowers, this.bloomM));
       } else {
         const deep = o.pillar ? o.pillar * (0.8 + 0.4 * ((i * 7) % 5) / 4) : 0;   // (pillars: each its own depth, as the Undertower's rise out of the dark)
-        g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), deep ? box(w - 0.3, deep, L / n - 0.3, 0, -1 - deep / 2, 0) : box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden ? (this.ghost ??= own({ color: rt.P.glow ?? '#a8e6ee', glow: 0.45, flat: true })) : M.floor));
+        g.add(mesh([box(w, 1.0, L / n - 0.08, 0, -0.5, 0), deep ? box(w - 0.3, deep, L / n - 0.3, 0, -1 - deep / 2, 0) : box(w + 0.3, 0.25, L / n - 0.05, 0, -1.05, 0)], o.hidden || o.glow ? (this.ghost ??= own({ color: o.glow?.color ?? rt.P.glow ?? '#a8e6ee', glow: o.glow?.k ?? 0.45, flat: true })) : M.floor));
         g.add(mesh([T(glyphGeometry(w * 0.5, 0.04).rotateX(-Math.PI / 2), [0, 0.01, 0])], M.glyph));
       }
       this.root.add(g);

@@ -104,6 +104,16 @@ test('a key out of sight, a room away, combined with an older verb, reads as les
   assert.equal(skeleton(g), 'BCXK');
 });
 
+test('the line of sight is drawn for a lock: it is told which link it faces (doors come through can stand open)', () => {
+  const T = structuredClone(LINEAR);
+  const asked = new Set();
+  const los = (a, b, link) => { asked.add(link?.door ?? null); return link?.door !== 'd2'; };
+  const g = puzzleGraph(T, LIN_PIECES, { los });
+  assert.ok(asked.has('d2') && !asked.has(null), `every sight line knows its lock (${[...asked].join(', ')})`);
+  assert.ok(g.locks.find((l) => l.id === 'd2').keys.every((k) => k.visible === false), 'and may answer for that lock alone');
+  assert.ok(g.locks.filter((l) => l.id !== 'd2').every((l) => l.keys.every((k) => k.visible !== false)));
+});
+
 test('a loop back to the start counts, and a guardian that asks for the gadget and the push examines the temple', () => {
   const T = structuredClone(LINEAR);
   T.links.push({ a: 'c', b: 'a', door: 'sc' });

@@ -28,9 +28,11 @@ import { foremanModel } from './guardians.js';
 //                        its socket at the wall's foot, and the counterweight is a stone ball still waiting on the
 //                        Escapement's far landing, its groove running through into the well (a room away, out of
 //                        sight from the door)
-//   the Coil Chamber     the makers' chest: the QUICK COIL (src/items.js 'coil'). The door on is ringed by six
-//                        eyes that wake only together, inside one breath (4.6 s): three shots, a refill, three
-//                        more; the tank refills too slowly without the coil
+//   the Coil Chamber     the makers' chest: the QUICK COIL (src/items.js 'coil'). Its way on is open
+//   the Winding Passage  a room on, its walls lined with the makers' springs: the door into the gallery is ringed by
+//                        six eyes that wake only together, inside one breath (4.6 s): three shots, a refill, three
+//                        more; the tank refills too slowly without the coil (the coil's first lock, where failing
+//                        costs a breath)
 //   the Clock Gallery    the key hall, after its reference: a chasm with the makers' cogs turning in the dark,
 //                        a great clock face on the far wall that has lost its hands, six eyes round it. The bridge
 //                        wants all six inside one breath (the coil) and in turn, counted round from the hour the
@@ -67,7 +69,7 @@ export const LOGIC = {
     { a: 'esc', b: 'escFar', door: 'discs' },     // the escapement's disc, once the eye is splashed
     { a: 'escFar', b: 'well' },
     { a: 'well', b: 'coil', door: 'd2' },
-    { a: 'coil', b: 'gallery', door: 'd3' },
+    { a: 'coil', b: 'gallery', door: 'd3' },       // the Winding Passage's door, a room on from the chest (one room with it)
     { a: 'gallery', b: 'galleryFar', door: 'br1' },
     { a: 'galleryFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
@@ -82,7 +84,7 @@ export const LOGIC = {
     p1: { type: 'plate', room: 'well' },
     d2: { type: 'door', opens: { drumOn: ['ball1', 'p1'] }, latch: true },   // (the ball's weight: the winding's counterweight)
     chest: { type: 'gadget', room: 'coil', item: 'coil' },
-    k1: { type: 'switch', room: 'coil', needs: ['coil'] },        // six eyes in one breath: two tanks
+    k1: { type: 'switch', room: 'coil', needs: ['coil'] },        // the passage's six eyes in one breath: two tanks
     d3: { type: 'door', opens: { lit: 'k1' }, latch: true },
     k2: { type: 'switch', room: 'gallery', needs: ['coil'], order: true },   // six in one breath, in turn from four
     br1: { type: 'bridge', opens: { lit: 'k2' }, latch: true },
@@ -251,15 +253,21 @@ function layout(rt) {
   // copper coils round the walls, warm
   const copper = { paint: new THREE.Color('#d9643a'), smooth: false, side: THREE.FrontSide };
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) K.add(copper, T(new THREE.TorusGeometry(0.9, 0.18, 6, 18), [s * 8.6, 11 + i * 0.6, C3 + 2], [0, Math.PI / 2, 0]));
-  add(Door, { id: 'd3', at: [0, 9, C3 + 10.2], w: 5, h: 6.4, lamps: [{ lit: 'k1' }] });
-  add(Bank, { id: 'k1', eyes: [[-3.6, 10.6], [-3.6, 13.6], [3.6, 10.6], [3.6, 13.6], [-1.5, 16.6], [1.5, 16.6]].map(([x, y]) => ({ at: [x, y, C3 + 9.3], yaw: Math.PI })), window: VOLLEY,
-    full: 'All six woke, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
-    fade: 'They woke, and went dark again before the rest. Six eyes, one breath: more than one tank can do.' });
   add(Mark, { room: 'coil', at: [6, 9, C3 - 5], yaw: -Math.PI * 0.75 });
 
+  // ---- the Winding Passage (floor 9), a room on: six eyes round the door into the gallery
+  const A0 = C3 + 10.9;
+  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 9, 0.8);
+  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 9, h: 10, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
+  for (const s of [-1, 1]) for (let i = 0; i < 5; i++) K.add(copper, T(new THREE.TorusGeometry(0.7, 0.14, 6, 16), [s * 5.6, 10.4 + i * 0.5, A0 + 4], [0, Math.PI / 2, 0]));
+  const F0 = A0 + 12 + 1.2;
+  add(Door, { id: 'd3', at: [0, 9, F0 - 0.6], w: 5, h: 6.4, lamps: [{ lit: 'k1' }] });
+  add(Bank, { id: 'k1', eyes: [[-3.6, 10.6], [-3.6, 13.6], [3.6, 10.6], [3.6, 13.6], [-1.5, 16.6], [1.5, 16.6]].map(([x, y]) => ({ at: [x, y, F0 - 1.5], yaw: Math.PI })), window: VOLLEY,
+    full: 'All six woke, and went dark again: the bank wants two tanks inside one breath, and this one fills too slowly.',
+    fade: 'They woke, and went dark again before the rest. Six eyes, one breath: more than one tank can do.' });
+
   // ---- the Clock Gallery: a chasm, a bridge a second bank of six raises (round a stopped clock face on the far wall)
-  const F0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 10.1, 3.2, F0 + 0.6, 9, 0.8);
+  K.slab(-3.2, F0 - 1.6, 3.2, F0 + 0.6, 9, 0.8);
   K.hall({ x: 0, z: F0 + 17.2, w: 22, d: 34.4, y: -6, h: 32, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 15 }, { side: 'n', w: 5, h: 6.4, y0: 15 }] });
   K.slab(-11, F0, 11, F0 + 6, 9, 15);
   K.slab(-11, F0 + 26, 11, F0 + 34.4, 9, 15);

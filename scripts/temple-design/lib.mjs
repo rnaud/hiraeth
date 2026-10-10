@@ -11,7 +11,8 @@
 //   planSvg(g, m)                                         a top-down plan: rooms, pieces, each lock's line to its keys
 //
 // pieces: [{ cls: 'Door' | 'Plate' | 'Ball' | 'Switch' | …, o: the options the layout gave (local metres) }]
-// los(a, b) -> true when b can be seen from a (local [x, y, z]); left out, everything counts as seen.
+// los(a, b, link) -> true when b can be seen from a (local [x, y, z]) as you stand to face that link's lock; left out,
+// everything counts as seen.
 
 /** A piece's position (local [x, y, z]) from whatever its options name. */
 export function piecePos(o = {}) {
@@ -137,7 +138,8 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
     if (r && !traversal[r].includes(t)) traversal[r].push(t);
   }
   const hops = roomDistances(rooms, links);
-  const seen = (a, b) => (los ? !!los(a, b) : true);
+  // (the link is passed on: whoever draws the line may open the doors you came through to reach the lock's room)
+  const seen = (a, b, l) => (los ? !!los(a, b, l) : true);
 
   // the locks: every door and bridge, and every link that asks for an item
   const locks = [];
@@ -196,7 +198,7 @@ export function puzzleGraph(logic, pieces = [], { los = null, order = null } = {
         ...k, pos: kp, clue,
         metres: where && lockPos ? +dist(where, lockPos).toFixed(1) : 0,
         rooms: k.how !== 'item' && k.how !== 'needs' && k.room && hops[l.a]?.[k.room] != null ? hops[l.a][k.room] : 0,
-        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]]) : true,
+        visible: where && stand ? seen(stand, [where[0], where[1] + 0.8, where[2]], l) : true,
         before: k.room && k.how !== 'item' && k.how !== 'needs' ? roomOrder.indexOf(k.room) < roomOrder.indexOf(l.a) : false,
       };
     });

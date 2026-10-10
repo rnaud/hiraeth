@@ -27,10 +27,10 @@ import { VOLLEY, FROM_FOUR } from '../src/temples/garage.js';
 import { resources } from '../src/resources.js';
 import { SITE as SITE_EDENA, SUN } from '../src/temples/edena.js';
 import { modeFor, allTargets, hitTarget } from '../src/targets.js';
-import { JETS_NEXT, jetsUsed } from '../src/temples/incal.js';
+import { JETS_NEXT, jetsUsed, VANES } from '../src/temples/incal.js';
 import { createEchoShell } from '../src/echo-shell.js';
-import { HOLD as BELFRY_HOLD } from '../src/temples/arzach2.js';
-const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones;
+import { HOLD as BELFRY_HOLD, FallUpStone } from '../src/temples/arzach2.js';
+const HOLD_DOOR = BELFRY_HOLD.door, HOLD_STONES = BELFRY_HOLD.stones, HOLD_STAIR = BELFRY_HOLD.stair, HOLD_CHAMBER = BELFRY_HOLD.chamber;
 import { HOLD as UNDERTOWER_HOLD } from '../src/temples/bazaar.js';
 const HOLD_HORN = UNDERTOWER_HOLD.horn;
 import { TempleKit } from '../src/temples/kit.js';
@@ -538,7 +538,7 @@ test('the Givers’ House on foot: the tar ball through the pilot flame into the
 });
 
 // ------------------------------------------------------------------ on foot: the City-Shaft's tower, room by room
-test('the Warden’s Well on foot: the vane and the discs, the slot and the ball, the jets, the great vane and the lidded eye, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye, the warden broken over a vane, the shaft’s breath', () => {
+test('the Warden’s Well on foot: the vane and the discs, the slot and the ball, the jets, the great vane and the lidded eye, the iris, the ball pushed over the gap from the air, two vanes at once for the crown’s eye (the little one in the loft below, too slow and in time), the warden broken over a vane, the shaft’s breath', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('incal');
@@ -755,14 +755,36 @@ test('the Warden’s Well on foot: the vane and the discs, the slot and the ball
   assert.ok(said(/two vanes/), 'it says what they want');
   land();
   for (let i = 0; i < 3 / DT && vC.turning; i++) frame();
-  // the small one alone: its splash, and it slows and stops before long
+  // the little vane is not in the crown: it stands on a post in the loft below, seen down through the second iris
+  assert.ok(rt.kit.local(vS.center).y < GK - 1 && rt.logic.el('vS').room === 'loft', 'the little vane stands in the loft');
+  {
+    const f2 = L(0, GK + 1.7, 81.4 + 8.5), d2 = vS.center.clone().sub(f2), l2 = d2.length();
+    assert.ok(physics.rayDistance(f2, d2.normalize(), l2) >= l2 - 1.2, 'seen from the crown by the high door, down through the iris');
+  }
+  // the small one alone: down in the loft, its splash, and it slows and stops before long
+  P.teleport(L(0, GC + 0.1, 81.4 - 6.2), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
   vS.hit('shoot');
   assert.equal(vS.turning, true, 'the little vane spins');
   assert.ok(!s4.lidsOpen(), 'still shut: the great one is still');
-  // the way: the small one first, then fly to the great one and hover while the small one still turns
   for (let i = 0; i < 20 / DT && vS.turning; i++) frame();
+  assert.equal(vS.turning, false, 'and it stops');
+  // too slow: splashed, then a long look round before flying up; it has stopped by the time the great one turns
   vS.hit('shoot');
-  assert.equal(walk(vC.center, { tol: 0.6 }), true);
+  wait(VANES.small - 3);
+  assert.equal(fly(GK + 3, [6.2, 81.4 + 5.4]), true, `up through the second iris onto the great vane (${where()})`);
+  walk(vC.center, { tol: 0.6, max: 2 });
+  assert.equal(hover(GK + 6.6), true);
+  holding(1);
+  assert.ok(!vS.turning && s4.lidK < 0.05, 'the little one stopped on the way up: the lids stay shut');
+  land();
+  for (let i = 0; i < 3 / DT && vC.turning; i++) frame();
+  // the way: splash the small one in the loft, then fly straight up to the great one and hover while it still turns
+  P.teleport(L(0, GC + 0.1, 81.4 - 6.2), V(0, 1, 0), V(0, 0, 1));
+  wait(0.3);
+  vS.hit('shoot');
+  assert.equal(fly(GK + 3, [6.2, 81.4 + 5.4]), true, `up through the second iris onto the great vane (${where()})`);
+  walk(vC.center, { tol: 0.6, max: 2 });
   assert.equal(hover(GK + 6.6), true);
   assert.ok(holding(1.2, () => s4.lidK > 0.95), `both turn: the lids lift (${vS.left.toFixed(1)} s of the little one left)`);
   {
@@ -843,7 +865,7 @@ test('the Warden’s Well on foot: the vane and the discs, the slot and the ball
 });
 
 // ------------------------------------------------------------------ on foot: Vael II's belfry, room by room
-test('the Founders’ Belfry on foot: two balls in the two stores, the riding stair and the eye under the landing, the bell, the held door, the held stones and the ball rolled across them, the Cloud-Mother calmed, the stones come down outside', () => {
+test('the Founders’ Belfry on foot: two balls in the two stores, the founders’ bell struck by a ball and the great stone that falls up (and without you), the eye under the landing, the bell, its try in the chamber, the porch’s held door a room on, the held stones and the ball rolled across them, the Cloud-Mother calmed, the stones come down outside', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('arzach2');
@@ -883,32 +905,67 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
   assert.equal(roll('ball2', 'p2'), true, `the east ball home (${rt.piece('ball2').t.toFixed(2)})`);
   wait(2.2);
   assert.equal(rt.logic.isOpen('d1'), true);
-  // ---- the Stone Stair: ride the first disc up to the ledge; the high door's eye is on the landing's face
+  // ---- the Stone Stair: the great stone hangs at the top of the well, by the high door; the founders' bell low by the
+  // way in, a ball in a groove into its mouth
   assert.equal(via([12.6, 0, 23], [4, 0, 30], [0, 0, 40], [0, 0, 46.5]), true, `into the well (${where()})`);
-  const [discA, discB] = rt.pieces.filter((p) => p.path);
-  const ride = (disc, off, label) => {
-    for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
-    assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4, dy: 1.0 }), true, `onto the ${label} (${where()})`);
-    for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
-    assert.equal(walk(off, { tol: 0.7, max: 4 }), true, `off the ${label} (${where()})`);
-  };
-  ride(discA, L(0, 8, 56.4 - 0.6), 'first disc');
-  assert.equal(rt.logic.isOpen('d2'), false, 'the high door is shut');
-  // from the ledge the eye is in plain sight; from the landing above it, it is under your feet
+  assert.equal(rt.pieces.filter((p) => p.path && !(p instanceof FallUpStone)).length, 0, 'no riding disc in the belfry');
+  const stone = rt.pieces.find((p) => p instanceof FallUpStone);
+  assert.ok(stone.s > stone.total - 0.01, 'the great stone hangs at the top');
   const eye = rt.piece('s1').center, seen = (from) => { const d = eye.clone().sub(from), n = d.length(); return physics.rayDistance(from, d.normalize(), n) >= n - 0.8; };
-  assert.ok(seen(P.pos.clone().add(V(0, 1.6, 0))), 'the eye seen from the ledge');
+  assert.ok(seen(L(2, 1.7, 50)), 'the eye under the landing is seen from the floor of the well');
   assert.ok(!seen(L(0, 17.8, 56.4 + 7.2)), 'and not from the landing');
-  rt.piece('s1').hit('shoot');
+  assert.equal(roll('ballS', 'pS'), true, `the ball rolled into the bell's mouth (${rt.piece('ballS').t.toFixed(2)})`);
+  assert.equal(rt.logic.isLit('e0'), true, 'it strikes the founders’ bell');
+  wait(6);
+  assert.ok(stone.s < 0.05, `while it rings the great stone is down (${stone.s.toFixed(2)})`);
+  // the catch: stay on the floor, and when the bell falls quiet the stone falls up again without you
+  wait(HOLD_STAIR);
+  assert.equal(rt.logic.isLit('e0'), false, 'the bell falls quiet');
+  wait(10);
+  assert.ok(stone.s > stone.total - 0.05 && P.pos.y < L(0, 1, 0).y, 'the stone went up without you');
+  // a splash on the ball lying in its mouth strikes the bell again (no pushing it out)
+  const ballS = rt.piece('ballS');
+  ballS.hit('shoot', ballS.dir.clone().negate());
+  wait(0.3);
+  assert.equal(rt.logic.isLit('e0') && rt.logic.drumOn('ballS', 'pS'), true, 'a splash rocks the clapper, and the bell rings again');
+  for (let i = 0; i < 8 / DT && stone.s > 0.02; i++) frame();
+  assert.equal(walk(stone.group.position, { tol: 0.6, run: false, max: 6, dy: 1.0 }), true, `onto the great stone (${where()})`);
+  // ride it up as the note fades; first without the eye: the landing's door stays shut
+  for (let i = 0; i < 30 / DT && stone.s < stone.total - 0.05; i++) frame();
+  assert.ok(P.pos.y > L(0, 15.5, 0).y, `carried up to the landing (${where()})`);
+  assert.equal(walk(L(0, 16, 56.4 + 7.4), { tol: 0.7, max: 4 }), true, `off onto the landing (${where()})`);
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('d2'), false, 'the high door is shut: its eye was not splashed');
+  // down again (a drop to the floor costs nothing), ring, and splash the eye on the way up
+  assert.equal(walk(L(0, 0, 56.4 + 1), { tol: 0.8, max: 6, dy: 20 }), true, `down to the floor (${where()})`);
+  ballS.hit('shoot', ballS.dir.clone().negate());
+  for (let i = 0; i < 8 / DT && stone.s > 0.02; i++) frame();
+  assert.equal(walk(stone.group.position, { tol: 0.6, run: false, max: 6, dy: 1.0 }), true, `onto the great stone again (${where()})`);
+  let splashed = false;
+  for (let i = 0; i < 30 / DT && stone.s < stone.total - 0.05; i++) { frame(); if (!splashed && P.pos.y > L(0, 9, 0).y && seen(P.pos.clone().add(V(0, 1.6, 0)))) { rt.piece('s1').hit('shoot'); splashed = true; } }
+  assert.ok(splashed, 'the eye splashed on the way up');
   wait(2);
   assert.equal(rt.logic.isOpen('d2'), true, 'the eye wakes the high door');
-  ride(discB, L(0, 16, 56.4 + 7.4), 'second disc');
-  // ---- the Bell Chamber: the chest; the door on is held by the bell in the oculus, only while it rings
+  assert.equal(walk(L(0, 16, 56.4 + 7.4), { tol: 0.7, max: 4 }), true, `off onto the landing (${where()})`);
+  // ---- the Bell Chamber: the chest; its way on is open, and its own bell is a try
   assert.equal(walk(L(0, 16, 72)), true, `into the bell chamber (${where()})`);
-  assert.equal(walk(L(0, 16, 91.5), { max: 5 }), false, 'the held door is shut');
   ring();
   wait(0.2);
-  assert.equal(rt.logic.isLit('e1'), false, 'without the whistle nothing answers (whoever rang it)');
+  assert.equal(rt.logic.isLit('eT'), false, 'without the whistle nothing answers (whoever rang it)');
   items.grant('bell'); game.emit('box:opened', { id: 'arzach2.temple.bell' });
+  ring();
+  wait(2.5);
+  assert.equal(rt.logic.isLit('eT') && rt.logic.isOpen('heap'), true, 'the chamber’s bell brings its stones down round the dais');
+  wait(HOLD_CHAMBER);
+  assert.equal(rt.logic.isOpen('heap'), false, 'and they fall up again when it falls quiet: nothing was locked');
+  // ---- the Bell Porch, a room on: the door into the Hall of Echoes is held by the porch's own bell
+  assert.equal(walk(L(0, 16, 95)), true, `through the open way into the porch (${where()})`);
+  assert.equal(walk(L(0, 16, 104.5), { max: 4 }), false, 'the held door is shut');
+  assert.equal(walk(L(0, 16, 84)), true, `back in the chamber (${where()})`);
+  ring();
+  wait(0.5);
+  assert.equal(rt.logic.isLit('e1'), false, 'the porch’s bell does not hear the whistle from the chamber');
+  assert.equal(walk(L(0, 16, 97)), true, `under the porch's bell (${where()})`);
   ring();
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true, 'the door answers the bell');
@@ -916,7 +973,7 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
   assert.equal(rt.logic.isOpen('d3'), false, 'and rises again when the note fades');
   assert.ok(notes.some((s) => /fading/i.test(s)), 'it says the note is fading');
   ring();
-  assert.equal(walk(L(0, 16, 93)), true, `through while it rings (${where()})`);
+  assert.equal(walk(L(0, 16, 106.2)), true, `through while it rings (${where()})`);
   // ---- the Hall of Echoes: a ball at the near edge, its groove over the chasm to the far door's plate
   const ball = rt.piece('ball3'), gap = ball.o.gap;
   wait(HOLD_STONES + 0.5);
@@ -948,13 +1005,13 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
   ball.hit('push', ball.dir.clone().negate(), { strength: 1 });
   wait(1);
   assert.equal(rt.logic.drumOn('ball3', 'p3'), true, 'settled in its socket: no pushing it back');
-  assert.equal(walk(L(-1.5, 16, 120)), true, `over the stones (${where()})`);
+  assert.equal(walk(L(-1.5, 16, 133.2)), true, `over the stones (${where()})`);
   assert.ok(P.pos.y > L(0, 15, 0).y, 'on the bridge, not in the chasm');
   ring();
   wait(2.2);
   assert.equal(rt.logic.isOpen('d4'), true, 'the far bell door');
   // ---- the Cloud-Mother's hall
-  assert.equal(walk(L(0, 16, 133)), true, `into her hall (${where()})`);
+  assert.equal(walk(L(0, 16, 146.2)), true, `into her hall (${where()})`);
   const G = rt.guardian;
   wait(0.4);
   assert.notEqual(G.state, 'sleep', 'she wakes');
@@ -976,7 +1033,7 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
       assert.ok(lay, `she dives onto it and lies there, crying (${n})`);
       landed++;
     }
-    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(G.model.pos.x > L(0, 16, 150.8).x ? -6 : 6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
+    P.teleport(G.model.pos.clone().setY(L(0, 16, 0).y).add(V(G.model.pos.x > L(0, 16, 164).x ? -6 : 6, 0.1, 0)), V(0, 1, 0), V(0, 0, 1));
     ring();
   }
   assert.ok(landed > 0, 'a stone brought down under her at least once');
@@ -1001,7 +1058,7 @@ test('the Founders’ Belfry on foot: two balls in the two stores, the riding st
 });
 
 // ------------------------------------------------------------------ on foot: the Garden of Spheres' Footprint, room by room
-test('the Footprint on foot: two spheres on two plates, the floating sphere pushed over the stilled pool, the lens and its mural, the stones whose prints are the walker’s, the walker’s plate among plain ones and the eye across the chasm, the keepers’ gallery back, the Echo answered by the print', () => {
+test('the Footprint on foot: the sphere set down on the walker’s print and you on its print by the wall (and on the wrong prints), the floating sphere pushed over the stilled pool, the lens and its mural, the stones whose prints are the walker’s, the walker’s plate among plain ones and the eye across the chasm, the keepers’ gallery back, the Echo answered by the print', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('spheres');
@@ -1021,18 +1078,34 @@ test('the Footprint on foot: two spheres on two plates, the floating sphere push
   const where = () => rt.kit.local(P.pos).toArray().map((v) => v.toFixed(1)).join(', ');
   const said = (re) => notes.some((s) => re.test(s));
   wait(0.5);
-  // ---- the Hall of Spheres
-  for (const [id, plate] of [['ball1', 'p1'], ['ball2', 'p2']]) {
-    const ball = rt.piece(id);
-    for (let k = 0; k < 10 && !rt.logic.drumOn(id, plate); k++) {
-      walk(ball.center.clone().addScaledVector(ball.dir, -(ball.r + 1.3)), { tol: 0.5 });
-      ball.hit('push', ball.dir.clone(), { strength: 1 });
-      wait(2.6);
+  // ---- the Hall of Spheres: where the walker set the sphere down, and where it stood (three toes, like the Footprint)
+  const ball1 = rt.piece('ball1');
+  assert.equal(rt.pieces.filter((p) => p.dir && p.o?.a && p.o.a[1] < 1 && p.o.a[2] < 44).length, 1, 'one sphere in the hall, not two');
+  const pushTo = (plate, strength) => {
+    for (let k = 0; k < 8 && !rt.logic.drumOn('ball1', plate); k++) {
+      const sign = Math.sign(rt.logic.el('ball1').stops[plate] - ball1.t) || 1;
+      walk(ball1.center.clone().addScaledVector(ball1.dir, -sign * (ball1.r + 1.3)), { tol: 0.5 });
+      ball1.hit('push', ball1.dir.clone().multiplyScalar(sign), { strength });
+      for (let i = 0; i < 6 / DT && !ball1.rest; i++) frame();
     }
-    assert.ok(rt.logic.drumOn(id, plate), `${id} on ${plate}`);
-  }
+    return rt.logic.drumOn('ball1', plate);
+  };
+  // the wrong print: the sphere on the four-toed one, you on the walker's; the door does not stir
+  assert.equal(pushTo('pb', 1), true, `the sphere on the four-toed print (${ball1.t.toFixed(2)})`);
+  assert.equal(walk(rt.piece('pW').pos, { tol: 0.5 }), true, 'onto the walker’s print by the wall');
+  wait(1);
+  assert.equal(rt.logic.isOpen('d1'), false, 'the sphere is on the wrong print');
+  // the sphere on the walker's print, and you on a two-toed one: still shut
+  assert.equal(pushTo('p1', 0.3), true, `the sphere back on the walker's print (${ball1.t.toFixed(2)})`);
+  assert.equal(walk(rt.piece('pY').pos, { tol: 0.5 }), true, 'onto a two-toed print');
+  wait(1);
+  assert.equal(rt.logic.isOpen('d1'), false, 'you stand on the wrong print');
+  assert.equal(walk(rt.piece('pW').pos, { tol: 0.5 }), true, 'onto the walker’s print');
   wait(2.2);
-  assert.equal(rt.logic.isOpen('d1'), true);
+  assert.equal(rt.logic.isOpen('d1'), true, 'both where the walker was: the door sinks');
+  assert.equal(walk(L(4, 0, 34)), true, `off the print (${where()})`);
+  wait(0.5);
+  assert.equal(rt.logic.isOpen('d1'), true, 'and stays open');
   // ---- the Still Pool: pushed while the water stirs, the sphere drifts back; from the stilling stone it crosses
   assert.equal(walk(L(-2.5, 0, 49.2)), true, `to the pool (${where()})`);
   const ball3 = rt.piece('ball3');
@@ -1152,7 +1225,7 @@ test('the Footprint on foot: two spheres on two plates, the floating sphere push
 });
 
 // ------------------------------------------------------------------ on foot: the Buried Machine's Engine-House, room by room
-test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the fourth chamber’s pistons held up, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
+test('the Engine-House on foot: the valve and the ball in the pistons’ crank, the hammer jammed with the gantry’s ball, the chamber’s four still eyes a try, the passage’s pistons held up a room on, the furnace’s two cranks and the other two caught in turn, the Tooth-Warden on its jammed gear, the pipe-cart', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('buried');
@@ -1244,24 +1317,35 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   P.teleport(L(0, 7.1, 49.5), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   assert.equal(walk(L(0, 7, 60), { run: false }), true, `over the walkway under the still hammer (${where()})`);
-  // ---- the Fourth Chamber: four eyes on pistons that rise in turn; one crank holds them all up
+  // ---- the Fourth Chamber: the chest; its way on is open, four still eyes on its wall a try
   assert.equal(walk(L(0, 7, 70)), true, `into the chamber (${where()})`);
+  const k0 = rt.piece('k0');
+  for (let i = 0; i < 4; i++) k0.hit(i);
+  assert.equal(rt.logic.isLit('k0'), false, 'four still eyes in a breath: the starting bar holds three');
+  assert.ok(said(/bar holds three/), 'and it says so');
+  items.grant('cell'); game.emit('box:opened', { id: 'buried.temple.cell' });
+  wait(3);
+  for (let i = 0; i < 4; i++) k0.hit(i);
+  assert.equal(rt.logic.isLit('k0'), true, 'with the fourth chamber, four in a breath');
+  assert.equal(rt.logic.isOpen('d3'), false, 'nothing waits on them: the door is a room on');
+  // ---- the Crank Passage: four eyes on pistons that rise in turn; one crank holds them all up
+  assert.equal(walk(L(0, 7, 88)) && walk(L(0, 7, 93)), true, `through the open way into the passage (${where()})`);
+  assert.equal(walk(L(0, 7, 102), { max: 4 }), false, 'the passage’s door is shut');
+  walk(L(0, 7, 93));
   const bank = rt.piece('k1');
+  wait(3);
   assert.equal(catchAsTheyRise(bank, 10), false, 'caught as they rise, never four in one breath');
   const bK = rt.piece('bK');
   assert.equal(roll(bK, 1, () => rt.logic.drumOn('bK', 'pK')), true, 'the ball into the crank');
   wait(1);
   assert.ok([0, 1, 2, 3].every((i) => bank.isUp(i)), 'all four stand up together');
-  for (let i = 0; i < 4; i++) bank.hit(i);
-  assert.equal(rt.logic.isLit('k1'), false, 'four at once, but without the fourth chamber the bank does not take it');
-  items.grant('cell'); game.emit('box:opened', { id: 'buried.temple.cell' });
   wait(3);
   for (let i = 0; i < 4; i++) bank.hit(i);
   assert.equal(rt.logic.isLit('k1'), true, 'four in a breath, with the fourth chamber');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Furnace: two cranks for the two west pistons; jam those, and catch the other two as they rise in turn
-  assert.equal(walk(L(0, 7, 90)), true, `to the furnace (${where()})`);
+  assert.equal(walk(L(0, 7, 105.2)), true, `to the furnace (${where()})`);
   const k2 = rt.piece('k2'), bA = rt.piece('bA'), bB = rt.piece('bB');
   assert.equal(roll(bA, 1, () => rt.logic.drumOn('bA', 'pA')), true, 'one crank jammed');
   assert.equal(catchAsTheyRise(k2, 10), false, 'one piston held up is not enough: the other three rise too far apart');
@@ -1270,11 +1354,11 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
   assert.ok(k2.isUp(0) && k2.isUp(1), 'the two west eyes stand up');
   assert.equal(catchAsTheyRise(k2, 10), true, 'the other two caught one after the other: four in one breath');
   wait(3.5);
-  assert.equal(walk(L(0, 7, 90)), true, `to the bridge's foot (${where()})`);
-  assert.equal(walk(L(0, 7, 114)), true, `over the bridge (${where()})`);
+  assert.equal(walk(L(0, 7, 105.2)), true, `to the bridge's foot (${where()})`);
+  assert.equal(walk(L(0, 7, 129.2)), true, `over the bridge (${where()})`);
   assert.ok(P.pos.y > L(0, 6, 0).y, 'over it, not in the furnace');
   // ---- the Tooth-Warden: four vents in a breath; then on its gear
-  assert.equal(walk(L(0, 7, 128)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 7, 143.2)), true, `into the hall (${where()})`);
   const G = rt.guardian, bG = rt.piece('bG');
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
@@ -1328,7 +1412,7 @@ test('the Engine-House on foot: the valve and the ball in the pistons’ crank, 
 });
 
 // ------------------------------------------------------------------ on foot: Lorn II's Lamp-House, room by room
-test('the Lamp-House on foot: three dark pools (the third up the roots, out of sight), the disc and the root-wall, the lantern, the lamps that wake to it, the stones only its light shows, the pool-orb lit and rolled to the niche, the Lampless fed, the lamp lit', () => {
+test('the Lamp-House on foot: three dark pools (the third up the roots, out of sight), the moss-stones the orb’s lamp wakes over the dark pool and the root-wall, the lantern, its try by the dais, the passage’s lamp a room on, the stones only its light shows, the pool-orb lit and rolled to the niche, the Lampless fed, the lamp lit', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('perdide2');
@@ -1371,11 +1455,14 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   assert.equal(rt.logic.isOpen('d1'), true);
   P.teleport(L(0, 0.05, 40), V(0, 1, 0), V(0, 0, 1));
   wait(0.5);
-  // ---- the Root Stair: the disc over the dark pool waits for the lamp in its socket, and only light wakes it
+  // ---- the Root Stair: the moss-stones lie sunk in the dark pool, waiting for the lamp in their socket; only light wakes it
   assert.equal(walk(L(-1, 0, 48.5)), true, `to the stair (${where()})`);
-  const disc = rt.pieces.find((p) => p.path);
+  assert.equal(rt.pieces.filter((p) => p.path).length, 0, 'no riding disc in the Lamp-House');
+  const moss = rt.piece('disc');
   wait(3);
-  assert.equal(disc.s, 0, 'the disc is dark and still');
+  assert.equal(moss.open, false, 'the moss-stones are sunk and dark');
+  assert.equal(walk(L(0, 0, 59.5), { max: 4 }), false, 'no way over the pool');
+  P.teleport(L(-1, 0.05, 48.5), V(0, 1, 0), V(0, 0, 1)); wait(0.3);
   // the pool-orb by the small pool, back in the hall: rolled through dark, it wakes nothing, and is tipped back
   const orb5 = rt.piece('orb5');
   const behind5 = () => orb5.center.clone().addScaledVector(orb5.dir, -(orb5.r + 1.3)).setY(L(0, 0, 0).y);
@@ -1396,28 +1483,37 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   roll5();
   wait(0.5);
   assert.equal(rt.logic.isLit('l5'), true, 'the glowing orb wakes the disc’s lamp');
-  assert.equal(rt.logic.isOpen('disc'), true, 'the disc wakes');
+  assert.equal(rt.logic.isOpen('disc'), true, 'the moss-stones wake');
+  wait(2);
   assert.equal(walk(L(-1, 0, 48.5)), true, `to the stair again (${where()})`);
-  for (let i = 0; i < 30 / DT && !(disc.s < 0.2 && disc.wait > 0.6); i++) frame();
-  assert.equal(walk(disc.group.position, { tol: 0.5, run: false, max: 4 }), true, `onto the disc (${where()})`);
-  for (let i = 0; i < 30 / DT && !(disc.s > disc.total - 0.2); i++) frame();
+  assert.equal(walk(L(0, 0, 59.6), { tol: 0.6 }), true, `over the glowing moss-stones (${where()})`);
+  assert.ok(P.pos.y > L(0, -0.5, 0).y, 'on them, not in the pool');
   let up = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
   assert.ok(up, `up the root-wall (${where()})`);
-  // ---- the Lantern Chamber: the chest; the lamp-door wakes only to the lantern
+  // ---- the Lantern Chamber: the chest; its way on is open, and the lamp by the dais is a try
   assert.equal(walk(L(0, 9, 75)), true, `into the chamber (${where()})`);
-  assert.equal(walk(L(2.6, 9, 87.6), { tol: 0.8 }), true, 'by the lamp');
+  assert.equal(walk(L(-5.4, 9, 79.8 + 2), { tol: 0.8 }), true, `by the chamber's lamp (${where()})`);
   wait(2.5);
-  assert.equal(rt.logic.isLit('l1'), false, 'nothing without the lantern');
+  assert.equal(rt.logic.isLit('l0'), false, 'nothing without the lantern');
   items.grant('lantern'); game.emit('box:opened', { id: 'perdide2.temple.lantern' });
+  wait(2.5);
+  assert.equal(rt.logic.isLit('l0'), true, 'it wakes to the lantern');
+  assert.equal(rt.logic.isOpen('d2'), false, 'and nothing waits on it: the door is a room on');
+  // ---- the Lamp Passage: the door into the gallery is a lamp at the passage's far end
+  assert.equal(walk(L(0, 9, 96)), true, `through the open way into the passage (${where()})`);
+  assert.equal(walk(L(-1.5, 9, 101.2), { tol: 0.6 }), true, `to the passage's door (${where()})`);
+  wait(2);
+  assert.equal(rt.logic.isOpen('d2'), false, 'the passage’s door is shut');
+  assert.equal(walk(L(3.6, 9, 101.3), { tol: 0.8 }), true, `by its lamp (${where()})`);
   wait(2.5);
   assert.equal(rt.logic.isLit('l1'), true, 'it wakes to the lantern');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d2'), true);
   // ---- the Dark Gallery: the moss-stones the lantern shows; the eye; the second lamp
-  assert.equal(walk(L(0, 9, 93)), true, `to the chasm (${where()})`);
+  assert.equal(walk(L(0, 9, 106.2)), true, `to the chasm (${where()})`);
   wait(2);
-  assert.equal(walk(L(0, 9, 118)), true, `over the moss-stones (${where()})`);
+  assert.equal(walk(L(0, 9, 131.2)), true, `over the moss-stones (${where()})`);
   assert.ok(P.pos.y > L(0, 8, 0).y, 'on them, not in the chasm');
   rt.piece('s4').hit('shoot');
   // the pool-orb: rolled into the niche dark, it wakes nothing
@@ -1443,7 +1539,7 @@ test('the Lamp-House on foot: three dark pools (the third up the roots, out of s
   wait(2.2);
   assert.equal(rt.logic.isOpen('d4'), true);
   // ---- the Lamp-Room: stand still by the Lampless while it searches
-  assert.equal(walk(L(0, 9, 123)) && walk(L(0, 9, 132)), true, `into the lamp-room (${where()})`);
+  assert.equal(walk(L(0, 9, 136.2)) && walk(L(0, 9, 145.2)), true, `into the lamp-room (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
@@ -1532,7 +1628,7 @@ test('a shut gate of jaws collides as its two halves are drawn, snapping with th
   } finally { if (wasOpen) jaw.setOpen(true, true); }
 });
 
-test('the Hush-House on foot: the crystals sung low to high (the first by the door), the climbing disc and the eye on the root-wall, the stilling mode, the gate of jaws, the pendulums stilled in turn, the Mother Snapper stilled, the swamp in flower', () => {
+test('the Hush-House on foot: the crystals sung low to high (the first by the door), the climbing disc and the eye on the root-wall, the stilling mode, the gate of jaws a room on, the pendulums stilled in turn, the Mother Snapper stilled, the swamp in flower', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('perdide');
@@ -1583,18 +1679,20 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(0, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
   assert.ok(up, `up the root-wall (${where()})`);
   assert.equal(rt.logic.isOpen('dw'), true, 'the door at the top is open');
-  // ---- the Stilling Chamber: the gate of jaws snaps at plain fluid and will not let you by
+  // ---- the Stilling Chamber: the chest; its way on is open
   assert.equal(walk(L(0, 9, 75)), true, `into the chamber (${where()})`);
-  rt.piece('d2').hit('shoot');
-  assert.equal(walk(L(0, 9, 92), { max: 4 }), false, 'the jaws keep the way');
-  assert.ok(rt.kit.local(P.pos).z < 89, `not through them (${where()})`);
   items.grant('stun'); game.emit('box:opened', { id: 'perdide.temple.stun' });
   assert.equal(rt.logic.gadget, true);
+  // ---- the Snapping Passage, a room on: the gate of jaws snaps at plain fluid and will not let you by
+  assert.equal(walk(L(0, 9, 95)), true, `through the open way into the passage (${where()})`);
+  rt.piece('d2').hit('shoot');
+  assert.equal(walk(L(0, 9, 105.2), { max: 4 }), false, 'the jaws keep the way');
+  assert.ok(rt.kit.local(P.pos).z < 102.2, `not through them (${where()})`);
   rt.piece('d2').hit('stun');
   wait(2.6);
   assert.equal(rt.logic.isOpen('d2'), true, 'stilled, they rest open');
   // ---- the Pendulum Gallery: a pendulum knocks you off the bridge; stilled, they let you by
-  assert.equal(walk(L(0, 9, 93.5)), true, `to the bridge (${where()})`);
+  assert.equal(walk(L(0, 9, 106.7)), true, `to the bridge (${where()})`);
   const swings = rt.pieces.filter((p) => p.len && p.arm && p.id);   // (the gallery's: the Mother's three hang in her hall)
   assert.equal(swings.length, 3);
   P.teleport(L(0, 9.05, rt.kit.local(swings[0].group.position).z), V(0, 1, 0), V(0, 0, 1));
@@ -1603,16 +1701,16 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   assert.ok(knocked, `a pendulum knocks you off (${where()})`);
   for (let i = 0; i < 10 / DT && (P.down || P.dead); i++) frame();
   wait(1.5);
-  P.teleport(L(0, 9.05, 94.5), V(0, 1, 0), V(0, 0, 1));
+  P.teleport(L(0, 9.05, 107.7), V(0, 1, 0), V(0, 0, 1));
   wait(0.3);
   // the keeper's ledge along the east wall: its gate is shut from this side
-  assert.equal(walk(L(10, 9, 94.5)), true, `to the ledge's gate (${where()})`);
-  assert.equal(walk(L(10, 9, 110), { max: 3 }), false, 'the gate holds');
-  assert.ok(rt.kit.local(P.pos).z < 90.7 + 6.4 && rt.kit.local(P.pos).x > 7.5 && rt.kit.local(P.pos).y > 8.5, `still this side of it, at the gate (${where()})`);
-  assert.equal(walk(L(0, 9, 94.5)), true, `back to the bridge (${where()})`);
+  assert.equal(walk(L(10, 9, 107.7)), true, `to the ledge's gate (${where()})`);
+  assert.equal(walk(L(10, 9, 123.2), { max: 3 }), false, 'the gate holds');
+  assert.ok(rt.kit.local(P.pos).z < 103.9 + 6.4 && rt.kit.local(P.pos).x > 7.5 && rt.kit.local(P.pos).y > 8.5, `still this side of it, at the gate (${where()})`);
+  assert.equal(walk(L(0, 9, 107.7)), true, `back to the bridge (${where()})`);
   // stilled near to far to cross: the walk stills them out of turn, and only the smallest's note takes
   for (const s of swings) s.hit('stun');
-  assert.equal(walk(L(0, 9, 120), { max: 6 }), true, `over the bridge between the stilled pendulums (${where()})`);
+  assert.equal(walk(L(0, 9, 133.2), { max: 6 }), true, `over the bridge between the stilled pendulums (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > 8, 'on it, not in the chasm');
   assert.deepEqual(['w1', 'w2', 'w3'].map((id) => rt.logic.isLit(id)), [true, false, false], 'only the smallest crystal took');
   assert.ok(notes.some((s) => /smallest crystal first/.test(s)), 'the others rang flat, and say why');
@@ -1623,17 +1721,17 @@ test('the Hush-House on foot: the crystals sung low to high (the first by the do
   wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true);
   // the shortcut: along the ledge from this side, onto the gate's footstone, and the way back is a walk
-  assert.equal(walk(L(9.9, 9, 116)) && walk(L(9.9, 9, 98.6), { tol: 0.4 }), true, `along the ledge to the footstone (${where()})`);
+  assert.equal(walk(L(9.9, 9, 129.2)) && walk(L(9.9, 9, 111.8), { tol: 0.4 }), true, `along the ledge to the footstone (${where()})`);
   wait(0.3);
   assert.equal(rt.logic.isOpen('ds'), true, 'the gate opens from behind');
   wait(2.2);
-  assert.equal(walk(L(9.9, 9, 94)), true, `through it to the near landing (${where()})`);
+  assert.equal(walk(L(9.9, 9, 107.2)), true, `through it to the near landing (${where()})`);
   wait(0.5);
   assert.equal(rt.logic.isOpen('ds'), true, 'and stays open');
-  assert.equal(walk(L(9.9, 9, 98)) && walk(L(9.9, 9, 116)) && walk(L(0, 9, 120)), true, `back along it (${where()})`);
+  assert.equal(walk(L(9.9, 9, 111.2)) && walk(L(9.9, 9, 129.2)) && walk(L(0, 9, 133.2)), true, `back along it (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > 8, 'on the far landing');
   // ---- the Mother's Hall: still her when she lies spent; later, mid-strike
-  assert.equal(walk(L(0, 9, 132)), true, `into the hall (${where()})`);
+  assert.equal(walk(L(0, 9, 145.2)), true, `into the hall (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep');
@@ -1916,7 +2014,7 @@ test('the Hangar’s own portals still work round the temple’s: its list kept,
   assert.ok(player.pos.distanceTo(po.to) < 0.01, 'through the portal to the upside-down');
 });
 
-test('the First Garage on foot: the escapement’s three eyes in turn from its hand, the climb and the counterweight, the quick coil, the banks of six eyes that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the Foreman’s six numerals, the clock keeps time', () => {
+test('the First Garage on foot: the escapement’s three eyes in turn from its hand, the climb and the counterweight, the quick coil, the passage’s six eyes a room on that want two tanks in a breath, the clock’s six in turn from the hour it stopped, the Foreman’s six numerals, the clock keeps time', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('garage');
@@ -1982,9 +2080,12 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
   up = false;
   for (let i = 0; i < 20 / DT; i++) { frame({ KeyW: true }, toward(L(-3, 9, 66))); if (P.onGround && rt.kit.local(P.pos).y > 8.5) { up = true; break; } }
   assert.ok(up, `up the wall again (${where()})`);
-  // ---- the Coil Chamber: six eyes in one breath. The starting bar (or four units) and its refill can't
+  // ---- the Coil Chamber: the chest, its way on open; the Winding Passage a room on: six eyes in one breath round its
+  // door. The starting bar (or four units) and its refill can't
   assert.equal(walk(L(0, 9, 79)), true, `into the chamber (${where()})`);
   const bank = rt.piece('k1');
+  assert.ok(bank.eyes[0].center.distanceTo(L(0, 9, 83.8)) > 20, 'the bank is a room on, not by the chest');
+  assert.equal(walk(L(0, 9, 99)), true, `through the open way into the passage (${where()})`);
   const slow = tankShots(frame, 6, (i) => bank.hit(i));
   assert.ok(slow > VOLLEY, `without the coil the sixth comes too late (${slow.toFixed(2)} s)`);
   assert.equal(rt.logic.isLit('k1'), false, 'they went dark again');
@@ -2002,7 +2103,7 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Clock Gallery: the six round the handless clock, in one breath and in turn from the hour it stopped
-  assert.equal(walk(L(0, 9, 97.5)), true, `to the gallery (${where()})`);
+  assert.equal(walk(L(0, 9, 110.7)), true, `to the gallery (${where()})`);
   const k2 = rt.piece('k2'), ORDER = [4, 3, 2, 1, 0, 5];   // (four, six, eight, ten, twelve, two)
   assert.deepEqual(k2.o.order, ORDER);
   wait(5.5);
@@ -2017,10 +2118,10 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
   tankShots(frame, 6, (i) => k2.hit(ORDER[i]));
   assert.equal(rt.logic.isLit('k2'), true, 'four, six, eight, ten, twelve, two, inside one breath');
   wait(3.5);
-  assert.equal(walk(L(0, 9, 124)), true, `over the bridge (${where()})`);
+  assert.equal(walk(L(0, 9, 137.2)), true, `over the bridge (${where()})`);
   assert.ok(rt.kit.local(P.pos).y > 8, 'over it, not in the chasm');
   // ---- the Foreman's Workshop: when its face opens, all six numerals in one breath
-  assert.equal(walk(L(0, 9, 136)), true, `into the workshop (${where()})`);
+  assert.equal(walk(L(0, 9, 149.2)), true, `into the workshop (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', 'it wakes');
@@ -2056,7 +2157,7 @@ test('the First Garage on foot: the escapement’s three eyes in turn from its h
   own();
 });
 
-test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and the bud in the sun, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
+test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the ball’s louvre lets in, one ball and two plates on the Glass Stair (the eye, then the disc), bloom mode and its try in the chamber’s sun, the bud in the sun a room on, the seed in the shade and the sun-ball, the seed-ball rolled into the light at the glass’s foot, its vine into the bud, the Gardener bloomed in the sun, the ruins in flower', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('edena');
@@ -2137,22 +2238,28 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   wait(1.5);
   assert.equal(rt.logic.isOpen('d2'), true, 'the landing’s door, open on the eye');
   assert.equal(walk(L(0, 18, 76)), true, `into the seed chamber (${where()})`);
-  // ---- the flower-door in its sunbeam: water runs off it, fire curls it shut; a bloom glob opens it
-  const bud = rt.piece('d3');
-  bud.hit('shoot'); bud.hit('fire');
-  assert.equal(rt.logic.isLit('bud1'), false, 'water and ember do nothing');
-  assert.equal(walk(L(0, 18, 92), { max: 4 }), false, 'the bud keeps the way');
-  if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
-  assert.ok(local().y < 18.5, `back on the floor before the bud (${where()})`);
-  bud.hit('bloom');
-  assert.equal(rt.logic.isLit('bud1'), false, 'without bloom mode, a bloom glob is only fluid');
+  // ---- the Seed Chamber: the chest; its way on is open, and a seed in the oculus's sun is a try
+  const seed0 = rt.piece('seed0'), bud = rt.piece('d3');
+  assert.ok(bud.group.position.distanceTo(L(0, 18, 82)) > 20, 'the bud is a room on, not by the chest');
+  seed0.hit('bloom');
+  assert.equal(rt.logic.isLit('seed0'), false, 'without bloom mode, a bloom glob is only fluid');
   items.grant('bloom'); game.emit('box:opened', { id: 'edena.temple.bloom' });
   assert.equal(rt.logic.gadget, true);
+  seed0.hit('bloom');
+  assert.equal(rt.logic.isLit('seed0'), true, 'in the sun the seed flowers');
+  assert.equal(rt.logic.isOpen('d3'), false, 'and nothing waits on it');
+  // ---- the Bud Passage: the flower-door in its sunbeam: water runs off it, fire curls it shut; a bloom glob opens it
+  assert.equal(walk(L(0, 18, 96)), true, `through the open way into the passage (${where()})`);
+  bud.hit('shoot'); bud.hit('fire');
+  assert.equal(rt.logic.isLit('bud1'), false, 'water and ember do nothing');
+  assert.equal(walk(L(0, 18, 105.2), { max: 4 }), false, 'the bud keeps the way');
+  if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
+  assert.ok(local().y < 18.5, `back on the floor before the bud (${where()})`);
   bud.hit('bloom');
   wait(2.6);
   assert.equal(rt.logic.isOpen('d3'), true, 'bloomed, it opens');
   // ---- the Vine Gulf: the seed at the lip is in the shade; the sun-ball turns the great louvre onto it
-  assert.equal(walk(L(0, 18, 93.7)), true, `to the gulf's edge (${where()})`);
+  assert.equal(walk(L(0, 18, 106.9)), true, `to the gulf's edge (${where()})`);
   const seed1 = rt.piece('seed1');
   seed1.hit('shoot');
   seed1.hit('bloom');
@@ -2166,11 +2273,11 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   seed1.hit('bloom');
   wait(3.5);
   assert.equal(rt.logic.isOpen('vine1'), true, 'in the sun the seed grows the bridge');
-  assert.equal(walk(L(0, 18, 95.6)), true, `back to the lip (${where()})`);
-  assert.equal(walk(L(0, 18, 121.5)), true, `over the vine bridge (${where()})`);
+  assert.equal(walk(L(0, 18, 108.8)), true, `back to the lip (${where()})`);
+  assert.equal(walk(L(0, 18, 134.7)), true, `over the vine bridge (${where()})`);
   assert.ok(local().y > 17, 'on it, not in the chasm');
   // the glass: too smooth to climb; the seed-ball beside it lies in the shade
-  for (let i = 0; i < 5 / DT; i++) frame({ KeyW: true }, toward(L(0, 27, 132)));
+  for (let i = 0; i < 5 / DT; i++) frame({ KeyW: true }, toward(L(0, 27, 145.2)));
   assert.ok(local().y < 22, `you can't get up the glass (${where()})`);
   assert.ok(said(/too smooth/i), 'and you slip off it');
   if (P.climbing) { P.stopClimb(false); for (let i = 0; i < 3 / DT && !P.onGround; i++) frame(); }
@@ -2185,12 +2292,12 @@ test('the Builders’ Greenhouse on foot: the eye that opens only in the sun the
   assert.equal(rt.logic.drumOn('sb', 'pG'), true, 'rooted: it rolls no more');
   wait(3);
   assert.equal(rt.logic.isOpen('d4'), true, 'its vine climbs into the bud, and the bud opens');
-  assert.equal(walk(L(1.5, 18, 126.4), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
+  assert.equal(walk(L(1.5, 18, 139.6), { tol: 0.8 }), true, `back to the glass's foot (${where()})`);
   up = false;
-  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 132))); if (P.onGround && local().y > 26.5) { up = true; break; } }
+  for (let i = 0; i < 25 / DT; i++) { frame({ KeyW: true }, toward(L(1.5, 27, 145.2))); if (P.onGround && local().y > 26.5) { up = true; break; } }
   assert.ok(up, `up the vine (${where()})`);
   // ---- the Glasshouse: bloom the four dead beds, then the Gardener's back each time it kneels: in the sun
-  assert.equal(walk(L(0, 27, 141)), true, `into the glasshouse (${where()})`);
+  assert.equal(walk(L(0, 27, 154.2)), true, `into the glasshouse (${where()})`);
   const G = rt.guardian;
   wait(0.3);
   assert.notEqual(G.state, 'sleep', 'it wakes');
@@ -2300,7 +2407,7 @@ test('the echo shell: it keeps the last note sung within earshot (saved), plays 
   own();
 });
 
-test('the Undertower on foot: the singing ball and the dishes, the well’s horn and the low stone, the echo shell, the low note carried up, the held pillars, the middle note sent over through the dish, the way back, the First Sign given its words back, the tower speaks once a night', () => {
+test('the Undertower on foot: the singing ball and the dishes and the pillars over the cable pit, the well’s horn and the low stone, the echo shell, the chamber’s low stone carried a room on to the passage’s horn, the held pillars, the middle note sent over through the dish, the way back, the First Sign given its words back, the tower speaks once a night', () => {
   game.reset();
   own('backpack');
   const { level, physics, rt } = world('bazaar');
@@ -2345,14 +2452,19 @@ test('the Undertower on foot: the singing ball and the dishes, the well’s horn
   assert.ok(P.onGround && rt.inside(P.pos), `in the Threshold (${where()})`);
   // ---- the Hall of Dishes: the far horn hears a stone's own song, but only the dishes carry it that far
   assert.equal(walk(L(0, 0, 15)), true, `into the hall (${where()})`);
-  const [disc, discA, discB] = rt.pieces.filter((p) => p.path);
+  const [discA, discB] = rt.pieces.filter((p) => p.path);
+  const pillars = rt.piece('disc');
+  assert.ok(pillars.span && !pillars.path, 'no disc over the cable pit: the makers’ pillars');
   const ball1 = rt.piece('ball1'), dishA = rt.piece('dishA');
   walk(ball1.center.clone().add(V(0, 0, -2.5)).setY(P.pos.y), { tol: 0.6 });
   ball1.hit('shoot', DOWN);
   wait(1.5);
   assert.equal(rt.logic.isLit('eD'), false, 'sung where it lies, the ball’s note dies in the hall: the horn across the pit is too far');
   assert.equal(dishA.awake, false, 'the dish is dark, its footstone bare');
-  assert.equal(disc.s, 0, 'the disc is still');
+  assert.equal(pillars.open, false, 'the pillars stay down in the cable');
+  assert.equal(walk(L(0, 0, 33), { max: 4 }), false, 'no way over the pit');
+  assert.ok(local().z < 25 || local().y < -1, 'the pit stops you');
+  P.teleport(L(0, 0.1, 20), V(0, 1, 0), V(0, 0, 1)); wait(0.3);
   roll('ball1');
   assert.equal(dishA.awake, true, 'the ball’s weight on its footstone wakes the dish');
   assert.equal(rt.logic.isLit('eD'), false, 'rolled home, it is quiet until it is splashed');
@@ -2362,8 +2474,10 @@ test('the Undertower on foot: the singing ball and the dishes, the well’s horn
   wait(1);
   assert.equal(rt.logic.isLit('eD'), true, 'the far dish says it over the horn');
   assert.ok(said(/far dish says the ball’s note/), 'and the horn answers');
+  wait(2.5);
+  assert.equal(pillars.open, true, 'the pillars rise out of the cable');
   assert.equal(walk(L(0, 0, 22.5)), true, `to the pit's edge (${where()})`);
-  ride(disc, L(0, 0, 43), 'disc over the cable pit');
+  assert.equal(walk(L(0, 0, 43)), true, `over the pillars (${where()})`);
   assert.ok(local().y > -1, 'over the cables, not in them');
   // ---- the Cable Well: the second disc waits for the horn on the ledge, which listens for the low stone
   assert.equal(walk(L(0, 0, 52)), true, `into the well (${where()})`);
@@ -2380,29 +2494,35 @@ test('the Undertower on foot: the singing ball and the dishes, the well’s horn
   assert.equal(rt.logic.isLit('eW'), true, 'the low stone: the horn on the ledge answers');
   ride(discB, L(1, 12, C2 + 8.4), 'second disc');
   assert.ok(Math.abs(local().y - 12) < 0.6, `up on the landing (${where()})`);
-  // ---- the Shell Chamber: the door wants the low note, and nothing sings it here
+  // ---- the Shell Chamber: the chest, its way on open; a low singing stone by the dais
   assert.equal(walk(L(0, 12, 76)), true, `into the chamber (${where()})`);
-  const C3 = C2 + 22.6, ear0 = ear('e0');
-  assert.equal(stones.filter((s) => s.center.distanceTo(L(0, 12, C3)) < 10).length, 0, 'no singing stone in the chamber');
-  game.emit('echo', { pos: ear0.at.clone(), note: 'low' });
-  assert.equal(rt.logic.isLit('e0'), false, 'the door wants the shell');
+  const C3 = C2 + 22.6, A0 = C3 + 10.9, ear0 = ear('e0');
+  const lowC = stone('low', L(0, 12, C3));
+  assert.ok(lowC.center.distanceTo(L(0, 12, C3)) < 9, 'a low singing stone in the chamber');
+  assert.ok(ear0.at.distanceTo(L(0, 12, C3)) > 17, 'and the door’s horn a room on, in the passage');
   assert.equal(rt.logic.next(), 'chest');
   items.grant('echo'); game.emit('box:opened', { id: 'bazaar.temple.echo' });
   assert.equal(rt.logic.gadget, true);
+  // through the open way into the Listening Passage: the door's horn, and nothing to sing here
+  assert.equal(walk(L(0, 12, A0 + 4)), true, `into the passage (${where()})`);
+  assert.equal(stones.filter((s) => s.center.distanceTo(L(0, 12, A0 + 6)) < 7).length, 0, 'no singing stone in the passage');
   assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the door's horn (${where()})`);
   assert.equal(shell.play(), false, 'the shell holds nothing yet');
-  // back to the well's landing: splash the low stone below, and the shell catches it
-  assert.equal(walk(L(3, 12, C2 + 7)), true, `back to the landing's edge (${where()})`);
-  lowW.sing();
-  assert.equal(shell.held?.note, 'low', `the shell catches the low stone from the landing (${P.pos.distanceTo(lowW.center).toFixed(1)} m)`);
-  assert.equal(walk(L(0, 12, 76)), true, `back into the chamber (${where()})`);
-  assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `to the door's horn (${where()})`);
+  // the wrong note first: the middle one, played back by the horn
+  game.emit('echo', { pos: ear0.at.clone(), note: 'mid' }); wait(0.3);
+  assert.equal(rt.logic.isLit('e0'), false, 'the middle note: the horn listens for the low one');
+  assert.ok(said(/colour of its ring/), 'and says whose colour its ring is');
+  // back to the chamber's low stone: splash it, and the shell catches it; carry it a room on
+  assert.equal(walk(lowC.center.clone().add(V(3, 0, 0)).setY(P.pos.y), { tol: 1.2 }), true, `by the chamber's low stone (${where()})`);
+  lowC.sing();
+  assert.equal(shell.held?.note, 'low', 'the shell catches the low stone');
+  assert.equal(walk(ear0.at.clone().setY(P.pos.y), { tol: 2.5 }), true, `back to the door's horn (${where()})`);
   assert.equal(shell.play(), true);
-  assert.equal(rt.logic.isLit('e0'), true, 'it hears the low note, carried up from the well');
+  assert.equal(rt.logic.isLit('e0'), true, 'it hears the low note, carried a room on');
   wait(2.2);
   assert.equal(rt.logic.isOpen('d3'), true);
   // ---- the Gallery of Voices
-  const G0 = C3 + 10.9;
+  const G0 = A0 + 13.2;
   assert.equal(walk(L(0, 12, G0 + 3)), true, `into the gallery (${where()})`);
   const high = stone('high', L(0, 12, G0)), mid = stone('mid', L(0, 12, G0)), farHigh = stone('high', L(0, 12, G0 + 36));
   const ear1 = ear('e1'), ear3 = ear('e3'), dishC = rt.piece('dishC'), bridge = rt.piece('br1');

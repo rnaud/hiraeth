@@ -18,13 +18,20 @@ import { whaleModel } from './guardians.js';
 //   the Hall of Stones     a hub: the door on has two lamps, and two archways open off the hall, west and
 //                          east, into the two stone stores. A ball in each, a plate at its groove's end: roll
 //                          both home (the push) and the door sinks. You find the path, in your own order.
-//   the Stone Stair        a round well with two discs that ride up and down: ride one to a ledge, the next
-//                          to the top. The high door's eye is on the landing's face, under your feet once
-//                          you are up: seen (and splashed) from the ledge or the second disc
-//   the Bell Chamber       the makers' chest: the BELL-NOTE WHISTLE (src/items.js 'bell'). The door on is
-//                          held by the clapperless bell in the oculus: it stands open only while the bell
-//                          rings (about eight seconds). Ring, walk through; too slow, ring again (taught
-//                          where failing costs nothing)
+//   the Stone Stair        a round well whose stair fell up: one great stone hangs at the top of it, by the
+//                          high door. Low by the way in hangs a founders' bell with no clapper, and a stone ball
+//                          lies in a groove that runs into its mouth: roll the ball in and it strikes the bell
+//                          (a splash on it as it lies there strikes again). While the bell rings the great stone
+//                          comes down to the floor; when it falls quiet the stone falls up again, and whoever
+//                          stands on it goes up with it (the house's own bell, taught before the whistle: what
+//                          the bell holds, it holds only while it rings). The high door's eye is on the
+//                          landing's face, under your feet once you are up: splash it on the way
+//   the Bell Chamber       the makers' chest: the BELL-NOTE WHISTLE (src/items.js 'bell'). Its way on is open.
+//                          The clapperless bell in the oculus answers the whistle: three stones that fell up come
+//                          down round the dais while it rings, and fall up again (a try where nothing is locked)
+//   the Bell Porch         a room on: the door into the Hall of Echoes is held by the porch's own bell, open only
+//                          while it rings (about eight seconds). Ring, walk through; too slow, ring again (the
+//                          whistle's first lock, where failing costs nothing)
 //   the Hall of Echoes     a chasm, the stones of its bridge hanging high over it (they fell up): the bell
 //                          brings them down only while it rings, ten seconds, enough to run across. But the
 //                          far door wants a ball on its plate too, and the ball waits at the near edge in a
@@ -53,14 +60,17 @@ export const PALETTE = {
 
 export const LOGIC = {
   id: 'arzach2', entry: 'threshold', gadget: 'bell',
-  rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, storeW: {}, storeE: {}, stair: { checkpoint: true }, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, hall: { boss: true }, out: {} },
+  // (the Bell Chamber and the Bell Porch are one room: the way between them is open, and nothing past the porch
+  // opens without the whistle)
+  rooms: { threshold: { checkpoint: true }, stones: { checkpoint: true }, storeW: {}, storeE: {}, stair: { checkpoint: true }, landing: {}, bell: { checkpoint: true }, echoes: { checkpoint: true }, echoesFar: {}, hall: { boss: true }, out: {} },
   links: [
     { a: 'threshold', b: 'stones' },
     { a: 'stones', b: 'storeW' },
     { a: 'stones', b: 'storeE' },
     { a: 'stones', b: 'stair', door: 'd1' },
-    { a: 'stair', b: 'bell', door: 'd2' },
-    { a: 'bell', b: 'echoes', door: 'd3' },
+    { a: 'stair', b: 'landing', door: 'lift' },     // the great stone: rung down, it falls up again with you on it
+    { a: 'landing', b: 'bell', door: 'd2' },
+    { a: 'bell', b: 'echoes', door: 'd3' },         // the Bell Porch's held door, a room on from the chest
     { a: 'echoes', b: 'echoesFar', door: 'br1' },
     { a: 'echoesFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
@@ -71,10 +81,18 @@ export const LOGIC = {
     ball1: { type: 'drum', room: 'storeW', plate: 'p1', plateAt: 1, start: 0 },
     ball2: { type: 'drum', room: 'storeE', plate: 'p2', plateAt: 1, start: 0 },
     d1: { type: 'door', opens: { all: [{ pressed: 'p1' }, { pressed: 'p2' }] }, latch: true },
+    // the Stone Stair: the ball rolled into the founders' bell's mouth strikes it; while it rings the great stone is down
+    ballS: { type: 'drum', room: 'stair', plate: 'pS', plateAt: 1, start: 0 },
+    pS: { type: 'plate', room: 'stair' },
+    e0: { type: 'bell', room: 'stair', hold: 12, when: { drumOn: ['ballS', 'pS'] } },
+    lift: { type: 'door', opens: { lit: 'e0' }, latch: true },
     s1: { type: 'switch', room: 'stair' },
     d2: { type: 'door', opens: { lit: 's1' }, latch: true },
     chest: { type: 'gadget', room: 'bell', item: 'bell' },
-    e1: { type: 'bell', room: 'bell', needs: ['bell'], hold: 8 },
+    // the chamber's own bell in the oculus: stones come down round the dais while it rings (nothing is locked by it)
+    eT: { type: 'bell', room: 'bell', needs: ['bell'], hold: 6 },
+    heap: { type: 'bridge', opens: { lit: 'eT' } },
+    e1: { type: 'bell', room: 'bell', needs: ['bell'], hold: 8 },   // the porch's bell
     d3: { type: 'door', opens: { lit: 'e1' } },
     e2: { type: 'bell', room: 'echoes', needs: ['bell'], hold: 10 },
     ball3: { type: 'drum', room: 'echoes', plate: 'p3', plateAt: 1, start: 0 },
@@ -88,7 +106,7 @@ export const LOGIC = {
 };
 
 /** The held notes: how long the founders' bells hold their door and their stones (s). */
-export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold };
+export const HOLD = { door: LOGIC.elements.e1.hold, stones: LOGIC.elements.e2.hold, stair: LOGIC.elements.e0.hold, chamber: LOGIC.elements.eT.hold };
 /** How long the Cloud-Mother lies on a held stone she dived onto, crying (s): the bell calms her then. */
 export const GROUNDED = 4.5;
 
@@ -220,6 +238,38 @@ class HallStones {
   }
 }
 
+/**
+ * The Stone Stair's great stone, one of the stones that fell up: it hangs at the top of the well, level with the
+ * landing, and comes down to the floor only while its condition holds (`held`: the founders' bell ringing); when it
+ * falls quiet the stone falls up again, carrying whoever stands on it (a moving floor, as a riding disc is).
+ * o: { path: [[bottom], [top]], r, held: condition, down (m/s coming down), up (m/s falling up) }
+ */
+export class FallUpStone extends Platform {
+  constructor(rt, o) {
+    super(rt, { ...o, phase: 1 });
+    // a rough stone, not a disc: an eight-sided slab with a worn top, the glyph faint on its underside
+    this.group.clear();
+    const th = this.thick, r = this.r;
+    const g = new THREE.CylinderGeometry(r, r * 0.8, th, 8).translate(0, -th / 2, 0);
+    const m = new THREE.Mesh(g, rt.M.stoneMat);
+    const under = new THREE.Mesh(new THREE.IcosahedronGeometry(r * 0.75, 1).scale(1, 0.35, 1).translate(0, -th - 0.1, 0), rt.M.stoneMat);
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(r * 0.86, 0.06, 4, 32).rotateX(Math.PI / 2).translate(0, -th * 0.5, 0), this.glow);
+    for (const q of [m, under, rim]) { q.userData.noCollide = true; q.userData.dynamic = true; this.group.add(q); }
+    this.s = this.rt.logic.check(o.held) ? 0 : this.total;
+    this.place(0);
+  }
+  update(dt, t) {
+    const down = this.rt.logic.check(this.o.held), want = down ? 0 : this.total;
+    this.glow.uniforms.uGlow.value = down ? 0.6 + 0.25 * Math.sin(t * 9) : 0.12;
+    if (Math.abs(want - this.s) < 1e-3) { this.solid.vel.set(0, 0, 0); return; }
+    const sp = (down ? this.o.down ?? 3.2 : this.o.up ?? 1.7) * (0.35 + 0.65 * Math.min(1, Math.abs(want - this.s) / 2));
+    this.s += Math.sign(want - this.s) * Math.min(Math.abs(want - this.s), sp * dt);
+    this.place(dt);
+    const P = this.rt.player;
+    if (P && this.solid.vel.y < 0 && !P.climbing && Math.hypot(P.pos.x - this.solid.pos.x, P.pos.z - this.solid.pos.z) < this.r && Math.abs(P.pos.y - this.solid.top) < 0.4 && P.vel.y <= 0.5) P.vel.y = Math.min(P.vel.y, this.solid.vel.y);
+  }
+}
+
 // ------------------------------------------------------------------ inside
 function layout(rt) {
   const K = rt.kit, M = rt.M;
@@ -266,42 +316,64 @@ function layout(rt) {
   K.glyph([23.15, 4.6, 25], 1.3, -Math.PI / 2);
   [[21.6, 0.6, 27.6, 0.9], [20.4, 0.5, 28.1, 0.6]].forEach(([x, y, z, r], i) => stone(x, y, z, r, i + 6));
 
-  // ---- the corridor and the Stone Stair (a round well: two riding discs, a ledge between them)
+  // ---- the corridor and the Stone Stair (a round well whose stair fell up: one great stone hangs at the top, by the
+  // high door; a founders' bell low by the way in, and a ball in a groove into its mouth)
   K.slab(-3.2, 44, 3.2, 46.4, 0, 0.8);
   K.wall(-3.2, 44.6, -3.2, 46.4, 0, 6.6, { t: 0.8 }); K.wall(3.2, 46.4, 3.2, 44.6, 0, 6.6, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 7, 45.4));
   const C2 = 56.4;
   K.rotunda({ x: 0, z: C2, y: 0, r: 9, h: 25, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6, y0: 16.2 }], oculus: 0.35 });
-  add(Platform, { path: [[0, 0.3, C2 - 4.6], [0, 8.25, C2 - 4.6]], r: 2.2, speed: 2.0, pause: 1.6 });
-  K.both(M.floor, box(6.4, 8, 3.6, 0, 4, C2 - 0.6));                     // the ledge, its top at 8
-  K.both(M.trim, box(6.6, 0.3, 3.8, 0, 8.05, C2 - 0.6));        // (its trim solid too: you stand on it)
-  add(Platform, { path: [[0, 8.3, C2 + 3.4], [0, 16.25, C2 + 3.4]], r: 2.2, speed: 2.0, pause: 1.6 });
   K.both(M.floor, box(7.2, 16, 3.2, 0, 8, C2 + 7.2));                    // the top landing, by the high door
   K.both(M.trim, box(7.4, 0.3, 3.4, 0, 16.05, C2 + 7.2));
+  // the great stone: down while the bell rings, up again (with you) when it falls quiet
+  add(FallUpStone, { id: 'lift', path: [[0, 0.3, C2 + 3.4], [0, 16.25, C2 + 3.4]], r: 2.2, held: { lit: 'e0' }, down: 3.2, up: 1.7 });
+  K.both(M.dark, T(new THREE.CylinderGeometry(2.4, 2.6, 0.08, 8), [0, 0.04, C2 + 3.4]));   // where it comes to rest
+  // the founders' bell, low by the way in, with no clapper: the ball's groove runs into its mouth
+  const BX = -6.2, BZ = C2 - 3;
+  const bellS = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);
+  K.add(M.stone, T(bellS, [BX, 2.5, BZ]));
+  K.add(M.trim, box(0.2, 19, 0.2, BX, 15.6, BZ));
+  K.add(M.trim, T(new THREE.TorusGeometry(1.48, 0.08, 4, 28).rotateX(Math.PI / 2), [BX, 2.6, BZ]));
+  K.add(M.dark, box(5.8, 0.04, 1.0, -3.6, 0.02, BZ));
+  for (const sd of [-1, 1]) K.both(M.trim, box(4.4, 0.12, 0.25, -3.2, 0.06, BZ + sd * 0.75));
+  add(Ball, { id: 'ballS', a: [-1.0, 0.04, BZ], b: [BX, 0.04, BZ], r: 1.0, strike: { at: [BX, 3.4, BZ] } });
+  add(Plate, { id: 'pS', at: [BX, 0, BZ], r: 1.2 });
+  add(BellEar, { id: 'e0', at: [BX, 1.6, BZ], reach: 6, heard: 'The founders’ bell booms, and high over the well the great stone comes down to the floor. It stays only while the bell sounds.', heardKey: 'e0.heard', fading: 'The bell’s hum is fading: the great stone stirs.' });
   add(Mark, { room: 'stair', at: [5, 0, C2 - 3], yaw: -Math.PI / 2 });
-  // the high door, and its eye on the landing's face: under your feet once you are up, seen from the ledge
+  // the high door, and its eye on the landing's face: under your feet once you are up, seen on the way
   add(Door, { id: 'd2', at: [0, 16.2, C2 + 9.7], w: 5, h: 6, lamps: [{ lit: 's1' }] });
   add(Switch, { id: 's1', at: [2.6, 12, C2 + 5.4], yaw: Math.PI, size: 1.0 });
 
-  // ---- the corridor and the Bell Chamber (floor 16): the chest, and the bell-tuned door
+  // ---- the corridor and the Bell Chamber (floor 16): the chest; its way on is open
   K.slab(-3.2, C2 + 9.6, 3.2, C2 + 12.4, 16, 0.8);
   K.wall(-3.2, C2 + 10.3, -3.2, C2 + 12.4, 16, 6.6, { t: 0.8 }); K.wall(3.2, C2 + 12.4, 3.2, C2 + 10.3, 16, 6.6, { t: 0.8 });
   K.both(M.wall, box(7.2, 0.8, 2.6, 0, 23, C2 + 11.4));
   const C3 = C2 + 22.4;   // 78.8
   K.rotunda({ x: 0, z: C3, y: 16, r: 10, h: 15, gaps: [{ a: Math.PI, w: 5, h: 6 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 16, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 16.31, C3));
-  // a bell hangs in the oculus, without a clapper
+  // a bell hangs in the oculus, without a clapper: the whistle rings it, and three stones that fell up come down
+  // round the dais while it sounds (a try: nothing is locked by it)
   const bell = lathe([[0.02, 0], [1.4, 0.1], [1.5, 0.8], [1.05, 2.4], [0.85, 3.4], [0.02, 3.6]], 24);
   K.add(M.stone, T(bell, [0, 26, C3]));
   K.add(M.trim, box(0.2, 4, 0.2, 0, 31.5, C3));
-  // the door on is held by the bell in the oculus: open while it rings
-  add(Door, { id: 'd3', at: [0, 16, C3 + 10.7], w: 5, h: 6.4, bell: true, lamps: [{ lit: 'e1' }] });
-  add(BellEar, { id: 'e1', at: [0, 26, C3], reach: 26, heard: 'The bell in the oculus hums with your note, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
+  add(BellEar, { id: 'eT', at: [0, 26, C3], reach: 14, heard: 'The bell in the oculus hums with your note, and three of the stones that fell up come down round the dais. They stay only while it sounds.', heardKey: 'eT.heard', fading: 'The hum is fading: the stones tremble.' });
+  add(Bridge, { id: 'heap', a: [-6.4, 16.6, C3 - 3.2], b: [-6.4, 16.6, C3 + 3.2], w: 2.4, n: 3, from: 'above' });
   add(Mark, { room: 'bell', at: [6.2, 16, C3 - 5], yaw: -Math.PI * 0.75 });
 
-  // ---- the Hall of Echoes (z 90..124): a chasm under a bridge of stones that fell up
-  const E0 = C3 + 11.4;   // 90.2
-  K.slab(-3.2, C3 + 10.6, 3.2, E0 + 0.6, 16, 0.8);
+  // ---- the Bell Porch (floor 16), a room on: the door into the Hall of Echoes is held by the porch's own bell
+  const A0 = C3 + 11.4;   // 90.2
+  K.slab(-3.2, C3 + 9.6, 3.2, A0 + 0.6, 16, 0.8);
+  K.hall({ x: 0, z: A0 + 6, w: 12, d: 12, y: 16, h: 10, roof: 'oculus', oculus: 0.35, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
+  const bellP = lathe([[0.02, 0], [1.1, 0.08], [1.2, 0.65], [0.85, 1.9], [0.7, 2.7], [0.02, 2.9]], 24);
+  K.add(M.stone, T(bellP, [0, 22.6, A0 + 6]));
+  K.add(M.trim, box(0.2, 1.6, 0.2, 0, 26.2, A0 + 6));
+  add(BellEar, { id: 'e1', at: [0, 23, A0 + 6], reach: 8.5, heard: 'The porch’s bell hums with your note, and the door sinks. It stands open only while the bell sounds.', heardKey: 'e1.heard', fading: 'The bell’s hum is fading. The door will rise again.' });
+  add(Mark, { room: 'bell', at: [-4, 16, A0 + 4], yaw: Math.PI / 2 });
+
+  // ---- the Hall of Echoes (z 103..137): a chasm under a bridge of stones that fell up
+  const E0 = A0 + 12 + 1.2;   // 103.4
+  K.slab(-3.2, E0 - 1.6, 3.2, E0 + 0.6, 16, 0.8);
+  add(Door, { id: 'd3', at: [0, 16, E0 - 0.6], w: 5, h: 6.4, bell: true, lamps: [{ lit: 'e1' }] });
   K.hall({ x: 0, z: E0 + 17.2, w: 22, d: 34.4, y: 6, h: 22, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 10 }, { side: 'n', w: 5, h: 6.4, y0: 10 }] });
   K.slab(-11, E0, 11, E0 + 6, 16, 10);
   K.slab(-11, E0 + 26, 11, E0 + 34.4, 16, 10);
@@ -357,7 +429,7 @@ function layout(rt) {
     bounds: new THREE.Box3(V(-26, -2, -3), V(26, 60, CH + HR + 12)),
     gadget: { at: W(0, 16.62, C3).toArray(), face: K.heading(Math.PI) },
     exits: [{ at: W(0, 0.5, 0.4), r: 1.5 }, { at: W(0, 16.5, CH + HR + 9.6), r: 1.5 }],
-    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [-17.7, 5, 23, 11], [17.7, 5, 23, 11], [0, 8, C2, 16], [0, 20, C3, 16], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
+    lights: [[0, 6, 6, 14], [0, 7, 22, 18], [0, 7, 38, 18], [-17.7, 5, 23, 11], [17.7, 5, 23, 11], [0, 8, C2, 16], [0, 20, C3, 16], [0, 21, A0 + 6, 12], [0, 22, E0 + 10, 20], [0, 22, E0 + 28, 18], [0, 22, CH, 30]],
     guardian: { def: { ...MOTHER, onHit: motherHit, onStrike: motherStrike, openFor: motherOpen, onReset: (g) => { g.grounded = false; rt.hallStones?.reset(); } }, model, arena },
   };
 }

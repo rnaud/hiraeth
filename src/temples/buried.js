@@ -28,9 +28,12 @@ import { sentinelModel } from './guardians.js';
 //                          crank wheel beside the way. The ball's groove runs from the gantry, through the corridor,
 //                          into the crank's teeth: roll it in, and the hammer stops at the top of its stroke
 //   the Fourth Chamber     the makers' chest: the FOURTH CHAMBER (src/items.js 'cell'): a fourth unit on the magic
-//                          bar. The door on wants four eyes that wake only together, inside one breath: four shots,
-//                          and the starting bar only holds three (needs 'magic:4', src/resources.js meets). They stand
-//                          on pistons behind a parapet that rise in turn, one crank for all four: jam it, all four up
+//                          bar. Its way on is open. Four eyes on its north wall wake only together, inside one
+//                          breath: four shots, and the starting bar only holds three (needs 'magic:4', src/resources.js
+//                          meets). Nothing is locked by them: a try
+//   the Crank Passage      a room on: its door wants four eyes in one breath too, but they stand on pistons behind a
+//                          parapet that rise in turn, one crank for all four: jam it with the ball by it, all four
+//                          up (the fourth chamber's first lock, where failing costs nothing)
 //   the Furnace            a chasm over embers; the bridge rises on four eyes in one breath, but each eye stands on
 //                          a piston behind the far parapet, and the pistons rise in turn with the stroke, never four
 //                          up inside a breath. Two cranks on the near lip drive the two west pistons, a ball in a
@@ -72,7 +75,7 @@ export const LOGIC = {
     { a: 'threshold', b: 'pistons' },
     { a: 'pistons', b: 'weight', door: 'pumps' },   // the pistons, while the valve is open and no ball sits in their crank
     { a: 'weight', b: 'cell', door: 'h1' },         // the hammer over the walkway, stopped: the gantry's ball in its crank
-    { a: 'cell', b: 'furnace', door: 'd3' },
+    { a: 'cell', b: 'furnace', door: 'd3' },        // the Crank Passage's door, a room on from the chest (one room with it)
     { a: 'furnace', b: 'furnaceFar', door: 'br1' },
     { a: 'furnaceFar', b: 'hall', door: 'd4' },
     { a: 'hall', b: 'out', door: 'd5' },
@@ -89,7 +92,8 @@ export const LOGIC = {
     pJ: { type: 'plate', room: 'weight' },
     h1: { type: 'door', opens: { drumOn: ['ballJ', 'pJ'] } },
     chest: { type: 'gadget', room: 'cell', item: 'cell' },
-    // the Fourth Chamber: four eyes on pistons that rise in turn, one crank for all four: jammed, all stay up
+    k0: { type: 'switch', room: 'cell', needs: ['magic:4'] },       // the chamber's four still eyes: a try, nothing waits on it
+    // the Crank Passage: four eyes on pistons that rise in turn, one crank for all four: jammed, all stay up
     bK: { type: 'drum', room: 'cell', plate: 'pK', plateAt: 1, start: 0 },
     pK: { type: 'plate', room: 'cell' },
     k1: { type: 'switch', room: 'cell', needs: ['magic:4'], when: { drumOn: ['bK', 'pK'] } },   // four eyes in one breath
@@ -295,27 +299,36 @@ function layout(rt) {
   K.rotunda({ x: 0, z: C3, y: 7, r: 9.5, h: 13, gaps: [{ a: Math.PI, w: 5, h: 6.4 }, { a: 0, w: 5, h: 6.4 }], oculus: 0.35 });
   K.both(M.trim, lathe([[3, 0], [3, 0.3], [2.5, 0.32], [2.5, 0.62], [0.01, 0.62]], 28).translate(0, 7, C3), new THREE.CylinderGeometry(2.8, 3, 0.62, 20).translate(0, 7.31, C3));
   K.add(band, T(annulus(9.32, 9.5, 0.6, 48), [0, 13.2, C3]));
-  add(Door, { id: 'd3', at: [0, 7, C3 + 10.2], w: 5, h: 6.4, lamps: [{ lit: 'k1' }] });
-  const QX = [-5.0, -3.4, 3.4, 5.0], QZ = C3 + 7.3, JAM = { drumOn: ['bK', 'pK'] };
-  for (const sd of [-1, 1]) { K.both(M.wall, box(3.6, 2.2, 0.5, sd * 4.3, 8.1, C3 + 6.0)); K.add(band, box(3.8, 0.3, 0.6, sd * 4.3, 9.1, C3 + 6.0)); rivets(sd * 4.3 - 1.6, sd * 4.3 + 1.6, 8.4, C3 + 5.72); }
+  // four still eyes on the north wall, either side of the open way on: four in one breath wake them (a try)
+  add(Bank, { id: 'k0', window: VOLLEY, eyes: [-5.6, -3.6, 3.6, 5.6].map((x) => ({ at: [x, 10.6, C3 + Math.sqrt(9.3 ** 2 - x * x)], yaw: Math.PI + Math.asin(x / 9.3) })),
+    full: 'All four woke, and went dark again: four shots in one breath, and the bar holds three.',
+    fade: 'They woke one by one, and went dark again before the last: four in one breath.' });
+  add(Mark, { room: 'cell', at: [6, 7, C3 - 5], yaw: -Math.PI * 0.75 });
+
+  // ---- the Crank Passage (floor 7), a room on: four eyes on pistons round its door, one crank for all four
+  const A0 = C3 + 10.9, AD = 14;
+  K.slab(-3.2, C3 + 9.2, 3.2, A0 + 0.6, 7, 0.8);
+  K.hall({ x: 0, z: A0 + AD / 2, w: 16, d: AD, y: 7, h: 10, roof: true, omit: ['n'], doors: [{ side: 's', w: 5, h: 6.4 }] });
+  const F0 = A0 + AD + 1.2, DZ = F0 - 0.6;
+  add(Door, { id: 'd3', at: [0, 7, DZ], w: 5, h: 6.4, lamps: [{ lit: 'k1' }] });
+  const QX = [-5.0, -3.4, 3.4, 5.0], QZ = DZ - 2.9, JAM = { drumOn: ['bK', 'pK'] };
+  for (const sd of [-1, 1]) { K.both(M.wall, box(3.6, 2.2, 0.5, sd * 4.3, 8.1, DZ - 4.2)); K.add(band, box(3.8, 0.3, 0.6, sd * 4.3, 9.1, DZ - 4.2)); rivets(sd * 4.3 - 1.6, sd * 4.3 + 1.6, 8.4, DZ - 4.48); }
   for (const x of QX) K.both(M.dark, new THREE.CylinderGeometry(0.85, 0.95, 0.3, 16).translate(x, 7.15, QZ));
   K.add(M.stone, box(10.6, 0.36, 0.36, 0, 7.4, QZ + 0.5));   // the crankshaft under them all
   add(Bank, { id: 'k1', window: VOLLEY, stroke: STROKE,
     eyes: QX.map((x, i) => ({ at: [x, 11.0, QZ - 0.6], yaw: Math.PI, piston: { drop: 3.4, phase: i / 4, jam: JAM } })),
     unmet: 'All four woke, and the door does not stir: they never stand up together. Something has to hold their pistons up.',
     fade: 'They woke one by one as their pistons rose, and sank dark again. The pistons rise in turn: never four in one breath.' });
-  // one crank for all four, on the chamber's west side, its rod to the shaft; a ball in a groove by it
-  add(Cranks, { at: [[-6.6, 8.4, C3 + 2.2]], to: [[-6.6, 7.4, QZ + 0.5]], r: 1.3, jam: [JAM] });
-  K.add(M.dark, box(1.0, 0.04, 4.6, -6.6, 7.02, C3 - 0.4));
-  add(Ball, { id: 'bK', a: [-6.6, 7.04, C3 - 2.6], b: [-6.6, 7.04, C3 + 1.6], r: 0.9, lock: true });
-  add(Plate, { id: 'pK', at: [-6.6, 7, C3 + 1.6], r: 1.1 });
-  add(Mark, { room: 'cell', at: [6, 7, C3 - 5], yaw: -Math.PI * 0.75 });
+  // one crank for all four, on the passage's west side, its rod to the shaft; a ball in a groove by it
+  add(Cranks, { at: [[-6.6, 8.4, DZ - 8]], to: [[-6.6, 7.4, QZ + 0.5]], r: 1.3, jam: [JAM] });
+  K.add(M.dark, box(1.0, 0.04, 4.6, -6.6, 7.02, DZ - 10.6));
+  add(Ball, { id: 'bK', a: [-6.6, 7.04, DZ - 12.8], b: [-6.6, 7.04, DZ - 8.6], r: 0.9, lock: true });
+  add(Plate, { id: 'pK', at: [-6.6, 7, DZ - 8.6], r: 1.1 });
 
-  // ---- the Furnace (z 86..120): a chasm over embers; the bridge rises on four eyes in one breath, each on a piston
+  // ---- the Furnace (z 100..134): a chasm over embers; the bridge rises on four eyes in one breath, each on a piston
   // behind the far parapet that rises in turn with the engine's stroke; the two west pistons' cranks on the near lip,
   // a ball in a groove by each
-  const F0 = C3 + 10.9;
-  K.slab(-3.2, C3 + 10.1, 3.2, F0 + 0.6, 7, 0.8);
+  K.slab(-3.2, F0 - 1.6, 3.2, F0 + 0.6, 7, 0.8);
   K.hall({ x: 0, z: F0 + 17.2, w: 22, d: 34.4, y: -5, h: 24, floor: false, roof: 'oculus', oculus: 0.3, doors: [{ side: 's', w: 5, h: 6.4, y0: 12 }, { side: 'n', w: 5, h: 6.4, y0: 12 }] });
   K.slab(-11, F0, 11, F0 + 6, 7, 12);
   K.slab(-11, F0 + 26, 11, F0 + 34.4, 7, 12);

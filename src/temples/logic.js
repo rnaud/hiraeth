@@ -277,12 +277,15 @@ export function solve(def, { items = ['backpack'], withhold = [], maxSteps = 400
         const usable = Object.entries(def.elements).filter(([x, g]) => LATCHED.has(g.type) && !L.isLit(x) && L.canUse(x)).length;
         return usable * 1e6 + rooms.size * 1000 + Object.entries(def.elements).filter(([x, g]) => isGate(g) && L.computeOpen(x)).length;
       };
-      const t0 = L.drumT(id), base = score();
+      // (and with you standing on a plate there: a ball set down in one place while you stand in another, the Footprint's)
+      const plates = L.ofType('plate').filter((p) => reach.has(def.elements[p].room) && !L.pressed(p));
+      const scoreStood = () => { let best = score(); for (const p of plates) { L.press(p, 'player'); best = Math.max(best, score()); L.release(p, 'player'); } return best; };
+      const t0 = L.drumT(id), base = scoreStood();
       let best = null;
       for (const [plate, at] of Object.entries(e.stops)) {
         if (L.drumOn(id, plate)) continue;
         L.moveDrum(id, at);
-        const s = score();
+        const s = scoreStood();
         if (s > base && (!best || s > best.s)) best = { plate, at, s };
         L.moveDrum(id, t0);
       }

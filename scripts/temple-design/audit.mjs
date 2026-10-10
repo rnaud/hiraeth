@@ -54,13 +54,28 @@ for (const id of ids) {
   const solids = [];
   rt.root.traverse((o) => { if (o.isMesh && o.geometry && !(rt.guardian && isUnder(o, rt.guardian.model?.group))) solids.push(o); });
   const ray = new THREE.Raycaster();
-  const los = (a, b) => {
+  const s = solve(def.logic, { items: ['backpack'] });
+  // the gates you came through to reach a lock's room stand open by then (an iris you flew up through, a door): their
+  // pieces' meshes are left out of that lock's line of sight. A gate counts as come through when both rooms of its link
+  // are reached no later than the lock's room.
+  const at = (r) => { const i = s.order.indexOf(r); return i < 0 ? Infinity : i; };
+  const meshesOf = (p) => { const out = new Set(); for (const v of Object.values(p)) if (v?.isObject3D) v.traverse((o) => { if (o.isMesh) out.add(o); }); return out; };
+  const passed = new Map();
+  const openBy = (link) => {
+    if (!link) return null;
+    if (!passed.has(link)) {
+      const skip = new Set();
+      for (const l of def.logic.links) if (l.door && l !== link && Math.max(at(l.a), at(l.b)) <= at(link.a)) for (const p of rt.pieces) if (p.id === l.door) for (const m of meshesOf(p)) skip.add(m);
+      passed.set(link, solids.filter((m) => !skip.has(m)));
+    }
+    return passed.get(link);
+  };
+  const los = (a, b, link) => {
     const A = rt.kit.world(...a), B = rt.kit.world(...b), d = A.distanceTo(B);
     if (d < 0.5) return true;
     ray.set(A, B.clone().sub(A).normalize()); ray.far = d - 1.2;
-    return ray.intersectObjects(solids, false).length === 0;
+    return ray.intersectObjects(openBy(link) ?? solids, false).length === 0;
   };
-  const s = solve(def.logic, { items: ['backpack'] });
   const g = L.puzzleGraph(def.logic, pieces, { los, order: s.order });
   const guardian = rt.guardian?.def ?? null;
   const m = L.templeMetrics(g, { guardian });

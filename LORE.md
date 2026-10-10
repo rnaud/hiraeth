@@ -1364,8 +1364,9 @@ down: a well of the makers turned on its end.
   while the great vane in the floor turns, too heavy for a splash: hover over it on the jets and splash the eye;
   the iris in the ceiling opens); the loft (a ball on a high shelf, a gap in it whose stones stand only while the
   loft's great vane turns: hover over it and push the ball across from the air, and a second iris opens); the crown
-  (the eye by the high door lifts its lids only while two vanes turn at once: splash the little one on the west
-  wall, then fly to the great one in the floor and hover before the little one slows); the Warden's Hall.
+  (the eye by the high door lifts its lids only while two vanes turn at once: the great one in the crown's floor, and
+  a little one that stands on a post in the loft below, seen down through the second iris: splash it, then fly up to
+  the great one and hover before the little one slows; v1.27); the Warden's Hall.
 - **The warden** (robot): a tall machine of the makers on three legs, a ring
   of side vents and a lamp-eye. It beams along a lane, drops shots where you
   stand, and slams the floor round itself. After a beam its side vents open:
@@ -1392,10 +1393,15 @@ every evening "like a bell with nothing to ring it".
   monastery's kitchen roof ("Brother Calix laughed. I have never heard him
   laugh"); the Cloud-Mother swimming away over the cloud.
 - **Inside**: the Threshold; the Hall of Stones (two stone balls in two
-  grooves, both pushed onto their plates); the Stone Stair (a round well, two
-  discs that ride up and down, a ledge between them); the Bell Chamber (**the
-  bell-note whistle**, a silent bell hanging in the oculus; the door on is
-  bell-tuned: sound the whistle by it); the Hall of Echoes (a chasm under the
+  grooves, both pushed onto their plates); the Stone Stair (a round well whose
+  stair fell up: one great stone hangs at the top by the high door; a founders'
+  bell low by the way in, its clapper a stone ball rolled into its mouth: while
+  it rings the great stone comes down, and when it falls quiet the stone falls
+  up again with whoever stands on it; v1.27); the Bell Chamber (**the
+  bell-note whistle**, a silent bell hanging in the oculus that brings three
+  stones down round the dais while it rings: nothing is locked by it); the Bell
+  Porch (its door is held by the porch's own bell, open only while it rings);
+  the Hall of Echoes (a chasm under the
   stones of its own bridge, hanging high where they fell up: sound the bell at
   its edge and they come down into place; a second bell door beyond, that only
   hears you close); the Cloud-Mother's Hall, open to the sky.
@@ -1427,9 +1433,11 @@ the pipe-cart ran down the canyon to the oculus and back.
   their crank's teeth; roll it out and they ride, back in and they stop where
   they are); the Crank Hall (the engine's hammer slams down on a walkway over a
   pit: the gantry's ball rolled down its groove into the hammer's crank stops it
-  at the top of its stroke); the Fourth Chamber (**the fourth chamber**; the door
-  on wants four eyes in one breath, standing on pistons that rise in turn behind
-  a parapet, one crank for all four: jam it and all four stand up); the Furnace
+  at the top of its stroke); the Fourth Chamber (**the fourth chamber**; four
+  still eyes on its wall wake together in one breath, and lock nothing); the
+  Crank Passage (its door wants four eyes in one breath, standing on pistons that
+  rise in turn behind a parapet, one crank for all four: jam it and all four
+  stand up; v1.27); the Furnace
   (a chasm over embers; four eyes on pistons rising in turn behind the far
   parapet, a crank for each of the two west ones on the near lip: jam those two
   and catch the other two as they rise one after the other); the Tooth-Warden's
@@ -1457,8 +1465,9 @@ pale sphere, half sunk, with a round-headed door toward the grove.
   the others"). Afterwards: the toes full of still water, "I saw myself in every
   toe"; the spheres humming together at dusk; "Linnet cried".
 - **Inside** (rebuilt round one idea in v1.24: the lens shows where the walker set things down; what is real carries
-  the walker's print, three toes like the Footprint itself): the Threshold; the Hall of Spheres (two white spheres in
-  grooves, both onto their plates); the Still Pool (a sphere floating in it, which the stirring water draws back
+  the walker's print, three toes like the Footprint itself): the Threshold; the Hall of Spheres (one white sphere in a
+  groove past three carved prints of two, three and four toes, and three prints by the wall: the sphere set down on
+  the walker's and you standing on the walker's; v1.27); the Still Pool (a sphere floating in it, which the stirring water draws back
   unless you stand on the stone that stills it: then it crosses to its berth, and stepping stones rise); the Lens
   Chamber (**the glyph lens**; through it, the walker's print on the wall and its prints over the floor); the Hall of
   the Unseen (a chasm, and a field of stepping stones only the lens shows, each with a print: only the walker's hold,
@@ -1490,9 +1499,11 @@ had been a greater lamp.
   forty-second lamp: "Forty-two. I wrote it down."
 - **Inside** (dark: the lantern charm glows in it, day or night): the
   Threshold; the Hall of Dark Pools (three pool-lamps to splash); the Root Stair
-  (a riding disc over a dark pool, a root-wall to climb); the Lantern Chamber
-  (**the lantern charm**; the door on is a lamp that wakes when you stand by it
-  with the lantern); the Dark Gallery (a chasm crossed by moss-stones only the
+  (a dark pool with moss-stones sunk in it that rise glowing once a pool-orb
+  carries light to their lamp; a root-wall to climb; v1.27); the Lantern Chamber
+  (**the lantern charm**; a lamp by the dais that wakes to it, locking nothing);
+  the Lamp Passage (its door a lamp that wakes when you stand by it with the
+  lantern); the Dark Gallery (a chasm crossed by moss-stones only the
   lantern's light shows, an eye only it shows, a second lamp-door); the
   Lamp-Room, its great lamp dark in a brass cradle overhead.
 - **The Lampless** (organic): a great pale moth, wings wide as sails with glyph
@@ -1525,7 +1536,8 @@ everything since; you can hear it through the stone.
 - **Inside**: the Threshold; the Choir (four crystals of four heights: splash
   them low to high, and out of turn one rings flat and fades); the Bog Well (a
   disc that climbs over dark water, then a wall of roots to climb); the Stilling
-  Chamber (**the stilling mode**; the way on is a gate of jaws, two great leaves
+  Chamber (**the stilling mode**; its way on is open); the Snapping Passage (its
+  door a gate of jaws, two great leaves
   with teeth that snap and half open, snap and half open, and bite whoever
   tries: a stilling glob stills them, and they forget to close); the Pendulum
   Gallery (a narrow bridge over a chasm, three crystal pendulums swinging
@@ -1608,7 +1620,7 @@ the three machines Lune saw stop stopped because of it.
   escapement, still until you splash the eye over the far door); the Winding
   Well (a wall to climb; on top a stone ball in a groove onto its plate: only the
   ball's weight opens the door, it is the winding's counterweight); the Coil
-  Chamber (**the quick coil**; the door on is ringed by six eyes that wake only
+  Chamber (**the quick coil**); the Winding Passage (its door is ringed by six eyes that wake only
   together, inside one breath of 4.6 seconds: three shots, a refill, three more,
   and the tank only refills fast enough with the coil); the Clock Gallery (a
   chasm whose bridge rises for a second bank of six, round a stopped clock face
@@ -1651,9 +1663,10 @@ night, bare as a stick, and breaks the panes.
 - **Inside**: the Threshold (dead sticks in every pot); the Potting Hall (a
   white stone seed in a groove onto its plate, and an eye over the potting
   benches: both); the Glass Stair (a root-wall to climb, a disc that rides up to
-  the landing); the Seed Chamber (**bloom mode**, a new gun mode; the way on is
-  a flower-door, a great bud over the doorway that water only runs off and
-  ember curls tighter: a bloom glob opens it); the Vine Gulf (a chasm: a seed at
+  the landing); the Seed Chamber (**bloom mode**, a new gun mode; a seed in the
+  oculus's sun by the dais flowers when bloomed, locking nothing); the Bud
+  Passage (its door a flower-door, a great bud over the doorway that water only
+  runs off and ember curls tighter: a bloom glob opens it); the Vine Gulf (a chasm: a seed at
   its edge grows a vine bridge across; on the far side a wall of greenhouse
   glass too smooth to climb, until a seed at its foot grows a vine up it; at its
   top a second bud); the Glasshouse.
@@ -1693,12 +1706,13 @@ if you put your ear to the stones.
   being heard"). The word is *somebody*. Afterwards: the tower said the whole
   line over the square and everybody stopped selling, even the noodle men; he
   won't need his ear on the stones any more.
-- **Inside**: the Threshold; the Hall of Dishes (a stone ball in a groove onto
-  its plate, and a disc wakes to carry you over a pit full of the makers' old
-  cable); the Cable Well (two discs that ride up, a ledge between them); the
-  Shell Chamber (**the echo shell**, a new tool; the door on listens for the low
-  stone's note played back close by: the stone sings when splashed, but only
-  the shell carries the note to the door); the Gallery of Voices (a chasm: a horn
+- **Inside**: the Threshold; the Hall of Dishes (a singing ball in a groove onto
+  a dish's footstone: splashed there, its note crosses the hall through the
+  dishes to a horn, and the makers' pillars rise out of a pit full of their old
+  cable; v1.27); the Cable Well (two discs that ride up, a ledge between them); the
+  Shell Chamber (**the echo shell**, a new tool, and a low singing stone by the
+  dais); the Listening Passage (its door listens for the low note played back
+  close by: carry it from the chamber's stone); the Gallery of Voices (a chasm: a horn
   at its edge raises the bridge for the high stone's note, and the far door
   wants the middle one, whose stone is on the near side: the shell holds one note
   at a time, and from across the chasm it can't catch the middle stone, so you

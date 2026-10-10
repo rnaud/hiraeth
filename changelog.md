@@ -2,6 +2,16 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.27 — 2026-10-10
+
+- In the Warden’s Well’s crown, the little vane is no longer on the crown’s wall: it stands on a post in the loft below, seen down through the second iris. Splash it there, then fly up to the great vane and hover before it slows (it now spins for 15 seconds).
+- The Footprint’s Hall of Spheres now opens with the walker: one sphere in a groove past three carved prints, and three more by the wall. Set the sphere down on the walker’s print, three toes like the Footprint outside and the print carved over the door, and stand on the walker’s print by the wall.
+- In the Lamp-House’s Root Stair, the glowing orb no longer wakes a disc: its lamp raises moss-stones out of the dark pool, glowing, to walk across.
+- In the Undertower’s Hall of Dishes, the singing ball’s note, carried over by the dishes, now raises the makers’ pillars out of the cable pit instead of waking a disc.
+- The Founders’ Belfry’s Stone Stair has no riding discs any more: one great stone that fell up hangs at the top of the well. Roll the stone ball into the founders’ bell low by the way in: while the bell rings the great stone comes down to the floor, and when it falls quiet the stone falls up again, with you on it if you are quick. Splash the eye under the landing on the way up.
+- Where the chest’s room had room for it, it now has something to try the new tool on that locks nothing: the Bell Chamber’s bell brings three stones that fell up down round the dais while it rings, the Fourth Chamber has four still eyes to wake in one breath, the Seed Chamber a seed in the sun that flowers, the Lantern Chamber a lamp that wakes to your lantern, and the Shell Chamber a low singing stone whose note you carry to the next door.
+- No temple keeps its new tool’s first door beside the chest any more. In the Founders’ Belfry, the Engine-House, the Undertower, the Builders’ Greenhouse, the Hush-House, the Lamp-House and the First Garage the way out of the chest’s room is open, into a short room of its own, and the first door that wants the new tool waits at its far end, where a miss costs nothing.
+
 ## v1.26 — 2026-10-10
 
 - In the Desert, an old lamp tripod of the makers, the cistern pump, now keeps watch on the far shore of the mineral basin under the lavender cliffs.
