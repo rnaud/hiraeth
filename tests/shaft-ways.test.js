@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 
 await import('./register-gadgets.js');
 const A = await import('./playthrough-agent.js');
-const { DROPS, dropLandings, CLIMB } = await import('../src/shaft-ways.js');
+const { DROPS, dropLandings, CLIMB, rimPosts, RIM_POSTS } = await import('../src/shaft-ways.js');
 const { HALFWAY } = await import('../src/story/halfway.js');
 
 const W = A.loadWorld('incal');
@@ -53,6 +53,34 @@ test('Perrine’s stall stands beside the middle landing; the climb’s pad and 
   }
   // Wren's talk happens at the call-lamp's stop: its marker waits there until the lamp is lit
   assert.ok(W.quests.resolve('wren').distanceTo(P.cab) < 0.5);
+});
+
+test('round 3: the rim posts lead from the Well’s door to the red stair; the upper pad keeps the relay lamp company; Basile waits by the shop', () => {
+  // the posts stand on the rim's floor, clear of the cab stop, and the audit's line runs on down the stair to Nima
+  const posts = rimPosts(S.TOP);
+  assert.equal(posts.length, RIM_POSTS.length);
+  const door = level.temple.outside.door.at;
+  assert.ok(flat(posts[0].at, door) < 25, `the first by the Well’s door (${flat(posts[0].at, door).toFixed(0)} m)`);
+  assert.ok(flat(posts.at(-1).at, P.stair.path[0]) < 25, 'the last by the red stair’s gate');
+  for (const { at, out } of posts) {
+    const g = physics.groundAt(at.x - out.x * 1.2, at.y + 5, at.z - out.z * 1.2, 8);   // (beside it, on the side away from the void)
+    assert.ok(Number.isFinite(g) && Math.abs(g - S.TOP) < 0.3, `a post on the rim’s floor (${g?.toFixed?.(2)})`);
+    for (const c of level.cabStops) assert.ok(flat(at, c.step) > 5, 'not on a cab stop');
+  }
+  for (let i = 1; i < posts.length; i++) assert.ok(flat(posts[i].at, posts[i - 1].at) < 45, `post ${i} in sight of the last`);
+  const line = level.lines().find((l) => l.name === 'the lamplighters’ rim posts');
+  assert.ok(line && flat({ x: line.points.at(-1)[0], z: line.points.at(-1)[2] }, P.nima) < 1, 'the line ends at Nima');
+  // the upper pad: a floor, near the relay lamp (no place on the climb stands alone), off the spire
+  const u = ways.upper;
+  const g = physics.groundAt(u.stand.x, u.stand.y + 3, u.stand.z, 6);
+  assert.ok(Number.isFinite(g) && Math.abs(g - u.stand.y) < 0.3, 'the upper pad is a floor');
+  assert.ok(u.at.distanceTo(ways.relay.at) < 120, `the relay lamp within reach (${u.at.distanceTo(ways.relay.at).toFixed(0)} m)`);
+  assert.ok(Math.hypot(u.at.x, u.at.z) > S.SPIRE_R + 8, 'clear of the spire');
+  // Basile at the middle cab stop, beside Fausta's shop door
+  const basile = W.npcs.find((n) => n.def?.id === 'basile'), shopDoor = level.shops[0].portals[0].at;
+  assert.ok(basile && basile.pos.distanceTo(shopDoor) < 15 && basile.pos.distanceTo(shopDoor) > 6, `Basile by the shop (${basile?.pos.distanceTo(shopDoor).toFixed(1)} m)`);
+  const stop = level.cabStops.find((c) => Math.abs(c.step.y - basile.pos.y) < 2);
+  assert.ok(stop && flat(stop.step, basile.pos) < 6, 'waiting at the cab stop');
 });
 
 test.after(() => W.dispose());

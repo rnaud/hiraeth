@@ -369,7 +369,7 @@ export const BOOK = {
     P('perrine', 'Perrine', 'Keeps the halfway tea stall', [
       'Perrine pours halfway tea in the middle levels, where everyone passes and nobody stays. Her mother put up the mirror that threw a coin of the Lodestar’s light down to the bottom.',
       [done('incal.mirror'), 'The mirror faces up the shaft again.'],
-    ], ['At her tea stall by the halfway cab stop.']),
+    ], ['At her tea stall where the lamplighters’ drops land, halfway down.']),
     P('lio', 'Lio', 'Dispatches the City-Shaft’s cabs', [
       'Lio dispatches nine hundred cabs, which stop for passes, not people, and never below the smog. When the sky rang, every compass in them failed at once.',
       [done('incal.pass'), 'Lio wrote you a cab pass, paid with the fare Tobin owed.'],
@@ -388,6 +388,10 @@ export const BOOK = {
       'Fausta keeps a narrow shop on the middle terraces by the cab stop. She sells cures, hearts and more room in your tank to every level of the shaft, by a basket on a rope over the void.',
       [f('incal.fausta.basket'), 'Rim prices on the way up, bottom prices on the way down: the same cure. Nobody has ever compared baskets.'],
     ], ['In her basket-shop on the middle terraces.']),
+    P('basile', 'Basile', 'Carries Fausta’s baskets', [
+      'Basile carries for Fausta: the small orders go down on her rope, the big ones up the shaft on his back. He waits at the middle levels’ cab stop for cabs that do not stop for baskets.',
+      [f('incal.lit'), 'When the light came back he put his baskets down to look up, and missed two cabs.'],
+    ], ['At the middle levels’ cab stop, beside Fausta’s shop.']),
   ],
   garage: [
     P('ambroise', 'Ambroise', 'Clerk of the round', [

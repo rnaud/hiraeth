@@ -1146,6 +1146,7 @@ export function* buildIncal(scene) {
     floraAvoid: shop.avoid((x, z, r) => (Math.abs(z) < 18 + r && x < R + 42) || (x > R + 28 && x < R + 62 && Math.abs(z) < 44)
       || Math.hypot(x - Math.cos(PILLAR.a) * PILLAR.r, z - Math.sin(PILLAR.a) * PILLAR.r) < 10 + r
       || Math.hypot(x - Math.cos(STAIR.top) * (R + 6), z - Math.sin(STAIR.top) * (R + 6)) < 8 + r   // (the red stair's gate)
+      || ways.rim.some(([px, , pz]) => Math.hypot(x - px, z - pz) < 1.5 + r)   // (the lamplighters' rim posts)
       || trees.some((t) => t[3] > 0 && Math.abs(t[1] - TOP) < 1 && Math.hypot(t[0] - x, t[2] - z) < 2.2 + r)),
     ground: { heightAt: () => -Infinity }, // everything walkable is real geometry
     spawn,
@@ -1159,9 +1160,12 @@ export function* buildIncal(scene) {
     // draws nothing the audit's height grid sees (scripts/level-design/audit.mjs: a level's beacons are aimed at as landmarks)
     beacons: [{ name: 'the Lodestar', top: [incalRig.pos.x, incalRig.pos.y + 18, incalRig.pos.z], height: 36 }],
     // what the eye follows (the audit walks a leg a line carries along it, and counts it as guiding): the red stair
-    lines: () => [...(places.stair ? [{ name: 'the red stair', points: places.stair.path.map((p) => [p.x, p.y, p.z]) }] : []), { name: 'the lamplighters’ drops', points: ways.line }],
-    // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pad and relay lamp, Tobin's view pad
-    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'Tobin’s view pad', at: ways.view.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : [])],
+    // (and the lamplighters' rim posts from the Well's door to the stair's gate, on down the stair to Nima: the walk the drone's first find takes)
+    lines: () => [...(places.stair ? [{ name: 'the red stair', points: places.stair.path.map((p) => [p.x, p.y, p.z]) },
+      { name: 'the lamplighters’ rim posts', points: [...ways.rim, ...places.stair.path.map((p) => [p.x, p.y, p.z]), [places.nima.x, places.nima.y, places.nima.z]] }] : []),
+    { name: 'the lamplighters’ drops', points: ways.line }],
+    // things to stop for that are neither people nor quests (the audit counts them as places): the climb's pads and relay lamp, Tobin's view pad
+    sights: [{ name: 'the lamplighters’ pad', at: ways.pad.at }, { name: 'the relay lamp', at: ways.relay.at }, { name: 'the lamplighters’ upper pad', at: ways.upper.at }, { name: 'Tobin’s view pad', at: ways.view.at }, ...(ways.locker ? [{ name: 'the lamplighters’ locker', at: ways.locker.at }] : [])],
     // called once the physics exists: spawn the taxis (they collide when driven)
     init(physics) { runSteps(this.initSteps(physics)); },
     // (in steps for the game's load: the trees' check is a few thousand rays)

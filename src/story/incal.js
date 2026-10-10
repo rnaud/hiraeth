@@ -5,7 +5,7 @@ import { registerInteractable, PRIORITY } from '../interact.js';
 import { Taxi } from '../taxi.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { glyphGeometry, textGeometry } from './sign-text.js';
-import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN } from './incal-data.js';
+import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, PASS_REFUSAL, WREN, TOBIN_PAYS } from './incal-data.js';
 import { setupHalfway, halfwayTerrace } from './halfway.js';
 import { setupIncalMoments } from './incal-moments.js';
 
@@ -98,6 +98,7 @@ export function setupIncal(ctx) {
     const mid = ways.landings.find((L) => L.y === S.LEVELS?.[3]);
     if (mid) quests.locate('halfway', () => mid.at);
     thing(THINGS.pad, ways.pad.stand, { range: 3.2, prompt: 'look at the tally marks' });
+    if (ways.upper) thing(THINGS.upperPad, ways.upper.stand, { range: 3.2, prompt: 'look at the tally marks' });
     thing(THINGS.relay, ways.relay.look, { range: 3.4, prompt: 'look at the relay lamp' });
     thing(THINGS.viewPad, ways.view.stand, { range: 3.2, prompt: 'look through the telescope' });
     if (ways.locker) thing(THINGS.locker, ways.locker.stand, { range: 2.8, prompt: 'look in the locker' });
@@ -258,6 +259,15 @@ export function setupIncal(ctx) {
   Taxi.refusal = ({ how }) => PASS_REFUSAL[how] ?? PASS_REFUSAL.hail;
   Taxi.onRefuse = () => { if (!quests.isStarted('incal.pass')) quests.start('incal.pass'); };
   for (const id of ['lio', 'hask']) { const n = npcs.find((x) => x.def?.id === id); if (n) quests.locate(id, () => n.pos); }
+  // Tobin pays as you walk up to him (the 'fare' stage is a walk to him: 'tobin'), grumbling, without a conversation
+  const tobin = npcs.find((x) => x.def?.id === 'hask');
+  if (tobin) quests.locate('tobin', () => tobin.pos);
+  game.on('quest', ({ id, stage, prev }) => {
+    if (id !== 'incal.pass' || prev !== 'fare' || stage !== 'back' || quests.has('fare')) return;
+    quests.give('fare');
+    if (tobin) tobin.shout = { text: TOBIN_PAYS, until: (tobin.time ?? 0) + 4.5 };
+    toast('Tobin counts out one bent coin, slowly, as if it were the last view on the rim. Take it to Lio.');
+  });
 
   // the cabs don't stop in the depths; after Wren, hailing down there brings Wren
   const refuse = () => {

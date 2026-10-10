@@ -29,7 +29,7 @@ import { MOONFOUNDRY_CONTENT } from './moon-foundry.js';
 import { UNDERSIDE_CONTENT } from './underside.js';
 import { SPACECITY_CONTENT } from './space-city.js';
 import { TRAIN_CONTENT } from './overnight-train.js';
-import { RIM as INCAL_RIM, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
+import { RIM as INCAL_RIM, MIDDLE as INCAL_MIDDLE, PEOPLE as INCAL_PEOPLE } from '../story/incal-data.js';
 import { STREET as BAZAAR_STREET } from '../story/bazaar-data.js';
 
 import { ORDER } from './names.js';
@@ -294,6 +294,9 @@ export const CONTENT = {
       { at: [330, 40], y: 200, palette: pal('#62c3c9'), lines: ["~playful~ Watch the taxis. Their hurry outranks yours.", "~tired~ No pass, no cab. I don’t make the rules. I make the passes."], ...INCAL_RIM.lio },
       { at: [290, 110], y: 200, palette: pal('#f2c54b', { cloth: '#5a3a3a' }), lines: ["~shout~ Views of the abyss! Looking up remains free!", "~playful~ The abyss, at today’s price. Tomorrow’s is higher."], shy: true, ...INCAL_RIM.hask },
       { ...INCAL_PEOPLE.nima, at: [112.1, 165.8], y: 150, radius: 1.8, speed: 0.45 },
+      // Basile at the middle levels' cab stop, beside Fausta's Basket-Shop, waiting for a cab up with her baskets (level design
+      // audit v1.15: the shop stood alone there once Perrine's stall moved onto the lamplighters' drops)
+      { at: [209.3, 42.3], y: -24, radius: 1.2, speed: 0.3, palette: pal('#c98a4b', { cloth: '#f3ead8', hat: '#e2d3b4' }), lines: ["~tired~ Cabs. Always the next one.", "~neutral~ Baskets for the rim. Mind the stack."], ...INCAL_MIDDLE.basile },
     ],
   },
   arzach: {

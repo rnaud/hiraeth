@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.17', date: '2026-10-09', items: [
+    // the worlds, third round of the level design audit: the City-Shaft
+    'In the City-Shaft, Basile waits at the middle levels’ cab stop beside Fausta’s Basket-Shop, a stack of her baskets on his back, for a cab that will stop for baskets. Stand by him and he talks about the cabs, Fausta’s prices and, later, the light.',
+    'The lamplighters’ red lamp-posts now begin on the City-Shaft’s rim: from the Warden’s Well’s door along the edge past your ship to the red stair, down which Nima’s corner lies, so the walk to her is marked from the first step.',
+    'On the climb from the shrine to the palace, a second lamplighters’ pad hangs just off the high ring past the relay lamp, its rail scratched with tally marks like the first, and a note beside the newest.',
+    'Lio’s errand is quicker: walk up to Tobin on the rim and he pays the fare as you come, grumbling, with no conversation to sit through between Lio’s two.',
+  ] },
   { v: '1.16', date: '2026-10-09', items: [
     // the enemy roster, part four: the possessed machines
     'Four more foes of the new roster: the old makers’ machines with a dark spirit inside, each with its own shape, way of moving and job in a fight, in every world it lives in. They take over from the glass golem, the rust drone and the slag walker; Viridel now meets only the new foes, and the Deep Wood all of them but its rare shades. They come for you, but they keep their old habits until you come near: a brute stands where it stopped working, a cart trundles its old round, a drone polishes a dome that isn’t there, a bell tolls the hours.',

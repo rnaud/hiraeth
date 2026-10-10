@@ -2,6 +2,13 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.17 — 2026-10-09
+
+- Lio’s errand is quicker: walk up to Tobin on the rim and he pays the fare as you come, grumbling, with no conversation to sit through between Lio’s two.
+- On the climb from the shrine to the palace, a second lamplighters’ pad hangs just off the high ring past the relay lamp, its rail scratched with tally marks like the first, and a note beside the newest.
+- The lamplighters’ red lamp-posts now begin on the City-Shaft’s rim: from the Warden’s Well’s door along the edge past your ship to the red stair, down which Nima’s corner lies, so the walk to her is marked from the first step.
+- In the City-Shaft, Basile waits at the middle levels’ cab stop beside Fausta’s Basket-Shop, a stack of her baskets on his back, for a cab that will stop for baskets. Stand by him and he talks about the cabs, Fausta’s prices and, later, the light.
+
 ## v1.16 — 2026-10-09
 
 - The Aerie’s doorway is now a tall round-topped arch cut through the drum, framed in ochre, the glyph over it.

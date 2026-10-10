@@ -76,7 +76,9 @@ export const QUESTS = [
     outro: 'A card with the palace seal and something like your name. The cabs stop for you now.',
     stages: [
       { id: 'lio', text: 'The cabs fly past you. Ask Lio, the cab dispatcher on the rim, how to get one to stop', label: 'Lio, the dispatcher', talk: 'lio' },
-      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Tobin, who sells views along the rim, owes him one: collect it', label: 'Tobin, seller of views', talk: 'hask' },
+      // (walk up to Tobin and he pays as you come, grumbling: no conversation to sit through between Lio's two. The level
+      // design audit v1.15 read three talks in a row here: Nima told, Lio, Tobin. src/story/incal.js; talking to him works too)
+      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Tobin, who sells views along the rim, owes him one: go and collect it', label: 'Tobin, seller of views', goto: 'tobin', radius: 4.5, vertical: 4 },
       { id: 'back', text: 'Bring Tobin’s coin back to Lio for your cab pass', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio' },
     ],
   },
@@ -573,6 +575,24 @@ export const RIM = {
   },
 };
 
+/** What Tobin says as he pays Lio's fare, when you walk up to him for it (src/story/incal.js). */
+export const TOBIN_PAYS = '~angry~ Lio sent you? For one fare? I was going to pay. Eventually. Possibly in views.';
+
+// The middle levels' cab stop (src/levels/content.js): Basile waits there with Fausta's baskets for a cab up, beside her
+// Basket-Shop (level design audit v1.15: since Perrine's stall moved onto the lamplighters' drops, the shop stood alone)
+export const MIDDLE = {
+  basile: {
+    id: 'basile', name: 'Basile', title: 'carries Fausta’s baskets', color: '#c98a4b', head: 'wrap', cape: 0, look: { prop: 'basket', under: 'crop' },
+    talk: { listen: [
+      ["~tired~ Waiting for a cab up. That’s the third gone past. They see the baskets and decide I’m scenery.", '~neutral~ Basile. I carry for Fausta. The small orders go down on her rope; the big ones go up the shaft on my back.'],
+      '~playful~ Rim prices on the way up, bottom prices on the way down. Same basket, same cure. I carry both, and I say nothing.',
+      { if: { not: { has: 'cabpass' } }, say: '~curious~ No pass either? Lio writes them, up at the rim’s cab stand. One fare, paid in advance. I paid mine in baskets.' },
+      { if: { has: 'cabpass' }, say: '~surprised~ A pass? Then wave for both of us. They might stop for the pair.' },
+      { after: { flag: 'incal.lit' }, say: ['~happy~ When the light came back, the whole terrace stopped and looked up. I put my baskets down for it.', '~neutral~ Missed two cabs. Worth it.'] },
+    ] },
+  },
+};
+
 // The scenery you can look at: same panel, a different voice.
 export const THINGS = {
   bowl: {
@@ -648,6 +668,15 @@ export const THINGS = {
         "~curious~ Someone has written beside the newest ones: *halfway to the spire. breathe.*"],
       do: { set: { 'incal.pad.seen': true } },
       choices: [{ text: '~neutral~ (breathe)', end: true }],
+    } } },
+  },
+  upperPad: {
+    id: 'upperPad', name: 'The lamplighters’ upper pad', title: 'three quarters of the way up', color: '#9fc8c4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A second pad, smaller, its rail worn bright where hands have held it. Fewer tally marks here, in the same fives.",
+        "~playful~ Beside the newest, in the same hand as below: *nearly. don’t look down. (you looked.)*"],
+      do: { set: { 'incal.upper.seen': true } },
+      choices: [{ text: '~neutral~ (look up instead)', end: true }],
     } } },
   },
   locker: {

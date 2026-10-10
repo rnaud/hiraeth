@@ -302,11 +302,19 @@ test('the cabs ignore you without a pass: Lio writes one for the fare Tobin owes
   // Lio, then Tobin's coin, then Lio again: the pass
   talk(RIM.lio, ['How do I get a pass']);
   assert.equal(quests.stage('incal.pass'), 'fare');
-  const h = new DialogueRunner(RIM.hask, { game, quests });
-  assert.match(h.text, /Lio sent you/);
-  while (!h.ended && h.advance());
+  // walk up to Tobin and he pays as you come, grumbling (no conversation between Lio's two: level design audit v1.15)
+  const tobin = npcs.find((n) => n.def?.id === 'hask');
+  assert.equal(quests.current('incal.pass').goto, 'tobin');
+  assert.ok(quests.where(quests.current('incal.pass')).distanceTo(tobin.pos) < 0.5, 'the marker on Tobin');
+  at(tobin.pos.clone().add(V(2, 0, 1)));
+  step(2);
   assert.ok(quests.has('fare'), 'Tobin’s coin');
   assert.equal(quests.stage('incal.pass'), 'back');
+  assert.match(tobin.shout?.text ?? '', /Lio sent you/, 'he says so as he pays');
+  // (talking to him after: no second coin)
+  const h = new DialogueRunner(RIM.hask, { game, quests });
+  while (!h.ended && h.advance());
+  assert.equal(game.flag('item.fare'), 1, 'one coin');
   const r = new DialogueRunner(RIM.lio, { game, quests });
   assert.equal(r.nodeId, 'paid');
   while (!r.ended && r.advance());

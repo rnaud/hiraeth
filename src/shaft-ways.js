@@ -12,22 +12,37 @@ import { makeMaterial } from './materials.js';
 //                            bottom terrace by the Upward Shrine: the way down on the jets. Halfway, on the middle
 //                            levels, Perrine keeps her tea stall where they land (src/story/halfway.js HALFWAY).
 //   the lamplighters' pad    a floating pad with a lamp a quarter of the way up from the bottom terrace toward the
-//                            spire: the first rest on the climb to the palace
+//                            spire: the first rest on the climb to the palace; and the upper pad three quarters of the way,
+//                            past the relay lamp (level design audit v1.15: the relay stood 206 m from anything)
 //   the relay lamp           on the spire's ring at the 92 m level, the side that faces the bottom: an old lamp of the
 //                            Three Who Look Up, dark until the splinter passes it (src/story/incal.js)
 //   Tobin's view pad         a floating pad halfway down from the palace to the high terrace, a coin telescope on it
 //                            pointed up at the Lodestar ("looking up remains free")
+//   the rim posts            the lamplighters' round began on the rim: the same red posts from the Warden's Well's door
+//                            along the rim's edge to the red stair's gate, down which Nima's corner lies (level design
+//                            audit v1.15: the walk from the Well to Nima was blind, the stair's gate 200 m round the rim)
 //
 //   dropLandings(terraces, places) → [{ y, a, at, edge, terrace }]   (pure: the tests and the audit use it)
-//   buildShaftWays(scene, { terraces, places, R }) → { landings, lights, line, pad, relay, view, clear }
+//   rimPosts(R) → [{ at, out }]                   (pure: the posts on the rim, from the Well's door to the red stair)
+//   buildShaftWays(scene, { terraces, places, R }) → { landings, lights, line, rim, pad, upper, relay, view, clear }
 
 /** The drops' landings: the angle round the shaft on each level (rad), from Nima's corner down to by the shrine. */
 export const DROPS = { 150: 1.06, 92: 1.28, 36: 1.55, [-24]: 1.84, [-86]: 2.14, [-150]: 2.44, [-218]: 2.76, [-290]: 2.98 };
 /** How far in from the terrace's inner edge a landing's ring is painted (m), and its radius. */
 export const DROP_RING = { inset: 5, r: 2.2 };
 /** The climb's floating pad and the relay lamp, and the view pad: where on the straight line between their stops. */
-export const CLIMB = { pad: 0.26, relay: { y: 92, r: 44, a: Math.PI } };
+export const CLIMB = { pad: 0.26, relay: { y: 92, r: 44, a: Math.PI }, upper: { y: 170, r: 55, a: Math.PI } };
+/**
+ * The rim posts: [angle (rad), radius (m)] round the shaft, from beside the Warden's Well's door (−0.19 rad) out to the
+ * edge, then along it to the red stair's gate (src/levels/incal.js STAIR.top, 0.51 rad). None on the rim's cab stop
+ * (0 rad, where the cabs set you down) nor on the makers' trial by it.
+ */
+export const RIM_POSTS = [[-0.19, 298], [-0.175, 280], [-0.15, 264], [-0.095, 264], [0.05, 264], [0.11, 264], [0.17, 264], [0.23, 264], [0.29, 264], [0.35, 264], [0.41, 264], [0.47, 264]];
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
+/** The rim posts on the rim at height `top`: each { at (its foot), out (toward the shaft's middle) }. */
+export function rimPosts(top = 200) {
+  return RIM_POSTS.map(([a, r]) => ({ at: V(Math.cos(a) * r, top, Math.sin(a) * r), out: V(-Math.cos(a), 0, -Math.sin(a)) }));
+}
 const TAU = Math.PI * 2;
 const inSector = (t, a) => { const d = ((a - t.a0) % TAU + TAU) % TAU; return d <= t.a1 - t.a0; };
 const flat0 = (g) => { g = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k); if (!g.attributes.normal) g.computeVertexNormals(); return g; };
@@ -76,6 +91,13 @@ export function buildShaftWays(scene, { terraces, places }) {
     posts.push(new THREE.BoxGeometry(0.06, 1.6, 0.55).translate(0.62, 0.85, 0.35).rotateY(yaw).translate(c.x, low.y, c.z));   // (the door, ajar)
     locker = { at: c.clone(), stand: c.clone().addScaledVector(out, 1.3), look: c.clone().setY(low.y + 1.3) };
   }
+  // the rim posts: the same post, arm and lamp, from the Well's door along the edge to the red stair
+  const rim = rimPosts(200);   // (the rim: src/levels/incal.js TOP)
+  for (const { at: p, out } of rim) {
+    posts.push(new THREE.CylinderGeometry(0.09, 0.12, 3.6, 6).translate(p.x, p.y + 1.8, p.z));
+    posts.push(new THREE.BoxGeometry(0.08, 0.08, 1.2).lookAt(out).translate(p.x + out.x * 0.55, p.y + 3.5, p.z + out.z * 0.55));
+    heads.push(new THREE.SphereGeometry(0.26, 10, 8).scale(1, 1.25, 1).translate(p.x + out.x * 1.1, p.y + 3.1, p.z + out.z * 1.1));
+  }
   const ringMesh = new THREE.Mesh(mergeGeometries(rings.map(flat0)), cream); ringMesh.userData.noCollide = true;
   const postMesh = new THREE.Mesh(mergeGeometries(posts.map(flat0)), red); postMesh.name = 'The lamplighters’ drops';
   const headMesh = new THREE.Mesh(mergeGeometries(heads.map(flat0)), lampMat); headMesh.userData.noCollide = true;
@@ -102,6 +124,10 @@ export function buildShaftWays(scene, { terraces, places }) {
   const from = places.ossa, gate = places.palace.dov;
   const padAt = from.clone().lerp(gate, CLIMB.pad);
   floatPad(padAt, 6, 'The lamplighters’ pad');
+  // and the upper pad, past the relay lamp, hanging just off the high ring's edge on the same side (the straight way runs
+  // into the spire's top here): the last rest before the palace's landing ring, seen from the relay past the ring's rim
+  const U = CLIMB.upper, upperAt = V(Math.cos(U.a) * U.r, U.y, Math.sin(U.a) * U.r);
+  floatPad(upperAt, 5, 'The lamplighters’ upper pad');
   // the relay lamp on the spire's ring, on the side the bottom terrace sees
   const R = CLIMB.relay, relayAt = V(Math.cos(R.a) * R.r, R.y, Math.sin(R.a) * R.r);
   const brass = makeMaterial({ color: '#d8a24a', flat: true, metal: 'brass' });
@@ -121,12 +147,15 @@ export function buildShaftWays(scene, { terraces, places }) {
   sign.position.copy(viewAt).add(V(-1.6, 0, 1.4)); sign.rotation.y = scope.rotation.y; scene.add(sign);
   return {
     landings, lights, locker,
+    /** The rim posts, [x, y, z] from the Well's door to the red stair's gate (the level's line goes on down the stair to Nima). */
+    rim: rim.map(({ at: p }) => [p.x, p.y, p.z]),
     /** The drops as a line, [x, y, z] from Nima's corner down to the shrine (the level design audit follows it). */
     line: [...landings.map((L) => [L.at.x, L.y, L.at.z]), ...(places.shrine ? [[places.shrine.x, places.shrine.y, places.shrine.z]] : [])],
     pad: { at: padAt.clone(), stand: padAt.clone().add(V(1.5, 0, 0)) },
+    upper: { at: upperAt.clone(), stand: upperAt.clone().add(V(1.5, 0, 0)) },
     relay: { at: relayAt.clone(), glass: relayGlass, light: relayLight, look: relayAt.clone().add(V(0, 2.4, 0)) },
     view: { at: viewAt.clone(), stand: viewAt.clone().add(V(0.4, 0, 0.6)), scope: scope.position.clone().add(V(0, 1.6, 0)) },
     /** No house or tree on a landing (the ring and the post), the level's clearing (houses still drawn, not kept). */
-    clear: landings.map((L) => ({ x: L.at.x, y: L.y, z: L.at.z, r: 6 })),
+    clear: [...landings.map((L) => ({ x: L.at.x, y: L.y, z: L.at.z, r: 6 })), ...rim.map(({ at: p }) => ({ x: p.x, y: p.y, z: p.z, r: 2.5 }))],
   };
 }
