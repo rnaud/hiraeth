@@ -514,6 +514,12 @@ const COST38 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', sou
 const FROM_FIGHT39 = 'headless Chrome (Medium, 1280 × 720, muted) in the Arena against this branch’s own dev server, the before with the parent commit’s files swapped back in, the same scratch script and the same moment';
 export const CHANGELOG_MEDIA = {
   '1.39': [
+    { match: 'The Arena is a real arena now', shots: [
+      { name: 'arena-ring', caption: 'The Arena from over the south gate: before, open sand with standing stones, a ledge and a thin ring; after, a round fighting floor with its markings, the wall and tiers of seats, the gates, braziers and banners', commit: '543f247f',
+        view: { level: 'arena', wait: 2500, eye: [0, 30, 62], target: [0, 0, -8], fov: 55, player: [0, 0, 6], heading: Math.PI } },
+      { name: 'arena-floor', caption: 'On the floor at the spawn, looking north: before, the responsive flowers bloomed in the middle of the fight; after, the floor clear to the north gate', commit: '543f247f',
+        view: { level: 'arena', wait: 2500, eye: [3, 3.2, 16], target: [0, 1.2, -20], fov: 60, player: [0, 0, 6], heading: Math.PI } },
+    ] },
     { match: 'The third swing of the sword’s combo is a heavy blow', shots: [
       { name: 'heavy-third', caption: 'The combo’s third swing near the end of its wind-up, seen from his side: before, both feet off the ground in a leap; after, planted, the sword raised for the chop', from: FROM_FIGHT39 },
     ], see: 'Swing three times in a row (RB / R1, F): the third is the heavy chop, and you stay on the ground.' },
