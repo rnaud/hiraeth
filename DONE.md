@@ -2279,3 +2279,22 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   Furnace's four jammed and the other two caught in turn; the Tooth-Warden on its jammed gear. Left: a shortcut back,
   the gadget a third time.
 
+### Found done in the TODO cleanup (2026-10-10)
+
+- [x] **5. The rest of the roster** (done: all 21 archetypes built, v1.8–v1.18) (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md): each body plan a table entry and
+  its poses, scored with the rubric (≥ 2 on every row). Done for batch 3 (procedural-animation.md, "Phase 5": the
+  hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor) and batch 4 ("Phase 5, the
+  machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints) and batch 5 ("Phase
+  5, the late spirits and the roller": the humanoid spirit, the roller, the strings): every archetype is on the kit.
+- [x] **Break the shared opening** (done in v1.27 for eight temples; the Warden's Well, the Aerie and the First Garage partly) (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
+  Garage = the Engine-House, 100 %): each first room from its world's own idea. Done: the Givers' House (the pilot flame),
+  the Engine-House, the Greenhouse, the Hush-House, the Footprint (v1.27: the sphere on the walker's print, you on its
+  print by the wall; 86 % → 71 % the Lamp-House's), the Belfry (v1.27: the founders' bell struck by a ball, the great
+  stone that falls up), the Undertower (v1.27: the dish-carried note raises the pillars) and the Lamp-House (v1.27: the
+  orb's lamp raises moss-stones). Left: the Warden's Well, the Aerie and the First Garage (a disc or a raft after their
+  own first step).
+- [x] **Undertower (1.67)** (reworked in v1.12): `br1` stands only while the high note is held, so the one-note rule bites twice (a
+  catch, then a second high stone); teach the stones before the shell.
+- [x] **First Garage (1.78)** (reworked in v1.12): `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
+  outside door); the ball pushed twice in a breath onto the swinging disc.
+

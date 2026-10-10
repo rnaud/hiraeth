@@ -153,11 +153,6 @@ docs/systems/procedural-animation.md, "The audit"). Build a small locomotion kit
 new ~20 body plans and the guardians onto it. Review every step with the `procedural-animation` skill
 (`node scripts/motion-audit/run.mjs`, the rubric). Sessions are rough estimates.
 
-- [ ] **5. The rest of the roster** (2–3 sessions, with the new archetypes: docs/design/enemy-roster.md): each body plan a table entry and
-  its poses, scored with the rubric (≥ 2 on every row). Done for batch 3 (procedural-animation.md, "Phase 5": the
-  hopper, the stilt, the skitterers, the tentacled; a third segment on FABRIK, a tier floor) and batch 4 ("Phase 5, the
-  machines": the brute, the siege machine, tracks, the hovering machine; skinned on the kit's joints) and batch 5 ("Phase
-  5, the late spirits and the roller": the humanoid spirit, the roller, the strings): every archetype is on the kit.
 
 # Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17, v1.20, v1.23: 2026-10-10)
 
@@ -183,23 +178,12 @@ with an older verb); since v1.24 every one has its own idea (average 1.84 → 3.
 themselves: done in v1.6 (DONE.md, "Combat telegraphs"). The four rules, checked across the eleven in v1.24 and done in v1.27 but
 three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
-- [ ] **Break the shared opening** (push the ball, ride the disc in 7-9 of 11; the Belfry = the Undertower and the
-  Garage = the Engine-House, 100 %): each first room from its world's own idea. Done: the Givers' House (the pilot flame),
-  the Engine-House, the Greenhouse, the Hush-House, the Footprint (v1.27: the sphere on the walker's print, you on its
-  print by the wall; 86 % → 71 % the Lamp-House's), the Belfry (v1.27: the founders' bell struck by a ball, the great
-  stone that falls up), the Undertower (v1.27: the dish-carried note raises the pillars) and the Lamp-House (v1.27: the
-  orb's lamp raises moss-stones). Left: the Warden's Well, the Aerie and the First Garage (a disc or a raft after their
-  own first step).
 - [ ] **Play the v1.27 changes with a pad**: the Belfry's great stone (12 s, falling up with you), the Warden's Well's
   little vane from the loft to the crown (15 s), the Footprint's carved prints read from the hall's door, the seven
   passages.
 - [ ] **Play the Givers' House's and the Footprint's new rooms and last phases with a pad** (v1.24): the tar balls'
   14 s and their pushes, the Hall of Channels' 4.6 s burn and the relay, the stilling stone and the floating sphere, the
   stones' 0.35 s crumble, the Keeper's 3.4 s pant by a fire, the Echo's print read across its hall.
-- [ ] **Undertower (1.67)**: `br1` stands only while the high note is held, so the one-note rule bites twice (a
-  catch, then a second high stone); teach the stones before the shell.
-- [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
-  outside door); the ball pushed twice in a breath onto the swinging disc.
 - [ ] **Play the Greenhouse's and the Aerie's new rooms and last phases with a pad** (v1.16): the escort up the Hall of
   Winds (a push or two a calm), the tailwind's leap (as a gust comes), the perch's landing (fold the wings over it),
   the Gardener's footstones in its 6.2 s kneel, the Elder's stone rolled in her 6.6 s hang.
