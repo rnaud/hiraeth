@@ -25,6 +25,31 @@ import { materials, add, pivot, lerp, ease, eyeColor, finish } from './kit.js';
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _m = new THREE.Matrix4();
 const UP = new THREE.Vector3(0, 1, 0), DOWN = new THREE.Vector3(0, -1, 0);
 
+/** The bell's profile (r, y), from its rim up to its crown: the sides bulge out over the rim and rise steeply. */
+const BELL = [[1.04, -0.02], [1.12, 0.16], [1.14, 0.4], [1.1, 0.68], [1.0, 0.94], [0.84, 1.18], [0.62, 1.36], [0.34, 1.48], [0.001, 1.52]];
+/** The bell: a lathe of BELL; puffy, swollen in lobes (`LOBES` round it, three rows up it), creased between them. */
+export const LOBES = 7;
+export function bellGeometry(puffy) {
+  const pts = [];
+  // (resampled finer up the profile, so the lobes' creases have rows to fall on)
+  const curve = new THREE.SplineCurve(BELL.map(([r, y]) => new THREE.Vector2(r, y)));
+  for (let i = 0; i <= 20; i++) pts.push(curve.getPoint(i / 20));
+  const geo = new THREE.LatheGeometry(pts, 42);
+  if (puffy) {
+    const pos = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i);
+      const a = Math.atan2(v.x, v.z), up = Math.max(0, v.y) / 1.52;
+      // (round it: each lobe a swelling, sharp at the crease; up it: three tiers, fading out at the crown and the rim)
+      const round = Math.pow(Math.abs(Math.sin(a * LOBES / 2)), 0.55), tier = Math.pow(Math.abs(Math.sin(up * Math.PI * 2.6 + 0.4)), 0.6);
+      const k = 1 + (0.1 * round + 0.05 * tier - 0.09) * Math.sin(Math.PI * Math.min(1, up * 1.08 + 0.05));
+      pos.setXYZ(i, v.x * k, v.y + 0.05 * tier * up, v.z * k);
+    }
+  }
+  geo.computeVertexNormals();
+  return geo;
+}
+
 export function jellyModel(skin) {
   const PL = PLANS.floater, P = skin.palette, props = new Set(skin.props), M = materials('jelly', skin);
   const g = new THREE.Group(); g.name = skin.name;
@@ -32,14 +57,14 @@ export function jellyModel(skin) {
   const threadM = M.mat('thread', P.thread, { flat: true, line: 0.3, lineTint: 0.75 }), lanternM = M.mat('lantern', P.lantern), eyeM = M.own('eye', P.eye, { glow: 0.6 });
   const body = pivot(g, 0, 0, 0, 'body');
   const bell = pivot(body, 0, 0.6, 0, 'bell');
-  // (the sheet's: a broad puffy dome, flat-bottomed, wider than the traveller is tall, pale underneath)
-  const cap = add(bell, new THREE.SphereGeometry(1.1, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.52).scale(1, 0.78, 1), bellM);
+  // (the sheet's: a tall puffy dome, its sides bulging and falling nearly straight to a flat bottom, wider than the
+  // traveller is tall, pale underneath; the cloud jelly's swelling in soft lobes round it and up it, creased between)
+  const cap = add(bell, bellGeometry(props.has('puffy')), bellM);
   add(bell, new THREE.CircleGeometry(1.06, 22).rotateX(Math.PI / 2), M.mat('under', P.under ?? P.bell2, { side: THREE.DoubleSide }), 0, -0.04, 0);
   const rim = add(bell, new THREE.TorusGeometry(1.04, 0.09, 6, 28).rotateX(Math.PI / 2), bellM, 0, -0.02, 0);
-  if (props.has('puffy')) for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; add(bell, new THREE.SphereGeometry(0.34, 10, 8).scale(1, 0.7, 1), bellM, Math.sin(a) * 0.82, 0.18, Math.cos(a) * 0.82); }
-  if (props.has('halo')) { const h = add(bell, new THREE.TorusGeometry(0.9, 0.035, 6, 28).rotateX(Math.PI / 2), M.own('halo', P.light, { glow: 0.8 }), 0, 1.15, 0); h.userData.halo = true; }
-  const eyes = [-1, 1].map((s) => add(bell, new THREE.SphereGeometry(0.07, 8, 6), eyeM, s * 0.46, 0.2, 0.98));   // (wide-set, low on its front)
-  const core = props.has('core') ? add(bell, new THREE.SphereGeometry(0.42, 12, 8), M.own('core', P.light, { glow: 0.9 }), 0, 0.12, 0) : null;
+  if (props.has('halo')) { const h = add(bell, new THREE.TorusGeometry(0.9, 0.035, 6, 28).rotateX(Math.PI / 2), M.own('halo', P.light, { glow: 0.8 }), 0, 1.85, 0); h.userData.halo = true; }
+  const eyes = [-1, 1].map((s) => add(bell, new THREE.SphereGeometry(0.07, 8, 6), eyeM, s * 0.47, 0.42, 1.06));   // (wide-set, low on its front)
+  const core = props.has('core') ? add(bell, new THREE.SphereGeometry(0.42, 12, 8), M.own('core', P.light, { glow: 0.9 }), 0, 0.4, 0) : null;
   // the threads: verlet chains hung round the rim, drawn as thin rods (in the foes' space)
   const TH = PL.threads, holder = pivot(g, 0, 0, 0, 'threads (foes space)'); holder.matrixAutoUpdate = false;
   const threads = Array.from({ length: TH.n }, (_, i) => {
