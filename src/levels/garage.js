@@ -9,6 +9,7 @@ import { interiorAt } from '../interior-kit.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { tagMetal } from '../gadgets/metal.js';
+import { buildHangarWays } from '../hangar-ways.js';
 
 // ---------------------------------------------------------------------------
 // The Sealed Hangar: Major Brask's pocket universe.
@@ -52,6 +53,10 @@ const BOARD = new THREE.Vector3(-13, 0, 98);          // A: the signal board by 
 const B_RELAY = new THREE.Vector3(9, 0, 14);          // B: slab-local (y down into the quarter): the relay box
 const B_DESK = new THREE.Vector3(-140, 0, 72);        // B: slab-local: the Major's old desk, out near the edge
 const B_PUMP = new THREE.Vector3(42, 0, -18);         // B: slab-local: the lamp pump
+// B: slab-local: the Major's signal mast by his desk, and his telescope halfway back from it to the portal home
+// (level design audit, fourth round: src/hangar-ways.js)
+// (and the tall house that stood in the way of the mast from the ring's portal, taken away: B_VIEW)
+const B_MAST = new THREE.Vector3(-147, 0, 64), B_SCOPE = new THREE.Vector3(-68, 0, 8), B_VIEW = new THREE.Vector3(-90, 0, 96);
 const C_TURBINE = new THREE.Vector3(2905, 0, -22);    // C: on the ring floor near its entrance (x, -, z)
 
 // A little building kit, authored in local space (y up, base at y = 0): geometry parts,
@@ -308,6 +313,7 @@ export function* buildGarage(scene) {
   // ======================================================== B: the upside-down quarter
   yield;
   const relay = {}, deskInfo = {};
+  let ways = null;
   // Built upright in a group, then flipped: its floor faces down, gravity pulls up.
   yield;
   {
@@ -317,7 +323,7 @@ export function* buildGarage(scene) {
     grp.add(slab);
     noShadow.push(slab); // otherwise the slab would shade the whole quarter
     // (the same random draws as ever; the few that land on the story's spots are taken away again)
-    const bClear = (p) => [B_RELAY, B_DESK, B_PUMP].some((c) => Math.hypot(p.x - c.x, p.z - c.z) < 14) || (Math.abs(p.x) < 12 && p.z > -75 && p.z < 160);
+    const bClear = (p) => [B_RELAY, B_DESK, B_PUMP, B_MAST, B_SCOPE, B_VIEW].some((c) => Math.hypot(p.x - c.x, p.z - c.z) < 14) || (Math.abs(p.x) < 12 && p.z > -75 && p.z < 160);
     for (let i = 0; i < 46; i++) {
       const a = rng() * Math.PI * 2, r = 25 + rng() * 150;
       const m = build(new THREE.Vector3(Math.cos(a) * r, 0, Math.sin(a) * r), Y, grp);
@@ -384,6 +390,8 @@ export function* buildGarage(scene) {
       post.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
       grp.add(post);
     }
+    // the Major's signal mast over his desk and his telescope on the way back (src/hangar-ways.js, level design audit)
+    ways = buildHangarWays(grp, { mast: B_MAST, scope: B_SCOPE, look: new THREE.Vector3(0, 0, -60) });
     grp.rotation.x = Math.PI;
     grp.position.copy(B_POS);
     scene.add(grp);
@@ -394,6 +402,7 @@ export function* buildGarage(scene) {
     deskInfo.pos = toWorld(B_DESK.clone().setY(1.08));
     deskInfo.foot = toWorld(B_DESK.clone().add(new THREE.Vector3(0.9, 0, -1.2)));
     machines.pump.pos = toWorld(machines.pump.local);
+    ways.world = { mastTop: toWorld(B_MAST.clone().setY(ways.mastH - 6)), mast: toWorld(B_MAST.clone().setY(1)), scope: toWorld(B_SCOPE.clone().setY(1)) };
   }
 
   // ======================================================== C: the ring
@@ -494,6 +503,10 @@ export function* buildGarage(scene) {
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     // the plateau's flora (src/flora.js) keeps off the path from the start to the keep (and the shop's ground)
     floraAvoid: shop.avoid((x, z, r) => Math.abs(x) < 18 + r && z > 14 - r && z < 175 + r),
+    // what the level design audit reads (scripts/level-design/audit.mjs): the Major's mast over his desk (aimed at a
+    // little below its lamp: the quarter hangs upside down), and his telescope on the way back, to look at
+    beacons: [{ name: 'the Major’s mast', top: ways.world.mastTop.toArray(), height: 5 }],
+    sights: [{ name: 'the Major’s telescope', at: ways.world.scope }],
     ground: { heightAt: () => -Infinity },
     spawn: aSpawn,
     spawnHeading: Math.PI,

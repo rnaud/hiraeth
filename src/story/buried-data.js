@@ -39,7 +39,7 @@ export const QUESTS = [
       { id: 'light', text: 'Give the Wick a spark: a shot of fluid', label: 'The Wick', flag: 'buried.oculus.lit', at: 'wick' },
       { id: 'watch', text: 'Climb back out and watch the great wheel', label: 'The great wheel', flag: 'buried.wheel.turned', at: 'watch' },
       { id: 'tooth', text: 'Something fell from the wheel when it turned. Pick it up', label: 'At the wheel’s foot', flag: 'buried.tooth.found', at: 'tooth' },
-      { id: 'count', text: 'Bring the tooth to Wen to be counted', label: 'Wen, by the great dome', bring: 'tooth', to: 'wen' },
+      { id: 'count', text: 'Bring the tooth to Wen to be counted, the counters’ way: along the Tooth Day posts, one for every year', label: 'Wen, by the great dome', bring: 'tooth', to: 'wen', via: 'the Tooth Day posts' },
     ],
   },
   {

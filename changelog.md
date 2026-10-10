@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.20 — 2026-10-09
 
+- In the Buried Machine, forty-one Tooth Day posts now cross the dunes from the great wheel’s foot to Wen’s dome, one for every year, each with that year’s sliver nailed on top: the counters’ way, and the quest sends you back along it with yours.
+- In the Sealed Hangar’s upside-down quarter, the Major’s old signal mast now stands over his desk with a red flag and a lamp on its tip, seen from the ring’s portal (one tall house that hid it is gone). Halfway back to the portal home, his telescope still stands on its tripod beside a stool, trained on the portal’s light.
 - In Viridel, Mira’s water clock now spills into a narrow runnel of white stone that winds west round the meadow, through a sluice-gate and a round stone basin by the pond, down to the vines over the fallen ship. Once you have seen what the garden uncovered, Vey sends you back up it to Mira.
 - In the Deep Wood the lamp-keepers’ old water-way is back: lamps on posts for boats, from a water-gate by the root cave’s lagoon round the deep water east of the wood to the landing, a lamp-raft moored halfway. Hollin lights it once you have told him what was in the saucer, and sends you home along it on the skiff.
 - Wendel’s egg-lamps, glowing eggs in iron cups on posts in the shallows, now run from the crystal cave’s west mouth along the swamp’s south shore to the landing, the egg-gatherers’ punt moored halfway with its baskets full. When the cave sings, its heart points you home along them.

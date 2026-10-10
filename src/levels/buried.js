@@ -10,6 +10,7 @@ import { Terrain } from '../world.js';
 import { PEOPLE } from '../story/buried-data.js';
 import { attachTemple } from '../temples/index.js';
 import { placeShop } from '../shop-world.js';
+import { buildToothPosts } from '../buried-ways.js';
 import { SHOPS } from '../shop.js';
 import { stepped } from '../load-steps.js';
 import { greebles } from './greeble-kit.js';
@@ -1151,11 +1152,19 @@ export function* buildBuried(scene) {
   // beside the way from the landing to Wen's great dome, its oval door turned to the way and the landing
   const shop = placeShop(scene, { def: SHOPS.toothcounter, at: new THREE.Vector3(-1, terrain.heightAt(-1, 28), 28), heading: -0.5 });
   lights.push(...shop.lights);
-  return attachTemple('buried', scene, {
+  // the Tooth Day posts (src/buried-ways.js, level design audit, fourth round): a row across the dunes from the great
+  // wheel's foot to Wen's dome, the way the counters carry the year's sliver: the way back with yours (built after the
+  // temple, last in the scene)
+  let toothPosts = null;
+  const level = attachTemple('buried', scene, {
     id: 'buried',
     portals: [...shop.portals],
     shops: [shop],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
     floraAvoid: shop.avoid(avoid),   // the flora keeps off the canyon, the oculus, the hollow, the hero props and the shop (src/flora.js)
+    // what the level design audit reads (scripts/level-design/audit.mjs): the Tooth Day posts, a leading line followed
+    // where the main quest sends you back along it, and the row itself to look at
+    lines: () => [{ name: 'the Tooth Day posts', points: toothPosts.points, auto: false }],
+    sights: () => [{ name: 'the Tooth Day posts', at: toothPosts.sight }],
     ground: terrain,
     spawn,
     spawnHeading: Math.PI,
@@ -1204,5 +1213,7 @@ export function* buildBuried(scene) {
       for (const m of movers) m(t);
     },
   });
+  toothPosts = buildToothPosts(scene, terrain);
+  return level;
 }
 export const createBuried = stepped(buildBuried);
