@@ -1,0 +1,69 @@
+.github/workflows/cloudflare.yml
+  s_9ca76055a220ed::t_1720e5563929d7 71-82
+.github/workflows/deploy.yml
+  s_9ca76055a220ed::t_b8d70a1d33dd3d 47-54
+.gitignore
+  s_9ca76055a220ed::t_519e799867ad7e 58-60
+changelog.md
+  s_9ca76055a220ed::t_eb40ad6a2181a5 5-6,12
+docs/README.md
+  s_9ca76055a220ed::t_ffaea5e7b4b53c 78
+docs/cloudflare.md
+  s_9ca76055a220ed::t_81598c1b981fb3 50-55
+docs/systems/dev-tools.md
+  s_9ca76055a220ed::t_97c9f405e2239d 18
+docs/systems/references.md
+  s_9ca76055a220ed::t_ff41a912337002 34,36-37,40,50-51,64-89,92-96
+package-lock.json
+  s_9ca76055a220ed::t_d2a8aee5391c3b 19
+package.json
+  s_9ca76055a220ed::t_61a3617cdaf306 26
+public/_headers
+  s_9ca76055a220ed::t_51240c0edccc1f 6-9
+scripts/check-deployment.mjs
+  s_9ca76055a220ed::t_5d53204f2204f1 25-36
+scripts/references-index.mjs
+  s_9ca76055a220ed::t_31aa9a38af5613 2-4
+scripts/references-site.mjs
+  s_9ca76055a220ed::t_5f8e21983a7386 1-113
+scripts/site-only.mjs
+  s_9ca76055a220ed::t_2260d23ecc3521 4-5,18,21
+scripts/web-update.mjs
+  s_9ca76055a220ed::t_f9f3fbfc06dee4 143-145,173
+src/changelog.js
+  s_9ca76055a220ed::t_763bcb7c3e2721 11,19
+src/references-page/main.js
+  s_9ca76055a220ed::t_bcef091255921b 1,6-8,19-20,36-37,39,42-43,133-134,140
+src/references-page/model.js
+  s_9ca76055a220ed::t_7baebc46997be9 2-4,163-195
+src/references-page/view.js
+  s_9ca76055a220ed::t_2cf33d64d251d4 5-14,38,57
+src/world-picker.js
+  s_9ca76055a220ed::t_86879efe256c02 38-39,44,169
+tests/reference-paths.test.js
+  s_9ca76055a220ed::t_908a635fbbc04a 43-45,94
+tests/references-page.test.js
+  s_9ca76055a220ed::t_0fb20644deeab8 187,189-191,193
+tests/references-site.test.js
+  s_9ca76055a220ed::t_932e4c38150782 1-156
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_2ef880e442a796 44-45,49,55-56
+vite.config.js
+  s_9ca76055a220ed::t_8e5c0c2fea3e84 27-29,61-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aabc5420405ce8109f93316128c14ed4d874adc3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
