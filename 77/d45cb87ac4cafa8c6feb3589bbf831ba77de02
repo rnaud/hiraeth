@@ -1,0 +1,39 @@
+docs/systems/worlds.md
+  s_126dba1e825fe2::t_4f17af08c9d163 474-505
+  s_9ca76055a220ed::t_d6a452a9c4bc34 473
+docs/audits/level-design-v1.23.md
+  s_126dba1e825fe2::t_f571f577b0ffa2 2-227
+  s_9ca76055a220ed::t_467a1728eb6b85 1
+TODO.md
+  s_9ca76055a220ed::t_adbfc0167c69c6 252-253,255-256,259-276
+  s_9ca76055a220ed::t_0f89b555a9c6b8 277
+  s_9ca76055a220ed::t_e2cb8222e178e8 213,251
+docs/README.md
+  s_9ca76055a220ed::t_957ef33d4b2264 26
+tests/level-design-round5.test.js
+  s_9ca76055a220ed::t_37919517a160de 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "77d45cb87ac4cafa8c6feb3589bbf831ba77de02",
+  "prompts": {},
+  "sessions": {
+    "s_126dba1e825fe2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a4e25fce308c93d52",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
