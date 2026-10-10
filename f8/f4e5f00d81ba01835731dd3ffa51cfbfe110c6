@@ -1,0 +1,69 @@
+changelog.md
+  s_9ca76055a220ed::t_5840b04145e2a6 7-8
+docs/systems/performance.md
+  s_9ca76055a220ed::t_3f67c1742e83f7 289-290
+docs/systems/ui.md
+  s_9ca76055a220ed::t_4dc8c9e619c5a7 199-204,226-250
+scripts/title-perf.mjs
+  s_9ca76055a220ed::t_7ccace50e79cf6 1-128
+src/audio.js
+  s_9ca76055a220ed::t_5a5e11cf8693cb 185-186,188,225-235,244-250,255-256,258,274-275,278,282,284-285
+src/changelog-media.js
+  s_9ca76055a220ed::t_d2149fce016772 555,557-562,564-569,571-578,583
+src/changelog.js
+  s_9ca76055a220ed::t_da3166914c703c 29-32
+src/characters/traveller-v1.js
+  s_9ca76055a220ed::t_614134f55b8bdb 6,15,36-38,48,50,69-71,74
+src/characters/tripo-cloth.js
+  s_9ca76055a220ed::t_f77574faaacdf3 4,167-169,177-178,180,190,225,235
+src/levels/desert.js
+  s_9ca76055a220ed::t_271a00c01ec505 86,88
+src/load-steps.js
+  s_9ca76055a220ed::t_e82c6be156343d 51-69
+src/main.js
+  s_9ca76055a220ed::t_7ba5e52ddafae4 111,2005-2006,2008-2009
+src/menus.css
+  s_9ca76055a220ed::t_83b9f7dc196a90 27-33
+src/sand-drifts.js
+  s_9ca76055a220ed::t_630bdb988b9b04 3,293-295,301,323-324,351,502-504,515
+src/soundtracks.js
+  s_9ca76055a220ed::t_e86acb77def8e6 5,67-71,83-87,93,121-123
+src/title-shots.js
+  s_9ca76055a220ed::t_350588ec7075bd 17-19,38-40,44-45,49-50,53-54,57-58,64-65,68-69,72-73,77,80-81,84-85,89,109-110
+src/title-world.js
+  s_9ca76055a220ed::t_b813718c84a440 17-19,97,109,111,115-120,205,240-241,395-425,547,549,552,558,561-562,564-565,567-568,570,572,580
+src/title.js
+  s_9ca76055a220ed::t_7af1b43c9f0776 40-42,149-150,159-163,178,365,373,417-425,428-432,439,449
+tests/audio-guard.test.js
+  s_9ca76055a220ed::t_56c98f93f8fa73 157-159
+tests/soundtracks.test.js
+  s_9ca76055a220ed::t_1c72d6730f5d9c 94
+tests/title-ready.test.js
+  s_9ca76055a220ed::t_d607e4e487d1ab 1-175
+src/warm-shaders.js
+  s_191dab329448c6::t_61ac821b23c355 1-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f8f4e5f00d81ba01835731dd3ffa51cfbfe110c6",
+  "prompts": {},
+  "sessions": {
+    "s_191dab329448c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ac7b8991e5a6dc6a6",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
