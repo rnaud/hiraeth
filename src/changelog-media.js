@@ -329,6 +329,8 @@ const SURF = { from: 'node scripts/changelog-shots.mjs (view.foe, the creatures 
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
 /** The roster's batch 3 (v1.13): its bodies at their commit, the stand-ins before them at batch 3's parent. */
 const B3 = { commit: '5a1659cd', before: '890913ce' };
+/** The roster's batch 4 (the machines): the after at the batch's own commit, the before (the stand-ins) at main's before it. */
+const B4 = { commit: '67713bf9', before: '36f6d588' };
 const CHIME_SEEDED = `const V = THREE.Vector3, wait = (ms) => new Promise((r) => setTimeout(r, ms));
   foes.setPractice?.(''); for (const f of [...foes.list]) foes.remove(f); foes.waveRest = 1e9; foes.packRest = 1e9;
   let s0 = 11; chimes.rng = () => ((s0 = (s0 * 16807) % 2147483647) - 1) / 2147483646;
@@ -443,6 +445,55 @@ const SHOP_SHOTS = (w, front, inside, refs) => [
 const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place’s name comes up as you step in), talk to ${who} or stand at the middle of the counter and look at the wares. Walk out of the room’s door to be back where you were.`;
 
 export const CHANGELOG_MEDIA = {
+  '1.16': [
+    // the enemy roster, part four: the possessed machines, each alone in its main skin and its alternate, the stand-in
+    // before it (the bell walker had none), a wind-up each; the sheets beside them as their own pictures
+    { match: 'Four more foes of the new roster: the old makers’ machines', see: 'In the Arena (?level=arena) open the FOES list (K, or D-pad ↓) and pick Viridel: its pruning machines, topiary knots, glass wasps and blots, each alone, then two of its packs; or pick a furnace brute, a ring drone, a crucible cart or a bell walker in any of their skins. In Lorn II, walk the lit path south past the moss domes: the wood cutter stands rusted on the bank before the glass dome, and wakes as you come close.' },
+    { match: 'The furnace brute is a wardrobe with fists', shots: [
+      { name: 'roster4-brute', title: 'Lorn II', caption: 'Before: the glass golem that stood in for it. After: Lorn II’s wood cutter, three-quarter: the headless ivory egg cracked all over with violet in its widest cracks, the brass collar and belt with its boss, tar dripping from every band, great ball shoulders, arms to the ground, moss at the collar and a rusted saw in its fist', ...B4,
+        view: { foe: { id: 'brute@perdide2', yaw: 0.75, pitch: 0.1 }, before: { foe: { id: 'golem', yaw: 0.75, pitch: 0.1 } } }, reference: REF('brute', 1, 'the wood cutter (Lorn II)') },
+      { name: 'roster4-brute-alt', title: 'Glass Dunes', caption: 'The Glass Dunes’ furnace walker, before (the glass golem) and after: faceted pale aqua glass over a sand-gold hull, orange light in its cracks, a glowing furnace door in its chest', ...B4,
+        view: { foe: { id: 'brute@glassdunes', yaw: 0.75, pitch: 0.1 }, before: { foe: { id: 'golem', yaw: 0.75, pitch: 0.1 } } }, reference: REF('brute', 2, 'the furnace walker (the Glass Dunes)') },
+      { name: 'roster4-brute-slam', only: 'after', title: 'The slam', caption: 'The wood cutter winding up its slam: both fists high over the top of its body, the torso arched back, the veins blazing', commit: B4.commit,
+        view: { foe: { id: 'brute@perdide2', yaw: 0.6, pitch: 0.1, pose: 'slam' } }, reference: REF('brute', 1, 'the wood cutter (Lorn II), its slam wound up on the right') },
+    ] },
+    { match: 'The ring drone is a floating cake stand', shots: [
+      { name: 'roster4-drone', title: 'City-Shaft', caption: 'Before: the rust drone that stood in for it. After: the City-Shaft’s rust drone, three-quarter: three brass plates with pink rust and ivory rims round a brass spindle, black smoke with two eyes caught between them, three thin jointed arms with claws', ...B4,
+        view: { foe: { id: 'drone@incal', yaw: 0.75, pitch: 0.12 }, before: { foe: { id: 'drone', yaw: 0.75, pitch: 0.12 } } }, reference: REF('drone', 1, 'the rust drone (the City-Shaft)') },
+      { name: 'roster4-drone-alt', title: 'Garden of Spheres', caption: 'The Garden of Spheres’ ring drone, before (the rust drone) and after: pearl plates studded with gold, gold arms, a pale grey cloud between the plates', ...B4,
+        view: { foe: { id: 'drone@spheres', yaw: 0.75, pitch: 0.12 }, before: { foe: { id: 'drone', yaw: 0.75, pitch: 0.12 } } }, reference: REF('drone', 2, 'the ring drone (the Garden of Spheres)') },
+      { name: 'roster4-drone-harpoon', only: 'after', title: 'The harpoon', caption: 'The rust drone winding up its harpoon: the plates parted and slowed, the reel slid out between them with the harpoon, the cloud bulging out of the gap', commit: B4.commit,
+        view: { foe: { id: 'drone@incal', yaw: 0.9, pitch: 0.12, pose: 'harpoon' } }, reference: REF('drone', 1, 'the rust drone (the City-Shaft), its harpoon wound up on the right') },
+    ] },
+    { match: 'The crucible cart is a squat pot of boiling ink', shots: [
+      { name: 'roster4-cart', title: 'Sealed Hangar', caption: 'Before: the slag walker that stood in for it. After: the Hangar’s welding cart, three-quarter: a gunmetal crucible with ink running down from its rim on a brass turntable, two caterpillar tracks under patched canvas, the welding-torch arms lit, a column of smoke with two eyes', ...B4,
+        view: { foe: { id: 'cart@garage', yaw: 0.75, pitch: 0.12 }, before: { foe: { id: 'slag', yaw: 0.75, pitch: 0.12 } } }, reference: REF('cart', 1, 'the welding cart (the Sealed Hangar)') },
+      { name: 'roster4-cart-alt', title: 'Moon Foundry', caption: 'The Moon Foundry’s crucible cart, before (the slag walker) and after: cream enamel and soot-dark brass, ember slag glowing at the brim, no torches', ...B4,
+        view: { foe: { id: 'cart@moonfoundry', yaw: 0.75, pitch: 0.12 }, before: { foe: { id: 'slag', yaw: 0.75, pitch: 0.12 } } }, reference: REF('cart', 2, 'the crucible cart (the Moon Foundry)') },
+      { name: 'roster4-cart-pour', only: 'after', title: 'The pour', caption: 'The welding cart winding up its pour: the crucible tipped toward you on its trunnions, the lip glowing, the smoke leaning the same way', commit: B4.commit,
+        view: { foe: { id: 'cart@garage', yaw: 1.2, pitch: 0.12, pose: 'pour' } }, reference: REF('cart', 1, 'the welding cart (the Sealed Hangar), its pour wound up on the right') },
+    ] },
+    { match: 'The bell walker is a great bronze bell', shots: [
+      { name: 'roster4-bell', only: 'after', title: 'Signal Market', caption: 'The Signal Market’s sign automaton, three-quarter: a bronze bell clouded with verdigris in a riveted brass yoke hung with coins and pennants, five spider legs, the clapper under the mouth and the spirit’s eyes at the lip (nothing stood in for it before)', commit: B4.commit,
+        view: { foe: { id: 'bell@bazaar', yaw: 0.6, pitch: 0.1 } }, reference: REF('bell', 1, 'the sign automaton (the Signal Market)') },
+      { name: 'roster4-bell-alt', only: 'after', title: 'Salt Harbour', caption: 'The Salt Harbour’s dock winch: a weathered cream drum with its chain wound round it in a turquoise yoke rusted coral, the chain and its hook swinging below, the spirit clinging to it', commit: B4.commit,
+        view: { foe: { id: 'bell@saltharbour', yaw: 0.6, pitch: 0.1 } }, reference: REF('bell', 2, 'the dock winch (the Salt Harbour)') },
+      { name: 'roster4-bell-toll', only: 'after', title: 'The toll', caption: 'The sign automaton winding up its toll: reared back on its rear legs, the front ones lifted, the clapper swung high', commit: B4.commit,
+        view: { foe: { id: 'bell@bazaar', yaw: 1.1, pitch: 0.1, pose: 'toll', at: 0.6 } }, reference: REF('bell', 1, 'the sign automaton (the Signal Market), its toll wound up on the right') },
+    ], see: 'Pick a bell walker in the Arena’s FOES list and stand back: when it rears back and the clapper swings, jump each of the three rings. With the bell-note whistle (from the Founders’ Belfry), sound it with Y / △ (V) while it winds up: it chokes and sits open. Or let it drop next to you and step out: it tips up toward you, the clapper in reach.' },
+    { match: 'A flock of skitters takes far less to draw', numbers: [
+      { title: 'Meshes in one foe’s body', unit: 'meshes', better: 'lower', device: 'any (counted in node)', rows: [
+        { where: 'a skitter', before: 44, after: 5 }, { where: 'a flock of eight', before: 352, after: 40 },
+        { where: 'furnace brute', before: null, after: '6–10' }, { where: 'ring drone', before: null, after: 9 }, { where: 'crucible cart', before: null, after: '14–16' }, { where: 'bell walker', before: null, after: '11–13' },
+      ], source: 'archetypeModel(kind) in each of its skins, its meshes counted (each is a draw, again in each shadow pass); tests/archetypes-batch4.test.js' },
+      { title: 'Draw calls, a flock of eight skitters in view', unit: 'calls', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, 1280 × 720', rows: [
+        { where: 'High', before: 1248, after: 312 }, { where: 'Steam Deck preset', before: 1253, after: 317 },
+      ], source: 'node scripts/enemy-roster/bench.mjs --pack skitter@desert ×8, before at the commit before batch 4, two runs each on High', note: 'CPU 3.8 → 3.3 ms on High, 3.2 → 3.0 ms on the Deck preset; the motion audit’s numbers for the skitter are unchanged (no foot slide, 55 % reach, 19 % lift, its tripod).' },
+      { title: 'Draw calls, two brutes, two drones and two carts in view (before: their stand-ins)', unit: 'calls', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, 1280 × 720', rows: [
+        { where: 'High', before: 451, after: 339 }, { where: 'Steam Deck preset', before: 455, after: 344 },
+      ], source: 'node scripts/enemy-roster/bench.mjs: golem, golem, drone, drone, slag, slag at the commit before batch 4 against brute@perdide2, brute@glassdunes, drone@incal, drone@spheres, cart@garage, cart@moonfoundry', note: 'CPU 2.5 → 4.0 ms on High (2.4 → 3.8 on the Deck preset): the machines are whole bodies on the locomotion kit where the stand-ins were a few boxes; six ink blots cost 2.9 ms in the same view.' },
+    ] },
+  ],
   '1.15': [
     // the temple guardians' last phases: each arena's new pieces from its doorway (the guardian asleep), and the
     // First Sign's and the Foreman's tells held open (their setups force the opening, before and after alike)
