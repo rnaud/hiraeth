@@ -1,0 +1,311 @@
+changelog.md
+  s_9ca76055a220ed::t_41cd3a40bf54d5 5-13
+docs/README.md
+  s_9ca76055a220ed::t_9f42caec4e9312 50
+docs/game-brief.md
+  s_9ca76055a220ed::t_6a7381f1e30361 40,126
+docs/story-bible.md
+  s_9ca76055a220ed::t_1a5d37df65afa6 133-142,261-263,266-267,281-282,294-308,358-359,404,452,454-455,619
+docs/systems/cinematics-qc-notes.json
+  s_9ca76055a220ed::t_b3edc860206bdb 428-432
+docs/systems/progression.md
+  s_9ca76055a220ed::t_6e955ec877d3aa 5-11,15-16
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_0a8dc97134b88e 16-23,25-28,681-730
+scripts/unity-export/export-world.mjs
+  s_9ca76055a220ed::t_76f718e5f2afea 585
+src/aliens/index.js
+  s_9ca76055a220ed::t_e0c491ca98302f 7,18-27,29,62
+src/audits-page/parse.js
+  s_9ca76055a220ed::t_a1320ed9637320 10
+src/boxes/index.js
+  s_9ca76055a220ed::t_e7a40dee1c7895 9,152-155,157
+src/boxes/placements.js
+  s_9ca76055a220ed::t_00f6bcde1dc01c 1-3,30-34,49,62,65,80,83,92-93,96-97,99-101,103-110,112-113,115-117,127,130,143,146,159,162,176,179,192,195-197,203,206
+src/changelog-media.js
+  s_9ca76055a220ed::t_50f9b518039e0e 500-516
+src/changelog.js
+  s_9ca76055a220ed::t_1bd0bfd26a02c3 11-21
+src/cinematics-page/catalog.js
+  s_9ca76055a220ed::t_3c0177b10ed751 3,7-8,15
+src/debug-save.js
+  s_9ca76055a220ed::t_9644ae48a71562 5-10,34-35,52,72-73,76-77,140,142-156,173,175-177,199
+src/deep-wood-ways.js
+  s_9ca76055a220ed::t_a0be6789aff186 5,23-26,28,87
+src/enemies/skins.js
+  s_9ca76055a220ed::t_40263e83311830 151-152
+src/finds/courts.js
+  s_9ca76055a220ed::t_81c666636d6dfb 5,24-27,31,33,36-37,51-53,63-70,73-74,104,126,128
+src/foe-worlds.js
+  s_9ca76055a220ed::t_f15f528202fabe 33,35-37
+src/foes.js
+  s_9ca76055a220ed::t_d9eee3684b604e 25,1467-1472,1591-1600,1633,1677-1681,1684,1687,1696,1737,1764
+src/items.js
+  s_9ca76055a220ed::t_cdd82e2ee7d792 170
+src/levels/antennas.js
+  s_9ca76055a220ed::t_63adbee37cb2c7 11
+src/levels/arzach.js
+  s_9ca76055a220ed::t_3dd46bc6091615 13-15,21-28,33-35,37-38,48-56,70-87,96,99-101,117-119,121,129,131-132,135-136,141,151,169,177,253,287,289-290,308,315,321,323,329-330,332-333,347,355,359,366,375-376,384,396-409,411-414,416-423,429,433,436,438,447,449-458
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_d2319bc46a07a2 153-180,182-184,187-189,191,193-205,305,376,581,592,863-864,868,932,934
+src/levels/buildable.js
+  s_9ca76055a220ed::t_da8b8619105e02 1-18
+src/levels/content.js
+  s_9ca76055a220ed::t_b4404de468a12b 32-33,37,59-61,322-366,369-374,385-386,396-400,402,405-408,418-419
+src/levels/dismissed/atelier/content.js
+  s_9ca76055a220ed::t_8f08d0f6cbb37d 1-17
+src/levels/dismissed/atelier/level.js
+  s_9ca76055a220ed::t_b9db02fdd5baf1 3-5,8-11
+src/levels/dismissed/hangar/content.js
+  s_9ca76055a220ed::t_2ef52ba97b1743 1-25
+src/levels/dismissed/hangar/finds.js
+  s_9ca76055a220ed::t_df1b094fbe8f1c 1-55
+src/levels/dismissed/hangar/level.js
+  s_9ca76055a220ed::t_5207daa8ba5b18 3-14,17-21,504-505,507,618-622
+src/levels/dismissed/hangar/moments.js
+  s_9ca76055a220ed::t_0c2c460e5d34af 2
+src/levels/dismissed/hangar/sightings.js
+  s_9ca76055a220ed::t_083c9b3c13bf07 1-8
+src/levels/dismissed/hangar/story.js
+  s_9ca76055a220ed::t_5e02d7120345cf 2-7
+src/levels/dismissed/hangar/temple-words.js
+  s_9ca76055a220ed::t_493df93872182e 1-79
+src/levels/dismissed/hangar/ways.js
+  s_9ca76055a220ed::t_18545392d56561 3
+src/levels/dismissed/index.js
+  s_9ca76055a220ed::t_3da32af832dcb3 1-27
+src/levels/glass-dunes.js
+  s_9ca76055a220ed::t_ab9aac0b8a4819 10-13,16-23,64-67,69-70,184-190,192-194,202,221-223,226,228-229,254,258-266,269-271,274-275
+src/levels/home-drawings.js
+  s_9ca76055a220ed::t_221104d2ea4799 16,93-100
+src/levels/home.js
+  s_9ca76055a220ed::t_da5fe1c468f412 18-19
+src/levels/index.js
+  s_9ca76055a220ed::t_adeeebcf69fc36 1,45,48,52-56,218-219
+src/levels/lab-rooms.js
+  s_9ca76055a220ed::t_1e12b436765e78 12
+src/levels/names.js
+  s_9ca76055a220ed::t_068e3da3b9e8e3 9-10,15,18,36-39,41,46,51-114
+src/levels/perdide.js
+  s_9ca76055a220ed::t_87ebfb8ba0ddeb 14-15,22-26,45-46,60,63-71,233,235,253-254,266,273-276,293,297,321,336-337,343-344,351,446-447,457-460,468-470,472-473,479-480,482,527,529-535,537-541,552-554,557-562,570-571,582-583,585-586,592-593,610-612
+src/levels/perdide2.js
+  s_9ca76055a220ed::t_684f4205094ed3 16,25-29,32-35,59,88,90-95,102,110,118-119,122-125,127-128,130,135,141,153-154,157-159,195,219-221,223,225-237,242,268-269,285,288,359,478-481,833,837-838,854,872,909
+src/levels/underside.js
+  s_9ca76055a220ed::t_ea44064be3cba0 8
+src/main.js
+  s_9ca76055a220ed::t_122c18be29ac5b 57-58,592-593,1945-1946,1964
+src/save-migrate.js
+  s_9ca76055a220ed::t_d877fe211055f2 36-43,47,128-130,133-193
+src/save-slots.js
+  s_9ca76055a220ed::t_0f87ca39ffb871 32,139-140,185
+src/score.js
+  s_9ca76055a220ed::t_a4fbc558b9fa78 135-146
+src/ship/starmap.js
+  s_9ca76055a220ed::t_610f278ac87005 99
+src/shop.js
+  s_9ca76055a220ed::t_ffd862da4e3dc6 3,59,61-62,68-69,71,78-79
+src/story/all-quests.js
+  s_9ca76055a220ed::t_badd6b3c576448 9
+src/story/arzach.js
+  s_9ca76055a220ed::t_b6db342df307fe 11,46-47,145
+src/story/buried-data.js
+  s_9ca76055a220ed::t_c40bad5c8a9936 411-414
+src/story/calls.js
+  s_9ca76055a220ed::t_96b0d9841a456d 58,94-95,103,130-133
+src/story/charge.js
+  s_9ca76055a220ed::t_c73be51ca60949 74
+src/story/ending.js
+  s_9ca76055a220ed::t_0d091bbbe6d587 4,51-54,75,371-373,376,378-382
+src/story/fellow-data.js
+  s_9ca76055a220ed::t_4065d0b28ede04 12,37,78,129,141,181,205,230,255
+src/story/film.js
+  s_9ca76055a220ed::t_280eab6778726d 30-31
+src/story/glassdunes-moments.js
+  s_9ca76055a220ed::t_00b3aea24397f6 1-52
+src/story/glassdunes-people.js
+  s_9ca76055a220ed::t_6723aef9662e2f 1-22
+src/story/glassdunes.js
+  s_9ca76055a220ed::t_0a9aee5cb04a93 1-43
+src/story/home-data.js
+  s_9ca76055a220ed::t_1e4f84238abc28 20,34-36,45-46
+src/story/index.js
+  s_9ca76055a220ed::t_847c0adb0b82cd 29,38,42-43,74,76-96,184-186,198,202,207,211,235-245
+src/story/people-book.js
+  s_9ca76055a220ed::t_93f2498f607ef0 9-11,27,32,455-462,644,664-665,667,672
+src/story/perdide2-data.js
+  s_9ca76055a220ed::t_72b7636677d97f 30,87-88,91,191,237
+src/story/perdide2.js
+  s_9ca76055a220ed::t_bab420ce96d5b4 45
+src/story/quests.js
+  s_9ca76055a220ed::t_5fd10516f129d6 208-212,214,216-217,221-222
+src/story/route.js
+  s_9ca76055a220ed::t_8c08d4abe3843f 12-13
+src/story/scripts.js
+  s_9ca76055a220ed::t_93dabdf0b8536c 368-420,856
+src/story/shop-data.js
+  s_9ca76055a220ed::t_ef207a6ec10002 181-193,322-331
+src/story/shops.js
+  s_9ca76055a220ed::t_c0ccda171bac04 17-21
+src/story/sightings.js
+  s_9ca76055a220ed::t_1a5b8df860f6ab 19-21,60-62,124-126
+src/story/signature.js
+  s_9ca76055a220ed::t_b99f9e46109b91 43-46
+src/story/voice.js
+  s_9ca76055a220ed::t_ba6b54f7e0042d 94-97
+src/studio/people.js
+  s_9ca76055a220ed::t_09bf1b9aacd3ea 17
+src/temples/arzach.js
+  s_9ca76055a220ed::t_c1132a75ae5fa5 9,51-53,466
+src/temples/garage-data.js
+  s_9ca76055a220ed::t_76697c8a042918 1-6,9-12,30-32,41,45,62-63,65,67,72-77,84
+src/temples/garage.js
+  s_9ca76055a220ed::t_2f9f1276cb37ab 9-21,26,48-49,54-56,352,355-357,363-366,368-372,378,391,400,404-408,410-411,450,452-453,459,497,503,505
+src/temples/index.js
+  s_9ca76055a220ed::t_87c83c7337d6ce 31,41-45,50-52,70-76,89,98-100,103,137-139,143-160,194-197,199-214,216,221
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_d83e98d8d119e5 8,50-52,431
+src/trials/data.js
+  s_9ca76055a220ed::t_1847764c6d45bb 17-18,78-84,116-132
+src/trials/index.js
+  s_9ca76055a220ed::t_a8153c93e3efb2 12,119,131-132,169,216
+src/trials/kit-courses.js
+  s_9ca76055a220ed::t_ea859f85c9b983 41
+src/trials/kit-data.js
+  s_9ca76055a220ed::t_9a0e5b8f81df6d 30-31,191-196,200,202-204,210-214
+src/ui.js
+  s_9ca76055a220ed::t_67e7145ed630e3 6,595-596,598-599
+src/vael-ways.js
+  s_9ca76055a220ed::t_c4a459caabc1ee 5,26-27,32,34,36-37,39
+src/wildlife.js
+  s_9ca76055a220ed::t_c92f30e0d24ef4 6-27,471
+src/wildlife/species.js
+  s_9ca76055a220ed::t_c3b1fd47c337f2 956-962
+src/world-debug.js
+  s_9ca76055a220ed::t_d97dd94b705f43 21,136,138
+src/world-picker.js
+  s_9ca76055a220ed::t_5429be1bb08dcd 10,113
+tests/aliens.test.js
+  s_9ca76055a220ed::t_9248e80f13cfaf 19,47-48
+tests/archetypes-batch4.test.js
+  s_9ca76055a220ed::t_dece5f77946a73 217-218,223,226
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_537c2eb4cf4588 16,107,116,129
+tests/arzach2.test.js
+  s_9ca76055a220ed::t_b9cdc4379d9a52 8-9,15,17-21
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_9654a218f8f1c4 98-100
+tests/boxes.test.js
+  s_9ca76055a220ed::t_9e417c4d03ead7 8-10,15,28,59-60,62-65,67,71-73,94,111
+tests/built-worlds.js
+  s_9ca76055a220ed::t_d92e6a9b4eafb0 7,27-28
+tests/cinematics-page.test.js
+  s_9ca76055a220ed::t_3081b8482fbf45 8,12-14
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_f38a47f646dec8 269
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_4c6901ba96df14 12,37,55-66,71,73,89-90,92-94,96,99,111,119,131-132,135,152,201
+tests/ending.test.js
+  s_9ca76055a220ed::t_4ab47525afe013 66,69,236-238
+tests/errands-route.test.js
+  s_9ca76055a220ed::t_1fdee5e14a8db9 9-10,13-22,24-26,48-49
+tests/fellow.test.js
+  s_9ca76055a220ed::t_21103539570b9d 96,101-102,125,128,169,172,199,201,203,214,216
+tests/flora.test.js
+  s_9ca76055a220ed::t_d88fc544cf1825 10
+tests/glass-dunes.test.js
+  s_9ca76055a220ed::t_fd4462a370f032 145,147,150,152-158,160,162,165-167,209-211
+tests/guardian-twists.test.js
+  s_9ca76055a220ed::t_3ee54d3bb2606b 36-37,52,55
+tests/home-family.test.js
+  s_9ca76055a220ed::t_102c36e206083e 28-29
+tests/listen.test.js
+  s_9ca76055a220ed::t_ec1330e2d5568d 16-17
+tests/load-steps.test.js
+  s_9ca76055a220ed::t_1c1eace8e5f049 79-80,82-84
+tests/loose-ends.test.js
+  s_9ca76055a220ed::t_b0c68a1e809f05 4,17-18
+tests/magnet.test.js
+  s_9ca76055a220ed::t_e6941b518e053c 78
+tests/makehuman-worlds.test.js
+  s_9ca76055a220ed::t_dcea8c54902048 314
+tests/moments-garage.test.js
+  s_9ca76055a220ed::t_3408532a986637 1,10,16,18,131
+tests/moments-glassdunes.test.js
+  s_9ca76055a220ed::t_11b530412af571 1-99
+tests/names.test.js
+  s_9ca76055a220ed::t_366fd4120497c3 31-35
+tests/passage.test.js
+  s_9ca76055a220ed::t_80825735162879 226
+tests/people-page.test.js
+  s_9ca76055a220ed::t_9d92b6ddc863d0 8-9,13,27,29-37,47,65,119-121,153-155
+tests/perdide2.test.js
+  s_9ca76055a220ed::t_bdf2c805fb020f 4,8-9,21,23-28,66-67
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_7dbc0045f99a9d 31,94-95,594-596,615
+tests/playthrough-saves.test.js
+  s_9ca76055a220ed::t_817cb2ddedc665 45,59,73
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_307d4ff5c500bd 202-204,207-208,226
+tests/playthrough.test.js
+  s_9ca76055a220ed::t_3cd7dc15bcd822 41
+tests/portal.test.js
+  s_9ca76055a220ed::t_83d513a9590fa2 8
+tests/ring-jets.test.js
+  s_9ca76055a220ed::t_202f9761986e7a 15
+tests/route.test.js
+  s_9ca76055a220ed::t_cad6bd0e71d857 10,16,19-24,36-37,45-48,51-52,55-56,66,85-87
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_1a1a2ae039b035 3-4,11-12,60-131
+tests/save-slots.test.js
+  s_9ca76055a220ed::t_59c0c4164cbe52 5,60
+tests/shaped-solids.test.js
+  s_9ca76055a220ed::t_f2c2615f9bb769 7,87
+tests/ship.test.js
+  s_9ca76055a220ed::t_345b78b7bde77e 19,140-141,158
+tests/shop-worlds.test.js
+  s_9ca76055a220ed::t_31f30b7f8a65a8 13-14,60-64,92,111-112,121-122
+tests/shop.test.js
+  s_9ca76055a220ed::t_85e946a96a040b 278-280,284-285,313
+tests/sightings.test.js
+  s_9ca76055a220ed::t_e028abd43f6904 14,33,44,48-50
+tests/signature-search.test.js
+  s_9ca76055a220ed::t_9f5d4401d0fd18 73,75,105
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_9073b98c1d2e75 86-87,90
+tests/story-garage.test.js
+  s_9ca76055a220ed::t_d806b9374d4422 9,15
+tests/story-perdide.test.js
+  s_9ca76055a220ed::t_92aa0b70cd41ec 74-77,79-80,101-102
+tests/story-perdide2.test.js
+  s_9ca76055a220ed::t_292477d736ebd3 8,58,60-61,68
+tests/temples.test.js
+  s_9ca76055a220ed::t_270b53776a0fd2 12-13,48-49,53,56,251,1998-2003,2007
+tests/trials-kit.test.js
+  s_9ca76055a220ed::t_8ab1b9148a1801 6-7,18,35,37-39,43,100,132,178-180,185-186,204,209,217,870-871,874,905
+tests/trials-worlds.test.js
+  s_9ca76055a220ed::t_212a31f4f00559 10-12,39-42,44-45,57-62,67
+tests/trials.test.js
+  s_9ca76055a220ed::t_486aa7d9c02dea 5,24-26,47,50-51
+tests/wildlife.test.js
+  s_9ca76055a220ed::t_06e926796f5391 9-10,17,46-51
+tests/world-debug.test.js
+  s_9ca76055a220ed::t_ee5f3c292d13af 18,168-170,172-173
+tests/world-picker.test.js
+  s_9ca76055a220ed::t_5f359e00b6b435 24-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5d538cde6c71057ef33a8578b1fbd9dd5246948",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
