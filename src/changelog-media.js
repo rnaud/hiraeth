@@ -466,6 +466,59 @@ const FROM_LD3 = 'scripts/design-qc/capture.mjs (one muted headless Chrome, 1280
 /** The visual probes' fixes (docs/audits/visual-v1.21.md): the probes' own views, at their hour (9:30), the commit before each fix and the fix. */
 const PROBES20 = { hour: 9.5, wait: 3000 };
 export const CHANGELOG_MEDIA = {
+  '1.23': [
+    // the worlds, fifth round of the level design audit (docs/audits/level-design-v1.23.md): the same view before and
+    // after each world's commit
+    { match: 'In Vael II, Ondine no longer waits alone far out on the plain', shots: [
+      { name: 'skystones-ondine', caption: 'On the long aqueduct just south of the floating island: before, the empty deck; after, Ondine where she turns back each day, and the parapet stone with her tally', commit: '554c9a43',
+        view: { level: 'arzach2', player: [209, 41, -541], eye: [206, 45, -538], target: [217, 41.5, -566], fov: 55, wait: 4000 } },
+    ], see: 'Take Mother Ysolde’s letter out along the long aqueduct past the needles: Ondine stands under the floating island. Ask her why she stops there.' },
+    { match: 'One of the riders’ lantern stones fell up with the bell’s clapper', shots: [
+      { name: 'skystones-clapper-lantern', caption: 'Over the floating island church’s porch: before, the sky; after, the lantern stone that fell up with the clapper, its lantern lit', commit: '554c9a43',
+        view: { level: 'arzach2', player: [233, 130, -482], eye: [232, 136, -480], target: [247, 138, -502], fov: 60, wait: 4000 } },
+    ], see: 'Fly to the floating island before you fetch the clapper: the lantern burns over the church’s porch. Pick the clapper up and it goes out.' },
+    { match: 'Lorn has a high place: Wendel’s lookout', shots: [
+      { name: 'lorn-lookout', caption: 'From the landing island, looking south-east to the rise: before, the grove; after, Wendel’s lookout, its teal columns rising in steps to 30 m', commit: 'e235a4f7',
+        view: { level: 'perdide', player: [18, 2, -3], eye: [20, 6, -5], target: [62, 20, -32], fov: 60, wait: 4000 } },
+    ], see: 'Walk east from the landing onto the rise: climb the lowest column, then the next from its top, and so on to the box on the middle one.' },
+    { match: 'From Saba’s stone by the Great Crystal, the crystal cave’s crown', shots: [
+      { name: 'lorn-crown-window', caption: 'From Saba’s stone, looking north-west toward the cave: before, the grove’s tall crystals; after, a notch in them, the cave’s crown far off through it', commit: 'e235a4f7',
+        view: { level: 'perdide', player: [110, 2, -128], eye: [107, 3.7, -131], target: [-170, 40, 140], fov: 35, wait: 4000 } },
+    ], see: 'Stand by Saba’s stone at the Great Crystal’s foot and look across the landing island: the cave’s crown shows through the grove.' },
+    { match: 'In the Deep Wood, five dead giant stalks stand in the shallows', shots: [
+      { name: 'deepwood-stalks', caption: 'From the landing, looking west into the shallows: before, the reeds and the giants; after, the keepers’ stalks broken off a climb apart, the lamp on the tallest', commit: '2d850d33',
+        view: { level: 'perdide2', player: [-8, 2, -12], eye: [-10, 8, -14], target: [-52, 18, -56], fov: 60, wait: 4000 } },
+    ], see: 'Wade west from the landing into the shallows: climb the lowest stalk, then each taller one from the last. The lamp on top lights once Hollin has lit the water-way.' },
+    { match: 'In the Garden of Spheres, Emrys, who climbs everything', shots: [
+      { name: 'spheres-emrys', caption: 'On the meadow pyramid’s summit by the head of its stair: before, nobody; after, Emrys, shouting about the view', commit: '33416c33',
+        view: { level: 'spheres', player: [-60, 29, -158], eye: [-56, 32, -152], target: [-64.6, 30, -161.6], fov: 55, wait: 4000 } },
+    ], see: 'Climb the meadow pyramid’s stair from the path to the arch: Emrys is on top.' },
+    { match: 'A white meadow path now runs from the sphere-arch', shots: [
+      { name: 'spheres-meadow-path', caption: 'At the meadow pyramid’s foot: before, the lawn; after, the meadow path to the stair and the little sphere Emrys practises on', commit: '33416c33',
+        view: { level: 'spheres', player: [-27, 1, -102], eye: [-29, 3, -104], target: [-40, 1.8, -116], fov: 55, wait: 4000 } },
+    ], see: 'Tell Ume what the pole sang: she sends you home by the meadow path, back through the arch and round the pyramid. Emrys’s handprints are on the sphere’s side toward the stair.' },
+    { match: 'Halfway down the cypress avenue, two small spheres', shots: [
+      { name: 'spheres-answering', caption: 'Halfway down the cypress avenue: before, the olives; after, the two answering spheres facing each other across the road', commit: '33416c33',
+        view: { level: 'spheres', player: [0, 1, -452], eye: [0, 2.2, -456], target: [0, 1.2, -480], fov: 60, wait: 4000 } },
+    ], see: 'Splash one of the two small spheres halfway down the avenue: the other rings back.' },
+    { match: 'In Viridel, Oro’s pyramid seed now rolls down', see: 'Ask Oro by the white ruins about his seed: it glows on the pond’s south shore, south-west of the landing, past where the white runnel comes down.' },
+    { match: 'In the Sealed Hangar, Gaspard, who walked round the ring', shots: [
+      { name: 'hangar-gaspard', caption: 'On the plateau east of the landing: before, the open floor; after, Gaspard resting his feet in sight of the signal board', commit: '53aa2535',
+        view: { level: 'garage', player: [20, 0, 114], eye: [22, 3, 112], target: [70, 1.5, 95], fov: 50, wait: 4000 } },
+    ], see: 'Walk east from the landing: Gaspard is resting there, 70 m off, in sight of Ambroise’s board.' },
+    { match: 'In the Signal Market’s listeners’ lane, Wynn', shots: [
+      { name: 'market-wynn', caption: 'In the back lane behind the west towers, looking north: before, the dishes alone; after, Wynn halfway up, under them', commit: 'e15ae65e',
+        view: { level: 'bazaar', player: [-83, 0.1, -121], eye: [-83, 2.6, -124], target: [-81.4, 1.4, -150], fov: 55, hour: 11.5, wait: 4000 } },
+    ], see: 'Go home the quiet way Sel sends you, or walk into the back lane from the alley behind Signal Square: Wynn sits under the dishes halfway up.' },
+    { match: 'In the City-Shaft, Tobin now sends you back to Lio', shots: [
+      { name: 'shaft-tobin-scopes', caption: 'On the outer rim between Tobin and Lio: before, the open rim; after, Tobin’s three coin telescopes with their yellow boards', commit: '7843f45c',
+        view: { level: 'incal', player: [338, 200, 118], eye: [340, 202.5, 116], target: [356, 200.8, 88], fov: 55, wait: 4000 } },
+    ], see: 'Collect Tobin’s fare for Lio: he sends you back round the outer rim past his telescopes.' },
+    { match: 'In the desert, while the great tree is still cold', shots: [
+      { name: 'desert-giants-breath', caption: 'From above the camps, looking over Qanat to the back gate: before, the camps’ smoke alone; after, the giant’s breath, a thin pale column over the back gate', commit: '20b7420f',
+        view: { level: 'desert', player: [118, 1, 238], eye: [120, 40, 240], target: [330, 50, 545], fov: 55, hour: 9.5, wait: 5000 } },
+    ], see: 'Before the tree burns, look past Qanat’s walls from the camps: the pale column rises from the fallen giant’s skull outside the back gate.' },
+  ],
   '1.22': [
     // the enemy roster's last step, balance and sound (docs/audits/combat-v1.22.md): nothing to photograph but numbers
     // and how to hear or see it; the curve's numbers from the combat-review script's --packs, before and after
