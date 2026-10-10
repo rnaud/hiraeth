@@ -85,7 +85,14 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 (`src/levels/dismissed/`), out of the route and the Debug menu's worlds, so its pieces can be reused elsewhere.
 
 - [ ] **Promote the Moon Foundry** to a world on the route.
-- [ ] **Promote the city in space and the city underwater**; redesign the underwater one so you are never outside swimming.
+- [ ] **Promote the city in space** to a world on the route.
+- [ ] **Promote and redesign the underwater city as connected, walkable enclosed hubs.** City districts
+  sit inside bulb-like domes, joined by enclosed tubes and pedestrian passages. You walk from one part
+  of the city to another; normal city traversal is not swimming in open water. Outside the enclosures,
+  water surrounds the city, with fish and other sea animals drifting past in view.
+  **Ideas to explore, not settled requirements:** a small-submarine mission or minigame to retrieve
+  something outside the city; the temple could be outside too, reached by submarine, with a partly
+  submerged layout that mixes flooded and dry spaces as its central theme.
 - [ ] **The train level moves**: a moving train, not a station, and a sub-level reached by a quest from another world.
 - [ ] **References for a fire-and-ice world** (both at once), in the reference lab.
 - [ ] **A Star Fox-style space level**: the ship fights space pirates ("They are after your chimes!"); it plays as the
