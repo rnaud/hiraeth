@@ -72,8 +72,8 @@ export function fellowSpot({ ship = null, physics, level, npcs = [] }) {
   const out = ship?.outDir ?? new THREE.Vector3(0, 0, 1);
   const side = new THREE.Vector3(out.z, 0, -out.x);
   const eye = foot.clone().addScaledVector(UP, 1.2);
-  for (const d of [10, 13, 8, 16, 6]) {
-    for (const s of [6, -6, 8, -8, 4.5, -4.5]) {
+  for (const d of [8, 10, 6, 13, 16]) {
+    for (const s of [5, -5, 6.5, -6.5, 4, -4]) {
       const p = foot.clone().addScaledVector(out, d).addScaledVector(side, s);
       const g = physics.groundAt(p.x, foot.y + 4, p.z, 10);
       if (!Number.isFinite(g) || Math.abs(g - foot.y) > 2.5) continue;

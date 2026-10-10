@@ -332,17 +332,12 @@ three openings (docs/audits/temple-design-v1.27.md, "The four rules"):
 
 Ranked; each says why in the review. Playtest with two or three new players before building the big ones.
 
-- [ ] **A fellow traveller who recurs**, three or four meetings along the route, each changed by the last.
-- [ ] **Optional mastery challenges in the open world**, from the temple kit and the vehicles, one a world.
-  The vehicles' side is done (a trial in every route world, v0.98) and so is the system for the temple kit's
-  side with nine runs: the desert's Wind hall, Lorn's Hush walk, Vael's Feather leap, the Buried Machine's
-  Furnace steps, the Garden of Spheres' Sphere court, the City-Shaft's Long look (v1.3), the Signal Market's
-  Echo relay, Viridel's Vine walk and the Sky Stones' Bell crossing (v1.4, docs/systems/challenges.md; the
-  stand-in runtime now has the ball rolled onto its plate, the echo stones and horns, the seeds with their vine
-  bridges and the flower-door, the bell-tuned bridges of fallen-up stones and the bell-tuned door).
-  Next: a makers' run in the other two route worlds, each from its own temple's pieces; both want a new piece
-  in the stand-in runtime: Lorn's deep wood (LightEar: the lantern charm's lamps), the Hangar (eye banks with
-  riding discs: `level.dynamic`, which the runs now feed).
+- [ ] Playtest the fellow traveller (Tansy, v1.28: DONE.md, docs/systems/story.md) with two or three new players:
+  do they notice her by the ship, and does the last meeting land? If her stops feel too far apart, a fifth stop
+  (Viridel or the Garden of Spheres) would bring the payoff before the first homecoming for more players.
+- [ ] A second makers' run in a world, from what is left of its temple's kit (docs/systems/challenges.md, "Next"):
+  Viridel's greenhouse glass (a vine up an unclimbable pane: `noClimb` colliders in the stand-in), the Hangar's
+  eye banks on pistons in turn, the Lamp-House's pool-orb rolled to a lamp.
 - [ ] The gameplay loop: the fluid blade and the foes are in (v0.87, docs/systems/foes.md; try them in the
   Arena), and the blade's attacks are all captured swings (the combo, the guard, the whirl, the lunge, and in
   v1.3 the charged cut and the air cut from the Great Sword pack, in v1.4 the riposte after a perfect parry and

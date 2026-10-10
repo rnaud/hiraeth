@@ -48,6 +48,8 @@ const CONTROLS = {
   // (the echo relay: the stones splashed, the shell played back: src/echo-shell.js, the whistle's button)
   // (the bell crossing: the bell-note whistle on the same button, src/boxes/effects.js ring())
   kitbell: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump'], ['Y / △', 'sound the bell (no gadget in hand)']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump'], ['V', 'sound the bell']] },
+  // (the lamp walk: the lantern charm wakes a lamp by itself; you only stand by it)
+  kitlamp: { pad: [['Left stick', 'walk; L3 to run'], ['A / ×', 'jump']], keys: [['W A S D', 'walk; Shift to run'], ['Space', 'jump']] },
   kitecho: { pad: [['Left stick', 'walk; L3 to run'], ['LT / L2', 'aim'], ['RT / R2', 'splash a stone'], ['Y / △', 'play the shell back (no gadget in hand)']], keys: [['W A S D', 'walk; Shift to run'], ['Right mouse', 'aim'], ['Left mouse', 'splash a stone'], ['V', 'play the shell back']] },
 };
 
@@ -149,7 +151,7 @@ export function makeTrial(T, { levelId, scene, physics, player, items, game, foe
   const M = trialMats(T.color);
   const offs = [];
   // a makers' run: the temple pieces stood in the open, for good (src/trials/kit-courses.js)
-  const course = kitRun ? buildKitCourse(T, { scene, physics, player, notice, sound, game }) : null;
+  const course = kitRun ? buildKitCourse(T, { scene, physics, player, notice, sound, game, items }) : null;
   // its moving floors (a ball, a plate) are the traveller's to stand on and be stopped by, as a temple's are
   if (course?.solids().length && player?.opts) {
     const was = player.opts.dynamic;

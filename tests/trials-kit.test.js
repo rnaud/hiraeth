@@ -31,7 +31,7 @@ import { COURTS, COURT } from '../src/finds/courts.js';
 
 /** Where the one who speaks lives in a world: a person of its own (CONTENT npcs, by id), or a story local
  * (src/story/<world>-data.js LOCALS, standing on the world's spawn spots in order) → [x, z], or null. */
-const STORY = { arzach: await import('../src/story/arzach-data.js'), arzach2: await import('../src/story/arzach2-data.js') };
+const STORY = { arzach: await import('../src/story/arzach-data.js'), arzach2: await import('../src/story/arzach2-data.js'), garage: await import('../src/story/garage-data.js') };
 function homeOf(world, who) {
   const npcs = CONTENT[world].npcs;
   const own = npcs.filter((n) => n.id === who);
@@ -104,7 +104,7 @@ test('the makers’ runs: in route worlds, beside their trials, each a course of
     assert.ok(homeOf(T.world, T.voice.who), `${id}: ${T.voice.who} lives in ${T.world}`);
     const def = trialGame(T, { par: T.par, session: () => ({}) });
     assert.equal(def.drives, false); assert.equal(def.score.kind, 'time'); assert.ok(def.trial);
-    if (!['kitwings', 'kitbell'].includes(T.controls)) assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
+    if (!['kitwings', 'kitbell', 'kitlamp'].includes(T.controls)) assert.ok(def.controls.pad.some(([b]) => b === 'RT / R2'), `${id}: the card names the pad’s splash`);
     if (T.controls === 'kitbell') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /bell/.test(what)), `${id}: the card names the bell’s button`);
     if (T.controls === 'kitecho') assert.ok(def.controls.pad.some(([b, what]) => b === 'Y / △' && /shell/.test(what)), `${id}: the card names the shell’s button`);
     if (T.controls === 'kitwings') assert.ok(def.controls.pad.some(([b, what]) => b === 'A / ×' && /wings/.test(what)), `${id}: the card names the wings`);
@@ -790,6 +790,134 @@ test('the bell crossing: the bell brings each gap’s fallen-up stones down, the
   sess.end();
   // the makers' mark: a steady scripted run (walked at 5 m/s; to each bell's edge and the door, half a second to sound each) plus slack
   const t = scripted(course, [[0, 0, 8], [0, 0, 30], [0, 0, 52], [0, 0, 67], [0, 0, 76.4]]) + 4 * 0.5;
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+test('the lamp walk: a lamp woken by the lantern raises its moss-stones out of the water; the water and the wings end it', () => {
+  const { scene, physics, surfaceAt } = world('perdide2');
+  const T = KIT_TRIALS['kit-perdide2'];
+  const game = new GameState();
+  const pl = traveller();
+  let lantern = false;
+  const C = createChallenges({ levelId: 'perdide2', scene, physics, player: pl, items: { has: (i) => i !== 'lantern' || lantern }, game, kits: [T], trials: {} });
+  const W = C.list[0], course = W.course, K = course.kit, L = course.rt.logic;
+  const floor = (x, z) => { const p = K.world(x, 1, z), g = physics.groundAt(p.x, p.y, p.z, 30); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  let clock = 0;
+  const stand = (x, z, secs) => { pl.pos.copy(K.world(x, 0, z)); for (let i = 0; i < secs * 60; i++) course.update(1 / 60, (clock += 1 / 60)); };
+  assert.equal(course.lamps.length, 3);
+  // the gaps: far wider than a jump, only the lake under them; a deck either side, dry over the water
+  for (const [z0, z1] of course.gaps) {
+    assert.ok(z1 - z0 > 3 * 3, `a gap no jump crosses (${z1 - z0} m)`);
+    for (const x of [-1.5, 0, 1.5]) {
+      const p = K.world(x, 0, (z0 + z1) / 2), f = floor(x, (z0 + z1) / 2);
+      assert.ok(f < -0.9, `nothing across the gap at ${(z0 + z1) / 2} yet`);
+      assert.ok(surfaceAt(p.x, p.z, p.y + 2, 10)?.y > K.world(x, f, (z0 + z1) / 2).y + 0.7, 'the lake under it, deeper than wading');
+    }
+  }
+  for (const z of [4, 25, 45, 66]) assert.ok(Math.abs(floor(0, z)) < 0.05, `a deck at ${z}`);
+  // the lamps are the temple logic's switches that want the lantern
+  const [l1, l2] = course.lamps;
+  assert.deepEqual(L.el(l1.id).needs, ['lantern']);
+  stand(2.1, 7.6, 3);
+  assert.ok(!l1.lit(), 'no lantern: the lamp stays dark however long you stand there');
+  lantern = true;
+  stand(0, 1, 3);
+  assert.ok(!l1.lit(), 'the lantern, from the far end of the deck: too far');
+  stand(2.1, 7.6, 0.5);
+  assert.ok(!l1.lit(), 'a moment by it: not yet');
+  stand(2.1, 7.6, 1.2);
+  assert.ok(l1.lit(), 'a while by it with the lantern: it wakes (no run on: for anyone)');
+  assert.ok(!l2.lit(), 'only its own lamp');
+  assert.ok(Math.abs(floor(0, 15)) < 0.05, `the moss-stones risen across the first gap, a floor at once (${floor(0, 15).toFixed(2)})`);
+  assert.ok(floor(2.4, 15) < -0.9, 'only as wide as the stones: off their side is the lake');
+  // a new run: the lamp out, the stones sunk
+  const ctx = runnerCtx(pl);
+  let sess = W.session(ctx);
+  assert.ok(!l1.lit() && floor(0, 15) < -0.9, 'all as it was');
+  // the water ends it, and so do the wings
+  pl.swim = { t: 0 };
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'In the water');
+  pl.swim = null; sess.end(); ctx.result = null;
+  sess = W.session(ctx);
+  pl.gliding = true;
+  for (let i = 0; i < 20 && !ctx.result; i++) sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Off your feet');
+  pl.gliding = false; sess.end(); ctx.result = null;
+  // played: each lamp woken, each walkway walked, the arch
+  sess = W.session(ctx);
+  stand(2.1, 8.6, 1.5); walk(sess, ctx, pl, V(W.gates[0].x, W.gates[0].y - 1, W.gates[0].z));
+  stand(-2.1, 28.6, 1.5); walk(sess, ctx, pl, V(W.gates[1].x, W.gates[1].y - 1, W.gates[1].z));
+  stand(2.1, 48.6, 1.5); walk(sess, ctx, pl, V(W.gates[2].x, W.gates[2].y - 1, W.gates[2].z));
+  assert.ok(ctx.result && !ctx.result.failed, 'finished');
+  for (const [z0, z1] of course.gaps) assert.ok(Math.abs(floor(0, (z0 + z1) / 2)) < 0.05, `the stones over ${z0}–${z1}`);
+  sess.end();
+  // the makers' mark: a steady scripted run (walked at 5 m/s, to each lamp, standing its time by it) plus slack
+  const hold = l1.lamp.hold;
+  const t = scripted(course, [[2.1, 0, 8.6], [-2.1, 0, 28.6], [2.1, 0, 48.6], [0, 0, 69]]) + 3 * (hold + 0.3);
+  if (process.env.MARKS) console.log(`MARK ${T.id} ${t.toFixed(1)}`);
+  assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
+  C.dispose();
+});
+
+test('the disc run: a disc shuttles across each gap edge to edge (the last up to the landing), floors for the traveller; the plain and the wings end it', () => {
+  const { scene, physics } = world('garage');
+  const T = KIT_TRIALS['kit-garage'];
+  const pl = traveller();
+  pl.opts = {};
+  const C = createChallenges({ levelId: 'garage', scene, physics, player: pl, items: { has: () => true }, game: new GameState(), kits: [T], trials: {} });
+  const W = C.list[0], course = W.course, K = course.kit;
+  const floor = (x, z) => { const p = K.world(x, 8, z), g = physics.groundAt(p.x, p.y, p.z, 30); return Number.isFinite(g) ? K.local(V(p.x, g, p.z)).y : -Infinity; };
+  assert.equal(course.discs.length, 3);
+  for (const d of course.discs) assert.ok(course.solids().includes(d), 'each disc a moving floor of the course');
+  assert.ok(pl.opts.dynamic().length >= 3, 'handed to the traveller to stand on');
+  // the gaps: far wider than a jump, nothing under them but the plain; the islands and the landing
+  for (const [z0, z1] of course.gaps) {
+    assert.ok(z1 - z0 > 3 * 3, `a gap no jump crosses (${z1 - z0} m)`);
+    for (const x of [-1.5, 0, 1.5]) assert.ok(floor(x, (z0 + z1) / 2) < T.fall.below, `nothing fixed across the gap at ${(z0 + z1) / 2}`);
+  }
+  for (const z of [4, 26, 50]) assert.ok(Math.abs(floor(0, z)) < 0.05, `an island at ${z}`);
+  assert.ok(Math.abs(floor(0, 76) - 4) < 0.05, 'the landing, 4 m higher');
+  // each disc, over a whole cycle: its ends meet the decks either side of its gap, level with them
+  for (const [i, d] of course.discs.entries()) {
+    const [z0, z1] = course.gaps[i], top1 = i === 2 ? 4 : 0;
+    let lo = null, hi = null;
+    for (let k = 0; k < 60 * 30; k++) {
+      course.update(1 / 60, k / 60);
+      const p = K.local(d.solid.pos);
+      if (!lo || p.z < lo.z) lo = p.clone();
+      if (!hi || p.z > hi.z) hi = p.clone();
+    }
+    assert.ok(Math.abs(lo.z - d.r - z0) < 0.4 && Math.abs(lo.y) < 0.05, `disc ${i + 1}: its near stop meets the deck (${(lo.z - d.r - z0).toFixed(2)} m, ${lo.y.toFixed(2)})`);
+    assert.ok(Math.abs(hi.z + d.r - z1) < 0.4 && Math.abs(hi.y - top1) < 0.05, `disc ${i + 1}: its far stop meets the next (${(z1 - hi.z - d.r).toFixed(2)} m, ${hi.y.toFixed(2)})`);
+  }
+  // down on the plain ends it, and so do the wings
+  const ctx = runnerCtx(pl);
+  let sess = W.session(ctx);
+  pl.pos.copy(K.world(0, -6, 15));
+  sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Down on the plain');
+  sess.end(); ctx.result = null;
+  sess = W.session(ctx);
+  pl.gliding = true;
+  for (let i = 0; i < 20 && !ctx.result; i++) sess.update(1 / 60, {}, { live: true, phase: 'play' });
+  assert.equal(ctx.result?.title, 'Off your feet');
+  pl.gliding = false; sess.end();
+  // the makers' mark: a steady scripted run: walked at 5 m/s to each gap's edge, waiting there for the disc to come
+  // to its near stop, ridden to its far stop, on to the landing, and three shots at the eyes (a breath)
+  let t = 0, z = K.local(course.start).z;
+  const step = (secs) => { for (let k = 0; k < secs * 60; k++) { t += 1 / 60; course.update(1 / 60, t); } };
+  for (const [i, d] of course.discs.entries()) {
+    const [z0, z1] = course.gaps[i];
+    step((z0 - 0.3 - z) / 5);
+    let guard = 0;
+    while (!(d.s === 0 && d.wait > 0.15) && guard++ < 60 * 40) step(1 / 60);   // (on as it rests at your side)
+    while (d.s < d.total && guard++ < 60 * 80) step(1 / 60);
+    z = z1 + 0.3;
+  }
+  step((74.5 - z) / 5 + 1.5);
+  if (process.env.MARKS) console.log(`MARK ${T.id} ${t.toFixed(1)}`);
   assert.ok(T.par > t * 1.15 && T.par < t * 1.6 + 6, `the mark ${T.par} s over a scripted ${t.toFixed(1)} s`);
   C.dispose();
 });

@@ -2114,3 +2114,21 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   last, writing no depth, over a copy of the scene's depth (`MementoFeature`); built but off by default (only
   `-waterContact` turns it on) until seen working; `tests/unity-water-contact.test.js` (docs/systems/water.md,
   "In Unity"). Seeing both run, and turning the foam on, is left in TODO.md.
+
+## Fun and story: a fellow traveller, and a makers' run in every route world (2026-10-10, v1.28)
+
+- [x] **A fellow traveller who recurs** (docs/fun-and-story-review.md, problem 4; docs/systems/story.md, "A fellow
+  traveller: Tansy"): Tansy, about nineteen, from the Salt Harbour, following the singing light on a compass that
+  swung round the night the sky rang. Met four times, in the first four of Vael, Lorn II, the City-Shaft and the
+  Signal Market the traveller lands in, a few steps from his ship; each meeting opens on what he told her last
+  (what he is after; send word home or keep going; who waits for him; does her aunt still read her page), and the
+  last is the payoff: home (her compass to him) or on past the last chart (a letter for Hesper, which Hesper takes
+  in the Salt Harbour). Her look is the harbour's in every world; her People page grows with every answer; an
+  older save that had finished one of her stops meets her late (save-migrate step 7). tests/fellow.test.js.
+- [x] **Optional mastery challenges, one a world**: the last two makers' runs (docs/systems/challenges.md). Lorn II's
+  lamp walk (four decks out over the lake south of the landing; a keeper's lamp at each gap wakes to the lantern
+  charm and raises its moss-stones out of the water; Hollin has the word) and the Hangar's disc run (two islands
+  and a landing 6 m over the plain, a riding disc shuttling across each gap, the last climbing to the landing, a
+  bank of three eyes at the end; Clemence has the word). Every route world now has its vehicle's trial and its
+  makers' run. New in the stand-in runtime: the lamps (`LightEar`, the charm asked of the traveller's items) and
+  the riding discs (`Platform`, moving floors). tests/trials-kit.test.js.

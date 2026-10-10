@@ -8,7 +8,7 @@
 //
 //   id       'kit-<world>' (its best: minigame.kit-<world>.best; its first finish: trial.kit-<world>.done)
 //   course   which builder (src/trials/kit-courses.js COURSES): 'windhall', 'hushwalk', 'featherleap', 'furnacesteps',
-//            'spherecourt', 'longlook', 'echorelay', 'vinewalk', 'bellcrossing'
+//            'spherecourt', 'longlook', 'echorelay', 'vinewalk', 'bellcrossing', 'lampwalk', 'discrun'
 //   origin   [x, y, z] the course's frame (its entrance, at floor level) and yaw (radians: its +z runs
 //            into it); everything else is in that frame, metres
 //   marker   [x, z] the sign, in the course's frame (on the ground there)
@@ -22,7 +22,8 @@
 //   onFoot   walked: up on the jets for more than a moment ends it (offFeet: the words on the card)
 //   noWings  the wings opened end it at once too (the vine walk: a glide would carry you over its gaps)
 //   controls the start card's controls (src/trials/index.js CONTROLS; default 'kit': walk, jump, splash;
-//            'kitwings'; 'kitecho': walk, splash, play the shell back; 'kitbell': walk, jump, sound the bell)
+//            'kitwings'; 'kitecho': walk, splash, play the shell back; 'kitbell': walk, jump, sound the bell;
+//            'kitlamp': walk, jump, stand by a lamp with the lantern)
 //   voice    who speaks when it ends well ({ who: the person's id, name, from: where they stand, and the
 //            lines: first, beaten (the makers' mark, the first time), again }): every line carries its tone
 
@@ -167,6 +168,38 @@ export const KIT_TRIALS = {
       first: '~happy~ The stones came down for you, one bridge after another. I watched from my door. I wrote it down, next to the cloud.',
       beaten: '~surprised~ Quicker than the founders! The stones hardly had time to settle before you were off them.',
       again: '~playful~ Again? Mind the edges. The cloud is patient, and I am running out of page.',
+    },
+  },
+  'kit-perdide2': {
+    id: 'kit-perdide2', world: 'perdide2', mode: 'kit', course: 'lampwalk', name: 'Lamp walk', color: '#ffd6a0',
+    blurb: 'The Lamp-House’s dark gallery stood out on the lake south of the landing: four decks out over the dark water, three gaps, and a keeper’s lamp at each.',
+    rules: 'Cross the three gaps to the arch on the last deck. Stand by the lamp at each gap’s edge with the lantern charm until it wakes: its light raises a walkway of moss-stones out of the water. In the water, or on your wings, and the run is over.',
+    origin: [-23.7, 1.3, 31.6], yaw: -0.436,
+    marker: [-4.6, -5.4], start: [0, 0.6], heading: 0, par: 30,
+    needs: ['lantern'], lacks: 'Its lamps wake only to the lantern charm.',
+    wet: true, onFoot: true, noWings: true, offFeet: 'Feet only: the lamps’ stones carry you over, not the wings or the jets.',
+    controls: 'kitlamp',
+    voice: {
+      who: 'hollin.perdide2', name: 'Hollin', from: 'the keeper of the lamps',
+      first: '~happy~ Three lamps lit and walked before the stones had settled. Forty years I have kept lamps for travellers. That is the first time a traveller lit them for me.',
+      beaten: '~surprised~ Quicker than the makers meant it! The moss hardly had time to glow under your feet.',
+      again: '~solemn~ Again? Good. A lamp likes to be needed.',
+    },
+  },
+  'kit-garage': {
+    id: 'kit-garage', world: 'garage', mode: 'kit', course: 'discrun', name: 'Disc run', color: '#62c3c9',
+    blurb: 'The First Garage’s riding discs stood out on the plain east of the clerk’s board: two islands and a landing on blocks over the plain, a disc shuttling across each gap, and a bank of eyes at the end.',
+    rules: 'Ride the discs over to the landing: step on as one comes to you, step off at the far side. On the landing, wake all three eyes with the fluid in one breath. Down on the plain, or on your wings, and the run is over.',
+    origin: [52, 6, 38], yaw: Math.PI / 2,
+    marker: [4.6, -7.6], start: [0, 0.6], heading: 0, par: 54,
+    needs: ['backpack'], lacks: 'The eyes at its end want the fluid gun.',
+    onFoot: true, noWings: true, offFeet: 'Feet only: the discs carry you over, not the wings or the jets.',
+    fall: { after: 0, below: -2, from: 8, words: 'Down on the plain' },
+    voice: {
+      who: 'clemence', name: 'Clemence', from: 'who remembers the Major',
+      first: '~happy~ The Major rode discs like those to his desk every morning, and was late every morning. You were not.',
+      beaten: '~surprised~ Under the makers’ own mark! The Major would have written that down, and lost the paper.',
+      again: '~playful~ Round again? The discs don’t mind. They have nowhere else to be either.',
     },
   },
 };

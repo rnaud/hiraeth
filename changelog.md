@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.28 — 2026-10-10
 
+- The Sealed Hangar has one too: the Disc run, two islands and a landing high over the plain east of the clerk’s board, a riding disc shuttling across each gap (the last climbs up to the landing) and three eyes to wake in one breath at the end. Clemence remembers the Major riding discs like those. Every world on the route now has its makers’ run.
+- Lorn II has a makers’ run: the Lamp walk, four decks out over the lake south of the landing. Stand by the keeper’s lamp at each gap with the lantern charm and its moss-stones rise out of the water to carry you over. Hollin has a word for you at the end.
 - Tansy has a page in the People book that grows with every meeting. If your save had already passed one of her stops, you still meet her: she has been a world behind you, not ahead.
 - Someone else follows the singing light: Tansy, a girl from the Salt Harbour whose compass has pointed after it since the night the sky rang. She waits a few steps from your ship in Vael, Lorn II, the City-Shaft and the Signal Market. Each time you meet she remembers what you told her the time before, and what you tell her decides whether she goes home or on past the last chart, and what she leaves in your hands.
 

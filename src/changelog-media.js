@@ -325,6 +325,7 @@ const REF = (id, n, skin) => ({ sheet: `references/enemy-archetypes/${id}/sheet-
 /** The roster's procedural surfaces: taken with the foe views below at the commit before them and at theirs (made
  *  before the branch was rebased: hence `from`, not `commit`). */
 const SURF = { from: 'node scripts/changelog-shots.mjs (view.foe, the creatures gallery) at the commit before the surfaces (“Changelog media for enemies…”) and at the surfaces’ own (“Procedural surfaces for the enemy roster…”), before the branch was rebased' };
+const FELLOW_FROM = 'headless Chrome (muted, High, 10:00, clear) against this branch’s own dev server, one session for each pair: the before with the new thing taken out of the scene (Tansy, the course and its sign), the after with it back, the same pinned view; cwebp -q 72';
 /** Batch 1's art pass: from before compare.mjs (7dd178f7) to its last commit. */
 const ART = { commit: 'afc7dfb0', before: '7dd178f7^' };
 /** The roster's batch 3 (v1.13): its bodies at their commit, the stand-ins before them at batch 3's parent. */
@@ -482,8 +483,17 @@ const TEMPLES27 = { commit: 'f72c314e', before: '268fa72e' };
 const OPEN27 = (...keys) => ({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, ...Object.fromEntries(keys.map((k) => [k, true])) }, keepsakes: [] });
 export const CHANGELOG_MEDIA = {
   '1.28': [
-    { match: 'Someone else follows the singing light', see: 'Land in Vael (or whichever of Vael, Lorn II, the City-Shaft and the Signal Market you reach first) and step down the ramp: a girl in a sailcloth coat too big for her waves from a few steps off to one side. Talk to her; in the next of those worlds she opens on what you told her. Four meetings in all; the last gives you her compass or a letter for her aunt.' },
+    { match: 'Someone else follows the singing light', shots: [
+      { name: 'tansy-vael', caption: 'Down the ramp in Vael: before, the sand; after, Tansy waiting a few steps off to one side', from: FELLOW_FROM },
+      { name: 'tansy-vael-talk', only: 'after', caption: 'Her first meeting: the girl in the sailcloth coat, in Vael', from: FELLOW_FROM },
+    ], see:'Land in Vael (or whichever of Vael, Lorn II, the City-Shaft and the Signal Market you reach first) and step down the ramp: a girl in a sailcloth coat too big for her waves from a few steps off to one side. Talk to her; in the next of those worlds she opens on what you told her. Four meetings in all; the last gives you her compass or a letter for her aunt.' },
     { match: 'Tansy has a page in the People book', see: 'Open the game menu’s People page after meeting her: she is under Vael, and her page gains a part with every answer you give her.' },
+    { match: 'Lorn II has a makers’ run: the Lamp walk', shots: [
+      { name: 'lamp-walk', caption: 'The lake south of Lorn II’s landing: before, open water; after, the Lamp walk, its first lamp lit and its moss-stones risen', from: FELLOW_FROM },
+    ], see: 'In Lorn II, with the lantern charm from the Lamp-House: walk south from Hollin to the shore and the makers’ sign by the steps.' },
+    { match: 'The Sealed Hangar has one too: the Disc run', shots: [
+      { name: 'disc-run', caption: 'The Hangar’s plain east of the clerk’s board: before, the pipes; after, the Disc run on its blocks, a disc over each gap', from: FELLOW_FROM },
+    ], see: 'In the Sealed Hangar, east of the clerk’s board and a short walk from Clemence: the makers’ sign at the foot of the stair.' },
   ],
   '1.27': [
     // the temple design audit's rules (docs/audits/temple-design-v1.27.md): the same view before and after the rework

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TempleKit, templeMaterials, box, annulus, lathe, paint, T as tf } from '../temples/kit.js';
-import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud, BellEar, Door } from '../temples/pieces.js';
+import { Gust, Swing, Bank, Updraft, Ball, Plate, EchoStone, EchoEar, Seed, Bridge, Bud, BellEar, Door, LightEar, Platform } from '../temples/pieces.js';
 import { TempleLogic, memoryStore } from '../temples/logic.js';
 import { PALETTE as DESERT } from '../temples/desert.js';
 import { PALETTE as LORN } from '../temples/perdide.js';
@@ -11,6 +11,8 @@ import { PALETTE as SHAFT } from '../temples/incal.js';
 import { PALETTE as MARKET } from '../temples/bazaar.js';
 import { PALETTE as VIRIDEL } from '../temples/edena.js';
 import { PALETTE as BELFRY } from '../temples/arzach2.js';
+import { PALETTE as LAMPHOUSE } from '../temples/perdide2.js';
+import { PALETTE as HANGAR } from '../temples/garage.js';
 
 // The makers' runs in the open (docs/systems/challenges.md, src/trials/kit-data.js): the temples' own kit
 // (src/temples/kit.js: halls, slabs, stairs, columns) and moving pieces (src/temples/pieces.js: Gust, Swing,
@@ -28,13 +30,15 @@ import { PALETTE as BELFRY } from '../temples/arzach2.js';
 //   course.vines · course.bud     the seeds with their vine bridges ({ seed, bridge, grown() }) and the flower-door ({ bud, open() })
 //   course.bells · course.door    the bridges of stones that fell up, each with the bell-tuned post that brings it down
 //                                 ({ ear, bridge, down() }), and the bell-tuned door ({ door, ear, open() })
+//   course.lamps     the keepers' lamps, each with the moss-stones its light raises ({ lamp, bridge, lit() }: Lorn II)
+//   course.discs     the riding discs (the temples' Platform: the Hangar), moving floors in course.solids()
 //   course.task      what the run asks once its gates are behind you: { kind: 'eyes' | 'roll' | 'ears', n, count(), goal }
 //   course.solids()  the moving floors (the balls, the plates) for the traveller (src/player.js opts.dynamic)
 //   course.listen(fn) the bank's eyes may wake (fn() → true) · course.reset() for a new run
 //   course.update(dt, t) · course.dispose()
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
-const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY };
+const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, spheres: SPHERES, incal: SHAFT, bazaar: MARKET, edena: VIRIDEL, arzach2: BELFRY, perdide2: LAMPHOUSE, garage: HANGAR };
 
 /**
  * What a temple piece asks of its temple (src/temples/runtime.js), for a piece stood in the open. Its logic is
@@ -43,7 +47,7 @@ const PALETTES = { desert: DESERT, perdide: LORN, arzach: VAEL, buried: BURIED, 
  * lit for good or opened, and a bank (or a horn) wakes only while a run is listening. game: the game's events
  * (the singing stones' 'note', the echo shell's 'echo': src/echo-shell.js).
  */
-export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}, sound = null, game = null }) {
+export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}, sound = null, game = null, items = null }) {
   const root = new THREE.Group();
   root.name = `${kit.group.name} (pieces)`;
   scene?.add(root);
@@ -52,7 +56,7 @@ export function openRuntime({ scene, kit, M, P, player = null, notice = () => {}
   const logic = new TempleLogic({ id: 'open', rooms: {}, links: [], elements: {} }, { store: memoryStore(), has: () => true });
   logic.isLit = () => false; logic.isOpen = () => false; logic.check = () => true;
   const rt = {
-    kit, M, P, root, player, sound, game, logic,
+    kit, M, P, root, player, sound, game, logic, items,
     /** What a piece that only answers a run says when it is woken with no run on (by element id). */
     deaf: {},
     /** The elements that answer anyone, run or no run (a seed grows its vine for whoever blooms it). */
@@ -228,6 +232,37 @@ export function addBellDoor(rt, { id, at, yaw = 0, w = 3.4, h = 4.4, reach = 6, 
   };
 }
 
+
+/**
+ * A lamp that lights a bridge, stood in the open (Lorn II's Lamp-House: the temples' LightEar on a keeper's post,
+ * and a Bridge of moss-stones from below that only its light raises): stand by the post with the lantern charm a
+ * moment (`hold` s, within `reach`) and the lamp wakes, and the stones rise out of the dark water into a walkway,
+ * a floor at once. It answers anyone who carries the lantern, run or no run (rt.free; the charm is asked of the
+ * traveller's items, rt.items); a new run puts the lamp out and sinks the stones.
+ * o: { id, post: [x, y, z] (the post's foot), reach, hold, a, b, w, n } → { id, lamp, bridge, lit(), update(), reset() }
+ */
+export function addLamp(rt, { id, post: at, reach = 3.5, hold = 1.2, a, b, w = 3.2, n = 6 }) {
+  const L = rt.logic, bid = `${id}.stones`;
+  L.def.elements[id] = { type: 'switch', room: 'open', needs: ['lantern'] };
+  L.def.elements[bid] = { type: 'bridge', opens: { lit: id } };
+  rt.free.add(id);
+  // (the lamp wants the charm itself: the stand-in's logic says yes to everything else)
+  if (!rt.lampHas) { rt.lampHas = true; const was = L.has; L.has = (it) => (it === 'lantern' ? (rt.items ? !!rt.items.has?.('lantern') : true) : was(it)); }
+  const K = rt.kit, [x, y, z] = at;
+  // the keeper's post: a slim column with a crook at its head, the lamp (the LightEar's own glow) hanging there
+  K.both(K.M.trim, new THREE.CylinderGeometry(0.14, 0.2, 2.9, 8).translate(x, y + 1.45, z));
+  K.add(K.M.trim, new THREE.CylinderGeometry(0.45, 0.55, 0.22, 12).translate(x, y + 0.11, z));
+  K.add(K.M.trim, tf(annulus(0.8, 1.15, 0.05, 24), [x, y + 0.03, z]));
+  K.add(K.M.glyph, new THREE.TorusGeometry(0.62, 0.05, 4, 20).rotateX(Math.PI / 2).translate(x, y + 2.8, z));
+  const lamp = rt.add(LightEar, { id, at, reach, hold });
+  const bridge = rt.add(Bridge, { id: bid, a, b, w, n, from: 'below', glow: { k: 0.45 } });
+  return {
+    id, lamp, bridge,
+    lit: () => lamp.lit,
+    update() { if (rt.lit.has(id) && !bridge.open) bridge.setOpen(true); },
+    reset() { rt.lit.delete(id); lamp.lit = false; lamp.t = 0; bridge.setOpen(false, true); bridge.apply(); },
+  };
+}
 /** An old receiving dish of the market's (drawn only), facing `yaw` (0: +z), as the Undertower hangs them. */
 function dish(K, x, y, z, r, yaw, tilt = 0) {
   const prof = []; for (let i = 0; i <= 8; i++) { const q = (i / 8) * r; prof.push([Math.max(0.01, q), (q * q) / (4 * r * 0.7)]); }
@@ -636,10 +671,90 @@ export const COURSES = {
       gulf: { from: 12, to: 22 }, gaps: [[12, 22], [34, 44], [56, 66]],
     };
   },
+  /**
+   * The lamp walk (Lorn II): the Lamp-House's dark gallery stood out on the lake south of the landing, where the
+   * deep wood's keepers kept lamps for travellers. Four decks on piers in a line out from the shore over the
+   * dark water, three gaps of 10 m between them; at each gap's near edge a keeper's post with a lamp that wakes to
+   * the lantern charm (stand by it a moment), and its light raises a walkway of moss-stones out of the water.
+   * Under the arch on the last deck is the line. In the water ends the run, and so do the wings
+   * (src/trials/kit-data.js `wet`, `noWings`): only the lamps' stones carry you over.
+   */
+  lampwalk(K, rt) {
+    const W = 6, decks = [[-2, 10], [20, 30], [40, 50], [60, 72]];
+    for (const [i, [z0, z1]] of decks.entries()) {
+      K.slab(-W / 2, z0, W / 2, z1, 0, 0.9, K.M.floor);
+      for (const s of [-1, 1]) K.add(K.M.trim, box(0.3, 0.06, z1 - z0, s * (W / 2 - 0.2), 0.03, (z0 + z1) / 2));
+      // piers down into the lake (the first deck's on the shore's slope)
+      for (let z = z0 + 2; z < z1 - 1; z += 5) for (const s of [-1, 1]) K.column(s * (W / 2 - 0.9), z, -7, 6.1, 0.55, { mat: K.M.stoneMat });
+      if (i < 3) K.glyph([0, -0.45, z1 + 0.02], 0.7, 0);   // (on each deck's face over the gap)
+    }
+    K.stairs([0, -1.6, -6.2], [0, 0, -2], 3.6);   // (up onto the first deck from the shore)
+    // the keepers' posts at the gaps' near edges, each with the moss-stones its lamp raises
+    const lamps = [[10, 20, 2.1], [30, 40, -2.1], [50, 60, 2.1]].map(([z0, z1, x], i) =>
+      rt.lamp({ id: `lamp${i + 1}`, post: [x, 0, z0 - 1.2], a: [0, 0, z0], b: [0, 0, z1] }));
+    // the arch on the last deck
+    for (const s of [-1, 1]) K.column(s * 2.4, 69.6, 0, 4.2, 0.38);
+    K.both(K.M.wall, box(5.8, 0.6, 1.0, 0, 4.5, 69.6));
+    K.glyph([0, 4.5, 69.08], 0.9, Math.PI);
+    return {
+      // the gates: on the second deck (the first lamp's stones crossed), the third, under the arch on the last
+      gates: [[0, 1.6, 25, 2.6], [0, 1.6, 45, 2.6], [0, 1.6, 69, 2.4]],
+      bank: null, gusts: [], swings: [], updrafts: [], links: lamps, lamps,
+      bounds: [[-W / 2 - 1, -8, -7], [W / 2 + 1, 8, 73]],
+      clear: [[-W / 2 - 1, -7], [W / 2 + 1, 73]],
+      // (the tests' measures: the first gap, and every gap)
+      gulf: { from: 10, to: 20 }, gaps: [[10, 20], [30, 40], [50, 60]],
+    };
+  },
+  /**
+   * The disc run (the Sealed Hangar): the First Garage's escapement stood out on the plain east of the clerk's
+   * board, in the hangar's brass and blue. A platform up a stair, then two stone islands and a landing on blocks
+   * over the plain, 6 m up, and between them riding discs that shuttle back and forth across each gap (the last
+   * climbs 4 m as it crosses, to the landing). Ride each over, step off; on the landing, a wall with a bank of
+   * three eyes that wake only together, inside one breath. Down on the plain ends the run, and so do the wings.
+   */
+  discrun(K, rt) {
+    const W = 7, H = 6;   // (H: how high the course stands over the plain)
+    const blocks = [[-1, 8, 0, W], [22, 30, 0, 6], [46, 54, 0, 6], [70, 82, 4, 8]];
+    for (const [z0, z1, y, w] of blocks) {
+      K.slab(-w / 2, z0, w / 2, z1, y, H + y, K.M.wall);
+      K.slab(-w / 2 - 0.25, z0 - 0.25, w / 2 + 0.25, z1 + 0.25, y, 0.4, K.M.floor);
+      for (const s of [-1, 1]) K.add(K.M.trim, box(0.3, 0.06, z1 - z0, s * (w / 2 - 0.2), y + 0.03, (z0 + z1) / 2));
+    }
+    K.stairs([0, -H, -10.6], [0, 0, -1], 3.6);   // (up from the plain)
+    K.glyph([0, -2.2, -1.27], 1.4, Math.PI);
+    // the riding discs, one across each gap (the escapement's: a lamp-ring under each, the makers' sign)
+    const discs = [
+      rt.disc({ path: [[0, 0, 10.4], [0, 0, 19.6]], r: 2.2, speed: 3.0, pause: 1.0, phase: 0 }),
+      rt.disc({ path: [[0, 0, 32.4], [0, 0, 43.6]], r: 2.2, speed: 3.2, pause: 1.0, phase: 0.5 }),
+      rt.disc({ path: [[0, 0, 56.4], [0, 4, 67.6]], r: 2.2, speed: 2.6, pause: 1.2, phase: 0.25 }),
+    ];
+    // the landing's wall and its bank of three eyes, and a stair down off its side
+    const E1 = 82;
+    K.both(K.M.wall, box(9, 6.4, 1.2, 0, 4 + 3.2, E1 + 0.6));
+    K.both(K.M.dark, box(2.4, 3.4, 0.3, 0, 4 + 1.7, E1 - 0.1));
+    K.both(K.M.trim, box(3.2, 0.4, 0.5, 0, 4 + 3.6, E1 - 0.1));
+    K.glyph([0, 4 + 5.1, E1 - 0.05], 1.1, Math.PI);
+    const bank = rt.add(Bank, {
+      id: 'eyes', window: 4,
+      eyes: [[-2.7, 1.6], [0, 4.4], [2.7, 1.6]].map(([x, y]) => ({ at: [x, 4 + y, E1 - 0.02], yaw: Math.PI })),
+      full: 'The three eyes wake, and sleep again. They answer someone who has ridden the discs: start at the sign by the stair.',
+    });
+    K.stairs([4.2, 4, 76], [15.4, -H, 76], 3.2);
+    return {
+      // the gates: on each island (a disc ridden over), and on the landing
+      gates: [[0, 1.6, 26, 2.6], [0, 1.6, 50, 2.6], [0, 5.6, 74.5, 2.8]],
+      bank, gusts: [], swings: [], updrafts: [], discs,
+      bounds: [[-6, -H - 2, -11], [17, 12, E1 + 2]],
+      clear: [[-6, -11], [17, E1 + 2]],
+      // (the tests' measures: the first gap, and every gap, each a disc's)
+      gulf: { from: 8, to: 22 }, gaps: [[8, 22], [30, 46], [54, 70]],
+    };
+  },
 };
 
 /** Build a makers' run in its world (see the top of this file). */
-export function buildKitCourse(T, { scene, physics, player = null, notice = () => {}, sound = null, game = null }) {
+export function buildKitCourse(T, { scene, physics, player = null, notice = () => {}, sound = null, game = null, items = null }) {
   const P = PALETTES[T.world] ?? DESERT;
   const M = templeMaterials(P);
   const [ox, oy, oz] = T.origin;
@@ -647,7 +762,7 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   parent.name = `Makers’ run: ${T.name}`;
   scene?.add(parent);
   const kit = new TempleKit(parent, T.name, V(ox, oy, oz), T.yaw ?? 0, M);
-  const rt = openRuntime({ scene: parent, kit, M, P, player, notice, sound, game });
+  const rt = openRuntime({ scene: parent, kit, M, P, player, notice, sound, game, items });
   const pieces = [];
   rt.add = (Piece, o) => { const p = new Piece(rt, o); pieces.push(p); return p; };
   rt.roller = (o) => addRoller(rt, o);
@@ -656,6 +771,8 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   rt.bud = (o) => addBud(rt, o);
   rt.bellBridge = (o) => addBellBridge(rt, o);
   rt.bellDoor = (o) => addBellDoor(rt, o);
+  rt.lamp = (o) => addLamp(rt, o);
+  rt.disc = (o) => rt.add(Platform, o);
   const build = COURSES[T.course];
   if (!build) throw new Error(`no makers’ course "${T.course}"`);
   const C = build(kit, rt);
@@ -681,7 +798,7 @@ export function buildKitCourse(T, { scene, physics, player = null, notice = () =
   return {
     trial: T, kit, rt, gates, start, heading: kit.heading(T.heading ?? 0), markerAt,
     bank: C.bank, swings: C.swings, gusts: C.gusts, updrafts: C.updrafts ?? [], gulf: C.gulf ?? null, pillars: (C.pillars ?? []).map((p) => ({ ...p, at: at(p.x, p.y, p.z) })), pieces,
-    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, bells: C.bells ?? [], door: C.door ?? null, task, gaps: C.gaps ?? [],
+    rollers, stones: C.stones ?? [], ears, vines: C.vines ?? [], bud: C.bud ?? null, bells: C.bells ?? [], door: C.door ?? null, lamps: C.lamps ?? [], discs: C.discs ?? [], task, gaps: C.gaps ?? [],
     solids: () => solids,
     /** The ground the world's own props should leave clear (world x, z corners). */
     clear: C.clear.map(([x, z]) => at(x, 0, z)),
