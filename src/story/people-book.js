@@ -518,6 +518,10 @@ export const BOOK = {
     P('teb', 'Teb', 'A cab tout', [
       'Teb waves at the cabs circling the tower. The quiet ones, Teb says, don’t talk: they listen.',
     ], ['By the cabs in the market.']),
+    P('wynn', 'Wynn', 'The last listener', [
+      'Wynn sits on a crate in the back lane behind the market’s west towers, under the old dishes still turned to the silent tower, and has listened to it say nothing for thirty years.',
+      [f('bazaar.broadcast.on'), 'The dishes heard the tower speak before anyone in the market. Wynn says he only cried.'],
+    ], ['In the listeners’ lane behind the west towers.']),
     P('pashka', 'Pashka', 'The loudest cure-seller on the avenue', [
       'Pashka keeps a cure-stall in a tower’s foot on the market avenue, with a voice that carries and an illustrated board of a heart and a flask over the stall.',
       [f('bazaar.pashka.board'), 'In a market of signals a stall without one is a stall nobody hears, he says. The bulbs cost more than the cures.'],

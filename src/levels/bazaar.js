@@ -398,6 +398,8 @@ export function* buildBazaar(scene) {
     // what the level design audit reads (scripts/level-design/audit.mjs): the listeners' lane, followed home where Sel
     // sends you along it, and the radio-mender's table on it, to look at
     lines:[{ name:'the listeners’ lane', points:lane.points, auto:false }], sights:[{ name:'the radio-mender’s table', at:lane.stall }],
+    // (fifth round: the silent tower's aerial over its roof, the market's weenie, seen down the avenue over the stalls)
+    beacons:[{ name:'the silent tower’s aerial', top:[11, 59, -238], height:16 }],
     reactiveScreens, signal, ground:{heightAt:()=>0}, spawn:new THREE.Vector3(0,.1,88), spawnHeading:Math.PI,camYaw:0,camPitch:.02,
     features:{mount:false,wind:false,jetpack:true,climb:true,taxis:true}, vehicles, flammables,
     limit:700,killY:-20, defaults:{hour:11.5,preset:'Moebius print',cloudShadows:0,look:MARKET_LOOK},

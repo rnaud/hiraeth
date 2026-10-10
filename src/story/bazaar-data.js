@@ -297,7 +297,7 @@ export const PEOPLE = {
   },
 };
 
-// The market's own people (content.js npcs 0–2).
+// The market's own people (content.js npcs 0–3).
 export const STREET = {
   doss: {
     id: 'doss', name: 'Doss', title: 'who welcomes everyone', color: '#dca273', head: 'wrap', look: { body: 'badge' },
@@ -336,6 +336,19 @@ export const STREET = {
         { if: { not: { quest: 'bazaar.oldsign', done: true } }, say: '~curious~ The oldest sign in the market hangs *under the second skybridge*. Dark for years. Give it a shot of something; signs like attention.' },
         '~playful~ Fares are cheap, views are free, and the drop is extra.',
         { after: ON_AIR, say: '~happy~ Every cab in the sky stopped to listen. First traffic jam in thirty years. Beautiful.' },
+      ] },
+  },
+  // the last of the old listeners, on a crate under the dishes halfway up the listeners' lane (src/market-ways.js; the
+  // level design audit's fifth round: the lane's two long empty halves)
+  wynn: {
+    id: 'wynn', name: 'Wynn', title: 'the last listener', color: '#b9a37a', look: { head: 'skullcap', body: 'muffler' },
+    talk: { listen: [
+        { if: { not: ON_AIR }, say: "~whisper~ Shh. Thirty years I’ve sat under these dishes, and the tower hasn’t said a word. I keep them turned to it anyway. You don’t stop listening because nobody’s talking." },
+        { if: { not: ON_AIR }, say: '~neutral~ We were twelve once, one dish each, all up this lane. The others went to the avenue to sell. The signs pay better than silence.' },
+        '~curious~ Every dish here is aimed at the tower, to a finger’s width. Feel the poles: they hum when the wind is right.',
+        '~playful~ People ask what I hear back here. Pigeons, mostly. Once a man proposing to a cab driver. She said yes.',
+        { after: ON_AIR, say: "~happy~ You heard it? I heard it first. Well, second. The dishes heard it first. I only cried." },
+        { after: ON_AIR, say: '~solemn~ Sel came by this way and didn’t say anything. She just sat with me a while, under the dishes. That was enough.' },
       ] },
   },
 };

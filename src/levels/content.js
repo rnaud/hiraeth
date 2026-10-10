@@ -73,6 +73,8 @@ export const CONTENT = {
       {at:[12,105],radius:2,palette:pal('#dca273'),lines:["~happy~ Welcome! The broadcast tower is straight ahead.","~neutral~ Use the tower’s blue ledges, your jets, or the parked cab."],...BAZAAR_STREET.doss},
       {at:[-17,42],radius:1,palette:pal('#84bab3'),lines:["~shout~ Portable sunshine! Comes with a handle!","~whisper~ A lantern seed’s lying across the street. Go have a look."],...BAZAAR_STREET.oyo},
       {at:[14,-203],radius:1,palette:pal('#c3a9cc'),lines:["~neutral~ The old transmitter is on the cream balcony.","~neutral~ A taxi will get you above the bridges."],...BAZAAR_STREET.teb},
+      // (Wynn, the last listener, under the dishes halfway up the listeners' lane: src/market-ways.js)
+      {at:[-81.4,-150],radius:0.5,palette:pal('#b9a37a'),lines:["~whisper~ Shh. Listening.","~neutral~ The dishes are aimed at the tower. Don’t knock them."],...BAZAAR_STREET.wynn},
     ],
   },
   // src/levels/lab.js: no story, no relics; a gallery of giant villagers to study faces by (every face variant), and the
