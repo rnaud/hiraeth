@@ -1,0 +1,21 @@
+.github/workflows/unity-xbox.yml
+  s_9ca76055a220ed::t_a5358ea1071924 303-309
+scripts/unity-uwp-natives.ps1
+  s_9ca76055a220ed::t_c7b84a2a6be29d 56,58,60-61,72,98-101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72f15c0eada883046562f1b2ab1cebf76db4e07d",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
