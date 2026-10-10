@@ -206,7 +206,7 @@ new ~20 body plans and the guardians onto it. Review every step with the `proced
   stepped clock (12–15 fps per foe) turned on per plan; measure on the Retroid (≤ 1 ms with 10 foes near, 30 far); re-run
   the motion check for ink shimmer.
 
-# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15: 2026-10-09)
+# Level design (audit) (docs/audits/level-design-v1.5.md, v1.9, v1.15, v1.17: 2026-10-09)
 
 Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <id>` (skill: level-design-qc).
 
@@ -233,9 +233,17 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
 - [x] **A second way home in the desert and Vael** (v1.15): the pilgrims' road of lamp-lit cairns from Qanat's gate to
   the ship, the tusk gate on the Hearth ride; the bird's tracks from the Aerie to Oïa past the mounting stone, the rider's
   roost on the way home from the tower. The desert 3.33 → 3.56, Vael 3.78 → 4.33.
-- [ ] **Desert: the ride's Yara → wreck stretch** (418 m, 21 s: 1 s over the band) and the cave's walk back from the
-  giant's mouth to the well (188 m, the way you went). Density 4→5, loops 4→5.
-- [ ] **City-Shaft: the shop by the cab stop** (230 m from anything since Perrine moved onto the drops). Spacing 3→4.
+- [x] **Desert: the ride's Yara → wreck stretch and the cave's walk back** (v1.17, docs/audits/level-design-v1.17.md):
+  the skiff's anchor between Yara and the wreck; the keepers' stair from the cave up to a hatch in the back lane (an `up`
+  stage, a "go" in the ten "do" stops). The desert 3.56 → 3.89 (density 4→5, loops 4→5, pacing 3→4).
+- [x] **City-Shaft: the shop by the cab stop, the relay lamp, Nima/Lio/Tobin, the Well → Nima** (v1.17): Basile at the
+  cab stop, a second pad past the relay lamp, Tobin pays as you walk up, the lamplighters' rim posts from the Well's door
+  to the red stair. The City-Shaft 3.89 → 4.44.
+- [x] **Vael: onboarding** (v1.17): the riders' mast over the slope where Oïa points; the route starts with her beside
+  the landing. Vael 4.33 → 4.56.
+- [ ] **Left from v1.17:** the City-Shaft's Tobin → Lio hop (83 m, nothing new: loops 4); the desert's blind legs (Ama's
+  fire to the giant's mouth, the well to Marrow, Marrow's hollow to the Hearth: wayfinding 3) and its first goal 391 m
+  off (onboarding 3); both worlds' longest stretches sit at the density band's edge (20 s).
 - [ ] **Sky Stones: Ondine onto the clapper's return arc** (490 m from anything), a lit marker at the clapper.
   Loops 2→4.
 - [ ] **Lorn II: lamp-lit stakes** to the light across the water and Hollin's cave; a place by the landing.

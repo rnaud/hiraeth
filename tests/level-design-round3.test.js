@@ -1,4 +1,4 @@
-// The level design audit's third round (docs/audits/level-design-v1.16.md): the desert's keepers' stair out of the
+// The level design audit's third round (docs/audits/level-design-v1.17.md): the desert's keepers' stair out of the
 // giant's chest to a hatch in Qanat's back lane (one way), and Vael's first minutes (Oïa by the landing points up the
 // standing stones to the riders' mast, past which the Aerie shows).
 import test from 'node:test';

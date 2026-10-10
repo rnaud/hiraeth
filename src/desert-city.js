@@ -224,7 +224,7 @@ export function buildDesertCity(scene, terrain) {
   const lights = [], portals = [], banners = [], smokes = [], updaters = [];
   // (what the level design audit's third round added, the keepers' hatch and stair: put in the scene last, src/levels/desert.js,
   // so the contact audit's samples of everything built before stay where they were)
-  const late = new THREE.Group(); late.name = 'Desert story (added in v1.16)';
+  const late = new THREE.Group(); late.name = 'Desert story (added in v1.17)';
   const out = { root, lights, portals, banners, sites: {}, seats: [], fires: [], late };
   const rng = mulberry32(3301);
   const floor = cityFloor();

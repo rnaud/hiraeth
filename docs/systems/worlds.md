@@ -405,6 +405,31 @@ Both walks back were the way you came (`src/vael-ways.js`, no rng):
   the bird flies home: a lean-to, a bedroll, a cup, a short rope ladder, a long white streamer (`THINGS.roost`). Named
   once as you fly near it once the bird has answered (`ROOST_CALL`, `src/story/arzach.js`).
 
+## The level design audit's third round (v1.17)
+
+Small fixes from `docs/audits/level-design-v1.15.md`'s "what's left" (`docs/audits/level-design-v1.17.md`):
+- **The City-Shaft.** **Basile** (`MIDDLE.basile` in `src/story/incal-data.js`, placed in `src/levels/content.js`) waits
+  at the middle levels' cab stop beside Fausta's shop with her baskets (listen-only, toned lines): the shop's door is no
+  longer a loner, and `tests/shop-worlds.test.js` again asks for a person (or the landing) near every shop. **The rim
+  posts** (`RIM_POSTS`, `rimPosts` in `src/shaft-ways.js`): the drops' red post, arm and lamp from beside the Warden's
+  Well's door along the rim's edge to the red stair's gate (none on the rim's cab stop); with the stair they are a line,
+  `the lamplighters’ rim posts`, from the Well to Nima. **The upper pad** (`CLIMB.upper`, `THINGS.upperPad`): a second
+  floating pad just off the 150 m ring's edge past the relay lamp, 79 m from it. **Tobin pays as you walk up**: the
+  pass's `fare` stage is a `goto` to him (`locate('tobin')`); arriving gives the fare and his line (`TOBIN_PAYS`), and
+  talking to him first still works.
+- **The desert.** **The keepers' stair** (`HATCH` in `src/desert-city.js`): eight stone blocks behind the pool up to a
+  bone-framed doorway in the dome's far wall, a root climbing beside it; its portal (`oneWay: true`) comes up under a
+  hatch in the back lane (`qanat.hatch`, city-local z −42), 53 m from the well. The hatch only lifts from below: no
+  portal down. The main quest has an `up` stage (a `goto` to `hatch`) between `fill` and `rise`; out by the skull's mouth
+  instead, the well's rise (`desert.well.watched`) passes it over, and `up` is one of `SPARK_STAGES`. **The skiff's
+  anchor** (`RIDE.anchor`, `ride.anchor`, `THINGS.rideAnchor`, named on the ride like the others): a ring of stone tipped
+  in the sand short of halfway, its rope trailing toward the wreck.
+- **Vael.** **The riders' mast** (`MAST`, `buildRidersMast` in `src/vael-ways.js`, `THINGS.mast`): a 16 m mast with a
+  white streamer and a rust pennon on the slope under the crest past the last standing stone, broadside to the landing;
+  Oïa's directions point to it, and from its foot the Aerie shows. A `beacon` and a `sight` for the audit.
+- **The audit** reads a portal's `oneWay` (no way back through it is assumed) and a route step `{ act, at }` (an act the
+  play-through does where someone stands: Vael's route starts by meeting Oïa beside the landing, as the scout does).
+
 ## Qanat's tree ledge, solid terraces, and the dry cave
 - **The makers' ledge** (`src/desert-city.js`, `city.ledge`): the backpack's box no longer
   stands under the little blue shrine; it sits on a plank shelf jutting out of the burning

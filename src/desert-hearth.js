@@ -137,7 +137,7 @@ export function buildDesertHearth(scene, terrain) {
   const root = new THREE.Group(); root.name = 'Givers’ Hearth'; scene.add(root);
   // (what the level design audit's third round added: put in the scene last, src/levels/desert.js, so the contact audit's
   // samples of everything built before stay where they were)
-  const late = new THREE.Group(); late.name = 'Givers’ Hearth (added in v1.16)';
+  const late = new THREE.Group(); late.name = 'Givers’ Hearth (added in v1.17)';
   const M = {
     rose: makeMaterial({ color: '#e29a7c', color2: '#c97b63', color3: '#f0c19c', flat: true, mode: MODE_STRATA, strataSize: 5 }),
     roseCarved: makeMaterial({ color: '#e7a587', color2: '#d48a6e', color3: '#f3cdb0', flat: true, mode: MODE_STRATA, strataSize: 1.2, grid: 1.4, glyphs: true }),

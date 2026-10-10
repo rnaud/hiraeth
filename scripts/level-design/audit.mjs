@@ -71,6 +71,8 @@ for (const id of worlds) {
   const kindOf = (s) => (s.talk || people.has(s.at) ? 'talk' : s.goto ? 'go' : s.bring ? 'bring' : 'do');
   for (const p of ROUTE.find((r) => r.id === id)?.play ?? []) {
     if (p.temple && rt?.outside?.door) { stops.push({ label: 'the temple', kind: 'temple', pos: arr(rt.outside.door.at) }); continue; }
+    // (an act the route plays where someone stands, Vael's Oïa by the landing opening the main quest: a talk there)
+    if (p.act && p.at) { const w = arr(W.quests.resolve(p.at)); if (w && !inTemple(w)) stops.push({ label: p.label ?? p.at, kind: people.has(p.at) ? 'talk' : 'do', pos: w }); continue; }
     if (typeof p !== 'string') continue;
     const q = W.quests.def(p);
     for (const s of q?.stages ?? []) {
@@ -81,9 +83,10 @@ for (const id of worlds) {
     }
   }
   stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn });
-  const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal' })).filter((p) => p.at && p.to);
-  // (a doorway is walked both ways: where a world lists only the way in, its way out is the same door backwards)
-  const portals = [...oneWay, ...oneWay.filter((p) => !oneWay.some((q) => q !== p && L.flat(q.at, p.to) < 12)).map((p) => ({ at: p.to, to: p.at, label: `${p.label} (out)` }))];
+  const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal', only: !!p.oneWay })).filter((p) => p.at && p.to);
+  // (a doorway is walked both ways: where a world lists only the way in, its way out is the same door backwards; not a
+  // way marked `oneWay`, a hatch that only lifts from below)
+  const portals = [...oneWay, ...oneWay.filter((p) => !p.only && !oneWay.some((q) => q !== p && L.flat(q.at, p.to) < 12)).map((p) => ({ at: p.to, to: p.at, label: `${p.label} (out)` }))];
   // the level's leading lines (`lines`: [{ name, points: [[x, z] or [x, y, z], …] }], a row of marked stones, a dry
   // channel, cairns: what the eye follows on the ground): a leg one carries is walked along it (lib.mjs followLines)
   const lines = ((typeof level.lines === 'function' ? level.lines() : level.lines) ?? [])
