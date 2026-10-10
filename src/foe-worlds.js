@@ -53,9 +53,12 @@ export const WORLDS = {
  * ground found under it) and which way it faces (rad); met calm, as its archetype keeps to itself (src/foes.js
  * Foes.updatePosts); once cut down, gone for good (a flag per save). Lorn II's wood cutter stands rusted mid-task on the
  * dry bank of the lit path, between the root arches past the glass dome; the Garden of Spheres' glass puppet hangs at the
- * white archway in the android wood (src/levels/spheres.js), just clear of its arch, swaying like a coat on a hook.
+ * white archway in the android wood (src/levels/spheres.js), just clear of its arch, swaying like a coat on a hook. The
+ * Desert's cistern pump, a makers' lamp tripod, keeps the one deep water the dunes hold: the mineral basin under the
+ * lavender cliffs (src/desert-vistas.js BASIN), on its far shore from the fishing sign, its lamp turned out over the water.
  */
 export const PLACED = {
+  desert: [{ archetype: 'tripod', at: [-489.0, -187.0], heading: Math.PI / 2 }],
   perdide2: [{ archetype: 'brute', at: [13.7, -280.0], heading: -1.03 }],
   spheres: [{ archetype: 'marionette', at: [-108.0, -411.7], heading: 1.4 }],
 };

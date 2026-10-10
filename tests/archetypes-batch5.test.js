@@ -50,7 +50,7 @@ test('batch 5: the shade, the pearl roller and the marionette are built in every
   assert.deepEqual(RETIRED_KINDS, ['splinter']);
 });
 
-test('every world runs on the new roster: its packs, relic guards and placed ones are built archetypes in its skin; the Arena, the FOES list and the gallery field all three', () => {
+test('every world runs on the new roster: its packs, relic guards and placed ones are built archetypes in its skin; the Arena, the FOES list and the gallery field all three', async () => {
   for (const w of Object.keys(WORLDS)) {
     const R = ROSTERS[w], kinds = new Set([...Object.keys(R.wild), ...Object.keys(R.fill), R.first, ...R.guards, ...Object.keys(R.late ?? {}), ...(WORLDS[w].placed ?? []).map(spawnKindOf)]);
     for (const k of kinds) assert.equal(ARCHETYPES[archetypeOfKind(k)]?.status, 'built', `${w}: ${k}`);
@@ -64,6 +64,11 @@ test('every world runs on the new roster: its packs, relic guards and placed one
   assert.equal(ROSTERS.spheres.first, 'roller');
   assert.ok(ROSTERS.spheres.late.marionette && ROSTERS.bazaar.late.marionette, 'the marionette comes late');
   assert.deepEqual(PLACED.spheres.map((p) => p.archetype), ['marionette'], 'the Garden’s glass puppet is placed by hand');
+  // every world's `placed` is placed: the Desert's cistern pump on the basin's far shore (v1.25)
+  for (const [w, W] of Object.entries(WORLDS)) for (const a of W.placed ?? []) assert.ok(PLACED[w]?.some((p) => p.archetype === a), `${w}: its ${a} placed`);
+  const { BASIN } = await import('../src/desert-vistas.js');
+  const pump = PLACED.desert.find((p) => p.archetype === 'tripod'), r = Math.hypot((pump.at[0] - BASIN.x) / BASIN.rx, (pump.at[1] - BASIN.z) / BASIN.rz);
+  assert.ok(r > 0.7 && r < 1.1, `on the basin's shore, out of its water (${r.toFixed(2)})`);
   for (const a of BATCH5) {
     assert.ok(WAVES.some((wv) => wv.includes(a)), `${a}: in the Arena's waves`);
     for (const w of skinWorlds(a)) assert.ok(ARENA_WAVES.some((wv) => wv.includes(skinned(a, w))), `${a}@${w}: alone in the Arena's cycle`);
