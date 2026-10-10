@@ -96,7 +96,7 @@ test('the parsers on the real reports: each kind\'s items add up to its overall'
   assert.equal(worldsCine.reduce((n, r) => n + +r.text, 0), 91, 'the 91 cinematics, by world');
   assert.ok(worldsCine.some((r) => r.label === 'desert') && worldsCine.some((r) => r.label === 'prologue'));
   // (v1.39: the merged and dismissed worlds' arrivals, the Hangar's signal and recordings 10-11 out, the Glass Dunes' clock in)
-  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 88, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests (not reviewed yet), less v1.39\'s five gone');
+  assert.equal(group('cinematics', 'Verdicts').rows.reduce((n, r) => n + r.value, 0), 87, 'the QC notes\' verdicts: the 91, v1.38\'s two new chests (not reviewed yet), less v1.39\'s five gone, less the Overnight Train\'s arrival by ship (v1.40: a sub-level now)');
 
   const perf = theme('perf');
   assert.deepEqual(perf.latest.theme.figure, { text: '2/4', sub: 'budgets over' });

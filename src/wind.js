@@ -170,7 +170,7 @@ export class WindStreaks {
 
   update(dt, center, camera, terrain, pxScale, enabled = true) {
     this.time += dt;
-    this.windAngle = 0.6 + Math.sin(this.time * 0.013) * 0.35;
+    this.windAngle = this.fixedAngle ?? 0.6 + Math.sin(this.time * 0.013) * 0.35;   // (a level's own: the Overnight Train's from its nose)
     const [wx, wz] = this.windDir;
     const gust = this.gust();
     const cam = camera.position;

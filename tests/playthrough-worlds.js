@@ -223,6 +223,14 @@ export const ROUTE = [
   { id: 'bazaar', play: ['bazaar.signal'] },
 ];
 
+// the sub-levels (src/levels/names.js SUB): reached from a route world's quest, not by the ship; the level design audit
+// walks them from where you arrive (?from=<world>) to where you leave, by the quest's steps there (the night mail aboard
+// the Overnight Train: Ambrose on the porch, Mireille on the last roof, Ambrose again, the step down at the halt)
+export const SUBROUTES = [
+  { id: 'overnighttrain', from: 'bazaar', play: [{ act: 'askAmbrose', at: 'ambrose', label: 'Ambrose, the conductor' }, { act: 'letter', at: 'mireille', label: 'Mireille, on the last roof' },
+    { act: 'askStop', at: 'ambrose', label: 'Ambrose, asked to stop' }, { act: 'stepOff', at: 'stepOff', label: 'the step down at the halt' }] },
+];
+
 /** A step that asks, in its own words, for a way of getting about must come when he has it. */
 export const SAYS = [
   [/\bjets?\b|jetpack/i, 'jetpack'],   // (not RT / R2 alone: it is also the shot)

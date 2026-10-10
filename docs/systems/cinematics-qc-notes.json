@@ -241,11 +241,6 @@
    "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
    "updated": "2026-10-09T12:00:00.000Z"
   },
-  "arrival.overnighttrain": {
-   "verdict": "Pass",
-   "text": "QC pass 2026-10-09: tech 5/5, interest 4/5. Quest cards over some arrivals; space frames read as empty by design; the planet could, at its largest, come in front of the ship. Fixed: Notices wait; planet kept behind the ship.",
-   "updated": "2026-10-09T12:00:00.000Z"
-  },
   "arrival.home": {
    "verdict": "Needs work",
    "text": "QC pass 2026-10-09: tech 4/5, interest 3/5. Leads into the homecoming’s cargo check (a choice). Fixed: As the homecomings.",

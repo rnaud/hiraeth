@@ -24,7 +24,9 @@ mkdirSync(OUT, { recursive: true });
 
 await import(join(ROOT, 'tests/register-gadgets.js'));
 const A = await import(join(ROOT, 'tests/playthrough-agent.js'));
-const { ROUTE } = await import(join(ROOT, 'tests/playthrough-worlds.js'));
+const { ROUTE: MAIN_ROUTE, SUBROUTES } = await import(join(ROOT, 'tests/playthrough-worlds.js'));
+// (a sub-level, the Overnight Train: walked from where you arrive to where you leave, SUBROUTES)
+const ROUTE = [...MAIN_ROUTE, ...SUBROUTES];
 const THREE = await import('three');
 const L = await import(join(ROOT, 'scripts/level-design/lib.mjs'));
 const { TRIALS } = await import(join(ROOT, 'src/trials/data.js'));
@@ -38,6 +40,8 @@ const r1 = (v) => Math.round(v * 10) / 10;
 
 for (const id of worlds) {
   const t0 = Date.now();
+  const sub = SUBROUTES.find((r) => r.id === id);
+  globalThis.location = { search: sub ? `?level=${id}&from=${sub.from}` : `?level=${id}` };   // (a sub-level arrived at as its quest arrives)
   const W = A.loadWorld(id);
   const { level, physics } = W;
   const rt = level.temple;
@@ -86,7 +90,7 @@ for (const id of worlds) {
     }
   }
   // (the walk back to the ship: along the line the last stage that names one sends you home by, "fly home along the lanterns")
-  stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn, ...(home ? { via: home } : {}) });
+  if (!sub) stops.push({ label: 'back to the ship', kind: 'ship', pos: spawn, ...(home ? { via: home } : {}) });   // (a sub-level ends where you step off)
   const oneWay = (level.navigationPortals ?? level.portals ?? []).filter((p) => !p.temple).map((p) => ({ at: arr(p.at ?? p.pos), to: arr(p.to), label: p.label ?? 'portal', only: !!p.oneWay })).filter((p) => p.at && p.to);
   // (a doorway is walked both ways: where a world lists only the way in, its way out is the same door backwards; not a
   // way marked `oneWay`, a hatch that only lifts from below)

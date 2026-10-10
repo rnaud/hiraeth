@@ -38,14 +38,20 @@ export const TITLES = {
 // Sealed Hangar left the route for the Glass Dunes, which took its temple: MERGED, DISMISSED, PARTS below.)
 export const ORDER = ['desert', 'arzach', 'perdide', 'edena', 'incal', 'glassdunes', 'buried', 'spheres', 'bazaar'];
 // the worlds off the route: on the ship's map from the start, never needed on the way home (no story to follow)
-export const SIDE = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity', 'overnighttrain'];
+export const SIDE = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity'];
 // the worlds still being made: built in a rush in October 2026 and never vetted or finished. The galactic
 // map leaves them off (CHARTED_SIDE) and the Sightings page leaves their slots out; the worlds list (Debug)
 // and the dev menu still open them, and ?level=<id>. A world leaves this list once it has been played
 // through and signed off, and it is charted on the map from then on.
-export const WIP = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity', 'overnighttrain'];
+export const WIP = ['mangrove', 'waterfall', 'saltharbour', 'antennas', 'underwater', 'eclipse', 'fallenring', 'moonfoundry', 'underside', 'spacecity'];
 /** Is this world still being made (not shown to players)? */
 export const isWip = (id) => WIP.includes(id);
+// the sub-levels: places off the ship's map, reached by a way through from a route world's quest, with the world they
+// belong to (the Overnight Train: the Signal Market's night halt, its bell; the night mail, src/story/night-train.js).
+// Not on the route, not on the map; ?level=<id> and the worlds list still open them.
+export const SUB = { overnighttrain: 'bazaar' };
+/** Is this a sub-level (reached from another world, not by the ship)? */
+export const isSub = (id) => Object.hasOwn(SUB, id);
 // the detours a player sees on the galactic map: the ones off the route that are finished
 export const CHARTED_SIDE = SIDE.filter((id) => !isWip(id));
 // a world that follows another's story is only charted once that one is done (Vael II waited for the bird's

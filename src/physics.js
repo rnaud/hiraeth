@@ -21,6 +21,7 @@ const _dir = new THREE.Vector3();
 const _m = new THREE.Matrix4();
 const _Y = new THREE.Vector3(0, 1, 0);
 const _nc = {};
+const _swS = new THREE.Vector3();
 
 /** The BVH's options from a level's collision settings ({ strategy: 'CENTER' | 'AVERAGE' | 'SAH' }). */
 function bvhOptions({ strategy } = {}) {
@@ -313,6 +314,48 @@ export class Physics {
     if (out.lengthSq() < 1e-10) return null;
     pos.add(out);
     return out;
+  }
+
+  /**
+   * The nearest surface to `p`, if it is closer than `r` (its distance), else `r`: a ball's room. (The camera's
+   * lens: src/player.js CameraRig.)
+   */
+  roomAt(p, r) {
+    if (!this.bvh) return r;
+    _box.min.set(p.x - r, p.y - r, p.z - r);
+    _box.max.set(p.x + r, p.y + r, p.z + r);
+    let best = r;
+    this.bvh.shapecast({
+      bounds: _box,
+      intersectsBounds: (box) => box.intersectsBox(_box),
+      intersectsTriangle: (tri) => { const d = tri.closestPointToPoint(p, _tri).distanceTo(p); if (d < best) best = d; return best < 1e-3; },
+    });
+    return best;
+  }
+
+  /**
+   * How far a ball of radius `r` travels from `from` along the unit `dir` (up to `far`) before it touches a surface:
+   * a sphere cast, marched in steps of r/2 and refined by halving. Unlike a ray (or a few rays), it sees a row of thin
+   * things (a window's mullions, chair backs, door frames) as the band they are, not flickering between hit and miss as
+   * the ray slips between them, and what it finds leaves the ball its room. A start already touching gives 0.
+   */
+  sweepSphere(from, dir, far, r) {
+    if (!this.bvh || !(far > 0)) return far > 0 ? far : 0;
+    if (!Number.isFinite(far)) far = 1e4;
+    const p = _swS;
+    if (this.roomAt(from, r) < r) return 0;
+    const step = Math.max(0.05, r * 0.5);
+    let lo = 0;
+    for (let d = Math.min(step, far); ; d = Math.min(d + step, far)) {
+      p.copy(from).addScaledVector(dir, d);
+      if (this.roomAt(p, r) < r) {
+        let hi = d;
+        for (let i = 0; i < 5; i++) { const m = (lo + hi) / 2; p.copy(from).addScaledVector(dir, m); if (this.roomAt(p, r) < r) hi = m; else lo = m; }
+        return lo;
+      }
+      lo = d;
+      if (d >= far) return far;
+    }
   }
 
   /** Swept pushCapsule from `from` to `pos` (see sweepCapsule below). */

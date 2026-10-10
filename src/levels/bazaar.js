@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { wallOpenings } from '../wall-openings.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { buildNightHalt } from './night-halt.js';
 import { makeMaterial, sharedUniforms } from '../materials.js';
 import { mulberry32 } from '../noise.js';
 import { Taxi, cruiseRoutes } from '../taxi.js';
@@ -366,6 +367,8 @@ export function* buildBazaar(scene) {
   folk.push({ x: signal.places.ummu.x, y: 0, z: signal.places.ummu.z, r: 1.3 }, { x: signal.places.crates.x, y: 0, z: signal.places.crates.z, r: 2.2 },
     { x: signal.places.sel.x, y: 0, z: signal.places.sel.z, r: 1.8 }, { x: signal.places.brush.x, y: 0, z: signal.places.brush.z, r: 1.6 }, { x: signal.places.brush.x - .5, y: 0, z: signal.places.brush.z + 1, r: .9 });
 
+  // the night halt past the landing at the south end (the night mail: src/levels/night-halt.js, src/story/night-train.js)
+  const nightHalt = buildNightHalt({ box, tube, sphere, M: { ink, brass, cream, glow, dark, plank: mat('#7a5446', LT), stone: mat('#c9b9a2', { grid: 4, weathered: 0.5, ...LT }) } });
   for(const {geos,material,solid} of buckets.values()) {
     const mesh=new THREE.Mesh(mergeGeometries(geos),material);
     mesh.userData.noCollide=!solid; mesh.userData.tiled=true;
@@ -385,7 +388,7 @@ export function* buildBazaar(scene) {
   // Pashka's Cure-Stall (src/shop-world.js, src/shop-fronts.js 'stall'): in a tower's foot on the avenue's west pavement,
   // in the gap between two of the market's stalls, its counter and door turned to the avenue
   const cureStall = placeShop(scene, { def: SHOPS.curestall, at: new THREE.Vector3(-25, .3, -23.5), heading: Math.PI / 2 });
-  lights.push(...cureStall.lights);
+  lights.push(...cureStall.lights, ...nightHalt.lights);
   // the listeners' lane (src/market-ways.js, level design audit, fourth round): the back lane behind the west towers,
   // its old dishes all turned to the silent tower: the way home Sel sends you once it speaks again
   const lane = buildListenersLane(scene);
@@ -394,6 +397,8 @@ export function* buildBazaar(scene) {
   return attachTemple('bazaar', scene, {
     portals: [...cureStall.portals],
     shops: [cureStall],   // (src/story/shops.js: the keeper behind the counter; main.js: the shop panel)
+    // the night halt (src/story/night-train.js), and stepping down there off the Overnight Train (main.js level.arrivals)
+    nightHalt, arrivals: { overnighttrain: nightHalt.arrival },
     id:'bazaar', floraAvoid:cureStall.avoid((x,z,r)=>Math.abs(x)<17+r||z>98-r),   // the flora keeps to the pavements (src/flora.js)
     // what the level design audit reads (scripts/level-design/audit.mjs): the listeners' lane, followed home where Sel
     // sends you along it, and the radio-mender's table on it, to look at

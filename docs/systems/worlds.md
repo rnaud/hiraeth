@@ -1404,11 +1404,41 @@ were, and by day nothing changes (a day screenshot before and after is the same 
   street's own screens are its billboards and shop signs, high or at the shops' tops; a lane of stacked screens in
   one of the back alleys would bring the sheets into the street but changes the market's layout (not done). The
   pools of light take one colour (the lanterns'), not each screen's.
-## The Overnight Train (`overnighttrain`, off the route, October 2026)
+## The Overnight Train (`overnighttrain`, a sub-level of the Signal Market's, October 2026; running since v1.40)
 
 A long streamlined train crossing a flat lavender plain by night under two moons (`src/levels/overnight-train.js`,
 after references/levels/The Overnight Train/; its kit `overnight-train-kit.js` shared with its References views, its run
-`overnight-train-run.js`). On the galactic map from the start (names.js SIDE), no story, no beacon.
+`overnight-train-run.js`).
+
+- **A sub-level, reached by a quest** (v1.40): off the route and off the ship's map (names.js `SUB`: world → the world
+  it belongs to; no longer in SIDE or WIP). The Signal Market's night halt (`src/levels/night-halt.js`: past the landing
+  at the market's south end, a line of rail out to the dark, a platform, a lamp, a bell, a shelter with the timetable)
+  is where the night mail (docs/story-bible.md, `src/story/night-train.js`) begins: Edda gives you a letter for her
+  grandmother Mireille, the bell calls the train (`?level=overnighttrain&from=bazaar`: aboard on the dining car's
+  station-side porch, the train pulling out of the halt), Ambrose the conductor sends you up onto the roofs of the long
+  tail where Mireille keeps the chalk mark, and, asked, brakes the train into the market's halt; the step down on the
+  station side (`?level=bazaar&from=overnighttrain`) puts you on the halt's platform. A page's `?from=<world>` arrives at
+  the level's `arrivals[from]` (main.js; the address then loses it, so a reload continues from the save). A save on the
+  train wakes on the running train with the quest where it was. The ship rides the landing wagon (the night train
+  carries ships for nothing, Edda says), so the galactic map is still at hand aboard.
+- **It runs, and never waits at a station unless asked** (`planRun`: legs of pulling out, running for good, and, once
+  `stop()` is asked, braking 34 s into a halt, 42 s there, out again). It starts at speed (or pulling out of the
+  market's halt when boarded there); the station stands where it will halt (or halted), else it is one of the stations
+  it runs through, every 5.3 km. `runAt` (the old fixed cycle) is kept for the References' views.
+- **The ride** (`swayAt`, `SWAY`): everything off the train is one group, the land (`The land`: the plain, the bed and
+  the rails, the moons, the bands, the station), which rocks round the rails (±0.24°, two periods) and bobs at the
+  joints (12 mm, twice every 26 m: Saba's ta-dum), by the speed. The moonlight rocks with it (`lightAt`), so the shadows
+  through the windows sway; signal gantries every 640 m sweep their shadows along the roofs; the wind on the roofs blows
+  from the nose (`windAngle`, wind.js `fixedAngle`). Riding it is standing on solid ground: the carriages are static
+  collision, so the traveller never slides and the camera has nothing moving to catch on (the camera QC,
+  docs/systems/movement-and-camera.md).
+- **For the camera** (v1.40): the end doors are 1.6 m wide, the sleeping cars' vestibules 3.6 m deep, the windows glazed
+  with invisible collision, strollers only in the lounge and on the deck.
+- **The level design audit** (`scripts/level-design/audit.mjs --worlds overnighttrain`, walked from the porch by the
+  night mail’s steps aboard: tests/playthrough-worlds.js `SUBROUTES`): 2.78 → 3.22, wayfinding 3 → 5 (two roof riders on the long tail with
+  a line each, the roof gardens, the sky lounge, the balcony and the chalk mark as sights: the longest empty stretch
+  149 m → none), with the roof walk as the leading line Ambrose sends you along. Landmarks and verticality score 1 by
+  nature (a train is long and level); the walk back from Mireille to Ambrose is the same roofs (300 m, 37 s).
 
 - **The train stands still; the land runs past.** The world's frame is the train's: its carriages, floors, walls,
   rails and roofs are ordinary static collision (27 k triangles), the crowd and the traveller walk them as any town.
@@ -1418,11 +1448,9 @@ after references/levels/The Overnight Train/; its kit `overnight-train-kit.js` s
   rails and the track's bed are long and uniform, so they stand still. The plain's own ground carries no pen dots
   (`uDots: 0`: they would stand still while everything else runs). The two moons hang 3.2 km off ahead of the train
   (`MOONS`: glowing balls; `sky.moon: false` takes the sky's own crescent away: main.js `updateSky`).
-- **The run** (`runAt(t)`, pure): a cycle of a 42 s halt at a station, 46 s pulling out to 28 m/s, 150 s at speed, 34 s
-  braking into the next (5.3 km between stations, 4.5 minutes a cycle). The level starts 6 s into a halt, so the ship
-  comes down while the train waits. The one station (platform, house with lit windows, lamp posts, water tower,
-  waiting figures) is placed by the run: beside the passenger carriages at every halt (`stationOffset`), sliding away
-  behind, hidden past 2.6 km and coming in from ahead. `level.setRunTime(t)` puts the run anywhere (the shots, the tests).
+- **The station** (platform, house with lit windows, lamp posts, water tower, waiting figures) is placed by the run:
+  beside the passenger carriages at a halt, sliding away behind, hidden past 2.6 km and coming in from ahead.
+  `level.setRunTime(t)` puts the run anywhere, `level.requestStop(lead)` asks for a halt (the shots, the tests).
 - **The layout** (nose at x ≈ 0, toward +x): the observation lounge (armchairs at the windows, lamps, a bar), open at
   its round nose onto a railed balcony; the dining car (tables for four with cloths and lamps, the counter); two
   sleeping cars (a corridor along -z behind a partition, compartments with two bunks each along +z, a vestibule at

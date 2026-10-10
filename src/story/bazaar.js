@@ -7,6 +7,7 @@ import { textGeometry, glyphGeometry } from './sign-text.js';
 import { QUESTS, PEOPLE, THINGS, LINES, ITEMS, CROWD_TALK, KEEPSAKE, LANTERN_TONE, LANTERN_FLAG } from './bazaar-data.js';
 import { setupBazaarMoments, BROADCAST } from './bazaar-moments.js';
 import { quietOr } from '../hint-level.js';
+import { setupNightHalt } from './night-train.js';
 
 // The Signal Market's story, alive (bazaar-data.js has the words).
 //
@@ -338,8 +339,12 @@ export function setupBazaar(ctx) {
     }
   };
 
+  // the night halt past the south gate (the night mail: Wren, her bell, the train it calls; src/story/night-train.js)
+  const halt = setupNightHalt(ctx);
+  if (halt) Object.assign(people, halt.people);
+
   return {
-    people, update, state: st, frameCamera, play, tune, finish, clearCrates, film,
+    people, update, state: st, frameCamera, play, tune, finish, clearCrates, film, halt,
     /** E on a crowd person: a short conversation, by where they are (and whether the tower has spoken). */
     crowdTalk(p) {
       const z = p.spot?.id ?? (p.pos.y > 8 ? 'bridge' : p.pos.z < -200 ? 'square' : 'market');

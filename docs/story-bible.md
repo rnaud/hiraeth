@@ -392,6 +392,35 @@ giant mushrooms, keepers, temple and story as they were, in the one world.)*
 - **Keepsake**: *person*: Ilen herself (she walks to the stone; she is never
   set on it).
 
+### 11b. The night mail: the Overnight Train (a side quest of the Signal Market; built: src/story/night-train-data.js)
+- **Why here**: the Signal Market is the place of messages that travel a long way to reach someone who may not be
+  listening. The Overnight Train's crowd were always its townsfolk out for the night (`COSTUMES.overnighttrain`), and
+  the train's chalk mark was kept by "someone aboard" (the detours' traces, below). The train has no address; for forty
+  years the market's night halt has been its post office.
+- **Place**: past the landing at the market's south end, a single line of rail runs out east and west into the dark:
+  the night halt (src/levels/night-halt.js). A low platform, a lamp on an iron post, a brass bell, a shelter with the
+  timetable under glass (every column says WHEN RUNG), a board: NIGHT HALT.
+- **People**: **Edda**, who keeps the halt's lamp and sorts the night mail; **Mireille**, her grandmother, who boarded
+  the night Edda was born "to see where the plain ends" and never got off, and rides the roofs of the long tail by the
+  chalk mark she keeps; **Ambrose**, the conductor, who knows everyone aboard by the cup they drink from.
+- **The quest** (`bazaar.nightmail`, "The Night Mail"; stages wren, board, find, agathe, stop, off, home):
+  1. Edda at the halt: forty years of postcards from Mireille, one a year, never a question; this year Edda has written
+     back, and can't leave the lamp. She gives you the letter.
+  2. Ring the bell: the train stops for the bell, it has to. The screen fades and you are aboard on the station-side
+     porch, the train pulling out of the halt (`?level=overnighttrain&from=bazaar`).
+  3. Ambrose on the porch: Mireille never sits inside; she rides the roofs at the very back. Out past the landing wagon, up
+     the ladder, and walk the roofs of the long tail till the rails run out behind you, the plain racing past.
+  4. Mireille by the chalk mark: she reads the letter with her back to the wind and writes her answer on the back of it
+     in chalk. (The mark was there the night she boarded, nearly gone; she drew it over so it wouldn't be, and doesn't
+     know who drew it first. A train should have one thing nobody can explain.)
+  5. Back to Ambrose: he pulls the cord; a minute on, the brakes take hold and the train brakes into the market's halt.
+  6. Step down on the station side once it has stopped (`?level=bazaar&from=overnighttrain`: on the halt's platform).
+  7. Edda reads the answer under the lamp, twice: the plain doesn't end, and Mireille will get off at the market's halt
+     next spring, to see if the lamp is still lit. "It will be."
+- **After**: the bell calls the train whenever it is rung (a ride for its own sake; Ambrose stops at the halt when asked).
+  A save on the train wakes on the train, still running; the train never waits at a station unless someone asks.
+- **Keepsake**: none; the quest's outro (Mireille's answer pinned under the halt's lamp).
+
 ## The fellow traveller: Tansy (built: src/story/fellow-data.js; docs/systems/story.md)
 
 One person travels too. **Tansy**, about nineteen, from the Salt Harbour: the harbour book's old line in home
@@ -429,7 +458,7 @@ time it is told (`sight.<id>`; the route's own sightings are listed in src/story
 | The Moon Foundry | Bertil cast the mark on a plate for a lone woman's ship's nose; she drew it in soot like a new word: "So they'll know me" | before |
 | The Underside | Maudie: a woman wintered alone and played a man's voice every night, always stopping it before the end | signal |
 | The City Floating in Space | Tamar: a ship with no name, one pilot alone, hailed with a sung note; the night the sky rang the same note passed again, fast and high, going somewhere | light |
-| The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it | glyph |
+| The Overnight Train | The mark chalked on the last carriage's roof, drawn again over old chalk many times by someone who keeps it (Mireille, the night mail: she found it there, nearly gone, the night she boarded) | glyph |
 
 ## The recordings (built: src/story/calls.js, src/ship/hologram.js)
 

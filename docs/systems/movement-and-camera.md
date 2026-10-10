@@ -44,6 +44,71 @@ Tests: `tests/camera-framing.test.js` (the framing in the open, hallness, the sh
 stability, a swap past a wall without a jump, the blend in and out without a snap, a hall, aiming and the
 wider arms); `tests/camera.test.js` and `tests/ship-camera.test.js` as before.
 
+## The camera QC and what it fixed (v1.40, `.claude/skills/camera-qc`)
+
+The author: "in the train when I'm walking it keeps jumping around." The camera QC drives the game headless with
+scripted hands (walks, runs, turns, jumps, lock-on, tight spaces; `scripts/camera-qc/scenarios.mjs`) and records the
+camera every frame right after `rig.update`; `scripts/camera-qc/lib.mjs` measures pops (the arm cut or let out by
+> 0.25 m in a frame), jumps and look jumps (kinks in the camera's and the look point's paths), spins (turns nobody asked
+for), clipping, the traveller hidden or out of frame, the arm's reversals (jitter) and the path's roughness, against the
+limits in the skill. The same walks run in node through the real collision (`scripts/camera-qc/sim.mjs`,
+`sim-train.mjs`), which is where the fixes were tried; `tests/camera-qc.test.js` holds them.
+
+What it found on the Overnight Train (browser, Medium, the walk from the deck to the balcony, 42 s): 14 pops of up to
+1.6 m, 37 jumps (kinks in its path), 21 spins (up to 6700°/s), the traveller out of frame 6 % of the time. The causes and the fixes:
+
+- **Rays slipping between thin things.** The arm was found by a ray (a cone of five rays close in) and the shoulder's
+  room by a ray: along the sleeping car's corridor the open compartment doors and their frames, along the dining car the
+  chair backs, along every carriage the window mullions were hit on one frame and missed on the next, and the arm pumped
+  in and out by a metre. Close in the arm is now a ball the lens's size swept back from the look point
+  (`physics.sweepSphere`, `roomAt`), which sees a row of uprights as the band it is and leaves the lens its room (the
+  rays that shoved the lens off walls afterwards are gone close in); the shoulder's room is a thin ball swept sideways.
+- **The shoulder toward the wrong side.** A corridor with open doors along one side has "room" beside the shoulder
+  through every door, so the look point went there and the arm behind caught on each frame. `sideArm` (every 0.12 s,
+  held 0.8 s) centres the look point when the arm from beside either shoulder is cut and the arm from behind the head is
+  not, here and where the traveller will be in half a second (a door ahead is centred for before he is in it).
+- **Doors and vestibules off the arm's line.** Stepping out of a corridor into a vestibule, or through an end door, cut
+  the arm behind by a metre at once. Now a cut of more than 0.45 m, when you are not turning the camera, is held:
+  the camera stays where it was if it still has room and sees the head, and turns to follow (`holdSpot`). Otherwise
+  the arm comes in on a critically damped spring (`ARM_IN`, at most 12 m/s) as long as the lens keeps 0.16 m of room on
+  the way, and lets out on a slower one after a pause (`ARM_HOLD`, `ARM_OUT`); a walk, a run or a hand turning the
+  camera looks a moment ahead (`ARM_AHEAD`: where the look point and the arm will be) so it starts in before an edge
+  arrives. The swing round to the side with room (`swingClear`) works close in anywhere now, not only in the ship.
+- **The lens leaving the carriage.** A look point pressed to a curved wall, or the arm out through a window behind,
+  put the camera outside looking at the hull (a flat purple frame). The look point keeps 0.3 m off walls (`LOOK_R`) and
+  stays under whatever is overhead (eased); the arm is never longer than the swept ball found room for, even under its
+  0.45 m floor; the train's windows have invisible glass (`glass()` in overnight-train-kit.js: in the collision, never
+  drawn), which also keeps the traveller from stepping out of one.
+- **Hops in a low carriage.** Close in, the view rises and falls with a jump more softly (`AIR_FOLLOW`, main.js sets
+  `rig.air`), so the arm no longer knocks against the ceiling at the top of every hop.
+- **A very short arm** (turning round in a 1.5 m corridor) tips the camera down over the head (`SHORT_ARM`, `SHORT_TILT`)
+  so the traveller stays in the frame.
+- **The level**: the sleeping cars' vestibules are 3.6 m deep (`VESTIBULE`, were 2.1: the turn from the corridor to the
+  end door pinned the camera to the last compartment's wall), the end doors 1.6 m wide (`TR.door`, were 1.3), and the
+  crowd strolls only where the aisle is wide (walkers in the dining car's aisle and the corridors walked through the
+  camera, a cloak filling the frame).
+
+- **The shoulder at a very short arm**: the look point's offset shrinks with the arm (at 0.55 m a 70 cm offset put the
+  head off the edge of the frame), and a wall right beside the look point eases it in over a few frames (`SIDE_IN`)
+  rather than at once.
+
+After (browser, same scenarios; the train's turns and roof scenarios were changed to keep the walker off the furniture,
+so they compare with the node walks rather than the old browser runs):
+
+| scenario | pops before → after | jumps | turns nobody asked for | out of frame |
+|---|---|---|---|---|
+| train-walk (42 s) | 14 → 0 | 37 → 1 | 21 → 0 | 6.1 % → 0 |
+| train-run | 15 → 0 | 37 → 1 | 33 → 1 | 2.6 % → 0 |
+| train-sleeper | 7 → 0 | 19 → 0 | 18 → 1 | 21 % → 0 |
+| train-jumps | 2 → 0 | 2 → 0 | 1 → 1 | 10.6 % → 0 |
+| train-deck, desert-open, bazaar-streets, arena-lock | 0 → 0 | | | 0 → 0 |
+
+All seven train scenarios green. The open worlds (the desert's run, the market's street, the Arena's lock-on) were
+green before and stay green. Left: Qanat's shop (an 8 × 7 m room, walked round its edges) is red on small kinks of the
+look point (18 cm, 3 in 8 s) and its roughness; a door taken at a run while turning can still come in by ~0.2 m in a
+frame; crowd strollers still walk through the camera in other worlds' narrow streets (only the train's keep out of the
+aisles).
+
 ## The jets fly like a plane (v0.89, `src/player.js`: `JET`, `startJets`, `flyJets`, `jetSteer`, `jetStep`)
 
 The author, after the Superman jets: "R2 should make me go high fast. Joystick should be for

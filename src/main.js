@@ -542,6 +542,7 @@ function updateLights() {
   for (; n < 8; n++) L[n].set(0, -1e5, 0, 0);
 }
 wind = new WindStreaks();
+if (level.windAngle != null) wind.fixedAngle = level.windAngle;   // (a world whose wind has a way of its own: the train's, from the nose)
 wind.uniforms.tNormal.value = gbuffer.textures[1];
 wind.uniforms.uRes.value.copy(post.uniforms.uRes.value);
 wind.uniforms.uInk.value = post.uniforms.uInk.value;
@@ -852,9 +853,19 @@ if (viaShip) {
   rig.yaw = a.heading + Math.PI;
   history.replaceState(null, '', `?level=${levelId}${query.has('cinematicReview') ? `&cinematicReview=${encodeURIComponent(query.get('cinematicReview'))}` : ''}`);
 }
+// arriving by another place's way through (?from=<world>: the night train's step down onto the market's halt, the
+// halt's bell onto the train's porch: level.arrivals[from], src/story/night-train.js); the address loses its from, so a
+// reload continues from the save
+const arrival = !viaShip && !minigameDef ? level.arrivals?.[query.get('from')] : null;
+if (arrival) {
+  player.respawn(arrival.pos.clone());
+  player.heading = arrival.heading;
+  rig.yaw = arrival.heading + Math.PI;
+  history.replaceState(null, '', `?level=${levelId}`);
+}
 // continue where you left off (same world, not arriving by ship)
 const saved = SaveGame.load();
-if (!viaShip && !playPrologue && saved?.level === levelId && saved.pos && !level.keepSpawn) {   // (keepSpawn: the Arcade, back in front of a game's sign)
+if (!viaShip && !arrival && !playPrologue && saved?.level === levelId && saved.pos && !level.keepSpawn) {   // (keepSpawn: the Arcade, back in front of a game's sign)
   const p = new THREE.Vector3(...saved.pos);
   player.respawn(p);
   if (saved.up) player.frame.set(new THREE.Vector3(...saved.up), new THREE.Vector3(...saved.fwd));
@@ -1790,6 +1801,7 @@ function frame(ts) {
     const jetShot = jets ? (jetShotK.pitch = jetCameraPitch(player.jetFlight.pitch), jetShotK) : null;
     rig.follow(player.ride?.heading ?? player.heading, pdt, player.riding || player.gliding || jets, player.ride?.shot ?? jetShot, wide);
     rig.down = !!player.down;   // knocked down: the camera follows the body on the ground, lower and softer
+    rig.air = !player.onGround && !player.climbing && !player.swim && !player.riding;   // a hop close in: the view rises with it softly (CameraRig.update)
     rig.update(player.pos, pdt, player.frame);
     storyRt.frameCamera(camera);   // the two-shot while talking
     if (minigame) minigame.update(dt, busy() ? noInput : ctl);   // a game played on foot (drives: false): its clock, targets, waves; after the rig, so it may take the camera (src/minigames/)

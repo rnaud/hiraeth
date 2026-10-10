@@ -33,7 +33,13 @@ const push = (out, k, g) => { (out[k] ??= []).push(g); return g; };
 export { stick };
 
 /** The train's measures (m): rails' top, the carriages' floor, half their width, a carriage's length, the gap between two. */
-export const TR = { rail: 0.95, floor: 2.7, half: 3.0, car: 26, gap: 2.4, gauge: 3.4, wall: 0.15, crown: 4.5, sill: 1.0, head: 2.55 };
+export const TR = { rail: 0.95, floor: 2.7, half: 3.0, car: 26, gap: 2.4, gauge: 3.4, wall: 0.15, crown: 4.5, sill: 1.0, head: 2.55, door: 1.6 };   // (door: the end doors' width; 1.6 m, not 1.3, so the camera behind you comes through after you: the camera QC)
+/**
+ * How deep a sleeping car's vestibule is at each end (m from the end wall to its first compartment): room to turn from
+ * the corridor to the end door with the camera behind you (at 2.1 m the turn pinned it to the last compartment's wall:
+ * the camera QC, docs/systems/movement-and-camera.md).
+ */
+export const VESTIBULE = 3.6;
 /** The roof walk's top over the floor (planks laid along the crown). */
 TR.walk = TR.crown + 0.1;
 
@@ -209,7 +215,7 @@ function between(a, b, holes) {
  */
 export function shell({ x0, x1, y0 = TR.floor, P = profile(), windows = { 1: [], [-1]: [] }, panes = false, inside = !panes }) {
   const out = {}, nO = normalsOf(P.out), nI = normalsOf(P.inn);
-  const lower = new Tris(), side = new Tris(), up = new Tris(), fr = new Tris(), pa = new Tris(), wain = new Tris(), pan = new Tris(), ceil = new Tris();
+  const lower = new Tris(), side = new Tris(), up = new Tris(), fr = new Tris(), pa = new Tris(), wain = new Tris(), pan = new Tris(), ceil = new Tris(), gl = new Tris();
   const whole = [[x0, x1]];
   for (const s of [1, -1]) {
     const holes = (windows[s] ?? []).filter(([a, b]) => b > x0 && a < x1);
@@ -231,6 +237,9 @@ export function shell({ x0, x1, y0 = TR.floor, P = profile(), windows = { 1: [],
         pa.quad([a + m, y0 + ys + m, s * (zs - d)], [b - m, y0 + ys + m, s * (zs - d)], [b - m, y0 + yh - m, s * (zh - d)], [a + m, y0 + yh - m, s * (zh - d)], [0, 0, s]);
         continue;
       }
+      // the glass: never drawn, but solid (the camera stays in the carriage instead of slipping out of a window behind
+      // you to look at the hull from the plain, and nobody steps out of one: the camera QC)
+      gl.quad([a, y0 + ys, s * zs], [b, y0 + ys, s * zs], [b, y0 + yh, s * zh], [a, y0 + yh, s * zh], [0, 0, s]);
       // the reveals: the sill (up), the head (down), the jambs (facing into the opening)
       fr.quad([a, y0 + ys, s * zs], [b, y0 + ys, s * zs], [b, y0 + yis, s * zis], [a, y0 + yis, s * zis], [0, 1, 0]);
       fr.quad([a, y0 + yh, s * zh], [b, y0 + yh, s * zh], [b, y0 + yih, s * zih], [a, y0 + yih, s * zih], [0, -1, 0]);
@@ -242,8 +251,16 @@ export function shell({ x0, x1, y0 = TR.floor, P = profile(), windows = { 1: [],
       for (const [p, q] of [[[a, y0 + ys, fz], [b, y0 + ys, fz]], [[a, y0 + yh, fz2], [b, y0 + yh, fz2]], [[a, y0 + ys, fz], [a, y0 + yh, fz2]], [[b, y0 + ys, fz], [b, y0 + yh, fz2]]]) push(out, 'frame', bar(V(...p), V(...q), 0.05));
     }
   }
-  for (const [k, T] of [['skirt', lower], ['hull', side], ['roof', up], ['frame', fr], ['pane', pa], ['wain', wain], ['panel', pan], ['ceil', ceil]]) { const g = T.geo(); if (g) push(out, k, g); }
+  for (const [k, T] of [['skirt', lower], ['hull', side], ['roof', up], ['frame', fr], ['pane', pa], ['wain', wain], ['panel', pan], ['ceil', ceil], ['glass', gl]]) { const g = T.geo(); if (g) push(out, k, g); }
   return out;
+}
+const GLASS = new THREE.MeshBasicMaterial({ visible: false });
+/** A window's glass: a mesh never drawn (its material invisible), but in the collision (src/physics.js takes every mesh). */
+export function glass(kit, g) {
+  const m = new THREE.Mesh(g, GLASS);
+  m.name = 'glass'; m.castShadow = m.receiveShadow = false; m.userData.glass = true;
+  kit.group.add(m);
+  return m;
 }
 /** A square bar from a to b, r thick (a frame's bar, a rail). */
 export function bar(a, b, r = 0.05) {
@@ -282,7 +299,7 @@ function doorPath(z, w, h) {
  * A carriage's end wall at x (its face toward `dir`: +1 the front, -1 the back), a door through it (door: false, a
  * closed end). { hull: [geo] (outside, the skin's thickness), panel: [geo] (its inside face) }.
  */
-export function endWall(x, dir, { y0 = TR.floor, P = profile(), door = true, dw = 1.3, dh = 3.0, inside = true } = {}) {
+export function endWall(x, dir, { y0 = TR.floor, P = profile(), door = true, dw = TR.door, dh = 3.0, inside = true } = {}) {
   const out = {}, s = outline(P.out);
   if (door) s.holes.push(doorPath(0, dw, dh));
   // (the shape in its plane: its x is the carriage's z; turned so it stands across the carriage, extruded inward)
@@ -679,6 +696,7 @@ export function train(kit, M, cars, { x = 0, detail = 1, solid = true, seed = 1,
     for (const [k, m] of [['hull', side], ['roof', M.roof], ['skirt', M.skirt]]) for (const g of body[k] ?? []) kit.add(m, g, S);
     for (const g of body.frame ?? []) kit.add(M.frame, g, closed ? NC : S);
     for (const g of body.pane ?? []) kit.add(M.pane, g, NC);
+    if (solid) for (const g of body.glass ?? []) glass(kit, g);
     for (const [k, m] of [['wain', M.wood], ['panel', M.panel], ['ceil', M.ceil]]) for (const g of body[k] ?? []) kit.add(m, g, S);
     // the ends: the lead carriage's nose, a door through the others (the tail's last closed)
     const last = i === cars.length - 1;
@@ -872,7 +890,7 @@ export function furnishCar(kit, M, c, { x0, x1, xc, L, rng, res }, { solid = tru
   } else if (c.kind === 'sleeper') {
     // the corridor along -z behind a partition, the compartments along +z (one per window), their doors open (or a few
     // shut); a vestibule at each end, where the end doors open, onto the corridor
-    const zw = -1.35, H2 = 2.6, win = CAR_KINDS.sleeper.windows(L)[1].map(([a, b]) => [xc + a, xc + b]).filter(([a, b]) => a > x0 + 2.1 && b < x1 - 2.1);
+    const zw = -1.35, H2 = 2.6, win = CAR_KINDS.sleeper.windows(L)[1].map(([a, b]) => [xc + a, xc + b]).filter(([a, b]) => a > x0 + VESTIBULE && b < x1 - VESTIBULE);
     const cuts = [];
     for (let k = 0; k <= win.length; k++) {
       const xb = k === 0 ? win[0][0] - 0.6 : k === win.length ? win[k - 1][1] + 0.6 : (win[k - 1][1] + win[k][0]) / 2;

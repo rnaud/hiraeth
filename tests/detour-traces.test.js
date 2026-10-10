@@ -12,7 +12,7 @@ const { seen, THREADS } = await import('../src/story/sightings.js');
 const { DialogueRunner } = await import('../src/story/dialogue.js');
 const { parseLine, TONES } = await import('../src/story/tone.js');
 const { CONTENT } = await import('../src/levels/content.js');
-const { SIDE } = await import('../src/levels/names.js');
+const { SIDE, SUB } = await import('../src/levels/names.js');
 
 /** The talkers of a world's content: its people with a talk, and its traces' persons. */
 const talkers = (world) => [
@@ -37,7 +37,7 @@ const QUESTS = { start() {}, advance() {}, set() {}, give() {}, take() {}, track
 test('every detour world has exactly one trace, in a real thread, its id its own', () => {
   const ids = new Set();
   for (const s of DETOUR_SIGHTINGS) {
-    assert.ok(SIDE.includes(s.world), `${s.id}: ${s.world} is a detour world`);
+    assert.ok(SIDE.includes(s.world) || Object.hasOwn(SUB, s.world), `${s.id}: ${s.world} is a detour world (or a sub-level: the Overnight Train)`);
     assert.ok(s.id.startsWith(`${s.world}.`), `${s.id} starts with its world`);
     assert.ok(THREADS.some((t) => t.id === s.thread), `${s.id}: thread ${s.thread}`);
     assert.ok(!s.heard && !s.flag, `${s.id} is met by its own flag`);

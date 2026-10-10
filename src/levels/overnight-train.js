@@ -11,7 +11,7 @@ import {
   TRAIN_LOOK, TRAIN_DAY, TRAIN_DUSK, TRAIN_NIGHT, TRAIN_TONES, TAU,
 } from './overnight-train-kit.js';
 import { puffGeo } from './underside-kit.js';
-import { RUN, runAt, stationOffset, bandShift } from './overnight-train-run.js';
+import { RUN, planRun, stationOffset, bandShift } from './overnight-train-run.js';
 
 // ---------------------------------------------------------------------------
 // The Overnight Train (?level=overnighttrain): a long streamlined train crossing a flat lavender plain by night under
@@ -21,9 +21,14 @@ import { RUN, runAt, stationOffset, bandShift } from './overnight-train-run.js';
 //
 // The train stands still in the world's frame and the land runs past it (overnight-train-run.js: how far and how fast
 // at each moment): the plain's streaks, the sleepers under the wheels, the telegraph poles and their wires, stones,
-// far buttes, now and then a lit hut or a signal, and every few minutes a lonely station the train slows into, waits
-// at, and pulls out of again. So the carriages, the people in them and their collision are the game's own: you walk
-// through the train and along its roofs as through any town.
+// far buttes, signal gantries whose shadows sweep along the roofs, now and then a lit hut, and a lonely station it runs
+// through. It never waits at a station unless someone asks: a sub-level of the Signal Market's, reached by its night
+// halt's bell (the night mail: src/story/night-train.js, ?level=overnighttrain&from=bazaar: pulling out of the halt);
+// Ambrose the conductor, asked, brakes it into the market's halt again. So the carriages, the people in them and their
+// collision are the game's own, and riding it is standing on solid ground: you walk through the train and along its
+// roofs as through any town, without sliding, and the camera has nothing moving to catch on. The ride is in the land:
+// it rocks a little round the rails and bobs at the joints (the carriages' sway, seen out of the windows), the
+// moonlight and the shadows rock with it, the wind on the roofs blows from the nose.
 //
 // The layout (the train runs toward +x, its nose at x ≈ 4; z across): the lead carriage's observation lounge, its
 // round nose open onto the railed balcony; the dining car; two sleeping cars (a corridor along -z, compartments with
@@ -64,8 +69,23 @@ const LW = car('landing');
 export const SHIP_SITE = { x: LW.xc - 4, z: 0, heading: Math.PI / 2 };
 /** Where the station's platform stands when the train halts at it (its middle, x), along the +z side. */
 export const STATION = { x: -70, half: 72, z0: TR.half + 0.35, depth: 7 };
-/** The run starts this far into a halt (s): the ship comes down at a station where the train waits. */
-export const START_T = 6;
+/** The station-side porch you board at from the market's halt: the dining car's back porch (the gap's middle is railed but for the plate). */
+export const PORCH_X = car('dining').x0 - 0.6;
+/** The night mail aboard (src/story/night-train.js): where you step on and off, Ambrose, Mireille by her chalk mark. */
+export const NIGHT_MAIL = {
+  arrival: { pos: new THREE.Vector3(PORCH_X, FLOOR + 0.05, 1.3), heading: Math.PI / 2 },
+  stepOff: new THREE.Vector3(PORCH_X, FLOOR, 2.0),
+  ambrose: new THREE.Vector3(car('dining').x0 + 1.7, FLOOR, 1.5), bramHeading: -Math.PI / 2,
+  mireille: new THREE.Vector3(TAIL + 3.4, WALK + 0.02, 0.55), agatheHeading: -Math.PI / 2,
+};
+/** How the train rocks (the land rocks round it: build's place): roll (rad), its two periods (s), the joints' bob (m). */
+export const SWAY = { roll: [0.0028, 0.0014], period: [2.9, 1.31], bob: 0.012, joint: 26 };
+/** The roll and the bob at time t, s m gone by, at a share k of full speed (pure: the tests read it). */
+export function swayAt(t, s, k) {
+  const roll = k * (SWAY.roll[0] * Math.sin((2 * Math.PI * t) / SWAY.period[0]) + SWAY.roll[1] * Math.sin((2 * Math.PI * t) / SWAY.period[1] + 1.3));
+  const u = ((s % SWAY.joint) + SWAY.joint) % SWAY.joint, w = Math.min(u, Math.abs(u - 2.6));   // (two bogies over each joint: ta-dum)
+  return { roll, bob: -k * SWAY.bob * Math.exp(-w * 2.2) };
+}
 
 /** The ground: the plain (y 0). Everything walked on is the train itself. */
 export const groundHeight = () => 0;
@@ -107,6 +127,9 @@ export const TRAIN_CONTENT = {
         '~curious~ Nobody gets on and nobody gets off. The stations are for the tea, I think, and for the quiet.',
         '~whisper~ At the very back the carriages are shut. People sleep there who boarded long ago.',
       ] } },
+    // up on the long tail's roofs, on the way to Mireille: two who ride outside too (the night mail's walk back there)
+    { at: [car('coach', 1).xc + 2, 0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~happy~ Sit down, sit down. Standing up here, the wind takes your hat to the next station.', '~curious~ Going to see the chalk lady? She’s at the very end. Mind the planks.'] },
+    { at: [car('coach', 3).xc - 3, -0.55], y: WALK + 0.02, radius: 2.4, lang: 'bazaar', lines: ['~whisper~ Look back. You can see the whole night we’ve come through.', '~playful~ The gantries! Duck! (He never ducks.)'] },
     // the train's own folk
     { at: [car('dining').x0 + 1.6, -1.2], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~happy~ Soup of the plain, bread of the last station. Sit anywhere.', '~neutral~ The kitchen never stops. Neither do we, mostly.'] },
     { at: [car('sleeper').xc, -2.0], y: FLOOR, radius: 2.2, lang: 'bazaar', lines: ['~whisper~ Softly in the corridor. Half the train is asleep.', '~curious~ The compartments with the doors open are free. Lie down if you like.'] },
@@ -146,7 +169,7 @@ const DIR = (az, el) => { const a = THREE.MathUtils.degToRad(az), e = THREE.Math
 const NC = { solid: false, shadow: false }, SH = { solid: false, shadow: true };
 
 /** A band of the running land: its own group (moved each frame), built from one pattern repeated every P m over [a, b]. */
-function band(root, name, P, [a, b], fill, seed) {
+function bandIn(root, name, P, [a, b], fill, seed) {
   const group = new THREE.Group();
   group.name = name;
   root.add(group);
@@ -191,13 +214,21 @@ export function* buildOvernightTrain(scene) {
   root.add(spokes); noShadow.push(spokes);
   yield;
 
-  // ---------------------------------------------------------- the track: the bed and the rails to the horizon both ways
-  kit.add(M.ballast, new THREE.BoxGeometry(9000, TR.rail - 0.16, 5.2).translate(-1500, (TR.rail - 0.16) / 2, 0), NC);
-  for (const g of railsGeo(-6000, 3000)) kit.add(M.rails, g, NC);
+  // ---------------------------------------------------------- the land: everything off the train, one group (it rocks round the rails)
+  const land = new THREE.Group();
+  land.name = 'The land';
+  root.add(land);
+  const lk = new RoomKit({ group: land, centre: new THREE.Vector3(), seed: 82105 }), LM = trainMats(lk, { lamps: false });
+  // the track: the bed and the rails to the horizon both ways
+  lk.add(LM.ballast, new THREE.BoxGeometry(9000, TR.rail - 0.16, 5.2).translate(-1500, (TR.rail - 0.16) / 2, 0), NC);
+  for (const g of railsGeo(-6000, 3000)) lk.add(LM.rails, g, NC);
   // the plain (drawn: the ground under it is the level's own, y 0)
-  kit.add(M.plain, new THREE.CircleGeometry(4800, 72).rotateX(-Math.PI / 2).translate(-180, 0, 0), NC);
+  lk.add(LM.plain, new THREE.CircleGeometry(4800, 72).rotateX(-Math.PI / 2).translate(-180, 0, 0), NC);
   // the two moons, far off ahead
-  for (const m of MOONS) kit.add(M.moon, moonGeo(new THREE.Vector3(-180, 0, 0), DIR(m.az, m.el), { d: 3200, deg: m.deg }), NC);
+  for (const m of MOONS) lk.add(LM.moon, moonGeo(new THREE.Vector3(-180, 0, 0), DIR(m.az, m.el), { d: 3200, deg: m.deg }), NC);
+  lk.finish();
+  land.traverse((o) => { if (o.isMesh) { o.userData.noCollide = true; o.userData.dynamic = true; } });
+  noShadow.push(...lk.noShadow);
   yield;
 
   kit.finish();
@@ -208,7 +239,7 @@ export function* buildOvernightTrain(scene) {
 
   // ---------------------------------------------------------- the running land (bands moved each frame: overnight-train-run.js)
   const near = [TAIL - 180, 260], wide = [-1900, 1300];
-  const bands = [];
+  const bands = [], band = (_, ...a) => bandIn(land, ...a);   // (every band in the land: it rocks with it)
   // the sleepers under the wheels: the quickest thing in sight
   bands.push(band(root, 'The sleepers', 0.9, near, (k, MM, r, x) => k.add(MM.sleeper, new THREE.BoxGeometry(0.26, 0.15, 4.1).translate(x, TR.rail - 0.16 + 0.075, 0), NC), 1));
   yield;
@@ -248,13 +279,20 @@ export function* buildOvernightTrain(scene) {
       k.add(r() < 0.5 ? MM.glow : MM.lamp, new THREE.SphereGeometry(0.2, 6, 4).translate(x + 0.16, 6.4, z), NC);
     }
   }, 5));
+  // signal gantries over the line now and then, their lamps red or green: their shadows sweep along the roofs
+  bands.push(band(root, 'The gantries', 640, wide, (k, MM, r, x) => {
+    for (const z of [-4.6, 4.6]) k.add(MM.pole, new THREE.BoxGeometry(0.3, 9.6, 0.3).translate(x, 4.8, z), SH);
+    k.add(MM.frame, new THREE.BoxGeometry(0.5, 0.6, 9.8).translate(x, 9.4, 0), SH);
+    for (const z of [-2.6, 0.4, 2.8]) k.add(MM.frame, new THREE.BoxGeometry(0.2, 1.4, 0.2).translate(x, 8.5, z), SH);
+    k.add(r() < 0.5 ? MM.glow : MM.lamp, new THREE.SphereGeometry(0.22, 6, 4).translate(x + 0.12, 8.0, 0.4), NC);
+  }, 6));
   for (const b of bands) for (const m of b.kit.noShadow) noShadow.push(m);
   yield;
 
   // ---------------------------------------------------------- the station (one, placed by the run: the train halts beside it)
   const stationGroup = new THREE.Group();
   stationGroup.name = 'The station';
-  root.add(stationGroup);
+  land.add(stationGroup);
   {
     const sk = new RoomKit({ group: stationGroup, centre: new THREE.Vector3(), seed: 82102 }), SM = trainMats(sk, { lamps: false });
     const S = station({ x0: STATION.x - STATION.half, x1: STATION.x + STATION.half, z0: STATION.z0, depth: STATION.depth, seed: 3, house: 0.42 });
@@ -280,20 +318,31 @@ export function* buildOvernightTrain(scene) {
 
   // the lights: the carriages' lamps, the furniture's
   const lights = [...kit.lights];
-  const spawn = new THREE.Vector3(SHIP_SITE.x + Math.sin(SHIP_SITE.heading) * 16, FLOOR + 0.05, SHIP_SITE.z + Math.cos(SHIP_SITE.heading) * 16);
+  // (boarded at the market's halt, ?from=bazaar: on the station-side porch, the train pulling out of the halt; else
+  // by the ship on the landing wagon, the train running: it never waits at a station unless someone asks)
+  const from = boardedFrom();
+  const spawn = from === 'bazaar' ? NIGHT_MAIL.arrival.pos.clone() : new THREE.Vector3(SHIP_SITE.x + Math.sin(SHIP_SITE.heading) * 16, FLOOR + 0.05, SHIP_SITE.z + Math.cos(SHIP_SITE.heading) * 16);
   const dummy = new THREE.Object3D();
-  let time = START_T, run = runAt(START_T), whistle = 0, lastPhase = run.phase, kv = 0;
+  const plan = planRun(from === 'bazaar' ? 'leaving' : 'running');
+  let time = 0, run = plan.at(0), whistle = from === 'bazaar' ? 1 : 0, lastPhase = run.phase, kv = run.v / RUN.V, sway = { roll: 0, bob: 0 };
   const place = (t, dt) => {
-    run = runAt(t);
+    run = plan.at(t);
     if (lastPhase === 'halt' && run.phase === 'leaving') whistle++;
     if (lastPhase === 'running' && run.phase === 'braking') whistle++;
     lastPhase = run.phase;
     for (const b of bands) b.group.position.x = bandShift(run.s, b.P);
-    const off = stationOffset(run.s);
+    // the station: where the train halts (or halted: the market's, boarded at), else the ones it runs through
+    const hs = plan.haltS() ?? (from === 'bazaar' ? 0 : null);
+    let off = hs != null ? hs - run.s : Infinity;
+    if (Math.abs(off) > 2600) off = stationOffset(run.s);
     stationGroup.position.x = off;
     stationGroup.visible = Math.abs(off) < 2600;
     const k = run.v / RUN.V;
     kv += (k - kv) * Math.min(1, dt * 0.8);
+    // the ride: the land rocks round the rails and bobs at the joints (the carriages' sway, out of the windows)
+    sway = swayAt(t, run.s, kv);
+    land.rotation.x = sway.roll;
+    land.position.y = sway.bob;
     // the dust: each puff runs back from its wheel and swells, faster the faster the train; at a halt it settles away
     let i = 0;
     for (const p of puffs) {
@@ -318,6 +367,7 @@ export function* buildOvernightTrain(scene) {
     for (const f of flags) pennantWave(f.geometry, t, kv);
   };
   place(time, 1);
+  const X = new THREE.Vector3(1, 0, 0);
 
   return {
     id: 'overnighttrain',
@@ -325,8 +375,18 @@ export function* buildOvernightTrain(scene) {
     envGround: TRAIN_TONES.plain,
     collision: { strategy: 'SAH' },
     spawn,
-    spawnHeading: SHIP_SITE.heading,
-    camYaw: SHIP_SITE.heading + Math.PI,
+    spawnHeading: from === 'bazaar' ? NIGHT_MAIL.arrival.heading : SHIP_SITE.heading,
+    camYaw: (from === 'bazaar' ? NIGHT_MAIL.arrival.heading : SHIP_SITE.heading) + Math.PI,
+    /** Where it was boarded from (?from=: 'bazaar', the market's night halt), or null. */
+    from,
+    /** Arriving from the market's halt (main.js level.arrivals): the station-side porch. */
+    arrivals: { bazaar: NIGHT_MAIL.arrival },
+    /** The night mail's places aboard (src/story/night-train.js). */
+    nightMail: NIGHT_MAIL,
+    /** The wind on the roofs blows from the nose (src/wind.js: its angle, toward -x). */
+    windAngle: Math.PI,
+    /** The moonlight rocks with the land (main.js: after the sky has set the sun's way). */
+    lightAt(p, dir) { if (sway.roll) dir.applyAxisAngle(X, sway.roll); },
     limit: 520, killY: -6, unsafe,
     shipSite: { ...SHIP_SITE, y: FLOOR },
     features: { mount: false, wind: true, jetpack: false, climb: true },
@@ -342,16 +402,26 @@ export function* buildOvernightTrain(scene) {
     },
     atmo: (x, z, y) => ({ tint: [1, 1, 1], fog: 0.5, name: placeName(x, z, y) }),
     crowdLines: CROWD_LINES,
+    // what the level design audit counts as places to stop for (scripts/level-design/audit.mjs): the roof gardens, the
+    // sky lounge, the balcony at the nose, the chalk mark at the very back
+    // and the leading line the night mail sends you along: back across the landing wagon, up the long tail's first ladder,
+    // along the roof walk to the very end (the planks down the crowns are the line)
+    lines: [{ name: 'the roof walk to the very back', points: [[PORCH_X, FLOOR, 0], [LW.x1, FLOOR, 0], [LW.x0, FLOOR, 0], [car('coach', 0).x1 - 0.5, WALK, 0], [TAIL + 2, WALK, 0]] }],
+    sights: [
+      { name: 'the balcony at the nose', at: [NOSE_X + 2.6, FLOOR, 0] },
+      { name: 'the sky lounge on the library’s roof', at: [car('dome').xc, WALK, 1.6] },
+      ...CARS.filter((c) => c.kind === 'coach' && TRAIN_LAYOUT[c.i].roof === 'garden').map((c) => ({ name: `a roof garden over the long tail (${c.i})`, at: [c.xc, WALK, 0] })),
+      { name: 'the chalk mark on the last roof', at: [TAIL + 2.2, WALK, 0] },
+    ],
     // The train's crowd (crowd.js): strollers down the corridors and along the landing deck, people in twos and threes
     // in the lounge and the library, others at the balcony's rail, the porches' and the deck's. Candidates only: the
     // crowd keeps those on clear, walkable ground.
     crowdSpots() {
       const V = (x, y, z) => new THREE.Vector3(x, y, z), r = mulberry32(8211), groups = [], walks = [], edges = [];
       const L = car('prow'), D = car('dining'), S0 = car('sleeper', 0), S1 = car('sleeper', 1), B = car('dome');
-      walks.push({ path: [V(L.x0 + 3, FLOOR, 0), V(L.x1 - 1, FLOOR, 0)], n: 3, pair: 0.4 });
-      walks.push({ path: [V(D.x0 + 4, FLOOR, 0), V(D.x1 - 1, FLOOR, 0)], n: 2, pair: 0.2 });
-      for (const S of [S0, S1]) walks.push({ path: [V(S.x0 + 1, FLOOR, -2.1), V(S.x1 - 1, FLOOR, -2.1)], n: 2, pair: 0.2 });
-      walks.push({ path: [V(B.x0 + 1, FLOOR, -0.6), V(B.x1 - 1, FLOOR, -0.6)], n: 2, pair: 0.3 });
+      // (strollers only where the aisle is wide: in the dining car's, the sleepers' corridors and the library's they
+      // walked through the camera behind you, a cloak filling the screen: the camera QC. People sit and stand there.)
+      walks.push({ path: [V(L.x0 + 3, FLOOR, 0), V(L.x1 - 1, FLOOR, 0)], n: 2, pair: 0.4 });
       walks.push({ path: [V(LW.x0 + 4, FLOOR, 10), V(LW.x1 - 4, FLOOR, 10)], n: 3, pair: 0.4 });
       walks.push({ path: [V(LW.x0 + 4, FLOOR, -10), V(LW.x1 - 4, FLOOR, -10)], n: 2, pair: 0.3 });
       for (let x = L.x0 + 5; x < L.x1 - 2; x += 5) if (r() < 0.6) groups.push({ at: V(x, FLOOR, (r() - 0.5) * 1.2), n: 2 });
@@ -366,9 +436,15 @@ export function* buildOvernightTrain(scene) {
       const out = p.y > FLOOR + 3.4 ? 1 : (p.x > NOSE_X - 0.5 || (p.x < LW.x1 + 1 && p.x > LW.x0 - 1)) ? 0.8 : CARS.some((c) => c.kind !== 'landing' && p.x < c.x0 && p.x > c.x0 - TR.gap) ? 0.6 : 0;
       return { speed: run.v, full: RUN.V, out, roof: p.y > FLOOR + 3.4 ? 1 : 0, whistle, halt: run.phase === 'halt' };
     },
-    /** The run now (for the tests and the shots): { s, v, phase, k, until }. */
+    /** The run now (for the tests and the shots): { s, v, phase, until, halts }. */
     get run() { return run; },
-    /** Put the run at time t (s; 0 the moment it halts at a station): the shots and the tests. */
+    /** The run's plan (overnight-train-run.js planRun). */
+    plan,
+    /** The ride's rock now: { roll (rad), bob (m) }. */
+    get sway() { return sway; },
+    /** Brake into a halt starting `lead` s from now (Ambrose, asked): the time it will have halted, or null. */
+    requestStop(lead = 4) { const at = plan.stop(time, lead); place(time, 0); return at; },
+    /** Put the run at time t (s from the start: running, or pulling out of the halt boarded at): the shots and the tests. */
     setRunTime(t) { time = t; place(time, 10); },
     update(dt, t) {
       for (const m of kit.movers) m(t);
@@ -380,6 +456,11 @@ export function* buildOvernightTrain(scene) {
   };
 }
 export const createOvernightTrain = stepped(buildOvernightTrain);
+
+/** Where the train was boarded from (?from=, the page's address), or null (node: no page). */
+function boardedFrom() {
+  try { return new URLSearchParams(globalThis.location?.search ?? '').get('from'); } catch { return null; }
+}
 
 /** The name of where you are on the train. */
 export function placeName(x, z, y) {

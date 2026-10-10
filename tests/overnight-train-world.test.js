@@ -4,11 +4,11 @@ import * as THREE from 'three';
 import { Physics } from '../src/physics.js';
 import { LEVELS } from '../src/levels/index.js';
 import { CONTENT, ORDER } from '../src/levels/content.js';
-import { SIDE } from '../src/levels/names.js';
+import { SIDE, WIP, SUB, isSub } from '../src/levels/names.js';
 import { mapEntries } from '../src/ship/starmap.js';
 import { TR } from '../src/levels/overnight-train-kit.js';
-import { RUN, CYCLE, runAt, stationOffset, bandShift } from '../src/levels/overnight-train-run.js';
-import { createOvernightTrain, TRAIN_CONTENT, CARS, car, SHIP_SITE, FLOOR, WALK, NOSE_X, STATION, START_T, unsafe, placeName, MOONS } from '../src/levels/overnight-train.js';
+import { RUN, CYCLE, BRAKE_D, runAt, planRun, stationOffset, bandShift } from '../src/levels/overnight-train-run.js';
+import { createOvernightTrain, TRAIN_CONTENT, CARS, car, SHIP_SITE, FLOOR, WALK, NOSE_X, STATION, unsafe, placeName, MOONS, NIGHT_MAIL, PORCH_X, SWAY, swayAt, TAIL } from '../src/levels/overnight-train.js';
 
 // ------------------------------------------------------------------ the world (src/levels/overnight-train.js)
 let world = null;
@@ -22,16 +22,15 @@ const fits = (physics, x, y, z) => physics.pushCapsule(V(x, y, z), 0.45, 0.6, 2.
 const at = (physics, x, y, z) => { const h = physics.groundAt(x, y + 1.5, z, 4); return { h, ok: Math.abs(h - y) < 0.35 && fits(physics, x, h, z) }; };
 const along = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
 
-test('the Overnight Train: off the route, on the map from the start, reached by ?level=overnighttrain', () => {
+test('the Overnight Train: a sub-level of the Signal Market (its night halt), off the route and off the ship\'s map', () => {
   const L = LEVELS.find((l) => l.id === 'overnighttrain');
   assert.ok(L && L.hidden && !L.dev, 'a world, not on the route');
-  assert.ok(SIDE.includes('overnighttrain') && !ORDER.includes('overnighttrain'));
-  assert.equal(SIDE.at(-1), 'overnighttrain', 'at the end of the side worlds');
+  assert.ok(!ORDER.includes('overnighttrain') && !SIDE.includes('overnighttrain') && !WIP.includes('overnighttrain'), 'neither the route, a detour, nor unfinished');
+  assert.ok(isSub('overnighttrain') && SUB.overnighttrain === 'bazaar' && ORDER.includes(SUB.overnighttrain), 'reached from a route world: the Signal Market');
   assert.equal(CONTENT.overnighttrain, TRAIN_CONTENT);
-  assert.ok(TRAIN_CONTENT.story.manual, 'no story to follow: no beacon');
+  assert.ok(TRAIN_CONTENT.story.manual, 'no beacon of its own: the night mail leads there');
   const entries = mapEntries({ order: ORDER, levels: LEVELS, side: SIDE, journal: { seen: () => false, storyDone: () => false }, current: 'desert', flag: () => undefined, home: () => true });
-  const e = entries.find((x) => x.id === 'overnighttrain');
-  assert.ok(e && e.known && e.side, 'charted, off the dotted line');
+  assert.ok(!entries.some((x) => x.id === 'overnighttrain'), 'not a place the ship flies to');
   assert.ok(entries.at(-1).home, 'home still last');
 });
 
@@ -51,7 +50,45 @@ test('the run: halts at a station, pulls out, runs at speed, brakes into the nex
   assert.deepEqual([...seen].sort(), ['braking', 'halt', 'leaving', 'running']);
   assert.ok(Math.abs(runAt(CYCLE.T).s - CYCLE.D) < 1e-6, 'one cycle, one station to the next');
   for (const s of [0, 0.3, 17, 1234.5, CYCLE.D * 3 + 1]) for (const P of [0.9, 50, 300]) { const d = bandShift(s, P); assert.ok(d <= 0 && d > -P - 1e-9); }
-  assert.ok(START_T < RUN.halt, 'the ship comes down while the train waits at a station');
+});
+
+test('the plan: the train runs and never waits, until asked; then it brakes into a halt, waits, and runs on', () => {
+  const p = planRun('running');
+  assert.equal(p.at(0).phase, 'running');
+  assert.equal(p.at(0).v, RUN.V, 'at speed from the start');
+  for (const t of [10, 300, 3000]) assert.equal(p.at(t).phase, 'running', `still running at ${t} s: no station stops it`);
+  assert.equal(p.haltS(), null);
+  const t0 = 200, at = p.stop(t0, 4);
+  assert.equal(at, t0 + 4 + RUN.brake, 'halted after the lead and the braking');
+  assert.equal(p.stop(t0 + 1, 4), null, 'one stop at a time');
+  assert.equal(p.at(t0 + 2).phase, 'running');
+  assert.equal(p.at(t0 + 10).phase, 'braking');
+  const h = p.at(at + 5);
+  assert.equal(h.phase, 'halt'); assert.equal(h.v, 0); assert.equal(h.halts, 1);
+  assert.ok(Math.abs(p.haltS() - (RUN.V * (t0 + 4) + BRAKE_D)) < 1e-6, 'the halt is where the braking ends');
+  assert.ok(Math.abs(p.at(at + 5).s - p.haltS()) < 1e-6, 'standing at it');
+  assert.equal(p.at(at + RUN.halt + 3).phase, 'leaving');
+  assert.equal(p.at(at + RUN.halt + RUN.accel + 3).phase, 'running', 'and on again');
+  let last = p.at(0);
+  for (let t = 0.5; t < at + RUN.halt + RUN.accel + 60; t += 0.5) {
+    const r = p.at(t);
+    assert.ok(r.s >= last.s - 1e-9 && r.v >= 0 && r.v <= RUN.V + 1e-9);
+    assert.ok(Math.abs((r.s - last.s) / 0.5 - (r.v + last.v) / 2) < 0.5, 'its speed is how fast it goes');
+    last = r;
+  }
+  // boarded at the market's halt: pulling out of it
+  const b = planRun('leaving');
+  assert.equal(b.at(0).phase, 'leaving'); assert.equal(b.at(0).v, 0);
+  assert.equal(b.at(RUN.accel + 1).phase, 'running');
+  assert.ok(b.stop(5, 0) >= RUN.accel + RUN.brake, 'asked while still pulling out: it brakes once up to speed');
+});
+
+test('the ride: the land rocks round the rails and bobs at the joints, by the speed; still at a halt', () => {
+  let maxRoll = 0, minBob = 0;
+  for (let t = 0; t < 30; t += 0.05) { const w = swayAt(t, t * RUN.V, 1); maxRoll = Math.max(maxRoll, Math.abs(w.roll)); minBob = Math.min(minBob, w.bob); }
+  assert.ok(maxRoll > 0.002 && maxRoll <= SWAY.roll[0] + SWAY.roll[1] + 1e-9, `a small roll (${maxRoll.toFixed(4)} rad)`);
+  assert.ok(minBob < -0.005 && minBob >= -SWAY.bob - 1e-9, `a bob at the joints (${minBob.toFixed(3)} m)`);
+  assert.deepEqual(swayAt(3.3, 999, 0), { roll: 0, bob: -0 }, 'nothing at a standstill');
 });
 
 test('the train builds: the ship on the landing wagon, people in the carriages, the moons ahead', () => {
@@ -125,12 +162,23 @@ test('the land runs past: the bands, the station, the dust and the wheels move w
   const { level, scene } = built();
   const band = (name) => scene.getObjectByName(name);
   level.setRunTime(0);
-  const station = band('The station');
-  assert.ok(Math.abs(station.position.x) < 1e-6 && station.visible, 'at a halt the station stands beside the train');
+  assert.equal(level.run.phase, 'running', 'moving from the start, not waiting at a station');
+  assert.equal(level.from, null);
+  const station = band('The station'), land = band('The land');
+  assert.ok(land && station.parent === land && band('The telegraph').parent === land, 'everything off the train in the land, which rocks');
   const x0 = band('The telegraph').position.x;
-  level.setRunTime(RUN.halt + RUN.accel + 10);
-  assert.equal(level.run.phase, 'running');
+  level.setRunTime(10);
   assert.ok(Math.abs(band('The telegraph').position.x - x0) > 1, 'the poles have moved');
+  assert.ok(band('The gantries'), 'gantries over the line: shadows passing');
+  // asked to stop: it brakes into a halt with the station beside the carriages
+  const at = level.requestStop(2);
+  assert.ok(at > 10);
+  level.setRunTime(at + 3);
+  assert.equal(level.run.phase, 'halt');
+  assert.ok(Math.abs(station.position.x) < 1e-6 && station.visible, 'at the halt the station stands beside the train');
+  assert.ok(Math.abs(land.rotation.x) < 1e-4, 'and nothing rocks');
+  level.setRunTime(at + RUN.halt + RUN.accel + 30);
+  assert.equal(level.run.phase, 'running');
   assert.ok(station.position.x < -STATION.half, 'the station left behind');
   let tris = 0, solid = 0, meshes = 0;
   scene.traverse((o) => { if (!o.isMesh) return; meshes++; const g = o.geometry, n = (g.index ? g.index.count : g.attributes.position.count) / 3 * (o.isInstancedMesh ? o.count : 1); tris += n; if (!o.userData.noCollide) solid += n; });

@@ -8,6 +8,29 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.40', date: '2026-10-10', items: [
+    // the camera in tight places (docs/systems/movement-and-camera.md "The camera QC and what it fixed")
+    { text: 'In tight places the camera no longer jumps about. Walking through the Overnight Train’s carriages it used to snap in and out at every door and porch and whip round behind your head; now it holds its place and turns to follow you through a doorway, glides in when a wall comes between you, and slides past rows of seats, window frames and compartment doors without pumping in and out. It stays inside the room it is in, rises more gently with a hop under a low ceiling, and tips down over your head when a corridor is too narrow to stand back in.',
+      numbers: [
+        { title: 'The camera walking through the Overnight Train, deck to balcony (42 s)', unit: '', better: 'lower', device: 'Mac, headless Chrome on the GPU, Medium, 1280 × 720, the camera QC’s scripted walk with the camera turned after the way', rows: [
+          { where: 'pops (the camera in or out by more than 25 cm in a frame)', before: 14, after: 0 },
+          { where: 'jumps in its path', before: 37, after: 1 },
+          { where: 'turns of the view nobody asked for', before: 21, after: 0 },
+          { where: 'frames with you out of the picture (%)', before: 6.1, after: 0 },
+        ], source: '.claude/skills/camera-qc (run.mjs), the same scenario before and after' },
+        { title: 'The other carriages’ scenarios: pops / turns nobody asked for', unit: '', better: 'lower', device: 'the same run', rows: [
+          { where: 'at a run through the train', before: '15 / 33', after: '0 / 1' },
+          { where: 'the sleeping car’s corridor, turned round in', before: '7 / 18', after: '0 / 1' },
+          { where: 'hopping along the dining car', before: '2 / 1', after: '0 / 1' },
+        ], source: '.claude/skills/camera-qc' },
+      ],
+      see: 'Open the game with ?level=overnighttrain and walk forward from the ship through the library, the sleeping cars and the dining car to the lounge, turning the camera after you at the doors.' },
+    'The Overnight Train’s end doors are wider and its sleeping cars’ vestibules roomier, with space to turn from the corridor to the door; its windows are glazed (nobody steps out of one any more), and its strollers keep to the lounge and the landing wagon, out of the narrow aisles.',
+    // the Overnight Train, running, and the night mail (docs/systems/worlds.md "The Overnight Train", docs/story-bible.md "The night mail")
+    'The Overnight Train is on the move: it no longer waits at stations, it runs. The plain, the poles and the far buttes race past, signal gantries sweep their shadows along the roofs, the carriages rock gently and bump over the rail joints (watch the horizon from a window), and up on the roofs the wind blows from the nose.',
+    'A new errand in the Signal Market, The Night Mail: past the landing at the south end, a line of rail runs out into the dark to a night halt, where Edda keeps the lamp. Ring the bell and the Overnight Train stops for you. Take her letter to her grandmother Mireille, who rides the roofs at the very back by her chalk mark, ask Ambrose the conductor to stop at the market, and step down with her answer.',
+    'The Overnight Train has left the ship’s map: it is reached from the Signal Market’s night halt now, and a save made aboard wakes on the moving train.',
+  ] },
   { v: '1.39', date: '2026-10-10', items: [
     // the fight, closer to Breath of the Wild's (docs/systems/foes.md)
     'The third swing of the sword’s combo is a heavy blow with both feet on the ground: the sword raised high over a longer wind-up and brought down hard, with a nudge of the camera, for the same three hearts and the same knock back. It was a leap into the air.',

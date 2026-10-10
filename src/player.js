@@ -376,6 +376,7 @@ const _qId = new THREE.Quaternion();
 const _pc = new THREE.Vector3(), _pd = new THREE.Vector3(), _cr = new THREE.Vector3(), _cu2 = new THREE.Vector3();
 const _xAxis = new THREE.Vector3(1, 0, 0);
 const _cn = new THREE.Vector3(), _cd = new THREE.Vector3(), _ce = new THREE.Vector3(), _sw = new THREE.Vector3(), _ct = new THREE.Vector3();
+const _hs = new THREE.Vector3(), _pv = new THREE.Vector3();
 const _sr = new THREE.Vector3(), _sp = new THREE.Vector3(), _lb = new THREE.Vector3();   // (CameraRig.pickShoulder)
 
 /**
@@ -2600,6 +2601,22 @@ const SHOULDER = { room: 2.4, margin: 0.6, cramped: 0.3, gain: 0.8, hold: 0.6, r
 const PROBE_EVERY = 0.12;          // s between clearance probes
 const PROBE_N = 8;                 // horizontal rays round the player
 const LENS_R = 0.36;               // m: the room the lens needs round it (its near plane is 0.3 m out)
+const ARM_HOLD = 0.35;             // s: after the arm comes in, how long before it lets out again
+const ARM_CUT = 0.1;               // m: an arm cut shorter by more than this by a wall in one frame comes in on the spring (or is held)
+const ARM_IN = 9;                  // 1/s: its spring coming in then, if it can't hold (the lens kept out of the walls on the way)
+const ARM_OUT = 3.6;               // 1/s: its spring letting out again
+const ARM_IN_MAX = 12;             // m/s: and at most this fast
+const ARM_AHEAD = 0.22;            // s: turning by hand, how far ahead along the turn the arm looks for walls
+const ARM_IN_ROOM = 0.16;          // m: as long as the lens keeps this much room on the way (else at once)
+const SHORT_ARM = 1.05;            // m: an arm cut shorter than this close in tips the camera down over the head…
+const SHORT_TILT = 0.7;            // rad: …by up to this much
+const ARM_HOLD_CUT = 0.45;         // m: only a cut this big is held (holdSpot): less comes in on the spring
+const AIR_FOLLOW = 3.5;            // 1/s: close in, how fast the view rises with a jump (on the ground: 14)…
+const AIR_LAG = 0.8;               // m: …never more than this below him
+const LOOK_R = 0.3;                // m: the room the look point keeps off walls close in
+const SIDE_IN = 9;                 // 1/s: the look point eased off a wall that comes up right beside it
+const SIDE_R = 0.1;                // m: the ball swept beside the look point to find the room for the shoulder
+const HOLD_HANDS = 0.25;           // s: since you last turned the camera, it doesn't turn itself to hold its spot
 const SWING = [0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.6, -1.6];   // rad: the turns tried when a wall is behind you indoors
 
 const ENCLOSED = { ceil: 26, ring: 36, up: 42 };   // m: a shut space (a cave, a dome, a hall), however big
@@ -2837,6 +2854,10 @@ export class CameraRig {
    */
   updateTight(playerPos, dt, U, Fw, Rt) {
     const jumped = !this._lastP || this._lastP.distanceToSquared(playerPos) > 36;   // a teleport, a portal, a respawn
+    // (how he moves, smoothed: sideArm looks a moment ahead of him, at the door he is about to go through)
+    this._vel ??= new THREE.Vector3();
+    if (jumped || dt <= 0) this._vel.set(0, 0, 0);
+    else this._vel.lerp(_pv.subVectors(playerPos, this._lastP).divideScalar(dt), 1 - Math.exp(-8 * dt));
     (this._lastP ??= new THREE.Vector3()).copy(playerPos);
     this._jumped = jumped;
     this._probeT -= dt;
@@ -2960,7 +2981,7 @@ export class CameraRig {
     _shoulder.crossVectors(U, dir).normalize().multiplyScalar(this.shoulder);
     const side = Math.max(0, Math.min(TIGHT_SIDE * k, this.physics.rayDistance(look, _shoulder, TIGHT_SIDE * k + 0.45) - 0.45));
     look.addScaledVector(_shoulder, side);
-    let d = Math.min(want, this.coneClear(look, dir, want + 0.5, U) - 0.4);
+    let d = this.physics.sweepSphere ? Math.min(want, this.physics.sweepSphere(look, dir, want, LENS_R * 0.8)) : Math.min(want, this.coneClear(look, dir, want + 0.5, U) - 0.4);
     const head = _chest.copy(this.target).addScaledVector(U, 1.55);
     const to = _ct.copy(look).addScaledVector(dir, Math.max(d, 0)).sub(head), L = to.length();
     if (L > 0.3) {
@@ -2986,22 +3007,61 @@ export class CameraRig {
    */
   sideRoom(look, s, far, U = Y) {
     const P = this.physics, dir = _lb.copy(_shoulder).multiplyScalar(s);
-    let room = P.rayDistance(look, dir, far);
+    // (a thin ball swept sideways, not a ray: a door's jamb beside the look point is found a little before it is level
+    // with it, and a row of thin uprights reads as a wall, where the ray found each all at once and the look point jumped)
+    const side = (from) => (P.sweepSphere ? Math.min(far, P.sweepSphere(from, dir, far, SIDE_R) + SIDE_R) : P.rayDistance(from, dir, far));
+    let room = side(look);
     _sr.copy(this._dir).addScaledVector(U, -this._dir.dot(U)).negate();   // ahead, level
     if (_sr.lengthSq() > 1e-6) {
       _sr.normalize();
       for (const [ahead, extra] of [[0.7, 0.25], [1.4, 0.5]]) {
         _sp.copy(look).addScaledVector(_sr, ahead);
         if (P.rayDistance(look, _sr, ahead) < ahead) break;   // (a wall ahead: nothing beside it to see)
-        room = Math.min(room, P.rayDistance(_sp, dir, far) + extra);
+        room = Math.min(room, side(_sp) + extra);
       }
     }
     return room;
   }
 
+  /**
+   * Close in, how much of the shoulder offset to keep (0..1, eased): none while the arm from beside the shoulder is cut
+   * short and the arm from straight behind the head is not. A corridor whose one side is a row of open doors (the
+   * sleeping cars') has room beside the shoulder through every door, so the look point went toward it, and the arm
+   * behind caught on every door frame: in and out, a metre each time. Looked at every PROBE_EVERY s, held a moment.
+   */
+  sideArm(dt, want, dist, U = Y) {
+    const P = this.physics;
+    if (!P.sweepSphere) return 1;
+    this._centreK ??= 1; this._centreT ??= 0; this._armT = (this._armT ?? 0) - dt;
+    if (this._armT <= 0 || this._jumped) {
+      this._armT = PROBE_EVERY;
+      _shoulder.crossVectors(U, this._dir).normalize();
+      // here, and where he will be in half a second (a door ahead: centred before the look point is in it)
+      const ahead = _pv.copy(this._vel ?? _pv.set(0, 0, 0)).addScaledVector(U, -this._vel?.dot(U) || 0).multiplyScalar(0.5);
+      for (const a of ahead.lengthSq() > 0.04 ? [0, 1] : [0]) {
+        _hs.copy(this._look).addScaledVector(ahead, a);
+        if (a && P.rayDistance(this._look, _sr.copy(ahead).normalize(), ahead.length()) < ahead.length()) continue;   // (a wall ahead: not going there)
+        // (either shoulder: the one it is on may be the wrong one yet, pickShoulder has not chosen)
+        let beside = 0;
+        for (const sh of [1, -1]) {
+          _sp.copy(_hs).addScaledVector(_shoulder, sh * want);
+          if (P.roomAt(_sp, LENS_R) >= LENS_R * 0.8) beside = Math.max(beside, P.sweepSphere(_sp, this._dir, dist, LENS_R));
+        }
+        const behind = P.sweepSphere(_hs, this._dir, dist, Math.min(LENS_R, Math.max(0.12, P.roomAt(_hs, LENS_R) - 0.02)));
+        if (beside < dist - 0.3 && behind > beside + 0.3) this._centreT = 0.8;
+      }
+    }
+    this._centreT -= dt;
+    const goal = this._centreT > 0 ? 0 : 1;
+    this._centreK = this._jumped ? goal : this._centreK + (goal - this._centreK) * (1 - Math.exp(-3 * dt));
+    return this._centreK;
+  }
+
   /** @param frame the player's local frame (up / fwd / right) */
   update(playerPos, dt, frame) {
     this._now += dt;
+    // (how fast the camera is being turned, by hand or by the lock-on, since the last frame: the arm looks ahead of it)
+    const turnRate = dt > 0 && this._yawPrev != null ? Math.atan2(Math.sin(this.yaw - this._yawPrev), Math.cos(this.yaw - this._yawPrev)) / dt : 0;
     const U = frame ? frame.up : Y, Fw = frame ? frame.fwd : _zAxis, Rt = frame ? frame.right : _xAxis;
     const ak = this.aimK ?? 0;   // aiming the tool: in close, over the right shoulder
     this.indoorK += ((this.indoor ? 1 : 0) - this.indoorK) * (1 - Math.exp(-5 * dt));
@@ -3016,7 +3076,18 @@ export class CameraRig {
     // (knocked down, softer; but not while the body is falling away from it: a long tumble left the frame)
     if (this._jumped) this.target.copy(playerPos);   // (a teleport, a hand-over: the framing is chosen where you are now)
     const lag = this.target.distanceTo(playerPos);
+    const ty = this.target.y;
     this.target.lerp(playerPos, 1 - Math.exp(-THREE.MathUtils.lerp(14, 5, this.downK * (1 - smoothstep(1.5, 4, lag))) * dt));
+    // a jump close in (a carriage, a corridor): the view rises with it less and more softly, so the arm doesn't knock
+    // against the ceiling at the top of every hop and the frame doesn't bob (main.js sets rig.air while airborne);
+    // never more than a metre behind, nor while the arm is wide or the ground falls away below
+    this._airK = (this._airK ?? 0) + ((this.air ? 1 : 0) - (this._airK ?? 0)) * (1 - Math.exp(-10 * dt));
+    const ak2 = this._airK * smoothstep(0.5, 0.9, Math.max(this.tightK, this.indoorK));
+    // (rising only: coming down it follows at once, or he drops out of the bottom of the frame on landing)
+    if (ak2 > 0.01 && U.y > 0.999 && !this._jumped && playerPos.y > ty) {
+      const soft = ty + (playerPos.y - ty) * (1 - Math.exp(-AIR_FOLLOW * dt));
+      this.target.y = Math.max(THREE.MathUtils.lerp(this.target.y, soft, ak2), playerPos.y - AIR_LAG);
+    }
     if (this.target.lengthSq() === 0) this.target.copy(playerPos);
     // in the ship the view tips down a little from under the ceiling; more when a wall has
     // pulled the camera right in, so the head never fills the screen
@@ -3035,13 +3106,29 @@ export class CameraRig {
       if (Math.abs(this.pitch - this._levelTo) < 0.01) { this.pitch = this._levelTo; this._levelTo = null; }
     }
     this._wasIndoor = this.indoor;
-    const pitch = this.pitch;
-    if (ik > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
+    // close in with the arm cut very short (turning round in a narrow corridor, a corner), the camera tips down over
+    // the head, eased, so the traveller stays in the frame rather than his shoulders filling it (the camera QC's "out")
+    const tiltGoal = k > 0.5 && ak < 0.5 ? THREE.MathUtils.clamp((SHORT_ARM - this._curDist) / (SHORT_ARM - 0.45), 0, 1) : 0;
+    this._tilt = (this._tilt ?? 0) + (tiltGoal - (this._tilt ?? 0)) * (1 - Math.exp(-5 * dt));
+    const pitch = Math.min(this.pitch + this._tilt * SHORT_TILT, PITCH_DOWN);
+    // (in the ship's rooms, and close in anywhere the walls cut the arm: a vestibule, a corridor's end; never aiming)
+    if (Math.max(ik, this.physics.sweepSphere ? tk : 0) > 0.5 && ak < 0.5 && U.y > 0.999) this.swingClear(dt, dist, pitch, k, U, Fw, Rt);
     const cp = Math.cos(pitch);
     const cam = this.camera.position;
     // over the head in the open (the traveller in the lower middle of the frame), at the shoulders
     // close in; looking up from low down, higher, so the sky and clouds fill the view
-    this._look.copy(this.target).addScaledVector(U, this.lookHeight(k, ak, pitch));
+    // (never over whatever is overhead: on a table by a carriage's curved wall, the look point rose through the ceiling,
+    // and the camera behind it ended up outside the train looking at its hull; the cap eased, down quickly, up slowly)
+    let lh = this.lookHeight(k, ak, pitch);
+    if (k > 0.05 && U.y > 0.999) {
+      const roof = Math.min(this.physics.rayDistance(_pv.copy(this.target).addScaledVector(U, 0.9), U, lh + 0.3), 10) + 0.9 - 0.25;
+      this._lookCap = this._jumped || this._lookCap == null ? roof : this._lookCap + (roof - this._lookCap) * (1 - Math.exp(-(roof < this._lookCap ? 12 : 2) * dt));
+      lh = Math.max(0.9, Math.min(lh, this._lookCap));
+    }
+    this._look.copy(this.target).addScaledVector(U, lh);
+    // (and never in a wall: the traveller's body keeps his axis 0.45 m off them, but pressed into a window's opening or up
+    // on a seat by a curved wall the look point touched one, and the arm went out through it)
+    if (k > 0.05 && U.y > 0.999 && this.physics.roomAt && this.physics.roomAt(this._look, LOOK_R) < LOOK_R) this.physics.pushCapsule?.(this._look, LOOK_R, -LOOK_R, LOOK_R, _ct, U);
     this._dir.copy(Rt).multiplyScalar(Math.sin(this.yaw) * cp)
       .addScaledVector(U, Math.sin(pitch))
       .addScaledVector(Fw, Math.cos(this.yaw) * cp);
@@ -3049,7 +3136,13 @@ export class CameraRig {
     // a wall beside you. The offset is signed (+ right) and eased, so a change of shoulder slides
     // across behind the head; a wall closing in on the side it is on pulls it in at once (it used to
     // flick on and off by walls, shaking the view: eased out, snapped in).
-    const want = Math.max(0.85 * ak, TIGHT_SIDE * k);
+    let want = Math.max(0.85 * ak, TIGHT_SIDE * k);
+    if (k > 0.5 && ak < 0.5) {
+      want *= this.sideArm(dt, want, dist, U);
+      // (and less of it the shorter the arm: with the lens right behind the head, a look point 70 cm off the shoulder put
+      // the traveller's head off the edge of the frame, turning round in a corridor or a shop)
+      want *= THREE.MathUtils.clamp((this._curDist - 0.3) / 1.2, 0.25, 1);
+    }
     if (want > 0.01 || Math.abs(this._side) > 0.01) {
       _shoulder.crossVectors(U, this._dir).normalize();   // the camera's right
       this.pickShoulder(dt, want, ak, this._look, _shoulder, this._dir);
@@ -3062,7 +3155,13 @@ export class CameraRig {
         // a wall coming in beside it: eased in quickly, and pulled in at once only as far as needed
         // to keep the look point off the wall (it used to snap all the way in, a jump in the view)
         this._side += (goal - this._side) * (1 - Math.exp(-10 * dt));
-        if (Math.abs(this._side) > room - 0.2) this._side = s * Math.max(0, room - 0.2);
+        // (and quickly, but over a few frames, off a wall right beside it: at once, a door's jamb appearing beside the
+        // look point jumped it 30 cm; never closer than 0.08 m, where the arm's ball has no room left to start from)
+        if (Math.abs(this._side) > room - 0.2) {
+          const to = s * Math.max(0, room - 0.2);
+          this._side += (to - this._side) * (1 - Math.exp(-SIDE_IN * dt));
+          if (Math.abs(this._side) > room - 0.08) this._side = s * Math.max(0, room - 0.08);
+        }
       } else this._side += (goal - this._side) * (1 - Math.exp(-(onSide ? 4 : SHOULDER.rate) * dt));
       // (sliding across: never past a wall on the side it is still on)
       if (Math.sign(this._side) !== s && Math.abs(this._side) > 0.01) {
@@ -3078,9 +3177,23 @@ export class CameraRig {
     // otherwise clip the floor and yank the camera in)
     const rolling = this.camera.up.dot(U) < 0.985;
     // (close in, a cone of rays: a single one slips past bunk posts and table legs, and the lens ends up inside them)
-    const hit = rolling ? Infinity : k > 0.5 ? this.coneClear(this._look, this._dir, dist + 0.5, U, 0.32 * Math.min(1, (k - 0.5) * 4)) : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
+    // Close in, a ball the lens's size swept back along the arm (src/physics.js sweepSphere): it sees a row of window
+    // mullions, chair backs or compartment door frames as the solid band they are, where a ray (or the cone of rays it
+    // replaced) slipped between them on one frame and hit one on the next, popping the camera in and out (the camera QC,
+    // .claude/skills/camera-qc: the Overnight Train's carriages); and the lens keeps its room by itself (no shove off a
+    // wall afterwards). The ball is as big as the room round the look point allows, so a look point near a wall still
+    // finds its arm. In the open, the one ray as before.
+    const swept = !rolling && k > 0.05 && this.physics.sweepSphere;
+    let hit, margin = THREE.MathUtils.lerp(0.6, 0.4, k);
+    if (swept) {
+      const r = this._sweepR = THREE.MathUtils.clamp(this.physics.roomAt(this._look, LENS_R) - 0.02, 0.12, LENS_R);
+      hit = this.physics.sweepSphere(this._look, this._dir, dist + 0.5, r);
+      margin = Math.max(0, margin - r);   // (the ball keeps its own room)
+    } else hit = rolling ? Infinity : this.physics.rayDistance(this._look, this._dir, dist + 0.5);
     // (close in it may come right in: a floor of 1.5 m would put it through a corridor wall)
-    let allowed = Math.max(Math.min(dist, hit - THREE.MathUtils.lerp(0.6, 0.4, k)), THREE.MathUtils.lerp(1.5, 0.45, k));
+    // (and never further than the swept ball found room for, even under the floor of an arm: a look point pressed to a
+    // wall put the lens through it, and the push off the far side sent it out of the carriage to look at its hull)
+    let allowed = Math.max(Math.min(dist, hit - margin), Math.min(THREE.MathUtils.lerp(1.5, 0.45, k), swept ? Math.max(0.15, hit) : Infinity));
     // the ground limits the arm too (so you can drop low and look at the sky):
     // the longest arm whose end stays 0.4 m above the ground, found by
     // bisection, folded into the same target so the two can't fight
@@ -3107,14 +3220,59 @@ export class CameraRig {
       const h = L > 0.3 ? this.physics.rayDistance(_head, _toCam.divideScalar(L), L) : Infinity;
       if (h < L) allowed = Math.max(0.45, allowed * Math.max(0, h - 0.3) / L);
     }
-    // snap in, ease back out; tiny changes are ignored so it can't jitter
-    if (allowed < this._curDist - 0.02) this._curDist = allowed;
-    else this._curDist += (allowed - this._curDist) * (1 - Math.exp(-3 * dt));
+    // snap in, ease back out; tiny changes are ignored so it can't jitter. After coming in it holds a moment before
+    // it lets out (ARM_HOLD): along a row of windows or seats the room behind comes and goes every metre, and the arm
+    // pumped in and out with it
+    // Close in, an arm cut short by a metre or more in one frame (the traveller stepping out of a corridor into a
+    // vestibule, past a partition's end, through a door): rather than jump in, the camera stays where it was, if it
+    // still has its room and sees him from there, and turns to follow him (holdSpot); while you turn it by hand, it
+    // comes in quickly but not at once, unless the lens would be in a wall on the way (the camera QC's pops).
+    // (in and out on a spring, critically damped: its speed changes smoothly, where an easing's first step was a kink)
+    // While you turn it by hand, the arm also looks where the turn is taking it (ARM_AHEAD s on): coming round toward a
+    // wall or a door's frame it starts in before it gets there, on the spring, instead of meeting the edge and jumping.
+    // So does a quick walk or a run (the look point a moment on, where he is going: through a door, the arm behind
+    // will be cut by its jambs as soon as he is through).
+    const hands = this._now - this._lastMouse < HOLD_HANDS;
+    let soft = allowed;
+    const turning = hands && Math.abs(turnRate) > 0.3, moving = (this._vel?.lengthSq() ?? 0) > 4;
+    if ((turning || moving) && swept && k > 0.5 && U.y > 0.999) {
+      const a = this.yaw + (turning ? THREE.MathUtils.clamp(turnRate * ARM_AHEAD, -0.8, 0.8) : 0);
+      _hs.copy(Rt).multiplyScalar(Math.sin(a) * cp).addScaledVector(U, Math.sin(pitch)).addScaledVector(Fw, Math.cos(a) * cp);
+      let from = this._look;
+      if (moving) {
+        _pv.copy(this._vel).addScaledVector(U, -this._vel.dot(U)).multiplyScalar(ARM_AHEAD);
+        const L = _pv.length();
+        if (this.physics.rayDistance(this._look, _sr.copy(_pv).divideScalar(L), L + 0.3) > L + 0.3) from = _sp.copy(this._look).add(_pv);
+      }
+      const ahead = this.physics.sweepSphere(from, _hs, dist + 0.5, this._sweepR ?? LENS_R) - margin;
+      soft = Math.min(allowed, Math.max(ahead, THREE.MathUtils.lerp(1.5, 0.45, k)));
+    }
+    const cut = this._curDist - soft;
+    this._armV ??= 0;
+    const spring = (w, to) => { this._armV += (w * w * (to - this._curDist) - 2 * w * this._armV) * dt; return this._curDist + this._armV * dt; };
+    if (cut > 0.02) {
+      const close = k > 0.5 && ak < 0.5 && swept && U.y > 0.999 && !this._jumped && this._camPrev && (cut > ARM_CUT || soft < allowed);
+      if (close && !hands && cut > ARM_HOLD_CUT && this.holdSpot(dist, U, Fw, Rt)) this._armV = 0;   // (held: yaw, pitch and the arm turned to where it was)
+      else if (close) {
+        let next = spring(ARM_IN, soft);
+        if (this._armV < -ARM_IN_MAX) { this._armV = -ARM_IN_MAX; next = this._curDist - ARM_IN_MAX * dt; }
+        cam.copy(this._look).addScaledVector(this._dir, next);
+        if (next <= soft) { next = soft; this._armV = 0; }
+        // (the lens would be in a wall on the way, or under the ground a heightfield makes: at once)
+        else if (next > allowed && (this.physics.roomAt(cam, LENS_R) < ARM_IN_ROOM || cam.y < this.physics.groundAt(cam.x, cam.y + 0.2, cam.z) + 0.3)) { next = allowed; this._armV = 0; }
+        this._curDist = next;
+        this._holdT = ARM_HOLD;
+      } else { this._curDist = soft; this._armV = 0; this._holdT = ARM_HOLD; }
+    } else if ((this._holdT = (this._holdT ?? 0) - dt) <= 0) {
+      const next = spring(ARM_OUT, allowed);
+      if (next >= allowed || this._armV < 0) { this._curDist = Math.min(next, allowed); if (next >= allowed) this._armV = 0; }
+      else this._curDist = next;
+    } else this._armV = 0;
     cam.copy(this._look).addScaledVector(this._dir, this._curDist);
     // keep the lens clear of walls beside, above and below it (its near plane
     // reaches ~0.35 m off the axis: a wall that close would be cut open)
     if (k > 0.05 && !rolling) {
-      this.unclip(cam, U);
+      if (!swept) this.unclip(cam, U);   // (the swept ball left the lens its room already: the rays only shoved it about)
       // and off anything else that close (a bunk's edge just under the lens, a corner): a sphere pushed out
       this.physics.pushCapsule?.(cam, LENS_R, -LENS_R, LENS_R, _ct, U);
     }
@@ -3126,6 +3284,33 @@ export class CameraRig {
       this.camera.up.applyQuaternion(_q1).normalize();
     }
     this.camera.lookAt(this._look);
+    (this._camPrev ??= new THREE.Vector3()).copy(cam);
+    this._yawPrev = this.yaw;
+  }
+
+  /**
+   * The camera's last spot, if it will still do: room round the lens, the look point and the head in sight from it, no
+   * further than the arm. Then the arm is turned to it (yaw, pitch and length): the camera stays put and turns to follow
+   * the traveller, instead of jumping in to the short arm straight behind him. Returns whether it held.
+   */
+  holdSpot(dist, U = Y, Fw = _zAxis, Rt = _xAxis) {
+    const P = this.physics, H = this._camPrev;
+    const to = _hs.subVectors(H, this._look), L = to.length();
+    if (L < 0.8 || L > dist + 0.3) return false;
+    if (P.roomAt(H, LENS_R) < 0.28) return false;
+    to.divideScalar(L);
+    if (Math.abs(to.dot(U)) > 0.8) return false;
+    if (P.sweepSphere(this._look, to, L + 0.05, this._sweepR ?? LENS_R) < L) return false;   // (as the arm will be found next frame: else it holds, lets go, holds…)
+    const head = _head.copy(this.target).addScaledVector(U, 1.55), toH = _ct.subVectors(H, head), Lh = toH.length();
+    if (Lh > 0.3 && P.rayDistance(head, toH.divideScalar(Lh), Lh) < Lh - 0.1) return false;
+    const pitch = Math.asin(THREE.MathUtils.clamp(to.dot(U), -1, 1)) - (this._tilt ?? 0) * SHORT_TILT;
+    if (pitch < this.pitchUpLimit() || pitch > PITCH_DOWN) return false;
+    this.yaw = Math.atan2(to.dot(Rt), to.dot(Fw));
+    this.pitch = pitch;
+    this._dir.copy(to);
+    this._curDist = Math.min(L, this._curDist);   // (no further than it was: walking away from it, it comes along)
+    this._holdT = ARM_HOLD;
+    return true;
   }
 
   /** Push the camera off any surface closer than `r` to its sides, top or bottom. */
