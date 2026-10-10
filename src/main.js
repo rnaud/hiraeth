@@ -2,6 +2,7 @@ import * as shipSfx from './ship/sfx.js';
 import { homecomingKind } from './story/ending.js';
 import { updateHazards } from './hazards.js';
 import * as THREE from 'three';
+import { installMatrixCache } from './matrix-cache.js';
 import { ReactiveWorld } from './reactive-world.js';
 import { Controller, mergeControls, menuNavigate } from './controller.js';
 import { padConfirm } from './menu-pad.js';
@@ -127,6 +128,8 @@ import { interiorAt } from './interior-kit.js';
 // Android: the handheld's controls come from the app (native-pad.js), and prompts use its button names
 installNativePad();
 watchLabels();
+// the scene's matrices recomposed only where something moved (src/matrix-cache.js)
+installMatrixCache();
 
 // Loading: each stage updates the inked loading screen, then yields a frame
 // so it can paint (its pen animation runs on the compositor meanwhile).
@@ -1031,7 +1034,7 @@ function applyDetail() {
   waterShared.uWaterLite.value = low || preset.postLite ? 1 : 0;   // (src/water-shader.js)
   BLADE_QUALITY.lite = bladeLiteFor(preset, low);   // (the fluid sword's lighter look: src/blade-shader.js)
   waters.contact = waterContactOn(preset);   // the little waves round what stands in the water (src/water.js renderGBuffer)
-  for (const n of npcs) n.lowDetail = low;
+  for (const n of npcs) { n.lowDetail = low; n.clothFar = preset.clothFar ?? null; }
   if (crowd) {
     const mid = preset.crowdMid ?? crowdRange.midIn;
     Object.assign(crowd.range, { far: Math.min(preset.crowdFar ?? Infinity, crowdRange.far), midIn: Math.min(mid, crowdRange.midIn), midOut: Math.min(mid + 7, crowdRange.midOut),
@@ -2027,7 +2030,9 @@ async function warmShaders(targetScene, targetCamera, target = null) {
 }
 // The world's own surfaces, a slice at a time (src/warm-shaders.js: one object for each kind of program,
 // compiled between yields, then the wait for the driver, polled; a combination missed compiles at first sight)
-const gpuPace = gpuPacer(renderer.getContext());
+// (a GPU whose fences never signal, the Steam Deck's ANGLE on GL: remembered, so its next loads don't wait to find out)
+const pacerKey = `moebius.pacerOff.${gpuName}`;
+const gpuPace = gpuPacer(renderer.getContext(), { memory: { get: () => { try { return localStorage.getItem(pacerKey) === '1'; } catch { return false; } }, set: () => { try { localStorage.setItem(pacerKey, '1'); } catch { /* private mode */ } } } });
 const warmShadersSliced = (targetScene, targetCamera, target = null, { wear = null } = {}) =>
   warmSliced(renderer, targetScene, targetCamera, { target, wear, slice, pace: gpuPace });
 // instanced props left unculled (rocks, flowers, story props) get real bounds, so every pass can cull them

@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.39 — 2026-10-10
 
+- Loading a world on the Steam Deck is about a second quicker: the loading screen stops waiting for a signal the Deck’s graphics driver never sends, once it has found that out the first time.
+- The Steam Deck runs smoother in busy places: its graphics preset draws the sun’s shadows in one pass fewer, with a sharper map near you so they look the same, people’s cloaks sway in the wind within 14 m (further off they hang still), and the game no longer recomputes the place of everything in the world each frame when it has not moved. The Deck’s processor, not its graphics chip, was what held it back.
 - A defeated foe lies where it fell for a second, then goes out in a little puff of pastel smoke instead of shrinking away.
 - You can lock on to a temple guardian in its fight, as to any foe: the mark frames it and reads its moves, and the camera keeps it ahead.
 - Flip or hop away just before a blow lands and time slows round you for a few seconds: the foe and the world crawl, a soft pastel haze closes in at the edges of the screen, nothing can touch you, and your sword reaches it from further off, swing after swing. It works against every creature and machine and against the temple guardians.

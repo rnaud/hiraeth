@@ -407,20 +407,21 @@ export class Cape {
       }
       // constraints, then collisions
       const iters = s.quiet ? BAKE.iters : 5;
+      // (the constraints as flat numbers: the points' offsets, their weights, rest lengths and stiffness, worked
+      //  out once a cut; the loop below is most of a cape's time, ~4 of them a frame in a camp on the Deck)
+      const CS = this._consFlat(!!s.field), CI = CS.idx, CW = CS.w, CR = CS.rest, CK = CS.k, P = this.p, NC = CI.length >> 1;
       for (let it = 0; it < iters; it++) {
-        const C = this.cons, SK = s.field ? this.seatedK : null, SR = this.seatRest;
-        for (let k2 = 0; k2 < C.length; k2 += 4) {
-          const i = C[k2] * 3, j = C[k2 + 1] * 3;
-          let rest = SK ? SR[k2 >> 2] : C[k2 + 2], st = SK ? SK[k2 >> 2] : C[k2 + 3];
-          const dx = this.p[j] - this.p[i], dy = this.p[j + 1] - this.p[i + 1], dz = this.p[j + 2] - this.p[i + 2];
+        for (let c2 = 0; c2 < NC; c2++) {
+          const i = CI[c2 * 2], j = CI[c2 * 2 + 1];
+          let rest = CR[c2], st = CK[c2];
+          const dx = P[j] - P[i], dy = P[j + 1] - P[i + 1], dz = P[j + 2] - P[i + 2];
           const d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1e-6;
           // seated, a bend only keeps the cloth from folding back on itself (SEATED.fold): it bends freely short of that
           if (st < 0) { rest *= SEATED.fold; if (d >= rest) continue; st = -st; }
           const diff = ((d - rest) / d) * 0.5 * st;
-          const pinI = i < cols * 3, pinJ = j < cols * 3;
-          const wi = pinI ? 0 : pinJ ? 2 : 1, wj = pinJ ? 0 : pinI ? 2 : 1;
-          this.p[i] += dx * diff * wi; this.p[i + 1] += dy * diff * wi; this.p[i + 2] += dz * diff * wi;
-          this.p[j] -= dx * diff * wj; this.p[j + 1] -= dy * diff * wj; this.p[j + 2] -= dz * diff * wj;
+          const wi = CW[c2 * 2] * diff, wj = CW[c2 * 2 + 1] * diff;
+          P[i] += dx * wi; P[i + 1] += dy * wi; P[i + 2] += dz * wi;
+          P[j] -= dx * wj; P[j + 1] -= dy * wj; P[j + 2] -= dz * wj;
         }
         if (!s.quiet || it === iters - 1) this.collide(s);   // (a bake: the colliders once a step)
       }
@@ -445,6 +446,25 @@ export class Cape {
     this.geo.computeVertexNormals();
     this.geo.computeBoundingSphere();
     this.ringBells();
+  }
+
+  /**
+   * The constraints laid out for update()'s loop (standing or seated: their rest lengths and stiffness differ):
+   * idx the two points' offsets in p (×3, as integers), w their weights (a collar point pinned: 0, the other
+   * end 2, else 1 each), rest, k (negative: a seated bend, one-sided). Made once per cut and pose.
+   */
+  _consFlat(seated) {
+    const key = seated ? '_cfSeat' : '_cfStand';
+    if (this[key]) return this[key];
+    const C = this.cons, n = C.length / 4, pinEnd = this.cols * 3;
+    const idx = new Int32Array(n * 2), w = new Float64Array(n * 2), rest = new Float64Array(n), k = new Float64Array(n);
+    for (let c = 0; c < n; c++) {
+      const i = C[c * 4] * 3, j = C[c * 4 + 1] * 3, pinI = i < pinEnd, pinJ = j < pinEnd;
+      idx[c * 2] = i; idx[c * 2 + 1] = j;
+      w[c * 2] = pinI ? 0 : pinJ ? 2 : 1; w[c * 2 + 1] = pinJ ? 0 : pinI ? 2 : 1;
+      rest[c] = seated ? this.seatRest[c] : C[c * 4 + 2]; k[c] = seated ? this.seatedK[c] : C[c * 4 + 3];
+    }
+    return (this[key] = { idx, w, rest, k });
   }
 
   /** The hem's bells (if it has any) where the hem is now. */

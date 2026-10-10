@@ -108,8 +108,10 @@ export const stepped = (build) => (...args) => runSteps(build(...args));
  * the whole `most`, or `budget` ms of waiting in all. A driver whose fences never signal (the Steam Deck's
  * ANGLE under gamescope, seemingly, with the canvas hidden) had every piece wait the whole `most`: 741 kinds
  * of surface in the desert and as many warm-draw batches, minutes on "mixing the inks…".
+ * `memory` ({ get, set }): where a give-up for unsignalled fences is remembered (main.js: per GPU, in
+ * localStorage), so later loads on that GPU don't spend ~0.75-1.5 s finding out again (the Deck on GL, every load).
  */
-export function gpuPacer(gl, { lag = 40, most = 250, giveUp = 3, budget = 3000, warn = console.warn } = {}) {
+export function gpuPacer(gl, { lag = 40, most = 250, giveUp = 3, budget = 3000, warn = console.warn, memory = null } = {}) {
   const queue = [];   // [fence, when put]
   const ok = !!gl && typeof gl.fenceSync === 'function';
   const signaled = (s) => gl.getSyncParameter(s, gl.SYNC_STATUS) === gl.SIGNALED;
@@ -120,6 +122,7 @@ export function gpuPacer(gl, { lag = 40, most = 250, giveUp = 3, budget = 3000, 
     for (const [f] of queue) gl.deleteSync(f);
     queue.length = 0;
     warn?.(`gpu pacer: ${why}; the load goes on without waiting for the GPU (${pace.waited.toFixed(0)} ms waited)`);
+    if (!/in all/.test(why)) memory?.set();   // (fences that never signal: the next load doesn't wait to find out)
   };
   const pace = async () => {
     if (!ok || pace.off) return;
@@ -139,6 +142,7 @@ export function gpuPacer(gl, { lag = 40, most = 250, giveUp = 3, budget = 3000, 
     gl.flush();
   };
   pace.waited = 0; pace.off = false;
+  if (memory?.get()) pace.off = true;
   return pace;
 }
 

@@ -71,6 +71,25 @@ test('a GPU that is slow but does signal: a full wait now and then is fine, the 
   assert.ok(Date.now() - t0 < 1000, `bounded (${Date.now() - t0} ms)`);
 });
 
+test('a give-up for unsignalled fences is remembered: the next load on that GPU never waits (a slow GPU is not)', async () => {
+  let saved = false;
+  const memory = { get: () => saved, set: () => { saved = true; } };
+  const first = gpuPacer(fakeGL(), { lag: 0, most: 10, giveUp: 3, warn: null, memory });
+  for (let i = 0; i < 10; i++) await first();
+  assert.ok(first.off && saved, 'gave up, and said so to the memory');
+  const gl = fakeGL(), next = gpuPacer(gl, { lag: 0, most: 1000, memory });
+  const t0 = Date.now();
+  for (let i = 0; i < 20; i++) await next();
+  assert.ok(next.off, 'off from the start');
+  assert.equal(gl.fences.length, 0, 'no fences at all');
+  assert.ok(Date.now() - t0 < 50, 'no waiting');
+  // the budget running out (fences that do signal, slowly) is not remembered
+  let slowSaved = false;
+  const slowGl = fakeGL(), slow = gpuPacer(slowGl, { lag: 0, most: 20, giveUp: 3, budget: 60, warn: null, memory: { get: () => false, set: () => { slowSaved = true; } } });
+  for (let i = 0; i < 40; i++) { await slow(); if (i % 2) slowGl.fences.forEach((f) => { f.done = true; }); }
+  assert.ok(slow.off && !slowSaved, 'a slow GPU tries again next load');
+});
+
 test('nextFrame: a frame, or the fallback when frame callbacks never run', async () => {
   const { nextFrame } = await import('../src/load-steps.js');
   const had = globalThis.requestAnimationFrame;

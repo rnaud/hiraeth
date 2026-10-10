@@ -640,7 +640,7 @@ export class NPC {
     this._clothDt = (this._clothDt ?? 0) + dt;
     const every = camD < 12 ? 1 : camD < 35 ? 2 : 3;
     this._clothN = ((this._clothN ?? 0) + 1) % every;
-    const clothR = (this.lowDetail ? 30 : 70) + (this._clothOn ? 5 : 0);   // (a margin: no flicker at the edge)
+    const clothR = (this.clothFar ?? (this.lowDetail ? 30 : 70)) + (this._clothOn ? 5 : 0);   // (a margin: no flicker at the edge; clothFar: the preset's, perf.js)
     this._clothOn = !!this.cape && camD < clothR;
     if (this._clothOn && (this._clothN === 0 || !this.cape.ready || this.cape.hung)) {
       this.object.updateMatrixWorld(true);

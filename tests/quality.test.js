@@ -175,7 +175,11 @@ test('the Steam Deck has its own preset, between Handheld and Medium, and Auto p
   assert.ok(d.dynamic.min < 1 && d.dynamic.max === 1);
   assert.ok(d.crowdFar > h.crowdFar && d.propFar > h.propFar && d.propFar < m.propFar);
   assert.ok(d.floraFar > h.floraFar && d.floraFar < m.floraFar);
-  assert.ok(d.shadow.fine > 0 && d.shadow.fine < m.shadow.fine);
+  // (no fine cascade: a whole pass of the scene a frame on a main thread that is the limit; a sharper near map
+  //  over a smaller square instead, docs/systems/performance.md "The Steam Deck, round 2")
+  assert.equal(d.shadow.fine, 0);
+  assert.ok(d.shadow.near >= m.shadow.near && d.nearExtent < h.nearExtent, 'the near map: Medium\'s size over a smaller square');
+  assert.ok(d.clothFar > 0 && d.clothFar < 30, 'capes simulated nearer than on the other low-detail presets');
   assert.equal(resolveQuality('auto', { deck: true }).key, 'deck');
   assert.equal(resolveQuality('auto', { deck: true, handheld: true }).key, 'deck');
   assert.match(resolveQuality('auto', { deck: true }).label, /^Auto: Steam Deck/);

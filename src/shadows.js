@@ -152,7 +152,11 @@ export class Cascade {
   render(renderer, scene) {
     renderer.setRenderTarget(this.rt);
     renderer.clear();
-    renderer.render(scene, this.cam);
+    // (a depth map needs no draw order: unsorted, three skips each caster's depth for the sort and the sort itself,
+    //  ~0.5 ms a frame of the Deck's main thread at the desert's camps)
+    const sort = renderer.sortObjects;
+    renderer.sortObjects = false;
+    try { renderer.render(scene, this.cam); } finally { renderer.sortObjects = sort; }
   }
 }
 

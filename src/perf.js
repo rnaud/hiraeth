@@ -363,6 +363,8 @@ export class InteriorCuller {
  *    G-buffer step and a depth copy where water is in view); false: one pass, the bed map's foam only
  *  - lodPx: levels of detail (lod.js): a distant mesh may lose detail smaller than this many pixels
  *    on screen (0 = always full detail)
+ *  - clothFar: people's capes are simulated within this many metres of the camera (npc.js updateCape;
+ *    unset: 30 m on a low-detail preset, 70 m otherwise); further off they hang on the body
  */
 // (cpuBound's probe, adaptScale: a step of 0.1 tried where the main thread looks like the limit, judged over
 //  5 windows, kept for 3 fps more or 2 missed refreshes fewer a window, else not tried again for 240 windows, 2 min)
@@ -378,11 +380,14 @@ export const QUALITY_PRESETS = {
   low:      { ...FULL, label: 'Low (fast)', scale: 0.7, shadow: { fine: 1024, near: 2048, far: 2048 }, nearEvery: 2, taps: 4,
     ao: false, cloudShadows: false, lowDetail: true, crowdFar: 300, crowdMid: 45, propFar: 420, propPx: 1.5, floraFar: 0.8, floraDensity: 0.75, lodPx: 1.5 },
   // the Steam Deck at its own 1280×800: the handheld's lighter recipe where the Deck's CPU pays for
-  // it (crowd, props, flora, the fine cascade), the full image otherwise (native resolution, crease
-  // shading, both ink passes), adapting down to 0.6 when a scene is too much
+  // it (crowd, props, flora, people's cloth), the full image otherwise (native resolution, crease
+  // shading, both ink passes), adapting down to 0.6 when a scene is too much. Its main thread is the
+  // limit everywhere (docs/systems/performance.md, "The Steam Deck, round 2"): no fine cascade (a whole
+  // pass of the scene a frame), a sharper near map over a smaller square instead (the GPU has room);
+  // capes simulated within 14 m (clothFar; further off they hang on the body)
   deck:     { label: 'Steam Deck', scale: 1, dynamic: { min: 0.6, max: 1, low: 40, high: 56, steady: 3, hold: 40, cpuBound: 0.85, probe: PROBE },
-    shadow: { fine: 1024, near: 2048, far: 2048 }, nearExtent: 180, nearEvery: 2, farEvery: 4, taps: 4,
-    ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5 },
+    shadow: { fine: 0, near: 4096, far: 2048 }, nearExtent: 120, nearEvery: 2, farEvery: 4, taps: 4,
+    ao: true, cloudShadows: false, lowDetail: true, crowdFar: 260, crowdMid: 45, propFar: 380, propPx: 1.5, postLite: false, floraFar: 0.75, floraDensity: 0.65, lodPx: 1.5, clothFar: 14 },
   // the Xbox app (xbox/, src/xbox.js): High's full recipe at the TV's own resolution (WebView2 on the console
   // reports a pixel ratio of 2 at 1080p, where High renders 1× as well), adapting down to 0.6 when a scene is too
   // much: the console's first measurements (docs/systems/xbox.md) will say what to trim

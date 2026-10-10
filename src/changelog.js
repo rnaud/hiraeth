@@ -27,6 +27,18 @@ export const CHANGELOG = [
     'Flip or hop away just before a blow lands and time slows round you for a few seconds: the foe and the world crawl, a soft pastel haze closes in at the edges of the screen, nothing can touch you, and your sword reaches it from further off, swing after swing. It works against every creature and machine and against the temple guardians.',
     'You can lock on to a temple guardian in its fight, as to any foe: the mark frames it and reads its moves, and the camera keeps it ahead.',
     'A defeated foe lies where it fell for a second, then goes out in a little puff of pastel smoke instead of shrinking away.',
+    // the Steam Deck's performance pass (docs/systems/performance.md "The Steam Deck, round 2")
+    { text: 'The Steam Deck runs smoother in busy places: its graphics preset draws the sun’s shadows in one pass fewer, with a sharper map near you so they look the same, people’s cloaks sway in the wind within 14 m (further off they hang still), and the game no longer recomputes the place of everything in the world each frame when it has not moved. The Deck’s processor, not its graphics chip, was what held it back.',
+      numbers: [{ title: 'The main thread’s time a frame, one change at a time', unit: 'ms', better: 'lower', device: 'Steam Deck OLED, Steam Deck preset, 1280 × 800, gamescope (headless), ANGLE on GL, the Desert’s camps', rows: [
+        { where: 'shadows: no fine map, a sharper near map', before: 32.7, after: 30.4 },
+        { where: 'matrices only where something moved', before: 33.6, after: 32.3 },
+        { where: 'shadow maps drawn unsorted', before: 32.4, after: 31.7 },
+      ], source: 'scripts/bench/deck-worlds.mjs, each change toggled in the running game three times (medians)', note: 'The graphics chip’s time a frame went from 12.05 to 12.6 ms with the sharper near map; it was never the limit (8–13 ms against 17–37 ms of the main thread).' }] },
+    { text: 'Loading a world on the Steam Deck is about a second quicker: the loading screen stops waiting for a signal the Deck’s graphics driver never sends, once it has found that out the first time.',
+      numbers: [{ title: 'Waiting for the graphics driver during a load', unit: 'ms', better: 'lower', device: 'Steam Deck OLED, ANGLE on GL', rows: [
+        { where: 'every world, from the second load on', before: '751–1544', after: 0 },
+      ], source: 'the loads’ “gpu pacer” warnings over the DevTools protocol (scripts/bench/deck-worlds.mjs)' }],
+      see: 'Start two worlds in a row on the Steam Deck: the second one passes “mixing the inks…” a little sooner.' },
   ] },
   { v: '1.38', date: '2026-10-10', items: [
     // the progression rewrite (docs/systems/progression.md): the sword alone at the start

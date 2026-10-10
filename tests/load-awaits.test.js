@@ -72,8 +72,10 @@ test('the known waits keep their bounds', () => {
   assert.match(code, /const stage = \(msg\) => \{[\s\S]*?return nextFrame\(\)/, 'stage() waits on nextFrame()');
   assert.match(loadSteps, /export function nextFrame\(fallback = \d+\)[\s\S]*?setTimeout\(go, fallback\)/, 'nextFrame() has its fallback timer');
   assert.match(loadSteps, /export function gpuPacer\(gl, \{[^}]*most = 250, giveUp = 3, budget = 3000/, 'the pacer gives up');
-  // the pacer is made with its defaults (no option that lifts the bounds)
-  assert.match(code, /const gpuPace = gpuPacer\(renderer\.getContext\(\)\);/);
+  // the pacer is made with its defaults (no option that lifts the bounds; only where a give-up is remembered)
+  const made = code.match(/const gpuPace = gpuPacer\(renderer\.getContext\(\)(.*)\);/);
+  assert.ok(made, 'the pacer is made');
+  assert.doesNotMatch(made[1], /\b(lag|most|giveUp|budget):/, 'no option that lifts the bounds');
   // the asset loads waited for are caught
   for (const name of ['animLib', 'traveller', 'humans', 'mhPeople']) {
     const def = code.match(new RegExp(`const ${name} = ([^\\n]*)`));

@@ -746,6 +746,90 @@ node scripts/bench/deck-summary.mjs "High 1.5×=<dir2>/deck-worlds.json:fixed" "
 scripts/bench/deck-run.sh stop
 ```
 
+## The Steam Deck, round 2: every world, the main thread's costs, GL against Vulkan (October 2026)
+
+**How it was measured.** 10 October, Steam Deck OLED in Gaming Mode on battery, runtime 1668001 with web
+build 1668 (v1.37), `PORT=5420 REFRESH=90 scripts/bench/deck-run.sh start headless <game>`, then
+`deck-worlds.mjs --quality deck --modes fixed --secs 6 --warmup 2 --profile 1` (1280 × 800, the Steam Deck
+preset at scale 1, ANGLE on radeonsi GL). **The player's own game was open on the title screen the whole
+time** (Steam had launched it, which keeps the Deck awake; it can't be paused from a script): its renderer
+and GPU process took ~1.1 and ~0.5 of a core and a share of the GPU, so every number here is somewhat
+pessimistic against a Deck running the game alone (the desert's spawn was 48 fps on 7 October with v0.80
+and nothing else running, 33 here). Before and after ran under the same load.
+
+The bench now runs in a profile of its own (`XDG_CONFIG_HOME=~/.local/share/moebius-bench`): before, Electron's
+single-instance lock made it quit while the player's game was open, and `deck-worlds.mjs` wrote its settings and
+an empty save over the player's own. It prints each load's "gpu pacer" / "load:" warnings, and `--cpuprofile 1`
+saves V8's profile of each view (`<raw>/<world>-<view>.cpuprofile`) with its heaviest functions.
+
+**The loading hang is gone.** Every world loaded (13–32 s); each load logged "gpu pacer: 3 waits in a row ran
+out (250 ms each): fences not signalled", 751–1544 ms waited: the driver's fences really never signal under
+ANGLE's GL backend, the cause found on 8 October. The pacer now remembers that per GPU (localStorage
+`moebius.pacerOff.<renderer>`, `gpuPacer({ memory })`), so only a Deck's first load spends that second
+finding out. On ANGLE's Vulkan backend the fences do signal (no warning, the desert loaded in 12.9 s).
+
+**Before** (each cell: fps, the median of the world's views (the slowest view); that view's frame time
+p50 / p95; the JS / GPU ms a frame, medians of the views):
+
+| world | Steam Deck preset, before |
+|---|---|
+| desert | 29 (26 walk-camps); 33.4/55.5 ms; 31.3/11.7 |
+| incal | 26 (26 start); 33.5/44.5 ms; 36.7/13.3 |
+| bazaar | 46 (39 start); 22.3/33.4 ms; 21.3/10.0 |
+| arzach | 53 (43 start); 22.2/33.3 ms; 18.2/8.4 |
+| arzach2 | 48 (42 start); 22.2/33.4 ms; 20.7/11.9 |
+| garage | 53 (45 start); 22.2/33.3 ms; 18.1/7.9 |
+| buried | 52 (50 walk); 22.2/22.4 ms; 18.7/9.3 |
+| edena | 51 (43 start); 22.2/33.4 ms; 18.8/7.7 |
+| spheres | 56 (48 start); 22.2/22.5 ms; 17.1/8.3 |
+| perdide | 54 (52 start); 22.2/22.3 ms; 18.0/8.3 |
+| perdide2 | 50 (47 start); 22.2/33.2 ms; 18.8/12.8 |
+| home | 57 (55 crowd); 22.2/22.3 ms; 16.8/7.6 |
+
+The refresh is 90 Hz, so frames come in steps of 11.1 ms: 22.2 ms is 45 fps, 33.3 ms 30.
+
+**Where the time goes.** The main thread is the limit at every view: 15–38 ms of JS a frame against 7–18 ms of GPU,
+and dynamic resolution rightly holds scale 1 (the `cpuBound` guard). V8's profile at the desert's camps (inclusive,
+per frame, inflated ~1.5× by the profiler): rendering 31 ms, of which the G-buffer pass 12, the shadow passes 9
+(three walks the whole scene for each pass: `projectObject`, 4 ms of self time over a frame's passes),
+`updateMatrixWorld` 8.7 (a frame visits 8 000–12 000 objects: the whole scene once, the traveller's rig four
+more times, each cab, each posed person; only ~400–750 of them had moved); the people 7.8, of which their capes'
+cloth 3–5 (3.5 cape updates a frame at ~1 ms each on the Deck, 0.23 ms on an M4: five cloaks within 30 m at
+Qanat); the traveller 3–5. The City-Shaft's start draws 1 200–1 300 times a frame (650 in the G-buffer, 570 in the
+shadow maps on average), mostly its terraces' and towers' merged meshes: none of the small-prop, flora or LOD knobs
+moved its draws or its JS (tried at the view: 1 195 → 1 194 draws).
+
+**ANGLE's Vulkan backend is much slower here**: the same views at 19 / 18 / 33 fps (spawn, camps, cave) against 33 /
+28 / 61 on GL, the GPU time 30 ms against 12.5; the JS the same. The Deck stays on GL (deck.py's first choice).
+
+**What changed** (each measured at the desert's camps by toggling it in the running game three times, medians of the
+main thread's time a frame):
+
+- **No fine shadow cascade on the Deck preset** (`shadow.fine: 0`), a near map of 4096 over a 120 m square
+  instead of 2048 over 180 m (its texel 6 cm, the fine map's was 2.3 cm, the old near map's 18 cm): a whole pass of
+  the scene a frame less. 32.7 → 30.4 ms of JS, the GPU 12.05 → 12.6 ms. The traveller's and the plants' shadows
+  at the spawn look the same in a side-by-side (the Mac, the same moment).
+- **Capes simulated within 14 m on the Deck** (`clothFar`, npc.js `updateCape`; Handheld keeps 30 m, the others 70):
+  further off a cloak hangs on the body as its drape. At Qanat 5 cloaks were simulated, 2 now.
+- **Matrices recomposed only where something moved** (`src/matrix-cache.js`, installed on `Object3D.prototype`
+  in main.js): each object keeps the ten numbers its local matrix was composed from and recomposes, and multiplies
+  its world matrix, only when they changed, it was flagged, or its parent's world matrix changed; the matrices are
+  the same as three's (`tests/matrix-cache.test.js` checks them against three's walk over frames of changes).
+  33.6 → 32.3 ms. (At the City-Shaft's start it saved nothing measurable: 97 groups there move or are flagged every
+  frame, so most of the walk's multiplies are real.)
+- **Shadow maps drawn unsorted** (`Cascade.render`: a depth map needs no draw order): 32.4 → 31.7 ms.
+- **The cape's constraint loop on flat arrays** (`Cape._consFlat`: the points' offsets as integers, the weights
+  worked out once): the same results, ~5 % of a cape's update on the Mac.
+
+**After**: not measured yet across the worlds. The Deck went to sleep (battery, Gaming Mode) during the Vulkan run, right after the changes were measured one by one above, and did not wake again while this was written. Added up at the camps the changes take ~5 ms off a ~33 ms frame of the main thread (more where cloaks are near): about a 30 → 36–40 fps step where the JS sits around 25–33 ms, nothing where a view already makes 45 (its next step, 60, needs 16.7 ms). To measure: build, copy `dist/` to the Deck, and run the commands of "The Steam Deck" above with the game dir.
+
+**What is still slow, and why.** The desert (its camps and Qanat: people, capes, the traveller, 400–650 draws)
+and the City-Shaft (1 200+ draws, 570 of them shadows) stay under 40 fps on the Deck: the main thread's cost is
+three.js's per-draw work (traversal, uniforms, state) times the draws, and the game's own per-frame systems,
+not anything the preset still trades. The next steps that would move it: fewer draws in the City-Shaft (merging
+its terraces' meshes further, or one shadow draw per merged mesh), the shadow passes culling from a list instead of
+walking the scene each time, and the people's posing and cloth on a cheaper path (or a worker).
+
 ## Round 3, on the Mac: the City-Shaft's towers in one draw, the people's costs, the load's warnings (October 2026)
 
 The Retroid gone, measured in headless Chrome (Handheld, the CPU slowed ×4) on a Mac shared with other agents'

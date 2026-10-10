@@ -252,7 +252,10 @@ Ranked; each says why in the review. Playtest with two or three new players befo
 - [ ] **Performance pass on the Steam Deck** (2026-10-09, once the Deck is plugged in so it doesn't sleep):
   every world in Gaming Mode on the installed build, the FPS and frame times against the targets, the worst
   views profiled (GPU vs JS), fixes for the biggest costs, before/after numbers in the changelog. First confirm
-  the "mixing the inks…" hang (below) is gone.
+  the "mixing the inks…" hang (below) is gone. (2026-10-10: the hang is gone; every world measured before on the
+  Steam Deck preset, profiled, the fixes in: performance.md "The Steam Deck, round 2". Left: the **after** run
+  across the worlds (the Deck slept before it), with the player's game closed, and High at 1.5× for reference;
+  then the desert's camps and the City-Shaft, still under 40 fps: their draws and the people's per-frame work.)
 - [ ] Every level hangs on "mixing the inks…" on the Deck (2026-10-08, runtime 1294001, its packaged game,
   gamescope GL): no error in the console, the first shader warm-up never logs. Suspect: the load's GPU pacer
   (src/load-steps.js gpuPacer) waiting its full 250 ms on fences the driver never signals, every piece.
@@ -263,6 +266,8 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   Deck's). Now the pacer gives up after 3 full waits in a row or 3 s in all (one "gpu pacer: …" warning),
   a stage waits for a frame or 250 ms, and a stage over 15 s names its step ("load: still on …"): 3.8 s
   with silent fences. On the Deck, look for the "gpu pacer" warning to confirm the cause.
+  (2026-10-10, confirmed on the Deck: every world loads, 13–32 s, each with that warning, 751–1544 ms waited;
+  the give-up is remembered per GPU now. Done: move to DONE.md.)
 - [ ] Measure every world on the Deck, before (High at 1.5×) and after (the new Steam Deck preset,
   fixed and dynamic), in Desktop Mode and under gamescope: `scripts/bench/deck-run.sh start desktop`,
   then `node scripts/bench/deck-worlds.mjs` (docs/systems/performance.md, "Steam Deck"). Write the
@@ -270,7 +275,8 @@ Ranked; each says why in the review. Playtest with two or three new players befo
   City-Shaft under headless gamescope (Gaming Mode's X11); the Deck slept at the Market. Left: the other ten
   worlds, High at 1.5×, Desktop Mode. Needs the Deck plugged in (or Desktop Mode): on battery in Gaming
   Mode it sleeps ~15 min after the last input.
-- [ ] Compare ANGLE's GL and Vulkan backends under gamescope (`GPU=vulkan scripts/bench/deck-run.sh ...`);
+- [ ] Compare ANGLE's GL and Vulkan backends under gamescope (`GPU=vulkan scripts/bench/deck-run.sh ...`)
+  (2026-10-10: done, Vulkan far slower: 19 vs 33 fps at the desert's spawn, GPU 30 vs 12.5 ms; GL stays);
   check the loading pen turns smoothly in a Deck load (`scripts/bench/deck-pen.mjs`); check the new Updates
   section on the Deck itself (the Deck has runtime 830001 and web 969 now, and the site 970001: Check,
   Download and Restart now should take it to 970001).
