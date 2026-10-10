@@ -88,8 +88,8 @@ export const SURFACES = {
   },
   blot: {
     // (wet ink: a crisp white glint of the sun and a violet one of the sky, streaks of violet light in it)
-    '*': { ink: { gloss: { size: 0.035, sky: 0.9, amount: 1, color: 'shine+0.6' }, mottle: { color: 'shine', scale: 0.3, amount: 0.25, soft: 0.25, strength: 0.4, detail: 0.3 } }, edge: { mottle: { color: 'edge*0.75', scale: 0.08, amount: 0.4, soft: 0.06 } } },
-    garage: { ink: { gloss: { size: 0.035, sky: 0.9, amount: 1, color: 'shine+0.6' }, mottle: { color: 'shine', scale: 0.2, amount: 0.35, soft: 0.2, strength: 0.55, detail: 0.6 }, spots2: { color: 'edge', scale: 0.08, share: 0.35, size: 0.6, amount: 0.8 } } },
+    '*': { ink: { gloss: { size: 0.09, sky: 0.9, amount: 1, color: 'shine+0.6', streaks: 9, streakWidth: 0.22 }, mottle: { color: 'shine', scale: 0.3, amount: 0.25, soft: 0.25, strength: 0.4, detail: 0.3 } }, edge: { mottle: { color: 'edge*0.75', scale: 0.08, amount: 0.4, soft: 0.06 } } },
+    garage: { ink: { gloss: { size: 0.09, sky: 0.9, amount: 1, color: 'shine+0.6', streaks: 9, streakWidth: 0.22 }, mottle: { color: 'shine', scale: 0.2, amount: 0.35, soft: 0.2, strength: 0.55, detail: 0.6 }, spots2: { color: 'edge', scale: 0.08, share: 0.35, size: 0.6, amount: 0.8 } } },
   },
   worm: {
     '*': {
