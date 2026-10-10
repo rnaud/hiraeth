@@ -1,0 +1,57 @@
+changelog.md
+  s_9ca76055a220ed::t_03c52c02080271 5-8,15
+src/desert-hearth.js
+  s_9ca76055a220ed::t_e17cac95619869 6,299-325
+src/desert-road.js
+  s_9ca76055a220ed::t_fa1b066063e1b5 1-76
+src/levels/desert.js
+  s_9ca76055a220ed::t_5540e9b13161bf 18,106-110,123,130-131,145-146
+src/story/desert-road.js
+  s_9ca76055a220ed::t_772b58e43dfa0f 1-52
+src/story/desert-way.js
+  s_9ca76055a220ed::t_6d0f52825bcabb 23-24,45,66,96
+src/story/desert.js
+  s_9ca76055a220ed::t_5296e5482a51a2 18,891,1098,1102
+docs/systems/worlds.md
+  s_842216c2c51297::t_efcb9b6ab46765 352-366
+src/changelog.js
+  s_fd790b2d703564::t_1bfb9d0773469e 11,20-23
+src/desert-sites.js
+  s_fd790b2d703564::t_4304fb2d0b6478 73,77-79,82
+src/story/desert-data.js
+  s_fd790b2d703564::t_a8022a71436c6b 107-108,889-912
+tests/desert-spark.test.js
+  s_fd790b2d703564::t_46adee487974e8 52,388-389,395-397,429,438-511
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5da942070d2cec1da26288ca399c3125d80b87d3",
+  "prompts": {},
+  "sessions": {
+    "s_842216c2c51297": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a86c7ad9a7733697a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_fd790b2d703564": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a9e23eff48da201aa",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

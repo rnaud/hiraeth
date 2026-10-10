@@ -1,0 +1,41 @@
+changelog.md
+  s_9ca76055a220ed::t_8c58718da43b16 7-8
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_f973643882a9f8 377-388
+src/changelog.js
+  s_9ca76055a220ed::t_5f7486f3291747 23-25
+src/levels/arzach.js
+  s_9ca76055a220ed::t_41f5acd7d11dda 12,347-349,366,371-374,398
+src/story/arzach.js
+  s_9ca76055a220ed::t_f4b1f414f4b4b5 46-47,190-192,592-596
+src/vael-ways.js
+  s_9ca76055a220ed::t_09af16d921497e 1-112
+tests/story-arzach.test.js
+  s_9ca76055a220ed::t_204ba20f7bf971 78-115,330-340
+src/story/arzach-data.js
+  s_842216c2c51297::t_c51f3acb1adbbc 50-51,237-258
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d82f4e758d84eea1299953dd791eb6442ec00fdb",
+  "prompts": {},
+  "sessions": {
+    "s_842216c2c51297": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a86c7ad9a7733697a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
