@@ -32,8 +32,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.21.md, 2026-10-10; v1.4's done: DONE.md)
 
-- [ ] A shop in the Signal Market (bazaar inside-3) is lit white inside in the light term (floor, shelves): check the
-  shop shell's shadow casting with the sun through the open front.
 - [ ] Small pale notches still left at a corner's foot beside a person (300-600 px, Handheld) and Marrow's wide hem
   darkening the floor a little: where three planes meet, the planes round a hidden tap can miss the one hiding it
   (a third look-past along the other axis?). The buried world's stairs-0 orbit (Handheld, 0.74) not looked at by eye.

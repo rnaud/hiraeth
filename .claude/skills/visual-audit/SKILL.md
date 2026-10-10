@@ -39,7 +39,8 @@ this audit that way; sections 3-5 are there so they never do again, in any world
    same one in the Arena (`?level=arena&enemy=<id>`), the light term (debug 5) close on its shadow's edge.
 
 **Rules for every run:** muted, never port 5173, on the real GPU (never SwiftShader), the High preset
-unless the check is about a preset, and the HUD hidden. Look at every picture yourself: the numbers
+unless the check is about a preset, the HUD hidden, and enemies off (the shadow maps follow the
+traveller: knocked out, he stays where he fell and every room after is read unshadowed; visual-v1.21 finding 6). Look at every picture yourself: the numbers
 only say where to look.
 
 ## 1. Stills: every world, several hours, inside every door

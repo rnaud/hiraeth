@@ -101,7 +101,9 @@ const PAGE = `(() => {
     hideNpc(id, on) { const n = (window.npcs ?? []).find((x) => x.def?.id === id && !x.pooled); const o = n?.object; if (!o) return false;
       if (!o.__probeVis) { let v = o.visible; Object.defineProperty(o, 'visible', { get() { return o.__hide ? false : v; }, set(x) { v = x; }, configurable: true }); o.__probeVis = true; }
       o.__hide = !!on; return true; },
-    place(pos, heading) { player.teleport?.(V(pos), up, new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading))); player.heading = heading; player.vel?.set(0, 0, 0); return true; },
+    // (true once he stands there: a traveller knocked out stays down where he fell whatever teleports him, and the shadow
+    // maps follow him, so he is got up first; visual-v1.21 finding 6, a shop "lit white" read with him dead 3 km below)
+    place(pos, heading) { if (player.down) player.restart?.(); player.teleport?.(V(pos), up, new THREE.Vector3(Math.sin(heading), 0, Math.cos(heading))); player.heading = heading; player.vel?.set(0, 0, 0); return player.pos.distanceTo(V(pos)) < 1; },
     debug(n) { params.debug = n; return true; },
     // an eye pulled in front of any wall between it and what it looks at (a small room: the orbit and the ghost camera)
     clampEye(target, eye) { const t = V(target), e = V(eye), d = e.clone().sub(t), len = d.length(); d.normalize();
@@ -155,6 +157,8 @@ const PAGE = `(() => {
 const setHour = `(() => { if (window.sky) { window.sky.hour = ${HOUR}; window.sky.speed = 0; window.updateSky?.(); } return true; })()`;
 
 const settle = (ms = 260) => sleep(ms);
+/** Does the traveller stand within a few metres of `p` (the shadow maps follow him: a light term read with him elsewhere is unshadowed)? */
+const standsAt = async (p) => (await ev(`window.player.pos.distanceTo(new window.THREE.Vector3(...${JSON.stringify(p)})) < 3`)) === true;
 const sub = (a, b) => a.map((x, i) => x - b[i]);
 const add = (a, b) => a.map((x, i) => x + b[i]);
 const mul = (a, k) => a.map((x) => x * k);
@@ -320,7 +324,7 @@ for (const world of WORLDS) for (const preset of PRESETS) {
   try {
     await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
     await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-      localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0 }));
+      localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${preset}', music: 0, effects: 0, voices: 0, volume: 0, enemies: 'off' }));   // (no foe knocks him out mid-run)
       localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
     errors.length = 0;
     await send('Page.navigate', { url: `${BASE}?level=${world}` });
@@ -355,6 +359,7 @@ for (const world of WORLDS) for (const preset of PRESETS) {
     for (const s of spots.filter((x) => !SPOTS.length || SPOTS.includes(x.name))) {
       // the shadow maps and the zones follow the traveller: he stands at the spot (hidden while orbiting)
       await ev(`__probe.place(${JSON.stringify(s.player ?? s.target)}, ${s.heading ?? 0})`); await settle(400);
+      if (!(await standsAt(s.player ?? s.target))) { row.orbit.push({ name: s.name, kind: s.kind, skipped: 'the traveller is not there' }); continue; }
       row.orbit.push({ name: s.name, kind: s.kind, known: !!s.known, at: s.at ?? s.target, ...(await orbit(s, dir)) });
       row.ghost.push({ name: s.name, kind: s.kind, known: !!s.known, ...(await ghost(s, dir)) });
       for (const who of PEOPLE) row.ghost.push({ name: `${s.name}@${who}`, kind: s.kind, known: !!s.known, ...(await ghost(s, dir, who)) });
@@ -363,6 +368,7 @@ for (const world of WORLDS) for (const preset of PRESETS) {
     const insides = [...spots.filter((s) => s.inside).map((s) => ({ name: s.name, at: s.player })), ...ways.map((w, i) => ({ name: `inside-${i}`, at: w }))];
     for (const where of SKIP.includes('seams') ? [] : insides.filter((x) => !SPOTS.length || SPOTS.includes(x.name))) {
       await ev(`__probe.place(${JSON.stringify(where.at)}, 0)`); await settle(600);
+      if (!(await standsAt(where.at))) { row.seams.push({ name: where.name, skipped: 'the traveller is not there' }); continue; }
       row.seams.push(await seams(where.at, dir, where.name));
     }
     row.errors = errors.slice(0, 4);

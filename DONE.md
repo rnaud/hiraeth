@@ -2065,6 +2065,11 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] Dark triangles of the Givers' Hearth's dome hung across the passage's mouth (visual-v1.21, finding 2): `cut()`
   splits a triangle that straddles the opening down to 0.3 m and drops only the small ones inside
   (src/desert-hearth.js). tests/cave-seams.test.js (nothing inside the mouth, the rest of the dome whole).
+- [x] The Signal Market's shop "lit white inside" (visual-v1.21, finding 6) was the probe's: a foe in the Undertower
+  knocked the traveller out mid-run, a traveller down stays where he fell whatever teleports him, and the shop's light
+  term was read with him (and the shadow maps) 3 km below. The probes now run with enemies off, get him up before each
+  move and skip a probe where he doesn't stand (.claude/skills/visual-audit/probes.mjs `standsAt`); the shop itself was
+  shaded like the others all along.
 - [x] The traveller's face redrawn the Moebius way (v1.25; TODO: "redo the character's face to match the references
   more closely and feel less cartoony / anime, the eyes in particular"). The generated head's painted face was a 3D
   render's: wide almond eyes open round a whole iris with a bright white, a catchlight and a lash line all round; a

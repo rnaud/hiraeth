@@ -77,7 +77,7 @@ for (const world of WORLDS) {
   mkdirSync(join(OUT, world), { recursive: true });
   await send('Page.navigate', { url: `${BASE}manifest.webmanifest` }); await sleep(250);
   await ev(`localStorage.clear(); localStorage.setItem('moebius.muted','1');
-    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0 }));
+    localStorage.setItem('moebius.settings.v1', JSON.stringify({ quality: '${PRESET}', music: 0, effects: 0, voices: 0, enemies: 'off' }));
     localStorage.setItem('moebius.game.v1', JSON.stringify({ flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2 }, keepsakes: [] })); true`);
   errors.length = 0;
   await send('Page.navigate', { url: `${BASE}?level=${world}` });
