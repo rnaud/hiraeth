@@ -1960,3 +1960,13 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
 - [x] The combat-review script watches a group kind as its group and a support with its escort, reads the toad's choke
   and leap, the heron's open and topple, the centipede's ring as a body attack (not a lob), and batch 4's answers
   (combat-v1.9 rec. 3, combat-v1.13 rec. 3).
+
+## Two more temples rebuilt round one idea: the Builders' Greenhouse and the Aerie (2026-10-09, v1.16)
+
+- [x] The Builders' Greenhouse (nothing grows in the shade: louvres, sunbeams, the eye and the disc that wake only in
+  the sun, the sun-ball, the seed-ball, the Gardener's footstones) and the Aerie (one wind, out wherever no stone stops
+  it: the hall's stone, the Wind Well, the raft, the tailwind and the perch's column, the Elder's two vents), each
+  after the author's picked hall and doorway (references/temples/), their guardians' last phases on the idea
+  (docs/systems/foes.md); re-scored in docs/audits/temple-design-v1.16.md (1.89 → 3.78 each, average 2.80 → 3.14).
+  Engine: drums with `stops`, `when` on latched elements, `Sunbeam`, seed-balls, `Gust` / `Updraft` `when` and a
+  gust's `carry`; tests/temples.test.js and tests/guardian-twists.test.js play them, failures first.

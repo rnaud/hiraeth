@@ -444,6 +444,9 @@ const SHOP_SHOTS = (w, front, inside, refs) => [
 ];
 const SHOP_SEE = (where, who) => `${where}: walk in through its door (the place’s name comes up as you step in), talk to ${who} or stand at the middle of the counter and look at the wares. Walk out of the room’s door to be back where you were.`;
 
+/** The v1.16 temples (the Greenhouse, the Aerie and the fix to their doorway and bud): after at the fix, before at v1.15. */
+const TEMPLES16 = { commit: 'b805ff98', before: 'cfaa2045' };
+
 export const CHANGELOG_MEDIA = {
   '1.16': [
     // the enemy roster, part four: the possessed machines, each alone in its main skin and its alternate, the stand-in
@@ -494,6 +497,52 @@ export const CHANGELOG_MEDIA = {
       { title: 'Draw calls, two brutes, two drones and two carts in view (before: their stand-ins)', unit: 'calls', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU, 1280 × 720', rows: [
         { where: 'High', before: 451, after: 339 }, { where: 'Steam Deck preset', before: 455, after: 344 },
       ], source: 'node scripts/enemy-roster/bench.mjs: golem, golem, drone, drone, slag, slag at the commit before batch 4 against brute@perdide2, brute@glassdunes, drone@incal, drone@spheres, cart@garage, cart@moonfoundry', note: 'CPU 2.5 → 4.0 ms on High (2.4 → 3.8 on the Deck preset): the machines are whole bodies on the locomotion kit where the stand-ins were a few boxes; six ink blots cost 2.9 ms in the same view.' },
+    ] },
+    // the Builders' Greenhouse and the Aerie, rebuilt round one idea each (docs/audits/temple-design-v1.16.md): each room
+    // from where you come in, before (v1.15) and after; the picked references beside the halls and the doorways
+    { match: 'The Builders’ Greenhouse is rebuilt round one idea', shots: [
+      { name: 'gh-potting', caption: 'The Potting Hall from its way in: before, an eye over the benches and nothing over it; after, a louvre in the roof turned by the ball’s plate (its brass rod up the north wall), its sunbeam on the floor, the eye in the shade', ...TEMPLES16,
+        view: { level: 'edena', player: [300, 1700.2, -436], eye: [296, 1704, -436], target: [309, 1704, -421], fov: 75 } },
+      { name: 'gh-stair', caption: 'The Glass Stair from its door: after, one ball between two plates, the eye high on the wall by the landing and the disc over the root-wall, both in the shade', ...TEMPLES16,
+        view: { level: 'edena', player: [296, 1700.2, -403], eye: [295, 1703, -402], target: [302, 1708, -386], fov: 80 } },
+    ], see: 'In the Builders’ Greenhouse, splash the eye behind the potting benches: it stays shut, in the shade. Roll the ball to the plate at its groove’s end and watch the sunbeam swing off the floor onto the eye, then splash it. On the Glass Stair, roll the ball east and the disc rides, but the landing’s door wants the eye: roll it west, wake the eye, roll it back.' },
+    { match: 'In the Greenhouse’s Vine Gulf', shots: [
+      { name: 'gh-gulf', caption: 'The Vine Gulf from the near ledge: before, an open chasm under a flat roof; after, the ribbed glass vault, the sun-ball in its groove, the great louvre’s beam falling into the green dark, and across, the glass wall under the great bud in its pointed arch', ...TEMPLES16,
+        view: { level: 'edena', player: [304, 1718.2, -359], eye: [306, 1722, -359.3], target: [298, 1717, -345], fov: 80 },
+        reference: { sheet: 'references/temples/builders-greenhouse/sheet-1.jpg', caption: 'The picked reference for the Vine Gulf' } },
+      { name: 'gh-glass', caption: 'Across the gulf: after, the sunbeam on the glass’s foot and the seed-ball in its groove beside it, in the shade', ...TEMPLES16,
+        view: { level: 'edena', player: [303, 1718.2, -331], eye: [305, 1721, -332], target: [298, 1722, -316], fov: 75 } },
+    ], see: 'In the Vine Gulf, bloom the seed at the lip: it sprouts pale and folds back. Roll the sun-ball onto its plate and the great beam swings up out of the dark onto the lip; bloom it now. Across, bloom the seed-ball where it lies, then roll it into the sunbeam at the glass’s foot and bloom it there: its vine climbs into the bud.' },
+    { match: 'The Gardener now kneels to the sun', shots: [
+      { name: 'gh-arena', caption: 'The Glasshouse from its door, the Gardener asleep: after, a footstone before each dead bed and the dome’s sunbeam on the quarter by the door', ...TEMPLES16,
+        view: { level: 'edena', player: [300, 1727.2, -309], eye: [300, 1731, -309], target: [300, 1729, -285], fov: 80 } },
+    ], see: 'In the Gardener’s last phase, bloom its back while it kneels out of the sun: the flowers fold and drop. Stand on the footstone before the bed of its quarter, wait for the beam to settle on it, and bloom it again.' },
+    { match: 'The Builders’ Greenhouse from outside', shots: [
+      { name: 'gh-entrance', caption: 'The Builders’ Greenhouse from the path: before, a white porch with a glyph; after, two pilasters past the rim, a tall narrow door, three dots over an arc, panes gone from the dome, sown beds either side of the path', ...TEMPLES16,
+        view: { level: 'edena', player: [119.5, -8.2, 266], eye: [118.3, -5.2, 274.4], target: [111, 2, 312], fov: 60 },
+        reference: { sheet: 'references/temples/builders-greenhouse/sheet-2.jpg', caption: 'The picked reference for the Greenhouse’s doorway' } },
+    ] },
+    { match: 'The Aerie is rebuilt round one idea', shots: [
+      { name: 'ae-hall', caption: 'The Hall of Winds from the Threshold: before, the screens and an eye by the far door; after, the stone in its groove up the hall’s middle, the vent’s socket at the far end', ...TEMPLES16,
+        view: { level: 'arzach', player: [-200, 1600.2, 306], eye: [-198, 1603, 307], target: [-200, 1602, 340], fov: 75 } },
+      { name: 'ae-well', only: 'after', caption: 'The Wind Well, new, from its floor: bands of ochre, glyph lines up the walls, the feather raft by the east wall and the Wing Chamber’s balcony, the crown of stone feathers round the open top', ...TEMPLES16,
+        view: { level: 'arzach', player: [-205, 1600.2, 359], eye: [-206, 1603, 360], target: [-192, 1610, 372], fov: 80 },
+        reference: { sheet: 'references/temples/aerie/sheet-1.jpg', caption: 'The picked reference for the Wind Well' } },
+    ], see: 'In the Aerie, push the stone up the Hall of Winds a push at a time, sheltering between: the gusts don’t move it. Seated in the vent, the hall falls calm; in the Wind Well beyond, the column of rings rises and the feather raft rides up to the Wing Chamber.' },
+    { match: 'With the wings, the Wind Well’s column lifts you', shots: [
+      { name: 'ae-balcony', only: 'after', caption: 'The high balcony over the Wind Well, from the column: the great carved eye beside it, the gulf vent’s stone in its throat, the way north', ...TEMPLES16,
+        view: { level: 'arzach', player: [-205, 1600.2, 359], eye: [-200, 1636, 364], target: [-204, 1633, 380], fov: 80 } },
+      { name: 'ae-perch', only: 'after', caption: 'The Gulf from its near ledge: the stone perch out over the dark, stone feathers hanging from the roof, the higher ledge beyond', ...TEMPLES16,
+        view: { level: 'arzach', player: [-200, 1632.2, 384.5], eye: [-203, 1636, 386], target: [-197, 1626, 440], fov: 70 } },
+    ], see: 'From the Aerie’s high balcony, glide for the perch on still air: you fall short. Roll the stone out of the grate in the balcony, leap as a gust comes, and it carries you. On the perch, roll its stone out of its throat and step off into the column that rises beside it.' },
+    { match: 'The Elder’s roost has two vents', shots: [
+      { name: 'ae-roost', caption: 'The Roost from its door, the Elder asleep: before, a column of wind in the middle; after, two vents and one stone in the groove between them, the wind rising from the east one', ...TEMPLES16,
+        view: { level: 'arzach', player: [-200, 1634.2, 476], eye: [-200, 1638.5, 476.5], target: [-200, 1636, 500], fov: 80 } },
+    ], see: 'In the Elder’s last phase, fly beside her on still air: she watches you sink. When she hangs over a vent, push the stone into the other one and ride the wind up beside her.' },
+    { match: 'The Aerie’s doorway is now', shots: [
+      { name: 'ae-entrance', caption: 'The Aerie from the plain: before, a porch with a flat lintel; after, a tall round-topped arch cut through the drum, framed in ochre, the glyph over it', ...TEMPLES16,
+        view: { level: 'arzach', player: [-168, 21.9, -9.6], eye: [-171.5, 25.9, -10.3], target: [-212, 34, -18.5], fov: 60 },
+        reference: { sheet: 'references/temples/aerie/sheet-2.jpg', caption: 'The picked reference for the Aerie’s doorway' } },
     ] },
   ],
   '1.15': [

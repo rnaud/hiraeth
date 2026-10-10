@@ -248,7 +248,7 @@ Ranked worst first; each re-runs `node scripts/level-design/audit.mjs --worlds <
   Crystal ↔ Saba ping-pong merged; a weenie in each of the Hangar's far zones; answering spheres along the Garden's
   572 m blind leg; a pipe leading to the Buried Machine's wheel. See the report.
 
-# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; docs/audits/temple-design-v1.8.md: the three worst reworked)
+# Temple design (audit) (docs/audits/temple-design-v1.5.md, 2026-10-09; v1.8, v1.12, v1.16: the worst reworked, two or three at a time)
 
 All eleven are one chain with every key beside its lock (mean obviousness 4.25-5 of 5, no step combines the gadget
 with an older verb). Ranked; each re-runs `node scripts/temple-design/audit.mjs` and keeps tests/temples.test.js
@@ -276,12 +276,21 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
   catch, then a second high stone); teach the stones before the shell.
 - [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
   outside door); the ball pushed twice in a breath onto the swinging disc.
-- [ ] **Greenhouse (1.89)**: `seed1` on the far side, seen after a vine grows; `seed2` a seed-ball rolled into the
-  light before it blooms; the Gardener's back reached by a vine grown mid-fight.
-- [ ] **Aerie, Warden's Well, Engine-House, Footprint, Givers' House (1.89-2.11)**: shots carried by gusts; a ball
-  that switches the updraft on; jets against a gust in the Lamp Gallery; `s1` seen only mid-ride; `k2` on pistons
-  in turn; false lens stones with the clue a room back; a burning tar ball pushed into `b3`; `b2` a room back. See
-  the report for each.
+- [x] **Builders' Greenhouse (1.89 → 3.78, v1.16)**: nothing grows in the shade. Louvres a ball's plate turns; the
+  eye in the shade (`s1` `when`), one ball and two plates on the Glass Stair (the eye, then the disc), the bud in a
+  sunbeam, the seed at the lip lit by the sun-ball's louvre, the seed-ball rolled into the beam at the glass's foot,
+  its vine into the bud; the Gardener bloomed only in the sun of its quarter's footstone (docs/audits/temple-design-v1.16.md).
+  Left: a loop (structure 2), `d2`'s eye a room back at 1.5 (watch players), a decoy at the chest's bud (`d3` at 5).
+- [x] **Aerie (1.89 → 3.78, v1.16)**: one wind, out wherever no stone stops it. The hall's stone pushed through the
+  gusts into its vent (the hall calms, the Wind Well's column and raft rise), the column with the wings, the Gulf in
+  two legs (a tailwind from the balcony's throat, a column from the perch's), the Elder flown with only in the wind
+  of the vent she hangs over. Left: the column step alone (`wings>top`, 5), a loop.
+- [ ] **Play the Greenhouse's and the Aerie's new rooms and last phases with a pad** (v1.16): the escort up the Hall of
+  Winds (a push or two a calm), the tailwind's leap (as a gust comes), the perch's landing (fold the wings over it),
+  the Gardener's footstones in its 6.2 s kneel, the Elder's stone rolled in her 6.6 s hang.
+- [ ] **Warden's Well, Engine-House, Footprint, Givers' House (2.00-2.22)**: jets against a gust in the Lamp Gallery;
+  `s1` seen only mid-ride; `k2` on pistons in turn; false lens stones with the clue a room back; a burning tar ball
+  pushed into `b3`; `b2` a room back. See the report for each (docs/audits/temple-design-v1.16.md, ranked).
 - [ ] **Play the five reworked guardians' last phases with a pad** (v1.15, docs/systems/foes.md "The guardians' last
   phases"): is ringing as the Cloud-Mother rises to dive (78 % of her wind-up at most) readable, is the Lampless's
   "stand back" (5 m) fair under its scales, are the Mother Snapper's crystals easy enough to tell apart by size from
