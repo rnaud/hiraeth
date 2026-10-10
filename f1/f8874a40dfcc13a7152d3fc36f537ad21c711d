@@ -1,0 +1,159 @@
+tests/debug-save.test.js
+  s_9ca76055a220ed::t_9cc3c129de3077 87,91-93,208
+src/story/incal.js
+  s_9ca76055a220ed::t_564c08fc7e6550 21-22,295-301
+docs/systems/items.md
+  s_9ca76055a220ed::t_3c0dedc211c25d 58-63
+src/i18n/fr.js
+  s_9ca76055a220ed::t_5501ae0b618050 290
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_60777349607ed6 398-418
+tests/playthrough.test.js
+  s_9ca76055a220ed::t_0c0d21fc8466fd 38-39
+.claude/skills/camera-qc/run.mjs
+  s_9ca76055a220ed::t_901c17c43ad21d 37-38,136
+src/story/incal-data.js
+  s_9ca76055a220ed::t_258823997d90f7 46,49-50,153,437
+src/story/arzach.js
+  s_9ca76055a220ed::t_892771b12a9e66 13,67-68,70
+  s_9ca76055a220ed::t_59c0f129b54659 69
+tests/save-migrate.test.js
+  s_9ca76055a220ed::t_f38483eea5ea42 88,91,95-96,102-116,147,155
+src/resources.js
+  s_9ca76055a220ed::t_238381fa602873 121,198
+src/levels/incal.js
+  s_9ca76055a220ed::t_1db954b04c178d 45,1002,1116
+  s_9ca76055a220ed::t_daf70f2813ee0f 22-23,30,1139-1143,1170,1174,1321
+  s_9ca76055a220ed::t_2d6a2c227236f3 1171-1172
+src/i18n/en.js
+  s_9ca76055a220ed::t_e699eb1fecf94e 292
+src/updraft.js
+  s_9ca76055a220ed::t_f8aed3cbde981e 15-16,18,34-35,40
+  s_9e031b46d332fd::t_260ee216f10622 1-14,17,19-33,36-39,41-62
+src/temples/migrate.js
+  s_9ca76055a220ed::t_00e327def237d4 12
+tests/temples.test.js
+  s_9ca76055a220ed::t_8e7996156fa645 25,2176,2179-2181,2231,2270
+  s_9ca76055a220ed::t_97d6b07e084d1f 32,548,550,568-580,582-591,661,664-665,667,670-671,674-681,695-696,698-700,712,718-720,736,754-755,761,787-789,798-800,813-816,824,826-827,852-853
+src/main.js
+  s_9ca76055a220ed::t_80932b0fdfcb90 87,323,381
+src/boxes/model.js
+  s_9ca76055a220ed::t_0b39f75d7773a2 151-171,498
+tests/flask.test.js
+  s_9ca76055a220ed::t_00ee907c8285b8 59-60,63-64
+src/trials/course.js
+  s_9ca76055a220ed::t_38bd8cac0a981e 46
+scripts/camera-qc/scenarios.mjs
+  s_9ca76055a220ed::t_b519e29dfc064e 3,49-52
+src/changelog-media.js
+  s_9ca76055a220ed::t_80f0cabad142e4 527-534
+src/trials/index.js
+  s_9ca76055a220ed::t_9c51b25f6e08dd 10,83-84,188
+src/shaft-ways.js
+  s_9ca76055a220ed::t_c2d50ec580f4fc 12
+src/veil.js
+  s_9ca76055a220ed::t_096674f14807ee 52,87,98-102,105-106
+src/boxes/placements.js
+  s_9ca76055a220ed::t_8259d9091e2efe 72-74,269
+tests/playthrough-worlds.js
+  s_9ca76055a220ed::t_789bdadd48899c 132-160,165-172,304,337
+docs/systems/movement-and-camera.md
+  s_9ca76055a220ed::t_f34c5a3c09f206 188-200,205
+  s_9ca76055a220ed::t_0b30c5cdb6061f 201-204
+src/shaft-pillars.js
+  s_9ca76055a220ed::t_710c450009dc9b 1-192
+docs/systems/temples.md
+  s_9ca76055a220ed::t_c0da6b02cddbc9 219-224
+src/temples/incal.js
+  s_9ca76055a220ed::t_c08446c0bf96b4 6,23-26,33-35,39-44,46,48-49,51-55,88,93-94,96-97,100,106,122-124,128,137,141-145,158-161,201-202,205,213-215,217-227,230,314,326-327,363-365,387-388,413-417,443-444,632,638-642
+.claude/skills/camera-qc/SKILL.md
+  s_9ca76055a220ed::t_43baadf71b9374 22-23,53,55
+tests/boxes.test.js
+  s_9ca76055a220ed::t_ad3915a0c4bbdc 86
+src/trials/winds.js
+  s_9ca76055a220ed::t_82973ca80b994e 5,9,61-63
+src/story/halfway.js
+  s_9ca76055a220ed::t_52d3e8a9199957 13
+docs/systems/traveller-kit.md
+  s_9ca76055a220ed::t_a10f769657f8d9 36-37
+docs/systems/progression.md
+  s_9ca76055a220ed::t_4bba6b4f237b12 16-21,28-29,44,63,65-73
+src/player.js
+  s_9ca76055a220ed::t_d3ad4db2eeca8f 20,1481-1489
+  s_9ca76055a220ed::t_010a29f336bc06 668-669,674-675,1563,1780
+tests/trials-worlds.test.js
+  s_9ca76055a220ed::t_53f4da4f1a7e9d 61
+tests/shaft-pillars.test.js
+  s_9ca76055a220ed::t_bfa104c3b62205 1-137,162-187
+  s_9ca76055a220ed::t_6c5b5ce667713e 138-161
+tests/trials.test.js
+  s_9ca76055a220ed::t_f569b940f3cd8b 80-81
+src/save-migrate.js
+  s_9ca76055a220ed::t_ee8cb0348e9c01 47-49,168-177
+src/temples/index.js
+  s_9ca76055a220ed::t_fa2cf30bb70b7a 94
+tests/playthrough-agent.js
+  s_9ca76055a220ed::t_6df588fd7f52b2 101,199
+tests/updraft.test.js
+  s_9ca76055a220ed::t_7031de813ce9d2 1-79
+  s_3bb798c8af39ad::t_9417f733e92df4 80-101
+src/temples/pieces.js
+  s_9ca76055a220ed::t_199627260b41e6 12,1221-1223
+  s_9ca76055a220ed::t_c99bbb216782c9 34,1162-1165,1171-1174,1180,1189-1190,1192-1193,1204,1206-1207,1317-1320,1322,1382,1384-1385
+tests/playthrough-saves.test.js
+  s_9ca76055a220ed::t_997bbb0ef3d6cd 47-48,50-51
+src/trials/data.js
+  s_9ca76055a220ed::t_ebae4a6acfc217 70,72-76
+src/fluid-tool.js
+  s_9ca76055a220ed::t_39bb827a1207f0 667,955,957,960,962,1077
+src/items.js
+  s_9ca76055a220ed::t_74f244817d5516 20,32,47-48,54-59,64,281,284-286
+scripts/temple-design/lib.mjs
+  s_9ca76055a220ed::t_0d05f6b4c9723e 73,93,292
+changelog.md
+  s_9ca76055a220ed::t_2261a90a045170 5-6,11-12
+  s_9ca76055a220ed::t_4f21bd1c2c0f66 10
+  s_9ca76055a220ed::t_4cdc2c201159ed 7-9
+src/trials/check.js
+  s_9ca76055a220ed::t_862b32f09e2737 30-31,46
+src/changelog.js
+  s_9ca76055a220ed::t_aa97c5efce22b3 25-31
+  s_9ca76055a220ed::t_4655074364586b 22-24
+  s_9ca76055a220ed::t_2bbc68d7d5bee4 11-21,32
+docs/systems/minigames.md
+  s_9ca76055a220ed::t_55e738ee195c26 421
+DONE.md
+  s_9ca76055a220ed::t_b6efb468e7c616 2408-2419
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f1f8874a40dfcc13a7152d3fc36f537ad21c711d",
+  "prompts": {},
+  "sessions": {
+    "s_3bb798c8af39ad": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1269b-2218-7421-bc61-95f69c291ec6",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9e031b46d332fd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad713735df2b37e8d",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
