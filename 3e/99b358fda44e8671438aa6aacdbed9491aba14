@@ -1,0 +1,33 @@
+docs/README.md
+  s_9ca76055a220ed::t_48082569e8beab 26
+docs/audits/ink-lines-v1.30.md
+  s_9ca76055a220ed::t_019f693457e971 1-302
+docs/systems/faces.md
+  s_9ca76055a220ed::t_837b7668f2fa8e 351-363
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_769bb770eb66d3 747-748,871-894
+src/audits-page/parse.js
+  s_9ca76055a220ed::t_967d4f72ac372a 24
+src/characters/head-ink.js
+  s_9ca76055a220ed::t_9a5bb306b9d847 42-51,100-106,151-153,161,165,168,175,180,189,191
+src/post.js
+  s_9ca76055a220ed::t_50a896ce5bdbf8 165-176,469-473,496-497,507,518-519,521,1071-1073,1083,1086-1087,1089-1092,1101-1120,1133,1155-1156
+tests/ink-size.test.js
+  s_9ca76055a220ed::t_ff89558d21f7f5 1-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e99b358fda44e8671438aa6aacdbed9491aba14",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
