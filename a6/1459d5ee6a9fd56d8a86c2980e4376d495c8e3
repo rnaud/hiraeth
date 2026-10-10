@@ -1,0 +1,29 @@
+DONE.md
+  s_9ca76055a220ed::t_99bea37c4fe648 2079-2098
+TODO.md
+  s_9ca76055a220ed::t_fa89f758519bdf 53-54,58-60,74-76,87,89,109
+changelog.md
+  s_9ca76055a220ed::t_dedca92cacc979 6-20
+docs/systems/foes.md
+  s_9ca76055a220ed::t_7557f2b6a8977e 524-525,735,861,870-873
+src/changelog-media.js
+  s_9ca76055a220ed::t_857e7f06795b93 482-532,859
+src/changelog.js
+  s_9ca76055a220ed::t_3bbdf9ad73f8a1 12-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a61459d5ee6a9fd56d8a86c2980e4376d495c8e3",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}

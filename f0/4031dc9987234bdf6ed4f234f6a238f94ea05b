@@ -1,0 +1,23 @@
+src/enemies/plans/floater.js
+  s_9ca76055a220ed::t_fa85966c4a2ecd 107-108
+src/foes.js
+  s_9ca76055a220ed::t_db041992a83442 415,1631,2241-2246,2255-2262
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_36b51339259fe3 18,593-616
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f04031dc9987234bdf6ed4f234f6a238f94ea05b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
