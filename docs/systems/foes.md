@@ -507,7 +507,7 @@ The count is said every 5 ink.
 - **Relic guards:** a relic out in the wilds (`content.relics.spots`, where `wild()` holds) gets `GUARDS.size`
   blots round it as you come within `GUARDS.near` (32 m).
 - Cut down, they are gone for good (flag `foes.<world>.r<i>`).
-- **Placed by hand** (v1.15, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
+- **Placed by hand** (v1.16, `src/foe-worlds.js` `PLACED[world]`: `{ archetype, at: [x, z], heading }`): it comes out
   where it stands as you come within `POSTS.near` (60 m), calm (`Foes.updatePosts`), in the world's skin; it doesn't
   hold the packs back; left far behind it goes and comes back as you return; cut down, it is gone for good (flag
   `foes.<world>.p<i>`). Lorn II's wood cutter (a furnace brute) stands on the dry bank of the lit path between the moss
@@ -641,7 +641,7 @@ A person made of living shadow (`FOES.shade`: 5 hp, a sword's cone).
 - **Touch:** separate ⚔ attack, ◇ guard and ↶ evade buttons. ◉ shows only with
   `body.combat`.
 
-## The enemy roster (v1.8–v1.15, `src/enemies/`)
+## The enemy roster (v1.8–v1.16, `src/enemies/`)
 
 The 100 world enemies are retired: 21 archetypes take their place (docs/design/enemy-roster.md, approved 2026-10-09),
 each with its own silhouette, body plan, way of moving and job in a fight, met in several worlds in each world's skin.
@@ -657,7 +657,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
     **ink blot** (`blot`). Batch 2 (v1.9): the **mound worm** (`worm`), the **sky ray** (`ray`), the **signal moth**
     (`moth`), the **ring centipede** (`centipede`), the **lantern jelly** (`jelly`). Batch 3 (v1.13): the **bellows toad**
     (`toad`), the **stilt heron** (`heron`), the **skitter swarm** (`skitter`), the **root knot** (`rootknot`). Batch 4
-    (v1.15), the possessed machines: the **furnace brute** (`brute`), the **ring drone** (`drone`), the **crucible
+    (v1.16), the possessed machines: the **furnace brute** (`brute`), the **ring drone** (`drone`), the **crucible
     cart** (`cart`), the **bell walker** (`bell`);
   - `stand-in`: not built yet, an old kind runs as its body meanwhile (only the shade, on its own body in
     src/shade.js, until its batch-5 rework; src/foe-kinds.js has no stand-in left);
@@ -690,7 +690,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   threads and lanterns on verlet chains). Batch 3's plans (phase 5): `hopper.js`, `stilt.js`, `skitterers.js`,
   `tentacled.js`; batch 4's, the machines: `brute.js` (plan 8), `hover.js` (plan 13 for a machine), `tracked.js`
   (plan 17: `src/motion-kit/machines.js` TrackDrive), `siege.js` (plan 19: machines.js Pendulum). **Skinned on the
-  kit's joints** (v1.15, `kit.js` `skinned`, `skinBy`): a body's moving parts of one material are one skinned mesh
+  kit's joints** (v1.16, `kit.js` `skinned`, `skinBy`): a body's moving parts of one material are one skinned mesh
   whose bones are the kit's own joints (a leg's thigh, shin and foot, an arm's pivots, a plate's), each tinted by its
   own colour (vertex colours), one skeleton a body; its bounds follow the joints. The machines are 6–16 meshes each,
   a skitter 5 (44 before).
@@ -766,7 +766,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | skitter swarm (`skitter`) | eight knee-high domes on high-kneed legs; a speckle of humps | ripple rush (0.6 s; it rears and clicks, one at a time), pile (1.2 s; a heap grows, then topples) | any blow, a shot or the push ends one; the push scatters the heap; an ember scatters the flock | grazes in a flock; scatters if you run at it; fights if you linger in it |
   | root knot (`rootknot`) | a 3.2 m mushroom on five jointed root-arms | grip (1.0 s; two arms plunged in, the cap tipped; the soil heaves toward you, then lash), lash (0.75 s; two arms coiled back), spore puff (1.0 s; Lorn II) | jump or sidestep the heave; a cut or stilling frees you; a parry chips the lash; a bloom glob (asleep, cuts double); embers ×2 | stands rooted, its cap following you; fights at 3.6 m |
 
-- **Batch 4's fields** (v1.15): `stout` (light cuts never stagger it, even early in a wind-up: only a charged cut, a
+- **Batch 4's fields** (v1.16): `stout` (light cuts never stagger it, even early in a wind-up: only a charged cut, a
   riposte, a parry; the brute, the bell); a wave's `count` and `every` (`Foes.addWave` queues the rest: the bell's toll
   sends three rings); `leaveLife` (s its slag stays: the cart's pour, 6); `jams` (s a bomb on its tracks keeps it from
   turning: `Foe.jammed`, `face` does nothing); `tracks` (it drives along its heading, slower the more it must turn:
@@ -778,7 +778,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   working), `trundle` (the cart's old round, as a patrol), `toll` (the bell in its square, tolling softly). The
   `cracks` surface feature (src/foe-surface.js): the brute's hull, its veins opening as it is hurt (its own body
   material's `uFsCracksO`). A heavy footfall shakes the camera and the pad near it (`animKit.thump`).
-- **Batch 4** (v1.15):
+- **Batch 4** (v1.16):
 
   | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
   |---|---|---|---|---|
@@ -792,7 +792,7 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   body and the winged blot (v1.9: the mound worm, the signal moth and the sky ray took their places; the Arena's old
   waves and Ink tide field the sky ray where the winged blot came); the spitting blot, the blot swarm and the root
   stalker (v1.13: the bellows toad, the skitter swarm and the root knot took their places in the Arena's old waves, Ink
-  tide and the centipede's shed tail); the glass golem and the slag walker (v1.15: the furnace brute and the crucible
+  tide and the centipede's shed tail); the glass golem and the slag walker (v1.16: the furnace brute and the crucible
   cart took their places; the rust drone's kind is the ring drone's). The spitting blot's spit is the blot's.
   Old saves are unaffected: no foe is ever saved, only flags (`foes.met.crab`, a temple room's machine broken), and
   the kept kinds kept their ids.

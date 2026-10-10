@@ -68,7 +68,7 @@ import { fromPattern } from './attacks.js';
 //                   you (the push scatters it: Foes.pile); calm.linger: s you must stay within `provoke` m
 //   rooted          it can't be knocked back (the root knot); attack.ground: only on your feet (a jump clears it);
 //                   attack.blur: s your sight is blurred by spores, whichever way you look
-// batch 4 (v1.15), the machines:
+// batch 4 (v1.16), the machines:
 //   stout           light cuts never stagger it, even early in a wind-up (the furnace brute, the bell walker: heavy breakers)
 //   attack.wave     a quake or a ring of sound running out over the ground (jump it); wave.count: that many, wave.every s apart
 //   attack.leaveLife  s its slag stays (the cart's pour); jams: s a bomb on its tracks keeps it from turning (the cart)

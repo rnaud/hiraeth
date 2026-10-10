@@ -1,4 +1,4 @@
-# Combat review, v1.15 (2026-10-09): the enemy roster, batch 4 (the possessed machines)
+# Combat review, v1.16 (2026-10-09): the enemy roster, batch 4 (the possessed machines)
 
 <!-- audit-scores
 overall: 4.78 / 5
@@ -16,7 +16,7 @@ jelly were watched again to check the script's new group watch (a group kind as 
 ## Setup
 
 - The batch's branch (commit 54bbc38b and its follow-ups, on main 91f576bb), headless Chrome (muted, ANGLE Metal), the
-  Arena, 1280 × 720, Enemies "normal"; `--kinds brute,drone,cart,bell,skitter,jelly --watch 24 --version 1.15
+  Arena, 1280 × 720, Enemies "normal"; `--kinds brute,drone,cart,bell,skitter,jelly --watch 24 --version 1.16
   --guardians no`.
 - Each kind watched 24 s against a still traveller (its own skin: `HOME_SKIN`), then each move's blows through
   `Foes.hurt`, as in v1.8. **New in the script:** a group kind is called in and watched as its group (the skitters'
@@ -27,7 +27,7 @@ jelly were watched again to check the script's new group watch (a group kind as 
 - Not played by hand: guard, parry and evade timing against the new tells; the bell's three rings with a pad (jumping
   each); the whistle on a toll at range; the cart's pour in Hangar corridors; the drone's harpoon from behind cover.
 
-![Each kind at the height of its wind-up, in the Arena (the brute's hurled slab: the only mark on the ground)](combat-v1.15/telegraphs.webp)
+![Each kind at the height of its wind-up, in the Arena (the brute's hurled slab: the only mark on the ground)](combat-v1.16/telegraphs.webp)
 
 ## The scores
 

@@ -16,7 +16,7 @@ import { materials, add, tube, tubeGeometry, many, skinned, pivot, pair, ease, e
 //   rush   it rears up on its back legs, front legs raised, and clicks; then darts in
 //   pile   (its flock climbs onto it: Foes.pile) braced wide under the heap, which wobbles as it grows; then topples
 // A skitter in a heap (f.riding) is lifted by its place in it, its legs gripping the one under it.
-// Five draws a skitter (v1.15; 44 before): the dome, its rim, the two eyes in one mesh, their glints in another, and its
+// Five draws a skitter (v1.16; 44 before): the dome, its rim, the two eyes in one mesh, their glints in another, and its
 // six legs and two feelers as one skinned mesh whose joints are the kit's own (kit.js skinned: the motion unchanged).
 
 const K = 1.3;   // (the sheet's silhouette: a dome to the traveller's knee; the prompt's fist would not read)

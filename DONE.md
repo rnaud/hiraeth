@@ -1942,7 +1942,7 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   clock's order from four). Each taught a phase earlier, where the old way still works; tests/guardian-twists.test.js.
 - [x] The antler hound's smoke mane moves (its list of flames was filled inside a comment); tests/hound-mane.test.js.
 
-## Enemy roster: batch 4, the possessed machines, and the kit's phase 5 for machines (2026-10-09, v1.15)
+## Enemy roster: batch 4, the possessed machines, and the kit's phase 5 for machines (2026-10-09, v1.16)
 
 - [x] Batch 4 (src/enemies/plans/), drawn to both its sheets and painted in every skin: the furnace brute (brute.js, plan
   8: a slow heavy biped dipping at each footfall, a thump in the pad; its cracked hull a new surface feature, `cracks`,
@@ -1954,7 +1954,7 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   4's fields"). Their moving parts skinned on the kit's own joints (kit.js skinned, skinBy): 6–16 meshes a body.
 - [x] Retired: the glass golem and the slag walker (the drone's kind is the ring drone's); src/foe-kinds.js has no
   stand-in left. Viridel runs wholly on the new roster, Lorn II all but its shade. Lorn II's wood cutter placed by hand
-  by the lit path (src/foe-worlds.js PLACED, Foes.updatePosts). Scored in docs/audits/combat-v1.15.md (4.7–4.8 by eye).
+  by the lit path (src/foe-worlds.js PLACED, Foes.updatePosts). Scored in docs/audits/combat-v1.16.md (4.7–4.8 by eye).
 - [x] The skitter flock: 5 meshes a skitter (44 before), its legs and feelers one skinned mesh; a flock of eight in view
   1248 → 312 draw calls on High, its motion unchanged (combat-v1.13 rec. 2).
 - [x] The combat-review script watches a group kind as its group and a support with its escort, reads the toad's choke

@@ -55,7 +55,7 @@ rather than mixing the earlier inconsistent exploration sheets.
 - [ ] world.js `jitter`'s `vertical` noise lifts a foot ring as well as lowers it (no world uses it yet:
   tests/shell-seams.test.js fails the day one does): keep y = 0 going down only, as `rough` does, before using it.
 
-# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.15) built)
+# Enemy roster (approved 2026-10-09: 21 archetypes; framework and batches 1 (v1.8), 2 (v1.9), 3 (v1.13) and 4 (v1.16) built)
 
 docs/design/enemy-roster.md ("Status": each archetype's), docs/systems/foes.md "The enemy roster". Done: the
 framework, batch 1 (the shellback crab, the horn lizard, the antler hound, the lamp tripod, the ink blot; scored in
@@ -63,7 +63,7 @@ docs/audits/combat-v1.8.md), batch 2 (the mound worm, the sky ray, the signal mo
 jelly, on the kit's chains; scored in docs/audits/combat-v1.9.md), batch 3 (the bellows toad, the stilt heron, the
 skitter swarm, the root knot, drawn to both their sheets; scored in docs/audits/combat-v1.13.md) and batch 4 (the
 furnace brute, the ring drone, the crucible cart, the bell walker, drawn to both their sheets; scored in
-docs/audits/combat-v1.15.md). The Desert, Vael, Vael II, Lorn and Viridel run wholly on the new roster; Lorn II all
+docs/audits/combat-v1.16.md). The Desert, Vael, Vael II, Lorn and Viridel run wholly on the new roster; Lorn II all
 but its rare shade (the batch-5 rework).
 
 - [ ] Rebuild the roster's contact sheet (`node scripts/enemy-roster/sheet.cjs`) from the 21 picked sheets
@@ -80,17 +80,17 @@ but its rare shade (the batch-5 rework).
   it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
 - [ ] A cut on a lantern jelly's thread of light breaks its ward (the doc's counter; combat-v1.9 rec. 2): now only a
   shot, the boomerang or killing the jelly break it. A blade swing crossing the segment from the lantern to the foe.
-- [ ] Play the bell walker with a pad (combat-v1.15 rec. 1): is the drop's 2.5 s opening long enough to strike the
+- [ ] Play the bell walker with a pad (combat-v1.16 rec. 1): is the drop's 2.5 s opening long enough to strike the
   clapper without the whistle, and is a guarded drop found? If the fight drags, open it longer or let a stilling glob
   tip it over.
-- [ ] The crucible cart on a still traveller costs 6.26 bars a minute, the most of the roster (combat-v1.15 rec. 2): play
+- [ ] The crucible cart on a still traveller costs 6.26 bars a minute, the most of the roster (combat-v1.16 rec. 2): play
   its pour at close range and its dripped trail in the Hangar's corridors; shorten the slag near it or the trail if it
   reads unfair.
-- [ ] Measure the machines' CPU on the Retroid and the Deck (combat-v1.15 rec. 3: +0.25 ms a machine in headless Chrome,
+- [ ] Measure the machines' CPU on the Retroid and the Deck (combat-v1.16 rec. 3: +0.25 ms a machine in headless Chrome,
   a pack of six 2.5 → 4.0 ms): the cart's ground rays every other frame and its wheels' instance upload first (a far cart
   could skip both).
 - [ ] The combat-review script: a clapper-only foe needs its opening to measure the time to kill (drive the whistle or
-  wait for the drop's opening before the blows: combat-v1.15 rec. 4).
+  wait for the drop's opening before the blows: combat-v1.16 rec. 4).
 - [ ] Batch 4 against its sheets (docs/design/enemy-roster.md "Status"): the cart's canvas sagging in folds over the
   tracks, a toothed sprocket, a billowing smoke column; the brute's crack net lighter, its fingers in plates, its fists
   meeting over its head for the slam; the bell's yoke a flat riveted band, its spirit seen from above; the drone's
@@ -100,7 +100,7 @@ but its rare shade (the batch-5 rework).
 - [ ] **Batch 6** (the doc's step 8): balance and sound: the pack budgets per world played through, the hurt/burst
   sound families (`sound` per archetype), re-scored with the combat-review skill; retire each old kind as its
   archetype lands (src/foe-kinds.js says which stands in for which).
-- [ ] The placed ones (`PLACED` in src/foe-worlds.js, v1.15: Lorn II's wood cutter stands by the lit path): the Desert's
+- [ ] The placed ones (`PLACED` in src/foe-worlds.js, v1.16: Lorn II's wood cutter stands by the lit path): the Desert's
   cistern pump (a lamp tripod by the deep cistern), the Garden's glass puppet (a marionette, with batch 5).
 - [ ] Play the horn lizards' pair with a pad (combat-v1.8 rec. 1): the flanker's circle and its hiss read before the
   bite? The blare's shove toward the partner fair? The antler hound's threat on a still player is the highest (4.6

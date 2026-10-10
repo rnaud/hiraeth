@@ -889,7 +889,7 @@ from the main sheet's shape, which the driftwood hound does not wear (the halo i
 **Batch 3 is drawn to both its sheets** (2026-10-09, `art: { main, alt }`, following the `enemy-rework` skill): the
 bellows toad, the stilt heron, the skitter swarm and the root knot, each painted (src/enemies/surfaces.js) and on its
 own plan of the locomotion kit's phase 5 (docs/systems/procedural-animation.md, "Phase 5"). **Batch 4 is drawn to both
-its sheets** (2026-10-09, v1.15): the furnace brute, the ring drone, the crucible cart and the bell walker, the
+its sheets** (2026-10-09, v1.16): the furnace brute, the ring drone, the crucible cart and the bell walker, the
 possessed machines, each painted (the brute's cracked hull: a new surface feature, `cracks`) and on its own plan of the
 kit's phase 5 for machines (procedural-animation.md, "Phase 5, the machines": brute, hover, tracked, siege), their moving
 parts skinned on the kit's joints (6–16 meshes a body). **Batches 3–6 follow the `enemy-rework` skill** (`.claude/skills/enemy-rework/SKILL.md`): both sheets read, the
@@ -930,7 +930,7 @@ centipede's pitted plates, the jelly's glowing ribbed lanterns (the porcelain je
 Measured: docs/audits/combat-v1.8.md (batch 1: scores 3.7–4.5, motion on the kit: no foot slide, the right gait
 groups) and docs/audits/combat-v1.9.md (batch 2: 4.3–4.7 by eye; the centipede's 24 legs slide 0.00 m/m, the chains
 keep to their heads' paths). Vael II now runs wholly on the new roster; with batch 3 (docs/audits/combat-v1.13.md: 4.3–4.8, mean 4.54; the motion
-audit: no foot slide, the right gaits) the Desert, Vael and Lorn do too; with batch 4 (docs/audits/combat-v1.15.md:
+audit: no foot slide, the right gaits) the Desert, Vael and Lorn do too; with batch 4 (docs/audits/combat-v1.16.md:
 4.7–4.8 by eye, mean 4.78; the brute's feet slide 0.01 m/m, the bell's 0.00) Viridel does, and Lorn II all but its rare
 shade (the batch-5 rework).
 

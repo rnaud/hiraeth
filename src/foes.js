@@ -90,7 +90,7 @@ const PARRY_STUN = 2;   // s a perfect parry leaves it stunned
 /** The Arena's waves (level.foes.waves: src/levels/arena.js), round and round; they come in this far out, this long after the last. */
 // (the spitting blot, the blot swarm and the root stalker came here first; the bellows toad, the skitters and the root
 // knot took their places in v1.12; the furnace brute and the crucible cart took the glass golem's and the slag walker's
-// in v1.15, the ring drone the rust drone's, and the bell walker came in after the tripods)
+// in v1.16, the ring drone the rust drone's, and the bell walker came in after the tripods)
 export const WAVES = [['blot'], ['blot', 'blot', 'blot'], ['toad', 'blot'], Array(8).fill('skitter'), ['machine'], ['shade'], ['ray', 'ray'], ['toad', 'toad', 'machine'], ['shade', 'shade', 'blot'], ['machine', 'machine', 'blot', 'blot', 'ray'],
   // then the worlds' (the archetypes and their stand-ins: src/enemies/archetypes.js, src/foe-kinds.js)
   ['worm'], ['brute'], ['moth', 'moth', 'moth'], ['drone', 'drone'], ['rootknot', 'blot'], ['heron'], ['crab', 'crab'], ['cart'], ['hound', 'hound'], ['lizard', 'lizard'], ['tripod'], ['tripod', 'lizard', 'lizard'], ['bell'], ['brute', 'crab', 'drone', 'hound'], ['cart', 'drone', 'lizard']];
@@ -156,7 +156,7 @@ export const GROUNDED = 2.5;
  */
 export const CHOKE = 2.2, LEAP_FLIP = 2.6, TOPPLE = 3, OPEN = { guard: 1.2, perfect: 2.6 };
 export const SPORES = { life: 3, r: 1.4, slow: 7 };
-/** Batch 4 (v1.15): a bell walker whose toll the bell-note whistle answered sits open this long (s), the clapper in reach. */
+/** Batch 4 (v1.16): a bell walker whose toll the bell-note whistle answered sits open this long (s), the clapper in reach. */
 export const HUSH = 3;
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
@@ -257,7 +257,7 @@ export class Foe {
     // batch 3 (v1.12): toppled and open (s: the heron), the heap it rides in ({ on, i, climb }: a skitter), running from
     // you (scatter, s: a flock), how long you have stood in its flock (lingerT), where a leap set off, its flock near it
     this.toppled = 0; this.open = 0; this.riding = null; this.scatter = 0; this.lingerT = 0; this.leapFrom = null; this.mates = 0;
-    // batch 4 (v1.15): its tracks jammed by a bomb (s: the cart can't turn)
+    // batch 4 (v1.16): its tracks jammed by a bomb (s: the cart can't turn)
     this.jammed = 0;
   }
   get alive() { return this.state !== 'dead'; }

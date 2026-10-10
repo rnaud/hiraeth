@@ -1,7 +1,7 @@
 // The worlds' old kinds (docs/systems/foes.md, "Each world's foes"): since the enemy roster (docs/design/enemy-roster.md,
 // src/enemies/archetypes.js) they ran as the stand-in bodies of archetypes not built yet, each going when its archetype
 // landed (the dune ray, the sign moth and the winged blot with batch 2; the root stalker, the spitting blot and the blot
-// swarm with batch 3; the glass golem, the rust drone and the slag walker with batch 4, v1.15: the furnace brute, the
+// swarm with batch 3; the glass golem, the rust drone and the slag walker with batch 4, v1.16: the furnace brute, the
 // ring drone and the crucible cart). None is left: the tables stay for a stand-in that may come (KINDS, merged into
 // foes.js FOES; NOTES, what the game says the first time; kindModel, a model with its own anim(f, c), called by
 // Foes.look). The built archetypes' own are in src/enemies/archetypes.js and src/enemies/plans/; the shade still runs
