@@ -1,0 +1,81 @@
+changelog.md
+  s_9ca76055a220ed::t_a5e8d76e0738db 6-12
+scripts/enemy-roster/compare.mjs
+  s_9ca76055a220ed::t_0c7e404ba4be0e 39-40
+scripts/motion-audit/walk.mjs
+  s_9ca76055a220ed::t_598b0c3a36b13a 74
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_ddfce87c4f44f7 19,79-92,234-235,237-254,505,507,509-527,554,556,558-575
+src/enemies/plans/humanoid.js
+  s_9ca76055a220ed::t_2621db9484b414 1-283
+src/enemies/plans/index.js
+  s_9ca76055a220ed::t_30670fac80e3d4 20-22,35,43,48,51-52
+src/enemies/skins.js
+  s_9ca76055a220ed::t_6c51e05adf5a93 71-78,168-177,189-195
+src/enemies/surfaces.js
+  s_9ca76055a220ed::t_c4480b0f552e56 382-481
+src/foe-kinds.js
+  s_9ca76055a220ed::t_b38e5ba56b967b 7-8
+src/foe-worlds.js
+  s_9ca76055a220ed::t_6d4737c2bb1826 13-14,52-53,57,65,67
+src/foes.js
+  s_9ca76055a220ed::t_c8fcfa22d60816 12,87,90-92,155-156,159-165,203,267-269,279-280,296-299,303-304,310-311,327-328,350-353,404,412-416,433,462-463,533,579,604-611,677-685,688,1141-1145,1196,1224-1226,1581,1583,1594-1595,1772,1949,1959-1960,1969-1970,1982,2084-2085,2108,2212-2257,2464,2468,2506
+src/motion-kit/plans.js
+  s_9ca76055a220ed::t_f852f069513f87 212-271
+src/shade.js
+  s_9ca76055a220ed::t_2afc531ca1e154 2,6-7,9-11
+tests/archetypes-batch5.test.js
+  s_9ca76055a220ed::t_34491d0d27715b 1-261
+tests/archetypes.test.js
+  s_9ca76055a220ed::t_93a1302d82d68d 64
+tests/foe-appearance.test.js
+  s_9ca76055a220ed::t_4a0bc0010da591 47-48,55-56
+tests/foe-kinds.test.js
+  s_9ca76055a220ed::t_cd639f5ffbac12 347
+tests/foe-surface.test.js
+  s_9ca76055a220ed::t_3e0d993059e920 51
+tests/foes.test.js
+  s_9ca76055a220ed::t_59e7eb2451745e 321,331
+tests/hitboxes.test.js
+  s_9ca76055a220ed::t_db210302933f4b 39-40
+tests/motion-plans.test.js
+  s_9ca76055a220ed::t_8290d7840b9005 13-14,42-43
+src/enemies/plans/roller.js
+  s_0964cdc1e39a84::t_a21a606b9f6ca1 1-163
+src/enemies/plans/strings.js
+  s_cb0b4e3952e9e3::t_ce255fc3105522 1-238
+src/changelog.js
+  s_9ca76055a220ed::t_1f217edda01340 12-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f741aa63595bd51d1819c35783bde28f09b6f0b8",
+  "prompts": {},
+  "sessions": {
+    "s_0964cdc1e39a84": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a345a779a71d7df7a",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_cb0b4e3952e9e3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a7860bd271e9081de",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
