@@ -24,6 +24,14 @@
 
 import { lineText } from './changelog.js';
 
+
+// v1.38's views: the traveller posed by hand (the game's own player and animator), each run in both builds
+// (an item the older build has not got is refused by its grant: the harness falls back to the jets it had there)
+const KIT_SETUP = "const I = window.items; for (const id of ['backpack', 'doublejump', 'glider']) I.grant(id); if (!I.grant('harness')) I.grant('jetpack'); await new Promise((r) => setTimeout(r, 2500));";
+const EMPTY_SETUP = "const I = window.items; I.grant('backpack'); await new Promise((r) => setTimeout(r, 2500));";
+const FLIP_SETUP = "const I = window.items; I.grant('backpack'); I.grant('doublejump'); const wait = (ms) => new Promise((r) => setTimeout(r, ms)), frame = () => new Promise((r) => requestAnimationFrame(r)); await wait(1500); const P = window.player, inp = window.input; inp.Space = true; for (let i = 0; i < 30 && P.onGround; i++) await frame(); inp.Space = false; for (let i = 0; i < 300 && P.vel.y > 5; i++) await frame(); inp.Space = true; const t1 = P.time; for (let i = 0; i < 300 && P.time - t1 < 0.16; i++) await frame(); window.cinematicReview = { paused: true }; inp.Space = false; await wait(400);";
+const CONTROLS_SETUP = "document.body.classList.add('controller'); window.menu.toggle(true, 'controls'); await new Promise((r) => setTimeout(r, 1200));";
+
 export const MEDIA_DIR = 'changelog-media';
 export { lineText };
 
@@ -497,6 +505,30 @@ const FROM_HIT35 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena on
 /** The miss table (scripts/combat-reach.mjs): 21 archetypes, first swings from 1, 1.5, 2 and 2.5 m off the body, straight on and 40° off, locked on or not; the second and third swings straight on. */
 const REACH35 = { device: 'node, the game’s traveller (its motion capture, the real blade) and each archetype’s real model posed by Foes.look', source: 'node scripts/combat-reach.mjs (before: --legacy, the blade as it was)' };
 export const CHANGELOG_MEDIA = {
+  '1.38': [
+    { match: 'You start out with your sword alone', see: 'Start a new game (or open the desert from the Debug menu in a fresh save): the traveller has the sword on his back and nothing else; LT / L2 and RT / R2 do nothing until the gun is found, and a second press of jump in the air does nothing until the lift valve is.' },
+    { match: 'The double jump is the backpack’s first strength', shots: [
+      { name: 'flip', caption: 'A second press of jump in the air, seen from his side: before, the old boost (the plain jump pose); after, the lift valve’s double jump, tucked and part way round its front flip', commit: '78b8ec31', before: '6b87c27b',
+        view: { level: 'desert', hour: 10, people: [{ id: 'traveller', yaw: Math.PI / 2, dist: 3.6, height: 1.05 }], setup: FLIP_SETUP } },
+    ], see: 'In the cave of the giant’s heart (past Qanat’s back gate), open the chest beside the pool once the tank is full; then jump, and press jump again in the air.' },
+    { match: 'The fluid gun waits in the Givers’ Hearth', see: 'In the Givers’ Hearth (the hoverbike’s ride south-east of Qanat), open the chest across from the stone ball: the glove goes on, and LT / L2 and RT / R2 aim and shoot; D-pad → takes the push for the ball.' },
+    { match: 'LT / L2 aims and RT / R2 uses whatever gadget is in hand', shots: [
+      { name: 'controls-page', caption: 'The Controls page with a controller in hand: before, Y used the gadget in hand and RT shot or fired the jets; after, LT aims and RT uses the gadget in hand, Y / △ is the whistle', commit: '78b8ec31', before: '6b87c27b',
+        view: { level: 'desert', hour: 10, hud: true, setup: CONTROLS_SETUP } },
+    ] },
+    { match: 'Y / △ sounds the bell-note whistle', see: 'With the bell-note whistle found and a gadget in hand, press Y / △: the whistle sounds, and the gadget stays in hand. Hold D-pad ↑: the wheel lists the gadgets only.' },
+    { match: 'The jets fire when you hold jump in the air', see: 'With the jets (the City-Shaft’s Warden’s harness, or the debug toggle in L3 + R3’s menu): jump, then keep A / × held; with the wings too, hold L3 as well to glide instead.' },
+    { match: 'The Warden’s Well in the City-Shaft now holds the Warden’s harness', see: 'Open the chest in the Warden’s Well: the jets fly in the City-Shaft and hang cold anywhere else. The jets everywhere are in the world debug menu (L3 + R3, F2), under Toggles.' },
+    { match: 'The backpack is a round glass sphere', shots: [
+      { name: 'round-backpack', caption: 'His back with the backpack’s strengths found: before, the flat Ivory and Jade flask with its jets under it; after, the round backpack at its third stage (the valve wheel and fins, the folded vanes, the second valve)', commit: '78b8ec31', before: '6b87c27b',
+        view: { level: 'desert', hour: 10, people: [{ id: 'traveller', yaw: Math.PI, dist: 2.1, height: 1.3 }], setup: KIT_SETUP },
+        reference: { sheet: 'references/Core Objects/Round Backpack/sheet/sheet-1.jpg', caption: 'The sheet the round backpack was drawn to (the Reference lab’s first pick): the glass sphere in its brass cradle, the canvas plate, the straps, no hose' } },
+      { name: 'round-backpack-empty', caption: 'Just found, before any strength: before, the flat Ivory and Jade flask with the glove; after, the round backpack at its first stage (the cradle, the band, the neck and its cloth, the canvas plate), the hand bare until the gun', commit: '78b8ec31', before: '6b87c27b',
+        view: { level: 'desert', hour: 10, people: [{ id: 'traveller', yaw: Math.PI * 0.85, dist: 2.1, height: 1.3 }], setup: EMPTY_SETUP },
+        reference: { sheet: 'references/Core Objects/Round Backpack/states/sheet-2.jpg', caption: 'The stages it grows through (the states sheet’s second pick): plain, then a second ring and fins, then folding vanes and an extra valve' } },
+    ] },
+    { match: 'Saves keep what they earned', see: 'Load a save from before v1.38 that had come back from the giant’s pool: the double jump is there and the chest by the pool stands open; one past the Givers’ Hearth has the gun in hand.' },
+  ],
   '1.37': [
     { match: 'The Audits page in the Debug menu opens on the latest scores', shots: [
       { name: 'audits-dashboard', caption: 'The Audits page as it opens: before, every report as a card, newest first (two temple design audits side by side, the older combat ones further down); after, one card per kind with only its latest audit, its scores per item and their changes', from: 'headless Chrome (1280 × 720) on audits.html, a dev server on the branch: before at its parent (4a2be0b0), after with the dashboard' },
