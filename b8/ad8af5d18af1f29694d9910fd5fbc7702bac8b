@@ -1,0 +1,43 @@
+.claude/skills/level-design-qc/SKILL.md
+  s_9ca76055a220ed::t_eddee6761bb5eb 136-140
+changelog.md
+  s_9ca76055a220ed::t_07ea5a830273ba 5-10
+scripts/level-design/audit.mjs
+  s_9ca76055a220ed::t_75251a373830a0 72,81-82,85,88-89
+src/levels/arzach2.js
+  s_9ca76055a220ed::t_b4fdd65011c678 14,99-100,817-823,873-879,894
+src/sky-stones-ways.js
+  s_9ca76055a220ed::t_2a0ee4fd50ae18 1-104
+src/story/arzach2-data.js
+  s_9ca76055a220ed::t_99b201dba6abb8 52-55,213,222
+src/story/arzach2.js
+  s_9ca76055a220ed::t_1ec4834f9cd46a 509-510
+tests/contact-audit.test.js
+  s_9ca76055a220ed::t_a879d605eb4f10 260-278
+src/changelog.js
+  s_680eb19b4ea0a5::t_da1d53569a2475 11-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b8ad8af5d18af1f29694d9910fd5fbc7702bac8b",
+  "prompts": {},
+  "sessions": {
+    "s_680eb19b4ea0a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2c67e0254d687bc2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
