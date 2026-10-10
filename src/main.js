@@ -91,6 +91,7 @@ import { syncUpgrades } from './trials/upgrades.js';
 import { createBoxes, migrateSave } from './boxes/index.js';
 import { createItemEffects } from './boxes/effects.js';
 import { Foes } from './foes.js';
+import { setView } from './motion-kit/view.js';
 import { GADGETS } from './gadgets/all.js';   // (first: the gadgets become items before anything reads ITEMS)
 import { Gadgets } from './gadgets/index.js';
 import { feelDt, shakeCamera, kick } from './feel.js';
@@ -1820,6 +1821,7 @@ function frame(ts) {
   gpuTimer.begin();
   renderFrame();
   gpuTimer.end();
+  setView(camera);   // (what the camera saw: the locomotion kit's detail tiers next frame, src/motion-kit/view.js)
   if (photo.capture) savePhoto();
   cpuMs += performance.now() - tFrame;
 

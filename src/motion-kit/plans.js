@@ -9,6 +9,7 @@
 //   body   bob (× L), lean (rad per m/s²), bank (rad per rad/s × m/s), sway, tilt, spring / height { f, z, r }
 //   poses  the key poses (src/motion-kit/pose.js): y and z × L; a coil per attack where they must read apart
 //   style  'organic' | 'machine' (harder springs, a servo's notches)
+//   stepped  fps of the stepped clock (src/motion-kit/rig.js: the pose drawn on its ticks, a strike on ones): the machines'
 
 export const PLANS = {
   // plan 1: crabs and spiders, 6 to 8 legs: a tripod or alternating tetrapods, knees out and up, hold-then-burst
@@ -62,6 +63,7 @@ export const PLANS = {
       hurt: { y: -0.06, roll: 0.1 },
     },
     style: 'machine',
+    stepped: 12,                                                       // (drawn on twos: it waits, then snaps; its thin legs never shimmer)
   },
   // ---------------------------------------------------------------- phase 5: the roster's batch 3
   // plan 2: the tiny skitterers (a swarm of 6 to 12): six short legs each, knees high over the dome, a quick tripod;
@@ -155,6 +157,7 @@ export const PLANS = {
       'strike:sweep': { y: -0.06, z: 0.04, yaw: -0.65 },
     },
     style: 'organic',
+    stepped: 12,                                                       // (a heavy machine drawn on twos: its footfalls land as held drawings)
   },
   // plan 19: the siege machine (the bell walker): five short spider legs round a hub, one at a time round the ring (a
   // wave), a very slow step in a machine's three straight moves; the great bell on its yoke rides on stiff springs and
@@ -174,6 +177,7 @@ export const PLANS = {
       'strike:drop': { y: -0.2, z: 0, pitch: 0 },
     },
     style: 'machine',
+    stepped: 12,
   },
   // plan 17: the tracked machine (the crucible cart): no legs; two tracks that turn by the distance each side covered
   // (src/motion-kit/machines.js TrackDrive: never a slip, a turn on the spot runs them opposite ways), the chassis

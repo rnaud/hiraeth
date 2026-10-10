@@ -410,12 +410,14 @@ Costs are rough working sessions for one agent, including tests and docs.
    and its poses, checked with the rubric.
 6. **Guardians** (1–2 sessions). Move the keeper, gardener, foreman, sentinel and sign onto the kit (legs with
    IK, bodies from feet); the fliers onto waves with lag. Give each fight's new attacks their own key poses
-   (the "richer, staged fights" of the telegraph TODO).
+   (the "richer, staged fights" of the telegraph TODO). Done (2026-10-10, "Phase 6, the guardians" below).
 7. **LOD and style** (1 session).
    - Add the tiers (held 30 frames) and the stepped-output clock per plan.
    - Measure on the Retroid: kit time per frame with 10 foes near and 30 far, kept under 1 ms
      (docs/systems/performance.md).
    - Re-run the motion check (docs/systems/rendering.md, "Stable in motion") for the ink shimmer.
+   - Done (2026-10-10, "Phase 7, LOD and style" below), measured on High and the Deck preset in headless Chrome (the
+     Retroid is no longer on the desk).
 
 **Total:** about 8–11 sessions, of which phases 1–3 (3–4 sessions) remove the stiffness for most of the roster.
 
@@ -430,7 +432,8 @@ Costs are rough working sessions for one agent, including tests and docs.
 | `gait.js` | `layoutLegs` sorts feet into sides and rows and gives the groups (alternate: a tripod on 6, tetrapods on 8, diagonals on 4; wave: one at a time on 3; lateral) and each foot's neighbours. `GaitPlanner`: homes in the body's frame, drift and stance-time triggers, a group lifts only when every other foot is down (most urgent first, groups take turns), the swing shortened so no waiting foot is dragged past its reach, landings a part of a stride past home (re-aimed in the first 60 % of the swing), organic (rise, then smootherstep) or machine (lift, translate, drop) arcs, one ground ray per step, touchdown events, a seeded per-foe phase and stride, the wind-up's brace and lock (`setStance`), and the far tier's canned cycle by distance walked |
 | `body.js` | `BodyFromFeet`: height from the feet on the ground, pitch and roll from their plane, a dip while a group is up (deepest mid-swing), sway over the planted feet, lean into acceleration, bank into turns, all through springs |
 | `pose.js` | `PoseBlend`: a plan's rest / coil / strike / recover / hurt poses (and `coil:<attack>`, `strike:<attack>`); the coil builds with the telegraph's own timing (`coilK`: complete at `POSE_DONE` of src/telegraph.js, then held); the wind-up locks the feet and widens their homes; the strike is on a fast underdamped spring (overshoot), the recovery on a soft one; machines' yaw is quantised |
-| `rig.js` | `jointedLeg` / `planLeg` build a leg as a hip pivot on the body and a chain (thigh, shin, foot, an optional telescoping piston) hung from the model's root, so the feet stay planted while the body moves. `Rig`: one `update(f, dt, ctx)` per foe (pose, planner, body; returns the body's offsets) and `write()` (IK from the drawn hip to the planted foot, segments aimed; the feet hang or tuck from the body when `ctx.air`). Tiers by distance (near ≤ 25 m; mid ≤ 60 m: the planner every 2nd frame; far: the canned cycle), held 30 frames (`TierHold`); the stepped clock (`stepped: 12`, off by default) |
+| `rig.js` | `jointedLeg` / `planLeg` build a leg as a hip pivot on the body and a chain (thigh, shin, foot, an optional telescoping piston) hung from the model's root, so the feet stay planted while the body moves. `Rig`: one `update(f, dt, ctx)` per foe (pose, planner, body; returns the body's offsets) and `write()` (IK from the drawn hip to the planted foot, segments aimed; the feet hang or tuck from the body when `ctx.air`). Tiers by distance and view (near ≤ 25 m; mid ≤ 60 m: the planner every 2nd frame; far: the canned cycle, IK and body springs one frame in four; off, out of view: nothing solved), held 30 frames (`TierHold`); the stepped clock (a plan's `stepped: 12`: the machines'); since phase 7, "Phase 7, LOD and style" |
+| `view.js` | what the camera sees (`setView` once a frame from the game, `inView` per rig) |
 | `plans.js` | the tables: `walker` (plan 1), `quadruped` (plan 6), `machine` (plan 18); lengths as shares of the leg |
 
 The mind never calls the kit: a model's `anim` / `animate` asks its rig for the body's offsets, adds its own
@@ -678,6 +681,53 @@ forelegs lift, and while the tell rig rears and swells the body), the free-then-
 link longer than its share of the curve, its middle lagging a lunge by over 0.3 m and settling on the curve) and the
 fliers' tips trailing their roots.
 
+### Phase 7, LOD and style (2026-10-10)
+
+The detail tiers (src/motion-kit/rig.js) now know what the camera sees and save where nobody looks; the machines are drawn
+on twos.
+
+- **In view** (`src/motion-kit/view.js`): the game hands the kit the camera once a frame (src/main.js `setView`, after
+  drawing: the next frame's rigs read it); a rig asks whether a sphere round its body, padded 4 m for its shadow, is in the
+  frustum. Unset (node, the enemies viewer), everything is in view.
+- **The tiers**: near (≤ 25 m) and mid (≤ 60 m) as before; **far** runs the canned cycle and now solves its legs' IK and
+  steps its body's springs one frame in four (`TIERS.farEvery`, staggered per foe, the springs given the time of all
+  four); **off** (out of view) runs the canned cycle only: no body springs, no IK, nothing drawn moves. A change waits 30
+  frames as before, except coming back into view, which is at once (its legs are solved the frame it is seen).
+- **The stepped clock** (a plan's `stepped`, 12 fps, phase-offset per foe): on for the machines (`machine`: the makers'
+  machine and the lamp tripod; `siege`: the bell walker; `brute`: the furnace brute). Between its ticks the drawn root,
+  the body's offsets and the legs hold where they were drawn (`write()` puts the root back: the legs hang from it, so
+  their feet stay exactly where they were planted), and the mind, the hits and the telegraph timing run every frame
+  underneath. A strike runs on ones, so it snaps. The model's own extra moves (the brute's arms, the bell's pendulums, the
+  tripod's lamp) stay smooth.
+- **`LOD`** (rig.js): `{ view, far, stepped }`, each saving on its own switch, so the running game can measure them.
+
+Measured in the running game (`node scripts/motion-audit/lod-page.mjs`: the Arena with the Cistern-Keeper circling in its
+ring, eight of the roster in front of it and twenty more at 70–110 m all round; the savings switched off and on in turns
+in one page, three turns of 6 s, the median; Mac M4 Pro, headless Chrome on the GPU, a shared machine at load 28–36):
+
+| preset | the kit a frame, off → on (ms) | the Keeper's animate (ms) | JS a frame (ms) |
+|---|---|---|---|
+| High | 0.24 → 0.13 | 0.04 → 0.04 | 7.4 → 6.8 |
+| High, CPU ×4 | 1.12 → 0.66 | 0.21 → 0.23 | 37.4 → 35.4 |
+| Steam Deck | 0.24 → 0.12 | 0.04 → 0.03 | 5.7 → 5.7 |
+| Steam Deck, CPU ×4 | 1.03 → 0.52 | 0.16 → 0.16 | 24.5 → 23.6 |
+
+In node (`node scripts/motion-audit/cost.mjs --scenes`, the least of five runs): 40 foes, 10 near and 30 far, 167 → 71 µs a
+frame; the same seen one way (the ones behind the camera out of view) 140 → 51 µs; a pack of 8 near with the Keeper 36 → 35
+µs (all near and in view: nothing to save), 29 µs seen one way. The 1 ms budget for 10 near and 30 far (§5) holds with room
+at CPU ×4 (0.52–0.66 ms with 28 foes and a guardian).
+
+**Ink shimmer** (`node scripts/motion-audit/shimmer.mjs`: one foe walked by hand past a still camera, the game's clock
+stepped by hand, the motion check's flicker in a box round it: a pixel that jumped over 20 levels and came straight back,
+per 10 000 px a frame; docs/systems/rendering.md, "Stable in motion"; two runs each): the lamp tripod 515 → 6–26 (its
+possessed twitch and its steam are random), the bell walker 353 → 4–5, the furnace brute 1 185 → 243 (its arms still swing
+every frame). Left alone: the organic plans stay on ones (their
+lag and overshoot read as life), and so do the guardians (a held pose on a body that size reads as a stutter).
+
+`tests/motion-lod.test.js` holds the view, the tiers (held, but at once back into view), out of view solving nothing, the
+far tier's one frame in four, the stepped clock holding the root and legs with the feet planted from tick to tick and a
+strike on ones, and the three machines still walking on planted feet.
+
 ## Measuring
 
 - `node scripts/motion-audit/run.mjs [ids…] [--all] [--pace=0.5] [--json]` walks the old kinds, a sample of
@@ -689,3 +739,7 @@ fliers' tips trailing their roots.
 - A model on the kit adds its subject to the script's `OLD` / `GUARDIANS` tables (now in `walk.mjs`): where its legs are.
 - `--pack` walks two of a kind side by side (unison: 1 is in step), `--cost` times the kit per foe;
   `cost.mjs` is the proper benchmark, `strips.mjs` the motion strips (one Vite on 5357, one muted Chrome on 5407).
+- In the running game: `lod-page.mjs` the kit's savings switched off and on in the Arena with a guardian and a pack (High,
+  the Deck, CPU ×4), `shimmer.mjs` the ink flicker round one walking foe with the stepped clock off and on.
+- The guardians: `run.mjs keeper gardener foreman sentinel warden sign elder` (10 s each; a `knee` column, the legs' mean
+  bend and the least).

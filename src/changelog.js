@@ -13,6 +13,9 @@ export const CHANGELOG = [
     'The temple guardians walk on jointed legs that plant where they step and stay there until they step again: the Cistern-Keeper’s six legs in two tripods, the Gardener’s root legs, the Clockwork Foreman’s and the sentinels’ legs on their pistons, the First Sign’s, and the Elder’s long bird’s legs, which bend back. Their bodies ride on their feet, dipping and swaying as they go, and their necks and heads lag behind their turns.',
     'When a guardian rears, crouches or coils for a move, its feet stay planted: it braces them wide first, the Cistern-Keeper rears on four legs with its forelegs off the floor, the Gardener on its hind pair, and the Elder hops up to stamp. The Clockwork Foreman and the Tooth-Warden lift their feet off the floor to spin.',
     'The Cloud-Mother’s fins, the Lampless’s wings, the Elder’s stone feathers and the Echo’s veils ripple out from the body to their tips, and the Mother Snapper’s neck lags behind her lunges and whips after them.',
+    // the kit's detail by distance and its stepped clock
+    'Creatures on legs cost less to animate when they are far off or out of sight: far away their legs are worked out a quarter as often, and behind you not at all, catching up the moment they come into view.',
+    'The lamp tripod, the bell walker and the furnace brute are drawn on twos, like a hand-drawn film: they hold each pose for a moment and then move on, so their thin legs no longer shimmer as they walk. Their strikes still snap at full speed.',
   ] },
   { v: '1.28', date: '2026-10-10', items: [
     // a fellow traveller, met along the route

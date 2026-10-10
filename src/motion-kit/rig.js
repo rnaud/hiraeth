@@ -4,6 +4,7 @@ import { GaitPlanner } from './gait.js';
 import { BodyFromFeet } from './body.js';
 import { PoseBlend } from './pose.js';
 import { poleFor } from './plans.js';
+import { inView } from './view.js';
 
 // The rig: binds a model's joints by role to the kit (docs/systems/procedural-animation.md, "The kit") and runs
 // it once a frame per foe. The mind (src/foes.js Foe) only moves f.pos and f.heading; the rig follows them:
@@ -15,26 +16,37 @@ import { poleFor } from './plans.js';
 //   4. write(): each leg's chain is solved by two-bone IK (src/motion-kit/ik.js) from the hip on the drawn body
 //      to its planted foot, and its segments are aimed joint to joint
 //
-// Detail tiers by distance (held 30 frames before a change, so nothing flickers between them):
+// Detail tiers by distance and by whether the camera sees it (src/motion-kit/view.js; held 30 frames before a change, so
+// nothing flickers between them, except coming into view, which is at once: its legs must be right the frame it is seen):
 //   near (≤ 25 m)  everything, every frame
 //   mid  (≤ 60 m)  the planner every 2nd frame (with the time of both), IK every frame
-//   far            the canned cycle by distance walked (no planning, no rays; still never skates)
-// An optional stepped clock (`stepped: 12`, fps, phase-offset per foe; off by default) shows the pose only on
-// its ticks for the ink look (docs/systems/procedural-animation.md, "The Moebius ink look"): the kit still runs
-// every frame.
+//   far            the canned cycle by distance walked (no planning, no rays; still never skates); the body's springs and
+//                  the legs' IK every `farEvery`th frame (staggered per foe, with the time of all of them)
+//   off            out of view: the canned cycle only; no body springs, no IK, nothing drawn moves
+// A stepped clock (a plan's `stepped`: 12 fps, phase-offset per foe; the machines') shows the pose only on its ticks for the
+// ink look (docs/systems/procedural-animation.md, "The Moebius ink look"): the kit still runs every frame, but between
+// ticks the model's root, body and legs hold where they were drawn (write() puts the root back), so its thin legs do not
+// shimmer a little every frame; a strike runs on ones (every frame), so it snaps.
 
-export const TIERS = { near: 25, mid: 60, hold: 30 };
+export const TIERS = { near: 25, mid: 60, hold: 30, farEvery: 4, shadow: 4 };   // (shadow: m round a body that still counts as in view: its shadow)
+/** The kit's savings, each on its own switch (to measure them in the running game: scripts/motion-audit/lod-page.mjs). */
+export const LOD = { view: true, far: true, stepped: true };
+const FINER = { off: 0, far: 1, mid: 2, near: 3 };
 const UP = new THREE.Vector3(0, 1, 0);
 const _m = new THREE.Matrix4(), _inv = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
 const _hip = new THREE.Vector3(), _foot = new THREE.Vector3(), _knee = new THREE.Vector3(), _end = new THREE.Vector3(), _pole = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
 
-/** The tier for a distance, held: a change waits `hold` frames of asking for the same new tier. */
+/**
+ * The tier for a distance (and whether it is in view), held: a change waits `hold` frames of asking for the same new
+ * tier; coming back into view does not wait.
+ */
 export class TierHold {
   constructor(hold = TIERS.hold) { this.hold = hold; this.tier = 'near'; this.want = 'near'; this.n = 0; }
-  static of(d) { return d <= TIERS.near ? 'near' : d <= TIERS.mid ? 'mid' : 'far'; }
-  update(distance) {
-    const t = TierHold.of(distance);
+  static of(d, seen = true) { return !seen ? 'off' : d <= TIERS.near ? 'near' : d <= TIERS.mid ? 'mid' : 'far'; }
+  update(distance, seen = true) {
+    const t = TierHold.of(distance, seen);
     if (t === this.tier) { this.want = t; this.n = 0; return this.tier; }
+    if (this.tier === 'off' && FINER[t] > FINER.off) { this.tier = this.want = t; this.n = 0; return t; }   // (seen again: at once)
     if (t !== this.want) { this.want = t; this.n = 0; }
     if (++this.n >= this.hold) { this.tier = t; this.n = 0; }
     return this.tier;
@@ -137,6 +149,8 @@ export class Rig {
     this.tiers = new TierHold();
     this.tier = 'near';
     this.frame = seed;   // (mid-tier foes take turns: not all on the same frame)
+    this.farN = seed; this.farDt = 0; this.drawn = true;   // (far-tier foes take turns at their IK and body springs too)
+    this.held = { pos: new THREE.Vector3(), quat: new THREE.Quaternion(), set: false };   // (the stepped clock's drawn root)
     this.acc = 0;
     this.prev = null; this.heading = 0;
     this.walked = 0;
@@ -170,7 +184,7 @@ export class Rig {
       else { this.vel.x = vx; this.vel.z = vz; this.walked += Math.hypot(p.x - this.prev.x, p.z - this.prev.z); }
     }
     this.prev.copy(p);
-    this.tier = ctx.eye ? this.tiers.update(Math.hypot(ctx.eye.x - p.x, ctx.eye.z - p.z)) : 'near';
+    this.tier = ctx.eye ? this.tiers.update(Math.hypot(ctx.eye.x - p.x, ctx.eye.z - p.z), ctx.seen ?? (!LOD.view || inView(p, this.length * 1.6 + TIERS.shadow))) : 'near';
     if (this.minTier === 'mid' && this.tier === 'near') this.tier = 'mid';   // (a swarm's members: every 2nd frame)
     const pose = this.pose.update(dt, { state: f.state, k: f.k, atk: f.atk, recovery: ctx.recovery, stunned: f.stunned });
     this.planner.setStance(pose.lock && !ctx.free, pose.spread);   // (ctx.free: still aiming, the feet may step round)
@@ -186,7 +200,7 @@ export class Rig {
         PL.heading = f.heading;
       }
     }
-    else if (this.tier === 'far') this.planner.canned(p, f.heading, this.walked, this.plan.gait.duty ?? 0.6);
+    else if (this.tier === 'far' || this.tier === 'off') this.planner.canned(p, f.heading, this.walked, this.plan.gait.duty ?? 0.6);
     else {
       this.acc += dt;
       if (this.tier === 'near' || ++this.frame % 2 === 0) {
@@ -195,17 +209,22 @@ export class Rig {
         if (ev.length && ctx.touch) for (const e of ev) ctx.touch(e.at, this.length, e.leg);
       }
     }
-    const b = this.bodyFeet.update(dt, this.planner, p, f.heading, this.vel);
+    // the body on its feet: every frame near and mid; far, on its turn (with the time since); out of view, held
+    this.drawn = this.tier !== 'off' && (this.tier !== 'far' || !LOD.far || ++this.farN % TIERS.farEvery === 0);
+    let b = this.bodyFeet.out;
+    if (this.tier === 'far') this.farDt += dt;
+    if (this.drawn) { b = this.bodyFeet.update(this.tier === 'far' ? this.farDt : dt, this.planner, p, f.heading, this.vel); this.farDt = 0; }
     const o = this.out;
     o.y = b.y + pose.y; o.x = b.x; o.z = pose.z; o.pitch = b.pitch + pose.pitch; o.roll = b.roll + pose.roll; o.yaw = pose.yaw;
-    // the stepped clock: the pose shown only on its ticks
-    if (this.stepped > 0) {
+    // the stepped clock: the pose shown only on its ticks (a strike on ones: it snaps; out of view, nothing to step)
+    if (this.stepped > 0 && LOD.stepped && f.state !== 'strike' && this.tier !== 'off') {
       this.clock += dt * this.stepped;
-      this.tick = this.clock >= 1;
-      if (this.tick) { this.clock %= 1; Object.assign(this.shown, o); }
+      this.tick = this.clock >= 1 || !this.ticked;
+      if (this.tick) { this.clock %= 1; this.ticked = true; Object.assign(this.shown, o); }
       return this.shown;
     }
     this.tick = true;
+    if (this.stepped > 0) Object.assign(this.shown, o);
     return o;
   }
 
@@ -218,8 +237,12 @@ export class Rig {
    * `air`). Skipped between the stepped clock's ticks.
    */
   write() {
-    if (!this.tick) return;
-    const g = this.group;
+    const g = this.group, H = this.held;
+    // (between the stepped clock's ticks the root holds where it was drawn: the body's offsets are held by update(), and
+    // the legs, hung from the root, with it)
+    if (!this.tick) { if (H.set) { g.position.copy(H.pos); g.quaternion.copy(H.quat); } return; }
+    if (this.stepped > 0) { H.pos.copy(g.position); H.quat.copy(g.quaternion); H.set = true; }
+    if (!this.drawn) return;   // (far, between its turns; out of view)
     g.updateMatrix();
     _inv.copy(g.matrix).invert();
     const bodyM = matrixTo(this.body, g, _m);
