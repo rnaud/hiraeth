@@ -18,7 +18,7 @@ export function movesFrom({ BLADE, SWINGS, CHARGE, AIR, RIPOSTE, DASH, FLUID, MO
     return { cycle: cycle / per, burst: per };
   };
   return [
-    { id: 'combo', label: 'light combo (3 swings)', mode: 'blade', damage: comboDamage / combo.length, hits: BLADE.damage.slice(), cycle: comboTime / combo.length, source: 'combo' },
+    { id: 'combo', label: 'light combo (3 swings)', mode: 'blade', damage: comboDamage / combo.length, hits: BLADE.damage.slice(), cycle: comboTime / combo.length, cycles: combo.map((c, i) => c + (i === combo.length - 1 ? BLADE.cooldown : 0)), cooldown: BLADE.cooldown, source: 'combo' },   // (cycles: each swing's own length, the cooldown after the third)
     { id: 'charge', label: 'charged cut (full)', mode: 'blade', damage: CHARGE.damage.at(-1), cycle: CHARGE.full + span(CHARGE), source: 'charge', breaks: true },
     { id: 'air', label: 'air cut', mode: 'blade', damage: AIR.damage, cycle: span(AIR) + 0.55, source: 'air' },   // (+ the jump's rise)
     { id: 'riposte', label: 'riposte (after a perfect parry)', mode: 'blade', damage: RIPOSTE.damage, cycle: span(RIPOSTE), source: 'riposte', stunned: true, gated: 'parry' },
@@ -43,7 +43,12 @@ export function hitsToKill(hit, max = 40) {
   return { hits: max, landed, wasted, dead: false };
 }
 /** Seconds to kill with a move: its blows times its cycle (a riposte also waits a parry: one of the foe's attack cycles). */
-export const timeToKill = (r, move, attackCycle = 0) => (r.dead ? +(r.hits * move.cycle + (move.gated ? r.hits * attackCycle : 0)).toFixed(2) : null);
+export const timeToKill = (r, move, attackCycle = 0) => {
+  if (!r.dead) return null;
+  // (a move with swings of their own lengths, the combo: those swings, without the cooldown after a last third swing)
+  const own = move.cycles ? Array.from({ length: r.hits }, (_, i) => move.cycles[i % move.cycles.length]).reduce((a, b) => a + b, 0) - (r.hits % move.cycles.length === 0 ? move.cooldown ?? 0 : 0) : r.hits * move.cycle;
+  return +(own + (move.gated ? r.hits * attackCycle : 0)).toFixed(2);
+};
 
 /** Scores 1..5 by thresholds (a value at or over t[i] gets i + 2; under t[0], 1). */
 export const band = (v, t) => 1 + t.filter((x) => v >= x).length;

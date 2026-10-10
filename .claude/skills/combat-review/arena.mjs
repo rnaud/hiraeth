@@ -58,6 +58,13 @@ if (arg('rescore')) {
   const { readFileSync } = await import('node:fs');
   const J = JSON.parse(readFileSync(resolve(arg('rescore')), 'utf8'));
   const roles = {}; for (const f of J.foes) roles[f.facts.role] = (roles[f.facts.role] ?? 0) + 1;
+  // (--moves-now: the times to kill again from each run's blows with the moves timed as lib.mjs times them now; the
+  // tuning the run had is in its moves, so only the timing changes)
+  if (args.includes('--moves-now')) {
+    const tun = J.tuning ?? await (async () => { const b = await import(join(ROOT, 'src/fluid-blade.js')), t = await import(join(ROOT, 'src/fluid-tool.js')), k = await import(join(ROOT, 'src/fluid-kit.js'));
+      return { BLADE: b.BLADE, SWINGS: b.SWINGS, CHARGE: b.CHARGE, AIR: b.AIR, RIPOSTE: b.RIPOSTE, DASH: b.DASH, FLUID: t.FLUID, MODES: k.MODES }; })();
+    const now = L.movesFrom(tun); J.moves = J.moves.map((m) => ({ ...m, ...(m.hits ? { cycles: now.find((x) => x.id === m.id)?.cycles, cooldown: now.find((x) => x.id === m.id)?.cooldown } : {}) }));
+    for (const r of J.foes) for (const m of J.moves) { const t = r.ttk[m.id]; if (t?.dead) t.s = L.timeToKill({ ...t, hits: t.landed + (t.from === 'behind' ? 0 : t.wasted) }, m, r.winds && Object.values(r.winds).length ? (J.watch / Object.values(r.winds).reduce((a, b) => a + b, 0)) : 3); } }
   J.foes = J.foes.map((r) => ({ ...r, score: L.scoreKind(r.facts, r, r.worlds ?? 0, roles[r.facts.role]) }));
   J.guardians = J.guardians.map((g) => ({ ...g, score: L.scoreGuardian(g) }));
   writeFileSync(join(OUT, 'combat.json'), JSON.stringify(J, null, 2));
@@ -338,7 +345,7 @@ const scored = results.map((r) => ({ ...r, facts: facts[r.kind], worlds: (setup.
 const gScored = guardians.filter((g) => !g.error).map((g) => ({ ...g, score: L.scoreGuardian(g) }));
 const md = report(scored, gScored, MOVES, WATCH);
 writeFileSync(join(OUT, 'combat.md'), md);
-writeFileSync(join(OUT, 'combat.json'), JSON.stringify({ version: VERSION, date: new Date().toISOString(), watch: WATCH, moves: MOVES, extra: setup.extra, foes: scored, guardians: gScored, guardianErrors: guardians.filter((g) => g.error), errors: errors.slice(0, 8), contact: shots.map((x) => x.kind), guardianSheet: gShots.map((x) => x.kind) }, null, 2));
+writeFileSync(join(OUT, 'combat.json'), JSON.stringify({ version: VERSION, date: new Date().toISOString(), watch: WATCH, tuning: setup.tuning, moves: MOVES, extra: setup.extra, foes: scored, guardians: gScored, guardianErrors: guardians.filter((g) => g.error), errors: errors.slice(0, 8), contact: shots.map((x) => x.kind), guardianSheet: gShots.map((x) => x.kind) }, null, 2));
 console.log(`combat.md, combat.json and the contact sheet in ${OUT}`);
 ws.close(); proc.kill('SIGTERM'); await sleep(800); rmSync(profile, { recursive: true, force: true });
 await server.close();
