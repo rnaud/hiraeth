@@ -1,0 +1,37 @@
+.claude/skills/enemy-rework/SKILL.md
+  s_9ca76055a220ed::t_1c70742bd446f4 50-53
+DONE.md
+  s_9ca76055a220ed::t_02c4edb1e34a6d 1931,1945-1962
+TODO.md
+  s_9ca76055a220ed::t_37ffb55f404dec 58,63-67,83-97,103-104,198-199
+docs/audits/combat-v1.15.md
+  s_9ca76055a220ed::t_0ed47303f97bbd 1-134
+docs/design/enemy-roster.md
+  s_9ca76055a220ed::t_63e26e1ee9569b 1,891-895,914,921-924,926,928,933-935
+docs/systems/foes.md
+  s_9ca76055a220ed::t_6b953df26a1c0b 510-514,644,659-665,675,690-696,769-789,795-796,883
+docs/systems/procedural-animation.md
+  s_9ca76055a220ed::t_8f09d5a8de631a 578-608
+scripts/combat-review/lib.mjs
+  s_9ca76055a220ed::t_2ab4734ae2ae7b 71,81
+src/enemies/archetypes.js
+  s_9ca76055a220ed::t_e35a5c51e25071 368,371
+src/enemies/plans/kit.js
+  s_9ca76055a220ed::t_3dca3985d399a7 74,76-77,104,132-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "66d169be8170a2c6d236b318067600feb7d37208",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
