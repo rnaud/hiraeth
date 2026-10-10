@@ -117,7 +117,11 @@ namespace Memento.Bridge
             done = false;
             thread = new Thread(() => Run(code), 64 << 20) { Name = "Memento script", IsBackground = true, Priority = System.Threading.ThreadPriority.Highest };
             // the sound rendered on a thread of its own (engine/unity/audio-worker.js: the script records its graph), unless -audio-js
-            var audioCode = Array.IndexOf(BridgeArgs.CommandLine(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "memento-js", "audio.cjs"));
+            // (not with QuickJS, the Xbox's: two of its engines used at once from two threads crashed the IL2CPP player, an
+            // access violation in the sound's thread while the script's loaded; the script renders the sound itself then)
+            bool oneEngine = JsRuntime.Backend == "QuickJS";
+            if (oneEngine) Debug.Log("Memento bridge: QuickJS: the sound rendered on the script's thread");
+            var audioCode = oneEngine || Array.IndexOf(BridgeArgs.CommandLine(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "memento-js", "audio.cjs"));
             if (audioCode != null && audioOut)
             {
                 BridgeHost.audioThreaded = true;
