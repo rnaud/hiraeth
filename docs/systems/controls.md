@@ -13,7 +13,8 @@ Controls: click to capture the mouse · WASD move · Shift run · Space jump ·
 hold Space in the air to glide · mouse wheel zoom · Esc releases the mouse.
 **Left click** (pointer captured, not aiming) or **F** swings the fluid blade, **Ctrl** or **Z** held (on
 land) guards, **Alt** evades, **Tab** locks on to a foe (docs/systems/foes.md). **F3** toggles the FPS
-counter, **F4** the hitboxes (L3 + R3 on a pad: docs/systems/foes.md, "Hitboxes"). **H** opens the
+counter, **F4** the hitboxes (docs/systems/foes.md, "Hitboxes"), **F2** the world debug menu (L3 + R3 on a pad:
+teleports, cinematics, a quest's stage, the hitboxes; docs/systems/dev-tools.md). **H** opens the
 Controls page. **E** interacts: get on, get off, talk, use; with nothing near it whistles for the level's
 mount (or hails a taxi). **Q** (or touch **ping**) launches a tiny backpack scout toward your next
 objective. It waits a few metres ahead, labels the destination and returns after five seconds; ping again
@@ -277,7 +278,7 @@ Conflicts and oddities:
 | View (on release) | the sketchbook | | | | the sketchbook | | close | **leave** |
 | View + D-pad ↑ | **photo mode** (also in the Start menu) | | | | photo mode | | | |
 | View + D-pad ↓ / ← / → | **free** (`padchord` events; in the Arena ← toggles the input display) | | | | | | | |
-| L3 + R3 | debug: the hitbox overlay (F4) | | | | | | | |
+| L3 + R3 | debug: the world debug menu (F2; v1.33: the hitbox overlay, F4, is inside it) | | | | the world debug menu | | closes it | |
 | Menu | the Start menu | | | | the Start menu | | close | leave |
 
 Keyboard and mouse: the **left click** swings the blade (pointer captured, not aiming; aiming, it shoots),
@@ -315,8 +316,9 @@ Start menu.
   second layer (the sketchbook opens as View is let go, if no chord was used meanwhile). It is in the
   Start menu too, the only way in on a touch screen.
 - **Free for later:** View + D-pad ↓ / ← / → (↓ drank the potion from v1.5 to v1.10), sent as a `padchord` window event (`{ detail: { name:
-  'viewDown' | 'viewLeft' | 'viewRight' } }`). The hitbox overlay keeps L3 + R3 (both sticks: a debug
-  combo nobody presses by accident; R3 alone still locks on, L3 alone runs).
+  'viewDown' | 'viewLeft' | 'viewRight' } }`). Both sticks (L3 + R3: a debug
+  combo nobody presses by accident; R3 alone still locks on, L3 alone runs) open the world debug menu
+  (v1.33; they showed the hitbox overlay before, which is one of its toggles now, and F4).
 - **The keyboard:** the left click attacks as in every PC action game (and shoots while aiming, as
   before); B is only the gadgets' key, so it never raises the shield.
 - **Players from before** see a one-time note the first time they use a pad (`PAD_SCHEME` in

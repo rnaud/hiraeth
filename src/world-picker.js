@@ -203,14 +203,15 @@ export const LAST_KEY = 'moebius.debugMenu.last';
  * The menu into the #picker element: its header (the filter, the section chips), its sections. Returns
  * { jump(dir), filter(text), focusSearch(), sections() } for the keys and the pad.
  */
-export function fillPicker(picker, { levels, current = null, cont = null, state = null }) {
+export function fillPicker(picker, { levels = [], current = null, cont = null, state = null, sections: given = null, label = 'Filter the Debug menu', remember = true }) {
   const doc = picker.ownerDocument;
   const header = picker.querySelector('header');
-  const sections = menuSections({ levels, current, cont, state });
+  // (the world debug menu, src/world-debug.js, brings sections of its own: the same header, filter and chips)
+  const sections = given ?? menuSections({ levels, current, cont, state });
   // the header: the title, the filter and the close button; under it a chip a section
   const tools = header.querySelector('.tools') ?? header.lastElementChild;
   const search = Object.assign(doc.createElement('input'), { type: 'search', className: 'filter', placeholder: 'filter…', autocomplete: 'off', spellcheck: false });
-  search.setAttribute('aria-label', 'Filter the Debug menu');
+  search.setAttribute('aria-label', label);
   search.setAttribute('enterkeyhint', 'go');
   const searchBox = doc.createElement('label');
   searchBox.className = 'search';
@@ -320,7 +321,7 @@ export function fillPicker(picker, { levels, current = null, cont = null, state 
   // the item opened is remembered (this tab): back here, it has the focus again
   body.addEventListener('click', (e) => {
     const a = e.target.closest?.('a[href]');
-    if (a) try { doc.defaultView?.sessionStorage?.setItem(LAST_KEY, a.getAttribute('href')); } catch { /* none */ }
+    if (a && remember) try { doc.defaultView?.sessionStorage?.setItem(LAST_KEY, a.getAttribute('href')); } catch { /* none */ }
   });
   const focusSearch = () => { search.focus(); search.select?.(); };
   /** A key typed on the menu (not in the box): a letter starts the filter with it. True: taken. */

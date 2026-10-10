@@ -1125,7 +1125,7 @@ Locomotion matching remains experimental and off by default: see animation.md fo
 ## Hitboxes (v0.93: `src/hitboxes.js`, `src/hitbox-overlay.js`)
 
 A debug overlay of what the fight actually tests, for tuning and for learning the timings.
-- **The switch** (`hitboxes`): F4, L3 + R3 (both sticks clicked; R3 alone still locks on), the dev menu's
+- **The switch** (`hitboxes`): F4, the world debug menu's Toggles (L3 + R3 or F2: docs/systems/dev-tools.md), the dev menu's
   Combat row, the Arena's board left of the way in (X / □, E: `src/levels/arena-hitbox-board.js`, its lamp lit
   while on), `?hitboxes=1` / `=0` for the session. Kept in the settings (`settings.hitboxes`).
 - **Truthful by construction:** `collectHitboxes()` reads the combat code's own data, exposed through small

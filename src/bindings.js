@@ -72,7 +72,7 @@ export const BINDINGS = {
     ['View + ↓', 'free'],
     ['View + ←', 'free · the Arena: the input display (F6)'],
     ['View + →', 'free'],
-    ['L3 + R3', 'debug: the hitbox overlay (F4)'],
+    ['L3 + R3', 'debug: the world debug menu (F2): teleports, cinematics, the quest\'s stage, the hitbox overlay'],
   ],
   ride: [
     ['A', 'jump off (moving: its speed carries you)'],

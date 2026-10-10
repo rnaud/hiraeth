@@ -36,6 +36,40 @@ the **filter** and close, and a chip a section (a click scrolls there; the one i
 - **Sizes**: the sections' grids fill the width; under 620 px the filter takes a line of its own and the
   headings' lines go under them; under 480 px tall (a handheld on its side) it tightens. `tests/world-picker.test.js`.
 
+## The world debug menu (v1.33, `src/world-debug.js`)
+
+**L3 + R3** (both sticks, in either order; in play or riding) or **F2** opens a menu over the world you are in;
+the same again, B / Esc or its close button shut it. It is available wherever the Debug menu is (every build,
+for now). It is drawn by the Debug menu's own code and CSS (`fillPicker` given `sections`; `#wdebug` shares
+`src/world-picker.css` with `#picker`): the sticky header with the filter (type, or Y on a pad) and a chip a
+section (LB / RB, PgUp / PgDn), rows a controller moves through in 2D (`data-grid-nav`), the confirm glyph on
+the focused row. It is drawn again each time it opens (people move, quests go on).
+
+| Section | What is in it, and where it comes from |
+| --- | --- |
+| **Landing** | the ship (`ship.arrivalSpot()`: the foot of its ramp), the level's `spawn` |
+| **Quests** | every stage of this world's quests where its marker stands (`quests.where(stage)`: `goto`, `at`, `talk`, the locators) |
+| **People** | the world's people (`npcs`, not the crowd's pooled walkers) |
+| **Temple** | outside its door (`temple.doorOut`), inside the door (`arrival`), each room's mark (`marks`), the gadget's chest, the guardian's arena (at its edge) |
+| **Shops** | outside (where the shop's way out lands) and at the counter (`level.shops`) |
+| **Sights** | the level design's `sights`, `beacons` (at their foot) and the start of each leading line (`lines`) |
+| **Runs & trials** | the trial (`TRIALS`), the makers' runs (`kitTrialsFor`), the makers' court (`level.finds.court`) |
+| **Places** | each door into a room, cave or hall (`level.portals`, not the temples' or the shops'), outside and inside; the story's goal (`CONTENT[id].story`); the desert's named places (`src/desert-sites.js`) |
+| **Finds** | the makers' boxes (`boxes.list`), the relics not yet found |
+| **Cinematics** | this world's entries of the Cinematics page (`cinematics-page/catalog.js`, `cinematicsFor`): its moments and its boxes' films are played in place (`stageCinematic`, the review page's own staging) and you are put back where you stood when it ends; the ship's recordings and takeoff while the ship is here; an arrival reloads the world by ship; the prologue and homecomings open the Cinematics page |
+| **Quest stage** | each of this world's quests, main first, with its stages and "done": `applyQuestJump` sets the flags the stages before it wait for (as the debug save does, `questJump`), clears those of it and after, then `quests.set` (its hooks run); a warning names the save it changes (the debug save, or save N), and a row reloads the world |
+| **Toggles** | the hitbox overlay (what L3 + R3 did until v1.33; F4 still), the input display (F6), god mode (`player.opts.health = false`, this session), endless potions (`res.potions.infinite`, in the save), full hearts, the sky's clock running or still, six times of day, and back to the Debug menu |
+
+A teleport (`landingSpot`, then `passage.go`: the paper sweeps across as at a door) sets you on solid ground
+near the point, from just over it (under a low ceiling, not on the roof over it), with room to stand, out of
+the doorways' discs (with `portalCool` held, so no door takes you on), over `killY`; a point in the air (a
+beacon's foot, the fallen-up tiles over the cloud) takes the floor under it or the nearest within 60 m. A room's
+mark and a door's far side are landed on as they are, which needs nothing from the passage: the rooms are real
+geometry off the map, and the temple notices you inside by itself. Nowhere to stand: a toast, and you stay.
+`tests/world-debug.test.js` (the gathering, the landing, the quest jump, the films, the rows, the controller) and
+`tests/world-debug-worlds.test.js` (every route world built with its story: every kind there and every point landed
+on; desert 122 points, the others 49–71).
+
 ## The Lab (v0.39)
 
 In the Lab, `[` and `]` (L3 and R3 on a pad) call `level.jump(∓1)`: a fade, then the

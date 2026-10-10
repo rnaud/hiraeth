@@ -9,7 +9,6 @@ import { clearTargets, allTargets } from '../src/targets.js';
 import { GameState } from '../src/game-state.js';
 import { collectHitboxes, foeHitboxes, playerHitboxes, gadgetHitboxes, registerHitboxes, hitboxes, HITBOX_COLORS } from '../src/hitboxes.js';
 import { HitboxBuilder } from '../src/hitbox-overlay.js';
-import { Controller } from '../src/controller.js';
 
 const v = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z), dt = 1 / 60;
 const env = { ground: () => 0, seen: () => true };
@@ -260,16 +259,7 @@ test('on the real traveller: the blade is drawn red exactly on the frames it cut
   tool.dispose();
 });
 
-test('L3 + R3 toggles the hitboxes and does not lock on', () => {
-  const pad = { index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) };
-  const actions = [];
-  const c = new Controller({ pads: () => [pad], context: () => 'game', action: (a) => actions.push(a), look() {}, navigate() {}, scroll() {} });
-  const set = (i, d) => { pad.buttons[i] = { pressed: d, value: +d }; };
-  set(10, true); c.update(dt); set(11, true); c.update(dt); set(10, false); set(11, false); c.update(dt);
-  assert.ok(actions.includes('hitboxes')); assert.ok(!actions.includes('lock'));
-  actions.length = 0; set(11, true); c.update(dt); set(11, false); c.update(dt);
-  assert.deepEqual(actions, ['lock'], 'R3 alone still locks on');
-});
+// (L3 + R3 opened the hitboxes until v1.33; it opens the world debug menu now, where they are: tests/world-debug.test.js)
 
 test('the built archetypes (src/enemies/archetypes.js): each attack’s shape is drawn where it is checked, telegraph then active then spent', () => {
   for (const kind of ['crab', 'lizard', 'hound', 'tripod', 'blot']) for (const a of FOES[kind].attacks.filter((x) => !x.chain && !x.instant && !x.sweep && !x.blink)) {

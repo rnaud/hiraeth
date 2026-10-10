@@ -58,7 +58,7 @@ test('on foot, each button does exactly what the table says, and only that', () 
     A: ['Space'], B: ['PadEvade'], X: ['KeyE'], Y: ['PadGadget'], RB: ['PadBlade'], LB: ['PadGuard'], LT: ['PadAim'], RT: ['PadFire'],
     R3: ['lock'], '↑': ['PadGadgetPick'], '↓': ['call'], '←': ['potion'], '→': ['PadModeNext'], View: ['journal'], Menu: ['settings'],
     'View + ↑': ['photo'], 'View + ↓': ['viewDown'], 'View + ←': ['viewLeft'], 'View + →': ['viewRight'],
-    'L3 + R3': ['hitboxes'],
+    'L3 + R3': ['worldDebug'],
   };
   for (const [b] of BINDINGS.foot) {
     if (b === 'L3') continue;   // (below: it needs the stick)

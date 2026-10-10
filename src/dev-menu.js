@@ -125,7 +125,7 @@ export class DevMenu {
       <p class="hint">over the loops: setting off, stopping, turning on the spot and the pivot at a run from Mixamo's capture (the body above the legs); off: the loops alone</p>` : ''}
       <div class="btns"><button data-a="motionpage" type="button">the Motion page</button></div>
       <p class="hint">both side by side on a test ground, the matcher's debug, the people's walks (motion.html; leaves the game)</p>` : ''}
-      ${this.hitboxes ? `<h2>Combat</h2><label class="item"><input type="checkbox" data-opt="hitboxes"${this.hitboxes.get() ? ' checked' : ''}>Show hitboxes<small>F4 · L3 + R3</small></label>
+      ${this.hitboxes ? `<h2>Combat</h2><label class="item"><input type="checkbox" data-opt="hitboxes"${this.hitboxes.get() ? ' checked' : ''}>Show hitboxes<small>F4 · L3 + R3 menu</small></label>
       <p class="hint">the traveller's hurt column, the blade's cut, the guard and parry, foes' bodies, strikes, ranges and states, shots, bombs (src/hitboxes.js)</p>` : ''}
       ${this.inputs ? `<h2>Controller</h2><label class="item"><input type="checkbox" data-opt="inputs"${this.inputs.get() ? ' checked' : ''}>Show controller inputs<small>F6 · ?inputs=1</small></label>
       <p class="hint">the pad drawn, each press with its raw index and what it does, the pad's id, mapping and remap profile (src/input-display.js)</p>` : ''}

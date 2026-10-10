@@ -123,6 +123,6 @@ test('controller and keys: LB / RB between sections, Y the filter, B back; typin
   assert.match(main, /menuRoot\(\) === picker\) debugMenu\.jump/, 'in the game too (L)');
   assert.match(main, /if \(debugMenu\.typeKey\(e\)\) e\.stopPropagation\(\)/, 'a letter is the filter\'s, not the game\'s');
   // a pad never lands in the text box by the D-pad (the handheld's keyboard would open): only Y
-  assert.match(src('src/world-picker.css'), /body\.controller #picker:not\(\.typing\):not\(\.filtering\) \.search input \{ display: none; \}/);
+  assert.match(src('src/world-picker.css'), /body\.controller :is\(#picker, #wdebug\):not\(\.typing\):not\(\.filtering\) \.search input \{ display: none; \}/);
   assert.match(src('src/boot.js'), /import '\.\/world-picker\.css'/);
 });

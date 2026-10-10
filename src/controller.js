@@ -8,6 +8,7 @@
 //             · LT aim · RT shoots while LT is held, and without it is the jets' throttle (analog)
 //             · RB the blade · LB held the guard (no foe near: LB + right stick zooms)
 //             · L3 run until you stop · R3 lock on (nothing to lock: the scout finds the objective)
+//             · L3 + R3 (both sticks) the world debug menu (src/world-debug.js)
 //             · D-pad ↑ choose a gadget (tap: the next; held: the wheel) · ← drink a potion
 //             · ↓ call the mount / a taxi · → the next gun mode (one job per button)
 //             · View the sketchbook (on release; View + D-pad: photo, free slots)
@@ -114,6 +115,8 @@ export class Controller {
       else if (press(ok) || talkOn) this.action('confirm');
       else if (ctx === 'menu' && press(WEST)) this.action('x');   // (a menu's own extra buttons: a save's Delete on the title,
       else if (ctx === 'menu' && press(NORTH)) this.action('y');  //  the items page's reset and turn; each carries its glyph)
+      // (both sticks again: the world debug menu closes, as it opened; nothing else in a menu uses them)
+      if (ctx === 'menu' && ((press(R3) && down(L3)) || (press(L3) && down(R3)))) this.action('worldDebug');
       const x = down(RIGHT) ? 1 : down(LEFT) ? -1 : Math.abs(left.x) > 0.5 ? Math.sign(left.x) : 0;
       const y = down(DOWN) ? 1 : down(UP) ? -1 : Math.abs(left.y) > 0.5 ? Math.sign(left.y) : 0;
       const direction = y ? `y${y}` : x ? `x${x}` : '';
@@ -183,8 +186,9 @@ export class Controller {
       if (ctx !== 'photo') {
         // R3: lock on to the nearest foe, then the next, then let go; with no foe in reach main.js sends the
         // scout to find the objective instead (Tab and Q on the keyboard: src/foes.js, src/scout.js).
-        // Both sticks clicked (L3 + R3, in either order): the hitbox overlay (src/hitboxes.js), and no lock-on
-        if ((press(R3) && down(L3)) || (press(L3) && down(R3))) this.action('hitboxes');
+        // Both sticks clicked (L3 + R3, in either order): the world debug menu (src/world-debug.js: teleports,
+        // cinematics, the quest's stage, the hitbox overlay), and no lock-on
+        if ((press(R3) && down(L3)) || (press(L3) && down(R3))) this.action('worldDebug');
         else if (press(R3)) this.action('lock');
         if (press(MENU)) this.action('settings');
         // View: the sketchbook, when it is let go without a D-pad press meanwhile; View held + D-pad ↑ is

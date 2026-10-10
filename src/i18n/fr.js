@@ -229,7 +229,7 @@ export const FR = {
   'ctl.p.talk.how': '{ok} ou {interact} continuer, choisir · {back} partir',
   'ctl.p.menus': 'Dans les menus',
   'ctl.p.menus.how': 'D-pad choisir · gauche / droite régler · {ok} valider · {back} retour · stick droit défiler',
-  'ctl.p.debug': 'Débogage : zones de frappe du combat',
+  'ctl.p.debug': 'Débogage : le menu du monde (téléportations, cinématiques, zones de frappe)',
   'ctl.p.debug.how': 'cliquer les deux sticks (L3 + R3)',
 
   'ctl.t.move': 'Se déplacer · regarder',
@@ -304,7 +304,7 @@ export const FR = {
   'restart.tap': 'touchez pour recommencer',
   'restart.enter': 'Entrée pour recommencer',
   'restart.label': 'Assommé',
-  'toast.hitboxesOn': 'Zones de frappe affichées (F4, ou L3 + R3).',
+  'toast.hitboxesOn': 'Zones de frappe affichées (F4, ou le menu de débogage du monde : L3 + R3).',
   'toast.hitboxesOff': 'Zones de frappe masquées.',
   'load.sketching': 'le monde se dessine…',
 

@@ -5,7 +5,7 @@ import { hitboxes } from '../hitboxes.js';
 
 // The Arena's hitbox board (src/hitboxes.js): a stone post with a slate showing a wire cube, by the way in.
 // Walk up and press the interact button (X / □, E) to show or hide the fight's hitboxes; its lamp is lit
-// while they show. (Elsewhere: F4, L3 + R3, or the dev menu.)
+// while they show. (Elsewhere: F4, the world debug menu (L3 + R3), or the dev menu.)
 
 export function placeHitboxBoard(scene, at, { heading = 0 } = {}) {
   const g = new THREE.Group();

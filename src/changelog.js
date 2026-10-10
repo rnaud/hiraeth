@@ -8,6 +8,13 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.33', date: '2026-10-10', items: [
+    // the world debug menu
+    { text: 'A debug menu for the world you are in: click both sticks (L3 + R3), or press F2. It lists the world’s places by kind (the ship, every quest step, the people, the temple’s door and each of its rooms, the shops, the sights and beacons, the makers’ runs and trials, the doors into caves and halls, the boxes and relics) with a filter, and takes you to any of them, set down on the ground nearby.',
+      see: 'In any world on the route, click both sticks together (or press F2). Pick “the guardian’s arena” under Temple, or a step under Quests: the page sweeps across and you stand there. LB / RB jump between the sections, Y filters, B closes.' },
+    { text: 'The same menu plays the world’s cinematics where they happen and puts you back where you stood, sets any of the world’s quests to a chosen step (it warns you that this changes the save), and holds the debug switches: the hitbox overlay (which both sticks used to show; F4 still does), the controller inputs, god mode, endless potions, full hearts, the time of day, and the way back to the Debug menu.',
+      see: 'Open it with L3 + R3, go to Cinematics and pick a world moment: it plays, and when it ends you are back where you opened the menu. Toggles has Hitboxes, God mode and the times of day.' },
+  ] },
   { v: '1.32', date: '2026-10-10', items: [
     // the temple visual pass: each house its own stone, colours and light, after its design pictures
     'The eleven temples no longer look alike: each has its own stone, colours and light inside, after its design picture. Inside a temple the shade takes the house’s own colour instead of the world’s, so a rose house stays rose in its shadows and a cream one stays cream, and each has a small thing of its own along its friezes.',

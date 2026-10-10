@@ -45,7 +45,7 @@ const DEFAULTS = {
   enemies: 'normal',    // the foes (src/foes.js): normal | gentle (half the harm, slower, one at a time) | off (the calm game)
   devPanel: false,
   showFps: false,       // the frame readout (F, or ?fps=1 for a session): off, nothing on the screen
-  hitboxes: false,      // the fight's hitbox overlay (F4, L3 + R3, the dev menu, the Arena's board: src/hitboxes.js)
+  hitboxes: false,      // the fight's hitbox overlay (F4, the world debug menu (L3 + R3), the dev menu, the Arena's board: src/hitboxes.js)
   hints: DEFAULT_HINTS, // how much the game says (src/hint-level.js): off | subtle (a glyph on approach, the first-time prompts) | full
   hintsV: 1,            // settings saved before v1 had no hints setting (the game said everything): they start on subtle once
   // accessibility (docs/systems/ui.md, "Accessibility"): applyAccess() hands them to the modules that use them

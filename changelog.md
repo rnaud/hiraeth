@@ -2,6 +2,11 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.33 — 2026-10-10
+
+- The same menu plays the world’s cinematics where they happen and puts you back where you stood, sets any of the world’s quests to a chosen step (it warns you that this changes the save), and holds the debug switches: the hitbox overlay (which both sticks used to show; F4 still does), the controller inputs, god mode, endless potions, full hearts, the time of day, and the way back to the Debug menu.
+- A debug menu for the world you are in: click both sticks (L3 + R3), or press F2. It lists the world’s places by kind (the ship, every quest step, the people, the temple’s door and each of its rooms, the shops, the sights and beacons, the makers’ runs and trials, the doors into caves and halls, the boxes and relics) with a filter, and takes you to any of them, set down on the ground nearby.
+
 ## v1.32 — 2026-10-10
 
 - The Undertower is heavy blue-grey masonry, its door frames the same stone, with grey flagstones and slots of the market’s coral and teal light along its walls.
