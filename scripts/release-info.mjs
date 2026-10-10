@@ -7,7 +7,7 @@
 //   node scripts/release-info.mjs latest-json <build> <apk url>        → latest.json, read by Updater.java
 //   node scripts/release-info.mjs web-json <build> <web.zip> <zip url> → web.json, read by WebBundles.java
 //   node scripts/release-info.mjs web-zips <asset names…>              → the web zips a release can delete (staleWebZips)
-//   node scripts/release-info.mjs unity-notes <android|linux> [sha] [by] → the Unity testers' release notes (unityNotes)
+//   node scripts/release-info.mjs unity-notes <android|linux|xbox> [sha] [by] → the Unity testers' release notes (unityNotes)
 // The Cloudflare deploy writes its own web.json (scripts/web-update.mjs, from webJson below).
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -134,6 +134,7 @@ export function xboxDecision(manifest, { xbox, current, bad = [] }) {
 export const UNITY_RELEASES = {
   android: { tag: 'unity-android', file: 'memento-unity.apk', package: 'com.rnaud.memento.unity' },
   linux: { tag: 'unity-linux', file: 'memento-unity-linux.tar.gz' },
+  xbox: { tag: 'unity-xbox', file: 'memento-unity-xbox.zip', package: 'rnaud.HiraethUnity' },
 };
 
 /**
@@ -147,8 +148,12 @@ export function unityNotes({ platform = 'android', sha, subject = '', version = 
     ? `Hiraeth (Unity), for testing: the game's own JavaScript run inside Unity (the engine bridge) and drawn by Unity, on Android. `
       + `Package \`${r.package}\`: it installs next to the Hiraeth app (\`com.rnaud.moebius\`) and never replaces it; each new build installs over the last (the same release key) and keeps its saves. `
       + `Download \`${r.file}\` below and open it on the device.`
-    : `Hiraeth (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, Mono), for the Steam Deck. `
-      + `Download \`${r.file}\`, unpack it and run \`memento-js.x86_64\`.`;
+    : platform === 'xbox'
+      ? `Hiraeth (Unity), for measuring on an Xbox in Developer Mode: the engine bridge as a UWP app (IL2CPP x64, Direct3D 11, the game's JavaScript in Puerts' QuickJS). `
+        + `Package \`${r.package}\`: it installs next to the WebView2 app (\`rnaud.Hiraeth\`). `
+        + `Download \`${r.file}\`, unpack it and add the \`.msix\` with its dependency \`.appx\` files in the Device Portal (docs/systems/xbox.md, "The Unity build on the Xbox"); its numbers are in LocalState\\unity.log.`
+      : `Hiraeth (Unity), for testing: the engine bridge's Linux player (x86_64, Vulkan, Mono), for the Steam Deck. `
+        + `Download \`${r.file}\`, unpack it and run \`memento-js.x86_64\`.`;
   const from = `Built from commit ${sha ? `\`${sha.slice(0, 12)}\`` : '(unknown)'}${subject ? ` (${subject})` : ''}, web version v${version}${build ? `, build ${build}` : ''}, by ${by} on ${date}.`;
   return `${what}\n\n${from}\n\nNot for players: the game itself is the Hiraeth app and https://memento.alexandria-rnaud.workers.dev/.`;
 }

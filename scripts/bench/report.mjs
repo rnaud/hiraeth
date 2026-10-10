@@ -14,7 +14,7 @@ const VP = viewpoints();
 // (the WebView-vs-Chrome and GeckoView sections are written by hand from android-engines-summary.mjs and
 // android-gecko-summary.mjs: kept as they are)
 const DOC = resolve(ROOT, 'docs/benchmark-web-vs-unity.md');
-const KEEP = ['## On the Retroid: WebView 109 vs Chrome 154', '## On the Retroid: GeckoView'];
+const KEEP = ['## On the Retroid: WebView 109 vs Chrome 154', '## On the Retroid: GeckoView', '## On the Xbox: WebView2 against the Unity bridge'];
 const keep = (head) => { const t = existsSync(DOC) ? readFileSync(DOC, 'utf8') : ''; const i = t.indexOf(head); if (i < 0) return null; const j = t.indexOf('\n## ', i + head.length); return t.slice(i, j < 0 ? undefined : j).trimEnd(); };
 const kept = KEEP.map(keep).filter(Boolean).join('\n\n') || null;
 const SIDE = { web: 'web (three.js)', unity: 'Unity player', 'unity-webgl': 'Unity WebGL' };

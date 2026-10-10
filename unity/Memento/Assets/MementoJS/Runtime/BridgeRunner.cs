@@ -57,6 +57,7 @@ namespace Memento.Bridge
             if (!Application.isEditor && args == "{}")
                 try { args = BridgeArgs.FromCommandLine(); }
                 catch (Exception e) { Debug.LogError("Memento bridge: the command line: " + e.Message); failed = true; Exit(2); return; }
+            if (BridgeMetrics.Wanted()) gameObject.AddComponent<BridgeMetrics>().runner = this;
             if (!JsRuntime.Available) { Debug.LogError("Memento bridge: Puerts is not installed (scripts/unity-js-setup.sh)"); failed = true; return; }
             QualitySettings.vSyncCount = 0; Application.targetFrameRate = -1;
             if (args.Contains("\"split\":true")) gpuSplit = new BridgeGpuSplit();
@@ -136,12 +137,17 @@ namespace Memento.Bridge
             int port = BridgeArgs.Arg("-jsinspect") is string ps && int.TryParse(ps, out int pp) ? pp : -1;
             js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
             scriptEnvMade.Set();
+            BridgeMetrics.scriptEnvAt = Time.realtimeSinceStartup;
+            Debug.Log($"Memento bridge: the script's engine made ({JsRuntime.Backend})");
             if (port > 0) Debug.Log($"Memento bridge: V8's inspector on {port}");
             var t0 = DateTime.UtcNow;
             js.Eval("var __m = { exports: {} }; (function (module, exports, require) {\n" + System.Text.Encoding.UTF8.GetString(code)
                 + "\n})(__m, __m.exports, function (n) { throw new Error('the bundle asked for ' + n); }); globalThis.Memento = __m.exports;", "memento.cjs");
             Debug.Log($"Memento bridge: the bundle loaded in {(DateTime.UtcNow - t0).TotalMilliseconds:0} ms");
+            var t1 = DateTime.UtcNow;
             js.Eval($"Memento.start({Quote(args)})", "start");
+            BridgeMetrics.bundleAt = Time.realtimeSinceStartup;
+            Debug.Log($"Memento bridge: Memento.start returned in {(DateTime.UtcNow - t1).TotalMilliseconds:0} ms");
         }
 
         /// <summary>The script's thread: the bundle, then a frame each time the main thread lets it go.</summary>
@@ -157,8 +163,10 @@ namespace Memento.Bridge
                 {
                     go.WaitOne();
                     if (quit) return;
+                    long s0 = System.Diagnostics.Stopwatch.GetTimestamp();
                     js.Tick();
                     js.Eval($"Memento.frame({nextDt.ToString(System.Globalization.CultureInfo.InvariantCulture)})", "frame");
+                    scriptMsTotal += (System.Diagnostics.Stopwatch.GetTimestamp() - s0) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
                     Finish();
                 }
             }
@@ -234,7 +242,7 @@ namespace Memento.Bridge
                 try { ok = Await(); }
                 catch (Exception e) { Debug.LogError("Memento bridge: " + (e.InnerException ?? e)); failed = true; Exit(5); return; }
                 double wait = (Time.realtimeSinceStartupAsDouble - t0) * 1000;
-                waitMs += wait;
+                waitMs += wait; waitMsTotal += wait;
                 if (gpuSplit != null) Hitch(t0, wait);
                 if (exiting) return;
                 if (!ok)
@@ -273,6 +281,8 @@ namespace Memento.Bridge
         }
         /// <summary>The main thread's time waiting on the script (ms, summed; BridgeHost.WaitMs reads and clears it).</summary>
         public double waitMs;
+        /// <summary>The same wait summed for good, and the script's own time on its thread (ms; BridgeMetrics reads them).</summary>
+        public double waitMsTotal, scriptMsTotal;
 
         public void Look(string json)
         {

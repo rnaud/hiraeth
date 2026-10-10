@@ -7,7 +7,7 @@ namespace Memento.Bridge
     /// <summary>
     /// Puerts' JsEnv, reached by reflection: the bridge has no compile-time reference to Puerts, so the
     /// project builds (and the C# port runs) without it; scripts/unity-js-setup.sh puts Puerts' packages
-    /// in Packages/ (docs/systems/engine-bridge.md). Its V8 runs the game's bundle.
+    /// in Packages/ (docs/systems/engine-bridge.md). Its V8 (QuickJS on the Xbox) runs the game's bundle.
     /// </summary>
     public sealed class JsRuntime : IDisposable
     {
@@ -18,6 +18,8 @@ namespace Memento.Bridge
         readonly object env;
 
         public static bool Available => Find();
+        /// <summary>The script engine Puerts runs: V8, or QuickJS where there is no V8 (the Xbox).</summary>
+        public static string Backend { get; private set; } = "none";
 
         static bool Find()
         {
@@ -30,6 +32,18 @@ namespace Memento.Bridge
             tick = envType.GetMethod("Tick", Type.EmptyTypes);
             dispose = envType.GetMethod("Dispose", Type.EmptyTypes);
             if (bufferType != null) { bytesField = bufferType.GetField("Bytes"); countField = bufferType.GetField("Count"); }
+            // the backend: V8 where its package is (every player but the Xbox's), else QuickJS (the UWP build: Puerts has no
+            // V8 for UWP; its QuickJS is built for it, scripts/unity-uwp-natives.ps1). Puerts' Auto tries V8 first and would
+            // throw for a missing package, not fall through: chosen here.
+            bool v8 = Type.GetType("Puerts.BackendV8, com.tencent.puerts.v8", false) != null;
+            bool qjs = Type.GetType("Puerts.BackendQuickJS, com.tencent.puerts.quickjs", false) != null;
+            Backend = v8 ? "V8" : qjs ? "QuickJS" : "none";
+            if (!v8 && qjs)
+            {
+                var kind = Type.GetType("Puerts.BackendType, com.tencent.puerts.core", false);
+                var field = envType.GetField("DefaultBackendType", BindingFlags.Public | BindingFlags.Static);
+                if (kind != null && field != null) field.SetValue(null, Enum.Parse(kind, "QuickJS"));
+            }
             return true;
         }
 

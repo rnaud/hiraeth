@@ -1,0 +1,327 @@
+name: Unity release (Xbox, Developer Mode)
+
+# The Unity side of the engine bridge (docs/systems/engine-bridge.md) as a UWP app for an Xbox in Developer Mode, to
+# measure Unity's native Direct3D 11 path against the WebView2 build's ANGLE one on the same console
+# (docs/systems/xbox.md, "The Unity build on the Xbox"; docs/benchmark-web-vs-unity.md). Not for players.
+# - Puerts 3.0.3 has no UWP libraries and its V8 can't run in a UWP app on the console: the game's JavaScript runs in
+#   Puerts' QuickJS (an interpreter), built here from Puerts' source for Windows Store x64 (scripts/unity-uwp-natives.ps1).
+#   The script's time is therefore not comparable with the web's (WebView2 on the console has its JIT on); the
+#   native side (shader warm-up, GPU frame time) is. BridgeMetrics logs them apart, in LocalState\unity.log.
+# - GameCI (unity-builder v6, the Windows editor image with the UWP module) runs the editor twice: Puerts' IL2CPP glue
+#   (BridgeBuild.Il2cpp, cached), then the UWP Visual Studio solution (BridgeBuild.Xbox: IL2CPP x64, D3D11, Unity's
+#   references copied in). The runner's msbuild builds and packages it (Master, x64, sideload), signtool signs it with
+#   the WebView2 app's certificate (XBOX_PFX_BASE64, as xbox.yml), its identity rnaud.HiraethUnity so it installs
+#   next to rnaud.Hiraeth.
+# - Published to the prerelease unity-xbox (never the latest): memento-unity-xbox.zip (the .msix, its .cer and the
+#   dependency .appx files). The run keeps the same files as an artifact for a week.
+# When: a push that touches the Unity side or this workflow, and by hand. Licensed as the other Unity jobs (UNITY_EMAIL,
+# UNITY_PASSWORD; a Personal seat), on windows-2022 (GameCI's Windows containers; Visual Studio's C++ UWP tools).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'unity/**'
+      - 'engine/**'
+      - 'scripts/unity-*'
+      - 'scripts/unity-*/**'
+      - 'scripts/engine-bundle.mjs'
+      - '.github/workflows/unity-xbox.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write   # (scripts/unity-ci-cache-prune.sh deletes the caches a new entry replaces)
+
+concurrency:
+  group: unity-xbox
+  cancel-in-progress: false
+
+env:
+  UNITY_VERSION: 6000.6.4f1   # (unity/Memento/ProjectSettings/ProjectVersion.txt)
+  PROJECT: unity/Memento
+
+jobs:
+  xbox:
+    runs-on: windows-2022
+    timeout-minutes: 240
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Unity licence
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if (-not $env:UNITY_EMAIL -or -not $env:UNITY_PASSWORD) { Write-Host "::error title=Missing secrets::UNITY_EMAIL and UNITY_PASSWORD (docs/systems/unity.md, 'Building in GitHub Actions')"; exit 1 }
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0   # (the build number counts the commits: release-info.mjs build)
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Puerts (cached)
+        uses: actions/cache@v4
+        with:
+          path: .local-tools/puerts
+          key: puerts-3.0.3-quickjs
+
+      # PuertsCore and PapiQuickjs for UWP, from Puerts' source (a few minutes cold): again only when the script changes
+      - name: Puerts for UWP (cached)
+        uses: actions/cache@v4
+        with:
+          path: .local-tools/puerts-uwp
+          key: puerts-uwp-3.0.3-${{ hashFiles('scripts/unity-uwp-natives.ps1') }}
+
+      - name: Puerts (QuickJS) into the project, the game's JavaScript into StreamingAssets
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          npm ci
+          PUERTS_BACKENDS=Quickjs scripts/unity-js-setup.sh
+          node scripts/engine-bundle.mjs unity
+
+      - name: Puerts' natives for UWP x64
+        run: |
+          ./scripts/unity-uwp-natives.ps1
+          if ($LASTEXITCODE) { throw "unity-uwp-natives.ps1 failed ($LASTEXITCODE)" }
+
+      # (as the other Unity jobs': one entry, restored from the newest, saved when its key moved, the older deleted)
+      - name: Unity Library (restore)
+        id: library
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.PROJECT }}/Library
+          key: unity-library-xbox-${{ env.UNITY_VERSION }}-puerts-3.0.3-${{ hashFiles('unity/Memento/Assets/**', 'unity/Memento/ProjectSettings/**', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/StreamingAssets/**', '!unity/Memento/Assets/Gen/**') }}
+          restore-keys: |
+            unity-library-xbox-
+
+      - name: Puerts' IL2CPP glue (cached)
+        id: glue
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.PROJECT }}/Assets/Gen
+            ${{ env.PROJECT }}/Assets/Gen.meta
+          key: puerts-glue-xbox-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
+
+      - name: Version
+        id: meta
+        run: |
+          "version=$(node scripts/release-info.mjs version)" >> $env:GITHUB_OUTPUT
+          "build=$(node scripts/release-info.mjs build)" >> $env:GITHUB_OUTPUT
+          "package=$(node scripts/xbox-package.mjs version)" >> $env:GITHUB_OUTPUT
+
+      - name: Puerts' IL2CPP glue
+        id: gluebuild
+        if: steps.glue.outputs.cache-hit != 'true'
+        continue-on-error: true   # (retried once below: an editor start is sometimes killed)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          targetPlatform: WSAPlayer
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: Puerts' IL2CPP glue (again)
+        if: steps.gluebuild.outcome == 'failure'
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          targetPlatform: WSAPlayer
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Il2cpp
+          versioning: None
+          allowDirtyBuild: true
+
+      - name: The UWP solution (IL2CPP x64, D3D11)
+        id: solution
+        continue-on-error: true   # (retried once below)
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          targetPlatform: WSAPlayer
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Xbox
+          versioning: Custom
+          version: ${{ steps.meta.outputs.version }}
+          customParameters: -out Builds/unity-xbox
+          allowDirtyBuild: true
+
+      - name: The UWP solution (IL2CPP x64, D3D11) (again)
+        id: solutionagain
+        if: steps.solution.outcome == 'failure'
+        uses: game-ci/unity-builder@v6
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          targetPlatform: WSAPlayer
+          unityVersion: ${{ env.UNITY_VERSION }}
+          projectPath: ${{ env.PROJECT }}
+          buildMethod: Memento.EditorTools.BridgeBuild.Xbox
+          versioning: Custom
+          version: ${{ steps.meta.outputs.version }}
+          customParameters: -out Builds/unity-xbox
+          allowDirtyBuild: true
+
+      # (saved also when the build failed further on, as "-partial", as the other Unity jobs do)
+      - name: Unity Library (under which key)
+        id: librarysave
+        if: always() && steps.library.outcome == 'success' && steps.library.outputs.cache-hit != 'true'
+        env:
+          KEY: ${{ steps.library.outputs.cache-primary-key }}
+          BUILT: ${{ steps.solution.outcome == 'success' || steps.solutionagain.outcome == 'success' }}
+        run: |
+          if ($env:BUILT -eq 'true') { "key=$env:KEY" >> $env:GITHUB_OUTPUT } else { "key=$env:KEY-partial" >> $env:GITHUB_OUTPUT }
+
+      - name: Unity Library (save)
+        if: always() && steps.librarysave.outputs.key != ''
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.PROJECT }}/Library
+          key: ${{ steps.librarysave.outputs.key }}
+
+      - name: Unity Library (the older entries deleted)
+        if: always() && steps.librarysave.outputs.key != ''
+        continue-on-error: true   # (housekeeping: a prune that fails never fails the build)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KEY: ${{ steps.librarysave.outputs.key }}
+        run: scripts/unity-ci-cache-prune.sh unity-library-xbox- "$KEY"
+
+      # msbuild, the Windows SDK and signtool (as xbox.yml finds them)
+      - name: Visual Studio and the UWP tools
+        id: tools
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $msbuild = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
+          if (-not $msbuild) { Write-Host "::error title=No MSBuild::vswhere found no MSBuild on this runner image."; exit 1 }
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Where-Object { $_.FullName -match '\\x64\\' } | Sort-Object FullName -Descending | Select-Object -First 1
+          if (-not $signtool) { Write-Host "::error title=No signtool::signtool.exe (x64) not found in the Windows SDK."; exit 1 }
+          Write-Host "MSBuild: $msbuild"; Write-Host "signtool: $($signtool.FullName)"
+          "msbuild=$msbuild" >> $env:GITHUB_OUTPUT
+          "signtool=$($signtool.FullName)" >> $env:GITHUB_OUTPUT
+
+      # the WebView2 app's certificate (or a throwaway one, said so); its subject is the manifest's Publisher
+      - name: Signing certificate
+        id: cert
+        env:
+          XBOX_PFX_BASE64: ${{ secrets.XBOX_PFX_BASE64 }}
+          XBOX_PFX_PASSWORD: ${{ secrets.XBOX_PFX_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'hiraeth-xbox.pfx'
+          if ($env:XBOX_PFX_BASE64) {
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:XBOX_PFX_BASE64))
+            $password = $env:XBOX_PFX_PASSWORD
+          } else {
+            $password = [Guid]::NewGuid().ToString('N')
+            $made = New-SelfSignedCertificate -Type Custom -Subject 'CN=Hiraeth Xbox Dev' -KeyUsage DigitalSignature -FriendlyName 'Hiraeth Xbox (throwaway, CI)' `
+              -CertStoreLocation 'Cert:\CurrentUser\My' -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}') -NotAfter (Get-Date).AddYears(2)
+            Export-PfxCertificate -Cert $made -FilePath $pfx -Password (ConvertTo-SecureString $password -AsPlainText -Force) | Out-Null
+            Write-Host "::warning title=Throwaway signing certificate::No XBOX_PFX_BASE64 secret: signed with a throwaway certificate."
+          }
+          Write-Host "::add-mask::$password"
+          "XBOX_SIGN_PASSWORD=$password" >> $env:GITHUB_ENV
+          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($pfx, $password)
+          Write-Host "Certificate: $($cert.Subject), thumbprint $($cert.Thumbprint)"
+          New-Item -ItemType Directory -Force out\unity-xbox | Out-Null
+          [IO.File]::WriteAllBytes((Resolve-Path out\unity-xbox).Path + '\memento-unity-xbox.cer', $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+          "pfx=$pfx" >> $env:GITHUB_OUTPUT
+          "publisher=$($cert.Subject)" >> $env:GITHUB_OUTPUT
+
+      # Unity's manifest with the package's identity: its own name (next to rnaud.Hiraeth), the certificate's subject, the version
+      - name: The package's identity
+        env:
+          PUBLISHER: ${{ steps.cert.outputs.publisher }}
+          VERSION: ${{ steps.meta.outputs.package }}
+        run: |
+          $manifest = Get-ChildItem "$env:PROJECT\Builds\unity-xbox" -Recurse -Filter Package.appxmanifest | Where-Object { $_.FullName -notmatch '\\(bin|obj|AppPackages)\\' } | Select-Object -First 1
+          if (-not $manifest) { Get-ChildItem "$env:PROJECT\Builds\unity-xbox" | Format-Table Name; throw 'no Package.appxmanifest in the solution Unity wrote' }
+          $xml = [IO.File]::ReadAllText($manifest.FullName)
+          $identity = [regex]::Match($xml, '<Identity\b[^>]*/>').Value
+          $new = $identity -replace '\bName="[^"]*"', 'Name="rnaud.HiraethUnity"' -replace '\bPublisher="[^"]*"', "Publisher=`"$env:PUBLISHER`"" -replace '\bVersion="[^"]*"', "Version=`"$env:VERSION`""
+          $xml = $xml.Replace($identity, $new)
+          $xml = [regex]::Replace($xml, '<DisplayName>[^<]*</DisplayName>', '<DisplayName>Hiraeth (Unity)</DisplayName>')
+          $xml = [regex]::Replace($xml, '<PublisherDisplayName>[^<]*</PublisherDisplayName>', '<PublisherDisplayName>rnaud</PublisherDisplayName>')
+          $xml = [regex]::Replace($xml, '(<uap:VisualElements\b[^>]*\bDisplayName=")[^"]*"', '${1}Hiraeth (Unity)"')
+          [IO.File]::WriteAllText($manifest.FullName, $xml)
+          Write-Host $manifest.FullName
+          Select-String -Path $manifest.FullName -Pattern '<Identity|TargetDeviceFamily|DisplayName'
+
+      - name: Build and package (msbuild, Master x64)
+        env:
+          MSBUILD: ${{ steps.tools.outputs.msbuild }}
+        run: |
+          $sln = Get-ChildItem "$env:PROJECT\Builds\unity-xbox" -Filter *.sln | Select-Object -First 1
+          if (-not $sln) { throw 'no .sln in Builds\unity-xbox' }
+          $pkgDir = (Join-Path (Resolve-Path out).Path 'AppPackages') + '\'
+          & $env:MSBUILD $sln.FullName -restore -m -nologo -v:minimal `
+            -p:Configuration=Master -p:Platform=x64 `
+            -p:AppxPackageSigningEnabled=false -p:AppxBundle=Never -p:UapAppxPackageBuildMode=SideloadOnly `
+            -p:AppxPackageDir=$pkgDir -bl:out\msbuild.binlog
+          if ($LASTEXITCODE) { throw "msbuild failed ($LASTEXITCODE): see the errors above, or msbuild.binlog in the run's artifact" }
+          Get-ChildItem out\AppPackages -Recurse -Include *.msix, *.appx | ForEach-Object { Write-Host ("{0} ({1:N1} MB)" -f $_.FullName, ($_.Length / 1MB)) }
+
+      - name: Sign the package
+        env:
+          SIGNTOOL: ${{ steps.tools.outputs.signtool }}
+          PFX: ${{ steps.cert.outputs.pfx }}
+          SHA: ${{ github.sha }}
+        run: |
+          $msix = Get-ChildItem out\AppPackages -Recurse -Include *.msix, *.appx | Where-Object { $_.FullName -notmatch '\\Dependencies\\' } | Select-Object -First 1
+          if (-not $msix) { throw 'msbuild made no package under out\AppPackages' }
+          & $env:SIGNTOOL sign /fd SHA256 /f $env:PFX /p $env:XBOX_SIGN_PASSWORD $msix.FullName
+          if ($LASTEXITCODE) { throw "signtool failed ($LASTEXITCODE): the certificate's subject must be the manifest's Publisher" }
+          Copy-Item $msix.FullName ("out\unity-xbox\memento-unity-xbox" + $msix.Extension)
+          Get-ChildItem ($msix.Directory.FullName + '\Dependencies\x64') -Filter *.appx -ErrorAction SilentlyContinue | Copy-Item -Destination out\unity-xbox
+          Compress-Archive -Path out\unity-xbox\* -DestinationPath out\memento-unity-xbox.zip -Force
+          Get-ChildItem out\unity-xbox, out\memento-unity-xbox.zip | Format-Table Name, Length
+
+      - name: Forget the key
+        if: always()
+        run: Remove-Item -Force -ErrorAction SilentlyContinue (Join-Path $env:RUNNER_TEMP 'hiraeth-xbox.pfx')
+
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: memento-unity-xbox
+          path: |
+            out/unity-xbox/
+            out/msbuild.binlog
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Publish to the release unity-xbox
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: scripts/unity-publish.sh xbox out/memento-unity-xbox.zip "GitHub Actions (run ${{ github.run_number }})"

@@ -21,6 +21,8 @@ namespace Memento.EditorTools
     ///                                                             (its "Minimal Bridge, Reflection Mode": the script calls C# by reflection)
     ///   BridgeBuild.AndroidRelease                                the testers' APK (scripts/unity-android-release.sh, .github/workflows/unity-android.yml):
     ///                                                             com.rnaud.memento.unity, "Hiraeth (Unity)", the game's icon, the release key, sound on
+    ///   BridgeBuild.Xbox                                          the Xbox's UWP solution (.github/workflows/unity-xbox.yml): IL2CPP x64, D3D11,
+    ///                                                             Puerts' QuickJS; msbuild packages it (docs/systems/xbox.md, "The Unity build on the Xbox")
     /// (-out another path). A player runs the plan its command line gives (BridgeArgs: -views, -bench,
     /// -out …), and plays nothing aloud with -mute. The package name is the bridge's own, never the web app's.
     /// </summary>
@@ -59,7 +61,7 @@ namespace Memento.EditorTools
             PlayerSettings.enableFrameTimingStats = true;
             PlayerSettings.runInBackground = true;
             PlayerSettings.stripEngineCode = false;   // (components no scene holds, added at run time)
-            foreach (var t in new[] { NamedBuildTarget.Android, NamedBuildTarget.Standalone })
+            foreach (var t in new[] { NamedBuildTarget.Android, NamedBuildTarget.Standalone, NamedBuildTarget.WindowsStoreApps })
                 PlayerSettings.SetManagedStrippingLevel(t, ManagedStrippingLevel.Minimal);
         }
 
@@ -156,6 +158,69 @@ namespace Memento.EditorTools
         }
 
         public static void Android() => AndroidPlayer(false);
+
+        public const string XboxPackage = "rnaud.HiraethUnity";
+        public const string XboxProduct = "HiraethUnity";   // (the solution's and project's name: no spaces or brackets in msbuild's paths)
+
+        /// <summary>
+        /// The Xbox's build (docs/systems/xbox.md, "The Unity build on the Xbox"): the bridge's player as a UWP Visual Studio
+        /// solution (D3D, IL2CPP x64, Direct3D 11 as the web build's ANGLE uses, Unity's references copied in so the runner's
+        /// msbuild needs no Unity), identity rnaud.HiraethUnity so it installs next to the WebView2 app (rnaud.Hiraeth). The script
+        /// runs in Puerts' QuickJS (scripts/unity-uwp-natives.ps1: Puerts has no V8 for UWP). No command line on the console: it
+        /// plays the desert, and BridgeMetrics writes the load and the frames to LocalState\unity.log.
+        ///   -buildVersion 1.39 (GameCI passes it), -out (or GameCI's -customBuildPath), default Builds/unity-xbox
+        /// The package's Publisher, version and display name are written into the manifest by the workflow, before msbuild.
+        /// </summary>
+        public static void Xbox()
+        {
+            var outPath = Path.GetFullPath(NonEmpty(Arg("-out"), Arg("-customBuildPath"), "Builds/unity-xbox"));
+            Directory.CreateDirectory(outPath);
+            if (!File.Exists(Path.Combine(Application.dataPath, "Gen", "Plugins", "puerts_il2cpp", "Puerts_il2cpp.cpp")))
+            { Debug.LogError("Memento: no Puerts IL2CPP glue (Assets/Gen): run BridgeBuild.Il2cpp first"); EditorApplication.Exit(1); return; }
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.WSAPlayer)
+                EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WSA, BuildTarget.WSAPlayer);
+            Common();
+            PlayerSettings.bundleVersion = NonEmpty(Arg("-buildVersion"), "0.1");
+            PlayerSettings.productName = XboxProduct;
+            PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.WindowsStoreApps, XboxPackage);
+            PlayerSettings.WSA.packageName = XboxPackage;
+            PlayerSettings.WSA.tileShortName = "Hiraeth (Unity)";
+            PlayerSettings.WSA.applicationDescription = "Hiraeth, the Unity bridge (Developer Mode)";
+            PlayerSettings.runInBackground = false;
+            PlayerSettings.SetScriptingBackend(NamedBuildTarget.WindowsStoreApps, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.WindowsStoreApps, Il2CppCompilerConfiguration.Release);
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WSAPlayer, false);
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.WSAPlayer, new[] { GraphicsDeviceType.Direct3D11 });
+            var icon = IconTexture("icon-512.png", ReleaseIcon);
+            if (icon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+            // the UWP build's own settings (by name: they moved between Unity versions, and an editor without the module has none)
+            Wsa("wsaUWPBuildType", "D3D");
+            Wsa("wsaArchitecture", "x64");
+            Wsa("wsaBuildAndRunDeployTarget", "LocalMachine");
+            Wsa("wsaGenerateReferenceProjects", false);
+            try { EditorUserBuildSettings.SetPlatformSettings("WindowsStoreApps", "CopyReferences", "true"); } catch (Exception e) { Debug.LogWarning("Memento: CopyReferences: " + e.Message); }
+            try { EditorUserBuildSettings.SetPlatformSettings("WindowsStoreApps", "Architecture", "x64"); } catch (Exception e) { Debug.LogWarning("Memento: Architecture: " + e.Message); }
+            Debug.Log($"Memento: the Xbox's UWP solution: {XboxPackage} {PlayerSettings.bundleVersion}, IL2CPP x64, D3D11, into {outPath}");
+            Build(BuildTarget.WSAPlayer, outPath);
+        }
+
+        static void Wsa(string name, object value)
+        {
+            foreach (var t in new[] { typeof(EditorUserBuildSettings), Type.GetType("UnityEditor.WSA.UserBuildSettings, UnityEditor.UWP.Extensions") })
+            {
+                var p = t?.GetProperty(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                if (p == null || !p.CanWrite) continue;
+                try
+                {
+                    var v = p.PropertyType.IsEnum ? Enum.Parse(p.PropertyType, value.ToString()) : Convert.ChangeType(value, p.PropertyType);
+                    p.SetValue(null, v);
+                    Debug.Log($"Memento: {t.Name}.{name} = {v}");
+                    return;
+                }
+                catch (Exception e) { Debug.LogWarning($"Memento: {name}: {e.Message}"); }
+            }
+            Debug.LogWarning($"Memento: no UWP build setting {name} in this editor");
+        }
 
         /// <summary>
         /// The testers' APK (docs/systems/unity.md, "Building in GitHub Actions"): the bridge's player as Android() builds

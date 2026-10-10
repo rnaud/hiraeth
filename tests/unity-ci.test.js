@@ -125,7 +125,7 @@ test('the releases are prereleases, never the latest, their file replaced each b
   const publish = read('scripts/unity-publish.sh');
   assert.match(publish, /gh release upload "\$TAG" "\$TMP\/\$NAME" -R "\$REPO" --clobber/);
   assert.equal((publish.match(/--prerelease --latest=false/g) || []).length, 2);
-  assert.deepEqual(Object.values(UNITY_RELEASES).map((r) => r.tag), ['unity-android', 'unity-linux']);
+  assert.deepEqual(Object.values(UNITY_RELEASES).map((r) => r.tag), ['unity-android', 'unity-linux', 'unity-xbox']);
   // the local build publishes to the same release with the same script
   assert.match(read('scripts/unity-android-release.sh'), /scripts\/unity-publish\.sh android/);
 });

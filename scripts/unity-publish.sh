@@ -2,19 +2,24 @@
 # Publish a Unity testers' build to its GitHub release (docs/systems/unity.md, "Building in GitHub Actions"):
 #   scripts/unity-publish.sh android path/to/build.apk [by]     → release unity-android, asset memento-unity.apk
 #   scripts/unity-publish.sh linux path/to/build.tar.gz [by]    → release unity-linux, asset memento-unity-linux.tar.gz
+#   scripts/unity-publish.sh xbox path/to/build.zip [by]        → release unity-xbox, asset memento-unity-xbox.zip (.github/workflows/unity-xbox.yml)
 # The release is a prerelease and never the latest (the app's updater and the players read the vX.Y ones), its
 # tag moves to the commit built, its file is replaced, its notes say what it was built from (release-info.mjs
 # unity-notes). SHA the commit built (default HEAD; it has to be on GitHub); gh signed in (GH_TOKEN in CI).
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 cd "$ROOT"
-PLATFORM=${1:?android or linux}; FILE=${2:?the build}; BY=${3:-$(hostname -s)}
+PLATFORM=${1:?android, linux or xbox}; FILE=${2:?the build}; BY=${3:-$(hostname -s)}
 [ -f "$FILE" ] || { echo "no build at $FILE" >&2; exit 1; }
 SHA=$(git rev-parse "${SHA:-HEAD}^{commit}")   # (the whole hash: the tag's move takes no short one)
 REPO=${GITHUB_REPOSITORY:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}
 TAG=unity-$PLATFORM
 NAME=$(node --input-type=module -e "import { UNITY_RELEASES as R } from './scripts/release-info.mjs'; console.log(R[process.argv[1]].file)" "$PLATFORM")
-case $PLATFORM in android) TITLE="Hiraeth (Unity) for Android: testers' build" ;; *) TITLE="Hiraeth (Unity) for Linux / Steam Deck: testers' build" ;; esac
+case $PLATFORM in
+  android) TITLE="Hiraeth (Unity) for Android: testers' build" ;;
+  xbox) TITLE="Hiraeth (Unity) for Xbox (Developer Mode): measuring build" ;;
+  *) TITLE="Hiraeth (Unity) for Linux / Steam Deck: testers' build" ;;
+esac
 gh api "repos/$REPO/commits/$SHA" --jq .sha > /dev/null 2>&1 || { echo "commit $SHA is not on GitHub: push it first" >&2; exit 1; }
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT

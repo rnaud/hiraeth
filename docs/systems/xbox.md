@@ -2,7 +2,8 @@
 
 The web game in a UWP app with WebView2 (x64), sideloaded on an Xbox in Developer Mode. Why the web game and not
 the Unity build: TODO.md, "An Xbox Dev Mode package" (Puerts has no V8 for UWP/Xbox; the gain was ~0.9 ms).
-Not for players: there is no Store listing; it is for measuring the game on the console.
+Not for players: there is no Store listing; it is for measuring the game on the console. The Unity bridge has a
+measuring package of its own, installed beside it: "The Unity build on the Xbox" below.
 **Setting up the console, step by step (sign-up, Developer Mode, installing): [../xbox-setup.md](../xbox-setup.md).**
 
 ## The app (`xbox/Hiraeth/`)
@@ -254,6 +255,49 @@ Check it on the console: `node scripts/xbox-devtools.mjs js 'JSON.stringify(wind
 shows the app's readings (hold A while it runs: `buttons[0]` is 1), and
 `node scripts/xbox-devtools.mjs js 'navigator.getGamepads().filter(Boolean).map(p => p.id + " " + p.buttons.map((b, i) => b.pressed ? i : "").filter(String))'`
 the merged pads with what is held. `page.log` says `pad: read by the app too (1 pad)` once per page.
+
+## The Unity build on the Xbox
+
+The engine bridge (docs/systems/engine-bridge.md: the game's own JavaScript in Unity, drawn by Unity) as a UWP app,
+to see whether Unity's native Direct3D 11 path compiles and draws the same world faster than WebView2's ANGLE one
+(the 100-second title above). Results: docs/benchmark-web-vs-unity.md, "On the Xbox: WebView2 against the Unity bridge".
+
+- **The script engine**: Puerts 3.0.3 ships no UWP libraries, and its desktop V8 (`PapiV8.dll`: dbghelp, winmm,
+  mswsock, a JIT) can't run in a UWP app on the console. Its QuickJS backend (quickjs-ng, an interpreter, plain C) is
+  built from Puerts' source at the release's tag for Windows Store x64 (`scripts/unity-uwp-natives.ps1`, CMake's
+  `WindowsStore` system: AppContainer, the UWP C runtime) and put into the embedded packages in `Plugins/WSA/x64`
+  (`PUERTS_BACKENDS=Quickjs scripts/unity-js-setup.sh` first). `JsRuntime` picks QuickJS where the V8 package is
+  missing. **The script is therefore interpreted** while WebView2 on the console has its JIT on (the readout's probe:
+  0.4 ns a turn, October 2026): its time is not comparable with the web's. The native side is.
+- **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, Direct3D 11 (what ANGLE
+  draws through on the console), Unity's references copied in. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
+  (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.
+- **The workflow** (`.github/workflows/unity-xbox.yml`, windows-2022; on a push touching the Unity side and by hand):
+  QuickJS and its UWP DLLs, the bundle, GameCI's Windows editor with the UWP module (Puerts' glue, then the
+  solution), the package's identity written into Unity's manifest, `msbuild` (Master, x64, sideload, unsigned),
+  `signtool` with the WebView2 app's certificate (`XBOX_PFX_BASE64`), published to the prerelease **`unity-xbox`**
+  as `memento-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files).
+- **The numbers** (`BridgeMetrics`, on in the UWP build, `-metrics` elsewhere): `LocalState\unity.log`, new each launch
+  (the last in `unity.prev.log`), and a readout at the top left. The load's stages apart: `script's engine made`,
+  `the bundle loaded in`, `Memento.start returned in`, `load: first node` (the first mirrored object), `load: world
+  settled` (no new object for 2 s) with the **first frames** between (their sum, the longest, how many over 50 ms: a
+  shader's first use on D3D11 shows there; the shaders themselves were compiled to DXBC when the player was built,
+  where the web compiles GLSL → HLSL → DXBC on the console at run time). Then every 5 s: fps, the frame's median,
+  95th and longest ms, FrameTimingManager's **CPU main / render thread and GPU** ms, and the **script**'s own time a
+  frame and the main thread's **wait** on it.
+
+**Installing and measuring** (from the Mac; the portal has no password):
+1. Download `memento-unity-xbox.zip` from the `unity-xbox` prerelease and unpack it.
+2. Install: `GET https://192.168.68.64:11443/api/app/packagemanager/packages` for the `CSRF-Token` cookie, then
+   `POST /api/app/packagemanager/package?package=memento-unity-xbox.msix` (multipart: the `.msix` and each `.appx`)
+   with the header `X-CSRF-Token`, and poll `GET /api/app/packagemanager/state` until it stops answering 204.
+   The certificate is the WebView2 app's, already trusted.
+3. Dev Home → *Hiraeth (Unity)* → View details → **App type: Game** (as the WebView2 app: an App gets ~1 GB and
+   45 % of the GPU).
+4. Launch (Dev Home, or `POST /api/taskmanager/app?appid=<base64 of PRAID>&package=<base64 of the full name>`),
+   wait for `world settled` and a minute of `frames:` lines at the spawn, then fetch the log:
+   `GET /api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=<full name>&path=\LocalState&filename=unity.log`.
+   The first launch is the cold one; quit and launch again for the warm one (`unity.prev.log` keeps the first).
 
 ## Unknowns (to check on the console)
 
