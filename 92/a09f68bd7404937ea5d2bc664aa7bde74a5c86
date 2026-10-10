@@ -1,0 +1,46 @@
+src/post.js
+  s_9ca76055a220ed::t_8873f720c606be 94-138,571-573,577,583-591,615-617
+tests/occlusion-taps.test.js
+  s_680eb19b4ea0a5::t_1b03fd8c83911c 8,36,45,66-78,101-105,286-388
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_72cbade8efb751 587,626-645
+unity/Memento/Assets/Memento/Shaders/Composite.shader
+  s_55b4bc53b812ec::t_9b0ee6e90868e6 247
+  s_9ca76055a220ed::t_c0d6120eef4096 214-221,239,241,245-246,248-266,268,270
+changelog.md
+  s_9ca76055a220ed::t_efd6c4eecf6e67 5-8
+src/changelog.js
+  s_9ca76055a220ed::t_e02ffd2ba159e7 11-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "92a09f68bd7404937ea5d2bc664aa7bde74a5c86",
+  "prompts": {},
+  "sessions": {
+    "s_55b4bc53b812ec": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c1acb3be-6ee2-4f90-8d3a-834c8ecafa2b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_680eb19b4ea0a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a2c67e0254d687bc2",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
