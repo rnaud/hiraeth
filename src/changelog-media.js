@@ -516,6 +516,23 @@ const FROM_FIGHT39 = 'headless Chrome (Medium, 1280 × 720, muted) in the Arena 
 const FROM_TREE39 = 'headless Chrome (High, 1280 × 720, hour 10, clear, muted) against this branch’s own dev server, a save past the lighting (the tree burns), the camera pinned and the traveller teleported, the same views for both: the before with the parent commit’s files swapped back in (the ledge with the chest still closed on it)';
 const COST39 = { device: 'the Mac (M4 Pro), headless Chrome, High, hour 10', source: 'renderer.info over renderFrame() with the place shown and hidden (the tree: its bark, its flame body and its leaves; the ribcage: its mesh), medians of 7, the same views as the pictures; batches per pass counted in node' };
 export const CHANGELOG_MEDIA = {
+  '1.40': [
+    { match: 'The Overnight Train’s end doors are wider', shots: [
+      { name: 'train-vestibule', caption: 'A sleeping car’s vestibule seen from its end door: the last compartment came right up to the door (before); now there is room to turn from the corridor to the door, wider too', commit: '2e725295',
+        view: { level: 'overnighttrain', hour: 22, player: [-84, 2.75, 0], eye: [-82.5, 4.5, 1.0], target: [-76, 3.4, -1.0], fov: 70 } },
+    ], see: 'Open the game with ?level=overnighttrain and walk forward from the landing wagon into the sleeping cars.' },
+    { match: 'The Overnight Train is on the move', shots: [
+      { name: 'train-running', caption: 'From the landing wagon’s rail by night: the train waiting at its station (before); running across the plain, the station gone and the dust rolling at the wheels (after)', commit: '2e725295',
+        view: { level: 'overnighttrain', hour: 22, player: [-150, 2.75, 12.5], eye: [-152, 4.4, 13.6], target: [-70, 4.2, 5], fov: 60, setup: 'if (window.level.plan) window.level.setRunTime(24.3);' } },
+    ], see: 'Ring the bell at the Signal Market’s night halt (or open the game with ?level=overnighttrain) and stand at a window or at the landing wagon’s rail.' },
+    { match: 'A new errand in the Signal Market, The Night Mail', shots: [
+      { name: 'night-halt', only: 'after', caption: 'The Signal Market’s night halt past the landing: the platform, the lamp, the bell, Edda by her lamp, the rails out into the dark', commit: '2e725295',
+        view: { level: 'bazaar', hour: 21.5, player: [-22, 0.62, 168.2], eye: [-8, 3.2, 158], target: [-26, 1.8, 170], fov: 55 } },
+      { name: 'mireille-roof', only: 'after', caption: 'Mireille on the last carriage’s roof by the chalk mark she keeps, the rails running out behind', commit: '2e725295',
+        view: { level: 'overnighttrain', hour: 22, player: [-349, 7.35, -0.4], eye: [-345.5, 9.0, 2.4], target: [-354, 7.9, 0.2], fov: 55 } },
+    ], see: 'In the Signal Market, walk south past the ship to the lamp on the platform and talk to Edda.' },
+    { match: 'The Overnight Train has left the ship’s map', see: 'The galactic map no longer lists the Overnight Train; ring the bell at the Signal Market’s night halt once Edda has given you her letter (any time after that, for a ride).' },
+  ],
   '1.39': [
     { match: 'Qanat’s great tree is rebuilt after its picture', shots: [
       { name: 'qanat-tree-stairs', caption: 'From the avenue at the foot of the stairs: before, a dark narrow trunk under one great blob of flame; after, a pale fluted trunk, the low arm arching down to the terrace, and a crown of glowing violet, teal and gold leaves', from: FROM_TREE39,
