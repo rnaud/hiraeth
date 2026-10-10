@@ -121,7 +121,9 @@ export class NPC {
     const who = def ?? (age ? { age, years, kind } : scale ? { scale } : null), young = ['child', 'teen'].includes(ageClassOf({ def: who }));
     const dress = pooled ? null : namedLook({ world: world ?? costumeWorld(), id: def?.id ?? `${kind}:${Math.round(at.x)},${Math.round(at.z)}`,
       // a story person's hair and beard follow their kind only when the story says it (def.kind)
-      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind, young });
+      palette, head, cape, look: look ?? def?.look ?? {}, pos: at, kind: def ? def.body ?? def.kind ?? null : kind, young,
+      // how much colour they wear (costumes.js PROMINENCE): a story person's own tier, a walker with no story quieter
+      tier: def ? def.tier ?? 'named' : 'local' });
     this.char = buildCharacter(dress ? { ...palette, cloak: dress.cloak, cloth: dress.cloth, legs: dress.legs } : palette);
     this.char.pack.visible = !pooled && !dress?.reference && !dress?.robe && Math.random() < 0.5;
     this.object = this.char.root;
@@ -242,7 +244,7 @@ export class NPC {
   identify(def, world) {
     this.def = def;
     if (!questLook(world, def.id) || this.look?.reference === `${world}/${def.id}`) return;
-    this.restyle(namedLook({ world, id: def.id, kind: this.kind,
+    this.restyle(namedLook({ world, id: def.id, kind: this.kind, tier: def.tier ?? 'named',
       palette: def.palette ?? {}, look: def.look ?? {}, pos: this.pos,
       young: this.humanoid?.profile?.years < 18 }));
     this.char.pack.visible = false;

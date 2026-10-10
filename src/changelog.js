@@ -8,6 +8,10 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.42', date: '2026-10-10', items: [
+    // the people's colours by how much they matter (src/costumes.js PROMINENCE; docs/systems/characters.md "Prominence")
+    'The crowds in the towns wear their world’s colours a little softer now, so the people with a story to tell, the shopkeepers, Tansy and your family stand out among them.',
+  ] },
   { v: '1.41', date: '2026-10-10', items: [
     // the glass backpack's find in Qanat (TODO.md "Qanat and the glass backpack")
     'The makers’ chest on Qanat’s tree keeps its secret now: its card says only “A glass backpack? You’ve never seen anything like it. It’s empty though?”',

@@ -17,7 +17,7 @@
 function keeper({ id, shop, hello, again, topic, show = '~curious~ Show me what you have.', bye, ...rest }) {
   const open = { text: show, do: { emit: ['shop:open', { shop }] }, end: true };
   return {
-    id, range: 3.6, ...rest,
+    id, range: 3.6, tier: 'quest', ...rest,   // (tier: costumes.js PROMINENCE, a keeper keeps all their colours)
     talk: {
       entry: [{ if: { flag: `met.${id}` }, node: 'again' }, { node: 'hello' }],
       nodes: {
@@ -33,7 +33,7 @@ function keeper({ id, shop, hello, again, topic, show = '~curious~ Show me what 
 /** Talking to a keeper: their conversation (src/story/dialogue.js). 'Show me your wares' opens the shop. */
 export const SHOPKEEPERS = {
   haddu: {
-    id: 'haddu', name: 'Haddu', title: 'chime-weigher and seller of cures', color: '#2f6f6a', voice: 0.78, kind: 'm', range: 3.8,
+    id: 'haddu', name: 'Haddu', title: 'chime-weigher and seller of cures', color: '#2f6f6a', voice: 0.78, kind: 'm', range: 3.8, tier: 'quest',
     palette: { cloak: '#2f6f6a', lining: '#2b211f', cloth: '#e8c66a', legs: '#4a3a2a', hat: '#b8432e', accent: '#c9974a', hair: '#2b211f' },
     head: 'fez', cape: 0.9, look: { mask: 'monocle', body: 'satchel', prop: 'bell', robe: 0.4, trim: 'stripes', build: 'heavy', mood: 'amused' },
     lines: ['~happy~ Come in out of the sun.', '~playful~ Every chime rings true in here. I check.', '~neutral~ Cures for the walk. Hearts for the brave.'],

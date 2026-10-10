@@ -723,6 +723,25 @@ families' skin weights and moving tools, late identification, costume isolation,
 and Wren's trim. Review full-body cast sheets and walking/seated poses in
 `studio.html?lineup=cast&world=buried&source=makehuman` (change the world as needed).
 
+## Prominence: the crowd a step quieter (October 2026, v1.42)
+
+The author: "most world characters should look a bit less colourful so that the quest and main characters really
+stand out". Every look carries a `tier` (`PROMINENCE` in `src/costumes.js`), applied to its clothes (`TIER_COLOURS`:
+cloak, cloth, legs, hat, accent; never skin, hair or eyes) after the whole look is drawn, so no random draw moves and
+nobody changes shape:
+
+| Tier | Who | Clothes |
+|---|---|---|
+| `background` | the crowd (`crowdLook`) and the pooled bodies it lends them | saturation ×0.66, at most 0.4, lifted 16% toward a pastel lightness |
+| `local` | a spawn spot's walker without a story (`NPC` with no `def`) | ×0.74, at most 0.46, 12% |
+| `named` | a story person (the default for `namedLook`) | as the story colours them |
+| `quest` | anyone with a reference look (`QUEST_LOOKS`, the family: forced), Tansy and the shopkeepers (`tier: 'quest'` on their defs) | as drawn |
+
+The colours are moved in sRGB HSL, the hue kept, so a background person wears the same palette as before, softer.
+A story person's def can set `tier` to move them. Lorn has no crowd (all its people are named), so it does not
+change. Test: `tests/prominence.test.js` (the tiers' order; hue kept; in Qanat, the Signal Market and Lorn the
+crowd's loudest colours are below the story people's; reference colours kept exactly).
+
 
 ## The family (October 2026, v1.7)
 

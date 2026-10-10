@@ -54,6 +54,7 @@ export const GREETING_LINES = {
 // ------------------------------------------------------------------ the person
 export const TANSY = {
   id: 'tansy', name: 'Tansy', title: 'from the Salt Harbour, following the singing', color: '#c4664a', voice: 1.25, kind: 'f', scale: 0.97,
+  tier: 'quest',   // (costumes.js PROMINENCE: she keeps all her colours)
   // the same in every world: dressed as the harbour folk dress (src/costumes.js saltharbour), a sailcloth coat too
   // big for her, a basil-green tunic, a terracotta knitted cap over a copper braid, a satchel for her book
   palette: { cloak: '#efe2cc', lining: '#4d6a9a', cloth: '#6f8f5a', legs: '#3a3448', hat: '#c4664a', hair: '#a8532e', skin: '#e8c0a0' },

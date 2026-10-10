@@ -681,24 +681,66 @@ export function packBody(s) {
   return [s.kind === 'f' ? 1 : 0, b.width, b.girth, s.eyes ? new THREE.Color(s.eyes).getHex() : 0];
 }
 
-/** A crowd person's look (crowd.js): the world's costume over the level's crowd colours. */
-export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null, pos = null, kind = null } = {}) {
-  return dressFor(world, rng, { lists, spot, pos, kind });
+// ------------------------------------------------------------------ prominence
+/**
+ * How much colour a person wears, by how much they matter (the author: "most world characters a bit less
+ * colourful, so that the quest and main characters really stand out"). Each tier scales the saturation of
+ * their clothes (`sat`) and lifts them a share of the way toward a pale pastel lightness (`soft`, toward
+ * `light`), with a ceiling on how saturated they can be (`max`: the loudest worlds' crowds, the Signal Market's and
+ * the Clock-House's, were brighter than their quest people's pastel sheets): the hue stays the world's, so a
+ * background person is the same palette, a step quieter.
+ *   background  the crowd (crowd.js, and the pooled bodies it lends them)
+ *   local       a spawn spot's walker without a story of their own (npc.js spawnNPCs, no def)
+ *   named       a story person (they keep the colours the story gives them)
+ *   quest       a quest giver with a reference sheet, the family, the fellow traveller, the shopkeepers
+ */
+export const PROMINENCE = {
+  background: { sat: 0.66, max: 0.4, soft: 0.16, light: 0.68 },
+  local: { sat: 0.74, max: 0.46, soft: 0.12, light: 0.68 },
+  named: { sat: 1, max: 1, soft: 0, light: 0.68 },
+  quest: { sat: 1, max: 1, soft: 0, light: 0.68 },
+};
+/** The colours a tier quiets: the clothes. Skin, hair and eyes stay as they are. */
+export const TIER_COLOURS = ['cloak', 'cloth', 'legs', 'hat', 'accent'];
+const _hsl = { h: 0, s: 0, l: 0 }, _tc = new THREE.Color();
+/** One colour in a tier ('#rrggbb'). */
+export function tierColour(hex, tier = 'named') {
+  const t = PROMINENCE[tier] ?? PROMINENCE.named;
+  if (!hex || (t.sat === 1 && !t.soft && t.max >= 1)) return hex;
+  // (in sRGB, as the colour is written and seen: the working space's linear HSL would wash the pale ones out)
+  _tc.set(hex).getHSL(_hsl, THREE.SRGBColorSpace);
+  _tc.setHSL(_hsl.h, Math.min(_hsl.s * t.sat, t.max), _hsl.l + (t.light - _hsl.l) * t.soft, THREE.SRGBColorSpace);
+  return '#' + _tc.getHexString();
+}
+/** A look's clothes in its tier (in place; the look's `tier` says which). Drawn after everything else, so no draw changes. */
+export function applyTier(s, tier = 'named') {
+  s.tier = tier;
+  for (const k of TIER_COLOURS) if (s[k]) s[k] = tierColour(s[k], tier);
+  return s;
 }
 
-/** A named person's look: seeded by who they are, so they look the same every visit. */
-export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null, young = false } = {}) {
+/** A crowd person's look (crowd.js): the world's costume over the level's crowd colours, in the background tier. */
+export function crowdLook(rng, { world = costumeWorld(), lists = {}, spot = null, pos = null, kind = null } = {}) {
+  return applyTier(dressFor(world, rng, { lists, spot, pos, kind }), 'background');
+}
+
+/**
+ * A named person's look: seeded by who they are, so they look the same every visit.
+ * `tier` (PROMINENCE): 'quest' for anyone with a reference look (QUEST_LOOKS, the family) whatever is asked,
+ * else the caller's (npc.js: 'local' for a walker with no story), 'named' by default.
+ */
+export function namedLook({ world = costumeWorld(), id = '', palette = {}, head = null, cape = null, look = {}, pos = null, kind = null, young = false, tier = 'named' } = {}) {
   // (the traveller's family: one look wherever they appear, src/characters/family.js)
   const fam = familyLook(world, id);
   if (fam) {
     const s = dressFor(world, mulberry32(hashSeed(`family:${id}`)), { palette, head, cape, look: { ...look, ...fam }, pos, kind, named: true, young });
-    return Object.assign(s, fam, { reference: `family/${id}`, kind: s.kind });
+    return applyTier(Object.assign(s, fam, { reference: `family/${id}`, kind: s.kind }), 'quest');
   }
   const ref = questLook(world, id);
   const s = dressFor(world, mulberry32(hashSeed(`${world}:${id}`)), { palette, head, cape, look: ref ? { ...look, ...ref } : look, pos, kind, named: true, young });
   // Apply the canonical palette after the seeded draw; unrelated people keep their exact looks.
   if (ref) Object.assign(s, ref, { reference: `${world}/${id}`, kind: s.kind });
-  return s;
+  return applyTier(s, ref ? 'quest' : tier);
 }
 
 /** The ids a look shows, in a comparable form (tests; a promoted NPC must match its crowd figure). */

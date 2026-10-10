@@ -2,6 +2,10 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.42 — 2026-10-10
+
+- The crowds in the towns wear their world’s colours a little softer now, so the people with a story to tell, the shopkeepers, Tansy and your family stand out among them.
+
 ## v1.41 — 2026-10-10
 
 - The Arena’s floor lines no longer shimmer as you walk toward or away from them: the rings and ticks are painted into the sand, so a far line stays one steady band instead of breaking into crawling dashes.
