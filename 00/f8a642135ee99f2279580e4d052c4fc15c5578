@@ -1,0 +1,57 @@
+changelog.md
+  s_9ca76055a220ed::t_07a90cd9dc9a86 7
+docs/systems/materials.md
+  s_9ca76055a220ed::t_beec5c4928c7c0 403-404
+docs/systems/performance.md
+  s_9ca76055a220ed::t_0449f6b539a3e9 1072,1144-1241
+docs/systems/xbox.md
+  s_9ca76055a220ed::t_f42982433efec8 170-171
+scripts/load-breakdown.mjs
+  s_9ca76055a220ed::t_c7318c499ca7e9 1-240
+scripts/three-program-keys.mjs
+  s_9ca76055a220ed::t_6be604e2ff5463 1-39
+scripts/xbox-shaders.mjs
+  s_9ca76055a220ed::t_5e3009690d7e34 1-92
+src/main.js
+  s_9ca76055a220ed::t_72ce01173446fc 144-151,154-155,2065,2069-2070,2073,2080,2084,2094
+src/materials.js
+  s_9ca76055a220ed::t_0943b630934e4f 285,295,305-311,341-362,463-464,499-516,530,685,707,709-710,2126-2131,2448-2449,2469,2925-2929,2932-2935,2943-2947
+src/post.js
+  s_9ca76055a220ed::t_71f714b518d0f8 228-236,240-246,854,862,866,868,895,897-898,900,903,933,937,961,1363,1375,1634-1638,1644,1649,1658-1659
+src/title-world.js
+  s_9ca76055a220ed::t_e0d775ef8f169c 409
+src/warm-shaders.js
+  s_9ca76055a220ed::t_21b92b02654a70 31-33
+tests/eclipse.test.js
+  s_9ca76055a220ed::t_2e72c056f61651 94-95
+tests/ink-pass.test.js
+  s_9ca76055a220ed::t_10577651107c20 204,209-211,234-270
+tests/makehuman-worlds.test.js
+  s_9ca76055a220ed::t_a0c184a5e0dfe7 16,55-56
+tests/surface-spec.test.js
+  s_9ca76055a220ed::t_285ec774585243 3,31,34-36,38,47-97,108
+tests/three-program-keys.test.js
+  s_9ca76055a220ed::t_ae8ead53e300ed 1-53
+tests/title-ready.test.js
+  s_9ca76055a220ed::t_b69b7d13aed9cb 103,131-132
+tests/veil.test.js
+  s_9ca76055a220ed::t_39e277ecce79e4 11
+vite.config.js
+  s_9ca76055a220ed::t_ace4dca6aedf1a 8,64-65
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "00f8a642135ee99f2279580e4d052c4fc15c5578",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
