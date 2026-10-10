@@ -1,0 +1,29 @@
+changelog.md
+  s_9ca76055a220ed::t_2559ae09f21d78 5-19
+docs/README.md
+  s_9ca76055a220ed::t_ea36379b155bc7 26
+docs/audits/temple-visuals-v1.32.md
+  s_9ca76055a220ed::t_fb97c9e3b8ae83 1,21,38,50,61,73,84,94,106,116,126,136,146
+docs/systems/temples.md
+  s_9ca76055a220ed::t_6d02b64364011a 302
+src/changelog-media.js
+  s_9ca76055a220ed::t_d1f281029b0a42 488-492,494-512,548-558
+src/changelog.js
+  s_9ca76055a220ed::t_7794858b187d37 11-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4049fe9dce7deec04464703848741adbc8eba96a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
