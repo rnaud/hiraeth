@@ -1,8 +1,8 @@
 # Temple design audit, v1.12 (2026-10-09)
 
 <!-- audit-scores
-overall: 2.75 / 5
-label: the average of the eleven temples' means
+overall: 2.80 / 5
+label: the average of the eleven temples' means (2.75 at v1.12; 2.80 with the guardians' addendum, v1.15)
 date: 2026-10-09
 -->
 
@@ -226,3 +226,34 @@ Greenhouse (1.89) and the Aerie (1.89).
 - Steps whose key is a room away or out of sight: 9 → 14.
 - Loops: 0 → 1 (the Hush-House); held / reversible states: 2 → 3 (the Undertower's pillars).
 - The last 100 % pair (the First Garage and the Engine-House) is broken; no two temples share a skeleton.
+
+## Addendum (v1.15): the guardians re-scored
+
+The five guardians this report left for another batch (and the Belfry's, left from v1.8) were reworked so that each
+last phase asks for its temple's one idea, taught a phase earlier where the old way still works too
+(docs/systems/foes.md, "The guardians' last phases"). Only the **guardian exam** criterion was re-scored; the rooms
+did not change. `node scripts/temple-design/audit.mjs` reads the guardians from their lines only (it counts the
+verbs a fight names): it moves the Lamp-House 3 → 4 (its last phase now names the splash) and the other four not at
+all, so the scores below are by eye against the skill's criterion (1: no gadget; 3: the gadget, one verb; 5: the
+gadget twisted with a second verb, 2+ phases, body tells), each ✎. The script also learnt that a guardian's crystals
+(a `Swing` with `onStill`) are no traversal, so the Mother Snapper's hall leaves the Hush-House's curve where it was.
+
+| Temple | Guardian's last phase | Taught | Failure | Guardian exam | **Mean** |
+|---|---|---|---|---|---|
+| Founders' Belfry (arzach2) | ring as she rises to dive: a stone comes down where she dives, held while the note sounds; she lies on it, and the bell calms her (her own crying no longer opens her) | phase 2, beside her crying | a ring between moves brings nothing; the stone falls up when the note fades | 3 → 4 ✎ | **4.00 → 4.11** |
+| Undertower (bazaar) | its dish turned up, it hears its word only through the two low dishes on the wall (shell + dishes under pressure) | phase 2: a dish carries it from anywhere | its word to its face: nothing; the wrong word through a dish: refused | 3 → 4 ✎ | **3.78 → 3.89** |
+| Hush-House (perdide) | three crystal pendulums over her stilled in turn, smallest first (stilling + the order, as the gallery's twist); the cold in her mouth no longer eases her | phase 2: in turn, a tenth of her calm | out of turn: flat, the lit notes fade, she snaps up | 3 → 4 ✎ | **3.67 → 3.78** |
+| Lamp-House (perdide2) | it shies from you; a pool lit earlier (a splash, or the lantern held by it) lures it down, and it drinks there while you stand back | phase 2: a lit pool lures it, standing still still works | by the pool it waits; no pool, no calm | 3 → 4 (the script agrees) | **3.67 → 3.78** |
+| First Garage (garage) | open, its hands stop at four; its six numerals take only in the clock's order from four, in one breath (the coil + the order, as `br1`) | phase 2: in step they ring and light, any order still counts | out of step they all go dark; past a breath, begin again | 3 → 4 ✎ | **2.89 → 3.00** |
+
+**Why 4 and not 5:** each now asks for the gadget with the temple's older verb or order, in the last of three phases,
+told by the body; none yet asks for the twist room's whole combination under a new pressure that changes how the
+gadget is used (the Belfry's ball, the Undertower's ball on its footstone, the Lamp-House's orb). The Lamp-House's
+pools can be lit by fluid alone, so its last phase can be won without the lantern.
+
+**Average across temples: 2.80 / 5** (2.75 before the addendum).
+
+Tests: `tests/guardian-twists.test.js` plays each last phase in its arena with a real `Player` (the failure, then
+the way through) and the phase that teaches it; `tests/temples.test.js` still plays each temple through, its
+guardian included. Not checked here: how the timings feel with a pad (TODO, "Play the five reworked guardians'
+last phases with a pad").

@@ -78,8 +78,6 @@ Vael II and Lorn run wholly on the new roster.
   toad's choke and leap and the heron's open and topple as answers (combat-v1.13 rec. 3).
 - [ ] Batch 3 against its sheets (docs/design/enemy-roster.md "Status"): the jug's ochre marks between its bands; the
   skitters' curved bony legs; the heron flying off when you run at it (it strides away now).
-- [ ] The antler hound's smoke mane never moves: in src/enemies/plans/quadruped.js the line that sets each flame's
-  `userData.yaw` and pushes it into `mane` sits inside a comment (after `fl.scale.setScalar(…);   // (…)`).
 - [ ] Play the ring centipede's ring with a pad in the Buried Machine (combat-v1.9 rec. 1): is the gap readable before
   it closes, does a plain jump clear its back (`RING.over` 0.9 m in src/foes.js), is the 2.3 s wind-up right?
 - [ ] A cut on a lantern jelly's thread of light breaks its ward (the doc's counter; combat-v1.9 rec. 2): now only a
@@ -249,15 +247,13 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
 - [x] **Founders' Belfry (1.44 → 4.00, v1.8)**: held bells (the Bell Chamber's door, the Hall of Echoes' stones
   only while it rings), the ball rolled across the held stones holds them (bell + push), the Hall of Stones a hub
   with `d1`'s balls in two stores, a high door whose eye is under the landing. Left: its opening (balls and a
-  disc); the Cloud-Mother's falling stone (a guardian change: left out of the roster's batch 3, a temple change; a ring
-  of the belfry brings a stone down where she will dive).
+  disc). (The Cloud-Mother's falling stone: done in v1.15.)
 - [x] **Hush-House (1.67 → 3.44, v1.8)**: the first crystal in the Threshold; the root-wall's door and its eye seen
   from the disc; the far door wants the pendulums stilled in turn (stilling + order). Left: a shortcut or a
-  reversible state; `d2`'s jaws stilled from the passing disc; the Mother stilled through the order.
+  reversible state; `d2`'s jaws stilled from the passing disc. (The Mother stilled through the order: v1.15.)
 - [x] **Lamp-House (1.67 → 3.11, v1.8)**: the third pool on a loft hidden by its edge; the pool-orb, lit by the
   lantern and rolled into the niche (lantern + push). Left: a lock before the chest (the chest at 25 %); `s4` on
-  the near side; the Lampless lured to pools lit earlier (a guardian change: left out of the roster's batch 3; fits
-  the reworked Lamp-House: lured to the pools you've lit).
+  the near side. (The Lampless lured to pools lit earlier: v1.15.)
 - [ ] **Undertower (1.67)**: `br1` stands only while the high note is held, so the one-note rule bites twice (a
   catch, then a second high stone); teach the stones before the shell.
 - [ ] **First Garage (1.78)**: `k2`'s six eyes in the clock's order from the hour it stopped (the clue over the
@@ -268,14 +264,12 @@ passing (skill: temple-design-qc). The fights themselves: done in v1.6 (DONE.md,
   that switches the updraft on; jets against a gust in the Lamp Gallery; `s1` seen only mid-ride; `k2` on pistons
   in turn; false lens stones with the clue a room back; a burning tar ball pushed into `b3`; `b2` a room back. See
   the report for each.
-- [ ] **The guardian's last phase asks for the twist**: the staged fights are in (v1.6: three phases, body tells,
-  docs/systems/foes.md "The guardians' staged fights"); the last phase still asks for the temple's one verb, not the
-  twist room's combination. Guardian exam 2→3-4. Left out of the roster's batch 3 (temple work, not the roster's;
-  the temple audit's suggestions for the reworked temples): the Cloud-Mother, a ring of the belfry brings a stone
-  down where she will dive; the Lampless, lured to the pools you've lit; the Mother Snapper, her last phase asks for
-  the pendulums stilled in order (smallest first); the First Sign (Undertower), in its last phase it hears only
-  through the arena's dishes, so you play its word into a low dish on the wall; the Clockwork Foreman (First Garage),
-  its six numerals hit in the clock's order counted from four.
+- [ ] **Play the five reworked guardians' last phases with a pad** (v1.15, docs/systems/foes.md "The guardians' last
+  phases"): is ringing as the Cloud-Mother rises to dive (78 % of her wind-up at most) readable, is the Lampless's
+  "stand back" (5 m) fair under its scales, are the Mother Snapper's crystals easy enough to tell apart by size from
+  the floor, can the First Sign's low dishes be reached in its 4.4 s opening (or is waiting by one the read), do six
+  numerals from four fit the Foreman's 5.6 s opening with the coil. The other six guardians' last phases still ask
+  only for their temple's one verb.
 
 # Fun and story (docs/fun-and-story-review.md, October 2026)
 

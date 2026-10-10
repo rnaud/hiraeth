@@ -58,7 +58,9 @@ II's **Lamp-House**, Lorn's **Hush-House**, Vael's **Aerie**, the Sealed Hangar'
   `hurt` in hearts (½ to 1: docs/systems/foes.md, the damage table), never taking you from more than a
   heart to nothing (`strikeDamage`); a knockout puts the keeper
   back to its phase's start. `final: 'touch'` (an interactable: a hand on its brow)
-  or `'break'`. **`guardians.js`**: the Keeper's and the warden's bodies.
+  or `'break'`. A temple may hook it (`onStrike`, `onCatch`, `onReset`, `openFor`: how long a combo's end leaves
+  it open). In the five reworked temples its last phase asks for the temple's idea, with pieces of its own in the
+  arena (docs/systems/foes.md, "The guardians' last phases"). **`guardians.js`**: the Keeper's and the warden's bodies.
 - **`runtime.js`**: one temple alive: builds the rooms (the world's `layout`),
   the building outside (`exterior`) with its doorway in and the ways out
   (portals), marks and pits (and a net under the whole temple), the chest's site

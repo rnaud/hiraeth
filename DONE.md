@@ -1928,3 +1928,16 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   all (18 hearts of 20, a bar of 9), a little more in the later worlds, priced up the one curve at 14–31 packs of
   each world's foes (docs/systems/items.md, "A shop in every world"; docs/systems/interiors.md, "A shop in every
   world"). The rooms off the map are spared by the world's edge and the Hangar's far-off rule.
+
+## The guardians' last phases ask for their temple's idea (2026-10-09, v1.15)
+
+- [x] The five reworked temples' guardians (docs/systems/foes.md "The guardians' last phases"; re-scored in the
+  addendum to docs/audits/temple-design-v1.12.md): the Cloud-Mother (a ring as she rises to dive brings a hanging
+  stone down where she dives, held while the note sounds; in her last phase the only way she lies down to cry), the
+  Lampless (lured to the Lamp-Room's pools lit earlier, by a splash or the lantern; in its last phase it shies from
+  you and drinks only there, while you stand back), the Mother Snapper (three crystal pendulums over her stilled in
+  turn, smallest first; in her last phase the cold in her mouth no longer eases her), the First Sign (two low dishes
+  on its hall's wall carry its word down a cable; in its last phase its dish turns up and it hears only through
+  them), the Clockwork Foreman (open, its hands stop at four; in its last phase its six numerals take only in the
+  clock's order from four). Each taught a phase earlier, where the old way still works; tests/guardian-twists.test.js.
+- [x] The antler hound's smoke mane moves (its list of flames was filled inside a comment); tests/hound-mane.test.js.

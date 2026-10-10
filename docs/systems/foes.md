@@ -440,7 +440,7 @@ of its own, from its body and its temple's verb, on the same engine:
 | The Keeper (ember, then water) | stamp, sweep | sweep, charge, stamp | burrow (ploughs under the sand at you), spit (3 clods) | sweep → sweepBack → stamp | stamp, charge |
 | The warden (jets: get above it) | beam, mortar, stomp | stomp, sweeping beam, mortar | flare (vents straight up at you over it), beam, 3 mortars | stomp → stomp → slam (wave); flare → slam | - |
 | The Elder (wings beside her) | peck, stamp, buffet | buffet, dive, gale | stone feathers (3), peck, gale | peck → peck → buffet; gale → dive | - |
-| The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | hail (4), roll, wail | roll → tail → wail; hail → dive | - |
+| The Cloud-Mother (the bell) | gust, dive, wail (wave) | roll, dive, gust | dive, hail (4), roll | roll → tail → wail; hail → dive | - |
 | The Mother Snapper (stilling) | lunge, sweep | snap, seed, sweep | thrash, seed, snap | sweep → sweepBack; snap → snap → lunge; thrash → 3 seeds | - |
 | The Lampless (the lantern) | swoop, gust, dust | flutter, scales (3), swoop | spiral, scales, gust | flutter → flutter → dust; spiral → spiral | - |
 | The Gardener (bloom) | sweep, stamp (wave), clods | sweep, roots, stamp | crush, clods, sweep | sweep → sweepL → stamp | roots, crush |
@@ -453,6 +453,24 @@ Wind-ups: every guardian's own move 1.0-2.0 s (the Keeper's burrow 2.0 s, it plo
 combo finishers 1.1-1.3 s. `tests/telegraphs.test.js` checks the move lists, the phases (each adds a move), a combo
 that ends in an opening, an opening in every phase, a combo's timing, the body tells, a phase change and the shock
 ring; `tests/temples.test.js` still plays every temple through.
+
+### The guardians' last phases (v1.15)
+
+In the five temples reworked round one idea (docs/audits/temple-design-v1.12.md), the guardian's last phase asks
+for that idea, not only the gadget. Each is taught a phase earlier, where it works beside the old way; failing costs
+time, never the meter; the old verbs still do what they did (a stilling glob still stops a strike). Nothing new is
+drawn on the floor: the tells are the body's, and the pieces stand in the arena from the start.
+
+| Guardian (temple's idea) | In the arena | Taught (phase 2) | Asked (phase 3) | Failure |
+|---|---|---|---|---|
+| The Cloud-Mother (a bell holds things only while it rings) | four stones that fell up, under the dome (`HallStones`, arzach2.js) | a ring during a dive's wind-up (the `over` move: she rises to hang over the spot) brings the nearest stone down onto the spot, following it till she strikes; she dives onto it and lies there crying (`GROUNDED` 4.5 s): the bell calms her | her own crying no longer opens her (`def.openFor` → 0); only the stone does | a ring between her moves brings nothing; the stone falls up again when the note fades (`HOLD.stones`) |
+| The Lampless (light can be carried) | three dark pools (`LurePools`, perdide2.js) | a pool lit by a splash, or by your lantern held by it 1.2 s, lures it as it searches: it drifts there (8 m/s, its opening held while it goes) and drinks the pool dark | it shies from you: standing still by it does nothing; it drinks only at a pool, and only while you stand 5 m back (`LURE`) | by the lit pool, it hangs over it and waits |
+| The Mother Snapper (sing low to high) | three crystal pendulums high over her, out of order (`Swing` with `onStill`, perdide.js) | stilled in turn, smallest first, each rings true and stays lit; the third calms her a tenth | the cold in her mouth (or mid-strike) no longer eases her; the three in turn calm her | out of turn it rings flat, the lit ones fade, and she snaps up startled: begin again |
+| The First Sign (a note travels) | two low dishes on the wall, east and west, their twins high over them, a cable to its foot (`SIGN_DISHES`, bazaar.js; a `Dish` relays `via` its id) | a word played into a low dish reaches it from anywhere in the hall | its dish turns up as it listens (the model's `phase`): it hears only what the dishes carry | its word played to its face: nothing; the wrong word through a dish: refused as before |
+| The Clockwork Foreman (count round from where the hand points; every clock stopped at four) | its face's six numerals (lamp i at 2i o'clock as you face it) and a ring on each (`steps`) | open, its hands come round to four; numerals hit round from four (`FROM_FOUR`, garage.js) ring and light, any order still counts | only in step takes, six inside one breath (`VOLLEY`) | out of step they all go dark; faded past a breath, begin again |
+
+`tests/guardian-twists.test.js` plays each in its arena with a real Player: the failure, then the way through, and
+the phase that teaches it; `tests/temples.test.js` plays them as part of each temple.
 
 ## Feel (`src/feel.js`)
 
