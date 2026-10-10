@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.42 — 2026-10-10
 
+- Motion matching (the developer menu’s switch) now has the game’s own walk, jog and sprint to choose from as well as the motion capture, so it keeps up with your sprint instead of handing back to the plain animation, takes over without a seam, and slides its feet about half as far as before. It is still not as clean as the normal animation, so it stays off.
+- Your traveller’s legs move more smoothly: his knee no longer snaps straight and bent again as a foot leaves the ground, a landing foot no longer drops onto the ground in a single frame, his feet no longer slap flat, and turning on the spot no longer throws a foot half a metre to one side.
 - The City-Shaft’s Shaft climb is flown on your wings: from the middle terrace into the halfway air pillar, up through its rings, and out of its top over the rim.
 - Inside the Warden’s Well a draught rises from the chest’s plinth up through the ceiling, and on through each iris as it opens: ride it on your wings. A thin breath rises through each great vane and holds you over it, and in rising air your wings hold you still enough to aim and shoot.
 - The City-Shaft is played on your wings now, with no jets at all: the Warden’s Well’s chest holds the Warden’s bellows instead of the harness. With your wings open they breathe a steady wind down under you that turns the makers’ great vanes. A save that had the harness has the bellows.

@@ -598,6 +598,125 @@ What looked broken on the page, and what was:
   them out). The face's tilt under a matched stop is the take's own (its neck leans back); holding the
   head at rest raised it a few degrees more.
 
+## The motion QC (`scripts/motion-qc/`, skill `motion-qc`, October 2026)
+
+"Finish the work on motion matching with quality control." The traveller is driven by scripted hands (the stick,
+Shift) through starts, stops, every gait, turns, pivots, the ramp and the stairs, recorded every frame right after he
+moved and was posed, and judged: how far each planted step slides, how far a held foot moves, pops (a body bone's
+angular velocity off its neighbours' by over 14 rad/s), jolts (a joint off the smooth curve through its places either
+side by over 3 cm), the worst jolt at each blend boundary (a matcher jump, matching or a captured move crossing half,
+the leading loop changing, a pivot), the pose's answer to the stick (start, stop, turn), pivots (the pivoting foot's
+slip, crossed feet) and the matcher's time a frame. In node on the gait harness's course (`node scripts/motion-qc/run.mjs`,
+15 scenarios, ~40 s, SVG contact sheets) and in the game (`node .claude/skills/motion-qc/run.mjs`: the desert's sand,
+the Signal Market's street, the Arena's floor; muted headless Chrome, pictures of the worst frames). The limits and
+why: `.claude/skills/motion-qc/SKILL.md`; `node scripts/motion-qc/diff.mjs` puts two runs side by side.
+`tests/motion-qc.test.js` holds the judgement on made-up tracks and the runs that are green.
+
+**What it found in the default walk, and what was fixed** (src/feet.js, src/locomotion.js):
+
+- **The knee snapped at every lift-off** (calf 25 rad/s): a held foot stayed down until the leg was at full length, the
+  knee locked straight for two frames, then the foot let go at 24/s at once and the knee folded. Soft IK
+  (`FEET.soft`: the last 2 % of the leg's reach eases toward straight) and the hold let go as a critically damped
+  spring from rest (`FEET.releaseRate`), so the foot leaves with no step in its speed.
+- **A landing foot dropped 9 cm in a frame** (foot 20 rad/s): planting a few centimetres up took 0.65 of the hold at
+  once. Now it stops where it meets the ground and comes down onto it at the speed it was falling (`dropIn`).
+- **The feet slapped flat** at the game's cadence (the loops' foot turns 0.3 rad in a frame at contact): a foot turns no
+  faster than 12 rad/s against the body (`FEET.footRate`), about its ball, so a held one stays put.
+- **Turning on the spot threw a foot 20 cm**: the pivot flickered off for a frame as the speed crossed 2.6 m/s, the held
+  foot let go and was planted again at the clip's place, half a metre off. The pivot has hysteresis now
+  (`LOCO.pivotKeep`, `pivotHold`, `pivotFast`), and a foot planted again while still partly on its old hold is held
+  where it is shown.
+
+Node, the coral-shirt traveller, before → after (the game's default way: the loops with the captured moves):
+
+| scenario · way | verdict | slide p95 (cm) | slide max (cm) | held (cm) | pops /min | jolts /min | worst jolt (cm) | boundary (cm) |
+|---|---|---|---|---|---|---|---|---|
+| walk → run → 180° turn → stop · moves | red → red | 10.1 → 8.1 | 10.7 → 10.6 | 0.9 → 0.8 | 35 → 24 | 27 → 19 | 9.4 → 11.0 | 9.4 → 11.0 |
+| walk, 90° turn, stop · moves | red → green | 7.8 → 4.3 | 7.8 → 4.3 | 0.5 → 0.7 | 11 → 0 | 7 → 0 | 5.3 → 0.0 | 3.6 → 1.3 |
+| turn round on the spot · moves | red → red | 8.5 → 8.5 | 8.5 → 8.5 | 1.3 → 1.0 | 3 → 3 | 3 → 2 | 6.3 → 6.3 | 6.3 → 6.3 |
+| up the ramp, stand · moves | red → red | 5.5 → 4.3 | 5.5 → 4.3 | 0.7 → 1.4 | 12 → 7 | 13 → 9 | 10.0 → 8.8 | 10.0 → 8.8 |
+| stairs up, stand, down · moves | red → red | 6.6 → 6.9 | 6.6 → 6.9 | 0.5 → 0.7 | 25 → 18 | 23 → 18 | 18.1 → 18.1 | 10.2 → 9.6 |
+| slow walk (half stick), stop · moves | red → red | 5.4 → 6.1 | 5.4 → 6.1 | 1.2 → 1.3 | 7 → 0 | 9 → 0 | 4.2 → 0.0 | 2.1 → 1.7 |
+| jog, 45° and back, stop · moves | red → green | 6.6 → 4.3 | 6.6 → 4.3 | 0.5 → 0.7 | 14 → 0 | 10 → 0 | 4.1 → 0.0 | 3.9 → 1.8 |
+| stand still 6 s · moves | green → green | 0.0 → 0.0 | 0.0 → 0.0 | 0.0 → 0.0 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 0.0 → 0.0 |
+| gaits: walk → jog → sprint → jog → walk → stop · moves | red → red | 7.0 → 8.0 | 7.9 → 8.9 | 1.5 → 1.5 | 34 → 14 | 25 → 13 | 7.4 → 6.1 | 2.2 → 2.2 |
+| starts and stops, walk and run · moves | red → red | 17.7 → 9.7 | 21.9 → 29.4 | 1.8 → 1.7 | 41 → 20 | 34 → 15 | 10.4 → 8.3 | 10.1 → 8.3 |
+| pivots standing: 90° each way, 180° · moves | red → red | 27.8 → 12.1 | 27.8 → 12.1 | 1.2 → 2.7 | 9 → 5 | 7 → 4 | 20.1 → 6.2 | 20.1 → 6.2 |
+| pivot 180° at a jog, and at a sprint · moves | red → red | 19.0 → 13.6 | 30.4 → 16.1 | 0.8 → 2.3 | 39 → 25 | 32 → 24 | 8.1 → 8.2 | 8.1 → 8.2 |
+| curve: the stick round a circle at a jog · moves | red → green | 3.3 → 4.3 | 3.3 → 4.3 | 0.5 → 0.7 | 16 → 0 | 9 → 0 | 5.7 → 0.0 | 3.6 → 1.6 |
+| down the ramp, stop on it · moves | red → red | 5.8 → 7.0 | 5.8 → 7.0 | 1.3 → 0.6 | 14 → 13 | 10 → 9 | 8.7 → 6.3 | 6.8 → 6.3 |
+| stairs at a run · moves | red → red | 14.2 → 8.0 | 14.2 → 8.0 | 1.0 → 1.2 | 27 → 24 | 23 → 21 | 52.8 → 52.8 | 6.8 → 4.2 |
+
+red runs 14 → 11 of 15; limits failed 55 → 47; mean slide p95 9.7 → 7.0 cm; mean pops 19.1 → 10.2 /min; mean jolts 15.5 → 8.9 /min; mean worst boundary 6.9 → 5.2 cm
+
+In the game (two runs each world, before → after, the same scripted course): pops 53 → 46 a minute on the desert's
+sand, 53 → 32 in the Signal Market, 53 → 29 on the Arena's floor; jolts 35 → 28, 41 → 26, 43 → 26. The game's frame
+times vary (the comparison is noisier there) and the sand's slopes add their own.
+
+**Motion matching** (src/motion-match.js; still off by default, `?mm=1`): what kept it from the game's speeds was data
+(no capture walks at 3.8 m/s or runs at 7.2), and where it had nothing close it handed the pose back to the loops at
+their own phase, which the QC saw as jolts and slides at every hand-over. Done:
+
+- **The game's own loops in the database** (`gameLoops`, `GAME_LOOPS`): the idle, the walk, the jog, the sprint and
+  three blends between them, each a cycle at the shared gait phase as the Animator blends them; their root moves at
+  STRIDE_K of their stride (the loops' cadence) and their planted feet sweep at the loop's own speed (`sweepOf`; the
+  Animator's foot speed and feet.js's stride warp take it), and their features shorten the feet's reach by the same
+  ratio, so a planted foot stays put in the features as a captured one does. 255 frames; the database 15 998 → 16 253.
+- **Matching takes over on the loops' own copy** (`Animator.gameLoopFrame`): coming in, it starts on the database frame
+  of what the loops show, at their phase: no seam. On a game loop the loops' phase is kept with it (`syncPhase`, only
+  while the loops are hidden), so a hand-back goes on in step.
+- **The sprint is matched**: the trajectory is asked for at no more than the database's fastest (`capK`), the playback's
+  warp does the rest; before, the best sprint cost 10 and the loops took every sprint.
+- **Slowing to a stop**, a moving clip slows with the body down to a standstill instead of walking on at its own pace.
+- **The feet's contacts are a feature** (`weights.contact`), so a jump keeps the feet down that are down; a capture costs
+  a little more than a game loop (`captureBias` 0.5); the stride's sweep is eased across a jump (a capture to a game
+  loop changed it by half and moved a swinging foot 40 cm in a frame).
+
+Node, before → after (`?mm=1`):
+
+| scenario · way | verdict | slide p95 (cm) | slide max (cm) | held (cm) | pops /min | jolts /min | worst jolt (cm) | boundary (cm) |
+|---|---|---|---|---|---|---|---|---|
+| walk → run → 180° turn → stop · mm | red → red | 19.4 → 7.9 | 38.5 → 15.2 | 0.9 → 0.8 | 36 → 21 | 35 → 21 | 9.1 → 10.1 | 9.1 → 10.1 |
+| walk, 90° turn, stop · mm | red → red | 20.1 → 8.4 | 20.1 → 8.4 | 5.9 → 0.7 | 14 → 3 | 18 → 6 | 10.2 → 9.3 | 9.0 → 9.3 |
+| turn round on the spot · mm | red → red | 5.6 → 9.7 | 5.6 → 9.7 | 2.4 → 0.9 | 3 → 4 | 3 → 1 | 7.7 → 6.4 | 7.7 → 6.4 |
+| up the ramp, stand · mm | red → red | 8.8 → 9.6 | 8.8 → 9.6 | 1.4 → 1.5 | 28 → 12 | 24 → 15 | 11.2 → 10.6 | 11.2 → 10.6 |
+| stairs up, stand, down · mm | red → red | 10.7 → 13.0 | 18.1 → 13.0 | 0.9 → 0.8 | 23 → 21 | 35 → 26 | 29.4 → 26.8 | 20.1 → 26.8 |
+| slow walk (half stick), stop · mm | red → red | 12.1 → 7.5 | 12.1 → 7.5 | 0.6 → 0.8 | 21 → 4 | 20 → 4 | 7.2 → 3.5 | 7.2 → 3.3 |
+| jog, 45° and back, stop · mm | red → red | 35.0 → 17.6 | 47.8 → 17.6 | 0.9 → 1.7 | 17 → 2 | 21 → 8 | 8.8 → 6.3 | 8.8 → 6.1 |
+| stand still 6 s · mm | green → green | 0.5 → 0.0 | 0.5 → 0.0 | 0.0 → 0.0 | 0 → 0 | 0 → 0 | 0.0 → 0.0 | 0.1 → 0.0 |
+| gaits: walk → jog → sprint → jog → walk → stop · mm | red → red | 12.1 → 8.2 | 19.2 → 19.9 | 1.5 → 0.9 | 46 → 22 | 42 → 24 | 7.7 → 9.5 | 6.1 → 9.5 |
+| starts and stops, walk and run · mm | red → red | 18.2 → 10.6 | 48.3 → 31.5 | 1.2 → 1.0 | 52 → 28 | 52 → 28 | 13.6 → 11.5 | 11.7 → 11.5 |
+| pivots standing: 90° each way, 180° · mm | red → red | 40.7 → 22.3 | 40.7 → 22.3 | 2.6 → 3.3 | 15 → 7 | 13 → 6 | 24.6 → 6.6 | 24.6 → 6.6 |
+| pivot 180° at a jog, and at a sprint · mm | red → red | 25.8 → 9.7 | 30.4 → 14.8 | 2.2 → 1.3 | 45 → 31 | 43 → 30 | 12.3 → 9.9 | 12.3 → 9.9 |
+| curve: the stick round a circle at a jog · mm | red → red | 4.3 → 20.4 | 8.2 → 74.0 | 0.6 → 0.7 | 18 → 6 | 11 → 15 | 5.7 → 6.1 | 4.0 → 6.1 |
+| down the ramp, stop on it · mm | red → red | 90.3 → 16.7 | 90.3 → 16.7 | 1.2 → 0.3 | 21 → 16 | 20 → 15 | 10.9 → 8.9 | 10.9 → 8.9 |
+| stairs at a run · mm | red → red | 19.0 → 11.0 | 19.0 → 11.0 | 1.1 → 1.3 | 28 → 24 | 25 → 20 | 44.8 → 53.0 | 8.4 → 23.6 |
+
+red runs 14 → 14 of 15; limits failed 81 → 76; mean slide p95 21.5 → 11.5 cm; mean pops 24.5 → 13.4 /min; mean jolts 24.1 → 14.6 /min; mean worst boundary 10.1 → 9.9 cm
+
+In the game: slide (95th percentile) 28 → 24 cm on the sand, 38 → 12 in the Market, 25 → 12 on the Arena's floor; pops
+64 → 54, 57 → 39, 67 → 35 a minute.
+
+**Where it stands**: matching is better than it was on every average and still worse than the default on every one
+(its slide 11.5 against 7.0 cm, its pops 13 against 10 a minute), and red everywhere but standing: its captured
+starts, stops and turns are slower than the controller, so where it plays them the feet slide two to three times as
+far, and on the stairs a captured stride puts a foot under the riser. It stays a dev-menu switch. What would finish
+it: starts, stops and 90° / 180° turns captured at the game's speeds (3.8 m/s walking, 7.2 running: TODO.md, "Carried
+over"), and then the same QC; the matcher's machinery (the hand-in, the sprint, the stops, the contacts) is ready for
+them.
+
+**What it costs**: the matcher's search and playback, in node on this Mac, 20 µs a frame on average (50 before: fewer
+fresh searches now that it seldom hands over), 122 µs at the 95th percentile (a search frame). In headless Chrome with
+the CPU throttled fourfold (`--cpu 4`, a handheld's main thread, roughly), the desert's run: 0.20 ms a frame on average
+and up to 0.9 ms on a search frame; the whole Animator 0.43 ms with matching against 0.23 without. The default way
+spends nothing on the matcher; the feet's new work (the soft reach, the springs, the foot's turn) is a few quaternions a
+foot a frame.
+
+**Left red in the default way**: the sprint (pops at every step: the sprint loop's stance outlasts the leg's reach at
+7–8 m/s; letting the foot go earlier made the starts and stops slide, measured and left out), the stairs (a foot
+lifted over a riser), the pivots (the feet cross for a few frames as the second foot steps round: 17 % of a standing
+pivot's frames) and the starts and stops at a run (29 cm, the stop's last step).
+
 ## The Motion page: the loops against motion matching (`motion.html`, `src/motion/`)
 
 A page of its own to watch the traveller's two ways of moving and the people's walks, and see where

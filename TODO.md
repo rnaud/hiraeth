@@ -121,7 +121,6 @@ Never delete a temple or a character: a dismissed world moves whole to a dismiss
 
 ## Camera and animation
 
-- [ ] [#24](https://github.com/rnaud/hiraeth/issues/24) **Finish motion matching**, with a quality-control pass.
 
 ## Tools and releases
 
@@ -263,7 +262,12 @@ Ranked; each says why in the review. Playtest with two or three new players befo
 ## Animation
 
 - [ ] [#47](https://github.com/rnaud/hiraeth/issues/47) Capture starts, stops and turns at the game's actual speeds so feet follow the motion.
-  The completed motion-matching evaluation is recorded in DONE.md.
+  The completed motion-matching evaluation is recorded in DONE.md. The matcher is ready for them (the game's loops in
+  its database, the hand-in, the sprint, the stops: docs/systems/animation.md, "The motion QC"); run the `motion-qc`
+  skill before and after, and make it the default only if it is green where the default is.
+- [ ] [#57](https://github.com/rnaud/hiraeth/issues/57) The motion QC's reds in the default walk (`node scripts/motion-qc/run.mjs`): pops at every sprint step (the
+  sprint loop's stance outlasts the leg's reach at 7–8 m/s), the stairs, the feet crossing for a few frames in a pivot,
+  the last step of a stop from a run (29 cm).
 
 ## Dialogue
 

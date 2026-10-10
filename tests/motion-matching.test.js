@@ -34,3 +34,19 @@ test('a fresh match moves as the body does: standing, a standing frame; walking,
   assert.ok(still.hip < 0.3, `standing still, a still frame (${still.name}: its hips at ${still.hip.toFixed(2)} m/s)`);
   assert.ok(Math.abs(walking.hip - 1.4) < 0.5, `walking at 1.4 m/s, a frame near that (${walking.name}: ${walking.hip.toFixed(2)} m/s)`);
 });
+
+// Matching coming in from the loops starts on the database's copy of the loops (src/motion-match.js gameLoops,
+// Animator.gameLoopFrame): the same pose at the same phase, so the hand-in has no seam; and on a game loop the loops'
+// phase is kept with it, so a hand-back goes on in step (the motion QC: .claude/skills/motion-qc).
+test('matching takes over from the loops on their own copy in the database, in step', async () => {
+  const THREE = await import('three');
+  const { course, traveller, drive } = await import('./gait-sim.js');
+  const p = await traveller(course(), new THREE.Vector3(0, 0, -60), { matching: false, body: 'v1' });
+  drive(p, [[1, {}], [1.5, { KeyW: true }]]);
+  const A = p.animator, db = A.lib.motion.db, f = A.gameLoopFrame(db), seg = db.segments[db.segOf[f]];
+  assert.match(seg.name, /^game:(jog|jog-walk)$/, `jogging at the game's walk: the jog's copy (${seg.name})`);
+  assert.ok(Math.abs((f - seg.start) / seg.n - A.phase) < 1.5 / seg.n, 'at the loops\' phase');
+  A.matching = true;
+  drive(p, [[1 / 60, { KeyW: true }]]);
+  assert.match(db.segments[db.segOf[Math.floor(A.mm.cur)]].name, /^game:/, 'and the matcher starts there');
+});

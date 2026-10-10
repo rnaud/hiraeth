@@ -36,6 +36,33 @@ export const CHANGELOG = [
       see: 'In the Warden’s Well, open the chest, jump onto the plinth and hold A / ×: the draught carries you up into the gallery. Walk onto the great vane in its floor, jump and hold A / ×: you hang over it and it turns; aim with LT / L2 and splash the eye over the west shelf.' },
     { text: 'The City-Shaft’s Shaft climb is flown on your wings: from the middle terrace into the halfway air pillar, up through its rings, and out of its top over the rim.',
       see: 'Start the Shaft climb at its stone on the rim by the ship: you begin on the middle terrace; glide into the pillar and rise through the rings.' },
+    // the motion QC (docs/systems/animation.md "The motion QC"; .claude/skills/motion-qc)
+    { text: 'Your traveller’s legs move more smoothly: his knee no longer snaps straight and bent again as a foot leaves the ground, a landing foot no longer drops onto the ground in a single frame, his feet no longer slap flat, and turning on the spot no longer throws a foot half a metre to one side.',
+      numbers: [
+        { title: 'The traveller’s legs over scripted walks, runs, turns, pivots, a ramp and stairs', unit: '', better: 'lower', device: 'Node, the game’s traveller on the gait course, 15 scripted runs (scripts/motion-qc/run.mjs)', rows: [
+          { where: 'pops a minute (a bone flicking in one frame), on average', before: 19.1, after: 10.2 },
+          { where: 'jolts a minute (a joint jumping off its path), on average', before: 15.5, after: 8.9 },
+          { where: 'the worst jolt turning on the spot (cm)', before: 20.1, after: 6.2 },
+          { where: 'how far a planted step slides, 95th percentile, on average (cm)', before: 9.7, after: 7.0 },
+          { where: 'runs within every limit (of 15)', before: 1, after: 4 },
+        ], source: 'the motion QC before and after, the same hands on the same course' },
+        { title: 'Pops a minute in the game, the same scripted run (walk, jog, sprint, a sprint reversed, a pivot, a turn)', unit: '/min', better: 'lower', device: 'headless Chrome on this Mac, Medium (.claude/skills/motion-qc)', rows: [
+          { where: 'the desert’s sand', before: 53, after: 46 },
+          { where: 'the Signal Market’s street', before: 53, after: 32 },
+          { where: 'the Arena’s floor', before: 53, after: 29 },
+        ], source: 'the motion QC in the game, before and after' },
+      ],
+      see: 'Jog and stop, then tap the stick to turn on the spot: the knee bends as each foot leaves the ground instead of locking straight, and the feet stay where they are as he turns.' },
+    { text: 'Motion matching (the developer menu’s switch) now has the game’s own walk, jog and sprint to choose from as well as the motion capture, so it keeps up with your sprint instead of handing back to the plain animation, takes over without a seam, and slides its feet about half as far as before. It is still not as clean as the normal animation, so it stays off.',
+      numbers: [
+        { title: 'Motion matching over the same scripted runs', unit: '', better: 'lower', device: 'Node, the game’s traveller on the gait course, 15 scripted runs (scripts/motion-qc/run.mjs ?mm=1)', rows: [
+          { where: 'how far a planted step slides, 95th percentile, on average (cm)', before: 21.5, after: 11.5 },
+          { where: 'pops a minute, on average', before: 24.5, after: 13.4 },
+          { where: 'jolts a minute, on average', before: 24.1, after: 14.6 },
+          { where: 'the matcher’s time a frame, on average (µs)', before: 50.8, after: 20.0 },
+        ], source: 'the motion QC before and after' },
+      ],
+      see: 'Open the developer menu, switch Motion matching on and sprint: the matcher keeps the pose through the sprint (the Motion page, motion.html, shows it side by side with the normal animation).' },
   ] },
   { v: '1.41', date: '2026-10-10', items: [
     // the glass backpack's find in Qanat (TODO.md "Qanat and the glass backpack")

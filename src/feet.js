@@ -22,6 +22,7 @@ import { worldPos, worldQuat } from './world-read.js';
 const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _c = new THREE.Vector3(), _d = new THREE.Vector3(), _e = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _q3 = new THREE.Quaternion();
 const _m = new THREE.Matrix4();
+const _qr = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _qd = new THREE.Quaternion();
 
 export const FEET = {
   lockAt: 0.6, unlockAt: 0.35,   // contact (0..1) to plant a foot / to let it go
@@ -35,6 +36,10 @@ export const FEET = {
   maxDrop: 0.26,                 // m (x size): how far the hips may come down to reach a low foot
   landTime: 0.07, landHeight: 0.15,   // s, m (x size): a landing foot slows over the ground in its last moments before touchdown
   landBack: 0.14,                // m (x size): by at most this much
+  // (the motion QC, .claude/skills/motion-qc: what made the legs pop)
+  soft: 0.02,                    // share of the leg's length over which it eases to straight (soft IK): no knee locking straight for frames and snapping bent
+  holdRate: 45, releaseRate: 30, // 1/s: a foot eases onto its hold and off it as a critically damped spring (from rest), not at once
+  footRate: 12,                  // rad/s: the most a foot turns against the body (0: as the clip)
 };
 
 const newFoot = () => ({ locked: false, w: 0, pos: new THREE.Vector3(), yaw: new THREE.Vector3(0, 0, 1), n: null, released: false, lastHeight: undefined, step: null });
@@ -90,7 +95,11 @@ function legIK(H, s, target, pole) {
   const A = worldPos(a, _r1), K = worldPos(b, _r2), C = worldPos(c, _r3);
   const la = A.distanceTo(K), lb = K.distanceTo(C);
   const dir = _a.subVectors(target, A);
-  const d = THREE.MathUtils.clamp(dir.length(), Math.abs(la - lb) + 1e-3, (la + lb) * 0.999);
+  // soft IK: past (1 - soft) of the leg's length the reach eases toward straight instead of meeting it, so a leg pulled
+  // out of reach (a held foot left behind, a long stride) doesn't lock straight for frames and snap bent as it lets go
+  const L = la + lb, ds = L * (1 - FEET.soft), raw = dir.length();
+  const reach = raw > ds && FEET.soft > 0 ? ds + (L * 0.999 - ds) * (1 - Math.exp(-(raw - ds) / (L * 0.999 - ds))) : raw;
+  const d = THREE.MathUtils.clamp(reach, Math.abs(la - lb) + 1e-3, L * 0.999);
   dir.normalize();
   const along = (la * la - lb * lb + d * d) / (2 * d), h = Math.sqrt(Math.max(la * la - along * along, 0));
   const pd = _b.subVectors(pole, A);
@@ -107,7 +116,7 @@ function legIK(H, s, target, pole) {
 export function resetFeet(H) {
   const S = H._feet;
   if (!S) return;
-  for (const s of ['l', 'r']) Object.assign(S[s], { locked: false, w: 0, released: false, lastHeight: undefined, step: null });
+  for (const s of ['l', 'r']) Object.assign(S[s], { locked: false, w: 0, wv: 0, dropIn: 0, shown: null, footQ: null, released: false, lastHeight: undefined, step: null });
   S.drop = 0; S.cool = 0;
 }
 
@@ -182,8 +191,9 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       planted = hBall < ballRest + (F.locked ? 0.09 : 0.04) * sc && !rising;
     }
     if (!F.locked && !F.step && clear > 0.07 * sc) F.aloft = true;   // (a foot only plants early coming down, not just as it lifts off)
+    const vy = F.lastHeight !== undefined && dt > 0 ? (hBall - F.lastHeight) / dt : 0;
     F.lastHeight = hBall;
-    D[s] = { ankle, ball, hBall, groundH, way, flat, place, planted, finite: Number.isFinite(gh), clear };
+    D[s] = { ankle, ball, hBall, groundH, way, flat, place, planted, finite: Number.isFinite(gh), clear, vy };
   }
 
   // standing: settling steps (one foot at a time)
@@ -241,8 +251,16 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       if (!d.planted || still) F.released = false;
       if (d.planted && !F.locked && !F.released && d.finite) {
         F.locked = true; F.aloft = false;
-        F.w = Math.max(F.w, d.clear < 0.03 * sc ? 1 : 0.65);   // (it stops where it meets the ground)
+        // (it stops where it meets the ground; a foot still partly on an old hold, let go a moment ago, holds where it
+        // is shown, on the ground under it: planted at the clip's place, it jumped there, half a metre in a pivot)
+        const relock = F.w > 0.05 && F.shown && F.shown.distanceTo(d.place) > 0.04 * sc;
+        // (meeting the ground a few centimetres up, it stops there but comes down onto it at the speed it was falling,
+        // easing in: set at 0.65 of its hold at once, the foot dropped 9 cm in a frame at every touchdown at a jog, the
+        // foot bone flicking 20 rad/s; eased onto its hold altogether, it slid on with the clip's foot meanwhile)
+        F.w = 1; F.wv = 0;
+        F.dropIn = Math.max(0, d.clear); F.dropV = Math.min(0, d.vy);
         F.pos.copy(d.place);
+        if (relock) F.pos.copy(F.shown).addScaledVector(up, _b.subVectors(d.place, F.shown).dot(up));
         F.yaw.copy(d.way);
         // the slope under the foot: the sole and the footprint lie along it
         F.n = physics.groundNormal(d.ball.x, d.ball.y + 1.2, d.ball.z, F.n ?? new THREE.Vector3());
@@ -267,7 +285,12 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     }
     const held = F.locked || !!F.step;
     // (planting is quick: the foot stops as it meets the ground; letting go is softer)
-    F.w += ((held ? 1 : 0) - F.w) * (1 - Math.exp(-(held ? 40 : 24) * dt));
+    // (onto the hold and off it: a critically damped spring, so the foot meets and leaves its hold with no step in its
+    // speed: let go at 24/s at once, the knee snapped from straight to bent in a frame at every lift-off, 25 rad/s)
+    {
+      const goal = held ? 1 : 0, k = held ? FEET.holdRate : FEET.releaseRate, e = Math.exp(-k * dt), x = F.w - goal, j = (F.wv ?? 0) + x * k;
+      F.w = THREE.MathUtils.clamp(goal + e * (x + j * dt), 0, 1); F.wv = e * ((F.wv ?? 0) - j * k * dt);
+    }
     // the held foot: the clip's ankle round the held ball, turned to the held way, tilted onto the slope
     // (measured while held, when the foot lies flat; a lifted foot's toes may point down past the
     // ankle, where its flat way flips: the turn it had as it let go fades out instead)
@@ -276,7 +299,30 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
     yaws[s] = yaw;
     const offset = _b.subVectors(d.ankle, d.ball).applyAxisAngle(up, yaw);
     if (F.n && F.w > 0.01) offset.applyQuaternion(_q.setFromUnitVectors(up, F.n));
+    // the foot turns no faster than FEET.footRate against the body: the loops' feet slap flat at a touchdown in a frame
+    // at the game's cadence (20 rad/s); over two or three frames instead, turned about the ball so a held one stays put
+    F.corr = null;
+    if (FEET.footRate > 0 && dt > 0) {
+      const rootQ = worldQuat(H.char.root, _qr), clipQ = worldQuat(B[`foot_${s}`], _qc);
+      if (F.w > 0.01) { clipQ.premultiply(_qd.setFromAxisAngle(up, yaw * F.w)); if (F.n) clipQ.premultiply(_qd.setFromUnitVectors(up, F.n).slerp(_q3.identity(), 1 - F.w)); }
+      const rel = clipQ.premultiply(_qd.copy(rootQ).invert());   // (now the body's frame)
+      if (F.footQ && F.footQ.angleTo(rel) < 1.5) {
+        F.footQ.rotateTowards(rel, FEET.footRate * dt);
+        F.corr = (F.corrQ ??= new THREE.Quaternion()).copy(rootQ).multiply(F.footQ).multiply(rel.invert()).multiply(_qd.copy(rootQ).invert());
+        offset.applyQuaternion(F.corr);
+      } else (F.footQ ??= new THREE.Quaternion()).copy(rel);
+    }
     const lockedAnkle = F.pos.clone().add(offset);
+    // (a foot that met the ground a little up comes down onto its hold: a critically damped spring from its fall)
+    if (F.dropIn) {
+      if (!held) F.dropIn = 0;
+      else {
+        lockedAnkle.addScaledVector(up, F.dropIn);   // (from where it met the ground this frame, down from the next)
+        const k = FEET.holdRate, e = Math.exp(-k * dt), j = F.dropV + F.dropIn * k;
+        F.dropIn = e * (F.dropIn + j * dt); F.dropV = e * (F.dropV - j * k * dt);
+        if (F.dropIn < 1e-4) F.dropIn = 0;   // (falling fast, the spring would carry it on under the ground: it stops on it)
+      }
+    }
     const swing = d.ankle.clone().addScaledVector(up, THREE.MathUtils.clamp(d.groundH + d.hBall, -0.25 * sc, 0.3 * sc));
     // letting go far from the clip's foot: the foot goes over there in a low arc, not along the floor
     if (!held && F.w > 0.01) {
@@ -330,7 +376,9 @@ export function plantFeet(H, dt, physics, up, rootPos, fwd, onStep, o = {}) {
       fq.premultiply(_q2.setFromAxisAngle(up, yaws[s] * F.w));
       if (F.n) fq.premultiply(_q.setFromUnitVectors(up, F.n).slerp(_q3.identity(), 1 - F.w));
     }
+    if (F.corr) fq.premultiply(F.corr);
     foot.quaternion.copy(worldQuat(foot.parent, _q3).invert().multiply(fq));
     foot.updateMatrixWorld(true);
+    worldPos(B[`ball_${s}`], (F.shown ??= new THREE.Vector3()));   // (where it is shown: a relock holds there)
   }
 }

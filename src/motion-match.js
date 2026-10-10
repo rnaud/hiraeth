@@ -1,6 +1,7 @@
 import { store } from './platform.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { analyseGait, STRIDE_K } from './animator.js';
 
 // Motion matching for locomotion (after Clavet's "Motion Matching" and Holden's write-ups:
 // theorangeduck.com/page/code-vs-data-driven-displacement), on the clips of public/anim/
@@ -22,7 +23,7 @@ export const MATCH = {
   interval: 0.1,          // s between searches
   halflife: 0.09,         // s: how fast a jump's difference decays
   horizon: [10, 20, 30],  // frames (30 fps) ahead: the trajectory's three samples
-  weights: { feetPos: 0.75, feetVel: 1, hipVel: 1, trajPos: 1, trajDir: 1.5 },
+  weights: { feetPos: 0.75, feetVel: 1, hipVel: 1, trajPos: 1, trajDir: 1.5, contact: 1 },   // (contact: the feet's contacts, so a jump keeps the feet down that are down)
   endMargin: 6,           // frames at a clip's end never jumped to
   stay: 3,                // a match within this many frames of the one playing: keep playing
   back: 15,               // or this many behind it in the same take (never back a step and again, round and round)
@@ -33,7 +34,64 @@ export const MATCH = {
   rate: [0.75, 1.6],      // the playback speed warp's range (Animator.match)
   lag: 1.2,               // the body faster than the clip at its fastest warp x this: the loops take over
   maxCost: 8,             // a best match costlier than this: the database has nothing like it (the Animator's loops)
+  loops: true,            // the game's own loops in the database too (gameLoops): the speeds no capture reaches
+  captureBias: 0.5,       // the extra cost of a captured frame over a game loop's (MotionDB.features)
+  capK: 1.05,
+  syncPhase: true,        // the Animator's loops kept in step with a game loop the matcher plays (Animator.match)             // the trajectory asked for at no more than this x the database's fastest (the warp does the rest)
 };
+
+// The game's loops as the database has them (gameLoops): each one a cycle at the shared gait phase, as the Animator
+// blends them, so the matcher has every speed the controller moves at (the captures walk at about 1 m/s and run at 4-5;
+// the game walks at 3.8 and runs at 7.2), and the still idle.
+export const GAME_LOOPS = [
+  ['idle', { idle: 1 }],
+  ['walk', { walk: 1 }], ['walk-jog', { walk: 2 / 3, jog: 1 / 3 }], ['jog-walk', { walk: 1 / 3, jog: 2 / 3 }],
+  ['jog', { jog: 1 }], ['jog-sprint', { jog: 0.5, sprint: 0.5 }], ['sprint', { sprint: 1 }],
+];
+
+/**
+ * The library's loops (lib.clips: idle, walk, jog, sprint) and their blends (GAME_LOOPS) as database segments of the
+ * `bones`, at `fps`: per cycle the pose (local rotations, the pelvis' place), the contacts (analyseGait's curves), the
+ * root's speed (a cycle covers STRIDE_K of the loop's own stride, as the Animator plays it) and the planted feet's
+ * sweep (the loop's own stance speed: feet.js shortens the stride by the difference). Library metres a second.
+ */
+export function gameLoops(lib, bones, fps = FPS_DEFAULT) {
+  const G = analyseGait(lib);
+  if (!G || !lib.clips.idle) return [];
+  const rest = Object.fromEntries(bones.map((b) => { const o = lib.scene.getObjectByName(b); return [b, o ? o.quaternion.clone() : new THREE.Quaternion()]; }));
+  const restPel = lib.scene.getObjectByName('pelvis')?.position.clone() ?? new THREE.Vector3();
+  const ip = {};
+  const interp = (k) => (ip[k] ??= (() => {
+    const clip = lib.clips[k], by = Object.fromEntries(clip.tracks.map((t) => [t.name, t]));
+    return { d: clip.duration, q: bones.map((b) => by[`${b}.quaternion`]?.createInterpolant() ?? null), p: by['pelvis.position']?.createInterpolant() ?? null };
+  })());
+  const contactOf = (curve, p) => { const n = curve.length, x = (((p % 1) + 1) % 1) * n, i = Math.floor(x) % n, t = x - Math.floor(x); return curve[i] * (1 - t) + curve[(i + 1) % n] * t; };
+  const q = new THREE.Quaternion(), q2 = new THREE.Quaternion();
+  return GAME_LOOPS.filter(([, w]) => Object.keys(w).every((k) => lib.clips[k] && (k === 'idle' || G.clips[k]))).map(([name, w]) => {
+    const keys = Object.keys(w), sum = keys.reduce((a, k) => a + w[k], 0);
+    const T = keys.reduce((a, k) => a + w[k] * lib.clips[k].duration, 0) / sum, n = Math.max(8, Math.round(T * fps));
+    const B = bones.length, rot = new Float32Array(n * B * 4), pel = new Float32Array(n * 3), contact = new Float32Array(n * 2);
+    for (let i = 0; i < n; i++) {
+      const ph = i / n;
+      let acc = 0;
+      for (const k of keys) {
+        const I = interp(k), t = ph * I.d, kw = w[k] / sum, mix = acc + kw > 0 ? kw / (acc + kw) : 1;
+        for (let b = 0; b < B; b++) {
+          if (I.q[b]) q.fromArray(I.q[b].evaluate(t)).normalize(); else q.copy(rest[bones[b]]);
+          if (acc === 0) q2.copy(q); else q2.fromArray(rot, (i * B + b) * 4).slerp(q, mix);
+          q2.toArray(rot, (i * B + b) * 4);
+        }
+        const pp = I.p ? I.p.evaluate(t) : [restPel.x, restPel.y, restPel.z];
+        for (let c = 0; c < 3; c++) pel[i * 3 + c] = acc === 0 ? pp[c] : pel[i * 3 + c] + (pp[c] - pel[i * 3 + c]) * mix;
+        for (const [f, o] of [['l', 0], ['r', 1]]) contact[i * 2 + o] += kw * (k === 'idle' ? 1 : contactOf(G.clips[k].contact[f], ph));
+        acc += kw;
+      }
+    }
+    let stride = 0, sweep = 0;
+    for (const k of keys) if (k !== 'idle') { const c = G.clips[k], full = c.speed * c.duration; stride += (w[k] / sum) * full * STRIDE_K[k]; sweep += (w[k] / sum) * full; }
+    return { name: `game:${name}`, n, rot, pel, contact, speed: stride / T, sweep: sweep / T };
+  });
+}
 
 const FPS_DEFAULT = 30;
 const otherSide = (n) => (n.endsWith('_l') ? n.slice(0, -1) + 'r' : n.endsWith('_r') ? n.slice(0, -1) + 'l' : n);
@@ -161,7 +219,7 @@ const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _q = new THREE.Quater
  * the tracked bones, the pelvis' place), the ground track, the feet's contacts, and the features.
  */
 export class MotionDB {
-  constructor(lib, sheet) {
+  constructor(lib, sheet, { loops = MATCH.loops } = {}) {
     const ud = sheet.userData ?? {};
     this.fps = ud.fps ?? FPS_DEFAULT;
     const rotTracks = sheet.tracks.filter((t) => t.name.endsWith('.quaternion') && !t.name.startsWith('root_motion.'));
@@ -170,12 +228,16 @@ export class MotionDB {
     const pelT = sheet.tracks.find((t) => t.name === 'pelvis.position');
     const rmT = sheet.tracks.find((t) => t.name === 'root_motion.position'), rmQ = sheet.tracks.find((t) => t.name === 'root_motion.quaternion');
     const segs = ud.segments ?? [{ name: 'all', start: 0, n: pelT.times.length }];
-    const n0 = pelT.times.length, N = n0 * 2;
+    const n0 = pelT.times.length;
+    // the game's own loops (gameLoops: the walk, the jog, the sprint and their blends, and the idle) after the captures
+    const extra = loops ? gameLoops(lib, this.bones, this.fps) : [];
+    const nx = extra.reduce((a, l) => a + l.n, 0), N = n0 * 2 + nx;
     this.n = N; this.B = B;
     this.rot = new Float32Array(N * B * 4);
     this.pel = new Float32Array(N * 3);
     this.root = new Float32Array(N * 3);   // x, z, yaw (from each segment's start)
     this.contact = new Float32Array(N * 2);
+    this.sweepOf = new Float32Array(N).fill(NaN);   // (a game loop's planted feet sweep back faster than its root moves: STRIDE_K)
     this.segOf = new Int32Array(N);
     this.segments = [];
     const C = contactsOf(ud, null);
@@ -199,6 +261,13 @@ export class MotionDB {
         const cl = C ? C.l[i] : 1, cr = C ? C.r[i] : 1;
         this.contact[j * 2] = m ? cr : cl; this.contact[j * 2 + 1] = m ? cl : cr;
       }
+    }
+    let at = n0 * 2;
+    for (const l of extra) {
+      this.segments.push({ name: l.name, start: at, end: at + l.n, n: l.n, loop: true, mirrored: false, game: true, index: this.segments.length, take: segs.length + this.segments.length });
+      this.rot.set(l.rot, at * B * 4); this.pel.set(l.pel, at * 3); this.contact.set(l.contact, at * 2);
+      for (let i = 0; i < l.n; i++) { this.root[(at + i) * 3 + 1] = (l.speed * i) / this.fps; this.sweepOf[at + i] = l.sweep; }
+      at += l.n;
     }
     for (const s of this.segments) for (let j = s.start; j < s.end; j++) this.segOf[j] = s.index;
     // unwrap each segment's yaw (the quaternion's angle wraps at +-pi)
@@ -269,11 +338,18 @@ export class MotionDB {
   /** The feature vector of every frame (normalised per group: mean and spread, weighted). */
   features() {
     const N = this.n, fps = this.fps, H = MATCH.horizon;
-    const F = 27;
+    const F = 29;
     this.F = F;
     const raw = new Float32Array(N * F);
     const feet = new Float32Array(N * 6), hips = new Float32Array(N * 3), tmp = new Float32Array(6), h3 = new Float32Array(3);
-    for (let j = 0; j < N; j++) { this.feetAt(j, tmp, 0, h3); feet.set(tmp, j * 6); hips.set(h3, j * 3); }
+    for (let j = 0; j < N; j++) {
+      this.feetAt(j, tmp, 0, h3);
+      // (a game loop's feet as feet.js plants them: their reach ahead of and behind the hips shortened by the root's speed over
+      // the sweep, STRIDE_K, so a planted foot stays put in its features as a captured one does)
+      const k = Number.isFinite(this.sweepOf[j]) && this.sweepOf[j] > 0 ? this.speed[j] / this.sweepOf[j] : 1;
+      if (k !== 1) for (const o of [0, 3]) tmp[o + 2] = h3[2] + (tmp[o + 2] - h3[2]) * k;
+      feet.set(tmp, j * 6); hips.set(h3, j * 3);
+    }
     // a point's world place: root + yaw-turned local
     const world = (j, x, y, z, out) => {
       const yaw = this.root[j * 3 + 2], c = Math.cos(yaw), s = Math.sin(yaw);
@@ -313,7 +389,8 @@ export class MotionDB {
     }
     // normalise: per dimension mean, per group spread (the mean of its dimensions' deviations), weighted
     const W = MATCH.weights;
-    const groups = [[0, 6, W.feetPos], [6, 12, W.feetVel], [12, 15, W.hipVel], [15, 21, W.trajPos], [21, 27, W.trajDir]];
+    for (let j = 0; j < N; j++) { raw[j * F + 27] = this.contact[j * 2]; raw[j * F + 28] = this.contact[j * 2 + 1]; }
+    const groups = [[0, 6, W.feetPos], [6, 12, W.feetVel], [12, 15, W.hipVel], [15, 21, W.trajPos], [21, 27, W.trajDir], [27, 29, W.contact]];
     this.mean = new Float32Array(F); this.scale = new Float32Array(F);
     for (let d = 0; d < F; d++) { let s = 0; for (let j = 0; j < N; j++) s += raw[j * F + d]; this.mean[d] = s / N; }
     for (const [a, b, w] of groups) {
@@ -332,6 +409,9 @@ export class MotionDB {
     // and a match that keeps finding the same tail (the still end of a stop, say) never settles
     this.bias = new Float32Array(N);
     for (const s of this.segments) if (!s.loop) for (let j = s.start; j < s.end; j++) this.bias[j] = MATCH.endBias * (1 - THREE.MathUtils.smoothstep(s.end - j, MATCH.endMargin, fps));
+    // (a capture costs a little more than the game's own loops when the game's loops are there: they plant their feet best
+    // at the game's speeds, so a capture is taken where it is clearly closer, a start, a stop, a turn)
+    if (this.segments.some((s) => s.game)) for (const s of this.segments) if (!s.game) for (let j = s.start; j < s.end; j++) this.bias[j] += MATCH.captureBias;
     // a coarse index: each block of 16 frames' bounding box, for skipping whole blocks in the search
     this.blocks = [];
     for (const s of this.segments) for (let a = s.start; a < s.end; a += 16) {
@@ -344,6 +424,8 @@ export class MotionDB {
     // the fastest the database runs (its 95th percentile of moving frames): past that it has no match
     const sp = Array.from(this.speed).filter((x) => x > 0.3).sort((x, y) => x - y);
     this.maxSpeed = sp[Math.floor(sp.length * 0.95)] ?? 3;
+    // (with the game's loops: as fast as its sprint)
+    for (const s of this.segments) if (s.game) this.maxSpeed = Math.max(this.maxSpeed, this.speed[s.start]);
   }
 
   /** Normalise a raw query (Float32Array(27)) in place. */
@@ -409,6 +491,7 @@ export class MotionMatcher {
     this.cost = 0; this.searches = 0; this.jumps = 0;
     this.contact = { l: 1, r: 1 }; this.lead = { l: Infinity, r: Infinity };
     this.speed = 0;              // the database's ground speed where it plays (its m/s)
+    this.sweep = 0;              // and how fast its planted feet sweep back
     this.lastWant = null;
     this.rate = 1;               // playback speed (the Animator warps it to the body's speed)
   }
@@ -467,7 +550,7 @@ export class MotionMatcher {
       // The packed sheet continues with a different take after a loop’s last frame.
       // Rounding that tail must not borrow the next take’s pose features.
       const q = this.query, j = fresh ? -1 : Math.min(Math.round(this.cur), db.segments[db.segOf[Math.floor(this.cur)]].end - 1);
-      if (j >= 0 && j < db.n) for (let d = 0; d < 15; d++) q[d] = db.rawFeat[j * db.F + d];
+      if (j >= 0 && j < db.n) { for (let d = 0; d < 15; d++) q[d] = db.rawFeat[j * db.F + d]; q[27] = db.rawFeat[j * db.F + 27]; q[28] = db.rawFeat[j * db.F + 28]; }
       else {
         // a fresh match (from the loops, or standing at the start): no clip's pose to go on, so the feet's
         // places are the database's average but the feet and the hips move as the body does. With the
@@ -475,10 +558,15 @@ export class MotionMatcher {
         // off, it matched a jog's stop, leaned back with its face 35° up, and every search after went on
         // from that stop (the Motion page, 2026-10-09)
         for (let d = 0; d < 15; d++) q[d] = db.mean[d];
+        q[27] = q[28] = Math.hypot(s.vel?.x ?? 0, s.vel?.z ?? 0) < 0.3 ? 1 : 0.5;
         const vx = (s.vel?.x ?? 0) / size, vz = (s.vel?.z ?? 0) / size;
         for (const o of [6, 9, 12]) { q[o] = vx; q[o + 1] = 0; q[o + 2] = vz; }
       }
-      const t = this.predict(s, size);
+      // (faster than anything in the database, its sprint: the trajectory asked for at that speed, which the playback's warp
+      // then speeds up; asked at the real speed, the best sprint cost 10 and the loops took over at every sprint)
+      const cap = db.maxSpeed * size * MATCH.capK, v = Math.max(Math.hypot(s.vel.x, s.vel.z), Math.hypot(s.want.x, s.want.z));
+      const k = v > cap ? cap / v : 1;
+      const t = this.predict(k < 1 ? { ...s, vel: { x: s.vel.x * k, z: s.vel.z * k }, want: { x: s.want.x * k, z: s.want.z * k } } : s, size);
       for (let d = 0; d < 12; d++) q[15 + d] = t[d];
       db.normalise(q);
       // the frame playing (a little on) is the one to beat
@@ -561,6 +649,8 @@ export class MotionMatcher {
       this.lead[f2] = Number.isFinite(ld) ? Math.max(ld - t, 0) / (fps * this.rate) : Infinity;
     }
     this.speed = db.speed[i0] * (1 - t) + db.speed[i1] * t;
+    // (how fast its planted feet sweep back: a capture's as fast as its root, a game loop's faster: STRIDE_K)
+    this.sweep = Number.isFinite(db.sweepOf[i0]) ? db.sweepOf[i0] : this.speed;
   }
 
   /** This frame's pose: the clip's at `cur`, with the decaying jump offsets laid on it. */

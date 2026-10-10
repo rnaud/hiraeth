@@ -691,14 +691,22 @@ export class Animator {
     let target = ground ? 1 - fast : 0;
     if (target > 0 || this.mmW > 0.001) {
       this.mm ??= new MotionMatcher(db);
-      if (this.mmW <= 0.001) this.mm.reset();   // (coming in from the loops: a fresh match, faded in)
+      // (coming in from the loops: the matcher starts on the database's copy of what the loops show now, the same pose at
+      // the same phase, so it takes over without a seam and searches on from there: gameLoopFrame)
+      if (this.mmW <= 0.001) { this.mm.reset(); const f = this.gameLoopFrame(db); if (f >= 0) this.mm.cur = f; }
       // speed warping: the clip plays faster or slower so its feet sweep back at the body's own
       // speed (the game starts and stops quicker than anyone captured); within reason, the stride
       // warp (feet.js) does the rest
       const clip = this.mm.speed * size;
-      const want = s.speed > 0.4 && clip > 0.25 ? THREE.MathUtils.clamp(s.speed / clip, MATCH.rate[0], MATCH.rate[1]) : 1;
+      // (slowing to a stop, a moving clip slows with the body, down to a standstill, rather than walking on at its own pace
+      // until a search finds a standing frame: the feet would step on the spot meanwhile)
+      const want = clip > 0.25 ? THREE.MathUtils.clamp(s.speed / clip, s.speed > 0.4 ? MATCH.rate[0] : MATCH.rate[0] * s.speed / 0.4, MATCH.rate[1]) : 1;
       this.mmRate = (this.mmRate ?? 1) + (want - (this.mmRate ?? 1)) * (1 - Math.exp(-10 * dt));
       this.mm.update(dt, s.mm, size, { rate: this.mmRate });
+      // (on one of the game's loops, the loops' own phase kept with it: if they take over, they go on in step)
+      const seg = this.mm.cur >= 0 ? db.segments[db.segOf[Math.floor(this.mm.cur)]] : null;
+      // (only while the loops are hidden under it: moved under a pose they still show, they jumped, 43 cm at a foot)
+      if (MATCH.syncPhase && this.mmW > 0.95 && seg?.game && seg.name !== 'game:idle') this.phase = ((this.mm.cur - seg.start) / seg.n) % 1;
       // nothing close in the database (or the body is far faster than any clip that fits, as when
       // it sets off at full tilt): the loops, until a match is good again (with some margin)
       const lag = s.speed > 1 && s.speed > clip * MATCH.rate[1] * MATCH.lag;
@@ -721,8 +729,29 @@ export class Animator {
       this.toContact[f] = k > 0.5 ? t : this.toContact[f];
     }
     const mmGait = THREE.MathUtils.smoothstep(M.speed, 0.15, 0.55);
-    this.footSpeed += (M.speed * size * M.rate - this.footSpeed) * k;
+    // (eased: a jump from a capture onto a game loop changes the sweep by half again, and the stride's warp with it, which
+    // moved a swinging foot 40 cm in a frame: the motion QC's worst jolt under matching)
+    const sweep = M.sweep * size * M.rate;
+    this._mmSweep = this._mmSweep === undefined || this.mmW < 0.05 ? sweep : this._mmSweep + (sweep - this._mmSweep) * (1 - Math.exp(-6 * dt));
+    this.footSpeed += (this._mmSweep - this.footSpeed) * k;
     this.gaitW += (mmGait - this.gaitW) * k;
+  }
+
+  /**
+   * The database frame (src/motion-match.js gameLoops) closest to what the loops show now: the idle, or the blend of the
+   * walk, the jog and the sprint nearest the loops' weights, at the shared gait phase. -1 if the database has none.
+   */
+  gameLoopFrame(db) {
+    const seg = (n) => db.segments.find((x) => x.game && x.name === `game:${n}`);
+    const w = this.w, g = (w.walk ?? 0) + (w.jog ?? 0) + (w.sprint ?? 0);
+    if (g < (w.idle ?? 0) + (w.talk ?? 0) + (w.look ?? 0)) {
+      const s = seg('idle'), a = this.actions.idle;
+      return s ? s.start + Math.min(s.n - 1, Math.floor(((a?.time ?? 0) / (this.clips.idle?.duration || 1)) * s.n)) : -1;
+    }
+    const idx = (w.jog + 2 * w.sprint) / Math.max(g, 1e-6);
+    const pick = [['walk', 0], ['walk-jog', 1 / 3], ['jog-walk', 2 / 3], ['jog', 1], ['jog-sprint', 1.5], ['sprint', 2]].reduce((a, b) => (Math.abs(b[1] - idx) < Math.abs(a[1] - idx) ? b : a));
+    const s = seg(pick[0]);
+    return s ? s.start + (Math.floor((((this.phase % 1) + 1) % 1) * s.n) % s.n) : -1;
   }
 
   /** Copy the sampled pose onto our rig. root = the character's root Object3D. */

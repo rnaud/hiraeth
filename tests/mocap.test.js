@@ -175,7 +175,13 @@ test('the shipped motion: the matching database (mirrored), the people\'s walks,
   const { lib } = await loadAssets();
   const M = lib.motion, db = M.db;
   assert.ok(db && db.n > 8000, `database frames, mirror included (${db.n})`);
-  assert.equal(db.segments.filter((s) => s.mirrored).length, db.segments.length / 2, 'every clip and its mirror image');
+  const caps = db.segments.filter((s) => !s.game);
+  assert.equal(caps.filter((s) => s.mirrored).length, caps.length / 2, 'every clip and its mirror image');
+  // the game's own loops after the captures (src/motion-match.js gameLoops): the idle and every gait's speed
+  const game = db.segments.filter((s) => s.game);
+  assert.deepEqual(game.map((s) => s.name), ['game:idle', 'game:walk', 'game:walk-jog', 'game:jog-walk', 'game:jog', 'game:jog-sprint', 'game:sprint']);
+  for (let i = 2; i < game.length; i++) assert.ok(db.speed[game[i].start] > db.speed[game[i - 1].start], `${game[i].name}: faster than ${game[i - 1].name}`);
+  assert.ok(db.speed[game.at(-1).start] > 6.5, `the sprint loop runs at the game's sprint (${db.speed[game.at(-1).start].toFixed(2)} m/s)`);
   assert.ok(db.segments.some((s) => s.loop), 'steady walks and runs loop');
   for (let j = 0; j < db.n; j += 97) for (let d = 0; d < db.F; d++) assert.ok(Number.isFinite(db.feat[j * db.F + d]), 'features are numbers');
   // a frame's own features find that frame (or one as close)
@@ -191,7 +197,7 @@ test('the shipped motion: the matching database (mirrored), the people\'s walks,
   assert.ok(M.all.length > db.segments.length / 2, 'every take listed for the studio');
 });
 
-test('the matcher picks standing, walking and jogging by the stick, and has nothing for a sprint', async () => {
+test('the matcher picks standing, walking and jogging by the stick, and the game\'s sprint loop for a sprint', async () => {
   const { lib } = await loadAssets();
   const mm = new MotionMatcher(lib.motion.db);
   const run = (want, secs = 2) => {
@@ -202,7 +208,8 @@ test('the matcher picks standing, walking and jogging by the stick, and has noth
   run(1.2); assert.ok(mm.speed > 0.8 && mm.speed < 1.7, `walking 1.2 m/s: a walk (${mm.speed.toFixed(2)})`);
   run(3.5); assert.ok(mm.speed > 2.5 && mm.speed < 4.6, `jogging 3.5 m/s: a jog (${mm.speed.toFixed(2)})`);
   assert.ok(mm.cost < MATCH.maxCost, 'and a close one');
-  run(7.2); assert.ok(mm.cost > MATCH.maxCost, `sprinting 7.2 m/s: nothing close (cost ${mm.cost.toFixed(1)}): the loops take it`);
+  // (no capture runs at 7.2 m/s: before the game's loops were in the database the loops took over at every sprint)
+  run(7.2); assert.ok(mm.cost < MATCH.maxCost && /^game:(sprint|jog-sprint)$/.test(mm.db.segments[mm.db.segOf[Math.floor(mm.cur)]].name), `sprinting 7.2 m/s: the game's sprint (cost ${mm.cost.toFixed(1)}, ${mm.db.segments[mm.db.segOf[Math.floor(mm.cur)]].name})`);
   // jumps are inertialised: the pose never turns a bone more than a little in a frame
   mm.reset();
   const prev = new Float32Array(mm.outQ.length);

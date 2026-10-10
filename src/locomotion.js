@@ -23,6 +23,7 @@ export const LOCO = {
   bankPerTurn: 0.035, bankMax: 0.22,                    // rad per (rad/s x m/s / walk speed)
   headLead: 0.5, headMax: 0.6, chestLead: 0.28, chestMax: 0.32,
   pivotTurn: 3.2, pivotSpeed: 2.6,                      // rad/s faster than this, under this speed: a pivot
+  pivotKeep: 0.7, pivotHold: 0.12, pivotFast: 1.1,     // once pivoting: kept over 0.7x the turn, or for 0.12 s, under 1.1x the speed
 };
 
 export class Locomotion {
@@ -37,6 +38,7 @@ export class Locomotion {
   reset(heading = null) {
     this.vf = 0; this.af = 0; this.turn = 0; this.lastHeading = heading;
     this.lean = this.dip = this.bank = this.chest = this.head = 0;
+    this.pivot = false; this.pivotT = 0;
   }
 
   /**
@@ -70,7 +72,12 @@ export class Locomotion {
     const chestT = clamp(ahead * LOCO.chestLead, -LOCO.chestMax, LOCO.chestMax) * S.head;
     this.head += (headT - this.head) * damp(12, dt);
     this.chest += (chestT - this.chest) * damp(9, dt);
-    this.pivot = Math.abs(this.turn) > LOCO.pivotTurn && speed < LOCO.pivotSpeed;
+    // (with hysteresis and a least hold: a pivot that flickered off for a frame, the speed crossing the line as the turn
+    // eased, let a held foot go and planted it again where the clip's was, half a metre off: the motion QC's 20 cm jolt)
+    const on = Math.abs(this.turn) > LOCO.pivotTurn && speed < LOCO.pivotSpeed;
+    const stay = Math.abs(this.turn) > LOCO.pivotTurn * LOCO.pivotKeep;
+    this.pivotT = on ? LOCO.pivotHold : Math.max(0, (this.pivotT ?? 0) - dt);
+    this.pivot = on || (this.pivot && speed < LOCO.pivotSpeed * LOCO.pivotFast && (stay || this.pivotT > 0));
     return this;
   }
 

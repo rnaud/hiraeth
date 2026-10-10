@@ -63,6 +63,16 @@ these foundations and share animation logic where practical.
   solving nearby; shared or baked animation with interpolated playback for
   distant crowds. *(Feet and lean near, poses every 2nd / 3rd frame further,
   simplified skinned bodies far: src/skinned-lod.js.)*
+- [x] **Finish motion matching, with a quality-control pass** (2026-10-10). *(The motion QC: skill `motion-qc`,
+  `scripts/motion-qc/` (node, the gait course, 15 scenarios) and the skill's browser run (the desert, the Signal
+  Market, the Arena): foot slide per planted step, held feet, pops, jolts, blend boundaries, the answer to the stick,
+  pivots, the matcher's cost; contact sheets of the worst frames; `tests/motion-qc.test.js`. What it found in the
+  default walk was fixed in src/feet.js and src/locomotion.js: the knee snapping at every lift-off, a landing foot
+  dropping 9 cm in a frame, the feet slapping flat, a pivot throwing a foot 20 cm (node: pops 19.1 → 10.2 a minute,
+  jolts 15.5 → 8.9, green runs 1 → 4 of 15). Matching got the game's own loops in its database, a seamless hand-in,
+  the sprint, stops and contact features (slide p95 21.5 → 11.5 cm, pops 24.5 → 13.4, 20 µs a frame), and stays a
+  dev-menu switch: it still slides half again as far as the default without starts, stops and turns captured at the
+  game's speeds. docs/systems/animation.md, "The motion QC".)*
 
 ### Success criteria
 
