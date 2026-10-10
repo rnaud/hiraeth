@@ -1,0 +1,47 @@
+TODO.md
+  s_9ca76055a220ed::t_44af8d83f59bd2 255-258,269-270,278-279
+changelog.md
+  s_9ca76055a220ed::t_8041a38a86e72f 7-8
+docs/systems/performance.md
+  s_9ca76055a220ed::t_7039bd351fdacf 749-832
+src/cape.js
+  s_9ca76055a220ed::t_2543eacaf01d15 410-412,414-417,422-424,451-469
+src/changelog.js
+  s_9ca76055a220ed::t_c837682347d3e0 30-41
+src/load-steps.js
+  s_9ca76055a220ed::t_3535ea42b50a47 111-112,114,125,145
+src/main.js
+  s_9ca76055a220ed::t_4b04b7a79fe9ad 5,131-132,1037,2033-2035
+src/matrix-cache.js
+  s_9ca76055a220ed::t_34a88ee3c07095 1-52
+src/npc.js
+  s_9ca76055a220ed::t_722116ccc31829 643
+src/perf.js
+  s_9ca76055a220ed::t_c5ba756a68b737 366-367,383-387,389-390
+src/shadows.js
+  s_9ca76055a220ed::t_63f9cbd8a1dcd2 155-159
+tests/gpu-pacer.test.js
+  s_9ca76055a220ed::t_67ada90b49a297 74-92
+tests/load-awaits.test.js
+  s_9ca76055a220ed::t_1c1da49286542e 75-78
+tests/matrix-cache.test.js
+  s_9ca76055a220ed::t_6e395c5d1cae1a 1-72
+tests/quality.test.js
+  s_9ca76055a220ed::t_6d10f61bdf8c30 178-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6a92e5b8b4230cdf3c6cbaa82667d4fd6c03ef4b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
