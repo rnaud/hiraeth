@@ -1,4 +1,4 @@
-// The temple visual pass (docs/audits/temple-visuals-v1.31.md, docs/systems/temples.md "Each house its own look"):
+// The temple visual pass (docs/audits/temple-visuals-v1.32.md, docs/systems/temples.md "Each house its own look"):
 // every house its own palette, bands, ornament and light inside; the bands cut the drawn wall, never its collision;
 // the light handed over with the air only inside.
 import test from 'node:test';

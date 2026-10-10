@@ -105,7 +105,7 @@ function painted(geo, c) {
 /**
  * A world's temple materials from its palette:
  *   { wall, wall2, wall3, floor, floor2, trim, dark, stone, glow (the pieces' light), accent, sand }
- * and what makes each house its own (the temple visual pass, docs/audits/temple-visuals-v1.31.md):
+ * and what makes each house its own (the temple visual pass, docs/audits/temple-visuals-v1.32.md):
  *   glyph      the frieze's glyphs' colour (default glow; the pieces keep glow)
  *   fitting    the pieces' fittings (door bands, plate rims, braziers: trimMat; default trim)
  *   look       makeMaterial options over the defaults: { all (every surface of the house: shade, shadeHue,

@@ -55,7 +55,7 @@ export const SITE = { x: -122, z: 98, r: 22 };
 SITE.heading = Math.atan2(0 - SITE.x, 60 - SITE.z);
 
 /**
- * The engine's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/engine-house):
+ * The engine's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/engine-house):
  * rust iron in riveted plates, strapped in steel blue (the frames, a strap under every frieze and at the foot, a strap
  * down the wall with a brass valve wheel), grey iron floor plates, brass fittings, the pipes and rods blue steel; its
  * shade a deep rust that keeps the iron's red, its light the furnace's warm.

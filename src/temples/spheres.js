@@ -49,7 +49,7 @@ export const SITE = { x: -250, z: 250, r: 26 };
 SITE.heading = Math.atan2(0 - SITE.x, 0 - SITE.z);
 
 /**
- * The Footprint's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/footprint):
+ * The Footprint's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/footprint):
  * white plaster in big smooth panels, pale lavender in its shade (the Garden's world prints its shade in sage, and turned
  * the house green with it), warm cream light, the fittings (plate rims, door bands) the sage of its door, round
  * portholes under the friezes, the glyphs lit amber.

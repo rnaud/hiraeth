@@ -53,7 +53,7 @@ const TAU = Math.PI * 2;
 export const SITE = { x: 0, z: -267, r: 8, heading: Math.PI, tower: { x: 0, z: -255, top: 98 } };
 
 /**
- * The Undertower's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/undertower):
+ * The Undertower's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/undertower):
  * blue-grey masonry in heavy blocks, its frames the same stone (no more brass frames: brass is for the horns and
  * fittings), grey flagstones, a darker course under every frieze and at the foot, slots of the market's coral and teal
  * light by turns under the friezes; its shade a deep blue, its light the lamps' warm.

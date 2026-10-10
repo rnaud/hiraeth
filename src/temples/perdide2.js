@@ -50,7 +50,7 @@ export const SITE = { x: 46, z: -424, r: 14, path: [6, -414] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
- * The Lamp-House's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/lamp-house):
+ * The Lamp-House's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/lamp-house):
  * dark slate in blocks, grey flagstones, moss at the walls' foot and the frames mossy grey, hanging lamps under the friezes
  * and every lamp's pool on the stone warm amber (lampTint); its shade a deep blue-violet, its light a dim warm grey.
  */

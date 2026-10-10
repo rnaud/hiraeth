@@ -50,7 +50,7 @@ export const SITE = { x: 550, z: 376, r: 34 };
 SITE.heading = Math.atan2(STORY.city.x - SITE.x, STORY.city.z - SITE.z);
 
 /**
- * The house's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/givers-house):
+ * The house's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/givers-house):
  * warm rose stone laid in ashlar courses, a darker course under the frieze and at the plinth, rose-tan flags, the frames in
  * the darker rose, the fittings (braziers, plate rims) old bronze gone green; its shade a deep rose, its light warm.
  */

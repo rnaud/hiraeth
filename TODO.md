@@ -116,6 +116,12 @@ Desert's cistern pump placed (DONE.md, "Enemy roster: the art against the sheets
   the golden dunes animates. Candidates looked at on 9 October: the Givers' House doorway (a flat dark
   panel with two darker leaves, reads as a shut door; it is in the Rose Canyons though), the ship's ramp,
   the giant's mouth, the region-name caption. Say which one, or what "stuck" looked like.)
+- [ ] **Ink lines, what the v1.33 audit left** (docs/audits/ink-lines-v1.33.md, `.claude/skills/ink-lines`): Edena's
+  flowers 55 m off are still 34-41 % ink (their heads' outlines; the rubric's far cap is 30 %): a lighter line in their
+  own colour for the meadow flowers (`line` / `lineTint`, as the `leaves` foliage) would take the rest but changes them
+  close up — for the author to say. The far town shimmers half a pixel over (Qanat at 150 m, 0.44 of its ink, 12-14 %
+  pops, before and after): check it in motion (scripts/motion-check, the zoom path) and look at the haze layers and
+  the wobble on thin far shapes.
 
 
 # Xbox (queued 2026-10-09)

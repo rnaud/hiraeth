@@ -60,7 +60,7 @@ SITE.heading = Math.atan2(274 - SITE.x, 0 - SITE.z);
 export const BREATH = { a: 2.85, r: 197, bottom: -290, top: 200, R: 260, radius: 4.5 };
 
 /**
- * The well's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/wardens-well):
+ * The well's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/wardens-well):
  * cream stone in big smooth blocks, banded in the makers' steel blue (a course under every frieze, gold glyphs on it, and
  * at the foot), cream floors, lit slit windows over the friezes; its shade a soft lavender blue that keeps the cream
  * (the shaft's world prints its shade flat in blue, and turned the house blue with it), its light warm.

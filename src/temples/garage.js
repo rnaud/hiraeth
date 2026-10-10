@@ -53,7 +53,7 @@ export const SITE = { x: Math.cos(150 * Math.PI / 180) * 205, z: Math.sin(150 * 
 SITE.heading = Math.atan2(0 - SITE.x, 120 - SITE.z);
 
 /**
- * The First Garage's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/first-garage):
+ * The First Garage's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/first-garage):
  * cream marble in big slabs, cream marble floors (the blue slate is gone), brass in the frames, inlaid in thin lines under
  * every frieze and at the foot, and in the fittings, a little brass clock under every frieze, the eyes lit the makers'
  * teal; its shade a cool grey-teal, its light warm sun.

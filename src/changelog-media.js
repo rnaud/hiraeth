@@ -490,7 +490,30 @@ const FROM_GUARD29 = 'headless Chrome (High, 1280 × 720, hour 10) in the Arena,
 const TV_FROM = 'headless Chrome against a dev server (High, 10:00, clear, the camera pinned, the traveller at a temple mark), the temple files as on main before the pass and after it';
 const TV = (lv, id, view, caption, sheet, ref) => ({ name: `tv-${lv}-${view}`, title: view === 'hall' ? 'Inside' : 'The door', caption, from: TV_FROM,
   reference: { sheet: `references/temples/${id}/${sheet}`, caption: ref } });
+/** The ink lines by size (v1.33): crops of the ink-lines audit's pictures, the same instant before and after (made by hand). */
+const FROM_INK = 'the ink-lines audit (.claude/skills/ink-lines/capture.mjs: headless Chrome, muted, the game’s and the shaders’ clocks held, 10:30, clear), the build before with its post.js and head-ink.js swapped back in and the same command; crops scaled up nearest-neighbour; cwebp -q 72';
 export const CHANGELOG_MEDIA = {
+  '1.34': [
+    // ink lines by the size of what they draw (docs/audits/ink-lines-v1.34.md)
+    { match: 'Far-off plants no longer turn into black blots', shots: [
+      { name: 'ink-plants-far', caption: 'Edena’s meadow 55 m off at 1920 × 1080, cropped ×2: before, the tulips, clover and daisy mats were ink with a little colour; after, their colours under a light outline (the flowers 54 → 40 % ink, 36 → 12 % near-black)', from: FROM_INK },
+      { name: 'ink-plants-handheld', caption: 'The same flowers on the Handheld preset (960 × 540), cropped ×3 (31 → 4 % near-black)', from: FROM_INK },
+    ], numbers: [
+      { title: 'Edena’s flowers 55 m off: how much of them is near-black', unit: '%', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU (the ink-lines audit)', rows: [
+        { where: '1920 × 1080', before: 36.4, after: 11.9 }, { where: 'Handheld', before: 30.9, after: 4.4 }, { where: 'Handheld at 0.5', before: 26.9, after: 5.3 }, { where: 'a phone', before: 29.3, after: 4.6 },
+      ], source: 'node .claude/skills/ink-lines/capture.mjs (veg-far), the flowers’ mask from the albedo with and without them' },
+    ] },
+    { match: 'The traveller’s face reads as a face from a few metres off', shots: [
+      { name: 'ink-traveller-far', caption: 'The traveller facing the camera 4, 10 and 25 m off at 1920 × 1080, his face cropped and scaled up: before, black dots for eyes and a dark blot of a mouth; after, small dark eyes under their lids and a mouth line', from: FROM_INK },
+    ], see: 'Turn the camera to face the traveller and pull it back a few metres, or watch him from afar in a cutscene: his eyes stay small and in proportion to his head.' },
+    { match: 'On smaller screens', shots: [
+      { name: 'ink-low-res', caption: 'Up the valley to Qanat on the Handheld preset at its lowest resolution (640 × 360, shown at 1280): before, two-pixel lines and black clumps; after, finer lines and the cacti green', from: FROM_INK },
+    ], numbers: [
+      { title: 'How much of the picture is ink lines, the view up the valley to Qanat', unit: '%', better: 'lower', device: 'Mac M4 Pro, headless Chrome on the GPU (the ink-lines audit)', rows: [
+        { where: '1920 × 1080 (as before)', before: 2.8, after: 2.6 }, { where: 'Handheld', before: 4.5, after: 4.0 }, { where: 'Handheld at 0.5', before: 6.0, after: 3.9 }, { where: 'a phone', before: 6.4, after: 4.2 },
+      ], source: 'node .claude/skills/ink-lines/capture.mjs (town-far), debug 14 (the lines as drawn)' },
+    ] },
+  ],
   '1.32': [
     { match: 'The eleven temples no longer look alike', numbers: [
       { title: 'Draw calls a frame in two temples', unit: 'calls', better: 'lower', device: 'Mac, headless Chrome on the GPU, 1280 × 720, High and the Steam Deck preset',

@@ -744,7 +744,8 @@ three things sat on the screen while the world slid under them.
 0 final, 1 raw, 2 albedo, 3 normals, 4 depth, 5 light term (the line step taken off), 6 ink only, 7 hatch
 strokes and 8 drawn detail (their packed steps taken off, so a shaded or spotted surface no longer reads as
 solid black), 9 spot blacks' enclosure, 10 the spot tier's cast and spot masks, 11 lines by material, 12 cast
-shadows lifted or inked, 13 the lines' noise (it must turn with the world, never sit on the screen).
+shadows lifted or inked, 13 the lines' noise (it must turn with the world, never sit on the screen), 14 the
+lines as drawn (blue: after the fog, the haze and the grass's and lights' own fades; the ink-lines audit reads it).
 
 ## Cost of the ink pass's three (lines by material, haze, cast shadows)
 
@@ -866,6 +867,30 @@ things. On Handheld the Buried Machine's pipe is small enough on screen that the
   steps in the wear, the detail's blend, the terminator's fade and where it applies, the fog and haze by distance
   (a trunk turning to the side of the view keeps its veil), the composite's defines followed in place.
 
+
+## Ink lines by size on screen (post.js 1a, `INK_SIZE`; October 2026)
+
+"Lines are too big for some vegetation, and the character's eyes render almost like black eyes from afar."
+The ink-lines audit (`.claude/skills/ink-lines`, `docs/audits/ink-lines-v1.34.md`) measures the lines against
+what they draw, scene by scene from 1 m to 120 m and at every resolution the game is played at. A pen line of a
+fixed width in CSS px ate whatever was a few pixels across: Edena's flowers at 55 m were 54-64 % ink and 30-39 %
+near-black, every stem and petal drawn over; on a phone or at the Handheld's floor the lines were a far bigger
+share of the picture than at 1080p. Three rules, all in the composite, none touching the near look at 1080p:
+
+- **A sliver keeps its colour** (`onSliver`): `inkLines` also says whether this pixel differs from both its
+  neighbours across (`gSliver`: nearer in depth than both, by `step` of its depth; or a crease or a colour edge on
+  both sides). That is a feature a kernel or two wide: a stem, a far petal, a blade's tip. Its own line keeps off
+  it (0.3 of it left); the line beside it, on the background, still draws its outline. No new tap.
+- **A thin shape's outline is lighter** (`farSide`): on a depth edge's far side (the background beside a shape in
+  front, `near.z` over 0), two taps past the shape, one and three kernels on: where the background shows again,
+  the shape is that thin, and its line keeps 0.45 (half that past three kernels). Only on inked pixels.
+- **The frame's size** (`frame`): a line's width is CSS px; on a frame under 900 CSS px tall it thins with the
+  frame, down to 0.6 (720p 0.8, the Deck 0.89, a phone held sideways 0.6). A kernel that ends under a render pixel
+  (the Handheld at its 0.5 floor) is still drawn a pixel wide, so it carries its coverage instead, down to
+  `minAlpha` 0.7.
+
+The people far away keep their own redraw (block 1, `figHit`), the traveller his own outline (`heroInk`), the grass
+its soft ink. Debug view 14 shows the lines as drawn. Measured before → after and the cost: the audit.
 
 ## Thin bars at any distance (materials.js `S_THIN`, `src/thin.js`, October 2026)
 

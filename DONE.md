@@ -2132,3 +2132,11 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   bank of three eyes at the end; Clemence has the word). Every route world now has its vehicle's trial and its
   makers' run. New in the stand-in runtime: the lamps (`LightEar`, the charm asked of the traveller's items) and
   the riding discs (`Platform`, moving floors). tests/trials-kit.test.js.
+- [x] **Ink lines at every distance and resolution** (the author: "lines are too big for some vegetation, and the
+  character's eyes render almost like black eyes from afar"; docs/audits/ink-lines-v1.33.md). The `ink-lines` skill
+  (`.claude/skills/ink-lines`: 13 scenes × 7 resolutions shot the same every run, measured and graded; debug 14, the
+  lines as drawn; `cost.mjs`). Fixed: a sliver keeps its colour and a thin shape's outline is lighter (post.js 1a,
+  `INK_SIZE`): Edena's far flowers 36 → 12 % near-black at 1080p, 31 → 4 % on Handheld; the lines thin with a frame
+  under 900 CSS px and carry coverage under a render pixel (the town's ink at Handheld 0.5 6.0 → 3.9 %); the
+  traveller's face from afar (head-ink.js `HEAD_INK_FAR`): strokes carry their coverage, the far eye one warm tone
+  (at 4 m his darkest eye pixel 0.13 → 0.31 of his cheek). tests/ink-lines.test.js, tests/ink-size.test.js.

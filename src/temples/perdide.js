@@ -51,7 +51,7 @@ export const SITE = { x: -135, z: 105, r: 16, path: [-108, 107] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
- * The Hush-House's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/hush-house):
+ * The Hush-House's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/hush-house):
  * violet stone in cracked beds, its frames and ribs a darker violet, violet-grey flags (no more green floors), olive moss at
  * the walls' foot, little crystals of teal and violet growing under every frieze; its shade a deep violet, its light the
  * dusk's rose.

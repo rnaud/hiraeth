@@ -8,6 +8,12 @@ import { store } from './platform.js';
 import { glyph } from './pad-glyphs.js';
 
 export const CHANGELOG = [
+  { v: '1.34', date: '2026-10-10', items: [
+    // ink lines by the size of what they draw (docs/audits/ink-lines-v1.34.md, the ink-lines skill)
+    'Far-off plants no longer turn into black blots: a meadow’s flowers, stems and leaves seen from a distance keep their colours under a light outline instead of being drawn over in ink. Close up they are drawn as before.',
+    'The traveller’s face reads as a face from a few metres off: his eyes are small dark marks and his mouth a line, where they were black dots and a dark blot. Close up his face is as before.',
+    'On smaller screens (a phone, the Steam Deck, a 720p window) and when the handheld lowers its resolution, the ink lines are thinner and lighter, in proportion to the picture.',
+  ] },
   { v: '1.33', date: '2026-10-10', items: [
     // the world debug menu
     { text: 'A debug menu for the world you are in: click both sticks (L3 + R3), or press F2. It lists the world’s places by kind (the ship, every quest step, the people, the temple’s door and each of its rooms, the shops, the sights and beacons, the makers’ runs and trials, the doors into caves and halls, the boxes and relics) with a filter, and takes you to any of them, set down on the ground nearby.',

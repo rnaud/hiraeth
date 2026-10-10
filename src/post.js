@@ -40,6 +40,7 @@ export const DEBUG_VIEWS = {
   'Lines by material: owner / step / ink': 11,
   'Cast shadows: could lift / lifted / inked': 12,
   "Lines' noise: wobble x, y / pressure": 13,
+  'Lines as drawn (the ink-lines audit)': 14,
 };
 
 /**
@@ -161,6 +162,18 @@ export const glslVec2s = (name, list) => `const vec2 ${name}[${list.length}] = v
  * a layer's veil the ink lines take.
  */
 export const HAZE = { edge: 0.18, lineFade: 0.85 };
+/**
+ * Ink lines by the size of what they draw (post.js 1a; docs/systems/rendering.md "Ink lines by size on screen";
+ * docs/audits/ink-lines-v1.34.md). A pen line of fixed width ate small and far things: a meadow's flowers at 50 m were
+ * all ink. step: the relative depth step (of the nearer surface's depth) at which a neighbour counts as behind;
+ * onSliver: what is left of a line on a pixel that differs from both its neighbours across (a feature a kernel or two
+ * wide); farSide: what is left of a silhouette's line beside a shape no thicker than a kernel (half that past three);
+ * frame: [CSS px tall at which lines are drawn at their width, the least they thin to on a smaller frame]; minAlpha:
+ * the least a kernel under a render pixel keeps (drawn a pixel wide, it carries its coverage).
+ */
+export const INK_SIZE = { step: [0.04, 0.1], onSliver: 0.3, farSide: 0.45, frame: [900, 0.6], minAlpha: 0.7, alphaAt: 1.6 };
+/** How much a line keeps of its width on a frame `cssHeight` CSS px tall (mirrors the GLSL frameK). */
+export const inkFrame = (cssHeight) => Math.min(1, Math.max(INK_SIZE.frame[1], cssHeight / INK_SIZE.frame[0]));
 /** The layers' veil at a distance d (mirrors the GLSL hazeAt): 1 - (1 - a)^(layers passed, stepped). */
 export function hazeLayers(d, [d0, k, a, n]) {
   if (!(n > 0)) return 0;
@@ -453,6 +466,11 @@ const fragmentShader = /* glsl */ `
   // minDepth = nearest surface in the kernel (for fading); near.xy = where it is, near.z = the signed
   // Laplacian of 1/z (relative): over 0 on a depth edge's far side, where the line's owner (whose weight and
   // colour it takes, 1b) is the surface in front at near.xy, not this pixel's.
+  // gSliver (set by each inkLines, read by 1a on inked pixels only): how far this pixel differs from its neighbours on
+  // BOTH sides across: x the nearer neighbour's depth across (the sky far), y its own depth, z the smaller normal
+  // difference across, w the smaller colour difference. Nearer than both, or a crease or a colour edge on both sides: a
+  // feature a kernel or two wide (a stem, a far flower's petal), which its line keeps off (INK_SIZE, "Ink lines by size")
+  vec4 gSliver;
   vec4 inkLines(vec2 uv, float w, bool interior, out float minDepth, out vec3 near) {
     vec2 px = max(w, 1.0) / uRes;
     vec4 c  = texture(tNormal, uv);
@@ -475,6 +493,8 @@ const fragmentShader = /* glsl */ `
     float lap = abs(i1 + i2 - 2.0 * ic) + abs(i3 + i4 - 2.0 * ic);
     float dEdge = smoothstep(uDepthThresh, uDepthThresh * 1.6, lap / max(mx, 1e-7));
     near.z = (i1 + i2 + i3 + i4 - 4.0 * ic) / max(mx, 1e-7);
+    vec4 nf = mix(vec4(big), vec4(n1.w, n2.w, n3.w, n4.w), step(1e-6, vec4(n1.w, n2.w, n3.w, n4.w)));
+    gSliver = vec4(max(min(nf.x, nf.y), min(nf.z, nf.w)), c.w, 0.0, 0.0);
 
     // Normals: creases.
     float nEdge = 0.0;
@@ -484,6 +504,7 @@ const fragmentShader = /* glsl */ `
       float d3 = n3.w > 0.0 ? 1.0 - dot(c.xyz, n3.xyz) : 0.0;
       float d4 = n4.w > 0.0 ? 1.0 - dot(c.xyz, n4.xyz) : 0.0;
       nEdge = smoothstep(uNormalThresh, uNormalThresh * 1.5, max(max(d1, d2), max(d3, d4)));
+      gSliver.z = max(min(d1, d2), min(d3, d4));
     }
 
     // Albedo boundaries + shadow boundaries.
@@ -494,9 +515,10 @@ const fragmentShader = /* glsl */ `
       vec4 a2 = texture(tAlbedo, uv - vec2(px.x, 0.0));
       vec4 a3 = texture(tAlbedo, uv + vec2(0.0, px.y));
       vec4 a4 = texture(tAlbedo, uv - vec2(0.0, px.y));
-      float da = max(max(length(a.rgb - a1.rgb), length(a.rgb - a2.rgb)),
-                     max(length(a.rgb - a3.rgb), length(a.rgb - a4.rgb)));
+      vec4 dq = vec4(length(a.rgb - a1.rgb), length(a.rgb - a2.rgb), length(a.rgb - a3.rgb), length(a.rgb - a4.rgb));
+      float da = max(max(dq.x, dq.y), max(dq.z, dq.w));
       aEdge = smoothstep(0.08, 0.14, da) * uAlbedoEdges;
+      gSliver.w = max(min(dq.x, dq.y), min(dq.z, dq.w)) * step(1e-3, uAlbedoEdges);
       float s = step(uToon, lightOf(a.a));
       float ds = max(max(abs(s - step(uToon, lightOf(a1.a))), abs(s - step(uToon, lightOf(a2.a)))),
                      max(abs(s - step(uToon, lightOf(a3.a))), abs(s - step(uToon, lightOf(a4.a)))));
@@ -1046,6 +1068,9 @@ const fragmentShader = /* glsl */ `
     // silhouettes (depth edges) heavy, interior creases and colour edges light
     float silW = weight * mix(1.0, 1.35, uLineVary) * press;
     float inW = weight * mix(1.0, 0.75, uLineVary) * mix(1.0, 0.85 + 0.3 * sn.w, uLineVary);
+    // the frame's size (INK_SIZE.frame): a line's width is CSS px, so on a small screen (a phone, the Deck, a 720p window)
+    // it was a bigger share of the picture; under ${INK_SIZE.frame[0]} CSS px tall it thins with the frame, to ${INK_SIZE.frame[1]}
+    float frameK = clamp(uRes.y / max(uPixelRatio, 1e-3) / ${INK_SIZE.frame[0].toFixed(1)}, ${INK_SIZE.frame[1].toFixed(2)}, 1.0);
     // Keep continuous interior strokes near the subject.
     vec2 sd = (uv - uSubject.xy) * vec2(uRes.x / uRes.y, 1.0);
     float subj = (1.0 - smoothstep(uSubject.w * 0.7, uSubject.w, length(sd))) * (1.0 - smoothstep(1.5, 4.0, abs(probeD - uSubject.z)));
@@ -1055,13 +1080,16 @@ const fragmentShader = /* glsl */ `
     float nearD2;
     vec3 ownK, ownK2;   // the nearest surface in the silhouette kernel, and which side of an edge this is (1b)
     vec4 eS, eI;
+    vec4 slS, slI;   // (gSliver of each kernel)
     if (uPostLite > 0.5) {
       // handheld: one kernel between the two weights serves silhouettes and interior lines (half the taps)
-      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio, true, nearD2, ownK);
-      eS = eI; nearD = nearD2;
+      eI = inkLines(euv, mix(silW, inW, 0.5) * uPixelRatio * frameK, true, nearD2, ownK);
+      eS = eI; nearD = nearD2; slS = slI = gSliver;
     } else {
-      eS = inkLines(euv, silW * uPixelRatio, false, nearD, ownK);
-      eI = inkLines(euv, inW * uPixelRatio, true, nearD2, ownK2);
+      eS = inkLines(euv, silW * uPixelRatio * frameK, false, nearD, ownK);
+      slS = gSliver;
+      eI = inkLines(euv, inW * uPixelRatio * frameK, true, nearD2, ownK2);
+      slI = gSliver;
     }
     nearD = min(nearD, nearD2);
     // interior lines break up like quick pen strokes; gaps are anchored in the world
@@ -1069,6 +1097,26 @@ const fragmentShader = /* glsl */ `
     float gapN = vnoise(vec2(wpL.x + wpL.y * 0.7, wpL.z - wpL.y * 0.4) * 0.9);
     float broken = mix(1.0, smoothstep(0.22, 0.34, gapN), uLineVary * (1.0 - subj) * smoothstep(3.0, 12.0, probeD));
     float ink = clamp(max(max(eS.x, eI.y * broken), max(eI.z * 0.85 * broken, eI.w * 0.8 * (1.0 - face) * (1.0 - castPot))), 0.0, 1.0);
+
+    // ---- 1a. lines by the size of what they draw (INK_SIZE; rendering.md "Ink lines by size on screen"). A pen line
+    // of fixed width eats a thing a few pixels across: a far flower was all ink. On a sliver (this pixel differs from
+    // both sides: a stem, a petal a kernel or two wide) the line keeps off and its colour shows; beside a depth edge,
+    // where the shape in front is no thicker than one or three kernels (two taps past it), the line is lighter.
+    if (ink > 0.02 && hero < 0.5 && !isSky) {
+      // (a kernel under a render pixel is drawn a pixel wide: it carries its coverage instead, down to minAlpha)
+      ink *= clamp(uPixelRatio * frameK * ${INK_SIZE.alphaAt.toFixed(2)}, ${INK_SIZE.minAlpha.toFixed(2)}, 1.0);
+      // (a sliver in depth: nearer than both neighbours across by a step a line is drawn for; in a crease or colour: on both sides)
+      float sD = slS.y > 0.0 ? smoothstep(${INK_SIZE.step[0].toFixed(3)}, ${INK_SIZE.step[1].toFixed(3)}, (slS.x - slS.y) / slS.y) : 0.0;
+      float sI = max(slI.y > 0.0 ? smoothstep(${INK_SIZE.step[0].toFixed(3)}, ${INK_SIZE.step[1].toFixed(3)}, (slI.x - slI.y) / slI.y) : 0.0,
+        max(smoothstep(uNormalThresh, uNormalThresh * 1.5, slI.z), smoothstep(0.08, 0.14, slI.w)));
+      ink *= mix(1.0, ${INK_SIZE.onSliver.toFixed(2)}, max(sD * eS.x, sI * max(eI.y, eI.z)) / max(ink, 1e-3));
+      if (ownK.z > 0.5 * uDepthThresh && eS.x > 0.02) {
+        vec2 dk = ownK.xy - euv;
+        float da = texture(tNormal, ownK.xy + dk).w, db = texture(tNormal, ownK.xy + 3.0 * dk).w;
+        vec2 back = smoothstep(vec2(${INK_SIZE.step[0].toFixed(3)}), vec2(${INK_SIZE.step[1].toFixed(3)}), (mix(vec2(1e7), vec2(da, db), step(1e-6, vec2(da, db))) - nearD) / max(nearD, 1e-3));
+        ink *= mix(1.0, ${INK_SIZE.farSide.toFixed(2)}, max(back.x, 0.5 * back.y));
+      }
+    }
 
     // People far away: a pen line of fixed width turned small figures into black shapes
     // (more so at the handheld's render scale). Where this pixel's kernel touches a person
@@ -1082,7 +1130,7 @@ const fragmentShader = /* glsl */ `
     float driftNear = drift; // banked sand under this pixel's ink kernel
     vec2 grassNear = grassInk;   // its pen line's share and its outline's fade (the blade's own, or the nearest blade's)
     if (ink > 0.02 && hero < 0.5 && !isSky) {
-      vec2 fo = max(silW * uPixelRatio, 1.0) / uRes;
+      vec2 fo = max(silW * uPixelRatio * frameK, 1.0) / uRes;
       vec4 t1 = texture(tHatch, euv + vec2(fo.x, 0)), t2 = texture(tHatch, euv - vec2(fo.x, 0)),
            t3 = texture(tHatch, euv + vec2(0, fo.y)), t4 = texture(tHatch, euv - vec2(0, fo.y));
       vec4 fa = mod(vec4(t1.a, t2.a, t3.a, t4.a), 64.0);   // (+64, a mover: nothing to the lines)
@@ -1104,8 +1152,8 @@ const fragmentShader = /* glsl */ `
         float alpha = mix(0.5, 1.0, smoothstep(20.0, 140.0, figPx));
         float nd;
         vec3 nk;
-        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio, k), false, nd, nk);
-        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio, k), true, nd, nk);
+        vec4 fS = inkLines(euv, mix(1.0, silW * uPixelRatio * frameK, k), false, nd, nk);
+        vec4 fI = uPostLite > 0.5 ? fS : inkLines(euv, mix(1.0, inW * uPixelRatio * frameK, k), true, nd, nk);
         float outline = fS.x * alpha * mix(1.0 - figure, 1.0, k);
         ink = clamp(max(outline, max(max(fI.y, fI.z * 0.85) * broken, fI.w * 0.8 * (1.0 - face)) * mix(innerF, 1.0, 1.0 - figure)), 0.0, 1.0);
       }
@@ -1328,6 +1376,7 @@ const fragmentShader = /* glsl */ `
     }
     // where banked sand meets a wall: a light line in a darker shade of the sand, not a hard contact line
     if (driftNear > 0.5 && softNear < 0.5) { inkC = mix(uInk, col * 0.6, 0.55); ink *= 0.45; }
+    if (uDebug == 14) { fragColor = vec4(0.0, 0.0, ink, 1.0); return; }   // the lines as drawn: blue (the ink-lines audit)
     col = mix(col, inkC, ink);
 
     // ---- 4b. light: a halo round glowing things, in flat rings like a printed glow, and a

@@ -53,7 +53,7 @@ export const SITE = { x: 110, z: 320, r: 22, path: [150, 100] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
- * The Greenhouse's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/builders-greenhouse):
+ * The Greenhouse's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/builders-greenhouse):
  * white stone in big panels, pale stone floors (no more green), white frames and ribs (no more teal), the glass the sky's
  * pale blue (GLASS), a pane of glass between white ribs under every frieze; its shade a crisp blue, its light white.
  */

@@ -348,6 +348,19 @@ the white of the eye, the crease, the lower lid and the lip stroke from about 11
 nose's lines from about 75 px; below that each eye is a dark mark (the lid and the iris), the mouth a
 line. Line widths have pixel floors, so the dialogue chip and the close shot still draw them.
 
+**From afar** (`HEAD_INK_FAR`, v1.33; the ink-lines audit, `docs/audits/ink-lines-v1.34.md`). "The
+character's eyes now render almost like black eyes when looking at him from afar": with those floors a
+lid 0.3 px thick was drawn a full pixel of ink, the iris never under 1.2 px, and once the opening was a
+pixel or two tall the whole of it was dark, so at 10 m each eye was a black dot on a 9 px face. Now:
+- a stroke drawn wider than itself (`hiStroke`: the lid, the crease, the lower lid, the nose, the
+  mouth and the lip) carries its coverage, its width over the drawn width, lifted by `keep` (0.35) so
+  it still reads; close up (`ha` under `from`, faces over ~110 px) it is drawn as before;
+- from an opening ~6 px tall down to ~2.7 px (`eye`) the eye turns to one warm `tone`, the white and
+  the iris as they share it, a shade darker than the skin: a small dark mark in proportion to the
+  head, never a socket.
+Measured (`.claude/skills/ink-lines`, the eye's dark over the face's area against the 1 m portrait):
+see the audit's table; the 1 m portrait is unchanged.
+
 **The channels** (`headInkState`, pure): the head's shape keys still move the skin, and the drawing,
 in rest coordinates, rides them as the paint did (a smile lifts the corners, raised brows stretch the
 lids, the open mouth drops the lower lip). The blink is drawn: the upper lid comes down onto the

@@ -2,6 +2,12 @@
 
 The same release notes shown in the game (press **N** or open settings).
 
+## v1.34 — 2026-10-10
+
+- On smaller screens (a phone, the Steam Deck, a 720p window) and when the handheld lowers its resolution, the ink lines are thinner and lighter, in proportion to the picture.
+- The traveller’s face reads as a face from a few metres off: his eyes are small dark marks and his mouth a line, where they were black dots and a dark blot. Close up his face is as before.
+- Far-off plants no longer turn into black blots: a meadow’s flowers, stems and leaves seen from a distance keep their colours under a light outline instead of being drawn over in ink. Close up they are drawn as before.
+
 ## v1.33 — 2026-10-10
 
 - The same menu plays the world’s cinematics where they happen and puts you back where you stood, sets any of the world’s quests to a chosen step (it warns you that this changes the save), and holds the debug switches: the hitbox overlay (which both sticks used to show; F4 still does), the controller inputs, god mode, endless potions, full hearts, the time of day, and the way back to the Debug menu.

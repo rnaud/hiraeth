@@ -54,7 +54,7 @@ export const SITE = { x: -128, z: -6, r: 18, rim: [-86, -6] };
 SITE.heading = Math.PI / 2;   // (the door faces +x, the plateau)
 
 /**
- * The belfry's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/founders-belfry):
+ * The belfry's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/founders-belfry):
  * bone-white stone in big smooth blocks, warm bone floors, the founders' bells in old bronze (BRONZE), little bronze bells
  * in niches under every frieze, the glyphs carved and bronze; its shade a warm rose-lavender over the white (Vael II's
  * sky prints its shade flat in grey-blue, and turned the tower blue with it), its light warm.

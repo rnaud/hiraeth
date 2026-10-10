@@ -52,7 +52,7 @@ export const SITE = { x: -220, z: -20, r: 18, path: [-180, -12] };
 SITE.heading = Math.atan2(SITE.path[0] - SITE.x, SITE.path[1] - SITE.z);
 
 /**
- * The Aerie's colours (the temple visual pass, docs/audits/temple-visuals-v1.31.md, after references/temples/aerie):
+ * The Aerie's colours (the temple visual pass, docs/audits/temple-visuals-v1.32.md, after references/temples/aerie):
  * warm ivory in tall smooth panels, banded in ochre (a band under every frieze and one low), the frames ochre, a long
  * feather carved under every frieze, the glyphs ochre-gold; its shade a peach-rose that keeps the ivory warm, its light
  * warm.
