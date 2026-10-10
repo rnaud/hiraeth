@@ -642,6 +642,14 @@ the after-run is [visual-v1.20](../audits/visual-v1.20.md).
   The probes' corner (the desert, a room inside a way in): the dark region beside him 6442 px → 0 at Handheld; the
   known spots stay clean. Twin: `tests/occlusion-taps.test.js` (a corner and a stair with a person in front, the
   rule before and now, and `spotBehind` itself). The Unity port's Composite.shader takes the same rule.
+- **A hairline of sky at the Givers' Hearth's floor edge** (both presets, 44-73 px in the light term; src/desert-hearth.js
+  `hallDome`, `HEARTH.floorOut`). Not the door cut: `rough` pushes the dome's foot ring out as well as down (17.4 to
+  19.8 m from the centre, a few cm under the floor), and the floor ended at 18 m, so all round the hall a gap opened
+  between the floor's edge and the wall's foot where a grazing look saw the sky under the wall. The floor now runs
+  3.5 m past the hall, under the whole foot (the wall stands in it). The cave of the giant's heart had the same gap
+  in four places (its foot out to 32.8 m, the floor to 32): its floor's lathe now runs to `ROOM + 4`. The seams probe:
+  the Hearth's longest sky-white line 44-73 px → none (the 73 px it still reports at High is a glowing floor mark);
+  `tests/cave-seams.test.js` (the floor reaches past each dome's foot).
 
 ## Shimmer on the desert's old city (materials.js `WEATHER.grime`, `HATCH_AA`)
 

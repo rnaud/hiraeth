@@ -2010,3 +2010,8 @@ From the selected `references/The Travellers Ship/Angular Exterior - Selected/re
   the nearest between the person and the point's own surface (post.js `spotLoop`, `planeAlong`, `spotBehind`; the
   Unity composite too). The probes' corner 6442 px → 0; twins of a corner and a stair with a person in front in
   tests/occlusion-taps.test.js (docs/systems/rendering.md, "The visual probes' findings fixed").
+- [x] A hairline of sky at the Givers' Hearth's floor edge (44-73 px, debug 5): not the door cut. `rough` pushes the
+  dome's foot ring out as well as down (17.4-19.8 m) and the floor ended at 18 m: a gap all round between its edge and
+  the wall. The floor now runs 3.5 m past the hall under the whole foot (src/desert-hearth.js `HEARTH.floorOut`,
+  `hallDome`); the giant's heart had the same gap in four places, its floor now runs to ROOM + 4. The seams probe:
+  no sky-white line left; tests/cave-seams.test.js.

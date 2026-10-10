@@ -11,6 +11,7 @@ export const CHANGELOG = [
   { v: '1.21', date: '2026-10-10', items: [
     // the pictures: what the visual audit's probes found
     'Standing near a room’s corner in shade no longer paints a dark copy of the traveller on the wall beside him (worst on Handheld): the deep black masses in corners and recesses stay as they are whoever stands in front of them.',
+    'Inside the Givers’ Hearth, and in the cave of the giant’s heart, no hairline of daylight shows any more where the floor meets the wall: the floor now runs on under the rock all the way round.',
   ] },
   { v: '1.20', date: '2026-10-09', items: [
     // the worlds, fourth round of the level design audit: every way home passes something new, and a landmark on every long leg

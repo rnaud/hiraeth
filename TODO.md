@@ -37,8 +37,6 @@ rather than mixing the earlier inconsistent exploration sheets.
 
 # Visual probes (docs/audits/visual-v1.4.md, 2026-10-09)
 
-- [ ] A hairline of sky still shows at the Givers' Hearth's floor edge (44-73 px, debug 5, both presets): find it with
-  foot rays from more points than the centre (the door cut is the first suspect) and close it with a skirt ring.
 - [ ] Hovering makers' drones in the temple halls draw a jagged spot-black halo on the wall behind them, moving with
   them: give them (and other moving props near walls) the figure flag, or leave them out of the enclosure as people are.
 - [ ] Small square steps in the spot mass at the temple halls' pillar feet (Edena, High): check with the motion check's

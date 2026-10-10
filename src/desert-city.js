@@ -803,8 +803,9 @@ export function buildDesertCity(scene, terrain) {
     cave.both(M.caveFloor, new THREE.BoxGeometry(5, 0.5, 12).translate(0, -0.25, ROOM + 4));
     cave.add(M.ink, new THREE.PlaneGeometry(5, 4.8).rotateY(Math.PI).translate(0, 2.4, ROOM + 9.9));
     cave.solid(new THREE.BoxGeometry(6, 6, 0.5).translate(0, 3, ROOM + 10.2));
-    // the floor: a shallow basin in the middle
-    const prof = [[0, -1.7], [POOL - 2, -1.6], [POOL, -1.1], [POOL + 2.2, 0], [ROOM + 2, 0], [ROOM + 2, -1]];
+    // the floor: a shallow basin in the middle, running on under the dome's roughened foot (out to 32.8 m: a floor
+    // ending at ROOM + 2 left a hairline under the wall in places, as the Givers' Hearth's did: visual-v1.4)
+    const prof = [[0, -1.7], [POOL - 2, -1.6], [POOL, -1.1], [POOL + 2.2, 0], [ROOM + 4, 0], [ROOM + 4, -1]];
     const fl = lathe(prof.map(([r, y]) => [r, y]), 36);
     cave.both(M.caveFloor, fl);   // (the basin collides as drawn: an 18-sided stand-in lay up to 0.5 m inside it)
     // the pool's bed as one flat disc (a lathe's centre is a needle a ray can slip through)

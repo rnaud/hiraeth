@@ -94,6 +94,11 @@ export function rough(g, amount, freq = 0.3, seed = 0) {
   return g;
 }
 
+/** The hall's dome, roughened, before it is turned inward and its door cut (seg: 28 drawn, 14 for the collision). */
+export function hallDome(seg) {
+  return rough(new THREE.SphereGeometry(HEARTH.hall + 1.5, seg, Math.round(seg / 2), 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.8, 1), 0.9, 0.22, 4);
+}
+
 /** Turn a closed shape inside out (a dome you stand in). */
 function inward(g) {
   g = g.index ? g.toNonIndexed() : g;
@@ -122,6 +127,7 @@ function cut(g, test) {
 
 export const HEARTH = {
   hall: 17,          // the hall's floor radius (m)
+  floorOut: 3.5,     // how far the floor runs past it, under the dome's roughened foot (out to 19.8 m: tests/shell-seams.test.js)
   shelf: 5,          // the shelf's height over the floor: the climb to the stone
   stone: V(0, 5.42, -15.45),     // the spark-stone in its hollow (interior local)
   grille: { at: V(0, 5, -15.12), rise: 1.75 },   // (just inside the hollow's mouth: raised, it slides up into the rock)
@@ -352,10 +358,12 @@ export function buildDesertHearth(scene, terrain) {
   const cave = new Kit(root, 'The Givers’ Hearth (inside)', O, 0);
   const HR = HEARTH.hall;
   {
-    cave.both(M.caveFloor, new THREE.CylinderGeometry(HR + 1, HR + 1, 1, 28).translate(0, -0.5, 0));
+    // the floor runs on under the dome's foot (HEARTH.floorOut): roughened, the foot ring stands 17.4 to 19.8 m out,
+    // and a floor of HR + 1 left a hairline between its edge and the wall where the sky showed (visual-v1.4)
+    cave.both(M.caveFloor, new THREE.CylinderGeometry(HR + HEARTH.floorOut, HR + HEARTH.floorOut, 1, 28).translate(0, -0.5, 0));
     const door = (x, y, z) => Math.abs(x) < 2.7 && y < 4.8 && z > 10;
-    const dome = (seg, r) => cut(inward(rough(new THREE.SphereGeometry(r, seg, Math.round(seg / 2), 0, Math.PI * 2, 0, Math.PI / 2).scale(1, 0.8, 1), 0.9, 0.22, 4)), door);
-    cave.both(M.cave, dome(28, HR + 1.5), dome(14, HR + 1.5));
+    const dome = (seg) => cut(inward(hallDome(seg)), door);
+    cave.both(M.cave, dome(28), dome(14));
     // the passage from the door, and the dark at its end (the way back out)
     for (const s of [-1, 1]) cave.both(M.cave, box(1.6, 5.2, 13, s * 3.3, 2.6, 21.5));
     cave.both(M.cave, box(8.2, 1.4, 13, 0, 5.5, 21.5));
