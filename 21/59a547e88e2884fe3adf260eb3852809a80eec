@@ -1,0 +1,51 @@
+tests/ink-size.test.js
+  s_9ca76055a220ed::t_ff89558d21f7f5 1-66
+docs/systems/faces.md
+  s_9ca76055a220ed::t_837b7668f2fa8e 352-363
+  s_9ca76055a220ed::t_a4d787d331d5a0 351
+src/changelog-media.js
+  s_9ca76055a220ed::t_ac2980af8f7814 494,496-516
+  s_9ca76055a220ed::t_274ccfde60e493 493
+src/characters/head-ink.js
+  s_9ca76055a220ed::t_9a5bb306b9d847 42-51,100-106,151-153,161,165,168,175,180,189,191
+src/changelog.js
+  s_9ca76055a220ed::t_2fbdaaa9517621 13-16
+  s_9ca76055a220ed::t_8f74b30cf039e3 11-12
+DONE.md
+  s_9ca76055a220ed::t_079068fb54af72 2135-2142
+src/audits-page/parse.js
+  s_9ca76055a220ed::t_967d4f72ac372a 24
+docs/audits/ink-lines-v1.33.md
+  s_9ca76055a220ed::t_30e7c85d2286f1 2-302
+  s_9ca76055a220ed::t_485d5664e89b84 1
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_769bb770eb66d3 747-748,871-894
+changelog.md
+  s_9ca76055a220ed::t_1ab590a5083337 6-10
+  s_9ca76055a220ed::t_74db8d21f268c6 5
+src/post.js
+  s_9ca76055a220ed::t_50a896ce5bdbf8 165-176,469-473,496-497,507,518-519,521,1071-1073,1083,1086-1087,1089-1092,1101-1120,1133,1155-1156
+TODO.md
+  s_9ca76055a220ed::t_4d2fd5be0ca4fd 120-124
+  s_9ca76055a220ed::t_5ec3d845d36dc4 119
+.claude/skills/ink-lines/report.mjs
+  s_9ca76055a220ed::t_0faf3e771b2b0b 7
+docs/README.md
+  s_9ca76055a220ed::t_782e337b219e01 26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2159a547e88e2884fe3adf260eb3852809a80eec",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
