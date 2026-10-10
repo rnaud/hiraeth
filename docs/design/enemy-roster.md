@@ -777,6 +777,16 @@ Down the route:
 The packs grow with the visit, as now (`packOf(n, world)`, `FROM`); Gentle still cuts a pack to two and softens
 the harms. Rough pack budget by stage: 1–2 foes / 2–3 / 3–4 / 4–5 (tier 4 counts double).
 
+**As built (step 8, v1.20; docs/audits/combat-v1.20.md):** the places by stage are 1–2 / 2–3 / 3–5 / 4–5, and the
+Signal Market stands alone at the top (stage 4: 5–6); a world may set its own (Viridel 3–4, the Garden of Spheres 4–6:
+its kinds are softer one by one). From the third stage on a pair or a flock comes with fillers round it (the pair two
+places, the moths' three three, the skitters' eight two), and in the last three worlds three foes may wind up at once
+instead of two (src/foes.js `TURNS.late`). The late kinds lead there: the Garden's shades and halo hounds, the Market's
+alley hounds (from its second pack) and parcel puppets. Measured with the combat-review script's `--packs`: the hearts a
+pack costs a traveller who trades blows with it standing still, as a share of the hearts he can have by then (every
+earlier shop's heart containers bought), falls from the middle of the route to the end before, and rises to the Market
+after.
+
 ## The guardians
 
 The eleven guardians stay separate: their own fights, scale, poses and temples. No archetype appears inside its
@@ -851,8 +861,9 @@ Everything is built on the procedural locomotion kit (docs/systems/procedural-an
 7. **The late spirits and the roller**, 2 sessions: the **shade** rework (the feint, the shadow step), the **pearl
    roller** (rolling locked to distance) and the **marionette** (string anchors, possessing a host foe: a host's
    `possessed` state, string targets for the blade, the boomerang and ember).
-8. **Balance and sound**, 1 session: the rosters and pack budgets per world, the difficulty curve checked
-   world by world with the combat-review skill, and the hurt/burst sound families.
+8. **Balance and sound**, 1 session (**done**, v1.20): the rosters and pack budgets per world, the difficulty curve checked
+   world by world with the combat-review skill, and the hurt/burst sound families (src/foe-voices.js: a voice per
+   archetype in its family).
 
 About 12–13 sessions alongside the kit's 8–11. Phases 2–4 put the whole first half of the route on the new roster.
 

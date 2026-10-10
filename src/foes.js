@@ -95,11 +95,14 @@ export const WAVE = { near: 10, far: 14, rest: 3 };
  * How many foes may wind up a strike at once (the others circle, waiting a turn); how far apart they keep. From the
  * route's fourth stage (`late.stage`: the Buried Machine, the Garden of Spheres, the Signal Market; src/foe-worlds.js
  * WORLDS stage) three may (v1.19, the roster's step 8: the packs there are combinations, and two at a time made a pack of
- * five no more pressing than a pair). Gentle: one, everywhere.
+ * five no more pressing than a pair), and each one's wait between strikes is `late.cool` as long. Gentle: one, everywhere,
+ * at the usual pace.
  */
-export const TURNS = { strikers: 2, apart: 0.3, late: { stage: 3, strikers: 3 } };
+export const TURNS = { strikers: 2, apart: 0.3, late: { stage: 3, strikers: 3, cool: 0.75 } };
 /** The strikers at once in a world of `stage` (src/foe-worlds.js; the Arena's: its world's, or 1), Gentle or not. */
 export const strikersAt = (stage = 1, gentle = false, T = TURNS) => (gentle ? 1 : stage >= T.late.stage ? T.late.strikers : T.strikers);
+/** The share of a foe's wait between strikes (its def's `cool`) in a world of `stage`, Gentle or not. */
+export const coolAt = (stage = 1, gentle = false, T = TURNS) => (!gentle && stage >= T.late.stage ? T.late.cool : 1);
 /** Relics out in the wilds are guarded (placed, not by chance): a few blots gather round as you come near; cut down, they are gone for good. */
 export const GUARDS = { near: 32, size: 2, ring: 3.5 };
 /** A foe placed by hand (src/foe-worlds.js PLACED): it comes out as you come within `near` m, calm where it stands. */
@@ -165,6 +168,12 @@ export const SPORES = { life: 3, r: 1.4, slow: 7 };
  * hovering foe (a flyer in its own air) lands AIR_MEETS times (combat-v1.4 rec. 1: a niche of its own).
  */
 export const SLAG = { burn: 1.1 };
+/**
+ * The foes' harm by the stage of the route (src/foe-worlds.js WORLDS stage; v1.20): in the last three worlds a heavy blow
+ * lands as a crushing one (¾ × 1.25 → 1, in quarters; an ordinary blow stays ½), in the Signal Market an ordinary blow as a
+ * heavy one (½ × 1.5 → ¾): the danger rises with the hearts a traveller can have by then (up to 13–16 on arrival).
+ */
+export const HARM_BY_STAGE = [1, 1, 1, 1.25, 1.5];
 export const AIR_MEETS = 2;
 /** A creature a marionette's strings drive: its eyes go black (src/foes.js look). */
 const POSSESS_EYE = '#050407';
@@ -651,7 +660,7 @@ export class Foe {
       case 'recover': {
         this.timer -= dt;
         // (a ray dives again only once its time up is over: surfaced, it is there to be fought)
-        if (this.timer <= 0) { this.state = 'chase'; this.cool = D.cool[0] + this.rng() * (D.cool[1] - D.cool[0]); if (D.burrow && this.upFor <= 0) this.buried = true; }
+        if (this.timer <= 0) { this.state = 'chase'; this.cool = (D.cool[0] + this.rng() * (D.cool[1] - D.cool[0])) * (env.coolK?.() ?? 1); if (D.burrow && this.upFor <= 0) this.buried = true; }
         break;
       }
       case 'home': {
@@ -1413,6 +1422,7 @@ export class Foes {
       ground: (x, y, z, range = 6) => { const g = physics?.groundAt?.(x, y, z, range); return g == null || !Number.isFinite(g) ? null : g; },
       slow: () => (this.difficulty === 'gentle' ? GENTLE.wind : 1),
       gentle: () => this.difficulty === 'gentle',   // (a hovering foe hides for less long: COVER.gentle)
+      coolK: () => coolAt(this.stageHere, this.difficulty === 'gentle'),   // (the last worlds' quicker turns: TURNS.late)
       // the world's hazards and workings (src/hazards.js, src/workings.js), where it ends and its pits
       hazard: (p) => hazardAt(p),
       workings: (p, kind = null) => workingsAt(p, kind, this._ws ??= []),
@@ -1566,7 +1576,9 @@ export class Foes {
 
   /** How many may strike at once. */
   /** How many may strike at once here (TURNS): by the world's stage (the Arena's world when it plays one's waves; `stage` set by hand wins). */
-  get strikers() { return strikersAt(this.stage ?? (this._stage ??= rosterOf(WORLDS[this.level?.foes?.world] ? this.level.foes.world : this.levelId).stage), this.difficulty === 'gentle'); }
+  get strikers() { return strikersAt(this.stageHere, this.difficulty === 'gentle'); }
+  /** The stage on the route's curve here (src/foe-worlds.js): the world's, the Arena's world's when it plays one's waves, or `stage` set by hand. */
+  get stageHere() { return this.stage ?? (this._stage ??= rosterOf(WORLDS[this.level?.foes?.world] ? this.level.foes.world : this.levelId).stage); }
 
   /** The Enemies setting: 'normal', 'gentle' (half the harm, slower wind-ups, one striking at a time, smaller and rarer packs) or 'off'. */
   /** The Gentle setting (the evade's i-frames are a little longer). */
@@ -2151,7 +2163,8 @@ export class Foes {
     return fwd.dot(d) > 0.45;
   }
   /** A strike's damage in hearts for this setting (Gentle: half), counted in quarters. */
-  harmOf(d) { return quarters(d * (this.difficulty === 'gentle' ? GENTLE.harm : 1)); }
+  /** A foe's harm in hearts here: Gentle halves it; the last worlds' stage raises it (HARM_BY_STAGE); counted in quarters. */
+  harmOf(d) { return quarters(d * (this.difficulty === 'gentle' ? GENTLE.harm : 1) * (HARM_BY_STAGE[this.stageHere] ?? 1)); }
   /** Hearts off the traveller (a blow never takes him from more than a heart to nothing: strikeDamage). */
   harm(d) { const P = this.player; P.hurt?.(strikeDamage(heartsOf(P), d), 'foe'); }
 

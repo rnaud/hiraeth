@@ -5,7 +5,10 @@ import { ARCHETYPES, spawnKindOf, archetypeOfKind } from './enemies/archetypes.j
 // world's skin (src/enemies/skins.js). Pure tables and picks (tests/archetypes.test.js, tests/foe-kinds.test.js).
 //
 // WORLDS[world] (the doc's table):
-//   stage    where on the difficulty curve it stands (0: the Desert and Vael … 3: the last three; side worlds 2)
+//   stage    where on the difficulty curve it stands (0: the Desert and Vael … 3: the Buried Machine and the Garden,
+//            4: the Signal Market alone; side worlds 2): its packs' places (BUDGET), and from 3 the turns and the harm
+//            of src/foes.js (TURNS.late, HARM_BY_STAGE)
+//   budget   [lo, hi] places when a world's differ from its stage's (v1.20: docs/audits/combat-v1.20.md)
 //   lead     the pack lead: the most common archetype there (no two route worlds in a row share one)
 //   roster   its archetypes by weight (how often each leads a pack)
 //   late     archetypes that lead only from the third pack on; placed: one met where it is placed, not in packs
@@ -23,14 +26,14 @@ export const WORLDS = {
   desert: { stage: 0, lead: 'blot', roster: { blot: 4, worm: 3, heron: 2, skitter: 2 }, placed: ['tripod'] },
   arzach: { stage: 0, lead: 'ray', roster: { ray: 4, heron: 2, blot: 3 } },
   arzach2: { stage: 1, lead: 'crab', roster: { crab: 4, ray: 3, jelly: 2, blot: 2 } },
-  perdide: { stage: 1, lead: 'toad', roster: { toad: 4, rootknot: 3, heron: 2, skitter: 2 } },
-  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 1, moth: 2.5, shade: 2.5 }, placed: ['brute'] },
+  perdide: { stage: 1, lead: 'toad', roster: { toad: 3.5, rootknot: 3, heron: 1.5, skitter: 3 } },
+  perdide2: { stage: 1, lead: 'rootknot', roster: { rootknot: 4, jelly: 2, moth: 3, shade: 1 }, placed: ['brute'] },
   edena: { stage: 2, budget: [3, 4], lead: 'moth', roster: { moth: 4, rootknot: 2, brute: 1.5, blot: 1 } },
   incal: { stage: 2, lead: 'tripod', roster: { tripod: 4, drone: 1, lizard: 3.5, toad: 2.5, shade: 2.5 }, temple: ['machine', 'drone'] },
-  garage: { stage: 2, lead: 'drone', roster: { drone: 4, cart: 3, crab: 2.5, roller: 2, ray: 1, shade: 2 }, temple: ['machine', 'drone'] },
+  garage: { stage: 2, budget: [4, 5], lead: 'drone', roster: { drone: 4, cart: 3.5, crab: 2.5, roller: 2, ray: 1, shade: 2.5 }, temple: ['machine', 'drone'] },
   buried: { stage: 3, lead: 'worm', roster: { worm: 3.5, tripod: 3, cart: 2, lizard: 2, centipede: 2, skitter: 3 }, temple: ['machine', 'drone'] },
   spheres: { stage: 3, budget: [4, 6], lead: 'roller', roster: { roller: 4, drone: 1, jelly: 1, centipede: 4, shade: 3.5, hound: 4 }, late: ['hound', 'marionette'], placed: ['marionette'] },
-  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 2, bell: 2, marionette: 2.5, hound: 3.5 }, late: ['marionette'] },
+  bazaar: { stage: 4, lead: 'lizard', roster: { lizard: 4, moth: 1.5, crab: 1.5, bell: 3, marionette: 2.5, hound: 3.5 }, late: ['marionette'] },
   // the side worlds (all still being made; their tables are set as each world is vetted)
   mangrove: { stage: 2, lead: 'heron', roster: { heron: 4, rootknot: 3, hound: 2, roller: 2 } },
   glassdunes: { stage: 2, lead: 'brute', roster: { brute: 4, crab: 3, ray: 2, worm: 2, shade: 1 } },

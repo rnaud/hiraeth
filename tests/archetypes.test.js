@@ -8,7 +8,7 @@ import { ARCHETYPES, ARCHETYPE_IDS, BUILT, ARCHETYPE_KINDS, ARCHETYPE_NOTES, spa
 import { SKINS, HOME_SKIN, skinFor, skinOf, skinWorlds } from '../src/enemies/skins.js';
 import { ATTACKS, fromPattern } from '../src/enemies/attacks.js';
 import { WORLDS, ROSTERS, rosterOf, packOf, BUDGET, GROUP, GROUP_COST, COSTS, rangedKind, worldArchetypes } from '../src/foe-worlds.js';
-import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES } from '../src/foes.js';
+import { Foe, Foes, FOES, attackOf, ARENA_WAVES, WAVES, aloneWave, waveWords, RING, GROUNDED, BURROW, CHOKE, LEAP_FLIP, TOPPLE, OPEN, SPORES, TURNS, HARM_BY_STAGE, strikersAt, coolAt } from '../src/foes.js';
 import { KINDS } from '../src/foe-kinds.js';
 import { existsSync } from 'node:fs';
 import { windMin, groundMark, isProjectile } from '../src/telegraph.js';
@@ -153,6 +153,26 @@ test('the route\'s difficulty rises to the Market: stages never fall, packs grow
     let n = 0; for (let i = 3; i < 603; i++) if (kinds.includes(packOf(i, w, rng)[0])) n++;
     assert.ok(n / 600 > 0.15, `${w}: ${kinds} lead ${Math.round((n / 600) * 100)} % of the later packs`);
   }
+});
+
+test('the last worlds press harder: three strikers at once, quicker turns, heavier blows; the Market heaviest; Gentle as ever', () => {
+  assert.deepEqual([0, 1, 2, 3, 4].map((s) => strikersAt(s)), [2, 2, 2, 3, 3]);
+  assert.deepEqual([0, 2, 3, 4].map((s) => strikersAt(s, true)), [1, 1, 1, 1], 'Gentle: one at a time everywhere');
+  assert.deepEqual([2, 3, 4].map((s) => coolAt(s)), [1, TURNS.late.cool, TURNS.late.cool]);
+  assert.equal(coolAt(4, true), 1);
+  const at = (levelId, enemies = 'normal') => { clearTargets(); return new Foes({ scene: new THREE.Scene(), level: { spawn: v(0, 0, -500) }, levelId, physics: flat, player: player(), settings: { enemies }, game: new GameState(null), rng: () => 0.5 }); };
+  const blows = (F) => [0.25, 0.5, 0.75, 1].map((d) => F.harmOf(d));
+  const desert = at('desert'), buried = at('buried'), bazaar = at('bazaar'), gentle = at('bazaar', 'gentle'), arena = at('arena');
+  assert.deepEqual(blows(desert), [0.25, 0.5, 0.75, 1], 'early on, the damage table as it is');
+  assert.deepEqual(blows(buried), [0.25, 0.5, 1, 1.25], 'the last three: a heavy blow lands as a crushing one');
+  assert.deepEqual(blows(bazaar), [0.25, 0.75, 1, 1.5], 'the Market: an ordinary blow as a heavy one');
+  assert.equal(gentle.harmOf(0.5), 0.25, 'Gentle still halves it (in quarters)');
+  assert.deepEqual(blows(arena), [0.25, 0.5, 0.75, 1], 'the Arena: as the table');
+  assert.equal(buried.strikers, 3); assert.equal(desert.strikers, 2); assert.equal(gentle.strikers, 1); assert.equal(arena.strikers, 2);
+  arena.stage = 4; assert.equal(arena.strikers, 3, 'a stage set by hand (the review script plays a world\'s turns)'); assert.equal(arena.harmOf(0.5), 0.75);
+  assert.equal(HARM_BY_STAGE.length, BUDGET.length, 'a harm for every stage');
+  for (const F of [desert, buried, bazaar, gentle, arena]) F.dispose();
+  clearTargets();
 });
 
 test('spawning by world: the wilds draw each world’s archetypes (or the old kinds standing in), in its skin; planned ones wait', () => {
