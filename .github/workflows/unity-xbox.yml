@@ -300,6 +300,13 @@ jobs:
           if (-not $msix) { throw 'msbuild made no package under out\AppPackages' }
           & $env:SIGNTOOL sign /fd SHA256 /f $env:PFX /p $env:XBOX_SIGN_PASSWORD $msix.FullName
           if ($LASTEXITCODE) { throw "signtool failed ($LASTEXITCODE): the certificate's subject must be the manifest's Publisher" }
+          # (Puerts' natives must be in it: without them the bridge can't make its script engine)
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($msix.FullName)
+          $names = $zip.Entries | ForEach-Object { $_.FullName }; $zip.Dispose()
+          foreach ($n in 'PuertsCore.dll', 'PapiQuickjs.dll', 'GameAssembly.dll', 'Data/StreamingAssets/memento-js/memento.cjs') {
+            if (-not ($names | Where-Object { $_ -eq $n -or $_.EndsWith('/' + $n) })) { throw "the package has no $n" }
+          }
           Copy-Item $msix.FullName ("out\unity-xbox\memento-unity-xbox" + $msix.Extension)
           Get-ChildItem ($msix.Directory.FullName + '\Dependencies\x64') -Filter *.appx -ErrorAction SilentlyContinue | Copy-Item -Destination out\unity-xbox
           Compress-Archive -Path out\unity-xbox\* -DestinationPath out\memento-unity-xbox.zip -Force

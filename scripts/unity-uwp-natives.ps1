@@ -53,12 +53,12 @@ foreach ($f in $core, $qjs) {
 
 $meta = @'
 fileFormatVersion: 2
-guid: {0}
+guid: GUID
 PluginImporter:
-  externalObjects: {{}}
+  externalObjects: {}
   serializedVersion: 2
-  iconMap: {{}}
-  executionOrder: {{}}
+  iconMap: {}
+  executionOrder: {}
   defineConstraints: []
   isPreloaded: 0
   isOverridable: 1
@@ -69,7 +69,7 @@ PluginImporter:
       Any:
     second:
       enabled: 0
-      settings: {{}}
+      settings: {}
   - first:
       Editor: Editor
     second:
@@ -95,7 +95,10 @@ function Place([string]$package, [string]$file, [string]$guid) {
   $dir = Join-Path $plugins 'WSA/x64'
   New-Item -ItemType Directory -Force $dir | Out-Null
   Copy-Item (Join-Path $Cache $file) (Join-Path $dir $file) -Force
-  Set-Content -NoNewline -Encoding utf8 (Join-Path $dir "$file.meta") ($meta -f $guid)
+  # (LF and no BOM, written as bytes: the first CI run's metas, through Set-Content, "could not be parsed" by Unity)
+  $text = $meta.Replace("`r`n", "`n").Replace('GUID', $guid)
+  [IO.File]::WriteAllText((Join-Path $dir "$file.meta"), $text, (New-Object System.Text.UTF8Encoding($false)))
+  Write-Host "$package/Plugins/WSA/x64/$file.meta: $(($text -split "`n")[0..1] -join ' | ')"
 }
 Place 'com.tencent.puerts.core' 'PuertsCore.dll' '5b0f6c2a9d3e4f7a8c1b2d3e4f5a6b7c'
 Place 'com.tencent.puerts.quickjs' 'PapiQuickjs.dll' '6c1a7d3b0e4f5a8b9d2c3e4f5a6b7c8d'
