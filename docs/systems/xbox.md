@@ -398,6 +398,19 @@ to see whether Unity's native Direct3D 11 path compiles and draws the same world
    `GET /api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=<full name>&path=\LocalState&filename=unity.log`.
    The first launch is the cold one; quit and launch again for the warm one (`unity.prev.log` keeps the first).
 
+**What the console showed (October 2026, build 1726):**
+- Puerts' QuickJS runs there: the player is up at 2.6 s (Direct3D 11, `SraKmd_arden`, 832 MB), the engine is made at
+  3.0 s, the 10.7 MB bundle is evaluated in 2.8 s. `Memento.start` (the JavaScript building the desert) takes
+  **215.6 s** against 41 s on an M4 Pro in the editor: about five times slower, on one of the eight cores (12–13 %).
+- **Two QuickJS engines at once crash the IL2CPP player**: an access violation in GameAssembly on the "Memento
+  sound" thread (the dump's thread names) while the script's engine loaded the bundle. With QuickJS the sound is
+  rendered on the script's thread (`BridgeRunner`, `oneEngine`).
+- **As an App (1 GB) it doesn't fit**: committed memory climbs to ~635 MB during the build and past 877 MB as the
+  first frame creates the meshes; the system ends the app with no dump at ~230 s. It has to be a **Game**.
+- Crash dumps: `POST /api/debug/dump/usermode/crashcontrol?packageFullName=<full name>` turns them on, `GET
+  /api/debug/dump/usermode/dumps` lists them, `GET /api/debug/dump/usermode/crashdump?packageFullName=…&fileName=…`
+  fetches one (the parameter is spelt `packageFullName` there). `UnityPlayer.log` is in `TempState`.
+
 ## Unknowns (to check on the console)
 
 - WebView2 on the console passes the pad to the Gamepad API (seen, runtime 150); whether it also sends it as keys or
