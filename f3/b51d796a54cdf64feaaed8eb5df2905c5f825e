@@ -1,0 +1,94 @@
+docs/systems/faces.md
+  s_9ca76055a220ed::t_a4d787d331d5a0 351
+  s_9ca76055a220ed::t_837b7668f2fa8e 352-363
+tests/ink-size.test.js
+  s_9ca76055a220ed::t_ff89558d21f7f5 1-66
+src/changelog-media.js
+  s_9ca76055a220ed::t_ac2980af8f7814 494,496-516
+  s_9ca76055a220ed::t_274ccfde60e493 493
+.claude/skills/ink-lines/capture.mjs
+  s_9ca76055a220ed::t_a0f6f9f55d1828 1-336
+docs/systems/rendering.md
+  s_9ca76055a220ed::t_769bb770eb66d3 747-748,871-894
+src/audits-page/parse.js
+  s_9ca76055a220ed::t_967d4f72ac372a 24
+.claude/skills/ink-lines/cost.mjs
+  s_9ca76055a220ed::t_50b03034c147c4 1-97
+tests/ink-lines.test.js
+  s_9ca76055a220ed::t_8bb14c573831f8 1-69
+scripts/ink-lines/lib.mjs
+  s_9ca76055a220ed::t_2737edd6f0e67c 1-223
+docs/README.md
+  s_9ca76055a220ed::t_782e337b219e01 26
+src/characters/head-ink.js
+  s_9ca76055a220ed::t_9a5bb306b9d847 42-51,100-106,151-153,161,165,168,175,180,189,191
+.claude/skills/ink-lines/SKILL.md
+  s_9ca76055a220ed::t_8066c8cfee365f 1-144
+.claude/skills/ink-lines/report.mjs
+  s_9ca76055a220ed::t_a0961f40c84f11 1-6,8-70
+  s_9ca76055a220ed::t_0faf3e771b2b0b 7
+TODO.md
+  s_9ca76055a220ed::t_4d2fd5be0ca4fd 120-124
+  s_9ca76055a220ed::t_5ec3d845d36dc4 119
+DONE.md
+  s_9ca76055a220ed::t_079068fb54af72 2135-2142
+src/post.js
+  s_f1497e36479ff8::t_ee51fa3cd7f0fb 43,1379
+  s_9ca76055a220ed::t_50a896ce5bdbf8 165-176,469-473,496-497,507,518-519,521,1071-1073,1083,1086-1087,1089-1092,1101-1120,1133,1155-1156
+changelog.md
+  s_9ca76055a220ed::t_bf87b6f47da74e 5-10
+docs/audits/ink-lines-v1.34.md
+  s_9ca76055a220ed::t_59548bb68d67d7 1-302
+src/changelog.js
+  s_9ca76055a220ed::t_74cfb55d3a6cfa 11-16
+src/temples/arzach.js
+  s_9ca76055a220ed::t_6e4234b19b6a01 55
+src/temples/arzach2.js
+  s_9ca76055a220ed::t_907c119b413393 57
+src/temples/bazaar.js
+  s_9ca76055a220ed::t_85ddf1d648d927 56
+src/temples/buried.js
+  s_9ca76055a220ed::t_3c54b5908531f0 58
+src/temples/desert.js
+  s_9ca76055a220ed::t_b3c68fa1bfc684 53
+src/temples/edena.js
+  s_9ca76055a220ed::t_bc7194ed33e8bb 56
+src/temples/garage.js
+  s_9ca76055a220ed::t_ab76997a004a38 56
+src/temples/incal.js
+  s_9ca76055a220ed::t_2c0c8d4f6f9ed5 63
+src/temples/kit.js
+  s_9ca76055a220ed::t_afe0f43ebdf54c 108
+src/temples/perdide.js
+  s_9ca76055a220ed::t_9f92ade3b20206 54
+src/temples/perdide2.js
+  s_9ca76055a220ed::t_3c3a555008b7dc 53
+src/temples/spheres.js
+  s_9ca76055a220ed::t_38a7286f01e3de 52
+tests/temple-visuals.test.js
+  s_9ca76055a220ed::t_530b8189bf4395 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3b51d796a54cdf64feaaed8eb5df2905c5f825e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    },
+    "s_f1497e36479ff8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-a99e225810ace9924",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
