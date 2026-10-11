@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import * as THREE from 'three';
-import { SceneMirror, LIVE_VECTORS } from '../engine/mirror.js';
+import { SceneMirror, LIVE_VECTORS, skeletonUpdate } from '../engine/mirror.js';
 import { inkSpec, plainValue } from '../engine/ink-spec.js';
 import { inkParams } from '../engine/ink-params.js';
 import { godotIndex, multimeshBuffer, packedBytes, VARIANT, rgbaColors } from '../engine/godot/pack.js';
@@ -509,4 +509,24 @@ test('the game in a bare V8 context: a world with its people, the traveller walk
     assert.equal(look.uSkyTop.length, 3);
     assert.equal(typeof look.uToon, 'number');
   } finally { console.warn = warn; console.info = info; }
+});
+
+test('the mirror\'s skeleton update gives three\'s own bone matrices, bit for bit, as the bones move, and follows new bones', () => {
+  const bones = [new THREE.Bone()];
+  for (let i = 1; i < 12; i++) { const b = new THREE.Bone(); b.position.set(0.1 * i, 0.3, -0.05 * i); b.rotation.set(0.2 * i, -0.1 * i, 0.05); bones[i - 1].add(b); bones.push(b); }
+  bones[0].position.set(3, 1, -2);
+  bones[0].updateMatrixWorld(true);
+  const sk = new THREE.Skeleton(bones), ref = new THREE.Skeleton(bones);   // (the same bones, the same inverses)
+  for (let f = 1; f <= 40; f++) {
+    for (let i = 0; i < bones.length; i++) bones[i].rotation.z = Math.sin(f * 0.3 + i) * 0.7;
+    bones[0].updateMatrixWorld(true);
+    ref.update();
+    skeletonUpdate(sk, f);
+    assert.deepEqual(Array.from(sk.boneMatrices), Array.from(ref.boneMatrices), `frame ${f}`);
+  }
+  // a bone given in place of another (a rig rebuilt): taken at once
+  const extra = new THREE.Bone(); extra.position.set(1, 2, 3); extra.updateMatrixWorld(true);
+  sk.bones = ref.bones = [...bones.slice(0, 11), extra];
+  ref.update(); skeletonUpdate(sk, 41);
+  assert.deepEqual(Array.from(sk.boneMatrices), Array.from(ref.boneMatrices));
 });

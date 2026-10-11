@@ -1935,3 +1935,24 @@ pages, and its saves are its own (PlayerPrefs, not the Electron profile's). So n
 *beside* it: a second Steam shortcut, "Hiraeth (Unity preview)", launched by deck.py with `TMPDIR` set and its own data
 folder. Not in the package (it would triple it): deck.py installs and updates the `unity-linux` player as its own
 component, by the release asset's digest (docs/steam-deck.md, "The Unity preview").
+
+## The Steam Deck, round 7: toward 60 through the Unity bridge (issue #111, October 2026)
+
+The same rig as round 6 (the Linux player, IL2CPP, Vulkan on RADV, the Deck's preset, lean variant, the OLED at 90 Hz
+uncapped, the second pass of each view; `scripts/bench/deck-unity.sh`, which now refuses to start while another bench
+runs on the Deck). A change to the script alone is measured without a Unity build: the player reads its bundle from
+`memento-js_Data/StreamingAssets/memento-js/memento.cjs`, copied over a copy of the player. V8's own profile of the
+script's thread (`-jsinspect 9229`: the inspector listens on the Deck's network, a DevTools-protocol client takes a
+`.cpuprofile`) is what found the levers.
+
+**The baseline** (origin/main e3d0e207, with the UnityPerMaterial fix: Vulkan's GPU times the same as round 6):
+desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0-23.9), Signal Market 62.9 / 68.3 /
+71.2. The City-Shaft's mirror, 10 ms: the walk 3.7, the scene's matrices 3.1, the bones 2.4, Unity's apply 1.4.
+
+**Kept:**
+- **The bones' matrices by the mirror itself** (engine/mirror.js `skeletonUpdate`): three's Skeleton.update, the
+  same products in the same order (tests/engine-bridge.test.js: bit for bit), from each skeleton's bone and inverse
+  element arrays kept on it (looked up again every 32 frames or when its bones change). 1 400 bones a frame took
+  2.4 ms through `bones[i].matrixWorld` (the bones' shapes many: each load a megamorphic one in V8), 0.24 ms so. The
+  City-Shaft's mirror 10 → 8 ms, the Market's 6.5 → 4.8; fps 45.1 / 45.6 / 41.0 → 47.0 / 49.2 / 41.0 (the wide view
+  is the GPU's), the Market 70.5 / 74.9 / 76.5.
