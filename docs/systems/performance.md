@@ -1981,3 +1981,8 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   the same numbers (tests/shaft-pillars.test.js). ~2 000 pieces a frame: the update 8.9 / 10.3 / 8.5 → 7.6 / 9.3 / 7.7 ms.
 - Tried and left out: the people's rigs, walked from their roots several times a frame, from lists as the scene is
   (the same time: their cost is not the walk's reads).
+- **The composite's pockets read tap by tap** (Composite.shader `enclosure`): its eight taps were read into arrays
+  kept for a second loop, ~56 registers live across the pass: the composite ran at 168 VGPRs (6 waves a SIMD,
+  `RADV_DEBUG=shaderstats` with `MESA_SHADER_CACHE_DISABLE=true`, the stats in the player's log). Each tap is read
+  where it is used now (a tap on a person reads the others again, a rare path; the same reads and numbers): 96 VGPRs,
+  10 waves, the City-Shaft's GPU 0.3-0.5 ms less, the Market's wide view 83 → 88 fps.

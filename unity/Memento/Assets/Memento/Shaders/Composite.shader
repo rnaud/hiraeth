@@ -242,29 +242,34 @@ Shader "Hidden/Memento/Composite"
         t1 = mul(toView, t1) * Rm; t2 = mul(toView, t2) * Rm;
         float r1 = R * 1.5, r2 = R * 3.0, occ = 0.0;
         int n8 = taps == 8 ? 8 : 4;
-        float2 tuv[8]; float4 tq[8]; float tp[8];
+        // (each tap read where it is used, not all eight kept for the loop: the arrays held ~56 registers live across the
+        // pass, and the composite ran at 168 VGPRs, 6 waves a SIMD on the Deck's RADV; a tap on a person reads the others
+        // again, a rare path: the same reads, the same numbers)
         for (int i = 0; i < n8; i++)
         {
-          float a = 0.39 + i * 6.2832 / n8, rr = (i % 2) ? 0.55 : 1.0;
-          tuv[i] = spotUv(P + (cos(a) * t1 + sin(a) * t2) * rr, rA, rB);
-          tq[i] = tN(tuv[i]); tp[i] = step(fmod(tH(tuv[i]).a, 8.0), 1.5);
-        }
-        for (int i = 0; i < n8; i++)
-        {
-          float sd = tq[i].w;
+          float ai = 0.39 + i * 6.2832 / n8, rri = (i % 2) ? 0.55 : 1.0;
+          float2 tuvI = spotUv(P + (cos(ai) * t1 + sin(ai) * t2) * rri, rA, rB);
+          float4 tqI = tN(tuvI);
+          float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);
+          float sd = tqI.w;
           // (a tap on a person stands for what they hide: the surfaces seen two and four times as far out and the
           // other taps' surfaces, as planes met along its ray, the nearest between the person and the point's own
           // surface, else that surface: post.js spotBehind)
-          if (tp[i] < 0.5)
+          if (tpI < 0.5)
           {
-            float a = 0.39 + i * 6.2832 / n8, rr = (i % 2) ? 0.55 : 1.0;
-            float3 o = (cos(a) * t1 + sin(a) * t2) * rr, r = float3(tuv[i] * rA + rB, -1.0);
+            float a = ai, rr = rri;
+            float3 o = (cos(a) * t1 + sin(a) * t2) * rr, r = float3(tuvI * rA + rB, -1.0);
             float lo = sd;
             sd = -(P.z + o.z);
             float2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
             if (step(fmod(tH(p2).a, 8.0), 1.5) > 0.5) sd = planeNear(p2, tN(p2), r, toView, rA, rB, lo, sd, 1.0 * Rm);
             if (step(fmod(tH(p4).a, 8.0), 1.5) > 0.5) sd = planeNear(p4, tN(p4), r, toView, rA, rB, lo, sd, 1.0 * Rm);
-            for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeNear(tuv[j], tq[j], r, toView, rA, rB, lo, sd, 1.5 * Rm);
+            for (int j = 0; j < n8; j++)
+            {
+              float aj = 0.39 + j * 6.2832 / n8, rrj = (j % 2) ? 0.55 : 1.0;
+              float2 tuvJ = spotUv(P + (cos(aj) * t1 + sin(aj) * t2) * rrj, rA, rB);
+              if (step(fmod(tH(tuvJ).a, 8.0), 1.5) > 0.5) sd = planeNear(tuvJ, tN(tuvJ), r, toView, rA, rB, lo, sd, 1.5 * Rm);
+            }
             // (and to either side of its place, along the other axis: where three planes meet, the others could all miss
             // the one the person hides: post.js SPOT_PAST.side)
             float3 op = (-sin(a) * t1 + cos(a) * t2) * rr * 1.5;
@@ -273,7 +278,7 @@ Shader "Hidden/Memento/Composite"
             if (step(fmod(tH(s2).a, 8.0), 1.5) > 0.5) sd = planeNear(s2, tN(s2), r, toView, rA, rB, lo, sd, 2.0 * Rm);
           }
           if (sd <= 0.0) continue;   // (the sky: open)
-          float3 v = float3(tuv[i] * rA + rB, -1.0) * sd - P;
+          float3 v = float3(tuvI * rA + rB, -1.0) * sd - P;
           float dist = length(v);
           occ += smoothstep(0.12, 0.5, dot(nV, v) / max(dist, 1e-4)) * (1.0 - smoothstep(r1, r2, dist));
         }

@@ -128,8 +128,9 @@ test('a person in front leaves no pale ghost in the shading behind them (Marrow 
   assert.equal((unity.match(/return saturate\(ao \/ max\(seen, 1\.0\)/g) ?? []).length, 1);
   assert.equal((unity.match(/np = step\(fmod\(t, 8\.0\), 1\.5\)/g) ?? []).length, 1);
   // (the spot blacks: what a person hides, as post.js spotBehind)
-  assert.ok(unity.includes('tp[i] = step(fmod(tH(tuv[i]).a, 8.0), 1.5);') && unity.includes('return occ / n8;'));
-  assert.ok(unity.includes('for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeNear(tuv[j], tq[j], r, toView, rA, rB, lo, sd, 1.5 * Rm);'));
+  // (each tap read where it is used: a tap on a person reads the others again)
+  assert.ok(unity.includes('float tpI = step(fmod(tH(tuvI).a, 8.0), 1.5);') && unity.includes('return occ / n8;'));
+  assert.ok(unity.includes('if (step(fmod(tH(tuvJ).a, 8.0), 1.5) > 0.5) sd = planeNear(tuvJ, tN(tuvJ), r, toView, rA, rB, lo, sd, 1.5 * Rm);'));
   assert.ok(unity.includes('sd = planeNear(s1, tN(s1), r, toView, rA, rB, lo, sd, 2.0 * Rm);'), 'the look to the side (issue #28)');
 });
 
