@@ -553,6 +553,13 @@ const GH = (eye, target, player) => ({ level: 'desert', save: SAVE44, hour: 12, 
 const FROM44 = 'headless Chrome (High, 1280 × 720, muted) against this branch’s own Vite before and after the change, the same scripted moment for both (10 October)';
 export const CHANGELOG_MEDIA = {
   '1.45': [
+    { match: 'In the cave under the giant’s skull, the light', shots: [
+      { name: 'cave-light', title: 'The light', caption: 'The cave from inside its doorway: before, six thin glowing bars down from each crack, the roots two thin bundles; after, soft broad shafts of light to their pools on the floor, the roots a great braided mass over the pool', commit: 'cf12db4fc8bf0ff7023a11401e76d6f10ac0574a',
+        view: { level: 'desert', player: [-1250, 1000.1, 1274], heading: 3.14, eye: [-1243, 1004, 1276], target: [-1250, 1007, 1250], fov: 65 } },
+      { name: 'cave-roots', title: 'The roots', caption: 'Under the roots, from the pool’s steps: before, a few strands round two thin bundles; after, two bundles of thick roots wound round each other and dozens of long strands', commit: 'cf12db4fc8bf0ff7023a11401e76d6f10ac0574a',
+        view: { level: 'desert', player: [-1250, 1000.1, 1266], heading: 3.14, eye: [-1250, 1001.7, 1266], target: [-1250, 1009, 1250], fov: 65 },
+        reference: { sheet: 'references/levels/The Desert/places/skull-cave/sheet-1.jpg', caption: 'The picked sheet: the roots a dense mass of strands into the pool, the light in soft shafts from the cracks' } },
+    ] },
     { match: 'The desert’s few clouds no longer throw blue patches', shots: [
       { name: 'cloud-shadow', caption: 'Out of Qanat’s back gate by the giant’s skull, the cloud cover raised for both pictures so a cloud’s shadow falls in the view: before, a band of the blue shadow tone across the sand on the right, the cast shadows gone in it; after, the sand in the sun and the pillars’ shadows on it', commit: '622faeabaf45dc574c050c24091082ab30fb46c0',
         view: { level: 'desert', hour: 9.5, player: [300, 3, 480], eye: [290, 8, 466], target: [360, 2, 560], fov: 60, setup: 'setInterval(() => { window.sharedUniforms.uClouds.value = 0.55; }, 50)' } },

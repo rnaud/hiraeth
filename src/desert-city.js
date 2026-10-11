@@ -11,6 +11,7 @@ import { Flames, FlameBody, Embers, Smoke, SmokeColumn, FIRE, COOL_FIRE } from '
 import { registerHazard, flameHazard, HAZARD_DPS } from './hazards.js';
 import { magicMaterial, magicPool, magicStream } from './story/magic-water.js';
 import { hiddenWriting, ghostPath } from './gadgets/hidden.js';
+import { Veils } from './veil.js';
 
 // The desert's story places (references/levels/The Desert/environment/IMG_3772-3775: pale rose domes,
 // cream walls, bone, flat sky):
@@ -352,7 +353,9 @@ export function buildDesertCity(scene, terrain) {
   // (what the level design audit's third round added, the keepers' hatch and stair: put in the scene last, src/levels/desert.js,
   // so the contact audit's samples of everything built before stay where they were)
   const late = new THREE.Group(); late.name = 'Desert story (added in v1.17)';
-  const out = { root, lights, portals, banners, sites: {}, seats: [], fires: [], late };
+  // (see-through washes laid over the finished picture, src/veil.js: the cave's shafts of light)
+  const veils = new Veils();
+  const out = { root, lights, portals, banners, sites: {}, seats: [], fires: [], late, veils };
   const rng = mulberry32(3301);
   const floor = cityFloor();
 
@@ -1187,20 +1190,27 @@ export function buildDesertCity(scene, terrain) {
       cave.both(caveBone, band(pts, 1.05, 0.55, 16, 5));   // (the ribs come down to the floor: solid where they are drawn)
     }
     cave.both(caveBone, taper([V(0, H * (ROOM + 1) - 1.8, -24), V(0, H * (ROOM + 1) - 1.2, 0), V(0, H * (ROOM + 1) - 1.8, 24)], 1.3, 1.3, 14, 7));
-    // the light through the cracks: a pale rim round each, thin rays down to a pool of light on the floor (no light
-    // of its own: the glow is the material's)
+    // the light through the cracks: a pale rim round each, a soft broad shaft down to a pool of light on the floor
+    // (v1.45, issue #69: it was six thin glowing bars a crack, "weird 3d sticks"). A shaft is two open cones from
+    // the crack to its pool, an outer and a narrower inner one, drawn only as a pale wash over the finished picture
+    // (src/veil.js, as the City-Shaft's air pillars: no surface of their own in the G-buffer, so no ink round them,
+    // no shadow, nothing to bump into), brighter at the core where the two overlap.
     const sun = makeMaterial({ color: '#fbe3b2', glow: 0.55, flat: true }), slant = V(0.28, -1, 0.18).normalize();
+    const shaftHolder = new THREE.Group(); shaftHolder.name = 'The cave’s shafts of light (washes)';
     for (const h of SKY) {
       const top = V(h.x, h.y, h.z), n = top.clone().setY(top.y / (H * H)).normalize();
       cave.add(caveBone, new THREE.TorusGeometry(h.r + 0.6, 0.6, 4, 12).applyQuaternion(new THREE.Quaternion().setFromUnitVectors(V(0, 0, 1), n)).translate(top.x, top.y, top.z));
       const t = -top.y / slant.y, foot = top.clone().addScaledVector(slant, t);
       const fr = floorAt(Math.hypot(foot.x, foot.z)) + 0.12, rr = h.r * 1.15;   // (over the flagstones)
       cave.add(sun, new THREE.CylinderGeometry(rr, rr, 0.02, 20).scale(1, 1, 0.8).translate(foot.x, fr, foot.z));
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2 + h.x, u = i % 2 ? 0.3 : 0.75;
-        const A = V(top.x + Math.cos(a) * h.r * u, top.y, top.z + Math.sin(a) * h.r * u), B = V(foot.x + Math.cos(a) * rr * 0.85 * u, fr, foot.z + Math.sin(a) * rr * 0.8 * u);
-        const len = A.distanceTo(B), m = new THREE.Matrix4().lookAt(A, B, V(0, 1, 0)).setPosition(A.clone().add(B).multiplyScalar(0.5));
-        cave.add(sun, new THREE.BoxGeometry(0.035, 0.035, len).applyMatrix4(m));
+      const bot = V(foot.x, fr, foot.z), len = top.distanceTo(bot), q = new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), top.clone().sub(bot).normalize());
+      const mid = top.clone().add(bot).multiplyScalar(0.5);
+      for (const [k, alpha] of [[1, 0.12], [0.55, 0.14]]) {
+        const m = new THREE.Mesh(new THREE.CylinderGeometry(h.r * 0.95 * k, rr * k, len, 18, 1, true).applyQuaternion(q), sun);
+        m.position.copy(cave.world(mid.x, mid.y, mid.z));
+        m.layers.set(31);   // (drawn only as its wash: no camera draws layer 31 into the G-buffer)
+        m.userData.noCollide = true; m.castShadow = false; m.userData.wash = alpha;
+        shaftHolder.add(m);
       }
     }
     // sand drifted against the wall between the ribs' feet, and rocks fallen on the floor
@@ -1221,28 +1231,42 @@ export function buildDesertCity(scene, terrain) {
     }
     // the doorway in from the passage, framed in bone (a jaw's arch)
     cave.both(caveBone, taper([V(-3.7, -0.4, ROOM - 0.3), V(-4.1, 3.8, ROOM - 0.6), V(-2.6, 6.3, ROOM - 0.9), V(0, 7.0, ROOM - 1.0), V(2.6, 6.3, ROOM - 0.9), V(4.1, 3.8, ROOM - 0.6), V(3.7, -0.4, ROOM - 0.3)], 0.8, 0.8, 24, 7));
-    // the tree's roots: pale, hanging from the crown of the vault into the pool in two curtains of strands
+    // the tree's roots: pale, hanging from the crown of the vault into the pool as the sheet draws them (v1.45, issue #69:
+    // "much bigger and more impressive"): a gnarled boss where they break through the vault, two great bundles of thick
+    // roots twisting round each other down to the pool, splaying there into a curtain of long strands, the thin ones
+    // reaching the pool's bed; and a sparser fringe hanging round them
     const rootTips = [], rrng = mulberry32(77);
     const TOP = H * (ROOM + 1) - 2.2;
-    for (const [cx, cz, n] of [[-2.6, 1.4, 12], [3.4, -1.8, 10]]) {
-      for (let k = 0; k < 2; k++) {   // two thick roots carry each curtain down
-        const a = k * 2.4 + cx, tip = V(cx + Math.cos(a) * 1.6, -1.45, cz + Math.sin(a) * 1.6), pts = [];
-        for (let i = 0; i <= 5; i++) { const u = i / 5, wob = Math.sin(u * 7 + a) * 0.5 * Math.sin(u * Math.PI); pts.push(V(cx + Math.cos(a) * 1.6 * u + wob, TOP + 1 - (TOP + 2.45) * u, cz + Math.sin(a) * 1.6 * u + wob * 0.6)); }
-        pts[5].copy(tip);
-        cave.add(caveBone, taper(pts, 0.6, 0.16, 14, 5));
-        rootTips.push(cave.world(tip.x, tip.y + 0.5, tip.z));
-      }
-      for (let k = 0; k < n; k++) {
-        // a curtain: strands from round the bundle's top, wavering down and spreading out over the pool's bed
-        const a = rrng() * Math.PI * 2, spread = 0.9 + rrng() * 4.0, top = V(cx + Math.cos(a) * 0.9, TOP - rrng() * 1.5, cz + Math.sin(a) * 0.9);
-        const tipY = -1.5 + rrng() * 0.6, f = 1 + rrng() * 2, ph = rrng() * 6, amp = 0.25 + rrng() * 0.35, pts = [];
-        for (let i = 0; i <= 6; i++) {
-          const u = i / 6, sp = 0.9 + (spread - 0.9) * u * u, w = Math.sin(u * f * Math.PI * 2 + ph) * amp * Math.sin(u * Math.PI);
-          pts.push(V(cx + Math.cos(a) * sp - Math.sin(a) * w, top.y + (tipY - top.y) * u, cz + Math.sin(a) * sp + Math.cos(a) * w));
+    cave.add(caveBone, rough(new THREE.SphereGeometry(4.2, 14, 8).scale(1.5, 0.55, 1.1), 0.9, 0.25, 11).translate(0.4, TOP + 1.2, -0.2));
+    for (const [cx, cz, turn] of [[-2.4, 1.3, 1], [3.1, -1.6, -1]]) {
+      // the bundle: seven thick roots wound round its axis, narrowing to a waist and splaying out over the pool
+      for (let k = 0; k < 7; k++) {
+        const a0 = (k / 7) * Math.PI * 2 + cx, pts = [], r0 = 0.5 + rrng() * 0.35;
+        const endY = -1.45 + rrng() * 0.5, splay = 2.4 + rrng() * 2.6;
+        for (let i = 0; i <= 9; i++) {
+          const u = i / 9, a = a0 + turn * u * 2.6, wR = 1.5 - 0.7 * Math.sin(u * Math.PI * 0.9) + (u > 0.6 ? ((u - 0.6) / 0.4) * splay : 0);
+          pts.push(V(cx + Math.cos(a) * wR, TOP + 0.8 - (TOP + 0.8 - endY) * u, cz + Math.sin(a) * wR));
         }
-        cave.add(caveBone, taper(pts, 0.16 + rrng() * 0.07, 0.05, 10, 3));
-        if (rootTips.length < 6 && k % 5 === 0) rootTips.push(cave.world(pts[6].x, pts[6].y + 0.5, pts[6].z));
+        cave.add(caveBone, taper(pts, r0, 0.12, 22, 6));
+        if (k % 2 === 0 && rootTips.length < 6) rootTips.push(cave.world(pts[9].x, pts[9].y + 0.5, pts[9].z));
       }
+      // the curtain: long strands from the bundle's waist, wavering down, the thin ones to the pool's bed
+      for (let k = 0; k < 34; k++) {
+        const a = rrng() * Math.PI * 2, from = 0.25 + rrng() * 0.35, spread = 1.0 + rrng() * 5.2;
+        const y0 = TOP - (TOP + 1.5) * from, tipY = -1.62 + rrng() * 0.9, f = 1 + rrng() * 2.2, ph = rrng() * 6, amp = 0.2 + rrng() * 0.35, pts = [];
+        for (let i = 0; i <= 7; i++) {
+          const u = i / 7, sp = 1.0 + (spread - 1.0) * u * u, w = Math.sin(u * f * Math.PI * 2 + ph) * amp * Math.sin(u * Math.PI);
+          pts.push(V(cx + Math.cos(a) * sp - Math.sin(a) * w, y0 + (tipY - y0) * u, cz + Math.sin(a) * sp + Math.cos(a) * w));
+        }
+        cave.add(caveBone, taper(pts, 0.1 + rrng() * 0.12, 0.035, 12, 4));
+      }
+    }
+    // the fringe: thin roots hanging from the vault round the bundles, shorter, not all reaching the water
+    for (let k = 0; k < 16; k++) {
+      const a = rrng() * Math.PI * 2, d = 5 + rrng() * 5, x = Math.cos(a) * d, z = Math.sin(a) * d;
+      const y0 = H * Math.sqrt(Math.max(0, (ROOM + 1) ** 2 - x * x - z * z)) - 1.6, y1 = Math.max(floorAt(Math.hypot(x, z)) + 0.2, y0 - 6 - rrng() * 14), pts = [];
+      for (let i = 0; i <= 5; i++) { const u = i / 5; pts.push(V(x + Math.sin(u * 5 + a) * 0.3 * u, y0 + (y1 - y0) * u, z + Math.cos(u * 4 + a) * 0.3 * u)); }
+      cave.add(caveBone, taper(pts, 0.16 + rrng() * 0.08, 0.05, 8, 5));
     }
     // the channel: a stone trough on the floor, from a crack in the wall to the pool's steps
     const CH = { from: V(27.6, 2.0, -6.2), to: V(12.4, 1.65, -2.75) };
@@ -1310,6 +1334,9 @@ export function buildDesertCity(scene, terrain) {
     cave.add(M.glyph, glyphGeometry(1.4).applyMatrix4(new THREE.Matrix4().compose(V(-25.5, 7.5, -12), new THREE.Quaternion().setFromAxisAngle(UP, 1.1), V(1, 1, 1))));
     // the keepers' stair behind the pool, opposite the way in (HATCH.stair): eight blocks up to a ledge, a doorway framed in
     // bone in the dome's wall, dark beyond, and a root climbing beside it into the dark, the way the water goes up
+    cave.group.add(shaftHolder);
+    shaftHolder.updateMatrixWorld(true);
+    for (const m of shaftHolder.children) veils.add(m, { color: '#fff1cf', glow: 1, alpha: m.userData.wash, near: 2.5 });
     cave.flush();
     {
       const S = HATCH.stair, n = 8, run = (S.foot - S.ledge) / n, sk = new Kit(late, 'The keepers’ stair', O, 0);
@@ -1343,6 +1370,7 @@ export function buildDesertCity(scene, terrain) {
       // the stream's way: its head at u (0 the crack, 1 the pool's edge), and the crack it runs out of (a moment frames them: desert.js)
       streamAt: (u, out = V(0, 0, 0)) => out.copy(cave.world(...along(THREE.MathUtils.clamp(u, 0, 1), -1.0).toArray())), crack: cave.world(29.6, 3.6, -6.4), mural: cave.world(-17.5, 0, 20.5).add(V(Math.sin(Math.PI * 0.8) * 2.5, 0, Math.cos(Math.PI * 0.8) * 2.5)),
       inside: cave.world(0, 0.05, ROOM + 5.5), exit: cave.world(0, 0, ROOM + 9.3), group: cave.group, root,
+      shafts: shaftHolder,
       // the keepers' stair: its foot, and the doorway at its top (the way up to the hatch in the back lane)
       stairFoot: cave.world(0, 0, HATCH.stair.foot + 1), stairTop: cave.world(0, HATCH.stair.y, HATCH.stair.door + 0.9),
       // the water (desert.js drives these): dry (the bed) until the channel opens, then up to high

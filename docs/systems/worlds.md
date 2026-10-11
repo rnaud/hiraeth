@@ -588,6 +588,18 @@ Rebuilt after `references/levels/The Desert/places/skull/sheet-1.jpg` and `skull
 - Cost (High, the Mac, all passes, the place shown vs hidden): the skull 5 → 6 draws and 14.8k → 23.7k triangles from
   the path; the cave 21 → 19 draws and 20.2k → 32.6k triangles from its entrance (changelog v1.37).
 
+## The cave of the giant's heart after the author's playtest (v1.45)
+
+- **Its light** (issue #69: "god rays look like weird 3d sticks"): each crack in the vault sends a soft broad shaft to its
+  pool of light on the floor: two open cones, an outer and a narrower inner one (brighter where they overlap), drawn only
+  as washes over the finished picture (`src/veil.js`, the City-Shaft's air pillars' way: on layer 31, never in the
+  G-buffer, so no ink round them, no shadow, no collision; one wash program for all). The level hands its `Veils` to
+  main.js (`level.veils`, from `qanat.veils`). They replaced six thin glowing bars a crack.
+- **The tree's roots** (the same issue: "bigger and more impressive", after the sheet's dense mass): a gnarled boss where
+  they break through the vault; two bundles of seven thick roots wound round each other to a waist and splaying over the
+  pool; 34 long strands a bundle from the waist down to the pool's bed; a fringe of thinner roots round them.
+  `tests/desert-cave-light.test.js`.
+
 ## Qanat's burning tree and the giant ribcage, after the picked references (v1.39)
 Rebuilt after `references/levels/The Desert/places/qanat-tree/sheet-1.jpg` and `ribcage/sheet-1.jpg` (prompts in
 `docs/design/desert-places-prompts.md`). Every hook the story uses kept: `city.ledge` (box, foot, shoulder, dais, bench,
