@@ -1,0 +1,87 @@
+changelog.md
+  s_9ca76055a220ed::t_a97ec9b917d8f8 7-11
+docs/systems/boxes.md
+  s_9ca76055a220ed::t_2bdc32a8c81401 69-74
+docs/systems/characters.md
+  s_9ca76055a220ed::t_df658e3ac110db 754-767
+docs/systems/cinematics.md
+  s_9ca76055a220ed::t_2c5f48dab8d19f 97-100
+docs/systems/conversations.md
+  s_9ca76055a220ed::t_fd454f357974d6 98,102-109
+docs/systems/hints.md
+  s_9ca76055a220ed::t_0d5a5599d7bdb0 9
+docs/systems/ship.md
+  s_9ca76055a220ed::t_8578acc4d23392 163
+docs/systems/ui.md
+  s_9ca76055a220ed::t_b23fc148818853 302,518-537
+src/boxes/card.js
+  s_9ca76055a220ed::t_3ff827d481e5d7 1-6,20-26,28-32,34-35,37-39,41,46-47,62-63,65
+src/changelog-media.js
+  s_9ca76055a220ed::t_0b0bedb2210691 558,568-570,657-663
+src/changelog.js
+  s_9ca76055a220ed::t_457248ede2bab9 79-91
+src/crowd.js
+  s_9ca76055a220ed::t_18908780dd83f1 392,395-397,424
+src/hud.js
+  s_9ca76055a220ed::t_76d2cfbe3d415c 26,39,53-56,59,61-62,65,67,70-73
+src/main.js
+  s_9ca76055a220ed::t_a8601b68e8f1cb 58,637-640,681,751,1391-1396,1398,1405-1406,1411,1984-1986,1989,2309
+src/npc.js
+  s_9ca76055a220ed::t_799ceb695263ce 22,31-34,72-85,533,535-538,554,557,560,579,589-591,721,724-725,986-997
+src/prompt-keys.js
+  s_9ca76055a220ed::t_de68fc9a048260 38
+src/quest.js
+  s_9ca76055a220ed::t_43ec3f766bcb9c 197-201,204
+src/ship/cinema.js
+  s_9ca76055a220ed::t_f282f713372cb0 188-215,274-276,324-330,397-399,438,449,459-464,478-503
+src/ship/cinematics.js
+  s_9ca76055a220ed::t_acd29967bac042 657-659
+src/ship/landing.js
+  s_9ca76055a220ed::t_07949d17dba68d 6-7,41,45-46
+src/ship/ship.js
+  s_9ca76055a220ed::t_f40d8dd84efed3 27-28,487-489,495,499-518,596
+src/story/balloons.js
+  s_9ca76055a220ed::t_a72bd5d9f2cf2e 14-15,44-54
+src/story/desert-data.js
+  s_9ca76055a220ed::t_47d2754c5faf61 959-960,963-964
+src/story/desert.js
+  s_9ca76055a220ed::t_54670f3a3c61ec 806-809,812-813,822,824,838,843
+src/story/index.js
+  s_9ca76055a220ed::t_524874241c5e63 9,312-314
+src/story/quests.js
+  s_9ca76055a220ed::t_934f3e4e032981 148
+tests/box-card.test.js
+  s_9ca76055a220ed::t_0d8789e65da067 1-27
+tests/desert-story.test.js
+  s_9ca76055a220ed::t_3108b06b97a7b0 311,314-315,412,423,426-427
+tests/hint-level.test.js
+  s_9ca76055a220ed::t_4b413c14c8ae92 84
+tests/hud.test.js
+  s_9ca76055a220ed::t_d847cbdb6d180d 43,57,71,73-98
+tests/interiors.test.js
+  s_9ca76055a220ed::t_cc8f59cceb607d 126,133-135
+tests/landing.test.js
+  s_9ca76055a220ed::t_09d8e65352fd70 3,40,50,76-106
+tests/notices.test.js
+  s_9ca76055a220ed::t_d7de37e34a5465 1-73
+tests/ship-calm.test.js
+  s_9ca76055a220ed::t_5818828ef48e65 1-47
+tests/ship.test.js
+  s_9ca76055a220ed::t_697f11ac573e04 86,96,98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5121c86993651ab8230b320bc320d016d5c7212a",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
