@@ -361,18 +361,26 @@ The engine bridge (docs/systems/engine-bridge.md: the game's own JavaScript in U
 to see whether Unity's native Direct3D 11 path compiles and draws the same world faster than WebView2's ANGLE one
 (the 100-second title above). Results: docs/benchmark-web-vs-unity.md, "On the Xbox: WebView2 against the Unity bridge".
 
-- **The script engine**: Puerts 3.0.3 ships no UWP libraries, and its desktop V8 (`PapiV8.dll`: dbghelp, winmm,
-  mswsock, a JIT) can't run in a UWP app on the console. Its QuickJS backend (quickjs-ng, an interpreter, plain C) is
-  built from Puerts' source at the release's tag for Windows Store x64 (`scripts/unity-uwp-natives.ps1`, CMake's
-  `WindowsStore` system: AppContainer, the UWP C runtime) and put into the embedded packages in `Plugins/WSA/x64`
-  (`PUERTS_BACKENDS=Quickjs scripts/unity-js-setup.sh` first). `JsRuntime` picks QuickJS where the V8 package is
-  missing. **The script is therefore interpreted** while WebView2 on the console has its JIT on (the readout's probe:
-  0.4 ns a turn, October 2026): its time is not comparable with the web's. The native side is.
+- **The script engine**: Puerts 3.0.3 ships no UWP libraries. Its V8 is relinked for UWP x64
+  (`scripts/unity-uwp-v8.ps1`, worked out and proven in `rnaud/puerts-uwp`): Puerts' own prebuilt V8 13.6.233.17
+  (`wee8.lib`) with Puerts' papi-v8 at the release's tag, linked against OneCore's import libraries only
+  (`onecoreuap.lib`: its KERNEL32 and ADVAPI32), the inspector left out (its websocket was what imported ws2_32 and
+  mswsock), dbghelp and winmm's `timeGetTime` stubbed (`scripts/unity-uwp-v8-stubs.cpp`), put in the embedded V8
+  package as `Plugins/WSA/x64/PapiV8.dll`. **V8's JIT runs in a sideloaded UWP app on the console**, with or without
+  the `codeGeneration` capability: `VirtualAlloc` with `PAGE_EXECUTE_READWRITE` is allowed and the dynamic-code policy is
+  off (only the `…FromApp` calls check the capability; October 2026, OS 10.0.26100). The bench there (the Unity bundle's
+  desert against a stand-in host, no Unity): the world build 6.0 s with the JIT, 64 s jitless, 172 s with QuickJS (as
+  the Unity build measured); a frame's script 12.6 ms, 97 ms and 231 ms. QuickJS (quickjs-ng, built from Puerts' source
+  for Windows Store x64, `scripts/unity-uwp-natives.ps1`, CMake's `WindowsStore` system) stays as the fallback:
+  `JsRuntime` picks V8 where its package is, QuickJS where it isn't (`PUERTS_BACKENDS=Quickjs` alone). With V8, Puerts'
+  `Tick` runs and the sound has its own engine; `-no-tick` and `-audio-js` (in `LocalState\args.txt`, the console's
+  stand-in for a command line: `node scripts/xbox-unity.mjs args "-no-tick"`) bring back QuickJS's workarounds.
 - **The build** (`BridgeBuild.Xbox`): the bridge's scene as a UWP D3D solution, IL2CPP x64, Direct3D 11 (what ANGLE
   draws through on the console), Unity's references copied in. Identity `rnaud.HiraethUnity`, shown as *Hiraeth
   (Unity)*: it installs next to `rnaud.Hiraeth`. No command line on the console: it plays the desert from the spawn.
 - **The workflow** (`.github/workflows/unity-xbox.yml`, windows-2022; on a push touching the Unity side and by hand):
-  QuickJS and its UWP DLLs, the bundle, GameCI's Windows editor with the UWP module (Puerts' glue, then the
+  Puerts' V8 (relinked, `scripts/unity-uwp-v8.ps1`, cached) and QuickJS with their UWP DLLs, the bundle, GameCI's
+  Windows editor with the UWP module (Puerts' glue, then the
   solution), the package's identity written into Unity's manifest, `msbuild` (Master, x64, sideload, unsigned),
   `signtool` with the WebView2 app's certificate (`XBOX_PFX_BASE64`), published to the prerelease **`unity-xbox`**
   as `memento-unity-xbox.zip` (the `.msix`, its `.cer`, the dependency `.appx` files).

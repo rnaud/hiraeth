@@ -3,10 +3,11 @@ name: Unity release (Xbox, Developer Mode)
 # The Unity side of the engine bridge (docs/systems/engine-bridge.md) as a UWP app for an Xbox in Developer Mode, to
 # measure Unity's native Direct3D 11 path against the WebView2 build's ANGLE one on the same console
 # (docs/systems/xbox.md, "The Unity build on the Xbox"; docs/benchmark-web-vs-unity.md). Not for players.
-# - Puerts 3.0.3 has no UWP libraries and its V8 can't run in a UWP app on the console: the game's JavaScript runs in
-#   Puerts' QuickJS (an interpreter), built here from Puerts' source for Windows Store x64 (scripts/unity-uwp-natives.ps1).
-#   The script's time is therefore not comparable with the web's (WebView2 on the console has its JIT on); the
-#   native side (shader warm-up, GPU frame time) is. BridgeMetrics logs them apart, in LocalState\unity.log.
+# - Puerts 3.0.3 has no UWP libraries: its V8 is relinked here for UWP x64 (scripts/unity-uwp-v8.ps1: Puerts' prebuilt
+#   V8 13.6 against OneCore's import libraries, no inspector; proven in rnaud/puerts-uwp, where V8's JIT runs in a
+#   sideloaded UWP app on the console), and PuertsCore with QuickJS (the fallback, an interpreter) are built from
+#   Puerts' source for Windows Store x64 (scripts/unity-uwp-natives.ps1). JsRuntime picks V8 where its package is.
+#   BridgeMetrics logs the script's time and the native side apart, in LocalState\unity.log.
 # - GameCI (unity-builder v6, the Windows editor image with the UWP module) runs the editor twice: Puerts' IL2CPP glue
 #   (BridgeBuild.Il2cpp, cached), then the UWP Visual Studio solution (BridgeBuild.Xbox: IL2CPP x64, D3D11, Unity's
 #   references copied in). The runner's msbuild builds and packages it (Master, x64, sideload), signtool signs it with
@@ -69,7 +70,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .local-tools/puerts
-          key: puerts-3.0.3-quickjs
+          key: puerts-3.0.3-quickjs-v8
 
       # PuertsCore and PapiQuickjs for UWP, from Puerts' source (a few minutes cold): again only when the script changes
       - name: Puerts for UWP (cached)
@@ -78,19 +79,28 @@ jobs:
           path: .local-tools/puerts-uwp
           key: puerts-uwp-3.0.3-${{ hashFiles('scripts/unity-uwp-natives.ps1') }}
 
-      - name: Puerts (QuickJS) into the project, the game's JavaScript into StreamingAssets
+      # PapiV8.dll for UWP (Puerts' papi-v8 against its prebuilt V8, a few minutes cold): again only when the script changes
+      - name: Puerts' V8 for UWP (cached)
+        uses: actions/cache@v4
+        with:
+          path: .local-tools/puerts-uwp-v8
+          key: puerts-uwp-v8-3.0.3-${{ hashFiles('scripts/unity-uwp-v8.ps1', 'scripts/unity-uwp-v8-stubs.cpp') }}
+
+      - name: Puerts (V8, QuickJS) into the project, the game's JavaScript into StreamingAssets
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           npm ci
-          PUERTS_BACKENDS=Quickjs scripts/unity-js-setup.sh
+          PUERTS_BACKENDS='Quickjs V8' scripts/unity-js-setup.sh
           node scripts/engine-bundle.mjs unity
 
       - name: Puerts' natives for UWP x64
         run: |
           ./scripts/unity-uwp-natives.ps1
           if ($LASTEXITCODE) { throw "unity-uwp-natives.ps1 failed ($LASTEXITCODE)" }
+          ./scripts/unity-uwp-v8.ps1
+          if ($LASTEXITCODE) { throw "unity-uwp-v8.ps1 failed ($LASTEXITCODE)" }
 
       # (as the other Unity jobs': one entry, restored from the newest, saved when its key moved, the older deleted)
       - name: Unity Library (restore)
@@ -109,7 +119,7 @@ jobs:
           path: |
             ${{ env.PROJECT }}/Assets/Gen
             ${{ env.PROJECT }}/Assets/Gen.meta
-          key: puerts-glue-xbox-3.0.3-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
+          key: puerts-glue-xbox-3.0.3-v8-${{ env.UNITY_VERSION }}-${{ hashFiles('unity/Memento/Assets/**/*.cs', 'unity/Memento/Assets/**/*.asmdef', 'unity/Memento/Packages/manifest.json', '!unity/Memento/Assets/Gen/**') }}
 
       - name: Version
         id: meta
@@ -304,7 +314,7 @@ jobs:
           Add-Type -AssemblyName System.IO.Compression.FileSystem
           $zip = [IO.Compression.ZipFile]::OpenRead($msix.FullName)
           $names = $zip.Entries | ForEach-Object { $_.FullName }; $zip.Dispose()
-          foreach ($n in 'PuertsCore.dll', 'PapiQuickjs.dll', 'GameAssembly.dll', 'Data/StreamingAssets/memento-js/memento.cjs') {
+          foreach ($n in 'PuertsCore.dll', 'PapiV8.dll', 'PapiQuickjs.dll', 'GameAssembly.dll', 'Data/StreamingAssets/memento-js/memento.cjs') {
             if (-not ($names | Where-Object { $_ -eq $n -or $_.EndsWith('/' + $n) })) { throw "the package has no $n" }
           }
           Copy-Item $msix.FullName ("out\unity-xbox\memento-unity-xbox" + $msix.Extension)

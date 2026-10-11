@@ -117,8 +117,9 @@ namespace Memento.Bridge
             done = false;
             thread = new Thread(() => Run(code), 64 << 20) { Name = "Memento script", IsBackground = true, Priority = System.Threading.ThreadPriority.Highest };
             // the sound rendered on a thread of its own (engine/unity/audio-worker.js: the script records its graph), unless -audio-js
-            // (not with QuickJS, the Xbox's: two of its engines used at once from two threads crashed the IL2CPP player, an
-            // access violation in the sound's thread while the script's loaded; the script renders the sound itself then)
+            // (not with QuickJS: two of its engines used at once from two threads crashed the IL2CPP player on the Xbox, an
+            // access violation in the sound's thread while the script's loaded; the script renders the sound itself then.
+            // With V8, the Xbox's since scripts/unity-uwp-v8.ps1, the sound has its own engine; -audio-js as with QuickJS)
             bool oneEngine = JsRuntime.Backend == "QuickJS";
             if (oneEngine) Debug.Log("Memento bridge: QuickJS: the sound rendered on the script's thread");
             var audioCode = oneEngine || Array.IndexOf(BridgeArgs.CommandLine(), "-audio-js") >= 0 ? null : StreamingFile.Read(Path.Combine(Application.streamingAssetsPath, "memento-js", "audio.cjs"));
@@ -142,7 +143,7 @@ namespace Memento.Bridge
             js = thread != null ? new JsRuntime(BridgeHost.OnMainThread, port) : new JsRuntime();
             scriptEnvMade.Set();
             BridgeMetrics.scriptEnvAt = BridgeMetrics.Now();   // (the script's thread: Unity's clock is the main thread's only)
-            Debug.Log($"Memento bridge: the script's engine made ({JsRuntime.Backend})");
+            Debug.Log($"Memento bridge: the script's engine made ({JsRuntime.Backend}, Puerts' Tick {(tickJs ? "on" : "off")})");
             if (port > 0) Debug.Log($"Memento bridge: V8's inspector on {port}");
             var t0 = DateTime.UtcNow;
             js.Eval("var __m = { exports: {} }; (function (module, exports, require) {\n" + System.Text.Encoding.UTF8.GetString(code)
@@ -292,11 +293,12 @@ namespace Memento.Bridge
         public double waitMsTotal, scriptMsTotal;
         // (Puerts' Tick, not with QuickJS in an IL2CPP player: on the Xbox the first Tick after the start crashed, an access
         // violation in Puerts' IL2CPP glue (its pending-kill cleanup), on the script's thread and before that on the sound's.
-        // Without it the script objects C# let go are only freed with the engine: a leak a measuring session can afford.)
+        // Without it the script objects C# let go are only freed with the engine: a leak a measuring session can afford.
+        // With V8 (the Xbox's too since scripts/unity-uwp-v8.ps1) it ticks; -no-tick turns it off, as a check.)
 #if UNITY_EDITOR
         static bool tickJs => true;
 #else
-        static bool tickJs => JsRuntime.Backend != "QuickJS";
+        static bool tickJs => JsRuntime.Backend != "QuickJS" && !BridgeArgs.Flag("-no-tick");
 #endif
         int scriptFrames;
 

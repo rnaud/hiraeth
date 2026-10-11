@@ -8,6 +8,8 @@
 //   node scripts/xbox-unity.mjs uninstall       → removes rnaud.HiraethUnity (only that package: never rnaud.Hiraeth)
 //   node scripts/xbox-unity.mjs log [prev]      → LocalState\unity.log (or unity.prev.log, the launch before)
 //   node scripts/xbox-unity.mjs packages        → the installed Hiraeth packages
+//   node scripts/xbox-unity.mjs args "<words>"  → LocalState\args.txt, the player's arguments (no command line on the
+//                                                 console: BridgeArgs reads it; "-no-tick", "-audio-js"); "" removes it
 //
 // XBOX_PORTAL (default https://192.168.68.64:11443) says which console. The portal's certificate is self-signed: TLS
 // checks are off here. The portal checks a CSRF token on writes: the CSRF-Token cookie of a first GET, sent back as
@@ -91,4 +93,19 @@ if (cmd === 'packages') {
   const r = await call(`/api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=${encodeURIComponent(p.PackageFullName)}&filename=${name}&path=${encodeURIComponent('\\LocalState')}`);
   if (!r.ok) throw new Error(`${name}: ${r.status} ${await r.text()}`);
   process.stdout.write(await r.text());
+} else if (cmd === 'args') {
+  // (LocalState exists once the app has run; BridgeArgs.CommandLine reads the file at the start)
+  const p = await unityPackage();
+  await call('/api/app/packagemanager/packages');
+  const at = `/api/filesystem/apps/file?knownfolderid=LocalAppData&packagefullname=${encodeURIComponent(p.PackageFullName)}&path=${encodeURIComponent('\\LocalState')}`;
+  if (!a1) {
+    const r = await call(`${at}&filename=args.txt`, { method: 'DELETE' });
+    console.log(`args.txt removed: ${r.status}`);
+  } else {
+    const form = new FormData();
+    form.append('args.txt', new Blob([a1]), 'args.txt');
+    const r = await call(at, { method: 'POST', body: form });
+    if (!r.ok) throw new Error(`args.txt: ${r.status} ${await r.text()}`);
+    console.log(`args.txt: ${a1}`);
+  }
 } else throw new Error(`unknown: ${cmd}`);

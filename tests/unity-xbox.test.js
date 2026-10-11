@@ -25,9 +25,11 @@ test('the workflow builds the UWP solution with GameCI on Windows, then packages
   }
   assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.Il2cpp/);
   assert.match(workflow, /buildMethod: Memento\.EditorTools\.BridgeBuild\.Xbox/);
-  // QuickJS, its UWP natives built from Puerts' source
-  assert.match(workflow, /PUERTS_BACKENDS=Quickjs scripts\/unity-js-setup\.sh/);
+  // V8 (relinked for UWP) and QuickJS (the fallback), their UWP natives from Puerts' source and prebuilt V8
+  assert.match(workflow, /PUERTS_BACKENDS='Quickjs V8' scripts\/unity-js-setup\.sh/);
   assert.match(workflow, /\.\/scripts\/unity-uwp-natives\.ps1/);
+  assert.match(workflow, /\.\/scripts\/unity-uwp-v8\.ps1/);
+  assert.match(workflow, /'PuertsCore\.dll', 'PapiV8\.dll'/, 'the package checked for its V8');
   // msbuild Master x64, unsigned, then signtool with the WebView2 app's certificate
   assert.match(workflow, /-p:Configuration=Master -p:Platform=x64/);
   assert.match(workflow, /-p:AppxPackageSigningEnabled=false/);
@@ -67,6 +69,25 @@ test('Puerts runs QuickJS where its V8 package is missing, and the setup can ins
   assert.match(natives, /'-DCMAKE_SYSTEM_NAME=WindowsStore' '-DCMAKE_SYSTEM_VERSION=10\.0'/);
   assert.match(natives, /--branch "Unity_v\$Version"/);
   assert.match(natives, /Windows Store Apps: WindowsStoreApps/);
+});
+
+test('Puerts\' V8 relinked for UWP: OneCore\'s import libraries, no inspector, the desktop-only imports stubbed, a WSA meta', () => {
+  const v8 = read('scripts/unity-uwp-v8.ps1');
+  assert.match(v8, /V8_13\.6\.233\.17/, 'the V8 Puerts 3.0.3 expects');
+  assert.match(v8, /WITHOUT_INSPECTOR/);
+  assert.match(v8, /CoreLibraryDependencies=onecoreuap\.lib/);
+  assert.match(v8, /CMAKE_CXX_STANDARD_LIBRARIES=onecoreuap\.lib/);
+  assert.match(v8, /Plugins\/WSA\/x64|'WSA\/x64'/);
+  assert.match(v8, /Windows Store Apps: WindowsStoreApps/);
+  assert.match(v8, /TrimEnd\(\) \+ "`n"/, 'the meta ends with a newline (Unity ignores the DLL otherwise)');
+  assert.match(v8, /dbghelp\|winmm\|ws2_32\|mswsock/, 'and checks they are gone');
+  const stubs = read('scripts/unity-uwp-v8-stubs.cpp');
+  for (const f of ['SymInitialize', 'StackWalk64', 'timeGetTime']) assert.match(stubs, new RegExp(`STUB\\([^,]+, ${f},`), f);
+  // (Tick and the sound's own engine with V8; QuickJS keeps its workarounds; LocalState\args.txt for a player's flags)
+  const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
+  assert.match(runner, /tickJs => JsRuntime\.Backend != "QuickJS" && !BridgeArgs\.Flag\("-no-tick"\)/);
+  assert.match(runner, /oneEngine = JsRuntime\.Backend == "QuickJS"/);
+  assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeArgs.cs'), /UNITY_WSA && !UNITY_EDITOR[\s\S]*args\.txt/);
 });
 
 test('the numbers go to LocalState\\unity.log, the native side apart from the script', () => {

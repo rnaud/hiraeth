@@ -22,7 +22,7 @@ namespace Memento.EditorTools
     ///   BridgeBuild.AndroidRelease                                the testers' APK (scripts/unity-android-release.sh, .github/workflows/unity-android.yml):
     ///                                                             com.rnaud.memento.unity, "Hiraeth (Unity)", the game's icon, the release key, sound on
     ///   BridgeBuild.Xbox                                          the Xbox's UWP solution (.github/workflows/unity-xbox.yml): IL2CPP x64, D3D11,
-    ///                                                             Puerts' QuickJS; msbuild packages it (docs/systems/xbox.md, "The Unity build on the Xbox")
+    ///                                                             Puerts' V8 relinked for UWP; msbuild packages it (docs/systems/xbox.md, "The Unity build on the Xbox")
     /// (-out another path). A player runs the plan its command line gives (BridgeArgs: -views, -bench,
     /// -out …), and plays nothing aloud with -mute. The package name is the bridge's own, never the web app's.
     /// </summary>
@@ -166,8 +166,8 @@ namespace Memento.EditorTools
         /// The Xbox's build (docs/systems/xbox.md, "The Unity build on the Xbox"): the bridge's player as a UWP Visual Studio
         /// solution (D3D, IL2CPP x64, Direct3D 11 as the web build's ANGLE uses, Unity's references copied in so the runner's
         /// msbuild needs no Unity), identity rnaud.HiraethUnity so it installs next to the WebView2 app (rnaud.Hiraeth). The script
-        /// runs in Puerts' QuickJS (scripts/unity-uwp-natives.ps1: Puerts has no V8 for UWP). No command line on the console: it
-        /// plays the desert, and BridgeMetrics writes the load and the frames to LocalState\unity.log.
+        /// runs in Puerts' V8 with its JIT (scripts/unity-uwp-v8.ps1: Puerts' V8 relinked for UWP; QuickJS the fallback). No command
+        /// line on the console (LocalState\args.txt stands in: BridgeArgs): it plays the desert, and BridgeMetrics writes the load and the frames to LocalState\unity.log.
         ///   -buildVersion 1.39 (GameCI passes it), -out (or GameCI's -customBuildPath), default Builds/unity-xbox
         /// The package's Publisher, version and display name are written into the manifest by the workflow, before msbuild.
         /// </summary>

@@ -20,7 +20,9 @@ namespace Memento.Bridge
         /// <summary>
         /// The player's arguments: its command line, and on Android the activity's `unity` extra
         /// (`am start -e unity "-level desert -mute …"`: scripts/bench/android-bridge.sh), which Android's
-        /// Environment.GetCommandLineArgs() does not carry. Read once, on the main thread (Start), then kept.
+        /// Environment.GetCommandLineArgs() does not carry; on UWP (the Xbox, which has no command line) the words of
+        /// LocalState\args.txt, if there is one (`node scripts/xbox-unity.mjs args "-no-tick"`). Read once, on the main
+        /// thread (Start), then kept.
         /// </summary>
         public static string[] CommandLine()
         {
@@ -37,6 +39,16 @@ namespace Memento.Bridge
                 Debug.Log($"Memento bridge: the plan from the intent: {(string.IsNullOrWhiteSpace(extra) ? "none" : extra)}");
             }
             catch (Exception e) { Debug.LogWarning("Memento bridge: the intent's arguments: " + e.Message); }
+#endif
+#if UNITY_WSA && !UNITY_EDITOR
+            try
+            {
+                var file = Path.Combine(Application.persistentDataPath, "args.txt");
+                var extra = File.Exists(file) ? File.ReadAllText(file) : null;
+                if (!string.IsNullOrWhiteSpace(extra)) a = a.Concat(Split(extra)).ToArray();
+                Debug.Log($"Memento bridge: the arguments from LocalState\\args.txt: {(string.IsNullOrWhiteSpace(extra) ? "none" : extra.Trim())}");
+            }
+            catch (Exception e) { Debug.LogWarning("Memento bridge: LocalState\\args.txt: " + e.Message); }
 #endif
             return line = a;
         }
