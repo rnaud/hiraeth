@@ -44,10 +44,11 @@ export function rollerModel(skin) {
   const footB = M.mat('footBuild', P.foot), stalkB = M.mat('stalkBuild', P.stalk ?? P.foot), ballB = M.mat('eyeballBuild', P.eyeball ?? '#efe8d6');
   const footM = M.mat('foot', P.foot, { vertexColors: true });
   const eyeM = M.own('eye', P.eye, { glow: 0.2, vertexColors: true }), pupilB = M.mat('pupilBuild', P.eye);
-  // the shell: a ball, its spiral raised on its sides (the axis it rolls on), a riveted band round it over the top
+  // the shell: a ball, its spiral raised on its left side (the axis it rolls on; a snail's shell coils one way: the sheets'
+  // side view, v1.47; the other side plain), a riveted band round it over the top
   add(spin, new THREE.SphereGeometry(R, 32, 22), shellM);
   const spiral = [];
-  for (const s of [-1, 1]) {
+  for (const s of [1]) {
     const pts = [];
     for (let i = 0; i <= 48; i++) {
       const t = i / 48, th = 0.05 + t * 0.95, ph = t * Math.PI * 2 * 2.4 * s;
@@ -68,6 +69,17 @@ export function rollerModel(skin) {
     const keyM = M.mat('key', P.key ?? P.band, { metal: 'brass', color: P.key ?? P.band });
     many(key, [new THREE.CylinderGeometry(0.035, 0.035, 0.26, 8).rotateX(Math.PI / 2).translate(0, 0, -0.1), new THREE.CylinderGeometry(0.09, 0.09, 0.05, 14).rotateX(Math.PI / 2),
       ...pair((s) => new THREE.TorusGeometry(0.08, 0.03, 6, 14).translate(s * 0.09, 0, -0.26))], keyM);
+  }
+  // the pearl shell's rocking runners (sheet-2's wind-up): two brass rails curving up at both ends, slid out under its
+  // foot as it winds up its bowl and rocked on, like a rocking horse's; put away again as it rolls
+  let runners = null;
+  const RUN = { r: 1.5, half: 0.62, x: 0.36, lift: 0.07, z: -0.15 };
+  if (props.has('runners')) {
+    runners = pivot(body, 0, 0, 0, 'runners');
+    const keyM = M.mat('key', P.key ?? P.band, { metal: 'brass', color: P.key ?? P.band });
+    const rail = (x) => { const pts = []; for (let i = 0; i <= 10; i++) { const a = -RUN.half + (i / 10) * RUN.half * 2; pts.push([x, RUN.r - Math.cos(a) * RUN.r + 0.025, Math.sin(a) * RUN.r + RUN.z]); } return tubeGeometry(pts, 0.022); };
+    many(runners, [rail(-RUN.x), rail(RUN.x), ...[-0.35, 0.35].map((z) => new THREE.CylinderGeometry(0.014, 0.014, RUN.x * 2, 6).rotateZ(Math.PI / 2).translate(0, 0.07 + z * z * 0.25, z + RUN.z))], keyM);
+    runners.visible = false;
   }
   // the foot: seven soft segments along the sole (each its own joint: the ripple runs back along them), longer than
   // the shell, tapering to a point behind; the head rising in front, two long eye stalks, two short feelers
@@ -103,7 +115,7 @@ export function rollerModel(skin) {
   const pose = new PoseBlend({ poses: Object.fromEntries(Object.entries(PL.poses).map(([k, p]) => [k, { ...p }])), style: PL.style });
   const W = PL.wobble, wobble = new SecondOrder(W.f, W.z, W.r), lagX = new SecondOrder(PL.stalks.f, PL.stalks.z, PL.stalks.r), lagZ = new SecondOrder(PL.stalks.f, PL.stalks.z, PL.stalks.r);
   const tuckS = new SecondOrder(PL.shell.tuck.f, PL.shell.tuck.z, PL.shell.tuck.r);
-  let prevX = null, prevZ = 0, angle = 0, ripple = 0, glow = 0, speed0 = 0, sinkS = 0, turned = 0, rolled = 0;
+  let prevX = null, prevZ = 0, angle = 0, ripple = 0, glow = 0, speed0 = 0, sinkS = 0, turned = 0, rolled = 0, runK = 0, slid = 0;
   return {
     group: g, body: shell, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.shell, P.band, P.foot],
     tell: () => spin,
@@ -133,8 +145,20 @@ export function rollerModel(skin) {
       const wob = wobble.update(dt, 0);
       // the rocking: back and forth on its foot three times (faster for the ricochet), growing to the strike
       const rocks = (id === 'bowl' || id === 'ricochet') && wind ? Math.sin(k * Math.PI * 2 * (id === 'ricochet' ? 4.5 : 3)) * 0.22 * smooth(k, 0, 0.3) : 0;
+      // (the pearl shell: on its runners, slid out for the wind-up, the whole of it rocks on them, rolling along their arc)
+      runK = runners ? ease(runK, (id === 'bowl' || id === 'ricochet') && wind ? 1 : 0, 8, dt) : 0;
+      const onRun = runK > 0.02, th = onRun ? rocks * 1.2 * runK : 0;
+      if (runners) {
+        runners.visible = onRun;
+        runners.scale.set(1, 1, Math.max(0.05, runK));
+        body.rotation.x = th;
+        // (turned about the arc's centre, (y r, z zc), and rolled along the ground by the arc it turned through)
+        const zc = RUN.z;
+        body.position.set(0, RUN.lift * runK + RUN.r * (1 - Math.cos(th)) + zc * Math.sin(th), zc * (1 - Math.cos(th)) + RUN.r * (th - Math.sin(th)));
+      }
+      const shellRock = onRun ? rocks * (1 - runK) : rocks;
       shell.position.set(0, lerp(UP_Y, R, tuck) + P0.y, lerp(-0.12, 0, tuck) + P0.z * (1 - tuck));
-      shell.rotation.set(rocks + P0.pitch * (1 - tuck), 0, wob + P0.roll);
+      shell.rotation.set(shellRock + P0.pitch * (1 - tuck), 0, wob + P0.roll);
       // the foot: a ripple runs back along the sole by the distance glided (never a skate); tucked, it pulls in
       ripple += Math.abs(along) / PL.foot.ripple;
       segs.forEach((j, i) => { const u = Math.sin(Math.PI * 2 * (ripple / PL.foot.waves * 3 - i / PL.foot.waves)); j.scale.set(1, 1 + 0.25 * u * Math.min(1, speed), 1); j.position.y = 0.012 * Math.max(0, u) * Math.min(1, speed); });
@@ -157,6 +181,9 @@ export function rollerModel(skin) {
       if (key) { key.visible = tuck < 0.4; if (wind) key.rotation.z += dt * 9; }
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye, P.flare ?? '#f3a361'));
       if (strike && f.atk?.rolls && speed > 2 && Math.random() < 0.3) c.dust(f.pos, P.dust ?? '#cdb89a', 1, 0.5);
+      // a glistening trail where it glides on its foot (grazing, coming at you unrolled): a wet sheen on the ground, every
+      // so often a stroke of it behind the foot, fading (Foes' slime: the ground's own colour, lighter)
+      if (tuck < 0.3 && !wind) { slid += Math.abs(along); if (slid > 0.24) { slid = 0; c.trail?.(f, -0.35); } }
       if (wind && id === 'last' && Math.random() < 0.3) c.spray(_v.copy(f.pos).setY(f.pos.y + R), [P.shell, P.spiral], 1, 2.5, 3);
       g.position.y += f.alt;   // (a bubble lifts it: helpless, it floats)
     },

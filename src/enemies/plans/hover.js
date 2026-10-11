@@ -12,7 +12,7 @@ import { materials, add, many, skinBy, pivot, lerp, ease, eyeColor, finish, V } 
 // under the bottom plate, each with an elbow and a small three-pronged claw. It hovers with its plates over your head.
 //
 // The possession: a caught cloud. Black smoke is trapped between the plates like a held breath and bulges out at the
-// gaps, leaking wisps; two white eyes drift in it.
+// gaps, spreading out past the rims in curling wisps; two white eyes drift in it.
 //
 // On the kit: it hovers on springs, each plate spinning at its own speed, tilting into its drift with a servo's
 // overshoot (an underdamped spring) and turning in notches; its arms dangle and lag behind its moves. Draws: the plates,
@@ -72,6 +72,15 @@ export function droneModel(skin) {
     const p = pivot(body, 0, (YS[i] + YS[i + 1]) / 2, 0, `smoke ${i}`), puffs = [new THREE.CylinderGeometry(R * 0.9, R * 0.9, 0.2, 18)];
     // (puffs bulging out at the gaps, more at its sides and back than at its front, where the eyes look out)
     for (let k = 0; k < 22; k++) { const a = (k / 22) * Math.PI * 2 + i * 0.4 + Math.sin(k * 3.1) * 0.12, back = 0.5 - 0.5 * Math.cos(a), r = R * (0.86 + back * 0.16 + ((k * 7) % 3) * 0.03), s = 0.05 + back * 0.05 + ((k * 5) % 4) * 0.012; puffs.push(new THREE.IcosahedronGeometry(s, 1).scale(1.5, 0.7, 1.2).translate(Math.sin(a) * r, ((k % 3) - 1) * 0.035, Math.cos(a) * r)); }
+    // (v1.46, the sheet's: the cloud spreads further out in wisps, curling off the gap and thinning to nothing: a few
+    // trails of ever smaller puffs, out past the rims and swept round as the cloud turns, rising a little as they go)
+    for (let w = 0; w < 4; w++) {
+      const a0 = (w / 4) * Math.PI * 2 + 0.9 + i * 0.8, curl = w % 2 ? 1 : -1;
+      for (let j = 0; j < 7; j++) {
+        const t = j / 6, a = a0 + curl * t * 0.6, r = R * (1.0 + t * 0.95), sz = lerp(0.115, 0.032, t);
+        puffs.push(new THREE.IcosahedronGeometry(sz, 1).scale(1.7, 0.55, 1.1).rotateY(a + curl * 0.6).translate(Math.sin(a) * r, Math.sin(t * Math.PI * 1.4 + w) * 0.04 + t * 0.05 * (i ? 1 : -1), Math.cos(a) * r));
+      }
+    }
     many(p, puffs, smokeB);
     return p;
   });

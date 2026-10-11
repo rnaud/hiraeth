@@ -46,7 +46,8 @@ import * as THREE from 'three';
 //   cracks   a hull cracked like a dropped jar (the furnace brute's): a fine net of seams between cells `scale` m across
 //            (3D Voronoi: the pen-thin `width` of the cell's size, in `ink`, each cell its own shade `tone`: glass
 //            facets too), and over it a wider net of veins (`veins` m cells, `vein` width) glowing `color` (emit
-//            `glow`); `open` (0..1, a uniform the body sets as it is hurt: Foe hp) widens the veins and brightens them
+//            `glow`), on `share` of the cells' edges (0: all); `open` (0..1, a uniform the body sets as it is hurt: Foe hp)
+//            widens the veins, brightens them and opens more of the edges
 // Cost: per pixel of a foe only, each feature a handful of hashes (spots: 8 cells; noise: 8 a octave; scales: 1
 // or 3 projections); a whole pack is a few thousand pixels. Nothing is drawn twice and nothing is downloaded.
 // ---------------------------------------------------------------------------
@@ -68,7 +69,7 @@ const DEFAULTS = {
   spots2: { color: '#000000', amount: 1, scale: 0.05, share: 0.4, size: 0.4, jitter: 1, star: 0, ring: 0, soft: 0, cluster: 0, clusterShare: 0.4 },
   rivets: { color: '#d8d2c0', amount: 1, axis: 2, period: 0.2, offset: 0, count: 12, size: 0.04, ink: 0.6, shine: 0.3 },
   drips: { color: '#000000', amount: 1, width: 0.12, from: 0, length: 0.3, bulb: 0.4 },
-  cracks: { color: '#b07aff', amount: 1, ink: '#2a2235', inkAmount: 0.8, scale: 0.09, width: 0.06, tone: 0.06, veins: 0.42, vein: 0.07, glow: 0.8, open: 0 },
+  cracks: { color: '#b07aff', amount: 1, ink: '#2a2235', inkAmount: 0.8, scale: 0.09, width: 0.06, tone: 0.06, veins: 0.42, vein: 0.07, glow: 0.8, open: 0, share: 0 },
   glow: { color: '#ffd27a', amount: 0.6, rim: 0.3, core: 2, pulse: 0, emit: 0.6, center: null, radius: 0 },
   gloss: { color: '#ffffff', amount: 1, size: 0.06, sky: 0.5, sharp: 1, streaks: 0, streakWidth: 0.35 },
 };
@@ -113,7 +114,7 @@ export function foeSurfaceMaterial(mat, o) {
   if (f.cracks) {
     const c = f.cracks;
     U.uFsCracksC = { value: cv(c.color, c.amount) }; U.uFsCracksI = { value: cv(c.ink, c.inkAmount) };
-    U.uFsCracks = { value: v4(c.scale, c.width, c.tone, c.glow) }; U.uFsCracksV = { value: v4(c.veins, c.vein, 0, 0) };
+    U.uFsCracks = { value: v4(c.scale, c.width, c.tone, c.glow) }; U.uFsCracksV = { value: v4(c.veins, c.vein, c.share, 0) };
     U.uFsCracksO = { value: c.open };
   }
   if (f.glow) {
@@ -330,13 +331,13 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
       for (int layer = 0; layer < 2; layer++) {
         float sc = layer == 0 ? uFsCracks.x : uFsCracksV.x;
         if (lite > 0.5 && layer == 0 && sc < 0.08) continue;   // (the handheld: the fine net only where it reads)
-        vec3 q = p / max(sc, 1e-4) + float(layer) * 17.3, b = floor(q - 0.5), c1 = vec3(0.0);
+        vec3 q = p / max(sc, 1e-4) + float(layer) * 17.3, b = floor(q - 0.5), c1 = vec3(0.0), c2 = vec3(0.0);
         float d1 = 9.0, d2 = 9.0;
         for (int i = 0; i < 8; i++) {
           vec3 c = b + vec3(float(i & 1), float((i >> 1) & 1), float((i >> 2) & 1));
           vec3 o = c + 0.5 + (fsHash4(c + 13.1).xyz - 0.5) * 0.7;
           float d = length(q - o);
-          if (d < d1) { d2 = d1; d1 = d; c1 = c; } else if (d < d2) d2 = d;
+          if (d < d1) { d2 = d1; c2 = c1; d1 = d; c1 = c; } else if (d < d2) { d2 = d; c2 = c; }
         }
         float e = d2 - d1;
         if (layer == 0) {
@@ -345,6 +346,10 @@ export const FOE_SURFACE_GLSL = /* glsl */ `
           albedo *= 1.0 + (fsHash4(c1 + 5.7).x * 2.0 - 1.0) * uFsCracks.z * near;
           albedo = mix(albedo, uFsCracksI.rgb, uFsCracksI.a * mix(w, seam, near));
         } else {
+          // (only a share of the cells’ edges are veins (share): each edge, the pair of cells it parts, by its own hash; the
+          // share grows as it is hurt; 0: all of them)
+          float share = uFsCracksV.z > 0.0 ? min(1.0, uFsCracksV.z + uFsCracksO * (1.0 - uFsCracksV.z)) : 1.0;
+          if (fsHash4(c1 + c2 + 3.3).x > share) continue;
           float near = fsNear(uFsCracksV.x * 0.4, px), w = uFsCracksV.y * (1.0 + 1.6 * uFsCracksO);
           float tar = 1.0 - smoothstep(w - aaV, w + aaV, e), core = 1.0 - smoothstep(w * 0.5 - aaV, w * 0.5 + aaV, e);
           albedo = mix(albedo, uFsCracksI.rgb, uFsCracksI.a * mix(w * 0.5, tar, near));

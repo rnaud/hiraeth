@@ -21,6 +21,9 @@ import { materials, add, tube, tubeGeometry, many, pivot, pair, lerp, ease, eyeC
 //   sweep   one foot lifted high, its weight on the other; then the stamp, the planted leg turning it round
 //   buffet  (Vael) the folded wings flare wide and draw back, then beat
 // Toppled (a charged cut at a leg) it lies on its side, legs out, its head on the ground; parried, its head droops.
+// Run at it and it flies off (Foe.takeOff, calm.flee): a deep crouch on its stilts, then up and away, its neck drawn into
+// an S, the body tipped forward, the legs trailing straight out behind; the feathered birds beat their wings, the jug
+// (wingless) bounds away on its stilts, the legs kicked back.
 
 const HIP = 2.95, NSEG = 10, JS = 0.82;   // (the hip; the neck's segments; the jug's scale: the sheet's legs over half its height)
 /** The cistern jug: a lathe profile (r, y) round the torso's centre, a rounded bottom, a full belly, a narrow mouth with a lip. */
@@ -101,7 +104,7 @@ export function heronModel(skin) {
   const parts = [...shell, ...segs, head, ...wings, ...legs.map((l) => l.root)];
   // the high body's own sway (StiltMotor's hub): a pendulum over the feet that lags a turn, a stop and a blow
   const S = PLANS.stilt.sway, swayZ = new SecondOrder(S.f, S.z, 0), swayX = new SecondOrder(S.f, S.z, 0);
-  let wCoil = 0, wStrike = 0, wDown = 0, lift = 0, flare = 0, topple = 0, prevV = 0, prevH = null, fish = 0, spin = 0;
+  let wCoil = 0, wStrike = 0, wDown = 0, lift = 0, flare = 0, topple = 0, prevV = 0, prevH = null, fish = 0, spin = 0, fly = 0, crouch = 0;
   const w = { rest: 1, coil: 0, strike: 0, down: 0 };
   return {
     group: g, body: torso, rig, parts, eyeMat: eyeM, base: P.eye, size: skin.scale, skin: skin.id, tones: [P.body, P.leg, P.band ?? P.bill],
@@ -112,7 +115,11 @@ export function heronModel(skin) {
       // wading calm, a stab at the water now and then
       const calmIdle = f.state === 'idle' && !f.provoked;
       fish = calmIdle ? Math.max(0, Math.sin(c.now / 900 + f.home.x * 3)) ** 8 : 0;
-      wCoil = ease(wCoil, id === 'spear' && wind ? c.wind : 0, 12, dt);
+      // flying off (f.flight): crouched on its stilts, then in the air, the neck drawn into its S
+      const F = f.flight, up = !!F && F.t >= F.crouch;
+      crouch = ease(crouch, F && !up ? Math.min(1, F.t / (F.crouch * 0.7)) : 0, up ? 16 : 10, dt);
+      fly = ease(fly, up ? 1 : 0, up ? 7 : 5, dt);
+      wCoil = ease(wCoil, id === 'spear' && wind ? c.wind : fly * 0.75, 12, dt);
       wStrike = ease(wStrike, id === 'spear' && strike ? 1 : 0, strike ? 30 : 9, dt);
       wDown = ease(wDown, f.open > 0 || f.toppled > 0 ? 1 : fish, f.open > 0 ? 7 : 5, dt);
       const tot = Math.max(1, wCoil + wStrike + wDown);
@@ -142,11 +149,16 @@ export function heronModel(skin) {
       spin = id === 'sweep' && strike ? c.release * 1.1 : ease(spin, 0, 4, dt);
       // the buffet (Vael): the folded wings flare wide and draw back, then beat forward
       flare = ease(flare, id === 'buffet' ? (wind ? c.wind : strike ? 1 - c.release * 0.5 : 0) : 0, 10, dt);
-      wings.forEach((wg, i) => { const s = i ? 1 : -1; wg.rotation.set(-flare * 0.5 + (id === 'buffet' && strike ? c.release * 0.9 : 0), s * flare * 0.3, s * flare * 1.25); });
+      // (in flight: the wings swung out from its sides, then slow deep beats about its length: the spread first, the beat
+      // over it, so the Euler order is z after y)
+      const beat = fly * (0.3 + Math.sin(c.now / 105) * 0.75);
+      wings.forEach((wg, i) => { const s = i ? 1 : -1; wg.rotation.order = fly > 0.01 ? 'ZYX' : 'XYZ'; wg.rotation.set(-flare * 0.5 + (id === 'buffet' && strike ? c.release * 0.9 : 0), s * (flare * 0.3 - fly * 1.35), s * (flare * 1.25 + beat)); });
+      // (the legs trail straight out behind it in the air; the jug's kicked back and folded a little more)
+      if (fly > 0.01) for (const L of legs) L.air.set(0, (jug ? 2.0 : 2.3) * fly, -(jug ? 1.9 : 2.5) * fly);
       // toppled: down on its side, legs out, its head on the ground
       topple = ease(topple, f.toppled > 0 ? 1 : 0, f.toppled > 0 ? 5 : 3, dt);
       const open = f.open > 0 ? 1 : 0;
-      const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery: c.recovery, air: topple > 0.2 ? 1 : 0 });
+      const o = rig.update(f, dt, { eye: c.eye, ground: c.ground, touch: c.touch, recovery: c.recovery, air: Math.max(topple > 0.2 ? 1 : 0, fly > 0.02 ? fly : 0) });
       // the high body's sway: lags a change of pace forward and back, swings out on a turn
       const v = c.moving ? (f.def.speed ?? 2) : 0, acc = dt > 0 ? (v - prevV) / dt : 0; prevV = v;
       const turn = prevH == null || !(dt > 0) ? 0 : Math.atan2(Math.sin(f.heading - prevH), Math.cos(f.heading - prevH)) / dt; prevH = f.heading;
@@ -155,9 +167,10 @@ export function heronModel(skin) {
       g.rotation.y = f.heading + spin;
       body.position.y = -topple * (HIP - 0.55);
       body.rotation.set(0, 0, topple * 1.45);
-      torso.position.set(o.x + sx, HIP + o.y - open * 0.35, o.z + sz);
-      torso.rotation.set(o.pitch + sz * 0.4 + open * 0.42 + fish * 0.12, o.yaw, o.roll - sx * 0.3 - lift * 0.08);
+      torso.position.set(o.x + sx, HIP + o.y - open * 0.35 - crouch * 0.7, o.z + sz);
+      torso.rotation.set(o.pitch + sz * 0.4 + open * 0.42 + fish * 0.12 + fly * 0.35 - crouch * 0.12, o.yaw, o.roll - sx * 0.3 - lift * 0.08);
       rig.write();
+      if (F && !up && F.t > F.crouch * 0.8 && Math.random() < 0.5) c.dust(f.pos, '#cdb89a', 2, 0.5);   // (the push off)
       // fishing: a splash where the bill goes in
       if (fish > 0.9 && Math.random() < 0.2) c.dust(tip.getWorldPosition(_a), '#cfe6ee', 2, 0.3);
       eyeM.uniforms.uColor.value.set(eyeColor(f, P.eye));

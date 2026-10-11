@@ -233,3 +233,15 @@ test('Lorn II’s wood cutter: placed by hand on the lit path’s bank (src/foe-
   assert.equal(foes.list.filter((f) => f.post).length, 0, 'broken, it does not come back');
   foes.dispose(); clearTargets();
 });
+
+test('batch 4 against its sheets (v1.47, issue #31): the bell walker\'s spirit shows past its lip, its legs turned into their plane for their plates', () => {
+  const m = archetypeModel('bell', 'bazaar');
+  m.group.updateMatrixWorld(true);
+  const spirit = [];
+  m.group.traverse((o) => { if (o.name === 'spirit') spirit.push(o); });
+  assert.equal(spirit.length, 1);
+  const at = spirit[0].position;
+  assert.ok(Math.hypot(at.x, at.z) > 0.85, `out at the bell's rim (0.95 m), not inside it (${Math.hypot(at.x, at.z).toFixed(2)} m)`);
+  assert.ok(m.rig.legs.every((l) => l.bowed), 'each leg in its own plane: the plates on its outer face');
+  m.dispose?.();
+});

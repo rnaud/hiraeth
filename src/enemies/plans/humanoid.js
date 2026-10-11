@@ -71,6 +71,47 @@ function cloakGeometry(profile, { gap = 0, ragged = 1, depth = DEPTH, seg = 32, 
   return geo;
 }
 
+/**
+ * The smoke the hem breaks into, in flame-like curls (the sheets', v1.47): `n` tongues of smoke hanging from inside the
+ * hem, each wide at its root (overlapping the next, under the cloth) and narrowing to a point, flat across like a drawn
+ * flame, waving down its length and curling over at its tip, each the other way from the last; shorter at the front,
+ * where the boots step through. Closed tubes (no double-sided material); one geometry.
+ */
+export function flameGeometry({ r0 = 0.37, top = 0.13, len = 0.5, n = 16, width = 0.11, curl = 0.38, rows = 12, sides = 8, ragged = 1 } = {}) {
+  const pos = [], idx = [], c = new THREE.Vector3(), t = new THREE.Vector3(), o = new THREE.Vector3(), p = new THREE.Vector3();
+  for (let k = 0; k < n; k++) {
+    const a0 = (k / n) * Math.PI * 2 + Math.sin(k * 1.9) * 0.08, dir = k % 2 ? 1 : -1;
+    const front = 1 - 0.5 * Math.max(0, Math.cos(a0) - 0.5) / 0.5;
+    const L = (top + len * (0.55 + 0.45 * Math.abs(Math.sin(k * 2.7 + 0.4)) * Math.min(1.3, ragged))) * front, w = width * (0.8 + 0.3 * Math.abs(Math.sin(k * 1.3)));
+    const base = pos.length / 3;
+    for (let j = 0; j <= rows; j++) {
+      const u = j / rows;
+      // (its axis: down its length, waving across (an S), curling over at the tip, leaning out a little)
+      const a = a0 + dir * (curl * u * u * u + 0.08 * Math.sin(u * Math.PI * 2 + k)) * (0.8 + 0.4 * Math.sin(k * 0.7));
+      const r = r0 + 0.08 * u * u;
+      c.set(Math.sin(a) * r, top - u * L + 0.06 * u * u * u * Math.abs(Math.sin(k)), Math.cos(a) * r * DEPTH);
+      t.set(Math.cos(a), 0, -Math.sin(a) * DEPTH).normalize();   // (across: round the hem)
+      o.set(Math.sin(a), 0, Math.cos(a) * DEPTH).normalize();    // (out)
+      const rad = w * Math.max(0, 1 - Math.pow(u, 1.3)) * (0.85 + 0.15 * Math.sin(Math.PI * u));
+      for (let i = 0; i < sides; i++) {
+        const ph = (i / sides) * Math.PI * 2;
+        p.copy(c).addScaledVector(t, Math.cos(ph) * rad).addScaledVector(o, Math.sin(ph) * rad * 0.4);
+        pos.push(p.x, p.y, p.z);
+      }
+    }
+    for (let j = 0; j < rows; j++) for (let i = 0; i < sides; i++) {
+      const A = base + j * sides + i, B = base + j * sides + ((i + 1) % sides), C = A + sides, D = B + sides;
+      idx.push(A, B, C, B, D, C);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array((pos.length / 3) * 2), 2));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();   // (each ring runs from across to out, so the quads face out of the tube)
+  return geo;
+}
+
 /** The hood: a lathe to a point, its point swept back (sweep m at the tip), or round and tall (the pilgrim's). */
 function hoodGeometry(round, sweep) {
   const P = round ? [[0.17, -0.02], [0.185, 0.08], [0.18, 0.2], [0.15, 0.31], [0.1, 0.39], [0.03, 0.43], [0.001, 0.435]]
@@ -138,15 +179,11 @@ export function shadeModel(skin) {
   // (gold trim down the opening and round the hem: the pilgrim's; the woodsman's a darker hem)
   // the brass clasp at the chest, where the cloak closes under the capelet
   many(drape, [new THREE.TorusGeometry(0.055, 0.016, 6, 16).translate(0, 1.43 - SH.y, 0.29 * DEPTH + 0.06), new THREE.CircleGeometry(0.04, 12).translate(0, 1.43 - SH.y, 0.29 * DEPTH + 0.055)], brassB);
-  // smoke where the hem breaks up: wisps hanging off the tatters' tips, curling down and thinning to nothing, a few
-  // small puffs among them (the smoke drifts round and breathes; drops fall off it as it goes)
-  const smoke = pivot(drape, 0, HEM - SH.y, 0, 'smoke'), puffs = [];
-  for (let i = 0; i < 40; i++) {
-    const a = i * 2.39996, r = 0.38 + (i % 3) * 0.04, y = jag(a, ragged) * 0.85 - 0.02, l = 0.12 + (i % 5) * 0.05;
-    // (a wisp: a soft drop drawn out downward, leaning as the tatter it falls from)
-    puffs.push(new THREE.SphereGeometry(1, 8, 7).scale(0.026 + (i % 3) * 0.008, l * 0.55, 0.026 + (i % 3) * 0.008).rotateZ(Math.sin(a * 3) * 0.35).translate(Math.sin(a) * r, y - l * 0.45, Math.cos(a) * r * DEPTH));
-  }
-  for (let i = 0; i < 10; i++) { const a = i * 1.7 + 0.4, r = 0.28 + (i % 2) * 0.09; puffs.push(new THREE.IcosahedronGeometry(0.045 + (i % 3) * 0.015, 0).translate(Math.sin(a) * r, -0.08 - (i % 3) * 0.08, Math.cos(a) * r * DEPTH)); }
+  // smoke where the hem breaks up: flame-like tongues curling down from inside the hem and narrowing to nothing
+  // (flameGeometry, v1.47; the wisps before them read as a fence of beans), a few small puffs among them (the smoke
+  // drifts round and breathes; drops fall off it as it goes)
+  const smoke = pivot(drape, 0, HEM - SH.y, 0, 'smoke'), puffs = [flameGeometry({ ragged, len: 0.42 + 0.06 * ragged })];
+  for (let i = 0; i < 10; i++) { const a = i * 1.7 + 0.4, r = 0.3 + (i % 2) * 0.09; puffs.push(new THREE.IcosahedronGeometry(0.04 + (i % 3) * 0.013, 1).translate(Math.sin(a) * r, -0.3 - (i % 3) * 0.07, Math.cos(a) * r * DEPTH)); }
   many(smoke, puffs, smokeB);
   // the head: a capelet over the shoulders, the hood (no face: the dark of it, two white eyes), its ribbons' roots
   const head = pivot(hull, 0, NECK, 0, 'head');

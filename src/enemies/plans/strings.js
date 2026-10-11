@@ -5,6 +5,9 @@ import { PoseBlend } from '../../motion-kit/pose.js';
 import { Pendulum } from '../../motion-kit/machines.js';
 import { materials, add, many, skinBy, pivot, pair, lerp, ease, smooth, finish } from './kit.js';
 
+/** The glass puppet's see-through: where its glass faces you more squarely than this (|n·v|), nothing is drawn. */
+export const GLASS_VEIL = 0.6;
+
 // Plan 21, suspended on strings (docs/systems/procedural-animation.md §4, the kit's `strings`): the marionette
 // (docs/design/enemy-roster.md, archetype 21), drawn to its sheets (references/enemy-archetypes/marionette/: sheet-1 the
 // Garden of Spheres' glass puppet, sheet-2 the Signal Market's parcel puppet). A thin rigid puppet two metres tall,
@@ -93,7 +96,9 @@ export function marionetteModel(skin) {
   const body = pivot(hang, 0, CHEST - PL.anchor, 0, 'puppet');
   const bodyB = M.mat('bodyBuild', P.body), jointB = M.mat('jointBuild', P.joint), sealB = parcel ? M.mat('sealBuild', P.seal) : null;
   // (glass catches the light even in its shade: a little of its own)
-  const bodyM = M.mat('body', P.body, { vertexColors: true, flat: parcel || girder, glow: props.has('silver') ? 0.22 : 0 }), jointM = M.mat('joint', P.joint, { vertexColors: true, glow: props.has('silver') ? 0.15 : 0 });
+  // (the glass puppet's limbs see-through, v1.47: makeMaterial's veil cut, only the rim of the glass drawn where it turns
+  // from you, the bright rim its glow; its pearl joints solid)
+  const bodyM = M.mat('body', P.body, { vertexColors: true, flat: parcel || girder, glow: props.has('silver') ? 0.22 : 0, ...(props.has('silver') ? { veil: GLASS_VEIL } : {}) }), jointM = M.mat('joint', P.joint, { vertexColors: true, glow: props.has('silver') ? 0.15 : 0 });
   // (a limb: a glass capsule, a parcel's box, a girder's I-beam; a joint: a pearl ball, a knot of twine, a bolt)
   const limb = (len, r0) => { const r = r0 * 1.35; return (parcel ? new THREE.BoxGeometry(r * 2.4, len * 0.92, r * 2.1) : girder ? new THREE.BoxGeometry(r * 1.6, len * 0.95, r * 2.2) : new THREE.CapsuleGeometry(r, Math.max(0.01, len - r * 2), 4, 8)).translate(0, -len / 2, 0); };
   const ball = (r0) => { const r = r0 * 1.3; return girder ? new THREE.CylinderGeometry(r * 0.9, r * 0.9, r * 1.6, 8).rotateZ(Math.PI / 2) : new THREE.SphereGeometry(r, 10, 8); };

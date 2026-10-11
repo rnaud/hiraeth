@@ -69,6 +69,14 @@ export const CHANGELOG = [
     // the matrix cache (issue #105)
     { text: 'People no longer flicker for a frame into another pose: a body caught mid-move, a rider’s seat after the hoverbike moved, or a lantern just handed from one hand to another is always drawn where it really is.',
       see: 'Walk among the people at the desert’s camps and watch someone pick up or hand over a lantern: no frame shows it in the old hand.' },
+    // the enemies against their design sheets, batch 4 (docs/design/enemy-roster.md "Status"; issue #31)
+    'The possessed machines look more like their drawings: the furnace brute’s hull is cracked in a lighter net of fine lines, only some of its cracks glowing violet; the bell walker’s spirit now clings to the outside of the bell’s lip, so you can see its eyes and hands from above, and its legs are plated in riveted brass; and the ring drone’s caught cloud spreads out past its plates in curling wisps.',
+    // the enemies against their design sheets, batch 5 (docs/design/enemy-roster.md "Status"; issue #33)
+    'The late spirits and the roller look more like their drawings: the smoke under a shade’s cloak now hangs in flame-like tongues that curl over at their tips; the pearl roller’s spiral is on one side of its shell only, the Garden’s pearl shell rocks on brass runners as it winds up to bowl at you, and every roller leaves a glistening trail where it grazes; and the glass puppet is see-through glass now, only its edges catching the light.',
+    // the dash cut (docs/systems/foes.md "The dash cut"; issue #35)
+    'The dash cut comes round sooner, and a dash cut through a creature’s back lands double, with a gold ring round it: evade or hop round a foe that just struck, or catch one turned away from you, and cut.',
+    // the enemies against their design sheets, batch 3 (docs/design/enemy-roster.md "Status"; issue #29)
+    'Three creatures now match their drawings more closely: the skitters walk on curved, bony legs bowed out like sickles instead of straight sticks; a stilt heron you run at takes off and flies away to wade somewhere else, its legs trailing behind it (walk up to it and it still strides off); and a bellows toad’s swollen throat goes see-through as it winds up its spore lob, so you can see the glob floating inside it.',
   ] },
   { v: '1.46', date: '2026-10-11', items: [
     // nobody sends you to somebody else (docs/systems/story.md "Straight to the end"; issue #85)

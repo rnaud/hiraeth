@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { twoBone, fabrik, aim } from './ik.js';
+import { twoBone, fabrik, aim, aimIn } from './ik.js';
 import { GaitPlanner } from './gait.js';
 import { BodyFromFeet } from './body.js';
 import { PoseBlend } from './pose.js';
@@ -74,18 +74,40 @@ export function matrixTo(obj, ancestor, out) {
  *   lenC            a third segment (a root-arm's tip: two bends), solved by FABRIK from a guess curled toward the pole
  *   balls, taper    the joints' balls × (1: half again the leg's radius), how much the segments taper (1: to 0.6 at the foot)
  */
-export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, lenB, lenC = 0, pole, radius = 0.05, balls = 1, taper = 1, mats, pad = 'pad', ankle = null, piston = null, air = null, name = 'leg' }) {
+/**
+ * A segment `len` long along +Y from its origin, radius r0 at its root to r1 at its end, bowed out toward +Z by `bow` of
+ * its length at its middle (a sine along it: straight at both joints), its rings turned along the curve.
+ */
+export function bowedGeometry(len, r0, r1, bow, rings = 8, sides = 7) {
+  const g = new THREE.CylinderGeometry(r1, r0, len, sides, rings).translate(0, len / 2, 0);
+  const p = g.attributes.position, n = g.attributes.normal, B = bow * len;
+  for (let i = 0; i < p.count; i++) {
+    const t = THREE.MathUtils.clamp(p.getY(i) / len, 0, 1), off = B * Math.sin(Math.PI * t), slope = B * Math.PI * Math.cos(Math.PI * t) / len;
+    // (the ring tipped as the curve: its point turned about x by the slope's angle round the axis point)
+    const a = Math.atan(slope), c = Math.cos(a), s = Math.sin(a), y0 = p.getY(i), z0 = p.getZ(i);
+    p.setY(i, y0 - z0 * s); p.setZ(i, off + z0 * c);
+    const ny = n.getY(i), nz = n.getZ(i);
+    n.setY(i, ny * c - nz * s); n.setZ(i, ny * s + nz * c);
+  }
+  g.computeBoundingSphere();
+  return g;
+}
+
+export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, lenB, lenC = 0, pole, radius = 0.05, balls = 1, taper = 1, mats, pad = 'pad', ankle = null, piston = null, air = null, bow = null, name = 'leg' }) {
   const H = new THREE.Object3D(); H.name = `${name} hip`; H.position.set(hip.x, hip.y, hip.z); hipParent.add(H);
   const root = new THREE.Group(); root.name = name; group.add(root);
   const r = radius, j = mats.joint ?? mats.thigh;
-  const seg = (len, r0, r1, mat, ball) => {
+  const seg = (len, r0, r1, mat, ball, b = 0) => {
     const g = new THREE.Group(); root.add(g);
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r0, len, 7).translate(0, len / 2, 0), mat); g.add(m);
+    const m = new THREE.Mesh(b ? bowedGeometry(len, r0, r1, b) : new THREE.CylinderGeometry(r1, r0, len, 7).translate(0, len / 2, 0), mat); g.add(m);
     if (ball) g.add(new THREE.Mesh(new THREE.SphereGeometry(ball, 8, 6), j));
     return g;
   };
-  const thigh = seg(lenA, r, r * (1 - 0.15 * taper), mats.thigh ?? j, r * 1.45 * balls);
-  const shin = seg(lenB, r * (1 - 0.15 * taper), lenC ? r * 0.7 : r * (1 - 0.4 * taper), mats.shin ?? j, r * 1.35 * balls);
+  // (bow: { thigh, shin } a share of each segment's length it bows out by, toward the knee's side: the rig turns a bowed
+  // leg's segments about their length into the leg's own bend plane, Rig.write and ik.js aimIn; bow: {} only turns them,
+  // so whatever is built on a segment's +Z faces the knee's side: a bell walker's plates on its legs' outer faces)
+  const thigh = seg(lenA, r, r * (1 - 0.15 * taper), mats.thigh ?? j, r * 1.45 * balls, bow?.thigh ?? 0);
+  const shin = seg(lenB, r * (1 - 0.15 * taper), lenC ? r * 0.7 : r * (1 - 0.4 * taper), mats.shin ?? j, r * 1.35 * balls, bow?.shin ?? 0);
   const tip = lenC ? seg(lenC, r * 0.7, r * 0.42, mats.tip ?? mats.shin ?? j, r * 1.1) : null;
   const f = new THREE.Group(); root.add(f);
   const ah = ankle ?? (pad === 'point' ? r * 0.6 : pad === 'disc' ? r * 0.9 : r * 0.8);
@@ -98,7 +120,7 @@ export function jointedLeg({ group, body, hipParent = body, hip, foot, lenA, len
     rod = seg(lenA * 0.6, r * 0.38, r * 0.38, mats.rod ?? mats.shin ?? j, 0);
   }
   return {
-    hip: H, root, thigh, shin, tip, foot: f, lenA, lenB, lenC, ankle: ah,
+    hip: H, root, thigh, shin, tip, foot: f, lenA, lenB, lenC, ankle: ah, bowed: !!bow,
     chain: lenC ? [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()] : null,
     pole: new THREE.Vector3(pole.x, pole.y, pole.z).normalize(),
     home: new THREE.Vector3(foot.x, 0, foot.z),
@@ -265,8 +287,17 @@ export class Rig {
       twoBone(_hip, _foot, L.lenA, L.lenB, _pole, _knee, _end);
       L.root.position.copy(_hip);
       _knee.sub(_hip); _end.sub(_hip);
-      aim(L.thigh, _zero, _knee);
-      aim(L.shin, _knee, _end);
+      if (L.bowed) {
+        // (bowed segments: each turned so its bow lies in the leg's bend plane, out toward the knee's side; the knee
+        // is off the hip-to-foot line toward the pole, so that is the side the knee sits on)
+        _side.subVectors(_end, _zero).multiplyScalar(0.5).sub(_knee).negate();
+        if (_side.lengthSq() < 1e-8) _side.copy(_pole);
+        aimIn(L.thigh, _zero, _knee, _side);
+        aimIn(L.shin, _knee, _end, _side);
+      } else {
+        aim(L.thigh, _zero, _knee);
+        aim(L.shin, _knee, _end);
+      }
       L.foot.position.copy(_end); L.foot.position.y -= L.ankle;
       if (L.piston) {
         // a telescoping rod: the sleeve from the body's anchor, the rod from the thigh's middle, each aimed at the other
@@ -304,4 +335,4 @@ export class Rig {
   /** Show or hide the legs with the body (a shadow that sinks, a buried foe). */
   set visible(v) { for (const l of this.legs) l.root.visible = v; }
 }
-const _m2 = new THREE.Matrix4(), _zero = new THREE.Vector3();
+const _m2 = new THREE.Matrix4(), _zero = new THREE.Vector3(), _side = new THREE.Vector3();

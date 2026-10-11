@@ -44,11 +44,13 @@ export function skitterModel(skin) {
   const eyes = many(shell, pair((s) => new THREE.SphereGeometry(0.022 * K, 8, 6).translate(s * 0.075 * K, 0.035 * K, 0.295 * K)), eyeM);
   many(shell, pair((s) => new THREE.SphereGeometry(0.009 * K, 5, 4).translate(s * 0.08 * K, 0.044 * K, 0.315 * K)), glintM);
   const feelers = pair((s) => { const p = pivot(shell, s * 0.06 * K, 0.03 * K, 0.29 * K, 'feeler'); tube(p, [[0, 0, 0], [s * 0.02, -0.03, 0.07], [s * 0.05, -0.06, 0.15], [s * 0.09, -0.07, 0.2]].map((q) => q.map((x) => x * K)), 0.0045 * K, legM); return p; });
-  // six short hooked legs from under the rim, the knees rising above the dome, pointed ivory feet; a tripod on the kit
+  // six short hooked legs from under the rim, the knees rising above the dome, pointed ivory feet; a tripod on the kit.
+  // Curved bony legs, as the sheets draw them: the thigh arching up to the knee, the shin bowed out like a sickle
+  // (jointedLeg's bow: each segment turned into the leg's own bend plane by the rig)
   const legs = [];
   for (const s of [-1, 1]) for (let k = 0; k < 3; k++) {
     const z = (0.17 - k * 0.17) * K;
-    const leg = planLeg(PLANS.skitterers, { group: g, body, hipParent: shell, hip: { x: s * 0.22 * K, y: 0.02 * K, z }, foot: { x: s * 0.42 * K, z: z * 1.6 + 0.02 }, pole: { x: s * 0.6, y: 1.4, z: z * 0.4 }, radius: 0.023 * K, pad: 'point', mats: { joint: jointM, thigh: legM, shin: legM, foot: legM }, name: `skitter leg ${legs.length}` });
+    const leg = planLeg(PLANS.skitterers, { group: g, body, hipParent: shell, hip: { x: s * 0.22 * K, y: 0.02 * K, z }, foot: { x: s * 0.42 * K, z: z * 1.6 + 0.02 }, pole: { x: s * 0.6, y: 1.4, z: z * 0.4 }, radius: 0.023 * K, pad: 'point', bow: { thigh: 0.1, shin: 0.13 }, mats: { joint: jointM, thigh: legM, shin: legM, foot: legM }, name: `skitter leg ${legs.length}` });
     tube(leg.foot, [[0, 0.05 * K, 0], [s * 0.012 * K, 0.02 * K, 0.01 * K], [-s * 0.008 * K, 0, 0.012 * K]], 0.012 * K, legM, 0.003);   // (the hook)
     legs.push(leg);
   }

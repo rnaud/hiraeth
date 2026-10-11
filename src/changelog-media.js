@@ -579,6 +579,8 @@ const C47_HEIGHT = '17e3487f4fdd23c842fa7fe67627d77b0dbe6204';   // (the high pl
 const C47_DUNES = 'ee36b1b3287cacf1927d237b6e1a16378bfb239a';   // (the breaker's cairn, issue #19)
 const C47_ARRIVAL = 'b78671a35ee4a75e132bb5e523f85cd09b0bd110';   // (the Dock's and the apron's first view, issue #102)
 const SAVE47 = { flags: { 'prologue.done': true, 'item.backpack': true, 'item.doublejump': true, 'item.gun': true, 'items.v': 2, 'save.migrated': 15, 'tool.empty': false, 'ship.powered': true, 'world.desert.done': true }, keepsakes: [] };
+const ART46 = (c) => ({ commit: c, before: `${c}^` });
+const FROM46 = 'the creatures gallery (enemies.html, headless Chrome, 1280 × 720, muted) against this branch’s own Vite, the body held in that pose by a scratch shooter (11 October)';
 export const CHANGELOG_MEDIA = {
   '1.47': [
     { match: 'Arriving in the Underwater City, the Dock is no longer a bare floor', shots: [
@@ -615,6 +617,42 @@ export const CHANGELOG_MEDIA = {
       { name: 'desert-field-stone', title: 'The field-stone', caption: 'On the dunes between the Givers’ House (left) and the ship, the House done: before, sand; after, the Givers’ field-stone, the green field beside it', commit: C46_DESERT,
         view: { level: 'desert', save: SAVE46_DESERT_DONE, hour: 10, fov: 60, eye: [268, 8, 248], target: [302, 3, 278], player: [262, 7, 243] } },
     ] },
+    { match: 'The possessed machines look more like their drawings', shots: [
+      { name: 'art-brute', title: 'Lorn II', caption: 'The wood cutter three-quarter, before and after: a heavy net of grey seams with violet veins along every crack, then fewer, finer seams and only some of the cracks violet', ...ART46('98b65441'),
+        view: { foe: { id: 'brute@perdide2', yaw: 0.75, pitch: 0.12 } }, reference: REF('brute', 1, 'the wood cutter (Lorn II)') },
+      { name: 'art-bell', title: 'Signal Market', caption: 'The sign automaton from above, as the traveller’s camera sees it, before and after: the spirit hidden under the lip and plain round legs, then its eyes and hands over the rim and riveted brass plates down the legs', ...ART46('98b65441'),
+        view: { foe: { id: 'bell@bazaar', yaw: 0.3, pitch: 0.5 } }, reference: REF('bell', 1, 'the sign automaton (the Signal Market)') },
+      { name: 'art-drone', title: 'City-Shaft', caption: 'The rust drone from the front, before and after: a ring of puffs in each gap, then the cloud spreading out past the plates in curling wisps', ...ART46('98b65441'),
+        view: { foe: { id: 'drone@incal', yaw: 0, pitch: 0.12, pose: 'walk' } }, reference: REF('drone', 1, 'the rust drone (the City-Shaft)') },
+    ] },
+    { match: 'The late spirits and the roller look more like their drawings', shots: [
+      { name: 'art-shade', title: 'Lorn II', caption: 'The hollow woodsman, before and after: a fringe of white-lined beans under the hem, then tongues of smoke narrowing to points and curling over at their tips', ...ART46('5c63dbea'),
+        view: { foe: { id: 'shade@perdide2', yaw: 0.6, pitch: 0.1, zoom: 0.72 } }, reference: REF('shade', 1, 'the hollow woodsman (Lorn II)') },
+      { name: 'art-roller', title: 'Sealed Hangar', caption: 'The ball-bearing snail from its right, before and after: a spiral on this side as on the other, then the shell plain on this side, its spiral on the left only', ...ART46('5c63dbea'),
+        view: { foe: { id: 'roller@garage', yaw: -1.5708, pitch: 0.12 } }, reference: REF('roller', 1, 'the ball-bearing snail (the Sealed Hangar)') },
+      { name: 'art-roller-runners', title: 'Garden of Spheres', caption: 'The pearl shell winding up its bowl, before and after: rocking on its foot, then on two brass runners slid out under it, like a rocking horse', ...ART46('5c63dbea'),
+        view: { foe: { id: 'roller@spheres', yaw: 1.2, pitch: 0.12, pose: 'bowl', at: 0.85 } }, reference: REF('roller', 2, 'the pearl shell (the Garden of Spheres), its runners at the bottom right') },
+      { name: 'art-marionette', title: 'Garden of Spheres', caption: 'The glass puppet, before and after: solid white glass, then see-through, only the edges of its glass drawn, its pearl joints solid', ...ART46('5c63dbea'),
+        view: { foe: { id: 'marionette@spheres', yaw: 0.6, pitch: 0.08 } }, reference: REF('marionette', 1, 'the glass puppet (the Garden of Spheres)') },
+      { name: 'art-roller-trail', title: 'The trail', only: 'after', caption: 'A ball-bearing snail grazing in the Arena, from above: the lighter, wet sheen it leaves behind its foot, fading as it goes (before, nothing)', from: 'headless Chrome (High, 1280 × 720, muted) on this branch’s own Vite: a calm roller added in the Arena 13 m from the traveller, nine seconds of grazing, the camera following it from above (11 October)' },
+    ], see: 'In the Sealed Hangar or the Garden of Spheres, watch a pearl roller graze: a lighter, wet-looking trail follows its foot over the ground and fades.' },
+    { match: 'The dash cut comes round sooner', numbers: [
+      { title: 'The dash cut against one foe: harm a second, by its cooldown', unit: '/s', better: 'higher', device: 'the combat review’s move model (scripts/combat-review/lib.mjs movesFrom: damage over max(cooldown, its length + 0.3 s))', rows: [
+        { where: 'from the front or the side', before: 1.33, after: 1.82 },
+        { where: 'through its back', before: 1.33, after: 3.64 },
+        { where: 'the light combo, for comparison', before: 2.35, after: 2.35 },
+      ], source: 'src/fluid-blade.js DASH (cooldown 1.5 → 1.1 s), src/foes.js BACKSTAB (×2 within about 75° of straight behind)' },
+    ], see: 'In the Arena, lock on to a horn lizard, side-hop past it as it bites and press the blade as you land, behind it: the cut lands double and a gold ring runs out round it.' },
+    { match: 'Three creatures now match their drawings more closely', shots: [
+      { name: 'art-skitter', title: 'Desert', caption: 'The dune skitter three-quarter, before and after: straight stick legs, then the thighs arching up to the knees and the shins bowed out like sickles', ...ART46('465e0985'),
+        view: { foe: { id: 'skitter@desert', yaw: 0.75, pitch: 0.12 } }, reference: REF('skitter', 1, 'the dune skitters (the Desert)') },
+      { name: 'art-skitter-alt', title: 'Moon Foundry', caption: 'The furnace beetle from the front, before and after: the same curved bony legs', ...ART46('465e0985'),
+        view: { foe: { id: 'skitter@moonfoundry', yaw: 0.25, pitch: 0.12 } }, reference: REF('skitter', 2, 'the furnace beetles (the Moon Foundry)') },
+      { name: 'art-toad', title: 'Lorn', caption: 'The spore toad winding up its lob, before and after: an opaque lilac ball with the glob pressed to its front, then a see-through sac, only its rim drawn, the glob floating inside it', ...ART46('465e0985'),
+        view: { foe: { id: 'toad@perdide', yaw: 0.75, pitch: 0.12, pose: 'lob', at: 0.6 } }, reference: REF('toad', 1, 'the spore toad (Lorn), its sac swollen on the right') },
+      { name: 'art-heron-flight', title: 'Vael', only: 'after', caption: 'The ridge runner flying off after you ran at it: the neck drawn into its S, the wings spread and beating, the legs trailing behind (before, it only strode away on the ground)', from: FROM46,
+        reference: REF('heron', 2, 'the ridge runner (Vael)') },
+    ], see: 'In the Desert or Vael, find a stilt heron wading and run straight at it: it crouches, takes off and lands a good way off. Walk up to it instead and it strides away.' },
   ],
   '1.46': [
     // (the level design audit's edits, issues #39 #40 #42 #19 #102)

@@ -945,6 +945,10 @@ surface is drawn in two parts:
   and a thin inner line where the band gives way to what is behind (the sheets' double contour of glass). Its line is
   0.7 in a shade of its own colour (`line`, `lineTint`). The shadow maps draw the whole shape (the wood is dark under
   the caps). Not one of `SURFACE_FEATURES`, and guarded by `uVeil > 0`: a shader made without `SURFACE_SPEC` never cuts.
+  The roster's glass wears the cut alone, with no wash (a wash would be another program): the bellows toad's sac as it
+  swells (`uVeil` from 0 at rest to 0.7, the glob inside it showing; src/enemies/plans/hopper.js) and the Garden's glass
+  puppet (`GLASS_VEIL` 0.6, src/enemies/plans/strings.js). Each swaps its material's program for one with `S_VEIL`:
+  the same number of programs in each world.
 - **Its body, after the ink pass** (`Veils`, main.js `renderFrame` step 4, before the wind and the motes): the same
   geometry again (one wash mesh per veiled mesh, sharing its buffers), drawn over the finished picture at `alpha` a layer
   (0.3 a cap skin, 0.4 a stalk wall, 0.4 where it glows; a cap's two skins or a stalk's near and far wall make about

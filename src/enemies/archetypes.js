@@ -19,6 +19,8 @@ import { fromPattern } from './attacks.js';
 //             'drift' | 'wade' | 'sit' | 'root' | 'trundle' | 'stand' | 'toll' | 'walk' | 'circle' | 'wander' | 'pace'),
 //             wild (wildlife: it fights only when provoked), provoke (m: closer and it fights), shy (m: it backs away),
 //             alarm (m: one of its own provoked near it provokes it), hunts (the share that hunt at all)
+//             flee { run, far, up, time, crouch }: run at it (faster than `run` m/s) inside `shy` and it flies off
+//             `far` m away, `up` m high, to a new home (Foe.takeOff: the heron)
 //   sound     its hurt and burst family (combat-v1.4 rec. 2): a shell's clack, glass ringing, a bellows wheezing, brass,
 //             ink, cloth…; its own voice in it is src/foe-voices.js FOE_VOICES[kind] (src/audio.js foeHurt / foeBurst)
 //   drop      chimes it leaves (src/chimes.js DROP_OF)
@@ -213,11 +215,12 @@ export const ARCHETYPES = {
     name: 'stilt heron', family: 'creature', plan: 'stilt', planNo: 7, role: 'reach', tier: 1, ranged: false,
     status: 'built', kind: 'heron', was: [], sound: 'clay', drop: 3, art: { main: 'desert', alt: 'arzach' },
     moves: ['spear', 'sweep', 'wing buffet'], answers: ['dash cut inside its reach', 'charged cut at a leg topples it', 'parry the spear'],
-    idle: 'wades and fishes, stabbing at the water; walks off if you come near; fights only if you corner it',
+    idle: 'wades and fishes, stabbing at the water; walks off if you come near, flies off if you run at it; fights only if you corner it',
     def: S({
       name: 'stilt heron', hp: 4, radius: 0.6, height: 1.3, speed: 2.6, sight: 18, giveUp: 34, reach: 5.2, topples: true,
       tone: '#5fbfb0', takes: { shoot: 1, fire: 1 },
-      calm: { mode: 'wade', wild: true, provoke: 2.8, shy: 7, alarm: 8 },
+      // (run at it and it flies off, to land 13 m away: its new home; only walk up and it strides away)
+      calm: { mode: 'wade', wild: true, provoke: 2.8, shy: 7, alarm: 8, flee: { run: 3.2, far: 13, up: 3.6, time: 2.1, crouch: 0.45 } },
       attacks: [
         // the spear: the neck drawn back into a tight S, the body leaning back; then it straightens all at once
         { id: 'spear', name: 'spear', shape: 'lane', width: 0.9, range: 5.2, damage: 0.5, wind: 0.9, strike: 0.2, contact: 0.6, lunge: 1.0, track: 0.35, min: 2.2, max: 5.2, weight: 2, onParry: 'open',

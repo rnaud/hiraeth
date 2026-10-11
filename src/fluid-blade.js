@@ -207,9 +207,10 @@ export const RIPOSTE = { clip: 'mixamo_ss_slash_4', window: 0.6, from: 1.05, hit
  * left (the foe on his sword side, the sweep crossing it as he goes by), as fast as that takes (up to `fastest` m/s), still
  * facing it. No i-frames of its own (the
  * evade's are all there are). `cooldown` s from one dash cut to the next: evade, cut, evade again and the press is a
- * plain swing.
+ * plain swing. Through a foe's back (v1.47, issue #35: the blow's way within about 75° of the way it faces) it lands
+ * double (src/foes.js BACKSTAB, Foe.hit's `info.dash`): the answer to a foe turned from you, and to the evade round one.
  */
-export const DASH = { clip: 'mixamo_ss_attack_2', late: 0.15, cooldown: 1.5, speed: 9, pull: 5, side: 1.1, past: 1.0, fastest: 16, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.16, active: 0.14, recover: 0.26,
+export const DASH = { clip: 'mixamo_ss_attack_2', late: 0.15, cooldown: 1.1, speed: 9, pull: 5, side: 1.1, past: 1.0, fastest: 16, from: 0.3, hit: 0.56, activeFrom: 0.49, activeTo: 0.64, to: 1.0, wind: 0.16, active: 0.14, recover: 0.26,
   angle: 1.7, reach: 3.2, damage: 2 };
 /**
  * Does a swing turn into the charge now (CHARGE)? A combo swing (`n` 0..2, not a special: the air cuts, the riposte, the
@@ -877,7 +878,7 @@ export class FluidBlade {
     for (const h of hits) this.hitTargets.add(h.target);
     const damage = S === CHARGE ? CHARGE.damage[this.chargeFull ? 1 : 0] : S?.damage ?? BLADE.damage[this.n] ?? 1;
     const light = airLight(S), heavy = this.n === 2 || (!!S && !light);   // (the air combo's light swings count as the combo's own)
-    const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}) };
+    const info = { ...T.info(), damage, combo: S && !light ? 2 : this.n, ...(S === CHARGE ? { breaks: true } : {}), ...(S === AIR || light ? { air: true } : {}), ...(S === RIPOSTE ? { breaks: true, stagger: RIPOSTE.stagger, riposte: true } : {}), ...(S === DASH ? { dash: true, source: 'dash' } : {}) };
     for (const h of hits) h.target.onHit?.('blade', h.point, h.dir, { ...info, mode: 'blade' });
     // a creature the blade passes through is bonked (v1.41: it was only scared off, from anywhere in the cone): knocked
     // away head over heels, dazed a moment, no harm (src/wildlife.js BONK); the cut's sphere test as for a foe with no body

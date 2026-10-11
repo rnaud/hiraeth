@@ -34,15 +34,15 @@ test('one card per theme, each its latest report (versions compared as numbers: 
     assert.equal(+t.latest.version.split('.')[1] + 1000 * +t.latest.version.split('.')[0], top, `${t.kind}: the highest version`);
   }
   // a new report of a kind becomes its card at once
-  const fake = { ...reports.find((r) => r.id === 'combat-v1.22'), id: 'combat-v1.40', version: '1.40', overall: 4.6 };
+  const fake = { ...reports.find((r) => r.id === 'combat-v1.47'), id: 'combat-v1.50', version: '1.50', overall: 4.6 };
   const t2 = latestByTheme([...reports, fake]).find((t) => t.kind === 'combat');
-  assert.equal(t2.latest.id, 'combat-v1.40');
-  assert.equal(t2.prev.id, 'combat-v1.22');
-  assert.equal(t2.delta, 0.09);
+  assert.equal(t2.latest.id, 'combat-v1.50');
+  assert.equal(t2.prev.id, 'combat-v1.47');
+  assert.equal(t2.delta, 0.08);
 });
 
 test('the change since the one before: overall, and each item since the last time it was judged', () => {
-  assert.equal(theme('combat').prev.id, 'combat-v1.18'); assert.equal(theme('combat').delta, 0.01);
+  assert.equal(theme('combat').prev.id, 'combat-v1.22'); assert.equal(theme('combat').delta, 0.01);   // (combat-v1.47: 4.52, combat-v1.22: 4.51)
   assert.equal(theme('level-design').prev.id, 'level-design-v1.20'); assert.equal(theme('level-design').delta, 0.13);
   assert.equal(theme('temple-design').delta, 0.03);
   assert.equal(theme('game').delta, 0.1);   // (game-v1.46: 3.8, game-v1.0: 3.7)
@@ -55,12 +55,14 @@ test('the change since the one before: overall, and each item since the last tim
 
   const desert = group('level-design', 'Worlds').rows.find((r) => r.label === 'The Desert');
   assert.deepEqual([desert.value, desert.from, desert.fromVersion, desert.delta], [4, 3.89, '1.20', 0.11]);
-  // combat v1.18 judged three archetypes: the others are compared with the batch that judged them
+  // combat v1.47 judged the whole roster again: each is compared with the last report that judged it (v1.22; the makers'
+  // machine, unjudged since v1.6, with v1.6's; the three new guardians with nothing)
   const arche = group('combat', 'Archetypes').rows;
-  assert.equal(arche.find((r) => r.key === 'shellback crab').fromVersion, '1.8');
-  assert.equal(arche.find((r) => r.key === 'bellows toad').fromVersion, '1.13');
-  assert.equal(arche.find((r) => r.key === 'shade').fromVersion, '1.18');
-  assert.ok(group('combat', 'Guardians').rows.every((r) => r.fromVersion === '1.6'), 'the guardians were last scored at v1.6');
+  assert.equal(arche.find((r) => r.key === 'shellback crab').fromVersion, '1.22');
+  assert.equal(arche.find((r) => r.key === 'bellows toad').fromVersion, '1.22');
+  assert.equal(arche.find((r) => r.key === 'shade').fromVersion, '1.22');
+  const guardRows = group('combat', 'Guardians').rows;
+  assert.ok(guardRows.filter((r) => !/\(new\)/.test(r.label ?? r.key)).every((r) => r.fromVersion === '1.22'), 'the guardians were last scored at v1.22');
   const themesGame = group('game', 'Themes').rows;
   assert.equal(themesGame.find((r) => /^Quality/.test(r.label)).delta, 1);   // (game-v1.46: quality 2 → 3)
   // fewer findings is better: the visual audit's counts
@@ -77,8 +79,8 @@ test('the change since the one before: overall, and each item since the last tim
 
 test('the parsers on the real reports: each kind\'s items add up to its overall', () => {
   const arche = group('combat', 'Archetypes').rows, guards = group('combat', 'Guardians').rows;
-  assert.equal(arche.length, 21); assert.equal(guards.length, 11);
-  assert.ok(near(avg([...arche, ...guards].map((r) => r.value)), theme('combat').latest.overall, 0.02), 'the 32 totals\' mean');
+  assert.equal(arche.length, 22); assert.equal(guards.length, 14);
+  assert.ok(near(avg([...arche, ...guards].map((r) => r.value)), theme('combat').latest.overall, 0.02), 'the 36 totals\' mean');
   const worlds = group('level-design', 'Worlds').rows;
   assert.equal(worlds.length, 11);
   assert.ok(near(avg(worlds.map((r) => r.value)), theme('level-design').latest.overall));
@@ -150,7 +152,7 @@ test('the cards: score, change, items, the link to the full audit, History behin
       for (const h of t.history) assert.ok(card.includes(`href="#/${h.id}"`), `${t.kind}: history opens ${h.id}`);
     }
   }
-  assert.match(themeCard(theme('combat')), /▲ \+0\.01 <small>since v1\.18/);
+  assert.match(themeCard(theme('combat')), /▲ \+0\.01 <small>since v1\.22/);
   assert.match(themeCard(theme('combat')), /class="theme wide"/, 'a card of many items spans two columns');
   assert.match(themeCard(theme('dialogue')), /the first dialogue audit/);
   assert.match(themeCard(theme('perf')), /2\/4/);

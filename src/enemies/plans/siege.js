@@ -108,11 +108,14 @@ export function bellModel(skin) {
     many(clapPivot, [new THREE.CylinderGeometry(0.035, 0.03, 1.45, 8).translate(0, -0.72, 0)], darkM);
     ball = add(clapPivot, new THREE.SphereGeometry(0.17, 14, 10), M.mat('clapper', P.clapper ?? P.dark), 0, -1.55, 0);
     // the spirit at the lip: a black body peering over the rim from inside, eyes, two thin arms hooked over it
-    // (it peers over the front of the lip: its head just over the rim, its arms hooked over the rim to either side)
-    spirit = pivot(swing, 0, -1.64, 0.6, 'spirit');
-    add(spirit, new THREE.SphereGeometry(0.28, 14, 10).scale(1.15, 0.75, 0.8), spiritM, 0, -0.04, -0.06);
-    many(spirit, [-1, 1].map((s) => new THREE.SphereGeometry(0.055, 8, 6).scale(1, 1.25, 0.6).translate(s * 0.11, 0.06, 0.16)), eyeM);
-    many(spirit, [-1, 1].map((s) => tubeGeometry([[s * 0.22, -0.02, 0.0], [s * 0.36, 0.06, 0.16], [s * 0.4, 0.0, 0.3], [s * 0.38, -0.12, 0.32]], 0.028, 0.014)), inkM);
+    // (it peers over the front of the lip: its head out past the rim, so from above, where the traveller's camera is, it
+    // shows beyond the bell's flare, tipped up to look at you; its arms hooked back over the rim to either side, v1.46)
+    spirit = pivot(swing, 0, -1.6, 0.92, 'spirit');
+    spirit.rotation.x = -0.35;
+    add(spirit, new THREE.SphereGeometry(0.28, 14, 10).scale(1.1, 0.68, 0.8), spiritM, 0, -0.02, 0.0);
+    many(spirit, [-1, 1].map((s) => new THREE.SphereGeometry(0.065, 8, 6).scale(1, 1.25, 0.6).translate(s * 0.12, 0.06, 0.2)), eyeM);
+    // (the arms: out from its sides, up over the rim and the long fingers curled down on top of it)
+    many(spirit, [-1, 1].map((s) => tubeGeometry([[s * 0.2, 0.0, 0.04], [s * 0.4, -0.03, 0.14], [s * 0.5, 0.14, 0.04], [s * 0.48, 0.16, -0.08], [s * 0.46, 0.06, -0.14]], 0.032, 0.014)), inkM);
   } else {
     // the winch: a drum with flanges on an axle across the yoke, its chain wound round it; the chain and its hook below
     const drumM = M.mat('drum', P.bell, { color2: P.bell2 }), chainM = M.mat('chain', P.chain, { metal: 'iron', color: P.chain });
@@ -135,12 +138,30 @@ export function bellModel(skin) {
   for (let k = 0; k < 18; k++) { const a = (k / 18) * Math.PI * 2 + (k % 3) * 0.1, l = 0.1 + ((k * 5) % 4) * 0.08, r = winch ? 0.5 : 0.93; runs.push(new THREE.ConeGeometry(0.028, l, 5).rotateX(Math.PI).translate(Math.sin(a) * r, (winch ? -1.45 : -1.62) - l / 2, Math.cos(a) * r)); }
   many(swing, runs, inkM);
   // five short spider legs round the hub on the kit: a plated thigh up and out to a high knee, a long shin to a point
+  // (bow: {}: each segment turned into the leg's own plane, so its plates sit on the outer face, the knee's side)
   const legs = [0, 1, 2, 3, 4].map((k) => {
     const a = Math.PI + (k / 5) * Math.PI * 2, sx = Math.sin(a), cz = Math.cos(a);
     return planLeg(PL, { group: g, body, hipParent: frame, hip: { x: sx * 0.38, y: HUB_Y - 0.02, z: cz * 0.38 }, foot: { x: sx * 1.05, z: cz * 1.05 },
-      radius: 0.13, balls: 0.9, taper: 0.7, pad: 'point', mats: { joint: jointB, thigh: legB, shin: legB, foot: legB }, name: `bell leg ${k}` });
+      radius: 0.13, balls: 0.9, taper: 0.7, pad: 'point', bow: {}, mats: { joint: jointB, thigh: legB, shin: legB, foot: legB }, name: `bell leg ${k}` });
   });
-  for (const L of legs) many(L.shin, [new THREE.BoxGeometry(0.2, 0.5, 0.06).translate(0, 0.35, 0.09), new THREE.CylinderGeometry(0.13, 0.13, 0.08, 10).rotateX(Math.PI / 2).translate(0, 0, 0.1)], jointB);
+  // the legs' plating, as the sheets draw it (v1.46): riveted brass plates down each segment's outer face, a band at
+  // each end, a disc at the knee; on the shin a long plate tapering to the point, its two rows of rivets
+  const rivets = (x0, z, y0, y1, n) => Array.from({ length: n }, (_, i) => new THREE.SphereGeometry(0.02, 5, 4).translate(x0, y0 + (y1 - y0) * i / (n - 1), z));
+  for (const L of legs) {
+    const A = L.lenA, B = L.lenB;
+    many(L.thigh, [
+      new THREE.BoxGeometry(0.25, A * 0.78, 0.05).translate(0, A * 0.5, 0.13),
+      ...[-1, 1].flatMap((s) => rivets(s * 0.09, 0.158, A * 0.2, A * 0.8, 4)),
+      ...[0.12, A - 0.1].map((y) => new THREE.CylinderGeometry(0.155, 0.155, 0.06, 10).translate(0, y, 0)),
+    ], jointB);
+    const shinPlate = new THREE.CylinderGeometry(0.1, 0.16, B * 0.72, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 0.35).translate(0, B * 0.42, 0.1);
+    many(L.shin, [
+      new THREE.CylinderGeometry(0.13, 0.13, 0.08, 10).rotateX(Math.PI / 2).translate(0, 0, 0.1),   // (the knee's disc)
+      shinPlate,
+      ...[-1, 1].flatMap((s) => rivets(s * 0.075, 0.15, B * 0.12, B * 0.66, 6)),
+      ...[0.1, B * 0.78].map((y, i) => new THREE.CylinderGeometry(i ? 0.11 : 0.145, i ? 0.11 : 0.145, 0.06, 10).translate(0, y, 0)),
+    ], jointB);
+  }
   const rig = new Rig({ plan: PL, group: g, body, legs });
   skinBy(g, [{ from: [legB, jointB], into: legM }, { from: [yokeM], into: M.mat('yoke', P.yoke, { metal: 'brass', color: P.yoke, vertexColors: true }) },
     { from: [darkM], into: M.mat('dark', P.dark, { flat: true, vertexColors: true }) }, { from: [bellM], into: M.mat('bell', P.bell, { color2: P.bell2, side: THREE.DoubleSide, vertexColors: true }) }]);

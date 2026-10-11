@@ -92,6 +92,13 @@ test('a cracked hull (the furnace brute’s): a fine net of seams and a wider ne
   const S = skinOf('brute', 'perdide2'), s = surfaceFor('brute', S, 'body');
   assert.match(s.cracks.ink, /^#[0-9a-f]{6}$/i);
   assert.equal(s.cracks.color, S.palette.glow);
+  // (a lighter net, v1.47: the veins on only a share of the cells' edges, by each edge's own hash; 0, the default: all)
+  assert.ok(s.cracks.share > 0 && s.cracks.share < 1, 'the brute’s veins on a share of its cracks');
+  const all = makeMaterial({ color: '#e6d8b4', foeSurface: { cracks: { scale: 0.3 } }, key: 'test.foe-surface.cracks-all' });
+  assert.equal(all.uniforms.uFsCracksV.value.z, 0, 'by default every edge');
+  const some = makeMaterial({ color: '#e6d8b4', foeSurface: { cracks: { scale: 0.3, share: 0.4 } }, key: 'test.foe-surface.cracks-some' });
+  assert.ok(Math.abs(some.uniforms.uFsCracksV.value.z - 0.4) < 1e-6);
+  assert.match(FOE_SURFACE_GLSL, /fsHash4\(c1 \+ c2/, 'each edge by the pair of cells it parts');
 });
 
 test('every built archetype wears a painted surface in every skin, at no extra draw', () => {

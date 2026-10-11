@@ -78,13 +78,16 @@ The first things in the game that fight back, and the tool's answer to them.
   burst off the foe, the hit-stop 0.15 and `fluidRiposte(true)` (a bell under the blow). One a parry; the window
   missed, a press is what it was (nothing while the guard is held, else the first swing).
 - **The dash cut** (`DASH`, v1.4, its attack 2 `ss_attack_2`): a press during an evade (`dashWant`), or within
-  `late` (0.15 s) of its end (`sinceEvade`), with the dash cut's `cooldown` (1.5 s, `dashCool`) over, plays it
+  `late` (0.15 s) of its end (`sinceEvade`), with the dash cut's `cooldown` (1.1 s since v1.47, was 1.5; `dashCool`) over, plays it
   the moment the evade ends (`dashOpen`): the clip from 0.3 s, cut 0.49–0.64 s (0.16/0.14/0.26 s), a sweep from
   his left round to his right (cone half-angle 1.7 rad). Player's controller carries him (`combatMotion.dash`,
   set like the evade's) toward `past` (1 m) beyond a foe within `pull` (5 m), `side` (1.1 m) to its left, so it
   passes on his sword side and the sweep crosses it, at what that takes over the wind-up and cut (5.4–16 m/s;
   no foe: 9 m/s straight on), slowing through the follow-through; still facing the foe. No i-frames of its own:
-  the evade's window is over before it starts. Damage 2, heavy; the cooldown, as after a third swing. Within its
+  the evade's window is over before it starts. Damage 2, heavy; the cooldown, as after a third swing. Through a
+  foe's back (v1.47, issue #35: the blow's way within about 75° of the way the foe faces, `Foe.fromBehind`,
+  src/foes.js `BACKSTAB`) it lands double, and a gold ring runs out round the foe: the answer to a foe turned from
+  you (on another target, swinging at your partner) and to the evade or the side hop round one that just struck. Within its
   cooldown a press out of an evade is the plain buffered swing. `tests/blade-attacks.test.js` checks both
   (window, damage, stagger, chop on the foe's line, the carry past the foe, no i-frames, the cooldown).
 - **The arm (the arcs):** the swing drives the tool's aim pose (`player.aim`, the same IK the shots use) along
@@ -1008,7 +1011,9 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   if you stay within `provoke` m that long; run at it and it scatters, `scatter`; an ember into it sends the rest
   running); `rooted` (nothing knocks it back), `ground` (only on your feet: a jump clears the root knot's grip), `blur`
   (spores over your sight whichever way you look, no harm); the calm modes `sit` (the toad), `wade` (the heron, slow and
-  wide; `shy`, it walks off), `flock`, `root` (the root knot stands where it is).
+  wide; `shy`, it walks off; `flee`, run at it and it flies off: `Foe.takeOff` picks a landing `far` m away from you, or
+  a little to one side, where there is ground and no hazard, and `Foe.flyOff` carries it there over a crouch and an arc
+  `up` m high, its new home; cut in the air it falls and fights), `flock`, `root` (the root knot stands where it is).
 - **Batch 3** (v1.13):
 
   | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
@@ -1029,7 +1034,8 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   on the game's `bell` event, `Foe.hush`, open `HUSH` s); the calm modes `stand` (the brute stands where it stopped
   working), `trundle` (the cart's old round, as a patrol), `toll` (the bell in its square, tolling softly). The
   `cracks` surface feature (src/foe-surface.js): the brute's hull, its veins opening as it is hurt (its own body
-  material's `uFsCracksO`). A heavy footfall shakes the camera and the pad near it (`animKit.thump`).
+  material's `uFsCracksO`); `share` (v1.47) keeps the veins to that share of the cells' edges (each edge by its own
+  hash), more of them opening as it is hurt, so only some of the cracks glow. A heavy footfall shakes the camera and the pad near it (`animKit.thump`).
 - **Batch 4** (v1.16):
 
   | Archetype (kind) | Silhouette | Attacks (wind-up) | Answers | Calm |
@@ -1061,6 +1067,13 @@ each with its own silhouette, body plan, way of moving and job in a fight, met i
   | pearl roller (`roller`) | a snail under a shell bigger than itself; rolled up, a perfect ball | bowl (1.0 s; the stalks sink, the shell rocks three times; a roll that bounces off one wall back at you), ricochet (1.0 s; the Garden, Space City: two bounces), last roll (1.6 s; under a quarter, spinning in place; it shatters in a ring) | guard (it bounces off stunned), sidestep it into a wall (stalled, open), jump the ring; rolling, nothing harms it | grazes; fights if hit or touched (2.4 m) |
   | marionette (`marionette`) | a thin puppet hanging a metre off the ground on four strings rising into a knot of smoke | strings (1.2 s; both arms up, fingers curling, strings unspool onto a creature: driven), yank (1.0 s; one arm rises: a line that lifts you), dance (0.95 s; alone: dropped low, legs jerked up, a whirl) | cut the strings (the air cut, the boomerang, an ember: the creature drops free), guard the yank (the line cut), cut it while it hangs slack after its dance | hangs still under arches; comes for you at 9 m; escorted by a crab in the Arena |
 
+- **Against the sheets again** (v1.46–v1.47, issues #29, #31, #33): the skitters' bowed legs (jointedLeg's `bow`), the
+  heron's flight (`calm.flee`), the toad's see-through sac and the glass puppet (makeMaterial's veil cut, rendering.md
+  "Half-transparent surfaces"), the brute's lighter cracks (`cracks.share`), the bell's spirit out past its lip and its
+  plated legs, the drone's wisps, the shade's flame tongues (humanoid.js `flameGeometry`), the roller's one spiral, the
+  pearl shell's rocking runners and every roller's glistening trail: its model's `c.trail` lays strokes of `SLIME` behind
+  its foot as it glides, the footprints' decal (src/life.js `Footprints`) with its depth over 1, so the ground under it
+  shows lighter, fading; no shader of its own.
 - **Retired:** the 100 world enemies (src/enemies/roster.js, models.js, their tests and capture scripts: gone from
   spawning, the Arena, the FOES list and the gallery) and the glass splinter (v1.8); the dune ray, the sign moth's old
   body and the winged blot (v1.9: the mound worm, the signal moth and the sky ray took their places; the Arena's old

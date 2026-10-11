@@ -264,3 +264,32 @@ test('cheap to draw: each of batch 5 is a handful of meshes (its moving parts sk
     m.dispose?.();
   }
 });
+
+test('batch 5 against its sheets (v1.47, issue #33): the shade\'s flames, the roller\'s one spiral, runners and glistening trail, the glass puppet see-through', () => {
+  // the shade's smoke: tongues hanging from inside the hem
+  const shade = archetypeModel('shade', 'perdide2');
+  let smoke = null;
+  shade.group.traverse((o) => { if (o.name === 'smoke') smoke = o; });
+  assert.ok(smoke, 'its smoke under the hem');
+  shade.dispose?.();
+  // the glass puppet's glass see-through (makeMaterial's veil), the parcel puppet's paper not
+  const glass = archetypeModel('marionette', 'spheres'), paper = archetypeModel('marionette', 'bazaar');
+  const veiled = (m) => { let on = false; m.group.traverse((o) => { if (o.isSkinnedMesh && o.material.defines?.S_VEIL) on = true; }); return on; };
+  assert.ok(veiled(glass), 'the glass puppet: see-through but for its rim');
+  assert.ok(!veiled(paper), 'the parcel puppet: solid paper');
+  glass.dispose?.(); paper.dispose?.();
+  // the roller: grazing unrolled, it leaves a trail behind its foot; the pearl shell's runners out only as it winds up
+  clearTargets();
+  const P = player(v(0, 0, 40)), foes = world(P); foes.waveRest = 1e9;
+  const f = foes.add('roller@spheres', v(0, 0, 0)); f.heading = 0; f.state = 'idle';
+  foes.look(f, DT);
+  for (let i = 0; i < 120; i++) { f.pos.z += 0.8 * DT; foes.look(f, DT); }
+  assert.ok(foes.slime && foes.slime.items.some((it) => it.age < foes.slime.life), 'a glistening trail behind it');
+  let runners = null;
+  f.model.group.traverse((o) => { if (o.name === 'runners') runners = o; });
+  assert.ok(runners && !runners.visible, 'runners put away');
+  f.state = 'wind'; f.atk = attackOf('roller', 'bowl');
+  for (let i = 0; i < 40; i++) { f.k = 0.2 + i / 80; foes.look(f, DT); }
+  assert.ok(runners.visible, 'winding up its bowl: on its runners');
+  foes.dispose(); clearTargets();
+});

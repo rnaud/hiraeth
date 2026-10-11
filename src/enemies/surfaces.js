@@ -230,7 +230,8 @@ Object.assign(SURFACES, {
       // (sheet-1: old ivory cracked all over like a dropped jar, fine dark seams, the widest cracks glowing violet; tar
       // running down from the belt; a few warm stains; brass fittings with verdigris at their seams)
       body: {
-        cracks: { color: 'glow', ink: 'seam', inkAmount: 0.32, scale: 0.36, width: 0.022, tone: 0.03, veins: 0.8, vein: 0.06, glow: 0.95 },
+        // (v1.46: a lighter net, as the sheet's pen draws it: fewer, finer seams, and only some of the wider cracks violet)
+        cracks: { color: 'glow', ink: 'seam', inkAmount: 0.2, scale: 0.46, width: 0.014, tone: 0.025, veins: 0.75, vein: 0.045, glow: 0.95, share: 0.38 },
         mottle: { color: 'body*0.9', scale: 0.35, amount: 0.3, soft: 0.25, strength: 0.5 },
         drips: { color: 'tar', width: 0.22, from: 2.02, length: 0.4, bulb: 0.35, amount: 0.7 },
         gloss: { size: 0.02, sky: 0.3, amount: 0.35 },

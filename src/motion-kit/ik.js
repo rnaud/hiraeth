@@ -5,9 +5,10 @@ import * as THREE from 'three';
 //            "hocks back"), never from the current knee, so a straight leg never flips
 //   fabrik   Aristidou & Lasenby's forward-and-backward reaching, for chains of three or more joints
 //   aim      point a rigid segment (built along +Y from its origin) from one joint to the next
+//   aimIn    the same, turned about its length so its +Z lies toward a side (a bowed segment's own bend plane)
 // Plain THREE.Vector3 maths, no scene graph: tested in node (tests/motion-kit.test.js).
 
-const _d = new THREE.Vector3(), _p = new THREE.Vector3(), _alt = new THREE.Vector3();
+const _d = new THREE.Vector3(), _p = new THREE.Vector3(), _alt = new THREE.Vector3(), _z = new THREE.Vector3(), _x = new THREE.Vector3(), _mb = new THREE.Matrix4();
 const UP = new THREE.Vector3(0, 1, 0), FWD = new THREE.Vector3(0, 0, 1);
 /** How far short of full stretch a leg stops (a share of its length): a fully straight leg has no defined bend. */
 export const REACH_EPS = 0.002;
@@ -84,5 +85,24 @@ export function aim(obj, from, to) {
   _d.subVectors(to, from);
   const l = _d.length();
   if (l > 1e-9) obj.quaternion.setFromUnitVectors(UP, _d.divideScalar(l));
+  return l;
+}
+
+/**
+ * aim, and turned about its length so that its own +Z lies toward `side` (the side's part across the segment): a segment
+ * built bowed toward +Z (a skitter's curved shin) bows toward that side whatever way the leg points. With `side` along
+ * the segment, as aim.
+ */
+export function aimIn(obj, from, to, side) {
+  obj.position.copy(from);
+  _d.subVectors(to, from);
+  const l = _d.length();
+  if (l <= 1e-9) return l;
+  _d.divideScalar(l);
+  _z.copy(side).addScaledVector(_d, -side.dot(_d));
+  if (_z.lengthSq() < 1e-10) { obj.quaternion.setFromUnitVectors(UP, _d); return l; }
+  _z.normalize();
+  _x.crossVectors(_d, _z);
+  obj.quaternion.setFromRotationMatrix(_mb.makeBasis(_x, _d, _z));
   return l;
 }

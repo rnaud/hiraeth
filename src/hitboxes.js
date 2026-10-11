@@ -74,6 +74,7 @@ export function foeStatus(f) {
   if (f.perched != null) parts.push('perched');                   // (on the high ground over you: src/foe-height.js)
   if (f.waiting) parts.push('waiting: no way to you');             // (holding off below or above you)
   if (f.hop) parts.push(f.hop.t < HOP.crouch ? 'crouched to hop' : 'hopping');
+  if (f.flight) parts.push(f.flight.t < f.flight.crouch ? 'taking off' : 'flying off');
   if (f.state === 'wind' || f.state === 'strike') parts.push(`${Math.round(f.k * 100)}%`);
   if (f.state === 'recover') parts.push(`${Math.max(0, f.timer).toFixed(1)}s`);
   parts.push(`hp ${Math.max(0, +f.hp.toFixed(1))}/${f.def.hp}`);

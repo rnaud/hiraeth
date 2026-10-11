@@ -4,11 +4,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { SecondOrder, SecondOrderAngle, expDamp, quantise, deadband } from '../src/motion-kit/spring.js';
-import { twoBone, fabrik, bendAngle } from '../src/motion-kit/ik.js';
+import { twoBone, fabrik, bendAngle, aimIn } from '../src/motion-kit/ik.js';
 import { GaitPlanner, layoutLegs } from '../src/motion-kit/gait.js';
 import { BodyFromFeet } from '../src/motion-kit/body.js';
 import { PoseBlend, coilK } from '../src/motion-kit/pose.js';
-import { Rig, TierHold, jointedLeg, TIERS } from '../src/motion-kit/rig.js';
+import { Rig, TierHold, jointedLeg, bowedGeometry, TIERS } from '../src/motion-kit/rig.js';
 import { PLANS, poleFor } from '../src/motion-kit/plans.js';
 import { POSE_DONE } from '../src/telegraph.js';
 import { correlation } from '../scripts/motion-audit/metrics.mjs';
@@ -370,4 +370,46 @@ test('a pendulum hung from a moving pivot: it swings back as the pivot sets off,
   let most = 0; for (let i = 0; i < 60; i++) { P.update(1 / 60, at, 0); most = Math.max(most, P.a); }
   assert.ok(most > 0.4 && most <= P.max, `kicked, it swings up (${most.toFixed(2)} rad)`);
   for (const plan of ['brute', 'siege', 'tracked', 'hover']) assert.ok(PLANS[plan]?.poses?.coil, `${plan}: a plan of the kit with its poses`);
+});
+
+test('aimIn points a segment at the next joint with its +Z toward the side (a bowed segment\'s bend plane)', () => {
+  const o = new THREE.Object3D(), from = new THREE.Vector3(1, 2, 0), to = new THREE.Vector3(1.6, 1.2, 0.3);
+  const side = new THREE.Vector3(0.2, 1, -0.4);
+  const l = aimIn(o, from, to, side);
+  assert.ok(Math.abs(l - to.distanceTo(from)) < 1e-9);
+  const y = new THREE.Vector3(0, 1, 0).applyQuaternion(o.quaternion), z = new THREE.Vector3(0, 0, 1).applyQuaternion(o.quaternion);
+  const d = to.clone().sub(from).normalize();
+  assert.ok(y.distanceTo(d) < 1e-6, 'its length along the segment');
+  assert.ok(Math.abs(z.dot(d)) < 1e-6, '+Z across it');
+  const want = side.clone().addScaledVector(d, -side.dot(d)).normalize();
+  assert.ok(z.distanceTo(want) < 1e-6, '+Z toward the side');
+});
+
+test('a bowed segment bulges toward +Z at its middle and is straight at its joints', () => {
+  const g = bowedGeometry(1, 0.05, 0.03, 0.15);
+  const p = g.attributes.position;
+  let mid = -Infinity, ends = 0;
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i), z = p.getZ(i);
+    if (Math.abs(y - 0.5) < 0.07) mid = Math.max(mid, z);
+    if (y < 0.01 || y > 0.99) ends = Math.max(ends, Math.abs(z));
+  }
+  assert.ok(mid > 0.15 + 0.03, `its middle out by its bow (${mid})`);
+  assert.ok(ends < 0.06, `its ends on the joints (${ends})`);
+});
+
+test('a bowed leg bows out toward its knee\'s side, whichever way it points', () => {
+  const group = new THREE.Group(), body = new THREE.Group(); group.add(body);
+  const mat = new THREE.MeshBasicMaterial();
+  const leg = jointedLeg({ group, body, hip: { x: 0.3, y: 0.5, z: 0 }, foot: { x: 0.8, z: 0.1 }, lenA: 0.4, lenB: 0.5, pole: { x: 1, y: 1, z: 0 }, radius: 0.03, mats: { thigh: mat }, bow: { thigh: 0.1, shin: 0.15 } });
+  assert.ok(leg.bowed);
+  const rig = new Rig({ plan: PLANS.skitterers, group, body, legs: [leg] });
+  rig.update({ pos: new THREE.Vector3(), heading: 0, state: 'idle', k: 0 }, 1 / 60, {});
+  rig.write();
+  group.updateMatrixWorld(true);
+  // the shin's bow (+Z) lies away from the hip-to-foot line, the knee's side
+  const knee = leg.shin.getWorldPosition(new THREE.Vector3()), hip = leg.thigh.getWorldPosition(new THREE.Vector3()), foot = leg.foot.getWorldPosition(new THREE.Vector3());
+  const z = new THREE.Vector3(0, 0, 1).applyQuaternion(leg.shin.getWorldQuaternion(new THREE.Quaternion()));
+  const mid = hip.clone().add(foot).multiplyScalar(0.5), out = knee.clone().sub(mid);
+  assert.ok(z.dot(out) > 0, 'bowed out toward the knee');
 });

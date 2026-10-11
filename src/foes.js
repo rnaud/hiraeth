@@ -13,6 +13,7 @@ import { strikeDamage, heartsOf, quarters, DAMAGE } from './resources.js';
 import { game as sharedGame } from './game-state.js';
 import { gainInk, INK_OF } from './ink.js';
 import { ShadePools } from './shade.js';
+import { Footprints } from './life.js';
 import { KINDS, NOTES, kindModel } from './foe-kinds.js';
 import { guardKinds, templeKind } from './foe-worlds.js';
 import { hitStop, kick, slowMo } from './feel.js';
@@ -221,6 +222,10 @@ export const HUSH = 3;
 export const BOUNCE = { guard: 2, perfect: 3 };
 export const POSSESS = { wind: 0.8, free: 1.2, cut: 1.6 };
 export const LIT = 3;
+/** The dash cut through a foe's back (src/fluid-blade.js DASH; issue #35): the blow's way within acos(`dot`) of the way it faces, `k` times the harm. */
+export const BACKSTAB = { k: 2, dot: 0.25 };
+/** A roller's glistening trail (its model's c.trail): strokes `w` × `l` m (half sizes), the ground under them lighter by `sheen`, fading over `life` s; `count` at most. */
+export const SLIME = { count: 90, life: 8, sheen: 1.14, w: 0.27, l: 0.4 };
 /** Gentle: wind-ups this much slower, harm this much less, packs at most this big and this much rarer. */
 export const GENTLE = { wind: 1.35, harm: 0.5, pack: 2, rest: 1.6 };
 /**
@@ -320,6 +325,8 @@ export class Foe {
     // batch 3 (v1.12): toppled and open (s: the heron), the heap it rides in ({ on, i, climb }: a skitter), running from
     // you (scatter, s: a flock), how long you have stood in its flock (lingerT), where a leap set off, its flock near it
     this.toppled = 0; this.open = 0; this.riding = null; this.scatter = 0; this.lingerT = 0; this.leapFrom = null; this.mates = 0;
+    // flying off (calm.flee: the heron): { from, to, t, crouch, time, up } while it takes off and flies to a new home
+    this.flight = null;
     // batch 4 (v1.16): its tracks jammed by a bomb (s: the cart can't turn)
     this.jammed = 0;
     // batch 5 (v1.18): the walls it has bounced off in this roll (the roller); the strings driving it ({ by, t }: a
@@ -528,6 +535,8 @@ export class Foe {
     this.feelWorld(dt, env, ev);
     // up or down a ledge: crouched, then in the air (src/foe-height.js HOP); its mind waits until it lands
     if (this.hop) { this.leap(dt, ev); return ev; }
+    // flying off from you (calm.flee): crouched, then the flight; its mind waits until it lands at its new home
+    if (this.flight) { this.flyOff(dt, ev); return ev; }
     // a shove's slide eases out (a shove may carry it off a ledge, or into a hazard: step's `shoved`)
     if (this.vel.lengthSq() > 1e-4) {
       this.step(this.vel.x * dt, this.vel.z * dt, env, this.vel.lengthSq() > 1);
@@ -719,6 +728,8 @@ export class Foe {
   calmly(dt, P, d, env) {
     const D = this.def, C = D.calm, still = C.mode === 'bask' || C.mode === 'lie' || C.mode === 'pool' || C.mode === 'sit';
     const lost = P.dead || !!P.ride || Math.abs(P.pos.y - this.level) >= 6 || !!P.down;
+    // a flier (the heron): run at it and it takes off, away from you, to land further off (calm.flee, takeOff)
+    if (C.flee && !this.provoked && !lost && d < C.shy && d > 1e-4 && this.takeOff(P, d, env)) return false;
     // a flock (the skitters): run at it and it scatters in a ripple, each away from you, then drifts home again
     if (C.mode === 'flock' && !lost && d < C.shy && d > 1e-4) {
       const vx = P.vel?.x ?? 0, vz = P.vel?.z ?? 0, sp = Math.hypot(vx, vz);
@@ -872,6 +883,47 @@ export class Foe {
     if (u >= 1) { this.pos.copy(H.to); this.hop = null; ev.push({ type: 'hop', how: H.how, h: H.to.y - H.from.y }); }
   }
 
+  /**
+   * Run at (calm.flee: you faster than `run` m/s, coming at it), a flier takes off: away from you `far` m (or a little
+   * to one side, where the ground is there to land on and is no hazard), up to `up` m over the way, `time` s in the air
+   * after a `crouch`. True when it took off.
+   */
+  takeOff(P, d, env) {
+    const F = this.def.calm.flee, vx = P.vel?.x ?? 0, vz = P.vel?.z ?? 0, sp = Math.hypot(vx, vz);
+    if (sp < F.run || (vx * (this.pos.x - P.pos.x) + vz * (this.pos.z - P.pos.z)) / (sp * d) < 0.3) return false;
+    const a0 = Math.atan2(this.pos.x - P.pos.x, this.pos.z - P.pos.z);
+    for (const da of [0, 0.5, -0.5, 1, -1, 1.5, -1.5]) {
+      const a = a0 + da, x = this.pos.x + Math.sin(a) * F.far, z = this.pos.z + Math.cos(a) * F.far;
+      const y = env.ground ? env.ground(x, this.pos.y + F.up, z, F.up + 6) : this.pos.y;
+      if (y == null || Math.abs(y - this.pos.y) > F.up * 0.6 || this.refuses(x, y, z, env)) continue;
+      this.flight = { from: this.pos.clone(), to: new THREE.Vector3(x, y, z), t: 0, crouch: F.crouch, time: F.time, up: F.up };
+      this.route = null;
+      return true;
+    }
+    return false;
+  }
+
+  /** Flying off (takeOff): crouched first, then up and away in an arc, faster in the middle; it lands at its new home. */
+  flyOff(dt, ev) {
+    const F = this.flight;
+    F.t += dt;
+    this.face(F.to.x - F.from.x, F.to.z - F.from.z, dt, F.t < F.crouch ? 6 : 3);
+    if (F.t < F.crouch) return;
+    const u = Math.min(1, (F.t - F.crouch) / F.time), s = u * u * (3 - 2 * u);
+    this.pos.x = F.from.x + (F.to.x - F.from.x) * s;
+    this.pos.z = F.from.z + (F.to.z - F.from.z) * s;
+    this.pos.y = F.from.y + (F.to.y - F.from.y) * s + Math.sin(Math.PI * u) * F.up;
+    if (u >= 1) { this.pos.copy(F.to); this.home.copy(F.to); this.flight = null; this.wander = 0; ev.push({ type: 'hop', how: 'fly', h: F.to.y - F.from.y }); }
+  }
+
+  /** Struck in its flight: crouched, it stays and fights; in the air, it falls from there. */
+  knockOutOfFlight() {
+    const F = this.flight;
+    this.flight = null;
+    if (F.t <= F.crouch) { this.pos.copy(F.from); return; }
+    this.air = { vy: 0, top: this.pos.y, base: Math.min(F.from.y, F.to.y), hard: false, knocked: this.knockedBy > 0 };
+  }
+
   /** Struck in the middle of a hop: crouched, it stays where it is; in the air, it falls from there. */
   knockOutOfHop() {
     const H = this.hop;
@@ -916,6 +968,8 @@ export class Foe {
 
   /** A blow travelling against its face (dir: the blow's way): what a shell turns (Foe.hit, shellBites). */
   frontal(dir) { return dir.x * Math.sin(this.heading) + dir.z * Math.cos(this.heading) < -0.3; }
+  /** A blow travelling the way it faces, into its back (dir: the blow's way; `dot`: how squarely): the dash cut's double. */
+  fromBehind(dir, dot = BACKSTAB.dot) { const l = Math.hypot(dir.x, dir.z) || 1; return (dir.x * Math.sin(this.heading) + dir.z * Math.cos(this.heading)) / l > dot; }
 
   face(dx, dz, dt, rate = 6) {
     if (this.jammed > 0) return;   // (a bomb jammed its tracks: it can't turn)
@@ -1236,6 +1290,9 @@ export class Foe {
       // (stilled, it shatters: double; seen through the lens, its weak point too: src/gadgets/lens.js; a doused slag walker's crust)
       dmg = (info.damage ?? 1) * (this.stunned > 0 || this.exposed > 0 || this.crust > 0 ? 2 : 1) * (D.weak?.[src] ?? 1) * (shellHit && src !== 'bomb' ? SHELL.heavy : 1);
       if (info.air && D.hover) dmg *= AIR_MEETS;   // (the air cut meets a flyer in its own air: the ray, the moth, the jelly, the drone, the marionette)
+      // the dash cut through its back (BACKSTAB, v1.47): double; the blow the evade round it sets up
+      this.backstab = !!(info.dash && dir && src !== 'parry' && this.fromBehind(dir));
+      if (this.backstab) dmg *= BACKSTAB.k;
       if (D.segmented && dir && src !== 'parry') {
         // plated (the centipede): from behind or the side the plates take half and it never reels; its head,
         // turned in for the ring, takes the cut double; cut from behind once it is hurt, its tail breaks off
@@ -1278,6 +1335,7 @@ export class Foe {
     if (dir && mode !== 'push' && mode !== 'world' && !D.rooted) this.vel.set(dir.x, 0, dir.z).multiplyScalar((D.heavy ? 1.5 : 4) * (info.breaks && !info.riposte ? KNOCK.charged : info.combo === 2 ? 2.2 : 1));
     if (dir && (mode === 'blade' || mode === 'push')) this.knockedBy = KNOCK.recent;   // (yours: carried off a ledge now, it lands dazed)
     if (dir && this.hop && mode !== 'world') this.knockOutOfHop();
+    if (this.flight && mode !== 'world') this.knockOutOfFlight();
     this.flash = 1;
     this.recoil = 1; this.heavyRecoil = (info.damage ?? 1) >= 2;
     if (dir) this.recoilDir.copy(dir).setY(0).normalize();
@@ -2092,6 +2150,8 @@ export class Foes {
     if (r === 'glance') { this.sound?.foeGlance?.(); this.sparks(f, f.chest); return true; }   // (off a crab's shell, the bronze, a rolling shell, armour a shot can't pass)
     if (r === 'popped') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.sparks(f, f.chest); return true; }   // (a jelly's lantern)
     if (f.shedNow) this.shedTail(f);
+    // (the dash cut through its back, double: a gold ring runs out round it, as the riposte's does)
+    if (f.backstab) { f.backstab = false; this.tool?.rings?.add({ from: f.chest.clone(), dir: _up, reach: 0.05, r0: 0.3, r1: 1.4, life: 0.35, color: '#ffd27a', thick: 1 }); }
     if (r === 'flushed') { this.sound?.foeHurt?.(f.kind, f.def.sound); this.burstUp(f, { surface: true }); return true; }   // (a cut at a ray's fin: sand flies, up it comes)
     if (r === 'burst') { if (mode === 'blade' || mode === 'shoot' || mode === 'fire' || mode === 'world') this.sound?.foeHurt?.(f.kind, f.def.sound); this.react(f, mode, dir, info, point, true); this.defeat(f); return true; }
     if (f.shrugged) { this.react(f, mode, dir, info, point); this.armour(f, dir); return true; }
@@ -2298,6 +2358,7 @@ export class Foes {
     this.updateLock(dt);
     this.updateDebris(dt);
     this.shadePools?.update(dt);
+    this.slime?.update(dt);
     this.puffs?.update(dt);
     if (this.level?.temple?.inside?.(P.pos)) this.templeKit();
     // a fight on: the combat music comes in (src/audio.js), and touch shows its lock-on button
@@ -2929,6 +2990,13 @@ export class Foes {
     const T = this.tool, kit = (this._kit ??= {
       dust: (at, color, n = 1, spread = 0.6) => { for (let i = 0; i < n; i++) T?.drops?.add({ pos: _w.set(at.x + (Math.random() - 0.5) * spread * 2, at.y + 0.1, at.z + (Math.random() - 0.5) * spread * 2), vel: _v.set((Math.random() - 0.5) * 1.5, 1.5 + Math.random() * 2, (Math.random() - 0.5) * 1.5), drag: 2.5, grav: 7, size: 0.05 + Math.random() * 0.04, life: 0.5, color }); },
       spray: (at, colors, n = 10, speed = 4, grav = 9) => { for (let i = 0; i < n; i++) T?.drops?.add({ pos: at, vel: _v.randomDirection().multiplyScalar(speed * (0.4 + Math.random() * 0.6)).addScaledVector(_up, 1.5), drag: 2, grav, size: 0.04 + Math.random() * 0.05, stretch: 2, life: 0.55, color: colors[i % colors.length] }); },
+      // (a roller's glistening trail: strokes of a wet sheen on the ground behind its foot, the ground's own colour lighter;
+      // the footprints' decal, so no shader of its own: SLIME)
+      trail: (foe, off = 0) => {
+        this.slime ??= new Footprints(this.scene ?? this.group, { count: SLIME.count, life: SLIME.life, depth: SLIME.sheen, geometry: new THREE.ShapeGeometry(new THREE.Shape().absellipse(0, 0, SLIME.w, SLIME.l, 0, Math.PI * 2), 12) });
+        const h = foe.heading;
+        this.slime.add(_w.set(foe.pos.x + Math.sin(h) * off, foe.pos.y + 0.01, foe.pos.z + Math.cos(h) * off), h, _up);
+      },
       drip: (foe, color) => { this.shadePools ??= new ShadePools(this.scene ?? this.group); this.shadePools.drops.add({ pos: _w.copy(foe.chest).add(_v.randomDirection().multiplyScalar(0.25)), vel: _v.set(0, -0.5, 0), drag: 1, grav: 6, size: 0.04, stretch: 2.5, life: 0.5, color }); },
       tethered: (foe) => this.held(foe),
       // a heavy footfall (the furnace brute's, the bell walker's): the camera shakes and the pad rumbles near it
@@ -2969,5 +3037,5 @@ export class Foes {
     return out;
   }
 
-  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
+  dispose() { this.offBell?.(); this.offBell = null; this.offChest?.(); this.offChest = null; for (const f of this.list.slice()) this.remove(f); this.updateDebris(10); this.group.removeFromParent(); this.warnEl?.remove(); this.reticle?.dispose(); this.blindEl?.remove(); this.puffs?.dispose(); this.puffs = null; this.shadePools?.dispose(); this.slime?.mesh?.removeFromParent(); this.slime = null; this.shocks = this.patches = this.waveQueue = null; this.hold = null; }
 }

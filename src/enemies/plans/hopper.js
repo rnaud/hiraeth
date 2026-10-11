@@ -16,7 +16,7 @@ import { materials, add, tube, rod, many, pivot, pair, lerp, ease, eyeColor, fin
 // its feet never slide; between hops the kit only settles them (turning on the spot steps them round).
 //
 // Its attacks read from the body alone (src/telegraph.js):
-//   lob     the throat swells to twice its size and glows see-through with the glob inside, it rears back; the
+//   lob     the throat swells to twice its size and goes see-through with the glob inside, it rears back; the
 //           glob arcs out of its mouth onto its landing mark (the one exception: a thrown thing)
 //   volley  the same, fuller, three globs (the City-Shaft and the Waterfall)
 //   flop    a deep crouch, its legs shaking; then the leap, belly first, and a ring of shock as it lands
@@ -35,7 +35,10 @@ export function toadModel(skin) {
   const body = pivot(g, 0, 0, 0, 'body');
   const skinM = M.mat('skin', P.skin, { color2: P.skin2 }), bellyM = M.mat('belly', P.belly), toeM = M.mat('toe', P.toe), darkM = M.mat('dark', P.dark, { flat: true });
   const lidM = M.mat('lid', P.lid), globM = M.mat('glob', P.glob);
-  const sacM = M.own('sac', P.sac, { glow: 0.05 }), eyeM = M.own('eye', P.eye, { glow: 0.45 });
+  // (the sac see-through as it swells: makeMaterial's veil cut, only its rim drawn where it faces you less squarely than
+  // uVeil, so the glob inside and the belly behind show through it, the bubble helmet's way; 0 at rest: opaque folds)
+  const sacM = M.own('sac', P.sac, { glow: 0.05, veil: 1 }), eyeM = M.own('eye', P.eye, { glow: 0.45 });
+  sacM.uniforms.uVeil.value = 0;
   // the body: the pear, bowed back, leaning back a little as it sits
   const trunk = pivot(body, 0, 0, 0, 'trunk');
   const pear = add(trunk, new THREE.LatheGeometry(PEAR, 24), skinM);
@@ -183,8 +186,10 @@ export function toadModel(skin) {
       bag.visible = ball > 0.02; bag.scale.set(lerp(0.3, 0.82, sw), lerp(0.3, 0.84, sw), lerp(0.2, 0.76, sw));
       bag.position.set(0, lerp(-0.4, -0.52, sw), lerp(0.1, 0.5, sw));
       sacM.uniforms.uGlow.value = 0.05 + sw * 0.55;
+      // see-through as it swells into its ball: the rim stays, ever thinner, the glob inside it seen through
+      sacM.uniforms.uVeil.value = ball > 0.05 ? lerp(0.98, 0.7, ball) : 0;
       glob.visible = lob && wind && f.k < 0.66;
-      glob.position.set(0, -0.5, lerp(0.3, 0.98, sw)); glob.scale.setScalar(0.7 + sw * 0.45);   // (pressed to the front of the sac: seen through it)
+      glob.position.set(0, bag.position.y + 0.02, bag.position.z + 0.12); glob.scale.setScalar(0.7 + sw * 0.45);   // (floating in the swollen sac)
       head.rotation.x = -rear * 0.25 + (strike && lob ? 0.2 : 0);
       // eyes: wide open fighting, heavy-lidded sitting; the lids close as it chokes
       eyes.forEach((e) => { e.lid.rotation.x = f.provoked ? (f.stunned > 0 ? 1.25 : -0.35) : 0.55 + Math.max(0, Math.sin(c.now / 2300 + f.home.z)) * 0.4; });
