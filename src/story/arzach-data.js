@@ -48,26 +48,26 @@ export const QUESTS = [
     outro: 'She comes when you call. She chose to.',
     stages: [
       // (from the Aerie, the bird's old tracks lead down to her: the way back that is not the standing stones' way up, src/vael-ways.js)
-      { id: 'watcher', text: 'Someone sits on a stone on the plain, watching the lone tower, where the bird’s old tracks end. Sit with her', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia', via: 'the bird’s tracks' },
-      { id: 'tower', text: 'The wind rises up the lone tower’s side. Jump into it and open your wings (hold {key:jump} as you fall): it lifts you to the balcony', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
-      { id: 'window', text: 'Climb the stone steps round the tower to its one window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
+      { id: 'watcher', text: 'Sit with the watcher on the plain', label: 'Oïa, watching the tower', flag: 'arzach.watcher.met', at: 'oia', via: 'the bird’s tracks' },
+      { id: 'tower', text: 'Ride the wind up the lone tower', label: 'The wind at the tower', goto: 'balcony', radius: 21, vertical: 12, at: 'wind' },
+      { id: 'window', text: 'Climb the steps to the tower’s window', label: 'The window', flag: 'arzach.window.seen', at: 'window' },
       { id: 'call', text: 'Play the rider’s flute', label: 'The rider’s flute', flag: 'arzach.bird.called', at: 'window' },
-      { id: 'promise', text: 'Something answers from high over the haze. Wait for her', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
+      { id: 'promise', text: 'Wait for her answer over the haze', label: 'The bird', flag: 'arzach.bird.promise', at: 'bird' },
     ],
   },
   {
     id: 'arzach.feathers', title: 'Shed Feathers', world: 'arzach',
     outro: 'Three bright feathers flash in her wing.',
     stages: [
-      { id: 'find', text: 'Find the three feathers the bird shed: two on the spires’ caps, one held by the stone hand', label: 'A shed feather', at: 'feather', when: (q) => (q.game.flag('item.feather') ?? 0) >= 3 || q.game.flag('arzach.feathers.given') },
-      { id: 'give', text: 'Bring the three feathers back to the bird, once she has answered the rider’s call', label: 'The bird', flag: 'arzach.feathers.given', at: 'bird' },
+      { id: 'find', text: 'Find the bird’s three shed feathers', label: 'A shed feather', at: 'feather', when: (q) => (q.game.flag('item.feather') ?? 0) >= 3 || q.game.flag('arzach.feathers.given') },
+      { id: 'give', text: 'Bring the feathers back to the bird', label: 'The bird', flag: 'arzach.feathers.given', at: 'bird' },
     ],
   },
   {
     id: 'arzach.hand', title: 'The Stone Hand', world: 'arzach',
     outro: 'The hand rang, and gave.',
     stages: [
-      { id: 'ring', text: 'Ring the stone hand’s knuckles smallest to tallest: aim with {key:aim} and shoot each one with {key:fire}. Kesh, by the hand, shows the order', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
+      { id: 'ring', text: 'Ring the stone hand’s knuckles, smallest first', label: 'The stone hand', flag: 'arzach.hand.rung', at: 'hand' },
     ],
   },
 ];

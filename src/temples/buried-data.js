@@ -5,9 +5,9 @@
 export const QUEST = {
   id: 'temple.buried', title: 'The Engine-House', world: 'buried',
   outro: 'The Tooth-Warden is still, the engine runs, and the old pipe-cart rides the canyon again.',
-  find: 'West of the domes a drum of rust-red iron stands out of the dunes, as tall as the oculus: the Engine-House. Its oval door looks toward the start',
+  find: 'Find the Engine-House west of the domes',
   gadget: 'Find what the makers left inside the Engine-House',
-  keeper: 'Something is jamming the engine at the heart of the house, grinding. Go to it',
+  keeper: 'Go to what jams the engine',
 };
 
 export const PEOPLE = {

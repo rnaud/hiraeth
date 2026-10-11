@@ -8,9 +8,9 @@
 export const QUEST = {
   id: 'temple.spacecity', title: 'The Mooring-House', world: 'spacecity', main: true,   // (the city's one thread: src/story/spacecity.js)
   outro: 'The Anchor-Warden has taken up its cables, and the islands of the city hold together again.',
-  find: 'North of the Towers, over the rising bridge, the moorers’ round house stands on an island of its own, a great capstan on its roof: the Mooring-House',
+  find: 'Find the Mooring-House north of the Towers',
   gadget: 'Find what the makers left in the Mooring-House',
-  keeper: 'Something on the floor at the top of the house has been letting the cables out. Go up to it',
+  keeper: 'Go up to what lets the cables out',
 };
 
 export const PEOPLE = {

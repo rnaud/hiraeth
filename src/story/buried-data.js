@@ -31,15 +31,15 @@ export const QUESTS = [
     id: Q, title: 'One Tooth a Year', world: 'buried', main: true,
     outro: 'The wheel turned one tooth, and then it kept on turning. You were there.',
     stages: [
-      { id: 'wen', text: 'Meet the dome people. Wen, who counts the teeth, lives in the great dome', label: 'Wen, by the great dome', flag: 'buried.wen.heard', at: 'wen' },
-      { id: 'hask', text: 'Ask Hask, keeper of the Wick, why he hasn’t gone down this year', label: 'Hask, on his bench', flag: 'buried.hask.asked', at: 'hask' },
-      { id: 'down', text: 'Go down the sand ramp into the rust canyon', label: 'The rust canyon', flag: 'buried.canyon.seen', at: 'canyon' },
-      { id: 'oculus', text: 'Follow the canyon through the two oval doors to the oculus', label: 'The oculus', flag: 'buried.oculus.seen', at: 'oculus' },
-      { id: 'valve', text: 'The Wick’s oil valve is rusted fast. Shove it open (push)', label: 'The oil valve', flag: 'buried.valve.open', at: 'valve' },
-      { id: 'light', text: 'Give the Wick a spark: a shot of fluid', label: 'The Wick', flag: 'buried.oculus.lit', at: 'wick' },
-      { id: 'watch', text: 'Climb back out and watch the great wheel', label: 'The great wheel', flag: 'buried.wheel.turned', at: 'watch' },
-      { id: 'tooth', text: 'Something fell from the wheel when it turned. Pick it up', label: 'At the wheel’s foot', flag: 'buried.tooth.found', at: 'tooth' },
-      { id: 'count', text: 'Bring the tooth to Wen to be counted, the counters’ way: along the Tooth Day posts, one for every year', label: 'Wen, by the great dome', bring: 'tooth', to: 'wen', via: 'the Tooth Day posts' },
+      { id: 'wen', text: 'Meet Wen in the great dome', label: 'Wen, by the great dome', flag: 'buried.wen.heard', at: 'wen' },
+      { id: 'hask', text: 'Ask Hask why he hasn’t gone down', label: 'Hask, on his bench', flag: 'buried.hask.asked', at: 'hask' },
+      { id: 'down', text: 'Go down the sand ramp into the canyon', label: 'The rust canyon', flag: 'buried.canyon.seen', at: 'canyon' },
+      { id: 'oculus', text: 'Follow the canyon to the oculus', label: 'The oculus', flag: 'buried.oculus.seen', at: 'oculus' },
+      { id: 'valve', text: 'Shove the rusted oil valve open', label: 'The oil valve', flag: 'buried.valve.open', at: 'valve' },
+      { id: 'light', text: 'Give the Wick a spark of fluid', label: 'The Wick', flag: 'buried.oculus.lit', at: 'wick' },
+      { id: 'watch', text: 'Climb out and watch the great wheel', label: 'The great wheel', flag: 'buried.wheel.turned', at: 'watch' },
+      { id: 'tooth', text: 'Pick up what fell from the wheel', label: 'At the wheel’s foot', flag: 'buried.tooth.found', at: 'tooth' },
+      { id: 'count', text: 'Bring the tooth to Wen, along the posts', label: 'Wen, by the great dome', bring: 'tooth', to: 'wen', via: 'the Tooth Day posts' },
     ],
   },
   {
@@ -47,8 +47,8 @@ export const QUESTS = [
     outro: 'Every chimney on the dunes is open.',
     stages: [
       // (new: a save already at 'find' with the jib still out is moved back here)
-      { id: 'swing', text: 'Dun’s key hangs on the crane of the floating derrick, east of the domes, out over the drop. Splash the jib’s rusted collar (shoot), then shove the jib round over the platform (switch the gun to push with {key:mode}, then aim and shoot)', label: 'The derrick’s crane', flag: 'buried.jib.in', at: 'jib' },
-      { id: 'find', text: 'The hook has swung in over the platform: take Dun’s key off it', label: 'The derrick’s crane hook', bring: 'key', at: 'key', to: 'dun' },
+      { id: 'swing', text: 'Swing the derrick’s crane in over the platform', label: 'The derrick’s crane', flag: 'buried.jib.in', at: 'jib' },
+      { id: 'find', text: 'Take Dun’s key off the hook', label: 'The derrick’s crane hook', bring: 'key', at: 'key', to: 'dun' },
       { id: 'return', text: 'Bring the key back to Dun', label: 'Dun, by his chimneys', bring: 'key', to: 'dun' },
     ],
   },
@@ -56,7 +56,7 @@ export const QUESTS = [
     id: 'buried.gauges', title: 'A Year’s Breath', world: 'buried',
     outro: 'Ninety, ninety-one, ninety. Ket says it is enough.',
     stages: [
-      { id: 'read', text: 'Read the three pressure gauges along the canyon floor: splash each dial (shoot)', label: 'A pressure gauge', flag: 'buried.gauges.read', at: 'gauge' },
+      { id: 'read', text: 'Splash the three gauges on the canyon floor', label: 'A pressure gauge', flag: 'buried.gauges.read', at: 'gauge' },
       { id: 'tell', text: 'Tell Ket what the gauges say', label: 'Ket, by the ledge', talk: 'ossa', at: 'ossa' },
     ],
   },
@@ -64,7 +64,7 @@ export const QUESTS = [
     id: 'buried.window', title: 'The Warm Window', world: 'buried',
     outro: 'It is warm, like a hand.',
     stages: [
-      { id: 'climb', text: 'Climb to the porthole on the oculus balcony and lay your hand on it', label: 'The warm window', flag: 'buried.window.touched', at: 'window' },
+      { id: 'climb', text: 'Lay your hand on the oculus’s warm window', label: 'The warm window', flag: 'buried.window.touched', at: 'window' },
     ],
   },
 ];

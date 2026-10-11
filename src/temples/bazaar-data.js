@@ -6,9 +6,9 @@
 export const QUEST = {
   id: 'temple.bazaar', title: 'The Undertower', world: 'bazaar',
   outro: 'The First Sign has its whole line back, and the silent tower speaks it, once a night.',
-  find: 'In the back of the silent tower, where the square’s paving gives way to great old stones, a doorway older than the market goes down: the Undertower',
+  find: 'Go down under the silent tower',
   gadget: 'Find what the makers left under the silent tower',
-  keeper: 'Far down under the tower a voice says one word, and waits, and says it again. Go down to it',
+  keeper: 'Go down to the voice under the tower',
 };
 
 export const PEOPLE = {

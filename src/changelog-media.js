@@ -644,6 +644,15 @@ export const CHANGELOG_MEDIA = {
     { match: 'Nobody in the desert sends you on to somebody else any more', see: 'Talk to Marrow by your ship, Nour once the well has filled (about the cold tree), or Rook near the ship: each says where to go, not whom to ask.' },
     { match: 'Nour’s talk is much shorter, and more her own', see: 'Talk to Nour before and after the chest opens: two or three short pages each time, and the Givers only come up once she has named them.' },
     { match: 'Quests can be finished by going straight to their end', see: 'Open the chest on Qanat’s tree, then walk past Nour: straight out of the back gate to the skull, lever the rib off the channel and wade into the pool. The quest goes on from there, to the chest by the pool.' },
+    { match: 'Quests say less, and plainly', shots: [
+      { name: 'quest-card', caption: 'The main quest given by Marrow at the ship, hints full: before, “New quest”, the title and a four-line step in a big card; after, one line, the gold ◆, the title and “Walk to Qanat, under the dark tree”', from: FROM44 },
+    ], numbers: [
+      { title: 'Quest steps in every world', unit: '', better: 'lower', device: 'the story data, the temples’ quests and the makers’ boxes (.claude/skills/quest-qc/check.mjs)', rows: [
+        { where: 'steps over 9 words (of 225)', before: 171, after: 2 },
+        { where: 'steps naming buttons', before: 11, after: 0 },
+        { where: 'lines on the quest’s first card (hints full)', before: 3, after: 1 },
+      ], source: 'every step of every quest, counted before and after; the two long ones left are the Givers’ House’s, reworked on its own branch' },
+    ] },
     { match: 'The drone says where it is off to the moment you send it', numbers: [
       { title: 'Sending the drone to Qanat from the ship (390 m)', unit: 's', better: 'lower', device: 'Mac (M4 Pro), headless Chrome, High, 1280 × 720', rows: [
         { where: 'from the press to the line on the screen', before: 1.85, after: 0.15 },

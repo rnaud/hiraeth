@@ -327,10 +327,10 @@ the drone; for the quest log you open the menu. Tests: `tests/hud.test.js`, `tes
   home and docks as before (`returnT` drives the safe recall now). Phases: docked → launch → seek →
   point → return. Nothing to find (`getTarget()` null): `shrug()`, the eye opens, it lifts a few
   centimetres off the dock and shakes itself (`FIND.shrug` s), "Nothing to find here".
-- **What it says** (since the game menu, October 2026): the cue gives the quest's overall goal on a
-  small line over "◆ the next step · how far" (`findSummary` in `src/hud.js`, `findGoal` in main.js:
-  the quest's goal from `src/story/quest-goals.js`, the observatory's, the world's story title), for
-  6 s, then fades; nothing about steps already done. **It is up the moment you ask** (October 2026,
+- **What it says** (since the game menu, October 2026): one short line, "◆ the next step · how far"
+  (`findSummary` in `src/hud.js`), for 6 s, then fades; nothing about steps already done. Until the author's
+  playthrough (issue #72: "every quest hint should be a few words") the quest's overall goal stood on a small
+  line over it (`findGoal` in main.js still works it out; the game menu's Quests panel shows it). **It is up the moment you ask** (October 2026,
   issue #65: it waited ~1.8 s for the drone to get there): `Scout.ping` calls `onPing(target)` at once
   and main.js puts the line on the cue then (`FIND.say + FIND.seek` s; `onFind` gives it `FIND.say` more
   when the drone is there, with the flare and the marker). The line is a function the cue asks every
@@ -508,9 +508,12 @@ Tests: `tests/resources.test.js` (the SVG's quarters and lines, the bar, the mar
   portrait phone the cue sits below the hearts and the magic bar (62 px down). Tests: `tests/hints.test.js`.
 - **A quest's start looks different**: `Quests.startToast` (and the villagers' errands, `Errands`) call
   the toast with `{ kind: 'quest', head, title, step }`; the queue keeps it, and the toast is drawn as
-  `questToastHtml`: an ink card with a gold rule, "◆ New quest" (or New errand) in gold capitals over
-  the title in italics and the first step (`#toast.quest`, index.html). Later steps, endings and every
-  other notice stay plain.
+  `questToastHtml`: **one short line** on a dark strip, the quest's mark (a gold ◆ for a main quest, a pale ◇
+  for an errand: `head` says which) and its title in italics, the first step after it when hints are full
+  (`#toast.quest`, index.html). It was three lines, "◆ New quest" in gold capitals over the title and the step
+  (the author's playthrough, October 2026, issue #72: "too much visual noise"). Every step of every quest is a
+  few words since then (at most 9: `tests/quest-steps.test.js`; the quest QC skill). Later steps, endings and
+  every other notice stay plain.
 
 ## Screen sizes (resolution audit, 9 October 2026)
 

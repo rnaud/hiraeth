@@ -6,9 +6,9 @@
 export const QUEST = {
   id: 'temple.edena', title: 'The Builders’ Greenhouse', world: 'edena',
   outro: 'The Gardener sleeps in flower, and the white ruins all over the garden are green again.',
-  find: 'In the meadow hollow north of the white ruins, a round house of the builders stands under a dome of glass: the Greenhouse. Nothing grows in it',
+  find: 'Find the Greenhouse north of the white ruins',
   gadget: 'Find what the builders left in the Greenhouse',
-  keeper: 'Something vast and bare is moving at the top of the Greenhouse. Go up to it',
+  keeper: 'Go up to what moves at the top',
 };
 
 export const PEOPLE = {

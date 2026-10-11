@@ -7,9 +7,9 @@
 export const QUEST = {
   id: 'temple.underwater', title: 'The Whale-House', world: 'underwater', main: true,   // (the Underwater City's one thread: src/story/underwater.js)
   outro: 'The Listener sings the whales’ own song again, and the whales have come back to the glass.',
-  find: 'North of the Plaza, down the last glass tube, a great whorled shell lies on the sea floor with brass horns curling out of it: the Whale-House',
+  find: 'Find the Whale-House north of the Plaza',
   gadget: 'Find what the makers left in the Whale-House',
-  keeper: 'Something at the bottom of the house keeps singing the light’s note at the whales. Go down to it',
+  keeper: 'Go down to what sings at the whales',
 };
 
 export const PEOPLE = {

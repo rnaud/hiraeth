@@ -5,8 +5,8 @@
 export const QUEST = {
   id: 'temple.perdide2', title: 'The Lamp-House', world: 'perdide2',
   outro: 'The Lampless is calm, and the Lamp-House’s beam turns over the wood again.',
-  find: 'A dark tower stands in the shallows east of the root cave, a causeway of stones out to it from the end of the lit path',
-  gadget: 'Find what the makers left in the dark of the Lamp-House',
+  find: 'Cross the causeway to the dark tower',
+  gadget: 'Find what the makers left in the Lamp-House',
   keeper: 'Wings, high in the lamp-room. Go up to them',
 };
 

@@ -8,9 +8,9 @@
 export const QUEST = {
   id: 'temple.garage', title: 'The Clock-House', world: 'glassdunes', main: true,   // (the Glass Dunes' one thread: src/story/glassdunes.js)
   outro: 'The Clockwork Foreman keeps the right time again, and every clock in the dunes ticks in step.',
-  find: 'East of the valley, a round stair-house of the makers stands in the sand, a stopped clock over its door: the Clock-House',
+  find: 'Find the Clock-House east of the valley',
   gadget: 'Find what the makers left in the Clock-House',
-  keeper: 'Something at the bottom of the house is winding itself up, and up, and up. Go down to it',
+  keeper: 'Go down to what winds itself up',
 };
 
 export const PEOPLE = {

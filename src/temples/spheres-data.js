@@ -5,9 +5,9 @@
 export const QUEST = {
   id: 'temple.spheres', title: 'The Footprint', world: 'spheres',
   outro: 'The Echo hums with the spheres, and the Footprint holds still water.',
-  find: 'North of the umbrella grove the meadow carries a great three-toed footprint. Its heel is a sphere with a door',
+  find: 'Find the giant footprint north of the grove',
   gadget: 'Find what the walker left inside the heel',
-  keeper: 'Something sings at the heart of the heel, one loud lost note. Go to it',
+  keeper: 'Go to the lost note in the heel',
 };
 
 export const PEOPLE = {

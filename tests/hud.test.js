@@ -210,13 +210,15 @@ test('a makers\' box offered on arrival does not take the scout from the quest y
 // ---- the menu's Quests and Controls pages
 
 test('the scout\'s find says the current quest as its overall goal over its next step, nothing more', () => {
-  assert.equal(findSummary({ goal: 'Wake your ship with the fire of Qanat’s great tree', step: 'The dry well · 320 m' }), 'Wake your ship with the fire of Qanat’s great tree\n◆ The dry well · 320 m');
+  // one short line (issue #72): the goal is the quest log's, not the cue's
+  assert.equal(findSummary({ goal: 'Wake your ship with the fire of Qanat’s great tree', step: 'The dry well · 320 m' }), '◆ The dry well · 320 m');
   assert.equal(findSummary({ step: 'Back to the ship · 80 m' }), '◆ Back to the ship · 80 m', 'no goal (the ship): the step alone');
-  // the cue draws the goal small over the step (and escapes both)
+  // the cue draws the one line (escaped)
   const el = { innerHTML: '', classList: { s: new Set(), toggle(c, on) { on ? this.s.add(c) : this.s.delete(c); }, contains(c) { return this.s.has(c); } } };
   const cue = new Cue(el);
-  cue.set(findSummary({ goal: 'Mend <Mira’s> clock', step: 'Mira · 12 m' }), 'quest');
-  assert.equal(el.innerHTML, '<small class="goal">Mend &lt;Mira’s&gt; clock</small><span class="step">◆ Mira · 12 m</span>');
+  cue.set(findSummary({ goal: 'Mend Mira’s clock', step: '<Mira> · 12 m' }), 'quest');
+  assert.doesNotMatch(el.innerHTML, /goal|Mend/, 'no goal line');
+  assert.match(el.innerHTML, /◆ &lt;Mira&gt; · 12 m/);
   assert.ok(el.classList.contains('quest') && el.classList.contains('show'));
   cue.set('E go aboard');
   assert.ok(!el.classList.contains('quest'), 'a prompt is a prompt again');
@@ -226,9 +228,9 @@ test('the scout\'s find says the current quest as its overall goal over its next
   q.define({ id: 'desert.power', title: 'The Tree That Drinks', main: true, stages: [{ id: 'a', text: 'Walk to Qanat', label: 'Qanat', at: [0, 0, 0] }, { id: 'b', text: 'Listen at the dry well', label: 'The dry well', at: [5, 0, 0] }] });
   q.start('desert.power');
   const say = () => findSummary({ goal: q.goal(q.objective().quest), step: q.objective().label });
-  assert.equal(say(), 'Wake your ship with the fire of Qanat’s great tree\n◆ Qanat');
+  assert.equal(say(), '◆ Qanat');
   q.advance('desert.power');
-  assert.equal(say(), 'Wake your ship with the fire of Qanat’s great tree\n◆ The dry well');
+  assert.equal(say(), '◆ The dry well');
   assert.doesNotMatch(say(), /Qanat\n|Walk to Qanat/, 'the step done is gone');
   const main = src('src/main.js');
   assert.match(main, /findSummary\(\{ goal: findGoal\(t\), step: findText\(/);

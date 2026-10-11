@@ -6,9 +6,9 @@
 export const QUEST = {
   id: 'temple.arzach', title: 'The Aerie', world: 'arzach',
   outro: 'The Elder flies again, and the great birds have come back to the Aerie.',
-  find: 'A great white house of the makers stands on the plain west of the landing, a crown of stone wings on top',
+  find: 'Find the white house west of the landing',
   gadget: 'Find what the makers left in the Aerie',
-  keeper: 'Something heavy shifts at the top of the house. Go up to it',
+  keeper: 'Go up to what shifts at the top',
 };
 
 export const PEOPLE = {

@@ -77,6 +77,8 @@ export const CHANGELOG = [
     'Nobody in the desert sends you on to somebody else any more: Marrow points you at the humming chest on Qanat’s tree, Nour tells you herself where Marrow hid his hoverbike, and Rook says where it lies.',
     'Nour’s talk is much shorter, and more her own: what the chest gave you, where the water is, and the way down, in a few lines. Every answer you can give follows from what was just said: no more asking who the Givers are before anyone has named them.',
     'Quests can be finished by going straight to their end: a step you have already done (the rib off the channel, the tank filled) is passed over, instead of the quest sending you back to someone first.',
+    // the quest hints (docs/systems/ui.md "A quest's start looks different")
+    'Quests say less, and plainly: when one begins, its card is a single line, a gold ◆ and its name (and its first step beside it with hints full), and every step of every quest is now a few words, like “Walk to Qanat, under the dark tree”. The drone’s find is one line too: the step and how far.',
     'The drone says where it is off to the moment you send it, not once it gets there, and the distance on that line counts down (or up) as you walk.',
     // <<< the author’s desert playthrough
   ] },

@@ -45,15 +45,15 @@ export const QUESTS = [
     id: Q, title: 'The Bell Under the Cloud', world: 'arzach2', main: true,
     outro: 'The bell rang. The cloud settled a little. So did the stones.',
     stages: [
-      { id: 'aube', text: 'A hermit keeps the edge of the start plateau. Ask her about the cloud', label: 'Sister Aube', flag: 'arzach2.aube.heard', at: 'aube' },
-      { id: 'monastery', text: 'Ride the bird up to the white monastery on the rose cliff', label: 'The monastery', goto: 'monastery', radius: 45, vertical: 20, at: 'monastery' },
-      { id: 'calix', text: 'Find Brother Calix, keeper of the silent bell', label: 'Brother Calix', flag: 'arzach2.calix.asked', at: 'calix' },
+      { id: 'aube', text: 'Ask Sister Aube about the cloud', label: 'Sister Aube', flag: 'arzach2.aube.heard', at: 'aube' },
+      { id: 'monastery', text: 'Ride the bird up to the monastery', label: 'The monastery', goto: 'monastery', radius: 45, vertical: 20, at: 'monastery' },
+      { id: 'calix', text: 'Find Brother Calix, keeper of the bell', label: 'Brother Calix', flag: 'arzach2.calix.asked', at: 'calix' },
       // (out by the knots of the monks' old rope way, src/vael-crossing.js; home by the tiles)
-      { id: 'clapper', text: 'Fetch the bell’s clapper from the floating island’s church, out along the knots of the monks’ old rope way, and bring it to Calix', label: 'The clapper', bring: 'clapper', at: 'clapper', to: 'calix', via: 'the old rope way' },
+      { id: 'clapper', text: 'Fetch the clapper from the floating church', label: 'The clapper', bring: 'clapper', at: 'clapper', to: 'calix', via: 'the old rope way' },
       // (the clapper's way home is along the roof tiles that fell up with it: src/sky-stones-ways.js; `via` names the line for the
       //  level design audit; and Calix sends you home along the riders' lanterns, lit when the bell rings, north over the cloud to
       //  the riders' gate on the plain and your ship: `home`, src/vael-crossing.js)
-      { id: 'ring', text: 'Ring the bell: carry the clapper home along the roof tiles that fell up with it, over the great table, and pull the rope at the foot of the bell tower', label: 'The bell rope', flag: 'arzach2.bell.rung', at: 'rope', via: 'the fallen-up tiles' },
+      { id: 'ring', text: 'Carry the clapper home and ring the bell', label: 'The bell rope', flag: 'arzach2.bell.rung', at: 'rope', via: 'the fallen-up tiles' },
       { id: 'listen', text: 'Listen with Brother Calix', label: 'Brother Calix', talk: 'calix', at: 'calix', home: 'the riders’ lanterns' },
     ],
   },
@@ -61,19 +61,19 @@ export const QUESTS = [
     id: 'arzach2.letter', title: 'A Letter Across the Aqueduct', world: 'arzach2',
     outro: 'Ondine read it twice. Then she sat down and laughed.',
     stages: [
-      { id: 'carry', text: 'Carry Mother Ysolde’s letter out along the long aqueduct to her sister Ondine, who walks out on it every day from the peach plain', label: 'Ondine, on the aqueduct', bring: 'letter', to: 'ondine' },
+      { id: 'carry', text: 'Carry the letter to Ondine on the aqueduct', label: 'Ondine, on the aqueduct', bring: 'letter', to: 'ondine' },
       // (new: saves already at 'face' skip it, and can still light the lamp)
-      { id: 'lamp', text: 'Answer for Ondine with the old signal lamp on the tower’s plinth: turn its mirror to the carved bell (push the tiller from the side: switch the gun to push with {key:mode}, then aim and shoot), and light it with a shot', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
-      { id: 'face', text: 'Look at the face carved on the lone tower’s plinth', label: 'The face on the tower', flag: 'arzach2.face.seen', at: 'face' },
+      { id: 'lamp', text: 'Answer Ondine with the signal lamp', label: 'The signal lamp', flag: 'arzach2.lamp.answered', at: 'lamp' },
+      { id: 'face', text: 'Look at the face on the tower’s plinth', label: 'The face on the tower', flag: 'arzach2.face.seen', at: 'face' },
     ],
   },
   {
     id: 'arzach2.cairn', title: 'The Cairn That Fell Up', world: 'arzach2',
     outro: 'The cairn stands. Tiv says it hums when the wind is right.',
     stages: [
-      { id: 'gather', text: 'Climb the sky stones by the great table (jump, then jump again in the air) and fetch the cairn’s three stones', label: 'A cairn stone', at: 'cairnStone',
+      { id: 'gather', text: 'Fetch the three stones from the sky stones', label: 'A cairn stone', at: 'cairnStone',
         when: (q) => ['cairn.wide', 'cairn.round', 'cairn.egg'].filter((s) => q.has(s)).length + (q.game.flag('arzach2.cairn.placed') ?? 0) >= 3 },
-      { id: 'stack', text: 'Set the stones back on Tiv’s cairn, widest first', label: 'Tiv’s cairn', flag: 'arzach2.cairn.placed', value: 3, at: 'cairn' },
+      { id: 'stack', text: 'Stack Tiv’s cairn, widest first', label: 'Tiv’s cairn', flag: 'arzach2.cairn.placed', value: 3, at: 'cairn' },
     ],
   },
 ];

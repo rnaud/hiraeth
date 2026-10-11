@@ -30,29 +30,29 @@ export const QUESTS = [
     id: Q, title: 'The Great Crystal', world: 'perdide', main: true,
     outro: 'The splinter hums with your tank. The crystal sang a phrase like the one you heard the night the light passed your ship.',
     stages: [
-      { id: 'wendel', text: 'Something hums in the east. Ask Wendel, the egg-warden at the landing', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
-      { id: 'cross', text: 'Cross to the Great Crystal: south over the hill, then east through the ford', label: 'The Great Crystal', goto: 'crystalFoot', radius: 30 },
-      { id: 'saba', text: 'Talk to Saba, who listens at the crystal’s foot', label: 'Saba, the Listener', flag: 'perdide.saba.heard', at: 'saba' },
-      { id: 'sing', text: 'The crystal sings in the rain. Wait for a shower, or splash its spires with your fluid', label: 'The Great Crystal', flag: 'perdide.crystal.sung', at: 'crystal' },
-      { id: 'listen', text: 'Ask Saba about the phrase it has never sung before', label: 'Saba, the Listener', flag: 'perdide.clue.ship', at: 'saba' },
+      { id: 'wendel', text: 'Ask Wendel, the egg-warden, about the hum', label: 'Wendel, the egg-warden', flag: 'perdide.wendel.heard', at: 'wendel' },
+      { id: 'cross', text: 'Cross south, then east, to the Great Crystal', label: 'The Great Crystal', goto: 'crystalFoot', radius: 30 },
+      { id: 'saba', text: 'Talk to Saba at the crystal’s foot', label: 'Saba, the Listener', flag: 'perdide.saba.heard', at: 'saba' },
+      { id: 'sing', text: 'Make the crystal sing: rain, or your fluid', label: 'The Great Crystal', flag: 'perdide.crystal.sung', at: 'crystal' },
+      { id: 'listen', text: 'Ask Saba about the new phrase', label: 'Saba, the Listener', flag: 'perdide.clue.ship', at: 'saba' },
       { id: 'splinter', text: 'Pick up the splinter the song shook loose', label: 'The fallen splinter', flag: 'perdide.splinter.taken', at: 'splinter' },
-      { id: 'cave', text: 'Carry the splinter to the crystal cave on the western island (whistle for the skiff)', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart', home: 'Wendel’s egg-lamps' },   // (home: the way back the ring's page sends you, for the level design audit)
+      { id: 'cave', text: 'Carry the splinter to the western island’s cave', label: 'The heart of the crystal cave', flag: 'perdide.heart.rung', at: 'heart', home: 'Wendel’s egg-lamps' },   // (home: the way back the ring's page sends you, for the level design audit)
     ],
   },
   {
     id: 'perdide.patience', title: 'Feed Nothing', world: 'perdide',
     outro: 'The patient are never eaten. The plants know you now.',
     stages: [
-      { id: 'bed', text: 'Go and stand in the snapping bed on the landing’s north shore', label: 'The snapping bed', goto: 'bed', radius: 4 },
-      { id: 'wait', text: 'Stand among the plants and feed them nothing. Don’t splash them; let them tire of you', label: 'The snapping bed', flag: 'perdide.patience.kept', at: 'bed' },
-      { id: 'tell', text: 'Tell Wendel the plants have let you be', label: 'Wendel, the egg-warden', talk: 'wendel', at: 'wendel' },
+      { id: 'bed', text: 'Stand in the snapping bed on the north shore', label: 'The snapping bed', goto: 'bed', radius: 4 },
+      { id: 'wait', text: 'Stand still and let the plants tire of you', label: 'The snapping bed', flag: 'perdide.patience.kept', at: 'bed' },
+      { id: 'tell', text: 'Tell Wendel the plants let you be', label: 'Wendel, the egg-warden', talk: 'wendel', at: 'wendel' },
     ],
   },
   {
     id: 'perdide.fireflies', title: 'Follow the Fireflies', world: 'perdide',
     outro: 'The fireflies hatch from the glowing eggs. Some of them follow you now.',
     stages: [
-      { id: 'follow', text: 'Follow Ivo’s fireflies across the water (they wait if you fall behind)', label: 'The fireflies', flag: 'perdide.fireflies.home', at: 'fireflies' },
+      { id: 'follow', text: 'Follow Ivo’s fireflies across the water', label: 'The fireflies', flag: 'perdide.fireflies.home', at: 'fireflies' },
       { id: 'ivo', text: 'Tell Ivo where the fireflies go', label: 'Ivo, on the cave island', talk: 'ivo', at: 'ivo' },
     ],
   },

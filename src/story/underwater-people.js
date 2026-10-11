@@ -18,15 +18,15 @@ export const QUESTS = [
     id: 'underwater.kelp', title: 'A Cutting for the Crown', world: 'underwater',
     outro: 'Fabre’s window box glows green now, sixty metres up the column.',
     stages: [
-      { id: 'lift', text: 'Take Mireille’s glow-kelp cutting up the lift in the Plaza’s column to the Crown', label: 'The lift in the column', goto: 'crown', radius: 11, vertical: 6, at: 'lift' },
-      { id: 'fabre', text: 'Give the cutting to Fabre, who keeps the Crown’s lamps', label: 'Fabre, in the Crown', talk: 'fabre', at: 'fabre' },
+      { id: 'lift', text: 'Take the kelp cutting up to the Crown', label: 'The lift in the column', goto: 'crown', radius: 11, vertical: 6, at: 'lift' },
+      { id: 'fabre', text: 'Give the cutting to Fabre', label: 'Fabre, in the Crown', talk: 'fabre', at: 'fabre' },
     ],
   },
   {
     id: 'underwater.lamps', title: 'Lamps for the Whales', world: 'underwater',
     outro: 'Maelle says a lamp at the top of the city is a fine thing for a whale to see. She would know.',
     stages: [
-      { id: 'maelle', text: 'Tell Maelle, down in the Whale Gallery, that the Crown’s lamps are lit for the whales', label: 'Maelle, in the Whale Gallery', talk: 'maelle', at: 'maelle', via: 'the tube down to the Whale Gallery' },
+      { id: 'maelle', text: 'Tell Maelle the Crown’s lamps are lit', label: 'Maelle, in the Whale Gallery', talk: 'maelle', at: 'maelle', via: 'the tube down to the Whale Gallery' },
     ],
   },
 ];

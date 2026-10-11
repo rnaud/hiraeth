@@ -39,8 +39,8 @@ export const QUESTS = [
     outro: 'Three sounds, carried to the pole, sounding together.',
     stages: [
       { id: 'aube', text: 'Talk to Linnet, the listener, in the umbrella grove', label: 'Linnet, the listener', flag: 'spheres.aube.heard', at: 'aube' },
-      { id: 'listen', text: 'Splash the three spheres that remember with your fluid, and listen to each play its sound', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
-      { id: 'plaza', text: 'Carry the sounds through the sphere-arch and down the avenue to the round plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza', via: 'the white path and the avenue' },   // (via: the way its words send you, for the level design audit)
+      { id: 'listen', text: 'Splash the three spheres that remember', label: 'A sphere that remembers', flag: 'spheres.heard.three', at: 'sphere' },
+      { id: 'plaza', text: 'Carry the sounds down the avenue to the plaza', label: 'The round plaza', goto: 'plaza', radius: 22, at: 'plaza', via: 'the white path and the avenue' },   // (via: the way its words send you, for the level design audit)
       { id: 'pole', text: 'Splash the humming pole, and listen', label: 'The humming pole', flag: 'spheres.chord.heard', at: 'pole' },
       { id: 'ume', text: 'Tell Ume, who keeps the pole, what you heard', label: 'Ume, on the plaza', talk: 'ume', at: 'ume', home: 'the meadow path' },   // (home: the way back she sends you, for the level design audit)
     ],
@@ -49,16 +49,16 @@ export const QUESTS = [
     id: 'spheres.pebble', title: 'The Lake’s Reflection', world: 'spheres',
     outro: 'The pole sees the sky twice now.',
     stages: [
-      { id: 'glint', text: 'Splash the glint in the still water off the lake’s south shore (shoot)', label: 'The glint in the lake', flag: 'spheres.pebble.out', at: 'glint' },
+      { id: 'glint', text: 'Splash the glint off the lake’s south shore', label: 'The glint in the lake', flag: 'spheres.pebble.out', at: 'glint' },
       { id: 'pick', text: 'Pick up the mirrored pebble the lake gave back', label: 'The mirrored pebble', flag: 'spheres.pebble.taken', at: 'pebble' },
-      { id: 'carry', text: 'Carry the lake’s reflection to the plaza and set it at the pole’s foot', label: 'The pole’s foot', flag: 'spheres.pebble.placed', at: 'pole' },
+      { id: 'carry', text: 'Set the pebble at the pole’s foot', label: 'The pole’s foot', flag: 'spheres.pebble.placed', at: 'pole' },
     ],
   },
   {
     id: 'spheres.avenue', title: 'That Kind of Road', world: 'spheres',
     outro: 'You walked the whole avenue slowly. The cypresses noticed.',
     stages: [
-      { id: 'walk', text: 'Walk the avenue from the sphere-arch to the plaza without running or jumping', label: 'The avenue', flag: 'spheres.avenue.walked', at: 'avenue' },
+      { id: 'walk', text: 'Walk the avenue slowly: no running, no jumps', label: 'The avenue', flag: 'spheres.avenue.walked', at: 'avenue' },
       { id: 'tell', text: 'Tell Cael you walked it', label: 'Cael, on the avenue', talk: 'cael', at: 'cael' },
     ],
   },

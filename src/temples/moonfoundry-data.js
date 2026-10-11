@@ -6,9 +6,9 @@
 export const QUEST = {
   id: 'temple.moonfoundry', title: 'The Casting-House', world: 'moonfoundry', main: true,   // (the Moon Foundry's one thread: src/story/moonfoundry.js)
   outro: 'The Last Founder has stopped with one whole moon cast, and the Casting-House is quiet at night.',
-  find: 'On the hangar’s east side, between the moon in its claws and the moon on its pillar, a round casting tower stands under the roof, its chimney up to the girders: the Casting-House',
+  find: 'Find the Casting-House on the hangar’s east side',
   gadget: 'Find what the founders left in the Casting-House',
-  keeper: 'Something at the bottom of the house is still casting moons, and every one cracks. Go down to it',
+  keeper: 'Go down to what still casts moons',
 };
 
 export const PEOPLE = {

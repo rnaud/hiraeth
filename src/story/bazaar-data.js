@@ -40,10 +40,10 @@ export const QUESTS = [
     id: Q, title: 'You Are Not Alone', world: 'bazaar', main: true,
     outro: 'The tower talks again. It said what it always said, to everyone at once.',
     stages: [
-      { id: 'sel', text: 'A thousand signs speak; one tower is silent. Find whoever kept it, at its foot in Signal Square', label: 'Madame Sel, under the silent tower', talk: 'sel' },
-      { id: 'kip', text: 'Find Kip the courier, up on the second skybridge, who never delivered the last recording', label: 'Kip, on the second skybridge', talk: 'kip' },
-      { id: 'tune', text: 'Tune the antenna on the tower’s balcony: light its three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
-      { id: 'play', text: 'Play the unsent recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
+      { id: 'sel', text: 'Find who kept the silent tower', label: 'Madame Sel, under the silent tower', talk: 'sel' },
+      { id: 'kip', text: 'Find Kip on the second skybridge', label: 'Kip, on the second skybridge', talk: 'kip' },
+      { id: 'tune', text: 'Light the antenna’s three bulbs at once', label: 'The antenna', flag: 'bazaar.antenna.tuned', at: 'antenna' },
+      { id: 'play', text: 'Play the recording at the balcony console', label: 'The console', flag: 'bazaar.broadcast.on', at: 'console' },
       { id: 'sel2', text: 'Go down to Madame Sel', label: 'Madame Sel', talk: 'sel', home: 'the listeners’ lane' },   // (home: the way back she sends you, for the level design audit)
     ],
   },
@@ -51,15 +51,15 @@ export const QUESTS = [
     id: 'bazaar.oldsign', title: 'The Oldest Sign', world: 'bazaar',
     outro: 'WE HEARD YOU, small, in the corner of sixty-one signs and counting.',
     stages: [
-      { id: 'wake', text: 'Wake the oldest sign in the market, dark under the second skybridge (shoot it with the fluid)', label: 'The oldest sign', flag: 'bazaar.oldsign.awake', at: 'oldSign' },
-      { id: 'tell', text: 'Tell Brush what the oldest sign says', label: 'Brush, the sign painter', talk: 'brush' },
+      { id: 'wake', text: 'Wake the oldest sign under the skybridge', label: 'The oldest sign', flag: 'bazaar.oldsign.awake', at: 'oldSign' },
+      { id: 'tell', text: 'Tell Brush what the sign says', label: 'Brush, the sign painter', talk: 'brush' },
     ],
   },
   {
     id: 'bazaar.bowl', title: 'The Quiet One’s Bowl', world: 'bazaar',
     outro: 'Ummu listens to the far dark again, and hums back what it hears.',
     stages: [
-      { id: 'crates', text: 'Push the fallen crates away from Ummu’s alley (the fluid’s push)', label: 'The fallen crates', flag: 'bazaar.crates.clear', at: 'crates' },
+      { id: 'crates', text: 'Push the fallen crates out of the alley', label: 'The fallen crates', flag: 'bazaar.crates.clear', at: 'crates' },
       { id: 'bowl', text: 'Give Ummu back its listening bowl', label: 'Ummu', bring: 'bowl', at: 'bowl', to: 'ummu' },
     ],
   },

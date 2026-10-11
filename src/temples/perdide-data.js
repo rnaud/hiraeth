@@ -5,9 +5,9 @@
 export const QUEST = {
   id: 'temple.perdide', title: 'The Hush-House', world: 'perdide',
   outro: 'The Mother Snapper sleeps, and every snapping plant in the swamp has a flower at its foot.',
-  find: 'A great dome of violet stone stands on the cave island, crystals growing through it, its door looking east over the channel',
+  find: 'Find the violet dome on the cave island',
   gadget: 'Find what the makers left in the Hush-House',
-  keeper: 'Something huge snaps behind the last door. Go to it',
+  keeper: 'Go to what snaps behind the last door',
 };
 
 export const PEOPLE = {

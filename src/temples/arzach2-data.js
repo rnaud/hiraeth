@@ -5,9 +5,9 @@
 export const QUEST = {
   id: 'temple.arzach2', title: 'The Founders’ Belfry', world: 'arzach2',
   outro: 'The Cloud-Mother is calm, and the stones round the belfry have come down.',
-  find: 'A tower rises out of the cloud beside the plateau where you landed: cross the bridge from the west rim',
+  find: 'Cross the west rim’s bridge to the belfry',
   gadget: 'Find what the founders left inside their belfry',
-  keeper: 'Something huge cries at the top of the belfry. Go up to it',
+  keeper: 'Go up to what cries in the belfry',
 };
 
 export const PEOPLE = {

@@ -18,14 +18,14 @@ export const QUESTS = [
     id: 'spacecity.notes', title: 'The Planet’s Hum', world: 'spacecity',
     outro: 'Tamar laid Sel’s notes on the cable and the needle wrote the same line. The city and the planet are humming one tune.',
     stages: [
-      { id: 'tamar', text: 'Take Madame Sel’s notes on the planet’s hum to Tamar, who minds the cables on the Towers island', label: 'Tamar, on the Towers', talk: 'tamar', at: 'tamar', via: 'the Towers bridge' },
+      { id: 'tamar', text: 'Take Sel’s notes to Tamar on the Towers', label: 'Tamar, on the Towers', talk: 'tamar', at: 'tamar', via: 'the Towers bridge' },
     ],
   },
   {
     id: 'spacecity.lamp', title: 'A Lamp at the Edge', world: 'spacecity',
     outro: 'Kip’s lamp hangs in the crow’s nest of the Balcony’s mast, the last light before the dark.',
     stages: [
-      { id: 'hang', text: 'Climb the lamp-mast by the Balcony’s railing and hang one of Kip’s lamps in its crow’s nest, the last light before the dark', label: 'The crow’s nest on the Balcony’s mast', goto: 'mast', radius: 3.5, vertical: 3, at: 'mast', via: 'the Balcony bridge' },
+      { id: 'hang', text: 'Hang Kip’s lamp in the mast’s crow’s nest', label: 'The crow’s nest on the Balcony’s mast', goto: 'mast', radius: 3.5, vertical: 3, at: 'mast', via: 'the Balcony bridge' },
     ],
   },
 ];

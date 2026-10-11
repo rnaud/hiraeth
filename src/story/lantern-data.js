@@ -40,7 +40,7 @@ export const QUESTS = [
     id: Q, title: 'We Heard You', world: 'lantern', main: true,
     outro: 'The singing light was Ilen’s answer. She is coming home with you.',
     stages: [
-      { id: 'ilen', text: 'Walk the sand bar to the lantern. Someone is waiting at its foot', label: 'The lantern', talk: 'ilen' },
+      { id: 'ilen', text: 'Walk the sand bar to the lantern', label: 'The lantern', talk: 'ilen' },
     ],
   },
 ];

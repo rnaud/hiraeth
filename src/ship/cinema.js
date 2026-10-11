@@ -69,13 +69,15 @@ const hasDOM = () => typeof document !== 'undefined' && !!document.body;
 const setText = (el, text) => { if (hasKeys(text)) el.innerHTML = keyText(escapeHtml(text), { html: true }); else el.textContent = text; };
 
 /**
- * A quest's start, as its toast says it (the toast with class "quest", index.html): a small head
- * ("New quest", "New errand") over the quest's title and its first step. Plain HTML, the step's
- * {key:verb} as the player's own key or button.
+ * A quest's start, as its toast says it (the toast with class "quest", index.html): one short line, the quest's mark
+ * (◆ a main quest, in gold; ◇ an errand) and its title, and its first step after it when hints are full. It was a head
+ * ("New quest"), the title and the step on three lines: "too much visual noise" (the author's playthrough, October
+ * 2026, issue #72). `head` still says which kind it is. Plain HTML, the step's {key:verb} as the player's own key or button.
  */
 export function questToastHtml({ head = 'New quest', title = '', step = '' } = {}) {
   const k = (s) => (hasKeys(s) ? keyText(escapeHtml(s), { html: true }) : escapeHtml(s));
-  return `<span class="qk">◆ ${escapeHtml(head)}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}`;
+  const main = !/errand/i.test(head);
+  return `<span class="qk${main ? '' : ' errand'}" aria-label="${escapeHtml(head)}">${main ? '◆' : '◇'}</span><span class="qt">${escapeHtml(title)}</span>${step ? `<span class="qs">${k(step)}</span>` : ''}`;
 }
 
 /** Seconds a line of `text` needs on screen (as the calls time theirs). */
@@ -394,7 +396,7 @@ export class Cinema {
   _pumpToasts() {
     if (!this.dom || !this.toastEl || !this.toasts.length || this._toastT > 0 || this.dark()) return;
     const item = this.toasts.shift(), text = item.text, quest = item.kind === 'quest';
-    const secs = toastSeconds(text) + (quest ? 1 : 0);   // (a quest's start: a moment longer, it is three lines)
+    const secs = toastSeconds(text) + (quest ? 0.5 : 0);   // (a quest's start: a moment longer)
     this.onWords?.(text);   // (words on the screen: main.js listens for the hum)
     screen.toast(keyText(text), secs);   // (as data too: platform.js screen.toast)
     // a quest's start looks unlike the other notices: its own card (questToastHtml, index.html #toast.quest)

@@ -53,29 +53,29 @@ export const QUESTS = [
     id: Q, title: 'The Lamps Are Kept', world: 'perdide2', main: true,
     outro: 'Hollin has welcomed a traveller at last. He hopes you will visit again; the pools will stay lit either way.',
     stages: [
-      { id: 'hollin', text: 'Someone is waiting on the island. Talk to the old lamp-keeper', label: 'Hollin, the lamp-keeper', flag: 'perdide2.hollin.met', at: 'hollin' },
+      { id: 'hollin', text: 'Talk to the old lamp-keeper on the island', label: 'Hollin, the lamp-keeper', flag: 'perdide2.hollin.met', at: 'hollin' },
       // (for the level design audit: the pools are done at the last one, `ends`; Hollin is met at the root cave, where he has
       //  walked down to, `stands`; and he sends you home by the water-way, `home`)
-      { id: 'pools', text: 'Relight the three dark pools along the path: shoot them with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool', ends: 'lastPool' },
-      { id: 'answer', text: 'Something answered from across the water. Whistle for the skiff and go and see', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer' },
-      { id: 'tell', text: 'Tell Hollin what you found. He has walked down to the root cave to see the lights', label: 'Hollin, at the root cave', flag: 'perdide2.hollin.told', at: 'hollin', stands: 'hollinEnd', home: 'the water-way' },
+      { id: 'pools', text: 'Relight the three dark pools with your fluid', label: 'A dark pool', when: (q) => (q.game.flag('perdide2.pools.lit') ?? 0) >= 3, at: 'darkPool', ends: 'lastPool' },
+      { id: 'answer', text: 'Take the skiff to what answered', label: 'The light across the water', flag: 'perdide2.saucer.seen', at: 'saucer' },
+      { id: 'tell', text: 'Tell Hollin, down in the root cave', label: 'Hollin, at the root cave', flag: 'perdide2.hollin.told', at: 'hollin', stands: 'hollinEnd', home: 'the water-way' },
     ],
   },
   {
     id: 'perdide2.latch', title: 'The Moss-Dome Latch', world: 'perdide2',
     outro: 'Pim’s door shuts, and opens, and shuts again. She is delighted.',
     stages: [
-      { id: 'find', text: 'Find Pim’s latch: “on the big roof”, the glass dome further down the path', label: 'Pim’s latch', bring: 'latch', at: 'latch', to: 'pim' },
-      { id: 'return', text: 'Bring the latch back to Pim by the moss domes', label: 'Pim, by the moss domes', bring: 'latch', to: 'pim' },
-      { id: 'shut', text: 'Shoot the lamp above Pim’s door to shrink the moss, then push the door shut (switch the gun to push with {key:mode}, then aim and shoot)', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
+      { id: 'find', text: 'Find Pim’s latch on the glass dome', label: 'Pim’s latch', bring: 'latch', at: 'latch', to: 'pim' },
+      { id: 'return', text: 'Bring the latch back to Pim', label: 'Pim, by the moss domes', bring: 'latch', to: 'pim' },
+      { id: 'shut', text: 'Shrink the moss and push Pim’s door shut', label: 'Pim’s door', flag: 'perdide2.pim.door', at: 'pimDoor' },
     ],
   },
   {
     id: 'perdide2.skiff', title: 'Whose Skiff?', world: 'perdide2',
     outro: 'The skiff is Fen’s, and Fen says it is yours now, for as long as you need it.',
     stages: [
-      { id: 'owner', text: 'Find the skiff’s owner: Bram thinks it’s the hermit in the far dome, out on the deep water', label: 'The far dome', talk: 'fen', at: 'fen' },
-      { id: 'home', text: 'Light Fen’s bow-post lamp. Step off the skiff onto his landing, then push it into the berth (switch the gun to push with {key:mode}, then aim and shoot)', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
+      { id: 'owner', text: 'Find the skiff’s owner in the far dome', label: 'The far dome', talk: 'fen', at: 'fen' },
+      { id: 'home', text: 'Light Fen’s lamp and berth his skiff', label: 'Fen’s berth', flag: 'perdide2.skiff.home', at: 'fenBerth' },
     ],
   },
 ];

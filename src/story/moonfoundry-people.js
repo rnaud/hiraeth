@@ -19,15 +19,15 @@ export const QUESTS = [
     id: 'moonfoundry.count', title: 'Thirty-One Moons', world: 'moonfoundry',
     outro: 'Thirty-two, from the top of the pillar, written into the founders’ ledger. Wen has started again from one.',
     stages: [
-      { id: 'climb', text: 'Climb the pillar under the moon on its pillar, east of the floor, to the lookout, and count the moons from up there', label: 'The lookout on the pillar', goto: 'lookout', radius: 9, vertical: 5, at: 'lookout' },
-      { id: 'ilse', text: 'Give the count to Ilse, who keeps the founders’ ledger by the Casting-House door', label: 'Ilse, at the Casting-House', talk: 'ilse', at: 'ilse' },
+      { id: 'climb', text: 'Climb the pillar and count the moons', label: 'The lookout on the pillar', goto: 'lookout', radius: 9, vertical: 5, at: 'lookout' },
+      { id: 'ilse', text: 'Give the count to Ilse at the Casting-House', label: 'Ilse, at the Casting-House', talk: 'ilse', at: 'ilse' },
     ],
   },
   {
     id: 'moonfoundry.hook', title: 'The Ladle-Hook', world: 'moonfoundry',
     outro: 'Bertil’s ladle hangs straight again. He says it pours a little kinder.',
     stages: [
-      { id: 'bertil', text: 'Take the mended ladle-hook from Ottilie’s workshop to Bertil at the last furnace', label: 'Bertil, at the last furnace', talk: 'bertil', at: 'bertil' },
+      { id: 'bertil', text: 'Take the ladle-hook to Bertil', label: 'Bertil, at the last furnace', talk: 'bertil', at: 'bertil' },
     ],
   },
 ];

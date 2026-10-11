@@ -34,11 +34,14 @@ test('bug: on a phone on its side a notice was pushed under the touch buttons, o
   assert.ok(L.rects.toast.y1 < 120, `near the top (${L.rects.toast.y0})`);
 });
 
-test('a quest\'s start has its own card: a head, the title, the first step', () => {
+// (one short line since the author's playthrough, issue #72: the mark, the title, the step after it with hints full)
+test('a quest\'s start has its own card: one line, its mark and its title, the first step after it', () => {
   const html = questToastHtml({ head: 'New quest', title: 'The bell <of> stone', step: 'Find the clapper' });
-  assert.match(html, /class="qk">◆ New quest</);
+  assert.match(html, /class="qk" aria-label="New quest">◆</, 'a main quest: the gold diamond, no head written out');
+  assert.doesNotMatch(html, />◆ New quest</);
   assert.match(html, /class="qt">The bell &lt;of&gt; stone</, 'escaped');
   assert.match(html, /class="qs">Find the clapper</);
+  assert.match(questToastHtml({ head: 'New errand', title: 'A pot' }), /class="qk errand" aria-label="New errand">◇</, 'an errand: the hollow one');
   assert.doesNotMatch(questToastHtml({ title: 'Alone' }), /qs/, 'no step, no empty line');
 });
 

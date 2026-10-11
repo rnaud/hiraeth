@@ -174,10 +174,13 @@ export class Cue {
 }
 
 /**
- * The scout's find, as the cue says it (rule: the current quest is its overall goal and its next step,
- * nothing else): the goal on a small line over "◆ the next step · how far". No goal (the ship, a bare
- * world): the step alone, as before.
+ * The scout's find, as the cue says it: one short line, "◆ the next step · how far" (the author's rule, issue #72:
+ * every quest hint one short line). The quest's overall goal (`goal`) was a small line over it until October 2026;
+ * the game menu's Quests panel has it.
  */
 export function findSummary({ goal = '', step = '' } = {}) {
-  return goal ? `${goal}\n◆ ${step}` : `◆ ${step}`;
+  // one short line: the step and how far (the goal on a line over it was more than a hint needs, issue #72; the quest
+  // log has the goal)
+  void goal;
+  return `◆ ${step}`;
 }

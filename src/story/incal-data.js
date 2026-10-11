@@ -42,12 +42,12 @@ export const QUESTS = [
     id: Q, title: 'The Light Nobody Looks At', world: 'incal', main: true,
     outro: 'The Lodestar burns bright. For a moment, every level looked up.',
     stages: [
-      { id: 'nima', text: 'The light above the palace is dimming. Find the sweeper on the high terrace, who still watches it', label: 'Nima, the sweeper', talk: 'nima' },
+      { id: 'nima', text: 'Find the sweeper on the high terrace', label: 'Nima, the sweeper', talk: 'nima' },
       // (the way down on the wings, marked terrace by terrace: src/shaft-ways.js; talking to Ossa first skips it)
-      { id: 'down', text: 'Go down the shaft by the lamplighters’ drops: a red lamp on the edge of every terrace, landing to landing. Halfway, Perrine keeps a tea stall where they land', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
-      { id: 'ossa', text: 'Go down to the bottom terrace and ask at the Upward Shrine what fell the night the sky rang', label: 'Ossa, at the bottom of the shaft', talk: 'ossa' },
-      { id: 'palace', text: 'Carry the splinter up the whole shaft to the palace, under the Lodestar: the air pillar beside the spire rises from the bottom viaduct to the palace landing', label: 'The palace gate', talk: 'dov' },
-      { id: 'look', text: 'Stand on the palace’s crown and look up at the Lodestar: the little air pillar on the landing lifts you past the dome', label: 'Look up', flag: 'incal.lit', at: 'crown' },
+      { id: 'down', text: 'Go down the shaft by the red lamps', label: 'The lamplighters’ drops', goto: 'halfway', radius: 14, vertical: 6 },
+      { id: 'ossa', text: 'Ask at the Upward Shrine, at the bottom', label: 'Ossa, at the bottom of the shaft', talk: 'ossa' },
+      { id: 'palace', text: 'Carry the splinter up to the palace', label: 'The palace gate', talk: 'dov' },
+      { id: 'look', text: 'Look up at the Lodestar from the crown', label: 'Look up', flag: 'incal.lit', at: 'crown' },
       { id: 'tell', text: 'The Lodestar burns again. Go down and tell Nima', label: 'Nima, on the high terrace', talk: 'nima' },
     ],
   },
@@ -56,8 +56,8 @@ export const QUESTS = [
     outro: 'Dov ate it at his post, standing up, with his eyes shut.',
     stages: [
       // (src/story/incal.js: the tin hangs in the old goods hoist's basket, out over the void; shoot the pin, push the weight round)
-      { id: 'hoist', text: 'Pip’s tin hangs in the old goods hoist’s basket, out over the void. Knock out the rusted pin with a shot (aim with {key:aim}, fire with {key:fire}), push the hoist round (switch the gun to push with {key:mode}, then aim and shoot) and take the tin', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
-      { id: 'carry', text: 'Carry Pip’s ration tin up to his uncle Dov, the palace guard', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
+      { id: 'hoist', text: 'Get Pip’s tin out of the goods hoist', label: 'The goods hoist', bring: 'ration', at: 'hoist', to: 'dov' },
+      { id: 'carry', text: 'Carry the tin up to Dov at the palace', label: 'Dov, at the palace gate', bring: 'ration', to: 'dov' },
     ],
   },
   {
@@ -65,9 +65,9 @@ export const QUESTS = [
     id: 'incal.mirror', title: 'The Halfway Mirror', world: 'incal',
     outro: 'The halfway mirror faces up the shaft again. When the Lodestar shines, a coin of its light goes down to the bottom terraces.',
     stages: [
-      { id: 'wash', text: 'Wash the smog off the halfway mirror beside Perrine’s tea stall (shoot)', label: 'The halfway mirror', flag: 'incal.mirror.washed', at: 'mirror' },
-      { id: 'turn', text: 'Turn the mirror round on its pole until it faces up the shaft, toward the Lodestar (push it from the side: switch the gun to push with {key:mode}, then aim and shoot)', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
-      { id: 'tell', text: 'Tell Perrine the mirror faces up again', label: 'Perrine, at the halfway stall', talk: 'perrine', at: 'perrine' },
+      { id: 'wash', text: 'Wash the smog off the halfway mirror', label: 'The halfway mirror', flag: 'incal.mirror.washed', at: 'mirror' },
+      { id: 'turn', text: 'Turn the mirror to face the Lodestar', label: 'The halfway mirror', flag: 'incal.mirror.turned', at: 'mirror' },
+      { id: 'tell', text: 'Tell Perrine the mirror faces up', label: 'Perrine, at the halfway stall', talk: 'perrine', at: 'perrine' },
     ],
   },
   {
@@ -75,11 +75,11 @@ export const QUESTS = [
     id: 'incal.pass', title: 'A Pass for the Cabs', world: 'incal',
     outro: 'A card with the palace seal and something like your name. The cabs stop for you now.',
     stages: [
-      { id: 'lio', text: 'The cabs fly past you. Ask Lio, the cab dispatcher on the rim, how to get one to stop', label: 'Lio, the dispatcher', talk: 'lio' },
+      { id: 'lio', text: 'Ask Lio how to stop a cab', label: 'Lio, the dispatcher', talk: 'lio' },
       // (walk up to Tobin and he pays as you come, grumbling: no conversation to sit through between Lio's two. The level
       // design audit v1.15 read three talks in a row here: Nima told, Lio, Tobin. src/story/incal.js; talking to him works too)
-      { id: 'fare', text: 'Lio writes a pass for one fare, paid in advance. Tobin, who sells views along the rim, owes him one: go and collect it', label: 'Tobin, seller of views', goto: 'tobin', radius: 4.5, vertical: 4 },
-      { id: 'back', text: 'Bring Tobin’s coin back to Lio for your cab pass, round the outer rim past Tobin’s telescopes', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio', via: 'Tobin’s telescopes' },   // (via: the way his words send you, for the level design audit)
+      { id: 'fare', text: 'Collect Lio’s fare from Tobin', label: 'Tobin, seller of views', goto: 'tobin', radius: 4.5, vertical: 4 },
+      { id: 'back', text: 'Bring Tobin’s coin back to Lio', label: 'Lio, the dispatcher', bring: 'fare', to: 'lio', via: 'Tobin’s telescopes' },   // (via: the way his words send you, for the level design audit)
     ],
   },
   {
@@ -87,8 +87,8 @@ export const QUESTS = [
     id: 'incal.wren', title: 'The Cab That Stops', world: 'incal',
     outro: 'One cab still stops at the bottom. Now you know its name.',
     stages: [
-      { id: 'lamp', text: 'Light the dead taxi call-lamp at the edge of the bottom terrace (shoot it with the fluid)', label: 'The call-lamp', flag: 'incal.lamp.lit', at: 'lamp' },
-      { id: 'wren', text: 'A cab is coming down to the lamp. Get in, and hear what it has to say', label: 'Wren, the old cab', talk: 'wren' },
+      { id: 'lamp', text: 'Light the dead call-lamp on the bottom terrace', label: 'The call-lamp', flag: 'incal.lamp.lit', at: 'lamp' },
+      { id: 'wren', text: 'Get in the cab and listen', label: 'Wren, the old cab', talk: 'wren' },
     ],
   },
 ];
