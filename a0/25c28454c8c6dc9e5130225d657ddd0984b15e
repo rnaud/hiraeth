@@ -1,0 +1,25 @@
+docs/design/flora-fauna-prompts.md
+  s_9ca76055a220ed::t_8568057d027838 1-131
+references/levels/Lorn/environment/flora-fauna/README.md
+  s_9ca76055a220ed::t_0b8464078186d5 1-4
+references/levels/Vael/environment/flora-fauna/README.md
+  s_9ca76055a220ed::t_194dea8747f65a 1-4
+references/levels/Viridel/environment/flora-fauna/README.md
+  s_9ca76055a220ed::t_792efe5a8a1895 1-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a025c28454c8c6dc9e5130225d657ddd0984b15e",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
