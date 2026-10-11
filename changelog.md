@@ -4,6 +4,9 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.50 — 2026-10-11
 
+- In Vael, Brother Calix now waits at the foot of his bell tower, and the Founders’ Belfry wears a bronze needle with a lamp on its dome, seen over the monastery roofs from there. The lamp lights when the bell rings.
+- In Vael, Sister Aube keeps a fire in her hermitage: from the riders’ gate its thread of smoke rises high over the sky stones, so you can fly straight to her.
+- In Vael, the long walk over the plain from the Aerie to the lone tower passes two new things to turn aside for: the white bones of a great bird a rider once flew, lying across the sand, and the riders’ little shrine in the lee of a hoodoo, ringed with their streamers. Both can be looked at.
 - In Viridel, a long row of seed beds runs from the Greenhouse down the meadow, past the white ruins, to your landing, the builders’ old seed-drill standing where it stopped. Once the Gardener sleeps every bed comes up green, and Sorrel sends you home along it.
 - In Viridel, a slender glass spire rises from the Builders’ Greenhouse’s dome, a pink glass bud at its top, so from Mira’s water clock you can see where the Greenhouse stands over the rise of the meadow.
 - In the City-Shaft, once Tobin gives you Lio’s pass, ride home: wave a cab down at the rim’s edge and it flies you out over the shaft, past the new cab rank where the cabs wait, to the stop by your ship.

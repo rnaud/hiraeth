@@ -265,6 +265,28 @@ export const THINGS = {
       choices: [{ text: '~solemn~ (sit by the cup a while)', end: true }],
     } } },
   },
+  // the plain's sights on the walk from the Aerie to the lone tower (src/vael-ways.js buildPlainSights, issue #133)
+  bones: {
+    id: 'bones', name: 'The great bird’s bones', title: 'in the sand of the plain', color: '#f6f1e4', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~solemn~ A great bird lies in the sand, her bones whiter than the plain, her wings spread wider than a house. Her beak points north, to the edge where the riders set off.",
+        "~curious~ An iron ring hangs round her neck, worn bright on one side by a rope. A rider’s bird. Scratched into the ring: a name, and a little bird. {glyph}",
+        { if: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] }, text: "~sad~ (When your bird flies over, she circles here once, low, and goes on without a sound.)" },
+        { if: { not: { any: [{ flag: 'arzach.bird.called' }, { flag: 'bird.promise' }] } }, text: "~sad~ (The wind has drifted sand between her ribs. A saddle-cloth, faded to pink, is caught over two of them.)" }],
+      do: { set: { 'arzach.bones.seen': true } },
+      choices: [{ text: '~solemn~ (stand with her a moment)', end: true }],
+    } } },
+  },
+  shrine: {
+    id: 'shrine', name: 'The riders’ shrine', title: 'in the lee of a hoodoo', color: '#f4efe2', voice: 0.6,
+    talk: { nodes: { look: {
+      say: ["~neutral~ A shrine of white stone no taller than you, a little dome on it, the bird’s track carved over its niche. {glyph}",
+        "~curious~ Rags of streamers ring it on short poles, one for every flight, the riders say. Whatever the wind does, they all point at the lone tower.",
+        "~solemn~ In the niche stands a cup of water, still full. The sand round the step has been swept."],
+      do: { set: { 'arzach.shrine.seen': true } },
+      choices: [{ text: '~solemn~ (leave the cup as it is)', end: true }],
+    } } },
+  },
   palm: {
     id: 'palm', name: 'The stone hand', title: 'reaching out of the plain', color: '#efe6d2', voice: 0.6,
     talk: {

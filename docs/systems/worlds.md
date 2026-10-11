@@ -1029,6 +1029,28 @@ hides all of it but the dome's cap (281 m), and the way home from its door was t
   route's temple step carries it as `home` (375 m home, four places on it not passed on the way in).
 Tested in `tests/viridel-greenhouse-ways.test.js`.
 
+## Vael: the plain's sights, Aube's smoke and the founders' lamp (level design audit v1.49, issue #133; v1.50)
+
+The walk from the Aerie to the lone tower crossed 483 m of bare plain (59 s at a run, the tower in sight all the way), and
+two legs had nothing to steer by: the bird flight from the riders' gate to Sister Aube (966 m, the sky stones between) and
+Brother Calix to the Founders' Belfry (279 m, Calix stood in the lee of the monastery's houses). Density 3 → 4,
+wayfinding 4 → 5 (64 → 90 % of the long legs guided): Vael 4.44 → 4.67 (`scripts/level-design/audit.mjs --worlds arzach`).
+- **The plain's sights** (`PLAIN_BONES`, `PLAIN_SHRINE`, src/vael-ways.js `buildPlainSights`, built last in
+  `finishVael`): a third of the way, a little off the walk, **the great bird's bones** lying across it, her wings spread,
+  her beak toward the plain's edge where the riders set off, her rider's ring round her neck and a faded saddle-cloth over
+  two ribs; two thirds of the way, in the lee of a hoodoo, **the riders' shrine**, a domed niche with the bird's track
+  over it and a cup of water in it, ringed with streamers on short poles that all blow toward the tower. Both are sights
+  for the audit and can be looked at (`THINGS.bones`, `THINGS.shrine`, src/story/arzach-data.js). The longest empty
+  stretch of the walk is now 118 m (14 s).
+- **Aube's smoke** (`AUBE_SMOKE`, src/vael-crossing.js): a SmokeColumn (src/story/flames.js) 150 m tall out of a chimney
+  on her hermitage's house, moved at 40 Hz within 2 km. From the gate the sky stones hide everything on her stone below
+  about 140 m; the smoke rises over them (a beacon). The gate's look says it is there.
+- **The founders' lamp** (src/temples/arzach2.js `exterior`): the Belfry dome's finial carried on as a bronze needle
+  with a glass lamp, cold until the bell rings, then lit (`level.arzach2.belfryLamp`, src/story/arzach2.js); a beacon.
+  **Calix** stands at the foot of his bell tower now, by the rope (src/levels/arzach2.js npcs), where it shows over the
+  monastery's roofs.
+Tested in `tests/vael-plain-sights.test.js`.
+
 ## The Glass Dunes: a detour off the route (October 2026)
 
 `?level=glassdunes` (`src/levels/glass-dunes.js`), built from the References' plates

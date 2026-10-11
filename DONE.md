@@ -2759,3 +2759,8 @@ ticked, with how its issue closed (from the issue's last comment); grouped by th
   passed nothing. Done in v1.50: the Greenhouse's glass spire, seen over the meadow's rise from Mira's, and the long seed
   row home past the seed-drill and the white ruins (docs/systems/worlds.md). Wayfinding 3 → 5, loops 3 → 5, Viridel 4 → 4.56.
   (2026-10-11, v1.50: done; Fixes #131 in its commit.)
+- [x] [#133](https://github.com/rnaud/hiraeth/issues/133) **Vael's plain** (483 m empty, 59 s) and its blind legs to Sister Aube (966 m) and the
+  Belfry (279 m). Done in v1.50: the great bird's bones and the riders' shrine on the plain, Aube's smoke seen from the
+  riders' gate, the founders' lamp over the Belfry seen from Calix at his bell tower (docs/systems/worlds.md). Density
+  3 → 4, wayfinding 4 → 5, Vael 4.44 → 4.67.
+  (2026-10-11, v1.50: done; Fixes #133 in its commit.)

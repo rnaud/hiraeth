@@ -22,6 +22,15 @@ import { offsetOf } from './levels/names.js';
 //   buildBirdTracks(scene, terrain)  → { points: [[x, y, z]], mount: { at, look, stand } }
 //   buildRidersRoost(scene, terrain) → { top, look, stand, streamer }
 //   buildRidersMast(scene, terrain)  → { at, top, look, wave }
+//
+//   the plain's sights   (level design audit v1.49, issue #133: from the Aerie to the lone tower the plain was 483 m of
+//                        nothing, the tower in sight the whole way) two things to turn aside for on the walk to the
+//                        tower: the bones of a great bird a rider flew, lying across the way where she came down, her
+//                        long beak toward the plain's edge and her rider's ring round her neck; further on, by a hoodoo,
+//                        the riders' wayside shrine, a little domed niche of white stone with the bird's track over
+//                        it, ringed with the streamers riders tied there, every one blown toward the tower.
+//
+//   buildPlainSights(scene, terrain) → { bones: { at, look, stand }, shrine: { at, look, stand }, wave(t) }
 
 // (in Vael's own coordinates, moved to where its plain lies in the world it shares with the sky stones: names.js PART_OFFSET)
 const [OX, OY, OZ] = offsetOf('arzach');
@@ -148,4 +157,98 @@ export function buildRidersMast(scene, terrain) {
   scene.add(pennon);
   const base = streamer.rotation.y;
   return { at: V(x, y, z), top: V(x, y + h, z), look: V(x + 1.6, y + 1.6, z + 0.6), wave: (t) => { streamer.rotation.y = base + Math.sin(t * 0.6) * 0.12; streamer.rotation.x = Math.sin(t * 1.1) * 0.16; } };
+}
+
+/** The plain's sights on the walk from the Aerie to the lone tower ([x, z]): the great bird's bones, the riders' shrine. */
+export const PLAIN_BONES = { x: -54 + OX, z: -168 + OZ };
+export const PLAIN_SHRINE = { x: 112 + OX, z: -262 + OZ };
+const AERIE = { x: -205 + OX, z: -17 + OZ };
+const EDGE = { x: -40, z: -903 };   // (the riders' gate at the plain's edge, src/vael-crossing.js GATE)
+
+export function buildPlainSights(scene, terrain) {
+  const H = (x, z) => terrain.heightAt(x, z);
+  const bone = makeMaterial({ color: '#f7f3e8', flat: true, pattern: 'cracks' });
+  const stone = makeMaterial({ color: '#f4efe2', color2: '#e6dcc6', color3: '#d6c7a8', mode: MODE_STRATA, strataSize: 2, flat: true });
+  const iron = makeMaterial({ color: '#3c4660', flat: true });
+  const cloth = makeMaterial({ color: '#e8c0aa', flat: true, side: THREE.DoubleSide });
+  const white = makeMaterial({ color: '#f4efe2', flat: true, side: THREE.DoubleSide });
+  const dark = makeMaterial({ color: '#2a2128', flat: true });
+  // (a frame on the sand: local +z toward `to`; every vertex laid on the ground under it, its local y over the sand)
+  const frameAt = (x, z, to) => new THREE.Matrix4().compose(V(x, 0, z), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), Math.atan2(to.x - x, to.z - z)), V(1, 1, 1));
+  const lay = (list, F, sink = 0) => {
+    const g = mergeGeometries(list.map((q) => flat0(q.applyMatrix4(F))));
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) + H(p.getX(i), p.getZ(i)) - sink);
+    g.computeVertexNormals();
+    return g;
+  };
+  const tube = (pts, r) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map((q) => V(...q))), Math.max(4, pts.length * 4), r, 6);
+
+  // ---- the great bird's bones: she lay down in the sand and did not get up, across the way to the tower, her wings
+  // spread, her beak toward the plain's edge where the riders set off
+  const B = PLAIN_BONES, FB = frameAt(B.x, B.z, EDGE), bones = [];
+  for (let k = 0; k < 9; k++) bones.push(new THREE.SphereGeometry(0.5 - k * 0.025, 8, 6).translate(0, 0.45, -7 + k * 1.5));   // the spine
+  for (let k = 0; k < 6; k++) {   // the ribs: arches over the spine, two of them broken short
+    const rr = 2.2 + Math.sin((k / 5) * Math.PI) * 1.1, arc = k === 1 || k === 4 ? Math.PI * 0.55 : Math.PI;
+    bones.push(new THREE.TorusGeometry(rr, 0.24, 6, 14, arc).translate(0, -0.35, -4.4 + k * 1.7));
+  }
+  bones.push(new THREE.BoxGeometry(0.35, 0.5, 6.5).translate(0, 0.25, -1));                           // the keel, half in the sand
+  for (let k = 0; k < 7; k++) { const t = k / 6; bones.push(new THREE.SphereGeometry(0.34, 8, 6).translate(2.4 * t * t, 0.5 + Math.sin(t * Math.PI) * 0.9, 5.2 + t * 6)); }   // the neck
+  bones.push(new THREE.SphereGeometry(1.05, 12, 8).scale(0.8, 0.7, 1.35).translate(2.6, 0.75, 12.6));   // the skull
+  bones.push(new THREE.ConeGeometry(0.42, 7.5, 8).rotateX(Math.PI / 2).translate(2.8, 0.55, 17.4));       // the long beak
+  for (const s of [-1, 1]) {
+    // the wings: the long arm bones out over the sand, the finger bones fanned at their ends
+    bones.push(tube([[s * 0.8, 0.5, 3.6], [s * 6.5, 0.35, 2.2], [s * 12.5, 0.25, 4.4]], 0.24));
+    for (let f = 0; f < 4; f++) bones.push(tube([[s * 12.5, 0.25, 4.4], [s * (16 + f * 0.6), 0.2, 1.8 + f * 1.6], [s * (19.5 + f * 0.4), 0.16, 0.4 + f * 2.6]], 0.14));
+    // the legs, folded under her
+    bones.push(tube([[s * 0.7, 0.4, -3.4], [s * 2.2, 0.35, -5.8], [s * 1.6, 0.2, -8.6], [s * 2.6, 0.12, -9.8]], 0.2));
+  }
+  const bonesMesh = new THREE.Mesh(lay(bones, FB, 0.15), bone);
+  bonesMesh.name = 'The great bird’s bones';
+  // her rider's ring round her neck, and a faded saddle-cloth caught over two of her ribs
+  const ring = new THREE.Mesh(lay([new THREE.TorusGeometry(0.62, 0.08, 6, 16).rotateY(0.5).translate(1.0, 1.25, 8.1)], FB), iron);
+  ring.userData.noCollide = true;
+  const sc = new THREE.PlaneGeometry(2.6, 1.5, 6, 3).rotateX(-Math.PI / 2).rotateY(0.12);
+  { const p = sc.attributes.position; for (let i = 0; i < p.count; i++) p.setY(i, 3.05 - 0.15 * p.getX(i) ** 2); }
+  const saddle = new THREE.Mesh(lay([sc.translate(0, 0, 0.1)], FB), cloth);
+  saddle.userData.noCollide = true;
+  scene.add(bonesMesh, ring, saddle);
+
+  // ---- the riders' wayside shrine, in the lee of a hoodoo: a niche of white stone with a small dome, facing the way
+  // from the Aerie, the bird's track over its niche, a cup of water in it; streamers on short poles all round it
+  const S = PLAIN_SHRINE, FS = frameAt(S.x, S.z, AERIE), sy = H(S.x, S.z);
+  const shrine = [new THREE.BoxGeometry(3, 0.6, 3), new THREE.BoxGeometry(2.1, 2.4, 1.7).translate(0, 1.5, -0.2),
+    new THREE.SphereGeometry(1.15, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2).translate(0, 2.7, -0.2), new THREE.ConeGeometry(0.16, 0.7, 6).translate(0, 4.15, -0.2)];
+  const lift = (g) => g.applyMatrix4(new THREE.Matrix4().makeTranslation(0, sy, 0)).applyMatrix4(FS);
+  const shrineMesh = new THREE.Mesh(mergeGeometries(shrine.map((g) => flat0(lift(g)))), stone);
+  shrineMesh.name = 'The riders’ shrine';
+  const niche = new THREE.Mesh(flat0(lift(new THREE.BoxGeometry(1.1, 1.3, 0.1).translate(0, 1.35, 0.66))), dark);
+  const mark = new THREE.Mesh(flat0(lift(glyphGeometry(0.7).translate(0, 2.25, 0.67))), makeMaterial({ color: '#8a6e52', flat: true }));
+  const cup = new THREE.Mesh(flat0(lift(new THREE.CylinderGeometry(0.13, 0.1, 0.2, 10).translate(0.15, 0.82, 0.45))), iron);
+  for (const m of [niche, mark, cup]) m.userData.noCollide = true;
+  scene.add(shrineMesh, niche, mark, cup);
+  const toTower = Math.atan2(TOWER.x - S.x, TOWER.z - S.z), poles = [], tails = [];
+  for (let k = 0; k < 9; k++) {
+    const a = (k / 9) * Math.PI * 2 + 0.3, x = S.x + Math.sin(a) * 4.2, z = S.z + Math.cos(a) * 4.2, y = H(x, z), h = 2.2 + (k % 3) * 0.35;
+    poles.push(new THREE.CylinderGeometry(0.05, 0.07, h + 0.4, 5).translate(x, y + h / 2 - 0.2, z));
+    // (the streamers: a tapering rag off each pole's top, every one blown toward the tower, some no more than a scrap)
+    const L = k % 4 === 1 ? 0.9 : 2.0 + (k % 3) * 0.45, g = new THREE.PlaneGeometry(L, 0.5, 6, 1).translate(L / 2, 0, 0);
+    { const p = g.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / L; p.setY(i, p.getY(i) * (1 - 0.6 * u) - u * u * L * 0.45); p.setZ(i, Math.sin(u * 6 + k) * 0.18 * u); } }   // (tapering, drooping, in waves)
+    const tail = new THREE.Mesh(g, k % 3 ? white : cloth);
+    tail.position.set(x, y + h - 0.1, z); tail.rotation.y = toTower - Math.PI / 2; tail.userData.noCollide = true;
+    tails.push({ m: tail, base: tail.rotation.y, k });
+    scene.add(tail);
+  }
+  // white feathers stuck quill-down in the sand by the shrine's step
+  for (let k = 0; k < 6; k++) { const a = 2.6 + k * 0.32, r = 2.0 + (k % 2) * 0.4, x = S.x + Math.sin(a + toTower) * r, z = S.z + Math.cos(a + toTower) * r; poles.push(new THREE.ConeGeometry(0.09, 0.9, 4).scale(1, 1, 0.3).rotateZ((k - 2.5) * 0.12).translate(x, H(x, z) + 0.4, z)); }
+  const poleMesh = new THREE.Mesh(mergeGeometries(poles.map(flat0)), makeMaterial({ color: '#e6dcc6', flat: true }));
+  poleMesh.userData.noCollide = true; poleMesh.name = 'The riders’ shrine’s streamers';
+  scene.add(poleMesh);
+
+  const ahead = (F, lx, ly, lz) => { const p = V(lx, 0, lz).applyMatrix4(F); p.y = H(p.x, p.z) + ly; return p; };
+  return {
+    bones: { at: ahead(FB, 0, 0, 0), look: ahead(FB, 2.6, 1, 12.6), stand: ahead(FB, 4.5, 0, 10.5) },
+    shrine: { at: V(S.x, sy, S.z), look: ahead(FS, 0, 1.4, 0.7), stand: ahead(FS, 0, 0, 2.6) },
+    wave: (t) => { for (const s of tails) { s.m.rotation.y = s.base + Math.sin(t * 0.9 + s.k) * 0.14; s.m.rotation.x = Math.sin(t * 1.4 + s.k * 0.7) * 0.2; } },
+  };
 }

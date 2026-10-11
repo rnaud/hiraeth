@@ -522,6 +522,7 @@ export function setupArzach2(ctx) {
     A.lanterns?.lit(!!game.flag('arzach2.bell.rung'));
     A.riders?.lit(!!game.flag('arzach2.bell.rung'));   // (in Vael: the riders' lanterns and the gate's, home to the plain)
     A.gate?.lit(!!game.flag('arzach2.bell.rung'));
+    A.belfryLamp?.lit(!!game.flag('arzach2.bell.rung'));   // (and the founders' lamp over the Belfry, the next way on: src/temples/arzach2.js)
     bell.dip = Math.max(0, bell.dip - dt / 6);
     const k = THREE.MathUtils.smootherstep(bell.settle, 0, 1), dip = Math.sin(Math.PI * bell.dip) * 2.5;
     const drop = SETTLE * k + dip;

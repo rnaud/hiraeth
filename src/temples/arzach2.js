@@ -506,10 +506,26 @@ function exterior(scene, level, rt) {
     rt.root.add(g);
     hang.push({ g, y: g.position.y, i, rest: K.world(Math.sin(a) * (R + 3.4), door + 1.2 + (i % 2) * 0.5, Math.cos(a) * (R + 3.4)) });
   }
+  // the founders' lamp (level design audit v1.49, issue #133: from Calix by the monastery's bell the walk to this door had
+  // nothing to steer by): the dome's finial carried on as a bronze needle with a glass lamp on it, over the monastery's
+  // roofs from the foot of its bell tower; cold until the bell rings, then lit (src/story/arzach2.js)
+  const F0 = B0 + 17 + R * 0.6 + 1.6, bronze = BRONZE();
+  K.add(bronze, new THREE.CylinderGeometry(0.28, 0.5, 9.4, 8).translate(0, F0 + 4.5, 0));
+  for (const y of [2.5, 5.5]) K.add(bronze, T(new THREE.TorusGeometry(0.62, 0.1, 4, 14), [0, F0 + y, 0], [Math.PI / 2, 0, 0]));
+  K.add(bronze, new THREE.CylinderGeometry(1.2, 0.6, 0.5, 10).translate(0, F0 + 9.3, 0));
+  K.add(bronze, new THREE.ConeGeometry(0.9, 2.6, 10).translate(0, F0 + 12.9, 0));
+  for (let i = 0; i < 4; i++) { const a = (i / 4) * TAU + 0.4; K.add(bronze, box(0.14, 2.2, 0.14, Math.sin(a) * 1.05, F0 + 10.6, Math.cos(a) * 1.05)); }
+  const lampGeo = new THREE.SphereGeometry(1.0, 14, 10).scale(1, 1.2, 1).translate(0, 0, 0);
+  const lampAt = K.world(0, F0 + 10.6, 0);
+  const cold = new THREE.Mesh(lampGeo, makeMaterial({ color: '#8a7a62', flat: true, key: 'temple.arzach2.lamp.cold' }));
+  const warm = new THREE.Mesh(lampGeo, makeMaterial({ color: '#ffd9a0', glow: 1, key: 'temple.arzach2.lamp.lit' }));
+  for (const m of [cold, warm]) { m.position.copy(lampAt); m.userData.noCollide = true; m.userData.dynamic = true; m.name = 'The founders’ lamp'; rt.root.add(m); }
+  warm.visible = false;
+  const lamp = { at: lampAt, top: K.world(0, F0 + 14.2, 0), height: 14.2, lit: (on) => { warm.visible = !!on; cold.visible = !on; }, isLit: () => warm.visible };
   K.flush();
   const at = K.world(0, door, R + 1.6);
   const front = K.world(0, door, R + 9);
-  return { door: { at, heading: yaw }, kit: K, base, doorY: door, R, top: B0 + 30, hang, clear: [] , front };
+  return { door: { at, heading: yaw }, kit: K, base, doorY: door, R, top: B0 + 30, hang, clear: [] , front, lamp };
 }
 
 // ------------------------------------------------------------------ the world change: the stones come down

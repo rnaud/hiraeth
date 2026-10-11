@@ -35,6 +35,12 @@ export const GATE = { x: -40, in: 30, span: 9, h: 27 };
 /** The riders' lanterns, [x, y, z]: from the rose cliff's north lip, over the cloud, to before the gate (the fifth: the halfway stone). */
 export const RIDERS_LANTERNS = [[-236, 86, -300], [-222, 82, -366], [-205, 77, -432], [-186, 72, -498], [-166, 66, -566], [-145, 60, -633], [-123, 54, -700], [-101, 48, -765], [-80, 42, -828]];
 export const HALFWAY = 4;
+/**
+ * Aube's smoke (level design audit v1.49, issue #133: the flight from the riders' gate to her hermitage had nothing to
+ * steer by): the fire she keeps in the hermitage's chimney for riders, a thread of white smoke that climbs high over the
+ * sky stones (src/story/flames.js SmokeColumn), seen from the gate over the stones between. [x, y, z]: the chimney's top.
+ */
+export const AUBE_SMOKE = { at: [-33, 47.6, 45], height: 150, drift: 50 };
 /** The old rope way: its posts on the monastery's east lip and before the island church's porch, and its three snagged knots between. */
 export const ROPE_WAY = { a: [-184, -249], b: [221, -508], knots: [[-80, 92, -316], [18, 104, -380], [116, 116, -442]] };
 

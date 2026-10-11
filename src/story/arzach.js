@@ -192,6 +192,11 @@ export function setupArzach(ctx) {
   if (A.tracks?.mount) thing(THINGS.mounting, A.tracks.mount.stand, { range: 3.4, prompt: 'look at the mounting stone', look: A.tracks.mount.look });
   if (A.roost) thing(THINGS.roost, A.roost.stand, { range: 3.4, prompt: 'look at the lean-to', look: A.roost.look });
   if (A.mast) thing(THINGS.mast, A.mast.look, { range: 3.2, prompt: 'look at the mast', look: A.mast.top });
+  // the plain's sights on the walk to the lone tower (src/vael-ways.js buildPlainSights)
+  if (A.plain) {
+    thing(THINGS.bones, A.plain.bones.stand, { range: 5, prompt: 'look at the bones', look: A.plain.bones.look });
+    thing(THINGS.shrine, A.plain.shrine.stand, { range: 3.4, prompt: 'look at the shrine', look: A.plain.shrine.look });
+  }
 
   // ---------------------------------------------------------------- the rider's flute, on the sill
   // a little bone flute with a white feather tied to it by a worn cord, lying on the sill by the window

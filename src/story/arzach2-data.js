@@ -280,6 +280,7 @@ export const THINGS = {
       say: ["~solemn~ Two pillars of rose stone lean together at the edge of the plain, with the cloud below and the stones that fell up beyond it. A lantern hangs from the lintel on a chain.",
         "~curious~ Names are scratched into the pillars, hundreds of them, each beside a little bird. The riders set off from here, and the newest name is thirty years old.",
         { if: { not: { flag: 'arzach2.bell.rung' } }, text: "~sad~ The lantern is cold. Out over the cloud, a string of small dark stones leads south toward a white monastery." },
+        "~curious~ Due south, over the floating stones, a thread of smoke climbs from the nearest one, where someone still keeps a fire.",
         { if: { flag: 'arzach2.bell.rung' }, text: "~happy~ The lantern burns again, and so does the string of stones over the cloud, all the way to the rose cliff." }],
       do: { set: { 'arzach2.gate.seen': true } },
       choices: [{ text: '~solemn~ (read a few names)', end: true }],

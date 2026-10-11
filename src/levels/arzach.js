@@ -5,12 +5,13 @@ import { makeMaterial, MODE_TERRAIN, MODE_STRATA } from '../materials.js';
 import { SandDrifts, driftMaterial } from '../sand-drifts.js';
 import { Terrain, jitter } from '../world.js';
 import { Bird } from '../bird.js';
-import { attachTemple } from '../temples/index.js';
+import { attachTemple, templeOf } from '../temples/index.js';
 import { stepped } from '../load-steps.js';
 import { placeShop } from '../shop-world.js';
 import { SHOPS } from '../shop.js';
-import { buildBirdTracks, buildRidersRoost, buildRidersMast } from '../vael-ways.js';
-import { buildRidersGate, buildRidersLanterns, buildRopeWay, GATE } from '../vael-crossing.js';
+import { buildBirdTracks, buildRidersRoost, buildRidersMast, buildPlainSights } from '../vael-ways.js';
+import { buildRidersGate, buildRidersLanterns, buildRopeWay, GATE, AUBE_SMOKE } from '../vael-crossing.js';
+import { SmokeColumn } from '../story/flames.js';
 import { buildSkyStones, skyStonesHeight, SKY_STONES, SKY_STONES_GROUND } from './arzach2.js';
 import { offsetOf } from './names.js';
 import { FLORA_WORLDS } from '../flora.js';
@@ -469,8 +470,33 @@ function finishVael(scene, terrain, S, V) {
   level.lines = [...level.lines, { name: 'the riders’ lanterns', points: [...riders.points, [gate.at.x, gate.at.y + 3, gate.at.z]], auto: false }, { name: 'the old rope way', points: ropeWay.points, auto: false }];
   level.sights = [...level.sights, { name: 'the riders’ gate', at: gate.at }, { name: 'the riders’ halfway stone', at: riders.halfway },
     ...ropeWay.knots.map((at, i) => ({ name: `a knot of the old rope way (${i + 1})`, at }))];
+  // the plain's sights on the walk from the Aerie to the lone tower (src/vael-ways.js, level design audit v1.49, issue #133):
+  // the great bird's bones and the riders' wayside shrine; and Aube's smoke out of her hermitage's chimney, high over the sky
+  // stones, seen from the riders' gate (built last, as the crossings)
+  const sights = buildPlainSights(scene, terrain);
+  const chimney = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 2.2, 8).translate(0, -1.1, 0), makeMaterial({ color: BONE[1][0], color2: BONE[1][1], color3: BONE[1][2], mode: MODE_STRATA, strataSize: 1.5, flat: true }));
+  chimney.position.set(...AUBE_SMOKE.at); chimney.name = 'Aube’s chimney';
+  scene.add(chimney);
+  const aubeSmoke = new SmokeColumn(scene, new THREE.Vector3(...AUBE_SMOKE.at), { count: 150, height: AUBE_SMOKE.height, drift: AUBE_SMOKE.drift, base: 1.8, top: 7.5, period: 90 });
+  aubeSmoke.mesh.name = 'Aube’s smoke';
+  const smokeTop = aubeSmoke.pathAt(0.62, new THREE.Vector3());   // (where the column levels off into its plume)
+  // (and the founders' lamp on the Belfry's dome, src/temples/arzach2.js: seen from the foot of the monastery's bell tower,
+  // lit when the bell rings, src/story/arzach2.js)
+  const lamp = templeOf(level, 'arzach2')?.outside?.lamp;
+  level.arzach.plain = sights;
+  level.arzach2.aubeSmoke = aubeSmoke;
+  level.arzach2.belfryLamp = lamp;
+  level.beacons = [...level.beacons, { name: 'Aube’s smoke', top: smokeTop.toArray(), height: smokeTop.y - AUBE_SMOKE.at[1] }, ...(lamp ? [{ name: 'the founders’ lamp', top: lamp.top.toArray(), height: lamp.height }] : [])];
+  level.sights = [...level.sights, { name: 'the great bird’s bones', at: sights.bones.at }, { name: 'the riders’ shrine', at: sights.shrine.at }];
   const update = level.update;
-  level.update = function (dt, t, ctx) { update.call(this, dt, t, ctx); gate.wave(t); riders.update(t); ropeWay.update(t); };
+  let smokeDt = 0;
+  level.update = function (dt, t, ctx) {
+    update.call(this, dt, t, ctx); gate.wave(t); riders.update(t); ropeWay.update(t); sights.wave(t);
+    // (Aube's smoke: moved at 40 Hz at most, and only within two kilometres)
+    smokeDt += dt;
+    const cam = ctx?.camera?.position;
+    if ((!cam || cam.distanceTo(aubeSmoke.at) < 2000) && (smokeDt > 1 / 40)) { aubeSmoke.update(smokeDt, t, ctx?.player?.wind, ctx?.camera); smokeDt = 0; }
+  };
   return level;
 }
 export const createArzach = stepped(buildArzach);

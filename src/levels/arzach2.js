@@ -96,7 +96,7 @@ export const ARZACH2_CONTENT = {
   npcs: [
     { at: [-14, 30], y: START.top, radius: 5, palette: { cloak: '#b9a7d8', lining: '#2b211f', cloth: '#e2d3b4', legs: '#2b2f45' },
       lines: ['~solemn~ The stones fell up, long ago. Some of them never came down.', '~neutral~ Whistle and the bird will come. She does not like the cloud.', '~scared~ A hand’s width higher than last spring. I wrote it down.', '~playful~ If the cloud reaches my door, I’m moving in with Calix.'] },
-    { at: [MONASTERY.x - 21, MONASTERY.z - 25], y: MONASTERY.top, radius: 2,   // (Brother Calix: clear of the cloister's door, which he used to wander into)
+    { at: [MONASTERY.x + 16, MONASTERY.z - 14], y: MONASTERY.top, radius: 2,   // (Brother Calix: at the foot of his bell tower, by the rope, where the founders' lamp shows over the roofs (v1.50, issue #133); clear of the cloister's door)
       palette: { cloak: '#f3ead8', lining: '#2b211f', cloth: '#6a3a4a', legs: '#4a3a2a' },
       lines: ['~sad~ The bell has not rung since the cloud rose.', '~sad~ From the tower roof you can see the plain. Only Ondine lives out there, and nobody goes to see her.', '~neutral~ The yoke is oiled. The yoke is always oiled.', '~sad~ Thirty years of dawns with nothing to ring at them.'] },
     // (Ondine: out on the long aqueduct just south of the floating island, as far as she walks from the plain each day, under

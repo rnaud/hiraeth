@@ -41,8 +41,6 @@ From docs/audits/level-design-v1.49.md (twelve route worlds, 4.35), worst first 
 - [ ] [#137](https://github.com/rnaud/hiraeth/issues/137) **The new worlds' route quests still hand you from one person to another**
   (the Moon Foundry's hook and count, the City Floating in Space's notes, the Underwater City's cutting and lamps): each
   completes at its goal. Pacing 4 → 5 in the Moon Foundry.
-- [ ] [#133](https://github.com/rnaud/hiraeth/issues/133) **Vael's plain** (483 m empty, 59 s) and its blind legs to the monastery (966 m) and the
-  Belfry (279 m): density 3 → 4, wayfinding 4 → 5.
 - [ ] [#136](https://github.com/rnaud/hiraeth/issues/136) **The Buried Machine's landmarks** (57 % of the path sees one) and its blind canyon and
   Engine-House legs: landmarks 3 → 4, wayfinding 4 → 5.
 - [ ] [#134](https://github.com/rnaud/hiraeth/issues/134) **The belvedere and the breaker's cairn** don't pull (154 m and 368 m off the path): the

@@ -632,6 +632,8 @@ const SAVE_HOME = (w) => ({ flags: { 'prologue.done': true, 'item.backpack': tru
 // (v1.50: the camera at the sleeping car's door: the camera QC's own frames, the same moment before and after)
 // (v1.50: Viridel's Greenhouse, issue #131: this branch's own Vite and the same tree before the change)
 const GH50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5487, changelog-shots.mjs’s shoot) and the same tree before the change, 11 October; cwebp -q 72';
+// (v1.50: Vael's plain and its blind legs, issue #133: this branch's own Vite and the same tree before the change)
+const VA50 = 'headless Chrome (muted, High, 1280 × 720) against this branch’s own Vite (port 5487, changelog-shots.mjs’s shoot) and the same tree before the change, 11 October; cwebp -q 72';
 const CAM50 = 'the camera QC (.claude/skills/camera-qc/run.mjs, SHOT_AT=13.97) in headless Chrome (muted, High), Vite on port 5471, before the change and after it, 11 October; its 480 × 270 frame, cwebp -q 72';
 export const CHANGELOG_MEDIA = {
   '1.50': [
@@ -703,6 +705,22 @@ export const CHANGELOG_MEDIA = {
         view: { level: 'edena', save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'temple.edena.done': true }, keepsakes: [] }, hour: 10.5, fov: 60, eye: [117, -2.5, 290], target: [146, -5, 175], player: [118.5, -6.5, 283], heading: 2.95 } },
     ], numbers: [{ title: 'The walk home from the Greenhouse (level design audit)', unit: 'loops score', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Viridel', before: 3, after: 5 }], source: 'node audit: home along the row, 375 m, past four places not passed on the way in' }],
       see: 'Calm the Gardener and come out of the Greenhouse: follow the green beds down past Oro’s ruins to your ship.' },
+    { match: 'In Vael, the long walk over the plain from the Aerie', shots: [
+      { name: 'plain-bones', title: 'The great bird’s bones', caption: 'On the plain a third of the way from the Aerie to the lone tower: before, bare sand; after, the bones of a great bird lying across the way, her wings spread', from: VA50,
+        view: { level: 'arzach', hour: 10, fov: 55, eye: [-270, 67, -1224], target: [-240, 58, -1252], player: [-265, 63.4, -1229], heading: 2.3 } },
+      { name: 'plain-shrine', title: 'The riders’ shrine', caption: 'Two thirds of the way, in the lee of a hoodoo: before, bare sand; after, the riders’ wayside shrine and its streamers', from: VA50,
+        view: { level: 'arzach', hour: 10, fov: 55, eye: [-93, 56.5, -1347], target: [-76, 53.5, -1341], player: [-89, 52.5, -1345.5], heading: 1.3 } },
+    ], numbers: [{ title: 'The longest empty stretch of the route (level design audit)', unit: 's at a run', better: 'lower', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Vael: the plain, Aerie to tower', before: 59, after: 14 }], source: 'node audit, this build against v1.50 before it: 483 m with nothing within 40 m, now three stretches of 99–118 m (Vael’s longest is a bird flight, 29 s)' }],
+      see: 'Walk out of the Aerie toward the lone tower: the bones are a little to the right of the way, the shrine a little to the left further on. Look at each.' },
+    { match: 'In Vael, Sister Aube keeps a fire', shots: [
+      { name: 'aube-smoke', title: 'From the riders’ gate', caption: 'Looking south from the riders’ gate over the sky stones: before, nothing to steer by; after, Aube’s smoke over her hermitage', from: VA50,
+        view: { level: 'arzach', hour: 10, fov: 28, eye: [-41, 25, -942], target: [-20, 110, 40], player: [-40, 19.5, -936], heading: 0.07 } },
+    ], numbers: [{ title: 'The long legs that see their goal or a landmark by it (level design audit)', unit: '%', better: 'higher', device: 'scripts/level-design/audit.mjs', rows: [{ where: 'Vael', before: 64, after: 90 }], source: 'node audit: the gate to Aube and Calix to the Belfry were blind; wayfinding 4 → 5' }],
+      see: 'Stand at the riders’ gate at the plain’s edge and look south: the smoke rises from the nearest stone.' },
+    { match: 'In Vael, Brother Calix now waits', shots: [
+      { name: 'founders-lamp', title: 'From the bell tower', caption: 'From beside Calix at the foot of the monastery’s bell tower, the bell rung: before, the Belfry’s dome over the roofs; after, its bronze needle and lit lamp over it', from: VA50,
+        view: { level: 'arzach', save: { flags: { 'prologue.done': true, 'item.backpack': true, 'items.v': 2, 'arzach2.bell.rung': true }, keepsakes: [] }, hour: 10, fov: 50, eye: [-226, 80.6, -232], target: [-128, 104, -6], player: [-224.5, 77.2, -229], heading: 0.41 } },
+    ], see: 'Ring the bell, then step out beside Calix and look north-east: the lamp over the Belfry is lit.' },
   ],
   '1.49': [
     { match: 'Your first steps out of the ship in the Desert are under a clear sky', shots: [
