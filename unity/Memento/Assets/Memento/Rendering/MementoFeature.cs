@@ -128,7 +128,7 @@ namespace Memento.Rendering
                 {
                     int i = System.Array.IndexOf(cs, plan.cascade);
                     if (i < 0 || !sm.maps[i].IsValid()) continue;
-                    using var builder = rg.AddRasterRenderPass<PassData>("Memento shadows " + plan.cascade.name, out var d);
+                    using var builder = rg.AddRasterRenderPass<PassData>("Memento shadows " + plan.cascade.name, out var d, Sampler("Memento shadows " + plan.cascade.name));
                     d.plan = plan; d.camPos = cam.camera.transform.position;
                     d.hasMovers = false;
                     if (MementoShadows.UseRendererLists && plan.hasCull)
@@ -149,6 +149,14 @@ namespace Memento.Rendering
         }
 
         static ShaderTagId Tag => new ShaderTagId("MementoGBuffer");
+        /// <summary>Each pass's profiling sampler, by its name: its GPU time in a development player (the bridge's -split,
+        /// BridgeGpuSplit), nothing in a release one.</summary>
+        static readonly System.Collections.Generic.Dictionary<string, ProfilingSampler> samplers = new();
+        static ProfilingSampler Sampler(string name)
+        {
+            if (!samplers.TryGetValue(name, out var s)) samplers[name] = s = new ProfilingSampler(name);
+            return s;
+        }
         static readonly int GNormalTex = Shader.PropertyToID("_GNormalTex");
         static readonly int SceneDepthTex = Shader.PropertyToID("_MementoSceneDepth"), ContactOn = Shader.PropertyToID("_MementoContact");
         static readonly int DepthSrc = Shader.PropertyToID("_GDepthSrc"), SceneZParams = Shader.PropertyToID("_SceneZParams");
@@ -198,7 +206,7 @@ namespace Memento.Rendering
                 bool pre = Settings.prepass;
                 if (pre)
                 {
-                    using var builder = rg.AddRasterRenderPass<PrepassData>("Memento depth prepass", out var pp);
+                    using var builder = rg.AddRasterRenderPass<PrepassData>("Memento depth prepass", out var pp, Sampler("Memento depth prepass"));
                     var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
                     pp.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, draw, new FilteringSettings(RenderQueueRange.opaque)));
                     pp.view = cam.GetViewMatrix(); pp.proj = cam.GetProjectionMatrix();
@@ -214,7 +222,7 @@ namespace Memento.Rendering
                         ctx.cmd.DisableKeyword(PrepassKeyword);
                     });
                 }
-                using (var builder = rg.AddRasterRenderPass<PassData>("Memento G-buffer", out var pass))
+                using (var builder = rg.AddRasterRenderPass<PassData>("Memento G-buffer", out var pass, Sampler("Memento G-buffer")))
                 {
                     var draw = RenderingUtils.CreateDrawingSettings(Tag, rend, cam, lights, SortingCriteria.CommonOpaque);
                     var filter = new FilteringSettings(RenderQueueRange.opaque);
@@ -253,7 +261,7 @@ namespace Memento.Rendering
                 // to spare a tiled GPU the store and reload in the middle of its pass; here a copy between two passes.)
                 var sdesc = new TextureDesc(desc.width, desc.height) { colorFormat = GraphicsFormat.R32_SFloat, filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp, name = "_MementoSceneDepth" };
                 var scene = rg.CreateTexture(sdesc);
-                using (var builder = rg.AddRasterRenderPass<DepthData>("Memento scene depth", out var d))
+                using (var builder = rg.AddRasterRenderPass<DepthData>("Memento scene depth", out var d, Sampler("Memento scene depth")))
                 {
                     // (Unity's _ZBufferParams for this camera: linear eye depth = 1 / (z * raw + w))
                     float n = cam.camera.nearClipPlane, f = cam.camera.farClipPlane;
@@ -266,7 +274,7 @@ namespace Memento.Rendering
                 }
 
                 // ---- the water, last: over the rest, tested against its depth, writing none of its own, reading the copy
-                using (var builder = rg.AddRasterRenderPass<WaterData>("Memento G-buffer water", out var pass))
+                using (var builder = rg.AddRasterRenderPass<WaterData>("Memento G-buffer water", out var pass, Sampler("Memento G-buffer water")))
                 {
                     pass.list = rg.CreateRendererList(new RendererListParams(rend.cullResults, waterDraw, waterFilter));
                     pass.scene = scene;
@@ -317,7 +325,7 @@ namespace Memento.Rendering
             int blurN;
             TextureHandle Blur(RenderGraph rg, string name, TextureHandle src, TextureHandle dst, Vector4 step)
             {
-                using (var b = rg.AddRasterRenderPass<BloomData>(name, out var d))
+                using (var b = rg.AddRasterRenderPass<BloomData>(name, out var d, Sampler(name)))
                 {
                     d.mat = bloom; d.src = src; d.step = step; d.mpb = mpbs[1 + (blurN++ % 4)];
                     b.UseTexture(src);
@@ -345,7 +353,7 @@ namespace Memento.Rendering
                     var qa = rg.CreateTexture(bd); bd.name = "_GBloomB"; var qb = rg.CreateTexture(bd);
                     var ed = new TextureDesc(Mathf.Max(1, (W + 7) / 8), Mathf.Max(1, (H + 7) / 8)) { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, name = "_GBloom2" };
                     var ea = rg.CreateTexture(ed); ed.name = "_GBloom2B"; var eb = rg.CreateTexture(ed);
-                    using (var b = rg.AddRasterRenderPass<BloomData>("Memento glow", out var d))
+                    using (var b = rg.AddRasterRenderPass<BloomData>("Memento glow", out var d, Sampler("Memento glow")))
                     {
                         d.mat = bloom; d.a = g.albedo; d.h = g.hatch; d.mpb = mpbs[0];
                         b.UseTexture(g.albedo); b.UseTexture(g.hatch);
@@ -368,7 +376,7 @@ namespace Memento.Rendering
                     var cd = cam.cameraTargetDescriptor; cd.msaaSamples = 1; cd.depthBufferBits = 0; cd.depthStencilFormat = GraphicsFormat.None;
                     target = UniversalRenderer.CreateRenderGraphTexture(rg, cd, "_MementoPage", false, FilterMode.Bilinear);
                 }
-                using (var builder = rg.AddRasterRenderPass<PassData>("Memento ink composite", out var pass))
+                using (var builder = rg.AddRasterRenderPass<PassData>("Memento ink composite", out var pass, Sampler("Memento ink composite")))
                 {
                     pass.mat = material; pass.a = g.albedo; pass.n = g.normal; pass.h = g.hatch; pass.b1 = b1; pass.b2 = b2; pass.hasBloom = b1.IsValid();
                     pass.flip = fxaa == null && ToScreen(res, cam) ? 1 : 0;
@@ -386,7 +394,7 @@ namespace Memento.Rendering
                 }
                 if (fxaa != null)
                 {
-                    using (var builder = rg.AddRasterRenderPass<FxaaData>("Memento FXAA", out var pass))
+                    using (var builder = rg.AddRasterRenderPass<FxaaData>("Memento FXAA", out var pass, Sampler("Memento FXAA")))
                     {
                         pass.mat = fxaa; pass.src = target; pass.texel = new Vector4(1f / W, 1f / H, 0, 0); pass.flip = ToScreen(res, cam) ? 1 : 0; pass.mpb = fxaaMpb;
                         builder.UseTexture(target);

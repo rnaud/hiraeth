@@ -1986,3 +1986,9 @@ desert 63.3 / 54.0, City-Shaft 45.1 / 45.6 / 41.3 (script 20.4-21.4 ms, GPU 18.0
   `RADV_DEBUG=shaderstats` with `MESA_SHADER_CACHE_DISABLE=true`, the stats in the player's log). Each tap is read
   where it is used now (a tap on a person reads the others again, a rare path; the same reads and numbers): 96 VGPRs,
   10 waves, the City-Shaft's GPU 0.3-0.5 ms less, the Market's wide view 83 → 88 fps.
+- **Each pass's GPU time in a development player**: MementoFeature's render graph passes carry profiling samplers, so a
+  `-development` Linux player's `-split` (BridgeGpuSplit) names them. The City-Shaft with the prepass, a frame on
+  average (start / crowd / wide): G-buffer 5.8 / 5.6 / 7.9 ms, the composite 3.6 / 4.2 / 3.3, the near shadow map 3.3 /
+  2.8 / 3.6 (drawn every 2nd frame: ~6.5 ms on those), the prepass 3.1 / 2.4 / 3.4, the far map 0.3-0.4, glow and FXAA
+  0.2 each. Casters under 2 texels left out of the near map (`-shadow-min 2`, as the Xbox): −0.5 ms; the web's levels
+  of detail in the bridge (lod.js, 225 000 triangles fewer in the City-Shaft): −0.1 to −0.4 ms, not kept.
