@@ -208,7 +208,9 @@ namespace Memento.EditorTools
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.WindowsStoreApps, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetIl2CppCompilerConfiguration(NamedBuildTarget.WindowsStoreApps, Il2CppCompilerConfiguration.Release);
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WSAPlayer, false);
-            PlayerSettings.SetGraphicsAPIs(BuildTarget.WSAPlayer, new[] { GraphicsDeviceType.Direct3D11 });
+            // (-graphicsApi Direct3D12: the A/B, unity-xbox.yml's graphics_api; Direct3D11, what ANGLE draws through there, by default)
+            var api = Arg("-graphicsApi") == "Direct3D12" ? GraphicsDeviceType.Direct3D12 : GraphicsDeviceType.Direct3D11;
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.WSAPlayer, new[] { api });
             var icon = IconTexture("icon-512.png", ReleaseIcon);
             if (icon != null) PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
             // the UWP build's own settings (by name: they moved between Unity versions, and an editor without the module has none)
@@ -218,7 +220,7 @@ namespace Memento.EditorTools
             Wsa("wsaGenerateReferenceProjects", false);
             try { EditorUserBuildSettings.SetPlatformSettings("WindowsStoreApps", "CopyReferences", "true"); } catch (Exception e) { Debug.LogWarning("Memento: CopyReferences: " + e.Message); }
             try { EditorUserBuildSettings.SetPlatformSettings("WindowsStoreApps", "Architecture", "x64"); } catch (Exception e) { Debug.LogWarning("Memento: Architecture: " + e.Message); }
-            Debug.Log($"Memento: the Xbox's UWP solution: {XboxPackage} {PlayerSettings.bundleVersion}, IL2CPP x64, D3D11, into {outPath}");
+            Debug.Log($"Memento: the Xbox's UWP solution: {XboxPackage} {PlayerSettings.bundleVersion}, IL2CPP x64, {api}, into {outPath}");
             Build(BuildTarget.WSAPlayer, outPath);
         }
 

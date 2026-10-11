@@ -29,6 +29,12 @@ on:
       - 'scripts/engine-bundle.mjs'
       - '.github/workflows/unity-xbox.yml'
   workflow_dispatch:
+    inputs:
+      graphics_api:
+        description: "The player's graphics API (an A/B: Direct3D12's build is kept as an artifact, never published)"
+        type: choice
+        options: [Direct3D11, Direct3D12]
+        default: Direct3D11
 
 permissions:
   contents: write
@@ -41,6 +47,7 @@ concurrency:
 env:
   UNITY_VERSION: 6000.6.4f1   # (unity/Memento/ProjectSettings/ProjectVersion.txt)
   PROJECT: unity/Memento
+  GFX: ${{ inputs.graphics_api || 'Direct3D11' }}   # (a push builds Direct3D11; by hand, either: BridgeBuild.Xbox -graphicsApi)
 
 jobs:
   xbox:
@@ -178,7 +185,7 @@ jobs:
           buildMethod: Memento.EditorTools.BridgeBuild.Xbox
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
-          customParameters: -out Builds/unity-xbox
+          customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }}
           allowDirtyBuild: true
 
       - name: The UWP solution (IL2CPP x64, D3D11) (again)
@@ -197,7 +204,7 @@ jobs:
           buildMethod: Memento.EditorTools.BridgeBuild.Xbox
           versioning: Custom
           version: ${{ steps.meta.outputs.version }}
-          customParameters: -out Builds/unity-xbox
+          customParameters: -out Builds/unity-xbox -graphicsApi ${{ env.GFX }}
           allowDirtyBuild: true
 
       # (saved also when the build failed further on, as "-partial", as the other Unity jobs do)
@@ -329,7 +336,7 @@ jobs:
       - uses: actions/upload-artifact@v5
         if: always()
         with:
-          name: memento-unity-xbox
+          name: ${{ env.GFX == 'Direct3D12' && 'memento-unity-xbox-d3d12' || 'memento-unity-xbox' }}
           path: |
             out/unity-xbox/
             out/msbuild.binlog
@@ -348,6 +355,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Publish to the release unity-xbox
+        if: env.GFX == 'Direct3D11'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}

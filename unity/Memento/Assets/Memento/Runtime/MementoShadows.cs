@@ -93,6 +93,8 @@ namespace Memento
         public static bool On = true;
         /// <summary>The smallest caster drawn, in the cascade's texels (its bounding radius; the web's 0.75).</summary>
         public static float minCasterTexels = 0.75f;
+        /// <summary>The far map's own smallest caster, in its texels (~1.1 m: a small thing far off casts a speck there).</summary>
+        public static float minFarCasterTexels = 0.75f;
 
         void Configure()
         {
@@ -221,8 +223,8 @@ namespace Memento
                 c.fresh = true;
                 var plan = pool[w]; plan.cascade = c; plan.draws.Clear(); plan.flora.Clear(); plan.extra.Clear();
                 planes[5] = new Plane(-fwd, Vector3.Dot(fwd, cp) + reach);   // (the far plane at the cascade's reach)
-                float minR = c.Texel * minCasterTexels, texel = c.Texel;
                 bool isFar = c == far;
+                float minR = c.Texel * (isFar ? Mathf.Max(minCasterTexels, minFarCasterTexels) : minCasterTexels), texel = c.Texel;
                 // the static world, each unit at its view's level (the far map: no finer than a texel)
                 foreach (var u in detail.units)
                 {

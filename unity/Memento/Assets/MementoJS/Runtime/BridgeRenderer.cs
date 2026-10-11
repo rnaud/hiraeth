@@ -164,6 +164,8 @@ namespace Memento.Bridge
         /// thing Unity's first render of it stalls on), taken and cleared each frame.</summary>
         public static readonly Dictionary<string, int> Made = new();
         public static bool oneVariant, uniformLayout;
+        /// <summary>The vertex data -uniform-layout added (bytes, on the CPU and again on the GPU).</summary>
+        public static long uniformBytes;
         /// <summary>The shader variants the scene's materials ask for: materials, distinct (shader, keywords), the commonest.</summary>
         public string Variants()
         {
@@ -193,7 +195,7 @@ namespace Memento.Bridge
                 }
             }
             var top = System.Linq.Enumerable.Take(System.Linq.Enumerable.OrderByDescending(sets, kv => kv.Value), 6);
-            return $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"));
+            return (uniformLayout ? $"(uniform layouts: +{uniformBytes / 1048576.0:0.0} MB of vertices) " : "") + $"{n} renderer materials, {sets.Count} shader variants (shader and keywords), {layouts.Count} vertex layouts, {states.Count} material states, {pairs.Count} (layout, state) pairs; the commonest variants: " + string.Join("; ", System.Linq.Enumerable.Select(top, kv => $"{kv.Value}× {kv.Key}"));
         }
         static readonly List<string> madeNames = new();
         static void Count(string k, int by = 1) { Made.TryGetValue(k, out int v); Made[k] = v + by; }
@@ -289,9 +291,9 @@ namespace Memento.Bridge
             // state: if the load's stall shrinks, it was the driver making a pipeline for each (layout, state) at its first draw)
             if (uniformLayout)
             {
-                if (d.nrm == null) { var nn = new Vector3[n]; for (int i = 0; i < n; i++) nn[i] = Vector3.up; mesh.SetNormals(nn); }
-                if (d.uv == null) mesh.SetUVs(0, new Vector2[n]);
-                if (d.col == null && rig == null) { var w = new Color[n]; for (int i = 0; i < n; i++) w[i] = Color.white; mesh.SetColors(w); }
+                if (d.nrm == null) { var nn = new Vector3[n]; for (int i = 0; i < n; i++) nn[i] = Vector3.up; mesh.SetNormals(nn); uniformBytes += n * 12; }
+                if (d.uv == null) { mesh.SetUVs(0, new Vector2[n]); uniformBytes += n * 8; }
+                if (d.col == null && rig == null) { var w = new Color[n]; for (int i = 0; i < n; i++) w[i] = Color.white; mesh.SetColors(w); uniformBytes += n * 16; }
             }
             if (rig != null)
             {
