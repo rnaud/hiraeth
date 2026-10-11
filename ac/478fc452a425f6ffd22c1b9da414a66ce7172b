@@ -1,0 +1,27 @@
+changelog.md
+  s_9ca76055a220ed::t_23dd8efa2451c4 7
+docs/systems/foes.md
+  s_9ca76055a220ed::t_541d3fbcadcba3 677-679
+src/changelog.js
+  s_9ca76055a220ed::t_3bca41d36e8b2e 46-48
+src/lock-reticle.js
+  s_9ca76055a220ed::t_2e9aee530c7a86 3,17-18,35,57-68,167,171,182,184-185
+tests/accessibility.test.js
+  s_9ca76055a220ed::t_4e46ed4064ca56 18,311-324
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ac478fc452a425f6ffd22c1b9da414a66ce7172b",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "unknown"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
