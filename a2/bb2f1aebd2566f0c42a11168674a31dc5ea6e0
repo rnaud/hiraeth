@@ -1,0 +1,27 @@
+.claude/skills/temple-design-qc/SKILL.md
+  s_9ca76055a220ed::t_3c9e953b71a8fe 113-114
+TODO.md
+  s_9ca76055a220ed::t_4b6a0dcf51656e 240-256
+docs/README.md
+  s_9ca76055a220ed::t_5cae98b6618948 26
+docs/audits/temple-design-v1.49.md
+  s_9ca76055a220ed::t_0eaf957d7c522b 1-129
+tests/audits-page-themes.test.js
+  s_9ca76055a220ed::t_30744cdb4a6e54 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a2bb2f1aebd2566f0c42a11168674a31dc5ea6e0",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
