@@ -4,12 +4,15 @@ docs/systems/xbox.md
   s_9ca76055a220ed::t_75143f8a68bceb 622-648
 scripts/three-program-keys.mjs
   s_9ca76055a220ed::t_e2e218326865e4 11-38,50-62
+  s_9ca76055a220ed::t_65e5da4cc2379e 11-38,50-56,61-62
 src/changelog.js
   s_9ca76055a220ed::t_126601d625c010 61-68
 src/static-batch.js
   s_9ca76055a220ed::t_9f505088128e7d 43-44,151-166,468-470,472,480
+  s_9ca76055a220ed::t_bf10ff687f49bf 43-44,151-166,468-470,472,480
 tests/three-program-keys.test.js
   s_9ca76055a220ed::t_e5c035aa0fba85 54-72
+  s_9ca76055a220ed::t_b2147a2a513c39 54-72
 ---
 {
   "schema_version": "authorship/3.0.0",
