@@ -1,0 +1,31 @@
+engine/mirror.js
+  s_9ca76055a220ed::t_eb0b610d347e52 93-94,96,99-100,413-414
+engine/unity/backend.js
+  s_9ca76055a220ed::t_8a740e1f197998 306-307,310-311,315-319
+engine/unity/pack.js
+  s_9ca76055a220ed::t_4b2c136dde2038 89-90
+tests/engine-bridge.test.js
+  s_9ca76055a220ed::t_e826e6fb493e86 162-191
+tests/engine-unity.test.js
+  s_9ca76055a220ed::t_6be0b476f2ce62 249
+unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs
+  s_9ca76055a220ed::t_0d933b794efef5 530,532-533,541-543
+unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs
+  s_9ca76055a220ed::t_aebb625be1366d 251-252,254
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "611cb6b04c5388c83d0853d397e48e4d3683d343",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
