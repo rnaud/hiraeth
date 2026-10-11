@@ -1,0 +1,31 @@
+changelog.md
+  s_9ca76055a220ed::t_b009a9681cad2e 7
+docs/systems/worlds.md
+  s_9ca76055a220ed::t_00efeff26858da 636-648
+src/changelog-media.js
+  s_9ca76055a220ed::t_63d7f6f445d7d9 567-578
+src/changelog.js
+  s_9ca76055a220ed::t_81ebc41a6801d8 46-47
+src/desert-city.js
+  s_9ca76055a220ed::t_41f00e6458d4bf 41-47,820-823,847,850,884-887,890,896-897,1480-1481
+src/levels/desert.js
+  s_9ca76055a220ed::t_7c8f7c468c09a3 149-150
+tests/desert-camps.test.js
+  s_9ca76055a220ed::t_afb232b8f59272 1-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bf5abde67c2f7d89a3f924e1e54bfeb5aa871500",
+  "prompts": {},
+  "sessions": {
+    "s_9ca76055a220ed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ad390326-b580-46fb-9177-587902db9ecb",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Arnaud Ferreri <rnaud@users.noreply.github.com>"
+    }
+  }
+}
