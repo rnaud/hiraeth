@@ -653,6 +653,44 @@ In the game (two runs each world, before → after, the same scripted course): p
 sand, 53 → 32 in the Signal Market, 53 → 29 on the Arena's floor; jolts 35 → 28, 41 → 26, 43 → 26. The game's frame
 times vary (the comparison is noisier there) and the sand's slopes add their own.
 
+**The sprint, the stairs, the pivots and the stop from a run** (issue #57, v1.46; src/animator.js, src/feet.js):
+
+- **The sprint loop was played key to key**: keyed at 30 a second, linear, so a bone's speed stepped at every key, and
+  the loop straightens the knee from 76° to 0 in 40 ms at push-off and stops it there. The sprint loop is resampled at
+  120 keys a second through a cyclic Catmull-Rom curve and blurred by 20 ms (`smoothLoop`, `SMOOTH_LOOPS`). (The walk's
+  and the jog's were tried too: their keys are thinned, and the curve through them did worse.) Two things that looked
+  likely did not help: a soft floor on the knee's bend in the rig (the speed into the stop is the pop, not the stop)
+  and rolling a held foot onto its ball at the end of a stance (it pops when it lets go instead).
+- **The soft IK widens with speed** (`FEET.softFast`, 2 % → 5 % of the leg from 4 to 7 m/s): at a sprint the hips go
+  14 cm a frame, through the whole of a 2 % zone in one. Standing, a wide zone keeps the legs off their rest length and
+  they twitch (tests/idle-legs.test.js), so it stays 2 % there.
+- **A free foot rides the floor under it eased** (`FEET.rideRate`, down only; up it follows at once, else it skims):
+  the floor's height under the ball steps by a riser as it passes an edge, and the foot went 18 cm in a frame. The
+  clearance rays look 60 ms ahead along the ground (`clearAhead`) and are cast where the foot is drawn (blended with the
+  hold it is leaving: a foot let go on a stair's edge went through the edge on its way to the next), and their lift is
+  eased (`clearRise`, `clearFall`; no more than `clearSink` under).
+- **A step keeps to its own side** (`FEET.stepGap`, `ownSide`): turning on the spot, the clip's place for the stepping
+  foot could lie across the held one. **A pivot sets an airborne foot down where it is shown** (the relock), not at the
+  clip's place 16 cm off.
+
+Node, before → after (the default way):
+
+| scenario · way | verdict | slide p95 (cm) | slide max (cm) | held (cm) | pops /min | jolts /min | worst jolt (cm) | boundary (cm) |
+|---|---|---|---|---|---|---|---|---|
+| walk → run → 180° turn → stop | red → red | 8.1 → 7.1 | 10.6 → 7.3 | 0.8 → 1.6 | 24 → 13 | 19 → 11 | 11.0 → 11.7 | 11.0 → 11.7 |
+| stairs up, stand, down | red → red | 6.9 → 6.9 | 6.9 → 6.9 | 0.7 → 0.7 | 18 → 12 | 18 → 19 | 18.1 → 13.6 | 9.6 → 9.6 |
+| gaits: walk → jog → sprint → jog → walk → stop | red → red | 8.0 → 6.8 | 8.9 → 7.2 | 1.5 → 1.6 | 14 → 10 | 13 → 7 | 6.1 → 4.1 | 2.2 → 1.7 |
+| starts and stops, walk and run | red → red | 9.7 → 9.7 | 29.4 → 15.3 | 1.7 → 1.7 | 20 → 15 | 15 → 5 | 8.3 → 8.4 | 8.3 → 8.4 |
+| pivots standing: 90° each way, 180° (crossed 17 → 6 %) | red → red | 12.1 → 14.0 | 12.1 → 14.0 | 2.7 → 2.7 | 5 → 5 | 4 → 4 | 6.2 → 6.2 | 6.2 → 6.2 |
+| pivot 180° at a jog, and at a sprint (crossed 0 → 8 %) | red → red | 13.6 → 8.5 | 16.1 → 13.7 | 2.3 → 2.3 | 25 → 21 | 24 → 16 | 8.2 → 8.5 | 8.2 → 8.5 |
+| stairs at a run | red → red | 8.0 → 6.9 | 8.0 → 6.9 | 1.2 → 1.4 | 24 → 19 | 21 → 14 | 52.8 → 40.4 | 4.2 → 3.6 |
+
+(the other eight unchanged within a tenth.) Limits failed 47 → 46; mean slide p95 7.0 → 6.6 cm; mean pops 10.2 → 8.0
+/min; mean jolts 8.9 → 6.4 /min. In the game, the Arena's floor: pops 27 → 19 a minute, jolts 24 → 16, crossed 11 → 8 %.
+Still red: the sprint (10 pops a minute: the loop's own push-off; a new sprint capture, or a sprint matched from the
+database, is the next step), the stairs (the settling steps on two steps outlast the second the script stands for), and
+the standing pivots' slides (the quick steps round skim the ground).
+
 **Motion matching** (src/motion-match.js; still off by default, `?mm=1`): what kept it from the game's speeds was data
 (no capture walks at 3.8 m/s or runs at 7.2), and where it had nothing close it handed the pose back to the loops at
 their own phase, which the QC saw as jolts and slides at every hand-over. Done:

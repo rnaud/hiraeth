@@ -79,7 +79,12 @@ reads as a flick; a joint 3 cm off its own smooth path in one frame is visible o
   at its own falling speed) and `FEET.footRate` (turned about the ball, so a held one stays put).
 - **A 10–20 cm jolt in a pivot**: the pivot flickering off for a frame lets a held foot go; planted again at the
   clip's place it jumps. Pivot hysteresis (`LOCO.pivotKeep`, `pivotHold`) and a relock where the foot is shown.
-- **Sprint pops and slides**: the sprint loop's stance outlasts the leg's reach at 7–8 m/s; left (section 5).
+- **Sprint pops**: the sprint loop itself snaps the knee straight at push-off (76° to 0 in 40 ms; run it with feet.js
+  off to see the loop's own share). The loop is smoothed (`SMOOTH_LOOPS`) and the soft IK widened with speed
+  (`FEET.softFast`); what is left (~10 a minute) is the loop's.
+- **Pops and jolts on stairs while a foot swings**: the floor's height under it stepping at an edge (`FEET.rideRate`) or
+  a clearance ray lifting it at once (`clearAhead`, `clearRise`).
+- **Feet crossed in a pivot**: a step's place across the held foot (`FEET.stepGap`).
 - **Under matching, boundary jolts at `jump to …`**: a jump changes the contacts, and feet.js plants or lets go
   between two frames; a capture's stance doesn't fit the game's speeds. **`matching out`**: the loops take over at
   their own phase.
@@ -88,8 +93,9 @@ reads as a flick; a joint 3 cm off its own smooth path in one frame is visible o
 ## 5. Where it stands (October 2026)
 
 docs/systems/animation.md, "The motion QC", has both tables. The default way is green on the 90° turn, the jog's veer,
-the curve and standing (one of fifteen before the QC's fixes), and red on the sprint (pops at every step), the stairs,
-the pivots (the feet cross a few frames as one steps round) and the starts and stops at a run. Matching is red
+the curve and standing (one of fifteen before the QC's fixes), and red on the sprint (pops at every step, fewer since
+issue #57: 14 → 10 a minute), the stairs, the pivots (crossed feet 17 → 6 % since #57) and the starts and stops at a run
+(the worst stop's step 29 → 15 cm). Matching is red
 everywhere but standing: its captured starts, stops and turns are slower than the game's controller, so it slides
 about half again as far as the default. The browser runs are noisier than node's (the frame time varies); compare a
 world with itself, before and after, on the same machine. The City-Shaft was tried as a world and left out: from its

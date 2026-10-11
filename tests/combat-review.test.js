@@ -67,3 +67,39 @@ test('the report\'s table and median', () => {
   assert.equal(median([3, 1, 2, NaN]), 2);
   assert.equal(median([]), null);
 });
+
+test('guard, parry and evade: the windows found from the tries, and the report grouped (defend.mjs)', async () => {
+  const { defenceWindows, defenceMarkdown, groupRows } = await import('../scripts/combat-review/lib.mjs');
+  const tries = [
+    { action: 'guard', lead: 0.5, outcome: 'hit' }, { action: 'guard', lead: 0.3, outcome: 'block' }, { action: 'guard', lead: 0.12, outcome: 'parry' }, { action: 'guard', lead: 0.06, outcome: 'parry' },
+    { action: 'evade', lead: 0.35, outcome: 'hit' }, { action: 'evade', lead: 0.15, outcome: 'evaded' }, { action: 'evade', lead: 0.08, outcome: 'evaded' }, { action: 'evade', lead: 0.03, outcome: 'missed' },
+  ];
+  const w = defenceWindows(tries);
+  assert.equal(w.guardHolds, 0.3, 'the guard holds when raised 0.3 s ahead, not 0.5');
+  assert.deepEqual(w.parry, [0.06, 0.12]);
+  assert.deepEqual(w.evade, [0.08, 0.15]);
+  assert.equal(w.through, 2); assert.equal(w.missed, 1);
+  assert.deepEqual(defenceWindows([]), { guardHolds: null, parry: null, evade: null, through: 0, missed: 0 });
+  const rows = [{ name: 'a', role: 'melee', worlds: ['desert'], atk: 'bite', wind: 0.6, tries, ...w }, { name: 'b', role: 'ranged', worlds: [], atk: 'spit', wind: 0.8, tries: [], ...defenceWindows([]) }];
+  const md = defenceMarkdown(rows, { leads: { guard: [0.5, 0.3, 0.12, 0.06], evade: [0.35, 0.15, 0.08, 0.03] } });
+  assert.match(md, /### Role: melee/); assert.match(md, /### Role: ranged/);
+  assert.match(md, /\| a \| bite \| 0\.6 \| - \| H \| B \| P \| P \| H \| E \| E \| · \| 0\.3 \| 0\.06–0\.12 \| 0\.08–0\.15 \| 2 \|/);
+  assert.match(defenceMarkdown(rows, { group: 'world' }), /First fielded in: desert[\s\S]*First fielded in: the Arena only/);
+  const g = groupRows([{ facts: { role: 'air' } }, { facts: { role: 'air' } }, { facts: { role: 'heavy' } }], 'role');
+  assert.deepEqual(Object.keys(g), ['air', 'heavy']); assert.equal(g.air.length, 2);
+});
+
+test('the curve takes a pack cleared by a scripted traveller, and the lock-on look (arena.mjs --pack-clear, --pack-look)', async () => {
+  const { curveTable, curveMarkdown } = await import('../scripts/combat-review/lib.mjs');
+  const rows = [
+    { world: 'w', pack: ['a', 'b'], heartsPerMin: 6, attacksPerMin: 20, ttkBest: 4, ttkCombo: 5, look: 'lock', clear: { cleared: true, s: 10, hearts: 1.5 } },
+    { world: 'w', pack: ['a'], heartsPerMin: 4, attacksPerMin: 10, ttkBest: 2, ttkCombo: 3, look: 'lock', clear: { cleared: false, s: 90, hearts: 2.5 } },
+  ];
+  const [c] = curveTable(rows, { order: ['w'], hearts: { w: { arrival: 5 } } });
+  assert.equal(c.clearS, 50); assert.equal(c.clearHearts, 2); assert.equal(c.clearShare, 40); assert.equal(c.cleared, 1); assert.equal(c.clearRuns, 2);
+  const md = curveMarkdown([c]);
+  assert.match(md, /hearts\/min \(locked on\)/); assert.match(md, /cleared in \(s\)/); assert.match(md, /\| 50 \| 2 \| 40 % \| 1 of 2 \|/);
+  // a run without them reads as before
+  const [d] = curveTable(rows.map(({ clear, look, ...r }) => r), { order: ['w'], hearts: { w: { arrival: 5 } } });
+  assert.equal(d.clearS, undefined); assert.doesNotMatch(curveMarkdown([d]), /cleared in/); assert.match(curveMarkdown([d]), /hearts\/min \(still\)/);
+});

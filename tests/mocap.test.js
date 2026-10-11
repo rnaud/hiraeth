@@ -241,7 +241,8 @@ test('motion matching on the traveller: the feet stay planted, the turn answers 
   // (the fresh match from the body's own velocity, 2026-10-09: mean 0.107 -> 0.096, but the worst contact
   // 0.40 -> 0.55 m, a foot down through the hand-over to the loops as the run outpaces the clips at 3.2 s)
   assert.ok(r.maxSlide < 0.6 && r.meanSlide < 0.11, `feet slide no more than they did when this was measured (${r.maxSlide.toFixed(2)} / ${r.meanSlide.toFixed(3)})`);
-  assert.ok(r.heldSlide < 0.02, `planted feet stay put (${r.heldSlide.toFixed(4)})`);
+  // (0.0202 since the soft IK widens at a sprint, FEET.softFast: the knee no longer snaps straight at the end of a stance, and a held foot gives a little)
+  assert.ok(r.heldSlide < 0.022, `planted feet stay put (${r.heldSlide.toFixed(4)})`);
   assert.ok(r.sink < 0.03, `no sole in the ground (${r.sink.toFixed(3)})`);
   assert.ok(r.maxTurn < 1.0, `no bone turns a radian in a frame (${r.maxTurn.toFixed(2)})`);
   const t = timeToFace(r.frames, 5, Math.PI);

@@ -39,6 +39,33 @@ export const CHANGELOG = [
     // the desert's ways (docs/systems/worlds.md "The desert's ways, after the empty-hands rewrite"; issue #39)
     { text: 'In the desert, tall poles with red strips lead the hoverbike out of Marrow’s hollow toward the Givers’ Hearth, the pilgrims’ lit road comes down to your ship again instead of where it used to land, and a carved field-stone stands on the dunes between the Givers’ House and your ship: once the House’s water runs, a field grows green beside it.',
       see: 'Ride out of Marrow’s hollow toward the red rocks; after the tree burns, walk the cairns down from the gate; walk home from the Givers’ House toward your ship.' },
+    // the motion QC's reds in the default walk (docs/systems/animation.md "The sprint, the stairs, the pivots"; issue #57)
+    { text: 'Your legs move more smoothly at a sprint, on stairs and turning on the spot: the knee no longer snaps straight at every sprinting stride, a swinging foot no longer jumps a stair’s height as it passes over an edge, your feet no longer cross as you step round, and the last step of a stop from a run no longer slides.',
+      numbers: [
+        { title: 'The traveller driven by scripted hands on the test course, the game’s default walk', unit: '', better: 'lower', device: 'Mac (Apple M4 Pro), node (scripts/motion-qc/run.mjs)', rows: [
+          { where: 'bone flicks a minute, every gait in turn (sprint included)', before: 14, after: 10 },
+          { where: 'bone flicks a minute, up and down the stairs', before: 18, after: 12 },
+          { where: 'the worst slide of a stop from a run (cm)', before: 29.4, after: 15.3 },
+          { where: 'frames with the feet crossed, turning on the spot (%)', before: 17, after: 6 },
+          { where: 'bone flicks a minute, the mean of the 15 runs', before: 10.2, after: 8 },
+          { where: 'joint jolts a minute, the mean of the 15 runs', before: 8.9, after: 6.4 },
+        ], source: 'the motion QC, before and after on the same machine (.claude/skills/motion-qc)' },
+        { title: 'The same course in the game, the Arena’s floor', unit: '', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome', rows: [
+          { where: 'bone flicks a minute', before: 27, after: 19 },
+          { where: 'joint jolts a minute', before: 24, after: 16 },
+        ], source: 'the motion QC in the running game (one run each)' },
+      ] },
+    // the spot blacks where three planes meet (docs/systems/rendering.md "The visual probes' findings fixed"; issue #28)
+    { text: 'Standing in a room’s corner, you and the people you meet no longer cut small pale notches into the dark band along the corner’s foot.',
+      see: 'In the Handheld preset, walk into a corner of a desert room and turn the camera round you: the dark band where the walls meet the floor stays whole beside your legs.',
+      numbers: [
+        { title: 'Pale notches beside a person in a corner’s dark band (the largest, px)', unit: 'px', better: 'lower', device: 'Mac (Apple M4 Pro), headless Chrome, the Handheld preset, 1280 × 720', rows: [
+          { where: 'the desert room’s corner, the traveller', before: 472, after: 0 },
+          { where: 'the same corner, Marrow', before: 543, after: 24 },
+          { where: 'the Underwater corner', before: 300, after: 16 },
+          { where: 'the Qanat tree’s stairs', before: 144, after: 21 },
+        ], source: 'the visual audit’s probes (ghost check), before and after on the same spots' },
+      ] },
   ] },
   { v: '1.46', date: '2026-10-11', items: [
     // nobody sends you to somebody else (docs/systems/story.md "Straight to the end"; issue #85)

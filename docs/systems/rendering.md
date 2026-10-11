@@ -643,6 +643,19 @@ the after-run is [visual-v1.21](../audits/visual-v1.21.md).
   The probes' corner (the desert, a room inside a way in): the dark region beside him 6442 px → 0 at Handheld; the
   known spots stay clean. Twin: `tests/occlusion-taps.test.js` (a corner and a stair with a person in front, the
   rule before and now, and `spotBehind` itself). The Unity port's Composite.shader takes the same rule.
+  **Where three planes meet** (visual-v1.21 findings 3 and 4, issue #28: a corner's foot, two walls and the floor) the
+  planes seen two and four times as far out and the other taps' could all miss the one the person hides, and the tap
+  read open: a small pale notch in the corner's dark band beside his legs (300-600 px at Handheld). Two more looks past
+  him now, `SPOT_PAST.side` (1.5) × the tap's offset to either side of its place, along the other axis; and each plane
+  is only taken where the hidden tap's ray meets it within `SPOT_PAST.near` × the pocket's radius of where it was seen
+  (`planeNear`: 1 for the looks along its own way, 2 for the looks to the side, 1.5 for the other taps): a plane
+  carried far past where it was seen closed the floor in where nothing stands. The probes (Handheld, the traveller
+  and Marrow, before → after): the desert's corner pale 472 → 0 px, with Marrow 543 → 24 and his hem's dark 1240 →
+  1247 (left: only a limit of 1 on the other taps took it, and that cut pale notches elsewhere); the Underwater corner
+  pale 300 → 16; the Qanat stairs' pale 144 → 21 px (a person of 115 px, still flagged); ghost flags over five worlds
+  6 → 3 (the Buried corner's 371 → 348 and the glass dunes' ramp stay). At High the desert's ghost flags 2 → 1 (the
+  Qanat stairs, whose pale grew 28 → 212 px), Marrow's dark at the corner 837 → 615. The cost: two more reads of the
+  normals and the flags for a hidden tap only (pixels next to people).
 - **A hairline of sky at the Givers' Hearth's floor edge** (both presets, 44-73 px in the light term; src/desert-hearth.js
   `hallDome`, `HEARTH.floorOut`). Not the door cut: `rough` pushes the dome's foot ring out as well as down (17.4 to
   19.8 m from the centre, a few cm under the floor), and the floor ended at 18 m, so all round the hall a gap opened

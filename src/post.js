@@ -96,15 +96,17 @@ export function spotFrame(n) {
  * What a spot tap's ray meets behind a person standing on it (mirrors post.js enclosure's spotLoop and
  * planeAlong): `own` is the view depth of the point's own surface along the ray (the tap's place on it, P + o),
  * `person` the person's depth there, `ray` the ray at view depth 1 ([x, y, -1]), `planes` the surfaces seen round
- * it ({ n: view-space normal, p: a view-space point on it }). The nearest plane met between the person and `own`,
+ * it ({ n: view-space normal, p: a view-space point on it, lim: how far from p it may be met, m }). The nearest plane met between the person and `own`,
  * else `own` (the point's own surface goes on behind them: open).
  */
 export function spotBehind(own, person, ray, planes) {
   let sd = own;
-  for (const { n, p } of planes) {
+  for (const { n, p, lim } of planes) {
     const facing = _dot(n, ray);
     if (!(facing < 0)) continue;
     const t = _dot(n, p) / facing;
+    // (lim: met no further than this from where the plane was seen, m: SPOT_PAST.near × the pocket's radius)
+    if (lim > 0 && Math.hypot(ray[0] * t - p[0], ray[1] * t - p[1], ray[2] * t - p[2]) > lim) continue;
     if (t > person && t < sd) sd = t;
   }
   return sd;
@@ -113,10 +115,20 @@ export function spotBehind(own, person, ray, planes) {
 /**
  * The spot blacks' loop over n taps (post.js enclosure), as GLSL. A first pass reads every tap (its pixel, normal
  * and depth, and whether a person stands there); a tap on a person then asks what the person hides (spotBehind):
- * the surfaces seen two and four times as far out along its offset, and every other tap's surface, each taken as a
- * plane and met along the hidden tap's own ray; the nearest in front of the point's own surface (P + o) and behind
+ * the surfaces seen two and four times as far out along its offset, to either side of its place (SPOT_PAST.side) and
+ * every other tap's surface, each taken as a plane and met along the hidden tap's own ray near where it was seen (SPOT_PAST.near); the nearest in front of the point's own surface (P + o) and behind
  * the person is what the tap sees, else the point's own surface (open).
  */
+/**
+ * What a hidden tap may take for what a person hides (visual audit v1.21, findings 3 and 4; issue #28): where three planes
+ * meet (two walls and the floor, a corner's foot), the planes seen two and four times as far out and the other taps' could
+ * all miss the one the person hides, and the tap read open: a small pale notch beside him in the corner's dark band. So
+ * two more looks past him, `side` × the tap's offset to either side of its place, along the other axis; and each plane
+ * is only taken where the hidden tap's ray meets it within `near` × the pocket's radius of where it was seen (`past`
+ * for the looks along the tap's own way, `side` for the looks to the side, `taps` for the other taps): a plane carried
+ * far beyond where it was seen (a wall met past a wide hem) closed the floor in where nothing stands.
+ */
+export const SPOT_PAST = { side: 1.5, near: { past: 1, side: 2, taps: 1.5 } };
 const spotLoop = (n) => `{
       vec2 tuv[${n}]; vec4 tq[${n}]; float tp[${n}];
       for (int i = 0; i < ${n}; i++) { tuv[i] = spotUv(P + SPOT_TAPS${n}[i].x * t1 + SPOT_TAPS${n}[i].y * t2, rA, rB); tq[i] = texture(tNormal, tuv[i]); tp[i] = notStanding(tuv[i], self); }
@@ -128,9 +140,13 @@ const spotLoop = (n) => `{
           float lo = sd;
           sd = -(P.z + o.z);
           vec2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
-          if (notStanding(p2, self) > 0.5) sd = planeAlong(p2, texture(tNormal, p2), r, toView, rA, rB, lo, sd);
-          if (notStanding(p4, self) > 0.5) sd = planeAlong(p4, texture(tNormal, p4), r, toView, rA, rB, lo, sd);
-          for (int j = 0; j < ${n}; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);
+          if (notStanding(p2, self) > 0.5) sd = planeNear(p2, texture(tNormal, p2), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.past.toFixed(2)});
+          if (notStanding(p4, self) > 0.5) sd = planeNear(p4, texture(tNormal, p4), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.past.toFixed(2)});
+          for (int j = 0; j < ${n}; j++) if (tp[j] > 0.5) sd = planeNear(tuv[j], tq[j], r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.taps.toFixed(2)});
+          ${SPOT_PAST.side ? `{ vec3 op = (-SPOT_TAPS${n}[i].y * t1 + SPOT_TAPS${n}[i].x * t2) * ${SPOT_PAST.side.toFixed(2)};
+            vec2 s1 = spotUv(P + o + op, rA, rB), s2 = spotUv(P + o - op, rA, rB);
+            if (notStanding(s1, self) > 0.5) sd = planeNear(s1, texture(tNormal, s1), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.side.toFixed(2)});
+            if (notStanding(s2, self) > 0.5) sd = planeNear(s2, texture(tNormal, s2), r, toView, rA, rB, lo, sd, ${SPOT_PAST.near.side.toFixed(2)}); }` : ''}
         }
         occ += spotTapAt(tuv[i], sd, P, nV, rA, rB, r1, r2);
       }
@@ -639,12 +655,16 @@ const fragmentShader = /* glsl */ `
   // what a tap's ray meets behind a person standing on it (spotBehind): the plane of the surface seen at pixel
   // 'at' (q: its normal and view depth) met along the ray r (view space, z = -1), as a view depth; hi where it
   // doesn't meet it between lo (the person) and hi
-  float planeAlong(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi) {
+  float spotReach = 1.0;   // (the enclosure's tap radius this pixel, m)
+  float planeNear(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi, float lim) {
     vec3 nQ = toView * q.xyz;
     float facing = dot(nQ, r);
-    float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, vec3(at * rA + rB, -1.0) * q.w) / facing : hi;
+    vec3 Q = vec3(at * rA + rB, -1.0) * q.w;
+    float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, Q) / facing : hi;
+    if (lim > 0.0 && length(r * t - Q) > lim * spotReach) t = hi;
     return t > lo && t < hi ? t : hi;
   }
+  float planeAlong(vec2 at, vec4 q, vec3 r, mat3 toView, vec2 rA, vec2 rB, float lo, float hi) { return planeNear(at, q, r, toView, rA, rB, lo, hi, 0.0); }
   float enclosure(vec2 uv, vec3 nW, float d, float R, int taps, float self) {
     vec2 rB = viewPos(vec2(0.0), 1.0).xy, rA = viewPos(vec2(1.0), 1.0).xy - rB;
     vec3 P = vec3(uv * rA + rB, -1.0) * d;
@@ -668,6 +688,7 @@ const fragmentShader = /* glsl */ `
     float swell = 0.5 + 0.25 * (sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[0])})) + sin(dot(Pw, ${glslVec3(SPOT_SWELL.waves[1])})));
     Rm *= mix(${SPOT_SWELL.range[0].toFixed(2)}, ${SPOT_SWELL.range[1].toFixed(2)}, swell);
     t1 = toView * t1 * Rm; t2 = toView * t2 * Rm;
+    spotReach = Rm;
     float r1 = R * 1.5, r2 = R * 3.0;
     if (taps == 8) ${spotLoop(8)}
     ${spotLoop(4)}

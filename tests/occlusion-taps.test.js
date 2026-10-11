@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
-import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_SWELL, spotBehind, spotFrame, spotSwell, glslVec3 } from '../src/post.js';
+import { createPost, OCCLUSION_TAPS, glslVec2s, occlusionShare, SPOT_FRAME, SPOT_PAST, SPOT_SWELL, spotBehind, spotFrame, spotSwell, glslVec3 } from '../src/post.js';
 
 const shader = createPost().scene.children[0].material.fragmentShader;
 const body = (name) => {
@@ -33,7 +33,7 @@ test('the spot taps are the directions the shader used to work out per pixel', (
 });
 
 test('no skip (continue / break), cos or sin inside the occlusion loops', () => {
-  for (const name of ['enclosure', 'spotTapAt', 'planeAlong', 'creaseAO']) {
+  for (const name of ['enclosure', 'spotTapAt', 'planeAlong', 'planeNear', 'creaseAO']) {
     const b = body(name);
     assert.ok(!/\bcontinue\b|\bbreak\b/.test(b), `${name}: a tap that doesn't count weighs 0, it isn't skipped`);
   }
@@ -72,9 +72,16 @@ test('a person closes nothing in: no spot-black or crease halo round a climber o
   assert.equal((enc.match(/if \(tp\[i\] < 0\.5\) \{/g) ?? []).length, 2);
   assert.equal((enc.match(/sd = -\(P\.z \+ o\.z\);/g) ?? []).length, 2, 'the point’s own surface: the farthest the hidden tap can see');
   assert.equal((enc.match(/vec2 p2 = spotUv\(P \+ 2\.0 \* o, rA, rB\), p4 = spotUv\(P \+ 4\.0 \* o, rA, rB\);/g) ?? []).length, 2);
-  assert.equal((enc.match(/for \(int j = 0; j < \d; j\+\+\) if \(tp\[j\] > 0\.5\) sd = planeAlong\(tuv\[j\], tq\[j\], r, toView, rA, rB, lo, sd\);/g) ?? []).length, 2);
+  // (each plane only where the ray meets it near where it was seen: SPOT_PAST.near, × the pocket's radius)
+  const nr = (k) => SPOT_PAST.near[k].toFixed(2).replace('.', '\\.');
+  assert.equal((enc.match(new RegExp(`for \\(int j = 0; j < \\d; j\\+\\+\\) if \\(tp\\[j\\] > 0\\.5\\) sd = planeNear\\(tuv\\[j\\], tq\\[j\\], r, toView, rA, rB, lo, sd, ${nr('taps')}\\);`, 'g')) ?? []).length, 2);
+  assert.equal((enc.match(new RegExp(`if \\(notStanding\\(p[24], self\\) > 0\\.5\\) sd = planeNear\\(p[24], texture\\(tNormal, p[24]\\), r, toView, rA, rB, lo, sd, ${nr('past')}\\);`, 'g')) ?? []).length, 4);
+  // the third look past him (issue #28): to either side of the tap's place, along the other axis
+  assert.equal((enc.match(new RegExp(`vec3 op = \\(-SPOT_TAPS\\d\\[i\\]\\.y \\* t1 \\+ SPOT_TAPS\\d\\[i\\]\\.x \\* t2\\) \\* ${SPOT_PAST.side.toFixed(2).replace('.', '\\.')};`, 'g')) ?? []).length, 2);
+  assert.equal((enc.match(new RegExp(`sd = planeNear\\(s[12], texture\\(tNormal, s[12]\\), r, toView, rA, rB, lo, sd, ${nr('side')}\\);`, 'g')) ?? []).length, 4);
   assert.equal((enc.match(/occ \+= spotTapAt\(tuv\[i\], sd, P, nV, rA, rB, r1, r2\);/g) ?? []).length, 2);
-  assert.match(body('planeAlong'), /return t > lo && t < hi \? t : hi;/);
+  assert.match(body('planeNear'), /return t > lo && t < hi \? t : hi;/);
+  assert.match(body('planeNear'), /if \(lim > 0\.0 && length\(r \* t - Q\) > lim \* spotReach\) t = hi;/);
   assert.ok(!/texture\(tHatch/.test(enc + body('spotTapAt')));
 });
 
@@ -122,7 +129,8 @@ test('a person in front leaves no pale ghost in the shading behind them (Marrow 
   assert.equal((unity.match(/np = step\(fmod\(t, 8\.0\), 1\.5\)/g) ?? []).length, 1);
   // (the spot blacks: what a person hides, as post.js spotBehind)
   assert.ok(unity.includes('tp[i] = step(fmod(tH(tuv[i]).a, 8.0), 1.5);') && unity.includes('return occ / n8;'));
-  assert.ok(unity.includes('for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);'));
+  assert.ok(unity.includes('for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeNear(tuv[j], tq[j], r, toView, rA, rB, lo, sd, 1.5 * Rm);'));
+  assert.ok(unity.includes('sd = planeNear(s1, tN(s1), r, toView, rA, rB, lo, sd, 2.0 * Rm);'), 'the look to the side (issue #28)');
 });
 
 test('the view ray is affine in uv, so a tap can be placed without the inverse projection', () => {
@@ -350,15 +358,20 @@ function personTwin({ scene, body, cam }, u, v, rule, withPerson, taps, R = 3, H
   const [t1, t2] = spotFrame(h0.n.toArray()).map((t) => new THREE.Vector3(...t).applyMatrix3(toView).multiplyScalar(Rm));
   const close = (uv, sd) => { if (sd <= 0) return 0; const w = ray3(...uv).multiplyScalar(sd).sub(P), dist = w.length(); return smooth(0.12, 0.5, nV.dot(w) / dist) * (1 - smooth(R * 1.5, R * 3, dist)); };
   const plane = (h, uv) => ({ n: h.n.clone().applyMatrix3(toView).toArray(), p: ray3(...uv).multiplyScalar(h.d).toArray() });
-  const T = OCCLUSION_TAPS.spot(taps).map(([x, y]) => { const o = t1.clone().multiplyScalar(x).addScaledVector(t2, y), uv = uvOf(P.clone().add(o)); return { o, uv, h: hit(...uv) }; });
-  const seenAround = T.filter((t) => !t.h.person && t.h.d).map((t) => plane(t.h, t.uv));
+  const T = OCCLUSION_TAPS.spot(taps).map(([x, y]) => { const o = t1.clone().multiplyScalar(x).addScaledVector(t2, y), uv = uvOf(P.clone().add(o)); return { o, x, y, uv, h: hit(...uv) }; });
+  const N = SPOT_PAST.near;
+  const seenAround = T.filter((t) => !t.h.person && t.h.d).map((t) => ({ ...plane(t.h, t.uv), lim: N.taps * Rm }));
   let occ = 0, seen = 0;
   for (const { o, uv, h } of T) {
     if (!h.person) { occ += close(uv, h.d); seen++; continue; }
     const uv2 = uvOf(P.clone().addScaledVector(o, 2)), h2 = hit(...uv2);
     if (rule === 'past') { if (!h2.person) { occ += close(uv2, h2.d); seen++; } continue; }
     const uv4 = uvOf(P.clone().addScaledVector(o, 4)), h4 = hit(...uv4);
-    const planes = [...[[h2, uv2], [h4, uv4]].filter(([q]) => !q.person && q.d).map(([q, quv]) => plane(q, quv)), ...seenAround];
+    // (and to either side of the tap's place, along the other axis: SPOT_PAST.side)
+    const { x, y } = T.find((t) => t.o === o), op = t1.clone().multiplyScalar(-y).addScaledVector(t2, x).multiplyScalar(SPOT_PAST.side);
+    const sides = [1, -1].map((k) => { const q = uvOf(P.clone().add(o).addScaledVector(op, k)); return [hit(...q), q]; });
+    const planes = [...[[h2, uv2], [h4, uv4]].filter(([q]) => !q.person && q.d).map(([q, quv]) => ({ ...plane(q, quv), lim: N.past * Rm })),
+      ...sides.filter(([q]) => !q.person && q.d).map(([q, quv]) => ({ ...plane(q, quv), lim: N.side * Rm })), ...seenAround];
     occ += close(uv, spotBehind(-(P.z + o.z), h.d, ray3(...uv).toArray(), planes)); seen++;
   }
   return occ / Math.max(seen, 1);
@@ -405,4 +418,7 @@ test('what a person hides: the nearest surface met behind them, never behind the
   // a surface seen from behind (facing away along the ray) is no wall for it; the nearest of several wins
   assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, -1], p: [0, 0, -6] }]), 8);
   assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0, 0, -7] }, { n: [0, 0.6, 0.8], p: [0, 0, -5] }, { n: [0, 0, 1], p: [0, 0, -6] }]), 5);
+  // a plane met far from where it was seen is not taken (SPOT_PAST.near: a wall carried past a wide hem)
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [3, 0, -6], lim: 1 }]), 8);
+  assert.equal(spotBehind(8, 4, ray, [{ n: [0, 0, 1], p: [0.5, 0, -6], lim: 1 }]), 6);
 });

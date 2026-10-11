@@ -217,6 +217,11 @@ export function curveTable(rows, { hearts = {}, WORLDS = {}, BUDGET = [], order 
       size: +mean(R.map((r) => r.pack.length)).toFixed(1), heartsPerMin: +hpm.toFixed(2), attacksPerMin: +mean(R.map((r) => r.attacksPerMin)).toFixed(1),
       ttkBest: +mean(R.map((r) => r.ttkBest)).toFixed(1), ttkCombo: +mean(R.map((r) => r.ttkCombo ?? Infinity)).toFixed(1),   // (∞: a member the combo alone never kills, a crab from the front; JSON keeps it as null)
       hearts: H, barsPerMin: +(hpm / H).toFixed(2), cost: +cost.toFixed(2), share: Math.round((cost / H) * 100), packs: R.map((r) => r.pack),
+      // (arena.mjs --pack-clear: a scripted traveller clearing each pack, the s and the hearts it took, as a share of those on arrival)
+      ...(R.some((r) => r.clear && !r.clear.error) ? (() => { const C = R.map((r) => r.clear).filter((c) => c && !c.error);
+        const hearts = mean(C.map((c) => c.hearts));
+        return { clearS: +mean(C.map((c) => c.s)).toFixed(1), clearHearts: +hearts.toFixed(2), clearShare: Math.round((hearts / H) * 100), cleared: C.filter((c) => c.cleared).length, clearRuns: C.length }; })() : {}),
+      look: R[0]?.look ?? 'still',
     };
   });
 }
@@ -224,6 +229,58 @@ export function curveTable(rows, { hearts = {}, WORLDS = {}, BUDGET = [], order 
 export function curveMarkdown(curve) {
   const say = (p) => Object.entries(p.reduce((o, k) => ((o[k] = (o[k] ?? 0) + 1), o), {})).map(([k, n]) => (n > 1 ? `${n} ${k}` : k)).join(' + ');
   const n = (x) => (Number.isFinite(x) ? x : '∞');
-  return table(['world', 'stage', 'budget', 'strikers', 'lead', 'pack size', 'hearts/min (still)', 'attacks/min', 'ttk best (s)', 'ttk combo (s)', 'hearts on arrival', 'bars/min', 'cost (hearts)', 'cost share', 'packs watched'],
-    curve.map((c) => [c.world, c.stage, c.budget ? c.budget.join('–') : '-', c.strikers ?? '-', c.lead ?? '-', c.size, c.heartsPerMin, c.attacksPerMin, n(c.ttkBest), n(c.ttkCombo), c.hearts, c.barsPerMin, c.cost, `${c.share} %`, c.packs.map(say).join('; ')]));
+  const look = curve[0]?.look === 'lock' ? 'locked on' : 'still', clear = curve.some((c) => c.clearS !== undefined);
+  return table(['world', 'stage', 'budget', 'strikers', 'lead', 'pack size', `hearts/min (${look})`, 'attacks/min', 'ttk best (s)', 'ttk combo (s)', 'hearts on arrival', 'bars/min', 'cost (hearts)', 'cost share',
+    ...(clear ? ['cleared in (s)', 'hearts to clear', 'clear share', 'cleared'] : []), 'packs watched'],
+    curve.map((c) => [c.world, c.stage, c.budget ? c.budget.join('–') : '-', c.strikers ?? '-', c.lead ?? '-', c.size, c.heartsPerMin, c.attacksPerMin, n(c.ttkBest), n(c.ttkCombo), c.hearts, c.barsPerMin, c.cost, `${c.share} %`,
+      ...(clear ? (c.clearS === undefined ? ['-', '-', '-', '-'] : [c.clearS, c.clearHearts, `${c.clearShare} %`, `${c.cleared} of ${c.clearRuns}`]) : []), c.packs.map(say).join('; ')]));
+}
+
+// ---------------------------------------------------------------- guard, parry and evade (defend.mjs)
+
+/**
+ * What a kind's tries against one attack say (defend.mjs: each { action: 'guard' | 'evade', lead (s before the blow), outcome:
+ * 'parry' | 'block' | 'evaded' | 'hit' | 'missed' }): the furthest lead the guard still held (a block or a parry), the leads
+ * that parried and those an evade swallowed it at (each as [nearest, furthest]), and how many got through.
+ */
+export function defenceWindows(tries = []) {
+  const leads = (f) => tries.filter(f).map((t) => t.lead);
+  const span = (xs) => (xs.length ? [Math.min(...xs), Math.max(...xs)] : null);
+  const held = leads((t) => t.action === 'guard' && (t.outcome === 'block' || t.outcome === 'parry'));
+  return {
+    guardHolds: held.length ? Math.max(...held) : null,
+    parry: span(leads((t) => t.action === 'guard' && t.outcome === 'parry')),
+    evade: span(leads((t) => t.action === 'evade' && t.outcome === 'evaded')),
+    through: tries.filter((t) => t.outcome === 'hit').length,
+    missed: tries.filter((t) => t.outcome === 'missed').length,
+  };
+}
+
+const OUTCOME = { parry: 'P', block: 'B', evaded: 'E', hit: 'H', missed: '·' };
+/**
+ * The guard / parry / evade table (defend.mjs), grouped: by the kind's role (`group: 'role'`, kindFacts) or by the first
+ * world that fields it (`'world'`), a heading and a table each, so a large roster reads in parts. Each row a kind's attack:
+ * its wind-up, what a parry does to it, one cell a lead (P a parry, B a block, E evaded, H it got through, · it missed
+ * anyway, blank not tried), the windows found.
+ */
+export function defenceMarkdown(rows, { leads = { guard: [], evade: [] }, group = 'role' } = {}) {
+  const keyOf = (r) => (group === 'world' ? r.worlds?.[0] ?? 'the Arena only' : r.role ?? '-');
+  const groups = [...new Set(rows.map(keyOf))];
+  const win = (w) => (w ? (w[0] === w[1] ? `${w[0]}` : `${w[0]}–${w[1]}`) : '-');
+  const head = ['kind', 'attack', 'wind (s)', 'on parry', ...leads.guard.map((l) => `guard ${l}`), ...leads.evade.map((l) => `evade ${l}`), 'guard holds from (s)', 'parry at (s)', 'evade at (s)', 'through'];
+  const cell = (r, action, lead) => { const t = r.tries.find((x) => x.action === action && x.lead === lead); return t ? OUTCOME[t.outcome] ?? '?' : ''; };
+  const out = ['Each cell: the try at that lead (s before the blow lands). P a perfect parry, B a block, E the evade swallowed it, H it got through, · nothing touched him (an early evade carried him out of its reach, or it struck elsewhere); blank: not tried (the attack came too seldom in the time given).', ''];
+  for (const g of groups) {
+    out.push(`### ${group === 'world' ? 'First fielded in' : 'Role'}: ${g}`, '');
+    out.push(table(head, rows.filter((r) => keyOf(r) === g).map((r) => [r.name, r.atk, r.wind ?? '-', r.onParry ?? '-',
+      ...leads.guard.map((l) => cell(r, 'guard', l)), ...leads.evade.map((l) => cell(r, 'evade', l)), r.guardHolds ?? '-', win(r.parry), win(r.evade), r.through])), '');
+  }
+  return out.join('\n');
+}
+
+/** Rows grouped for a report (arena.mjs --group): by role (kindFacts) or by the first world that fields them; { key: rows }. */
+export function groupRows(rows, group, keyOf = (r) => (group === 'world' ? r.worldList?.[0] ?? 'the Arena only' : r.facts?.role ?? '-')) {
+  const out = {};
+  for (const r of rows) (out[keyOf(r)] ??= []).push(r);
+  return out;
 }

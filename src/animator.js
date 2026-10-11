@@ -63,6 +63,91 @@ export function limitHeadTurn(q, L = HEAD_TURN) {
   return q.copy(_sw).multiply(_tw);
 }
 
+/**
+ * The gait loops played through a smooth curve. The library's loops are keyed at 30 a second and played key to key
+ * (linear), so a bone's angular velocity is constant between two keys and steps at each: at a sprint's cadence the
+ * loop runs a little faster than authored and the knee's step at a key was 20-30 rad/s in one frame, a pop at every
+ * stride before the feet were even planted (the motion QC, scripts/motion-qc). Resampled at SMOOTH_RATE through a
+ * cyclic Catmull-Rom curve over the same keys (each key's pose kept), the velocity changes smoothly between them.
+ */
+export const SMOOTH_LOOPS = { sprint: { blur: 0.02 } };
+export const SMOOTH_RATE = 120;
+
+/** A looping clip resampled at `rate` keys a second through a cyclic Catmull-Rom spline (quaternions: the hemisphere kept, normalised). */
+export function smoothLoop(clip, rate = SMOOTH_RATE, blur = 0, legBlur = blur) {
+  const T = clip.duration;
+  if (!(T > 0)) return clip;
+  const n = Math.max(2, Math.round(T * rate)), times = new Float32Array(n + 1);
+  for (let i = 0; i <= n; i++) times[i] = (i / n) * T;
+  const tracks = clip.tracks.map((tr) => {
+    const k = tr.times.length, S = tr.getValueSize(), V = tr.values, quat = tr instanceof THREE.QuaternionKeyframeTrack;
+    if (k < 3) return tr;
+    // the cycle's keys, the last dropped where it repeats the first (at T), each quaternion on its neighbour's side
+    let m = k;
+    if (Math.abs(tr.times[k - 1] - T) < 1e-4 && Math.abs(tr.times[0]) < 1e-4) m = k - 1;
+    const kt = Array.from(tr.times.slice(0, m)), kv = [];
+    for (let i = 0; i < m; i++) kv.push(Array.from(V.slice(i * S, i * S + S)));
+    if (quat) for (let i = 1; i < m; i++) if (kv[i].reduce((a, x, j) => a + x * kv[i - 1][j], 0) < 0) kv[i] = kv[i].map((x) => -x);
+    // the key i cycles away (times wrapped by T; a quaternion flipped to lie on the same side as `near`)
+    const key = (i, near) => {
+      const c = Math.floor(i / m), j = i - c * m, v = kv[j];
+      const t = kt[j] + c * T;
+      if (quat && near && v.reduce((a, x, q) => a + x * near[q], 0) < 0) return [t, v.map((x) => -x)];
+      return [t, v];
+    };
+    const out = new Float32Array((n + 1) * S);
+    let seg = 0;
+    for (let i = 0; i <= n; i++) {
+      const t = times[i] % T;
+      while (seg + 1 < m && kt[seg + 1] <= t) seg++;
+      while (seg > 0 && kt[seg] > t) seg--;
+      const [t1, p1] = key(seg), [t2, p2] = key(seg + 1, p1), [t0, p0] = key(seg - 1 + m, p1), [t3, p3] = key(seg + 2, p2);
+      // (seg - 1 + m: one cycle on, so the times read a cycle late: brought back)
+      const a0 = t0 - T, h = t2 - t1, u = h > 1e-6 ? (t - t1) / h : 0;
+      const u2 = u * u, u3 = u2 * u;
+      const h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2;
+      let len = 0;
+      for (let q = 0; q < S; q++) {
+        // non-uniform Catmull-Rom tangents (finite differences over the neighbouring keys' times)
+        const m1 = ((p2[q] - p0[q]) / Math.max(t2 - a0, 1e-6)) * h, m2 = ((p3[q] - p1[q]) / Math.max(t3 - t1, 1e-6)) * h;
+        const x = h00 * p1[q] + h10 * m1 + h01 * p2[q] + h11 * m2;
+        out[i * S + q] = x; len += x * x;
+      }
+      if (quat && len > 0) { const l = Math.sqrt(len); for (let q = 0; q < S; q++) out[i * S + q] /= l; }
+    }
+    const bl = /(calf|thigh|foot|ball)_[lr]/.test(tr.name) ? legBlur : blur;
+    if (bl > 0) blurCycle(out, n, S, (bl * n) / T, quat);
+    const Track = tr.constructor;
+    return new Track(tr.name, times.slice(), out);
+  });
+  const c = new THREE.AnimationClip(clip.name, T, tracks);
+  c.userData = { ...(clip.userData ?? {}), smoothed: rate, blur };
+  return c;
+}
+
+/** A cyclic Gaussian blur (sigma in samples) over n samples of S values (the n + 1-th repeats the first), in place. */
+function blurCycle(out, n, S, sigma, quat) {
+  const r = Math.ceil(sigma * 3), w = [];
+  for (let d = -r; d <= r; d++) w.push(Math.exp(-(d * d) / (2 * sigma * sigma)));
+  const src = out.slice(0, n * S), acc = new Float64Array(S);
+  for (let i = 0; i < n; i++) {
+    acc.fill(0);
+    let ws = 0;
+    for (let d = -r; d <= r; d++) {
+      const j = (((i + d) % n) + n) % n, k = w[d + r];
+      // (a quaternion on the centre's side)
+      let sgn = 1;
+      if (quat) { let dot = 0; for (let q = 0; q < S; q++) dot += src[j * S + q] * src[i * S + q]; if (dot < 0) sgn = -1; }
+      for (let q = 0; q < S; q++) acc[q] += src[j * S + q] * k * sgn;
+      ws += k;
+    }
+    let len = 0;
+    for (let q = 0; q < S; q++) { out[i * S + q] = acc[q] / ws; len += out[i * S + q] ** 2; }
+    if (quat && len > 0) { const l = Math.sqrt(len); for (let q = 0; q < S; q++) out[i * S + q] /= l; }
+  }
+  for (let q = 0; q < S; q++) out[n * S + q] = out[q];
+}
+
 let libPromise = null;
 /** Load the clip library once; resolves to { scene, clips, native } (native = ground speed per loop). */
 export function loadAnimationLibrary(url = 'anim/ual.glb') {
@@ -74,6 +159,8 @@ export function loadAnimationLibrary(url = 'anim/ual.glb') {
 export function libraryFrom(gltf) {
   const clips = {};
   for (const [k, name] of Object.entries(CLIPS)) clips[k] = gltf.animations.find((a) => a.name === name);
+  // (the gait loops through a smooth curve, not key to key: SMOOTH_LOOPS)
+  for (const [k, b] of Object.entries(SMOOTH_LOOPS)) if (clips[k]) clips[k] = smoothLoop(clips[k], SMOOTH_RATE, b.blur ?? 0, b.legs ?? b.blur ?? 0);
   // (all: every clip in the file, for the character studio's clip list)
   const lib = { scene: gltf.scene, clips, native: {}, all: gltf.animations };
   for (const k of ['walk', 'jog', 'sprint']) lib.native[k] = measureGroundSpeed(lib, clips[k]);

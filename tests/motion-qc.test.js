@@ -87,7 +87,38 @@ test('the traveller on the course: the runs green today stay green (the default:
   }
   // the worst before: the walk's knee and foot pops at every step, and the pivot's 20 cm jolt
   const g = (await runScenario(COURSE['gaits: walk → jog → sprint → jog → walk → stop'], 'moves')).r.measures;
-  assert.ok(g.popsPerMin <= 20, `every gait: pops ${g.popsPerMin}/min (34 before)`);
+  assert.ok(g.popsPerMin <= 12, `every gait: pops ${g.popsPerMin}/min (34, then 14 before the sprint was looked at)`);
+  assert.ok(g.joltsPerMin <= 9, `every gait: jolts ${g.joltsPerMin}/min (13 before the sprint was looked at)`);
   const p = (await runScenario(COURSE['pivots standing: 90° each way, 180°'], 'moves')).r.measures;
   assert.ok(p.joltMax < 0.1, `pivots: the worst jolt ${(p.joltMax * 100).toFixed(1)} cm (20 before)`);
+  assert.ok(p.crossed <= 0.1, `pivots: the feet crossed ${Math.round(p.crossed * 100)} % of the frames (17 % before a step kept to its own side)`);
+  // the last step of a stop from a run slid 29 cm; the stairs threw a swinging foot 18 cm in a frame
+  const s = (await runScenario(COURSE['starts and stops, walk and run'], 'moves')).r.measures;
+  assert.ok(s.slideMax < 0.2, `starts and stops: the worst step slides ${(s.slideMax * 100).toFixed(1)} cm (29 before)`);
+  const st = (await runScenario(COURSE['stairs up, stand, down'], 'moves')).r.measures;
+  assert.ok(st.joltMax < 0.16 && st.popsPerMin <= 15, `stairs: the worst jolt ${(st.joltMax * 100).toFixed(1)} cm (18 before), pops ${st.popsPerMin}/min (18 before)`);
+});
+
+test('the gait loops through a smooth curve: each key kept, the cycle closed, no step in a bone\'s speed at a key', async () => {
+  const THREE = await import('three');
+  const { smoothLoop } = await import('../src/animator.js');
+  // a bone turning about x at 0, 1, 0, 1 rad... keyed every 0.1 s (linear: its speed flips at every key)
+  const T = 0.4, times = [0, 0.1, 0.2, 0.3, 0.4], ang = [0, 1, 0, 1, 0];
+  const q = (a) => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), a);
+  const vals = ang.flatMap((a) => q(a).toArray());
+  const clip = new THREE.AnimationClip('loop', T, [new THREE.QuaternionKeyframeTrack('b.quaternion', times, vals), new THREE.VectorKeyframeTrack('b.position', times, ang.flatMap((a) => [a, 0, 0]))]);
+  const s = smoothLoop(clip, 120);
+  const at = (tr, t) => { const I = tr.createInterpolant(); return Array.from(I.evaluate(t)); };
+  for (const [i, t] of times.entries()) {
+    const v = at(s.tracks[0], t), want = q(ang[i]).toArray();
+    const d = Math.abs(v.reduce((a, x, k) => a + x * want[k], 0));
+    assert.ok(d > 0.9999, `the key at ${t} s kept (${d.toFixed(5)})`);
+    assert.ok(Math.abs(at(s.tracks[1], t)[0] - ang[i]) < 1e-4, `the position key at ${t} s kept`);
+  }
+  // its speed a frame either side of a key at 240 Hz (linear: +10, then -10 at once; smooth: easing through 0)
+  const p = (t) => at(s.tracks[1], t)[0];
+  const h = 1 / 240, before = (p(0.1) - p(0.1 - h)) / h, after = (p(0.1 + h) - p(0.1)) / h;
+  assert.ok(Math.abs(before - after) < 5, `no step in its speed at a key (it turns round there over the frames either side, not in one) (${before.toFixed(2)} → ${after.toFixed(2)})`);
+  // the cycle closes: the end is the start
+  assert.ok(Math.abs(p(T) - p(0)) < 1e-6 && Math.abs(p(T - h) - p(h)) < 0.05, 'the loop closes smoothly');
 });

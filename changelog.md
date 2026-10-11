@@ -4,6 +4,8 @@ The same release notes shown in the game (press **N** or open settings).
 
 ## v1.47 — 2026-10-11
 
+- Standing in a room’s corner, you and the people you meet no longer cut small pale notches into the dark band along the corner’s foot.
+- Your legs move more smoothly at a sprint, on stairs and turning on the spot: the knee no longer snaps straight at every sprinting stride, a swinging foot no longer jumps a stair’s height as it passes over an edge, your feet no longer cross as you step round, and the last step of a stop from a run no longer slides.
 - In the desert, tall poles with red strips lead the hoverbike out of Marrow’s hollow toward the Givers’ Hearth, the pilgrims’ lit road comes down to your ship again instead of where it used to land, and a carved field-stone stands on the dunes between the Givers’ House and your ship: once the House’s water runs, a field grows green beside it.
 - Arriving in the Underwater City, the Dock is no longer a bare floor: the divers’ rack with its suits and air tanks, the cargo off the last boat and a stripe painted to the long tube. On the Moon Foundry’s apron a little moon cools in its mould with a worker by it, and carts of slag stand on a siding.
 - In the Glass Dunes a tall cairn with a long streamer stands on the breaking wave’s crest, 90 m over the valley: walk up its long back from its east end and see the whole basin from the top.

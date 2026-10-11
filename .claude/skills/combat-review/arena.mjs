@@ -28,7 +28,7 @@ import { deflateSync, crc32 } from 'node:zlib';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const args = process.argv.slice(2), arg = (n, d) => { const i = args.indexOf(`--${n}`); return i >= 0 ? args[i + 1] : d; };
 const OUT = resolve(args[0] && !args[0].startsWith('--') ? args[0] : join(tmpdir(), 'combat-review'));
-const WATCH = +arg('watch', 24), W = 1280, H = 720;
+const WATCH = +arg('watch', 24), W = 1280, H = 720, GROUP = arg('group', null);   // (--group role|world: the foes' table in parts)
 const PORT = Number(process.env.PORT ?? 5333), CDP = Number(process.env.CDP ?? 5391);
 if (PORT === 5173) throw new Error('5173 is the author’s own dev server: pick another PORT');
 mkdirSync(OUT, { recursive: true });
@@ -42,9 +42,20 @@ function report(scored, gScored, MOVES, WATCH) {
   const s = (x) => (x === null || x === undefined ? '-' : x);
   return [
     `## Foes (${scored.length} kinds, the Arena, a still player, ${WATCH} s each)`, '',
-    L.table(['kind', 'read', 'counter', 'space', 'fair', 'identity', 'combines', '**total**', 'wind seen (s)', 'attacks/min', 'health/min', ...MOVES.map((m) => `ttk ${m.id}`)],
-      scored.map((r) => [r.name, r.score.readability, r.score.counterplay, r.score.space, r.score.fairness, r.score.identity, r.score.combines, `**${r.score.total}**`,
-        s(r.windSeen?.toFixed(2)), r.attacksPerMin, r.damagePerMin, ...MOVES.map((m) => (r.ttk[m.id]?.dead ? `${r.ttk[m.id].s}${r.ttk[m.id].from === 'behind' ? ' (behind)' : ''}` : r.ttk[m.id] ? '∞' : '-'))])), '',
+    // (a large roster, run in batches with --kinds: --group role|world splits the table, a heading each)
+    ...Object.entries(GROUP ? L.groupRows(scored, GROUP) : { '': scored }).flatMap(([g, rows]) => [...(g ? [`### ${GROUP === 'world' ? 'First fielded in' : 'Role'}: ${g}`, ''] : []),
+      L.table(['kind', 'read', 'counter', 'space', 'fair', 'identity', 'combines', '**total**', 'wind seen (s)', 'attacks/min', 'health/min', ...MOVES.map((m) => `ttk ${m.id}`)],
+        rows.map((r) => [r.name, r.score.readability, r.score.counterplay, r.score.space, r.score.fairness, r.score.identity, r.score.combines, `**${r.score.total}**`,
+          s(r.windSeen?.toFixed(2)), r.attacksPerMin, r.damagePerMin, ...MOVES.map((m) => (r.ttk[m.id]?.dead ? `${r.ttk[m.id].s}${r.ttk[m.id].from === 'behind' ? ' (behind)' : ''}` : r.ttk[m.id] ? '∞' : '-'))])), '']),
+    ...(scored.some((r) => r.free) ? ['## Puppeteers: their strings on a host, and freeing it', '',
+      'Called in with its escort; the s until its strings drop on a creature, the driven host watched (its wind-ups, its attacks a minute, the harm a minute a still player takes), the strings then cut as a hit on the rope does, and the s until it strings again. To free it: the wait for the strings, then the first blow of a move that cuts one.', '',
+      L.table(['kind', 'host', 'strung after (s)', 'host wind driven (s)', 'host attacks/min driven', 'harm/min driven', 'free with the air cut (s)', 'free with an ember (s)', 'strung again after (s)', 'ttk best (s)'],
+        scored.filter((r) => r.free).map((r) => { const F = r.free; const best = Math.min(...Object.values(r.ttk).filter((x) => x?.dead).map((x) => x.s));
+          return F.error ? [r.name, F.error] : [r.name, F.host, F.strung, s(F.hostWind), F.hostAttacksPerMin, F.harmPerMin, s(F.cut?.air), s(F.cut?.fire), F.again ?? `not in 15${F.ranOut ? ' (ran out)' : ''}`, Number.isFinite(best) ? best : '∞']; })), ''] : []),
+    ...(scored.some((r) => Object.keys(r.live ?? {}).length) ? ['## Rollers: the moves dealt live (it rolls up between blows)', '',
+      'Its share of the watch spent rolled up (Foe.rolling: a cut, a shot, an ember glance off the shell), and each move dealt every cycle while it fights, against the time to kill above (dealt on it at rest).', '',
+      L.table(['kind', 'rolled up (share)', ...['shoot', 'fire', 'push', 'combo'].flatMap((id) => [`${id} live (s)`, `${id} at rest (s)`, `${id} glanced`])],
+        scored.filter((r) => Object.keys(r.live ?? {}).length).map((r) => [r.name, r.rollShare, ...['shoot', 'fire', 'push', 'combo'].flatMap((id) => { const v = r.live[id]; return [v?.dead ? v.s : v ? '∞' : '-', r.ttk[id]?.dead ? r.ttk[id].s : '∞', v ? `${v.glanced} of ${v.landed + v.glanced}` : '-']; })])), ''] : []),
     `## Guardians (${gScored.length}, from their tuning)`, '',
     L.table(['guardian', 'world', 'read', 'counter', 'space', 'fair', 'phases', '**total**', 'why'],
       gScored.map((g) => [g.name, g.world, g.score.readability, g.score.counterplay, g.score.space, g.score.fairness, g.score.phases, `**${g.score.total}**`, g.score.why])), '',
@@ -126,6 +137,7 @@ const setup = await ev(`(async () => {
   const blade = await import('/src/fluid-blade.js'), tool = await import('/src/fluid-tool.js'), kit = await import('/src/fluid-kit.js');
   const { ROSTERS } = await import('/src/foe-worlds.js');
   window.sound?.setVolumes?.(0, 0);
+  window.__fl = await import('/src/flurry.js');   // (the lock-on look: the blow that comes soonest)
   if (window.weather) { window.weather.mode = 'clear'; window.weather.intensity = 0; }
   const s = document.createElement('style'); s.textContent = '#toast, #inputs, #foe-spawner { visibility: hidden !important; }'; document.head.appendChild(s);
   const P = window.player, hurt = P.hurt.bind(P);
@@ -135,6 +147,62 @@ const setup = await ev(`(async () => {
   P.hurt = (d, why) => { window.__dmg.push({ t: performance.now(), d, why }); const r = hurt(d, why); if (P.hearts < 1.5 && !P.dead) P.hearts = P.maxHearts; return r; };
   window.__keep = setInterval(() => { if (P.health < 0.7) P.health = 1; }, 50);
   const plain = (o) => JSON.parse(JSON.stringify(o, (k, v) => (typeof v === 'function' ? undefined : v)));
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const alive = (k) => foes.list.filter((x) => x.alive && x.dead === undefined && (!k || x.kind === k));
+  /**
+   * A puppeteer driving a host (combat-v1.18 rec. 4): called in with its escort, the s until its strings drop on a creature
+   * (possessed), how the driven host fights (its wind-ups and its attacks a minute while driven, watched \`drive\` s), then the
+   * strings cut as a hit on the rope does (Foes.cutStrings: what the air cut, the boomerang and an ember call), and the s
+   * until it strings again. null if it never strung within \`cap\` s.
+   */
+  window.__free = async (kind, escort, drive = 8, cap = 15) => {
+    if (player.dead || player.down) player.restart();
+    foes.setPractice(kind); if (escort) foes.spawnKind(escort, { n: 1, dist: 7 });
+    window.__dmg.length = 0;
+    const t0 = performance.now(); let host = null;
+    while (!host && performance.now() - t0 < cap * 1000) { await wait(40); host = alive().find((x) => x.possessed?.by?.kind === kind) ?? null; if (!foes.lock) foes.lock = alive(kind)[0] ?? null; }
+    if (!host) return null;
+    const strung = (performance.now() - t0) / 1000;
+    const winds = [], d0 = window.__dmg.length, t1 = performance.now(); let prev = host.state, wStart = null;
+    while (performance.now() - t1 < drive * 1000 && host.possessed && host.alive) {
+      await wait(30);
+      if (host.state === 'wind' && prev !== 'wind') wStart = performance.now();
+      if (host.state !== 'wind' && prev === 'wind' && wStart) winds.push((performance.now() - wStart) / 1000);
+      prev = host.state;
+    }
+    const drove = (performance.now() - t1) / 1000, stillDriven = !!host.possessed;
+    const harm = window.__dmg.slice(d0).reduce((a, d) => a + d.d, 0);
+    if (stillDriven) foes.cutStrings(host);
+    const freed = !host.possessed;
+    const t2 = performance.now(); let again = null;
+    while (again === null && performance.now() - t2 < cap * 1000) { await wait(40); if (alive().some((x) => x.possessed?.by?.kind === kind)) again = (performance.now() - t2) / 1000; }
+    foes.list.slice().forEach((x) => foes.remove(x));
+    return { host: host.kind, strung: +strung.toFixed(2), drove: +drove.toFixed(2), ranOut: !stillDriven, freed, again: again === null ? null : +again.toFixed(2),
+      hostWind: winds.length ? +(winds.sort((a, b) => a - b)[Math.floor(winds.length / 2)]).toFixed(2) : null, hostAttacksPerMin: +(winds.length / Math.max(drove, 1e-3) * 60).toFixed(1), harmPerMin: +(harm / Math.max(drove, 1e-3) * 60).toFixed(2) };
+  };
+  /**
+   * A move dealt live (a scripted player trading from where he stands): the foe fights as it likes and a blow goes in every
+   * move's cycle (\`cycles\`: each blow's own s), so a roller rolled up glances them off its shell as it would in play. The s
+   * until it is dead (null: not in \`cap\` s), the blows that landed and the ones that glanced.
+   */
+  window.__live = async (kind, m, cap = 40) => {
+    if (player.dead || player.down) player.restart();
+    foes.setPractice(kind); await wait(250);
+    const f = alive(kind)[0]; if (!f) return null;
+    // (from its first wind-up on: dealt on it while it sits, it dies before it ever rolls)
+    for (let w = 0; w < 300 && f.state !== 'wind'; w++) { foes.lock = f; await wait(40); }
+    let landed = 0, glanced = 0, i = 0; const t0 = performance.now();
+    while (f.alive && f.dead === undefined && performance.now() - t0 < cap * 1000) {
+      foes.lock = f;
+      const dir = f.pos.clone().sub(player.pos).setY(0).normalize(), hp = f.hp, rolled = !!f.rolling;
+      foes.hurt(f, m.mode, dir, { damage: m.hits ? m.hits[i % m.hits.length] : m.damage, source: m.source, breaks: !!m.breaks, air: m.source === 'air', ...(m.hits ? { combo: i % m.hits.length } : {}) });
+      if (!f.alive || f.hp < hp) landed++; else { glanced++; if (rolled) f.__rolledGlance = (f.__rolledGlance ?? 0) + 1; }
+      await wait(1000 * (m.cycles ? m.cycles[i % m.cycles.length] : m.cycle)); i++;
+    }
+    const dead = !f.alive || f.dead !== undefined, s = (performance.now() - t0) / 1000, rolledGlances = f.__rolledGlance ?? 0;
+    foes.list.slice().forEach((x) => foes.remove(x));
+    return { dead, s: dead ? +s.toFixed(2) : null, landed, glanced, rolledGlances };
+  };
   const { rosterOf } = await import('/src/foe-worlds.js');
   const worlds = {}; for (const w of Object.keys(ROSTERS)) { const R = rosterOf(w); for (const k of new Set([R.first, ...Object.keys(R.wild ?? {}), ...(R.guards ?? []), ...(R.temple ?? []), ...(R.shade > 0 ? ['shade'] : [])])) (worlds[k] ??= []).push(w); }
   // a kind that only comes out of another (a golem's splinters) fights where its parent does
@@ -164,7 +232,7 @@ for (const kind of KINDS) {
     const s = await ev(`(() => { const all = foes.list.filter((x) => x.alive && x.dead === undefined && x.kind === ${JSON.stringify(kind)}); if (!all.length) return null;
       if (!foes.lock || !all.includes(foes.lock)) foes.lock = all[0];
       const now = performance.now();
-      return all.map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state, k: f.k ?? 0, atk: f.atk?.id ?? 'strike', d: f.pos.distanceTo(player.pos) })); })()`);
+      return all.map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state, k: f.k ?? 0, atk: f.atk?.id ?? 'strike', d: f.pos.distanceTo(player.pos), roll: !!f.rolling, host: !!f.hosting })); })()`);
     if (s) samples.push(...s);
     if (!shot && s?.some((m) => m.state === 'wind' && m.k > 0.45)) {
       // (framed side-on for the contact sheet: the camera held off the winding one's flank, level with its middle and far
@@ -229,8 +297,26 @@ for (const kind of KINDS) {
     // (a clapper-only foe, the bell walker: its blows only in its openings, each one an attack cycle's wait for its drop: L.openingTime)
     ttk[m.id] = r ? { ...r, s: L.openingTime(L.timeToKill({ ...r, hits: r.landed + (r.from === 'behind' ? 0 : r.wasted) }, m, cycle), r, m, cycle) } : null;   // (a flank costs no blows: only the ones that land, from behind)
   }
+  // ---- a roller (an attack that rolls up: Foe.rolling): rolled up, a cut, a shot, an ember glance off its shell, so the
+  // gun's times above (dealt on one at rest) under-read it: each ranged move dealt live too, every cycle, while it fights
+  const D = setup.defs[kind], rolls = (D.attacks ?? [D.attack]).some((a) => a?.rolls);
+  const rollShare = samples.length ? +(samples.filter((x) => x.roll).length / samples.length).toFixed(2) : 0;
+  const live = {};
+  if (rolls) for (const m of MOVES.filter((x) => ['shoot', 'fire', 'push', 'combo'].includes(x.id))) {
+    live[m.id] = await ev(`__live(${JSON.stringify(kind)}, ${JSON.stringify(m)}, ${+arg('live-cap', 40)})`).catch((e) => ({ error: String(e).slice(0, 120) }));
+    console.log(`${kind.padEnd(10)} live ${m.id}: ${JSON.stringify(live[m.id])}`);
+  }
+  // ---- a puppeteer (the marionette): its strings on a host, the host driven, then freed (the strings cut) and strung again
+  let free = null;
+  if (D.puppeteer) {
+    free = await ev(`__free(${JSON.stringify(kind)}, ${JSON.stringify(D.escort ?? null)}, ${+arg('drive', 8)})`).catch((e) => ({ error: String(e).slice(0, 120) }));
+    // (to free it: the strings' wait, then one blow on a rope with the quickest move that cuts one: the air cut, an ember)
+    const cutters = MOVES.filter((m) => m.id === 'air' || m.id === 'fire');
+    if (free && !free.error) free.cut = Object.fromEntries(cutters.map((m) => [m.id, +(free.strung + (m.cycles ? m.cycles[0] : m.cycle)).toFixed(2)]));
+    console.log(`${kind.padEnd(10)} free: ${JSON.stringify(free)}`);
+  }
   const row = {
-    kind, name: setup.defs[kind].name,
+    kind, name: setup.defs[kind].name, rollShare, live, free,
     windSeen: L.median(winds.map((w) => w.dur)), winds: Object.fromEntries(Object.entries(strikes)),
     windByAttack: Object.fromEntries([...new Set(winds.map((w) => w.atk))].map((a) => [a, +L.median(winds.filter((w) => w.atk === a).map((w) => w.dur)).toFixed(2)])),
     attacksPerMin: +(winds.length / span).toFixed(1),
@@ -253,13 +339,20 @@ if (PACKS) {
   const { heartsOnArrival } = L, { SHOPS } = await import(join(ROOT, 'src/shop.js')), { ORDER } = await import(join(ROOT, 'src/levels/names.js'));
   const packRows = [];
   let meta = null;
-  for (const world of PACKS) for (let j = 0; j < NPACK; j++) {
-    const pack = await ev(`(async () => {
+  // --pack-look still|lock: the still traveller looks where he stands (the measure before), or the lock-on camera turns to
+  // each striker as a player would (the foe whose blow comes soonest, else the nearest: foes.lock, which turns the camera),
+  // so a pack's off-screen members aren't held back by the turns' rule (one off the screen waits while another strikes)
+  const LOOK = arg('pack-look', 'still'), CLEAR = args.includes('--pack-clear'), CLEAR_CAP = +arg('clear-cap', 90);
+  // --pack-clear: then the same pack placed again and cleared by a scripted traveller: he locks on the nearest, walks to it
+  // and deals its best move from the kinds run (--ttk: the fastest that kills it, the riposte left out) at that move's
+  // cadence, from behind where the kinds run had to flank it, while the pack fights back: the s to clear it and the hearts
+  // it took (his health kept up, every hurt counted)
+  const placePack = (world, j) => ev(`(async () => {
       const { packOf, WORLDS, BUDGET } = await import('/src/foe-worlds.js'), { skinned } = await import('/src/enemies/archetypes.js');
       let s = ${(j + 1) * 7919 + world.length * 104729}; const rng = () => ((s = (s * 16807) % 2147483647) / 2147483647);
       const kinds = packOf(${j + 1}, ${JSON.stringify(world)}, rng);
       if (player.dead || player.down) player.restart();
-      foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x));
+      foes.setPractice(''); foes.list.slice().forEach((x) => foes.remove(x)); foes.lock = null;
       const P = player, h = P.heading ?? 0;
       kinds.forEach((k, i) => { const id = WORLDS[${JSON.stringify(world)}] ? skinned(k, ${JSON.stringify(world)}) : k;
         const at = foes.openSpot(id, P.pos, h + (i - (kinds.length - 1) / 2) * 0.5, 6 + (i % 3) * 2, 20, 40), f = foes.add(id, at);
@@ -267,11 +360,56 @@ if (PACKS) {
       foes.stage = WORLDS[${JSON.stringify(world)}]?.stage;   // (the world's turns: TURNS, more strikers at once late on)
       window.__dmg.length = 0; P.health = 1;
       const T = WORLDS[${JSON.stringify(world)}];
-      return { kinds, stage: T?.stage ?? null, budget: T ? T.budget ?? BUDGET[Math.min(BUDGET.length - 1, T.stage)] : null, strikers: foes.strikers }; })()`).then((r) => { meta = r; return r.kinds; });
+      return { kinds, stage: T?.stage ?? null, budget: T ? T.budget ?? BUDGET[Math.min(BUDGET.length - 1, T.stage)] : null, strikers: foes.strikers }; })()`);
+  // each kind's best move from the kinds run (for --pack-clear), and how far it reaches
+  const bestMove = (k) => {
+    const r = TTK?.foes?.find((x) => x.kind === k); if (!r) return null;
+    const [id, t] = Object.entries(r.ttk).filter(([id, x]) => x?.dead && id !== 'riposte').sort((x, y) => x[1].s - y[1].s)[0] ?? [];
+    const m = MOVES.find((x) => x.id === id); if (!m) return null;
+    return { ...m, from: t.from, reach: m.mode === 'blade' ? (id === 'dash' ? 6 : (setup.tuning.BLADE.reach ?? 2.2) + 0.6) : 12 };
+  };
+  if (CLEAR) await ev(`(() => {
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    window.__clear = async (best, cap) => {
+      const P = player, V = THREE.Vector3, t0 = performance.now(), d0 = window.__dmg.length, up = new V(0, 1, 0);
+      const next = new Map(); let blows = 0, glanced = 0, walked = 0, last = t0;
+      while (performance.now() - t0 < cap * 1000) {
+        const left = foes.list.filter((x) => x.alive && x.dead === undefined);
+        if (!left.length) break;
+        const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
+        const f = left.sort((a, b) => a.pos.distanceTo(P.pos) - b.pos.distanceTo(P.pos))[0], m = best[f.kind];
+        foes.lock = f;
+        const to = f.pos.clone().sub(P.pos).setY(0), d = to.length();
+        if (!m) { foes.remove(f); continue; }   // (a kind the kinds run never killed: left out, counted below)
+        if (d > m.reach) {   // (walked to it, a run's pace, on the ground)
+          const step = Math.min(d - m.reach * 0.8, 6 * dt), at = P.pos.clone().addScaledVector(to.normalize(), step);
+          const y = physics.groundAt(at.x, at.y + 2, at.z, 6); if (Number.isFinite(y)) at.y = y;
+          P.teleport(at, up, to.clone()); P.heading = Math.atan2(to.x, to.z); walked += step;
+        } else if (now >= (next.get(f) ?? 0)) {
+          const i = f.__blow ?? 0, dir = m.from === 'behind' ? new V(Math.sin(f.heading ?? 0), 0, Math.cos(f.heading ?? 0)) : to.normalize(), hp = f.hp;
+          if (m.stunned) f.stunned = Math.max(f.stunned ?? 0, 1);
+          if (f.def.clapper) f.open = Math.max(f.open ?? 0, 1);
+          foes.hurt(f, m.mode, dir, { damage: m.hits ? m.hits[i % m.hits.length] : m.damage, source: m.source, breaks: !!m.breaks, air: m.source === 'air', ...(m.hits ? { combo: i % m.hits.length } : {}) });
+          blows++; if (f.alive && !(f.hp < hp)) glanced++;
+          f.__blow = i + 1; next.set(f, now + 1000 * (m.cycles ? m.cycles[i % m.cycles.length] : m.cycle));
+        }
+        await wait(30);
+      }
+      const left = foes.list.filter((x) => x.alive && x.dead === undefined).length, s = (performance.now() - t0) / 1000;
+      const harm = window.__dmg.slice(d0).reduce((a, x) => a + x.d, 0);
+      return { cleared: !left, s: +s.toFixed(1), left, hearts: +harm.toFixed(2), blows, glanced, walked: +walked.toFixed(1) };
+    };
+    return true; })()`);
+  for (const world of PACKS) for (let j = 0; j < NPACK; j++) {
+    const pack = await placePack(world, j).then((r) => { meta = r; return r.kinds; });
     await sleep(400);
     const t0 = Date.now(), samples = [];
     while (Date.now() - t0 < PW * 1000) {
-      const s = await ev(`(() => { const now = performance.now(); return foes.list.filter((x) => x.alive && x.dead === undefined).map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state })); })()`);
+      const s = await ev(`(() => { const now = performance.now(), live = foes.list.filter((x) => x.alive && x.dead === undefined);
+        ${LOOK === 'lock' ? `{ const T = (f) => window.__fl?.foeThreat?.(f, player)?.t ?? Infinity;
+          const by = live.slice().sort((a, b) => (T(a) - T(b)) || (a.pos.distanceTo(player.pos) - b.pos.distanceTo(player.pos)))[0];
+          if (by) { foes.lock = by; player.heading = Math.atan2(by.pos.x - player.pos.x, by.pos.z - player.pos.z); } }` : ''}
+        return live.map((f) => ({ id: (f.__watch ??= Math.random().toString(36).slice(2)), t: now, state: f.state })); })()`);
       if (s?.length) samples.push(...s);
       await sleep(60);
     }
@@ -285,8 +423,16 @@ if (PACKS) {
     const sum = (pick) => pack.reduce((a, k) => a + (ttkOf(k, pick) ?? NaN), 0);
     const row = { world, n: j + 1, pack, stage: meta.stage, budget: meta.budget, strikers: meta.strikers, heartsPerMin: +(dmg.reduce((a, d) => a + d.d, 0) / span).toFixed(2), attacksPerMin: +(winds / span).toFixed(1),
       ttkBest: +sum(best).toFixed(1), ttkCombo: +sum((t) => (t.combo?.dead ? t.combo.s : Infinity)).toFixed(1) };
+    if (CLEAR) {
+      const best = Object.fromEntries([...new Set(pack)].map((k) => [k, bestMove(k)]));
+      await placePack(world, j); await sleep(300);
+      row.clear = await ev(`__clear(${JSON.stringify(best)}, ${CLEAR_CAP})`).catch((e) => ({ error: String(e).slice(0, 120) }));
+      row.clear.unknown = Object.entries(best).filter(([, m]) => !m).map(([k]) => k);   // (no best move from the kinds run: removed, not fought)
+      await ev('(() => { foes.list.slice().forEach((x) => foes.remove(x)); foes.lock = null; return true; })()');
+    }
+    row.look = LOOK;
     packRows.push(row);
-    console.log(`${world.padEnd(10)} pack ${j + 1}: ${pack.join(', ')} · ${row.heartsPerMin} hearts/min · ${row.attacksPerMin} attacks/min · ttk ${row.ttkBest} s`);
+    console.log(`${world.padEnd(10)} pack ${j + 1}: ${pack.join(', ')} · ${row.heartsPerMin} hearts/min · ${row.attacksPerMin} attacks/min · ttk ${row.ttkBest} s${row.clear ? ` · cleared in ${row.clear.s} s, ${row.clear.hearts} hearts` : ''}`);
   }
   const hearts = heartsOnArrival(SHOPS, ORDER);
   const { WORLDS, BUDGET } = await import(join(ROOT, 'src/foe-worlds.js'));
@@ -361,7 +507,7 @@ sheet(gShots, 'guardians', 3);
 const roles = {};
 const facts = Object.fromEntries(KINDS.map((k) => [k, L.kindFacts(k, setup.defs[k])]));
 for (const F of Object.values(facts)) roles[F.role] = (roles[F.role] ?? 0) + 1;
-const scored = results.map((r) => ({ ...r, facts: facts[r.kind], worlds: (setup.worlds[r.kind] ?? []).length, score: L.scoreKind(facts[r.kind], r, (setup.worlds[r.kind] ?? []).length, roles[facts[r.kind].role]) }));
+const scored = results.map((r) => ({ ...r, facts: facts[r.kind], worlds: (setup.worlds[r.kind] ?? []).length, worldList: setup.worlds[r.kind] ?? [], score: L.scoreKind(facts[r.kind], r, (setup.worlds[r.kind] ?? []).length, roles[facts[r.kind].role]) }));
 const gScored = guardians.filter((g) => !g.error).map((g) => ({ ...g, score: L.scoreGuardian(g) }));
 const md = report(scored, gScored, MOVES, WATCH);
 writeFileSync(join(OUT, 'combat.md'), md);

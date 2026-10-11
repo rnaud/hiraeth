@@ -45,7 +45,16 @@ PORT (default 5333) and CDP (Chrome's debugging port, default 5391). For each ki
 - **a contact sheet**: each kind at the height of its wind-up, tiled 4 across (`telegraphs.png` / `.webp`) in the order
   of the table.
 
-It writes `combat.json`, `combat.md` (the scored tables) and the contact sheet.
+- **a puppeteer and its host** (any kind with `puppeteer`, the marionette): called in with its escort, the s until its
+  strings drop on a creature, the driven host watched (`--drive 8` s: its wind-ups, attacks and harm a minute), the strings
+  then cut as a hit on the rope does (`Foes.cutStrings`), and the s until it strings again; **to free it** is that wait
+  and the first blow of a move that cuts a rope (the air cut, an ember), beside the time to kill it (combat-v1.18 rec. 4);
+- **a roller** (any attack with `rolls`): its share of the watch spent rolled up, and the gun's modes and the combo dealt
+  **live**, one blow every cycle while it fights (`--live-cap 40` s), so the blows its shell glances off count; the
+  times to kill above are dealt on it at rest.
+
+It writes `combat.json`, `combat.md` (the scored tables) and the contact sheet. `--group role|world` splits the foes'
+table by role or by the first world that fields each kind: with a large roster, run it in batches (`--kinds`) and group.
 
 **The difficulty curve, world by world** (`--packs route` or `--packs desert,arzach`, with `--ttk <a kinds run's
 combat.json>`; `--pack-count 4`, `--pack-watch 20`): each world's packs (src/foe-worlds.js `packOf`, packs 1.. of a visit,
@@ -55,7 +64,17 @@ minute**; its **time to kill** (the sum of its members' best moves from the kind
 start and every earlier shop's heart containers: src/shop.js, `heartsOnArrival`); and its **cost**, the hearts it takes
 from a traveller who trades blows with it standing still (hearts a minute × the time to kill), as a share of those
 hearts. Two strikers at a time cap a pack's pressure, so a bigger pack shows in the time and the cost more than in the
-hearts a minute. It writes `packs.json` and `curve.md`. Guardians are scored from their tuning
+hearts a minute. It writes `packs.json` and `curve.md`.
+
+The still traveller under-reads a big pack (combat-v1.22): looking one way, the members off the screen wait while another
+strikes. Two ways past it: **`--pack-look lock`**, the lock-on camera turning to each striker as a player would (the
+foe whose blow comes soonest, else the nearest: `foes.lock` turns the camera), and **`--pack-clear`** (with `--ttk`),
+the same pack placed again and cleared by a scripted traveller: he locks on the nearest, walks to it at a run and deals
+its best move from the kinds run (the riposte left out; from behind where the kinds run had to flank it) at that move's
+cadence while the pack fights back, `--clear-cap 90` s at most. The curve then has **cleared in (s)**, the **hearts to
+clear** it and their share of the hearts on arrival (the clear share): the cost measured, not multiplied. He never
+misses and never guards, so it is a floor (October 2026, two packs each: the Signal Market's packs cleared in 3-7 s for
+none of his hearts where the still traveller's cost said 5 hearts; locked on, the Garden's attacks a minute 28-68 → 56-76). Guardians are scored from their tuning
 (telegraphs, attacks, openings, phases); play their temples for the rest (`?level=<world>` and the temple's door, or the
 dev menu's temple jump).
 
@@ -63,6 +82,17 @@ dev menu's temple jump).
 PORT 5335, CDP 5393): each archetype and each guardian in turn, locked on, a still player; when a blow is due inside the
 window (src/flurry.js `dodgeLead`) the keyboard presses back (or D: `--side`) and jump, and the page reads whether the hop
 went off and the flurry began. Every foe should dodge into a flurry; a timeout means it never struck within `--wait` s.
+
+**Guard, parry and evade, attack by attack** (`node .claude/skills/combat-review/defend.mjs <scratch>/defend [--kinds …]
+[--per 45] [--group role|world] [--guard 0.5,0.3,0.2,0.12,0.06] [--evade 0.35,0.25,0.15,0.08,0.03]`; PORT 5337, CDP 5395):
+each kind in turn, locked on, a still player whose health and fluid are kept up. Each time one of its blows comes
+(src/flurry.js `foeThreat`), one try at a set lead before it lands: the guard raised (Ctrl, held until the blow is done)
+or the evade (Alt, tapped); every lead once for each of its attacks, within `--per` s a kind. What came of it is read
+from the player's own hooks (`Player.guard`: 'perfect' a parry, true a block; `Player.dodge`; `Player.hurt`). `defend.md`
+has a row a kind's attack: its wind-up, what a parry does to it, each lead's outcome (P, B, E, H, · it missed anyway),
+the furthest lead the guard holds from, where the parry's window lies and the evade's (against `GUARD.perfect` and
+`EVADE.iframes`), grouped by role or by world. An attack whose parry window is missing, or whose evade never takes,
+is a finding; an attack the guard can't hold from 0.3 s is one too.
 
 ## 2. The rubric, per foe (1-5 each)
 

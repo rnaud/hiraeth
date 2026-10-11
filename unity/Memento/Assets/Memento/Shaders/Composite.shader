@@ -212,13 +212,17 @@ Shader "Hidden/Memento/Composite"
       // their size swelling with two slow waves across the world (SPOT_SWELL), each projected to the screen; no jitter
       float2 spotUv(float3 S, float2 rA, float2 rB) { return (S.xy / max(-S.z, 1e-3) - rB) / rA; }
       // the plane of the surface seen at 'at' (q: normal, view depth) met along the ray r, between lo and hi (post.js planeAlong)
-      float planeAlong(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi)
+      // (taken only where the ray meets it within lim of where it was seen, m: post.js SPOT_PAST.near; 0: anywhere)
+      float planeNear(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi, float lim)
       {
         float3 nQ = mul(toView, q.xyz);
         float facing = dot(nQ, r);
-        float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, float3(at * rA + rB, -1.0) * q.w) / facing : hi;
+        float3 Q = float3(at * rA + rB, -1.0) * q.w;
+        float t = q.w > 0.0 && facing < 0.0 ? dot(nQ, Q) / facing : hi;
+        if (lim > 0.0 && length(r * t - Q) > lim) t = hi;
         return t > lo && t < hi ? t : hi;
       }
+      float planeAlong(float2 at, float4 q, float3 r, float3x3 toView, float2 rA, float2 rB, float lo, float hi) { return planeNear(at, q, r, toView, rA, rB, lo, hi, 0.0); }
       float enclosure(float2 uv, float3 nW, float d, float R, int taps)
       {
         float2 rB = viewPos(float2(0.0, 0.0), 1.0).xy, rA = viewPos(float2(1.0, 1.0), 1.0).xy - rB;
@@ -258,9 +262,15 @@ Shader "Hidden/Memento/Composite"
             float lo = sd;
             sd = -(P.z + o.z);
             float2 p2 = spotUv(P + 2.0 * o, rA, rB), p4 = spotUv(P + 4.0 * o, rA, rB);
-            if (step(fmod(tH(p2).a, 8.0), 1.5) > 0.5) sd = planeAlong(p2, tN(p2), r, toView, rA, rB, lo, sd);
-            if (step(fmod(tH(p4).a, 8.0), 1.5) > 0.5) sd = planeAlong(p4, tN(p4), r, toView, rA, rB, lo, sd);
-            for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeAlong(tuv[j], tq[j], r, toView, rA, rB, lo, sd);
+            if (step(fmod(tH(p2).a, 8.0), 1.5) > 0.5) sd = planeNear(p2, tN(p2), r, toView, rA, rB, lo, sd, 1.0 * Rm);
+            if (step(fmod(tH(p4).a, 8.0), 1.5) > 0.5) sd = planeNear(p4, tN(p4), r, toView, rA, rB, lo, sd, 1.0 * Rm);
+            for (int j = 0; j < n8; j++) if (tp[j] > 0.5) sd = planeNear(tuv[j], tq[j], r, toView, rA, rB, lo, sd, 1.5 * Rm);
+            // (and to either side of its place, along the other axis: where three planes meet, the others could all miss
+            // the one the person hides: post.js SPOT_PAST.side)
+            float3 op = (-sin(a) * t1 + cos(a) * t2) * rr * 1.5;
+            float2 s1 = spotUv(P + o + op, rA, rB), s2 = spotUv(P + o - op, rA, rB);
+            if (step(fmod(tH(s1).a, 8.0), 1.5) > 0.5) sd = planeNear(s1, tN(s1), r, toView, rA, rB, lo, sd, 2.0 * Rm);
+            if (step(fmod(tH(s2).a, 8.0), 1.5) > 0.5) sd = planeNear(s2, tN(s2), r, toView, rA, rB, lo, sd, 2.0 * Rm);
           }
           if (sd <= 0.0) continue;   // (the sky: open)
           float3 v = float3(tuv[i] * rA + rB, -1.0) * sd - P;
