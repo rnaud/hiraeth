@@ -3,10 +3,18 @@
 #ifndef MEMENTO_TRIPO_FACE_INCLUDED
 #define MEMENTO_TRIPO_FACE_INCLUDED
 
-  float4 _TfBrowA;
-  float4 _TfBrowB;
-  float4 _TfEye;
-  float4 _TfMouth;
+  #ifndef MEMENTO_PER_MATERIAL
+float4 _TfBrowA;
+#endif
+  #ifndef MEMENTO_PER_MATERIAL
+float4 _TfBrowB;
+#endif
+  #ifndef MEMENTO_PER_MATERIAL
+float4 _TfEye;
+#endif
+  #ifndef MEMENTO_PER_MATERIAL
+float4 _TfMouth;
+#endif
   float tfCover(float d, float w, float aa) { return 1.0 - smoothstep(w - 0.5 * aa, w + 0.5 * aa, d); }
   float tfOval(float2 p, float2 c, float2 h) { return 1.0 - smoothstep(0.8, 1.0, length((p - c) / h)); }
   // the parabola through three points: its height and slope at x

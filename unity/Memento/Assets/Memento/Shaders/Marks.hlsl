@@ -7,11 +7,13 @@
 #ifndef MEMENTO_MARKS_INCLUDED
 #define MEMENTO_MARKS_INCLUDED
 
+#ifndef MEMENTO_PER_MATERIAL   // (in Surface.shader's UnityPerMaterial buffer there: the SRP Batcher's)
 float _Weather;        // materials.js uWeather (0..1)
 float4 _Detail;        // uDetail: kind (0 none, 1 built, 2 organic), density
 float _Patch;          // uPatch: colour across a wall (0..1.5)
 float _Plates;         // uPlates
 float _Windows;        // uWindows: the share of a façade's cells with a window (0.78)
+#endif
 float _WearLite;       // the handheld's lighter weathering (global)
 float _Night;          // (global: the composite's too)
 

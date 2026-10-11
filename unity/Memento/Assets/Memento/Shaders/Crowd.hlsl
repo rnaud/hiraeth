@@ -17,7 +17,9 @@ struct CrowdInst
     float4 scale;   // x: height scale
 };
 StructuredBuffer<CrowdInst> _CrowdInst;
+#ifndef MEMENTO_PER_MATERIAL   // (in Surface.shader's UnityPerMaterial buffer there)
 float _CrowdTime;
+#endif
 
 float cmod(float x, float y) { return x - y * floor(x / y); }
 float3 crowdRGB(float f)

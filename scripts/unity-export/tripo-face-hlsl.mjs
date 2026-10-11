@@ -12,7 +12,8 @@ export const TRIPO_FACE_HLSL_PATH = fileURLToPath(new URL('../../unity/Memento/A
 /** GLSL (this one's plain subset: vectors, mix, smoothstep, step, sign) to HLSL. */
 export function tripoFaceHlsl(glsl = TRIPO_FACE_GLSL) {
   let s = glsl
-    .replace(/\buniform vec4 (uTf\w+);[^\n]*\n/g, 'float4 _$1;\n')
+    // (declared by Surface.shader's UnityPerMaterial buffer there, MEMENTO_PER_MATERIAL: the SRP Batcher's)
+    .replace(/\buniform vec4 (uTf\w+);[^\n]*\n/g, '#ifndef MEMENTO_PER_MATERIAL\nfloat4 _$1;\n#endif\n')
     .replace(/\buTf(\w+)/g, (m, k) => `Tf${k}`)
     .replace(/_uTf/g, '_Tf')
     .replace(/\bTf(BrowA|BrowB|Eye|Mouth)\b/g, '_Tf$1')

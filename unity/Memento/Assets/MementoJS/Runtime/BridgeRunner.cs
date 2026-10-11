@@ -248,7 +248,13 @@ namespace Memento.Bridge
         static void Experiments()
         {
             var urp = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            // (the GPU Resident Drawer: off on the Xbox, where it only kept books (our shaders have no DOTS instancing; off changed
+            // neither the load nor the frame); -grd keeps it, -no-grd elsewhere)
+#if UNITY_WSA && !UNITY_EDITOR
+            if (urp != null && !BridgeArgs.Flag("-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+#else
             if (urp != null && BridgeArgs.Flag("-no-grd")) urp.gpuResidentDrawerMode = GPUResidentDrawerMode.Disabled;
+#endif
             if (BridgeArgs.Arg("-ops-cap") is string cap && int.TryParse(cap, out int n)) BridgeHost.opsCap = n;
             // (the resolution the picture is made at: -render-scale x (URP's, up to 2: 2 at 1080p draws 4K's pixels), -resolution
             // WxH (the swap chain asked for: whether the console gives a UWP app 4K), both logged with what Unity has)

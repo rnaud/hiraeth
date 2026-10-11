@@ -105,6 +105,7 @@ test('the numbers go to LocalState\\unity.log, the native side apart from the sc
 test('the Xbox\'s experiments from LocalState\\args.txt: -idle (the spawn measured), -no-grd, -ops-cap; the frame\'s phases logged', () => {
   const runner = read('unity/Memento/Assets/MementoJS/Runtime/BridgeRunner.cs');
   assert.match(runner, /Flag\("-no-grd"\)\) urp\.gpuResidentDrawerMode = GPUResidentDrawerMode\.Disabled/);
+  assert.match(runner, /!BridgeArgs\.Flag\("-grd"\)\) urp\.gpuResidentDrawerMode = GPUResidentDrawerMode\.Disabled/, 'off on the Xbox');
   assert.match(runner, /Arg\("-ops-cap"\)/);
   const host = read('unity/Memento/Assets/MementoJS/Runtime/BridgeHost.cs');
   assert.match(host, /\(opsCap > 0 \? asks : ops\)\.Add\(ask\)/, 'a question is never held back by the cap');
@@ -149,4 +150,17 @@ test('the GPU driver\'s pipelines made early: the pairs the scene drew kept in L
   assert.match(runner, /BridgePrewarm\.Draw\(cam, !booted\)/);
   assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeMetrics.cs'), /BridgePrewarm\.Save\(\)/);
   assert.match(read('unity/Memento/Assets/MementoJS/Runtime/BridgeRenderer.cs'), /BridgePrewarm\.Note\(/);
+});
+
+test('the Surface shader is the SRP Batcher\'s: every value a material sets in one UnityPerMaterial buffer, the globals outside', () => {
+  const sh = read('unity/Memento/Assets/Memento/Shaders/Surface.shader');
+  const i = sh.indexOf('CBUFFER_START(UnityPerMaterial)'), j = sh.indexOf('CBUFFER_END');
+  assert.ok(i > 0 && j > i, 'one buffer');
+  assert.equal(sh.split('CBUFFER_START(UnityPerMaterial)').length, 2, 'only one');
+  const buf = sh.slice(i, j);
+  for (const k of ['_Color', '_Palette', '_Outfit', '_Limbs', '_FluidTones', '_Weather', '_TfEye', '_CrowdTime', '_GrassView', '_FarDepth']) assert.match(buf, new RegExp(`\\b${k}\\b`), k);
+  // the globals stay out: Shader.SetGlobal* would not reach a value in the material's buffer
+  for (const k of ['_SkyTop', '_EnvGround', '_Halftone', '_SunDir', '_MShadowOn', '_Night']) assert.doesNotMatch(buf, new RegExp(`\\b${k}\\b`), k);
+  assert.ok(sh.indexOf('#define MEMENTO_PER_MATERIAL') < sh.indexOf('#include "Figure.hlsl"'), 'the headers told before they are read');
+  for (const f of ['Figure.hlsl', 'Marks.hlsl', 'Crowd.hlsl', 'TripoFace.hlsl']) assert.match(read(`unity/Memento/Assets/Memento/Shaders/${f}`), /#ifndef MEMENTO_PER_MATERIAL/, f);
 });

@@ -63,27 +63,54 @@ Shader "Memento/Surface"
     HLSLINCLUDE
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "MementoCommon.hlsl"
-    #include "Figure.hlsl"
-    #include "Marks.hlsl"
-    #include "TripoFace.hlsl"
 
+    // every value a material sets, in one UnityPerMaterial buffer, the same in every pass: what the SRP Batcher needs to
+    // draw the scene's ~1 300 renderers on its fast path (Figure.hlsl, Marks.hlsl, TripoFace.hlsl and Crowd.hlsl leave
+    // theirs to it: MEMENTO_PER_MATERIAL). The globals (the look's, the light's, the shadow maps') stay outside.
+    #define MEMENTO_PER_MATERIAL
+    CBUFFER_START(UnityPerMaterial)
     float4 _Color, _Color2, _Color3;
     float _Mode, _Flat, _StrataSize, _Grid, _Glyphs, _Biomes, _Ripples, _SandInk, _Ticks, _Glow, _Folds, _Scrub, _Pattern, _Figure, _Hero, _Sway, _StrataObject, _PaletteSize;
     float4 _Palette[12];
     float _NoVertexColor;
     float4 _Metal; float4 _BrushAxis;
-    float3 _SkyTop, _SkyHorizon;   // (the composite's: what the metals see)
-    float3 _EnvGround;             // what lies below the horizon here (materials.js uEnvGround: the world's ground)
     float4 _WaterOpt, _WaterBed;
     float4 _BedBox;                // x0, z0 (three space), 1 / width, 1 / depth: where the bed map lies (Waters.cs bakes it)
     float4 _BedRef;                // x: the height the map is measured from, y: 1 once baked
-    TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
     float _Drift, _SpotStep, _LineStep, _ToDisplay, _FormOn, _Veins, _BoxOn, _TripoFace;
     float4 _Lining, _BoxA, _BoxB, _BoxMark, _BoxLight;
     float4 _Shade;         // materials.js uShade: lift, hue (-1 the world's; 2 + a flat print), hatch, strata strokes
-    float _Halftone, _Bounce;   // the look's shade tones (globals)
     float _Bind;           // people (Figures.cs): the rest pose in uv3 / uv4, so their drawing rides on the body
     float _Cracks;         // strata rock: dense cracks and strokes down its faces (materials.js uCracks; 0: the sparse fissures only)
+    // (Figure.hlsl's: the people's outfit, face, mood, limbs, the flask's fluid, a makers' box dissolving)
+    float4 _Outfit, _Skin, _Glove, _Trim, _Face, _Mood, _Mood2, _FaceKit, _FaceKit2, _EyeC, _EyeR, _EyeLook;
+    float _Creases;
+    float4 _Limbs[16];
+    float _Glass;
+    float4 _GlassCenter;
+    float _Fluid;
+    float4 _FluidA, _FluidB, _FluidBox;
+    float4 _FluidTones[6];
+    float4 _FluidBase;
+    float4 _Dissolve, _DissolveColor;
+    // (Marks.hlsl's: the surface marks)
+    float _Weather; float4 _Detail; float _Patch, _Plates, _Windows;
+    // (TripoFace.hlsl's: the coral-shirt traveller's drawn face)
+    float4 _TfBrowA, _TfBrowB, _TfEye, _TfMouth;
+    // (the passes' own that a material sets: the crowd's clock, the puffs' far fade, the grass's view)
+    float _CrowdTime;
+    float4 _FarDepth;
+    float4 _GrassView, _GrassLod, _GrassLook;
+    float _GrassMirrored;
+    CBUFFER_END
+
+    float3 _SkyTop, _SkyHorizon;   // (the composite's: what the metals see)
+    float3 _EnvGround;             // what lies below the horizon here (materials.js uEnvGround: the world's ground)
+    float _Halftone, _Bounce;   // the look's shade tones (globals)
+    TEXTURE2D(_Bed); SAMPLER(sampler_Bed);
+    #include "Figure.hlsl"
+    #include "Marks.hlsl"
+    #include "TripoFace.hlsl"
     #if defined(MEMENTO_VMAT)
       // a merged mesh's material values per vertex (materials.js S_VMAT): every read below takes the vertex's, set in frag
       static float4 vmColor, vmColor2, vmColor3;
@@ -243,14 +270,11 @@ Shader "Memento/Surface"
       // instanced puffs (smoke, embers, dust, footprints: Puffs.cs): where, how big, which way, what colour
       struct PuffInst { float4 at; float4 size; float4 col; };   // at.w yaw, size.w pitch, col.w roll (rad, Unity)
       StructuredBuffer<PuffInst> _Puffs;
-      float4 _FarDepth;
       // the grass tufts round the camera (Grass.cs, flora-grass.js): root xyz (Unity), height; turn, tint, lean, rank
       struct GrassInst { float4 at; float4 b; };
       StructuredBuffer<GrassInst> _GrassInst;
       // grass-shader.js: the patch's centre x, z (three space) and its edge fade's start and end (m); the thinning (start, end,
       // share kept, w 1: grows in, the far layer); the blend into the ground (start, end, height left, the pen-lined share)
-      float4 _GrassView, _GrassLod, _GrassLook;
-      float _GrassMirrored;   // 1: the tuft arrives mirrored in x (the bridge's meshes), 0 as three has it (Grass.cs)
       float3 rotXYZ(float3 v, float3 e)
       {
         float cx = cos(e.x), sx = sin(e.x), cy = cos(e.y), sy = sin(e.y), cz = cos(e.z), sz = sin(e.z);

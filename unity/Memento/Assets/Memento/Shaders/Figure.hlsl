@@ -10,6 +10,7 @@
 #define MODE_OUTFIT 4
 #define MODE_EYE 6
 
+#ifndef MEMENTO_PER_MATERIAL   // (in Surface.shader's UnityPerMaterial buffer there: the SRP Batcher's)
 float4 _Outfit;     // bootTop, beltY, neckY, wristX (rest pose, metres)
 float4 _Skin;
 float4 _Glove;      // rgb, a = 1: gloved hands
@@ -26,6 +27,7 @@ float _Creases;
 float4 _Limbs[16];  // bind pose limb segments: upper arm L/R, forearm L/R, thigh L/R, shin L/R (start, end)
 float _Glass;
 float4 _GlassCenter;
+#endif
 
 static const float3 EYE_INK = float3(0.10, 0.085, 0.09);
 
@@ -216,12 +218,14 @@ float outfitCreases(float3 p, float3 n, float dark)
 // a lava lamp in flat print tones: three bands of one tone each, metaball blobs of the others
 // rising, sinking and merging through them; the tank shows its fill (three charges = three bands),
 // sloshing, empty glass above, a highlight streak; a glob churns; a wing is a pale soap film
+#ifndef MEMENTO_PER_MATERIAL   // (in Surface.shader's UnityPerMaterial buffer there: the SRP Batcher's)
 float _Fluid;
 float4 _FluidA;    // fill · tones in the blend · time · kind (0 tank, 1 hose, 2 glob, 3 wing)
 float4 _FluidB;    // flash · refill · hose pulse head · slosh
 float4 _FluidBox;  // object space: glass bottom y, top y, radius, highlight angle
 float4 _FluidTones[6];
 float4 _FluidBase;   // the flask's own fluid, the colour the tones stream through (materials.js uFluidBase)
+#endif
 float3 fluidTone(int i) { return _FluidTones[i - 6 * (i / 6)].rgb; }
 float fmod2(float x, float y) { return x - y * floor(x / y); }
 float3 fluidLava(float a, float h, float aspect, float t, int n, bool banded)
@@ -320,6 +324,8 @@ float3 fluidAlbedo(float3 base, float3 b, float2 fold, float3 nrm, float3 toEye)
 }
 
 // ------------------------------------------------------------------ a makers' box coming apart (materials.js DISSOLVE)
+#ifndef MEMENTO_PER_MATERIAL   // (in Surface.shader's UnityPerMaterial buffer there: the SRP Batcher's)
 float4 _Dissolve;        // amount 0..1 · edge width · bottom y · top y (world, three space)
 float4 _DissolveColor;   // the burning edge
+#endif
 #endif
