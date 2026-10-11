@@ -599,6 +599,8 @@ const C49_ENGINE = { commit: '740920b4' };
 const EH = (x, y, z) => [-150 + x, 2200 + y, -280 + z];   // (the Engine-House's own metres, in the world)
 const C49_AERIE = { commit: 'e6ae6047' };
 const AE = (x, y, z) => [-390 + x, 1638 + y, -780 + z];   // (the Aerie's own metres, in the world)
+const C49_GREEN = { commit: 'be2aecbf' };
+const GR = (x, y, z) => [300 + x, 1700 + y, -450 + z];   // (the Greenhouse's own metres, in the world)
 export const CHANGELOG_MEDIA = {
   '1.49': [
     { match: 'In the Unity test build, water foams', shots: [
@@ -626,6 +628,16 @@ export const CHANGELOG_MEDIA = {
       { name: 'aerie-moult', title: 'The Moult', caption: 'The Moult, its moulted stone feathers heaped by the walls: its door shuts behind you while the keepers stand, the small key caged at the far end', ...C49_AERIE, only: 'after',
         view: { level: 'arzach', save: SAVE48_ARMED, hour: 11, fov: 75, eye: AE(-18.6, 4, 65.5), target: AE(-30, 1.5, 69.5), player: AE(-19.2, 0.05, 66.4) } },
     ], see: 'In the Aerie, west off the Wind Well’s floor into the Moult; with the wings, from the high balcony round the ledge into the Eyrie.' },
+    { match: 'In the Builders’ Greenhouse, the bud into the Vine Gulf is in the shade now', shots: [
+      { name: 'greenhouse-bud', title: 'The Bud Passage', caption: 'The bud into the Vine Gulf: before, in its sunbeam; after, in the shade, the louvre’s beam on the floor by the pots and a ball in its groove by the west wall, its plate under the rod to the louvre', ...C49_GREEN,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(2.6, 21, 91.7), target: GR(-1.5, 19.5, 102), player: GR(3, 18.05, 92) } },
+      { name: 'greenhouse-vaultdoor', title: 'Past the gulf', caption: 'The Vine Gulf’s far side, looking west: before, its wall; after, the doorway into the Seed Vault', ...C49_GREEN,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 70, eye: GR(-3, 21, 132.6), target: GR(-11.6, 20, 136.7), player: GR(-2.5, 18.05, 132.2) } },
+      { name: 'greenhouse-vault', title: 'The Seed Vault', caption: 'Two seeds at the foot of the glass, the ball between its two plates, the louvre’s beam on the floor; the great key on the ledge at the top', ...C49_GREEN, only: 'after',
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 75, eye: GR(-15.4, 22, 133.2), target: GR(-28, 22, 137.6), player: GR(-16, 18.05, 133.6) } },
+      { name: 'greenhouse-greatlock', title: 'The great lock', caption: 'Past the bud at the top of the glass: before, the way into the Glasshouse; after, a door with the great lock’s plate', ...C49_GREEN,
+        view: { level: 'edena', save: SAVE47, hour: 12, fov: 60, eye: GR(0, 29.4, 148.8), target: GR(0, 29.2, 151), player: GR(0, 27.05, 149.2) } },
+    ], see: 'In the Builders’ Greenhouse, in the Bud Passage past the chest; and across the Vine Gulf, west off its far side into the Seed Vault.' },
   ],
   '1.48': [
     // (the fight, issues #107 and #109: headless Chrome in the Arena, Handheld, 1280 × 720, Reduce motion on, the commit before and its own, 11 October)
